@@ -1,4 +1,11 @@
 2004-08-01 Gustaf.Neumann@wu-wien.ac.at
+        * changes to forward and instforward: 
+          providing positional arguments for the forwarder. It is now
+          possible to prefix the arguments with "%@POS ", where
+          POS can be a positive or negative number or "end". A negative
+          offset can be used to address relative to the end
+
+2004-08-01 Gustaf.Neumann@wu-wien.ac.at
         * xotcl.c: calling __unknown when an object with an unknown
           parent namespace is called (for handling nested object
           classes in Zoran's ttrace package)
