@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.15 2004/07/27 21:39:46 neumann Exp $
+/* $Id: xotcl.c,v 1.16 2004/07/28 08:01:25 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -1651,7 +1651,8 @@ XOTclCallStackFindLastInvocation(Tcl_Interp *in, int offset) {
 
   /* skip through toplevel inactive filters, do this offset times */
   for (csc=cs->top; csc > cs->content; csc--) {
-    if (csc->callsNext || (csc->frameType & XOTCL_CSC_INACTIVE_FLAG))
+    if ((csc->callType & XOTCL_CSC_CALL_IS_NEXT) ||
+	(csc->frameType & XOTCL_CSC_INACTIVE_FLAG))
       continue;
     if (offset)
       offset--;
@@ -1766,7 +1767,7 @@ CallStackPush(Tcl_Interp *in, XOTclObject *obj, XOTclClass *cl,
   csc->cmdPtr        = cmd;
   csc->destroyedCmd  = 0;
   csc->frameType     = frameType;
-  csc->callsNext     = 0;
+  csc->callType      = 0;
   csc->currentFramePtr = NULL; /* this will be set by InitProcNSCmd */
 
   if (frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER)
@@ -1806,6 +1807,8 @@ CallStackDestroyObject(Tcl_Interp *in, XOTclObject *obj) {
   for (csc = &cs->content[1]; csc <= cs->top; csc++) {
     if (csc->self == obj) {
       csc->destroyedCmd = oid;
+      csc->callType |= XOTCL_CSC_CALL_IS_DESTROY;
+      /*fprintf(stderr,"setting destroy on frame %p for obj %p\n",csc,obj);*/
       if (csc->destroyedCmd) {
 	Tcl_Command_refCount(csc->destroyedCmd)++;
 	MEM_COUNT_ALLOC("command refCount",csc->destroyedCmd);
@@ -1817,14 +1820,17 @@ CallStackDestroyObject(Tcl_Interp *in, XOTclObject *obj) {
      we have to directly destroy it, because CallStackPop won't
      find the object destroy */
   if (countSelfs == 0) {
+    /*fprintf(stderr,"directdestroy %p\n",obj);*/
     CallStackDoDestroy(in, obj);
-  } else
+  } else {
+    /*fprintf(stderr,"selfcount for %p = %d\n",obj,countSelfs);*/
     /* to prevail the deletion order call delete children now
        -> children destructors are called before parent's
        destructor */
     if (obj->teardown && obj->nsPtr) {
       NSDeleteChildren(in, obj->nsPtr);
     }
+  }
 }
 
 XOTCLINLINE static int
@@ -3755,6 +3761,7 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
 	      Tcl_Command cmd, XOTclObject *obj, XOTclClass *cl, char *methodName,
 	      int frameType, int isTclProc) {
   int result = TCL_OK, callStackPushed = 0;
+  XOTclRuntimeState *rst = RUNTIME_STATE(in);
   CheckOptions co;
 
 #if defined(PROFILE)
@@ -3767,9 +3774,9 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
 #endif
   assert(obj);
 
-  RUNTIME_STATE(in)->callIsDestroy = 0;
-  /*fprintf(stderr,"callProcCheck: setting callIsDestroy = 0, m=%s obj=%p\n",
-    methodName, obj);*/
+  rst->callIsDestroy = 0;
+  /*fprintf(stderr,"callProcCheck: setting callIsDestroy = 0, m=%s obj=%p (%s)\n",
+    methodName, obj, ObjStr(obj->cmdName));*/
 
   /*
   fprintf(stderr,"*** callProcCheck: cmd = %p\n",cmd);
@@ -3823,7 +3830,7 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
 #ifdef DISPATCH_TRACE
     printExit(in,"callProcCheck cmd", objc,objv, result);
     /*fprintf(stderr, " returnCode %d xotcl rc %d\n",
-      Tcl_Interp_returnCode(in), RUNTIME_STATE(in)->returnCode);*/
+      Tcl_Interp_returnCode(in), rst->returnCode);*/
 #endif
 
     /*
@@ -3833,7 +3840,7 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
       fprintf(stderr, "method=%s\n", methodName);
       }
     */
-    co = (!RUNTIME_STATE(in)->callIsDestroy) && obj->opt ? obj->opt->checkoptions : 0;
+    co = (!rst->callIsDestroy) && obj->opt ? obj->opt->checkoptions : 0;
     if ((co & CHECK_INVAR) &&
 	((result = AssertionCheckInvars(in, obj, methodName, co)) == TCL_ERROR)) {
       goto finish;
@@ -3885,7 +3892,8 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
       }
     }
 
-    if (obj->teardown && !(obj->flags & XOTCL_DESTROY_CALLED)) {
+    if (!rst->callIsDestroy && obj->teardown 
+	&& !(obj->flags & XOTCL_DESTROY_CALLED)) {
       co = obj->opt ? obj->opt->checkoptions : 0;
       if ((co & CHECK_PRE) &&
 	  (result = AssertionCheck(in, obj, cl, methodName, CHECK_PRE)) == TCL_ERROR) {
@@ -3894,7 +3902,7 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
     }
 
     if (Tcl_Interp_numLevels(in) <= 2)
-      RUNTIME_STATE(in)->returnCode = TCL_OK;
+      rst->returnCode = TCL_OK;
 #ifdef DISPATCH_TRACE
     printCall(in,"callProcCheck tclCmd", objc,objv);
     fprintf(stderr,"\tproc=%s\n",Tcl_GetCommandName(in,cmd));
@@ -3904,20 +3912,25 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
 #ifdef DISPATCH_TRACE
     printExit(in,"callProcCheck tclCmd", objc,objv, result);
     /* fprintf(stderr, " returnCode %d xotcl rc %d\n",
-       Tcl_Interp_returnCode(in), RUNTIME_STATE(in)->returnCode);*/
+       Tcl_Interp_returnCode(in), rst->returnCode);*/
 #endif
-    if (Tcl_Interp_numLevels(in) <= 2 && RUNTIME_STATE(in)->returnCode == TCL_BREAK)
+    if (Tcl_Interp_numLevels(in) <= 2 && rst->returnCode == TCL_BREAK)
       result = TCL_BREAK;
-    else if (result == TCL_BREAK && RUNTIME_STATE(in)->returnCode == TCL_OK)
-      RUNTIME_STATE(in)->returnCode = result;
+    else if (result == TCL_BREAK && rst->returnCode == TCL_OK)
+      rst->returnCode = result;
 
     /* we give the information whether the call has destroyed the
        object back to the caller, because after CallStackPop it
        cannot be retrieved via the call stack */
     /* if the object is destroyed -> the assertion structs's are already
        destroyed */
+    if (rst->cs.top->callType & XOTCL_CSC_CALL_IS_DESTROY) {
+      rst->callIsDestroy = 1;
+      /*fprintf(stderr,"callProcCheck: setting callIsDestroy = 1\n");*/
+    }
+    
     co = obj->opt ? obj->opt->checkoptions : 0;
-    if (!RUNTIME_STATE(in)->callIsDestroy &&  obj->teardown && (co & CHECK_POST) &&
+    if (!rst->callIsDestroy &&  obj->teardown && (co & CHECK_POST) &&
 	(result = AssertionCheck(in, obj, cl, methodName, CHECK_POST) == TCL_ERROR)) {
       goto finish;
     }
@@ -3928,7 +3941,7 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
     CallStackPop(in);
 
 #if defined(PROFILE)
-  if (RUNTIME_STATE(in)->callIsDestroy == 0) {
+  if (rst->callIsDestroy == 0) {
     XOTclProfileEvaluateData(in, startSec, startUsec, obj, cl, methodName);
   }
 #endif
@@ -4005,7 +4018,7 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
   Tcl_Obj *cmdName = obj->cmdName;
   XOTclRuntimeState *rst = RUNTIME_STATE(in);
   XOTclCallStack *cs = &rst->cs;
-  int isdestroy = (objv[1] == XOTclGlobalObjects[DESTROY]);
+  /*int isdestroy = (objv[1] == XOTclGlobalObjects[DESTROY]);*/
 #ifdef AUTOVARS
   int isNext;
 #endif
@@ -4156,15 +4169,16 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
 #endif
 
     /*    
-    if (!isdestroy && !rst->callIsDestroy )
-    fprintf(stderr, "obj freed? %p destroy %p self %p %s %d %d (%d)\n",obj,
+    if (!rst->callIsDestroy )
+    fprintf(stderr, "obj freed? %p destroy %p self %p %s %d [%d] reference=%d\n",obj,
 	    cs->top->destroyedCmd, cs->top->self, ObjStr(objv[1]),
 	    rst->callIsDestroy,
-	    (obj->flags & XOTCL_DESTROY_CALLED)!=0,isdestroy
+	    cs->top->callType & XOTCL_CSC_CALL_IS_DESTROY,
+	    !rst->callIsDestroy 
 	    );
     */
 
-    if (!isdestroy && !rst->callIsDestroy && 
+    if (!rst->callIsDestroy && 
 	!(obj->flags & XOTCL_DESTROY_CALLED)) {
       if (mixinStackPushed && obj->mixinStack)
 	MixinStackPop(obj);
@@ -5236,12 +5250,13 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *in, XOTclClass *givenCl,
       if (nobjv1[0] == '-' && !strcmp(nobjv1, "--noArgs"))
 	nobjc = 1;
     }
-    csc->callsNext = 1;
+    csc->callType |= XOTCL_CSC_CALL_IS_NEXT;
 
     result = DoCallProcCheck(cp, (ClientData)obj, in, nobjc, nobjv, cmd,
 			     obj, *cl, *method, frameType, 1/*fromNext*/);
 
-    csc->callsNext = 0;
+    csc->callType &= ~XOTCL_CSC_CALL_IS_NEXT;
+
     if (csc->frameType == XOTCL_CSC_TYPE_INACTIVE_FILTER)
       csc->frameType = XOTCL_CSC_TYPE_ACTIVE_FILTER;
     else if (csc->frameType == XOTCL_CSC_TYPE_INACTIVE_MIXIN)
@@ -5512,7 +5527,7 @@ UndestroyObj(Tcl_Interp *in, XOTclObject *obj) {
    * mark the object on the whole callstack as not destroyed
    */
   for (csc = &cs->content[1]; csc <= cs->top; csc++) {
-    if (obj == csc->self && csc->destroyedCmd != 0) {
+    if (obj == csc->self && csc->destroyedCmd) {
       /*
        * The ref count was incremented, when csc->destroyedCmd
        * was set. We revert this first before forgetting the
@@ -6070,7 +6085,7 @@ doCleanup(Tcl_Interp *in, XOTclObject *newobj, XOTclObject *classobj,
    * we check whether the object to be re-created is destroyed or not
    */
   for (csc = &cs->content[1]; csc <= cs->top; csc++) {
-    if (newobj == csc->self && csc->destroyedCmd != 0) {
+    if (newobj == csc->self && csc->destroyedCmd) {
       destroyed = 1; break;
     }
   }

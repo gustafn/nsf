@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.3 2004/07/27 09:35:18 neumann Exp $
+ *  $Id: xotclInt.h,v 1.4 2004/07/28 08:01:25 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -562,7 +562,7 @@ typedef struct XOTclCallStackContent {
   Tcl_Command destroyedCmd;
   Tcl_CallFrame *currentFramePtr;
   unsigned short frameType;
-  unsigned short callsNext;
+  unsigned short callType;
   XOTclFilterStack *filterStackEntry;
 } XOTclCallStackContent;
 
@@ -575,6 +575,9 @@ typedef struct XOTclCallStackContent {
 #define XOTCL_CSC_TYPE_INACTIVE_MIXIN 5
 #define XOTCL_CSC_TYPE_INACTIVE_FILTER 6
 #define XOTCL_CSC_TYPE_GUARD 8
+
+#define XOTCL_CSC_CALL_IS_NEXT 1
+#define XOTCL_CSC_CALL_IS_DESTROY 2
 
 typedef struct XOTclCallStack {
   XOTclCallStackContent content[MAX_NESTING_DEPTH];

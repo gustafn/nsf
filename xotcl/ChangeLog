@@ -1,4 +1,4 @@
-2004-07-27 Gustaf.Neumann@wu-wien.ac.at
+2004-07-28 Gustaf.Neumann@wu-wien.ac.at
         * yet another fixed access to freed memory 
           (thanks to Zoran for his help with Purify )
 
