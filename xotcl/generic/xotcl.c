@@ -1,5 +1,4 @@
-#define NAMESPACEINSTPROCS 1
-/* $Id: xotcl.c,v 1.8 2004/06/30 09:50:33 neumann Exp $
+/* $Id: xotcl.c,v 1.9 2004/07/01 10:39:34 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -3910,8 +3909,8 @@ DoCallProcCheck(ClientData cp, ClientData cd, Tcl_Interp *in,
   if (cp) {
     if (Tcl_Command_objProc(cmd) == XOTclOEvalMethod ||
 	Tcl_Command_objProc(cmd) == XOTclForwardMethod) {
-      /* fprintf(stderr,"calling oeval obj=%p %s\n", obj, ObjStr(obj->cmdName));
-      */
+      /*fprintf(stderr,"calling oeval obj=%p %s\n", obj, ObjStr(obj->cmdName));*/
+      
       tclCmdClientData *tcd = (tclCmdClientData *)cp;
       tcd->obj = (XOTcl_Object*)obj;
       xotclCall = 1;
@@ -4233,6 +4232,7 @@ ListInfo(Tcl_Interp *in, int isclass) {
   Tcl_AppendElement(in, "procs"); Tcl_AppendElement(in, "commands");
   Tcl_AppendElement(in, "class"); Tcl_AppendElement(in, "children");
   Tcl_AppendElement(in, "filter"); Tcl_AppendElement(in, "filterguard");
+  Tcl_AppendElement(in, "forward");
   Tcl_AppendElement(in, "info");
   Tcl_AppendElement(in, "invar"); Tcl_AppendElement(in, "mixin");
   Tcl_AppendElement(in, "methods");
@@ -4244,6 +4244,7 @@ ListInfo(Tcl_Interp *in, int isclass) {
     Tcl_AppendElement(in, "instcommands"); Tcl_AppendElement(in, "instprocs");
     Tcl_AppendElement(in, "instdefault"); Tcl_AppendElement(in, "instbody");
     Tcl_AppendElement(in, "instmixin");
+    Tcl_AppendElement(in, "instforward");
     Tcl_AppendElement(in, "classchildren"); Tcl_AppendElement(in, "classparent");
     Tcl_AppendElement(in, "instfilter"); Tcl_AppendElement(in, "instfilterguard");
     Tcl_AppendElement(in, "instinvar");
@@ -4372,7 +4373,7 @@ ListObjPtrHashTable(Tcl_Interp *in, Tcl_HashTable *table, char *pattern) {
 
 static int
 ListMethodKeys(Tcl_Interp *in, Tcl_HashTable *table, char *pattern,
-	       int noProcs, int noCmds, int noDups) {
+	       int noProcs, int noCmds, int noDups, int onlyForwarder) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry* hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : 0;
   for (; hPtr != 0; hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -4383,6 +4384,7 @@ ListMethodKeys(Tcl_Interp *in, Tcl_HashTable *table, char *pattern,
     if (pattern && !Tcl_StringMatch(key, pattern)) continue;
     if (noCmds  && proc != RUNTIME_STATE(in)->objInterpProc) continue;
     if (noProcs && proc == RUNTIME_STATE(in)->objInterpProc) continue;
+    if (onlyForwarder && proc != XOTclForwardMethod) continue;
     if (noDups) {
       int listc, i;
       Tcl_Obj **listv;
@@ -4407,13 +4409,59 @@ ListMethodKeys(Tcl_Interp *in, Tcl_HashTable *table, char *pattern,
   return TCL_OK;
 }
 
+static int 
+forwardList(Tcl_Interp *in, Tcl_HashTable *table, char *pattern, 
+	    int definition) {
+  int rc;
+  if (definition) {
+    Tcl_HashEntry* hPtr = table ? Tcl_FindHashEntry(table, pattern) : 0;
+    if (hPtr) {
+      Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
+      ClientData cd = cmd? Tcl_Command_objClientData(cmd) : NULL;
+      forwardCmdClientData *tcd = (forwardCmdClientData *)cd;
+      if (tcd) {
+	Tcl_Obj *list = Tcl_NewListObj(0, NULL);
+	if (tcd->prefix) {
+	  Tcl_ListObjAppendElement(in, list, Tcl_NewStringObj("-methodprefix",-1));
+	  Tcl_ListObjAppendElement(in, list, tcd->prefix);
+	}
+	if (tcd->subcommands) {
+	  Tcl_ListObjAppendElement(in, list, Tcl_NewStringObj("-default",-1));
+	  Tcl_ListObjAppendElement(in, list, tcd->subcommands);
+	}
+	if (tcd->inscope) {
+	  Tcl_ListObjAppendElement(in, list, Tcl_NewStringObj("-inscope",-1));
+	}
+	Tcl_ListObjAppendElement(in, list, tcd->cmdName);
+	if (tcd->args) {
+	  Tcl_Obj **args;
+	  int nrArgs, i;
+	  Tcl_ListObjGetElements(in, tcd->args, &nrArgs, &args);
+	  for (i=0; i<nrArgs; i++) {
+	    Tcl_ListObjAppendElement(in, list, args[i]);
+	  }
+	}
+	Tcl_SetObjResult(in,list);
+      } else {
+	/* ERROR HANDLING ****GN**** */
+      }
+    } else {
+      /* ERROR HANDLING ****GN**** */
+    }
+    rc = TCL_OK;
+  } else {
+    rc = ListMethodKeys(in, table, pattern, 1, 0, 0, 1);
+  }
+  return rc;
+}
+
 static int
 ListMethods(Tcl_Interp *in, XOTclObject *obj, char *pattern,
 	    int noProcs, int noCmds, int noMixins, int inContext) {
   XOTclClasses* pl;
   if (obj->nsPtr) {
     Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(obj->nsPtr);
-    ListMethodKeys(in, cmdTable, pattern, noProcs, noCmds, 0);
+    ListMethodKeys(in, cmdTable, pattern, noProcs, noCmds, 0, 0);
   }
 
   if (!noMixins) {
@@ -4433,7 +4481,7 @@ ListMethods(Tcl_Interp *in, XOTclObject *obj, char *pattern,
 	}
 	if (mixin && guardOk == TCL_OK) {
 	  Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(mixin->nsPtr);
-	  ListMethodKeys(in, cmdTable, pattern, noProcs, noCmds, 1);
+	  ListMethodKeys(in, cmdTable, pattern, noProcs, noCmds, 1, 0);
 	}
 	ml = ml->next;
       }
@@ -4443,7 +4491,7 @@ ListMethods(Tcl_Interp *in, XOTclObject *obj, char *pattern,
   /* append per-class filters */
   for (pl = ComputeOrder(obj->cl, Super); pl; pl = pl->next) {
     Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(pl->cl->nsPtr);
-    ListMethodKeys(in, cmdTable, pattern, noProcs, noCmds, 1);
+    ListMethodKeys(in, cmdTable, pattern, noProcs, noCmds, 1, 0);
   }
   return TCL_OK;
 }
@@ -6119,9 +6167,14 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
   if (objc < 2)
     return XOTclObjErrArgCnt(in, obj->cmdName, "info <opt> ?args?");
 
+
+
+
   opt = obj->opt;
   cmd = ObjStr(objv[1]);
   pattern = (objc > 2) ? ObjStr(objv[2]) : 0;
+
+  /*fprintf(stderr, "OInfo cmd=%s, obj=%s, nsp=%p\n",cmd,ObjStr(obj->cmdName),nsp);*/
 
   /*
    * check for "-" modifiers
@@ -6221,7 +6274,19 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
       if (objc != 3 || modifiers > 0)
 	return XOTclObjErrArgCnt(in, obj->cmdName, "info filterguard filter");
       return opt ? GuardList(in, opt->filters, pattern) : TCL_OK;
+    } else if (!strcmp(cmd, "forward")) {
+      int argc = objc-modifiers;
+      int definition;
+      if (argc < 2 || argc > 3)
+	return XOTclObjErrArgCnt(in, obj->cmdName,
+				 "info forward ?-definition? ?name?");
+      definition = checkForModifier(objv, modifiers, "-definition");
+      if (nsp) 
+	return forwardList(in, Tcl_Namespace_cmdTable(nsp), pattern, definition);
+      else 
+	return TCL_OK;
     }
+
     break;
 
   case 'h':
@@ -6300,7 +6365,7 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
 	return XOTclObjErrArgCnt(in, obj->cmdName, "info procs ?pat?");
       if (nsp)
 	return ListMethodKeys(in, Tcl_Namespace_cmdTable(nsp), pattern,
-			      /*noProcs*/ 0, /*noCmds*/ 1, /* noDups */ 0 );
+			      /*noProcs*/ 0, /*noCmds*/ 1, /* noDups */ 0, 0 );
       else
 	return TCL_OK;
     } else if (!strcmp(cmd, "parent")) {
@@ -6949,7 +7014,7 @@ static int
 XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]) {
   forwardCmdClientData *tcd = (forwardCmdClientData *)cd;
   XOTcl_FrameDecls;
-  int result, nrargs, j, inputarg, outputarg=0, clientargs=0;
+  int result, j, inputarg=1, outputarg=0, clientargs=0;
   if (!tcd || !tcd->obj) return XOTclObjErrType(in, objv[0], "Object");
 
   if (tcd->args) {
@@ -6958,17 +7023,15 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv
 
   {
     DEFINE_NEW_TCL_OBJS_ON_STACK(objc + clientargs + 3, OV);
-    Tcl_Obj **ov=&OV[1];
+    Tcl_Obj **ov=&OV[1], *freeList=NULL;
     XOTclCallStackContent *top = RUNTIME_STATE(in)->cs.top;
 
     /* it is a c-method; establish a value for the currentFramePtr */
     top->currentFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(in);
 
-    inputarg = 1;
-    nrargs = objc-inputarg;
 #if 0
-    fprintf(stderr,"command %s (%p) nrargs=%d, subcommand=%d, args=%p\n", 
-	    ObjStr(objv[0]), tcd, nrargs,
+    fprintf(stderr,"command %s (%p) objc=%d, subcommand=%d, args=%p, nrargs\n", 
+	    ObjStr(objv[0]), tcd, objc,
 	    tcd->nr_subcommands,
 	    tcd->args
 	    );
@@ -6986,13 +7049,15 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv
       for (j=0; j<nrElements; j++) {
 	char *element = ObjStr(listElements[j]);
 	if (*element == '%') {
-	  if (*(element+1) == 's' && !strcmp(element,"%self")) {
+	  char c = *(element+1);
+	  if (c == 's' && !strcmp(element,"%self")) {
 	    ov[outputarg++] = tcd->obj->cmdName;
 	    continue;
-	  } else if (*(element+1) == 'p' && !strcmp(element,"%proc")) {
+	  } else if (c == 'p' && !strcmp(element,"%proc")) {
 	    ov[outputarg++] = objv[0];
 	    continue;
-	  } else if (*(element+1) == '1' && (*(element+2) == '\0')) {
+	  } else if (c == '1' && (*(element+2) == '\0')) {
+	    int nrargs = objc-1;
 	    /*fprintf(stderr, "   nrargs=%d, subcommands=%d inputarg=%d, objc=%d\n", 
 	      nrargs, tcd->nr_subcommands, inputarg, objc);*/
 	    if (tcd->nr_subcommands > nrargs) {
@@ -7001,11 +7066,23 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv
 	      if (rc != TCL_OK)
 		return rc;
 	      outputarg++;
-	    } else if (objc<=inputarg) {
+	    } else if (objc<=1) {
+	      if (freeList) {DECR_REF_COUNT(freeList);}
 	      return XOTclObjErrArgCnt(in, objv[0], "no argument given");
 	    } else {
-	      ov[outputarg++] = objv[inputarg++];
+	      ov[outputarg++] = objv[1];
+	      inputarg = 2;
 	    }
+	    continue;
+	  } else if (c == '%') {
+	    Tcl_Obj *newarg = Tcl_NewStringObj(element+1,-1);
+	    if (!freeList) {
+	      freeList = Tcl_NewListObj(1, &newarg);
+	      INCR_REF_COUNT(freeList);
+	    } else {
+	      Tcl_ListObjAppendElement(in, freeList, newarg);
+	    }
+	    ov[outputarg++] = newarg;
 	    continue;
 	  }
 	}
@@ -7013,9 +7090,8 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv
       }
     }
     /*
-    fprintf(stderr, "nrargs=%d, objc=%d, tcd->nr_subcommands=%d size=%d\n",
-	    nrargs, objc, tcd->nr_subcommands,
-	    objc+ 2	    );*/
+    fprintf(stderr, "objc=%d, tcd->nr_subcommands=%d size=%d\n",
+	    objc, tcd->nr_subcommands, objc+ 2	    );*/
     
     
     if (objc-inputarg>0) {
@@ -7059,9 +7135,8 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv
       XOTcl_PopFrame(in, tcd->obj);
     }
 
-    if (tcd->prefix) {
-      DECR_REF_COUNT(ov[1]);
-    }
+    if (freeList)    {DECR_REF_COUNT(freeList);}
+    if (tcd->prefix) {DECR_REF_COUNT(ov[1]);}
     
     FREE_TCL_OBJS_ON_STACK(OV);
   }
@@ -8207,6 +8282,17 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]
 	    return XOTclObjErrArgCnt(in, cl->object.cmdName,
 				     "info instfilterguard filter");
 	  return opt ? GuardList(in, opt->instfilters, pattern) : TCL_OK;
+	} else if (!strcmp(cmdTail, "forward")) {
+	  int argc = objc-modifiers;
+	  int definition;
+	  if (argc < 2 || argc > 3)
+	    return XOTclObjErrArgCnt(in, cl->object.cmdName,
+				     "info instforward ?-definition? ?name?");
+	  definition = checkForModifier(objv, modifiers, "-definition");
+	  if (nsp) 
+	    return forwardList(in, Tcl_Namespace_cmdTable(nsp), pattern, definition);
+	  else
+	    return TCL_OK;
 	}
 	break;
 
@@ -8250,7 +8336,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]
 	  if (objc > 3 || modifiers > 0)
 	    return XOTclObjErrArgCnt(in, cl->object.cmdName, "info instprocs ?pat?");
 	  return ListMethodKeys(in, Tcl_Namespace_cmdTable(nsp), pattern,
-				/*noProcs*/ 0, /*noCmds*/ 1, /* noDups */ 0);
+				/*noProcs*/ 0, /*noCmds*/ 1, /* noDups */ 0, 0);
 	} else if (!strcmp(cmdTail, "pre")) {
 	  XOTclProcAssertion* procs;
 	  if (objc != 3 || modifiers > 0)
@@ -8495,21 +8581,26 @@ forwardProcessOptions(Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[],
     } else if (!strcmp(ObjStr(objv[i]),"-inscope")) {
       tcd->inscope = 1;      
     } else {
-      if (tcd->cmdName == 0) {
-	tcd->cmdName = objv[2];
-      } else if (tcd->args == 0) {
-	tcd->args = Tcl_NewListObj(1, &objv[i]);
-	INCR_REF_COUNT(tcd->args);
-      } else {
-	Tcl_ListObjAppendElement(in, tcd->args, objv[i]);
-      }
+      break;
+    }
+  }
+  
+  for (; i<objc; i++) {
+    if (tcd->cmdName == 0) {
+      tcd->cmdName = objv[i];
+    } else if (tcd->args == 0) {
+      tcd->args = Tcl_NewListObj(1, &objv[i]);
+      INCR_REF_COUNT(tcd->args);
+    } else {
+      Tcl_ListObjAppendElement(in, tcd->args, objv[i]);
     }
   }
 
-  if (!tcd->cmdName) 
-    tcd->cmdName = objv[1];
-
-  INCR_REF_COUNT(tcd->cmdName);
+  if (!tcd->cmdName) {
+    rc = TCL_ERROR;
+  } else {
+    INCR_REF_COUNT(tcd->cmdName);
+  }
 
   if (rc == TCL_OK) {
     *tcdp = tcd;

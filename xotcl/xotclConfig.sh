@@ -26,7 +26,7 @@ XOTCL_BUILD_LIB_SPEC='-L/home/neumann/xotcl-1.2.1 -lxotcl1.2.1'
 
 # String to pass to linker to pick up the XOTcl library from its
 # installed directory.
-XOTCL_LIB_SPEC='-L/usr/lib -lxotcl1.2.1'
+XOTCL_LIB_SPEC='-L/usr/lib/xotcl1.2.1 -lxotcl1.2.1'
 
 # The name of the XOTcl stub library (a .a file):
 # XOTCL_STUB_LIB_FILE=libxotclstub1.2.1.a
@@ -37,11 +37,11 @@ XOTCL_BUILD_STUB_LIB_SPEC='-L/home/neumann/xotcl-1.2.1 -lxotclstub1.2.1'
 
 # String to pass to linker to pick up the XOTcl stub library from its
 # installed directory.
-XOTCL_STUB_LIB_SPEC='-L/usr/lib -lxotclstub1.2.1'
+XOTCL_STUB_LIB_SPEC='-L/usr/lib/xotcl1.2.1 -lxotclstub1.2.1'
 
 # Name of the xotcl stub library with full path in build and install directory
 XOTCL_BUILD_STUB_LIB_PATH='/home/neumann/xotcl-1.2.1/libxotclstub1.2.1.a'
-XOTCL_STUB_LIB_PATH='/usr/lib/libxotclstub1.2.1.a'
+XOTCL_STUB_LIB_PATH='/usr/lib/xotcl1.2.1/libxotclstub1.2.1.a'
 
 # Location of the top-level source directories from which XOTcl
 # was built.  This is the directory that contains generic, unix, etc.

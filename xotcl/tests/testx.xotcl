@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.7 2004/06/30 09:50:33 neumann Exp $
+#$Id: testx.xotcl,v 1.8 2004/07/01 10:39:34 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -3013,7 +3013,7 @@ objectReferences proc run {{n 20}} {
   Class O -superclass UnknownClass
   ::errorCheck $::utest ::UnknownClass "[self]: __unknown"
   
-  ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard heritage info instances instbody instcommands instdefault instfilter instfilterguard instinvar instmixin instpost instpre instprocs invar methods mixin parameter parent post pre procs subclass superclass vars} "[self]: info info"
+  ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard forward heritage info instances instbody instcommands instdefault instfilter instfilterguard instforward instinvar instmixin instpost instpre instprocs invar methods mixin parameter parent post pre procs subclass superclass vars} "[self]: info info"
 
   ::errorCheck [Class info instances *Unk*] ::UnknownClass "match in info instances"
   ::errorCheck [Class info instances Unk*] "" "no match in info instances"

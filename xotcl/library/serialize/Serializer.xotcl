@@ -1,6 +1,6 @@
-# $Id: Serializer.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: Serializer.xotcl,v 1.2 2004/07/01 10:39:34 neumann Exp $
 package require XOTcl 1.0
-package provide xotcl::serializer 0.3
+package provide xotcl::serializer 0.4
 
 @ @File {
     description {
@@ -11,7 +11,7 @@ package provide xotcl::serializer 0.3
     authors {
         Gustaf Neumann, Gustaf.Neumann@wu-wien.ac.at
     }
-    date { $Date: 2004/05/23 22:50:39 $ }
+    date { $Date: 2004/07/01 10:39:34 $ }
 }
   
 @ Serializer proc all {
@@ -124,6 +124,10 @@ Serializer instproc Object-serialize o {
   foreach i [$o info procs] {
     append cmd " " [my method-serialize $o $i ""] " \\\n"
   }
+  foreach i [$o info forward] {
+    set fwd [concat [list forward $i] [$o info forward -definition $i]]
+    append cmd \t [my pcmd $fwd] " \\\n"
+  }
   set vset {}
   set nrVars 0
   foreach v [$o info vars] {
@@ -155,6 +159,10 @@ Serializer instproc Class-serialize o {
   }
   foreach i [$o info instprocs] {
     append cmd " " [my method-serialize $o $i inst] " \\\n"
+  }
+  foreach i [$o info instforward] {
+    set fwd [concat [list instforward $i] [$o info instforward -definition $i]]
+    append cmd \t [my pcmd $fwd] " \\\n"
   }
   foreach x {superclass instmixin instinvar} {
     set v [$o info $x]

@@ -1,20 +1,33 @@
-2004-06-20 Gustaf.Neumann@wu-wien.ac.at
+2004-07-01 Gustaf.Neumann@wu-wien.ac.at
+        * xotcl.c: allow literal %self, %proc, %1 etc. as arguments of the forwarder:
+          arguments in the definition of a forwarder proc
+          starting with two %-characters are changed into arguments starting
+          with one % 
+        * xotcl.c: forced options to be placed in forward definition after 
+          <proc> before <target>
+        * xotcl.c: new info option for Object and Class:
+             info <inst>forward ?-definition? ?pattern?
+          list the defined forwarder for the class/object.
+        * Serializer.xotcl; Added handling of the forwarders to the serializer.
+          Therefore forwarders are kept in the serialized state.       
+
+2004-06-29 Gustaf.Neumann@wu-wien.ac.at
         * changed name of delegator methods to forward/instforward
         * removed most of the switches of the forwarder. We have now
  
-             obj forward <proc> <target> ?<arglist>? ?options?
-          where <arglist> might contain 
+             obj forward <proc> ?options? <target> ?arglist? 
+          where arglist might contain 
             * %self for inserting the forwarding object
             * %proc for inserting the forwarding method
             * %1    for using the first argument of the invocation
-          option might contain:
+          options might contain:
             -inscope: evalute method in obj scope
             -methodprefix: prefix, to be added in front of called method 
                       (to avoid name clashes with methods like "set", "mixin" etc.)
             -default list-of-methods: to be used in connection with %1, when there
                       are not enough arguments in the actual call.
         
-2004-06-240 Gustaf.Neumann@wu-wien.ac.at
+2004-06-24 Gustaf.Neumann@wu-wien.ac.at
 	* fixed coredump for delegation to object without method specified
           (many thanks fot Bryan Schofield for the bug report)
 	

@@ -1,6 +1,6 @@
 /* -*- Mode: c++ -*-
  *
- *  $Id: xotcl.h,v 1.1 2004/05/23 22:50:39 neumann Exp $
+ *  $Id: xotcl.h,v 1.2 2004/07/01 10:39:34 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -40,6 +40,9 @@
 # endif
 #endif
 
+/* new namespace support (post 1.2.0 */
+#define NAMESPACEINSTPROCS 1
+
 /* activate bytecode support 
 #define XOTCL_BYTECODE
 */
@@ -49,6 +52,7 @@
 /* activate/deacticate assert 
 #define NDEBUG
 */
+
 
 /* activate/deacticate memory tracing 
 #define XOTCL_MEM_TRACE 1
