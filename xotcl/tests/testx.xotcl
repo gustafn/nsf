@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.2 2004/06/18 07:15:17 neumann Exp $
+#$Id: testx.xotcl,v 1.3 2004/06/18 07:57:36 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -1173,24 +1173,24 @@ filterInfo proc run {{n 20}} {
 	Class T0
       FI addFilter T0
       T0 instproc m {} {
-	#if {[string first "-0=showStack-1=shwCall-2=m-3=m-4=m-5=run-6=run" [showCall]] == -1} {    
-	#  puts stderr "FAILED - Wrong calling stack in T0 m: [showCall]"
-	#  puts stderr "expected = '-0=showStack-1=shwCall-2=m-3=m-4=m-5=run-6=run'"
-	#  puts stderr "got      = '[showCall]'"
-	#  
-	#  exit
-	#}
+	set e -0=showStack-1=showCall-2=m-3=m-4=m-5=run-6=run
+	if {[string first $e [showCall]] == -1} {    
+	  puts stderr "FAILED - Wrong calling stack in T0 m: [showCall]"
+	  puts stderr "expected = '$e'"
+	  puts stderr "got      = '[showCall]'"
+	  exit
+	}
 	return [self]-[self proc]-[self class]-[my info class] 
       }	
       Class T1 -superclass T0
       T1 instproc m {} {
-	#if {[string first "-0=showStack-1=showCall-2=m-3=-4=m-5=run-6=run" [showCall]] == -1} {
-	#  puts stderr "FAILED - Wrong calling stack in T1 m: [showCall]"
-	#  puts stderr "expected = '-0=showStack-1=shwCall-2=m-3=m-4=m-5=run'"
-	#  puts stderr "got      = '[showCall]'"
-
-	#  exit
-	#}	  
+	set e 0=showStack-1=showCall-2=m-3=m-4=run-5=run
+	if {[string first $e [showCall]] == -1} {
+	  puts stderr "FAILED - Wrong calling stack in T1 m: [showCall]"
+	  puts stderr "expected = '$e'"
+	  puts stderr "got      = '[showCall]'"
+	  exit
+	}	  
 	
 	set r1 before-[self]-[self proc]-[self class]-[my info class] 
 	set r2 [next]

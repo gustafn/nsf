@@ -1,10 +1,15 @@
+2004-06-13 jim@jam.sessionsnet.org
+        * fixed make distclean target
+          factored list of configure output files into macro made sure
+          value of output files got through to make distclean target
+
 2004-06-12 Gustaf.Neumann@wu-wien.ac.at
-	* changed namespace treatment in procs/instprocs
-          in provious versions, methods were evaluated in the namespace
-          where they are invoked. This has the problem that either
-          the xotcl primitives (next,my,self) have to be prefixed 
-          in methods by ::xotcl::, or ::xotcl::* has to be imported
-          globally. Now, the instprocs are evaluated in the
+        * changed namespace treatment in procs/instprocs
+          in provious versions, methods were evaluated in the
+          namespace where they are invoked. This has the problem that
+          either the xotcl primitives (next,my,self) have to be
+          prefixed in methods by ::xotcl::, or ::xotcl::* has to be
+          imported globally. Now, the instprocs are evaluated in the
           namespace where they are defined.
         * computing default prefixes in insttclcmd/tcllcmd for 
           not fully qualified commands
@@ -16,33 +21,40 @@
                    ?-methodprefix string? \
                    ?-insert tokens?
           where 
-            methodname: name of an instcommand for a class to be registered,
-	    commandname: command that recieves delegation
-            defaultmethod: when number of arguments is low, allows for method to
-               be inserted (e.g. result of [$obj info], which can be mapped to
-               ::xotcl::info info)
-            methodprefix: prefix, to be added in front of subcommand to avoid
-               name clashes with "set", etc.
+            methodname: name of an instcommand for a class 
+                   to be registered,
+            commandname: command that recieves delegation
+            defaultmethod: when number of arguments is low, 
+                   allows for method to
+                   be inserted (e.g. result of [$obj info], 
+                   which can be mapped to ::xotcl::info info)
+            methodprefix: prefix, to be added in front of 
+                   subcommand to avoidname clashes with "set", etc.
             insert: tokens to be inserted.
+
             A call to a delegated method 
                X method subcmd arg1 arg2...
             can be mapped to
                COMMANDNAME subcmd [self] INSERTTOKENS arg1 arg2...
 
-         * defined metaclass ::xotcl:.SelfApplicableClass to allow for 
-           instprocs of this class to be applicable for itself (useful for
-           delegation objects)
+        * defined metaclass ::xotcl:.SelfApplicableClass to allow 
+          for instprocs of this class to be applicable for itself
+          (useful for delegation objects)
 
-         * first version of ::xotcl::relations (for relations between objects and
-           classes and for inter-class-relations)
+        * first version of ::xotcl::relations 
+          (for relations between objects and classes and for
+          inter-class-relations)
 
 2004-05-22 Gustaf.Neumann@wu-wien.ac.at
-        * fixed path for installing files in Makefile.in (many thanks to Jeffrey Hobbs)
+        * fixed path for installing files in Makefile.in 
+          (many thanks to Jeffrey Hobbs)
         * fixed path searching in xotcl.m4
 
 2004-05-07 Gustaf.Neumann@wu-wien.ac.at
-        * fixed compiled problems under HPUX (with the help of Attila Dona')
-        * fixed some compiler warnings in tcl-expat showing up (some are still missing)
+        * fixed compile problems under HPUX 
+          (with the help of Attila Dona')
+        * fixed some compiler warnings in tcl-expat showing up 
+          (some are still missing)
           with -Wall -Wconversion -Wno-implicit-int
 
 2004-04-30 Gustaf.Neumann@wu-wien.ac.at
@@ -56,9 +68,11 @@
 2004-04-25 Gustaf.Neumann@wu-wien.ac.at
         * alloc returns name of created object
         * On an "Object create ::o1 -noinit"  the noinit option
-          deactivates the search for default values (as used in the serializer)
+          deactivates the search for default values 
+          (as used in the serializer)
         * TEA3 changes:
-           - re-included xotclConfig.sh file in xotcl dependent libraries
+           - re-included xotclConfig.sh file in xotcl dependent 
+             libraries
            - fixed variable contents in xotclConfig.sh file
            - passing of include and spec file for gdbm
 
@@ -66,14 +80,15 @@
         * start to move to TEA3
         * moved tcl scripts xotclsh and xowish intp apps/utils
         * made minimal build independent from tclsh;
-          new target libraries-pkgindex, fulldoc, doc removed from default targets
+          new target libraries-pkgindex, fulldoc, doc removed 
+          from default targets
         * at least for the time being, no static shells
 
 2004-03-23 Gustaf.Neumann@wu-wien.ac.at
         * added a flag --with-aolserver3 to configure and removed
           the checking of the current directory to determine whether
-          or not to compile an AOLserver 3.* module. Thanks 
-          to Jim Lynch to suggestion it.
+          or not to compile an AOLserver 3.* module. Thanks to Jim
+          Lynch to suggestion it.
 
 2004-03-03 Gustaf.Neumann@wu-wien.ac.at
         * fixed a potential crash in procSearch method (Thanks to  
@@ -91,46 +106,52 @@
         * release of distribution XOTcl 1.2.0
 
 2004-02-17 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
-	* fixed a Tcl_Obj ref count free that was called too early.
-	* fixed support for Visual CC debugger
-	* fixed Win version info
-	
+        * fixed a Tcl_Obj ref count free that was called too early.
+        * fixed support for Visual CC debugger
+        * fixed Win version info
+        
 2004-02-16 Gustaf.Neumann@wu-wien.ac.at
-	* fixed a reference to a structure of a destoyed object
+        * fixed a reference to a structure of a destoyed object
 
 2004-02-16 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
-	* added self class and self proc context to GuardCall
-	* removed guardedScope and info guardedlevel completely from the code 
-	  -> use parameters instead (see tutorial)
-	* rewritten the tutorial text for mixin/filter guards completely
-	* added new files to Win makefile.vc
-	
+        * added self class and self proc context to GuardCall
+        * removed guardedScope and info guardedlevel completely 
+          from the code 
+          -> use parameters instead (see tutorial)
+        * rewritten the tutorial text for mixin/filter guards completely
+        * added new files to Win makefile.vc
+        
 2004-02-14 Gustaf.Neumann@wu-wien.ac.at
         * experimental new command "self guardedlevel" as replacement 
           for getGuardedScope
-        * added documentation for self callinglevel, self activelevel and
-          the methods upvar and uplevel
-        * used a bold font for predefined Tcl and XOTcl words in the HTML
-          version of the tutorial
+        * added documentation for self callinglevel, self 
+          activelevel and the methods upvar and uplevel
+        * used a bold font for predefined Tcl and XOTcl words 
+          in the HTML version of the tutorial
 
 2004-02-13 Gustaf.Neumann@wu-wien.ac.at
         * xotcl.c more code cleanup:
           - some minor performance improvement
-          - used the same idiom for iterating over a class hierarchy consistently
-          - simplified the usage of ComputeOrder() and let the optimizer do more work
+          - used the same idiom for iterating over a class 
+            hierarchy consistently
+          - simplified the usage of ComputeOrder() and let 
+            the optimizer do more work
 
 2003-02-04 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
-	* xotcl: removed MixinRemoveFromMixinStack, MixinRemoveFromCmdPtr,
-	  MixinRemoveOnObjFromCmdPtr, FilterRemoveFromFilterStack,
-	  FilterRemoveFromCmdPtr, FilterRemoveOnObjFromCmdPtr ... and
-	  replaced with simple forward stepping in cmd list.
-	* made the mem count work with multi, single-threaded interpreters
-	
+        * xotcl: removed MixinRemoveFromMixinStack, 
+          MixinRemoveFromCmdPtr, MixinRemoveOnObjFromCmdPtr,
+           FilterRemoveFromFilterStack,
+          FilterRemoveFromCmdPtr, FilterRemoveOnObjFromCmdPtr ... and
+          replaced with simple forward stepping in cmd list.
+        * made the mem count work with multi, single-threaded interpreters
+        
 2003-02-03 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
-	* testx: tests for CmdListReplaceCmd, MixinRemoveFromMixinStack,
-	  MixinRemoveFromCmdPtr, MixinRemoveOnObjFromCmdPtr, 
-	  XOTclOGetGuardedScopeMethod, XOTcl_InterpObjCmd, XOTclOVwaitMethod,
-	* xotcl: removed XOTclAssertionRename, simplified XOTcl_RenameObjCmd
+        * testx: tests for CmdListReplaceCmd, MixinRemoveFromMixinStack,
+          MixinRemoveFromCmdPtr, MixinRemoveOnObjFromCmdPtr, 
+          XOTclOGetGuardedScopeMethod, XOTcl_InterpObjCmd, 
+          XOTclOVwaitMethod,
+        * xotcl: removed XOTclAssertionRename, 
+          simplified XOTcl_RenameObjCmd
         * corrected mistakes in tutorial code for filterguards.
 
 2004-01-31 Gustaf.Neumann@wu-wien.ac.at
@@ -158,12 +179,15 @@
           (wish, CallFrame had ClientData !!!)
         * Reduced size of XOTclCallStackContent
         * modularized xotcl more (new file xotclShadow.c; all shadowing
-          of Tcl commands and access of gobal tcl obj commands is treated there)
+          of Tcl commands and access of gobal tcl obj commands is
+          treated there)
         * included a fix from Zoran for thread exit handlers.
 
 2004-01-16 Gustaf.Neumann@wu-wien.ac.at
-        * defined upvar method (uses [self callinglevel] when no level specified)
-        * simplified stringIncrement method and added a couple of assert().
+        * defined upvar method (uses [self callinglevel] when no level
+          specified)
+        * simplified stringIncrement method and added a couple of
+          assert().
 
 2004-01-15 Gustaf.Neumann@wu-wien.ac.at
         * allow volatile to be called from toplevel
@@ -172,19 +196,19 @@
 
 2004-01-14 Gustaf.Neumann@wu-wien.ac.at
         * method 'new' now uses StringIncr, which replaces the name
-          generation based on numbers by a name generation based on strings.
-          The strings are constructed by small and capital letters plus digits
-          and correspond to a number of a number system with the basis 
-          of 26+26+10=62. These strings can grow up to memory size.
-          XOTcl can run as a server practically infinitely long generating
-          objects with 'new'.
+          generation based on numbers by a name generation based on
+          strings.  The strings are constructed by small and capital
+          letters plus digits and correspond to a number of a number
+          system with the basis of 26+26+10=62. These strings can grow
+          up to memory size.  XOTcl can run as a server practically
+          infinitely long generating objects with 'new'.
           
         * new package xotcl::upvar-compat
-          This package provides backward compatibility with
-          earlier versions of xotcl that redefined upvar/uplevel
-          such that these commands ignore inactive filter and mixin 
-          frames (upvar behaves the same whether or not a filter is 
-          installed). Newer scripts should use 
+          This package provides backward compatibility with earlier
+          versions of xotcl that redefined upvar/uplevel such that
+          these commands ignore inactive filter and mixin frames
+          (upvar behaves the same whether or not a filter is
+          installed). Newer scripts should use
               upvar/uplevel [self callinglevel] var/command
           instead. This package can be used via
 
@@ -194,15 +218,17 @@
           of object (as suggested by Zoran)
 
 2004-01-11 Gustaf.Neumann@wu-wien.ac.at
-        * all occurances of uplevel/upvar equipped with [self callinglevel]
-          such that library works with standard uplevel/upvar
-        * faster version of new method (more than 20% faster, using c-variable, 
-          faster long to ascii conversion)
+        * all occurances of uplevel/upvar equipped with 
+          [self callinglevel] such that library works with standard
+          uplevel/upvar
+        * faster version of 'new' method (more than 20% faster, 
+          using c-variable, faster long to ascii conversion)
         * objinst (of oo-bench) about 17% faster
 
 2004-01-10 Gustaf.Neumann@wu-wien.ac.at
-        * polished macros XOTcl_FrameDecls, XOTcl_PushFrame, XOTcl_PopFrame
-          (2 versions, slower version with less dependencies on tclInt.h)
+        * polished macros XOTcl_FrameDecls, XOTcl_PushFrame, 
+          XOTcl_PopFrame (2 versions, slower version with less
+          dependencies on tclInt.h)
         * removed mixinCalls and filterCalls from interpreter state.
         * removed unneeded macros
 
@@ -224,34 +250,39 @@
         * 2 new subcommands for self:
           - self callinglevel: returns the tcl stack level to address
             the invocation of the actual method
-          - self activelevel: returns the topmost active stack entry from the
-            xotcl stack
-          Both commands return the absolute level number (syntax #n) if called
-          from an xotcl method or 1 if called from a tcl proc. These subcommands
-          are designed to be used in the form of "upvar [self callinglevel] a b"
-        * Replaced C implementation of uplevel and upvar (with callstack 
-          manipulation) by a simple Tcl proc that uses [self callinglevel]
-          as default level (if is was not called with an explicit level).
+          - self activelevel: returns the topmost active stack entry 
+            from the xotcl stack
+          Both commands return the absolute level number (syntax #n)
+          if called from an xotcl method or 1 if called from a tcl
+          proc. These subcommands are designed to be used in the form
+          of "upvar [self callinglevel] a b"
+        * Replaced C implementation of uplevel and upvar 
+          (with callstack manipulation) by a simple Tcl proc that uses
+          [self callinglevel] as default level (if is was not called
+          with an explicit level).
         * Extended test suite
         * Changed all variables of type "Interp *" to "Tcl_Interp *"
           and defined macros Tcl_Interp_XXXX to access component XXXX
-        * Changed all variables of type "CallFrame *" to "Tcl_CallFrame *"
-          and defined macros Tcl_CallFrame_XXXX to access component XXXX
+        * Changed all variables of type "CallFrame *" to 
+          "Tcl_CallFrame *" and defined macros Tcl_CallFrame_XXXX to
+          access component XXXX
 
 2004-01-04 Gustaf.Neumann@wu-wien.ac.at
         * callstack manipulation reduced significantly
         * speedup on xoRDF.test about 7%
         * self callingobject/callingclass/.... refers always to
           last invocation (ignoring next-chain)
-        * consequence: mixins and filters are transparent on the callstack
+        * consequence: mixins and filters are transparent on the
+          callstack
         * possible extension "self previous ?n?" similar to "self next"
           to obtain information about next chain
-        * possible extension "self level ?n?" similar to "info level ?n?"
-          to obtain information about call stack
+        * possible extension "self level ?n?" similar to 
+          "info level ?n?"  to obtain information about call stack
 
 2004-01-02 Gustaf.Neumann@wu-wien.ac.at
-        * Changed all variables of type "Namespace *" to "Tcl_Namespace *"
-          and defined macros Tcl_Namespace_XXXX to access component XXXX
+        * Changed all variables of type "Namespace *" to 
+          "Tcl_Namespace *" and defined macros Tcl_Namespace_XXXX to
+          access component XXXX
         * generalized invocation on callProcCheck and 
           handling of calldata in new function DoCallProcCheck
         * overall code cleanup
@@ -285,11 +316,11 @@
           
 2003-12-28 Gustaf.Neumann@wu-wien.ac.at
         * new functions: CallStackUseActiveFrames()/CallStackRestoreSavedFrames()
-          to to avoid walking through and modifying the whole stack 
-          when locating an active frame to set variables
-          (using in -volatile, instvar, info defaults)
-          callstackcutframes still used in info level, uplevel, upvar,
-          info callingproc, callingclass, callingobject
+          to to avoid walking through and modifying the whole stack
+          when locating an active frame to set variables (using in
+          -volatile, instvar, info defaults) callstackcutframes still
+          used in info level, uplevel, upvar, info callingproc,
+          callingclass, callingobject
 
 2003-12-25 Gustaf.Neumann@wu-wien.ac.at
         * update of various library functions (such as Httpd) to 
@@ -308,17 +339,18 @@
 
 2003-12-13 Gustaf.Neumann@wu-wien.ac.at
         * Removed dependency that certain variable references in 
-          tclConfig.sh (such as TCL_SHARED_LIB_SUFFIX='${VERSION}${DBGX}.so');
-          There was a problem on freebsd systems that use hardcoded "84" 
-          instead of version in this definition, which leads to a problem
-          when the SHARED_LIB_SUFFIX is used with different VERSIONs
-          (such as in XOTcl). We set now the suffixes as follows
+          tclConfig.sh (such as
+          TCL_SHARED_LIB_SUFFIX='${VERSION}${DBGX}.so'); There was a
+          problem on freebsd systems that use hardcoded "84" instead
+          of version in this definition, which leads to a problem when
+          the SHARED_LIB_SUFFIX is used with different VERSIONs (such
+          as in XOTcl). We set now the suffixes as follows
 
            eval "SHARED_LIB_SUFFIX=${VERSION}${TCL_DBGX}${TCL_SHLIB_SUFFIX}"
            eval "UNSHARED_LIB_SUFFIX=${VERSION}${TCL_DBGX}.a"
 
-          and pass it through xtoclConfig.sh to the c based c-components
-          (sdbm, gdbm, expat)
+          and pass it through xtoclConfig.sh to the c based
+          c-components (sdbm, gdbm, expat)
 
 2003-12-08 Gustaf.Neumann@wu-wien.ac.at
         * Some cleanup in tclexpat.c to make it compile on freebsd
@@ -330,23 +362,24 @@
                            http://alice.wu-wien.ac.at:80}
 
 2003-12-07 Gustaf.Neumann@wu-wien.ac.at
-        * incorporated more fixes for build system suggested by Daniel Steffen
+        * incorporated more fixes for build system suggested by Daniel
+          Steffen
         * changed version number to 1.1.1
-        * further cleanup in Makefiles, reduced redundancy in distro by using
-          symbolic links
-        * used everywhere for SHLIB_LD_LIBS XOTCL_BUILD_STUB_LIB_SPEC instead
-          of XOTCL_STUB_LIB_SPEC
+        * further cleanup in Makefiles, reduced redundancy in 
+          distro by using symbolic links
+        * used everywhere for SHLIB_LD_LIBS XOTCL_BUILD_STUB_LIB_SPEC 
+          instead of XOTCL_STUB_LIB_SPEC
 
 2003-12-06 Gustaf.Neumann@wu-wien.ac.at
-        * httpd.xotcl: fixed return format in HTTP reply header parameters 
-          Allow: and Public: for  HTTP OPTIONS method
+        * httpd.xotcl: fixed return format in HTTP reply header 
+          parameters Allow: and Public: for HTTP OPTIONS method
         * library/store/XOTclGdbm/: fixed initialization of 
           xotcl stubs, usage of ck{free,alloc} vs. {free,malloc}.
         * library/store/XOTclSdbm/: fixed handling of O_SYNC on
           system that do not have it
         * Configure can run now as well from outside of xotcl sources;
-          One can use now for example the following commands to compile and
-          install XOTcl
+          One can use now for example the following commands to
+          compile and install XOTcl
  
             % mkdir -p /tmp/xotcl/unix
             % cd /tmp/xotcl/unix
@@ -364,7 +397,8 @@
 
 2003-12-02 Gustaf.Neumann@wu-wien.ac.at
         * added "--with-tkinclude" 
-        * fixed "--with-tclinclude" to set TCL_INCLUDES (for all subdirs)
+        * fixed "--with-tclinclude" to set TCL_INCLUDES (for all
+          subdirs)
 
 2003-11-29 Gustaf.Neumann@wu-wien.ac.at, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
         * release of distribution XOTcl 1.1.0
@@ -392,7 +426,8 @@
           windows instead of bin
 
 2003-11-26 Gustaf.Neumann@wu-wien.ac.at
-        * removed ::xotcl::lib from predefined variables and from man page
+        * removed ::xotcl::lib from predefined variables and from man
+          page
         * added namespace require to xotclsh
         * added transparent mixins for instvar
 
@@ -425,7 +460,8 @@
         * Documenting requireNamespace in more detail.
 
 2003-11-13 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
-        * various changes to support conditional shell building with stubs
+        * various changes to support conditional shell building with
+          stubs
         * various changes to build libxotcl/xotclsh with tcl 8.0 
           (stub dependencies)
         * Httpd.xotcl: added parameter to web server to 
@@ -434,8 +470,10 @@
          
 2003-11-12 Gustaf.Neumann@wu-wien.ac.at
         * removed namespace import/forget in predefined.xotcl
-        * Makefile cleanup (fixed duplicate dependencies, quoting in loops)
-        * added tests for xoRDF and Persistence, when actiweb is enabled
+        * Makefile cleanup (fixed duplicate dependencies, quoting in
+          loops)
+        * added tests for xoRDF and Persistence, when actiweb is
+          enabled
         * building expat, when actiweb is enabled
         * removed needless files from xotcl-distribution.
 
@@ -489,10 +527,11 @@
 
 2003-10-08 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
         * a number of changes to make XOTclSdbm and XOTclGdbm work
-          with xotcl.h solely ... in particular, introduced new stub 
-          functions and Interface structs for XOTclClass and XOTclObject:
-          XOTcl_Class and XOTcl_Object. Changed XOTcl's core to expose 
-          these in the extern functions that are exposed via xotcl.decls.
+          with xotcl.h solely ... in particular, introduced new stub
+          functions and Interface structs for XOTclClass and
+          XOTclObject: XOTcl_Class and XOTcl_Object. Changed XOTcl's
+          core to expose these in the extern functions that are
+          exposed via xotcl.decls.
 
 2003-09-10 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
         * Integrated bug fixes provided by Klaus Kolowratnik 
@@ -523,7 +562,8 @@
         * some fixes in ::xotcl::config mkindex for autoloadine files
         
 2003-08-26 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
-        * doc for precedence order and transitive instmixins in tutorial
+        * doc for precedence order and transitive instmixins in
+          tutorial
 
 2003-08-25 Gustaf.Neumann@wu-wien.ac.at
         * Generate library/pkgIndex.tcl from configure 
@@ -634,9 +674,11 @@
 2003-04-29 Gustaf.Neumann@wu-wien.ac.at
         * xotcl.c: cleanup to avoid potential crashes on error messages
           (varargs not terminated by NULL)
-        * introspection for mixin guards (o|cl info instmixin|mixin -guards)
+        * introspection for mixin guards (o|cl info instmixin|mixin
+          -guards)
         * new option for info methods to return only those methods where
-          the guard holds in the current context (info methods -incontext)
+          the guard holds in the current context (info methods
+          -incontext)
 
 2003-04-25 Gustaf.Neumann@wu-wien.ac.at
         * fixed various typos in examples in tutorial
@@ -644,8 +686,8 @@
 
 2003-04-24 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
         * document "info instdefault" in the language reference
-        * corrected a problem with move: it did not prevail the subclass
-          relationships; also added a regression test
+        * corrected a problem with move: it did not prevail the 
+          subclass relationships; also added a regression test
 
 2003-04-22 Gustaf.Neumann@wu-wien.ac.at
         * xotcl.c: calling the "create" method from 
@@ -653,8 +695,8 @@
           used a direct call, now create can be overloaded)
 
 2003-04-17 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
-        * Unified ListObjChildren and ListClassChildren into one method 
-          ListListChildren
+        * Unified ListObjChildren and ListClassChildren into one 
+          method ListListChildren
         
 2003-04-16 Gustaf.Neumann@wu-wien.ac.at
         * xotcl.c: fixed segfault from classchildren
@@ -674,10 +716,10 @@
         * release of full distribution XOTcl 1.0.2
 
 2003-03-19 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
-        * changed  requireNamespace so that contents of a  Tcl Namespace
-          with the same name as the XOTcl Namespace to be created survive
-          the requireNamespace invocation & added tests in  testx.xotcl.
-          Example:
+        * changed  requireNamespace so that contents of a 
+          Tcl Namespace with the same name as the XOTcl Namespace to
+          be created survive the requireNamespace invocation & added
+          tests in testx.xotcl.  Example:
             namespace eval a {proc o args {puts o}}
             Object a -requireNamespace
             ### -> a::o survives
@@ -689,13 +731,13 @@
         * Makefile less verbose
 
 2003-03-07 Gustaf.Neumann@wu-wien.ac.at
-        * Made output of the serializer more compact (omitting unneccessary
-          references to ::xotcl::Object
+        * Made output of the serializer more compact 
+          (omitting unneccessary references to ::xotcl::Object
 
 2003-03-07 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
         * Copy/Move to self had undefined or wrong results; corrected 
-          both methods so that the objects stay untouched when copied or
-          moved to self. Added test in testx.xotcl.
+          both methods so that the objects stay untouched when copied
+          or moved to self. Added test in testx.xotcl.
 
 2003-03-04 Gustaf.Neumann@wu-wien.ac.at, Zoran Vasiljevic <zoran@archiware.com>
         * Made xotcl capable to be loaded via "package require" into
@@ -711,10 +753,10 @@
           # make
           # make install-aol
 
-          This installs libxotcl*.so, the serializer, and the
-          file xotcl.tcl into aolserver/modules/tcl. The file xotcl.tcl
-          contains a "package require XOTcl" and "... serializer"
-          and sources the files aolserver/modules/tcl/*.xotcl 
+          This installs libxotcl*.so, the serializer, and the file
+          xotcl.tcl into aolserver/modules/tcl. The file xotcl.tcl
+          contains a "package require XOTcl" and "... serializer" and
+          sources the files aolserver/modules/tcl/*.xotcl
 
 2003-03-04 Gustaf.Neumann@wu-wien.ac.at
         * xotcl.c: abort, when a non-threaded xotcl version
@@ -816,7 +858,7 @@
           The output variable was created in the filter frame.
           Many thanks to Oumung Mehrotra for reporting the problem.
         * New switch for compilation USE_ASSOC_DATA to use Tcl_AssocData
-          instead of namespace client data for the runtime state 
+          instead of namespace client data for the runtime state
           (without assoc data, 10-15% faster)
 
 2002-12-06 Uwe Zdun <uwe.zdun@wu-wien.ac.at>

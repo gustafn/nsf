@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.2 2004/06/18 07:57:36 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -175,7 +175,7 @@ EXTRA_CFLAGS	= @EXTRA_CFLAGS@ @PKG_CFLAGS@
 #DEFS		= $(TCL_DEFS) @DEFS@ $(EXTRA_CFLAGS)
 DEFS		= @DEFS@ $(EXTRA_CFLAGS) 
 
-CONFIG_CLEAN_FILES = Makefile
+CONFIG_CLEAN_FILES = @CONFIG_CLEAN_FILES@
 
 CPPFLAGS	= @CPPFLAGS@
 LIBS		= @PKG_LIBS@ @LIBS@
