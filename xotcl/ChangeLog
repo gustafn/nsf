@@ -1,16 +1,18 @@
 2004-06-20 Gustaf.Neumann@wu-wien.ac.at
 	* removed inclusion of <tclCompile.h>
-        * second version of mkinstdelegator and mkdelegator
+        * second version of delegatore methods cmd and instcmd 
 
             A delegator method is defined via 
-               Class instdelegator method COMMAND ARGS
+               Class instcmd method COMMAND ARGS
             a call to the defined method with some args
                obj method arg1 arg2 arg3...
             is mapped to
-               COMMAND ARGS arg1 <caller> INSERTTOKENS arg1 arg2...
+               COMMAND ARGS arg1 <caller> INSERTTOKENS arg2 arg3...
 
-             Class mkinstdelegator <methodname> <commandname> \
+             Class instcmd <methodname> <commandname> \
                    ?-nocaller? \
+                   ?-nomethod? \
+                   ?-inscope? \
                    ?-skip nr_of_tokens? \
                    ?-insert tokens?
                    ?-prefix string? \
@@ -20,7 +22,9 @@
             methodname: name of an instcommand for the class 
                    to be registered,
             commandname: command that recieves delegation
+            -nomethod:   don't insert the callers method 
             -nocaller:   don't insert caller after method
+            -inscope:    evalute method in obj scope
             -skip:       skip n arguments from the call. "-skip 1"
                          means that not the "method" from the invocation is
                          used as the method call, but the first argument
