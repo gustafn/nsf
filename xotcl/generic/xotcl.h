@@ -1,6 +1,6 @@
 /* -*- Mode: c++ -*-
  *
- *  $Id: xotcl.h,v 1.3 2004/08/17 10:12:55 neumann Exp $
+ *  $Id: xotcl.h,v 1.4 2004/08/22 10:00:19 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -141,43 +141,28 @@ extern "C" {
 #endif
 */
 
-struct XOTclObject;
-struct XOTclClass;
+
+/*
+ * The structures XOTcl_Object and XOTcl_Class define mostly opaque 
+ * data structures for the internal use strucures XOTclObject and 
+ * XOTclClass (both defined in XOTclInt.h). Modification of elements 
+ * visible elements must be mirrored in both incarnations.
+ */
 
 typedef struct XOTcl_Object {
   Tcl_Obj *cmdName;
-  Tcl_Command id;
-  Tcl_Interp *teardown;
-  struct XOTcl_Class *cl;
-  Tcl_HashTable *varTable;
-  Tcl_Namespace *nsPtr;
 } XOTcl_Object;
 
 typedef struct XOTcl_Class {
   struct XOTcl_Object object;
 } XOTcl_Class;
 
+
 /*
  * Include the public function declarations that are accessible via
  * the stubs table.
  */
 #include "xotclDecls.h"
-
-#ifdef XOTCL_OBJECTDATA
-extern int
-XOTclUnsetInstVar(struct XOTclObject* obj, Tcl_Interp* in,
-		 char* name, int flgs);	 
-extern void
-XOTclSetObjectData(struct XOTclObject* obj, struct XOTclClass* cl,
-		  ClientData data);
-extern int
-XOTclGetObjectData(struct XOTclObject* obj, struct XOTclClass* cl,
-		  ClientData* data);
-extern int
-XOTclUnsetObjectData(struct XOTclObject* obj, struct XOTclClass* cl);
-extern void
-XOTclFreeObjectData(XOTclClass* cl);
-#endif
 
 /*
  * Xotcl_InitStubs is used by extensions  that can be linked
@@ -191,8 +176,7 @@ XOTclFreeObjectData(XOTclClass* cl);
 extern "C"
 # endif
 CONST char *	
-Xotcl_InitStubs _ANSI_ARGS_((Tcl_Interp *interp,
-			    char *version, int exact));
+Xotcl_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, char *version, int exact));
 #else
 # define Xotcl_InitStubs(interp, version, exact) \
       Tcl_PkgRequire(interp, "XOTcl", version, exact)

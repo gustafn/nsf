@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.6 2004/08/17 10:12:55 neumann Exp $
+ *  $Id: xotclInt.h,v 1.7 2004/08/22 10:00:19 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -265,19 +265,19 @@ typedef struct XOTclMemCounter {
 #define XOTcl_PushFrame(in,obj) \
      memset(newFramePtr, 0, sizeof(CallFrame)); \
      oldFramePtr = ((Interp *)in)->varFramePtr; \
-     if (obj->nsPtr) { \
-       newFramePtr->nsPtr = (Namespace*) obj->nsPtr; \
+     if ((obj)->nsPtr) {				     \
+       newFramePtr->nsPtr = (Namespace*) (obj)->nsPtr;	     \
      } else { \
        newFramePtr->nsPtr = (Namespace*) RUNTIME_STATE(in)->fakeNS; \
        newFramePtr->isProcCallFrame = 1; \
        newFramePtr->procPtr = &RUNTIME_STATE(in)->fakeProc; \
-       newFramePtr->varTablePtr = obj->varTable; \
+       newFramePtr->varTablePtr = (obj)->varTable;	    \
      } \
      ((Interp *)in)->varFramePtr = newFramePtr; \
      MEM_COUNT_OPEN_FRAME()
 #define XOTcl_PopFrame(in,obj) \
-     if (!obj->nsPtr && obj->varTable == 0) \
-       obj->varTable = newFramePtr->varTablePtr; \
+  if (!(obj)->nsPtr && (obj)->varTable == 0)	 \
+      (obj)->varTable = newFramePtr->varTablePtr;	 \
      ((Interp *)in)->varFramePtr = oldFramePtr; \
      MEM_COUNT_CLOSE_FRAME()
 
@@ -285,17 +285,17 @@ typedef struct XOTclMemCounter {
 /* slightly slower version based on Tcl_PushCallFrame */
 #define XOTcl_FrameDecls Tcl_CallFrame frame
 #define XOTcl_PushFrame(in,obj) \
-     if (obj->nsPtr) { \
-       Tcl_PushCallFrame(in, &frame, obj->nsPtr, 0); \
+     if ((obj)->nsPtr) {				     \
+       Tcl_PushCallFrame(in, &frame, (obj)->nsPtr, 0);	     \
      } else { \
        Tcl_PushCallFrame(in, &frame, RUNTIME_STATE(in)->fakeNS, 1); \
        Tcl_CallFrame_procPtr(&frame) = &RUNTIME_STATE(in)->fakeProc; \
-       Tcl_CallFrame_varTablePtr(&frame) = obj->varTable; \
+       Tcl_CallFrame_varTablePtr(&frame) = (obj)->varTable;	     \
      }
 #define XOTcl_PopFrame(in,obj) \
-     if (!obj->nsPtr) { \
-       if (obj->varTable == 0) \
-         obj->varTable = Tcl_CallFrame_varTablePtr(&frame); \
+     if (!(obj)->nsPtr) {	       \
+       if ((obj)->varTable == 0)			    \
+         (obj)->varTable = Tcl_CallFrame_varTablePtr(&frame);	\
        Tcl_CallFrame_varTablePtr(&frame) = 0; \
        Tcl_CallFrame_procPtr(&frame) = 0; \
      } \
@@ -627,9 +627,23 @@ typedef struct XOTclRuntimeState {
 #define XOTCL_EXITHANDLER_ON_SOFT_DESTROY 1
 #define XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY 2
 
+
+#ifdef XOTCL_OBJECTDATA
+extern void
+XOTclSetObjectData(struct XOTclObject* obj, struct XOTclClass* cl,
+		  ClientData data);
+extern int
+XOTclGetObjectData(struct XOTclObject* obj, struct XOTclClass* cl,
+		  ClientData* data);
+extern int
+XOTclUnsetObjectData(struct XOTclObject* obj, struct XOTclClass* cl);
+extern void
+XOTclFreeObjectData(XOTclClass* cl);
+#endif
+
 /*
  *
- *  Mostly internally used API functions
+ *  internally used API functions
  *
  */
 

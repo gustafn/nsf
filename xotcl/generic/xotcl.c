@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.23 2004/08/22 09:30:45 neumann Exp $
+/* $Id: xotcl.c,v 1.24 2004/08/22 10:00:19 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -106,11 +106,11 @@ typedef struct callFrameContext {
   Tcl_CallFrame *varFramePtr;
 } callFrameContext;
 typedef struct tclCmdClientData {
-  XOTcl_Object *obj;
+  XOTclObject *obj;
   Tcl_Obj *cmdName;
 } tclCmdClientData;
 typedef struct forwardCmdClientData {
-  XOTcl_Object *obj;
+  XOTclObject *obj;
   Tcl_Obj *cmdName;
   int nr_args;
   Tcl_Obj *args;
@@ -3986,7 +3986,7 @@ DoCallProcCheck(ClientData cp, ClientData cd, Tcl_Interp *in,
       /*fprintf(stderr,"calling oeval obj=%p %s\n", obj, ObjStr(obj->cmdName));*/
       
       tclCmdClientData *tcd = (tclCmdClientData *)cp;
-      tcd->obj = (XOTcl_Object*)obj;
+      tcd->obj = obj;
       xotclCall = 1;
     } else if (Tcl_Command_objProc(cmd) == XOTclObjDispatch)
       xotclCall = 1;
@@ -9180,7 +9180,7 @@ XOTclCInstForwardMethod(ClientData cd, Tcl_Interp *in,
   rc = forwardProcessOptions(in, objc, objv, &tcd);
 
   if (rc == TCL_OK) {
-    tcd->obj = (XOTcl_Object*)cl;
+    tcd->obj = &cl->object;
     XOTclAddIMethod(in, (XOTcl_Class*) cl, NSTail(ObjStr(objv[1])), 
 		    (Tcl_ObjCmdProc*)XOTclForwardMethod,
 		    (ClientData)tcd, forwardCmdDeleteProc);
@@ -9205,7 +9205,7 @@ XOTclCForwardMethod(ClientData cd, Tcl_Interp *in,
   rc = forwardProcessOptions(in, objc, objv, &tcd);
 
   if (rc == TCL_OK) {
-    tcd->obj = obj;
+    tcd->obj = (XOTclObject*)obj;
     XOTclAddPMethod(in, obj, NSTail(ObjStr(objv[1])), 
 		    (Tcl_ObjCmdProc*)XOTclForwardMethod,
 		    (ClientData)tcd, forwardCmdDeleteProc);
@@ -9795,7 +9795,7 @@ int
 XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc, 
 				   Tcl_Obj *CONST objv[]) {
   Tcl_Obj **npav, **checkv, **checkArgv, **argsv, **nonPosArgsDefv, *invocation[4], 
-    **ordinaryArgsDefv, *list, *checkObj, *objPtr;
+    **ordinaryArgsDefv, *list, *checkObj;
   int npac, checkc, checkArgc, argsc, nonPosArgsDefc, 
     ordinaryArgsDefc, argsDefined = 0, 
     ordinaryArgsCounter = 0, i, j, result, ic;
@@ -9983,12 +9983,13 @@ XOTclOGetInstVar2(XOTcl_Object *obj, Tcl_Interp *in, Tcl_Obj *name1, Tcl_Obj *na
 		  int flgs) {
   Tcl_Obj *result;
   XOTcl_FrameDecls;
-  XOTcl_PushFrame(in, obj);
-  if (obj->nsPtr)
+
+  XOTcl_PushFrame(in, (XOTclObject*)obj);
+  if (((XOTclObject*)obj)->nsPtr)
     flgs |= TCL_NAMESPACE_ONLY;
 
   result = Tcl_ObjGetVar2(in, name1, name2, flgs);
-  XOTcl_PopFrame(in, obj);
+  XOTcl_PopFrame(in, (XOTclObject*)obj);
 
   return result;
 }

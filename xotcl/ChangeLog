@@ -1,6 +1,7 @@
 2004-08-22 Gustaf.Neumann@wu-wien.ac.at
         * fixed nonposargs, when used with checker procs and spaces in arguments
         * auto-generating docs in build tree (instead in source tree)
+        * fixed somewhat confusing declations in xotcl.h (XOTcl_Object and XOTclObject)
 
 2004-08-19 Gustaf.Neumann@wu-wien.ac.at
         * if configure is run outside the src tree the directory

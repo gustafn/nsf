@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.17 2004/08/19 09:57:50 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.18 2004/08/22 10:00:19 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -28,6 +28,7 @@ src_test_dir 	= ${srcdir}/tests
 src_app_dir 	= ${srcdir}/apps
 src_generic_dir = ${srcdir}/generic
 PLATFORM_DIR    = $(srcdir)/unix
+target_doc_dir 	= ./doc
 TCL_LIB_SPEC    = -L/home/neumann/import/tcl8.4.7/unix -ltcl8.4
 TK_LIB_SPEC	= -L/usr/lib -ltk8.4
 subdirs		=  library/store/XOTclSdbm/ library/store/XOTclGdbm/ library/xml/TclExpat-1.1/
@@ -220,10 +221,10 @@ libraries-pkgindex:
 
 fulldoc: doc pdf
 # use language reference as sample file to trigger generation of documentation files
-doc: $(src_doc_dir)/langRef-xotcl.html
+doc: $(target_doc_dir)/langRef-xotcl.html
 
-$(src_doc_dir)/langRef-xotcl.html: $(src_doc_dir)/langRef.xotcl $(DOC_SOURCE)
-	@$(TCLSH_PROG) $(src_lib_dir)/lib/makeDoc.xotcl $(src_doc_dir) $(DOC_SOURCE)
+$(target_doc_dir)/langRef-xotcl.html: $(src_doc_dir)/langRef.xotcl $(DOC_SOURCE)
+	@$(TCLSH_PROG) $(src_lib_dir)/lib/makeDoc.xotcl $(target_doc_dir) $(DOC_SOURCE)
 
 pdf:
 	-(cd $(src_doc_dir); htmldoc --webpage --format pdf14 --title \
@@ -459,7 +460,8 @@ checkstubs:
 #========================================================================
 
 clean:  
-	-rm -rf $(BINARIES) $(CLEANFILES) xotclsh xowish pkgIndex.tcl ./receiver  $(src_doc_dir)/*-xotcl.html
+	-rm -rf $(BINARIES) $(CLEANFILES) xotclsh xowish pkgIndex.tcl ./receiver \
+		$(target_doc_dir)/*-xotcl.html
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
