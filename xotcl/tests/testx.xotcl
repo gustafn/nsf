@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.8 2004/07/01 10:39:34 neumann Exp $
+#$Id: testx.xotcl,v 1.9 2004/07/02 11:22:31 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -2858,14 +2858,14 @@ smallScripts proc run {{n 20}} {
 
     ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure copy defaultmethod destroy eval exists extractConfigureArg f filter filterappend filterguard filtersearch forward hasclass incr info infoTraceFilter init instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinappend mixinguard move myProc myProc2 myProcMix1 myProcMix2 noinit objproc parametercmd proc procsearch recreate requireNamespace self set setFilter tclcmd trace unset uplevel upvar volatile vwait"  "[self]: b info methods"
 
-    ::errorCheck [lsort [b info methods -nocmds]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init mixinappend move myProc myProc2 myProcMix1 myProcMix2 objproc recreate self setFilter" "[self]: b info methods -nocmds"
+    ::errorCheck [lsort [b info methods -nocmds]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init mixinappend move myProc myProc2 myProcMix1 myProcMix2 objproc recreate self setFilter tclcmd" "[self]: b info methods -nocmds"
 
-    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard noinit parametercmd proc procsearch requireNamespace set tclcmd trace unset uplevel upvar volatile vwait" "[self]: b info methods -noprocs"
-    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init mixinappend move myProc myProc2 objproc self setFilter" "[self]: b info methods -nocmds -nomixins"
+    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard noinit parametercmd proc procsearch requireNamespace set trace unset uplevel upvar volatile vwait" "[self]: b info methods -noprocs"
+    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init mixinappend move myProc myProc2 objproc self setFilter tclcmd" "[self]: b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "[self]: b info methods -nocmds -noprocs"
 
-    ::errorCheck [lsort [B info methods -nocmds]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init instfilterappend instmixinappend mixinappend move recreate self setFilter" "[self]: B info methods -nocmds"
+    ::errorCheck [lsort [B info methods -nocmds]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init instfilterappend instmixinappend insttclcmd mixinappend move recreate self setFilter tclcmd" "[self]: B info methods -nocmds"
 
     namespace eval a {
 	proc o args {return o}
@@ -3042,9 +3042,9 @@ objectReferences proc run {{n 20}} {
   ::errorCheck [e1 parametercmd y] "" "parametercmd 1"
   ::errorCheck [e1 y 3] 3 "parametercmd 2"
   ::errorCheck [e1 y] 3 "parametercmd 3"
-  ::errorCheck [e1 tclcmd regexp] "" "tclcmd 1"
-  ::errorCheck [e1 regexp (y) xyz _ X] "1" "tclcmd 2"
-  ::errorCheck [e1 exists X] "1" "tclcmd 3"
+  ::errorCheck [e1 forward regexp -objscope] "" "forward 1"
+  ::errorCheck [e1 regexp (y) xyz _ X] "1" "forward 2"
+  ::errorCheck [e1 exists X] "1" "forward 3"
   ::errorCheck [e1 q] q "self proc"
 
   ::errorCheck [E info commands] p "class commands"

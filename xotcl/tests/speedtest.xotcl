@@ -1,5 +1,5 @@
 #memory trace on
-# $Id: speedtest.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: speedtest.xotcl,v 1.2 2004/07/02 11:22:31 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 lappend auto_path [file dirname [info script]]/..
@@ -325,59 +325,72 @@ Test new -msg {dispatch subobject via my} \
 
 ###### insttclcmd tests
 set cnt 10000
-Test new -msg {call insttclcmd (append) and check created variable} \
+#Test new -msg {call insttclcmd (append) and check created variable} \
     -pre {Object o} \
     -cmd {o append X 1; o exists X} -expected 1 \
     -post {o destroy}
-Test new -msg {call tclcmd (regexep) and check created variable} \
+#Test new -msg {call tclcmd (regexep) and check created variable} \
     -pre {Object o; o tclcmd regexp} \
     -cmd {o regexp (a) a _ x; o exists x} -expected 1 -count $cnt \
     -post {o destroy}
+Test new -msg {call forwarder for (append) and check created variable} \
+    -pre {Object o; o forward append -objscope} \
+    -cmd {o append X 1; o exists X} -expected 1 \
+    -post {o destroy}
+Test new -msg {call forwarder (regexep) and check created variable} \
+    -pre {Object o; o forward regexp -objscope} \
+    -cmd {o regexp (a) a _ x; o exists x} -expected 1 -count $cnt \
+    -post {o destroy}
+Test new -msg {call forwarder to another obj} \
+    -pre {Object o; Object t; o forward set t set; t set x 100} \
+    -cmd {o set x} -expected 100 -count $cnt \
+    -post {o destroy}
+
 set cnt 100000
 Test new -msg {call handcoded incr} \
     -pre {Class C; C create o; o set x 1} \
     -cmd {o incr x 77} -expected 78 -count $cnt \
     -post {o destroy}
-Test new -msg {call incr via insttclcmd} \
-    -pre {Class C; C insttclcmd ::incr; C create o; o set x 1} \
+Test new -msg {call incr via instforward} \
+    -pre {Class C; C instforward ::incr -objscope; C create o; o set x 1} \
     -cmd {o incr x 77} -expected 78 -count $cnt \
     -post {o destroy}
-Test new -msg {call incr via tclcmd} \
-    -pre {Class C; C create o; o tclcmd ::incr; o set x 1} \
+Test new -msg {call incr via forward} \
+    -pre {Class C; C create o; o forward ::incr -objscope; o set x 1} \
     -cmd {o incr x 77} -expected 78 -count $cnt \
     -post {o destroy}
 set cnt 10000
-Test new -msg {call obj with namespace via tclcmd} \
-    -pre {Object n; Object n::x; Object o; o tclcmd ::n::x} \
+Test new -msg {call obj with namespace via forward} \
+    -pre {Object n; Object n::x; Object o -forward ::n::x} \
     -cmd {o x self} -expected ::n::x -count $cnt \
     -post {o destroy}
-Test new -msg {call obj with namespace via insttclcmd} \
-    -pre {Object n; Object n::x; Class C; C create o; C insttclcmd ::n::x} \
+Test new -msg {call obj with namespace via instforward} \
+    -pre {Object n; Object n::x; Class C; C create o; C instforward ::n::x} \
     -cmd {o x self} -expected ::n::x -count $cnt \
     -post {o destroy}
-Test new -msg {call obj with namespace via insttclcmd and mixinclass} \
-    -pre {Object n; Object n::x; Class M; M insttclcmd ::n::x; 
+Test new -msg {call obj with namespace via instforward and mixinclass} \
+    -pre {Object n; Object n::x; Class M -instforward ::n::x; 
       Class C -instmixin M; C create o } \
     -cmd {o x self} -expected ::n::x -count $cnt \
     -post {o destroy}
-Test new -msg {call obj with namespace via insttclcmd and next from proc} \
+Test new -msg {call obj with namespace via instforward and next from proc} \
     -pre {
       Object n; Object n::x; 
-      Class C; C insttclcmd ::n::x; 
+      Class C -instforward ::n::x; 
       C create o -proc x args {next} } \
     -cmd {o x self} -expected ::n::x -count $cnt \
     -post {o destroy}
-Test new -msg {call obj with namespace via insttclcmd and next from instproc} \
+Test new -msg {call obj with namespace via instforward and next from instproc} \
     -pre {
       Object n; Object n::x; 
-      Class C -insttclcmd ::n::x; 
+      Class C -instforward ::n::x; 
       Class D -superclass C -instproc x args {next};
       D create o } \
     -cmd {o x self} -expected ::n::x -count $cnt \
     -post {o destroy}
-Test new -msg {call obj with namespace via mixin and insttclcmd and next} \
+Test new -msg {call obj with namespace via mixin and instforward and next} \
     -pre {Object n; Object n::x; 
-      Class M -insttclcmd ::n::x; 
+      Class M -instforward ::n::x; 
       Class N -superclass M -instproc x args {next};
       Class C -instmixin N; C create o} \
     -cmd {o x self} -expected ::n::x -count $cnt \

@@ -16,13 +16,15 @@ package ifneeded xotcl::store::persistence 0.8 [list source [file join $dir Pers
 package ifneeded xotcl::store::tclgdbm 0.84 [list source [file join $dir TclGdbmStorage.xotcl]]
 package ifneeded xotcl::store::textfile 0.84 [list source [file join $dir TextFileStorage.xotcl]]
 
-set __dir__ $dir
+set __store_dir__ $dir
 foreach index [glob -nocomplain [file join $dir * pkgIndex.tcl]] {
   set dir [file dirname $index]
   #puts subdir=$dir,index=$index
   source $index
 }
-set dir $__dir__
-if {[info exists __dir]} {unset __dir__}
+set dir $__store_dir__
+unset __store_dir__
+
+
 
 

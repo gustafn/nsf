@@ -54,3 +54,6 @@ XOTCL_SRC_DIR='/home/neumann/xotcl-1.2.1'
 XOTCL_SHARED_LIB_SUFFIX=1.2.1.so
 XOTCL_UNSHARED_LIB_SUFFIX=1.2.1.a
 
+# the shell in whose installation dirs the xotcl package is installed
+XOTCL_COMPATIBLE_TCLSH=/home/neumann/tcl8.4.5/unix/tclsh
+

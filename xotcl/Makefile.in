@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.3 2004/06/18 08:27:57 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.4 2004/07/02 11:22:31 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -108,11 +108,6 @@ includedir	= @includedir@
 
 DESTDIR		=
 
-PKG_DIR		= $(PACKAGE_NAME)$(PACKAGE_VERSION)
-pkgdatadir	= $(datadir)/$(PKG_DIR)
-pkglibdir	= $(libdir)/$(PKG_DIR)
-pkgincludedir	= $(includedir)/$(PKG_DIR)
-
 top_builddir	= .
 
 INSTALL		= @INSTALL@
@@ -147,6 +142,10 @@ TCL_SRC_DIR	= @TCL_SRC_DIR@
 #TCL_TOP_DIR_NATIVE	= @TCL_TOP_DIR_NATIVE@
 # Not used, but retained for reference of what libs Tcl required
 TCL_LIBS	= @TCL_LIBS@
+
+pkgdatadir	= @pkgdatadir@
+pkglibdir	= @pkglibdir@
+pkgincludedir	= @pkgincludedir@
 
 #========================================================================
 # TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
@@ -266,6 +265,7 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 	    (cd $(src_lib_dir); $(INSTALL) $$i $(DESTDIR)$(pkglibdir)/$$i) ; \
 	done;
 	cat ${srcdir}/unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
+	$(INSTALL) xotclConfig.sh $(DESTDIR)$(libdir)/
 	@for i in $(appdirs) ; do \
 	    echo "Installing $$i" ; \
 	    rm -rf $(DESTDIR)$(pkglibdir)/apps/$$i ; \
@@ -306,6 +306,8 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/testo.xotcl` \
 		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
 	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/speedtest.xotcl` \
+		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
+	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/forwardtest.xotcl` \
 		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
 	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/xocomm.test` \
 		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)

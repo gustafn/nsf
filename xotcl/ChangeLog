@@ -1,3 +1,13 @@
+2004-07-02 Gustaf.Neumann@wu-wien.ac.at
+        * rename forward option -inscope to -objscope
+        * xotcl.c: added current namespace prefix, when a forwarder is
+          defined with -objscope and no namespace prefix was specified
+        * optimzed forward/instforward such it reaches practically
+          same speed as tclcmd/insttclcmd. 
+        * removed tclcmd/insttclcmd
+        * added tests for forward to regreession test suite
+        * applied and fixed the config improvements by Jim Lynch <jwl@debian.org>
+
 2004-07-01 Gustaf.Neumann@wu-wien.ac.at
         * xotcl.c: allow literal %self, %proc, %1 etc. as arguments of the forwarder:
           arguments in the definition of a forwarder proc

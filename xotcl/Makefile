@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.8 2004/07/01 10:39:34 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.9 2004/07/02 11:22:31 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -108,11 +108,6 @@ includedir	= /usr/include
 
 DESTDIR		=
 
-PKG_DIR		= $(PACKAGE_NAME)$(PACKAGE_VERSION)
-pkgdatadir	= $(datadir)/$(PKG_DIR)
-pkglibdir	= $(libdir)/$(PKG_DIR)
-pkgincludedir	= $(includedir)/$(PKG_DIR)
-
 top_builddir	= .
 
 INSTALL		= /usr/bin/install -c
@@ -123,7 +118,7 @@ INSTALL_SCRIPT	= ${INSTALL}
 PACKAGE_NAME	= xotcl
 PACKAGE_VERSION	= 1.2.1
 CC		= gcc -pipe
-CFLAGS_DEFAULT	= -O -g
+CFLAGS_DEFAULT	= -O
 CFLAGS_WARNING	= -Wall -Wconversion -Wno-implicit-int
 CLEANFILES	= *.o *.a *.so *~ core gmon.out config.*
 EXEEXT		= 
@@ -147,6 +142,10 @@ TCL_SRC_DIR	= /home/neumann/tcl8.4.5
 #TCL_TOP_DIR_NATIVE	= $(TCL_SRC_DIR)
 # Not used, but retained for reference of what libs Tcl required
 TCL_LIBS	= ${DL_LIBS} ${LIBS} ${MATH_LIBS}
+
+pkgdatadir	= /usr/share/xotcl1.2.1
+pkglibdir	= /usr/lib/xotcl1.2.1
+pkgincludedir	= /usr/include/xotcl1.2.1
 
 #========================================================================
 # TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
@@ -266,6 +265,7 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 	    (cd $(src_lib_dir); $(INSTALL) $$i $(DESTDIR)$(pkglibdir)/$$i) ; \
 	done;
 	cat ${srcdir}/unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
+	$(INSTALL) xotclConfig.sh $(DESTDIR)$(libdir)/
 	@for i in $(appdirs) ; do \
 	    echo "Installing $$i" ; \
 	    rm -rf $(DESTDIR)$(pkglibdir)/apps/$$i ; \
@@ -306,6 +306,8 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH_PROG) `echo $(src_test_dir)/testo.xotcl` \
 		-libdir `echo $(PLATFORM_DIR)` $(TESTFLAGS)
 	$(TCLSH_PROG) `echo $(src_test_dir)/speedtest.xotcl` \
+		-libdir `echo $(PLATFORM_DIR)` $(TESTFLAGS)
+	$(TCLSH_PROG) `echo $(src_test_dir)/forwardtest.xotcl` \
 		-libdir `echo $(PLATFORM_DIR)` $(TESTFLAGS)
 	$(TCLSH_PROG) `echo $(src_test_dir)/xocomm.test` \
 		-libdir `echo $(PLATFORM_DIR)` $(TESTFLAGS)

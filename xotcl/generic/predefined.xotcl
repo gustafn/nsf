@@ -1,4 +1,4 @@
-# $Id: predefined.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: predefined.xotcl,v 1.2 2004/07/02 11:22:31 neumann Exp $
 
 # init must exist on Object. per default it is empty.
 ::xotcl::Object instproc init args {}
@@ -22,7 +22,17 @@ namespace eval ::xotcl { namespace export @ }
 
 # provide some Tcl-commands as methods for Objects
 foreach cmd {array append lappend trace eval} {
-  ::xotcl::Object insttclcmd $cmd
+  ::xotcl::Object instforward $cmd -objscope
+}
+::xotcl::Object instproc tclcmd {t} {
+  set cmd [list [::xotcl::self] forward $t -objscope]
+  puts stderr "the method tclcmd is deprecated; use instead '$cmd'"
+  eval $cmd
+}
+::xotcl::Class instproc insttclcmd {t} {
+  set cmd [list [::xotcl::self] instforward $t -objscope]
+  puts stderr "the method tclcmd is deprecated; use instead '$cmd'"
+  eval $cmd
 }
 
 ::xotcl::Object instproc self {} {return [::xotcl::self]}
