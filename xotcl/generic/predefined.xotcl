@@ -1,4 +1,4 @@
-# $Id: predefined.xotcl,v 1.4 2004/07/20 12:57:59 neumann Exp $
+# $Id: predefined.xotcl,v 1.5 2005/01/10 11:57:35 neumann Exp $
 
 # init must exist on Object. per default it is empty.
 ::xotcl::Object instproc init args {}
@@ -94,6 +94,14 @@ foreach cmd {array append lappend trace eval} {
   if {[::xotcl::my ismixin $cl]} {return 1}
   ::xotcl::my istype $cl
 }
+::xotcl::Class instproc allinstances {} {
+  set set [::xotcl::my info instances]
+  foreach sc [::xotcl::my info subclass] {
+    eval lappend set [$sc allinstances]
+  }
+  return $set
+}
+
 
 # Exit Handler
 ::xotcl::Object proc unsetExitHandler {} {
@@ -407,7 +415,7 @@ foreach cmd {array append lappend trace eval} {
 #
 # if cutTheArg not 0, it cut from upvar argsList
 # 
-xotcl::Object instproc extractConfigureArg {al name {cutTheArg 0}} {
+::xotcl::Object instproc extractConfigureArg {al name {cutTheArg 0}} {
   set value ""
   upvar $al argList
   set largs [llength $argList]

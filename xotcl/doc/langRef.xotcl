@@ -1,4 +1,4 @@
-# $Id: langRef.xotcl,v 1.6 2004/10/30 20:19:55 neumann Exp $
+# $Id: langRef.xotcl,v 1.7 2005/01/10 11:57:35 neumann Exp $
 package provide XOTcl-langRef 1.3.3
 package require Tcl
 
@@ -62,7 +62,7 @@ package require Tcl
     <@/p>
 
   }
-  date { $Date: 2004/10/30 20:19:55 $ }
+  date { $Date: 2005/01/10 11:57:35 $ }
 }
 
 ##
@@ -403,13 +403,10 @@ package require Tcl
 
       <@li><@TT>objName info invar</@TT>: Returns object invariants.
 
-      <@li><@TT>objName info nonposargs methodName</@TT>: Returns
-      non-positional arg list of methodName
-
       <@li><@TT>objName info metadata ?pattern?</@TT>: 
       Returns available metadata options.
 
-      <@li><@TT>objName info methods</@TT>: Returns the list of all method
+      <@li><@TT>objName info methods</@TT>: Returns the list of all methods
       currently reachable for objName. Includes procs, instprocs, cmds, 
       instcommands on object, class hierarchy and mixins.
       Modifier <@TT>-noprocs</@TT> only returns instcommands, 
@@ -419,6 +416,9 @@ package require Tcl
       <@li><@TT>objName info mixin</@TT>: Returns the list of mixins 
       of the object. With <@TT>-order</@TT> modifier the order of mixins 
       (whole hierarchy) is printed.
+
+      <@li><@TT>objName info nonposargs methodName</@TT>: Returns
+      non-positional arg list of methodName
 
       <@li><@TT>objName info parent</@TT>: 
       Returns parent object name (or "::" for no parent), 
@@ -601,7 +601,7 @@ package require Tcl
 
 @ Object instproc proc {
   name "method name"
-  ?non-pos-args?" "optinal non-positional arguments"
+  ?non-pos-args? "optinal non-positional arguments"
   args "method arguments"
   body "method body"
   "?preAssertion?" "optional assertions that must hold before the proc executes"
@@ -765,6 +765,14 @@ package require Tcl
       be used.
   }
   return "new class name"
+}
+
+@ Class instproc allinstances {
+} {
+  description {
+       Compute all immediate and indirect instances of a class
+  }
+  return "fully qualified list of instances"
 }
 
 @ Class instproc create {

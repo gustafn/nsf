@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.23 2005/01/06 03:10:05 neumann Exp $
+#$Id: testx.xotcl,v 1.24 2005/01/10 11:57:35 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -2865,7 +2865,7 @@ smallScripts proc run {{n 20}} {
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "[self]: b info methods -nocmds -noprocs"
 
-    ::errorCheck [lsort [B info methods -nocmds]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init instfilterappend instmixinappend insttclcmd mixinappend move recreate self setFilter tclcmd" "[self]: B info methods -nocmds"
+    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init instfilterappend instmixinappend insttclcmd mixinappend move recreate self setFilter tclcmd" "[self]: B info methods -nocmds"
 
     namespace eval a {
 	proc o args {return o}

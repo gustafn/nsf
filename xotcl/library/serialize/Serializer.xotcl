@@ -1,4 +1,4 @@
-# $Id: Serializer.xotcl,v 1.10 2005/01/07 12:51:47 neumann Exp $
+# $Id: Serializer.xotcl,v 1.11 2005/01/10 11:57:35 neumann Exp $
 package require XOTcl 1.3
 package provide xotcl::serializer 0.8
 
@@ -15,14 +15,14 @@ namespace eval ::xotcl::serializer {
     authors {
       Gustaf Neumann, Gustaf.Neumann@wu-wien.ac.at
     }
-    date { $Date: 2005/01/07 12:51:47 $ }
+    date { $Date: 2005/01/10 11:57:35 $ }
   }
   
   @ Serializer proc all {
-			 ?-ignoreVarsRE&nbsp;RE? 
-			 "provide regular expression; matching vars are ignored"
-			 ?-ignore&nbsp;obj1&nbsp;obj2&nbsp;...? 
-			 "provide a list of objects to be omitted"} {
+		 ?-ignoreVarsRE&nbsp;RE? 
+		 "provide regular expression; matching vars are ignored"
+		 ?-ignore&nbsp;obj1&nbsp;obj2&nbsp;...? 
+		 "provide a list of objects to be omitted"} {
     Description {
       Serialize all objects and classes that are currently 
       defined (except the specified omissions and the current
@@ -40,12 +40,12 @@ namespace eval ::xotcl::serializer {
   }
   
   @ Serializer proc deepSerialize {
-				   objs "Objects to be serialized"
-				   ?-ignoreVarsRE&nbsp;RE? 
-				   "provide regular expression; matching vars are ignored"
-				   ?-ignore&nbsp;obj1&nbsp;obj2&nbsp;...? 
-				   "provide a list of objects to be omitted"
-				   ?-map&nbsp;list? "translate object names in serialized code"
+		   objs "Objects to be serialized"
+		   ?-ignoreVarsRE&nbsp;RE? 
+		   "provide regular expression; matching vars are ignored"
+		   ?-ignore&nbsp;obj1&nbsp;obj2&nbsp;...? 
+		   "provide a list of objects to be omitted"
+		   ?-map&nbsp;list? "translate object names in serialized code"
 				 } {
     Description {
       Serialize object with all child objects (deep operation) 
@@ -76,9 +76,9 @@ namespace eval ::xotcl::serializer {
   }
   
   @ Serializer proc methodSerialize {
-				     object "object or class"
-				     method "name of method"
-				     prefix "either empty or 'inst' (latter for instprocs)"
+		     object "object or class"
+		     method "name of method"
+		     prefix "either empty or 'inst' (latter for instprocs)"
 				   } {
     Description {
       Serialize the specified method. In order to serialize 
@@ -126,7 +126,9 @@ namespace eval ::xotcl::serializer {
       variables, invariants, filters and mixins}
   }
   
-  ########################################################################################
+  ##################################################################################
+  # real clode starts here.....
+  # ################################################################################
   Class Serializer -parameter {ignoreVarsRE map}
   namespace export Serializer
   Serializer proc ignore args {
@@ -253,11 +255,12 @@ namespace eval ::xotcl::serializer {
     return $set
   }
   
-  Serializer instproc topoSort {set} {
+  Serializer instproc topoSort {set all} {
     if {[my array exists s]} {my array unset s}
     if {[my array exists level]} {my array unset level}
     foreach c $set {
-      if {[string match ::xotcl::* $c] && 
+      if {!$all &&
+	  [string match ::xotcl::* $c] && 
 	  ![[self class] exists exportObjects($c)]} continue
       if {[my exists skip($c)]} continue
       my set s($c) 1
@@ -309,8 +312,8 @@ namespace eval ::xotcl::serializer {
   Serializer instproc serialize {objectOrClass} {
     string trimright [my [my category $objectOrClass]-serialize $objectOrClass] "\\\n"
   }
-  Serializer instproc serializeList {list} {
-    my topoSort $list
+  Serializer instproc serializeList {list all} {
+    my topoSort $list $all
     #foreach i [lsort [my array names level]] {puts "$i: [my set level($i)]"}
     set result ""
     foreach l [lsort [my array names level]] {
@@ -344,7 +347,7 @@ namespace eval ::xotcl::serializer {
   }
   Serializer instproc deepSerialize o {
     # assumes $o to be fully qualified
-    my serializeList [my allChildren $o]
+    my serializeList [my allChildren $o] 1
   }
   
   Serializer proc exportMethods list {
@@ -356,7 +359,7 @@ namespace eval ::xotcl::serializer {
 
   Serializer proc all {args} {
     set s [eval my new -childof [self] -volatile $args]
-    set r [$s serializeList [$s allInstances ::xotcl::Object]]
+    set r [$s serializeList [$s allInstances ::xotcl::Object] 0]
     my exportMethods [list ::xotcl::Object proc __exitHandler]
     foreach k [my array names exportMethods] {
       foreach {o p m} [split $k ,] break
@@ -389,5 +392,7 @@ namespace eval ::xotcl::serializer {
   }
 
   Serializer exportObjects [namespace current]::Serializer
-  namespace eval :: "namespace import [namespace current]::*"
+  namespace eval :: "namespace import -force [namespace current]::*"
+
+  #ns_log notice "???? sourceing.....Serializer"
 }

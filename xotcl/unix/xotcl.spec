@@ -25,7 +25,7 @@ consult http://www.xotcl.org
 
 
 %build
-./configure --with-tcl=/usr/lib --with-all --prefix=/usr/local/aolserver40r8/ --exec-prefix=/usr/local/aolserver40r8/
+./configure --with-tcl=/usr/lib --with-all --prefix=/usr --exec-prefix=/usr
 #make CFLAGS_DEFAULT='-O3 -mcpu=i686 -Wall -fomit-frame-pointer'
 make CFLAGS_DEFAULT='-O3 -Wall -fomit-frame-pointer'
 
@@ -37,10 +37,10 @@ make install
 %undefine       __check_files
 
 %doc doc 
-/usr/local/aolserver40r8//lib/xotcl1.3.5
-/usr/local/aolserver40r8//bin/xotclsh
-/usr/local/aolserver40r8//bin/xowish
-/usr/local/aolserver40r8//include/xotclDecls.h
-/usr/local/aolserver40r8//include/xotcl.h
-/usr/local/aolserver40r8//include/xotclIntDecls.h
-/usr/local/aolserver40r8//include/xotclInt.h
+/usr/lib/xotcl1.3.5
+/usr/bin/xotclsh
+/usr/bin/xowish
+/usr/include/xotclDecls.h
+/usr/include/xotcl.h
+/usr/include/xotclIntDecls.h
+/usr/include/xotclInt.h

@@ -1,3 +1,7 @@
+2005-01-10 Gustaf.Neumann@wu-wien.ac.at
+        * added instproc for ::xotcl::Class allinstances
+          to list all instances for the actual class 
+
 2005-01-07 Gustaf.Neumann@wu-wien.ac.at
         * code cleanup for nonpos args
         * new methods for Serialzer:
@@ -11,7 +15,7 @@
 
 2005-01-06 Gustaf.Neumann@wu-wien.ac.at
         * made introspection options for methods with nonpos args
-          compatible with tcl
+          compatible with Tcl
         * adding functionality to allow nonpos args and positional args
           to be specified in the same argument list (still supporting
           the syntax with separate lists)

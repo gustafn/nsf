@@ -1,4 +1,4 @@
-# $Id: aol-xotcl.tcl,v 1.4 2005/01/07 02:40:59 neumann Exp $
+# $Id: aol-xotcl.tcl,v 1.5 2005/01/10 11:57:35 neumann Exp $
 
 #
 # Load XOTcl library and some related packages.
