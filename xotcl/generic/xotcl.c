@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.24 2004/08/22 10:00:19 neumann Exp $
+/* $Id: xotcl.c,v 1.25 2004/08/26 19:42:52 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -4901,8 +4901,10 @@ FindProc(Tcl_Interp *in, Tcl_HashTable *table, char *name) {
     Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
     if (proc == RUNTIME_STATE(in)->objInterpProc)
       return (Proc*) Tcl_Command_objClientData(cmd);
+#if USE_INTERP_PROC
     else if ((Tcl_CmdProc*)proc == RUNTIME_STATE(in)->interpProc)
       return (Proc*) Tcl_Command_clientData(cmd);
+#endif
   }
   return 0;
 }
@@ -10065,14 +10067,14 @@ static void deleteProcsAndVars(Tcl_Interp *in) {
   entryPtr = Tcl_FirstHashEntry(cmdTable, &search);
   while (entryPtr) {
     cmd = (Tcl_Command)Tcl_GetHashValue(entryPtr);
-    if (Tcl_Command_proc(cmd) == RUNTIME_STATE(in)->interpProc) {
-      /*
-	char *key = Tcl_GetHashKey(cmdTable, entryPtr);
-	fprintf(stderr, "cmdname = %s cmd %p proc %p objProc %p %d\n",
-		key,cmd,cmd->proc,cmd->objProc,
-		cmd->proc==RUNTIME_STATE(in)->interpProc);
-
-	*/
+    
+    if (Tcl_Command_objProc(cmd) == RUNTIME_STATE(in)->objInterpProc) {
+      char *key = Tcl_GetHashKey(cmdTable, entryPtr);
+      
+      /*fprintf(stderr, "cmdname = %s cmd %p proc %p objProc %p %d\n",
+	      key,cmd,Tcl_Command_proc(cmd),Tcl_Command_objProc(cmd),
+	      Tcl_Command_proc(cmd)==RUNTIME_STATE(in)->objInterpProc);*/
+	
       Tcl_DeleteCommandFromToken(in, cmd);
     }
     entryPtr = Tcl_NextHashEntry(&search);
@@ -10464,7 +10466,9 @@ Xotcl_Init(Tcl_Interp *in) {
 
   /* cache interpreters proc interpretation functions */
   RUNTIME_STATE(in)->objInterpProc = TclGetObjInterpProc();
+#if USE_INTERP_PROC
   RUNTIME_STATE(in)->interpProc = TclGetInterpProc();
+#endif
   RUNTIME_STATE(in)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_OFF;
 
   RegisterObjTypes();

@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.7 2004/08/22 10:00:19 neumann Exp $
+ *  $Id: xotclInt.h,v 1.8 2004/08/26 19:42:52 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -601,7 +601,9 @@ typedef struct XOTclRuntimeState {
    */
   XOTclClass *theObject;
   XOTclClass *theClass;
+#if USE_INTERP_PROC
   Tcl_CmdProc *interpProc;
+#endif
   Tcl_ObjCmdProc *objInterpProc;
   Tcl_Obj **methodObjNames;
   struct XOTclShadowTclCommandInfo *tclCommands;
