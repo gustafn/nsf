@@ -1,9 +1,8 @@
-# $Id: Serializer.xotcl,v 1.8 2005/01/07 12:41:26 neumann Exp $
+# $Id: Serializer.xotcl,v 1.9 2005/01/07 12:51:35 neumann Exp $
 package require XOTcl 1.3
-package provide xotcl::serializer 0.7
-namespace eval ::xotcl {}
-set ::xotcl::ns ::xotcl::serializer
-namespace eval $::xotcl::ns {
+package provide xotcl::serializer 0.8
+
+namespace eval ::xotcl::serializer {
 
   namespace import ::xotcl::*
 
@@ -16,7 +15,7 @@ namespace eval $::xotcl::ns {
     authors {
       Gustaf Neumann, Gustaf.Neumann@wu-wien.ac.at
     }
-    date { $Date: 2005/01/07 12:41:26 $ }
+    date { $Date: 2005/01/07 12:51:35 $ }
   }
   
   @ Serializer proc all {
@@ -388,6 +387,7 @@ namespace eval $::xotcl::ns {
     if {[$s exists map]} {return [string map [$s map] $r]}
     return $r
   }
+
+  Serializer exportObjects [namespace current]::Serializer
+  namespace eval :: "namespace import [namespace current]::*"
 }
-namespace import ${::xotcl::ns}::*
-Serializer exportObjects ${::xotcl::ns}::Serializer
