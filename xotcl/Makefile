@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.18 2004/08/22 10:00:19 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.19 2004/08/25 09:45:23 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -616,9 +616,8 @@ bin-tar:
                 -type f -o -type l | fgrep -v CVS | fgrep -v SCCS | fgrep -v .junk| fgrep -v .db | fgrep -v "~" | fgrep -v "#" | fgrep -v /receiver/` \
 	)
 
-tar: clean
-	(cd ..; tar zcvf ./xotcl-$(PACKAGE_VERSION).tar.gz \
-		`find ./xotcl-$(PACKAGE_VERSION) -type f -o -type l| fgrep -v CVS | fgrep -v SCCS | fgrep -v Attic | fgrep -v "autom4te"| fgrep -v config\.status | fgrep -v "~"|fgrep -v .db | fgrep -v .junk | fgrep -v "#" | grep -v "/o$$"`)
+tar: 
+	sh ./config/mktar.sh
 
 
 .PHONY: all binaries clean depend distclean doc install libraries \

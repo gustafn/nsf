@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<!-- $Id: tutorial.html,v 1.4 2004/08/17 22:59:31 neumann Exp $ -->
+<!-- $Id: tutorial.html,v 1.5 2004/08/25 09:45:23 neumann Exp $ -->
 <HTML>
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
@@ -1872,6 +1872,8 @@ value, "args" is empty.
 
 </p>
 
+
+<!--
 <p>
 In seldom cases, more flexibility might be required. Using the
 checkoption "checkobj" we can switch the object that is used for
@@ -1894,6 +1896,7 @@ o proc color {{{-color:checkobj colorchecker,color must be red,reddish,checkobj 
     puts "$b $arg"
 }
 </pre></p>
+-->
 
 Of course, the non-positional arguments can also be introspected. The
 following "info" options return the non-positional arguments of a
@@ -1904,7 +1907,6 @@ method:
  <em>objName</em> <tt>info</tt> <em>nonposargs</em> methodName
  <em>className</em> <tt>info</tt> <em>instnonposargs</em> methodName
 </pre></p>
-
 
 <!-- PAGE BREAK -->
 
