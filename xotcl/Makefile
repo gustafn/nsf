@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.15 2004/08/17 10:12:54 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.16 2004/08/17 10:27:58 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -607,7 +607,7 @@ rpm: tar
 	rpmbuild -ba $(RPMSPECS)/xotcl-$(PACKAGE_VERSION).spec
 
 bin-tar: 
-	(cd ../..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
+	(cd ..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
                 `find $(exec_prefix)/bin/xotclsh $(exec_prefix)/bin/xowish \
 		  $(prefix)/include/xotcl*.h \
                   $(prefix)/lib/$(PKG_LIB_FILE) \
