@@ -1,7 +1,7 @@
-#!/home/neumann/tcl8.4.9/unix/tclsh
+#!/home/neumann/tcl8.4.7/unix/tclsh
 if {$argc == 0} {
   puts "Don't use [info script] as interactive shell! Use instead:"
-  puts "   /home/neumann/tcl8.4.9/unix/tclsh"
+  puts "   /home/neumann/tcl8.4.7/unix/tclsh"
   puts "   package require XOTcl; namespace import ::xotcl::*"
 } else {
   package require XOTcl

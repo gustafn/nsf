@@ -1,4 +1,4 @@
-# $Id: Serializer.xotcl,v 1.7 2005/01/07 03:33:41 neumann Exp $
+# $Id: Serializer.xotcl,v 1.8 2005/01/07 12:41:26 neumann Exp $
 package require XOTcl 1.3
 package provide xotcl::serializer 0.7
 namespace eval ::xotcl {}
@@ -16,7 +16,7 @@ namespace eval $::xotcl::ns {
     authors {
       Gustaf Neumann, Gustaf.Neumann@wu-wien.ac.at
     }
-    date { $Date: 2005/01/07 03:33:41 $ }
+    date { $Date: 2005/01/07 12:41:26 $ }
   }
   
   @ Serializer proc all {
@@ -173,7 +173,7 @@ namespace eval $::xotcl::ns {
     }
   }
   Serializer instproc Object-serialize o {
-    append cmd [list [$o info class] create $o -noinit] " \\\n"
+    append cmd [list [$o info class] create [$o self] -noinit] " \\\n"
     foreach i [$o info procs] {
       append cmd " " [my method-serialize $o $i ""] " \\\n"
     }
@@ -237,7 +237,7 @@ namespace eval $::xotcl::ns {
     return $arglist
   }
   Serializer instproc category c {
-    if {[$c istype ::Class]} {return Class} {return Object}
+    if {[$c istype ::xotcl::Class]} {return Class} {return Object}
   }
   Serializer instproc allChildren o {
     set set $o
@@ -308,7 +308,7 @@ namespace eval $::xotcl::ns {
     return 0
   }
   Serializer instproc serialize {objectOrClass} {
-    my [my category $objectOrClass]-serialize $objectOrClass
+    string trimright [my [my category $objectOrClass]-serialize $objectOrClass] "\\\n"
   }
   Serializer instproc serializeList {list} {
     my topoSort $list
@@ -316,7 +316,7 @@ namespace eval $::xotcl::ns {
     set result ""
     foreach l [lsort [my array names level]] {
       foreach i [my set level($l)] {
-	append result [string trimright [my serialize $i] "\\\n"] \n
+	append result [my serialize $i] \n
       }
     }
     foreach e $list {

@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.31 2005/01/07 03:33:41 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.32 2005/01/07 12:41:26 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -27,10 +27,10 @@ src_doc_dir 	= ${srcdir}/doc
 src_test_dir 	= ${srcdir}/tests
 src_app_dir 	= ${srcdir}/apps
 src_generic_dir = ${srcdir}/generic
-TCL_LIB_SPEC    = -L/home/neumann/import/tcl8.4.9/unix -ltcl8.4
+TCL_LIB_SPEC    = -L/home/neumann/tcl8.4.7/unix -ltcl8.4
 TK_LIB_SPEC	= 
 subdirs		= 
-aol_prefix	= /usr/local/aolserver
+aol_prefix	= /usr/local/aolserver40r8/
 
 # Requires native paths
 PLATFORM_DIR    = `echo $(srcdir)/unix`
@@ -107,14 +107,14 @@ BINARIES	= $(lib_BINARIES)
 SHELL		= /bin/sh
 
 srcdir		= .
-prefix		= /usr
-exec_prefix	= /usr
+prefix		= /usr/local/aolserver40r8/
+exec_prefix	= /usr/local/aolserver40r8/
 
 bindir		= ${exec_prefix}/bin
-libdir		= /usr/lib
-datadir		= /usr/share
+libdir		= /usr/local/aolserver40r8//lib
+datadir		= /usr/local/aolserver40r8//share
 mandir		= ${prefix}/man
-includedir	= /usr/include
+includedir	= /usr/local/aolserver40r8//include
 
 DESTDIR		=
 
@@ -143,19 +143,19 @@ RANLIB_STUB	= ranlib
 SHLIB_CFLAGS	= -fPIC
 SHLIB_LD	= gcc -pipe -shared
 SHLIB_LD_FLAGS	= 
-SHLIB_LD_LIBS	= ${LIBS} -L/home/neumann/import/tcl8.4.9/unix -ltclstub8.4
+SHLIB_LD_LIBS	= ${LIBS} -L/home/neumann/tcl8.4.7/unix -ltclstub8.4
 STLIB_LD	= ${AR} cr
-TCL_DEFS	=  -DTCL_THREADS=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_PTHREAD_ATFORK=1 -DHAVE_READDIR_R=1 -DHAVE_THREE_ARG_READDIR_R=1 -DPEEK_XCLOSEIM=1 -D_LARGEFILE64_SOURCE=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_STRUCT_STAT64=1 -DHAVE_OPEN64=1 -DHAVE_LSEEK64=1 -DHAVE_TYPE_OFF64_T=1 -DHAVE_GETCWD=1 -DHAVE_OPENDIR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOL=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_TMPNAM=1 -DHAVE_WAITPID=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_TERMIOS=1 -DHAVE_SYS_TIME_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_TM_ZONE=1 -DHAVE_GMTIME_R=1 -DHAVE_LOCALTIME_R=1 -DHAVE_TM_GMTOFF=1 -DHAVE_TIMEZONE_VAR=1 -DHAVE_ST_BLKSIZE=1 -DSTDC_HEADERS=1 -DHAVE_SIGNED_CHAR=1 -DHAVE_LANGINFO=1 -DHAVE_SYS_IOCTL_H=1 
-TCL_BIN_DIR	= /home/neumann/tcl8.4.9/unix
-TCL_SRC_DIR	= /home/neumann/import/tcl8.4.9
+TCL_DEFS	=  -DTCL_THREADS=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_PTHREAD_ATFORK=1 -DHAVE_READDIR_R=1 -DPEEK_XCLOSEIM=1 -D_LARGEFILE64_SOURCE=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_STRUCT_STAT64=1 -DHAVE_TYPE_OFF64_T=1 -DHAVE_GETCWD=1 -DHAVE_OPENDIR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOL=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_TMPNAM=1 -DHAVE_WAITPID=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_TERMIOS=1 -DHAVE_SYS_TIME_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_TM_ZONE=1 -DHAVE_GMTIME_R=1 -DHAVE_LOCALTIME_R=1 -DHAVE_TM_GMTOFF=1 -DHAVE_TIMEZONE_VAR=1 -DHAVE_ST_BLKSIZE=1 -DSTDC_HEADERS=1 -DHAVE_SIGNED_CHAR=1 -DHAVE_LANGINFO=1 -DHAVE_SYS_IOCTL_H=1 
+TCL_BIN_DIR	= /home/neumann/tcl8.4.7/unix
+TCL_SRC_DIR	= /home/neumann/tcl8.4.7
 # This is necessary for packages that use private Tcl headers
 #TCL_TOP_DIR_NATIVE	= $(TCL_SRC_DIR)
 # Not used, but retained for reference of what libs Tcl required
 TCL_LIBS	= ${DL_LIBS} ${LIBS} ${MATH_LIBS}
 
-pkgdatadir	= /usr/share/xotcl1.3.5
-pkglibdir	= /usr/lib/xotcl1.3.5
-pkgincludedir	= /usr/include/xotcl1.3.5
+pkgdatadir	= /usr/local/aolserver40r8//share/xotcl1.3.5
+pkglibdir	= /usr/local/aolserver40r8//lib/xotcl1.3.5
+pkgincludedir	= /usr/local/aolserver40r8//include/xotcl1.3.5
 
 #========================================================================
 # TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
@@ -169,7 +169,7 @@ TCLSH_ENV	= TCL_LIBRARY=`echo $(TCL_SRC_DIR)/library` \
 		  LD_LIBRARY_PATH="$(EXTRA_PATH):$(LD_LIBRARY_PATH)" \
 		  PATH="$(EXTRA_PATH):$(PATH)" \
 		  TCLLIBPATH="$(top_builddir) ${srcdir}"
-TCLSH_PROG	= /home/neumann/tcl8.4.9/unix/tclsh
+TCLSH_PROG	= /home/neumann/tcl8.4.7/unix/tclsh
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= 1
 
@@ -213,7 +213,7 @@ all: binaries libraries doc
 # of the Makefile, in the "BINARIES" variable.
 #========================================================================
 
-binaries: $(BINARIES) xotclsh  pkgIndex.tcl
+binaries: $(BINARIES)   pkgIndex.tcl
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
@@ -487,7 +487,7 @@ checkstubs:
 #========================================================================
 
 clean:  
-	-rm -rf $(BINARIES) $(CLEANFILES) xotclsh  pkgIndex.tcl ./receiver \
+	-rm -rf $(BINARIES) $(CLEANFILES)   pkgIndex.tcl ./receiver \
 		$(target_doc_dir)/*-xotcl.html
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
@@ -617,7 +617,7 @@ end:
 	@echo "   setenv TCLLIBPATH \"$(TCLLIBPATH)\""
 	@echo " and"
 	@if test "x$(XOTCLSH)" = "x" ; then \
-	  echo "   /home/neumann/tcl8.4.9/unix/tclsh" ; \
+	  echo "   /home/neumann/tcl8.4.7/unix/tclsh" ; \
 	  echo "   package require XOTcl; namespace import -force xotcl::*" ; \
 	  echo " or" ; \
 	  echo "   put the 'package require' line into your ~/.tclshrc" ; \
