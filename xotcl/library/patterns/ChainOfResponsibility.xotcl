@@ -1,4 +1,4 @@
-# $Id: ChainOfResponsibility.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: ChainOfResponsibility.xotcl,v 1.2 2004/07/03 21:19:39 neumann Exp $
 package provide xotcl::pattern::chainOfResponsibility 0.9
 
 Class ChainOfResponsibility -superclass Class
@@ -28,7 +28,7 @@ ChainOfResponsibility instproc chainingFilter args {
 }
 
 ChainOfResponsibility instproc init args {
-  my instfilterappend chainingFilter
+  my instfilter add chainingFilter
   my parameter {successor}
   # chained operations hold their value of failure
   my array set chainedOperations {}

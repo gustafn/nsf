@@ -1,3 +1,26 @@
+2004-07-03 Gustaf.Neumann@wu-wien.ac.at
+        * extended commands filter, mixin, instfilter, instmixin:
+          These commands are changed in a backward compatible manner. They
+          can be used as follows
+
+             obj mixin:              same as: obj info mixin
+             obj mixin {C1 C2}       same as: obj mixin set {C1 C2}
+             obj mixin set {C1 C2}   sets the mixins for obj
+             obj mixin get {C1 C2}   same as: obj info mixin
+             obj mixin add C3        adds a mixin on front of the mixin list
+             obj mixin add C3 end    adds a mixin at the end the mixin list
+             obj mixin add C3 3      adds a mixin at the 3rd position
+             obj mixin delete ::C3   removes the mixin from the mixin list
+
+           The same semantics are available as well for filter, instmixin 
+           and instfilter.
+           The implementation uses the forwarder and is extensible, new
+           subcommands can be added. As a side effect, the c-code was reduced
+           by 50 lines.
+         * the commands mixinappend, filterappend, instmixinappend and
+           instfilterappend were marked as deprecated and will be removed
+           in future versions
+          
 2004-07-02 Gustaf.Neumann@wu-wien.ac.at
         * rename forward option -inscope to -objscope
         * xotcl.c: added current namespace prefix, when a forwarder is

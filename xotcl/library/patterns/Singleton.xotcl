@@ -1,4 +1,4 @@
-# $Id: Singleton.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: Singleton.xotcl,v 1.2 2004/07/03 21:19:39 neumann Exp $
 package provide xotcl::pattern::singleton 0.8
 
 Class SingletonBase
@@ -57,7 +57,7 @@ Singleton instproc singletonFilter args {
 }
 
 Singleton instproc init args {
-  my instfilterappend singletonFilter
+  my instfilter add singletonFilter
   #
   # specialized singletons have to look up the singleton class
   # first

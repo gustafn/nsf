@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.9 2004/07/02 11:22:31 neumann Exp $
+#$Id: testx.xotcl,v 1.10 2004/07/03 21:19:39 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -1902,11 +1902,11 @@ mixinTest proc run {{n 10}} {
     Object instfilter ""
     
     ::errorCheck $::calling \
-	"{filter f: ::mixinTest {} run draw {::MenuDecorator instproc draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class instproc instfilter}}" \
+	"{filter f: ::mixinTest {} run draw {::MenuDecorator instproc draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class instproc instfilter}} {filter f: ::xotcl::Object ::xotcl::Class instfilter set {::xotcl::Relations instproc set}}" \
 	"Mixin: Calling-Obj/Cl/Proc failed"	
   
     ::errorCheck "$::mixinResult" \
-	"{filter ::mainImage f ::xotcl::Object} {m1 ::mainImage draw ::MenuDecorator} {m2 ::mainImage draw ::ScrollBarDecorator} {image ::mainImage draw ::Image} {grObject ::mainImage draw ::GrObject} {filter ::zoom f ::xotcl::Object} {m2 ::zoom draw ::ScrollBarDecorator} {image ::zoom draw ::Image} {grObject ::zoom draw ::GrObject} {filter ::xotcl::Object f ::xotcl::Object}" \
+	"{filter ::mainImage f ::xotcl::Object} {m1 ::mainImage draw ::MenuDecorator} {m2 ::mainImage draw ::ScrollBarDecorator} {image ::mainImage draw ::Image} {grObject ::mainImage draw ::GrObject} {filter ::zoom f ::xotcl::Object} {m2 ::zoom draw ::ScrollBarDecorator} {image ::zoom draw ::Image} {grObject ::zoom draw ::GrObject} {filter ::xotcl::Object f ::xotcl::Object} {filter ::xotcl::relmgr f ::xotcl::Object}" \
 	  "Mixin: Filter failed"
 
     set ::mixinResult ""
@@ -2253,7 +2253,7 @@ mixinInheritanceTest proc run {{n 10}} {
       "Mixin init 4 failed"
 
   set initResult ""
-  B mixinappend Mix2
+  B mixin add Mix2
   ::errorCheck $initResult \
       "" \
       "Mixin init 5 failed"

@@ -1,4 +1,4 @@
-# $Id: PlaceAccessControl.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: PlaceAccessControl.xotcl,v 1.2 2004/07/03 21:19:39 neumann Exp $
 package provide xotcl::actiweb::placeAccessControl 0.8
 
 package require xotcl::comm::httpd
@@ -43,7 +43,7 @@ ObjectAccessControl instproc protectedResource {fn method varAuthMethod varRealm
 Class PlaceAccessControl
 PlaceAccessControl instproc init args {
   next
-  [self]::httpd mixinappend ObjectAccessControl
+  [self]::httpd mixin add ObjectAccessControl
   [self]::httpd initWorkerMixins
 }
 

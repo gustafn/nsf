@@ -1,4 +1,4 @@
-# $Id: OnCalleeProxy.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: OnCalleeProxy.xotcl,v 1.2 2004/07/03 21:19:39 neumann Exp $
 package provide xotcl::pattern::onCalleeProxy 0.8
 
 Class OnCalleeProxy -superclass Class  
@@ -23,7 +23,7 @@ OnCalleeProxy instproc onCalleeProxyFilter args {
 }
 
 OnCalleeProxy instproc init args {
-  my instfilterappend onCalleeProxyFilter
+  my instfilter add onCalleeProxyFilter
   next
   my instproc setCallee {callingObj a} {
     my set callee([string trimleft $callingObj :]) $a

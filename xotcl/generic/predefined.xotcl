@@ -1,4 +1,4 @@
-# $Id: predefined.xotcl,v 1.2 2004/07/02 11:22:31 neumann Exp $
+# $Id: predefined.xotcl,v 1.3 2004/07/03 21:19:39 neumann Exp $
 
 # init must exist on Object. per default it is empty.
 ::xotcl::Object instproc init args {}
@@ -26,14 +26,41 @@ foreach cmd {array append lappend trace eval} {
 }
 ::xotcl::Object instproc tclcmd {t} {
   set cmd [list [::xotcl::self] forward $t -objscope]
-  puts stderr "the method tclcmd is deprecated; use instead '$cmd'"
+  puts stderr "the method [::xotcl::self proc] is deprecated; use instead '$cmd'"
   eval $cmd
 }
 ::xotcl::Class instproc insttclcmd {t} {
   set cmd [list [::xotcl::self] instforward $t -objscope]
-  puts stderr "the method tclcmd is deprecated; use instead '$cmd'"
+  puts stderr "the method [::xotcl::self proc] is deprecated; use instead '$cmd'"
   eval $cmd
 }
+# define commenad for relations between classes and methods
+::xotcl::Class ::xotcl::Relations
+::xotcl::Relations instproc get {obj prop} {$obj info $prop}
+::xotcl::Relations instproc set {obj prop value} {::xotcl::setrelation $obj $prop $value}
+::xotcl::Relations instproc add {obj prop value {pos 0}} {
+  $obj $prop [linsert [$obj info $prop -guards] $pos $value]
+}
+::xotcl::Relations instproc delete {obj prop value} {
+  set old [$obj info $prop]
+  set p [lsearch -glob $old $value]
+  if {$p>-1} {$obj $prop [lreplace $old $p $p]} else {
+    error "$value is not a $prop of $obj (valid are: $old)"
+  }
+}
+::xotcl::Relations instproc unknown {m args} {
+  puts "method '$m' unknown for [self]"
+  puts "   valid commands are: {[lsort [my info procs]]}"
+}
+
+::xotcl::Relations create ::xotcl::relmgr -requireNamespace
+
+::xotcl::Object instforward mixin -default [list get set] xotcl::relmgr %1 %self %proc
+::xotcl::Object instforward filter -default [list get set] xotcl::relmgr %1 %self %proc
+::xotcl::Class instforward instmixin -default [list get set] xotcl::relmgr %1 %self %proc
+::xotcl::Class instforward instfilter -default [list get set] xotcl::relmgr %1 %self %proc
+
+
 
 ::xotcl::Object instproc self {} {return [::xotcl::self]}
 ::xotcl::Object instproc defaultmethod {} {
@@ -45,16 +72,24 @@ foreach cmd {array append lappend trace eval} {
 
 # support for XOTcl specifics
 ::xotcl::Object instproc filterappend f {
-  ::xotcl::my filter [concat [::xotcl::my info filter -guards] $f]
+  set cmd [list [::xotcl::self] filter add $f end]
+  puts stderr "the method [::xotcl::self proc] is deprecated; use instead '$cmd'"
+  eval $cmd
 }
 ::xotcl::Object instproc mixinappend m {
-  ::xotcl::my mixin [concat [::xotcl::my info mixin] $m]
+  set cmd [list [::xotcl::self] mixin add $m end]
+  puts stderr "the method [::xotcl::self proc] is deprecated; use instead '$cmd'"
+  eval $cmd
 }
 ::xotcl::Class instproc instfilterappend f {
-  ::xotcl::my instfilter [concat [::xotcl::my info instfilter -guards] $f]
+  set cmd [list [::xotcl::self] instfilter add $f end]
+  puts stderr "the method [::xotcl::self proc] is deprecated; use instead '$cmd'"
+  eval $cmd
 }
 ::xotcl::Class instproc instmixinappend m {
-  ::xotcl::my instmixin [concat [::xotcl::my info instmixin] $m]
+  set cmd [list [::xotcl::self] instmixin add $m end]
+  puts stderr "the method [::xotcl::self proc] is deprecated; use instead '$cmd'"
+  eval $cmd
 }
 ::xotcl::Object instproc hasclass cl {
   if {[::xotcl::my ismixin $cl]} {return 1}

@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.10 2004/07/02 11:22:31 neumann Exp $
+/* $Id: xotcl.c,v 1.11 2004/07/03 21:19:39 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -7356,82 +7356,109 @@ XOTclOCheckMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
 }
 
 static int
-XOTclOMixinMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
+XOTclSetrelationCommand(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]) {
   int oc; Tcl_Obj **ov;
-  XOTclObject *obj = (XOTclObject*)cd;
-  int i, result = TCL_OK;
-  XOTclObjectOpt *opt;
-
-  if (!obj) return XOTclObjErrType(in, objv[0], "Object");
-  if (objc < 2)
-    return XOTclObjErrArgCnt(in, obj->cmdName, "mixin <classes> ?args?");
-
-  if (!obj) return XOTclObjErrType(in, objv[0], "Object");
-  if (Tcl_ListObjGetElements(in, objv[1], &oc, &ov)!= TCL_OK)
-    return TCL_ERROR;
-
-  if (obj->opt) {
-    CmdListRemoveList(&obj->opt->mixins, GuardDel);
-  }
-
-  obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
-  opt = XOTclRequireObjectOpt(obj);
-
-  /*
-   * since mixin procs may be used as filters -> we have to invalidate
-   */
-  obj->flags &= ~XOTCL_FILTER_ORDER_VALID;
-
-  for (i = 0; i < oc; i++) {
-    result = MixinAdd(in, &opt->mixins, ov[i]);
-    /*CmdListPrint("object mixins\n", opt->mixins);*/
-    if (result != TCL_OK)
-      return result;
-  }
-
-  MixinComputeDefined(in, obj);
-  FilterComputeDefined(in, obj);
-
-  return result;
-}
-
-static int
-XOTclMixinCommand(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]) {
-  int oc; Tcl_Obj **ov;
-  XOTclObject *obj;
-  int i, result = TCL_OK;
-  XOTclObjectOpt *opt;
+  XOTclObject *obj = NULL;
+  XOTclClass *cl = NULL;
+  int i, len, result = TCL_OK;
+  char *reltype; 
+  enum {mixin, filter, instmixin, instfilter} kind = 0;
 
   if (objc < 3)
-    return XOTclObjErrArgCnt(in, objv[0], "::xotcl::setrelation obj mixin classes");
-
-  GetXOTclObjectFromObj(in, objv[1], &obj);
-  if (!obj) return XOTclObjErrType(in, objv[1], "Object");
-  
+    return XOTclObjErrArgCnt(in, objv[0], "::xotcl::setrelation obj ?reltype? classes");
   if (Tcl_ListObjGetElements(in, objv[3], &oc, &ov)!= TCL_OK)
     return TCL_ERROR;
 
-  if (obj->opt) {
-    CmdListRemoveList(&obj->opt->mixins, GuardDel);
+  reltype = ObjStr(objv[2]);
+  len = strlen(reltype);
+  
+  if (*reltype == 'm' && len == 5 && !strcmp(reltype, "mixin")) {
+    kind = mixin;
+  } else if (*reltype == 'f' && len == 6 && !strcmp(reltype, "filter")) {
+    kind = filter;
+  } else if (*reltype == 'i' && len == 9 && !strcmp(reltype, "instmixin")) {
+    kind = instmixin;
+  } else if (*reltype == 'i' && len == 10 && !strcmp(reltype, "instfilter")) {
+    kind = instfilter;
+  } else {
+    XOTclObjErrType(in, objv[2], "reltype (mixin, filter, instmixin, instfilter)");
+  }
+  
+  if (kind == mixin || kind == filter) {
+    GetXOTclObjectFromObj(in, objv[1], &obj);
+    if (!obj) return XOTclObjErrType(in, objv[1], "Object");
+  } else {
+    GetXOTclClassFromObj(in, objv[1], &cl, 1);
+    if (!cl) return XOTclObjErrType(in, objv[1], "Class");
   }
 
-  obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
-  opt = XOTclRequireObjectOpt(obj);
+  switch (kind) {
+  case mixin: 
+    {
+      XOTclObjectOpt *opt = XOTclRequireObjectOpt(obj);
+      if (opt->mixins) CmdListRemoveList(&obj->opt->mixins, GuardDel); 
+      
+      obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
+      /*
+       * since mixin procs may be used as filters -> we have to invalidate
+       */
+      obj->flags &= ~XOTCL_FILTER_ORDER_VALID;
 
-  /*
-   * since mixin procs may be used as filters -> we have to invalidate
-   */
-  obj->flags &= ~XOTCL_FILTER_ORDER_VALID;
+      for (i = 0; i < oc; i++) {
+	if ((result = MixinAdd(in, &opt->mixins, ov[i])) != TCL_OK)
+	  return result;
+      }
+      
+      MixinComputeDefined(in, obj);
+      FilterComputeDefined(in, obj);
+      break;
+    }
+  case filter: 
+    {
+      XOTclObjectOpt *opt = XOTclRequireObjectOpt(obj);
+      if (opt->filters) CmdListRemoveList(&obj->opt->filters, GuardDel);
+      
+      obj->flags &= ~XOTCL_FILTER_ORDER_VALID;
+      for (i = 0; i < oc; i ++) {
+	if ((result = FilterAdd(in, &opt->filters, ov[i], obj, 0)) != TCL_OK)
+	  return result;
+      }
+      /*FilterComputeDefined(in, obj);*/
+      break;
+    }
 
-  for (i = 0; i < oc; i++) {
-    result = MixinAdd(in, &opt->mixins, ov[i]);
-    /*CmdListPrint("object mixins\n", opt->mixins);*/
-    if (result != TCL_OK)
-      return result;
+  case instmixin: 
+    { 
+      XOTclClassOpt* opt = XOTclRequireClassOpt(cl);
+      if (opt->instmixins) CmdListRemoveList(&opt->instmixins, GuardDel);
+
+      MixinInvalidateObjOrders(cl);
+      /*
+       * since mixin procs may be used as filters -> we have to invalidate
+       */
+      FilterInvalidateObjOrders(in, cl);
+
+      for (i = 0; i < oc; i++) {
+	if ((result = MixinAdd(in, &opt->instmixins, ov[i])) != TCL_OK)
+	  return result;
+      }
+      break;
+    }
+  case instfilter: 
+    {
+      XOTclClassOpt* opt = XOTclRequireClassOpt(cl);
+      if (opt->instfilters) CmdListRemoveList(&opt->instfilters, GuardDel);
+
+      FilterInvalidateObjOrders(in, cl);
+      opt = XOTclRequireClassOpt(cl);
+
+      for (i = 0; i < oc; i ++) {
+	if ((result = FilterAdd(in, &opt->instfilters, ov[i], 0, cl)) != TCL_OK)
+	  return result;
+      }
+      break;
+    }
   }
-
-  MixinComputeDefined(in, obj);
-  FilterComputeDefined(in, obj);
 
   return result;
 }
@@ -7470,35 +7497,6 @@ XOTclOMixinGuardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[])
 			ObjStr(objv[1]), " on ", ObjStr(obj->cmdName), NULL);
 }
 
-static int
-XOTclOFilterMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
-  int oc; Tcl_Obj **ov;
-  XOTclObject *obj = (XOTclObject*)cd;
-  int i, result = TCL_OK;
-  XOTclObjectOpt *opt;
-
-  if (!obj) return XOTclObjErrType(in, objv[0], "Object");
-  if (objc < 2)
-    return XOTclObjErrArgCnt(in, obj->cmdName, "filter filterNameList");
-
-  if (Tcl_ListObjGetElements(in, objv[1], &oc, &ov) != TCL_OK)
-    return TCL_ERROR;
-
-  if (obj->opt) {
-    CmdListRemoveList(&obj->opt->filters, GuardDel);
-  }
-
-  obj->flags &= ~XOTCL_FILTER_ORDER_VALID;
-  opt = XOTclRequireObjectOpt(obj);
-
-  for (i = 0; i < oc; i ++) {
-    result = FilterAdd(in, &opt->filters, ov[i], obj, 0);
-    if (result != TCL_OK)
-      return result;
-  }
-  /*FilterComputeDefined(in, obj);*/
-  return result;
-}
 
 static int
 XOTclOFilterGuardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
@@ -8750,34 +8748,6 @@ XOTclCInstProcMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
   return TCL_OK;
 }
 
-static int
-XOTclCInstFilterMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
-  XOTclClass *cl = XOTclObjectToClass(cd);
-  int i, result = TCL_OK;
-  Tcl_Obj **ov; int oc;
-  XOTclClassOpt* opt;
-
-  if (!cl) return XOTclObjErrType(in, objv[0], "Class");
-  if (objc < 2) return XOTclObjErrArgCnt(in, cl->object.cmdName,
-    "instfilter filterNameList");
-
-  if (Tcl_ListObjGetElements(in, objv[1], &oc, &ov) != TCL_OK)
-    return TCL_ERROR;
-
-  opt = cl->opt;
-  if (opt)
-    CmdListRemoveList(&opt->instfilters, GuardDel);
-
-  FilterInvalidateObjOrders(in, cl);
-  opt = XOTclRequireClassOpt(cl);
-
-  for (i = 0; i < oc; i ++) {
-    result = FilterAdd(in, &opt->instfilters, ov[i], 0, cl);
-    if (result != TCL_OK)
-      return result;
-  }
-  return result;
-}
 
 static int
 XOTclCInstFilterGuardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
@@ -8805,38 +8775,6 @@ XOTclCInstFilterGuardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *ob
 			ObjStr(objv[1]), " on ", ObjStr(cl->object.cmdName), NULL);
 }
 
-
-static int
-XOTclCInstMixinMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
-  int oc; Tcl_Obj **ov;
-  XOTclClass *cl = XOTclObjectToClass(cd);
-  int i, result = TCL_OK;
-  XOTclClassOpt* opt;
-
-  if (!cl) return XOTclObjErrType(in, objv[0], "Class");
-  if (objc < 2) return XOTclObjErrArgCnt(in, cl->object.cmdName,
-					 "instmixin classList");
-
-  if (Tcl_ListObjGetElements(in, objv[1], &oc, &ov)!= TCL_OK)
-    return TCL_ERROR;
-
-  if ((opt = cl->opt))
-    CmdListRemoveList(&opt->instmixins, GuardDel);
-
-  MixinInvalidateObjOrders(cl);
-  /*
-   * since mixin procs may be used as filters -> we have to invalidate
-   */
-  FilterInvalidateObjOrders(in, cl);
-
-  opt = XOTclRequireClassOpt(cl);
-  for (i = 0; i < oc; i++) {
-    result = MixinAdd(in, &opt->instmixins, ov[i]);
-    if (result != TCL_OK)
-      return result;
-  }
-  return result;
-}
 
 static int
 XOTclCInstMixinGuardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
@@ -9804,7 +9742,7 @@ Xotcl_Init(Tcl_Interp *in) {
   Tcl_Export(in, RUNTIME_STATE(in)->XOTclNS, "my", 0);
 
   /* for the time being, should be registered as method "set" of :xotcl::mixin */
-  Tcl_CreateObjCommand(in, "::xotcl::setrelation", XOTclMixinCommand, 0, 0);
+  Tcl_CreateObjCommand(in, "::xotcl::setrelation", XOTclSetrelationCommand, 0, 0);
 
 #if defined(PROFILE)
   XOTclProfileInit(in);
@@ -9840,7 +9778,6 @@ Xotcl_Init(Tcl_Interp *in) {
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "configure", (Tcl_ObjCmdProc*) XOTclOConfigureMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "destroy", XOTclODestroyMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "exists", (Tcl_ObjCmdProc*)XOTclOExistsMethod, 0, 0);
-  XOTclAddIMethod(in, (XOTcl_Class*) theobj, "filter", (Tcl_ObjCmdProc*)XOTclOFilterMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "filterguard", (Tcl_ObjCmdProc*)XOTclOFilterGuardMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "filtersearch", (Tcl_ObjCmdProc*)XOTclOFilterSearchMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "incr", (Tcl_ObjCmdProc*)XOTclOIncrMethod, 0, 0);
@@ -9855,7 +9792,6 @@ Xotcl_Init(Tcl_Interp *in) {
 #ifdef XOTCL_METADATA
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "metadata", (Tcl_ObjCmdProc*)XOTclOMetaDataMethod, 0, 0);
 #endif
-  XOTclAddIMethod(in, (XOTcl_Class*) theobj, "mixin", (Tcl_ObjCmdProc*)XOTclOMixinMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "mixinguard", (Tcl_ObjCmdProc*)XOTclOMixinGuardMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "__next", (Tcl_ObjCmdProc*)XOTclONextMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "noinit", (Tcl_ObjCmdProc*)XOTclONoinitMethod, 0, 0);
@@ -9881,10 +9817,8 @@ Xotcl_Init(Tcl_Interp *in) {
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "new", (Tcl_ObjCmdProc*)XOTclCNewMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "info", XOTclCInfoMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "instdestroy", XOTclCInstDestroyMethod, 0, 0);
-  XOTclAddIMethod(in, (XOTcl_Class*) thecls, "instfilter", (Tcl_ObjCmdProc*)XOTclCInstFilterMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "instfilterguard", (Tcl_ObjCmdProc*)XOTclCInstFilterGuardMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "instinvar", (Tcl_ObjCmdProc*)XOTclCInvariantsMethod, 0, 0);
-  XOTclAddIMethod(in, (XOTcl_Class*) thecls, "instmixin", (Tcl_ObjCmdProc*)XOTclCInstMixinMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "instmixinguard", (Tcl_ObjCmdProc*)XOTclCInstMixinGuardMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "instparametercmd", (Tcl_ObjCmdProc*)XOTclCInstParameterCmdMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "instproc", (Tcl_ObjCmdProc*)XOTclCInstProcMethod, 0, 0);

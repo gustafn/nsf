@@ -1,4 +1,4 @@
-# $Id: xoRDF.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: xoRDF.xotcl,v 1.2 2004/07/03 21:19:39 neumann Exp $
 package provide xotcl::rdf::parser 0.9
 
 package require xotcl::xml::parser
@@ -130,7 +130,7 @@ Class RDFNode -superclass XMLNode -parameter {
 #
 RDFNode instproc init args {
   next
-  my mixinappend RDFNodeParseTypeHandling
+  my mixin add RDFNodeParseTypeHandling
   set p [my info parent]
   if {[$p exists rdfNSPrefix]} {
     my set rdfNSPrefix [$p set rdfNSPrefix]
@@ -724,7 +724,7 @@ Class RDFParser -superclass XMLParser -parameter {
 }
 
 RDFParser instproc init args {
-  my mixinappend RDFParserParseTypeHandling
+  my mixin add RDFParserParseTypeHandling
 
   ### this special parser handles rdf:RDF tags
   my topLevelHandlerPattern {^([^:]*):RDF|RDF} RDFTag

@@ -1,4 +1,4 @@
-# $Id: adapter.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: adapter.xotcl,v 1.2 2004/07/03 21:19:39 neumann Exp $
 package provide xotcl::pattern::adapter 0.9
 
 Class Adapter -superclass Class  
@@ -22,7 +22,7 @@ Adapter instproc adapterFilter args {
 }
 
 Adapter instproc init args {
-    my instfilterappend adapterFilter
+    my instfilter add adapterFilter
     next
     my instproc setRequest {r sr} {
 	my set specificRequest($r) $sr
