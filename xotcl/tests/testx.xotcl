@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.20 2004/11/19 01:41:32 neumann Exp $
+#$Id: testx.xotcl,v 1.21 2004/11/19 22:59:37 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -3565,7 +3565,27 @@ nonposargs proc run {{n 20}} {
 				     a: ack b: banana c: apple] \
 	"non pos + default values 6"
 
-    return "PASSED [self]"
+  Object o
+  o proc foo {{-foo 1}} {} {
+    #puts "foo: $foo"
+  }
+  o foo
+  o foo -foo 0
+  catch {o foo -foo} msg
+  errorCheck $msg "Non positional arg '-foo': value missing" "Empty non-pos arg"
+  
+  Object oa
+  oa proc foo {{-a A}} {b} {
+    #puts "$a $b"
+  }
+  oa foo "B"
+  oa foo "-"
+  oa foo "---"
+  catch {oa foo "--"} msg
+  
+  errorCheck $msg "wrong # args: should be {b}" "Non-pos arg: double dash alone"
+  
+  return "PASSED [self]"
 }
 
 

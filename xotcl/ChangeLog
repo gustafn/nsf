@@ -1,3 +1,8 @@
+2004-11-19 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+        * fixed bug: empty non-pos args, double dash alone.
+          Thanks to Bryan Schofield for reporting this bug.
+          Added tests.
+
 2004-11-18 Gustaf.Neumann@wu-wien.ac.at
         * changed internal communication between end-of-filterchanin
           and "unknown" to flag instead of return code XOTCL_UNKNOWN

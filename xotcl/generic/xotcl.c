@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.30 2004/11/19 01:41:32 neumann Exp $
+/* $Id: xotcl.c,v 1.31 2004/11/19 22:59:37 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -4255,10 +4255,12 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
 			   ObjStr(objv[2]), "'", 0);
 	  result = TCL_ERROR;
 	}
-	/* be sure to reset unknown flag */
-	RUNTIME_STATE(in)->unknown = 0;
+
       }
     }
+    /* be sure to reset unknown flag */
+    if (unknown) 
+      RUNTIME_STATE(in)->unknown = 0;
 
 #ifdef DISPATCH_TRACE
     printExit(in,"DISPATCH", objc,objv, result);
@@ -5376,6 +5378,7 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *in, XOTclClass *givenCl,
 	nobjc = 1;
     }
     csc->callType |= XOTCL_CSC_CALL_IS_NEXT;
+    RUNTIME_STATE(in)->unknown = 0;
 
     result = DoCallProcCheck(cp, (ClientData)obj, in, nobjc, nobjv, cmd,
 			     obj, *cl, *method, frameType, 1/*fromNext*/);
@@ -10010,9 +10013,9 @@ XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc,
       if (isNonPositionalArg(in, argStr, nonPosArgsDefc, 
 			     nonPosArgsDefv, &varName)) {
 	i++;
-	if (i > argsc) 
+	if (i >= argsc) 
 	  return XOTclVarErrMsg(in, "Non positional arg '",
-				ObjStr(argsv[1]), "': value missing", 
+				argStr, "': value missing",
 				NULL);
 	Tcl_SetVar2(in, varName, 0, ObjStr(argsv[i]), 0);
       } else {
@@ -10020,7 +10023,7 @@ XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc,
       }
     }
 
-    if (endOfNonPosArgsReached) {      
+    if (endOfNonPosArgsReached && i < argsc) {
       if (ordinaryArgsCounter >= ordinaryArgsDefc) {
 	return XOTclObjErrArgCnt(in, NULL, ObjStr(nonPosArgs->ordinaryArgs));
       } 
