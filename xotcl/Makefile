@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.26 2004/11/19 22:59:37 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.27 2004/11/20 18:54:34 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -120,7 +120,7 @@ INSTALL_SCRIPT	= ${INSTALL}
 PACKAGE_NAME	= xotcl
 PACKAGE_VERSION	= 1.3.3
 CC		= gcc -pipe
-CFLAGS_DEFAULT	= -O 
+CFLAGS_DEFAULT	= -O -g
 CFLAGS_WARNING	= -Wall -Wconversion -Wno-implicit-int
 CLEANFILES	= *.o *.a *.so *~ core gmon.out config.*
 EXEEXT		= 

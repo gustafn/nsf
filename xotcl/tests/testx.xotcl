@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.21 2004/11/19 22:59:37 neumann Exp $
+#$Id: testx.xotcl,v 1.22 2004/11/20 18:54:34 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -3434,11 +3434,16 @@ uplevelCmds proc run {{n 20}} {
     #puts "Total = $i"
     return $i
   }
+  Object instproc f args {next}
 
   Test t
 
   errorCheck [t loop1] 3 "uplevel eval loop"
   errorCheck [t loop2] 12 "nested uplevel eval loop"
+  t filter f
+  errorCheck [t loop1] 3 "uplevel eval loop"
+  errorCheck [t loop2] 12 "nested uplevel eval loop"
+  t destroy
 
   return "PASSED [self]"
 }

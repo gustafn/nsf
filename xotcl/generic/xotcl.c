@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.31 2004/11/19 22:59:37 neumann Exp $
+/* $Id: xotcl.c,v 1.32 2004/11/20 18:54:34 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -1737,8 +1737,12 @@ XOTclCallStackFindLastInvocation(Tcl_Interp *in, int offset) {
     if (offset)
       offset--;
     else {
-      if (!deeper || Tcl_CallFrame_level(csc->currentFramePtr) != topLevel)
+      if (!deeper) {
 	return csc;
+      }
+      if (csc->currentFramePtr && Tcl_CallFrame_level(csc->currentFramePtr) < topLevel) {
+	  return csc;
+      } 
     }
   }
   /* for some reasons, we could not find invocation (topLevel, destroy) */
@@ -5520,10 +5524,7 @@ computeLevelObj(Tcl_Interp *in, CallStackLevel level) {
     char buffer[LONG_AS_STRING];
     int l;
     buffer[0] = '#';
-    /*
-    if (Tcl_CallFrame_callerVarPtr(csc->currentFramePtr)) {
-      cf = Tcl_CallFrame_callerVarPtr(csc->currentFramePtr);
-      }*/
+    /* fprintf(stderr,"*** csc=%p\n",csc);*/
     XOTcl_ltoa(buffer+1,(long)Tcl_CallFrame_level(csc->currentFramePtr),&l);
     resultObj = Tcl_NewStringObj(buffer,l+1);
   } else {

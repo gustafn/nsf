@@ -1,3 +1,7 @@
+2004-11-20 Gustaf.Neumann@wu-wien.ac.at
+        * fixed [self callinglevel] in nested uplevel loops
+          in the presence of filters, extended regression test
+
 2004-11-19 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
         * fixed bug: empty non-pos args, double dash alone.
           Thanks to Bryan Schofield for reporting this bug.
