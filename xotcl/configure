@@ -6840,7 +6840,7 @@ else
 fi
 
 aol_prefix="/usr/local/aolserver"
-if test -d "${prefix}/modules/tcl" ; then aol_prefix="$(prefix)" ; fi
+if test -d "${prefix}/modules/tcl" ; then aol_prefix="${prefix}" ; fi
 
 
 #--------------------------------------------------------------------

@@ -1,3 +1,11 @@
+2004-11-14 Gustaf.Neumann@wu-wien.ac.at
+        * fixed yet another free memory read 
+          (many thanks for Zoran for help with purify)
+2004-11-13 Gustaf.Neumann@wu-wien.ac.at
+        * fixed entries for aolserver in configure.in 
+          (many thanks for Zoran reporting this problem)
+        * fixed --enable symbols (many thanks for Zoran reporting this problem)
+        * fixed free memory read in namespace deletes
 2004-10-30 Gustaf.Neumann@wu-wien.ac.at
         * added error message when someone tries to delete a
           non-existing proc/instproc

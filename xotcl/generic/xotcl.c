@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.28 2004/11/14 01:07:17 neumann Exp $
+/* $Id: xotcl.c,v 1.29 2004/11/14 17:36:36 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -1371,9 +1371,11 @@ static void
 NSNamespaceDeleteProc(ClientData clientData) {
   /* dummy for ns identification by pointer comparison */
   XOTclObject *obj = (XOTclObject*) clientData;  
-  /*fprintf(stderr,"namespacedeleteproc %p\n",clientData);*/
-  obj->flags |= XOTCL_NS_DESTROYED;
-  obj->nsPtr = NULL;
+  /*fprintf(stderr,"namespacedeleteproc obj=%p\n",clientData);*/
+  if (obj) {
+    obj->flags |= XOTCL_NS_DESTROYED;
+    obj->nsPtr = NULL;
+  }
 }
 
 void
@@ -1392,11 +1394,13 @@ XOTcl_DeleteNamespace(Tcl_Interp *in, Tcl_Namespace *nsPtr) {
   }
 
   Tcl_Namespace_activationCount(nsPtr) = activationCount;
+
   /*
   fprintf(stderr, "to %d. \n", nsp->activationCount);
   */
   MEM_COUNT_FREE("TclNamespace",nsPtr);
   if (Tcl_Namespace_deleteProc(nsPtr) != NULL) {
+    /*fprintf(stderr,"calling deteteNamespace\n");*/
     Tcl_DeleteNamespace(nsPtr);
   }
 }
@@ -4184,6 +4188,9 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
     
     /* if no filter/mixin is found => do ordinary method lookup */
     if (proc == 0) {
+      /*
+      fprintf(stderr,"ordinary lookup for obj %p method %s nsPtr %p\n",
+      obj, methodName, obj->nsPtr);*/
       /*if (obj->nsPtr && !(obj->flags & XOTCL_NS_DESTROYED))*/
       if (obj->nsPtr)
 	cmd = FindMethod(methodName, obj->nsPtr);
@@ -5779,6 +5786,7 @@ PrimitiveODestroy(ClientData cd) {
     Tcl_Command_deleteProc(cmd) = 0;
 
   if (obj->nsPtr) {
+    /*fprintf(stderr,"primitive odestroy calls deletenamespace for obj %p\n",obj);*/
     XOTcl_DeleteNamespace(in, obj->nsPtr);
     obj->nsPtr = 0;
   }
@@ -6033,7 +6041,9 @@ PrimitiveCDestroy(ClientData cd) {
   /*
    * call and latch user destroy with obj->id if we haven't
    */
+  /*fprintf(stderr,"PrimitiveCDestroy %s flags %x\n",ObjStr(obj->cmdName),obj->flags);*/
   if (!(obj->flags & XOTCL_DESTROY_CALLED))
+    /*fprintf(stderr,"PrimitiveCDestroy call destroy\n");*/
     callDestroyMethod(cd, in, obj, 0);
 
   obj->teardown = 0;
@@ -6050,8 +6060,11 @@ PrimitiveCDestroy(ClientData cd) {
   /*
    * class object destroy + physical destroy
    */
+  /*fprintf(stderr,"primitive cdestroy calls primitive odestroy\n");*/
   PrimitiveODestroy(cd);
 
+  /*fprintf(stderr,"primitive cdestroy calls deletenamespace for obj %p\n",cl);*/
+  saved->clientData = 0;
   XOTcl_DeleteNamespace(in, saved);
 
   return;
