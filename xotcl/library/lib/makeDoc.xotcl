@@ -1,4 +1,4 @@
-#$Id: makeDoc.xotcl,v 1.2 2004/08/22 09:30:46 neumann Exp $
+#$Id: makeDoc.xotcl,v 1.3 2004/12/02 00:01:20 neumann Exp $
 package require XOTcl
 namespace import ::xotcl::*
 @ @File {
@@ -23,18 +23,14 @@ if {$argc > 1} {
   if {![file isdirectory $DOCDIR]} {
     file mkdir $DOCDIR
   }
-  if {$::tcl_platform(platform) == "windows"} {
-    set files ""
-    foreach f [lrange $argv 1 end] {
-      eval lappend files [glob -nocomplain $f]
-    }
-  } else {
-    set files [lrange $argv 1 end]
-  }
+  set files [lrange $argv 1 end]
   foreach file $files {
-    puts "...$file"
-    set fb [XODoc documentFileAsHTML $file $DOCDIR]
-    lappend fileList $file $fb
+      puts "...$file"
+      if {[catch {XODoc documentFileAsHTML $file $DOCDIR} fb]} {
+	  puts stderr "\terror processing $file:\n[string replace $::errorInfo 400 end ...]"
+      } else {
+	  lappend fileList $file $fb
+      }
   }
 } else {
   error "usage: xodoc docdir filename ?filename ...?"

@@ -17,40 +17,26 @@ package provide xotcl::staticMetadataAnalyzer 0.84
 }
 
 Class StaticMetadataAnalyzer -superclass MetadataAnalyzer
-
-StaticMetadataAnalyzer instproc getCommand {content} {
-  upvar [self callinglevel] $content c
-  my instvar cmd
-  if {[set line [string first "\n" $c]] != -1} {
-    append cmd [string range $c 0 $line]
-    set c [string range $c [expr $line + 1] end]
-    if {[info complete $cmd]} {
-      set r $cmd; set cmd ""
-      return $r
+StaticMetadataAnalyzer instproc cmdsplit {cmd} {
+  # from Jeffrey's tkcon
+  set inc {}
+  set cmds {}
+  foreach cmd [split [string trimleft $cmd] \n] {
+    if {[string compare {} $inc]} {
+      append inc \n$cmd
+    } else {
+      append inc [string trimleft $cmd]
     }
-  } elseif {[string length [string trim $c]] >0} {
-      # We have some data left which doesn't end with a "\n". This happens
-      # if an EOF marks the end of a line instead of a newline.
-      append cmd $c
-      set c ""
-      if {[info complete $cmd]} {
-	  set r $cmd
-	  set cmd ""
-	  return $r
-      }
-  } else {
-    return ""
+    if {[info complete $inc] && ![regexp {[^\\]\\$} $inc]} {
+      if {[regexp "^\[^#\]" $inc]} {lappend cmds $inc}
+      set inc {}
+    }
   }
-  my getCommand c
+  if {[regexp "^\[^#\]" $inc]} {lappend cmds $inc}
+  return $cmds
 }
-
-
 StaticMetadataAnalyzer instproc evaluateCommands {c} {
-  while 1 {
-    set command [my getCommand c]
-    if {$command == ""} {
-      break
-    }
+  foreach command [my cmdsplit $c] {
     #puts stderr "$command==========================="
     if {[regexp "^ *:*@ " $command]} {
       #puts stderr "$command==========================="
@@ -61,9 +47,10 @@ StaticMetadataAnalyzer instproc evaluateCommands {c} {
     } elseif {[regexp "^ *namespace *eval *(\[^\{\]*) *\{(.*)\}\[^\}\]*$" $command _ namespace nsc]} {
       #puts stderr "$command==========================="
       my evaluateCommands $nsc 
-   } 
+    } 
   }
 }
+
 
 @ StaticMetadataAnalyzer instproc analyzeFile {name "File name"} {
   description "Analyze a file and build up a token structure for each metadata token in the file."

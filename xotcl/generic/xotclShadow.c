@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclShadow.c,v 1.2 2004/08/17 10:12:55 neumann Exp $
+ * $Id: xotclShadow.c,v 1.3 2004/12/02 00:01:20 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -19,7 +19,7 @@ static int
 XOTclReplaceCommandCleanup(Tcl_Interp *in, XOTclGlobalNames name) {
   Tcl_Command cmd;
   int result = TCL_OK;
-  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(in)->tclCommands[name-EXPR];
+  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(in)->tclCommands[name-XOTE_EXPR];
 
   /*fprintf(stderr," cleanup for %s  ti=%p in %p\n", XOTclGlobalStrings[name], ti, in);*/
   cmd = Tcl_GetCommandFromObj(in, XOTclGlobalObjects[name]);
@@ -36,7 +36,7 @@ XOTclReplaceCommandCleanup(Tcl_Interp *in, XOTclGlobalNames name) {
 static void
 XOTclReplaceCommandCheck(Tcl_Interp *in, XOTclGlobalNames name, Tcl_ObjCmdProc *proc) {
   Tcl_Command cmd;
-  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(in)->tclCommands[name-EXPR];
+  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(in)->tclCommands[name-XOTE_EXPR];
   cmd = Tcl_GetCommandFromObj(in, XOTclGlobalObjects[name]);
   
   if (cmd != NULL && ti->proc && Tcl_Command_objProc(cmd) != proc) {
@@ -54,7 +54,7 @@ static int
 XOTclReplaceCommand(Tcl_Interp *in, XOTclGlobalNames name,
 		    Tcl_ObjCmdProc *xotclReplacementProc, int pass) {
   Tcl_Command cmd;
-  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(in)->tclCommands[name-EXPR];
+  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(in)->tclCommands[name-XOTE_EXPR];
   int result = TCL_OK;
 
   /*fprintf(stderr,"XOTclReplaceCommand %d\n",name);*/
@@ -91,7 +91,7 @@ XOTcl_RenameObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
 
   /* wrong # args => normal Tcl ErrMsg*/
   if (objc != 3)
-    return XOTclCallCommand(in, RENAME, objc, objv);
+    return XOTclCallCommand(in, XOTE_RENAME, objc, objv);
 
   /* if an obj/cl should be renamed => call the XOTcl move method */
   cmd = Tcl_FindCommand(in, ObjStr(objv[1]), (Tcl_Namespace *)NULL,0);
@@ -100,12 +100,12 @@ XOTcl_RenameObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
     obj = XOTclGetObjectFromCmdPtr(cmd);
     if (obj) {
       return XOTclCallMethodWithArg((ClientData)obj, in,
-			       XOTclGlobalObjects[MOVE], objv[2], 3, 0, 0);
+			       XOTclGlobalObjects[XOTE_MOVE], objv[2], 3, 0, 0);
     }
   }
 
   /* Actually rename the cmd using Tcl's rename*/
-  return XOTclCallCommand(in, RENAME, objc, objv);
+  return XOTclCallCommand(in, XOTE_RENAME, objc, objv);
 }
 
 static int
@@ -117,7 +117,7 @@ XOTcl_InfoObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
     if (isBodyString(opt) && objc > 2)
       isBody = 1;
   }
-  result = XOTclCallCommand(in, INFO, objc, objv);
+  result = XOTclCallCommand(in, XOTE_INFO, objc, objv);
 
   if (isBody && result == TCL_OK) {
     char *body = ObjStr(Tcl_GetObjResult(in));
@@ -140,7 +140,7 @@ XOTclShadowTclCommands(Tcl_Interp *in, XOTclShadowOperations load) {
     int initialized = (int) RUNTIME_STATE(in)->tclCommands;
     assert(initialized == 0);
     RUNTIME_STATE(in)->tclCommands = 
-      NEW_ARRAY(XOTclShadowTclCommandInfo, SUBST-EXPR+1);
+      NEW_ARRAY(XOTclShadowTclCommandInfo, XOTE_SUBST - XOTE_EXPR + 1);
 
     /*fprintf(stderr, "+++ load tcl commands %d %d\n", load, initialized);*/
 
@@ -148,20 +148,20 @@ XOTclShadowTclCommands(Tcl_Interp *in, XOTclShadowOperations load) {
     /* no commands are overloeaded, these are only used for calling 
        e.g. Tcl_ExprObjCmd(), Tcl_IncrObjCmd() and Tcl_SubstObjCmd(), 
        which are not avalailable in though the stub table */
-    rc|= XOTclReplaceCommand(in, EXPR,     0, initialized);
-    rc|= XOTclReplaceCommand(in, INCR,     0, initialized);
-    rc|= XOTclReplaceCommand(in, SUBST,    0, initialized);
+    rc|= XOTclReplaceCommand(in, XOTE_EXPR,     0, initialized);
+    rc|= XOTclReplaceCommand(in, XOTE_INCR,     0, initialized);
+    rc|= XOTclReplaceCommand(in, XOTE_SUBST,    0, initialized);
 #endif
     /* for the following commands, we have to add our own semantics */
-    rc|= XOTclReplaceCommand(in, INFO,     XOTcl_InfoObjCmd, initialized);
-    rc|= XOTclReplaceCommand(in, RENAME,   XOTcl_RenameObjCmd, initialized);
+    rc|= XOTclReplaceCommand(in, XOTE_INFO,     XOTcl_InfoObjCmd, initialized);
+    rc|= XOTclReplaceCommand(in, XOTE_RENAME,   XOTcl_RenameObjCmd, initialized);
     
   } else if (load == SHADOW_REFETCH) {
-    XOTclReplaceCommandCheck(in, INFO,     XOTcl_InfoObjCmd);
-    XOTclReplaceCommandCheck(in, RENAME,   XOTcl_RenameObjCmd);
+    XOTclReplaceCommandCheck(in, XOTE_INFO,     XOTcl_InfoObjCmd);
+    XOTclReplaceCommandCheck(in, XOTE_RENAME,   XOTcl_RenameObjCmd);
   } else {
-    XOTclReplaceCommandCleanup(in, INFO);
-    XOTclReplaceCommandCleanup(in, RENAME);
+    XOTclReplaceCommandCleanup(in, XOTE_INFO);
+    XOTclReplaceCommandCleanup(in, XOTE_RENAME);
     FREE(XOTclShadowTclCommandInfo*, RUNTIME_STATE(in)->tclCommands);
     RUNTIME_STATE(in)->tclCommands = NULL;
   }
@@ -175,7 +175,7 @@ XOTclShadowTclCommands(Tcl_Interp *in, XOTclShadowOperations load) {
 int XOTclCallCommand(Tcl_Interp *in, XOTclGlobalNames name,
 	    int objc, Tcl_Obj *CONST objv[]) {
   int result;
-  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(in)->tclCommands[name-EXPR];
+  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(in)->tclCommands[name-XOTE_EXPR];
   ALLOC_ON_STACK(Tcl_Obj*,objc, ov);
 
   /* {int i;

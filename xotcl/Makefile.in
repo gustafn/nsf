@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.12 2004/10/13 10:35:43 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.13 2004/12/02 00:01:20 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -27,12 +27,20 @@ src_doc_dir 	= ${srcdir}/doc
 src_test_dir 	= ${srcdir}/tests
 src_app_dir 	= ${srcdir}/apps
 src_generic_dir = ${srcdir}/generic
-PLATFORM_DIR    = $(srcdir)/@TEA_PLATFORM@
-target_doc_dir 	= ./doc
 TCL_LIB_SPEC    = @TCL_LIB_SPEC@
 TK_LIB_SPEC	= @TK_LIB_SPEC@
 subdirs		= @subdirs@
 aol_prefix	= @aol_prefix@
+
+# Requires native paths
+PLATFORM_DIR    = `@CYGPATH@ $(srcdir)/@TEA_PLATFORM@`
+target_doc_dir 	= ./doc
+
+src_lib_dir_native	= `@CYGPATH@ ${src_lib_dir}`
+src_doc_dir_native	= `@CYGPATH@ ${src_doc_dir}`
+src_test_dir_native 	= `@CYGPATH@ ${src_test_dir}`
+src_app_dir_native	= `@CYGPATH@ ${src_app_dir}`
+src_generic_dir_native	= `@CYGPATH@ ${src_generic_dir}`
 
 libdirs = comm lib serialize @libdirs_actiweb@
 libsrc 	= COPYRIGHT pkgIndex.tcl 
@@ -218,14 +226,17 @@ libraries:
 	done; fi;
 
 libraries-pkgindex:
-	@$(TCLSH_PROG) $(src_lib_dir)/lib/make.xotcl -dir $(src_lib_dir) -all
+	@$(TCLSH) $(src_lib_dir_native)/lib/make.xotcl -dir $(src_lib_dir_native) -all
 
 fulldoc: doc pdf
 # use language reference as sample file to trigger generation of documentation files
 doc: $(target_doc_dir)/langRef-xotcl.html
 
 $(target_doc_dir)/langRef-xotcl.html: $(src_doc_dir)/langRef.xotcl $(DOC_SOURCE)
-	@$(TCLSH_PROG) $(src_lib_dir)/lib/makeDoc.xotcl $(target_doc_dir) $(DOC_SOURCE)
+	@docs=""; \
+	for i in $(DOC_SOURCE); do docs="$$docs `@CYGPATH@ $$i`"; done; \
+	$(TCLSH) $(src_lib_dir_native)/lib/makeDoc.xotcl \
+		$(target_doc_dir) $$docs
 
 pdf:
 	-(cd $(src_doc_dir); htmldoc --webpage --format pdf14 --title \
@@ -252,31 +263,40 @@ install-aol: install-binaries install-libraries
 install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 	@echo "Installing header files in $(DESTDIR)$(includedir)"
 	@for i in $(PKG_HEADERS) ; do \
-	    echo "Installing $(srcdir)/$$i" ; \
+	    echo "    Installing $$i" ; \
 	    $(INSTALL_DATA) $(srcdir)/$$i $(DESTDIR)$(includedir) ; \
 	done;
+	@echo "Installing Libraries to $(DESTDIR)$(pkglibdir)/"
 	@for i in $(libdirs) ; do \
-	    echo "Installing $$i" ; \
+	    echo "    Installing $$i/" ; \
 	    rm -rf $(DESTDIR)$(pkglibdir)/$$i ; \
-	    (cd $(src_lib_dir); $(INSTALL) -d $$i $(DESTDIR)$(pkglibdir)/$$i ; \
-	    $(INSTALL) $$i/*tcl $(DESTDIR)$(pkglibdir)/$$i/) ; \
+	    mkdir -p $(DESTDIR)$(pkglibdir)/$$i; \
+	    chmod 755 $(DESTDIR)$(pkglibdir)/$$i; \
+	    for j in $(src_lib_dir)/$$i/*.*tcl ; do \
+		$(INSTALL_DATA) $$j $(DESTDIR)$(pkglibdir)/$$i/; \
+	    done; \
 	done;
-	for i in $(libsrc) ; do \
-	    echo "Installing $$i" ; \
+	@for i in $(libsrc) ; do \
+	    echo "    Installing $$i" ; \
 	    rm -rf $(DESTDIR)$(pkglibdir)/$$i ; \
-	    (cd $(src_lib_dir); $(INSTALL) $$i $(DESTDIR)$(pkglibdir)/$$i) ; \
+	    $(INSTALL_DATA) $(src_lib_dir)/$$i $(DESTDIR)$(pkglibdir)/$$i ; \
 	done;
-	cat ${srcdir}/unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
-	$(INSTALL) xotclConfig.sh $(DESTDIR)$(libdir)/
+	cat unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
+	$(INSTALL_DATA) xotclConfig.sh $(DESTDIR)$(libdir)/
+	@echo "Installing Applications to $(DESTDIR)$(pkglibdir)/apps/"
 	@for i in $(appdirs) ; do \
-	    echo "Installing $$i" ; \
+	    echo "    Installing $$i/" ; \
 	    rm -rf $(DESTDIR)$(pkglibdir)/apps/$$i ; \
-	    (cd $(src_app_dir); $(INSTALL) -d $$i $(DESTDIR)$(pkglibdir)/apps/$$i) ; \
+	    mkdir -p $(DESTDIR)$(pkglibdir)/apps/$$i; \
+	    chmod 755 $(DESTDIR)$(pkglibdir)/apps/$$i; \
+	    for j in $(src_app_dir)/$$i/* ; do \
+		$(INSTALL) $$j $(DESTDIR)$(pkglibdir)/apps/$$i/; \
+	    done; \
 	done;
 	@for i in $(appsrc) ; do \
-	    echo "Installing $$i" ; \
+	    echo "    Installing $$i" ; \
 	    rm -rf $(DESTDIR)$(pkglibdir)/apps/$$i ; \
-	    $(INSTALL)  $(src_app_dir)/$$i $(DESTDIR)$(pkglibdir)/apps ; \
+	    $(INSTALL_DATA) $(src_app_dir)/$$i $(DESTDIR)$(pkglibdir)/apps ; \
 	done;
 	@rm -rf $(DESTDIR)$(pkglibdir)/store/XOTclGdbm
 	@rm -rf $(DESTDIR)$(pkglibdir)/store/XOTclSdbm
@@ -299,29 +319,35 @@ install-doc: doc $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man3 $(DESTDIR)$(m
 	    done) ; \
 	fi
 
+shell: binaries libraries
+	@$(TCLSH) $(SCRIPT)
+
+gdb:
+	$(TCLSH_ENV) gdb $(TCLSH_PROG) $(SCRIPT)
+
 test: binaries libraries test-core @test_actiweb@
 
 #TESTFLAGS = -srcdir $(srcdir)
 test-core: $(TCLSH_PROG)
-	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/testx.xotcl` \
-		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
-	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/testo.xotcl` \
-		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
-	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/speedtest.xotcl` \
-		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
-	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/forwardtest.xotcl` \
-		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
-	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/xocomm.test` \
-		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/testx.xotcl \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/testo.xotcl \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/speedtest.xotcl \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/forwardtest.xotcl \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/xocomm.test \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 test-actiweb: $(TCLSH_PROG)
-	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/actiweb.test` \
-		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
-	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/persistence.test` \
-		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
-	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/UNIVERSAL.test` \
-		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
-	$(TCLSH_PROG) `@CYGPATH@ $(src_test_dir)/xoRDF.test` \
-		-libdir `@CYGPATH@ $(PLATFORM_DIR)` $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/actiweb.test \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/persistence.test \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/UNIVERSAL.test \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/xoRDF.test \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	@rm -rf receiver
 
 depend:
@@ -412,7 +438,7 @@ install-shells:
 #========================================================================
 
 $(src_generic_dir)/predefined.h: $(src_generic_dir)/mk_predefined.xotcl $(src_generic_dir)/predefined.xotcl
-	(cd $(src_generic_dir); $(TCLSH_PROG) mk_predefined.xotcl > predefined.h)
+	(cd $(src_generic_dir); $(TCLSH) mk_predefined.xotcl > predefined.h)
 
 xotclStubInit.$(OBJEXT): $(PKG_HEADERS)
 xotclStubLib.$(OBJEXT): $(src_generic_dir)/xotclStubLib.c $(PKG_HEADERS)
@@ -431,7 +457,7 @@ aolstub.$(OBJEXT): $(src_generic_dir)/aolstub.c $(PKG_HEADERS)
 #
 
 genstubs:
-	$(TCLSH_PROG) $(TCL_TOOL_DIR_NATIVE)/genStubs.tcl $(src_generic_dir) \
+	$(TCLSH) $(TCL_TOOL_DIR_NATIVE)/genStubs.tcl $(src_generic_dir) \
 		$(src_generic_dir)/xotcl.decls $(src_generic_dir)/xotclInt.decls
 
 #
@@ -471,6 +497,7 @@ clean:
 
 distclean: clean
 	-rm -rf Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log config.status
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \

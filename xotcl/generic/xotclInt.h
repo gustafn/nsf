@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.11 2004/11/19 01:41:32 neumann Exp $
+ *  $Id: xotclInt.h,v 1.12 2004/12/02 00:01:20 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -140,7 +140,7 @@ typedef struct XOTclMemCounter {
 	*m   == 'i' && m[1] == 'n' && m[2] == 'f' && m[3] == 'o' && \
 	m[4] == '\0')
 #ifdef AUTOVARS
-#define isNextString(m) (\
+# define isNextString(m) (\
 	*m   == 'n' && m[1] == 'e' && m[2] == 'x' && m[3] == 't' && \
 	m[4] == '\0')
 #endif
@@ -159,26 +159,23 @@ typedef struct XOTclMemCounter {
 	*m   == 'p' && m[1] == 'r' && m[2] == 'o' && m[3] == 'c' && \
 	m[4] == '\0')
 
-#if defined(sun) /*|| defined(__linux__)*/
+#if (defined(sun) || defined(__hpux)) && !defined(__GNUC__)
 #  define USE_ALLOCA
 #endif
 
-#if _IBMC__ >= 0x0306
+#if defined(__IBMC__) && !defined(__GNUC__)
+# if __IBMC__ >= 0x0306
 #  define USE_ALLOCA
+# else
+#  define USE_MALLOC
+# endif
 #endif
 
 #if defined(VISUAL_CC)
 #  define USE_MALLOC
 #endif
 
-
-#if defined(USE_MALLOC)
-#  define ALLOC_ON_STACK(type,n,var) type *var = (type *)ckalloc((n)*sizeof(type))
-#  define FREE_ON_STACK(var) ckfree((char*)var)
-#elif defined(USE_ALLOCA)
-#  define ALLOC_ON_STACK(type,n,var) type *var = (type *)alloca((n)*sizeof(type))
-#  define FREE_ON_STACK(var)
-#else
+#if defined(__GNUC__) && !defined(USE_ALLOCA) && !defined(USE_MALLOC)
 # if !defined(NDEBUG)
 #  define ALLOC_ON_STACK(type,n,var) \
     int __##var##_count = (n); type __##var[n+2]; \
@@ -189,6 +186,12 @@ typedef struct XOTclMemCounter {
 #  define ALLOC_ON_STACK(type,n,var) type var[(n)]
 #  define FREE_ON_STACK(var)
 # endif
+#elif defined(USE_ALLOCA)
+#  define ALLOC_ON_STACK(type,n,var) type *var = (type *)alloca((n)*sizeof(type))
+#  define FREE_ON_STACK(var)
+#else
+#  define ALLOC_ON_STACK(type,n,var) type *var = (type *)ckalloc((n)*sizeof(type))
+#  define FREE_ON_STACK(var) ckfree((char*)var)
 #endif
 
 #ifdef USE_ALLOCA
@@ -201,17 +204,20 @@ typedef struct XOTclMemCounter {
 # define DECR_REF_COUNT(A) \
 	MEM_COUNT_FREE("INCR_REF_COUNT",A); Tcl_DecrRefCount(A)
 #else
-# if defined(sun) || __IBMC__ >= 0x0306
-#  define XOTCLINLINE
-# else
+/*
+ * This was defined to be inline for anything !sun or __IBMC__ >= 0x0306,
+ * but __hpux should also be checked - switched to only allow in gcc - JH
+ */
+# if defined(__GNUC__)
 #  define XOTCLINLINE inline
+# else
+#  define XOTCLINLINE
 # endif
 # ifdef USE_TCL_STUBS
 #  define XOTclNewObj(A) A=Tcl_NewObj()
 #  define DECR_REF_COUNT(A) \
 	MEM_COUNT_FREE("INCR_REF_COUNT",A); assert((A)->refCount > -1); \
-        Tcl_DecrRefCount(A) \
-	
+        Tcl_DecrRefCount(A)
 # else
 #  define XOTclNewObj(A) TclNewObj(A)
 #  define DECR_REF_COUNT(A) \
@@ -506,35 +512,35 @@ typedef struct XOTclClasses {
    and Strings - otherwise these "constants" would have to be built
    every time they are used; now they are built once in XOTcl_Init */
 typedef enum {
-    EMPTY, UNKNOWN, CREATE, DESTROY, INSTDESTROY, ALLOC,
-    INIT, INSTVAR, INTERP, AUTONAMES,
-    ZERO, MOVE, SELF, CLASS, RECREATE,
-    SELF_CLASS, SELF_PROC, PARAM_CL,
-    SEARCH_DEFAULTS, EXIT_HANDLER,
-    NON_POS_ARGS_CL, NON_POS_ARGS_OBJ, 
-    CLEANUP, CONFIGURE, FILTER, INSTFILTER,
-    INSTPROC, PROC, MKGETTERSETTER, FORMAT, 
-    NEWOBJ, GUARD_OPTION, DEFAULTMETHOD,
-    __UNKNOWN, ARGS, SPLIT, COMMA,
+    XOTE_EMPTY, XOTE_UNKNOWN, XOTE_CREATE, XOTE_DESTROY, XOTE_INSTDESTROY,
+    XOTE_ALLOC, XOTE_INIT, XOTE_INSTVAR, XOTE_INTERP, XOTE_AUTONAMES,
+    XOTE_ZERO, XOTE_MOVE, XOTE_SELF, XOTE_CLASS, XOTE_RECREATE,
+    XOTE_SELF_CLASS, XOTE_SELF_PROC, XOTE_PARAM_CL,
+    XOTE_SEARCH_DEFAULTS, XOTE_EXIT_HANDLER,
+    XOTE_NON_POS_ARGS_CL, XOTE_NON_POS_ARGS_OBJ,
+    XOTE_CLEANUP, XOTE_CONFIGURE, XOTE_FILTER, XOTE_INSTFILTER,
+    XOTE_INSTPROC, XOTE_PROC, XOTE_MKGETTERSETTER, XOTE_FORMAT,
+    XOTE_NEWOBJ, XOTE_GUARD_OPTION, XOTE_DEFAULTMETHOD,
+    XOTE___UNKNOWN, XOTE_ARGS, XOTE_SPLIT, XOTE_COMMA,
     /** these are the redefined tcl commands; leave them
 	together at the end */
-    EXPR, INCR, INFO, RENAME, SUBST, 
+    XOTE_EXPR, XOTE_INCR, XOTE_INFO, XOTE_RENAME, XOTE_SUBST,
 } XOTclGlobalNames;
 #if !defined(XOTCL_C)
 extern char *XOTclGlobalStrings[];
 #else
 char *XOTclGlobalStrings[] = {
-  "", "unknown", "create", "destroy", "instdestroy", "alloc",
-  "init", "instvar", "interp", "__autonames",
+  "", "unknown", "create", "destroy", "instdestroy",
+  "alloc", "init", "instvar", "interp", "__autonames",
   "0", "move", "self", "class", "recreate",
   "self class", "self proc", "::xotcl::Class::Parameter",
   "searchDefaults", "__exitHandler",
-  "::xotcl::NonPosArgs", "::xotcl::nonPosArgs", 
+  "::xotcl::NonPosArgs", "::xotcl::nonPosArgs",
   "cleanup", "configure", "filter", "instfilter",
-  "instproc", "proc", "mkGetterSetter", "format", 
+  "instproc", "proc", "mkGetterSetter", "format",
   "__#", "-guard", "defaultmethod",
   "__unknown", "args", "split", ",",
-  "expr", "incr", "info", "rename", "subst", 
+  "expr", "incr", "info", "rename", "subst",
 };
 #endif
 

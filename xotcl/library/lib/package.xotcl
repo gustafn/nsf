@@ -1,4 +1,4 @@
-#$Id: package.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+#$Id: package.xotcl,v 1.2 2004/12/02 00:01:20 neumann Exp $
 package provide xotcl::package 0.91
 
 package require xotcl::mixinStrategy
@@ -70,7 +70,7 @@ package proc require args {
     set v [eval tcl_package require $args]
     if {$v != "" && $verbose} {
       set path [lindex [tcl_package ifneeded $pkg $v] 1]
-      puts "... $pkg $v loaded from ´$path´"
+      puts "... $pkg $v loaded from '$path'"
       set loaded($pkg) $v   ;# loaded stuff needed for Tcl 8.0
     }
   }
