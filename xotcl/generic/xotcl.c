@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.16 2004/07/28 08:01:25 neumann Exp $
+/* $Id: xotcl.c,v 1.17 2004/07/28 08:18:47 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -4156,7 +4156,7 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
       result = DoDispatch(cd, in, objc+1, tov, flags | XOTCL_CM_NO_UNKNOWN);
       FREE_TCL_OBJS_ON_STACK(tov);
 
-    } else { /* unknwon failed */
+    } else { /* unknown failed */
       Tcl_AppendResult(in, ObjStr(objv[0]), ": unable to dispatch method '",
 		       ObjStr(objv[2]), "'", 0);
       result = TCL_ERROR;
@@ -4178,8 +4178,8 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
 	    );
     */
 
-    if (!rst->callIsDestroy && 
-	!(obj->flags & XOTCL_DESTROY_CALLED)) {
+    if (!rst->callIsDestroy) {
+      /*!(obj->flags & XOTCL_DESTROY_CALLED)) {*/
       if (mixinStackPushed && obj->mixinStack)
 	MixinStackPop(obj);
 
