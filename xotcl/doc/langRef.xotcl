@@ -1,4 +1,4 @@
-# $Id: langRef.xotcl,v 1.3 2004/08/17 10:12:55 neumann Exp $
+# $Id: langRef.xotcl,v 1.4 2004/09/21 11:41:43 neumann Exp $
 package provide XOTcl-langRef 1.3
 package require Tcl
 
@@ -63,7 +63,7 @@ package require Tcl
     <@/p>
 
   }
-  date { $Date: 2004/08/17 10:12:55 $ }
+  date { $Date: 2004/09/21 11:41:43 $ }
 }
 
 ##
@@ -362,10 +362,10 @@ package require Tcl
       Introspection of objects. The following options can be specified:
       <@ul>
       <@li><@TT>objName info args method</@TT>: 
-      Returns the arguments of the specified method.
+      Returns the arguments of the specified proc (object specific method).
 
       <@li><@TT>objName info body method</@TT>: 
-      Returns the body of the specified method.
+      Returns the body of the specified proc (object specific method).
  
       <@li><@TT>objName info class ?classname?</@TT>: 
       Returns the name of the class of the current object, if classname was 
@@ -381,7 +381,8 @@ package require Tcl
       it returns all commands that match the pattern.
 
       <@li><@TT>objName info default method arg var</@TT>: Returns 1 if the 
-      argument <@TT>arg</@TT> of the method <@TT>method</@TT> has a default 
+      argument <@TT>arg</@TT> of the proc (object specific method) 
+      <@TT>method</@TT> has a default 
       value, otherwise 0. If it exists the default value is stored in <@TT>var</@TT>.
 
       <@li><@TT>objName info filter</@TT>: Returns a list of filters. 
@@ -810,6 +811,7 @@ package require Tcl
       for classes. 
       The following options can be specified:
       <@ul>
+
       <@li><@TT>ClassName info classchildren ?pattern?</@TT>: 
       Returns the list of nested classes with fully qualified names 
       if <@TT>pattern</@TT> was not specified, 
@@ -818,19 +820,6 @@ package require Tcl
 
       <@li><@TT>ClassName info classparent</@TT>: 
       Returns the class ClassName is nesting to.
-
-      <@li><@TT>ClassName info instdefault method arg var</@TT>: 
-      Returns 1 if the argument <@TT>arg</@TT> of the instance method 
-      <@TT>method</@TT> has a default value, otherwise 0. If it exists 
-      the default value is stored in <@TT>var</@TT>.
-
-      <@li><@TT>ClassName info instfilter</@TT>: 
-      Returns the list of registered filters. With -guard modifier 
-      all instfilterguards are integrated 
-      (<@TT> ClassName info instfilter -guards</@TT>).
-
-      <@li><@TT>objName info instfilterguard name</@TT>: Returns the guards 
-      for instfilter identified by name.
 
       <@li><@TT>ClassName info heritage ?pattern?</@TT>:
       Returns a list of all classes in the precedence order 
@@ -842,23 +831,36 @@ package require Tcl
       If pattern is specified, only matching values are returned.
 
       <@li><@TT>ClassName info instargs method</@TT>:
-      Returns the arguments of the specified method.
+      Returns the arguments of the specified instproc (instance method).
 
       <@li><@TT>ClassName info instbody method</@TT>:
-      Returns the body of the specified method.
+      Returns the body of the specified instproc (instance method).
 
       <@li><@TT>ClassName info instcommands ?pattern?</@TT>:
       Returns all commands defined for the class. If pattern 
       is specified it returns all commands that match the pattern.
 
+      <@li><@TT>ClassName info instdefault method arg var</@TT>: 
+      Returns 1 if the argument <@TT>arg</@TT> of the instproc (instance method)
+      <@TT>method</@TT> has a default value, otherwise 0. If it exists 
+      the default value is stored in <@TT>var</@TT>.
+
+      <@li><@TT>ClassName info instfilter</@TT>: 
+      Returns the list of registered filters. With -guard modifier 
+      all instfilterguards are integrated 
+      (<@TT> ClassName info instfilter -guards</@TT>).
+
+      <@li><@TT>objName info instfilterguard name</@TT>: Returns the guards 
+      for instfilter identified by name.
+
       <@li><@TT>ClassName info instinvar</@TT>: 
       Returns class invariants.
 	
-      <@li><@TT>ClassName info instmixin methodName</@TT>: returns list of 
-      non-positional args of methodName
-
       <@li><@TT>ClassName info instmixin</@TT>: 
       Returns the list of instmixins of this class.
+
+      <@li><@TT>ClassName info instnonposargs methodName</@TT>: returns list of 
+      non-positional args of methodName
 
       <@li><@TT>ClassName info instpost methodName</@TT>: 
       Returns post assertions of methodName.

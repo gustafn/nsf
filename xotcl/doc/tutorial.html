@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<!-- $Id: tutorial.html,v 1.5 2004/08/25 09:45:23 neumann Exp $ -->
+<!-- $Id: tutorial.html,v 1.6 2004/09/21 11:41:43 neumann Exp $ -->
 <HTML>
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
@@ -892,7 +892,7 @@ identically to the OTcl info options on objects.
 	    <tt><em>objName</em> <tt>info</tt> args <em>methodName </em></tt>
 	  </TD>
 	  <TD>
-	    <P ALIGN=LEFT>Returns the arguments of the specified method.</P>
+	    <P ALIGN=LEFT>Returns the arguments of the specified proc (object specific method).</P>
 	  </TD>
 	</TR>
 	<TR>
@@ -900,7 +900,7 @@ identically to the OTcl info options on objects.
 	    <tt><em>objName</em> <tt>info</tt> body <em>methodName</tt>
 	  </TD>
 	  <TD>
-	    <P ALIGN=LEFT>Returns the body of the specified method.</P>
+	    <P ALIGN=LEFT>Returns the body of the specified proc.</P>
 	  </TD>
 	</TR>
 	<TR>
@@ -928,7 +928,7 @@ identically to the OTcl info options on objects.
 	  </TD>
 	  <TD>
 	    <P ALIGN=LEFT>Returns 1 if the argument <em>arg</em> of
-	    the specified method has a default value, otherwise 0. If
+	    the specified proc has a default value, otherwise 0. If
 	    the default value exists it is stored in <em>var</em>.</P>
 	  </TD>
 	</TR>
@@ -1092,7 +1092,7 @@ is an object and, therefore, offers its informations.  The following
 table summarizes the additional info options available on classes.
 </P>
 <CENTER>
-<P><STRONG>Options for the <tt>into</tt> method on classes</STRONG></P>
+<P><STRONG>Options for the <tt>info</tt> method on classes</STRONG></P>
       <TABLE BORDER=1>
 	<TR>
 	  <TD width=35%><tt><em>className</em> <tt>info</tt> heritage <em>?pattern?</em></tt>
@@ -1115,13 +1115,14 @@ table summarizes the additional info options available on classes.
 	<TR>
 	  <TD><tt><em>className</em> <tt>info</tt> instargs <em>methodName</em></tt>
 	  </TD>
-	  <TD><P ALIGN=LEFT>Returns the arguments of the specified method.</P>
+	  <TD><P ALIGN=LEFT>Returns the arguments of the specified instproc 
+	      (method provided to objects).</P>
 	  </TD>
 	</TR>
 	<TR>
 	  <TD><tt><em>className</em> <tt>info</tt> instbody <em>methodName</em></tt>
 	  </TD>
-	  <TD><P ALIGN=LEFT>Returns the body of the specified method.</P>
+	  <TD><P ALIGN=LEFT>Returns the body of the specified instproc.</P>
 	  </TD>
 	</TR>
 	<TR>
@@ -1129,7 +1130,16 @@ table summarizes the additional info options available on classes.
 	  </TD>
 	  <TD><P ALIGN=LEFT>Returns all commands defined on the class, if
 	      <em>pattern</em> was not specified, otherwise it returns all
-	      commands that match the pattern.</P>
+	      commands provided to objects that match the pattern.</P>
+	  </TD>
+	</TR>
+	<TR>
+	  <TD><tt><em>className</em> <tt>info</tt> instdefault <em>methodName arg var</em></tt></P>
+	  </TD>
+	  <TD>
+	    <P ALIGN=LEFT>Returns 1 if the argument <em>arg</em> of
+	    the specified instproc has a default value, otherwise 0. If
+	    the default value exists it is stored in <em>var</em>.</P>
 	  </TD>
 	</TR>
 	<TR>
@@ -3403,7 +3413,7 @@ shows how to prefix every called method with the prefix <tt>@</tt>.
 </pre>
 With this definitions, the following call is rewritten as indicated in the comment.
 <pre CLASS="code">
-  x1 Info class          <it>;# ::Info @class ::x1</it
+  x1 Info class          <it>;# ::Info @class ::x1</it>
 </pre>
 
 <p>When a forwarder is defined, the callee (the target command) can be
