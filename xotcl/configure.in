@@ -59,6 +59,8 @@ AC_ARG_WITH(tclinclude,
         [  --with-tclinclude       directory containing the public Tcl  header files.], 
          with_tclinclude=${withval})
 
+subdirs=""
+
 if test "$with_all" = yes; then
    with_actiweb=yes
    with_xotclsh=yes
@@ -70,16 +72,21 @@ if test "$with_actiweb" = yes; then
    test_actiweb="test-actiweb"
    libdirs_actiweb="actiweb rdf registry store xml patterns"
    apps_actiweb="actiweb persistence"
-   AC_CONFIG_SUBDIRS(library/store/XOTclSdbm/)
+   subdirs="$subdirs library/store/XOTclSdbm/"
+dnl    AC_CONFIG_SUBDIRS(library/store/XOTclSdbm/)
    if ! test "$with_gdbm" = no; then
-      AC_CONFIG_SUBDIRS(library/store/XOTclGdbm/)
+       subdirs="$subdirs library/store/XOTclGdbm/"
+dnl       AC_CONFIG_SUBDIRS(library/store/XOTclGdbm/)
    fi
-   AC_CONFIG_SUBDIRS(library/xml/TclExpat-1.1/)
+   subdirs="$subdirs library/xml/TclExpat-1.1/"
+dnl    AC_CONFIG_SUBDIRS(library/xml/TclExpat-1.1/)
 else
    test_actiweb=""
    libdirs_actiweb=""
    apps_actiweb=""
 fi
+
+AC_SUBST(subdirs)
 
 if test "$with_tk" = no; then with_xowish="" ; fi
 if test "$with_xotclsh" = yes; then XOTCLSH="xotclsh" ; else XOTCLSH=""; fi
@@ -335,6 +342,7 @@ eval "includedir=${includedir}"
 PKG_DIR="${PACKAGE_NAME}${PACKAGE_VERSION}"
 pkgdatadir="${datadir}/${PKG_DIR}"
 pkglibdir="${libdir}/${PKG_DIR}"
+# make sure this is right (then remove this comment)
 pkgincludedir="${includedir}/${PKG_DIR}"
 
 AC_SUBST(PKG_DIR)
@@ -376,6 +384,12 @@ AC_SUBST(XOTCL_SRC_DIR)
 AC_SUBST(XOTCLSH)
 AC_SUBST(XOWISH)
 
+# include dir of xotcl during build process (i.e., does not assume installed)
+XOTCL_BUILD_INCLUDE_DIR="${XOTCL_SRC_DIR}/generic"
+XOTCL_BUILD_INCLUDE_SPEC="-I${XOTCL_BUILD_INCLUDE_DIR}"
+AC_SUBST(XOTCL_BUILD_INCLUDE_DIR)
+AC_SUBST(XOTCL_BUILD_INCLUDE_SPEC)
+
 AC_SUBST(test_actiweb)
 AC_SUBST(libdirs_actiweb)
 AC_SUBST(apps_actiweb)
@@ -397,7 +411,7 @@ AC_DEFUN(CONFIG_OUTPUT_FILES, [[Makefile xotclConfig.sh apps/utils/xotclsh apps/
 # target, defined in Makefile.in
 #--------------------------------------------------------------------
 
-CONFIG_CLEAN_FILES="CONFIG_OUTPUT_FILES"
+CONFIG_CLEAN_FILES="CONFIG_OUTPUT_FILES autom4te.cache/"
 
 AC_SUBST(CONFIG_CLEAN_FILES)
 
@@ -414,3 +428,11 @@ AC_CONFIG_FILES(CONFIG_OUTPUT_FILES)
 #--------------------------------------------------------------------
 
 AC_OUTPUT
+
+here=${PWD}
+
+for subdir in ${subdirs}
+do
+    (cd $subdir; eval $SHELL configure ${ac_configure_args} --with-xotcl=${here})
+done
+

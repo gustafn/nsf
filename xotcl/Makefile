@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.10 2004/07/03 21:19:39 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.11 2004/07/18 09:49:03 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -118,7 +118,7 @@ INSTALL_SCRIPT	= ${INSTALL}
 PACKAGE_NAME	= xotcl
 PACKAGE_VERSION	= 1.2.1
 CC		= gcc -pipe
-CFLAGS_DEFAULT	= -O -g
+CFLAGS_DEFAULT	= -O
 CFLAGS_WARNING	= -Wall -Wconversion -Wno-implicit-int
 CLEANFILES	= *.o *.a *.so *~ core gmon.out config.*
 EXEEXT		= 
@@ -163,7 +163,7 @@ TCLSH_PROG	= /home/neumann/tcl8.4.5/unix/tclsh
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= 1
 
-INCLUDES	=  -I$(TCL_SRC_DIR)/generic -I$(TCL_SRC_DIR)/unix
+INCLUDES	=  -I$(TCL_SRC_DIR)/generic -I$(TCL_SRC_DIR)/unix -I/home/neumann/xotcl-1.2.1/generic
 EXTRA_CFLAGS	=   -DXOTCLVERSION=\"1.2\" -DXOTCLPATCHLEVEL=\".1\" 	 -DHAVE_TCL_COMPILE_H=1
 
 # TCL_DEFS is not strictly need here, but if you remove it, then you
@@ -174,7 +174,7 @@ EXTRA_CFLAGS	=   -DXOTCLVERSION=\"1.2\" -DXOTCLPATCHLEVEL=\".1\" 	 -DHAVE_TCL_CO
 #DEFS		= $(TCL_DEFS) -DPACKAGE_NAME=\"xotcl\" -DPACKAGE_TARNAME=\"xotcl\" -DPACKAGE_VERSION=\"1.2.1\" -DPACKAGE_STRING=\"xotcl\ 1.2.1\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -D_LARGEFILE64_SOURCE=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_STRUCT_STAT64=1 -DHAVE_TYPE_OFF64_T=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1 -DTCL_THREADS=1 -DUSE_TCL_STUBS=1 -DCOMPILE_XOTCL_STUBS=1  $(EXTRA_CFLAGS)
 DEFS		= -DPACKAGE_NAME=\"xotcl\" -DPACKAGE_TARNAME=\"xotcl\" -DPACKAGE_VERSION=\"1.2.1\" -DPACKAGE_STRING=\"xotcl\ 1.2.1\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -D_LARGEFILE64_SOURCE=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_STRUCT_STAT64=1 -DHAVE_TYPE_OFF64_T=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1 -DTCL_THREADS=1 -DUSE_TCL_STUBS=1 -DCOMPILE_XOTCL_STUBS=1  $(EXTRA_CFLAGS) 
 
-CONFIG_CLEAN_FILES = Makefile xotclConfig.sh apps/utils/xotclsh apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix
+CONFIG_CLEAN_FILES = Makefile xotclConfig.sh apps/utils/xotclsh apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix autom4te.cache
 
 CPPFLAGS	= 
 LIBS		=  
@@ -194,7 +194,7 @@ COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(C
 # for the BINARIES that you specified above have already been done.
 #========================================================================
 
-all: binaries libraries
+all: binaries libraries doc
 
 #========================================================================
 # The binaries target builds executable programs, Windows .dll's, unix
@@ -459,14 +459,15 @@ checkstubs:
 #========================================================================
 
 clean:  
-	-rm -rf $(BINARIES) $(CLEANFILES) xotclsh xowish pkgIndex.tcl ./receiver
+	-rm -rf $(BINARIES) $(CLEANFILES) xotclsh xowish pkgIndex.tcl ./receiver  $(src_doc_dir)/*-xotcl.html
+	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
 	done; fi
 
 distclean: clean
-	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -rf Makefile $(CONFIG_CLEAN_FILES)
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \

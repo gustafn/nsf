@@ -17,6 +17,16 @@ XOTCL_MAJOR_VERSION='1'
 XOTCL_MINOR_VERSION='2'
 XOTCL_RELEASE_LEVEL='.1'
 
+# String to pass to compiles to pick up includes during build
+# (i.e., assuming nothing has been installed)
+XOTCL_BUILD_INCLUDE_DIR='/home/neumann/xotcl-1.2.1/generic'
+XOTCL_BUILD_INCLUDE_SPEC="-I${XOTCL_BUILD_INCLUDE_DIR}"
+
+# String to pass to compiles to pick up the XOTcl includes from their
+# installed directory.
+XOTCL_INCLUDE_DIR="/usr/include/xotcl1.2.1"
+XOTCL_INCLUDE_SPEC="-I$XOTCL_INCLUDE_DIR"
+
 # The name of the XOTcl library (may be either a .a file or a shared library):
 XOTCL_LIB_FILE=libxotcl1.2.1.so
 

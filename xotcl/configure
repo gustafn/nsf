@@ -270,9 +270,6 @@ PACKAGE_VERSION='1.2.1'
 PACKAGE_STRING='xotcl 1.2.1'
 PACKAGE_BUGREPORT=''
 
-ac_subdirs_all="$ac_subdirs_all library/store/XOTclSdbm/"
-ac_subdirs_all="$ac_subdirs_all library/store/XOTclGdbm/"
-ac_subdirs_all="$ac_subdirs_all library/xml/TclExpat-1.1/"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -310,7 +307,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CYGPATH EXEEXT PKG_LIB_FILE PKG_STUB_LIB_FILE PKG_STUB_SOURCES PKG_STUB_OBJECTS PKG_TCL_SOURCES PKG_HEADERS PKG_INCLUDES PKG_LIBS PKG_CFLAGS subdirs XOTCL_VERSION XOTCL_MAJOR_VERSION XOTCL_MINOR_VERSION XOTCL_RELEASE_LEVEL TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_LIBS TCL_DEFS TCL_EXTRA_CFLAGS TCL_LD_FLAGS TCL_SHLIB_LD_LIBS TK_VERSION TK_BIN_DIR TK_SRC_DIR TK_LIB_FILE TK_LIB_FLAG TK_LIB_SPEC TK_STUB_LIB_FILE TK_STUB_LIB_FLAG TK_STUB_LIB_SPEC TK_LIBS TK_XINCLUDES CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC OBJEXT CPP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE RANLIB ac_ct_RANLIB EGREP MATH_LIBS PKG_SOURCES PKG_OBJECTS TCL_TOP_DIR_NATIVE TCL_GENERIC_DIR_NATIVE TCL_UNIX_DIR_NATIVE TCL_WIN_DIR_NATIVE TCL_BMAP_DIR_NATIVE TCL_TOOL_DIR_NATIVE TCL_PLATFORM_DIR_NATIVE TCL_INCLUDES CLEANFILES TCL_THREADS SHARED_BUILD AR LIBOBJS DL_LIBS CFLAGS_DEBUG CFLAGS_OPTIMIZE CFLAGS_WARNING EXTRA_CFLAGS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LD_FLAGS SHLIB_LD_LIBS LDFLAGS_DEBUG LDFLAGS_OPTIMIZE LD_LIBRARY_PATH_VAR TCL_DBGX CFLAGS_DEFAULT LDFLAGS_DEFAULT MAKE_LIB MAKE_SHARED_LIB MAKE_STATIC_LIB MAKE_STUB_LIB RANLIB_STUB TCLSH_PROG XOTCL_COMPATIBLE_TCLSH PKG_DIR pkgdatadir pkglibdir pkgincludedir SHARED_LIB_SUFFIX UNSHARED_LIB_SUFFIX XOTCL_BUILD_LIB_SPEC XOTCL_LIB_SPEC XOTCL_BUILD_STUB_LIB_SPEC XOTCL_STUB_LIB_SPEC XOTCL_BUILD_STUB_LIB_PATH XOTCL_STUB_LIB_PATH XOTCL_SRC_DIR XOTCLSH XOWISH test_actiweb libdirs_actiweb apps_actiweb TEA_PLATFORM CONFIG_CLEAN_FILES LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CYGPATH EXEEXT PKG_LIB_FILE PKG_STUB_LIB_FILE PKG_STUB_SOURCES PKG_STUB_OBJECTS PKG_TCL_SOURCES PKG_HEADERS PKG_INCLUDES PKG_LIBS PKG_CFLAGS subdirs XOTCL_VERSION XOTCL_MAJOR_VERSION XOTCL_MINOR_VERSION XOTCL_RELEASE_LEVEL TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_LIBS TCL_DEFS TCL_EXTRA_CFLAGS TCL_LD_FLAGS TCL_SHLIB_LD_LIBS TK_VERSION TK_BIN_DIR TK_SRC_DIR TK_LIB_FILE TK_LIB_FLAG TK_LIB_SPEC TK_STUB_LIB_FILE TK_STUB_LIB_FLAG TK_STUB_LIB_SPEC TK_LIBS TK_XINCLUDES CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC OBJEXT CPP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE RANLIB ac_ct_RANLIB EGREP MATH_LIBS PKG_SOURCES PKG_OBJECTS TCL_TOP_DIR_NATIVE TCL_GENERIC_DIR_NATIVE TCL_UNIX_DIR_NATIVE TCL_WIN_DIR_NATIVE TCL_BMAP_DIR_NATIVE TCL_TOOL_DIR_NATIVE TCL_PLATFORM_DIR_NATIVE TCL_INCLUDES CLEANFILES TCL_THREADS SHARED_BUILD AR LIBOBJS DL_LIBS CFLAGS_DEBUG CFLAGS_OPTIMIZE CFLAGS_WARNING EXTRA_CFLAGS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LD_FLAGS SHLIB_LD_LIBS LDFLAGS_DEBUG LDFLAGS_OPTIMIZE LD_LIBRARY_PATH_VAR TCL_DBGX CFLAGS_DEFAULT LDFLAGS_DEFAULT MAKE_LIB MAKE_SHARED_LIB MAKE_STATIC_LIB MAKE_STUB_LIB RANLIB_STUB TCLSH_PROG XOTCL_COMPATIBLE_TCLSH PKG_DIR pkgdatadir pkglibdir pkgincludedir SHARED_LIB_SUFFIX UNSHARED_LIB_SUFFIX XOTCL_BUILD_LIB_SPEC XOTCL_LIB_SPEC XOTCL_BUILD_STUB_LIB_SPEC XOTCL_STUB_LIB_SPEC XOTCL_BUILD_STUB_LIB_PATH XOTCL_STUB_LIB_PATH XOTCL_SRC_DIR XOTCLSH XOWISH XOTCL_BUILD_INCLUDE_DIR XOTCL_BUILD_INCLUDE_SPEC test_actiweb libdirs_actiweb apps_actiweb TEA_PLATFORM CONFIG_CLEAN_FILES LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -1490,6 +1487,8 @@ if test "${with_tclinclude+set}" = set; then
   with_tclinclude=${withval}
 fi;
 
+subdirs=""
+
 if test "$with_all" = yes; then
    with_actiweb=yes
    with_xotclsh=yes
@@ -1501,25 +1500,18 @@ if test "$with_actiweb" = yes; then
    test_actiweb="test-actiweb"
    libdirs_actiweb="actiweb rdf registry store xml patterns"
    apps_actiweb="actiweb persistence"
-
-
-subdirs="$subdirs library/store/XOTclSdbm/"
-
+   subdirs="$subdirs library/store/XOTclSdbm/"
    if ! test "$with_gdbm" = no; then
-
-
-subdirs="$subdirs library/store/XOTclGdbm/"
-
+       subdirs="$subdirs library/store/XOTclGdbm/"
    fi
-
-
-subdirs="$subdirs library/xml/TclExpat-1.1/"
-
+   subdirs="$subdirs library/xml/TclExpat-1.1/"
 else
    test_actiweb=""
    libdirs_actiweb=""
    apps_actiweb=""
 fi
+
+
 
 if test "$with_tk" = no; then with_xowish="" ; fi
 if test "$with_xotclsh" = yes; then XOTCLSH="xotclsh" ; else XOTCLSH=""; fi
@@ -9574,6 +9566,7 @@ eval "includedir=${includedir}"
 PKG_DIR="${PACKAGE_NAME}${PACKAGE_VERSION}"
 pkgdatadir="${datadir}/${PKG_DIR}"
 pkglibdir="${libdir}/${PKG_DIR}"
+# make sure this is right (then remove this comment)
 pkgincludedir="${includedir}/${PKG_DIR}"
 
 
@@ -9618,6 +9611,12 @@ XOTCL_SRC_DIR=`pwd`
 
 
 
+# include dir of xotcl during build process (i.e., does not assume installed)
+XOTCL_BUILD_INCLUDE_DIR="${XOTCL_SRC_DIR}/generic"
+XOTCL_BUILD_INCLUDE_SPEC="-I${XOTCL_BUILD_INCLUDE_DIR}"
+
+
+
 
 
 
@@ -9634,7 +9633,7 @@ XOTCL_SRC_DIR=`pwd`
 # target, defined in Makefile.in
 #--------------------------------------------------------------------
 
-CONFIG_CLEAN_FILES="Makefile xotclConfig.sh apps/utils/xotclsh apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix"
+CONFIG_CLEAN_FILES="Makefile xotclConfig.sh apps/utils/xotclsh apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix autom4te.cache"
 
 
 
@@ -10399,6 +10398,8 @@ s,@XOTCL_STUB_LIB_PATH@,$XOTCL_STUB_LIB_PATH,;t t
 s,@XOTCL_SRC_DIR@,$XOTCL_SRC_DIR,;t t
 s,@XOTCLSH@,$XOTCLSH,;t t
 s,@XOWISH@,$XOWISH,;t t
+s,@XOTCL_BUILD_INCLUDE_DIR@,$XOTCL_BUILD_INCLUDE_DIR,;t t
+s,@XOTCL_BUILD_INCLUDE_SPEC@,$XOTCL_BUILD_INCLUDE_SPEC,;t t
 s,@test_actiweb@,$test_actiweb,;t t
 s,@libdirs_actiweb@,$libdirs_actiweb,;t t
 s,@apps_actiweb@,$apps_actiweb,;t t
@@ -10640,147 +10641,11 @@ if test "$no_create" != yes; then
   $ac_cs_success || { (exit 1); exit 1; }
 fi
 
-#
-# CONFIG_SUBDIRS section.
-#
-if test "$no_recursion" != yes; then
 
-  # Remove --cache-file and --srcdir arguments so they do not pile up.
-  ac_sub_configure_args=
-  ac_prev=
-  for ac_arg in $ac_configure_args; do
-    if test -n "$ac_prev"; then
-      ac_prev=
-      continue
-    fi
-    case $ac_arg in
-    -cache-file | --cache-file | --cache-fil | --cache-fi \
-    | --cache-f | --cache- | --cache | --cach | --cac | --ca | --c)
-      ac_prev=cache_file ;;
-    -cache-file=* | --cache-file=* | --cache-fil=* | --cache-fi=* \
-    | --cache-f=* | --cache-=* | --cache=* | --cach=* | --cac=* | --ca=* \
-    | --c=*)
-      ;;
-    --config-cache | -C)
-      ;;
-    -srcdir | --srcdir | --srcdi | --srcd | --src | --sr)
-      ac_prev=srcdir ;;
-    -srcdir=* | --srcdir=* | --srcdi=* | --srcd=* | --src=* | --sr=*)
-      ;;
-    -prefix | --prefix | --prefi | --pref | --pre | --pr | --p)
-      ac_prev=prefix ;;
-    -prefix=* | --prefix=* | --prefi=* | --pref=* | --pre=* | --pr=* | --p=*)
-      ;;
-    *) ac_sub_configure_args="$ac_sub_configure_args $ac_arg" ;;
-    esac
-  done
+here=${PWD}
 
-  # Always prepend --prefix to ensure using the same prefix
-  # in subdir configurations.
-  ac_sub_configure_args="--prefix=$prefix $ac_sub_configure_args"
-
-  ac_popdir=`pwd`
-  for ac_dir in : $subdirs; do test "x$ac_dir" = x: && continue
-
-    # Do not complain, so a configure script can configure whichever
-    # parts of a large source tree are present.
-    test -d $srcdir/$ac_dir || continue
-
-    { echo "$as_me:$LINENO: configuring in $ac_dir" >&5
-echo "$as_me: configuring in $ac_dir" >&6;}
-    { if $as_mkdir_p; then
-    mkdir -p "$ac_dir"
-  else
-    as_dir="$ac_dir"
-    as_dirs=
-    while test ! -d "$as_dir"; do
-      as_dirs="$as_dir $as_dirs"
-      as_dir=`(dirname "$as_dir") 2>/dev/null ||
-$as_expr X"$as_dir" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
-         X"$as_dir" : 'X\(//\)[^/]' \| \
-         X"$as_dir" : 'X\(//\)$' \| \
-         X"$as_dir" : 'X\(/\)' \| \
-         .     : '\(.\)' 2>/dev/null ||
-echo X"$as_dir" |
-    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{ s//\1/; q; }
-  	  /^X\(\/\/\)[^/].*/{ s//\1/; q; }
-  	  /^X\(\/\/\)$/{ s//\1/; q; }
-  	  /^X\(\/\).*/{ s//\1/; q; }
-  	  s/.*/./; q'`
-    done
-    test ! -n "$as_dirs" || mkdir $as_dirs
-  fi || { { echo "$as_me:$LINENO: error: cannot create directory \"$ac_dir\"" >&5
-echo "$as_me: error: cannot create directory \"$ac_dir\"" >&2;}
-   { (exit 1); exit 1; }; }; }
-
-    ac_builddir=.
-
-if test "$ac_dir" != .; then
-  ac_dir_suffix=/`echo "$ac_dir" | sed 's,^\.[\\/],,'`
-  # A "../" for each directory in $ac_dir_suffix.
-  ac_top_builddir=`echo "$ac_dir_suffix" | sed 's,/[^\\/]*,../,g'`
-else
-  ac_dir_suffix= ac_top_builddir=
-fi
-
-case $srcdir in
-  .)  # No --srcdir option.  We are building in place.
-    ac_srcdir=.
-    if test -z "$ac_top_builddir"; then
-       ac_top_srcdir=.
-    else
-       ac_top_srcdir=`echo $ac_top_builddir | sed 's,/$,,'`
-    fi ;;
-  [\\/]* | ?:[\\/]* )  # Absolute path.
-    ac_srcdir=$srcdir$ac_dir_suffix;
-    ac_top_srcdir=$srcdir ;;
-  *) # Relative path.
-    ac_srcdir=$ac_top_builddir$srcdir$ac_dir_suffix
-    ac_top_srcdir=$ac_top_builddir$srcdir ;;
-esac
-# Don't blindly perform a `cd "$ac_dir"/$ac_foo && pwd` since $ac_foo can be
-# absolute.
-ac_abs_builddir=`cd "$ac_dir" && cd $ac_builddir && pwd`
-ac_abs_top_builddir=`cd "$ac_dir" && cd ${ac_top_builddir}. && pwd`
-ac_abs_srcdir=`cd "$ac_dir" && cd $ac_srcdir && pwd`
-ac_abs_top_srcdir=`cd "$ac_dir" && cd $ac_top_srcdir && pwd`
-
-
-    cd $ac_dir
-
-    # Check for guested configure; otherwise get Cygnus style configure.
-    if test -f $ac_srcdir/configure.gnu; then
-      ac_sub_configure="$SHELL '$ac_srcdir/configure.gnu'"
-    elif test -f $ac_srcdir/configure; then
-      ac_sub_configure="$SHELL '$ac_srcdir/configure'"
-    elif test -f $ac_srcdir/configure.in; then
-      ac_sub_configure=$ac_configure
-    else
-      { echo "$as_me:$LINENO: WARNING: no configuration information is in $ac_dir" >&5
-echo "$as_me: WARNING: no configuration information is in $ac_dir" >&2;}
-      ac_sub_configure=
-    fi
-
-    # The recursion is here.
-    if test -n "$ac_sub_configure"; then
-      # Make the cache file name correct relative to the subdirectory.
-      case $cache_file in
-      [\\/]* | ?:[\\/]* ) ac_sub_cache_file=$cache_file ;;
-      *) # Relative path.
-        ac_sub_cache_file=$ac_top_builddir$cache_file ;;
-      esac
-
-      { echo "$as_me:$LINENO: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_srcdir" >&5
-echo "$as_me: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_srcdir" >&6;}
-      # The eval makes quoting arguments work.
-      eval $ac_sub_configure $ac_sub_configure_args \
-           --cache-file=$ac_sub_cache_file --srcdir=$ac_srcdir ||
-        { { echo "$as_me:$LINENO: error: $ac_sub_configure failed for $ac_dir" >&5
-echo "$as_me: error: $ac_sub_configure failed for $ac_dir" >&2;}
-   { (exit 1); exit 1; }; }
-    fi
-
-    cd $ac_popdir
-  done
-fi
+for subdir in ${subdirs}
+do
+    (cd $subdir; eval $SHELL configure ${ac_configure_args} --with-xotcl=${here})
+done
 

@@ -3,7 +3,7 @@ dnl	This file is an input file used by the GNU "autoconf" program to
 dnl	generate the file "configure", which is run during Tcl installation
 dnl	to configure the system for the local environment.
 #
-# RCS: @(#) $Id: configure.in,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# RCS: @(#) $Id: configure.in,v 1.2 2004/07/18 09:49:03 neumann Exp $
 
 #-----------------------------------------------------------------------
 # Sample configure.in for Tcl Extensions.  The only places you should
@@ -32,6 +32,16 @@ AC_INIT([xotclgdbm], [1.2])
 TEA_INIT([3.0])
 
 AC_CONFIG_AUX_DIR(../../../config)
+
+#--------------------------------------------------------------------
+# specify some extra flags
+#--------------------------------------------------------------------
+
+AC_ARG_WITH(xotcl,
+        [  --with-xotcl=DIR_CONTAINING_XOTCLCONFIG_SH
+            absolute path to xotclConfig.sh, 
+           --without-xotcl disables, but this is pointless],
+        [with_xotcl=$withval], [AC_MSG_ERROR([--with-xotcl is required])])
 
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file
@@ -108,14 +118,16 @@ fi
 #echo "Gdbm include spec = '${GDBM_INC_SPEC}'"
 #echo "Gdbm lib spec = '${GDBM_LIB_SPEC}'"
 
-# ------- load xotclConfig.sh ----------
-SC_PATH_XOTCLCONFIG
-SC_LOAD_XOTCLCONFIG
-# ------- 
+#--------------------------------------------------------------------
+# Load the xotclConfig.sh file
+#--------------------------------------------------------------------
+
+AC_MSG_NOTICE([Reading file ${with_xotcl}/xotclConfig.sh])
+source ${with_xotcl}/xotclConfig.sh
 
 TEA_ADD_SOURCES([xotclgdbm.c])
 TEA_ADD_HEADERS([])
-TEA_ADD_INCLUDES([-I$XOTCL_SRC_DIR/generic $GDBM_INC_SPEC])
+TEA_ADD_INCLUDES([${XOTCL_BUILD_INCLUDE_SPEC} $GDBM_INC_SPEC])
 TEA_ADD_LIBS([$XOTCL_BUILD_STUB_LIB_SPEC $GDBM_LIB_SPEC -lgdbm])
 TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([])
@@ -226,4 +238,6 @@ TEA_PROG_TCLSH
 # which require substituting th AC variables in.  Include these here.
 #--------------------------------------------------------------------
 
-AC_OUTPUT([Makefile])
+AC_CONFIG_FILES([Makefile])
+
+AC_OUTPUT
