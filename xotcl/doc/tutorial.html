@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<!-- $Id: tutorial.html,v 1.8 2004/10/30 20:19:55 neumann Exp $ -->
+<!-- $Id: tutorial.html,v 1.9 2005/01/14 23:45:22 neumann Exp $ -->
 <HTML>
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
@@ -1801,7 +1801,7 @@ useful. Before a non-positional argument can be used, it must be
 defined in the method definition using the following syntax:
 </P>
 <pre CLASS="code">
- <em>className</em> <tt>instproc</tt> methodName <em>?non-pos-args?</em> args body ?assertions
+ <em>className</em> <tt>instproc</tt> methodName <em>?non-pos-args? args</em> body ?assertions
  <em>objName</em> <tt>proc</tt> methodName <em>?non-pos-args?</em> args body ?assertions
 </pre>
 <P>
@@ -1821,7 +1821,7 @@ a name and a default value (b):
 </p>
 <pre CLASS="code">
  <tt>Object</tt> o
- o <tt>proc</tt> y {-a {-b {1 2 3}}} {x y} {
+ o <tt>proc</tt> y {-a {-b {1 2 3}} x y} {
      puts "$a $b $x $y"
  }
 </pre><P>
@@ -1839,10 +1839,10 @@ value "1 2 3":
 <pre CLASS="code">
  o y -a 1 3 4
 </pre><P>
-
 The ordinary arguments start after the last non-positional argument
 (here: "3 4").  We can explicitly end the non-positional arguments by
-using "--". This is useful if we want to provide arguments that contain dashes ("-"), e.g.:
+using "--". This is useful if we want to provide arguments that contain 
+dashes ("-"), e.g.:
 </p>
 <pre CLASS="code">
  o y -a 1 -- -b -c
@@ -1858,7 +1858,7 @@ non-positional argument is of boolean type. For instance:
 </p>
 <pre CLASS="code">
 <tt>Class</tt> P
- P <tt>instproc</tt> y {-a:required {-b:boolean {true}}} {} {
+ P <tt>instproc</tt> y {-a:required {-b:boolean true}} {
      puts "$a $b"
  }
  P p
@@ -1877,11 +1877,11 @@ Tcl boolean type:
 <pre CLASS="code">
  p y -b " a b v"
 </pre><P>
-
 The checkoptions are extensible. In fact, they are defined in an
-object "xotcl::nonPosArgs". We can extend this object with new
-methods and we can provide other checkobjects. A check option method
-has the following syntax:
+object "::xotcl::nonposArgs". We can extend this object with new
+methods.
+<!-- and we can provide other checkobjects. -->
+A check option method has the following syntax:
 </P>
 <pre CLASS="code">
  <em>object|class</em> <tt>proc|instproc</tt> methodName {?optional arguments argName args} {
@@ -1905,7 +1905,7 @@ checkoption "checkobj" we can switch the object that is used for
 checking the options. This can be done at any place in the checkoption
 list. The following example defines new checkoptions in a separate
 object and switches to this object for checking. Then the check is
-switched back to "xotcl::nonPosArgs" to invoke the predefined option
+switched back to "xotcl::nonposArgs" to invoke the predefined option
 "required":
 
 </P>
@@ -1917,7 +1917,7 @@ colorchecker proc color {a b c argName args} {
 colorchecker proc reddish {argName args} {
     puts "reddish"
 }
-o proc color {{{-color:checkobj colorchecker,color must be red,reddish,checkobj xotcl::nonPosArgs, required} red}} {} {
+o proc color {{{-color:checkobj colorchecker,color must be red,reddish,checkobj xotcl::nonposArgs, required} red}} {} {
     puts "$b $arg"
 }
 </pre></p>

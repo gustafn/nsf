@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.35 2005/01/07 02:40:59 neumann Exp $
+/* $Id: xotcl.c,v 1.36 2005/01/14 23:45:22 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -10049,7 +10049,7 @@ XOTclCheckBooleanArgs(ClientData cd, Tcl_Interp *in, int objc,
     return TCL_OK;
   } else if (objc != 3) {
     return XOTclObjErrArgCnt(in, NULL, 
-			     "::xotcl::nonpositionalArgs boolean name ?value?");
+			     "::xotcl::nonposArgs boolean name ?value?");
   }
 
   boolean = Tcl_DuplicateObj(objv[2]);
@@ -10072,7 +10072,7 @@ XOTclCheckRequiredArgs(ClientData cd, Tcl_Interp *in, int objc,
 		       Tcl_Obj *CONST objv[]) {
   if (objc != 2 && objc != 3)
     return XOTclObjErrArgCnt(in, NULL, 
-			     "::xotcl::nonpositionalArgs required <args> ?currentValue?");
+			     "::xotcl::nonposArgs required <args> ?currentValue?");
 
   if (objc != 3)
     return XOTclVarErrMsg(in, 
