@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.26 2004/10/13 10:35:43 neumann Exp $
+/* $Id: xotcl.c,v 1.27 2004/10/30 20:19:55 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -1097,15 +1097,7 @@ XOTclRequireClassOpt(XOTclClass *cl) {
   return cl->opt;
 }
 
-#define freeObjectOpt(obj) \
-  if (obj->opt) {\
-    FREE(XOTclObjectOpt,obj->opt); \
-    obj->opt = 0; }
 
-#define freeClassOpt(cl) \
-  if (cl->opt) { \
-    FREE(XOTclClassOpt, cl->opt); \
-    cl->opt = 0; }
 
 
 static Tcl_Namespace*
@@ -1229,7 +1221,7 @@ NSDeleteCmd(Tcl_Interp *in, Tcl_Namespace* ns, char *name) {
   if ((token = FindMethod(name, ns))) {
     return Tcl_DeleteCommandFromToken(in, token);
   }
-  return 0;
+  return -1;
 }
 
 static void
@@ -5701,7 +5693,9 @@ CleanupDestroyObject(Tcl_Interp *in, XOTclObject *obj) {
 
     CmdListRemoveList(&opt->mixins, GuardDel);
     CmdListRemoveList(&opt->filters, GuardDel);
-    freeObjectOpt(obj);
+
+    FREE(XOTclObjectOpt,opt);
+    opt = obj->opt = 0;
   }
 
   if (obj->nonPosArgsTable) {
@@ -5962,7 +5956,8 @@ CleanupDestroyClass(Tcl_Interp *in, XOTclClass *cl) {
     if (opt->parameterClass) {
       DECR_REF_COUNT(opt->parameterClass);
     }
-    freeClassOpt(cl);
+    FREE(XOTclClassOpt, opt);
+    opt = cl->opt = 0;
   }
 
   /*
@@ -6871,11 +6866,16 @@ XOTclOProcMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]
     if (obj->nsPtr)
       NSDeleteCmd(in, obj->nsPtr, name);
   } else {
-    opt = XOTclRequireObjectOpt(obj);
-    if (!opt->assertions)
-      opt->assertions = AssertionCreateStore();
+    XOTclAssertionStore* aStore = NULL;
+    if (objc > 5) {
+      opt = XOTclRequireObjectOpt(obj);
+      if (!opt->assertions)
+	opt->assertions = AssertionCreateStore();
+      aStore = opt->assertions;
+    }
     requireObjNamespace(in, obj);
-    result = MakeProc(obj->nsPtr, opt->assertions, obj->nonPosArgsTable,  in, objc, (Tcl_Obj **) objv, obj);
+    result = MakeProc(obj->nsPtr, aStore, obj->nonPosArgsTable,  
+		      in, objc, (Tcl_Obj **) objv, obj);
   }
 
   /* could be a filter => recompute filter order */
@@ -9382,15 +9382,23 @@ XOTclCInstProcMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
 			  "sub-class", (char*) NULL);
 
   if (*argStr == 0 && *bdyStr == 0) {
+    int rc;
     opt = cl->opt;
     if (opt && opt->assertions)
       AssertionRemoveProc(opt->assertions, name);
-    NSDeleteCmd(in, cl->nsPtr, name);
+    rc = NSDeleteCmd(in, cl->nsPtr, name);
+    if (rc < 0) 
+      return XOTclVarErrMsg(in, className(cl), " cannot delete instproc: '", name, 
+			    "' of class ", className(cl), (char*) NULL);
   } else {
-    opt = XOTclRequireClassOpt(cl);
-    if (!opt->assertions)
-      opt->assertions = AssertionCreateStore();
-    result = MakeProc(cl->nsPtr, opt->assertions, cl->nonPosArgsTable, in, objc, (Tcl_Obj **) objv, &cl->object);
+    XOTclAssertionStore* aStore = NULL;
+    if (objc > 5) {
+      opt = XOTclRequireClassOpt(cl);
+      if (!opt->assertions)
+	opt->assertions = AssertionCreateStore();
+      aStore = opt->assertions;
+    }
+    result = MakeProc(cl->nsPtr, aStore, cl->nonPosArgsTable, in, objc, (Tcl_Obj **) objv, &cl->object);
   }
 
   /* could be a filter or filter inheritance ... update filter orders */

@@ -1,4 +1,4 @@
-# $Id: xodoc.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: xodoc.xotcl,v 1.2 2004/10/30 20:19:55 neumann Exp $
 package provide xotcl::xodoc 0.84
 package require xotcl::staticMetadataAnalyzer
 package require xotcl::htmllib
@@ -357,7 +357,8 @@ XODoc instproc replaceFormatTags {fc} {
 }
 XODoc instproc printHTML {name} {
   HtmlBuilder htmlDoc
-  htmlDoc startDocument -title "XOTcl - Documentation -- $name" -bgcolor FFFFFF
+  htmlDoc startDocument -title "XOTcl - Documentation -- $name" \
+      -bgcolor FFFFFF -stylesheet xotcl-doc.css
   htmlDoc addStringIncr "<h1>"
   htmlDoc addImage -src "./logo-100.jpg" -alt "$name" -align MIDDLE 
   htmlDoc addStringDecr "$name</h1>"

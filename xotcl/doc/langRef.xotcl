@@ -1,5 +1,5 @@
-# $Id: langRef.xotcl,v 1.5 2004/10/13 10:35:43 neumann Exp $
-package provide XOTcl-langRef 1.3
+# $Id: langRef.xotcl,v 1.6 2004/10/30 20:19:55 neumann Exp $
+package provide XOTcl-langRef 1.3.3
 package require Tcl
 
 @ @File {
@@ -51,7 +51,6 @@ package require Tcl
         call, whatsever is higher in the stack. The level is returned in a form
         it can be used as first argument in <@TT>uplevel</@TT> or <@TT>upvar</@TT>.
 
-
     <@/UL>
     <@/p><@p>
     <@tt>my someMethod<@/tt> is a short form for <@tt>[self] someMethod</@tt> and can only be 
@@ -63,7 +62,7 @@ package require Tcl
     <@/p>
 
   }
-  date { $Date: 2004/10/13 10:35:43 $ }
+  date { $Date: 2004/10/30 20:19:55 $ }
 }
 
 ##
@@ -125,12 +124,12 @@ package require Tcl
       autoname creates an automatically assigned name. It is 
       constructed from the base name plus an index, that is 
       incremented for each usage. E.g.: 
-        <@pre>$obj autoname a</@pre>
+      <@pre class='code'>    $obj autoname a</@pre>
       produces a0, a1, a2, ...
       Autonames may have format strings 
       as in the Tcl 'format' command.  
       E.g.: 
-      <@pre>$obj autoname a%06d</@pre>
+      <@pre class='code'>    $obj autoname a%06d</@pre>
       produces a000000, a000001, a000002, ...
     }
     return "newly constructed autoname value"
@@ -144,11 +143,10 @@ package require Tcl
       of assertions, that should be checked on the object automatically. 
       Per default assertion checking is turned 
       off. Examples:  
-      <@pre>
-      o check {}; # turn off assertion checking on object o  
-      o check all; # turn on all assertion checks on object o 
-      o check {pre post}; # only check pre/post assertions 
-      </@pre>
+    <@pre class='code'>
+    o check {};         <@it># turn off assertion checking on object o</@it>  
+    o check all;        <@it># turn on all assertion checks on object o</@it>   
+    o check {pre post}; <@it># only check pre/post assertions</@it></@pre>
       <@a href="#Object-info">info check</@a> introspects check options.
     }
     return "empty string"
@@ -182,11 +180,11 @@ package require Tcl
     second char) as a method. Every list element until the next '-'
     is interpreted as a method argument. configure is called 
     before the constructor during initialization and recreation.
-    E.g.\
-        <@pre>Object o -set x 4</@pre>
-      here:
-        <@pre>o configure -set x 4</@pre>
-      is executed.
+    E.g.
+    <@pre class='code'>    Object o -set x 4</@pre>
+    here:
+    <@pre class='code'>    o configure -set x 4</@pre>
+    is executed.
 
   }
   return "number of the skipped first arguments"
@@ -210,11 +208,10 @@ package require Tcl
       Standard destructor.  
       Can be overloaded for customized destruction process. Actual destruction
       is done by instdestroy. "destroy" in principal does:
-      <@pre>
-      Object instproc destroy args {
-        [my info class] instdestroy [self]
-      }
-      </@pre>
+    <@pre class='code'>
+    Object instproc destroy args {
+      [my info class] instdestroy [self]
+    }</@pre>
     }
     return "empty string"
 }
@@ -319,9 +316,9 @@ package require Tcl
       <ul><li><tt>-objscope</tt> causes the target to be evaluated in the scope 
               of the object,</li>
           <li><tt>-methodprefix string</tt> inserts the specified prefix
-              in front of the second argument of the invocation,<li>
+              in front of the second argument of the invocation,</li>
           <li><tt>-default</tt> is used for default method names (only 
-              in connection with %1)
+              in connection with %1)</li>
       </ul>
       See tutorial for detailed examples.
     }
@@ -361,7 +358,7 @@ package require Tcl
 } {
     Description {
       Introspection of objects. The following options can be specified:
-      <@ul>
+      <@l>
       <@li><@TT>objName info args method</@TT>: 
       Returns the arguments of the specified proc (object specific method).
 
@@ -452,12 +449,11 @@ package require Tcl
     Description {
       Binds an variable of the object to the current method's scope.
       Example:  
-      <@pre>
-      kitchen proc enter {name} {
-        my instvar persons
-        set persons($name) [clock seconds]
-      }
-      </@pre>
+      <@pre class='code'>
+    kitchen proc enter {name} {
+      my instvar persons
+      set persons($name) [clock seconds]
+    }</@pre>
       Now persons can be accessed as a local variable of the method.<@br> 
       
       A special syntax is: <@tt> {varName aliasName} </@tt>. 
@@ -574,11 +570,12 @@ package require Tcl
   description {
     Add a getter/setter for an instance variable with the 
     specified name as a command for the obj.  
-    Example: <@br>
-    <@tt>Object o</@tt><@br>
-    <@tt>o parametercmd x</@tt><@br>
-    <@tt>o x 100</@tt><@br>
-    <@tt>puts [o x]</@tt><@br>
+    Example:
+    <@pre class='code'>
+    Object o
+    o parametercmd x
+    o x 100
+    puts [o x]</@pre>
   }
   return "empty string"
 }
@@ -588,10 +585,11 @@ package require Tcl
   description {
     flag that constructor (method <@tt>init</tt>) should
     not be called. 
-    Example: <@br>
-    <@tt>Class C</@tt><@br>
-    <@tt>C instproc init {} {puts hu}</@tt><@br>
-    <@tt>C c1 -noinit</@tt><@br>
+    Example:
+    <@pre class='code'>
+    Class C
+    C instproc init {} {puts hu}
+    C c1 -noinit</@pre>
     The object <@tt>c1</@tt> will be created without calling 
     the constructor. This can be used to draw a snapshot of
     an existing object (using the serializer) and to recreate
@@ -611,12 +609,15 @@ package require Tcl
 } {
     Description {
       Specify a method in the same style as Tcl specifies procs.
- 
-      Optionally assertions may be given. The number of args is either 
-      3 or 5.
+      <@br>
+      Optionally assertions may be specified by two additional arguments.
       Therefore, to specify only post-assertions an empty pre-assertion 
       list must be given. All assertions are a list 
       of ordinary Tcl conditions.
+      <@br>
+      When instproc is called with an empty argument list and an empty
+      body, the specified instproc is deleted.
+
     }
     return "empty string"
 }
@@ -629,7 +630,7 @@ package require Tcl
       qualified name of the method as a list in
       proc qualifier format:
 	    'objName|classname proc|instproc methodName'. E.g.,  
-      <@pre> o procsearch set </@pre>
+    <@pre class='code'>    o procsearch set </@pre>
       returns <@pre>::xotcl::Object instproc set</@pre>.
     }
     return "fully qualified name of the searched method or empty string if not found"
@@ -695,8 +696,8 @@ package require Tcl
 } {
     Description {
       When this method is used without the optional level, it is a short form
-      of the Tcl command <br>
-      <@TT>upevel [self callinglevel] command ?args?<@/TT>.
+      of the Tcl command
+    <@pre class='code'>    upevel [self callinglevel] command ?args?<@/pre>
       When it is called with the level, it is compatible with the original tcl command.
     }
     return "result of the command"
@@ -708,8 +709,8 @@ package require Tcl
 } {
     Description {
       When this method is used without the optional level, it is a short form
-      of the Tcl command <br>
-      <@TT>upvar [self callinglevel] othervar localvar ?...?<@/TT>.
+      of the Tcl command 
+      <@pre class='code'>    upvar [self callinglevel] othervar localvar ?...?<@/pre>.
       When it is called with the level, it is compatible with the original tcl command.
     }
     return "result of the command"
@@ -791,14 +792,18 @@ package require Tcl
     mechanism when a class (meta-class) is called with an unknown
     method. E.g. the following two commands are equivalent 
 
-    <@pre> Car herby -color red 
-           Car create herby -color red <@/pre>
+    <@pre class='code'>
+    Car herby -color red 
+    Car create herby -color red <@/pre>
 
     When a users may want to call the constructor <@tt>init</@tt> 
     before other '-' methods, one can specify '-init' 
     explicitly in the left to
     right order of the '-' method. Init is called always only once.
-    e.g.: <@pre> Class Car -init -superclass Vehicle <@/pre>
+    e.g.: 
+
+    <@pre class='code'>   Class Car -init -superclass Vehicle <@/pre>
+
   }
   return "name of the created instance (result of alloc)"
 }
@@ -1014,10 +1019,11 @@ package require Tcl
     specified name. This method is used for example by the 
     <@A href="#Class-parameter">parameter</@A> method.
     Example: <@br>
-    <@tt>Class C</@tt><@br>
-    <@tt>C instparametercmd x</@tt><@br>
-    <@tt>C c1 -x 100</@tt><@br>
-    <@tt>puts [c1 x]</@tt><@br>
+    <@pre class='code'>
+    Class C
+    C instparametercmd x
+    C c1 -x 100</@tt>
+    puts [c1 x]</@pre>
   }
   return "empty string"
 }
@@ -1032,11 +1038,14 @@ package require Tcl
 } {
     Description {
       Specify an instance method in the same style as Tcl specifies procs.
- 
-      Optionally assertions may be given. The number of args is either 3 or 5.
+      <@br>
+      Optionally assertions may be given by two additional arguments.
       Therefore, to specify only post-assertions an empty pre-assertion list
       must be given. All assertions are a list 
       of ordinary Tcl conditions.
+      <@br>
+      When instproc is called with an empty argument list and an empty
+      body, the specified instproc is deleted.
     }
     return "empty string"
 }
@@ -1047,7 +1056,8 @@ package require Tcl
 } {
   description {
     Convenience method to create an autonamed object. E.g.:
-      <@pre> Http new </@pre>
+    <@pre class='code'>
+    Http new </@pre>
     creates ::xotcl::__#0, a subsequent call creates ::xotcl::__#1, ...<@br>
     If <@tt>-childof obj</@tt> is specified, the new object is
     created as a child of the specified object. 
@@ -1073,12 +1083,11 @@ package require Tcl
     parameter. It gets and returns the parameter, if no 
     argument is specified. With one argument, the parameter is set 
     to the argument value. 
-
+    <@br>
     Example:
-    <@pre>
+    <@pre class='code'>
     Class Car -parameter {{doors 4} color}
-    Car herby -doors 2 -color green
-    <@/pre>
+    Car herby -doors 2 -color green <@/pre>
   }
   return "empty string"
 }
@@ -1089,26 +1098,20 @@ package require Tcl
     Set the parameter class. 
     The parameter class specifies how parameters are stored and 
     maintained internally. Per default, a method "default" is called, 
-    to set the parameter with a default value.
-
-    I.e., 
-    <@pre>
+    to set the parameter with a default value. I.e., 
+    <@pre class='code'>
     Class Car -parameter {
       {doors 4}
-    }
-    <@/pre>
+    }<@/pre>
 
     is a short form for 
-    <@pre>
+    <@pre class='code'>
     Class Car -parameter {
       {doors -default 4}
-    }
-    <@/pre>
+    }<@/pre>
 
     For specialized parameter classes other methods can be called, e.g.<@br>
-    <@pre> 
-    {doors -default 3 -updateWidget car}
-    <@/pre>
+    <@pre class='code'>   {doors -default 3 -updateWidget car}<@/pre>
   }
   return "empty string"
 }
@@ -1147,8 +1150,8 @@ package require Tcl
     "unknown" (which is found on the Class Object) and executes it. 
     The standard unknown-mechanism of XOTcl calls create with all 
     arguments stepping one step to the right; in the general case:
-
-    <@pre>ClassName create ClassName ?args?<@/pre>
+    <@pre class='code'>
+    ClassName create ClassName ?args?<@/pre>
 
     Unknown can be overloaded in user-defined subclasses of class.
   }
@@ -1161,8 +1164,8 @@ package require Tcl
   description {
     This method is used to specify that the object
     should be deleted automatically, when the current
-    tcl-proc/object-proc/instproc is left. Example
-    <@tt>set x [Object new -volatile]</@tt>
+    tcl-proc/object-proc/instproc is left. Example:
+    <@pre class='code'>    set x [Object new -volatile]</@pre>
   }
   return "empty string"
 }

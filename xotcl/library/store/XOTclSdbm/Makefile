@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.19 2004/10/09 22:34:36 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.20 2004/10/30 20:19:55 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -150,7 +150,7 @@ DEFS		= -DPACKAGE_NAME=\"xotclsdbm\" -DPACKAGE_TARNAME=\"xotclsdbm\" -DPACKAGE_V
 CONFIG_CLEAN_FILES = Makefile
 
 CPPFLAGS	= 
-LIBS		=  -L/home/neumann/xotcl-1.3.1 -lxotclstub1.3.1 
+LIBS		=  -L/home/neumann/xotcl-1.3.3 -lxotclstub1.3.3 
 AR		= ar
 CFLAGS		=  ${CFLAGS_DEFAULT} ${CFLAGS_WARNING} ${SHLIB_CFLAGS}
 COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)

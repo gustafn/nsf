@@ -1,3 +1,12 @@
+2004-10-30 Gustaf.Neumann@wu-wien.ac.at
+        * added error message when someone tries to delete a
+          non-existing proc/instproc
+        * using less memory for objects and classes with procs/instprocs,
+          when they do not use assertions (saving 14%)
+        * prettified langref with css
+        * documented deletions of object procs and instproc through
+          proc/instproc with empty args and empty body
+
 2004-10-13 Gustaf.Neumann@wu-wien.ac.at
         * make namespace handling code more orthogonal
         * using resolver for exists method (might be used in future for
