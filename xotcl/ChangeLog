@@ -1,4 +1,8 @@
 2004-07-27 Gustaf.Neumann@wu-wien.ac.at
+        * yet another fixed access to freed memory 
+          (thanks to Zoran for his help with Purify )
+
+2004-07-26 Gustaf.Neumann@wu-wien.ac.at
         * fixed bug in filters in connection with instmixin; 
           inactive tcl callstack frame was dereferenced. This fixed as well 
           a potential uplevel bug

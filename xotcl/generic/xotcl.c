@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.14 2004/07/27 09:35:18 neumann Exp $
+/* $Id: xotcl.c,v 1.15 2004/07/27 21:39:46 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -388,6 +388,7 @@ XOTclCleanupObject(XOTclObject *obj) {
 #if !defined(NDEBUG)
     memset(obj, 0, sizeof(XOTclObject));
 #endif
+    /*fprintf(stderr,"CKFREE obj %p\n",obj);*/
     ckfree((char *) obj);
   }
 }
@@ -3767,6 +3768,8 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
   assert(obj);
 
   RUNTIME_STATE(in)->callIsDestroy = 0;
+  /*fprintf(stderr,"callProcCheck: setting callIsDestroy = 0, m=%s obj=%p\n",
+    methodName, obj);*/
 
   /*
   fprintf(stderr,"*** callProcCheck: cmd = %p\n",cmd);
@@ -4002,9 +4005,11 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
   Tcl_Obj *cmdName = obj->cmdName;
   XOTclRuntimeState *rst = RUNTIME_STATE(in);
   XOTclCallStack *cs = &rst->cs;
+  int isdestroy = (objv[1] == XOTclGlobalObjects[DESTROY]);
 #ifdef AUTOVARS
   int isNext;
 #endif
+
 
   assert(objc>0);
   methodName = callMethod = ObjStr(objv[1]);
@@ -4149,14 +4154,17 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
     fprintf(stderr,"obj %p mixinStackPushed %d mixinStack %p\n",
 	    obj, mixinStackPushed, obj->mixinStack);
 #endif
-    /*
-    fprintf(stderr, "obj freed? %p destroy %p self %p %s %d %d\n",obj,
+
+    /*    
+    if (!isdestroy && !rst->callIsDestroy )
+    fprintf(stderr, "obj freed? %p destroy %p self %p %s %d %d (%d)\n",obj,
 	    cs->top->destroyedCmd, cs->top->self, ObjStr(objv[1]),
 	    rst->callIsDestroy,
-	    (obj->flags & XOTCL_DESTROY_CALLED)!=0
+	    (obj->flags & XOTCL_DESTROY_CALLED)!=0,isdestroy
 	    );
     */
-    if (obj && !rst->callIsDestroy &&
+
+    if (!isdestroy && !rst->callIsDestroy && 
 	!(obj->flags & XOTCL_DESTROY_CALLED)) {
       if (mixinStackPushed && obj->mixinStack)
 	MixinStackPop(obj);
@@ -4226,7 +4234,7 @@ NonPosArgsDeleteHashEntry(Tcl_HashEntry* hPtr) {
     DECR_REF_COUNT(nonPosArg->nonPosArgs);
     DECR_REF_COUNT(nonPosArg->ordinaryArgs);
     MEM_COUNT_FREE("nonPosArg",nonPosArg);
-    ckfree ((char*) nonPosArg);
+    ckfree((char*) nonPosArg);
     Tcl_DeleteHashEntry(hPtr);
   }
 }
@@ -4391,7 +4399,7 @@ MakeProc(Tcl_Namespace* ns, XOTclAssertionStore* aStore,
     hPtr = Tcl_CreateHashEntry(nonPosArgsTable, ObjStr(ov[1]), &nw);
     if (nw) {
       MEM_COUNT_ALLOC("nonPosArg",nonPosArg);
-      nonPosArg = (XOTclNonPosArgs*) ckalloc(sizeof(XOTclNonPosArgs));
+      nonPosArg = (XOTclNonPosArgs*)ckalloc(sizeof(XOTclNonPosArgs));
       nonPosArg->nonPosArgs = nonPosArgsObj;
       nonPosArg->ordinaryArgs = objv[3];
       INCR_REF_COUNT(objv[3]);
@@ -5722,6 +5730,7 @@ PrimitiveOCreate(Tcl_Interp *in, char *name, XOTclClass *cl) {
   unsigned length;
   char *fn;
 
+  /*fprintf(stderr, "CKALLOC Object %p %s\n", obj, name);*/
 #if defined(XOTCLOBJ_TRACE)
   fprintf(stderr, "CKALLOC Object %p %s\n", obj, name);
 #endif
@@ -5982,6 +5991,8 @@ PrimitiveCCreate(Tcl_Interp *in, char *name, XOTclClass *class) {
   char *fn;
   unsigned length;
   XOTclObject *obj = (XOTclObject*)cl;
+
+  /*fprintf(stderr, "CKALLOC Class %p %s\n", cl, name);*/
 
   memset(cl, 0, sizeof(XOTclClass));
   MEM_COUNT_ALLOC("XOTclObject/XOTclClass",cl);
@@ -8122,7 +8133,7 @@ XOTclCInstDestroyMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST 
    */
   delobj->flags |= XOTCL_DESTROY_CALLED;
   RUNTIME_STATE(in)->callIsDestroy = 1;
-
+  /*fprintf(stderr,"instDestroy: setting callIsDestroy = 1\n");*/
   if (RUNTIME_STATE(in)->exitHandlerDestroyRound !=
       XOTCL_EXITHANDLER_ON_SOFT_DESTROY) {
     CallStackDestroyObject(in, delobj);

@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.13 2004/07/27 09:35:18 neumann Exp $
+#$Id: testx.xotcl,v 1.14 2004/07/27 21:39:46 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -3488,6 +3488,69 @@ TestX proc run {} {
   puts [uplevelCmds run]
   puts [nonposargs run]
 }
+
+TestX copymove2
+copymove2 proc run {{n 10}} {
+  # Composite
+  Class Composite -superclass Class
+  Composite instproc addop {op} {
+    my instvar ops
+    set ops($op) $op
+  }
+  Composite instproc compositeFilter args {
+    set m [self calledproc]
+    set c [lindex [self filterreg] 0]
+    set r [next]
+
+    if {[$c exists ops($m)]} {
+      foreach child [my info children] {
+	eval [self]::$child $m $args
+      }
+    }
+    return $r
+  } 
+  
+  Composite AbstractNode
+  AbstractNode abstract instproc iterate v
+  AbstractNode addop iterate
+  for {set i 0} {$i < $n} {incr i} {
+    #
+    # class copy
+    #
+    foreach filters {{} compositeFilter} {
+      Composite instfilter $filters
+      AbstractNode instfilter $filters
+      Object commands
+      Class Commands -superclass AbstractNode
+      Class Command -superclass Commands
+      Command instproc init args {
+	my instvar label
+	set label [self]
+	next
+      }
+      Command instproc setlabel {{arg ""}} {
+	my instvar label
+	if {$arg == ""} {
+	  set label
+	} else {
+	  set label $arg
+	}
+      }
+      Command instproc setproc {value} {
+	my instvar src 
+	set src $value
+      }
+      # prototypes
+      Command commands::cellcmd
+      commands::cellcmd copy toto
+    }
+  }
+  return "PASSED [self]"
+}
+
+
+puts [copymove2 run]
+#exit
 
 puts "XOTcl - Test"
 puts "Time used: [time {TestX run} 1]"
