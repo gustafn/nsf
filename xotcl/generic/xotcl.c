@@ -1,8 +1,8 @@
-/* $Id: xotcl.c,v 1.11 2004/07/03 21:19:39 neumann Exp $
+/* $Id: xotcl.c,v 1.12 2004/07/20 12:57:59 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
- *  Copyright (C) 1999-2004 Gustaf Neumann (a), Uwe Zdun (b)
+ *  Copyright (C) 1999-2004 Gustaf Neumann (a), Uwe Zdun (a,b)
  *
  * (a) Vienna University of Economics and Business Administration
  *     Dept. of Information Systems / New Media
@@ -11,7 +11,8 @@
  *
  * (b) University of Essen
  *     Specification of Software Systems
- *     Altendorferstraße 97-101 *     D-45143 Essen, Germany
+ *     Altendorferstraße 97-101 
+ *     D-45143 Essen, Germany
  *
  *  Permission to use, copy, modify, distribute, and sell this
  *  software and its documentation for any purpose is hereby granted
@@ -687,7 +688,6 @@ GetCallerVarFrame(Tcl_Interp *in, Tcl_CallFrame *varFramePtr) {
   return nsPtr;
 }
 */
-
 
 static Tcl_Obj*
 NameInNamespaceObj(Tcl_Interp *in, char *name, Tcl_Namespace *ns) {
@@ -4173,61 +4173,235 @@ XOTclObjDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
 }
 
 /*
+ * Non Positional Args
+ */
+
+static void
+NonPosArgsDeleteHashEntry(Tcl_HashEntry* hPtr) {
+  XOTclNonPosArgs* nonPosArg = (XOTclNonPosArgs*) Tcl_GetHashValue(hPtr);
+  if (nonPosArg) {
+    DECR_REF_COUNT(nonPosArg->nonPosArgs);
+    DECR_REF_COUNT(nonPosArg->ordinaryArgs);
+    MEM_COUNT_FREE("nonPosArg",nonPosArg);
+    ckfree ((char*) nonPosArg);
+    Tcl_DeleteHashEntry(hPtr);
+  }
+}
+
+static Tcl_HashTable*
+NonPosArgsCreateTable() {
+  Tcl_HashTable* nonPosArgsTable = 
+    (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
+  MEM_COUNT_ALLOC("Tcl_HashTable",nonPosArgsTable);
+  Tcl_InitHashTable(nonPosArgsTable, TCL_STRING_KEYS);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable",nonPosArgsTable);
+  return nonPosArgsTable;
+}
+
+static void
+NonPosArgsFreeTable(Tcl_HashTable* nonPosArgsTable) {
+  Tcl_HashSearch hSrch;
+  Tcl_HashEntry* hPtr = nonPosArgsTable ?
+    Tcl_FirstHashEntry(nonPosArgsTable, &hSrch) : 0;
+  for (; hPtr != 0; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    NonPosArgsDeleteHashEntry(hPtr);
+  }
+}
+
+static XOTclNonPosArgs* 
+NonPosArgsGet(Tcl_HashTable* nonPosArgsTable, char* methodName) {
+  Tcl_HashEntry* hPtr = nonPosArgsTable ? Tcl_FindHashEntry(nonPosArgsTable, 
+							    methodName) : 0;
+  if (hPtr) {
+    return (XOTclNonPosArgs*) Tcl_GetHashValue(hPtr);
+  }
+  return NULL;
+}
+
+static Tcl_Obj* 
+NonPosArgsFormat(Tcl_Interp *in, Tcl_Obj* nonPosArgsData) {
+  int r1, npalistc, npac, checkc, i, j, first;
+  Tcl_Obj **npalistv, **npav, **checkv, 
+    *list = Tcl_NewListObj(0, NULL), *innerlist,
+    *nameStringObj;
+  
+  r1 = Tcl_ListObjGetElements(in, nonPosArgsData, &npalistc, &npalistv);
+  if (r1 == TCL_OK) {
+    for (i=0; i < npalistc; i++) {
+      r1 = Tcl_ListObjGetElements(in, npalistv[i], &npac, &npav);
+      if (r1 == TCL_OK) {
+	nameStringObj = Tcl_NewStringObj("-", 1);
+	Tcl_AppendStringsToObj(nameStringObj, ObjStr(npav[0]), 
+			       (char *) NULL);
+	if (npac > 1 && *(ObjStr(npav[1])) != '\0') {
+	  first = 1;
+	  r1 = Tcl_ListObjGetElements(in, npav[1], &checkc, &checkv);
+	  if (r1 == TCL_OK) {
+	    for (j=0; j < checkc; j++) {
+	      if (first) {
+		Tcl_AppendToObj(nameStringObj,":",1);
+		first = 0;
+	      } else {
+		Tcl_AppendToObj(nameStringObj,",",1);
+	      }
+	      Tcl_AppendToObj(nameStringObj, ObjStr(checkv[j]), -1);
+	    }
+	  }
+	}
+	innerlist = Tcl_NewListObj(0, NULL);
+	Tcl_ListObjAppendElement(in, innerlist, nameStringObj);
+	if (npac > 2) {
+	  Tcl_ListObjAppendElement(in, innerlist, npav[2]);
+	}
+	Tcl_ListObjAppendElement(in, list, innerlist);
+      }
+    }
+  }
+  return list;
+}
+
+/*
  *  Proc-Creation
  */
 
 static int
-MakeProc(Tcl_Namespace* ns, XOTclAssertionStore* aStore,
+MakeProc(Tcl_Namespace* ns, XOTclAssertionStore* aStore, 
+	 Tcl_HashTable* nonPosArgsTable,
 	 Tcl_Interp *in, int objc, Tcl_Obj *objv[], XOTclObject *obj) {
-    int result, oc = objc;
-    Tcl_CallFrame frame;
-    Tcl_Obj *oldBody;
-    char *body;
+  int result, incr, start;
+  Tcl_CallFrame frame;
+  char *body, * arg;
+  Tcl_Obj *ov[4], *nonPosArgsObj, *npaObj, **nonPosArgsDefv, **npav, *list;
+  int nw = 0, r1, nonPosArgsDefc, length, i, j, l, npac;
+  Tcl_HashEntry* hPtr = NULL;
+  XOTclNonPosArgs* nonPosArg;
+  
+  hPtr = nonPosArgsTable ? Tcl_FindHashEntry(nonPosArgsTable, 
+					     ObjStr(objv[1])) : 0;
+  if (hPtr) NonPosArgsDeleteHashEntry(hPtr);
 
-    oldBody = objv[3];
-    body = ObjStr(oldBody);
+  ov[0] = objv[0];
+  ov[1] = objv[1];
+  if (objc == 5 || objc == 7) {
+    r1 = Tcl_ListObjGetElements(in, objv[2], &nonPosArgsDefc, &nonPosArgsDefv);
+    if (r1 == TCL_OK) {
+      nonPosArgsObj = Tcl_NewListObj(0, NULL);
+      INCR_REF_COUNT(nonPosArgsObj);
+      for (i=0; i < nonPosArgsDefc; i++) {
+	r1 = Tcl_ListObjGetElements(in, nonPosArgsDefv[i], &npac, &npav);
+	if (r1 == TCL_ERROR || npac < 1 || npac > 2) {
+	  DECR_REF_COUNT(nonPosArgsObj);
+	  return XOTclVarErrMsg(in, "wrong # of elements in non-positional args ",
+				"(should be 1 or 2 list elements): ", 
+				ObjStr(objv[2]), (char *)NULL);
+	}
+	npaObj = Tcl_NewListObj(0, NULL);
+	arg = ObjStr(npav[0]);
+	if (arg[0] != '-') {
+	  INCR_REF_COUNT(npaObj);
+	  DECR_REF_COUNT(npaObj);
+	  DECR_REF_COUNT(nonPosArgsObj);
+	  return XOTclVarErrMsg(in, "non-positional args does not start with '-': ", 
+				arg, " in: ", 
+				ObjStr(objv[2]), (char *)NULL);
+	}
+	
+	length = strlen(arg);
+	for (j=0; j<length; j++) {
+	  if (arg[j] == ':') break;
+	}
+	if (arg[j] == ':') {
+	  Tcl_ListObjAppendElement(in, npaObj, Tcl_NewStringObj(arg+1, j-1));
+	  list = Tcl_NewListObj(0, NULL);
+	  start = j+1;
+	  for (l=start; l<length;l++) {
+	    if (arg[l] == ',') {
+	      Tcl_ListObjAppendElement(in, list, Tcl_NewStringObj(arg+start, l - start));
+	      l++;
+	      start = l;
+	    } 
+	  }
+	  /* append last arg */
+	  Tcl_ListObjAppendElement(in, list, Tcl_NewStringObj(arg+start, l - start)); 
+	  /* append the whole thing to the list */
+	  Tcl_ListObjAppendElement(in, npaObj, list);
+     	} else {
+	  Tcl_ListObjAppendElement(in, npaObj, Tcl_NewStringObj(arg+1, length));
+	  Tcl_ListObjAppendElement(in, npaObj, Tcl_NewStringObj("", 0));
+	}
+	if (npac == 2) {
+	  Tcl_ListObjAppendElement(in, npaObj, npav[1]);
+	}      
+       	Tcl_ListObjAppendElement(in, nonPosArgsObj, npaObj);
+      }
+    } else {
+      return XOTclVarErrMsg(in, "cannot break down non-positional args: ", 
+		     ObjStr(objv[2]), (char *)NULL);
+    }
 
-    objv[3] = Tcl_NewStringObj("", 0);
-    INCR_REF_COUNT(objv[3]);
+    ov[2] = XOTclGlobalObjects[ARGS];
+    body = ObjStr(objv[4]);
+    ov[3] = Tcl_NewStringObj("", 0);
+    INCR_REF_COUNT(ov[3]);
+    Tcl_AppendStringsToObj(ov[3], "::xotcl::initProcNS\n", NULL);
 
-    Tcl_AppendStringsToObj(objv[3], "::xotcl::initProcNS\n", NULL);
+    hPtr = Tcl_CreateHashEntry(nonPosArgsTable, ObjStr(ov[1]), &nw);
+    if (nw) {
+      MEM_COUNT_ALLOC("nonPosArg",nonPosArg);
+      nonPosArg = (XOTclNonPosArgs*) ckalloc(sizeof(XOTclNonPosArgs));
+      nonPosArg->nonPosArgs = nonPosArgsObj;
+      nonPosArg->ordinaryArgs = objv[3];
+      INCR_REF_COUNT(objv[3]);
+      Tcl_SetHashValue(hPtr, (ClientData)nonPosArg);
+    }
 
+    Tcl_AppendStringsToObj(ov[3], 
+			   "::xotcl::interpretNonPositionalArgs $args\n",
+			   NULL);
+  } else {
+    ov[2] = objv[2];
+    body = ObjStr(objv[3]);
+    ov[3] = Tcl_NewStringObj("", 0);
+    INCR_REF_COUNT(ov[3]);
+    Tcl_AppendStringsToObj(ov[3], "::xotcl::initProcNS\n", NULL);
+  }
+  
 #ifdef AUTOVARS
-    { char *p;
-      if ((p = strstr(body, "self")) && p != body && *(p-1) != '[')
-	Tcl_AppendStringsToObj(objv[3], "::set self [self]\n", NULL);
-      if (strstr(body, "proc"))
-	Tcl_AppendStringsToObj(objv[3], "::set proc [self proc]\n", NULL);
-      if (strstr(body, "class"))
-	Tcl_AppendStringsToObj(objv[3], "::set class [self class]\n", NULL);
-    }
+  { char *p;
+    if ((p = strstr(body, "self")) && p != body && *(p-1) != '[')
+      Tcl_AppendStringsToObj(ov[3], "::set self [self]\n", NULL);
+    if (strstr(body, "proc"))
+      Tcl_AppendStringsToObj(ov[3], "::set proc [self proc]\n", NULL);
+    if (strstr(body, "class"))
+      Tcl_AppendStringsToObj(ov[3], "::set class [self class]\n", NULL);
+  }
 #endif
-
-    Tcl_AppendStringsToObj(objv[3], body, NULL);
-    Tcl_PushCallFrame(in,&frame,ns,0);
-
-    if (objc > 4) oc = 4;
-    result = Tcl_ProcObjCmd(0, in, oc, objv) != TCL_OK;
+  
+  Tcl_AppendStringsToObj(ov[3], body, NULL);
+  Tcl_PushCallFrame(in,&frame,ns,0);
+  
+  result = Tcl_ProcObjCmd(0, in, 4, ov) != TCL_OK;
 #if defined(NAMESPACEINSTPROCS)
-    {
-      Proc *procPtr = TclFindProc((Interp *)in, ObjStr(objv[1]));
-      Command *cmd = (Command *)obj->id;
-      /*fprintf(stderr,"proc=%p cmd=%p ns='%s' objns=%s\n",procPtr,procPtr->cmdPtr, 
-	procPtr->cmdPtr->nsPtr->fullName,cmd->nsPtr->fullName);*/
-      /*** patch the command ****/
-      procPtr->cmdPtr = cmd;
-    }
+  {
+    Proc *procPtr = TclFindProc((Interp *)in, ObjStr(ov[1]));
+    Command *cmd = (Command *)obj->id;
+    /*fprintf(stderr,"proc=%p cmd=%p ns='%s' objns=%s\n",procPtr,procPtr->cmdPtr, 
+      procPtr->cmdPtr->nsPtr->fullName,cmd->nsPtr->fullName);*/
+    /*** patch the command ****/
+    procPtr->cmdPtr = cmd;
+  }
 #endif
-
-    Tcl_PopCallFrame(in);
-
-    if (objc == 6)
-      AssertionAddProc(in, ObjStr(objv[1]), aStore, objv[4], objv[5]);
-
-    DECR_REF_COUNT(objv[3]);
-    objv[3] = oldBody;
-
-    return result;
+  
+  Tcl_PopCallFrame(in);
+  
+  if (objc == 6 || objc == 7) {
+    incr = (objc == 6) ? 0:1;
+    AssertionAddProc(in, ObjStr(objv[1]), aStore, objv[4+incr], objv[5+incr]);
+  }
+  
+  DECR_REF_COUNT(ov[3]);
+  
+  return result;
 }
 
 /*
@@ -4717,6 +4891,8 @@ ListProcBody(Tcl_Interp *in, Tcl_HashTable *table, char *name) {
     char *body = ObjStr(proc->bodyPtr);
     if (strncmp(body, "::xotcl::initProcNS\n",20) == 0)
       body+=20;
+    if (strncmp(body, "::xotcl::interpretNonPositionalArgs $args\n",42) == 0)
+      body+=42;
     Tcl_SetObjResult(in, Tcl_NewStringObj(body, -1));
     return TCL_OK;
   }
@@ -5281,6 +5457,14 @@ CleanupDestroyObject(Tcl_Interp *in, XOTclObject *obj) {
     freeObjectOpt(obj);
   }
 
+  if (obj->nonPosArgsTable) {
+    NonPosArgsFreeTable(obj->nonPosArgsTable);
+    Tcl_DeleteHashTable(obj->nonPosArgsTable);
+    MEM_COUNT_FREE("Tcl_InitHashTable", obj->nonPosArgsTable);
+    ckfree((char*) obj->nonPosArgsTable);
+    MEM_COUNT_FREE("Tcl_HashTable",obj->nonPosArgsTable);
+  }
+
   obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
   if (obj->mixinOrder)  MixinResetOrder(obj);
   obj->flags &= ~XOTCL_FILTER_ORDER_VALID;
@@ -5302,6 +5486,7 @@ CleanupInitObject(Tcl_Interp *in, XOTclObject *obj,
   if (obj->flags & XOTCL_RECREATE) {
     obj->opt = 0;
     obj->varTable = 0;
+    obj->nonPosArgsTable = 0;
     obj->mixinOrder = 0;
     obj->filterOrder = 0;
     obj->flags = 0;
@@ -5531,6 +5716,14 @@ CleanupDestroyClass(Tcl_Interp *in, XOTclClass *cl) {
     }
   }
 
+  if (cl->nonPosArgsTable) {
+    NonPosArgsFreeTable(cl->nonPosArgsTable);
+    Tcl_DeleteHashTable(cl->nonPosArgsTable);
+    MEM_COUNT_FREE("Tcl_InitHashTable", cl->nonPosArgsTable);
+    ckfree((char*) cl->nonPosArgsTable);
+    MEM_COUNT_FREE("Tcl_HashTable",cl->nonPosArgsTable);
+  }
+
   Tcl_DeleteHashTable(&cl->instances);
   MEM_COUNT_FREE("Tcl_InitHashTable",&cl->instances);
 
@@ -5597,6 +5790,7 @@ CleanupInitClass(Tcl_Interp *in, XOTclClass *cl, Tcl_Namespace *namespacePtr) {
   MEM_COUNT_ALLOC("Tcl_InitHashTable",&cl->instances);
 
   cl->opt = 0;
+  cl->nonPosArgsTable = 0;
 }
 
 /*
@@ -6175,9 +6369,6 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
   if (objc < 2)
     return XOTclObjErrArgCnt(in, obj->cmdName, "info <opt> ?args?");
 
-
-
-
   opt = obj->opt;
   cmd = ObjStr(objv[1]);
   pattern = (objc > 2) ? ObjStr(objv[2]) : 0;
@@ -6197,6 +6388,13 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
     if (isArgsString(cmd)) {
       if (objc != 3 || modifiers > 0)
 	return XOTclObjErrArgCnt(in, obj->cmdName, "info args <proc>");
+      if (obj->nonPosArgsTable) {
+	XOTclNonPosArgs* nonPosArgs = NonPosArgsGet(obj->nonPosArgsTable, pattern);
+	if (nonPosArgs) {
+	  Tcl_SetObjResult(in, nonPosArgs->ordinaryArgs);
+	  return TCL_OK;
+	}
+      }
       if (nsp)
 	return ListProcArgs(in, Tcl_Namespace_cmdTable(nsp), pattern);
       else
@@ -6367,6 +6565,22 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
     }
 #endif
     break;
+
+  case 'n':
+    if (!strcmp(cmd, "nonposargs")) {
+      if (objc != 3 || modifiers > 0)
+	return XOTclObjErrArgCnt(in, obj->cmdName, "info nonposargs <proc>");
+      if (obj->nonPosArgsTable) {
+	XOTclNonPosArgs* nonPosArgs = 
+	  NonPosArgsGet(obj->nonPosArgsTable, pattern);
+	if (nonPosArgs) {
+	  Tcl_SetObjResult(in, NonPosArgsFormat(in, nonPosArgs->nonPosArgs));
+	}
+      }
+      return TCL_OK;
+    }
+    break;
+
   case 'p':
     if (!strcmp(cmd, "procs")) {
       if (objc > 3 || modifiers > 0)
@@ -6419,14 +6633,23 @@ XOTclOProcMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]
   XOTclObject *obj = (XOTclObject*)cd;
   char *argStr, *bdyStr, *name;
   XOTclObjectOpt *opt;
+  int incr = 0, result = TCL_OK;
 
   if (!obj) return XOTclObjErrType(in, objv[0], "Object");
-  if (objc != 4 && objc != 6)
+  if (objc < 4 || objc > 7)
     return XOTclObjErrArgCnt(in, obj->cmdName,
-			     "proc name args body ?preAssertion postAssertion?");
-  argStr = ObjStr(objv[2]);
-  bdyStr = ObjStr(objv[3]);
-  name = ObjStr(objv[1]);
+			     "proc name ?non-positional-args? args body ?preAssertion postAssertion?");
+
+  if (objc == 5 || objc == 7) {
+    if (obj->nonPosArgsTable == 0) {
+      obj->nonPosArgsTable = NonPosArgsCreateTable();
+    }
+    incr = 1;
+  }
+
+  argStr = ObjStr(objv[2 + incr]);
+  bdyStr = ObjStr(objv[3 + incr]);
+  name = ObjStr(objv[1 + incr]);
 
   if (*argStr == 0 && *bdyStr == 0) {
     opt = obj->opt;
@@ -6439,13 +6662,13 @@ XOTclOProcMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]
     if (!opt->assertions)
       opt->assertions = AssertionCreateStore();
     requireObjNamespace(in, obj);
-    MakeProc(obj->nsPtr, opt->assertions, in, objc, (Tcl_Obj **) objv, obj);
+    result = MakeProc(obj->nsPtr, opt->assertions, obj->nonPosArgsTable,  in, objc, (Tcl_Obj **) objv, obj);
   }
 
   /* could be a filter => recompute filter order */
   FilterComputeDefined(in, obj);
 
-  return TCL_OK;
+  return result;
 }
 
 static int
@@ -7366,8 +7589,6 @@ XOTclSetrelationCommand(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST 
 
   if (objc < 3)
     return XOTclObjErrArgCnt(in, objv[0], "::xotcl::setrelation obj ?reltype? classes");
-  if (Tcl_ListObjGetElements(in, objv[3], &oc, &ov)!= TCL_OK)
-    return TCL_ERROR;
 
   reltype = ObjStr(objv[2]);
   len = strlen(reltype);
@@ -7381,22 +7602,35 @@ XOTclSetrelationCommand(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST 
   } else if (*reltype == 'i' && len == 10 && !strcmp(reltype, "instfilter")) {
     kind = instfilter;
   } else {
-    XOTclObjErrType(in, objv[2], "reltype (mixin, filter, instmixin, instfilter)");
+    result = XOTclObjErrType(in, objv[2], "reltype (mixin, filter, instmixin, instfilter)");
+    goto setrelationexit;
   }
   
   if (kind == mixin || kind == filter) {
     GetXOTclObjectFromObj(in, objv[1], &obj);
-    if (!obj) return XOTclObjErrType(in, objv[1], "Object");
+    if (!obj) {
+      result = XOTclObjErrType(in, objv[1], "Object");
+      goto setrelationexit;
+    }
   } else {
     GetXOTclClassFromObj(in, objv[1], &cl, 1);
-    if (!cl) return XOTclObjErrType(in, objv[1], "Class");
+    if (!cl) {
+      result = XOTclObjErrType(in, objv[1], "Class");
+      goto setrelationexit;
+    }
   }
+
+  /* objv[3] might be a shared object with objv[1]; we do the split later, since 
+     GetXOTclObjectFromObj() might do some shimmering to convert the list to an object
+  */
+  if ((result = Tcl_ListObjGetElements(in, objv[3], &oc, &ov)!= TCL_OK))
+    goto setrelationexit;
 
   switch (kind) {
   case mixin: 
     {
       XOTclObjectOpt *opt = XOTclRequireObjectOpt(obj);
-      if (opt->mixins) CmdListRemoveList(&obj->opt->mixins, GuardDel); 
+      if (opt->mixins) CmdListRemoveList(&opt->mixins, GuardDel); 
       
       obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
       /*
@@ -7406,7 +7640,7 @@ XOTclSetrelationCommand(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST 
 
       for (i = 0; i < oc; i++) {
 	if ((result = MixinAdd(in, &opt->mixins, ov[i])) != TCL_OK)
-	  return result;
+	  goto setrelationexit;
       }
       
       MixinComputeDefined(in, obj);
@@ -7421,7 +7655,7 @@ XOTclSetrelationCommand(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST 
       obj->flags &= ~XOTCL_FILTER_ORDER_VALID;
       for (i = 0; i < oc; i ++) {
 	if ((result = FilterAdd(in, &opt->filters, ov[i], obj, 0)) != TCL_OK)
-	  return result;
+	  goto setrelationexit;
       }
       /*FilterComputeDefined(in, obj);*/
       break;
@@ -7440,7 +7674,7 @@ XOTclSetrelationCommand(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST 
 
       for (i = 0; i < oc; i++) {
 	if ((result = MixinAdd(in, &opt->instmixins, ov[i])) != TCL_OK)
-	  return result;
+	  goto setrelationexit;
       }
       break;
     }
@@ -7454,12 +7688,13 @@ XOTclSetrelationCommand(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST 
 
       for (i = 0; i < oc; i ++) {
 	if ((result = FilterAdd(in, &opt->instfilters, ov[i], 0, cl)) != TCL_OK)
-	  return result;
+	  goto setrelationexit;
       }
       break;
     }
   }
-
+ setrelationexit:
+  /*DECR_REF_COUNT(list);*/
   return result;
 }
 
@@ -8234,6 +8469,13 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]
 	  if (objc != 3 || modifiers > 0)
 	    return XOTclObjErrArgCnt(in, cl->object.cmdName,
 				     "info instargs <instproc>");
+	  if (cl->nonPosArgsTable) {
+	    XOTclNonPosArgs* nonPosArgs = NonPosArgsGet(cl->nonPosArgsTable, pattern);
+	    if (nonPosArgs) {
+	      Tcl_SetObjResult(in, nonPosArgs->ordinaryArgs);
+	      return TCL_OK;
+	    }
+	  }
 	  return ListProcArgs(in, Tcl_Namespace_cmdTable(nsp), pattern);
 	}
 	break;
@@ -8331,6 +8573,23 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]
 	    return XOTclObjErrArgCnt(in, cl->object.cmdName,
 				     "info instmixinguard mixin");
 	  return opt ? GuardList(in, opt->instmixins, pattern) : TCL_OK;
+	}
+	break;
+
+      case 'n':
+	if (!strcmp(cmdTail, "nonposargs")) {
+	  if (objc != 3 || modifiers > 0)
+	    return XOTclObjErrArgCnt(in, cl->object.cmdName, 
+				     "info instnonposargs <instproc>");
+	  if (cl->nonPosArgsTable) {
+	    XOTclNonPosArgs* nonPosArgs = 
+	      NonPosArgsGet(cl->nonPosArgsTable, pattern);
+	    if (nonPosArgs) {
+	      Tcl_SetObjResult(in, NonPosArgsFormat(in, 
+						    nonPosArgs->nonPosArgs));
+	    }
+	  }
+	  return TCL_OK;
 	}
 	break;
 
@@ -8712,15 +8971,23 @@ XOTclCInstProcMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
   XOTclClass *cl = XOTclObjectToClass(cd);
   char *argStr, *bdyStr, *name;
   XOTclClassOpt* opt;
+  int incr = 0, result = TCL_OK;
 
   if (!cl) return XOTclObjErrType(in, objv[0], "Class");
-  if (objc != 4 && objc != 6)
+  if (objc < 4 || objc > 7)
     return XOTclObjErrArgCnt(in, cl->object.cmdName,
-			     "instproc name args body ?preAssertion postAssertion?");
+			     "instproc name ?non-positional-args? args body ?preAssertion postAssertion?");
 
-  argStr = ObjStr(objv[2]);
-  bdyStr = ObjStr(objv[3]);
-  name = ObjStr(objv[1]);
+  if (objc == 5 || objc == 7) {
+    if (cl->nonPosArgsTable == 0) {
+      cl->nonPosArgsTable = NonPosArgsCreateTable();
+    }
+    incr = 1;
+  }
+
+  argStr = ObjStr(objv[2 + incr]);
+  bdyStr = ObjStr(objv[3 + incr]);
+  name = ObjStr(objv[1 + incr]);
 
   if ((cl == RUNTIME_STATE(in)->theObject && isDestroyString(name)) ||
       (cl == RUNTIME_STATE(in)->theClass && isInstDestroyString(name)) ||
@@ -8739,13 +9006,13 @@ XOTclCInstProcMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
     opt = XOTclRequireClassOpt(cl);
     if (!opt->assertions)
       opt->assertions = AssertionCreateStore();
-    MakeProc(cl->nsPtr, opt->assertions, in, objc, (Tcl_Obj **) objv, &cl->object);
+    result = MakeProc(cl->nsPtr, opt->assertions, cl->nonPosArgsTable, in, objc, (Tcl_Obj **) objv, &cl->object);
   }
 
   /* could be a filter or filter inheritance ... update filter orders */
   FilterInvalidateObjOrders(in, cl);
 
-  return TCL_OK;
+  return result;
 }
 
 
@@ -9166,15 +9433,226 @@ XOTclInitProcNSCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
     fprintf(stderr, "currns = '%s'\n",currNs->fullName);
   }
 #endif
+ 
   RUNTIME_STATE(in)->cs.top->currentFramePtr = varFramePtr;
 #if !defined(NAMESPACEINSTPROCS)
   if (varFramePtr) {
-      varFramePtr->nsPtr = GetCallerVarFrame(in,varFramePtr,0);
+      varFramePtr->nsPtr = GetCallerVarFrame(in,varFramePtr);
   }
 #endif
   return TCL_OK;
 }
 
+/*
+ * Interpretation of Non-Positional Args
+ */
+int
+isNonPositionalArg(Tcl_Interp *in, char* argStr, 
+		   int nonPosArgsDefc, Tcl_Obj **nonPosArgsDefv, 
+		   char **varName) {
+  int i, npac;
+  Tcl_Obj **npav;
+  if (argStr[0] == '-') {
+    for (i=0; i < nonPosArgsDefc; i++) {
+      if (Tcl_ListObjGetElements(in, nonPosArgsDefv[i], 
+				 &npac, &npav) == TCL_OK && npac > 0) {
+	*varName = argStr+1;
+	if (!strcmp(*varName, ObjStr(npav[0]))) {
+	  return 1;
+	}
+      }
+    }
+  }
+  return 0;
+}
+
+int
+XOTclCheckBooleanArgs(ClientData cd, Tcl_Interp *in, int objc, 
+		      Tcl_Obj *CONST objv[]) {
+  int result, bool;
+  Tcl_Obj* boolean;
+  if (objc != 2 && objc != 3)
+    return XOTclObjErrArgCnt(in, NULL, 
+			     "::xotcl::nonPositionalArgs boolean <args> ?currentValue?");
+
+  boolean = Tcl_DuplicateObj(objv[2]);
+  INCR_REF_COUNT(boolean);
+  result = Tcl_GetBooleanFromObj(in, boolean, &bool);
+  DECR_REF_COUNT(boolean);
+  /*
+  result = TCL_OK;
+  */
+  if (result != TCL_OK)
+    return XOTclVarErrMsg(in, 
+			  "non-positional argument: '", ObjStr(objv[1]), "' with value '",
+			  ObjStr(objv[2]), "' is not of type boolean",
+			  NULL);
+  return TCL_OK;
+}
+
+int
+XOTclCheckRequiredArgs(ClientData cd, Tcl_Interp *in, int objc, 
+		       Tcl_Obj *CONST objv[]) {
+  if (objc != 2 && objc != 3)
+    return XOTclObjErrArgCnt(in, NULL, 
+			     "::xotcl::nonPositionalArgs required <args> ?currentValue?");
+
+  if (objc != 3)
+    return XOTclVarErrMsg(in, 
+			  "required arg: '", ObjStr(objv[1]), "' missing",
+			  NULL);
+  return TCL_OK;
+}
+
+int
+XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc, 
+				   Tcl_Obj *CONST objv[]) {
+  Tcl_Obj **npav, **checkv, **checkArgv, **argsv, **nonPosArgsDefv, *invocation[4], 
+    **ordinaryArgsDefv, *list, *checkObj, *objPtr;
+  int npac, checkc, checkArgc, argsc, nonPosArgsDefc, 
+    ordinaryArgsDefc, argsDefined = 0, 
+    ordinaryArgsCounter = 0, i, j, result, ic;
+  char* lastDefArg = NULL, *varName, *arg, *argStr;
+  int endOfNonPosArgsReached = 0;
+  Var *varPtr;
+
+  XOTclClass* selfClass = GetSelfClass(in);
+  char*  methodName = (char*) GetSelfProc(in);
+  Tcl_HashTable* nonPosArgsTable;
+  XOTclNonPosArgs* nonPosArgs;
+  XOTclObject* selfObj;
+  int r1, r2, r3;
+
+  if (objc != 2)
+    return XOTclObjErrArgCnt(in, NULL, 
+			     "::xotcl::interpretNonPositionalArgs <args>");
+  
+  if (selfClass) {
+    nonPosArgsTable = selfClass->nonPosArgsTable;
+  } else if ((selfObj = GetSelfObj(in))) {
+    nonPosArgsTable = selfObj->nonPosArgsTable;
+  } else {
+    return XOTclVarErrMsg(in, 
+			  "Non positional args: can't find self/self class",
+			  NULL);
+  }
+
+  nonPosArgs = NonPosArgsGet(nonPosArgsTable, methodName);
+  if (nonPosArgs == 0) {
+    return XOTclVarErrMsg(in, 
+			  "Non positional args: can't find hash entry for: ",
+			  methodName,
+			  NULL);
+  }
+
+  r1 = Tcl_ListObjGetElements(in, nonPosArgs->nonPosArgs, 
+			      &nonPosArgsDefc, &nonPosArgsDefv);
+  r2 = Tcl_ListObjGetElements(in, nonPosArgs->ordinaryArgs, 
+			      &ordinaryArgsDefc, &ordinaryArgsDefv);
+  r3 = Tcl_ListObjGetElements(in, objv[1], &argsc, &argsv);
+  if (r1 != TCL_OK || r2 != TCL_OK || r3 != TCL_OK) {
+    return XOTclVarErrMsg(in, 
+			  "Cannot split non positional args list: ",
+			  methodName,
+			  NULL);
+  }
+
+  for (i=0; i < nonPosArgsDefc; i++) {
+     r1 = Tcl_ListObjGetElements(in, nonPosArgsDefv[i], 
+				 &npac, &npav);
+     if (r1 == TCL_OK &&  npac == 3) {
+       Tcl_ObjSetVar2(in, npav[0], 0, npav[2], 0);
+     }
+  }
+
+  if (ordinaryArgsDefc > 0) {
+    lastDefArg = ObjStr(ordinaryArgsDefv[ordinaryArgsDefc-1]);
+    if (isArgsString(lastDefArg)) {
+      argsDefined = 1;
+    }
+  }
+
+  for (i=0; i < argsc; i++) {
+    if (!endOfNonPosArgsReached) {
+      argStr = ObjStr(argsv[i]);
+      if (isDoubleDashString(argStr)) {
+	endOfNonPosArgsReached = 1;
+	i++;
+      }
+      if (isNonPositionalArg(in, argStr, nonPosArgsDefc, 
+			     nonPosArgsDefv, &varName)) {
+	i++;
+	if (i > argsc) 
+	  return XOTclVarErrMsg(in, "Non positional arg '",
+				ObjStr(argsv[1]), "': value missing", 
+				NULL);
+	Tcl_SetVar2(in, varName, 0, ObjStr(argsv[i]), 0);
+      } else {
+	endOfNonPosArgsReached = 1;
+      }
+    }
+
+    if (endOfNonPosArgsReached) {
+      if (ordinaryArgsCounter >= ordinaryArgsDefc) {
+	return XOTclObjErrArgCnt(in, NULL, ObjStr(nonPosArgs->ordinaryArgs));
+      }
+      arg = ObjStr(ordinaryArgsDefv[ordinaryArgsCounter]);
+      /* this is the last arg and 'args' is defined */ 
+      if (argsDefined && ordinaryArgsCounter+1 == ordinaryArgsDefc) {
+	list = Tcl_NewListObj(0, NULL);
+	INCR_REF_COUNT(list);
+	for(; i < argsc; i++)
+	  Tcl_ListObjAppendElement(in, list, argsv[i]);
+	Tcl_ObjSetVar2(in, ordinaryArgsDefv[ordinaryArgsCounter], 0, list, 0);
+	DECR_REF_COUNT(list);
+      } else {
+	Tcl_ObjSetVar2(in, ordinaryArgsDefv[ordinaryArgsCounter], 0, argsv[i], 0);
+      }
+      ordinaryArgsCounter++;
+    }
+  }
+  if (!argsDefined) {
+    if (ordinaryArgsCounter != ordinaryArgsDefc) {
+      return XOTclObjErrArgCnt(in, NULL, ObjStr(nonPosArgs->ordinaryArgs));
+    }
+    Tcl_UnsetVar2(in, "args", 0, 0);
+  }
+
+  for (i=0; i < nonPosArgsDefc; i++) {
+     r1 = Tcl_ListObjGetElements(in, nonPosArgsDefv[i], 
+				 &npac, &npav);
+     if (r1 == TCL_OK &&  npac > 1 && *(ObjStr(npav[1])) != '\0') {
+       r1 = Tcl_ListObjGetElements(in, npav[1], &checkc, &checkv);
+       if (r1 == TCL_OK) {
+	 checkObj = XOTclGlobalObjects[NON_POS_ARGS_OBJ];
+	 for (j=0; j < checkc; j++) {
+	   r1 = Tcl_ListObjGetElements(in, checkv[j], &checkArgc, &checkArgv);
+	   if (r1 == TCL_OK && checkArgc > 1) {
+	     if (isCheckObjectString((ObjStr(checkArgv[0]))) && checkArgc == 2) {
+	       checkObj = checkArgv[1];
+	       continue;
+	     }
+	   }
+	   invocation[0] = checkObj;
+	   invocation[1] = checkv[j];
+	   varPtr = TclVarTraceExists(in, ObjStr(npav[0]));
+	   invocation[2] = npav[0];
+	   ic = 3;
+	   if ((varPtr != NULL) && !TclIsVarUndefined(varPtr)) {
+	     invocation[3] = Tcl_ObjGetVar2(in, npav[0], 0, 0);
+	     ic = 4;
+	   }
+	   objPtr = Tcl_ConcatObj(ic, invocation);
+	   result = Tcl_EvalObjEx(in, objPtr, TCL_EVAL_DIRECT);
+	   if (result != TCL_OK) {
+	     return result;
+	   }
+	 }
+       }
+     }
+  }
+  return TCL_OK;
+}
 
 
 /* create a slave interp that calls XOTcl Init */
@@ -9217,7 +9695,6 @@ XOTclOGetInstVar2(XOTcl_Object *obj, Tcl_Interp *in, Tcl_Obj *name1, Tcl_Obj *na
 		  int flgs) {
   Tcl_Obj *result;
   XOTcl_FrameDecls;
-
   XOTcl_PushFrame(in, obj);
   if (obj->nsPtr)
     flgs |= TCL_NAMESPACE_ONLY;
@@ -9624,6 +10101,7 @@ Xotcl_Init(Tcl_Interp *in) {
   XOTclClass *theobj = 0;
   XOTclClass *thecls = 0;
   XOTclClass *paramCl = 0;
+  XOTclClass *nonPositionalArgsCl = 0;
   ClientData runtimeState;
   int result, i;
 #ifdef XOTCL_BYTECODE
@@ -9852,6 +10330,9 @@ Xotcl_Init(Tcl_Interp *in) {
   instructions[INST_INITPROC].cmdPtr = (Command *)
 #endif
   Tcl_CreateObjCommand(in, "::xotcl::initProcNS", XOTclInitProcNSCmd, 0, 0);
+  Tcl_CreateObjCommand(in, "::xotcl::interpretNonPositionalArgs", 
+		       XOTclInterpretNonPositionalArgsCmd, 0, 0);
+
 #ifdef XOTCL_BYTECODE
   instructions[INST_SELF_DISPATCH].cmdPtr = (Command *)
 #endif
@@ -9860,6 +10341,22 @@ Xotcl_Init(Tcl_Interp *in) {
 #ifdef XOTCL_BYTECODE
   XOTclBytecodeInit();
 #endif
+
+  /* 
+   * Non-Positional Args Object
+   */
+  
+  nonPositionalArgsCl = PrimitiveCCreate(in, 
+					 XOTclGlobalStrings[NON_POS_ARGS_CL], 
+					 thecls);
+  XOTclAddIMethod(in, (XOTcl_Class*) nonPositionalArgsCl,
+		  "required",
+		  (Tcl_ObjCmdProc*) XOTclCheckRequiredArgs, 0, 0);
+  XOTclAddIMethod(in, (XOTcl_Class*) nonPositionalArgsCl,
+		  "boolean",
+		  (Tcl_ObjCmdProc*) XOTclCheckBooleanArgs, 0, 0);
+  PrimitiveOCreate(in, XOTclGlobalStrings[NON_POS_ARGS_OBJ],
+		   nonPositionalArgsCl);
 
   /*
    *  Parameter Class

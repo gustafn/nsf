@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.1 2004/05/23 22:50:39 neumann Exp $
+ *  $Id: xotclInt.h,v 1.2 2004/07/20 12:57:59 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -104,6 +104,8 @@ typedef struct XOTclMemCounter {
 #define isArgsString(m) (\
 	*m   == 'a' && m[1] == 'r' && m[2] == 'g' && m[3] == 's' && \
 	m[4] == '\0')
+#define isDoubleDashString(m) (\
+	*m   == '-' && m[1] == '-' && m[2] == '\0')
 #define isBodyString(m) (\
 	*m   == 'b' && m[1] == 'o' && m[2] == 'd' && m[3] == 'y' && \
 	m[4] == '\0')
@@ -113,6 +115,10 @@ typedef struct XOTclMemCounter {
 #define isCheckString(m) (\
 	*m   == 'c' && m[1] == 'h' && m[2] == 'e' && m[3] == 'c' && \
 	m[4] == 'k' && m[5] == '\0')
+#define isCheckObjectString(m) (\
+        *m   == 'c' && m[1] == 'h' && m[2] == 'e' && m[3] == 'c' && \
+	m[4] == 'k' && m[5] == 'o' && m[6] == 'b' && m[7] == 'j' && \
+	m[8] == '\0')
 #define isCreateString(m) (\
 	*m   == 'c' && m[1] == 'r' && m[2] == 'e' && m[3] == 'a' && \
 	m[4] == 't' && m[5] == 'e' && m[6] == '\0')
@@ -425,10 +431,15 @@ typedef struct XOTclStringIncrStruct {
 	(XOTclClass*)((((XOTclObject*)obj)->flags & XOTCL_IS_CLASS)?obj:0)
 
 
-
 /*
  * object and class internals
  */
+
+typedef struct XOTclNonPosArgs {
+  Tcl_Obj* nonPosArgs;
+  Tcl_Obj* ordinaryArgs;
+} XOTclNonPosArgs;
+
 typedef struct XOTclObjectOpt {
   XOTclAssertionStore *assertions;
   XOTclCmdList* filters;
@@ -454,6 +465,7 @@ typedef struct XOTclObject {
   XOTclMixinStack *mixinStack;
   int refCount;
   short flags;
+  Tcl_HashTable *nonPosArgsTable;
 } XOTclObject;
 
 typedef struct XOTclClassOpt {
@@ -478,6 +490,7 @@ typedef struct XOTclClass {
   Tcl_Namespace *nsPtr;
   Tcl_Obj* parameters;
   XOTclClassOpt* opt;
+  Tcl_HashTable *nonPosArgsTable;
 } XOTclClass;
 
 typedef struct XOTclClasses {
@@ -496,10 +509,11 @@ typedef enum {
     ZERO, MOVE, SELF, CLASS, RECREATE,
     SELF_CLASS, SELF_PROC, PARAM_CL,
     SEARCH_DEFAULTS, EXIT_HANDLER,
+    NON_POS_ARGS_CL, NON_POS_ARGS_OBJ, 
     CLEANUP, CONFIGURE, FILTER, INSTFILTER,
     INSTPROC, PROC, MKGETTERSETTER, FORMAT, 
     NEWOBJ, GUARD_OPTION, DEFAULTMETHOD,
-    __UNKNOWN,
+    __UNKNOWN, ARGS, SPLIT, COMMA,
     /** these are the redefined tcl commands; leave them
 	together at the end */
     EXPR, INCR, INFO, RENAME, SUBST, 
@@ -513,10 +527,11 @@ char *XOTclGlobalStrings[] = {
   "0", "move", "self", "class", "recreate",
   "self class", "self proc", "::xotcl::Class::Parameter",
   "searchDefaults", "__exitHandler",
+  "::xotcl::NonPosArgs", "::xotcl::nonPosArgs", 
   "cleanup", "configure", "filter", "instfilter",
   "instproc", "proc", "mkGetterSetter", "format", 
   "__#", "-guard", "defaultmethod",
-  "__unknown",
+  "__unknown", "args", "split", ",",
   "expr", "incr", "info", "rename", "subst", 
 };
 #endif

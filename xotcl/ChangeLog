@@ -1,3 +1,10 @@
+2004-07-20 Gustaf.Neumann@wu-wien.ac.at
+        * fixed a potential crash when a instmixin was registered on itself
+
+2004-07-19  Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+        * added checkoptions to non pos args
+	* added tests & documentation of non pos args
+
 2004-07-18 Gustaf.Neumann@wu-wien.ac.at
         * added removal of autom4te.cache to distclean
         * make doc added to "all" target

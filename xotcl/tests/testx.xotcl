@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.10 2004/07/03 21:19:39 neumann Exp $
+#$Id: testx.xotcl,v 1.11 2004/07/20 12:57:59 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -3371,8 +3371,98 @@ uplevelCmds proc run {{n 20}} {
   return "PASSED [self]"
 }
 
+TestX create nonposargs
+nonposargs proc run {{n 20}} {
+    Object o	
+    o proc x {a b} {
+	return "$a $b"
+    }
+    o proc y {-x {-a {1 2 3}}} {a b} {
+	return "$args"
+    }
+    o proc z1 {-x:required {-a {1 2 3}}} {a args} {
+	return "$x -- $args"
+    }
+    o proc z2 {-x:required {-a {1 }} {-b {1 2}}} {args} {return "$x -- $args -- $a -- $b"}
+    o proc z3 {-b:boolean} {arg} {
+	return "$b $arg"
+    }
+    Object colorchecker
+    colorchecker proc color {a b c argName args} {
+	lappend ::r "$a $b $c"
+    }
+    colorchecker proc reddish {argName args} {
+	lappend ::r "reddish"
+    }
+    
+    o proc z4 {{{-b:checkobj colorchecker ,  color must be red, reddish,  checkobj xotcl::nonPosArgs , required} red} {{-c: required}}} {arg} {
+	lappend ::r "$b $arg"
+	return "$b $arg"
+    }
+    Class P
+    P instproc x {a b} {
+	return "$a $b"
+    }
+    P instproc z2 {-x:required {-a 1} {-b {1 2}}} {args} {return "$x -- $args -- $a -- $b"}
+    
+    P instproc z3 {-x:required {-a 1} {-b {1 2}}} {a b c} {
+	return "$x -- $args -- $a -- $b"
+    }
+    P p
 
+    errorCheck [o x 1 2] "1 2" "Ordinary Method"
+    errorCheck [p x 3 4] "3 4" "Ordinary Method (2)"
+    catch {
+	o y 4 56 5
+    } m
+    errorCheck $m "wrong # args: should be {a b}" "wrong \# check 1"
+    catch {
+	o y
+    } m
+    errorCheck $m "wrong # args: should be {a b}" "wrong \# check 2"
+    catch {
+	o y -x 1
+    } m
+    errorCheck $m "wrong # args: should be {a b}" "wrong \# check 3"
+    catch {
+	o z1 a 1 2 3
+    } m
+    errorCheck $m "required arg: 'x' missing" "required missing"
+    errorCheck [o z1 -x 1  a 1 2 3] "1 -- 1 2 3" "invocation 1"
+    errorCheck [o z2 -x 2  a 1 2 3] "2 -- a 1 2 3 -- 1  -- 1 2" "invocation 2"
+    catch {
+	o y -x 1 -a 2 2 3
+    } m
+    errorCheck $m "can't read \"args\": no such variable" "args unset?"
+    errorCheck [o z2 -a 2 -x 1 -b 3 a b c] \
+	"1 -- a b c -- 2 -- 3" "invocation 3"
+    errorCheck [p z2 -x 1 -a 2 -b 3 a b c] \
+	"1 -- a b c -- 2 -- 3" "invocation 4"
 
+    errorCheck [o z3 -b true -- -b] \
+	"true -b" "dash dash"
+
+    catch {
+	o z3 -b abc -- -b
+    } m
+    errorCheck $m "non-positional argument: 'b' with value 'abc' is not of type boolean" "not boolean"
+
+    set ::r ""    
+    o z4 -c 1 1
+    errorCheck $::r [list {must be red} reddish {red 1}] \
+	"multiple check options + checkobject"
+
+    errorCheck [o info body z2] {return "$x -- $args -- $a -- $b"} "info body 1"
+    errorCheck [P info instbody z2] {return "$x -- $args -- $a -- $b"} "info instbody z2"
+    errorCheck [o info args z4] {arg} "info args"
+    errorCheck [o info nonposargs z4] {{{-b:checkobj colorchecker ,  color must be red, reddish,  checkobj xotcl::nonPosArgs , required} red} {{-c: required}}} "info nonposargs 1"
+    errorCheck [o info nonposargs x] {} "info nonposargs 2"
+    errorCheck [P info instargs z3] {a b c} "info instargs"
+    errorCheck [P info instnonposargs z3] {-x:required {-a 1} {-b {1 2}}} "info instnonposargs 1"
+    errorCheck [P info instnonposargs x] {} "info instnonposargs 2"
+
+  return "PASSED [self]"
+}
 
 TestX proc run {} {
   puts [nestingClasses run]
@@ -3396,6 +3486,7 @@ TestX proc run {} {
   puts [condMixins run]
   puts [volatileObjects run]
   puts [uplevelCmds run]
+  puts [nonposargs run]
 }
 
 puts "XOTcl - Test"

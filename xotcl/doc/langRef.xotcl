@@ -1,4 +1,4 @@
-# $Id: langRef.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: langRef.xotcl,v 1.2 2004/07/20 12:57:59 neumann Exp $
 package provide XOTcl-langRef 1.2
 package require Tcl
 
@@ -63,7 +63,7 @@ package require Tcl
     <@/p>
 
   }
-  date { $Date: 2004/05/23 22:50:39 $ }
+  date { $Date: 2004/07/20 12:57:59 $ }
 }
 
 ##
@@ -376,6 +376,9 @@ package require Tcl
 
       <@li><@TT>objName info invar</@TT>: Returns object invariants.
 
+      <@li><@TT>objName info nonposargs methodName</@TT>: Returns
+      non-positional arg list of methodName
+
       <@li><@TT>objName info metadata ?pattern?</@TT>: 
       Returns available metadata options.
 
@@ -575,6 +578,7 @@ package require Tcl
 
 @ Object instproc proc {
   name "method name"
+  ?non-pos-args?" "optinal non-positional arguments"
   args "method arguments"
   body "method body"
   "?preAssertion?" "optional assertions that must hold before the proc executes"
@@ -826,6 +830,9 @@ package require Tcl
 
       <@li><@TT>ClassName info instinvar</@TT>: 
       Returns class invariants.
+	
+      <@li><@TT>ClassName info instmixin methodName</@TT>: returns list of 
+      non-positional args of methodName
 
       <@li><@TT>ClassName info instmixin</@TT>: 
       Returns the list of instmixins of this class.
@@ -966,6 +973,7 @@ package require Tcl
 
 @ Class instproc instproc {
   name "instance method name"
+  ?non-pos-args?" "optinal non-positional arguments"
   args "instance method arguments"
   body "instance method body"
   "?preAssertion?" "optional assertions that must hold before the proc executes"
