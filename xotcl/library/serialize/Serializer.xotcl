@@ -1,4 +1,4 @@
-# $Id: Serializer.xotcl,v 1.3 2004/08/17 10:12:55 neumann Exp $
+# $Id: Serializer.xotcl,v 1.4 2004/08/19 09:57:50 neumann Exp $
 package require XOTcl 1.0
 package provide xotcl::serializer 0.4
 
@@ -11,7 +11,7 @@ package provide xotcl::serializer 0.4
     authors {
         Gustaf Neumann, Gustaf.Neumann@wu-wien.ac.at
     }
-    date { $Date: 2004/08/17 10:12:55 $ }
+    date { $Date: 2004/08/19 09:57:50 $ }
 }
   
 @ Serializer proc all {
@@ -99,7 +99,7 @@ Serializer instproc method-serialize {o m prefix} {
     if {[$o info ${prefix}default $m $v x]} {
       lappend arglist [list $v $x] } {lappend arglist $v}
   }
-  lappend r ${prefix}proc $m [$o info ${prefix}nonposargs] \
+  lappend r ${prefix}proc $m [$o info ${prefix}nonposargs $m] \
       $arglist [$o info ${prefix}body $m]
   foreach p {pre post} {
     if {[$o info ${prefix}$p $m]!=""} {lappend r [$o info ${prefix}$p $m]}

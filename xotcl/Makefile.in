@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.7 2004/08/17 10:27:58 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.8 2004/08/19 09:57:50 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -48,7 +48,7 @@ DOC_SOURCE = \
 	$(src_app_dir)/actiweb/univ/UNIVERSAL.xotcl \
 	$(src_app_dir)/utils/xo-*[a-z0-9] 
 
-export TCLLIBPATH=.
+export TCLLIBPATH=. ${srcdir}
 mkinstalldirs= mkdir -p
 #========================================================================
 # Nothing of the variables below this line should need to be changed.
@@ -607,7 +607,7 @@ rpm: tar
 	rpmbuild -ba $(RPMSPECS)/xotcl-$(PACKAGE_VERSION).spec
 
 bin-tar: 
-	(cd ../..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
+	(cd ..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
                 `find $(exec_prefix)/bin/xotclsh $(exec_prefix)/bin/xowish \
 		  $(prefix)/include/xotcl*.h \
                   $(DESTDIR)$(pkglibdir) $(prefix)/man/man1/xo* \
