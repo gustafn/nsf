@@ -1,3 +1,9 @@
+2004-07-29 Gustaf.Neumann@wu-wien.ac.at
+        * changes to forward and instforward: 
+            + %some-command executes some-command at invocation time and 
+              substitutes result
+            + substitution extended to all arguments (also on callee)
+        
 2004-07-28 Gustaf.Neumann@wu-wien.ac.at
         * yet another fixed access to freed memory 
           (thanks to Zoran for his help with Purify )

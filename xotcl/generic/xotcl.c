@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.17 2004/07/28 08:18:47 neumann Exp $
+/* $Id: xotcl.c,v 1.18 2004/07/30 09:21:36 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -7375,7 +7375,58 @@ XOTclOEvalMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]
 #endif
 
 static int
-XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]) {
+forwardArg(Tcl_Interp *in, int objc, Tcl_Obj *o, forwardCmdClientData *tcd,
+	   Tcl_Obj *CONST objv[], Tcl_Obj **out, Tcl_Obj **freeList, int *inputarg) {
+  char *element = ObjStr(o);
+  if (*element == '%') {
+    char c = *(++element);
+    if (c == 's' && !strcmp(element,"self")) {
+      *out = tcd->obj->cmdName;
+    } else if (c == 'p' && !strcmp(element,"proc")) {
+      *out = objv[0];
+    } else if (c == '1' && (*(element+1) == '\0')) {
+      int nrargs = objc-1;
+      /*fprintf(stderr, "   nrargs=%d, subcommands=%d inputarg=%d, objc=%d\n", 
+	nrargs, tcd->nr_subcommands, inputarg, objc);*/
+      if (tcd->nr_subcommands > nrargs) {
+	/* insert default subcommand depending on number of arguments */
+	int rc =  Tcl_ListObjIndex(in, tcd->subcommands, nrargs, out);
+	if (rc != TCL_OK)
+	  return rc;
+      } else if (objc<=1) {
+	return XOTclObjErrArgCnt(in, objv[0], "no argument given");
+      } else {
+	*out = objv[1];
+	*inputarg = 2;
+      }
+    } else if (c == '%') {
+      Tcl_Obj *newarg = Tcl_NewStringObj(element,-1);
+      *out = newarg;
+      goto add_to_freelist;
+    } else {
+      int result;
+      /*fprintf(stderr,"evaluating '%s'\n",element);*/
+      if ((result = Tcl_Eval(in, element)) != TCL_OK) 
+	return result;
+      *out = Tcl_DuplicateObj(Tcl_GetObjResult(in));
+      /*fprintf(stderr,"result = '%s'\n",ObjStr(*out));*/
+      goto add_to_freelist;
+    }
+  } else {
+    *out = o;
+  }
+  return TCL_OK;
+ add_to_freelist:
+  if (!*freeList) {
+    *freeList = Tcl_NewListObj(1, out);
+    INCR_REF_COUNT(*freeList);
+  } else 
+    Tcl_ListObjAppendElement(in, *freeList, *out);
+  return TCL_OK;
+}
+
+static int
+XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]) {
   forwardCmdClientData *tcd = (forwardCmdClientData *)cd;
   XOTcl_FrameDecls;
   int result, j, inputarg=1, outputarg=0;
@@ -7404,7 +7455,12 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv
 #endif
 
     /* the first argument is always the command, to which we forward */
-    ov[outputarg++] = tcd->cmdName;
+
+    if ((result = forwardArg(in, objc, tcd->cmdName, tcd, objv, 
+			     &ov[outputarg++], &freeList, &inputarg)) != TCL_OK) {
+      if (freeList) {DECR_REF_COUNT(freeList);}
+      return result;
+    }
 
     if (tcd->args) {
       /* copy argument list from definition */
@@ -7413,46 +7469,11 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv
       Tcl_ListObjGetElements(in, tcd->args, &nrElements, &listElements);
 
       for (j=0; j<nrElements; j++) {
-	char *element = ObjStr(listElements[j]);
-	if (*element == '%') {
-	  char c = *(element+1);
-	  if (c == 's' && !strcmp(element,"%self")) {
-	    ov[outputarg++] = tcd->obj->cmdName;
-	    continue;
-	  } else if (c == 'p' && !strcmp(element,"%proc")) {
-	    ov[outputarg++] = objv[0];
-	    continue;
-	  } else if (c == '1' && (*(element+2) == '\0')) {
-	    int nrargs = objc-1;
-	    /*fprintf(stderr, "   nrargs=%d, subcommands=%d inputarg=%d, objc=%d\n", 
-	      nrargs, tcd->nr_subcommands, inputarg, objc);*/
-	    if (tcd->nr_subcommands > nrargs) {
-	      /* insert default subcommand depending on number of arguments */
-	      int rc =  Tcl_ListObjIndex(in, tcd->subcommands, nrargs, &ov[outputarg]);
-	      if (rc != TCL_OK)
-		return rc;
-	      outputarg++;
-	    } else if (objc<=1) {
-	      if (freeList) {DECR_REF_COUNT(freeList);}
-	      return XOTclObjErrArgCnt(in, objv[0], "no argument given");
-	    } else {
-	      ov[outputarg++] = objv[1];
-	      inputarg = 2;
-	    }
-	    continue;
-	  } else if (c == '%') {
-	    Tcl_Obj *newarg = Tcl_NewStringObj(element+1,-1);
-	    if (!freeList) {
-	      freeList = Tcl_NewListObj(1, &newarg);
-	      INCR_REF_COUNT(freeList);
-	    } else {
-	      Tcl_ListObjAppendElement(in, freeList, newarg);
-	    }
-	    ov[outputarg++] = newarg;
-	    continue;
-	  }
+	if ((result = forwardArg(in, objc, listElements[j], tcd, objv, 
+				 &ov[outputarg++], &freeList, &inputarg))!= TCL_OK) {
+	  if (freeList) {DECR_REF_COUNT(freeList);}
+	  return result;
 	}
-	ov[outputarg++] = listElements[j];
       }
     }
     /*
