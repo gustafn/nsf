@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.19 2004/08/25 09:45:23 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.20 2004/08/26 19:50:28 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -601,11 +601,12 @@ end:
 RPMSOURCES=/usr/src/redhat/SOURCES
 RPMSPECS=/usr/src/redhat/SPECS
 
-rpm: tar
+rpm:
 	@if test ! -d $(RPMSOURCES); then mkdir -p $(RPMSOURCES); fi
 	@if test ! -d $(RPMSPECS); then mkdir -p $(RPMSPECS); fi
-	cp ../xotcl-$(PACKAGE_VERSION).tar.gz $(RPMSOURCES)
 	cp unix/xotcl.spec $(RPMSPECS)/xotcl-$(PACKAGE_VERSION).spec
+	make tar
+	cp ../xotcl-$(PACKAGE_VERSION).tar.gz $(RPMSOURCES)
 	rpmbuild -ba $(RPMSPECS)/xotcl-$(PACKAGE_VERSION).spec
 
 bin-tar: 
