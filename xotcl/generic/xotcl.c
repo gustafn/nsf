@@ -1,5 +1,5 @@
 #define NAMESPACEINSTPROCS 1
-/* $Id: xotcl.c,v 1.4 2004/06/20 21:14:14 neumann Exp $
+/* $Id: xotcl.c,v 1.5 2004/06/20 21:29:09 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -48,7 +48,7 @@
 #include "xotclAccessInt.h"
 
 #ifdef KEEP_TCL_CMD_TYPE
-# include "tclCompile.h"
+/*# include "tclCompile.h"*/
 #endif
 
 #ifdef COMPILE_XOTCL_STUBS

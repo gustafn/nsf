@@ -1,4 +1,5 @@
 2004-06-20 Gustaf.Neumann@wu-wien.ac.at
+	* removed inclusion of <tclCompile.h>
         * second version of mkinstdelegator and mkdelegator
 
             A delegator method is defined via 
