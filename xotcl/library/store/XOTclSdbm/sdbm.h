@@ -5,9 +5,7 @@
  * status: public domain. 
  */
 
-#if defined(VISUAL_CC)
-  #define size_t int
-#else
+#ifndef VISUAL_CC
   #include <unistd.h>
 #endif
 #define DBLKSIZ 4096

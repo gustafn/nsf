@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<!-- $Id: tutorial.html,v 1.3 2004/08/17 10:12:55 neumann Exp $ -->
+<!-- $Id: tutorial.html,v 1.4 2004/08/17 22:59:31 neumann Exp $ -->
 <HTML>
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
@@ -3222,38 +3222,46 @@ extended by extending the class <tt>::xotcl::Relations</tt>.
 	<IMG SRC="logo-100.jpg" NAME="Graphic9" ALIGN=RIGHT WIDTH=102 HEIGHT=42 BORDER=0></TD>
     </TR>
 </TABLE>
-<P>You have see from various examples that the primary command for
-method forwarding works in XOTcl via the primitive <tt>next</tt>,
-which calls the same-named method of the current object mostly with
-the same argument list. However, frequently a method forwarding is
-necessary as well between different objects. This is called delegation
-within the literature.</P> 
+<P>As you have seen from many examples, XOTcl's primary command for
+method forwarding is the <tt>next</tt> primitive.  <tt>next</tt> calls
+the same-named method of the current object, usually with the same
+argument list. However, frequently method forwarding is required
+between different objects as well, commonly referred to as
+delegation.</P>
 
-<P>In general, delegation can be achieved in XOTcl via small stub
-methods, which are procs or instprocs containing mostly the call to
-the desired method. In addition, XOTcl support the methods
-<tt>forward</tt> and <tt>instforward</tt> which are more efficient and
-provide higher flexibility. We will introduce the forwarding mechanisms
-of XOTcl here based on examples.
+<P>In general, delegation can be achieved in XOTcl using procs or
+instprocs containing mostly a forward invocation to the target
+method. In several situations, forwarding is as well needed to general
+tcl commands, for example, if object oriented stubs are implemented on
+base of non-oo function calls. These functions might access instance
+variables of the objects. XOTcl uses this functionality in various
+situations, such as for instance in the implementation of the
+<tt>append</tt>, <tt>trace</tt> or <tt>array</tt> methods.</p>
+
+<p>The methods <tt>forward</tt> and <tt>instforward</tt> address these
+requirements and provide an efficient implementation for these tasks.
 </p>
+
+<P>We will introduce these forwarding mechanisms of XOTcl here based on
+examples.</P>
 
 <p>In our first example we define an object <tt>dog</tt> and an object
 <tt>tail</tt>. If the <tt>dog</tt> receives the call <tt>wag</tt> it
 delegates this call to the <tt>tail</tt> and returns its result.  In
-this introductory example, the method <tt>tail</tt> returns simply its
+this introductory example, the method <tt>tail</tt> simply returns its
 arguments. </p>
 
-<p>The forwarding is achieved through the method <tt>forward</tt>
-which creates a forwarder command in XOTcl. This method receives as
-first argument the name, under which the forwarder is registers,
-followed by the object that receives the delegation (the callee),
-followed my the (optional) method name and optional arguments. More
-about this later. Here we register the forwarder under the name
-<tt>wag</tt>, the callee is <tt>tail</tt> and the method is defined to
-be the same name as the name of the forwarder. We could have written
-here <tt>dog forward wag tail wag</tt> as well, be we use
-<tt>%proc</tt> which refers to the name of the forwarder and is more
-general, in case the forwarder is renamed.
+<p>In this example, forwarding is achieved through the method
+<tt>forward</tt> that creates a forwarder command. This method
+receives as first argument the name, under which the forwarder is
+registered, followed by the object that receives the delegation (the
+"callee"), followed my the (optional) method name and optional
+arguments. More about this later. Here we register the forwarder under
+the name <tt>wag</tt>, the callee is <tt>tail</tt>, and the method is
+defined to have the name of the forwarder. We could have written here
+<tt>dog forward wag tail wag</tt> as well, be we use <tt>%proc</tt>
+which refers to the name of the forwarder. Using <tt>%proc</tt> is
+slightly more general in cases the forwarder is renamed.
 </p>
 
 <pre CLASS="code">
@@ -3272,15 +3280,14 @@ value <tt>100</tt>. The general form of the forwarder is:
   <em>obj</em> <tt> forward</tt> <em> proc ?options? callee ?arglist?</em> 
   <em>cls</em> <tt> instforward</tt> <em> proc ?options? callee ?arglist?</em> 
 </pre>
-where valid options are  <tt>-objscope</tt>, <tt>-methodprefix</tt> and <tt>-default</tt>.
-Each of the arguments of these methods can be 
-<tt>%self</tt>,
-<tt>%proc</tt>,
-<tt>%1</tt>, or <tt>%</tt> followed be a tcl command, and it can be prefixed by a 
-positional prefix <tt>%@</tt>. Usages of these forms are shown in the sequel.</p>
+where valid options are <tt>-objscope</tt>, <tt>-methodprefix</tt> and
+<tt>-default</tt>.  Each of the arguments of these methods can be
+<tt>%self</tt>, <tt>%proc</tt>, <tt>%1</tt>, or <tt>%</tt> followed by
+a tcl command, and it can be prefixed with a positional prefix
+<tt>%@</tt>. Usages of these forms are shown in the sequel.</p>
 
-<p>The following command shows the delegation not to an object, but to
-a tcl command. We define a simple forwarder that forwards a call to the
+<p>The following command shows the delegation to a Tcl command (instead of
+delegation to an object). We define a simple forwarder that forwards a call to the
 tcl command <tt>expr</tt> with some arguments.
 
 <pre CLASS="code">
@@ -3290,16 +3297,18 @@ tcl command <tt>expr</tt> with some arguments.
   <tt>Object</tt> obj
   obj <tt>forward</tt> addOne <tt>expr</tt> 1 +
 </pre>
-A call to <tt>obj addOne 5</tt> returns 6 as value.<p>
+The invocation <tt>obj addOne 5</tt> returns 6 as value.<p>
 
 
 <p>In our next example we want additionally that the tcl command
-should to be evaluated in the context of the current object. We define
-a forwarder for the class <tt>X</tt> with the name <tt>Incr</tt> (to
-avoid confusion with the already defined method <tt>incr</tt>), we use
-the <tt>-objscope</tt> option and specify <tt>incr</tt> as the callee.
-Since the forwarder is defined via <tt>instforward</tt> the forwarder
-is available to all instances of the class.
+should to be evaluated in the context of the current object. This
+means that the method can easily access instance variables of the
+delegating object. We define a forwarder for the class <tt>X</tt> with
+the name <tt>Incr</tt> (to avoid confusion with the already defined
+method <tt>incr</tt>), we use the <tt>-objscope</tt> option and
+specify <tt>incr</tt> as the callee.  Since the forwarder is defined
+via <tt>instforward</tt> the forwarder is available to all instances
+of the class.
 <pre CLASS="code">
   <it>###########################################</it>
   <it># evaluating in scope </it>
@@ -3315,15 +3324,16 @@ is available to all instances of the class.
 After the three calls to <tt>Incr</tt> the call <tt>x1 x</tt>
 returns the value 103.</p>
 
-<p>In our next example, we show the usage of the percentage and of
-more advanced argument handling. This example sketches the
-implementation of the mixin, instmixin, filter, instfilter methods as
-shown above. In order to obtain extensible subcommands (such as
-<tt>mixin add</tt>, <tt>mixin set</tt>, etc., we define a command that
-keeps this methods. We will use this command as callee for the
-appropriate methods. So, we define an object named <tt>mixin</tt> and
-define a forwarder with the name <tt>Mixin</tt> (again we capitalize
-Mixin to avoid name clashes with the already defined method).
+<p>In our next example, we show the usage of the
+<tt>%</tt>-substitution more advanced argument handling. This example
+sketches the implementation of the <tt>mixin add</tt>, <tt>mixin
+set</tt> methods as shown above. In order to obtain extensible
+subcommands (such as <tt>mixin add</tt>, <tt>mixin set</tt>, etc.), we
+define an object for which the subcommands are defined as methods. We
+will use this object as callee for the appropriate methods. So, we
+define an object named <tt>mixin</tt> and define a forwarder with the
+name <tt>Mixin</tt> (again we capitalize <tt>Mixin</tt> to avoid name clashes
+with the already defined method<tt>mixin</tt> ).
 <pre CLASS="code">
   <it>###########################################</it>
   <it># mixin example</it>
@@ -3333,7 +3343,7 @@ Mixin to avoid name clashes with the already defined method).
   obj <tt>forward</tt> Mixin mixin %1 %self
 </pre>
 We define here the method <tt>unknown</tt> to see what arguments are
-passed. the following invocation will lead to the call in noted in the comment.
+passed. The following invocation will lead to the call in noted in the comment.
 <pre CLASS="code">
   obj Mixin add M1       <it>;# calls ::mixin add ::obj M1</it>
 </pre>
@@ -3347,7 +3357,7 @@ usual. However, in calls like
 </pre>
 we have to deal with cases, where the used arguments (especially the
 first one) are not given at the invocation, otherwise we get an
-error. For specifying default methods the option <tt>-default</tt> can
+error. For specifying default methods, the option <tt>-default</tt> can
 be used.
 <pre CLASS="code">
   obj <tt>forward</tt> Mixin <tt>-default</tt> {getter setter} mixin %1 %self
@@ -3356,16 +3366,16 @@ This definition means that if no argument is specified in the
 invocation we call the method <tt>getter</tt>, if one argument is
 given the method <tt>setter</tt>, in other cases we use the specified
 arguments. Therefore the following three invocations are delegated as
-written in the comments.
+indicated in the comments.
 <pre CLASS="code">
-  obj Mixin;             <it>;# calls ::mixin getter ::obj</it>
+  obj Mixin              <it>;# calls ::mixin getter ::obj</it>
   obj Mixin M1           <it>;# calls ::mixin setter ::obj M1</it>
   obj Mixin add M1       <it>;# calls ::mixin add ::obj M1</it>
 </pre>
 
-<p>When we implement subcommands through delegating to other commands
-(as shown in the last example) there can be situations where naming
-conflicts might arise. If we want for example to implement a
+<p>When we implement subcommands by delegating to other commands
+(as shown in the last example), there can be situations where naming
+conflicts might arise. For example, if we want to implement a
 subcommand method <tt>class</tt> we might not want to implement a new
 method <tt>class</tt> on the callee, since this would overwrite the
 standard definition of <tt>class</tt>. To overcome such difficulties,
@@ -3394,9 +3404,9 @@ With this definitions, the following call is rewritten as indicated in the comme
   x1 Info class          <it>;# ::Info @class ::x1</it
 </pre>
 
-<p>When a forwarder is defined the callee (the target command) can be
+<p>When a forwarder is defined, the callee (the target command) can be
 omitted. When the callee is not specified, the method-name is used
-instead. When the method-name has a namespace prefix the method name
+instead. When the method-name has a namespace prefix, the method name
 is the tail and the callee is the fully qualified name.
 </p>
 <pre CLASS="code">
@@ -3408,16 +3418,21 @@ is the tail and the callee is the fully qualified name.
   <tt>Object</tt> n; <tt>Object</tt> n::x
   obj <tt>forward</tt> ::n::x
 </pre>
-With this definitions, the following call is rewritten as indicated in the comment.
+With this definitions of the forwarder <tt>append</tt> and <tt>x</tt>,
+the following calls are rewritten as indicated in the comment.
 <pre CLASS="code">
-  obj append x y z        <it>;# append x y z ... returning  2yz</it>
-  obj x self              <it>;# ::n::x self  ... returning  ::n::x</it>
+  obj append x y z        <it>;# ::append x y z ... returning  2yz</it>
+  obj x self              <it>;# ::n::x self    ... returning  ::n::x</it>
 </pre>
-<p>The list of tokens executed by the forwarder might contain tcl
-commands executed during every invocations. This makes it for instance
-possible to pass instances variables to the callee. In the next
-example the object has the instvar named <tt>x</tt> which is multiplied
-by a factor of 10 when the method <tt>x*</tt> is invoked.
+<p>The forwarder <tt>append</tt> forwards the call to the Tcl command
+<tt>append</tt>, which accesses the instance variable <tt>x</tt> and
+appends the specified values.</p>
+
+<p>The list of tokens executed by the forwarder might
+contain Tcl commands executed during every invocations. This makes it
+for instance possible to pass instances variables to the callee. In
+the next example the object has the instvar named <tt>x</tt> which is
+multiplied by a factor of 10 when the method <tt>x*</tt> is invoked.
 <pre CLASS="code">
   <it>###########################################</it>
   <it># command substitution</it>
@@ -3450,7 +3465,7 @@ whether last command exhausted all input), and <tt>fconfigure</tt> (to
 configure the stream). Note that for <tt>puts</tt> we specified that
 the actual stream should be inserted as the second to last argument.
 </p>
-<pre>
+<pre CLASS="code">
   <tt>Class</tt> chan <tt>-parameter</tt> stream
   <it># create stream and object</it>
   chan <tt>proc</tt> open args { 
