@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.29 2004/11/14 17:36:36 neumann Exp $
+/* $Id: xotcl.c,v 1.30 2004/11/19 01:41:32 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -1725,7 +1725,9 @@ AutonameIncr(Tcl_Interp *in, Tcl_Obj *name, XOTclObject *obj,
 XOTclCallStackContent *
 XOTclCallStackFindLastInvocation(Tcl_Interp *in, int offset) {
   XOTclCallStack *cs = &RUNTIME_STATE(in)->cs;
-  register XOTclCallStackContent *csc = CallStackGetFrame(in);
+  register XOTclCallStackContent *csc = cs->top;
+  int topLevel = csc->currentFramePtr ? Tcl_CallFrame_level(csc->currentFramePtr) :0;
+  int deeper = offset;
 
   /* skip through toplevel inactive filters, do this offset times */
   for (csc=cs->top; csc > cs->content; csc--) {
@@ -1734,8 +1736,10 @@ XOTclCallStackFindLastInvocation(Tcl_Interp *in, int offset) {
       continue;
     if (offset)
       offset--;
-    else
-      return csc;
+    else {
+      if (!deeper || Tcl_CallFrame_level(csc->currentFramePtr) != topLevel)
+	return csc;
+    }
   }
   /* for some reasons, we could not find invocation (topLevel, destroy) */
   return NULL;
@@ -4082,8 +4086,8 @@ DoCallProcCheck(ClientData cp, ClientData cd, Tcl_Interp *in,
 XOTCLINLINE static int
 DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int flags) {
   register XOTclObject *obj = (XOTclObject*)cd;
-  int result, mixinStackPushed = 0,
-    filterStackPushed = 0,
+  int result = TCL_OK, mixinStackPushed = 0,
+    filterStackPushed = 0, unknown,
     frameType = XOTCL_CSC_TYPE_PLAIN;
 #ifdef OBJDELETION_TRACE
   Tcl_Obj *method;
@@ -4100,7 +4104,6 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
 #ifdef AUTOVARS
   int isNext;
 #endif
-
 
   assert(objc>0);
   methodName = callMethod = ObjStr(objv[1]);
@@ -4207,41 +4210,54 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
       }
     }
     
-    if (proc && ((result = DoCallProcCheck(cp, cd, in, objc, objv, cmd, obj, cl, 
-					   callMethod, frameType, 0 /* fromNext */))
-		 != XOTCL_UNKNOWN)) {
-	if (result == TCL_ERROR)
-	  XOTclErrInProc(in, cmdName, cl ? cl->object.cmdName : NULL, callMethod);
+    if (proc) {
+      result = DoCallProcCheck(cp, cd, in, objc, objv, cmd, obj, cl, 
+			       callMethod, frameType, 0 /* fromNext */);
+      if (result == TCL_ERROR) {
+	XOTclErrInProc(in, cmdName, cl ? cl->object.cmdName : NULL, callMethod);
+      }
+      unknown = RUNTIME_STATE(in)->unknown;
+    } else {
+      unknown = 1;
+    }
+    
+    if (result == TCL_OK) {
+      /*fprintf(stderr,"after doCallProcCheck unknown == %d\n",unknown);*/
+      if (unknown) {
 
-    } else if (XOTclObjectIsClass(obj) && (flags & XOTCL_CM_NO_UNKNOWN)) {
-      Tcl_AppendResult(in, ObjStr(objv[0]), ": unable to dispatch method '",
-		       callMethod, "'", 0);
-      result = TCL_ERROR;
-    } else if (objv[1] != XOTclGlobalObjects[UNKNOWN]) {
-      /*
-       * back off and try unknown;
-       */
-      XOTclObject *obj = (XOTclObject*)cd;
-      ALLOC_ON_STACK(Tcl_Obj*,objc+1, tov);
-      /*
-      fprintf(stderr,"calling unknown for %s %s ... flags=%02x,%02x isClass=%d %p %s\n",
-	      ObjStr(obj->cmdName), ObjStr(objv[1]), flags,  XOTCL_CM_NO_UNKNOWN, 
-	      XOTclObjectIsClass(obj), obj, ObjStr(obj->cmdName));
-      */
-      tov[0] = obj->cmdName;
-      tov[1] = XOTclGlobalObjects[UNKNOWN];
-      if (objc>1)
-	memcpy(tov+2, objv+1, sizeof(Tcl_Obj *)*(objc-1));
-      /*
-	fprintf(stderr,"?? %s unknown %s\n",ObjStr(obj->cmdName), ObjStr(tov[2]));
-      */
-      result = DoDispatch(cd, in, objc+1, tov, flags | XOTCL_CM_NO_UNKNOWN);
-      FREE_ON_STACK(tov);
-
-    } else { /* unknown failed */
-      Tcl_AppendResult(in, ObjStr(objv[0]), ": unable to dispatch method '",
-		       ObjStr(objv[2]), "'", 0);
-      result = TCL_ERROR;
+	if (XOTclObjectIsClass(obj) && (flags & XOTCL_CM_NO_UNKNOWN)) {
+	  Tcl_AppendResult(in, ObjStr(objv[0]), ": unable to dispatch method '",
+			   callMethod, "'", 0);
+	  result = TCL_ERROR;
+	} else if (objv[1] != XOTclGlobalObjects[UNKNOWN]) {
+	  /*
+	   * back off and try unknown;
+	   */
+	  XOTclObject *obj = (XOTclObject*)cd;
+	  ALLOC_ON_STACK(Tcl_Obj*,objc+1, tov);
+	  /*
+	    fprintf(stderr,"calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s\n",
+	    ObjStr(obj->cmdName), ObjStr(objv[1]), flags,  XOTCL_CM_NO_UNKNOWN, 
+	    XOTclObjectIsClass(obj), obj, ObjStr(obj->cmdName));
+	  */
+	  tov[0] = obj->cmdName;
+	  tov[1] = XOTclGlobalObjects[UNKNOWN];
+	  if (objc>1)
+	    memcpy(tov+2, objv+1, sizeof(Tcl_Obj *)*(objc-1));
+	  /*
+	    fprintf(stderr,"?? %s unknown %s\n",ObjStr(obj->cmdName), ObjStr(tov[2]));
+	  */
+	  result = DoDispatch(cd, in, objc+1, tov, flags | XOTCL_CM_NO_UNKNOWN);
+	  FREE_ON_STACK(tov);
+	  
+	} else { /* unknown failed */
+	  Tcl_AppendResult(in, ObjStr(objv[0]), ": unable to dispatch method '",
+			   ObjStr(objv[2]), "'", 0);
+	  result = TCL_ERROR;
+	}
+	/* be sure to reset unknown flag */
+	RUNTIME_STATE(in)->unknown = 0;
+      }
     }
 
 #ifdef DISPATCH_TRACE
@@ -4296,7 +4312,6 @@ ObjDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
     result = DoDispatch(cd, in, objc, objv, flags);
   }
 
-  assert(result != XOTCL_UNKNOWN);
   return result;
 }
 
@@ -5372,7 +5387,8 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *in, XOTclClass *givenCl,
     else if (csc->frameType == XOTCL_CSC_TYPE_INACTIVE_MIXIN)
       csc->frameType = XOTCL_CSC_TYPE_ACTIVE_MIXIN;
   } else if (result == TCL_OK && endOfFilterChain) {
-    result = XOTCL_UNKNOWN;
+    /*fprintf(stderr,"setting unknown to 1\n");*/
+    RUNTIME_STATE(in)->unknown = 1;
   }
 
   return result;
@@ -5495,19 +5511,24 @@ computeLevelObj(Tcl_Interp *in, CallStackLevel level) {
   default: csc = NULL;
   }
 
-  /*XOTclCallStackDump(in);*/
   if (cs->top->currentFramePtr == ((Tcl_CallFrame *)Tcl_Interp_varFramePtr(in))
       && csc && csc < cs->top && csc->currentFramePtr) {
     /* this was from an xotcl frame, return absolute frame number */
     char buffer[LONG_AS_STRING];
     int l;
     buffer[0] = '#';
+    /*
+    if (Tcl_CallFrame_callerVarPtr(csc->currentFramePtr)) {
+      cf = Tcl_CallFrame_callerVarPtr(csc->currentFramePtr);
+      }*/
     XOTcl_ltoa(buffer+1,(long)Tcl_CallFrame_level(csc->currentFramePtr),&l);
     resultObj = Tcl_NewStringObj(buffer,l+1);
   } else {
     /* If not called from an xotcl frame, return 1 as default */
     resultObj = Tcl_NewIntObj(1);
   }
+  /*XOTclStackDump(in);XOTclCallStackDump(in);*/
+
   return resultObj;
 }
 

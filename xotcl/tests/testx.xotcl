@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.19 2004/11/14 01:07:17 neumann Exp $
+#$Id: testx.xotcl,v 1.20 2004/11/19 01:41:32 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -3389,6 +3389,56 @@ uplevelCmds proc run {{n 20}} {
       "upvar method: uplevel through filter, mixin and class hierarchy + activelevel (dl)"
   Object instfilter ""
   D instmixin {}
+
+
+  Object instproc each {objName body} {
+    #puts " *** level = [info level] self callinglevel = [self callinglevel]"
+    uplevel [self callinglevel] [list foreach $objName [lsort [[self] info children]] $body]
+  }
+
+  Class TestB
+  Class TestA
+  TestA instproc init {args} {
+    next
+    TestB [self]::b1
+    TestB [self]::b2
+    TestB [self]::b3
+  }
+
+  Class Test
+  Test instproc init {args} {
+    next
+    TestA [self]::a1
+    TestA [self]::a2
+    TestA [self]::a3
+  }
+  Test instproc loop1 {} {
+    set i 0
+    [self] each a {
+      incr i
+      #puts "$a"
+    }
+    #puts "Total = $i"
+    return $i
+  }
+  Test instproc loop2 {} {
+    set i 0
+    [self] each a {
+      incr i
+      #puts "$a"
+      $a each b {
+	incr i
+	#puts "  $b"
+      }
+    }
+    #puts "Total = $i"
+    return $i
+  }
+
+  Test t
+
+  errorCheck [t loop1] 3 "uplevel eval loop"
+  errorCheck [t loop2] 12 "nested uplevel eval loop"
 
   return "PASSED [self]"
 }

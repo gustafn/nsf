@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.10 2004/11/14 01:07:17 neumann Exp $
+ *  $Id: xotclInt.h,v 1.11 2004/11/19 01:41:32 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -261,7 +261,7 @@ typedef struct XOTclMemCounter {
 # endif
 #endif
 
-#if 0
+#if 1
 #define XOTcl_FrameDecls CallFrame *oldFramePtr = 0, frame, *newFramePtr = &frame
 #define XOTcl_PushFrame(in,obj) \
      memset(newFramePtr, 0, sizeof(CallFrame)); \
@@ -322,7 +322,6 @@ typedef struct XOTclMemCounter {
 
 /* TCL_CONTINUE is defined as 4, from 5 on we can
    use app-specific return codes */
-#define XOTCL_UNKNOWN 5
 #define XOTCL_CHECK_FAILED 6
 
 /* flags for call method */
@@ -612,6 +611,7 @@ typedef struct XOTclRuntimeState {
   int errorCount;
   int callDestroy;
   int callIsDestroy;
+  int unknown;
   int exitHandlerDestroyRound;
   int returnCode;
   long newCounter;

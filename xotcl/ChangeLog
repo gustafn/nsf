@@ -1,6 +1,13 @@
+2004-11-18 Gustaf.Neumann@wu-wien.ac.at
+        * changed internal communication between end-of-filterchanin
+          and "unknown" to flag instead of return code XOTCL_UNKNOWN
+        * fixed [self callinglevel] in nested uplevel loops
+          (many thanks to MichaelL@frogware.com for reporting the problem)
+
 2004-11-14 Gustaf.Neumann@wu-wien.ac.at
         * fixed yet another free memory read 
           (many thanks for Zoran for help with purify)
+
 2004-11-13 Gustaf.Neumann@wu-wien.ac.at
         * fixed entries for aolserver in configure.in 
           (many thanks for Zoran reporting this problem)
