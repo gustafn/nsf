@@ -160,7 +160,7 @@ XOTclSdbmNamesMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST obj
    */
   list = Tcl_NewListObj(0, NULL);
   do {
-      Tcl_ListObjAppendElement(in,list,Tcl_NewStringObj(key.dptr,key.dsize-1));
+    Tcl_ListObjAppendElement(in,list,Tcl_NewStringObj(key.dptr,(int)(key.dsize-1)));
       key = sdbm_nextkey(db->db);
   } while (key.dptr);
   Tcl_SetObjResult(in, list);
@@ -191,7 +191,7 @@ XOTclSdbmSetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
       content = sdbm_fetch(db->db,key);
       if (content.dptr) {
 	  /* found */
-	  Tcl_Obj *r = Tcl_NewStringObj(content.dptr, content.dsize-1);
+	Tcl_Obj *r = Tcl_NewStringObj(content.dptr, (int)(content.dsize-1));
 	  Tcl_SetObjResult(in, r);
       } else {
 	  /* key not found */

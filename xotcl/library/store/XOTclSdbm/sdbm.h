@@ -4,6 +4,8 @@
  * author: oz@nexus.yorku.ca
  * status: public domain. 
  */
+#include <unistd.h>
+
 #define DBLKSIZ 4096
 #define PBLKSIZ 1024
 #define PAIRMAX 1008			/* arbitrary on PBLKSIZ-N */
@@ -44,7 +46,7 @@ typedef struct {
 
 typedef struct {
 	char *dptr;
-	int dsize;
+	size_t dsize;
 } datum;
 
 extern datum nullitem;
@@ -76,4 +78,4 @@ extern datum sdbm_nextkey proto((DBM *));
  * other
  */
 extern DBM *sdbm_prep proto((char *, char *, int, int));
-extern long sdbm_hash proto((char *, int));
+extern long sdbm_hash proto((char *, size_t));

@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.13 2004/07/30 09:21:36 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.14 2004/08/02 09:43:32 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -28,7 +28,7 @@ src_test_dir 	= ${srcdir}/tests
 src_app_dir 	= ${srcdir}/apps
 src_generic_dir = ${srcdir}/generic
 PLATFORM_DIR    = $(srcdir)/unix
-TCL_LIB_SPEC    = -L/home/neumann/tcl8.4.5/unix -ltcl8.4
+TCL_LIB_SPEC    = -L/home/neumann/import/tcl8.4.7/unix -ltcl8.4
 TK_LIB_SPEC	= -L/usr/lib -ltk8.4
 subdirs		=  library/store/XOTclSdbm/ library/store/XOTclGdbm/ library/xml/TclExpat-1.1/
 
@@ -133,11 +133,11 @@ RANLIB_STUB	= ranlib
 SHLIB_CFLAGS	= -fPIC
 SHLIB_LD	= gcc -pipe -shared
 SHLIB_LD_FLAGS	= 
-SHLIB_LD_LIBS	= ${LIBS} -L/home/neumann/tcl8.4.5/unix -ltclstub8.4 -L/usr/lib -ltkstub8.4
+SHLIB_LD_LIBS	= ${LIBS} -L/home/neumann/import/tcl8.4.7/unix -ltclstub8.4 -L/usr/lib -ltkstub8.4
 STLIB_LD	= ${AR} cr
-TCL_DEFS	=  -DHAVE_UNISTD_H=1 -DHAVE_LIMITS_H=1 -DTCL_THREADS=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1 -D_LARGEFILE64_SOURCE=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_STRUCT_STAT64=1 -DHAVE_TYPE_OFF64_T=1 -DHAVE_GETCWD=1 -DHAVE_OPENDIR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOL=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_TMPNAM=1 -DHAVE_WAITPID=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_TERMIOS=1 -DHAVE_SYS_TIME_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_TM_ZONE=1 -DHAVE_GMTIME_R=1 -DHAVE_LOCALTIME_R=1 -DHAVE_TM_GMTOFF=1 -DHAVE_TIMEZONE_VAR=1 -DHAVE_ST_BLKSIZE=1 -DSTDC_HEADERS=1 -DHAVE_SIGNED_CHAR=1 -DHAVE_LANGINFO=1 -DPEEK_XCLOSEIM=1 -DHAVE_SYS_IOCTL_H=1 
-TCL_BIN_DIR	= /home/neumann/tcl8.4.5/unix
-TCL_SRC_DIR	= /home/neumann/tcl8.4.5
+TCL_DEFS	=  -DTCL_THREADS=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_PTHREAD_ATFORK=1 -DHAVE_READDIR_R=1 -DPEEK_XCLOSEIM=1 -D_LARGEFILE64_SOURCE=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_STRUCT_STAT64=1 -DHAVE_TYPE_OFF64_T=1 -DHAVE_GETCWD=1 -DHAVE_OPENDIR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOL=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_TMPNAM=1 -DHAVE_WAITPID=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_TERMIOS=1 -DHAVE_SYS_TIME_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_TM_ZONE=1 -DHAVE_GMTIME_R=1 -DHAVE_LOCALTIME_R=1 -DHAVE_TM_GMTOFF=1 -DHAVE_TIMEZONE_VAR=1 -DHAVE_ST_BLKSIZE=1 -DSTDC_HEADERS=1 -DHAVE_SIGNED_CHAR=1 -DHAVE_LANGINFO=1 -DHAVE_SYS_IOCTL_H=1 
+TCL_BIN_DIR	= /home/neumann/tcl8.4.7/unix
+TCL_SRC_DIR	= /home/neumann/import/tcl8.4.7
 # This is necessary for packages that use private Tcl headers
 #TCL_TOP_DIR_NATIVE	= $(TCL_SRC_DIR)
 # Not used, but retained for reference of what libs Tcl required
@@ -159,7 +159,7 @@ TCLSH_ENV	= TCL_LIBRARY=`echo $(TCL_SRC_DIR)/library` \
 		  LD_LIBRARY_PATH="$(EXTRA_PATH):$(LD_LIBRARY_PATH)" \
 		  PATH="$(EXTRA_PATH):$(PATH)" \
 		  TCLLIBPATH="$(top_builddir)"
-TCLSH_PROG	= /home/neumann/tcl8.4.5/unix/tclsh
+TCLSH_PROG	= /home/neumann/tcl8.4.7/unix/tclsh
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= 1
 
@@ -587,7 +587,7 @@ end:
 	@echo "   setenv TCLLIBPATH \"$(TCLLIBPATH)\""
 	@echo " and"
 	@if test "x$(XOTCLSH)" = "x" ; then \
-	  echo "   /home/neumann/tcl8.4.5/unix/tclsh" ; \
+	  echo "   /home/neumann/tcl8.4.7/unix/tclsh" ; \
 	  echo "   package require XOTcl; namespace import -force xotcl::*" ; \
 	  echo " or" ; \
 	  echo "   put the 'package require' line into your ~/.tclshrc" ; \

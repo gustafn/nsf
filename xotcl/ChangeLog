@@ -1,3 +1,11 @@
+2004-08-01 Gustaf.Neumann@wu-wien.ac.at
+        * yet another fixed access to freed memory (when the configure
+          method returned a non numerical value, which was tried to be
+          converted into a number; setting refcounts properly helped.
+          (thanks to Zoran for his help with Purify )
+        * minor code cleanup
+        * test with tcl 8.4.7
+
 2004-07-29 Gustaf.Neumann@wu-wien.ac.at
         * changes to forward and instforward: 
             + %some-command executes some-command at invocation time and 

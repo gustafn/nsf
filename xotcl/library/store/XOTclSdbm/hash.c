@@ -18,7 +18,7 @@
 long
 sdbm_hash(str, len)
 register char *str;
-register int len;
+register size_t len;
 {
 	register unsigned long n = 0;
 

@@ -8,7 +8,7 @@
  */
 
 #ifndef lint
-static char rcsid[] = "$Id: pair.c,v 1.1 2004/05/23 22:50:39 neumann Exp $";
+static char rcsid[] = "$Id: pair.c,v 1.2 2004/08/02 09:43:32 neumann Exp $";
 #endif
 
 #include "sdbm.h"
@@ -23,7 +23,7 @@ static char rcsid[] = "$Id: pair.c,v 1.1 2004/05/23 22:50:39 neumann Exp $";
 /* 
  * forward 
  */
-static int seepair proto((char *, int, char *, int));
+static int seepair proto((char *, int, char *, size_t));
 
 /*
  * page format:
@@ -224,7 +224,7 @@ seepair(pag, n, key, siz)
 char *pag;
 register int n;
 register char *key;
-register int siz;
+register size_t siz;
 {
 	register int i;
 	register int off = PBLKSIZ;
