@@ -1,10 +1,10 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<!-- $Id: tutorial.html,v 1.2 2004/07/20 12:57:59 neumann Exp $ -->
+<!-- $Id: tutorial.html,v 1.3 2004/08/17 10:12:55 neumann Exp $ -->
 <HTML>
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
 	<META NAME="AUTHOR" CONTENT="Gustaf Neumann and Uwe Zdun">
-	<META NAME="DOCNUMBER" CONTENT="1.2.1">
+	<META NAME="DOCNUMBER" CONTENT="1.3.0">
 	<META NAME="CHANGEDBY" CONTENT="Gustaf ">
 <STYLE>
 BODY	{
@@ -59,7 +59,7 @@ table {
 			<IMG SRC="logo-100.jpg" NAME="Graphic1" ALIGN=RIGHT WIDTH=102 HEIGHT=42 BORDER=0></TD>
 	</TR>
 </TABLE>
-<p align=right>Version: 1.2.0</p>
+<p align=right>Version: 1.3.0</p>
 
 <UL>
 	<LI>
@@ -110,9 +110,11 @@ Interception Techniques</A>
                 <LI><A HREF="#callstack_info">Callstack Information</A> 
                 <LI><A HREF="#precedence order">Precedence Order</A>
 	        <LI><A HREF="#guards">Guards for Filters and Mixins</A>
+                <LI><A HREF="#updateinterceptors">Querying, Setting, Altering Filter and Mixin Lists</A>
         </UL>
       </P>
 
+      <LI><A HREF="#forwarding">Method Forwarding</A> 
       <LI><A HREF="#nesting">Nested Classes and Dynamic Object Aggregations</A> 
 
 	<LI><A HREF="#assertions">Assertions</A>
@@ -1733,7 +1735,7 @@ preserves the existing class hierarchy (subclass and instance relationships):
       }
     }
   }
-  <tt>Object</tt> instmixinappend StructurePreservingRecreate
+  <tt>Object</tt> instmixin add StructurePreservingRecreate
 </pre>
 <p>
 Now the following code does not change the superclass or instance
@@ -1871,7 +1873,7 @@ value, "args" is empty.
 </p>
 
 <p>
-In seldom cases, more flexiblity might be required. Using the
+In seldom cases, more flexibility might be required. Using the
 checkoption "checkobj" we can switch the object that is used for
 checking the options. This can be done at any place in the checkoption
 list. The following example defines new checkoptions in a separate
@@ -3126,29 +3128,29 @@ mixin guards:
 </P>
 
 <pre CLASS="code">
-Class Fly
-Fly instproc fly {} {puts "[my signature]: yippee, fly like an eagle!"}
+  <tt>Class</tt> Fly
+  Fly <tt>instproc</tt> fly {} {<tt>puts</tt> "[my signature]: yippee, fly like an eagle!"}
 
-Class Sing
-Sing instproc sing {} {puts "[my signature]: what a difference a day makes"}
+  <tt>Class</tt> Sing
+  Sing <tt>instproc</tt> sing {} {<tt>puts</tt> "[my signature]: what a difference a day makes"}
 
-Class Animal -parameter age
-Animal instproc unknown args { puts "[my signature]: how should I $args?"}
-Animal instproc signature {} {
-    return "[self] [my info class] ([my age] years)"
-}
+  <tt>Class</tt> Animal -parameter age
+  Animal <tt>instproc</tt> unknown args { puts "[my signature]: how should I $args?"}
+  Animal <tt>instproc</tt> signature {} {
+    <tt>return</tt> "[self] [my info class] ([my age] years)"
+  }
 
-Class Bird -superclass Animal
-Class Penguine -superclass Bird
-Class Parrot -superclass Bird
-Class Duck -superclass Bird
+  <tt>Class</tt> Bird -superclass Animal
+  <tt>Class</tt> Penguine -superclass Bird
+  <tt>Class</tt> Parrot -superclass Bird
+  <tt>Class</tt> Duck -superclass Bird
 
-Parrot tweedy -age 1
-Penguine pingo -age 5
-Duck donald -age 4
-Parrot lora -age 6
+  Parrot tweedy -age 1
+  Penguine pingo -age 5
+  Duck donald -age 4
+  Parrot lora -age 6
 
-Bird instmixin {{Fly -guard {[my age] > 2 && ![my istype Penguine]}} Sing}
+  Bird <tt>instmixin</tt> {{Fly -guard {[my age] > 2 && ![my istype Penguine]}} Sing}
 </pre><P>
 An invocation like:
 </P>
@@ -3172,6 +3174,317 @@ filter guards. In particular, we can use <tt>info mixinguard</tt> and
 particular mixin or instmixin respectively.
 </P>
 
+<H2><A NAME="updateinterceptors"></A>Querying, Setting, Altering Filter and Mixin Lists
+</H2>
+
+All methods <tt>mixin</tt>, <tt>instmixin</tt>, <tt>filter</tt> and
+<tt>instfilter</tt> have the same query and update interface. 
+<UL>
+<LI>If one of those methods is called without argument, it returns the current
+setting. <//LI>
+<LI>If it is called with one argument, the argument is used to
+set the specified list as indicated in the above examples. </LI>
+<LI>If these methods are called with more than one argument, the first argument
+is used to specify the action. Possible values for the action are
+<tt>set</tt>, <tt>get</tt>, <tt>add</tt> and <tt>delete</tt>. See below for 
+commonly used examples. 
+</UL>
+<P>
+<CENTER>	
+<TABLE BORDER=1>
+<TR><TD><tt>obj mixin</tt></TD>            <TD>same as: <tt>obj info mixin</tt></TD></TR>
+<TR><TD><tt>obj mixin {C1 C2}</tt></TD>    <TD>same as: <tt>obj mixin set {C1 C2}</tt></TD></TR>
+<TR><TD><tt>obj mixin set {C1 C2}</tt></TD><TD>sets the mixins for <tt>obj</tt></TD></TR>
+<TR><TD><tt>obj mixin get</tt></TD>        <TD>same as: <tt>obj info mixin</tt></TD></TR>
+<TR><TD><tt>obj mixin add C3</tt></TD>     <TD>adds the mixin <tt>C3</tt> on front of the mixin list</TD></TR>
+<TR><TD><tt>obj mixin add C3 end</tt></TD> <TD>adds the mixin <tt>C3</tt> at the end the mixin list</TD></TR>
+<TR><TD><tt>obj mixin add C3 3</tt></TD>   <TD>adds the mixin <tt>C3</tt> at the 3rd position</TD></TR>
+<TR><TD><tt>obj mixin delete ::C3</tt></TD><TD>removes the mixin <tt>C3</tt> from the mixin list. 
+Use the classes with absolute names.
+</TD></TR>
+</TABLE>
+</CENTER>	
+</P>
+<P>
+Note, that the list of possible actions can be 
+extended by extending the class <tt>::xotcl::Relations</tt>.
+</P>
+
+<!-- PAGE BREAK -->
+
+<TABLE COLS=2 WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=0 BGCOLOR="#000055">
+    <TR>
+      <TD WIDTH=75%>
+	<P><A NAME="forwarding"></A><FONT COLOR="#ffffff" FACE="Arial, Helvetica" SIZE=6>Method Forwarding</FONT>
+	</P>
+      </TD>
+      <TD>
+	<IMG SRC="logo-100.jpg" NAME="Graphic9" ALIGN=RIGHT WIDTH=102 HEIGHT=42 BORDER=0></TD>
+    </TR>
+</TABLE>
+<P>You have see from various examples that the primary command for
+method forwarding works in XOTcl via the primitive <tt>next</tt>,
+which calls the same-named method of the current object mostly with
+the same argument list. However, frequently a method forwarding is
+necessary as well between different objects. This is called delegation
+within the literature.</P> 
+
+<P>In general, delegation can be achieved in XOTcl via small stub
+methods, which are procs or instprocs containing mostly the call to
+the desired method. In addition, XOTcl support the methods
+<tt>forward</tt> and <tt>instforward</tt> which are more efficient and
+provide higher flexibility. We will introduce the forwarding mechanisms
+of XOTcl here based on examples.
+</p>
+
+<p>In our first example we define an object <tt>dog</tt> and an object
+<tt>tail</tt>. If the <tt>dog</tt> receives the call <tt>wag</tt> it
+delegates this call to the <tt>tail</tt> and returns its result.  In
+this introductory example, the method <tt>tail</tt> returns simply its
+arguments. </p>
+
+<p>The forwarding is achieved through the method <tt>forward</tt>
+which creates a forwarder command in XOTcl. This method receives as
+first argument the name, under which the forwarder is registers,
+followed by the object that receives the delegation (the callee),
+followed my the (optional) method name and optional arguments. More
+about this later. Here we register the forwarder under the name
+<tt>wag</tt>, the callee is <tt>tail</tt> and the method is defined to
+be the same name as the name of the forwarder. We could have written
+here <tt>dog forward wag tail wag</tt> as well, be we use
+<tt>%proc</tt> which refers to the name of the forwarder and is more
+general, in case the forwarder is renamed.
+</p>
+
+<pre CLASS="code">
+  <it>###########################################</it>
+  <it># trivial object delegation</it>
+  <it>###########################################</it>
+  <tt>Object</tt> dog
+  <tt>Object</tt> tail
+  tail <tt>proc</tt> wag args { <tt>return</tt> $args }
+  dog <tt>forward</tt> wag tail %proc
+</pre>
+<p>If the forwarder is called, it appends its current argument list to
+the called method. Therefore a call to<tt>dog wag 100</tt> returs the
+value <tt>100</tt>. The general form of the forwarder is:
+<pre CLASS="code">
+  <em>obj</em> <tt> forward</tt> <em> proc ?options? callee ?arglist?</em> 
+  <em>cls</em> <tt> instforward</tt> <em> proc ?options? callee ?arglist?</em> 
+</pre>
+where valid options are  <tt>-objscope</tt>, <tt>-methodprefix</tt> and <tt>-default</tt>.
+Each of the arguments of these methods can be 
+<tt>%self</tt>,
+<tt>%proc</tt>,
+<tt>%1</tt>, or <tt>%</tt> followed be a tcl command, and it can be prefixed by a 
+positional prefix <tt>%@</tt>. Usages of these forms are shown in the sequel.</p>
+
+<p>The following command shows the delegation not to an object, but to
+a tcl command. We define a simple forwarder that forwards a call to the
+tcl command <tt>expr</tt> with some arguments.
+
+<pre CLASS="code">
+  <it>###########################################</it>
+  <it># adding </it>
+  <it>###########################################</it>
+  <tt>Object</tt> obj
+  obj <tt>forward</tt> addOne <tt>expr</tt> 1 +
+</pre>
+A call to <tt>obj addOne 5</tt> returns 6 as value.<p>
+
+
+<p>In our next example we want additionally that the tcl command
+should to be evaluated in the context of the current object. We define
+a forwarder for the class <tt>X</tt> with the name <tt>Incr</tt> (to
+avoid confusion with the already defined method <tt>incr</tt>), we use
+the <tt>-objscope</tt> option and specify <tt>incr</tt> as the callee.
+Since the forwarder is defined via <tt>instforward</tt> the forwarder
+is available to all instances of the class.
+<pre CLASS="code">
+  <it>###########################################</it>
+  <it># evaluating in scope </it>
+  <it>###########################################</it>
+  <tt>Class</tt> X <tt>-parameter</tt> {{x 1}}
+  X <tt>instforward</tt> Incr <tt>-objscope</tt> incr
+  
+  X x1 -x 100
+  x1 Incr x
+  x1 Incr x
+  x1 Incr x
+</pre>
+After the three calls to <tt>Incr</tt> the call <tt>x1 x</tt>
+returns the value 103.</p>
+
+<p>In our next example, we show the usage of the percentage and of
+more advanced argument handling. This example sketches the
+implementation of the mixin, instmixin, filter, instfilter methods as
+shown above. In order to obtain extensible subcommands (such as
+<tt>mixin add</tt>, <tt>mixin set</tt>, etc., we define a command that
+keeps this methods. We will use this command as callee for the
+appropriate methods. So, we define an object named <tt>mixin</tt> and
+define a forwarder with the name <tt>Mixin</tt> (again we capitalize
+Mixin to avoid name clashes with the already defined method).
+<pre CLASS="code">
+  <it>###########################################</it>
+  <it># mixin example</it>
+  <it>###########################################</it>
+  <tt>Object create</tt> mixin
+  mixin <tt>proc</tt> unknown {m args} {<tt>return</tt> [concat [self] $m $args]}
+  obj <tt>forward</tt> Mixin mixin %1 %self
+</pre>
+We define here the method <tt>unknown</tt> to see what arguments are
+passed. the following invocation will lead to the call in noted in the comment.
+<pre CLASS="code">
+  obj Mixin add M1       <it>;# calls ::mixin add ::obj M1</it>
+</pre>
+You see that <tt>%1</tt> was substituted by the first argument of the
+invocation (here <tt>add</tt>) and <tt>%self</tt> was substituted by
+the name of the current object (here <tt>::obj</tt>). The second
+argument of the invocation (here <tt>M1</tt>) was appended as
+usual. However, in calls like
+<pre CLASS="code">
+  obj Mixin
+</pre>
+we have to deal with cases, where the used arguments (especially the
+first one) are not given at the invocation, otherwise we get an
+error. For specifying default methods the option <tt>-default</tt> can
+be used.
+<pre CLASS="code">
+  obj <tt>forward</tt> Mixin <tt>-default</tt> {getter setter} mixin %1 %self
+</pre>
+This definition means that if no argument is specified in the
+invocation we call the method <tt>getter</tt>, if one argument is
+given the method <tt>setter</tt>, in other cases we use the specified
+arguments. Therefore the following three invocations are delegated as
+written in the comments.
+<pre CLASS="code">
+  obj Mixin;             <it>;# calls ::mixin getter ::obj</it>
+  obj Mixin M1           <it>;# calls ::mixin setter ::obj M1</it>
+  obj Mixin add M1       <it>;# calls ::mixin add ::obj M1</it>
+</pre>
+
+<p>When we implement subcommands through delegating to other commands
+(as shown in the last example) there can be situations where naming
+conflicts might arise. If we want for example to implement a
+subcommand method <tt>class</tt> we might not want to implement a new
+method <tt>class</tt> on the callee, since this would overwrite the
+standard definition of <tt>class</tt>. To overcome such difficulties,
+we provide the option <tt>-methodprefix</tt>. The following example
+shows how to prefix every called method with the prefix <tt>@</tt>.
+</p>
+<pre CLASS="code">
+  <it>###########################################</it>
+  <it># sketching extensibe info</it>
+  <it>###########################################</it>
+  <tt>Object</tt> Info
+  Info <tt>proc</tt> @mixin {o} {
+    $o <tt>info</tt> mixin
+  }
+  Info <tt>proc</tt> @class {o} { <it>;# without prefix, doing here a [Info class] would be wrong</it>
+    $o <tt>info</tt> class
+  }
+  Info <tt>proc</tt> @help {o} { <it>;# define a new subcommand for info</it>
+    <tt>foreach</tt> c [my <tt>info</tt> procs] {<tt>lappend</tt> result [<tt>string range</tt> $c 1 end]}
+    <tt>return</tt> $result
+  }
+  Object <tt>instforward</tt> Info -methodprefix @ Info %1 %self 
+</pre>
+With this definitions, the following call is rewritten as indicated in the comment.
+<pre CLASS="code">
+  x1 Info class          <it>;# ::Info @class ::x1</it
+</pre>
+
+<p>When a forwarder is defined the callee (the target command) can be
+omitted. When the callee is not specified, the method-name is used
+instead. When the method-name has a namespace prefix the method name
+is the tail and the callee is the fully qualified name.
+</p>
+<pre CLASS="code">
+  <it>###########################################</it>
+  <it># optional callee</it>
+  <it>###########################################</it>
+  obj <tt>set</tt> x 2
+  obj <tt>forward</tt> append -objscope
+  <tt>Object</tt> n; <tt>Object</tt> n::x
+  obj <tt>forward</tt> ::n::x
+</pre>
+With this definitions, the following call is rewritten as indicated in the comment.
+<pre CLASS="code">
+  obj append x y z        <it>;# append x y z ... returning  2yz</it>
+  obj x self              <it>;# ::n::x self  ... returning  ::n::x</it>
+</pre>
+<p>The list of tokens executed by the forwarder might contain tcl
+commands executed during every invocations. This makes it for instance
+possible to pass instances variables to the callee. In the next
+example the object has the instvar named <tt>x</tt> which is multiplied
+by a factor of 10 when the method <tt>x*</tt> is invoked.
+<pre CLASS="code">
+  <it>###########################################</it>
+  <it># command substitution</it>
+  <it>###########################################</it>
+  obj <tt>set</tt> x 10
+  obj <tt>forward</tt> x* <tt>expr</tt> {%my <tt>set</tt> x} *
+</pre>
+With this definitions, the following call is rewritten as indicated in the comment.
+<pre CLASS="code">
+  obj x* 10               <it>;# expr 10 * 10 ... returning  100</it>
+</pre>
+
+<p>In certain situations it is necessary to insert arguments always at
+the same position (e.g. at the second to last position). The
+positional addressing can be achieved by prefixing the arguments of
+the forward specification by <tt>%@POS </tt>, where <tt>POS</tt> is
+either a positive (argument positing from the beginning) or negative
+integer (argument counting from the end) or the constant <tt>end</tt>
+(denoting the last position). After <em>POS</em> a single space is
+used as a delimiter for the rest of the argument, which might be
+some other %-substitution or a constant. The positional arguments 
+are evaluated from left to right and should be used in ascending order. 
+</p>
+<p>The following example defines a class <tt>cannel</tt> to use the
+I/O-commands in an OO-manner. The proc open is used to create a
+<tt>chan</tt> instance. For the channel object we provide the method
+<tt>close</tt> (to close a channel and to destroy the channel object),
+<tt>puts</tt> (to write on a stream), <tt>blocked</tt> (to check
+whether last command exhausted all input), and <tt>fconfigure</tt> (to
+configure the stream). Note that for <tt>puts</tt> we specified that
+the actual stream should be inserted as the second to last argument.
+</p>
+<pre>
+  <tt>Class</tt> chan <tt>-parameter</tt> stream
+  <it># create stream and object</it>
+  chan <tt>proc</tt> open args { 
+    <tt>set</tt> stream [<tt>eval</tt> open $args]
+    <tt>my create</tt> $stream -stream $stream  ;# make an object
+  }
+  <it># close stream and destroy object</it>
+  chan <tt>instproc</tt> close {} {
+    <tt>close</tt> [<tt>my</tt> stream]
+    [<tt>self</tt>] <tt>destroy</tt>
+  }
+  <it># handle other subcommands (methods) via unknown</it>
+  chan <tt>instproc</tt> unknown {m args} {
+    <tt>set</tt> valid [<tt>lsort</tt> [chan <tt>info</tt> instcommands]]
+    stderr puts "unknown chan method '$m' $args called; 
+      	defined methods: $valid"
+  }
+  chan <tt>create</tt> stdout -stream stdout   <it>;# define standard stream</it>
+  chan <tt>create</tt> stderr -stream stderr   <it>;# define standard stream</it>
+
+  chan <tt>instforward</tt> puts puts {%@-1 %my stream}
+  chan <tt>instforward</tt> blocked fblocked {%my stream}
+  chan <tt>instforward</tt> fconfigure fconfigure {%my stream} 
+
+  <tt>set</tt> c [chan open /tmp/junk w]
+  $c puts -nonewline "hello"
+  $c puts -nonewline " world"
+  $c puts ""
+  $c xxx                                       <it>;# trigger unknown</it>
+  <it># The stream instances denote the currently open streams</it>
+  stderr puts "currently open streams: [chan info instances]" 
+  $c close
+  stderr puts "currently open streams: [chan info instances]"
+</pre>
 
 <!-- PAGE BREAK -->
 
@@ -3214,6 +3527,8 @@ changed dynamically. In XOTcl objects are allowed to contain nested
 objects, which are dynamically changeable aggregates of the
 containing object. 
 </P>
+
+
 
 <H2><A NAME="nested_classes"></A>Nested Classes 
 </H2>

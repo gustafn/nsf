@@ -1,5 +1,5 @@
-# $Id: langRef.xotcl,v 1.2 2004/07/20 12:57:59 neumann Exp $
-package provide XOTcl-langRef 1.2
+# $Id: langRef.xotcl,v 1.3 2004/08/17 10:12:55 neumann Exp $
+package provide XOTcl-langRef 1.3
 package require Tcl
 
 @ @File {
@@ -63,7 +63,7 @@ package require Tcl
     <@/p>
 
   }
-  date { $Date: 2004/07/20 12:57:59 $ }
+  date { $Date: 2004/08/17 10:12:55 $ }
 }
 
 ##
@@ -253,27 +253,18 @@ package require Tcl
 }
 
 @ Object instproc filter {
-  filterList "list of methods that should be registered as filters" 
+  args "filter specification"
 } {
     Description {
-      Specifies the list of filters registered for the class. 
-      <@tt>filter</@tt> overwrites all previous setting.
-      Filters must be available on the class or its heritage 
-      order. Filters may also reside on the meta-class of the class.
-
-      Filter list may contain filter guards. Then the
-      filter  is composed of two list elements: {filtername filterguard}.
+      If <@tt>$args</@tt> is one argument, it specifies a list of filters to 
+      be set. Every filter must be an XOTcl proc/instproc within
+      the object scope.
+      If <@tt>$args</@tt> it has more argument, the first one specifies the
+      action. Possible values are <@tt>set</@tt>, <@tt>get</@tt>, 
+      <@tt>add</@tt> or <@tt>delete</@tt>, it modifies the current
+      settings as indicated. For more details, check the tutorial.
     }
-    return "empty string"
-}
-
-@ Object instproc filterappend  {
-  filterList "name of the new filter"
-} {
-  description {
-    Convenience method that appends a filter to the existing filters of the object.
-  }
-  return "empty string"
+    return "if <@tt>$args</@tt> return empty current filters, otherwise empty"
 }
 
 @ Object instproc filterguard {
@@ -299,6 +290,43 @@ package require Tcl
   }
   return "full qualified name, if filter is found, otherwise an empty string"
 }
+
+
+@ Object instproc forward {
+  name "name of forwarder method"
+  ?options? "-objscope, -methodprefix string, -default names"
+  ?callee? "named of the called command or object"
+  ?args? "arguments"
+
+} {
+    Description {
+      Register a method (similar to a proc) for forwarding calls to 
+      a callee (target tcl command, 
+      other object). If the forwarder method is called, the actual arguments 
+      of the invocation are appended to the specified arguments. In callee an 
+      arguments certain substituions can take place: 
+      <ul><li>%proc: subsituted by name of the forwarder method</li>
+          <li>%self: subsituted by name of the object</li>
+          <li>%1: subsituted by first argument of the invocation</li>
+          <li>%%: a single percent.</li>
+          <li>%<em>tcl-command</em>: command to be executed; substituted by result.</li>
+      </ul>
+      Additionally each argument can be prefixed by the positional prefix <tt>%@POS </tt>
+      (note the delimiting space at the end) that can be used to specify an 
+      explicit position. POS can be a positive or negative integer or the word 
+      <tt>end</tt>. The positional arguments are evaluated from left to 
+      right and should be used in ascending order. valid Options are:
+      <ul><li><tt>-objscope</tt> causes the target to be evaluated in the scope 
+              of the object,</li>
+          <li><tt>-methodprefix string</tt> inserts the specified prefix
+              in front of the second argument of the invocation,<li>
+          <li><tt>-default</tt> is used for default method names.
+      </ul>
+      See tutorial for detailed examples.
+    }
+    return "empty"
+}
+
 
 @ Object instproc hasclass {
   ?className? "name of a class to be tested"
@@ -513,23 +541,18 @@ package require Tcl
     return "empty string"
 }
 
-@ Object instproc  mixin {
-  mixinList "list of classes that should be registered as mixins" 
+@ Object instproc mixin {
+  args "mixin specification"
 } {
     Description {
-      Specifies the list of mixins registered for the object. 
-      The method <@tt>mixin</@tt> overwrites all previous settings.
+      If <@tt>$args</@tt> is one argument, it specifies a list of mixins to 
+      be set. Every mixin must be a defined class.
+      If <@tt>$args</@tt> has more argument, the first one specifies the
+      action. Possible values are <@tt>set</@tt>, <@tt>get</@tt>, 
+      <@tt>add</@tt> or <@tt>delete</@tt>, it modifies the current
+      settings as indicated. For more details, check the tutorial.
     }
-    return "empty string"
-}
-
-@ Object instproc mixinappend  {
-  mixinList "name of the new mixin"
-} {
-  description {
-    Convenience method that appends a mixin to the existing mixins of the object.
-  }
-  return "empty string"
+    return "if <@tt>$args</@tt> empty return current mixins, otherwise empty"
 }
 
 @ Object instproc move {
@@ -887,28 +910,22 @@ package require Tcl
 }
 
 @ Class instproc instfilter {
-  filterList "list of methods that should be registered as filters" 
+  args "instfilter specification"
 } {
     Description {
-      Specifies the list of filters registered for the class. 
-      <@tt>instfilter</@tt> overwrites all previous setting.
-      Filters must be available on the class or its heritage 
-      order. Filters may also reside on the meta-class of the class. 
-
-      Filter list may contain filter guards. Then the
-      filter  is composed of two list elements: {filtername filterguard}.
+      If <@tt>$args</@tt> is one argument, it specifies a list of 
+      instfilters to 
+      be set. Every filter must be an XOTcl proc/instproc within
+      the object scope.
+      If <@tt>$args</@tt> it has more argument, the first one specifies the
+      action. Possible values are <@tt>set</@tt>, <@tt>get</@tt>, 
+      <@tt>add</@tt> or <@tt>delete</@tt>, it modifies the current
+      settings as indicated. For more details, check the tutorial.
     }
-    return "empty string"
+    return "if <@tt>$args</@tt> return empty current instfilters, otherwise empty"
 }
 
-@ Class instproc instfilterappend  {
-  filterList "name of the new instfilter"
-} {
-  description {
-    Convenience method that appends an instfilter to the existing filters of the class.
-  }
-  return "empty string"
-}
+
 
 @ Class instproc instfilterguard {
   filtername "filter name of a registered filter"
@@ -920,6 +937,42 @@ package require Tcl
     filter. If no guards are given, we always execute the filter.  
   }
   return "empty string"
+}
+
+
+@ Class instproc instforward {
+  name "name of forwarder method"
+  ?options? "-objscope, -methodprefix string, -default names"
+  ?callee? "named of the called command or object"
+  ?args? "arguments"
+
+} {
+    Description {
+      Register a method (similar to an instproc) for forwarding calls to 
+      a callee (target tcl command, 
+      other object). If the forwarder method is called, the actual arguments 
+      of the invocation are appended to the specified arguments. In callee an 
+      arguments certain substituions can take place: 
+      <ul><li>%proc: subsituted by name of the forwarder method</li>
+          <li>%self: subsituted by name of the object</li>
+          <li>%1: subsituted by first argument of the invocation</li>
+          <li>%%: a single percent.</li>
+          <li>%<em>tcl-command</em>: command to be executed; substituted by result.</li>
+      </ul>
+      Additionally each argument can be prefixed by the positional prefix <tt>%@POS </tt>
+      (note the delimiting space at the end) that can be used to specify an 
+      explicit position. POS can be a positive or negative integer or the word 
+      <tt>end</tt>. The positional arguments are evaluated from left to 
+      right and should be used in ascending order. valid Options are:
+      <ul><li><tt>-objscope</tt> causes the target to be evaluated in the scope 
+              of the object,</li>
+          <li><tt>-methodprefix string</tt> inserts the specified prefix
+              in front of the second argument of the invocation,<li>
+          <li><tt>-default</tt> is used for default method names.
+      </ul>
+      See tutorial for detailed examples.
+    }
+    return "empty"
 }
 
 
@@ -935,25 +988,19 @@ package require Tcl
 }
 
 @ Class instproc instmixin {
-  instmixinList "list of classes that should be registered as instmixins" 
+  args "instmixin specification"
 } {
     Description {
-     Specifies the list of instmixins (per-class mixins) for the class. 
-     Note that the registration of a per-mixin-class does not invoke
-     automatically the constructors of the registered class.
-     The method <@tt>instmixin</@tt> overwrites any previous settings.
+      If <@tt>$args</@tt> is one argument, it specifies a list of instmixins to 
+      be set. Every instmixin must be a defined class.
+      If <@tt>$args</@tt> has more argument, the first one specifies the
+      action. Possible values are <@tt>set</@tt>, <@tt>get</@tt>, 
+      <@tt>add</@tt> or <@tt>delete</@tt>, it modifies the current
+      settings as indicated. For more details, check the tutorial.
     }
-    return "empty string"
+    return "if <@tt>$args</@tt> empty return current instmixins, otherwise empty"
 }
 
-@ Class instproc instmixinappend  {
-  mixinList "name of the new instmixin"
-} {
-  description {
-    Convenience method that appends an instmixin to the existing mixins of the class.
-  }
-  return "empty string"
-}
 
 @ Class instproc instparametercmd {
   name "variable to be provided with getter/setter method"
@@ -990,19 +1037,6 @@ package require Tcl
     return "empty string"
 }
 
-@ Class instproc insttclcmd {
-  name "cmd to be execute in obj scope"
-} {
-  description {
-    Create a method 'name' that is evaluated as a tcl command in the
-    scope of the object. E.g. 'Object insttclcmd vwait' creates
-    an instproc vwait on Object that executes Tcl's vwait in the
-    scope of the object. That is local vars of the object are accessible
-    to that vwait. (Used to circumvent, for instance, the TCL_GLOBAL_ONLY
-    flag of vwait in Tcl.)
-  }
-  return "empty string"
-}
 
 @ Class instproc new {
   "?-childof&nbsp;obj?&nbsp;?args?" "args passed to create"

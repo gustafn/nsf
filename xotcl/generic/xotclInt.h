@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.5 2004/08/01 22:15:11 neumann Exp $
+ *  $Id: xotclInt.h,v 1.6 2004/08/17 10:12:55 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -170,25 +170,24 @@ typedef struct XOTclMemCounter {
 #  define USE_MALLOC
 #endif
 
+
 #if defined(USE_MALLOC)
-#  define DEFINE_NEW_TCL_OBJS_ON_STACK(oc,ov) \
-    Tcl_Obj** ov = (Tcl_Obj**) ckalloc((oc)*sizeof(Tcl_Obj*))
-#  define FREE_TCL_OBJS_ON_STACK(ov) ckfree((char*) ov)
+#  define ALLOC_ON_STACK(type,n,var) type *var = (type *)ckalloc((n)*sizeof(type))
+#  define FREE_ON_STACK(var) ckfree((char*)var)
 #elif defined(USE_ALLOCA)
-#  define DEFINE_NEW_TCL_OBJS_ON_STACK(oc,ov) \
-    Tcl_Obj** ov = (Tcl_Obj**) alloca((oc)*sizeof(Tcl_Obj*))
-#  define FREE_TCL_OBJS_ON_STACK(ov)
+#  define ALLOC_ON_STACK(type,n,var) type *var = (type *)alloca((n)*sizeof(type))
+#  define FREE_ON_STACK(var)
 #else
 # if !defined(NDEBUG)
-#  define DEFINE_NEW_TCL_OBJS_ON_STACK(oc,ov) \
-    int __OC = (oc)+2; Tcl_Obj *__OV[__OC]; Tcl_Obj** ov = __OV+1; \
-    __OV[0] = __OV[__OC-1] = (Tcl_Obj*)0xdeadbeaf
-#  define FREE_TCL_OBJS_ON_STACK(ov) \
-    assert(__OV[0] == __OV[__OC-1] && __OV[0] == (Tcl_Obj*)0xdeadbeaf)
+#  define ALLOC_ON_STACK(type,n,var) \
+    int __##var##_count = (n); type __##var[n+2]; \
+    type *var = __##var + 1; var[-1] = var[__##var##_count] = (type)0xdeadbeaf
+#  define FREE_ON_STACK(var) \
+    assert(var[-1] == var[__##var##_count] && (void *)var[-1] == (void*)0xdeadbeaf)
 # else 
-#  define DEFINE_NEW_TCL_OBJS_ON_STACK(oc,ov) Tcl_Obj* ov[(oc)]
-#  define FREE_TCL_OBJS_ON_STACK(ov)
-#  endif
+#  define ALLOC_ON_STACK(type,n,var) type var[(n)]
+#  define FREE_ON_STACK(var)
+# endif
 #endif
 
 #ifdef USE_ALLOCA

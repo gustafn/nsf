@@ -122,6 +122,7 @@ INCLUDES	= -I"$(TCLROOT)\generic" -I"$(XOTCL_DIR)\generic"
 DEFINES	= -DBUILD_$(NAME) -DTCL_THREADS=1 \
 			-DXOLIBPKG=$(INST_XOLIBPKG) \
 			-DXOTCLVERSION=$(XOTCLVERSION) \
+			-DPACKAGE_VERSION=$(XOTCLVERSION) \
 			-DVERSION=$(XOTCLVERSION) \
 			-DXOTCLPATCHLEVEL=$(XOTCLPATCHLEVEL) \
 			-D__WIN32__ -DVISUAL_CC
@@ -139,7 +140,7 @@ CFLAGS	= $(EXE_CFLAGS)
 # Project specific targets
 ######################################################################
 
-all : libs
+all : libs ./pkgIndex.tcl
 
 libs : setup $(TARGET)
 	copy $(TARGET) ..
@@ -160,6 +161,9 @@ $(TARGET) : $(OBJS)
 		$(OBJS)
 <<
 
+./pkgIndex.tcl : $(TARGET)
+	echo package ifneeded xotcl::store::sdbm $(XOTCL_VERSION) [list load [file join $$dir $(TMPNAME)/$(OUTNAME).dll]] > \
+		".\pkgIndex.tcl"
 
 install : all
 	if not exist "$(INSTALLDIR)" mkdir "$(INSTALLDIR)"

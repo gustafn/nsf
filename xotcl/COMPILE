@@ -1,4 +1,4 @@
-$Id: COMPILE,v 1.1 2004/05/23 22:50:39 neumann Exp $ 
+$Id: COMPILE,v 1.2 2004/08/17 10:12:54 neumann Exp $ 
 ********************************************************
 XOTcl Compilation Guide (Unix)
 ********************************************************
@@ -38,7 +38,7 @@ build XOTcl:
 
   2) run configure by issuing in the unix directory:
 
-        cd xotcl*/unix
+        cd xotcl*
         ./configure
 
      on some platforms (e.g. under Windows Environment with 
@@ -54,16 +54,14 @@ build XOTcl:
                                   to be installed (default: /usr/local)
      --exec-prefix=DIR            Place where xotclsh/xowish
                                   are to be installed (default: /usr/local)
-     --with-actiweb               Build Actiweb packages as well 
+     --with-actiweb               Build Actiweb packages as well (sdbm, expat)
                                   (per default deactivated)
      --with-xotclsh               Build xotclsh (per default deactivated)
      --with-xwish                 Build xowish (per default deactivated)
-      --with-gdbm=GDBM_INCLUDE_DIR,GDBM_LIB_DIR
+     --with-gdbm=GDBM_INCLUDE_DIR,GDBM_LIB_DIR
                                   absolute path to gdbm.h and optionally 
                                   the path to the gdbm library. The directory infos
                                   may be omitted
-     --with-gdbm                  Build XOTcl Gdbm 
-                                  (per default deactivated)
      --with-tcl=DIR               Where to find a compiled Tcl version, i.e.
                                   where to find tclConfig.sh
                                   Note that you need a source built of 
@@ -86,14 +84,7 @@ build XOTcl:
 
      Example:
      
-     ./configure --prefix=/usr --exec-prefix=/usr --with-tcl=/home/uzdun/tcl8.3.0 --with-tk=/usr/lib --with-gdbm
-
-     this has the following implications:
-       - the shells are installed in /usr/bin
-       - the libs are installed in /usr/lib and /usr/lib/xotcl-<VERSION>. 
-       - Tcl 8.3.0 from /home/uzdun/tcl8.3.0 is used.
-       - The installed Tk from /usr/lib is used.
-       - XOTcl is compiled with Gdbm support.
+     ./configure --prefix=/usr --exec-prefix=/usr --with-all --enable-threads
 
   3) now you can make XOTcl and the configured packages with
 

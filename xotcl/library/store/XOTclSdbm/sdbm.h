@@ -4,8 +4,12 @@
  * author: oz@nexus.yorku.ca
  * status: public domain. 
  */
-#include <unistd.h>
 
+#if defined(VISUAL_CC)
+  #define size_t int
+#else
+  #include <unistd.h>
+#endif
 #define DBLKSIZ 4096
 #define PBLKSIZ 1024
 #define PAIRMAX 1008			/* arbitrary on PBLKSIZ-N */
@@ -44,10 +48,18 @@ typedef struct {
 #define sdbm_dirfno(db)	((db)->dirf)
 #define sdbm_pagfno(db)	((db)->pagf)
 
+#ifdef VISUAL_CC
+typedef struct {
+	char *dptr;
+	int dsize;
+} datum;
+#else
 typedef struct {
 	char *dptr;
 	size_t dsize;
 } datum;
+#endif
+
 
 extern datum nullitem;
 
@@ -77,5 +89,10 @@ extern datum sdbm_nextkey proto((DBM *));
 /*
  * other
  */
+
 extern DBM *sdbm_prep proto((char *, char *, int, int));
+#ifdef VISUAL_CC
+extern long sdbm_hash proto((char *, int));
+#else
 extern long sdbm_hash proto((char *, size_t));
+#endif

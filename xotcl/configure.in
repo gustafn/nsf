@@ -11,7 +11,7 @@
 # for this package, and can be a relative path, such as:
 #
 #--------------------------------------------------------------------
-define(XOTclVersion, 1.2.1)
+define(XOTclVersion, 1.3.0)
 AC_INIT([xotcl], [XOTclVersion])
 
 #--------------------------------------------------------------------
@@ -103,8 +103,8 @@ if test "$with_xowish" = yes;  then XOWISH="xowish"   ; else XOWISH=""; fi
 
 # do not modify the following lines manually, they are generated with changeXOTclVersion
 XOTCL_MAJOR_VERSION=1
-XOTCL_MINOR_VERSION=2
-XOTCL_RELEASE_LEVEL=.1
+XOTCL_MINOR_VERSION=3
+XOTCL_RELEASE_LEVEL=.0
 
 XOTCL_VERSION=${XOTCL_MAJOR_VERSION}.${XOTCL_MINOR_VERSION}
 NODOT_VERSION=${XOTCL_MAJOR_VERSION}${XOTCL_MINOR_VERSION}
@@ -184,7 +184,7 @@ fi
 
 TEA_ADD_SOURCES([xotcl.c xotclError.c xotclMetaData.c xotclObjectData.c xotclProfile.c \
 	xotclTrace.c xotclUtil.c xotclShadow.c xotclCompile.c aolstub.c xotclStubInit.c])
-TEA_ADD_HEADERS([generic/xotcl.h generic/xotclInt.h])
+TEA_ADD_HEADERS([generic/xotcl.h generic/xotclInt.h generic/xotclDecls.h generic/xotclIntDecls.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
 TEA_ADD_CFLAGS([-DXOTCLVERSION=\\\"$XOTCL_VERSION\\\" -DXOTCLPATCHLEVEL=\\\"$XOTCL_RELEASE_LEVEL\\\" \
@@ -435,4 +435,6 @@ for subdir in ${subdirs}
 do
     (cd $subdir; eval $SHELL configure ${ac_configure_args} --with-xotcl=${here})
 done
+
+
 

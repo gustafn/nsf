@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.14 2004/07/27 21:39:46 neumann Exp $
+#$Id: testx.xotcl,v 1.15 2004/08/17 10:12:55 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -3375,6 +3375,9 @@ TestX create nonposargs
 nonposargs proc run {{n 20}} {
     Object o	
     o proc x {a b} {
+	return "$a $b"
+    }
+    o proc x {} {a b} {
 	return "$a $b"
     }
     o proc y {-x {-a {1 2 3}}} {a b} {

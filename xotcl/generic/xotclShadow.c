@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclShadow.c,v 1.1 2004/05/23 22:50:39 neumann Exp $
+ * $Id: xotclShadow.c,v 1.2 2004/08/17 10:12:55 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -176,7 +176,7 @@ int XOTclCallCommand(Tcl_Interp *in, XOTclGlobalNames name,
 	    int objc, Tcl_Obj *CONST objv[]) {
   int result;
   XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(in)->tclCommands[name-EXPR];
-  DEFINE_NEW_TCL_OBJS_ON_STACK(objc, ov);
+  ALLOC_ON_STACK(Tcl_Obj*,objc, ov);
 
   /* {int i;
     fprintf(stderr,"calling %s (%p %p) in %p, objc=%d ",
@@ -189,6 +189,6 @@ int XOTclCallCommand(Tcl_Interp *in, XOTclGlobalNames name,
   if (objc > 1)
     memcpy(ov+1, objv+1, sizeof(Tcl_Obj *)*(objc-1));
   result = (*ti->proc)(ti->cd, in, objc, ov);
-  FREE_TCL_OBJS_ON_STACK(ov);
+  FREE_ON_STACK(ov);
   return result;
 }

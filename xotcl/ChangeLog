@@ -1,3 +1,21 @@
+2004-08-17 Gustaf.Neumann@wu-wien.ac.at, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+        * release of distribution XOTcl 1.3.0
+
+2004-08-17 Gustaf.Neumann@wu-wien.ac.at
+        * fixing make for rpm
+        * tweaking configures stuff to work with rpm
+
+2004-08-16 Gustaf.Neumann@wu-wien.ac.at
+        * adding two sections to tutorial, updated langref.xotcl
+
+2004-08-15 Gustaf.Neumann@wu-wien.ac.at
+        * Adding non positional arguments to serializer
+
+2004-08-12 Gustaf.Neumann@wu-wien.ac.at
+        * fixed a possible core dump when 'my' was called without
+          args (many thanks to Bryan Shofield for noting)
+        * some code generalization and cleanup
+
 2004-08-01 Gustaf.Neumann@wu-wien.ac.at
         * changes to forward and instforward: 
           providing positional arguments for the forwarder. It is now
@@ -73,10 +91,10 @@
           These commands are changed in a backward compatible manner. They
           can be used as follows
 
-             obj mixin:              same as: obj info mixin
+             obj mixin               same as: obj info mixin
              obj mixin {C1 C2}       same as: obj mixin set {C1 C2}
              obj mixin set {C1 C2}   sets the mixins for obj
-             obj mixin get {C1 C2}   same as: obj info mixin
+             obj mixin get           same as: obj info mixin
              obj mixin add C3        adds a mixin on front of the mixin list
              obj mixin add C3 end    adds a mixin at the end the mixin list
              obj mixin add C3 3      adds a mixin at the 3rd position

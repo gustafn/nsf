@@ -246,9 +246,11 @@ test : $(TCLSH)
 	$(TCLSH) $(ROOT)\tests\speedtest.xotcl
 	$(TCLSH) $(ROOT)\tests\testx.xotcl
 	$(TCLSH) $(ROOT)\tests\testo.xotcl
-	$(TCLSH) $(ROOT)\tests\xocomm.test
+	$(TCLSH) $(ROOT)\tests\forwardtest.xotcl
+	$(TCLSH) $(ROOT)\tests\actiweb.test	
 	$(TCLSH) $(ROOT)\tests\persistence.test
 	$(TCLSH) $(ROOT)\tests\xoRDF.test
+	$(TCLSH) $(ROOT)\tests\xocomm.test
 
 tar : distclean
 	cd ..

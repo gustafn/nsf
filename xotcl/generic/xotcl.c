@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.21 2004/08/03 23:09:14 neumann Exp $
+/* $Id: xotcl.c,v 1.22 2004/08/17 10:12:55 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -196,7 +196,7 @@ callMethod(ClientData cd, Tcl_Interp *in, Tcl_Obj *method,
 	   int objc, Tcl_Obj *CONST objv[], int flags) {
   XOTclObject *obj = (XOTclObject*) cd;
   int result;
-  DEFINE_NEW_TCL_OBJS_ON_STACK(objc, tov);
+  ALLOC_ON_STACK(Tcl_Obj*,objc, tov);
 
   tov[0] = obj->cmdName;
   tov[1] = method;
@@ -205,7 +205,7 @@ callMethod(ClientData cd, Tcl_Interp *in, Tcl_Obj *method,
 
   result = DoDispatch(cd, in, objc, tov, flags);
   /*fprintf(stderr, "     callMethod returns %d\n", result);*/
-  FREE_TCL_OBJS_ON_STACK(tov);
+  FREE_ON_STACK(tov);
   return result;
 }
 
@@ -214,7 +214,7 @@ XOTclCallMethodWithArg(ClientData cd, Tcl_Interp *in, Tcl_Obj *method, Tcl_Obj *
 		  int objc, Tcl_Obj *CONST objv[], int flags) {
   XOTclObject *obj = (XOTclObject*) cd;
   int result;
-  DEFINE_NEW_TCL_OBJS_ON_STACK(objc, tov);
+  ALLOC_ON_STACK(Tcl_Obj*,objc, tov);
 
   tov[0] = obj->cmdName;
   tov[1] = method;
@@ -224,7 +224,7 @@ XOTclCallMethodWithArg(ClientData cd, Tcl_Interp *in, Tcl_Obj *method, Tcl_Obj *
 
   result = DoDispatch(cd, in, objc, tov, flags);
 
-  FREE_TCL_OBJS_ON_STACK(tov);
+  FREE_ON_STACK(tov);
   return result;
 }
 
@@ -1626,7 +1626,7 @@ AutonameIncr(Tcl_Interp *in, Tcl_Obj *name, XOTclObject *obj,
       }
     }
     if (format) {
-      DEFINE_NEW_TCL_OBJS_ON_STACK(3, ov);
+      ALLOC_ON_STACK(Tcl_Obj*,3, ov);
       savedResult = Tcl_GetObjResult(in);
       INCR_REF_COUNT(savedResult);
       ov[0] = XOTclGlobalObjects[FORMAT];
@@ -1635,7 +1635,7 @@ AutonameIncr(Tcl_Interp *in, Tcl_Obj *name, XOTclObject *obj,
       if (Tcl_EvalObjv(in, 3, ov, 0) != TCL_OK) {
 	XOTcl_PopFrame(in, obj);
 	DECR_REF_COUNT(savedResult);
-	FREE_TCL_OBJS_ON_STACK(ov);
+	FREE_ON_STACK(ov);
 	return 0;
       }
       DECR_REF_COUNT(result);
@@ -1643,7 +1643,7 @@ AutonameIncr(Tcl_Interp *in, Tcl_Obj *name, XOTclObject *obj,
       INCR_REF_COUNT(result);
       Tcl_SetObjResult(in, savedResult);
       DECR_REF_COUNT(savedResult);
-      FREE_TCL_OBJS_ON_STACK(ov);
+      FREE_ON_STACK(ov);
     } else {
       /* append the value string, if not
 	 formated or if only %% occurs */
@@ -4160,7 +4160,7 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
        * back off and try unknown;
        */
       XOTclObject *obj = (XOTclObject*)cd;
-      DEFINE_NEW_TCL_OBJS_ON_STACK(objc+1, tov);
+      ALLOC_ON_STACK(Tcl_Obj*,objc+1, tov);
       /*
       fprintf(stderr,"calling unknown for %s %s ... flags=%02x,%02x isClass=%d %p %s\n",
 	      ObjStr(obj->cmdName), ObjStr(objv[1]), flags,  XOTCL_CM_NO_UNKNOWN, 
@@ -4174,7 +4174,7 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
 	fprintf(stderr,"?? %s unknown %s\n",ObjStr(obj->cmdName), ObjStr(tov[2]));
       */
       result = DoDispatch(cd, in, objc+1, tov, flags | XOTCL_CM_NO_UNKNOWN);
-      FREE_TCL_OBJS_ON_STACK(tov);
+      FREE_ON_STACK(tov);
 
     } else { /* unknown failed */
       Tcl_AppendResult(in, ObjStr(objv[0]), ": unable to dispatch method '",
@@ -4349,14 +4349,30 @@ NonPosArgsFormat(Tcl_Interp *in, Tcl_Obj* nonPosArgsData) {
  *  Proc-Creation
  */
 
+static Tcl_Obj* addPrefixToBody(Tcl_Obj *body, int nonPositionalArgs) {
+  Tcl_Obj* resultBody;
+  resultBody = Tcl_NewStringObj("", 0);
+  INCR_REF_COUNT(resultBody);
+  Tcl_AppendStringsToObj(resultBody, "::xotcl::initProcNS\n", NULL);
+  if (nonPositionalArgs) {
+    Tcl_AppendStringsToObj(resultBody, 
+			   "::xotcl::interpretNonPositionalArgs $args\n",
+			   NULL);
+  }
+  Tcl_AppendStringsToObj(resultBody, ObjStr(body), NULL);
+  return resultBody;
+}
+
+
 static int
 MakeProc(Tcl_Namespace* ns, XOTclAssertionStore* aStore, 
 	 Tcl_HashTable* nonPosArgsTable,
 	 Tcl_Interp *in, int objc, Tcl_Obj *objv[], XOTclObject *obj) {
   int result, incr, start;
   Tcl_CallFrame frame;
-  char *body, * arg;
-  Tcl_Obj *ov[4], *nonPosArgsObj, *npaObj, **nonPosArgsDefv, **npav, *list;
+  char *arg;
+  Tcl_Obj *ov[4], *nonPosArgsObj = 0, *npaObj, **nonPosArgsDefv, **npav, 
+    *list;
   int nw = 0, r1, nonPosArgsDefc, length, i, j, l, npac;
   Tcl_HashEntry* hPtr = NULL;
   XOTclNonPosArgs* nonPosArg;
@@ -4369,7 +4385,11 @@ MakeProc(Tcl_Namespace* ns, XOTclAssertionStore* aStore,
   ov[1] = objv[1];
   if (objc == 5 || objc == 7) {
     r1 = Tcl_ListObjGetElements(in, objv[2], &nonPosArgsDefc, &nonPosArgsDefv);
-    if (r1 == TCL_OK) {
+    if (r1 != TCL_OK) {
+      return XOTclVarErrMsg(in, "cannot break down non-positional args: ", 
+			    ObjStr(objv[2]), (char *)NULL);
+    }
+    if (nonPosArgsDefc > 0) {
       nonPosArgsObj = Tcl_NewListObj(0, NULL);
       INCR_REF_COUNT(nonPosArgsObj);
       for (i=0; i < nonPosArgsDefc; i++) {
@@ -4419,40 +4439,33 @@ MakeProc(Tcl_Namespace* ns, XOTclAssertionStore* aStore,
 	}      
        	Tcl_ListObjAppendElement(in, nonPosArgsObj, npaObj);
       }
-    } else {
-      return XOTclVarErrMsg(in, "cannot break down non-positional args: ", 
-		     ObjStr(objv[2]), (char *)NULL);
+   
+      ov[2] = XOTclGlobalObjects[ARGS];
+      ov[3] = addPrefixToBody(objv[4], 1);
+
+      hPtr = Tcl_CreateHashEntry(nonPosArgsTable, ObjStr(ov[1]), &nw);
+      if (nw) {
+	MEM_COUNT_ALLOC("nonPosArg",nonPosArg);
+	nonPosArg = (XOTclNonPosArgs*)ckalloc(sizeof(XOTclNonPosArgs));
+	nonPosArg->nonPosArgs = nonPosArgsObj;
+	nonPosArg->ordinaryArgs = objv[3];
+	INCR_REF_COUNT(objv[3]);
+	Tcl_SetHashValue(hPtr, (ClientData)nonPosArg);
+      }
+      
+
+    } else { /* no nonpositional arguments */
+      ov[2] = objv[3];
+      ov[3] = addPrefixToBody(objv[4], 0);
     }
-
-    ov[2] = XOTclGlobalObjects[ARGS];
-    body = ObjStr(objv[4]);
-    ov[3] = Tcl_NewStringObj("", 0);
-    INCR_REF_COUNT(ov[3]);
-    Tcl_AppendStringsToObj(ov[3], "::xotcl::initProcNS\n", NULL);
-
-    hPtr = Tcl_CreateHashEntry(nonPosArgsTable, ObjStr(ov[1]), &nw);
-    if (nw) {
-      MEM_COUNT_ALLOC("nonPosArg",nonPosArg);
-      nonPosArg = (XOTclNonPosArgs*)ckalloc(sizeof(XOTclNonPosArgs));
-      nonPosArg->nonPosArgs = nonPosArgsObj;
-      nonPosArg->ordinaryArgs = objv[3];
-      INCR_REF_COUNT(objv[3]);
-      Tcl_SetHashValue(hPtr, (ClientData)nonPosArg);
-    }
-
-    Tcl_AppendStringsToObj(ov[3], 
-			   "::xotcl::interpretNonPositionalArgs $args\n",
-			   NULL);
   } else {
     ov[2] = objv[2];
-    body = ObjStr(objv[3]);
-    ov[3] = Tcl_NewStringObj("", 0);
-    INCR_REF_COUNT(ov[3]);
-    Tcl_AppendStringsToObj(ov[3], "::xotcl::initProcNS\n", NULL);
+    ov[3] = addPrefixToBody(objv[3], 0);
   }
-  
+
 #ifdef AUTOVARS
-  { char *p;
+  { char *p, *body;
+    body = ObjStr(ov[3]);
     if ((p = strstr(body, "self")) && p != body && *(p-1) != '[')
       Tcl_AppendStringsToObj(ov[3], "::set self [self]\n", NULL);
     if (strstr(body, "proc"))
@@ -4462,7 +4475,6 @@ MakeProc(Tcl_Namespace* ns, XOTclAssertionStore* aStore,
   }
 #endif
   
-  Tcl_AppendStringsToObj(ov[3], body, NULL);
   Tcl_PushCallFrame(in,&frame,ns,0);
   
   result = Tcl_ProcObjCmd(0, in, 4, ov) != TCL_OK;
@@ -4774,14 +4786,14 @@ ListClass(Tcl_Interp *in, XOTclObject *obj, char *pattern,
     return TCL_OK;
   } else {
     int result;
-    DEFINE_NEW_TCL_OBJS_ON_STACK(objc, ov);
+    ALLOC_ON_STACK(Tcl_Obj*,objc, ov);
 
     memcpy(ov, objv, sizeof(Tcl_Obj *)*objc);
     ov[1] = Tcl_NewStringObj("superclass", 10);
     INCR_REF_COUNT(ov[1]);
     result = XOTclCInfoMethod((ClientData)obj->cl, in, objc, ov);
     DECR_REF_COUNT(ov[1]);
-    FREE_TCL_OBJS_ON_STACK(ov);
+    FREE_ON_STACK(ov);
     return result;
   }
 }
@@ -5339,11 +5351,11 @@ XOTclONextMethod2(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]
     nobjv = (Tcl_Obj **)objv;
   }
   {
-    DEFINE_NEW_TCL_OBJS_ON_STACK(nobjc + 1, ov);
+    ALLOC_ON_STACK(Tcl_Obj*,nobjc + 1, ov);
     memcpy(ov+1, nobjv, sizeof(Tcl_Obj *)*nobjc);
     ov[0] = obj->cmdName;
     result = ObjDispatch(cd, in, nobjc+1, ov, 0);
-    FREE_TCL_OBJS_ON_STACK(ov);
+    FREE_ON_STACK(ov);
   }
   /*fprintf(stderr,"******* next for proc %s\n", methodName);*/
   /*result = Tcl_EvalObjv(in, objc, ov, 0);*/
@@ -7120,7 +7132,7 @@ XOTclInstVar(XOTcl_Object *obji, Tcl_Interp *in, char *name, char *destName) {
   XOTclObject *obj = (XOTclObject*) obji;
   int result;
   Tcl_Obj *alias = 0;
-  DEFINE_NEW_TCL_OBJS_ON_STACK(2, objv);
+  ALLOC_ON_STACK(Tcl_Obj*,2, objv);
 
   objv[0] = XOTclGlobalObjects[INSTVAR];
   objv[1] = Tcl_NewStringObj(name, -1);
@@ -7138,7 +7150,7 @@ XOTclInstVar(XOTcl_Object *obji, Tcl_Interp *in, char *name, char *destName) {
     DECR_REF_COUNT(alias);
   }
   DECR_REF_COUNT(objv[1]);
-  FREE_TCL_OBJS_ON_STACK(objv);
+  FREE_ON_STACK(objv);
   return result;
 }
 
@@ -7374,7 +7386,7 @@ XOTclOEvalMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]
   tclCmdClientData *tcd = (tclCmdClientData *)cd;
   XOTcl_FrameDecls;
   int result;
-  DEFINE_NEW_TCL_OBJS_ON_STACK(objc, ov);
+  ALLOC_ON_STACK(Tcl_Obj*,objc, ov);
 
   if (!tcd || !tcd->obj) return XOTclObjErrType(in, objv[0], "Object");
 
@@ -7393,7 +7405,7 @@ XOTclOEvalMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]
   result = Tcl_EvalObjv(in, objc, ov, 0);
 
   XOTcl_PopFrame(in, tcd->obj);
-  FREE_TCL_OBJS_ON_STACK(ov);
+  FREE_ON_STACK(ov);
   return result;
 }
 #endif
@@ -7499,10 +7511,10 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
   {
     Tcl_Obj **ov, *freeList=NULL;
     int totalargs = objc + tcd->nr_args + 3;
-    int objvmap[totalargs];
-    DEFINE_NEW_TCL_OBJS_ON_STACK(totalargs, OV);
-    ov = &OV[1];
+    ALLOC_ON_STACK(int, totalargs, objvmap);
+    ALLOC_ON_STACK(Tcl_Obj*,totalargs, OV);
 
+    ov = &OV[1];
     for (j=0; j<totalargs; j++) objvmap[j] = -1;
     /*
     fprintf(stderr,"...setting currentFramePtr %p to %p (ForwardMethod)\n",
@@ -7526,8 +7538,7 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
     if ((result = forwardArg(in, objc, objv, tcd->cmdName, tcd,
 			     &ov[outputarg], &freeList, &inputarg,
 			     &objvmap[outputarg])) != TCL_OK) {
-      if (freeList) {DECR_REF_COUNT(freeList);}
-      return result;
+      goto exitforwardmethod;
     }
     outputarg++;
 
@@ -7540,9 +7551,8 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
       for (j=0; j<nrElements; j++, outputarg++) {
 	if ((result = forwardArg(in, objc, objv, listElements[j], tcd,
 				 &ov[outputarg], &freeList, &inputarg,
-				 &objvmap[outputarg]))!= TCL_OK) {
-	  if (freeList) {DECR_REF_COUNT(freeList);}
-	  return result;
+				 &objvmap[outputarg])) != TCL_OK) {
+	  goto exitforwardmethod;
 	}
       }
     }
@@ -7625,10 +7635,11 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
       XOTcl_PopFrame(in, tcd->obj);
     }
 
-    if (freeList)    {DECR_REF_COUNT(freeList);}
     if (tcd->prefix) {DECR_REF_COUNT(ov[1]);}
-    
-    FREE_TCL_OBJS_ON_STACK(OV);
+  exitforwardmethod:
+    if (freeList)    {DECR_REF_COUNT(freeList);}
+    FREE_ON_STACK(objvmap);
+    FREE_ON_STACK(OV);
   }
   return result;
 }
@@ -8507,7 +8518,7 @@ XOTclCNewMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
 
   objc -= offset;
   {
-    DEFINE_NEW_TCL_OBJS_ON_STACK(objc+3, ov);
+    ALLOC_ON_STACK(Tcl_Obj*,objc+3, ov);
 
     ov[0] = objv[0];
     ov[1] = XOTclGlobalObjects[CREATE];
@@ -8516,7 +8527,7 @@ XOTclCNewMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
       memcpy(ov+3, objv+offset, sizeof(Tcl_Obj *)*objc);
 
     result = DoDispatch(cd, in, objc+3, ov, 0);
-    FREE_TCL_OBJS_ON_STACK(ov);
+    FREE_ON_STACK(ov);
   }
 
 #if REFCOUNTED
@@ -9673,6 +9684,7 @@ int
 XOTclSelfDispatchCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *self;
   int result;
+  if (objc < 2) return XOTclObjErrArgCnt(in, objv[0], "::xotcl::my method ?args?");
   if ((self = GetSelfObj(in))) {
     result = callMethod((ClientData)self, in, objv[1], objc, objv+2, 0);
   } else {

@@ -12,15 +12,15 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.14 2004/08/02 09:43:32 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.15 2004/08/17 10:12:54 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
 # have been added in a customized configure script.
 #========================================================================
 
-#XOTCL_VERSION 	= 1.2.1
-XOTCL_VERSION 	= 1.2
+#XOTCL_VERSION 	= 1.3.0
+XOTCL_VERSION 	= 1.3
 
 src_lib_dir 	= ${srcdir}/library
 src_doc_dir 	= ${srcdir}/doc
@@ -81,15 +81,15 @@ PKG_TCL_SOURCES =
 # This is a list of public header files to be installed, if any.
 #========================================================================
 
-PKG_HEADERS	=  generic/xotcl.h generic/xotclInt.h
+PKG_HEADERS	=  generic/xotcl.h generic/xotclInt.h generic/xotclDecls.h generic/xotclIntDecls.h
 
 #========================================================================
 # "PKG_LIB_FILE" refers to the library (dynamic or static as per
 # configuration options) composed of the named objects.
 #========================================================================
 
-PKG_LIB_FILE	= libxotcl1.2.1.so
-PKG_STUB_LIB_FILE = libxotclstub1.2.1.a
+PKG_LIB_FILE	= libxotcl1.3.0.so
+PKG_STUB_LIB_FILE = libxotclstub1.3.0.a
 
 lib_BINARIES	= $(PKG_LIB_FILE) $(PKG_STUB_LIB_FILE)
 BINARIES	= $(lib_BINARIES)
@@ -116,7 +116,7 @@ INSTALL_DATA	= ${INSTALL} -m 644
 INSTALL_SCRIPT	= ${INSTALL}
 
 PACKAGE_NAME	= xotcl
-PACKAGE_VERSION	= 1.2.1
+PACKAGE_VERSION	= 1.3.0
 CC		= gcc -pipe
 CFLAGS_DEFAULT	= -O
 CFLAGS_WARNING	= -Wall -Wconversion -Wno-implicit-int
@@ -143,9 +143,9 @@ TCL_SRC_DIR	= /home/neumann/import/tcl8.4.7
 # Not used, but retained for reference of what libs Tcl required
 TCL_LIBS	= ${DL_LIBS} ${LIBS} ${MATH_LIBS}
 
-pkgdatadir	= /usr/share/xotcl1.2.1
-pkglibdir	= /usr/lib/xotcl1.2.1
-pkgincludedir	= /usr/include/xotcl1.2.1
+pkgdatadir	= /usr/share/xotcl1.3.0
+pkglibdir	= /usr/lib/xotcl1.3.0
+pkgincludedir	= /usr/include/xotcl1.3.0
 
 #========================================================================
 # TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
@@ -163,18 +163,18 @@ TCLSH_PROG	= /home/neumann/tcl8.4.7/unix/tclsh
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= 1
 
-INCLUDES	=  -I$(TCL_SRC_DIR)/generic -I$(TCL_SRC_DIR)/unix -I/home/neumann/xotcl-1.2.1/generic
-EXTRA_CFLAGS	=   -DXOTCLVERSION=\"1.2\" -DXOTCLPATCHLEVEL=\".1\" 	 -DHAVE_TCL_COMPILE_H=1
+INCLUDES	=  -I$(TCL_SRC_DIR)/generic -I$(TCL_SRC_DIR)/unix -I/home/neumann/xotcl-1.3.0/generic
+EXTRA_CFLAGS	=   -DXOTCLVERSION=\"1.3\" -DXOTCLPATCHLEVEL=\".0\" 	 -DHAVE_TCL_COMPILE_H=1
 
 # TCL_DEFS is not strictly need here, but if you remove it, then you
 # must make sure that configure.in checks for the necessary components
 # that your library may use.  TCL_DEFS can actually be a problem if
 # you do not compile with a similar machine setup as the Tcl core was
 # compiled with.
-#DEFS		= $(TCL_DEFS) -DPACKAGE_NAME=\"xotcl\" -DPACKAGE_TARNAME=\"xotcl\" -DPACKAGE_VERSION=\"1.2.1\" -DPACKAGE_STRING=\"xotcl\ 1.2.1\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -D_LARGEFILE64_SOURCE=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_STRUCT_STAT64=1 -DHAVE_TYPE_OFF64_T=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1 -DTCL_THREADS=1 -DUSE_TCL_STUBS=1 -DCOMPILE_XOTCL_STUBS=1  $(EXTRA_CFLAGS)
-DEFS		= -DPACKAGE_NAME=\"xotcl\" -DPACKAGE_TARNAME=\"xotcl\" -DPACKAGE_VERSION=\"1.2.1\" -DPACKAGE_STRING=\"xotcl\ 1.2.1\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -D_LARGEFILE64_SOURCE=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_STRUCT_STAT64=1 -DHAVE_TYPE_OFF64_T=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1 -DTCL_THREADS=1 -DUSE_TCL_STUBS=1 -DCOMPILE_XOTCL_STUBS=1  $(EXTRA_CFLAGS) 
+#DEFS		= $(TCL_DEFS) -DPACKAGE_NAME=\"xotcl\" -DPACKAGE_TARNAME=\"xotcl\" -DPACKAGE_VERSION=\"1.3.0\" -DPACKAGE_STRING=\"xotcl\ 1.3.0\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -D_LARGEFILE64_SOURCE=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_STRUCT_STAT64=1 -DHAVE_TYPE_OFF64_T=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1 -DTCL_THREADS=1 -DUSE_TCL_STUBS=1 -DCOMPILE_XOTCL_STUBS=1  $(EXTRA_CFLAGS)
+DEFS		= -DPACKAGE_NAME=\"xotcl\" -DPACKAGE_TARNAME=\"xotcl\" -DPACKAGE_VERSION=\"1.3.0\" -DPACKAGE_STRING=\"xotcl\ 1.3.0\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -D_LARGEFILE64_SOURCE=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_STRUCT_STAT64=1 -DHAVE_TYPE_OFF64_T=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1 -DTCL_THREADS=1 -DUSE_TCL_STUBS=1 -DCOMPILE_XOTCL_STUBS=1  $(EXTRA_CFLAGS) 
 
-CONFIG_CLEAN_FILES = Makefile xotclConfig.sh apps/utils/xotclsh apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix autom4te.cache
+CONFIG_CLEAN_FILES = Makefile xotclConfig.sh apps/utils/xotclsh apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix autom4te.cache/
 
 CPPFLAGS	= 
 LIBS		=  
@@ -602,8 +602,8 @@ RPMSPECS=/usr/src/redhat/SPECS
 rpm: tar
 	@if test ! -d $(RPMSOURCES); then mkdir -p $(RPMSOURCES); fi
 	@if test ! -d $(RPMSPECS); then mkdir -p $(RPMSPECS); fi
-	cp ../../xotcl-$(PACKAGE_VERSION).tar.gz $(RPMSOURCES)
-	cp xotcl.spec $(RPMSPECS)/xotcl-$(PACKAGE_VERSION).spec
+	cp ../xotcl-$(PACKAGE_VERSION).tar.gz $(RPMSOURCES)
+	cp unix/xotcl.spec $(RPMSPECS)/xotcl-$(PACKAGE_VERSION).spec
 	rpmbuild -ba $(RPMSPECS)/xotcl-$(PACKAGE_VERSION).spec
 
 bin-tar: 

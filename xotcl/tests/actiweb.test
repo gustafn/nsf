@@ -1,5 +1,5 @@
 # -*- Mode: tcl -*-
-# $Id: actiweb.test,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: actiweb.test,v 1.2 2004/08/17 10:12:55 neumann Exp $
 # regression test for actiweb examples
 #if {[set ::tcl_platform(platform)] == "windows"} {
 #  lappend auto_path .
@@ -79,5 +79,5 @@ T new -msg "terminate MC" -setResult {set x 1} \
     -cmd [list SimpleRequest r0 -url http://localhost:8092/receiver::exit] \
     -post {catch {close $::PIPE5}; exit}
 
-after 1500 {Test run}
+after 2000 {Test run}
 catch {vwait forever}

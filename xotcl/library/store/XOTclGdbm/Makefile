@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.13 2004/08/02 09:43:32 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.14 2004/08/17 10:12:55 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -135,7 +135,7 @@ TCLSH_PROG	= /usr/lib/../bin/tclsh8.4
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= 1
 
-INCLUDES	=  -I/home/neumann/xotcl-1.2.1/generic -I"/usr/include"
+INCLUDES	=  -I/home/neumann/xotcl-1.3.0/generic -I"/usr/include"
 
 EXTRA_CFLAGS	=   
 
@@ -150,7 +150,7 @@ DEFS		= -DPACKAGE_NAME=\"xotclgdbm\" -DPACKAGE_TARNAME=\"xotclgdbm\" -DPACKAGE_V
 CONFIG_CLEAN_FILES = Makefile
 
 CPPFLAGS	= 
-LIBS		=  -L/home/neumann/xotcl-1.2.1 -lxotclstub1.2.1 -lgdbm 
+LIBS		=  -L/home/neumann/xotcl-1.3.0 -lxotclstub1.3.0 -lgdbm 
 AR		= ar
 CFLAGS		=  ${CFLAGS_DEFAULT} ${CFLAGS_WARNING} ${SHLIB_CFLAGS}
 COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)

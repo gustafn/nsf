@@ -18,7 +18,11 @@
 long
 sdbm_hash(str, len)
 register char *str;
+#ifdef VISUAL_CC
+register int len;
+#else
 register size_t len;
+#endif
 {
 	register unsigned long n = 0;
 
