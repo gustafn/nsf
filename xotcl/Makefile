@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.4 2004/06/18 08:12:56 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.5 2004/06/18 08:27:57 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -465,6 +465,10 @@ clean:
 
 distclean: clean
 	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
+	for dir in $$dirs ; do \
+	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
+	done; fi
 
 #========================================================================
 # Install binary object libraries.  On Windows this includes both .dll and

@@ -1,6 +1,7 @@
 2004-06-18 Gustaf.Neumann@wu-wien.ac.at
         * added *.a to CLEANFILES in configure.in to rm stublibfile
           on a "make clean"
+        * added subdir traversal for distclean
 
 2004-06-13 jim@jam.sessionsnet.org
         * fixed make distclean target
