@@ -1,3 +1,6 @@
+2004-11-27 Gustaf.Neumann@wu-wien.ac.at, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+        * release of distribution XOTcl 1.3.3
+
 2004-11-20 Gustaf.Neumann@wu-wien.ac.at
         * fixed [self callinglevel] in nested uplevel loops
           in the presence of filters, extended regression test
@@ -22,6 +25,7 @@
           (many thanks for Zoran reporting this problem)
         * fixed --enable symbols (many thanks for Zoran reporting this problem)
         * fixed free memory read in namespace deletes
+
 2004-10-30 Gustaf.Neumann@wu-wien.ac.at
         * added error message when someone tries to delete a
           non-existing proc/instproc
