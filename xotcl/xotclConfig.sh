@@ -65,5 +65,5 @@ XOTCL_SHARED_LIB_SUFFIX=1.3.5${DBGX}.so
 XOTCL_UNSHARED_LIB_SUFFIX=1.3.5${DBGX}.a
 
 # the shell in whose installation dirs the xotcl package is installed
-XOTCL_COMPATIBLE_TCLSH=/home/neumann/tcl8.4.7/unix/tclsh
+XOTCL_COMPATIBLE_TCLSH=/home/neumann/tcl8.4.9/unix/tclsh
 

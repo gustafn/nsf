@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.34 2005/01/06 03:10:05 neumann Exp $
+/* $Id: xotcl.c,v 1.35 2005/01/07 02:40:59 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -4378,9 +4378,9 @@ NonposArgsFreeTable(Tcl_HashTable* nonposArgsTable) {
 
 static XOTclNonposArgs* 
 NonposArgsGet(Tcl_HashTable* nonposArgsTable, char* methodName) {
-  Tcl_HashEntry* hPtr = nonposArgsTable ? Tcl_FindHashEntry(nonposArgsTable, 
-							    methodName) : 0;
-  if (hPtr) {
+  Tcl_HashEntry* hPtr;
+  if (nonposArgsTable && 
+      ((hPtr = Tcl_FindHashEntry(nonposArgsTable, methodName)))) {
     return (XOTclNonposArgs*) Tcl_GetHashValue(hPtr);
   }
   return NULL;
@@ -4477,7 +4477,6 @@ parseNonposArgs(Tcl_Interp *in,
       npaObj = Tcl_NewListObj(0, NULL);
       arg = ObjStr(npav[0]);
       if (arg[0] != '-') {
-	INCR_REF_COUNT(npaObj);
 	DECR_REF_COUNT(npaObj);
 	DECR_REF_COUNT(nonposArgsObj);
 	return XOTclVarErrMsg(in, "non-positional args does not start with '-': ", 
@@ -4517,22 +4516,29 @@ parseNonposArgs(Tcl_Interp *in,
 	Tcl_ListObjAppendElement(in, npaObj, npav[1]);
       }      
       Tcl_ListObjAppendElement(in, nonposArgsObj, npaObj);
+      *haveNonposArgs = 1;
+    }
 
+    if (*haveNonposArgs) {
+      XOTclNonposArgs* nonposArg;
+	
       if (*nonposArgsTable == 0) {
 	*nonposArgsTable = NonposArgsCreateTable();
       }
 
       hPtr = Tcl_CreateHashEntry(*nonposArgsTable, procName, &nw);
-      if (nw) {
-	XOTclNonposArgs* nonposArg;
-	MEM_COUNT_ALLOC("nonposArg",nonposArg);
-	nonposArg = (XOTclNonposArgs*)ckalloc(sizeof(XOTclNonposArgs));
-	nonposArg->nonposArgs = nonposArgsObj;
-	nonposArg->ordinaryArgs = ordinaryArgs;
-	INCR_REF_COUNT(ordinaryArgs);
-	Tcl_SetHashValue(hPtr, (ClientData)nonposArg);
-      }
-      *haveNonposArgs = 1;
+      assert(nw);
+
+      MEM_COUNT_ALLOC("nonposArg",nonposArg);
+      nonposArg = (XOTclNonposArgs*)ckalloc(sizeof(XOTclNonposArgs));
+      nonposArg->nonposArgs = nonposArgsObj;
+      nonposArg->ordinaryArgs = ordinaryArgs;
+      INCR_REF_COUNT(ordinaryArgs);
+      Tcl_SetHashValue(hPtr, (ClientData)nonposArg);
+    } else {
+      /* for strange resons, we did not find nonpos-args, although we
+	 have definitions */
+      DECR_REF_COUNT(nonposArgsObj);
     }
   }
   return TCL_OK;
@@ -4549,9 +4555,9 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore,
   Tcl_HashEntry* hPtr = NULL;
   char *procName = ObjStr(objv[1]);
   
-  hPtr = *nonposArgsTable ? Tcl_FindHashEntry(*nonposArgsTable, procName) : 0;
-  if (hPtr) 
+  if (*nonposArgsTable && (hPtr = Tcl_FindHashEntry(*nonposArgsTable, procName))) {
     NonposArgsDeleteHashEntry(hPtr);
+  }
   
   ov[0] = objv[0];
   ov[1] = objv[1];
@@ -4569,9 +4575,11 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore,
       ov[3] = addPrefixToBody(objv[4], 0);
     }
   } else {
+#if !defined(XOTCL_DISJOINT_ARGLISTS)
     int argsc, i;
     Tcl_Obj **argsv;
 
+    /* see, if we have nonposArgs in the ordinary argument list */
     result = Tcl_ListObjGetElements(in, objv[2], &argsc, &argsv);
     if (result != TCL_OK) {
       return XOTclVarErrMsg(in, "cannot break args into list: ", 
@@ -4600,8 +4608,8 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore,
       if (result != TCL_OK)
 	return result;
     }
+#endif
     if (haveNonposArgs) {
-      /*fprintf(stderr, "haveNonposArgs = %d\n",haveNonposArgs);*/
       ov[2] = XOTclGlobalObjects[XOTE_ARGS];
       ov[3] = addPrefixToBody(objv[3], 1);
     } else { /* no nonpos arguments */
@@ -9527,9 +9535,6 @@ XOTclCInstProcMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
 			     "instproc name ?non-positional-args? args body ?preAssertion postAssertion?");
 
   if (objc == 5 || objc == 7) {
-    if (cl->nonposArgsTable == 0) {
-      cl->nonposArgsTable = NonposArgsCreateTable();
-    }
     incr = 1;
   }
 

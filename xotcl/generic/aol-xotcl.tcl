@@ -1,4 +1,4 @@
-# $Id: aol-xotcl.tcl,v 1.3 2005/01/06 03:10:05 neumann Exp $
+# $Id: aol-xotcl.tcl,v 1.4 2005/01/07 02:40:59 neumann Exp $
 
 #
 # Load XOTcl library and some related packages.
@@ -9,7 +9,7 @@
 #
 
 package require XOTcl; namespace import ::xotcl::*
-package require xotcl::serializer 0.6
+package require xotcl::serializer 0.7
 
 #
 # Overload procedure defined in bin/init.tcl.
@@ -37,11 +37,12 @@ proc _ns_savenamespaces {} {
         }
     }
     if {[catch {::Serializer all} objects]} {
-        set objects ""
         ns_log notice "XOTcl extension not loaded; will not copy objects."
+        set objects ""
     }
-    #ns_ictl save [append script \n $objects \n $import]
-    ns_ictl save [append script \n $import \n $objects]
+    ns_ictl save [append script \n \
+	"namespace import ::xotcl::*" \n \
+	$objects \n $import]
     if {0} {
        set f [open /tmp/__aolserver-blueprint.tcl w]
        puts $f $script

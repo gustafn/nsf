@@ -10,4 +10,3 @@
 
 package ifneeded xotcl::scriptCreation::recoveryPoint 0.8 [list source [file join $dir RecoveryPoint.xotcl]]
 package ifneeded xotcl::scriptCreation::scriptCreator 0.8 [list source [file join $dir ScriptCreator.xotcl]]
-package ifneeded xotcl::serializer 0.6 [list source [file join $dir Serializer.xotcl]]
