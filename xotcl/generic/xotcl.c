@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.19 2004/08/01 22:15:11 neumann Exp $
+/* $Id: xotcl.c,v 1.20 2004/08/02 22:17:22 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -1409,7 +1409,26 @@ NSCheckForParent(Tcl_Interp *in, char *name, unsigned l) {
       if (parentObj) {
 	requireObjNamespace(in, parentObj);
       } else {
-	result = 0;
+	/* call unknown and try again */
+	Tcl_Obj *ov[3];
+	int rc;
+	ov[0] = RUNTIME_STATE(in)->theClass->object.cmdName;
+	ov[1] = XOTclGlobalObjects[__UNKNOWN];
+	ov[2] = Tcl_NewStringObj(parentName,-1);
+	INCR_REF_COUNT(ov[2]);
+	/*fprintf(stderr,"+++ calling __unknown for %s\n", ObjStr(ov[2]));*/
+	rc = Tcl_EvalObjv(in, 3, ov, 0);
+        if (rc == TCL_OK) {
+	  XOTclObject *parentObj = (XOTclObject*) GetObject(in, parentName);
+	  if (parentObj) {
+	    requireObjNamespace(in, parentObj);
+	  }
+	  result = (Tcl_FindNamespace(in, parentName, 
+				      (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY) != 0);
+	} else {
+	  result = 0;
+	}
+	DECR_REF_COUNT(ov[2]);
       }
     }
     DSTRING_FREE(dsp);

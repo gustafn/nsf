@@ -1,4 +1,9 @@
 2004-08-01 Gustaf.Neumann@wu-wien.ac.at
+        * xotcl.c: calling __unknown when an object with an unknown
+          parent namespace is called (for handling nested object
+          classes in Zoran's ttrace package)
+
+2004-08-01 Gustaf.Neumann@wu-wien.ac.at
         * yet another fixed access to freed memory (when the configure
           method returned a non numerical value, which was tried to be
           converted into a number; setting refcounts properly helped.
