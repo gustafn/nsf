@@ -1,6 +1,6 @@
 /* -*- Mode: c++ -*-
  *
- *  $Id: xotcl.h,v 1.4 2004/08/22 10:00:19 neumann Exp $
+ *  $Id: xotcl.h,v 1.5 2004/11/14 01:07:17 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -50,9 +50,9 @@
 #define KEEP_TCL_CMD_TYPE 1
 
 /* activate/deacticate assert 
-#define NDEBUG
+#define NDEBUG 1
 */
-#define NDEBUG
+#define NDEBUG 1
 
 /* activate/deacticate memory tracing 
 #define XOTCL_MEM_TRACE 1

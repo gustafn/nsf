@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.18 2004/10/30 20:19:55 neumann Exp $
+#$Id: testx.xotcl,v 1.19 2004/11/14 01:07:17 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -2925,7 +2925,6 @@ smallScripts proc run {{n 20}} {
     return "PASSED [self]"
 }
 
-
 TestX objectReferences
 @ TestX objectReferences {
     description {
@@ -3606,6 +3605,7 @@ TestX proc run {} {
 }
 
 puts "XOTcl - Test"
+
 puts "Time used: [time {TestX run} 1]"
 
 # toplevel tests #################################################

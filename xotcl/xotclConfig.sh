@@ -61,8 +61,8 @@ XOTCL_STUB_LIB_PATH='/usr/lib/xotcl1.3.3/libxotclstub1.3.3.a'
 XOTCL_SRC_DIR='.'
 
 # shared and unshared library suffix
-XOTCL_SHARED_LIB_SUFFIX=1.3.3.so
-XOTCL_UNSHARED_LIB_SUFFIX=1.3.3.a
+XOTCL_SHARED_LIB_SUFFIX=1.3.3${DBGX}.so
+XOTCL_UNSHARED_LIB_SUFFIX=1.3.3${DBGX}.a
 
 # the shell in whose installation dirs the xotcl package is installed
 XOTCL_COMPATIBLE_TCLSH=/home/neumann/tcl8.4.7/unix/tclsh

@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.27 2004/10/30 20:19:55 neumann Exp $
+/* $Id: xotcl.c,v 1.28 2004/11/14 01:07:17 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -977,8 +977,8 @@ XOTclIsClass(Tcl_Interp *in, ClientData cd) {
 /*
  * methods lookup
  */
-
-XOTCLINLINE static Tcl_Command
+/*XOTCLINLINE*/
+static Tcl_Command
 FindMethod(char *methodName, Tcl_Namespace* nsPtr) {
   Tcl_HashTable *cmdTable;
   Tcl_HashEntry *entryPtr;
@@ -986,6 +986,7 @@ FindMethod(char *methodName, Tcl_Namespace* nsPtr) {
   /* if somebody messes around with the deleteProc, we conclude that the
      entries of the cmdTable are not ours ... */
   cmdTable = Tcl_Namespace_deleteProc(nsPtr) ? Tcl_Namespace_cmdTable(nsPtr) : NULL ;
+  /*fprintf(stderr,"FindMethod '%s', cmdTable %p ns=%p \n",methodName,cmdTable,nsPtr);*/
   if (cmdTable && (entryPtr = Tcl_FindHashEntry(cmdTable, methodName))) {
     cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
   } else {
@@ -1042,11 +1043,11 @@ callDestroyMethod(ClientData cd, Tcl_Interp *in, XOTclObject *obj, int flags) {
 #if !defined(NDEBUG)
   {char *cmdName = ObjStr(obj->cmdName);
   assert(cmdName != NULL);
+  /*fprintf(stderr,"findCommand %s -> %p obj->id %p\n",cmdName, 
+    Tcl_FindCommand(in, cmdName, NULL, 0),obj->id);*/
   /*assert(Tcl_FindCommand(in, cmdName, NULL, 0) != NULL);*/
-#ifdef UWE
-  fprintf(stderr,"callDestroyMethod: %p command to be destroyed '%s' does not exist\n",
-	  obj, cmdName);
-#endif
+  /*fprintf(stderr,"callDestroyMethod: %p command to be destroyed '%s' does not exist\n",
+    obj, cmdName);*/
   }
 #endif
 
@@ -1332,9 +1333,6 @@ XOTcl_DeleteCommandFromToken(Tcl_Interp *in, Tcl_Command cmd) {
       csc->cmdPtr = NULL;
     break;
   }
-#ifdef UWE
-  fprintf(stderr,"DeleteCommandFromToken %p\n",cmd);
-#endif
   return Tcl_DeleteCommandFromToken(in, cmd);
 }
 
@@ -1372,6 +1370,10 @@ NSCleanupNamespace(Tcl_Interp *in, Tcl_Namespace* ns) {
 static void
 NSNamespaceDeleteProc(ClientData clientData) {
   /* dummy for ns identification by pointer comparison */
+  XOTclObject *obj = (XOTclObject*) clientData;  
+  /*fprintf(stderr,"namespacedeleteproc %p\n",clientData);*/
+  obj->flags |= XOTCL_NS_DESTROYED;
+  obj->nsPtr = NULL;
 }
 
 void
@@ -1864,9 +1866,6 @@ CallStackDoDestroy(Tcl_Interp *in, XOTclObject *obj) {
   oid = obj->id;
   obj->id = 0;
   if (obj->teardown && oid) {
-#ifdef UWE
-    fprintf(stderr, "DoDestroy %p '%s'\n",obj,ObjStr(obj->cmdName));
-#endif
     Tcl_DeleteCommandFromToken(in, oid);
   }
 }
@@ -1878,10 +1877,6 @@ CallStackDestroyObject(Tcl_Interp *in, XOTclObject *obj) {
   XOTclCallStackContent *csc;
   int countSelfs = 0;
   Tcl_Command oid = obj->id;
-
-#ifdef UWE
-  fprintf(stderr,"CallStackDestroyObject %p %s\n",obj, ObjStr(obj->cmdName));
-#endif
 
   for (csc = &cs->content[1]; csc <= cs->top; csc++) {
     if (csc->self == obj) {
@@ -1907,9 +1902,6 @@ CallStackDestroyObject(Tcl_Interp *in, XOTclObject *obj) {
        -> children destructors are called before parent's
        destructor */
     if (obj->teardown && obj->nsPtr) {
-#ifdef UWE
-      fprintf(stderr, "DeleteChildren %p '%s'\n",obj,ObjStr(obj->cmdName));
-#endif
       NSDeleteChildren(in, obj->nsPtr);
     }
   }
@@ -4100,7 +4092,7 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
   Tcl_Obj *cmdName = obj->cmdName;
   XOTclRuntimeState *rst = RUNTIME_STATE(in);
   XOTclCallStack *cs = &rst->cs;
-  /*int isdestroy = (objv[1] == XOTclGlobalObjects[DESTROY]);*/
+  /*int isdestroy = (objv[1] == XOTclGlobalObjects[DESTROY]); */
 #ifdef AUTOVARS
   int isNext;
 #endif
@@ -4192,6 +4184,7 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
     
     /* if no filter/mixin is found => do ordinary method lookup */
     if (proc == 0) {
+      /*if (obj->nsPtr && !(obj->flags & XOTCL_NS_DESTROYED))*/
       if (obj->nsPtr)
 	cmd = FindMethod(methodName, obj->nsPtr);
       /*fprintf(stderr,"findMethod for proc '%s' in %p returned %p\n",methodName, obj->nsPtr, cmd);*/
@@ -4250,15 +4243,15 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
 	    obj, mixinStackPushed, obj->mixinStack);
 #endif
 
-    /*    
-    if (!rst->callIsDestroy )
-    fprintf(stderr, "obj freed? %p destroy %p self %p %s %d [%d] reference=%d\n",obj,
+       
+    /*if (!rst->callIsDestroy )
+    fprintf(stderr, "obj freed? %p destroy %p self %p %s %d [%d] reference=%d,%d\n",obj,
 	    cs->top->destroyedCmd, cs->top->self, ObjStr(objv[1]),
 	    rst->callIsDestroy,
 	    cs->top->callType & XOTCL_CSC_CALL_IS_DESTROY,
-	    !rst->callIsDestroy 
-	    );
-    */
+	    !rst->callIsDestroy,
+	    isdestroy);*/
+    
 
     if (!rst->callIsDestroy) {
       /*!(obj->flags & XOTCL_DESTROY_CALLED)) {*/
@@ -4481,18 +4474,18 @@ MakeProc(Tcl_Namespace* ns, XOTclAssertionStore* aStore,
 	  Tcl_ListObjAppendElement(in, npaObj, Tcl_NewStringObj(arg+1, j-1));
 	  list = Tcl_NewListObj(0, NULL);
 	  start = j+1;
-	  while(start<length && isspace(arg[start])) start++;
+	  while(start<length && isspace((int)arg[start])) start++;
 	  for (l=start; l<length;l++) {
 	    if (arg[l] == ',') {
-	      for (end = l;end>0 && isspace(arg[end-1]); end--);
+	      for (end = l;end>0 && isspace((int)arg[end-1]); end--);
 	      Tcl_ListObjAppendElement(in, list, Tcl_NewStringObj(arg+start, end-start));
 	      l++;
 	      start = l;
-	      while(start<length && isspace(arg[start])) start++;
+	      while(start<length && isspace((int)arg[start])) start++;
 	    } 
 	  }
 	  /* append last arg */
-	  for (end = l;end>0 && isspace(arg[end-1]); end--);
+	  for (end = l;end>0 && isspace((int)arg[end-1]); end--);
 	  Tcl_ListObjAppendElement(in, list, Tcl_NewStringObj(arg+start, end-start)); 
 	  /* append the whole thing to the list */
 	  Tcl_ListObjAppendElement(in, npaObj, list);
@@ -6030,7 +6023,6 @@ PrimitiveCDestroy(ClientData cd) {
    */
   if (!obj || !obj->teardown) return;
   in = obj->teardown;
-  obj->teardown = 0;
 
   /*
    * Don't destroy, if the interpreted is destroyed already
@@ -6043,6 +6035,8 @@ PrimitiveCDestroy(ClientData cd) {
    */
   if (!(obj->flags & XOTCL_DESTROY_CALLED))
     callDestroyMethod(cd, in, obj, 0);
+
+  obj->teardown = 0;
 
   CleanupDestroyClass(in, cl);
 

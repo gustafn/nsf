@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.9 2004/10/13 10:35:43 neumann Exp $
+ *  $Id: xotclInt.h,v 1.10 2004/11/14 01:07:17 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -424,6 +424,7 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_DESTROYED                      0x0080
 #define XOTCL_REFCOUNTED                     0x0100
 #define XOTCL_RECREATE                       0x0200
+#define XOTCL_NS_DESTROYED                   0x0400
 
 #define XOTclObjectSetClass(obj) \
 	(obj)->flags |= XOTCL_IS_CLASS

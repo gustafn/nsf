@@ -9971,8 +9971,8 @@ fi;
 eval "SHARED_LIB_SUFFIX=${SHARED_LIB_SUFFIX}"
 eval "UNSHARED_LIB_SUFFIX=${UNSHARED_LIB_SUFFIX}"
 
-eval "SHARED_LIB_SUFFIX=${SHARED_LIB_SUFFIX}"
-eval "UNSHARED_LIB_SUFFIX=${UNSHARED_LIB_SUFFIX}"
+#eval "SHARED_LIB_SUFFIX=${SHARED_LIB_SUFFIX}"
+#eval "UNSHARED_LIB_SUFFIX=${UNSHARED_LIB_SUFFIX}"
 
 #--------------------------------------------------------------------
 # Set the default compiler switches based on the --enable-symbols
