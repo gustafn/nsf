@@ -1,4 +1,4 @@
-# -*- Tcl -*- $Id: trace.xotcl,v 1.2 2004/07/27 09:35:18 neumann Exp $
+# -*- Tcl -*- $Id: trace.xotcl,v 1.3 2005/01/06 03:10:05 neumann Exp $
 package provide xotcl::trace 0.91
 @ @File {description {
   Various tracing tools for the XOTcl language.
@@ -126,7 +126,7 @@ Object instproc traceFilter args {
     instproc {set dargs [list [lindex $args 0] [lindex $args 1] ...] }
     default  {set dargs $args }
   }
-  my showStack
+  #my showStack
   Trace::puts "CALL $context>  [self]->$method $dargs (next=[self next])"
   set result [next]
   Trace::puts "EXIT $context>  [self]->$method ($result)"

@@ -1,4 +1,4 @@
-# $Id: aol-xotcl.tcl,v 1.2 2004/07/27 09:35:18 neumann Exp $
+# $Id: aol-xotcl.tcl,v 1.3 2005/01/06 03:10:05 neumann Exp $
 
 #
 # Load XOTcl library and some related packages.
@@ -9,7 +9,7 @@
 #
 
 package require XOTcl; namespace import ::xotcl::*
-package require xotcl::serializer
+package require xotcl::serializer 0.6
 
 #
 # Overload procedure defined in bin/init.tcl.

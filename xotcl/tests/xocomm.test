@@ -1,5 +1,5 @@
 #!../../xotcl-0.9.4/xotclsh
-# $Id: xocomm.test,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: xocomm.test,v 1.2 2005/01/06 03:10:05 neumann Exp $
 package require XOTcl; namespace import -force xotcl::*
 lappend auto_path [file dirname [info script]]/..
 package require xotcl::test
@@ -29,7 +29,7 @@ if {$opt(-startServer)} {
   puts $startCmd
 }
 
-#package require package; package verbose 1
+package require xotcl::package; package verbose 1
 package require xotcl::comm::httpAccess
 package require xotcl::comm::ftp
 package require xotcl::trace

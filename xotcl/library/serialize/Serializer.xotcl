@@ -1,6 +1,6 @@
-# $Id: Serializer.xotcl,v 1.4 2004/08/19 09:57:50 neumann Exp $
+# $Id: Serializer.xotcl,v 1.5 2005/01/06 03:10:05 neumann Exp $
 package require XOTcl 1.0
-package provide xotcl::serializer 0.4
+package provide xotcl::serializer 0.6
 
 @ @File {
     description {
@@ -11,7 +11,7 @@ package provide xotcl::serializer 0.4
     authors {
         Gustaf Neumann, Gustaf.Neumann@wu-wien.ac.at
     }
-    date { $Date: 2004/08/19 09:57:50 $ }
+    date { $Date: 2005/01/06 03:10:05 $ }
 }
   
 @ Serializer proc all {
@@ -81,6 +81,9 @@ package provide xotcl::serializer 0.4
 
 ########################################################################################
 Class Serializer -parameter {ignoreVarsRE map}
+Serializer proc addGlobalMethods list {
+  foreach {o p m} $list {my set globalExportMethods($o,$p,$m) 1}
+}
 Serializer proc ignore args {
   my set skip $args
 }
@@ -94,17 +97,21 @@ Serializer instproc init {} {
   }
 }
 Serializer instproc method-serialize {o m prefix} {
+  my pcmd [my unescaped-method-serialize $o $m $prefix]
+}
+Serializer instproc unescaped-method-serialize {o m prefix} {
   set arglist [list]
   foreach v [$o info ${prefix}args $m] {
     if {[$o info ${prefix}default $m $v x]} {
       lappend arglist [list $v $x] } {lappend arglist $v}
   }
-  lappend r ${prefix}proc $m [$o info ${prefix}nonposargs $m] \
-      $arglist [$o info ${prefix}body $m]
+  lappend r ${prefix}proc $m \
+      [concat [$o info ${prefix}nonposargs $m] $arglist] \
+      [$o info ${prefix}body $m]
   foreach p {pre post} {
     if {[$o info ${prefix}$p $m]!=""} {lappend r [$o info ${prefix}$p $m]}
   }
-  return [my pcmd $r]
+  return $r
 }
 Serializer instproc pcmd list {
   foreach a $list {
@@ -275,11 +282,26 @@ Serializer instproc deepSerialize o {
 Serializer proc all {args} {
   set s [eval my new -childof [self] -volatile $args]
   set r [$s serializeList [$s allInstances ::Object]]
-  if {[string compare [::xotcl::Object info body __exitHandler] "\n;"]} {
-    append r \n "::xotcl::Object configure " \
-	[$s method-serialize ::xotcl::Object __exitHandler ""] \n
+  my addGlobalMethods [list ::xotcl::Object proc __exitHandler]
+  foreach k [my array names globalExportMethods] {
+    foreach {o p m} [split $k ,] break
+    switch $p {
+      proc     {set prefix ""}
+      instproc {set prefix inst}
+    }
+    if {[string compare "" [$o info ${prefix}procs $m]]} {
+      if {![info exists methods($o)]} {set methods($o) ""}
+      append methods($o) [$s method-serialize $o $m $prefix] " \\\n "
+    }
+  }
+  foreach o [array names methods] {
+    append r \n "$o configure \\\n " [string trimright $methods($o) "\\\n "]
   }
   return $r
+}
+Serializer proc methodSerialize {object method prefix} {
+  set s [my new -childof [self] -volatile]
+  concat $object [$s unescaped-method-serialize $object $method $prefix]
 }
 Serializer proc deepSerialize args {
   set s [my new -childof [self] -volatile]

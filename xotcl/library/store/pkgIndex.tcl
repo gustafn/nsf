@@ -15,7 +15,6 @@ package ifneeded xotcl::store::multi 0.9 [list source [file join $dir MultiStora
 package ifneeded xotcl::store::persistence 0.8 [list source [file join $dir Persistence.xotcl]]
 package ifneeded xotcl::store::tclgdbm 0.84 [list source [file join $dir TclGdbmStorage.xotcl]]
 package ifneeded xotcl::store::textfile 0.84 [list source [file join $dir TextFileStorage.xotcl]]
-
 set __store_dir__ $dir
 foreach index [glob -nocomplain [file join $dir * pkgIndex.tcl]] {
   set dir [file dirname $index]
@@ -24,7 +23,5 @@ foreach index [glob -nocomplain [file join $dir * pkgIndex.tcl]] {
 }
 set dir $__store_dir__
 unset __store_dir__
-
-
 
 

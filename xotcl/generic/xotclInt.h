@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.12 2004/12/02 00:01:20 neumann Exp $
+ *  $Id: xotclInt.h,v 1.13 2005/01/06 03:10:05 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -443,10 +443,10 @@ typedef struct XOTclStringIncrStruct {
  * object and class internals
  */
 
-typedef struct XOTclNonPosArgs {
-  Tcl_Obj* nonPosArgs;
+typedef struct XOTclNonposArgs {
+  Tcl_Obj* nonposArgs;
   Tcl_Obj* ordinaryArgs;
-} XOTclNonPosArgs;
+} XOTclNonposArgs;
 
 typedef struct XOTclObjectOpt {
   XOTclAssertionStore *assertions;
@@ -473,7 +473,7 @@ typedef struct XOTclObject {
   XOTclMixinStack *mixinStack;
   int refCount;
   short flags;
-  Tcl_HashTable *nonPosArgsTable;
+  Tcl_HashTable *nonposArgsTable;
 } XOTclObject;
 
 typedef struct XOTclClassOpt {
@@ -498,7 +498,7 @@ typedef struct XOTclClass {
   Tcl_Namespace *nsPtr;
   Tcl_Obj* parameters;
   XOTclClassOpt* opt;
-  Tcl_HashTable *nonPosArgsTable;
+  Tcl_HashTable *nonposArgsTable;
 } XOTclClass;
 
 typedef struct XOTclClasses {
@@ -535,7 +535,7 @@ char *XOTclGlobalStrings[] = {
   "0", "move", "self", "class", "recreate",
   "self class", "self proc", "::xotcl::Class::Parameter",
   "searchDefaults", "__exitHandler",
-  "::xotcl::NonPosArgs", "::xotcl::nonPosArgs",
+  "::xotcl::NonposArgs", "::xotcl::nonposArgs",
   "cleanup", "configure", "filter", "instfilter",
   "instproc", "proc", "mkGetterSetter", "format",
   "__#", "-guard", "defaultmethod",

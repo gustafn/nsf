@@ -1,10 +1,10 @@
 Summary: Object Oriented Extension for Tcl
 Name: xotcl
-Version: 1.3.3
+Version: 1.3.5
 Release: 0
 Copyright: open source
 Group: Development/Languages
-Source:  http://www.xotcl.org/xotcl-1.3.3.tar.gz
+Source:  http://www.xotcl.org/xotcl-1.3.5.tar.gz
 URL: http://www.xotcl.org
 Packager: Gustaf.Neumann@wu-wien.ac.at
 Distribution: RedHat 8.0
@@ -21,7 +21,7 @@ persistent object store, mobile code system, etc. For more details
 consult http://www.xotcl.org
 
 %prep
-%setup -q -n xotcl-1.3.3
+%setup -q -n xotcl-1.3.5
 
 
 %build
@@ -37,7 +37,7 @@ make install
 %undefine       __check_files
 
 %doc doc 
-/usr/lib/xotcl1.3.3
+/usr/lib/xotcl1.3.5
 /usr/bin/xotclsh
 /usr/bin/xowish
 /usr/include/xotclDecls.h

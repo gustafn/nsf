@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.22 2004/11/20 18:54:34 neumann Exp $
+#$Id: testx.xotcl,v 1.23 2005/01/06 03:10:05 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -3476,7 +3476,7 @@ nonposargs proc run {{n 20}} {
     }
     
     o proc z4 {{{-b: required, checkobj colorchecker,color, reddish,
-      		checkobj xotcl::nonPosArgs,required} red} 
+      		checkobj xotcl::nonposArgs,required} red} 
 	       {{-c: required }}} {arg} {
 	lappend ::r "$b $arg"
 	return "$b $arg"
@@ -3538,7 +3538,7 @@ nonposargs proc run {{n 20}} {
     errorCheck [o info body z2] {return "$x -- $args -- $a -- $b"} "info body 1"
     errorCheck [P info instbody z2] {return "$x -- $args -- $a -- $b"} "info instbody z2"
     errorCheck [o info args z4] {arg} "info args"
-    errorCheck [o info nonposargs z4] "{{-b:required,checkobj colorchecker,color,reddish,checkobj xotcl::nonPosArgs,required} red} -c:required"  "info nonposargs 1"
+    errorCheck [o info nonposargs z4] "{{-b:required,checkobj colorchecker,color,reddish,checkobj xotcl::nonposArgs,required} red} -c:required"  "info nonposargs 1"
     errorCheck [o info nonposargs x] {} "info nonposargs 2"
     errorCheck [P info instargs z3] {a b c} "info instargs"
     errorCheck [P info instnonposargs z3] {-x:required {-a 1} {-b {1 2}}} "info instnonposargs 1"
@@ -3589,6 +3589,45 @@ nonposargs proc run {{n 20}} {
   catch {oa foo "--"} msg
   
   errorCheck $msg "wrong # args: should be {b}" "Non-pos arg: double dash alone"
+	
+  Class C
+  C create c1
+  C instproc m2 {
+    {-flag:boolean false}
+  } {x y {z 15}} {
+    return $flag-$z   
+  }
+  c1 proc m14 {
+    {-flag:boolean false}
+  } {x y {z 15}} {
+    return $flag-$z
+  }
+
+  errorCheck [list [c1 m14 1 2 3] [c1 info args m14] \
+	[c1 info default m14 z e] [set e]] \
+	"false-3 {x y z} 1 15" \
+	"Defaults proc"
+
+
+  errorCheck [list [c1 m2 1 2 3] [C info instargs m2]] \
+	"false-3 {x y z}" \
+	"info instargs"
+
+  errorCheck [list [C info instdefault m2 x d] [C info instdefault m2 z d] [set d]] \
+	"0 1 15" \
+	"Defaults for instproc"
+
+  catch {C info instdefault m2 xxx e} msg
+  errorCheck $msg "method 'm2' doesn't have an argument 'xxx'" \
+	"Defaults instproc error"
+
+  C instproc m3 {
+    {-flag:boolean}
+  } {x y z} {
+    return hu3
+  }
+
+  errorCheck [c1 m3 1 2 3] "hu3" "Defaults instproc no flag"
   
   return "PASSED [self]"
 }
