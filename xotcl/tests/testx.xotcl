@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.3 2004/06/18 07:57:36 neumann Exp $
+#$Id: testx.xotcl,v 1.4 2004/06/18 08:04:35 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
