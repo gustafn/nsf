@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclTrace.c,v 1.3 2004/07/23 09:40:16 neumann Exp $
+ * $Id: xotclTrace.c,v 1.4 2004/07/27 09:35:18 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -22,24 +22,23 @@ XOTclStackDump(Tcl_Interp *in) {
   Tcl_Obj *varCmdObj;
 
   XOTclNewObj(varCmdObj);
-  fprintf (stderr, "     TCL STACK: ");
+  fprintf (stderr, "     TCL STACK:\n");
   if (f == 0) fprintf(stderr, "- ");
   while (f) {
     Tcl_Obj *cmdObj;
     XOTclNewObj(cmdObj);
+    fprintf(stderr, "\tFrame=%p ", f);
     if (f && f->isProcCallFrame && f->procPtr && f->procPtr->cmdPtr) {
       Tcl_GetCommandFullName(in, (Tcl_Command)  f->procPtr->cmdPtr, cmdObj);
-      if (cmdObj) {
-	fprintf(stderr, " %s (%p) lvl=%d", ObjStr(cmdObj), f->procPtr->cmdPtr, f->level);
-      }
+      fprintf(stderr, " %s (%p) lvl=%d\n", ObjStr(cmdObj), f->procPtr->cmdPtr, f->level);
       DECR_REF_COUNT(cmdObj);
-    } else fprintf(stderr, "- ");
+    } else fprintf(stderr, "- \n");
 
     f = f->callerPtr;
-    if (f) fprintf(stderr, ",");
   }
 
-  fprintf (stderr, " VARFRAME: ");
+  fprintf (stderr, "     VARFRAME:\n");
+  fprintf(stderr, "\tFrame=%p ", v);
   if (v && v->isProcCallFrame && v->procPtr && v->procPtr->cmdPtr) {
     Tcl_GetCommandFullName(in, (Tcl_Command)  v->procPtr->cmdPtr, varCmdObj);
     if (varCmdObj) {

@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.13 2004/07/23 09:40:16 neumann Exp $
+/* $Id: xotcl.c,v 1.14 2004/07/27 09:35:18 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -1948,13 +1948,14 @@ CmdListReplaceCmd(XOTclCmdList* replace, Tcl_Command cmd) {
 
 /*
 static void
-CmdListPrint(char *title, XOTclCmdList* cmdList) {
+CmdListPrint(Tcl_Interp *in, char *title, XOTclCmdList* cmdList) {
   if (cmdList)
     fprintf(stderr,title);
   while (cmdList) {
-    fprintf(stderr, "   CL=%p, cmdPtr=%p, clientData=%p\n",
+    fprintf(stderr, "   CL=%p, cmdPtr=%p %s, clientData=%p\n",
 	    cmdList,
 	    cmdList->cmdPtr,
+	    in ? Tcl_GetCommandName(in, cmdList->cmdPtr) : "",
 	    cmdList->clientData);
       cmdList = cmdList->next;
   }
@@ -2511,7 +2512,7 @@ MixinComputeOrder(Tcl_Interp *in, XOTclObject *obj) {
 		       /*noDuplicates*/ 0);
 
       /* in the client data of the order list, we require the first
-	 matiching guard ... scan the full list for it. */
+	 matching guard ... scan the full list for it. */
       for (guardChecker = fullList; guardChecker; guardChecker = guardChecker->next) {
 	if (guardChecker->cl == mixinClasses->cl) {
 	  new->clientData = guardChecker->clientData;
@@ -2532,7 +2533,7 @@ MixinComputeOrder(Tcl_Interp *in, XOTclObject *obj) {
     FREE(XOTclClasses, fullList);
     fullList = nextCl;
   }
-  /*CmdListPrint("mixin order\n", obj->mixinOrder);*/
+  /*CmdListPrint(in,"mixin order\n", obj->mixinOrder);*/
 
 }
 
@@ -2632,12 +2633,26 @@ MixinSeekCurrent(Tcl_Interp *in, XOTclObject *obj, XOTclCmdList **cmdList) {
 
   currentCmdPtr = obj->mixinStack->currentCmdPtr;
   *cmdList = obj->mixinOrder;
-
+  /*
+  fprintf(stderr, "->1 mixin seek current = %p next = %p %s\n", 
+	  currentCmdPtr, 
+	  (*cmdList)->next,
+	  (*cmdList)->next ? Tcl_GetCommandName(in, (*cmdList)->next->cmdPtr) : "");
+  */
+#if defined(ACTIVEMIXIN)
+  /*RUNTIME_STATE(in)->cmdPtr = (*cmdList)->next ? (*cmdList)->next->cmdPtr : NULL;*/
+  RUNTIME_STATE(in)->cmdPtr = (*cmdList)->cmdPtr;
+#endif
   /* go forward to current class */
   while (*cmdList && currentCmdPtr) {
+    /* fprintf(stderr, "->2 mixin seek current = %p next = %p\n", currentCmdPtr, (*cmdList)->next);*/
     if ((*cmdList)->cmdPtr == currentCmdPtr)
       currentCmdPtr = 0;
     *cmdList = (*cmdList)->next;
+#if defined(ACTIVEMIXIN)
+    /*RUNTIME_STATE(in)->cmdPtr = (*cmdList)->next ? (*cmdList)->next->cmdPtr : NULL;*/
+    RUNTIME_STATE(in)->cmdPtr = (*cmdList)->cmdPtr;
+#endif
   }
 }
 
@@ -2660,7 +2675,7 @@ MixinSearchProc(Tcl_Interp *in, XOTclObject *obj, char *methodName,
 
   /*
   fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList);
-  CmdListPrint("MixinSearch CL = \n", cmdList);
+  CmdListPrint(in,"MixinSearch CL = \n", cmdList);
   */
 
   while (cmdList) {
@@ -3753,7 +3768,7 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
 
   RUNTIME_STATE(in)->callIsDestroy = 0;
 
-  /*  
+  /*
   fprintf(stderr,"*** callProcCheck: cmd = %p\n",cmd);
   fprintf(stderr,
 	  "cp=%p, isTclProc=%d %p %s, dispatch=%d %p, eval=%d %p, ov[0]=%p oc=%d\n",
@@ -3770,7 +3785,8 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
 	  );
   */
 
-  if (isTclProc || (Tcl_Command_objProc(cmd) == XOTclObjDispatch)
+  if (isTclProc 
+      || (Tcl_Command_objProc(cmd) == XOTclObjDispatch)
       || (Tcl_Command_objProc(cmd) == XOTclForwardMethod)
 #if defined(TCLCMD)
       || (Tcl_Command_objProc(cmd) == XOTclOEvalMethod) 
@@ -3849,8 +3865,8 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
 	     * we may not be in a method, thus there may be wrong or
 	     * no callstackobjs
 	     */
-	    /*fprintf(stderr, "... calling nextmethod\n");
-	      XOTclCallStackDump(in);*/
+	    /*fprintf(stderr, "... calling nextmethod\n");  XOTclCallStackDump(in);*/
+
 	    rc = XOTclNextMethod(obj, in, cl, methodName,
 				 objc, objv, /*useCallStackObjs*/ 0);
 	    /*fprintf(stderr, "... after nextmethod\n");
@@ -3984,7 +4000,8 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
   Tcl_ObjCmdProc *proc = 0;
   Tcl_Command cmd = 0;
   Tcl_Obj *cmdName = obj->cmdName;
-  XOTclCallStack *cs = &RUNTIME_STATE(in)->cs;
+  XOTclRuntimeState *rst = RUNTIME_STATE(in);
+  XOTclCallStack *cs = &rst->cs;
 #ifdef AUTOVARS
   int isNext;
 #endif
@@ -4038,7 +4055,7 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
 	    frameType = XOTCL_CSC_TYPE_ACTIVE_FILTER;
 	    cl = GetClassFromFullName(in, NSCmdFullName(cmd));
 	    callMethod = (char*) Tcl_GetCommandName(in, cmd);
-	    /* RUNTIME_STATE(in)->filterCalls++; */
+	    /* rst->filterCalls++; */
 	  } else {
 	    FilterStackPop(obj);
 	    filterStackPushed = 0;
@@ -4094,7 +4111,7 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
 					   callMethod, frameType, 0 /* fromNext */))
 		 != XOTCL_UNKNOWN)) {
 	if (result == TCL_ERROR)
-	  XOTclErrInProc(in, cmdName, cl?cl->object.cmdName:NULL, callMethod);
+	  XOTclErrInProc(in, cmdName, cl ? cl->object.cmdName : NULL, callMethod);
 
     } else if (XOTclObjectIsClass(obj) && (flags & XOTCL_CM_NO_UNKNOWN)) {
       Tcl_AppendResult(in, ObjStr(objv[0]), ": unable to dispatch method '",
@@ -4132,8 +4149,15 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
     fprintf(stderr,"obj %p mixinStackPushed %d mixinStack %p\n",
 	    obj, mixinStackPushed, obj->mixinStack);
 #endif
-    
-    if (obj && !(obj->flags & XOTCL_DESTROY_CALLED)/* !isDestroyed*/) {
+    /*
+    fprintf(stderr, "obj freed? %p destroy %p self %p %s %d %d\n",obj,
+	    cs->top->destroyedCmd, cs->top->self, ObjStr(objv[1]),
+	    rst->callIsDestroy,
+	    (obj->flags & XOTCL_DESTROY_CALLED)!=0
+	    );
+    */
+    if (obj && !rst->callIsDestroy &&
+	!(obj->flags & XOTCL_DESTROY_CALLED)) {
       if (mixinStackPushed && obj->mixinStack)
 	MixinStackPop(obj);
 
@@ -5014,6 +5038,9 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *in, XOTclCallStackContent *csc,
       obj->filterStack &&
       obj->filterStack->currentCmdPtr) {
     *cmd = FilterSearchProc(in, obj, proc, cp, currentCmd);
+    /*fprintf(stderr,"EndOfChain? proc=%p, cmd=%p\n",*proc,*cmd);*/
+    /*  XOTclCallStackDump(in); XOTclStackDump(in);*/
+
     if (*proc == 0) {
       if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
 	/* reset the information to the values of method, cl
@@ -5022,6 +5049,7 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *in, XOTclCallStackContent *csc,
 	endOfChain = 1;
 	*endOfFilterChain = 1;
 	*cl = 0;
+	/*fprintf(stderr,"EndOfChain resetting cl\n");*/
       }
     } else {
       *method = (char*) Tcl_GetCommandName(in, *cmd);
@@ -5077,6 +5105,7 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *in, XOTclCallStackContent *csc,
      * search for a further class method
      */
     *cl = SearchPLMethod(pl, *method, cmd);
+    /*fprintf(stderr, "no cmd, cl = %p %s\n",*cl, ObjStr((*cl)->object.cmdName));*/
   } else {
     *cl = 0;
   }
@@ -5105,15 +5134,11 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *in, XOTclClass *givenCl,
   XOTclClass **cl = &givenCl;
   char **method = &givenMethod;
 
-#if 1
+#if !defined(NDEBUG)
   /***** TO FIX *******/
   /*fprintf(stderr,"NextMethod BEGIN varFramePtr=%p current=%p\n",
 	  ((Tcl_CallFrame *)Tcl_Interp_varFramePtr(in)),
 	  csc->currentFramePtr);*/
-#if 0
-  XOTclCallStackDump(in); /*GN*/
-  XOTclStackDump(in); /*GN*/
-#endif
 
   if (useCallstackObjs) {
     Tcl_CallFrame *cf = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(in);
@@ -5129,8 +5154,10 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *in, XOTclClass *givenCl,
       }
       cf = (Tcl_CallFrame *)((CallFrame *)cf)->callerPtr;
     }
-    /*fprintf(stderr,"found = %d\n", found);*/
+
     if (!found) {
+      fprintf(stderr,"found (csc->currentFramePtr %p)= %d cur level=%d\n", 
+	      csc->currentFramePtr,found,Tcl_CallFrame_level(Tcl_Interp_varFramePtr(in)));
       return TCL_OK;
     }
   }
@@ -5152,7 +5179,8 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *in, XOTclClass *givenCl,
 		   &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
 
   /*
-  fprintf(stderr, "NextSearchMethod -- RETURN: method=%s", *method);
+  fprintf(stderr, "NextSearchMethod -- RETURN: method=%s eoffc=%d,", 
+	  *method, endOfFilterChain);
   if (obj)
     fprintf(stderr, " obj=%s,", ObjStr(obj->cmdName));
   if ((*cl))
@@ -5372,7 +5400,21 @@ XOTclSelfSubCommand(Tcl_Interp *in, XOTclObject *obj, char *option) {
       if (!strcmp(option, "activelevel")) {
 	Tcl_SetObjResult(in, computeLevelObj(in, ACTIVE_LEVEL));
 	return TCL_OK;
+      } 
+#if defined(ACTIVEMIXIN)
+      else {
+	XOTclObject *o = NULL;
+	csc = CallStackGetTopFrame(in);
+	CmdListPrint(in,"self a....\n", obj->mixinOrder);
+	fprintf(stderr,"current cmdPtr = %p cl = %p, mo=%p %p\n", csc->cmdPtr, csc->cl, 
+		obj->mixinOrder,   RUNTIME_STATE(in)->cmdPtr);
+	if (RUNTIME_STATE(in)->cmdPtr) {
+	  o = XOTclGetObjectFromCmdPtr(RUNTIME_STATE(in)->cmdPtr);
+	}
+	Tcl_SetObjResult(in, o ? o->cmdName : XOTclGlobalObjects[EMPTY]);
+	return TCL_OK;
       }
+#endif
     case 'c':
       if (!strcmp(option, "calledproc")) {
 	if (!(csc = CallStackFindActiveFilter(in)))
@@ -9505,8 +9547,15 @@ XOTclInitProcNSCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
   XOTclCallStackDump(in);
 #endif
 
-  
-  RUNTIME_STATE(in)->cs.top->currentFramePtr = varFramePtr;
+  if (RUNTIME_STATE(in)->cs.top->currentFramePtr == 0) {
+    RUNTIME_STATE(in)->cs.top->currentFramePtr = varFramePtr;
+  } else {
+    /*
+    fprintf(stderr,"not overwriting currentFramePtr in %p from %p to %p\n",
+	    RUNTIME_STATE(in)->cs.top, 
+	    RUNTIME_STATE(in)->cs.top->currentFramePtr, varFramePtr);
+    */
+  }
 #if !defined(NAMESPACEINSTPROCS)
   if (varFramePtr) {
       varFramePtr->nsPtr = GetCallerVarFrame(in,varFramePtr);
@@ -9700,7 +9749,7 @@ XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc,
 	 for (j=0; j < checkc; j++) {
 	   r1 = Tcl_ListObjGetElements(in, checkv[j], &checkArgc, &checkArgv);
 	   if (r1 == TCL_OK && checkArgc > 1) {
-	     if (isCheckObjectString((ObjStr(checkArgv[0]))) && checkArgc == 2) {
+	     if (isCheckObjString((ObjStr(checkArgv[0]))) && checkArgc == 2) {
 	       checkObj = checkArgv[1];
 	       continue;
 	     }

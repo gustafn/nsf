@@ -1,4 +1,4 @@
-# $Id: aol-xotcl.tcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: aol-xotcl.tcl,v 1.2 2004/07/27 09:35:18 neumann Exp $
 
 #
 # Load XOTcl library and some related packages.
@@ -40,7 +40,8 @@ proc _ns_savenamespaces {} {
         set objects ""
         ns_log notice "XOTcl extension not loaded; will not copy objects."
     }
-    ns_ictl save [append script \n $objects \n $import]
+    #ns_ictl save [append script \n $objects \n $import]
+    ns_ictl save [append script \n $import \n $objects]
     if {0} {
        set f [open /tmp/__aolserver-blueprint.tcl w]
        puts $f $script

@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.2 2004/07/20 12:57:59 neumann Exp $
+ *  $Id: xotclInt.h,v 1.3 2004/07/27 09:35:18 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -115,7 +115,7 @@ typedef struct XOTclMemCounter {
 #define isCheckString(m) (\
 	*m   == 'c' && m[1] == 'h' && m[2] == 'e' && m[3] == 'c' && \
 	m[4] == 'k' && m[5] == '\0')
-#define isCheckObjectString(m) (\
+#define isCheckObjString(m) (\
         *m   == 'c' && m[1] == 'h' && m[2] == 'e' && m[3] == 'c' && \
 	m[4] == 'k' && m[5] == 'o' && m[6] == 'b' && m[7] == 'j' && \
 	m[8] == '\0')
@@ -138,9 +138,11 @@ typedef struct XOTclMemCounter {
 #define isInfoString(m) (\
 	*m   == 'i' && m[1] == 'n' && m[2] == 'f' && m[3] == 'o' && \
 	m[4] == '\0')
+#ifdef AUTOVARS
 #define isNextString(m) (\
 	*m   == 'n' && m[1] == 'e' && m[2] == 'x' && m[3] == 't' && \
 	m[4] == '\0')
+#endif
 #define isInstinvarString(m) (\
         *m   == 'i' && m[1] == 'n' && m[2] == 's' && m[3] == 't' && \
 	m[4] == 'i' && m[5] == 'n' && m[6] == 'v' && m[7] == 'a' && \
@@ -612,6 +614,7 @@ typedef struct XOTclRuntimeState {
   Tcl_Namespace *fakeNS;
   XotclStubs *xotclStubs;
   Tcl_CallFrame *varFramePtr;
+  Command *cmdPtr;
 #if defined(PROFILE)
   XOTclProfile profile;
 #endif

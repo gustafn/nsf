@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.12 2004/07/23 09:40:16 neumann Exp $
+#$Id: testx.xotcl,v 1.13 2004/07/27 09:35:18 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -3234,7 +3234,7 @@ uplevelCmds proc run {{n 20}} {
     o3 m
   }
   ::errorCheck [o4 m] \
-      "{self=::o1 up1=::o2 up2=::o3 up3=::o4} {self=::o1 up1=::o2 up2=::o2 up3=::o3}" \
+      "{self=::o1 up1=::o2 up2=::o3 up3=::o4} {self=::o1 up1=::o1 up2=::o2 up3=::o3}" \
       "[self]: uplevel self"
   o4 m
 

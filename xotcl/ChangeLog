@@ -1,3 +1,13 @@
+2004-07-27 Gustaf.Neumann@wu-wien.ac.at
+        * fixed bug in filters in connection with instmixin; 
+          inactive tcl callstack frame was dereferenced. This fixed as well 
+          a potential uplevel bug
+        * fixed access to freed memory (thanks to Zoran for his help with Purify )
+
+2004-07-23 Gustaf.Neumann@wu-wien.ac.at
+        * implemented expermental next method for delegating same-named procs
+          to different objects
+
 2004-07-20 Gustaf.Neumann@wu-wien.ac.at
         * fixed a potential crash when a instmixin was registered on itself
 
