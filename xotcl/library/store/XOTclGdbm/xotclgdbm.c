@@ -8,6 +8,7 @@
 #include <tcl.h>
 #include <gdbm.h>
 #include <fcntl.h>
+#include <stdlib.h>
 #include <xotcl.h>
 
 #if (TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<1)

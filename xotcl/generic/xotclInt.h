@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.4 2004/07/28 08:01:25 neumann Exp $
+ *  $Id: xotclInt.h,v 1.5 2004/08/01 22:15:11 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -396,7 +396,7 @@ typedef void (XOTclFreeCmdListClientData) _ANSI_ARGS_((XOTclCmdList*));
 typedef struct XOTclStringIncrStruct {
   char *buffer;
   char *start;
-  int bufSize;
+  size_t bufSize;
   int length;
 } XOTclStringIncrStruct;
 

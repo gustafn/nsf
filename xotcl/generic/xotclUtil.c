@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclUtil.c,v 1.1 2004/05/23 22:50:39 neumann Exp $
+ * $Id: xotclUtil.c,v 1.2 2004/08/01 22:15:11 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -71,7 +71,7 @@ XOTclStringIncr(XOTclStringIncrStruct *iss) {
       if (currentChar < iss->start) {
 	iss->length++;
 	if (currentChar == iss->buffer) {
-	  int newBufSize = iss->bufSize + blockIncrement;
+	  size_t newBufSize = iss->bufSize + blockIncrement;
 	  char *newBuffer = ckalloc(newBufSize);
 	  currentChar = newBuffer+blockIncrement;
 	  /*memset(newBuffer, 0, blockIncrement);*/
@@ -100,7 +100,7 @@ void
 XOTclStringIncrInit(XOTclStringIncrStruct *iss) {
   char *p;
   int i = 0;
-  const int bufSize = blockIncrement>2 ? blockIncrement : 2;
+  const size_t bufSize = blockIncrement>2 ? blockIncrement : 2;
 
   for (p=alphabet; *p; p++) {
     chartable[(int)*p] = ++i;

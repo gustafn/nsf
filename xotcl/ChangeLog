@@ -23,7 +23,11 @@
 
 2004-07-19  Uwe Zdun <uwe.zdun@wu-wien.ac.at>
         * added checkoptions to non pos args
-	* added tests & documentation of non pos args
+        * added tests & documentation of non pos args
+
+2004-07-18 jim@jam.sessionsnet.org
+        * Added file autogen.sh, to generate all configure files
+        * Added file autoclean.sh, to clean whole source tree, incl. configure
 
 2004-07-18 Gustaf.Neumann@wu-wien.ac.at
         * added removal of autom4te.cache to distclean
@@ -111,11 +115,11 @@
                       are not enough arguments in the actual call.
         
 2004-06-24 Gustaf.Neumann@wu-wien.ac.at
-	* fixed coredump for delegation to object without method specified
+        * fixed coredump for delegation to object without method specified
           (many thanks fot Bryan Schofield for the bug report)
-	
+        
 2004-06-20 Gustaf.Neumann@wu-wien.ac.at
-	* removed inclusion of <tclCompile.h>
+        * removed inclusion of <tclCompile.h>
         * second version of delegator methods cmd and instcmd 
 
             A delegator method is defined via 

@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.18 2004/07/30 09:21:36 neumann Exp $
+/* $Id: xotcl.c,v 1.19 2004/08/01 22:15:11 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -3814,9 +3814,9 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
   XOTclCallStackDump(in);
 #endif
 
-  if (!isTclProc) {
+  if (!isTclProc && obj->teardown) {
     co = obj->opt ? obj->opt->checkoptions : 0;
-    if (obj->teardown && (co & CHECK_INVAR) &&
+    if ((co & CHECK_INVAR) &&
 	((result = AssertionCheckInvars(in, obj, methodName, co)) == TCL_ERROR)) {
 	goto finish;
     }
@@ -3840,7 +3840,7 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
       fprintf(stderr, "method=%s\n", methodName);
       }
     */
-    co = (!rst->callIsDestroy) && obj->opt ? obj->opt->checkoptions : 0;
+    co = !rst->callIsDestroy && obj->opt ? obj->opt->checkoptions : 0;
     if ((co & CHECK_INVAR) &&
 	((result = AssertionCheckInvars(in, obj, methodName, co)) == TCL_ERROR)) {
       goto finish;
@@ -3907,6 +3907,7 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
     printCall(in,"callProcCheck tclCmd", objc,objv);
     fprintf(stderr,"\tproc=%s\n",Tcl_GetCommandName(in,cmd));
 #endif
+
     result = (*Tcl_Command_objProc(cmd))(cp, in, objc, objv);
 
 #ifdef DISPATCH_TRACE
@@ -6146,10 +6147,14 @@ doObjInitialization(Tcl_Interp *in, XOTclObject *obj, int objc, Tcl_Obj *objv[])
 
   if (!(obj->flags & XOTCL_INIT_CALLED)) {
     int newargs;
+    Tcl_Obj *resultObj = Tcl_GetObjResult(in);
     /*
      * Call the user-defined constructor 'init'
      */
-    result = Tcl_GetIntFromObj(in,Tcl_GetObjResult(in),&newargs);
+    INCR_REF_COUNT(resultObj);
+    result = Tcl_GetIntFromObj(in,resultObj,&newargs);
+    DECR_REF_COUNT(resultObj);
+
     if (result == TCL_OK && newargs+2 < objc)
       initArgsC = newargs+2;
     result = callMethod((ClientData) obj, in, XOTclGlobalObjects[INIT],
