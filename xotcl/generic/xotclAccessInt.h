@@ -1,6 +1,6 @@
 #define Tcl_Interp_numLevels(in)       ((Interp *)in)->numLevels
 #define Tcl_Interp_framePtr(in)        ((Tcl_CallFrame *)((Interp *)in)->framePtr)
-#define Tcl_Interp_varFramePtr(in)     ((Tcl_CallFrame *)((Interp *)in)->varFramePtr)
+#define Tcl_Interp_varFramePtr(in)     (((Interp *)in)->varFramePtr)
 #define Tcl_Interp_globalNsPtr(in)     ((Tcl_Namespace *)((Interp *)in)->globalNsPtr)
 #define Tcl_Interp_flags(in)           ((Interp *)in)->flags
 #if DISPATCH_TRACE

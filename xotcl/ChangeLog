@@ -1,3 +1,19 @@
+2004-06-20 Gustaf.Neumann@wu-wien.ac.at
+        * changed name of delegator methods to forward/instforward
+        * removed most of the switches of the forwarder. We have now
+ 
+             obj forward <proc> <target> ?<arglist>? ?options?
+          where <arglist> might contain 
+            * %self for inserting the forwarding object
+            * %proc for inserting the forwarding method
+            * %1    for using the first argument of the invocation
+          option might contain:
+            -inscope: evalute method in obj scope
+            -methodprefix: prefix, to be added in front of called method 
+                      (to avoid name clashes with methods like "set", "mixin" etc.)
+            -default list-of-methods: to be used in connection with %1, when there
+                      are not enough arguments in the actual call.
+        
 2004-06-240 Gustaf.Neumann@wu-wien.ac.at
 	* fixed coredump for delegation to object without method specified
           (many thanks fot Bryan Schofield for the bug report)
