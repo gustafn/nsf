@@ -1,5 +1,5 @@
 #memory trace on
-# $Id: speedtest.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: speedtest.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 lappend auto_path [file dirname [info script]]/..

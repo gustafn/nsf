@@ -29,7 +29,7 @@
 # liability for all claims, expenses, losses, damages and costs any user may
 # incur as a result of using, copying or modifying the Software.
 #
-# $Id: xml.tcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: xml.tcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 
 package provide xml 1.8
 

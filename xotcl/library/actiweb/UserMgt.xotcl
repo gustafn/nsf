@@ -1,4 +1,4 @@
-# $Id: UserMgt.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: UserMgt.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 package provide xotcl::actiweb::userMgt 0.8
 
 Class UserMgt 

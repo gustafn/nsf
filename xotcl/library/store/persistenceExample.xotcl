@@ -1,5 +1,5 @@
 #!/usr/local/bin/xotclsh
-# $Id: persistenceExample.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: persistenceExample.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 #
 # load the persistence component
 package require xotcl::store::persistence

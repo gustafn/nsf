@@ -1,4 +1,4 @@
-# $Id: xoXML.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: xoXML.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 package provide xotcl::xml::parser 0.94
 
 package require xotcl::pattern::chainOfResponsibility

@@ -30,7 +30,7 @@
 # liability for all claims, expenses, losses, damages and costs any user may
 # incur as a result of using, copying or modifying the Software.
 #
-# $Id: sgml.tcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: sgml.tcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 
 package provide sgml 1.6
 

@@ -1,4 +1,4 @@
-# $Id: OnCalleeProxy.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: OnCalleeProxy.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 package provide xotcl::pattern::onCalleeProxy 0.8
 
 Class OnCalleeProxy -superclass Class  

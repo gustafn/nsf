@@ -1,4 +1,4 @@
-# $Id: installWin.tcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: installWin.tcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 if {$::argc > 0} {
   set DESTINATION [lindex $argv 0]
 } else {

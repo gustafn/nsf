@@ -1,6 +1,6 @@
 /* 
  * tkAppInit.c --
- * $Id: tkAppInit.c,v 1.1 2004/05/23 22:50:39 neumann Exp $
+ * $Id: tkAppInit.c,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
  *
  *	Provides a default version of the Tcl_AppInit procedure for
  *	use in wish and similar Tk-based applications.

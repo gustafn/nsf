@@ -1,5 +1,5 @@
 static char cmd[] = 
-"# $Id: predefined.h,v 1.1 2004/05/23 22:50:39 neumann Exp $\n"
+"# $Id: predefined.h,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $\n"
 "::xotcl::Object instproc init args {}\n"
 "::xotcl::Object create ::xotcl::@\n"
 "::xotcl::@ proc unknown args {}\n"

@@ -1,6 +1,6 @@
 /* -*- Mode: c++ -*-
  *
- *  $Id: xotcl.h,v 1.1 2004/05/23 22:50:39 neumann Exp $
+ *  $Id: xotcl.h,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *

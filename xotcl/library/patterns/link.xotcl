@@ -1,4 +1,4 @@
-# $Id: link.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: link.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 package provide xotcl::pattern::link 0.9
 #
 # establish/introspect 'link' through link-instproc

@@ -1,4 +1,4 @@
-#$Id: mixinStrategy.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+#$Id: mixinStrategy.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 package provide xotcl::mixinStrategy 0.8
 
 @ @File { description {

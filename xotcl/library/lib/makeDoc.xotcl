@@ -1,4 +1,4 @@
-#$Id: makeDoc.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+#$Id: makeDoc.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 package require XOTcl
 namespace import ::xotcl::*
 @ @File {

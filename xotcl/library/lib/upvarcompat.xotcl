@@ -1,4 +1,4 @@
-#$Id: upvarcompat.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+#$Id: upvarcompat.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 package provide xotcl::upvar-compat 1.0
 
 @ @File {description {

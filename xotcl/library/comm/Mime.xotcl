@@ -1,4 +1,4 @@
-# $Id: Mime.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: Mime.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 package provide xotcl::comm::mime 0.9
 
 #######################################################################

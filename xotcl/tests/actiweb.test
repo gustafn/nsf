@@ -1,5 +1,5 @@
 # -*- Mode: tcl -*-
-# $Id: actiweb.test,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: actiweb.test,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 # regression test for actiweb examples
 #if {[set ::tcl_platform(platform)] == "windows"} {
 #  lappend auto_path .

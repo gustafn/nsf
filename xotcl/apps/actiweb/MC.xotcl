@@ -1,5 +1,5 @@
 #!../../src/xotclsh
-# $Id: MC.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: MC.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 #
 # A simple multiple choice test application
 #

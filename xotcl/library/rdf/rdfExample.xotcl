@@ -1,6 +1,6 @@
 #!../../src/xotclsh
 #!/usr/local/bin/xotclsh
-# $Id: rdfExample.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: rdfExample.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 #
 # small Example for usage of xoXML
 #
