@@ -1,5 +1,5 @@
 #define NAMESPACEINSTPROCS 1
-/* $Id: xotcl.c,v 1.3 2004/06/18 07:15:17 neumann Exp $
+/* $Id: xotcl.c,v 1.4 2004/06/20 21:14:14 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -113,12 +113,14 @@ typedef struct tclCmdClientData {
 typedef struct delegateCmdClientData {
   XOTcl_Object *obj;
   Tcl_Obj *cmdName;
-  Tcl_Obj *subcommands;
-  int nr_subcommands;
-  Tcl_Obj *inserts;
-  int nr_inserts;
+  Tcl_Obj *args;
+  int skip;
+  int insertcaller;
   Tcl_Obj *prefix;
-
+  int nr_subcommands;
+  Tcl_Obj *subcommands;
+  int nr_inserts;
+  Tcl_Obj *inserts;
 } delegateCmdClientData;
 
 static int ObjDispatch(ClientData cd, Tcl_Interp *in, int objc, 
@@ -6943,18 +6945,48 @@ static int
 XOTclDelegateMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[]) {
   delegateCmdClientData *tcd = (delegateCmdClientData *)cd;
   /*XOTcl_FrameDecls;*/
-  int result, nrargs, i, j, offset = 1;
+  int result, nrargs, j, inputarg, outputarg=0, clientargs=0;
   if (!tcd || !tcd->obj) return XOTclObjErrType(in, objv[0], "Object");
-  {
-    DEFINE_NEW_TCL_OBJS_ON_STACK(objc+ tcd->nr_inserts + 2, ov);
-    
-    RUNTIME_STATE(in)->cs.top->currentFramePtr = Tcl_Interp_varFramePtr(in);
-    /*XOTcl_PushFrame(in, tcd->obj);*/
 
-    i = 1;
-    ov[0] = tcd->cmdName;
-    GetXOTclObjectFromObj(in, tcd->cmdName, (void*)&cd);
-    nrargs = objc-1;
+  if (tcd->args) Tcl_ListObjLength(in, tcd->args, &clientargs);
+  if (tcd->skip<0) {tcd->skip = tcd->args ? 1 : 0;}
+  {
+    DEFINE_NEW_TCL_OBJS_ON_STACK(objc + clientargs + tcd->nr_inserts + 3, OV);
+    Tcl_Obj **ov=&OV[1];
+    XOTclCallStackContent *top = RUNTIME_STATE(in)->cs.top;
+
+    /* it is a c-method; establish a value for the currentFramePtr */
+    top->currentFramePtr = Tcl_Interp_varFramePtr(in);
+
+    if (tcd->skip > objc) return 
+      XOTclObjErrArgCnt(in, objv[0], "skip value in delegation to large");
+
+    inputarg = tcd->skip;
+    nrargs = objc-inputarg;
+#if 0
+    fprintf(stderr,"delegator %s (%p) nrargs=%d, skip=%d, subcommand=%d, nr_inserts=%d args=%p\n", 
+	    ObjStr(objv[0]), tcd, nrargs,
+	    tcd->skip,
+	    tcd->nr_subcommands,
+	    tcd->nr_inserts,
+	    tcd->args
+	    );
+#endif
+
+    /* the first argument is always the command, to which we delegate */
+    ov[outputarg++] = tcd->cmdName;
+
+    if (tcd->args) {
+      /* copy argument list from definition */
+      Tcl_Obj **listElements;
+      int nrElements;
+      Tcl_ListObjGetElements(in, tcd->args, &nrElements, &listElements);
+
+      for (j=0; j<nrElements; j++) {
+	ov[outputarg++] = listElements[j];
+      }
+    }
+
     /*
     fprintf(stderr, "nrargs=%d, objc=%d, tcd->nr_subcommands=%d size=%d\n",
 	    nrargs, objc, tcd->nr_subcommands,
@@ -6962,16 +6994,43 @@ XOTclDelegateMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST obj
     */
     if (tcd->nr_subcommands > nrargs) {
       /* insert default subcommand depending on number of arguments */
-      int rc =  Tcl_ListObjIndex(in, tcd->subcommands, nrargs, &ov[1]);
+      int rc =  Tcl_ListObjIndex(in, tcd->subcommands, nrargs, &ov[outputarg]);
       if (rc != TCL_OK)
 	return rc;
-      /* fprintf(stderr,"subcommand(%d) = ov[%d] = %p\n", nrargs, 1, ov[1]);
-      */
-    } else if (nrargs>0) {
-      /* we use the subcommand from the call */
-      ov[1] = objv[1]; 
-      offset++;
+      /*fprintf(stderr,"  subcommand(%d) = ov[%d] = '%s'\n", nrargs, outputarg, 
+	ObjStr(ov[inputarg]));*/
+      outputarg++;
+       
+    } else if (nrargs>0 && !tcd->args) {
+      /* we use the method from the call */
+      /*fprintf(stderr, "  using the method from the call %s [%d] on pos %d\n",
+	ObjStr(objv[inputarg]), inputarg, outputarg);*/
+      ov[outputarg++] = objv[inputarg++]; 
+
     }
+    if (tcd->insertcaller) {
+      ov[outputarg++] = tcd->obj->cmdName;
+      /*ov[outputarg++] = top->self->cmdName;*/
+    }
+
+    /*fprintf(stderr, "  nr_inserts=%d objv[0]=%p outputarg=%d\n",
+      tcd->nr_inserts, objv[0],outputarg);*/
+
+    for (j=0; j < tcd->nr_inserts; j++) {
+      int rc =  Tcl_ListObjIndex(in, tcd->inserts, j, &ov[outputarg]);
+      if (rc != TCL_OK)
+	return rc;
+      outputarg ++;
+    }
+    if (objc-inputarg>0) {
+      /* fprintf(stderr, "  copying remaining %d args starting at [%d]\n", 
+	 objc-inputarg, outputarg); */
+      memcpy(ov+outputarg, objv+inputarg, sizeof(Tcl_Obj *)*(objc-inputarg));
+    } else {
+      /* fprintf(stderr, "  nothing to copy, objc=%d, inputarg=%d\n", objc, inputarg);*/
+    }
+    objc = objc + outputarg - inputarg;
+
     if (tcd->prefix) {
       /* prepend a prefix for the subcommands to avoid name clashes */
       Tcl_Obj *methodName = Tcl_DuplicateObj(tcd->prefix);
@@ -6979,35 +7038,27 @@ XOTclDelegateMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST obj
       ov[1] = methodName;
       INCR_REF_COUNT(ov[1]);
     }
-    i = 2;
-    ov[i++] = tcd->obj->cmdName;
-    /*
-    fprintf(stderr, "nr_inserts=%d objv[0]=%p i=%d\n",
-	    tcd->nr_inserts, objv[0],i);
-    */
-    for (j=0; j < tcd->nr_inserts; j++) {
-      int rc =  Tcl_ListObjIndex(in, tcd->inserts, j, &ov[i]);
-      if (rc != TCL_OK)
-	return rc;
-      i ++;
-    }
-    memcpy(ov+i, objv+offset, sizeof(Tcl_Obj *)*(objc-offset));
-    objc = objc + i - offset;
-    /*
-    for(i=0; i<objc; i++) {
-      fprintf(stderr, "ov[%d]=%p, objc=%d\n", i, ov[i], objc);
-      fprintf(stderr, "ov[%d]='%s'\n", i, ObjStr(ov[i]));
-      }*/
-    
 
-    result = DoDispatch(cd, in, objc, ov, 0);
+#if 0
+    for(j=0; j<objc; j++) {
+      /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
+      fprintf(stderr, "  ov[%d]='%s'\n", j, ObjStr(ov[j]));
+    }
+#endif
+
+    if (GetXOTclObjectFromObj(in, tcd->cmdName, (void*)&cd) == TCL_OK) {
+      result = DoDispatch(cd, in, objc, ov, 0);
+    } else {
+      /*fprintf(stderr, "no XOTcl object %s\n", ObjStr(tcd->cmdName));*/
+      OV[0] = tcd->cmdName;
+      result = Tcl_EvalObjv(in, objc+1, OV, 0);
+    }
 
     if (tcd->prefix) {
       DECR_REF_COUNT(ov[1]);
     }
     
-    /*XOTcl_PopFrame(in, tcd->obj);*/
-    FREE_TCL_OBJS_ON_STACK(ov);
+    FREE_TCL_OBJS_ON_STACK(OV);
   }
   return result;
 }
@@ -8400,68 +8451,135 @@ XOTclCTclCmdMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv
 
 static void delegateCmdDeleteProc(ClientData cd) {
   delegateCmdClientData *tcd = (delegateCmdClientData *)cd;
-  DECR_REF_COUNT(tcd->cmdName);
-  /*
-  fprintf(stderr, "inserts %d %p subcommands %d %p\n",
-	  tcd->nr_inserts,tcd->inserts,
-	  tcd->nr_subcommands, tcd->subcommands);
-  */
+  if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
   if (tcd->inserts)     {DECR_REF_COUNT(tcd->inserts);}
   if (tcd->subcommands) {DECR_REF_COUNT(tcd->subcommands);}
   if (tcd->prefix)      {DECR_REF_COUNT(tcd->prefix);}
+  if (tcd->args)        {DECR_REF_COUNT(tcd->args);}
   FREE(delegateCmdClientData, tcd);
 }
+
+
+static int
+delegateProcessOption(Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[], 
+		      delegateCmdClientData **tcdp) {
+  delegateCmdClientData *tcd;
+  int i, rc;
+
+  rc = 0;
+  tcd = NEW(delegateCmdClientData);
+  tcd->cmdName = 0;
+  tcd->args = 0;
+  tcd->nr_subcommands = 0;
+  tcd->subcommands = 0;
+  tcd->nr_inserts = 0;
+  tcd->inserts = 0;
+  tcd->prefix = 0;
+  tcd->insertcaller = 1;
+  tcd->skip = -1; /* not specified */
+  for (i=2; i<objc; i++) {
+    /*fprintf(stderr, "   processing '%s'\n",ObjStr(objv[i]));*/
+    if (!strcmp(ObjStr(objv[i]),"-defaultmethod")) {
+      if (objc <= i+1) {rc = TCL_ERROR; break;}
+      tcd->subcommands = objv[i+1];
+      rc = Tcl_ListObjLength(in,objv[i+1],&tcd->nr_subcommands);
+      if (rc != TCL_OK) break;
+      INCR_REF_COUNT(tcd->subcommands);
+      i++;
+    } else if (!strcmp(ObjStr(objv[i]),"-insert")) {
+      if (objc <= i+1) {rc = TCL_ERROR; break;}
+      tcd->inserts = objv[i+1];
+      rc = Tcl_ListObjLength(in,objv[i+1],&tcd->nr_inserts);
+      if (rc != TCL_OK) break;
+      INCR_REF_COUNT(tcd->inserts);
+      i++;
+    } else if (!strcmp(ObjStr(objv[i]),"-prefix")) {
+      if (objc <= i+1) {rc = TCL_ERROR; break;}
+      tcd->prefix = objv[i+1];
+      INCR_REF_COUNT(tcd->prefix);
+      i++;
+    } else if (!strcmp(ObjStr(objv[i]),"-skip")) {
+      int result;
+      if (objc <= i+1) {rc = TCL_ERROR; break;}
+      result = Tcl_GetIntFromObj(in, objv[i+1], &(tcd->skip));
+      if (result != TCL_OK) return result;
+      i++;
+    } else if (!strcmp(ObjStr(objv[i]),"-nocaller")) {
+      tcd->insertcaller = 0;      
+    } else {
+      if (tcd->cmdName == 0) {
+	tcd->cmdName = objv[2];
+      } else if (tcd->args == 0) {
+	tcd->args = Tcl_NewListObj(1, &objv[i]);
+	INCR_REF_COUNT(tcd->args);
+      } else {
+	Tcl_ListObjAppendElement(in, tcd->args, objv[i]);
+      }
+    }
+  }
+
+  if (!tcd->cmdName) 
+    tcd->cmdName = objv[1];
+
+  INCR_REF_COUNT(tcd->cmdName);
+
+  if (rc == TCL_OK) {
+    *tcdp = tcd;
+  } else {
+    delegateCmdDeleteProc((ClientData)tcd);
+  }
+  return rc;
+}
+
 
 static int
 XOTclCInstDelegateCmdMethod(ClientData cd, Tcl_Interp *in,
 		      int objc, Tcl_Obj * CONST objv[]) {
   XOTclClass *cl = XOTclObjectToClass(cd);
   delegateCmdClientData *tcd;
-  char *cmdName;
-  int i, rc;
+  int rc;
 
   if (!cl) return XOTclObjErrType(in, objv[0], "Class");
   if (objc < 2) goto delegate_argc_error;
 
-  cmdName = ObjStr(objv[1]);
-  tcd = NEW(delegateCmdClientData);
-  tcd->obj = (XOTcl_Object*)cl;
-  tcd->cmdName = objv[2];
-  INCR_REF_COUNT(tcd->cmdName);
-  tcd->nr_subcommands = 0;
-  tcd->subcommands = 0;
-  tcd->nr_inserts = 0;
-  tcd->inserts = 0;
-  tcd->prefix = 0;
-  for (i=3; i<objc; i++) {
-    if (!strcmp(ObjStr(objv[i]),"-defaultmethod")) {
-      if (objc<i) goto delegate_argc_error;
-      tcd->subcommands = objv[i+1];
-      rc = Tcl_ListObjLength(in,objv[i+1],&tcd->nr_subcommands);
-      if (rc != TCL_OK)
-	return rc;
-      INCR_REF_COUNT(tcd->subcommands);
-    } else if (!strcmp(ObjStr(objv[i]),"-insert")) {
-      if (objc<i) goto delegate_argc_error;
-      tcd->inserts = objv[i+1];
-      rc = Tcl_ListObjLength(in,objv[i+1],&tcd->nr_inserts);
-      if (rc != TCL_OK)
-	return rc;
-      INCR_REF_COUNT(tcd->inserts);
-    } else if (!strcmp(ObjStr(objv[i]),"-methodprefix")) {
-      if (objc<i) goto delegate_argc_error;
-      tcd->prefix = objv[i+1];
-      INCR_REF_COUNT(tcd->prefix);
-    }
-  }
+  rc = delegateProcessOption(in, objc, objv, &tcd);
 
-  XOTclAddIMethod(in, (XOTcl_Class*) cl, NSTail(cmdName), 
-		  (Tcl_ObjCmdProc*)XOTclDelegateMethod,
-		  (ClientData)tcd, delegateCmdDeleteProc);
-  return TCL_OK;
- delegate_argc_error:
-  return XOTclObjErrArgCnt(in, cl->object.cmdName, 
-			   "instdelegatecmd procname callname ?-defaultmethod name? ?-insert tokens? ?-methodprefix string?");
+  if (rc == TCL_OK) {
+    tcd->obj = (XOTcl_Object*)cl;
+    XOTclAddIMethod(in, (XOTcl_Class*) cl, NSTail(ObjStr(objv[1])), 
+		    (Tcl_ObjCmdProc*)XOTclDelegateMethod,
+		    (ClientData)tcd, delegateCmdDeleteProc);
+    return TCL_OK;
+  } else {
+  delegate_argc_error:
+    return XOTclObjErrArgCnt(in, cl->object.cmdName, 
+			     "mkinstdelegator method obj ?args? ?-defaultmethod name? ?-insert tokens? ?-prefix string? ?-skip #? ?-nocaller?");
+  }
+}
+
+static int
+XOTclCDelegateCmdMethod(ClientData cd, Tcl_Interp *in,
+		      int objc, Tcl_Obj * CONST objv[]) {
+  XOTcl_Object *obj = (XOTcl_Object*) cd;
+  delegateCmdClientData *tcd;
+  int rc;
+
+  if (!obj) return XOTclObjErrType(in, objv[0], "Object");
+  if (objc < 2) goto delegate_argc_error;
+
+  rc = delegateProcessOption(in, objc, objv, &tcd);
+
+  if (rc == TCL_OK) {
+    tcd->obj = obj;
+    XOTclAddPMethod(in, obj, NSTail(ObjStr(objv[1])), 
+		    (Tcl_ObjCmdProc*)XOTclDelegateMethod,
+		    (ClientData)tcd, delegateCmdDeleteProc);
+    return TCL_OK;
+  } else {
+  delegate_argc_error:
+    return XOTclObjErrArgCnt(in, obj->cmdName, 
+			     "mkdelegator method obj ?args? ?-defaultmethod name? ?-insert tokens? ?-prefix string? ?-skip #? ?-nocaller?");
+  }
 }
 
 
@@ -9639,6 +9757,7 @@ Xotcl_Init(Tcl_Interp *in) {
 #endif
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "mixin", (Tcl_ObjCmdProc*)XOTclOMixinMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "mixinguard", (Tcl_ObjCmdProc*)XOTclOMixinGuardMethod, 0, 0);
+  XOTclAddIMethod(in, (XOTcl_Class*) theobj, "mkdelegator", (Tcl_ObjCmdProc*)XOTclCDelegateCmdMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "__next", (Tcl_ObjCmdProc*)XOTclONextMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "noinit", (Tcl_ObjCmdProc*)XOTclONoinitMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) theobj, "parametercmd", (Tcl_ObjCmdProc*)XOTclCParameterCmdMethod, 0, 0);
@@ -9668,7 +9787,7 @@ Xotcl_Init(Tcl_Interp *in) {
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "instparametercmd", (Tcl_ObjCmdProc*)XOTclCInstParameterCmdMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "instproc", (Tcl_ObjCmdProc*)XOTclCInstProcMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "insttclcmd", (Tcl_ObjCmdProc*)XOTclCInstTclCmdMethod, 0, 0);
-  XOTclAddIMethod(in, (XOTcl_Class*) thecls, "instdelegatecmd", (Tcl_ObjCmdProc*)XOTclCInstDelegateCmdMethod, 0, 0);
+  XOTclAddIMethod(in, (XOTcl_Class*) thecls, "mkinstdelegator", (Tcl_ObjCmdProc*)XOTclCInstDelegateCmdMethod, 0, 0);
 
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "parameter", (Tcl_ObjCmdProc*)XOTclCParameterMethod, 0, 0);
   XOTclAddIMethod(in, (XOTcl_Class*) thecls, "parameterclass", (Tcl_ObjCmdProc*)XOTclCParameterClassMethod, 0, 0);

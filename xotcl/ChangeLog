@@ -1,3 +1,40 @@
+2004-06-20 Gustaf.Neumann@wu-wien.ac.at
+        * second version of mkinstdelegator and mkdelegator
+
+            A delegator method is defined via 
+               Class instdelegator method COMMAND ARGS
+            a call to the defined method with some args
+               obj method arg1 arg2 arg3...
+            is mapped to
+               COMMAND ARGS arg1 <caller> INSERTTOKENS arg1 arg2...
+
+             Class mkinstdelegator <methodname> <commandname> \
+                   ?-nocaller? \
+                   ?-skip nr_of_tokens? \
+                   ?-insert tokens?
+                   ?-prefix string? \
+                   ?-defaultmethod subcommand? \
+
+          where 
+            methodname: name of an instcommand for the class 
+                   to be registered,
+            commandname: command that recieves delegation
+            -nocaller:   don't insert caller after method
+            -skip:       skip n arguments from the call. "-skip 1"
+                         means that not the "method" from the invocation is
+                         used as the method call, but the first argument
+            -prefix:     prefix, to be added in front of 
+                         called method (to avoid name clashes 
+                         with "set", etc.)
+            -insert:     tokens to be inserted after the caller
+
+            -defaultmethod: when number of arguments is not sufficient 
+                         to determine the called method, use the specified 
+                         value to be used as method name (only useful when
+                         -skip is used und the arguments run out)
+                         (e.g. [$obj info] be mapped to COMMAND showInfoOptions)
+
+
 2004-06-18 Gustaf.Neumann@wu-wien.ac.at
         * added *.a to CLEANFILES in configure.in to rm stublibfile
           on a "make clean"
@@ -21,26 +58,6 @@
 
 2004-05-29 Gustaf.Neumann@wu-wien.ac.at
         * first version of instdelegatecommand
-             Object instdelegatecmd <methodname> <commandname> \
-                   ?-defaultmethod subcommand? \
-                   ?-methodprefix string? \
-                   ?-insert tokens?
-          where 
-            methodname: name of an instcommand for a class 
-                   to be registered,
-            commandname: command that recieves delegation
-            defaultmethod: when number of arguments is low, 
-                   allows for method to
-                   be inserted (e.g. result of [$obj info], 
-                   which can be mapped to ::xotcl::info info)
-            methodprefix: prefix, to be added in front of 
-                   subcommand to avoidname clashes with "set", etc.
-            insert: tokens to be inserted.
-
-            A call to a delegated method 
-               X method subcmd arg1 arg2...
-            can be mapped to
-               COMMANDNAME subcmd [self] INSERTTOKENS arg1 arg2...
 
         * defined metaclass ::xotcl:.SelfApplicableClass to allow 
           for instprocs of this class to be applicable for itself

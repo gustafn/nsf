@@ -121,7 +121,7 @@
           <em> Date:</em>
         </TD>
         <TD VALIGN="top">
-           $Date: 2004/05/23 22:50:39 $ 
+           $Date: 2004/06/20 21:14:14 $ 
         </TD>
       </TR>
     </TABLE>
@@ -303,8 +303,11 @@
       for classes. 
       The following options can be specified:
       <ul>
-      <li><TT>ClassName info classchildren</TT>: 
-      Returns the list of nested classes with fully qualified names.
+      <li><TT>ClassName info classchildren ?pattern?</TT>: 
+      Returns the list of nested classes with fully qualified names 
+      if <TT>pattern</TT> was not specified, 
+      otherwise  it returns all class children where the class name 
+      matches the pattern.
 
       <li><TT>ClassName info classparent</TT>: 
       Returns the class ClassName is nesting to.
@@ -2113,8 +2116,9 @@
       not specified, otherwise it returns 1 if classname matches the 
       object's class and 0 if not.
 
-      <li><TT>objName info children</TT>: Returns the list of aggregated 
-      objects with fully qualified names.
+      <li><TT>objName info children ?pattern?</TT>: Returns the list of aggregated 
+      objects with fully qualified names if <TT>pattern</TT> was not specified, 
+      otherwise  it returns all children where the object name matches the pattern.
 
       <li><TT>objName info commands ?pattern</TT>: Returns all commands 
       defined for the object if <TT>pattern</TT> was not specified, otherwise 
