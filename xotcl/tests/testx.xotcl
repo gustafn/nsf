@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.16 2004/08/22 09:30:46 neumann Exp $
+#$Id: testx.xotcl,v 1.17 2004/10/13 10:35:43 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -1237,8 +1237,8 @@ filterInfo proc run {{n 20}} {
       set InfoTraceResult ""
       set r [anObject aProc]
       if {$i > 0} {
-      ::errorCheck $InfoTraceResult \
-	"{-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-cleanup aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::xotcl::Class::Parameter-infoTraceFilter-::xotcl::Object ::xotcl::Class-searchDefaults aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {0-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-configure aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-init aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-recreate aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-create aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::anObject-infoTraceFilter-::xotcl::Object ::ObjectsClass-aProc run-::filterInfo {-::xotcl::Object instfilter infoTraceFilter}}" \
+	::errorCheck $InfoTraceResult \
+	    "{-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-cleanup aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::xotcl::Class::Parameter-infoTraceFilter-::xotcl::Object ::xotcl::Class-searchDefaults aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {0-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-configure aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-init aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-recreate aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-create aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::anObject-infoTraceFilter-::xotcl::Object ::ObjectsClass-aProc run-::filterInfo {-::xotcl::Object instfilter infoTraceFilter}}" \
 	"FilterInfo InfoTrace: Filter information wrong (b)"
       } else {
 	::errorCheck $InfoTraceResult \
@@ -2620,11 +2620,11 @@ recreation proc run {{n 10}} {
   append ::recreateResult "[C info instprocs] +"
    if {$i > 0} {
      errorCheck [set ::recreateResult] \
-       "*recreate ::xotcl::Class R* *recreate ::xotcl::Class <R> R * *recreate ::C c1 -b 2* *recreate ::C <c1> c1 * +b, +*recreate ::xotcl::Class C* *recreate ::xotcl::Class <C> C * +w, +" \
+       "*recreate ::xotcl::Class ::R* *recreate ::xotcl::Class <::R> ::R * *recreate ::C ::c1 -b 2* *recreate ::C <::c1> ::c1 * +b, +*recreate ::xotcl::Class ::C* *recreate ::xotcl::Class <::C> ::C * +w, +" \
        "Var/proc recreate delete failed (n)"
    } else {
      errorCheck [set ::recreateResult] \
-       "*recreate ::C c1 -b 2* *recreate ::C <c1> c1 * +b, +*recreate ::xotcl::Class C* *recreate ::xotcl::Class <C> C * +w, +" \
+       "*recreate ::C ::c1 -b 2* *recreate ::C <::c1> ::c1 * +b, +*recreate ::xotcl::Class ::C* *recreate ::xotcl::Class <::C> ::C * +w, +" \
        "Var/proc recreate delete failed (0)"
    }
   global recreateMixinResult
@@ -2898,6 +2898,29 @@ smallScripts proc run {{n 20}} {
     after 100 {o set r 3}
     o vwait r
     ::errorCheck [o set r] "3" "[self]: Vwait test"
+
+    Class NS	
+    Class NS::Main
+
+    NS::Main proc m1 {} {
+      my m2
+    }
+
+    NS::Main proc m2 {} {
+      namespace eval :: Object toplevelObj
+    }
+
+    NS::Main m1
+    ::errorCheck [::toplevelObj set a 1] "1" "toplevel object allocated in ns"
+
+
+    namespace eval foo {   
+      Class Foo
+      Foo instproc blah {} {puts jou}
+      Foo proc bar {} {puts bar}
+    }
+    namespace delete foo 
+    ::errorCheck [Object isobject ::foo::Foo] "0" "Namespace delete under object"
 
     return "PASSED [self]"
 }
@@ -3467,13 +3490,39 @@ nonposargs proc run {{n 20}} {
     errorCheck [P info instnonposargs z3] {-x:required {-a 1} {-b {1 2}}} "info instnonposargs 1"
     errorCheck [P info instnonposargs x] {} "info instnonposargs 2"
 
-  return "PASSED [self]"
+
+    Object o
+    o proc foo {{-a apple}} {{b banana}} {
+	return [list [info locals] a: $a   b: $b]
+    }
+    o proc foo2 {{-a apple}} {{b banana} {c apple}} {
+	return [list [info locals] a: $a   b: $b c: $c]
+    }
+    o proc foo3 {{-a apple}} {x y {b banana} {c apple}} {
+	return [list [info locals] x: $x y: $y a: $a   b: $b c: $c]
+    }
+
+    errorCheck [o foo] [list {a b} a: apple b: banana] \
+	"non pos + default values 1"
+    errorCheck [o foo -a ack] [list {a b} a: ack b: banana] \
+	"non pos + default values 2"
+    errorCheck [o foo bar] [list {a b} a: apple b: bar] \
+	"non pos + default values 3"
+    errorCheck [o foo -a ack bar] [list  {a b} a: ack b: bar] \
+	"non pos + default values 4"
+    errorCheck [o foo2 -a ack] [list {a b c} a: ack b: banana c: apple] \
+	"non pos + default values 5"
+    errorCheck [ o foo3 -a ack 1 2] [list {x y a b c} x: 1 y: 2 \
+				     a: ack b: banana c: apple] \
+	"non pos + default values 6"
+
+    return "PASSED [self]"
 }
 
 TestX proc run {} {
   puts [nestingClasses run]
   puts [nestingObjects run]
-  puts [assertions run]
+#  puts [assertions run]
   puts [stdargs run]
   puts [filterAddRemove run]
   puts [filterClassChange run]

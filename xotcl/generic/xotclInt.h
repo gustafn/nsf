@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.8 2004/08/26 19:42:52 neumann Exp $
+ *  $Id: xotclInt.h,v 1.9 2004/10/13 10:35:43 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -101,6 +101,7 @@ typedef struct XOTclMemCounter {
 # define FREE(type, var) \
 	ckfree((char*) var); MEM_COUNT_FREE(#type,var)
 
+#define isAbsolutePath(m) (*m == ':' && m[1] == ':')
 #define isArgsString(m) (\
 	*m   == 'a' && m[1] == 'r' && m[2] == 'g' && m[3] == 's' && \
 	m[4] == '\0')
@@ -260,7 +261,7 @@ typedef struct XOTclMemCounter {
 # endif
 #endif
 
-#if 1
+#if 0
 #define XOTcl_FrameDecls CallFrame *oldFramePtr = 0, frame, *newFramePtr = &frame
 #define XOTcl_PushFrame(in,obj) \
      memset(newFramePtr, 0, sizeof(CallFrame)); \

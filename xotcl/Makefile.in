@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.11 2004/08/26 19:47:58 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.12 2004/10/13 10:35:43 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -32,6 +32,7 @@ target_doc_dir 	= ./doc
 TCL_LIB_SPEC    = @TCL_LIB_SPEC@
 TK_LIB_SPEC	= @TK_LIB_SPEC@
 subdirs		= @subdirs@
+aol_prefix	= @aol_prefix@
 
 libdirs = comm lib serialize @libdirs_actiweb@
 libsrc 	= COPYRIGHT pkgIndex.tcl 
@@ -242,7 +243,7 @@ install-binaries: binaries install-lib-binaries install-bin-binaries install-pkg
 
 install-aol: install-binaries install-libraries
 	$(INSTALL) $(src_generic_dir)/aol-xotcl.tcl \
-		$(DESTDIR)/usr/local/aolserver/modules/tcl/xotcl.tcl
+		$(DESTDIR)/$(aol_prefix)/modules/tcl/xotcl.tcl
 
 
 #========================================================================
@@ -612,6 +613,7 @@ rpm:
 bin-tar: 
 	(cd ..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
                 `find $(exec_prefix)/bin/xotclsh $(exec_prefix)/bin/xowish \
+                  $(prefix)/lib/xotcl* \
 		  $(prefix)/include/xotcl*.h \
                   $(DESTDIR)$(pkglibdir) $(prefix)/man/man1/xo* \
                 -type f -o -type l | fgrep -v CVS | fgrep -v SCCS | fgrep -v .junk| fgrep -v .db | fgrep -v "~" | fgrep -v "#" | fgrep -v /receiver/` \

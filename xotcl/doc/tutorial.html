@@ -1,10 +1,10 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<!-- $Id: tutorial.html,v 1.6 2004/09/21 11:41:43 neumann Exp $ -->
+<!-- $Id: tutorial.html,v 1.7 2004/10/13 10:35:43 neumann Exp $ -->
 <HTML>
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
 	<META NAME="AUTHOR" CONTENT="Gustaf Neumann and Uwe Zdun">
-	<META NAME="DOCNUMBER" CONTENT="1.3.0">
+	<META NAME="DOCNUMBER" CONTENT="1.3.2">
 	<META NAME="CHANGEDBY" CONTENT="Gustaf ">
 <STYLE>
 BODY	{
@@ -3367,10 +3367,10 @@ usual. However, in calls like
 <pre CLASS="code">
   obj Mixin
 </pre>
-we have to deal with cases, where the used arguments (especially the
-first one) are not given at the invocation, otherwise we get an
-error. For specifying default methods, the option <tt>-default</tt> can
-be used.
+we have to deal with cases, where the used argument (<tt>%1</tt>) is 
+not given at the invocation. In this case we get either an
+error message, or we can specify a default argument via the 
+option <tt>-default</tt>:
 <pre CLASS="code">
   obj <tt>forward</tt> Mixin <tt>-default</tt> {getter setter} mixin %1 %self
 </pre>

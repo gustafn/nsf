@@ -1,3 +1,41 @@
+2004-10-13 Gustaf.Neumann@wu-wien.ac.at
+        * make namespace handling code more orthogonal
+        * using resolver for exists method (might be used in future for
+          other methods as well)
+        * cleanup of dead code
+
+2004-10-09 Gustaf.Neumann@wu-wien.ac.at
+        * fixed recreation bug in connection with namespace eval
+        * fixed exists for objects with own namespaces
+
+2004-09-20 Gustaf.Neumann@wu-wien.ac.at
+        * Fixed bin-tar target to include sdbm+gdbm+expat
+        * Improved documentation (tutorial and langref) for forwarding options
+        * using $prefix in install-aol, provided a README.aol file
+        * more general fix for namespace handling; still possible problem
+          with shared Tcl_Objs of type XOTclObject, when referred to from
+          different namespaces.
+
+2004-09-15 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+	* fixed bug: non-pos args did not work correctly with default
+	  values. Thanks to Bryan Schofield for reporting this bug.
+          Added tests for non-pos args + default values.
+	
+2004-09-09 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+	* fixed possible accesses to object namespaces that got already
+	  destroyed by TCL, by checking for ((Namespace
+          *)nsPtr)->deleteProc is not NULL, ie. it is still set to
+          XOTcl's Namespace Delete Proc, and not invalidated by
+          TclTeardownNamespace yet. add test for this to testx. Thanks
+          to Kristoffer Lawson for reporting this bug.
+	* fixed mis-formating in tutorial (only visible in browsers 
+	  other than Mozilla)
+	
+2004-09-02 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+	* temporary fix for alloc behavior to deal with explicit namespace changes
+  	  by user, thanks to michael.heca@email.cz for reporting the
+          bug. Added a test for this change.
+
 2004-08-26 Gustaf.Neumann@wu-wien.ac.at, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
         * release of distribution XOTcl 1.3.1
 

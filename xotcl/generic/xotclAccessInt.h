@@ -22,6 +22,7 @@
 #define Tcl_Namespace_varTable(nsPtr) &((Namespace *)nsPtr)->varTable
 #define Tcl_Namespace_childTable(nsPtr) &((Namespace *)nsPtr)->childTable
 #define Tcl_Namespace_activationCount(nsPtr) ((Namespace *)nsPtr)->activationCount
+#define Tcl_Namespace_deleteProc(nsPtr) ((Namespace *)nsPtr)->deleteProc
 
 #define Tcl_Command_refCount(cmd)      ((Command *)cmd)->refCount
 #define Tcl_Command_cmdEpoch(cmd)      ((Command *)cmd)->cmdEpoch
@@ -33,7 +34,6 @@
 #define Tcl_Command_proc(cmd)          ((Command *)cmd)->proc
 #define Tcl_Command_clientData(cmd)    ((Command *)cmd)->clientData
 #define Tcl_Command_deleteProc(cmd)    ((Command *)cmd)->deleteProc
-
 
 /*
  * Conversion from CmdPtr to Class / Object

@@ -1,4 +1,4 @@
-# $Id: forwardtest.xotcl,v 1.1 2004/08/22 10:26:46 neumann Exp $
+# $Id: forwardtest.xotcl,v 1.2 2004/10/13 10:35:43 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -194,3 +194,82 @@ obj forward @list x y z {%@2 2} {%@1 1} {%@0 list}
 ? [obj @list] [list x 1 y 2 z]
 ? [obj @list a b c] [list x 1 y 2 z a b c]
 
+
+Object instproc f args { next }          
+
+Class NS	
+Class NS::Main
+
+NS::Main proc m1 {} { my m2 }
+
+NS::Main proc m2 {} {
+  ? [namespace eval :: {Object toplevelObj1}] ::toplevelObj1
+  
+  ? [namespace current] ::NS
+  ? [NS create m1] ::NS::m1
+  NS filter f
+  ? [NS create m2] ::NS::m2
+  NS filter ""
+
+  namespace eval ::test {
+    ? [NS create m3] ::test::m3
+    NS filter f
+    ? [NS create m4] ::test::m4
+    NS filter ""
+  }
+
+  namespace eval test {
+    ? [NS create m5] ::NS::test::m5
+    NS filter f
+    ? [NS create m6] ::NS::test::m6
+    NS filter ""
+  }
+
+}
+
+NS::Main instproc i1 {} { my i2 }
+
+NS::Main instproc i2 {} {
+  ? [namespace eval :: {Object toplevelObj2}] ::toplevelObj2
+  
+  ? [namespace current] ::NS
+  ? [NS create i1] ::NS::i1
+  NS filter f
+  ? [NS create i2] ::NS::i2
+  NS filter ""
+
+  namespace eval ::test {
+    ? [NS create i3] ::test::i3
+    NS filter f
+    ? [NS create i4] ::test::i4
+    NS filter ""
+  }
+
+  namespace eval test {
+    ? [NS create i5] ::NS::test::i5
+    NS filter f
+    ? [NS create i6] ::NS::test::i6
+    NS filter ""
+  }
+
+}
+
+puts ====
+NS::Main m1
+NS::Main create m
+m i1
+
+puts ====
+? [NS create n1] ::n1
+NS filter f
+? [NS create n2] ::n2
+NS filter ""
+
+puts ====
+namespace eval test {
+  ? [NS create n1] ::test::n1
+  ? [NS create n3] ::test::n3
+  NS filter f
+  ? [NS create n4] ::test::n4
+  NS filter ""
+}

@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.25 2004/08/26 19:42:52 neumann Exp $
+/* $Id: xotcl.c,v 1.26 2004/10/13 10:35:43 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -79,10 +79,13 @@ int xotclMemCountInterpCounter = 0;
 #endif
 
 
-static int SetXOTclObjectFromAny(Tcl_Interp *interp, Tcl_Obj *objPtr);
+static int SetXOTclObjectFromAny(Tcl_Interp *in, Tcl_Obj *objPtr);
 static void UpdateStringOfXOTclObject(Tcl_Obj *objPtr);
 static void FreeXOTclObjectInternalRep(Tcl_Obj *objPtr);
 static void DupXOTclObjectInternalRep(Tcl_Obj *src, Tcl_Obj *cpy);
+
+static Tcl_Obj*NameInNamespaceObj(Tcl_Interp *in, char *name, Tcl_Namespace *ns);
+static Tcl_Namespace *callingNameSpace(Tcl_Interp *in);
 
 XOTCLINLINE static void GuardAdd(Tcl_Interp *in, XOTclCmdList* filterCL, Tcl_Obj *guard);
 static int GuardCheck(Tcl_Interp *in, ClientData guards);
@@ -463,7 +466,7 @@ DupXOTclObjectInternalRep(Tcl_Obj *src, Tcl_Obj *cpy) {
 }
 
 static int
-SetXOTclObjectFromAny(Tcl_Interp *interp, register Tcl_Obj *objPtr) {
+SetXOTclObjectFromAny(Tcl_Interp *in, register Tcl_Obj *objPtr) {
   Tcl_ObjType *oldTypePtr = objPtr->typePtr;
   char *string = ObjStr(objPtr);
   XOTclObject *obj;
@@ -476,7 +479,24 @@ SetXOTclObjectFromAny(Tcl_Interp *interp, register Tcl_Obj *objPtr) {
     fprintf(stderr,"   convert %s to XOTclObject\n", oldTypePtr->name);
 #endif
 
-  obj = GetObject(interp, string);
+#if 0
+  {
+    Tcl_Obj *tmpName = NULL;
+    if (*string != ':') {
+      tmpName = NameInNamespaceObj(in,string,callingNameSpace(in));
+      string = ObjStr(tmpName);
+
+      fprintf(stderr," **** name is '%s'\n",  string);
+      INCR_REF_COUNT(tmpName);
+    }
+    obj = GetObject(in, string);
+    if (tmpName) {DECR_REF_COUNT(tmpName);}
+  }
+#else
+    obj = GetObject(in, string);
+#endif
+
+
   if (obj) {
     if ((oldTypePtr != NULL) && (oldTypePtr->freeIntRepProc != NULL)) {
 #ifdef XOTCLOBJ_TRACE
@@ -585,7 +605,7 @@ NewXOTclObjectObjName(register XOTclObject *obj, char *name, unsigned l)
 }
 
 static int
-GetXOTclObjectFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, XOTclObject **obj)
+GetXOTclObjectFromObj(Tcl_Interp *in, register Tcl_Obj *objPtr, XOTclObject **obj)
 {
   int result;
   register Tcl_ObjType *cmdType = objPtr->typePtr;
@@ -613,6 +633,7 @@ GetXOTclObjectFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, XOTclObject 
    * internalRep references to killed XOTclObjects
    */
   if (cmdType == &XOTclObjectType) {
+    /*fprintf(stderr,"obj is of type XOTclObjectType\n");*/
     if (obj) {
       XOTclObject *o = (XOTclObject*) objPtr->internalRep.otherValuePtr;
       int refetch = 0;
@@ -620,7 +641,7 @@ GetXOTclObjectFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, XOTclObject 
 	/* fprintf(stderr,"????? calling free by hand\n"); */
 	FreeXOTclObjectInternalRep(objPtr);
 	refetch = 1;
-	result = SetXOTclObjectFromAny(interp, objPtr);
+	result = SetXOTclObjectFromAny(in, objPtr);
 	if (result == TCL_OK) {
 	  o = (XOTclObject*) objPtr->internalRep.otherValuePtr;
 	  assert(o && !(o->flags & XOTCL_DESTROYED));
@@ -644,7 +665,8 @@ GetXOTclObjectFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, XOTclObject 
     }
 #ifdef KEEP_TCL_CMD_TYPE
   } else if (cmdType == tclCmdNameType) {
-    Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objPtr);
+    Tcl_Command cmd = Tcl_GetCommandFromObj(in, objPtr);
+    /*fprintf(stderr,"obj is of type tclCmd\n");*/
     if (cmd) {
       XOTclObject *o = XOTclGetObjectFromCmdPtr(cmd);
 
@@ -665,7 +687,7 @@ GetXOTclObjectFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, XOTclObject 
 #ifdef KEEP_TCL_CMD_TYPE
   convert_to_xotcl_object:
 #endif
-    result = SetXOTclObjectFromAny(interp, objPtr);
+    result = SetXOTclObjectFromAny(in, objPtr);
     if (result == TCL_OK) {
       if (obj) *obj = (XOTclObject*) objPtr->internalRep.otherValuePtr;
     }
@@ -673,7 +695,7 @@ GetXOTclObjectFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr, XOTclObject 
   return result;
 }
 
-/*
+#ifndef NAMESPACEINSTPROCS
 static Tcl_Namespace *
 GetCallerVarFrame(Tcl_Interp *in, Tcl_CallFrame *varFramePtr) {
   Tcl_Namespace *nsPtr = NULL;
@@ -688,7 +710,7 @@ GetCallerVarFrame(Tcl_Interp *in, Tcl_CallFrame *varFramePtr) {
 
   return nsPtr;
 }
-*/
+#endif
 
 static Tcl_Obj*
 NameInNamespaceObj(Tcl_Interp *in, char *name, Tcl_Namespace *ns) {
@@ -728,8 +750,8 @@ GetXOTclClassFromObj(Tcl_Interp *in, register Tcl_Obj *objPtr,
     char* objName = ObjStr(objPtr);
     ov[0] = RUNTIME_STATE(in)->theClass->object.cmdName;
     ov[1] = XOTclGlobalObjects[__UNKNOWN];
-    if (*objName != ':') {
-      ov[2] = NameInNamespaceObj(in,objName,Tcl_GetCurrentNamespace(in));
+    if (!isAbsolutePath(objName)) {
+      ov[2] = NameInNamespaceObj(in,objName,callingNameSpace(in));
     } else {
       ov[2] = objPtr;
     }
@@ -957,12 +979,14 @@ XOTclIsClass(Tcl_Interp *in, ClientData cd) {
  */
 
 XOTCLINLINE static Tcl_Command
-FindMethod(char *methodName, Tcl_HashTable *cmdTable) {
-  Tcl_HashEntry* entryPtr;
+FindMethod(char *methodName, Tcl_Namespace* nsPtr) {
+  Tcl_HashTable *cmdTable;
+  Tcl_HashEntry *entryPtr;
   Tcl_Command cmd;
-
-  assert(cmdTable);
-  if ((entryPtr = Tcl_FindHashEntry(cmdTable, methodName))) {
+  /* if somebody messes around with the deleteProc, we conclude that the
+     entries of the cmdTable are not ours ... */
+  cmdTable = Tcl_Namespace_deleteProc(nsPtr) ? Tcl_Namespace_cmdTable(nsPtr) : NULL ;
+  if (cmdTable && (entryPtr = Tcl_FindHashEntry(cmdTable, methodName))) {
     cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
   } else {
     cmd = NULL;
@@ -975,7 +999,7 @@ XOTCLINLINE static XOTclClass*
 SearchPLMethod(register XOTclClasses* pl, char *nm, Tcl_Command *cmd) {
   /* Search the class hierarchy */
   for (; pl;  pl = pl->next) {
-    Tcl_Command pi = FindMethod(nm, Tcl_Namespace_cmdTable(pl->cl->nsPtr));
+    Tcl_Command pi = FindMethod(nm, pl->cl->nsPtr);
     if (pi) {
       *cmd = pi;
       return pl->cl;
@@ -1001,11 +1025,12 @@ callDestroyMethod(ClientData cd, Tcl_Interp *in, XOTclObject *obj, int flags) {
       XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY)
     return TCL_OK;
 
+  /* fprintf(stderr," obj %p flags %.4x %d\n",obj, obj->flags, 
+     RUNTIME_STATE(in)->callDestroy);*/
   /* we don't call destroy, if we're in the exit handler
      during destruction of Object and Class */
   if (!RUNTIME_STATE(in)->callDestroy) {
     obj->flags |= XOTCL_DESTROY_CALLED;
-
     /* return TCL_ERROR so that clients know we haven't deleted the
        associated command yet */
     return TCL_ERROR;
@@ -1017,7 +1042,11 @@ callDestroyMethod(ClientData cd, Tcl_Interp *in, XOTclObject *obj, int flags) {
 #if !defined(NDEBUG)
   {char *cmdName = ObjStr(obj->cmdName);
   assert(cmdName != NULL);
-  assert(Tcl_FindCommand(in, cmdName, NULL, 0) != NULL);
+  /*assert(Tcl_FindCommand(in, cmdName, NULL, 0) != NULL);*/
+#ifdef UWE
+  fprintf(stderr,"callDestroyMethod: %p command to be destroyed '%s' does not exist\n",
+	  obj, cmdName);
+#endif
   }
 #endif
 
@@ -1149,14 +1178,40 @@ makeObjNamespace(Tcl_Interp *in, XOTclObject *obj) {
     }
   }
 }
+/*
+  typedef int (Tcl_ResolveVarProc) _ANSI_ARGS_((
+ *	        Tcl_Interp* in, CONST char* name, Tcl_Namespace *context,
+ *	        int flags, Tcl_Var *rPtr));
+ */
+int 
+varResolver(Tcl_Interp *in, CONST char *name, Tcl_Namespace *ns, int flags, Tcl_Var* varPtr) {
+  Tcl_HashEntry *entry;
 
-#define requireObjNamespace(in,obj) \
-  if (!obj->nsPtr) makeObjNamespace(in,obj)
+  entry = Tcl_FindHashEntry(Tcl_Namespace_varTable(ns), name);
+  if (entry != NULL) {
+    /*fprintf(stderr,"lookup '%s' successful %d\n",name, flags);*/
+    *varPtr = (Tcl_Var)Tcl_GetHashValue(entry);
+    return TCL_OK;
+  } else {
+    /*fprintf(stderr,"lookup '%s' failed %d\n",name, flags);*/
+    *varPtr = NULL;
+    return TCL_ERROR;
+  }
+}
 
+
+static void
+requireObjNamespace(Tcl_Interp *in, XOTclObject *obj) {
+  if (!obj->nsPtr) makeObjNamespace(in,obj);
+  /*
+  Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
+			    varResolver, (Tcl_ResolveCompiledVarProc*)NULL);
+  */
+
+}
 extern void
-XOTclRequireObjNamespace(Tcl_Interp *in, XOTcl_Object *obji) {
-  XOTclObject *obj = (XOTclObject*) obji;
-  requireObjNamespace(in, obj);
+XOTclRequireObjNamespace(Tcl_Interp *in, XOTcl_Object *obj) {
+  requireObjNamespace(in,(XOTclObject*) obj);
 }
 
 
@@ -1171,7 +1226,7 @@ NSDeleteCmd(Tcl_Interp *in, Tcl_Namespace* ns, char *name) {
      we use the CmdToken */
   Tcl_Command token;
   assert(ns);
-  if ((token = FindMethod(name, Tcl_Namespace_cmdTable(ns)))) {
+  if ((token = FindMethod(name, ns))) {
     return Tcl_DeleteCommandFromToken(in, token);
   }
   return 0;
@@ -1285,6 +1340,9 @@ XOTcl_DeleteCommandFromToken(Tcl_Interp *in, Tcl_Command cmd) {
       csc->cmdPtr = NULL;
     break;
   }
+#ifdef UWE
+  fprintf(stderr,"DeleteCommandFromToken %p\n",cmd);
+#endif
   return Tcl_DeleteCommandFromToken(in, cmd);
 }
 
@@ -1344,7 +1402,9 @@ XOTcl_DeleteNamespace(Tcl_Interp *in, Tcl_Namespace *nsPtr) {
   fprintf(stderr, "to %d. \n", nsp->activationCount);
   */
   MEM_COUNT_FREE("TclNamespace",nsPtr);
-  Tcl_DeleteNamespace(nsPtr);
+  if (Tcl_Namespace_deleteProc(nsPtr) != NULL) {
+    Tcl_DeleteNamespace(nsPtr);
+  }
 }
 
 static Tcl_Namespace*
@@ -1374,6 +1434,7 @@ XOTCLINLINE static int
 NSCheckColons(char *name, unsigned l) {
   register char *n = name;
   if (*n == '\0') return 0; /* empty name */
+  if (l==0) l=strlen(name);
   if (*(n+l-1) == ':')  return 0; /* name ends with : */
   if (*n == ':' && *(n+1) != ':') return 0; /* name begins with single : */
   for (; *n != '\0'; n++) {
@@ -1442,9 +1503,9 @@ NSCheckForParent(Tcl_Interp *in, char *name, unsigned l) {
  * to which they point.
  */
 XOTCLINLINE static Tcl_Command
-NSFindCommand(Tcl_Interp *in, char *name) {
+NSFindCommand(Tcl_Interp *in, char *name, Tcl_Namespace *ns) {
   Tcl_Command cmd;
-  if ((cmd = Tcl_FindCommand(in, name, NULL, 0))) {
+  if ((cmd = Tcl_FindCommand(in, name, ns, 0))) {
     Tcl_Command importedCmd;
     if ((importedCmd = TclGetOriginalCommand(cmd)))
       cmd = importedCmd;
@@ -1472,7 +1533,7 @@ static XOTclObject*
 GetObject(Tcl_Interp *in, char *name) {
   register Tcl_Command cmd;
   assert(name);
-  cmd = NSFindCommand(in, name);
+  cmd = NSFindCommand(in, name, NULL);
   if (cmd && Tcl_Command_objProc(cmd) == XOTclObjDispatch) {
     return (XOTclObject*)Tcl_Command_objClientData(cmd);
   }
@@ -1811,6 +1872,9 @@ CallStackDoDestroy(Tcl_Interp *in, XOTclObject *obj) {
   oid = obj->id;
   obj->id = 0;
   if (obj->teardown && oid) {
+#ifdef UWE
+    fprintf(stderr, "DoDestroy %p '%s'\n",obj,ObjStr(obj->cmdName));
+#endif
     Tcl_DeleteCommandFromToken(in, oid);
   }
 }
@@ -1822,6 +1886,10 @@ CallStackDestroyObject(Tcl_Interp *in, XOTclObject *obj) {
   XOTclCallStackContent *csc;
   int countSelfs = 0;
   Tcl_Command oid = obj->id;
+
+#ifdef UWE
+  fprintf(stderr,"CallStackDestroyObject %p %s\n",obj, ObjStr(obj->cmdName));
+#endif
 
   for (csc = &cs->content[1]; csc <= cs->top; csc++) {
     if (csc->self == obj) {
@@ -1847,6 +1915,9 @@ CallStackDestroyObject(Tcl_Interp *in, XOTclObject *obj) {
        -> children destructors are called before parent's
        destructor */
     if (obj->teardown && obj->nsPtr) {
+#ifdef UWE
+      fprintf(stderr, "DeleteChildren %p '%s'\n",obj,ObjStr(obj->cmdName));
+#endif
       NSDeleteChildren(in, obj->nsPtr);
     }
   }
@@ -2716,7 +2787,7 @@ MixinSearchProc(Tcl_Interp *in, XOTclObject *obj, char *methodName,
       */
       if (cls) {
 	int guardOk = TCL_OK;
-	cmd = FindMethod(methodName, Tcl_Namespace_cmdTable(cls->nsPtr));
+	cmd = FindMethod(methodName, cls->nsPtr);
 	if (cmd && cmdList->clientData) {
 	  if (!RUNTIME_STATE(in)->cs.guardCount) {
 	    guardOk = GuardCall(obj, cls, (Tcl_Command) cmd, in, cmdList->clientData, 1);
@@ -2836,7 +2907,7 @@ FilterSearch(Tcl_Interp *in, char *name, XOTclObject *startingObj,
    * seach for object procs that are used as filters
    */
   if (startingObj && startingObj->nsPtr) {
-    if ((cmd = FindMethod(name, Tcl_Namespace_cmdTable(startingObj->nsPtr))))
+    if ((cmd = FindMethod(name, startingObj->nsPtr)))
       return cmd;
   }
 
@@ -3066,7 +3137,7 @@ GuardList(Tcl_Interp *in, XOTclCmdList* frl, char *interceptorName) {
     h = CmdListFindNameInList(in, interceptorName, frl);
     if (!h) {
       /* maybe it is a qualified name */
-      Tcl_Command cmd = NSFindCommand(in, interceptorName);
+      Tcl_Command cmd = NSFindCommand(in, interceptorName, NULL);
       if (cmd) {
 	h = CmdListFindCmdInList(cmd, frl);
       }
@@ -3345,12 +3416,11 @@ FilterComputeOrderFullList(Tcl_Interp *in, XOTclCmdList **filters,
 	pl = pl->next;
 	/* now go up the hierarchy */
 	for(; pl; pl = pl->next) {
-	  Tcl_Command pi = FindMethod(simpleName,
-				      Tcl_Namespace_cmdTable(pl->cl->nsPtr));
+	  Tcl_Command pi = FindMethod(simpleName, pl->cl->nsPtr);
 	  if (pi) {
 	    CmdListAdd(filterList, pi, /*noDuplicates*/ 0);
 	    /*
-	    fprintf(stderr, " %s::%s, ", ObjStr(pl->cl->object.cmdName), simpleName);
+	      fprintf(stderr, " %s::%s, ", ObjStr(pl->cl->object.cmdName), simpleName);
 	    */
 	  }
 	}
@@ -3822,7 +3892,7 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
 #endif
       ) {
     /* push the xotcl info */
-    if ((CallStackPush(in, obj, cl, cmd, objc,objv, frameType)) == TCL_OK)
+    if ((CallStackPush(in, obj, cl, cmd, objc, objv, frameType)) == TCL_OK)
       callStackPushed = 1;
     else {
       result = TCL_ERROR; goto finish;
@@ -4131,7 +4201,7 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
     /* if no filter/mixin is found => do ordinary method lookup */
     if (proc == 0) {
       if (obj->nsPtr)
-	cmd = FindMethod(methodName, Tcl_Namespace_cmdTable(obj->nsPtr));
+	cmd = FindMethod(methodName, obj->nsPtr);
       /*fprintf(stderr,"findMethod for proc '%s' in %p returned %p\n",methodName, obj->nsPtr, cmd);*/
       
       if (cmd == NULL)
@@ -4587,6 +4657,11 @@ varExists(Tcl_Interp *in, XOTclObject *obj, char *varName) {
   Var *arrayPtr;
 #endif
 
+  if (obj->nsPtr) {
+    Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
+			      varResolver, (Tcl_ResolveCompiledVarProc*)NULL);
+  }
+
   XOTcl_PushFrame(in, obj);
 
 #if defined(PRE83)
@@ -4599,6 +4674,11 @@ varExists(Tcl_Interp *in, XOTclObject *obj, char *varName) {
 
   XOTcl_PopFrame(in, obj);
 
+  if (obj->nsPtr) {
+    Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
+			      (Tcl_ResolveVarProc *)NULL, 
+			      (Tcl_ResolveCompiledVarProc*)NULL);
+  }
   return result;
 }
 
@@ -5066,7 +5146,7 @@ FindCalledClass(Tcl_Interp *in, XOTclObject *obj) {
   if (!methodName) methodName = "";
 
   if (obj->nsPtr)
-    cmd = FindMethod(methodName, Tcl_Namespace_cmdTable(obj->nsPtr));
+    cmd = FindMethod(methodName, obj->nsPtr);
 
   if (cmd) {
     cl = 0;
@@ -5149,7 +5229,7 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *in, XOTclCallStackContent *csc,
      the obj-specific methods as well */
 
   if (obj->nsPtr && endOfChain) {
-    *cmd = FindMethod(*method, Tcl_Namespace_cmdTable(obj->nsPtr));
+    *cmd = FindMethod(*method, obj->nsPtr);
   } else {
     *cmd = 0;
   }
@@ -5779,9 +5859,7 @@ PrimitiveOInit(void* mem, Tcl_Interp *in, char *name, XOTclClass *cl) {
 static XOTclObject*
 PrimitiveOCreate(Tcl_Interp *in, char *name, XOTclClass *cl) {
   XOTclObject *obj = (XOTclObject*)ckalloc(sizeof(XOTclObject));
-  Tcl_DString fullName, *fullNamePtr = &fullName;
   unsigned length;
-  char *fn;
 
   /*fprintf(stderr, "CKALLOC Object %p %s\n", obj, name);*/
 #if defined(XOTCLOBJ_TRACE)
@@ -5794,49 +5872,30 @@ PrimitiveOCreate(Tcl_Interp *in, char *name, XOTclClass *cl) {
   memset(obj, 0, sizeof(XOTclObject));
   MEM_COUNT_ALLOC("XOTclObject/XOTclClass",obj);
   assert(obj); /* ckalloc panics, if malloc fails */
+  assert(isAbsolutePath(name));
 
-  if (*name == ':' && *(name+1) == ':') {
-    fn = name;
-    length = strlen(name);
-  } else {
-    Tcl_Namespace* currNsPtr = Tcl_GetCurrentNamespace(in);
-    if (currNsPtr != Tcl_GetGlobalNamespace(in) &&
-	!(currNsPtr->deleteProc == NSNamespaceDeleteProc)) {
-      ALLOC_NAME_NS(fullNamePtr, currNsPtr->fullName, name);
-    } else {
-      ALLOC_TOP_NS(fullNamePtr, name);
-    }
-    fn = Tcl_DStringValue(fullNamePtr);
-    length = Tcl_DStringLength(fullNamePtr);
-  }
-
-  if (!NSCheckForParent(in, fn, length)) {
-    if (name != fn) {
-      DSTRING_FREE(fullNamePtr);
-    }
+  length = strlen(name);
+  if (!NSCheckForParent(in, name, length)) {
     ckfree((char*) obj);
     return 0;
   }
-  obj->id = Tcl_CreateObjCommand(in, fn, XOTclObjDispatch,
+  obj->id = Tcl_CreateObjCommand(in, name, XOTclObjDispatch,
 				 (ClientData)obj, PrimitiveODestroy);
 
-  PrimitiveOInit(obj, in, fn, cl);
+  PrimitiveOInit(obj, in, name, cl);
 #if 0
   /*defined(KEEP_TCL_CMD_TYPE)*/
   /*TclNewObj(obj->cmdName);*/
-  obj->cmdName = Tcl_NewStringObj(fn,length);
+  obj->cmdName = Tcl_NewStringObj(name,length);
   TclSetCmdNameObj(in, obj->cmdName, (Command*)obj->id);
   /*fprintf(stderr, "new command has name '%s'\n", ObjStr(obj->cmdName));*/
 #else
-  obj->cmdName = NewXOTclObjectObjName(obj, fn, length);
+  obj->cmdName = NewXOTclObjectObjName(obj, name, length);
 #endif
   INCR_REF_COUNT(obj->cmdName);
 
   objTrace("PrimitiveOCreate", obj);
 
-  if (name != fn) {
-    DSTRING_FREE(fullNamePtr);
-  }
   return obj;
 }
 
@@ -6040,8 +6099,6 @@ PrimitiveCInit(void* mem, Tcl_Interp *in, char *name, XOTclClass *class) {
 static XOTclClass*
 PrimitiveCCreate(Tcl_Interp *in, char *name, XOTclClass *class) {
   XOTclClass *cl = (XOTclClass*)ckalloc(sizeof(XOTclClass));
-  Tcl_DString fullName, *fullNamePtr = &fullName;
-  char *fn;
   unsigned length;
   XOTclObject *obj = (XOTclObject*)cl;
 
@@ -6052,45 +6109,27 @@ PrimitiveCCreate(Tcl_Interp *in, char *name, XOTclClass *class) {
   /*
   fprintf(stderr, " +++ CLS alloc: %s\n", name);
   */
-  if (*name == ':' && *(name+1) == ':') {
-    fn = name;
-    length = strlen(name);
-  } else {
-    Tcl_Namespace *currNs = Tcl_GetCurrentNamespace(in);
-    if (currNs != Tcl_GetGlobalNamespace(in)
-	&& !(currNs->deleteProc == NSNamespaceDeleteProc)) {
-      ALLOC_NAME_NS(fullNamePtr, currNs->fullName, name);
-    } else {
-      ALLOC_TOP_NS(fullNamePtr, name);
-    }
-    fn = Tcl_DStringValue(fullNamePtr);
-    length = Tcl_DStringLength(fullNamePtr);
-  }
+  assert(isAbsolutePath(name));
+  length = strlen(name);
   /*
-  fprintf(stderr,"Class alloc %p '%s'\n", cl, fn);
+  fprintf(stderr,"Class alloc %p '%s'\n", cl, name);
   */
   /* check whether Object parent NS already exists,
      otherwise: error */
-  if (!NSCheckForParent(in, fn, length)) {
-    if (fn != name) {
-      DSTRING_FREE(fullNamePtr);
-    }
+  if (!NSCheckForParent(in, name, length)) {
     ckfree((char*) cl);
     return 0;
   }
-  obj->id = Tcl_CreateObjCommand(in, fn, XOTclObjDispatch,
+  obj->id = Tcl_CreateObjCommand(in, name, XOTclObjDispatch,
 				 (ClientData)cl, PrimitiveCDestroy);
 
-  PrimitiveOInit(obj, in, fn, class);
+  PrimitiveOInit(obj, in, name, class);
 
-  obj->cmdName = NewXOTclObjectObjName(obj,fn,length);
+  obj->cmdName = NewXOTclObjectObjName(obj,name,length);
   INCR_REF_COUNT(obj->cmdName);
-  PrimitiveCInit(cl, in, fn+2, class);
+  PrimitiveCInit(cl, in, name+2, class);
 
   objTrace("PrimitiveCCreate", obj);
-  if (fn != name) {
-    DSTRING_FREE(fullNamePtr);
-  }
   return cl;
 }
 
@@ -6289,7 +6328,7 @@ XOTclResolveCmd(Tcl_Interp *in, char *name, Tcl_Namespace *contextNsPtr,
   return TCL_CONTINUE;
 }
 static int
-XOTclResolveVar(Tcl_Interp *interp, char *name, Tcl_Namespace *context,
+XOTclResolveVar(Tcl_Interp *in, char *name, Tcl_Namespace *context,
  	        Tcl_ResolvedVarInfo *rPtr) {
   /*fprintf(stderr, "Resolving %s in %s\n", name, context->fullName);*/
 
@@ -7632,7 +7671,7 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
       /*fprintf(stderr, "XOTcl object %s, objc=%d\n", ObjStr(tcd->cmdName),objc);*/
       result = ObjDispatch(cd, in, objc, ov, 0);
     } else {
-      /*fprintf(stderr, "no XOTcl object %s\n", ObjStr(tcd->cmdName));*/
+      /* fprintf(stderr, "no XOTcl object %s\n", ObjStr(tcd->cmdName));*/
       OV[0] = tcd->cmdName;
       result = Tcl_EvalObjv(in, objc, ov, 0);
     }
@@ -8099,7 +8138,7 @@ XOTclOProcSearchMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[])
   methodName = ObjStr(objv[1]);
 
   if (obj->nsPtr)
-    cmd = FindMethod(methodName, Tcl_Namespace_cmdTable(obj->nsPtr));
+    cmd = FindMethod(methodName, obj->nsPtr);
 
   if (!cmd) {
     if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
@@ -8298,6 +8337,52 @@ XOTclCInstDestroyMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST 
   return TCL_OK;
 }
 
+
+static Tcl_Namespace *
+callingNameSpace(Tcl_Interp *in) {
+  Tcl_Namespace *ns = NULL;
+  XOTclCallStack *cs = &RUNTIME_STATE(in)->cs;
+  XOTclCallStackContent *top = cs->top;
+  XOTclCallStackContent *csc = XOTclCallStackFindLastInvocation(in, 0);
+  /*fprintf(stderr," **** use last invocation csc = %p\n",  csc);*/
+  if (csc && csc->currentFramePtr) {
+    /* use the callspace from the last invocation */
+    XOTclCallStackContent *called = csc<top? csc+1 : NULL;
+    Tcl_CallFrame *f = called ? 
+      Tcl_CallFrame_callerPtr(called->currentFramePtr) : NULL;
+    /*fprintf(stderr," ****  csc use frame= %p\n",  f);*/
+    if (f) {
+      ns = f->nsPtr;
+    } else {
+      /* ns = csc->currentFramePtr->nsPtr;*/
+      /*ns = Tcl_GetCurrentNamespace(in);*/
+    }
+  } else {
+    /* transparent calls on xotcl toplevel */
+    XOTclCallStackContent *bot = cs->content + 1;
+    /*fprintf(stderr, " **** bot=%p diff=%d\n",bot, top-bot);*/
+    if (top - bot >= 0 && bot->currentFramePtr) {
+      /* get calling tcl environment */
+      Tcl_CallFrame *f = Tcl_CallFrame_callerPtr(bot->currentFramePtr);
+      if (f) {
+	ns = f->nsPtr;
+	/*fprintf(stderr, "top=%p, bot=%p b->c=%p f=%p ns=%p\n",
+		top,bot,bot->currentFramePtr, f, ns);
+	fprintf(stderr,"ns from calling tcl environment %p '%s'\n", 
+	ns, ns?ns->fullName : "" );*/
+      } else {
+	ns = Tcl_FindNamespace(in, "::", NULL, 0);
+      }
+    } 
+  }
+  /*
+    XOTclCallStackDump(in);
+    XOTclStackDump(in);
+  */
+  return ns;
+}
+
+
 static int
 XOTclCAllocMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
   XOTclClass *cl = XOTclObjectToClass(cd);
@@ -8330,19 +8415,14 @@ XOTclCAllocMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
        * create a new object from scratch
        */
       char *objName = ObjStr(objv[1]);
-      Tcl_Obj *tmpName = NULL; /** GN **/
+      Tcl_Obj *tmpName = NULL;
       
-      if (*objName != ':') {
-	XOTclCallStackContent *csc = XOTclCallStackFindLastInvocation(in, 1);
-	Tcl_Namespace *ns = csc ? csc->currentFramePtr->nsPtr : NULL;
-	/*XOTclCallStackDump(in);*/
-
-	tmpName = NameInNamespaceObj(in,objName,ns);
+      if (!isAbsolutePath(objName)) {
+	tmpName = NameInNamespaceObj(in,objName,callingNameSpace(in));
 	objName = ObjStr(tmpName);
 
-	/*fprintf(stderr," **** name could be '%s' csc = %p\n",  objName, csc);*/
+	/*fprintf(stderr," **** name is '%s'\n",  objName);*/
 	INCR_REF_COUNT(tmpName);
-
       }
       
       if (IsMetaClass(in, cl)) {
@@ -8381,59 +8461,66 @@ XOTclCAllocMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
 }
 
 
-static int
-XOTclCCreateMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
-  XOTclClass *cl = XOTclObjectToClass(cd);
-  XOTclObject *obj = &cl->object;
-  XOTclObject *newobj;
-
+static int 
+createMethod(Tcl_Interp *in, XOTclClass *cl, XOTclObject *obj,  
+	     int objc, Tcl_Obj *objv[]) {
+  XOTclObject *newobj = NULL;
+  Tcl_Obj *nameObj, *tmpObj = NULL;
   int result;
-  unsigned nameLength;
-  char *objName;
-  Tcl_Obj *nameObj;
+  char *objName, *specifiedName;
+  
+  ALLOC_ON_STACK(Tcl_Obj*,objc, tov);
 
-  if (!cl) return XOTclObjErrType(in, objv[0], "Class");
-  if (!obj) return XOTclObjErrType(in, objv[0], "Object");
-  if (objc < 2)
-    return XOTclObjErrArgCnt(in, cl->object.cmdName, "create <obj> ?args?");
-
+  memcpy(tov, objv, sizeof(Tcl_Obj *)*(objc));
+  specifiedName = objName = ObjStr(objv[1]);
   /*
    * Check whether we have to call recreate (i.e. when the
    * object exists already)
    */
-  /* fprintf(stderr,"+++ create objv[1] = %p (%d) %s\n",
-     objv[1],objv[1]->refCount,ObjStr(objv[1])); */
-
-  if (GetXOTclObjectFromObj(in, objv[1], &newobj) == TCL_OK) {
-    /*fprintf(stderr, "+++ recreate, call recreate method ... %s\n", ObjStr(objv[1]));*/
+  if (!isAbsolutePath(objName)) {
+    tmpObj = NameInNamespaceObj(in,objName,callingNameSpace(in));
+    objName = ObjStr(tmpObj);
+    /*fprintf(stderr," **** name is '%s'\n",  objName);*/
+    
+    INCR_REF_COUNT(tmpObj);
+    tov[1] = tmpObj;
+  }
+  newobj = GetObject(in, objName);  
+  
+  /*fprintf(stderr,"+++ create objv[1] '%s', usedName '%s', newObj=%p\n",
+    specifiedName, objName, newobj);*/
+ 
+  if (newobj) {
+    /*fprintf(stderr, "+++ recreate, call recreate method ... %s\n", ObjStr(tov[1]));*/
     /* call recreate --> initialization */
     result = callMethod((ClientData) obj, in,
-                         XOTclGlobalObjects[RECREATE], objc+1, objv+1, 0);
+			XOTclGlobalObjects[RECREATE], objc+1, tov+1, 0);
     if (result != TCL_OK)
-      return result;
-
+      goto create_method_exit;
+    
     Tcl_SetObjResult(in, newobj->cmdName);
     nameObj = newobj->cmdName;
     objTrace("RECREATE", newobj);
-
+    
   } else {
-    objName = Tcl_GetStringFromObj(objv[1],&nameLength);
-    if (!NSCheckColons(objName, nameLength))
-      return XOTclVarErrMsg(in, "Cannot create object -- illegal name '",
-			    objName, "'", (char *)NULL);
-    /*
-     * call "alloc"
-     */
-    /* fprintf(stderr, "alloc ... %s\n", ObjStr(objv[1]));*/
+    
+    if (!NSCheckColons(specifiedName, 0)) {
+      result = XOTclVarErrMsg(in, "Cannot create object -- illegal name '",
+			      specifiedName, "'", (char *)NULL);
+      goto create_method_exit;
+    }
+	
+    /* fprintf(stderr, "alloc ... %s\n", ObjStr(tov[1]));*/
     result = callMethod((ClientData) obj, in,
-                         XOTclGlobalObjects[ALLOC], objc+1, objv+1, 0);
+			XOTclGlobalObjects[ALLOC], objc+1, tov+1, 0);
     if (result != TCL_OK)
-      return result;
-
-    newobj = GetObject(in, objName);
-    if (newobj == 0)
-      return XOTclErrMsg(in, "couldn't find result of alloc", TCL_STATIC);
-    nameObj = newobj->cmdName;
+      goto create_method_exit;
+    
+    nameObj = Tcl_GetObjResult(in);
+    if (GetXOTclObjectFromObj(in, nameObj, &newobj) != TCL_OK) {
+      result = XOTclErrMsg(in, "couldn't find result of alloc", TCL_STATIC);
+      goto create_method_exit;
+    }
 
     (void)RemoveInstance(newobj, newobj->cl);
     AddInstance(newobj, cl);
@@ -8444,9 +8531,26 @@ XOTclCCreateMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
     result = doObjInitialization(in, newobj, objc, objv);
     DECR_REF_COUNT(nameObj);
   }
-  /* fprintf(stderr, "alloc -- end ... %s\n", ObjStr(objv[1]));*/
+ create_method_exit:
 
+  /* fprintf(stderr, "create -- end ... %s\n", ObjStr(tov[1]));*/
+  if (tmpObj)  {DECR_REF_COUNT(tmpObj);}
+  FREE_ON_STACK(tov);
   return result;
+}
+
+
+static int
+XOTclCCreateMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *objv[]) {
+  XOTclClass *cl = XOTclObjectToClass(cd);
+  XOTclObject *obj = &cl->object;
+  
+  if (!cl) return XOTclObjErrType(in, objv[0], "Class");
+  if (!obj) return XOTclObjErrType(in, objv[0], "Object");
+  if (objc < 2)
+    return XOTclObjErrArgCnt(in, cl->object.cmdName, "create <obj> ?args?");
+
+  return createMethod(in, cl, obj, objc, objv);
 }
 
 static char *
@@ -9064,10 +9168,10 @@ XOTclCTclCmdMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST objv
   if (objc < 2)  return XOTclObjErrArgCnt(in, obj->cmdName, "tclcmd name");
 
   name = ObjStr(objv[1]);
-  if (*name != ':') {
-    cmdObj = NameInNamespaceObj(in, name, NULL);
-  } else {
+  if (isAbsolutePath(name)) {
     cmdObj = objv[1];
+  } else {
+    cmdObj = NameInNamespaceObj(in, name, callingNameSpace(in));
   }
   tcd = NEW(tclCmdClientData);
   tcd->obj = obj;
@@ -9154,8 +9258,8 @@ forwardProcessOptions(Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[],
        would lead to a recursive call; so we add the current namespace
     */
     char * name = ObjStr(tcd->cmdName);
-    if (*name != ':') {
-      tcd->cmdName = NameInNamespaceObj(in, name, NULL);
+    if (!isAbsolutePath(name)) {
+      tcd->cmdName = NameInNamespaceObj(in, name, callingNameSpace(in) /* NULL */);
     }
   }
   INCR_REF_COUNT(tcd->cmdName);
@@ -9796,10 +9900,11 @@ XOTclCheckRequiredArgs(ClientData cd, Tcl_Interp *in, int objc,
 int
 XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc, 
 				   Tcl_Obj *CONST objv[]) {
-  Tcl_Obj **npav, **checkv, **checkArgv, **argsv, **nonPosArgsDefv, *invocation[4], 
-    **ordinaryArgsDefv, *list, *checkObj;
+  Tcl_Obj **npav, **checkv, **checkArgv, **argsv, **nonPosArgsDefv, 
+    *invocation[4], **ordinaryArgsDefv, **defaultValueObjv, *list, 
+    *checkObj, *ordinaryArg;
   int npac, checkc, checkArgc, argsc, nonPosArgsDefc, 
-    ordinaryArgsDefc, argsDefined = 0, 
+    ordinaryArgsDefc, defaultValueObjc, argsDefined = 0, 
     ordinaryArgsCounter = 0, i, j, result, ic;
   char* lastDefArg = NULL, *varName, *arg, *argStr;
   int endOfNonPosArgsReached = 0;
@@ -9810,7 +9915,7 @@ XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc,
   Tcl_HashTable* nonPosArgsTable;
   XOTclNonPosArgs* nonPosArgs;
   XOTclObject* selfObj;
-  int r1, r2, r3;
+  int r1, r2, r3, r4;
 
   if (objc != 2)
     return XOTclObjErrArgCnt(in, NULL, 
@@ -9879,10 +9984,10 @@ XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc,
       }
     }
 
-    if (endOfNonPosArgsReached) {
+    if (endOfNonPosArgsReached) {      
       if (ordinaryArgsCounter >= ordinaryArgsDefc) {
 	return XOTclObjErrArgCnt(in, NULL, ObjStr(nonPosArgs->ordinaryArgs));
-      }
+      } 
       arg = ObjStr(ordinaryArgsDefv[ordinaryArgsCounter]);
       /* this is the last arg and 'args' is defined */ 
       if (argsDefined && ordinaryArgsCounter+1 == ordinaryArgsDefc) {
@@ -9893,14 +9998,33 @@ XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc,
 	Tcl_ObjSetVar2(in, ordinaryArgsDefv[ordinaryArgsCounter], 0, list, 0);
 	DECR_REF_COUNT(list);
       } else {
-	Tcl_ObjSetVar2(in, ordinaryArgsDefv[ordinaryArgsCounter], 0, argsv[i], 0);
+	/* break down this argument, if it has a default value,
+	   use only the first part */
+	ordinaryArg = ordinaryArgsDefv[ordinaryArgsCounter];
+        r4 = Tcl_ListObjGetElements(in, ordinaryArg, 
+				    &defaultValueObjc, &defaultValueObjv);
+	if (r4 == TCL_OK && defaultValueObjc == 2) {
+	  ordinaryArg = defaultValueObjv[0];
+	}
+	Tcl_ObjSetVar2(in, ordinaryArg, 0, argsv[i], 0);
       }
       ordinaryArgsCounter++;
     }
   }
   if (!argsDefined) {
     if (ordinaryArgsCounter != ordinaryArgsDefc) {
-      return XOTclObjErrArgCnt(in, NULL, ObjStr(nonPosArgs->ordinaryArgs));
+      /* we do not have  enough arguments, maybe there are default arguments
+	 for the missing args */
+      while (ordinaryArgsCounter != ordinaryArgsDefc) {
+        r4 = Tcl_ListObjGetElements(in, ordinaryArgsDefv[ordinaryArgsCounter], 
+				    &defaultValueObjc, &defaultValueObjv);
+	if (r4 == TCL_OK && defaultValueObjc == 2) {
+	  Tcl_ObjSetVar2(in, defaultValueObjv[0], 0, defaultValueObjv[1], 0);
+	} else {
+	  return XOTclObjErrArgCnt(in, NULL, ObjStr(nonPosArgs->ordinaryArgs));
+	}
+	ordinaryArgsCounter++;
+      }
     }
     Tcl_UnsetVar2(in, "args", 0, 0);
   }
@@ -10703,9 +10827,7 @@ Xotcl_Init(Tcl_Interp *in) {
 
 #ifdef NEVER
 extern int
-Xotcl_SafeInit(interp)
-    Tcl_Interp *interp;
-{
+Xotcl_SafeInit(Tcl_Interp *in) {
   /*** dummy for now **/
   return Xotcl_Init(interp);
 }

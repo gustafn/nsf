@@ -6,7 +6,7 @@
 #
 set XOTCL_MAJOR_VERSION 1
 set XOTCL_MINOR_VERSION 3
-set XOTCL_RELEASE_LEVEL .1
+set XOTCL_RELEASE_LEVEL .3
 
 # example settings: 
 # 1.0
@@ -81,14 +81,14 @@ foreach file [exec find . -name configure.in] {
 
 # determine last configure command
 cd $newtopdirname
-if {[catch {set configurecmd [exec fgrep {$ ./configure} unix/config.log]}]} {
+if {[catch {set configurecmd [exec fgrep {$ ./configure} config.log]}]} {
   set configurecmd "./configure"
 } else {
   regsub {^ +\$ } $configurecmd "" configurecmd
 }
 #puts $configurecmd
 
-cd $newtopdirname/unix
+cd $newtopdirname/
 puts "Configuring in [pwd]"
 eval exec $configurecmd
 
