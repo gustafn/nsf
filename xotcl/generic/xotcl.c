@@ -1,4 +1,4 @@
-/*
+/* $Id: xotcl.c,v 1.2 2004/05/23 22:56:22 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
