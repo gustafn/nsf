@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclTrace.c,v 1.2 2004/06/18 07:15:17 neumann Exp $
+ * $Id: xotclTrace.c,v 1.3 2004/07/23 09:40:16 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -75,7 +75,7 @@ XOTclCallStackDump(Tcl_Interp *in) {
 
     fprintf(stderr, "frameType: %d, ", csc->frameType);
     fprintf(stderr, "next: %d ", csc->callsNext);
-    fprintf(stderr, "cframe %p ", csc->currentFramePtr);
+    fprintf(stderr, "cframe %p (addr=%p) ", csc->currentFramePtr, &(csc->currentFramePtr));
 
     if (csc->currentFramePtr) 
       fprintf(stderr,"l=%d ",Tcl_CallFrame_level(csc->currentFramePtr));
