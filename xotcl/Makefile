@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.30 2005/01/07 02:40:58 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.31 2005/01/07 03:33:41 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
