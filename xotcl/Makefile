@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.33 2005/01/10 11:57:35 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.34 2005/01/14 23:45:22 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -213,7 +213,7 @@ all: binaries libraries doc
 # of the Makefile, in the "BINARIES" variable.
 #========================================================================
 
-binaries: $(BINARIES)   pkgIndex.tcl
+binaries: $(BINARIES) xotclsh  pkgIndex.tcl
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
@@ -487,7 +487,7 @@ checkstubs:
 #========================================================================
 
 clean:  
-	-rm -rf $(BINARIES) $(CLEANFILES)   pkgIndex.tcl ./receiver \
+	-rm -rf $(BINARIES) $(CLEANFILES) xotclsh  pkgIndex.tcl ./receiver \
 		$(target_doc_dir)/*-xotcl.html
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
