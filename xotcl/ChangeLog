@@ -1,9 +1,13 @@
+2004-06-18 Gustaf.Neumann@wu-wien.ac.at
+        * added *.a to CLEANFILES in configure.in to rm stublibfile
+          on a "make clean"
+
 2004-06-13 jim@jam.sessionsnet.org
         * fixed make distclean target
           factored list of configure output files into macro made sure
           value of output files got through to make distclean target
 
-2004-06-12 Gustaf.Neumann@wu-wien.ac.at
+2004-06-12 
         * changed namespace treatment in procs/instprocs
           in provious versions, methods were evaluated in the
           namespace where they are invoked. This has the problem that

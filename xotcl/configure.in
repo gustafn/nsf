@@ -233,7 +233,7 @@ if test "${TEA_PLATFORM}" = "windows" ; then
 	#TEA_ADD_SOURCES([win/winFile.c])
 	#TEA_ADD_INCLUDES([-I\"$(${CYGPATH} ${srcdir}/w
 else
-	CLEANFILES="*.o *.so *~ core gmon.out config.*"
+	CLEANFILES="*.o *.a *.so *~ core gmon.out config.*"
 	#TEA_ADD_SOURCES([unix/unixFile.c])
 	#TEA_ADD_LIBS([-lsuperfly])
 fi
