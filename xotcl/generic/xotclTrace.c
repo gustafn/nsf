@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclTrace.c,v 1.1 2004/05/23 22:50:39 neumann Exp $
+ * $Id: xotclTrace.c,v 1.2 2004/06/18 07:15:17 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -16,7 +16,7 @@
 #include "xotclAccessInt.h"
 
 void
-XOTclStackTrace(Tcl_Interp *in) {
+XOTclStackDump(Tcl_Interp *in) {
   Interp *iPtr = (Interp *) in;
   CallFrame *f = iPtr->framePtr, *v = iPtr->varFramePtr;
   Tcl_Obj *varCmdObj;
@@ -30,7 +30,7 @@ XOTclStackTrace(Tcl_Interp *in) {
     if (f && f->isProcCallFrame && f->procPtr && f->procPtr->cmdPtr) {
       Tcl_GetCommandFullName(in, (Tcl_Command)  f->procPtr->cmdPtr, cmdObj);
       if (cmdObj) {
-	fprintf(stderr, " %s (%d)", ObjStr(cmdObj), f->level);
+	fprintf(stderr, " %s (%p) lvl=%d", ObjStr(cmdObj), f->procPtr->cmdPtr, f->level);
       }
       DECR_REF_COUNT(cmdObj);
     } else fprintf(stderr, "- ");
@@ -50,7 +50,7 @@ XOTclStackTrace(Tcl_Interp *in) {
 }
 
 void
-XOTclCallStackTrace(Tcl_Interp *in) {
+XOTclCallStackDump(Tcl_Interp *in) {
   XOTclCallStack *cs = &RUNTIME_STATE(in)->cs;
   XOTclCallStackContent *csc;
   int i=1, entries = cs->top - cs->content;
@@ -68,7 +68,8 @@ XOTclCallStackTrace(Tcl_Interp *in) {
     /*fprintf(stderr, " cmd %p, obj %p, ",csc->cmdPtr, csc->self);*/
 
     if (csc->cmdPtr && !csc->destroyedCmd)
-      fprintf(stderr, "%s, ", Tcl_GetCommandName(in, (Tcl_Command)csc->cmdPtr));
+      fprintf(stderr, "%s (%p), ", Tcl_GetCommandName(in, (Tcl_Command)csc->cmdPtr),
+	      csc->cmdPtr);
     else 
       fprintf(stderr, "NULL, ");
 
@@ -133,11 +134,11 @@ XOTcl_TraceObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]
 
   option = ObjStr(objv[1]);
   if (strcmp(option,"stack") == 0) {
-    XOTclStackTrace(in);
+    XOTclStackDump(in);
     return TCL_OK;
   }
   if (strcmp(option,"callstack") == 0) {
-    XOTclCallStackTrace(in);
+    XOTclCallStackDump(in);
     return TCL_OK;
   }
   return XOTclVarErrMsg(in, "xotcltrace: unknown option", (char*) NULL);

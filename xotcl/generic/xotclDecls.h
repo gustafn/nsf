@@ -115,9 +115,9 @@ EXTERN int		XOTclErrBadVal _ANSI_ARGS_((Tcl_Interp * in,
 EXTERN int		XOTclObjErrType _ANSI_ARGS_((Tcl_Interp * in, 
 				Tcl_Obj * nm, char* wt));
 /* 29 */
-EXTERN void		XOTclStackTrace _ANSI_ARGS_((Tcl_Interp* in));
+EXTERN void		XOTclStackDump _ANSI_ARGS_((Tcl_Interp* in));
 /* 30 */
-EXTERN void		XOTclCallStackTrace _ANSI_ARGS_((Tcl_Interp* in));
+EXTERN void		XOTclCallStackDump _ANSI_ARGS_((Tcl_Interp* in));
 /* 31 */
 EXTERN void		XOTclDeprecatedMsg _ANSI_ARGS_((char* oldCmd, 
 				char* newCmd));
@@ -172,8 +172,8 @@ typedef struct XotclStubs {
     int (*xOTclObjErrArgCnt) _ANSI_ARGS_((Tcl_Interp * in, Tcl_Obj * cmdname, char * arglist)); /* 26 */
     int (*xOTclErrBadVal) _ANSI_ARGS_((Tcl_Interp * in, char * expected, char * value)); /* 27 */
     int (*xOTclObjErrType) _ANSI_ARGS_((Tcl_Interp * in, Tcl_Obj * nm, char* wt)); /* 28 */
-    void (*xOTclStackTrace) _ANSI_ARGS_((Tcl_Interp* in)); /* 29 */
-    void (*xOTclCallStackTrace) _ANSI_ARGS_((Tcl_Interp* in)); /* 30 */
+    void (*xOTclStackDump) _ANSI_ARGS_((Tcl_Interp* in)); /* 29 */
+    void (*xOTclCallStackDump) _ANSI_ARGS_((Tcl_Interp* in)); /* 30 */
     void (*xOTclDeprecatedMsg) _ANSI_ARGS_((char* oldCmd, char* newCmd)); /* 31 */
     void (*xOTclSetObjClientData) _ANSI_ARGS_((XOTcl_Object* obj, ClientData data)); /* 32 */
     ClientData (*xOTclGetObjClientData) _ANSI_ARGS_((XOTcl_Object* obj)); /* 33 */
@@ -300,13 +300,13 @@ extern XotclStubs *xotclStubsPtr;
 #define XOTclObjErrType \
 	(xotclStubsPtr->xOTclObjErrType) /* 28 */
 #endif
-#ifndef XOTclStackTrace
-#define XOTclStackTrace \
-	(xotclStubsPtr->xOTclStackTrace) /* 29 */
+#ifndef XOTclStackDump
+#define XOTclStackDump \
+	(xotclStubsPtr->xOTclStackDump) /* 29 */
 #endif
-#ifndef XOTclCallStackTrace
-#define XOTclCallStackTrace \
-	(xotclStubsPtr->xOTclCallStackTrace) /* 30 */
+#ifndef XOTclCallStackDump
+#define XOTclCallStackDump \
+	(xotclStubsPtr->xOTclCallStackDump) /* 30 */
 #endif
 #ifndef XOTclDeprecatedMsg
 #define XOTclDeprecatedMsg \

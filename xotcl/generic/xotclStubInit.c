@@ -65,8 +65,8 @@ XotclStubs xotclStubs = {
     XOTclObjErrArgCnt, /* 26 */
     XOTclErrBadVal, /* 27 */
     XOTclObjErrType, /* 28 */
-    XOTclStackTrace, /* 29 */
-    XOTclCallStackTrace, /* 30 */
+    XOTclStackDump, /* 29 */
+    XOTclCallStackDump, /* 30 */
     XOTclDeprecatedMsg, /* 31 */
     XOTclSetObjClientData, /* 32 */
     XOTclGetObjClientData, /* 33 */

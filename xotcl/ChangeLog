@@ -1,3 +1,41 @@
+2004-06-12 Gustaf.Neumann@wu-wien.ac.at
+	* changed namespace treatment in procs/instprocs
+          in provious versions, methods were evaluated in the namespace
+          where they are invoked. This has the problem that either
+          the xotcl primitives (next,my,self) have to be prefixed 
+          in methods by ::xotcl::, or ::xotcl::* has to be imported
+          globally. Now, the instprocs are evaluated in the
+          namespace where they are defined.
+        * computing default prefixes in insttclcmd/tcllcmd for 
+          not fully qualified commands
+
+2004-05-29 Gustaf.Neumann@wu-wien.ac.at
+        * first version of instdelegatecommand
+             Object instdelegatecmd <methodname> <commandname> \
+                   ?-defaultmethod subcommand? \
+                   ?-methodprefix string? \
+                   ?-insert tokens?
+          where 
+            methodname: name of an instcommand for a class to be registered,
+	    commandname: command that recieves delegation
+            defaultmethod: when number of arguments is low, allows for method to
+               be inserted (e.g. result of [$obj info], which can be mapped to
+               ::xotcl::info info)
+            methodprefix: prefix, to be added in front of subcommand to avoid
+               name clashes with "set", etc.
+            insert: tokens to be inserted.
+            A call to a delegated method 
+               X method subcmd arg1 arg2...
+            can be mapped to
+               COMMANDNAME subcmd [self] INSERTTOKENS arg1 arg2...
+
+         * defined metaclass ::xotcl:.SelfApplicableClass to allow for 
+           instprocs of this class to be applicable for itself (useful for
+           delegation objects)
+
+         * first version of ::xotcl::relations (for relations between objects and
+           classes and for inter-class-relations)
+
 2004-05-22 Gustaf.Neumann@wu-wien.ac.at
         * fixed path for installing files in Makefile.in (many thanks to Jeffrey Hobbs)
         * fixed path searching in xotcl.m4
