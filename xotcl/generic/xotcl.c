@@ -1,5 +1,5 @@
 #define NAMESPACEINSTPROCS 1
-/* $Id: xotcl.c,v 1.6 2004/06/20 22:54:13 neumann Exp $
+/* $Id: xotcl.c,v 1.7 2004/06/25 07:36:46 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -3952,27 +3952,31 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[], int f
     filterStackPushed = 0,
     frameType = XOTCL_CSC_TYPE_PLAIN;
 #ifdef OBJDELETION_TRACE
-  Tcl_Obj *method = objv[1];
+  Tcl_Obj *method;
 #endif
-  char *methodName = ObjStr(objv[1]),
-    *callMethod = methodName;
+  char *methodName, *callMethod;
   XOTclClass *cl = 0;
   ClientData cp = 0;
   Tcl_ObjCmdProc *proc = 0;
   Tcl_Command cmd = 0;
   Tcl_Obj *cmdName = obj->cmdName;
   XOTclCallStack *cs = &RUNTIME_STATE(in)->cs;
-
-
 #ifdef AUTOVARS
-  int isNext = isNextString(methodName);
+  int isNext;
 #endif
 
+  assert(objc>0);
+  methodName = callMethod = ObjStr(objv[1]);
+
+#ifdef AUTOVARS
+  isNext = isNextString(methodName);
+#endif
 #ifdef DISPATCH_TRACE
   printCall(in,"DISPATCH", objc,objv);
 #endif
 
 #ifdef OBJDELETION_TRACE
+  method = objv[1];
   if (method == XOTclGlobalObjects[CLEANUP] ||
       method == XOTclGlobalObjects[DESTROY]) {
     fprintf(stderr, "%s->%s id=%p destroyCalled=%d\n",
@@ -7054,7 +7058,8 @@ XOTclDelegateMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST obj
     }
 
     if (GetXOTclObjectFromObj(in, tcd->cmdName, (void*)&cd) == TCL_OK) {
-      result = DoDispatch(cd, in, objc, ov, 0);
+      /*fprintf(stderr, "XOTcl object %s, objc=%d\n", ObjStr(tcd->cmdName),objc);*/
+      result = ObjDispatch(cd, in, objc, ov, 0);
     } else {
       /*fprintf(stderr, "no XOTcl object %s\n", ObjStr(tcd->cmdName));*/
       OV[0] = tcd->cmdName;
