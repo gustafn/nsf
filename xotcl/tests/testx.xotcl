@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.15 2004/08/17 10:12:55 neumann Exp $
+#$Id: testx.xotcl,v 1.16 2004/08/22 09:30:46 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -3391,17 +3391,20 @@ nonposargs proc run {{n 20}} {
 	return "$b $arg"
     }
     Object colorchecker
-    colorchecker proc color {a b c argName args} {
-	lappend ::r "$a $b $c"
+    colorchecker proc color {var value} {
+	lappend ::r "color <$var> <$value>"
     }
-    colorchecker proc reddish {argName args} {
-	lappend ::r "reddish"
+    colorchecker proc reddish {var value} {
+	lappend ::r "reddish <$var> <$value>"
     }
     
-    o proc z4 {{{-b:checkobj colorchecker ,  color must be red, reddish,  checkobj xotcl::nonPosArgs , required} red} {{-c: required}}} {arg} {
+    o proc z4 {{{-b: required, checkobj colorchecker,color, reddish,
+      		checkobj xotcl::nonPosArgs,required} red} 
+	       {{-c: required }}} {arg} {
 	lappend ::r "$b $arg"
 	return "$b $arg"
     }
+
     Class P
     P instproc x {a b} {
 	return "$a $b"
@@ -3452,13 +3455,13 @@ nonposargs proc run {{n 20}} {
 
     set ::r ""    
     o z4 -c 1 1
-    errorCheck $::r [list {must be red} reddish {red 1}] \
+    errorCheck $::r "{color <b> <red>} {reddish <b> <red>} {red 1}" \
 	"multiple check options + checkobject"
 
     errorCheck [o info body z2] {return "$x -- $args -- $a -- $b"} "info body 1"
     errorCheck [P info instbody z2] {return "$x -- $args -- $a -- $b"} "info instbody z2"
     errorCheck [o info args z4] {arg} "info args"
-    errorCheck [o info nonposargs z4] {{{-b:checkobj colorchecker ,  color must be red, reddish,  checkobj xotcl::nonPosArgs , required} red} {{-c: required}}} "info nonposargs 1"
+    errorCheck [o info nonposargs z4] "{{-b:required,checkobj colorchecker,color,reddish,checkobj xotcl::nonPosArgs,required} red} -c:required"  "info nonposargs 1"
     errorCheck [o info nonposargs x] {} "info nonposargs 2"
     errorCheck [P info instargs z3] {a b c} "info instargs"
     errorCheck [P info instnonposargs z3] {-x:required {-a 1} {-b {1 2}}} "info instnonposargs 1"

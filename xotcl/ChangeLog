@@ -1,5 +1,9 @@
+2004-08-22 Gustaf.Neumann@wu-wien.ac.at
+        * fixed nonposargs, when used with checker procs and spaces in arguments
+        * auto-generating docs in build tree (instead in source tree)
+
 2004-08-19 Gustaf.Neumann@wu-wien.ac.at
-        * if configure is run autside the src tree the directory
+        * if configure is run outside the src tree the directory
           structure is now built on the fly. All binary output files
           are now placed in the built-tree. 
           

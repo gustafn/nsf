@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.22 2004/08/17 10:12:55 neumann Exp $
+/* $Id: xotcl.c,v 1.23 2004/08/22 09:30:45 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *
@@ -4407,8 +4407,7 @@ MakeProc(Tcl_Namespace* ns, XOTclAssertionStore* aStore,
 	  DECR_REF_COUNT(npaObj);
 	  DECR_REF_COUNT(nonPosArgsObj);
 	  return XOTclVarErrMsg(in, "non-positional args does not start with '-': ", 
-				arg, " in: ", 
-				ObjStr(objv[2]), (char *)NULL);
+				arg, " in: ", ObjStr(objv[2]), (char *)NULL);
 	}
 	
 	length = strlen(arg);
@@ -4416,18 +4415,23 @@ MakeProc(Tcl_Namespace* ns, XOTclAssertionStore* aStore,
 	  if (arg[j] == ':') break;
 	}
 	if (arg[j] == ':') {
+	  int end;
 	  Tcl_ListObjAppendElement(in, npaObj, Tcl_NewStringObj(arg+1, j-1));
 	  list = Tcl_NewListObj(0, NULL);
 	  start = j+1;
+	  while(start<length && isspace(arg[start])) start++;
 	  for (l=start; l<length;l++) {
 	    if (arg[l] == ',') {
-	      Tcl_ListObjAppendElement(in, list, Tcl_NewStringObj(arg+start, l - start));
+	      for (end = l;end>0 && isspace(arg[end-1]); end--);
+	      Tcl_ListObjAppendElement(in, list, Tcl_NewStringObj(arg+start, end-start));
 	      l++;
 	      start = l;
+	      while(start<length && isspace(arg[start])) start++;
 	    } 
 	  }
 	  /* append last arg */
-	  Tcl_ListObjAppendElement(in, list, Tcl_NewStringObj(arg+start, l - start)); 
+	  for (end = l;end>0 && isspace(arg[end-1]); end--);
+	  Tcl_ListObjAppendElement(in, list, Tcl_NewStringObj(arg+start, end-start)); 
 	  /* append the whole thing to the list */
 	  Tcl_ListObjAppendElement(in, npaObj, list);
      	} else {
@@ -9815,8 +9819,7 @@ XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc,
   } else if ((selfObj = GetSelfObj(in))) {
     nonPosArgsTable = selfObj->nonPosArgsTable;
   } else {
-    return XOTclVarErrMsg(in, 
-			  "Non positional args: can't find self/self class",
+    return XOTclVarErrMsg(in, "Non positional args: can't find self/self class",
 			  NULL);
   }
 
@@ -9841,8 +9844,7 @@ XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc,
   }
 
   for (i=0; i < nonPosArgsDefc; i++) {
-     r1 = Tcl_ListObjGetElements(in, nonPosArgsDefv[i], 
-				 &npac, &npav);
+     r1 = Tcl_ListObjGetElements(in, nonPosArgsDefv[i], &npac, &npav);
      if (r1 == TCL_OK &&  npac == 3) {
        Tcl_ObjSetVar2(in, npav[0], 0, npav[2], 0);
      }
@@ -9902,8 +9904,7 @@ XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc,
   }
 
   for (i=0; i < nonPosArgsDefc; i++) {
-     r1 = Tcl_ListObjGetElements(in, nonPosArgsDefv[i], 
-				 &npac, &npav);
+     r1 = Tcl_ListObjGetElements(in, nonPosArgsDefv[i], &npac, &npav);
      if (r1 == TCL_OK &&  npac > 1 && *(ObjStr(npav[1])) != '\0') {
        r1 = Tcl_ListObjGetElements(in, npav[1], &checkc, &checkv);
        if (r1 == TCL_OK) {
@@ -9925,8 +9926,12 @@ XOTclInterpretNonPositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc,
 	     invocation[3] = Tcl_ObjGetVar2(in, npav[0], 0, 0);
 	     ic = 4;
 	   }
+	   result = Tcl_EvalObjv(in, ic, invocation, 0);
+	   /*
 	   objPtr = Tcl_ConcatObj(ic, invocation);
+	   fprintf(stderr,"eval on <%s>\n",ObjStr(objPtr));
 	   result = Tcl_EvalObjEx(in, objPtr, TCL_EVAL_DIRECT);
+	   */
 	   if (result != TCL_OK) {
 	     return result;
 	   }

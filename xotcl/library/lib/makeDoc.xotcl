@@ -1,4 +1,4 @@
-#$Id: makeDoc.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+#$Id: makeDoc.xotcl,v 1.2 2004/08/22 09:30:46 neumann Exp $
 package require XOTcl
 namespace import ::xotcl::*
 @ @File {
@@ -20,6 +20,9 @@ puts "------------------------"
 if {$argc > 1} {
   set DOCDIR [lindex $argv 0]
   puts "Documenting to directory $DOCDIR:"
+  if {![file isdirectory $DOCDIR]} {
+    file mkdir $DOCDIR
+  }
   if {$::tcl_platform(platform) == "windows"} {
     set files ""
     foreach f [lrange $argv 1 end] {

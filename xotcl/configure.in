@@ -72,15 +72,12 @@ if test "$with_actiweb" = yes; then
    test_actiweb="test-actiweb"
    libdirs_actiweb="actiweb rdf registry store xml patterns"
    apps_actiweb="actiweb persistence"
-   mkdir -p library/store/XOTclSdbm
    subdirs="$subdirs library/store/XOTclSdbm/"
 dnl    AC_CONFIG_SUBDIRS(library/store/XOTclSdbm/)
    if ! test "$with_gdbm" = no; then
-       mkdir -p library/store/XOTclGdbm
        subdirs="$subdirs library/store/XOTclGdbm/"
 dnl       AC_CONFIG_SUBDIRS(library/store/XOTclGdbm/)
    fi
-   mkdir -p library/xml/TclExpat-1.1/
    subdirs="$subdirs library/xml/TclExpat-1.1/"
 dnl    AC_CONFIG_SUBDIRS(library/xml/TclExpat-1.1/)
 else
@@ -434,10 +431,11 @@ here=${PWD}
 
 for subdir in ${subdirs}
 do
-	echo "======================= configure $subdir ======================"
+	echo "==================== configure $subdir ====================="
 	if test x"${srcdir}" == x. ; then
 		confdir=.
 	else
+   		mkdir -p $subdir
 		confdir=${srcdir}/$subdir
 	fi
     (cd $subdir; eval $SHELL ${confdir}/configure ${ac_configure_args} --with-xotcl=${here})
