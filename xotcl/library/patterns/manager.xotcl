@@ -1,31 +1,40 @@
-# $Id: manager.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: manager.xotcl,v 1.2 2005/09/09 21:07:23 neumann Exp $
+
 package provide xotcl::pattern::manager 0.8
+package require XOTcl
 
-#
-# a simle manager pattern following buschmann (164) 
-# based on dynamic object aggregation and using dynamic code
-# for supplier creation (instead of loading)
-#
-# it shares the suppliers !
-#
+namespace eval ::xotcl::pattern::manager {
+    namespace import ::xotcl::*
 
-#
-# abstract supplier, init starts dynamic code creation
-#
-Class Supplier
-Supplier abstract instproc init args
-Supplier abstract instproc m args
+    #
+    # a simle manager pattern following buschmann (164) 
+    # based on dynamic object aggregation and using dynamic code
+    # for supplier creation (instead of loading)
+    #
+    # it shares the suppliers !
+    #
+
+    #
+    # abstract supplier, init starts dynamic code creation
+    #
+    Class Supplier
+    Supplier abstract instproc init args
+    Supplier abstract instproc m args
 
 
-Class Manager -parameter {
-  {supplierClass Supplier}
-} 
+    Class Manager -parameter {
+	{supplierClass Supplier}
+    } 
 
-Manager instproc getSupplier {name} {
-  if {[my info children [namespace tail $name]] != ""} {
-    return [self]::[namespace tail $name]
-  } else {
-    return [my [my supplierClass] [namespace tail $name]]
-  }
+    Manager instproc getSupplier {name} {
+	if {[my info children [namespace tail $name]] != ""} {
+	    return [self]::[namespace tail $name]
+	} else {
+	    return [my [my supplierClass] [namespace tail $name]]
+	}
+    }
+
+    namespace export Supplier Manager
 }
 
+namespace import ::xotcl::pattern::manager::*

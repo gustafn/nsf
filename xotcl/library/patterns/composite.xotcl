@@ -1,54 +1,62 @@
-# $Id: composite.xotcl,v 1.2 2004/07/03 21:19:39 neumann Exp $
+# $Id: composite.xotcl,v 1.3 2005/09/09 21:07:23 neumann Exp $
+
 package provide xotcl::pattern::composite  0.9
+package require XOTcl
 
-Class Composite -superclass Class
+namespace eval ::xotcl::pattern::composite {
+    namespace import ::xotcl::*
 
-@ @File {
-  description {
-    Simple composite pattern meta-class taken from the paper 
-    'Filters as a Language Support for Design Patterns in
-    Object-Oriented Scripting Languages'. 
-  }
-}
+    Class Composite -superclass Class
 
-Composite instproc addOperations args {
-    foreach op $args {
-	if {![my exists operations($op)]} {
-	    my set operations($op) $op
+    @ @File {
+	description {
+	    Simple composite pattern meta-class taken from the paper 
+	    'Filters as a Language Support for Design Patterns in
+	    Object-Oriented Scripting Languages'. 
 	}
     }
-} 
 
-Composite instproc removeOperations args {
-    foreach op $args {
-	if {![my exists operations($op)]} {
-	    my unset operations($op)
+    Composite instproc addOperations args {
+	foreach op $args {
+	    if {![my exists operations($op)]} {
+		my set operations($op) $op
+	    }
+	}
+    } 
+
+    Composite instproc removeOperations args {
+	foreach op $args {
+	    if {![my exists operations($op)]} {
+		my unset operations($op)
+	    }
 	}
     }
-}
 
-Composite instproc compositeFilter args {
-  # get the operations class variable from the object's class
-  set registrationclass [lindex [self filterreg] 0]
-  $registrationclass instvar operations
-  # get the request
-  set r [self calledproc]
+    Composite instproc compositeFilter args {
+	# get the operations class variable from the object's class
+	set registrationclass [lindex [self filterreg] 0]
+	$registrationclass instvar operations
+	# get the request
+	set r [self calledproc]
 
-  # check if the request is a registered operation 
-  if {[info exists operations($r)]} {
-    foreach object [my info children] {
-      # forward request
-      eval $object $r $args
+	# check if the request is a registered operation 
+	if {[info exists operations($r)]} {
+	    foreach object [my info children] {
+		# forward request
+		eval $object $r $args
+	    }
+	}
+	return [next]    
     }
-  }
-  return [next]    
+
+
+    Composite instproc init {args} {
+	my array set operations {}
+	next
+	my instfilter add compositeFilter 
+    }
+
+    namespace export Composite
 }
 
-
-Composite instproc init {args} {
-  my array set operations {}
-  next
-  my instfilter add compositeFilter 
-}
-
-
+namespace import ::xotcl::pattern::composite::*

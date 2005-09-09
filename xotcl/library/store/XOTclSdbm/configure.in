@@ -3,7 +3,7 @@ dnl	This file is an input file used by the GNU "autoconf" program to
 dnl	generate the file "configure", which is run during Tcl installation
 dnl	to configure the system for the local environment.
 #
-# RCS: @(#) $Id: configure.in,v 1.7 2005/01/06 03:10:05 neumann Exp $
+# RCS: @(#) $Id: configure.in,v 1.8 2005/09/09 21:07:23 neumann Exp $
 
 #-----------------------------------------------------------------------
 # Sample configure.in for Tcl Extensions.  The only places you should
@@ -92,8 +92,8 @@ source ${with_xotcl}/xotclConfig.sh
 
 TEA_ADD_SOURCES([hash.c pair.c sdbm.c xotclsdbm.c])
 TEA_ADD_HEADERS([])
-TEA_ADD_INCLUDES([${XOTCL_BUILD_INCLUDE_SPEC}])
-TEA_ADD_LIBS([$XOTCL_BUILD_STUB_LIB_SPEC])
+TEA_ADD_INCLUDES([-I${with_xotcl}/generic ${XOTCL_BUILD_INCLUDE_SPEC}])
+TEA_ADD_LIBS([$XOTCL_BUILD_STUB_LIB_SPEC $XOTCL_BUILD_LIB_SPEC])
 TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([])
 TEA_ADD_TCL_SOURCES([])
@@ -204,6 +204,8 @@ TEA_PROG_TCLSH
 #--------------------------------------------------------------------
 
 AC_OUTPUT([Makefile])
+
+
 
 
 

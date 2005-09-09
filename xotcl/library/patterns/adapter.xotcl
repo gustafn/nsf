@@ -1,33 +1,44 @@
-# $Id: adapter.xotcl,v 1.2 2004/07/03 21:19:39 neumann Exp $
+# $Id: adapter.xotcl,v 1.3 2005/09/09 21:07:23 neumann Exp $
+
 package provide xotcl::pattern::adapter 0.9
 
-Class Adapter -superclass Class  
+package require XOTcl
 
-@ @File {
-  description {
-    Simple adapter pattern meta-class taken from the paper 
-    'Filters as a Language Support for Design Patterns in
-    Object-Oriented Scripting Languages'. 
-  }
+namespace eval ::xotcl::pattern::adapter {
+    namespace import ::xotcl::*
+
+    Class Adapter -superclass Class  
+
+    @ @File {
+	description {
+	    Simple adapter pattern meta-class taken from the paper 
+	    'Filters as a Language Support for Design Patterns in
+	    Object-Oriented Scripting Languages'. 
+	}
+    }
+
+    Adapter instproc adapterFilter args { 
+	set r [self calledproc]
+	my instvar specificRequest adaptee \
+	    [list specificRequest($r) sr]
+	if {[info exists sr]} {
+	    return [eval $adaptee $sr $args]
+	}
+	next
+    }
+
+    Adapter instproc init args {
+	my instfilter add adapterFilter
+	next
+	my instproc setRequest {r sr} {
+	    my set specificRequest($r) $sr
+	}
+	my instproc setAdaptee {a} {
+	    my set adaptee $a
+	}
+    }
+
+    namespace export Adapter
 }
 
-Adapter instproc adapterFilter args { 
-    set r [self calledproc]
-    my instvar specificRequest adaptee \
-	[list specificRequest($r) sr]
-    if {[info exists sr]} {
-	return [eval $adaptee $sr $args]
-    }
-    next
-}
-
-Adapter instproc init args {
-    my instfilter add adapterFilter
-    next
-    my instproc setRequest {r sr} {
-	my set specificRequest($r) $sr
-    }
-    my instproc setAdaptee {a} {
-	my set adaptee $a
-    }
-}
+namespace import ::xotcl::pattern::adapter::*

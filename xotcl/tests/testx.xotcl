@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.24 2005/01/10 11:57:35 neumann Exp $
+#$Id: testx.xotcl,v 1.25 2005/09/09 21:07:23 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -23,7 +23,10 @@ proc ::cutSpaces {string} {
   return $result
 }
 
-Class TestX
+
+Class TestX \
+    -instmixin [Class TestXM -instproc run args {next; puts "[self] PASSED"}]
+
 @ @File {description {
   This is a file which provides a regression test
   for the features of the XOTcl - Language. 
@@ -31,11 +34,10 @@ Class TestX
 }
 @ Class TestX
 
-TestX nestingClasses
 @ TestX nestingClasses {
     description {Regression test object testing the class nesting feature.}
 }
-nestingClasses proc run {{n 20}} {
+TestX nestingClasses -proc run {{n 20}} {
   for {set i 0} {$i < $n} {incr i} {
     Class x($i)
 
@@ -82,15 +84,12 @@ nestingClasses proc run {{n 20}} {
       "[self] -- renaming root "
     rx destroy
   }
-  return "PASSED [self]" 
 }
 
-TestX nestingObjects
 @ TestX nestingObjects {
-    description {Regression test object testing the object nesting feature.}
+  description {Regression test object testing the object nesting feature.}
 }
-
-nestingObjects proc run {{n 20}} {
+TestX nestingObjects -proc run {{n 20}} {
   for {set i 0} {$i < $n} {incr i} {
     Class C($i)
     
@@ -141,15 +140,12 @@ nestingObjects proc run {{n 20}} {
     ::errorCheck [::a::n set var] "1 2 3" \
       "[self] -- arg passing - init dash"  
   }
-  return "PASSED [self]"
 }
 
-TestX assertions
 @ TestX assertions {
   description {Regression test object testing the assertions.}
   }
-
-assertions proc run {{n 20}} {
+TestX assertions -proc run {{n 20}} {
   for {set i 0} {$i < $n} {incr i} {
     Class C($i)
     C($i) invar {
@@ -286,15 +282,12 @@ assertions proc run {{n 20}} {
   }
   ::errorCheck $err {Assertion failed check: {$y == 1} in proc 'yTo2'} \
     "[self] inheritance b yTo2"
-
-  return "PASSED [self]"
 }
 
-TestX filterAddRemove
 @ TestX filterAddRemove {
   description {Regression test object testing adding/removing of filters.}
 }
-filterAddRemove proc run {{n 20}} {
+TestX filterAddRemove -proc run {{n 20}} {
   set ::filterCount 0
   for {set i 0} {$i < $n} {incr i} {
     Class SA($i)
@@ -465,16 +458,12 @@ filterAddRemove proc run {{n 20}} {
 
     ::errorCheck $::r "::C-f2 ::A-f2" \
       "filter method addition" 
-
-  return "PASSED [self]"	
 }
 
-TestX filterClassChange 
 @ TestX filterClassChange {
     description {Regression test object testing class changes of filters.}
 }
-
-filterClassChange proc run {{n 20}} {
+TestX filterClassChange -proc run {{n 20}} {
     for {set i 0} {$i < $n} {incr i} {
 	Class A($i)
 	Class B
@@ -531,15 +520,12 @@ filterClassChange proc run {{n 20}} {
     }
     B destroy
     for {set i 0} {$i < $n} {incr i} {A($i) destroy}
-    return "PASSED [self]"
 }
 
-TestX filterGuards 
 @ TestX filterGuards {
     description {Regression test object testing filter guards.}
 }
-
-filterGuards proc run {{n 20}} {
+TestX filterGuards -proc run {{n 20}} {
     global filterResult
 
     for {set i 0} {$i < $n} {incr i} {
@@ -742,15 +728,13 @@ filterGuards proc run {{n 20}} {
 	::errorCheck $::r "loggingFilter-open open x" \
 	  {[self] -- info guarded scope}
     }
-    return "PASSED [self]"
 }
 
-TestX mixinGuards
+
 @ TestX mixinGuards {
     description {Regression test object testing mixin guards.}
 }
-
-mixinGuards proc run {{n 20}} {
+TestX mixinGuards -proc run {{n 20}} {
     set ::r ""
     Class Fly
     Fly instproc fly {} {lappend ::r  "[my signature]: yippee, fly like an eagle!"}
@@ -907,15 +891,13 @@ mixinGuards proc run {{n 20}} {
     ::errorCheck [set info] [list {[my age] > 4} {} {[my age] > 3}  \
 				 {[my age] > 4} {} ] {info (inst)mixinguard}
 
-    return "PASSED [self]"
 }
 
-TestX filterSimpleObserver
 @ TestX filterSimpleObserver {
-    description {Regression test object testing a simple observer using filters.}
+  description {Regression test object testing a simple observer using filters.
+  }
 }
-
-filterSimpleObserver proc run {{n 20}} {
+TestX filterSimpleObserver -proc run {{n 20}} {
     set ::filterCount 0
     for {set i 0} {$i < $n} {incr i} {
 	Class NetAccess$i
@@ -1015,21 +997,17 @@ filterSimpleObserver proc run {{n 20}} {
 
     ::errorCheck  $::filterCount 220 \
 	"[self] -- Simple Observer - Filter Count" 
-    
-    return "PASSED [self]"   
 }
 
 
 
-TestX stdargs
 @ TestX stdargs {
-    description {
-	Regression test object testing the ability of the next primitive to pass
-	arguments without naming them.
-    }
+  description {
+    Regression test object testing the ability of the next primitive to pass
+    arguments without naming them.
+  }
 }
-
-stdargs proc run {{n 20}} {
+TestX stdargs -proc run {{n 20}} {
   for {set i 0} {$i < $n} {incr i} {
     Class C
     Class D
@@ -1067,19 +1045,18 @@ stdargs proc run {{n 20}} {
     x t 1 2 3 4 5 6 7 8 9
   }
   foreach o {x A B C D} {$o destroy}
-  return "PASSED [self]"
+
 }
 
 
+@ TestX filterInfo {
+  description{
+    Regression test object testing introspection of filters.
+  }
+}
 
 TestX filterInfo
-@ TestX filterInfo {
-    description{
-	Regression test object testing introspection of filters.
-    }
-}
 # Helper Procs
-
 proc ::showStack {{m 100}} {
   set r ""
   set max [info level]  
@@ -1215,7 +1192,9 @@ filterInfo proc run {{n 20}} {
     for {set i 0} {$i < $n} {incr i} {
       global InfoTraceResult
 
+      Object instfilter ""
       Object InfoTrace
+
       InfoTrace proc createInfoTrace cl {
 	$cl instproc infoTraceFilter args {
 	  global InfoTraceResult
@@ -1245,9 +1224,9 @@ filterInfo proc run {{n 20}} {
 	    "{::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-alloc aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::xotcl::Class::Parameter-infoTraceFilter-::xotcl::Object ::xotcl::Class-searchDefaults aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {0-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-configure aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-init aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-create aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::anObject-infoTraceFilter-::xotcl::Object ::ObjectsClass-aProc run-::filterInfo {-::xotcl::Object instfilter infoTraceFilter}}" \
 	  "FilterInfo InfoTrace: Filter information wrong"
       }
-      Object instfilter {}
     }
-
+  
+  Object instfilter {}
   global fUplevelResult
   set fUplevelResult ""
 
@@ -1273,17 +1252,14 @@ filterInfo proc run {{n 20}} {
   fcl fclproc
 
 #  ::errorCheck $fUplevelResult "-::FilterCL-filterA-configure-::xotcl::Object-::FilterMix-calls-configure-::xotcl::Object-::FilterCL-filterA-init-::xotcl::Object-::FilterMix-calls-init-::xotcl::Object-::FilterCL-filterA-fclproc-::FilterCL-::FilterMix-calls-fclproc-::FilterCL" "Filter/Mixin Info Uplevel Test"
-
-    return "PASSED [self]"
 }
 
-TestX nextTest
+
+
 @ TestX nextTest {
-    description {
-	Regression test object testing the next primitive.
-    }
+  description {Regression test object testing the next primitive.}
 }
-nextTest proc run {{n 20}} {
+TestX nextTest -proc run {{n 20}} {
     for {set i 0} {$i < $n} {incr i} {
 	
 	global result infoNext
@@ -1380,18 +1356,16 @@ nextTest proc run {{n 20}} {
 
 	o destroy; MIX destroy
     }
-    return "PASSED [self]"
-}
+  }
 
-TestX init_params
 @ TestX init_params {
-    description {
-	Regression test object testing the parameter instance method, 
-	the init dash '-' and constructor calling.
-    }
+  description {
+    Regression test object testing the parameter instance method, 
+    the init dash '-' and constructor calling.
+  }
 }
 
-init_params proc run {{n 20}} {
+TestX init_params -proc run {{n 20}} {
     for {set i 0} {$i < $n} {incr i} {
 	global dashResult
 	set dashResult ""
@@ -1519,18 +1493,15 @@ init_params proc run {{n 20}} {
 	::errorCheck $r  "Meta-create-::d1" \
 	    "User defined object creation failed"
     }
-    return "PASSED [self]"
 }
 
-TestX mixinTest
 @ TestX mixinTest {
-    description {
-	Regression test object testing per-object mixins.
-    }
+  description {
+    Regression test object testing per-object mixins.
+  }
 }
 
-
-mixinTest proc run {{n 10}} {
+TestX mixinTest -proc run {{n 10}} {
 
     global mixinResult
     set mixinResult "" 
@@ -1992,18 +1963,16 @@ mixinTest proc run {{n 10}} {
     Object o -mixin {A B C}
     o proc x {} {return x}
     ::errorCheck [o x] {x} {mixin destroy on stack}
-    
-    return "PASSED [self]"
-  }
-
-TestX mixinInheritanceTest
-@ TestX mixinInheritanceTest {
-    description {
-	Regression test object testing per-object mixin inheritance.
-    }
 }
 
-mixinInheritanceTest proc run {{n 10}} {
+
+@ TestX mixinInheritanceTest {
+  description {
+    Regression test object testing per-object mixin inheritance.
+  }
+}
+
+TestX mixinInheritanceTest -proc run {{n 10}} {
     for {set i 0} {$i < $n} {incr i} {
 	global mixinResult
 	set mixinResult ""
@@ -2352,16 +2321,14 @@ mixinInheritanceTest proc run {{n 10}} {
       " ::a: ::A->init ::b: ::B->init ::b: ::A->init ::a2: ::Y->init ::a2: ::X->init ::a2: ::A->init ::b2: ::X->init ::b2: ::B->init ::b2: ::A->init ::a3: ::U->init ::a3: ::X->init ::a3: ::V->init ::a3: ::A->init ::b3: ::B->init ::b3: ::A->init ::a3: ::A->init ::b3: ::Y->init ::b3: ::X->init ::b3: ::B->init ::b3: ::A->init" \
       "Mixin init 9 failed"
 
-  return "PASSED [self]"
 }
 
-TestX copymove
+
 @ TestX copymove { 
-    description {
-	Regression test for copy/move methods
-    }
+  description {Regression test for copy/move methods}
 }
-copymove proc run {{n 10}} {
+
+TestX copymove -proc run {{n 10}} {
   # Composite
   Class Composite -superclass Class
   Composite instproc addop {op} {
@@ -2576,16 +2543,14 @@ copymove proc run {{n 10}} {
 	"::X-::V ::X ::Z-::B ::B1" \
 	"Move of subclass relationship"
   }
-  return "PASSED [self]"
 }
 
-TestX recreation
+
 @ TestX recreation  {
-    description {
-	Regression test for object recreation/cleanup.
-    }
+  description { Regression test for object recreation/cleanup.  }
 }
-recreation proc run {{n 10}} {
+
+TestX recreation -proc run {{n 10}} {
  for {set i 0} {$i < $n} {incr i} {
   set ::recreateResult ""
   Class R
@@ -2758,16 +2723,16 @@ recreation proc run {{n 10}} {
   META destroy
   unset ::cleanupResult
 
-  return "PASSED [self]"
+  Object instmixin ""
 }
 
 
-TestX smallScripts
 @ TestX smallScripts  {
-    description {
-	Regression test object testing arbitrary features.
-    }
+  description {
+    Regression test object testing arbitrary features.
+  }
 }
+TestX smallScripts
 proc ::up1 {} {
   return [uplevel 1 self]
 }	
@@ -2856,16 +2821,16 @@ smallScripts proc run {{n 20}} {
     ::errorCheck [b info procs] "objproc" "[self]: info procs"
     ::errorCheck [B info instprocs] "myProc2" "[self]: info instprocs"
 
-    ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure copy defaultmethod destroy eval exists extractConfigureArg f filter filterappend filterguard filtersearch forward hasclass incr info infoTraceFilter init instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinappend mixinguard move myProc myProc2 myProcMix1 myProcMix2 next noinit objproc parametercmd proc procsearch recreate requireNamespace self set setFilter tclcmd trace unset uplevel upvar volatile vwait"  "[self]: b info methods"
+    ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure copy defaultmethod destroy eval exists extractConfigureArg f filter filterappend filterguard filtersearch forward hasclass incr info infoTraceFilter init instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinappend mixinguard move myProc myProc2 myProcMix1 myProcMix2 next noinit objproc parametercmd proc procsearch requireNamespace self set setFilter signature tclcmd trace unset uplevel upvar volatile vwait"  "[self]: b info methods"
 
-    ::errorCheck [lsort [b info methods -nocmds]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init mixinappend move myProc myProc2 myProcMix1 myProcMix2 objproc recreate self setFilter tclcmd" "[self]: b info methods -nocmds"
+    ::errorCheck [lsort [b info methods -nocmds]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init mixinappend move myProc myProc2 myProcMix1 myProcMix2 objproc self setFilter signature tclcmd" "[self]: b info methods -nocmds"
 
     ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard next noinit parametercmd proc procsearch requireNamespace set trace unset uplevel upvar volatile vwait" "[self]: b info methods -noprocs"
-    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init mixinappend move myProc myProc2 objproc self setFilter tclcmd" "[self]: b info methods -nocmds -nomixins"
+    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init mixinappend move myProc myProc2 objproc self setFilter signature tclcmd" "[self]: b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "[self]: b info methods -nocmds -noprocs"
 
-    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init instfilterappend instmixinappend insttclcmd mixinappend move recreate self setFilter tclcmd" "[self]: B info methods -nocmds"
+    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init instfilterappend instmixinappend insttclcmd mixinappend move self setFilter signature tclcmd uses" "[self]: B info methods -nocmds"
 
     namespace eval a {
 	proc o args {return o}
@@ -2922,16 +2887,16 @@ smallScripts proc run {{n 20}} {
     namespace delete foo 
     ::errorCheck [Object isobject ::foo::Foo] "0" "Namespace delete under object"
 
-    return "PASSED [self]"
 }
 
-TestX objectReferences
+
 @ TestX objectReferences {
     description {
 	Regression test for object and class references in tcl_objs
     }
 }
-objectReferences proc run {{n 20}} {
+
+TestX objectReferences -proc run {{n 20}} {
   my proc ok01 {} {
     Class AAA
     AAA destroy
@@ -3035,7 +3000,7 @@ objectReferences proc run {{n 20}} {
   Class O -superclass UnknownClass
   ::errorCheck $::utest ::UnknownClass "[self]: __unknown"
   
-  ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard forward heritage info instances instbody instcommands instdefault instfilter instfilterguard instforward instinvar instmixin instpost instpre instprocs invar methods mixin parameter parent post pre procs subclass superclass vars} "[self]: info info"
+  ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard forward heritage info instances instbody instcommands instdefault instfilter instfilterguard instforward instinvar instmixin instpost instpre instprocs invar methods mixin parameter parent post pre precedence procs subclass superclass vars} "[self]: info info"
 
   ::errorCheck [Class info instances *Unk*] ::UnknownClass "match in info instances"
   ::errorCheck [Class info instances Unk*] "" "no match in info instances"
@@ -3091,17 +3056,16 @@ objectReferences proc run {{n 20}} {
   ::errorCheck [Object ismetaclass M] 1 "is metaclass 1"
   ::errorCheck [Object ismetaclass C] 0 "is metaclass 0"
 
-
-  return "PASSED [self]"
 }
 
-TestX create condMixins
+
 @ TestX condMixins {
   description {
     Regression test for conditional mixins
   }
 }
-condMixins proc show {c obj} {
+
+TestX create condMixins -proc show {c obj} {
   set ::context $c
   set r [list]
   foreach x [list \
@@ -3128,25 +3092,23 @@ condMixins proc run {{n 20}} {
 
   set ::context payrollApp
 
-  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure copy defaultmethod destroy driving-license eval exists extractConfigureArg f filter filterappend filterguard filtersearch forward hasclass id incr info infoTraceFilter init instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinappend mixinguard move name next noinit parametercmd print proc procsearch recreate requireNamespace salary self set setFilter signature tclcmd trace unset uplevel upvar volatile vwait" "condmixin all methods"
+  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterappend filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinappend mixinguard move name next noinit parametercmd print proc procsearch requireNamespace salary self set signature tclcmd trace unset uplevel upvar volatile vwait" "condmixin all methods"
 
-  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure copy defaultmethod destroy eval exists extractConfigureArg f filter filterappend filterguard filtersearch forward hasclass id incr info infoTraceFilter init instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinappend mixinguard move name next noinit parametercmd print proc procsearch recreate requireNamespace salary self set setFilter signature tclcmd trace unset uplevel upvar volatile vwait" "all methods in context"
+  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure copy defaultmethod destroy eval exists extractConfigureArg filter filterappend filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinappend mixinguard move name next noinit parametercmd print proc procsearch requireNamespace salary self set signature tclcmd trace unset uplevel upvar volatile vwait" "all methods in context"
 
   ::errorCheck [my show payrollApp jim] "{payrollApp:  jim info methods salary => salary} {payrollApp:  jim info methods -incontext salary => salary} {payrollApp:  jim info methods driv* => driving-license} {payrollApp:  jim info methods -incontext driv* => }" "payrollApp jim"
   ::errorCheck [my show shipmentApp jim] "{shipmentApp:  jim info methods salary => salary} {shipmentApp:  jim info methods -incontext salary => } {shipmentApp:  jim info methods driv* => driving-license} {shipmentApp:  jim info methods -incontext driv* => driving-license}" "shipmentApp jim"
 
-  return "PASSED [self]"
 }
 
 
+@ TestX volatileObjects {
+  description {
+    Regression test for volatile objects
+  }
+}
 
 TestX create volatileObjects
-@ TestX volatileObjects {
-    description {
-	Regression test for volatile objects
-    }
-}
-
 volatileObjects proc inscope {} {
   set r 0
   set y 0
@@ -3224,8 +3186,9 @@ volatileObjects proc run {{n 20}} {
 
   C instfilter {}
   Class instproc f {} {}
-  return "PASSED [self]"
 }
+
+
 
 TestX create uplevelCmds
 uplevelCmds proc upproc {} {
@@ -3390,7 +3353,15 @@ uplevelCmds proc run {{n 20}} {
   Object instfilter ""
   D instmixin {}
 
-
+  C instproc selftest args {
+    return [self class]/[self isnextcall]-[next]
+  }
+  D instproc selftest args {
+    return [self class]/[self isnextcall]-[next]
+  }
+  errorCheck [d1 selftest] "::D/0-::C/1-" \
+      "self isnextcall"
+  
   Object instproc each {objName body} {
     #puts " *** level = [info level] self callinglevel = [self callinglevel]"
     uplevel [self callinglevel] [list foreach $objName [lsort [[self] info children]] $body]
@@ -3445,11 +3416,51 @@ uplevelCmds proc run {{n 20}} {
   errorCheck [t loop2] 12 "nested uplevel eval loop"
   t destroy
 
-  return "PASSED [self]"
 }
 
-TestX create nonposargs
-nonposargs proc run {{n 20}} {
+
+TestX create namespaceCommands -proc run {{n 20}} {
+  errorCheck [catch {
+    namespace eval foo {
+      Class m
+      Object o -mixin m
+    }
+  }] 0 "mixin resolved from namespace"
+
+  Class create ::xotcl::_creator -instproc create {args} {
+    set result [next]
+    return $result
+  }
+
+  errorCheck [catch {
+    namespace eval bar {
+      Class A
+      namespace export A
+    }
+
+    namespace eval foo {
+      Class M -superclass Class
+
+      namespace import ::bar::*
+      Class B -superclass A -instmixin M
+      
+      Class instmixin ::xotcl::_creator
+      Class C -superclass A -instmixin B
+      Class instmixin ""
+    }
+  } error] 0 "mixin and Class resolve and import into namespace\n$error"
+  
+}
+
+TestX create metaClassAsMixin -proc run {{n 20}} {
+  Class create A -instmixin Class
+  Class create B -superclass A
+  B create b1
+  errorCheck [A ismetaclass]-[B ismetaclass]-[b1 ismetaclass]-[b1 isclass] \
+      "1-1-0-1" "metaclass through mixin"
+}
+
+TestX create nonposargs -proc run {{n 20}} {
     Object o	
     o proc x {a b} {
 	return "$a $b"
@@ -3628,13 +3639,10 @@ nonposargs proc run {{n 20}} {
   }
 
   errorCheck [c1 m3 1 2 3] "hu3" "Defaults instproc no flag"
-  
-  return "PASSED [self]"
 }
 
 
-TestX copymove2
-copymove2 proc run {{n 10}} {
+TestX copymove2 -proc run {{n 10}} {
   # Composite
   Class Composite -superclass Class
   Composite instproc addop {op} {
@@ -3689,33 +3697,12 @@ copymove2 proc run {{n 10}} {
       commands::cellcmd copy toto
     }
   }
-  return "PASSED [self]"
 }
 
 TestX proc run {} {
-  puts [nestingClasses run]
-  puts [nestingObjects run]
-#  puts [assertions run]
-  puts [copymove2 run]
-  puts [stdargs run]
-  puts [filterAddRemove run]
-  puts [filterClassChange run]
-  puts [filterSimpleObserver run]
-  puts [filterInfo run]
-  puts [filterGuards run]
-  puts [nextTest run]
-  puts [init_params run]
-  puts [mixinTest run]
-  puts [mixinInheritanceTest run]
-  puts [mixinGuards run]
-  puts [copymove run]
-  puts [recreation run]
-  puts [smallScripts run]
-  puts [objectReferences run]
-  puts [condMixins run]
-  puts [volatileObjects run]
-  puts [uplevelCmds run]
-  puts [nonposargs run]
+  foreach test [lsort [TestX info instances]] {
+    $test run
+  }
 }
 
 puts "XOTcl - Test"

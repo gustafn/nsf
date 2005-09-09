@@ -1,7 +1,18 @@
-# $Id: SecureHtmlPlace.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: SecureHtmlPlace.xotcl,v 1.2 2005/09/09 21:07:23 neumann Exp $
+
 package provide xotcl::actiweb::secureHtmlPlace 0.8
 
 package require xotcl::actiweb::secureHttpPlace
 package require xotcl::actiweb::htmlPlace
 
-Class SecureHtmlPlace -superclass {SecurePlace HtmlPlace}
+package require XOTcl
+
+namespace eval ::xotcl::actiweb::secureHtmlPlace {
+    namespace import ::xotcl::*
+
+    Class SecureHtmlPlace -superclass {SecurePlace HtmlPlace}
+
+    namespace export SecureHtmlPlace
+}
+
+namespace import ::xotcl::actiweb::secureHtmlPlace::*

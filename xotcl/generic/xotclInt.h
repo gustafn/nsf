@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.13 2005/01/06 03:10:05 neumann Exp $
+ *  $Id: xotclInt.h,v 1.14 2005/09/09 21:07:23 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
@@ -267,7 +267,7 @@ typedef struct XOTclMemCounter {
 # endif
 #endif
 
-#if 1
+#if 0
 #define XOTcl_FrameDecls CallFrame *oldFramePtr = 0, frame, *newFramePtr = &frame
 #define XOTcl_PushFrame(in,obj) \
      memset(newFramePtr, 0, sizeof(CallFrame)); \
@@ -524,7 +524,7 @@ typedef enum {
     XOTE___UNKNOWN, XOTE_ARGS, XOTE_SPLIT, XOTE_COMMA,
     /** these are the redefined tcl commands; leave them
 	together at the end */
-    XOTE_EXPR, XOTE_INCR, XOTE_INFO, XOTE_RENAME, XOTE_SUBST,
+    XOTE_EXPR, XOTE_INCR, XOTE_INFO, XOTE_RENAME, XOTE_SUBST
 } XOTclGlobalNames;
 #if !defined(XOTCL_C)
 extern char *XOTclGlobalStrings[];

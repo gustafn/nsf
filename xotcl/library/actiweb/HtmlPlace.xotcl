@@ -1,4 +1,5 @@
-# $Id: HtmlPlace.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: HtmlPlace.xotcl,v 1.2 2005/09/09 21:07:23 neumann Exp $
+
 package provide xotcl::actiweb::htmlPlace 0.8
 
 package require xotcl::trace
@@ -7,30 +8,40 @@ package require xotcl::store::persistence
 package require xotcl::actiweb::agent
 package require xotcl::actiweb::pageTemplate
 
-Class HtmlPlace -superclass Place -parameter {allowExit}
+package require XOTcl
 
-HtmlPlace instproc init args {
-  next
-  #
-  # just define a minimal object that can react 
-  # with HTML decoration, if the called object
-  # doesn't exist
-  PageTemplateHtml create [self]::start.html
+namespace eval ::xotcl::actiweb::htmlPlace {
+    namespace import ::xotcl::*
 
-  my startingObj [self]::start.html
-  if {[my exists allowExit]} {
-    set exitObj [WebObject create [self]::[my set allowExit]]
-    [Place getInstance] exportObjs $exitObj
-    $exitObj proc default {} {after 500 ::exit; return "Server terminates"}
-  }
-}
-HtmlPlace instproc default {} {
-  set place [string trimleft [self] :]
-  set msg "<HTML><TITLE>Place $place</TITLE>
+    Class HtmlPlace -superclass Place -parameter {allowExit}
+
+    HtmlPlace instproc init args {
+	next
+	#
+	# just define a minimal object that can react 
+	# with HTML decoration, if the called object
+	# doesn't exist
+	PageTemplateHtml create [self]::start.html
+
+	my startingObj [self]::start.html
+	if {[my exists allowExit]} {
+	    set exitObj [WebObject create [self]::[my set allowExit]]
+	    [Place getInstance] exportObjs $exitObj
+	    $exitObj proc default {} {after 500 ::exit; return "Server terminates"}
+	}
+    }
+    HtmlPlace instproc default {} {
+	set place [string trimleft [self] :]
+	set msg "<HTML><TITLE>Place $place</TITLE>
 	<BODY><H2>Place $place</H2> Try one of the following links:<UL>"
-  foreach o [my exportedObjs] {
-    set o [string trimleft $o :]
-    append msg "<LI><A HREF='[url encodeItem $o]'>$o</A></LI>"
-  }
-  append msg "</UL></BODY>\n"
+	foreach o [my exportedObjs] {
+	    set o [string trimleft $o :]
+	    append msg "<LI><A HREF='[url encodeItem $o]'>$o</A></LI>"
+	}
+	append msg "</UL></BODY>\n"
+    }
+
+    namespace export HtmlPlace
 }
+
+namespace import ::xotcl::actiweb::htmlPlace::*

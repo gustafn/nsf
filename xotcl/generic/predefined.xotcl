@@ -1,4 +1,4 @@
-# $Id: predefined.xotcl,v 1.5 2005/01/10 11:57:35 neumann Exp $
+# $Id: predefined.xotcl,v 1.6 2005/09/09 21:07:23 neumann Exp $
 
 # init must exist on Object. per default it is empty.
 ::xotcl::Object instproc init args {}
@@ -55,10 +55,10 @@ foreach cmd {array append lappend trace eval} {
 
 ::xotcl::Relations create ::xotcl::relmgr -requireNamespace
 
-::xotcl::Object instforward mixin -default [list get set] xotcl::relmgr %1 %self %proc
-::xotcl::Object instforward filter -default [list get set] xotcl::relmgr %1 %self %proc
-::xotcl::Class instforward instmixin -default [list get set] xotcl::relmgr %1 %self %proc
-::xotcl::Class instforward instfilter -default [list get set] xotcl::relmgr %1 %self %proc
+::xotcl::Object instforward mixin -default [list get set] ::xotcl::relmgr %1 %self %proc
+::xotcl::Object instforward filter -default [list get set] ::xotcl::relmgr %1 %self %proc
+::xotcl::Class instforward instmixin -default [list get set] ::xotcl::relmgr %1 %self %proc
+::xotcl::Class instforward instfilter -default [list get set] ::xotcl::relmgr %1 %self %proc
 
 
 ::xotcl::Object instproc self {} {return [::xotcl::self]}
@@ -206,8 +206,7 @@ foreach cmd {array append lappend trace eval} {
 	must be either 'proc' or 'instproc'."
   }
   ::xotcl::my $methtype $methname $arglist "
-    if {\[::xotcl::self callingproc\] != \[::xotcl::self proc\] && 
-	\[::xotcl::self callingobject\] != \[::xotcl::self\]} {
+    if {!\[::xotcl::self isnextcall\]} {
       error \"Abstract method $methname $arglist called\"
     } else {::xotcl::next}
   "
@@ -453,4 +452,111 @@ set ::xotcl::logdir $::xotcl::confdir/log
   #unknown $name
 }
 
+#
+# package support
+#
+::xotcl::Class instproc uses list {
+  foreach package $list {
+    ::xotcl::package import -into [self] $package
+    puts stderr "*** using ${package}::* in [self]"
+  }
+}
+::xotcl::Class create ::xotcl::package -superclass ::xotcl::Class -parameter {
+  provide 
+  {version 1.0} 
+  {autoexport {}}
+  {export {}}
+}
+::xotcl::package proc create {name args} {
+  set nq [namespace qualifiers $name]
+  if {$nq ne "" && ![namespace exists $nq]} {Object create $nq}
+  next
+}
+::xotcl::package proc extend {name args} {
+  my require $name
+  eval $name configure $args
+}
+::xotcl::package instproc contains script {
+  if {[my exists provide]} {
+    package provide [my provide] [my version]
+  } else {
+    package provide [self] [my version]
+  }
+  namespace eval [self] {namespace import ::xotcl::*}
+  namespace eval [self] $script
+  foreach e [my export] { 
+    set nq [namespace qualifiers $e]
+    if {$nq ne ""} {
+      namespace eval [self]::$nq [list namespace export [namespace tail $e]]
+    } else {
+      namespace eval [self] [list namespace export $e] 
+    }
+  }
+  foreach e [my autoexport] { 
+    namespace eval :: [list namespace import [self]::$e]
+  }
+}
+::xotcl::package configure \
+    -set component . \
+    -set verbose 0 \
+    -set packagecmd ::package
 
+::xotcl::package proc unknown args {
+  #puts stderr "unknown: package $args"
+  eval [my set packagecmd] $args
+}
+::xotcl::package proc verbose value {
+  my set verbose $value
+}
+::xotcl::package proc present args {
+  if {$::tcl_version<8.3} {
+    my instvar loaded
+    switch -exact -- [lindex $args 0] {
+      -exact  {set pkg [lindex $args 1]}
+      default {set pkg [lindex $args 0]}
+    }
+    if {[info exists loaded($pkg)]} {
+      return $loaded($pkg)
+    } else {
+      error "not found"
+    }
+  } else {
+    eval [my set packagecmd] present $args
+  }
+}
+::xotcl::package proc import {{-into ::} pkg} {
+  my require $pkg
+  namespace eval $into [subst -nocommands {
+    #puts stderr "*** package import ${pkg}::* into [namespace current]"
+    namespace import ${pkg}::*
+  }]
+  # import subclasses if any
+  foreach e [$pkg export] {
+    set nq [namespace qualifiers $e]
+    if {$nq ne ""} {
+      namespace eval $into$nq [list namespace import ${pkg}::$e]
+    }
+  }
+}
+::xotcl::package proc require args {
+  #puts "XOTCL package require $args, current=[namespace current]"
+  ::xotcl::my instvar component verbose uses loaded
+  set prevComponent $component
+  if {[catch {set v [eval package present $args]} msg]} {
+    #puts stderr "we have to load $msg"
+    switch -exact -- [lindex $args 0] {
+      -exact  {set pkg [lindex $args 1]}
+      default {set pkg [lindex $args 0]}
+    }
+    set component $pkg
+    lappend uses($prevComponent) $component
+    set v [uplevel \#1 [my set packagecmd] require $args]
+    if {$v ne "" && $verbose} {
+      set path [lindex [::package ifneeded $pkg $v] 1]
+      puts "... $pkg $v loaded from '$path'"
+      set loaded($pkg) $v   ;# loaded stuff needed for Tcl 8.0
+    }
+  }
+  set component $prevComponent
+  return $v
+}

@@ -1,5 +1,5 @@
 #!/usr/local/bin/xotclsh
-#$Id: UNIVERSAL.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+#$Id: UNIVERSAL.xotcl,v 1.2 2005/09/09 21:07:23 neumann Exp $
 package require XOTcl; namespace import -force xotcl::*
 array set opts {
   -ssl 0 -instanceFile UNIVERSAL.rdf -cssFile UNIVERSAL.css -root . -pkgdir .}
@@ -45,9 +45,11 @@ proc loadFile filename {
 #
 # instantiate parser and parser an example text into a node tree
 #
+
+#puts stderr "parsing [loadFile $opts(-instanceFile)]"
 RDFParser R
 R parse [loadFile $opts(-instanceFile)]
-
+puts stderr "parsing done"
 
 #
 # load the nodetree from the parser into the triple database
@@ -83,7 +85,7 @@ RDFdb instproc resources {} {
   set result ""
   foreach c [my info children] {
     if {![my isContainer $c] && 
-	[$c info class] != "::RDFTriple"} {lappend result $c}
+	[$c istype Resource]} {lappend result $c}
   }
   return $result
 }
@@ -97,8 +99,10 @@ RDFdb instproc querySubject {subject} {
   }
   return $result
 }
+
 # create an Instance of the Resource Database 
 RDFdb tv::db
+
 
 
 # define Resources with its methods
@@ -214,11 +218,11 @@ LrManager instproc source {file} {
 }
 
 LrManager instproc nav {} {
-  set right  [my selfAction "catalog"]
-  set result [my html-title "Universal Navigation Bar"]
+  set right   [my selfAction "catalog"]
+  set result  [my html-title "Universal Navigation Bar"]
   set rdfsrc  [my selfAction "source $::opts(-instanceFile)"]
   set csssrc  [my selfAction "source $::opts(-root)/$::opts(-cssFile)"]
-  set src  [my selfAction "source [info script]"]
+  set src     [my selfAction "source [info script]"]
   append result <BODY>\n \
        "<IMG SRC= 'UNIVERSAL.jpg' align='center'  alt='UNIVERSAL HOME' border='0'> \n\
       <p> <a href='$right' target='Rechts'>All local Resources</a></p>
@@ -231,8 +235,8 @@ LrManager instproc nav {} {
 }
 
 LrManager instproc default {} {
-  set right [my selfAction "catalog"]
-  set nav   [my selfAction "nav"]
+  set right  [my selfAction "catalog"]
+  set nav    [my selfAction "nav"]
   set result [my html-title "Universal"]
   append result "<frameset framespacing='0' border='false' frameborder='0' cols='200,*'>
   <frame name='Links'  src='$nav'>
@@ -243,7 +247,6 @@ LrManager instproc default {} {
 </frameset>"
 }
 
-
 LrManager instproc init args {
   next
   ::receiver exportObjs [self]             ;# export object
@@ -251,13 +254,14 @@ LrManager instproc init args {
 }
 
 
-# create an instance of the Rearning Resource manager
+# create an instance of the Learning Resource manager
 LrManager univ
 receiver proc default {} {univ default}  ;# call it like index.html as default
 
 # Invoke Tiple Visitor to feed the database
 tv interprete
 #puts stderr [tv::db prettyTriples]
+
 
 receiver startEventLoop   ;# Start event loop
 

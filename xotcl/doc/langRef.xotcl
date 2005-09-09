@@ -1,5 +1,5 @@
-# $Id: langRef.xotcl,v 1.7 2005/01/10 11:57:35 neumann Exp $
-package provide XOTcl-langRef 1.3.3
+# $Id: langRef.xotcl,v 1.8 2005/09/09 21:07:23 neumann Exp $
+package provide XOTcl-langRef 1.3.6
 package require Tcl
 
 @ @File {
@@ -35,8 +35,10 @@ package require Tcl
         <@li><@TT>self calledproc</@TT>: Returns method 
         name of the target proc (only applicable
         in a filter).
+        <@li><@TT>self isnextcall</@TT>: Return 1 if this method
+        was invoked via next, otherwise 0
         <@li><@TT>self next</@TT>: Return the
-         "next" method on the path as a string.
+         "next" method on the precedence path as a string.
         <@li><@TT>self filterreg</@TT>: In a filter: returns the name
        of the object/class on which the filter is registered. Returns either 
         'objName filter filterName' or 'className instfilter filterName'.
@@ -57,12 +59,17 @@ package require Tcl
     called in a context of an instproc or an method specific proc. It allows certain 
     optimizations and shorter to write.
     <@/p><@p>
-    <@tt> next <@/tt> executes the "next" method on the precedence
-     order and return with the result.
+    <@tt>next <@/tt> invokes the next shadowed (same-named) method on the
+      precedence path and returns its result. If <@tt>next</@tt> is
+      called without arguments, the arguments of the current method
+      are passed through the called method. If <@tt>next</@tt> is 
+      invoked with the flag <@tt>--noArgs</@tt>, the shadowed method
+      is called without arguments. If other arguments are specified 
+      for next, these will be used for the call.
     <@/p>
 
   }
-  date { $Date: 2005/01/10 11:57:35 $ }
+  date { $Date: 2005/09/09 21:07:23 $ }
 }
 
 ##
@@ -370,18 +377,20 @@ package require Tcl
       not specified, otherwise it returns 1 if classname matches the 
       object's class and 0 if not.
 
-      <@li><@TT>objName info children ?pattern?</@TT>: Returns the list of aggregated 
-      objects with fully qualified names if <@TT>pattern</@TT> was not specified, 
-      otherwise  it returns all children where the object name matches the pattern.
+      <@li><@TT>objName info children ?pattern?</@TT>: Returns the
+      list of aggregated objects with fully qualified names if
+      <@TT>pattern</@TT> was not specified, otherwise it returns all
+      children where the object name matches the pattern.
 
-      <@li><@TT>objName info commands ?pattern</@TT>: Returns all commands 
-      defined for the object if <@TT>pattern</@TT> was not specified, otherwise 
-      it returns all commands that match the pattern.
+      <@li><@TT>objName info commands ?pattern</@TT>: Returns all
+      commands defined for the object if <@TT>pattern</@TT> was not
+      specified, otherwise it returns all commands that match the
+      pattern.
 
-      <@li><@TT>objName info default method arg var</@TT>: Returns 1 if the 
-      argument <@TT>arg</@TT> of the proc (object specific method) 
-      <@TT>method</@TT> has a default 
-      value, otherwise 0. If it exists the default value is stored in <@TT>var</@TT>.
+      <@li><@TT>objName info default method arg var</@TT>: Returns 1
+      if the argument <@TT>arg</@TT> of the proc (object specific
+      method) <@TT>method</@TT> has a default value, otherwise 0. If
+      it exists the default value is stored in <@TT>var</@TT>.
 
       <@li><@TT>objName info filter</@TT>: Returns a list of filters. 
       With -guard modifier all filterguards are integrated 
@@ -430,14 +439,22 @@ package require Tcl
       <@li><@TT>objName info pre methodName</@TT>: 
       Returns pre assertions of methodName.
 
-      <@li><@TT>objName info procs ?pattern?</@TT>: Returns all procs defined 
-      for the object if <@TT>pattern</@TT> was not specified, 
+      <@li><@TT>objName info procs ?pattern?</@TT>: Returns all procs
+      defined for the object if <@TT>pattern</@TT> was not specified,
       otherwise it returns all procs that match the pattern.
 
-      <@li><@TT>objName info vars ?pattern?</@TT>: Returns all variables defined 
-      for the object if <@TT>pattern</@TT> was not specified, otherwise it 
-      returns all variables that match the pattern.
-      <@/ul>
+      <@li><@TT>objName info precedence ?pattern?</@TT>: Returns all
+      classes in the precedence order from which the specified 
+      object inherits methods. The returned list of classes contains
+      the mixin and instmixin classes as well as the classes of the
+      superclass chain in linearized order (i.e., duplicate classes 
+      are removed). If the pattern is specified, only matching classes
+      are returned.
+
+      <@li><@TT>objName info vars ?pattern?</@TT>: Returns all
+      variables defined for the object if <@TT>pattern</@TT> was not
+      specified, otherwise it returns all variables that match the
+      pattern.  <@/ul>
     }
     return "Value of introspected option as a string."
 }
@@ -1190,6 +1207,9 @@ package require Tcl
     of classes. After this call, XOTcl tries again to 
     resolve D. If it succeeds, XOTcl will continue; otherwise,
     an error is generated.
+    <@p>
+    This method is called on mixin/instmixin definition calls, 
+    istype, ismixin, class, superclass and parameterclass
   }
   return "empty string"
 }

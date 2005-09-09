@@ -1,10 +1,10 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<!-- $Id: tutorial.html,v 1.9 2005/01/14 23:45:22 neumann Exp $ -->
+<!-- $Id: tutorial.html,v 1.10 2005/09/09 21:07:23 neumann Exp $ -->
 <HTML>
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
 	<META NAME="AUTHOR" CONTENT="Gustaf Neumann and Uwe Zdun">
-	<META NAME="DOCNUMBER" CONTENT="1.3.3">
+	<META NAME="DOCNUMBER" CONTENT="1.3.6">
 	<META NAME="CHANGEDBY" CONTENT="Gustaf ">
 <STYLE>
 BODY	{
@@ -560,17 +560,18 @@ called ``instprocs''.
 <P>The instance methods common to all objects are defined in the root
 class <tt>Object</tt> (predefined or user-defined). Since a class is a
 special (managing) kind of object it is managed itself by a special
-class called ``meta-class'' (which manages itself). One interesting
-aspect of meta-classes is that by providing a constructor
-pre-configured classes can be derived. New user-defined meta-classes
-can be derived from the predefined meta-class <tt>Class</tt> in order
-to restrict or enhance the abilities of the classes that they manage.
-Therefore meta-classes can be used to instantiate large program
-structures, like some design patterns (see <a
-href="#xotcl-filter">[Neumann and Zdun 1999a]</a> for more
-details). The meta-class may hold the generic parts of the
+class called ``meta-class'' (which manages itself). Meta-Classes are
+used to define classes and to provides methods for these.  Most
+classes are defined by the predefined meta-class <tt>Class</tt>. One
+interesting aspect of meta-classes is that by providing a constructor
+pre-configured classes can be derived.  Meta-classes can be used to
+instantiate large program structures, like some design patterns (see
+<a href="#xotcl-filter">[Neumann and Zdun 1999a]</a> for more
+details), where the meta-class may holds the generic parts of the
 structures. Since a meta-class is an entity of the program, it is
-possible to collect these in pattern libraries for later reuse easily.
+possible to collect these entities in pattern libraries for later
+reuse easily (more details about meta-classes are given in a later <A
+HREF="meta-classes">section</A>).
 </P>
 <P>XOTcl supports single and multiple inheritance. Classes are ordered
 by the relationship <tt>superclass</tt> in a directed acyclic
@@ -939,15 +940,22 @@ identically to the OTcl info options on objects.
 	    the default value exists it is stored in <em>var</em>.</P>
 	  </TD>
 	</TR>
+
 	<TR>
-	  <TD><tt><em>objName</em> <tt>info</tt> procs <em>?pattern?</em></tt>
+	  <TD><tt><em>objName</em> <tt>info</tt> precedence <em>?pattern?</em></tt>
 	  </TD>
+
 	  <TD>
-	    <P ALIGN=LEFT>Returns all procs defined on the object if
-	    <em>pattern</em> was not specified, otherwise it returns
-	    all procs that match the pattern.</P>
+	    <P ALIGN=LEFT>Returns all classes in the precedence order
+	    from which the specified object inherits methods. The
+	    returned list of classes contains the mixin and instmixin
+	    classes as well as the classes of the superclass chain in
+	    linearized order (i.e., duplicate classes are removed). If
+	    the <em>pattern</em> is specified, only matching classes are
+	    returned.</P>
 	  </TD>
 	</TR>
+
 	<TR>
 	  <TD><tt><em>objName</em> <tt>info</tt> vars <em>?pattern?</em></tt>
 	  </TD>
@@ -1514,7 +1522,17 @@ This is a scenario for changing class relationships, e.g.:
 <P>Meta-classes are a special kind of classes. Similar as classes are
 managing objects (where managing means: control the creation and
 destruction of instances, know what instances exist, provide methods),
-meta-classes are managing classes. Since these concepts are sometimes
+meta-classes are managing classes. So, meta-classes are used to define
+classes. In other words, every Class in XOTcl is created by a
+meta-class, in most cases by the meta-class named <tt>Class</tt>.  New
+user-defined meta-classes can be defined as subclasses of the
+predefined meta-class <tt>Class</tt>, or by adding an instmixin class
+(see <A HREF="per-class-mixins">below</A>) containing <tt>Class</tt>
+to the precedence chain of the class.  By defining <tt>Object
+instmixin Class</tt> one can even change the object system of XOTcl in
+in a way such that every created Object is a meta-class.
+</P>
+<P>Since the concept of a meta-class are sometimes
 confusing to people of a background of some other programming
 languages, we explain meta-classes slowly with the analogy of classes
 and objects.
@@ -1808,7 +1826,8 @@ defined in the method definition using the following syntax:
 The non-positional arguments are defined with the following syntax:
 </P>
 <pre CLASS="code">
- {-name?:checkoption1, checkoption2, ...? default value} {-name?:checkoption1, checkoption2, ...? ?default value?} ...
+ {-name?:checkoption1, checkoption2, ...? default value} \
+     {-name?:checkoption1, checkoption2, ...? ?default value?} ...
 </pre>
 <p>
 Only the name of the non-positional argument is really required, all
@@ -1821,23 +1840,23 @@ a name and a default value (b):
 </p>
 <pre CLASS="code">
  <tt>Object</tt> o
- o <tt>proc</tt> y {-a {-b {1 2 3}} x y} {
+ o <tt>proc</tt> someproc {-a {-b {1 2 3}} x y} {
      puts "$a $b $x $y"
  }
 </pre><P>
 We can invoke this method as follows:
 </p>
 <pre CLASS="code">
- o y -b 4 5 -a 1 3 4
+ o someproc -b {4 5} -a 1 3 4
 </pre><P>
 
-Here, the order of "a" and "b" can be changed; hence the name
-non-positional arguments.  As "b" has a default value, we do not need
-to provide a value for it. In the following invocation "b" has the
+Here, the order of <tt>a</tt> and <tt>b</tt> can be changed; hence the name
+non-positional arguments.  As <tt>b</tt> has a default value, we do not need
+to provide a value for it. In the following invocation <tt>b</tt> has the
 value "1 2 3":
 </p>
 <pre CLASS="code">
- o y -a 1 3 4
+ o someproc -a 1 3 4
 </pre><P>
 The ordinary arguments start after the last non-positional argument
 (here: "3 4").  We can explicitly end the non-positional arguments by
@@ -1845,55 +1864,58 @@ using "--". This is useful if we want to provide arguments that contain
 dashes ("-"), e.g.:
 </p>
 <pre CLASS="code">
- o y -a 1 -- -b -c
+ o someproc -a 1 -- -b -c
 </pre><P>
 
 Sometimes we want to check or control the non-positional
 arguments. For instance, in the above invocation, we might want to
-check that "a" is not forgotten, because otherwise the method cannot
+check that <tt>a</tt> is not forgotten, because otherwise the method cannot
 execute properly. This is the role of the checkoptions. There are two
-predefined checkoptions: "required" and "boolean". "required" checks
-whether a non-positional argument is given, "boolean" checks that a
+predefined checkoptions: <tt>required</tt> and <tt>boolean</tt>. 
+<tt>required</tt> checks
+whether a non-positional argument is given, <tt>boolean</tt> checks that a
 non-positional argument is of boolean type. For instance:
 </p>
 <pre CLASS="code">
-<tt>Class</tt> P
- P <tt>instproc</tt> y {-a:required {-b:boolean true}} {
+ <tt>Class</tt> P
+ P <tt>instproc</tt> someproc {-a:required {-b:boolean true}} {
      puts "$a $b"
  }
  P p
 </pre><P>
 
-This method requires "a", and "b" needs to be of type boolean (is has
-the default value "true"). This invocation is valid:
+This method requires <tt>a</tt>, and <tt>b</tt> needs to be 
+of type boolean (is has
+the default value <tt>true</tt>). This invocation is valid:
 </p>
 <pre CLASS="code">
- p y -a 1 -b 0
+ p someproc -a 1 -b 0
 </pre><P>
 
-This invocation is invalid, because "a" is missing, and "b" is not a
-Tcl boolean type:
+This invocation is invalid, because <tt>a</tt> is missing, 
+and <tt>b</tt> is not a Tcl boolean type:
 </p>
 <pre CLASS="code">
- p y -b " a b v"
+ p someproc -b " a b v"
 </pre><P>
 The checkoptions are extensible. In fact, they are defined in an
-object "::xotcl::nonposArgs". We can extend this object with new
+object <tt>::xotcl::nonposArgs</tt>. We can extend this object with new
 methods.
 <!-- and we can provide other checkobjects. -->
 A check option method has the following syntax:
 </P>
 <pre CLASS="code">
- <em>object|class</em> <tt>proc|instproc</tt> methodName {?optional arguments argName args} {
+ <em>someobject|someclass</em> <tt>proc|instproc</tt> methodName {?optional arguments? argName args} {
   ...
  }
 </pre>
 <p>
 
-"argName" is here used to denote the name of the argument, and "args"
+<tt>argName</tt> is here used to denote the name of the argument, 
+and <tt>args</tt>
 get the argument's current value after all non-positional arguments
 have been applied. If the argument it is not given and has no default
-value, "args" is empty.
+value, <tt>args</tt> is empty.
 
 </p>
 
@@ -1924,7 +1946,7 @@ o proc color {{{-color:checkobj colorchecker,color must be red,reddish,checkobj 
 -->
 
 Of course, the non-positional arguments can also be introspected. The
-following "info" options return the non-positional arguments of a
+following <tt>info</tt> options return the non-positional arguments of a
 method:
 
 </P>
@@ -1980,120 +2002,49 @@ interception techniques may be applied
 detail. The table below gives an impression, when which interceptor
 may be applied.
 
-<P ALIGN=CENTER STYLE="margin-bottom: 0in"><STRONG>Message
-Interceptors Overview</STRONG></P>
-<CENTER>
-	<TABLE BORDER=1 CELLPADDING=2>
-			<TR>
+    <P ALIGN=CENTER STYLE="margin-bottom: 0in"><STRONG>Message
+	Interceptors Overview</STRONG></P>
+
+    <CENTER>
+      <TABLE BORDER=1 CELLPADDING=2>
+	<TR>
 	  <TD></TD>
-				<TD>
-					<P ALIGN=LEFT><strong>Applied When</strong</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT><strong>Primary Target Structure</strong</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT><strong>Coverage</strong</P>
-				</TD>
-			</TR>
-			<TR>
-				<TD>
-					<P ALIGN=LEFT><em> Per-Object Filter</em>
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT>before/after a call
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT> object
-hierarchies
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT>all methods
-					</P>
-				</TD>
-			</TR>
-			<TR>
-				<TD>
-					<P ALIGN=LEFT><em> Per-Class Filter</em>
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT>before/after a call
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT> class and class 
-hierarchies
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT>all methods
-					</P>
-				</TD>
-			</TR>
-		</TBODY>
-		<TBODY>
-			<TR>
-				<TD>
-					<P ALIGN=LEFT><em> Per-Object Mixin</em>
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT> before/after a call
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT> object
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT> specific methods
-					</P>
-				</TD>
-			</TR>
-			<TR>
-				<TD>
-					<P ALIGN=LEFT><em> Per-Class Mixin</em>
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT> before/after a call
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT> class and class 
-hierarchies
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT> specific methods
-					</P>
-				</TD>
-			</TR>
-			<TR>
-				<TD>
-					<P ALIGN=LEFT><em> Unknown Mechanism</em>
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT> after method
-was not found
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT> object
-					</P>
-				</TD>
-				<TD>
-					<P ALIGN=LEFT> all unknown calls
-					</P>
-				</TD>
-			</TR>
-	</TABLE>
-</CENTER>
+	  <TD><P ALIGN=LEFT><strong>Applied When</strong></P></TD>
+	  <TD><P ALIGN=LEFT><strong>Primary Target Structure</strong></P></TD>
+	  <TD><P ALIGN=LEFT><strong>Coverage</strong></P></TD>
+	</TR>
+	<TR>
+	  <TD><P ALIGN=LEFT><em> Per-Object Filter</em></P></TD>
+	  <TD><P ALIGN=LEFT>before/after a call</P></TD>
+	  <TD><P ALIGN=LEFT> object hierarchies</P></TD>
+	  <TD><P ALIGN=LEFT>all methods</P></TD>
+	</TR>
+	<TR>
+	  <TD><P ALIGN=LEFT><em> Per-Class Filter</em></P></TD>
+	  <TD><P ALIGN=LEFT>before/after a call</P></TD>
+	  <TD><P ALIGN=LEFT> class and class hierarchies</P></TD>
+	  <TD><P ALIGN=LEFT>all methods</P></TD>
+	</TR>
+	<TR>
+	  <TD><P ALIGN=LEFT><em> Per-Object Mixin</em></P></TD>
+	  <TD><P ALIGN=LEFT> before/after a call</P></TD>
+	  <TD><P ALIGN=LEFT> object</P></TD>
+	  <TD><P ALIGN=LEFT> specific methods</P></TD>
+	</TR>
+	<TR>
+	  <TD><P ALIGN=LEFT><em> Per-Class Mixin</em></P></TD>
+	  <TD><P ALIGN=LEFT> before/after a call</P></TD>
+	  <TD><P ALIGN=LEFT> class and class hierarchies</P></TD>
+	  <TD><P ALIGN=LEFT> specific methods</P></TD>
+	</TR>
+	<TR>
+	  <TD><P ALIGN=LEFT><em> Unknown Mechanism</em></P></TD>
+	  <TD><P ALIGN=LEFT> after method was not found</P></TD>
+	  <TD><P ALIGN=LEFT> object</P></TD>
+	  <TD><P ALIGN=LEFT> all unknown calls</P></TD>
+	</TR>
+      </TABLE>
+    </CENTER>
 
 <br>
 
@@ -2900,6 +2851,14 @@ call-stack dependent.
 	      of the object/class on which the filter is registered. Returns either 
 	      '<tt><em>objName</em> <tt>filter</tt> <em>filterName</em></tt>' or 
 	      '<tt><em>className</em> instfilter <em>filterName</em></tt>'.
+	  </TD>
+	</TR>
+	<TR>
+	  <TD><tt>self isnextcall</tt>
+	  </TD>
+	  <TD VALIGN=TOP>
+	    <P ALIGN=LEFT>Return 1 if this method
+              was invoked via next, otherwise 0
 	  </TD>
 	</TR>
 	<TR>

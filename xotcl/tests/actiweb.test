@@ -1,5 +1,5 @@
 # -*- Mode: tcl -*-
-# $Id: actiweb.test,v 1.4 2004/10/13 10:35:43 neumann Exp $
+# $Id: actiweb.test,v 1.5 2005/09/09 21:07:23 neumann Exp $
 # regression test for actiweb examples
 #if {[set ::tcl_platform(platform)] == "windows"} {
 #  lappend auto_path .
@@ -49,7 +49,7 @@ T new -msg "terminate Counter" -setResult {set x 1} \
 
 T new -msg "Trying Counter2.xotcl ... " \
     -setResult {r0 getContentLength} \
-    -expected 294 \
+    -expected 238 \
     -cmd [list SimpleRequest r0 -url http://localhost:8091/web-c1]
 T new -msg "terminate Counter1" -setResult {set x 1}  \
     -cmd [list SimpleRequest r0 -url http://localhost:8091/receiver::exit] \
@@ -73,7 +73,7 @@ T new -msg "terminate Counter4" -setResult {set x 1} \
 
 T new -msg "Trying MC.xotcl ... " \
     -setResult {r0 getContentLength} \
-    -expected 1823 \
+    -expected 1767 \
     -cmd [list SimpleRequest r0 -url http://localhost:8092/Gustaf.html ]
 T new -msg "terminate MC" -setResult {set x 1} \
     -cmd [list SimpleRequest r0 -url http://localhost:8092/receiver::exit] \

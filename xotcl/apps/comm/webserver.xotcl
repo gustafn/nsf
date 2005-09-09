@@ -1,10 +1,15 @@
 #!../../src/xotclsh
-# $Id: webserver.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: webserver.xotcl,v 1.2 2005/09/09 21:07:23 neumann Exp $
 array set opts {-root ../../doc -port 8086 -protected-port 9096 -pkgdir .}
 array set opts $argv
 lappend auto_path $opts(-pkgdir)
 #if {$::tcl_platform(platform) == "windows"} {lappend auto_path .}
 package require XOTcl; namespace import -force xotcl::*
+
+proc ! string {
+  set f [open /tmp/log w+]; 
+  puts $f "[clock format [clock seconds]] $string"
+  close $f}
 
 @ @File {
   description {
@@ -24,14 +29,20 @@ package require XOTcl; namespace import -force xotcl::*
   }
 }
 
+! "#### webserver starting"
 # We load the following packages:
 #
+#::xotcl::package import ::xotcl::comm::httpd
 package require xotcl::comm::httpd
+
+! "#### httpd required"
 
 # now we can start the web-server instance with these settings
 #
 Httpd h1 -port $opts(-port) -root $opts(-root)
 @ Httpd h1 {description "unprotected web server"}
+
+! "#### h1 started"
 
 # specialized worker, which executes tcl commands in web pages
 @ Class SpecializedWorker { description {
@@ -95,8 +106,10 @@ if {$::tcl_platform(platform) == "windows"} {
 
 Httpd h2 -port $opts(-protected-port) -root $opts(-root) \
     -httpdWrk SpecializedWorker \
-    -mixin BasicAccessControl \
+    -mixin Httpd::BasicAccessControl \
     -addRealmEntry test "u1 test $USER test"  -protectDir test "" {} 
+
+! "#### h2 started"
 
 #
 # and finally call the event loop... 

@@ -1,5 +1,5 @@
 #!../../xotcl-0.9.4/xotclsh
-# $Id: xocomm.test,v 1.2 2005/01/06 03:10:05 neumann Exp $
+# $Id: xocomm.test,v 1.3 2005/09/09 21:07:23 neumann Exp $
 package require XOTcl; namespace import -force xotcl::*
 lappend auto_path [file dirname [info script]]/..
 package require xotcl::test
@@ -22,17 +22,21 @@ set xotclsh [info nameofexecutable]
 set dir [file dir [info script]]
 set serverScript $dir/../apps/comm/webserver.xotcl
 set startCmd "$xotclsh $serverScript -root $dir/../doc -pkgdir $dir/.."
-
+puts $startCmd
 if {$opt(-startServer)} {
   set PIPE [open "| $startCmd"]
 } else {
   puts $startCmd
 }
 
-package require xotcl::package; package verbose 1
 package require xotcl::comm::httpAccess
 package require xotcl::comm::ftp
 package require xotcl::trace
+
+#::xotcl::package verbose 1
+#::xotcl::package require xotcl::comm::httpAccess
+#::xotcl::package require xotcl::comm::ftp
+#::xotcl::package require xotcl::trace
 
 set hostport localhost:8086
 set protectedhostport localhost:9096
@@ -63,6 +67,8 @@ Test parameter {{errorReport {
 }}}
 
 Test new -msg "Trying to load image logo-100.jpg ... " -count 1 \
+     -verbose 1 \
+     -pre "puts starting..." \
     -setResult {expr {[r0::sink set contentLength] == 1706}} \
     -cmd [list SimpleRequest r0 -url http://$hostport/logo-100.jpg] \
 
