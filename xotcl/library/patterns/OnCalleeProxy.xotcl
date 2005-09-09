@@ -1,4 +1,4 @@
-# $Id: OnCalleeProxy.xotcl,v 1.3 2005/09/09 21:07:23 neumann Exp $
+# $Id: OnCalleeProxy.xotcl,v 1.4 2005/09/09 21:09:01 neumann Exp $
 
 package provide xotcl::pattern::onCalleeProxy 0.8
 package require XOTcl

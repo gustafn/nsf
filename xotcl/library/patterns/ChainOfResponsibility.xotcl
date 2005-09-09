@@ -1,4 +1,4 @@
-# $Id: ChainOfResponsibility.xotcl,v 1.3 2005/09/09 21:07:23 neumann Exp $
+# $Id: ChainOfResponsibility.xotcl,v 1.4 2005/09/09 21:09:01 neumann Exp $
 
 package provide xotcl::pattern::chainOfResponsibility 0.9
 package require XOTcl

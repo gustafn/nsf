@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.37 2005/09/09 21:07:23 neumann Exp $
+/* $Id: xotcl.c,v 1.38 2005/09/09 21:09:01 neumann Exp $
  *
  *  XOTcl - Extended OTcl
  *

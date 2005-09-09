@@ -1,5 +1,5 @@
 #!../../src/xotclsh
-# $Id: Counter2.xotcl,v 1.2 2005/09/09 21:07:23 neumann Exp $
+# $Id: Counter2.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
 array set opts {-pkgdir .}; array set opts $argv
 lappend auto_path $opts(-pkgdir)
 

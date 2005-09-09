@@ -1,5 +1,7 @@
 set __dir__ $dir 
-foreach index [glob -nocomplain [file join $dir * pkgIndex.tcl]] {
+foreach index [concat \
+		   [glob -nocomplain [file join $dir * pkgIndex.tcl]] \
+		   [glob -nocomplain [file join $dir * * pkgIndex.tcl]]] {
   set dir [file dirname $index]
   source $index
 } 

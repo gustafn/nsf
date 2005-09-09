@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.14 2005/09/09 21:07:23 neumann Exp $
+ *  $Id: xotclInt.h,v 1.15 2005/09/09 21:09:01 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun

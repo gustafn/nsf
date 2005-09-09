@@ -377,11 +377,16 @@ Xotclsdbm_Init(Tcl_Interp * in) {
     if (Tcl_PkgRequire(in, "xotcl::store", 0, 0) == NULL) {
         return TCL_ERROR;
     }
-    result = Tcl_VarEval (in,
-			  "Class Storage=Sdbm -superclass Storage",
+    result = Tcl_VarEval (in, "Class create Storage=Sdbm -superclass Storage",
 			  (char*) 0);
     if (result != TCL_OK)
       return result;
+    /*{
+      Tcl_Obj *res = Tcl_GetObjResult(in);
+      fprintf(stderr,"res='%s'\n", TclObjStr(res));
+      cl = XOTclGetClass(in, "Storage=Sdbm");
+      fprintf(stderr,"cl=%p\n",cl);
+      }*/
 
     cl = XOTclGetClass(in, "Storage=Sdbm");
     XOTclAddIMethod(in, cl, "open", XOTclSdbmOpenMethod, 0, 0);

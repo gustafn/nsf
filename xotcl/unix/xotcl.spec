@@ -1,10 +1,10 @@
 Summary: Object Oriented Extension for Tcl
 Name: xotcl
-Version: 1.3.5
+Version: 1.3.7
 Release: 0
 Copyright: open source
 Group: Development/Languages
-Source:  http://www.xotcl.org/xotcl-1.3.5.tar.gz
+Source:  http://www.xotcl.org/xotcl-1.3.7.tar.gz
 URL: http://www.xotcl.org
 Packager: Gustaf.Neumann@wu-wien.ac.at
 Distribution: RedHat 8.0
@@ -21,11 +21,11 @@ persistent object store, mobile code system, etc. For more details
 consult http://www.xotcl.org
 
 %prep
-%setup -q -n xotcl-1.3.5
+%setup -q -n xotcl-1.3.7
 
 
 %build
-./configure --with-tcl=/usr/lib --with-all --prefix=/usr --exec-prefix=/usr
+./configure --with-tcl=/usr/lib --with-all --prefix=/usr/local --exec-prefix=/usr/local
 #make CFLAGS_DEFAULT='-O3 -mcpu=i686 -Wall -fomit-frame-pointer'
 make CFLAGS_DEFAULT='-O3 -Wall -fomit-frame-pointer'
 
@@ -37,10 +37,10 @@ make install
 %undefine       __check_files
 
 %doc doc 
-/usr/lib/xotcl1.3.5
-/usr/bin/xotclsh
-/usr/bin/xowish
-/usr/include/xotclDecls.h
-/usr/include/xotcl.h
-/usr/include/xotclIntDecls.h
-/usr/include/xotclInt.h
+/usr/local/lib/xotcl1.3.7
+/usr/local/bin/xotclsh
+/usr/local/bin/xowish
+/usr/local/include/xotclDecls.h
+/usr/local/include/xotcl.h
+/usr/local/include/xotclIntDecls.h
+/usr/local/include/xotclInt.h

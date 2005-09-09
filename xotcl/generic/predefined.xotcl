@@ -1,4 +1,4 @@
-# $Id: predefined.xotcl,v 1.6 2005/09/09 21:07:23 neumann Exp $
+# $Id: predefined.xotcl,v 1.7 2005/09/09 21:09:01 neumann Exp $
 
 # init must exist on Object. per default it is empty.
 ::xotcl::Object instproc init args {}

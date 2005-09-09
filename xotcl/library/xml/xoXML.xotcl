@@ -1,4 +1,4 @@
-# $Id: xoXML.xotcl,v 1.2 2005/09/09 21:07:23 neumann Exp $
+# $Id: xoXML.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
 package provide xotcl::xml::parser 0.94
 
 package require XOTcl

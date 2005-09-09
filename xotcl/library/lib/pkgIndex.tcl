@@ -10,7 +10,7 @@
 
 package ifneeded xotcl::htmllib 0.1 [list source [file join $dir htmllib.xotcl]]
 package ifneeded xotcl::metadataAnalyzer 0.84 [list source [file join $dir metadataAnalyzer.xotcl]]
-package ifneeded xotcl::mixinStrategy 0.8 [list source [file join $dir mixinStrategy.xotcl]]
+package ifneeded xotcl::mixinStrategy 0.9 [list source [file join $dir mixinStrategy.xotcl]]
 package ifneeded xotcl::script 0.9 [list source [file join $dir Script.xotcl]]
 package ifneeded xotcl::staticMetadataAnalyzer 0.84 [list source [file join $dir staticMetadata.xotcl]]
 package ifneeded xotcl::test 1.03 [list source [file join $dir test.xotcl]]

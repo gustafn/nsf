@@ -4,6 +4,7 @@
 package require XOTcl; namespace import -force xotcl::*
 set pkgdir  [file dir [info script]]/..
 lappend auto_path $pkgdir
+
 package require xotcl::test
 
 set tclsh [info nameofexecutable]
@@ -15,7 +16,7 @@ set startCmd "$tclsh $univApps/UNIVERSAL.xotcl \
     -cssFile UNIVERSAL.css \
     -root $dir/../apps/actiweb/univ \
     -pkgdir $pkgdir"
-#puts stderr "starting $startCmd"
+puts stderr "starting $startCmd"
 set PIPE [open "|$startCmd"]
 
 package require xotcl::comm::httpAccess
