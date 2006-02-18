@@ -1,10 +1,10 @@
 /* -*- Mode: c++ -*-
  *
- *  $Id: xotcl.h,v 1.7 2004/11/19 01:41:32 neumann Exp $
+ *  $Id: xotcl.h,v 1.8 2006/02/18 22:17:33 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2004 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
  *
  *  This software is based upon MIT Object Tcl by David Wetherall and
  *  Christopher J. Lindblad, that contains the following copyright

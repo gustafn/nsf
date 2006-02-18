@@ -1,3 +1,129 @@
+2006-02-17 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+       * release of 1.4.0
+
+2006-02-17 <Gustaf.Neumann@wu-wien.ac.at>
+     * fixed a bug with nonpositional arguments in connection with "args"
+       (Many thanks for Kurt Stoll pointing this out)
+     * added more regression tests
+     * fixed dependencies created for rpm  binaries
+     * mak compile cleaner for gcc 4.* under linux
+
+2006-02-08 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+    * fixed a bug with transitive mixins
+
+2006-02-02 <Gustaf.Neumann@wu-wien.ac.at>
+     * Upgrade to TEA 3.5
+
+2006-01-10 <Gustaf.Neumann@wu-wien.ac.at>
+      * fixing exit behavior with variable traces in multi-threaded
+         environments (volatile objects could be demalloced twice before)
+
+2006-01-08 <Gustaf.Neumann@wu-wien.ac.at>
+      * allowing tcl commands and variables as default values for parameters; previously,
+       	only one-word commands were allowed.
+
+2006-01-07 <Gustaf.Neumann@wu-wien.ac.at>
+       * ::xotcl::configure options can be called with one (for query)
+          and two (for setting) arguments (similar to set)
+       * new option: ::xotcl::configure softrecreate on|off
+         if softrecreate is set, class relations (superclass, subclass, class, instances)
+         are not affected by a recreate; this allows files with class definitions
+	 more easily to reload
+       * don't destroy namespace imported child objects
+
+2006-01-06 <Gustaf.Neumann@wu-wien.ac.at>
+       * unsetting the global variable "cmd" from predefined.xotcl
+         (Many thanks to Koen Danckaert for reporting) 
+
+2006-01-05 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+       * fixing incorrect state in filters after next
+       * extended regression test
+
+2006-01-02 <Gustaf.Neumann@wu-wien.ac.at>
+       * info children returns true children, no namespace imported objects/classes
+       * extended regression test
+
+2005-12-20 <Gustaf.Neumann@wu-wien.ac.at>
+      * upgrading configure scripts of subcomponents to TEA 3.4
+
+2005-12-17 <Gustaf.Neumann@wu-wien.ac.at>
+      * fixing missing omitted message for unknown subcommand to self
+
+2005-12-07 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+       * release of 1.3.9
+
+2005-12-06 <Gustaf.Neumann@wu-wien.ac.at>
+      * fixed bug with error propagation when gett/setter methods are 
+        used for parameters (many thanks to Manfred Stelzhammer for
+       pointing this out)
+
+2005-12-04 <Gustaf.Neumann@wu-wien.ac.at>
+      * Upgraded TEA to 3.4
+      * updated rpm build (many thanks to Ildiko Schmidt and Alexander Bergolth)
+
+2005-11-28 <Gustaf.Neumann@wu-wien.ac.at>
+      * new command ::xotcl::__qualify: convert an relative name
+        into an command name (exactly as create does it, ignoring
+        namespaces from transparent interceptors)
+
+2005-11-26 <Gustaf.Neumann@wu-wien.ac.at>
+      * require automatically a namespace when a childobject is added
+
+2005-11-18 <Gustaf.Neumann@wu-wien.ac.at>
+      * new switch -nocomplain for "mixin|instmixin|filter|instfilter delete"
+        to avoid error messages when deleting entries not there (similar unset) 
+ 
+2005-11-10 <Gustaf.Neumann@wu-wien.ac.at>
+      * "<obj> info vars" does not trigger read traces anymore
+      * fixing version numbers for package require 
+         (many thanks to  Andreas Kupries for the report)
+      * Serializer: exportMethods accepts forwards/instforwards now 
+         as well
+
+2005-11-02 <Gustaf.Neumann@wu-wien.ac.at>
+      * new subcommand of self: [self args] return the full argument list 
+         of the current call
+
+2005-10-02 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+       * release of 1.3.8
+
+2005-10-01 <Gustaf.Neumann@wu-wien.ac.at>
+       * fixed a bug concering __unknown called via mixin method
+          (many thanks to Zoran for the report)
+       * fixed a memory leak in isMetaClass() in connection with 
+          instmixins (many thanks to Ben Thomasson for the report)
+
+2005-09-28 <Gustaf.Neumann@wu-wien.ac.at>
+       * fixed bug in instvar (many thanks to Koen Danckaert for the report)
+         extended regression test
+
+2005-09-27 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+        * release of distribution XOTcl 1.3.7
+
+2005-09-26 <Gustaf.Neumann@wu-wien.ac.at>
+      * new check option "switch" for non positional arguments.
+         If .... -somearg:switch is specified in the definition
+         of a method, this behaves like "boolean", except that
+         no additional argument is specified during invocation.
+         A default value of "off" can be turned on, as well as the
+         default value "on" can be turned off by specifying the switch
+         in an invocation.
+
+2005-09-25 <Gustaf.Neumann@wu-wien.ac.at>
+      * defined an experimental method named "method"
+      * new global command "::xotcl::configure filter on|off"
+        to deactivate all filters for an interpreter. This is 
+        needed for serializing code with active filters.
+      * Changed xotcl serializer to use "::xotcl::configure"
+
+2005-09-14 <Gustaf.Neumann@wu-wien.ac.at>
+      * Fixing serializer to enforce methods on ::xotcl::Object or ::xotcl::Class
+        before other objects and classes
+
+2005-09-13 <Gustaf.Neumann@wu-wien.ac.at>
+      * adding two package require into library files
+        (many thanks to Andreas Kupries for the report)
+
 2005-09-09 <Gustaf.Neumann@wu-wien.ac.at>
       * fixing various namespace issues in library files to make 
         regression test working again.
@@ -20,7 +146,7 @@
 
      * merged first bunch of files from Andreas Kupries to 
        make libraries more namespace clean. fixed a few namespace iusses
-       in the libraries.
+       in the libraries. Many thanks to Andreas Kupries!
  
     * fixed refrence resolving in istype; the following works now the same
       way: 
@@ -45,7 +171,7 @@
          (increment further until unused name is found)
 
 2005-07-04 Jeff Hobbs <jeffh@activestate.com>
-       *
+       * providing update for configure 
 
 2005-04-04 <Gustaf.Neumann@wu-wien.ac.at>
       * allow xotcl to be used in safe safe interpreters

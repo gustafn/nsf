@@ -1,5 +1,4 @@
-#!../../src/xotclsh
-#!/usr/local/bin/xotclsh
+#!/usr/bin/env tclsh
 #if {![info exists ACTIWEB_HOME]} {source ~/actiweb/paths.xotcl}
 package require XOTcl; namespace import -force xotcl::*
 

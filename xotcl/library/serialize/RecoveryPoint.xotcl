@@ -1,4 +1,4 @@
-# $Id: RecoveryPoint.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# $Id: RecoveryPoint.xotcl,v 1.4 2006/02/18 22:17:33 neumann Exp $
 
 package provide xotcl::scriptCreation::recoveryPoint 0.8
 package require XOTcl
@@ -9,7 +9,7 @@ namespace eval ::xotcl::scriptCreation::recoveryPoint {
     ## fehlt noch: filter, mixins, metadata, ass, assoption, etc
     ## beim recover Class's,Object's proc instproc vars nicht ueberschreiben
     ## filter dann anhaengen etc ...
-    ## der Recovery Filter darf durch Object filter "" nicht gelöscht werden
+    ## der Recovery Filter darf durch Object filter "" nicht gelÃ¶scht werden
 
     #
     # filter to ensure that recovering doesn't overwrite 
@@ -144,12 +144,12 @@ namespace eval ::xotcl::scriptCreation::recoveryPoint {
 	set aCount 0
 	set bCount 0
 	for {set i 0} {$i < [string length $a]} {incr i} {
-	    if {[string index $a $i] == ":"} {
+	    if {[string index $a $i] eq ":"} {
 		incr aCount
 	    }
 	}
 	for {set i 0} {$i < [string length $b]} {incr i} {
-	    if {[string index $b $i] == ":"} {
+	    if {[string index $b $i] eq ":"} {
 		incr bCount
 	    }
 	}
@@ -304,7 +304,7 @@ namespace eval ::xotcl::scriptCreation::recoveryPoint {
 	    append script "$metaClass $cl"
 
 	    set sl [$cl info superclass]
-	    if {$sl != ""} {
+	    if {$sl ne ""} {
 		append script " -superclass \{$sl\}\n"
 	    } else {
 		append script "\n"

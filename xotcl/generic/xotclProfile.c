@@ -1,9 +1,9 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclProfile.c,v 1.1 2004/05/23 22:50:39 neumann Exp $
+ *  $Id: xotclProfile.c,v 1.2 2006/02/18 22:17:33 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2000 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
  *
  *
  *  xotclProfile.c --

@@ -1,5 +1,5 @@
-#!/usr/local/bin/xotclsh
-# $Id: secure-webserver.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+#!/usr/bin/env tclsh
+# $Id: secure-webserver.xotcl,v 1.2 2006/02/18 22:17:32 neumann Exp $
 package require XOTcl; namespace import -force xotcl::*
 
 @ @File {

@@ -1,5 +1,4 @@
 #!../../src/xotclsh
-#!/usr/local/bin/xotclsh
 #
 # small Example for usage of xoXML
 package require xotcl::package

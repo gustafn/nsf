@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.16 2005/09/09 21:09:01 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.17 2006/02/18 22:17:32 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -58,7 +58,7 @@ DOC_SOURCE = \
 	$(src_app_dir)/actiweb/univ/UNIVERSAL.xotcl \
 	$(src_app_dir)/utils/xo-*[a-z0-9] 
 
-export TCLLIBPATH=. ${srcdir}
+#export TCLLIBPATH=. ${srcdir}
 mkinstalldirs= mkdir -p
 #========================================================================
 # Nothing of the variables below this line should need to be changed.
@@ -648,7 +648,7 @@ bin-tar:
                 -type f -o -type l | fgrep -v CVS | fgrep -v SCCS | fgrep -v .junk| fgrep -v .db | fgrep -v "~" | fgrep -v "#" | fgrep -v /receiver/` \
 	)
 
-tar: 
+tar:  libraries-pkgindex
 	sh ./config/mktar.sh
 
 

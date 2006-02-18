@@ -1,8 +1,8 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.15 2005/09/09 21:09:01 neumann Exp $
+ *  $Id: xotclInt.h,v 1.16 2006/02/18 22:17:33 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2002 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
  *
  *  xotclInt.h --
  *
@@ -293,18 +293,22 @@ typedef struct XOTclMemCounter {
 #define XOTcl_FrameDecls Tcl_CallFrame frame
 #define XOTcl_PushFrame(in,obj) \
      if ((obj)->nsPtr) {				     \
-       Tcl_PushCallFrame(in, &frame, (obj)->nsPtr, 0);	     \
+       Tcl_PushCallFrame(in, &frame, (obj)->nsPtr, 0);   \
      } else { \
-       Tcl_PushCallFrame(in, &frame, RUNTIME_STATE(in)->fakeNS, 1); \
-       Tcl_CallFrame_procPtr(&frame) = &RUNTIME_STATE(in)->fakeProc; \
-       Tcl_CallFrame_varTablePtr(&frame) = (obj)->varTable;	     \
+       Tcl_CallFrame *framePtr = &frame;		\
+       CallFrame *myframe = (CallFrame *)framePtr;		\
+       Tcl_PushCallFrame(in, &frame, RUNTIME_STATE(in)->fakeNS, 1);	\
+       Tcl_CallFrame_procPtr(myframe) = &RUNTIME_STATE(in)->fakeProc;	\
+       Tcl_CallFrame_varTablePtr(myframe) = (obj)->varTable;	\
      }
 #define XOTcl_PopFrame(in,obj) \
      if (!(obj)->nsPtr) {	       \
+       Tcl_CallFrame *framePtr = &frame;		\
+       CallFrame *myframe = (CallFrame *)framePtr;		\
        if ((obj)->varTable == 0)			    \
-         (obj)->varTable = Tcl_CallFrame_varTablePtr(&frame);	\
-       Tcl_CallFrame_varTablePtr(&frame) = 0; \
-       Tcl_CallFrame_procPtr(&frame) = 0; \
+         (obj)->varTable = Tcl_CallFrame_varTablePtr(myframe);	\
+       Tcl_CallFrame_varTablePtr(myframe) = 0; \
+       Tcl_CallFrame_procPtr(myframe) = 0; \
      } \
      Tcl_PopCallFrame(in)
 #endif
@@ -573,14 +577,12 @@ typedef struct XOTclCallStackContent {
 } XOTclCallStackContent;
 
 #define XOTCL_CSC_TYPE_PLAIN 0
-#define XOTCL_CSC_TYPE_MIXIN 1
-#define XOTCL_CSC_TYPE_FILTER 2
-#define XOTCL_CSC_INACTIVE_FLAG 4
 #define XOTCL_CSC_TYPE_ACTIVE_MIXIN 1
 #define XOTCL_CSC_TYPE_ACTIVE_FILTER 2
+#define XOTCL_CSC_TYPE_INACTIVE 4
 #define XOTCL_CSC_TYPE_INACTIVE_MIXIN 5
 #define XOTCL_CSC_TYPE_INACTIVE_FILTER 6
-#define XOTCL_CSC_TYPE_GUARD 8
+#define XOTCL_CSC_TYPE_GUARD 16
 
 #define XOTCL_CSC_CALL_IS_NEXT 1
 #define XOTCL_CSC_CALL_IS_DESTROY 2
@@ -615,9 +617,12 @@ typedef struct XOTclRuntimeState {
   Tcl_Obj **methodObjNames;
   struct XOTclShadowTclCommandInfo *tclCommands;
   int errorCount;
+  /* these flags could move into a bitarray, but are used only once per interp*/
   int callDestroy;
   int callIsDestroy;
   int unknown;
+  int doFilters;
+  int doSoftrecreate;
   int exitHandlerDestroyRound;
   int returnCode;
   long newCounter;

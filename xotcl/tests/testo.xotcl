@@ -1,4 +1,4 @@
-# $Id: testo.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: testo.xotcl,v 1.2 2006/02/18 22:17:33 neumann Exp $
 # 
 # Copyright 1993 Massachusetts Institute of Technology
 #
@@ -111,7 +111,7 @@ paperexamples proc example2 {} {
   Safety instproc put {thing} {
     my instvar count
     incr count
-    next $thing
+    next
   }
   
   Safety instproc get {} {
@@ -365,7 +365,7 @@ objectinits proc prepare {n} {
 
   TestClass 0
   0 instproc init {args} {
-    eval next $args
+    next
     my set order {}
   }
 

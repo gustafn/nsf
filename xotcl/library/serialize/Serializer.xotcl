@@ -1,6 +1,6 @@
-# $Id: Serializer.xotcl,v 1.11 2005/01/10 11:57:35 neumann Exp $
+# $Id: Serializer.xotcl,v 1.12 2006/02/18 22:17:33 neumann Exp $
 package require XOTcl 1.3
-package provide xotcl::serializer 0.8
+package provide xotcl::serializer 0.9
 
 namespace eval ::xotcl::serializer {
 
@@ -15,7 +15,7 @@ namespace eval ::xotcl::serializer {
     authors {
       Gustaf Neumann, Gustaf.Neumann@wu-wien.ac.at
     }
-    date { $Date: 2005/01/10 11:57:35 $ }
+    date { $Date: 2006/02/18 22:17:33 $ }
   }
   
   @ Serializer proc all {
@@ -106,13 +106,14 @@ namespace eval ::xotcl::serializer {
       from the ::xotcl:: namespace, which is used for XOTcl internals
       and volatile objects. It is however often useful to define
       methods on ::xotcl::Class or ::xotcl::Objects, which should
-      be exported.<p>
+      be exported. One can export procs, instprocs, forward and instforward<p>
       Example:
       <@pre class='code'>      Serializer exportMethods {
 	::xotcl::Object instproc __split_arguments
 	::xotcl::Object instproc __make_doc
 	::xotcl::Object instproc ad_proc
 	::xotcl::Class  instproc ad_instproc
+	::xotcl::Object forward  expr
       }<@/pre>
     }
   }
@@ -135,7 +136,13 @@ namespace eval ::xotcl::serializer {
     my set skip $args
   }
   Serializer instproc ignore args {
-    foreach i $args { my set skip($i) 1 }
+    foreach i $args { 
+      my set skip($i) 1
+      # skip children of ignored objects as well
+      foreach j [$i info children] {
+	my ignore $j
+      }
+    }
   }
   Serializer instproc init {} {
     my ignore [self] 
@@ -199,16 +206,16 @@ namespace eval ::xotcl::serializer {
     }
     foreach x {mixin invar} {
       set v [$o info $x]
-      if {[string compare "" $v]} {append cmd [my pcmd [list $x $v]] " \\\n"}
+      if {$v ne ""} {append cmd [my pcmd [list $x $v]] " \\\n"}
     }
     set v [$o info filter -guards]
-    if {[string compare "" $v]} {append cmd [my pcmd [list filter $v]] " \\\n"}
+    if {$v ne ""} {append cmd [my pcmd [list filter $v]] " \\\n"}
     return $cmd
   }
   Serializer instproc Class-serialize o {
     set cmd [my Object-serialize $o]
     set p [$o info parameter]
-    if {[string compare "" $p]} {
+    if {$p ne ""} {
       append cmd " " [my pcmd [list parameter $p]] " \\\n"
     }
     foreach i [$o info instprocs] {
@@ -220,12 +227,12 @@ namespace eval ::xotcl::serializer {
     }
     foreach x {superclass instmixin instinvar} {
       set v [$o info $x]
-      if {[string compare "" $v] && [string compare "::xotcl::Object" $v]} {
+      if {$v ne "" && "::xotcl::Object" ne $v } {
 	append cmd " " [my pcmd [list $x $v]] " \\\n"
       }
     }
     set v [$o info instfilter -guards]
-    if {[string compare "" $v]} {append cmd [my pcmd [list instfilter $v]] " \\\n"}
+    if {$v ne ""} {append cmd [my pcmd [list instfilter $v]] " \\\n"}
     return $cmd\n
   }
   
@@ -260,7 +267,7 @@ namespace eval ::xotcl::serializer {
     if {[my array exists level]} {my array unset level}
     foreach c $set {
       if {!$all &&
-	  [string match ::xotcl::* $c] && 
+	  [string match "::xotcl::*" $c] && 
 	  ![[self class] exists exportObjects($c)]} continue
       if {[my exists skip($c)]} continue
       my set s($c) 1
@@ -277,7 +284,7 @@ namespace eval ::xotcl::serializer {
 	  my lappend level($stratum) $c
 	}
       }
-      if {[string equal "" [my set level($stratum)]]} {
+      if {"" eq [my set level($stratum)]} {
 	my set level($stratum) $set
 	my warn "Cyclic dependency in $set"
       }
@@ -285,7 +292,7 @@ namespace eval ::xotcl::serializer {
     }
   }
   Serializer instproc warn msg {
-    if {[string compare "" [info command ns_log]]} {
+    if {[info command ns_log] ne ""} {
       ns_log Notice $msg
     } else {
       puts stderr "!!! Warning: $msg"
@@ -300,7 +307,7 @@ namespace eval ::xotcl::serializer {
   }
   Serializer instproc Object-needsNothing x {
     set p [$x info parent]
-    if {[string compare $p "::"] && [my needsOneOf $p]} {return 0}
+    if {$p ne "::"  && [my needsOneOf $p]} {return 0}
     if {[my needsOneOf [$x info class]]}  {return 0}
     if {[my needsOneOf [$x info mixin ]]} {return 0}
     return 1
@@ -312,7 +319,7 @@ namespace eval ::xotcl::serializer {
   Serializer instproc serialize {objectOrClass} {
     string trimright [my [my category $objectOrClass]-serialize $objectOrClass] "\\\n"
   }
-  Serializer instproc serializeList {list all} {
+  Serializer instproc serialize-objects {list all} {
     my topoSort $list $all
     #foreach i [lsort [my array names level]] {puts "$i: [my set level($i)]"}
     set result ""
@@ -335,11 +342,11 @@ namespace eval ::xotcl::serializer {
     foreach ns [array name namespace] {
       if {![my isobject $ns]} {
 	append nsdefines "namespace eval $ns {}\n"
-      } elseif {[string compare $ns [namespace origin $ns]]} {
+      } elseif {$ns ne [namespace origin $ns] } {
 	append nsdefines "namespace eval $ns {}\n"
       }
       set exp [namespace eval $ns {namespace export}]
-      if {[string compare "" $exp]} {
+      if {$exp ne ""} {
 	append exports "namespace eval $ns {namespace export $exp}" \n
       }
     }
@@ -347,9 +354,32 @@ namespace eval ::xotcl::serializer {
   }
   Serializer instproc deepSerialize o {
     # assumes $o to be fully qualified
-    my serializeList [my allChildren $o] 1
+    my serialize-objects [my allChildren $o] 1
   }
-  
+  Serializer instproc serializeMethod {object kind name} {
+    set code ""
+    switch $kind {
+      proc {
+	if {[$object info procs $name] ne ""} {
+	  set code [my method-serialize $object $name ""]
+	}
+      }
+      instproc {
+	if {[$object info instprocs $name] ne ""} {
+	  set code [my method-serialize $object $name inst]
+	}
+      }
+      forward - instforward {
+	if {[$object info $kind $name] ne ""} {
+	  set fwd [concat [list $kind $name] [$object info $kind -definition $name]]
+	  set code [my pcmd $fwd]
+	}
+      }
+    }
+    return $code
+  } 
+
+ 
   Serializer proc exportMethods list {
     foreach {o p m} $list {my set exportMethods($o,$p,$m) 1}
   }
@@ -357,24 +387,48 @@ namespace eval ::xotcl::serializer {
     foreach o $list {my set exportObjects($o) 1}
   }
 
-  Serializer proc all {args} {
-    set s [eval my new -childof [self] -volatile $args]
-    set r [$s serializeList [$s allInstances ::xotcl::Object] 0]
-    my exportMethods [list ::xotcl::Object proc __exitHandler]
+  Serializer proc serializeExportedMethods {s} {
+    set r ""
     foreach k [my array names exportMethods] {
       foreach {o p m} [split $k ,] break
-      switch $p {
-	proc     {set prefix ""}
-	instproc {set prefix inst}
+      if {$o ne "::xotcl::Object" && $o ne "::xotcl::Class"} {
+	error "method export only for ::xotcl::Object and\
+		::xotcl::Class implemented, not for $o"
       }
-      if {[string compare "" [$o info ${prefix}procs $m]]} {
-	if {![info exists methods($o)]} {set methods($o) ""}
-	append methods($o) [$s method-serialize $o $m $prefix] " \\\n "
+      append methods($o) [$s serializeMethod $o $p $m] " \\\n "      
+    }
+    foreach o [list ::xotcl::Object ::xotcl::Class] {
+      if {![info exists methods($o)]} continue
+      append r \n "$o configure \\\n " \
+	  [string trimright $methods($o) "\\\n "] 
+    }
+    #puts stderr "... exportedMethods <$r\n>"
+    return "$r\n"
+  }
+
+  Serializer proc all {args} {
+    set filterstate [::xotcl::configure filter off]
+    set s [eval my new -childof [self] -volatile $args]
+    # always export __exitHandler
+    my exportMethods [list ::xotcl::Object proc __exitHandler]
+    set r {set ::xotcl::__filterstate [::xotcl::configure filter off]}
+    append r \n "::xotcl::configure softrecreate [::xotcl::configure softrecreate]"
+    append r \n [my serializeExportedMethods $s]
+    # export the objects and classes
+    append r [$s serialize-objects [$s allInstances ::xotcl::Object] 0]    
+    foreach o [list ::xotcl::Object ::xotcl::Class] {
+      foreach x {mixin instmixin invar instinvar} {
+	set v [$o info $x]
+	if {$v ne ""  && $v ne "::xotcl::Object"} {
+	  append r "$o configure " [$s pcmd [list $x $v]] "\n"
+	}
       }
     }
-    foreach o [array names methods] {
-      append r \n "$o configure \\\n " [string trimright $methods($o) "\\\n "]
+    append r {
+      ::xotcl::configure filter $::xotcl::__filterstate
+      unset ::xotcl::__filterstate
     }
+    ::xotcl::configure filter $filterstate
     return $r
   }
   Serializer proc methodSerialize {object method prefix} {

@@ -1,9 +1,9 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclShadow.c,v 1.3 2004/12/02 00:01:20 neumann Exp $
+ * $Id: xotclShadow.c,v 1.4 2006/02/18 22:17:33 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2004 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
  *
  *
  *  xotclShadow.c --

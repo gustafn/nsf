@@ -1,4 +1,4 @@
-# $Id: aol-xotcl.tcl,v 1.8 2005/09/09 21:09:01 neumann Exp $
+# $Id: aol-xotcl.tcl,v 1.9 2006/02/18 22:17:33 neumann Exp $
 
 #
 # Load XOTcl library and some related packages.
@@ -25,7 +25,7 @@ proc _ns_savenamespaces {} {
     _ns_getnamespaces namespaces
     foreach n $namespaces {
         if {[string match ::xotcl* $n] == 0
-                && ([catch {::xotcl::Object isobject $n} ret] || $ret == 0)} {
+	    && ([catch {::xotcl::Object isobject $n} ret] || $ret == 0)} {
             lappend nslist $n
         }
     }
@@ -38,7 +38,8 @@ proc _ns_savenamespaces {} {
         }
     }
     if {[catch {::Serializer all} objects]} {
-        ns_log notice "XOTcl extension not loaded; will not copy objects."
+        ns_log notice "XOTcl extension not loaded; will not copy objects\
+	(errror; $objects)."
         set objects ""
     }
     ns_ictl save [append script \n \

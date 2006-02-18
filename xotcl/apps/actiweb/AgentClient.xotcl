@@ -1,8 +1,7 @@
-#!../../src/xotclsh
-#!/usr/local/bin/xotclsh
-# $Id: AgentClient.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+#!/usr/bin/env tclsh
+# $Id: AgentClient.xotcl,v 1.2 2006/02/18 22:17:32 neumann Exp $
 #if {![info exists ACTIWEB_HOME]} {source ~/actiweb/paths.xotcl}
-
+package require XOTcl; namespace import -force xotcl::*
 package require xotcl::package
 package verbose 1
 

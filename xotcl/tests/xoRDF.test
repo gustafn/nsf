@@ -1,6 +1,5 @@
 #!../../src/xotclsh
-#!/usr/local/bin/xotclsh
-# $Id: xoRDF.test,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# $Id: xoRDF.test,v 1.4 2006/02/18 22:17:33 neumann Exp $
 #
 package require XOTcl; namespace import -force xotcl::*
 

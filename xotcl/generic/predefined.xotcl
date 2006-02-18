@@ -1,4 +1,4 @@
-# $Id: predefined.xotcl,v 1.7 2005/09/09 21:09:01 neumann Exp $
+# $Id: predefined.xotcl,v 1.8 2006/02/18 22:17:33 neumann Exp $
 
 # init must exist on Object. per default it is empty.
 ::xotcl::Object instproc init args {}
@@ -9,21 +9,11 @@
 ::xotcl::@ proc unknown args {}
 namespace eval ::xotcl { namespace export @ }
 
-#::xotcl::Object instproc recreate args {
-#  ::xotcl::my cleanup
-#  ::set cl [::xotcl::my info class]
-#  ::set pcl [$cl info parameterclass]
-#  $pcl searchDefaults [::xotcl::self]
-#  if {![eval ::xotcl::my initmethods $args]} {
-#    eval ::xotcl::my init $args
-#  }
-#  return [::xotcl::self]
-#}
-
 # provide some Tcl-commands as methods for Objects
-foreach cmd {array append lappend trace eval} {
+foreach cmd {array append lappend trace eval unset} {
   ::xotcl::Object instforward $cmd -objscope
 }
+unset cmd
 ::xotcl::Object instproc tclcmd {t} {
   set cmd [list [::xotcl::self] forward $t -objscope]
   puts stderr "the method [::xotcl::self proc] is deprecated; use instead '$cmd'"
@@ -41,7 +31,7 @@ foreach cmd {array append lappend trace eval} {
 ::xotcl::Relations instproc add {obj prop value {pos 0}} {
   $obj $prop [linsert [$obj info $prop -guards] $pos $value]
 }
-::xotcl::Relations instproc delete {obj prop value} {
+::xotcl::Relations instproc delete {-nocomplain:switch obj prop value} {
   set old [$obj info $prop]
   set p [lsearch -glob $old $value]
   if {$p>-1} {$obj $prop [lreplace $old $p $p]} else {
@@ -155,38 +145,53 @@ foreach cmd {array append lappend trace eval} {
   ::xotcl::my set extra \[::xotcl::self\]
   foreach v [$obj info vars] {::xotcl::my set $v [$obj set $v]}
 }
-::xotcl::Class::Parameter proc mkGetterSetter {cl name args} {
-  #puts stderr "[::xotcl::self proc] $cl $name <$args> [llength $args]"
-  set l [llength $args]
-  if {$l == 0} {
+::xotcl::Class::Parameter proc mkGetterSetter {cl arg args} {
+  set name [lindex $arg 0]
+  #puts stderr "[::xotcl::self proc] $cl '$name' '$arg' ll=[llength $arg]"
+  if {$name eq $arg} {
     $cl instparametercmd $name
-  } elseif {$l == 1} {
-    $cl set __defaults($name) [lindex $args 0]
+    return
+  }
+
+  if {[llength $arg] == 2} {
+    #puts stderr "ll=2,     $cl set __defaults($name) [lindex $arg 1]"
+    $cl set __defaults($name) [lindex $arg 1]
     $cl instparametercmd $name
-  } else {
-    ::xotcl::my set name $name
-    ::xotcl::my set cl $cl
-    ::eval ::xotcl::my configure $args
-    if {[::xotcl::my exists extra] || [::xotcl::my exists setter] || 
-	[::xotcl::my exists getter] || [::xotcl::my exists access]} {
-      ::xotcl::my instvar extra setter getter access defaultParam
-      if {![info exists extra]} {set extra ""}
-      if {![info exists defaultParam]} {set defaultParam ""}
-      if {![info exists setter]} {set setter set}
-      if {![info exists getter]} {set getter set}
-      if {![info exists access]} {set access ::xotcl::my}
-      $cl instproc $name args "
+    return
+  } 
+  
+  set paramstring [string range $arg [expr {[string length $name]+1}] end]
+  #puts  stderr "remaining arg = '$paramstring'"
+  if {[string match {[$\[]*} $paramstring]} {
+    #puts stderr "match,     $cl set __defaults($name) $paramstring"
+    $cl set __defaults($name) $paramstring
+    $cl instparametercmd $name
+    return
+  }
+
+  ::xotcl::my set name $name
+  ::xotcl::my set cl $cl
+  #puts stderr "slow, run   ::eval ::xotcl::my configure [lrange $arg 1 end]"
+  ::eval ::xotcl::my configure [lrange $arg 1 end]
+  if {[::xotcl::my exists extra] || [::xotcl::my exists setter] || 
+      [::xotcl::my exists getter] || [::xotcl::my exists access]} {
+    ::xotcl::my instvar extra setter getter access defaultParam
+    if {![info exists extra]} {set extra ""}
+    if {![info exists defaultParam]} {set defaultParam ""}
+    if {![info exists setter]} {set setter set}
+    if {![info exists getter]} {set getter set}
+    if {![info exists access]} {set access ::xotcl::my}
+    $cl instproc $name args "
        if {\[llength \$args] == 0} {
          return \[$access $getter $extra $name\]
        } else {
          return \[eval $access $setter $extra $name \$args $defaultParam \]
        }"
-      foreach instvar {extra defaultParam setter getter access} {
-	if {[::xotcl::my exists $instvar]} {::xotcl::my unset $instvar}
-      }
-    } else {
-      $cl instparametercmd $name
+    foreach instvar {extra defaultParam setter getter access} {
+      if {[::xotcl::my exists $instvar]} {::xotcl::my unset $instvar}
     }
+  } else {
+    $cl instparametercmd $name
   }
 }
 ::xotcl::Class::Parameter proc values {param args} {
@@ -559,4 +564,17 @@ set ::xotcl::logdir $::xotcl::confdir/log
   }
   set component $prevComponent
   return $v
+}
+
+::xotcl::Object instproc method {name arguments body} {
+   my proc name $arguments $body				  
+}
+::xotcl::Class instproc method {
+  -per-object:switch name arguments body} {
+
+   if {${per-object}} {
+     my proc $name $arguments $body       
+   } else {
+     my instproc $name $arguments $body  
+   }
 }

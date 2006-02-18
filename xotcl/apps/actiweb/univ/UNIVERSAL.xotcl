@@ -1,5 +1,5 @@
-#!/usr/local/bin/xotclsh
-#$Id: UNIVERSAL.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+#!/usr/bin/env tclsh
+#$Id: UNIVERSAL.xotcl,v 1.4 2006/02/18 22:17:32 neumann Exp $
 package require XOTcl; namespace import -force xotcl::*
 array set opts {
   -ssl 0 -instanceFile UNIVERSAL.rdf -cssFile UNIVERSAL.css -root . -pkgdir .}

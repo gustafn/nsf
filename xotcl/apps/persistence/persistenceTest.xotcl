@@ -1,4 +1,4 @@
-#!/usr/local/bin/xotclsh
+#!../../src/xotclsh
 package require XOTcl; namespace import -force xotcl::*
 
 package require xotcl::store::persistence

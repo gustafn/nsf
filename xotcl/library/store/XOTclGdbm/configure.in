@@ -3,7 +3,7 @@ dnl	This file is an input file used by the GNU "autoconf" program to
 dnl	generate the file "configure", which is run during Tcl installation
 dnl	to configure the system for the local environment.
 #
-# RCS: @(#) $Id: configure.in,v 1.9 2005/09/09 21:09:01 neumann Exp $
+# RCS: @(#) $Id: configure.in,v 1.10 2006/02/18 22:17:33 neumann Exp $
 
 #-----------------------------------------------------------------------
 # Sample configure.in for Tcl Extensions.  The only places you should
@@ -29,13 +29,18 @@ AC_INIT([xotclgdbm], [1.2])
 # as well as PKG_LIB_FILE and PKG_STUB_LIB_FILE.
 #--------------------------------------------------------------------
 
-TEA_INIT([3.0])
+TEA_INIT([3.5])
 
 AC_CONFIG_AUX_DIR(../../../config)
 
 #--------------------------------------------------------------------
 # specify some extra flags
 #--------------------------------------------------------------------
+AC_ARG_WITH(gdbm,
+        [  --with-gdbm=GDBM_INCLUDE_DIR[,GDBM_LIB_DIR]
+            absolute path to gdbm.h and optionally the path to the library, 
+           --without-gdbm disables build of Tcl Gdbm],
+        [with_gdbm=$withval], [with_gdbm=no])
 
 AC_ARG_WITH(xotcl,
         [  --with-xotcl=DIR_CONTAINING_XOTCLCONFIG_SH
@@ -82,8 +87,7 @@ TEA_SETUP_COMPILER
 # This defines PKG(_STUB)_SOURCES, PKG(_STUB)_OBJECTS, PKG_HEADERS
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
-
-if test ! "${with_gdbm}" == yes; then
+if test ! "${with_gdbm}" == no; then
         GDBM_INC_DIR="`echo $with_gdbm |cut -f1 -d,`"
         GDBM_LIB_DIR="`echo $with_gdbm |cut -f2 -d, -s`"
 fi
@@ -241,6 +245,12 @@ TEA_PROG_TCLSH
 AC_CONFIG_FILES([Makefile])
 
 AC_OUTPUT
+
+
+
+
+
+
 
 
 

@@ -1,4 +1,4 @@
-#!/usr/local/bin/xotclsh
+#!/usr/bin/env tclsh
 package require XOTcl; namespace import -force xotcl::*
 
 @ @File {description { A tiny FTP client }} 

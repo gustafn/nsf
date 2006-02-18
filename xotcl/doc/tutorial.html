@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<!-- $Id: tutorial.html,v 1.11 2005/09/09 21:09:01 neumann Exp $ -->
+<!-- $Id: tutorial.html,v 1.12 2006/02/18 22:17:33 neumann Exp $ -->
 <HTML>
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
 	<META NAME="AUTHOR" CONTENT="Gustaf Neumann and Uwe Zdun">
-	<META NAME="DOCNUMBER" CONTENT="1.3.6">
-	<META NAME="CHANGEDBY" CONTENT="Gustaf ">
+	<META NAME="DOCNUMBER" CONTENT="1.4.0">
+	<META NAME="CHANGEDBY" CONTENT="Gustaf Neumann">
 <STYLE>
 BODY	{
     	font-family: Verdana, Arial, Helvetica, sans-serif;
@@ -59,7 +59,7 @@ table {
 			<IMG SRC="logo-100.jpg" NAME="Graphic1" ALIGN=RIGHT WIDTH=102 HEIGHT=42 BORDER=0></TD>
 	</TR>
 </TABLE>
-<p align=right>Version: 1.3.0</p>
+<p align=right>Version: 1.3.9</p>
 
 <UL>
 	<LI>
@@ -1870,9 +1870,9 @@ dashes ("-"), e.g.:
 Sometimes we want to check or control the non-positional
 arguments. For instance, in the above invocation, we might want to
 check that <tt>a</tt> is not forgotten, because otherwise the method cannot
-execute properly. This is the role of the checkoptions. There are two
-predefined checkoptions: <tt>required</tt> and <tt>boolean</tt>. 
-<tt>required</tt> checks
+execute properly. This is the role of the checkoptions. There are three
+predefined checkoptions: <tt>required</tt>, <tt>boolean</tt> and 
+<tt>switch</tt>. <tt>required</tt> checks
 whether a non-positional argument is given, <tt>boolean</tt> checks that a
 non-positional argument is of boolean type. For instance:
 </p>
@@ -1898,6 +1898,11 @@ and <tt>b</tt> is not a Tcl boolean type:
 <pre CLASS="code">
  p someproc -b " a b v"
 </pre><P>
+The checkoption <tt>switch</tt> is similar to <tt>boolean</tt> except
+it does not require an additional argument. If the default value is 
+<tt>false</tt>, the switch can be turned on, if the default is <tt>true</tt>
+it can be switched off.
+<p>
 The checkoptions are extensible. In fact, they are defined in an
 object <tt>::xotcl::nonposArgs</tt>. We can extend this object with new
 methods.
@@ -1905,18 +1910,14 @@ methods.
 A check option method has the following syntax:
 </P>
 <pre CLASS="code">
- <em>someobject|someclass</em> <tt>proc|instproc</tt> methodName {?optional arguments? argName args} {
+ <em>someobject|someclass</em> <tt>proc|instproc</tt> methodName {?optional nonpositional arguments? argName arg} {
   ...
  }
 </pre>
 <p>
 
 <tt>argName</tt> is here used to denote the name of the argument, 
-and <tt>args</tt>
-get the argument's current value after all non-positional arguments
-have been applied. If the argument it is not given and has no default
-value, <tt>args</tt> is empty.
-
+and <tt>arg</tt> is the provided value.
 </p>
 
 
@@ -3185,8 +3186,8 @@ commonly used examples.
 <TR><TD><tt>obj mixin add C3</tt></TD>     <TD>adds the mixin <tt>C3</tt> on front of the mixin list</TD></TR>
 <TR><TD><tt>obj mixin add C3 end</tt></TD> <TD>adds the mixin <tt>C3</tt> at the end the mixin list</TD></TR>
 <TR><TD><tt>obj mixin add C3 3</tt></TD>   <TD>adds the mixin <tt>C3</tt> at the 3rd position</TD></TR>
-<TR><TD><tt>obj mixin delete ::C3</tt></TD><TD>removes the mixin <tt>C3</tt> from the mixin list. 
-Use the classes with absolute names.
+<TR><TD><tt>obj mixin delete ::C3</tt></TD><TD>removes the mixin <tt>C3</tt> from the mixin list.
+Use absolute class names. <tt>delete</tt> supports an optional flag <tt>-nocomplain</tt> that does not produce an error, when the specified class is not in the list. 
 </TD></TR>
 </TABLE>
 </CENTER>	

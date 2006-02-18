@@ -1,10 +1,10 @@
-#$Id: testx.xotcl,v 1.26 2005/09/09 21:09:01 neumann Exp $
+#$Id: testx.xotcl,v 1.27 2006/02/18 22:17:33 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
 proc ::errorCheck {got expected msg} {
   if {$got != $expected} {
-    puts stderr "FAILED: $msg\nGot:      $got\nExpected: $expected"
+    puts stderr "[self] FAILED: $msg\nGot:      $got\nExpected: $expected"
     foreach g $got e $expected {
       set result [expr {$g == $e}]
       if {[string length $g]>60} {
@@ -42,19 +42,18 @@ TestX nestingClasses -proc run {{n 20}} {
     Class x($i)
 
     Class x($i)::y
-    ::errorCheck [x($i) info commands y] "y" \
-      "[self] -- creating Nested Class "
+    ::errorCheck [x($i) info commands y] "y" " -- creating Nested Class "
     Class x($i)::z
     Class x($i)::z::t
     Class x($i)::t
     ::errorCheck [x($i) info classchildren] "::x($i)::t ::x($i)::y ::x($i)::z" \
-      "[self] -- info classchildren"
+      "info classchildren"
     ::errorCheck [x($i)::z info classparent] "::x($i)" \
-      "[self] -- info classparent"
+      "info classparent"
 
 
     ::errorCheck [x($i) info commands t]  "t" \
-      "[self] -- MakeClass "
+      "-- MakeClass "
     
     x($i) a
     x($i)::z a
@@ -62,26 +61,26 @@ TestX nestingClasses -proc run {{n 20}} {
     x($i)::z::t move x($i)::z::rt
     x($i)::z::rt a
     ::errorCheck [x($i)::z info commands rt] "rt" \
-      "[self] -- renaming leaf "
+      "renaming leaf "
     
     x($i)::z move x($i)::rz
 
     ::errorCheck [x($i) info commands rz] "rz" \
-      "[self] -- renaming node (node itself)"
+      "renaming node (node itself)"
 
     ::errorCheck [x($i)::rz info commands rt] "rt" \
-      "[self] -- renaming node (leaf in node)"
+      "renaming node (leaf in node)"
 
     ::errorCheck [x($i)::rz info classchildren] "::x($i)::rz::rt" \
-      "[self] -- info classchildren (2)"
+      "info classchildren (2)"
     ::errorCheck [x($i)::rz::rt info classparent] "::x($i)::rz" \
-      "[self] -- info classparent (2)"
+      "info classparent (2)"
 
     x($i) move rx 
     ::errorCheck [rx info commands rz] "rz" \
-      "[self] -- renaming root "
+      "renaming root "
     ::errorCheck [info commands rx] "rx" \
-      "[self] -- renaming root "
+      "renaming root "
     rx destroy
   }
 }
@@ -102,32 +101,23 @@ TestX nestingObjects -proc run {{n 20}} {
     }
     o testproc; o testinstproc
     C($i) o::y
-    ::errorCheck [o info commands y] "y" \
-      "[self] -- creating Nested Object "
+    ::errorCheck [o info commands y] y "creating Nested Object "
     C($i) o::z
     C($i) o::z::t
     C($i) o::t
 
-    ::errorCheck [o info children] "::o::t ::o::y ::o::z" \
-      "[self] -- info children"
-    ::errorCheck [o::t info parent] "::o" \
-      "[self] -- info parent"
+    ::errorCheck [o info children] "::o::t ::o::y ::o::z" "info children"
+    ::errorCheck [o::t info parent] "::o" "info parent"
 
-    ::errorCheck [o info commands t]  "t" \
-      "[self] -- MakeObject "
+    ::errorCheck [o info commands t]  t "MakeObject"
     o::z::t move o::z::rt
-    ::errorCheck [o::z info commands rt]  "rt" \
-      "[self] -- renaming leaf "
+    ::errorCheck [o::z info commands rt]  rt "renaming leaf"
     o::z move o::rz
-    ::errorCheck [o::rz info commands rt] "rt" \
-      "[self] -- renaming node "
-    ::errorCheck [o info commands rz] "rz" \
-      "[self] -- renaming node "
+    ::errorCheck [o::rz info commands rt] rt "renaming node"
+    ::errorCheck [o info commands rz] rz "renaming node"
     o move rx 
-    ::errorCheck [rx info commands rz] "rz" \
-      "[self] -- renaming root " 
-    ::errorCheck [info commands rx] "rx" \
-      "[self] -- renaming root "
+    ::errorCheck [rx info commands rz] rz "renaming root " 
+    ::errorCheck [info commands rx] rx "renaming root"
     rx destroy
     C($i) destroy
     
@@ -137,8 +127,7 @@ TestX nestingObjects -proc run {{n 20}} {
     }
     A a
     A a::n -x "1 2 3"
-    ::errorCheck [::a::n set var] "1 2 3" \
-      "[self] -- arg passing - init dash"  
+    ::errorCheck [::a::n set var] "1 2 3" "arg passing - init dash"  
   }
 }
 
@@ -158,10 +147,10 @@ TestX assertions -proc run {{n 20}} {
     }
 
     ::errorCheck [C($i) info invar]  {{$a > 2} {$c < 3} {$d > 5} {#a} {#b}} \
-      "[self] -- Class invar " 
+      "Class invar " 
 
     ::errorCheck [C($i) info invar]  {{$a > 2} {$c < 3} {$d > 5} {#a} {#b}} \
-      "[self] -- Class instinvar "
+      "Class instinvar "
 
     Object b($i)
 
@@ -170,24 +159,24 @@ TestX assertions -proc run {{n 20}} {
       {#a} {#b} 
     }
     ::errorCheck [C($i) info invar] {{$a > 2} {$c < 3} {$d > 5} {#a} {#b}} \
-      "[self] -- Object invar " 
+      "Object invar " 
 
     b($i) proc p {a b c} {
       return p
     } {pre1 pre2 pre3} {post1 post2 post3}
 
     ::errorCheck [b($i) info pre p]  {{pre1} {pre2} {pre3}} \
-	"[self] -- Obj proc pre assertion " 
+	"Obj proc pre assertion " 
     ::errorCheck [b($i) info post p]  {{post1} {post2} {post3}} \
-	"[self] -- Obj proc post assertion " 
+	"Obj proc post assertion " 
     C($i) instproc p {a b c} {
       return p
     } {} {post1 post2 post3}
 
     ::errorCheck [C($i) info instpre p]  "" \
-	"[self] -- CL proc pre assertion " 
+	"CL proc pre assertion " 
     ::errorCheck [C($i) info instpost p] {{post1} {post2} {post3}} \
-	"[self] -- CL proc post assertion "
+	"CL proc post assertion "
 
     C(0) set a 3; C(0) set c 2; C(0) set d 7; C(0) set f 50;
     C(0) check all
@@ -214,9 +203,9 @@ TestX assertions -proc run {{n 20}} {
   } {pre1 pre2 pre3} {post1 post2 post3}
   ::rename b a
   ::errorCheck [a info pre p]  {{pre1} {pre2} {pre3}} \
-     "[self] -- Obj proc pre assertion " 
+     "Obj proc pre assertion " 
   ::errorCheck [a info post p]  {{post1} {post2} {post3}} \
-     "[self] -- Obj proc post assertion " 
+     "Obj proc post assertion "
 
 
   Class Sensor -parameter {{value 1}}
@@ -256,13 +245,13 @@ TestX assertions -proc run {{n 20}} {
     a check all
   }
   ::errorCheck $err {Assertion failed check: {$x == 1} in proc 'xTo2'} \
-    "[self] inheritance a xTo2"
+    "inheritance a xTo2"
 
   if {![catch {a yTo2} err]} {
     set err "ok"
   }
   ::errorCheck $err {Assertion failed check: {$y == 1} in proc 'yTo2'} \
-    "[self] inheritance a yTo2"
+    "inheritance a yTo2"
 
   Class B -superclass A
   B b -check all
@@ -275,13 +264,13 @@ TestX assertions -proc run {{n 20}} {
     b check all
   }
   ::errorCheck $err {Assertion failed check: {$x == 1} in proc 'xTo2'} \
-    "[self] inheritance b xTo2"
+    "inheritance b xTo2"
 
   if {![catch {b yTo2} err]} {
     set err "ok"
   }
   ::errorCheck $err {Assertion failed check: {$y == 1} in proc 'yTo2'} \
-    "[self] inheritance b yTo2"
+    "inheritance b yTo2"
 }
 
 @ TestX filterAddRemove {
@@ -337,13 +326,13 @@ TestX filterAddRemove -proc run {{n 20}} {
     set erg [f${i} a]
     ::errorCheck $erg \
       "in a-::SA(${i})::f2-::SA(${i})::fa-::SB(${i})::f2-::SB(${i})::fb-::SC(${i})::fc-::Filtered${i}::testfilter" \
-      "[self] -- Filter Test - add"
+      "Filter Test - add"
     SC($i) instfilter {}
     SB($i) instfilter fb
     SA($i) instfilter {}
     set erg [f${i} a]
     ::errorCheck $erg "in a-::SB(${i})::fb-::Filtered${i}::testfilter" \
-      "[self] -- Filter Test - remove"
+      "Filter Test - remove"
 
     f${i} proc procFilter args {
       return "[next]-[self class]::[self proc]" 
@@ -353,25 +342,25 @@ TestX filterAddRemove -proc run {{n 20}} {
 
     set erg [f${i} a]
     ::errorCheck $erg "in a-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa" \
-      "[self] -- Obj Filter Test call three filter + instfilter"
+      "Obj Filter Test call three filter + instfilter"
 
     ::errorCheck "[f${i} info filter]-[SB($i) info instfilter]-[SC($i) info instfilter]" \
       "fa f2 procFilter-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa-fb-"\
-      "[self] -- filter infos" 
+      "filter infos" 
 
-    ::errorCheck [f${i} filtersearch fa]-[f${i} filtersearch fb]-[f${i} filtersearch procFilter] "::SA(${i}) instproc fa-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa-::SB(${i}) instproc fb-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa-::f${i} proc procFilter-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa" "[self] -- filtersearch"
+    ::errorCheck [f${i} filtersearch fa]-[f${i} filtersearch fb]-[f${i} filtersearch procFilter] "::SA(${i}) instproc fa-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa-::SB(${i}) instproc fb-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa-::f${i} proc procFilter-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa" "filtersearch"
 
     Filtered${i} instfilter {}
     SB($i) instfilter {}
     set erg [f${i} a]
 
     ::errorCheck $erg "in a-::procFilter-::SB(${i})::f2-::SA(${i})::fa" \
-      "[self] -- only obj filter"
+      "only obj filter"
 
     f${i} filter {}
     set erg [f${i} a]
     ::errorCheck $erg "in a" \
-      "[self] -- obj filter remove"
+      "obj filter remove"
   }
   for {set i 0} {$i < $n} {incr i} {
     SA($i) destroy
@@ -380,7 +369,7 @@ TestX filterAddRemove -proc run {{n 20}} {
   }
 
   ::errorCheck $::filterCount 960 \
-    "[self] -- Filter Test  - Filter Count -- Got: $::filterCount"
+    "Filter Test  - Filter Count -- Got: $::filterCount"
   
   #
   # instvar test
@@ -443,21 +432,52 @@ TestX filterAddRemove -proc run {{n 20}} {
 
   Object instfilter ""
 
-    # test for CmdListReplaceCmd
-    set ::r ""
-    Class A
-    A instproc f2 args {lappend ::r [self class]-[self proc]; next} 
-    Class C -superclass A
-    Class D -superclass C
-    D instfilter {f2}
-    D d
-    d filter {f2}
-    C instproc f2 args {lappend ::r [self class]-[self proc]; next}
-    set ::r "" 
-    d set r 1
-
-    ::errorCheck $::r "::C-f2 ::A-f2" \
+  # test for CmdListReplaceCmd
+  set ::r ""
+  Class A
+  A instproc f2 args {lappend ::r [self class]-[self proc]; next} 
+  Class C -superclass A
+  Class D -superclass C
+  D instfilter {f2}
+  D d
+  d filter {f2}
+  C instproc f2 args {lappend ::r [self class]-[self proc]; next}
+  set ::r "" 
+  d set r 1
+  
+  ::errorCheck $::r "::C-f2 ::A-f2" \
       "filter method addition" 
+
+  o proc m {} {
+  }
+  o proc f args {
+    my incr count
+    next
+  }
+  o set count 0
+  o filter f
+  o m
+  ::errorCheck [o set count] 2 "filter count" 
+  o filter ""
+  set filterstate [::xotcl::configure filter off]
+  o set count 0
+  o m
+  ::errorCheck [o set count]-$filterstate 0-1 "filter off + old state" 
+  o filter ""
+  ::xotcl::configure filter on
+
+  set ::r ""
+  Object instproc f args {
+    set r [next]
+    lappend ::r [self]-[self calledproc]
+    return $r
+  }
+
+  Class D
+  D filter f
+  D d1
+  ::errorCheck $::r "::D-d1 ::D-alloc ::D-create ::D-unknown" "filter state after next" 
+
 }
 
 @ TestX filterClassChange {
@@ -486,12 +506,12 @@ TestX filterClassChange -proc run {{n 20}} {
 	
 	set erg [o($i) call]
         ::errorCheck $erg "pre*::o($i)*f* in-call post*::o($i)*f" \
-	    "[self] -- Filter Class Change -- Call before change"	
+	    "Filter Class Change -- Call before change"	
 	o($i) change
 
 	set erg [o($i) call]
 	::errorCheck $erg "in-call" \
-	    "[self] -- Filter Class Change -- Call after change"
+	    "Filter Class Change -- Call after change"
       # testing deleting a filter proc
       Class F
       F instproc testf args {return filtered}
@@ -511,7 +531,7 @@ TestX filterClassChange -proc run {{n 20}} {
       F3 instfilter {testf testf2}
       F3 f2
 
-      ::errorCheck [f2 filtersearch testf2] "::F2 instproc testf2-filtered-filtered" "[self]: filtersearch 2"
+      ::errorCheck [f2 filtersearch testf2] "::F2 instproc testf2-filtered-filtered" "filtersearch 2"
 
       ::errorCheck [f2 set r 45] "45-filtered-filtered" \
 	  "Deleting a superclass ... before"
@@ -550,8 +570,7 @@ TestX filterGuards -proc run {{n 20}} {
 
       B instfilter {{f1 -guard "1<0"}}
       B b
-      ::errorCheck $filterResult "" \
-	"[self] -- Filter guard: Filter never to be applied"
+      ::errorCheck $filterResult "" "Filter guard: Filter never to be applied"
 
       b destroy
 
@@ -563,14 +582,14 @@ TestX filterGuards -proc run {{n 20}} {
       set filterResult ""
       B b
       ::errorCheck $filterResult "" \
-	    "[self] -- Filter guard: Filter never to be applied + filter inheritance on this filter"
+	    "Filter guard: Filter never to be applied + filter inheritance on this filter"
       # filter w/o guard -> has to be applied
       A instfilter f1
       b destroy
       set filterResult ""
       B b
       ::errorCheck $filterResult "-::b-f1-::A-configure-::b-f1-::A-init" \
-	"[self] -- Filter guard: two different filters, same name + different class, one guarded, one not"
+	"Filter guard: two different filters, same name + different class, one guarded, one not"
 
       # two filter w/o guard -> both have to be applied
       B instfilter f1
@@ -578,7 +597,7 @@ TestX filterGuards -proc run {{n 20}} {
       set filterResult ""
       B b
       ::errorCheck $filterResult "-::b-f1-::B-configure-::b-f1-::A-configure-::b-f1-::B-init-::b-f1-::A-init" \
-	"[self] -- Filter guard: two different filters, both not guarded anymore"
+	"Filter guard: two different filters, both not guarded anymore"
 
       # three filters with guards, not to be applied, in one chain
       b destroy
@@ -586,7 +605,7 @@ TestX filterGuards -proc run {{n 20}} {
       B instfilter {{f1 -guard {0}} {f3 -guard {0}} {f2 -guard {0}}}
       set filterResult ""
       B b
-      ::errorCheck $filterResult "" "[self] -- Filter guard: three filters in one chain"
+      ::errorCheck $filterResult "" "Filter guard: three filters in one chain"
       
       # three times the same filter --> guards are and-combined
       set filterResult ""
@@ -597,25 +616,25 @@ TestX filterGuards -proc run {{n 20}} {
       B b2
       if {$i == 0} {
 	::errorCheck $filterResult "-::b2-f2-::A-configure-::b2-f2-::A-init" \
-	  "[self] -- Filter guard: creation with less restrictive guards"
+	  "Filter guard: creation with less restrictive guards"
       } else {
 	::errorCheck $filterResult "-::b2-f2-::A-cleanup-::b2-f2-::A-configure-::b2-f2-::A-init" \
-	  "[self] -- Filter guard: creation with less restrictive guards (b)"
+	  "Filter guard: creation with less restrictive guards (b)"
       }
       set filterResult ""
       b1 set x 45
       ::errorCheck $filterResult "-::b1-f2-::A-set" \
-	"[self] -- Filter guard: setting restricted object"
+	"Filter guard: setting restricted object"
 
       set filterResult ""
       b1 info class
       ::errorCheck $filterResult "" \
-	"[self] -- Filter guard: info restricted object (no guard applies)"
+	"Filter guard: info restricted object (no guard applies)"
 
       set filterResult ""
       b2 info class
       ::errorCheck $filterResult "-::b2-f2-::A-info" \
-	"[self] -- Filter guard: setting restricted object (2nd guard applies)"
+	"Filter guard: setting restricted object (2nd guard applies)"
       
       b1 filter {{f2 -guard {[self calledproc] == "info"}}}
 
@@ -624,18 +643,18 @@ TestX filterGuards -proc run {{n 20}} {
 	#
       }
       ::errorCheck $filterResult "" \
-	"[self] -- Filter guard: proc on restricted object (no guard applies)"
+	"Filter guard: proc on restricted object (no guard applies)"
 
       set filterResult ""
       b1 info class
       ::errorCheck $filterResult "-::b1-f2-::A-info" \
-	"[self] -- Filter guard: info filtered by object filter guard"
+	"Filter guard: info filtered by object filter guard"
 
 
       # checking infos
       ::errorCheck [b1 info filterguard f2]-[B info instfilterguard f2]-[A info instfilterguard f2] \
 	{[self calledproc] == "info"-[self calledproc] == "set" || [self] == "::b2"-[self] == "::b2"} \
-	"[self] -- Filter guard: info filtered by object filter guard"
+	"Filter guard: info filtered by object filter guard"
 
       # checking info -guards option
       Class A
@@ -680,8 +699,7 @@ TestX filterGuards -proc run {{n 20}} {
 	Foo instfilterguard myFilter { ([self calledproc] == "baz") }
 	set f [Foo new]
 	$f baz
-	::errorCheck [$f baz] "hello" \
-	  {[self] -- Filter guard from method call}
+	::errorCheck [$f baz] "hello" {Filter guard from method call}
 	Foo instfilterguard myFilter {}
 
 	set ::r ""
@@ -696,7 +714,7 @@ TestX filterGuards -proc run {{n 20}} {
 			       myFilter->filterguard myFilter->baz \
 			       hello 1 myFilter->baz \
 			       myFilter->instvar myFilter->set hello 1] \
-	  {[self] -- Filter guard from method call}
+	  {Filter guard from method call}
 	f destroy
 
 	Class Room
@@ -725,8 +743,7 @@ TestX filterGuards -proc run {{n 20}} {
 	r open
         r x
 
-	::errorCheck $::r "loggingFilter-open open x" \
-	  {[self] -- info guarded scope}
+	::errorCheck $::r "loggingFilter-open open x" {info guarded scope}
     }
 }
 
@@ -767,7 +784,7 @@ TestX mixinGuards -proc run {{n 20}} {
         {::pingo ::Penguine (5 years): how should i fly?} \
         {::donald ::Duck (4 years): yippee, fly like an eagle!} \
         {::lora ::Parrot (6 years): yippee, fly like an eagle!}] \
-	{[self] -- Simple Instmixin Guard}
+	{Simple Instmixin Guard}
 
     set ::r ""
     tweedy age 3
@@ -780,7 +797,7 @@ TestX mixinGuards -proc run {{n 20}} {
 	{::pingo ::Duck (5 years): yippee, fly like an eagle!} \
         {::donald ::Duck (4 years): yippee, fly like an eagle!} \
 	{::lora ::Penguine (6 years): how should i fly?}] \
-	{[self] -- Simple Instmixin Guard ... Class Change}
+	{Simple Instmixin Guard ... Class Change}
 
     set ::r ""
     pingo mixin {{Fly -guard {[my age]>2}} Sing}
@@ -795,7 +812,7 @@ TestX mixinGuards -proc run {{n 20}} {
 	{Bird info instmixin -guards {::Fly -guard {[my age]>2 && ![my istype Penguine]}} ::Sing} \
         {pingo info mixin -guards {::Fly -guard {[my age]>2}} ::Sing} \
 	{pingo info mixin -order -guards {::Fly -guard {[my age]>2}} ::Sing}] \
-	{[self] -- Simple Instmixin Guard ... Info}
+	{Simple Instmixin Guard ... Info}
 
     set ::r ""
     Class POM-start
@@ -818,13 +835,13 @@ TestX mixinGuards -proc run {{n 20}} {
 	{Bird info instmixin -guards ::PCM-start {::Fly -guard {[my age]>2 && ![my istype Penguine]}} ::Sing ::PCM-end} \
 	{pingo info mixin -guards ::POM-start {::Fly -guard {[my age]>2}} ::Sing ::POM-end} \
         {pingo info mixin -order -guards ::POM-start ::POM-end ::PCM-start {::Fly -guard {[my age]>2}} ::Sing ::PCM-end}] \
-	{[self] -- Same Mixin Guard ... Info}
+	{Same Mixin Guard ... Info}
 
     set ::r ""
     pingo fly
     ::errorCheck [set ::r] [list \
 	{::pingo ::Penguine (5 years): yippee, fly like an eagle!}] \
-	{[self] -- Same Mixin Guard ... most specific counts}
+	{Same Mixin Guard ... most specific counts}
 
 
     set ::r ""
@@ -981,7 +998,7 @@ TestX filterSimpleObserver -proc run {{n 20}} {
 
 	set erg [h($i) GET 1]
 	::errorCheck $erg "::h($i)-::NetAccess$i-::Http$i-1-GET-run-abc?q" \
-	    "[self] -- Simple Observer - Filter Return"
+	    "Simple Observer - Filter Return"
 	
     }
     for {set i 0} {$i < $n} {incr i} {
@@ -996,7 +1013,7 @@ TestX filterSimpleObserver -proc run {{n 20}} {
     }
 
     ::errorCheck  $::filterCount 220 \
-	"[self] -- Simple Observer - Filter Count" 
+	"Simple Observer - Filter Count" 
 }
 
 
@@ -1019,8 +1036,7 @@ TestX stdargs -proc run {{n 20}} {
       return
     }
     D instproc t args {
-      ::errorCheck $args "" \
-	"[self] -- --noArgs"
+      ::errorCheck $args "" --noArgs
       next
       return
     }
@@ -1137,13 +1153,13 @@ filterInfo proc run {{n 20}} {
 	set FInfo ""
 	set result [c1 m1]
 	
-	::errorCheck "$FInfo" \
+	::errorCheck $FInfo \
 	    "{callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc m1} {callingclass ::C0 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc m1 calledproc instvar} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}} {callingclass ::C1 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc m1 calledproc instvar} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 1--1--1}" \
 	    "Wrong filtering of c1 m1"
 
 	set FInfo ""
 
-	::errorCheck "$result" \
+	::errorCheck $result \
 	  "1--1--1" "Wrong return result of Filter Example 2 'c1 m1' "
 
 	
@@ -1178,12 +1194,12 @@ filterInfo proc run {{n 20}} {
       
       set FInfo ""
       set result [t m]
-      ::errorCheck "$FInfo" \
+      ::errorCheck $FInfo \
 	    "{callingclass {} filterreg {::T0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc m} {callingclass ::T1 filterreg {::T0 instfilter infoFilter} callingobject ::t callingproc m calledproc info} {self ::t proc infoFilter class ::T0 infoclass ::T1 r ::T1} {callingclass ::T0 filterreg {::T0 instfilter infoFilter} callingobject ::t callingproc m calledproc info} {self ::t proc infoFilter class ::T0 infoclass ::T1 r ::T1} {callingclass ::T1 filterreg {::T0 instfilter infoFilter} callingobject ::t callingproc m calledproc info} {self ::t proc infoFilter class ::T0 infoclass ::T1 r ::T1} {self ::t proc infoFilter class ::T0 infoclass ::T1 r after-::t-m-::T1-::T1-before-::t-m-::T1-::T1-::t-m-::T0-::T1}" \
 	    "Wrong filtering of t m"
       
       set FInfo ""	
-      ::errorCheck "$result" \
+      ::errorCheck $result \
 	    "after-::t-m-::T1-::T1-before-::t-m-::T1-::T1-::t-m-::T0-::T1" \
 	    "Wrong return result of Filter Example 2 \"t m\" "
     }
@@ -1490,8 +1506,7 @@ TestX init_params -proc run {{n 20}} {
       }
 
 
-	::errorCheck $r  "Meta-create-::d1" \
-	    "User defined object creation failed"
+      ::errorCheck $r  "Meta-create-::d1" "User defined object creation failed"
     }
 }
 
@@ -1566,37 +1581,37 @@ TestX mixinTest -proc run {{n 10}} {
     
     
     i2 moveAgent 1 2
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	"-::i2-moveAgent-::MovementTest-::i2-moveAgent-::InteractiveAgent-::i2-moveAgent-::Agent" \
 	"Mixin: 'i2 moveAgent 1 2' failed"
     
     set mixinResult ""
     i1 moveAgent 3 4
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	"-::i1-moveAgent-::MovementLog-::i1-otherProc-::MovementLog-::i1-otherProc-::Agent-::i1-moveAgent-::InteractiveAgent-::i1-moveAgent-::Agent" \
 	"Mixin: 'i1 moveAgent 3 4' failed"
     
     set mixinResult ""
     i3 moveAgent 3 4
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	"-::i3-moveAgent-::MovementLog-::i3-otherProc-::MovementLog-::i3-otherProc-::Agent-::i3-moveAgent-::MovementTest-::i3-moveAgent-::InteractiveAgent2-::i3-moveAgent-::Agent" \
 	"Instmixin: 'i3 moveAgent 3 4' failed"	
     
     set mixinResult ""
     i4 moveAgent 3 4
     
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	"-::i4-moveAgent-::MovementTest-::i4-moveAgent-::InteractiveAgent3-::i4-moveAgent-::Agent" \
 	"Instmixin: 'i4 moveAgent 3 4' failed"
     
     i4 mixin {MovementTest MovementLog}
     
     i4 proc aaa args {puts TEST}
-    ::errorCheck [i4 procsearch moveAgent]-[i4 procsearch aaa]-[i4 procsearch set] "::MovementLog instproc moveAgent-::i4 proc aaa-::xotcl::Object instproc set" "[self]: procsearch"
+    ::errorCheck [i4 procsearch moveAgent]-[i4 procsearch aaa]-[i4 procsearch set] "::MovementLog instproc moveAgent-::i4 proc aaa-::xotcl::Object instproc set" "procsearch"
     
     set mixinResult ""
     i4 moveAgent 5 6
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	-::i4-moveAgent-::MovementLog-::i4-otherProc-::MovementLog-::i4-otherProc-::Agent-::i4-moveAgent-::MovementTest-::i4-moveAgent-::InteractiveAgent3-::i4-moveAgent-::Agent \
 	"Instmixin: 'i4 moveAgent 5 6' failed"
     
@@ -1608,7 +1623,7 @@ TestX mixinTest -proc run {{n 10}} {
     }
     A a
     a test
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	"test-::i1-moveAgent-::MovementLog-::i1-otherProc-::MovementLog-::i1-otherProc-::Agent-::i1-moveAgent-::InteractiveAgent-::i1-moveAgent-::Agent" \
 	"Mixin: 'a test' failed"
     
@@ -1617,7 +1632,7 @@ TestX mixinTest -proc run {{n 10}} {
     set mixinResult ""
     
     i2 moveAgent a b
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	"-::i2-moveAgent-::MovementLog-::i2-otherProc-::MovementLog-::i2-otherProc-::Agent-::i2-moveAgent-::MovementTest-::i2-moveAgent-::InteractiveAgent-::i2-moveAgent-::Agent" \
 	"Mixin: 'i2 moveAgent a b' failed"
     
@@ -1638,7 +1653,7 @@ TestX mixinTest -proc run {{n 10}} {
     i2 mixin ""
     i2 moveAgent a b
     
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	"-::i2-moveAgent-::InteractiveAgent-::i2-moveAgent-::Agent" \
 	"Mixin: remove failed"
     
@@ -1682,7 +1697,7 @@ TestX mixinTest -proc run {{n 10}} {
     A a -mixin B
     a y
     
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	"-::a-destroy-::B-::a-destroy-::A-::a-x-::B-::a-destroy-::B-::a-destroy-::A-::a-y-::B-::a-y-::A" \
 	"Mixin: destroy failed"
     
@@ -1695,7 +1710,7 @@ TestX mixinTest -proc run {{n 10}} {
     A a2
     a2 y
     
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	"-::a2-destroy-::B-::a2-destroy-::A-::a2-x-::B-::a2-destroy-::B-::a2-destroy-::A-::a2-y-::B-::a2-y-::A" \
 	"Instmixin: destroy failed"
     
@@ -1811,17 +1826,16 @@ TestX mixinTest -proc run {{n 10}} {
     ::errorCheck [faculty compute 3] 6 \
 	"Mixin: faculty wrong result"
     
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	"-::faculty-compute-::RecFacultyMixin-::faculty-compute-::RecFacultyMixin-::faculty-compute-::RecFacultyMixin-::faculty-compute-::RecFacultyMixin-::faculty-compute-::Computation" \
 	"Mixin: faculty failed"
     set mixinResult ""
     
     ComputationOutput faculty
     ComputationOutput instmixin RecFacultyMixin 
-    ::errorCheck [faculty compute 3] 6 \
-	"Mixin: faculty wrong result"
+    ::errorCheck [faculty compute 3] 6 "Mixin: faculty wrong result"
     
-    ::errorCheck "$mixinResult" \
+    ::errorCheck $mixinResult \
 	"-::faculty-compute-::RecFacultyMixin-::faculty-compute-::RecFacultyMixin-::faculty-compute-::RecFacultyMixin-::faculty-compute-::RecFacultyMixin-::faculty-compute-::Computation" \
 	"Mixin: faculty failed"
     
@@ -1876,7 +1890,7 @@ TestX mixinTest -proc run {{n 10}} {
 	"{filter f: ::mixinTest {} run draw {::MenuDecorator instproc draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class instproc instfilter}} {filter f: ::xotcl::Object ::xotcl::Class instfilter set {::xotcl::Relations instproc set}}" \
 	"Mixin: Calling-Obj/Cl/Proc failed"	
   
-    ::errorCheck "$::mixinResult" \
+    ::errorCheck $::mixinResult \
 	"{filter ::mainImage f ::xotcl::Object} {m1 ::mainImage draw ::MenuDecorator} {m2 ::mainImage draw ::ScrollBarDecorator} {image ::mainImage draw ::Image} {grObject ::mainImage draw ::GrObject} {filter ::zoom f ::xotcl::Object} {m2 ::zoom draw ::ScrollBarDecorator} {image ::zoom draw ::Image} {grObject ::zoom draw ::GrObject} {filter ::xotcl::Object f ::xotcl::Object} {filter ::xotcl::relmgr f ::xotcl::Object}" \
 	  "Mixin: Filter failed"
 
@@ -1963,6 +1977,20 @@ TestX mixinTest -proc run {{n 10}} {
     Object o -mixin {A B C}
     o proc x {} {return x}
     ::errorCheck [o x] {x} {mixin destroy on stack}
+    o destroy
+
+    # testing transitive mixins; should be in both cases the same
+    Class IM
+    Class M
+    Object o -mixin M 
+    M instmixin IM
+    ::errorCheck [o info precedence] {::IM ::M ::xotcl::Object} \
+	{trans. mixin precedence 1}
+
+    Object o -mixin M
+    ::errorCheck [o info precedence] {::IM ::M ::xotcl::Object} \
+	{trans. mixin precedence 2}
+    o destroy
 }
 
 
@@ -2046,7 +2074,7 @@ TestX mixinInheritanceTest -proc run {{n 10}} {
 	    "Mixin inheritance: a aProc"
 
 
-	::errorCheck  $r \
+	::errorCheck $r \
 	    "{{{{ARGS1 ARGS2 ::AppMixin1} ::RefinedMixin1} ::RefinedMixin2} ::GeneralMixin}" \
 	    "Mixin inheritance result: a aProc"
 
@@ -2059,7 +2087,7 @@ TestX mixinInheritanceTest -proc run {{n 10}} {
 	::errorCheck $mixinResult \
 	    " ::AppMixin1 ::RefinedMixin1 ::RefinedMixin2 ::GeneralMixin ::A"  \
 	    "Instmixin inheritance: a aProc"
-	::errorCheck  $r \
+	::errorCheck $r \
 	    "{{{{ARGS1 ARGS2 ::AppMixin1} ::RefinedMixin1} ::RefinedMixin2} ::GeneralMixin}" \
 	    "Instmixin inheritance: a aProc"
 	set mixinResult ""
@@ -2165,16 +2193,12 @@ TestX mixinInheritanceTest -proc run {{n 10}} {
   }
 
   A a
-  ::errorCheck $initResult \
-      "::A-" \
-      "Mixin init 1 failed"
+  ::errorCheck $initResult "::A-" "Mixin init 1 failed"
   set initResult ""
   # in A mixin changes to B - before D's constructor must 
   # be called
   A b -mixin D
-  ::errorCheck $initResult \
-      "::D-::A-" \
-      "Mixin init 2 failed"
+  ::errorCheck $initResult "::D-::A-" "Mixin init 2 failed"
 
   Class Mix
   Mix instproc init args {
@@ -2211,33 +2235,23 @@ TestX mixinInheritanceTest -proc run {{n 10}} {
   set initResult ""
   A a
   a mixin {Mix Mix1}
-  ::errorCheck $initResult \
-      "::A-" \
-      "Mixin init 3 failed"
+  ::errorCheck $initResult ::A- "Mixin init 3 failed"
 
   set initResult ""
   B b
-  ::errorCheck $initResult \
-      "::B-" \
-      "Mixin init 4 failed"
+  ::errorCheck $initResult ::B- "Mixin init 4 failed"
 
   set initResult ""
   B mixin add Mix2
-  ::errorCheck $initResult \
-      "" \
-      "Mixin init 5 failed"
+  ::errorCheck $initResult "" "Mixin init 5 failed"
 
   set initResult ""
   A mixin {}; A mixin {Mix Mix1}
-  ::errorCheck $initResult \
-      "" \
-      "Mixin init 6 failed"
+  ::errorCheck $initResult "" "Mixin init 6 failed"
 
   set initResult ""
   A a -mixin {Mix}
-  ::errorCheck $initResult \
-      "::Mix-::A-" \
-      "Mixin init 7 failed"
+  ::errorCheck $initResult "::Mix-::A-" "Mixin init 7 failed"
 
   Class Strategy
   Strategy instproc init args {
@@ -2264,9 +2278,7 @@ TestX mixinInheritanceTest -proc run {{n 10}} {
   }
   set initResult ""
   A a -mixin Mix1
-  ::errorCheck $initResult \
-      "::Mix1-::A-" \
-      "Mixin init 8 failed"
+  ::errorCheck $initResult ::Mix1-::A- "Mixin init 8 failed"
 
   set initResult ""
   Class X
@@ -2488,9 +2500,7 @@ TestX copymove -proc run {{n 10}} {
       "0  1 defC 0  1 defA"\
       "Move Default Values"
     
-    ::errorCheck "[::info commands X::Y::Z]"\
-      ""\
-      "Moved command still exists"
+    ::errorCheck [::info commands X::Y::Z] "" "Moved command still exists"
 
     #
     # copy with filters test
@@ -2524,14 +2534,11 @@ TestX copymove -proc run {{n 10}} {
       commands::cellcmd setproc {return "coucou" }
       commands::cellcmd proc x args {return xxx}
       commands::cellcmd copy toto
-      ::errorCheck [::toto info class] ::Command\
-	"Copy with Filter: info class"
-      ::errorCheck [toto set label] cell\
-	"Copy with Filter: set var"
-      ::errorCheck [toto x] xxx\
-	"Copy with Filter: call proc"
-      ::errorCheck [commands::cellcmd set label] cell\
-	"Copy with Filter: set var"
+      ::errorCheck [::toto info class] ::Command "Copy with Filter: info class"
+      ::errorCheck [toto set label] cell "Copy with Filter: set var"
+      ::errorCheck [toto x] xxx "Copy with Filter: call proc"
+      ::errorCheck [commands::cellcmd set label] cell \
+	  "Copy with Filter: set var"
     }
     Class A
     Class V
@@ -2646,13 +2653,9 @@ TestX recreation -proc run {{n 10}} {
 
   A a
   A a::b
-  errorCheck [set ::cleanupResult] \
-   "" \
-   "Cleanup Create Failed"
+  errorCheck [set ::cleanupResult] "" "Cleanup Create Failed"
   A a
-  errorCheck [a info children] \
-   "" \
-   "Cleanup Object Children Destroy Failed"
+  errorCheck [a info children] "" "Cleanup Object Children Destroy Failed"
   A a::b
 
   errorCheck [set ::cleanupResult] \
@@ -2664,17 +2667,14 @@ TestX recreation -proc run {{n 10}} {
 
   A a
   A a::b
-  errorCheck [set ::cleanupResult] \
-   "" \
-   "Cleanup Redefine Create Failed"
+  errorCheck [set ::cleanupResult] "" "Cleanup Redefine Create Failed"
   A a
-  errorCheck [a info children] \
-   "::a::b" \
-   "Cleanup Redefine Object Children Survive Failed"
+  errorCheck [a info children] ::a::b \
+     "Cleanup Redefine Object Children Survive Failed"
   A a::b
   errorCheck [set ::cleanupResult] \
-   " ::A+->recreate ::a+::A->cleanup ::A+->recreate ::a::b+::A->cleanup" \
-   "Cleanup Redefine a/a::b Failed"
+     " ::A+->recreate ::a+::A->cleanup ::A+->recreate ::a::b+::A->cleanup" \
+     "Cleanup Redefine a/a::b Failed"
 
   a destroy
   set ::cleanupResult ""
@@ -2688,31 +2688,24 @@ TestX recreation -proc run {{n 10}} {
 
   META X
   META X::Y
-  errorCheck [set ::cleanupResult] \
-   "" \
-   "Class Cleanup Create Failed"
+  errorCheck [set ::cleanupResult] "" "Class Cleanup Create Failed"
   META X
-  errorCheck [X info classchildren] \
-   "" \
-   "Class Cleanup Class Children Destroy Failed"
+  errorCheck [X info classchildren] "" "Class Cleanup Class Children Destroy Failed"
   META X::Y
   errorCheck [set ::cleanupResult] \
    " ::META+->recreate ::X+::META->cleanup ::X::Y+::META->destroy ::META+->instdestroy" \
    "Class Cleanup X/X::Y Failed"
 
-  X destroy;
+  X destroy
   set ::cleanupResult ""
   META instproc cleanup args {append ::cleanupResult " [self]+[self class]->[self proc]"}
 
   META X
   META X::Y
-  errorCheck [set ::cleanupResult] \
-   "" \
-   "Class Cleanup Redefine Create Failed"
+  errorCheck [set ::cleanupResult] "" "Class Cleanup Redefine Create Failed"
   META X
-  errorCheck [X info classchildren] \
-   "::X::Y" \
-   "Class Cleanup Redefine Class Children Survive Failed"
+  errorCheck [X info classchildren] ::X::Y \
+     "Class Cleanup Redefine Class Children Survive Failed"
   META X::Y
   errorCheck [set ::cleanupResult] \
    " ::META+->recreate ::X+::META->cleanup ::META+->recreate ::X::Y+::META->cleanup" \
@@ -2770,12 +2763,9 @@ smallScripts proc run {{n 20}} {
       a autoname -reset aaa
       lappend names [a autoname aaa]
       lappend names [a autoname aaa]
-      ::errorCheck $names "AAA0 aaa0 aaa1" \
-	"Autoname creation"
-      ::errorCheck $oname1 "ooo$i" \
-	"Autoname Object 1"
-      ::errorCheck $oname2 "oOO$i" \
-	"Autoname Object 2"
+      ::errorCheck $names "AAA0 aaa0 aaa1" "Autoname creation"
+      ::errorCheck $oname1 "ooo$i" "Autoname Object 1"
+      ::errorCheck $oname2 "oOO$i" "Autoname Object 2"
       ::errorCheck [xotcl::Object set __autonames(ooo)] $i \
 	"Autoname Object Count"
     }
@@ -2786,7 +2776,7 @@ smallScripts proc run {{n 20}} {
       return $t
     }
     p set x(1) rrr
-    ::errorCheck [p x] "rrr" "Array member alias, no ns"
+    ::errorCheck [p x] rrr "Array member alias, no ns"
 
     Object o
     o proc x {} {
@@ -2794,7 +2784,7 @@ smallScripts proc run {{n 20}} {
       return $t
     }
     o set x(1) rrr
-    ::errorCheck [o x] "rrr" "Array member alias, with ns"
+    ::errorCheck [o x] rrr "Array member alias, with ns"
 
     Object o
     o proc x args {puts r}
@@ -2818,19 +2808,19 @@ smallScripts proc run {{n 20}} {
     B b -mixin Mix2
     b proc objproc args {}
 
-    ::errorCheck [b info procs] "objproc" "[self]: info procs"
-    ::errorCheck [B info instprocs] "myProc2" "[self]: info instprocs"
+    ::errorCheck [b info procs] objproc "info procs"
+    ::errorCheck [B info instprocs] myProc2 "info instprocs"
 
-    ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure copy defaultmethod destroy eval exists extractConfigureArg f filter filterappend filterguard filtersearch forward hasclass incr info infoTraceFilter init instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinappend mixinguard move myProc myProc2 myProcMix1 myProcMix2 next noinit objproc parametercmd proc procsearch requireNamespace self set setFilter signature tclcmd trace unset uplevel upvar volatile vwait"  "[self]: b info methods"
+    ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure copy defaultmethod destroy eval exists extractConfigureArg f filter filterappend filterguard filtersearch forward hasclass incr info infoTraceFilter init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinappend mixinguard move myProc myProc2 myProcMix1 myProcMix2 next noinit objproc parametercmd proc procsearch requireNamespace self set setFilter signature tclcmd trace unset uplevel upvar volatile vwait"  "b info methods"
 
-    ::errorCheck [lsort [b info methods -nocmds]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init mixinappend move myProc myProc2 myProcMix1 myProcMix2 objproc self setFilter signature tclcmd" "[self]: b info methods -nocmds"
+    ::errorCheck [lsort [b info methods -nocmds]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init method mixinappend move myProc myProc2 myProcMix1 myProcMix2 objproc self setFilter signature tclcmd" "b info methods -nocmds"
 
-    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard next noinit parametercmd proc procsearch requireNamespace set trace unset uplevel upvar volatile vwait" "[self]: b info methods -noprocs"
-    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init mixinappend move myProc myProc2 objproc self setFilter signature tclcmd" "[self]: b info methods -nocmds -nomixins"
+    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard next noinit parametercmd proc procsearch requireNamespace set trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
+    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init method mixinappend move myProc myProc2 objproc self setFilter signature tclcmd" "b info methods -nocmds -nomixins"
 
-    ::errorCheck [b info methods -nocmds -noprocs] "" "[self]: b info methods -nocmds -noprocs"
+    ::errorCheck [b info methods -nocmds -noprocs] "" "b info methods -nocmds -noprocs"
 
-    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init instfilterappend instmixinappend insttclcmd mixinappend move self setFilter signature tclcmd uses" "[self]: B info methods -nocmds"
+    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init instfilterappend instmixinappend insttclcmd method mixinappend move self setFilter signature tclcmd uses" "B info methods -nocmds"
 
     namespace eval a {
 	proc o args {return o}
@@ -2849,20 +2839,20 @@ smallScripts proc run {{n 20}} {
 	return x
     }
     set r "$r-[a::b x]-[a o]"
-    ::errorCheck $r "b-x-o" "[self]: Tcl Namespace should survive requireNamespace"
+    ::errorCheck $r b-x-o "Tcl Namespace should survive requireNamespace"
 
     xotcl::interp create in
     set ::r [in eval {
 	namespace import -force xotcl::*
 	Object o}]
     xotcl::interp delete in
-    ::errorCheck $::r "::o" "[self]: XOTcl slave interpreter "
+    ::errorCheck $::r ::o "XOTcl slave interpreter "
 
     Object o -requireNamespace
     o set r 1
     after 100 {o set r 3}
     o vwait r
-    ::errorCheck [o set r] "3" "[self]: Vwait test"
+    ::errorCheck [o set r] 3 "Vwait test"
 
     Class NS	
     Class NS::Main
@@ -2876,7 +2866,7 @@ smallScripts proc run {{n 20}} {
     }
 
     NS::Main m1
-    ::errorCheck [::toplevelObj set a 1] "1" "toplevel object allocated in ns"
+    ::errorCheck [::toplevelObj set a 1] 1 "toplevel object allocated in ns"
 
 
     namespace eval foo {   
@@ -2885,7 +2875,7 @@ smallScripts proc run {{n 20}} {
       Foo proc bar {} {puts bar}
     }
     namespace delete foo 
-    ::errorCheck [Object isobject ::foo::Foo] "0" "Namespace delete under object"
+    ::errorCheck [Object isobject ::foo::Foo] 0 "Namespace delete under object"
 
 }
 
@@ -2975,7 +2965,7 @@ TestX objectReferences -proc run {{n 20}} {
     set x [LexxTreeMounter new]
     set x [LexxTreeMounter new]
 
-    ::errorCheck [llength [LexxTreeMounter info instances]] 1 "[self]: singleton"
+    ::errorCheck [llength [LexxTreeMounter info instances]] 1 singleton
 
     # "Global reference to xotcl object"
     set ::v [Object ::a]
@@ -2985,7 +2975,7 @@ TestX objectReferences -proc run {{n 20}} {
 
     # "Class creation and Class destroys, after 2nd round procs contain xotcl-object references"
     foreach m [lsort [my info procs ok*]] {my $m}
-    ::errorCheck [my isobject AAA] 1 "[self]: classdestroys"
+    ::errorCheck [my isobject AAA] 1 classdestroys
   }
 
   catch {UnknownClass destroy}
@@ -2998,14 +2988,59 @@ TestX objectReferences -proc run {{n 20}} {
     return $r
   }
   Class O -superclass UnknownClass
-  ::errorCheck $::utest ::UnknownClass "[self]: __unknown"
+  ::errorCheck $::utest ::UnknownClass "__unknown 1"
   
-  ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard forward heritage info instances instbody instcommands instdefault instfilter instfilterguard instforward instinvar instmixin instpost instpre instprocs invar methods mixin parameter parent post pre precedence procs subclass superclass vars} "[self]: info info"
+  Object o
+  ::errorCheck [o mixin XX1] ::XX1 "__unknown XX1"
+
+  namespace eval "" {
+    Object o
+    ::errorCheck [o mixin XX2] ::XX2 "__unknown XX2"
+  }
+
+  namespace eval "::" {
+    Object o
+    ::errorCheck [o mixin XX3] ::XX3 "__unknown XX3"
+  }
+
+
+  # this version of unknown creates gobal objects
+  Class proc __unknown {name} {
+    #puts "unkown called with $name"
+    set name ::[namespace tail $name]
+    set x [Class $name]
+    set r [$x]
+    #puts "... created $r"
+    return $r
+  }
+
+  Object o
+  ::errorCheck [o mixin XY1] ::XY1 " __unknown XY1"
+  
+  namespace eval "" {
+    Object o
+    ::errorCheck [o mixin XY2] ::XY2 " __unknown XY2"
+  }
+  
+  namespace eval :: {
+    Object o
+    ::errorCheck [o mixin XY3] ::XY3 " __unknown XY3"
+  }
+  
+  Class C
+  namespace eval ::tmp {
+    Object o -mixin C
+    ::errorCheck [o mixin XY4] ::XY4 " __unknown XY4"
+  }
+
+
+
+  ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard forward heritage info instances instbody instcommands instdefault instfilter instfilterguard instforward instinvar instmixin instpost instpre instprocs invar methods mixin parameter parent post pre precedence procs subclass superclass vars} "info info"
 
   ::errorCheck [Class info instances *Unk*] ::UnknownClass "match in info instances"
   ::errorCheck [Class info instances Unk*] "" "no match in info instances"
   ::errorCheck [Class info instances Unk] "" "no match in info instances (no metachars)"
-  ::errorCheck [Class info class] "::xotcl::Class" "info class of Class"
+  ::errorCheck [Class info class] ::xotcl::Class "info class of Class"
   ::errorCheck [Class info class Object] 1 "info class of Class Object"
   Class C
   Class D -superclass C
@@ -3042,6 +3077,9 @@ TestX objectReferences -proc run {{n 20}} {
   Object o::abc
   Object o::bcd
   Object o::cde
+  namespace eval ns1 {Class C; namespace export C}
+  o eval {namespace import ::ns1::*}
+
   ::errorCheck [o info children] "::o::cde ::o::bcd ::o::abc" "info children 1"
   ::errorCheck [o info children *cd*] "::o::cde ::o::bcd" "info children 2"
   ::errorCheck [o info children ::o::cde] ::o::cde "info children 3"
@@ -3056,6 +3094,13 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [Object ismetaclass M] 1 "is metaclass 1"
   ::errorCheck [Object ismetaclass C] 0 "is metaclass 0"
 
+  Class C -parameter {number name}
+  C instproc test {} {
+    my instvar {number x} name
+    return [list $name $x]
+  }
+  C c -name koen -number 25
+  ::errorCheck [c test] "koen 25" "instvar with alias"
 }
 
 
@@ -3092,9 +3137,9 @@ condMixins proc run {{n 20}} {
 
   set ::context payrollApp
 
-  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterappend filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinappend mixinguard move name next noinit parametercmd print proc procsearch requireNamespace salary self set signature tclcmd trace unset uplevel upvar volatile vwait" "condmixin all methods"
+  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterappend filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinappend mixinguard move name next noinit parametercmd print proc procsearch requireNamespace salary self set signature tclcmd trace unset uplevel upvar volatile vwait" "condmixin all methods"
 
-  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure copy defaultmethod destroy eval exists extractConfigureArg filter filterappend filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinappend mixinguard move name next noinit parametercmd print proc procsearch requireNamespace salary self set signature tclcmd trace unset uplevel upvar volatile vwait" "all methods in context"
+  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure copy defaultmethod destroy eval exists extractConfigureArg filter filterappend filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinappend mixinguard move name next noinit parametercmd print proc procsearch requireNamespace salary self set signature tclcmd trace unset uplevel upvar volatile vwait" "all methods in context"
 
   ::errorCheck [my show payrollApp jim] "{payrollApp:  jim info methods salary => salary} {payrollApp:  jim info methods -incontext salary => salary} {payrollApp:  jim info methods driv* => driving-license} {payrollApp:  jim info methods -incontext driv* => }" "payrollApp jim"
   ::errorCheck [my show shipmentApp jim] "{shipmentApp:  jim info methods salary => salary} {shipmentApp:  jim info methods -incontext salary => } {shipmentApp:  jim info methods driv* => driving-license} {shipmentApp:  jim info methods -incontext driv* => driving-license}" "shipmentApp jim"
@@ -3151,38 +3196,37 @@ volatileObjects proc run {{n 20}} {
     next
   }
 
-  ::errorCheck [llength [C info instances]] 0 "[self]: foreign instances"
-  ::errorCheck [my inscope] 1-1-2-10-1 "[self]: volatile objects in scope"
-  ::errorCheck [llength [C info instances]] 0 "[self]: instances survived scope"
+  ::errorCheck [llength [C info instances]] 0 "foreign instances"
+  ::errorCheck [my inscope] 1-1-2-10-1 "volatile objects in scope"
+  ::errorCheck [llength [C info instances]] 0 "instances survived scope"
   
   Class instmixin ::xotcl::_creator
-  ::errorCheck [my inscope] 1-1-2-10-1 \
-      "[self]: volatile objects in scope through mixin"
+  ::errorCheck [my inscope] 1-1-2-10-1 "volatile objects in scope through mixin"
   ::errorCheck [llength [C info instances]] 0 \
-      "[self]: instances survived scope through mixin"
+      "instances survived scope through mixin"
 
   Class instfilter f
   ::errorCheck [my inscope] 1-1-2-10-1 \
-      "[self]: volatile objects in scope through mixin + filter"
+      "volatile objects in scope through mixin + filter"
   ::errorCheck [llength [C info instances]] 0 \
-      "[self]: instances survived scope through mixin + filter"
+      "instances survived scope through mixin + filter"
 
   Class instmixin {}
 
   Class instfilter f
   ::errorCheck [my inscope] 1-1-2-10-1 \
-      "[self]: volatile objects in scope through filter"
+      "volatile objects in scope through filter"
   ::errorCheck [llength [C info instances]] 0 \
-      "[self]: instances survived scope through filter"
+      "instances survived scope through filter"
 
   Class instfilter {}
   C instmixin ::xotcl::I
   ::errorCheck [my inscope] 1-1-2-10-1 \
-      "[self]: instvar overload in scope through mixin"
+      "instvar overload in scope through mixin"
 
   C instfilter f
   ::errorCheck [my inscope] 1-1-2-10-1 \
-      "[self]: instvar overload in scope through mixin and filter"
+      "instvar overload in scope through mixin and filter"
 
   C instfilter {}
   Class instproc f {} {}
@@ -3220,7 +3264,7 @@ uplevelCmds proc run {{n 20}} {
   }
   ::errorCheck [o4 m] \
       "{self=::o1 up1=::o2 up2=::o3 up3=::o4} {self=::o1 up1=::o1 up2=::o2 up3=::o3}" \
-      "[self]: uplevel self"
+      "uplevel self"
   o4 m
 
   proc showstack {} {
@@ -3492,6 +3536,9 @@ TestX create nonposargs -proc run {{n 20}} {
 	lappend ::r "$b $arg"
 	return "$b $arg"
     }
+    o proc z5 {-pos args} {
+	return [list $pos $args]
+    }
 
     Class P
     P instproc x {a b} {
@@ -3533,8 +3580,11 @@ TestX create nonposargs -proc run {{n 20}} {
     errorCheck [p z2 -x 1 -a 2 -b 3 a b c] \
 	"1 -- a b c -- 2 -- 3" "invocation 4"
 
-    errorCheck [o z3 -b true -- -b] \
-	"true -b" "dash dash"
+    errorCheck [o z3 -b true -- -b] "true -b" "dash dash"
+
+    errorCheck [o z5 -pos 1 a b] "1 {a b}" "nonpos with given args"
+    errorCheck [o z5 -pos 1 a] "1 a" "nonpos with given args"
+    errorCheck [o z5 -pos 1] "1 {}" "nonpos without given args"
 
     catch {
 	o z3 -b abc -- -b

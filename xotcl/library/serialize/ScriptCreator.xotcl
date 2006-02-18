@@ -1,4 +1,4 @@
-# $Id: ScriptCreator.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# $Id: ScriptCreator.xotcl,v 1.4 2006/02/18 22:17:33 neumann Exp $
 
 package provide xotcl::scriptCreation::scriptCreator 0.8
 package require XOTcl
@@ -41,12 +41,12 @@ namespace eval ::xotcl::scriptCreation::scriptCreator {
 	set aCount 0
 	set bCount 0
 	for {set i 0} {$i < [string length $a]} {incr i} {
-	    if {[string index $a $i] == ":"} {
+	    if {[string index $a $i] eq ":"} {
 		incr aCount
 	    }
 	}
 	for {set i 0} {$i < [string length $b]} {incr i} {
-	    if {[string index $b $i] == ":"} {
+	    if {[string index $b $i] eq ":"} {
 		incr bCount
 	    }
 	}
@@ -200,7 +200,7 @@ namespace eval ::xotcl::scriptCreation::scriptCreator {
 				my checkClass $name $c
 			    }
 			}
-			if {$sl != ""} {
+			if {$sl ne ""} {
 			    append script " -superclass \{$sl\}\n"
 			} else {
 			    append script "\n"

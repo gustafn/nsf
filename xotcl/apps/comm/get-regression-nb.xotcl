@@ -1,4 +1,4 @@
-#!/usr/local/bin/xotclsh
+#!/usr/bin/env tclsh
 package require XOTcl; namespace import -force xotcl::*
 
 #  ./get-regression-nb.xotcl -host swt -parallel 0

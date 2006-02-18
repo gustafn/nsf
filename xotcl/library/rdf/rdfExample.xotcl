@@ -1,9 +1,9 @@
-#!../../src/xotclsh
-#!/usr/local/bin/xotclsh
-# $Id: rdfExample.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+#!/usr/bin/env tclsh
+# $Id: rdfExample.xotcl,v 1.2 2006/02/18 22:17:33 neumann Exp $
 #
 # small Example for usage of xoXML
 #
+package require XOTcl; namespace import -force xotcl::*
 package require xotcl::package
 package require xotcl::trace
 package require xotcl::rdf::parser
