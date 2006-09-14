@@ -1,5 +1,5 @@
 #!/usr/bin/env tclsh
-#$Id: UNIVERSAL.xotcl,v 1.4 2006/02/18 22:17:32 neumann Exp $
+#$Id: UNIVERSAL.xotcl,v 1.5 2006/09/14 06:36:02 neumann Exp $
 package require XOTcl; namespace import -force xotcl::*
 array set opts {
   -ssl 0 -instanceFile UNIVERSAL.rdf -cssFile UNIVERSAL.css -root . -pkgdir .}
@@ -70,7 +70,7 @@ RDFdb instproc isContainer c {
 }
 RDFdb instproc add {predicate subject object} {
   set s [self]::$subject
-  if {[my info children $s] == ""} {
+  if {[my info children $s] eq ""} {
     #puts stderr "create new resource $s"
     Resource create $s
   }
@@ -92,7 +92,7 @@ RDFdb instproc resources {} {
 RDFdb instproc querySubject {subject} {
   set s [self]::$subject
   set result ""
-  if {[my info children $s] != ""} {
+  if {[my info children $s] ne ""} {
     foreach att [lsort [$s info vars]] {
       lappend result $att [$s set $att]
     }
@@ -152,7 +152,7 @@ Resource instproc pretty-access {} {
   set tech http://nm.wu-wien.ac.at/universal/rdf-technical
   set format [my substitute "$tech#Format"]
   set location [my substitute "$tech#Location"]
-  if {$format == "text/html"} {
+  if {$format eq "text/html"} {
     set label "go" } else {
     set label "Download [my substitute $tech#Size] bytes"
   }
@@ -191,7 +191,7 @@ LrManager instproc attributeTable {subject cls} {
     }
     regexp {^(.*)\#(.*)$} $attr _ ns property
     if {$ns != $lastns} {
-      if {$lastns != ""} { append result </table><p>\n }
+      if {$lastns ne ""} { append result </table><p>\n }
       append result "<B class='$cls'>Attributes from namespace $ns:</B>\n<table border='1'>\n"
       set lastns $ns
     }

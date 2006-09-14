@@ -1,4 +1,4 @@
-# $Id: testo.xotcl,v 1.2 2006/02/18 22:17:33 neumann Exp $
+# $Id: testo.xotcl,v 1.3 2006/09/14 06:36:02 neumann Exp $
 # 
 # Copyright 1993 Massachusetts Institute of Technology
 #
@@ -183,7 +183,7 @@ classcreate proc factorgraph {{n 3600}} {
       #
 
 
-      if {[TestClass info instances $i] == ""} then {
+      if {[TestClass info instances $i] eq ""} then {
 	my factorgraph $i
 	$i superclass $n
       } elseif {[$i info superclass $n] == 0} then {
@@ -249,7 +249,7 @@ inheritance proc combination {} {
     my meshes $obj $h
     anumber destroy
     
-    if {[$i info procs combineforclass] != ""} then {
+    if {[$i info procs combineforclass] ne ""} then {
       set cls [lrange [$i combineforclass] 1 end]
       my meshes $cls $h
     }
@@ -308,7 +308,7 @@ classdestroy proc run {} {
     set TCdestroy [self]
     next
   }
-  while {[TestClass info instances] != ""} {
+  while {[TestClass info instances] ne ""} {
     set t [TestClass info instances]
     for {set i 0} {$i < [llength $t]} {incr i} {
       set o [lindex $t $i]
@@ -328,7 +328,7 @@ classdestroy proc run {} {
 	if {[catch {set TCdestroy}] || $TCdestroy != $o} then {
 	  error "FAILED [self] - destroy instproc not run for $o"
 	}
-	if {[info commands $o] != ""} then {
+	if {[info commands $o] ne ""} then {
 	  error "FAILED [self] - $o not removed from interpreter"
 	}
 	unset TCdestroy
@@ -337,7 +337,7 @@ classdestroy proc run {} {
 	# but everyone must still have a superclass
 	#
 	foreach j $sb {
-	  if {[$j info superclass] == ""} then {
+	  if {[$j info superclass] eq ""} then {
 	    $j superclass Object
 	  }
 	}
@@ -489,7 +489,7 @@ objectvariables proc run {{n 100}} {
     }    
     $obj unset array
 
-    if {[$obj info vars "unset.0"] == ""} then {
+    if {[$obj info vars "unset.0"] eq ""} then {
       error "FAILED [self] - unset: [$obj info vars]"
     }
   }
@@ -594,7 +594,7 @@ TestSuite proc run {} {
   puts [classdestroy run]
   puts [objectinits run]
   puts [objectvariables run]
-  if {[info commands Timer] != ""} then {
+  if {[info commands Timer] ne ""} then {
     puts [capi run]
   }
 #  puts [autoload run]

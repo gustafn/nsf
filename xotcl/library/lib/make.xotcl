@@ -1,4 +1,4 @@
-# $Id: make.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $ 
+# $Id: make.xotcl,v 1.2 2006/09/14 06:36:02 neumann Exp $ 
 ### inEachDir changes now to each directory
 ### install clears tgarget directory before installing
 ### Object file added (for better -n processing)
@@ -35,7 +35,7 @@ make proc mkIndex {name} {
   #puts stderr "[pwd]: call so=<$so>"
   set fls [concat $fls $so]
   
-  if {$fls != ""} {
+  if {$fls ne ""} {
     if {[file exists pkgIndex.tcl]} {
       file delete -force pkgIndex.tcl
     }
@@ -109,7 +109,7 @@ foreach subcmd [file array names destructive] {
 ### minus n option
 Class make::-n
 foreach f [file info commands] {
-  if {$f == "unknown" || $f == "next" || $f == "self"} continue
+  if {$f eq "unknown" || $f eq "next" || $f eq "self"} continue
   if {![file exists destructive($f)] || [file set destructive($f)]} {
     #puts stderr destruct=$f
     make::-n instproc $f args {
@@ -126,8 +126,8 @@ foreach f [file info commands] {
 }
 
 ### command line parameters
-if {![info exists argv] || $argv == ""} {set argv -all}
-if {$argv == "-n"} {set argv "-n -all"}
+if {![info exists argv] || $argv eq ""} {set argv -all}
+if {$argv eq "-n"} {set argv "-n -all"}
 
 Class Script
 Script proc create args {
@@ -135,7 +135,7 @@ Script proc create args {
   eval next $args
 }
 Script instproc unknown args {
-  puts stderr "$::argv0: Unknown option ´-$args´ provided"
+  puts stderr "$::argv0: Unknown option Â´-$argsÂ´ provided"
 }
 
 Script instproc n {} {file mixin make::-n}
@@ -151,6 +151,6 @@ Script instproc target {path} {
 Script create main
 
 #puts stderr "+++ make.xotcl finished."
-#if {[set ::tcl_platform(platform)] == "windows"} {
+#if {[set ::tcl_platform(platform)] eq "windows"} {
 #  exit
 #}

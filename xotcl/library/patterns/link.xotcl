@@ -1,4 +1,4 @@
-# $Id: link.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# $Id: link.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 
 package provide xotcl::pattern::link 0.9
 package require XOTcl
@@ -18,7 +18,7 @@ namespace eval ::xotcl::pattern::link {
 	set m [self calledproc]
 
 	# let link/destroy requests go through to the link
-	if {$m == "link" || $m == "destroy"} {
+	if {$m eq "link" || $m eq "destroy"} {
 	    return [next]
 	}
 
@@ -27,7 +27,7 @@ namespace eval ::xotcl::pattern::link {
 	    eval $l $m $args
 	} else {
 	    # if there is currently no link establish -> return
-	    if {$l == ""} {return}
+	    if {$l eq ""} {return}
 	    error "Link: object $l is no xotcl object"
 	}
     }

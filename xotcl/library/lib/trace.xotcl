@@ -1,4 +1,4 @@
-# -*- Tcl -*- $Id: trace.xotcl,v 1.5 2005/09/09 21:09:01 neumann Exp $
+# -*- Tcl -*- $Id: trace.xotcl,v 1.6 2006/09/14 06:36:02 neumann Exp $
 package provide xotcl::trace 0.91
 package require XOTcl
 
@@ -123,7 +123,7 @@ namespace eval ::xotcl::trace {
 
     Object instproc traceFilter args {
 	# don't trace the Trace object
-	if {[self] == "::Trace"} {return [next]}
+	if {[self] eq "::Trace"} {return [next]}
 	set context "[self callingclass]->[self callingproc]"
 	set method [self calledproc]
 	switch -- $method {
@@ -132,9 +132,9 @@ namespace eval ::xotcl::trace {
 	    default  {set dargs $args }
 	}
 	#my showStack
-	Trace::puts "CALL $context>  [self]->$method $dargs (next=[self next])"
+	Trace puts "CALL $context>  [self]->$method $dargs (next=[self next])"
 	set result [next]
-	Trace::puts "EXIT $context>  [self]->$method ($result)"
+	Trace puts "EXIT $context>  [self]->$method ($result)"
 	return $result
     }
 
@@ -148,7 +148,7 @@ namespace eval ::xotcl::trace {
 		set method [self callingproc]
 
 		#puts stderr ccls=$ccls.
-		if {$ccls == ""} { ;## instvar in proc
+		if {$ccls eq ""} { ;## instvar in proc
 		    set bod [my info body $method]
 		    set context "proc [self]->$method"
 		} else { ;## instvar in instproc
@@ -174,7 +174,7 @@ namespace eval ::xotcl::trace {
     Object instproc statFilter args {
 	# don't return statistics from the Trace object
 	#puts stderr "self=[self]"
-	if {[self] == "::Trace"} {return [next]}
+	if {[self] eq "::Trace"} {return [next]}
 	set ccls [self callingclass]
 	set cmet [self callingproc]
 	set met [self calledproc]

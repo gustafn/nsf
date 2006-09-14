@@ -1,4 +1,4 @@
-# $Id: wafecompat.tcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: wafecompat.tcl,v 1.2 2006/09/14 06:36:02 neumann Exp $
 package provide xotcl::wafecompat 0.9
 
 set WAFELIB        /usr/lib/X11/wafe/
@@ -8,7 +8,7 @@ proc MOTIFPREFIX {} {return {}}
 proc requireModules modules {
   global MODULE_PATH 
   foreach {cmd module} $modules {
-    if {[string compare {} [info command $cmd]]} continue
+    if {{} ne [info command $cmd] } continue
     if {[regexp {([A-Za-z1-9]+)Gen} $module _ n] ||
 	[regexp {lib([a-z]+)} $module _ n] ||
 	[regexp {^(.+)[.]so} $module _ n]

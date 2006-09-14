@@ -1,4 +1,4 @@
-# $Id: PlaceAccessControl.xotcl,v 1.4 2005/09/09 21:09:01 neumann Exp $
+# $Id: PlaceAccessControl.xotcl,v 1.5 2006/09/14 06:36:02 neumann Exp $
 
 package provide xotcl::actiweb::placeAccessControl 0.8
 
@@ -56,7 +56,7 @@ namespace eval ::xotcl::actiweb::placeAccessControl {
     PlaceAccessControl instproc protect {objName id pwd} {
 	set objName [string trimleft $objName :]
 	[self]::httpd protectDir $objName $objName {}
-	if {$pwd != ""} {
+	if {$pwd ne ""} {
 	    my setPassword $objName $id $pwd
 	} 
     }

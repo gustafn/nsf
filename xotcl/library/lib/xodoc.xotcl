@@ -1,4 +1,4 @@
-# $Id: xodoc.xotcl,v 1.4 2005/09/09 21:09:01 neumann Exp $
+# $Id: xodoc.xotcl,v 1.5 2006/09/14 06:36:02 neumann Exp $
 
 package provide xotcl::xodoc 0.84
 package require xotcl::staticMetadataAnalyzer
@@ -42,7 +42,7 @@ namespace eval ::xotcl::xodoc {
 		$htmlDoc endTableCell
 
 		$htmlDoc startTableCell -valign top
-		if {$p == "errorCodes"} {
+		if {$p eq "errorCodes"} {
 		    # Build table cell with list of error codes.
 		    foreach {code desc} [my set $p] {
 			set code [string map [list < &lt\; > &gt\;] $code]
@@ -112,10 +112,10 @@ namespace eval ::xotcl::xodoc {
 	    set label($pn) "<a href=\"#[my set name]-$pn\">$pn</a>"
 	}
 	foreach l [lsort [array names label]] {
-	    if {$c != ""} {append c ", "}
+	    if {$c ne ""} {append c ", "}
 	    append c $label($l)
 	}
-	if {$c != ""} {append c "."}
+	if {$c ne ""} {append c "."}
 	$htmlDoc addString "$c"
     }
     
@@ -139,9 +139,9 @@ namespace eval ::xotcl::xodoc {
 	}
 
 	set head ""
-	if {[my procList] != ""} {set head "<b> Procs </b> "}
+	if {[my procList] ne ""} {set head "<b> Procs </b> "}
 	if {[my istype ClassToken]} {
-	    if {[my instprocList] != ""} {set head "<b> Procs/Instprocs: </b> "}
+	    if {[my instprocList] ne ""} {set head "<b> Procs/Instprocs: </b> "}
 	}
 	$htmlDoc addString $head
 	my getProcsHTML $htmlDoc
@@ -228,7 +228,7 @@ namespace eval ::xotcl::xodoc {
 	::@ set analyzerObj $docdb
 	$docdb analyzeFile $file
 	set ext [file extension $file]
-	if {$ext != ""} {set ext -[string trimleft $ext .]}
+	if {$ext ne ""} {set ext -[string trimleft $ext .]}
 	set docfilename [file rootname [file tail $file]]$ext
 	$docdb writeFile ${docdir}/$docfilename.html $file
 	$docdb destroy
@@ -240,9 +240,9 @@ namespace eval ::xotcl::xodoc {
 	$htmlDoc addString "<h2> Package/File Information </h2>"
 	if {[llength $packageList] > 0} {
 	    foreach t $packageList {
-		if {[$t type] == "provide"} {
+		if {[$t type] eq "provide"} {
 		    $htmlDoc addString "<b> Package provided: </b> [$t name] [$t version]"
-		} elseif {[$t type] == "require"} {
+		} elseif {[$t type] eq "require"} {
 		    $htmlDoc addString "<b> Package required: </b> [$t name] [$t version]"
 		}
 		$htmlDoc addLineBreak

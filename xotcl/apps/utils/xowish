@@ -1,5 +1,5 @@
 #!@WISH_PROG@
-###!/usr/bin/tclsh8.4.4
+###!/usr/local/src/tcl8.4.13/unix/tclsh
 ###package require Tk
 if {$argc == 0} {
   puts "Don't use [info script] as interactive shell! Use instead:"

@@ -27,7 +27,7 @@ namespace eval ::xotcl::staticMetadataAnalyzer {
     set inc {}
     set cmds {}
     foreach cmd [split [string trimleft $cmd] \n] {
-      if {[string compare {} $inc]} {
+      if {{} ne $inc } {
 	append inc \n$cmd
       } else {
 	append inc [string trimleft $cmd]

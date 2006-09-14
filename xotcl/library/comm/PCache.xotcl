@@ -1,4 +1,4 @@
-# -*- Tcl -*- $Id: PCache.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# -*- Tcl -*- $Id: PCache.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 # Persistent Cache object, using gdbm
 
 # Configuration:
@@ -39,7 +39,7 @@ namespace eval ::xotcl::comm::pcache {
     persistentCache proc flush { {cmd {}} } {
 	my instvar DBID
 	if {[info exists DBID]} { $DBID close }
-	if {[string compare {} $cmd]} {
+	if {{} ne $cmd } {
 	    if {[catch {eval $cmd} err]} {puts stderr err=$err}
 	}
 	my open  ;# UZ: wenn hier das self weggenommen wird, crashed das lintFilter
@@ -90,7 +90,7 @@ namespace eval ::xotcl::comm::pcache {
     }
     persistentCache proc newEntry {url access doCache name} {
 	my instvar cacheFileName contentType meta dir
-	if {$name != ""} {
+	if {$name ne ""} {
 	    #$access set caching 0
 	    return $name
 	} elseif {$doCache} {
@@ -127,7 +127,7 @@ namespace eval ::xotcl::comm::pcache {
 	    if {![info exists DBID]} { open }
 	    set result [$DBID set $url]
 	    my lazyFlush
-	    if {[string compare "" $result]} {
+	    if {$result ne ""} {
 		set entry($url) 1
 		array set r $result
 		set cacheFileName($url) $r(cacheFileName)
@@ -245,7 +245,7 @@ namespace eval ::xotcl::comm::pcache {
     proc onExit {} {
 	#puts stderr "allinstances of Access: [Access allInstances]"
 	#foreach i [Access allInstances] {
-	#  if {[info command $i] == ""} continue
+	#  if {[info command $i] eq ""} continue
 	#  $i destroy
 	#}
 	#MemoryCache clear

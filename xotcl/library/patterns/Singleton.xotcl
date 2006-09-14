@@ -1,4 +1,4 @@
-# $Id: Singleton.xotcl,v 1.4 2005/09/09 21:09:01 neumann Exp $
+# $Id: Singleton.xotcl,v 1.5 2006/09/14 06:36:02 neumann Exp $
 
 package provide xotcl::pattern::singleton 0.8
 package require XOTcl
@@ -68,7 +68,7 @@ namespace eval ::xotcl::pattern::singleton {
 	# first
 	Class instproc getInstance {} {
 	    foreach sc [my info superclass] {
-		if {[$sc info class] == "::Singleton"} {
+		if {[$sc info class] eq "::Singleton"} {
 		    return [$sc getInstance]
 		} else {
 		    return ""

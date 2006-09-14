@@ -46,7 +46,7 @@ set parser [expat xmlparser \
 
 puts {*** Test error}
 if {[catch {$parser parse $data(error)} err]} {
-    if {[string compare $err "error condition in XML"]} {
+    if {$err ne "error condition in XML" } {
 	puts [list test failed, incorrect error message: $err]
     } else {
 	puts [list test passed]

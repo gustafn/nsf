@@ -1,3 +1,110 @@
+2006-09-14 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+      * Release of XOTcl 1.5.0
+
+2006-09-13 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+      * Update of build files for windows
+
+2006-09-10 <Gustaf.Neumann@wu-wien.ac.at>
+      * added method "contains" to create objects aggregated into
+        other objects (essentially a value added back-port of the OpenACS
+        version).
+      * based method "slots" on method "contains" for improved orthogonality
+      * rearranging sections in the tutorial
+      * deleted obsolete sections from the tutorial
+      * serializer: when an object is defined as exported, export the whole
+        object tree (no need to specify export of all slots for exported objects)
+
+2006-09-08 <Gustaf.Neumann@wu-wien.ac.at>
+       * added -verbose to forward options
+       * added subst to the tcl-impored methods
+       * fixed a bug with .... -slots {Attribute new -name  a1}
+          (Many thanks to neophytos for reporting}
+       * provide method serialize (for Object), when the serializer package is loaded
+
+2006-09-07 <Gustaf.Neumann@wu-wien.ac.at>
+      * provided Tcl 8.5a4 compatibility
+      * spellechecking langref, make terminology more consistent 
+        (naming of arguments like .e.g methodName)
+
+2006-09-04 <Gustaf.Neumann@wu-wien.ac.at>
+       * update of tcl.m4 for newest TEA from CVS
+
+2006-09-03 <Gustaf.Neumann@wu-wien.ac.at>
+       * "mixin|filter|instmixin|instfilter set ..." deprecated, use
+          "mixin|filter|instmixin|instfilter assign ..." instead
+ 
+2006-09-01 <Gustaf.Neumann@wu-wien.ac.at>
+       * fixed a bug in the xotcl trace module (many thanks to jima for reporting)
+       * extended procsearch to report parametercmd and instparametercmd
+
+2006-08-30 <Gustaf.Neumann@wu-wien.ac.at>
+       * extended procsearch to report as well [inst]parametercmd 
+
+2006-08-26 <Gustaf.Neumann@wu-wien.ac.at>
+       * extended procsearch to report as well [inst]forward and [inst]cmd
+
+2006-08-25 <Gustaf.Neumann@wu-wien.ac.at>
+       * new subcommand "info slots"
+       * implemented backwards bug-compatible "info parameter", deprecated
+
+2006-08-23 <Gustaf.Neumann@wu-wien.ac.at>
+       * added system slots and attribute slots (see documentation)
+
+2006-08-21 <Gustaf.Neumann@wu-wien.ac.at>
+       * changed the implementation of the configure command
+          and setrelation command to use Tcl_GetIndexFromObj();
+       * added the subcommand "class" and "superclass" to the
+         the setrelation command.
+
+2006-08-22 <Gustaf.Neumann@wu-wien.ac.at>
+       * fixed a bug with nonpositional arguments, some 
+          positional arguments and "args"
+       * fixed a bug in nonpositional arguments when called without 
+           arguments
+       * improved error messages in connection with nonpositional arguments
+       * extended interface of XOTclErrBadVal() to provide better error messages
+         (this changes the stub interface, so we have to change the version number)
+
+2006-08-21 <Gustaf.Neumann@wu-wien.ac.at>
+       * new command for registering predefined C-implemented Tcl commands 
+          as methods
+             ::xotcl::alias <class>|<obj> <methodname> \
+                      ?-objscope? ?-per-object? <cmdname>
+         "-objscope" has the same meaning as for forwarder, 
+         "-per-object" has the same meaning as for the method "method", 
+         This command is somewhat similar to "[inst]forward -earlybinding",
+         but can be used to bootstrap xotcl (when e.g. no methods are
+         available).
+
+2006-07-20 <Gustaf.Neumann@wu-wien.ac.at>
+        * Documentation bug: method volatile was documented
+          as a method of class, but is documented as a method of object
+          (Many thanks to Kristoffer for reporting)
+
+2006-05-22 <Gustaf.Neumann@wu-wien.ac.at>
+       * package.xotcl: evaluating calls to "tcl_package" in the
+          global namespace instead of the current. This fixes problem of
+          xotcl 1.4.* with xotclide. Many thanks to 
+          Bill Paulsen and Artur Trzewik for identifying the problem and
+          suggesting a fix.
+
+2006-04-20 <Gustaf.Neumann@wu-wien.ac.at>
+        *  xotcl.c: new option for the argument substitution. When the argument
+            list of the forward command contains "%argclindex {a b c}", then
+            depending of the number of arguments at invocation "a", "b"
+            or "c" is substituted. 
+        * New option for forwarder: The option -earlybinding can be used to look 
+           up the function  pointer of the called Tcl command at 
+           definition time of the forwarder instead of invocation time. 
+           This option should only be used for calling C-implemented Tcl commands)
+
+2006-03-22 <Gustaf.Neumann@wu-wien.ac.at>
+       * deprecated command filterappend, instfilterappend, mixinappend, 
+          instmixinappend, tclcmd, insttclcmd deleted
+
+2006-03-20 <Gustaf.Neumann@wu-wien.ac.at>
+       * allow single colons in method names (fix in xotcl.c, NSTail())
+
 2006-02-17 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
        * release of 1.4.0
 

@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.16 2006/02/18 22:17:33 neumann Exp $
+ *  $Id: xotclInt.h,v 1.17 2006/09/14 06:36:02 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
@@ -518,12 +518,14 @@ typedef struct XOTclClasses {
 typedef enum {
     XOTE_EMPTY, XOTE_UNKNOWN, XOTE_CREATE, XOTE_DESTROY, XOTE_INSTDESTROY,
     XOTE_ALLOC, XOTE_INIT, XOTE_INSTVAR, XOTE_INTERP, XOTE_AUTONAMES,
-    XOTE_ZERO, XOTE_MOVE, XOTE_SELF, XOTE_CLASS, XOTE_RECREATE,
+    XOTE_ZERO, XOTE_ONE, XOTE_MOVE, XOTE_SELF, XOTE_CLASS, XOTE_RECREATE,
     XOTE_SELF_CLASS, XOTE_SELF_PROC, XOTE_PARAM_CL,
     XOTE_SEARCH_DEFAULTS, XOTE_EXIT_HANDLER,
     XOTE_NON_POS_ARGS_CL, XOTE_NON_POS_ARGS_OBJ,
     XOTE_CLEANUP, XOTE_CONFIGURE, XOTE_FILTER, XOTE_INSTFILTER,
-    XOTE_INSTPROC, XOTE_PROC, XOTE_MKGETTERSETTER, XOTE_FORMAT,
+    XOTE_INSTPROC, XOTE_PROC, XOTE_INSTFORWARD, XOTE_FORWARD,
+    XOTE_INSTCMD, XOTE_CMD, XOTE_INSTPARAMETERCMD, XOTE_PARAMETERCMD, 
+    XOTE_MKGETTERSETTER, XOTE_FORMAT,
     XOTE_NEWOBJ, XOTE_GUARD_OPTION, XOTE_DEFAULTMETHOD,
     XOTE___UNKNOWN, XOTE_ARGS, XOTE_SPLIT, XOTE_COMMA,
     /** these are the redefined tcl commands; leave them
@@ -536,12 +538,14 @@ extern char *XOTclGlobalStrings[];
 char *XOTclGlobalStrings[] = {
   "", "unknown", "create", "destroy", "instdestroy",
   "alloc", "init", "instvar", "interp", "__autonames",
-  "0", "move", "self", "class", "recreate",
+  "0", "1", "move", "self", "class", "recreate",
   "self class", "self proc", "::xotcl::Class::Parameter",
   "searchDefaults", "__exitHandler",
   "::xotcl::NonposArgs", "::xotcl::nonposArgs",
   "cleanup", "configure", "filter", "instfilter",
-  "instproc", "proc", "mkGetterSetter", "format",
+  "instproc", "proc", "instforward", "forward",
+  "instcmd", "cmd", "instparametercmd", "parametercmd",
+  "mkGetterSetter", "format",
   "__#", "-guard", "defaultmethod",
   "__unknown", "args", "split", ",",
   "expr", "incr", "info", "rename", "subst",
@@ -726,23 +730,25 @@ extern XOTclCompEnv *XOTclGetCompEnv();
 
 Tcl_ObjCmdProc XOTclInitProcNSCmd, XOTclSelfDispatchCmd, 
   XOTclNextObjCmd, XOTclGetSelfObjCmd;
-#endif
 
-int XOTclCorrectAutoPath(Tcl_Interp* in);
 int XOTclDirectSelfDispatch(ClientData cd, Tcl_Interp* in,
 		     int objc, Tcl_Obj *CONST objv[]);
-int XOTclObjDispatch(ClientData cd, Tcl_Interp* in,
-		     int objc, Tcl_Obj *CONST objv[]);
+#endif
 
+int 
+XOTclObjDispatch(ClientData cd, Tcl_Interp* in,
+		 int objc, Tcl_Obj *CONST objv[]);
 
 XOTclCallStackContent *
 XOTclCallStackFindActiveFrame(Tcl_Interp* in, int offset);
+
 XOTclCallStackContent *
 XOTclCallStackFindLastInvocation(Tcl_Interp* in, int offset);
 
-int XOTclCallMethodWithArg(ClientData cd, Tcl_Interp* in, 
-			   Tcl_Obj* method, Tcl_Obj* arg,
-			   int objc, Tcl_Obj *CONST objv[], int flags);
+int 
+XOTclCallMethodWithArg(ClientData cd, Tcl_Interp* in, 
+		       Tcl_Obj* method, Tcl_Obj* arg,
+		       int objc, Tcl_Obj *CONST objv[], int flags);
 
 /* functions from xotclUtil.c */
 char *XOTcl_ltoa(char *buf, long i, int *len);

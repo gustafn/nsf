@@ -135,7 +135,7 @@ namespace eval ::xotcl::store::textfile {
 
     Storage=TextFile instproc firstkey {} {
 	my instvar keys searchID
-	if {$searchID != ""} {
+	if {$searchID ne ""} {
 	    array donesearch keys $searchID
 	}
 	::set searchID [array startsearch keys]
@@ -143,11 +143,11 @@ namespace eval ::xotcl::store::textfile {
     }
     Storage=TextFile instproc nextkey {} {
 	my instvar keys searchID
-	if {$searchID == ""} {
+	if {$searchID eq ""} {
 	    error "[self class]: firstkey was not invoked on storage search"
 	}
 	::set elt [array nextelement keys $searchID]
-	if {$elt == ""} {
+	if {$elt eq ""} {
 	    # if array end is reach search is terminated automatically!!
 	    ::set searchID ""
 	}

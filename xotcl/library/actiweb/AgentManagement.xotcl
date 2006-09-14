@@ -1,4 +1,4 @@
-# $Id: AgentManagement.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# $Id: AgentManagement.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 
 package provide xotcl::actiweb::agentManagement 0.8
 
@@ -83,10 +83,10 @@ namespace eval ::xotcl::actiweb::agentManagement {
 	set ai [my set agentInfo]
 	set cl [$objName info class]
 	#puts stderr "AgentVisitor visit -- $objName cl=$cl <[$ai name]>"
-	if {[$ai name] == ""} {
+	if {[$ai name] eq ""} {
 	    #### not fixed yet
 	    puts stderr "my fixme (AgentManagement)"
-	    if {$cl == "::About" &&
+	    if {$cl eq "::About" &&
 		[string first "::Description" [[$objName info parent] info class]] == 0} {
 		$ai name [$objName set content]
 	    }
@@ -108,7 +108,7 @@ namespace eval ::xotcl::actiweb::agentManagement {
     }
 
     AgentVisitor instproc interpretNodeTree node {
-	if {[my set agentInfo] == "" } {
+	if {[my set agentInfo] eq "" } {
 	    error "Agent Visitor: no agent info provided."
 	} 
 	$node accept [self]
@@ -155,7 +155,7 @@ namespace eval ::xotcl::actiweb::agentManagement {
     }
 
     AgentMgr instproc info args {
-	if {[lindex $args 0] == "agents"} {
+	if {[lindex $args 0] eq "agents"} {
 	    if {[llength $args] > 1} {
 		return [my exists agents([lindex $args 1])]
 	    } else {

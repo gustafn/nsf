@@ -144,7 +144,7 @@ if {$clients} {
   proc clients {clients} {
     append cmd "[pwd]/$::argv0 -host $::host " \
 	"-parallel $::parallel -sequential $::sequential"
-    if {$::port != ""} {append cmd " -port $::port"}
+    if {$::port ne ""} {append cmd " -port $::port"}
     set starttime [clock clicks]
     set ::running $clients
     for {set s 0} {$s < $clients} {incr s} { 
@@ -181,7 +181,7 @@ persistentCache clear
 
 proc assert {f r} {
   set got [eval $f]
-  if {[string compare $got $r]} {
+  if {$got ne $r } {
     puts stderr "assertion failed: \[$f\] == $r (got $got)" 
     quit
   } else {
@@ -256,7 +256,7 @@ proc parallelRequests-1.1 {urls} {
   incr ::total [psink set totalbytes]
   psink destroy
 }
-if {$port != ""} {set port :$port}
+if {$port ne ""} {set port :$port}
 
 
 if {$parallel} {

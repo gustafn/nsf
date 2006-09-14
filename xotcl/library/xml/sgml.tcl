@@ -30,7 +30,7 @@
 # liability for all claims, expenses, losses, damages and costs any user may
 # incur as a result of using, copying or modifying the Software.
 #
-# $Id: sgml.tcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: sgml.tcl,v 1.2 2006/09/14 06:36:02 neumann Exp $
 
 package provide sgml 1.6
 
@@ -389,7 +389,7 @@ proc sgml::parseEvent {sgml args} {
 
 			    # Get the version number
 			    if {[regexp {[ 	]*version="(-+|[a-zA-Z0-9_.:]+)"[ 	]*} $param discard version] || [regexp {[ 	]*version='(-+|[a-zA-Z0-9_.:]+)'[ 	]*} $param discard version]} {
-				if {[string compare $version "1.0"]} {
+				if {$version ne "1.0" } {
 				    # Should we support future versions?
 				    # At least 1.X?
 				    uplevel #0 $options(-errorcommand) "document XML version \"$version\" is incompatible with XML version 1.0"
@@ -642,7 +642,7 @@ proc sgml::ParseEvent:ElementClose {tag opts args} {
     array set cfg $args
 
     # WF check
-    if {[string compare $tag [lindex $state(stack) end]]} {
+    if {$tag ne [lindex $state(stack) end] } {
 	uplevel #0 $options(-errorcommand) [list "end tag \"$tag\" does not match open element \"[lindex $state(stack) end]\" around line $state(line)"]
 	return
     }
@@ -1007,7 +1007,7 @@ proc sgml::CModelSTcp {state cp rep cs} {
 	}
 	start=| -
 	start=, {
-	    set var(state) [lreplace $var(state) end end [expr {$cs == "," ? ":seq" : ":choice"}]]
+	    set var(state) [lreplace $var(state) end end [expr {$cs eq "," ? ":seq" : ":choice"}]]
 	    CModelSTcsSet $state $cs
 	    CModelSTcpAdd $state $cp $rep
 	}
@@ -1017,7 +1017,7 @@ proc sgml::CModelSTcp {state cp rep cs} {
 	}
 	:choice=, -
 	:seq=| {
-	    return -code error "syntax error in specification: incorrect delimiter after \"$cp\", should be \"[expr {$cs == "," ? "|" : ","}]\""
+	    return -code error "syntax error in specification: incorrect delimiter after \"$cp\", should be \"[expr {$cs eq "," ? "|" : ","}]\""
 	}
 	end=* {
 	    return -code error "syntax error in specification: no delimiter before \"$cp\""
@@ -1043,7 +1043,7 @@ proc sgml::CModelSTcp {state cp rep cs} {
 proc sgml::CModelSTcsSet {state cs} {
     upvar #0 $state var
 
-    set cs [expr {$cs == "," ? ":seq" : ":choice"}]
+    set cs [expr {$cs eq "," ? ":seq" : ":choice"}]
 
     if {[llength $var(stack)]} {
 	set var(stack) [lreplace $var(stack) end end $cs]
@@ -1239,9 +1239,9 @@ proc sgml::followpos {state st firstpos lastpos} {
 	:seq {
 	    for {set i 1} {$i < [llength [lindex $st 1]]} {incr i} {
 	    	followpos $state [lindex [lindex $st 1] $i]			\
-			[lindex [lindex $firstpos 0] [expr $i - 1]]	\
-			[lindex [lindex $lastpos 0] [expr $i - 1]]
-	    	foreach pos [lindex [lindex [lindex $lastpos 0] [expr $i - 1]] 1] {
+			[lindex [lindex $firstpos 0] [expr {$i - 1}]]	\
+			[lindex [lindex $lastpos 0] [expr {$i - 1}]]
+	    	foreach pos [lindex [lindex [lindex $lastpos 0] [expr {$i - 1}]] 1] {
 		    eval lappend var($pos) [lindex [lindex [lindex $firstpos 0] $i] 1]
 		    set var($pos) [makeSet $var($pos)]
 	    	}
@@ -1250,8 +1250,8 @@ proc sgml::followpos {state st firstpos lastpos} {
 	:choice {
 	    for {set i 1} {$i < [llength [lindex $st 1]]} {incr i} {
 		followpos $state [lindex [lindex $st 1] $i]			\
-			[lindex [lindex $firstpos 0] [expr $i - 1]]	\
-			[lindex [lindex $lastpos 0] [expr $i - 1]]
+			[lindex [lindex $firstpos 0] [expr {$i - 1}]]	\
+			[lindex [lindex $lastpos 0] [expr {$i - 1}]]
 	    }
 	}
 	default {
@@ -1340,7 +1340,7 @@ proc sgml::firstpos {cs firstpos nullable} {
 	    set result [lindex [lindex $firstpos 0] 1]
 	    for {set i 0} {$i < [llength $nullable]} {incr i} {
 	    	if {[lindex [lindex $nullable $i] 1]} {
-	    	    eval lappend result [lindex [lindex $firstpos [expr $i + 1]] 1]
+	    	    eval lappend result [lindex [lindex $firstpos [expr {$i + 1}]] 1]
 		} else {
 		    break
 		}
@@ -1373,7 +1373,7 @@ proc sgml::lastpos {cs lastpos nullable} {
     switch -- $cs {
 	:seq {
 	    set result [lindex [lindex $lastpos end] 1]
-	    for {set i [expr [llength $nullable] - 1]} {$i >= 0} {incr i -1} {
+	    for {set i [expr {[llength $nullable] - 1}]} {$i >= 0} {incr i -1} {
 		if {[lindex [lindex $nullable $i] 1]} {
 		    eval lappend result [lindex [lindex $lastpos $i] 1]
 		} else {
@@ -1443,13 +1443,13 @@ proc sgml::nullable {nodeType rep name {subtree {}}} {
 		:choice {
 		    set result 0
 		    foreach child $subtree {
-			set result [expr $result || [lindex $child 1]]
+			set result [expr {$result || [lindex $child 1]}]
 		    }
 		}
 		:seq {
 		    set result 1
 		    foreach child $subtree {
-			set result [expr $result && [lindex $child 1]]
+			set result [expr {$result && [lindex $child 1]}]
 		    }
 		}
 	    }
@@ -1541,7 +1541,7 @@ proc sgml::DTD:ENTITY {id value} {
     upvar opts state
     upvar entities ents
 
-    if {[string compare % $id]} {
+    if {"%" ne $id } {
 	# Entity declaration
 	if {[info exists ents($id)]} {
 	    eval $state(-errorcommand) entity [list "entity \"$id\" already declared"]

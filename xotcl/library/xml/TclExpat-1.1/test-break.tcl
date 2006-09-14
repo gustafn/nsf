@@ -24,7 +24,7 @@ proc element {tag name {attrs {}}} {
     }
 }
 proc pi {name args} {
-    if {$name == "break"} {
+    if {$name eq "break"} {
 	return -code break
     }
 }

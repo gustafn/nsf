@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclError.c,v 1.2 2006/02/18 22:17:33 neumann Exp $
+ * $Id: xotclError.c,v 1.3 2006/09/14 06:36:02 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -77,10 +77,10 @@ XOTclObjErrArgCnt(Tcl_Interp *in, Tcl_Obj *cmdname, char *arglist) {
 }
 
 int
-XOTclErrBadVal(Tcl_Interp *in, char *expected, char *value) {
+XOTclErrBadVal(Tcl_Interp *in, char *context, char *expected, char *value) {
   Tcl_ResetResult(in);
-  Tcl_AppendResult(in, "expected ", expected, " but got", 0);
-  Tcl_AppendElement(in, value);
+  Tcl_AppendResult(in, context, ": expected ", expected, " but got '", 
+		   value, "'", 0);
   return TCL_ERROR;
 }
 

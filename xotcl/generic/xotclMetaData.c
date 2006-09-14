@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclMetaData.c,v 1.2 2006/02/18 22:17:33 neumann Exp $
+ *  $Id: xotclMetaData.c,v 1.3 2006/09/14 06:36:02 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -81,7 +81,7 @@ XOTclMetaDataInit(XOTclObject* obj) {
 }
 
 int
-XOTclOMetaDataMethod (ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj *objv[]) {
+XOTclOMetaDataMethod (ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj = (XOTclObject*)cd;
   XOTclClass  *cl  = XOTclObjectToClass(cd);
   char* option; int add = -1;

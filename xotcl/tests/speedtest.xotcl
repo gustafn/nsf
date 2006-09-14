@@ -1,5 +1,5 @@
 #memory trace on
-# $Id: speedtest.xotcl,v 1.4 2005/09/09 21:09:01 neumann Exp $
+# $Id: speedtest.xotcl,v 1.5 2006/09/14 06:36:02 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 lappend auto_path [file dirname [info script]]/..
@@ -78,7 +78,7 @@ C instproc testAndSetViaInstvar x {
   if {[info exists v]} {set v $x}
 }
 C instproc testAndSetViaSetMethod x {
-  if {[my info vars v] != ""} {my set v $x}
+  if {[my info vars v] ne ""} {my set v $x}
 }
 
 C instproc readViaInstvar {} {
@@ -241,7 +241,7 @@ Test new -count 1000 -pre {::set ::count 0} \
 Test new -cmd {Object create x} -expected ::x
 Test new -cmd {Object create x -set a -1 -set b ,, -set c a--} \
     -expected ::x
-Test new -cmd {expr {[c array names n 500] != ""}}
+Test new -cmd {expr {[c array names n 500] ne ""}}
 Test new -cmd {info exists c::n(500)}
 Test new -cmd {c exists n(500)}
 
@@ -250,7 +250,7 @@ Test new -cmd {c info children ::c::500}  -expected ::c::500
 if {[info exists xotcl_version]} {
   Test new -cmd {llength [Object info instances]} -expected 1001
 } else {
-  Test new -cmd {llength [Object info instances]} -expected 1003
+  Test new -cmd {llength [Object info instances]} -expected 1007
 }
 
 Test new -cmd {Object info instances ::c::500} -expected ::c::500

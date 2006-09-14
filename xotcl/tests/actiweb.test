@@ -1,5 +1,5 @@
 # -*- Mode: tcl -*-
-# $Id: actiweb.test,v 1.6 2005/09/09 21:09:01 neumann Exp $
+# $Id: actiweb.test,v 1.7 2006/09/14 06:36:02 neumann Exp $
 # regression test for actiweb examples
 #if {[set ::tcl_platform(platform)] == "windows"} {
 #  lappend auto_path .
@@ -24,6 +24,7 @@ proc terminate {} {
 }
 
 puts "$tclsh ${actiwebApps}/Counter.xotcl"
+puts "------------------------------------ $tclsh ${actiwebApps}/Counter.xotcl -pkgdir $pkgDir"
 set PIPE1 [open "| $tclsh ${actiwebApps}/Counter.xotcl -pkgdir $pkgDir"]
 set PIPE2 [open "| $tclsh ${actiwebApps}/Counter2.xotcl -pkgdir $pkgDir"]
 set PIPE3 [open "| $tclsh ${actiwebApps}/Counter3.xotcl -pkgdir $pkgDir"]

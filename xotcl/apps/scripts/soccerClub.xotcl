@@ -1,4 +1,4 @@
-# $Id: soccerClub.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: soccerClub.xotcl,v 1.2 2006/09/14 06:36:02 neumann Exp $
 # This is a simple introductory example for the language XOTcl. 
 # It demonstrates the basic language constructs on the example of
 # a soccer club.
@@ -91,7 +91,7 @@ SoccerTeam instproc printPlayers {} {
       
 # Now let us build to example soccer team objects.
 SoccerTeam lyon -name "Olympique Lyon" -location "Lyon"
-SoccerTeam bayernMunich -name "F.C. Bayern München" -location "Munich"
+SoccerTeam bayernMunich -name "F.C. Bayern MÃ¼nchen" -location "Munich"
 
 # With 'addPlayer' we can create new aggregated player objects
 #
@@ -105,9 +105,9 @@ set fb [bayernMunich newPlayer -name "Franz Beckenbauer" \
 # gives an invariant covering all instances of a class). In XOTcl 
 # the rules are syntactically identical to 'if' statements
 Player instinvar {
-    {[my set playerRole] == "NONE" ||  
-	[my set playerRole] == "PLAYER" || 
-	[my set playerRole] == "GOALY"}
+    {[my set playerRole] eq "NONE" ||  
+	[my set playerRole] eq "PLAYER" || 
+	[my set playerRole] eq "GOALY"}
 }
 
 # If we break the invariant and turn assertions checking on, we should

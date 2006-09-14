@@ -29,7 +29,7 @@
 # liability for all claims, expenses, losses, damages and costs any user may
 # incur as a result of using, copying or modifying the Software.
 #
-# $Id: xml.tcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: xml.tcl,v 1.2 2006/09/14 06:36:02 neumann Exp $
 
 package provide xml 1.8
 
@@ -210,7 +210,7 @@ proc xml::ParseCommand_parse {object xml} {
     variable substExpr
 
     set parent [namespace parent]
-    if {![string compare :: $parent]} {
+    if {"::" eq $parent } {
 	set parent {}
     }
 
@@ -290,7 +290,7 @@ proc xml::ParseAttrs attrs {
     variable Name
 
     # First check whether there's any work to do
-    if {![string compare {} [string trim $attrs]]} {
+    if {{} eq [string trim $attrs] } {
 	return {}
     }
 
@@ -383,7 +383,7 @@ proc xml::OLDParseAttrs {attrs} {
     variable Name
 
     # First check whether there's any work to do
-    if {![string compare {} [string trim $attrs]]} {
+    if {{} eq [string trim $attrs] } {
 	return {}
     }
 

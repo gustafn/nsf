@@ -10,7 +10,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 # 
-# RCS: $Id: xotcl.decls,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# RCS: $Id: xotcl.decls,v 1.2 2006/09/14 06:36:02 neumann Exp $
 
 library xotcl
 
@@ -119,7 +119,7 @@ declare 26 generic {
     int XOTclObjErrArgCnt(Tcl_Interp *in, Tcl_Obj *cmdname, char *arglist)
 }
 declare 27 generic {
-    int XOTclErrBadVal(Tcl_Interp *in, char *expected, char *value)
+    int XOTclErrBadVal(Tcl_Interp *in, char *context, char *expected, char *value)
 }
 declare 28 generic {
     int XOTclObjErrType(Tcl_Interp *in, Tcl_Obj *nm, char* wt)

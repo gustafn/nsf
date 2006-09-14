@@ -1,4 +1,4 @@
-# $Id: Invoker.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# $Id: Invoker.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 
 package provide xotcl::actiweb::invoker 0.8
 
@@ -42,7 +42,7 @@ namespace eval ::xotcl::actiweb::invoker {
 	set response ""
 	if {[$place isExportedObj $obj]} {
 	    # if method is not given -> call default on the object
-	    if {$method == ""} {
+	    if {$method eq ""} {
 		set method default
 	    }
 	    if {[$obj isExportedProc $method]} {
@@ -101,7 +101,7 @@ namespace eval ::xotcl::actiweb::invoker {
     ErrorMgr instproc isHtml o {
 	if {[my isobject $o]} {
 	    if {[$o exists contentType]} {
-		if {[$o set contentType] == "text/html"} {
+		if {[$o set contentType] eq "text/html"} {
 		    return 1
 		}
 	    }

@@ -1,4 +1,4 @@
-# $Id: RDFCreator.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# $Id: RDFCreator.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 
 package provide xotcl::rdf::tripleRecreator 0.9
 package require XOTcl
@@ -24,7 +24,7 @@ namespace eval ::xotcl::rdf::tripleRecreator {
 
     RDFCreator instproc free {} {
 	my instvar openExprs
-	while {$openExprs != ""} {
+	while {$openExprs ne ""} {
 	    set o [lindex $openExprs 0]
 	    set openExprs [lrange $openExprs 1 end]
 	    $o destroy
@@ -63,7 +63,7 @@ namespace eval ::xotcl::rdf::tripleRecreator {
 	    if {[regexp "(^.*://.*/(\[^/\]+)(/|\#))(\[^/\]+)\$" $p _ ns prefix __ name]} {
 		
 		if {[string match $rdfNS $ns]} {
-		    if {[string match "type" $name]} {
+		    if {"type" eq $name} {
 			if {[regexp "${rdfNS}(RDFAlt|RDFBag|RDFSeq)" $o _ type]} {
 			    set opening "\n<rdf:$type ID=\"$s\">"
 			    set closing "\n</rdf:$type>"
@@ -78,13 +78,13 @@ namespace eval ::xotcl::rdf::tripleRecreator {
 		
 		set oe [lindex [my set openExprs] 0]
 
-		if {$oe == "" || [$oe subject] != $s} {
-		    if {$oe != ""} {
+		if {$oe eq "" || [$oe subject] != $s} {
+		    if {$oe ne ""} {
 			append body [$oe closing]
 			[lindex [set openExprs] 0] destroy
 			set openExprs [lrange $openExprs 1 end]
 		    }
-		    if {$opening == ""} {
+		    if {$opening eq ""} {
 			append body "\n<rdf:Description about=\"$s\">"
 			set closing "\n</rdf:Description>"
 			set type "Description"
@@ -125,7 +125,7 @@ namespace eval ::xotcl::rdf::tripleRecreator {
 	}
 	append heading ">"
 	set r $heading
-	while {$openExprs != ""} {
+	while {$openExprs ne ""} {
 	    set oe [lindex $openExprs 0]
 	    set openExprs [lrange $openExprs 1 end]
 	    append body [$oe closing]

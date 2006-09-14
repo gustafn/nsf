@@ -1,4 +1,4 @@
-# $Id: xoXML.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# $Id: xoXML.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 package provide xotcl::xml::parser 0.94
 
 package require XOTcl
@@ -310,7 +310,7 @@ namespace eval ::xotcl::xml::parser {
       return [my set namespace]
     } else {
       set p [my info parent]
-      if {$p != "" && $p != $parser} {
+      if {$p ne "" && $p != $parser} {
 	return [$p resolveNS]
       } else {
 	#puts stderr "No parent namespace !! Using Parser's topNs ..."
@@ -343,7 +343,7 @@ namespace eval ::xotcl::xml::parser {
   XMLNode instproc checkForXmlNS {n v} {
     #puts "checking to build NS in [self] with $n == $v"
     if {[regexp {^xmlns:?(.*)$} $n _ prefix]} {
-      if {$prefix == ""} {
+      if {$prefix eq ""} {
 	set prefix "xmlns"
       }
       my makeIndividualNSEntry $prefix $v
@@ -493,7 +493,7 @@ namespace eval ::xotcl::xml::parser {
   #
   XMLParser instproc currentNode {} {
     set nodeList [my set nodeList]
-    if {$nodeList == ""} {
+    if {$nodeList eq ""} {
       if {[my exists currentTopNode]} {
 	return [my set currentTopNode]
       }
@@ -570,7 +570,7 @@ namespace eval ::xotcl::xml::parser {
   XMLParser instproc pcdata text {
     #my showCall
     set t [string trim $text]
-    if {$t != ""} {
+    if {$t ne ""} {
       #puts stderr "[self]->[self proc] '$text'"
       [my currentNode] parseData $t
     }
@@ -578,7 +578,7 @@ namespace eval ::xotcl::xml::parser {
   XMLParser instproc start {name {attrList ""}} {
     #puts "[self]->[self proc] $name $attrList"
     my instvar nodeList
-    if {$nodeList == ""} {
+    if {$nodeList eq ""} {
       # no currentNode -> we have to create one
       set newStartNode [my createTopLevelNode $name $attrList]
     } else {

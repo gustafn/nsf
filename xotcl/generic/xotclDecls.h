@@ -110,7 +110,8 @@ EXTERN int		XOTclObjErrArgCnt _ANSI_ARGS_((Tcl_Interp * in,
 				Tcl_Obj * cmdname, char * arglist));
 /* 27 */
 EXTERN int		XOTclErrBadVal _ANSI_ARGS_((Tcl_Interp * in, 
-				char * expected, char * value));
+			        char *context,
+				char *expected, char * value));
 /* 28 */
 EXTERN int		XOTclObjErrType _ANSI_ARGS_((Tcl_Interp * in, 
 				Tcl_Obj * nm, char* wt));
@@ -170,7 +171,7 @@ typedef struct XotclStubs {
     int (*xOTclVarErrMsg) _ANSI_ARGS_(TCL_VARARGS(Tcl_Interp *,in)); /* 24 */
     int (*xOTclErrInProc) _ANSI_ARGS_((Tcl_Interp * in, Tcl_Obj* objName, Tcl_Obj* clName, char* procName)); /* 25 */
     int (*xOTclObjErrArgCnt) _ANSI_ARGS_((Tcl_Interp * in, Tcl_Obj * cmdname, char * arglist)); /* 26 */
-    int (*xOTclErrBadVal) _ANSI_ARGS_((Tcl_Interp * in, char * expected, char * value)); /* 27 */
+  int (*xOTclErrBadVal) _ANSI_ARGS_((Tcl_Interp * in, char *context, char *expected, char * value)); /* 27 */
     int (*xOTclObjErrType) _ANSI_ARGS_((Tcl_Interp * in, Tcl_Obj * nm, char* wt)); /* 28 */
     void (*xOTclStackDump) _ANSI_ARGS_((Tcl_Interp* in)); /* 29 */
     void (*xOTclCallStackDump) _ANSI_ARGS_((Tcl_Interp* in)); /* 30 */

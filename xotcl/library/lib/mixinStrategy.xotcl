@@ -1,4 +1,4 @@
-#$Id: mixinStrategy.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+#$Id: mixinStrategy.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 package provide xotcl::mixinStrategy 0.9
 
 package require XOTcl
@@ -39,7 +39,7 @@ namespace eval ::xotcl::mixinStrategy {
 	lappend mixins $mixin
       }
     }
-    if {$oldStrategy == ""} {
+    if {$oldStrategy eq ""} {
       lappend mixins $strategy
     }
     my mixin $mixins
@@ -72,7 +72,7 @@ namespace eval ::xotcl::mixinStrategy {
     ::set classes [my info $kind]
     eval ::lappend classes $args
     my $kind $classes
-    #puts stderr "$kind of [self] are now: ´[my info $kind]´"
+    #puts stderr "$kind of [self] are now: Â´[my info $kind]Â´"
   }
   @ Object instproc remove {construct "(inst) 'filter' or 'mixin'" args "to be removed"} {
     description "remove the specified (inst) 'filters' or 'mixins'"
@@ -87,12 +87,12 @@ namespace eval ::xotcl::mixinStrategy {
     foreach c $args {
       ::set pos [::lsearch $classes $c]
       if {$pos == -1} { 
-	error "$kind ´$c´ could not be removed" 
+	error "$kind Â´$cÂ´ could not be removed" 
       } else {
 	set $classes [::lreplace $classes $pos $pos]
       }
     } 
     my $kind $classes
-    # puts stderr "$kind of [self] are now: ´[my info $kind]´"
+    # puts stderr "$kind of [self] are now: Â´[my info $kind]Â´"
   }
 }

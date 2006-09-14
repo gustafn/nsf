@@ -1,4 +1,4 @@
-#$Id: makeDoc.xotcl,v 1.3 2004/12/02 00:01:20 neumann Exp $
+#$Id: makeDoc.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 package require XOTcl
 namespace import ::xotcl::*
 @ @File {
@@ -42,7 +42,7 @@ set filesDir ""
 foreach {f fb} $fileList {
   set dir .
   regexp {^(.*)/[^/]*$} $f _ dir
-  if {$fb != "langRef-xotcl"} {
+  if {$fb ne "langRef-xotcl"} {
     set tail ", "
     if {$dir != $filesDir} {
       append filesHtml "<li> <b>Directory '$dir': </b><br>"

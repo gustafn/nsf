@@ -9,7 +9,7 @@ namespace eval ::xotcl::store::multi {
     Class Storage=multi -superclass Storage
     Storage=multi instproc add {dbPackage args} {
 	my instvar storages names
-	if {[string length $dbPackage] == 0} {
+	if {$dbPackage eq ""} {
 	    set dbPackage [Storage defaultPackage]
 	}
 	package require xotcl::store::[string tolower $dbPackage]

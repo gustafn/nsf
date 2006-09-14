@@ -1,4 +1,4 @@
-# $Id: RDFTriple.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# $Id: RDFTriple.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 package provide xotcl::rdf::triple 1.0
 
 package require XOTcl
@@ -14,7 +14,7 @@ namespace eval ::xotcl::rdf::triple {
   }
 
   RDFTriple instproc dump {} {
-    #set o [my object]; if {[info command $o] != ""} { $o showVars  }
+    #set o [my object]; if {[info command $o] ne ""} { $o showVars  }
     #return "P: [my predicate] S: [my subject] O: [my object]\n"
     return "[my subject] -[my predicate]-> '[my object]'\n"
   }
@@ -160,7 +160,7 @@ namespace eval ::xotcl::rdf::triple {
 	my prettyStatements "" $subject 
       }
     }
-    if {$result != ""} {
+    if {$result ne ""} {
       append r "\n=================== unreferenced:\n$result"
       
     }
@@ -210,7 +210,7 @@ namespace eval ::xotcl::rdf::triple {
 
   TripleVisitor instproc pushInfo {objName ei} {
     set lce [$ei set lastCurrentNode [my set currentNode]]
-    if {$lce != ""} {
+    if {$lce ne ""} {
       set lastInfo [my set openNode($lce)]
       $ei aboutEach [$lastInfo aboutEach]
       $ei aboutEachPrefix [$lastInfo aboutEachPrefix]
@@ -246,7 +246,7 @@ namespace eval ::xotcl::rdf::triple {
   TripleVisitor instproc addDB {p s o} {
     #puts "ADDDB: P<$p> S<$s> O<$o>"
     set info [my getInfo]
-    if {$info != ""} {
+    if {$info ne ""} {
       set topID [$info set topID]
       if {[$info aboutEach]} {
 	return [[self]::aboutEach addTriple $topID $p $s $o]
@@ -261,7 +261,7 @@ namespace eval ::xotcl::rdf::triple {
     # for statements that nest inside a description/property, we remember
     # the statement to be able to reify them
     # (e.g., bag created for description)
-    if {$triple != "" && $node != ""} {
+    if {$triple ne "" && $node ne ""} {
       set info [my set openNode($node)]
       if {[my isobject $info] && [$info istype NodeInfo]} {
 	${info} lappend statements $triple
@@ -279,7 +279,7 @@ namespace eval ::xotcl::rdf::triple {
   TripleVisitor instproc RDFTag {objName} {
     set ns [$objName resolveNS]
     set rdfNS [$ns searchNamespaceByPrefix rdf]
-    if {$rdfNS == ""} {
+    if {$rdfNS eq ""} {
       set rdfNS [$ns searchNamespaceByPrefix xmlns]
     }
     my set rdfNS $rdfNS
@@ -416,7 +416,7 @@ namespace eval ::xotcl::rdf::triple {
 	}
 	aboutEach {
 	  set info [my getInfo]
-	  if {[DescriptionInfo info instances $info] == ""} {
+	  if {[DescriptionInfo info instances $info] eq ""} {
 	    error "AboutEach not in description"
 	  }
 	  $info aboutEach 1
@@ -424,7 +424,7 @@ namespace eval ::xotcl::rdf::triple {
 	}
 	aboutEachPrefix {
 	  set info [my getInfo]
-	  if {[DescriptionInfo info instances $info] == ""} {
+	  if {[DescriptionInfo info instances $info] eq ""} {
 	    error "AboutEachPrefix not in description"
 	  }
 	  $info aboutEachPrefix 1
@@ -498,7 +498,7 @@ namespace eval ::xotcl::rdf::triple {
 	      }
 	    }
 	  }
-	  if {$triple != ""} {
+	  if {$triple ne ""} {
 	    my checkReification $triple [my set currentNode]
 	  }
 	}

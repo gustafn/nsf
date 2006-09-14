@@ -1,15 +1,17 @@
 Summary: Object Oriented Extension for Tcl
 Name: xotcl
-Version: 1.3.7
+Version: 1.5.0
 Release: 0
-Copyright: open source
+License: bsd style open source
 Group: Development/Languages
-Source:  http://www.xotcl.org/xotcl-1.3.7.tar.gz
+Source:  http://www.xotcl.org/xotcl-1.5.0.tar.gz
 URL: http://www.xotcl.org
 Packager: Gustaf.Neumann@wu-wien.ac.at
-Distribution: RedHat 8.0
+Distribution: Fedorea Core 3
 Requires: tcl
 Prefix: /usr
+BuildRoot: %{_tmppath}/%{name}-root
+BuildRequires: autoconf
 
 %description
 XOTcl is an object-oriented scripting language based on MIT's OTcl.
@@ -21,26 +23,33 @@ persistent object store, mobile code system, etc. For more details
 consult http://www.xotcl.org
 
 %prep
-%setup -q -n xotcl-1.3.7
+%setup -q -n xotcl-1.5.0
 
 
 %build
+autoconf
 ./configure --with-tcl=/usr/lib --with-all --prefix=/usr/local --exec-prefix=/usr/local
 #make CFLAGS_DEFAULT='-O3 -mcpu=i686 -Wall -fomit-frame-pointer'
 make CFLAGS_DEFAULT='-O3 -Wall -fomit-frame-pointer'
 
 %install
-make install
+rm -rf $RPM_BUILD_ROOT
+make DESTDIR=$RPM_BUILD_ROOT install
+rm -f $RPM_BUILD_ROOT/usr/lib/libxotcl1.5.0.so
+ln -s xotcl1.5.0/libxotcl1.5.0.so $RPM_BUILD_ROOT/usr/lib
 
 %files
-%define _unpackaged_files_terminate_build      0
-%undefine       __check_files
-
-%doc doc 
-/usr/local/lib/xotcl1.3.7
-/usr/local/bin/xotclsh
-/usr/local/bin/xowish
-/usr/local/include/xotclDecls.h
-/usr/local/include/xotcl.h
-/usr/local/include/xotclIntDecls.h
-/usr/local/include/xotclInt.h
+%defattr(-, root, root)
+%doc doc
+%_bindir/xotclsh
+%_bindir/xowish
+%_prefix/lib/xotcl1.5.0
+%_prefix/lib/libxotcl1.5.0.so
+%_prefix/lib/xotclexpat*
+%_prefix/lib/xotclgdbm*
+%_prefix/lib/xotclsdbm*
+%_prefix/lib/xotclConfig.sh
+%_includedir/xotcl.h
+%_includedir/xotclInt.h
+%_includedir/xotclDecls.h
+%_includedir/xotclIntDecls.h

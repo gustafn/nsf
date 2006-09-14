@@ -1,4 +1,4 @@
-# -*- tcl -*- $Id: Connection.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# -*- tcl -*- $Id: Connection.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 
 package provide xotcl::comm::connection 1.0
 
@@ -102,7 +102,7 @@ namespace eval ::xotcl::comm::connection {
 	# is the request in the argument list the currently active request?
 	if {[info exists req] && $r == $req} {
 	    # a request can overwrite its active request
-	    if {$method == ""} {
+	    if {$method eq ""} {
 		::fileevent [my socket] $type ""
 		#my showMsg "CONNECTION clear for [my socket]"
 	    } else {
@@ -195,7 +195,7 @@ namespace eval ::xotcl::comm::connection {
 	if {[my exists persistent]} {
 	    my flush
 	    #::puts stderr "[self] PERSISTENT CONNECTION wanna close"
-	    if {$blocked == ""} {
+	    if {$blocked eq ""} {
 		::fileevent $socket readable [list [self] destroy]
 		unset req
 	    } else {
@@ -209,7 +209,7 @@ namespace eval ::xotcl::comm::connection {
 	    }
 	} else {
 	    #my showMsg "in nonpersistent connection blocked=$blocked"
-	    if {$blocked != ""} {
+	    if {$blocked ne ""} {
 		set req [lindex $blocked 0]
 		set type [lindex $blocked 1]
 		set method [lindex $blocked 2]
@@ -251,6 +251,6 @@ namespace eval ::xotcl::comm::connection {
 
 namespace import ::xotcl::comm::connection::*
 
-if {[info command bgerror] == ""} {
+if {[info command bgerror] eq ""} {
     proc bgerror {msg} { puts stderr "******* bgerror $msg $::errorInfo*****"}
 }

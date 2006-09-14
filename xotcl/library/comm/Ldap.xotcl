@@ -39,8 +39,8 @@ namespace eval ::xotcl::comm::ldap {
 	puts stderr "___ path=<$path>"
 	if {[regexp -nocase {^/([^?]*)(\?([^?]*)(\?([^?]*)(\?([^?]*))?)?)?$} \
 		 $path _ dn a attributes s scope f filter]} {
-	    if {![string compare "" $scope]} { set scope "base" }
-	    if {![string compare "" $filter]} { set filter "(objectClass=*)" }
+	    if {$scope eq ""} { set scope "base" }
+	    if {$filter eq ""} { set filter "(objectClass=*)" }
 	} else {
 	    set errmsg    "*** Ldap Url trail=<$path> does not  match!\n"      
 	    append errmsg "___ RFC 1959 says:\n"
@@ -55,7 +55,7 @@ namespace eval ::xotcl::comm::ldap {
 	showCall
 	set contentType text/html
 	my getUrlcomponents
-	if {[string compare start $state]} {
+	if {"start" ne $state } {
 	    puts stderr "... [self]:$proc ignoring request in state $state"
 	    return
 	}

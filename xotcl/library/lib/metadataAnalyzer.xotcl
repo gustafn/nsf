@@ -294,7 +294,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	#puts stderr "+++Method $type $name $argList $doc"
 	set procClass ProcToken
 	set objCl ObjToken
-	if {$type == "instproc"} {
+	if {$type eq "instproc"} {
 	    set procCl InstprocToken
 	    set objCl ClassToken
 	}
@@ -307,7 +307,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	foreach o [my set objList] {
 	    if {[$o set name] == $obj} {
 		set objFound 1
-		if {$type == "instproc" && ![$o istype ClassToken]} {
+		if {$type eq "instproc" && ![$o istype ClassToken]} {
 		    $o class ClassToken
 		}
 		break
@@ -347,7 +347,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	set la [llength $args]
 
 	# evaluate -superclass argument
-	if {($la == 3 || $la == 2) && [lindex $args 0] == "-superclass"} {
+	if {($la == 3 || $la == 2) && [lindex $args 0] eq "-superclass"} {
 	    set heritage [$t set heritage [lindex $args 1]]
 	    foreach h $heritage {
 		if {[lsearch $h $knownMetaclasses] != -1} {
@@ -389,7 +389,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	#puts "$args"
 	if {[llength $args] > 2} {
 	    set type [lindex $args 1]
-	    if {$type == "provide" || $type == "require"} {
+	    if {$type eq "provide" || $type eq "require"} {
 		set t [PackageToken create [my autoname ::xotcl::@::t]]
 		my lappend packageList $t
 		$t set name [lindex $args 2]
@@ -411,9 +411,9 @@ namespace eval ::xotcl::metadataAnalyzer {
 	if {[llength $packageList] > 0} {
 	    append c "PACKAGES:"
 	    foreach t $packageList {
-		if {[$t type] == "provide"} {
+		if {[$t type] eq "provide"} {
 		    append c "  Package provided: [$t name] [$t version]\n"
-		} elseif {[$t type] == "require"} {
+		} elseif {[$t type] eq "require"} {
 		    append c "  Package required: [$t name] [$t version]\n"
 		}
 	    }
@@ -457,10 +457,10 @@ namespace eval ::xotcl::metadataAnalyzer {
 
 	if {[llength $args] > 1} {
 	    set abstract 0
-	    if {[lindex $args 1] == "abstract"} {
+	    if {[lindex $args 1] eq "abstract"} {
 		if {[llength $args] > 2} {
 		    set p [lindex $args 2]
-		    if {$p == "proc" || $p == "instproc"} {
+		    if {$p eq "proc" || $p eq "instproc"} {
 			set args [lreplace $args 1 1]
 			set abstract 1
 		    }

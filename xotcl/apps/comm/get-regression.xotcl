@@ -8,7 +8,7 @@ persistentCache clear
 
 proc assert {f r} {
   set got [eval $f]
-  if {[string compare $got $r]} {
+  if {$got ne $r } {
     puts stderr "assertion failed: \[$f\] == $r (got $got)" 
     quit
   } else {

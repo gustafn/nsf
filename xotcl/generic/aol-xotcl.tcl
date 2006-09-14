@@ -1,4 +1,4 @@
-# $Id: aol-xotcl.tcl,v 1.9 2006/02/18 22:17:33 neumann Exp $
+# $Id: aol-xotcl.tcl,v 1.10 2006/09/14 06:36:02 neumann Exp $
 
 #
 # Load XOTcl library and some related packages.
@@ -9,7 +9,7 @@
 #
 
 package require XOTcl; namespace import ::xotcl::*
-package require xotcl::serializer 0.7                                                             
+package require xotcl::serializer
 ns_log notice "XOTcl version $::xotcl::version$::xotcl::patchlevel loaded"
 
 #
@@ -24,7 +24,7 @@ proc _ns_savenamespaces {} {
     set nslist ""
     _ns_getnamespaces namespaces
     foreach n $namespaces {
-        if {[string match ::xotcl* $n] == 0
+        if {[string match "::xotcl*" $n] == 0
 	    && ([catch {::xotcl::Object isobject $n} ret] || $ret == 0)} {
             lappend nslist $n
         }
@@ -32,7 +32,7 @@ proc _ns_savenamespaces {} {
     foreach n $nslist {
         foreach {ns_script ns_import} [_ns_getscript $n] {
             append script [list namespace eval $n $ns_script] \n
-            if {$ns_import != ""} {
+            if {$ns_import ne ""} {
                 append import [list namespace eval $n $ns_import] \n
             }
         }

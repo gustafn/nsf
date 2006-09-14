@@ -1,5 +1,5 @@
-# $Id: langRef.xotcl,v 1.10 2006/02/18 22:17:33 neumann Exp $
-package provide XOTcl-langRef 1.4.0
+# $Id: langRef.xotcl,v 1.11 2006/09/14 06:36:02 neumann Exp $
+package provide XOTcl-langRef 1.5.0
 package require XOTcl
 
 @ @File {
@@ -7,9 +7,10 @@ package require XOTcl
     XOTcl language reference. Describes predefined objects and classes.
   }
   "predefined primitives" {
-    XOTcl contains three predefined primitives:
-    <@p>
-    <@tt>self<@/tt> computes callstack related information. 
+    XOTcl contains the following predefined primitives (Tcl commands):
+    <dl>
+    <dt><@tt>self<@/tt></dt>
+    <dd>computes callstack related information. 
     It can be used in the following ways:
     <@UL>
 	<@LI><@TT>self</@TT> - returns the name
@@ -50,38 +51,63 @@ package require XOTcl
 
         <@li><@TT>self activelevel</@TT>: Returns the level, from where 
         the actual proc was invoked from. This might be the calling level or a next
-        call, whatsever is higher in the stack. The level is returned in a form
+        call, whatever is higher in the stack. The level is returned in a form
         it can be used as first argument in <@TT>uplevel</@TT> or <@TT>upvar</@TT>.
 
     <@/UL>
-    <@/p><@p>
-    <@tt>my someMethod<@/tt> is a short form for <@tt>[self] someMethod</@tt> and can only be 
+    <@/p>
+    </dd>
+
+    <dt><@tt>my methodName<@/tt></dt>
+    <dd>is a short form for <@tt>[self] methodName</@tt> and can only be 
     called in a context of an instproc or an method specific proc. It allows certain 
     optimizations and shorter to write.
     <@/p><@p>
-    <@tt>next <@/tt> invokes the next shadowed (same-named) method on the
+    <@tt>next <@/tt><br> invokes the next shadowed (same-named) method on the
       precedence path and returns its result. If <@tt>next</@tt> is
       called without arguments, the arguments of the current method
       are passed through the called method. If <@tt>next</@tt> is 
       invoked with the flag <@tt>--noArgs</@tt>, the shadowed method
       is called without arguments. If other arguments are specified 
       for next, these will be used for the call.
-    <@/p>
-    <@/p><@p>
-    <@tt>::xotcl::configure filter ?on|off?<@/tt> allows to 
+    <@/dd>
+    <dt><@tt>myvar varName</@tt></dt>
+    <dd>returns the fully qualified variable name of the specified
+           variable.<p>
+    </dd>
+
+    <dt><@tt>myproc methodName ?args?</@tt></dt>
+    <dd>calls the specified XOTcl method without the need 
+            of using "<@tt>[list [self] methodName ...]</@tt>".<p>
+    </dd>
+
+    <dt><@tt>::xotcl::alias class|obj <methodName> ?-objscope? ?-per-object? cmdName</@tt></dt>
+    <dd>can be used to register predefined C-implemented Tcl commands as
+         methods. The option <@tt>-objscope</@tt> has the same meaning as for forwarder
+         (instance variables of the calling object appear in the local scope of
+         the Tcl command), <@tt>-per-object</@tt> has the same meaning as for 
+         the method <@tt>method</@tt> (when used on a class, the method is registered for the
+         class object only, but not for the instances). This command 
+         can be used to bootstrap xotcl (when e.g. no methods are available).<p>
+    </dd>
+    
+    <dt>::xotcl::configure filter ?on|off?<@/tt><dt> 
+    <dd>allows to 
       turn on or off filters globally for the current interpreter.
       By default, the filter state is turned off.
       This function returns the old filter state. 
       This function is needed for the serializer that is intended
-      to serialize the objects classes independent of filter settings.
-    <@/p>
-    <@p>
-    <@tt>::xotcl::configure softrecreate ?on|off?<@/tt> allows to control
+      to serialize the objects classes independent of filter settings.<p>
+    </dd>
+
+
+    <dt><@tt>::xotcl::configure softrecreate ?on|off?<@/tt></dt> 
+    <dd>allows to control
       what should happen, when an object / a class is recreated. Per
       default it is set off, which means that the object/class is destroyed
       and all relations (e.g. subclass/superclass) to other 
       objects/classes are destroyed as well. If <@tt>softrecreate</@tt> is
-      set, the object is resetted, but not destroyed, the relations
+      set, the object is reseted, but not destroyed, the relations
       are kept. This is important, when e.g. reloading a file
       with class definitions (e.g. when used in OpenACS with file watching and
       reloading). With  <@tt>softrecreate</@tt> set,
@@ -90,12 +116,14 @@ package require XOTcl
       Example: e.g. there is a class hierarchy A <- B <- C
       Without <@tt>softrecreate</@tt> set, a reload of B means
       first a destroy of B, leading to A <- C, and instances
-      of B are reclassed to ::xotcl::Object. When <@tt>softrecreate</@tt> is
-      set, the structure remeans unchanged.
-    <@/p>
+      of B are re-classed to ::xotcl::Object. When <@tt>softrecreate</@tt> is
+      set, the structure remains unchanged.
+    <dd>
+
+    </dl>
 
   }
-  date { $Date: 2006/02/18 22:17:33 $ }
+  date { $Date: 2006/09/14 06:36:02 $ }
 }
 
 ##
@@ -110,7 +138,7 @@ package require XOTcl
 
 @ Object instproc abstract {
   methtype "instproc or proc"
-  methname "name of abstract method"
+  methodName "name of abstract method"
   arglist "arguments"
 } {
     Description {
@@ -186,12 +214,14 @@ package require XOTcl
 }
 
 @ Object instproc class {
-  newClass "new class name"
+  newClass "?new class?"
 } {
-    Description {
-      Changes the class of an object dynamically to <@tt>newClass</@tt>.
-    }
-    return "empty string"
+  Description {
+    Changes the class of an object dynamically to <@tt>newClass</@tt>.
+    The method returns the current value of <tt>class</tt>, 
+    when it is called without arguments.
+  }
+  return "if <@tt>newClass</@tt> is not specified return class, otherwise empty"
 }
 
 @ Object instproc cleanup {
@@ -208,20 +238,70 @@ package require XOTcl
   ?args? "'-' method calls"
 } {
   Description {
-    Calls the '-' methods. I.e. evaluates arguments and calls 
+    Calls the '-' (dash) methods. I.e. evaluates arguments and calls 
     everything starting with '-' (and not having a digit a 
     second char) as a method. Every list element until the next '-'
-    is interpreted as a method argument. configure is called 
+    is interpreted as a method argument. <tt>configure/tt> is called 
     before the constructor during initialization and recreation.
-    E.g.
+    In the following example, the variable set is called via 
+    configure before <tt>init</tt>:
     <@pre class='code'>    Object o -set x 4</@pre>
-    here:
+    The method <tt>configure</tt> can be called with the
+    dash-notation at arbitrary times:
     <@pre class='code'>    o configure -set x 4</@pre>
-    is executed.
-
   }
   return "number of the skipped first arguments"
 }
+
+@ Object instproc contains {
+  "?-withnew?" "Option to overload new to create new objects within
+	the specified object. Per default, this option is turned on."
+  "?-object?" "object, in which the new objects should be created. 
+	The default is the object, for which <tt>contains>/tt> was called."
+  "?-class?" "In combination with option <tt>-object</tt>: If the specified 
+        object does not exist, create it from the specified class. The default
+        is <tt>::xotcl::Object</tt>"
+  cmd "Tcl command to create multiple objects"
+} {
+  Description {
+    This method can be used to create nested object structures
+    with little syntactic overhead. The method changes the namespace 
+    to the specified object and creates objects there. 
+    Optionally, a different object scope can be specified and 
+    creating new objects in the specified scope can be turned off.
+    The following command creates a three rectangles, containing some 
+    points.
+<pre CLASS="code">
+  <tt>Class</tt> Point <tt>-parameter</tt> {{x 100} {y 300}}
+  <tt>Class</tt> Rectangle <tt>-parameter</tt> {color}
+
+  Rectangle r0 -color pink <tt>-contains</tt> {
+    Rectangle r1 -color red <tt>-contains</tt> {
+      Point x1 -x 1 -y 2
+      Point x2 -x 1 -y 2
+    }
+    Rectangle r2 -color green <tt>-contains</tt> {
+      Point x1
+      Point x2
+    }
+  }
+</pre>
+    The resulting object structure looks like in the folloing
+    example (simplified).
+<pre CLASS="code">
+   ::r0
+   ::r0::r1
+   ::r0::r1::x1
+   ::r0::r1::x2
+   ::r0::r2
+   ::r0::r2::x1
+   ::r0::r2::x2
+</pre>
+  }
+  return "number of the skipped first arguments"
+}
+
+
 
 @ Object instproc copy {
   newName "destination of copy operation"
@@ -261,7 +341,7 @@ package require XOTcl
 
 @ Object instproc extractConfigureArg {
   al "Argument List Name"
-  name "Name of the Configure Argument to be extracted (should start with '-')"
+  name "Name of the configure argument to be extracted (should start with '-')"
   ?cutTheArg? "if cutTheArg not 0, it cut from upvar argsList, default is 0"
 } {
   Description {
@@ -283,22 +363,23 @@ package require XOTcl
 }
 
 @ Object instproc filter {
-  args "filter specification"
+  ?args? "filter specification"
 } {
     Description {
       If <@tt>$args</@tt> is one argument, it specifies a list of filters to 
       be set. Every filter must be an XOTcl proc/instproc within
       the object scope.
       If <@tt>$args</@tt> it has more argument, the first one specifies the
-      action. Possible values are <@tt>set</@tt>, <@tt>get</@tt>, 
+      action. Possible values are <@tt>assign</@tt>, <@tt>get</@tt>, 
       <@tt>add</@tt> or <@tt>delete</@tt>, it modifies the current
-      settings as indicated. For more details, check the tutorial.
+      settings as indicated. For more details, check the 
+      <a href='./tutorial.html#updateinterceptors'>tutorial</a>.
     }
     return "if <@tt>$args</@tt> return empty current filters, otherwise empty"
 }
 
 @ Object instproc filterguard {
-  filtername "filter name of a registered filter"
+  filterName "filter name of a registered filter"
   guard "set of conditions to execute the filter"
 } {
   description {
@@ -316,30 +397,37 @@ package require XOTcl
     Search a full qualified method name that 
     is currently registered as a filter. Return a list of the
     proc qualifier format:
-	    'objName|classname proc|instproc methodName'.
+	    'objName|className proc|instproc methodName'.
   }
   return "full qualified name, if filter is found, otherwise an empty string"
 }
 
 
 @ Object instproc forward {
-  name "name of forwarder method"
-  ?options? "-objscope, -methodprefix string, -default names"
+  methodName "name of forwarder method"
+  ?options? "-objscope, -methodprefix string, -default names, -earlybinding, -verbose"
   ?callee? "named of the called command or object"
   ?args? "arguments"
 
 } {
     Description {
-      Register a method (similar to a proc) for forwarding calls to 
-      a callee (target tcl command, 
-      other object). If the forwarder method is called, the actual arguments 
+      Register an object specific method (similar to a proc) for forwarding calls to 
+      a callee (target Tcl command, other object). 
+      When the forwarder method is called, the actual arguments 
       of the invocation are appended to the specified arguments. In callee an 
-      arguments certain substituions can take place: 
-      <ul><li>%proc: subsituted by name of the forwarder method</li>
-          <li>%self: subsituted by name of the object</li>
-          <li>%1: subsituted by first argument of the invocation</li>
+      arguments certain substitutions can take place: 
+      <ul><li>%proc: substituted by name of the forwarder method</li>
+          <li>%self: substitute by name of the object</li>
+          <li>%1: substitute by first argument of the invocation</li>
+          <li>{%@POS value}: substitute the specified value in the argument list
+            on position POS, where POS can be a positive or negative integer 
+            or <tt>end</tt>. Positive integers specify the position from the begin
+            of the list, while negative integer specify the position from the end.
+          <li>{%argclindex LIST}: take the <em>n</em>th argument of the specified list as
+            substitution value, where <em>n</em> is the number of arguments from the
+            invocation.
           <li>%%: a single percent.</li>
-          <li>%<em>tcl-command</em>: command to be executed; substituted by result.</li>
+          <li>%<em>Tcl-command</em>: command to be executed; substituted by result.</li>
       </ul>
       Additionally each argument can be prefixed by the positional prefix <tt>%@POS </tt>
       (note the delimiting space at the end) that can be used to specify an 
@@ -352,8 +440,17 @@ package require XOTcl
               in front of the second argument of the invocation,</li>
           <li><tt>-default</tt> is used for default method names (only 
               in connection with %1)</li>
+          <li><tt>-earlybinding</tt>: look up the function 
+              pointer of the called Tcl command at 
+              definition time of the forwarder instead of invocation time. 
+              This option should only be used
+              for calling C-implemented Tcl commands, no procs etc.);</li>
+          <li><tt>-verbose</tt></li>: print the substituted command to stderr 
+              before executing</li>
       </ul>
-      See tutorial for detailed examples.
+  See 
+      <a href='./tutorial.html#forwarding'>tutorial</a>
+  for detailed examples.
     }
     return "empty"
 }
@@ -399,8 +496,8 @@ package require XOTcl
       Returns the body of the specified proc (object specific method).
  
       <@li><@TT>objName info class ?classname?</@TT>: 
-      Returns the name of the class of the current object, if classname was 
-      not specified, otherwise it returns 1 if classname matches the 
+      Returns the name of the class of the current object, if className was 
+      not specified, otherwise it returns 1 if className matches the 
       object's class and 0 if not.
 
       <@li><@TT>objName info children ?pattern?</@TT>: Returns the
@@ -437,9 +534,6 @@ package require XOTcl
       options on the object.
 
       <@li><@TT>objName info invar</@TT>: Returns object invariants.
-
-      <@li><@TT>objName info metadata ?pattern?</@TT>: 
-      Returns available metadata options.
 
       <@li><@TT>objName info methods</@TT>: Returns the list of all methods
       currently reachable for objName. Includes procs, instprocs, cmds, 
@@ -486,8 +580,8 @@ package require XOTcl
 }
 
 @ Object instproc instvar {
-  v1 "instvar variable"
-  "?v2...vn?" "optional other instvar variables"
+  v1 "name of instance variable"
+  "?v2...vn?" "optional other names for instance variables"
 } {
     Description {
       Binds an variable of the object to the current method's scope.
@@ -582,16 +676,19 @@ package require XOTcl
     return "empty string"
 }
 
+
+
 @ Object instproc mixin {
-  args "mixin specification"
+  ?args? "mixin specification"
 } {
     Description {
       If <@tt>$args</@tt> is one argument, it specifies a list of mixins to 
       be set. Every mixin must be a defined class.
       If <@tt>$args</@tt> has more argument, the first one specifies the
-      action. Possible values are <@tt>set</@tt>, <@tt>get</@tt>, 
+      action. Possible values are <@tt>assign</@tt>, <@tt>get</@tt>, 
       <@tt>add</@tt> or <@tt>delete</@tt>, it modifies the current
-      settings as indicated. For more details, check the tutorial.
+      settings as indicated. For more details, check the 
+      <a href='./tutorial.html#updateinterceptors'>tutorial</a>.
     }
     return "if <@tt>$args</@tt> empty return current mixins, otherwise empty"
 }
@@ -603,6 +700,8 @@ package require XOTcl
     Perform a deep move of the object/class (with all information, like 
 			 class, parameter, filter, ...)
     to "newName".
+    Note that move is currently implemented as a copy plus 
+    subsequent destroy operation.
   }
   return "empty string"
 }
@@ -644,7 +743,7 @@ package require XOTcl
 
 @ Object instproc proc {
   name "method name"
-  ?non-pos-args? "optinal non-positional arguments"
+  ?non-pos-args? "optional non-positional arguments"
   args "method arguments"
   body "method body"
   "?preAssertion?" "optional assertions that must hold before the proc executes"
@@ -666,15 +765,18 @@ package require XOTcl
 }
 
 @ Object instproc procsearch {
-  procname "simple proc name" 
+  procName "simple proc name" 
 } {
     Description {
-      Search for a proc or instproc on an object and return the fully 
+      Search which method should be invoked for an object and return the fully 
       qualified name of the method as a list in
       proc qualifier format:
-	    'objName|classname proc|instproc methodName'. E.g.,  
+	    'objName|className proc|instproc|forward|instforward|parametercmd|instparametercmd|cmd|instcmd methodName'. 
+      The proc qualifier format reports the command used to create the method. The
+      only exception is instcmd and cmd, which refer to commands implemented in C.
+    E.g.,  
     <@pre class='code'>    o procsearch set </@pre>
-      returns <@pre>::xotcl::Object instproc set</@pre>.
+      returns <@pre>::xotcl::Object instcmd set</@pre>.
     }
     return "fully qualified name of the searched method or empty string if not found"
 }
@@ -695,13 +797,13 @@ package require XOTcl
       e.g. huge numbers of objects are created.  
       <@TT>requireNamespace</@TT> is often needed when e.g. using Tk widgets
       when variables are to be referenced via the namespace 
-      (with <@TT>... -variable [self]::varname ...</@TT>).
+      (with <@TT>... -variable [self]::varName ...</@TT>).
     }
     return "empty string"
 }
 
 @ Object instproc set {
-  varname "name of the instance variable"
+  varName "name of the instance variable"
   ?value? "optional new value"
 } {
     Description {
@@ -711,6 +813,18 @@ package require XOTcl
       with two arguments, we set the instance variable to the new value.
     }
     return "Value of the instance variable"
+}
+
+@ Object instproc subst {
+  options "?-nobackslashes? ?-nocommands? ?-novariables?"
+  string "string to be substituted"
+} {
+    Description {
+      Perform backslash, command, and variable substitutions
+      in the scope of the given object
+      (see documentation of Tcl command with the same name for details).
+    }
+    return "substituted string"
 }
 
 @ Object instproc trace {
@@ -724,6 +838,7 @@ package require XOTcl
 }
 
 @ Object instproc unset {
+  "?-nocomplain?" "possible error messages are suppressed"
   v1 "Variable to unset"
   "?v2...vn?" "Optional more vars to unset"
 } {
@@ -740,21 +855,21 @@ package require XOTcl
     Description {
       When this method is used without the optional level, it is a short form
       of the Tcl command
-    <@pre class='code'>    upevel [self callinglevel] command ?args?<@/pre>
-      When it is called with the level, it is compatible with the original tcl command.
+    <@pre class='code'>    uplevel [self callinglevel] command ?args?<@/pre>
+      When it is called with the level, it is compatible with the original Tcl command.
     }
     return "result of the command"
 }
 @ Object instproc upvar {
   ?level? "Level"
-  othervar&nbsp;localvar "referenced variable and variale in the local scope"
-  ?othervar&nbsp;localvar? "optional  pairs of referenced and local variable names"
+  otherVar&nbsp;localVar "referenced variable and variable in the local scope"
+  ?otherVar&nbsp;localVar? "optional  pairs of referenced and local variable names"
 } {
     Description {
       When this method is used without the optional level, it is a short form
       of the Tcl command 
-      <@pre class='code'>    upvar [self callinglevel] othervar localvar ?...?<@/pre>.
-      When it is called with the level, it is compatible with the original tcl command.
+      <@pre class='code'>    upvar [self callinglevel] otherVar localVar ?...?<@/pre>.
+      When it is called with the level, it is compatible with the original Tcl command.
     }
     return "result of the command"
 }
@@ -969,7 +1084,7 @@ package require XOTcl
 }
 
 @ Class instproc instfilter {
-  args "instfilter specification"
+  ?args? "instfilter specification"
 } {
     Description {
       If <@tt>$args</@tt> is one argument, it specifies a list of 
@@ -977,9 +1092,10 @@ package require XOTcl
       be set. Every filter must be an XOTcl proc/instproc within
       the object scope.
       If <@tt>$args</@tt> it has more argument, the first one specifies the
-      action. Possible values are <@tt>set</@tt>, <@tt>get</@tt>, 
+      action. Possible values are <@tt>assign</@tt>, <@tt>get</@tt>, 
       <@tt>add</@tt> or <@tt>delete</@tt>, it modifies the current
-      settings as indicated. For more details, check the tutorial.
+      settings as indicated. For more details, check the 
+      <a href='./tutorial.html#updateinterceptors'>tutorial</a>.
     }
     return "if <@tt>$args</@tt> return empty current instfilters, otherwise empty"
 }
@@ -987,7 +1103,7 @@ package require XOTcl
 
 
 @ Class instproc instfilterguard {
-  filtername "filter name of a registered filter"
+  filterName "filter name of a registered filter"
   guard "set of conditions to execute the filter"
 } {
   description {
@@ -1000,23 +1116,31 @@ package require XOTcl
 
 
 @ Class instproc instforward {
-  name "name of forwarder method"
-  ?options? "-objscope, -methodprefix string, -default names"
+  methodName "name of forwarder method"
+  ?options? "-objscope, -methodprefix string, -default names, -earlybinding, -verbose"
   ?callee? "named of the called command or object"
   ?args? "arguments"
 
 } {
     Description {
-      Register a method (similar to an instproc) for forwarding calls to 
-      a callee (target tcl command, 
-      other object). If the forwarder method is called, the actual arguments 
+      Register a method for the instances of a class (similar to an instproc) 
+      for forwarding calls to a callee (target Tcl command, 
+      other object). 
+      When the forwarder method is called, the actual arguments 
       of the invocation are appended to the specified arguments. In callee an 
-      arguments certain substituions can take place: 
-      <ul><li>%proc: subsituted by name of the forwarder method</li>
-          <li>%self: subsituted by name of the object</li>
-          <li>%1: subsituted by first argument of the invocation</li>
+      arguments certain substitutions can take place: 
+      <ul><li>%proc: substituted by name of the forwarder method</li>
+          <li>%self: substitute by name of the object</li>
+          <li>%1: substitute by first argument of the invocation</li>
+          <li>{%@POS value}: substitute the specified value in the argument list
+            on position POS, where POS can be a positive or negative integer 
+            or <tt>end</tt>. Positive integers specify the position from the begin
+            of the list, while negative integer specify the position from the end.
+          <li>{%argclindex LIST}: take the <em>n</em>th argument of the specified list as
+            substitution value, where <em>n</em> is the number of arguments from the
+            invocation.
           <li>%%: a single percent.</li>
-          <li>%<em>tcl-command</em>: command to be executed; substituted by result.</li>
+          <li>%<em>Tcl-command</em>: command to be executed; substituted by result.</li>
       </ul>
       Additionally each argument can be prefixed by the positional prefix <tt>%@POS </tt>
       (note the delimiting space at the end) that can be used to specify an 
@@ -1026,11 +1150,20 @@ package require XOTcl
       <ul><li><tt>-objscope</tt> causes the target to be evaluated in the scope 
               of the object,</li>
           <li><tt>-methodprefix string</tt> inserts the specified prefix
-              in front of the second argument of the invocation,<li>
-          <li><tt>-default</tt> is used for default method names (only in
-              connection with %1).
+              in front of the second argument of the invocation,</li>
+          <li><tt>-default</tt> is used for default method names (only 
+              in connection with %1)</li>
+          <li><tt>-earlybinding</tt>: look up the function 
+              pointer of the called Tcl command at 
+              definition time of the forwarder instead of invocation time. 
+              This option should only be used
+              for calling C-implemented Tcl commands, no procs etc.);</li>
+         <li><tt>-verbose</tt></li>: print the substituted command to stderr 
+              before executing</li>
       </ul>
-      See tutorial for detailed examples.
+      See  <a href='./tutorial.html#forwarding'>tutorial</a>
+  for detailed examples.
+
     }
     return "empty"
 }
@@ -1048,15 +1181,16 @@ package require XOTcl
 }
 
 @ Class instproc instmixin {
-  args "instmixin specification"
+  ?args? "instmixin specification"
 } {
     Description {
       If <@tt>$args</@tt> is one argument, it specifies a list of instmixins to 
       be set. Every instmixin must be a defined class.
       If <@tt>$args</@tt> has more argument, the first one specifies the
-      action. Possible values are <@tt>set</@tt>, <@tt>get</@tt>, 
+      action. Possible values are <@tt>assign</@tt>, <@tt>get</@tt>, 
       <@tt>add</@tt> or <@tt>delete</@tt>, it modifies the current
-      settings as indicated. For more details, check the tutorial.
+      settings as indicated. For more details, check the 
+      <a href='./tutorial.html#updateinterceptors'>tutorial</a>.
     }
     return "if <@tt>$args</@tt> empty return current instmixins, otherwise empty"
 }
@@ -1081,7 +1215,7 @@ package require XOTcl
 
 @ Class instproc instproc {
   name "instance method name"
-  ?non-pos-args?" "optinal non-positional arguments"
+  ?non-pos-args?" "optional non-positional arguments"
   args "instance method arguments"
   body "instance method body"
   "?preAssertion?" "optional assertions that must hold before the proc executes"
@@ -1108,7 +1242,7 @@ package require XOTcl
   description {
     Convenience method to create an autonamed object. E.g.:
     <@pre class='code'>
-    Http new </@pre>
+    HTTP new </@pre>
     creates ::xotcl::__#0, a subsequent call creates ::xotcl::__#1, ...<@br>
     If <@tt>-childof obj</@tt> is specified, the new object is
     created as a child of the specified object. 
@@ -1182,13 +1316,15 @@ package require XOTcl
 }
 
 @ Class instproc superclass {
-  classList "list of classes"
+  classList "?list of classes?"
 } {
   description {
     Specify super-classes for a class. "superclass" changes the list
-    of superclasses dynamically to  <@tt>classList</@tt>.
+    of superclasses dynamically to  <@tt>classList</@tt>. 
+    The method returns the current value of <tt>superclass</tt>, 
+    when it is called without arguments.
   }
-  return "empty string"
+  return "if <@tt>classList</@tt> is not specified return superclass(es), otherwise empty"
 }
 
 @ Class instproc unknown {
@@ -1209,13 +1345,13 @@ package require XOTcl
   return "Standard unknown mechanism returns result of create"
 }
 
-@ Class instproc volatile {
+@ Object instproc volatile {
   "" ""
 } {
   description {
     This method is used to specify that the object
     should be deleted automatically, when the current
-    tcl-proc/object-proc/instproc is left. Example:
+    Tcl-proc/object-proc/instproc is left. Example:
     <@pre class='code'>    set x [Object new -volatile]</@pre>
   }
   return "empty string"
@@ -1239,6 +1375,73 @@ package require XOTcl
   }
   return "empty string"
 }
+
+@ Class ::xotcl::Slot -superclass Object {
+  description {
+    A slot is a meta-object that manages property-changes of
+    objects. A property is either an attribute or a role of an
+    relation (e.g. in system slots). 
+    The predefined system slots are <tt>class</tt>, 
+    <tt>superclass</tt>, <tt>mixin</tt>, <tt>instmixin</tt>, 
+    <tt>filter</tt>, <tt>instfilter</tt>. These slots appear
+    as methods of Object or Class.
+ 
+    <p>The slots provide a common query and setting interface.
+    Every multivalued slot provides e.g. a method <tt>add</tt> 
+    to add a value to the list of values, and a method <tt>delete</tt>
+    which removes it. See for example the documentation of the slot 
+    <a href="#Object-mixin">mixin</a>.</p>
+
+    Parameters:<p>
+    <table>
+    <tr><td>-name <td>Name of the slot to access from an object the slot</td></tr>
+    <tr><td>-domain <td>domain (object or class) of a slot on which it can be used</td></tr>
+    <tr><td>-multivalued <td>boolean value for specifying single or multiple values (lists)</td></tr>
+    <tr><td>-defaultmethods <td>list of two elements for specifying which methods are called
+      per default, when no slot method is explicitly specified</td></tr>
+    <tr><td>-manager <td>the manager object of the slot (per default [self])</td></tr>
+    <tr><td>-per-object <td>specify whether a slot should be used per class or per object; note that there is a restricted usage if applied per class, since defaults etc, work per initialization</td></tr>
+    </table>
+
+    <p>For more details, consult the 
+      <a href='./tutorial.html#slots'>tutorial</a>.</p>
+  }
+}
+@ Class Attribute -superclass ::xotcl::Slot {
+  description {
+    Attribute slots are used to manage the setting and querying
+    of instance variables.
+ 
+    Parameters:<p>
+    <table>
+    <tr><td>-default <td>specify a default value</td></tr>
+    <tr><td>-type <td>specify the type of a slot</td></tr>
+    <tr><td>-initcmd <td>specify a Tcl command to be executed when the value of the
+    associated variable is read the first time; allows lazy initialization</td></tr>
+    <tr><td>-valuecmd <td>specify a Tcl command to be executed whenever the variable is read</td></tr>
+    <tr><td>-valuechangedcmd <td>specify a Tcl command to be executed whenever the variable is changed</td></tr>
+    </table>
+
+    <p>Example of a class definition with three attribute slots:</p>
+<pre CLASS="code">
+  <@tt>Class</tt> Person <tt>-slots</tt> {
+    <tt>Attribute</tt> name
+    <tt>Attribute</tt> salary <tt>-default</tt> 0
+    <tt>Attribute</tt> projects <tt>-default</tt> {} <tt>-multivalued</tt> true
+  }
+  Person p1 -name "John Doe"
+</@pre>
+
+   <p> The slot parameters <tt>default</tt>, <tt>initcmd</tt> and
+   <tt>valuecmd</tt> have to be used mutually exclusively. 
+    For more details, consult the       
+    <a href='./tutorial.html#attribute-slots'>tutorial</a>.
+    </p>
+  }
+}
+
+
+
 
 #Class::Parameter instproc values {param args}
 

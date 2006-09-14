@@ -1,4 +1,4 @@
-# -*- tcl -*- $Id: Access.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# -*- tcl -*- $Id: Access.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 
 set httpAccessVersion 0.91
 package provide xotcl::comm::httpAccess $httpAccessVersion
@@ -49,15 +49,15 @@ namespace eval ::xotcl::comm::httpAccess {
 		return $url
 	    }
 	}
-	if {$path == ""} {set path /}
+	if {$path eq ""} {set path /}
 	return [expr {[info exists network] ?
 		      "$scheme/$network$path" : "$scheme$path"}]
     }
 
     # resolving a relative url with respect to a base url (based on rfc 1808)
     proc resolve {rel base {childTagName ""}} {
-	if {$base == ""}    { return [checkUrl $rel] }
-	if {$rel == ""}     { return $base }
+	if {$base eq ""}    { return [checkUrl $rel] }
+	if {$rel eq ""}     { return $base }
 	if {[regexp {^[^:]+:/} $rel _]} { return [checkUrl $rel] }
 	if {![regexp {^([^:]+:/)/([^/]+)(/.*)$} $base _ baseScheme baseNetwork basePath]} {
 	    regexp {^([^:]+:)(/.*)$} $base _ baseScheme basePath
@@ -73,7 +73,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	    append baseScheme /$baseNetwork
 	}
 	#puts stderr rel=<$rel>
-	if {![string match /* $rel]} {
+	if {![string match "/*" $rel]} {
 	    #puts stderr rel<$rel>base<$basePath>
 	    if {[string match \#* $rel]} {
 		set r $basePath$rel
@@ -88,7 +88,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	    set rel $r
 	    #puts stderr finalrel<$r>
 	}
-	#if {$childTagName != ""} 
+	#if {$childTagName ne ""} 
 	if {1} {
 	    upvar 1 $childTagName childTag 
 	    catch {unset childTag}
@@ -232,7 +232,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	}
 	next
 	if {![my exists caching]} { 
-	    if {$method == "GET"} {
+	    if {$method eq "GET"} {
 		set defaultCaching 2
 	    } else {
 		set defaultCaching 1
@@ -298,7 +298,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	    set access CacheAccess
 	} elseif {[regexp -nocase {^http://([^/:]+)(:([0-9]+))?(/.*)?$} $url \
 		       _ host y givenPort path]} {
-	    if {[string compare "" $givenPort]} {set port $givenPort } {set port 80}
+	    if {$givenPort ne ""} {set port $givenPort } {set port 80}
 	    switch -exact $method {
 		PROPFIND -
 		PROPPATCH -
@@ -314,7 +314,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	    }
 	} elseif {[regexp -nocase {^https://([^/:]+)(:([0-9]+))?(/.*)$} $url \
 		       _ host y givenPort path]} {
-	    if {[string compare "" $givenPort]} {set port $givenPort } {set port 443}
+	    if {$givenPort ne ""} {set port $givenPort } {set port 443}
 	    set access Https
 	} elseif {[regexp -nocase {^file:(.*)$} $url _ path]} {
 	    set access File
@@ -328,7 +328,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	    set access xotcl::Cmd    
 	} elseif {[regexp -nocase {^ldap://([^/:]+)?(:([0-9]+))?(/.*)$} \
 		       $url _ host y givenPort path]} {
-	    if {$givenPort != ""} { set port $givenPort }
+	    if {$givenPort ne ""} { set port $givenPort }
 	    my showMsg "*** ldap://<$host>:<$port>/<$path>"
 	    package require xotcl::comm::ldap
 	    set access Ldap  
@@ -361,7 +361,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	my instvar caching sink
 	if {[my exists ignoreBody]} return
 	if {[my exists sinkClass] && $caching>0 } {
-	    error "can´t set both sinkclass and caching"
+	    error "canÂ´t set both sinkclass and caching"
 	}
 	switch $caching {
 	    2 {
@@ -881,7 +881,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	set expectBody $expectsBody($method)
 
 	array set v [my set meta]
-	if {([info exists v(connection)] && $v(connection) == "close") || \
+	if {([info exists v(connection)] && $v(connection) eq "close") || \
 		$responseHttpVersion < 1.1} {
 	    $S makePersistent 0
 	} else {
@@ -992,7 +992,7 @@ namespace eval ::xotcl::comm::httpAccess {
 
     Http instproc redirect location {
 	# the request is redirected to another server
-	if {[string compare $location [my url]]} {
+	if {$location ne [my url] } {
 	    #my showVars
 	    my url $location
 	    my initialize
@@ -1027,7 +1027,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	my instvar S chunkLength totalsize
 	set length [$S gets lengthString]
 	if {$length > 0} {
-	    set chunkLength [expr 0x$lengthString]
+	    set chunkLength [expr {0x$lengthString}]
 	    #my showVars lengthString chunkLength
 	    if {$chunkLength == 0} {
 		$S event readable [self] readChunkedTrailer
@@ -1146,7 +1146,7 @@ namespace eval ::xotcl::comm::httpAccess {
 		    lappend cmd -$attr [sslClientConfig set $attr]
 		}
 	    }
-	    my showMsg "the assembled command is... ´$cmd´"    
+	    my showMsg "the assembled command is... Â´$cmdÂ´"    
 	    eval $cmd
 	    puts stderr "CHANNELS= [file channels]"
 	}
@@ -1272,9 +1272,9 @@ namespace eval ::xotcl::comm::httpAccess {
 	append A1 $digestResponseData(username)\
 	    : $digestResponseData(realm) : $pwd($digestResponseData(realm))
 	if {![my exists digestResponseData(qop)] || 
-	    $digestResponseData(qop) == "auth"} {
+	    $digestResponseData(qop) eq "auth"} {
 	    append A2 $requestMethod : $requestUri
-	} elseif {$digestResponseData(qop) == "auth-int"} {
+	} elseif {$digestResponseData(qop) eq "auth-int"} {
 	    #A2 = Method ":" digest-uri-value ":" H(entity-body)
 	    append A2 $requestMethod : $requestUri: ""
 	}
@@ -1457,7 +1457,7 @@ namespace eval ::xotcl::comm::httpAccess {
 			 -method $method \
 			 -timeout 25000 \
 			 -caching 0 -allowJoin 0 -httpVersion [my httpVersion]]
-	    if {$parentUrl != ""} {
+	    if {$parentUrl ne ""} {
 		lappend cmd -parentUrl $parentUrl
 	    }
 	    set r [eval $cmd]

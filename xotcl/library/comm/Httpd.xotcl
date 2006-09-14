@@ -1,4 +1,4 @@
-# -*- tcl -*- $Id: Httpd.xotcl,v 1.3 2005/09/09 21:09:01 neumann Exp $
+# -*- tcl -*- $Id: Httpd.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
 #
 # The XOTcl class Httpd implements an HTTP/1.0 and HTTP/1.1 server with  
 # basic functionality.
@@ -240,12 +240,12 @@ namespace eval ::xotcl::comm::httpd {
     #my showCall
     my instvar method data meta
     set d [my connection read]
-    if {[string length $d] > 0} {
+    if {$d ne ""} {
       append data $d
       #my showMsg "datal=[string length $data], cl=$meta(content-length)"
       if {[string length $data] >= $meta(content-length)} {
 	my connection event readable [self] ""
-	if {$method == "POST"} { my decode-POST-query  }
+	if {$method eq "POST"} { my decode-POST-query  }
 	my check-redirect
       }
     } else {   ;# 0 byte, must be eof...
@@ -428,9 +428,9 @@ namespace eval ::xotcl::comm::httpd {
     #my showCall
     my connection puts "Content-Type: $type"
     # bei einer leeren Responses blockieren Klienten und melden Fehler
-    if {$response == ""} { set response " " }
+    if {$response eq ""} { set response " " }
     my connection puts "Content-Length: [string length $response]\n"
-    if {[my set method] != "HEAD"} {
+    if {[my set method] ne "HEAD"} {
       my connection fconfigure -translation {auto binary}
       my connection puts-nonewline $response
     } else {
@@ -492,7 +492,7 @@ namespace eval ::xotcl::comm::httpd {
 	my replyErrorMsg
 	return 
       }
-      if {$type == ""} {set type [Mime guessContentType $fn]}
+      if {$type eq ""} {set type [Mime guessContentType $fn]}
       my replyCode 200 \
 	  Last-Modified [Httpd Date $mtime] \
 	  Content-Type $type \
@@ -737,10 +737,10 @@ namespace eval ::xotcl::comm::httpd {
   Httpd::DigestAccessControl instproc credentialsNotOk {wrk credentials authMethod realm} {
     # check whether $credentials are sufficient for $realm
     my showMsg "Digest Authentication ..."
-    # HELP FD: hier muss ich noch überprüfen, ob die digest-header
+    # HELP FD: hier muss ich noch Ã¼berprÃ¼fen, ob die digest-header
     # (credentials) ok sind. Hier habe ich probleme auf die sachen,
     # die der worker gesendet (bspw. nonce) hat zu kommen. Ich
-    # weiß, man kann mit [my info children] daran kommen. Aber,
+    # weiÃŸ, man kann mit [my info children] daran kommen. Aber,
     # was ist, wenn man mehrere Worker hat?
 
     ## Fredj, das sollte kein Problem sein: das credentialsNotOk wird
@@ -784,7 +784,7 @@ namespace eval ::xotcl::comm::httpd {
     #   qop-options       = "qop" "=" <"> 1#qop-value <">
     #   qop-value         = "auth" | "auth-int" | token
 
-    # FD: hier würde man die nötigen parametern (nonce,domain,opaque,
+    # FD: hier wÃ¼rde man die nÃ¶tigen parametern (nonce,domain,opaque,
     # etc.) berechnen und in dem asso. Array speichern.
     # FD: minimale Anforderung
     set digestChallengeData(nonce)  [my genNonce]
