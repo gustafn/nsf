@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.28 2006/09/14 06:36:02 neumann Exp $
+#$Id: testx.xotcl,v 1.29 2006/09/25 08:29:04 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -1437,7 +1437,7 @@ TestX init_params -proc run {{n 20}} {
 
     for {set i 0} {$i < $n} {incr i} {
 	Class O -parameter {
-	    {a -default 0}
+	    {a -default 0} 
 	    {b -default {[cmd 3 4]}} c d 
 	    {e -default 3} 
 	    {Self -default [self]}
@@ -1607,24 +1607,8 @@ TestX mixinTest -proc run {{n 10}} {
     i4 mixin {MovementTest MovementLog}
     
     i4 proc aaa args {puts TEST}
-    ::errorCheck [i4 procsearch moveAgent]-[i4 procsearch aaa]-[i4 procsearch set] "::MovementLog instproc moveAgent-::i4 proc aaa-::xotcl::Object instcmd set" "procsearch"
-
-    Class create A
-    A instproc f1 {} {puts hu}
-    A instforward f2 puts hu
-    A instparametercmd f5
-    A create a0
-    a0 proc f3 {} {puts hu}
-    a0 forward f4 puts hu
-    a0 parametercmd f6 puts hu
-    ::errorCheck [a0 procsearch f1] "::A instproc f1" procsearch-1
-    ::errorCheck [a0 procsearch f2] "::A instforward f2" procsearch-2
-    ::errorCheck [a0 procsearch f3] "::a0 proc f3" procsearch-3
-    ::errorCheck [a0 procsearch f4] "::a0 forward f4" procsearch-4
-    ::errorCheck [a0 procsearch f5] "::A instparametercmd f5" procsearch-4
-    ::errorCheck [a0 procsearch f6] "::a0 parametercmd f6" procsearch-6
-    ::errorCheck [a0 procsearch set] "::xotcl::Object instcmd set" procsearch-6
-
+    ::errorCheck [i4 procsearch moveAgent]-[i4 procsearch aaa]-[i4 procsearch set] "::MovementLog instproc moveAgent-::i4 proc aaa-::xotcl::Object instproc set" "procsearch"
+    
     set mixinResult ""
     i4 moveAgent 5 6
     ::errorCheck $mixinResult \
@@ -1903,11 +1887,11 @@ TestX mixinTest -proc run {{n 10}} {
     Object instfilter ""
     
     ::errorCheck $::calling \
-	"{filter f: ::mixinTest {} run draw {::MenuDecorator instproc draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class instforward instfilter}} {filter f: ::xotcl::Object ::xotcl::Class instfilter assign {::xotcl::InterceptorSlot instcmd assign}}" \
+	"{filter f: ::mixinTest {} run draw {::MenuDecorator instproc draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class instproc instfilter}} {filter f: ::xotcl::Object ::xotcl::Class instfilter set {::xotcl::Relations instproc set}}" \
 	"Mixin: Calling-Obj/Cl/Proc failed"	
   
     ::errorCheck $::mixinResult \
-	"{filter ::mainImage f ::xotcl::Object} {m1 ::mainImage draw ::MenuDecorator} {m2 ::mainImage draw ::ScrollBarDecorator} {image ::mainImage draw ::Image} {grObject ::mainImage draw ::GrObject} {filter ::zoom f ::xotcl::Object} {m2 ::zoom draw ::ScrollBarDecorator} {image ::zoom draw ::Image} {grObject ::zoom draw ::GrObject} {filter ::xotcl::Object f ::xotcl::Object} {filter ::xotcl::Class::slot::instfilter f ::xotcl::Object}" \
+	"{filter ::mainImage f ::xotcl::Object} {m1 ::mainImage draw ::MenuDecorator} {m2 ::mainImage draw ::ScrollBarDecorator} {image ::mainImage draw ::Image} {grObject ::mainImage draw ::GrObject} {filter ::zoom f ::xotcl::Object} {m2 ::zoom draw ::ScrollBarDecorator} {image ::zoom draw ::Image} {grObject ::zoom draw ::GrObject} {filter ::xotcl::Object f ::xotcl::Object} {filter ::xotcl::relmgr f ::xotcl::Object}" \
 	  "Mixin: Filter failed"
 
     set ::mixinResult ""
@@ -1943,7 +1927,7 @@ TestX mixinTest -proc run {{n 10}} {
     callingObject callingProc
     
     ::errorCheck $::calling \
-	{self ::filteredObject {self proc} infoTraceFilter2 {self class} ::InfoTrace2 {self calledproc} set {self callingproc} callingProc {self callingobject} ::callingObject {self callingclass} ::CallingObjectsClass {self filterreg} {::FilterRegClass instfilter infoTraceFilter2} {self next} {::xotcl::Object instcmd set}} \
+	{self ::filteredObject {self proc} infoTraceFilter2 {self class} ::InfoTrace2 {self calledproc} set {self callingproc} callingProc {self callingobject} ::callingObject {self callingclass} ::CallingObjectsClass {self filterreg} {::FilterRegClass instfilter infoTraceFilter2} {self next} {::xotcl::Object instproc set}} \
 	"call stack info" 
     
     Class M1; Class M2; Class M3; Class M4
@@ -2434,7 +2418,7 @@ TestX copymove -proc run {{n 10}} {
     #::errorCheck "[V info metadata]--[V metadata Author]--[V metadata Version]--[V metadata Nothing]"\
       "Version Author Nothing--Uwe--0.0.9--"\
       "Copy Metadata"
-
+    
     set df1 [V info default defaultValueP v dfv1]
     set df2 [V info default defaultValueP c dfv2]
     set df3 [V info instdefault defaultValueIP v dfv3]
@@ -2769,7 +2753,7 @@ smallScripts proc run {{n 20}} {
 	SM s
     }
 
-    for {set i 1} {$i < $n} {incr i} {
+    for {set i 0} {$i < $n} {incr i} {
       Class A
       A a
       set oname1 [Object autoname ooo]
@@ -2779,7 +2763,7 @@ smallScripts proc run {{n 20}} {
       a autoname -reset aaa
       lappend names [a autoname aaa]
       lappend names [a autoname aaa]
-      ::errorCheck $names "AAA1 aaa1 aaa2" "Autoname creation"
+      ::errorCheck $names "AAA0 aaa0 aaa1" "Autoname creation"
       ::errorCheck $oname1 "ooo$i" "Autoname Object 1"
       ::errorCheck $oname2 "oOO$i" "Autoname Object 2"
       ::errorCheck [xotcl::Object set __autonames(ooo)] $i \
@@ -2827,16 +2811,16 @@ smallScripts proc run {{n 20}} {
     ::errorCheck [b info procs] objproc "info procs"
     ::errorCheck [B info instprocs] myProc2 "info instprocs"
 
-    ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg f filter filterguard filtersearch forward hasclass incr info infoTraceFilter init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move myProc myProc2 myProcMix1 myProcMix2 noinit objproc parametercmd proc procsearch requireNamespace self set setFilter signature subst trace unset uplevel upvar volatile vwait"  "b info methods"
+    ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure copy defaultmethod destroy eval exists extractConfigureArg f filter filterappend filterguard filtersearch forward hasclass incr info infoTraceFilter init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinappend mixinguard move myProc myProc2 myProcMix1 myProcMix2 next noinit objproc parametercmd proc procsearch requireNamespace self set setFilter signature tclcmd trace unset uplevel upvar volatile vwait"  "b info methods"
 
-    ::errorCheck [lsort [b info methods -nocmds]] "abstract contains copy defaultmethod extractConfigureArg f hasclass infoTraceFilter init method move myProc myProc2 myProcMix1 myProcMix2 objproc self setFilter signature" "b info methods -nocmds"
+    ::errorCheck [lsort [b info methods -nocmds]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init method mixinappend move myProc myProc2 myProcMix1 myProcMix2 objproc self setFilter signature tclcmd" "b info methods -nocmds"
 
-    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard noinit parametercmd proc procsearch requireNamespace set subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
-    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract contains copy defaultmethod extractConfigureArg f hasclass infoTraceFilter init method move myProc myProc2 objproc self setFilter signature" "b info methods -nocmds -nomixins"
+    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard next noinit parametercmd proc procsearch requireNamespace set trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
+    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init method mixinappend move myProc myProc2 objproc self setFilter signature tclcmd" "b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "b info methods -nocmds -noprocs"
 
-    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances contains copy defaultmethod extractConfigureArg f hasclass infoTraceFilter init method move parameter self setFilter signature uses" "B info methods -nocmds"
+    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances copy defaultmethod extractConfigureArg f filterappend hasclass infoTraceFilter init instfilterappend instmixinappend insttclcmd method mixinappend move self setFilter signature tclcmd uses" "B info methods -nocmds"
 
     namespace eval a {
 	proc o args {return o}
@@ -3085,7 +3069,7 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [e1 exists X] "1" "forward 3"
   ::errorCheck [e1 q] q "self proc"
 
-  ::errorCheck [E info commands] {p slot} "class commands"
+  ::errorCheck [E info commands] p "class commands"
   ::errorCheck [E info instcommands] "t x q" "class instcommands"
   ::errorCheck [E info instbody t] "return ok" "class info instbody"
   
@@ -3153,9 +3137,9 @@ condMixins proc run {{n 20}} {
 
   set ::context payrollApp
 
-  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace salary self set signature subst trace unset uplevel upvar volatile vwait" "condmixin all methods"
+  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterappend filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinappend mixinguard move name next noinit parametercmd print proc procsearch requireNamespace salary self set signature tclcmd trace unset uplevel upvar volatile vwait" "condmixin all methods"
 
-  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace salary self set signature subst trace unset uplevel upvar volatile vwait" "all methods in context"
+  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure copy defaultmethod destroy eval exists extractConfigureArg filter filterappend filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinappend mixinguard move name next noinit parametercmd print proc procsearch requireNamespace salary self set signature tclcmd trace unset uplevel upvar volatile vwait" "all methods in context"
 
   ::errorCheck [my show payrollApp jim] "{payrollApp:  jim info methods salary => salary} {payrollApp:  jim info methods -incontext salary => salary} {payrollApp:  jim info methods driv* => driving-license} {payrollApp:  jim info methods -incontext driv* => }" "payrollApp jim"
   ::errorCheck [my show shipmentApp jim] "{shipmentApp:  jim info methods salary => salary} {shipmentApp:  jim info methods -incontext salary => } {shipmentApp:  jim info methods driv* => driving-license} {shipmentApp:  jim info methods -incontext driv* => driving-license}" "shipmentApp jim"
@@ -3572,15 +3556,15 @@ TestX create nonposargs -proc run {{n 20}} {
     catch {
 	o y 4 56 5
     } m
-    errorCheck $m {unknown argument '5' for method 'y': valid arguments -x {-a {1 2 3}} a b} "wrong \# check 1"
+    errorCheck $m "wrong # args: should be {a b}" "wrong \# check 1"
     catch {
 	o y
     } m
-    errorCheck $m "wrong # args for method 'y': valid arguments -x {-a {1 2 3}} a b" "wrong \# check 2"
+    errorCheck $m "wrong # args: should be {a b}" "wrong \# check 2"
     catch {
 	o y -x 1
     } m
-    errorCheck $m "wrong # args for method 'y': valid arguments -x {-a {1 2 3}} a b" "wrong \# check 3"
+    errorCheck $m "wrong # args: should be {a b}" "wrong \# check 3"
     catch {
 	o z1 a 1 2 3
     } m
@@ -3665,7 +3649,7 @@ TestX create nonposargs -proc run {{n 20}} {
   oa foo "---"
   catch {oa foo "--"} msg
   
-  errorCheck $msg "wrong # args for method 'foo': valid arguments {-a A} b" "Non-pos arg: double dash alone"
+  errorCheck $msg "wrong # args: should be {b}" "Non-pos arg: double dash alone"
 	
   Class C
   C create c1
@@ -3705,96 +3689,6 @@ TestX create nonposargs -proc run {{n 20}} {
   }
 
   errorCheck [c1 m3 1 2 3] "hu3" "Defaults instproc no flag"
-
-  Object o
-  o proc f1 {{-x:boolean true} a  } {
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$x ne "true"} {error "x $x ne true"}
-    if {$a ne "x"} {error "a $a ne x"}
-    if {[info exists args]} {error "args still exists"}
-  }
-  o proc f2 {{-x:boolean true} {a x}} {
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$x ne "false"} {error "x $x ne false"}
-    if {$a ne "x"} {error "a $a ne x"}
-    if {[info exists args]} {error "args still exists"}
-  }
-  o proc f3 {{-x:boolean true}  } {
-    if {$x ne "true"} {error "x $x ne true"}
-    if {[info exists args]} {error "args still exists"}
-  }
-  o proc p0 {{-x 1} a} {
-    #puts "--- [self proc] x=$x [info exists a]"
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$a != 1} {error "a $a != 1"}
-    if {$x != 1} {error "x $x != 1"}
-    if {[info exists args]} {error "args still exists"}
-  }
-  o proc p1 {{-x 1} a args} {
-    #puts "--- [self proc] x=$x [info exists a] args=$args"
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$a != 1} {error "a $a != 1"}
-    if {$x != 1} {error "x $x != 1"}
-    if {$args ne ""} {error "args $args ne {}"}
-  }
-  o proc p2 {{-x 1} args} {
-    if {$x != 1} {error "x $x != 1"}
-    if {$args ne ""} {error "args $args ne {}"}
-  }
-  o proc p3 {{-x 1} args} {
-    if {$x != 1} {error "x $x != 1"}
-    if {$args ne "a b c"} {error "args $args ne {}"}
-  }
-  o proc p4 {{-x 1} args} {
-    if {$x != 2} {error "x $x != 2"}
-    if {$args ne "a b c"} {error "args $args ne {a b c}"}
-  }
-  o proc p5 {{-x 1} a args} {
-    #puts "--- [self proc] x=$x [info exists a] args=$args"
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$a != 1} {error "a $a != 1"}
-    if {$x != 1} {error "x $x != 1"}
-    if {$args ne "a b c"} {error "args $args ne {a b c}"}
-  }
-  o proc p6 {{-x 1} a args} {
-    #puts "--- [self proc] x=$x [info exists a] args=$args"
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$a != 1} {error "a $a != 1"}
-    if {$x != 2} {error "x $x != 2"}
-    if {$args ne "a b c"} {error "args $args ne {a b c}"}
-  }
-  o proc p7 {{-x 1} a args} {
-    #puts "--- [self proc] x=$x [info exists a] args=$args"
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$a != 1} {error "a $a != 1"}
-    if {$x != 2} {error "x $x != 2"}
-    if {$args ne ""} {error "args $args ne {}"}
-  }
-  o proc p8 {{-x 1} {a 1} args} {
-    #puts "--- [self proc] x=$x [info exists a] args=$args"
-    if {![info exists a]} {error "pos arg a does not exist"}
-    if {$a != 1} {error "a $a != 1"}
-    if {$x != 2} {error "x $x != 2"}
-    if {$args ne ""} {error "args $args ne {}"}
-  }
-  errorCheck [catch {o f1 x}] 0 nonpos-1
-  errorCheck [catch {o f1 -y 1}] 1  nonpos-2
-  errorCheck [catch {o f1 -x false}] 1 nonpos-3
-  errorCheck [catch {o f2 -x false}] 0 nonpos-4
-  errorCheck [catch {o f3}] 0 nonpos-5
-  errorCheck [catch {o f3 -x true -y 1}] 1  nonpos-6
-  errorCheck [catch {o f3-y 1}] 1 nonpos-7
-  errorCheck [catch {o p0 1}] 0 nonpos-8
-  errorCheck [catch {o p1 1}] 0 nonpos-9
-  errorCheck [catch {o p1 }] 1 nonpos-10
-  errorCheck [catch {o p2 }] 0 nonpos-11
-  errorCheck [catch {o p3 a b c}] 0 nonpos-12
-  errorCheck [catch {o p4 -x 2 a b c}] 0 nonpos-13
-  errorCheck [catch {o p5 1 a b c}] 0 nonpos-14
-  errorCheck [catch {o p7 -x 2 1}] 0 nonpos-15
-  errorCheck [catch {o p7 -x 2 }] 1 nonpos-16
-  errorCheck [catch {o p8 -x 2 }] 0 nonpos-17
-  o destroy
 }
 
 

@@ -1,4 +1,4 @@
-  package ifneeded XOTcl 1.5.0 [list load \
-    [file join $dir libxotcl1.5.0.dylib] XOTcl]
+  package ifneeded XOTcl 1.4.0 [list load \
+    [file join $dir libxotcl1.4.0.dylib] XOTcl]
 
 

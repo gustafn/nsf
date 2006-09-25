@@ -1,4 +1,4 @@
-# $Id: soccerClub.xotcl,v 1.2 2006/09/14 06:36:02 neumann Exp $
+# $Id: soccerClub.xotcl,v 1.3 2006/09/25 08:29:04 neumann Exp $
 # This is a simple introductory example for the language XOTcl. 
 # It demonstrates the basic language constructs on the example of
 # a soccer club.

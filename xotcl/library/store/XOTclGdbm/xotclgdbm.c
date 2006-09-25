@@ -342,7 +342,7 @@ Xotclgdbm_Init(Tcl_Interp * in) {
         return TCL_ERROR;
     }
     result = Tcl_VarEval (in, 
-			  "::xotcl::Class Storage=Gdbm -superclass Storage",
+			  "Class Storage=Gdbm -superclass Storage",
 			  (char*) 0);
     if (result != TCL_OK)
       return result;

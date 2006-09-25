@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.18 2006/09/14 06:36:01 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.19 2006/09/25 08:29:03 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -337,8 +337,6 @@ test-core: $(TCLSH_PROG)
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/forwardtest.xotcl \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/slottest.xotcl \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/xocomm.test \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 test-actiweb: $(TCLSH_PROG)
@@ -418,10 +416,10 @@ xowish: tkAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
 		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
 
 install-shells:
-	@if test -e xotclsh; then \
+	@if test -f xotclsh; then \
 		$(INSTALL_PROGRAM) xotclsh $(DESTDIR)$(bindir); \
 	fi
-	@if test -e xowish; then \
+	@if test -f xowish; then \
 		$(INSTALL_PROGRAM) xowish $(DESTDIR)$(bindir); \
 	fi
 

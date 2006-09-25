@@ -1,4 +1,4 @@
-# -*- tcl -*- $Id: Httpd.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
+# -*- tcl -*- $Id: Httpd.xotcl,v 1.5 2006/09/25 08:29:04 neumann Exp $
 #
 # The XOTcl class Httpd implements an HTTP/1.0 and HTTP/1.1 server with  
 # basic functionality.

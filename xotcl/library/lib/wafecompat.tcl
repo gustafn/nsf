@@ -1,4 +1,4 @@
-# $Id: wafecompat.tcl,v 1.2 2006/09/14 06:36:02 neumann Exp $
+# $Id: wafecompat.tcl,v 1.3 2006/09/25 08:29:04 neumann Exp $
 package provide xotcl::wafecompat 0.9
 
 set WAFELIB        /usr/lib/X11/wafe/

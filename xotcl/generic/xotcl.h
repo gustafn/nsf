@@ -1,6 +1,6 @@
 /* -*- Mode: c++ -*-
  *
- *  $Id: xotcl.h,v 1.9 2006/09/14 06:36:02 neumann Exp $
+ *  $Id: xotcl.h,v 1.10 2006/09/25 08:29:04 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -124,9 +124,6 @@
 #endif
 #if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<4
 # define PRE84
-#endif
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<5
-# define PRE85
 #endif
 
 /* 

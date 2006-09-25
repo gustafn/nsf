@@ -1,4 +1,4 @@
-## $Header: /home/neumann/cvs/xotcl/xotcl/library/lib/htmllib.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
+## $Header: /home/neumann/cvs/xotcl/xotcl/library/lib/htmllib.xotcl,v 1.5 2006/09/25 08:29:04 neumann Exp $
 
 #
 # htmllib.xotcl
@@ -50,7 +50,7 @@ namespace eval ::xotcl::htmllib {
 	    Antti Salonen, as@fishpool.fi
 	}
 	date {
-	    $Date: 2006/09/14 06:36:02 $
+	    $Date: 2006/09/25 08:29:04 $
 	}
     }
     

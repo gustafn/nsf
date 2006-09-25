@@ -1,4 +1,4 @@
-# $Id: Persistence.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
+# $Id: Persistence.xotcl,v 1.5 2006/09/25 08:29:04 neumann Exp $
 
 package provide xotcl::store::persistence 0.8
 

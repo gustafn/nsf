@@ -12,15 +12,15 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.38 2006/09/14 06:36:01 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.39 2006/09/25 08:29:03 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
 # have been added in a customized configure script.
 #========================================================================
 
-#XOTCL_VERSION 	= 1.5.0
-XOTCL_VERSION 	= 1.5
+#XOTCL_VERSION 	= 1.4.0
+XOTCL_VERSION 	= 1.4
 
 src_lib_dir 	= ${srcdir}/library
 src_doc_dir 	= ${srcdir}/doc
@@ -28,8 +28,8 @@ src_test_dir 	= ${srcdir}/tests
 src_app_dir 	= ${srcdir}/apps
 src_generic_dir = ${srcdir}/generic
 TCL_LIB_SPEC    = -L/usr/local/src/tcl8.4.13/unix -ltcl8.4
-TK_LIB_SPEC	= 
-subdirs		= 
+TK_LIB_SPEC	= -F/Library/Frameworks -framework Tk
+subdirs		=  library/store/XOTclSdbm/ library/store/XOTclGdbm/ library/xml/TclExpat-1.1/
 aol_prefix	= /usr/local/aolserver
 
 # Requires native paths
@@ -42,9 +42,9 @@ src_test_dir_native 	= `echo ${src_test_dir}`
 src_app_dir_native	= `echo ${src_app_dir}`
 src_generic_dir_native	= `echo ${src_generic_dir}`
 
-libdirs = comm lib serialize 
+libdirs = comm lib serialize actiweb rdf registry store xml patterns
 libsrc 	= COPYRIGHT pkgIndex.tcl 
-appdirs = comm scripts utils 
+appdirs = comm scripts utils actiweb persistence
 appsrc 	= COPYRIGHT 
 
 DOC_SOURCE = \
@@ -98,8 +98,8 @@ PKG_HEADERS	=  generic/xotcl.h generic/xotclInt.h generic/xotclDecls.h generic/x
 # configuration options) composed of the named objects.
 #========================================================================
 
-PKG_LIB_FILE	= libxotcl1.5.0.dylib
-PKG_STUB_LIB_FILE = libxotclstub1.5.0.a
+PKG_LIB_FILE	= libxotcl1.4.0.dylib
+PKG_STUB_LIB_FILE = libxotclstub1.4.0.a
 
 lib_BINARIES	= $(PKG_LIB_FILE) $(PKG_STUB_LIB_FILE)
 BINARIES	= $(lib_BINARIES)
@@ -126,7 +126,7 @@ INSTALL_DATA	= ${INSTALL} -m 644
 INSTALL_SCRIPT	= ${INSTALL}
 
 PACKAGE_NAME	= xotcl
-PACKAGE_VERSION	= 1.5.0
+PACKAGE_VERSION	= 1.4.0
 CC		= gcc -pipe
 CFLAGS_DEFAULT	= -Os
 CFLAGS_WARNING	= -Wall -Wno-implicit-int
@@ -143,7 +143,7 @@ RANLIB_STUB	= ranlib
 SHLIB_CFLAGS	= -fno-common
 SHLIB_LD	= ${CC} -dynamiclib ${CFLAGS} ${LDFLAGS_DEFAULT} -Wl,-single_module
 SHLIB_LD_FLAGS	= @SHLIB_LD_FLAGS@
-SHLIB_LD_LIBS	= ${LIBS} -L/usr/local/src/tcl8.4.13/unix -ltclstub8.4
+SHLIB_LD_LIBS	= ${LIBS} -L/usr/local/src/tcl8.4.13/unix -ltclstub8.4 -L/Library/Frameworks/Tk.framework -ltkstub8.4
 STLIB_LD	= ${AR} cr
 TCL_DEFS	=  -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_PTHREAD_ATFORK=1 -DTCL_THREADS=1 -DHAVE_COREFOUNDATION=1 -DHAVE_LIBKERN_OSATOMIC_H=1 -DHAVE_OSSPINLOCKLOCK=1 -DHAVE_COPYFILE=1 -DMAC_OSX_TCL=1 -DUSE_VFORK=1 -DTCL_DEFAULT_ENCODING=\"utf-8\" -DTCL_LOAD_FROM_MEMORY=1 -DTCL_WIDE_INT_TYPE=long\ long -DWORDS_BIGENDIAN=1 -DHAVE_GETCWD=1 -DHAVE_OPENDIR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOL=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_TMPNAM=1 -DHAVE_WAITPID=1 -DUSE_TERMIOS=1 -DHAVE_SYS_TIME_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_TM_ZONE=1 -DHAVE_GMTIME_R=1 -DHAVE_LOCALTIME_R=1 -DHAVE_TM_GMTOFF=1 -DHAVE_ST_BLKSIZE=1 -DSTDC_HEADERS=1 -DHAVE_SIGNED_CHAR=1 -DHAVE_PUTENV_THAT_COPIES=1 -DHAVE_LANGINFO=1 -DHAVE_FTS=1 -DHAVE_SYS_IOCTL_H=1 -DHAVE_SYS_FILIO_H=1 
 TCL_BIN_DIR	= /usr/local/src/tcl8.4.13/unix
@@ -153,9 +153,9 @@ TCL_SRC_DIR	= /usr/local/src/tcl8.4.13
 # Not used, but retained for reference of what libs Tcl required
 TCL_LIBS	= ${DL_LIBS} ${LIBS} ${MATH_LIBS}
 
-pkgdatadir	= /usr/local/share/xotcl1.5.0
-pkglibdir	= /usr/local/lib/xotcl1.5.0
-pkgincludedir	= /usr/local/include/xotcl1.5.0
+pkgdatadir	= /usr/local/share/xotcl1.4.0
+pkglibdir	= /usr/local/lib/xotcl1.4.0
+pkgincludedir	= /usr/local/include/xotcl1.4.0
 
 #========================================================================
 # TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
@@ -174,15 +174,15 @@ TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= 1
 
 INCLUDES	=  -I"/usr/local/src/tcl8.4.13/generic" -I"/usr/local/src/tcl8.4.13/unix" -I./generic
-EXTRA_CFLAGS	=  -DXOTCLVERSION=\"1.5\" -DXOTCLPATCHLEVEL=\".0\" 	 -DHAVE_TCL_COMPILE_H=1
+EXTRA_CFLAGS	=  -DXOTCLVERSION=\"1.4\" -DXOTCLPATCHLEVEL=\".0\" 	 -DHAVE_TCL_COMPILE_H=1
 
 # TCL_DEFS is not strictly need here, but if you remove it, then you
 # must make sure that configure.in checks for the necessary components
 # that your library may use.  TCL_DEFS can actually be a problem if
 # you do not compile with a similar machine setup as the Tcl core was
 # compiled with.
-#DEFS		= $(TCL_DEFS) -DPACKAGE_NAME=\"xotcl\" -DPACKAGE_TARNAME=\"xotcl\" -DPACKAGE_VERSION=\"1.5.0\" -DPACKAGE_STRING=\"xotcl\ 1.5.0\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DWORDS_BIGENDIAN=1 -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DTCL_THREADS=1 -DTCL_WIDE_INT_TYPE=long\ long -DUSE_TCL_STUBS=1 -DCOMPILE_XOTCL_STUBS=1  $(EXTRA_CFLAGS)
-DEFS		= -DPACKAGE_NAME=\"xotcl\" -DPACKAGE_TARNAME=\"xotcl\" -DPACKAGE_VERSION=\"1.5.0\" -DPACKAGE_STRING=\"xotcl\ 1.5.0\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DWORDS_BIGENDIAN=1 -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DTCL_THREADS=1 -DTCL_WIDE_INT_TYPE=long\ long -DUSE_TCL_STUBS=1 -DCOMPILE_XOTCL_STUBS=1  $(EXTRA_CFLAGS) 
+#DEFS		= $(TCL_DEFS) -DPACKAGE_NAME=\"xotcl\" -DPACKAGE_TARNAME=\"xotcl\" -DPACKAGE_VERSION=\"1.4.0\" -DPACKAGE_STRING=\"xotcl\ 1.4.0\" -DPACKAGE_BUGREPORT=\"\" -DMAC_OSX_TK=1 -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DWORDS_BIGENDIAN=1 -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DTCL_THREADS=1 -DTCL_WIDE_INT_TYPE=long\ long -DUSE_TCL_STUBS=1 -DCOMPILE_XOTCL_STUBS=1  $(EXTRA_CFLAGS)
+DEFS		= -DPACKAGE_NAME=\"xotcl\" -DPACKAGE_TARNAME=\"xotcl\" -DPACKAGE_VERSION=\"1.4.0\" -DPACKAGE_STRING=\"xotcl\ 1.4.0\" -DPACKAGE_BUGREPORT=\"\" -DMAC_OSX_TK=1 -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DWORDS_BIGENDIAN=1 -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DTCL_THREADS=1 -DTCL_WIDE_INT_TYPE=long\ long -DUSE_TCL_STUBS=1 -DCOMPILE_XOTCL_STUBS=1  $(EXTRA_CFLAGS) 
 
 CONFIG_CLEAN_FILES = Makefile xotclConfig.sh apps/utils/xotclsh apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix autom4te.cache/
 
@@ -213,7 +213,7 @@ all: binaries libraries doc
 # of the Makefile, in the "BINARIES" variable.
 #========================================================================
 
-binaries: $(BINARIES) xotclsh  pkgIndex.tcl
+binaries: $(BINARIES) xotclsh xowish pkgIndex.tcl
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
@@ -325,7 +325,7 @@ shell: binaries libraries
 gdb:
 	$(TCLSH_ENV) gdb $(TCLSH_PROG) $(SCRIPT)
 
-test: binaries libraries test-core 
+test: binaries libraries test-core test-actiweb
 
 #TESTFLAGS = -srcdir $(srcdir)
 test-core: $(TCLSH_PROG)
@@ -336,8 +336,6 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/speedtest.xotcl \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/forwardtest.xotcl \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/slottest.xotcl \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/xocomm.test \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
@@ -418,10 +416,10 @@ xowish: tkAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
 		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
 
 install-shells:
-	@if test -e xotclsh; then \
+	@if test -f xotclsh; then \
 		$(INSTALL_PROGRAM) xotclsh $(DESTDIR)$(bindir); \
 	fi
-	@if test -e xowish; then \
+	@if test -f xowish; then \
 		$(INSTALL_PROGRAM) xowish $(DESTDIR)$(bindir); \
 	fi
 
@@ -489,7 +487,7 @@ checkstubs:
 #========================================================================
 
 clean:  
-	-rm -rf $(BINARIES) $(CLEANFILES) xotclsh  pkgIndex.tcl ./receiver \
+	-rm -rf $(BINARIES) $(CLEANFILES) xotclsh xowish pkgIndex.tcl ./receiver \
 		$(target_doc_dir)/*-xotcl.html
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \

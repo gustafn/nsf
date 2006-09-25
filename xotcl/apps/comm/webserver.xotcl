@@ -1,5 +1,5 @@
 #!../../src/xotclsh
-# $Id: webserver.xotcl,v 1.4 2006/09/14 06:36:02 neumann Exp $
+# $Id: webserver.xotcl,v 1.5 2006/09/25 08:29:04 neumann Exp $
 array set opts {-root ../../doc -port 8086 -protected-port 9096 -pkgdir .}
 array set opts $argv
 lappend auto_path $opts(-pkgdir)
