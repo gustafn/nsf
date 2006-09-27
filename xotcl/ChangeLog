@@ -1,3 +1,203 @@
+2006-09-27 <Gustaf.Neumann@wu-wien.ac.at>
+    * Fixed memory corruption (accessing feed memory) in the
+      invalidation of transitive mixins (many thanks to Don Porter for
+      reporting it and providing suggestions, how to trigger the bug
+      via Tcl memory debug)
+    * Removed c++ style comments (many thanks to Andreas Kupries for
+      reporting)
+    * package xotcl::trace: allow to trace objects with "Trace add
+      trace <obj>" not only classes as before (many thanks to jima for
+      suggesting this)
+
+2006-09-26 <Gustaf.Neumann@wu-wien.ac.at>
+    * xotcl.c: improved portability for 64bit AMD on FreeBSD (and
+      maybe on other 64bit platforms as well) all vararg lists are now
+      terminated by ..., (char *) NULL Previously, some were
+      terminated by an integer typed zero-value, which can lead to
+      problems when sizeof(int) != sizeof(char *)
+    * The vararg interface is used by the following API calls in the
+      XOTcl code: Tcl_AppendResult(), Tcl_AppendStringsToObj(),
+      Tcl_VarEval(), XOTclVarErrMsg().  all occurrences are fixed.
+    * All occurrences of Tcl_AppendResult() removed form xotcl.c
+
+2006-09-24 <Gustaf.Neumann@wu-wien.ac.at>
+    * xotcl.c: make sure, that no
+        Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
+      happens on shared objects.
+
+2006-09-22 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+    * Release of XOTcl 1.5.1
+
+2006-09-22 <Gustaf.Neumann@wu-wien.ac.at>
+    * XOTclNextCmd() exported to external (stub) interface, to allow
+      applications to call next without going through a Tcl_Eval()
+      (Many thanks to Scott Gargash for the constructive discussions)
+    * removed XOTclGetSelfObj() again from the external interface
+      since the object/class is passed anyhow.
+    * some minor cleanups and additions to tutorial.
+    * added small fix mentioned in c.l.t for a more backwards
+       compatible old parameter interface.
+
+2006-09-21 <Gustaf.Neumann@wu-wien.ac.at>
+    * Changed interface of XOTclCallMethodWithArgs to contain the
+      specified number of elements in objv[] rather than the absolute
+      number. Changed name from XOTclCallMethodWithArg to
+      XOTclCallMethodWithArgs
+    * Added XOTclCallMethodWithArgs() to he external interface to
+      allow C applications faster invocation of XOTcl methods
+    * Simplified and standardized calling conventions for
+      C-implemented methods. ClientData receives always the
+      XOTcl_Object, no matter, what client data was specified during
+      registration (e.g.  XOTCL_NONLEAF_METHOD). Users
+      can rely on using ClientData for Objects
+    * Some performance improvements in invocation of XOTcl methods
+
+2006-09-20 <Gustaf.Neumann@wu-wien.ac.at>
+    * added XOTclGetSelfObj() to he external interface to obtain the
+      current object from a C application from the callstack
+    * fixed genstubs target in Makefile.in regenerated all stub files
+    * removed a few more compiler warnings for the power64 bit
+      architecture
+
+2006-09-19 <Gustaf.Neumann@wu-wien.ac.at>
+    * added XOTCL_NONLEAF_METHOD: This constant 
+      must be used fwhen registering C-implemented methods
+      that call "::xotcl::next" to push the XOTcl activation record.
+
+       Example:
+           XOTclAddIMethod( interp, MyClass, "mymethod", MyMethod,
+                   XOTCL_NONLEAF_METHOD, 0 );
+
+2006-09-18 <Gustaf.Neumann@wu-wien.ac.at>
+    * fixed a bug in parsing nonpositional arguments, when
+       e.g. square brackets are used in type declarations for
+       parameters.
+         Class C
+         C instproc foo {{-q:mult[2],optional 1} -x:boolean,optional args} {puts hu}
+       Tcl lists add another layer of braces 
+         ... foo {{{-q:mult[2],optional} 1} -x:boolean,optional args} ....
+       which have to be removed at the definition time of the parameters.
+    * fixed a 64-bit problem for POWER5+ machines
+    * fixed serializer to handle deeper stratification layers
+    * fixed an autoname crash under NT 
+       (Many thanks to Mark Jannsen for the patch)
+
+2006-09-17 <Gustaf.Neumann@wu-wien.ac.at>
+     * fixed a bug in deprecated part, when -setter is used in parameter
+       options.
+
+2006-09-15 <Gustaf.Neumann@wu-wien.ac.at>
+     * Changed "test -e" to "test -f" in Makefile.in, since
+       the standard test command in Solaris does not understand "test -e"
+       (Many thanks to Andreas Kupries for reporting)
+
+2006-09-14 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+      * Release of XOTcl 1.5.0
+
+2006-09-13 Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+      * Update of build files for windows
+
+2006-09-10 <Gustaf.Neumann@wu-wien.ac.at>
+      * added method "contains" to create objects aggregated into
+        other objects (essentially a value added back-port of the OpenACS
+        version).
+      * based method "slots" on method "contains" for improved orthogonality
+      * rearranging sections in the tutorial
+      * deleted obsolete sections from the tutorial
+      * serializer: when an object is defined as exported, export the whole
+        object tree (no need to specify export of all slots for exported objects)
+
+2006-09-08 <Gustaf.Neumann@wu-wien.ac.at>
+       * added -verbose to forward options
+       * added subst to the tcl-impored methods
+       * fixed a bug with .... -slots {Attribute new -name  a1}
+          (Many thanks to neophytos for reporting}
+       * provide method serialize (for Object), when the serializer package is loaded
+
+2006-09-07 <Gustaf.Neumann@wu-wien.ac.at>
+      * provided Tcl 8.5a4 compatibility
+      * spellechecking langref, make terminology more consistent 
+        (naming of arguments like .e.g methodName)
+
+2006-09-04 <Gustaf.Neumann@wu-wien.ac.at>
+       * update of tcl.m4 for newest TEA from CVS
+
+2006-09-03 <Gustaf.Neumann@wu-wien.ac.at>
+       * "mixin|filter|instmixin|instfilter set ..." deprecated, use
+          "mixin|filter|instmixin|instfilter assign ..." instead
+ 
+2006-09-01 <Gustaf.Neumann@wu-wien.ac.at>
+       * fixed a bug in the xotcl trace module (many thanks to jima for reporting)
+       * extended procsearch to report parametercmd and instparametercmd
+
+2006-08-30 <Gustaf.Neumann@wu-wien.ac.at>
+       * extended procsearch to report as well [inst]parametercmd 
+
+2006-08-26 <Gustaf.Neumann@wu-wien.ac.at>
+       * extended procsearch to report as well [inst]forward and [inst]cmd
+
+2006-08-25 <Gustaf.Neumann@wu-wien.ac.at>
+       * new subcommand "info slots"
+       * implemented backwards bug-compatible "info parameter", deprecated
+
+2006-08-23 <Gustaf.Neumann@wu-wien.ac.at>
+       * added system slots and attribute slots (see documentation)
+
+2006-08-21 <Gustaf.Neumann@wu-wien.ac.at>
+       * changed the implementation of the configure command
+          and setrelation command to use Tcl_GetIndexFromObj();
+       * added the subcommand "class" and "superclass" to the
+         the setrelation command.
+
+2006-08-22 <Gustaf.Neumann@wu-wien.ac.at>
+       * fixed a bug with nonpositional arguments, some 
+          positional arguments and "args"
+       * fixed a bug in nonpositional arguments when called without 
+           arguments
+       * improved error messages in connection with nonpositional arguments
+       * extended interface of XOTclErrBadVal() to provide better error messages
+         (this changes the stub interface, so we have to change the version number)
+
+2006-08-21 <Gustaf.Neumann@wu-wien.ac.at>
+       * new command for registering predefined C-implemented Tcl commands 
+          as methods
+             ::xotcl::alias <class>|<obj> <methodname> \
+                      ?-objscope? ?-per-object? <cmdname>
+         "-objscope" has the same meaning as for forwarder, 
+         "-per-object" has the same meaning as for the method "method", 
+         This command is somewhat similar to "[inst]forward -earlybinding",
+         but can be used to bootstrap xotcl (when e.g. no methods are
+         available).
+
+2006-07-20 <Gustaf.Neumann@wu-wien.ac.at>
+        * Documentation bug: method volatile was documented
+          as a method of class, but is documented as a method of object
+          (Many thanks to Kristoffer for reporting)
+
+2006-05-22 <Gustaf.Neumann@wu-wien.ac.at>
+       * package.xotcl: evaluating calls to "tcl_package" in the
+          global namespace instead of the current. This fixes problem of
+          xotcl 1.4.* with xotclide. Many thanks to 
+          Bill Paulsen and Artur Trzewik for identifying the problem and
+          suggesting a fix.
+
+2006-04-20 <Gustaf.Neumann@wu-wien.ac.at>
+        *  xotcl.c: new option for the argument substitution. When the argument
+            list of the forward command contains "%argclindex {a b c}", then
+            depending of the number of arguments at invocation "a", "b"
+            or "c" is substituted. 
+        * New option for forwarder: The option -earlybinding can be used to look 
+           up the function  pointer of the called Tcl command at 
+           definition time of the forwarder instead of invocation time. 
+           This option should only be used for calling C-implemented Tcl commands)
+
+2006-03-22 <Gustaf.Neumann@wu-wien.ac.at>
+       * deprecated command filterappend, instfilterappend, mixinappend, 
+          instmixinappend, tclcmd, insttclcmd deleted
+
+2006-03-20 <Gustaf.Neumann@wu-wien.ac.at>
+       * allow single colons in method names (fix in xotcl.c, NSTail())
+
 2006-02-17 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
        * release of 1.4.0
 

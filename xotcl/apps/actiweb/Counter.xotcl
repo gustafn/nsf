@@ -1,5 +1,6 @@
 #!../../src/xotclsh
-# $Id: Counter.xotcl,v 1.3 2006/09/25 08:29:04 neumann Exp $
+# $Id: Counter.xotcl,v 1.4 2006/09/27 08:12:39 neumann Exp $
+#load /Users/neumann/src/xotcl-1.4.1/library/store/XOTclSdbm/libxotclsdbm1.2.dylib 
 array set opts {-pkgdir .}; array set opts $argv
 lappend auto_path $opts(-pkgdir)
 

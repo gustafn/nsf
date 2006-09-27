@@ -1,5 +1,5 @@
 #!../../src/xotclsh
-# $Id: test-tls-server.xotcl,v 1.4 2006/09/25 08:29:04 neumann Exp $
+# $Id: test-tls-server.xotcl,v 1.5 2006/09/27 08:12:39 neumann Exp $
 #
 # sample secure server that reflect all incoming data to the client
 # It uses tls1.3 package of Matt Newman <matt@novadigm.com>

@@ -1,4 +1,4 @@
-# $Id: aol-xotcl.tcl,v 1.11 2006/09/25 08:29:04 neumann Exp $
+# $Id: aol-xotcl.tcl,v 1.12 2006/09/27 08:12:40 neumann Exp $
 
 #
 # Load XOTcl library and some related packages.
@@ -9,7 +9,7 @@
 #
 
 package require XOTcl; namespace import ::xotcl::*
-package require xotcl::serializer 0.7                                                             
+package require xotcl::serializer
 ns_log notice "XOTcl version $::xotcl::version$::xotcl::patchlevel loaded"
 
 #

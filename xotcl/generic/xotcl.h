@@ -1,6 +1,6 @@
 /* -*- Mode: c++ -*-
  *
- *  $Id: xotcl.h,v 1.10 2006/09/25 08:29:04 neumann Exp $
+ *  $Id: xotcl.h,v 1.11 2006/09/27 08:12:40 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -125,6 +125,11 @@
 #if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<4
 # define PRE84
 #endif
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<5
+# define PRE85
+#endif
+
+#define XOTCL_NONLEAF_METHOD (ClientData)0x01
 
 /* 
  * A special definition used to allow this header file to be included 
@@ -175,8 +180,8 @@ typedef struct XOTcl_Class {
 # ifdef __cplusplus
 extern "C"
 # endif
-CONST char *	
-Xotcl_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, char *version, int exact));
+CONST char *
+Xotcl_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, CONST char *version, int exact));
 #else
 # define Xotcl_InitStubs(interp, version, exact) \
       Tcl_PkgRequire(interp, "XOTcl", version, exact)

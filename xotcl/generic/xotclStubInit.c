@@ -63,7 +63,7 @@ XotclStubs xotclStubs = {
     XOTclVarErrMsg, /* 24 */
     XOTclErrInProc, /* 25 */
     XOTclObjErrArgCnt, /* 26 */
-    XOTclErrBadVal, /* 27 */
+    XOTclErrBadVal_, /* 27 */
     XOTclObjErrType, /* 28 */
     XOTclStackDump, /* 29 */
     XOTclCallStackDump, /* 30 */
@@ -73,6 +73,9 @@ XotclStubs xotclStubs = {
     XOTclSetClassClientData, /* 34 */
     XOTclGetClassClientData, /* 35 */
     XOTclRequireObjNamespace, /* 36 */
+    XOTclErrBadVal, /* 37 */
+    XOTclNextObjCmd, /* 38 */
+    XOTclCallMethodWithArgs, /* 39 */
 };
 
 /* !END!: Do not edit above this line. */

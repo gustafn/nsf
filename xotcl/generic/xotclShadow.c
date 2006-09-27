@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclShadow.c,v 1.4 2006/02/18 22:17:33 neumann Exp $
+ * $Id: xotclShadow.c,v 1.5 2006/09/27 08:12:40 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -99,8 +99,8 @@ XOTcl_RenameObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
   if (cmd != NULL) {
     obj = XOTclGetObjectFromCmdPtr(cmd);
     if (obj) {
-      return XOTclCallMethodWithArg((ClientData)obj, in,
-			       XOTclGlobalObjects[XOTE_MOVE], objv[2], 3, 0, 0);
+      return XOTclCallMethodWithArgs((ClientData)obj, in,
+			       XOTclGlobalObjects[XOTE_MOVE], objv[2], 1, 0, 0);
     }
   }
 
@@ -137,7 +137,7 @@ int
 XOTclShadowTclCommands(Tcl_Interp *in, XOTclShadowOperations load) {
   int rc = TCL_OK;
   if (load == SHADOW_LOAD) {
-    int initialized = (int) RUNTIME_STATE(in)->tclCommands;
+    int initialized = (RUNTIME_STATE(in)->tclCommands != NULL);
     assert(initialized == 0);
     RUNTIME_STATE(in)->tclCommands = 
       NEW_ARRAY(XOTclShadowTclCommandInfo, XOTE_SUBST - XOTE_EXPR + 1);

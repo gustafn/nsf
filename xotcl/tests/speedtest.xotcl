@@ -1,5 +1,5 @@
 #memory trace on
-# $Id: speedtest.xotcl,v 1.6 2006/09/25 08:29:04 neumann Exp $
+# $Id: speedtest.xotcl,v 1.7 2006/09/27 08:12:40 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 lappend auto_path [file dirname [info script]]/..
@@ -250,7 +250,7 @@ Test new -cmd {c info children ::c::500}  -expected ::c::500
 if {[info exists xotcl_version]} {
   Test new -cmd {llength [Object info instances]} -expected 1001
 } else {
-  Test new -cmd {llength [Object info instances]} -expected 1003
+  Test new -cmd {llength [Object info instances]} -expected 1007
 }
 
 Test new -cmd {Object info instances ::c::500} -expected ::c::500

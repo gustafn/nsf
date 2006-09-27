@@ -1,4 +1,4 @@
-# $Id: xodoc.xotcl,v 1.6 2006/09/25 08:29:04 neumann Exp $
+# $Id: xodoc.xotcl,v 1.7 2006/09/27 08:12:40 neumann Exp $
 
 package provide xotcl::xodoc 0.84
 package require xotcl::staticMetadataAnalyzer

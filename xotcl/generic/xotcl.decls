@@ -10,7 +10,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 # 
-# RCS: $Id: xotcl.decls,v 1.3 2006/09/25 08:29:04 neumann Exp $
+# RCS: $Id: xotcl.decls,v 1.4 2006/09/27 08:12:40 neumann Exp $
 
 library xotcl
 
@@ -119,16 +119,16 @@ declare 26 generic {
     int XOTclObjErrArgCnt(Tcl_Interp *in, Tcl_Obj *cmdname, char *arglist)
 }
 declare 27 generic {
-    int XOTclErrBadVal(Tcl_Interp *in, char *expected, char *value)
+   int XOTclErrBadVal_(Tcl_Interp *in, char *expected, char *value)
 }
 declare 28 generic {
     int XOTclObjErrType(Tcl_Interp *in, Tcl_Obj *nm, char* wt)
 }
 declare 29 generic {
-    void XOTclStackTrace (Tcl_Interp* in)
+    void XOTclStackDump (Tcl_Interp* in)
 }
 declare 30 generic {
-    void XOTclCallStackTrace (Tcl_Interp* in)
+    void XOTclCallStackDump (Tcl_Interp* in)
 }
 declare 31 generic {
     void XOTclDeprecatedMsg(char* oldCmd, char* newCmd)
@@ -148,3 +148,15 @@ declare 35 generic {
 declare 36 generic {
     void XOTclRequireObjNamespace(Tcl_Interp* in, XOTcl_Object* obj)
 }
+declare 37 generic {
+    int XOTclErrBadVal(Tcl_Interp *in, char *context, char *expected, char *value)
+}
+declare 38 generic {
+        int XOTclNextObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
+}
+declare 39 generic {
+        int  XOTclCallMethodWithArgs(ClientData cd, Tcl_Interp *in, 
+                Tcl_Obj *method, Tcl_Obj *arg,
+       	         int objc, Tcl_Obj *CONST objv[], int flags)
+}
+

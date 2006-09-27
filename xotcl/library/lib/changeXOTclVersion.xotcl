@@ -5,8 +5,8 @@
 # this program assumes that pwd is in xotcl-full-X.X* directory or subdir
 #
 set XOTCL_MAJOR_VERSION 1
-set XOTCL_MINOR_VERSION 4
-set XOTCL_RELEASE_LEVEL .0
+set XOTCL_MINOR_VERSION 5
+set XOTCL_RELEASE_LEVEL .2
 
 # example settings: 
 # 1.0

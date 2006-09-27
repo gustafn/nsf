@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.25 2006/09/25 08:29:04 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.26 2006/09/27 08:12:40 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -68,8 +68,8 @@ BINARIES	= $(lib_BINARIES)
 SHELL		= /bin/sh
 
 srcdir		= .
-prefix		= /usr/local
-exec_prefix	= /usr/local
+prefix		= /usr
+exec_prefix	= /usr
 
 bindir		= ${exec_prefix}/bin
 libdir		= ${exec_prefix}/lib
@@ -109,11 +109,11 @@ RANLIB_STUB	= ranlib
 SHLIB_CFLAGS	= -fno-common
 SHLIB_LD	= ${CC} -dynamiclib ${CFLAGS} ${LDFLAGS_DEFAULT} -Wl,-single_module
 SHLIB_LD_FLAGS	= @SHLIB_LD_FLAGS@
-SHLIB_LD_LIBS	= ${LIBS} -L/usr/local/src/tcl8.4.13/unix -ltclstub8.4
+SHLIB_LD_LIBS	= ${LIBS} -L/Library/Frameworks/Tcl.framework -ltclstub8.4
 STLIB_LD	= ${AR} cr
-TCL_DEFS	=  -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_PTHREAD_ATFORK=1 -DTCL_THREADS=1 -DHAVE_COREFOUNDATION=1 -DHAVE_LIBKERN_OSATOMIC_H=1 -DHAVE_OSSPINLOCKLOCK=1 -DHAVE_COPYFILE=1 -DMAC_OSX_TCL=1 -DUSE_VFORK=1 -DTCL_DEFAULT_ENCODING=\"utf-8\" -DTCL_LOAD_FROM_MEMORY=1 -DTCL_WIDE_INT_TYPE=long\ long -DWORDS_BIGENDIAN=1 -DHAVE_GETCWD=1 -DHAVE_OPENDIR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOL=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_TMPNAM=1 -DHAVE_WAITPID=1 -DUSE_TERMIOS=1 -DHAVE_SYS_TIME_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_TM_ZONE=1 -DHAVE_GMTIME_R=1 -DHAVE_LOCALTIME_R=1 -DHAVE_TM_GMTOFF=1 -DHAVE_ST_BLKSIZE=1 -DSTDC_HEADERS=1 -DHAVE_SIGNED_CHAR=1 -DHAVE_PUTENV_THAT_COPIES=1 -DHAVE_LANGINFO=1 -DHAVE_FTS=1 -DHAVE_SYS_IOCTL_H=1 -DHAVE_SYS_FILIO_H=1 
-TCL_BIN_DIR	= /usr/local/src/tcl8.4.13/unix
-TCL_SRC_DIR	= /usr/local/src/tcl8.4.13
+TCL_DEFS	=  -DTCL_THREADS=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1 -DHAVE_THREE_ARG_READDIR_R=1 -DHAVE_COREFOUNDATION=1 -DMAC_OSX_TCL=1 -DUSE_VFORK=1 -DTCL_DEFAULT_ENCODING=\"utf-8\" -DTCL_LOAD_FROM_MEMORY=1 -DTCL_WIDE_INT_TYPE=long\ long -DWORDS_BIGENDIAN=1 -DHAVE_GETCWD=1 -DHAVE_OPENDIR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOL=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_TMPNAM=1 -DHAVE_WAITPID=1 -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_TERMIOS=1 -DHAVE_SYS_TIME_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_TM_ZONE=1 -DHAVE_GMTIME_R=1 -DHAVE_LOCALTIME_R=1 -DHAVE_TM_GMTOFF=1 -DHAVE_ST_BLKSIZE=1 -DSTDC_HEADERS=1 -DHAVE_SIGNED_CHAR=1 -DHAVE_PUTENV_THAT_COPIES=1 -DHAVE_LANGINFO=1 -DHAVE_SYS_IOCTL_H=1 -DHAVE_SYS_FILIO_H=1 -DTCL_FRAMEWORK=1 
+TCL_BIN_DIR	= /Library/Frameworks/Tcl.framework
+TCL_SRC_DIR	= /Volumes/Local/Users/steffen/Documents/Development/TclTk/tcltkaqua-8_4_10_0/source/tcl
 # This is necessary for packages that use private Tcl headers
 #TCL_TOP_DIR_NATIVE	= @TCL_TOP_DIR_NATIVE@
 # Not used, but retained for reference of what libs Tcl required
@@ -131,11 +131,11 @@ TCLSH_ENV	= TCL_LIBRARY=`echo $(TCL_SRC_DIR)/library` \
 		  DYLD_LIBRARY_PATH="$(EXTRA_PATH):$(DYLD_LIBRARY_PATH)" \
 		  PATH="$(EXTRA_PATH):$(PATH)" \
 		  TCLLIBPATH="$(top_builddir)"
-TCLSH_PROG	= /usr/local/src/tcl8.4.13/unix/tclsh
+TCLSH_PROG	= /usr/bin/tclsh8.4
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= 1
 
-INCLUDES	=  -I/Users/neumann/src/xotcl-1.4.0/generic -I./generic -I"/usr/local/src/tcl8.4.13/generic"
+INCLUDES	=  -I/Users/neumann/src/xotcl-1.5.1/generic -I./generic -I"/Library/Frameworks/Tcl.framework/Headers"
 
 EXTRA_CFLAGS	=  
 
@@ -150,7 +150,7 @@ DEFS		= -DPACKAGE_NAME=\"xotclexpat\" -DPACKAGE_TARNAME=\"xotclexpat\" -DPACKAGE
 CONFIG_CLEAN_FILES = Makefile
 
 CPPFLAGS	= 
-LIBS		=  -L/Users/neumann/src/xotcl-1.4.0 -lxotclstub1.4.0 
+LIBS		=  -L/Users/neumann/src/xotcl-1.5.1 -lxotclstub1.5.1 
 AR		= ar
 CFLAGS		=  ${CFLAGS_DEFAULT} ${CFLAGS_WARNING} ${SHLIB_CFLAGS}
 COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)

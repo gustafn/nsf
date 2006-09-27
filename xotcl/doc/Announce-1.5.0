@@ -1,33 +1,36 @@
 Announcing XOTcl 1.5.0
 *************************
 
-Hi everybody. I am pleased to announce the availability of XOTcl 1.5.0.
+Hi everybody. We are pleased to announce the availability of XOTcl 1.5.0.
 Major changes relative to 1.4.0 are:
 
     * Improved Functionality
 
-       + The C-level implementation of XOTcl create now the basic
-           classes ::xotcl::Object and ::xotcl::Class completely without
-           any methods. All predefined methods are now registered 
-           from the initialization script-code (predefined.xotcl) 
-           via the new command
+       + The C-level implementation of XOTcl creates now the basic
+         classes ::xotcl::Object and ::xotcl::Class completely without
+         any methods. All predefined methods are now registered from
+         the initialization script-code (predefined.xotcl) via the new
+         command
  
-             ::xotcl::alias <class>|<obj> <methodname> \
-                      ?-objscope? ?-per-object? <cmdname>
+             ::xotcl::alias <class>|<obj> <methodName> \
+                      ?-objscope? ?-per-object? <cmdName>
 
-            which is used for registering predefined Tcl commands
-            as methods. These aliases are like zero cost forwarders,
-            since they lookup the function pointer from the commands
-            and used these in the methods. 
+          which is used for registering predefined Tcl commands as
+          methods. These aliases are like zero cost forwarders, since
+          they lookup the function pointer from the commands and used
+          these in the methods.
 
-           This change makes it possible to register the same command
-           on different classes (with maybe different names), such that
-           for example the predefined set method of ::xotcl::Object 
-           can be replaced with a different method and the set method
-           can be registered on some other classes (maybe some
-           application classes). This change makes it as well quite 
-           easy to use the XOTcl framework to develop some other 
-           object oriented frameworks.
+          This change makes it possible to register the same command
+          on different classes (with maybe different names), such that
+          for example the predefined set method of ::xotcl::Object can
+          be replaced with a different method and the set method can
+          be registered on some other classes (maybe some application
+          classes).
+
+          This change makes it as well quite easy to develop some
+          other object oriented languages based on the XOTcl
+          framework, since all methods can be rearrange from the Tcl
+          layer .
 
 
        + Slots
@@ -103,7 +106,7 @@ Major changes relative to 1.4.0 are:
            Person p1 -name "Joe"        
            p1 projects add project1
 
-         Some addtional features of the slots are:
+         Some additional features of the slots are:
 
           - Support for value checking for 
                * primitive types (all types from "string is", like integer, 
@@ -118,9 +121,9 @@ Major changes relative to 1.4.0 are:
                variables, not all variables are used for each object)
         
              - more experimental low level functionality, like
-               * initcmd (executed, whenver the variable is read the first time)
-               * valuecmd (executed, whenver the variable is read)
-               * valuechangedcmd (executed, whenver the variable is altered)
+               * initcmd (executed, whenever the variable is read the first time)
+               * valuecmd (executed, whenever the variable is read)
+               * valuechangedcmd (executed, whenever the variable is altered)
               
            For more details, see http://media.wu-wien.ac.at/doc/tutorial.html#slots
 
@@ -158,7 +161,7 @@ Major changes relative to 1.4.0 are:
            - Now other ::xotcl::* objects can be included in the aolserver blueprint 
               (e.g. non positional argument handlers)
            - handling of slot dependencies
-           - more conveniant calling of the serializer:
+           - more convenient calling of the serializer:
               Method "serialize" for Object is defined when the package xotcl::serializer
               is loaded.
 
@@ -178,12 +181,13 @@ Major changes relative to 1.4.0 are:
                   prior to invocation.
 
        + New snit-like utility functions:
-            - ::xotcl::myvar varname: return the fully qualified variable name of the specified variable.
-            - ::xotcl::myproc methodname ?args?: call an xotcl method without the need 
+            - ::xotcl::myvar varName: return the fully qualified variable name 
+               of the specified variable.
+            - ::xotcl::myproc methodName ?args?: call an xotcl method without the need 
                of using "[list [self] methodName ...]"
             Both commands are namespace exported
 
-       + added "subst" to the set of tcl imported methods (like e.g. incr, append, ...)
+       + added "subst" to the set of Tcl imported methods (like e.g. incr, append, ...)
           On can do now:
             % Object o
             ::o
@@ -201,7 +205,7 @@ Major changes relative to 1.4.0 are:
            positional arguments and "args"
        + fixed a bug in nonpositional arguments when called without 
            arguments
-       + tested with tcl 8.4.13 and 8.5a4
+       + tested with Tcl 8.4.13 and 8.5a4
        + improved error messages in connection with nonpositional arguments
        + fixed a bug in the xotcl trace module (many thanks to jima for reporting)
        + fixed a namespace bug in ::xotcl::package require in connection with xotclide 

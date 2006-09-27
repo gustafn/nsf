@@ -1,4 +1,4 @@
-# -*- tcl -*- $Id: Connection.xotcl,v 1.5 2006/09/25 08:29:04 neumann Exp $
+# -*- tcl -*- $Id: Connection.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
 
 package provide xotcl::comm::connection 1.0
 

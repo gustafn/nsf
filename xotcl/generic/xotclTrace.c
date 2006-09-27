@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclTrace.c,v 1.7 2006/02/18 22:17:33 neumann Exp $
+ * $Id: xotclTrace.c,v 1.8 2006/09/27 08:12:40 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -40,7 +40,8 @@ XOTclStackDump(Tcl_Interp *in) {
   }
 
   fprintf (stderr, "     VARFRAME:\n");
-  fprintf(stderr, "\tFrame=%p caller %p", v, v->callerPtr);
+  fprintf(stderr, "\tFrame=%p", v);
+  if (v) {fprintf(stderr, "caller %p", v->callerPtr);}
   if (v && v->isProcCallFrame && v->procPtr && v->procPtr->cmdPtr) {
     Tcl_GetCommandFullName(in, (Tcl_Command)  v->procPtr->cmdPtr, varCmdObj);
     if (varCmdObj) {

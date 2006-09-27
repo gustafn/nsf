@@ -1,4 +1,4 @@
-# $Id: forwardtest.xotcl,v 1.7 2006/09/25 08:29:04 neumann Exp $
+# $Id: forwardtest.xotcl,v 1.8 2006/09/27 08:12:40 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 package require xotcl::test
@@ -195,6 +195,25 @@ obj forward @list x y z {%@2 2} {%@1 1} {%@0 list}
 ? {obj @list} [list x 1 y 2 z]
 ? {obj @list a b c} [list x 1 y 2 z a b c]
 
+###############################################
+# substitution depending on number of arguments
+###############################################
+
+obj forward f %self [list %argclindex [list a b c]]
+obj proc a args {return [list [self proc] $args]}
+obj proc b args {return [list [self proc] $args]}
+obj proc c args {return [list [self proc] $args]}
+? {obj f} [list a {}]
+? {obj f 1 } [list b 1]
+? {obj f 1 2} [list c {1 2}]
+? {catch {obj f 1 2 3}} 1
+
+###############################################
+# option earlybinding
+###############################################
+obj forward s -earlybinding ::set %proc
+? {obj s 100} 100
+? {obj s} 100
 
 Object instproc f args { next }          
 

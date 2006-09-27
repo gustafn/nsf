@@ -109,7 +109,7 @@ EXTERN int		XOTclErrInProc _ANSI_ARGS_((Tcl_Interp * in,
 EXTERN int		XOTclObjErrArgCnt _ANSI_ARGS_((Tcl_Interp * in, 
 				Tcl_Obj * cmdname, char * arglist));
 /* 27 */
-EXTERN int		XOTclErrBadVal _ANSI_ARGS_((Tcl_Interp * in, 
+EXTERN int		XOTclErrBadVal_ _ANSI_ARGS_((Tcl_Interp * in, 
 				char * expected, char * value));
 /* 28 */
 EXTERN int		XOTclObjErrType _ANSI_ARGS_((Tcl_Interp * in, 
@@ -134,6 +134,19 @@ EXTERN ClientData	XOTclGetClassClientData _ANSI_ARGS_((XOTcl_Class* cl));
 /* 36 */
 EXTERN void		XOTclRequireObjNamespace _ANSI_ARGS_((Tcl_Interp* in, 
 				XOTcl_Object* obj));
+/* 37 */
+EXTERN int		XOTclErrBadVal _ANSI_ARGS_((Tcl_Interp * in, 
+				char * context, char * expected, 
+				char * value));
+/* 38 */
+EXTERN int		XOTclNextObjCmd _ANSI_ARGS_((ClientData cd, 
+				Tcl_Interp * in, int objc, 
+				Tcl_Obj *CONST objv[]));
+/* 39 */
+EXTERN int		XOTclCallMethodWithArgs _ANSI_ARGS_((ClientData cd, 
+				Tcl_Interp * in, Tcl_Obj * method, 
+				Tcl_Obj * arg, int objc, 
+				Tcl_Obj *CONST objv[], int flags));
 
 typedef struct XotclStubHooks {
     struct XotclIntStubs *xotclIntStubs;
@@ -170,7 +183,7 @@ typedef struct XotclStubs {
     int (*xOTclVarErrMsg) _ANSI_ARGS_(TCL_VARARGS(Tcl_Interp *,in)); /* 24 */
     int (*xOTclErrInProc) _ANSI_ARGS_((Tcl_Interp * in, Tcl_Obj* objName, Tcl_Obj* clName, char* procName)); /* 25 */
     int (*xOTclObjErrArgCnt) _ANSI_ARGS_((Tcl_Interp * in, Tcl_Obj * cmdname, char * arglist)); /* 26 */
-    int (*xOTclErrBadVal) _ANSI_ARGS_((Tcl_Interp * in, char * expected, char * value)); /* 27 */
+    int (*xOTclErrBadVal_) _ANSI_ARGS_((Tcl_Interp * in, char * expected, char * value)); /* 27 */
     int (*xOTclObjErrType) _ANSI_ARGS_((Tcl_Interp * in, Tcl_Obj * nm, char* wt)); /* 28 */
     void (*xOTclStackDump) _ANSI_ARGS_((Tcl_Interp* in)); /* 29 */
     void (*xOTclCallStackDump) _ANSI_ARGS_((Tcl_Interp* in)); /* 30 */
@@ -180,6 +193,9 @@ typedef struct XotclStubs {
     void (*xOTclSetClassClientData) _ANSI_ARGS_((XOTcl_Class* cl, ClientData data)); /* 34 */
     ClientData (*xOTclGetClassClientData) _ANSI_ARGS_((XOTcl_Class* cl)); /* 35 */
     void (*xOTclRequireObjNamespace) _ANSI_ARGS_((Tcl_Interp* in, XOTcl_Object* obj)); /* 36 */
+    int (*xOTclErrBadVal) _ANSI_ARGS_((Tcl_Interp * in, char * context, char * expected, char * value)); /* 37 */
+    int (*xOTclNextObjCmd) _ANSI_ARGS_((ClientData cd, Tcl_Interp * in, int objc, Tcl_Obj *CONST objv[])); /* 38 */
+    int (*xOTclCallMethodWithArgs) _ANSI_ARGS_((ClientData cd, Tcl_Interp * in, Tcl_Obj * method, Tcl_Obj * arg, int objc, Tcl_Obj *CONST objv[], int flags)); /* 39 */
 } XotclStubs;
 
 #ifdef __cplusplus
@@ -292,9 +308,9 @@ extern XotclStubs *xotclStubsPtr;
 #define XOTclObjErrArgCnt \
 	(xotclStubsPtr->xOTclObjErrArgCnt) /* 26 */
 #endif
-#ifndef XOTclErrBadVal
-#define XOTclErrBadVal \
-	(xotclStubsPtr->xOTclErrBadVal) /* 27 */
+#ifndef XOTclErrBadVal_
+#define XOTclErrBadVal_ \
+	(xotclStubsPtr->xOTclErrBadVal_) /* 27 */
 #endif
 #ifndef XOTclObjErrType
 #define XOTclObjErrType \
@@ -331,6 +347,18 @@ extern XotclStubs *xotclStubsPtr;
 #ifndef XOTclRequireObjNamespace
 #define XOTclRequireObjNamespace \
 	(xotclStubsPtr->xOTclRequireObjNamespace) /* 36 */
+#endif
+#ifndef XOTclErrBadVal
+#define XOTclErrBadVal \
+	(xotclStubsPtr->xOTclErrBadVal) /* 37 */
+#endif
+#ifndef XOTclNextObjCmd
+#define XOTclNextObjCmd \
+	(xotclStubsPtr->xOTclNextObjCmd) /* 38 */
+#endif
+#ifndef XOTclCallMethodWithArgs
+#define XOTclCallMethodWithArgs \
+	(xotclStubsPtr->xOTclCallMethodWithArgs) /* 39 */
 #endif
 
 #endif /* defined(USE_XOTCL_STUBS) && !defined(USE_XOTCL_STUB_PROCS) */

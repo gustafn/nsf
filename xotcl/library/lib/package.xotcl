@@ -1,4 +1,4 @@
-#$Id: package.xotcl,v 1.6 2006/09/25 08:29:04 neumann Exp $
+#$Id: package.xotcl,v 1.7 2006/09/27 08:12:40 neumann Exp $
 package provide xotcl::package 0.91
 
 package require xotcl::mixinStrategy
@@ -37,8 +37,8 @@ namespace eval ::xotcl::package {
     package set component .
     package set verbose 0
     package proc unknown args {
-	#puts stderr "unknown: package $args"
-	eval tcl_package $args
+      #puts stderr "unknown: package $args"
+      namespace eval :: tcl_package $args
     }
     package proc verbose value {
 	my set verbose $value
@@ -56,7 +56,7 @@ namespace eval ::xotcl::package {
 		error "not found"
 	    }
 	} else {
-	    eval tcl_package present $args
+	  namespace eval :: tcl_package present $args
 	}
     }
 
@@ -71,7 +71,7 @@ namespace eval ::xotcl::package {
 	    }
 	    set component $pkg
 	    lappend uses($prevComponent) $component
-	    set v [eval tcl_package require $args]
+	    set v [namespace eval :: tcl_package require $args]
 	    if {$v ne "" && $verbose} {
 		set path [lindex [tcl_package ifneeded $pkg $v] 1]
 		puts "... $pkg $v loaded from '$path'"

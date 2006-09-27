@@ -8,7 +8,7 @@
  */
 
 #ifndef lint
-static char rcsid[] = "$Id: pair.c,v 1.2 2004/08/02 09:43:32 neumann Exp $";
+static char rcsid[] = "$Id: pair.c,v 1.3 2006/09/27 08:12:40 neumann Exp $";
 #endif
 
 #include "sdbm.h"
@@ -231,7 +231,7 @@ register size_t siz;
 	register short *ino = (short *) pag;
 
 	for (i = 1; i < n; i += 2) {
-		if (siz == off - ino[i] &&
+          if ((int)siz == off - ino[i] &&
 		    memcmp(key, pag + ino[i], siz) == 0)
 			return i;
 		off = ino[i + 1];

@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.19 2006/09/25 08:29:03 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.20 2006/09/27 08:12:39 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -337,6 +337,8 @@ test-core: $(TCLSH_PROG)
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/forwardtest.xotcl \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/slottest.xotcl \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/xocomm.test \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 test-actiweb: $(TCLSH_PROG)
@@ -457,7 +459,7 @@ aolstub.$(OBJEXT): $(src_generic_dir)/aolstub.c $(PKG_HEADERS)
 #
 
 genstubs:
-	$(TCLSH) $(TCL_TOOL_DIR_NATIVE)/genStubs.tcl $(src_generic_dir) \
+	$(TCLSH) $(TCL_SRC_DIR)/tools/genStubs.tcl $(src_generic_dir) \
 		$(src_generic_dir)/xotcl.decls $(src_generic_dir)/xotclInt.decls
 
 #

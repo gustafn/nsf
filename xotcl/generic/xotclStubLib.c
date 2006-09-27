@@ -58,7 +58,7 @@ XotclIntStubs *xotclIntStubsPtr = NULL;
 CONST char *
 Xotcl_InitStubs (interp, version, exact)
     Tcl_Interp *interp;
-    char *version;
+    CONST char *version;
     int exact;
 {
     CONST char *actualVersion;
