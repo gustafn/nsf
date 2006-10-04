@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.20 2006/09/27 08:12:39 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.21 2006/10/04 20:40:23 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -157,6 +157,8 @@ pkgdatadir	= @pkgdatadir@
 pkglibdir	= @pkglibdir@
 pkgincludedir	= @pkgincludedir@
 
+# XOTCLSH = @XOTCLSH@
+
 #========================================================================
 # TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
 # package without installing.  The other environment variables allow us
@@ -204,7 +206,7 @@ COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(C
 # for the BINARIES that you specified above have already been done.
 #========================================================================
 
-all: binaries libraries doc
+all: binaries libraries doc end
 
 #========================================================================
 # The binaries target builds executable programs, Windows .dll's, unix
@@ -325,7 +327,8 @@ shell: binaries libraries
 gdb:
 	$(TCLSH_ENV) gdb $(TCLSH_PROG) $(SCRIPT)
 
-test: binaries libraries test-core @test_actiweb@
+test: binaries libraries test-core test-http @test_actiweb@
+test-nohttp: binaries libraries test-core
 
 #TESTFLAGS = -srcdir $(srcdir)
 test-core: $(TCLSH_PROG)
@@ -339,8 +342,11 @@ test-core: $(TCLSH_PROG)
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/slottest.xotcl \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+
+test-http: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/xocomm.test \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+
 test-actiweb: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/actiweb.test \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
@@ -625,7 +631,7 @@ end:
 	  echo " or" ; \
 	  echo "   put the 'package require' line into your ~/.tclshrc" ; \
 	else \
-	  echo "   xotclsh" ; \
+	  echo "   ./xotclsh" ; \
 	fi
 	@echo "************************************************************"
 

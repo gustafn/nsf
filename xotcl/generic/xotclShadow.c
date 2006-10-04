@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclShadow.c,v 1.5 2006/09/27 08:12:40 neumann Exp $
+ * $Id: xotclShadow.c,v 1.6 2006/10/04 20:40:23 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -100,7 +100,7 @@ XOTcl_RenameObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
     obj = XOTclGetObjectFromCmdPtr(cmd);
     if (obj) {
       return XOTclCallMethodWithArgs((ClientData)obj, in,
-			       XOTclGlobalObjects[XOTE_MOVE], objv[2], 1, 0, 0);
+                       XOTclGlobalObjects[XOTE_MOVE], objv[2], 1, 0, 0);
     }
   }
 

@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.30 2006/09/27 08:12:40 neumann Exp $
+#$Id: testx.xotcl,v 1.31 2006/10/04 20:40:24 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -368,7 +368,7 @@ TestX filterAddRemove -proc run {{n 20}} {
     SC($i) destroy
   }
 
-  ::errorCheck $::filterCount 960 \
+  ::errorCheck $::filterCount 1080 \
     "Filter Test  - Filter Count -- Got: $::filterCount"
   
   #
@@ -588,7 +588,7 @@ TestX filterGuards -proc run {{n 20}} {
       b destroy
       set filterResult ""
       B b
-      ::errorCheck $filterResult "-::b-f1-::A-configure-::b-f1-::A-init" \
+      ::errorCheck $filterResult "-::b-f1-::A-initslots-::b-f1-::A-configure-::b-f1-::A-init" \
 	"Filter guard: two different filters, same name + different class, one guarded, one not"
 
       # two filter w/o guard -> both have to be applied
@@ -596,7 +596,7 @@ TestX filterGuards -proc run {{n 20}} {
       b destroy
       set filterResult ""
       B b
-      ::errorCheck $filterResult "-::b-f1-::B-configure-::b-f1-::A-configure-::b-f1-::B-init-::b-f1-::A-init" \
+      ::errorCheck $filterResult "-::b-f1-::B-initslots-::b-f1-::A-initslots-::b-f1-::B-configure-::b-f1-::A-configure-::b-f1-::B-init-::b-f1-::A-init" \
 	"Filter guard: two different filters, both not guarded anymore"
 
       # three filters with guards, not to be applied, in one chain
@@ -615,10 +615,10 @@ TestX filterGuards -proc run {{n 20}} {
 
       B b2
       if {$i == 0} {
-	::errorCheck $filterResult "-::b2-f2-::A-configure-::b2-f2-::A-init" \
+	::errorCheck $filterResult "-::b2-f2-::A-initslots-::b2-f2-::A-configure-::b2-f2-::A-init" \
 	  "Filter guard: creation with less restrictive guards"
       } else {
-	::errorCheck $filterResult "-::b2-f2-::A-cleanup-::b2-f2-::A-configure-::b2-f2-::A-init" \
+	::errorCheck $filterResult "-::b2-f2-::A-cleanup-::b2-f2-::A-initslots-::b2-f2-::A-configure-::b2-f2-::A-init" \
 	  "Filter guard: creation with less restrictive guards (b)"
       }
       set filterResult ""
@@ -709,7 +709,8 @@ TestX filterGuards -proc run {{n 20}} {
 	lappend ::r [f baz] [f set r 1]
 	f filterguard myFilter {}
 	lappend ::r [f baz] [f set r 1]
-	::errorCheck $::r [list myFilter->configure myFilter->init \
+	::errorCheck $::r [list myFilter->initslots \
+                               myFilter->configure myFilter->init \
 			       myFilter->set myFilter->filter \
 			       myFilter->filterguard myFilter->baz \
 			       hello 1 myFilter->baz \
@@ -1012,7 +1013,7 @@ TestX filterSimpleObserver -proc run {{n 20}} {
 	TransferDialog$i destroy
     }
 
-    ::errorCheck  $::filterCount 220 \
+    ::errorCheck  $::filterCount 240 \
 	"Simple Observer - Filter Count" 
 }
 
@@ -1142,11 +1143,11 @@ filterInfo proc run {{n 20}} {
 
       if {$i == 0} {
 	::errorCheck "$FInfo" \
-	    "{callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc configure} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 0} {callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc init} {callingclass ::C1 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc init calledproc set} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 1} {callingclass ::C1 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc init calledproc set} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 22} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}}" \
+	    "{callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc initslots} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}} {callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc configure} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 0} {callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc init} {callingclass ::C1 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc init calledproc set} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 1} {callingclass ::C1 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc init calledproc set} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 22} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}}" \
 	    "Wrong filtering of instproc creation C/C1"
       } else {
 	::errorCheck "$FInfo" \
-	    "{callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc cleanup} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}} {callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc configure} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 0} {callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc init} {callingclass ::C1 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc init calledproc set} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 1} {callingclass ::C1 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc init calledproc set} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 22} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}}" \
+	    "{callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc cleanup} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}} {callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc initslots} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}} {callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc configure} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 0} {callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc init} {callingclass ::C1 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc init calledproc set} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 1} {callingclass ::C1 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc init calledproc set} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 22} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}}" \
 	"Wrong filtering of instproc creation C/C1 (b)"
       }
 
@@ -1233,11 +1234,11 @@ filterInfo proc run {{n 20}} {
       set r [anObject aProc]
       if {$i > 0} {
 	::errorCheck $InfoTraceResult \
-	    "{-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-cleanup aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::xotcl::Class::Parameter-infoTraceFilter-::xotcl::Object ::xotcl::Class-searchDefaults aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {0-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-configure aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-init aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-recreate aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-create aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::anObject-infoTraceFilter-::xotcl::Object ::ObjectsClass-aProc run-::filterInfo {-::xotcl::Object instfilter infoTraceFilter}}" \
+	    "{-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-cleanup aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-initslots aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {0-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-configure aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-init aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-recreate aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-create aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::anObject-infoTraceFilter-::xotcl::Object ::ObjectsClass-aProc run-::filterInfo {-::xotcl::Object instfilter infoTraceFilter}}" \
 	"FilterInfo InfoTrace: Filter information wrong (b)"
       } else {
 	::errorCheck $InfoTraceResult \
-	    "{::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-alloc aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::xotcl::Class::Parameter-infoTraceFilter-::xotcl::Object ::xotcl::Class-searchDefaults aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {0-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-configure aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-init aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-create aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::anObject-infoTraceFilter-::xotcl::Object ::ObjectsClass-aProc run-::filterInfo {-::xotcl::Object instfilter infoTraceFilter}}" \
+	    "{::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-alloc aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-initslots aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {0-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-configure aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {-::anotherObject-infoTraceFilter-::xotcl::Object ::aClass-init aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::aClass-infoTraceFilter-::xotcl::Object ::xotcl::Class-create aProc-::anObject {::ObjectsClass-::xotcl::Object instfilter infoTraceFilter}} {::anotherObject-::anObject-infoTraceFilter-::xotcl::Object ::ObjectsClass-aProc run-::filterInfo {-::xotcl::Object instfilter infoTraceFilter}}" \
 	  "FilterInfo InfoTrace: Filter information wrong"
       }
     }
@@ -2641,7 +2642,7 @@ TestX recreation -proc run {{n 10}} {
   Recreated recreateObj
   recreateObj destroy
   errorCheck [set ::recreateFilterResult] \
-    " ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->cleanup ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->destroy" \
+    " ::recreateObj+::xotcl::Object->initslots ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->cleanup ::recreateObj+::xotcl::Object->initslots ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->destroy" \
     "recreateObj - recreateFilterResult"
    if {$i == 0} {
      errorCheck [set ::recreateMixinResult] \
@@ -2827,11 +2828,11 @@ smallScripts proc run {{n 20}} {
     ::errorCheck [b info procs] objproc "info procs"
     ::errorCheck [B info instprocs] myProc2 "info instprocs"
 
-    ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg f filter filterguard filtersearch forward hasclass incr info infoTraceFilter init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move myProc myProc2 myProcMix1 myProcMix2 noinit objproc parametercmd proc procsearch requireNamespace self set setFilter signature subst trace unset uplevel upvar volatile vwait"  "b info methods"
+    ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg f filter filterguard filtersearch forward hasclass incr info infoTraceFilter init initslots instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move myProc myProc2 myProcMix1 myProcMix2 noinit objproc parametercmd proc procsearch requireNamespace self set setFilter signature subst trace unset uplevel upvar volatile vwait"  "b info methods"
 
     ::errorCheck [lsort [b info methods -nocmds]] "abstract contains copy defaultmethod extractConfigureArg f hasclass infoTraceFilter init method move myProc myProc2 myProcMix1 myProcMix2 objproc self setFilter signature" "b info methods -nocmds"
 
-    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard noinit parametercmd proc procsearch requireNamespace set subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
+    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info initslots instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard noinit parametercmd proc procsearch requireNamespace set subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
     ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract contains copy defaultmethod extractConfigureArg f hasclass infoTraceFilter init method move myProc myProc2 objproc self setFilter signature" "b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "b info methods -nocmds -noprocs"
@@ -3050,7 +3051,6 @@ TestX objectReferences -proc run {{n 20}} {
   }
 
 
-
   ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard forward heritage info instances instbody instcommands instdefault instfilter instfilterguard instforward instinvar instmixin instpost instpre instprocs invar methods mixin parameter parent post pre precedence procs subclass superclass vars} "info info"
 
   ::errorCheck [Class info instances *Unk*] ::UnknownClass "match in info instances"
@@ -3153,9 +3153,9 @@ condMixins proc run {{n 20}} {
 
   set ::context payrollApp
 
-  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace salary self set signature subst trace unset uplevel upvar volatile vwait" "condmixin all methods"
+  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init initslots instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace salary self set signature subst trace unset uplevel upvar volatile vwait" "condmixin all methods"
 
-  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace salary self set signature subst trace unset uplevel upvar volatile vwait" "all methods in context"
+  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init initslots instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace salary self set signature subst trace unset uplevel upvar volatile vwait" "all methods in context"
 
   ::errorCheck [my show payrollApp jim] "{payrollApp:  jim info methods salary => salary} {payrollApp:  jim info methods -incontext salary => salary} {payrollApp:  jim info methods driv* => driving-license} {payrollApp:  jim info methods -incontext driv* => }" "payrollApp jim"
   ::errorCheck [my show shipmentApp jim] "{shipmentApp:  jim info methods salary => salary} {shipmentApp:  jim info methods -incontext salary => } {shipmentApp:  jim info methods driv* => driving-license} {shipmentApp:  jim info methods -incontext driv* => driving-license}" "shipmentApp jim"

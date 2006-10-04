@@ -1,4 +1,4 @@
-# $Id: forwardtest.xotcl,v 1.8 2006/09/27 08:12:40 neumann Exp $
+# $Id: forwardtest.xotcl,v 1.9 2006/10/04 20:40:24 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 package require xotcl::test
@@ -31,7 +31,7 @@ x1 Incr x
 x1 Incr x
 x1 Incr x
 ? {x1 x} 103
-puts "======"
+#puts "======"
 
 ###########################################
 # adding 
@@ -40,7 +40,7 @@ Object obj
 obj forward addOne expr 1 +
 
 ? {obj addOne 5} 6
-puts "======"
+#puts "======"
 
 ###########################################
 # more arguments
@@ -54,7 +54,7 @@ obj forward foo target %proc %self a1 a2
 obj forward foo target %proc %self %%self %%p
 ? {obj foo x1 x2} [list ::obj %self %p x1 x2]
 
-puts "======"
+#puts "======"
 
 
 ###########################################
@@ -72,7 +72,7 @@ obj forward Mixin -default {getter setter} mixin %1  %self
 ? {obj Mixin add M1} [list ::mixin add ::obj M1]
 ? {obj Mixin M1} [list ::mixin setter ::obj M1]
 ? {obj Mixin} [list ::mixin getter ::obj]
-puts "======"
+#puts "======"
 
 
 ###########################################
@@ -101,7 +101,7 @@ obj set x 1
 obj forward i1 -objscope incr x 
 
 ? {obj i1} 2
-puts "======"
+#puts "======"
 
 ###########################################
 # introspeciton options
@@ -128,7 +128,7 @@ C instproc XXXo {} {}
 ? {obj info forward -definition addOne} "expr 1 +"
 ? {obj info forward -definition foo} "target %proc %self %%self %%p"
 ? {obj info forward -definition i1} "-objscope ::incr x"
-puts "======"
+#puts "======"
 
 ###########################################
 # test serializer
@@ -274,18 +274,18 @@ NS::Main instproc i2 {} {
 
 }
 
-puts ====
+#puts ====
 NS::Main m1
 NS::Main create m
 m i1
 
-puts ====
+#puts ====
 ? [list set _ [NS create n1]] ::n1
 NS filter f
 ? [list set _ [NS create n2]] ::n2
 NS filter ""
 
-puts ====
+#puts ====
 namespace eval test {
   ? [list set _ [NS create n1]] ::test::n1
   ? [list set _ [NS create n3]] ::test::n3
@@ -307,7 +307,7 @@ C proc t {o expr} {
 }
 C create c1
 
-puts ====
+#puts ====
 ? {c1 expr {[self]}} 		::c1
 ? {c1 expr {[self] == "::c1"}} 	1
 ? {c1 expr {[my xx]}} 		::c1

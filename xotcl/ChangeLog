@@ -1,3 +1,12 @@
+2006-09-29 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
+    * Release of XOTcl 1.5.2
+
+2006-09-28 <Gustaf.Neumann@wu-wien.ac.at>
+    * Extended regression test for nested contains
+    * fix potential bug in copy-command with c-level client data
+      (don't copy commands with client data for the time being, rely on
+      introspection)
+
 2006-09-27 <Gustaf.Neumann@wu-wien.ac.at>
     * Fixed memory corruption (accessing feed memory) in the
       invalidation of transitive mixins (many thanks to Don Porter for
@@ -8,6 +17,10 @@
     * package xotcl::trace: allow to trace objects with "Trace add
       trace <obj>" not only classes as before (many thanks to jima for
       suggesting this)
+    * fix for nested -contains with new (many thanks to Stefan
+       Sobernig for pointing this out)
+    * Added a target test-nohttp for automated regression tests 
+      on machines with firewalls (used for FreeBSD build system)
 
 2006-09-26 <Gustaf.Neumann@wu-wien.ac.at>
     * xotcl.c: improved portability for 64bit AMD on FreeBSD (and

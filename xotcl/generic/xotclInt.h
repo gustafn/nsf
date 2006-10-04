@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.19 2006/09/27 08:12:40 neumann Exp $
+ *  $Id: xotclInt.h,v 1.20 2006/10/04 20:40:23 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
@@ -497,7 +497,7 @@ typedef struct XOTclClass {
   struct XOTclClasses* sub;
   short color;
   struct XOTclClasses* order;
-  struct XOTclClass* parent;
+  /*struct XOTclClass* parent;*/
   Tcl_HashTable instances;
   Tcl_Namespace *nsPtr;
   Tcl_Obj* parameters;
@@ -519,13 +519,13 @@ typedef enum {
     XOTE_EMPTY, XOTE_UNKNOWN, XOTE_CREATE, XOTE_DESTROY, XOTE_INSTDESTROY,
     XOTE_ALLOC, XOTE_INIT, XOTE_INSTVAR, XOTE_INTERP, XOTE_AUTONAMES,
     XOTE_ZERO, XOTE_ONE, XOTE_MOVE, XOTE_SELF, XOTE_CLASS, XOTE_RECREATE,
-    XOTE_SELF_CLASS, XOTE_SELF_PROC, XOTE_PARAM_CL,
-    XOTE_SEARCH_DEFAULTS, XOTE_EXIT_HANDLER,
-    XOTE_NON_POS_ARGS_CL, XOTE_NON_POS_ARGS_OBJ,
+    XOTE_SELF_CLASS, XOTE_SELF_PROC, 
+    XOTE_EXIT_HANDLER, XOTE_DEFAULTSUPERCLASS,
+    XOTE_NON_POS_ARGS_OBJ,
     XOTE_CLEANUP, XOTE_CONFIGURE, XOTE_FILTER, XOTE_INSTFILTER,
     XOTE_INSTPROC, XOTE_PROC, XOTE_INSTFORWARD, XOTE_FORWARD,
     XOTE_INSTCMD, XOTE_CMD, XOTE_INSTPARAMETERCMD, XOTE_PARAMETERCMD, 
-    XOTE_MKGETTERSETTER, XOTE_FORMAT,
+    XOTE_FORMAT, XOTE_INITSLOTS,
     XOTE_NEWOBJ, XOTE_GUARD_OPTION, XOTE_DEFAULTMETHOD,
     XOTE___UNKNOWN, XOTE_ARGS, XOTE_SPLIT, XOTE_COMMA,
     /** these are the redefined tcl commands; leave them
@@ -539,14 +539,14 @@ char *XOTclGlobalStrings[] = {
   "", "unknown", "create", "destroy", "instdestroy",
   "alloc", "init", "instvar", "interp", "__autonames",
   "0", "1", "move", "self", "class", "recreate",
-  "self class", "self proc", "::xotcl::Class::Parameter",
-  "searchDefaults", "__exitHandler",
-  "::xotcl::NonposArgs", "::xotcl::nonposArgs",
+  "self class", "self proc", 
+  "__exitHandler", "__default_superclass",
+  "::xotcl::nonposArgs",
   "cleanup", "configure", "filter", "instfilter",
   "instproc", "proc", "instforward", "forward",
   "instcmd", "cmd", "instparametercmd", "parametercmd",
-  "mkGetterSetter", "format",
-  "__#", "-guard", "defaultmethod",
+  "format", "initslots",
+  "__#", "-guard", "defaultmethod", 
   "__unknown", "args", "split", ",",
   "expr", "incr", "info", "rename", "subst",
 };

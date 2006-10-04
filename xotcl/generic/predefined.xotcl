@@ -1,75 +1,95 @@
-# $Id: predefined.xotcl,v 1.11 2006/09/27 08:12:40 neumann Exp $
+# $Id: predefined.xotcl,v 1.12 2006/10/04 20:40:23 neumann Exp $
+if {[info command oo::object] ne ""} {
+  ::xotcl::alias ::oo::class alloc ::xotcl::cmd::Class::alloc
+  oo::class alloc ::xotcl::Object
+  oo::class alloc ::xotcl::Class
+  ::xotcl::setrelation ::xotcl::Class superclass {::oo::class ::xotcl::Object}
+  ::xotcl::setrelation ::xotcl::Object class ::xotcl::Class
+  ::xotcl::setrelation ::xotcl::Class class ::xotcl::Class
+}
+
 # provide the standard command set for ::xotcl::Object
-foreach cmd [info command ::xotcl::Object::instcmd::*] {
+foreach cmd [info command ::xotcl::cmd::Object::*] {
   ::xotcl::alias ::xotcl::Object [namespace tail $cmd] $cmd 
 }
-# provide some Tcl-commands as methods for Objects
+# provide some Tcl-commands as methods for ::xotcl::Object
 foreach cmd {array append eval incr lappend trace subst unset} {
   ::xotcl::alias ::xotcl::Object $cmd -objscope ::$cmd
 }
 # provide the standard command set for ::xotcl::Class
-foreach cmd [info command ::xotcl::Class::instcmd::*] {
+foreach cmd [info command ::xotcl::cmd::Class::*] {
   ::xotcl::alias ::xotcl::Class [namespace tail $cmd] $cmd 
 }
-unset cmd
-# init must exist on Object. per default it is empty.
+# "init" must exist on Object. per default it is empty.
 ::xotcl::Object instproc init args {}
-
+# use low level interface of slots (defined later) for providing a 
+# default value for superclass (when no superclass is specified explicitely)
+::xotcl::Class array set __defaults {__default_superclass ::xotcl::Object}
+::xotcl::Class instparametercmd __default_superclass
+::xotcl::Class set __default_superclass ::xotcl::Object
+#
+# create class and object for nonpositional argument processing
+::xotcl::Class create ::xotcl::NonposArgs
+foreach cmd [info command ::xotcl::cmd::NonposArgs::*] {
+  ::xotcl::alias ::xotcl::NonposArgs [namespace tail $cmd] $cmd 
+}
+::xotcl::NonposArgs create ::xotcl::nonposArgs 
+unset cmd
 # documentation stub object -> just ignore 
 # all documentations if xoDoc is not loaded
 ::xotcl::Object create ::xotcl::@
 ::xotcl::@ proc unknown args {}
 proc ::xotcl::myproc {args} {linsert $args 0 [::xotcl::self]} 
 proc ::xotcl::myvar  {var}  {::xotcl::my requireNamespace; return [::xotcl::self]::$var} 
-namespace eval ::xotcl { namespace export @ myproc myvar Attribute}
+namespace eval ::xotcl { namespace export Object Class @ myproc myvar Attribute}
 ########################
 # Parameter definitions
 ########################
-::xotcl::setrelation ::xotcl::Class::Parameter superclass ::xotcl::Class
-::xotcl::Class::Parameter instproc mkParameter {obj name args} {
-  #puts "[::xotcl::self proc] $obj $name <$args>"
-  if {[$obj exists $name]} {
-    eval [$obj set $name] configure $args
-  } else {
-    $obj set $name [eval ::xotcl::my new -childof $obj $args]
-  }
-}
-::xotcl::Class::Parameter instproc getParameter {obj name args} {
-  #puts "[::xotcl::self proc] $obj $name <$args>"
-  [$obj set $name]
-}
-::xotcl::Class::Parameter proc Class {param args} {
-  #puts "*** [::xotcl::self] parameter: [::xotcl::self proc] '$param' <$args>"
-  ::xotcl::my set access [lindex $param 0]
-  ::xotcl::my set setter mkParameter
-  ::xotcl::my set getter getParameter
-  ::xotcl::my set extra {[::xotcl::self]}
-  ::xotcl::my set defaultParam [lrange $param 1 end]
-}
-::xotcl::Class::Parameter proc default {val} {
-  [::xotcl::my set cl] set __defaults([::xotcl::my set name]) $val
-}
-::xotcl::Class::Parameter proc setter x {
-  ::xotcl::my set setter $x
-}
-::xotcl::Class::Parameter proc getter x {
-  ::xotcl::my set getter $x
-}
-::xotcl::Class::Parameter proc access obj {
-  ::xotcl::my set access $obj
-  ::xotcl::my set extra \[::xotcl::self\]
-  foreach v [$obj info vars] {::xotcl::my set $v [$obj set $v]}
-}
-::xotcl::Class::Parameter proc values {param args} {
-  set cl [::xotcl::my set cl]
-  set ci [$cl info instinvar]
-  set valueTest {}
-  foreach a $args {
-    ::lappend valueTest "\[\$cl set $param\] == [list $a]"
-  }
-  ::lappend ci [join $valueTest " || "]
-  $cl instinvar $ci
-}
+# ::xotcl::setrelation ::xotcl::Class::Parameter superclass ::xotcl::Class
+# ::xotcl::Class::Parameter instproc mkParameter {obj name args} {
+#   #puts "[::xotcl::self proc] $obj $name <$args>"
+#   if {[$obj exists $name]} {
+#     eval [$obj set $name] configure $args
+#   } else {
+#     $obj set $name [eval ::xotcl::my new -childof $obj $args]
+#   }
+# }
+# ::xotcl::Class::Parameter instproc getParameter {obj name args} {
+#   #puts "[::xotcl::self proc] $obj $name <$args>"
+#   [$obj set $name]
+# }
+# ::xotcl::Class::Parameter proc Class {param args} {
+#   #puts "*** [::xotcl::self] parameter: [::xotcl::self proc] '$param' <$args>"
+#   ::xotcl::my set access [lindex $param 0]
+#   ::xotcl::my set setter mkParameter
+#   ::xotcl::my set getter getParameter
+#   ::xotcl::my set extra {[::xotcl::self]}
+#   ::xotcl::my set defaultParam [lrange $param 1 end]
+# }
+# ::xotcl::Class::Parameter proc default {val} {
+#   [::xotcl::my set cl] set __defaults([::xotcl::my set name]) $val
+# }
+# ::xotcl::Class::Parameter proc setter x {
+#   ::xotcl::my set setter $x
+# }
+# ::xotcl::Class::Parameter proc getter x {
+#   ::xotcl::my set getter $x
+# }
+# ::xotcl::Class::Parameter proc access obj {
+#   ::xotcl::my set access $obj
+#   ::xotcl::my set extra \[::xotcl::self\]
+#   foreach v [$obj info vars] {::xotcl::my set $v [$obj set $v]}
+# }
+# ::xotcl::Class::Parameter proc values {param args} {
+#   set cl [::xotcl::my set cl]
+#   set ci [$cl info instinvar]
+#   set valueTest {}
+#   foreach a $args {
+#     ::lappend valueTest "\[\$cl set $param\] == [list $a]"
+#   }
+#   ::lappend ci [join $valueTest " || "]
+#   $cl instinvar $ci
+# }
 
 ##################
 # Slot definitions
@@ -77,6 +97,7 @@ namespace eval ::xotcl { namespace export @ myproc myvar Attribute}
 # bootstrap code; we cannot use -parameter yet
 ::xotcl::Class create ::xotcl::MetaSlot
 ::xotcl::setrelation ::xotcl::MetaSlot superclass ::xotcl::Class
+::xotcl::MetaSlot initslots
 ::xotcl::MetaSlot instproc new args {
   set slotobject [self callingobject]::slot
   if {![my isobject $slotobject]} {Object create $slotobject}
@@ -319,7 +340,7 @@ unset p
 ::xotcl::ScopedNew instparametercmd withclass
 ::xotcl::ScopedNew instparametercmd inobject
 ::xotcl::ScopedNew instproc init {} {
-  ::xotcl::my instproc new args {
+  ::xotcl::my instproc new {-childof args} {
     [::xotcl::self class] instvar {inobject object} withclass
     if {![::xotcl::my isobject $object]} {
       $withclass create $object
@@ -344,7 +365,7 @@ unset p
     if {$withnew} {
       set m [::xotcl::ScopedNew new \
                  -inobject $object -withclass $class -volatile]
-      ::xotcl::Class instmixin add $m
+      ::xotcl::Class instmixin add $m end
       namespace eval $object $cmds
       ::xotcl::Class instmixin delete $m
     } else {
@@ -436,7 +457,6 @@ unset p
   return $set
 }
 
-
 # Exit Handler
 ::xotcl::Object proc unsetExitHandler {} {
   ::xotcl::Object proc __exitHandler {} {
@@ -452,7 +472,10 @@ unset p
 ::xotcl::Object proc getExitHandler {} {
   ::xotcl::Object info body __exitHandler
 }
-
+# provide a global handler to avoid a proc on the global object.
+proc ::xotcl::__exitHandler {} {
+  ::xotcl::Object __exitHandler
+}
 ::xotcl::Object instproc abstract {methtype methname arglist} {
   if {$methtype ne "proc" && $methtype ne "instproc"} {
     error "invalid method type '$methtype', \
@@ -524,7 +547,7 @@ unset p
 	# class object
 	set obj $cl
 	$cl superclass [$origin info superclass]
-	$cl parameterclass [$origin info parameterclass]
+	#$cl parameterclass [$origin info parameterclass]
 	$cl instinvar [$origin info instinvar]
 	$cl instfilter [$origin info instfilter -guards]
 	$cl instmixin [$origin info instmixin]
@@ -549,6 +572,28 @@ unset p
       namespace eval $dest {}
     }
     ::xotcl::my copyNSVarsAndCmds $origin $dest
+    foreach i [$origin info forward] {
+      eval [concat $dest forward $i [$origin info forward -definition $i]]
+    }
+    if {[::xotcl::my isclass $origin]} {
+      foreach i [$origin info instforward] {
+        eval [concat $dest instforward $i [$origin info instforward -definition $i]]
+      }
+    }
+    set traces [list]
+    foreach var [$origin info vars] {
+      set cmds [$origin trace info variable $var]
+      if {$cmds ne ""} {
+        foreach cmd $cmds {
+          foreach {op def} $cmd break
+          $origin trace remove variable $var $op $def
+          if {[lindex $def 0] eq $origin} {
+            set def [concat $dest [lrange $def 1 end]]
+          }
+          $dest trace add variable $var $op $def
+        }
+      }
+    }
   }
   # alter 'domain' and 'manager' in slot objects
   set origin [lindex [::xotcl::my set targetList] 0]
