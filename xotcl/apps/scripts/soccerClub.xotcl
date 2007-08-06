@@ -1,4 +1,4 @@
-# $Id: soccerClub.xotcl,v 1.4 2006/09/27 08:12:39 neumann Exp $
+# $Id: soccerClub.xotcl,v 1.5 2007/08/06 11:35:56 neumann Exp $
 # This is a simple introductory example for the language XOTcl. 
 # It demonstrates the basic language constructs on the example of
 # a soccer club.
@@ -114,7 +114,7 @@ Player instinvar {
 # get an error message:
 $fb check all
 if {[catch {$fb set playerRole SINGER} errMsg]} {
-  puts "CATCHED EXCEPTION: playerRole has either to be NONE, PLAYER, or TRAINER"
+  puts "CAUGHT EXCEPTION: playerRole has either to be NONE, PLAYER, or TRAINER"
   # turn assertion checking off again and reset to PLAYER
   $fb check {}
   $fb set playerRole PLAYER
@@ -163,7 +163,7 @@ Player instproc class args {
 $fb class President
 # Check that the playerRole isn't there anymore.
 if {[catch {$fb set playerRole} errMsg]} {
-  puts "CATCHED EXCEPTION: The player role doesn't exist anymore (as it should be after the class change)"
+  puts "CAUGHT EXCEPTION: The player role doesn't exist anymore (as it should be after the class change)"
 }
 
 # But still Franz Beckenbauer can entertain us with what he believes

@@ -6148,6 +6148,42 @@ source ${with_xotcl}/xotclConfig.sh
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
 
+if test "${TEA_PLATFORM}" = "windows" ; then
+
+    vars="xmltok.c win32filemap.c xmlrole.c xmlwf.c codepage.c xmlparse.c hashtable.c tclexpat.c"
+    for i in $vars; do
+	case $i in
+	    \$*)
+		# allow $-var names
+		PKG_SOURCES="$PKG_SOURCES $i"
+		PKG_OBJECTS="$PKG_OBJECTS $i"
+		;;
+	    *)
+		# check for existence - allows for generic/win/unix VPATH
+		if test ! -f "${srcdir}/$i" -a ! -f "${srcdir}/generic/$i" \
+		    -a ! -f "${srcdir}/win/$i" -a ! -f "${srcdir}/unix/$i" \
+		    ; then
+		    { { echo "$as_me:$LINENO: error: could not find source file '$i'" >&5
+echo "$as_me: error: could not find source file '$i'" >&2;}
+   { (exit 1); exit 1; }; }
+		fi
+		PKG_SOURCES="$PKG_SOURCES $i"
+		# this assumes it is in a VPATH dir
+		i=`basename $i`
+		# handle user calling this before or after TEA_SETUP_COMPILER
+		if test x"${OBJEXT}" != x ; then
+		    j="`echo $i | sed -e 's/\.[^.]*$//'`.${OBJEXT}"
+		else
+		    j="`echo $i | sed -e 's/\.[^.]*$//'`.\${OBJEXT}"
+		fi
+		PKG_OBJECTS="$PKG_OBJECTS $j"
+		;;
+	esac
+    done
+
+
+
+else
 
     vars="xmltok.c unixfilemap.c xmlrole.c xmlwf.c codepage.c xmlparse.c hashtable.c tclexpat.c"
     for i in $vars; do
@@ -6181,6 +6217,8 @@ echo "$as_me: error: could not find source file '$i'" >&2;}
     done
 
 
+
+fi
 
 
     vars=""
@@ -10691,6 +10729,8 @@ if test "$no_create" != yes; then
   # would make configure fail if this is the last instruction.
   $ac_cs_success || { (exit 1); exit 1; }
 fi
+
+
 
 
 

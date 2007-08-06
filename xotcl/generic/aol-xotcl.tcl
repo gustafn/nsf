@@ -1,4 +1,4 @@
-# $Id: aol-xotcl.tcl,v 1.12 2006/09/27 08:12:40 neumann Exp $
+# $Id: aol-xotcl.tcl,v 1.13 2007/08/06 11:35:56 neumann Exp $
 
 #
 # Load XOTcl library and some related packages.
@@ -45,10 +45,11 @@ proc _ns_savenamespaces {} {
     ns_ictl save [append script \n \
 	"namespace import -force ::xotcl::*" \n \
 	$objects \n $import]
+    # just for debugging purposes
     if {0} {
-       set f [open /tmp/__aolserver-blueprint.tcl w]
-       puts $f $script
-       close $f
+      set f [open [::xotcl::tmpdir]/__aolserver-blueprint.tcl w]
+      puts $f $script
+      close $f
     }
 }
 

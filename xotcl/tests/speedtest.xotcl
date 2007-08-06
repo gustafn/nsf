@@ -1,5 +1,5 @@
 #memory trace on
-# $Id: speedtest.xotcl,v 1.7 2006/09/27 08:12:40 neumann Exp $
+# $Id: speedtest.xotcl,v 1.8 2007/08/06 11:35:56 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 lappend auto_path [file dirname [info script]]/..
@@ -394,7 +394,11 @@ Test new -msg {call obj with namespace via mixin and instforward and next} \
       Class C -instmixin N; C create o} \
     -cmd {o x self} -expected ::n::x -count $cnt \
     -post {o destroy}
-    
+Test new -msg {return -code break} \
+    -pre {Class A -instproc br {} {return -code break}; A create a1} \
+    -cmd {catch {a1 br}} -expected 3 -count 2 \
+    -post {A destroy; a1 destroy}
+     
 
 Test run; exit
 

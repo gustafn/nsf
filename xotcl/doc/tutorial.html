@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<!-- $Id: tutorial.html,v 1.16 2006/10/04 20:40:23 neumann Exp $ -->
+<!-- $Id: tutorial.html,v 1.17 2007/08/06 11:35:56 neumann Exp $ -->
 <HTML>
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
@@ -430,7 +430,7 @@ get an error message:
 <pre CLASS="code">
   $fb check all
   <tt>if</tt> {[<tt>catch</tt> {$fb <tt>set</tt> playerRole SINGER} errMsg]} {
-    <tt>puts</tt> "CATCHED EXCEPTION: playerRole has either to be NONE, PLAYER, or TRAINER"
+    <tt>puts</tt> "CAUGHT EXCEPTION: playerRole has either to be NONE, PLAYER, or TRAINER"
     <it># turn assertion checking off again and reset to PLAYER</it>
     $fb check {}
     $fb <tt>set</tt> playerRole PLAYER
@@ -494,7 +494,7 @@ Beckenbauer is President of Bayern Munich.
   $fb <tt>class</tt> President
   <it># Check that the playerRole isn't there anymore.</it>
   <tt>if</tt> {[<tt>catch</tt> {$fb <tt>set</tt> playerRole} errMsg]} {
-    <tt>puts</tt> "CATCHED EXCEPTION: The player role doesn't exist anymore \
+    <tt>puts</tt> "CAUGHT EXCEPTION: The player role doesn't exist anymore \
          (as it should be after the class change)"
   }
 </pre>
@@ -4319,7 +4319,7 @@ to recover a malicious action in a <tt>catch</tt> error handler, like:
 <pre CLASS="code">
   ...
   <tt>if</tt> {[<tt>catch</tt> {<tt>my</tt> assertionBreakingAction} errMsg]} {
-    <tt>puts</tt> "CATCHED ERROR: $errMsg"
+    <tt>puts</tt> "CAUGHT ERROR: $errMsg"
     <it># remember checking options, for turning them on later again</it>
     <tt>set</tt> check [<tt>my</tt> <tt>info</tt> check]
     <tt>my</tt> check {}

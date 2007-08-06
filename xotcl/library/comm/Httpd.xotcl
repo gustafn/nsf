@@ -1,4 +1,4 @@
-# -*- tcl -*- $Id: Httpd.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
+# -*- tcl -*- $Id: Httpd.xotcl,v 1.7 2007/08/06 11:35:56 neumann Exp $
 #
 # The XOTcl class Httpd implements an HTTP/1.0 and HTTP/1.1 server with  
 # basic functionality.
@@ -45,7 +45,7 @@ namespace eval ::xotcl::comm::httpd {
   }
 
   proc ! string {
-    set f [open /tmp/log w+]; 
+    set f [open [::xotcl::tmpdir]log w+]; 
     puts $f "[clock format [clock seconds]] $string"
     close $f}
 

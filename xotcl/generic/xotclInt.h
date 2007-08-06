@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.20 2006/10/04 20:40:23 neumann Exp $
+ *  $Id: xotclInt.h,v 1.21 2007/08/06 11:35:56 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
@@ -39,6 +39,10 @@
 /*
  * Makros
  */
+#if defined(PRE85)
+# define TclVarHashTable Tcl_HashTable
+#endif
+
 #ifdef XOTCL_MEM_COUNT
 Tcl_HashTable xotclMemCount; 
 extern int xotclMemCountInterpCounter;
@@ -289,28 +293,36 @@ typedef struct XOTclMemCounter {
      MEM_COUNT_CLOSE_FRAME()
 
 #else
-/* slightly slower version based on Tcl_PushCallFrame */
-#define XOTcl_FrameDecls Tcl_CallFrame frame
-#define XOTcl_PushFrame(in,obj) \
+/* slightly slower version based on Tcl_PushCallFrame. 
+   Note that it is possible that between push and pop
+   a obj->nsPtr can be created (e.g. during a read trace)
+*/
+#define XOTcl_FrameDecls Tcl_CallFrame frame; int frame_constructed = 1
+#define XOTcl_PushFrame(interp,obj) \
      if ((obj)->nsPtr) {				     \
-       Tcl_PushCallFrame(in, &frame, (obj)->nsPtr, 0);   \
+       frame_constructed = 0; \
+       Tcl_PushCallFrame(interp, &frame, (obj)->nsPtr, 0);   \
      } else { \
        Tcl_CallFrame *framePtr = &frame;		\
        CallFrame *myframe = (CallFrame *)framePtr;		\
-       Tcl_PushCallFrame(in, &frame, RUNTIME_STATE(in)->fakeNS, 1);	\
-       Tcl_CallFrame_procPtr(myframe) = &RUNTIME_STATE(in)->fakeProc;	\
+       Tcl_PushCallFrame(interp, &frame, RUNTIME_STATE(interp)->fakeNS, 1);	\
+       Tcl_CallFrame_procPtr(myframe) = &RUNTIME_STATE(interp)->fakeProc;	\
        Tcl_CallFrame_varTablePtr(myframe) = (obj)->varTable;	\
      }
-#define XOTcl_PopFrame(in,obj) \
+#define XOTcl_PopFrame(interp,obj) \
      if (!(obj)->nsPtr) {	       \
        Tcl_CallFrame *framePtr = &frame;		\
        CallFrame *myframe = (CallFrame *)framePtr;		\
        if ((obj)->varTable == 0)			    \
          (obj)->varTable = Tcl_CallFrame_varTablePtr(myframe);	\
+     } \
+     if (frame_constructed) { \
+       register Interp *iPtr = (Interp *) interp; \
+       register CallFrame *myframe = iPtr->framePtr; \
        Tcl_CallFrame_varTablePtr(myframe) = 0; \
        Tcl_CallFrame_procPtr(myframe) = 0; \
      } \
-     Tcl_PopCallFrame(in)
+     Tcl_PopCallFrame(interp)
 #endif
 
 
@@ -396,6 +408,7 @@ typedef struct XOTclMixinStack {
 typedef struct XOTclCmdList {
   Tcl_Command cmdPtr;
   ClientData clientData;
+  struct XOTclClass *clorobj;
   struct XOTclCmdList* next;
 } XOTclCmdList;
 
@@ -468,7 +481,7 @@ typedef struct XOTclObject {
   Tcl_Command id;
   Tcl_Interp *teardown;
   struct XOTclClass *cl;
-  Tcl_HashTable *varTable;
+  TclVarHashTable *varTable;
   Tcl_Namespace *nsPtr;
   XOTclObjectOpt *opt;
   struct XOTclCmdList *filterOrder;
@@ -497,7 +510,7 @@ typedef struct XOTclClass {
   struct XOTclClasses* sub;
   short color;
   struct XOTclClasses* order;
-  /*struct XOTclClass* parent;*/
+  struct XOTclClass* parent;
   Tcl_HashTable instances;
   Tcl_Namespace *nsPtr;
   Tcl_Obj* parameters;
@@ -519,13 +532,13 @@ typedef enum {
     XOTE_EMPTY, XOTE_UNKNOWN, XOTE_CREATE, XOTE_DESTROY, XOTE_INSTDESTROY,
     XOTE_ALLOC, XOTE_INIT, XOTE_INSTVAR, XOTE_INTERP, XOTE_AUTONAMES,
     XOTE_ZERO, XOTE_ONE, XOTE_MOVE, XOTE_SELF, XOTE_CLASS, XOTE_RECREATE,
-    XOTE_SELF_CLASS, XOTE_SELF_PROC, 
-    XOTE_EXIT_HANDLER, XOTE_DEFAULTSUPERCLASS,
-    XOTE_NON_POS_ARGS_OBJ,
+    XOTE_SELF_CLASS, XOTE_SELF_PROC, XOTE_PARAM_CL,
+    XOTE_SEARCH_DEFAULTS, XOTE_EXIT_HANDLER,
+    XOTE_NON_POS_ARGS_CL, XOTE_NON_POS_ARGS_OBJ,
     XOTE_CLEANUP, XOTE_CONFIGURE, XOTE_FILTER, XOTE_INSTFILTER,
     XOTE_INSTPROC, XOTE_PROC, XOTE_INSTFORWARD, XOTE_FORWARD,
     XOTE_INSTCMD, XOTE_CMD, XOTE_INSTPARAMETERCMD, XOTE_PARAMETERCMD, 
-    XOTE_FORMAT, XOTE_INITSLOTS,
+    XOTE_MKGETTERSETTER, XOTE_FORMAT,
     XOTE_NEWOBJ, XOTE_GUARD_OPTION, XOTE_DEFAULTMETHOD,
     XOTE___UNKNOWN, XOTE_ARGS, XOTE_SPLIT, XOTE_COMMA,
     /** these are the redefined tcl commands; leave them
@@ -539,14 +552,14 @@ char *XOTclGlobalStrings[] = {
   "", "unknown", "create", "destroy", "instdestroy",
   "alloc", "init", "instvar", "interp", "__autonames",
   "0", "1", "move", "self", "class", "recreate",
-  "self class", "self proc", 
-  "__exitHandler", "__default_superclass",
-  "::xotcl::nonposArgs",
+  "self class", "self proc", "::xotcl::Class::Parameter",
+  "searchDefaults", "__exitHandler",
+  "::xotcl::NonposArgs", "::xotcl::nonposArgs",
   "cleanup", "configure", "filter", "instfilter",
   "instproc", "proc", "instforward", "forward",
   "instcmd", "cmd", "instparametercmd", "parametercmd",
-  "format", "initslots",
-  "__#", "-guard", "defaultmethod", 
+  "mkGetterSetter", "format",
+  "__#", "-guard", "defaultmethod",
   "__unknown", "args", "split", ",",
   "expr", "incr", "info", "rename", "subst",
 };

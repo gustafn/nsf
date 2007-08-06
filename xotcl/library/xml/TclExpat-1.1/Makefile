@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.26 2006/09/27 08:12:40 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.27 2007/08/06 11:35:56 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -135,7 +135,7 @@ TCLSH_PROG	= /usr/bin/tclsh8.4
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= 1
 
-INCLUDES	=  -I/Users/neumann/src/xotcl-1.5.1/generic -I./generic -I"/Library/Frameworks/Tcl.framework/Headers"
+INCLUDES	=  -I/Users/neumann/src/xotcl-1.5.3/generic -I./generic -I"/Library/Frameworks/Tcl.framework/Headers"
 
 EXTRA_CFLAGS	=  
 
@@ -150,7 +150,7 @@ DEFS		= -DPACKAGE_NAME=\"xotclexpat\" -DPACKAGE_TARNAME=\"xotclexpat\" -DPACKAGE
 CONFIG_CLEAN_FILES = Makefile
 
 CPPFLAGS	= 
-LIBS		=  -L/Users/neumann/src/xotcl-1.5.1 -lxotclstub1.5.1 
+LIBS		=  -L/Users/neumann/src/xotcl-1.5.3 -lxotclstub1.5.3 
 AR		= ar
 CFLAGS		=  ${CFLAGS_DEFAULT} ${CFLAGS_WARNING} ${SHLIB_CFLAGS}
 COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)

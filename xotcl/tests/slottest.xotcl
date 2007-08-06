@@ -1,4 +1,4 @@
-# $Id: slottest.xotcl,v 1.2 2006/10/04 20:40:24 neumann Exp $
+# $Id: slottest.xotcl,v 1.3 2007/08/06 11:35:56 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 package require xotcl::test
@@ -424,12 +424,12 @@ Person p3 -sex male
 
 set ::hu 0
 Class C -slots {
-  Attribute x -initcmd {incr ::hu; set _ 101}
+  Attribute x -initcmd {incr ::hu; set x 101}
 }
 C c1
 ? {c1 info vars} ""
 ? {c1 set x} 101
-? {c1 info vars} x
+? {c1 info vars} "x"
 ? {set ::hu 1} 1
 
 

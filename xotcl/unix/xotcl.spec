@@ -1,10 +1,10 @@
 Summary: Object Oriented Extension for Tcl
 Name: xotcl
-Version: 1.5.3
+Version: 1.5.4
 Release: 0
 License: bsd style open source
 Group: Development/Languages
-Source:  http://www.xotcl.org/xotcl-1.5.3.tar.gz
+Source:  http://www.xotcl.org/xotcl-1.5.4.tar.gz
 URL: http://www.xotcl.org
 Packager: Gustaf.Neumann@wu-wien.ac.at
 Distribution: Fedorea Core 3
@@ -23,28 +23,28 @@ persistent object store, mobile code system, etc. For more details
 consult http://www.xotcl.org
 
 %prep
-%setup -q -n xotcl-1.5.3
+%setup -q -n xotcl-1.5.4
 
 
 %build
 autoconf
-./configure --with-tcl=/usr/lib --with-all --prefix=/usr/local --exec-prefix=/usr/local
+./configure --with-tcl=/usr/lib --with-all --prefix=/usr/local/aolserver45 --exec-prefix=/usr/local/aolserver45
 #make CFLAGS_DEFAULT='-O3 -mcpu=i686 -Wall -fomit-frame-pointer'
 make CFLAGS_DEFAULT='-O3 -Wall -fomit-frame-pointer'
 
 %install
 rm -rf $RPM_BUILD_ROOT
 make DESTDIR=$RPM_BUILD_ROOT install
-rm -f $RPM_BUILD_ROOT/usr/lib/libxotcl1.5.3.so
-ln -s xotcl1.5.3/libxotcl1.5.3.so $RPM_BUILD_ROOT/usr/lib
+rm -f $RPM_BUILD_ROOT/usr/lib/libxotcl1.5.4.so
+ln -s xotcl1.5.4/libxotcl1.5.4.so $RPM_BUILD_ROOT/usr/lib
 
 %files
 %defattr(-, root, root)
 %doc doc
 %_bindir/xotclsh
 %_bindir/xowish
-%_prefix/lib/xotcl1.5.3
-%_prefix/lib/libxotcl1.5.3.so
+%_prefix/lib/xotcl1.5.4
+%_prefix/lib/libxotcl1.5.4.so
 %_prefix/lib/xotclexpat*
 %_prefix/lib/xotclgdbm*
 %_prefix/lib/xotclsdbm*

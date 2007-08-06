@@ -1,4 +1,4 @@
-# $Id: forwardtest.xotcl,v 1.9 2006/10/04 20:40:24 neumann Exp $
+# $Id: forwardtest.xotcl,v 1.10 2007/08/06 11:35:56 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 package require xotcl::test

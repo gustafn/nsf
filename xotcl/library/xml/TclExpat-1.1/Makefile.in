@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.2 2006/02/18 22:17:33 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.3 2007/08/06 11:35:56 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -200,10 +200,12 @@ install-binaries: binaries install-lib-binaries install-bin-binaries
 install-libraries: libraries
 	@mkdir -p $(DESTDIR)$(includedir)
 	@echo "Installing header files in $(DESTDIR)$(includedir)"
-	@for i in $(PKG_HEADERS) ; do \
+	@if test -n "$(PKG_HEADERS)" ; then \
+	for i in "$(PKG_HEADERS)" ; do \
 	    echo "Installing $(srcdir)/$$i" ; \
 	    $(INSTALL_DATA) $(srcdir)/$$i $(DESTDIR)$(includedir) ; \
-	done;
+	done; \
+	fi
 
 #========================================================================
 # Install documentation.  Unix manpages should go in the $(mandir)

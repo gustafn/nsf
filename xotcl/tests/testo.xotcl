@@ -1,4 +1,4 @@
-# $Id: testo.xotcl,v 1.6 2006/10/04 20:40:24 neumann Exp $
+# $Id: testo.xotcl,v 1.7 2007/08/06 11:35:56 neumann Exp $
 # 
 # Copyright 1993 Massachusetts Institute of Technology
 #
@@ -173,12 +173,16 @@ TestSuite classcreate
 
 classcreate proc factorgraph {{n 3600}} {
   TestClass $n
+
+
   for {set i [expr {$n/2}]} {$i>1} {incr i -1} {
     if {($n % $i) == 0} then {
       
       #
       # factors become subclasses, direct or indirect
       #
+
+
       if {[TestClass info instances $i] eq ""} then {
 	my factorgraph $i
 	$i superclass $n
@@ -240,7 +244,6 @@ inheritance proc combination {} {
     #
     
     $i anumber
-
     set obj [lrange [anumber combineforobj] 1 end]
     set h [$i info heritage]
     my meshes $obj $h
@@ -443,12 +446,11 @@ objectvariables proc run {{n 100}} {
     #
     # set up some variables
     #
-    
     $obj set scalar 0
     $obj set array() {}
-    ${obj} unset array()
+    $obj unset array()
     $obj set unset.$n {}
-    
+
     #
     # mess with them recursively
     #
@@ -466,8 +468,7 @@ objectvariables proc run {{n 100}} {
 	my recurse $n
       }
     }
-    
-    
+
     $obj recurse $n
 
     #
@@ -477,15 +478,15 @@ objectvariables proc run {{n 100}} {
     if {[$obj set scalar] != $n} then {
       error "FAILED [self] - scalar"
     }
+
     $obj unset scalar
 
     for {set i $n} {$i > 0} {incr i -1} {
       if {[$obj set array($i)] != $i} then {
 	error "FAILED [self] - array"
       }
-    }    
+    }
     $obj unset array
-
     if {[$obj info vars "unset.0"] eq ""} then {
       error "FAILED [self] - unset: [$obj info vars]"
     }
@@ -494,7 +495,6 @@ objectvariables proc run {{n 100}} {
   #
   # trace variables
   #
-
   Variables avar2
 
   avar2 proc trace {var ops} {
