@@ -1,7 +1,7 @@
-#!/usr/local/aolserver45/bin/tclsh8.4
+#!/usr/local/bin/tclsh8.5
 if {$argc == 0} {
   puts "Don't use [info script] as interactive shell! Use instead:"
-  puts "   /usr/local/aolserver45/bin/tclsh8.4"
+  puts "   /usr/local/bin/tclsh8.5"
   puts "   package require XOTcl; namespace import ::xotcl::*"
 } else {
   package require XOTcl

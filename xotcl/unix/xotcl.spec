@@ -28,7 +28,7 @@ consult http://www.xotcl.org
 
 %build
 autoconf
-./configure --with-tcl=/usr/lib --with-all --prefix=/usr/local/aolserver45 --exec-prefix=/usr/local/aolserver45
+./configure --with-tcl=/usr/lib --with-all --prefix=/usr/local --exec-prefix=/usr/local
 #make CFLAGS_DEFAULT='-O3 -mcpu=i686 -Wall -fomit-frame-pointer'
 make CFLAGS_DEFAULT='-O3 -Wall -fomit-frame-pointer'
 
