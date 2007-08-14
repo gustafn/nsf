@@ -1,4 +1,4 @@
-# $Id: aol-xotcl.tcl,v 1.13 2007/08/06 11:35:56 neumann Exp $
+# $Id: aol-xotcl.tcl,v 1.14 2007/08/14 16:36:47 neumann Exp $
 
 #
 # Load XOTcl library and some related packages.
@@ -47,9 +47,18 @@ proc _ns_savenamespaces {} {
 	$objects \n $import]
     # just for debugging purposes
     if {0} {
-      set f [open [::xotcl::tmpdir]/__aolserver-blueprint.tcl w]
-      puts $f $script
-      close $f
+       set tmp /tmp
+       foreach e [list TMPDIR TEMP TMP] { 
+         if {[info exists ::env($e)] \
+                 && [file isdirectory $::env($e)] \
+                 && [file iswritable $::env($e)]} {
+           set tmp $::env($e)
+           break
+         }
+       }
+       set f [open ${tmp}/__aolserver-blueprint.tcl w]
+       puts $f $script
+       close $f
     }
 }
 

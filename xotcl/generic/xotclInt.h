@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.21 2007/08/06 11:35:56 neumann Exp $
+ *  $Id: xotclInt.h,v 1.22 2007/08/14 16:36:47 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
@@ -39,10 +39,6 @@
 /*
  * Makros
  */
-#if defined(PRE85)
-# define TclVarHashTable Tcl_HashTable
-#endif
-
 #ifdef XOTCL_MEM_COUNT
 Tcl_HashTable xotclMemCount; 
 extern int xotclMemCountInterpCounter;
@@ -297,7 +293,7 @@ typedef struct XOTclMemCounter {
    Note that it is possible that between push and pop
    a obj->nsPtr can be created (e.g. during a read trace)
 */
-#define XOTcl_FrameDecls Tcl_CallFrame frame; int frame_constructed = 1
+#define XOTcl_FrameDecls Tcl_CallFrame frame; int frame_constructed = 1;
 #define XOTcl_PushFrame(interp,obj) \
      if ((obj)->nsPtr) {				     \
        frame_constructed = 0; \
@@ -481,7 +477,7 @@ typedef struct XOTclObject {
   Tcl_Command id;
   Tcl_Interp *teardown;
   struct XOTclClass *cl;
-  TclVarHashTable *varTable;
+  Tcl_HashTable *varTable;
   Tcl_Namespace *nsPtr;
   XOTclObjectOpt *opt;
   struct XOTclCmdList *filterOrder;

@@ -6150,7 +6150,7 @@ done
 # This defines PKG(_STUB)_SOURCES, PKG(_STUB)_OBJECTS, PKG_HEADERS
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
-if test ! "${with_gdbm}" = no; then
+if test ! "${with_gdbm}" == no; then
         GDBM_INC_DIR="`echo $with_gdbm |cut -f1 -d,`"
         GDBM_LIB_DIR="`echo $with_gdbm |cut -f2 -d, -s`"
 fi
@@ -10745,8 +10745,6 @@ if test "$no_create" != yes; then
   # would make configure fail if this is the last instruction.
   $ac_cs_success || { (exit 1); exit 1; }
 fi
-
-
 
 
 

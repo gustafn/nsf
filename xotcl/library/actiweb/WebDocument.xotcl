@@ -1,4 +1,4 @@
-# $Id: WebDocument.xotcl,v 1.7 2007/08/06 11:35:56 neumann Exp $
+# $Id: WebDocument.xotcl,v 1.8 2007/08/14 16:36:47 neumann Exp $
 
 package provide xotcl::actiweb::webDocument 0.8
 
@@ -136,7 +136,7 @@ namespace eval ::xotcl::actiweb::webDocument {
 
 
     Class GraphicDirectoryObjectifier -superclass FileObjectifier \
-	-parameter {{thumbnaildir [::xotcl::tmpdir]}}
+	-parameter {{thumbnaildir /tmp}}
     GraphicDirectoryObjectifier instproc objectifyTree {place dir {prefix ""}} {
 	if {[file isdirectory $dir]} {
 	    set indexpage ""

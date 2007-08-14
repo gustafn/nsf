@@ -1,4 +1,4 @@
-# $Id: langRef.xotcl,v 1.15 2007/08/06 11:35:56 neumann Exp $
+# $Id: langRef.xotcl,v 1.16 2007/08/14 16:36:46 neumann Exp $
 package provide XOTcl-langRef 1.5.2
 package require XOTcl
 
@@ -124,7 +124,7 @@ package require XOTcl
     </dl>
 
   }
-  date { $Date: 2007/08/06 11:35:56 $ }
+  date { $Date: 2007/08/14 16:36:46 $ }
 }
 
 ##

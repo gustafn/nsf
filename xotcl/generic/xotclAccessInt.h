@@ -24,8 +24,6 @@
 #define Tcl_Namespace_activationCount(nsPtr) ((Namespace *)nsPtr)->activationCount
 #define Tcl_Namespace_deleteProc(nsPtr) ((Namespace *)nsPtr)->deleteProc
 
-
-
 #define Tcl_Command_refCount(cmd)      ((Command *)cmd)->refCount
 #define Tcl_Command_cmdEpoch(cmd)      ((Command *)cmd)->cmdEpoch
 /* the following items could be obtained from 

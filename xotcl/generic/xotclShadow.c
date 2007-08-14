@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclShadow.c,v 1.7 2007/08/06 11:35:56 neumann Exp $
+ * $Id: xotclShadow.c,v 1.8 2007/08/14 16:36:47 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -153,9 +153,7 @@ XOTclShadowTclCommands(Tcl_Interp *in, XOTclShadowOperations load) {
     rc|= XOTclReplaceCommand(in, XOTE_SUBST,    0, initialized);
 #endif
     /* for the following commands, we have to add our own semantics */
-#if 1
     rc|= XOTclReplaceCommand(in, XOTE_INFO,     XOTcl_InfoObjCmd, initialized);
-#endif
     rc|= XOTclReplaceCommand(in, XOTE_RENAME,   XOTcl_RenameObjCmd, initialized);
     
   } else if (load == SHADOW_REFETCH) {

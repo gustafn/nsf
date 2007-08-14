@@ -1,5 +1,5 @@
-# $Id: Serializer.xotcl,v 1.16 2007/08/06 11:35:56 neumann Exp $
-package require XOTcl 1.5
+# $Id: Serializer.xotcl,v 1.17 2007/08/14 16:36:47 neumann Exp $
+package require XOTcl 1.3
 package provide xotcl::serializer 1.0
 
 namespace eval ::xotcl::serializer {
@@ -15,7 +15,7 @@ namespace eval ::xotcl::serializer {
     authors {
       Gustaf Neumann, Gustaf.Neumann@wu-wien.ac.at
     }
-    date { $Date: 2007/08/06 11:35:56 $ }
+    date { $Date: 2007/08/14 16:36:47 $ }
   }
   
   @ Serializer proc all {
@@ -181,23 +181,7 @@ namespace eval ::xotcl::serializer {
       return -$list
     }
   }
-  Serializer instproc collect-var-traces o {
-    my instvar traces
-    foreach v [$o info vars] {
-      set t [$o trace info variable $v]
-      if {$t ne ""} {
-	foreach ops $t { 
-	  foreach {op cmd} $ops break
-	  # save traces in post_cmds
-	  my append post_cmds [list $o trace add variable $v $op $cmd] "\n"
-	  # remove trace from object
-	  $o trace remove variable $v $op $cmd
-	}
-      }
-    }
-  }
   Serializer instproc Object-serialize o {
-    my collect-var-traces $o
     append cmd [list [$o info class] create [$o self]]
     # slots needs to be initialized when optimized, since
     # parametercmds are not serialized
@@ -227,7 +211,7 @@ namespace eval ::xotcl::serializer {
     }
     foreach x {mixin invar} {
       set v [$o info $x]
-      if {$v ne ""} {my append post_cmds [list $o $x set $v] "\n"}
+      if {$v ne ""} {my append postcmd [list $o $x set $v] "\n"}
     }
     set v [$o info filter -guards]
     if {$v ne ""} {append cmd [my pcmd [list filter $v]] " \\\n"}
@@ -255,7 +239,7 @@ namespace eval ::xotcl::serializer {
     foreach x {instmixin} {
       set v [$o info $x]
       if {$v ne "" && "::xotcl::Object" ne $v } {
-        my append post_cmds [list $o $x set $v] "\n"
+        my append postcmd [list $o $x set $v] "\n"
 	#append cmd " " [my pcmd [list $x $v]] " \\\n"
       }
     }
@@ -366,9 +350,7 @@ namespace eval ::xotcl::serializer {
     string trimright [my [my category $objectOrClass]-serialize $objectOrClass] "\\\n"
   }
   Serializer instproc serialize-objects {list all} {
-    my instvar post_cmds
-    set post_cmds ""
-
+    my set postcmd ""
     my topoSort $list $all
     #foreach i [lsort [my array names level]] {my warn "$i: [my set level($i)]"}
     set result ""
@@ -384,34 +366,23 @@ namespace eval ::xotcl::serializer {
       set namespace([namespace qualifiers $e]) 1
     }
 
-    # Handling of variable traces: traces might require a 
-    # different topological sort, which is hard to handle.
-    # Similar as with filters, we deactivate the variable
-    # traces during initialization. This happens by
-    # (1) replacing the XOTcl's trace method by a no-op
-    # (2) collecting variable traces through collect-var-traces
-    # (3) re-activating the traces after variable initialization
-
     set exports ""
-    set pre_cmds "::xotcl::Object instproc trace args {}\n"
-
+    set nsdefines ""
     # delete ::xotcl from the namespace list, if it exists...
     catch {unset namespace(::xotcl)}
     foreach ns [array name namespace] {
       if {![namespace exists $ns]} continue
       if {![my isobject $ns]} {
-	append pre_cmds "namespace eval $ns {}\n"
+	append nsdefines "namespace eval $ns {}\n"
       } elseif {$ns ne [namespace origin $ns] } {
-	append pre_cmds "namespace eval $ns {}\n"
+	append nsdefines "namespace eval $ns {}\n"
       }
       set exp [namespace eval $ns {namespace export}]
       if {$exp ne ""} {
 	append exports "namespace eval $ns {namespace export $exp}" \n
       }
     }
-
-    append post_cmds "::xotcl::alias ::xotcl::Object trace -objscope ::trace\n"
-    return $pre_cmds$result$post_cmds$exports
+    return $nsdefines$result[my set postcmd]$exports
   }
   Serializer instproc deepSerialize o {
     # assumes $o to be fully qualified

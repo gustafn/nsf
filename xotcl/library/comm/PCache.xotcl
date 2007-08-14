@@ -1,4 +1,4 @@
-# -*- Tcl -*- $Id: PCache.xotcl,v 1.7 2007/08/06 11:35:56 neumann Exp $
+# -*- Tcl -*- $Id: PCache.xotcl,v 1.8 2007/08/14 16:36:47 neumann Exp $
 # Persistent Cache object, using gdbm
 
 # Configuration:
@@ -10,7 +10,7 @@
 # 2) If "CACHE_DIR" is not set, the global variable "homedir"
 #    is checked, which is assumed to be the home directory
 #    of the Cineast browser
-# 3) As a last resource the tmp directory is used as the cache directory
+# 3) As a last resource the /tmp directory is used as the cache directory
 #
 # Additionally, the cache directory can be specified after loading of this
 # file (before the first open) through the instance variable "dir"
@@ -29,7 +29,7 @@ namespace eval ::xotcl::comm::pcache {
 
     if {![info exists CACHE_DIR]} {
 	if {![info exists homeDir]} {
-	    set homeDir [::xotcl::tmpdir]
+	    set homeDir /tmp
 	}
 	set CACHE_DIR $homeDir/cache2
     }

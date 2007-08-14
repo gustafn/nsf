@@ -1,4 +1,4 @@
-# -*- tcl -*- $Id: Access.xotcl,v 1.7 2007/08/06 11:35:56 neumann Exp $
+# -*- tcl -*- $Id: Access.xotcl,v 1.8 2007/08/14 16:36:47 neumann Exp $
 
 set httpAccessVersion 0.91
 package provide xotcl::comm::httpAccess $httpAccessVersion

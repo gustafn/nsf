@@ -1,4 +1,4 @@
-# -*- Tcl -*- $Id: trace.xotcl,v 1.10 2007/08/06 11:35:56 neumann Exp $
+# -*- Tcl -*- $Id: trace.xotcl,v 1.11 2007/08/14 16:36:47 neumann Exp $
 package provide xotcl::trace 0.91
 package require XOTcl
 

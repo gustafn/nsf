@@ -3,7 +3,7 @@ dnl	This file is an input file used by the GNU "autoconf" program to
 dnl	generate the file "configure", which is run during Tcl installation
 dnl	to configure the system for the local environment.
 #
-# RCS: @(#) $Id: configure.in,v 1.15 2007/08/06 11:35:56 neumann Exp $
+# RCS: @(#) $Id: configure.in,v 1.16 2007/08/14 16:36:47 neumann Exp $
 
 #-----------------------------------------------------------------------
 # Sample configure.in for Tcl Extensions.  The only places you should
@@ -87,7 +87,7 @@ TEA_SETUP_COMPILER
 # This defines PKG(_STUB)_SOURCES, PKG(_STUB)_OBJECTS, PKG_HEADERS
 # and PKG_TCL_SOURCES.
 #-----------------------------------------------------------------------
-if test ! "${with_gdbm}" = no; then
+if test ! "${with_gdbm}" == no; then
         GDBM_INC_DIR="`echo $with_gdbm |cut -f1 -d,`"
         GDBM_LIB_DIR="`echo $with_gdbm |cut -f2 -d, -s`"
 fi
@@ -245,8 +245,6 @@ TEA_PROG_TCLSH
 AC_CONFIG_FILES([Makefile])
 
 AC_OUTPUT
-
-
 
 
 

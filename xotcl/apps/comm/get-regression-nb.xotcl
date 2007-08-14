@@ -78,7 +78,7 @@ package require XOTcl; namespace import -force xotcl::*
 #
 #
 
-set CACHE_DIR [::xotcl::tmpdir]
+set CACHE_DIR /tmp
 
 package require xotcl::comm::httpAccess
 package require xotcl::trace
