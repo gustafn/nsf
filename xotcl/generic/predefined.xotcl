@@ -1,4 +1,4 @@
-# $Id: predefined.xotcl,v 1.14 2007/08/14 16:36:47 neumann Exp $
+# $Id: predefined.xotcl,v 1.15 2007/08/14 16:38:26 neumann Exp $
 # provide the standard command set for ::xotcl::Object
 foreach cmd [info command ::xotcl::Object::instcmd::*] {
   ::xotcl::alias ::xotcl::Object [namespace tail $cmd] $cmd 
@@ -203,11 +203,11 @@ unset p
 ::xotcl::Attribute instproc __default_from_cmd {obj cmd var sub op} {
   #puts "GETVAR [self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
   $obj trace remove variable $var $op [list [self] [self proc] $obj $cmd]
-  $obj set $var [eval $cmd]
+  $obj set $var [$obj eval $cmd]
 }
 ::xotcl::Attribute instproc __value_from_cmd {obj cmd var sub op} {
   #puts "GETVAR [self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
-  $obj set $var [eval $cmd]
+  $obj set $var [$obj eval $cmd]
 }
 ::xotcl::Attribute instproc __value_changed_cmd {obj cmd var sub op} {
   #puts stderr "**************************"
@@ -857,4 +857,23 @@ set ::xotcl::logdir $::xotcl::confdir/log
    } else {
      my instproc $name $arguments $body  
    }
+}
+
+# setup a temp directory
+proc ::xotcl::tmpdir {} {
+  foreach e [list TMPDIR TEMP TMP] {
+    if {[info exists ::env($e)] \
+            && [file isdirectory $::env($e)] \
+            && [file iswritable $::env($e)]} {
+      return $::env($e)
+    }
+  }
+  if {$::tcl_platform(platform) eq "windows"} {
+    foreach d [list "C:\\TEMP" "C:\\TMP" "\\TEMP" "\\TMP"] {
+      if {[file isdirectory $d] && [file iswritable $d]} {
+        return $d
+      }
+    }
+  }
+  return /tmp
 }

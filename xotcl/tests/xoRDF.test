@@ -1,5 +1,5 @@
 #!../../src/xotclsh
-# $Id: xoRDF.test,v 1.4 2006/02/18 22:17:33 neumann Exp $
+# $Id: xoRDF.test,v 1.5 2007/08/14 16:38:27 neumann Exp $
 #
 package require XOTcl; namespace import -force xotcl::*
 
@@ -67,23 +67,23 @@ rp proc test {name text nodeResult tripleResult {descriptionAsBagResult ""}} {
     if {![my exists $time]} {my set $time 0}
   }
   my parse $text
-  set r [rp time [list testVisitor interpretNodeTree [self]::topNode0] ct]
-  regsub -all "[self]::topNode0" $r "" r
+  set r [rp time [list testVisitor interpretNodeTree [self]::topNode1] ct]
+  regsub -all "[self]::topNode1" $r "" r
   ::errorCheck $nodeResult $r "RDF Node Creation: $name"
   
-  #set r [time [list reVisitor interpretNodeTree [self]::topNode0] rt]
+  #set r [time [list reVisitor interpretNodeTree [self]::topNode1] rt]
   #::errorCheck $recreateResult $r "RDF Recreation: $name"
-  set r [rp time [list tripleVisitor interpret rp [self]::topNode0 0] tt]
+  set r [rp time [list tripleVisitor interpret rp [self]::topNode1 0] tt]
   ::errorCheck $tripleResult $r "RDF Triples: $name"
   if {$descriptionAsBagResult != ""} {
-    set r [tripleVisitor interpret rp [self]::topNode0 1]
+    set r [tripleVisitor interpret rp [self]::topNode1 1]
     ::errorCheck $descriptionAsBagResult $r "RDF Triples -- Description as Bag: $name"
   }
 
   # test recreation by recreating XML text and by parsing 
   # and testing it again
-  set recreatedText [rp time [list reVisitor interpretNodeTree [self]::topNode0] rt]
-  [self]::topNode0 destroy
+  set recreatedText [rp time [list reVisitor interpretNodeTree [self]::topNode1] rt]
+  [self]::topNode1 destroy
 
   my reset
   my parse $recreatedText
@@ -91,10 +91,10 @@ rp proc test {name text nodeResult tripleResult {descriptionAsBagResult ""}} {
   #puts "RECREATED: \n$recreatedText"
 
   # test recreated node tree
-  set r [testVisitor interpretNodeTree [self]::topNode0]
-  regsub -all "[self]::topNode0" $r "" r
+  set r [testVisitor interpretNodeTree [self]::topNode1]
+  regsub -all "[self]::topNode1" $r "" r
   ::errorCheck $nodeResult $r "RDF Node Recreation: $name"
-  set r [tripleVisitor interpret rp [self]::topNode0 0]
+  set r [tripleVisitor interpret rp [self]::topNode1 0]
 
   ::errorCheck $tripleResult $r "RDF Triple Recreation: $name"
 
@@ -118,15 +118,15 @@ rp test "Namespace" {<?xml version="1.0"?>
   </RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- Description
 ATTR: ID = nsd
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- s:ABC
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- s:ABC
 PCDATA:
 xyz
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- fromXYZ
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- fromXYZ
 PCDATA:
 dfg
 }  {
@@ -145,9 +145,9 @@ rp test descriptionNestedNS {
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
 PCDATA:
 Ora Lassila
 } {
@@ -156,12 +156,12 @@ Ora Lassila
    http://www.w3.org/Home/Lassila      http://description.org/schema/Creator Ora Lassila
 
 =================== unreferenced:
-     rdfdoc#id0                          #type                     #Bag
-   rdfdoc#id0                          #_1                       rdfdoc#id1
-     rdfdoc#id1                          #predicate                http://description.org/schema/Creator
-     rdfdoc#id1                          #subject                  http://www.w3.org/Home/Lassila
-     rdfdoc#id1                          #object                   Ora Lassila
-     rdfdoc#id1                          #type                     #Statement
+     rdfdoc#id1                          #type                     #Bag
+   rdfdoc#id1                          #_1                       rdfdoc#id2
+     rdfdoc#id2                          #predicate                http://description.org/schema/Creator
+     rdfdoc#id2                          #subject                  http://www.w3.org/Home/Lassila
+     rdfdoc#id2                          #object                   Ora Lassila
+     rdfdoc#id2                          #type                     #Statement
 }
 
 ##############################################################################
@@ -175,9 +175,9 @@ rp test NSDescription {<?xml version="1.0"?>
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
 PCDATA:
 Ora Lassila
 } {
@@ -192,9 +192,9 @@ rp test PropertyAttr {
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
 PCDATA:
 Ora Lassila
 } {
@@ -212,15 +212,15 @@ rp test properties {
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Publisher
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Publisher
 PCDATA:
 World Wide Web Consortium
-::xotcl::rdf::parser::RDFProperty-::res0::prop1 --- s:Title
+::xotcl::rdf::parser::RDFProperty-::res1::prop2 --- s:Title
 PCDATA:
 W3C Home Page
-::xotcl::rdf::parser::RDFProperty-::res0::prop2 --- s:Date
+::xotcl::rdf::parser::RDFProperty-::res1::prop3 --- s:Date
 PCDATA:
 1998-10-03T02:27
 } {
@@ -239,15 +239,15 @@ rp test propertyAttr2 {
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Publisher
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Publisher
 PCDATA:
 World Wide Web Consortium
-::xotcl::rdf::parser::RDFProperty-::res0::prop1 --- s:Title
+::xotcl::rdf::parser::RDFProperty-::res1::prop2 --- s:Title
 PCDATA:
 W3C Home Page
-::xotcl::rdf::parser::RDFProperty-::res0::prop2 --- s:Date
+::xotcl::rdf::parser::RDFProperty-::res1::prop3 --- s:Date
 PCDATA:
 1998-10-03T02:27
 } {
@@ -273,34 +273,34 @@ rp test bag1 {
 </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://mycollege.edu/courses/6.001
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:students
-::xotcl::rdf::parser::RDFBag-::res0::prop0::res0 --- rdf:Bag
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:students
+::xotcl::rdf::parser::RDFBag-::res1::prop1::res1 --- rdf:Bag
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop1 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Amy
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop2 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Tim
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop2 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop3 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/John
 MEMBER-INDEX: rdf:_3
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop3 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop4 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Mary
 MEMBER-INDEX: rdf:_4
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop4 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop5 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Sue
 MEMBER-INDEX: rdf:_5                             
 } {
-   http://mycollege.edu/courses/6.001  s:students                rdfdoc#id1
-     rdfdoc#id1                          #type                     #Bag
-     rdfdoc#id1                          #_1                       http://mycollege.edu/students/Amy
-     rdfdoc#id1                          #_2                       http://mycollege.edu/students/Tim
-     rdfdoc#id1                          #_3                       http://mycollege.edu/students/John
-     rdfdoc#id1                          #_4                       http://mycollege.edu/students/Mary
-     rdfdoc#id1                          #_5                       http://mycollege.edu/students/Sue
+   http://mycollege.edu/courses/6.001  s:students                rdfdoc#id2
+     rdfdoc#id2                          #type                     #Bag
+     rdfdoc#id2                          #_1                       http://mycollege.edu/students/Amy
+     rdfdoc#id2                          #_2                       http://mycollege.edu/students/Tim
+     rdfdoc#id2                          #_3                       http://mycollege.edu/students/John
+     rdfdoc#id2                          #_4                       http://mycollege.edu/students/Mary
+     rdfdoc#id2                          #_5                       http://mycollege.edu/students/Sue
 }
 
 
@@ -322,34 +322,34 @@ rp test bagGivenAsType1 {
 </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://mycollege.edu/courses/6.001
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:students
-::xotcl::rdf::parser::RDFBag-::res0::prop0::res0 --- rdf:Bag
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:students
+::xotcl::rdf::parser::RDFBag-::res1::prop1::res1 --- rdf:Bag
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop1 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Amy
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop2 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Tim
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop2 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop3 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/John
 MEMBER-INDEX: rdf:_3
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop3 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop4 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Mary
 MEMBER-INDEX: rdf:_4
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop4 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop5 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Sue
 MEMBER-INDEX: rdf:_5
 } {
-   http://mycollege.edu/courses/6.001  s:students                rdfdoc#id1
-     rdfdoc#id1                          #type                     #Bag
-     rdfdoc#id1                          #_1                       http://mycollege.edu/students/Amy
-     rdfdoc#id1                          #_2                       http://mycollege.edu/students/Tim
-     rdfdoc#id1                          #_3                       http://mycollege.edu/students/John
-     rdfdoc#id1                          #_4                       http://mycollege.edu/students/Mary
-     rdfdoc#id1                          #_5                       http://mycollege.edu/students/Sue
+   http://mycollege.edu/courses/6.001  s:students                rdfdoc#id2
+     rdfdoc#id2                          #type                     #Bag
+     rdfdoc#id2                          #_1                       http://mycollege.edu/students/Amy
+     rdfdoc#id2                          #_2                       http://mycollege.edu/students/Tim
+     rdfdoc#id2                          #_3                       http://mycollege.edu/students/John
+     rdfdoc#id2                          #_4                       http://mycollege.edu/students/Mary
+     rdfdoc#id2                          #_5                       http://mycollege.edu/students/Sue
 }
 
 ##############################################################################
@@ -370,34 +370,34 @@ rp test bagGivenAsType2 {
 </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://mycollege.edu/courses/6.001
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:students
-::xotcl::rdf::parser::RDFBag-::res0::prop0::res0 --- rdf:Bag
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:students
+::xotcl::rdf::parser::RDFBag-::res1::prop1::res1 --- rdf:Bag
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop1 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Amy
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop2 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Tim
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop2 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop3 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/John
 MEMBER-INDEX: rdf:_3
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop3 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop4 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Mary
 MEMBER-INDEX: rdf:_4
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop4 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop5 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Sue
 MEMBER-INDEX: rdf:_5
 } {
-   http://mycollege.edu/courses/6.001  s:students                rdfdoc#id1
-     rdfdoc#id1                          #type                     #Bag
-     rdfdoc#id1                          #_1                       http://mycollege.edu/students/Amy
-     rdfdoc#id1                          #_2                       http://mycollege.edu/students/Tim
-     rdfdoc#id1                          #_3                       http://mycollege.edu/students/John
-     rdfdoc#id1                          #_4                       http://mycollege.edu/students/Mary
-     rdfdoc#id1                          #_5                       http://mycollege.edu/students/Sue
+   http://mycollege.edu/courses/6.001  s:students                rdfdoc#id2
+     rdfdoc#id2                          #type                     #Bag
+     rdfdoc#id2                          #_1                       http://mycollege.edu/students/Amy
+     rdfdoc#id2                          #_2                       http://mycollege.edu/students/Tim
+     rdfdoc#id2                          #_3                       http://mycollege.edu/students/John
+     rdfdoc#id2                          #_4                       http://mycollege.edu/students/Mary
+     rdfdoc#id2                          #_5                       http://mycollege.edu/students/Sue
 }
 
 
@@ -420,35 +420,35 @@ rp test bagAndAltGivenAsType {
 </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://mycollege.edu/courses/6.001
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:students
-::xotcl::rdf::parser::RDFAlt-::res0::prop0::res0 --- rdf:Alt
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:students
+::xotcl::rdf::parser::RDFAlt-::res1::prop1::res1 --- rdf:Alt
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Alt http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop1 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Amy
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop2 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Tim
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop2 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop3 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/John
 MEMBER-INDEX: rdf:_3
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop3 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop4 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Mary
 MEMBER-INDEX: rdf:_4
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop4 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop5 --- rdf:li
 ATTR: resource = http://mycollege.edu/students/Sue
 MEMBER-INDEX: rdf:_5
 } {
-   http://mycollege.edu/courses/6.001  s:students                rdfdoc#id1
-     rdfdoc#id1                          #type                     #Alt
-     rdfdoc#id1                          #type                     #Bag
-     rdfdoc#id1                          #_1                       http://mycollege.edu/students/Amy
-     rdfdoc#id1                          #_2                       http://mycollege.edu/students/Tim
-     rdfdoc#id1                          #_3                       http://mycollege.edu/students/John
-     rdfdoc#id1                          #_4                       http://mycollege.edu/students/Mary
-     rdfdoc#id1                          #_5                       http://mycollege.edu/students/Sue
+   http://mycollege.edu/courses/6.001  s:students                rdfdoc#id2
+     rdfdoc#id2                          #type                     #Alt
+     rdfdoc#id2                          #type                     #Bag
+     rdfdoc#id2                          #_1                       http://mycollege.edu/students/Amy
+     rdfdoc#id2                          #_2                       http://mycollege.edu/students/Tim
+     rdfdoc#id2                          #_3                       http://mycollege.edu/students/John
+     rdfdoc#id2                          #_4                       http://mycollege.edu/students/Mary
+     rdfdoc#id2                          #_5                       http://mycollege.edu/students/Sue
 }
 
 ##############################################################################
@@ -466,26 +466,26 @@ rp test alt1 {
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://x.org/packages/X11
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:DistributionSite
-::xotcl::rdf::parser::RDFAlt-::res0::prop0::res0 --- rdf:Alt
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:DistributionSite
+::xotcl::rdf::parser::RDFAlt-::res1::prop1::res1 --- rdf:Alt
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Alt
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop1 --- rdf:li
 ATTR: resource = ftp://ftp.x.org
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop2 --- rdf:li
 ATTR: resource = ftp://ftp.cs.purdue.edu
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop2 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop3 --- rdf:li
 ATTR: resource = ftp://ftp.eu.net
 MEMBER-INDEX: rdf:_3
 } {
-   http://x.org/packages/X11           s:DistributionSite        rdfdoc#id1
-     rdfdoc#id1                          #type                     #Alt
-     rdfdoc#id1                          #_1                       ftp://ftp.x.org
-     rdfdoc#id1                          #_2                       ftp://ftp.cs.purdue.edu
-     rdfdoc#id1                          #_3                       ftp://ftp.eu.net
+   http://x.org/packages/X11           s:DistributionSite        rdfdoc#id2
+     rdfdoc#id2                          #type                     #Alt
+     rdfdoc#id2                          #_1                       ftp://ftp.x.org
+     rdfdoc#id2                          #_2                       ftp://ftp.cs.purdue.edu
+     rdfdoc#id2                          #_3                       ftp://ftp.eu.net
 }
 
 ##############################################################################
@@ -502,18 +502,18 @@ rp test bag2 {
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFBag-::res0 --- rdf:Bag
+::xotcl::rdf::parser::RDFBag-::res1 --- rdf:Bag
 ATTR: ID = pages
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1 --- rdf:li
 ATTR: resource = http://foo.org/foo.html
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop2 --- rdf:li
 ATTR: resource = http://bar.org/bar.html
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res2 --- rdf:Description
 ATTR: about = #pages
-::xotcl::rdf::parser::RDFProperty-::res1::prop0 --- s:Creator
+::xotcl::rdf::parser::RDFProperty-::res2::prop1 --- s:Creator
 PCDATA:
 Ora Lassila
 } {
@@ -542,23 +542,23 @@ rp test aboutEach  {
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
-ATTR: aboutEachPrefix = http://foo.org/doc
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Copyright
-PCDATA:
-(c) 1998, The Foo Organization
 ::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
-ATTR: aboutEach = #docpages
-::xotcl::rdf::parser::RDFProperty-::res1::prop0 --- s:Copyright
+ATTR: aboutEachPrefix = http://foo.org/doc
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Copyright
 PCDATA:
 (c) 1998, The Foo Organization
-::xotcl::rdf::parser::RDFBag-::res2 --- rdf:Bag
+::xotcl::rdf::parser::RDFDescription-::res2 --- rdf:Description
+ATTR: aboutEach = #docpages
+::xotcl::rdf::parser::RDFProperty-::res2::prop1 --- s:Copyright
+PCDATA:
+(c) 1998, The Foo Organization
+::xotcl::rdf::parser::RDFBag-::res3 --- rdf:Bag
 ATTR: ID = docpages
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res2::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res3::prop1 --- rdf:li
 ATTR: resource = http://foo.org/doc/page1
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res2::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res3::prop2 --- rdf:li
 ATTR: resource = http://foo.org/doc/page2
 MEMBER-INDEX: rdf:_2 
 } {
@@ -592,36 +592,36 @@ rp test "BagID on List" {<?xml version="1.0"?>
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: aboutEach = #docpages
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:somebag
-::xotcl::rdf::parser::RDFBag-::res0::prop0::res0 --- rdf:Bag
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:somebag
+::xotcl::rdf::parser::RDFBag-::res1::prop1::res1 --- rdf:Bag
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop1 --- rdf:li
 ATTR: resource = http://foo.org/foo.html
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop2 --- rdf:li
 ATTR: resource = http://bar.org/bar.html
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFProperty-::res0::prop1 --- s:Creator
+::xotcl::rdf::parser::RDFProperty-::res1::prop2 --- s:Creator
 PCDATA:
 Me
-::xotcl::rdf::parser::RDFBag-::res1 --- rdf:Bag
+::xotcl::rdf::parser::RDFBag-::res2 --- rdf:Bag
 ATTR: ID = docpages
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res1::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res2::prop1 --- rdf:li
 ATTR: resource = http://foo.org/doc/page1
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res1::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res2::prop2 --- rdf:li
 ATTR: resource = http://foo.org/doc/page2
 MEMBER-INDEX: rdf:_2
 } {
-   http://foo.org/doc/page1            http://description.org/schema/somebag rdfdoc#id1
-     rdfdoc#id1                          #type                     #Bag
-     rdfdoc#id1                          #_1                       http://foo.org/foo.html
-     rdfdoc#id1                          #_2                       http://bar.org/bar.html
+   http://foo.org/doc/page1            http://description.org/schema/somebag rdfdoc#id2
+     rdfdoc#id2                          #type                     #Bag
+     rdfdoc#id2                          #_1                       http://foo.org/foo.html
+     rdfdoc#id2                          #_2                       http://bar.org/bar.html
    http://foo.org/doc/page1            http://description.org/schema/Creator Me
-   http://foo.org/doc/page2            http://description.org/schema/somebag rdfdoc#id1
+   http://foo.org/doc/page2            http://description.org/schema/somebag rdfdoc#id2
    http://foo.org/doc/page2            http://description.org/schema/Creator Me
  
 =================== unreferenced:
@@ -646,28 +646,28 @@ rp test "Sharing Values" {
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFSeq-::res0 --- rdf:Seq
+::xotcl::rdf::parser::RDFSeq-::res1 --- rdf:Seq
 ATTR: ID = JSPapersByDate
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq
-::xotcl::rdf::parser::RDFMember-::res0::prop0 --- rdf:li
-ATTR: resource = http://www.dogworld.com/Aug96.doc
-MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop1 --- rdf:li
-ATTR: resource = http://www.webnuts.net/Jan97.html
-MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFMember-::res0::prop2 --- rdf:li
-ATTR: resource = http://www.carchat.com/Sept97.html
-MEMBER-INDEX: rdf:_3
-::xotcl::rdf::parser::RDFSeq-::res1 --- rdf:Seq
-ATTR: ID = JSPapersBySubj
-TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq
-::xotcl::rdf::parser::RDFMember-::res1::prop0 --- rdf:li
-ATTR: resource = http://www.carchat.com/Sept97.html
-MEMBER-INDEX: rdf:_1
 ::xotcl::rdf::parser::RDFMember-::res1::prop1 --- rdf:li
 ATTR: resource = http://www.dogworld.com/Aug96.doc
-MEMBER-INDEX: rdf:_2
+MEMBER-INDEX: rdf:_1
 ::xotcl::rdf::parser::RDFMember-::res1::prop2 --- rdf:li
+ATTR: resource = http://www.webnuts.net/Jan97.html
+MEMBER-INDEX: rdf:_2
+::xotcl::rdf::parser::RDFMember-::res1::prop3 --- rdf:li
+ATTR: resource = http://www.carchat.com/Sept97.html
+MEMBER-INDEX: rdf:_3
+::xotcl::rdf::parser::RDFSeq-::res2 --- rdf:Seq
+ATTR: ID = JSPapersBySubj
+TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq
+::xotcl::rdf::parser::RDFMember-::res2::prop1 --- rdf:li
+ATTR: resource = http://www.carchat.com/Sept97.html
+MEMBER-INDEX: rdf:_1
+::xotcl::rdf::parser::RDFMember-::res2::prop2 --- rdf:li
+ATTR: resource = http://www.dogworld.com/Aug96.doc
+MEMBER-INDEX: rdf:_2
+::xotcl::rdf::parser::RDFMember-::res2::prop3 --- rdf:li
 ATTR: resource = http://www.webnuts.net/Jan97.html
 MEMBER-INDEX: rdf:_3
 } {
@@ -713,39 +713,39 @@ rp test "aggregates" {
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.foo.com/cool.html
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- dc:Creator
-::xotcl::rdf::parser::RDFSeq-::res0::prop0::res0 --- rdf:Seq
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- dc:Creator
+::xotcl::rdf::parser::RDFSeq-::res1::prop1::res1 --- rdf:Seq
 ATTR: ID = CreatorsAlphabeticalBySurname
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop1 --- rdf:li
 PCDATA:
 Mary Andrew
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop0::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1::res1::prop2 --- rdf:li
 PCDATA:
 Jacky Crystal
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFProperty-::res0::prop1 --- dc:Identifier
-::xotcl::rdf::parser::RDFBag-::res0::prop1::res0 --- rdf:Bag
+::xotcl::rdf::parser::RDFProperty-::res1::prop2 --- dc:Identifier
+::xotcl::rdf::parser::RDFBag-::res1::prop2::res1 --- rdf:Bag
 ATTR: ID = MirroredSites
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res0::prop1::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop2::res1::prop1 --- rdf:li
 ATTR: rdf:resource = http://www.foo.com.au/cool.html
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop1::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop2::res1::prop2 --- rdf:li
 ATTR: rdf:resource = http://www.foo.com.it/cool.html
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFProperty-::res0::prop2 --- dc:Title
-::xotcl::rdf::parser::RDFAlt-::res0::prop2::res0 --- rdf:Alt
+::xotcl::rdf::parser::RDFProperty-::res1::prop3 --- dc:Title
+::xotcl::rdf::parser::RDFAlt-::res1::prop3::res1 --- rdf:Alt
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Alt
-::xotcl::rdf::parser::RDFMember-::res0::prop2::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop3::res1::prop1 --- rdf:li
 ATTR: xml:lang = en
 PCDATA:
 The Coolest Web Page
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop2::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop3::res1::prop2 --- rdf:li
 ATTR: xml:lang = it
 PCDATA:
 Il Pagio di Web Fuba
@@ -759,10 +759,10 @@ MEMBER-INDEX: rdf:_2
      rdfdoc#MirroredSites                #type                     #Bag
      rdfdoc#MirroredSites                #_1                       http://www.foo.com.au/cool.html
      rdfdoc#MirroredSites                #_2                       http://www.foo.com.it/cool.html
-   http://www.foo.com/cool.html        http://purl.org/metadata/dublin_core#Title rdfdoc#id3
-     rdfdoc#id3                          #type                     #Alt
-     rdfdoc#id3                          #_1                       The Coolest Web Page
-     rdfdoc#id3                          #_2                       Il Pagio di Web Fuba 
+   http://www.foo.com/cool.html        http://purl.org/metadata/dublin_core#Title rdfdoc#id4
+     rdfdoc#id4                          #type                     #Alt
+     rdfdoc#id4                          #_1                       The Coolest Web Page
+     rdfdoc#id4                          #_2                       Il Pagio di Web Fuba 
 }
 
 ##############################################################################
@@ -780,45 +780,45 @@ rp test "bagReification" {
 </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFBag-::res0 --- rdf:Bag
+::xotcl::rdf::parser::RDFBag-::res1 --- rdf:Bag
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop1 --- rdf:li
 ATTR: parseType = Literal
 PCDATA:
  
        <rdf:Description> literal, well-formed tag </rdf:Description>
  
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop2 --- rdf:li
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFDescription-::res0::prop1::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop1::res0::prop0 --- s:x
+::xotcl::rdf::parser::RDFDescription-::res1::prop2::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop2::res1::prop1 --- s:x
 PCDATA:
 xyz 
 } {
 =================== unreferenced:
-   rdfdoc#id0                          #type                     #Bag
-   rdfdoc#id0                          #_1
+   rdfdoc#id1                          #type                     #Bag
+   rdfdoc#id1                          #_1
        <rdf:Description> literal, well-formed tag </rdf:Description>
  
-   rdfdoc#id0                          #_2                       rdfdoc#id1
-     rdfdoc#id1                          http://description.org/schema/x xyz
+   rdfdoc#id1                          #_2                       rdfdoc#id2
+     rdfdoc#id2                          http://description.org/schema/x xyz
 }
 
 # the following reification is done by SirPac, but it does not seem necessary
 # (uncomment reify property in RDFTriple, if needed
 #{
 #=================== unreferenced:
-#   rdfdoc#id0                          #type                     #Bag
-#   rdfdoc#id0                          #_1
+#   rdfdoc#id1                          #type                     #Bag
+#   rdfdoc#id1                          #_1
 #       <rdf:Description> literal, well-formed tag </rdf:Description>
 # 
-#   rdfdoc#id0                          #_2                       rdfdoc#id1
-#     rdfdoc#id1                          http://description.org/schema/x xyz
-#   rdfdoc#id2                          #predicate                http://description.org/schema/x
-#   rdfdoc#id2                          #subject                  rdfdoc#id1
-#   rdfdoc#id2                          #object                   xyz
-#   rdfdoc#id2                          #type                     #Statement
+#   rdfdoc#id1                          #_2                       rdfdoc#id2
+#     rdfdoc#id2                          http://description.org/schema/x xyz
+#   rdfdoc#id3                          #predicate                http://description.org/schema/x
+#   rdfdoc#id3                          #subject                  rdfdoc#id2
+#   rdfdoc#id3                          #object                   xyz
+#   rdfdoc#id3                          #type                     #Statement
 #}
 
 ##############################################################################
@@ -859,16 +859,16 @@ rp test "parseLiteral" {
 </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://mycollege.edu/
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:students
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:students
 ATTR: parseType = Literal
 PCDATA:
  
        <rdf:Description>xyz</rdf:Description>
-::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res2 --- rdf:Description
 ATTR: about = http://mycollege.edu/
-::xotcl::rdf::parser::RDFProperty-::res1::prop0 --- s:students
+::xotcl::rdf::parser::RDFProperty-::res2::prop1 --- s:students
 ATTR: parseType = Literal
 PCDATA:
  
@@ -882,26 +882,26 @@ PCDATA:
         <rdf:li resource="http://mycollege.edu/students/Mary"/>
         <rdf:li resource="http://mycollege.edu/students/Sue"/>
        </rdf:Bag>
-::xotcl::rdf::parser::RDFBag-::res2 --- rdf:Bag
+::xotcl::rdf::parser::RDFBag-::res3 --- rdf:Bag
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res2::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res3::prop1 --- rdf:li
 ATTR: parseType = Literal
 PCDATA:
  
        <rdf:Description> literal, well-formed tag </rdf:Description>
  
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFMember-::res2::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res3::prop2 --- rdf:li
 ATTR: parseType = AllOtherMustbeLiteral
 PCDATA:
  
         <rdf:Description> literal, well-formed tag </rdf:Description>
  
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFMember-::res2::prop2 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res3::prop3 --- rdf:li
 MEMBER-INDEX: rdf:_3
-::xotcl::rdf::parser::RDFDescription-::res2::prop2::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res2::prop2::res0::prop0 --- s:x
+::xotcl::rdf::parser::RDFDescription-::res3::prop3::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res3::prop3::res1::prop1 --- s:x
 PCDATA:
 xyz
 } {
@@ -922,19 +922,19 @@ xyz
  
  
 =================== unreferenced:
-   rdfdoc#id2                          #type                     #Bag
-   rdfdoc#id2                          #_1
+   rdfdoc#id3                          #type                     #Bag
+   rdfdoc#id3                          #_1
        <rdf:Description> literal, well-formed tag </rdf:Description>
  
-   rdfdoc#id2                          #_2
+   rdfdoc#id3                          #_2
         <rdf:Description> literal, well-formed tag </rdf:Description>
  
-   rdfdoc#id2                          #_3                       rdfdoc#id3
-     rdfdoc#id3                          http://description.org/schema/x xyz   
+   rdfdoc#id3                          #_3                       rdfdoc#id4
+     rdfdoc#id4                          http://description.org/schema/x xyz   
 }
 
 ##############################################################################
-rp test typedNode0 {<?xml version="1.0"?>
+rp test typedNode1 {<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:DC="http://purl.org/dc/elements/1.0/">
   <DC:typed about="http://www.xyz.com">
@@ -943,10 +943,10 @@ rp test typedNode0 {<?xml version="1.0"?>
 </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.xyz.com
 TYPES: http://purl.org/dc/elements/1.0/typed
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- DC:Creator
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- DC:Creator
 ATTR: rdf:resource = http://www.xyz.com/homepage/
 } {
    http://www.xyz.com                  http://purl.org/dc/elements/1.0/Creator http://www.xyz.com/homepage/
@@ -970,20 +970,20 @@ rp test nestedProperty {<?xml version="1.0"?>
 </RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- Description
 ATTR: about = http://www.webnuts.net/Jan97.html
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- dc:Subject
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- value
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- dc:Subject
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- value
 PCDATA:
 020 - Library Science
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- l:Classification
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- l:Classification
 PCDATA:
 Dewey Decimal Code 
 } {
-   http://www.webnuts.net/Jan97.html   http://purl.org/metadata/dublin_core#Subject rdfdoc#id1
-     rdfdoc#id1                          #value                    020 - Library Science
-     rdfdoc#id1                          http://mycorp.com/schemas/my-schema#Classification Dewey Decimal Code
+   http://www.webnuts.net/Jan97.html   http://purl.org/metadata/dublin_core#Subject rdfdoc#id2
+     rdfdoc#id2                          #value                    020 - Library Science
+     rdfdoc#id2                          http://mycorp.com/schemas/my-schema#Classification Dewey Decimal Code
 }
 
 
@@ -1002,20 +1002,20 @@ rp test nestedProperty2 {<?xml version="1.0"?>
 </RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- Description
 ATTR: about = http://www.webnuts.net/Jan97.html
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- dc:Subject
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- value
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- dc:Subject
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- value
 PCDATA:
 020 - Library Science
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- l:Classification
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- l:Classification
 PCDATA:
 Dewey Decimal Code
 } {
-   http://www.webnuts.net/Jan97.html   http://purl.org/metadata/dublin_core#Subject rdfdoc#id1
-     rdfdoc#id1                          #value                    020 - Library Science
-     rdfdoc#id1                          http://mycorp.com/schemas/my-schema#Classification Dewey Decimal Code
+   http://www.webnuts.net/Jan97.html   http://purl.org/metadata/dublin_core#Subject rdfdoc#id2
+     rdfdoc#id2                          #value                    020 - Library Science
+     rdfdoc#id2                          http://mycorp.com/schemas/my-schema#Classification Dewey Decimal Code
 
 }
 
@@ -1036,20 +1036,20 @@ rp test nestedProperty3 {<?xml version="1.0"?>
 </RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- Description
 ATTR: about = http://www.webnuts.net/Jan97.html
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- dc:Subject
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- value
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- dc:Subject
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- value
 PCDATA:
 020 - Library Science
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- l:Classification
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- l:Classification
 PCDATA:
 Dewey Decimal Code
 } {
-   http://www.webnuts.net/Jan97.html   http://purl.org/metadata/dublin_core#Subject rdfdoc#id1
-     rdfdoc#id1                          #value                    020 - Library Science
-     rdfdoc#id1                          http://mycorp.com/schemas/my-schema#Classification Dewey Decimal Code
+   http://www.webnuts.net/Jan97.html   http://purl.org/metadata/dublin_core#Subject rdfdoc#id2
+     rdfdoc#id2                          #value                    020 - Library Science
+     rdfdoc#id2                          http://mycorp.com/schemas/my-schema#Classification Dewey Decimal Code
 
 }
 
@@ -1071,27 +1071,27 @@ rp test nestedProperty4 {<?xml version="1.0"?>
 </RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- Description
 ATTR: about = http://www.webnuts.net/Jan97.html
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- dc:Subject
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- value
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- dc:Subject
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- value
 PCDATA:
 020 - Library Science
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- l:Classification
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0::prop1::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1::res0::prop0 --- l:lang
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- l:Classification
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1::prop2::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2::res1::prop1 --- l:lang
 PCDATA:
 en
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1::res0::prop1 --- l:string
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2::res1::prop2 --- l:string
 PCDATA:
 Dewey Decimal Code 
 } {
-   http://www.webnuts.net/Jan97.html   http://purl.org/metadata/dublin_core#Subject rdfdoc#id1
-     rdfdoc#id1                          #value                    020 - Library Science
-     rdfdoc#id1                          http://mycorp.com/schemas/my-schema#Classification rdfdoc#id2
-       rdfdoc#id2                          http://mycorp.com/schemas/my-schema#lang en
-       rdfdoc#id2                          http://mycorp.com/schemas/my-schema#string Dewey Decimal Code
+   http://www.webnuts.net/Jan97.html   http://purl.org/metadata/dublin_core#Subject rdfdoc#id2
+     rdfdoc#id2                          #value                    020 - Library Science
+     rdfdoc#id2                          http://mycorp.com/schemas/my-schema#Classification rdfdoc#id3
+       rdfdoc#id3                          http://mycorp.com/schemas/my-schema#lang en
+       rdfdoc#id3                          http://mycorp.com/schemas/my-schema#string Dewey Decimal Code
 }
 
 rp test thirdAbbrev1 {<?xml version="1.0"?>
@@ -1110,16 +1110,16 @@ rp test thirdAbbrev1 {<?xml version="1.0"?>
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/staffId/85740
 TYPES: http://description.org/schema/Person
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- s:Name
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- s:Name
 PCDATA:
 Ora Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- s:Email
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- s:Email
 PCDATA:
 lassila@w3.org
 } {
@@ -1145,22 +1145,22 @@ rp test thirdAbbrev2 {<?xml version="1.0"?>
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
 TYPES: http://description.org/schema/Person
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- s:Name
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- s:Name
 PCDATA:
 Ora Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- s:Email
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- s:Email
 PCDATA:
 lassila@w3.org
 }  {
-   http://www.w3.org/Home/Lassila      http://description.org/schema/Creator rdfdoc#id1
-     rdfdoc#id1                          http://description.org/schema/Name Ora Lassila
-     rdfdoc#id1                          http://description.org/schema/Email lassila@w3.org
-     rdfdoc#id1                          #type                     http://description.org/schema/Person
+   http://www.w3.org/Home/Lassila      http://description.org/schema/Creator rdfdoc#id2
+     rdfdoc#id2                          http://description.org/schema/Name Ora Lassila
+     rdfdoc#id2                          http://description.org/schema/Email lassila@w3.org
+     rdfdoc#id2                          #type                     http://description.org/schema/Person
 }
 
 rp test thirdAbbrev3 {<?xml version="1.0"?>
@@ -1178,16 +1178,16 @@ rp test thirdAbbrev3 {<?xml version="1.0"?>
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/staffId/85740
 TYPES: http://description.org/schema/Person
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- s:Name
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- s:Name
 PCDATA:
 Ora Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- s:Email
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- s:Email
 PCDATA:
 lassila@w3.org
 } {
@@ -1212,22 +1212,22 @@ rp test thirdAbbrev4 {<?xml version="1.0"?>
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
 TYPES: http://description.org/schema/Person
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- s:Name
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- s:Name
 PCDATA:
 Ora Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- s:Email
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- s:Email
 PCDATA:
 lassila@w3.org 
 } {
-   http://www.w3.org/Home/Lassila      http://description.org/schema/Creator rdfdoc#id1
-     rdfdoc#id1                          http://description.org/schema/Name Ora Lassila
-     rdfdoc#id1                          http://description.org/schema/Email lassila@w3.org
-     rdfdoc#id1                          #type                     http://description.org/schema/Person
+   http://www.w3.org/Home/Lassila      http://description.org/schema/Creator rdfdoc#id2
+     rdfdoc#id2                          http://description.org/schema/Name Ora Lassila
+     rdfdoc#id2                          http://description.org/schema/Email lassila@w3.org
+     rdfdoc#id2                          #type                     http://description.org/schema/Person
 }
 
 
@@ -1247,15 +1247,15 @@ rp test secondAbbrev1 {<?xml version="1.0"?>
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/staffId/85740
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- s:Name
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- s:Name
 PCDATA:
 Ora Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- s:Email
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- s:Email
 PCDATA:
 lassila@w3.org
 } {
@@ -1276,15 +1276,15 @@ rp test secondAbbrev2 {<?xml version="1.0"?>
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/staffId/85740
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- s:Name
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- s:Name
 PCDATA:
 Ora Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- s:Email
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- s:Email
 PCDATA:
 lassila@w3.org
 } {
@@ -1305,20 +1305,20 @@ rp test secondAbbrev3 {<?xml version="1.0"?>
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- s:Name
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- s:Name
 PCDATA:
 Ora Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- s:Email
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- s:Email
 PCDATA:
 lassila@w3.org
 } {
-   http://www.w3.org/Home/Lassila      http://description.org/schema/Creator rdfdoc#id1
-     rdfdoc#id1                          http://description.org/schema/Name Ora Lassila
-     rdfdoc#id1                          http://description.org/schema/Email lassila@w3.org
+   http://www.w3.org/Home/Lassila      http://description.org/schema/Creator rdfdoc#id2
+     rdfdoc#id2                          http://description.org/schema/Name Ora Lassila
+     rdfdoc#id2                          http://description.org/schema/Email lassila@w3.org
 }
 
 
@@ -1338,16 +1338,16 @@ rp test resource1 {<?xml version="1.0"?>
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
-ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
-ATTR: rdf:resource = http://www.w3.org/staffId/85740
 ::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
+ATTR: about = http://www.w3.org/Home/Lassila
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
+ATTR: rdf:resource = http://www.w3.org/staffId/85740
+::xotcl::rdf::parser::RDFDescription-::res2 --- rdf:Description
 ATTR: about = http://www.w3.org/staffId/85740
-::xotcl::rdf::parser::RDFProperty-::res1::prop0 --- v:Name
+::xotcl::rdf::parser::RDFProperty-::res2::prop1 --- v:Name
 PCDATA:
 Ora Lassila
-::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- v:Email
+::xotcl::rdf::parser::RDFProperty-::res2::prop2 --- v:Email
 PCDATA:
 lassila@w3.org
 } {
@@ -1372,15 +1372,15 @@ rp test resource2 {<?xml version="1.0"?>
   </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/Home/Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Creator
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Creator
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
 ATTR: about = http://www.w3.org/staffId/85740
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- v:Name
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- v:Name
 PCDATA:
 Ora Lassila
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- v:Email
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- v:Email
 PCDATA:
 lassila@w3.org   
 } {
@@ -1403,13 +1403,13 @@ rp test typedNode1 {<?xml version="1.0"?>
 </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://www.xotcl.org/uwe
 TYPES: http://description.org/schema/Person
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- s:Name
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- s:Name
 PCDATA:
 Uwe Zdun
-::xotcl::rdf::parser::RDFProperty-::res0::prop1 --- s:Email
+::xotcl::rdf::parser::RDFProperty-::res1::prop2 --- s:Email
 PCDATA:
 uwe@xotcl.org
 } {
@@ -1425,13 +1425,13 @@ rp test typedNode2 {<?xml version="1.0"?>
 </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: rdf:about = http://www.xotcl.org/uwe
 TYPES: http://description.org/schema/Person
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- Name
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- Name
 PCDATA:
 Uwe Zdun
-::xotcl::rdf::parser::RDFProperty-::res0::prop1 --- Email
+::xotcl::rdf::parser::RDFProperty-::res1::prop2 --- Email
 PCDATA:
 uwe@xotcl.org
 } {
@@ -1468,49 +1468,49 @@ rp test complexListItems {<?xml version="1.0"?>
 </RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://nm.wu-wien.ac.at/Lehre/oo1/
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- gen:Title
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- xml:lang
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- gen:Title
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- xml:lang
 PCDATA:
 en
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- gen:String
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- gen:String
 PCDATA:
 Object Oriented Design and System Development
-::xotcl::rdf::parser::RDFProperty-::res0::prop1 --- gen:Description
-::xotcl::rdf::parser::RDFBag-::res0::prop1::res0 --- rdf:Bag
+::xotcl::rdf::parser::RDFProperty-::res1::prop2 --- gen:Description
+::xotcl::rdf::parser::RDFBag-::res1::prop2::res1 --- rdf:Bag
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag
-::xotcl::rdf::parser::RDFMember-::res0::prop1::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop2::res1::prop1 --- rdf:li
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFDescription-::res0::prop1::res0::prop0::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop1::res0::prop0::res0::prop0 --- xml:lang
+::xotcl::rdf::parser::RDFDescription-::res1::prop2::res1::prop1::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop2::res1::prop1::res1::prop1 --- xml:lang
 PCDATA:
 en
-::xotcl::rdf::parser::RDFProperty-::res0::prop1::res0::prop0::res0::prop1 --- gen:String
+::xotcl::rdf::parser::RDFProperty-::res1::prop2::res1::prop1::res1::prop2 --- gen:String
 PCDATA:
 Introduction to the concepts of object-oriented programing
-::xotcl::rdf::parser::RDFMember-::res0::prop1::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop2::res1::prop2 --- rdf:li
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFDescription-::res0::prop1::res0::prop1::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop1::res0::prop1::res0::prop0 --- xml:lang
+::xotcl::rdf::parser::RDFDescription-::res1::prop2::res1::prop2::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop2::res1::prop2::res1::prop1 --- xml:lang
 PCDATA:
 de
-::xotcl::rdf::parser::RDFProperty-::res0::prop1::res0::prop1::res0::prop1 --- gen:String
+::xotcl::rdf::parser::RDFProperty-::res1::prop2::res1::prop2::res1::prop2 --- gen:String
 PCDATA:
 Einführung in die Konzepte objekt-orientierter Programmierung
 } {
-   http://nm.wu-wien.ac.at/Lehre/oo1/  http://universal.org/metadata/ims#Title rdfdoc#id1
-     rdfdoc#id1                          xml:lang                  en
-     rdfdoc#id1                          http://universal.org/metadata/ims#String Object Oriented Design and System Development
-   http://nm.wu-wien.ac.at/Lehre/oo1/  http://universal.org/metadata/ims#Description rdfdoc#id2
-     rdfdoc#id2                          #type                     #Bag
-     rdfdoc#id2                          #_1                       rdfdoc#id3
-       rdfdoc#id3                          xml:lang                  en
-       rdfdoc#id3                          http://universal.org/metadata/ims#String Introduction to the concepts of object-oriented programing
-     rdfdoc#id2                          #_2                       rdfdoc#id4
-       rdfdoc#id4                          xml:lang                  de
-       rdfdoc#id4                          http://universal.org/metadata/ims#String Einführung in die Konzepte objekt-orientierter Programmierung
+   http://nm.wu-wien.ac.at/Lehre/oo1/  http://universal.org/metadata/ims#Title rdfdoc#id2
+     rdfdoc#id2                          xml:lang                  en
+     rdfdoc#id2                          http://universal.org/metadata/ims#String Object Oriented Design and System Development
+   http://nm.wu-wien.ac.at/Lehre/oo1/  http://universal.org/metadata/ims#Description rdfdoc#id3
+     rdfdoc#id3                          #type                     #Bag
+     rdfdoc#id3                          #_1                       rdfdoc#id4
+       rdfdoc#id4                          xml:lang                  en
+       rdfdoc#id4                          http://universal.org/metadata/ims#String Introduction to the concepts of object-oriented programing
+     rdfdoc#id3                          #_2                       rdfdoc#id5
+       rdfdoc#id5                          xml:lang                  de
+       rdfdoc#id5                          http://universal.org/metadata/ims#String Einführung in die Konzepte objekt-orientierter Programmierung
 }
 
 ###################################################################
@@ -1543,52 +1543,52 @@ rp test complexListItems2 {<?xml version="1.0"?>
 </RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = http://nm.wu-wien.ac.at/Lehre/oo1/
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- gen:Title
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- xml:lang
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- gen:Title
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- xml:lang
 PCDATA:
 en
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- gen:String
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- gen:String
 PCDATA:
 Object Oriented Design and System Development
-::xotcl::rdf::parser::RDFProperty-::res0::prop1 --- gen:Description
-::xotcl::rdf::parser::RDFSeq-::res0::prop1::res0 --- rdf:Seq
+::xotcl::rdf::parser::RDFProperty-::res1::prop2 --- gen:Description
+::xotcl::rdf::parser::RDFSeq-::res1::prop2::res1 --- rdf:Seq
 TYPES: http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq
-::xotcl::rdf::parser::RDFMember-::res0::prop1::res0::prop0 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop2::res1::prop1 --- rdf:li
 MEMBER-INDEX: rdf:_1
-::xotcl::rdf::parser::RDFDescription-::res0::prop1::res0::prop0::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop1::res0::prop0::res0::prop0 --- cls:entry
-::xotcl::rdf::parser::RDFDescription-::res0::prop1::res0::prop0::res0::prop0::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop1::res0::prop0::res0::prop0::res0::prop0 --- gen:language
+::xotcl::rdf::parser::RDFDescription-::res1::prop2::res1::prop1::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop2::res1::prop1::res1::prop1 --- cls:entry
+::xotcl::rdf::parser::RDFDescription-::res1::prop2::res1::prop1::res1::prop1::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop2::res1::prop1::res1::prop1::res1::prop1 --- gen:language
 PCDATA:
 en
-::xotcl::rdf::parser::RDFProperty-::res0::prop1::res0::prop0::res0::prop0::res0::prop1 --- gen:String
+::xotcl::rdf::parser::RDFProperty-::res1::prop2::res1::prop1::res1::prop1::res1::prop2 --- gen:String
 PCDATA:
 Introduction to the concepts of object-oriented programing
-::xotcl::rdf::parser::RDFMember-::res0::prop1::res0::prop1 --- rdf:li
+::xotcl::rdf::parser::RDFMember-::res1::prop2::res1::prop2 --- rdf:li
 MEMBER-INDEX: rdf:_2
-::xotcl::rdf::parser::RDFDescription-::res0::prop1::res0::prop1::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop1::res0::prop1::res0::prop0 --- xml:lang
+::xotcl::rdf::parser::RDFDescription-::res1::prop2::res1::prop2::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop2::res1::prop2::res1::prop1 --- xml:lang
 PCDATA:
 de
-::xotcl::rdf::parser::RDFProperty-::res0::prop1::res0::prop1::res0::prop1 --- gen:String
+::xotcl::rdf::parser::RDFProperty-::res1::prop2::res1::prop2::res1::prop2 --- gen:String
 PCDATA:
 Einführung in die Konzepte objekt-orientierter Programmierung
 } {
-   http://nm.wu-wien.ac.at/Lehre/oo1/  http://universal.org/metadata/ims#Title rdfdoc#id1
-     rdfdoc#id1                          xml:lang                  en
-     rdfdoc#id1                          http://universal.org/metadata/ims#String Object Oriented Design and System Development
-   http://nm.wu-wien.ac.at/Lehre/oo1/  http://universal.org/metadata/ims#Description rdfdoc#id2
-     rdfdoc#id2                          #type                     #Seq
-     rdfdoc#id2                          #_1                       rdfdoc#id3
-       rdfdoc#id3                          cls:entry                 rdfdoc#id4
-         rdfdoc#id4                          http://universal.org/metadata/ims#language en
-         rdfdoc#id4                          http://universal.org/metadata/ims#String Introduction to the concepts of object-oriented programing
-     rdfdoc#id2                          #_2                       rdfdoc#id5
-       rdfdoc#id5                          xml:lang                  de
-       rdfdoc#id5                          http://universal.org/metadata/ims#String Einführung in die Konzepte objekt-orientierter Programmierung
+   http://nm.wu-wien.ac.at/Lehre/oo1/  http://universal.org/metadata/ims#Title rdfdoc#id2
+     rdfdoc#id2                          xml:lang                  en
+     rdfdoc#id2                          http://universal.org/metadata/ims#String Object Oriented Design and System Development
+   http://nm.wu-wien.ac.at/Lehre/oo1/  http://universal.org/metadata/ims#Description rdfdoc#id3
+     rdfdoc#id3                          #type                     #Seq
+     rdfdoc#id3                          #_1                       rdfdoc#id4
+       rdfdoc#id4                          cls:entry                 rdfdoc#id5
+         rdfdoc#id5                          http://universal.org/metadata/ims#language en
+         rdfdoc#id5                          http://universal.org/metadata/ims#String Introduction to the concepts of object-oriented programing
+     rdfdoc#id3                          #_2                       rdfdoc#id6
+       rdfdoc#id6                          xml:lang                  de
+       rdfdoc#id6                          http://universal.org/metadata/ims#String Einführung in die Konzepte objekt-orientierter Programmierung
 }
 
 ###################################################################
@@ -1605,24 +1605,24 @@ rp test dmoz {<?xml version="1.0"?>
 </r:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- r:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- r:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- r:Description
 ATTR: r:ID = Top/Computers
 TYPES: http://dmoz.org/rdf/Topic
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- tag
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- r:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- catid
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- tag
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- r:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- catid
 PCDATA:
 4
-::xotcl::rdf::parser::RDFProperty-::res0::prop1 --- d:Title
+::xotcl::rdf::parser::RDFProperty-::res1::prop2 --- d:Title
 PCDATA:
 Computers
-::xotcl::rdf::parser::RDFProperty-::res0::prop2 --- link
+::xotcl::rdf::parser::RDFProperty-::res1::prop3 --- link
 ATTR: r:resource = http://www.cs.tcd.ie/FME/
-::xotcl::rdf::parser::RDFProperty-::res0::prop3 --- link
+::xotcl::rdf::parser::RDFProperty-::res1::prop4 --- link
 ATTR: r:resource = http://pages.whowhere.com/computers/pnyhlen/Timeline.html
 } {
-   Top/Computers                       http://dmoz.org/rdf/tag   rdfdoc#id1
-     rdfdoc#id1                          http://dmoz.org/rdf/catid 4
+   Top/Computers                       http://dmoz.org/rdf/tag   rdfdoc#id2
+     rdfdoc#id2                          http://dmoz.org/rdf/catid 4
    Top/Computers                       http://purl.org/dc/elements/1.0/Title Computers
    Top/Computers                       http://dmoz.org/rdf/link  http://www.cs.tcd.ie/FME/
    Top/Computers                       http://dmoz.org/rdf/link  http://pages.whowhere.com/computers/pnyhlen/Timeline.html
@@ -1642,15 +1642,15 @@ rp test "IDforNestedDescription" {<?xml version="1.0"?>
 </rdf:RDF>
 } {
 ::xotcl::rdf::parser::RDFTag- --- rdf:RDF
-::xotcl::rdf::parser::RDFDescription-::res0 --- rdf:Description
+::xotcl::rdf::parser::RDFDescription-::res1 --- rdf:Description
 ATTR: about = page
-::xotcl::rdf::parser::RDFProperty-::res0::prop0 --- g2k:area
+::xotcl::rdf::parser::RDFProperty-::res1::prop1 --- g2k:area
 ATTR: rdf:ID = b14711
-::xotcl::rdf::parser::RDFDescription-::res0::prop0::res0 --- rdf:Description
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop0 --- g2k:term
+::xotcl::rdf::parser::RDFDescription-::res1::prop1::res1 --- rdf:Description
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop1 --- g2k:term
 PCDATA:
 Hessen
-::xotcl::rdf::parser::RDFProperty-::res0::prop0::res0::prop1 --- g2k:type
+::xotcl::rdf::parser::RDFProperty-::res1::prop1::res1::prop2 --- g2k:type
 PCDATA:
 Land
 }  {

@@ -1,5 +1,5 @@
 #!../../src/xotclsh
-# $Id: webserver.xotcl,v 1.8 2007/08/14 16:36:46 neumann Exp $
+# $Id: webserver.xotcl,v 1.9 2007/08/14 16:38:26 neumann Exp $
 array set opts {-root ../../doc -port 8086 -protected-port 9096 -pkgdir .}
 array set opts $argv
 lappend auto_path $opts(-pkgdir)
@@ -7,9 +7,10 @@ lappend auto_path $opts(-pkgdir)
 package require XOTcl; namespace import -force xotcl::*
 
 proc ! string {
-  set f [open /tmp/log w+]; 
+  set f [open [::xotcl::tmpdir]/log w+]; 
   puts $f "[clock format [clock seconds]] $string"
-  close $f}
+  close $f
+}
 
 @ @File {
   description {

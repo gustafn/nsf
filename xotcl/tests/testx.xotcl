@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.33 2007/08/14 16:36:47 neumann Exp $
+#$Id: testx.xotcl,v 1.34 2007/08/14 16:38:27 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -374,6 +374,42 @@ TestX filterAddRemove -proc run {{n 20}} {
   #
   # instvar test
   #
+
+  Object o
+  o set x 1
+  Object o1
+  o1 set x 11
+  Object o2
+  o2 proc t {} {
+    # multiple imports for existing (x) and not existing vars (y)
+    o instvar x y
+    append result "x: $x "
+    append result "y: ie [info exists y] me [my exists y] " \
+        "iv '[info vars y]' oe [o exists y] oiv '[o info vars y]' // "
+    set y 100
+    append result "y: ie [info exists y] me [my exists y] " \
+        "iv '[info vars y]' oe [o exists y] oiv '[o info vars y]'"
+    ::errorCheck $result \
+        "x: 1 y: ie 0 me 0 iv 'y' oe 0 oiv '' // y: ie 1 me 0 iv 'y' oe 1 oiv 'y'" \
+        "instvar test 1 failed"
+    set result ""
+    o1 instvar x y
+    append result "x: $x "
+    append result "y: ie [info exists y] me [my exists y] " \
+        "iv '[info vars y]' oe [o1 exists y] oiv '[o1 info vars y]' // "
+    set y 101
+    append result "y: ie [info exists y] me [my exists y] " \
+        "iv '[info vars y]' oe [o1 exists y] oiv '[o1 info vars y]'"
+    ::errorCheck $result \
+        "x: 11 y: ie 0 me 0 iv 'y' oe 0 oiv '' // y: ie 1 me 0 iv 'y' oe 1 oiv 'y'" \
+        "instvar test 2 failed"
+  }
+  o2 t
+
+  o destroy
+  o1 destroy
+  o2 destroy
+
   global filterResult
   set filterResult ""
   Object a
@@ -3526,6 +3562,29 @@ TestX create metaClassAsMixin -proc run {{n 20}} {
 }
 
 TestX create nonposargs -proc run {{n 20}} {
+  Object o
+  o set result ""
+  o proc test1 {-x:switch y} {
+    my append result "x=$x y=$y, "
+  }
+  o test1 1
+  o test1 -x 1
+  
+  o proc test2 {{-x:switch true} y} {
+    my append result "x=$x y=$y, "
+  }
+  o test2 2
+  o test2 -x 2
+  
+  o proc test3 {{-x:switch false} y} {
+    my append result "x=$x y=$y, "
+  }
+  o test3 3
+  o test3 -x 3
+  errorCheck [o set result]  \
+      "x=0 y=1, x=1 y=1, x=true y=2, x=0 y=2, x=false y=3, x=1 y=3, " \
+      "nonpos args switch"
+
     Object o	
     o proc x {a b} {
 	return "$a $b"

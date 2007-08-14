@@ -1,5 +1,5 @@
 #!/usr/bin/env tclsh
-#$Id: UNIVERSAL.xotcl,v 1.7 2006/09/27 08:12:39 neumann Exp $
+#$Id: UNIVERSAL.xotcl,v 1.8 2007/08/14 16:38:26 neumann Exp $
 package require XOTcl; namespace import -force xotcl::*
 array set opts {
   -ssl 0 -instanceFile UNIVERSAL.rdf -cssFile UNIVERSAL.css -root . -pkgdir .}
@@ -58,7 +58,7 @@ puts stderr "parsing done"
 TripleVisitor tv -parser R
 tv proc interprete {} {
   my instvar topNode parser
-  if {![my exists topNode]} {set topNode ${parser}::topNode0}
+  if {![my exists topNode]} {set topNode ${parser}::topNode1}
   my reset
   my interpretNodeTree $topNode
 }

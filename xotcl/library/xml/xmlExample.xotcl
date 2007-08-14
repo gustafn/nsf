@@ -15,6 +15,7 @@ XMLParser x
 #  <twoAttr attr1="0" attr2="1"/> 
 
 x parse {
+<ALL>
   <TEST> 
     a
     <X a="http://www.foo.com/cool.html">b</X> 
@@ -61,7 +62,8 @@ x parse {
       </dc:xxx>
 
     </rdf:Description> 
-  </rdf:RDF>}
+  </rdf:RDF>
+</ALL>}
 
 proc run {} {
   #
