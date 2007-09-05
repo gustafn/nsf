@@ -1,6 +1,6 @@
 /* -*- Mode: c++ -*-
  *
- *  $Id: xotcl.h,v 1.11 2006/09/27 08:12:40 neumann Exp $
+ *  $Id: xotcl.h,v 1.12 2007/09/05 19:09:23 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -53,6 +53,7 @@
 #define NDEBUG 1
 */
 #define NDEBUG 1
+
 
 /* activate/deacticate memory tracing 
 #define XOTCL_MEM_TRACE 1
@@ -127,6 +128,14 @@
 #endif
 #if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<5
 # define PRE85
+#endif
+
+#if !defined(FORWARD_COMPATIBLE)
+# if defined(PRE85)
+#  define FORWARD_COMPATIBLE 1
+# else
+#  define FORWARD_COMPATIBLE 0
+# endif
 #endif
 
 #define XOTCL_NONLEAF_METHOD (ClientData)0x01

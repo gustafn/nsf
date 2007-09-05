@@ -1,8 +1,8 @@
-/* $Id: xotcl.c,v 1.47 2007/08/14 16:38:26 neumann Exp $
+/* $Id: xotcl.c,v 1.48 2007/09/05 19:09:22 neumann Exp $
  *
- *  XOTcl - Extended OTcl
+ *  XOTcl - Extended Object Tcl
  *
- *  Copyright (C) 1999-2006 Gustaf Neumann (a), Uwe Zdun (a)
+ *  Copyright (C) 1999-2007 Gustaf Neumann (a), Uwe Zdun (a)
  *
  * (a) Vienna University of Economics and Business Administration
  *     Institute. of Information Systems and New Media
@@ -197,25 +197,229 @@ Tcl_SubstObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]) 
 }
 #endif
 
+/*
+ * Var Reform Compatibility support
+ */
+
+#if !defined(TclOffset)
+#ifdef offsetof
+#define TclOffset(type, field) ((int) offsetof(type, field))
+#else
+#define TclOffset(type, field) ((int) ((char *) &((type *) 0)->field))
+#endif
+#endif
+
+#if defined(PRE85) && FORWARD_COMPATIBLE
+/*
+ * Define the types missing for the forward compatible mode
+ */
+typedef Var * (Tcl_VarHashCreateVarFunction) _ANSI_ARGS_(
+  (TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr)
+);
+typedef void (Tcl_InitVarHashTableFunction) _ANSI_ARGS_(
+  (TclVarHashTable *tablePtr, Namespace *nsPtr)
+);
+typedef void (Tcl_CleanupVarFunction) _ANSI_ARGS_ (
+  (Var * varPtr, Var *arrayPtr)
+);
+typedef Var * (Tcl_DeleteVarFunction) _ANSI_ARGS_ (
+  (Interp *iPtr, TclVarHashTable *tablePtr)
+);
+typedef Var * (lookupVarFromTableFunction) _ANSI_ARGS_ (
+  (TclVarHashTable *varTable, CONST char *simpleName, XOTclObject *obj)
+);
+
+
+typedef struct TclVarHashTable85 {
+    Tcl_HashTable table;
+    struct Namespace *nsPtr;
+} TclVarHashTable85;
+
+typedef struct Var85 {
+    int flags;
+    union {
+        Tcl_Obj *objPtr;
+        TclVarHashTable85 *tablePtr;
+        struct Var85 *linkPtr; 
+    } value;
+} Var85;
+
+typedef struct VarInHash {
+    Var85 var;
+    int refCount;
+    Tcl_HashEntry entry;
+} VarInHash;
+
+
+typedef struct Tcl_CallFrame85 {
+    Tcl_Namespace *nsPtr;
+    int dummy1;
+    int dummy2;
+    char *dummy3;
+    char *dummy4;
+    char *dummy5;
+    int dummy6;
+    char *dummy7;
+    char *dummy8;
+    int dummy9;
+    char *dummy10;
+    char *dummy11;
+    char *dummy12;
+} Tcl_CallFrame85;
+
+typedef struct CallFrame85 {
+    Namespace *nsPtr;
+    int isProcCallFrame;
+    int objc; 
+    Tcl_Obj *CONST *objv;
+    struct CallFrame *callerPtr;
+    struct CallFrame *callerVarPtr;
+    int level;
+    Proc *procPtr;
+    TclVarHashTable *varTablePtr;
+    int numCompiledLocals;
+    Var85 *compiledLocals; 
+    ClientData clientData;
+    void *localCachePtr;
+} CallFrame85;
+
+/* 
+ * These are global variables, but thread-safe, since they
+ * are only set during initialzation and they are never changed,
+ * and the variables are single words.
+ */
+static int forwardCompatibleMode;
+
+static Tcl_VarHashCreateVarFunction  *tclVarHashCreateVar;
+static Tcl_InitVarHashTableFunction  *tclInitVarHashTable;
+static Tcl_CleanupVarFunction        *tclCleanupVar;
+static lookupVarFromTableFunction    *lookupVarFromTable;
+
+static int varRefCountOffset;
+static int varHashTableSize;
+
+# define VarHashRefCount(varPtr) \
+    (*((int *) (((char *)(varPtr))+varRefCountOffset)))
+
+# define VarHashGetValue(hPtr) \
+    (forwardCompatibleMode ? \
+        (Var *) ((char *)hPtr - TclOffset(VarInHash, entry)) : \
+     	(Var *) Tcl_GetHashValue(hPtr) \
+     )
+
+#define VarHashGetKey(varPtr) \
+  (((VarInHash *)(varPtr))->entry.key.objPtr)
+
+#define VAR_TRACED_READ85        0x10       /* TCL_TRACE_READS  */
+#define VAR_TRACED_WRITE85       0x20       /* TCL_TRACE_WRITES */
+#define VAR_TRACED_UNSET85       0x40       /* TCL_TRACE_UNSETS */
+#define VAR_TRACED_ARRAY85       0x800      /* TCL_TRACE_ARRAY  */
+#define VAR_TRACE_ACTIVE85       0x2000
+#define VAR_SEARCH_ACTIVE85      0x4000
+#define VAR_ALL_TRACES85 \
+   (VAR_TRACED_READ85|VAR_TRACED_WRITE85|VAR_TRACED_ARRAY85|VAR_TRACED_UNSET85)
+
+#define VAR_ARRAY85            0x1
+#define VAR_LINK85             0x2
+
+#define varFlags(varPtr) \
+    (forwardCompatibleMode ? \
+     ((Var85 *)varPtr)->flags : \
+        (varPtr)->flags \
+     )
+#undef TclIsVarScalar
+#define TclIsVarScalar(varPtr) \
+    (forwardCompatibleMode ? \
+     !(((Var85 *)varPtr)->flags & (VAR_ARRAY85|VAR_LINK85)) : \
+        ((varPtr)->flags & VAR_SCALAR) \
+     )
+#undef TclIsVarArray
+#define TclIsVarArray(varPtr) \
+    (forwardCompatibleMode ? \
+     (((Var85 *)varPtr)->flags & VAR_ARRAY85) : \
+        ((varPtr)->flags & VAR_ARRAY) \
+     )
+#define TclIsVarNamespaceVar(varPtr) \
+    (forwardCompatibleMode ? \
+     (((Var85 *)varPtr)->flags & VAR_NAMESPACE_VAR) : \
+        ((varPtr)->flags & VAR_NAMESPACE_VAR) \
+     )
+
+#define TclIsVarTraced(varPtr) \
+    (forwardCompatibleMode ? \
+     (((Var85 *)varPtr)->flags & VAR_ALL_TRACES85) : \
+       (varPtr->tracePtr != NULL)  \
+     )
+#undef TclIsVarLink
+#define TclIsVarLink(varPtr) \
+    (forwardCompatibleMode ? \
+     (((Var85 *)varPtr)->flags & VAR_LINK85) : \
+       (varPtr->flags & VAR_LINK) \
+     )
+#undef TclIsVarUndefined
+#define TclIsVarUndefined(varPtr) \
+    (forwardCompatibleMode ? \
+       (((Var85 *)varPtr)->value.objPtr == NULL) : \
+       (varPtr->flags & VAR_UNDEFINED) \
+     )
+#undef TclSetVarLink
+#define TclSetVarLink(varPtr)  \
+    if (forwardCompatibleMode) \
+        ((Var85 *)varPtr)->flags = (((Var85 *)varPtr)->flags & ~VAR_ARRAY85) | VAR_LINK85; \
+ else \
+       (varPtr)->flags = ((varPtr)->flags & ~(VAR_SCALAR|VAR_ARRAY)) | VAR_LINK
+
+#undef TclClearVarUndefined
+#define TclClearVarUndefined(varPtr) \
+    if (!forwardCompatibleMode) \
+        (varPtr)->flags &= ~VAR_UNDEFINED
+
+#undef Tcl_CallFrame_compiledLocals
+#define Tcl_CallFrame_compiledLocals(cf)     \
+   (forwardCompatibleMode ?                  \
+    (Var *)(((CallFrame85 *)cf)->compiledLocals) :        \
+     (((CallFrame*)cf)->compiledLocals)      \
+   )
+
+#define getNthVar(varPtr,i)  \
+   (forwardCompatibleMode ?  \
+    (Var *)(((Var85 *)varPtr)+(i)) :              \
+    (((Var *)varPtr)+(i))     \
+   )
+
+#define valueOfVar(type,varPtr,field)           \
+   (forwardCompatibleMode ?         \
+    (type *)(((Var85 *)varPtr)->value.field) : \
+    (type *)(((Var *)varPtr)->value.field) \
+   )
+#endif
+
+
+#if !FORWARD_COMPATIBLE
+# define getNthVar(varPtr,i) (((Var *)varPtr)+(i))
+#endif
+
+
+#define TclIsCompiledLocalArgument(compiledLocalPtr) \
+  ((compiledLocalPtr)->flags & VAR_ARGUMENT) 
+#define TclIsCompiledLocalTemporary(compiledLocalPtr) \
+  ((compiledLocalPtr)->flags & VAR_TEMPORARY) 
+
+#if defined(PRE85) && !FORWARD_COMPATIBLE
+# define VarHashGetValue(hPtr) (Var *)Tcl_GetHashValue(hPtr)
+# define VarHashRefCount(varPtr) (varPtr)->refCount
+# define TclIsVarTraced(varPtr)  (varPtr->tracePtr != NULL)
+# define TclIsVarNamespaceVar(varPtr) ((varPtr)->flags & VAR_NAMESPACE_VAR)
+# define varHashTableSize sizeof(TclVarHashTable)
+# define valueOfVar(type,varPtr,field) (type *)(varPtr)->value.field
+#endif
+
 
 #if defined(PRE85)
-/* 
- * for backward compatibility
- */
-#define VarHashGetValue(hPtr) \
-  (Var *) Tcl_GetHashValue(hPtr)
-#define TclIsVarTraced(varPtr)                  \
-  (varPtr->tracePtr != NULL)
-#define VarHashTable(t) t
-#define TclVarHashTable Tcl_HashTable
-#define TclInitVarHashTable(tablePtr, nsPtr) \
-  Tcl_InitHashTable((tablePtr), TCL_STRING_KEYS)
-#define VarHashRefCount(varPtr) (varPtr)->refCount
-
 /*
  * We need NewVar from tclVar.c ... but its not exported
  */
-static Var *NewVar() {
+static Var *NewVar84() {
   register Var *varPtr;
   
   varPtr = (Var *) ckalloc(sizeof(Var));
@@ -230,8 +434,32 @@ static Var *NewVar() {
   return varPtr;
 }
 
+static Var *
+VarHashCreateVar84(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
+  char *newName = ObjStr(key);
+  Tcl_HashEntry *hPtr = Tcl_CreateHashEntry(tablePtr, newName, newPtr);
+  Var *varPtr;
+  
+  if (newPtr && *newPtr) {
+    varPtr = NewVar84();
+    Tcl_SetHashValue(hPtr, varPtr);
+    varPtr->hPtr = hPtr;
+    varPtr->nsPtr = NULL; /* a local variable */
+  } else {
+    varPtr = (Var *) Tcl_GetHashValue(hPtr);
+  }
+
+  return varPtr;
+}
+
+static void 
+InitVarHashTable84(TclVarHashTable *tablePtr, Namespace *nsPtr) {
+  /* fprintf(stderr,"InitVarHashTable84\n"); */
+  Tcl_InitHashTable((tablePtr), TCL_STRING_KEYS);
+}
+
 static void
-TclCleanupVar(Var * varPtr, Var *arrayPtr) {
+TclCleanupVar84(Var * varPtr, Var *arrayPtr) {
   if (TclIsVarUndefined(varPtr) && (varPtr->refCount == 0)
       && (varPtr->tracePtr == NULL)
       && (varPtr->flags & VAR_IN_HASHTABLE)) {
@@ -251,24 +479,53 @@ TclCleanupVar(Var * varPtr, Var *arrayPtr) {
     }
   }
 }
-
-static inline Var *
-VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
-  char *newName = ObjStr(key);
-  Tcl_HashEntry *hPtr = Tcl_CreateHashEntry(tablePtr, newName, newPtr);
-  Var *varPtr;
+static Var *
+LookupVarFromTable84(TclVarHashTable *varTable, CONST char *simpleName, 
+                     XOTclObject *obj) {
+    Var *varPtr = NULL;
+    Tcl_HashEntry *entryPtr;
   
-  if (newPtr && *newPtr) {
-    varPtr = NewVar();
-    Tcl_SetHashValue(hPtr, varPtr);
-    varPtr->hPtr = hPtr;
-    varPtr->nsPtr = NULL; /* a local variable */
-  } else {
-    varPtr = (Var *) Tcl_GetHashValue(hPtr);
-  }
-
-  return varPtr;
+    if (varTable) {
+        entryPtr = Tcl_FindHashEntry(varTable, simpleName);
+        if (entryPtr) {
+            varPtr = VarHashGetValue(entryPtr);
+        }
+    }
+    return varPtr;
 }
+#endif
+
+
+#if defined(PRE85)
+# if FORWARD_COMPATIBLE
+#  define VarHashCreateVar   (*tclVarHashCreateVar)
+#  define InitVarHashTable   (*tclInitVarHashTable)
+#  define CleanupVar         (*tclCleanupVar)
+#  define LookupVarFromTable (*lookupVarFromTable)
+#  define TclCallFrame       Tcl_CallFrame85
+# else
+#  define VarHashCreateVar   VarHashCreateVar84
+#  define InitVarHashTable   InitVarHashTable84
+#  define CleanupVar         TclCleanupVar84
+#  define LookupVarFromTable LookupVarFromTable84
+#  define TclCallFrame       Tcl_CallFrame
+# endif
+#else
+# define VarHashCreateVar   VarHashCreateVar85
+# define InitVarHashTable   TclInitVarHashTable
+# define CleanupVar         TclCleanupVar
+# define LookupVarFromTable LookupVarFromTable85
+# define TclCallFrame       Tcl_CallFrame
+#endif
+
+
+#if defined(PRE85)
+/* 
+ * for backward compatibility
+ */
+
+#define VarHashTable(t) t
+#define TclVarHashTable Tcl_HashTable
 
 static Var *
 XOTclObjLookupVar(Tcl_Interp *interp, Tcl_Obj *part1Ptr, CONST char *part2, 
@@ -290,25 +547,13 @@ XOTclObjLookupVar(Tcl_Interp *interp, Tcl_Obj *part1Ptr, CONST char *part2,
 
 #define VarHashGetValue(hPtr) \
   ((Var *) ((char *)hPtr - TclOffset(VarInHash, entry)))
-#define VarHashGetKey(varPtr)	\
+#define VarHashGetKey(varPtr) \
   (((VarInHash *)(varPtr))->entry.key.objPtr)
-#define VarHashDeleteEntry(varPtr)                              \
-  Tcl_DeleteHashEntry(&(((VarInHash *) varPtr)->entry))
-#define VarHashTable(varTable)                  \
+#define VarHashTable(varTable) \
   &(varTable)->table
 #define XOTclObjLookupVar TclObjLookupVar
-
-static XOTCLINLINE Var *
-VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key,int *newPtr)
-{
-  Tcl_HashEntry *hPtr = Tcl_CreateHashEntry((Tcl_HashTable *) tablePtr,
-                                            (char *) key, newPtr);
-  if (hPtr) {
-    return VarHashGetValue(hPtr);
-  } else {
-    return NULL;
-  }
-}
+#define varHashTableSize sizeof(TclVarHashTable)
+#define valueOfVar(type,varPtr,field) (type *)(varPtr)->value.field
 
 XOTCLINLINE static Tcl_Namespace *
 ObjFindNamespace(Tcl_Interp *interp, Tcl_Obj *objPtr) {
@@ -322,28 +567,35 @@ ObjFindNamespace(Tcl_Interp *interp, Tcl_Obj *objPtr) {
 }
 #endif
 
-
-XOTCLINLINE static Var *
-lookupVarFromVarTable(TclVarHashTable *varTable, CONST char *simpleName, 
-                      XOTclObject *obj) {
-#if defined(PRE85)
-  Var *varPtr = NULL;
-  Tcl_HashEntry *entryPtr;
-  
-  if (varTable) {
-    entryPtr = Tcl_FindHashEntry(varTable, simpleName);
-    if (entryPtr) {
-      varPtr = VarHashGetValue(entryPtr);
+#if !defined(PRE85) || FORWARD_COMPATIBLE
+static XOTCLINLINE Var *
+VarHashCreateVar85(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr)
+{
+    Var *varPtr = NULL;
+    Tcl_HashEntry *hPtr;
+    hPtr = Tcl_CreateHashEntry((Tcl_HashTable *) tablePtr,
+                               (char *) key, newPtr);
+    if (hPtr) {
+        varPtr = VarHashGetValue(hPtr);
     }
-  }
-  return varPtr;
-#else
-  if (varTable) {
-    return TclVarHashFindVar(varTable, simpleName);
-  }
-  return NULL;
-#endif
+    return varPtr;
 }
+
+static XOTCLINLINE Var *
+LookupVarFromTable85(TclVarHashTable *tablePtr, CONST char *simpleName, 
+                     XOTclObject *obj) {
+    Var *varPtr = NULL;
+    if (tablePtr) {
+        Tcl_Obj *keyPtr = Tcl_NewStringObj(simpleName, -1);
+        Tcl_IncrRefCount(keyPtr);
+        varPtr = VarHashCreateVar85(tablePtr, keyPtr, NULL);
+        Tcl_DecrRefCount(keyPtr);
+    }
+    return varPtr;
+}
+#endif
+
+
 
 
 
@@ -1394,8 +1646,16 @@ makeObjNamespace(Tcl_Interp *in, XOTclObject *obj) {
       for (hPtr = Tcl_FirstHashEntry(varHashTable, &search);  hPtr != NULL;
 	   hPtr = Tcl_NextHashEntry(&search)) {
 #if defined(PRE85)
-	Var *varPtr = (Var *) Tcl_GetHashValue(hPtr);
-	varPtr->nsPtr = (Namespace *)nsPtr;
+          Var *varPtr;
+# if FORWARD_COMPATIBLE
+          if (!forwardCompatibleMode) {
+              varPtr = (Var *) Tcl_GetHashValue(hPtr);
+              varPtr->nsPtr = (Namespace *)nsPtr;
+          }
+# else
+          varPtr = (Var *) Tcl_GetHashValue(hPtr);
+          varPtr->nsPtr = (Namespace *)nsPtr;
+# endif
 #endif
 	hPtr->tablePtr = varHashTable;
       }
@@ -1411,8 +1671,8 @@ makeObjNamespace(Tcl_Interp *in, XOTclObject *obj) {
  *	        int flags, Tcl_Var *rPtr));
  */
 int
-varResolver(Tcl_Interp *in, CONST char *name, Tcl_Namespace *ns, int flags, Tcl_Var* varPtr) {
-  *varPtr = (Tcl_Var)lookupVarFromVarTable(Tcl_Namespace_varTable(ns), name,NULL);
+varResolver(Tcl_Interp *in, CONST char *name, Tcl_Namespace *ns, int flags, Tcl_Var *varPtr) {
+  *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(ns), name,NULL);
   /*fprintf(stderr,"lookup '%s' successful %d\n",name, *varPtr != NULL);*/
   return *varPtr ? TCL_OK : TCL_ERROR;
 }
@@ -1514,9 +1774,9 @@ NSDeleteChildren(Tcl_Interp *in, Tcl_Namespace* ns) {
 
 /*
  * ensure that a variable exists on object varTable or nsPtr->varTable,
- * if necessary create it. Return Var* if successful, otherwise 0
+ * if necessary create it. Return Var * if successful, otherwise 0
  */
-static Var*
+static Var *
 NSRequireVariableOnObj(Tcl_Interp *in, XOTclObject *obj, char *name, int flgs) {
   XOTcl_FrameDecls;
   Var *varPtr, *arrayPtr;
@@ -1577,7 +1837,7 @@ NSCleanupNamespace(Tcl_Interp *in, Tcl_Namespace* ns) {
    * (deleteVars frees the vartable)
    */
   TclDeleteVars((Interp *)in, varTable);
-  TclInitVarHashTable(varTable, (Namespace *)ns);
+  InitVarHashTable(varTable, (Namespace *)ns);
 
   /*
    * Delete all user-defined procs in the namespace
@@ -4227,6 +4487,23 @@ varExists(Tcl_Interp *in, XOTclObject *obj, char *varName, char *index,
   return result;
 }
 
+static void
+getVarAndNameFromHash(Tcl_HashEntry *hPtr, Var **val, Tcl_Obj **varNameObj) {
+  *val  = VarHashGetValue(hPtr);
+#if defined(PRE85)
+# if FORWARD_COMPATIBLE
+  if (forwardCompatibleMode) {
+      *varNameObj  = VarHashGetKey(*val);
+  } else {
+      *varNameObj  = Tcl_NewStringObj(Tcl_GetHashKey(hPtr->tablePtr, hPtr),-1);
+  }
+# else
+  *varNameObj  = Tcl_NewStringObj(Tcl_GetHashKey(hPtr->tablePtr, hPtr),-1);
+# endif
+#else
+  *varNameObj  = VarHashGetKey(*val);
+#endif
+}
 
 /*
  * Search default values specified through 'parameter' on one class
@@ -4239,36 +4516,34 @@ SearchDefaultValuesOnClass(Tcl_Interp *in, XOTclObject *obj,
   Tcl_Namespace *ns = targetClass->object.nsPtr;
   TclVarHashTable *varTable = ns ? Tcl_Namespace_varTable(ns) : targetClass->object.varTable;
 
-  defaults = lookupVarFromVarTable(varTable, "__defaults",(XOTclObject*)targetClass);
-  initcmds = lookupVarFromVarTable(varTable, "__initcmds",(XOTclObject*)targetClass);
+  defaults = LookupVarFromTable(varTable, "__defaults",(XOTclObject*)targetClass);
+  initcmds = LookupVarFromTable(varTable, "__initcmds",(XOTclObject*)targetClass);
 
   if (defaults && TclIsVarArray(defaults)) {
-    TclVarHashTable *tablePtr = defaults->value.tablePtr;
+    TclVarHashTable *tablePtr = valueOfVar(TclVarHashTable,defaults,tablePtr);
     Tcl_HashSearch hSrch;
     Tcl_HashEntry* hPtr = tablePtr ? Tcl_FirstHashEntry(VarHashTable(tablePtr), &hSrch) : 0;
     
-    /*fprintf(stderr, "+++ we have defaults for <%s>\n", className(targetClass));*/
+    /*fprintf(stderr, "+++ we have defaults for %s in <%s>\n", 
+      ObjStr(obj->cmdName),className(targetClass));*/
     
     /* iterate over all elements of the defaults array */
     for (; hPtr != 0; hPtr = Tcl_NextHashEntry(&hSrch)) {
-      Var  *val            = VarHashGetValue(hPtr);
-#if defined(PRE85)
-      char *varName        = Tcl_GetHashKey(tablePtr, hPtr);
-      Tcl_Obj *varNameObj  = Tcl_NewStringObj(varName,-1);
-#else
-      Tcl_Obj *varNameObj  = VarHashGetKey(val);
-#endif
+      Var *val;
+      Tcl_Obj *varNameObj;
 
+      getVarAndNameFromHash(hPtr, &val, &varNameObj);
       INCR_REF_COUNT(varNameObj);
+
       if (TclIsVarScalar(val)) {
-	Tcl_Obj *oldValue;
-	oldValue = XOTclOGetInstVar2((XOTcl_Object*) obj, in, varNameObj, NULL,
+	Tcl_Obj *oldValue = XOTclOGetInstVar2((XOTcl_Object*) obj, 
+                                     in, varNameObj, NULL,
 				     TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
 	/** we check whether the variable is already set.
 	    if so, we do not set it again */
 	if (oldValue == NULL) {
-	  char *value = ObjStr(val->value.objPtr), *v;
-	  Tcl_Obj *valueObj = val->value.objPtr;
+          Tcl_Obj *valueObj = valueOfVar(Tcl_Obj,val,objPtr);
+	  char *value = ObjStr(valueObj), *v;
 	  int doSubst = 0;
 	  for (v=value; *v; v++) {
 	    if (*v == '[' && doSubst == 0)
@@ -4315,33 +4590,28 @@ SearchDefaultValuesOnClass(Tcl_Interp *in, XOTclObject *obj,
   } 
   
   if (initcmds && TclIsVarArray(initcmds)) {
-    TclVarHashTable *tablePtr = initcmds->value.tablePtr;
+    TclVarHashTable *tablePtr = valueOfVar(TclVarHashTable,initcmds,tablePtr);
     Tcl_HashSearch hSrch;
     Tcl_HashEntry* hPtr = tablePtr ? Tcl_FirstHashEntry(VarHashTable(tablePtr), &hSrch) : 0;
 
     /*fprintf(stderr, "+++ we have initcmds for <%s>\n", className(targetClass));*/
       /* iterate over the elements of initcmds */
     for (; hPtr != 0; hPtr = Tcl_NextHashEntry(&hSrch)) {
+      Var  *val;
+      Tcl_Obj *varNameObj;
 
-      Var  *val            = VarHashGetValue(hPtr);
-#if defined(PRE85)
-      char *varName        = Tcl_GetHashKey(tablePtr, hPtr);
-      Tcl_Obj *varNameObj  = Tcl_NewStringObj(varName,-1);
-#else
-      Tcl_Obj *varNameObj  = VarHashGetKey(val);
-      char *varName        = ObjStr(varNameObj);
-#endif
+      getVarAndNameFromHash(hPtr, &val, &varNameObj);
 
       INCR_REF_COUNT(varNameObj);
       /*fprintf(stderr,"varexists(%s->%s) = %d\n", 
 	      ObjStr(obj->cmdName),
-	      varName, varExists(in, obj, varName, NULL, 0, 0));*/
+	      ObjStr(varNameObj), varExists(in, obj, ObjStr(varNameObj), NULL, 0, 0));*/
 
       if (TclIsVarScalar(val) && 
-	  (!varExists(in, obj, varName, NULL, 0, 0) ||
-	   varExists(in, &targetClass->object, "__defaults", varName, 0,0)
+	  (!varExists(in, obj, ObjStr(varNameObj), NULL, 0, 0) ||
+	   varExists(in, &targetClass->object, "__defaults", ObjStr(varNameObj), 0,0)
 	   )) {
-	Tcl_Obj *valueObj = val->value.objPtr;
+	Tcl_Obj *valueObj = valueOfVar(Tcl_Obj,val,objPtr);
 	char *string = ObjStr(valueObj);
 	int rc;
 	XOTcl_FrameDecls;
@@ -4399,6 +4669,7 @@ SearchDefaultValues(Tcl_Interp *in, XOTclObject *obj, XOTclClass *cmdCl) {
       break;
     ml = ml->next;
   }
+
   for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->next) {
     result = SearchDefaultValuesOnClass(in, obj, cmdCl, pl->cl);
     if (result != TCL_OK)
@@ -4478,16 +4749,16 @@ callProcCheck(ClientData cp, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[],
   /*
   fprintf(stderr,"*** callProcCheck: cmd = %p\n",cmd);
   fprintf(stderr,
-	  "cp=%p, isTclProc=%d %p %s, dispatch=%d %p, eval=%d %p, ov[0]=%p oc=%d\n",
+	  "cp=%p, isTclProc=%d %p %s, dispatch=%d %p, forward=%d %p, scoped %p, ov[0]=%p oc=%d\n",
 	  cp,
 	  isTclProc, cmd,
 	  Tcl_GetCommandName(in, cmd),
 	  Tcl_Command_objProc(cmd) == XOTclObjDispatch, XOTclObjDispatch,
 	  Tcl_Command_objProc(cmd) == XOTclForwardMethod, XOTclForwardMethod,
-XOTclObjscopedMethod
+          XOTclObjscopedMethod,
 	  objv[0], objc
-	  );
-  */
+	  );*/
+  
 
 #ifdef CALLSTACK_TRACE
   XOTclCallStackDump(in);
@@ -5165,7 +5436,7 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore,
 	 Tcl_HashTable **nonposArgsTable,
 	 Tcl_Interp *in, int objc, Tcl_Obj *objv[], XOTclObject *obj) {
   int result, incr, haveNonposArgs=0;
-  Tcl_CallFrame frame;
+  TclCallFrame frame, *framePtr = &frame;
   Tcl_Obj *ov[4];
   Tcl_HashEntry* hPtr = NULL;
   char *procName = ObjStr(objv[1]);
@@ -5206,10 +5477,11 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore,
       Tcl_Obj **npav;
       /* arg = ObjStr(argsv[i]);
          fprintf(stderr, "*** argparse0 arg='%s'\n",arg);*/
+
       rc = Tcl_ListObjGetElements(in, argsv[i], &npac, &npav);
       if (rc == TCL_OK && npac > 0) {
         arg = ObjStr(npav[0]);
-        /*fprintf(stderr, "*** argparse1 arg='%s' rc=%d\n",arg,rc);*/
+        /* fprintf(stderr, "*** argparse1 arg='%s' rc=%d\n",arg,rc);*/
         if (*arg == '-') {
           haveNonposArgs = 1;
           continue;
@@ -5223,8 +5495,8 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore,
       Tcl_Obj *nonposArgs = Tcl_NewListObj(i, &argsv[0]);
       INCR_REF_COUNT(ordinaryArgs);
       INCR_REF_COUNT(nonposArgs);
-      /*fprintf(stderr, "nonpos <%s> ordinary <%s>\n",
-	ObjStr(nonposArgs),ObjStr(ordinaryArgs));*/
+      /* fprintf(stderr, "nonpos <%s> ordinary <%s>\n",
+	 ObjStr(nonposArgs),ObjStr(ordinaryArgs));*/
       result = parseNonposArgs(in, procName, nonposArgs, ordinaryArgs,
 			       nonposArgsTable, &haveNonposArgs);
       DECR_REF_COUNT(ordinaryArgs);
@@ -5255,7 +5527,7 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore,
   }
 #endif
 
-  Tcl_PushCallFrame(in,&frame,ns,0);
+  Tcl_PushCallFrame(in,(Tcl_CallFrame *)framePtr,ns,0);
 
   result = Tcl_ProcObjCmd(0, in, 4, ov) != TCL_OK;
 #if defined(NAMESPACEINSTPROCS)
@@ -5357,7 +5629,7 @@ ListKeys(Tcl_Interp *in, Tcl_HashTable *table, char *pattern) {
   return TCL_OK;
 }
 
-#if !defined(PRE85)
+#if !defined(PRE85) || FORWARD_COMPATIBLE
 static int
 ListVarKeys(Tcl_Interp *in, Tcl_HashTable *tablePtr, char *pattern) {
   Tcl_HashEntry* hPtr;
@@ -5399,7 +5671,15 @@ ListVars(Tcl_Interp *in, XOTclObject *obj, char *pattern) {
   TclVarHashTable *varTable = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
 
 #if defined(PRE85)
+# if FORWARD_COMPATIBLE
+  if (forwardCompatibleMode) {
+      ListVarKeys(in, VarHashTable(varTable), pattern);
+  } else {
+      ListKeys(in, varTable, pattern);
+  }
+# else
   ListKeys(in, varTable, pattern);
+# endif
 #else
   ListVarKeys(in, VarHashTable(varTable), pattern);
 #endif
@@ -5738,7 +6018,7 @@ ListProcArgs(Tcl_Interp *in, Tcl_HashTable *table, char *name) {
       CompiledLocal *args = proc->firstLocalPtr;
       Tcl_ResetResult(in);
       for (;args != NULL; args = args->nextPtr) {
-          if TclIsVarArgument(args)
+          if (TclIsCompiledLocalArgument(args))
 	      Tcl_AppendElement(in, args->name);
 
       }
@@ -5778,7 +6058,7 @@ GetProcDefault(Tcl_Interp *in, Tcl_HashTable *table,
   if (proc) {
     CompiledLocal *ap;
     for (ap = proc->firstLocalPtr; ap != 0; ap = ap->nextPtr) {
-      if (!TclIsVarArgument(ap)) continue;
+      if (!TclIsCompiledLocalArgument(ap)) continue;
       if (strcmp(arg, ap->name) != 0) continue;
 	
       if (ap->defValuePtr != NULL) {
@@ -5861,17 +6141,21 @@ ListDefaultFromOrdinaryArgs(Tcl_Interp *in, char *procName,
   return TCL_ERROR;
 }
 
+static char *
+StripBodyPrefix(char *body) {
+  if (strncmp(body, "::xotcl::initProcNS\n",20) == 0)
+    body+=20;
+  if (strncmp(body, "::xotcl::interpretNonpositionalArgs $args\n",42) == 0)
+    body+=42;
+  return body;
+}
+
 static int
 ListProcBody(Tcl_Interp *in, Tcl_HashTable *table, char *name) {
   Proc* proc = FindProc(in, table, name);
-
   if (proc) {
     char *body = ObjStr(proc->bodyPtr);
-    if (strncmp(body, "::xotcl::initProcNS\n",20) == 0)
-      body+=20;
-    if (strncmp(body, "::xotcl::interpretNonpositionalArgs $args\n",42) == 0)
-      body+=42;
-    Tcl_SetObjResult(in, Tcl_NewStringObj(body, -1));
+    Tcl_SetObjResult(in, Tcl_NewStringObj(StripBodyPrefix(body), -1));
     return TCL_OK;
   }
   return XOTclErrBadVal(in, "info body", "a tcl method name", name);
@@ -6962,20 +7246,18 @@ PrimitiveCDestroy(ClientData cd) {
  * class init
  */
 static void
-PrimitiveCInit(void* mem, Tcl_Interp *in, char *name, XOTclClass *class) {
-  XOTclClass *cl = (XOTclClass*)mem;
-
-  Tcl_CallFrame frame;
+PrimitiveCInit(XOTclClass *cl, Tcl_Interp *in, char *name) {
+  TclCallFrame frame, *framePtr = &frame;
   Tcl_Namespace* ns;
-  char *n = name;
 
   /*
    * ensure that namespace is newly created during CleanupInitClass
    * ie. kill it, if it exists already
    */
-  if (Tcl_PushCallFrame(in, &frame, RUNTIME_STATE(in)->XOTclClassesNS, 0)!= TCL_OK)
+  if (Tcl_PushCallFrame(in, (Tcl_CallFrame *)framePtr, 
+			RUNTIME_STATE(in)->XOTclClassesNS, 0) != TCL_OK)
     return;
-  ns = NSGetFreshNamespace(in, (ClientData)cl, n);
+  ns = NSGetFreshNamespace(in, (ClientData)cl, name);
   Tcl_PopCallFrame(in);
 
   CleanupInitClass(in, cl, ns, 0);
@@ -7017,7 +7299,7 @@ PrimitiveCCreate(Tcl_Interp *in, char *name, XOTclClass *class) {
 
   obj->cmdName = NewXOTclObjectObjName(obj,name,length);
   INCR_REF_COUNT(obj->cmdName);
-  PrimitiveCInit(cl, in, name+2, class);
+  PrimitiveCInit(cl, in, name+2);
 
   objTrace("PrimitiveCCreate", obj);
   return cl;
@@ -7083,7 +7365,7 @@ doCleanup(Tcl_Interp *in, XOTclObject *newobj, XOTclObject *classobj,
 }
 
 /*
- * Std initialization:
+ * Std object initialization:
  *   call parameter default values
  *   apply "-" methods (call "configure" with given arguments)
  *   call constructor "init", if it was not called before
@@ -7975,26 +8257,29 @@ GetInstVarIntoCurrentScope(Tcl_Interp *in, XOTclObject *obj,
     int i, nameLen          = strlen(newNameString);
 
     for (i = 0;  i < localCt;  i++) {    /* look in compiled locals */
-      if (!TclIsVarTemporary(localPtr)) {
+      
+      /* fprintf(stderr,"%d of %d %s flags %x not isTemp %d\n",i,localCt,
+                localPtr->name,localPtr->flags, 
+		!TclIsCompiledLocalTemporary(localPtr));*/
+
+      if (!TclIsCompiledLocalTemporary(localPtr)) {
 	char *localName = localPtr->name;
 	if ((newNameString[0] == localName[0])
 	    && (nameLen == localPtr->nameLength)
 	    && (strcmp(newNameString, localName) == 0)) {
-	  varPtr = localVarPtr;
-	  new = 0;
-	  break;
+            varPtr = getNthVar(localVarPtr,i);
+            new = 0;
+            break;
 	}
       }
-      localVarPtr++;
       localPtr = localPtr->nextPtr;
     }
 
     if (varPtr == NULL) {	/* look in frame's local var hashtable */
       tablePtr = Tcl_CallFrame_varTablePtr(varFramePtr);
       if (tablePtr == NULL) {
-
-	tablePtr = (TclVarHashTable *) ckalloc(sizeof(TclVarHashTable));
-	TclInitVarHashTable(tablePtr, NULL);
+	tablePtr = (TclVarHashTable *) ckalloc(varHashTableSize);
+	InitVarHashTable(tablePtr, NULL);
 	Tcl_CallFrame_varTablePtr(varFramePtr) = tablePtr;
       }
       varPtr = VarHashCreateVar(tablePtr, newName, &new);
@@ -8007,9 +8292,10 @@ GetInstVarIntoCurrentScope(Tcl_Interp *in, XOTclObject *obj,
       if (varPtr == otherPtr)
 	return XOTclVarErrMsg(in, "can't instvar to variable itself", 
                               (char *) NULL);
+
       if (TclIsVarLink(varPtr)) {
 	/* we try to make the same instvar again ... this is ok */
-	Var *linkPtr = varPtr->value.linkPtr;
+	Var *linkPtr = valueOfVar(Var,varPtr,linkPtr);
 	if (linkPtr == otherPtr) {
 	  return TCL_OK;
 	}
@@ -8022,7 +8308,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *in, XOTclObject *obj,
         */
 	VarHashRefCount(linkPtr)--;
 	if (TclIsVarUndefined(linkPtr)) {
-          TclCleanupVar(linkPtr, (Var *) NULL);
+          CleanupVar(linkPtr, (Var *) NULL);
         }
 
       } else if (!TclIsVarUndefined(varPtr)) {
@@ -8033,10 +8319,30 @@ GetInstVarIntoCurrentScope(Tcl_Interp *in, XOTclObject *obj,
                               "' has traces: can't use for instvar", (char *) NULL);
       }
     }
+
     TclSetVarLink(varPtr);
     TclClearVarUndefined(varPtr);
+#if FORWARD_COMPATIBLE
+    if (forwardCompatibleMode) {
+        Var85 *vPtr = (Var85 *)varPtr;
+        vPtr->value.linkPtr = (Var85 *)otherPtr;
+    } else {
+        varPtr->value.linkPtr = otherPtr;
+    }
+#else
     varPtr->value.linkPtr = otherPtr;
+#endif
     VarHashRefCount(otherPtr)++;
+
+   /*
+   {
+        Var85 *p = (Var85 *)varPtr;
+    fprintf(stderr,"defining an alias var='%s' in obj %s fwd %d flags %x isLink %d isTraced %d isUndefined %d\n",
+            ObjStr(newName), ObjStr(obj->cmdName), forwardCompatibleMode,
+            varFlags(varPtr), 
+            TclIsVarLink(varPtr), TclIsVarTraced(varPtr), TclIsVarUndefined(varPtr));
+    }
+   */
   }
   return TCL_OK;
 }
@@ -10587,9 +10893,11 @@ XOTcl_NSCopyCmds(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
 
 	arglistObj = Tcl_NewListObj(0, NULL);
 	INCR_REF_COUNT(arglistObj);
+
 	for (localPtr = procPtr->firstLocalPtr;  localPtr != NULL;
 	     localPtr = localPtr->nextPtr) {
-	  if (TclIsVarArgument(localPtr)) {
+
+	  if (TclIsCompiledLocalArgument(localPtr)) {
 	    Tcl_Obj *defVal, *defStringObj = Tcl_NewStringObj(localPtr->name, -1);
 	    INCR_REF_COUNT(defStringObj);
 	    /* check for default values */
@@ -10628,7 +10936,7 @@ XOTcl_NSCopyCmds(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
 	    Tcl_DStringAppendElement(dsPtr, "instproc");
 	    Tcl_DStringAppendElement(dsPtr, name);
 	    Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
-	    Tcl_DStringAppendElement(dsPtr, ObjStr(procPtr->bodyPtr));
+	    Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
 	    if (procs) {
 	      XOTclRequireClassOpt(cl);
 	      AssertionAppendPrePost(in, dsPtr, procs);
@@ -10654,7 +10962,7 @@ XOTcl_NSCopyCmds(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
 	    Tcl_DStringAppendElement(dsPtr, "proc");
 	    Tcl_DStringAppendElement(dsPtr, name);
 	    Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
-	    Tcl_DStringAppendElement(dsPtr, ObjStr(procPtr->bodyPtr));
+	    Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
 	    if (procs) {
 	      XOTclRequireObjectOpt(obj);
 	      AssertionAppendPrePost(in, dsPtr, procs);
@@ -10702,16 +11010,15 @@ XOTcl_NSCopyCmds(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
 static int
 XOTcl_NSCopyVars(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Namespace *ns, *newNs;
-  Var *varPtr = 0;
+  Var *varPtr = NULL;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry* hPtr;
   TclVarHashTable *varTable;
   int rc = TCL_OK;
-  char *varName;
   XOTclObject *obj;
   char *destFullName;
   Tcl_Obj *destFullNameObj;
-  Tcl_CallFrame frame;
+  TclCallFrame frame, *framePtr = &frame;
   Tcl_Obj *varNameObj = NULL;
   Tcl_Obj *nobjv[4];
   int nobjc;
@@ -10732,7 +11039,7 @@ XOTcl_NSCopyVars(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
     destFullNameObj = Tcl_NewStringObj(destFullName, -1);
     INCR_REF_COUNT(destFullNameObj);
     varTable = Tcl_Namespace_varTable(ns);
-    Tcl_PushCallFrame(in,&frame,newNs,0);
+    Tcl_PushCallFrame(in,(Tcl_CallFrame *)framePtr,newNs,0);
   } else {
     XOTclObject *newObj;
     if (XOTclObjConvertObject(in, objv[1], &obj) != TCL_OK) {
@@ -10757,16 +11064,10 @@ XOTcl_NSCopyVars(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
   /* copy all vars in the namespace */
   hPtr = varTable ? Tcl_FirstHashEntry(VarHashTable(varTable), &hSrch) : 0;
   while (hPtr != NULL) {
-#if defined(PRE85)
-    varPtr = (Var *) Tcl_GetHashValue(hPtr);
-    varName = Tcl_GetHashKey(VarHashTable(varTable), hPtr);
-    varNameObj = Tcl_NewStringObj(varName, -1);
+
+    getVarAndNameFromHash(hPtr, &varPtr, &varNameObj);
     INCR_REF_COUNT(varNameObj);
-#else
-    varPtr     = VarHashGetValue(hPtr);
-    varNameObj = VarHashGetKey(varPtr);
-    varName = ObjStr(varNameObj);
-#endif
+
     if (!TclIsVarUndefined(varPtr) && !TclIsVarLink(varPtr)) {
       if (TclIsVarScalar(varPtr)) {
 	/* it may seem odd that we do not copy obj vars with the
@@ -10775,57 +11076,51 @@ XOTcl_NSCopyVars(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
 
 	if (obj) {
 	    nobjv[2] = varNameObj;
-	    nobjv[3] = varPtr->value.objPtr;
+            nobjv[3] = valueOfVar(Tcl_Obj,varPtr,objPtr);
 	    rc = Tcl_EvalObjv(in, nobjc, nobjv, 0);
 	} else {
-	    Tcl_ObjSetVar2(in, varNameObj, NULL, varPtr->value.objPtr, TCL_NAMESPACE_ONLY);
+	    Tcl_ObjSetVar2(in, varNameObj, NULL, 
+                           valueOfVar(Tcl_Obj,varPtr,objPtr),
+                           TCL_NAMESPACE_ONLY);
 	}
       } else {
 	if (TclIsVarArray(varPtr)) {
-	  //// HERE!! PRE85 Why not [array get/set] based? Let the core iterate
-	  TclVarHashTable *aTable = varPtr->value.tablePtr;
+	  /* HERE!! PRE85 Why not [array get/set] based? Let the core iterate*/
+	  TclVarHashTable *aTable = valueOfVar(TclVarHashTable,varPtr,tablePtr);
 	  Tcl_HashSearch ahSrch;
 	  Tcl_HashEntry* ahPtr = aTable ? Tcl_FirstHashEntry(VarHashTable(aTable), &ahSrch) :0;
-	  Tcl_Obj *eltNameObj = NULL;
 	  for (; ahPtr != 0; ahPtr = Tcl_NextHashEntry(&ahSrch)) {
-	    char *eltName;
+	    Tcl_Obj *eltNameObj;
 	    Var *eltVar;
-#if defined(PRE85)
-	    eltName = Tcl_GetHashKey(VarHashTable(aTable), ahPtr);
-	    eltVar = (Var *) Tcl_GetHashValue(ahPtr);
-#else
-	    eltVar     = VarHashGetValue(ahPtr);
-	    eltNameObj = VarHashGetKey(eltVar);
-	    eltName = ObjStr(eltNameObj);
-#endif
+
+	    getVarAndNameFromHash(ahPtr, &eltVar, &eltNameObj);
+
+	    INCR_REF_COUNT(eltNameObj);
+
 	    if (TclIsVarScalar(eltVar)) {
 	      if (obj) {
 		Tcl_Obj *fullVarNameObj = Tcl_DuplicateObj(varNameObj);
 		
 		INCR_REF_COUNT(fullVarNameObj);
-		Tcl_AppendStringsToObj(fullVarNameObj, "(", eltName, ")", NULL);
+		Tcl_AppendStringsToObj(fullVarNameObj, "(", 
+				       ObjStr(eltNameObj), ")", NULL);
 		nobjv[2] = fullVarNameObj;
-		nobjv[3] = eltVar->value.objPtr;
+		nobjv[3] = valueOfVar(Tcl_Obj,eltVar,objPtr);
+
 		rc = Tcl_EvalObjv(in, nobjc, nobjv, 0);
 		DECR_REF_COUNT(fullVarNameObj);
 	      } else {
-#if defined(PRE85)
-		eltNameObj = Tcl_NewStringObj(eltName, -1);
-		INCR_REF_COUNT(eltNameObj);
-#endif
-		Tcl_ObjSetVar2(in, varNameObj, eltNameObj, varPtr->value.objPtr, TCL_NAMESPACE_ONLY);
-#if defined(PRE85)
-		DECR_REF_COUNT(eltNameObj);
-#endif
+		Tcl_ObjSetVar2(in, varNameObj, eltNameObj, 
+			       valueOfVar(Tcl_Obj,eltVar,objPtr),
+                               TCL_NAMESPACE_ONLY);
 	      }
 	    }
+	    DECR_REF_COUNT(eltNameObj);
 	  }
 	}
       }
     }
-#if defined(PRE85)
     DECR_REF_COUNT(varNameObj);
-#endif
     hPtr = Tcl_NextHashEntry(&hSrch);
   }
   if (ns) {
@@ -11271,11 +11566,11 @@ static void deleteProcsAndVars(Tcl_Interp *in) {
 
   entryPtr = Tcl_FirstHashEntry(varTable, &search);
   while (entryPtr != NULL) {
-    varPtr = (Var *) Tcl_GetHashValue(entryPtr);
-    if (!TclIsVarUndefined(varPtr) || (varPtr->flags & VAR_NAMESPACE_VAR)) {
-      varName = Tcl_GetHashKey(varTable, entryPtr);
-      /* fprintf(stderr, "unsetting var %s\n", varName);*/
-      Tcl_UnsetVar2(in, varName, (char *) NULL, TCL_GLOBAL_ONLY);
+    Tcl_Obj *nameObj;
+    getVarAndNameFromHash(entryPtr, &varPtr, &nameObj);
+    if (!TclIsVarUndefined(varPtr) || TclIsVarNamespaceVar(varPtr)) {
+      /* fprintf(stderr, "unsetting var %s\n", ObjStr(nameObj));*/
+      Tcl_UnsetVar2(in, ObjStr(nameObj), (char *) NULL, TCL_GLOBAL_ONLY);
     }
     entryPtr = Tcl_NextHashEntry(&search);
   }
@@ -11635,6 +11930,46 @@ Xotcl_Init(Tcl_Interp *in) {
   /*
   fprintf(stderr, "SIZES: obj=%d, tcl_obj=%d, DString=%d, class=%d, namespace=%d, command=%d, HashTable=%d\n", sizeof(XOTclObject), sizeof(Tcl_Obj), sizeof(Tcl_DString), sizeof(XOTclClass), sizeof(Namespace), sizeof(Command), sizeof(Tcl_HashTable));
   */
+
+#if FORWARD_COMPATIBLE
+  {
+      int major, minor, patchlvl, type;
+      Tcl_GetVersion(&major, &minor, &patchlvl, &type);
+      
+      if ((major == 8) && (minor < 5)) {
+          /* 
+           * loading a version of xotcl compiled for 8.4 version 
+           * into a 8.4 Tcl 
+           */
+	/*
+          fprintf(stderr, "loading a version of xotcl compiled for 8.4 version into a 8.4 Tcl\n");
+	*/
+          forwardCompatibleMode = 0;
+          lookupVarFromTable  = LookupVarFromTable84;
+          tclVarHashCreateVar = VarHashCreateVar84;
+          tclInitVarHashTable = InitVarHashTable84;
+          tclCleanupVar       = TclCleanupVar84;
+          varRefCountOffset   = TclOffset(Var, refCount);
+          varHashTableSize    = sizeof(Tcl_HashTable);
+      } else {
+          /* 
+           * loading a version of xotcl compiled for 8.4 version 
+           * into a 8.5 Tcl 
+           */
+	/*
+          fprintf(stderr, "loading a version of xotcl compiled for 8.4 version into a 8.5 Tcl\n");
+	*/
+          forwardCompatibleMode = 1;
+          lookupVarFromTable  = LookupVarFromTable85;
+          tclVarHashCreateVar = VarHashCreateVar85;
+          tclInitVarHashTable = (Tcl_InitVarHashTableFunction*)*((&tclIntStubsPtr->reserved0)+235);
+          tclCleanupVar       = (Tcl_CleanupVarFunction*)*((&tclIntStubsPtr->reserved0)+176);
+          varRefCountOffset   = TclOffset(VarInHash, refCount);
+          varHashTableSize    = sizeof(TclVarHashTable85);
+      }
+
+  }
+#endif
 
   /*
    * Runtime State stored in the client data of the Interp's global

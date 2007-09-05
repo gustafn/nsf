@@ -1,3 +1,26 @@
+2007-09-00: <Gustaf.Neumann@wu-wien.ac.at>
+    * Release of XOTcl 1.5.5
+
+2007-08-16: <Gustaf.Neumann@wu-wien.ac.at>
+    * fix introspection problem for copied objects and classes
+      (remove superfluous ::xotcl::initProcNS)
+      Must have been a bug from before XOTcl 1.0
+
+   * allow to load xotcl compiled for Tcl 8.4 to be loaded
+      into a tclsh8.5 (again, substantial change).
+      the behavior can be turned of by setting 
+      FORWARD_COMPATIBLE to 0
+
+      One can now test now 4 versions:
+      a) a native version for Tcl 8.4 (without compatibility layer)
+      b) a native version for Tcl 8.5
+      c) a version compiled for Tcl 8.4 with compatibility layer in tclsh8.4
+      d) a version compiled for Tcl 8.4 with compatibility layer in tclsh8.5 
+
+      My tests showed that the overhead is for the compatibility
+      layer is between 1.1 and 2.3%, the difference between 
+      tcl8.5 and tcl8.4 is much larger.
+
 2007-08-10: <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.5.4
 

@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclShadow.c,v 1.9 2007/08/14 16:38:26 neumann Exp $
+ * $Id: xotclShadow.c,v 1.10 2007/09/05 19:09:23 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -111,7 +111,6 @@ XOTcl_RenameObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[
 static int
 XOTcl_InfoObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]) {
   int result, isBody = 0;
-
   if (objc > 1) {
     char *opt = ObjStr(objv[1]);
     if (isBodyString(opt) && objc > 2)
@@ -122,7 +121,7 @@ XOTcl_InfoObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[])
   if (isBody && result == TCL_OK) {
     char *body = ObjStr(Tcl_GetObjResult(in));
     if (strncmp(body, "::xotcl::initProcNS\n",20) == 0)
-      body+=20;
+      body += 20;
     Tcl_SetObjResult(in, Tcl_NewStringObj(body, -1));
   }
   return result;
@@ -145,11 +144,10 @@ XOTclShadowTclCommands(Tcl_Interp *in, XOTclShadowOperations load) {
     /*fprintf(stderr, "+++ load tcl commands %d %d\n", load, initialized);*/
 
 #ifdef USE_TCL_STUBS
-    /* no commands are overloeaded, these are only used for calling 
+    /* no commands are overloaded, these are only used for calling 
        e.g. Tcl_ExprObjCmd(), Tcl_IncrObjCmd() and Tcl_SubstObjCmd(), 
-       which are not avalailable in though the stub table */
+       which are not avalailable in through the stub table */
     rc|= XOTclReplaceCommand(in, XOTE_EXPR,     0, initialized);
-    rc|= XOTclReplaceCommand(in, XOTE_INCR,     0, initialized);
     rc|= XOTclReplaceCommand(in, XOTE_SUBST,    0, initialized);
 #endif
     /* for the following commands, we have to add our own semantics */

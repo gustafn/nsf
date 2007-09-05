@@ -15,7 +15,7 @@
 XOTCL_VERSION='1.5'
 XOTCL_MAJOR_VERSION='1'
 XOTCL_MINOR_VERSION='5'
-XOTCL_RELEASE_LEVEL='.4'
+XOTCL_RELEASE_LEVEL='.5'
 
 # String to pass to compiles to pick up includes during build
 # (i.e., assuming nothing has been installed)
@@ -24,34 +24,34 @@ XOTCL_BUILD_INCLUDE_SPEC="-I${XOTCL_BUILD_INCLUDE_DIR}"
 
 # String to pass to compiles to pick up the XOTcl includes from their
 # installed directory.
-XOTCL_INCLUDE_DIR="/usr/local/aolserver-4.5/include/xotcl1.5.4"
+XOTCL_INCLUDE_DIR="/usr/local/aolserver-4.5/include/xotcl1.5.5"
 XOTCL_INCLUDE_SPEC="-I$XOTCL_INCLUDE_DIR"
 
 # The name of the XOTcl library (may be either a .a file or a shared library):
-XOTCL_LIB_FILE=libxotcl1.5.4.dylib
+XOTCL_LIB_FILE=libxotcl1.5.5.dylib
 
 # String to pass to linker to pick up the XOTcl library from its
 # build directory.
-XOTCL_BUILD_LIB_SPEC='-L/Users/neumann/src/xotcl-1.5.4 -lxotcl1.5.4'
+XOTCL_BUILD_LIB_SPEC='-L/Users/neumann/src/xotcl-1.5.5 -lxotcl1.5.5'
 
 # String to pass to linker to pick up the XOTcl library from its
 # installed directory.
-XOTCL_LIB_SPEC='-L/usr/local/aolserver-4.5/lib/xotcl1.5.4 -lxotcl1.5.4'
+XOTCL_LIB_SPEC='-L/usr/local/aolserver-4.5/lib/xotcl1.5.5 -lxotcl1.5.5'
 
 # The name of the XOTcl stub library (a .a file):
-# XOTCL_STUB_LIB_FILE=libxotclstub1.5.4.a
+# XOTCL_STUB_LIB_FILE=libxotclstub1.5.5.a
 
 # String to pass to linker to pick up the XOTcl stub library from its
 # build directory.
-XOTCL_BUILD_STUB_LIB_SPEC='-L/Users/neumann/src/xotcl-1.5.4 -lxotclstub1.5.4'
+XOTCL_BUILD_STUB_LIB_SPEC='-L/Users/neumann/src/xotcl-1.5.5 -lxotclstub1.5.5'
 
 # String to pass to linker to pick up the XOTcl stub library from its
 # installed directory.
-XOTCL_STUB_LIB_SPEC='-L/usr/local/aolserver-4.5/lib/xotcl1.5.4 -lxotclstub1.5.4'
+XOTCL_STUB_LIB_SPEC='-L/usr/local/aolserver-4.5/lib/xotcl1.5.5 -lxotclstub1.5.5'
 
 # Name of the xotcl stub library with full path in build and install directory
-XOTCL_BUILD_STUB_LIB_PATH='/Users/neumann/src/xotcl-1.5.4/libxotclstub1.5.4.a'
-XOTCL_STUB_LIB_PATH='/usr/local/aolserver-4.5/lib/xotcl1.5.4/libxotclstub1.5.4.a'
+XOTCL_BUILD_STUB_LIB_PATH='/Users/neumann/src/xotcl-1.5.5/libxotclstub1.5.5.a'
+XOTCL_STUB_LIB_PATH='/usr/local/aolserver-4.5/lib/xotcl1.5.5/libxotclstub1.5.5.a'
 
 # Location of the top-level source directories from which XOTcl
 # was built.  This is the directory that contains generic, unix, etc.
@@ -61,8 +61,8 @@ XOTCL_STUB_LIB_PATH='/usr/local/aolserver-4.5/lib/xotcl1.5.4/libxotclstub1.5.4.a
 XOTCL_SRC_DIR='.'
 
 # shared and unshared library suffix
-XOTCL_SHARED_LIB_SUFFIX=1.5.4.dylib
-XOTCL_UNSHARED_LIB_SUFFIX=1.5.4.a
+XOTCL_SHARED_LIB_SUFFIX=1.5.5.dylib
+XOTCL_UNSHARED_LIB_SUFFIX=1.5.5.a
 
 # the shell in whose installation dirs the xotcl package is installed
 XOTCL_COMPATIBLE_TCLSH=/usr/local/aolserver-4.5/bin/tclsh8.4

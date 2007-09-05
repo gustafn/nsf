@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.23 2007/08/14 16:38:26 neumann Exp $
+ *  $Id: xotclInt.h,v 1.24 2007/09/05 19:09:23 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
@@ -297,27 +297,25 @@ typedef struct XOTclMemCounter {
    Note that it is possible that between push and pop
    a obj->nsPtr can be created (e.g. during a read trace)
 */
-#define XOTcl_FrameDecls Tcl_CallFrame frame; int frame_constructed = 1
+#define XOTcl_FrameDecls TclCallFrame frame, *framePtr = &frame; int frame_constructed = 1
 #define XOTcl_PushFrame(interp,obj) \
      if ((obj)->nsPtr) {				     \
        frame_constructed = 0; \
-       Tcl_PushCallFrame(interp, &frame, (obj)->nsPtr, 0);   \
+       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, (obj)->nsPtr, 0); \
      } else { \
-       Tcl_CallFrame *framePtr = &frame;		\
        CallFrame *myframe = (CallFrame *)framePtr;		\
-       Tcl_PushCallFrame(interp, &frame, RUNTIME_STATE(interp)->fakeNS, 1);	\
+       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, RUNTIME_STATE(interp)->fakeNS, 1);	\
        Tcl_CallFrame_procPtr(myframe) = &RUNTIME_STATE(interp)->fakeProc;	\
        Tcl_CallFrame_varTablePtr(myframe) = (obj)->varTable;	\
      }
 #define XOTcl_PopFrame(interp,obj) \
      if (!(obj)->nsPtr) {	       \
-       Tcl_CallFrame *framePtr = &frame;		\
        CallFrame *myframe = (CallFrame *)framePtr;		\
        if ((obj)->varTable == 0)			    \
          (obj)->varTable = Tcl_CallFrame_varTablePtr(myframe);	\
      } \
      if (frame_constructed) { \
-       register Interp *iPtr = (Interp *) interp; \
+       Interp *iPtr = (Interp *) interp;  \
        register CallFrame *myframe = iPtr->framePtr; \
        Tcl_CallFrame_varTablePtr(myframe) = 0; \
        Tcl_CallFrame_procPtr(myframe) = 0; \
@@ -543,7 +541,7 @@ typedef enum {
     XOTE___UNKNOWN, XOTE_ARGS, XOTE_SPLIT, XOTE_COMMA,
     /** these are the redefined tcl commands; leave them
 	together at the end */
-    XOTE_EXPR, XOTE_INCR, XOTE_INFO, XOTE_RENAME, XOTE_SUBST
+    XOTE_EXPR, XOTE_INFO, XOTE_RENAME, XOTE_SUBST
 } XOTclGlobalNames;
 #if !defined(XOTCL_C)
 extern char *XOTclGlobalStrings[];
@@ -561,7 +559,7 @@ char *XOTclGlobalStrings[] = {
   "mkGetterSetter", "format",
   "__#", "-guard", "defaultmethod",
   "__unknown", "args", "split", ",",
-  "expr", "incr", "info", "rename", "subst",
+  "expr", "info", "rename", "subst",
 };
 #endif
 

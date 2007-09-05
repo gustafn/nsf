@@ -1,5 +1,5 @@
 static char cmd[] = 
-"# $Id: predefined.h,v 1.16 2007/08/14 16:38:26 neumann Exp $\n"
+"# $Id: predefined.h,v 1.17 2007/09/05 19:09:22 neumann Exp $\n"
 "foreach cmd [info command ::xotcl::Object::instcmd::*] {\n"
 "::xotcl::alias ::xotcl::Object [namespace tail $cmd] $cmd}\n"
 "foreach cmd {array append eval incr lappend trace subst unset} {\n"
@@ -529,11 +529,11 @@ static char cmd[] =
 "foreach e [list TMPDIR TEMP TMP] {\n"
 "if {[info exists ::env($e)] \\\n"
 "&& [file isdirectory $::env($e)] \\\n"
-"&& [file iswritable $::env($e)]} {\n"
+"&& [file writable $::env($e)]} {\n"
 "return $::env($e)}}\n"
 "if {$::tcl_platform(platform) eq \"windows\"} {\n"
 "foreach d [list \"C:\\\\TEMP\" \"C:\\\\TMP\" \"\\\\TEMP\" \"\\\\TMP\"] {\n"
-"if {[file isdirectory $d] && [file iswritable $d]} {\n"
+"if {[file isdirectory $d] && [file writable $d]} {\n"
 "return $d}}}\n"
 "return /tmp}\n"
 "";
