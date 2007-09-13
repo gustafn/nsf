@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.46 2007/09/05 19:09:22 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.47 2007/09/13 15:21:54 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -29,7 +29,7 @@ src_app_dir 	= ${srcdir}/apps
 src_generic_dir = ${srcdir}/generic
 TCL_LIB_SPEC    = -L/usr/local/aolserver-4.5/lib -ltcl8.4
 TK_LIB_SPEC	= 
-subdirs		= 
+subdirs		=  library/store/XOTclSdbm/ library/store/XOTclGdbm/ library/xml/TclExpat-1.1/
 aol_prefix	= /usr/local/aolserver-4.5
 
 # Requires native paths
@@ -42,9 +42,9 @@ src_test_dir_native 	= `echo ${src_test_dir}`
 src_app_dir_native	= `echo ${src_app_dir}`
 src_generic_dir_native	= `echo ${src_generic_dir}`
 
-libdirs = comm lib serialize 
+libdirs = comm lib serialize actiweb rdf registry store xml patterns
 libsrc 	= COPYRIGHT pkgIndex.tcl 
-appdirs = comm scripts utils 
+appdirs = comm scripts utils actiweb persistence
 appsrc 	= COPYRIGHT 
 
 DOC_SOURCE = \
@@ -127,7 +127,7 @@ INSTALL_SCRIPT	= ${INSTALL}
 
 PACKAGE_NAME	= xotcl
 PACKAGE_VERSION	= 1.5.5
-CC		= gcc -pipe
+CC		= gcc
 CFLAGS_DEFAULT	= -Os
 CFLAGS_WARNING	= -Wall -Wno-implicit-int
 CLEANFILES	= *.o *.a *.so *~ core gmon.out
@@ -191,7 +191,7 @@ CONFIG_CLEAN_FILES = Makefile xotclConfig.sh apps/utils/xotclsh apps/utils/xowis
 CPPFLAGS	= 
 LIBS		=  
 AR		= ar
-CFLAGS		=  ${CFLAGS_DEFAULT} ${CFLAGS_WARNING} ${SHLIB_CFLAGS}
+CFLAGS		= -pipe  ${CFLAGS_DEFAULT} ${CFLAGS_WARNING} ${SHLIB_CFLAGS}  
 COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 
 #========================================================================
@@ -335,7 +335,7 @@ shell: binaries libraries
 gdb:
 	$(TCLSH_ENV) gdb $(TCLSH_PROG) $(SCRIPT)
 
-test: binaries libraries test-core test-http 
+test: binaries libraries test-core test-http test-actiweb
 test-nohttp: binaries libraries test-core
 
 #TESTFLAGS = -srcdir $(srcdir)

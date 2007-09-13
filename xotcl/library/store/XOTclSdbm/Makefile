@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.29 2007/08/14 16:38:26 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.30 2007/09/13 15:21:54 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -68,8 +68,8 @@ BINARIES	= $(lib_BINARIES)
 SHELL		= /bin/sh
 
 srcdir		= .
-prefix		= /usr
-exec_prefix	= /usr
+prefix		= /usr/local/aolserver-4.5
+exec_prefix	= /usr/local/aolserver-4.5
 
 bindir		= ${exec_prefix}/bin
 libdir		= ${exec_prefix}/lib
@@ -93,7 +93,7 @@ INSTALL_SCRIPT	= ${INSTALL}
 
 PACKAGE_NAME	= xotclsdbm
 PACKAGE_VERSION	= 1.2
-CC		= gcc -pipe
+CC		= gcc
 CFLAGS_DEFAULT	= -Os
 CFLAGS_WARNING	= -Wall -Wno-implicit-int
 CLEANFILES	= pkgIndex.tcl
@@ -109,11 +109,11 @@ RANLIB_STUB	= ranlib
 SHLIB_CFLAGS	= -fno-common
 SHLIB_LD	= ${CC} -dynamiclib ${CFLAGS} ${LDFLAGS_DEFAULT} -Wl,-single_module
 SHLIB_LD_FLAGS	= @SHLIB_LD_FLAGS@
-SHLIB_LD_LIBS	= ${LIBS} -L/Library/Frameworks/Tcl.framework -ltclstub8.4
+SHLIB_LD_LIBS	= ${LIBS} -L/usr/local/aolserver-4.5/lib -ltclstub8.4
 STLIB_LD	= ${AR} cr
-TCL_DEFS	=  -DTCL_THREADS=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_READDIR_R=1 -DHAVE_THREE_ARG_READDIR_R=1 -DHAVE_COREFOUNDATION=1 -DMAC_OSX_TCL=1 -DUSE_VFORK=1 -DTCL_DEFAULT_ENCODING=\"utf-8\" -DTCL_LOAD_FROM_MEMORY=1 -DTCL_WIDE_INT_TYPE=long\ long -DWORDS_BIGENDIAN=1 -DHAVE_GETCWD=1 -DHAVE_OPENDIR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOL=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_TMPNAM=1 -DHAVE_WAITPID=1 -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_TERMIOS=1 -DHAVE_SYS_TIME_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_TM_ZONE=1 -DHAVE_GMTIME_R=1 -DHAVE_LOCALTIME_R=1 -DHAVE_TM_GMTOFF=1 -DHAVE_ST_BLKSIZE=1 -DSTDC_HEADERS=1 -DHAVE_SIGNED_CHAR=1 -DHAVE_PUTENV_THAT_COPIES=1 -DHAVE_LANGINFO=1 -DHAVE_SYS_IOCTL_H=1 -DHAVE_SYS_FILIO_H=1 -DTCL_FRAMEWORK=1 
-TCL_BIN_DIR	= /Library/Frameworks/Tcl.framework
-TCL_SRC_DIR	= /Volumes/Local/Users/steffen/Documents/Development/TclTk/tcltkaqua-8_4_10_0/source/tcl
+TCL_DEFS	=  -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_PTHREAD_ATFORK=1 -DTCL_THREADS=1 -DHAVE_COREFOUNDATION=1 -DMAC_OSX_TCL=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_GETCWD=1 -DHAVE_OPENDIR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOL=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_TMPNAM=1 -DHAVE_WAITPID=1 -DHAVE_GETPWUID_R_5=1 -DHAVE_GETPWUID_R=1 -DHAVE_GETPWNAM_R_5=1 -DHAVE_GETPWNAM_R=1 -DHAVE_GETGRGID_R_5=1 -DHAVE_GETGRGID_R=1 -DHAVE_GETGRNAM_R_5=1 -DHAVE_GETGRNAM_R=1 -DHAVE_MTSAFE_GETHOSTBYNAME=1 -DHAVE_MTSAFE_GETHOSTBYADDR=1 -DUSE_TERMIOS=1 -DHAVE_SYS_TIME_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_TM_ZONE=1 -DHAVE_GMTIME_R=1 -DHAVE_LOCALTIME_R=1 -DHAVE_TM_GMTOFF=1 -DHAVE_ST_BLKSIZE=1 -DSTDC_HEADERS=1 -DHAVE_SIGNED_CHAR=1 -DHAVE_PUTENV_THAT_COPIES=1 -DHAVE_LANGINFO=1 -DHAVE_COPYFILE=1 -DHAVE_LIBKERN_OSATOMIC_H=1 -DHAVE_OSSPINLOCKLOCK=1 -DHAVE_PTHREAD_ATFORK=1 -DUSE_VFORK=1 -DTCL_DEFAULT_ENCODING=\"utf-8\" -DTCL_LOAD_FROM_MEMORY=1 -DHAVE_AVAILABILITYMACROS_H=1 -DHAVE_FTS=1 -DHAVE_SYS_IOCTL_H=1 -DHAVE_SYS_FILIO_H=1 
+TCL_BIN_DIR	= /usr/local/aolserver-4.5/lib
+TCL_SRC_DIR	= /usr/local/src/tcl8.4.14
 # This is necessary for packages that use private Tcl headers
 #TCL_TOP_DIR_NATIVE	= @TCL_TOP_DIR_NATIVE@
 # Not used, but retained for reference of what libs Tcl required
@@ -131,11 +131,11 @@ TCLSH_ENV	= TCL_LIBRARY=`echo $(TCL_SRC_DIR)/library` \
 		  DYLD_LIBRARY_PATH="$(EXTRA_PATH):$(DYLD_LIBRARY_PATH)" \
 		  PATH="$(EXTRA_PATH):$(PATH)" \
 		  TCLLIBPATH="$(top_builddir)"
-TCLSH_PROG	= /usr/bin/tclsh8.4
+TCLSH_PROG	= /usr/local/aolserver-4.5/bin/tclsh8.4
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= 1
 
-INCLUDES	=  -I/Users/neumann/src/xotcl-1.5.3/generic -I./generic -I"/Library/Frameworks/Tcl.framework/Headers"
+INCLUDES	=  -I/Users/neumann/src/xotcl-1.5.5/generic -I./generic -I"/usr/local/aolserver-4.5/include"
 
 EXTRA_CFLAGS	=  
 
@@ -144,15 +144,15 @@ EXTRA_CFLAGS	=
 # that your library may use.  TCL_DEFS can actually be a problem if
 # you do not compile with a similar machine setup as the Tcl core was
 # compiled with.
-#DEFS		= $(TCL_DEFS) -DPACKAGE_NAME=\"xotclsdbm\" -DPACKAGE_TARNAME=\"xotclsdbm\" -DPACKAGE_VERSION=\"1.2\" -DPACKAGE_STRING=\"xotclsdbm\ 1.2\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DWORDS_BIGENDIAN=1 -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DTCL_THREADS=1 -DTCL_WIDE_INT_TYPE=long\ long -DUSE_TCL_STUBS=1  $(EXTRA_CFLAGS)
-DEFS		= -DPACKAGE_NAME=\"xotclsdbm\" -DPACKAGE_TARNAME=\"xotclsdbm\" -DPACKAGE_VERSION=\"1.2\" -DPACKAGE_STRING=\"xotclsdbm\ 1.2\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DWORDS_BIGENDIAN=1 -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DTCL_THREADS=1 -DTCL_WIDE_INT_TYPE=long\ long -DUSE_TCL_STUBS=1  $(EXTRA_CFLAGS)
+#DEFS		= $(TCL_DEFS) -DPACKAGE_NAME=\"xotclsdbm\" -DPACKAGE_TARNAME=\"xotclsdbm\" -DPACKAGE_VERSION=\"1.2\" -DPACKAGE_STRING=\"xotclsdbm\ 1.2\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DTCL_THREADS=1 -DTCL_WIDE_INT_TYPE=long\ long -DUSE_TCL_STUBS=1  $(EXTRA_CFLAGS)
+DEFS		= -DPACKAGE_NAME=\"xotclsdbm\" -DPACKAGE_TARNAME=\"xotclsdbm\" -DPACKAGE_VERSION=\"1.2\" -DPACKAGE_STRING=\"xotclsdbm\ 1.2\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DTCL_THREADS=1 -DTCL_WIDE_INT_TYPE=long\ long -DUSE_TCL_STUBS=1  $(EXTRA_CFLAGS)
 
 CONFIG_CLEAN_FILES = Makefile
 
 CPPFLAGS	= 
-LIBS		=  -L/Users/neumann/src/xotcl-1.5.3 -lxotclstub1.5.3 -L/Users/neumann/src/xotcl-1.5.3 -lxotcl1.5.3 
+LIBS		=  -L/Users/neumann/src/xotcl-1.5.5 -lxotclstub1.5.5 -L/Users/neumann/src/xotcl-1.5.5 -lxotcl1.5.5 
 AR		= ar
-CFLAGS		=  ${CFLAGS_DEFAULT} ${CFLAGS_WARNING} ${SHLIB_CFLAGS}
+CFLAGS		= -pipe  ${CFLAGS_DEFAULT} ${CFLAGS_WARNING} ${SHLIB_CFLAGS}  
 COMPILE		= $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 
 #========================================================================
@@ -200,10 +200,12 @@ install-binaries: binaries install-lib-binaries install-bin-binaries
 install-libraries: libraries
 	@mkdir -p $(DESTDIR)$(includedir)
 	@echo "Installing header files in $(DESTDIR)$(includedir)"
-	@for i in $(PKG_HEADERS) ; do \
+	@if test -n "$(PKG_HEADERS)" ; then \
+	  for i in "$(PKG_HEADERS)" ; do \
 	    echo "Installing $(srcdir)/$$i" ; \
 	    $(INSTALL_DATA) $(srcdir)/$$i $(DESTDIR)$(includedir) ; \
-	done;
+	  done; \
+	fi
 
 #========================================================================
 # Install documentation.  Unix manpages should go in the $(mandir)

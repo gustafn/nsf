@@ -1,6 +1,13 @@
 2007-09-00: <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.5.5
 
+2007-09-13: <Gustaf.Neumann@wu-wien.ac.at>
+     * upgrade to TEA 3.6
+
+2007-09-10: <Gustaf.Neumann@wu-wien.ac.at>
+     * make forwardoption -earlybinding more robust, when
+       forwards are done to tcl procs
+
 2007-08-16: <Gustaf.Neumann@wu-wien.ac.at>
     * fix introspection problem for copied objects and classes
       (remove superfluous ::xotcl::initProcNS)
@@ -17,8 +24,8 @@
       c) a version compiled for Tcl 8.4 with compatibility layer in tclsh8.4
       d) a version compiled for Tcl 8.4 with compatibility layer in tclsh8.5 
 
-      My tests showed that the overhead is for the compatibility
-      layer is between 1.1 and 2.3%, the difference between 
+      Tests showed that the overhead is for the compatibility
+      layer is between 1.1% and 2.3%, the difference between 
       tcl8.5 and tcl8.4 is much larger.
 
 2007-08-10: <Gustaf.Neumann@wu-wien.ac.at>

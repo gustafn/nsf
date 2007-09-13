@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.48 2007/09/05 19:09:22 neumann Exp $
+/* $Id: xotcl.c,v 1.49 2007/09/13 15:21:54 neumann Exp $
  *
  *  XOTcl - Extended Object Tcl
  *
@@ -6747,6 +6747,17 @@ XOTclSelfSubCommand(Tcl_Interp *in, XOTclObject *obj, char *option) {
                         "' for self", (char *) NULL);
 }
 
+/*
+int
+XOTclKObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]) {
+  if (objc < 2)
+    return XOTclVarErrMsg(in, "wrong # of args for K", (char *) NULL);
+
+  Tcl_SetObjResult(in, objv[1]);
+  return TCL_OK;
+}
+*/
+
 int
 XOTclGetSelfObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj;
@@ -10554,14 +10565,17 @@ forwardProcessOptions(Tcl_Interp *in, int objc, Tcl_Obj * CONST objv[],
       return XOTclVarErrMsg(in, "cannot lookup command '",ObjStr(tcd->cmdName), "'", (char *) NULL);
 
     tcd->objProc = Tcl_Command_objProc(cmd);
-    if (tcd->objProc == XOTclObjDispatch) { /* don't do direct invoke on xotcl objects */
+    if (tcd->objProc == XOTclObjDispatch     /* don't do direct invoke on xotcl objects */
+	|| tcd->objProc == TclObjInterpProc  /* don't do direct invoke on tcl procs */
+	) {
+      /* silently ignore earlybinding flag */
       tcd->objProc = NULL;
     } else {
       tcd->cd      = Tcl_Command_objClientData(cmd);
     }
   }
 
-  tcd->passthrough = !tcd->args && *(ObjStr(tcd->cmdName)) != '%' && tcd->objProc != 0;
+  tcd->passthrough = !tcd->args && *(ObjStr(tcd->cmdName)) != '%' && tcd->objProc != NULL;
 
   /*fprintf(stderr, "forward args = %p, name = '%s'\n",tcd->args, ObjStr(tcd->cmdName));*/
   if (rc == TCL_OK) {
@@ -12188,6 +12202,7 @@ Xotcl_Init(Tcl_Interp *in) {
   instructions[INST_SELF].cmdPtr = (Command *)
 #endif
   Tcl_CreateObjCommand(in, "::xotcl::self", XOTclGetSelfObjCmd, 0, 0);
+  /*Tcl_CreateObjCommand(in, "::xotcl::K", XOTclKObjCmd, 0, 0);*/
 
   Tcl_CreateObjCommand(in, "::xotcl::alias", XOTclAliasCommand, 0, 0);
   Tcl_CreateObjCommand(in, "::xotcl::configure", XOTclConfigureCommand, 0, 0);
