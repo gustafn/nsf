@@ -1,6 +1,6 @@
 /* -*- Mode: c++ -*-
  *
- *  $Id: xotcl.h,v 1.12 2007/09/05 19:09:23 neumann Exp $
+ *  $Id: xotcl.h,v 1.13 2007/09/18 19:27:33 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -39,6 +39,9 @@
 #  define TCL_STORAGE_CLASS DLLIMPORT
 # endif
 #endif
+
+/* use documented interface to link XOTcl state to an interpreter */
+#define USE_ASSOC_DATA 1
 
 /* new namespace support (post 1.2.0 */
 #define NAMESPACEINSTPROCS 1

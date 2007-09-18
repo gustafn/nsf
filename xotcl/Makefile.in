@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.24 2007/08/14 16:38:26 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.25 2007/09/18 19:27:32 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -657,8 +657,8 @@ rpm:
 bin-tar: 
 	(cd ..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
                 `find $(exec_prefix)/bin/xotclsh $(exec_prefix)/bin/xowish \
-                  $(prefix)/lib/xotcl* \
-                  $(prefix)/lib/libxotcl* \
+                  $(prefix)/lib/xotcl$(PACKAGE_VERSION)* \
+                  $(prefix)/lib/libxotcl$(PACKAGE_VERSION)* \
 		  $(prefix)/include/xotcl*.h \
                   $(DESTDIR)$(pkglibdir) $(prefix)/man/man1/xo* \
                 -type f -o -type l | fgrep -v CVS | fgrep -v SCCS | fgrep -v .junk| fgrep -v .db | fgrep -v "~" | fgrep -v "#" | fgrep -v /receiver/` \

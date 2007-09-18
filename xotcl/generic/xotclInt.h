@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.24 2007/09/05 19:09:23 neumann Exp $
+ *  $Id: xotclInt.h,v 1.25 2007/09/18 19:27:33 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
@@ -76,10 +76,9 @@ typedef struct XOTclMemCounter {
 #define DSTRING_FREE(D) Tcl_DStringFree(D); MEM_COUNT_FREE("DString",D)
 
 #if USE_ASSOC_DATA
-# define RUNTIME_STATE(in) ((XOTclRuntimeState*) Tcl_GetAssocData(in, "XOTclRuntimeState", NULL))
+# define RUNTIME_STATE(in) ((XOTclRuntimeState*)Tcl_GetAssocData((in), "XOTclRuntimeState", NULL))
 #else
-# define RUNTIME_STATE(in) \
-    ((XOTclRuntimeState*)((Interp*) in)->globalNsPtr->clientData)
+# define RUNTIME_STATE(in) ((XOTclRuntimeState*)((Interp*) in)->globalNsPtr->clientData)
 #endif
 
 

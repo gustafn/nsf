@@ -7,7 +7,7 @@ Group: Development/Languages
 Source:  http://www.xotcl.org/xotcl-@PACKAGE_VERSION@.tar.gz
 URL: http://www.xotcl.org
 Packager: Gustaf.Neumann@wu-wien.ac.at
-Distribution: Fedorea Core 3
+Distribution: Fedorea Core 7
 Requires: tcl
 Prefix: /usr
 BuildRoot: %{_tmppath}/%{name}-root
@@ -28,8 +28,9 @@ consult http://www.xotcl.org
 
 %build
 autoconf
-./configure --with-tcl=/usr/lib --with-all --prefix=@prefix@ --exec-prefix=@prefix@
-#make CFLAGS_DEFAULT='-O3 -mcpu=i686 -Wall -fomit-frame-pointer'
+# ./configure --with-tcl=/usr/lib --with-all --prefix=@prefix@ --exec-prefix=@prefix@
+./configure --with-tcl=/usr/lib --with-all --prefix=/usr --exec-prefix=/usr
+# make CFLAGS_DEFAULT='-O3 -mcpu=i686 -Wall -fomit-frame-pointer'
 make CFLAGS_DEFAULT='-O3 -Wall -fomit-frame-pointer'
 
 %install
