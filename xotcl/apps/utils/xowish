@@ -1,5 +1,5 @@
 #!@WISH_PROG@
-###!/usr/local/aolserver-4.5/bin/tclsh8.4
+###!/usr/bin/tclsh8.4
 ###package require Tk
 if {$argc == 0} {
   puts "Don't use [info script] as interactive shell! Use instead:"

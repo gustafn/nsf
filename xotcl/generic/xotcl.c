@@ -1,4 +1,4 @@
-/* $Id: xotcl.c,v 1.49 2007/09/13 15:21:54 neumann Exp $
+/* $Id: xotcl.c,v 1.50 2007/10/05 09:06:00 neumann Exp $
  *
  *  XOTcl - Extended Object Tcl
  *
@@ -750,9 +750,11 @@ static void printExit(Tcl_Interp *in, char *string,
 
 #if defined(XOTCLOBJ_TRACE)
 void objTrace(char *string, XOTclObject *obj) {
-  if(obj)
-    fprintf(stderr,"--- %s tcl %p (%d) xotcl %p (%d) %s \n", string,
-	    obj->cmdName, obj->cmdName->refCount, obj, obj->refCount, ObjStr(obj->cmdName));
+  if (obj)
+    fprintf(stderr,"--- %s tcl %p %s (%d %p) xotcl %p (%d) %s \n", string,
+	    obj->cmdName, obj->cmdName->typePtr ? obj->cmdName->typePtr->name : "NULL",
+            obj->cmdName->refCount, obj->cmdName->internalRep.twoPtrValue.ptr1,
+            obj, obj->refCount, ObjStr(obj->cmdName));
   else
     fprintf(stderr,"--- No object: %s\n",string);
 }
@@ -2371,7 +2373,8 @@ CallStackDoDestroy(Tcl_Interp *in, XOTclObject *obj) {
   oid = obj->id;
   obj->id = 0;
   if (obj->teardown && oid) {
-    Tcl_DeleteCommandFromToken(in, oid);
+      /* This command will call PrimitiveODestroy or PrimitiveCDestroy */
+      Tcl_DeleteCommandFromToken(in, oid);
   }
 }
 
@@ -3395,7 +3398,7 @@ MixinSearchProc(Tcl_Interp *in, XOTclObject *obj, char *methodName,
   
 
   while (cmdList) {
-    if(Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
+    if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
       cmdList = cmdList->next;
     } else {
       cls = XOTclGetClassFromCmdPtr(cmdList->cmdPtr);
@@ -4318,7 +4321,7 @@ FilterSearchProc(Tcl_Interp *in, XOTclObject *obj, Tcl_ObjCmdProc **proc, Client
 
   FilterSeekCurrent(in, obj, &cmdList);
   while (cmdList) {
-    if(Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
+    if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
       cmdList = cmdList->next;
     } else if (FilterActiveOnObj(in, obj, cmdList->cmdPtr)) {
       /* fprintf(stderr, "Filter <%s> -- Active on: %s\n",
@@ -5001,7 +5004,7 @@ DoDispatch(ClientData cd, Tcl_Interp *in, int objc,
 
   callMethod = methodName; 
 #ifdef AUTOVARS
-    if(!isNext) {
+    if (!isNext) {
 #endif
       /* Only start new filter chain, if
 	 (a) filters are defined and
@@ -6915,9 +6918,9 @@ static void
 PrimitiveODestroy(ClientData cd) {
   XOTclObject *obj = (XOTclObject*)cd;
   Tcl_Interp *in;
-  Tcl_Command cmd;
 
-  /*fprintf(stderr, "****** PrimitiveODestroy %p\n",obj);*/
+
+  /* fprintf(stderr, "****** PrimitiveODestroy %p\n",obj);*/
   assert(obj && !(obj->flags & XOTCL_DESTROYED));
 
   /*
@@ -6954,10 +6957,22 @@ PrimitiveODestroy(ClientData cd) {
   while (obj->filterStack != NULL)
     FilterStackPop(obj);
 
-  cmd = Tcl_GetCommandFromObj(in, obj->cmdName);
-
-  if (cmd != NULL)
-    Tcl_Command_deleteProc(cmd) = 0;
+#if 0
+  {
+      /* Prevent that PrimitiveODestroy is called more than once.
+         This code was used in earlier versions of XOTcl 
+         but does not seem necessary any more. If it has to be used
+         again in the future, don't use Tcl_GetCommandFromObj()
+         in Tcl 8.4.* versions.
+      */
+      Tcl_Command cmd = Tcl_FindCommand(in, ObjStr(obj->cmdName), 0, 0);
+      /* cmd = Tcl_GetCommandFromObj(in, obj->cmdName);*/
+      
+      if (cmd != NULL) {
+          Tcl_Command_deleteProc(cmd) = 0;
+      }
+  }
+#endif
 
   if (obj->nsPtr) {
     /*fprintf(stderr,"primitive odestroy calls deletenamespace for obj %p\n",obj);*/
@@ -9688,6 +9703,22 @@ XOTclCInstDestroyMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST 
     return XOTclVarErrMsg(in, "Can't destroy object ",
 			  ObjStr(objv[1]), " that does not exist.", 
                           (char *) NULL);
+
+  /* fprintf(stderr,"instdestroy obj=%s, opt=%p\n",ObjStr(delobj->cmdName),delobj->opt);*/
+
+  if (delobj->opt && delobj->opt->volatileVarName) {
+      /*
+        Somebody destroys a volatile object manually while
+        the vartrace is still active. Destroying the object will
+        be a problem in case the variable is deleted later
+        and fires the trace. So, we unset the variable here
+        which will cause a destroy via var trace, which in 
+        turn clears the volatileVarName flag.
+      */
+      /* fprintf(stderr,"volatile var name %s\n",delobj->opt->volatileVarName);*/
+      return Tcl_UnsetVar2(in, delobj->opt->volatileVarName, 0, 0);
+  }
+
   /*
    * latch, and call delete command if not already in progress
    */
@@ -9952,7 +9983,12 @@ XOTclUnsetTrace(ClientData cd, Tcl_Interp *in, CONST84 char *name, CONST84 char 
     if (XOTclObjConvertObject(in, obj, &o) == TCL_OK) {
       Tcl_Obj *res = Tcl_GetObjResult(in); /* save the result */
       INCR_REF_COUNT(res);
-      
+
+      /* clear variable, destroy is called from trace */
+      if (o->opt && o->opt->volatileVarName) {
+          o->opt->volatileVarName = NULL;
+      }
+
       if (callMethod((ClientData)o, in, XOTclGlobalObjects[XOTE_DESTROY],2,0,0) != TCL_OK) {
 	result = "Destroy for volatile object failed";
       } else
@@ -10646,14 +10682,17 @@ XOTclOVolatileMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj * CONST ob
   char *vn;
   callFrameContext ctx = {0};
 
-  if (objc != 1) return XOTclObjErrArgCnt(in, obj->cmdName, "volatile");
+  if (objc != 1) 
+      return XOTclObjErrArgCnt(in, obj->cmdName, "volatile");
 
   CallStackUseActiveFrames(in, &ctx);
   vn = NSTail(fullName);
 
   if (Tcl_SetVar2(in, vn, 0, fullName, 0) != NULL) {
-    result = Tcl_TraceVar(in, vn, TCL_TRACE_UNSETS, (Tcl_VarTraceProc*)XOTclUnsetTrace,
-			  (ClientData)o);
+      XOTclObjectOpt *opt = XOTclRequireObjectOpt(obj);
+      result = Tcl_TraceVar(in, vn, TCL_TRACE_UNSETS, (Tcl_VarTraceProc*)XOTclUnsetTrace,
+                            (ClientData)o);
+      opt->volatileVarName = vn;
   }
   CallStackRestoreSavedFrames(in, &ctx);
 

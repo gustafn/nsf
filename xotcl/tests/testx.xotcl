@@ -1,4 +1,4 @@
-#$Id: testx.xotcl,v 1.34 2007/08/14 16:38:27 neumann Exp $
+#$Id: testx.xotcl,v 1.35 2007/10/05 09:06:00 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 
@@ -2934,6 +2934,18 @@ smallScripts proc run {{n 20}} {
     namespace delete foo 
     ::errorCheck [Object isobject ::foo::Foo] 0 "Namespace delete under object"
 
+   # destroy test
+   set x [Object create x]
+   x destroy
+   ::errorCheck [catch {$x set a 1}] 1 "Reference to destroyed object still valid"
+
+   Object create x -volatile
+   unset x
+   ::errorCheck [catch {x destroy}] 1 "Object should not exist anymore"
+
+   Object create x -volatile
+   x destroy
+   ::errorCheck [catch {unset x}] 1 "Variable should not exist anymore"
 }
 
 

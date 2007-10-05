@@ -1,4 +1,4 @@
-# $Id: Serializer.xotcl,v 1.18 2007/08/14 16:38:26 neumann Exp $
+# $Id: Serializer.xotcl,v 1.19 2007/10/05 09:06:00 neumann Exp $
 package require XOTcl 1.5
 package provide xotcl::serializer 1.0
 
@@ -15,7 +15,7 @@ namespace eval ::xotcl::serializer {
     authors {
       Gustaf Neumann, Gustaf.Neumann@wu-wien.ac.at
     }
-    date { $Date: 2007/08/14 16:38:26 $ }
+    date { $Date: 2007/10/05 09:06:00 $ }
   }
   
   @ Serializer proc all {
@@ -343,7 +343,9 @@ namespace eval ::xotcl::serializer {
   
   Serializer instproc Class-needsNothing x {
     if {![my Object-needsNothing $x]}         {return 0}
-    if {[my needsOneOf [$x info superclass]]} {return 0}
+    set scs [$x info superclass]
+    if {[my needsOneOf $scs]} {return 0}
+    foreach sc $scs {if {[my needsOneOf [$sc info slots]]} {return 0}}
     #if {[my needsOneOf [$x info instmixin ]]} {return 0}
     return 1
   }
@@ -395,7 +397,7 @@ namespace eval ::xotcl::serializer {
     # (3) re-activating the traces after variable initialization
 
     set exports ""
-    set pre_cmds "::xotcl::Object instproc trace args {}\n"
+    set pre_cmds ""
 
     # delete ::xotcl from the namespace list, if it exists...
     catch {unset namespace(::xotcl)}
@@ -412,7 +414,7 @@ namespace eval ::xotcl::serializer {
       }
     }
 
-    append post_cmds "::xotcl::alias ::xotcl::Object trace -objscope ::trace\n"
+    #append post_cmds "::xotcl::alias ::xotcl::Object trace -objscope ::trace\n"
     return $pre_cmds$result$post_cmds$exports
   }
   Serializer instproc deepSerialize o {
@@ -487,6 +489,7 @@ namespace eval ::xotcl::serializer {
     my exportMethods [list ::xotcl::Object proc __exitHandler]
     set r {
       set ::xotcl::__filterstate [::xotcl::configure filter off]
+      ::xotcl::Object instproc trace args {}
       ::xotcl::Slot instmixin add ::xotcl::Slot::Nocheck
     } 
     append r "::xotcl::configure softrecreate [::xotcl::configure softrecreate]"
@@ -504,6 +507,7 @@ namespace eval ::xotcl::serializer {
       }
     }
     append r {
+      ::xotcl::alias ::xotcl::Object trace -objscope ::trace
       ::xotcl::Slot instmixin delete ::xotcl::Slot::Nocheck
       ::xotcl::configure filter $::xotcl::__filterstate
       unset ::xotcl::__filterstate

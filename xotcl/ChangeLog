@@ -1,3 +1,39 @@
+2007-10-04: <Gustaf.Neumann@wu-wien.ac.at>
+
+    * Revise fix below. The problem was apparently that change of a
+      call of Tcl_FindCommand to Tcl_GetCommandFromObj(), where the
+      latter one had bad side-effects when it is called during
+      deletion.  Although the fix below fixed the symptoms, the new
+      approach is better since it is apparently not required any more
+      to fetch the cmd during PrimitiveODestroy to ensure it is not
+      called twice. The problem appeared in XOTcl between 1.5.3 and
+      1.5.4 and happens only in 8.4.* Tcl.
+
+    * Improve debugging code to make it easier to trace
+      problems with Tcl_Objs.
+
+    * Serializer: Added dependency rule in serializer to ensure slots of
+      superclasses are listed before subclasses. (Thanks to Stefan
+      Sobernig for reporting the problem)
+
+    * Serializer: moved deactivation of traces into "Serializer all"
+      to get simpler results on "o serialize".
+
+    * Regression tests: extended tests to address 
+       the newly identified and fixed problem cases.
+
+2007-09-29: <Gustaf.Neumann@wu-wien.ac.at>
+
+    * Fix for Tcl 8.4.16 (and maybe some other recent tcl 8.4.*
+      versions, 8.5 is fine) for situations, where Tcl variable
+      contain references to deleted XOTcl objects.  The fix added a
+      epoch increment to CallStackDoDestroy().
+
+2007-09-29: <Gustaf.Neumann@wu-wien.ac.at>
+
+    * Fix for cases, where volatile objects are destroyed
+      (e.g. manually) before the corresponding trace variable.
+
 2007-09-18: <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.5.5
 
