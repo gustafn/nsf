@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile,v 1.48 2007/10/05 09:05:59 neumann Exp $
+# RCS: @(#) $Id: Makefile,v 1.49 2007/10/12 19:53:32 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -27,7 +27,7 @@ src_doc_dir 	= ${srcdir}/doc
 src_test_dir 	= ${srcdir}/tests
 src_app_dir 	= ${srcdir}/apps
 src_generic_dir = ${srcdir}/generic
-TCL_LIB_SPEC    = -L/usr/lib -ltcl8.4
+TCL_LIB_SPEC    = -L/usr/local/lib -ltcl8.5
 TK_LIB_SPEC	= 
 subdirs		= 
 aol_prefix	= /usr/local/aolserver
@@ -107,14 +107,14 @@ BINARIES	= $(lib_BINARIES)
 SHELL		= /bin/sh
 
 srcdir		= .
-prefix		= /usr
-exec_prefix	= /usr
+prefix		= /usr/local
+exec_prefix	= /usr/local
 
 bindir		= ${exec_prefix}/bin
-libdir		= /usr/lib
-datadir		= /usr/share
+libdir		= /usr/local/lib
+datadir		= /usr/local/share
 mandir		= ${prefix}/man
-includedir	= /usr/include
+includedir	= /usr/local/include
 
 DESTDIR		=
 
@@ -143,19 +143,19 @@ RANLIB_STUB	= ranlib
 SHLIB_CFLAGS	= -fno-common
 SHLIB_LD	= ${CC} -dynamiclib ${CFLAGS} ${LDFLAGS_DEFAULT} -Wl,-single_module
 SHLIB_LD_FLAGS	= @SHLIB_LD_FLAGS@
-SHLIB_LD_LIBS	= ${LIBS} -L/usr/lib -ltclstub8.4
+SHLIB_LD_LIBS	= ${LIBS} -L/usr/local/lib -ltclstub8.5
 STLIB_LD	= ${AR} cr
-TCL_DEFS	=  -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_PTHREAD_ATFORK=1 -DTCL_THREADS=1 -DHAVE_COREFOUNDATION=1 -DMAC_OSX_TCL=1 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_GETCWD=1 -DHAVE_OPENDIR=1 -DHAVE_STRSTR=1 -DHAVE_STRTOL=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_TMPNAM=1 -DHAVE_WAITPID=1 -DHAVE_GETPWUID_R_5=1 -DHAVE_GETPWUID_R=1 -DHAVE_GETPWNAM_R_5=1 -DHAVE_GETPWNAM_R=1 -DHAVE_GETGRGID_R_5=1 -DHAVE_GETGRGID_R=1 -DHAVE_GETGRNAM_R_5=1 -DHAVE_GETGRNAM_R=1 -DHAVE_MTSAFE_GETHOSTBYNAME=1 -DHAVE_MTSAFE_GETHOSTBYADDR=1 -DUSE_TERMIOS=1 -DHAVE_SYS_TIME_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_TM_ZONE=1 -DHAVE_GMTIME_R=1 -DHAVE_LOCALTIME_R=1 -DHAVE_TM_GMTOFF=1 -DHAVE_ST_BLKSIZE=1 -DSTDC_HEADERS=1 -DHAVE_SIGNED_CHAR=1 -DHAVE_PUTENV_THAT_COPIES=1 -DHAVE_LANGINFO=1 -DHAVE_COPYFILE=1 -DHAVE_LIBKERN_OSATOMIC_H=1 -DHAVE_OSSPINLOCKLOCK=1 -DHAVE_PTHREAD_ATFORK=1 -DUSE_VFORK=1 -DTCL_DEFAULT_ENCODING=\"utf-8\" -DTCL_LOAD_FROM_MEMORY=1 -DHAVE_AVAILABILITYMACROS_H=1 -DHAVE_FTS=1 -DHAVE_SYS_IOCTL_H=1 -DHAVE_SYS_FILIO_H=1 
-TCL_BIN_DIR	= /usr/lib
-TCL_SRC_DIR	= /usr/local/src/tcl8.4.16
+TCL_DEFS	= -DPACKAGE_NAME=\"tcl\" -DPACKAGE_TARNAME=\"tcl\" -DPACKAGE_VERSION=\"8.5\" -DPACKAGE_STRING=\"tcl\ 8.5\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DNO_VALUES_H=1 -DHAVE_LIMITS_H=1 -DHAVE_SYS_PARAM_H=1 -DUSE_THREAD_ALLOC=1 -D_REENTRANT=1 -D_THREAD_SAFE=1 -DHAVE_PTHREAD_ATTR_SETSTACKSIZE=1 -DHAVE_PTHREAD_GET_STACKSIZE_NP=1 -DTCL_THREADS=1 -DTCL_CFGVAL_ENCODING=\"iso8859-1\" -DMODULE_SCOPE=extern\ __attribute__\(\(__visibility__\(\"hidden\"\)\)\) -DHAVE_COREFOUNDATION=1 -DMAC_OSX_TCL=1 -DTCL_SHLIB_EXT=\".dylib\" -DTCL_CFG_OPTIMIZED=1 -DTCL_CFG_DEBUG=1 -DTCL_TOMMATH=1 -DMP_PREC=4 -DTCL_WIDE_INT_TYPE=long\ long -DHAVE_GETCWD=1 -DHAVE_OPENDIR=1 -DHAVE_STRTOL=1 -DHAVE_STRTOLL=1 -DHAVE_STRTOULL=1 -DHAVE_TMPNAM=1 -DHAVE_WAITPID=1 -DHAVE_GETPWUID_R_5=1 -DHAVE_GETPWUID_R=1 -DHAVE_GETPWNAM_R_5=1 -DHAVE_GETPWNAM_R=1 -DHAVE_GETGRGID_R_5=1 -DHAVE_GETGRGID_R=1 -DHAVE_GETGRNAM_R_5=1 -DHAVE_GETGRNAM_R=1 -DHAVE_MTSAFE_GETHOSTBYNAME=1 -DHAVE_MTSAFE_GETHOSTBYADDR=1 -DUSE_TERMIOS=1 -DHAVE_SYS_TIME_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE_STRUCT_TM_TM_ZONE=1 -DHAVE_TM_ZONE=1 -DHAVE_GMTIME_R=1 -DHAVE_LOCALTIME_R=1 -DHAVE_MKTIME=1 -DHAVE_TM_GMTOFF=1 -DHAVE_STRUCT_STAT_ST_BLKSIZE=1 -DHAVE_ST_BLKSIZE=1 -DHAVE_INTPTR_T=1 -DHAVE_UINTPTR_T=1 -DHAVE_SIGNED_CHAR=1 -DHAVE_PUTENV_THAT_COPIES=1 -DHAVE_LANGINFO=1 -DHAVE_CHFLAGS=1 -DHAVE_GETATTRLIST=1 -DHAVE_COPYFILE=1 -DHAVE_LIBKERN_OSATOMIC_H=1 -DHAVE_OSSPINLOCKLOCK=1 -DHAVE_PTHREAD_ATFORK=1 -DUSE_VFORK=1 -DTCL_DEFAULT_ENCODING=\"utf-8\" -DTCL_LOAD_FROM_MEMORY=1 -DTCL_WIDE_CLICKS=1 -DHAVE_AVAILABILITYMACROS_H=1 -DHAVE_FTS=1 -DHAVE_SYS_IOCTL_H=1 -DHAVE_SYS_FILIO_H=1 -DTCL_UNLOAD_DLLS=1 
+TCL_BIN_DIR	= /usr/local/lib
+TCL_SRC_DIR	= /Users/neumann/src/tcl/tcl
 # This is necessary for packages that use private Tcl headers
-#TCL_TOP_DIR_NATIVE	= "/usr/local/src/tcl8.4.16"
+#TCL_TOP_DIR_NATIVE	= "/Users/neumann/src/tcl/tcl"
 # Not used, but retained for reference of what libs Tcl required
 TCL_LIBS	= ${DL_LIBS} ${LIBS} ${MATH_LIBS}
 
-pkgdatadir	= /usr/share/xotcl1.5.6
-pkglibdir	= /usr/lib/xotcl1.5.6
-pkgincludedir	= /usr/include/xotcl1.5.6
+pkgdatadir	= /usr/local/share/xotcl1.5.6
+pkglibdir	= /usr/local/lib/xotcl1.5.6
+pkgincludedir	= /usr/local/include/xotcl1.5.6
 
 # XOTCLSH = xotclsh
 
@@ -171,11 +171,11 @@ TCLSH_ENV	= TCL_LIBRARY=`echo $(TCL_SRC_DIR)/library` \
 		  DYLD_LIBRARY_PATH="$(EXTRA_PATH):$(DYLD_LIBRARY_PATH)" \
 		  PATH="$(EXTRA_PATH):$(PATH)" \
 		  TCLLIBPATH="$(top_builddir) ${srcdir}"
-TCLSH_PROG	= /usr/bin/tclsh8.4
+TCLSH_PROG	= /usr/local/bin/tclsh8.5
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= 1
 
-INCLUDES	=  -I"/usr/local/src/tcl8.4.16/generic" -I"/usr/local/src/tcl8.4.16/unix" -I./generic
+INCLUDES	=  -I"/Users/neumann/src/tcl/tcl/generic" -I"/Users/neumann/src/tcl/tcl/unix" -I./generic
 EXTRA_CFLAGS	=  -DXOTCLVERSION=\"1.5\" -DXOTCLPATCHLEVEL=\".6\" 	 -DHAVE_TCL_COMPILE_H=1
 
 # TCL_DEFS is not strictly need here, but if you remove it, then you
@@ -634,7 +634,7 @@ end:
 	@echo "   setenv TCLLIBPATH \"$(TCLLIBPATH)\""
 	@echo " and"
 	@if test "x$(XOTCLSH)" = "x" ; then \
-	  echo "   /usr/bin/tclsh8.4" ; \
+	  echo "   /usr/local/bin/tclsh8.5" ; \
 	  echo "   package require XOTcl; namespace import -force xotcl::*" ; \
 	  echo " or" ; \
 	  echo "   put the 'package require' line into your ~/.tclshrc" ; \

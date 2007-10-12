@@ -28,7 +28,7 @@ consult http://www.xotcl.org
 
 %build
 autoconf
-# ./configure --with-tcl=/usr/lib --with-all --prefix=/usr --exec-prefix=/usr
+# ./configure --with-tcl=/usr/lib --with-all --prefix=/usr/local --exec-prefix=/usr/local
 ./configure --with-tcl=/usr/lib --with-all --prefix=/usr --exec-prefix=/usr
 # make CFLAGS_DEFAULT='-O3 -mcpu=i686 -Wall -fomit-frame-pointer'
 make CFLAGS_DEFAULT='-O3 -Wall -fomit-frame-pointer'

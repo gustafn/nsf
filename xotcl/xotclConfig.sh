@@ -24,7 +24,7 @@ XOTCL_BUILD_INCLUDE_SPEC="-I${XOTCL_BUILD_INCLUDE_DIR}"
 
 # String to pass to compiles to pick up the XOTcl includes from their
 # installed directory.
-XOTCL_INCLUDE_DIR="/usr/include/xotcl1.5.6"
+XOTCL_INCLUDE_DIR="/usr/local/include/xotcl1.5.6"
 XOTCL_INCLUDE_SPEC="-I$XOTCL_INCLUDE_DIR"
 
 # The name of the XOTcl library (may be either a .a file or a shared library):
@@ -36,7 +36,7 @@ XOTCL_BUILD_LIB_SPEC='-L/Users/neumann/src/xotcl-1.5.6 -lxotcl1.5.6'
 
 # String to pass to linker to pick up the XOTcl library from its
 # installed directory.
-XOTCL_LIB_SPEC='-L/usr/lib/xotcl1.5.6 -lxotcl1.5.6'
+XOTCL_LIB_SPEC='-L/usr/local/lib/xotcl1.5.6 -lxotcl1.5.6'
 
 # The name of the XOTcl stub library (a .a file):
 # XOTCL_STUB_LIB_FILE=libxotclstub1.5.6.a
@@ -47,11 +47,11 @@ XOTCL_BUILD_STUB_LIB_SPEC='-L/Users/neumann/src/xotcl-1.5.6 -lxotclstub1.5.6'
 
 # String to pass to linker to pick up the XOTcl stub library from its
 # installed directory.
-XOTCL_STUB_LIB_SPEC='-L/usr/lib/xotcl1.5.6 -lxotclstub1.5.6'
+XOTCL_STUB_LIB_SPEC='-L/usr/local/lib/xotcl1.5.6 -lxotclstub1.5.6'
 
 # Name of the xotcl stub library with full path in build and install directory
 XOTCL_BUILD_STUB_LIB_PATH='/Users/neumann/src/xotcl-1.5.6/libxotclstub1.5.6.a'
-XOTCL_STUB_LIB_PATH='/usr/lib/xotcl1.5.6/libxotclstub1.5.6.a'
+XOTCL_STUB_LIB_PATH='/usr/local/lib/xotcl1.5.6/libxotclstub1.5.6.a'
 
 # Location of the top-level source directories from which XOTcl
 # was built.  This is the directory that contains generic, unix, etc.
@@ -65,5 +65,5 @@ XOTCL_SHARED_LIB_SUFFIX=1.5.6.dylib
 XOTCL_UNSHARED_LIB_SUFFIX=1.5.6.a
 
 # the shell in whose installation dirs the xotcl package is installed
-XOTCL_COMPATIBLE_TCLSH=/usr/bin/tclsh8.4
+XOTCL_COMPATIBLE_TCLSH=/usr/local/bin/tclsh8.5
 

@@ -1,3 +1,20 @@
+
+2007-10-12: <Gustaf.Neumann@wu-wien.ac.at>
+    * Release of XOTcl 1.5.6
+
+2007-10-09: <Gustaf.Neumann@wu-wien.ac.at>
+   * More fixes for treating gobal volatile objects
+     during shutdown:
+       - do not allow to create new objects during shutdown
+       - do not allow objects to be set volatile during shutdown
+       - handle cases, where application level destroy methods 
+          fail (this could lead to remaining tcl traces pointing
+          to destroyed objects)
+       - handle namespaced variables helding deletion traces
+          for volatile objects
+      Guess, it would be much simpler to use Tcl-level
+      unset traces than C-level unset traces...
+
 2007-10-04: <Gustaf.Neumann@wu-wien.ac.at>
 
     * Revise fix below. The problem was apparently that change of a
@@ -23,16 +40,14 @@
        the newly identified and fixed problem cases.
 
 2007-09-29: <Gustaf.Neumann@wu-wien.ac.at>
-
     * Fix for Tcl 8.4.16 (and maybe some other recent tcl 8.4.*
       versions, 8.5 is fine) for situations, where Tcl variable
       contain references to deleted XOTcl objects.  The fix added a
       epoch increment to CallStackDoDestroy().
 
 2007-09-29: <Gustaf.Neumann@wu-wien.ac.at>
-
-    * Fix for cases, where volatile objects are destroyed
-      (e.g. manually) before the corresponding trace variable.
+    * Fix for cases, where volatile objects are
+      deleted before the corrsoponding trace variable.
 
 2007-09-18: <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.5.5
