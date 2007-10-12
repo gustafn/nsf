@@ -1,10 +1,10 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<!-- $Id: tutorial.html,v 1.20 2007/09/05 19:09:22 neumann Exp $ -->
+<!-- $Id: tutorial.html,v 1.16 2006/10/04 20:40:23 neumann Exp $ -->
 <HTML>
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
 	<META NAME="AUTHOR" CONTENT="Gustaf Neumann and Uwe Zdun">
-	<META NAME="DOCNUMBER" CONTENT="1.5.5">
+	<META NAME="DOCNUMBER" CONTENT="1.5.2">
 	<META NAME="CHANGEDBY" CONTENT="Gustaf Neumann">
 <STYLE>
 BODY	{
@@ -59,7 +59,7 @@ table {
 			<IMG SRC="logo-100.jpg" NAME="Graphic1" ALIGN=RIGHT WIDTH=102 HEIGHT=42 BORDER=0></TD>
 	</TR>
 </TABLE>
-<p align=right>Version: 1.5.5</p>
+<p align=right>Version: 1.5.2</p>
 
 <UL>
 	<LI>
@@ -1246,15 +1246,15 @@ special room:
   <tt>Class</tt> Kitchen <tt>-superclass</tt> Room
 </pre><P>
 Now all instances of <tt>Kitchen</tt> are able to access the
-operations stored in the <tt>Room</tt>  and in the <tt>Kitchen</tt> class.
+methods provided by the <tt>Room</tt> and the <tt>Kitchen</tt> classes.
 Note the transition the kitchen was going through: firstly it was a
 singular object, then it was an object with a user-defined class,
-and now it is a class. This is possible (and not senseless) because
-of the per-object specialization ability and the dual shape of a
-class, which is at the same time object and class. Both lead to a
-seamless connection of the run-time properties (the object features)
-and their descriptive properties (the class features). It is possible
-to avoid the strict distinction between them, known from static typed
+and now it is a class. This is possible because we can provide 
+a per-object behavior, and because classes are a special kind of objects.
+Both properties of XOTcl's object system lead to a
+seamless connection of the run-time behavior of objects
+and the descriptive properties of the classes. It is possible
+to avoid the strict distinction between objects and classes, known from static typed
 languages, like C++, Java, etc. 
 </p>
 <p>Moreover, since the syntaxes of constructs expressing the same

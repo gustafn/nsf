@@ -1,79 +1,14 @@
-
-2007-10-12: <Gustaf.Neumann@wu-wien.ac.at>
-    * Release of XOTcl 1.5.6
-
-2007-10-09: <Gustaf.Neumann@wu-wien.ac.at>
-   * More fixes for treating gobal volatile objects
-     during shutdown:
-       - do not allow to create new objects during shutdown
-       - do not allow objects to be set volatile during shutdown
-       - handle cases, where application level destroy methods 
-          fail (this could lead to remaining tcl traces pointing
-          to destroyed objects)
-       - handle namespaced variables helding deletion traces
-          for volatile objects
-      Guess, it would be much simpler to use Tcl-level
-      unset traces than C-level unset traces...
-
-2007-10-04: <Gustaf.Neumann@wu-wien.ac.at>
-
-    * Revise fix below. The problem was apparently that change of a
-      call of Tcl_FindCommand to Tcl_GetCommandFromObj(), where the
-      latter one had bad side-effects when it is called during
-      deletion.  Although the fix below fixed the symptoms, the new
-      approach is better since it is apparently not required any more
-      to fetch the cmd during PrimitiveODestroy to ensure it is not
-      called twice. The problem appeared in XOTcl between 1.5.3 and
-      1.5.4 and happens only in 8.4.* Tcl.
-
-    * Improve debugging code to make it easier to trace
-      problems with Tcl_Objs.
-
-    * Serializer: Added dependency rule in serializer to ensure slots of
-      superclasses are listed before subclasses. (Thanks to Stefan
-      Sobernig for reporting the problem)
-
-    * Serializer: moved deactivation of traces into "Serializer all"
-      to get simpler results on "o serialize".
-
-    * Regression tests: extended tests to address 
-       the newly identified and fixed problem cases.
-
-2007-09-29: <Gustaf.Neumann@wu-wien.ac.at>
-    * Fix for Tcl 8.4.16 (and maybe some other recent tcl 8.4.*
-      versions, 8.5 is fine) for situations, where Tcl variable
-      contain references to deleted XOTcl objects.  The fix added a
-      epoch increment to CallStackDoDestroy().
-
-2007-09-29: <Gustaf.Neumann@wu-wien.ac.at>
-    * Fix for cases, where volatile objects are
-      deleted before the corrsoponding trace variable.
-
-2007-09-18: <Gustaf.Neumann@wu-wien.ac.at>
+2007-09-00: <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.5.5
 
-2007-09-18: <Gustaf.Neumann@wu-wien.ac.at>
-    * Fix rpm build (most probably due to TEA 3.6)
-
-2007-09-13: <Gustaf.Neumann@wu-wien.ac.at>
-    * Use AssocData instead of the clientdata of the
-      global namespace to store the XOTcl interpreter's
-
-2007-09-13: <Gustaf.Neumann@wu-wien.ac.at>
-    * Upgrade to TEA 3.6
-
-2007-09-10: <Gustaf.Neumann@wu-wien.ac.at>
-    * Make forward option -earlybinding more robust, when
-      forwards are done to Tcl procs
-
 2007-08-16: <Gustaf.Neumann@wu-wien.ac.at>
-    * Fix introspection problem for copied objects and classes
+    * fix introspection problem for copied objects and classes
       (remove superfluous ::xotcl::initProcNS)
       Must have been a bug from before XOTcl 1.0
 
-    * Allow to load XOTcl compiled for Tcl 8.4 to be loaded
+   * allow to load xotcl compiled for Tcl 8.4 to be loaded
       into a tclsh8.5 (again, substantial change).
-      The behavior can be turned off by setting 
+      the behavior can be turned of by setting 
       FORWARD_COMPATIBLE to 0
 
       One can now test now 4 versions:
@@ -82,8 +17,8 @@
       c) a version compiled for Tcl 8.4 with compatibility layer in tclsh8.4
       d) a version compiled for Tcl 8.4 with compatibility layer in tclsh8.5 
 
-      Tests showed that the overhead is for the compatibility
-      layer is between 1.1% and 2.3%, the difference between 
+      My tests showed that the overhead is for the compatibility
+      layer is between 1.1 and 2.3%, the difference between 
       tcl8.5 and tcl8.4 is much larger.
 
 2007-08-10: <Gustaf.Neumann@wu-wien.ac.at>
@@ -167,6 +102,7 @@
      from  slot objects (Many thanks for 
      Nico L'INSALATA for noting this problem).
 
+
 2007-06-05: <Gustaf.Neumann@wu-wien.ac.at>
    * Fixed spelling mistakes in the tutorial
       (Many thanks to Robert Hicks for reporting)
@@ -176,6 +112,80 @@
      starting with a "-".  (Many thanks to Shishir Ramam 
      for reporting)
 
+2007-05-05: <Gustaf.Neumann@wu-wien.ac.at>
+   * changed configure to perform the following three steps
+      a) get default values from slot objects
+      b) set provided configuration values (method setvalues)
+      c) check if all required values are provided
+      This are the same steps as performed by nonpos args 
+      handling.
+
+     Essentially, configure behaves like the following method
+
+     ::xotcl::Object instproc configure args {
+         set sos [my info slotobjects]
+         foreach so $sos {
+             if {[$so exists default]} {
+                my set [$so name] [$so default]
+             }
+             if {[$so exists initcmd]} {
+                eval [$so initcmd]
+             }
+         }
+         set r [eval my setvalues $args]
+         foreach so $sos {
+             if {[$so exists required]} {
+                if {![my exists [$so name]]} {
+                   error "required attribute [$so name] missing"
+                }
+             }
+         }
+         return $r
+     }
+
+   * configure returns now an argument list for init.
+     This makes it possible to let configure pass nonposargs
+     to init
+
+2007-05-03: <Gustaf.Neumann@wu-wien.ac.at>
+   * Change initialization of objects such that they
+      get all data from the slot objects. The internal
+      variables __defaults and __initcmd are gone.
+
+2007-04-04: <Gustaf.Neumann@wu-wien.ac.at>
+   * renamed XOTclAddClass and XOTclFreeClasses
+      to XOTclClassListAdd and XOTclClassListFree
+   * new C functions 
+      XOTclObjectListAdd and XOTclObjectListFree
+    * renamed XOTclOGetInstVar2 and XOTclOSetInstVar2 to
+       XOTcl_ObjGetVar2 and XOTcl_ObjSetVar2
+       (same interface like Tcl_ObjGetVar2 and Tcl_ObjSetVar2,
+       except first argument is an xotcl object)
+    * new C functions
+       XOTcl_GetVar2Ex and XOTcl_SetVar2Ex
+       (same interface like Tcl_GetVar2Ex and Tcl_SetVar2Ex,
+       except first argument is an xotcl object)
+
+2007-04-03: <Gustaf.Neumann@wu-wien.ac.at>
+   * new method info slotobjects
+
+TODO DOCUMENT
+renamed
+
+isclass, ismetaclass -> info
+
+  #::xotcl::alias object isclass  ::xotcl::cmd::Object::isclass
+  #::xotcl::alias object ismetaclass  ::xotcl::cmd::Object::ismetaclass
+
+  # ::xotcl::relation ::oo::object instmixin object 
+   
+   * info class: dropped optional argument.
+   * info classchildren: removed
+   * info classparent: removed
+  #  ::errorCheck [Class info class Object] 1 "Class info is type  Object"
+   comment and test new info
+ (e.g. is)
+
 2007-03-16: <Gustaf.Neumann@wu-wien.ac.at>
     * fixed a bug where a Tcl call adds a namespace to an object,
        but xotcl did not notice it. (Many thanks for Stefan Sobernig
@@ -184,7 +194,7 @@
 2007-01-14: <Gustaf.Neumann@wu-wien.ac.at>
     * fixing error message propagation for methods called via 
        configure. (Many thanks for Kristoffer Lawson
-       for reporting the bug)
+        for reporting the bug)
 
 2006-12-12 <Gustaf.Neumann@wu-wien.ac.at>
     * changing "test == " to "test =" as required by FreeBSD
@@ -196,12 +206,82 @@
       (many thanks to Martin Matuska for providing
       the patch)
 
+
+2006-11-20 <Gustaf.Neumann@wu-wien.ac.at>
+   * fix propagating break code "return -code break" from tcl-implemented
+     methods (Many thanks to Artur Trzewik for reporting)
+
+2006-11-10 <Gustaf.Neumann@wu-wien.ac.at>
+   * Changed error messages emitted by XOTclObjErrArgCnt to include 
+      name of registered method rather than the hard-coded name 
+      (Necessary, when methods are registered via alias under different names)
+
+   * changed name from ::xotcl::setrelation to ::xotcl::relation (old name deprecated)
+
+   * ::xotcl::relation can be used to set or query the relation 
+      (like "set", when no value is given in the last argument). 
+      Changed names from xotcl-way to more generic names
+
+     usage: ::xotcl::relation <obj|class> <relationName> <value>
+     where relationName is one of 
+        class
+        superclass
+        object-filter
+        class-filter
+        object-mixin
+        class-mixin
+
+   * new primitive command ::xotcl::is
+        ::xotcl::is type <object> <class>
+        ::xotcl::is object <object>
+        ::xotcl::is class <class>
+        ::xotcl::is metaclass <metaclass>
+        ::xotcl::is mixin <object> <class>
+
+2006-11-01 <Gustaf.Neumann@wu-wien.ac.at>
+   * fixed overwriting error messages in configure
+   * added ? to pattern characters for info commands
+
+2006-10-31 <Gustaf.Neumann@wu-wien.ac.at>
+   protect/unportect added  (arguments called currently 
+   tip #257 compatible export/unexport
+
+... initslots....
+
+CallStackDoDestroy(Tcl_Interp *in, XOTclObject *obj) {
+  Tcl_Command oid;
+
+2006-10-28 <Gustaf.Neumann@wu-wien.ac.at>
+  * Tcl_DeleteCommandFromToken can change the Tcl result;
+    make sure, the old result is saved, when a callstackframe is popped
+
+2006-10-18 <Gustaf.Neumann@wu-wien.ac.at>
+    * ignore next on deallocated objects
+    * check names in alloc instead of create
+
+2006-10-17 <Gustaf.Neumann@wu-wien.ac.at>
+   * ::xotcl::alias: get original proc in cases, a namespace imported
+      command was specified
+   * "instdestroy" renamed to "dealloc"; TODO depcreacte?
+
+2006-10-05 <Gustaf.Neumann@wu-wien.ac.at>
+   * provided new toplevel classes ::oo::object and ::oo::class
+   * moved more configuration from C to the startup file.
+   * allow both "self calledproc" and "self calledmethod"
+   * made self methods slightly faster (e.g. self proc)
+   * TODO copy depends on "proc" and "instproc"
+
+2006-10-02 <Gustaf.Neumann@wu-wien.ac.at>
+   * new option "-local" added to ":xotcl::my" to prevent subclasses
+     to overload implementation details accidently (as suggested by Neil Madden).
+     (Should probably implemented differently to allow mixins + filters)
+
 2006-11-25 <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.5.3
 
 2006-11-24 <Gustaf.Neumann@wu-wien.ac.at>
     * provided compatibility with Tcl 8.5 
-      (checking callframe level instead of empty varframe for toplevel
+       (checking callframe level instead of empty varframe for toplevel
       frames)
 
     * provided compatibility with Tcl 8.4.14 
@@ -221,6 +301,7 @@
       (thanks to Artur Trzewik for the bug report)
 
     * library/comm/Access.xotcl: fixed handling of chunked encoding
+
 
 2006-09-29 <Gustaf.Neumann@wu-wien.ac.at>, Uwe Zdun <uwe.zdun@wu-wien.ac.at>
     * Release of XOTcl 1.5.2

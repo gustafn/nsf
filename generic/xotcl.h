@@ -1,6 +1,6 @@
 /* -*- Mode: c++ -*-
  *
- *  $Id: xotcl.h,v 1.13 2007/09/18 19:27:33 neumann Exp $
+ *  $Id: xotcl.h,v 1.11 2006/09/27 08:12:40 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
@@ -40,10 +40,7 @@
 # endif
 #endif
 
-/* use documented interface to link XOTcl state to an interpreter */
-#define USE_ASSOC_DATA 1
-
-/* new namespace support (post 1.2.0 */
+/* new namespace support (post 1.2.0) */
 #define NAMESPACEINSTPROCS 1
 
 /* activate bytecode support 
@@ -141,7 +138,9 @@
 # endif
 #endif
 
-#define XOTCL_NONLEAF_METHOD (ClientData)0x01
+#define XOTCL_PROTECTED_METHOD 0x00010000
+#define XOTCL_NONLEAF_METHOD   0x00020000
+
 
 /* 
  * A special definition used to allow this header file to be included 
@@ -203,5 +202,10 @@ Xotcl_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, CONST char *version, int exact)
 
 #undef TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS DLLIMPORT
+
+/* backwards compatibility */
+
+#define XOTclOGetInstVar2 XOTcl_ObjGetVar2
+#define XOTclOSetInstVar2 XOTcl_ObjSetVar2
 
 #endif /* _xotcl_h_ */

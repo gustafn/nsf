@@ -11,7 +11,7 @@
 # for this package, and can be a relative path, such as:
 #
 #--------------------------------------------------------------------
-define(XOTclVersion, 1.5.6)
+define(XOTclVersion, 1.6.0)
 AC_INIT([xotcl], [XOTclVersion])
 
 #--------------------------------------------------------------------
@@ -19,7 +19,7 @@ AC_INIT([xotcl], [XOTclVersion])
 # This will define a ${TEA_PLATFORM} variable == "unix" or "windows".
 #--------------------------------------------------------------------
 
-TEA_INIT([3.6])
+TEA_INIT([3.5])
 AC_CONFIG_AUX_DIR(config)
 
 #--------------------------------------------------------------------
@@ -103,8 +103,8 @@ if test "$with_xowish" = yes;  then XOWISH="xowish"   ; else XOWISH=""; fi
 
 # do not modify the following lines manually, they are generated with changeXOTclVersion
 XOTCL_MAJOR_VERSION=1
-XOTCL_MINOR_VERSION=5
-XOTCL_RELEASE_LEVEL=.6
+XOTCL_MINOR_VERSION=6
+XOTCL_RELEASE_LEVEL=.0
 
 XOTCL_VERSION=${XOTCL_MAJOR_VERSION}.${XOTCL_MINOR_VERSION}
 NODOT_VERSION=${XOTCL_MAJOR_VERSION}${XOTCL_MINOR_VERSION}
@@ -363,6 +363,8 @@ AC_SUBST(pkgincludedir)
 
 if test "${TEA_PLATFORM}" != "windows" ; then
 
+if test "${TEA_PLATFORM}" != "windows" ; then
+
 XOTCL_BUILD_LIB_SPEC="-L`pwd` -lxotcl${PACKAGE_VERSION}"
 XOTCL_LIB_SPEC="-L${pkglibdir} -lxotcl${PACKAGE_VERSION}"
 
@@ -379,6 +381,17 @@ else
 	XOTCL_STUB_LIB_SPEC="-L${pkglibdir} -lxotclstub${PACKAGE_VERSION}"
 	AC_DEFINE(COMPILE_XOTCL_STUBS)
 fi 
+
+else
+
+XOTCL_BUILD_LIB_SPEC="`pwd`/${PKG_LIB_FILE}"
+XOTCL_LIB_SPEC="${pkglibdir}/${PKG_LIB_FILE}"
+XOTCL_BUILD_STUB_LIB_PATH="`pwd`/${PKG_STUB_LIB_FILE}"
+XOTCL_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
+XOTCL_BUILD_STUB_LIB_SPEC="`pwd`/${PKG_STUB_LIB_FILE}"
+XOTCL_STUB_LIB_SPEC="${pkglibdir}/${PKG_STUB_LIB_FILE}"
+
+fi
 
 else
 

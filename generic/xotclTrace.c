@@ -16,8 +16,8 @@
 #include "xotclAccessInt.h"
 
 void
-XOTclStackDump(Tcl_Interp *in) {
-  Interp *iPtr = (Interp *) in;
+XOTclStackDump(Tcl_Interp *interp) {
+  Interp *iPtr = (Interp *)interp;
   CallFrame *f = iPtr->framePtr, *v = iPtr->varFramePtr;
   Tcl_Obj *varCmdObj;
 
@@ -31,19 +31,28 @@ XOTclStackDump(Tcl_Interp *in) {
     if (f && f->isProcCallFrame && f->procPtr && f->procPtr->cmdPtr) {
       fprintf(stderr,"caller %p ",Tcl_CallFrame_callerPtr(f));
       fprintf(stderr,"callerV %p ",Tcl_CallFrame_callerVarPtr(f));
-      Tcl_GetCommandFullName(in, (Tcl_Command)  f->procPtr->cmdPtr, cmdObj);
+      Tcl_GetCommandFullName(interp, (Tcl_Command)  f->procPtr->cmdPtr, cmdObj);
       fprintf(stderr, "%s (%p) lvl=%d\n", ObjStr(cmdObj), f->procPtr->cmdPtr, f->level);
       DECR_REF_COUNT(cmdObj);
-    } else fprintf(stderr, "- \n");
+    } else {
+        if (f && f->varTablePtr) {
+            fprintf(stderr, "var_table = %p ",f->varTablePtr);
+        }
+        fprintf(stderr, "- \n");
+    }
 
     f = f->callerPtr;
   }
 
   fprintf (stderr, "     VARFRAME:\n");
-  fprintf(stderr, "\tFrame=%p", v);
-  if (v) {fprintf(stderr, "caller %p", v->callerPtr);}
+  fprintf(stderr, "\tFrame=%p ", v);
+  if (v) {
+      fprintf(stderr, "caller %p var_table %p ", v->callerPtr, v->varTablePtr);
+      /*      if (v->varTablePtr) 
+              panic(0, "testing");*/
+  }
   if (v && v->isProcCallFrame && v->procPtr && v->procPtr->cmdPtr) {
-    Tcl_GetCommandFullName(in, (Tcl_Command)  v->procPtr->cmdPtr, varCmdObj);
+    Tcl_GetCommandFullName(interp, (Tcl_Command)  v->procPtr->cmdPtr, varCmdObj);
     if (varCmdObj) {
       fprintf(stderr, " %s (%d)\n", ObjStr(varCmdObj), v->level);
     }
@@ -52,8 +61,8 @@ XOTclStackDump(Tcl_Interp *in) {
 }
 
 void
-XOTclCallStackDump(Tcl_Interp *in) {
-  XOTclCallStack *cs = &RUNTIME_STATE(in)->cs;
+XOTclCallStackDump(Tcl_Interp *interp) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
   XOTclCallStackContent *csc;
   int i=1, entries = cs->top - cs->content;
 
@@ -66,11 +75,12 @@ XOTclCallStackDump(Tcl_Interp *in) {
       fprintf(stderr, "INSTPROC %s->", className(csc->cl));
     else
       fprintf(stderr, "PROC ");
-
-    /*fprintf(stderr, " cmd %p, obj %p, ",csc->cmdPtr, csc->self);*/
-
-    if (csc->cmdPtr && !csc->destroyedCmd)
-      fprintf(stderr, "%s (%p), ", Tcl_GetCommandName(in, (Tcl_Command)csc->cmdPtr),
+    /*
+    fprintf(stderr, " cmd %p, obj %p, epoch %d, ",
+	    csc->cmdPtr, csc->self, csc->cmdPtr ? Tcl_Command_cmdEpoch(csc->cmdPtr) : -1);
+    */
+    if (csc->cmdPtr && !csc->destroyedCmd && !Tcl_Command_cmdEpoch(csc->cmdPtr))
+      fprintf(stderr, "%s (%p), ", Tcl_GetCommandName(interp, (Tcl_Command)csc->cmdPtr),
 	      csc->cmdPtr);
     else 
       fprintf(stderr, "NULL, ");
@@ -90,13 +100,13 @@ XOTclCallStackDump(Tcl_Interp *in) {
   /*
   if (entries > 0) {
     XOTclCallStackContent *c;
-    c = XOTclCallStackFindLastInvocation(in);
+    c = XOTclCallStackFindLastInvocation(interp);
     fprintf(stderr,"     --- findLastInvocation %p ",c);
     if (c) {
       if (c <= cs->top && c->currentFramePtr) 
 	fprintf(stderr," l=%d", Tcl_CallFrame_level(c->currentFramePtr));
     }
-    c = XOTclCallStackFindActiveFrame(in, 1);
+    c = XOTclCallStackFindActiveFrame(interp, 1);
     fprintf(stderr,"     findActiveFrame    %p ",c);
     if (c) {
       if (c <= cs->top && c->currentFramePtr) 
@@ -109,7 +119,7 @@ XOTclCallStackDump(Tcl_Interp *in) {
 
 /* helper function to print the vars dynamically created on a
   callframe
-static void printLocalTable (CallFrame* c) {
+static void printLocalTable (CallFrame *c) {
   Tcl_HashEntry *entryPtr;
   Tcl_HashTable *localVarTablePtr = c->varTablePtr;
   Tcl_HashSearch search;
@@ -129,21 +139,21 @@ static void printLocalTable (CallFrame* c) {
 */
 
 int
-XOTcl_TraceObjCmd(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]) {
+XOTcl_TraceObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   char *option;
   if (objc != 2)
-    return XOTclObjErrArgCnt(in, NULL, "::xotcl::trace");
+    return XOTclObjErrArgCnt(interp, objv[0], NULL, "stack|callstack");
 
   option = ObjStr(objv[1]);
   if (strcmp(option,"stack") == 0) {
-    XOTclStackDump(in);
+    XOTclStackDump(interp);
     return TCL_OK;
   }
   if (strcmp(option,"callstack") == 0) {
-    XOTclCallStackDump(in);
+    XOTclCallStackDump(interp);
     return TCL_OK;
   }
-  return XOTclVarErrMsg(in, "xotcltrace: unknown option", (char*) NULL);
+  return XOTclVarErrMsg(interp, "xotcltrace: unknown option", (char*) NULL);
 }
 
 #ifdef XOTCL_MEM_COUNT
@@ -185,7 +195,7 @@ XOTclMemCountFree(char *id, void *p) {
     fprintf(stderr, "******** MEM COUNT ALERT: Trying to free <%s>, but was not allocated\n", id);
     return;
   }
-  entry = (XOTclMemCounter*)  Tcl_GetHashValue(hPtr);
+  entry = (XOTclMemCounter *)Tcl_GetHashValue(hPtr);
   entry->count--;
 }
 

@@ -1,4 +1,4 @@
-/* $Id: aolstub.c,v 1.1 2004/05/23 22:50:39 neumann Exp $
+/* $Id: aolstub.c,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 
    This file provides the stubs needed for the AOL_SERVER,
    Please note, that you have to have to apply a small patch

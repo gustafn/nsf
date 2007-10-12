@@ -1,4 +1,4 @@
-# -*- Tcl -*- $Id: trace.xotcl,v 1.12 2007/08/14 16:38:26 neumann Exp $
+# -*- Tcl -*- $Id: trace.xotcl,v 1.9 2006/10/04 20:40:23 neumann Exp $
 package provide xotcl::trace 0.91
 package require XOTcl
 
@@ -118,12 +118,14 @@ namespace eval ::xotcl::trace {
   Trace proc statReport {} {
     my statReportClass Object
   }
-  Trace proc statCount key {
+  Trace proc statCount {key} {
+    puts stderr "[self] [self proc] '$key'"
     if {[my exists stat($key)]} {
       my incr stat($key)
     } else {
-      my incr set stat($key) 1
+      my set stat($key) 1
     }
+    puts stderr "[self] [self proc] '$key' => [my set stat($key)]"
   }
   Trace proc deprecated-function {name} {
     puts stderr "Function <$name> is deprecated. Use method with same name instead."
@@ -133,9 +135,11 @@ namespace eval ::xotcl::trace {
 
   Object instproc traceFilter args {
     # don't trace the Trace object
-    if {[self] eq "::Trace"} {return [next]}
-    set context "[self callingclass]->[self callingproc]"
+    if {[self] eq "::xotcl::trace::Trace"} {return [next]}
     set method [self calledproc]
+    if {$method eq [self proc]} {return [next]}
+    set context "[self callingclass]->[self callingproc]"
+
     switch -- $method {
       proc -
       instproc {set dargs [list [lindex $args 0] [lindex $args 1] ...] }
@@ -184,7 +188,7 @@ namespace eval ::xotcl::trace {
   Object instproc statFilter args {
     # don't return statistics from the Trace object
     #puts stderr "self=[self]"
-    if {[self] eq "::Trace"} {return [next]}
+    if {[self] eq "::xotcl::trace::Trace"} {return [next]}
     set ccls [self callingclass]
     set cmet [self callingproc]
     set met [self calledproc]

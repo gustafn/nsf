@@ -55,14 +55,14 @@ XotclStubs xotclStubs = {
     XOTclOGetInstVar, /* 16 */
     XOTclInstVar, /* 17 */
     NULL, /* 18 */
-    XOTclOSetInstVar2, /* 19 */
-    XOTclOGetInstVar2, /* 20 */
+    XOTcl_ObjSetVar2, /* 19 */
+    XOTcl_ObjGetVar2, /* 20 */
     XOTclUnsetInstVar2, /* 21 */
     XOTcl_TraceObjCmd, /* 22 */
     XOTclErrMsg, /* 23 */
     XOTclVarErrMsg, /* 24 */
     XOTclErrInProc, /* 25 */
-    XOTclObjErrArgCnt, /* 26 */
+    NULL, /* 26 */
     XOTclErrBadVal_, /* 27 */
     XOTclObjErrType, /* 28 */
     XOTclStackDump, /* 29 */
@@ -76,6 +76,10 @@ XotclStubs xotclStubs = {
     XOTclErrBadVal, /* 37 */
     XOTclNextObjCmd, /* 38 */
     XOTclCallMethodWithArgs, /* 39 */
+    XOTclObjErrArgCnt, /* 40 */
+    XOTclAddObjectMethod, /* 41 */
+    XOTclAddInstanceMethod, /* 42 */
+    XOTclCreate, /* 43 */
 };
 
 /* !END!: Do not edit above this line. */

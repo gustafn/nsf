@@ -9,7 +9,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 # 
-# RCS: @(#) $Id: xotclInt.decls,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# RCS: @(#) $Id: xotclInt.decls,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 
 library xotcl
 
@@ -60,7 +60,7 @@ interface xotclInt
 #     XOTclClasses** XOTclAddClass(XOTclClasses** cList, XOTclClass* cl, ClientData cd)
 # }
 # declare 12 generic {
-#     XOTclClasses* XOTclComputePrecedence(register XOTclClass* cl)
+
 # }
 # declare 13 generic {
 #     XOTclClasses* XOTclComputeDependents(register XOTclClass* cl)

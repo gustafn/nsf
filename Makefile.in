@@ -12,7 +12,7 @@
 # See the file "license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
-# RCS: @(#) $Id: Makefile.in,v 1.25 2007/09/18 19:27:32 neumann Exp $
+# RCS: @(#) $Id: Makefile.in,v 1.21 2006/10/04 20:40:23 neumann Exp $
 
 #========================================================================
 # Add additional lines to handle any additional AC_SUBST cases that
@@ -291,7 +291,7 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 	    rm -rf $(DESTDIR)$(pkglibdir)/apps/$$i ; \
 	    mkdir -p $(DESTDIR)$(pkglibdir)/apps/$$i; \
 	    chmod 755 $(DESTDIR)$(pkglibdir)/apps/$$i; \
-	    for j in $(src_app_dir)/$$i/* ; do \
+  	    for j in $(src_app_dir)/$$i/* ; do \
 		if test -d $$j; then \
 		    mkdir -p $(DESTDIR)$(pkglibdir)/$$j; \
 		    chmod 755 $(DESTDIR)$(pkglibdir)/$$j; \
@@ -301,7 +301,7 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 		else \
 		$(INSTALL) $$j $(DESTDIR)$(pkglibdir)/apps/$$i/; \
 		fi; \
-	    done; \
+  	    done; \
 	done;
 	@for i in $(appsrc) ; do \
 	    echo "    Installing $$i" ; \
@@ -657,8 +657,8 @@ rpm:
 bin-tar: 
 	(cd ..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
                 `find $(exec_prefix)/bin/xotclsh $(exec_prefix)/bin/xowish \
-                  $(prefix)/lib/xotcl$(PACKAGE_VERSION)* \
-                  $(prefix)/lib/libxotcl$(PACKAGE_VERSION)* \
+                  $(prefix)/lib/xotcl* \
+                  $(prefix)/lib/libxotcl* \
 		  $(prefix)/include/xotcl*.h \
                   $(DESTDIR)$(pkglibdir) $(prefix)/man/man1/xo* \
                 -type f -o -type l | fgrep -v CVS | fgrep -v SCCS | fgrep -v .junk| fgrep -v .db | fgrep -v "~" | fgrep -v "#" | fgrep -v /receiver/` \

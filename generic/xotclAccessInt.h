@@ -28,6 +28,7 @@
 
 #define Tcl_Command_refCount(cmd)      ((Command *)cmd)->refCount
 #define Tcl_Command_cmdEpoch(cmd)      ((Command *)cmd)->cmdEpoch
+#define Tcl_Command_flags(cmd)         ((Command *)cmd)->flags
 /* the following items could be obtained from 
    Tcl_GetCommandInfoFromToken(cmd, infoPtr) */
 #define Tcl_Command_nsPtr(cmd)         ((Tcl_Namespace*)(((Command *)cmd)->nsPtr))

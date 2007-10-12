@@ -1,4 +1,4 @@
-# $Id: adapterExample.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
+# $Id: adapterExample.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
 # include the adapter pattern
 source adapter.xotcl
 

@@ -1,4 +1,4 @@
-# -*- Tcl -*- $Id: PCache.xotcl,v 1.9 2007/08/14 16:38:26 neumann Exp $
+# -*- Tcl -*- $Id: PCache.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
 # Persistent Cache object, using gdbm
 
 # Configuration:
