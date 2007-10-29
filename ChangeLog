@@ -1,6 +1,10 @@
 2007-10-29: <Gustaf.Neumann@wu-wien.ac.at>
     * return mixins before procs in procsearch
     * added regression test
+    * Don't though error when the last argument of 
+       "obj info class <...>" or "cl info superclass <....>"
+       is a non-existing class, but return false instead. 
+       This leaves room for pattern matching.
 
 2007-10-28: <Gustaf.Neumann@wu-wien.ac.at>
     * some code refactoring
@@ -8,7 +12,7 @@
 
 2007-10-23: <martin.matuska@wu-wien.ac.at>
     * First version of new info methods "mixinof" and "instmixinof"
-       - new class info options: mixinof instmixinof
+       - new class info options: "mixinof" and "instmixinof"
        - on class destroy entry is now removed from mixin 
          and instmixin lists
 

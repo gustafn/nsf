@@ -5975,7 +5975,7 @@ static int XOTclCInfoMethod(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST v[]);
 static int
 ListClass(Tcl_Interp *in, XOTclObject *obj, char *pattern,
           int objc, Tcl_Obj *CONST objv[]) {
-  if (pattern == 0) {
+  if (pattern == NULL) {
     Tcl_SetObjResult(in, obj->cl->object.cmdName);
     return TCL_OK;
   } else {
@@ -5994,7 +5994,7 @@ ListClass(Tcl_Interp *in, XOTclObject *obj, char *pattern,
 
 static int
 ListSuperclasses(Tcl_Interp *in, XOTclClass *cl, char *pattern) {
-  if (pattern == 0) {
+  if (pattern == NULL) {
     XOTclClasses* sl = cl->super;
     XOTclClasses* sc = 0;
 
@@ -6012,27 +6012,30 @@ ListSuperclasses(Tcl_Interp *in, XOTclClass *cl, char *pattern) {
   } else {
     XOTclClass *isc = XOTclpGetClass(in, pattern);
     XOTclClasses* pl;
-    if (isc == 0) 
-      return XOTclErrBadVal(in, "info superclass", "a class", pattern);
-
-    /*
-     * search precedence to see if we're related or not
-     */
-    for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->next) {
-      if (pl->cl == isc) {
-        Tcl_SetIntObj(Tcl_GetObjResult(in), 1);
-        break;
-      }
-    }
-    if (pl == 0)
+    if (isc == 0) {
+      /* return XOTclErrBadVal(in, "info superclass", "a class", pattern);*/
       Tcl_SetIntObj(Tcl_GetObjResult(in), 0);
+    } else {
+      
+      /*
+       * search precedence to see if we're related or not
+       */
+      for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->next) {
+        if (pl->cl == isc) {
+          Tcl_SetIntObj(Tcl_GetObjResult(in), 1);
+          break;
+        }
+      }
+      if (pl == 0)
+        Tcl_SetIntObj(Tcl_GetObjResult(in), 0);
+    }
   }
   return TCL_OK;
 }
 
 static int
 ListSubclasses(Tcl_Interp *in, XOTclClass *cl, char *pattern) {
-  if (pattern == 0) {
+  if (pattern == NULL) {
     XOTclClasses* sl = cl->sub;
     XOTclClasses* sc = 0;
 
