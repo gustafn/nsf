@@ -1,5 +1,9 @@
-2007-10-23: <martin.matuska@wu-wein.ac.at>
-    * New mixinof and instmixinof structures:
+2007-10-28: <Gustaf.Neumann@wu-wien.ac.at>
+    * some code refactoring
+    * making new code more robust
+
+2007-10-23: <martin.matuska@wu-wien.ac.at>
+    * First version of new info methods "mixinof" and "instmixinof"
        - new class info options: mixinof instmixinof
        - on class destroy entry is now removed from mixin 
          and instmixin lists
