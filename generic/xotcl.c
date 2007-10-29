@@ -7317,39 +7317,38 @@ CleanupDestroyClass(Tcl_Interp *in, XOTclClass *cl, int softrecreate) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
   XOTclClass *theobj = RUNTIME_STATE(in)->theObject;
-  XOTclObject *obj = (XOTclObject*)cl;
-  XOTclClassOpt *opt = cl->opt;
+  XOTclClassOpt *clopt = cl->opt;
 
-  if (opt) {
+  if (clopt) {
     /*
      *  Remove this class from all instmixinofs and clear the instmixin list
      */
 
-    RemoveFromInstmixinsofs(cl->object.id, opt->instmixins);
+    RemoveFromInstmixinsofs(cl->object.id, clopt->instmixins);
    
-    CmdListRemoveList(&opt->instmixins, GuardDel);
+    CmdListRemoveList(&clopt->instmixins, GuardDel);
     MixinInvalidateObjOrders(in, cl);
     
-    CmdListRemoveList(&opt->instfilters, GuardDel);
+    CmdListRemoveList(&clopt->instfilters, GuardDel);
     FilterInvalidateObjOrders(in, cl);
     
     /*
      *  Remove this class from all mixin lists and clear the mixinofs list
      */
     
-    RemoveFromMixins(cl->object.id, opt->mixinofs);
-    CmdListRemoveList(&opt->mixinofs, GuardDel);
+    RemoveFromMixins(cl->object.id, clopt->mixinofs);
+    CmdListRemoveList(&clopt->mixinofs, GuardDel);
     
     /*
      *  Remove this class from all instmixin lists and clear the instmixinofs list
      */
 
-    RemoveFromInstmixins(cl->object.id, opt->instmixinofs);
-    CmdListRemoveList(&opt->instmixinofs, GuardDel);
+    RemoveFromInstmixins(cl->object.id, clopt->instmixinofs);
+    CmdListRemoveList(&clopt->instmixinofs, GuardDel);
     
     /* remove dependent filters of this class from all subclasses*/
     FilterRemoveDependentFilterCmds(cl, cl);
-    AssertionRemoveStore(opt->assertions);
+    AssertionRemoveStore(clopt->assertions);
 #ifdef XOTCL_OBJECTDATA
     XOTclFreeObjectData(cl);
 #endif
@@ -7366,9 +7365,9 @@ CleanupDestroyClass(Tcl_Interp *in, XOTclClass *cl, int softrecreate) {
       hPtr = &cl->instances ? Tcl_FirstHashEntry(&cl->instances, &hSrch) : 0;
       for (; hPtr != 0; hPtr = Tcl_NextHashEntry(&hSrch)) {
         XOTclObject *inst = (XOTclObject*)Tcl_GetHashKey(&cl->instances, hPtr);
-        if (inst && (inst != (XOTclObject*)cl) && inst->id) {
+        if (inst && inst != (XOTclObject*)cl && inst->id) {
           if (inst != &(theobj->object)) {
-            (void)RemoveInstance(inst, obj->cl);
+            (void)RemoveInstance(inst, cl->object.cl);
             AddInstance(inst, theobj);
           }
         }
@@ -7390,12 +7389,12 @@ CleanupDestroyClass(Tcl_Interp *in, XOTclClass *cl, int softrecreate) {
     DECR_REF_COUNT(cl->parameters);
   }
 
-  if (opt) {
-    if (opt->parameterClass) {
-      DECR_REF_COUNT(opt->parameterClass);
+  if (clopt) {
+    if (clopt->parameterClass) {
+      DECR_REF_COUNT(clopt->parameterClass);
     }
-    FREE(XOTclClassOpt, opt);
-    opt = cl->opt = 0;
+    FREE(XOTclClassOpt, clopt);
+    clopt = cl->opt = 0;
   }
 
   if (!softrecreate) {
@@ -7891,10 +7890,10 @@ IsMetaClass(Tcl_Interp *in, XOTclClass *cl) {
   }
 
   for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->next) {
-    XOTclClassOpt* opt = pl->cl->opt;
-    if (opt && opt->instmixins) {
+    XOTclClassOpt* clopt = pl->cl->opt;
+    if (clopt && clopt->instmixins) {
       MixinComputeOrderFullList(in,
-                                &opt->instmixins,
+                                &clopt->instmixins,
                                 &mixinClasses,
                                 &checkList, 0);
     }
