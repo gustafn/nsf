@@ -9795,7 +9795,7 @@ static int
 XOTclOProcSearchMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj = (XOTclObject*)cd;
   XOTclClass *pcl = NULL;
-  Tcl_Command cmd = 0;
+  Tcl_Command cmd = NULL;
   char *simpleName, *methodName;
 
   if (!obj) return XOTclObjErrType(in, objv[0], "Object");
@@ -9805,23 +9805,22 @@ XOTclOProcSearchMethod(ClientData cd, Tcl_Interp *in, int objc, Tcl_Obj *CONST o
 
   methodName = ObjStr(objv[1]);
 
-  if (obj->nsPtr)
-    cmd = FindMethod(methodName, obj->nsPtr);
+  if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
+    MixinComputeDefined(in, obj);
 
-  if (!cmd) {
-    if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
-      MixinComputeDefined(in, obj);
-
-    if (obj->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
-      XOTclCmdList* mixinList = obj->mixinOrder;
-      while (mixinList) {
-        XOTclClass *mcl = XOTclpGetClass(in, (char *)Tcl_GetCommandName(in, mixinList->cmdPtr));
-        if (mcl && (pcl = SearchCMethod(mcl, methodName, &cmd))) {
-          break;
-        }
-        mixinList = mixinList->next;
+  if (obj->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
+    XOTclCmdList* mixinList = obj->mixinOrder;
+    while (mixinList) {
+      XOTclClass *mcl = XOTclpGetClass(in, (char *)Tcl_GetCommandName(in, mixinList->cmdPtr));
+      if (mcl && (pcl = SearchCMethod(mcl, methodName, &cmd))) {
+        break;
       }
+      mixinList = mixinList->next;
     }
+  }
+
+  if (!cmd && obj->nsPtr) {
+    cmd = FindMethod(methodName, obj->nsPtr);
   }
 
   if (!cmd && obj->cl)

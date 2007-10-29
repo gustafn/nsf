@@ -1,3 +1,7 @@
+2007-10-29: <Gustaf.Neumann@wu-wien.ac.at>
+    * return mixins before procs in procsearch
+    * added regression test
+
 2007-10-28: <Gustaf.Neumann@wu-wien.ac.at>
     * some code refactoring
     * making new code more robust
