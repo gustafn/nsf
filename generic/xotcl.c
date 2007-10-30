@@ -11644,9 +11644,9 @@ XOTclInterpretNonpositionalArgsCmd(ClientData cd, Tcl_Interp *in, int objc,
     r1 = Tcl_ListObjGetElements(in, nonposArgsDefv[i], &npac, &npav);
     if (r1 == TCL_OK) {
       if (npac == 3) {
-        Tcl_ObjSetVar2(in, npav[0], NULL, npav[2], 0);
+        Tcl_SetVar2Ex(in, ObjStr(npav[0]), NULL, npav[2], 0);
       } else if (npac == 2 && !strcmp(ObjStr(npav[1]), "switch")) {
-        Tcl_ObjSetVar2(in, npav[0], NULL, Tcl_NewBooleanObj(0), 0);
+        Tcl_SetVar2Ex(in, ObjStr(npav[0]), NULL, Tcl_NewBooleanObj(0), 0);
       }
     }
   }

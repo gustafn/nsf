@@ -1,3 +1,9 @@
+2007-10-30: <Gustaf.Neumann@wu-wien.ac.at>
+    *  change Tcl_ObjSetVar2() to Tcl_SetVar2Ex() to
+       address problem in setting variables from C.
+       The set variable was not seen in an eval.
+     * extending regression test
+
 2007-10-29: <Gustaf.Neumann@wu-wien.ac.at>
     * return mixins before procs in procsearch
     * added regression test

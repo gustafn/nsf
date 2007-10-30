@@ -3891,6 +3891,17 @@ TestX create nonposargs -proc run {{n 20}} {
   errorCheck [catch {o p7 -x 2 }] 1 nonpos-16
   errorCheck [catch {o p8 -x 2 }] 0 nonpos-17
   o destroy
+
+  Class X
+  X instproc ListOfStringsOption {{-default "murr6"} {-cb {}} name} {
+    if {$cb eq {}} { set cb "::set ::$name " } ;# global variable
+    eval $cb \$default
+  }
+  ::X create x1
+  ::x1 ListOfStringsOption uu
+  errorCheck [set ::uu] murr6 murr6
+  ::x1 destroy
+  X destroy
 }
 
 
