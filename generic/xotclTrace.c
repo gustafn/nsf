@@ -109,7 +109,7 @@ XOTclCallStackDump(Tcl_Interp *interp) {
 
 /* helper function to print the vars dynamically created on a
   callframe
-static void printLocalTable (CallFrame* c) {
+static void printLocalTable (CallFrame *c) {
   Tcl_HashEntry *entryPtr;
   Tcl_HashTable *localVarTablePtr = c->varTablePtr;
   Tcl_HashSearch search;
