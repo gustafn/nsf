@@ -1,28 +1,28 @@
-#define Tcl_Interp_numLevels(in)       ((Interp *)in)->numLevels
-#define Tcl_Interp_framePtr(in)        ((Tcl_CallFrame *)((Interp *)in)->framePtr)
-#define Tcl_Interp_varFramePtr(in)     (((Interp *)in)->varFramePtr)
-#define Tcl_Interp_globalNsPtr(in)     ((Tcl_Namespace *)((Interp *)in)->globalNsPtr)
-#define Tcl_Interp_flags(in)           ((Interp *)in)->flags
+#define Tcl_Interp_numLevels(interp)       ((Interp *)interp)->numLevels
+#define Tcl_Interp_framePtr(interp)        ((Tcl_CallFrame *)((Interp *)interp)->framePtr)
+#define Tcl_Interp_varFramePtr(interp)     (((Interp *)interp)->varFramePtr)
+#define Tcl_Interp_globalNsPtr(interp)     ((Tcl_Namespace *)((Interp *)interp)->globalNsPtr)
+#define Tcl_Interp_flags(interp)           ((Interp *)interp)->flags
 #if DISPATCH_TRACE
-#define Tcl_Interp_returnCode(in)      ((Interp *)in)->returnCode
+#define Tcl_Interp_returnCode(interp)      ((Interp *)interp)->returnCode
 #endif
-#define Tcl_Interp_threadId(in)        ((Interp *)in)->threadId
+#define Tcl_Interp_threadId(interp)        ((Interp *)interp)->threadId
 
-#define Tcl_CallFrame_callerPtr(cf)    ((Tcl_CallFrame*)((CallFrame *)cf)->callerPtr)
-#define Tcl_CallFrame_procPtr(cf)      ((CallFrame *)cf)->procPtr
-#define Tcl_CallFrame_varTablePtr(cf)  ((CallFrame *)cf)->varTablePtr
-#define Tcl_CallFrame_level(cf)        ((CallFrame *)cf)->level
+#define Tcl_CallFrame_callerPtr(cf)       ((Tcl_CallFrame*)((CallFrame *)cf)->callerPtr)
+#define Tcl_CallFrame_procPtr(cf)         ((CallFrame *)cf)->procPtr
+#define Tcl_CallFrame_varTablePtr(cf)     ((CallFrame *)cf)->varTablePtr
+#define Tcl_CallFrame_level(cf)           ((CallFrame *)cf)->level
 #define Tcl_CallFrame_isProcCallFrame(cf) ((CallFrame *)cf)->isProcCallFrame
 #define Tcl_CallFrame_compiledLocals(cf)  ((CallFrame *)cf)->compiledLocals
-#define Tcl_CallFrame_callerVarPtr(cf) ((Tcl_CallFrame*)((CallFrame *)cf)->callerVarPtr)
+#define Tcl_CallFrame_callerVarPtr(cf)    ((Tcl_CallFrame*)((CallFrame *)cf)->callerVarPtr)
 #define Tcl_CallFrame_objc(cf)            ((CallFrame *)cf)->objc
 #define Tcl_CallFrame_objv(cf)            ((CallFrame *)cf)->objv
 
-#define Tcl_Namespace_cmdTable(nsPtr) &((Namespace *)nsPtr)->cmdTable
-#define Tcl_Namespace_varTable(nsPtr) &((Namespace *)nsPtr)->varTable
-#define Tcl_Namespace_childTable(nsPtr) &((Namespace *)nsPtr)->childTable
+#define Tcl_Namespace_cmdTable(nsPtr)    &((Namespace *)nsPtr)->cmdTable
+#define Tcl_Namespace_varTable(nsPtr)    &((Namespace *)nsPtr)->varTable
+#define Tcl_Namespace_childTable(nsPtr)  &((Namespace *)nsPtr)->childTable
 #define Tcl_Namespace_activationCount(nsPtr) ((Namespace *)nsPtr)->activationCount
-#define Tcl_Namespace_deleteProc(nsPtr) ((Namespace *)nsPtr)->deleteProc
+#define Tcl_Namespace_deleteProc(nsPtr)  ((Namespace *)nsPtr)->deleteProc
 
 
 
