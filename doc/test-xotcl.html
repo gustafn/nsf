@@ -3,6 +3,7 @@
 <HTML>
 <HEAD>
   <TITLE>XOTcl - Documentation -- ./library/lib/test.xotcl</TITLE>
+  <LINK REL="StyleSheet" HREF="xotcl-doc.css" TYPE="text/css">
 </HEAD>
 
 <BODY BGCOLOR="FFFFFF">
@@ -12,7 +13,7 @@
   <HR>
   <P>
     <h2> Package/File Information </h2>
-    <b> Package provided: </b> xotcl::test 1.03
+    <b> No package provided/required </b>
     <BR>
     <BR>
     <b>Defined Objects/Classes: </b>
@@ -39,7 +40,7 @@
         </TD>
         <TD VALIGN="top">
           
-  Simple regression test support.
+    Simple regression test support.
   
         </TD>
       </TR>
@@ -62,17 +63,18 @@
           </TD>
           <TD VALIGN="top">
             
-    Class Test is used to configure test instances, which can 
-    be configured by the following parameters:
-    <ul>
-    <li>cmd: the command to be executed</li>
-    <li>expected: the expected result</li>
-    <li>count: number of executions of cmd</li>
-    <li>pre: a command to be executed at the begin of the test (before cmd)</li>
-    <li>post: a command to be executed after the test (after all cmds)</li>
-    </ul>
-    The defined tests can be executed by <tt>Test run</tt>
-  
+      Class Test is used to configure test instances, which can 
+      be configured by the following parameters:
+      <ul>
+      <li>cmd: the command to be executed</li>
+      <li>expected: the expected result</li>
+      <li>count: number of executions of cmd</li>
+      <li>pre: a command to be executed at the begin of the test (before cmd)</li>
+      <li>post: a command to be executed after the test (after all cmds)</li>
+      <li>namespace in which pre, post and cmd are evaluated; default ::</li>
+      </ul>
+      The defined tests can be executed by <tt>Test run</tt>
+    
           </TD>
         </TR>
       </TABLE>

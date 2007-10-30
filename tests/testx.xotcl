@@ -2050,6 +2050,26 @@ TestX mixinTest -proc run {{n 10}} {
     o destroy
 }
 
+@ TestX procsearchTest {
+  description {
+    Regression test for procsearch
+  }
+}
+TestX procsearchTest -proc run {{n 10}} {
+  
+  Class M -instproc foo args {puts m;next}
+  Object o -mixin M -proc foo args {puts o;next}
+  ::errorCheck [o procsearch foo] "::M instproc foo" "mixin before proc in procsearch"
+  M destroy
+  o destroy
+  
+  Class CC -instproc foo args {puts CC;next}
+  CC create c -proc foo args {puts c;next} 
+  ::errorCheck [c procsearch foo] "::c proc foo" "proc before instproc in procsearch"
+  CC destroy
+  c destroy
+}
+
 
 @ TestX mixinInheritanceTest {
   description {
@@ -3104,7 +3124,7 @@ TestX objectReferences -proc run {{n 20}} {
 
 
 
-  ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard forward heritage info instances instbody instcommands instdefault instfilter instfilterguard instforward instinvar instmixin instpost instpre instprocs invar methods mixin parameter parent post pre precedence procs subclass superclass vars} "info info"
+  ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard forward heritage info instances instbody instcommands instdefault instfilter instfilterguard instforward instinvar instmixin instmixinof instpost instpre instprocs invar methods mixin mixinof parameter parent post pre precedence procs subclass superclass vars} "info info"
 
   ::errorCheck [Class info instances *Unk*] ::UnknownClass "match in info instances"
   ::errorCheck [Class info instances Unk*] "" "no match in info instances"
@@ -3871,6 +3891,18 @@ TestX create nonposargs -proc run {{n 20}} {
   errorCheck [catch {o p7 -x 2 }] 1 nonpos-16
   errorCheck [catch {o p8 -x 2 }] 0 nonpos-17
   o destroy
+
+  
+  Class X
+  X instproc ListOfStringsOption {{-default "murr6"} {-cb {}} name} {
+    if {$cb eq {}} { set cb "::set ::$name " } ;# global variable
+    eval $cb \$default
+  }
+  ::X create x1
+  ::x1 ListOfStringsOption uu
+  errorCheck [set ::uu] murr6 murr6
+  ::x1 destroy
+  ::X destroy
 }
 
 

@@ -1,4 +1,4 @@
-#$Id: pinger.xotcl,v 1.1.1.1 2004/05/23 22:50:39 neumann Exp $
+#$Id: pinger.xotcl,v 1.1 2004/05/23 22:50:39 neumann Exp $
 # include the pattern
 source observer.xotcl
 

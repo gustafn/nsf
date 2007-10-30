@@ -3,6 +3,7 @@
 <HTML>
 <HEAD>
   <TITLE>XOTcl - Documentation -- ./library/lib/metadataAnalyzer.xotcl</TITLE>
+  <LINK REL="StyleSheet" HREF="xotcl-doc.css" TYPE="text/css">
 </HEAD>
 
 <BODY BGCOLOR="FFFFFF">
@@ -12,7 +13,7 @@
   <HR>
   <P>
     <h2> Package/File Information </h2>
-    <b> Package provided: </b> xotcl::metadataAnalyzer 0.84
+    <b> No package provided/required </b>
     <BR>
     <BR>
     <b>Defined Objects/Classes: </b>
@@ -123,31 +124,31 @@
         </TD>
         <TD VALIGN="top">
           
-    XOTcl file analyzer for @ metadata. E.g.\ used for 
-    doumentation with xoDoc (but in the static variant 
-    StaticMetadataAnalyzer which uses the dynamic 
-    variant in this file).
-    <p>
-    Sample sample usage:
-    <pre>
-    package require xotcl::metadataAnalyzer
+	    XOTcl file analyzer for @ metadata. E.g.\ used for 
+	    doumentation with xoDoc (but in the static variant 
+				     StaticMetadataAnalyzer which uses the dynamic 
+				     variant in this file).
+	    <p>
+	    Sample sample usage:
+	    <pre>
+	    package require xotcl::metadataAnalyzer
 
-    # instantiate metadata analyzer object
-    MetadataAnalyzer @::m
-    # make this object be known to @ and turn @ metadata processing on
-    @ analyzerObj @::m
-    @ onOff 1
+	    # instantiate metadata analyzer object
+	    MetadataAnalyzer @::m
+	    # make this object be known to @ and turn @ metadata processing on
+	    @ analyzerObj @::m
+	    @ onOff 1
 
-    # read in some metadata tags (in sample file) & execute the file
-    source lib/testx.xotcl
+	    # read in some metadata tags (in sample file) & execute the file
+	    source lib/testx.xotcl
 
-    # turn @ metadata processing off again
-    @ onOff 0
+	    # turn @ metadata processing off again
+	    @ onOff 0
 
-    # print out all collected metadata
-    puts [@::m print]
-    </pre>
-  
+	    # print out all collected metadata
+	    puts [@::m print]
+	    </pre>
+	
         </TD>
       </TR>
     </TABLE>
@@ -213,9 +214,9 @@
           </TD>
           <TD VALIGN="top">
             
-    Token for Class metadata. Contains additional parameters:
-    "instprocList" = list of all instproc token.
-  
+	    Token for Class metadata. Contains additional parameters:
+	    "instprocList" = list of all instproc token.
+	
           </TD>
         </TR>
       </TABLE>
@@ -239,8 +240,8 @@
           </TD>
           <TD VALIGN="top">
             
-    Token for @Constraint Metadata.
-  
+	    Token for @Constraint Metadata.
+	
           </TD>
         </TR>
       </TABLE>
@@ -264,8 +265,8 @@
           </TD>
           <TD VALIGN="top">
             
-    Token for @File Metadata.
-  
+	    Token for @File Metadata.
+	
           </TD>
         </TR>
       </TABLE>
@@ -289,8 +290,8 @@
           </TD>
           <TD VALIGN="top">
             
-    Token for Instproc metadata.
-  
+	    Token for Instproc metadata.
+	
           </TD>
         </TR>
       </TABLE>
@@ -314,8 +315,8 @@
           </TD>
           <TD VALIGN="top">
             
-    Token for Meta-Class metadata.
-  
+	    Token for Meta-Class metadata.
+	
           </TD>
         </TR>
       </TABLE>
@@ -379,30 +380,30 @@
           </TD>
           <TD VALIGN="top">
             
-    Each collected metadata element is stored in a token object.
-    MetadataToken is superclass of token object classes. Each metadata token
-    has two interesting parameters: 
-    <p>
-    "properties" contains list of all described metadata properties. E.g. can
-    be printed with
-    <pre>
-    foreach p [my set properties] { 
-      if {[my exists $p]} {
-        append c "    $p=[my set $p]\n"
-      }
-    }
-    </pre>
-    "name" contains the method, object, ... name of the metadata element.
-    <p>
-    All metadata token are aggregated by @. Therefore, 
-     <pre>
-    foreach mdt [@ info children] { 
-      if {[$mdt istype MetadataToken]} {$mdt print}
-    }
-    </pre>
-    prints all token.
+	    Each collected metadata element is stored in a token object.
+	    MetadataToken is superclass of token object classes. Each metadata token
+	    has two interesting parameters: 
+	    <p>
+	    "properties" contains list of all described metadata properties. E.g. can
+	    be printed with
+	    <pre>
+	    foreach p [my set properties] { 
+		if {[my exists $p]} {
+		    append c "    $p=[my set $p]\n"
+		}
+	    }
+	    </pre>
+	    "name" contains the method, object, ... name of the metadata element.
+	    <p>
+	    All metadata token are aggregated by @. Therefore, 
+	    <pre>
+	    foreach mdt [@ info children] { 
+		if {[$mdt istype MetadataToken]} {$mdt print}
+	    }
+	    </pre>
+	    prints all token.
 
-  
+	
           </TD>
         </TR>
       </TABLE>
@@ -439,8 +440,8 @@
               </TD>
               <TD VALIGN="top">
                 
-    Abstract method for printing a token to stdout.
-  
+	    Abstract method for printing a token to stdout.
+	
               </TD>
             </TR>
           </TABLE>
@@ -470,7 +471,7 @@
               </TD>
               <TD VALIGN="top">
                 Sort a token list with names. Since names are autonames, 
-    this means order of appearance in the program.
+	    this means order of appearance in the program.
               </TD>
             </TR>
           </TABLE>
@@ -496,10 +497,10 @@
           </TD>
           <TD VALIGN="top">
             
-    Token for Method metadata. Contains additional parameters:
-    "arguments" of the method, "returnValue"  of the method, 
-    "obj" name, "abstract" = 0 or 1 (whether its an abstract method or not).
-  
+	    Token for Method metadata. Contains additional parameters:
+	    "arguments" of the method, "returnValue"  of the method, 
+	    "obj" name, "abstract" = 0 or 1 (whether its an abstract method or not).
+	
           </TD>
         </TR>
       </TABLE>
@@ -523,9 +524,9 @@
           </TD>
           <TD VALIGN="top">
             
-    Token for Object metadata. Contains additional parameters:
-    "procList" = list of all proc token and "cl"= class name.
-  
+	    Token for Object metadata. Contains additional parameters:
+	    "procList" = list of all proc token and "cl"= class name.
+	
           </TD>
         </TR>
       </TABLE>
@@ -549,10 +550,10 @@
           </TD>
           <TD VALIGN="top">
             
-    Token for Package metadata. Contains additional parameters:
-    "version" of the package and "type"= either "require" or "provide".
+	    Token for Package metadata. Contains additional parameters:
+	    "version" of the package and "type"= either "require" or "provide".
 
-  
+	
           </TD>
         </TR>
       </TABLE>
@@ -576,8 +577,8 @@
           </TD>
           <TD VALIGN="top">
             
-    Token for Proc metadata
-  
+	    Token for Proc metadata
+	
           </TD>
         </TR>
       </TABLE>

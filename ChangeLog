@@ -1,4 +1,78 @@
-2007-09-00: <Gustaf.Neumann@wu-wien.ac.at>
+2007-10-30: <Gustaf.Neumann@wu-wien.ac.at>
+    *  change Tcl_ObjSetVar2() to Tcl_SetVar2Ex() to
+       address problem in setting variables from C.
+       The set variable was not seen in an eval.
+    *  extended regression test
+
+2007-10-29: <Gustaf.Neumann@wu-wien.ac.at>
+    * return mixins before procs in procsearch
+    * added regression test
+    * Don't through error when the last argument of 
+       "obj info class <...>" or "cl info superclass <....>"
+       is a non-existing class, but return false instead. 
+       This leaves room for pattern matching.
+
+2007-10-28: <Gustaf.Neumann@wu-wien.ac.at>
+    * some code refactoring
+    * making new code more robust
+
+2007-10-23: <martin.matuska@wu-wien.ac.at>
+    * First version of new info methods "mixinof" and "instmixinof"
+       - new class info options: "mixinof" and "instmixinof"
+       - on class destroy entry is now removed from mixin 
+         and instmixin lists
+
+2007-10-12: <Gustaf.Neumann@wu-wien.ac.at>
+    * Release of XOTcl 1.5.6
+
+2007-10-09: <Gustaf.Neumann@wu-wien.ac.at>
+   * More fixes for treating gobal volatile objects
+     during shutdown:
+       - do not allow to create new objects during shutdown
+       - do not allow objects to be set volatile during shutdown
+       - handle cases, where application level destroy methods 
+          fail (this could lead to remaining tcl traces pointing
+          to destroyed objects)
+       - handle namespaced variables helding deletion traces
+          for volatile objects
+      Guess, it would be much simpler to use Tcl-level
+      unset traces than C-level unset traces...
+
+2007-10-04: <Gustaf.Neumann@wu-wien.ac.at>
+
+    * Revise fix below. The problem was apparently that change of a
+      call of Tcl_FindCommand to Tcl_GetCommandFromObj(), where the
+      latter one had bad side-effects when it is called during
+      deletion.  Although the fix below fixed the symptoms, the new
+      approach is better since it is apparently not required any more
+      to fetch the cmd during PrimitiveODestroy to ensure it is not
+      called twice. The problem appeared in XOTcl between 1.5.3 and
+      1.5.4 and happens only in 8.4.* Tcl.
+
+    * Improve debugging code to make it easier to trace
+      problems with Tcl_Objs.
+
+    * Serializer: Added dependency rule in serializer to ensure slots of
+      superclasses are listed before subclasses. (Thanks to Stefan
+      Sobernig for reporting the problem)
+
+    * Serializer: moved deactivation of traces into "Serializer all"
+      to get simpler results on "o serialize".
+
+    * Regression tests: extended tests to address 
+       the newly identified and fixed problem cases.
+
+2007-09-29: <Gustaf.Neumann@wu-wien.ac.at>
+    * Fix for Tcl 8.4.16 (and maybe some other recent tcl 8.4.*
+      versions, 8.5 is fine) for situations, where Tcl variable
+      contain references to deleted XOTcl objects.  The fix added a
+      epoch increment to CallStackDoDestroy().
+
+2007-09-29: <Gustaf.Neumann@wu-wien.ac.at>
+    * Fix for cases, where volatile objects are
+      deleted before the corrsoponding trace variable.
+
+2007-09-18: <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.5.5
 
 2007-08-16: <Gustaf.Neumann@wu-wien.ac.at>
@@ -173,6 +247,8 @@ TODO DOCUMENT
 renamed
 
 isclass, ismetaclass -> info
+
+info superclass <...> and info class <....> accept metachars
 
   #::xotcl::alias object isclass  ::xotcl::cmd::Object::isclass
   #::xotcl::alias object ismetaclass  ::xotcl::cmd::Object::ismetaclass

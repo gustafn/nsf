@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.20 2006/10/04 20:40:23 neumann Exp $
+ *  $Id: xotclInt.h,v 1.27 2007/10/12 19:53:32 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
@@ -475,6 +475,7 @@ typedef struct XOTclObjectOpt {
   Tcl_HashTable metaData;
 #endif
   ClientData clientData;
+  char *volatileVarName;
   short checkoptions;
 } XOTclObjectOpt;
 
@@ -503,6 +504,8 @@ typedef struct XOTclObjects {
 typedef struct XOTclClassOpt {
   XOTclCmdList* instfilters;
   XOTclCmdList* instmixins;
+  XOTclCmdList* mixinofs;
+  XOTclCmdList* instmixinofs;
   XOTclAssertionStore *assertions;
   Tcl_Obj* parameterClass;
 #ifdef XOTCL_OBJECTDATA

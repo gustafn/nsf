@@ -3,6 +3,7 @@
 <HTML>
 <HEAD>
   <TITLE>XOTcl - Documentation -- ./doc/langRef.xotcl</TITLE>
+  <LINK REL="StyleSheet" HREF="xotcl-doc.css" TYPE="text/css">
 </HEAD>
 
 <BODY BGCOLOR="FFFFFF">
@@ -12,25 +13,37 @@
   <HR>
   <P>
     <h2> Package/File Information </h2>
-    <b> Package provided: </b> XOTcl-langRef 1.2
-    <BR>
-    <b> Package required: </b> Tcl 
+    <b> No package provided/required </b>
     <BR>
     <BR>
     <b>Defined Objects/Classes: </b>
     <UL>
       <LI>
+        <A HREF="#::xotcl::Slot">
+          <em>::xotcl::Slot</em>:
+        </A>
+        
+        <BR>
+      </LI>
+      <LI>
+        <A HREF="#Attribute">
+          <em>Attribute</em>:
+        </A>
+        
+        <BR>
+      </LI>
+      <LI>
         <A HREF="#Class">
           <em>Class</em>:
         </A>
-        <a href="#Class-__unknown">__unknown</a>, <a href="#Class-alloc">alloc</a>, <a href="#Class-create">create</a>, <a href="#Class-info">info</a>, <a href="#Class-instdestroy">instdestroy</a>, <a href="#Class-instfilter">instfilter</a>, <a href="#Class-instfilterappend">instfilterappend</a>, <a href="#Class-instfilterguard">instfilterguard</a>, <a href="#Class-instinvar">instinvar</a>, <a href="#Class-instmixin">instmixin</a>, <a href="#Class-instmixinappend">instmixinappend</a>, <a href="#Class-instparametercmd">instparametercmd</a>, <a href="#Class-instproc">instproc</a>, <a href="#Class-insttclcmd">insttclcmd</a>, <a href="#Class-new">new</a>, <a href="#Class-parameter">parameter</a>, <a href="#Class-parameterclass">parameterclass</a>, <a href="#Class-recreate">recreate</a>, <a href="#Class-superclass">superclass</a>, <a href="#Class-unknown">unknown</a>, <a href="#Class-volatile">volatile</a>.
+        <a href="#Class-__unknown">__unknown</a>, <a href="#Class-allinstances">allinstances</a>, <a href="#Class-alloc">alloc</a>, <a href="#Class-create">create</a>, <a href="#Class-info">info</a>, <a href="#Class-instdestroy">instdestroy</a>, <a href="#Class-instfilter">instfilter</a>, <a href="#Class-instfilterguard">instfilterguard</a>, <a href="#Class-instforward">instforward</a>, <a href="#Class-instinvar">instinvar</a>, <a href="#Class-instmixin">instmixin</a>, <a href="#Class-instparametercmd">instparametercmd</a>, <a href="#Class-instproc">instproc</a>, <a href="#Class-new">new</a>, <a href="#Class-parameter">parameter</a>, <a href="#Class-parameterclass">parameterclass</a>, <a href="#Class-recreate">recreate</a>, <a href="#Class-superclass">superclass</a>, <a href="#Class-unknown">unknown</a>.
         <BR>
       </LI>
       <LI>
         <A HREF="#Object">
           <em>Object</em>:
         </A>
-        <a href="#Object-abstract">abstract</a>, <a href="#Object-append">append</a>, <a href="#Object-array">array</a>, <a href="#Object-autoname">autoname</a>, <a href="#Object-check">check</a>, <a href="#Object-class">class</a>, <a href="#Object-cleanup">cleanup</a>, <a href="#Object-configure">configure</a>, <a href="#Object-copy">copy</a>, <a href="#Object-destroy">destroy</a>, <a href="#Object-eval">eval</a>, <a href="#Object-exists">exists</a>, <a href="#Object-extractConfigureArg">extractConfigureArg</a>, <a href="#Object-filter">filter</a>, <a href="#Object-filterappend">filterappend</a>, <a href="#Object-filterguard">filterguard</a>, <a href="#Object-filtersearch">filtersearch</a>, <a href="#Object-getExitHandler">getExitHandler</a>, <a href="#Object-hasclass">hasclass</a>, <a href="#Object-incr">incr</a>, <a href="#Object-info">info</a>, <a href="#Object-instvar">instvar</a>, <a href="#Object-invar">invar</a>, <a href="#Object-isclass">isclass</a>, <a href="#Object-ismetaclass">ismetaclass</a>, <a href="#Object-ismixin">ismixin</a>, <a href="#Object-isobject">isobject</a>, <a href="#Object-istype">istype</a>, <a href="#Object-lappend">lappend</a>, <a href="#Object-mixin">mixin</a>, <a href="#Object-mixinappend">mixinappend</a>, <a href="#Object-move">move</a>, <a href="#Object-noinit">noinit</a>, <a href="#Object-parametercmd">parametercmd</a>, <a href="#Object-proc">proc</a>, <a href="#Object-procsearch">procsearch</a>, <a href="#Object-requireNamespace">requireNamespace</a>, <a href="#Object-set">set</a>, <a href="#Object-setExitHandler">setExitHandler</a>, <a href="#Object-trace">trace</a>, <a href="#Object-unset">unset</a>, <a href="#Object-uplevel">uplevel</a>, <a href="#Object-upvar">upvar</a>, <a href="#Object-vwait">vwait</a>.
+        <a href="#Object-abstract">abstract</a>, <a href="#Object-append">append</a>, <a href="#Object-array">array</a>, <a href="#Object-autoname">autoname</a>, <a href="#Object-check">check</a>, <a href="#Object-class">class</a>, <a href="#Object-cleanup">cleanup</a>, <a href="#Object-configure">configure</a>, <a href="#Object-contains">contains</a>, <a href="#Object-copy">copy</a>, <a href="#Object-destroy">destroy</a>, <a href="#Object-eval">eval</a>, <a href="#Object-exists">exists</a>, <a href="#Object-extractConfigureArg">extractConfigureArg</a>, <a href="#Object-filter">filter</a>, <a href="#Object-filterguard">filterguard</a>, <a href="#Object-filtersearch">filtersearch</a>, <a href="#Object-forward">forward</a>, <a href="#Object-getExitHandler">getExitHandler</a>, <a href="#Object-hasclass">hasclass</a>, <a href="#Object-incr">incr</a>, <a href="#Object-info">info</a>, <a href="#Object-init">init</a>, <a href="#Object-instvar">instvar</a>, <a href="#Object-invar">invar</a>, <a href="#Object-isclass">isclass</a>, <a href="#Object-ismetaclass">ismetaclass</a>, <a href="#Object-ismixin">ismixin</a>, <a href="#Object-isobject">isobject</a>, <a href="#Object-istype">istype</a>, <a href="#Object-lappend">lappend</a>, <a href="#Object-mixin">mixin</a>, <a href="#Object-move">move</a>, <a href="#Object-noinit">noinit</a>, <a href="#Object-parametercmd">parametercmd</a>, <a href="#Object-proc">proc</a>, <a href="#Object-procsearch">procsearch</a>, <a href="#Object-requireNamespace">requireNamespace</a>, <a href="#Object-set">set</a>, <a href="#Object-setExitHandler">setExitHandler</a>, <a href="#Object-subst">subst</a>, <a href="#Object-trace">trace</a>, <a href="#Object-unset">unset</a>, <a href="#Object-uplevel">uplevel</a>, <a href="#Object-upvar">upvar</a>, <a href="#Object-volatile">volatile</a>, <a href="#Object-vwait">vwait</a>.
         <BR>
       </LI>
     </UL>
@@ -58,9 +71,10 @@
         </TD>
         <TD VALIGN="top">
           
-    XOTcl contains three predefined primitives:
-    <p>
-    <tt>self</tt> computes callstack related information. 
+    XOTcl contains the following predefined primitives (Tcl commands):
+    <dl>
+    <dt><tt>self</tt></dt>
+    <dd>computes callstack related information. 
     It can be used in the following ways:
     <UL>
 	<LI><TT>self</TT> - returns the name
@@ -86,8 +100,10 @@
         <li><TT>self calledproc</TT>: Returns method 
         name of the target proc (only applicable
         in a filter).
+        <li><TT>self isnextcall</TT>: Return 1 if this method
+        was invoked via next, otherwise 0
         <li><TT>self next</TT>: Return the
-         "next" method on the path as a string.
+         "next" method on the precedence path as a string.
         <li><TT>self filterreg</TT>: In a filter: returns the name
        of the object/class on which the filter is registered. Returns either 
         'objName filter filterName' or 'className instfilter filterName'.
@@ -99,19 +115,77 @@
 
         <li><TT>self activelevel</TT>: Returns the level, from where 
         the actual proc was invoked from. This might be the calling level or a next
-        call, whatsever is higher in the stack. The level is returned in a form
+        call, whatever is higher in the stack. The level is returned in a form
         it can be used as first argument in <TT>uplevel</TT> or <TT>upvar</TT>.
 
-
     </UL>
-    </p><p>
-    <tt>my someMethod</tt> is a short form for <tt>[self] someMethod</tt> and can only be 
+    </p>
+    </dd>
+
+    <dt><tt>my methodName</tt></dt>
+    <dd>is a short form for <tt>[self] methodName</tt> and can only be 
     called in a context of an instproc or an method specific proc. It allows certain 
     optimizations and shorter to write.
     </p><p>
-    <tt> next </tt> executes the "next" method on the precedence
-     order and return with the result.
-    </p>
+    <tt>next </tt><br> invokes the next shadowed (same-named) method on the
+      precedence path and returns its result. If <tt>next</tt> is
+      called without arguments, the arguments of the current method
+      are passed through the called method. If <tt>next</tt> is 
+      invoked with the flag <tt>--noArgs</tt>, the shadowed method
+      is called without arguments. If other arguments are specified 
+      for next, these will be used for the call.
+    </dd>
+    <dt><tt>myvar varName</tt></dt>
+    <dd>returns the fully qualified variable name of the specified
+           variable.<p>
+    </dd>
+
+    <dt><tt>myproc methodName ?args?</tt></dt>
+    <dd>calls the specified XOTcl method without the need 
+            of using "<tt>[list [self] methodName ...]</tt>".<p>
+    </dd>
+
+    <dt><tt>::xotcl::alias class|obj methodName ?-objscope? ?-per-object? cmdName</tt></dt>
+    <dd>can be used to register a predefined C-implemented Tcl command as
+         method <tt>methodName</tt>. 
+         The option <tt>-objscope</tt> has the same meaning as for forwarder
+         (instance variables of the calling object appear in the local scope of
+         the Tcl command), <tt>-per-object</tt> has the same meaning as for 
+         the method <tt>method</tt> (when used on a class, the method is registered for the
+         class object only, but not for the instances). This command 
+         can be used to bootstrap xotcl (when e.g. no methods are available).<p>
+    </dd>
+    
+    <dt>::xotcl::configure filter ?on|off?</tt><dt> 
+    <dd>allows to 
+      turn on or off filters globally for the current interpreter.
+      By default, the filter state is turned off.
+      This function returns the old filter state. 
+      This function is needed for the serializer that is intended
+      to serialize the objects classes independent of filter settings.<p>
+    </dd>
+
+
+    <dt><tt>::xotcl::configure softrecreate ?on|off?</tt></dt> 
+    <dd>allows to control
+      what should happen, when an object / a class is recreated. Per
+      default it is set off, which means that the object/class is destroyed
+      and all relations (e.g. subclass/superclass) to other 
+      objects/classes are destroyed as well. If <tt>softrecreate</tt> is
+      set, the object is reseted, but not destroyed, the relations
+      are kept. This is important, when e.g. reloading a file
+      with class definitions (e.g. when used in OpenACS with file watching and
+      reloading). With  <tt>softrecreate</tt> set,
+      it is not necessary to recreate dependent subclasses etc.
+      <br>
+      Example: e.g. there is a class hierarchy A <- B <- C
+      Without <tt>softrecreate</tt> set, a reload of B means
+      first a destroy of B, leading to A <- C, and instances
+      of B are re-classed to ::xotcl::Object. When <tt>softrecreate</tt> is
+      set, the structure remains unchanged.
+    <dd>
+
+    </dl>
 
   
         </TD>
@@ -121,11 +195,114 @@
           <em> Date:</em>
         </TD>
         <TD VALIGN="top">
-           $Date: 2004/07/02 11:22:31 $ 
+           $Date: 2006/10/04 20:40:23 $ 
         </TD>
       </TR>
     </TABLE>
     <BR>
+    <HR>
+    <P>
+      <A NAME="::xotcl::Slot">
+        
+      </A>
+      <h2> Class: <em> ::xotcl::Slot </em> </h2>
+      <b>Class</b>: Class
+      <BR>
+      <b>Heritage</b>: Object
+      <BR>
+      
+      
+      <TABLE BORDER="0">
+        <TR VALIGN="top">
+          <TD VALIGN="top">
+            <em> Description:</em>
+          </TD>
+          <TD VALIGN="top">
+            
+    A slot is a meta-object that manages property-changes of
+    objects. A property is either an attribute or a role of an
+    relation (e.g. in system slots). 
+    The predefined system slots are <tt>class</tt>, 
+    <tt>superclass</tt>, <tt>mixin</tt>, <tt>instmixin</tt>, 
+    <tt>filter</tt>, <tt>instfilter</tt>. These slots appear
+    as methods of Object or Class.
+ 
+    <p>The slots provide a common query and setting interface.
+    Every multivalued slot provides e.g. a method <tt>add</tt> 
+    to add a value to the list of values, and a method <tt>delete</tt>
+    which removes it. See for example the documentation of the slot 
+    <a href="#Object-mixin">mixin</a>.</p>
+
+    Parameters:<p>
+    <table>
+    <tr><td>-name <td>Name of the slot to access from an object the slot</td></tr>
+    <tr><td>-domain <td>domain (object or class) of a slot on which it can be used</td></tr>
+    <tr><td>-multivalued <td>boolean value for specifying single or multiple values (lists)</td></tr>
+    <tr><td>-defaultmethods <td>list of two elements for specifying which methods are called
+      per default, when no slot method is explicitly specified</td></tr>
+    <tr><td>-manager <td>the manager object of the slot (per default [self])</td></tr>
+    <tr><td>-per-object <td>specify whether a slot should be used per class or per object; note that there is a restricted usage if applied per class, since defaults etc, work per initialization</td></tr>
+    </table>
+
+    <p>For more details, consult the 
+      <a href='./tutorial.html#slots'>tutorial</a>.</p>
+  
+          </TD>
+        </TR>
+      </TABLE>
+    </P>
+    <HR>
+    <P>
+      <A NAME="Attribute">
+        
+      </A>
+      <h2> Class: <em> Attribute </em> </h2>
+      <b>Class</b>: Class
+      <BR>
+      <b>Heritage</b>: ::xotcl::Slot
+      <BR>
+      
+      
+      <TABLE BORDER="0">
+        <TR VALIGN="top">
+          <TD VALIGN="top">
+            <em> Description:</em>
+          </TD>
+          <TD VALIGN="top">
+            
+    Attribute slots are used to manage the setting and querying
+    of instance variables.
+ 
+    Parameters:<p>
+    <table>
+    <tr><td>-default <td>specify a default value</td></tr>
+    <tr><td>-type <td>specify the type of a slot</td></tr>
+    <tr><td>-initcmd <td>specify a Tcl command to be executed when the value of the
+    associated variable is read the first time; allows lazy initialization</td></tr>
+    <tr><td>-valuecmd <td>specify a Tcl command to be executed whenever the variable is read</td></tr>
+    <tr><td>-valuechangedcmd <td>specify a Tcl command to be executed whenever the variable is changed</td></tr>
+    </table>
+
+    <p>Example of a class definition with three attribute slots:</p>
+<pre CLASS="code">
+  <tt>Class</tt> Person <tt>-slots</tt> {
+    <tt>Attribute</tt> name
+    <tt>Attribute</tt> salary <tt>-default</tt> 0
+    <tt>Attribute</tt> projects <tt>-default</tt> {} <tt>-multivalued</tt> true
+  }
+  Person p1 -name "John Doe"
+</pre>
+
+   <p> The slot parameters <tt>default</tt>, <tt>initcmd</tt> and
+   <tt>valuecmd</tt> have to be used mutually exclusively. 
+    For more details, consult the       
+    <a href='./tutorial.html#attribute-slots'>tutorial</a>.
+    </p>
+  
+          </TD>
+        </TR>
+      </TABLE>
+    </P>
     <HR>
     <P>
       <A NAME="Class">
@@ -137,7 +314,7 @@
       <b>Heritage</b>: Object
       <BR>
       <b> Procs/Instprocs: </b> 
-      <a href="#Class-__unknown">__unknown</a>, <a href="#Class-alloc">alloc</a>, <a href="#Class-create">create</a>, <a href="#Class-info">info</a>, <a href="#Class-instdestroy">instdestroy</a>, <a href="#Class-instfilter">instfilter</a>, <a href="#Class-instfilterappend">instfilterappend</a>, <a href="#Class-instfilterguard">instfilterguard</a>, <a href="#Class-instinvar">instinvar</a>, <a href="#Class-instmixin">instmixin</a>, <a href="#Class-instmixinappend">instmixinappend</a>, <a href="#Class-instparametercmd">instparametercmd</a>, <a href="#Class-instproc">instproc</a>, <a href="#Class-insttclcmd">insttclcmd</a>, <a href="#Class-new">new</a>, <a href="#Class-parameter">parameter</a>, <a href="#Class-parameterclass">parameterclass</a>, <a href="#Class-recreate">recreate</a>, <a href="#Class-superclass">superclass</a>, <a href="#Class-unknown">unknown</a>, <a href="#Class-volatile">volatile</a>.
+      <a href="#Class-__unknown">__unknown</a>, <a href="#Class-allinstances">allinstances</a>, <a href="#Class-alloc">alloc</a>, <a href="#Class-create">create</a>, <a href="#Class-info">info</a>, <a href="#Class-instdestroy">instdestroy</a>, <a href="#Class-instfilter">instfilter</a>, <a href="#Class-instfilterguard">instfilterguard</a>, <a href="#Class-instforward">instforward</a>, <a href="#Class-instinvar">instinvar</a>, <a href="#Class-instmixin">instmixin</a>, <a href="#Class-instparametercmd">instparametercmd</a>, <a href="#Class-instproc">instproc</a>, <a href="#Class-new">new</a>, <a href="#Class-parameter">parameter</a>, <a href="#Class-parameterclass">parameterclass</a>, <a href="#Class-recreate">recreate</a>, <a href="#Class-superclass">superclass</a>, <a href="#Class-unknown">unknown</a>.
       <TABLE BORDER="0">
         <TR VALIGN="top">
           <TD VALIGN="top">
@@ -174,7 +351,7 @@
               
             </TD>
             <TD VALIGN="top">
-              <b>?args?</b>: arguments passed to the new class after creation
+              <b>?args?</b>: arguments passed during creation
             </TD>
           </TR>
 
@@ -184,13 +361,13 @@
               </TD>
               <TD VALIGN="top">
                 
-       Allocate memory for a new XOTcl object or class. <tt>create</tt> uses 
-      <tt>alloc</tt> to allocate memory. But <tt>create</tt> also 
-      calls init and evaluates '-' arguments as method calls. 
-      In seldom cases the programmer may want to suppress the 
-      <tt>create</tt>
-      mechanism and just allocate memory. Then  <tt>alloc</tt> can 
-      be used.
+      Allocate (create) an uninitialized object or class. Typically, <tt>alloc</tt>
+      is called automatically by <a href ='#Class-create'><tt>create</tt></a> 
+      to allocate an uninitialized object or class. 
+      In contrast to <tt>alloc</tt>, <tt>create</tt> also 
+      initializes and configures the object.
+    The method <tt>alloc</tt> can be used by a programmer who may want to 
+    create uninitialized objects/classes.
   
               </TD>
             </TR>
@@ -199,7 +376,34 @@
                 <em> Return:</em>
               </TD>
               <TD VALIGN="top">
-                new class name
+                fully qualified name of created instance
+              </TD>
+            </TR>
+          </TABLE>
+        </LI>
+        <LI>
+          <A NAME="Class-allinstances">
+            
+          </A>
+          <b>allinstances </b>
+          <TABLE BORDER="0">
+            
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Description:</em>
+              </TD>
+              <TD VALIGN="top">
+                
+       Compute all immediate and indirect instances of a class
+  
+              </TD>
+            </TR>
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Return:</em>
+              </TD>
+              <TD VALIGN="top">
+                fully qualified list of instances
               </TD>
             </TR>
           </TABLE>
@@ -237,32 +441,38 @@
                 
     Create user-defined classes or objects. If the class is a meta-class,
     a class is created, otherwise an object.
+    The object creation protocol implemened by create works as follows:
+    <ul>
+    <li><tt>create</tt> firstly calls <a href='#Class-alloc'><tt>alloc</tt></a>
+    in order to create an uninitialized object or class.
+    <li>In the second step, the 
+    default values for parameters are searched on  superclasses and set in the created object.
+    <li>In the third step, the method <a href='#Object-configure'><tt>configure</tt></a>
+    is called with the passed 
+    argument list to configure the object/class. 
+    <li>Finally the constructor <a href='#Object-init'><tt>init</tt></a> is called on the object 
+    with all arguments up to the first '-' argument (as returned by <tt>configure</tt>). 
+    </ul>
 
-    Create firstly calls <tt>alloc</tt> in order to allocate memory for the
-    new object. Then default values for parameters are searched on
-    superclasses (an set if found). Then <tt>args</tt> is searched for args
-    starting with '-' followed by an alpha character.  These arguments
-    are called as methods. '-' followed by a numerical is interpreted
-    as a negative number (and not as a method).  If a value of a method
-    called this way starts with a "a", the call can be placed safely
-    into a list (e.g. "Class c [-strangearg -a-] -simplearg 2").
+    <p>In the default XOTcl definition, the <tt>create</tt> method
+    is called implicitly by the <a
+    href='#Class-unknown'><tt>unknown</tt></a> method of the metaclass
+    Class, when a class (meta-class) is called with an unknown
+    method. E.g. the following two commands are equivalent
 
-    Finally the constructor <tt>init</tt> is called on the object 
-    with all arguments up to the first '-' arg.<p>
-
-    The <tt>create</tt> method is called implicitly through the 
-    <tt>unknown</tt>
-    mechanism when a class (meta-class) is called with an unknown
-    method. E.g. the following two commands are equivalent 
-
-    <pre> Car herby -color red 
-           Car create herby -color red </pre>
+    <pre class='code'>
+    Car herby -color red 
+    Car create herby -color red </pre>
 
     When a users may want to call the constructor <tt>init</tt> 
     before other '-' methods, one can specify '-init' 
     explicitly in the left to
     right order of the '-' method. Init is called always only once.
-    e.g.: <pre> Class Car -init -superclass Vehicle </pre>
+    e.g.: 
+
+    <pre class='code'>   Class Car -init -superclass Vehicle </pre>
+
+    See also: <a href='#Class-recreate'><tt>recreate</tt></a>
   
               </TD>
             </TR>
@@ -271,7 +481,7 @@
                 <em> Return:</em>
               </TD>
               <TD VALIGN="top">
-                name of the created instance (result of alloc)
+                fully qualified name of the created instance (result of alloc)
               </TD>
             </TR>
           </TABLE>
@@ -303,6 +513,7 @@
       for classes. 
       The following options can be specified:
       <ul>
+
       <li><TT>ClassName info classchildren ?pattern?</TT>: 
       Returns the list of nested classes with fully qualified names 
       if <TT>pattern</TT> was not specified, 
@@ -311,19 +522,6 @@
 
       <li><TT>ClassName info classparent</TT>: 
       Returns the class ClassName is nesting to.
-
-      <li><TT>ClassName info instdefault method arg var</TT>: 
-      Returns 1 if the argument <TT>arg</TT> of the instance method 
-      <TT>method</TT> has a default value, otherwise 0. If it exists 
-      the default value is stored in <TT>var</TT>.
-
-      <li><TT>ClassName info instfilter</TT>: 
-      Returns the list of registered filters. With -guard modifier 
-      all instfilterguards are integrated 
-      (<TT> ClassName info instfilter -guards</TT>).
-
-      <li><TT>objName info instfilterguard name</TT>: Returns the guards 
-      for instfilter identified by name.
 
       <li><TT>ClassName info heritage ?pattern?</TT>:
       Returns a list of all classes in the precedence order 
@@ -335,20 +533,44 @@
       If pattern is specified, only matching values are returned.
 
       <li><TT>ClassName info instargs method</TT>:
-      Returns the arguments of the specified method.
+      Returns the arguments of the specified instproc (instance method).
 
       <li><TT>ClassName info instbody method</TT>:
-      Returns the body of the specified method.
+      Returns the body of the specified instproc (instance method).
 
       <li><TT>ClassName info instcommands ?pattern?</TT>:
       Returns all commands defined for the class. If pattern 
       is specified it returns all commands that match the pattern.
 
+      <li><TT>ClassName info instdefault method arg var</TT>: 
+      Returns 1 if the argument <TT>arg</TT> of the instproc (instance method)
+      <TT>method</TT> has a default value, otherwise 0. If it exists 
+      the default value is stored in <TT>var</TT>.
+
+      <li><TT>ClassName info instfilter</TT>: 
+      Returns the list of registered filters. With -guard modifier 
+      all instfilterguards are integrated 
+      (<TT> ClassName info instfilter -guards</TT>).
+
+      <li><TT>ClassName info instfilterguard name</TT>: Returns the guards 
+      for instfilter identified by name.
+
+      <li><TT>ClassName info instforward ?-definition? name</TT>: Checks,
+      whether <TT>name</TT> is a forwarder (accepts wild chard characters).
+      When <TT>-definition<//TT> is specified, it returns the definition
+      of the forwarder.
+
       <li><TT>ClassName info instinvar</TT>: 
       Returns class invariants.
-
+	
       <li><TT>ClassName info instmixin</TT>: 
       Returns the list of instmixins of this class.
+
+      <li><TT>ClassName info isntmixinguard name</TT>: Returns the guards 
+      for the instmixin identified by name.
+
+      <li><TT>ClassName info instnonposargs methodName</TT>: returns list of 
+      non-positional args of methodName
 
       <li><TT>ClassName info instpost methodName</TT>: 
       Returns post assertions of methodName.
@@ -372,6 +594,10 @@
       Returns a list of all super-classes of the class, 
       if superclassname was not specified, otherwise it returns 
       1 if superclassname is a superclass and 0 if not.
+
+      <li><TT>ClassName info slots</TT>: 
+      Returns the slot objects defined for this class.
+
       </ul>
     
               </TD>
@@ -448,14 +674,14 @@
             
           </A>
           <b>instfilter </b>
-          <em>filterList</em>
+          <em>?args?</em>
           <TABLE BORDER="0">
                       <TR VALIGN="top">
             <TD VALIGN="top">
               <em>Arguments:</em>
             </TD>
             <TD VALIGN="top">
-              <b>filterList</b>: list of methods that should be registered as filters
+              <b>?args?</b>: instfilter specification
             </TD>
           </TR>
 
@@ -465,13 +691,15 @@
               </TD>
               <TD VALIGN="top">
                 
-      Specifies the list of filters registered for the class. 
-      <tt>instfilter</tt> overwrites all previous setting.
-      Filters must be available on the class or its heritage 
-      order. Filters may also reside on the meta-class of the class. 
-
-      Filter list may contain filter guards. Then the
-      filter  is composed of two list elements: {filtername filterguard}.
+      If <tt>$args</tt> is one argument, it specifies a list of 
+      instfilters to 
+      be set. Every filter must be an XOTcl proc/instproc within
+      the object scope.
+      If <tt>$args</tt> it has more argument, the first one specifies the
+      action. Possible values are <tt>assign</tt>, <tt>get</tt>, 
+      <tt>add</tt> or <tt>delete</tt>, it modifies the current
+      settings as indicated. For more details, check the 
+      <a href='./tutorial.html#updateinterceptors'>tutorial</a>.
     
               </TD>
             </TR>
@@ -480,43 +708,7 @@
                 <em> Return:</em>
               </TD>
               <TD VALIGN="top">
-                empty string
-              </TD>
-            </TR>
-          </TABLE>
-        </LI>
-        <LI>
-          <A NAME="Class-instfilterappend">
-            
-          </A>
-          <b>instfilterappend </b>
-          <em>filterList</em>
-          <TABLE BORDER="0">
-                      <TR VALIGN="top">
-            <TD VALIGN="top">
-              <em>Arguments:</em>
-            </TD>
-            <TD VALIGN="top">
-              <b>filterList</b>: name of the new instfilter
-            </TD>
-          </TR>
-
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Description:</em>
-              </TD>
-              <TD VALIGN="top">
-                
-    Convenience method that appends an instfilter to the existing filters of the class.
-  
-              </TD>
-            </TR>
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Return:</em>
-              </TD>
-              <TD VALIGN="top">
-                empty string
+                if <tt>$args</tt> return empty current instfilters, otherwise empty
               </TD>
             </TR>
           </TABLE>
@@ -526,7 +718,7 @@
             
           </A>
           <b>instfilterguard </b>
-          <em>filtername</em>
+          <em>filterName</em>
           <em>guard</em>
           <TABLE BORDER="0">
                       <TR VALIGN="top">
@@ -534,7 +726,7 @@
               <em>Arguments:</em>
             </TD>
             <TD VALIGN="top">
-              <b>filtername</b>: filter name of a registered filter
+              <b>filterName</b>: filter name of a registered filter
             </TD>
           </TR>
           <TR VALIGN="top">
@@ -564,6 +756,109 @@
               </TD>
               <TD VALIGN="top">
                 empty string
+              </TD>
+            </TR>
+          </TABLE>
+        </LI>
+        <LI>
+          <A NAME="Class-instforward">
+            
+          </A>
+          <b>instforward </b>
+          <em>methodName</em>
+          <em>?options?</em>
+          <em>?callee?</em>
+          <em>?args?</em>
+          <TABLE BORDER="0">
+                      <TR VALIGN="top">
+            <TD VALIGN="top">
+              <em>Arguments:</em>
+            </TD>
+            <TD VALIGN="top">
+              <b>methodName</b>: name of forwarder method
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>?options?</b>: -objscope, -methodprefix string, -default names, -earlybinding, -verbose
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>?callee?</b>: named of the called command or object
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>?args?</b>: arguments
+            </TD>
+          </TR>
+
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Description:</em>
+              </TD>
+              <TD VALIGN="top">
+                
+      Register a method for the instances of a class (similar to an instproc) 
+      for forwarding calls to a callee (target Tcl command, 
+      other object). 
+      When the forwarder method is called, the actual arguments 
+      of the invocation are appended to the specified arguments. In callee an 
+      arguments certain substitutions can take place: 
+      <ul><li>%proc: substituted by name of the forwarder method</li>
+          <li>%self: substitute by name of the object</li>
+          <li>%1: substitute by first argument of the invocation</li>
+          <li>{%@POS value}: substitute the specified value in the argument list
+            on position POS, where POS can be a positive or negative integer 
+            or <tt>end</tt>. Positive integers specify the position from the begin
+            of the list, while negative integer specify the position from the end.
+          <li>{%argclindex LIST}: take the <em>n</em>th argument of the specified list as
+            substitution value, where <em>n</em> is the number of arguments from the
+            invocation.
+          <li>%%: a single percent.</li>
+          <li>%<em>Tcl-command</em>: command to be executed; substituted by result.</li>
+      </ul>
+      Additionally each argument can be prefixed by the positional prefix <tt>%@POS </tt>
+      (note the delimiting space at the end) that can be used to specify an 
+      explicit position. POS can be a positive or negative integer or the word 
+      <tt>end</tt>. The positional arguments are evaluated from left to 
+      right and should be used in ascending order. valid Options are:
+      <ul><li><tt>-objscope</tt> causes the target to be evaluated in the scope 
+              of the object,</li>
+          <li><tt>-methodprefix string</tt> inserts the specified prefix
+              in front of the second argument of the invocation,</li>
+          <li><tt>-default</tt> is used for default method names (only 
+              in connection with %1)</li>
+          <li><tt>-earlybinding</tt>: look up the function 
+              pointer of the called Tcl command at 
+              definition time of the forwarder instead of invocation time. 
+              This option should only be used
+              for calling C-implemented Tcl commands, no procs etc.);</li>
+         <li><tt>-verbose</tt></li>: print the substituted command to stderr 
+              before executing</li>
+      </ul>
+      See  <a href='./tutorial.html#forwarding'>tutorial</a>
+  for detailed examples.
+
+    
+              </TD>
+            </TR>
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Return:</em>
+              </TD>
+              <TD VALIGN="top">
+                empty
               </TD>
             </TR>
           </TABLE>
@@ -611,14 +906,14 @@
             
           </A>
           <b>instmixin </b>
-          <em>instmixinList</em>
+          <em>?args?</em>
           <TABLE BORDER="0">
                       <TR VALIGN="top">
             <TD VALIGN="top">
               <em>Arguments:</em>
             </TD>
             <TD VALIGN="top">
-              <b>instmixinList</b>: list of classes that should be registered as instmixins
+              <b>?args?</b>: instmixin specification
             </TD>
           </TR>
 
@@ -628,10 +923,13 @@
               </TD>
               <TD VALIGN="top">
                 
-     Specifies the list of instmixins (per-class mixins) for the class. 
-     Note that the registration of a per-mixin-class does not invoke
-     automatically the constructors of the registered class.
-     The method <tt>instmixin</tt> overwrites any previous settings.
+      If <tt>$args</tt> is one argument, it specifies a list of instmixins to 
+      be set. Every instmixin must be a defined class.
+      If <tt>$args</tt> has more argument, the first one specifies the
+      action. Possible values are <tt>assign</tt>, <tt>get</tt>, 
+      <tt>add</tt> or <tt>delete</tt>, it modifies the current
+      settings as indicated. For more details, check the 
+      <a href='./tutorial.html#updateinterceptors'>tutorial</a>.
     
               </TD>
             </TR>
@@ -640,43 +938,7 @@
                 <em> Return:</em>
               </TD>
               <TD VALIGN="top">
-                empty string
-              </TD>
-            </TR>
-          </TABLE>
-        </LI>
-        <LI>
-          <A NAME="Class-instmixinappend">
-            
-          </A>
-          <b>instmixinappend </b>
-          <em>mixinList</em>
-          <TABLE BORDER="0">
-                      <TR VALIGN="top">
-            <TD VALIGN="top">
-              <em>Arguments:</em>
-            </TD>
-            <TD VALIGN="top">
-              <b>mixinList</b>: name of the new instmixin
-            </TD>
-          </TR>
-
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Description:</em>
-              </TD>
-              <TD VALIGN="top">
-                
-    Convenience method that appends an instmixin to the existing mixins of the class.
-  
-              </TD>
-            </TR>
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Return:</em>
-              </TD>
-              <TD VALIGN="top">
-                empty string
+                if <tt>$args</tt> empty return current instmixins, otherwise empty
               </TD>
             </TR>
           </TABLE>
@@ -707,10 +969,11 @@
     specified name. This method is used for example by the 
     <A href="#Class-parameter">parameter</A> method.
     Example: <br>
-    <tt>Class C</tt><br>
-    <tt>C instparametercmd x</tt><br>
-    <tt>C c1 -x 100</tt><br>
-    <tt>puts [c1 x]</tt><br>
+    <pre class='code'>
+    Class C
+    C instparametercmd x
+    C c1 -x 100</tt>
+    puts [c1 x]</pre>
   
               </TD>
             </TR>
@@ -730,6 +993,7 @@
           </A>
           <b>instproc </b>
           <em>name</em>
+          <em>?non-pos-args?</em>
           <em>args</em>
           <em>body</em>
           <em>?preAssertion?</em>
@@ -741,6 +1005,14 @@
             </TD>
             <TD VALIGN="top">
               <b>name</b>: instance method name
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>?non-pos-args?</b>: optional non-positional arguments
             </TD>
           </TR>
           <TR VALIGN="top">
@@ -783,53 +1055,15 @@
               <TD VALIGN="top">
                 
       Specify an instance method in the same style as Tcl specifies procs.
- 
-      Optionally assertions may be given. The number of args is either 3 or 5.
+      <br>
+      Optionally assertions may be given by two additional arguments.
       Therefore, to specify only post-assertions an empty pre-assertion list
       must be given. All assertions are a list 
       of ordinary Tcl conditions.
+      <br>
+      When instproc is called with an empty argument list and an empty
+      body, the specified instproc is deleted.
     
-              </TD>
-            </TR>
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Return:</em>
-              </TD>
-              <TD VALIGN="top">
-                empty string
-              </TD>
-            </TR>
-          </TABLE>
-        </LI>
-        <LI>
-          <A NAME="Class-insttclcmd">
-            
-          </A>
-          <b>insttclcmd </b>
-          <em>name</em>
-          <TABLE BORDER="0">
-                      <TR VALIGN="top">
-            <TD VALIGN="top">
-              <em>Arguments:</em>
-            </TD>
-            <TD VALIGN="top">
-              <b>name</b>: cmd to be execute in obj scope
-            </TD>
-          </TR>
-
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Description:</em>
-              </TD>
-              <TD VALIGN="top">
-                
-    Create a method 'name' that is evaluated as a tcl command in the
-    scope of the object. E.g. 'Object insttclcmd vwait' creates
-    an instproc vwait on Object that executes Tcl's vwait in the
-    scope of the object. That is local vars of the object are accessible
-    to that vwait. (Used to circumvent, for instance, the TCL_GLOBAL_ONLY
-    flag of vwait in Tcl.)
-  
               </TD>
             </TR>
             <TR VALIGN="top">
@@ -865,7 +1099,8 @@
               <TD VALIGN="top">
                 
     Convenience method to create an autonamed object. E.g.:
-      <pre> Http new </pre>
+    <pre class='code'>
+    HTTP new </pre>
     creates ::xotcl::__#0, a subsequent call creates ::xotcl::__#1, ...<br>
     If <tt>-childof obj</tt> is specified, the new object is
     created as a child of the specified object. 
@@ -877,7 +1112,7 @@
                 <em> Return:</em>
               </TD>
               <TD VALIGN="top">
-                new object name
+                fully qualified name of the created instance
               </TD>
             </TR>
           </TABLE>
@@ -918,12 +1153,11 @@
     parameter. It gets and returns the parameter, if no 
     argument is specified. With one argument, the parameter is set 
     to the argument value. 
-
+    <br>
     Example:
-    <pre>
+    <pre class='code'>
     Class Car -parameter {{doors 4} color}
-    Car herby -doors 2 -color green
-    </pre>
+    Car herby -doors 2 -color green </pre>
   
               </TD>
             </TR>
@@ -962,26 +1196,20 @@
     Set the parameter class. 
     The parameter class specifies how parameters are stored and 
     maintained internally. Per default, a method "default" is called, 
-    to set the parameter with a default value.
-
-    I.e., 
-    <pre>
+    to set the parameter with a default value. I.e., 
+    <pre class='code'>
     Class Car -parameter {
       {doors 4}
-    }
-    </pre>
+    }</pre>
 
     is a short form for 
-    <pre>
+    <pre class='code'>
     Class Car -parameter {
       {doors -default 4}
-    }
-    </pre>
+    }</pre>
 
     For specialized parameter classes other methods can be called, e.g.<br>
-    <pre> 
-    {doors -default 3 -updateWidget car}
-    </pre>
+    <pre class='code'>   {doors -default 3 -updateWidget car}</pre>
   
               </TD>
             </TR>
@@ -1026,11 +1254,27 @@
               </TD>
               <TD VALIGN="top">
                 
-    Hook called upon recreation of an object. Performs standard object
-    initialization, per default. May be overloaded/-written. It calls
-    another method cleanup which handles actual cleanup of the object
-    during next. That means, if you overload recreate, in the pre-part
-    the object still contains its old state, after next it is cleaned up.
+    Hook called upon recreation of an object in cases where the user wants to distinguish
+    between creation and recreation of objects. A recreation occurs, when an Object is created
+    with a name that exists already. 
+    A typical use-case is the redefinition
+    of classes in and IDE, where the relations between classes/classes and object/classes
+    should be preserved (this is different to a destroy of the object).
+
+    <p>The method <tt>recreate</tt> does not need to call <a href='#Class-alloc'><tt>alloc</tt></a>
+    but calls instead <a href='Object-cleanup'><tt>cleanup</tt></a> 
+    to reset to the object (or class) to its initial state (e.g. remove variables, child objects,
+    for classes remove instaces, etc.). Then it performs the standard initialization
+    for the object or class. 
+
+    <p>If recreate is overloaded and the default <tt>recreate</tt> method is called via <tt>next</tt>, 
+    the pre-part
+    (before <tt>next</tt>) contains its old state of the object, 
+    while during the part after <tt>next</tt> the
+    object is cleaned up.
+    <p>To ease recreation of classes, see <tt>::xotcl::configure softrecreate</tt>.
+
+    See also: <a href='#Class-create'><tt>create</tt></a>
   
               </TD>
             </TR>
@@ -1039,7 +1283,7 @@
                 <em> Return:</em>
               </TD>
               <TD VALIGN="top">
-                obj name
+                fully qualified name of instance
               </TD>
             </TR>
           </TABLE>
@@ -1056,7 +1300,7 @@
               <em>Arguments:</em>
             </TD>
             <TD VALIGN="top">
-              <b>classList</b>: list of classes
+              <b>classList</b>: ?list of classes?
             </TD>
           </TR>
 
@@ -1067,7 +1311,9 @@
               <TD VALIGN="top">
                 
     Specify super-classes for a class. "superclass" changes the list
-    of superclasses dynamically to  <tt>classList</tt>.
+    of superclasses dynamically to  <tt>classList</tt>. 
+    The method returns the current value of <tt>superclass</tt>, 
+    when it is called without arguments.
   
               </TD>
             </TR>
@@ -1076,7 +1322,7 @@
                 <em> Return:</em>
               </TD>
               <TD VALIGN="top">
-                empty string
+                if <tt>classList</tt> is not specified return superclass(es), otherwise empty
               </TD>
             </TR>
           </TABLE>
@@ -1109,8 +1355,8 @@
     "unknown" (which is found on the Class Object) and executes it. 
     The standard unknown-mechanism of XOTcl calls create with all 
     arguments stepping one step to the right; in the general case:
-
-    <pre>ClassName create ClassName ?args?</pre>
+    <pre class='code'>
+    ClassName create ClassName ?args?</pre>
 
     Unknown can be overloaded in user-defined subclasses of class.
   
@@ -1122,45 +1368,6 @@
               </TD>
               <TD VALIGN="top">
                 Standard unknown mechanism returns result of create
-              </TD>
-            </TR>
-          </TABLE>
-        </LI>
-        <LI>
-          <A NAME="Class-volatile">
-            
-          </A>
-          <b>volatile </b>
-          <em></em>
-          <TABLE BORDER="0">
-                      <TR VALIGN="top">
-            <TD VALIGN="top">
-              <em>Arguments:</em>
-            </TD>
-            <TD VALIGN="top">
-              <b></b>: 
-            </TD>
-          </TR>
-
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Description:</em>
-              </TD>
-              <TD VALIGN="top">
-                
-    This method is used to specify that the object
-    should be deleted automatically, when the current
-    tcl-proc/object-proc/instproc is left. Example
-    <tt>set x [Object new -volatile]</tt>
-  
-              </TD>
-            </TR>
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Return:</em>
-              </TD>
-              <TD VALIGN="top">
-                empty string
               </TD>
             </TR>
           </TABLE>
@@ -1198,6 +1405,9 @@
     of classes. After this call, XOTcl tries again to 
     resolve D. If it succeeds, XOTcl will continue; otherwise,
     an error is generated.
+    <p>
+    This method is called on mixin/instmixin definition calls, 
+    istype, ismixin, class, superclass and parameterclass
   
               </TD>
             </TR>
@@ -1222,7 +1432,7 @@
       <b>Class</b>: Class
       <BR>
       <b> Procs/Instprocs: </b> 
-      <a href="#Object-abstract">abstract</a>, <a href="#Object-append">append</a>, <a href="#Object-array">array</a>, <a href="#Object-autoname">autoname</a>, <a href="#Object-check">check</a>, <a href="#Object-class">class</a>, <a href="#Object-cleanup">cleanup</a>, <a href="#Object-configure">configure</a>, <a href="#Object-copy">copy</a>, <a href="#Object-destroy">destroy</a>, <a href="#Object-eval">eval</a>, <a href="#Object-exists">exists</a>, <a href="#Object-extractConfigureArg">extractConfigureArg</a>, <a href="#Object-filter">filter</a>, <a href="#Object-filterappend">filterappend</a>, <a href="#Object-filterguard">filterguard</a>, <a href="#Object-filtersearch">filtersearch</a>, <a href="#Object-getExitHandler">getExitHandler</a>, <a href="#Object-hasclass">hasclass</a>, <a href="#Object-incr">incr</a>, <a href="#Object-info">info</a>, <a href="#Object-instvar">instvar</a>, <a href="#Object-invar">invar</a>, <a href="#Object-isclass">isclass</a>, <a href="#Object-ismetaclass">ismetaclass</a>, <a href="#Object-ismixin">ismixin</a>, <a href="#Object-isobject">isobject</a>, <a href="#Object-istype">istype</a>, <a href="#Object-lappend">lappend</a>, <a href="#Object-mixin">mixin</a>, <a href="#Object-mixinappend">mixinappend</a>, <a href="#Object-move">move</a>, <a href="#Object-noinit">noinit</a>, <a href="#Object-parametercmd">parametercmd</a>, <a href="#Object-proc">proc</a>, <a href="#Object-procsearch">procsearch</a>, <a href="#Object-requireNamespace">requireNamespace</a>, <a href="#Object-set">set</a>, <a href="#Object-setExitHandler">setExitHandler</a>, <a href="#Object-trace">trace</a>, <a href="#Object-unset">unset</a>, <a href="#Object-uplevel">uplevel</a>, <a href="#Object-upvar">upvar</a>, <a href="#Object-vwait">vwait</a>.
+      <a href="#Object-abstract">abstract</a>, <a href="#Object-append">append</a>, <a href="#Object-array">array</a>, <a href="#Object-autoname">autoname</a>, <a href="#Object-check">check</a>, <a href="#Object-class">class</a>, <a href="#Object-cleanup">cleanup</a>, <a href="#Object-configure">configure</a>, <a href="#Object-contains">contains</a>, <a href="#Object-copy">copy</a>, <a href="#Object-destroy">destroy</a>, <a href="#Object-eval">eval</a>, <a href="#Object-exists">exists</a>, <a href="#Object-extractConfigureArg">extractConfigureArg</a>, <a href="#Object-filter">filter</a>, <a href="#Object-filterguard">filterguard</a>, <a href="#Object-filtersearch">filtersearch</a>, <a href="#Object-forward">forward</a>, <a href="#Object-getExitHandler">getExitHandler</a>, <a href="#Object-hasclass">hasclass</a>, <a href="#Object-incr">incr</a>, <a href="#Object-info">info</a>, <a href="#Object-init">init</a>, <a href="#Object-instvar">instvar</a>, <a href="#Object-invar">invar</a>, <a href="#Object-isclass">isclass</a>, <a href="#Object-ismetaclass">ismetaclass</a>, <a href="#Object-ismixin">ismixin</a>, <a href="#Object-isobject">isobject</a>, <a href="#Object-istype">istype</a>, <a href="#Object-lappend">lappend</a>, <a href="#Object-mixin">mixin</a>, <a href="#Object-move">move</a>, <a href="#Object-noinit">noinit</a>, <a href="#Object-parametercmd">parametercmd</a>, <a href="#Object-proc">proc</a>, <a href="#Object-procsearch">procsearch</a>, <a href="#Object-requireNamespace">requireNamespace</a>, <a href="#Object-set">set</a>, <a href="#Object-setExitHandler">setExitHandler</a>, <a href="#Object-subst">subst</a>, <a href="#Object-trace">trace</a>, <a href="#Object-unset">unset</a>, <a href="#Object-uplevel">uplevel</a>, <a href="#Object-upvar">upvar</a>, <a href="#Object-volatile">volatile</a>, <a href="#Object-vwait">vwait</a>.
       <TABLE BORDER="0">
         <TR VALIGN="top">
           <TD VALIGN="top">
@@ -1244,7 +1454,7 @@
           </A>
           <b>abstract </b>
           <em>methtype</em>
-          <em>methname</em>
+          <em>methodName</em>
           <em>arglist</em>
           <TABLE BORDER="0">
                       <TR VALIGN="top">
@@ -1260,7 +1470,7 @@
               
             </TD>
             <TD VALIGN="top">
-              <b>methname</b>: name of abstract method
+              <b>methodName</b>: name of abstract method
             </TD>
           </TR>
           <TR VALIGN="top">
@@ -1435,12 +1645,12 @@
       autoname creates an automatically assigned name. It is 
       constructed from the base name plus an index, that is 
       incremented for each usage. E.g.: 
-        <pre>$obj autoname a</pre>
+      <pre class='code'>    $obj autoname a</pre>
       produces a0, a1, a2, ...
       Autonames may have format strings 
       as in the Tcl 'format' command.  
       E.g.: 
-      <pre>$obj autoname a%06d</pre>
+      <pre class='code'>    $obj autoname a%06d</pre>
       produces a000000, a000001, a000002, ...
     
               </TD>
@@ -1481,11 +1691,10 @@
       of assertions, that should be checked on the object automatically. 
       Per default assertion checking is turned 
       off. Examples:  
-      <pre>
-      o check {}; # turn off assertion checking on object o  
-      o check all; # turn on all assertion checks on object o 
-      o check {pre post}; # only check pre/post assertions 
-      </pre>
+    <pre class='code'>
+    o check {};         <it># turn off assertion checking on object o</it>  
+    o check all;        <it># turn on all assertion checks on object o</it>   
+    o check {pre post}; <it># only check pre/post assertions</it></pre>
       <a href="#Object-info">info check</a> introspects check options.
     
               </TD>
@@ -1512,7 +1721,7 @@
               <em>Arguments:</em>
             </TD>
             <TD VALIGN="top">
-              <b>newClass</b>: new class name
+              <b>newClass</b>: ?new class?
             </TD>
           </TR>
 
@@ -1522,8 +1731,10 @@
               </TD>
               <TD VALIGN="top">
                 
-      Changes the class of an object dynamically to <tt>newClass</tt>.
-    
+    Changes the class of an object dynamically to <tt>newClass</tt>.
+    The method returns the current value of <tt>class</tt>, 
+    when it is called without arguments.
+  
               </TD>
             </TR>
             <TR VALIGN="top">
@@ -1531,7 +1742,7 @@
                 <em> Return:</em>
               </TD>
               <TD VALIGN="top">
-                empty string
+                if <tt>newClass</tt> is not specified return class, otherwise empty
               </TD>
             </TR>
           </TABLE>
@@ -1559,7 +1770,7 @@
               <TD VALIGN="top">
                 
     Resets an object or class into an initial state, as after construction.
-    Called during recreation process by the method 'recreate'
+    Called during recreation process by the method <a href='#Class-recreate'><tt>recreate</tt></a>.
   
               </TD>
             </TR>
@@ -1595,16 +1806,123 @@
               </TD>
               <TD VALIGN="top">
                 
-    Calls the '-' methods. I.e. evaluates arguments and calls 
-    everything starting with '-' (and not having a digit a 
-    second char) as a method. Every list element until the next '-'
-    is interpreted as a method argument. configure is called 
-    before the constructor during initialization and recreation.
-    E.g. <pre>Object o -set x 4</pre>
-      here:
-        <pre>o configure -set x 4</pre>
-      is executed.
+    Calls the '-' (dash) methods. This method evaluates its argument list 
+    and calls everything starting with '-' (followed by an alpha character) 
+    as a method. Every list element until the next '-' is interpreted as an 
+    argument of the called method. XOTcl supports argument lists with a variable
+    number of arguments. If an argument of a method called this way starts 
+    with a "-", the call can be placed safely
+    into a list (e.g. "Class c [list -strangearg -a-] -simplearg 2") to avoid 
+    the interpretation of "a-" as a method.
+    <p>The method <tt>configure</tt> is called automatically by 
+    the default <tt>create</tt> and <tt>recreate</tt> methods after 
+    the default values are set. </p>
+    <p>
+    In the following example, the variable set is called via 
+    configure before <tt>init</tt>:
+    <pre class='code'>    Object o -set x 4</pre>
+    The method <tt>configure</tt> can be called with the
+    dash-notation at arbitrary times:
+    <pre class='code'>    o configure -set x 4</pre>
+  
+              </TD>
+            </TR>
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Return:</em>
+              </TD>
+              <TD VALIGN="top">
+                number of the skipped first arguments
+              </TD>
+            </TR>
+          </TABLE>
+        </LI>
+        <LI>
+          <A NAME="Object-contains">
+            
+          </A>
+          <b>contains </b>
+          <em>?-withnew?</em>
+          <em>?-object?</em>
+          <em>?-class?</em>
+          <em>cmd</em>
+          <TABLE BORDER="0">
+                      <TR VALIGN="top">
+            <TD VALIGN="top">
+              <em>Arguments:</em>
+            </TD>
+            <TD VALIGN="top">
+              <b>?-withnew?</b>: Option to overload new to create new objects within
+	the specified object. Per default, this option is turned on.
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>?-object?</b>: object, in which the new objects should be created. 
+	The default is the object, for which <tt>contains>/tt> was called.
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>?-class?</b>: In combination with option <tt>-object</tt>: If the specified 
+        object does not exist, create it from the specified class. The default
+        is <tt>::xotcl::Object</tt>
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>cmd</b>: Tcl command to create multiple objects
+            </TD>
+          </TR>
 
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Description:</em>
+              </TD>
+              <TD VALIGN="top">
+                
+    This method can be used to create nested object structures
+    with little syntactic overhead. The method changes the namespace 
+    to the specified object and creates objects there. 
+    Optionally, a different object scope can be specified and 
+    creating new objects in the specified scope can be turned off.
+    The following command creates a three rectangles, containing some 
+    points.
+<pre CLASS="code">
+  <tt>Class</tt> Point <tt>-parameter</tt> {{x 100} {y 300}}
+  <tt>Class</tt> Rectangle <tt>-parameter</tt> {color}
+
+  Rectangle r0 -color pink <tt>-contains</tt> {
+    Rectangle r1 -color red <tt>-contains</tt> {
+      Point x1 -x 1 -y 2
+      Point x2 -x 1 -y 2
+    }
+    Rectangle r2 -color green <tt>-contains</tt> {
+      Point x1
+      Point x2
+    }
+  }
+</pre>
+    The resulting object structure looks like in the folloing
+    example (simplified).
+<pre CLASS="code">
+   ::r0
+   ::r0::r1
+   ::r0::r1::x1
+   ::r0::r1::x2
+   ::r0::r2
+   ::r0::r2::x1
+   ::r0::r2::x2
+</pre>
   
               </TD>
             </TR>
@@ -1681,11 +1999,10 @@
       Standard destructor.  
       Can be overloaded for customized destruction process. Actual destruction
       is done by instdestroy. "destroy" in principal does:
-      <pre>
-      Object instproc destroy args {
-        [my info class] instdestroy [self]
-      }
-      </pre>
+    <pre class='code'>
+    Object instproc destroy args {
+      [my info class] instdestroy [self]
+    }</pre>
     
               </TD>
             </TR>
@@ -1758,7 +2075,7 @@
               
             </TD>
             <TD VALIGN="top">
-              <b>name</b>: Name of the Configure Argument to be extracted (should start with '-')
+              <b>name</b>: Name of the configure argument to be extracted (should start with '-')
             </TD>
           </TR>
           <TR VALIGN="top">
@@ -1834,14 +2151,14 @@
             
           </A>
           <b>filter </b>
-          <em>filterList</em>
+          <em>?args?</em>
           <TABLE BORDER="0">
                       <TR VALIGN="top">
             <TD VALIGN="top">
               <em>Arguments:</em>
             </TD>
             <TD VALIGN="top">
-              <b>filterList</b>: list of methods that should be registered as filters
+              <b>?args?</b>: filter specification
             </TD>
           </TR>
 
@@ -1851,13 +2168,14 @@
               </TD>
               <TD VALIGN="top">
                 
-      Specifies the list of filters registered for the class. 
-      <tt>filter</tt> overwrites all previous setting.
-      Filters must be available on the class or its heritage 
-      order. Filters may also reside on the meta-class of the class.
-
-      Filter list may contain filter guards. Then the
-      filter  is composed of two list elements: {filtername filterguard}.
+      If <tt>$args</tt> is one argument, it specifies a list of filters to 
+      be set. Every filter must be an XOTcl proc/instproc within
+      the object scope.
+      If <tt>$args</tt> it has more argument, the first one specifies the
+      action. Possible values are <tt>assign</tt>, <tt>get</tt>, 
+      <tt>add</tt> or <tt>delete</tt>, it modifies the current
+      settings as indicated. For more details, check the 
+      <a href='./tutorial.html#updateinterceptors'>tutorial</a>.
     
               </TD>
             </TR>
@@ -1866,43 +2184,7 @@
                 <em> Return:</em>
               </TD>
               <TD VALIGN="top">
-                empty string
-              </TD>
-            </TR>
-          </TABLE>
-        </LI>
-        <LI>
-          <A NAME="Object-filterappend">
-            
-          </A>
-          <b>filterappend </b>
-          <em>filterList</em>
-          <TABLE BORDER="0">
-                      <TR VALIGN="top">
-            <TD VALIGN="top">
-              <em>Arguments:</em>
-            </TD>
-            <TD VALIGN="top">
-              <b>filterList</b>: name of the new filter
-            </TD>
-          </TR>
-
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Description:</em>
-              </TD>
-              <TD VALIGN="top">
-                
-    Convenience method that appends a filter to the existing filters of the object.
-  
-              </TD>
-            </TR>
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Return:</em>
-              </TD>
-              <TD VALIGN="top">
-                empty string
+                if <tt>$args</tt> return empty current filters, otherwise empty
               </TD>
             </TR>
           </TABLE>
@@ -1912,7 +2194,7 @@
             
           </A>
           <b>filterguard </b>
-          <em>filtername</em>
+          <em>filterName</em>
           <em>guard</em>
           <TABLE BORDER="0">
                       <TR VALIGN="top">
@@ -1920,7 +2202,7 @@
               <em>Arguments:</em>
             </TD>
             <TD VALIGN="top">
-              <b>filtername</b>: filter name of a registered filter
+              <b>filterName</b>: filter name of a registered filter
             </TD>
           </TR>
           <TR VALIGN="top">
@@ -1979,7 +2261,7 @@
     Search a full qualified method name that 
     is currently registered as a filter. Return a list of the
     proc qualifier format:
-	    'objName|classname proc|instproc methodName'.
+	    'objName|className proc|instproc methodName'.
   
               </TD>
             </TR>
@@ -1989,6 +2271,108 @@
               </TD>
               <TD VALIGN="top">
                 full qualified name, if filter is found, otherwise an empty string
+              </TD>
+            </TR>
+          </TABLE>
+        </LI>
+        <LI>
+          <A NAME="Object-forward">
+            
+          </A>
+          <b>forward </b>
+          <em>methodName</em>
+          <em>?options?</em>
+          <em>?callee?</em>
+          <em>?args?</em>
+          <TABLE BORDER="0">
+                      <TR VALIGN="top">
+            <TD VALIGN="top">
+              <em>Arguments:</em>
+            </TD>
+            <TD VALIGN="top">
+              <b>methodName</b>: name of forwarder method
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>?options?</b>: -objscope, -methodprefix string, -default names, -earlybinding, -verbose
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>?callee?</b>: named of the called command or object
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>?args?</b>: arguments
+            </TD>
+          </TR>
+
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Description:</em>
+              </TD>
+              <TD VALIGN="top">
+                
+      Register an object specific method (similar to a proc) for forwarding calls to 
+      a callee (target Tcl command, other object). 
+      When the forwarder method is called, the actual arguments 
+      of the invocation are appended to the specified arguments. In callee an 
+      arguments certain substitutions can take place: 
+      <ul><li>%proc: substituted by name of the forwarder method</li>
+          <li>%self: substitute by name of the object</li>
+          <li>%1: substitute by first argument of the invocation</li>
+          <li>{%@POS value}: substitute the specified value in the argument list
+            on position POS, where POS can be a positive or negative integer 
+            or <tt>end</tt>. Positive integers specify the position from the begin
+            of the list, while negative integer specify the position from the end.
+          <li>{%argclindex LIST}: take the <em>n</em>th argument of the specified list as
+            substitution value, where <em>n</em> is the number of arguments from the
+            invocation.
+          <li>%%: a single percent.</li>
+          <li>%<em>Tcl-command</em>: command to be executed; substituted by result.</li>
+      </ul>
+      Additionally each argument can be prefixed by the positional prefix <tt>%@POS </tt>
+      (note the delimiting space at the end) that can be used to specify an 
+      explicit position. POS can be a positive or negative integer or the word 
+      <tt>end</tt>. The positional arguments are evaluated from left to 
+      right and should be used in ascending order. valid Options are:
+      <ul><li><tt>-objscope</tt> causes the target to be evaluated in the scope 
+              of the object,</li>
+          <li><tt>-methodprefix string</tt> inserts the specified prefix
+              in front of the second argument of the invocation,</li>
+          <li><tt>-default</tt> is used for default method names (only 
+              in connection with %1)</li>
+          <li><tt>-earlybinding</tt>: look up the function 
+              pointer of the called Tcl command at 
+              definition time of the forwarder instead of invocation time. 
+              This option should only be used
+              for calling C-implemented Tcl commands, no procs etc.);</li>
+          <li><tt>-verbose</tt></li>: print the substituted command to stderr 
+              before executing</li>
+      </ul>
+  See 
+      <a href='./tutorial.html#forwarding'>tutorial</a>
+  for detailed examples.
+    
+              </TD>
+            </TR>
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Return:</em>
+              </TD>
+              <TD VALIGN="top">
+                empty
               </TD>
             </TR>
           </TABLE>
@@ -2029,6 +2413,38 @@
               </TD>
               <TD VALIGN="top">
                 1 or 0
+              </TD>
+            </TR>
+          </TABLE>
+        </LI>
+        <LI>
+          <A NAME="Object-init">
+            
+          </A>
+          <b>init </b>
+          <em>args</em>
+          <TABLE BORDER="0">
+                      <TR VALIGN="top">
+            <TD VALIGN="top">
+              <em>Arguments:</em>
+            </TD>
+            <TD VALIGN="top">
+              <b>args</b>: argument list
+            </TD>
+          </TR>
+
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Description:</em>
+              </TD>
+              <TD VALIGN="top">
+                
+    The method <tt>init</tt> is called automatically by the default 
+    <a href='#Class-create'><tt>create</tt></a> method on initialized
+    objects (the default variables are set, the <a href='#Object-configure'>configure</a>
+    methods are already performed). This method is solely a user hook for 
+    applications to perform class specific initialzation after object creation.
+  
               </TD>
             </TR>
           </TABLE>
@@ -2104,29 +2520,32 @@
               <TD VALIGN="top">
                 
       Introspection of objects. The following options can be specified:
-      <ul>
+      <l>
       <li><TT>objName info args method</TT>: 
-      Returns the arguments of the specified method.
+      Returns the arguments of the specified proc (object specific method).
 
       <li><TT>objName info body method</TT>: 
-      Returns the body of the specified method.
+      Returns the body of the specified proc (object specific method).
  
       <li><TT>objName info class ?classname?</TT>: 
-      Returns the name of the class of the current object, if classname was 
-      not specified, otherwise it returns 1 if classname matches the 
+      Returns the name of the class of the current object, if className was 
+      not specified, otherwise it returns 1 if className matches the 
       object's class and 0 if not.
 
-      <li><TT>objName info children ?pattern?</TT>: Returns the list of aggregated 
-      objects with fully qualified names if <TT>pattern</TT> was not specified, 
-      otherwise  it returns all children where the object name matches the pattern.
+      <li><TT>objName info children ?pattern?</TT>: Returns the
+      list of aggregated objects with fully qualified names if
+      <TT>pattern</TT> was not specified, otherwise it returns all
+      children where the object name matches the pattern.
 
-      <li><TT>objName info commands ?pattern</TT>: Returns all commands 
-      defined for the object if <TT>pattern</TT> was not specified, otherwise 
-      it returns all commands that match the pattern.
+      <li><TT>objName info commands ?pattern</TT>: Returns all
+      commands defined for the object if <TT>pattern</TT> was not
+      specified, otherwise it returns all commands that match the
+      pattern.
 
-      <li><TT>objName info default method arg var</TT>: Returns 1 if the 
-      argument <TT>arg</TT> of the method <TT>method</TT> has a default 
-      value, otherwise 0. If it exists the default value is stored in <TT>var</TT>.
+      <li><TT>objName info default method arg var</TT>: Returns 1
+      if the argument <TT>arg</TT> of the proc (object specific
+      method) <TT>method</TT> has a default value, otherwise 0. If
+      it exists the default value is stored in <TT>var</TT>.
 
       <li><TT>objName info filter</TT>: Returns a list of filters. 
       With -guard modifier all filterguards are integrated 
@@ -2135,6 +2554,11 @@
 
       <li><TT>objName info filterguard name</TT>: Returns the guards 
       for filter identified by name.
+
+      <li><TT>objName info forward ?-definition? name</TT>: Checks,
+      whether <TT>name</TT> is a forwarder (accepts wild chard characters).
+      When <TT>-definition<//TT> is specified, it returns the definition
+      of the forwarder.
 
       <li><TT>objName info hasNamespace</TT>: From XOTcl version 0.9 on, 
       namespaces 
@@ -2148,10 +2572,7 @@
 
       <li><TT>objName info invar</TT>: Returns object invariants.
 
-      <li><TT>objName info metadata ?pattern?</TT>: 
-      Returns available metadata options.
-
-      <li><TT>objName info methods</TT>: Returns the list of all method
+      <li><TT>objName info methods</TT>: Returns the list of all methods
       currently reachable for objName. Includes procs, instprocs, cmds, 
       instcommands on object, class hierarchy and mixins.
       Modifier <TT>-noprocs</TT> only returns instcommands, 
@@ -2161,6 +2582,12 @@
       <li><TT>objName info mixin</TT>: Returns the list of mixins 
       of the object. With <TT>-order</TT> modifier the order of mixins 
       (whole hierarchy) is printed.
+
+      <li><TT>objName info mixinguard name</TT>: Returns the guards 
+      for the mixin identified by name.
+
+      <li><TT>objName info nonposargs methodName</TT>: Returns
+      non-positional arg list of methodName
 
       <li><TT>objName info parent</TT>: 
       Returns parent object name (or "::" for no parent), 
@@ -2172,14 +2599,22 @@
       <li><TT>objName info pre methodName</TT>: 
       Returns pre assertions of methodName.
 
-      <li><TT>objName info procs ?pattern?</TT>: Returns all procs defined 
-      for the object if <TT>pattern</TT> was not specified, 
+      <li><TT>objName info procs ?pattern?</TT>: Returns all procs
+      defined for the object if <TT>pattern</TT> was not specified,
       otherwise it returns all procs that match the pattern.
 
-      <li><TT>objName info vars ?pattern?</TT>: Returns all variables defined 
-      for the object if <TT>pattern</TT> was not specified, otherwise it 
-      returns all variables that match the pattern.
-      </ul>
+      <li><TT>objName info precedence ?pattern?</TT>: Returns all
+      classes in the precedence order from which the specified 
+      object inherits methods. The returned list of classes contains
+      the mixin and instmixin classes as well as the classes of the
+      superclass chain in linearized order (i.e., duplicate classes 
+      are removed). If the pattern is specified, only matching classes
+      are returned.
+
+      <li><TT>objName info vars ?pattern?</TT>: Returns all
+      variables defined for the object if <TT>pattern</TT> was not
+      specified, otherwise it returns all variables that match the
+      pattern.  </ul>
     
               </TD>
             </TR>
@@ -2206,7 +2641,7 @@
               <em>Arguments:</em>
             </TD>
             <TD VALIGN="top">
-              <b>v1</b>: instvar variable
+              <b>v1</b>: name of instance variable
             </TD>
           </TR>
           <TR VALIGN="top">
@@ -2214,7 +2649,7 @@
               
             </TD>
             <TD VALIGN="top">
-              <b>?v2...vn?</b>: optional other instvar variables
+              <b>?v2...vn?</b>: optional other names for instance variables
             </TD>
           </TR>
 
@@ -2226,12 +2661,11 @@
                 
       Binds an variable of the object to the current method's scope.
       Example:  
-      <pre>
-      kitchen proc enter {name} {
-        my instvar persons
-        set persons($name) [clock seconds]
-      }
-      </pre>
+      <pre class='code'>
+    kitchen proc enter {name} {
+      my instvar persons
+      set persons($name) [clock seconds]
+    }</pre>
       Now persons can be accessed as a local variable of the method.<br> 
       
       A special syntax is: <tt> {varName aliasName} </tt>. 
@@ -2528,14 +2962,14 @@
             
           </A>
           <b>mixin </b>
-          <em>mixinList</em>
+          <em>?args?</em>
           <TABLE BORDER="0">
                       <TR VALIGN="top">
             <TD VALIGN="top">
               <em>Arguments:</em>
             </TD>
             <TD VALIGN="top">
-              <b>mixinList</b>: list of classes that should be registered as mixins
+              <b>?args?</b>: mixin specification
             </TD>
           </TR>
 
@@ -2545,8 +2979,13 @@
               </TD>
               <TD VALIGN="top">
                 
-      Specifies the list of mixins registered for the object. 
-      The method <tt>mixin</tt> overwrites all previous settings.
+      If <tt>$args</tt> is one argument, it specifies a list of mixins to 
+      be set. Every mixin must be a defined class.
+      If <tt>$args</tt> has more argument, the first one specifies the
+      action. Possible values are <tt>assign</tt>, <tt>get</tt>, 
+      <tt>add</tt> or <tt>delete</tt>, it modifies the current
+      settings as indicated. For more details, check the 
+      <a href='./tutorial.html#updateinterceptors'>tutorial</a>.
     
               </TD>
             </TR>
@@ -2555,43 +2994,7 @@
                 <em> Return:</em>
               </TD>
               <TD VALIGN="top">
-                empty string
-              </TD>
-            </TR>
-          </TABLE>
-        </LI>
-        <LI>
-          <A NAME="Object-mixinappend">
-            
-          </A>
-          <b>mixinappend </b>
-          <em>mixinList</em>
-          <TABLE BORDER="0">
-                      <TR VALIGN="top">
-            <TD VALIGN="top">
-              <em>Arguments:</em>
-            </TD>
-            <TD VALIGN="top">
-              <b>mixinList</b>: name of the new mixin
-            </TD>
-          </TR>
-
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Description:</em>
-              </TD>
-              <TD VALIGN="top">
-                
-    Convenience method that appends a mixin to the existing mixins of the object.
-  
-              </TD>
-            </TR>
-            <TR VALIGN="top">
-              <TD VALIGN="top">
-                <em> Return:</em>
-              </TD>
-              <TD VALIGN="top">
-                empty string
+                if <tt>$args</tt> empty return current mixins, otherwise empty
               </TD>
             </TR>
           </TABLE>
@@ -2621,6 +3024,8 @@
     Perform a deep move of the object/class (with all information, like 
 			 class, parameter, filter, ...)
     to "newName".
+    Note that move is currently implemented as a copy plus 
+    subsequent destroy operation.
   
               </TD>
             </TR>
@@ -2658,11 +3063,12 @@
                 
     Add a getter/setter for an instance variable with the 
     specified name as a command for the obj.  
-    Example: <br>
-    <tt>Object o</tt><br>
-    <tt>o parametercmd x</tt><br>
-    <tt>o x 100</tt><br>
-    <tt>puts [o x]</tt><br>
+    Example:
+    <pre class='code'>
+    Object o
+    o parametercmd x
+    o x 100
+    puts [o x]</pre>
   
               </TD>
             </TR>
@@ -2691,10 +3097,11 @@
                 
     flag that constructor (method <tt>init</tt>) should
     not be called. 
-    Example: <br>
-    <tt>Class C</tt><br>
-    <tt>C instproc init {} {puts hu}</tt><br>
-    <tt>C c1 -noinit</tt><br>
+    Example:
+    <pre class='code'>
+    Class C
+    C instproc init {} {puts hu}
+    C c1 -noinit</pre>
     The object <tt>c1</tt> will be created without calling 
     the constructor. This can be used to draw a snapshot of
     an existing object (using the serializer) and to recreate
@@ -2718,6 +3125,7 @@
           </A>
           <b>proc </b>
           <em>name</em>
+          <em>?non-pos-args?</em>
           <em>args</em>
           <em>body</em>
           <em>?preAssertion?</em>
@@ -2729,6 +3137,14 @@
             </TD>
             <TD VALIGN="top">
               <b>name</b>: method name
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>?non-pos-args?</b>: optional non-positional arguments
             </TD>
           </TR>
           <TR VALIGN="top">
@@ -2771,12 +3187,15 @@
               <TD VALIGN="top">
                 
       Specify a method in the same style as Tcl specifies procs.
- 
-      Optionally assertions may be given. The number of args is either 
-      3 or 5.
+      <br>
+      Optionally assertions may be specified by two additional arguments.
       Therefore, to specify only post-assertions an empty pre-assertion 
       list must be given. All assertions are a list 
       of ordinary Tcl conditions.
+      <br>
+      When instproc is called with an empty argument list and an empty
+      body, the specified instproc is deleted.
+
     
               </TD>
             </TR>
@@ -2795,14 +3214,14 @@
             
           </A>
           <b>procsearch </b>
-          <em>procname</em>
+          <em>procName</em>
           <TABLE BORDER="0">
                       <TR VALIGN="top">
             <TD VALIGN="top">
               <em>Arguments:</em>
             </TD>
             <TD VALIGN="top">
-              <b>procname</b>: simple proc name
+              <b>procName</b>: simple proc name
             </TD>
           </TR>
 
@@ -2812,12 +3231,15 @@
               </TD>
               <TD VALIGN="top">
                 
-      Search for a proc or instproc on an object and return the fully 
+      Search which method should be invoked for an object and return the fully 
       qualified name of the method as a list in
       proc qualifier format:
-	    'objName|classname proc|instproc methodName'. E.g.,  
-      <pre> o procsearch set </pre>
-      returns <pre>::xotcl::Object instproc set</pre>.
+	    'objName|className proc|instproc|forward|instforward|parametercmd|instparametercmd|cmd|instcmd methodName'. 
+      The proc qualifier format reports the command used to create the method. The
+      only exception is instcmd and cmd, which refer to commands implemented in C.
+    E.g.,  
+    <pre class='code'>    o procsearch set </pre>
+      returns <pre>::xotcl::Object instcmd set</pre>.
     
               </TD>
             </TR>
@@ -2857,7 +3279,7 @@
       e.g. huge numbers of objects are created.  
       <TT>requireNamespace</TT> is often needed when e.g. using Tk widgets
       when variables are to be referenced via the namespace 
-      (with <TT>... -variable [self]::varname ...</TT>).
+      (with <TT>... -variable [self]::varName ...</TT>).
     
               </TD>
             </TR>
@@ -2876,7 +3298,7 @@
             
           </A>
           <b>set </b>
-          <em>varname</em>
+          <em>varName</em>
           <em>?value?</em>
           <TABLE BORDER="0">
                       <TR VALIGN="top">
@@ -2884,7 +3306,7 @@
               <em>Arguments:</em>
             </TD>
             <TD VALIGN="top">
-              <b>varname</b>: name of the instance variable
+              <b>varName</b>: name of the instance variable
             </TD>
           </TR>
           <TR VALIGN="top">
@@ -2915,6 +3337,53 @@
               </TD>
               <TD VALIGN="top">
                 Value of the instance variable
+              </TD>
+            </TR>
+          </TABLE>
+        </LI>
+        <LI>
+          <A NAME="Object-subst">
+            
+          </A>
+          <b>subst </b>
+          <em>options</em>
+          <em>string</em>
+          <TABLE BORDER="0">
+                      <TR VALIGN="top">
+            <TD VALIGN="top">
+              <em>Arguments:</em>
+            </TD>
+            <TD VALIGN="top">
+              <b>options</b>: ?-nobackslashes? ?-nocommands? ?-novariables?
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
+            </TD>
+            <TD VALIGN="top">
+              <b>string</b>: string to be substituted
+            </TD>
+          </TR>
+
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Description:</em>
+              </TD>
+              <TD VALIGN="top">
+                
+      Perform backslash, command, and variable substitutions
+      in the scope of the given object
+      (see documentation of Tcl command with the same name for details).
+    
+              </TD>
+            </TR>
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Return:</em>
+              </TD>
+              <TD VALIGN="top">
+                substituted string
               </TD>
             </TR>
           </TABLE>
@@ -2961,12 +3430,21 @@
             
           </A>
           <b>unset </b>
+          <em>?-nocomplain?</em>
           <em>v1</em>
           <em>?v2...vn?</em>
           <TABLE BORDER="0">
                       <TR VALIGN="top">
             <TD VALIGN="top">
               <em>Arguments:</em>
+            </TD>
+            <TD VALIGN="top">
+              <b>?-nocomplain?</b>: possible error messages are suppressed
+            </TD>
+          </TR>
+          <TR VALIGN="top">
+            <TD VALIGN="top">
+              
             </TD>
             <TD VALIGN="top">
               <b>v1</b>: Variable to unset
@@ -3033,9 +3511,9 @@
               <TD VALIGN="top">
                 
       When this method is used without the optional level, it is a short form
-      of the Tcl command <br>
-      <TT>upevel [self callinglevel] command ?args?</TT>.
-      When it is called with the level, it is compatible with the original tcl command.
+      of the Tcl command
+    <pre class='code'>    uplevel [self callinglevel] command ?args?</pre>
+      When it is called with the level, it is compatible with the original Tcl command.
     
               </TD>
             </TR>
@@ -3055,8 +3533,8 @@
           </A>
           <b>upvar </b>
           <em>?level?</em>
-          <em>othervar&nbsp;localvar</em>
-          <em>?othervar&nbsp;localvar?</em>
+          <em>otherVar&nbsp;localVar</em>
+          <em>?otherVar&nbsp;localVar?</em>
           <TABLE BORDER="0">
                       <TR VALIGN="top">
             <TD VALIGN="top">
@@ -3071,7 +3549,7 @@
               
             </TD>
             <TD VALIGN="top">
-              <b>othervar&nbsp;localvar</b>: referenced variable and variale in the local scope
+              <b>otherVar&nbsp;localVar</b>: referenced variable and variable in the local scope
             </TD>
           </TR>
           <TR VALIGN="top">
@@ -3079,7 +3557,7 @@
               
             </TD>
             <TD VALIGN="top">
-              <b>?othervar&nbsp;localvar?</b>: optional  pairs of referenced and local variable names
+              <b>?otherVar&nbsp;localVar?</b>: optional  pairs of referenced and local variable names
             </TD>
           </TR>
 
@@ -3090,9 +3568,9 @@
               <TD VALIGN="top">
                 
       When this method is used without the optional level, it is a short form
-      of the Tcl command <br>
-      <TT>upvar [self callinglevel] othervar localvar ?...?</TT>.
-      When it is called with the level, it is compatible with the original tcl command.
+      of the Tcl command 
+      <pre class='code'>    upvar [self callinglevel] otherVar localVar ?...?</pre>.
+      When it is called with the level, it is compatible with the original Tcl command.
     
               </TD>
             </TR>
@@ -3131,6 +3609,45 @@
       Enter event loop until the specified variable is set
       (see documentation of Tcl command with the same name for details).
     
+              </TD>
+            </TR>
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Return:</em>
+              </TD>
+              <TD VALIGN="top">
+                empty string
+              </TD>
+            </TR>
+          </TABLE>
+        </LI>
+        <LI>
+          <A NAME="Object-volatile">
+            
+          </A>
+          <b>volatile </b>
+          <em></em>
+          <TABLE BORDER="0">
+                      <TR VALIGN="top">
+            <TD VALIGN="top">
+              <em>Arguments:</em>
+            </TD>
+            <TD VALIGN="top">
+              <b></b>: 
+            </TD>
+          </TR>
+
+            <TR VALIGN="top">
+              <TD VALIGN="top">
+                <em> Description:</em>
+              </TD>
+              <TD VALIGN="top">
+                
+    This method is used to specify that the object
+    should be deleted automatically, when the current
+    Tcl-proc/object-proc/instproc is left. Example:
+    <pre class='code'>    set x [Object new -volatile]</pre>
+  
               </TD>
             </TR>
             <TR VALIGN="top">

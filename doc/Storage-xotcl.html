@@ -3,6 +3,7 @@
 <HTML>
 <HEAD>
   <TITLE>XOTcl - Documentation -- ./library/store/Storage.xotcl</TITLE>
+  <LINK REL="StyleSheet" HREF="xotcl-doc.css" TYPE="text/css">
 </HEAD>
 
 <BODY BGCOLOR="FFFFFF">
@@ -12,7 +13,7 @@
   <HR>
   <P>
     <h2> Package/File Information </h2>
-    <b> Package provided: </b> xotcl::store 0.84
+    <b> No package provided/required </b>
     <BR>
     <BR>
     <b>Defined Objects/Classes: </b>
@@ -39,11 +40,11 @@
         </TD>
         <TD VALIGN="top">
           
-    Simple generic storage interface for hashtable-like (persistent)
-    storages. There are several different existing stores, including
-    a memory storage, a GDBM storage, a SDBM storage, and a 
-    TextFile storage.  
-  
+	    Simple generic storage interface for hashtable-like (persistent)
+	    storages. There are several different existing stores, including
+	    a memory storage, a GDBM storage, a SDBM storage, and a 
+	    TextFile storage.  
+	
         </TD>
       </TR>
       <TR VALIGN="top">
@@ -51,7 +52,7 @@
           <em> Date:</em>
         </TD>
         <TD VALIGN="top">
-           $Date: 2004/05/23 22:50:39 $ 
+           $Date: 2005/09/09 21:09:01 $ 
         </TD>
       </TR>
     </TABLE>
@@ -73,8 +74,8 @@
           </TD>
           <TD VALIGN="top">
             
-    Abstract storage interface class (superclass of all storages).
-  
+	    Abstract storage interface class (superclass of all storages).
+	
           </TD>
         </TR>
       </TABLE>
@@ -103,10 +104,10 @@
               </TD>
               <TD VALIGN="top">
                 
-    Each storage object represents exactly one database table. The db
-    has to be opened, before it can it used. If it is not opened all
-    other methods return errors.
-  
+	    Each storage object represents exactly one database table. The db
+	    has to be opened, before it can it used. If it is not opened all
+	    other methods return errors.
+	
               </TD>
             </TR>
             <TR VALIGN="top">
@@ -132,8 +133,8 @@
               </TD>
               <TD VALIGN="top">
                 
-    Close associated database.
-  
+	    Close associated database.
+	
               </TD>
             </TR>
             <TR VALIGN="top">
@@ -168,8 +169,8 @@
               </TD>
               <TD VALIGN="top">
                 
-    Search for a key whether it exists or not.
-  
+	    Search for a key whether it exists or not.
+	
               </TD>
             </TR>
             <TR VALIGN="top">
@@ -213,8 +214,8 @@
               </TD>
               <TD VALIGN="top">
                 
-    Set or query a database key in the same way as Tcl's set functions.
-  
+	    Set or query a database key in the same way as Tcl's set functions.
+	
               </TD>
             </TR>
             <TR VALIGN="top">
@@ -249,8 +250,8 @@
               </TD>
               <TD VALIGN="top">
                 
-    Unset a database key in the same way as Tcl's unset functions.
-  
+	    Unset a database key in the same way as Tcl's unset functions.
+	
               </TD>
             </TR>
             <TR VALIGN="top">
@@ -276,9 +277,9 @@
               </TD>
               <TD VALIGN="top">
                 
-    Return a list of keys in the database (functions in the same 
-    way as Tcl's array names)
-  
+	    Return a list of keys in the database (functions in the same 
+						   way as Tcl's array names)
+	
               </TD>
             </TR>
             <TR VALIGN="top">
@@ -304,8 +305,8 @@
               </TD>
               <TD VALIGN="top">
                 
-    Start a traversal of the database, starting with any key.
-  
+	    Start a traversal of the database, starting with any key.
+	
               </TD>
             </TR>
             <TR VALIGN="top">
@@ -331,9 +332,9 @@
               </TD>
               <TD VALIGN="top">
                 
-    Proceed with the db traversal. Requires a firstkey before
-    first usage, otherwise it returns an error.
-  
+	    Proceed with the db traversal. Requires a firstkey before
+	    first usage, otherwise it returns an error.
+	
               </TD>
             </TR>
             <TR VALIGN="top">
@@ -362,10 +363,10 @@
               </TD>
               <TD VALIGN="top">
                 
-    Create a childStore according to a preference list depending on
-    which storages are available. Currently the preference list has
-    the following order: Gdbm, Sdbm and TextFile.
-  
+	    Create a childStore according to a preference list depending on
+	    which storages are available. Currently the preference list has
+	    the following order: Gdbm, Sdbm and TextFile.
+	
               </TD>
             </TR>
             <TR VALIGN="top">
