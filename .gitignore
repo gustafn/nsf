@@ -1,7 +1,9 @@
 *.[oa]
 *.dylib
 *~
-xotclsh
-*-xotcl.html
+config.*
 .gdb_history
+*-xotcl.html
+xotclsh
 pkgIndex.tcl
+Makefile
