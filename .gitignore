@@ -1,0 +1,7 @@
+*.[oa]
+*.dylib
+*~
+xotclsh
+*-xotcl.html
+.gdb_history
+pkgIndex.tcl
