@@ -11,7 +11,7 @@
  *
  * (b) University of Essen
  *     Specification of Software Systems
- *     Altendorferstraße 97-101 
+ *     Altendorferstrasse 97-101 
  *     D-45143 Essen, Germany
  *
  *  Permission to use, copy, modify, distribute, and sell this
@@ -1744,7 +1744,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
       obj = XOTclpGetObject(interp, Tcl_DStringValue(&name));
 
       if (obj) {
-        /* fprintf(stderr, " ... obj= %s\n", ObjStr(obj->cmdName));*/
+         /* fprintf(stderr, " ... obj= %s\n", ObjStr(obj->cmdName));*/
 	
         /* in the exit handler physical destroy --> directly call destroy */
         if (RUNTIME_STATE(interp)->exitHandlerDestroyRound
@@ -3294,6 +3294,7 @@ RemoveFromInstmixins(Tcl_Command cmd, XOTclCmdList *cmdlist) {
            ObjStr(cl->object.cmdName), ObjStr(XOTclGetObjectFromCmdPtr(cmdlist->cmdPtr)->cmdName)); */
         del = CmdListRemoveFromList(&clopt->instmixins, del);
         CmdListDeleteCmdListEntry(del, GuardDel);
+	if (cl->object.mixinOrder) MixinResetOrder(&cl->object);
       }
     }
   }
@@ -3311,6 +3312,7 @@ RemoveFromMixins(Tcl_Command cmd, XOTclCmdList *cmdlist) {
            ObjStr(cl->object.cmdName), ObjStr(XOTclGetObjectFromCmdPtr(cmdlist->cmdPtr)->cmdName)); */
         del = CmdListRemoveFromList(&objopt->mixins, del);
         CmdListDeleteCmdListEntry(del, GuardDel);
+	if (nobj->mixinOrder) MixinResetOrder(nobj);
       }
     }
   }
@@ -7316,12 +7318,13 @@ PrimitiveOCreate(Tcl_Interp *interp, char *name, XOTclClass *cl) {
  * and remove class from class hierarchy
  */
 static void
-CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate) {
+CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int recreate) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
   XOTclClass *theobj = RUNTIME_STATE(interp)->theObject;
   XOTclClassOpt *clopt = cl->opt;
-
+  assert(softrecreate? recreate == 1 : 1);
+  
   if (clopt) {
     /*
      *  Remove this class from all instmixinofs and clear the instmixin list
@@ -7334,21 +7337,22 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate) {
     
     CmdListRemoveList(&clopt->instfilters, GuardDel);
     FilterInvalidateObjOrders(interp, cl);
-    
-    /*
-     *  Remove this class from all mixin lists and clear the mixinofs list
-     */
-    
-    RemoveFromMixins(cl->object.id, clopt->mixinofs);
-    CmdListRemoveList(&clopt->mixinofs, GuardDel);
-    
-    /*
-     *  Remove this class from all instmixin lists and clear the instmixinofs list
-     */
 
-    RemoveFromInstmixins(cl->object.id, clopt->instmixinofs);
-    CmdListRemoveList(&clopt->instmixinofs, GuardDel);
+    if (!recreate) {
+      /*
+      *  Remove this class from all mixin lists and clear the mixinofs list
+      */
     
+      RemoveFromMixins(cl->object.id, clopt->mixinofs);
+      CmdListRemoveList(&clopt->mixinofs, GuardDel);
+    
+      /*
+       *  Remove this class from all instmixin lists and clear the instmixinofs list
+       */
+
+      RemoveFromInstmixins(cl->object.id, clopt->instmixinofs);
+      CmdListRemoveList(&clopt->instmixinofs, GuardDel);
+    }
     /* remove dependent filters of this class from all subclasses*/
     FilterRemoveDependentFilterCmds(cl, cl);
     AssertionRemoveStore(clopt->assertions);
@@ -7392,7 +7396,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate) {
     DECR_REF_COUNT(cl->parameters);
   }
 
-  if (clopt) {
+  if ((clopt) && (!recreate)) {
     if (clopt->parameterClass) {
       DECR_REF_COUNT(clopt->parameterClass);
     }
@@ -7426,8 +7430,10 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate) {
  */
 static void
 CleanupInitClass(Tcl_Interp *interp, XOTclClass *cl, Tcl_Namespace *namespacePtr,
-                 int softrecreate) {
+                 int softrecreate, int recreate) {
   XOTclObject *obj = (XOTclObject*)cl;
+
+  assert(softrecreate? recreate == 1 : 1);
 
 #ifdef OBJDELETION_TRACE
   fprintf(stderr,"+++ CleanupInitClass\n");
@@ -7457,7 +7463,10 @@ CleanupInitClass(Tcl_Interp *interp, XOTclClass *cl, Tcl_Namespace *namespacePtr
     MEM_COUNT_ALLOC("Tcl_InitHashTable",&cl->instances);
   }
 
-  cl->opt = 0;
+  if (!recreate) {
+    cl->opt = 0;
+  }
+
   cl->nonposArgsTable = 0;
 }
 
@@ -7493,7 +7502,7 @@ PrimitiveCDestroy(ClientData cd) {
 
   obj->teardown = 0;
 
-  CleanupDestroyClass(interp, cl, 0);
+  CleanupDestroyClass(interp, cl, 0, 0);
 
   /*
    * handoff the primitive teardown
@@ -7533,7 +7542,7 @@ PrimitiveCInit(XOTclClass *cl, Tcl_Interp *interp, char *name) {
   ns = NSGetFreshNamespace(interp, (ClientData)cl, name);
   Tcl_PopCallFrame(interp);
 
-  CleanupInitClass(interp, cl, ns, 0);
+  CleanupInitClass(interp, cl, ns, 0, 0);
   return;
 }
 
@@ -7839,8 +7848,8 @@ XOTclOCleanupMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
   CleanupInitObject(interp, obj, obj->cl, obj->nsPtr, softrecreate);
 
   if (cl) {
-    CleanupDestroyClass(interp, cl, softrecreate);
-    CleanupInitClass(interp, cl, cl->nsPtr, softrecreate);
+    CleanupDestroyClass(interp, cl, softrecreate, 1);
+    CleanupInitClass(interp, cl, cl->nsPtr, softrecreate, 1);
   }
 
   DECR_REF_COUNT(savedNameObj);
