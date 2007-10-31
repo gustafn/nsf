@@ -7356,6 +7356,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
     /* remove dependent filters of this class from all subclasses*/
     FilterRemoveDependentFilterCmds(cl, cl);
     AssertionRemoveStore(clopt->assertions);
+    clopt->assertions = NULL;
 #ifdef XOTCL_OBJECTDATA
     XOTclFreeObjectData(cl);
 #endif
