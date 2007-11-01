@@ -3964,6 +3964,7 @@ TestX copymove2 -proc run {{n 10}} {
 
 TestX proc run {} {
   foreach test [lsort [TestX info instances]] {
+    puts stderr "$test: start"
     $test run
   }
 }
