@@ -1575,7 +1575,7 @@ callDestroyMethod(ClientData cd, Tcl_Interp *interp, XOTclObject *obj, int flags
 	 $::errorCode $::errorInfo\"";
     Tcl_EvalEx(interp, cmd, -1, 0);
     if (++RUNTIME_STATE(interp)->errorCount > 20)
-      panic("too many destroy errors occured. Endless loop?", NULL);
+      Tcl_Panic("too many destroy errors occured. Endless loop?", NULL);
   } else {
     if (RUNTIME_STATE(interp)->errorCount > 0)
       RUNTIME_STATE(interp)->errorCount--;
@@ -1626,7 +1626,7 @@ makeObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
     char *cmdName =  ObjStr(obj->cmdName);
     obj->nsPtr = NSGetFreshNamespace(interp, (ClientData)obj, cmdName);
     if (!obj->nsPtr)
-      panic("makeObjNamespace: Unable to make namespace", 0);
+      Tcl_Panic("makeObjNamespace: Unable to make namespace", NULL);
     nsPtr = obj->nsPtr;
 
     /*
@@ -1901,7 +1901,7 @@ NSGetFreshNamespace(Tcl_Interp *interp, ClientData cd, char *name) {
 
   if (ns) {
     if (ns->deleteProc != NULL || ns->clientData != NULL) {
-      panic("Namespace '%s' exists already with delProc %p and clientData %p; Can only convert a plain Tcl namespace into an XOTcl namespace",
+      Tcl_Panic("Namespace '%s' exists already with delProc %p and clientData %p; Can only convert a plain Tcl namespace into an XOTcl namespace",
             name, ns->deleteProc, ns->clientData);
     }
     ns->clientData = cd;
@@ -3238,8 +3238,15 @@ getAllMixinofs(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *startCl
     int new;
     
     for (m = startCl->opt->mixinofs; m; m = m->next) {
+      if (Tcl_Command_cmdEpoch(m->cmdPtr)) {
+          fprintf(stderr,"cmd %p cmd->epoch %d in %p\n",
+                  m->cmdPtr, Tcl_Command_cmdEpoch(m->cmdPtr), startCl->opt->mixinofs);
+          Tcl_Panic("getAllMixinofs: deleted cmd in cl->opt of %s", 
+                    ObjStr(startCl->object.cmdName));
+      }
+
       Tcl_CreateHashEntry(destTable, Tcl_GetCommandName(interp, m->cmdPtr), &new);
-      /*if (new) fprintf (stderr, " -- %s (%s)\n", Tcl_GetCommandName(interp, m->cmdPtr), ObjStr(startCl->object.cmdName));*/
+      /* if (new) fprintf (stderr, " -- %s (%s)\n", Tcl_GetCommandName(interp, m->cmdPtr), ObjStr(startCl->object.cmdName));*/
       cl = XOTclGetClassFromCmdPtr(m->cmdPtr);
       if (cl) {
         getAllMixinofs(interp, destTable, cl);
@@ -8584,7 +8591,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
         }
 
         /*fprintf(stderr, "linkvar flags=%x\n", linkPtr->flags);
-          panic("new linkvar %s... When does this happen?", newNameString, NULL);*/
+          Tcl_Panic("new linkvar %s... When does this happen?", newNameString, NULL);*/
         
         /* We have already a variable with the same name imported
            from a different object. Get rid of this old variable 
@@ -9623,6 +9630,10 @@ XOTclSetRelationCommand(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CO
              ObjStr(obj->cmdName), ObjStr(nobj->cmdName)); */
           nclopt = XOTclRequireClassOpt((XOTclClass*) nobj);
           CmdListAdd(&nclopt->mixinofs, obj->id, NULL, /*noDuplicates*/ 1);
+          fprintf(stderr,"adding cmd %p %s (epoch %d) to mixinofs %p\n",
+                  obj->id, Tcl_GetCommandName(interp, obj->id), 
+                  Tcl_Command_cmdEpoch(obj->id),
+                  nclopt->mixinofs);
         } /* else fprintf(stderr,"Problem registering %s as a mixinof of %s\n",
              ObjStr(ov[i]), ObjStr(cl->object.cmdName)); */
       }
@@ -12393,11 +12404,11 @@ Xotcl_Init(Tcl_Interp *interp) {
   /* create Object and Class, and store them in the RUNTIME STATE */
   theobj = PrimitiveCCreate(interp, "::xotcl::Object", 0);
   RUNTIME_STATE(interp)->theObject = theobj;
-  if (!theobj) panic("Cannot create ::xotcl::Object", 0);
+  if (!theobj) Tcl_Panic("Cannot create ::xotcl::Object", NULL);
 
   thecls = PrimitiveCCreate(interp, "::xotcl::Class", 0);
   RUNTIME_STATE(interp)->theClass = thecls;
-  if (!thecls) panic("Cannot create ::xotcl::Class", 0);
+  if (!thecls) Tcl_Panic("Cannot create ::xotcl::Class", NULL);
 
   theobj->parent = 0;
   thecls->parent = theobj;
