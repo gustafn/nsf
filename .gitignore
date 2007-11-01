@@ -7,3 +7,4 @@ config.*
 xotclsh
 pkgIndex.tcl
 Makefile
+xotclConfig.sh
