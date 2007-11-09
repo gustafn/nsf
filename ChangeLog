@@ -1,3 +1,6 @@
+2007-11-09: <Gustaf.Neumann@wu-wien.ac.at>
+    * added missing file (install.sh from tclconfig)
+
 2007-10-30: <Gustaf.Neumann@wu-wien.ac.at>
     *  change Tcl_ObjSetVar2() to Tcl_SetVar2Ex() to
        address problem in setting variables from C.
