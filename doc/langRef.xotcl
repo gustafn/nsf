@@ -949,7 +949,7 @@ package require XOTcl
     are called as methods. '-' followed by a numerical is interpreted
     as a negative number (and not as a method).  If a value of a method
     called this way starts with a "a", the call can be placed safely
-    into a list (e.g. "Class c [-strangearg -a-] -simplearg 2").
+    into a list (e.g. "Class c [list -strangearg -a-] -simplearg 2").
 
     Finally the constructor <@tt>init</@tt> is called on the object 
     with all arguments up to the first '-' arg.<@p>
