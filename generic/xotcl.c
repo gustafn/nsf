@@ -4883,8 +4883,8 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	  Tcl_Command_objProc(cmd) == XOTclForwardMethod, XOTclForwardMethod,
     XOTclObjscopedMethod,
 	  objv[0], objc
-	  );*/
-  
+	  );
+  */  
 
 #ifdef CALLSTACK_TRACE
   XOTclCallStackDump(interp);
@@ -6924,12 +6924,14 @@ XOTclGetSelfObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 static int
 unsetInAllNamespaces(Tcl_Interp *interp, Namespace *nsPtr, char *name) {
   int rc = 0;
-  fprintf(stderr, "### unsetInAllNamespaces %s\n", name);
+  fprintf(stderr, "### unsetInAllNamespaces variable '%s', current namespace '%s'\n", 
+          name, nsPtr ? nsPtr->fullName : "NULL");
+
   if (nsPtr != NULL) {
     Tcl_HashSearch search;
     Tcl_HashEntry *entryPtr = Tcl_FirstHashEntry(&nsPtr->childTable, &search);
     Tcl_Var *varPtr;
-    int rc = 0;
+    int result;
         
     varPtr = (Tcl_Var *) Tcl_FindNamespaceVar(interp, name, (Tcl_Namespace *) nsPtr, 0);
     /*fprintf(stderr, "found %s in %s -> %p\n", name, nsPtr->fullName, varPtr);*/
@@ -6941,9 +6943,9 @@ unsetInAllNamespaces(Tcl_Interp *interp, Namespace *nsPtr, char *name) {
       Tcl_DStringAppend(dsPtr, "::", 2);
       Tcl_DStringAppend(dsPtr, name, -1);
       /*rc = Tcl_UnsetVar2(interp, Tcl_DStringValue(dsPtr), NULL, TCL_LEAVE_ERR_MSG);*/
-      rc = Tcl_Eval(interp, Tcl_DStringValue(dsPtr));
+      result = Tcl_Eval(interp, Tcl_DStringValue(dsPtr));
       /* fprintf(stderr, "fqName = '%s' unset => %d %d\n", Tcl_DStringValue(dsPtr), rc, TCL_OK);*/
-      if (rc == TCL_OK) {
+      if (result == TCL_OK) {
         rc = 1;
       } else {
         Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
@@ -6951,8 +6953,8 @@ unsetInAllNamespaces(Tcl_Interp *interp, Namespace *nsPtr, char *name) {
       }
       Tcl_DStringFree(dsPtr);
     }
-        
-    while (entryPtr != NULL) {
+    
+    while (rc == 0 && entryPtr != NULL) {
       Namespace *childNsPtr = (Namespace *) Tcl_GetHashValue(entryPtr);
       /*fprintf(stderr, "child = %s\n", childNsPtr->fullName);*/
       entryPtr = Tcl_NextHashEntry(&search);
@@ -9496,6 +9498,8 @@ XOTclAliasCommand(ClientData cd, Tcl_Interp *interp,
     tcd->cd      = Tcl_Command_objClientData(cmd);
     objProc      = XOTclObjscopedMethod;
     dp = aliasCmdDeleteProc;
+  } else {
+    tcd = Tcl_Command_objClientData(cmd);
   }
 
   if (allocation == 'c') {
@@ -11665,7 +11669,10 @@ XOTclInterpretNonpositionalArgsCmd(ClientData cd, Tcl_Interp *interp, int objc,
     r1 = Tcl_ListObjGetElements(interp, nonposArgsDefv[i], &npac, &npav);
     if (r1 == TCL_OK) {
       if (npac == 3) {
-        Tcl_SetVar2Ex(interp, ObjStr(npav[0]), NULL, npav[2], 0);
+          Tcl_SetVar2Ex(interp, ObjStr(npav[0]), NULL, npav[2], 0);
+          /* for unknown reasons, we can't use  Tcl_ObjSetVar2 here in case the 
+             variable is referenced via eval (sample murr6) */
+          /* Tcl_ObjSetVar2(interp, npav[0], NULL, npav[2], 0); */
       } else if (npac == 2 && !strcmp(ObjStr(npav[1]), "switch")) {
         Tcl_SetVar2Ex(interp, ObjStr(npav[0]), NULL, Tcl_NewBooleanObj(0), 0);
       }
