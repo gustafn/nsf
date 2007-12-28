@@ -61,4 +61,33 @@ B destroy
 ? {A info instmixinof} ""
 ? {c1 info precedence} "::C ::xotcl::Object"
 
+# the following destroy crashes
 A destroy
+C destroy 
+c1 destroy
+
+###########################################
+# testing simple per class mixins with redefinition
+###########################################
+Class A
+Class B -instmixin A
+Class C -superclass B
+C c1
+? {B instmixin} ::A
+? {B info instmixin} ::A
+? {A info instmixinof} ::B
+? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
+
+Class B -instmixin A
+? {B instmixin} ::A
+? {B info instmixin} ::A
+? {A info instmixinof} ::B
+? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
+
+B destroy
+? {A info instmixinof} ""
+? {c1 info precedence} "::C ::xotcl::Object"
+
+A destroy
+C destroy 
+c1 destroy
