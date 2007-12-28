@@ -43,7 +43,7 @@
 /* use documented interface to link XOTcl state to an interpreter */
 #define USE_ASSOC_DATA 1
 
-/* new namespace support (post 1.2.0 */
+/* new namespace support (post xotcl 1.2.0) */
 #define NAMESPACEINSTPROCS 1
 
 /* activate bytecode support 

@@ -4,6 +4,13 @@
     - improving documentation
     - made code more local
     - activate assertion during development
+    - changed names
+       * MixinResetInstanceOrder() -> MixinResetOrderForInstances()
+       * mixinofs -> isObjectMixinOf
+       * instmixinofs -> isClassMixinOf
+       * getAllInstMixinofs -> getAllClassMixinsOf
+       * RemoveFromMixinofs -> removeFromObjectMixinsOf
+       * RemoveFromInstmixinsofs -> removeFromClassMixinsOf 
 
 2007-12-28: <Martin.Matuska@wu-wien.ac.at>
     - new function from Martin MixinResetInstanceOrder()

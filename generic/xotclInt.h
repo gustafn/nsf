@@ -494,8 +494,8 @@ typedef struct XOTclObject {
 typedef struct XOTclClassOpt {
   XOTclCmdList* instfilters;
   XOTclCmdList* instmixins;
-  XOTclCmdList* mixinofs;
-  XOTclCmdList* instmixinofs;
+  XOTclCmdList* isObjectMixinOf;
+  XOTclCmdList* isClassMixinOf;
   XOTclAssertionStore *assertions;
   Tcl_Obj* parameterClass;
 #ifdef XOTCL_OBJECTDATA
