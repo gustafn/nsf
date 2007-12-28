@@ -3328,9 +3328,9 @@ RemoveFromMixins(Tcl_Command cmd, XOTclCmdList *cmdlist) {
 /* 
  * Reset mixin order for all instances of a class 
  */
-
+ 
 static void
-MixinResetInstanceOrder(Tcl_Interp *interp, XOTclClass *cl) {
+MixinResetOrderForInstances(Tcl_Interp *interp, XOTclClass *cl) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
   Tcl_HashTable objTable, *commandTable = &objTable;
@@ -3338,24 +3338,23 @@ MixinResetInstanceOrder(Tcl_Interp *interp, XOTclClass *cl) {
 
   Tcl_InitHashTable(commandTable, TCL_STRING_KEYS);
   MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-    getAllInstances(commandTable, cl);
-    hPtr = Tcl_FirstHashEntry(commandTable, &hSrch);
-    while (hPtr) {
-	char *key = Tcl_GetHashKey(commandTable, hPtr);
-	obj = XOTclpGetObject(interp, key);
-	if (obj
-    	    && !(obj->flags & XOTCL_DESTROY_CALLED)
-    	    && (obj->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID)) {
-	      /*fprintf(stderr,"resetting mixin order of %s\n", ObjStr(obj->cmdName));*/
-    	      MixinResetOrder(obj);
-    	      obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
-    	      break;
-    	    }
-	hPtr = Tcl_NextHashEntry(&hSrch);
-    }
+  getAllInstances(commandTable, cl);
+  for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; 
+       hPtr = Tcl_NextHashEntry(&hSrch)) {
+      char *key = Tcl_GetHashKey(commandTable, hPtr);
+      obj = XOTclpGetObject(interp, key);
+      if (obj
+          && !(obj->flags & XOTCL_DESTROY_CALLED)
+          && (obj->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID)) {
+          MixinResetOrder(obj);
+          obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
+          break;
+      }
+  }
   MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
   Tcl_DeleteHashTable(commandTable);
 }
+ 
 
 /*
  * if the class hierarchy or class mixins have changed ->
@@ -3367,9 +3366,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
   Tcl_HashTable objTable, *commandTable = &objTable;
-  XOTclClass *ncl;
   XOTclObject *obj;
-  XOTclCmdList *ml;
 
   cl->order = 0;  
   
@@ -3387,8 +3384,8 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
 
     for (; hPtr != 0; hPtr = Tcl_NextHashEntry(&hSrch)) {
       XOTclObject *obj = (XOTclObject*)
-        Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
-      MixinResetOrder(obj);
+          Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
+      if (obj->mixinOrder)  MixinResetOrder(obj);
       obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
     }
   }
@@ -3396,38 +3393,40 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
   XOTclFreeClasses(cl->order);
   cl->order = saved;
 #if 1
-  /* reset mixin order for all mixinofs of this class */
-    
-
+  /* reset mixin order for all objects having this class as per object mixin */
   if (cl->opt) {
-    for (ml = cl->opt->mixinofs; ml; ml = ml->next) {
-	obj = XOTclGetObjectFromCmdPtr(ml->cmdPtr);
-	if (obj) {
-          MixinResetOrder(obj);
-          obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
-        }
+      XOTclCmdList *ml;
+      for (ml = cl->opt->mixinofs; ml; ml = ml->next) {
+          obj = XOTclGetObjectFromCmdPtr(ml->cmdPtr);
+          if (obj) {
+              if (obj->mixinOrder) {
+                  MixinResetOrder(obj);
+                  obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
+              }
+              assert((obj->flags & XOTCL_MIXIN_ORDER_VALID) == 0); 
+          }
       }
-    }
+  }
 
-
-  /* reset mixin order for the instmixin hierarchy and 
-     corresponding instances
+  /* Reset mixin order for all objects having this class as a per
+     class mixin (instmixin).  This means that we have to work through
+     the instmixin hierarchy with its corresponding instances.
   */
   Tcl_InitHashTable(commandTable, TCL_STRING_KEYS);
   MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
   getAllInstMixinofs(interp, commandTable, cl);
-  hPtr = Tcl_FirstHashEntry(commandTable, &hSrch);
-  while (hPtr) {
-    char *key = Tcl_GetHashKey(commandTable, hPtr);
-    ncl = XOTclpGetClass(interp, key);
-    /*fprintf(stderr,"found instmixin class %s\n", ObjStr(ncl->object.cmdName));*/
-    MixinResetInstanceOrder(interp, ncl);
-    hPtr = Tcl_NextHashEntry(&hSrch);
+  for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; 
+       hPtr = Tcl_NextHashEntry(&hSrch)) {
+      char *key = Tcl_GetHashKey(commandTable, hPtr);
+      XOTclClass *ncl = XOTclpGetClass(interp, key);
+      if (ncl) {
+          MixinResetOrderForInstances(interp, ncl);
+      }
   }
   MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
-  Tcl_DeleteHashTable(commandTable);
 #endif
 }
+
 static int MixinInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern, int withGuards);
 /*
  * the mixin order is either
