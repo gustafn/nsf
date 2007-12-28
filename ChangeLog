@@ -1,3 +1,17 @@
+2007-12-28: <Gustaf.Neumann@wu-wien.ac.at>
+    - fixed crash for deleted classes in new code
+    - changed name from MixinResetInstanceOrder() to MixinResetOrderForInstances()
+    - improving documentation
+    - made code more local
+    - activate assertion during development
+
+2007-12-28: <Martin.Matuska@wu-wien.ac.at>
+    - new function from Martin MixinResetInstanceOrder()
+    - better cleanup when classes are deleted
+
+2007-12-13: <Gustaf.Neumann@wu-wien.ac.at>
+   * fix alias command for aliasing to tcl procs
+
 2007-11-09: <Gustaf.Neumann@wu-wien.ac.at>
     * added missing file (install.sh from tclconfig)
 
