@@ -1,0 +1,64 @@
+# testing mixinof
+package require XOTcl
+namespace import -force xotcl::*
+package require xotcl::test
+
+proc ? {cmd expected} {
+  set t [Test new -cmd $cmd]
+  $t expected $expected 
+  $t run
+}
+
+###########################################
+# testing simple per object mixins
+###########################################
+Class A
+Object o -mixin A
+? {o mixin} ::A
+? {o info mixin} ::A
+? {A info mixinof} ::o
+
+o destroy
+? {A info mixinof} ""
+
+A destroy
+
+###########################################
+# testing per object mixins with redefinition
+###########################################
+Class M -instproc foo args {puts x;next}
+Object o -mixin M 
+
+? {o info mixin} ::M
+? {o info precedence} "::M ::xotcl::Object"
+? {o procsearch foo} "::M instproc foo"
+
+Class M -instproc foo args next 
+? {o info mixin} ::M
+? {o info precedence} "::M ::xotcl::Object"
+? {o procsearch foo} "::M instproc foo"
+
+M destroy
+? {o info mixin} ""
+? {o info precedence} "::xotcl::Object"
+? {o procsearch foo} ""
+
+o destroy
+
+###########################################
+# testing simple per class mixins
+###########################################
+Class A
+Class B -instmixin A
+Class C -superclass B
+C c1
+? {B instmixin} ::A
+? {B info instmixin} ::A
+? {A info instmixinof} ::B
+? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
+
+B destroy
+? {A info instmixinof} ""
+? {c1 info precedence} "::C ::xotcl::Object"
+
+A destroy
