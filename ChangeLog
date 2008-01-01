@@ -1,5 +1,10 @@
+2008-01-02: <Gustaf.Neumann@wu-wien.ac.at>
+    - fixed evaluation context in guard expressions
+       ([self callingproc] returned "" in cases, where the callingproc
+      was possible to determine)
+
 2007-12-28: <Gustaf.Neumann@wu-wien.ac.at>
-    - fixed crash for deleted classes in new code
+    - fixed crash for deleted classes in new code (mixinof)
     - changed name from MixinResetInstanceOrder() to MixinResetOrderForInstances()
     - improving documentation
     - made code more local

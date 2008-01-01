@@ -603,6 +603,7 @@ typedef struct XOTclCallStackContent {
 
 #define XOTCL_CSC_CALL_IS_NEXT 1
 #define XOTCL_CSC_CALL_IS_DESTROY 2
+#define XOTCL_CSC_CALL_IS_GUARD 4
 
 typedef struct XOTclCallStack {
   XOTclCallStackContent content[MAX_NESTING_DEPTH];
