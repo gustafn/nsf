@@ -564,7 +564,7 @@ unset p
       if {$cmds ne ""} {
         foreach cmd $cmds {
           foreach {op def} $cmd break
-          $origin trace remove variable $var $op $def
+          #$origin trace remove variable $var $op $def
           if {[lindex $def 0] eq $origin} {
             set def [concat $dest [lrange $def 1 end]]
           }

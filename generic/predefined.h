@@ -1,5 +1,5 @@
 static char cmd[] = 
-"# $Id: predefined.h,v 1.17 2007/09/05 19:09:22 neumann Exp $\n"
+"# $Id: predefined.xotcl,v 1.16 2007/09/05 19:09:22 neumann Exp $\n"
 "foreach cmd [info command ::xotcl::Object::instcmd::*] {\n"
 "::xotcl::alias ::xotcl::Object [namespace tail $cmd] $cmd}\n"
 "foreach cmd {array append eval incr lappend trace subst unset} {\n"
@@ -336,7 +336,6 @@ static char cmd[] =
 "if {$cmds ne \"\"} {\n"
 "foreach cmd $cmds {\n"
 "foreach {op def} $cmd break\n"
-"$origin trace remove variable $var $op $def\n"
 "if {[lindex $def 0] eq $origin} {\n"
 "set def [concat $dest [lrange $def 1 end]]}\n"
 "$dest trace add variable $var $op $def}}}}\n"

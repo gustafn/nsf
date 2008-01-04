@@ -1,3 +1,7 @@
+2008-01-04: <Gustaf.Neumann@wu-wien.ac.at>
+    - preserving var traces when copying objects 
+       (Many thanks to Florian Murr for reporting the bug)
+
 2008-01-02: <Gustaf.Neumann@wu-wien.ac.at>
     - fixed evaluation context in guard expressions
        ([self callingproc] returned "" in cases, where the callingproc
