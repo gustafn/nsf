@@ -1,3 +1,6 @@
+2008-01-07: <Gustaf.Neumann@wu-wien.ac.at>
+    - don't call unset traces during an object move (related to fix below)
+
 2008-01-04: <Gustaf.Neumann@wu-wien.ac.at>
     - preserving var traces when copying objects 
        (Many thanks to Florian Murr for reporting the bug)
