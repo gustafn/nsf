@@ -1606,6 +1606,9 @@ XOTclRequireClassOpt(XOTclClass *cl) {
   if (!cl->opt) {
     cl->opt = NEW(XOTclClassOpt);
     memset(cl->opt, 0, sizeof(XOTclClassOpt));
+    if (cl->object.flags & XOTCL_IS_CLASS) {
+      cl->opt->id = cl->object.id;  /* probably a temporary solution */
+    }
   }
   return cl->opt;
 }
@@ -3261,6 +3264,7 @@ getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable,
 
 static void
 RemoveFromClassMixinsOf(Tcl_Command cmd, XOTclCmdList *cmdlist) {
+
   for ( ; cmdlist; cmdlist = cmdlist->next) {
     XOTclClass *ncl = XOTclGetClassFromCmdPtr(cmdlist->cmdPtr);
     XOTclClassOpt *nclopt = ncl ? ncl->opt : NULL;
@@ -3358,7 +3362,19 @@ MixinResetOrderForInstances(Tcl_Interp *interp, XOTclClass *cl) {
   MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
   Tcl_DeleteHashTable(commandTable);
 }
- 
+
+static void
+MixinResetOrderForAllInstances(Tcl_Interp *interp, XOTclClass *cl) {
+  XOTclClasses *sl = cl->sub;
+  XOTclClasses *sc;
+
+  /* fprintf(stderr,"\t reset for %s\n",ObjStr(cl->object.cmdName));*/
+  MixinResetOrderForInstances(interp, cl);
+  for (sc = sl; sc != 0; sc = sc->next) {
+    MixinResetOrderForAllInstances(interp, sc->cl);
+  }
+}
+
 
 /*
  * if the class hierarchy or class mixins have changed ->
@@ -3423,8 +3439,9 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
        hPtr = Tcl_NextHashEntry(&hSrch)) {
       char *key = Tcl_GetHashKey(commandTable, hPtr);
       XOTclClass *ncl = XOTclpGetClass(interp, key);
+      /* fprintf(stderr,"Got %s, reset for ncl %p\n",key,ncl);*/
       if (ncl) {
-          MixinResetOrderForInstances(interp, ncl);
+          MixinResetOrderForAllInstances(interp, ncl);
       }
   }
   MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
@@ -7377,8 +7394,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
     /*
      *  Remove this class from all isClassMixinOf lists and clear the instmixin list
      */
-
-    RemoveFromClassMixinsOf(cl->object.id, clopt->instmixins);
+    RemoveFromClassMixinsOf(clopt->id, clopt->instmixins);
    
     CmdListRemoveList(&clopt->instmixins, GuardDel);
     MixinInvalidateObjOrders(interp, cl);
@@ -7391,14 +7407,14 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
       *  Remove this class from all mixin lists and clear the isObjectMixinOf list
       */
     
-      RemoveFromMixins(cl->object.id, clopt->isObjectMixinOf);
+      RemoveFromMixins(clopt->id, clopt->isObjectMixinOf);
       CmdListRemoveList(&clopt->isObjectMixinOf, GuardDel);
     
       /*
        *  Remove this class from all instmixin lists and clear the isClassMixinOf list
        */
 
-      RemoveFromInstmixins(cl->object.id, clopt->isClassMixinOf);
+      RemoveFromInstmixins(clopt->id, clopt->isClassMixinOf);
       CmdListRemoveList(&clopt->isClassMixinOf, GuardDel);
     }
     /* remove dependent filters of this class from all subclasses*/

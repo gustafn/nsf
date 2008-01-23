@@ -501,6 +501,7 @@ typedef struct XOTclClassOpt {
 #ifdef XOTCL_OBJECTDATA
   Tcl_HashTable* objectdata;
 #endif
+  Tcl_Command id;
   ClientData clientData;
 } XOTclClassOpt;
 

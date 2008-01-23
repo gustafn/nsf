@@ -52,6 +52,7 @@ Class A
 Class B -instmixin A
 Class C -superclass B
 C c1
+
 ? {B instmixin} ::A
 ? {B info instmixin} ::A
 ? {A info instmixinof} ::B
@@ -61,10 +62,115 @@ B destroy
 ? {A info instmixinof} ""
 ? {c1 info precedence} "::C ::xotcl::Object"
 
-# the following destroy crashes
 A destroy
 C destroy 
 c1 destroy
+
+###########################################
+# testing transitive per class mixins
+###########################################
+Class A
+Class B -instmixin A
+Class C -superclass B
+A instmixin [Class M]
+
+A a1
+B b1
+C c1
+
+? {B instmixin} ::A
+? {B info instmixin} ::A
+? {A info instmixinof} ::B
+? {a1 info precedence} "::M ::A ::xotcl::Object"
+? {b1 info precedence} "::M ::A ::B ::xotcl::Object"
+? {c1 info precedence} "::M ::A ::C ::B ::xotcl::Object"
+
+# Wie werden transitive instmixin behandelt?
+# M ist ein instmixin von  A, A ist ein instmixin von B,
+# so würde ich erwarten, dass M auch ein transitives instmixin 
+# von A ist. Sollte das instmixinof nicht
+#   - das Ergebnis von getAllClassMixinsOf liefern?
+#   - getAllClassMixinsOf nicht auch die subklassen inkludieren 
+#     (siehe MixinResetOrderForAllInstances)
+#? {M info instmixinof} "::A ::B"   oder "::A ::B ::C""
+#? {M info instmixinof} "::A ::B"
+
+M destroy
+? {a1 info precedence} "::A ::xotcl::Object"
+? {b1 info precedence} "::A ::B ::xotcl::Object"
+? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
+
+B destroy
+? {A info instmixinof} ""
+? {c1 info precedence} "::C ::xotcl::Object"
+
+foreach o {A C a1 b1 c1} {
+  $o destroy
+}
+
+
+###########################################
+# testing transitive per class mixins (part 2)
+###########################################
+Class A -instmixin [Class M]
+Class B -instmixin A
+Class C -superclass B
+
+A a1
+B b1
+C c1
+
+? {B instmixin} ::A
+? {B info instmixin} ::A
+? {A info instmixinof} ::B
+? {a1 info precedence} "::M ::A ::xotcl::Object"
+? {b1 info precedence} "::M ::A ::B ::xotcl::Object"
+? {c1 info precedence} "::M ::A ::C ::B ::xotcl::Object"
+
+A destroy
+? {a1 info precedence} "::xotcl::Object"
+? {b1 info precedence} "::B ::xotcl::Object"
+? {c1 info precedence} "::C ::B ::xotcl::Object"
+#? {M info instmixinof} "????"
+
+B destroy
+? {M info instmixinof} ""
+? {c1 info precedence} "::C ::xotcl::Object"
+
+foreach o {M C a1 b1 c1} {
+  $o destroy
+}
+
+###########################################
+# testing transitive per class mixins (part 3)
+###########################################
+Class A -instmixin [Class M]
+Class B -instmixin A
+Class C -superclass B
+
+A a1
+B b1
+C c1
+
+? {B instmixin} ::A
+? {B info instmixin} ::A
+? {A info instmixinof} ::B
+? {a1 info precedence} "::M ::A ::xotcl::Object"
+? {b1 info precedence} "::M ::A ::B ::xotcl::Object"
+? {c1 info precedence} "::M ::A ::C ::B ::xotcl::Object"
+
+B destroy
+? {a1 info precedence} "::M ::A ::xotcl::Object"
+? {b1 info precedence} "::xotcl::Object"
+? {c1 info precedence} "::C ::xotcl::Object"
+
+? {A info instmixinof} ""
+#? {M info instmixinof} "???"
+? {c1 info precedence} "::C ::xotcl::Object"
+
+foreach o {M C a1 b1 c1} {
+  $o destroy
+}
 
 ###########################################
 # testing simple per class mixins with redefinition
@@ -73,13 +179,52 @@ Class A
 Class B -instmixin A
 Class C -superclass B
 C c1
+
 ? {B instmixin} ::A
 ? {B info instmixin} ::A
 ? {A info instmixinof} ::B
 ? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
+? {B info heritage} "::xotcl::Object"
+? {C info heritage} "::B ::xotcl::Object"
 
 Class B -instmixin A
+
+? {B info heritage} "::xotcl::Object"
+? {C info heritage} "::xotcl::Object"
 ? {B instmixin} ::A
+? {B info instmixin} ::A
+? {A info instmixinof} ::B
+? {c1 info precedence} "::C ::xotcl::Object"
+
+B destroy
+? {A info instmixinof} ""
+? {c1 info precedence} "::C ::xotcl::Object"
+
+A destroy
+C destroy 
+c1 destroy
+
+
+###########################################
+# testing simple per class mixins with 
+# redefinition and softrecreate
+###########################################
+::xotcl::configure softrecreate true
+Class A
+Class B -instmixin A
+Class C -superclass B
+C c1
+
+? {B instmixin} ::A
+? {B info instmixin} ::A
+? {A info instmixinof} ::B
+? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
+? {C info heritage} "::B ::xotcl::Object"
+? {B info heritage} "::xotcl::Object"
+
+Class B -instmixin A
+? {C info heritage} "::B ::xotcl::Object"
+? {B info heritage} "::xotcl::Object"
 ? {B info instmixin} ::A
 ? {A info instmixinof} ::B
 ? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
@@ -91,3 +236,8 @@ B destroy
 A destroy
 C destroy 
 c1 destroy
+
+#foreach o [::xotcl::test::Test info instances] {$o destroy}
+#::xotcl::test::Test destroy
+#puts [lsort [::xotcl::Object allinstances]]
+
