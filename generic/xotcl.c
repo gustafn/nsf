@@ -1402,9 +1402,9 @@ static int
 RemoveInstance(XOTclObject *obj, XOTclClass *cl) {
   if (cl) {
     Tcl_HashEntry *hPtr = Tcl_FindHashEntry(&cl->instances, (char *)obj);
-    if (hPtr) {
-      Tcl_DeleteHashEntry(hPtr);
-      return 1;
+      if (hPtr) {
+        Tcl_DeleteHashEntry(hPtr);
+    	return 1;
     }
   }
   return 0;
@@ -3232,6 +3232,24 @@ getAllInstances(Tcl_HashTable *destTable, XOTclClass *startCl) {
 }
 
 /*
+ * recursively get all subclasses of a class into an initialized
+  * String key hashtable
+   */
+   
+static void
+getAllSubClasses(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *startCl) {
+  XOTclClasses *sc;
+  if(startCl->sub) {
+    for (sc = startCl->sub; sc != 0; sc = sc->next) {
+	if(sc->cl) {
+	    /* fprintf(stderr,"Parsing subclass: %s\n",ObjStr(sc->cl->object.cmdName)); */
+	    getAllSubClasses(interp, destTable, sc->cl);
+	}
+    }
+  }
+}
+
+/*
  * recursively get all isClassMixinOf of a class into an initialized
  * String key hashtable
  */
@@ -3255,7 +3273,9 @@ getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable,
       Tcl_CreateHashEntry(destTable, Tcl_GetCommandName(interp, m->cmdPtr), &new);
       /* if (new) fprintf (stderr, " -- %s (%s)\n", Tcl_GetCommandName(interp, m->cmdPtr), ObjStr(startCl->object.cmdName));*/
       cl = XOTclGetClassFromCmdPtr(m->cmdPtr);
+
       if (cl) {
+	if (cl->sub) getAllSubClasses(interp, destTable, cl);
         getAllClassMixinsOf(interp, destTable, cl);
       }
     }
@@ -3619,12 +3639,25 @@ MixinInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern, int withGuards) {
 }
 
 /*
+ * helper function - append all subclasses of a class to output
+ */
+
+static int
+getSubClasses(Tcl_Interp *interp, XOTclClass *cl) {
+    XOTclClasses *sc, *sl = cl->sub;
+    for (sc = sl; sc != 0; sc = sc->next) {
+	Tcl_AppendElement(interp, ObjStr(sc->cl->object.cmdName));
+	getSubClasses(interp, sc->cl);
+    }
+    return TCL_OK;
+}
+
+/*
  * info option for isObjectMixinOf and isClassMixinOf
  */
   
 static int
-MixinOfInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern) {
-  Tcl_Obj *list = Tcl_NewListObj(0, NULL);
+MixinOfInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern, int withClosure) {
   XOTclObject *mixinObject;
   while (m) {
     /* fprintf(stderr,"   mixinof info m=%p, next=%p\n", m, m->next); */
@@ -3632,11 +3665,16 @@ MixinOfInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern) {
     if (mixinObject &&
         (!pattern ||
          Tcl_StringMatch(ObjStr(mixinObject->cmdName), pattern))) {
-      Tcl_ListObjAppendElement(interp, list, mixinObject->cmdName);
+	 Tcl_AppendElement(interp, ObjStr(mixinObject->cmdName));
+	if ((withClosure == 1) && (XOTclObjectIsClass(mixinObject))) {
+	    XOTclClass *cl = XOTclGetClassFromCmdPtr(m->cmdPtr);
+	    if (cl->opt) MixinOfInfo(interp, cl->opt->isClassMixinOf, pattern, withClosure);
+	    getSubClasses(interp, cl);
+	}
+
     }
     m = m->next;
   }
-  Tcl_SetObjResult(interp, list);
   return TCL_OK;
 }
 
@@ -7198,7 +7236,7 @@ CleanupInitObject(Tcl_Interp *interp, XOTclObject *obj,
   obj->nsPtr = namespacePtr;
   if (!softrecreate) {
     AddInstance(obj, cl);
-  } 
+  }
   if (obj->flags & XOTCL_RECREATE) {
     obj->opt = 0;
     obj->varTable = 0;
@@ -10637,10 +10675,19 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
             return opt ? MixinInfo(interp, opt->instmixins, pattern, withGuards) : TCL_OK;
       
           } else if (!strcmp(cmdTail, "mixinof")) {
-            if (objc-modifiers > 3 || modifiers > 0)
+            int withClosure = 0;
+	    
+            if (objc-modifiers > 3 || modifiers > 1)
               return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-                                       "info instmixinof ?class?");
-            return opt ? MixinOfInfo(interp, opt->isClassMixinOf, pattern) : TCL_OK;
+                                       "info instmixinof ?-closure? ?class?");
+            if (modifiers > 0) {
+              withClosure = checkForModifier(objv, modifiers, "-closure");
+              if (withClosure == 0)
+                return XOTclVarErrMsg(interp, "info mixinof: unknown modifier ",
+                                      ObjStr(objv[2]), (char *) NULL);
+            }
+				       
+            return opt ? MixinOfInfo(interp, opt->isClassMixinOf, pattern, withClosure) : TCL_OK;
           } else if (!strcmp(cmdTail, "mixinguard")) {
             if (objc != 3 || modifiers > 0)
               return XOTclObjErrArgCnt(interp, cl->object.cmdName,
@@ -10703,7 +10750,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
         if (objc-modifiers > 3 || modifiers > 0)
           return XOTclObjErrArgCnt(interp, cl->object.cmdName,
                                    "info mixinof ?object?");
-        return opt ? MixinOfInfo(interp, opt->isObjectMixinOf, pattern) : TCL_OK;
+        return opt ? MixinOfInfo(interp, opt->isObjectMixinOf, pattern, 0) : TCL_OK;
       }
       break;
 
