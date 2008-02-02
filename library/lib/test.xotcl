@@ -1,4 +1,4 @@
-package provide xotcl::test 1.37
+package provide xotcl::test 1.38
 package require XOTcl
 
 namespace eval ::xotcl::test {
@@ -25,6 +25,7 @@ namespace eval ::xotcl::test {
   }
 
   Class Test -parameter {
+    name
     cmd 
     {namespace ::}
     {verbose 0} 
@@ -35,7 +36,14 @@ namespace eval ::xotcl::test {
   }
   Test set count 0 
   Test proc new args {
-    eval my create t[format %.3d [my incr count]] $args
+    my instvar case ccount name
+    if {[my exists case]} {
+      if {![info exists ccount($case)]} {set ccount($case) 0}
+      set name $case.[format %.3d [incr ccount($case)]]
+    } else {
+      set name t.[format %.3d [my incr count]]
+    }
+    eval my create $name -name $name $args
   }
   Test proc run {} {
     set startTime [clock clicks -milliseconds]
@@ -77,19 +85,19 @@ namespace eval ::xotcl::test {
 	#regexp {^(-?[0-9]+) +} $r0 _ mS0
 	regexp {^(-?[0-9]+) +} $r1 _ mS1
 	set ms [expr {$mS1*1.0/$c}]
-	puts stderr "[self]:\t[format %6.1f $ms] mms, $msg"
+	puts stderr "[my name]:\t[format %6.1f $ms] mms, $msg"
       } else {
-	puts stderr "[self]: $msg ok"
+	puts stderr "[my name]: $msg ok"
       }
     } else {
-      puts stderr "[self]:\tincorrect result for '$msg'"
+      puts stderr "[my name]:\tincorrect result for '$msg'"
       puts stderr "\texpected: '$expected', got '$r' [my exists errorReport]"
       if {[my exists errorReport]} {eval [my set errorReport]}
       exit -1
     }
     if {[info exists post]} {my call "post" $post}
   }
-  
+  proc case name {::xotcl::test::Test set case $name}
   namespace export Test
 }
 
