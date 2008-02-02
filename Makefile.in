@@ -22,19 +22,20 @@
 #XOTCL_VERSION 	= @PACKAGE_VERSION@
 XOTCL_VERSION 	= @XOTCL_VERSION@
 
-src_lib_dir 	= ${srcdir}/library
-src_doc_dir 	= ${srcdir}/doc
-src_test_dir 	= ${srcdir}/tests
-src_app_dir 	= ${srcdir}/apps
-src_generic_dir = ${srcdir}/generic
-TCL_LIB_SPEC    = @TCL_LIB_SPEC@
-TK_LIB_SPEC	= @TK_LIB_SPEC@
-subdirs		= @subdirs@
-aol_prefix	= @aol_prefix@
+src_lib_dir		= ${srcdir}/library
+src_doc_dir		= ${srcdir}/doc
+src_test_dir		= ${srcdir}/tests
+src_app_dir		= ${srcdir}/apps
+src_generic_dir	= ${srcdir}/generic
+src_man_dir		= ${srcdir}/generic
+TCL_LIB_SPEC		= @TCL_LIB_SPEC@
+TK_LIB_SPEC		= @TK_LIB_SPEC@
+subdirs			= @subdirs@
+aol_prefix		= @aol_prefix@
 
 # Requires native paths
-PLATFORM_DIR    = `@CYGPATH@ $(srcdir)/@TEA_PLATFORM@`
-target_doc_dir 	= ./doc
+PLATFORM_DIR	= `@CYGPATH@ $(srcdir)/@TEA_PLATFORM@`
+target_doc_dir		= ./doc
 
 src_lib_dir_native	= `@CYGPATH@ ${src_lib_dir}`
 src_doc_dir_native	= `@CYGPATH@ ${src_doc_dir}`
@@ -42,10 +43,10 @@ src_test_dir_native 	= `@CYGPATH@ ${src_test_dir}`
 src_app_dir_native	= `@CYGPATH@ ${src_app_dir}`
 src_generic_dir_native	= `@CYGPATH@ ${src_generic_dir}`
 
-libdirs = comm lib serialize @libdirs_actiweb@
-libsrc 	= COPYRIGHT pkgIndex.tcl 
-appdirs = comm scripts utils @apps_actiweb@
-appsrc 	= COPYRIGHT 
+libdirs		= comm lib serialize @libdirs_actiweb@
+libsrc		= COPYRIGHT pkgIndex.tcl 
+appdirs		= comm scripts utils @apps_actiweb@
+appsrc		= COPYRIGHT 
 
 DOC_SOURCE = \
 	$(src_doc_dir)/langRef.xotcl \
