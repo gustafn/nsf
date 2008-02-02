@@ -511,7 +511,7 @@ typedef struct XOTclClass {
   struct XOTclClasses* sub;
   short color;
   struct XOTclClasses* order;
-  struct XOTclClass* parent;
+    /*struct XOTclClass* parent;*/
   Tcl_HashTable instances;
   Tcl_Namespace *nsPtr;
   Tcl_Obj* parameters;

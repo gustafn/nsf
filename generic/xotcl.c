@@ -1369,7 +1369,7 @@ XOTclComputeDependents(XOTclClass *cl) {
 
 
 static void
-FlushPrecedences(XOTclClass *cl) {
+FlushPrecedencesOnSubclasses(XOTclClass *cl) {
   XOTclClasses *pc;
   XOTclFreeClasses(cl->order);
   cl->order = 0;
@@ -1501,6 +1501,7 @@ FindMethod(char *methodName, Tcl_Namespace *nsPtr) {
   /*fprintf(stderr, "find %s in %p returns %p\n", methodName, cmdTable, cmd);*/
   return NULL;
 #endif
+
   if ((entryPtr = Tcl_FindHashEntry(Tcl_Namespace_cmdTable(nsPtr), methodName))) {
     return (Tcl_Command) Tcl_GetHashValue(entryPtr);
   } 
@@ -1510,7 +1511,7 @@ FindMethod(char *methodName, Tcl_Namespace *nsPtr) {
 
 static XOTclClass*
 SearchPLMethod(register XOTclClasses *pl, char *nm, Tcl_Command *cmd) {
-  /* Search the class hierarchy */
+  /* Search the precedence list (class hierarchy) */
   for (; pl;  pl = pl->next) {
     Tcl_Command pi = FindMethod(nm, pl->cl->nsPtr);
     if (pi) {
@@ -4637,10 +4638,11 @@ SuperclassAdd(Tcl_Interp *interp, XOTclClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj 
     osl->next = l;
     (void)RemoveSuper(cl, cl->super->cl);
   }
-  for (i = 0; i < oc; i++)
+  for (i = 0; i < oc; i++) {
     AddSuper(cl, scl[i]);
+  }
   FREE(XOTclClass**, scl);
-  FlushPrecedences(cl);
+  FlushPrecedencesOnSubclasses(cl);
 
   if (!ComputeOrder(cl, cl->order, Super)) {
 
@@ -7426,6 +7428,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
   Tcl_HashEntry *hPtr;
   XOTclClass *theobj = RUNTIME_STATE(interp)->theObject;
   XOTclClassOpt *clopt = cl->opt;
+
   assert(softrecreate? recreate == 1 : 1);
   
   if (clopt) {
@@ -7507,12 +7510,18 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
     clopt = cl->opt = 0;
   }
 
+  /* On a recreate, it might be possible that the newly created class 
+     has a different superclass. So we have to flush the precedence list 
+     on a recreate as well.
+  */
+  FlushPrecedencesOnSubclasses(cl);
+  while (cl->super) (void)RemoveSuper(cl, cl->super->cl);
+
   if (!softrecreate) {
     /*
      * flush all caches, unlink superclasses
      */
-    
-    FlushPrecedences(cl);
+
     while (cl->sub) {
       XOTclClass *subClass = cl->sub->cl;
       (void)RemoveSuper(subClass, cl);
@@ -7523,7 +7532,6 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
       if (subClass->super == 0 && cl != theobj)
         AddSuper(subClass, theobj);
     }
-    while (cl->super) (void)RemoveSuper(cl, cl->super->cl);
   }
 
 }
@@ -7552,11 +7560,16 @@ CleanupInitClass(Tcl_Interp *interp, XOTclClass *cl, Tcl_Namespace *namespacePtr
   XOTclObjectSetClass(obj);
 
   cl->nsPtr = namespacePtr;
-
+  if (!softrecreate) { 
+      /* subclasses are preserved during recreate, superclasses not (since
+         the creation statement defined the superclass, might be different 
+         the second time)
+      */
+      cl->sub = 0;
+  }
   cl->super = 0;
-  cl->sub = 0;
   AddSuper(cl, RUNTIME_STATE(interp)->theObject);
-  cl->parent = RUNTIME_STATE(interp)->theObject;
+
   cl->color = WHITE;
   cl->order = 0;
   cl->parameters = 0;
@@ -7599,6 +7612,7 @@ PrimitiveCDestroy(ClientData cd) {
    * call and latch user destroy with obj->id if we haven't
    */
   /*fprintf(stderr,"PrimitiveCDestroy %s flags %x\n", ObjStr(obj->cmdName), obj->flags);*/
+
   if (!(obj->flags & XOTCL_DESTROY_CALLED))
     /*fprintf(stderr,"PrimitiveCDestroy call destroy\n");*/
     callDestroyMethod(cd, interp, obj, 0);
@@ -7617,7 +7631,7 @@ PrimitiveCDestroy(ClientData cd) {
   /*
    * class object destroy + physical destroy
    */
-  /*fprintf(stderr,"primitive cdestroy calls primitive odestroy\n");*/
+  /* fprintf(stderr,"primitive cdestroy calls primitive odestroy\n");*/
   PrimitiveODestroy(cd);
 
   /*fprintf(stderr,"primitive cdestroy calls deletenamespace for obj %p\n", cl);*/
@@ -12518,9 +12532,6 @@ Xotcl_Init(Tcl_Interp *interp) {
   thecls = PrimitiveCCreate(interp, "::xotcl::Class", 0);
   RUNTIME_STATE(interp)->theClass = thecls;
   if (!thecls) Tcl_Panic("Cannot create ::xotcl::Class", NULL);
-
-  theobj->parent = 0;
-  thecls->parent = theobj;
 
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "Object", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "Class", 0);

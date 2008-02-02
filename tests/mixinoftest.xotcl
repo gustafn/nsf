@@ -85,16 +85,16 @@ C c1
 ? {b1 info precedence} "::M ::A ::B ::xotcl::Object"
 ? {c1 info precedence} "::M ::A ::C ::B ::xotcl::Object"
 
-# Wie werden transitive instmixin behandelt?
-# M ist ein instmixin von  A, A ist ein instmixin von B,
-# so würde ich erwarten, dass M auch ein transitives instmixin 
-# von A ist. Sollte das instmixinof nicht
-#   - das Ergebnis von getAllClassMixinsOf liefern?
-#   - getAllClassMixinsOf nicht auch die subklassen inkludieren 
-#     (siehe MixinResetOrderForAllInstances)
-#? {M info instmixinof} "::A ::B"   oder "::A ::B ::C""
-#? {M info instmixinof} "::A ::B"
+? {M info instmixinof} "::A"
+# since M is an instmixin of A and A is a instmixin of B,
+# M is a instmixin of B as well, and of its subclasses
+? {M info instmixinof -closure} "::A ::B ::C"
+? {A info instmixinof} "::B"
+? {A info instmixinof -closure} "::B ::C"
+? {B info instmixinof} ""
+? {B info instmixinof -closure} ""
 
+# and now destroy mixin classes
 M destroy
 ? {a1 info precedence} "::A ::xotcl::Object"
 ? {b1 info precedence} "::A ::B ::xotcl::Object"
@@ -104,9 +104,7 @@ B destroy
 ? {A info instmixinof} ""
 ? {c1 info precedence} "::C ::xotcl::Object"
 
-foreach o {A C a1 b1 c1} {
-  $o destroy
-}
+foreach o {A C a1 b1 c1} { $o destroy }
 
 
 ###########################################
@@ -127,19 +125,21 @@ C c1
 ? {b1 info precedence} "::M ::A ::B ::xotcl::Object"
 ? {c1 info precedence} "::M ::A ::C ::B ::xotcl::Object"
 
+# and now destroy A
 A destroy
 ? {a1 info precedence} "::xotcl::Object"
 ? {b1 info precedence} "::B ::xotcl::Object"
 ? {c1 info precedence} "::C ::B ::xotcl::Object"
-#? {M info instmixinof} "????"
+
+? {M info instmixinof} ""
+? {M info instmixinof -closure} ""
+
 
 B destroy
 ? {M info instmixinof} ""
 ? {c1 info precedence} "::C ::xotcl::Object"
 
-foreach o {M C a1 b1 c1} {
-  $o destroy
-}
+foreach o {M C a1 b1 c1} { $o destroy }
 
 ###########################################
 # testing transitive per class mixins (part 3)
@@ -164,9 +164,9 @@ B destroy
 ? {b1 info precedence} "::xotcl::Object"
 ? {c1 info precedence} "::C ::xotcl::Object"
 
+? {M info instmixinof} "::A"
+? {M info instmixinof -closure} "::A"
 ? {A info instmixinof} ""
-#? {M info instmixinof} "???"
-? {c1 info precedence} "::C ::xotcl::Object"
 
 foreach o {M C a1 b1 c1} {
   $o destroy
@@ -236,6 +236,139 @@ B destroy
 A destroy
 C destroy 
 c1 destroy
+
+
+###########################################
+# test of recreate with same superclass, 
+# with softrecreate off
+###########################################
+::xotcl::test::case precedence
+::xotcl::configure softrecreate false
+Class O
+Class A -superclass O
+Class B -superclass A
+B b1
+A a1
+O o1
+? {A info superclass} "::O"
+? {B info heritage} "::A ::O ::xotcl::Object"
+? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
+? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::xotcl::Object"
+? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::O ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::O ::xotcl::Object"
+# we recreate the class new, with the same superclass
+Class A -superclass O
+? {A info superclass} "::O"
+? {B info heritage} "::xotcl::Object"
+? {list [A info subclass]   [B info subclass]   [O info subclass]}   "{} {} ::A"
+? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::xotcl::Object ::xotcl::Object"
+? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::xotcl::Object ::B ::O"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::xotcl::Object"
+? {b1 info precedence} "::B ::xotcl::Object"
+foreach o {A O B a1 b1 o1} {$o destroy} 
+
+###########################################
+# test of recreate with different superclass 
+# with softrecreate on
+###########################################
+::xotcl::test::case alternate-precedence
+::xotcl::configure softrecreate false
+Class O
+Class A -superclass O
+Class B -superclass A
+B b1
+A a1
+O o1
+? {A info superclass} "::O"
+? {B info heritage}   "::A ::O ::xotcl::Object"
+? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
+? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::xotcl::Object"
+? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::O ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::O ::xotcl::Object"
+# we recreate the class new, with a different superclass
+Class A
+? {A info superclass} "::xotcl::Object"
+? {B info heritage}   "::xotcl::Object"
+? {list [A info subclass]   [B info subclass]   [O info subclass]}   "{} {} {}"
+? {list [A info superclass] [B info superclass] [O info superclass]} "::xotcl::Object ::xotcl::Object ::xotcl::Object"
+? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::xotcl::Object ::B ::O"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::xotcl::Object"
+? {b1 info precedence} "::B ::xotcl::Object"
+foreach o {A O B a1 b1 o1} {$o destroy} 
+
+
+###########################################
+# test of recreate with same superclass, 
+# with softrecreate on
+###########################################
+::xotcl::test::case recreate-precedence
+::xotcl::configure softrecreate true
+Class O
+Class A -superclass O
+Class B -superclass A
+B b1
+A a1
+O o1
+? {A info superclass} "::O"
+? {B info heritage} "::A ::O ::xotcl::Object"
+? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
+? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::xotcl::Object"
+? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::O ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::O ::xotcl::Object"
+# we recreate the class new, with the same superclass
+Class A -superclass O
+? {A info superclass} "::O"
+? {B info heritage} "::A ::O ::xotcl::Object"
+? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
+? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::xotcl::Object"
+? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::O ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::O ::xotcl::Object"
+foreach o {A O B a1 b1 o1} {$o destroy} 
+
+###########################################
+# test of recreate with different superclass 
+# with softrecreate on
+###########################################
+::xotcl::test::case recreate-alternate-precedence
+::xotcl::configure softrecreate true
+Class O
+Class A -superclass O
+Class B -superclass A
+B b1
+A a1
+O o1
+? {B info heritage} "::A ::O ::xotcl::Object"
+? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
+? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::xotcl::Object"
+? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::O ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::O ::xotcl::Object"
+# we recreate the class new, with a different superclass
+Class A
+? {A info superclass} "::xotcl::Object"
+? {B info heritage} "::A ::xotcl::Object"
+? {B info heritage} "::A ::xotcl::Object"
+? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} {}"
+? {list [A info superclass] [B info superclass] [O info superclass]} "::xotcl::Object ::A ::xotcl::Object"
+? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::xotcl::Object"
+foreach o {A O B a1 b1 o1} {$o destroy} 
+
+
+
 
 #foreach o [::xotcl::test::Test info instances] {$o destroy}
 #::xotcl::test::Test destroy
