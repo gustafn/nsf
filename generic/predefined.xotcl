@@ -430,11 +430,8 @@ unset p
   ::xotcl::my istype $cl
 }
 ::xotcl::Class instproc allinstances {} {
-  set set [::xotcl::my info instances]
-  foreach sc [::xotcl::my info subclass] {
-    eval lappend set [$sc allinstances]
-  }
-  return $set
+  # TODO: mark it deprecated
+  return [::xotcl::my info instances -closure]
 }
 
 

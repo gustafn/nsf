@@ -3130,16 +3130,18 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [Class info instances Unk*] "" "no match in info instances"
   ::errorCheck [Class info instances Unk] "" "no match in info instances (no metachars)"
   ::errorCheck [Class info class] ::xotcl::Class "info class of Class"
-  ::errorCheck [Class info class Object] 1 "info class of Class Object"
+  ::errorCheck [Class info class Object] ::xotcl::Object "info class of Class Object"
   Class C
   Class D -superclass C
   Class E -superclass D -parameter {{x 1}}
   E instproc t {a b {c 1}} {return ok}
   E proc p {a b {c 1}} {return ok}
   E instproc q {} {return [self proc]}
-  ::errorCheck [C info subclass E] 1 "transitive subclass 1"
-  ::errorCheck [Object info subclass E] 1 "transitive subclass 2"
-  ::errorCheck [D info subclass C] 0 "transitive subclass 3"
+  ::errorCheck [C info subclass D] ::D "transitive subclass 0"
+  ::errorCheck [C info subclass E] "" "transitive subclass 0a"
+  ::errorCheck [C info subclass -closure E] ::E "transitive subclass 1"
+  ::errorCheck [Object info subclass -closure E] ::E "transitive subclass 2"
+  ::errorCheck [D info subclass -closure C] "" "transitive subclass 3"
   ::errorCheck [E info heritage] "::D ::C ::xotcl::Object" "heritage"
   ::errorCheck [E info instargs t] "a b c" "instargs"
   ::errorCheck [E info instdefault t c x] 1 "instdefault"

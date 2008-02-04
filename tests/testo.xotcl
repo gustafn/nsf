@@ -182,7 +182,6 @@ classcreate proc factorgraph {{n 3600}} {
       # factors become subclasses, direct or indirect
       #
 
-
       if {[TestClass info instances $i] eq ""} then {
 	my factorgraph $i
 	$i superclass $n

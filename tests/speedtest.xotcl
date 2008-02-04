@@ -253,7 +253,9 @@ if {[info exists xotcl_version]} {
   Test new -cmd {llength [Object info instances]} -expected 1007
 }
 
+Test new -cmd {Object info instances ::c::500*} -expected ::c::500
 Test new -cmd {Object info instances ::c::500} -expected ::c::500
+Test new -cmd {Object info instances ::c::5000} -expected ""
 
 Test new -count 100 -pre {set ::c::l ""} \
     -cmd {lappend ::c::l 1} \

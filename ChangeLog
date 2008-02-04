@@ -1,3 +1,70 @@
+2008-02-04: <Gustaf.Neumann@wu-wien.ac.at>
+    * Potential incompatibility:
+      provide a uniform interface to the following info subcommands
+
+        <class> info superclass ?-closure? ?pattern?
+        <class> info subclass ?-closure? ?pattern?
+        <class> info instances ?-closure? ?pattern?
+        <class> info instmixinof ?-closure? ?pattern?
+        <class> info mixinof ?pattern?
+       
+     In cases, where the option "-closure" is defined,
+     the values are computed transitively.
+
+    In cases, where a pattern is specified, and
+    the pattern contains meta-characters, a list
+    of results is returned matching the pattern 
+    (like "string match"). When no matching value
+    is found, an empty list is returned. 
+
+    In cases, where a pattern is specified, and
+    the pattern contains no meta-characters, 
+    a single value is returned korrespinding to 
+    the specified value. The pattern is used
+    to lookup an object or class, such it is
+    not necessary to provide fully qualified names).
+    if there is no match, empty is returned.
+    Previously,  "info superclass" and "info subclass" 
+    returned a boolean value and performed 
+    always a transitive search. Returning ""
+    is more consistent and more in line with Tcl.
+
+    By using the option "-closure" one can
+    perform the lookup in the transitive
+    or in the intransitive sets.
+
+   Still to do:
+     children
+     parent
+     classchildren
+     classparent
+
+2008-02-03: <Gustaf.Neumann@wu-wien.ac.at>
+    - fix getAllSubClasses
+    - fix "info mixinof -closure", when pattern was provided
+    - streamline code (AppendMatchingElement)
+    - new info option "-closure" for "info instances" (equiv. to "allinstances", but 5 times faster)
+    - new info option "-closure" for "info superclass" (equiv. to "info heritage")
+
+2008-02-02: <Gustaf.Neumann@wu-wien.ac.at>
+   -  Improving regression test:
+        +  added ::xotcl::test::case
+        + shortended output
+   - Makefile.in: added missing src_man_dir
+   - fixed softcrecreate cases:
+        * update caches for subclasses of recreated classes
+        * fixed recreate when it defines different superclasses
+        * extended test cases for mixinoftest
+
+2008-02-01: <Martin.Matuska@wu-wien.ac.at>
+   - Add closure option to mixinofinfo
+   - Enhance getAllClassMixinofs
+
+2008-01-23: <Gustaf.Neumann@wu-wien.ac.at>
+    - saving object->id in cl->opt->id (probably a temporary solution)
+    - improving reset of affected objects, when (transitive) per class mixins change
+    - extended regression test
+
 2008-01-07: <Gustaf.Neumann@wu-wien.ac.at>
     - don't call unset traces during an object move (related to fix below)
 
