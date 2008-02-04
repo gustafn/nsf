@@ -1,3 +1,25 @@
+2008-02-04: <Gustaf.Neumann@wu-wien.ac.at>
+    - fix getAllSubClasses
+    - fix "info mixinof -closure", when pattern was provided
+    - streamline code (AppendMatchingElement)
+    - new info option "-closure" for "info instances" (equiv. to "allinstances", but 5 times faster)
+    - new info option "-closure" for "info superclass" (equiv. to "info heritage")
+
+2008-02-02: <Gustaf.Neumann@wu-wien.ac.at>
+    - fixed softcrecreate for subclasses of recreated classes
+    - fixed softcrecreate when recreate defines different superclasses
+    - extended test cases for mixinoftest
+
+2008-02-01: <Martin.Matuska@wu-wien.ac.at>
+    - new info option "-closure" for "info mixinof" (transitive version)
+    - parse subclasses for getAllClassMixinsOf
+
+2008-01-23: <Gustaf.Neumann@wu-wien.ac.at>
+    - saveing object->id in cl->opt->id (probably a temporary solution)
+    - new function: MixinResetOrderForAllInstances (transitive version of MixinResetOrderForInstances()
+    - use MixinResetOrderForAllInstances for resetting instances
+    - extended regression test
+
 2008-01-07: <Gustaf.Neumann@wu-wien.ac.at>
     - don't call unset traces during an object move (related to fix below)
 
