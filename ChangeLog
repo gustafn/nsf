@@ -57,8 +57,8 @@
         * extended test cases for mixinoftest
 
 2008-02-01: <Martin.Matuska@wu-wien.ac.at>
-   - Add closure option to mixinofinfo
-   - Enhance getAllClassMixinofs
+    - new info option "-closure" for "info mixinof" (transitive version)
+    - process subclasses for getAllClassMixinsOf
 
 2008-01-23: <Gustaf.Neumann@wu-wien.ac.at>
     - saving object->id in cl->opt->id (probably a temporary solution)
