@@ -33,11 +33,14 @@
     perform the lookup in the transitive
     or in the intransitive sets.
 
-   Still to do:
+   Still to do: (transitive)
      children
      parent
      classchildren
      classparent
+   Still to do: (matchObject)
+     mixin
+     instmixin
 
 2008-02-03: <Gustaf.Neumann@wu-wien.ac.at>
     - fix getAllSubClasses
