@@ -1,3 +1,9 @@
+2008-02-05: <Gustaf.Neumann@wu-wien.ac.at>
+    - fix getAllClassMixinsOf to handle combinations of 
+       transitive per class mixins and inheriting per-class
+       mixin via the class hierarchy, removed getAllSubClasses
+    - extend test cases
+
 2008-02-04: <Gustaf.Neumann@wu-wien.ac.at>
     * Potential incompatibility:
       provide a uniform interface to the following info subcommands

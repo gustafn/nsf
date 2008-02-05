@@ -48,6 +48,7 @@ o destroy
 ###########################################
 # testing simple per class mixins
 ###########################################
+::xotcl::test::case pcm
 Class A
 Class B -instmixin A
 Class C -superclass B
@@ -69,6 +70,7 @@ c1 destroy
 ###########################################
 # testing transitive per class mixins
 ###########################################
+::xotcl::test::case trans-pcm1
 Class A
 Class B -instmixin A
 Class C -superclass B
@@ -108,8 +110,68 @@ foreach o {A C a1 b1 c1} { $o destroy }
 
 
 ###########################################
-# testing transitive per class mixins (part 2)
+# testing transitive per class mixins with subclasses
 ###########################################
+::xotcl::test::case trans-pcm2
+Class X
+Class D
+Class C -superclass D
+Class A -instmixin C
+Class B -superclass A
+B b1
+
+? {C info instmixinof -closure} "::A ::B"
+? {D info instmixinof -closure} ""
+? {A info instmixinof -closure} ""
+? {B info instmixinof -closure} ""
+? {X info instmixinof -closure} ""
+D instmixin X
+? {C info instmixinof -closure} "::A ::B"
+? {D info instmixinof -closure} ""
+? {A info instmixinof -closure} ""
+? {B info instmixinof -closure} ""
+? {X info instmixinof -closure} "::D ::C ::A ::B"
+? {b1 info precedence} "::C ::X ::D ::B ::A ::xotcl::Object"
+B b2
+? {b2 info precedence} "::C ::X ::D ::B ::A ::xotcl::Object"
+
+foreach o {X D C A B b1 b2} {$o destroy}
+
+###########################################
+# testing transitive per class mixins with subclasses
+###########################################
+::xotcl::test::case trans-pcm3
+Class A3 -superclass [Class A2 -superclass [Class A1]]
+Class B3 -superclass [Class B2 -superclass [Class B1 -superclass [Class B0]]]
+Class C3 -superclass [Class C2 -superclass [Class C1]]
+
+A2 instmixin B2
+B1 instmixin C2
+
+? {A1 info instmixinof -closure} ""
+? {A2 info instmixinof -closure} ""
+? {A3 info instmixinof -closure} ""
+
+? {B0 info instmixinof -closure} ""
+? {B1 info instmixinof -closure} ""
+? {B2 info instmixinof -closure} "::A2 ::A3"
+? {B3 info instmixinof -closure} ""
+
+? {C1 info instmixinof -closure} ""
+? {C2 info instmixinof -closure} "::B1 ::B2 ::B3 ::A2 ::A3"
+? {C3 info instmixinof -closure} ""
+
+foreach o {A1 A2 A3 B0 B1 B2 B3 C1 C2 C3} {$o destroy}
+
+
+
+
+
+
+###########################################
+# testing transitive per class mixins with destroy
+###########################################
+::xotcl::test::case pcm-trans-destroy-A
 Class A -instmixin [Class M]
 Class B -instmixin A
 Class C -superclass B
@@ -142,8 +204,9 @@ B destroy
 foreach o {M C a1 b1 c1} { $o destroy }
 
 ###########################################
-# testing transitive per class mixins (part 3)
+# testing transitive per class mixins with destroy
 ###########################################
+::xotcl::test::case pcm-trans-destroy-B
 Class A -instmixin [Class M]
 Class B -instmixin A
 Class C -superclass B
@@ -175,6 +238,7 @@ foreach o {M C a1 b1 c1} {
 ###########################################
 # testing simple per class mixins with redefinition
 ###########################################
+::xotcl::test::case pcm-redefine
 Class A
 Class B -instmixin A
 Class C -superclass B
@@ -209,6 +273,7 @@ c1 destroy
 # testing simple per class mixins with 
 # redefinition and softrecreate
 ###########################################
+::xotcl::test::case pcm-redefine-soft
 ::xotcl::configure softrecreate true
 Class A
 Class B -instmixin A

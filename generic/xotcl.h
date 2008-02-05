@@ -56,8 +56,6 @@
 #define NDEBUG 1
 */
 
-
-
 /* activate/deacticate memory tracing 
 #define XOTCL_MEM_TRACE 1
 #define XOTCL_MEM_COUNT 1

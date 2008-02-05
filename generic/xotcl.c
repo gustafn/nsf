@@ -1331,7 +1331,7 @@ TopoSort(XOTclClass *cl, XOTclClass *base, XOTclClasses* (*next)(XOTclClass*)) {
    */
 
   cl->color = GRAY;
-  for (; sl != 0; sl = sl->next) {
+  for (; sl; sl = sl->next) {
     XOTclClass *sc = sl->cl;
     if (sc->color == GRAY) { cl->color = WHITE; return 0; }
     if (sc->color == WHITE && !TopoSort(sc, base, next)) {
@@ -3335,34 +3335,23 @@ getAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *startC
 }
 
 /*
- * recursively get all subclasses of a class into an initialized
- * object ptr hashtable (TCL_ONE_WORD_KEYS)
+ * helper function for getAllClassMixinsOf to add classes to the
+ * result set, flagging test for matchObject as result
  */
    
 static int
-getAllSubClasses(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *startCl, 
-                 int appendResult, char *pattern, XOTclObject *matchObject) {
-  XOTclClasses *sc;
-  int rc = 0;
-    
-  for (sc = startCl->sub; sc; sc = sc->next) {
-    if (sc->cl) {
-      int new;
-      if (matchObject && (XOTclObject *)sc->cl == matchObject) {
-        Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
-        return 1;
-      }
-      Tcl_CreateHashEntry(destTable, (char *)sc->cl, &new);
-      if (new) {
-        if (appendResult) {
-          AppendMatchingElement(interp, sc->cl->object.cmdName, pattern);
-        }
-        rc = getAllSubClasses(interp, destTable, sc->cl, appendResult, pattern, matchObject);
-        if (rc == 1) break;
-      }
+addToResultSet(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *cl, int *new,
+                    int appendResult, char *pattern, XOTclObject *matchObject) {
+  Tcl_CreateHashEntry(destTable, (char *)cl, new);
+  if (*new) {
+    if (matchObject && matchObject == (XOTclObject *)cl) {
+      return 1;
+    }
+    if (appendResult) {
+      AppendMatchingElement(interp, cl->object.cmdName, pattern);
     }
   }
-  return rc;
+  return 0;
 }
 
 /*
@@ -3371,41 +3360,56 @@ getAllSubClasses(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *start
  */
  
 static int
-getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *startCl, 
+getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *startCl, int isMixin,
                     int appendResult, char *pattern, XOTclObject *matchObject) {
-  int rc = 0;
+  int rc = 0, new = 0;
+  XOTclClass *cl;
+  XOTclClasses *sc;
 
+  /*
+  fprintf(stderr, "startCl = %s, opt %p, isMixin %d\n",
+          ObjStr(startCl->object.cmdName),startCl->opt, isMixin);
+  */
+
+  /* 
+   * the startCl is a per class mixin, add it to the result set 
+   */
+  if (isMixin) {
+    rc = addToResultSet(interp, destTable, startCl, &new, appendResult, pattern, matchObject);
+    if (rc == 1) {return rc;}
+
+    /* 
+     * check all subclasses of startCl for mixins
+     */
+    for (sc = startCl->sub; sc; sc = sc->next) {
+      rc = getAllClassMixinsOf(interp, destTable, sc->cl, isMixin, appendResult, pattern, matchObject);
+      if (rc) {return rc;}
+    }
+  }
+
+  /* 
+   * check, if startCl is a per-class mixin of some other classes 
+   */
   if (startCl->opt) {
     XOTclCmdList *m;
         
     for (m = startCl->opt->isClassMixinOf; m; m = m->next) {
-      XOTclClass *cl;
 
       /* we should have no deleted commands in the list */
       assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0);
 
       cl = XOTclGetClassFromCmdPtr(m->cmdPtr);
-      if (cl) {
-        int new;
-        if (matchObject && matchObject == (XOTclObject *)cl) {
-          return 1;
-        }
-        Tcl_CreateHashEntry(destTable, (char *)cl, &new);
-        if (new) {
-          /* if (new) fprintf (stderr, " -- %s (%s)\n", Tcl_GetCommandName(interp, m->cmdPtr), ObjStr(startCl->object.cmdName));*/
-          if (appendResult) {
-            AppendMatchingElement(interp, cl->object.cmdName, pattern);
-          }
-          if (cl->sub) {
-            rc = getAllSubClasses(interp, destTable, cl, appendResult, pattern, matchObject);
-            if (rc) {return rc;}
-          }
-          rc = getAllClassMixinsOf(interp, destTable, cl, appendResult, pattern, matchObject);
-          if (rc) {return rc;}
-        }
+      assert(cl);
+
+      rc = addToResultSet(interp, destTable, cl, &new, appendResult, pattern, matchObject);
+      if (rc == 1) {return rc;}
+      if (new) {
+        rc = getAllClassMixinsOf(interp, destTable, cl, 1, appendResult, pattern, matchObject);
+        if (rc) {return rc;}
       }
     }
   }
+
   return rc;
 }
 
@@ -3568,7 +3572,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
   */
   Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
   MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-  getAllClassMixinsOf(interp, commandTable, cl, 0, NULL, NULL);
+  getAllClassMixinsOf(interp, commandTable, cl, 1, 0, NULL, NULL);
 
   for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; 
        hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -10729,15 +10733,15 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
                 Tcl_HashTable objTable, *commandTable = &objTable;
                 MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
                 Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-                rc = getAllClassMixinsOf(interp, commandTable, cl, 1, pattern, matchObject);
+                rc = getAllClassMixinsOf(interp, commandTable, cl, 0, 1, pattern, matchObject);
                 MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
               } else {
                 rc = AppendMatchingElementsFromCmdList(interp, opt->isClassMixinOf, 
                                                        pattern, matchObject);
               }
-            }
-            if (matchObject) {
-              Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+              if (matchObject) {
+                Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+              }
             }
             return TCL_OK;
 
