@@ -3127,7 +3127,7 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard forward heritage info instances instbody instcommands instdefault instfilter instfilterguard instforward instinvar instmixin instmixinof instpost instpre instprocs invar methods mixin mixinof parameter parent post pre precedence procs subclass superclass vars} "info info"
 
   ::errorCheck [Class info instances *Unk*] ::UnknownClass "match in info instances"
-  ::errorCheck [Class info instances Unk*] "" "no match in info instances"
+  ::errorCheck [Class info instances Unk*] "::UnknownClass" "no match in info instances"
   ::errorCheck [Class info instances Unk] "" "no match in info instances (no metachars)"
   ::errorCheck [Class info class] ::xotcl::Class "info class of Class"
   ::errorCheck [Class info class Object] ::xotcl::Object "info class of Class Object"

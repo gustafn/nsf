@@ -1,12 +1,43 @@
+2008-02-06: <Gustaf.Neumann@wu-wien.ac.at>
+  * Continued with info orthogonality change
+
+        <object> info mixin ?pattern?
+        <class> info instmixin ?pattern?
+
+    ?pattern? behaves exactly like in the change of two days
+    ago. Preceding colons in the name of the queried class are not
+    required.
+
+    Still to do "-closure" in
+
+        <class> info instmixin -closure ?pattern?
+
+  * In all mentioned calls, where pattern refers to an object/class
+    and it contains wild-cards, a preceding :: is added automatically
+    to the search pattern, if it is missing. Since all object names
+    start with ::, an omitted leading :: in a search pattern is an
+    obvious mistake
+
+  * Made the behavior "pattern" in the following calls identical
+    concerning wild cards and object lookups
+
+        <object> mixin delete pattern
+        <class> instmixin delete pattern
+        <class> superclass delete pattern
+
+  * extended regresson test
+
 2008-02-05: <Gustaf.Neumann@wu-wien.ac.at>
-    - fix getAllClassMixinsOf to handle combinations of 
-       transitive per class mixins and inheriting per-class
-       mixin via the class hierarchy, removed getAllSubClasses
-    - extend test cases
+
+  * fix getAllClassMixinsOf to handle combinations of transitive per
+    class mixins and inheriting per-class mixin via the class
+    hierarchy, removed getAllSubClasses
+
+  * extend test cases
 
 2008-02-04: <Gustaf.Neumann@wu-wien.ac.at>
-    * Potential incompatibility:
-      provide a uniform interface to the following info subcommands
+  * Potential incompatibility:
+    provide a uniform interface to the following info subcommands
 
         <class> info superclass ?-closure? ?pattern?
         <class> info subclass ?-closure? ?pattern?
@@ -14,53 +45,41 @@
         <class> info instmixinof ?-closure? ?pattern?
         <class> info mixinof ?pattern?
        
-     In cases, where the option "-closure" is defined,
-     the values are computed transitively.
+    In cases, where the option "-closure" is defined, the values are
+    computed transitively.
 
-    In cases, where a pattern is specified, and
-    the pattern contains meta-characters, a list
-    of results is returned matching the pattern 
-    (like "string match"). When no matching value
-    is found, an empty list is returned. 
+    In cases, where a pattern is specified, and the pattern contains
+    meta-characters, a list of results is returned matching the
+    pattern (like "string match"). When no matching value is found, an
+    empty list is returned.
 
-    In cases, where a pattern is specified, and
-    the pattern contains no meta-characters, 
-    a single value is returned korrespinding to 
-    the specified value. The pattern is used
-    to lookup an object or class, such it is
-    not necessary to provide fully qualified names).
-    if there is no match, empty is returned.
-    Previously,  "info superclass" and "info subclass" 
-    returned a boolean value and performed 
-    always a transitive search. Returning ""
-    is more consistent and more in line with Tcl.
+    In cases, where a pattern is specified, and the pattern contains
+    no meta-characters, a single value is returned corresponding to
+    the specified value. The pattern is used to lookup an object or
+    class, such it is not necessary to provide fully qualified names).
+    if there is no match, empty is returned.  Previously, "info
+    superclass" and "info subclass" returned a boolean value and
+    performed always a transitive search. Returning "" is more
+    consistent and more in line with Tcl.
 
-    By using the option "-closure" one can
-    perform the lookup in the transitive
-    or in the intransitive sets.
-
-   Still to do: (transitive)
-     children
-     parent
-     classchildren
-     classparent
-   Still to do: (matchObject)
-     mixin
-     instmixin
+    By using the option "-closure" one can perform the lookup in the
+    transitive or in the intransitive sets.
 
 2008-02-03: <Gustaf.Neumann@wu-wien.ac.at>
     - fix getAllSubClasses
     - fix "info mixinof -closure", when pattern was provided
     - streamline code (AppendMatchingElement)
-    - new info option "-closure" for "info instances" (equiv. to "allinstances", but 5 times faster)
-    - new info option "-closure" for "info superclass" (equiv. to "info heritage")
+    - new info option "-closure" for "info instances" (equiv. to
+      "allinstances", but 5 times faster)
+    - new info option "-closure" for "info superclass" (equiv. to
+      "info heritage")
 
 2008-02-02: <Gustaf.Neumann@wu-wien.ac.at>
-   -  Improving regression test:
+    -  Improving regression test:
         +  added ::xotcl::test::case
-        + shortended output
-   - Makefile.in: added missing src_man_dir
-   - fixed softcrecreate cases:
+        + shortened output
+    - Makefile.in: added missing src_man_dir
+    - fixed softcrecreate cases:
         * update caches for subclasses of recreated classes
         * fixed recreate when it defines different superclasses
         * extended test cases for mixinoftest
@@ -70,8 +89,12 @@
     - process subclasses for getAllClassMixinsOf
 
 2008-01-23: <Gustaf.Neumann@wu-wien.ac.at>
+
     - saving object->id in cl->opt->id (probably a temporary solution)
-    - improving reset of affected objects, when (transitive) per class mixins change
+
+    - improving reset of affected objects, when (transitive) per class
+      mixins change
+
     - extended regression test
 
 2008-01-07: <Gustaf.Neumann@wu-wien.ac.at>
@@ -105,7 +128,7 @@
     - better cleanup when classes are deleted
 
 2007-12-13: <Gustaf.Neumann@wu-wien.ac.at>
-   * fix alias command for aliasing to tcl procs
+   * fix alias command for aliasing to Tcl procs
 
 2007-11-09: <Gustaf.Neumann@wu-wien.ac.at>
     * added missing file (install.sh from tclconfig)

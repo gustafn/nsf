@@ -3586,7 +3586,8 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
 #endif
 }
 
-static int MixinInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern, int withGuards);
+static int MixinInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern, 
+                     int withGuards, XOTclObject *matchObject);
 /*
  * the mixin order is either
  *   DEFINED (there are mixins on the instance),
@@ -3633,7 +3634,7 @@ MixinSeekCurrent(Tcl_Interp *interp, XOTclObject *obj, XOTclCmdList **cmdList) {
   /***
       { Tcl_Obj *sr;
 
-      MixinInfo(interp, obj->mixinOrder, NULL, 0);
+      MixinInfo(interp, obj->mixinOrder, NULL, 0, NULL);
       sr = Tcl_GetObjResult(interp);
       fprintf(stderr,"INFO->%s order %p next %p\n", ObjStr(sr), obj->mixinOrder, obj->mixinOrder->next);
       }
@@ -3731,15 +3732,19 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
  * info option for mixins and instmixins
  */
 static int
-MixinInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern, int withGuards) {
+MixinInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern, 
+          int withGuards, XOTclObject *matchObject) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
   XOTclClass *mixinClass;
+
   while (m) {
-    /* fprintf(stderr,"   mixin info m=%p, next=%p\n", m, m->next); */
+      /* fprintf(stderr,"   mixin info m=%p, next=%p, pattern %s, matchObject %p\n", 
+         m, m->next, pattern, matchObject);*/
     mixinClass = XOTclGetClassFromCmdPtr(m->cmdPtr);
     if (mixinClass &&
-        (!pattern ||
-         Tcl_StringMatch(ObjStr(mixinClass->object.cmdName), pattern))) {
+        (!pattern
+         || (matchObject && &(mixinClass->object) == matchObject)
+         || (!matchObject && Tcl_StringMatch(ObjStr(mixinClass->object.cmdName), pattern)))) {
       if (withGuards && m->clientData) {
         Tcl_Obj *l = Tcl_NewListObj(0, NULL);
         Tcl_Obj *g = (Tcl_Obj*) m->clientData;
@@ -3747,8 +3752,10 @@ MixinInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern, int withGuards) {
         Tcl_ListObjAppendElement(interp, l, XOTclGlobalObjects[XOTE_GUARD_OPTION]);
         Tcl_ListObjAppendElement(interp, l, g);
         Tcl_ListObjAppendElement(interp, list, l);
-      } else
+      } else {
         Tcl_ListObjAppendElement(interp, list, mixinClass->object.cmdName);
+      }
+      if (matchObject) break;
     }
     m = m->next;
   }
@@ -5902,19 +5909,34 @@ noMetaChars(char *pattern) {
 }
 
 static int
-getMatchObject(Tcl_Interp *interp, char **pattern, XOTclObject **matchObject) {
+getMatchObject(Tcl_Interp *interp, char **pattern, XOTclObject **matchObject, Tcl_DString *dsPtr) {
   if (*pattern && noMetaChars(*pattern)) {
     *matchObject = XOTclpGetObject(interp, *pattern);
     if (*matchObject) {
       *pattern = ObjStr((*matchObject)->cmdName);
       return 1;
     } else {
-      /* not found */
+      /* object does not exist */
       Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_EMPTY]);
       return -1;
     }
   } else {
     *matchObject = NULL;
+    if (*pattern) {
+      /* 
+       * we have a pattern and meta characters, we might have 
+       * to prefix it to ovoid abvious errors: since all object
+       * names are prefixed with ::, we add this prefix automatically
+       * to the match pattern, if it does not exist
+       */
+      if (**pattern && **pattern != ':' && **pattern+1 && **pattern+1 != ':') {
+        /*fprintf(stderr, "pattern is not prefixed '%s'\n",*pattern);*/
+        Tcl_DStringAppend(dsPtr, "::", -1);
+        Tcl_DStringAppend(dsPtr, *pattern, -1);
+        *pattern = Tcl_DStringValue(dsPtr);
+        /*fprintf(stderr, "prefixed pattern = '%s'\n",*pattern);*/
+      }
+    }
   }
   return 0;
 }
@@ -8349,7 +8371,10 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 
   case 'm':
     if (!strcmp(cmd, "mixin")) {
-      int withOrder = 0, withGuards = 0;
+        int withOrder = 0, withGuards = 0, rc;;
+      XOTclObject *matchObject;
+      Tcl_DString ds, *dsPtr = &ds;
+
       if (objc-modifiers > 3)
         return XOTclObjErrArgCnt(interp, obj->cmdName,
                                  "info mixin ?-guards? ?-order? ?class?");
@@ -8361,14 +8386,20 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
           return XOTclVarErrMsg(interp, "info mixin: unknown modifier . ",
                                 ObjStr(objv[2]), (char *) NULL);
       }
-
+      
+      DSTRING_INIT(dsPtr);
+      if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
+        return TCL_OK;
+      }
       if (withOrder) {
         if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
           MixinComputeDefined(interp, obj);
-        return MixinInfo(interp, obj->mixinOrder, pattern, withGuards);
+        rc = MixinInfo(interp, obj->mixinOrder, pattern, withGuards, matchObject);
+      } else {
+        rc = opt ? MixinInfo(interp, opt->mixins, pattern, withGuards, matchObject) : TCL_OK;
       }
-
-      return opt ? MixinInfo(interp, opt->mixins, pattern, withGuards) : TCL_OK;
+      DSTRING_FREE(dsPtr);
+      return rc;
 
     } else if (!strcmp(cmd, "mixinguard")) {
       if (objc != 3 || modifiers > 0)
@@ -10578,6 +10609,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
           if (!strcmp(cmdTail, "ances")) {
             int withClosure = 0, rc;
             XOTclObject *matchObject;
+            Tcl_DString ds, *dsPtr = &ds;
 	    
             if (objc-modifiers > 3 || modifiers > 1)
               return XOTclObjErrArgCnt(interp, cl->object.cmdName,
@@ -10589,7 +10621,8 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
                                       ObjStr(objv[2]), (char *) NULL);
             }
             
-            if (getMatchObject(interp, &pattern, &matchObject) == -1) {
+            DSTRING_INIT(dsPtr);
+            if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
               return TCL_OK;
             }
 
@@ -10597,7 +10630,9 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
             if (matchObject) {
               Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
             }
+            DSTRING_FREE(dsPtr);
             return TCL_OK;
+
           } else if (!strcmp(cmdTail, "args")) {
             if (objc != 3 || modifiers > 0)
               return XOTclObjErrArgCnt(interp, cl->object.cmdName,
@@ -10698,23 +10733,33 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
     
         case 'm':
           if (!strcmp(cmdTail, "mixin")) {
-            int withGuards = 0;
-      
+              int withGuards = 0, rc;
+            XOTclObject *matchObject;
+            Tcl_DString ds, *dsPtr = &ds;
+
             if (objc-modifiers > 3 || modifiers > 1)
               return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-                                       "info instmixin ?-guards? ?class?");
+                                       "info instmixin ?-guards? ?pattern?");
             if (modifiers > 0) {
               withGuards = checkForModifier(objv, modifiers, "-guards");
               if (withGuards == 0)
                 return XOTclVarErrMsg(interp, "info instfilter: unknown modifier ",
                                       ObjStr(objv[2]), (char *) NULL);
             }
-            return opt ? MixinInfo(interp, opt->instmixins, pattern, withGuards) : TCL_OK;
+
+            DSTRING_INIT(dsPtr);
+            if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
+              return TCL_OK;
+            }
+            rc = opt ? MixinInfo(interp, opt->instmixins, pattern, withGuards, matchObject) : TCL_OK;
+            DSTRING_FREE(dsPtr);
+            return rc;
       
           } else if (!strcmp(cmdTail, "mixinof")) {
             int withClosure = 0, rc;
             XOTclObject *matchObject;
-	    
+            Tcl_DString ds, *dsPtr = &ds;
+
             if (objc-modifiers > 3 || modifiers > 1)
               return XOTclObjErrArgCnt(interp, cl->object.cmdName,
                                        "info instmixinof ?-closure? ?class?");
@@ -10726,7 +10771,8 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
             }
 
             if (opt) {
-              if (getMatchObject(interp, &pattern, &matchObject) == -1) {
+              DSTRING_INIT(dsPtr);
+              if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
                 return TCL_OK;
               }
               if (withClosure) {
@@ -10742,6 +10788,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
               if (matchObject) {
                 Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
               }
+              DSTRING_FREE(dsPtr);
             }
             return TCL_OK;
 
@@ -10805,18 +10852,22 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
     case 'm':
       if (!strcmp(cmd, "mixinof")) {
         XOTclObject *matchObject;
+        Tcl_DString ds, *dsPtr = &ds;
         int rc;
+
         if (objc-modifiers > 3 || modifiers > 0)
           return XOTclObjErrArgCnt(interp, cl->object.cmdName,
                                    "info mixinof ?pattern?");
         if (opt) {
-          if (getMatchObject(interp, &pattern, &matchObject) == -1) {
+          DSTRING_INIT(dsPtr);
+          if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
             return TCL_OK;
           }
           rc = AppendMatchingElementsFromCmdList(interp, opt->isObjectMixinOf, pattern, matchObject); 
           if (matchObject) {
             Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
           }
+          DSTRING_FREE(dsPtr);
         }
         return TCL_OK;
       }
@@ -10870,6 +10921,8 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
       if (!strcmp(cmd, "superclass")) {
         int withClosure = 0, rc;
         XOTclObject *matchObject;
+        Tcl_DString ds, *dsPtr = &ds;
+
         if (objc-modifiers > 3 || modifiers > 1)
           return XOTclObjErrArgCnt(interp, cl->object.cmdName,
                                    "info superclass ?-closure? ?pattern?");
@@ -10880,7 +10933,8 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
                                     ObjStr(objv[2]), (char *) NULL);
         }
 
-        if (getMatchObject(interp, &pattern, &matchObject) == -1) {
+        DSTRING_INIT(dsPtr);
+        if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
           return TCL_OK;
         }
 
@@ -10896,11 +10950,13 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
         if (matchObject) {
           Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
         }
+        DSTRING_FREE(dsPtr);
         return TCL_OK;
 
       } else if (!strcmp(cmd, "subclass")) {
         int withClosure = 0, rc;
         XOTclObject *matchObject;  
+        Tcl_DString ds, *dsPtr = &ds;
 	    
         if (objc-modifiers > 3 || modifiers > 1)
           return XOTclObjErrArgCnt(interp, cl->object.cmdName,
@@ -10912,7 +10968,8 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
                                     ObjStr(objv[2]), (char *) NULL);
         }
 
-        if (getMatchObject(interp, &pattern, &matchObject) == -1) {
+        DSTRING_INIT(dsPtr);
+        if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
           return TCL_OK;
         }
 
@@ -10930,6 +10987,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
         if (matchObject) {
           Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
         }
+        DSTRING_FREE(dsPtr);
         return TCL_OK;
 
       } else if (!strcmp(cmd, "slots")) {

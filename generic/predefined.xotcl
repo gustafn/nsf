@@ -142,7 +142,9 @@ unset p
 #
 ::xotcl::MetaSlot create ::xotcl::InfoSlot -array set __defaults {
   multivalued true
+  elementtype ::xotcl::Class
 }
+::xotcl::InfoSlot instparametercmd elementtype
 ::xotcl::setrelation ::xotcl::InfoSlot superclass ::xotcl::Slot
 ::xotcl::InfoSlot instproc get {obj prop} {$obj info $prop}
 ::xotcl::InfoSlot instproc add {obj prop value {pos 0}} {
@@ -153,8 +155,28 @@ unset p
 }
 ::xotcl::InfoSlot instproc delete {-nocomplain:switch obj prop value} {
   set old [$obj info $prop]
-  set p [lsearch -glob $old $value]
-  if {$p>-1} {$obj $prop [lreplace $old $p $p]} else {
+  if {[string first * $value] > -1 || [string first \[ $value] > -1} {
+    # string contains meta characters
+    if {[my elementtype] ne "" && ![string match ::* $value]} {
+      # prefix string with ::, since all object names have leading ::
+      set value ::$value
+    }
+    return [$obj $prop [lsearch -all -not -glob -inline $old $value]]
+  } elseif {[my elementtype] ne ""} {
+    if {[string first :: $value] == -1} {
+      if {![my isobject $value]} {
+        error "$value does not appear to be an object"
+      }
+      set value [$value self]
+    }
+    if {![$value isclass [my elementtype]]} {
+      error "$value does not appear to be of type [my elementtype]"
+    }
+  }
+  set p [lsearch -exact $old $value]
+  if {$p > -1} {
+    $obj $prop [lreplace $old $p $p]
+  } else {
     error "$value is not a $prop of $obj (valid are: $old)"
   }
 }
@@ -186,9 +208,9 @@ namespace eval ::xotcl::Object::slot {}
 ::xotcl::alias ::xotcl::Object::slot::class assign ::xotcl::setrelation
 
 ::xotcl::InterceptorSlot create ::xotcl::Object::slot::mixin
-::xotcl::InterceptorSlot create ::xotcl::Object::slot::filter
+::xotcl::InterceptorSlot create ::xotcl::Object::slot::filter -elementtype ""
 ::xotcl::InterceptorSlot create ::xotcl::Class::slot::instmixin
-::xotcl::InterceptorSlot create ::xotcl::Class::slot::instfilter 
+::xotcl::InterceptorSlot create ::xotcl::Class::slot::instfilter -elementtype ""
 
 #
 # Attribute
