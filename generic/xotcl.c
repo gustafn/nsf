@@ -3355,6 +3355,34 @@ addToResultSet(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *cl, int
 }
 
 /*
+ * helper function for getAllClassMixins to add classes with guards
+ * to the result set, flagging test for matchObject as result
+ */
+
+static int
+addToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *cl, ClientData clientData, int *new,
+                    int appendResult, char *pattern, XOTclObject *matchObject) {
+  Tcl_CreateHashEntry(destTable, (char *)cl, new);
+  if (*new) {
+    if (appendResult) {
+      if (!pattern || Tcl_StringMatch(ObjStr(cl->object.cmdName), pattern)) {
+        Tcl_Obj *l = Tcl_NewListObj(0, NULL);
+        Tcl_Obj *g = (Tcl_Obj*) clientData;
+        Tcl_ListObjAppendElement(interp, l, cl->object.cmdName);
+        Tcl_ListObjAppendElement(interp, l, XOTclGlobalObjects[XOTE_GUARD_OPTION]);
+        Tcl_ListObjAppendElement(interp, l, g);
+	Tcl_AppendElement(interp, ObjStr(l));
+	DECR_REF_COUNT(l);
+      }
+    }
+    if (matchObject && matchObject == (XOTclObject *)cl) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+/*
  * recursively get all isClassMixinOf of a class into an initialized
  * object ptr hashtable (TCL_ONE_WORD_KEYS)
  */
@@ -3412,6 +3440,64 @@ getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *st
 
   return rc;
 }
+
+/*
+ * recursively get all instmixins of a class into an initialized
+ * object ptr hashtable (TCL_ONE_WORD_KEYS)
+ */
+
+static int
+getAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *startCl,
+                    int withGuards, char *pattern, XOTclObject *matchObject) {
+  int rc = 0, new = 0;
+  XOTclClass *cl;
+  XOTclClasses *sc;
+
+  /*
+   * check this class for instmixins
+   */
+  if (startCl->opt) {
+    XOTclCmdList *m;
+        
+    for (m = startCl->opt->instmixins; m; m = m->next) {
+
+      /* we should have no deleted commands in the list */
+      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0);
+
+      cl = XOTclGetClassFromCmdPtr(m->cmdPtr);
+      assert(cl);
+
+      /* fprintf(stderr,"Instmixin found: %s\n", ObjStr(cl->object.cmdName)); */
+
+      if ((withGuards) && (m->clientData)) {
+        /* fprintf(stderr,"addToResultSetWithGuards: %s\n", ObjStr(cl->object.cmdName)); */
+        rc = addToResultSetWithGuards(interp, destTable, cl, m->clientData, &new, 1, pattern, matchObject);
+      } else {
+        /* fprintf(stderr,"addToResultSet: %s\n", ObjStr(cl->object.cmdName)); */
+	rc = addToResultSet(interp, destTable, cl, &new, 1, pattern, matchObject);
+      }
+      if (rc == 1) {return rc;}
+
+      if (new) {
+        /* fprintf(stderr,"Instmixin getAllClassMixins for: %s (%s)\n",ObjStr(cl->object.cmdName),ObjStr(startCl->object.cmdName)); */
+        rc = getAllClassMixins(interp, destTable, cl, withGuards, pattern, matchObject);
+        if (rc) {return rc;}
+      }
+    }
+  } 
+
+
+  /* 
+   * check all superclasses of startCl for instmixins
+   */
+    for (sc = startCl->super; sc; sc = sc->next) {
+      /* fprintf(stderr,"Superclass getAllClassMixins for %s (%s)\n",ObjStr(sc->cl->object.cmdName),ObjStr(startCl->object.cmdName)); */
+      rc = getAllClassMixins(interp, destTable, sc->cl, withGuards, pattern, matchObject);
+      if (rc) {return rc;}
+    }
+  return rc;
+}
+
 
 static void
 RemoveFromClassMixinsOf(Tcl_Command cmd, XOTclCmdList *cmdlist) {
@@ -10733,27 +10819,41 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
     
         case 'm':
           if (!strcmp(cmdTail, "mixin")) {
-              int withGuards = 0, rc;
+              int withClosure = 0, withGuards = 0, rc;
             XOTclObject *matchObject;
             Tcl_DString ds, *dsPtr = &ds;
 
-            if (objc-modifiers > 3 || modifiers > 1)
+            if (objc-modifiers > 3 || modifiers > 2)
               return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-                                       "info instmixin ?-guards? ?pattern?");
+                                       "info instmixin ?-closure? ?-guards? ?pattern?");
             if (modifiers > 0) {
               withGuards = checkForModifier(objv, modifiers, "-guards");
-              if (withGuards == 0)
+	      withClosure = checkForModifier(objv, modifiers, "-closure");
+              if ((withGuards == 0) && (withClosure == 0)) 
                 return XOTclVarErrMsg(interp, "info instfilter: unknown modifier ",
                                       ObjStr(objv[2]), (char *) NULL);
             }
 
-            DSTRING_INIT(dsPtr);
-            if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-              return TCL_OK;
-            }
-            rc = opt ? MixinInfo(interp, opt->instmixins, pattern, withGuards, matchObject) : TCL_OK;
-            DSTRING_FREE(dsPtr);
-            return rc;
+            if ((opt) || (withClosure)) {
+              DSTRING_INIT(dsPtr);
+              if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
+                return TCL_OK;
+              }
+	      if (withClosure) {
+                Tcl_HashTable objTable, *commandTable = &objTable;
+                MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
+                Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
+                rc = getAllClassMixins(interp, commandTable, cl, withGuards, pattern, matchObject);
+                if (matchObject && rc && !withGuards) {
+                  Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+                }
+                MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
+	      } else {
+	        rc = opt ? MixinInfo(interp, opt->instmixins, pattern, withGuards, matchObject) : TCL_OK;
+	      }
+              DSTRING_FREE(dsPtr);
+	    }
+    	    return TCL_OK;
       
           } else if (!strcmp(cmdTail, "mixinof")) {
             int withClosure = 0, rc;

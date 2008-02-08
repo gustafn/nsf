@@ -68,6 +68,32 @@ C destroy
 c1 destroy
 
 ###########################################
+# testing simple per class mixins with guards
+###########################################
+::xotcl::test::case pcm2
+Class M1
+Class M2
+Class X
+Class A -instmixin {M1 M2 X}
+A instmixinguard M1 "test"
+Class B -superclass A
+? {A info instmixin M2} ::M2
+? {A info instmixin M*} "::M1 ::M2"
+? {A info instmixin -guards} "{::M1 -guard test} ::M2 ::X"
+? {B info instmixin} ""
+? {B info instmixin -closure} "::M1 ::M2 ::X"
+? {B info instmixin -closure M2} ::M2
+? {B info instmixin -closure M*} "::M1 ::M2"
+? {B info instmixin -closure -guards} "{::M1 -guard test} ::M2 ::X"
+? {B info instmixin -closure -guards M1} "{::M1 -guard test}"
+? {B info instmixin -closure -guards M*} "{::M1 -guard test} ::M2"
+A destroy
+B destroy
+X destroy
+M1 destroy
+M2 destroy
+
+###########################################
 # testing transitive per class mixins
 ###########################################
 ::xotcl::test::case trans-pcm1
@@ -162,11 +188,6 @@ B1 instmixin C2
 ? {C3 info instmixinof -closure} ""
 
 foreach o {A1 A2 A3 B0 B1 B2 B3 C1 C2 C3} {$o destroy}
-
-
-
-
-
 
 ###########################################
 # testing transitive per class mixins with destroy

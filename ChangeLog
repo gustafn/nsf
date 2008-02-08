@@ -1,3 +1,9 @@
+2008-02-08: <Martin.Matuska@wu-wien.ac.at>
+  * New info option "-closure" for "info instmixin" with
+    -guards and -closure support
+  
+  * Extended test cases for "info instmixin"
+
 2008-02-06: <Gustaf.Neumann@wu-wien.ac.at>
   * Continued with info orthogonality change
 
@@ -7,10 +13,6 @@
     ?pattern? behaves exactly like in the change of two days
     ago. Preceding colons in the name of the queried class are not
     required.
-
-    Still to do "-closure" in
-
-        <class> info instmixin -closure ?pattern?
 
   * In all mentioned calls, where pattern refers to an object/class
     and it contains wild-cards, a preceding :: is added automatically
@@ -2426,7 +2428,7 @@
         * finished polishing mem leaks (thanks to Zoran Vasiljevic again)
         * disallowed "[self] next" ... next is now only a command
         * Gdbm,Sdbm,Expat: corrected Makefile.in to rely on 
-          -L$(TCLLIBDIR) (thanks to Jörg Rudnik for the hint)
+          -L$(TCLLIBDIR) (thanks to Jrg Rudnik for the hint)
 
 2001-10-08 <Gustaf.Neumann@wu-wien.ac.at>
         * configure.in: fixes for AOLSERVER to ease configuration
