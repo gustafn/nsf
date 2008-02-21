@@ -1,10 +1,12 @@
 2008-02-21: <Gustaf.Neumann@wu-wien.ac.at>
-  * replaced Tcl_ObjSetVar2() with Tcl_SetVar2Ex()
 
-    Tcl 8.5 seems to optimize variables away, which
-    are not directly referenced by the tcl proc body.
-    In the following example, "ot" is set from
-    C (via nonposargs, previously via Tcl_ObjSetVar2())
+  * replaced Tcl_ObjSetVar2() with Tcl_SetVar2Ex() in nonposargs,
+    since Tcl 8.5 seemed to optimize local variables away, if these
+    not referenced directly from from Tcl,
+
+    Tcl 8.5 seems to optimize variables away, which are not directly
+    referenced by the Tcl proc body.  In the following example, "ot"
+    is set from C (via nonposargs, previously via Tcl_ObjSetVar2())
     and consumed via C (from the db-driver, using :ot).
 
        SomeClass instproc foo {-ot} {
@@ -14,10 +16,9 @@
          } -default 0]
        }
 
-    When the logging command is added, the statement 
-    works fine. When the looging command was deactivated, 
-    the variable ot was not seen from the consumer.
-    By changing the variable setting command to 
+    When the logging command is added, the statement works fine. When
+    the logging command was deactivated, the variable ot was not seen
+    from the consumer.  By changing the variable setting command to
     Tcl_SetVar2Ex(), it works fine.
 
 2008-02-08: <Martin.Matuska@wu-wien.ac.at>
