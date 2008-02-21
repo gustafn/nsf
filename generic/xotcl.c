@@ -12089,13 +12089,15 @@ XOTclInterpretNonpositionalArgsCmd(ClientData cd, Tcl_Interp *interp, int objc,
             return XOTclVarErrMsg(interp, "Non positional arg '", argStr,
                                   "': no boolean value", (char *) NULL);
           }
-          Tcl_ObjSetVar2(interp, var, NULL, Tcl_NewBooleanObj(!bool), 0); 
+          Tcl_SetVar2Ex(interp, ObjStr(var), NULL, Tcl_NewBooleanObj(!bool), 0); 
+          /*Tcl_ObjSetVar2(interp, var, NULL, Tcl_NewBooleanObj(!bool), 0); */
         } else {
           i++;
           if (i >= argsc)
             return XOTclVarErrMsg(interp, "Non positional arg '",
                                   argStr, "': value missing", (char *) NULL);
-          Tcl_ObjSetVar2(interp, var, NULL, argsv[i], 0);
+          Tcl_SetVar2Ex(interp, ObjStr(var), NULL, argsv[i], 0);
+          /* Tcl_ObjSetVar2(interp, var, NULL, argsv[i], 0);*/
         }
       } else {
         endOfNonposArgsReached = 1;
