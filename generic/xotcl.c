@@ -3614,6 +3614,9 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
 
   cl->order = 0;  
   
+  /* reset mixin order for all instances of the class and the
+     instances of its subclasses
+  */
   for (clPtr = ComputeOrder(cl, cl->order, Sub); clPtr; clPtr = clPtr->next) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr = &clPtr->cl->instances ?
@@ -3622,32 +3625,24 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
     /*fprintf(stderr,"invalidating instances of class %s\n",
       ObjStr(clPtr->cl->object.cmdName));*/
 
-    /* here we should check, whether this class is used as
-       a mixin / instmixin somewhere else and invalidate
-       the objects of these as well -- */
-
     for (; hPtr != 0; hPtr = Tcl_NextHashEntry(&hSrch)) {
-      XOTclObject *obj = (XOTclObject*)
-          Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
-      if (obj->mixinOrder)  MixinResetOrder(obj);
+      XOTclObject *obj = (XOTclObject *)Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
+      if (obj->mixinOrder) { MixinResetOrder(obj); }
       obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
     }
   }
 
   XOTclFreeClasses(cl->order);
   cl->order = saved;
-#if 1
+
   /* reset mixin order for all objects having this class as per object mixin */
   if (cl->opt) {
       XOTclCmdList *ml;
       for (ml = cl->opt->isObjectMixinOf; ml; ml = ml->next) {
           obj = XOTclGetObjectFromCmdPtr(ml->cmdPtr);
           if (obj) {
-              if (obj->mixinOrder) {
-                  MixinResetOrder(obj);
-                  obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
-              }
-              assert((obj->flags & XOTCL_MIXIN_ORDER_VALID) == 0); 
+              if (obj->mixinOrder) { MixinResetOrder(obj); }
+              obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
           }
       }
   }
@@ -3669,7 +3664,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
       }
   }
   MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
-#endif
+
 }
 
 static int MixinInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern, 
