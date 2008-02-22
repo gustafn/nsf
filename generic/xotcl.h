@@ -4,7 +4,7 @@
  *  
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
  *
  *  This software is based upon MIT Object Tcl by David Wetherall and
  *  Christopher J. Lindblad, that contains the following copyright
@@ -55,6 +55,7 @@
 /* activate/deacticate assert 
 #define NDEBUG 1
 */
+#define NDEBUG 1
 
 /* activate/deacticate memory tracing 
 #define XOTCL_MEM_TRACE 1
