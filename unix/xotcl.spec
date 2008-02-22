@@ -1,10 +1,10 @@
 Summary: Object Oriented Extension for Tcl
 Name: xotcl
-Version: 1.5.7
+Version: 1.6.0
 Release: 0
 License: bsd style open source
 Group: Development/Languages
-Source:  http://www.xotcl.org/xotcl-1.5.7.tar.gz
+Source:  http://www.xotcl.org/xotcl-1.6.0.tar.gz
 URL: http://www.xotcl.org
 Packager: Gustaf.Neumann@wu-wien.ac.at
 Distribution: Fedorea Core 7
@@ -23,12 +23,12 @@ persistent object store, mobile code system, etc. For more details
 consult http://www.xotcl.org
 
 %prep
-%setup -q -n xotcl-1.5.7
+%setup -q -n xotcl-1.6.0
 
 
 %build
 autoconf
-# ./configure --with-tcl=/usr/lib --with-all --prefix=/usr/local/aolserver-4.5 --exec-prefix=/usr/local/aolserver-4.5
+# ./configure --with-tcl=/usr/lib --with-all --prefix=/usr/local/aolserver4 --exec-prefix=/usr/local/aolserver4
 ./configure --with-tcl=/usr/lib --with-all --prefix=/usr --exec-prefix=/usr
 # make CFLAGS_DEFAULT='-O3 -mcpu=i686 -Wall -fomit-frame-pointer'
 make CFLAGS_DEFAULT='-O3 -Wall -fomit-frame-pointer'
@@ -36,16 +36,16 @@ make CFLAGS_DEFAULT='-O3 -Wall -fomit-frame-pointer'
 %install
 rm -rf $RPM_BUILD_ROOT
 make DESTDIR=$RPM_BUILD_ROOT install
-rm -f $RPM_BUILD_ROOT/usr/lib/libxotcl1.5.7.so
-ln -s xotcl1.5.7/libxotcl1.5.7.so $RPM_BUILD_ROOT/usr/lib
+rm -f $RPM_BUILD_ROOT/usr/lib/libxotcl1.6.0.so
+ln -s xotcl1.6.0/libxotcl1.6.0.so $RPM_BUILD_ROOT/usr/lib
 
 %files
 %defattr(-, root, root)
 %doc doc
 %_bindir/xotclsh
 %_bindir/xowish
-%_prefix/lib/xotcl1.5.7
-%_prefix/lib/libxotcl1.5.7.so
+%_prefix/lib/xotcl1.6.0
+%_prefix/lib/libxotcl1.6.0.so
 %_prefix/lib/xotclexpat*
 %_prefix/lib/xotclgdbm*
 %_prefix/lib/xotclsdbm*
