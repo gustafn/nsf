@@ -8,8 +8,9 @@
 #
 # Copyright (c) 1999 Scriptics Corporation.
 # Copyright (c) 2002-2003 ActiveState Corporation.
+# Copyright (c) 2001-2008 Gustaf Neumann, Uwe Zdun
 #
-# See the file "license.terms" for information on usage and redistribution
+# See the file "tcl-license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
 # RCS: @(#) $Id: Makefile.in,v 1.25 2007/09/18 19:27:32 neumann Exp $
