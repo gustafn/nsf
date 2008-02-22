@@ -1,13 +1,25 @@
+2008-02-22: <Gustaf.Neumann@wu-wien.ac.at>
+    * Release of XOTcl 1.6-0
+
+2008-02-22: <Gustaf.Neumann@wu-wien.ac.at>
+   * Update of documentation
+
+2008-02-21: <Gustaf.Neumann@wu-wien.ac.at>
+  * Clear XOTCL_MIXIN_ORDER_VALID flag unconditionally 
+     in MixinInvalidateObjOrders() for mixins (Neophytos
+     had problems in naviserver; many thanks for reporting!)
+
 2008-02-21: <Gustaf.Neumann@wu-wien.ac.at>
 
-  * replaced Tcl_ObjSetVar2() with Tcl_SetVar2Ex() in nonposargs,
+  * Replaced Tcl_ObjSetVar2() with Tcl_SetVar2Ex() in nonposargs,
     since Tcl 8.5 seemed to optimize local variables away, if these
-    not referenced directly from from Tcl,
+    not referenced directly from from Tcl.
 
-    Tcl 8.5 seems to optimize variables away, which are not directly
-    referenced by the Tcl proc body.  In the following example, "ot"
-    is set from C (via nonposargs, previously via Tcl_ObjSetVar2())
-    and consumed via C (from the db-driver, using :ot).
+    Tcl 8.5 seems to optimize proc-local variables away, which are not
+    directly referenced by the Tcl proc body.  In the following
+    example, "ot" is set from C (via nonposargs, previously via
+    Tcl_ObjSetVar2()) and consumed via C (from the db-driver, using
+    :ot).
 
        SomeClass instproc foo {-ot} {
          #ns_log notice ot=$ot

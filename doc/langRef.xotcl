@@ -1,5 +1,5 @@
 # $Id: langRef.xotcl,v 1.18 2007/09/05 19:09:22 neumann Exp $
-package provide XOTcl-langRef 1.5.5
+package provide XOTcl-langRef 1.6.0
 package require XOTcl
 
 @ @File {
@@ -242,15 +242,22 @@ package require XOTcl
     Calls the '-' (dash) methods. I.e. evaluates arguments and calls 
     everything starting with '-' (and not having a digit a 
     second char) as a method. Every list element until the next '-'
-    is interpreted as a method argument. <tt>configure/tt> is called 
-    before the constructor during initialization and recreation.
+    is interpreted as a method argument. <tt>configure</tt> is called 
+    before the constructor <tt>init</tt> during initialization and recreation.
     In the following example, the variable set is called via 
     configure before <tt>init</tt>:
     <@pre class='code'>    Object o -set x 4</@pre>
     The method <tt>configure</tt> can be called with the
     dash-notation at arbitrary times:
     <@pre class='code'>    o configure -set x 4</@pre>
-  }
+
+    Note, that if '-' is followed by a numerical, the arument is
+    interpreted as a negative number (and not as a method).  If a
+    value of a method called this way starts with a "-", the call can
+    be placed safely into a list (e.g. "Class c [list -strangearg -a-]
+    -simplearg 2").  
+    <p>See also <a href="langRef-xotcl.html#Class-create">create</a>.
+  } 
   return "number of the skipped first arguments"
 }
 
@@ -543,9 +550,14 @@ package require XOTcl
       <@TT>-nocmds</@TT> only returns procs. 
       Modifier <@TT>-nomixins</@TT> excludes search on mixins.
 
-      <@li><@TT>objName info mixin</@TT>: Returns the list of mixins 
-      of the object. With <@TT>-order</@TT> modifier the order of mixins 
-      (whole hierarchy) is printed.
+      <@li><@TT>objName info mixin ?-order? ?-guard? ?pattern?</@TT>:
+      Returns the list of mixins of the object. With <@TT>-order</@TT>
+      modifier the order of mixins (whole hierarchy) is printed. If
+      <@TT>-guard</@TT> is specified, the mixin guards are returned.
+      If <@TT>pattern</@TT> is specified and it contains wildcards,
+      all matching mixins are returned. If <@TT>pattern</@TT> does not
+      contain wildcards, either the fully qualified name is returned,
+      or empty, if no match exists.
 
       <@li><@TT>objName info nonposargs methodName</@TT>: Returns
       non-positional arg list of methodName
@@ -915,13 +927,16 @@ package require XOTcl
   ?args? "arguments passed to the new class after creation"
 } {
   description {
-       Allocate memory for a new XOTcl object or class. <@tt>create<@/tt> uses 
-      <@tt>alloc</@tt> to allocate memory. But <@tt>create<@/tt> also 
-      calls init and evaluates '-' arguments as method calls. 
-      In seldom cases the programmer may want to suppress the 
-      <@tt>create<@/tt>
-      mechanism and just allocate memory. Then  <@tt>alloc</@tt> can 
-      be used.
+
+    Allocate an uninitialized XOTcl object or class. Alloc is used by
+    the method <a
+    href="langRef-xotcl.html#Class-create"><@tt>create<@/tt></a> to
+    allocate the object. Note that <@tt>create<@/tt> also calls as
+    well <tt>configure</tt> and <tt>init</a> to initialized the
+    object. Only in seldom cases the programmer may want to suppress
+    the <@tt>create<@/tt> mechanism and just allocate uninitiaized
+    objects via <@tt>alloc<@/tt>.
+
   }
   return "new class name"
 }
@@ -942,19 +957,40 @@ package require XOTcl
     Create user-defined classes or objects. If the class is a meta-class,
     a class is created, otherwise an object.
 
+    The method <@tt>create<@/tt> is responsible for allocating and
+    initializing objects. The method can be overloaded e.g. in a
+    metaclass if other initialization behavior is wanted.
+    <p>
+    The standard behavior of <@tt>create<@/tt> is as follows:
+    <ol>
+
+    <li>Call the method <a
+    href="langRef-xotcl.html#Class-alloc"><@tt>alloc<@/tt></a> to
+    create an uninitialized object.
+
+    <li>Call the method <@tt>searchDefaults<@/tt> to set default
+    values for instance attributes-
+
+    <li>Call the method <a
+    href="langRef-xotcl.html#Object-configure"><@tt>configure<@/tt></a> to
+    configure the object with the values provided at object creation
+    time. The method <@tt>configure<@/tt> interprets the arguments
+    with leading dashes as method calls.
+
+    <li>Call the method <@tt>init<@/tt> to
+    allow initialization by the class.  The argument passed to init are the 
+    values from the passed argument list containing the arguments up to the first '-'.<@p>
+
+    </ol>
+    <p>
     Create firstly calls <@tt>alloc</@tt> in order to allocate memory for the
     new object. Then default values for parameters are searched on
-    superclasses (an set if found). Then <@tt>args</@tt> is searched for args
-    starting with '-' followed by an alpha character.  These arguments
-    are called as methods. '-' followed by a numerical is interpreted
-    as a negative number (and not as a method).  If a value of a method
-    called this way starts with a "a", the call can be placed safely
-    into a list (e.g. "Class c [list -strangearg -a-] -simplearg 2").
+    superclasses (an set if found). 
 
     Finally the constructor <@tt>init</@tt> is called on the object 
     with all arguments up to the first '-' arg.<@p>
 
-    The <@tt>create</@tt> method is called implicitly through the 
+    The <@tt>create</@tt> method is often called implicitly through the 
     <@tt>unknown</@tt>
     mechanism when a class (meta-class) is called with an unknown
     method. E.g. the following two commands are equivalent 
@@ -999,9 +1035,14 @@ package require XOTcl
       of the class hierarchy. 
       If pattern is specified, only matching values are returned.
 
-      <@li><@TT>ClassName info instances ?pattern?</@TT>:
-      Returns a list of the instances of the class. 
-      If pattern is specified, only matching values are returned.
+      <@li><@TT>ClassName info instances ?-closure? ?pattern?</@TT>:
+      Returns a list of the instances of the class. If
+      <@TT>-closure</@TT> is specified, the resultet contains as well
+      the instances of subclasses. If <@TT>pattern</@TT> is specified
+      and it contains wildcards, all matching instances are
+      returned. If <@TT>pattern</@TT> does not contain wildcards,
+      either the fully qualified name is returned, or empty, if no
+      match exists.
 
       <@li><@TT>ClassName info instargs method</@TT>:
       Returns the arguments of the specified instproc (instance method).
@@ -1029,8 +1070,23 @@ package require XOTcl
       <@li><@TT>ClassName info instinvar</@TT>: 
       Returns class invariants.
 	
-      <@li><@TT>ClassName info instmixin</@TT>: 
-      Returns the list of instmixins of this class.
+      <@li><@TT>ClassName info instmixin ?pattern?</@TT>: Returns the
+      list of instmixins of this class.  If <@TT>pattern</@TT> is
+      specified and it contains wildcards, all matching mixin classes are
+      returned. If <@TT>pattern</@TT> does not contain wildcards,
+      either the fully qualified name is returned, or empty, if no
+      match exists.
+
+      <@li><@TT>ClassName info instmixinof ?-closure? ?pattern?</@TT>:
+      Returns the list of classes, into which this class was mixed in
+      via instmixin. This is the inverse function of <@TT>ClassName
+      info instmixin</@TT>.  If <@TT>-closure<@TT> is specified, also
+      the classes are returned, for which the class is indirectly
+      mixed in via instmixin.  If <@TT>pattern</@TT> is specified and
+      it contains wildcards, all matching mixin classes are
+      returned. If <@TT>pattern</@TT> does not contain wildcards,
+      either the fully qualified name is returned, or empty, if no
+      match exists.
 
       <@li><@TT>ClassName info instnonposargs methodName</@TT>: returns list of 
       non-positional args of methodName
@@ -1045,18 +1101,35 @@ package require XOTcl
       Returns all instprocs defined for the class. If pattern 
       is specified it returns all instprocs that match the pattern.
 
+      <@li><@TT>ClassName info mixinof ?pattern?</@TT>:
+      Returns the list of classes, into which this class was mixed in
+      via per object mixin. This is the inverse function of <@TT>Object
+      info mixin</@TT>.  If <@TT>pattern</@TT> is specified and
+      it contains wildcards, all matching mixin classes are
+      returned. If <@TT>pattern</@TT> does not contain wildcards,
+      either the fully qualified name is returned, or empty, if no
+      match exists.
+
       <@li><@TT>ClassName info parameter</@TT>: 
       Returns parameter list.
 
-      <@li><@TT>ClassName info subclass ?subclassname?</@TT>:
-      Returns a list of all subclasses of the class, if subclassname 
-      was not specified, otherwise it returns 1 if subclassname is a
-      subclass and 0 if not.
+      <@li><@TT>ClassName info subclass ?-closure? ?pattern?</@TT>:
+      Returns a list of all subclasses of the class. If
+      <@TT>-closure</@TT> is specified, the result contains as well
+      the subclasses of the subclasses. If <@TT>pattern</@TT> is
+      specified and it contains wildcards, all matching subclasses are
+      returned. If <@TT>pattern</@TT> does not contain wildcards,
+      either the fully qualified name is returned, or empty, if no
+      match exists.
 
-      <@li><@TT> ClassName info superclass ?superclassname?</@TT>:
-      Returns a list of all super-classes of the class, 
-      if superclassname was not specified, otherwise it returns 
-      1 if superclassname is a superclass and 0 if not.
+      <@li><@TT> ClassName info superclass ?-closure? ?superclassname?</@TT>:
+      Returns a list of all super-classes of the class. If
+      <@TT>-closure</@TT> is specified, the result contains as well
+      the superclasses of the superclasses. If <@TT>pattern</@TT> is
+      specified and it contains wildcards, all matching superclasses are
+      returned. If <@TT>pattern</@TT> does not contain wildcards,
+      either the fully qualified name is returned, or empty, if no
+      match exists.
       <@/ul>
     }
     return "Value of introspected option as a string."
