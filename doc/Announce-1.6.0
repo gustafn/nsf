@@ -1,6 +1,10 @@
 Dear XOTcl Community,
 
-XOTcl 1.6.0 is available. This version is mostly a fix release for
+XOTcl 1.6.0 is available. This release provides orthogonality
+improvements, better introspection (one can now e.g. query, into which
+classes a mixin class is mixed into) and some commands faster (e.g. by
+a factor of 1000 for larger systems).
+
 some problems that were apparently quite long in the code and could
 cause crashes for threaded applications.
 
@@ -40,6 +44,11 @@ Major changes relative to 1.5.6 are:
      "info superclass" and "info subclass" returned a boolean value
      and performed always a transitive search. Returning "" is more
      consistent and more in line with Tcl.
+
+     Note that "<class> info superclass -closure" is a replacement for
+     info heritage, "<class> info instances -closure" is a replacement
+     for "<class> allinstances". The old commands will be marked
+     as deprecated in the near future.
 
      Please note, that the behavior of the match pattern has
      changed and is therefor not completely compatible with 
