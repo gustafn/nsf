@@ -55,8 +55,11 @@ Major changes relative to 1.5.6 are:
 
    These inverse functions of mixin and instmixin are used as well
    internally. These functions help to speed certain operations
-   (e.g. superclass, or registering a mixin class) up by a factor of 1000 (!)
-   or more, when a large number of objects exist.
+   (e.g. superclass, or registering a mixin class) up by a factor of
+   1000 (!)  or more, when a large number of objects exist.
+
+   This functionality was primarily implemented by Martin Matuska.
+   Many thanks!
 
   * Made the behavior "pattern" in the following calls identical
     concerning wild cards and object lookups
