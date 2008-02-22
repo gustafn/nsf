@@ -2,7 +2,7 @@
  *
  *  XOTcl - Extended Object Tcl
  *
- *  Copyright (C) 1999-2007 Gustaf Neumann (a), Uwe Zdun (a)
+ *  Copyright (C) 1999-2008 Gustaf Neumann (a), Uwe Zdun (a)
  *
  * (a) Vienna University of Economics and Business Administration
  *     Institute. of Information Systems and New Media

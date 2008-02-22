@@ -3,7 +3,7 @@
  *  
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
  *
  *
  *  xotclTrace.c --
