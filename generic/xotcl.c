@@ -8957,7 +8957,7 @@ XOTclOSetMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
   XOTclObject *obj = (XOTclObject*)cd;
 
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (objc > 3)  XOTclObjErrArgCnt(interp, obj->cmdName, "set var ?value?");
+  if (objc > 3 || objc < 2) return XOTclObjErrArgCnt(interp, obj->cmdName, "set var ?value?");
   return setInstVar(interp, obj, objv[1], objc == 3 ? objv[2] : NULL);
 }
 

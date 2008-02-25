@@ -1,3 +1,7 @@
+2008-02-25 <Gustaf.Neumann@wu-wien.ac.at>
+    * Fix for "x configure -set"; many thanks to 
+      Rene Zamseil for reporting. 
+
 2008-02-24 <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.6.0
 
