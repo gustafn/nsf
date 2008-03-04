@@ -1,16 +1,19 @@
 Dear XOTcl Community,
 
-XOTcl 1.6.0 is available. This release provides in short
- - orthogonality improvements, 
- - better introspection (one can now e.g. query, into which
-    classes a mixin class is mixed into) and
- - performance inprovements (some methods are significantly
-    faster. e.g. by a factor of 1000 for larger systems).
+XOTcl 1.6.0 is available. This release provides in short:
+ - orthogonality improvements for introspection,
+ - more introspection methods (one can now e.g. query, into which
+   classes a mixin class is mixed into) and
+ - performance improvements (some methods are significantly
+   faster. e.g. by a factor of 1000 for larger systems).
 
-In addtion, the code follows now closer the Tcl source code guidelines
-(e.g. variable nameing), a few potential crahses have been fixed.
+In addition, the XOTcl source code follows now closer the Tcl
+source code guidelines (e.g. variable naming), a few potential
+crashes have been fixed.
 
-best regards
+See below for more details.
+Best regards
+
 -gustaf neumann
 
 Announcing XOTcl 1.6.0
