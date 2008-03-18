@@ -476,7 +476,7 @@ unset p
 ::xotcl::Object instproc abstract {methtype methname arglist} {
   if {$methtype ne "proc" && $methtype ne "instproc" && $methtype ne "method"} {
     error "invalid method type '$methtype', \
-	must be either 'proc' or 'instproc'."
+	must be either 'proc', 'instproc' or 'method'."
   }
   ::xotcl::my $methtype $methname $arglist "
     if {!\[::xotcl::self isnextcall\]} {
