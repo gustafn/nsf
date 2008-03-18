@@ -1,3 +1,7 @@
+2008-03-18 <Gustaf.Neumann@wu-wien.ac.at>
+    * allowed "abstract method" in additon to "abstract instproc"
+      and "abstract proc"
+
 2008-02-26 <Gustaf.Neumann@wu-wien.ac.at>
     * xotcl.c: The double ;; chokes MSVC6 in the next line.
       (many thanks for Andreas Kupries for reporting)
