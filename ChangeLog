@@ -1,3 +1,7 @@
+2008-05-09 <Gustaf.Neumann@wu-wien.ac.at>
+    * used catch in the deprecated package xotcl::upvar-compat
+      as suggested by Jeff Hobbs
+
 2008-03-18 <Gustaf.Neumann@wu-wien.ac.at>
     * allowed "abstract method" in additon to "abstract instproc"
       and "abstract proc"
