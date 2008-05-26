@@ -6464,9 +6464,13 @@ ListDefaultFromOrdinaryArgs(Tcl_Interp *interp, char *procName,
     ordinaryArg = ordinaryArgsDefv[i];
     rc = Tcl_ListObjGetElements(interp, ordinaryArg,
                                 &defaultValueObjc, &defaultValueObjv);
-    if (rc == TCL_OK && !strcmp(arg, ObjStr(defaultValueObjv[0]))) {
-      return SetProcDefault(interp, var, defaultValueObjc == 2 ?
-                            defaultValueObjv[1] : NULL);
+    /*fprintf(stderr, "arg='%s', *arg==0 %d, defaultValueObjc=%d\n", arg, *arg==0, defaultValueObjc);*/
+    if (rc == TCL_OK) {
+      if (defaultValueObjc > 0 && !strcmp(arg, ObjStr(defaultValueObjv[0]))) {
+	return SetProcDefault(interp, var, defaultValueObjc == 2 ? defaultValueObjv[1] : NULL);
+      } else if (defaultValueObjc == 0 && *arg == 0) {
+	return SetProcDefault(interp, var, NULL);
+      }
     }
   }
   XOTclVarErrMsg(interp, "method '", procName, "' doesn't have an argument '",

@@ -1,3 +1,8 @@
+2008-05-26 <Gustaf.Neumann@wu-wien.ac.at>
+    * fixed bug in info instdefault, when argument is an empty 
+       string. Example:
+           X info instdefault crash "" var
+
 2008-05-09 <Gustaf.Neumann@wu-wien.ac.at>
     * used catch in the deprecated package xotcl::upvar-compat
       as suggested by Jeff Hobbs
