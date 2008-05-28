@@ -1,3 +1,10 @@
+2008-05-28 <Gustaf.Neumann@wu-wien.ac.at>
+    * make "info (inst)?forward -definition name" more robust (provide an
+      error message, if <name> is nog given 
+    * New info subcommands "info parametercmd" 
+       and "info instparametercmd"
+    * export *parametercmds in Serializer, use "-noinit" on slots as well
+
 2008-05-26 <Gustaf.Neumann@wu-wien.ac.at>
     * fixed bug in info instdefault, when argument is an empty 
        string. Example:
