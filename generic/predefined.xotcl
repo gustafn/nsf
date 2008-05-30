@@ -869,9 +869,7 @@ set ::xotcl::logdir $::xotcl::confdir/log
 ::xotcl::Object instproc method {name arguments body} {
    my proc name $arguments $body				  
 }
-::xotcl::Class instproc method {
-  -per-object:switch name arguments body} {
-
+::xotcl::Class instproc method {-per-object:switch name arguments body} {
    if {${per-object}} {
      my proc $name $arguments $body       
    } else {

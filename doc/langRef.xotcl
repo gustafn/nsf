@@ -531,6 +531,15 @@ package require XOTcl
       <@li><@TT>objName info filterguard name</@TT>: Returns the guards 
       for filter identified by name.
 
+      <@li><@TT>objName info forward ?-definition name? ?pattern?</@TT>: 
+      Returns the list of forwarders. One can call this method either
+      without the optional arguments, or with the <@TT>pattern</@TT>
+      or with <@TT>-definition name</@TT>. When the <@TT>pattern</@TT> is specified
+      only the matching forwarders are returned. When the <@TT>definition</@TT>
+      option is used together with a name of a forwarder, the definition
+      of the forwarder with all flags is returned in a way that
+      can be used e.g. for registering the forwarder on another object.
+
       <@li><@TT>objName info hasNamespace</@TT>: From XOTcl version 0.9 on, 
       namespaces 
       of objects are allocated on demand. hasNamespace returns 1, if the 
@@ -561,6 +570,11 @@ package require XOTcl
 
       <@li><@TT>objName info nonposargs methodName</@TT>: Returns
       non-positional arg list of methodName
+
+      <@li><@TT>objName info parametercmd ?pattern?</@TT>: 
+      Returns a list of registered parametercmds the object
+      (or empty if there are none). If <@TT>pattern</@TT>
+      is specified, only the matching parametercmds are returned.
 
       <@li><@TT>objName info parent</@TT>: 
       Returns parent object name (or "::" for no parent), 
@@ -1067,6 +1081,15 @@ package require XOTcl
       <@li><@TT>objName info instfilterguard name</@TT>: Returns the guards 
       for instfilter identified by name.
 
+      <@li><@TT>objName info instforward ?-definition name? ?pattern?</@TT>: 
+      Returns the list of instforwarders. One can call this method either
+      without the optional arguments, or with the <@TT>pattern</@TT>
+      or with <@TT>-definition name</@TT>. When the <@TT>pattern</@TT> is specified
+      only the matching instforwarders are returned. When the <@TT>definition</@TT>
+      option is used together with a name of a isntforwarder, the definition
+      of the instforwarder with all flags is returned in a way that
+      can be used e.g. for registering the instforwarder on another class.
+
       <@li><@TT>ClassName info instinvar</@TT>: 
       Returns class invariants.
 	
@@ -1090,6 +1113,11 @@ package require XOTcl
 
       <@li><@TT>ClassName info instnonposargs methodName</@TT>: returns list of 
       non-positional args of methodName
+
+      <@li><@TT>objName info instparametercmd ?pattern?</@TT>: 
+      Returns a list of registered instparametercmds the class
+      (or empty if there are none). If <@TT>pattern</@TT>
+      is specified, only the matching instparametercmds are returned.
 
       <@li><@TT>ClassName info instpost methodName</@TT>: 
       Returns post assertions of methodName.

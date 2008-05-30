@@ -1,3 +1,11 @@
+2008-05-30 <Gustaf.Neumann@wu-wien.ac.at>
+    * updating language reference
+
+    * Fix contents for %proc in forwarders in cases, 
+      where the forwarder was called via next and
+      the argument list for next was provided.
+      Previously, "next" was used for %proc.
+
 2008-05-28 <Gustaf.Neumann@wu-wien.ac.at>
     * make "info (inst)?forward -definition name" more robust (provide an
       error message, if <name> is nog given 
@@ -6,8 +14,8 @@
     * export *parametercmds in Serializer, use "-noinit" on slots as well
 
 2008-05-26 <Gustaf.Neumann@wu-wien.ac.at>
-    * fixed bug in info instdefault, when argument is an empty 
-       string. Example:
+    * fixed bug in info instdefault, when the given argument name 
+       is an empty string. Example:
            X info instdefault crash "" var
 
 2008-05-09 <Gustaf.Neumann@wu-wien.ac.at>

@@ -6696,7 +6696,7 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
   int result = TCL_OK,
     frameType = XOTCL_CSC_TYPE_PLAIN,
     isMixinEntry = 0, isFilterEntry = 0,
-    endOfFilterChain = 0;
+    endOfFilterChain = 0, decrObjv0 = 0;
   int nobjc; Tcl_Obj **nobjv;
   XOTclClass **cl = &givenCl;
   char **method = &givenMethod;
@@ -6742,6 +6742,16 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
   } else {
     nobjc = objc;
     nobjv = (Tcl_Obj **)objv;
+    /* We do not want to have "next" as the procname, since this can
+       lead to unwanted results e.g. in a forwarder using %proc. So, we
+       replace the first word with the value from the callstack to be
+       compatible with the case where next is called without args.
+    */
+    if (useCallstackObjs && csc->currentFramePtr) {
+        nobjv[0] = Tcl_CallFrame_objv(csc->currentFramePtr)[0];
+        INCR_REF_COUNT(nobjv[0]); /* we seem to need this here */
+        decrObjv0 = 1;
+    }
   }
 
   /*
@@ -6804,7 +6814,6 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
     csc->callType |= XOTCL_CSC_CALL_IS_NEXT;
     RUNTIME_STATE(interp)->unknown = 0;
     
-    
     result = DoCallProcCheck(cp, (ClientData)obj, interp, nobjc, nobjv, cmd,
                              obj, *cl, *method, frameType, 1/*fromNext*/);
 
@@ -6819,6 +6828,9 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
     RUNTIME_STATE(interp)->unknown = 1;
   }
 
+  if (decrObjv0) {
+      INCR_REF_COUNT(nobjv[0]);
+  }
 
   return result;
 }
@@ -8424,11 +8436,11 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       int definition;
       if (argc < 2 || argc > 3)
         return XOTclObjErrArgCnt(interp, obj->cmdName,
-                                 "info forward ?-definition? ?name?");
+                                 "info forward ?-definition name? ?pattern?");
       definition = checkForModifier(objv, modifiers, "-definition");
       if (definition && argc < 3) 
         return XOTclObjErrArgCnt(interp, obj->cmdName,
-                                 "info forward ?-definition? ?name?");
+                                 "info forward ?-definition name? ?pattern?");
       if (nsp) {
 	return forwardList(interp, Tcl_Namespace_cmdTable(nsp), pattern, definition);
       } else {
@@ -8571,7 +8583,7 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       int argc = objc-modifiers;
       if (argc < 2)
         return XOTclObjErrArgCnt(interp, obj->cmdName,
-                                 "info parametercmd");
+                                 "info parametercmd ?pattern?");
       if (nsp) {
 	return ListMethodKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern, 1, 0, 0, 0, 1);
       } else {
@@ -10968,7 +10980,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
 	    int argc = objc-modifiers;
 	    if (argc < 2)
 	      return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       "info instparametercmd");
+				       "info instparametercmd ?pattern?");
 	    if (nsp) {
 	      return ListMethodKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern, 1, 0, 0, 0, 1);
 	    } else {
