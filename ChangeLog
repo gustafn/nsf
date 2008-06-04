@@ -1,3 +1,8 @@
+2008-06-03 <Gustaf.Neumann@wu-wien.ac.at>
+    * check in guards for boolean values, not for
+      integer values, such that a guard {true} means
+      success (many thanks to Neophytos for reporting)
+
 2008-05-30 <Gustaf.Neumann@wu-wien.ac.at>
     * updating language reference
 
@@ -8,7 +13,7 @@
 
 2008-05-28 <Gustaf.Neumann@wu-wien.ac.at>
     * make "info (inst)?forward -definition name" more robust (provide an
-      error message, if <name> is nog given 
+      error message, if <name> is not given 
     * New info subcommands "info parametercmd" 
        and "info instparametercmd"
     * export *parametercmds in Serializer, use "-noinit" on slots as well

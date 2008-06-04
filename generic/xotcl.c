@@ -2847,23 +2847,16 @@ static int
 checkConditionInScope(Tcl_Interp *interp, Tcl_Obj *condition) {
   int result, success;
   Tcl_Obj *ov[2];
+
   ov [1] = condition;
+
   INCR_REF_COUNT(condition);
-  /*
-    fprintf(stderr, "----- evaluating condition '%s'\n", ObjStr(condition));
-  */
   result = XOTcl_ExprObjCmd(NULL, interp, 2, ov);
   DECR_REF_COUNT(condition);
-  /*
-    fprintf(stderr, "----- running condition '%s', result=%d '%s'\n",
-	  ObjStr(condition), result,
-	  ObjStr(Tcl_GetObjResult(interp)));
-  */
+  
   if (result == TCL_OK) {
-    result = Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp),&success);
-    /*
-      fprintf(stderr, "   success=%d\n", success);
-    */
+    result = Tcl_GetBooleanFromObj(interp, Tcl_GetObjResult(interp),&success);
+    
     if (result == TCL_OK && success == 0)
       result = XOTCL_CHECK_FAILED;
   }
