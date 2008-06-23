@@ -2860,10 +2860,8 @@ checkConditionInScope(Tcl_Interp *interp, Tcl_Obj *condition) {
 	  ObjStr(Tcl_GetObjResult(interp)));
   */
   if (result == TCL_OK) {
-    result = Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp),&success);
-    /*
-      fprintf(stderr, "   success=%d\n", success);
-    */
+    result = Tcl_GetBooleanFromObj(interp, Tcl_GetObjResult(interp),&success);
+
     if (result == TCL_OK && success == 0)
       result = XOTCL_CHECK_FAILED;
   }
@@ -6274,26 +6272,10 @@ ListMethods(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
   return TCL_OK;
 }
 
-static int XOTclCInfoMethod(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST v[]);
-
 static int
-ListClass(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
-          int objc, Tcl_Obj *CONST objv[]) {
-  if (pattern == NULL) {
-    Tcl_SetObjResult(interp, obj->cl->object.cmdName);
-    return TCL_OK;
-  } else {
-    int result;
-    ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
-
-    memcpy(ov, objv, sizeof(Tcl_Obj *)*objc);
-    ov[1] = Tcl_NewStringObj("superclass", 10);
-    INCR_REF_COUNT(ov[1]);
-    result = XOTclCInfoMethod((ClientData)obj->cl, interp, objc, ov);
-    DECR_REF_COUNT(ov[1]);
-    FREE_ON_STACK(ov);
-    return result;
-  }
+ListClass(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
+  Tcl_SetObjResult(interp, obj->cl->object.cmdName);
+  return TCL_OK;
 }
 
 static int
@@ -6308,21 +6290,24 @@ ListHeritage(Tcl_Interp *interp, XOTclClass *cl, char *pattern) {
 }
 
 static int
-ListPrecedence(Tcl_Interp *interp, XOTclObject *obj, char *pattern) {
+ListPrecedence(Tcl_Interp *interp, XOTclObject *obj, char *pattern, int intrinsicOnly) {
   XOTclClasses *pl;
   Tcl_ResetResult(interp);
-  if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
-    MixinComputeDefined(interp, obj);
 
-  if (obj->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
-    XOTclCmdList *ml = obj->mixinOrder;
-    for(; ml; ml = ml->next) {
-      XOTclClass *mixin = XOTclGetClassFromCmdPtr(ml->cmdPtr);
-      AppendMatchingElement(interp, mixin->object.cmdName, pattern);
+  if (!intrinsicOnly) {
+    if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
+      MixinComputeDefined(interp, obj);
+
+    if (obj->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
+      XOTclCmdList *ml = obj->mixinOrder;
+      for (; ml; ml = ml->next) {
+        XOTclClass *mixin = XOTclGetClassFromCmdPtr(ml->cmdPtr);
+        AppendMatchingElement(interp, mixin->object.cmdName, pattern);
+      }
     }
   }
-  pl = ComputeOrder(obj->cl, obj->cl->order, Super);
-  for (; pl != 0; pl = pl->next) {
+
+  for (pl = ComputeOrder(obj->cl, obj->cl->order, Super); pl != 0; pl = pl->next) {
     AppendMatchingElement(interp, pl->cl->object.cmdName, pattern);
   }
   return TCL_OK;
@@ -8357,19 +8342,19 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 
   case 'c':
     if (isClassString(cmd)) {
-      if (objc > 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName, "info class ?class?");
-      return ListClass(interp, obj, pattern, objc, objv);
+      if (objc > 3 || modifiers > 0 || pattern)
+        return XOTclObjErrArgCnt(interp, obj->cmdName, "info class");
+      return ListClass(interp, obj, objc, objv);
     } else if (!strcmp(cmd, "commands")) {
       if (objc > 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName, "info commands ?pat?");
+        return XOTclObjErrArgCnt(interp, obj->cmdName, "info commands ?pattern?");
       if (nsp)
         return ListKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern);
       else
         return TCL_OK;
     } else if (!strcmp(cmd, "children")) {
       if (objc > 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName, "info children ?pat?");
+        return XOTclObjErrArgCnt(interp, obj->cmdName, "info children ?pattern?");
       return ListChildren(interp, obj, pattern, 0);
     } else if (!strcmp(cmd, "check")) {
       if (objc != 2 || modifiers > 0)
@@ -8404,7 +8389,7 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       int withGuards = 0, withOrder = 0;
       if (objc-modifiers > 3)
         return XOTclObjErrArgCnt(interp, obj->cmdName,
-                                 "info filter ?-guards? ?-order? ?pat?");
+                                 "info filter ?-guards? ?-order? ?pattern?");
       if (modifiers > 0) {
         withGuards = checkForModifier(objv, modifiers, "-guards");
         withOrder = checkForModifier(objv, modifiers, "-order");
@@ -8512,7 +8497,7 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       int noprocs = 0, nocmds = 0, nomixins = 0, inContext = 0;
       if (objc-modifiers > 3)
         return XOTclObjErrArgCnt(interp, obj->cmdName,
-                                 "info methods ?-noprocs? ?-nocmds? ?-nomixins? ?-incontext? ?pat?");
+                                 "info methods ?-noprocs? ?-nocmds? ?-nomixins? ?-incontext? ?pattern?");
       if (modifiers > 0) {
         noprocs = checkForModifier(objv, modifiers, "-noprocs");
         nocmds = checkForModifier(objv, modifiers, "-nocmds");
@@ -8524,7 +8509,7 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 #ifdef XOTCL_METADATA
     else  if (!strcmp(cmd, "metadata")) {
       if (objc > 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName, "info metadata ?pat?");
+        return XOTclObjErrArgCnt(interp, obj->cmdName, "info metadata ?pattern?");
       return ListKeys(interp, &obj->metaData, pattern);
     }
 #endif
@@ -8548,7 +8533,7 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   case 'p':
     if (!strcmp(cmd, "procs")) {
       if (objc > 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName, "info procs ?pat?");
+        return XOTclObjErrArgCnt(interp, obj->cmdName, "info procs ?pattern?");
       if (nsp)
         return ListMethodKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern,
                               /*noProcs*/ 0, /*noCmds*/ 1, /* noDups */ 0, 
@@ -8578,7 +8563,12 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       }
       return TCL_OK;
     } else if (!strcmp(cmd, "precedence")) {
-      return ListPrecedence(interp, obj, pattern);
+      int intrinsic = 0;
+      if (objc-modifiers > 3 || modifiers > 1)
+          return XOTclObjErrArgCnt(interp, obj->cmdName, "info precedence ?-intrinsic? ?pattern?");
+
+      intrinsic = checkForModifier(objv, modifiers, "-intrinsic");
+      return ListPrecedence(interp, obj, pattern, intrinsic);
     } else if (!strcmp(cmd, "parametercmd")) {
       int argc = objc-modifiers;
       if (argc < 2)
@@ -8596,7 +8586,7 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   case 'v':
     if (!strcmp(cmd, "vars")) {
       if (objc > 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName, "info vars ?pat?");
+        return XOTclObjErrArgCnt(interp, obj->cmdName, "info vars ?pattern?");
       return ListVars(interp, obj, pattern);
     }
     break;
@@ -10699,7 +10689,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
     case 'c':
       if (!strcmp(cmd, "classchildren")) {
         if (objc > 3 || modifiers > 0)
-          return XOTclObjErrArgCnt(interp, cl->object.cmdName, "info classchildren ?pat?");
+          return XOTclObjErrArgCnt(interp, cl->object.cmdName, "info classchildren ?pattern?");
         return ListChildren(interp, (XOTclObject*) cl, pattern, 1);
       } else if (!strcmp(cmd, "classparent")) {
         if (objc > 2 || modifiers > 0)
@@ -10711,7 +10701,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
     case 'h':
       if (!strcmp(cmd, "heritage")) {
         if (objc > 3 || modifiers > 0)
-          return XOTclObjErrArgCnt(interp, cl->object.cmdName, "info heritage ?pat?");
+          return XOTclObjErrArgCnt(interp, cl->object.cmdName, "info heritage ?pattern?");
         return ListHeritage(interp, cl, pattern);
       }
       break;
@@ -10776,7 +10766,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
           if (!strcmp(cmdTail, "commands")) {
             if (objc > 3 || modifiers > 0)
               return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-                                       "info instcommands ?pat?");
+                                       "info instcommands ?pattern?");
             return ListKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern);
           }
           break;
@@ -10805,7 +10795,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
             int withGuards = 0;
             if (objc-modifiers > 3)
               return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-                                       "info instfilter ?-guards? ?pat?");
+                                       "info instfilter ?-guards? ?pattern?");
             if (modifiers > 0) {
               withGuards = checkForModifier(objv, modifiers, "-guards");
               if (withGuards == 0)
@@ -10953,7 +10943,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
         case 'p':
           if (!strcmp(cmdTail, "procs")) {
             if (objc > 3 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName, "info instprocs ?pat?");
+              return XOTclObjErrArgCnt(interp, cl->object.cmdName, "info instprocs ?pattern?");
             return ListMethodKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern,
                                   /*noProcs*/ 0, /*noCmds*/ 1, /* noDups */ 0, 0, 0);
           } else if (!strcmp(cmdTail, "pre")) {

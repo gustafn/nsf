@@ -503,10 +503,8 @@ package require XOTcl
       <@li><@TT>objName info body method</@TT>: 
       Returns the body of the specified proc (object specific method).
  
-      <@li><@TT>objName info class ?classname?</@TT>: 
-      Returns the name of the class of the current object, if className was 
-      not specified, otherwise it returns 1 if className matches the 
-      object's class and 0 if not.
+      <@li><@TT>objName info class</@TT>: 
+      Returns the name of the class of the current object.
 
       <@li><@TT>objName info children ?pattern?</@TT>: Returns the
       list of aggregated objects with fully qualified names if
@@ -590,9 +588,11 @@ package require XOTcl
       defined for the object if <@TT>pattern</@TT> was not specified,
       otherwise it returns all procs that match the pattern.
 
-      <@li><@TT>objName info precedence ?pattern?</@TT>: Returns all
+      <@li><@TT>objName info precedence ?-intrinsic? ?pattern?</@TT>: Returns all
       classes in the precedence order from which the specified 
-      object inherits methods. The returned list of classes contains
+      object inherits methods. If the flag <@TT>-intrinsic</@TT> is specified
+      only the intrinsic classes (from the class hierarchy) are specified.
+      If the flag is not specified, the returned list of classes contains
       the mixin and instmixin classes as well as the classes of the
       superclass chain in linearized order (i.e., duplicate classes 
       are removed). If the pattern is specified, only matching classes

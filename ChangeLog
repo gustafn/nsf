@@ -1,3 +1,14 @@
+2008-06-23 <Gustaf.Neumann@wu-wien.ac.at>
+    * remove pattern argument from "info class"
+    * additional argument for "info precedence": "-intrinsic"
+       Syntax:
+          <objName> info precedence ?-intrinsic? ?pattern?
+      If "-intrinsic" is specified, only the classes of the
+      superclass type hierarchy are returnd. Otherwise,
+     the precedence contains mixin classes as well.
+   * Check results for guards to be boolean instead
+      of int (now, guards are allowed to return e.g. "true")
+
 2008-05-30 <Gustaf.Neumann@wu-wien.ac.at>
     * updating language reference
 
