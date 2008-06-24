@@ -1,3 +1,6 @@
+2008-06-24 <Gustaf.Neumann@wu-wien.ac.at>
+    * Release of XOTcl 1.6.1
+
 2008-06-23 <Gustaf.Neumann@wu-wien.ac.at>
     * remove pattern argument from "info class"
     * additional argument for "info precedence": "-intrinsic"
