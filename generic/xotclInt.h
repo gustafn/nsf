@@ -447,6 +447,8 @@ typedef struct XOTclStringIncrStruct {
 
 #define XOTclObjectSetClass(obj) \
 	(obj)->flags |= XOTCL_IS_CLASS
+#define XOTclObjectClearClass(obj) \
+	(obj)->flags &= ~XOTCL_IS_CLASS
 #define XOTclObjectIsClass(obj) \
 	((obj)->flags & XOTCL_IS_CLASS)
 #define XOTclObjectToClass(obj) \

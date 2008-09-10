@@ -7810,22 +7810,50 @@ PrimitiveCCreate(Tcl_Interp *interp, char *name, XOTclClass *class) {
 
 XOTCLINLINE static int
 changeClass(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl) {
-  assert(obj);
+    assert(obj);
+    
+    if (cl != obj->cl) {
+        if (IsMetaClass(interp, cl)) {
+            /* Do not allow upgrading from a class to a meta-class (in
+               other words, don't make an object to a class). To allow
+               this, it would be necessary to reallocate the base
+               structures.
+            */
+            if (!IsMetaClass(interp, obj->cl)) {
+                return XOTclVarErrMsg(interp, "cannot change class of object ",
+                                      ObjStr(obj->cmdName),
+                                      " to metaclass ",
+                                      ObjStr(cl->object.cmdName),(char *) NULL);
+            }
+        } else {
+            /* The target class is not a meta class. Changing meta-class to 
+               meta-class, or class to class is fine, but downgrading requires
+               more work */
 
-  if (cl != obj->cl) {
-    if (IsMetaClass(interp, cl) && !IsMetaClass(interp, obj->cl)) {
-      return XOTclVarErrMsg(interp, "cannot change class of object ",
-                            ObjStr(obj->cmdName),
-                            " to metaclass ",
-                            ObjStr(cl->object.cmdName),(char *) NULL);
+            /*fprintf(stderr,"target class %s not a meta class, am i a class %d\n", 
+                    ObjStr(cl->object.cmdName),
+                    XOTclObjectIsClass(obj) );*/
+
+            if (XOTclObjectIsClass(obj)) {
+                XOTclObjectClearClass(obj);
+                /* We are not done here yet.  We have to clear the
+                   class from class hierarchies etc., where an object
+                   is not allowed (e.g class hierarchies, mixin lists, etc.)
+                   
+                   We have to prohibit "Class class Object"
+                */
+
+                /*XXX*/                   
+
+            }
+        }
+        (void)RemoveInstance(obj, obj->cl);
+        AddInstance(obj, cl);
+        
+        MixinComputeDefined(interp, obj);
+        FilterComputeDefined(interp, obj);
     }
-    (void)RemoveInstance(obj, obj->cl);
-    AddInstance(obj, cl);
-
-    MixinComputeDefined(interp, obj);
-    FilterComputeDefined(interp, obj);
-  }
-  return TCL_OK;
+    return TCL_OK;
 }
 
 
