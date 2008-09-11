@@ -1103,7 +1103,7 @@ package require XOTcl
       <@li><@TT>ClassName info instmixinof ?-closure? ?pattern?</@TT>:
       Returns the list of classes, into which this class was mixed in
       via instmixin. This is the inverse function of <@TT>ClassName
-      info instmixin</@TT>.  If <@TT>-closure<@TT> is specified, also
+      info instmixin</@TT>.  If <@TT>-closure</@TT> is specified, also
       the classes are returned, for which the class is indirectly
       mixed in via instmixin.  If <@TT>pattern</@TT> is specified and
       it contains wildcards, all matching mixin classes are
