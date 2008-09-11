@@ -3189,10 +3189,15 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [Object ismetaclass X] 0 "is metaclass 0"
   ::errorCheck [X isclass] 1 "is isclass 1"
   ::errorCheck [Class info instances X] ::X "is an instance of Class"
-  X class Object
-  ::errorCheck [X isclass] 0 "is isclass 0"
-  ::errorCheck [Class info instances X] "" "is not an instance of Class"
-  X destroy
+  ::errorCheck [catch {X class Object}] 1 "turn class into an object (error)"
+  Class Y -superclass X
+  Object o1 -mixin Y
+  ::errorCheck [o1 info precedence] "::Y ::X ::xotcl::Object" "normal mixin precedence"
+  Object X  ;# turn class X into Object X (via destroy/create)
+  ::errorCheck [o1 info precedence] "::Y ::xotcl::Object" "reduced mixin precedence"
+  X destroy 
+  Y destroy
+  o1 destroy
 
   Class M -superclass Class
   M create m1
@@ -3201,12 +3206,15 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [Class info instances M] ::M "is an instance of Class"
   ::errorCheck [m1 info class] ::M "m1 is an instance of the meta-class"
   ::errorCheck [m1 isclass] 1 "m1 is isclass 1"
-  M class Object
-  ::errorCheck [Object ismetaclass M] 0 "is metaclass 1"
+  ::errorCheck [m1 info class] ::M "m1 is of class ::M"
+  Object M ;# make object from metaclass
+  ::errorCheck [Object ismetaclass M] 0 "is metaclass 0"
   ::errorCheck [M isclass] 0 "is isclass 0"
   ::errorCheck [Class info instances M] "" "is not an instance of Class"
-  ::errorCheck [m1 info class] ::M "m1 is an instance of the meta-class"
+  ::errorCheck [m1 info class] ::xotcl::Object "m1 is now an instance of Object"
   ::errorCheck [m1 isclass] 1 "m1 is isclass 1"
+  ::errorCheck [m1 info class] ::xotcl::Object "m1 is of class ::xotcl::Object"
+  M destroy
   
   # to be completed XXX
 
