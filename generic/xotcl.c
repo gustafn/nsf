@@ -3590,7 +3590,24 @@ MixinResetOrderForInstances(Tcl_Interp *interp, XOTclClass *cl) {
   }
 }
 
+/* reset mixin order for all objects having this class as per object mixin */
+static void
+ResetOrderOfClassesUsedAsMixins(XOTclClass *cl) {
+  /*fprintf(stderr,"ResetOrderOfClassesUsedAsMixins %s - %p\n",
+    ObjStr(cl->object.cmdName), cl->opt);*/
 
+  if (cl->opt) {
+    XOTclCmdList *ml;
+    for (ml = cl->opt->isObjectMixinOf; ml; ml = ml->next) {
+      XOTclObject *obj = XOTclGetObjectFromCmdPtr(ml->cmdPtr);
+      if (obj) {
+        if (obj->mixinOrder) { MixinResetOrder(obj); }
+        obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
+      }
+    }
+  }
+}
+  
 /*
  * if the class hierarchy or class mixins have changed ->
  * invalidate mixin entries in all dependent instances
@@ -3601,9 +3618,8 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
   Tcl_HashTable objTable, *commandTable = &objTable;
-  XOTclObject *obj;
 
-  cl->order = 0;  
+  cl->order = 0;
   
   /* reset mixin order for all instances of the class and the
      instances of its subclasses
@@ -3613,8 +3629,11 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
     Tcl_HashEntry *hPtr = &clPtr->cl->instances ?
       Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : 0;
     
-    /*fprintf(stderr,"invalidating instances of class %s\n",
-      ObjStr(clPtr->cl->object.cmdName));*/
+    /* reset mixin order for all objects having this class as per object mixin */
+    ResetOrderOfClassesUsedAsMixins(clPtr->cl);
+
+    /* fprintf(stderr,"invalidating instances of class %s\n", ObjStr(clPtr->cl->object.cmdName));
+     */
 
     for (; hPtr != 0; hPtr = Tcl_NextHashEntry(&hSrch)) {
       XOTclObject *obj = (XOTclObject *)Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
@@ -3625,18 +3644,6 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
 
   XOTclFreeClasses(cl->order);
   cl->order = saved;
-
-  /* reset mixin order for all objects having this class as per object mixin */
-  if (cl->opt) {
-      XOTclCmdList *ml;
-      for (ml = cl->opt->isObjectMixinOf; ml; ml = ml->next) {
-          obj = XOTclGetObjectFromCmdPtr(ml->cmdPtr);
-          if (obj) {
-              if (obj->mixinOrder) { MixinResetOrder(obj); }
-              obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
-          }
-      }
-  }
 
   /* Reset mixin order for all objects having this class as a per
      class mixin (instmixin).  This means that we have to work through
@@ -7448,6 +7455,7 @@ PrimitiveODestroy(ClientData cd) {
 static void
 PrimitiveOInit(void *mem, Tcl_Interp *interp, char *name, XOTclClass *cl) {
   XOTclObject *obj = (XOTclObject*)mem;
+  Tcl_Namespace *nsPtr = NULL;
 
 #ifdef OBJDELETION_TRACE
   fprintf(stderr,"+++ PrimitiveOInit\n");
@@ -7464,11 +7472,10 @@ PrimitiveOInit(void *mem, Tcl_Interp *interp, char *name, XOTclClass *cl) {
   UndestroyObj(interp, obj);
 
   if (Tcl_FindNamespace(interp, name, NULL, 0)) {
-    CleanupInitObject(interp, obj, cl,
-                      NSGetFreshNamespace(interp, (ClientData)obj, name), 0);
-  } else {
-    CleanupInitObject(interp, obj, cl, NULL, 0);
+      nsPtr = NSGetFreshNamespace(interp, (ClientData)obj, name);
   }
+  CleanupInitObject(interp, obj, cl, nsPtr, 0);
+
   /*obj->flags = XOTCL_MIXIN_ORDER_VALID | XOTCL_FILTER_ORDER_VALID;*/
   obj->mixinStack = 0;
   obj->filterStack = 0;
@@ -7533,6 +7540,15 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
 
   assert(softrecreate? recreate == 1 : 1);
   
+  /* fprintf(stderr, "CleanupDestroyClass softrecreate=%d,recreate=%d, %p\n",
+     softrecreate,recreate,clopt); */
+
+  /* do this even with no clopt, since the class might be used as a
+     superclass of a per object mixin, so it has no clopt...
+   */
+  MixinInvalidateObjOrders(interp, cl);  
+  FilterInvalidateObjOrders(interp, cl);
+
   if (clopt) {
     /*
      *  Remove this class from all isClassMixinOf lists and clear the instmixin list
@@ -7540,10 +7556,10 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
     RemoveFromClassMixinsOf(clopt->id, clopt->instmixins);
    
     CmdListRemoveList(&clopt->instmixins, GuardDel);
-    MixinInvalidateObjOrders(interp, cl);
+    /*MixinInvalidateObjOrders(interp, cl);*/
     
     CmdListRemoveList(&clopt->instfilters, GuardDel);
-    FilterInvalidateObjOrders(interp, cl);
+    /*FilterInvalidateObjOrders(interp, cl);*/
 
     if (!recreate) {
       /*
@@ -7820,22 +7836,24 @@ changeClass(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl) {
                structures.
             */
             if (!IsMetaClass(interp, obj->cl)) {
-                return XOTclVarErrMsg(interp, "cannot change class of object ",
-                                      ObjStr(obj->cmdName),
-                                      " to metaclass ",
-                                      ObjStr(cl->object.cmdName),(char *) NULL);
+              return XOTclVarErrMsg(interp, "cannot turn object into a class",
+                                      (char *) NULL);
             }
         } else {
             /* The target class is not a meta class. Changing meta-class to 
-               meta-class, or class to class is fine, but downgrading requires
-               more work */
+               meta-class, or class to class, or object to object is fine, 
+               but downgrading requires more work */
 
             /*fprintf(stderr,"target class %s not a meta class, am i a class %d\n", 
                     ObjStr(cl->object.cmdName),
                     XOTclObjectIsClass(obj) );*/
 
             if (XOTclObjectIsClass(obj)) {
-                XOTclObjectClearClass(obj);
+                /*XOTclObjectClearClass(obj);*/
+                
+                return XOTclVarErrMsg(interp, "cannot turn class into an object ", 
+                                      (char *) NULL);
+                
                 /* We are not done here yet.  We have to clear the
                    class from class hierarchies etc., where an object
                    is not allowed (e.g class hierarchies, mixin lists, etc.)
@@ -8089,7 +8107,7 @@ XOTclOCleanupMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
   INCR_REF_COUNT(savedNameObj);
 
   /* save and pass around softrecreate*/
-  softrecreate = obj->flags & XOTCL_RECREATE&& RUNTIME_STATE(interp)->doSoftrecreate;
+  softrecreate = obj->flags & XOTCL_RECREATE && RUNTIME_STATE(interp)->doSoftrecreate;
 
   CleanupDestroyObject(interp, obj, softrecreate);
   CleanupInitObject(interp, obj, obj->cl, obj->nsPtr, softrecreate);
@@ -10492,8 +10510,14 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *obj,
   /*fprintf(stderr,"+++ create objv[1] '%s', specifiedName '%s', newObj=%p\n",
     specifiedName, objName, newobj);*/
 
-  /* don't allow an object to be recreated as a class */
-  if (newobj && (!IsMetaClass(interp, cl) || IsMetaClass(interp, newobj->cl))) {
+  /* don't allow to
+     - recreate an object as a class, and to
+     - recreate a class as an object 
+     
+     In these clases, we use destroy + create instead of recrate.
+  */
+
+  if (newobj && (IsMetaClass(interp, cl) == IsMetaClass(interp, newobj->cl))) {
     /*fprintf(stderr, "%%%% recreate, call recreate method ... %s, objc=%d\n",
       ObjStr(tov[1]), objc+1);*/
     /* call recreate --> initialization */
@@ -10508,6 +10532,9 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *obj,
 
   } else {
 
+    /* newobj might exist here, but will be automatically destroyed
+       by alloc */
+    
     if (!NSCheckColons(specifiedName, 0)) {
       result = XOTclVarErrMsg(interp, "Cannot create object -- illegal name '",
                               specifiedName, "'", (char *) NULL);
