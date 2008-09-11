@@ -1408,11 +1408,16 @@ package require XOTcl
   ?args? "arbitrary arguments"
 } {
   description {
-    Hook called upon recreation of an object. Performs standard object
-    initialization, per default. May be overloaded/-written. It calls
-    another method cleanup which handles actual cleanup of the object
-    during next. That means, if you overload recreate, in the pre-part
-    the object still contains its old state, after next it is cleaned up.
+    Methods called upon recreation of an object. Recreate is called,
+    when an object/class is created, but a same-named object/class
+    exists already. "recreate" is not called, when an object is trying
+    to be recreated as a class or vice versa. In these cases,
+    recreating is realized via destroy+create. The Methods "recreate"
+    performs standard object initialization, per default. May be
+    overloaded/-written. It calls another method cleanup which handles
+    actual cleanup of the object during next. That means, if you
+    overload recreate, in the pre-part the object still contains its
+    old state, after next it is cleaned up.
   }
   return "obj name"
 }

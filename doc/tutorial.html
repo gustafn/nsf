@@ -1765,7 +1765,7 @@ However, this behavior is not implemented in XOTcl, but in C.
 </P>
 <ul>
 <li> <em>Create a new object:</em> 
-   <tt>create</tt> calls <tt>alloc</tt> and then
+    By default <tt>create</tt> calls <tt>alloc</tt> and then
    <tt>doInitializations</tt>.
 <li> <em>Recreate an existing object:</em> 
     When the specified object exists, it is recreated through the
@@ -1774,11 +1774,22 @@ However, this behavior is not implemented in XOTcl, but in C.
   <em>givenClass</em> <tt>recreate</tt> [<tt>self</tt>]
 </pre>
     <P>
-    <tt>recreate</tt> can be customized e.g. by overloading or interception. 
-    By default it calls <tt>cleanup</tt> followed by <tt>doInitializations</tt>.
+    The method <tt>recreate</tt> can be customized like all other
+  XOTcl methods (e.g. by overloading or interception). 
+    By default <tt>create</tt> calls <tt>cleanup</tt> followed by
+  <tt>doInitializations</tt>.
+  </p>
+  <p>
+  Note, that <tt>recreate</tt> is not called, when a someone tries
+  to recreate a class as an object or an object as a class. In these
+  cases, <tt>destroy</tt> + <tt>create</tt> are used.
+<pre CLASS="code">
+    Class c
+    Object c ;# here, "c" is downgraded to an object, no "recreate" is called
+</pre>
 </ul>
 <p>
-In both cases, the method <tt>doInitializations</tt> 
+For <tt>create</tt> and <tt>recreate</tt>, the method <tt>doInitializations</tt> 
 is called automatically from C and has the following default behavior: 
 </p>
 <ul>
