@@ -325,7 +325,7 @@ static char cmd[] =
 "$cl instinvar [$origin info instinvar]\n"
 "$cl instfilter [$origin info instfilter -guards]\n"
 "$cl instmixin [$origin info instmixin]\n"
-"my copyNSVarsAndCmds ::xotcl::classes::$origin ::xotcl::classes::$dest} else {\n"
+"my copyNSVarsAndCmds ::xotcl::classes$origin ::xotcl::classes$dest} else {\n"
 "set obj [[$origin info class] create $dest -noinit]}\n"
 "$obj invar [$origin info invar]\n"
 "$obj check [$origin info check]\n"

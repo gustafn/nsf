@@ -1129,10 +1129,12 @@ package require XOTcl
       Returns all instprocs defined for the class. If pattern 
       is specified it returns all instprocs that match the pattern.
 
-      <@li><@TT>ClassName info mixinof ?pattern?</@TT>:
-      Returns the list of classes, into which this class was mixed in
-      via per object mixin. This is the inverse function of <@TT>Object
-      info mixin</@TT>.  If <@TT>pattern</@TT> is specified and
+      <@li><@TT>ClassName info mixinof ?-closure? ?pattern?</@TT>: Returns the
+      list of classes, into which this class was mixed in via per
+      object mixin. This is the inverse function of <@TT>Object info
+      mixin</@TT>.  If <@TT>-closure</@TT> is specified, also the
+      classes are returned, for which the class is indirectly mixed in
+      as a per-object mixin.  If <@TT>pattern</@TT> is specified and
       it contains wildcards, all matching mixin classes are
       returned. If <@TT>pattern</@TT> does not contain wildcards,
       either the fully qualified name is returned, or empty, if no

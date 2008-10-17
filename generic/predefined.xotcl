@@ -523,6 +523,7 @@ unset p
 }
 
 ::xotcl::Object::CopyHandler instproc copyNSVarsAndCmds {orig dest} {
+  #puts stderr "copyNSVarsAndCmds $orig $dest"
   ::xotcl::namespace_copyvars $orig $dest
   ::xotcl::namespace_copycmds $orig $dest
 }
@@ -548,7 +549,7 @@ unset p
 	$cl instinvar [$origin info instinvar]
 	$cl instfilter [$origin info instfilter -guards]
 	$cl instmixin [$origin info instmixin]
-	my copyNSVarsAndCmds ::xotcl::classes::$origin ::xotcl::classes::$dest
+	my copyNSVarsAndCmds ::xotcl::classes$origin ::xotcl::classes$dest
 	#$cl parameter [$origin info parameter]
       } else {
 	# create obj

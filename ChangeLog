@@ -1,3 +1,37 @@
+2008-10-17 <Gustaf.Neumann@wu-wien.ac.at>
+
+    * handle nonposargs in method "copy" properly
+
+    * extend regression test for copy
+ 
+    * added "<class> mixinof -closure ?pattern?"
+      Query the objects for which <class> is used as a per-object-mixin 
+      (directly or indirectly)
+
+    * extended regression test for mixinof
+
+    * updated documentation 
+ 
+2008-09-11 <Gustaf.Neumann@wu-wien.ac.at>
+    * Implement proper downgrading of Classes to Objects: 
+
+      In cases where a class ::C is created, which is later downgraded
+      to an object ::C (either via "::C class ::xotcl::Object" or via
+      "::xotcl::Object ::C"), earlier versions of XOTcl were to
+      liberal. The major problem is to invalidate all places, where
+      ::C might be used as a class, and were only classes are allowed
+      (e.g. mixin chains, precedence orders).
+
+      The new version does not allow downgrading via the class method
+      and does a destroy/create instead of a recreate when a
+      same-named class existed before.
+
+    * reset mixin order for per-object mixins, when the superclass
+      of a class is deleted, which is used as per-object mixin
+
+    * extended regression test
+    * Updating and improving documentation 
+
 2008-06-24 <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.6.1
 

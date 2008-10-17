@@ -24,6 +24,32 @@ o destroy
 A destroy
 
 ###########################################
+# testing transitive per object mixins
+###########################################
+
+Class B 
+Class C -superclass B
+
+Class M 
+B instmixin M
+
+Object o -mixin C
+Object o1 -mixin B
+? {C info mixinof} ::o
+? {lsort [B info mixinof -closure]} "::o ::o1"
+? {lsort [B info mixinof -closure ::o1]} "::o1"
+? {lsort [B info mixinof -closure ::o*]} "::o ::o1"
+? {lsort [C info mixinof -closure ::o*]} "::o"
+# A class is mixed into a per-object mixin class
+? {lsort [M info mixinof -closure ::o*]} "::o ::o1"
+? {lsort [M info mixinof]} ""
+
+M destroy
+B destroy
+C destroy
+::o destroy
+::o1 destroy
+###########################################
 # testing per object mixins with redefinition
 ###########################################
 Class M -instproc foo args {puts x;next}

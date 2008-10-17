@@ -2549,7 +2549,6 @@ TestX copymove -proc run {{n 10}} {
     ::errorCheck "[::cutSpaces [y info invar]--[y info pre assProc]--[y info post assProc]]"\
       "{7 > 5} { #a comment }--{5 > 3} { #pre }--{5 > 4} {#post }"\
       "Copy Obj Assertions"
-
     #
     # move test
     #
@@ -2626,6 +2625,82 @@ TestX copymove -proc run {{n 10}} {
     ::errorCheck [B info superclass]-[B1 info superclass]-[X info subclass] \
 	"::X-::V ::X ::Z-::B ::B1" \
 	"Move of subclass relationship"
+
+    #
+    # test nonpos args
+    #
+    Class X
+    X proc do0 {arg1 arg2} {puts "$arg1 $arg2"}
+    X proc do1 {-arg1 -arg2} {puts "$arg1 $arg2"}
+    X proc do2 {-arg1 arg2} {puts "$arg1 $arg2"}
+    X proc do3 {arg1 {arg2 d1}} {puts "$arg1 $arg2"}
+    X proc do4 {-arg1 {-arg2 d2}} {puts "$arg1 $arg2"}
+    X proc do5 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
+    X instproc do6 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
+
+    X copy Y
+
+    foreach m [lsort [X info procs]] {
+      foreach info {args nonposargs} {
+	set x [X info $info $m]
+	set y [Y info $info $m]
+	::errorCheck $x $y "copy nonposargs: $x ne $y"
+      }
+      foreach a [X info args $m] {
+	set vx ""; set vy ""
+	set dx [X info default $m $a vx]
+	set dy [Y info default $m $a vy]
+	::errorCheck $dx $dy "copy nonposargs: hasdefault $dx ne $dy"
+	if {[info exists dx] && [info exists dy]} {
+	  ::errorCheck $vx $vy "copy nonposargs: hasdefault value $vx ne $vy"
+	}
+      }
+    }
+    foreach m [lsort [X info instprocs]] {
+      foreach info {instargs instnonposargs} {
+	set x [X info $info $m]
+	set y [Y info $info $m]
+	::errorCheck $x $y "copy inst nonposargs: $x ne $y"
+      }
+      foreach a [X info instargs $m] {
+	set vx ""; set vy ""
+	set dx [X info instdefault $m $a vx]
+	set dy [Y info instdefault $m $a vy]
+	::errorCheck $dx $dy "copy inst nonposargs: hasdefault $dx ne $dy"
+	if {[info exists dx] && [info exists dy]} {
+	  ::errorCheck $vx $vy "copy inst nonposargs: hasdefault value $vx ne $vy"
+	}
+      }
+    }
+
+    Object X
+    X proc do0 {arg1 arg2} {puts "$arg1 $arg2"}
+    X proc do1 {-arg1 -arg2} {puts "$arg1 $arg2"}
+    X proc do2 {-arg1 arg2} {puts "$arg1 $arg2"}
+    X proc do3 {arg1 {arg2 d1}} {puts "$arg1 $arg2"}
+    X proc do4 {-arg1 {-arg2 d2}} {puts "$arg1 $arg2"}
+    X proc do5 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
+
+    X copy Y
+
+    foreach m [lsort [X info procs]] {
+      foreach info {args nonposargs} {
+	set x [X info $info $m]
+	set y [Y info $info $m]
+	::errorCheck $x $y "copy nonposargs: $x ne $y"
+      }
+      foreach a [X info args $m] {
+	set vx ""; set vy ""
+	set dx [X info default $m $a vx]
+	set dy [Y info default $m $a vy]
+	::errorCheck $dx $dy "copy nonposargs: hasdefault $dx ne $dy"
+	if {[info exists dx] && [info exists dy]} {
+	  ::errorCheck $vx $vy "copy nonposargs: hasdefault value $vx ne $vy"
+	}
+      }
+
+    }
+     
   }
 }
 
@@ -2794,6 +2869,45 @@ TestX recreation -proc run {{n 10}} {
   unset ::cleanupResult
 
   Object instmixin ""
+  
+  # upgrading/downgrading 
+  Class B
+  Class C -superclass B
+  C c1
+  Object o1 -mixin B
+  Object o2 -mixin C
+
+  ::errorCheck [B info class] "::xotcl::Class" "up/down before 0"
+  ::errorCheck [c1 istype B] 1 "up/down before 1"
+  ::errorCheck [C info superclass] ::B "up/down before 2"
+  ::errorCheck [B info subclass] ::C "up/down before 3"
+  ::errorCheck [o1 info mixin] ::B "up/down before 4"
+  ::errorCheck [o2 info mixin] ::C "up/down before 5"
+  ::errorCheck [B info mixinof] ::o1 "up/down before 6"
+  ::errorCheck [C info mixinof] ::o2 "up/down before 7"
+  ::errorCheck [c1 info precedence] "::C ::B ::xotcl::Object" "up/down before 8"
+  ::errorCheck [o1 info precedence] "::B ::xotcl::Object" "up/down before 9"
+  ::errorCheck [o2 info precedence] "::C ::B ::xotcl::Object" "up/down before 10"
+ 
+  ::errorCheck [catch {B class Object}] 1 "don't allow downgrading"
+
+  Object B
+  ::errorCheck [B info class] "::xotcl::Object" "up/down after 0"
+  ::errorCheck [c1 istype B] 0 "up/down after 1"
+  ::errorCheck [C info superclass] ::xotcl::Object "up/down after 2"
+  ::errorCheck [catch {B info subclass}] 1 "up/down after 3"
+  ::errorCheck [o1 info mixin] "" "up/down after 4"
+  ::errorCheck [o2 info mixin] ::C "up/down after 5"
+  ::errorCheck [catch {B info mixinof}] 1 "up/down after 6"
+  ::errorCheck [C info mixinof] ::o2 "up/down after 7"
+  ::errorCheck [c1 info precedence] "::C ::xotcl::Object" "up/down after 8"
+  ::errorCheck [o1 info precedence] "::xotcl::Object" "up/down after 9"
+  ::errorCheck [o2 info precedence] "::C ::xotcl::Object" "up/down after 10"
+  ::errorCheck [B info class] "::xotcl::Object" "up/down after 0x"
+
+  B class Object
+  ::errorCheck [catch {B class Object}] 0 "don't complain when same level"
+  ::errorCheck [catch {B class Class}] 1 "don't allow upgrading"
 }
 
 
@@ -3122,9 +3236,10 @@ TestX objectReferences -proc run {{n 20}} {
     ::errorCheck [o mixin XY4] ::XY4 " __unknown XY4"
   }
 
-
-
   ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard forward heritage info instances instbody instcommands instdefault instfilter instfilterguard instforward instinvar instmixin instmixinof instpost instpre instprocs invar methods mixin mixinof parameter parent post pre precedence procs subclass superclass vars} "info info"
+
+  # clear unknown handler to avoid strange results later
+  Class proc __unknown "" ""
 
   ::errorCheck [Class info instances *Unk*] ::UnknownClass "match in info instances"
   ::errorCheck [Class info instances Unk*] "::UnknownClass" "no match in info instances"
