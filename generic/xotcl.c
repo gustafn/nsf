@@ -1810,27 +1810,6 @@ NSRequireVariableOnObj(Tcl_Interp *interp, XOTclObject *obj, char *name, int flg
   return varPtr;
 }
 
-/* delete a namespace recursively, but check whether the
-   namespace is an object or not */
-static void
-NSDeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
-  Tcl_HashTable *childTable = Tcl_Namespace_childTable(ns);
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr;
-
-  NSDeleteChildren(interp, ns);
-  for (hPtr = Tcl_FirstHashEntry(childTable, &hSrch); hPtr != 0;
-       hPtr = Tcl_NextHashEntry(&hSrch)) {
-    Tcl_Namespace *child = ((Tcl_Namespace*)Tcl_GetHashValue(hPtr));
-    NSDeleteNamespace(interp, child);
-  }
-  /*	
-      fprintf(stderr, "NSDeleteNamespace deleting %s\n", ns->fullName);
-  */
-  MEM_COUNT_FREE("TclNamespace", ns);
-  Tcl_DeleteNamespace(ns);
-}
-
 static int
 XOTcl_DeleteCommandFromToken(Tcl_Interp *interp, Tcl_Command cmd) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
