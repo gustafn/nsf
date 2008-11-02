@@ -113,12 +113,32 @@ package require XOTcl
       with class definitions (e.g. when used in OpenACS with file watching and
       reloading). With  <@tt>softrecreate</@tt> set,
       it is not necessary to recreate dependent subclasses etc.
-      <br>
+      <p>
       Example: e.g. there is a class hierarchy A <- B <- C
       Without <@tt>softrecreate</@tt> set, a reload of B means
       first a destroy of B, leading to A <- C, and instances
       of B are re-classed to ::xotcl::Object. When <@tt>softrecreate</@tt> is
       set, the structure remains unchanged.
+    <dd>
+
+    <dt><@tt>::xotcl::finalize<@/tt></dt> 
+    <dd>Delete all XOTcl objects and classes and free all associated memory.
+    <p>
+      This command has the only purpose to delete all objects and classes
+      of an interpreter in a multi-threaded environment at a safe time. 
+    <p>
+      Background: when XOTcl is used in a threaded environment such as
+      for example in AOLserver, one has to take care that the deletion
+      of objects and classes happens in a safe environment, where the
+      XOTcl destructors (destroy methods) are still able to
+      run. Without ::xotcl::finalize the deletion happens in
+      Tcl_FinalizeThread(), after thread cleanup (where e.g.  the
+      thread local storage is freed). This can lead to memory leaks in
+      AOLserver, which allocates e.g. some structures on demand, but
+      since this happens after cleanup, it will leak. A simple ns_log
+      in a destructor might lead to this problem. The solution is to
+      call ::xotcl::finalize in the "delete trace" in AOLserver (as it
+      happens in OpenACS).
     <dd>
 
     </dl>

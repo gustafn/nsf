@@ -1,3 +1,24 @@
+2008-11-01 <Gustaf.Neumann@wu-wien.ac.at>
+    * added command ::xotcl::finalize
+
+      This command has the only purpose to delete all objects and classes
+      of an interpreter in a multi-threaded environment at a safe time. 
+
+      Background: when XOTcl is used in a threaded environment such as
+      for example in AOLserver, one has to take care that the deletion
+      of objects and classes happens in a safe environment, where the
+      XOTcl destructors (destroy methods) are still able to
+      run. Without ::xotcl::finalize the deletion happens in
+      Tcl_FinalizeThread(), after thread cleanup (where e.g.  the
+      thread local storage is freed). This can lead to memory leaks in
+      AOLserver, which allocates e.g. some structures on demand, but
+      since this happens after cleanup, it will leak. A simple ns_log
+      in a destructor might lead to this problem. The solution is to
+      call ::xotcl::finalize in the "delete trace" in AOLserver (as it
+      happens in OpenACS).
+
+    * some code cleanup
+
 2008-10-17 <Gustaf.Neumann@wu-wien.ac.at>
 
     * handle nonposargs in method "copy" properly
