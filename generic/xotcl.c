@@ -1556,6 +1556,7 @@ callDestroyMethod(ClientData cd, Tcl_Interp *interp, XOTclObject *obj, int flags
 
   /* fprintf(stderr," obj %p flags %.4x %d\n", obj, obj->flags,
      RUNTIME_STATE(interp)->callDestroy);*/
+
   /* we don't call destroy, if we're in the exit handler
      during destruction of Object and Class */
   if (!RUNTIME_STATE(interp)->callDestroy) {
@@ -12572,7 +12573,7 @@ ObjectHasChildren(Tcl_Interp *interp, XOTclObject *obj) {
 
 static void 
 freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
-  Tcl_HashEntry *hPtr, *hDel;
+  Tcl_HashEntry *hPtr;
   Tcl_HashSearch hSrch;
   XOTclObject *obj;
   XOTclClass  *thecls, *theobj, *cl;
@@ -12585,8 +12586,7 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY;
   while (1) {
     int deleted = 0;
-    hPtr = Tcl_FirstHashEntry(commandTable, &hSrch);
-    while (hPtr) {
+    for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       char *key = Tcl_GetHashKey(commandTable, hPtr);
       obj = XOTclpGetObject(interp, key);
       if (obj && !XOTclObjectIsClass(obj) && !ObjectHasChildren(interp, obj)) {
@@ -12594,22 +12594,16 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
            ObjStr(obj->cl->object.cmdName));*/
         freeUnsetTraceVariable(interp, obj);
         Tcl_DeleteCommandFromToken(interp, obj->id);
-        hDel = hPtr;
+        Tcl_DeleteHashEntry(hPtr);
         deleted++;
-      } else {
-        hDel = NULL;
       }
-      hPtr = Tcl_NextHashEntry(&hSrch);
-      if (hDel)
-        Tcl_DeleteHashEntry(hDel);
     }
     /* fprintf(stderr, "deleted %d Objects\n", deleted);*/
-    if (deleted>0)
+    if (deleted > 0) {
       continue;
+    }
 
-
-    hPtr = Tcl_FirstHashEntry(commandTable, &hSrch);
-    while (hPtr) {
+    for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       char *key = Tcl_GetHashKey(commandTable, hPtr);
       cl = XOTclpGetClass(interp, key);
       /* fprintf(stderr,"cl key = %s %p\n", key, cl); */
@@ -12623,14 +12617,9 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
         /* fprintf(stderr,"  ... delete class %s %p\n", key, cl); */
         freeUnsetTraceVariable(interp, &cl->object);
         Tcl_DeleteCommandFromToken(interp, cl->object.id);
-        hDel = hPtr;
+        Tcl_DeleteHashEntry(hPtr);
         deleted++;
-      } else {
-        hDel = NULL;
       }
-      hPtr = Tcl_NextHashEntry(&hSrch);
-      if (hDel)
-        Tcl_DeleteHashEntry(hDel);
     }
     /* fprintf(stderr, "deleted %d Classes\n", deleted);*/
     if (deleted == 0) {
@@ -12660,6 +12649,79 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
 }
 #endif /* DO_CLEANUP */
 
+/* 
+ * ::xotcl::finalize command
+ */
+static int
+XOTclFinalizeObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  XOTclObject *obj;
+  XOTclClass *cl;
+  int result;
+  Tcl_HashSearch hSrch;
+  Tcl_HashEntry *hPtr;
+  Tcl_HashTable objTable, *commandTable = &objTable;
+
+  /* fprintf(stderr,"+++ call EXIT handler\n");  */
+
+#if defined(PROFILE)
+  XOTclProfilePrintData(interp);
+#endif
+  /*
+   * evaluate user-defined exit handler
+   */
+  result = callMethod((ClientData)RUNTIME_STATE(interp)->theObject, interp,
+                      XOTclGlobalObjects[XOTE_EXIT_HANDLER], 2, 0, 0);
+  if (result != TCL_OK) {
+    fprintf(stderr,"User defined exit handler contains errors!\n"
+            "Error in line %d: %s\nExecution interrupted.\n",
+            interp->errorLine, ObjStr(Tcl_GetObjResult(interp)));
+  }
+
+  /* deleting in two rounds:
+   *  (a) SOFT DESTROY: call all user-defined destroys
+   *  (b) PHYSICAL DESTROY: delete the commands, user-defined
+   *      destroys are not executed anymore
+   *
+   * this is to prevent user-defined destroys from overriding physical
+   * destroy during exit handler, but still ensure that all
+   * user-defined destroys are called.
+   */
+
+  Tcl_InitHashTable(commandTable, TCL_STRING_KEYS);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
+  getAllInstances(interp, commandTable, RUNTIME_STATE(interp)->theObject);
+  /***** SOFT DESTROY *****/
+  RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
+
+  for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    char *key = Tcl_GetHashKey(commandTable, hPtr);
+    obj = XOTclpGetObject(interp, key);
+    /* fprintf(stderr,"key = %s %p %d\n",
+       key, obj, obj && !XOTclObjectIsClass(obj)); */
+    if (obj && !XOTclObjectIsClass(obj)
+        && !(obj->flags & XOTCL_DESTROY_CALLED)) {
+      callDestroyMethod((ClientData)obj, interp, obj, 0);
+    }
+  }
+
+  for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    char *key = Tcl_GetHashKey(commandTable, hPtr);
+    cl = XOTclpGetClass(interp, key);
+    if (cl && !(cl->object.flags & XOTCL_DESTROY_CALLED)) {
+      callDestroyMethod((ClientData)cl, interp, (XOTclObject *)cl, 0);
+    }
+  }
+
+#ifdef DO_CLEANUP
+  freeAllXOTclObjectsAndClasses(interp, commandTable);
+#endif
+
+  MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
+  Tcl_DeleteHashTable(commandTable);
+
+  return TCL_OK;
+}
+
 
 /*
  *  Exit Handler
@@ -12667,12 +12729,7 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
 static void
 ExitHandler(ClientData cd) {
   Tcl_Interp *interp = (Tcl_Interp *) cd;
-  XOTclObject *obj;
-  XOTclClass *cl;
-  int result, flags, i;
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr;
-  Tcl_HashTable objTable, *commandTable = &objTable;
+  int i, flags;
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
 
   /*
@@ -12698,23 +12755,13 @@ ExitHandler(ClientData cd) {
    *
    * So, for the rest of procedure, assume the interp is alive !
    */
-
-  /*fprintf(stderr,"+++ EXIT handler\n"); */
   flags = Tcl_Interp_flags(interp);
   Tcl_Interp_flags(interp) &= ~DELETED;
-#if defined(PROFILE)
-  XOTclProfilePrintData(interp);
-#endif
-  /*
-   * evaluate user-defined exit handler
-   */
-  result = callMethod((ClientData)RUNTIME_STATE(interp)->theObject, interp,
-                      XOTclGlobalObjects[XOTE_EXIT_HANDLER], 2, 0, 0);
-  if (result != TCL_OK) {
-    fprintf(stderr,"User defined exit handler contains errors!\n"
-            "Error in line %d: %s\nExecution interrupted.\n",
-            interp->errorLine, ObjStr(Tcl_GetObjResult(interp)));
+
+  if (RUNTIME_STATE(interp)->exitHandlerDestroyRound == XOTCL_EXITHANDLER_OFF) {
+    XOTclFinalizeObjCmd(NULL, interp, 0, NULL);
   }
+
   /*
    * Pop any callstack entry that is still alive (e.g.
    * if "exit" is called and we were jumping out of the
@@ -12730,58 +12777,14 @@ ExitHandler(ClientData cd) {
     Tcl_PopCallFrame(interp);
   }
 
-  /* deleting in two rounds:
-   *  (a) SOFT DESTROY: call all user-defined destroys
-   *  (b) PHYSICAL DESTROY: delete the commands, user-defined
-   *      destroys are not executed anymore
-   *
-   * this is to prevent user-defined destroys from overriding physical
-   * destroy during exit handler, but still ensure that all
-   * user-defined destroys are called.
-   */
-
-  Tcl_InitHashTable(commandTable, TCL_STRING_KEYS);
-  MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-  getAllInstances(interp, commandTable, RUNTIME_STATE(interp)->theObject);
-  /***** SOFT DESTROY *****/
-  RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
-
-  hPtr = Tcl_FirstHashEntry(commandTable, &hSrch);
-  while (hPtr) {
-    char *key = Tcl_GetHashKey(commandTable, hPtr);
-    obj = XOTclpGetObject(interp, key);
-    /* fprintf(stderr,"key = %s %p %d\n",
-       key, obj, obj && !XOTclObjectIsClass(obj)); */
-    if (obj && !XOTclObjectIsClass(obj)
-        && !(obj->flags & XOTCL_DESTROY_CALLED))
-      callDestroyMethod((ClientData)obj, interp, obj, 0);
-    hPtr = Tcl_NextHashEntry(&hSrch);
-  }
-  hPtr = Tcl_FirstHashEntry(commandTable, &hSrch);
-  while (hPtr) {
-    char *key = Tcl_GetHashKey(commandTable, hPtr);
-    cl = XOTclpGetClass(interp, key);
-    if (cl
-        && !(cl->object.flags & XOTCL_DESTROY_CALLED))
-      callDestroyMethod((ClientData)cl, interp, (XOTclObject*)cl, 0);
-    hPtr = Tcl_NextHashEntry(&hSrch);
-  }
-#ifdef DO_CLEANUP
-  freeAllXOTclObjectsAndClasses(interp, commandTable);
-#endif
-
-  /* must be before freeing of XOTclGlobalObjects */
+   /* must be before freeing of XOTclGlobalObjects */
   XOTclShadowTclCommands(interp, SHADOW_UNLOAD);
+
   /* free global objects */
   for (i = 0; i < nr_elements(XOTclGlobalStrings); i++) {
     DECR_REF_COUNT(XOTclGlobalObjects[i]);
   }
   XOTclStringIncrFree(&RUNTIME_STATE(interp)->iss);
-  FREE(Tcl_Obj**, XOTclGlobalObjects);
-  FREE(XOTclRuntimeState, RUNTIME_STATE(interp));
-
-  MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
-  Tcl_DeleteHashTable(commandTable);
 
 #if defined(TCL_MEM_DEBUG)
   TclDumpMemoryInfo (stderr);
@@ -12790,6 +12793,9 @@ ExitHandler(ClientData cd) {
      checkmem checkmemFile"); */
 #endif
   MEM_COUNT_DUMP();
+
+  FREE(Tcl_Obj**, XOTclGlobalObjects);
+  FREE(XOTclRuntimeState, RUNTIME_STATE(interp));
 
   Tcl_Interp_flags(interp) = flags;
   Tcl_Release((ClientData) interp);
@@ -13131,6 +13137,7 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_CreateObjCommand(interp, "::xotcl::alias", XOTclAliasCommand, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::configure", XOTclConfigureCommand, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::deprecated", XOTcl_DeprecatedCmd, 0, 0);
+  Tcl_CreateObjCommand(interp, "::xotcl::finalize", XOTclFinalizeObjCmd, 0, 0);
 #ifdef XOTCL_BYTECODE
   instructions[INST_INITPROC].cmdPtr = (Command *)
 #endif
