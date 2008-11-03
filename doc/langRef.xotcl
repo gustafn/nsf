@@ -139,6 +139,8 @@ package require XOTcl
       in a destructor might lead to this problem. The solution is to
       call ::xotcl::finalize in the "delete trace" in AOLserver (as it
       happens in OpenACS).
+    <p>
+      Note, that ::xotcl::finalize is not intended for application programs.
     <dd>
 
     </dl>

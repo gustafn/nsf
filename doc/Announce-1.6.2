@@ -19,7 +19,7 @@ Major changes relative to 1.6.1 are:
       - new command ::xotcl::finalize 
        (for forcing cleanup and destuctor execution at a time in 
        a multi-threaded environment, where it is still safe to execute
-       all tcl commands)
+       all Tcl commands)
 
    * Extended and generalized "info" method
 
@@ -31,7 +31,7 @@ Major changes relative to 1.6.1 are:
 
     - Implemented proper downgrading of Classes to Objects (handle
       cases, where something was created first as an object and is
-      reclassed/recreated later as a class or vice versa)
+      reclassed/recreated later as a class) and vice versa
 
     - Reset mixin order for per-object mixins, when the superclass of
       a class is deleted, which is used as per-object mixin

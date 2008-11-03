@@ -20,6 +20,8 @@
       call ::xotcl::finalize in the "delete trace" in AOLserver (as it
       happens in OpenACS).
 
+      Note, that ::xotcl::finalize is not intended for application programs.
+
     * some code cleanup
 
 2008-10-17 <Gustaf.Neumann@wu-wien.ac.at>
