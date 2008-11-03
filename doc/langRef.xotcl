@@ -146,7 +146,6 @@ package require XOTcl
     </dl>
 
   }
-  date { $Date: 2007/09/05 19:09:22 $ }
 }
 
 ##
