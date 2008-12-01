@@ -3326,9 +3326,9 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [Object ismetaclass M] 0 "is metaclass 0"
   ::errorCheck [M isclass] 0 "is isclass 0"
   ::errorCheck [Class info instances M] "" "is not an instance of Class"
-  ::errorCheck [m1 info class] ::xotcl::Object "m1 is now an instance of Object"
+  ::errorCheck [m1 info class] ::xotcl::Class "m1 is now an instance of Class"
   ::errorCheck [m1 isclass] 1 "m1 is isclass 1"
-  ::errorCheck [m1 info class] ::xotcl::Object "m1 is of class ::xotcl::Object"
+  ::errorCheck [m1 info class] ::xotcl::Class "m1 is of class ::xotcl::Class"
   M destroy
   
   # to be completed XXX

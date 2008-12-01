@@ -7643,20 +7643,36 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
   NSDeleteChildren(interp, cl->nsPtr);
 
   if (!softrecreate) {
-    /* reset all instances to the class ::xotcl::Object, that makes no sense
-       for ::Object itself */
+    /* Reclass all instances of the current class the the appropriate
+       most general class ("baseClass"). The most general class of a
+       metaclass is ::xotcl::Class, the most general class of an
+       object is ::xotcl::Object. Instances of metaclasses can be only
+       reset to ::xotcl::Class (and not to ::xotcl::Object as in
+       earlier versions), since otherwise their instances can't be
+       deleted, because ::xotcl::Object has no method "instdestroy".
+       
+       We do not have to reclassing in case, cl == ::xotcl::Object
+    */
     if (cl != theobj) {
+      XOTclClass *baseClass = IsMetaClass(interp, cl) ? RUNTIME_STATE(interp)->theClass : theobj;
+      if (baseClass == cl) {
+        /* During final cleanup, we delete ::xotcl::Class; there are
+           no more Classes or user objects available at that time, so
+           we reclass to ::xotcl::Object.
+        */
+        baseClass = theobj;
+      }
       hPtr = &cl->instances ? Tcl_FirstHashEntry(&cl->instances, &hSrch) : 0;
       for (; hPtr != 0; hPtr = Tcl_NextHashEntry(&hSrch)) {
         XOTclObject *inst = (XOTclObject*)Tcl_GetHashKey(&cl->instances, hPtr);
         if (inst && inst != (XOTclObject*)cl && inst->id) {
-          if (inst != &(theobj->object)) {
+          if (inst != &(baseClass->object)) {
             (void)RemoveInstance(inst, cl->object.cl);
-            AddInstance(inst, theobj);
+            AddInstance(inst, baseClass);
           }
         }
       }
-    }
+    } 
     Tcl_DeleteHashTable(&cl->instances);
     MEM_COUNT_FREE("Tcl_InitHashTable",&cl->instances);
   }

@@ -1,3 +1,10 @@
+2008-12-01 <Gustaf.Neumann@wu-wien.ac.at>
+    * Correct deletion of user-metaclasses: Deletion of
+      user-metaclasses could lead to undestroyable objects, since the
+      instances of the user-metaclasses were reclassed to
+      ::xotcl::Object instead of ::xotcl::Class.
+    * extend regression test for such situations
+
 2008-11-02 <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.6.2
 
