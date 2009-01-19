@@ -1703,11 +1703,14 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns, int flags, 
 static void
 requireObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
   if (!obj->nsPtr) makeObjNamespace(interp, obj);
+  /* setting the namespace resolver here would be the correct thing,
+     but unforunately, this has the side effect, that we can't
+     set fresh variables via the set method...
+  */
   /*
     Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
     varResolver, (Tcl_ResolveCompiledVarProc*)NULL);
   */
-
 }
 extern void
 XOTclRequireObjNamespace(Tcl_Interp *interp, XOTcl_Object *obj) {
@@ -9767,9 +9770,23 @@ XOTclObjscopedMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
   int rc;
   XOTcl_FrameDecls;
   /*fprintf(stderr,"objscopedMethod obj=%p, ptr=%p\n", obj, tcd->objProc);*/
+  /*
+  if (obj->nsPtr) {
+    fprintf(stderr,"objscopedMethod obj=%p %s, ptr=%p set resolver, ns=%s\n", obj, ObjStr(obj->cmdName), tcd->objProc, obj->nsPtr->fullName);
+    
+    Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
+                              varResolver, (Tcl_ResolveCompiledVarProc*)NULL);
+                              }*/
   XOTcl_PushFrame(interp, obj);
   rc = (tcd->objProc)(tcd->cd, interp, objc, objv);
   XOTcl_PopFrame(interp, obj);
+  
+  /*
+  if (obj->nsPtr) {
+    Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
+                              NULL, (Tcl_ResolveCompiledVarProc*)NULL);
+  }
+  */
   return rc;
 }
 
@@ -13202,8 +13219,13 @@ Xotcl_Init(Tcl_Interp *interp) {
 #include "predefined.h"
 
     /* fprintf(stderr, "predefined=<<%s>>\n", cmd);*/
-    if (Tcl_GlobalEval(interp, cmd) != TCL_OK)
+    if (Tcl_GlobalEval(interp, cmd) != TCL_OK) {
+      static char cmd[] =
+        "puts stderr \"Error in predefined code\n\
+	 $::errorInfo\"";
+      Tcl_EvalEx(interp, cmd, -1, 0);
       return TCL_ERROR;
+    }
   }
 
 #ifndef AOL_SERVER
