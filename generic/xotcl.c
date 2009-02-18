@@ -84,6 +84,7 @@ static void DupXOTclObjectInternalRep(Tcl_Obj *src, Tcl_Obj *cpy);
 static Tcl_Obj*NameInNamespaceObj(Tcl_Interp *interp, char *name, Tcl_Namespace *ns);
 static Tcl_Namespace *callingNameSpace(Tcl_Interp *in);
 XOTCLINLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, char *name, Tcl_Namespace *ns);
+static int NSisXOTclNamespace(Tcl_Namespace *nsPtr);
 
 XOTCLINLINE static void GuardAdd(Tcl_Interp *interp, XOTclCmdList *filterCL, Tcl_Obj *guard);
 static int GuardCheck(Tcl_Interp *interp, ClientData guards);
@@ -1687,6 +1688,7 @@ makeObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
     }
   }
 }
+
 /*
   typedef int (Tcl_ResolveVarProc) _ANSI_ARGS_((
   *	        Tcl_Interp *interp, CONST char * name, Tcl_Namespace *context,
@@ -1694,8 +1696,85 @@ makeObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
   */
 int
 varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns, int flags, Tcl_Var *varPtr) {
-  *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(ns), name, NULL);
-  /*fprintf(stderr,"lookup '%s' successful %d\n", name, *varPtr != NULL);*/
+  int new;
+  Tcl_Obj *key;
+  Tcl_CallFrame *varFramePtr;
+  Var *newVar;
+  
+  /* Case 1: The variable is to be resolved in global scope, proceed in
+   * resolver chain (i.e. return TCL_CONTINUE)
+   *
+   * Note: For now, I am not aware of this case to become effective, 
+   * it is a mere safeguard measure. 
+   *
+   * TODO: Can it be omitted safely?
+   */
+   
+  if (flags & TCL_GLOBAL_ONLY) {
+    /*fprintf(stderr, "global-scoped var detected '%s' in NS '%s'\n", name, \
+      varFramePtr->nsPtr->fullName);*/
+    return TCL_CONTINUE;
+  }
+
+  /* Case 2: The variable appears as to be proc-local, so proceed in
+   * resolver chain (i.e. return TCL_CONTINUE)
+   *
+   * Note 1: This happens to be a rare occurrence, e.g. for nested
+   * object structures which are shadowed by nested Tcl namespaces.
+   *
+   * TODO: Cannot reproduce the issue found with xotcl::package->require()
+   *
+   * Note 2: It would be possible to resolve the proc-local variable
+   * directly (by digging into compiled and non-compiled locals etc.),
+   * however, it would cause further code redundance.
+   */
+  varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+  /*
+  fprintf(stderr,"varFramePtr=%p, isProcCallFrame=%d %p\n",varFramePtr,
+          varFramePtr != NULL ? Tcl_CallFrame_isProcCallFrame(varFramePtr): 0,
+          varFramePtr != NULL ? Tcl_CallFrame_procPtr(varFramePtr): 0
+          );
+  */
+  if (varFramePtr != NULL && Tcl_CallFrame_isProcCallFrame(varFramePtr)) {
+    fprintf(stderr, "proc-scoped var detected '%s' in NS '%s'\n", name, 
+            varFramePtr->nsPtr->fullName);
+    return TCL_CONTINUE;
+  }
+
+  /* Case 3: Does the variable exist in the per-object namespace? */
+  *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(ns),name,NULL);
+
+  /*
+  fprintf(stderr, "var with name '%s' to be created, flags=%.8X, ns=%p is create %d\n", name,flags,ns,
+          RUNTIME_STATE(interp)->createVarHack);
+  */
+
+  if(*varPtr == NULL 
+     /*
+     && (RUNTIME_STATE(interp)->createVarHack || flags & TCL_NAMESPACE_ONLY)
+     */
+     ) {  
+    /* We failed to find the variable in the namespace, so we create
+     * it here in the namespace.  Note that the cases (1) and (2) TCL_CONTINUE care
+     * for creation if necessary.
+     *
+     * Note: Essentially, this statement block resembles what
+     * happens in TclLookupSimpleVar() etc., but uses XOTcl-specific
+     * helpers. We acquire a Tcl_Var eagerly, the
+     * variable is later cleared if not defined effectively
+     *   SURE?
+     * (read TclIsVarUndefined == 1). Eagerness is required to support
+     * variable traces etc.
+     *   
+     */
+
+    key = Tcl_NewStringObj(name, -1); /* TODO: check reference counting */
+    newVar = VarHashCreateVar(Tcl_Namespace_varTable(ns), key, &new);
+#if defined(PRE85)
+    newVar->nsPtr = (Namespace *)ns;
+#endif
+    *varPtr = (Tcl_Var)newVar;
+  }
   return *varPtr ? TCL_OK : TCL_ERROR;
 }
 
@@ -1703,14 +1782,14 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns, int flags, 
 static void
 requireObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
   if (!obj->nsPtr) makeObjNamespace(interp, obj);
-  /* setting the namespace resolver here would be the correct thing,
-     but unforunately, this has the side effect, that we can't
-     set fresh variables via the set method...
-  */
-  /*
-    Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
-    varResolver, (Tcl_ResolveCompiledVarProc*)NULL);
-  */
+
+  /* This puts a per-object namespace resolver into position upon
+   * acquiring the namespace. Works for object-scoped commands/procs
+   * and object-only ones (set, unset, ...)
+   */
+  Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
+			    varResolver, (Tcl_ResolveCompiledVarProc*)NULL);
+  
 }
 extern void
 XOTclRequireObjNamespace(Tcl_Interp *interp, XOTcl_Object *obj) {
@@ -1868,6 +1947,11 @@ NSNamespaceDeleteProc(ClientData clientData) {
     obj->flags |= XOTCL_NS_DESTROYED;
     obj->nsPtr = NULL;
   }
+}
+
+static int
+NSisXOTclNamespace(Tcl_Namespace *nsPtr) {
+  return nsPtr->deleteProc == NSNamespaceDeleteProc;
 }
 
 void
@@ -3962,6 +4046,7 @@ FilterSearch(Tcl_Interp *interp, char *name, XOTclObject *startingObj,
    * seach for object procs that are used as filters
    */
   if (startingObj && startingObj->nsPtr) {
+    /*fprintf(stderr,"search filter %s as proc \n",name);*/
     if ((cmd = FindMethod(name, startingObj->nsPtr))) {
       *cl = (XOTclClass*)startingObj;
       return cmd;
@@ -4880,23 +4965,18 @@ SuperclassAdd(Tcl_Interp *interp, XOTclClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj 
   return TCL_OK;
 }
 
-
-
 static int
 varExists(Tcl_Interp *interp, XOTclObject *obj, char *varName, char *index,
           int triggerTrace, int requireDefined) {
   XOTcl_FrameDecls;
   Var *varPtr, *arrayPtr;
   int result;
-  int flags;
-  
-  flags = (index == NULL) ? TCL_PARSE_PART1 : 0;
-  
-  if (obj->nsPtr) {
-    Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
-                              varResolver, (Tcl_ResolveCompiledVarProc*)NULL);
-  }
+  int flags = 0;
 
+#ifdef PRE81
+  flags |= (index == NULL) ? TCL_PARSE_PART1 : 0;
+#endif
+ 
   XOTcl_PushFrame(interp, obj);
 
 #if defined(PRE83)
@@ -4909,16 +4989,18 @@ varExists(Tcl_Interp *interp, XOTclObject *obj, char *varName, char *index,
     varPtr = TclLookupVar(interp, varName, index, flags, "access",
                           /*createPart1*/ 0, /*createPart2*/ 0, &arrayPtr);
 #endif
+  /*
+  fprintf(stderr, "varExists %s varPtr %p requireDefined %d, triggerTrace %d, isundef %d\n",
+          varName,
+          varPtr,
+          requireDefined, triggerTrace,
+          varPtr ? TclIsVarUndefined(varPtr) : 0);
+  */
   result = ((varPtr != NULL) && 
             (!requireDefined || !TclIsVarUndefined(varPtr)));
 
   XOTcl_PopFrame(interp, obj);
-
-  if (obj->nsPtr) {
-    Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
-                              (Tcl_ResolveVarProc *)NULL,
-                              (Tcl_ResolveCompiledVarProc*)NULL);
-  }
+  
   return result;
 }
 
@@ -8087,7 +8169,7 @@ XOTclResolveCmd(Tcl_Interp *interp, char *name, Tcl_Namespace *contextNsPtr,
   }
   if (cmd != NULL) {
     Tcl_ObjCmdProc *objProc = Tcl_Command_objProc(cmd);
-    if (cxtNsPtr->deleteProc == NSNamespaceDeleteProc &&
+    if (NSisXOTclNamespace(cxtNsPtr) &&
         objProc != XOTclObjDispatch &&
         objProc != XOTclNextObjCmd &&
         objProc != XOTclGetSelfObjCmd) {
@@ -8351,7 +8433,7 @@ XOTclOExistsMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   if (objc != 2) return XOTclObjErrArgCnt(interp, obj->cmdName, "exists var");
 
   Tcl_SetIntObj(Tcl_GetObjResult(interp), 
-                varExists(interp, obj, ObjStr(objv[1]), NULL, 1, 1));
+                varExists(interp, obj, ObjStr(objv[1]), NULL, 0, 1));
   return TCL_OK;
 }
 
@@ -9341,6 +9423,7 @@ callForwarder(forwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   }
   if (tcd->objscope) {
     XOTcl_PushFrame(interp, tcd->obj);
+    RUNTIME_STATE(interp)->createVarHack = 1;
   }
   if (tcd->objProc) {
     result = (tcd->objProc)(tcd->cd, interp, objc, objv);
@@ -9355,6 +9438,7 @@ callForwarder(forwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (tcd->objscope) {
     XOTcl_PopFrame(interp, tcd->obj);
+    RUNTIME_STATE(interp)->createVarHack = 0;
   }
   return result;
 }
@@ -9769,24 +9853,12 @@ XOTclObjscopedMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
   XOTclObject *obj = tcd->obj;
   int rc;
   XOTcl_FrameDecls;
-  /*fprintf(stderr,"objscopedMethod obj=%p, ptr=%p\n", obj, tcd->objProc);*/
-  /*
-  if (obj->nsPtr) {
-    fprintf(stderr,"objscopedMethod obj=%p %s, ptr=%p set resolver, ns=%s\n", obj, ObjStr(obj->cmdName), tcd->objProc, obj->nsPtr->fullName);
-    
-    Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
-                              varResolver, (Tcl_ResolveCompiledVarProc*)NULL);
-                              }*/
+  /* fprintf(stderr,"objscopedMethod obj=%p, ptr=%p\n", obj, tcd->objProc); */
+  
   XOTcl_PushFrame(interp, obj);
   rc = (tcd->objProc)(tcd->cd, interp, objc, objv);
   XOTcl_PopFrame(interp, obj);
   
-  /*
-  if (obj->nsPtr) {
-    Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
-                              NULL, (Tcl_ResolveCompiledVarProc*)NULL);
-  }
-  */
   return rc;
 }
 
