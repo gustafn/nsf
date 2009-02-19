@@ -106,3 +106,29 @@ o array set a {1 2 3 4 5 6}
 ? {namespace eval ::o array exists a} 0
 
 o destroy
+
+###########################################
+# tests on namespace-qualified var names
+###########################################
+
+Object o -requireNamespace
+Object o::oo -requireNamespace
+
+? {::o set ::x 1} 1
+? {info exists ::x} [set ::x]
+? {catch {unset ::x}} 0 1
+
+? {::o set ::o::x 1} 1
+? {o exists x} [::o set ::o::x]
+? {namespace eval ::o unset x} "" 1
+? {o exists x} 0
+
+# Note, relatively qualified var names (not prefixed with ::*) 
+# are always resolved relative to the per-object namespace
+? {catch {::o set o::x 1} msg} 1
+? {::o set oo::x 1} 1
+? {o::oo exists x} [::o set oo::x]
+? {o unset oo::x} "" 1
+? {o::oo exists x} 0
+
+o destroy
