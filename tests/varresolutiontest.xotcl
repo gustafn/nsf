@@ -132,3 +132,23 @@ Object o::oo -requireNamespace
 ? {o::oo exists x} 0
 
 o destroy
+
+###########################################
+# tests on namespace-qualified on objects
+# without namespaces
+###########################################
+
+# the tests below fail. We could consider
+# to require namespaces on the fly in the future
+Object o
+#? {::o set ::o::x 1} 1
+#? {o exists x} [::o set ::o::x]
+#? {namespace eval ::o unset x} "" 1
+#? {o exists x} 0
+
+#? {::o set o::x 1} 1
+#? {o exists x} [::o set o::x]
+#? {namespace eval ::o unset x} "" 1
+#? {o exists x} 0
+
+o destroy
