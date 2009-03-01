@@ -524,8 +524,7 @@ objectvariables proc run {{n 100}} {
     lappend guide [list array $i w]
   }
 
-
-  if {$guide != $trail} then {
+ if {$guide != $trail} then {
     error "FAILED [self] - trace: expected $guide, got $trail"
   }
 
@@ -540,7 +539,7 @@ objectvariables proc run {{n 100}} {
   }
 
   avar2 killSelf
-
+ 
   if {[lsort $guide] != [lsort $trail]} then {
     error "FAILED [self] - trace: expected $guide, got $trail"
   }
