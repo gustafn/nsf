@@ -3805,18 +3805,16 @@ MixinComputeDefined(Tcl_Interp *interp, XOTclObject *obj) {
 }
 
 /*
- * walk through the mixin order until the current mixin is reached.
- * then use the next mixin as current mixin.
+ * Walk through the command list until the current command is reached.
+ * return the next entry.
  *
- * precondition: obj->mixinStack is not NULL
  */
 static XOTclCmdList *
-MixinSeekCurrent(Tcl_Command currentCmdPtr, register XOTclCmdList *cmdl) {
-
-  if (currentCmdPtr) {
+seekCurrent(Tcl_Command currentCmd, register XOTclCmdList *cmdl) {
+  if (currentCmd) {
     /* go forward to current class */
-    for ( ; cmdl; cmdl = cmdl->next) {
-      if (cmdl->cmdPtr == currentCmdPtr) {
+    for (; cmdl; cmdl = cmdl->next) {
+      if (cmdl->cmdPtr == currentCmd) {
         return cmdl->next;
       }
     }
@@ -3841,7 +3839,7 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
   /* ensure that the mixin order is not invalid, otherwise compute order */
   assert(obj->flags & XOTCL_MIXIN_ORDER_VALID);
   /*MixinComputeDefined(interp, obj);*/
-  cmdList = MixinSeekCurrent(obj->mixinStack->currentCmdPtr, obj->mixinOrder);
+  cmdList = seekCurrent(obj->mixinStack->currentCmdPtr, obj->mixinOrder);
 
 #if defined(ACTIVEMIXIN)
   RUNTIME_STATE(interp)->cmdPtr = cmdList->cmdPtr;
@@ -4674,25 +4672,6 @@ FilterStackPop(XOTclObject *obj) {
 }
 
 /*
- * walk through the filter order until the current filter is reached.
- * then use the next filter as current filter.
- *
- */
-static XOTclCmdList *
-FilterSeekCurrent(Tcl_Command currentCmd, register XOTclCmdList *cmdl) {
-
-  if (currentCmd) {
-    /* go forward to current class */
-    for (; cmdl; cmdl = cmdl->next) {
-      if (cmdl->cmdPtr == currentCmd) {
-        return cmdl->next;
-      }
-    }
-  }
-  return cmdl;
-}
-
-/*
  * seek through the filters active for "obj" and check whether cmdPtr
  * is among them
  */
@@ -4770,7 +4749,7 @@ FilterSearchProc(Tcl_Interp *interp, XOTclObject *obj,
      FilterComputeDefined(interp, obj);
   */
   assert(obj->flags & XOTCL_FILTER_ORDER_VALID);
-  cmdList = FilterSeekCurrent(obj->filterStack->currentCmdPtr, obj->filterOrder);
+  cmdList = seekCurrent(obj->filterStack->currentCmdPtr, obj->filterOrder);
 
   while (cmdList) {
     if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
@@ -4780,7 +4759,7 @@ FilterSearchProc(Tcl_Interp *interp, XOTclObject *obj,
          Tcl_GetCommandName(interp, (Tcl_Command)cmdList->cmdPtr), ObjStr(obj->cmdName));
       */
       obj->filterStack->currentCmdPtr = cmdList->cmdPtr;
-      cmdList = FilterSeekCurrent(obj->filterStack->currentCmdPtr, obj->filterOrder);
+      cmdList = seekCurrent(obj->filterStack->currentCmdPtr, obj->filterOrder);
     } else {
       /* ok. we' ve found it */
      if (cmdList->clorobj && !XOTclObjectIsClass(&cmdList->clorobj->object)) {
