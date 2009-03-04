@@ -158,7 +158,11 @@ static XOTclCallStackContent *CallStackGetFrame(Tcl_Interp *in);
 static void checkAllInstances(Tcl_Interp *interp, XOTclClass *startCl, int lvl);
 #endif
 
-
+#if defined(PRE85)
+# define XOTcl_FindHashEntry(tablePtr, key) Tcl_FindHashEntry(tablePtr, key)
+#else
+# define XOTcl_FindHashEntry(tablePtr, key) Tcl_CreateHashEntry(tablePtr, key, NULL)
+#endif
 
 
 
@@ -485,7 +489,7 @@ LookupVarFromTable84(TclVarHashTable *varTable, CONST char *simpleName,
   Tcl_HashEntry *entryPtr;
   
   if (varTable) {
-    entryPtr = Tcl_CreateHashEntry(varTable, simpleName, NULL);
+    entryPtr = XOTcl_FindHashEntry(varTable, simpleName);
     if (entryPtr) {
       varPtr = VarHashGetValue(entryPtr);
     }
@@ -1414,7 +1418,7 @@ AddInstance(XOTclObject *obj, XOTclClass *cl) {
 static int
 RemoveInstance(XOTclObject *obj, XOTclClass *cl) {
   if (cl) {
-    Tcl_HashEntry *hPtr = Tcl_CreateHashEntry(&cl->instances, (char *)obj, NULL);
+    Tcl_HashEntry *hPtr = XOTcl_FindHashEntry(&cl->instances, (char *)obj);
       if (hPtr) {
         Tcl_DeleteHashEntry(hPtr);
     	return 1;
@@ -1498,7 +1502,7 @@ XOTCLINLINE
 static Tcl_Command
 FindMethod(char *methodName, Tcl_Namespace *nsPtr) {
   register Tcl_HashEntry *entryPtr;
-  if ((entryPtr = Tcl_CreateHashEntry(Tcl_Namespace_cmdTable(nsPtr), methodName, NULL))) {
+  if ((entryPtr = XOTcl_FindHashEntry(Tcl_Namespace_cmdTable(nsPtr), methodName))) {
     return (Tcl_Command) Tcl_GetHashValue(entryPtr);
   } 
   /*fprintf(stderr, "find %s in %p returns %p\n", methodName, cmdTable, cmd);*/
@@ -1511,7 +1515,7 @@ SearchPLMethod(XOTclClasses *pl, char *methodName, Tcl_Command *cmd) {
 #if 0
   Tcl_HashEntry *entryPtr;
   for (; pl;  pl = pl->next) {
-    if ((entryPtr = Tcl_CreateHashEntry(Tcl_Namespace_cmdTable(pl->cl->nsPtr), methodName, NULL))) {
+    if ((entryPtr = XOTcl_FindHashEntry(Tcl_Namespace_cmdTable(pl->cl->nsPtr), methodName))) {
       *cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
       return pl->cl;
     }
@@ -2824,7 +2828,7 @@ static XOTclProcAssertion*
 AssertionFindProcs(XOTclAssertionStore *aStore, char *name) {
   Tcl_HashEntry *hPtr;
   if (aStore == NULL) return NULL;
-  hPtr = Tcl_CreateHashEntry(&aStore->procs, name, NULL);
+  hPtr = XOTcl_FindHashEntry(&aStore->procs, name);
   if (hPtr == NULL) return NULL;
   return (XOTclProcAssertion*) Tcl_GetHashValue(hPtr);
 }
@@ -2833,7 +2837,7 @@ static void
 AssertionRemoveProc(XOTclAssertionStore *aStore, char *name) {
   Tcl_HashEntry *hPtr;
   if (aStore) {
-    hPtr = Tcl_CreateHashEntry(&aStore->procs, name, NULL);
+    hPtr = XOTcl_FindHashEntry(&aStore->procs, name);
     if (hPtr) {
       XOTclProcAssertion *procAss =
         (XOTclProcAssertion*) Tcl_GetHashValue(hPtr);
@@ -5654,9 +5658,11 @@ DoDispatch(ClientData cd, Tcl_Interp *interp, int objc,
     /*fprintf(stderr,"findMethod for proc '%s' in %p returned %p\n", methodName, obj->nsPtr, cmd);*/
 
     if (cmd == NULL) {
+      /*
       if (obj->cl->order == NULL) obj->cl->order = TopoOrder(obj->cl, Super);
       cl = SearchPLMethod(obj->cl->order, methodName, &cmd);
-      /*cl = SearchCMethod(obj->cl, methodName, &cmd); */
+      */
+      cl = SearchCMethod(obj->cl, methodName, &cmd); 
     }
   }
 
@@ -5818,7 +5824,7 @@ static XOTclNonposArgs*
 NonposArgsGet(Tcl_HashTable *nonposArgsTable, char * methodName) {
   Tcl_HashEntry *hPtr;
   if (nonposArgsTable &&
-      ((hPtr = Tcl_CreateHashEntry(nonposArgsTable, methodName, NULL)))) {
+      ((hPtr = XOTcl_FindHashEntry(nonposArgsTable, methodName)))) {
     return (XOTclNonposArgs*) Tcl_GetHashValue(hPtr);
   }
   return NULL;
@@ -6018,7 +6024,7 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore,
   Tcl_HashEntry *hPtr = NULL;
   char *procName = ObjStr(objv[1]);
 
-  if (*nonposArgsTable && (hPtr = Tcl_CreateHashEntry(*nonposArgsTable, procName, NULL))) {
+  if (*nonposArgsTable && (hPtr = XOTcl_FindHashEntry(*nonposArgsTable, procName))) {
     NonposArgsDeleteHashEntry(hPtr);
   }
 
@@ -6216,7 +6222,7 @@ ListKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern) {
   char *key;
 
   if (pattern && noMetaChars(pattern)) {
-    hPtr = table ? Tcl_CreateHashEntry(table, pattern, NULL) : 0;
+    hPtr = table ? XOTcl_FindHashEntry(table, pattern) : 0;
     if (hPtr) {
       key = Tcl_GetHashKey(table, hPtr);
       Tcl_SetResult(interp, key, TCL_VOLATILE);
@@ -6247,7 +6253,7 @@ ListVarKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr, char *pattern) {
     Tcl_Obj *patternObj = Tcl_NewStringObj(pattern, -1);
     INCR_REF_COUNT(patternObj);
 
-    hPtr = tablePtr ? Tcl_CreateHashEntry(tablePtr, (char *)patternObj, NULL) : 0;
+    hPtr = tablePtr ? XOTcl_FindHashEntry(tablePtr, (char *)patternObj) : 0;
     if (hPtr) {
       Var  *val = VarHashGetValue(hPtr);
       Tcl_SetObjResult(interp, VarHashGetKey(val));
@@ -6314,7 +6320,7 @@ ListVars(Tcl_Interp *interp, XOTclObject *obj, char *pattern) {
 /*   Tcl_HashEntry *hPtr; */
 /*   if (pattern && noMetaChars(pattern)) { */
 /*     XOTclObject *childobj = XOTclpGetObject(interp, pattern); */
-/*     hPtr = Tcl_CreateHashEntry(table, (char *)childobj, NULL); */
+/*     hPtr = XOTcl_FindHashEntry(table, (char *)childobj); */
 /*     if (hPtr) { */
 /*       Tcl_SetObjResult(interp, childobj->cmdName); */
 /*     } else { */
@@ -6380,7 +6386,7 @@ forwardList(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern,
             int definition) {
   int rc;
   if (definition) {
-    Tcl_HashEntry *hPtr = table && pattern ? Tcl_CreateHashEntry(table, pattern, NULL) : 0;
+    Tcl_HashEntry *hPtr = table && pattern ? XOTcl_FindHashEntry(table, pattern) : 0;
     if (hPtr) {
       Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
       ClientData cd = cmd? Tcl_Command_objClientData(cmd) : NULL;
@@ -6505,7 +6511,7 @@ ListPrecedence(Tcl_Interp *interp, XOTclObject *obj, char *pattern, int intrinsi
 
 static Proc*
 FindProc(Tcl_Interp *interp, Tcl_HashTable *table, char *name) {
-  Tcl_HashEntry *hPtr = table ? Tcl_CreateHashEntry(table, name, NULL) : 0;
+  Tcl_HashEntry *hPtr = table ? XOTcl_FindHashEntry(table, name) : 0;
   if (hPtr) {
     Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
     Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
@@ -8177,7 +8183,7 @@ XOTclResolveCmd(Tcl_Interp *interp, char *name, Tcl_Namespace *contextNsPtr,
   for (search = 0;  (search < 2) && (cmd == NULL);  search++) {
     if (nsPtr[search] && simpleName) {
       cmdTable = Tcl_Namespace_cmdTable(nsPtr[search]);
-      entryPtr = Tcl_CreateHashEntry(cmdTable, simpleName, NULL);
+      entryPtr = XOTcl_FindHashEntry(cmdTable, simpleName);
       if (entryPtr) {
         cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
       }
@@ -8199,7 +8205,7 @@ XOTclResolveCmd(Tcl_Interp *interp, char *name, Tcl_Namespace *contextNsPtr,
       nsPtr[0] = Tcl_GetGlobalNamespace(interp);
       if (nsPtr[0] && simpleName) {
         cmdTable = Tcl_Namespace_cmdTable(nsPtr[0]);
-        if ((entryPtr = Tcl_CreateHashEntry(cmdTable, simpleName, NULL))) {
+        if ((entryPtr = XOTcl_FindHashEntry(cmdTable, simpleName))) {
           cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
         }
       }
