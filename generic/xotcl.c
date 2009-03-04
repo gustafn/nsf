@@ -5637,11 +5637,10 @@ DoDispatch(ClientData cd, Tcl_Interp *interp, int objc,
     /*fprintf(stderr,"findMethod for proc '%s' in %p returned %p\n", methodName, obj->nsPtr, cmd);*/
 
     if (cmd == NULL) {
-      /*
       if (obj->cl->order == NULL) obj->cl->order = TopoOrder(obj->cl, Super);
       cl = SearchPLMethod(obj->cl->order, methodName, &cmd);
-      */
-      cl = SearchCMethod(obj->cl, methodName, &cmd); 
+
+      /* cl = SearchCMethod(obj->cl, methodName, &cmd); */
     }
   }
 
