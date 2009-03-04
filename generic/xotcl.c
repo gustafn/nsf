@@ -3806,58 +3806,18 @@ MixinComputeDefined(Tcl_Interp *interp, XOTclObject *obj) {
  *
  * precondition: obj->mixinStack is not NULL
  */
-static void
-MixinSeekCurrent(Tcl_Interp *interp, XOTclObject *obj, XOTclCmdList **cmdList) {
-  Tcl_Command currentCmdPtr;
+static XOTclCmdList *
+MixinSeekCurrent(Tcl_Command currentCmdPtr, register XOTclCmdList *cmdl) {
 
-  /* ensure that the mixin order is not invalid, otherwise compute order */
-  assert(obj->flags & XOTCL_MIXIN_ORDER_VALID);
-  /*MixinComputeDefined(interp, obj);*/
-  currentCmdPtr = obj->mixinStack->currentCmdPtr;
-
-  /*
-    {
-    XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-    XOTclCallStackContent *csc = cs->top;
-    fprintf(stderr, "%p == %p ==> %d \n", csc->cl, currentCmdPtr, 
-    csc->cmdPtr == currentCmdPtr);
-    }
-  */
-
-  /***
-      { Tcl_Obj *sr;
-
-      MixinInfo(interp, obj->mixinOrder, NULL, 0, NULL);
-      sr = Tcl_GetObjResult(interp);
-      fprintf(stderr,"INFO->%s order %p next %p\n", ObjStr(sr), obj->mixinOrder, obj->mixinOrder->next);
+  if (currentCmdPtr) {
+    /* go forward to current class */
+    for ( ; cmdl; cmdl = cmdl->next) {
+      if (cmdl->cmdPtr == currentCmdPtr) {
+        return cmdl->next;
       }
-  ***/
-
-  *cmdList = obj->mixinOrder;
-  /*  
-      fprintf(stderr, "->1 mixin seek current = %p next = %p %s\n",
-      currentCmdPtr,
-      (*cmdList)->next,
-      (*cmdList)->next ? Tcl_GetCommandName(interp, (*cmdList)->next->cmdPtr) : "");
-  */
-  
-#if defined(ACTIVEMIXIN)
-  /*RUNTIME_STATE(interp)->cmdPtr = (*cmdList)->next ? (*cmdList)->next->cmdPtr : NULL;*/
-  RUNTIME_STATE(interp)->cmdPtr = (*cmdList)->cmdPtr;
-#endif
-
-  /* go forward to current class */
-  while (*cmdList && currentCmdPtr) {
-    /* fprintf(stderr, "->2 mixin seek current = %p next = %p\n", currentCmdPtr, (*cmdList)->next);*/
-    if ((*cmdList)->cmdPtr == currentCmdPtr)
-      currentCmdPtr = NULL;
-    *cmdList = (*cmdList)->next;
-
-#if defined(ACTIVEMIXIN)
-    /*RUNTIME_STATE(interp)->cmdPtr = (*cmdList)->next ? (*cmdList)->next->cmdPtr : NULL;*/
-    RUNTIME_STATE(interp)->cmdPtr = (*cmdList)->cmdPtr;
-#endif
+    }
   }
+  return cmdl;
 }
 
 /*
@@ -3874,13 +3834,19 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
   assert(obj);
   assert(obj->mixinStack);
   
-  MixinSeekCurrent(interp, obj, &cmdList);
+  /* ensure that the mixin order is not invalid, otherwise compute order */
+  assert(obj->flags & XOTCL_MIXIN_ORDER_VALID);
+  /*MixinComputeDefined(interp, obj);*/
+  cmdList = MixinSeekCurrent(obj->mixinStack->currentCmdPtr, obj->mixinOrder);
+
+#if defined(ACTIVEMIXIN)
+  RUNTIME_STATE(interp)->cmdPtr = cmdList->cmdPtr;
+#endif
   
   /*
     fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList);
   */
   /*CmdListPrint(interp,"MixinSearch CL = \n", cmdList);*/
-  
   
   while (cmdList) {
     if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
@@ -4707,22 +4673,19 @@ FilterStackPop(XOTclObject *obj) {
  * walk through the filter order until the current filter is reached.
  * then use the next filter as current filter.
  *
- * precondition: obj->filterStack is not NULL
  */
-static void
-FilterSeekCurrent(Tcl_Interp *interp, XOTclObject *obj, XOTclCmdList **cmdList) {
-  Tcl_Command currentCmd = obj->filterStack->currentCmdPtr;
+static XOTclCmdList *
+FilterSeekCurrent(Tcl_Command currentCmd, register XOTclCmdList *cmdl) {
 
-  assert(obj->flags & XOTCL_FILTER_ORDER_VALID);
-  /* ensure that the filter order is not invalid, otherwise compute order
-     FilterComputeDefined(interp, obj);
-  */
-
-  /* go forward to current class */
-  for (*cmdList = obj->filterOrder; *cmdList && currentCmd; *cmdList = (*cmdList)->next) {
-    if ((*cmdList)->cmdPtr == currentCmd)
-      currentCmd = NULL;
+  if (currentCmd) {
+    /* go forward to current class */
+    for (; cmdl; cmdl = cmdl->next) {
+      if (cmdl->cmdPtr == currentCmd) {
+        return cmdl->next;
+      }
+    }
   }
+  return cmdl;
 }
 
 /*
@@ -4799,7 +4762,12 @@ FilterSearchProc(Tcl_Interp *interp, XOTclObject *obj,
 
   *currentCmd = NULL;
 
-  FilterSeekCurrent(interp, obj, &cmdList);
+  /* Ensure that the filter order is not invalid, otherwise compute order
+     FilterComputeDefined(interp, obj);
+  */
+  assert(obj->flags & XOTCL_FILTER_ORDER_VALID);
+  cmdList = FilterSeekCurrent(obj->filterStack->currentCmdPtr, obj->filterOrder);
+
   while (cmdList) {
     if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
       cmdList = cmdList->next;
@@ -4808,7 +4776,7 @@ FilterSearchProc(Tcl_Interp *interp, XOTclObject *obj,
          Tcl_GetCommandName(interp, (Tcl_Command)cmdList->cmdPtr), ObjStr(obj->cmdName));
       */
       obj->filterStack->currentCmdPtr = cmdList->cmdPtr;
-      FilterSeekCurrent(interp, obj, &cmdList);
+      cmdList = FilterSeekCurrent(obj->filterStack->currentCmdPtr, obj->filterOrder);
     } else {
       /* ok. we' ve found it */
      if (cmdList->clorobj && !XOTclObjectIsClass(&cmdList->clorobj->object)) {
@@ -5197,6 +5165,10 @@ callParameterMethodWithArg(XOTclObject *obj, Tcl_Interp *interp, Tcl_Obj *method
 }
 
 #if !defined(PRE85)
+# if defined(WITH_TCL_COMPILE)
+#  include <tclCompile.h>
+# endif
+
 static void
 MakeProcError(
     Tcl_Interp *interp,		/* The interpreter in which the procedure was
@@ -5214,7 +5186,6 @@ MakeProcError(
 	    (overflow ? "..." : ""), interp->errorLine));
 }
 
-#include <tclCompile.h>
 static int PushProcCallFrame(
     ClientData clientData, 	/* Record describing procedure to be
 				 * interpreted. */
@@ -5230,7 +5201,6 @@ static int PushProcCallFrame(
     Namespace *nsPtr = procPtr->cmdPtr->nsPtr;
     CallFrame *framePtr, **framePtrPtr = &framePtr;
     int result;
-    ByteCode *codePtr;
     static Tcl_ObjType *byteCodeType = NULL;
 
     if (byteCodeType == NULL) {
@@ -5238,13 +5208,13 @@ static int PushProcCallFrame(
       XOTclMutexLock(&initMutex);
       if (byteCodeType == NULL) {
         byteCodeType = Tcl_GetObjType("bytecode");
-        /*fprintf(stderr, "fetching byteCodeType=%p\n", byteCodeType);*/
       }
       XOTclMutexUnlock(&initMutex);
     }
     
     if (procPtr->bodyPtr->typePtr == byteCodeType) {
-#if 0
+# if defined(WITH_TCL_COMPILE)
+      ByteCode *codePtr;
       Interp *iPtr = (Interp *) interp;
       
       /*
@@ -5263,9 +5233,11 @@ static int PushProcCallFrame(
           || (codePtr->nsEpoch != nsPtr->resolverEpoch)) {
         goto doCompilation;
       }
-#endif
+# endif
     } else {
+# if defined(WITH_TCL_COMPILE)
     doCompilation:
+# endif
       result = TclProcCompileProc(interp, procPtr, procPtr->bodyPtr, 
                                    (Namespace *) nsPtr, "body of proc", TclGetString(objv[isLambda]));
       /*fprintf(stderr,"compile returned %d",result);*/
@@ -5295,10 +5267,8 @@ static int PushProcCallFrame(
 
     return TCL_OK;
 }
-
 #endif
 
-void dummy() {fprintf(stderr,"\n");}
 /*
  * method dispatch
  */
@@ -5378,7 +5348,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
       fprintf(stderr, "method=%s\n", methodName);
       }
     */
-    if (!rst->callIsDestroy && obj->opt) {
+    if (obj->opt && !rst->callIsDestroy) {
       co = obj->opt->checkoptions;
       if ((co & CHECK_INVAR) &&
           ((result = AssertionCheckInvars(interp, obj, methodName, co)) == TCL_ERROR)) {
@@ -5452,7 +5422,21 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
     printCall(interp,"callProcCheck tclCmd", objc, objv);
     fprintf(stderr,"\tproc=%s\n", Tcl_GetCommandName(interp, cmd));
 #endif
-    /*XXX*/
+
+    /*
+     * In case, we have Tcl 8.5.* or better, we can avoid calling the
+     * standard TclObjInterpProc() and ::xotcl::initProcNS defined in
+     * the method, since Tcl 8.5 has a separate functions
+     * PushProcCallFrame() and TclObjInterpProcCore(), where the
+     * latter is callable from the outside (e.g. from XOTcl). This new
+     * interface allows us to setup the XOTcl callframe before the
+     * bytecode of the method body (provisioned by PushProcCallFrame)
+     * is executed. On the medium range, we do not need the xotcl
+     * callframe when we stop supporting Tcl 8.4 (we should simply use
+     * the calldata field in the callstack), which should be managed
+     * here or in PushProcCallFrame. At the same time, we could do the
+     * non-pos-arg handling here as well.
+     */
 #if !defined(PRE85)
     /*fprintf(stderr,"\tproc=%s cp=%p %d\n", Tcl_GetCommandName(interp, cmd),cp, isTclProc);*/
     
@@ -5631,7 +5615,6 @@ DoDispatch(ClientData cd, Tcl_Interp *interp, int objc,
         }
       }
     }
-
 
     /* check if a mixin is to be called.
        don't use mixins on next method calls, since normally it is not
@@ -6832,7 +6815,7 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
 
   if ((obj->flags & XOTCL_MIXIN_ORDER_VALID) &&  obj->mixinStack) {
     *cmd = MixinSearchProc(interp, obj, *method, cl, currentCmd);
-    /*fprintf(stderr,"nextsearch: mixinsearch cmd %p, proc=%p\n",*cmd,*proc);*/
+    /*fprintf(stderr,"nextsearch: mixinsearch cmd %p, currentCmd %p\n",*cmd, *currentCmd);*/
     if (*cmd == 0) {
       if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_MIXIN) {
         endOfChain = 1;
@@ -7075,39 +7058,6 @@ XOTclONextMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   /*fprintf(stderr,"******* next for proc %s\n", methodName);*/
   return XOTclNextMethod(obj, interp, csc->cl, methodName, objc-1, &objv[1], 0);
 }
-
-#if 0
-/* method next for calling e.g.  $obj next  */
-static int
-XOTclONextMethod2(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj = (XOTclObject*)cd;
-  int result, nobjc;
-  /*XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;*/
-  XOTclCallStackContent *csc = CallStackGetTopFrame(interp);
-  Tcl_Obj **nobjv;
-
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-
-  /* if no args are given => use args from stack */
-  if (objc < 2) {
-    nobjc = Tcl_CallFrame_objc(csc->currentFramePtr);
-    nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(csc->currentFramePtr);
-  } else {
-    nobjc = objc;
-    nobjv = (Tcl_Obj **)objv;
-  }
-  {
-    ALLOC_ON_STACK(Tcl_Obj*, nobjc + 1, ov);
-    memcpy(ov+1, nobjv, sizeof(Tcl_Obj *)*nobjc);
-    ov[0] = obj->cmdName;
-    result = XOTclObjDispatch(cd, interp, nobjc+1, ov);
-    FREE_ON_STACK(ov);
-  }
-  /*fprintf(stderr,"******* next for proc %s\n", methodName);*/
-  /*result = Tcl_EvalObjv(interp, objc, ov, 0);*/
-  return result;
-}
-#endif
 
 /*
  * "self" object command
