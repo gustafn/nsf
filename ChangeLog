@@ -1,3 +1,48 @@
+2009-03-19 <Gustaf.Neumann@wu-wien.ac.at>
+    * Release of XOTcl 1.6.2
+
+2009-03-19 <Gustaf.Neumann@wu-wien.ac.at>
+    - removed references to 1.6.2
+
+2009-03-04 <Gustaf.Neumann@wu-wien.ac.at>
+    - re-enable small optimization
+    - factor out common code
+    - fix compatibility with Tcl 8.4
+    - bump version number to 1.6.3
+
+2009-03-03 <Gustaf.Neumann@wu-wien.ac.at>
+    - simplify semantics of MixinSeekCurrent and FilterSeekCurrent, improve speed
+    - remove necessity to have tclCompile.h
+    - improve documentation
+
+2009-03-02 <Gustaf.Neumann@wu-wien.ac.at>
+    - some small performance improvements (use CreateHashEntry instead
+      of FindHashEntry, remove unneded argument, improve order of long
+      and expressions)
+    - some code cleanup
+    - new methods, when compiled with tcl 8.5;
+       + MakeProcError (producing error messages from xotcl methods)
+       + PushProcCallFrame (compile method to byte-code)
+       The new support allows to call code at the begin of a proc
+       without using the old approach based on :xotcl::initProcNS
+
+2009-02-19 <Gustaf.Neumann@wu-wien.ac.at>
+    - add comments to var resolution tests for objects without namespaces
+    - fixed reference counting
+    - removed temporary hacks
+    - added CONST to several functions
+    - added relative namespace handling
+
+2009-02-18 <Gustaf.Neumann@wu-wien.ac.at>, sobernig@wu-wien.ac.at
+    - added Stefan's work for namespace resolvers
+    - fixed a memory leak for "obj exists" due to the changes
+    - found another memory leak, when e.g. "::info" is added as an
+      alias and "info exists" is tested against non-existing vars
+
+2009-01-19 <Gustaf.Neumann@wu-wien.ac.at>
+    - Finish work on deletion of user-metaclasses
+    - commenting existing and potential usage of namespace resolvers
+
 2008-12-01 <Gustaf.Neumann@wu-wien.ac.at>
     * Correct deletion of user-metaclasses: Deletion of
       user-metaclasses could lead to undestroyable objects, since the
