@@ -84,7 +84,9 @@ static void DupXOTclObjectInternalRep(Tcl_Obj *src, Tcl_Obj *cpy);
 static Tcl_Obj*NameInNamespaceObj(Tcl_Interp *interp, char *name, Tcl_Namespace *ns);
 static Tcl_Namespace *callingNameSpace(Tcl_Interp *in);
 XOTCLINLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, char *name, Tcl_Namespace *ns);
+#ifdef EXPERIMENTAL_CMD_RESOLVER
 static int NSisXOTclNamespace(Tcl_Namespace *nsPtr);
+#endif
 
 XOTCLINLINE static void GuardAdd(Tcl_Interp *interp, XOTclCmdList *filterCL, Tcl_Obj *guard);
 static int GuardCheck(Tcl_Interp *interp, ClientData guards);
@@ -1728,8 +1730,8 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns, int flags, 
           );
   */
   if (varFramePtr && Tcl_CallFrame_isProcCallFrame(varFramePtr)) {
-    fprintf(stderr, "proc-scoped var detected '%s' in NS '%s'\n", name, 
-            varFramePtr->nsPtr->fullName);
+    /*fprintf(stderr, "proc-scoped var detected '%s' in NS '%s'\n", name, 
+      varFramePtr->nsPtr->fullName);*/
     return TCL_CONTINUE;
   }
   
@@ -1938,10 +1940,12 @@ NSNamespaceDeleteProc(ClientData clientData) {
   }
 }
 
+#ifdef EXPERIMENTAL_CMD_RESOLVER
 static int
 NSisXOTclNamespace(Tcl_Namespace *nsPtr) {
   return nsPtr->deleteProc == NSNamespaceDeleteProc;
 }
+#endif
 
 void
 XOTcl_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
@@ -8120,7 +8124,7 @@ doObjInitialization(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CON
 /*
  * experimental resolver implementation -> not used at the moment
  */
-#ifdef NOT_USED
+#ifdef EXPERIMENTAL_CMD_RESOLVER
 static int
 XOTclResolveCmd(Tcl_Interp *interp, char *name, Tcl_Namespace *contextNsPtr,
                 int flags, Tcl_Command *rPtr) {
