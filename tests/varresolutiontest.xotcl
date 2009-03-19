@@ -1,6 +1,4 @@
 # testing var resolution for namespace-shadowed objects 
-# load /usr/local/src/xotcl/unix/libxotcl1.6.2[info sharedlibextension]
-# lappend auto_path /usr/local/src/xotcl/library
 
 package require XOTcl
 package require xotcl::test
