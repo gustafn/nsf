@@ -22,18 +22,18 @@ Major changes relative to 1.6.2 are:
          contribution!
          
   * Fixes:
-      - Corrected deleted of meta-classes. It was possible
-        to create undestroyable objects before via complex
-        meta-classes structures
+      - Corrected deletion of meta-classes. Before, it was possible
+        to create undestroyable objects via complex
+        meta-class structures
 
-   * Speed improvements
+   * Speed improvements:
       - Use of new interfaces in Tcl 8.5 (when compiled with Tcl 8.5)
       - simplified interfaces for various C functions
       - Speed improvement for method invocation:
-          * In Tcl 8.5: 10-15 %
-          * In Tcl 8.4:  5-10 %
+          * With Tcl 8.5: 10-15 %
+          * With Tcl 8.4:  5-10 %
 
-   * Improve code quality
+   * Improve code quality:
        - some more code cleanup
        - factoring out common code
        - using const in more cases
