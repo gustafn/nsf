@@ -1,3 +1,10 @@
+2009-06-14 <Gustaf.Neumann@wu-wien.ac.at>
+    - fixed potential access to deleted command list item in
+      FilterSearchAgain()
+    - fixed potential access deleted xotcl object by switching order
+      in a condition
+    - some minor cleanup for configuration flags
+
 2009-03-19 <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.6.3
 
