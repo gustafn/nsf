@@ -4315,17 +4315,21 @@ FilterSearchAgain(Tcl_Interp *interp, XOTclCmdList **filters,
   XOTclClass *cl = NULL;
 
   CmdListRemoveEpoched(filters, GuardDel);
-  for (cmdList = *filters; cmdList; cmdList = cmdList->next) {
+  for (cmdList = *filters; cmdList; ) {
     simpleName = (char *) Tcl_GetCommandName(interp, cmdList->cmdPtr);
     cmd = FilterSearch(interp, simpleName, startingObj, startingCl, &cl);
     if (cmd == NULL) {
-      del = cmdList;
-      del = CmdListRemoveFromList(filters, del);
+      del = CmdListRemoveFromList(filters, cmdList);
+      cmdList = cmdList->next;
       CmdListDeleteCmdListEntry(del, GuardDel);
     } else if (cmd != cmdList->cmdPtr) {
       CmdListReplaceCmd(cmdList, cmd, cl);
+      cmdList = cmdList->next;
+    } else {
+      cmdList = cmdList->next;
     }
   }
+
   /* some entries might be NULL now, if they are not found anymore
      -> delete those
      CmdListRemoveNulledEntries(filters, GuardDel);
@@ -4969,7 +4973,7 @@ SearchDefaultValuesOnClass(Tcl_Interp *interp, XOTclObject *obj,
       if (TclIsVarScalar(val)) {
         Tcl_Obj *oldValue = XOTclOGetInstVar2((XOTcl_Object*) obj, 
                                               interp, varNameObj, NULL,
-                                              TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+                                              TCL_PARSE_PART1);
         /** we check whether the variable is already set.
             if so, we do not set it again */
         if (oldValue == NULL) {
@@ -5335,7 +5339,9 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
       fprintf(stderr, "method=%s\n", methodName);
       }
     */
-    if (obj->opt && !rst->callIsDestroy) {
+    /* The order of the check is important, since obj might be already
+       freed in case the call was a instdestroy */
+    if (!rst->callIsDestroy && obj->opt) {
       co = obj->opt->checkoptions;
       if ((co & CHECK_INVAR) &&
           ((result = AssertionCheckInvars(interp, obj, methodName, co)) == TCL_ERROR)) {
@@ -5700,8 +5706,11 @@ DoDispatch(ClientData cd, Tcl_Interp *interp, int objc,
 
 #ifdef DISPATCH_TRACE
   printExit(interp,"DISPATCH", objc, objv, result);
-  fprintf(stderr,"obj %p mixinStackPushed %d mixinStack %p\n",
-          obj, mixinStackPushed, obj->mixinStack);
+  fprintf(stderr,"obj=%p isDestroy %d\n",obj, rst->callIsDestroy);
+  if (!rst->callIsDestroy) {
+    fprintf(stderr,"obj %p mixinStackPushed %d mixinStack %p\n",
+            obj, mixinStackPushed, obj->mixinStack);
+  }
 #endif
 
 

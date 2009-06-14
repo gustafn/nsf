@@ -50,6 +50,15 @@
 #define XOTCL_BYTECODE
 */
 
+/* activate/deacticate profiling information at the end
+   of running the program
+#define PROFILE
+*/
+
+/* make self, proc and class in instproc and procs
+#define AUTOVARS
+*/
+
 #define KEEP_TCL_CMD_TYPE 1
 
 /* activate/deacticate assert 
@@ -61,21 +70,12 @@
 #define XOTCL_MEM_TRACE 1
 #define XOTCL_MEM_COUNT 1
 */
+
 /*#define REFCOUNTED 1*/
 
 /*
 #define XOTCLOBJ_TRACE 1
 #define REFCOUNT_TRACE 1
-#define DISPATCH_TRACE 1
-*/
-
-/* activate/deacticate profiling information at the end
-   of running the program
-#define PROFILE
-*/
-
-/* make self, proc and class in instproc and procs
-#define AUTOVARS
 */
 
 /* turn  tracing output on/off
