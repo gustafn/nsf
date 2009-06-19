@@ -64,14 +64,14 @@ int xotclMemCountInterpCounter = 0;
  */
 
 #ifdef USE_TCL_STUBS
-# define XOTcl_ExprObjCmd(cd, in, objc, objv)      \
+# define XOTcl_ExprObjCmd(cd, interp, objc, objv)      \
 	XOTclCallCommand(interp, XOTE_EXPR, objc, objv)
-# define XOTcl_SubstObjCmd(cd, in, objc, objv)     \
+# define XOTcl_SubstObjCmd(cd, interp, objc, objv)     \
 	XOTclCallCommand(interp, XOTE_SUBST, objc, objv)
 #else
-# define XOTcl_ExprObjCmd(cd, in, objc, objv)      \
+# define XOTcl_ExprObjCmd(cd, interp, objc, objv)      \
 	Tcl_ExprObjCmd(cd, interp, objc, objv)
-# define XOTcl_SubstObjCmd(cd, in, objc, objv)     \
+# define XOTcl_SubstObjCmd(cd, interp, objc, objv)     \
 	Tcl_SubstObjCmd(cd, interp, objc, objv)
 #endif
 
@@ -82,7 +82,7 @@ static void FreeXOTclObjectInternalRep(Tcl_Obj *objPtr);
 static void DupXOTclObjectInternalRep(Tcl_Obj *src, Tcl_Obj *cpy);
 
 static Tcl_Obj*NameInNamespaceObj(Tcl_Interp *interp, char *name, Tcl_Namespace *ns);
-static Tcl_Namespace *callingNameSpace(Tcl_Interp *in);
+static Tcl_Namespace *callingNameSpace(Tcl_Interp *interp);
 XOTCLINLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, char *name, Tcl_Namespace *ns);
 #ifdef EXPERIMENTAL_CMD_RESOLVER
 static int NSisXOTclNamespace(Tcl_Namespace *nsPtr);
@@ -155,7 +155,7 @@ static int callDestroyMethod(ClientData cd, Tcl_Interp *interp, XOTclObject *obj
 static int XOTclObjConvertObject(Tcl_Interp *interp, register Tcl_Obj *objPtr, XOTclObject **obj);
 static XOTclObject *XOTclpGetObject(Tcl_Interp *interp, char *name);
 static XOTclClass *XOTclpGetClass(Tcl_Interp *interp, char *name);
-static XOTclCallStackContent *CallStackGetFrame(Tcl_Interp *in);
+static XOTclCallStackContent *CallStackGetFrame(Tcl_Interp *interp);
 #if !defined(NDEBUG)
 static void checkAllInstances(Tcl_Interp *interp, XOTclClass *startCl, int lvl);
 #endif
