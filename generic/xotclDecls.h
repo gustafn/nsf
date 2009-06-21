@@ -3,9 +3,9 @@
  *
  *	Declarations of functions in the platform independent public XOTcl API.
  *
- * Copyright (c) 1998-1999 by XXXX
+ *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
  *
- * See the file "license.terms" for information on usage and redistribution
+ * See the file "tcl-license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
@@ -53,12 +53,12 @@ EXTERN int		XOTclDeleteClass _ANSI_ARGS_((Tcl_Interp * interp,
 				struct XOTcl_Class * cl));
 /* 11 */
 EXTERN Tcl_Command	XOTclAddPMethod _ANSI_ARGS_((Tcl_Interp * interp, 
-				struct XOTcl_Object * obj, char * nm, 
+				struct XOTcl_Object* obj, CONST char* nm, 
 				Tcl_ObjCmdProc * proc, ClientData cd, 
 				Tcl_CmdDeleteProc * dp));
 /* 12 */
 EXTERN Tcl_Command	XOTclAddIMethod _ANSI_ARGS_((Tcl_Interp * interp, 
-				struct XOTcl_Class * cl, char * nm, 
+				struct XOTcl_Class* cl, CONST char* nm, 
 				Tcl_ObjCmdProc * proc, ClientData cd, 
 				Tcl_CmdDeleteProc * dp));
 /* 13 */
@@ -159,13 +159,13 @@ EXTERN int		XOTclObjErrArgCnt _ANSI_ARGS_((Tcl_Interp * interp,
 /* 41 */
 EXTERN Tcl_Command	XOTclAddObjectMethod _ANSI_ARGS_((
 				Tcl_Interp * interp, 
-				struct XOTcl_Object * obj, char * nm, 
+				struct XOTcl_Object * obj, CONST char * nm, 
 				Tcl_ObjCmdProc * proc, ClientData cd, 
 				Tcl_CmdDeleteProc * dp, int flags));
 /* 42 */
 EXTERN Tcl_Command	XOTclAddInstanceMethod _ANSI_ARGS_((
 				Tcl_Interp * interp, struct XOTcl_Class * cl, 
-				char * nm, Tcl_ObjCmdProc * proc, 
+				CONST char * nm, Tcl_ObjCmdProc * proc, 
 				ClientData cd, Tcl_CmdDeleteProc * dp, 
 				int flags));
 /* 43 */
@@ -193,8 +193,8 @@ typedef struct XotclStubs {
     int (*xOTclCreateClass) _ANSI_ARGS_((Tcl_Interp * interp, Tcl_Obj * name, struct XOTcl_Class * cl)); /* 8 */
     int (*xOTclDeleteObject) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Object * obj)); /* 9 */
     int (*xOTclDeleteClass) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Class * cl)); /* 10 */
-    Tcl_Command (*xOTclAddPMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Object * obj, char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp)); /* 11 */
-    Tcl_Command (*xOTclAddIMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Class * cl, char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp)); /* 12 */
+    void (*xOTclAddPMethod) _ANSI_ARGS_((Tcl_Interp* in, struct XOTcl_Object* obj, CONST char* nm, Tcl_ObjCmdProc* proc, ClientData cd, Tcl_CmdDeleteProc* dp)); /* 11 */
+    void (*xOTclAddIMethod) _ANSI_ARGS_((Tcl_Interp* in, struct XOTcl_Class* cl, CONST char* nm, Tcl_ObjCmdProc* proc, ClientData cd, Tcl_CmdDeleteProc* dp)); /* 12 */
     void (*xOTclRemovePMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Object * obj, char * nm)); /* 13 */
     void (*xOTclRemoveIMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Class * cl, char * nm)); /* 14 */
     Tcl_Obj * (*xOTclOSetInstVar) _ANSI_ARGS_((struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name, Tcl_Obj * value, int flgs)); /* 15 */
@@ -223,8 +223,8 @@ typedef struct XotclStubs {
     int (*xOTclNextObjCmd) _ANSI_ARGS_((ClientData cd, Tcl_Interp * interp, int objc, Tcl_Obj *CONST objv[])); /* 38 */
     int (*xOTclCallMethodWithArgs) _ANSI_ARGS_((ClientData cd, Tcl_Interp * interp, Tcl_Obj * method, Tcl_Obj * arg, int objc, Tcl_Obj *CONST objv[], int flags)); /* 39 */
     int (*xOTclObjErrArgCnt) _ANSI_ARGS_((Tcl_Interp * interp, Tcl_Obj * cmdName, Tcl_Obj * methodName, char * arglist)); /* 40 */
-    Tcl_Command (*xOTclAddObjectMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Object * obj, char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags)); /* 41 */
-    Tcl_Command (*xOTclAddInstanceMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Class * cl, char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags)); /* 42 */
+    Tcl_Command (*xOTclAddObjectMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Object * obj, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags)); /* 41 */
+    Tcl_Command (*xOTclAddInstanceMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Class * cl, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags)); /* 42 */
     int (*xOTclCreate) _ANSI_ARGS_((Tcl_Interp * in, XOTcl_Class * class, Tcl_Obj * name, ClientData data, int objc, Tcl_Obj *CONST objv[])); /* 43 */
 } XotclStubs;
 

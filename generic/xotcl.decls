@@ -7,7 +7,7 @@
 #	
 #
 # Copyright (c) 1998-1999 by Scriptics Corporation.
-# See the file "license.terms" for information on usage and redistribution
+# See the file "tcl-license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 # 
 # RCS: $Id: xotcl.decls,v 1.4 2006/09/27 08:12:40 neumann Exp $
@@ -57,12 +57,12 @@ declare 10 generic {
 }
 declare 11 generic {
     Tcl_Command XOTclAddPMethod(Tcl_Interp *interp, struct XOTcl_Object *obj, 
-                         char *nm, Tcl_ObjCmdProc *proc,
+                         CONST char* nm, Tcl_ObjCmdProc* proc,
 	                 ClientData cd, Tcl_CmdDeleteProc *dp)
 }
 declare 12 generic {
     Tcl_Command XOTclAddIMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, 
-                         char *nm, Tcl_ObjCmdProc *proc,
+                         CONST char* nm, Tcl_ObjCmdProc* proc,
 	                 ClientData cd, Tcl_CmdDeleteProc *dp)
 }
 declare 13 generic {
@@ -165,12 +165,12 @@ declare 40 generic {
 }
 declare 41 generic {
     Tcl_Command XOTclAddObjectMethod(Tcl_Interp *interp, struct XOTcl_Object *obj, 
-                         char *nm, Tcl_ObjCmdProc *proc,
+                         CONST char *nm, Tcl_ObjCmdProc *proc,
 	                 ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
 }
 declare 42 generic {
     Tcl_Command XOTclAddInstanceMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, 
-                         char *nm, Tcl_ObjCmdProc *proc,
+                         CONST char *nm, Tcl_ObjCmdProc *proc,
 	                 ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
 }
 declare 43 generic {

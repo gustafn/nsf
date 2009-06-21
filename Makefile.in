@@ -8,8 +8,9 @@
 #
 # Copyright (c) 1999 Scriptics Corporation.
 # Copyright (c) 2002-2003 ActiveState Corporation.
+# Copyright (c) 2001-2008 Gustaf Neumann, Uwe Zdun
 #
-# See the file "license.terms" for information on usage and redistribution
+# See the file "tcl-license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
 # RCS: @(#) $Id: Makefile.in,v 1.21 2006/10/04 20:40:23 neumann Exp $
@@ -22,19 +23,20 @@
 #XOTCL_VERSION 	= @PACKAGE_VERSION@
 XOTCL_VERSION 	= @XOTCL_VERSION@
 
-src_lib_dir 	= ${srcdir}/library
-src_doc_dir 	= ${srcdir}/doc
-src_test_dir 	= ${srcdir}/tests
-src_app_dir 	= ${srcdir}/apps
-src_generic_dir = ${srcdir}/generic
-TCL_LIB_SPEC    = @TCL_LIB_SPEC@
-TK_LIB_SPEC	= @TK_LIB_SPEC@
-subdirs		= @subdirs@
-aol_prefix	= @aol_prefix@
+src_lib_dir		= ${srcdir}/library
+src_doc_dir		= ${srcdir}/doc
+src_test_dir		= ${srcdir}/tests
+src_app_dir		= ${srcdir}/apps
+src_generic_dir		= ${srcdir}/generic
+src_man_dir		= ${srcdir}/man
+TCL_LIB_SPEC		= @TCL_LIB_SPEC@
+TK_LIB_SPEC		= @TK_LIB_SPEC@
+subdirs			= @subdirs@
+aol_prefix		= @aol_prefix@
 
 # Requires native paths
-PLATFORM_DIR    = `@CYGPATH@ $(srcdir)/@TEA_PLATFORM@`
-target_doc_dir 	= ./doc
+PLATFORM_DIR	= `@CYGPATH@ $(srcdir)/@TEA_PLATFORM@`
+target_doc_dir		= ./doc
 
 src_lib_dir_native	= `@CYGPATH@ ${src_lib_dir}`
 src_doc_dir_native	= `@CYGPATH@ ${src_doc_dir}`
@@ -42,10 +44,10 @@ src_test_dir_native 	= `@CYGPATH@ ${src_test_dir}`
 src_app_dir_native	= `@CYGPATH@ ${src_app_dir}`
 src_generic_dir_native	= `@CYGPATH@ ${src_generic_dir}`
 
-libdirs = comm lib serialize @libdirs_actiweb@
-libsrc 	= COPYRIGHT pkgIndex.tcl 
-appdirs = comm scripts utils @apps_actiweb@
-appsrc 	= COPYRIGHT 
+libdirs		= comm lib serialize @libdirs_actiweb@
+libsrc		= COPYRIGHT pkgIndex.tcl 
+appdirs		= comm scripts utils @apps_actiweb@
+appsrc		= COPYRIGHT 
 
 DOC_SOURCE = \
 	$(src_doc_dir)/langRef.xotcl \
@@ -350,6 +352,11 @@ test-core: $(TCLSH_PROG)
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/slottest.xotcl \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/mixinoftest.xotcl \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/varresolutiontest.xotcl \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+
 
 test-http: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/xocomm.test \

@@ -6,7 +6,7 @@
 # Copyright (c) 1999-2000 Ajuba Solutions.
 # Copyright (c) 2002-2005 ActiveState Corporation.
 #
-# See the file "license.terms" for information on usage and redistribution
+# See the file "tcl-license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 #
 # RCS: @(#) $Id: tcl.m4,v 1.7 2006/09/27 08:12:39 neumann Exp $

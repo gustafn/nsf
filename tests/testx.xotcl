@@ -1171,10 +1171,9 @@ filterInfo proc run {{n 20}} {
 	    my instvar a b cc
 	    return $r--${a}--[set cc]
 	}
-
 	set safedObjFilters [Object info filter]
 	Object instfilter "" 
-	C1 c1
+      	C1 c1
 	Object instfilter $safedObjFilters
 
       if {$i == 0} {
@@ -1189,7 +1188,7 @@ filterInfo proc run {{n 20}} {
 
 	set FInfo ""
 	set result [c1 m1]
-	
+
 	::errorCheck $FInfo \
 	    "{callingclass {} filterreg {::C0 instfilter infoFilter} callingobject ::filterInfo callingproc run calledproc m1} {callingclass ::C0 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc m1 calledproc instvar} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}} {callingclass ::C1 filterreg {::C0 instfilter infoFilter} callingobject ::c1 callingproc m1 calledproc instvar} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r {}} {self ::c1 proc infoFilter class ::C0 infoclass ::C1 r 1--1--1}" \
 	    "Wrong filtering of c1 m1"
@@ -1199,8 +1198,8 @@ filterInfo proc run {{n 20}} {
 	::errorCheck $result \
 	  "1--1--1" "Wrong return result of Filter Example 2 'c1 m1' "
 
-	
-	Class T0
+
+      Class T0
       FI addFilter T0
       T0 instproc m {} {
 	set e -0=showStack-1=showCall-2=m-3=m-4=m-5=run-6=run
@@ -1226,7 +1225,6 @@ filterInfo proc run {{n 20}} {
 	set r2 [next]
 	set r after-[self]-[self proc]-[self class]-[my info class]-${r1}-$r2
       }
-      
       T1 t
       
       set FInfo ""
@@ -2056,13 +2054,13 @@ TestX mixinTest -proc run {{n 10}} {
   }
 }
 TestX procsearchTest -proc run {{n 10}} {
-  
+
   Class M -instproc foo args {puts m;next}
   Object o -mixin M -proc foo args {puts o;next}
   ::errorCheck [o procsearch foo] "::M instproc foo" "mixin before proc in procsearch"
   M destroy
   o destroy
-  
+
   Class CC -instproc foo args {puts CC;next}
   CC create c -proc foo args {puts c;next} 
   ::errorCheck [c procsearch foo] "::c proc foo" "proc before instproc in procsearch"
@@ -2549,7 +2547,6 @@ TestX copymove -proc run {{n 10}} {
     ::errorCheck "[::cutSpaces [y info invar]--[y info pre assProc]--[y info post assProc]]"\
       "{7 > 5} { #a comment }--{5 > 3} { #pre }--{5 > 4} {#post }"\
       "Copy Obj Assertions"
-
     #
     # move test
     #
@@ -2626,6 +2623,82 @@ TestX copymove -proc run {{n 10}} {
     ::errorCheck [B info superclass]-[B1 info superclass]-[X info subclass] \
 	"::X-::V ::X ::Z-::B ::B1" \
 	"Move of subclass relationship"
+
+    #
+    # test nonpos args
+    #
+    Class X
+    X proc do0 {arg1 arg2} {puts "$arg1 $arg2"}
+    X proc do1 {-arg1 -arg2} {puts "$arg1 $arg2"}
+    X proc do2 {-arg1 arg2} {puts "$arg1 $arg2"}
+    X proc do3 {arg1 {arg2 d1}} {puts "$arg1 $arg2"}
+    X proc do4 {-arg1 {-arg2 d2}} {puts "$arg1 $arg2"}
+    X proc do5 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
+    X instproc do6 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
+
+    X copy Y
+
+    foreach m [lsort [X info procs]] {
+      foreach info {args nonposargs} {
+	set x [X info $info $m]
+	set y [Y info $info $m]
+	::errorCheck $x $y "copy nonposargs: $x ne $y"
+      }
+      foreach a [X info args $m] {
+	set vx ""; set vy ""
+	set dx [X info default $m $a vx]
+	set dy [Y info default $m $a vy]
+	::errorCheck $dx $dy "copy nonposargs: hasdefault $dx ne $dy"
+	if {[info exists dx] && [info exists dy]} {
+	  ::errorCheck $vx $vy "copy nonposargs: hasdefault value $vx ne $vy"
+	}
+      }
+    }
+    foreach m [lsort [X info instprocs]] {
+      foreach info {instargs instnonposargs} {
+	set x [X info $info $m]
+	set y [Y info $info $m]
+	::errorCheck $x $y "copy inst nonposargs: $x ne $y"
+      }
+      foreach a [X info instargs $m] {
+	set vx ""; set vy ""
+	set dx [X info instdefault $m $a vx]
+	set dy [Y info instdefault $m $a vy]
+	::errorCheck $dx $dy "copy inst nonposargs: hasdefault $dx ne $dy"
+	if {[info exists dx] && [info exists dy]} {
+	  ::errorCheck $vx $vy "copy inst nonposargs: hasdefault value $vx ne $vy"
+	}
+      }
+    }
+
+    Object X
+    X proc do0 {arg1 arg2} {puts "$arg1 $arg2"}
+    X proc do1 {-arg1 -arg2} {puts "$arg1 $arg2"}
+    X proc do2 {-arg1 arg2} {puts "$arg1 $arg2"}
+    X proc do3 {arg1 {arg2 d1}} {puts "$arg1 $arg2"}
+    X proc do4 {-arg1 {-arg2 d2}} {puts "$arg1 $arg2"}
+    X proc do5 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
+
+    X copy Y
+
+    foreach m [lsort [X info procs]] {
+      foreach info {args nonposargs} {
+	set x [X info $info $m]
+	set y [Y info $info $m]
+	::errorCheck $x $y "copy nonposargs: $x ne $y"
+      }
+      foreach a [X info args $m] {
+	set vx ""; set vy ""
+	set dx [X info default $m $a vx]
+	set dy [Y info default $m $a vy]
+	::errorCheck $dx $dy "copy nonposargs: hasdefault $dx ne $dy"
+	if {[info exists dx] && [info exists dy]} {
+	  ::errorCheck $vx $vy "copy nonposargs: hasdefault value $vx ne $vy"
+	}
+      }
+
+    }
+     
   }
 }
 
@@ -2794,6 +2867,45 @@ TestX recreation -proc run {{n 10}} {
   unset ::cleanupResult
 
   Object instmixin ""
+  
+  # upgrading/downgrading 
+  Class B
+  Class C -superclass B
+  C c1
+  Object o1 -mixin B
+  Object o2 -mixin C
+
+  ::errorCheck [B info class] "::xotcl::Class" "up/down before 0"
+  ::errorCheck [c1 istype B] 1 "up/down before 1"
+  ::errorCheck [C info superclass] ::B "up/down before 2"
+  ::errorCheck [B info subclass] ::C "up/down before 3"
+  ::errorCheck [o1 info mixin] ::B "up/down before 4"
+  ::errorCheck [o2 info mixin] ::C "up/down before 5"
+  ::errorCheck [B info mixinof] ::o1 "up/down before 6"
+  ::errorCheck [C info mixinof] ::o2 "up/down before 7"
+  ::errorCheck [c1 info precedence] "::C ::B ::xotcl::Object" "up/down before 8"
+  ::errorCheck [o1 info precedence] "::B ::xotcl::Object" "up/down before 9"
+  ::errorCheck [o2 info precedence] "::C ::B ::xotcl::Object" "up/down before 10"
+ 
+  ::errorCheck [catch {B class Object}] 1 "don't allow downgrading"
+
+  Object B
+  ::errorCheck [B info class] "::xotcl::Object" "up/down after 0"
+  ::errorCheck [c1 istype B] 0 "up/down after 1"
+  ::errorCheck [C info superclass] ::xotcl::Object "up/down after 2"
+  ::errorCheck [catch {B info subclass}] 1 "up/down after 3"
+  ::errorCheck [o1 info mixin] "" "up/down after 4"
+  ::errorCheck [o2 info mixin] ::C "up/down after 5"
+  ::errorCheck [catch {B info mixinof}] 1 "up/down after 6"
+  ::errorCheck [C info mixinof] ::o2 "up/down after 7"
+  ::errorCheck [c1 info precedence] "::C ::xotcl::Object" "up/down after 8"
+  ::errorCheck [o1 info precedence] "::xotcl::Object" "up/down after 9"
+  ::errorCheck [o2 info precedence] "::C ::xotcl::Object" "up/down after 10"
+  ::errorCheck [B info class] "::xotcl::Object" "up/down after 0x"
+
+  B class Object
+  ::errorCheck [catch {B class Object}] 0 "don't complain when same level"
+  ::errorCheck [catch {B class Class}] 1 "don't allow upgrading"
 }
 
 
@@ -3122,24 +3234,27 @@ TestX objectReferences -proc run {{n 20}} {
     ::errorCheck [o mixin XY4] ::XY4 " __unknown XY4"
   }
 
-
-
   ::errorCheck [lsort [UnknownClass info info]] {args body children class classchildren classparent commands default filter filterguard forward heritage info instances instbody instcommands instdefault instfilter instfilterguard instforward instinvar instmixin instmixinof instpost instpre instprocs invar methods mixin mixinof parameter parent post pre precedence procs subclass superclass vars} "info info"
 
+  # clear unknown handler to avoid strange results later
+  Class proc __unknown "" ""
+
   ::errorCheck [Class info instances *Unk*] ::UnknownClass "match in info instances"
-  ::errorCheck [Class info instances Unk*] "" "no match in info instances"
+  ::errorCheck [Class info instances Unk*] "::UnknownClass" "no match in info instances"
   ::errorCheck [Class info instances Unk] "" "no match in info instances (no metachars)"
   ::errorCheck [Class info class] ::xotcl::Class "info class of Class"
-  ::errorCheck [Class info class Object] 1 "info class of Class Object"
+  ::errorCheck [Class info precedence ::xotcl::Object] ::xotcl::Object "info class of Class Object"
   Class C
   Class D -superclass C
   Class E -superclass D -parameter {{x 1}}
   E instproc t {a b {c 1}} {return ok}
   E proc p {a b {c 1}} {return ok}
   E instproc q {} {return [self proc]}
-  ::errorCheck [C info subclass E] 1 "transitive subclass 1"
-  ::errorCheck [Object info subclass E] 1 "transitive subclass 2"
-  ::errorCheck [D info subclass C] 0 "transitive subclass 3"
+  ::errorCheck [C info subclass D] ::D "transitive subclass 0"
+  ::errorCheck [C info subclass E] "" "transitive subclass 0a"
+  ::errorCheck [C info subclass -closure E] ::E "transitive subclass 1"
+  ::errorCheck [Object info subclass -closure E] ::E "transitive subclass 2"
+  ::errorCheck [D info subclass -closure C] "" "transitive subclass 3"
   ::errorCheck [E info heritage] "::D ::C ::xotcl::Object" "heritage"
   ::errorCheck [E info instargs t] "a b c" "instargs"
   ::errorCheck [E info instdefault t c x] 1 "instdefault"
@@ -3183,6 +3298,39 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [Object ismetaclass M] 1 "is metaclass 1"
   ::errorCheck [Object ismetaclass C] 0 "is metaclass 0"
 
+  Class X
+  ::errorCheck [Object ismetaclass X] 0 "is metaclass 0"
+  ::errorCheck [X isclass] 1 "is isclass 1"
+  ::errorCheck [Class info instances X] ::X "is an instance of Class"
+  ::errorCheck [catch {X class Object}] 1 "turn class into an object (error)"
+  Class Y -superclass X
+  Object o1 -mixin Y
+  ::errorCheck [o1 info precedence] "::Y ::X ::xotcl::Object" "normal mixin precedence"
+  Object X  ;# turn class X into Object X (via destroy/create)
+  ::errorCheck [o1 info precedence] "::Y ::xotcl::Object" "reduced mixin precedence"
+  X destroy 
+  Y destroy
+  o1 destroy
+
+  Class M -superclass Class
+  M create m1
+  ::errorCheck [Object ismetaclass M] 1 "is metaclass 1"
+  ::errorCheck [M isclass] 1 "is isclass 1"
+  ::errorCheck [Class info instances M] ::M "is an instance of Class"
+  ::errorCheck [m1 info class] ::M "m1 is an instance of the meta-class"
+  ::errorCheck [m1 isclass] 1 "m1 is isclass 1"
+  ::errorCheck [m1 info class] ::M "m1 is of class ::M"
+  Object M ;# make object from metaclass
+  ::errorCheck [Object ismetaclass M] 0 "is metaclass 0"
+  ::errorCheck [M isclass] 0 "is isclass 0"
+  ::errorCheck [Class info instances M] "" "is not an instance of Class"
+  ::errorCheck [m1 info class] ::xotcl::Class "m1 is now an instance of Class"
+  ::errorCheck [m1 isclass] 1 "m1 is isclass 1"
+  ::errorCheck [m1 info class] ::xotcl::Class "m1 is of class ::xotcl::Class"
+  M destroy
+  
+  # to be completed XXX
+
   Class C -parameter {number name}
   C instproc test {} {
     my instvar {number x} name
@@ -3190,6 +3338,25 @@ TestX objectReferences -proc run {{n 20}} {
   }
   C c -name koen -number 25
   ::errorCheck [c test] "koen 25" "instvar with alias"
+
+  #
+  Class C
+  Class D -superclass C
+  Class D1
+  D instmixin D1
+  D d1
+
+  ::errorCheck [d1 info precedence] "::D1 ::D ::C ::xotcl::Object" "d1 info precedence"
+  ::errorCheck [d1 info precedence *] "::D1 ::D ::C ::xotcl::Object" "d1 info precedence *"
+  ::errorCheck [d1 info precedence ::D*] "::D1 ::D" "d1 info precedence pattern"
+
+  ::errorCheck [d1 info precedence -intrinsic] "::D ::C ::xotcl::Object" "d1 info precedence -intrinsic"
+  ::errorCheck [d1 info precedence -intrinsic *] "::D ::C ::xotcl::Object" "d1 info precedence -intrinsic *"
+  ::errorCheck [d1 info precedence -intrinsic ::D*] "::D" "d1 info precedence -intrinsic pattern"
+
+  d1 destroy
+  D destroy
+  D1 destroy
 }
 
 
@@ -3226,9 +3393,9 @@ condMixins proc run {{n 20}} {
 
   set ::context payrollApp
 
-  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace salary self set signature subst trace unset uplevel upvar volatile vwait" "condmixin all methods"
+  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace salary self set setvalues signature subst trace unset uplevel upvar volatile vwait" "condmixin all methods"
 
-  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace salary self set signature subst trace unset uplevel upvar volatile vwait" "all methods in context"
+  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit parametercmd print proc procsearch requireNamespace salary self set setvalues signature subst trace unset uplevel upvar volatile vwait" "all methods in context"
 
   ::errorCheck [my show payrollApp jim] "{payrollApp:  jim info methods salary => salary} {payrollApp:  jim info methods -incontext salary => salary} {payrollApp:  jim info methods driv* => driving-license} {payrollApp:  jim info methods -incontext driv* => }" "payrollApp jim"
   ::errorCheck [my show shipmentApp jim] "{shipmentApp:  jim info methods salary => salary} {shipmentApp:  jim info methods -incontext salary => } {shipmentApp:  jim info methods driv* => driving-license} {shipmentApp:  jim info methods -incontext driv* => driving-license}" "shipmentApp jim"
@@ -3892,7 +4059,6 @@ TestX create nonposargs -proc run {{n 20}} {
   errorCheck [catch {o p8 -x 2 }] 0 nonpos-17
   o destroy
 
-  
   Class X
   X instproc ListOfStringsOption {{-default "murr6"} {-cb {}} name} {
     if {$cb eq {}} { set cb "::set ::$name " } ;# global variable
@@ -3902,6 +4068,7 @@ TestX create nonposargs -proc run {{n 20}} {
   ::x1 ListOfStringsOption uu
   errorCheck [set ::uu] murr6 murr6
   ::x1 destroy
+  X destroy
   ::X destroy
 }
 
@@ -3965,6 +4132,7 @@ TestX copymove2 -proc run {{n 10}} {
 
 TestX proc run {} {
   foreach test [lsort [TestX info instances]] {
+    puts stderr "$test: start"
     $test run
   }
 }

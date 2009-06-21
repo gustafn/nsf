@@ -174,20 +174,15 @@ TestSuite classcreate
 classcreate proc factorgraph {{n 3600}} {
   TestClass $n
 
-
   for {set i [expr {$n/2}]} {$i>1} {incr i -1} {
     if {($n % $i) == 0} then {
-      
       #
       # factors become subclasses, direct or indirect
       #
-
-
       if {[TestClass info instances $i] eq ""} then {
 	my factorgraph $i
 	$i superclass $n
       } elseif {[$i info superclass $n] == 0} then {
-
 	$i superclass [concat [$i info superclass] $n]
       }
     }
@@ -283,7 +278,7 @@ inheritance proc run {} {
   Object proc combineforclass {} {
     return [concat [list [self class]] [next]]
   }
-
+  
   my superclass
   my combination
 
@@ -525,8 +520,7 @@ objectvariables proc run {{n 100}} {
     lappend guide [list array $i w]
   }
 
-
-  if {$guide != $trail} then {
+ if {$guide != $trail} then {
     error "FAILED [self] - trace: expected $guide, got $trail"
   }
 
@@ -541,7 +535,7 @@ objectvariables proc run {{n 100}} {
   }
 
   avar2 killSelf
-
+ 
   if {[lsort $guide] != [lsort $trail]} then {
     error "FAILED [self] - trace: expected $guide, got $trail"
   }

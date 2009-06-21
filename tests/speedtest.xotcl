@@ -170,7 +170,8 @@ D instproc init args {}
 D d
 
 
-
+Test new -cmd {llength [c info children]} -expected 999
+Test new -cmd {llength [Object info instances]} -expected 1006
 
 
 Test new -cmd {d istype D} -expected 1
@@ -223,12 +224,17 @@ Test new -cmd {c childNodeNamespace} -expected ::c::13
 Test new -cmd {c childNodeNamespaceCreate} -expected ::c::13
 Test new -cmd {c createVolatileRc} -expected 2
 
+Test new -count 1 -cmd {llength [Object info instances]} -expected 1006
+
 Test new -cmd {Object new -volatile} -expected ::xotcl::__\#F9 -count 2000 \
     -post {foreach o [Object info instances ::xotcl::__*] {$o destroy}} 
 Test new -cmd {Object new} -expected ::xotcl::__\#lQ  -count 2000 \
     -post {foreach o [Object info instances ::xotcl::__*] {$o destroy}} 
 Test new -cmd {Object new -childof o} -expected ::o::__\#0Hh \
     -pre {Object o} -post {o destroy}
+
+# should be still the same number as above
+Test new -count 1 -cmd {llength [Object info instances]} -expected 1006
 
 Test new -count 1000 -pre {::set ::count 0} \
     -cmd {Object create [incr ::count]} \
@@ -247,13 +253,11 @@ Test new -cmd {c exists n(500)}
 
 Test new -cmd {llength [c info children]} -expected 999
 Test new -cmd {c info children ::c::500}  -expected ::c::500
-if {[info exists xotcl_version]} {
-  Test new -cmd {llength [Object info instances]} -expected 1001
-} else {
-  Test new -cmd {llength [Object info instances]} -expected 1007
-}
+Test new -cmd {llength [Object info instances]} -expected 1007
 
+Test new -cmd {Object info instances ::c::500*} -expected ::c::500
 Test new -cmd {Object info instances ::c::500} -expected ::c::500
+Test new -cmd {Object info instances ::c::5000} -expected ""
 
 Test new -count 100 -pre {set ::c::l ""} \
     -cmd {lappend ::c::l 1} \
@@ -273,6 +277,12 @@ Test new \
 
 Test new \
     -count 100 \
+    -cmd  {c mixin add M1} \
+    -expected "" \
+    -post {c mixin ""}
+
+Test new \
+    -count 100 \
     -cmd {c mixinappend M1; c mixinappend M2} \
     -expected {::M1 ::M2} \
     -post {c mixin ""}
@@ -282,6 +292,90 @@ Test new \
     -cmd {c ma M1; c ma M2} \
     -expected {::M1 ::M2} \
     -post {c mixin ""}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Object o -mixin {D E}} \
+    -cmd {o info mixin D} \
+    -expected {::D} \
+    -post {foreach o {D E o} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Object o -mixin {D E}} \
+    -cmd {o info mixin E} \
+    -expected {::E} \
+    -post {foreach o {D E o} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Object o -mixin {D E}} \
+    -cmd {o info mixin ::E*} \
+    -expected {::E} \
+    -post {foreach o {D E o} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class E1; Object o -mixin {D E E1}} \
+    -cmd {o info mixin ::E*} \
+    -expected {::E ::E1} \
+    -post {foreach o {D E E1 o} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class X -instmixin {D E}} \
+    -cmd {X info instmixin D} \
+    -expected {::D} \
+    -post {foreach o {D E X} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class X -instmixin {D E}} \
+    -cmd {X info instmixin E} \
+    -expected {::E} \
+    -post {foreach o {D E X} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class E1; Class X -instmixin {D E E1}} \
+    -cmd {X info instmixin ::E*} \
+    -expected {::E ::E1} \
+    -post {foreach o {D E E1 X} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class X -instmixin {D E}} \
+    -cmd {X info instmixin ::E*} \
+    -expected {::E} \
+    -post {foreach o {D E X} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class X} \
+    -cmd {X instmixin {D E}; X instmixin delete ::E; X info instmixin} \
+    -expected {::D} \
+    -post {foreach o {D E X} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class X} \
+    -cmd {X instmixin {D E}; X instmixin delete E; X info instmixin} \
+    -expected {::D} \
+    -post {foreach o {D E X} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class E1; Class X} \
+    -cmd {X instmixin {D E E1}; catch {X instmixin delete ::E*}; X info instmixin} \
+    -expected {::D} \
+    -post {foreach o {D E E1 X} {$o destroy}}
+
+Test new \
+    -count 100 \
+    -pre {Class D; Class E; Class E1; Class X} \
+    -cmd {X instmixin {D E E1}; catch {X instmixin delete E*}; X info instmixin} \
+    -expected {::D} \
+    -post {foreach o {D E E1 X} {$o destroy}}
 
 Test new \
     -cmd {C instfilter f; C info instfilter} \

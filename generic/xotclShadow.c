@@ -3,7 +3,7 @@
  *  
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
  *
  *
  *  xotclShadow.c --
@@ -21,7 +21,7 @@ XOTclReplaceCommandCleanup(Tcl_Interp *interp, XOTclGlobalNames name) {
   int result = TCL_OK;
   XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
 
-  /*fprintf(stderr," cleanup for %s  ti=%p in %p\n", XOTclGlobalStrings[name], ti, in);*/
+  /*fprintf(stderr," cleanup for %s  ti=%p in %p\n", XOTclGlobalStrings[name], ti, interp);*/
   cmd = Tcl_GetCommandFromObj(interp, XOTclGlobalObjects[name]);
   if (cmd != NULL) {
     Tcl_Command_objProc(cmd) = ti->proc;
@@ -177,14 +177,14 @@ int XOTclCallCommand(Tcl_Interp *interp, XOTclGlobalNames name,
   int result;
   XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
   ALLOC_ON_STACK(Tcl_Obj*,objc, ov);
-
-  /* {int i;
+  /*
+   {int i;
     fprintf(stderr,"calling %s (%p %p) in %p, objc=%d ",
-	    XOTclGlobalStrings[name],ti,ti->proc, in, objc);
-    for(i=0;i<objc;i++){fprintf(stderr, "'%s' ", ObjStr(objv[i]));}
+	    XOTclGlobalStrings[name],ti,ti->proc, interp, objc);
+            for(i=0;i<objc;i++){fprintf(stderr, "'%s' ", ObjStr(objv[i]));}
     fprintf(stderr,"\n");
-  } */
-  
+  } 
+  */
   ov[0] = XOTclGlobalObjects[name];
   if (objc > 1)
     memcpy(ov+1, objv+1, sizeof(Tcl_Obj *)*(objc-1));

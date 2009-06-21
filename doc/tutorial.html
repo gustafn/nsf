@@ -4,7 +4,7 @@
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
 	<META NAME="AUTHOR" CONTENT="Gustaf Neumann and Uwe Zdun">
-	<META NAME="DOCNUMBER" CONTENT="1.5.2">
+	<META NAME="DOCNUMBER" CONTENT="1.6.0">
 	<META NAME="CHANGEDBY" CONTENT="Gustaf Neumann">
 <STYLE>
 BODY	{
@@ -397,7 +397,7 @@ Now let us build to example soccer team objects.
 </p>
 <pre CLASS="code">
   SoccerTeam chelsea -name "Chelsea FC" -location "Chelsea"
-  SoccerTeam bayernMunich -name "F.C. Bayern München" -location "Munich"
+  SoccerTeam bayernMunich -name "F.C. Bayern Mnchen" -location "Munich"
 </pre>
 <p>
 
@@ -923,9 +923,7 @@ compactly into the <tt>info</tt> instance method which is available
 for objects and classes (there are special info options for object
 aggregations, nested classes, mixins, filters, meta-data and
 assertions, which are explained separately in the following
-sections). The <tt>info</tt> instance method's options, from the view
-of an object, are summarized in the following table. They are
-identically to the OTcl info options on objects.
+sections). 
 </P>
 <CENTER>
       <P><A NAME="table_oinfo"></A>
@@ -1219,8 +1217,8 @@ table summarizes the additional info options available on classes.
 	  </TD>
 	</TR>
       </TABLE>
-</CENTER>
-<P><BR></P>
+</CENTER>  
+<P>The full list of info options is provided in the language reference.</P>
 <H3><A NAME="class_inheritance"></A>Inheritance 
 </H3>
 <P>Besides encapsulation of operations and state in objects, a second
@@ -1767,7 +1765,7 @@ However, this behavior is not implemented in XOTcl, but in C.
 </P>
 <ul>
 <li> <em>Create a new object:</em> 
-   <tt>create</tt> calls <tt>alloc</tt> and then
+    By default <tt>create</tt> calls <tt>alloc</tt> and then
    <tt>doInitializations</tt>.
 <li> <em>Recreate an existing object:</em> 
     When the specified object exists, it is recreated through the
@@ -1776,11 +1774,22 @@ However, this behavior is not implemented in XOTcl, but in C.
   <em>givenClass</em> <tt>recreate</tt> [<tt>self</tt>]
 </pre>
     <P>
-    <tt>recreate</tt> can be customized e.g. by overloading or interception. 
-    By default it calls <tt>cleanup</tt> followed by <tt>doInitializations</tt>.
+    The method <tt>recreate</tt> can be customized like all other
+  XOTcl methods (e.g. by overloading or interception). 
+    By default <tt>create</tt> calls <tt>cleanup</tt> followed by
+  <tt>doInitializations</tt>.
+  </p>
+  <p>
+  Note, that <tt>recreate</tt> is not called, when a someone tries
+  to recreate a class as an object or an object as a class. In these
+  cases, <tt>destroy</tt> + <tt>create</tt> are used.
+<pre CLASS="code">
+    Class c
+    Object c ;# here, "c" is downgraded to an object, no "recreate" is called
+</pre>
 </ul>
 <p>
-In both cases, the method <tt>doInitializations</tt> 
+For <tt>create</tt> and <tt>recreate</tt>, the method <tt>doInitializations</tt> 
 is called automatically from C and has the following default behavior: 
 </p>
 <ul>
@@ -1841,6 +1850,14 @@ relationships of C:
   <tt>puts</tt> class=[c1 <tt>info</tt> class]
   <tt>puts</tt> class=[c2 <tt>info</tt> class]
 </pre>
+
+Starting with XOTcl 1.4.0, xotcl provides also a user-friendly
+way for a structure-prevering recreate implemented in C. Since this version, one
+can configure "softrecreate" as follow.
+<pre CLASS="code">
+<tt>::xotcl::configure softrecreate</tt> true
+</pre>
+This command causes that recreates are structure-conservative.
 
 <H2>
 <A NAME="non-pos-args"></A>Methods with Non-Positional Arguments
@@ -2559,6 +2576,7 @@ method. It has the syntax:
 <pre CLASS="code">
   <em>objName</em> <tt>mixin</tt> <em>mixinList</em>
 </pre><P>
+
 For example we may create two interactive agents, where one is logged
 and one is tested: 
 </P>
@@ -2593,17 +2611,23 @@ Per-Object Mix-ins: Next-Path for the Example</P>
 <P><BR><BR>
 </P>
 <P>The <tt>mixin</tt> option of the <tt>info</tt> instance method
-allows us to introspect the per-object mix-ins. It has the syntax: 
+allows us to introspect the per-object mixins. It has the syntax: 
 </P>
 <pre CLASS="code">
-  <em>objName</em> <tt>info</tt> mixin <em>?className?</em>
+  <em>objName</em> <tt>info</tt> mixin <em>?pattern?</em>
 </pre>
 <P STYLE="margin-bottom: 0in">
-It returns the list of all mix-ins of the object, if <tt>className</tt>
-is not specified, otherwise it returns <tt>1</tt>, if <tt>className</tt>
-is a mixin of the object, or <tt>0</tt> if not. 
+It returns the list of all mix-ins of the object, if <tt>pattern</tt>
+is not specified, otherwise it returns the matching per object mixin classes.
 </P>
-
+	
+The inverse operation of <tt>info mixin</tt> is <tt>mixinof</tt> finds
+out, into which objects an per-object mixin class is mixed into.
+	
+<pre CLASS="code">
+  <em>clsName</em> <tt>info</tt> mixinof <em>?pattern?</em>
+</pre>
+	
 <P> Note, that the constructors (init methods) of per-object mixins (and per-class mixins)
 are only called, if the mixin is registered already during object
 initialization (when <tt>init</tt> is called). For per-object mixins, one can 
@@ -2681,6 +2705,12 @@ has the syntax:
 </P>
 <pre CLASS="code">
   <em>className</em> <tt>instmixin</tt> <em>mixinList</em>
+</pre>
+The inverse operation of <tt>info inmixin</tt> is <tt>instmixinof</tt> finds
+out, into which objects an per-object mixin class is mixed into.
+	
+<pre CLASS="code">
+  <em>className</em> <tt>info</tt> instmixinof <em>?-closure? ?pattern?</em>
 </pre>
 <P>
 Now consider that in the given per-object mixin example all
@@ -4723,7 +4753,13 @@ might look as follows:</p>
 	</TR>
 </TABLE>
 
-<P></P><A NAME="xotcl-filter"><STRONG>[Neumann and Zdun 1999a]</STRONG></A>
+
+<P></P> <STRONG>[Zdun, Strembeck, Neumann 2007]</STRONG> U. Zdun,
+M. Strembeck, G. Neumann: Object-Based and Class-Based Composition of
+Transitive Mixins, <em>Information and Software Technology</em>, 49(8) 2007 .
+
+<P></P>
+<A NAME="xotcl-filter"><STRONG>[Neumann and Zdun 1999a]</STRONG></A>
 G. Neumann and U. Zdun.
 Filters as a language support for design patterns in object-oriented
   scripting languages.

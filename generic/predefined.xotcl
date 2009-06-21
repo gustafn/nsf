@@ -12,6 +12,8 @@ namespace eval ::xotcl {
     ::xotcl::relation ::xotcl::Object class ::xotcl::Class
     ::xotcl::relation ::xotcl::Class class ::xotcl::Class
   }
+  # by setting this variable, we can check later, whether we are in
+  # bootstrapping mode
   set bootstrap 1
 
   # provide the standard command set for ::xotcl::Object
@@ -219,6 +221,7 @@ namespace eval ::xotcl {
   ::xotcl::MetaSlot create ::xotcl::InfoSlot 
   createBootstrapAttributeSlots ::xotcl::InfoSlot {
     {multivalued true}
+    {elementtype ::xotcl::Class}
   }
   
   ::xotcl::relation ::xotcl::InfoSlot superclass ::xotcl::Slot
@@ -231,8 +234,28 @@ namespace eval ::xotcl {
   }
   ::xotcl::InfoSlot instproc delete {-nocomplain:switch obj prop value} {
     set old [$obj info $prop]
-    set p [lsearch -glob $old $value]
-    if {$p>-1} {$obj $prop [lreplace $old $p $p]} else {
+  if {[string first * $value] > -1 || [string first \[ $value] > -1} {
+    # string contains meta characters
+    if {[my elementtype] ne "" && ![string match ::* $value]} {
+      # prefix string with ::, since all object names have leading ::
+      set value ::$value
+    }
+    return [$obj $prop [lsearch -all -not -glob -inline $old $value]]
+  } elseif {[my elementtype] ne ""} {
+    if {[string first :: $value] == -1} {
+      if {![my isobject $value]} {
+        error "$value does not appear to be an object"
+      }
+      set value [$value self]
+    }
+    if {![$value isclass [my elementtype]]} {
+      error "$value does not appear to be of type [my elementtype]"
+    }
+  }
+  set p [lsearch -exact $old $value]
+  if {$p > -1} {
+    $obj $prop [lreplace $old $p $p]
+  } else {
       error "$value is not a $prop of $obj (valid are: $old)"
     }
   }
@@ -267,9 +290,9 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::Object::slot::class assign ::xotcl::relation
 
   ::xotcl::InterceptorSlot create ::xotcl::Object::slot::mixin
-  ::xotcl::InterceptorSlot create ::xotcl::Object::slot::filter
+::xotcl::InterceptorSlot create ::xotcl::Object::slot::filter -elementtype ""
   ::xotcl::InterceptorSlot create ::xotcl::Class::slot::instmixin
-  ::xotcl::InterceptorSlot create ::xotcl::Class::slot::instfilter 
+::xotcl::InterceptorSlot create ::xotcl::Class::slot::instfilter -elementtype ""
 
   #
   # Attribute
@@ -536,11 +559,8 @@ namespace eval ::xotcl {
     ::xotcl::my istype $cl
   }
   ::xotcl::Class instproc allinstances {} {
-    set set [::xotcl::my info instances]
-    foreach sc [::xotcl::my info subclass] {
-      eval lappend set [$sc allinstances]
-    }
-    return $set
+  # TODO: mark it deprecated
+  return [::xotcl::my info instances -closure]
   }
 
   # Exit Handler
@@ -563,9 +583,9 @@ namespace eval ::xotcl {
     ::xotcl::Object __exitHandler
   }
   ::xotcl::Object instproc abstract {methtype methname arglist} {
-    if {$methtype ne "proc" && $methtype ne "instproc"} {
+  if {$methtype ne "proc" && $methtype ne "instproc" && $methtype ne "method"} {
       error "invalid method type '$methtype', \
-	must be either 'proc' or 'instproc'."
+	must be either 'proc', 'instproc' or 'method'."
     }
     ::xotcl::my $methtype $methname $arglist "
     if {!\[::xotcl::self isnextcall\]} {
@@ -612,6 +632,7 @@ namespace eval ::xotcl {
   }
   
   ::xotcl::Object::CopyHandler instproc copyNSVarsAndCmds {orig dest} {
+  #puts stderr "copyNSVarsAndCmds $orig $dest"
     ::xotcl::namespace_copyvars $orig $dest
     ::xotcl::namespace_copycmds $orig $dest
   }
@@ -637,7 +658,7 @@ namespace eval ::xotcl {
           $cl instinvar [$origin info instinvar]
           $cl instfilter [$origin info instfilter -guards]
           $cl instmixin [$origin info instmixin]
-          my copyNSVarsAndCmds ::xotcl::classes::$origin ::xotcl::classes::$dest
+	my copyNSVarsAndCmds ::xotcl::classes$origin ::xotcl::classes$dest
           #$cl parameter [$origin info parameter]
         } else {
           # create obj
@@ -672,7 +693,7 @@ namespace eval ::xotcl {
         if {$cmds ne ""} {
           foreach cmd $cmds {
             foreach {op def} $cmd break
-            $origin trace remove variable $var $op $def
+          #$origin trace remove variable $var $op $def
             if {[lindex $def 0] eq $origin} {
               set def [concat $dest [lrange $def 1 end]]
             }
@@ -962,9 +983,7 @@ namespace eval ::xotcl {
   ::xotcl::Object instproc method {name arguments body} {
     my proc name $arguments $body				  
   }
-  ::xotcl::Class instproc method {
-    -per-object:switch name arguments body} {
-                                             
+::xotcl::Class instproc method {-per-object:switch name arguments body} {
     if {${per-object}} {
       my proc $name $arguments $body       
     } else {

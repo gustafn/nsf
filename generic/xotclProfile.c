@@ -3,7 +3,7 @@
  *  
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
  *
  *
  *  xotclProfile.c --
@@ -47,13 +47,13 @@ XOTclProfileFillTable(Tcl_HashTable* table, Tcl_DString* key,
 }
 
 void
-XOTclProfileEvaluateData(Tcl_Interp* in, long int startSec, long int startUsec,
+XOTclProfileEvaluateData(Tcl_Interp* interp, long int startSec, long int startUsec,
 		    XOTclObject* obj, XOTclClass *cl, char *methodName) {
   double totalMicroSec;
   struct timeval trt;
   Tcl_DString objectKey, methodKey;
 
-  XOTclProfile* profile = &RUNTIME_STATE(in)->profile;
+  XOTclProfile* profile = &RUNTIME_STATE(interp)->profile;
 
   gettimeofday(&trt, NULL);
 
@@ -116,8 +116,8 @@ XOTclProfilePrintTable(Tcl_HashTable* table) {
 }
 
 void
-XOTclProfilePrintData(Tcl_Interp* in) {
-  XOTclProfile* profile = &RUNTIME_STATE(in)->profile;
+XOTclProfilePrintData(Tcl_Interp *interp) {
+  XOTclProfile* profile = &RUNTIME_STATE(interp)->profile;
 
   fprintf(stderr, "------------------------------------------------------------------\n");
   fprintf(stderr, "\nXOTcl Profile Information\n\n");
@@ -134,11 +134,11 @@ XOTclProfilePrintData(Tcl_Interp* in) {
 }
 
 void 
-XOTclProfileInit(Tcl_Interp* in) {
-  RUNTIME_STATE(in)->profile.overallTime = 0;
-  Tcl_InitHashTable(&RUNTIME_STATE(in)->profile.objectData,
+XOTclProfileInit(Tcl_Interp *interp) {
+  RUNTIME_STATE(interp)->profile.overallTime = 0;
+  Tcl_InitHashTable(&RUNTIME_STATE(interp)->profile.objectData,
 		    TCL_STRING_KEYS);
-  Tcl_InitHashTable(&RUNTIME_STATE(in)->profile.methodData,
+  Tcl_InitHashTable(&RUNTIME_STATE(interp)->profile.methodData,
 		    TCL_STRING_KEYS);
 }
 

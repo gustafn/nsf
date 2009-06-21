@@ -4,8 +4,9 @@
 #	a Tcl extension.
 #
 # Copyright (c) 1999 Scriptics Corporation.
+# Copyright (c) 1999-2008 Gustaf Neumann, Uwe Zdun
 #
-# See the file "license.terms" for information on usage and redistribution
+# See the file "tcl-license.terms" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
 #------------------------------------------------------------------------

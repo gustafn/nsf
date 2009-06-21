@@ -1,3 +1,346 @@
+Method ::xotcl::Object->__exitHandler became ::xotcl::__exitHandler
+
+2009-06-14 <Gustaf.Neumann@wu-wien.ac.at>
+    - fixed potential access to deleted command list item in
+      FilterSearchAgain()
+    - fixed potential access deleted xotcl object by switching order
+      in a condition
+    - some minor cleanup for configuration flags
+
+2009-03-19 <Gustaf.Neumann@wu-wien.ac.at>
+    * Release of XOTcl 1.6.3
+
+2009-03-19 <Gustaf.Neumann@wu-wien.ac.at>
+    - removed references to 1.6.2
+
+2009-03-04 <Gustaf.Neumann@wu-wien.ac.at>
+    - re-enable small optimization
+    - factor out common code
+    - fix compatibility with Tcl 8.4
+    - bump version number to 1.6.3
+
+2009-03-03 <Gustaf.Neumann@wu-wien.ac.at>
+    - simplify semantics of MixinSeekCurrent and FilterSeekCurrent, improve speed
+    - remove necessity to have tclCompile.h
+    - improve documentation
+
+2009-03-02 <Gustaf.Neumann@wu-wien.ac.at>
+    - some small performance improvements (use CreateHashEntry instead
+      of FindHashEntry, remove unneded argument, improve order of long
+      and expressions)
+    - some code cleanup
+    - new methods, when compiled with tcl 8.5;
+       + MakeProcError (producing error messages from xotcl methods)
+       + PushProcCallFrame (compile method to byte-code)
+       The new support allows to call code at the begin of a proc
+       without using the old approach based on :xotcl::initProcNS
+
+2009-02-19 <Gustaf.Neumann@wu-wien.ac.at>
+    - add comments to var resolution tests for objects without namespaces
+    - fixed reference counting
+    - removed temporary hacks
+    - added CONST to several functions
+    - added relative namespace handling
+
+2009-02-18 <Gustaf.Neumann@wu-wien.ac.at>, sobernig@wu-wien.ac.at
+    - added Stefan's work for namespace resolvers
+    - fixed a memory leak for "obj exists" due to the changes
+    - found another memory leak, when e.g. "::info" is added as an
+      alias and "info exists" is tested against non-existing vars
+
+2009-01-19 <Gustaf.Neumann@wu-wien.ac.at>
+    - Finish work on deletion of user-metaclasses
+    - commenting existing and potential usage of namespace resolvers
+
+2008-12-01 <Gustaf.Neumann@wu-wien.ac.at>
+    * Correct deletion of user-metaclasses: Deletion of
+      user-metaclasses could lead to undestroyable objects, since the
+      instances of the user-metaclasses were reclassed to
+      ::xotcl::Object instead of ::xotcl::Class.
+    * extend regression test for such situations
+
+2008-11-02 <Gustaf.Neumann@wu-wien.ac.at>
+    * Release of XOTcl 1.6.2
+
+2008-11-01 <Gustaf.Neumann@wu-wien.ac.at>
+    * added command ::xotcl::finalize
+
+      This command has the only purpose to delete all objects and classes
+      of an interpreter in a multi-threaded environment at a safe time. 
+
+      Background: when XOTcl is used in a threaded environment such as
+      for example in AOLserver, one has to take care that the deletion
+      of objects and classes happens in a safe environment, where the
+      XOTcl destructors (destroy methods) are still able to
+      run. Without ::xotcl::finalize the deletion happens in
+      Tcl_FinalizeThread(), after thread cleanup (where e.g.  the
+      thread local storage is freed). This can lead to memory leaks in
+      AOLserver, which allocates e.g. some structures on demand, but
+      since this happens after cleanup, it will leak. A simple ns_log
+      in a destructor might lead to this problem. The solution is to
+      call ::xotcl::finalize in the "delete trace" in AOLserver (as it
+      happens in OpenACS).
+
+      Note, that ::xotcl::finalize is not intended for application programs.
+
+    * some code cleanup
+
+2008-10-17 <Gustaf.Neumann@wu-wien.ac.at>
+
+    * handle nonposargs in method "copy" properly
+
+    * extend regression test for copy
+ 
+    * added "<class> mixinof -closure ?pattern?"
+      Query the objects for which <class> is used as a per-object-mixin 
+      (directly or indirectly)
+
+    * extended regression test for mixinof
+
+    * updated documentation 
+ 
+2008-09-11 <Gustaf.Neumann@wu-wien.ac.at>
+    * Implement proper downgrading of Classes to Objects: 
+
+      In cases where a class ::C is created, which is later downgraded
+      to an object ::C (either via "::C class ::xotcl::Object" or via
+      "::xotcl::Object ::C"), earlier versions of XOTcl were to
+      liberal. The major problem is to invalidate all places, where
+      ::C might be used as a class, and were only classes are allowed
+      (e.g. mixin chains, precedence orders).
+
+      The new version does not allow downgrading via the class method
+      and does a destroy/create instead of a recreate when a
+      same-named class existed before.
+
+    * reset mixin order for per-object mixins, when the superclass
+      of a class is deleted, which is used as per-object mixin
+
+    * extended regression test
+    * Updating and improving documentation 
+
+2008-06-24 <Gustaf.Neumann@wu-wien.ac.at>
+    * Release of XOTcl 1.6.1
+
+2008-06-23 <Gustaf.Neumann@wu-wien.ac.at>
+    * remove pattern argument from "info class"
+    * additional argument for "info precedence": "-intrinsic"
+       Syntax:
+          <objName> info precedence ?-intrinsic? ?pattern?
+      If "-intrinsic" is specified, only the classes of the
+      superclass type hierarchy are returnd. Otherwise,
+     the precedence contains mixin classes as well.
+   * Check results for guards to be boolean instead
+      of int (now, guards are allowed to return e.g. "true")
+
+2008-05-30 <Gustaf.Neumann@wu-wien.ac.at>
+    * updating language reference
+
+    * Fix contents for %proc in forwarders in cases, 
+      where the forwarder was called via next and
+      the argument list for next was provided.
+      Previously, "next" was used for %proc.
+
+2008-05-28 <Gustaf.Neumann@wu-wien.ac.at>
+    * make "info (inst)?forward -definition name" more robust (provide an
+      error message, if <name> is not given 
+    * New info subcommands "info parametercmd" 
+       and "info instparametercmd"
+    * export *parametercmds in Serializer, use "-noinit" on slots as well
+
+2008-05-26 <Gustaf.Neumann@wu-wien.ac.at>
+    * fixed bug in info instdefault, when the given argument name 
+       is an empty string. Example:
+           X info instdefault crash "" var
+
+2008-05-09 <Gustaf.Neumann@wu-wien.ac.at>
+    * used catch in the deprecated package xotcl::upvar-compat
+      as suggested by Jeff Hobbs
+
+2008-03-18 <Gustaf.Neumann@wu-wien.ac.at>
+    * allowed "abstract method" in additon to "abstract instproc"
+      and "abstract proc"
+
+2008-02-26 <Gustaf.Neumann@wu-wien.ac.at>
+    * xotcl.c: The double ;; chokes MSVC6 in the next line.
+      (many thanks for Andreas Kupries for reporting)
+
+2008-02-25 <Gustaf.Neumann@wu-wien.ac.at>
+    * Fix for "x configure -set"; many thanks to 
+      Rene Zamseil for reporting. 
+
+2008-02-24 <Gustaf.Neumann@wu-wien.ac.at>
+    * Release of XOTcl 1.6.0
+
+2008-02-22: <Gustaf.Neumann@wu-wien.ac.at>
+   * Update of documentation
+
+2008-02-21: <Gustaf.Neumann@wu-wien.ac.at>
+  * Clear XOTCL_MIXIN_ORDER_VALID flag unconditionally 
+     in MixinInvalidateObjOrders() for mixins (Neophytos
+     had problems in naviserver; many thanks for reporting!)
+
+2008-02-21: <Gustaf.Neumann@wu-wien.ac.at>
+
+  * Replaced Tcl_ObjSetVar2() with Tcl_SetVar2Ex() in nonposargs,
+    since Tcl 8.5 seemed to optimize local variables away, if these
+    not referenced directly from from Tcl.
+
+    Tcl 8.5 seems to optimize proc-local variables away, which are not
+    directly referenced by the Tcl proc body.  In the following
+    example, "ot" is set from C (via nonposargs, previously via
+    Tcl_ObjSetVar2()) and consumed via C (from the db-driver, using
+    :ot).
+
+       SomeClass instproc foo {-ot} {
+         #ns_log notice ot=$ot
+         return [db_string [my qn check_type] {
+           select 1 from acs_object_types where object_type = :ot
+         } -default 0]
+       }
+
+    When the logging command is added, the statement works fine. When
+    the logging command was deactivated, the variable ot was not seen
+    from the consumer.  By changing the variable setting command to
+    Tcl_SetVar2Ex(), it works fine.
+
+2008-02-08: <Martin.Matuska@wu-wien.ac.at>
+  * New info option "-closure" for "info instmixin" with
+    -guards and -closure support
+  
+  * Extended test cases for "info instmixin"
+
+2008-02-06: <Gustaf.Neumann@wu-wien.ac.at>
+  * Continued with info orthogonality change
+
+        <object> info mixin ?pattern?
+        <class> info instmixin ?pattern?
+
+    ?pattern? behaves exactly like in the change of two days
+    ago. Preceding colons in the name of the queried class are not
+    required.
+
+  * In all mentioned calls, where pattern refers to an object/class
+    and it contains wild-cards, a preceding :: is added automatically
+    to the search pattern, if it is missing. Since all object names
+    start with ::, an omitted leading :: in a search pattern is an
+    obvious mistake
+
+  * Made the behavior "pattern" in the following calls identical
+    concerning wild cards and object lookups
+
+        <object> mixin delete pattern
+        <class> instmixin delete pattern
+        <class> superclass delete pattern
+
+  * extended regresson test
+
+2008-02-05: <Gustaf.Neumann@wu-wien.ac.at>
+
+  * fix getAllClassMixinsOf to handle combinations of transitive per
+    class mixins and inheriting per-class mixin via the class
+    hierarchy, removed getAllSubClasses
+
+  * extend test cases
+
+2008-02-04: <Gustaf.Neumann@wu-wien.ac.at>
+  * Potential incompatibility:
+    provide a uniform interface to the following info subcommands
+
+        <class> info superclass ?-closure? ?pattern?
+        <class> info subclass ?-closure? ?pattern?
+        <class> info instances ?-closure? ?pattern?
+        <class> info instmixinof ?-closure? ?pattern?
+        <class> info mixinof ?pattern?
+       
+    In cases, where the option "-closure" is defined, the values are
+    computed transitively.
+
+    In cases, where a pattern is specified, and the pattern contains
+    meta-characters, a list of results is returned matching the
+    pattern (like "string match"). When no matching value is found, an
+    empty list is returned.
+
+    In cases, where a pattern is specified, and the pattern contains
+    no meta-characters, a single value is returned corresponding to
+    the specified value. The pattern is used to lookup an object or
+    class, such it is not necessary to provide fully qualified names).
+    if there is no match, empty is returned.  Previously, "info
+    superclass" and "info subclass" returned a boolean value and
+    performed always a transitive search. Returning "" is more
+    consistent and more in line with Tcl.
+
+    By using the option "-closure" one can perform the lookup in the
+    transitive or in the intransitive sets.
+
+2008-02-03: <Gustaf.Neumann@wu-wien.ac.at>
+    - fix getAllSubClasses
+    - fix "info mixinof -closure", when pattern was provided
+    - streamline code (AppendMatchingElement)
+    - new info option "-closure" for "info instances" (equiv. to
+      "allinstances", but 5 times faster)
+    - new info option "-closure" for "info superclass" (equiv. to
+      "info heritage")
+
+2008-02-02: <Gustaf.Neumann@wu-wien.ac.at>
+    -  Improving regression test:
+        +  added ::xotcl::test::case
+        + shortened output
+    - Makefile.in: added missing src_man_dir
+    - fixed softcrecreate cases:
+        * update caches for subclasses of recreated classes
+        * fixed recreate when it defines different superclasses
+        * extended test cases for mixinoftest
+
+2008-02-01: <Martin.Matuska@wu-wien.ac.at>
+    - new info option "-closure" for "info mixinof" (transitive version)
+    - process subclasses for getAllClassMixinsOf
+
+2008-01-23: <Gustaf.Neumann@wu-wien.ac.at>
+
+    - saving object->id in cl->opt->id (probably a temporary solution)
+
+    - improving reset of affected objects, when (transitive) per class
+      mixins change
+
+    - extended regression test
+
+2008-01-07: <Gustaf.Neumann@wu-wien.ac.at>
+    - don't call unset traces during an object move (related to fix below)
+
+2008-01-04: <Gustaf.Neumann@wu-wien.ac.at>
+    - preserving var traces when copying objects 
+       (Many thanks to Florian Murr for reporting the bug)
+
+2008-01-02: <Gustaf.Neumann@wu-wien.ac.at>
+    - fixed evaluation context in guard expressions
+       ([self callingproc] returned "" in cases, where the callingproc
+      was possible to determine)
+
+2007-12-28: <Gustaf.Neumann@wu-wien.ac.at>
+    - fixed crash for deleted classes in new code (mixinof)
+    - changed name from MixinResetInstanceOrder() to MixinResetOrderForInstances()
+    - improving documentation
+    - made code more local
+    - activate assertion during development
+    - changed names
+       * MixinResetInstanceOrder() -> MixinResetOrderForInstances()
+       * mixinofs -> isObjectMixinOf
+       * instmixinofs -> isClassMixinOf
+       * getAllInstMixinofs -> getAllClassMixinsOf
+       * RemoveFromMixinofs -> removeFromObjectMixinsOf
+       * RemoveFromInstmixinsofs -> removeFromClassMixinsOf 
+
+2007-12-28: <Martin.Matuska@wu-wien.ac.at>
+    - new function from Martin MixinResetInstanceOrder()
+    - better cleanup when classes are deleted
+
+2007-12-13: <Gustaf.Neumann@wu-wien.ac.at>
+   * fix alias command for aliasing to Tcl procs
+
+2007-11-09: <Gustaf.Neumann@wu-wien.ac.at>
+    * added missing file (install.sh from tclconfig)
+
 2007-10-30: <Gustaf.Neumann@wu-wien.ac.at>
     *  change Tcl_ObjSetVar2() to Tcl_SetVar2Ex() to
        address problem in setting variables from C.
@@ -2425,7 +2768,7 @@ CallStackDoDestroy(Tcl_Interp *in, XOTclObject *obj) {
         * finished polishing mem leaks (thanks to Zoran Vasiljevic again)
         * disallowed "[self] next" ... next is now only a command
         * Gdbm,Sdbm,Expat: corrected Makefile.in to rely on 
-          -L$(TCLLIBDIR) (thanks to Jörg Rudnik for the hint)
+          -L$(TCLLIBDIR) (thanks to Jrg Rudnik for the hint)
 
 2001-10-08 <Gustaf.Neumann@wu-wien.ac.at>
         * configure.in: fixes for AOLSERVER to ease configuration

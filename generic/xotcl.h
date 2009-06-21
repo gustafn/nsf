@@ -4,7 +4,7 @@
  *  
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
  *
  *  This software is based upon MIT Object Tcl by David Wetherall and
  *  Christopher J. Lindblad, that contains the following copyright
@@ -47,26 +47,6 @@
 #define XOTCL_BYTECODE
 */
 
-#define KEEP_TCL_CMD_TYPE 1
-
-/* activate/deacticate assert 
-#define NDEBUG 1
-*/
-#define NDEBUG 1
-
-
-/* activate/deacticate memory tracing 
-#define XOTCL_MEM_TRACE 1
-#define XOTCL_MEM_COUNT 1
-*/
-/*#define REFCOUNTED 1*/
-
-/*
-#define XOTCLOBJ_TRACE 1
-#define REFCOUNT_TRACE 1
-#define DISPATCH_TRACE 1
-*/
-
 /* activate/deacticate profiling information at the end
    of running the program
 #define PROFILE
@@ -74,6 +54,25 @@
 
 /* make self, proc and class in instproc and procs
 #define AUTOVARS
+*/
+
+#define KEEP_TCL_CMD_TYPE 1
+
+/* activate/deacticate assert 
+#define NDEBUG 1
+*/
+#define NDEBUG 1
+
+/* activate/deacticate memory tracing 
+#define XOTCL_MEM_TRACE 1
+#define XOTCL_MEM_COUNT 1
+*/
+
+/*#define REFCOUNTED 1*/
+
+/*
+#define XOTCLOBJ_TRACE 1
+#define REFCOUNT_TRACE 1
 */
 
 /* turn  tracing output on/off

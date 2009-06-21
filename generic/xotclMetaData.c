@@ -3,7 +3,7 @@
  *  
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
  *
  *
  *  xotclReference.c --
@@ -20,7 +20,7 @@
  */
 
 void
-XOTclMetaDataRemoveDepending(XOTclClass* cl, char* name) {
+XOTclMetaDataRemoveDepending(XOTclClass *cl, char *name) {
   XOTclClasses *saved = cl->order, *clPtr;
   cl->order = 0;
 
@@ -28,12 +28,12 @@ XOTclMetaDataRemoveDepending(XOTclClass* cl, char* name) {
 
   while (clPtr != 0) {
       Tcl_HashSearch hSrch;
-      Tcl_HashEntry* hPtr = &clPtr->cl->instances ?
+      Tcl_HashEntry *hPtr = &clPtr->cl->instances ?
 	Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : 0;
       for (; hPtr != 0; hPtr = Tcl_NextHashEntry(&hSrch)) {
-	  XOTclObject* obj = (XOTclObject*)
+	  XOTclObject *obj = (XOTclObject*)
 	    Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
-	  Tcl_HashEntry* h1Ptr = 0;
+	  Tcl_HashEntry *h1Ptr = 0;
 	  if (obj->opt)
 	    h1Ptr = Tcl_FindHashEntry(&obj->opt->metaData, name);
 	  if (h1Ptr) {
@@ -48,7 +48,7 @@ XOTclMetaDataRemoveDepending(XOTclClass* cl, char* name) {
 }
 
 int
-XOTclMetaDataInheritance (XOTclObject* obj, char* name) {
+XOTclMetaDataInheritance (XOTclObject *obj, char *name) {
   XOTclClasses *clPtr;
   assert(obj);
   
@@ -69,28 +69,28 @@ XOTclMetaDataInheritance (XOTclObject* obj, char* name) {
 }
 
 void
-XOTclMetaDataDestroy(XOTclObject* obj) {
+XOTclMetaDataDestroy(XOTclObject *obj) {
   if (obj->opt)
     Tcl_DeleteHashTable(&obj->opt->metaData);
 }
 
 void
-XOTclMetaDataInit(XOTclObject* obj) {
+XOTclMetaDataInit(XOTclObject *obj) {
   XOTclRequireObjectOpt(obj);
   Tcl_InitHashTable(&obj->opt->metaData, TCL_STRING_KEYS);
 }
 
 int
-XOTclOMetaDataMethod (ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj *CONST objv[]) {
+XOTclOMetaDataMethod (ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj = (XOTclObject*)cd;
   XOTclClass  *cl  = XOTclObjectToClass(cd);
-  char* option; int add = -1;
+  char *option; int add = -1;
   int result = TCL_OK;
-  int oc; Tcl_Obj** ov; int i;
+  int oc; Tcl_Obj* *ov; int i;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object");
+  if (!obj) return XOTclObjErrType(interp, obj->cmdName, "Object");
   if (objc < 2)
-    return XOTclObjErrArgCnt(in,obj->cmdName,
+    return XOTclObjErrArgCnt(interp,obj->cmdName,
 				  "metadata ?(add|remove)? metaDataList");
 
   option = ObjStr(objv[1]);
@@ -103,13 +103,13 @@ XOTclOMetaDataMethod (ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj *CONST ob
   if (add == -1) {
     if (objc == 2) {
       if (obj->opt) {
-	Tcl_HashEntry* hPtr = Tcl_FindHashEntry(&obj->opt->metaData, option);
+	Tcl_HashEntry *hPtr = Tcl_FindHashEntry(&obj->opt->metaData, option);
 	if (hPtr) {
-	  Tcl_Obj* entry = (Tcl_Obj *) Tcl_GetHashValue(hPtr);
+	  Tcl_Obj *entry = (Tcl_Obj *) Tcl_GetHashValue(hPtr);
 	  if (entry) {
-	    Tcl_SetObjResult(in, (Tcl_Obj *) Tcl_GetHashValue(hPtr));
+	    Tcl_SetObjResult(interp, (Tcl_Obj *) Tcl_GetHashValue(hPtr));
 	  } else {
-	    Tcl_ResetResult(in);
+	    Tcl_ResetResult(interp);
 	  }
 	}
 	return TCL_OK;	
@@ -117,19 +117,19 @@ XOTclOMetaDataMethod (ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj *CONST ob
     }
     if (objc == 3) {
       if (obj->opt) {
-	Tcl_HashEntry* hPtr = Tcl_FindHashEntry(&obj->opt->metaData, option);
+	Tcl_HashEntry *hPtr = Tcl_FindHashEntry(&obj->opt->metaData, option);
 	if (!hPtr) {
 	  int nw;
 	  if (XOTclMetaDataInheritance(obj, option)) {
 	    hPtr = Tcl_CreateHashEntry(&obj->opt->metaData, option, &nw);
 	    if (!nw)
-	      return XOTclVarErrMsg(in,
+	      return XOTclVarErrMsg(interp,
 				    "MetaData: Can't create MetaData Entry: ",
 				    option, (char*) NULL);
 	  }
 	}	
 	if (hPtr) {
-	  Tcl_Obj* entry = (Tcl_Obj *) Tcl_GetHashValue(hPtr);
+	  Tcl_Obj *entry = (Tcl_Obj *) Tcl_GetHashValue(hPtr);
 	  if (entry)
 	    DECR_REF_COUNT(entry);
 	  INCR_REF_COUNT(objv[2]);
@@ -138,29 +138,29 @@ XOTclOMetaDataMethod (ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj *CONST ob
 	}
       }
     }
-    return XOTclVarErrMsg(in,"MetaData: Unknown option;  given Option: ",
+    return XOTclVarErrMsg(interp,"MetaData: Unknown option;  given Option: ",
 			  option, (char*) NULL);
   }
 
-  if (Tcl_ListObjGetElements(in, objv[2], &oc, &ov) == TCL_OK) {
+  if (Tcl_ListObjGetElements(interp, objv[2], &oc, &ov) == TCL_OK) {
     for (i = 0; i < oc; i ++) {
-      char* value = ObjStr (ov[i]);
+      char *value = ObjStr (ov[i]);
       if (obj->opt) {
 	if (add) {	
 	  int nw;
-	  Tcl_HashEntry* hPtr = Tcl_FindHashEntry(&obj->opt->metaData, value);
+	  Tcl_HashEntry *hPtr = Tcl_FindHashEntry(&obj->opt->metaData, value);
 	  if (hPtr)
-	    return XOTclVarErrMsg(in,
+	    return XOTclVarErrMsg(interp,
 				  "Can't add MetaData, MetaData exists: ",
 				  value,
 				  (char*) NULL);	
 	  hPtr = Tcl_CreateHashEntry(&obj->opt->metaData, value, &nw);
 	  if (!nw)
-	    return XOTclVarErrMsg(in,
+	    return XOTclVarErrMsg(interp,
 				  "MetaData: Can't create MetaData Entry: ",
 				  value,(char*) NULL);
 	} else {
-	  Tcl_HashEntry* hPtr = Tcl_FindHashEntry(&obj->opt->metaData, value);
+	  Tcl_HashEntry *hPtr = Tcl_FindHashEntry(&obj->opt->metaData, value);
 	  if (hPtr) {		
 	    Tcl_DeleteHashEntry(hPtr);
 	    if (cl) {

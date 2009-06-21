@@ -2,7 +2,7 @@
  *  $Id: xotclInt.h,v 1.27 2007/10/12 19:53:32 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2006 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
  *
  *  xotclInt.h --
  *
@@ -57,7 +57,7 @@ typedef struct XOTclMemCounter {
         Tcl_InitHashTable(&xotclMemCount, TCL_STRING_KEYS); \
         xotclMemCountInterpCounter = 1; \
       }
-#  define MEM_COUNT_DUMP() XOTclMemCountDump(in)
+#  define MEM_COUNT_DUMP() XOTclMemCountDump(interp)
 #  define MEM_COUNT_OPEN_FRAME() 
 /*if (obj->varTable) noTableBefore = 0*/
 #  define MEM_COUNT_CLOSE_FRAME() 
@@ -76,10 +76,9 @@ typedef struct XOTclMemCounter {
 #define DSTRING_FREE(D) Tcl_DStringFree(D); MEM_COUNT_FREE("DString",D)
 
 #if USE_ASSOC_DATA
-# define RUNTIME_STATE(in) ((XOTclRuntimeState*) Tcl_GetAssocData(in, "XOTclRuntimeState", NULL))
+# define RUNTIME_STATE(interp) ((XOTclRuntimeState*)Tcl_GetAssocData((interp), "XOTclRuntimeState", NULL))
 #else
-# define RUNTIME_STATE(in) \
-    ((XOTclRuntimeState*)((Interp*) in)->globalNsPtr->clientData)
+# define RUNTIME_STATE(interp) ((XOTclRuntimeState*)((Interp*)interp)->globalNsPtr->clientData)
 #endif
 
 
@@ -256,18 +255,18 @@ typedef struct XOTclMemCounter {
 #endif
 
 #ifdef V81
-# define EvalObj(in,cmd) Tcl_EvalObj(in,cmd,0)
+# define EvalObj(interp,cmd) Tcl_EvalObj(interp, cmd, 0)
 # define TclIsVarArgument(args) (args->isArg)
-# define Tcl_ObjSetVar2(in,p1,p2,newval,flags) \
-	Tcl_SetObjVar2(in,ObjStr(p1),p2,newval,flags)
-#define Tcl_ObjGetVar2(in,name1,name2,flgs) \
-  Tcl_GetObjVar2(in, ObjStr(name1), \
+# define Tcl_ObjSetVar2(interp,p1,p2,newval,flags) \
+	Tcl_SetObjVar2(interp,ObjStr(p1),p2,newval,flags)
+#define Tcl_ObjGetVar2(interp,name1,name2,flgs) \
+  Tcl_GetObjVar2(interp, ObjStr(name1), \
 		((name2==NULL) ? (char*)NULL : ObjStr(name2)), flgs)
 #else
 # if defined(PRE83)
-#  define EvalObj(in,cmd) Tcl_EvalObj(in,cmd)
+#  define EvalObj(interp, cmd) Tcl_EvalObj(interp,cmd)
 # else
-#  define EvalObj(in,cmd) Tcl_EvalObjEx(in,cmd,0)
+#  define EvalObj(interp, cmd) Tcl_EvalObjEx(interp,cmd,0)
 # endif
 # if defined(PRE81) && TCL_RELEASE_SERIAL<3
 #  define TclIsVarArgument(args) (args->isArg)
@@ -276,7 +275,7 @@ typedef struct XOTclMemCounter {
 
 #if 0
 #define XOTcl_FrameDecls CallFrame *oldFramePtr = 0, frame, *newFramePtr = &frame
-#define XOTcl_PushFrame(interp,obj) \
+#define XOTcl_PushFrame(interp, obj) \
      memset(newFramePtr, 0, sizeof(CallFrame)); \
      oldFramePtr = ((Interp *)interp)->varFramePtr; \
      if ((obj)->nsPtr) {				     \
@@ -289,7 +288,7 @@ typedef struct XOTclMemCounter {
      } \
      ((Interp *)interp)->varFramePtr = newFramePtr; \
      MEM_COUNT_OPEN_FRAME()
-#define XOTcl_PopFrame(interp,obj) \
+#define XOTcl_PopFrame(interp, obj) \
   if (!(obj)->nsPtr && (obj)->varTable == 0)	 \
       (obj)->varTable = newFramePtr->varTablePtr;	 \
      ((Interp *)interp)->varFramePtr = oldFramePtr; \
@@ -392,7 +391,7 @@ typedef enum { /* powers of 2; add to ALL, if default; */
   CHECK_ALL   = CHECK_INVAR   + CHECK_PRE + CHECK_POST
 } CheckOptions;
 
-void XOTclAssertionRename(Tcl_Interp* in, Tcl_Command cmd, 
+void XOTclAssertionRename(Tcl_Interp* interp, Tcl_Command cmd, 
 			  XOTclAssertionStore *as, 
 			  char *oldSimpleCmdName, char *newName);
 /*
@@ -451,6 +450,8 @@ typedef struct XOTclStringIncrStruct {
 
 #define XOTclObjectSetClass(obj) \
 	(obj)->flags |= XOTCL_IS_CLASS
+#define XOTclObjectClearClass(obj) \
+	(obj)->flags &= ~XOTCL_IS_CLASS
 #define XOTclObjectIsClass(obj) \
 	((obj)->flags & XOTCL_IS_CLASS)
 #define XOTclObjectToClass(obj) \
@@ -475,7 +476,7 @@ typedef struct XOTclObjectOpt {
   Tcl_HashTable metaData;
 #endif
   ClientData clientData;
-  char *volatileVarName;
+  CONST char *volatileVarName;
   short checkoptions;
 } XOTclObjectOpt;
 
@@ -504,13 +505,14 @@ typedef struct XOTclObjects {
 typedef struct XOTclClassOpt {
   XOTclCmdList* instfilters;
   XOTclCmdList* instmixins;
-  XOTclCmdList* mixinofs;
-  XOTclCmdList* instmixinofs;
+  XOTclCmdList* isObjectMixinOf;
+  XOTclCmdList* isClassMixinOf;
   XOTclAssertionStore *assertions;
   Tcl_Obj* parameterClass;
 #ifdef XOTCL_OBJECTDATA
   Tcl_HashTable* objectdata;
 #endif
+  Tcl_Command id;
   ClientData clientData;
 } XOTclClassOpt;
 
@@ -520,7 +522,7 @@ typedef struct XOTclClass {
   struct XOTclClasses* sub;
   short color;
   struct XOTclClasses* order;
-  /*struct XOTclClass* parent;*/
+    /*struct XOTclClass* parent;*/
   Tcl_HashTable instances;
   Tcl_Namespace *nsPtr;
   Tcl_Obj* parameters;
@@ -584,9 +586,9 @@ typedef struct XOTclShadowTclCommandInfo {
 } XOTclShadowTclCommandInfo;
 typedef enum {SHADOW_LOAD=1, SHADOW_UNLOAD=0, SHADOW_REFETCH=2} XOTclShadowOperations;
 
-int XOTclCallCommand(Tcl_Interp* in, XOTclGlobalNames name,
+int XOTclCallCommand(Tcl_Interp* interp, XOTclGlobalNames name,
 		     int objc, Tcl_Obj *CONST objv[]);
-int XOTclShadowTclCommands(Tcl_Interp* in, XOTclShadowOperations load);
+int XOTclShadowTclCommands(Tcl_Interp* interp, XOTclShadowOperations load);
 
 
 /*
@@ -613,6 +615,7 @@ typedef struct XOTclCallStackContent {
 
 #define XOTCL_CSC_CALL_IS_NEXT 1
 #define XOTCL_CSC_CALL_IS_DESTROY 2
+#define XOTCL_CSC_CALL_IS_GUARD 4
 
 typedef struct XOTclCallStack {
   XOTclCallStackContent content[MAX_NESTING_DEPTH];
@@ -700,16 +703,16 @@ extern void
 XOTclProfileFillTable(Tcl_HashTable* table, Tcl_DString* key,
 		 double totalMicroSec);
 extern void
-XOTclProfileEvaluateData(Tcl_Interp* in, long int startSec, long int startUsec,
+XOTclProfileEvaluateData(Tcl_Interp* interp, long int startSec, long int startUsec,
 		    XOTclObject* obj, XOTclClass *cl, char *methodName);
 extern void
 XOTclProfilePrintTable(Tcl_HashTable* table);
 
 extern void
-XOTclProfilePrintData(Tcl_Interp* in);
+XOTclProfilePrintData(Tcl_Interp* interp);
 
 extern void 
-XOTclProfileInit(Tcl_Interp* in);
+XOTclProfileInit(Tcl_Interp* interp);
 #endif
 
 /*
@@ -729,7 +732,7 @@ XOTclMetaDataDestroy(XOTclObject* obj);
 extern void
 XOTclMetaDataInit(XOTclObject* obj);
 extern int
-XOTclOMetaDataMethod (ClientData clientData, Tcl_Interp* in, 
+XOTclOMetaDataMethod (ClientData cd, Tcl_Interp* interp, 
 		      int objc, Tcl_Obj *objv[]);
 #endif /* XOTCL_METADATA */
 
@@ -754,19 +757,19 @@ extern XOTclCompEnv *XOTclGetCompEnv();
 Tcl_ObjCmdProc XOTclInitProcNSCmd, XOTclSelfDispatchCmd, 
   XOTclNextObjCmd, XOTclGetSelfObjCmd;
 
-int XOTclDirectSelfDispatch(ClientData clientData, Tcl_Interp* in,
+int XOTclDirectSelfDispatch(ClientData cd, Tcl_Interp* interp,
 		     int objc, Tcl_Obj *CONST objv[]);
 #endif
 
 int 
-XOTclObjDispatch(ClientData clientData, Tcl_Interp* in,
+XOTclObjDispatch(ClientData cd, Tcl_Interp* interp,
 		 int objc, Tcl_Obj *CONST objv[]);
 
 XOTclCallStackContent *
-XOTclCallStackFindActiveFrame(Tcl_Interp* in, int offset);
+XOTclCallStackFindActiveFrame(Tcl_Interp* interp, int offset);
 
 XOTclCallStackContent *
-XOTclCallStackFindLastInvocation(Tcl_Interp* in, int offset);
+XOTclCallStackFindLastInvocation(Tcl_Interp* interp, int offset);
 
 /* functions from xotclUtil.c */
 char *XOTcl_ltoa(char *buf, long i, int *len);
