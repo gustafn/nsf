@@ -1,0 +1,63 @@
+#
+# Basic tests of the object system, should not require Class Test,
+# since even class Test might not work at that time.
+#
+proc ? {cmd expected {msg ""}} {
+   set r [uplevel $cmd]
+   if {$msg eq ""} {set msg $cmd}
+   if {$r ne $expected} {
+     puts stderr "$msg returned '$r' ne '$expected'"
+     exit
+   } else {
+     puts stderr "$msg - passed"
+   }
+}
+
+? {Object isobject Object} 1
+? {Object isclass} 1
+? {Object ismetaclass} 0
+? {Object info superclass} ::oo::object
+? {Object info class} ::xotcl::Class
+
+? {Object isobject Class} 1
+? {Class isclass} 1
+? {Class ismetaclass} 1
+? {Class info superclass} "::oo::class ::xotcl::Object"
+? {Class info class} ::xotcl::Class
+
+Object o
+? {Object isobject o} 1
+? {o isclass} 0
+? {o ismetaclass} 0
+? {o info class} ::xotcl::Object
+? {Object info instances o} ::o
+? {Object info instances ::o} ::o
+
+Class C0
+? {C0 isclass} 1
+? {C0 ismetaclass} 0
+? {C0 info superclass} ::xotcl::Object
+? {C0 info class} ::xotcl::Class
+? {Class info vars} __default_superclass
+
+Class M -superclass ::xotcl::Class
+? {Object isobject M} 1
+? {M isclass} 1
+? {M ismetaclass} 1
+? {M info superclass} ::xotcl::Class
+? {M info class} ::xotcl::Class
+
+M C
+? {Object isobject C} 1
+? {C isclass} 1
+? {C ismetaclass} 0
+? {C info superclass} ::xotcl::Object
+? {C info class} ::M
+
+C c1
+? {Object isobject c1} 1
+? {c1 isclass} 0
+? {c1 ismetaclass} 0
+? {c1 info class} ::C
+
+#puts stderr ===EXIT
