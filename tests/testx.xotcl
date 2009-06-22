@@ -2771,7 +2771,7 @@ TestX recreation -proc run {{n 10}} {
   Recreated recreateObj
   recreateObj destroy
   errorCheck [set ::recreateFilterResult] \
-    " ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->cleanup ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->destroy" \
+    " ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->setvalues ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->cleanup ::recreateObj+::xotcl::Object->configure ::recreateObj+::xotcl::Object->setvalues ::recreateObj+::xotcl::Object->init ::recreateObj+::xotcl::Object->destroy" \
     "recreateObj - recreateFilterResult"
    if {$i == 0} {
      errorCheck [set ::recreateMixinResult] \
@@ -3350,9 +3350,8 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [d1 info precedence] "::D1 ::D ::C ::xotcl::Object ::oo::object" "d1 info precedence"
   ::errorCheck [d1 info precedence *] "::D1 ::D ::C ::xotcl::Object ::oo::object" "d1 info precedence *"
   ::errorCheck [d1 info precedence ::D*] "::D1 ::D" "d1 info precedence pattern"
-puts stderr 1
-  ::errorCheck [d1 info precedence -intrinsic] "::D ::C ::xotcl::Object" "d1 info precedence -intrinsic"
-  ::errorCheck [d1 info precedence -intrinsic *] "::D ::C ::xotcl::Object" "d1 info precedence -intrinsic *"
+  ::errorCheck [d1 info precedence -intrinsic] "::D ::C ::xotcl::Object ::oo::object" "d1 info precedence -intrinsic"
+  ::errorCheck [d1 info precedence -intrinsic *] "::D ::C ::xotcl::Object ::oo::object" "d1 info precedence -intrinsic *"
   ::errorCheck [d1 info precedence -intrinsic ::D*] "::D" "d1 info precedence -intrinsic pattern"
 
   d1 destroy

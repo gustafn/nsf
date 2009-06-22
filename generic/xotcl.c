@@ -6737,9 +6737,13 @@ ListSuperclasses(Tcl_Interp *interp, XOTclClass *cl, char *pattern, int withClos
 static int
 ListPrecedence(Tcl_Interp *interp, XOTclObject *obj, char *pattern, int intrinsicOnly) {
   XOTclClasses *pl, *precedenceList;
+
+  /*fprintf(stderr, "ListPrecedence %s pattern %s, intrinsic %d\n",
+    ObjStr(obj->cmdName), pattern, intrinsicOnly);*/
+
   Tcl_ResetResult(interp);
   precedenceList = ComputePrecedenceList(interp, obj, pattern, !intrinsicOnly);
-  for (pl = precedenceList; pl != 0; pl = pl->nextPtr) {
+  for (pl = precedenceList; pl; pl = pl->nextPtr) {
     char *name = className(pl->cl);
     Tcl_AppendElement(interp, name);
   }
@@ -9396,14 +9400,50 @@ XOTclObjInfoPostMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 }
 
 static int
+getModifiers(int objc, int offset, Tcl_Obj  *CONST objv[], CONST char *options[], int *set) {
+  int i, j, found, count = 0;
+  char *to;
+
+  *set = 0;
+  for (i = offset; i < objc; i++) {
+    to = ObjStr(objv[i]);
+    if (to[0] == '-') {
+      found = 0;
+      for (j=0; options[j]; j++) {
+        if (strcmp(to,options[j]) == 0) {
+          count++;
+          *set |= 1 << j;
+          found = 1;
+        }
+      }
+      /* if we find a modifier that was not given, stop processing */
+      if (!found) break;
+      /* '--' stops modifiers */
+      if (to[1] == '-') break;
+    }
+  }
+  return count;
+}
+
+static int
 XOTclObjInfoPrecedenceMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj;
+  static CONST char *options[] = {"-intrinsic", NULL};
+  int modifiers, withPrecedence, set, args;
+  char *pattern;
 
-  if (objc < 2 || objc > 3) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object> ?pattern?");  
+  modifiers = getModifiers(objc, 2, objv, options, &set);
+  args = objc-modifiers;
+
+  if (args < 2 || args > 3) 
+    return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object> ?-intrinsic? ?pattern?");
+  pattern = args == 3 ? ObjStr(objv[objc-1]) : NULL;
+
   if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
     return XOTclObjErrType(interp, objv[1], "Object");
   
-  return ListPrecedence(interp, obj, objc == 3 ? ObjStr(objv[2]) : NULL, 0);
+  withPrecedence = (modifiers>0);
+  return ListPrecedence(interp, obj, pattern, withPrecedence);
 }
 
 static int
@@ -12153,31 +12193,7 @@ XOTclClassInfoHeritageMethod(ClientData clientData, Tcl_Interp *interp, int objc
   return ListHeritage(interp, cl, objc == 3 ? ObjStr(objv[2]) : NULL);
 }
 
-static int
-getModifiers(int objc, int offset, Tcl_Obj  *CONST objv[], CONST char *options[], int *set) {
-  int i, j, found, count = 0;
-  char *to;
 
-  *set = 0;
-  for (i = offset; i < objc; i++) {
-    to = ObjStr(objv[i]);
-    if (to[0] == '-') {
-      found = 0;
-      for (j=0; options[j]; j++) {
-        if (strcmp(to,options[j]) == 0) {
-          count++;
-          *set |= 1 << j;
-          found = 1;
-        }
-      }
-      /* if we find a modifier that was not given, stop processing */
-      if (!found) break;
-      /* '--' stops modifiers */
-      if (to[1] == '-') break;
-    }
-  }
-  return count;
-}
 
 static int
 XOTclClassInfoInstancesMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
