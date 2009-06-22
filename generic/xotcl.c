@@ -8011,7 +8011,6 @@ PrimitiveOCreate(Tcl_Interp *interp, char *name, XOTclClass *cl) {
   XOTclObject *obj = (XOTclObject*)ckalloc(sizeof(XOTclObject));
   unsigned length;
 
-  /*fprintf(stderr, "CKALLOC Object %p %s\n", obj, name);*/
 #if defined(XOTCLOBJ_TRACE)
   fprintf(stderr, "CKALLOC Object %p %s\n", obj, name);
 #endif
@@ -8050,17 +8049,21 @@ PrimitiveOCreate(Tcl_Interp *interp, char *name, XOTclClass *cl) {
 }
 
 static XOTclClass *
-DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclClass *mcl, XOTclClass *topcl) {
+DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclClass *mcl, XOTclClass *topcl, int isMeta) {
   XOTclClass *defaultClass = topcl;
 
-  /*fprintf(stderr, "DefaultSuperClass cl %s, mcl %s\n",
+  /*
+  fprintf(stderr, "DefaultSuperClass cl %s, mcl %s\n",
           ObjStr(cl->object.cmdName),
           mcl ? ObjStr(mcl->object.cmdName) : "NULL"
-          );*/
+          );
+  */
+
   if (mcl) {
     int result;
-    result = setInstVar(interp, (XOTclObject *)mcl, 
-			XOTclGlobalObjects[XOTE_DEFAULTSUPERCLASS], NULL);
+    result = setInstVar(interp, (XOTclObject *)mcl, isMeta ? 
+                        XOTclGlobalObjects[XOTE_DEFAULTMETACLASS] :
+                        XOTclGlobalObjects[XOTE_DEFAULTSUPERCLASS], NULL);
 
     if (result == TCL_OK) {
       Tcl_Obj *nameObj = Tcl_GetObjResult(interp);
@@ -8070,8 +8073,7 @@ DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclClass *mcl, XOTclClas
       /* fprintf(stderr, "DefaultSuperClass got from var %s\n",ObjStr(nameObj));*/
 
     } else {
-      Tcl_Obj *bootstrap = Tcl_GetVar2Ex(interp, "::xotcl::bootstrap", NULL, 
-					 TCL_GLOBAL_ONLY);
+      Tcl_Obj *bootstrap = Tcl_GetVar2Ex(interp, "::xotcl::bootstrap", NULL, TCL_GLOBAL_ONLY);
       if (bootstrap) {
 	Tcl_Obj *nameObj = Tcl_NewStringObj("::xotcl::Object", -1);
 	INCR_REF_COUNT(nameObj);
@@ -8086,7 +8088,7 @@ DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclClass *mcl, XOTclClas
         /*fprintf(stderr,"DefaultSuperClass: search in superclasses starting with %p\n",cl->super);*/
         for (sc = mcl->super; sc && sc->cl != cl; sc = sc->nextPtr) {
           /*fprintf(stderr, "  ... check %s\n",ObjStr(sc->cl->object.cmdName));*/
-          result = DefaultSuperClass(interp, cl, sc->cl, topcl);
+          result = DefaultSuperClass(interp, cl, sc->cl, topcl, isMeta);
           if (result != topcl) {
             return result;
           }
@@ -8114,8 +8116,8 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
 
   assert(softrecreate? recreate == 1 : 1);
   
-  /* fprintf(stderr, "CleanupDestroyClass softrecreate=%d,recreate=%d, %p\n",
-     softrecreate,recreate,clopt); */
+  /*fprintf(stderr, "CleanupDestroyClass softrecreate=%d,recreate=%d, %p\n",
+    softrecreate,recreate,clopt); */
 
   /* do this even with no clopt, since the class might be used as a
      superclass of a per object mixin, so it has no clopt...
@@ -8165,7 +8167,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
 
   if (!softrecreate) {
     /* maybe todo: do we need an defaultclass for the metaclass as well ? */
-    defaultClass = DefaultSuperClass(interp, cl, cl->object.cl, RUNTIME_STATE(interp)->theObject);
+    defaultClass = DefaultSuperClass(interp, cl, cl->object.cl, RUNTIME_STATE(interp)->theObject, 0);
 
     /* Reclass all instances of the current class the the appropriate
        most general class ("baseClass"). The most general class of a
@@ -8178,7 +8180,10 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
        We do not have to reclassing in case, cl == ::xotcl::Object
     */
     if (cl != theobj) {
-      XOTclClass *baseClass = IsMetaClass(interp, cl) ? RUNTIME_STATE(interp)->theClass : defaultClass;
+      XOTclClass *baseClass = IsMetaClass(interp, cl) ? 
+        DefaultSuperClass(interp, cl, cl->object.cl, RUNTIME_STATE(interp)->theClass, 1)
+        : defaultClass;
+
       if (baseClass == cl) {
         /* During final cleanup, we delete ::xotcl::Class; there are
            no more Classes or user objects available at that time, so
@@ -8186,6 +8191,8 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
         */
         baseClass = theobj;
       }
+      /* fprintf(stderr,"baseclass = %s\n",ObjStr(baseClass->object.cmdName));*/
+
       hPtr = &cl->instances ? Tcl_FirstHashEntry(&cl->instances, &hSrch) : 0;
       for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
         XOTclObject *inst = (XOTclObject*)Tcl_GetHashKey(&cl->instances, hPtr);
@@ -8285,7 +8292,7 @@ CleanupInitClass(Tcl_Interp *interp, XOTclClass *cl, Tcl_Namespace *namespacePtr
   cl->super = NULL;
 
   /* Look for a configured default superclass */
-  defaultSuperclass = DefaultSuperClass(interp, cl, cl->object.cl, RUNTIME_STATE(interp)->theObject);
+  defaultSuperclass = DefaultSuperClass(interp, cl, cl->object.cl, RUNTIME_STATE(interp)->theObject, 0);
     /*
       if (defaultSuperclass) {
       fprintf(stderr, "default superclass= %s\n", ObjStr(defaultSuperclass->object.cmdName));
@@ -8433,7 +8440,12 @@ PrimitiveCCreate(Tcl_Interp *interp, char *name, XOTclClass *class) {
 XOTCLINLINE static int
 changeClass(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl) {
   assert(obj);
-    
+  
+  /*fprintf(stderr,"changing %s to class %s ismeta %d\n",
+          ObjStr(obj->cmdName),
+          ObjStr(cl->object.cmdName),
+          IsMetaClass(interp, cl));*/
+
   if (cl != obj->cl) {
     if (IsMetaClass(interp, cl)) {
       /* Do not allow upgrading from a class to a meta-class (in
@@ -8478,6 +8490,7 @@ doCleanup(Tcl_Interp *interp, XOTclObject *newobj, XOTclObject *classobj,
   int destroyed = 0, result;
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
   XOTclCallStackContent *csc;
+
   /*
    * we check whether the object to be re-created is destroyed or not
    */
@@ -8487,8 +8500,9 @@ doCleanup(Tcl_Interp *interp, XOTclObject *newobj, XOTclObject *classobj,
     }
   }
 
-  if (destroyed)
+  if (destroyed) {
     UndestroyObj(interp, newobj);
+  }
 
   /*
    *  re-create, first ensure correct class for newobj
@@ -11726,7 +11740,6 @@ XOTclCInstDestroyMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
  
   /* fprintf(stderr,"instdestroy obj=%s, opt=%p\n", ObjStr(delobj->cmdName), delobj->opt);*/
   rc = freeUnsetTraceVariable(interp, delobj);
-  rc = freeUnsetTraceVariable(interp, delobj);
   if (rc != TCL_OK) {
     return rc;
   }
@@ -11854,18 +11867,20 @@ XOTclCAllocMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
         INCR_REF_COUNT(tmpName);
       }
-      /*fprintf(stderr," **** name is '%s', isMetaClass => %d\n",  objName, IsMetaClass(interp, cl));*/
+
+      /*fprintf(stderr," **** name is '%s', isMetaClass => %d\n",  
+        objName, IsMetaClass(interp, cl));*/
 
       if (IsMetaClass(interp, cl)) {
         /*
          * if the base class is a meta-class, we create a class
          */
         newcl = PrimitiveCCreate(interp, objName, cl);
-        if (newcl == 0)
+        if (newcl == 0) {
           result = XOTclVarErrMsg(interp, "Class alloc failed for '", objName,
 				  "' (possibly parent namespace does not exist)", 
 				  (char *) NULL);
-        else {
+        } else {
           Tcl_SetObjResult(interp, newcl->object.cmdName);
           result = TCL_OK;
         }
@@ -11923,8 +11938,12 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *obj,
    */
   newobj = XOTclpGetObject(interp, objName);
 
-  /*fprintf(stderr,"+++ create objv[1] '%s', specifiedName '%s', newObj=%p\n",
-    specifiedName, objName, newobj);*/
+  /*fprintf(stderr,"+++ create objv[1] '%s', specifiedName '%s', newObj=%p ismeta(%s) %d, ismeta(%s) %d\n",
+          specifiedName, objName, newobj,
+          ObjStr(cl->object.cmdName), IsMetaClass(interp, cl), 
+          newobj ? ObjStr(newobj->cl->object.cmdName) : "NULL", 
+          newobj ? IsMetaClass(interp, newobj->cl) : 0
+          );*/
 
   /* don't allow to
      - recreate an object as a class, and to
@@ -11934,8 +11953,10 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *obj,
   */
 
   if (newobj && (IsMetaClass(interp, cl) == IsMetaClass(interp, newobj->cl))) {
+
     /*fprintf(stderr, "%%%% recreate, call recreate method ... %s, objc=%d\n",
       ObjStr(tov[1]), objc+1);*/
+
     /* call recreate --> initialization */
     result = callMethod((ClientData) obj, interp,
                         XOTclGlobalObjects[XOTE_RECREATE], objc+1, tov+1, 0);
@@ -11953,7 +11974,7 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *obj,
     
     result = XOTclVarErrMsg(interp, "Cannot create object -- illegal name '",
 			    specifiedName, "'", (char *) NULL);
-    /* fprintf(stderr, "alloc ... %s\n", ObjStr(tov[1]));*/
+    /*fprintf(stderr, "alloc ... %s\n", ObjStr(tov[1]));*/
     result = callMethod((ClientData) obj, interp,
                         XOTclGlobalObjects[XOTE_ALLOC], objc+1, tov+1, 0);
     if (result != TCL_OK)

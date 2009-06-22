@@ -172,6 +172,7 @@ namespace eval ::xotcl {
   # object systems might co-exist.
   createBootstrapAttributeSlots ::xotcl::Class {
     {__default_superclass ::xotcl::Object}
+    {__default_metaclass ::xotcl::Class}
   }
 
   #

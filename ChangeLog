@@ -33,6 +33,11 @@ Meta C -superclass O -parameter {a {b -default ""} {c -default 1}}
 C c1 ;# c1 has no no default value for "a", before it had
 ======
 
+2009-06-22 <Gustaf.Neumann@wu-wien.ac.at>
+    - define default meta-class for ::xotcl::Class
+    - use default meta-class, when a the topmost meta-class of an
+      object system is deleted
+
 2009-06-14 <Gustaf.Neumann@wu-wien.ac.at>
     - fixed potential access to deleted command list item in
       FilterSearchAgain()

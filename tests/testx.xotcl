@@ -3323,10 +3323,8 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [Object isclass m1] 1 "m1 is still a class"
   ::errorCheck [::xotcl::is m1 object] 1 "m1 is still an object"
   ::errorCheck [::xotcl::is m1 class] 1 "m1 is still a class"
-  ::errorCheck [::xotcl::relation m1 class] ::oo::class "m1 now a baseclass"
-  # actually, it should be ::xotcl::Class
   ::errorCheck [::xotcl::relation m1 class] ::xotcl::Class "m1 now a baseclass"
-  ::errorCheck [m1 info class] ::xotcl::Class "m1 is now an instance of Class"
+ ::errorCheck [m1 info class] ::xotcl::Class "m1 is now an instance of Class"
 
   ::errorCheck [m1 isclass] 1 "m1 is isclass 1"
   ::errorCheck [m1 info class] ::xotcl::Class "m1 is of class ::xotcl::Class"
@@ -3349,10 +3347,10 @@ TestX objectReferences -proc run {{n 20}} {
   D instmixin D1
   D d1
 
-  ::errorCheck [d1 info precedence] "::D1 ::D ::C ::xotcl::Object" "d1 info precedence"
-  ::errorCheck [d1 info precedence *] "::D1 ::D ::C ::xotcl::Object" "d1 info precedence *"
+  ::errorCheck [d1 info precedence] "::D1 ::D ::C ::xotcl::Object ::oo::object" "d1 info precedence"
+  ::errorCheck [d1 info precedence *] "::D1 ::D ::C ::xotcl::Object ::oo::object" "d1 info precedence *"
   ::errorCheck [d1 info precedence ::D*] "::D1 ::D" "d1 info precedence pattern"
-
+puts stderr 1
   ::errorCheck [d1 info precedence -intrinsic] "::D ::C ::xotcl::Object" "d1 info precedence -intrinsic"
   ::errorCheck [d1 info precedence -intrinsic *] "::D ::C ::xotcl::Object" "d1 info precedence -intrinsic *"
   ::errorCheck [d1 info precedence -intrinsic ::D*] "::D" "d1 info precedence -intrinsic pattern"
