@@ -37,6 +37,7 @@ C c1 ;# c1 has no no default value for "a", before it had
     - define default meta-class for ::xotcl::Class
     - use default meta-class, when a the topmost meta-class of an
       object system is deleted
+    - extend regression test
 
 2009-06-14 <Gustaf.Neumann@wu-wien.ac.at>
     - fixed potential access to deleted command list item in
