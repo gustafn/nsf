@@ -60,4 +60,17 @@ C c1
 ? {c1 ismetaclass} 0
 ? {c1 info class} ::C
 
+
+# basic parameter tests
+
+Class C -parameter {{x 1} {y 2}}
+C copy X
+
+? {C::slot info vars} __parameter
+? {C info parameter} {{x 1} {y 2}}
+
+? {X::slot info vars} __parameter
+? {X info parameter} {{x 1} {y 2}}
+
+
 #puts stderr ===EXIT

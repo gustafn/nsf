@@ -5,9 +5,27 @@ namespace eval ::xotcl {
     uplevel ::xotcl::relation $args
   }
   if {[info command ::oo::object] ne ""} {
+    # When the system shuts down, destroy is called for every
+    # available object. When ::xotcl::Object and ::xotcl::Class are
+    # destroyed, there would be no means to delete other objects, when
+    # "destroy" and "instdestroy" are only defined on these
+    # objects. So, we register these on ::oo::object and ::oo::class
+    # for the time being, since these two classes are deleted last.
+    ::xotcl::alias ::oo::object destroy ::xotcl::cmd::Object::destroy
+    ::xotcl::alias ::oo::class instdestroy ::xotcl::cmd::Class::instdestroy
+    #
+    # Perform the basic setup of XOTcl. First, let us allocate objects
+    # and classed via the method named "alloc".
+    #
     ::xotcl::alias ::oo::class alloc ::xotcl::cmd::Class::alloc
+    #
+    # Create the basic Classes of XOTcl ...
+    #
     ::oo::class alloc ::xotcl::Object
     ::oo::class alloc ::xotcl::Class
+    #
+    # ... and define the superclass and class relations on these.
+    #
     ::xotcl::relation ::xotcl::Class superclass {::oo::class ::xotcl::Object}
     ::xotcl::relation ::xotcl::Object class ::xotcl::Class
     ::xotcl::relation ::xotcl::Class class ::xotcl::Class
@@ -632,7 +650,6 @@ namespace eval ::xotcl {
   }
   
   ::xotcl::Object::CopyHandler instproc copyNSVarsAndCmds {orig dest} {
-  #puts stderr "copyNSVarsAndCmds $orig $dest"
     ::xotcl::namespace_copyvars $orig $dest
     ::xotcl::namespace_copycmds $orig $dest
   }

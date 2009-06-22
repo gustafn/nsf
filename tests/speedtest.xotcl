@@ -10,13 +10,27 @@ package require xotcl::test
   behaviour.
   }
 }
+
+set ccount 20
+set ocount 1014
+set ocount [expr {$ccount + 206}]
+set ocount [expr {$ccount + 15}]
+
+set startObjects [Object info instances]
+set x [llength [Object info instances]]
+set y [set _ [llength [Object info instances]]]
+set z [llength $startObjects]
+puts stderr "x=$x, y=$y, z=$z, ocount=$ocount"
+
 Class M1; Class M2
 Class C -parameter {{p 99} {q 98} r}
 C instproc f args {next}
 C instproc init args {
   my instvar n v
-  for {set i 1} {$i<1000} {incr i} {set n($i) 1}  
-  for {set i 1} {$i<1000} {incr i} {Object [self]::$i}  
+  #for {set i 1} {$i<1000} {incr i} {set n($i) 1}
+  #for {set i 1} {$i<1000} {incr i} {Object [self]::$i}
+  for {set i 0} {$i<$::ccount} {incr i} {set n($i) 1}  
+  for {set i 0} {$i<$::ccount} {incr i} {Object [self]::$i}  
   set v 1
 }
 
@@ -163,16 +177,25 @@ C instproc createVolatileRc {} {
   return 2
 }
 
+puts stderr [set x [llength [Object info instances]]]
+puts stderr [llength [Object info instances]]
 
 C c
 Class D -superclass C
 D instproc init args {}
 D d
 
+puts stderr [set x [llength [Object info instances]]]
+puts stderr [llength [Object info instances]]
 
-Test new -cmd {llength [c info children]} -expected 999
-Test new -cmd {llength [Object info instances]} -expected 1006
 
+
+#Test new -cmd {llength [c info children]} -count 1 -expected 999
+#Test new -cmd {set x [llength [c info children]]} -count 1 -expected 999
+Test new -cmd {llength [c info children]} -count 1 -expected $ccount
+Test new -cmd {set x [llength [c info children]]} -count 1 -expected $ccount
+Test new -cmd {set x [llength [Object info instances]]} -count 1 -expected $ocount
+Test new -cmd {llength [Object info instances]} -count 1 -expected $ocount
 
 Test new -cmd {d istype D} -expected 1
 
@@ -215,26 +238,49 @@ Test new -cmd {c instvarAlias}
 Test new -cmd {c incr v} -post {c set v 1} -expected 101
 Test new -cmd {c unset v; set r [c exists v]; c set v 1; set r} -expected 0
 
+Test new -cmd {llength [Object info instances]} -count 1 -expected $ocount
+Test new -cmd {set x [llength [Object info instances]]} -count 1 -expected $ocount
+
 Test new -cmd {c explicitReturn}
 Test new -cmd {c implicitReturn}
 Test new -cmd {c explicitReturnFromVar}
 Test new -cmd {c implicitReturnFromVar}
 
+Test new -cmd {llength [Object info instances]} -count 1 -expected $ocount
+Test new -cmd {set x [llength [Object info instances]]} -count 1 -expected $ocount
+
+Test new -cmd {puts stderr [llength [Object info instances]]} -count 1 -expected ""
 Test new -cmd {c childNodeNamespace} -expected ::c::13
+Test new -cmd {puts stderr [llength [Object info instances]]} -count 1 -expected ""
+Test new -cmd {llength [Object info instances]} -count 1 -expected $ocount
+#Test new -cmd {puts stderr [lsort [Object info instances]]} -count 1 -expected ""
+Test new -cmd {puts stderr [llength [Object info instances]]} -count 1 -expected ""
 Test new -cmd {c childNodeNamespaceCreate} -expected ::c::13
+#Test new -cmd {puts stderr [lsort [Object info instances]]} -count 1 -expected ""
+Test new -cmd {puts stderr [llength [Object info instances]]} -count 1 -expected ""
+Test new -cmd {llength [Object info instances]} -expected $ocount
 Test new -cmd {c createVolatileRc} -expected 2
 
-Test new -count 1 -cmd {llength [Object info instances]} -expected 1006
+# should be still the same number as above
+Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 
 Test new -cmd {Object new -volatile} -expected ::xotcl::__\#F9 -count 2000 \
     -post {foreach o [Object info instances ::xotcl::__*] {$o destroy}} 
+
+# should be still the same number as above
+Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
+
 Test new -cmd {Object new} -expected ::xotcl::__\#lQ  -count 2000 \
     -post {foreach o [Object info instances ::xotcl::__*] {$o destroy}} 
+
+# should be still the same number as above
+Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
+
 Test new -cmd {Object new -childof o} -expected ::o::__\#0Hh \
     -pre {Object o} -post {o destroy}
 
 # should be still the same number as above
-Test new -count 1 -cmd {llength [Object info instances]} -expected 1006
+Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 
 Test new -count 1000 -pre {::set ::count 0} \
     -cmd {Object create [incr ::count]} \
@@ -244,19 +290,35 @@ Test new -count 1000 -pre {::set ::count 0} \
     -cmd {[incr ::count] destroy} \
     -post {::unset ::count} \
     -expected ""
+#
+Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
+# we create another object
+set ocount [expr {$ocount + 1}]
 Test new -cmd {Object create x} -expected ::x
+#Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
+Test new -count 1 -cmd {puts [lsort [Object info instances]];llength [Object info instances]} -expected $ocount
+
 Test new -cmd {Object create x -set a -1 -set b ,, -set c a--} \
     -expected ::x
-Test new -cmd {expr {[c array names n 500] ne ""}}
-Test new -cmd {info exists c::n(500)}
-Test new -cmd {c exists n(500)}
+Test new -count 1 -cmd {puts [lsort [Object info instances]]} -expected ""
+Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 
-Test new -cmd {llength [c info children]} -expected 999
-Test new -cmd {c info children ::c::500}  -expected ::c::500
-Test new -cmd {llength [Object info instances]} -expected 1007
+Test new -cmd {expr {[c array names n 5] ne ""}}
 
-Test new -cmd {Object info instances ::c::500*} -expected ::c::500
-Test new -cmd {Object info instances ::c::500} -expected ::c::500
+Test new -count 1 -cmd {puts =======[lsort [Object info instances]]} -expected ""
+Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
+Test new -cmd {info exists c::n(5)}
+Test new -count 1 -cmd {puts [lsort [Object info instances]]} -expected ""
+Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
+Test new -cmd {c exists n(5)}
+
+Test new -cmd {llength [c info children]} -expected $ccount
+Test new -cmd {c info children ::c::5}  -expected ::c::5
+
+Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
+
+Test new -cmd {Object info instances ::c::5*} -expected ::c::5
+Test new -cmd {Object info instances ::c::5} -expected ::c::5
 Test new -cmd {Object info instances ::c::5000} -expected ""
 
 Test new -count 100 -pre {set ::c::l ""} \

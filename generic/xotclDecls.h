@@ -25,154 +25,256 @@
  * Exported function declarations:
  */
 
+#ifndef Xotcl_Init_TCL_DECLARED
+#define Xotcl_Init_TCL_DECLARED
 /* 0 */
-EXTERN int		Xotcl_Init _ANSI_ARGS_((Tcl_Interp * interp));
+EXTERN int		Xotcl_Init (Tcl_Interp * interp);
+#endif
 /* Slot 1 is reserved */
+#ifndef XOTclIsClass_TCL_DECLARED
+#define XOTclIsClass_TCL_DECLARED
 /* 2 */
-EXTERN struct XOTcl_Class * XOTclIsClass _ANSI_ARGS_((Tcl_Interp * interp, 
-				ClientData cd));
+EXTERN struct XOTcl_Class * XOTclIsClass (Tcl_Interp * interp, ClientData cd);
+#endif
 /* Slot 3 is reserved */
+#ifndef XOTclGetObject_TCL_DECLARED
+#define XOTclGetObject_TCL_DECLARED
 /* 4 */
-EXTERN struct XOTcl_Object * XOTclGetObject _ANSI_ARGS_((Tcl_Interp * interp, 
-				char * name));
+EXTERN struct XOTcl_Object * XOTclGetObject (Tcl_Interp * interp, 
+				char * name);
+#endif
+#ifndef XOTclGetClass_TCL_DECLARED
+#define XOTclGetClass_TCL_DECLARED
 /* 5 */
-EXTERN struct XOTcl_Class * XOTclGetClass _ANSI_ARGS_((Tcl_Interp * interp, 
-				char * name));
+EXTERN struct XOTcl_Class * XOTclGetClass (Tcl_Interp * interp, char * name);
+#endif
+#ifndef XOTclCreateObject_TCL_DECLARED
+#define XOTclCreateObject_TCL_DECLARED
 /* 6 */
-EXTERN int		XOTclCreateObject _ANSI_ARGS_((Tcl_Interp * interp, 
-				Tcl_Obj * name, struct XOTcl_Class * cl));
+EXTERN int		XOTclCreateObject (Tcl_Interp * interp, 
+				Tcl_Obj * name, struct XOTcl_Class * cl);
+#endif
 /* Slot 7 is reserved */
+#ifndef XOTclCreateClass_TCL_DECLARED
+#define XOTclCreateClass_TCL_DECLARED
 /* 8 */
-EXTERN int		XOTclCreateClass _ANSI_ARGS_((Tcl_Interp * interp, 
-				Tcl_Obj * name, struct XOTcl_Class * cl));
+EXTERN int		XOTclCreateClass (Tcl_Interp * interp, 
+				Tcl_Obj * name, struct XOTcl_Class * cl);
+#endif
+#ifndef XOTclDeleteObject_TCL_DECLARED
+#define XOTclDeleteObject_TCL_DECLARED
 /* 9 */
-EXTERN int		XOTclDeleteObject _ANSI_ARGS_((Tcl_Interp * interp, 
-				struct XOTcl_Object * obj));
+EXTERN int		XOTclDeleteObject (Tcl_Interp * interp, 
+				struct XOTcl_Object * obj);
+#endif
+#ifndef XOTclDeleteClass_TCL_DECLARED
+#define XOTclDeleteClass_TCL_DECLARED
 /* 10 */
-EXTERN int		XOTclDeleteClass _ANSI_ARGS_((Tcl_Interp * interp, 
-				struct XOTcl_Class * cl));
+EXTERN int		XOTclDeleteClass (Tcl_Interp * interp, 
+				struct XOTcl_Class * cl);
+#endif
+#ifndef XOTclAddPMethod_TCL_DECLARED
+#define XOTclAddPMethod_TCL_DECLARED
 /* 11 */
-EXTERN Tcl_Command	XOTclAddPMethod _ANSI_ARGS_((Tcl_Interp * interp, 
-				struct XOTcl_Object* obj, CONST char* nm, 
-				Tcl_ObjCmdProc * proc, ClientData cd, 
-				Tcl_CmdDeleteProc * dp));
+EXTERN Tcl_Command	XOTclAddPMethod (Tcl_Interp * interp, 
+				struct XOTcl_Object * obj, CONST char* nm, 
+				Tcl_ObjCmdProc* proc, ClientData cd, 
+				Tcl_CmdDeleteProc * dp);
+#endif
+#ifndef XOTclAddIMethod_TCL_DECLARED
+#define XOTclAddIMethod_TCL_DECLARED
 /* 12 */
-EXTERN Tcl_Command	XOTclAddIMethod _ANSI_ARGS_((Tcl_Interp * interp, 
-				struct XOTcl_Class* cl, CONST char* nm, 
-				Tcl_ObjCmdProc * proc, ClientData cd, 
-				Tcl_CmdDeleteProc * dp));
+EXTERN Tcl_Command	XOTclAddIMethod (Tcl_Interp * interp, 
+				struct XOTcl_Class * cl, CONST char* nm, 
+				Tcl_ObjCmdProc* proc, ClientData cd, 
+				Tcl_CmdDeleteProc * dp);
+#endif
+#ifndef XOTclRemovePMethod_TCL_DECLARED
+#define XOTclRemovePMethod_TCL_DECLARED
 /* 13 */
-EXTERN void		XOTclRemovePMethod _ANSI_ARGS_((Tcl_Interp * interp, 
-				struct XOTcl_Object * obj, char * nm));
+EXTERN void		XOTclRemovePMethod (Tcl_Interp * interp, 
+				struct XOTcl_Object * obj, char * nm);
+#endif
+#ifndef XOTclRemoveIMethod_TCL_DECLARED
+#define XOTclRemoveIMethod_TCL_DECLARED
 /* 14 */
-EXTERN void		XOTclRemoveIMethod _ANSI_ARGS_((Tcl_Interp * interp, 
-				struct XOTcl_Class * cl, char * nm));
+EXTERN void		XOTclRemoveIMethod (Tcl_Interp * interp, 
+				struct XOTcl_Class * cl, char * nm);
+#endif
+#ifndef XOTclOSetInstVar_TCL_DECLARED
+#define XOTclOSetInstVar_TCL_DECLARED
 /* 15 */
-EXTERN Tcl_Obj *	XOTclOSetInstVar _ANSI_ARGS_((
-				struct XOTcl_Object * obj, 
+EXTERN Tcl_Obj *	XOTclOSetInstVar (struct XOTcl_Object * obj, 
 				Tcl_Interp * interp, Tcl_Obj * name, 
-				Tcl_Obj * value, int flgs));
+				Tcl_Obj * value, int flgs);
+#endif
+#ifndef XOTclOGetInstVar_TCL_DECLARED
+#define XOTclOGetInstVar_TCL_DECLARED
 /* 16 */
-EXTERN Tcl_Obj *	XOTclOGetInstVar _ANSI_ARGS_((
-				struct XOTcl_Object * obj, 
+EXTERN Tcl_Obj *	XOTclOGetInstVar (struct XOTcl_Object * obj, 
 				Tcl_Interp * interp, Tcl_Obj * name, 
-				int flgs));
+				int flgs);
+#endif
+#ifndef XOTclInstVar_TCL_DECLARED
+#define XOTclInstVar_TCL_DECLARED
 /* 17 */
-EXTERN int		XOTclInstVar _ANSI_ARGS_((struct XOTcl_Object * obj, 
+EXTERN int		XOTclInstVar (struct XOTcl_Object * obj, 
 				Tcl_Interp * interp, char * name, 
-				char * destName));
+				char * destName);
+#endif
 /* Slot 18 is reserved */
+#ifndef XOTcl_ObjSetVar2_TCL_DECLARED
+#define XOTcl_ObjSetVar2_TCL_DECLARED
 /* 19 */
-EXTERN Tcl_Obj *	XOTcl_ObjSetVar2 _ANSI_ARGS_((
-				struct XOTcl_Object * obj, 
+EXTERN Tcl_Obj *	XOTcl_ObjSetVar2 (struct XOTcl_Object * obj, 
 				Tcl_Interp * interp, Tcl_Obj * name1, 
-				Tcl_Obj * name2, Tcl_Obj * value, int flgs));
+				Tcl_Obj * name2, Tcl_Obj * value, int flgs);
+#endif
+#ifndef XOTcl_ObjGetVar2_TCL_DECLARED
+#define XOTcl_ObjGetVar2_TCL_DECLARED
 /* 20 */
-EXTERN Tcl_Obj *	XOTcl_ObjGetVar2 _ANSI_ARGS_((
-				struct XOTcl_Object * obj, 
+EXTERN Tcl_Obj *	XOTcl_ObjGetVar2 (struct XOTcl_Object * obj, 
 				Tcl_Interp * interp, Tcl_Obj * name1, 
-				Tcl_Obj * name2, int flgs));
+				Tcl_Obj * name2, int flgs);
+#endif
+#ifndef XOTclUnsetInstVar2_TCL_DECLARED
+#define XOTclUnsetInstVar2_TCL_DECLARED
 /* 21 */
-EXTERN int		XOTclUnsetInstVar2 _ANSI_ARGS_((
-				struct XOTcl_Object * obj, 
+EXTERN int		XOTclUnsetInstVar2 (struct XOTcl_Object * obj, 
 				Tcl_Interp * interp, char * name1, 
-				char * name2, int flgs));
+				char * name2, int flgs);
+#endif
+#ifndef XOTcl_TraceObjCmd_TCL_DECLARED
+#define XOTcl_TraceObjCmd_TCL_DECLARED
 /* 22 */
-EXTERN int		XOTcl_TraceObjCmd _ANSI_ARGS_((ClientData cd, 
+EXTERN int		XOTcl_TraceObjCmd (ClientData cd, 
 				Tcl_Interp * interp, int objc, 
-				Tcl_Obj *CONST objv[]));
+				Tcl_Obj *CONST objv[]);
+#endif
+#ifndef XOTclErrMsg_TCL_DECLARED
+#define XOTclErrMsg_TCL_DECLARED
 /* 23 */
-EXTERN int		XOTclErrMsg _ANSI_ARGS_((Tcl_Interp * interp, 
-				char * msg, Tcl_FreeProc * type));
+EXTERN int		XOTclErrMsg (Tcl_Interp * interp, char * msg, 
+				Tcl_FreeProc * type);
+#endif
+#ifndef XOTclVarErrMsg_TCL_DECLARED
+#define XOTclVarErrMsg_TCL_DECLARED
 /* 24 */
-EXTERN int		XOTclVarErrMsg _ANSI_ARGS_(TCL_VARARGS(Tcl_Interp *,interp));
+EXTERN int		XOTclVarErrMsg (Tcl_Interp * interp, ...);
+#endif
+#ifndef XOTclErrInProc_TCL_DECLARED
+#define XOTclErrInProc_TCL_DECLARED
 /* 25 */
-EXTERN int		XOTclErrInProc _ANSI_ARGS_((Tcl_Interp * interp, 
+EXTERN int		XOTclErrInProc (Tcl_Interp * interp, 
 				Tcl_Obj * objName, Tcl_Obj * clName, 
-				char * procName));
+				char * procName);
+#endif
 /* Slot 26 is reserved */
+#ifndef XOTclErrBadVal__TCL_DECLARED
+#define XOTclErrBadVal__TCL_DECLARED
 /* 27 */
-EXTERN int		XOTclErrBadVal_ _ANSI_ARGS_((Tcl_Interp * interp, 
-				char * expected, char * value));
+EXTERN int		XOTclErrBadVal_ (Tcl_Interp * interp, 
+				char * expected, char * value);
+#endif
+#ifndef XOTclObjErrType_TCL_DECLARED
+#define XOTclObjErrType_TCL_DECLARED
 /* 28 */
-EXTERN int		XOTclObjErrType _ANSI_ARGS_((Tcl_Interp * interp, 
-				Tcl_Obj * nm, char * wt));
+EXTERN int		XOTclObjErrType (Tcl_Interp * interp, Tcl_Obj * nm, 
+				char * wt);
+#endif
+#ifndef XOTclStackDump_TCL_DECLARED
+#define XOTclStackDump_TCL_DECLARED
 /* 29 */
-EXTERN void		XOTclStackDump _ANSI_ARGS_((Tcl_Interp * interp));
+EXTERN void		XOTclStackDump (Tcl_Interp * interp);
+#endif
+#ifndef XOTclCallStackDump_TCL_DECLARED
+#define XOTclCallStackDump_TCL_DECLARED
 /* 30 */
-EXTERN void		XOTclCallStackDump _ANSI_ARGS_((Tcl_Interp * interp));
+EXTERN void		XOTclCallStackDump (Tcl_Interp * interp);
+#endif
+#ifndef XOTclDeprecatedMsg_TCL_DECLARED
+#define XOTclDeprecatedMsg_TCL_DECLARED
 /* 31 */
-EXTERN void		XOTclDeprecatedMsg _ANSI_ARGS_((char * oldCmd, 
-				char * newCmd));
+EXTERN void		XOTclDeprecatedMsg (char * oldCmd, char * newCmd);
+#endif
+#ifndef XOTclSetObjClientData_TCL_DECLARED
+#define XOTclSetObjClientData_TCL_DECLARED
 /* 32 */
-EXTERN void		XOTclSetObjClientData _ANSI_ARGS_((
-				XOTcl_Object * obj, ClientData data));
+EXTERN void		XOTclSetObjClientData (XOTcl_Object * obj, 
+				ClientData data);
+#endif
+#ifndef XOTclGetObjClientData_TCL_DECLARED
+#define XOTclGetObjClientData_TCL_DECLARED
 /* 33 */
-EXTERN ClientData	XOTclGetObjClientData _ANSI_ARGS_((
-				XOTcl_Object * obj));
+EXTERN ClientData	XOTclGetObjClientData (XOTcl_Object * obj);
+#endif
+#ifndef XOTclSetClassClientData_TCL_DECLARED
+#define XOTclSetClassClientData_TCL_DECLARED
 /* 34 */
-EXTERN void		XOTclSetClassClientData _ANSI_ARGS_((
-				XOTcl_Class * cl, ClientData data));
+EXTERN void		XOTclSetClassClientData (XOTcl_Class * cl, 
+				ClientData data);
+#endif
+#ifndef XOTclGetClassClientData_TCL_DECLARED
+#define XOTclGetClassClientData_TCL_DECLARED
 /* 35 */
-EXTERN ClientData	XOTclGetClassClientData _ANSI_ARGS_((
-				XOTcl_Class * cl));
+EXTERN ClientData	XOTclGetClassClientData (XOTcl_Class * cl);
+#endif
+#ifndef XOTclRequireObjNamespace_TCL_DECLARED
+#define XOTclRequireObjNamespace_TCL_DECLARED
 /* 36 */
-EXTERN void		XOTclRequireObjNamespace _ANSI_ARGS_((
-				Tcl_Interp * interp, XOTcl_Object * obj));
+EXTERN void		XOTclRequireObjNamespace (Tcl_Interp * interp, 
+				XOTcl_Object * obj);
+#endif
+#ifndef XOTclErrBadVal_TCL_DECLARED
+#define XOTclErrBadVal_TCL_DECLARED
 /* 37 */
-EXTERN int		XOTclErrBadVal _ANSI_ARGS_((Tcl_Interp * interp, 
-				char * context, char * expected, 
-				char * value));
+EXTERN int		XOTclErrBadVal (Tcl_Interp * interp, char * context, 
+				char * expected, char * value);
+#endif
+#ifndef XOTclNextObjCmd_TCL_DECLARED
+#define XOTclNextObjCmd_TCL_DECLARED
 /* 38 */
-EXTERN int		XOTclNextObjCmd _ANSI_ARGS_((ClientData cd, 
-				Tcl_Interp * interp, int objc, 
-				Tcl_Obj *CONST objv[]));
+EXTERN int		XOTclNextObjCmd (ClientData cd, Tcl_Interp * interp, 
+				int objc, Tcl_Obj *CONST objv[]);
+#endif
+#ifndef XOTclCallMethodWithArgs_TCL_DECLARED
+#define XOTclCallMethodWithArgs_TCL_DECLARED
 /* 39 */
-EXTERN int		XOTclCallMethodWithArgs _ANSI_ARGS_((ClientData cd, 
+EXTERN int		XOTclCallMethodWithArgs (ClientData cd, 
 				Tcl_Interp * interp, Tcl_Obj * method, 
 				Tcl_Obj * arg, int objc, 
-				Tcl_Obj *CONST objv[], int flags));
+				Tcl_Obj *CONST objv[], int flags);
+#endif
+#ifndef XOTclObjErrArgCnt_TCL_DECLARED
+#define XOTclObjErrArgCnt_TCL_DECLARED
 /* 40 */
-EXTERN int		XOTclObjErrArgCnt _ANSI_ARGS_((Tcl_Interp * interp, 
+EXTERN int		XOTclObjErrArgCnt (Tcl_Interp * interp, 
 				Tcl_Obj * cmdName, Tcl_Obj * methodName, 
-				char * arglist));
+				char * arglist);
+#endif
+#ifndef XOTclAddObjectMethod_TCL_DECLARED
+#define XOTclAddObjectMethod_TCL_DECLARED
 /* 41 */
-EXTERN Tcl_Command	XOTclAddObjectMethod _ANSI_ARGS_((
-				Tcl_Interp * interp, 
+EXTERN Tcl_Command	XOTclAddObjectMethod (Tcl_Interp * interp, 
 				struct XOTcl_Object * obj, CONST char * nm, 
 				Tcl_ObjCmdProc * proc, ClientData cd, 
-				Tcl_CmdDeleteProc * dp, int flags));
+				Tcl_CmdDeleteProc * dp, int flags);
+#endif
+#ifndef XOTclAddInstanceMethod_TCL_DECLARED
+#define XOTclAddInstanceMethod_TCL_DECLARED
 /* 42 */
-EXTERN Tcl_Command	XOTclAddInstanceMethod _ANSI_ARGS_((
-				Tcl_Interp * interp, struct XOTcl_Class * cl, 
-				CONST char * nm, Tcl_ObjCmdProc * proc, 
-				ClientData cd, Tcl_CmdDeleteProc * dp, 
-				int flags));
+EXTERN Tcl_Command	XOTclAddInstanceMethod (Tcl_Interp * interp, 
+				struct XOTcl_Class * cl, CONST char * nm, 
+				Tcl_ObjCmdProc * proc, ClientData cd, 
+				Tcl_CmdDeleteProc * dp, int flags);
+#endif
+#ifndef XOTclCreate_TCL_DECLARED
+#define XOTclCreate_TCL_DECLARED
 /* 43 */
-EXTERN int		XOTclCreate _ANSI_ARGS_((Tcl_Interp * in, 
-				XOTcl_Class * class, Tcl_Obj * name, 
-				ClientData data, int objc, 
-				Tcl_Obj *CONST objv[]));
+EXTERN int		XOTclCreate (Tcl_Interp * in, XOTcl_Class * class, 
+				Tcl_Obj * name, ClientData data, int objc, 
+				Tcl_Obj *CONST objv[]);
+#endif
 
 typedef struct XotclStubHooks {
     struct XotclIntStubs *xotclIntStubs;
@@ -182,50 +284,50 @@ typedef struct XotclStubs {
     int magic;
     struct XotclStubHooks *hooks;
 
-    int (*xotcl_Init) _ANSI_ARGS_((Tcl_Interp * interp)); /* 0 */
+    int (*xotcl_Init) (Tcl_Interp * interp); /* 0 */
     void *reserved1;
-    struct XOTcl_Class * (*xOTclIsClass) _ANSI_ARGS_((Tcl_Interp * interp, ClientData cd)); /* 2 */
+    struct XOTcl_Class * (*xOTclIsClass) (Tcl_Interp * interp, ClientData cd); /* 2 */
     void *reserved3;
-    struct XOTcl_Object * (*xOTclGetObject) _ANSI_ARGS_((Tcl_Interp * interp, char * name)); /* 4 */
-    struct XOTcl_Class * (*xOTclGetClass) _ANSI_ARGS_((Tcl_Interp * interp, char * name)); /* 5 */
-    int (*xOTclCreateObject) _ANSI_ARGS_((Tcl_Interp * interp, Tcl_Obj * name, struct XOTcl_Class * cl)); /* 6 */
+    struct XOTcl_Object * (*xOTclGetObject) (Tcl_Interp * interp, char * name); /* 4 */
+    struct XOTcl_Class * (*xOTclGetClass) (Tcl_Interp * interp, char * name); /* 5 */
+    int (*xOTclCreateObject) (Tcl_Interp * interp, Tcl_Obj * name, struct XOTcl_Class * cl); /* 6 */
     void *reserved7;
-    int (*xOTclCreateClass) _ANSI_ARGS_((Tcl_Interp * interp, Tcl_Obj * name, struct XOTcl_Class * cl)); /* 8 */
-    int (*xOTclDeleteObject) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Object * obj)); /* 9 */
-    int (*xOTclDeleteClass) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Class * cl)); /* 10 */
-    void (*xOTclAddPMethod) _ANSI_ARGS_((Tcl_Interp* in, struct XOTcl_Object* obj, CONST char* nm, Tcl_ObjCmdProc* proc, ClientData cd, Tcl_CmdDeleteProc* dp)); /* 11 */
-    void (*xOTclAddIMethod) _ANSI_ARGS_((Tcl_Interp* in, struct XOTcl_Class* cl, CONST char* nm, Tcl_ObjCmdProc* proc, ClientData cd, Tcl_CmdDeleteProc* dp)); /* 12 */
-    void (*xOTclRemovePMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Object * obj, char * nm)); /* 13 */
-    void (*xOTclRemoveIMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Class * cl, char * nm)); /* 14 */
-    Tcl_Obj * (*xOTclOSetInstVar) _ANSI_ARGS_((struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name, Tcl_Obj * value, int flgs)); /* 15 */
-    Tcl_Obj * (*xOTclOGetInstVar) _ANSI_ARGS_((struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name, int flgs)); /* 16 */
-    int (*xOTclInstVar) _ANSI_ARGS_((struct XOTcl_Object * obj, Tcl_Interp * interp, char * name, char * destName)); /* 17 */
+    int (*xOTclCreateClass) (Tcl_Interp * interp, Tcl_Obj * name, struct XOTcl_Class * cl); /* 8 */
+    int (*xOTclDeleteObject) (Tcl_Interp * interp, struct XOTcl_Object * obj); /* 9 */
+    int (*xOTclDeleteClass) (Tcl_Interp * interp, struct XOTcl_Class * cl); /* 10 */
+    Tcl_Command (*xOTclAddPMethod) (Tcl_Interp * interp, struct XOTcl_Object * obj, CONST char* nm, Tcl_ObjCmdProc* proc, ClientData cd, Tcl_CmdDeleteProc * dp); /* 11 */
+    Tcl_Command (*xOTclAddIMethod) (Tcl_Interp * interp, struct XOTcl_Class * cl, CONST char* nm, Tcl_ObjCmdProc* proc, ClientData cd, Tcl_CmdDeleteProc * dp); /* 12 */
+    void (*xOTclRemovePMethod) (Tcl_Interp * interp, struct XOTcl_Object * obj, char * nm); /* 13 */
+    void (*xOTclRemoveIMethod) (Tcl_Interp * interp, struct XOTcl_Class * cl, char * nm); /* 14 */
+    Tcl_Obj * (*xOTclOSetInstVar) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name, Tcl_Obj * value, int flgs); /* 15 */
+    Tcl_Obj * (*xOTclOGetInstVar) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name, int flgs); /* 16 */
+    int (*xOTclInstVar) (struct XOTcl_Object * obj, Tcl_Interp * interp, char * name, char * destName); /* 17 */
     void *reserved18;
-    Tcl_Obj * (*xOTcl_ObjSetVar2) _ANSI_ARGS_((struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name1, Tcl_Obj * name2, Tcl_Obj * value, int flgs)); /* 19 */
-    Tcl_Obj * (*xOTcl_ObjGetVar2) _ANSI_ARGS_((struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name1, Tcl_Obj * name2, int flgs)); /* 20 */
-    int (*xOTclUnsetInstVar2) _ANSI_ARGS_((struct XOTcl_Object * obj, Tcl_Interp * interp, char * name1, char * name2, int flgs)); /* 21 */
-    int (*xOTcl_TraceObjCmd) _ANSI_ARGS_((ClientData cd, Tcl_Interp * interp, int objc, Tcl_Obj *CONST objv[])); /* 22 */
-    int (*xOTclErrMsg) _ANSI_ARGS_((Tcl_Interp * interp, char * msg, Tcl_FreeProc * type)); /* 23 */
-    int (*xOTclVarErrMsg) _ANSI_ARGS_(TCL_VARARGS(Tcl_Interp *,interp)); /* 24 */
-    int (*xOTclErrInProc) _ANSI_ARGS_((Tcl_Interp * interp, Tcl_Obj * objName, Tcl_Obj * clName, char * procName)); /* 25 */
+    Tcl_Obj * (*xOTcl_ObjSetVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name1, Tcl_Obj * name2, Tcl_Obj * value, int flgs); /* 19 */
+    Tcl_Obj * (*xOTcl_ObjGetVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name1, Tcl_Obj * name2, int flgs); /* 20 */
+    int (*xOTclUnsetInstVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, char * name1, char * name2, int flgs); /* 21 */
+    int (*xOTcl_TraceObjCmd) (ClientData cd, Tcl_Interp * interp, int objc, Tcl_Obj *CONST objv[]); /* 22 */
+    int (*xOTclErrMsg) (Tcl_Interp * interp, char * msg, Tcl_FreeProc * type); /* 23 */
+    int (*xOTclVarErrMsg) (Tcl_Interp * interp, ...); /* 24 */
+    int (*xOTclErrInProc) (Tcl_Interp * interp, Tcl_Obj * objName, Tcl_Obj * clName, char * procName); /* 25 */
     void *reserved26;
-    int (*xOTclErrBadVal_) _ANSI_ARGS_((Tcl_Interp * interp, char * expected, char * value)); /* 27 */
-    int (*xOTclObjErrType) _ANSI_ARGS_((Tcl_Interp * interp, Tcl_Obj * nm, char * wt)); /* 28 */
-    void (*xOTclStackDump) _ANSI_ARGS_((Tcl_Interp * interp)); /* 29 */
-    void (*xOTclCallStackDump) _ANSI_ARGS_((Tcl_Interp * interp)); /* 30 */
-    void (*xOTclDeprecatedMsg) _ANSI_ARGS_((char * oldCmd, char * newCmd)); /* 31 */
-    void (*xOTclSetObjClientData) _ANSI_ARGS_((XOTcl_Object * obj, ClientData data)); /* 32 */
-    ClientData (*xOTclGetObjClientData) _ANSI_ARGS_((XOTcl_Object * obj)); /* 33 */
-    void (*xOTclSetClassClientData) _ANSI_ARGS_((XOTcl_Class * cl, ClientData data)); /* 34 */
-    ClientData (*xOTclGetClassClientData) _ANSI_ARGS_((XOTcl_Class * cl)); /* 35 */
-    void (*xOTclRequireObjNamespace) _ANSI_ARGS_((Tcl_Interp * interp, XOTcl_Object * obj)); /* 36 */
-    int (*xOTclErrBadVal) _ANSI_ARGS_((Tcl_Interp * interp, char * context, char * expected, char * value)); /* 37 */
-    int (*xOTclNextObjCmd) _ANSI_ARGS_((ClientData cd, Tcl_Interp * interp, int objc, Tcl_Obj *CONST objv[])); /* 38 */
-    int (*xOTclCallMethodWithArgs) _ANSI_ARGS_((ClientData cd, Tcl_Interp * interp, Tcl_Obj * method, Tcl_Obj * arg, int objc, Tcl_Obj *CONST objv[], int flags)); /* 39 */
-    int (*xOTclObjErrArgCnt) _ANSI_ARGS_((Tcl_Interp * interp, Tcl_Obj * cmdName, Tcl_Obj * methodName, char * arglist)); /* 40 */
-    Tcl_Command (*xOTclAddObjectMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Object * obj, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags)); /* 41 */
-    Tcl_Command (*xOTclAddInstanceMethod) _ANSI_ARGS_((Tcl_Interp * interp, struct XOTcl_Class * cl, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags)); /* 42 */
-    int (*xOTclCreate) _ANSI_ARGS_((Tcl_Interp * in, XOTcl_Class * class, Tcl_Obj * name, ClientData data, int objc, Tcl_Obj *CONST objv[])); /* 43 */
+    int (*xOTclErrBadVal_) (Tcl_Interp * interp, char * expected, char * value); /* 27 */
+    int (*xOTclObjErrType) (Tcl_Interp * interp, Tcl_Obj * nm, char * wt); /* 28 */
+    void (*xOTclStackDump) (Tcl_Interp * interp); /* 29 */
+    void (*xOTclCallStackDump) (Tcl_Interp * interp); /* 30 */
+    void (*xOTclDeprecatedMsg) (char * oldCmd, char * newCmd); /* 31 */
+    void (*xOTclSetObjClientData) (XOTcl_Object * obj, ClientData data); /* 32 */
+    ClientData (*xOTclGetObjClientData) (XOTcl_Object * obj); /* 33 */
+    void (*xOTclSetClassClientData) (XOTcl_Class * cl, ClientData data); /* 34 */
+    ClientData (*xOTclGetClassClientData) (XOTcl_Class * cl); /* 35 */
+    void (*xOTclRequireObjNamespace) (Tcl_Interp * interp, XOTcl_Object * obj); /* 36 */
+    int (*xOTclErrBadVal) (Tcl_Interp * interp, char * context, char * expected, char * value); /* 37 */
+    int (*xOTclNextObjCmd) (ClientData cd, Tcl_Interp * interp, int objc, Tcl_Obj *CONST objv[]); /* 38 */
+    int (*xOTclCallMethodWithArgs) (ClientData cd, Tcl_Interp * interp, Tcl_Obj * method, Tcl_Obj * arg, int objc, Tcl_Obj *CONST objv[], int flags); /* 39 */
+    int (*xOTclObjErrArgCnt) (Tcl_Interp * interp, Tcl_Obj * cmdName, Tcl_Obj * methodName, char * arglist); /* 40 */
+    Tcl_Command (*xOTclAddObjectMethod) (Tcl_Interp * interp, struct XOTcl_Object * obj, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags); /* 41 */
+    Tcl_Command (*xOTclAddInstanceMethod) (Tcl_Interp * interp, struct XOTcl_Class * cl, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags); /* 42 */
+    int (*xOTclCreate) (Tcl_Interp * in, XOTcl_Class * class, Tcl_Obj * name, ClientData data, int objc, Tcl_Obj *CONST objv[]); /* 43 */
 } XotclStubs;
 
 #ifdef __cplusplus
