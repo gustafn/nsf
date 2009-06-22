@@ -342,6 +342,8 @@ test-nohttp: binaries libraries test-core
 
 #TESTFLAGS = -srcdir $(srcdir)
 test-core: $(TCLSH_PROG)
+	$(TCLSH) $(src_test_dir_native)/object-system.xotcl \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/testx.xotcl \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/testo.xotcl \
