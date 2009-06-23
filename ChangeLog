@@ -16,8 +16,33 @@ Class info info:
   # new (must be documented): 
        check, hasNamespace, instargs, instmixinguard, 
        instnonposargs, is, mixinguard, nonposargs, slotobjects, slots
-  # lost (need to be implemented as separate methods) 
-       mixinof, instmixinof
+  To evaluate:
+     - change various commands like
+          info procs
+          info commands
+          info forward
+          info paramtercmd
+       or
+          info instprocs
+          info instcommands
+          info instforward
+          info instparamtercmd
+       into
+          info objectmethod ?-commands? ?-forward? ?-parameter?
+          info method ?-commands? ?-forward? ?-parameter?
+       old names could be made deprecated
+       .... also a flag (-perclass or -perobject is possible)
+       .... maybe turn "instproc" into "method" and "proc" into "objectmethod"
+       .... maybe end of the "inst" days?
+
+Slot initCmd
+ - the current (1.6.3) implementation turns initcmd into a trace to be
+   executed the first time, the slot is read. The conversion to trace
+   happes in predefined.xotcl. Alternatively, we could execute the
+   slot directly to have some alternative to defaults, where e.g
+   commands can be executed at creation time. The current solution for
+   parseing, whether the default contains [] or $ is rather ugly. 
+ - the old semantic of __initcmd is gone.
 
 
 incompatible change:

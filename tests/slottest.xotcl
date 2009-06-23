@@ -1,4 +1,3 @@
-# $Id: slottest.xotcl,v 1.5 2007/08/14 16:38:27 neumann Exp $
 package require XOTcl
 namespace import -force xotcl::*
 package require xotcl::test
@@ -53,22 +52,33 @@ package require xotcl::serializer
 set ::hu 0
 proc T1 {var sub op} {c1 set $var t1}
 proc T2 {var sub op} {c1 set $var t2}
-Class C -array set __initcmds {
-  x {set x 1} 
-  y {incr ::hu} 
-  z {my trace add variable z read T1}}
+#Class C -array set __initcmds {
+#  x {set x 1} 
+#  y {incr ::hu} 
+#  z {my trace add variable z read T1}}
+Class C -slots {
+  Attribute x -initcmd {set x 1} 
+  Attribute y -initcmd {incr ::hu} 
+  Attribute z -initcmd {my trace add variable z read T1}
+}
 C create c1
-? {c1 info vars x} x
+? {c1 info vars x} ""
+? {c1 x} "1"
+? {c1 info vars x} "x"
 ? {c1 info vars y} ""
+? {c1 y} 1
 ? {c1 set x} 1
 ? {set ::hu} 1
 
-Class D -array set __initcmds {
-  x {set x 2} 
-  z {my trace add variable z read T2}} -superclass C
+Class D -slots {
+  Attribute x -initcmd {set x 2} 
+  Attribute z -initcmd {my trace add variable z read T2}
+} -superclass C
 D create c1
 ? {c1 set x} 2
-? {c1 set z} t2
+? {c1 z} ""
+? {c1 z} t2
+? {c1 y} 2
 ? {set ::hu} 2
 
 #######################################################
@@ -261,7 +271,8 @@ t {o1 y 1} 1 "parametercmd"
 # }
 
 
-::xotcl::Slot instmixin delete ::xotcl::Slot::Optimizer
+#::xotcl::Slot instmixin delete ::xotcl::Slot::Optimizer
+::xotcl::Attribute instmixin delete ::xotcl::Slot::Optimizer
 
 Class C1 -parameter {a {b 10} {c "Hello World"}}
 C1 c1 -a 1

@@ -352,11 +352,11 @@ test-core: $(TCLSH_PROG)
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/forwardtest.xotcl \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/slottest.xotcl \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/mixinoftest.xotcl \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/varresolutiontest.xotcl \
+		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/slottest.xotcl \
 		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 

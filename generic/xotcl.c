@@ -3537,8 +3537,8 @@ getAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *s
   int rc = 0, new = 0;
   XOTclClasses *sc;
 
-  /*fprintf(stderr, "startCl = %s, opt %p, isMixin %d\n",
-    ObjStr(startCl->object.cmdName),startCl->opt, isMixin);*/
+  /*fprintf(stderr, "startCl = %s, opt %p, isMixin %d, pattern '%s', matchObject %p\n",
+    className(startCl),startCl->opt, isMixin, pattern, matchObject);*/
   
   /* 
    * check all subclasses of startCl for mixins
@@ -3559,11 +3559,11 @@ getAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *s
 
       cl = XOTclGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
-      /* fprintf(stderr, "check %s mixinof %s\n",
-	 className(cl),ObjStr(startCl->object.cmdName));*/
+      /*fprintf(stderr, "check %s mixinof %s\n",
+        className(cl),ObjStr(startCl->object.cmdName));*/
       rc = getAllObjectMixinsOf(interp, destTable, cl, isMixin, appendResult, pattern, matchObject);
-      /*fprintf(stderr, "check %s mixinof %s done\n",
-	className(cl),ObjStr(startCl->object.cmdName));*/
+      /* fprintf(stderr, "check %s mixinof %s done\n",
+      className(cl),ObjStr(startCl->object.cmdName));*/
       if (rc) {return rc;}
     }
   }
@@ -9057,6 +9057,21 @@ XOTclObjInfoChildrenMethod(ClientData clientData, Tcl_Interp *interp, int objc, 
 }
 
 static int
+XOTclObjInfoParametercmdMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  XOTclObject *obj;
+  if (objc < 2 || objc > 3) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object> ?pattern?");  
+  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
+    return XOTclObjErrType(interp, objv[1], "Object");
+
+  if (obj->nsPtr) {
+    return ListMethodKeys(interp, Tcl_Namespace_cmdTable(obj->nsPtr), objc == 3 ? ObjStr(objv[2]) : NULL, 1, 0, 0, 0, 1);
+  } else {
+    return TCL_OK;
+  }
+}
+
+
+static int
 XOTclObjInfoSlotObjectsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj;
 
@@ -9414,6 +9429,7 @@ getModifiers(int objc, int offset, Tcl_Obj  *CONST objv[], CONST char *options[]
     if (to[0] == '-') {
       found = 0;
       for (j=0; options[j]; j++) {
+        /*fprintf(stderr, "getMod '%s' '%s' => %d\n",to, options[j],strcmp(to,options[j]));*/
         if (strcmp(to,options[j]) == 0) {
           count++;
           *set |= 1 << j;
@@ -12398,45 +12414,47 @@ static int
 XOTclClassInfoInstmixinMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclClass *cl;
   XOTclClassOpt *opt;
-  int idx, nobjc, withGuards = 0, rc;
-  static CONST char *options[] = {"-guards", NULL};
-  enum options {guardsIdx};
+  int withGuards, withClosure, rc, set, args, modifiers;
+  static CONST char *options[] = {"-closure", "-guards", NULL};
+  enum options {closureIdx, guardsIdx};
   char *pattern;
   XOTclObject *matchObject;
   Tcl_DString ds, *dsPtr = &ds;
 
+  modifiers = getModifiers(objc, 2, objv, options, &set);
+  args = objc-modifiers;
+
   if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
     return XOTclObjErrType(interp, objv[1], "Class");
-
-  for (idx = 2; idx < objc; idx++) {
-    char *name;
-    int index;
-
-    name = Tcl_GetString(objv[idx]);
-    if (name[0] != '-') {
-      break;
-    }
-    if (Tcl_GetIndexFromObj(interp, objv[idx], options, "switch", TCL_EXACT, &index) != TCL_OK) {
-      return TCL_ERROR;
-    }
-    switch ((enum options) index) {
-    case guardsIdx: withGuards = 1; break;
-    }
-  }
-  nobjc = objc-idx;
   
-  if (objc < 2 || nobjc > 1 || objc > 4)
-    return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?-guards? ?pattern?");
-  
+  if (args < 2 || args > 3)
+    return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?-closure? ?-guards? ?pattern?");
+
+  pattern = args == 3 ? ObjStr(objv[objc-1]) : NULL;
+  withGuards = set & 1 << guardsIdx;
+  withClosure = set & 1 << closureIdx;
+
+  /*fprintf(stderr, "XOTclClassInfoInstmixinMethod guard %d clo %d set %.4x pattern '%s'\n",withGuards,withClosure,set,pattern);*/
+
   opt = cl->opt;
-  pattern = idx < objc ? ObjStr(objv[idx]) : NULL;
   DSTRING_INIT(dsPtr);
   if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
     return TCL_OK;
   }
-  rc = opt ? MixinInfo(interp, opt->instmixins, pattern, withGuards, matchObject) : TCL_OK;
+  if (withClosure) {
+    Tcl_HashTable objTable, *commandTable = &objTable;
+    MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
+    Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
+    rc = getAllClassMixins(interp, commandTable, cl, withGuards, pattern, matchObject);
+    if (matchObject && rc && !withGuards) {
+      Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+    }
+    MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
+  } else {
+    rc = opt ? MixinInfo(interp, opt->instmixins, pattern, withGuards, matchObject) : TCL_OK;
+  }
   DSTRING_FREE(dsPtr);
-  return rc;
+  return TCL_OK;
 }
 
 static int
@@ -12464,25 +12482,25 @@ XOTclClassInfoMixinofMethod(ClientData clientData, Tcl_Interp *interp, int objc,
   modifiers = getModifiers(objc, 2, objv, options, &set);
   args = objc-modifiers;
 
-  if (args < 2 || args > 3) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?-closure? ?pattern?");  
+  if (args < 2 || args > 3) 
+    return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?-closure? ?pattern?");  
   if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
     return XOTclObjErrType(interp, objv[1], "Class");
 
-  pattern = args == 3 ? ObjStr(objv[objc-modifiers-1]) : NULL;
+  pattern = args == 3 ? ObjStr(objv[objc-1]) : NULL;
   withClosure = (modifiers>0);
   Tcl_ResetResult(interp);
 
-  if (cl->opt && !withClosure) {
-    DSTRING_INIT(dsPtr);
-    if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-      return TCL_OK;
-    }
+  DSTRING_INIT(dsPtr);
+  if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
+    return TCL_OK;
+  }
 
+  if (cl->opt && !withClosure) {
     rc = AppendMatchingElementsFromCmdList(interp, cl->opt->isObjectMixinOf, pattern, matchObject); 
     if (matchObject) {
       Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
     }
-    DSTRING_FREE(dsPtr);
   } else if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;
     MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
@@ -12490,6 +12508,12 @@ XOTclClassInfoMixinofMethod(ClientData clientData, Tcl_Interp *interp, int objc,
     rc = getAllObjectMixinsOf(interp, commandTable, cl, 0, 1, pattern, matchObject);
     MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
   }
+
+  if (matchObject) {
+    Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+  }
+
+  DSTRING_FREE(dsPtr);
   return TCL_OK;
 }
 
@@ -12566,6 +12590,18 @@ XOTclClassInfoInstprocsMethod(ClientData clientData, Tcl_Interp *interp, int obj
 			objc == 3 ? ObjStr(objv[2]) : NULL,
 			/*noProcs*/ 0, /*noCmds*/ 1, NULL, 0, 0 );
 }
+
+static int
+XOTclClassInfoInstparametercmdMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  XOTclClass *cl;
+
+  if (objc < 2 || objc > 3) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?pattern?");  
+  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
+    return XOTclObjErrType(interp, objv[1], "Class");
+
+  return ListMethodKeys(interp, Tcl_Namespace_cmdTable(cl->nsPtr), objc == 3 ? ObjStr(objv[2]) : NULL, 1, 0, 0, 0, 1);
+}
+
 
 static int
 XOTclClassInfoInstpreMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -15081,6 +15117,7 @@ Xotcl_Init(Tcl_Interp *interp) {
        {"methods",      XOTclObjInfoMethodsMethod},
        {"nonposargs",   XOTclObjInfoNonposargsMethod},
        {"parent",       XOTclObjInfoParentMethod},
+       {"parametercmd", XOTclObjInfoParametercmdMethod},
        {"post",         XOTclObjInfoPostMethod},
        {"pre",          XOTclObjInfoPreMethod},
        {"procs",        XOTclObjInfoProcsMethod},
@@ -15104,6 +15141,7 @@ Xotcl_Init(Tcl_Interp *interp) {
        {"instmixinof",     XOTclClassInfoInstmixinofMethod},
        {"instprocs",       XOTclClassInfoInstprocsMethod},
        {"instnonposargs",  XOTclClassInfoInstnonposargsMethod},
+       {"instparametercmd",XOTclClassInfoInstparametercmdMethod},
        {"instpre",         XOTclClassInfoInstpreMethod},
        {"instpost",        XOTclClassInfoInstpostMethod},
        {"mixinof",         XOTclClassInfoMixinofMethod},
