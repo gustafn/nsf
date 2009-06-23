@@ -20,7 +20,7 @@ set startObjects [Object info instances]
 set x [llength [Object info instances]]
 set y [set _ [llength [Object info instances]]]
 set z [llength $startObjects]
-puts stderr "x=$x, y=$y, z=$z, ocount=$ocount"
+#puts stderr "x=$x, y=$y, z=$z, ocount=$ocount"
 
 Class M1; Class M2
 Class C -parameter {{p 99} {q 98} r}
@@ -177,18 +177,10 @@ C instproc createVolatileRc {} {
   return 2
 }
 
-puts stderr [set x [llength [Object info instances]]]
-puts stderr [llength [Object info instances]]
-
 C c
 Class D -superclass C
 D instproc init args {}
 D d
-
-puts stderr [set x [llength [Object info instances]]]
-puts stderr [llength [Object info instances]]
-
-
 
 #Test new -cmd {llength [c info children]} -count 1 -expected 999
 #Test new -cmd {set x [llength [c info children]]} -count 1 -expected 999
@@ -249,15 +241,9 @@ Test new -cmd {c implicitReturnFromVar}
 Test new -cmd {llength [Object info instances]} -count 1 -expected $ocount
 Test new -cmd {set x [llength [Object info instances]]} -count 1 -expected $ocount
 
-Test new -cmd {puts stderr [llength [Object info instances]]} -count 1 -expected ""
 Test new -cmd {c childNodeNamespace} -expected ::c::13
-Test new -cmd {puts stderr [llength [Object info instances]]} -count 1 -expected ""
 Test new -cmd {llength [Object info instances]} -count 1 -expected $ocount
-#Test new -cmd {puts stderr [lsort [Object info instances]]} -count 1 -expected ""
-Test new -cmd {puts stderr [llength [Object info instances]]} -count 1 -expected ""
 Test new -cmd {c childNodeNamespaceCreate} -expected ::c::13
-#Test new -cmd {puts stderr [lsort [Object info instances]]} -count 1 -expected ""
-Test new -cmd {puts stderr [llength [Object info instances]]} -count 1 -expected ""
 Test new -cmd {llength [Object info instances]} -expected $ocount
 Test new -cmd {c createVolatileRc} -expected 2
 
@@ -295,20 +281,16 @@ Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 # we create another object
 set ocount [expr {$ocount + 1}]
 Test new -cmd {Object create x} -expected ::x
-#Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
-Test new -count 1 -cmd {puts [lsort [Object info instances]];llength [Object info instances]} -expected $ocount
+Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 
 Test new -cmd {Object create x -set a -1 -set b ,, -set c a--} \
     -expected ::x
-Test new -count 1 -cmd {puts [lsort [Object info instances]]} -expected ""
 Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 
 Test new -cmd {expr {[c array names n 5] ne ""}}
 
-Test new -count 1 -cmd {puts =======[lsort [Object info instances]]} -expected ""
 Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 Test new -cmd {info exists c::n(5)}
-Test new -count 1 -cmd {puts [lsort [Object info instances]]} -expected ""
 Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 Test new -cmd {c exists n(5)}
 

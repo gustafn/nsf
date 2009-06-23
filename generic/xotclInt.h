@@ -338,6 +338,7 @@ typedef struct XOTclMemCounter {
 #endif
 
 #define className(cl) (cl ? ObjStr(cl->object.cmdName) : "")
+#define objectName(obj) (ObjStr(obj->cmdName))
 
 
 #define LONG_AS_STRING 32

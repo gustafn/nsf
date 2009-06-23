@@ -13,7 +13,7 @@ proc ? {cmd expected {msg ""}} {
      puts stderr "$msg returned '$r' ne '$expected'"
      exit
    } else {
-     puts stderr "$msg - passed"
+     puts  -nonewline stderr "."
    }
 }
 
@@ -90,5 +90,6 @@ C copy X
 ? {X::slot info vars} __parameter
 ? {X info parameter} {{x 1} {y 2}}
 
+puts stderr "DONE"
 
 #puts stderr ===EXIT
