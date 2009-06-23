@@ -86,6 +86,13 @@ XOTclObjErrArgCnt(Tcl_Interp *interp, Tcl_Obj *cmdName,  Tcl_Obj *methodName, ch
 }
 
 int
+XOTclObjErrArgCntObj(Tcl_Interp *interp, Tcl_Obj *cmdName,  Tcl_Obj *methodName, Tcl_Obj *msg) {
+  int rc = XOTclObjErrArgCnt(interp, cmdName,  methodName, ObjStr(msg));
+  DECR_REF_COUNT(msg);
+  return rc;
+}
+
+int
 XOTclErrBadVal(Tcl_Interp *interp, char *context, char *expected, char *value) {
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp, context, ": expected ", expected, " but got '", 

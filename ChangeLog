@@ -1,7 +1,11 @@
 copyhandler: we cannot use "set" method, since the object system might to provide it
 Method ::xotcl::Object->__exitHandler became ::xotcl::__exitHandler
-testx.xotcl: handle new command setvalues in filters
 configure returns now instead of the posision the list of arguments preceding dash-arguments
+
+todo:
+  - new parse() command is just used for many of the "instxxx" info commands,
+    but not for others (first candidates: object info commands)
+  - extend parse() command to handle missing cases (e.g. no argument or nonoptional argument)
 
 TODO document 
   - setvalues
@@ -10,7 +14,8 @@ TODO document
 
 type checker todo:
   colorchecker in testx deactivated: drop feature or implement
-  introsepction & error messages return now -x:type=required instead of -x:required
+  generic type checker are still missing (stottest: method 'type=integer' unknown for slot)
+
 
 Class info info:
   # new (must be documented): 

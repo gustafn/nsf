@@ -76,6 +76,9 @@ int xotclMemCountInterpCounter = 0;
   Tcl_SubstObjCmd(clientData, interp, objc, objv)
 #endif
 
+/* maybe move to stubs? */
+int XOTclObjErrArgCntObj(Tcl_Interp *interp, Tcl_Obj *cmdName,  Tcl_Obj *methodName, Tcl_Obj *msg);
+
 static int createMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *obj,
                         int objc, Tcl_Obj *CONST objv[]);
 static int SetXOTclObjectFromAny(Tcl_Interp *interp, Tcl_Obj *objPtr);
@@ -938,7 +941,7 @@ SetXOTclObjectFromAny(Tcl_Interp *interp, register Tcl_Obj *objPtr) {
     if (!obj) {
       /* retry with global namespace */
       tmpName = Tcl_NewStringObj("::", 2);
-      Tcl_AppendToObj(tmpName, string,-1);
+      Tcl_AppendToObj(tmpName, string, -1);
       INCR_REF_COUNT(tmpName);
       obj = XOTclpGetObject(interp, ObjStr(tmpName));
       DECR_REF_COUNT(tmpName);
@@ -6317,41 +6320,6 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore,
   return result;
 }
 
-/*
- * List-Functions for Info
- */
-static int
-ListInfo(Tcl_Interp *interp, int isclass) {
-  Tcl_ResetResult(interp);
-  Tcl_AppendElement(interp, "vars"); Tcl_AppendElement(interp, "body");
-  Tcl_AppendElement(interp, "default"); Tcl_AppendElement(interp, "args");
-  Tcl_AppendElement(interp, "procs"); Tcl_AppendElement(interp, "commands");
-  Tcl_AppendElement(interp, "class"); Tcl_AppendElement(interp, "children");
-  Tcl_AppendElement(interp, "filter"); Tcl_AppendElement(interp, "filterguard");
-  Tcl_AppendElement(interp, "forward");
-  Tcl_AppendElement(interp, "info");
-  Tcl_AppendElement(interp, "invar"); Tcl_AppendElement(interp, "mixin");
-  Tcl_AppendElement(interp, "methods");
-  Tcl_AppendElement(interp, "parent");
-  Tcl_AppendElement(interp, "pre"); Tcl_AppendElement(interp, "post");
-  Tcl_AppendElement(interp, "precedence");
-  if (isclass) {
-    Tcl_AppendElement(interp, "superclass"); Tcl_AppendElement(interp, "subclass");
-    Tcl_AppendElement(interp, "heritage"); Tcl_AppendElement(interp, "instances");
-    Tcl_AppendElement(interp, "instcommands"); Tcl_AppendElement(interp, "instprocs");
-    Tcl_AppendElement(interp, "instdefault"); Tcl_AppendElement(interp, "instbody");
-    Tcl_AppendElement(interp, "instmixin");
-    Tcl_AppendElement(interp, "instforward");
-    Tcl_AppendElement(interp, "instmixinof"); Tcl_AppendElement(interp, "mixinof");
-    Tcl_AppendElement(interp, "classchildren"); Tcl_AppendElement(interp, "classparent");
-    Tcl_AppendElement(interp, "instfilter"); Tcl_AppendElement(interp, "instfilterguard");
-    Tcl_AppendElement(interp, "instinvar");
-    Tcl_AppendElement(interp, "instpre"); Tcl_AppendElement(interp, "instpost");
-    Tcl_AppendElement(interp, "parameter");
-  }
-  return TCL_OK;
-}
-
 XOTCLINLINE static int
 noMetaChars(char *pattern) {
   register char c, *p = pattern;
@@ -6649,14 +6617,6 @@ ListMethods(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
     ListMethodKeys(interp, cmdTable, pattern, noProcs, noCmds, dups, 0, 0);
   }
   Tcl_DeleteHashTable(dups);
-  return TCL_OK;
-}
-
-static int XOTclCInfoMethod(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST v[]);
-
-static int
-ListClass(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
-  Tcl_SetObjResult(interp, obj->cl->object.cmdName);
   return TCL_OK;
 }
 
@@ -8958,34 +8918,6 @@ XOTclOExistsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   return TCL_OK;
 }
 
-static int
-countModifiers(int objc, Tcl_Obj  *CONST objv[]) {
-  int i, count = 0;
-  char *to;
-  for (i = 2; i < objc; i++) {
-    to = ObjStr(objv[i]);
-    if (to[0] == '-') {
-      count++;
-      /* '--' stops modifiers */
-      if (to[1] == '-') break;
-    }
-  }
-  return count;
-}
-
-static int
-checkForModifier(Tcl_Obj  *CONST objv[], int numberModifiers, char *modifier) {
-  int i;
-  if (numberModifiers == 0) return 0;
-  for (i = 2; i-2 < numberModifiers; i++) {
-    char *ov = ObjStr(objv[i]);
-    /* all start with a "-", so there must be a ov[1] */
-    if (ov[1] == modifier[1] && !strcmp(ov, modifier))
-      return 1;
-  }
-  return 0;
-}
-
 /************ info commands xxx ******/
 static int
 XOTclObjInfoArgsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -9203,17 +9135,6 @@ XOTclObjInfoHasnamespaceMethod(ClientData clientData, Tcl_Interp *interp, int ob
   nsp = obj->nsPtr;
   Tcl_SetBooleanObj(Tcl_GetObjResult(interp), nsp != NULL);  
   return TCL_OK;
-}
-
-static int
-XOTclObjInfoInfoMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
-
-  if (objc != 2) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object>");  
-  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Object");
-
-  return ListInfo(interp, GetXOTclClassFromObj(interp, obj->cmdName, NULL, 0) == TCL_OK);
 }
 
 static int
@@ -9476,321 +9397,6 @@ XOTclObjInfoVarsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   
   return ListVars(interp, obj, objc == 3 ? ObjStr(objv[2]) : NULL);
 }
-
-
-static int
-XOTclOInfoMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj = (XOTclObject*)clientData;
-  Tcl_Namespace *nsp = obj->nsPtr;
-  char *cmd, *pattern;
-  int modifiers = 0;
-  XOTclObjectOpt *opt;
-
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (objc < 2)
-    return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "<opt> ?args?");
-
-  opt = obj->opt;
-  cmd = ObjStr(objv[1]);
-  pattern = (objc > 2) ? ObjStr(objv[2]) : 0;
-
-  /*fprintf(stderr, "OInfo cmd=%s, obj=%s, nsp=%p\n", cmd, objectName(obj), nsp);*/
-
-  /*
-   * check for "-" modifiers
-   */
-  if (pattern && *pattern == '-') {
-    modifiers = countModifiers(objc, objv);
-    pattern = (objc > 2+modifiers) ? ObjStr(objv[2+modifiers]) : 0;
-  }
-
-  switch (*cmd) {
-  case 'a':
-    if (isArgsString(cmd)) {
-      if (objc != 3 || modifiers > 0)
-	return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "args <proc>");
-      if (obj->nonposArgsTable) {
-	XOTclNonposArgs *nonposArgs =
-	  NonposArgsGet(obj->nonposArgsTable, pattern);
-        if (nonposArgs) {
-          return ListArgsFromOrdinaryArgs(interp, nonposArgs);
-        }
-      }
-      if (nsp)
-        return ListProcArgs(interp, Tcl_Namespace_cmdTable(nsp), pattern);
-      else
-        return TCL_OK;
-    }
-    break;
-
-  case 'b':
-    if (!strcmp(cmd, "body")) {
-      if (objc != 3 || modifiers > 0)
-	return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "body <proc>");
-      if (nsp)
-        return ListProcBody(interp, Tcl_Namespace_cmdTable(nsp), pattern);
-      else
-        return TCL_OK;
-    }
-    break;
-
-  case 'c':
-    if (isClassString(cmd)) {
-      if (objc > 3 || modifiers > 0 || pattern)
-	return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "class ?class?");
-      return ListClass(interp, obj, objc, objv);
-    } else if (!strcmp(cmd, "commands")) {
-      if (objc > 3 || modifiers > 0)
-	return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "commands ?pattern?");
-      if (nsp)
-        return ListKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern);
-      else
-        return TCL_OK;
-    } else if (!strcmp(cmd, "children")) {
-      if (objc > 3 || modifiers > 0)
-	return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "children ?pattern?");
-      return ListChildren(interp, obj, pattern, 0);
-    } else if (!strcmp(cmd, "check")) {
-      if (objc != 2 || modifiers > 0)
-	return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "check");
-      return AssertionListCheckOption(interp, obj);
-    }
-    break;
-
-  case 'd':
-    if (!strcmp(cmd, "default")) {
-      if (objc != 5 || modifiers > 0)
-	return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "default <proc> <arg> <var>");
-
-      if (obj->nonposArgsTable) {
-        XOTclNonposArgs *nonposArgs =
-          NonposArgsGet(obj->nonposArgsTable, pattern);
-        if (nonposArgs) {
-          return ListDefaultFromOrdinaryArgs(interp, pattern,  nonposArgs,
-                                             ObjStr(objv[3]), objv[4]);
-        }
-      }
-      if (nsp)
-        return ListProcDefault(interp, Tcl_Namespace_cmdTable(nsp), pattern,
-                               ObjStr(objv[3]), objv[4]);
-      else
-        return TCL_OK;
-    }
-    break;
-
-  case 'f':
-    if (!strcmp(cmd, "filter")) {
-      int withGuards = 0, withOrder = 0;
-      if (objc-modifiers > 3)
-	return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], 
-				 "filter ?-guards? ?-order? ?pat?");
-      if (modifiers > 0) {
-        withGuards = checkForModifier(objv, modifiers, "-guards");
-        withOrder = checkForModifier(objv, modifiers, "-order");
-
-        if (withGuards == 0 && withOrder == 0)
-          return XOTclVarErrMsg(interp, "info filter: unknown modifier ",
-                                ObjStr(objv[2]), (char *) NULL);
-        /*
-          if (withGuards && withOrder)
-          return XOTclVarErrMsg(interp, "info filter: cannot use -guards and -order together",
-          ObjStr(objv[2]), (char *) NULL);
-        */
-      }
-
-      if (withOrder) {
-        if (!(obj->flags & XOTCL_FILTER_ORDER_VALID))
-          FilterComputeDefined(interp, obj);
-        return FilterInfo(interp, obj->filterOrder, pattern, withGuards, 1);
-      }
-
-      return opt ? FilterInfo(interp, opt->filters, pattern, withGuards, 0) : TCL_OK;
-
-    } else if (!strcmp(cmd, "filterguard")) {
-      if (objc != 3 || modifiers > 0)
-	return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "filterguard filter");
-      return opt ? GuardList(interp, opt->filters, pattern) : TCL_OK;
-    } else if (!strcmp(cmd, "forward")) {
-      int argc = objc-modifiers;
-      int definition;
-      if (argc < 2 || argc > 3)
-	return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], 
-				 "forward ?-definition? ?name?");
-      definition = checkForModifier(objv, modifiers, "-definition");
-      if (definition && argc < 3) 
-        return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], 
-                                 "forward ?-definition name? ?pattern?");
-      if (nsp) {
-	return forwardList(interp, Tcl_Namespace_cmdTable(nsp), pattern, definition);
-      } else {
-        return TCL_OK;
-      }
-    }
-
-    break;
-
-  case 'h':
-    if (!strcmp(cmd, "hasNamespace")) {
-      Tcl_SetBooleanObj(Tcl_GetObjResult(interp), nsp != NULL);
-      return TCL_OK;
-    }
-    break;
-
-  case 'i':
-    if (!strcmp(cmd, "invar")) {
-      if (objc != 2 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "invar");
-      if (opt && opt->assertions)
-        Tcl_SetObjResult(interp, AssertionList(interp, opt->assertions->invariants));
-      return TCL_OK;
-    } else if (!strcmp(cmd, "info")) {
-      if (objc > 2 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName,  objv[0], "info");
-      return ListInfo(interp, GetXOTclClassFromObj(interp, obj->cmdName, NULL, 0) == TCL_OK);
-    }
-    break;
-
-  case 'm':
-    if (!strcmp(cmd, "mixin")) {
-      int withOrder = 0, withGuards = 0, rc;
-      XOTclObject *matchObject;
-      Tcl_DString ds, *dsPtr = &ds;
-
-      if (objc-modifiers > 3)
-        return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], 
-                                 "mixin ?-guards? ?-order? ?class?");
-      if (modifiers > 0) {
-        withOrder = checkForModifier(objv, modifiers, "-order");
-        withGuards = checkForModifier(objv, modifiers, "-guards");
-
-        if (withOrder == 0 && withGuards == 0)
-          return XOTclVarErrMsg(interp, "info mixin: unknown modifier . ",
-                                ObjStr(objv[2]), (char *) NULL);
-      }
-      
-      DSTRING_INIT(dsPtr);
-      if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-        return TCL_OK;
-      }
-      if (withOrder) {
-        if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
-          MixinComputeDefined(interp, obj);
-        rc = MixinInfo(interp, obj->mixinOrder, pattern, withGuards, matchObject);
-      } else {
-        rc = opt ? MixinInfo(interp, opt->mixins, pattern, withGuards, matchObject) : TCL_OK;
-      }
-      DSTRING_FREE(dsPtr);
-      return rc;
-
-    } else if (!strcmp(cmd, "mixinguard")) {
-      if (objc != 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName,  objv[0], "mixinguard mixin");
-
-      return opt ? GuardList(interp, opt->mixins, pattern) : TCL_OK;
-
-      return opt ? GuardList(interp, opt->mixins, pattern) : TCL_OK;
-    } else if (!strcmp(cmd, "methods")) {
-      int noprocs = 0, nocmds = 0, nomixins = 0, inContext = 0;
-      if (objc-modifiers > 3)
-        return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], 
-                                 "methods ?-noprocs? ?-nocmds? ?-nomixins? ?-incontext? ?pattern?");
-      if (modifiers > 0) {
-        noprocs = checkForModifier(objv, modifiers, "-noprocs");
-        nocmds = checkForModifier(objv, modifiers, "-nocmds");
-        nomixins = checkForModifier(objv, modifiers, "-nomixins");
-        inContext = checkForModifier(objv, modifiers, "-incontext");
-      }
-      return ListMethods(interp, obj, pattern, noprocs, nocmds, nomixins, inContext);
-    }
-#ifdef XOTCL_METADATA
-    else  if (!strcmp(cmd, "metadata")) {
-      if (objc > 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "metadata ?pattern?");
-      return ListKeys(interp, &obj->metaData, pattern);
-    }
-#endif
-    break;
-
-  case 'n':
-    if (!strcmp(cmd, "nonposargs")) {
-      if (objc != 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName,  objv[0], "nonposargs <proc>");
-      if (obj->nonposArgsTable) {
-        XOTclNonposArgs *nonposArgs =
-          NonposArgsGet(obj->nonposArgsTable, pattern);
-        if (nonposArgs) {
-          Tcl_SetObjResult(interp, NonposArgsFormat(interp, nonposArgs->nonposArgs));
-        }
-      }
-      return TCL_OK;
-    }
-    break;
-
-  case 'p':
-    if (!strcmp(cmd, "procs")) {
-      if (objc > 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName,  objv[0], "procs ?pattern?");
-      if (nsp)
-        return ListMethodKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern,
-                              /*noProcs*/ 0, /*noCmds*/ 1, /* noDups */ 0, 
-			      /* onlyForward */0, /* onlySetter */ 0 );
-      else
-        return TCL_OK;
-    } else if (!strcmp(cmd, "parent")) {
-      if (objc > 2 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName,  objv[0], "parent");
-      return ListParent(interp, obj);
-    } else if (!strcmp(cmd, "pre")) {
-      XOTclProcAssertion *procs;
-      if (objc != 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName,  objv[0], "pre <proc>");
-      if (opt) {
-        procs = AssertionFindProcs(opt->assertions, ObjStr(objv[2]));
-        if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->pre));
-      }
-      return TCL_OK;
-    } else if (!strcmp(cmd, "post")) {
-      XOTclProcAssertion *procs;
-      if (objc != 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName,  objv[0], "post <proc>");
-      if (opt) {
-        procs = AssertionFindProcs(opt->assertions, ObjStr(objv[2]));
-        if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->post));
-      }
-      return TCL_OK;
-    } else if (!strcmp(cmd, "precedence")) {
-      int intrinsic = 0;
-      if (objc-modifiers > 3 || modifiers > 1)
-	return XOTclObjErrArgCnt(interp, obj->cmdName,  objv[0], "precedence ?-intrinsic? ?pattern?");
-
-      intrinsic = checkForModifier(objv, modifiers, "-intrinsic");
-      return ListPrecedence(interp, obj, pattern, intrinsic);
-    } else if (!strcmp(cmd, "parametercmd")) {
-      int argc = objc-modifiers;
-      if (argc < 2)
-        return XOTclObjErrArgCnt(interp, obj->cmdName,
-				 objv[0], "parametercmd ?pattern?");
-      if (nsp) {
-	return ListMethodKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern, 1, 0, 0, 0, 1);
-      } else {
-        return TCL_OK;
-      }
-    }
-
-    break;
-
-  case 'v':
-    if (!strcmp(cmd, "vars")) {
-      if (objc > 3 || modifiers > 0)
-        return XOTclObjErrArgCnt(interp, obj->cmdName,  objv[0], "vars ?pattern?");
-      return ListVars(interp, obj, pattern);
-    }
-    break;
-  }
-  return XOTclErrBadVal(interp, "info",
-                        "an info option (use 'info info' to list all info options)", cmd);
-}
-
 
 static int
 XOTclOProcMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj * CONST objv[]) {
@@ -12214,44 +11820,112 @@ XOTclClassInfoHeritageMethod(ClientData clientData, Tcl_Interp *interp, int objc
 }
 
 
+struct parseContext {
+  int flags;
+  int resultIsSet;
+  XOTclObject *obj;
+  XOTclClass *cl;
+  int set;
+  char *pattern;
+  XOTclObject *matchObject;
+  Tcl_DString ds;
+};
+
+static int
+getMatchObject2(Tcl_Interp *interp, struct parseContext *pc) {
+  if (pc->pattern && noMetaChars(pc->pattern)) {
+    pc->matchObject = XOTclpGetObject(interp, pc->pattern);
+    if (pc->matchObject) {
+      pc->pattern = ObjStr((pc->matchObject)->cmdName);
+      return 1;
+    } else {
+      /* object does not exist */
+      Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_EMPTY]);
+      return -1;
+    }
+  } else {
+    pc->matchObject = NULL;
+    if (pc->pattern) {
+      /* 
+       * we have a pattern and meta characters, we might have 
+       * to prefix it to ovoid abvious errors: since all object
+       * names are prefixed with ::, we add this prefix automatically
+       * to the match pattern, if it does not exist
+       */
+      if (*(pc->pattern) && *(pc->pattern) != ':' && *(pc->pattern+1) && *(pc->pattern+1) != ':') {
+        /*fprintf(stderr, "pattern is not prefixed '%s'\n",pc->pattern);*/
+        Tcl_DStringAppend(&pc->ds, "::", -1);
+        Tcl_DStringAppend(&pc->ds, pc->pattern, -1);
+        pc->pattern = Tcl_DStringValue(&pc->ds);
+        /*fprintf(stderr, "prefixed pattern = '%s'\n",pc->pattern);*/
+      }
+    }
+  }
+  return 0;
+}
+
+#define parseClass       0x0000001
+#define parsePattern     0x0000002
+#define parseMatchObject 0x0000002
+
+static int
+parse(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+      CONST char *options[], int flags, struct parseContext *pc) {
+  
+  int modifiers = getModifiers(objc, 2, objv, options, &pc->set);
+  int args = objc-modifiers;
+  int maxArgs = flags & parsePattern ? args + 1 : args;
+
+  pc->resultIsSet = 0;
+  if (flags & parseClass) {
+    if (GetXOTclClassFromObj(interp, objv[1], &pc->cl, 0) != TCL_OK)
+      return XOTclObjErrType(interp, objv[1], "Class");
+  }
+ 
+  if (args < 2 || args > maxArgs) {
+    Tcl_Obj *msg = Tcl_NewStringObj(flags & parseClass ? "<class>" : "<object>", -1);
+    int i;
+    for (i=0; options[i]; i++) {
+      Tcl_AppendToObj(msg, " ?", 2);
+      Tcl_AppendToObj(msg, options[i], -1);
+      Tcl_AppendToObj(msg, "?", 1);
+    }
+    if (flags & parsePattern) {
+      Tcl_AppendToObj(msg, " ?pattern?", -1);
+    }
+    return XOTclObjErrArgCntObj(interp, objv[0],  NULL, msg);
+  }
+
+  pc->pattern = (flags & parsePattern) && args>2? ObjStr(objv[objc-1]) : NULL;
+  /*fprintf(stderr, "flags %d args %d both %d\n",flags & parsePattern, args, 
+          (flags & parsePattern) && args>2);*/
+  if (flags & parseMatchObject) {
+    DSTRING_INIT(&pc->ds);
+    if (getMatchObject2(interp, pc) == -1) {
+      pc->resultIsSet = 1;
+    }
+  }
+  return TCL_OK;
+}
 
 static int
 XOTclClassInfoInstancesMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  int modifiers, args, set, rc;
-  char *pattern;
-  XOTclObject *matchObject;
-  Tcl_DString ds, *dsPtr = &ds;
+  struct parseContext pc;
   static CONST char *options[] = {"-closure", NULL};
-  int withClosure = 0;
+  int rc, withClosure;
 
-  /* todo: test and use getModifieres everywhere */
-  modifiers = getModifiers(objc, 2, objv, options, &set);
-  args = objc-modifiers;
-
-  if (args < 2 || args > 3) 
-    return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?-closure? ?pattern?");
-
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  pattern = args == 3 ? ObjStr(objv[objc-modifiers-1]) : NULL;
-  if (modifiers>0) {
-    withClosure = 1;
+  if ((rc = parse(clientData, interp, objc, objv, options, 
+                  parseClass|parsePattern|parseMatchObject, &pc)) != TCL_OK || pc.resultIsSet) {
+    return rc;
   }
+  withClosure = pc.set & 1 << 0;
 
-  DSTRING_INIT(dsPtr);
-  if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-    return TCL_OK;
+  rc = listInstances(interp, pc.cl, pc.pattern, withClosure, pc.matchObject);
+
+  if (pc.matchObject) {
+    Tcl_SetObjResult(interp, rc ? pc.matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
   }
-
-  Tcl_ResetResult(interp);
-  rc = listInstances(interp, cl, pattern, withClosure, matchObject);
-
-  if (matchObject) {
-    Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-  }
-  DSTRING_FREE(dsPtr);
+  DSTRING_FREE(&pc.ds);
   return TCL_OK;
 }
 
@@ -12395,14 +12069,14 @@ XOTclClassInfoInstforwardMethod(ClientData clientData, Tcl_Interp *interp, int o
 
 static int
 XOTclClassInfoInstinvarMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
+  struct parseContext pc;
   XOTclClassOpt *opt;
+  int rc;
 
-  if (objc != 2) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class>");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  opt = cl->opt;
+  if ((rc = parse(clientData, interp, objc, objv, NULL, parseClass, &pc)) != TCL_OK) {
+    return rc;
+  }
+  opt = pc.cl->opt;
   if (opt && opt->assertions) {
     Tcl_SetObjResult(interp, AssertionList(interp, opt->assertions->invariants));
   }
@@ -12410,50 +12084,38 @@ XOTclClassInfoInstinvarMethod(ClientData clientData, Tcl_Interp *interp, int obj
   return TCL_OK;
 }
 
+
 static int
 XOTclClassInfoInstmixinMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  XOTclClassOpt *opt;
-  int withGuards, withClosure, rc, set, args, modifiers;
+  struct parseContext pc;
   static CONST char *options[] = {"-closure", "-guards", NULL};
-  enum options {closureIdx, guardsIdx};
-  char *pattern;
-  XOTclObject *matchObject;
-  Tcl_DString ds, *dsPtr = &ds;
+  int rc, withGuards, withClosure;
+  XOTclClassOpt *opt;
 
-  modifiers = getModifiers(objc, 2, objv, options, &set);
-  args = objc-modifiers;
-
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-  
-  if (args < 2 || args > 3)
-    return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?-closure? ?-guards? ?pattern?");
-
-  pattern = args == 3 ? ObjStr(objv[objc-1]) : NULL;
-  withGuards = set & 1 << guardsIdx;
-  withClosure = set & 1 << closureIdx;
-
-  /*fprintf(stderr, "XOTclClassInfoInstmixinMethod guard %d clo %d set %.4x pattern '%s'\n",withGuards,withClosure,set,pattern);*/
-
-  opt = cl->opt;
-  DSTRING_INIT(dsPtr);
-  if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-    return TCL_OK;
+  if ((rc = parse(clientData, interp, objc, objv, options, 
+                  parseClass|parsePattern|parseMatchObject, &pc)) != TCL_OK || pc.resultIsSet) {
+    return rc;
   }
+  withClosure = pc.set & 1 << 0;
+  withGuards  = pc.set & 1 << 1;
+  opt = pc.cl->opt;
+  
+  /*fprintf(stderr, "XOTclClassInfoInstmixinMethod guard %d clo %d set %.4x pattern '%s'\n",
+    withGuards,withClosure,pc.set,pc.pattern);*/
+
   if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;
     MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
     Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-    rc = getAllClassMixins(interp, commandTable, cl, withGuards, pattern, matchObject);
-    if (matchObject && rc && !withGuards) {
-      Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+    rc = getAllClassMixins(interp, commandTable, pc.cl, withGuards, pc.pattern, pc.matchObject);
+    if (pc.matchObject && rc && !withGuards) {
+      Tcl_SetObjResult(interp, rc ? pc.matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
     }
     MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
   } else {
-    rc = opt ? MixinInfo(interp, opt->instmixins, pattern, withGuards, matchObject) : TCL_OK;
+    rc = opt ? MixinInfo(interp, opt->instmixins, pc.pattern, withGuards, pc.matchObject) : TCL_OK;
   }
-  DSTRING_FREE(dsPtr);
+  DSTRING_FREE(&pc.ds);
   return TCL_OK;
 }
 
@@ -12472,91 +12134,62 @@ XOTclClassInfoInstmixinguardMethod(ClientData clientData, Tcl_Interp *interp, in
 
 static int
 XOTclClassInfoMixinofMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  int modifiers, args, set, withClosure, rc;
-  char *pattern;
+  struct parseContext pc;
   static CONST char *options[] = {"-closure", NULL};
-  XOTclObject *matchObject;
-  Tcl_DString ds, *dsPtr = &ds;
+  int rc, withClosure;
 
-  modifiers = getModifiers(objc, 2, objv, options, &set);
-  args = objc-modifiers;
-
-  if (args < 2 || args > 3) 
-    return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?-closure? ?pattern?");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  pattern = args == 3 ? ObjStr(objv[objc-1]) : NULL;
-  withClosure = (modifiers>0);
-  Tcl_ResetResult(interp);
-
-  DSTRING_INIT(dsPtr);
-  if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-    return TCL_OK;
+  if ((rc = parse(clientData, interp, objc, objv, options, 
+                  parseClass|parsePattern|parseMatchObject, &pc)) != TCL_OK || pc.resultIsSet) {
+    return rc;
   }
+  withClosure = pc.set & 1 << 0;
 
-  if (cl->opt && !withClosure) {
-    rc = AppendMatchingElementsFromCmdList(interp, cl->opt->isObjectMixinOf, pattern, matchObject); 
-    if (matchObject) {
-      Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-    }
+  if (pc.cl->opt && !withClosure) {
+    rc = AppendMatchingElementsFromCmdList(interp, pc.cl->opt->isObjectMixinOf, pc.pattern, pc.matchObject); 
   } else if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;
     MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
     Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-    rc = getAllObjectMixinsOf(interp, commandTable, cl, 0, 1, pattern, matchObject);
+    rc = getAllObjectMixinsOf(interp, commandTable, pc.cl, 0, 1, pc.pattern, pc.matchObject);
     MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
   }
 
-  if (matchObject) {
-    Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+  if (pc.matchObject) {
+    Tcl_SetObjResult(interp, rc ? pc.matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
   }
 
-  DSTRING_FREE(dsPtr);
+  DSTRING_FREE(&pc.ds);
   return TCL_OK;
 }
 
 
 static int
 XOTclClassInfoInstmixinofMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  int modifiers, args, set, withClosure, rc;
-  char *pattern;
+  struct parseContext pc;
   static CONST char *options[] = {"-closure", NULL};
-  XOTclObject *matchObject;
-  Tcl_DString ds, *dsPtr = &ds;
+  int rc, withClosure;
 
-  modifiers = getModifiers(objc, 2, objv, options, &set);
-  args = objc-modifiers;
-
-  if (args < 2 || args > 3) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?-closure? ?pattern?");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  pattern = args == 3 ? ObjStr(objv[objc-modifiers-1]) : NULL;
-  withClosure = (modifiers>0);
-  Tcl_ResetResult(interp);
+  if ((rc = parse(clientData, interp, objc, objv, options, 
+                  parseClass|parsePattern|parseMatchObject, &pc)) != TCL_OK || pc.resultIsSet) {
+    return rc;
+  }
+  withClosure = pc.set & 1 << 0;
   
-  if (cl->opt) {
-    DSTRING_INIT(dsPtr);
-    if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-      return TCL_OK;
-    }
+  if (pc.cl->opt) {
     if (withClosure) {
       Tcl_HashTable objTable, *commandTable = &objTable;
       MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
       Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-      rc = getAllClassMixinsOf(interp, commandTable, cl, 0, 1, pattern, matchObject);
+      rc = getAllClassMixinsOf(interp, commandTable, pc.cl, 0, 1, pc.pattern, pc.matchObject);
       MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
     } else {
-      rc = AppendMatchingElementsFromCmdList(interp, cl->opt->isClassMixinOf, 
-                                             pattern, matchObject);
+      rc = AppendMatchingElementsFromCmdList(interp, pc.cl->opt->isClassMixinOf, 
+                                             pc.pattern, pc.matchObject);
     }
-    if (matchObject) {
-      Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+    if (pc.matchObject) {
+      Tcl_SetObjResult(interp, rc ? pc.matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
     }
-    DSTRING_FREE(dsPtr);
+    DSTRING_FREE(&pc.ds);
   }
   return TCL_OK;
 }
@@ -12580,26 +12213,23 @@ XOTclClassInfoInstnonposargsMethod(ClientData clientData, Tcl_Interp *interp, in
 
 static int
 XOTclClassInfoInstprocsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
+  struct parseContext pc;
 
-  if (objc < 2 || objc > 3) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?pattern?");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  return ListMethodKeys(interp, Tcl_Namespace_cmdTable(cl->nsPtr), 
-			objc == 3 ? ObjStr(objv[2]) : NULL,
-			/*noProcs*/ 0, /*noCmds*/ 1, NULL, 0, 0 );
+  if (parse(clientData, interp, objc, objv, NULL, parseClass|parsePattern, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  }
+  return ListMethodKeys(interp, Tcl_Namespace_cmdTable(pc.cl->nsPtr), 
+			pc.pattern, /*noProcs*/ 0, /*noCmds*/ 1, NULL, 0, 0 );
 }
 
 static int
 XOTclClassInfoInstparametercmdMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
+  struct parseContext pc;
 
-  if (objc < 2 || objc > 3) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?pattern?");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  return ListMethodKeys(interp, Tcl_Namespace_cmdTable(cl->nsPtr), objc == 3 ? ObjStr(objv[2]) : NULL, 1, 0, 0, 0, 1);
+  if ((parse(clientData, interp, objc, objv, NULL, parseClass|parsePattern, &pc)) != TCL_OK) {
+    return TCL_ERROR;
+  }
+  return ListMethodKeys(interp, Tcl_Namespace_cmdTable(pc.cl->nsPtr), pc.pattern, 1, 0, 0, 0, 1);
 }
 
 
@@ -12608,7 +12238,7 @@ XOTclClassInfoInstpreMethod(ClientData clientData, Tcl_Interp *interp, int objc,
   XOTclClass *cl;
   XOTclClassOpt *opt;
 
-  if (objc != 3) return XOTclObjErrArgCnt(interp, objv[0], objv[1], "<methodName>");  
+  if (objc != 3) return XOTclObjErrArgCnt(interp, objv[0], objv[1], "<class> <methodName>");  
   if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
     return XOTclObjErrType(interp, objv[1], "Class");
 
@@ -12667,75 +12297,48 @@ XOTclClassInfoParameterMethod(ClientData clientData, Tcl_Interp *interp, int obj
 
 static int
 XOTclClassInfoSuperclassMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  int modifiers, args, set;
-  char *pattern;
+  struct parseContext pc;
   static CONST char *options[] = {"-closure", NULL};
-  int withClosure = 0;
+  int rc, withClosure;
 
-  /* todo: test and use getModifieres everywhere */
-  modifiers = getModifiers(objc, 2, objv, options, &set);
-  args = objc-modifiers;
-
-  if (args < 2 || args > 3) 
-    return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?-closure? ?pattern?");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  pattern = args == 3 ? ObjStr(objv[objc-modifiers-1]) : NULL;
-  if (modifiers>0) {
-    withClosure = 1;
+  if ((rc = parse(clientData, interp, objc, objv, options, 
+                  parseClass|parsePattern, &pc)) != TCL_OK || pc.resultIsSet) {
+    return rc;
   }
-  return ListSuperclasses(interp, cl, pattern, withClosure);
+  withClosure = pc.set & 1 << 0;
+  return ListSuperclasses(interp, pc.cl, pc.pattern, withClosure);
 }
 
 
 static int
 XOTclClassInfoSubclassMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  int withClosure = 0, rc, modifiers, args, set;
-  XOTclObject *matchObject;  
-  Tcl_DString ds, *dsPtr = &ds;
-  char *pattern;
+  struct parseContext pc;
   static CONST char *options[] = {"-closure", NULL};
+  int rc, withClosure;
 
-  /* todo: test and use getModifieres everywhere */
-  modifiers = getModifiers(objc, 2, objv, options, &set);
-  args = objc-modifiers;
-
-  if (args < 2 || args > 3) 
-    return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?-closure? ?pattern?");
-
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  /* We have only one modifier, so it must be closure; if there would
-     be multiple modifieres would have to check the resulting "set" */
-  withClosure = modifiers > 0;
-  pattern = args == 3 ? ObjStr(objv[objc-1]) : NULL;
-
-  DSTRING_INIT(dsPtr);
-  if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-    return TCL_OK;
+  if ((rc = parse(clientData, interp, objc, objv, options, 
+                  parseClass|parsePattern|parseMatchObject, &pc)) != TCL_OK || pc.resultIsSet) {
+    return rc;
   }
-  
+  withClosure = pc.set & 1 << 0;
+
   if (withClosure) {
-    XOTclClasses *saved = cl->order, *subclasses;
-    cl->order = NULL;
-    subclasses = ComputeOrder(cl, cl->order, Sub);
-    cl->order = saved;
+    XOTclClasses *saved = pc.cl->order, *subclasses;
+    pc.cl->order = NULL;
+    subclasses = ComputeOrder(pc.cl, pc.cl->order, Sub);
+    pc.cl->order = saved;
     if (subclasses) subclasses=subclasses->nextPtr;
-    rc = AppendMatchingElementsFromClasses(interp, subclasses, pattern, matchObject);
+    rc = AppendMatchingElementsFromClasses(interp, subclasses, pc.pattern, pc.matchObject);
     XOTclClassListFree(subclasses);
   } else {
-    rc = AppendMatchingElementsFromClasses(interp, cl->sub, pattern, matchObject);
+    rc = AppendMatchingElementsFromClasses(interp, pc.cl->sub, pc.pattern, pc.matchObject);
   }
 
-  if (matchObject) {
-    Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+  if (pc.matchObject) {
+    Tcl_SetObjResult(interp, rc ? pc.matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
   }
 
-  DSTRING_FREE(dsPtr);
+  DSTRING_FREE(&pc.ds);
   return TCL_OK;
 }
 
@@ -12761,484 +12364,6 @@ XOTclClassInfoSlotsMethod(ClientData clientData, Tcl_Interp *interp, int objc, T
   }
   DSTRING_FREE(dsPtr);
   return rc;
-}
-
-static int
-XOTclCInfoMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj  *CONST objv[]) {
-  XOTclClass *cl = XOTclObjectToClass(clientData);
-  Tcl_Namespace *nsp;
-  XOTclClassOpt *opt;
-  char *pattern, *cmd;
-  int modifiers = 0;
-
-  if (objc < 2)
-    return XOTclObjErrArgCnt(interp, cl->object.cmdName,  objv[0], "<opt> ?args?");
-
-  if (cl) {
-    nsp = cl->nsPtr;
-    opt = cl->opt;
-
-    cmd = ObjStr(objv[1]);
-    pattern = (objc > 2) ? ObjStr(objv[2]) : NULL;
-
-    /*
-     * check for "-" modifiers
-     */
-    if (pattern && *pattern == '-') {
-      modifiers = countModifiers(objc, objv);
-      pattern = (objc > 2+modifiers) ? ObjStr(objv[2+modifiers]) : 0;
-    }
-
-    switch (*cmd) {
-    case 'c':
-      if (!strcmp(cmd, "classchildren")) {
-        if (objc > 3 || modifiers > 0)
-          return XOTclObjErrArgCnt(interp, cl->object.cmdName,  objv[0], "classchildren ?pattern?");
-        return ListChildren(interp, (XOTclObject*) cl, pattern, 1);
-      } else if (!strcmp(cmd, "classparent")) {
-        if (objc > 2 || modifiers > 0)
-          return XOTclObjErrArgCnt(interp, cl->object.cmdName,  objv[0], "classparent");
-        return ListParent(interp, &cl->object);
-      }
-      break;
-
-    case 'h':
-      if (!strcmp(cmd, "heritage")) {
-        if (objc > 3 || modifiers > 0)
-          return XOTclObjErrArgCnt(interp, cl->object.cmdName,  objv[0], "heritage ?pattern?");
-        return ListHeritage(interp, cl, pattern);
-      }
-      break;
-
-    case 'i':
-      if (cmd[1] == 'n' && cmd[2] == 's' && cmd[3] == 't') {
-        char *cmdTail = cmd + 4;
-        switch (*cmdTail) {
-        case 'a':
-          if (!strcmp(cmdTail, "ances")) {
-            int withClosure = 0;
-	    
-            if (objc-modifiers > 3 || modifiers > 1)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instances ?-closure? ?pattern?");
-            if (modifiers > 0) {
-              withClosure = checkForModifier(objv, modifiers, "-closure");
-              if (withClosure == 0)
-                return XOTclVarErrMsg(interp,  objv[0], "instances: unknown modifier ",
-                                      ObjStr(objv[2]), (char *) NULL);
-            }
-            return ListSuperclasses(interp, cl, pattern, withClosure);
-
-          } else if (!strcmp(cmdTail, "args")) {
-            if (objc != 3 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instargs <instproc>");
-            if (cl->nonposArgsTable) {
-              XOTclNonposArgs *nonposArgs =
-                NonposArgsGet(cl->nonposArgsTable, pattern);
-              if (nonposArgs) {
-                return ListArgsFromOrdinaryArgs(interp, nonposArgs);
-              }
-            }
-            return ListProcArgs(interp, Tcl_Namespace_cmdTable(nsp), pattern);
-          }
-          break;
-	
-        case 'b':
-          if (!strcmp(cmdTail, "body")) {
-            if (objc != 3 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instbody <instproc>");
-            return ListProcBody(interp, Tcl_Namespace_cmdTable(nsp), pattern);
-          }
-          break;
-
-        case 'c':
-          if (!strcmp(cmdTail, "commands")) {
-            if (objc > 3 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instcommands ?pattern?");
-            return ListKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern);
-          }
-          break;
-	
-        case 'd':
-          if (!strcmp(cmdTail, "default")) {
-            if (objc != 5 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instdefault <instproc> <arg> <var>");
-	
-            if (cl->nonposArgsTable) {
-              XOTclNonposArgs *nonposArgs =
-                NonposArgsGet(cl->nonposArgsTable, pattern);
-              if (nonposArgs) {
-                return ListDefaultFromOrdinaryArgs(interp, pattern, nonposArgs,
-                                                   ObjStr(objv[3]), objv[4]);
-              }
-            }
-            return ListProcDefault(interp, Tcl_Namespace_cmdTable(nsp), pattern,
-                                   ObjStr(objv[3]), objv[4]);
-          }
-          break;
-	
-        case 'f':
-          if (!strcmp(cmdTail, "filter")) {
-            int withGuards = 0;
-            if (objc-modifiers > 3)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instfilter ?-guards? ?pattern?");
-            if (modifiers > 0) {
-              withGuards = checkForModifier(objv, modifiers, "-guards");
-              if (withGuards == 0)
-                return XOTclVarErrMsg(interp,  objv[0], "instfilter: unknown modifier ",
-                                      ObjStr(objv[2]), (char *) NULL);
-            }
-            return opt ? FilterInfo(interp, opt->instfilters, pattern, withGuards, 0) : TCL_OK;
-	
-          } else if (!strcmp(cmdTail, "filterguard")) {
-            if (objc != 3 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instfilterguard filter");
-            return opt ? GuardList(interp, opt->instfilters, pattern) : TCL_OK;
-          } else if (!strcmp(cmdTail, "forward")) {
-            int argc = objc-modifiers;
-            int definition;
-            if (argc < 2 || argc > 3)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instforward ?-definition? ?name?");
-            definition = checkForModifier(objv, modifiers, "-definition");
-	    if (definition && argc < 3) 
-	      return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instforward ?-definition? ?name?");
-            if (nsp) {
-              return forwardList(interp, Tcl_Namespace_cmdTable(nsp), pattern, definition);
-	    } else {
-              return TCL_OK;
-	    }
-          }
-          break;
-
-        case 'i':
-          if (!strcmp(cmdTail, "invar")) {
-            XOTclAssertionStore *assertions = opt ? opt->assertions : 0;
-            if (objc != 2 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instinvar");
-      
-            if (assertions && assertions->invariants)
-              Tcl_SetObjResult(interp, AssertionList(interp, assertions->invariants));
-            return TCL_OK;
-          }
-          break;
-    
-        case 'm':
-          if (!strcmp(cmdTail, "mixin")) {
-	    int withClosure = 0, withGuards = 0, rc;
-            XOTclObject *matchObject;
-            Tcl_DString ds, *dsPtr = &ds;
-
-            if (objc-modifiers > 3 || modifiers > 2)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instmixin ?-closure? ?-guards? ?pattern?");
-            if (modifiers > 0) {
-              withGuards = checkForModifier(objv, modifiers, "-guards");
-	      withClosure = checkForModifier(objv, modifiers, "-closure");
-              if ((withGuards == 0) && (withClosure == 0)) 
-                return XOTclVarErrMsg(interp,  objv[0], "instfilter: unknown modifier ",
-                                      ObjStr(objv[2]), (char *) NULL);
-            }
-
-            if ((opt) || (withClosure)) {
-              DSTRING_INIT(dsPtr);
-              if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-                return TCL_OK;
-              }
-	      if (withClosure) {
-                Tcl_HashTable objTable, *commandTable = &objTable;
-                MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-                Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-                rc = getAllClassMixins(interp, commandTable, cl, withGuards, pattern, matchObject);
-                if (matchObject && rc && !withGuards) {
-                  Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-                }
-                MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
-	      } else {
-	        rc = opt ? MixinInfo(interp, opt->instmixins, pattern, withGuards, matchObject) : TCL_OK;
-	      }
-              DSTRING_FREE(dsPtr);
-	    }
-    	    return TCL_OK;
-      
-          } else if (!strcmp(cmdTail, "mixinof")) {
-            int withClosure = 0, rc;
-            XOTclObject *matchObject;
-            Tcl_DString ds, *dsPtr = &ds;
-
-            if (objc-modifiers > 3 || modifiers > 1)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instmixinof ?-closure? ?class?");
-            if (modifiers > 0) {
-              withClosure = checkForModifier(objv, modifiers, "-closure");
-              if (withClosure == 0)
-                return XOTclVarErrMsg(interp,  objv[0], "instmixinof: unknown modifier ",
-                                      ObjStr(objv[2]), (char *) NULL);
-            }
-
-            if (opt) {
-              DSTRING_INIT(dsPtr);
-              if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-                return TCL_OK;
-              }
-              if (withClosure) {
-                Tcl_HashTable objTable, *commandTable = &objTable;
-                MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-                Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-                rc = getAllClassMixinsOf(interp, commandTable, cl, 0, 1, pattern, matchObject);
-                MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
-              } else {
-                rc = AppendMatchingElementsFromCmdList(interp, opt->isClassMixinOf, 
-                                                       pattern, matchObject);
-              }
-              if (matchObject) {
-                Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-              }
-              DSTRING_FREE(dsPtr);
-            }
-            return TCL_OK;
-
-          } else if (!strcmp(cmdTail, "mixinguard")) {
-            if (objc != 3 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instmixinguard mixin");
-            return opt ? GuardList(interp, opt->instmixins, pattern) : TCL_OK;
-          }
-          break;
-	
-        case 'n':
-          if (!strcmp(cmdTail, "nonposargs")) {
-            if (objc != 3 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-				       objv[0], "instnonposargs <instproc>");
-            if (cl->nonposArgsTable) {
-              XOTclNonposArgs *nonposArgs =
-                NonposArgsGet(cl->nonposArgsTable, pattern);
-              if (nonposArgs) {
-                Tcl_SetObjResult(interp, NonposArgsFormat(interp,
-							  nonposArgs->nonposArgs));
-              }
-            }
-            return TCL_OK;
-          }
-          break;
-	
-        case 'p':
-          if (!strcmp(cmdTail, "procs")) {
-            if (objc > 3 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName, objv[0], "instprocs ?pattern?");
-            return ListMethodKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern,
-                                  /*noProcs*/ 0, /*noCmds*/ 1, /* dups */ NULL, 0, 0);
-          } else if (!strcmp(cmdTail, "pre")) {
-            XOTclProcAssertion *procs;
-            if (objc != 3 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-                                       objv[0], "instpre <proc>");
-            if (opt && opt->assertions) {
-              procs = AssertionFindProcs(opt->assertions, ObjStr(objv[2]));
-              if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->pre));
-            }
-            return TCL_OK;
-          } else if (!strcmp(cmdTail, "post")) {
-            XOTclProcAssertion *procs;
-            if (objc != 3 || modifiers > 0)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-                                       objv[0], "instpost <proc>");
-            if (opt && opt->assertions) {
-              procs = AssertionFindProcs(opt->assertions, ObjStr(objv[2]));
-              if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->post));
-            }
-            return TCL_OK;
-          } else if (!strcmp(cmdTail, "parametercmd")) {
-            int argc = objc-modifiers;
-            if (argc < 2)
-              return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-                                       objv[0], "instparametercmd ?pattern?");
-            if (nsp) {
-              return ListMethodKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern, 1, 0, 0, 0, 1);
-            } else {
-              return TCL_OK;
-            }
-          }
-          break;
-        }
-      }
-      break;
-
-    case 'm':
-      if (!strcmp(cmd, "mixinof")) {
-        XOTclObject *matchObject;
-        Tcl_DString ds, *dsPtr = &ds;
-        int rc, withClosure = 0;
-
-        if (objc-modifiers > 3 || modifiers > 1)
-          return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-                                   objv[0], "mixinof ?-closure? ?pattern?");
-        if (modifiers > 0) {
-          withClosure = checkForModifier(objv, modifiers, "-closure");
-          if (withClosure == 0)
-            return XOTclVarErrMsg(interp,  objv[0], "mixinof: unknown modifier ",
-                                  ObjStr(objv[2]), (char *) NULL);
-        }
-        if (opt && !withClosure) {
-          DSTRING_INIT(dsPtr);
-          if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-            return TCL_OK;
-          }
-
-          rc = AppendMatchingElementsFromCmdList(interp, opt->isObjectMixinOf, pattern, matchObject); 
-          if (matchObject) {
-            Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-          }
-          DSTRING_FREE(dsPtr);
-        } else if (withClosure) {
-          Tcl_HashTable objTable, *commandTable = &objTable;
-          MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-          Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-          rc = getAllObjectMixinsOf(interp, commandTable, cl, 0, 1, pattern, matchObject);
-          MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
-        }
-        return TCL_OK;
-      }
-      break;
-
-    case 'p':
-      if (!strcmp(cmd, "parameter")) {
-
-        Tcl_DString ds, *dsPtr = &ds;
-        XOTclObject *o;
-        DSTRING_INIT(dsPtr);
-        Tcl_DStringAppend(dsPtr, className(cl), -1);
-        Tcl_DStringAppend(dsPtr, "::slot", 6);
-        o = XOTclpGetObject(interp, Tcl_DStringValue(dsPtr));
-        if (o) {
-          Tcl_Obj *varNameObj = Tcl_NewStringObj("__parameter",-1);
-          Tcl_Obj *parameters = XOTcl_ObjGetVar2((XOTcl_Object*)o, 
-                                                 interp, varNameObj, NULL,
-                                                 TCL_LEAVE_ERR_MSG);
-          if (parameters) {
-            Tcl_SetObjResult(interp, parameters);
-          } else {
-            Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_EMPTY]);
-          }
-          DECR_REF_COUNT(varNameObj);
-        } else {
-          Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_EMPTY]);
-        }
-        DSTRING_FREE(dsPtr);
-#if 0
-        if (cl->parameters) {
-          Tcl_SetObjResult(interp, cl->parameters);
-        } else {
-          Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_EMPTY]);
-        }
-#endif
-        return TCL_OK;
-      }
-      break;
-
-    case 's':
-      if (!strcmp(cmd, "superclass")) {
-        int withClosure = 0, rc;
-        XOTclObject *matchObject;
-        Tcl_DString ds, *dsPtr = &ds;
-
-        if (objc-modifiers > 3 || modifiers > 1)
-          return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-                                   objv[0], "superclass ?-closure? ?pattern?");
-        if (modifiers > 0) {
-          withClosure = checkForModifier(objv, modifiers, "-closure");
-          if (withClosure == 0)
-            return XOTclVarErrMsg(interp,  objv[0], "superclass: unknown modifier ",
-                                  ObjStr(objv[2]), (char *) NULL);
-        }
-
-        DSTRING_INIT(dsPtr);
-        if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-          return TCL_OK;
-        }
-
-        if (withClosure) {
-          XOTclClasses *pl = ComputeOrder(cl, cl->order, Super);
-          if (pl) pl=pl->nextPtr;
-          rc = AppendMatchingElementsFromClasses(interp, pl, pattern, matchObject);
-        } else {
-          XOTclClasses *clSuper = XOTclReverseClasses(cl->super);
-          rc = AppendMatchingElementsFromClasses(interp, clSuper, pattern, matchObject);
-          XOTclClassListFree(clSuper);
-        }
-        if (matchObject) {
-          Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-        }
-        DSTRING_FREE(dsPtr);
-        return TCL_OK;
-
-      } else if (!strcmp(cmd, "subclass")) {
-        int withClosure = 0, rc;
-        XOTclObject *matchObject;  
-        Tcl_DString ds, *dsPtr = &ds;
-	    
-        if (objc-modifiers > 3 || modifiers > 1)
-          return XOTclObjErrArgCnt(interp, cl->object.cmdName,
-                                   objv[0], "subclass ?-closure? ?pattern?");
-        if (modifiers > 0) {
-          withClosure = checkForModifier(objv, modifiers, "-closure");
-          if (withClosure == 0)
-            return XOTclVarErrMsg(interp,  objv[0], "subclass: unknown modifier ",
-                                  ObjStr(objv[2]), (char *) NULL);
-        }
-
-        DSTRING_INIT(dsPtr);
-        if (getMatchObject(interp, &pattern, &matchObject, dsPtr) == -1) {
-          return TCL_OK;
-        }
-
-        if (withClosure) {
-          XOTclClasses *saved = cl->order, *subclasses;
-          cl->order = NULL;
-          subclasses = ComputeOrder(cl, cl->order, Sub);
-          cl->order = saved;
-          if (subclasses) subclasses=subclasses->nextPtr;
-          rc = AppendMatchingElementsFromClasses(interp, subclasses, pattern, matchObject);
-          XOTclClassListFree(subclasses);
-        } else {
-          rc = AppendMatchingElementsFromClasses(interp, cl->sub, pattern, matchObject);
-        }
-        if (matchObject) {
-          Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-        }
-        DSTRING_FREE(dsPtr);
-        return TCL_OK;
-
-      } else if (!strcmp(cmd, "slots")) {
-        Tcl_DString ds, *dsPtr = &ds;
-        XOTclObject *o;
-        int rc;
-        DSTRING_INIT(dsPtr);
-        Tcl_DStringAppend(dsPtr, className(cl), -1);
-        Tcl_DStringAppend(dsPtr, "::slot", 6);
-        o = XOTclpGetObject(interp, Tcl_DStringValue(dsPtr));
-        if (o) {
-          rc = ListChildren(interp, o, NULL, 0);
-        } else {
-          rc = TCL_OK;
-        }
-        DSTRING_FREE(dsPtr);
-        return rc;
-      }
-      break;
-    }
-  }
-
-  return XOTclOInfoMethod(clientData, interp, objc, (Tcl_Obj **)objv);
 }
 
 static int
@@ -15047,7 +14172,6 @@ Xotcl_Init(Tcl_Interp *interp) {
        {"exists",           XOTclOExistsMethod},
        {"filterguard",      XOTclOFilterGuardMethod},
        {"filtersearch",     XOTclOFilterSearchMethod},
-       {"info",             XOTclOInfoMethod},
        {"instvar",          XOTclOInstVarMethod},
        {"invar",            XOTclOInvariantsMethod},
        {"isclass",          XOTclOIsClassMethod},
@@ -15080,7 +14204,6 @@ Xotcl_Init(Tcl_Interp *interp) {
        {"create",           XOTclCCreateMethod},
        {"dealloc",          XOTclCInstDestroyMethod},
        {"new",              XOTclCNewMethod},
-       {"info",             XOTclCInfoMethod},
        {"instdestroy",      XOTclCInstDestroyMethod},
        {"instfilterguard",  XOTclCInstFilterGuardMethod},
        {"instinvar",        XOTclCInvariantsMethod},
@@ -15109,7 +14232,6 @@ Xotcl_Init(Tcl_Interp *interp) {
        {"filterguard",  XOTclObjInfoFilterguardMethod},
        {"forward",      XOTclObjInfoForwardMethod},
        {"hasNamespace", XOTclObjInfoHasnamespaceMethod},
-       /*{"info",         XOTclObjInfoInfoMethod},*/
        {"invar",        XOTclObjInfoInvarMethod},
        {"methods",      XOTclObjInfoMethodsMethod},
        {"mixin",        XOTclObjInfoMixinMethod},
