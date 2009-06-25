@@ -97,7 +97,7 @@ XOTCLINLINE static void GuardAdd(Tcl_Interp *interp, XOTclCmdList *filterCL, Tcl
 static int GuardCheck(Tcl_Interp *interp, Tcl_Obj *guards);
 static int GuardCall(XOTclObject *obj, XOTclClass *cl, Tcl_Command cmd, Tcl_Interp *interp, Tcl_Obj *guard, int push);
 static void GuardDel(XOTclCmdList *filterCL);
-static int IsMetaClass(Tcl_Interp *interp, XOTclClass *cl);
+static int IsMetaClass(Tcl_Interp *interp, XOTclClass *cl, int withMixins);
 static int hasMixin(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl);
 static int isSubType(XOTclClass *subcl, XOTclClass *cl);
 static int setInstVar(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *name, Tcl_Obj *value);
@@ -8144,7 +8144,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
        We do not have to reclassing in case, cl == ::xotcl::Object
     */
     if (cl != theobj) {
-      XOTclClass *baseClass = IsMetaClass(interp, cl) ? 
+      XOTclClass *baseClass = IsMetaClass(interp, cl, 1) ? 
         DefaultSuperClass(interp, cl, cl->object.cl, RUNTIME_STATE(interp)->theClass, 1)
         : defaultClass;
 
@@ -8408,16 +8408,16 @@ changeClass(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl) {
   /*fprintf(stderr,"changing %s to class %s ismeta %d\n",
           objectName(obj),
           className(cl),
-          IsMetaClass(interp, cl));*/
+          IsMetaClass(interp, cl, 1));*/
 
   if (cl != obj->cl) {
-    if (IsMetaClass(interp, cl)) {
+    if (IsMetaClass(interp, cl, 1)) {
       /* Do not allow upgrading from a class to a meta-class (in
 	 other words, don't make an object to a class). To allow
 	 this, it would be necessary to reallocate the base
 	 structures.
       */
-      if (!IsMetaClass(interp, obj->cl)) {
+      if (!IsMetaClass(interp, obj->cl, 1)) {
 	return XOTclVarErrMsg(interp, "cannot turn object into a class",
 			      (char *) NULL);
       }
@@ -8716,42 +8716,54 @@ XOTclOIsObjectMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   return TCL_OK;
 }
 
+static int 
+hasMetaProperty(Tcl_Interp *interp, XOTclClass *cl) {
+  return (cl->object.flags & XOTCL_IS_METACLASS) || (cl == RUNTIME_STATE(interp)->theClass);
+}
+
 static int
-IsMetaClass(Tcl_Interp *interp, XOTclClass *cl) {
-  /* check if cl is a meta-class by checking is Class is a superclass of cl*/
+IsMetaClass(Tcl_Interp *interp, XOTclClass *cl, int withMixins) {
+  /* check if class is a meta-class */
   XOTclClasses *pl, *checkList = NULL, *mixinClasses = NULL, *mc;
   int hasMCM = 0;
 
-  if (cl == RUNTIME_STATE(interp)->theClass)
+  /* is the class the most general meta-class? */
+  if (hasMetaProperty(interp, cl))
     return 1;
-  
+
+  /* is the class a subclass of a meta-class? */
   for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->nextPtr) {
-    if (pl->cl == RUNTIME_STATE(interp)->theClass)
+    if (hasMetaProperty(interp, pl->cl))
       return 1;
   }
   
-  for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->nextPtr) {
-    XOTclClassOpt *clopt = pl->cl->opt;
-    if (clopt && clopt->instmixins) {
-      MixinComputeOrderFullList(interp,
-                                &clopt->instmixins,
-                                &mixinClasses,
-                                &checkList, 0);
+  if (withMixins) {
+    /* has the class metaclass mixed in? */
+    for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->nextPtr) {
+      XOTclClassOpt *clopt = pl->cl->opt;
+      if (clopt && clopt->instmixins) {
+	MixinComputeOrderFullList(interp,
+				  &clopt->instmixins,
+				  &mixinClasses,
+				  &checkList, 0);
+      }
     }
-  }
-  
-  for (mc=mixinClasses; mc; mc = mc->nextPtr) {
-    /*fprintf(stderr,"- got %s\n", className(mc->cl));*/
-    if (isSubType(mc->cl, RUNTIME_STATE(interp)->theClass)) {
-      hasMCM = 1;
-      break;
+    
+    /* TODO: should be a class of isMetaClass, or? */
+    for (mc=mixinClasses; mc; mc = mc->nextPtr) {
+      /*fprintf(stderr,"- got %s\n", className(mc->cl));*/
+      /*if (isSubType(mc->cl, RUNTIME_STATE(interp)->theClass)) {*/
+      if (IsMetaClass(interp, mc->cl, 0)) {
+	hasMCM = 1;
+	break;
+      }
     }
-  }
-  XOTclClassListFree(mixinClasses);
-  XOTclClassListFree(checkList);
-  /*fprintf(stderr,"has MC returns %d, mixinClasses = %p\n",
-    hasMCM, mixinClasses);*/
-  
+    XOTclClassListFree(mixinClasses);
+    XOTclClassListFree(checkList);
+    /*fprintf(stderr,"has MC returns %d, mixinClasses = %p\n",
+      hasMCM, mixinClasses);*/
+  } 
+
   return hasMCM;
 }
 
@@ -8767,7 +8779,7 @@ XOTclOIsMetaClassMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   if (XOTclObjConvertObject(interp, className, &o) == TCL_OK
       && XOTclObjectIsClass(o)
-      && IsMetaClass(interp, (XOTclClass*)o)) {
+      && IsMetaClass(interp, (XOTclClass*)o, 1)) {
     Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
   } else {
     Tcl_SetIntObj(Tcl_GetObjResult(interp), 0);
@@ -8854,7 +8866,7 @@ XOTclIsCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 
     success = (XOTclObjConvertObject(interp, objv[1], &obj) == TCL_OK
 	       && XOTclObjectIsClass(obj)
-	       && IsMetaClass(interp, (XOTclClass*)obj));
+	       && IsMetaClass(interp, (XOTclClass*)obj, 1));
     break;
 
   case mixinIdx:
@@ -10836,13 +10848,13 @@ XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   static CONST char *opts[] = {
     "mixin", "instmixin", "object-mixin", "class-mixin",
     "filter", "instfilter", "object-filter", "class-filter",
-    "class", "superclass",
+    "class", "superclass", "metaclass",
     NULL
   };
   enum subCmdIdx {
     mixinIdx, instmixinIdx, pomIdx, pcmIdx, 
     filterIdx, instfilterIdx, pofIdx, pcfIdx,
-    classIdx, superclassIdx
+    classIdx, superclassIdx, metaclassIdx
   };
   
   if (objc < 3 || objc > 4)
@@ -10915,6 +10927,15 @@ XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     GetXOTclClassFromObj(interp, objv[3], &cl, obj->cl);
     if (!cl) return XOTclErrBadVal(interp, "class", "a class", ObjStr(objv[1]));
     return changeClass(interp, obj, cl);
+
+  case metaclassIdx: 
+    GetXOTclClassFromObj(interp, objv[1], &cl, 0);
+    if (!cl) return XOTclObjErrType(interp, objv[1], "Class");
+    cl->object.flags |= XOTCL_IS_METACLASS;
+    /* todo: 
+       how to remove metaclass property? 
+       problems with deletion order?
+    */
   }
 
   switch (opt) {
@@ -11535,9 +11556,9 @@ XOTclCAllocMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
       }
 
       /*fprintf(stderr," **** name is '%s', isMetaClass => %d\n",  
-        objName, IsMetaClass(interp, cl));*/
+        objName, IsMetaClass(interp, cl, 1));*/
 
-      if (IsMetaClass(interp, cl)) {
+      if (IsMetaClass(interp, cl, 1)) {
         /*
          * if the base class is a meta-class, we create a class
          */
@@ -11606,9 +11627,9 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *obj,
 
   /*fprintf(stderr,"+++ create objv[1] '%s', specifiedName '%s', newObj=%p ismeta(%s) %d, ismeta(%s) %d\n",
           specifiedName, objName, newobj,
-          className(cl), IsMetaClass(interp, cl), 
+          className(cl), IsMetaClass(interp, cl, 1), 
           newobj ? ObjStr(newobj->cl->object.cmdName) : "NULL", 
-          newobj ? IsMetaClass(interp, newobj->cl) : 0
+          newobj ? IsMetaClass(interp, newobj->cl, 1) : 0
           );*/
 
   /* don't allow to
@@ -11618,7 +11639,7 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *obj,
      In these clases, we use destroy + create instead of recrate.
   */
 
-  if (newobj && (IsMetaClass(interp, cl) == IsMetaClass(interp, newobj->cl))) {
+  if (newobj && (IsMetaClass(interp, cl, 1) == IsMetaClass(interp, newobj->cl, 1))) {
 
     /*fprintf(stderr, "%%%% recreate, call recreate method ... %s, objc=%d\n",
       ObjStr(tov[1]), objc+1);*/

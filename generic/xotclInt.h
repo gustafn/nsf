@@ -443,11 +443,12 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_FILTER_ORDER_DEFINED_AND_VALID 0x0030
 /* IS_CLASS set, when object is a class */
 #define XOTCL_IS_CLASS                       0x0040
+#define XOTCL_IS_METACLASS                   0x0080
 /* DESTROYED set, when object is physically destroyed with PrimitiveODestroy  */
-#define XOTCL_DESTROYED                      0x0080
-#define XOTCL_REFCOUNTED                     0x0100
-#define XOTCL_RECREATE                       0x0200
-#define XOTCL_NS_DESTROYED                   0x0400
+#define XOTCL_DESTROYED                      0x0100
+#define XOTCL_REFCOUNTED                     0x0200
+#define XOTCL_RECREATE                       0x0400
+#define XOTCL_NS_DESTROYED                   0x0800
 
 #define XOTclObjectSetClass(obj) \
 	(obj)->flags |= XOTCL_IS_CLASS

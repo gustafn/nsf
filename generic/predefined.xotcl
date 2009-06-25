@@ -11,6 +11,7 @@ namespace eval ::xotcl {
     # "destroy" and "instdestroy" are only defined on these
     # objects. So, we register these on ::oo::object and ::oo::class
     # for the time being, since these two classes are deleted last.
+    #
     ::xotcl::alias ::oo::object destroy ::xotcl::cmd::Object::destroy
     ::xotcl::alias ::oo::class instdestroy ::xotcl::cmd::Class::instdestroy
     #
@@ -23,10 +24,23 @@ namespace eval ::xotcl {
     #
     ::oo::class alloc ::xotcl::Object
     ::oo::class alloc ::xotcl::Class
+    #foreach o {::xotcl::Object ::xotcl::Class} {
+    #  foreach r {object class metaclass} {
+#	puts stderr "$o $r=[::xotcl::is $o $r]"
+#      }
+#    }
     #
     # ... and define the superclass and class relations on these.
     #
-    ::xotcl::relation ::xotcl::Class superclass {::oo::class ::xotcl::Object}
+    ::xotcl::relation ::xotcl::Class superclass ::xotcl::Object
+    ::xotcl::relation ::xotcl::Class metaclass
+
+   # puts "Now class should be a metaclass"
+   # foreach o {::xotcl::Class} {
+   #   foreach r {object class metaclass} {
+#	puts stderr "$o $r=[::xotcl::is $o $r]"
+    #  }
+    #}
     ::xotcl::relation ::xotcl::Object class ::xotcl::Class
     ::xotcl::relation ::xotcl::Class class ::xotcl::Class
   }
@@ -65,6 +79,12 @@ namespace eval ::xotcl {
   ########################
   ::xotcl::Object create ::xotcl::objectInfo
   ::xotcl::Object create ::xotcl::classInfo
+
+  #foreach o {::xotcl::objectInfo ::xotcl::classInfo} {
+  #  foreach r {object class metaclass} {
+  #    puts stderr "$o $r=[::xotcl::is $o $r]"
+  #  }
+  #}
   foreach cmd [info command ::xotcl::cmd::ObjectInfo::*] {
     ::xotcl::alias ::xotcl::objectInfo [namespace tail $cmd] $cmd 
     ::xotcl::alias ::xotcl::classInfo [namespace tail $cmd] $cmd 
@@ -128,14 +148,21 @@ namespace eval ::xotcl {
   ##################
   # still bootstrap code; we cannot use slots/-parameter yet
   ::xotcl::Class create ::xotcl::MetaSlot
-
   ::xotcl::relation ::xotcl::MetaSlot superclass ::xotcl::Class
+
   ::xotcl::MetaSlot instproc new args {
     set slotobject [::xotcl::self callingobject]::slot
     if {![::xotcl::is $slotobject object]} {::xotcl::Object create $slotobject}
     eval next -childof $slotobject $args
   }
+
   ::xotcl::MetaSlot create ::xotcl::Slot
+
+  #foreach o {::xotcl::MetaSlot ::xotcl::Slot} {
+  #  foreach r {object class metaclass} {
+  #    puts stderr "$o $r=[::xotcl::is $o $r]"
+  #  }
+  #}
 
   # use low level interface for defining slot values. Normally, this is
   # done via slot objects, which are defined later. 
