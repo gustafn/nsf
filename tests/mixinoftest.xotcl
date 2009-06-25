@@ -56,17 +56,17 @@ Class M -instproc foo args {puts x;next}
 Object o -mixin M 
 
 ? {o info mixin} ::M
-? {o info precedence} "::M ::xotcl::Object ::oo::object"
+? {o info precedence} "::M ::xotcl::Object"
 ? {o procsearch foo} "::M instproc foo"
 
 Class M -instproc foo args next 
 ? {o info mixin} ::M
-? {o info precedence} "::M ::xotcl::Object ::oo::object"
+? {o info precedence} "::M ::xotcl::Object"
 ? {o procsearch foo} "::M instproc foo"
 
 M destroy
 ? {o info mixin} ""
-? {o info precedence} "::xotcl::Object ::oo::object"
+? {o info precedence} "::xotcl::Object"
 ? {o procsearch foo} ""
 
 o destroy
@@ -83,11 +83,11 @@ C c1
 ? {B instmixin} ::A
 ? {B info instmixin} ::A
 ? {A info instmixinof} ::B
-? {c1 info precedence} "::A ::C ::B ::xotcl::Object ::oo::object"
+? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
 
 B destroy
 ? {A info instmixinof} ""
-? {c1 info precedence} "::C ::xotcl::Object ::oo::object"
+? {c1 info precedence} "::C ::xotcl::Object"
 
 A destroy
 C destroy 
@@ -135,9 +135,9 @@ C c1
 ? {B instmixin} ::A
 ? {B info instmixin} ::A
 ? {A info instmixinof} ::B
-? {a1 info precedence} "::M ::A ::xotcl::Object ::oo::object"
-? {b1 info precedence} "::M ::A ::B ::xotcl::Object ::oo::object"
-? {c1 info precedence} "::M ::A ::C ::B ::xotcl::Object ::oo::object"
+? {a1 info precedence} "::M ::A ::xotcl::Object"
+? {b1 info precedence} "::M ::A ::B ::xotcl::Object"
+? {c1 info precedence} "::M ::A ::C ::B ::xotcl::Object"
 
 ? {M info instmixinof} "::A"
 # since M is an instmixin of A and A is a instmixin of B,
@@ -150,13 +150,13 @@ C c1
 
 # and now destroy mixin classes
 M destroy
-? {a1 info precedence} "::A ::xotcl::Object ::oo::object"
-? {b1 info precedence} "::A ::B ::xotcl::Object ::oo::object"
-? {c1 info precedence} "::A ::C ::B ::xotcl::Object ::oo::object"
+? {a1 info precedence} "::A ::xotcl::Object"
+? {b1 info precedence} "::A ::B ::xotcl::Object"
+? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
 
 B destroy
 ? {A info instmixinof} ""
-? {c1 info precedence} "::C ::xotcl::Object ::oo::object"
+? {c1 info precedence} "::C ::xotcl::Object"
 
 foreach o {A C a1 b1 c1} { $o destroy }
 
@@ -183,9 +183,9 @@ D instmixin X
 ? {A info instmixinof -closure} ""
 ? {B info instmixinof -closure} ""
 ? {X info instmixinof -closure} "::D ::C ::A ::B"
-? {b1 info precedence} "::C ::X ::D ::B ::A ::xotcl::Object ::oo::object"
+? {b1 info precedence} "::C ::X ::D ::B ::A ::xotcl::Object"
 B b2
-? {b2 info precedence} "::C ::X ::D ::B ::A ::xotcl::Object ::oo::object"
+? {b2 info precedence} "::C ::X ::D ::B ::A ::xotcl::Object"
 
 foreach o {X D C A B b1 b2} {$o destroy}
 
@@ -230,15 +230,15 @@ C c1
 ? {B instmixin} ::A
 ? {B info instmixin} ::A
 ? {A info instmixinof} ::B
-? {a1 info precedence} "::M ::A ::xotcl::Object ::oo::object"
-? {b1 info precedence} "::M ::A ::B ::xotcl::Object ::oo::object"
-? {c1 info precedence} "::M ::A ::C ::B ::xotcl::Object ::oo::object"
+? {a1 info precedence} "::M ::A ::xotcl::Object"
+? {b1 info precedence} "::M ::A ::B ::xotcl::Object"
+? {c1 info precedence} "::M ::A ::C ::B ::xotcl::Object"
 
 # and now destroy A
 A destroy
-? {a1 info precedence} "::xotcl::Object ::oo::object"
-? {b1 info precedence} "::B ::xotcl::Object ::oo::object"
-? {c1 info precedence} "::C ::B ::xotcl::Object ::oo::object"
+? {a1 info precedence} "::xotcl::Object"
+? {b1 info precedence} "::B ::xotcl::Object"
+? {c1 info precedence} "::C ::B ::xotcl::Object"
 
 ? {M info instmixinof} ""
 ? {M info instmixinof -closure} ""
@@ -246,7 +246,7 @@ A destroy
 
 B destroy
 ? {M info instmixinof} ""
-? {c1 info precedence} "::C ::xotcl::Object ::oo::object"
+? {c1 info precedence} "::C ::xotcl::Object"
 
 foreach o {M C a1 b1 c1} { $o destroy }
 
@@ -265,14 +265,14 @@ C c1
 ? {B instmixin} ::A
 ? {B info instmixin} ::A
 ? {A info instmixinof} ::B
-? {a1 info precedence} "::M ::A ::xotcl::Object ::oo::object"
-? {b1 info precedence} "::M ::A ::B ::xotcl::Object ::oo::object"
-? {c1 info precedence} "::M ::A ::C ::B ::xotcl::Object ::oo::object"
+? {a1 info precedence} "::M ::A ::xotcl::Object"
+? {b1 info precedence} "::M ::A ::B ::xotcl::Object"
+? {c1 info precedence} "::M ::A ::C ::B ::xotcl::Object"
 
 B destroy
-? {a1 info precedence} "::M ::A ::xotcl::Object ::oo::object"
-? {b1 info precedence} "::xotcl::Object ::oo::object"
-? {c1 info precedence} "::C ::xotcl::Object ::oo::object"
+? {a1 info precedence} "::M ::A ::xotcl::Object"
+? {b1 info precedence} "::xotcl::Object"
+? {c1 info precedence} "::C ::xotcl::Object"
 
 ? {M info instmixinof} "::A"
 ? {M info instmixinof -closure} "::A"
@@ -294,22 +294,22 @@ C c1
 ? {B instmixin} ::A
 ? {B info instmixin} ::A
 ? {A info instmixinof} ::B
-? {c1 info precedence} "::A ::C ::B ::xotcl::Object ::oo::object"
-? {B info heritage} "::xotcl::Object ::oo::object"
-? {C info heritage} "::B ::xotcl::Object ::oo::object"
+? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
+? {B info heritage} "::xotcl::Object"
+? {C info heritage} "::B ::xotcl::Object"
 
 Class B -instmixin A
 
-? {B info heritage} "::xotcl::Object ::oo::object"
-? {C info heritage} "::xotcl::Object ::oo::object"
+? {B info heritage} "::xotcl::Object"
+? {C info heritage} "::xotcl::Object"
 ? {B instmixin} ::A
 ? {B info instmixin} ::A
 ? {A info instmixinof} ::B
-? {c1 info precedence} "::C ::xotcl::Object ::oo::object"
+? {c1 info precedence} "::C ::xotcl::Object"
 
 B destroy
 ? {A info instmixinof} ""
-? {c1 info precedence} "::C ::xotcl::Object ::oo::object"
+? {c1 info precedence} "::C ::xotcl::Object"
 
 A destroy
 C destroy 
@@ -330,20 +330,20 @@ C c1
 ? {B instmixin} ::A
 ? {B info instmixin} ::A
 ? {A info instmixinof} ::B
-? {c1 info precedence} "::A ::C ::B ::xotcl::Object ::oo::object"
-? {C info heritage} "::B ::xotcl::Object ::oo::object"
-? {B info heritage} "::xotcl::Object ::oo::object"
+? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
+? {C info heritage} "::B ::xotcl::Object"
+? {B info heritage} "::xotcl::Object"
 
 Class B -instmixin A
-? {C info heritage} "::B ::xotcl::Object ::oo::object"
-? {B info heritage} "::xotcl::Object ::oo::object"
+? {C info heritage} "::B ::xotcl::Object"
+? {B info heritage} "::xotcl::Object"
 ? {B info instmixin} ::A
 ? {A info instmixinof} ::B
-? {c1 info precedence} "::A ::C ::B ::xotcl::Object ::oo::object"
+? {c1 info precedence} "::A ::C ::B ::xotcl::Object"
 
 B destroy
 ? {A info instmixinof} ""
-? {c1 info precedence} "::C ::xotcl::Object ::oo::object"
+? {c1 info precedence} "::C ::xotcl::Object"
 
 A destroy
 C destroy 
@@ -363,23 +363,23 @@ B b1
 A a1
 O o1
 ? {A info superclass} "::O"
-? {B info heritage} "::A ::O ::xotcl::Object ::oo::object"
+? {B info heritage} "::A ::O ::xotcl::Object"
 ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
 ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::xotcl::Object"
 ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::xotcl::Object ::oo::object"
-? {a1 info precedence} "::A ::O ::xotcl::Object ::oo::object"
-? {b1 info precedence} "::B ::A ::O ::xotcl::Object ::oo::object"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::O ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::O ::xotcl::Object"
 # we recreate the class new, with the same superclass
 Class A -superclass O
 ? {A info superclass} "::O"
-? {B info heritage} "::xotcl::Object ::oo::object"
+? {B info heritage} "::xotcl::Object"
 ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "{} {} ::A"
 ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::xotcl::Object ::xotcl::Object"
 ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::xotcl::Object ::B ::O"
-? {o1 info precedence} "::O ::xotcl::Object ::oo::object"
-? {a1 info precedence} "::xotcl::Object ::oo::object"
-? {b1 info precedence} "::B ::xotcl::Object ::oo::object"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::xotcl::Object"
+? {b1 info precedence} "::B ::xotcl::Object"
 foreach o {A O B a1 b1 o1} {$o destroy} 
 
 ###########################################
@@ -395,23 +395,23 @@ B b1
 A a1
 O o1
 ? {A info superclass} "::O"
-? {B info heritage}   "::A ::O ::xotcl::Object ::oo::object"
+? {B info heritage}   "::A ::O ::xotcl::Object"
 ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
 ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::xotcl::Object"
 ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::xotcl::Object ::oo::object"
-? {a1 info precedence} "::A ::O ::xotcl::Object ::oo::object"
-? {b1 info precedence} "::B ::A ::O ::xotcl::Object ::oo::object"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::O ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::O ::xotcl::Object"
 # we recreate the class new, with a different superclass
 Class A
 ? {A info superclass} "::xotcl::Object"
-? {B info heritage}   "::xotcl::Object ::oo::object"
+? {B info heritage}   "::xotcl::Object"
 ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "{} {} {}"
 ? {list [A info superclass] [B info superclass] [O info superclass]} "::xotcl::Object ::xotcl::Object ::xotcl::Object"
 ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::xotcl::Object ::B ::O"
-? {o1 info precedence} "::O ::xotcl::Object ::oo::object"
-? {a1 info precedence} "::xotcl::Object ::oo::object"
-? {b1 info precedence} "::B ::xotcl::Object ::oo::object"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::xotcl::Object"
+? {b1 info precedence} "::B ::xotcl::Object"
 foreach o {A O B a1 b1 o1} {$o destroy} 
 
 
@@ -428,23 +428,23 @@ B b1
 A a1
 O o1
 ? {A info superclass} "::O"
-? {B info heritage} "::A ::O ::xotcl::Object ::oo::object"
+? {B info heritage} "::A ::O ::xotcl::Object"
 ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
 ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::xotcl::Object"
 ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::xotcl::Object ::oo::object"
-? {a1 info precedence} "::A ::O ::xotcl::Object ::oo::object"
-? {b1 info precedence} "::B ::A ::O ::xotcl::Object ::oo::object"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::O ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::O ::xotcl::Object"
 # we recreate the class new, with the same superclass
 Class A -superclass O
 ? {A info superclass} "::O"
-? {B info heritage} "::A ::O ::xotcl::Object ::oo::object"
+? {B info heritage} "::A ::O ::xotcl::Object"
 ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
 ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::xotcl::Object"
 ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::xotcl::Object ::oo::object"
-? {a1 info precedence} "::A ::O ::xotcl::Object ::oo::object"
-? {b1 info precedence} "::B ::A ::O ::xotcl::Object ::oo::object"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::O ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::O ::xotcl::Object"
 foreach o {A O B a1 b1 o1} {$o destroy} 
 
 ###########################################
@@ -459,24 +459,24 @@ Class B -superclass A
 B b1
 A a1
 O o1
-? {B info heritage} "::A ::O ::xotcl::Object ::oo::object"
+? {B info heritage} "::A ::O ::xotcl::Object"
 ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} ::A"
 ? {list [A info superclass] [B info superclass] [O info superclass]} "::O ::A ::xotcl::Object"
 ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::xotcl::Object ::oo::object"
-? {a1 info precedence} "::A ::O ::xotcl::Object ::oo::object"
-? {b1 info precedence} "::B ::A ::O ::xotcl::Object ::oo::object"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::O ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::O ::xotcl::Object"
 # we recreate the class new, with a different superclass
 Class A
 ? {A info superclass} "::xotcl::Object"
-? {B info heritage} "::A ::xotcl::Object ::oo::object"
-? {B info heritage} "::A ::xotcl::Object ::oo::object"
+? {B info heritage} "::A ::xotcl::Object"
+? {B info heritage} "::A ::xotcl::Object"
 ? {list [A info subclass]   [B info subclass]   [O info subclass]}   "::B {} {}"
 ? {list [A info superclass] [B info superclass] [O info superclass]} "::xotcl::Object ::A ::xotcl::Object"
 ? {list [a1 info class]     [b1 info class]     [o1 info class]}     "::A ::B ::O"
-? {o1 info precedence} "::O ::xotcl::Object ::oo::object"
-? {a1 info precedence} "::A ::xotcl::Object ::oo::object"
-? {b1 info precedence} "::B ::A ::xotcl::Object ::oo::object"
+? {o1 info precedence} "::O ::xotcl::Object"
+? {a1 info precedence} "::A ::xotcl::Object"
+? {b1 info precedence} "::B ::A ::xotcl::Object"
 foreach o {A O B a1 b1 o1} {$o destroy} 
 
 

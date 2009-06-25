@@ -63,6 +63,27 @@ Meta C -superclass O -parameter {a {b -default ""} {c -default 1}}
 C c1 ;# c1 has no no default value for "a", before it had
 ======
 
+2009-06-25 <Gustaf.Neumann@wu-wien.ac.at>
+    - new command:
+
+        ::xotcl::createobjectsystem <rootClass> <rootMetaClass>
+
+      This command creates a basic object system with the specified
+      <rootClass> as most general root class and the specified
+      metaclass as most general meta class.
+
+      Example:  
+        ::xotcl::createobjectsystem ::oo::object ::oo::class
+
+      In general, it would be possible to remove an objects system at
+      runtime, but there is so far no tcl interface for this.
+
+    - extended framework to work with multiple root classes
+
+    - the basic root class of XOTcl is now ::xotcl::Object again
+      (instead of ::oo::object) as before. The old setup can be
+      achieved on the Tcl-layer.
+
 2009-06-22 <Gustaf.Neumann@wu-wien.ac.at>
     - define default meta-class for ::xotcl::Class
     - use default meta-class, when a the topmost meta-class of an

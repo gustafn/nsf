@@ -20,13 +20,13 @@ proc ? {cmd expected {msg ""}} {
 ? {Object isobject Object} 1
 ? {Object isclass} 1
 ? {Object ismetaclass} 0
-? {Object info superclass} ::oo::object
+? {Object info superclass} ""
 ? {Object info class} ::xotcl::Class
 
 ? {Object isobject Class} 1
 ? {Class isclass} 1
 ? {Class ismetaclass} 1
-? {Class info superclass} "::oo::class ::xotcl::Object"
+? {Class info superclass} ::xotcl::Object
 ? {Class info class} ::xotcl::Class
 
 Object o

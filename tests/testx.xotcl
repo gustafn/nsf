@@ -2035,11 +2035,11 @@ TestX mixinTest -proc run {{n 10}} {
     Class M
     Object o -mixin M 
     M instmixin IM
-    ::errorCheck [o info precedence] {::IM ::M ::xotcl::Object ::oo::object} \
+    ::errorCheck [o info precedence] {::IM ::M ::xotcl::Object} \
 	{trans. mixin precedence 1}
 
     Object o -mixin M
-    ::errorCheck [o info precedence] {::IM ::M ::xotcl::Object ::oo::object} \
+    ::errorCheck [o info precedence] {::IM ::M ::xotcl::Object} \
 	{trans. mixin precedence 2}
     o destroy
 }
@@ -2879,9 +2879,9 @@ TestX recreation -proc run {{n 10}} {
   ::errorCheck [o2 info mixin] ::C "up/down before 5"
   ::errorCheck [B info mixinof] ::o1 "up/down before 6"
   ::errorCheck [C info mixinof] ::o2 "up/down before 7"
-  ::errorCheck [c1 info precedence] "::C ::B ::xotcl::Object ::oo::object" "up/down before 8"
-  ::errorCheck [o1 info precedence] "::B ::xotcl::Object ::oo::object" "up/down before 9"
-  ::errorCheck [o2 info precedence] "::C ::B ::xotcl::Object ::oo::object" "up/down before 10"
+  ::errorCheck [c1 info precedence] "::C ::B ::xotcl::Object" "up/down before 8"
+  ::errorCheck [o1 info precedence] "::B ::xotcl::Object" "up/down before 9"
+  ::errorCheck [o2 info precedence] "::C ::B ::xotcl::Object" "up/down before 10"
  
   ::errorCheck [catch {B class Object}] 1 "don't allow downgrading"
 
@@ -2894,9 +2894,9 @@ TestX recreation -proc run {{n 10}} {
   ::errorCheck [o2 info mixin] ::C "up/down after 5"
   ::errorCheck [catch {B info mixinof}] 1 "up/down after 6"
   ::errorCheck [C info mixinof] ::o2 "up/down after 7"
-  ::errorCheck [c1 info precedence] "::C ::xotcl::Object ::oo::object" "up/down after 8"
-  ::errorCheck [o1 info precedence] "::xotcl::Object ::oo::object" "up/down after 9"
-  ::errorCheck [o2 info precedence] "::C ::xotcl::Object ::oo::object" "up/down after 10"
+  ::errorCheck [c1 info precedence] "::C ::xotcl::Object" "up/down after 8"
+  ::errorCheck [o1 info precedence] "::xotcl::Object" "up/down after 9"
+  ::errorCheck [o2 info precedence] "::C ::xotcl::Object" "up/down after 10"
   ::errorCheck [B info class] "::xotcl::Object" "up/down after 0x"
 
   B class Object
@@ -3251,7 +3251,7 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [C info subclass -closure E] ::E "transitive subclass 1"
   ::errorCheck [Object info subclass -closure E] ::E "transitive subclass 2"
   ::errorCheck [D info subclass -closure C] "" "transitive subclass 3"
-  ::errorCheck [E info heritage] "::D ::C ::xotcl::Object ::oo::object" "heritage"
+  ::errorCheck [E info heritage] "::D ::C ::xotcl::Object" "heritage"
   ::errorCheck [E info instargs t] "a b c" "instargs"
   ::errorCheck [E info instdefault t c x] 1 "instdefault"
   ::errorCheck [E info args p] "a b c" "args"
@@ -3301,9 +3301,9 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [catch {X class Object}] 1 "turn class into an object (error)"
   Class Y -superclass X
   Object o1 -mixin Y
-  ::errorCheck [o1 info precedence] "::Y ::X ::xotcl::Object ::oo::object" "normal mixin precedence"
+  ::errorCheck [o1 info precedence] "::Y ::X ::xotcl::Object" "normal mixin precedence"
   Object X  ;# turn class X into Object X (via destroy/create)
-  ::errorCheck [o1 info precedence] "::Y ::xotcl::Object ::oo::object" "reduced mixin precedence"
+  ::errorCheck [o1 info precedence] "::Y ::xotcl::Object" "reduced mixin precedence"
   X destroy 
   Y destroy
   o1 destroy
@@ -3347,11 +3347,11 @@ TestX objectReferences -proc run {{n 20}} {
   D instmixin D1
   D d1
 
-  ::errorCheck [d1 info precedence] "::D1 ::D ::C ::xotcl::Object ::oo::object" "d1 info precedence"
-  ::errorCheck [d1 info precedence *] "::D1 ::D ::C ::xotcl::Object ::oo::object" "d1 info precedence *"
+  ::errorCheck [d1 info precedence] "::D1 ::D ::C ::xotcl::Object" "d1 info precedence"
+  ::errorCheck [d1 info precedence *] "::D1 ::D ::C ::xotcl::Object" "d1 info precedence *"
   ::errorCheck [d1 info precedence ::D*] "::D1 ::D" "d1 info precedence pattern"
-  ::errorCheck [d1 info precedence -intrinsic] "::D ::C ::xotcl::Object ::oo::object" "d1 info precedence -intrinsic"
-  ::errorCheck [d1 info precedence -intrinsic *] "::D ::C ::xotcl::Object ::oo::object" "d1 info precedence -intrinsic *"
+  ::errorCheck [d1 info precedence -intrinsic] "::D ::C ::xotcl::Object" "d1 info precedence -intrinsic"
+  ::errorCheck [d1 info precedence -intrinsic *] "::D ::C ::xotcl::Object" "d1 info precedence -intrinsic *"
   ::errorCheck [d1 info precedence -intrinsic ::D*] "::D" "d1 info precedence -intrinsic pattern"
 
   d1 destroy
