@@ -11889,6 +11889,8 @@ XOTclClassInfoHeritageMethod(ClientData clientData, Tcl_Interp *interp, int objc
 
 
 struct parseContext {
+  ClientData clientData[10];
+  Tcl_Obj *objv[10];
   int flags;
   int resultIsSet;
   XOTclObject *obj;
@@ -11932,9 +11934,60 @@ getMatchObject2(Tcl_Interp *interp, struct parseContext *pc) {
   return 0;
 }
 
+
+
 #define parseClass       0x0000001
 #define parsePattern     0x0000002
 #define parseMatchObject 0x0000002
+
+typedef struct  {
+  char *name;
+  int required;
+  int nrargs;
+  char *type;
+} argDefinition;
+
+typedef struct  {
+  int flags;
+  argDefinition args[10];
+} interfaceDefinition;
+
+interfaceDefinition d = {
+  parseMatchObject,
+  {
+    {"class",  1,0, "class"},
+    {"-closure"},
+    {"pattern"}
+  }
+};
+
+typedef struct {
+  char *name;
+  interfaceDefinition d;
+} entry;
+
+entry entries[] = {
+  {
+    "dummy", {
+      parseMatchObject,
+      {
+        {"class",    1, 0, "class"},
+        {"-closure"},
+        {"pattern"}
+      }
+    }
+  },
+  {
+    "dummy2", {
+      parseMatchObject,
+      {
+        {"class",    1, 0, "class"},
+        {"-closure"},
+        {"pattern"}
+      }
+    }
+  },
+};
 
 static int
 parse(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
@@ -11977,6 +12030,187 @@ parse(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 }
 
 static int
+convertToType(Tcl_Interp *interp, Tcl_Obj *objPtr, char *type, ClientData *clientData) {
+  switch (*type) {
+  case 'c': 
+      if (strcmp(type,"class") == 0) {
+        if (GetXOTclClassFromObj(interp, objPtr, (XOTclClass **)clientData, 0) == TCL_OK)
+          break;
+        return XOTclObjErrType(interp, objPtr, type);
+      }
+  case 'o': 
+    {
+      if (strcmp(type,"objpattern") == 0) {
+        char *pattern = ObjStr(objPtr);
+        *clientData = (ClientData)objPtr;
+
+        if (noMetaChars(pattern)) {
+          /* we have no meta characters, we try to check for an existing object */
+          XOTclObject *obj = NULL;
+          XOTclObjConvertObject(interp, objPtr, &obj);
+          if (obj)
+            *clientData = (ClientData)obj->cmdName;
+        } else {
+          /* 
+           * we have a pattern and meta characters, we might have 
+           * to prefix it to ovoid abvious errors: since all object
+           * names are prefixed with ::, we add this prefix automatically
+           * to the match pattern, if it does not exist
+           */
+          if (*pattern != ':' && *pattern+1 != ':') {
+            Tcl_Obj *patternObj = Tcl_NewStringObj("::", 2);
+            Tcl_AppendToObj(patternObj, pattern, -1);
+            *clientData = (ClientData)patternObj;
+            /* TODO: check for memleaks */
+          }
+        }
+      }
+      break;
+    }
+  default: 
+    return TCL_ERROR;
+  }
+  return TCL_OK;
+}
+
+static int
+parse2(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+       interfaceDefinition *ifdPtr, struct parseContext *pc) {
+  int i, o, args, flagCount = 0, nrReq = 0, nrOpt = 0;
+  argDefinition *aPtr, *bPtr, *argsPtr = ifdPtr->args;
+  
+  memset(pc, 0, sizeof(struct parseContext));
+  
+  for (i=0, o=1, aPtr=argsPtr; aPtr->name && o<objc;) {
+    /*fprintf(stderr,"%d: '%s' o=%d\n",i,aPtr->name,o);*/
+    if (*aPtr->name == '-') {
+      /* the interface defintion has switches,switches can be given in
+         an arbitrary order */
+      int p, found;
+      char *objStr;
+      for (p = o; p<objc; p++) {
+        objStr = ObjStr(objv[p]);
+        /*fprintf(stderr,"....checking o=%s\n", objStr);*/
+        if (objStr[0] == '-') {
+          found = 0;
+          for (bPtr = aPtr; *bPtr->name == '-'; bPtr ++) {
+            if (strcmp(objStr,bPtr->name) == 0) {
+              pc->clientData[bPtr-argsPtr] = (ClientData)1;
+              flagCount++;
+              found = 1;
+            }
+          }
+          if (!found) {
+            /* we did not find the specified flag, the thing starting
+               with a '-' must be an argument */
+            break;
+          }
+        }
+      }
+      /*fprintf(stderr, "... we found %d flags\n",flagCount);*/
+      /* skip in interface until the end of the switches */
+      while (*aPtr->name == '-') {aPtr++,i++;};
+      /* under the assumption, flags have no arguments */
+      /* todo: check --; wanted? */
+      o += flagCount;
+    } else {
+
+      if (aPtr->required) 
+        nrReq++;
+      else
+        nrOpt++;
+
+      /*fprintf(stderr,"... arg %s req %d type %s try to set on %d\n",
+        aPtr->name,aPtr->required,aPtr->type,i);*/
+      if (aPtr->type) {
+        if (convertToType(interp, objv[o], aPtr->type, &pc->clientData[i]) != TCL_OK) {
+          return TCL_ERROR;
+        }
+      } else {
+        pc->clientData[i] = ObjStr(objv[o]);
+      }
+      pc->objv[i] = objv[o];
+      o++; i++; aPtr++;
+    }
+  }
+  args = objc - flagCount -1;
+  /*fprintf(stderr, "objc = %d, args = %d, nrReq %d, nrReq + nrOpt = %d\n", objc,args,nrReq,nrReq + nrOpt);*/
+  if (args < nrReq || args > nrReq + nrOpt) {
+    Tcl_Obj *msg = Tcl_NewStringObj("", 0);
+    for (aPtr=argsPtr; aPtr->name; aPtr++) {
+      if (aPtr != argsPtr) {
+        Tcl_AppendToObj(msg, " ", 1);
+      }
+      if (aPtr->required) {
+        Tcl_AppendToObj(msg, aPtr->name, -1);
+      } else {
+        Tcl_AppendToObj(msg, "?", 1);
+        Tcl_AppendToObj(msg, aPtr->name, -1);
+        Tcl_AppendToObj(msg, "?", 1);
+      }
+    }
+    return XOTclObjErrArgCntObj(interp, objv[0],  NULL, msg);
+  }
+
+  /*fprintf(stderr,"after parse: o %d, i %d, objc %d, req %d opt %d ok? %d\n",
+    o,i,objc, nrReq, nrOpt, objc >= 1+nrReq && objc <= 1+nrReq+nrOpt);*/
+  return TCL_OK;
+}
+
+static int 
+getMatchObject3(Tcl_Interp *interp, Tcl_Obj *patternObj,  struct parseContext *pc,
+                XOTclObject **matchObject, char **pattern) {
+  if (patternObj) {
+    *pattern = ObjStr(patternObj);
+    if (patternObj->typePtr == &XOTclObjectType) {
+      XOTclObjConvertObject(interp, patternObj, matchObject);
+    } else if (pc->clientData[2] == pc->objv[2] && **pattern != ':') {
+      /* no meta chars, but no appropriate xotcl object found, so
+         return empty; we could check abouve with
+         noMetaChars(pattern) as well, but the only remaining case
+         are leading colons and metachars. */
+      return 1;
+    }
+  }
+  return 0;
+}
+
+static int
+XOTclClassInfoInstancesMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  struct parseContext pc;
+  interfaceDefinition d = {
+    parseMatchObject, {
+      {"class",   1,0, "class"},
+      {"-closure"},
+      {"pattern", 0,0, "objpattern"}
+    }
+  };
+
+  if (parse2(clientData, interp, objc, objv, &d, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *cl      = (XOTclClass *)pc.clientData[0];
+    int withClosure     = (int)         pc.clientData[1];
+    Tcl_Obj *patternObj = (Tcl_Obj *)   pc.clientData[2];
+    XOTclObject *matchObject = NULL;
+    char *pattern = NULL;
+    int rc;
+    
+    if (getMatchObject3(interp, patternObj,  &pc, &matchObject, &pattern) == -1) {
+      return TCL_OK;
+    }
+    rc = listInstances(interp, cl, pattern, withClosure, matchObject);
+    
+    if (matchObject) {
+      Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+    }
+    DSTRING_FREE(&pc.ds);
+  }
+  return TCL_OK;
+}
+
+#if 0
+static int
 XOTclClassInfoInstancesMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   struct parseContext pc;
   static CONST char *options[] = {"-closure", NULL};
@@ -11996,6 +12230,7 @@ XOTclClassInfoInstancesMethod(ClientData clientData, Tcl_Interp *interp, int obj
   DSTRING_FREE(&pc.ds);
   return TCL_OK;
 }
+#endif
 
 
 static int
