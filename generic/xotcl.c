@@ -11876,19 +11876,7 @@ XOTclCRecreateMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 
 
-static int
-XOTclClassInfoHeritageMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj * CONST objv[]) {
-  XOTclClass *cl;
-
-  if (objc < 2 || objc > 3) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?pattern?");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  return ListHeritage(interp, cl, objc == 3 ? ObjStr(objv[2]) : NULL);
-}
-
-
-struct parseContext {
+typedef struct {
   ClientData clientData[10];
   Tcl_Obj *objv[10];
   int flags;
@@ -11899,10 +11887,10 @@ struct parseContext {
   char *pattern;
   XOTclObject *matchObject;
   Tcl_DString ds;
-};
+} parseContext;
 
 static int
-getMatchObject2(Tcl_Interp *interp, struct parseContext *pc) {
+getMatchObject2(Tcl_Interp *interp, parseContext *pc) {
   if (pc->pattern && noMetaChars(pc->pattern)) {
     pc->matchObject = XOTclpGetObject(interp, pc->pattern);
     if (pc->matchObject) {
@@ -11980,7 +11968,7 @@ entry entries[] = {
 
 static int
 parse(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-      CONST char *options[], int flags, struct parseContext *pc) {
+      CONST char *options[], int flags, parseContext *pc) {
   
   int modifiers = getModifiers(objc, 2, objv, options, &pc->set);
   int args = objc-modifiers;
@@ -12062,13 +12050,16 @@ convertToType(Tcl_Interp *interp, Tcl_Obj *objPtr, char *type, ClientData *clien
   return TCL_OK;
 }
 
+#include "tclAPI.h"
+
 static int
 parse2(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-       interfaceDefinition *ifdPtr, struct parseContext *pc) {
+       int idx, parseContext *pc) {
   int i, o, args, flagCount = 0, nrReq = 0, nrOpt = 0;
   argDefinition *aPtr, *bPtr;
-  
-  memset(pc, 0, sizeof(struct parseContext));
+  interfaceDefinition *ifdPtr = &methodDefinitons[idx].ifd;
+
+  memset(pc, 0, sizeof(parseContext));
   
   for (i=0, o=1, aPtr=ifdPtr[0]; aPtr->name && o<objc;) {
     /*fprintf(stderr,"%d: '%s' o=%d\n",i,aPtr->name,o);*/
@@ -12116,6 +12107,9 @@ parse2(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
           return TCL_ERROR;
         }
       } else {
+        /* If no type is specified, return the string in clientData;
+         * objv is always passed via pc->objv
+         */
         pc->clientData[i] = ObjStr(objv[o]);
       }
       pc->objv[i] = objv[o];
@@ -12147,7 +12141,7 @@ parse2(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
 }
 
 static int 
-getMatchObject3(Tcl_Interp *interp, Tcl_Obj *patternObj,  struct parseContext *pc,
+getMatchObject3(Tcl_Interp *interp, Tcl_Obj *patternObj,  parseContext *pc,
                 XOTclObject **matchObject, char **pattern) {
   if (patternObj) {
     *pattern = ObjStr(patternObj);
@@ -12164,18 +12158,23 @@ getMatchObject3(Tcl_Interp *interp, Tcl_Obj *patternObj,  struct parseContext *p
   return 0;
 }
 
-#include "tclApi.h"
+static int
+XOTclClassInfoHeritageMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj * CONST objv[]) {
+  parseContext pc;
+  if (parse2(clientData, interp, objc, objv, XOTclClassInfoHeritageMethodIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *cl  = (XOTclClass *)pc.clientData[0];
+    char *pattern   = (char *)pc.clientData[1];
+
+    return ListHeritage(interp, cl, pattern);
+  }
+}
 
 static int
 XOTclClassInfoInstancesMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  struct parseContext pc;
-  interfaceDefinition d = {
-      {"class",   1,0, "class"},
-      {"-closure"},
-      {"pattern", 0,0, "objpattern"}
-  };
-
-  if (parse2(clientData, interp, objc, objv, &d, &pc) != TCL_OK) {
+  parseContext pc;
+  if (parse2(clientData, interp, objc, objv, XOTclClassInfoInstancesMethodIdx, &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *cl      = (XOTclClass *)pc.clientData[0];
@@ -12198,142 +12197,103 @@ XOTclClassInfoInstancesMethod(ClientData clientData, Tcl_Interp *interp, int obj
   return TCL_OK;
 }
 
-#if 0
-static int
-XOTclClassInfoInstancesMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  struct parseContext pc;
-  static CONST char *options[] = {"-closure", NULL};
-  int rc, withClosure;
-
-  if ((rc = parse(clientData, interp, objc, objv, options, 
-                  parseClass|parsePattern|parseMatchObject, &pc)) != TCL_OK || pc.resultIsSet) {
-    return rc;
-  }
-  withClosure = pc.set & 1 << 0;
-
-  rc = listInstances(interp, pc.cl, pc.pattern, withClosure, pc.matchObject);
-
-  if (pc.matchObject) {
-    Tcl_SetObjResult(interp, rc ? pc.matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-  }
-  DSTRING_FREE(&pc.ds);
-  return TCL_OK;
-}
-#endif
-
-
 static int
 XOTclClassInfoInstargsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  Tcl_Namespace *nsp;
+  parseContext pc;
+  if (parse2(clientData, interp, objc, objv, XOTclClassInfoInstargsMethodIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *cl   = (XOTclClass *)pc.clientData[0];
+    char *methodName = (char *)pc.clientData[1];
+    Tcl_Namespace *nsp = cl->nsPtr;
 
-  if (objc != 3) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> <methodName>");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class"); 
-
-  if (cl->nonposArgsTable) {
-    XOTclNonposArgs *nonposArgs = NonposArgsGet(cl->nonposArgsTable, ObjStr(objv[2]));
-    if (nonposArgs && nonposArgs->ordinaryArgs) {
-      return ListArgsFromOrdinaryArgs(interp, nonposArgs);
+    if (cl->nonposArgsTable) {
+      XOTclNonposArgs *nonposArgs = NonposArgsGet(cl->nonposArgsTable, methodName);
+      if (nonposArgs && nonposArgs->ordinaryArgs) {
+        return ListArgsFromOrdinaryArgs(interp, nonposArgs);
+      }
     }
+    return ListProcArgs(interp, Tcl_Namespace_cmdTable(nsp), methodName);
   }
-  nsp = cl->nsPtr;
-  return ListProcArgs(interp, Tcl_Namespace_cmdTable(nsp), ObjStr(objv[2]));
 }
 
 static int
 XOTclClassInfoInstbodyMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  Tcl_Namespace *nsp;
-
-  if (objc != 3) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> <methodName>");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class"); 
-
-  nsp = cl->nsPtr;
-  return ListProcBody(interp, Tcl_Namespace_cmdTable(nsp), ObjStr(objv[2]));
+  parseContext pc;
+  if (parse2(clientData, interp, objc, objv, XOTclClassInfoInstbodyMethodIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *cl   = (XOTclClass *)pc.clientData[0];
+    char *methodName = (char *)pc.clientData[1];
+    Tcl_Namespace *nsp = cl->nsPtr;
+    return ListProcBody(interp, Tcl_Namespace_cmdTable(nsp), methodName);
+  }
 }
 
 static int
 XOTclClassInfoInstcommandsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  Tcl_Namespace *nsp;
-
-  if (objc < 2 || objc > 3) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?pattern?");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  nsp = cl->nsPtr;
-  return ListKeys(interp, Tcl_Namespace_cmdTable(nsp), objc == 3 ? ObjStr(objv[2]) : NULL);
+  parseContext pc;
+  if (parse2(clientData, interp, objc, objv, XOTclClassInfoInstcommandsMethodIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *cl  = (XOTclClass *)pc.clientData[0];
+    char *pattern   = (char *)pc.clientData[1];
+    Tcl_Namespace *nsp = cl->nsPtr;
+    return ListKeys(interp, Tcl_Namespace_cmdTable(nsp), pattern);
+  }
 }
 
 static int
 XOTclClassInfoInstdefaultMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  Tcl_Namespace *nsp;
+  parseContext pc;
+  if (parse2(clientData, interp, objc, objv, XOTclClassInfoInstdefaultMethodIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *cl   = (XOTclClass *)pc.clientData[0];
+    char *methodName = (char *)pc.clientData[1];
+    char *arg        = (char *)pc.clientData[2];
+    Tcl_Obj *varObj  = (Tcl_Obj *)pc.objv[3];
+    Tcl_Namespace *nsp = cl->nsPtr;
 
-  if (objc != 5) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> <methodName> <arg> <var>");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  if (cl->nonposArgsTable) {
-    XOTclNonposArgs *nonposArgs = NonposArgsGet(cl->nonposArgsTable,  ObjStr(objv[2]));
-    if (nonposArgs && nonposArgs->ordinaryArgs) {
-      return ListDefaultFromOrdinaryArgs(interp, ObjStr(objv[2]), nonposArgs, ObjStr(objv[3]), objv[4]);
+    if (cl->nonposArgsTable) {
+      XOTclNonposArgs *nonposArgs = NonposArgsGet(cl->nonposArgsTable,  methodName);
+      if (nonposArgs && nonposArgs->ordinaryArgs) {
+        return ListDefaultFromOrdinaryArgs(interp, methodName, nonposArgs, arg, varObj);
+      }
     }
+    return nsp ? 
+      ListProcDefault(interp, Tcl_Namespace_cmdTable(nsp), methodName, arg, varObj) : 
+      TCL_OK;
   }
-  nsp = cl->nsPtr;
-  return nsp ? 
-    ListProcDefault(interp, Tcl_Namespace_cmdTable(nsp), ObjStr(objv[2]), ObjStr(objv[3]), objv[4]) : 
-    TCL_OK;
 }
 
 static int
 XOTclClassInfoInstfilterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  XOTclClassOpt *opt;
-  int idx, nobjc, withGuards = 0;
-  static CONST char *options[] = {"-guards", NULL};
-  enum options {guardsIdx};
+  parseContext pc;
+  if (parse2(clientData, interp, objc, objv, XOTclClassInfoInstfilterMethodIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *cl   = (XOTclClass *)pc.clientData[0];
+    int withGuards   = (int)         pc.clientData[1];
+    char *pattern    = (char *)pc.clientData[2];
+    XOTclClassOpt *opt = cl->opt;
 
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  for (idx = 2; idx < objc; idx++) {
-    char *name;
-    int index;
-
-    name = Tcl_GetString(objv[idx]);
-    if (name[0] != '-') {
-      break;
-    }
-    if (Tcl_GetIndexFromObj(interp, objv[idx], options, "switch", TCL_EXACT, &index) != TCL_OK) {
-      return TCL_ERROR;
-    }
-    switch ((enum options) index) {
-    case guardsIdx: withGuards = 1; break;
-    }
+    return opt ? FilterInfo(interp, opt->instfilters, pattern, withGuards, 0) : TCL_OK;
   }
-  nobjc = objc - idx;
-  
-  if (objc < 2 || nobjc > 1 || objc > 4)
-    return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> ?-guards? ?pattern?");
-
-  opt = cl->opt;
-  return opt ? FilterInfo(interp, opt->instfilters, idx < objc ? ObjStr(objv[idx]) : NULL, withGuards, 0) : TCL_OK;
 }
 
 static int
 XOTclClassInfoInstfilterguardMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclClass *cl;
-  XOTclClassOpt *opt;
+  parseContext pc;
+  if (parse2(clientData, interp, objc, objv, XOTclClassInfoInstfilterguardMethodIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *cl   = (XOTclClass *)pc.clientData[0];
+    char *filter     = (char *)pc.clientData[1];
+    XOTclClassOpt *opt = cl->opt;
   
-  if (objc != 3) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<class> filter");  
-  if (GetXOTclClassFromObj(interp, objv[1], &cl, 0) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Class");
-
-  opt = cl->opt;
-  return opt ? GuardList(interp, opt->instfilters, ObjStr(objv[2])) : TCL_OK;
+    return opt ? GuardList(interp, opt->instfilters, filter) : TCL_OK;
+  }
 }
 
 static int
@@ -12361,7 +12321,7 @@ XOTclClassInfoInstforwardMethod(ClientData clientData, Tcl_Interp *interp, int o
 
 static int
 XOTclClassInfoInstinvarMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  struct parseContext pc;
+  parseContext pc;
   XOTclClassOpt *opt;
   int rc;
 
@@ -12379,7 +12339,7 @@ XOTclClassInfoInstinvarMethod(ClientData clientData, Tcl_Interp *interp, int obj
 
 static int
 XOTclClassInfoInstmixinMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  struct parseContext pc;
+  parseContext pc;
   static CONST char *options[] = {"-closure", "-guards", NULL};
   int rc, withGuards, withClosure;
   XOTclClassOpt *opt;
@@ -12426,7 +12386,7 @@ XOTclClassInfoInstmixinguardMethod(ClientData clientData, Tcl_Interp *interp, in
 
 static int
 XOTclClassInfoMixinofMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  struct parseContext pc;
+  parseContext pc;
   static CONST char *options[] = {"-closure", NULL};
   int rc, withClosure;
 
@@ -12457,7 +12417,7 @@ XOTclClassInfoMixinofMethod(ClientData clientData, Tcl_Interp *interp, int objc,
 
 static int
 XOTclClassInfoInstmixinofMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  struct parseContext pc;
+  parseContext pc;
   static CONST char *options[] = {"-closure", NULL};
   int rc, withClosure;
 
@@ -12505,7 +12465,7 @@ XOTclClassInfoInstnonposargsMethod(ClientData clientData, Tcl_Interp *interp, in
 
 static int
 XOTclClassInfoInstprocsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  struct parseContext pc;
+  parseContext pc;
 
   if (parse(clientData, interp, objc, objv, NULL, parseClass|parsePattern, &pc) != TCL_OK) {
     return TCL_ERROR;
@@ -12516,7 +12476,7 @@ XOTclClassInfoInstprocsMethod(ClientData clientData, Tcl_Interp *interp, int obj
 
 static int
 XOTclClassInfoInstparametercmdMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  struct parseContext pc;
+  parseContext pc;
 
   if ((parse(clientData, interp, objc, objv, NULL, parseClass|parsePattern, &pc)) != TCL_OK) {
     return TCL_ERROR;
@@ -12589,7 +12549,7 @@ XOTclClassInfoParameterMethod(ClientData clientData, Tcl_Interp *interp, int obj
 
 static int
 XOTclClassInfoSuperclassMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  struct parseContext pc;
+  parseContext pc;
   static CONST char *options[] = {"-closure", NULL};
   int rc, withClosure;
 
@@ -12604,7 +12564,7 @@ XOTclClassInfoSuperclassMethod(ClientData clientData, Tcl_Interp *interp, int ob
 
 static int
 XOTclClassInfoSubclassMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  struct parseContext pc;
+  parseContext pc;
   static CONST char *options[] = {"-closure", NULL};
   int rc, withClosure;
 

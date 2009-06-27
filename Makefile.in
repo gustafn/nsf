@@ -465,9 +465,12 @@ install-shells:
 $(src_generic_dir)/predefined.h: $(src_generic_dir)/mk_predefined.xotcl $(src_generic_dir)/predefined.xotcl
 	(cd $(src_generic_dir); $(TCLSH) mk_predefined.xotcl > predefined.h)
 
+$(src_generic_dir)/tclAPI.h: $(src_generic_dir)/gentclAPI.tcl
+	$(TCLSH) $(src_generic_dir)/gentclAPI.tcl > $(src_generic_dir)/tclAPI.h
+
 xotclStubInit.$(OBJEXT): $(PKG_HEADERS)
 xotclStubLib.$(OBJEXT): $(src_generic_dir)/xotclStubLib.c $(PKG_HEADERS)
-xotcl.$(OBJEXT): $(src_generic_dir)/xotcl.c $(src_generic_dir)/predefined.h $(PKG_HEADERS)
+xotcl.$(OBJEXT): $(src_generic_dir)/xotcl.c $(src_generic_dir)/predefined.h $(src_generic_dir)/tclAPI.h $(PKG_HEADERS)
 xotclError.$(OBJEXT): $(src_generic_dir)/xotclError.c $(PKG_HEADERS)
 xotclMetaData.$(OBJEXT): $(src_generic_dir)/xotclMetaData.c $(PKG_HEADERS)
 xotclObjectData.$(OBJEXT): $(src_generic_dir)/xotclObjectData.c $(PKG_HEADERS)

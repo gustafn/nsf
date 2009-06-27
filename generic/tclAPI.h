@@ -1,123 +1,66 @@
 
+typedef struct {
+  char *methodName;
+  Tcl_ObjCmdProc *proc;
+  interfaceDefinition ifd;
+} methodDefinition2;
+  
+static int XOTclClassInfoHeritageMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclClassInfoInstancesMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclClassInfoInstargsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclClassInfoInstbodyMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclClassInfoInstcommandsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclClassInfoInstdefaultMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclClassInfoInstfilterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclClassInfoInstfilterguardMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+
 enum {
-  /* Object method definitions (1) */
-  XOTclOAutonameMethodIdx,
-  XOTclOCheckMethodIdx,
-  XOTclOCleanupMethodIdx,
-  XOTclOConfigureMethodIdx,
-  XOTclODestroyMethodIdx,
-  XOTclOExistsMethodIdx,
-  XOTclOFilterGuardMethodIdx,
-  XOTclOFilterSearchMethodIdx,
-  XOTclOInstVarMethodIdx,
-  XOTclOInvariantsMethodIdx,
-  XOTclOIsClassMethodIdx,
-  XOTclOIsMetaClassMethodIdx,
-  XOTclOIsObjectMethodIdx,
-  XOTclOIsTypeMethodIdx,
-  XOTclOIsMixinMethodIdx,
-  XOTclOMixinGuardMethodIdx,
-  XOTclONextMethodIdx,
-  XOTclONoinitMethodIdx,
-  XOTclCParameterCmdMethodIdx,
-  XOTclOProcMethodIdx,
-  XOTclOProcSearchMethodIdx,
-  XOTclORequireNamespaceMethodIdx,
-  XOTclOSetMethodIdx, /***??**/
-  XOTclOSetvaluesMethodIdx,
-  XOTclOForwardMethodIdx,
-  XOTclOUplevelMethodIdx,
-  XOTclOUpvarMethodIdx,
-  XOTclOVolatileMethodIdx,
-  XOTclOVwaitMethodIdx,
-
-  /* Class method definitions (2) */
-  XOTclCAllocMethodIdx,
-  XOTclCCreateMethodIdx,
-  XOTclCDeallocMethodIdx,
-  XOTclCNewMethodIdx,
-  XOTclCInstFilterGuardMethodIdx,
-  XOTclCInvariantsMethodIdx,
-  XOTclCInstMixinGuardMethodIdx,
-  XOTclCInstParameterCmdMethodIdx,
-  XOTclCInstProcMethodIdx,
-  XOTclCInstProcMethodCIdx,
-  XOTclCInstForwardMethodIdx,
-  XOTclCRecreateMethodIdx,
-  XOTclCUnknownMethodIdx,
-
-  /* Check method definitions (3) */
-  XOTclCheckRequiredArgsIdx,
-  /*XOTclCheckBooleanArgsIdx,  for boolean and switch, we use the same checker */
-  XOTclCheckBooleanArgsIdx,
-
-  /* Object info definitions (4) */
-  XOTclObjInfoArgsMethodIdx,
-  XOTclObjInfoBodyMethodIdx,
-  XOTclObjInfoClassMethodIdx,
-  XOTclObjInfoCommandsMethodIdx,
-  XOTclObjInfoChildrenMethodIdx,
-  XOTclObjInfoCheckMethodIdx,
-  XOTclObjInfoDefaultMethodIdx,
-  XOTclObjInfoFilterMethodIdx,
-  XOTclObjInfoFilterguardMethodIdx,
-  XOTclObjInfoForwardMethodIdx,
-  XOTclObjInfoHasnamespaceMethodIdx,
-  XOTclObjInfoInvarMethodIdx,
-  XOTclObjInfoMethodsMethodIdx,
-  XOTclObjInfoMixinMethodIdx,
-  XOTclObjInfoMixinguardMethodIdx,
-  XOTclObjInfoNonposargsMethodIdx,
-  XOTclObjInfoParentMethodIdx,
-  XOTclObjInfoParametercmdMethodIdx,
-  XOTclObjInfoPostMethodIdx,
-  XOTclObjInfoPreMethodIdx,
-  XOTclObjInfoProcsMethodIdx,
-  XOTclObjInfoPrecedenceMethodIdx,
-  XOTclObjInfoSlotObjectsMethodIdx,
-  XOTclObjInfoVarsMethodIdx,
-       
-  /* Class info definitions (5) */ 
-  XOTclClassInfoHeritageMethodIdx,
-  XOTclClassInfoInstancesMethodIdx,
-  XOTclClassInfoInstargsMethodIdx,
-  XOTclClassInfoInstbodyMethodIdx,
-  XOTclClassInfoInstcommandsMethodIdx,
-  XOTclClassInfoInstdefaultMethodIdx,
-  XOTclClassInfoInstfilterMethodIdx,
-  XOTclClassInfoInstfilterguardMethodIdx,
-  XOTclClassInfoInstforwardMethodIdx,
-  XOTclClassInfoInstinvarMethodIdx,
-  XOTclClassInfoInstmixinMethodIdx,
-  XOTclClassInfoInstmixinguardMethodIdx,
-  XOTclClassInfoInstmixinofMethodIdx,
-  XOTclClassInfoInstprocsMethodIdx,
-  XOTclClassInfoInstnonposargsMethodIdx,
-  XOTclClassInfoInstparametercmdMethodIdx,
-  XOTclClassInfoInstpreMethodIdx,
-  XOTclClassInfoInstpostMethodIdx,
-  XOTclClassInfoMixinofMethodIdx,
-  XOTclClassInfoParameterMethodIdx,
-  XOTclClassInfoSubclassMethodIdx,
-  XOTclClassInfoSuperclassMethodIdx,
-  XOTclClassInfoSlotsMethodIdx,
-
-  methodIdxEND
+ XOTclClassInfoHeritageMethodIdx,
+ XOTclClassInfoInstancesMethodIdx,
+ XOTclClassInfoInstargsMethodIdx,
+ XOTclClassInfoInstbodyMethodIdx,
+ XOTclClassInfoInstcommandsMethodIdx,
+ XOTclClassInfoInstdefaultMethodIdx,
+ XOTclClassInfoInstfilterMethodIdx,
+ XOTclClassInfoInstfilterguardMethodIdx
 } XOTclMethods;
 
-static interfaceDefinition methodDefinitions[methodIdxEND];
-
-interfaceDefinition xxx = {
-  {"class",   1,0, "class"},
-  {"-closure"},
-  {"pattern", 0,0, "objpattern"}
+static methodDefinition2 methodDefinitons[] = {
+{"instances", XOTclClassInfoHeritageMethod, {
+  {"class", 1, 0, "class"},
+  {"pattern", 0, 0, NULL}}
+},
+{"instances", XOTclClassInfoInstancesMethod, {
+  {"class", 1, 0, "class"},
+  {"-closure", 0, 0, NULL},
+  {"pattern", 0, 0, "objpattern"}}
+},
+{"instargs", XOTclClassInfoInstargsMethod, {
+  {"class", 1, 0, "class"},
+  {"methodName", 1, 0, NULL}}
+},
+{"instbody", XOTclClassInfoInstbodyMethod, {
+  {"class", 1, 0, "class"},
+  {"methodName", 1, 0, NULL}}
+},
+{"instances", XOTclClassInfoInstcommandsMethod, {
+  {"class", 1, 0, "class"},
+  {"pattern", 0, 0, NULL}}
+},
+{"instdefault", XOTclClassInfoInstdefaultMethod, {
+  {"class", 1, 0, "class"},
+  {"methodName", 1, 0, NULL},
+  {"arg", 1, 0, NULL},
+  {"var", 1, 0, NULL}}
+},
+{"instfilter", XOTclClassInfoInstfilterMethod, {
+  {"class", 1, 0, "class"},
+  {"-guards", 0, 0, NULL},
+  {"pattern", 0, 0, NULL}}
+},
+{"instfilterguard", XOTclClassInfoInstfilterguardMethod, {
+  {"class", 1, 0, "class"},
+  {"filter", 1, 0, NULL}}
+}
 };
 
-methodDefinitions[XOTclClassInfoInstancesMethodIdx] = xxx;
-/*
-methodDefinitions[XOTclClassInfoInstancesMethodIdx] = {
-  {"class",   1,0, "class"},
-  {"-closure"},
-  {"pattern", 0,0, "objpattern"}
-};
-*/

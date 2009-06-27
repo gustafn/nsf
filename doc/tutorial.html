@@ -1689,7 +1689,7 @@ defines classes that count their instances:
     <tt>my</tt> <tt>incr</tt> counter
     <tt>next</tt>
   }
-  CountedClass <tt>instproc</tt> <tt>instdestroy</tt> args {
+  CountedClass <tt>instproc</tt> <tt>dealloc</tt> args {
     <tt>my</tt> <tt>incr</tt> counter -1
     <tt>next</tt>
   }
@@ -1749,14 +1749,14 @@ and
  <em>className</em> <tt>create</tt> [<tt>self</tt>]
 </pre>
 <P>
-are used for creating an instance. A similar method <tt>instdestroy</tt>
+are used for creating an instance. A similar method <tt>dealloc</tt>
 exists on Class that handles physical destruction of an object. The
 method <tt>destroy</tt> on Object which lets an object destroy itself in fact
 has the following behavior:
 </P>
 <pre CLASS="code">
   <tt>Object</tt> <tt>instproc</tt> <tt>destroy</tt> args {
-   [<tt>my</tt> <tt>info</tt> class] <tt>instdestroy</tt> [<tt>self</tt>]
+   [<tt>my</tt> <tt>info</tt> class] <tt>dealloc</tt> [<tt>self</tt>]
   }
 </pre>
 <P>
@@ -1799,7 +1799,7 @@ is called automatically from C and has the following default behavior:
 </ul>
 <P>
 Each step has a method call that can be changed, intercepted, etc.  Of
-course, <tt>cleanup</tt>, <tt>recreate</tt>, <tt>instdestroy</tt>, 
+course, <tt>cleanup</tt>, <tt>recreate</tt>, <tt>dealloc</tt>, 
 etc. can also be overloaded or intercepted.
 </P>
 <P>

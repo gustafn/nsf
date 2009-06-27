@@ -65,7 +65,10 @@ C c1 ;# c1 has no no default value for "a", before it had
 
 2009-06-27 <Gustaf.Neumann@wu-wien.ac.at>
     - changed method name "instdestroy" into "dealloc"
+    - replaced occurances of "instdestroy" by "dealloc" in documentation
     - new file: tclAPI.h
+    - added generator for tclAPI.h
+    - defined 8 info methods based on the new objv parseing infrastructure
 
 2009-06-25 <Gustaf.Neumann@wu-wien.ac.at>
     - new command:

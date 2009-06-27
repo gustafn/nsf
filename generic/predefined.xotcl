@@ -13,12 +13,12 @@ namespace eval ::xotcl {
     # When the system shuts down, destroy is called for every
     # available object. When ::xotcl::Object and ::xotcl::Class are
     # destroyed, there would be no means to delete other objects, when
-    # "destroy" and "instdestroy" are only defined on these
+    # "destroy" and "dealloc" are only defined on these
     # objects. So, we register these on ::oo::object and ::oo::class
     # for the time being, since these two classes are deleted last.
     #
     ::xotcl::alias ::oo::object destroy ::xotcl::cmd::Object::destroy
-    ::xotcl::alias ::oo::class instdestroy ::xotcl::cmd::Class::instdestroy
+    ::xotcl::alias ::oo::class  dealloc ::xotcl::cmd::Class::dealloc
 
     #
     # Perform the basic setup of XOTcl. First, let us allocate the

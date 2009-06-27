@@ -2750,7 +2750,7 @@ TestX recreation -proc run {{n 10}} {
   set recreateMixinResult ""
   set recreateFilterResult ""
   Class RecreateObserve
-  foreach ip {create destroy instdestroy init configure
+  foreach ip {create destroy dealloc init configure
     recreate cleanup alloc class} {
     RecreateObserve instproc $ip args {
       append ::recreateMixinResult " [self]+[self class]->[self proc]"
@@ -2775,11 +2775,11 @@ TestX recreation -proc run {{n 10}} {
     "recreateObj - recreateFilterResult"
    if {$i == 0} {
      errorCheck [set ::recreateMixinResult] \
-       " ::Recreated+::RecreateObserve->create ::Recreated+::RecreateObserve->alloc ::recreateObj+::RecreateObserve->configure ::recreateObj+::RecreateObserve->init ::Recreated+::RecreateObserve->create ::Recreated+::RecreateObserve->recreate ::recreateObj+::RecreateObserve->cleanup ::recreateObj+::RecreateObserve->configure ::recreateObj+::RecreateObserve->init ::recreateObj+::RecreateObserve->destroy ::Recreated+::RecreateObserve->instdestroy" \
+       " ::Recreated+::RecreateObserve->create ::Recreated+::RecreateObserve->alloc ::recreateObj+::RecreateObserve->configure ::recreateObj+::RecreateObserve->init ::Recreated+::RecreateObserve->create ::Recreated+::RecreateObserve->recreate ::recreateObj+::RecreateObserve->cleanup ::recreateObj+::RecreateObserve->configure ::recreateObj+::RecreateObserve->init ::recreateObj+::RecreateObserve->destroy ::Recreated+::RecreateObserve->dealloc" \
        "recreateObj - recreateMixinResult (0)"
    } else { 
      errorCheck [set ::recreateMixinResult] \
-       " ::Recreated+::RecreateObserve->cleanup ::Recreated+::RecreateObserve->create ::Recreated+::RecreateObserve->alloc ::recreateObj+::RecreateObserve->configure ::recreateObj+::RecreateObserve->init ::Recreated+::RecreateObserve->create ::Recreated+::RecreateObserve->recreate ::recreateObj+::RecreateObserve->cleanup ::recreateObj+::RecreateObserve->configure ::recreateObj+::RecreateObserve->init ::recreateObj+::RecreateObserve->destroy ::Recreated+::RecreateObserve->instdestroy" \
+       " ::Recreated+::RecreateObserve->cleanup ::Recreated+::RecreateObserve->create ::Recreated+::RecreateObserve->alloc ::recreateObj+::RecreateObserve->configure ::recreateObj+::RecreateObserve->init ::Recreated+::RecreateObserve->create ::Recreated+::RecreateObserve->recreate ::recreateObj+::RecreateObserve->cleanup ::recreateObj+::RecreateObserve->configure ::recreateObj+::RecreateObserve->init ::recreateObj+::RecreateObserve->destroy ::Recreated+::RecreateObserve->dealloc" \
        "recreateObj - recreateMixinResult (n)"
    }
  }
@@ -2792,7 +2792,7 @@ TestX recreation -proc run {{n 10}} {
   catch {META destroy}
 
   Class A
-  A proc instdestroy args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
+  A proc dealloc args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
   A proc recreate args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
   A instproc destroy args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
   A instproc cleanup args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
@@ -2805,7 +2805,7 @@ TestX recreation -proc run {{n 10}} {
   A a::b
 
   errorCheck [set ::cleanupResult] \
-   " ::A+->recreate ::a+::A->cleanup ::a::b+::A->destroy ::A+->instdestroy" \
+   " ::A+->recreate ::a+::A->cleanup ::a::b+::A->destroy ::A+->dealloc" \
    "Cleanup a/a::b Failed (n)"
   a destroy;
   set ::cleanupResult ""
@@ -2827,7 +2827,7 @@ TestX recreation -proc run {{n 10}} {
 
 
   Class META -superclass Class
-  META proc instdestroy args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
+  META proc dealloc args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
   META proc recreate args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
   META instproc destroy args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
   META instproc cleanup args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
@@ -2839,7 +2839,7 @@ TestX recreation -proc run {{n 10}} {
   errorCheck [X info classchildren] "" "Class Cleanup Class Children Destroy Failed"
   META X::Y
   errorCheck [set ::cleanupResult] \
-   " ::META+->recreate ::X+::META->cleanup ::X::Y+::META->destroy ::META+->instdestroy" \
+   " ::META+->recreate ::X+::META->cleanup ::X::Y+::META->destroy ::META+->dealloc" \
    "Class Cleanup X/X::Y Failed"
 
   X destroy

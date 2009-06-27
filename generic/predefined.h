@@ -8,7 +8,7 @@ static char cmd[] =
 "::xotcl::createobjectsystem ::oo::object ::oo::class\n"
 "if {[info command ::oo::object] ne \"\"} {\n"
 "::xotcl::alias ::oo::object destroy ::xotcl::cmd::Object::destroy\n"
-"::xotcl::alias ::oo::class instdestroy ::xotcl::cmd::Class::instdestroy\n"
+"::xotcl::alias ::oo::class  dealloc ::xotcl::cmd::Class::dealloc\n"
 "::xotcl::createobjectsystem ::xotcl::Object ::xotcl::Class}\n"
 "set bootstrap 1\n"
 "foreach cmd [info command ::xotcl::cmd::Object::*] {\n"
