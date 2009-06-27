@@ -5442,7 +5442,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
       }
     */
     /* The order of the check is important, since obj might be already
-       freed in case the call was a instdestroy */
+       freed in case the call was a "dealloc" */
     if (!rst->callIsDestroy && obj->opt) {
       co = obj->opt->checkoptions;
       if ((co & CHECK_INVAR) &&
@@ -8161,7 +8161,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
        object is ::xotcl::Object. Instances of metaclasses can be only
        reset to ::xotcl::Class (and not to ::xotcl::Object as in
        earlier versions), since otherwise their instances can't be
-       deleted, because ::xotcl::Object has no method "instdestroy".
+       deleted, because ::xotcl::Object has no method "dealloc".
        
        We do not have to reclassing in case, cl == ::xotcl::Object
     */
@@ -8669,10 +8669,10 @@ XOTclODestroyMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
   PRINTOBJ("XOTclODestroyMethod", obj);
 
   /*
-   * call instdestroy for [self]
+   * call dealloc for [self]
    */
   return XOTclCallMethodWithArgs((ClientData)obj->cl, interp,
-                                 XOTclGlobalObjects[XOTE_INSTDESTROY], obj->cmdName,
+                                 XOTclGlobalObjects[XOTE_DEALLOC], obj->cmdName,
                                  objc, objv+1, 0);
 }
 
@@ -11457,7 +11457,7 @@ XOTclOConfigureMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
  */
 
 static int
-XOTclCInstDestroyMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+XOTclCDeallocMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclClass *cl = XOTclObjectToClass(clientData);
   XOTclObject *delobj;
   int rc;
@@ -11471,7 +11471,7 @@ XOTclCInstDestroyMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
                           ObjStr(objv[1]), " that does not exist.", 
 			  (char *) NULL);
  
-  /* fprintf(stderr,"instdestroy obj=%s, opt=%p\n", objectName(delobj), delobj->opt);*/
+  /* fprintf(stderr,"dealloc obj=%s, opt=%p\n", objectName(delobj), delobj->opt);*/
   rc = freeUnsetTraceVariable(interp, delobj);
   if (rc != TCL_OK) {
     return rc;
@@ -11482,7 +11482,7 @@ XOTclCInstDestroyMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
    */
   delobj->flags |= XOTCL_DESTROY_CALLED;
   RUNTIME_STATE(interp)->callIsDestroy = 1;
-  /*fprintf(stderr,"instDestroy %s : setting callIsDestroy = 1\n", ObjStr(objv[1]));*/
+  /*fprintf(stderr,"dealloc %s : setting callIsDestroy = 1\n", ObjStr(objv[1]));*/
   if (RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
       XOTCL_EXITHANDLER_ON_SOFT_DESTROY) {
     CallStackDestroyObject(interp, delobj);
@@ -11945,20 +11945,15 @@ typedef struct  {
   int required;
   int nrargs;
   char *type;
+  char *defaultValue;
 } argDefinition;
 
-typedef struct  {
-  int flags;
-  argDefinition args[10];
-} interfaceDefinition;
+typedef argDefinition interfaceDefinition[10];
 
 interfaceDefinition d = {
-  parseMatchObject,
-  {
     {"class",  1,0, "class"},
     {"-closure"},
     {"pattern"}
-  }
 };
 
 typedef struct {
@@ -11969,22 +11964,16 @@ typedef struct {
 entry entries[] = {
   {
     "dummy", {
-      parseMatchObject,
-      {
         {"class",    1, 0, "class"},
         {"-closure"},
         {"pattern"}
-      }
     }
   },
   {
     "dummy2", {
-      parseMatchObject,
-      {
         {"class",    1, 0, "class"},
         {"-closure"},
         {"pattern"}
-      }
     }
   },
 };
@@ -12077,11 +12066,11 @@ static int
 parse2(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
        interfaceDefinition *ifdPtr, struct parseContext *pc) {
   int i, o, args, flagCount = 0, nrReq = 0, nrOpt = 0;
-  argDefinition *aPtr, *bPtr, *argsPtr = ifdPtr->args;
+  argDefinition *aPtr, *bPtr;
   
   memset(pc, 0, sizeof(struct parseContext));
   
-  for (i=0, o=1, aPtr=argsPtr; aPtr->name && o<objc;) {
+  for (i=0, o=1, aPtr=ifdPtr[0]; aPtr->name && o<objc;) {
     /*fprintf(stderr,"%d: '%s' o=%d\n",i,aPtr->name,o);*/
     if (*aPtr->name == '-') {
       /* the interface defintion has switches,switches can be given in
@@ -12095,7 +12084,7 @@ parse2(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
           found = 0;
           for (bPtr = aPtr; *bPtr->name == '-'; bPtr ++) {
             if (strcmp(objStr,bPtr->name) == 0) {
-              pc->clientData[bPtr-argsPtr] = (ClientData)1;
+              pc->clientData[bPtr-ifdPtr[0]] = (ClientData)1;
               flagCount++;
               found = 1;
             }
@@ -12137,8 +12126,8 @@ parse2(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[
   /*fprintf(stderr, "objc = %d, args = %d, nrReq %d, nrReq + nrOpt = %d\n", objc,args,nrReq,nrReq + nrOpt);*/
   if (args < nrReq || args > nrReq + nrOpt) {
     Tcl_Obj *msg = Tcl_NewStringObj("", 0);
-    for (aPtr=argsPtr; aPtr->name; aPtr++) {
-      if (aPtr != argsPtr) {
+    for (aPtr=ifdPtr[0]; aPtr->name; aPtr++) {
+      if (aPtr != ifdPtr[0]) {
         Tcl_AppendToObj(msg, " ", 1);
       }
       if (aPtr->required) {
@@ -12175,15 +12164,15 @@ getMatchObject3(Tcl_Interp *interp, Tcl_Obj *patternObj,  struct parseContext *p
   return 0;
 }
 
+#include "tclApi.h"
+
 static int
 XOTclClassInfoInstancesMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   struct parseContext pc;
   interfaceDefinition d = {
-    parseMatchObject, {
       {"class",   1,0, "class"},
       {"-closure"},
       {"pattern", 0,0, "objpattern"}
-    }
   };
 
   if (parse2(clientData, interp, objc, objv, &d, &pc) != TCL_OK) {
@@ -12916,7 +12905,6 @@ makeMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   name = ObjStr(objv[1 + incr]);
 
   if ((cl->object.flags & XOTCL_IS_ROOT_CLASS && isDestroyString(name)) ||
-      (cl->object.flags & XOTCL_IS_ROOT_META_CLASS && isInstDestroyString(name)) ||
       (cl->object.flags & XOTCL_IS_ROOT_META_CLASS && isDeallocString(name)) ||
       (cl->object.flags & XOTCL_IS_ROOT_META_CLASS && isAllocString(name)) ||
       (cl->object.flags & XOTCL_IS_ROOT_META_CLASS && isCreateString(name)))
@@ -14477,6 +14465,7 @@ Xotcl_Init(Tcl_Interp *interp) {
      typedef struct methodDefinition {
        char *methodName;
        Tcl_ObjCmdProc *proc;
+       int pos;
      } methodDefinition;
      
      char *namespace_names[] = {
@@ -14486,6 +14475,7 @@ Xotcl_Init(Tcl_Interp *interp) {
        "::xotcl::cmd::ObjectInfo",
        "::xotcl::cmd::ClassInfo"
      };
+
      methodDefinition definitions1[] = {
        {"autoname",         XOTclOAutonameMethod},
        {"check",            XOTclOCheckMethod},
@@ -14502,12 +14492,8 @@ Xotcl_Init(Tcl_Interp *interp) {
        {"isobject",         XOTclOIsObjectMethod},
        {"istype",           XOTclOIsTypeMethod},
        {"ismixin",          XOTclOIsMixinMethod},
-#ifdef XOTCL_METADATA
-       {"metadata",         XOTclOMetaDataMethod},
-#endif
        {"mixinguard",       XOTclOMixinGuardMethod},
        {"__next",           XOTclONextMethod},
-       /*    {"next",         XOTclONextMethod2},*/ 
        {"noinit",           XOTclONoinitMethod},
        {"parametercmd",     XOTclCParameterCmdMethod},
        {"proc",             XOTclOProcMethod},
@@ -14525,9 +14511,8 @@ Xotcl_Init(Tcl_Interp *interp) {
      methodDefinition definitions2[] = {
        {"alloc",            XOTclCAllocMethod},
        {"create",           XOTclCCreateMethod},
-       {"dealloc",          XOTclCInstDestroyMethod},
+       {"dealloc",          XOTclCDeallocMethod},
        {"new",              XOTclCNewMethod},
-       {"instdestroy",      XOTclCInstDestroyMethod},
        {"instfilterguard",  XOTclCInstFilterGuardMethod},
        {"instinvar",        XOTclCInvariantsMethod},
        {"instmixinguard",   XOTclCInstMixinGuardMethod},
@@ -14538,6 +14523,7 @@ Xotcl_Init(Tcl_Interp *interp) {
        {"recreate",         XOTclCRecreateMethod},
        {"unknown",          XOTclCUnknownMethod}
      };
+
      methodDefinition definitions3[] = {
        {"type=required", XOTclCheckRequiredArgs},
        {"type=switch",   XOTclCheckBooleanArgs}, /* for boolean and switch, we use the same checker */
@@ -14559,7 +14545,6 @@ Xotcl_Init(Tcl_Interp *interp) {
        {"methods",      XOTclObjInfoMethodsMethod},
        {"mixin",        XOTclObjInfoMixinMethod},
        {"mixinguard",   XOTclObjInfoMixinguardMethod},
-       {"methods",      XOTclObjInfoMethodsMethod},
        {"nonposargs",   XOTclObjInfoNonposargsMethod},
        {"parent",       XOTclObjInfoParentMethod},
        {"parametercmd", XOTclObjInfoParametercmdMethod},

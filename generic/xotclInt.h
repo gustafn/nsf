@@ -135,10 +135,6 @@ typedef struct XOTclMemCounter {
 #define isDestroyString(m) (\
 	*m   == 'd' && m[1] == 'e' && m[2] == 's' && m[3] == 't' && \
 	m[4] == 'r' && m[5] == 'o' && m[6] == 'y' && m[7] == '\0')
-#define isInstDestroyString(m) (\
-        *m   == 'i' && m[1] == 'n' && m[2] == 's' && m[3] == 't' && \
-	m[4] == 'd' && m[5] == 'e' && m[6] == 's' && m[7] == 't' && \
-	m[8] == 'r' && m[9] == 'o' && m[10] == 'y' && m[11] == '\0')
 #define isInitString(m) (\
 	*m   == 'i' && m[1] == 'n' && m[2] == 'i' && m[3] == 't' && \
 	m[4] == '\0')
@@ -544,7 +540,7 @@ typedef struct XOTclClasses {
    and Strings - otherwise these "constants" would have to be built
    every time they are used; now they are built once in XOTcl_Init */
 typedef enum {
-    XOTE_EMPTY, XOTE_UNKNOWN, XOTE_CREATE, XOTE_DESTROY, XOTE_INSTDESTROY,
+  XOTE_EMPTY, XOTE_UNKNOWN, XOTE_CREATE, XOTE_DESTROY, XOTE_DEALLOC,
     XOTE_ALLOC, XOTE_INIT, XOTE_INSTVAR, XOTE_INTERP, XOTE_AUTONAMES,
     XOTE_ZERO, XOTE_ONE, XOTE_MOVE, XOTE_SELF, XOTE_CLASS, XOTE_RECREATE,
     XOTE_SELF_CLASS, XOTE_SELF_PROC, 
@@ -564,7 +560,7 @@ typedef enum {
 extern char *XOTclGlobalStrings[];
 #else
 char *XOTclGlobalStrings[] = {
-  "", "unknown", "create", "destroy", "instdestroy",
+  "", "unknown", "create", "destroy", "dealloc",
   "alloc", "init", "instvar", "interp", "__autonames",
   "0", "1", "move", "self", "class", "recreate",
   "self class", "self proc", 

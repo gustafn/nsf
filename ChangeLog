@@ -63,6 +63,10 @@ Meta C -superclass O -parameter {a {b -default ""} {c -default 1}}
 C c1 ;# c1 has no no default value for "a", before it had
 ======
 
+2009-06-27 <Gustaf.Neumann@wu-wien.ac.at>
+    - changed method name "instdestroy" into "dealloc"
+    - new file: tclAPI.h
+
 2009-06-25 <Gustaf.Neumann@wu-wien.ac.at>
     - new command:
 
