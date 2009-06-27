@@ -1,6 +1,6 @@
 copyhandler: we cannot use "set" method, since the object system might to provide it
 Method ::xotcl::Object->__exitHandler became ::xotcl::__exitHandler
-configure returns now instead of the posision the list of arguments preceding dash-arguments
+configure returns now instead of the position the list of arguments preceding dash-arguments
 
 todo:
   - new parse() command is just used for many of the "instxxx" info commands,
@@ -43,10 +43,10 @@ Class info info:
 Slot initCmd
  - the current (1.6.3) implementation turns initcmd into a trace to be
    executed the first time, the slot is read. The conversion to trace
-   happes in predefined.xotcl. Alternatively, we could execute the
+   happens in predefined.xotcl. Alternatively, we could execute the
    slot directly to have some alternative to defaults, where e.g
    commands can be executed at creation time. The current solution for
-   parseing, whether the default contains [] or $ is rather ugly. 
+   parsing, whether the default contains [] or $ is rather ugly. 
  - the old semantic of __initcmd is gone.
 
 
@@ -65,10 +65,11 @@ C c1 ;# c1 has no no default value for "a", before it had
 
 2009-06-27 <Gustaf.Neumann@wu-wien.ac.at>
     - changed method name "instdestroy" into "dealloc"
-    - replaced occurances of "instdestroy" by "dealloc" in documentation
+    - replaced occurrences of "instdestroy" by "dealloc" in documentation
     - new file: tclAPI.h
     - added generator for tclAPI.h
-    - defined 8 info methods based on the new objv parseing infrastructure
+    - generating stub functions to reduce potential errors 
+    - defined 8 info methods based on the new objv parsing infrastructure
 
 2009-06-25 <Gustaf.Neumann@wu-wien.ac.at>
     - new command:
@@ -83,7 +84,7 @@ C c1 ;# c1 has no no default value for "a", before it had
         ::xotcl::createobjectsystem ::oo::object ::oo::class
 
       In general, it would be possible to remove an objects system at
-      runtime, but there is so far no tcl interface for this.
+      runtime, but there is so far no Tcl interface for this.
 
     - extended framework to work with multiple root classes
 
@@ -123,10 +124,10 @@ C c1 ;# c1 has no no default value for "a", before it had
 
 2009-03-02 <Gustaf.Neumann@wu-wien.ac.at>
     - some small performance improvements (use CreateHashEntry instead
-      of FindHashEntry, remove unneded argument, improve order of long
+      of FindHashEntry, remove unneeded argument, improve order of long
       and expressions)
     - some code cleanup
-    - new methods, when compiled with tcl 8.5;
+    - new methods, when compiled with Tcl 8.5;
        + MakeProcError (producing error messages from xotcl methods)
        + PushProcCallFrame (compile method to byte-code)
        The new support allows to call code at the begin of a proc

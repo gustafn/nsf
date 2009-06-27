@@ -7,6 +7,7 @@ namespace import -force xotcl::*
 # since even class Test might not work at that time.
 #
 proc ? {cmd expected {msg ""}} {
+   #puts "??? $cmd"                                
    set r [uplevel $cmd]
    if {$msg eq ""} {set msg $cmd}
    if {$r ne $expected} {
