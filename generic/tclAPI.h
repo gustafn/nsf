@@ -10,6 +10,8 @@ static int parse2(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 static int getMatchObject3(Tcl_Interp *interp, Tcl_Obj *patternObj,  parseContext *pc,
                            XOTclObject **matchObject, char **pattern);
   
+static int XOTclCheckBooleanArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclCheckRequiredArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoInstargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -58,6 +60,8 @@ static int XOTclObjInfoProcsMethodStub(ClientData clientData, Tcl_Interp *interp
 static int XOTclObjInfoSlotObjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
+static int XOTclCheckBooleanArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
+static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
 static int XOTclClassInfoHeritageMethod(Tcl_Interp *interp, XOTclClass *class, char *pattern);
 static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoInstargsMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName);
@@ -107,6 +111,8 @@ static int XOTclObjInfoSlotObjectsMethod(Tcl_Interp *interp, XOTclObject *object
 static int XOTclObjInfoVarsMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern);
 
 enum {
+ XOTclCheckBooleanArgsIdx,
+ XOTclCheckRequiredArgsIdx,
  XOTclClassInfoHeritageMethodIdx,
  XOTclClassInfoInstancesMethodIdx,
  XOTclClassInfoInstargsMethodIdx,
@@ -157,6 +163,34 @@ enum {
 } XOTclMethods;
 
 
+static int
+XOTclCheckBooleanArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+  if (parse2(clientData, interp, objc, objv, XOTclCheckBooleanArgsIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    char * name = (char *)pc.clientData[0];
+    Tcl_Obj * value = (Tcl_Obj *)pc.clientData[1];
+
+    return XOTclCheckBooleanArgs(interp, name, value);
+
+  }
+}
+  
+static int
+XOTclCheckRequiredArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+  if (parse2(clientData, interp, objc, objv, XOTclCheckRequiredArgsIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    char * name = (char *)pc.clientData[0];
+    Tcl_Obj * value = (Tcl_Obj *)pc.clientData[1];
+
+    return XOTclCheckRequiredArgs(interp, name, value);
+
+  }
+}
+  
 static int
 XOTclClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -867,6 +901,14 @@ XOTclObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 }
   
 static methodDefinition2 methodDefinitons[] = {
+{"type=boolean", XOTclCheckBooleanArgsStub, {
+  {"name", 1, 0, NULL},
+  {"value", 0, 0, "tclobj"}}
+},
+{"type=required", XOTclCheckRequiredArgsStub, {
+  {"name", 1, 0, NULL},
+  {"value", 0, 0, "tclobj"}}
+},
 {"instances", XOTclClassInfoHeritageMethodStub, {
   {"class", 1, 0, "class"},
   {"pattern", 0, 0, NULL}}

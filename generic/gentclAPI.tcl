@@ -152,6 +152,22 @@ proc infoObjectMethod {methodName implementation argDefinitions} {
   methodDefinition $methodName infoObjectMethod $implementation $argDefinitions
 }
 
+proc checkMethod {methodName implementation argDefinitions} {
+  methodDefinition type=$methodName checkMethod $implementation $argDefinitions
+}
+
+#
+# check methods
+#
+checkMethod required XOTclCheckRequiredArgs {
+  {-argName "name" -required 1}
+  {-argName "value" -required 0 -type tclobj}
+}
+checkMethod boolean XOTclCheckBooleanArgs {
+  {-argName "name" -required 1}
+  {-argName "value" -required 0 -type tclobj}
+}
+
 #
 # info object methods
 #
