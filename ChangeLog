@@ -68,6 +68,8 @@ C c1 ;# c1 has no no default value for "a", before it had
     - changed "<object> info hasNamespace" to "<object> info hasnamespace"
       (all commands and info options are lowercase only, no underscore)
     - all "<object> info" commands generated
+    - all check methods generated
+    - 3 class methods generated, handling args/allargs
 
 2009-06-27 <Gustaf.Neumann@wu-wien.ac.at>
     - changed method name "instdestroy" into "dealloc"

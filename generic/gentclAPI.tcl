@@ -19,8 +19,9 @@ proc genifd {argDefinitions} {
   join $l ",\n  "
 }
 
-proc gencall {argDefinitions cDefsVar ifDefVar arglistVar preVar postVar} {
-  upvar $cDefsVar cDefs $ifDefVar ifDef $arglistVar arglist $preVar pre $postVar post
+proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar postVar introVar} {
+  upvar $cDefsVar cDefs $ifDefVar ifDef $arglistVar arglist $preVar pre $postVar post \
+      $introVar intro 
   set c [list]
   set a [list]
   set i 0
@@ -28,6 +29,7 @@ proc gencall {argDefinitions cDefsVar ifDefVar arglistVar preVar postVar} {
   foreach argDefinition $argDefinitions {
     array set "" $argDefinition
     set ifSet 0
+    set cVar 1
     if {[regexp {^-(.*)$} $(-argName) _ switchName]} {
       set varName with[string totitle $switchName]
       set calledArg $varName
@@ -40,6 +42,20 @@ proc gencall {argDefinitions cDefsVar ifDefVar arglistVar preVar postVar} {
         "class"      {set type "XOTclClass *"}
         "object"     {set type "XOTclObject *"}
         "tclobj"     {set type "Tcl_Obj *"}
+        "args"       {
+          set type "int "
+          set calledArg "objc-pc.args, objv+pc.args"
+          lappend if "int nobjc" "Tcl_Obj *CONST nobjv\[\]"
+          set ifSet 1
+          set cVar 0
+        }
+        "allargs"       {
+          set type "int "
+          set calledArg "objc, objv"
+          lappend if "int objc" "Tcl_Obj *CONST objv\[\]"
+          set ifSet 1
+          set cVar 0
+        }
         "objpattern" {
           set type "Tcl_Obj *"
           lappend c "char *${varName}String = NULL;" "XOTclObject *${varName}Obj = NULL;"
@@ -60,13 +76,25 @@ proc gencall {argDefinitions cDefsVar ifDefVar arglistVar preVar postVar} {
       }
     }
     if {!$ifSet} {lappend if "$type$varName"}
-    lappend c [subst -nocommands {$type $varName = ($type)pc.clientData[$i];}]
+    if {$cVar} {lappend c [subst -nocommands {$type $varName = ($type)pc.clientData[$i];}]}
     lappend a $calledArg
     incr i
   }
-  set ifDef [join $if ", "]
+  set intro "  parseContext pc;\n"
+  switch $clientData {
+    class {
+      array set cd {arglist "cl, " ifDefs "XOTclClass *cl, "}
+      append intro \
+          "  XOTclClass *cl =  XOTclObjectToClass(clientData);" \n \
+          {  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");}
+    }
+    ""    {
+      array set cd {arglist "" ifDefs ""}
+    }
+  }
+  set ifDef $cd(ifDefs)[join $if ", "]
   set cDefs [join $c "\n    "]
-  set arglist [join $a ", "]
+  set arglist $cd(arglist)[join $a ", "]
 }
 
 
@@ -79,9 +107,9 @@ proc genifds {} {
     array set d $::definitions($key)
     append stubDecls "static int $d(stub)$::objCmdProc\n"
     lappend enums $d(idx)
-    lappend ifds "{\"$d(methodName)\", $d(stub), {\n  [genifd $d(argDefintions)]}\n}"
+    lappend ifds "{\"$d(methodName)\", $d(stub), {\n  [genifd $d(argDefinitions)]}\n}"
 
-    gencall $d(argDefintions) cDefs ifDef arglist pre post
+    gencall $d(argDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
     append decls "static int $d(implementation)(Tcl_Interp *interp, $ifDef);\n"
     if {$post ne ""} {
       append cDefs "\n    int returnCode;"
@@ -94,8 +122,8 @@ proc genifds {} {
     append fns [subst -nocommands {
 static int
 $d(stub)(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-  if (parse2(clientData, interp, objc, objv, $d(idx), &pc) != TCL_OK) {
+$intro
+  if (parse2(interp, objc, objv, $d(idx), &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     $cDefs
@@ -114,8 +142,9 @@ typedef struct {
   interfaceDefinition ifd;
 } methodDefinition2;
 
-static int parse2(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+static int parse2(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                   int idx, parseContext *pc);
+
 static int getMatchObject3(Tcl_Interp *interp, Tcl_Obj *patternObj,  parseContext *pc,
                            XOTclObject **matchObject, char **pattern);
   }
@@ -132,15 +161,20 @@ proc methodDefinition {methodName methodType implementation argDefinitions} {
   set d(methodName) $methodName
   set d(implementation) $implementation
   set d(stub) ${implementation}Stub
-  set d(methodType) $methodType
   set d(idx) ${implementation}Idx
+  set d(methodType) $methodType
+  switch $methodType {
+    classMethod  {set d(clientData) class}
+    objectMethod {set d(clientData) object}
+    default      {set d(clientData) ""}
+  }
   set completed [list]
   foreach argDefinition $argDefinitions {
     array set "" {-required 0 -nrArgs 0 -type ""}
     array set "" $argDefinition
     lappend completed [array get ""]
   }
-  set d(argDefintions) $completed
+  set d(argDefinitions) $completed
   set ::definitions($d(methodType)-$d(implementation)-$d(methodName)) [array get d]
 }
 
@@ -155,6 +189,25 @@ proc infoObjectMethod {methodName implementation argDefinitions} {
 proc checkMethod {methodName implementation argDefinitions} {
   methodDefinition type=$methodName checkMethod $implementation $argDefinitions
 }
+proc classMethod {methodName implementation argDefinitions} {
+  methodDefinition $methodName classMethod $implementation $argDefinitions
+}
+
+
+#
+# class methods
+#
+classMethod alloc XOTclCAllocMethod {
+  {-argName "name" -required 1}
+}
+classMethod create XOTclCCreateMethod {
+  {-argName "name" -required 1}
+  {-argName "args" -required 1 -type allargs}
+}
+classMethod dealloc XOTclCDeallocMethod {
+  {-argName "object" -required 1 -type tclobj}
+}
+
 
 #
 # check methods
@@ -401,11 +454,6 @@ infoClassMethod superclass XOTclClassInfoSuperclassMethod {
   {-argName "-closure"}
   {-argName "pattern"}
 }
-
-
-
-
-
 
 
 genifds
