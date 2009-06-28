@@ -1,7 +1,4 @@
 
-
-
-
 # objectMethod
 # classMethod
 # infoObjectMethod
@@ -53,11 +50,11 @@ proc gencall {argDefinitions cDefsVar ifDefVar arglistVar preVar postVar} {
       return TCL_OK;
     }
           }]
-          append post [subst -nocommands {
-    if (${varName}Obj) {
-      Tcl_SetObjResult(interp, returnCode ? ${varName}Obj->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-    }
-          }]
+#          append post [subst -nocommands {
+#    if (${varName}Obj) {
+#      Tcl_SetObjResult(interp, returnCode ? ${varName}Obj->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+#    }
+#          }]
         }
       }
     }
@@ -73,12 +70,13 @@ proc gencall {argDefinitions cDefsVar ifDefVar arglistVar preVar postVar} {
 
 
 proc genifds {} {
+  set stubDecls ""
   set decls ""
   set enums [list]
   set ifds [list]
   foreach key [lsort [array names ::definitions]] {
     array set d $::definitions($key)
-    append decls "static int $d(stub)$::objCmdProc\n"
+    append stubDecls "static int $d(stub)$::objCmdProc\n"
     lappend enums $d(idx)
     lappend ifds "{\"$d(methodName)\", $d(stub), {\n  [genifd $d(argDefintions)]}\n}"
 
@@ -120,6 +118,7 @@ static int parse2(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 static int getMatchObject3(Tcl_Interp *interp, Tcl_Obj *patternObj,  parseContext *pc,
                            XOTclObject **matchObject, char **pattern);
   }
+  puts $stubDecls
   puts $decls
   set enumString [join $enums ",\n "]
   puts "enum {\n $enumString\n} XOTclMethods;\n"
@@ -192,6 +191,32 @@ infoClassMethod instfilterguard XOTclClassInfoInstfilterguardMethod {
   {-argName "filter" -required 1}
 }
 
+infoClassMethod instforward XOTclClassInfoInstforwardMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "-definition"}
+  {-argName "methodName" -required 1}
+}
+
+infoClassMethod instinvar XOTclClassInfoInstinvarMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+}
+
+infoClassMethod instmixin XOTclClassInfoInstmixinMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "-closure"}
+  {-argName "-guards"}
+  {-argName "pattern" -type objpattern}
+}
+
+infoClassMethod instmixinguard XOTclClassInfoInstmixinguardMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "mixin" -required 1}
+}
+
+infoClassMethod instmixinof XOTclClassInfoInstmixinofMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "-closure"}
+  {-argName "pattern" -type objpattern}}
 
 
 genifds
