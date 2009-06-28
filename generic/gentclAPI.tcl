@@ -201,6 +201,63 @@ infoObjectMethod forward XOTclObjInfoForwardMethod {
 infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
   {-argName "object" -required 1 -type object}
 }
+infoObjectMethod invar XOTclObjInfoInvarMethod {
+  {-argName "object" -required 1 -type object}
+}
+infoObjectMethod methods XOTclObjInfoMethodsMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "-noprocs"}
+  {-argName "-nocmds"}
+  {-argName "-nomixins"}
+  {-argName "-incontext"}
+  {-argName "pattern"}
+}
+infoObjectMethod mixin XOTclObjInfoMixinMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "-guards"}
+  {-argName "-order"}
+  {-argName "pattern" -type objpattern}
+}
+infoObjectMethod mixinguard XOTclObjInfoMixinguardMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "mixin"  -required 1}
+}
+infoObjectMethod nonposargs XOTclObjInfoNonposargsMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "methodName" -required 1}
+}
+infoObjectMethod parent XOTclObjInfoParentMethod {
+  {-argName "object" -required 1 -type object}
+}
+infoObjectMethod parametercmd XOTclObjInfoParametercmdMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "pattern"}
+}
+infoObjectMethod post XOTclObjInfoPostMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "methodName" -required 1}
+}
+infoObjectMethod pre XOTclObjInfoPreMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "methodName" -required 1}
+}
+infoObjectMethod precedence XOTclObjInfoPrecedenceMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "-intrinsic"}
+  {-argName "pattern" -required 0}
+}
+infoObjectMethod procs XOTclObjInfoProcsMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "pattern" -required 0}
+}
+infoObjectMethod slotobjects XOTclObjInfoSlotObjectsMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "pattern" -required 0}
+}
+infoObjectMethod vars XOTclObjInfoVarsMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "pattern" -required 0}
+}
 
 
 #
