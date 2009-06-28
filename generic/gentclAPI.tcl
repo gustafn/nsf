@@ -216,7 +216,64 @@ infoClassMethod instmixinguard XOTclClassInfoInstmixinguardMethod {
 infoClassMethod instmixinof XOTclClassInfoInstmixinofMethod {
   {-argName "class"  -required 1 -nrargs 0 -type class}
   {-argName "-closure"}
-  {-argName "pattern" -type objpattern}}
+  {-argName "pattern" -type objpattern}
+}
+
+infoClassMethod instnonposargs XOTclClassInfoInstnonposargsMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "methodName" -required 1}
+}
+
+infoClassMethod instparametercmd XOTclClassInfoInstparametercmdMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "pattern"}
+}
+
+infoClassMethod instpost XOTclClassInfoInstpostMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "methodName" -required 1}
+}
+
+infoClassMethod instpre XOTclClassInfoInstpreMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "methodName" -required 1}
+}
+
+infoClassMethod instprocs XOTclClassInfoInstprocsMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "pattern"}
+}
+
+infoClassMethod mixinof XOTclClassInfoMixinofMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "-closure"}
+  {-argName "pattern" -type objpattern}
+}
+
+infoClassMethod parameter XOTclClassInfoParameterMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+}
+
+infoClassMethod slots XOTclClassInfoSlotsMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+}
+
+infoClassMethod subclass XOTclClassInfoSubclassMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "-closure"}
+  {-argName "pattern" -type objpattern}
+}
+
+infoClassMethod superclass XOTclClassInfoSuperclassMethod {
+  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "-closure"}
+  {-argName "pattern"}
+}
+
+
+
+
+
 
 
 genifds

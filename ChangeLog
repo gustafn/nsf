@@ -63,6 +63,9 @@ Meta C -superclass O -parameter {a {b -default ""} {c -default 1}}
 C c1 ;# c1 has no no default value for "a", before it had
 ======
 
+2009-06-28 <Gustaf.Neumann@wu-wien.ac.at>
+    - objv-stubs for all 23 class info methods
+
 2009-06-27 <Gustaf.Neumann@wu-wien.ac.at>
     - changed method name "instdestroy" into "dealloc"
     - replaced occurrences of "instdestroy" by "dealloc" in documentation
