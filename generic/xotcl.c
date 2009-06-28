@@ -8920,75 +8920,95 @@ XOTclOExistsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   return TCL_OK;
 }
 
-/************ info commands xxx ******/
-static int
-XOTclObjInfoArgsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-    XOTclObject *obj;
-    Tcl_Namespace *nsp;
-  
-    if (objc != 3) return XOTclObjErrArgCnt(interp, objv[0],  NULL, "<object> <methodName>");  
-    if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-        return XOTclObjErrType(interp, objv[1], "Object");
+/***************************
+ * Begin Object Info Methods
+ ***************************/
 
-    if (obj->nonposArgsTable) {
-        XOTclNonposArgs *nonposArgs =  NonposArgsGet(obj->nonposArgsTable, ObjStr(objv[2]));
-        if (nonposArgs && nonposArgs->ordinaryArgs) {
-            return ListArgsFromOrdinaryArgs(interp, nonposArgs);
-        }
+static int 
+XOTclObjInfoArgsMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
+  if (object->nonposArgsTable) {
+    XOTclNonposArgs *nonposArgs = NonposArgsGet(object->nonposArgsTable, methodName);
+    if (nonposArgs && nonposArgs->ordinaryArgs) {
+      return ListArgsFromOrdinaryArgs(interp, nonposArgs);
     }
-
-    nsp = obj->nsPtr;
-    return nsp ? ListProcArgs(interp, Tcl_Namespace_cmdTable(nsp), ObjStr(objv[2])) : TCL_OK;
+  }
+  return object->nsPtr ? ListProcArgs(interp, Tcl_Namespace_cmdTable(object->nsPtr), methodName) : TCL_OK;
 }
 
-static int
-XOTclObjInfoBodyMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
-  Tcl_Namespace *nsp;
-  
-  if (objc != 3) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object> <methodName>");  
-  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Object");
-  
-  nsp = obj->nsPtr;
-  return nsp ?  ListProcBody(interp, Tcl_Namespace_cmdTable(nsp), ObjStr(objv[2])) : TCL_OK;
+static int 
+XOTclObjInfoBodyMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
+  return object->nsPtr ?  ListProcBody(interp, Tcl_Namespace_cmdTable( object->nsPtr), methodName) : TCL_OK;
 }
 
-static int
-XOTclObjInfoClassMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
+static int 
+XOTclObjInfoCheckMethod(Tcl_Interp *interp, XOTclObject *object) {
+  return AssertionListCheckOption(interp, object);  
+}
 
-  if (objc != 2) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object>"); 
-  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Object");
-  
-  Tcl_SetObjResult(interp, obj->cl->object.cmdName);
+static int 
+XOTclObjInfoChildrenMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern) {
+  return ListChildren(interp, object, pattern, 0);
+}
+
+static int 
+XOTclObjInfoClassMethod(Tcl_Interp *interp, XOTclObject *object) {
+  Tcl_SetObjResult(interp, object->cl->object.cmdName);
   return TCL_OK;
 }
 
-static int
-XOTclObjInfoCommandsMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
-  Tcl_Namespace *nsp;
+static int 
+XOTclObjInfoCommandsMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern) {
+  return ListKeys(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern);
+}
 
-  if (objc < 2 || objc > 3) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object> ?pattern?");  
-  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Object");
+static int 
+XOTclObjInfoDefaultMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, char *arg, Tcl_Obj *var) {
+  if (object->nonposArgsTable) {
+    XOTclNonposArgs *nonposArgs = NonposArgsGet(object->nonposArgsTable,  methodName);
+    if (nonposArgs && nonposArgs->ordinaryArgs) {
+      return ListDefaultFromOrdinaryArgs(interp, methodName, nonposArgs, arg, var);
+    }
+  }
+  return object->nsPtr ? 
+    ListProcDefault(interp, Tcl_Namespace_cmdTable(object->nsPtr), methodName, arg, var) : 
+    TCL_OK;
+}
 
-  nsp = obj->nsPtr;
-  return ListKeys(interp, Tcl_Namespace_cmdTable(nsp), objc == 3 ? ObjStr(objv[2]) : NULL);
+static int 
+XOTclObjInfoFilterMethod(Tcl_Interp *interp, XOTclObject *object, int withOrder, int withGuards, 
+                         char *pattern) {
+  XOTclObjectOpt *opt = object->opt;
+  if (withOrder) { 
+    if (!(object->flags & XOTCL_FILTER_ORDER_VALID))
+      FilterComputeDefined(interp, object);
+    return FilterInfo(interp, object->filterOrder, pattern, withGuards, 1);
+  }
+  return opt ? FilterInfo(interp, opt->filters, pattern, withGuards, 0) : TCL_OK;
 }
 
 static int
-XOTclObjInfoChildrenMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
-
-  if (objc < 2 || objc > 3) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object> ?pattern?");  
-  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Object");
-
-  return ListChildren(interp, obj, objc == 3 ? ObjStr(objv[2]) : NULL, 0);
+XOTclObjInfoFilterguardMethod(Tcl_Interp *interp, XOTclObject *object, char *filter) {
+  return object->opt ? GuardList(interp, object->opt->filters, filter) : TCL_OK;
 }
+
+static int 
+XOTclObjInfoForwardMethod(Tcl_Interp *interp, XOTclObject *object, int withDefinition, char *methodName) {
+  return object->nsPtr ? 
+    forwardList(interp, Tcl_Namespace_cmdTable(object->nsPtr), methodName, withDefinition) : 
+    TCL_OK;
+}
+
+static int 
+XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *object) {
+  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), object->nsPtr != NULL);  
+  return TCL_OK;
+}
+
+/***************************
+ * End Object Info Methods
+ ***************************/
+
+
 
 static int
 XOTclObjInfoParametercmdMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -9016,128 +9036,6 @@ XOTclObjInfoSlotObjectsMethod(ClientData clientData, Tcl_Interp *interp, int obj
   return ListSlotObjects(interp, obj, objc == 3 ? ObjStr(objv[2]) : NULL);
 }
 
-static int
-XOTclObjInfoCheckMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
-
-  if (objc != 2) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object>");  
-  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Object");
-
-  return AssertionListCheckOption(interp, obj);  
-}
-
-static int
-XOTclObjInfoDefaultMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
-  Tcl_Namespace *nsp;
-
-  if (objc != 5) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object> <methodName> <arg> <var>");  
-  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Object");
-
-  if (obj->nonposArgsTable) {
-    XOTclNonposArgs *nonposArgs = NonposArgsGet(obj->nonposArgsTable,  ObjStr(objv[2]));
-    if (nonposArgs && nonposArgs->ordinaryArgs) {
-      return ListDefaultFromOrdinaryArgs(interp, ObjStr(objv[2]), nonposArgs, ObjStr(objv[3]), objv[4]);
-    }
-  }
-  nsp = obj->nsPtr;
-  return nsp ? 
-    ListProcDefault(interp, Tcl_Namespace_cmdTable(nsp), ObjStr(objv[2]), ObjStr(objv[3]), objv[4]) : 
-    TCL_OK;
-}
-
-static int
-XOTclObjInfoFilterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
-  XOTclObjectOpt *opt;;
-  int idx, nobjc, withGuards = 0, withOrder = 0;
-  static CONST char *options[] = {"-guards", "-order", NULL};
-  enum options {guardsIdx, orderIdx};
-
-  for (idx = 2; idx < objc; idx++) {
-    char *name;
-    int index;
-
-    name = Tcl_GetString(objv[idx]);
-    if (name[0] != '-') {
-      break;
-    }
-    if (Tcl_GetIndexFromObj(interp, objv[idx], options, "switch", TCL_EXACT, &index) != TCL_OK) {
-      return TCL_ERROR;
-    }
-    switch ((enum options) index) {
-    case guardsIdx: withGuards = 1; break;
-    case orderIdx:  withOrder = 1;  break;
-    }
-  }
-  nobjc = objc - idx;
-  
-  if (objc < 2 || nobjc > 1 || objc > 4)
-    return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object> ?-guards|-order? ?pattern?");
-
-  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Object");
-
-  if (withOrder) { 
-    if (!(obj->flags & XOTCL_FILTER_ORDER_VALID))
-      FilterComputeDefined(interp, obj);
-    return FilterInfo(interp, obj->filterOrder, idx < objc ? ObjStr(objv[idx]) : NULL, withGuards, 1);
-  }
-  opt = obj->opt;
-  return opt ? FilterInfo(interp, opt->filters, idx < objc ? ObjStr(objv[idx]) : NULL, withGuards, 0) : TCL_OK;
-}
-
-static int
-XOTclObjInfoFilterguardMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
-  XOTclObjectOpt *opt;
-  
-  if (objc != 3) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object> filter");  
-  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Object");
-
-  opt = obj->opt;
-  return opt ? GuardList(interp, opt->filters, ObjStr(objv[2])) : TCL_OK;
-}
-
-static int
-XOTclObjInfoForwardMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
-  Tcl_Namespace *nsp;
-  int withDefinition = 0;
-  char *name = NULL;
-
-  if (objc < 2 || objc > 4) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object> ?-definition? ?name?");  
-  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Object");
-
-  if (objc > 2) {
-    name = ObjStr(objv[2]);
-    if (*name == '-' && !strcmp("-definition", name)) {
-      withDefinition = 1;
-      name = ObjStr(objv[3]);
-    }
-  }
-
-  nsp = obj->nsPtr;
-  return nsp ? forwardList(interp, Tcl_Namespace_cmdTable(nsp), name, withDefinition) : TCL_OK;
-}
-
-static int
-XOTclObjInfoHasnamespaceMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
-  Tcl_Namespace *nsp;;
-
-  if (objc != 2) return XOTclObjErrArgCnt(interp, objv[0], NULL, "<object>");  
-  if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK)
-    return XOTclObjErrType(interp, objv[1], "Object");
-
-  nsp = obj->nsPtr;
-  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), nsp != NULL);  
-  return TCL_OK;
-}
 
 static int
 XOTclObjInfoInvarMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -11878,6 +11776,12 @@ convertToType(Tcl_Interp *interp, Tcl_Obj *objPtr, char *type, ClientData *clien
       }
   case 'o': 
     {
+      if (strcmp(type,"object") == 0) {
+        if (XOTclObjConvertObject(interp, objPtr, (XOTclObject **)clientData) == TCL_OK)
+          break;
+        return XOTclObjErrType(interp, objPtr, type);
+      }
+
       if (strcmp(type,"objpattern") == 0) {
         char *pattern = ObjStr(objPtr);
         *clientData = (ClientData)objPtr;
@@ -14271,17 +14175,17 @@ Xotcl_Init(Tcl_Interp *interp) {
        {"type=boolean",  XOTclCheckBooleanArgs}
      };
      methodDefinition definitions4[] = {
-       {"args",         XOTclObjInfoArgsMethod},
-       {"body",         XOTclObjInfoBodyMethod},
-       {"class",        XOTclObjInfoClassMethod},
-       {"commands",     XOTclObjInfoCommandsMethod},
-       {"children",     XOTclObjInfoChildrenMethod},
-       {"check",        XOTclObjInfoCheckMethod},
-       {"default",      XOTclObjInfoDefaultMethod},
-       {"filter",       XOTclObjInfoFilterMethod},
-       {"filterguard",  XOTclObjInfoFilterguardMethod},
-       {"forward",      XOTclObjInfoForwardMethod},
-       {"hasNamespace", XOTclObjInfoHasnamespaceMethod},
+       {"args",         XOTclObjInfoArgsMethodStub},
+       {"body",         XOTclObjInfoBodyMethodStub},
+       {"class",        XOTclObjInfoClassMethodStub},
+       {"commands",     XOTclObjInfoCommandsMethodStub},
+       {"children",     XOTclObjInfoChildrenMethodStub},
+       {"check",        XOTclObjInfoCheckMethodStub},
+       {"default",      XOTclObjInfoDefaultMethodStub},
+       {"filter",       XOTclObjInfoFilterMethodStub},
+       {"filterguard",  XOTclObjInfoFilterguardMethodStub},
+       {"forward",      XOTclObjInfoForwardMethodStub},
+       {"hasnamespace", XOTclObjInfoHasnamespaceMethodStub},
        {"invar",        XOTclObjInfoInvarMethod},
        {"methods",      XOTclObjInfoMethodsMethod},
        {"mixin",        XOTclObjInfoMixinMethod},

@@ -661,7 +661,7 @@ namespace eval ::xotcl {
     ::xotcl::my lappend targetList $t
     # if it is an object without namespace, it is a leaf
     if {[::xotcl::my isobject $t]} {
-      if {[$t info hasNamespace]} {
+      if {[$t info hasnamespace]} {
         # make target list from all children
         set children [$t info children]
       } else {
@@ -724,7 +724,7 @@ namespace eval ::xotcl {
         # set md [$origin info metadata]
         # $obj metadata add $md
         # foreach m $md { $obj metadata $m [$origin metadata $m] }
-        if {[$origin info hasNamespace]} {
+        if {[$origin info hasnamespace]} {
           $obj requireNamespace
         }
       } else {

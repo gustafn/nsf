@@ -31,13 +31,14 @@ proc gencall {argDefinitions cDefsVar ifDefVar arglistVar preVar postVar} {
     if {[regexp {^-(.*)$} $(-argName) _ switchName]} {
       set varName with[string totitle $switchName]
       set calledArg $varName
-      set type int
+      set type "int "
     } else {
       set varName $(-argName)
       set calledArg $varName
       switch $(-type) {
         ""           {set type "char *"}
         "class"      {set type "XOTclClass *"}
+        "object"     {set type "XOTclObject *"}
         "tclobj"     {set type "Tcl_Obj *"}
         "objpattern" {
           set type "Tcl_Obj *"
@@ -58,7 +59,7 @@ proc gencall {argDefinitions cDefsVar ifDefVar arglistVar preVar postVar} {
         }
       }
     }
-    if {!$ifSet} {lappend if "$type $varName"}
+    if {!$ifSet} {lappend if "$type$varName"}
     lappend c [subst -nocommands {$type $varName = ($type)pc.clientData[$i];}]
     lappend a $calledArg
     incr i
@@ -147,13 +148,71 @@ proc infoClassMethod {methodName implementation argDefinitions} {
   methodDefinition $methodName infoClassMethod $implementation $argDefinitions
 }
 
+proc infoObjectMethod {methodName implementation argDefinitions} {
+  methodDefinition $methodName infoObjectMethod $implementation $argDefinitions
+}
+
+#
+# info object methods
+#
+infoObjectMethod args XOTclObjInfoArgsMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "methodName" -required 1}
+}
+infoObjectMethod body XOTclObjInfoBodyMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "methodName" -required 1}
+}
+infoObjectMethod check XOTclObjInfoCheckMethod {
+  {-argName "object" -required 1 -type object}
+}
+infoObjectMethod children XOTclObjInfoChildrenMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "pattern" -required 0}
+}
+infoObjectMethod class XOTclObjInfoClassMethod {
+  {-argName "object" -required 1 -type object}
+}
+infoObjectMethod commands XOTclObjInfoCommandsMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "pattern" -required 0}
+}
+infoObjectMethod default XOTclObjInfoDefaultMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "methodName" -required 1}
+  {-argName "arg" -required 1}
+  {-argName "var" -required 1 -type tclobj}
+}
+infoObjectMethod filter XOTclObjInfoFilterMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "-order"}
+  {-argName "-guards"}
+  {-argName "pattern"}
+}
+infoObjectMethod filterguard XOTclObjInfoFilterguardMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "filter" -required 1}
+}
+infoObjectMethod forward XOTclObjInfoForwardMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "-definition"}
+  {-argName "methodName" -required 1}
+}
+infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
+  {-argName "object" -required 1 -type object}
+}
+
+
+#
+# info class methods
+#
 infoClassMethod instances XOTclClassInfoHeritageMethod {
-  {-argName "class"   -required 1 -nrargs 0 -type class}
+  {-argName "class"   -required 1 -type class}
   {-argName "pattern"}
 }
 
 infoClassMethod instances XOTclClassInfoInstancesMethod {
-  {-argName "class"   -required 1 -nrargs 0 -type class}
+  {-argName "class"   -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
@@ -169,103 +228,103 @@ infoClassMethod instbody XOTclClassInfoInstbodyMethod {
 }
 
 infoClassMethod instances XOTclClassInfoInstcommandsMethod {
-  {-argName "class"   -required 1 -nrargs 0 -type class}
+  {-argName "class"   -required 1 -type class}
   {-argName "pattern"}
 }
 
 infoClassMethod instdefault XOTclClassInfoInstdefaultMethod {
-  {-argName "class"   -required 1 -nrargs 0 -type class}
+  {-argName "class"   -required 1 -type class}
   {-argName "methodName" -required 1}
   {-argName "arg" -required 1}
   {-argName "var" -required 1 -type tclobj}
 }
 
 infoClassMethod instfilter XOTclClassInfoInstfilterMethod {
-  {-argName "class"   -required 1 -nrargs 0 -type class}
+  {-argName "class"   -required 1 -type class}
   {-argName "-guards"}
   {-argName "pattern"}
 }
 
 infoClassMethod instfilterguard XOTclClassInfoInstfilterguardMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "filter" -required 1}
 }
 
 infoClassMethod instforward XOTclClassInfoInstforwardMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "-definition"}
   {-argName "methodName" -required 1}
 }
 
 infoClassMethod instinvar XOTclClassInfoInstinvarMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
 }
 
 infoClassMethod instmixin XOTclClassInfoInstmixinMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
   {-argName "-guards"}
   {-argName "pattern" -type objpattern}
 }
 
 infoClassMethod instmixinguard XOTclClassInfoInstmixinguardMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "mixin" -required 1}
 }
 
 infoClassMethod instmixinof XOTclClassInfoInstmixinofMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
 
 infoClassMethod instnonposargs XOTclClassInfoInstnonposargsMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "methodName" -required 1}
 }
 
 infoClassMethod instparametercmd XOTclClassInfoInstparametercmdMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "pattern"}
 }
 
 infoClassMethod instpost XOTclClassInfoInstpostMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "methodName" -required 1}
 }
 
 infoClassMethod instpre XOTclClassInfoInstpreMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "methodName" -required 1}
 }
 
 infoClassMethod instprocs XOTclClassInfoInstprocsMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "pattern"}
 }
 
 infoClassMethod mixinof XOTclClassInfoMixinofMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
 
 infoClassMethod parameter XOTclClassInfoParameterMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
 }
 
 infoClassMethod slots XOTclClassInfoSlotsMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
 }
 
 infoClassMethod subclass XOTclClassInfoSubclassMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
 
 infoClassMethod superclass XOTclClassInfoSuperclassMethod {
-  {-argName "class"  -required 1 -nrargs 0 -type class}
+  {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern"}
 }
