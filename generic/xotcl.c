@@ -2,7 +2,7 @@
  *
  *  XOTcl - Extended Object Tcl
  *
- *  Copyright (C) 1999-2008 Gustaf Neumann (a), Uwe Zdun (a)
+ *  Copyright (C) 1999-2009 Gustaf Neumann (a), Uwe Zdun (a)
  *
  * (a) Vienna University of Economics and Business Administration
  *     Institute. of Information Systems and New Media
@@ -11060,7 +11060,7 @@ parse2(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseContex
       char *objStr;
       for (p = o; p<objc; p++) {
         objStr = ObjStr(objv[p]);
-        /*fprintf(stderr,"....checking o=%s\n", objStr);*/
+        /* fprintf(stderr,"....checking o=%s\n", objStr);*/
         if (objStr[0] == '-') {
           found = 0;
           for (bPtr = aPtr; *bPtr->name == '-'; bPtr ++) {
@@ -11121,15 +11121,22 @@ parse2(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseContex
   }
   args = objc - flagCount - 1;
 
-  /*fprintf(stderr, "less nrreq %d last arg %s type %s\n", args < nrReq, aPtr->name, aPtr->type);*/
-  /* if we have varargs, the last argument might not have get a value */
+  pc->lastobjc = aPtr->name ? o : o-1;
+
+  /* is the last argument a varargs */
+  while (aPtr->name) aPtr++;
+  aPtr--;
+  
   if (!varArgs && aPtr->type && 
       (strcmp(aPtr->type,"args") == 0 || strcmp(aPtr->type,"allargs") == 0)) {
     varArgs = 1;
+    /*fprintf(stderr, "last arg is varargs\n");*/
   }
 
-  /*fprintf(stderr, "objc = %d, args = %d, nrReq %d, nrReq + nrOpt = %d, varArgs %d i %d %s\n", 
-    objc,args,nrReq,nrReq + nrOpt, varArgs, i,aPtr->name);*/
+
+  /*fprintf(stderr, "less nrreq %d last arg %s type %s\n", args < nrReq, aPtr->name, aPtr->type);
+  fprintf(stderr, "objc = %d, args = %d, nrReq %d, nrReq + nrOpt = %d, varArgs %d i %d %s\n", 
+  objc,args,nrReq,nrReq + nrOpt, varArgs, i,aPtr->name);*/
 
   if (args < nrReq || (!varArgs && args > nrReq + nrOpt)) {
     Tcl_Obj *msg = Tcl_NewStringObj("", 0);
@@ -11147,11 +11154,9 @@ parse2(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseContex
     }
     return XOTclObjErrArgCntObj(interp, objv[0],  NULL, msg);
   }
-  pc->lastobjc = o-1;
+
 
   /*fprintf(stderr, "END args=%d\n",pc->lastobjc);*/
-  /* fprintf(stderr,"after parse: o %d, i %d, objc %d, req %d opt %d ok? %d\n",
-     o,i,objc, nrReq, nrOpt, objc >= 1+nrReq && objc <= 1+nrReq+nrOpt); */
   return TCL_OK;
 }
 
@@ -11278,15 +11283,14 @@ static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *obje
 
 static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *withChildof, 
                            int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *child = NULL;
   Tcl_Obj *fullname;
-  int result, offset = 1, prefixLength;
+  int result, prefixLength;
   Tcl_DString dFullname, *dsPtr = &dFullname;
   XOTclStringIncrStruct *iss = &RUNTIME_STATE(interp)->iss;
 
   Tcl_DStringInit(dsPtr);
-  if (child) {
-    Tcl_DStringAppend(dsPtr, objectName(child), -1);
+  if (withChildof) {
+    Tcl_DStringAppend(dsPtr, objectName(withChildof), -1);
     Tcl_DStringAppend(dsPtr, "::__#", 5);
   } else {
     Tcl_DStringAppend(dsPtr, "::xotcl::__#", 12);
@@ -11308,7 +11312,6 @@ static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *with
 
   INCR_REF_COUNT(fullname);
 
-  objc -= offset;
   {
     ALLOC_ON_STACK(Tcl_Obj*, objc+3, ov);
 
@@ -11316,7 +11319,7 @@ static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *with
     ov[1] = XOTclGlobalObjects[XOTE_CREATE];
     ov[2] = fullname;
     if (objc >= 1)
-      memcpy(ov+3, objv+offset, sizeof(Tcl_Obj *)*objc);
+      memcpy(ov+3, objv, sizeof(Tcl_Obj *)*objc);
 
     result = DoDispatch((ClientData)cl, interp, objc+3, ov, 0);
     FREE_ON_STACK(ov);
@@ -11436,9 +11439,7 @@ forwardProcessOptions2(Tcl_Interp *interp, Tcl_Obj *name,
   } 
   tcd->objscope = withObjscope;
   tcd->verbose = withVerbose;
-
   tcd->needobjmap = 0;
-
   tcd->cmdName = target;
   /*fprintf(stderr, "...forwardprocess objc %d\n",objc);*/
 
@@ -11464,7 +11465,7 @@ forwardProcessOptions2(Tcl_Interp *interp, Tcl_Obj *name,
   }
 
   /*fprintf(stderr, "cmdName = %s, args = %s, # = %d\n", 
-    ObjStr(tcd->cmdName), ObjStr(tcd->args), tcd->nr_args);*/
+    ObjStr(tcd->cmdName), tcd->args?ObjStr(tcd->args):"NULL", tcd->nr_args);*/
 
   if (tcd->objscope) {
     /* when we evaluating objscope, and define ...
@@ -11517,7 +11518,7 @@ static int XOTclCInstForwardMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *
   int rc;
 
   /*withVerbose = 1; TODO REMOVE*/
-  /*fprintf(stderr,"XOTclCInstForwardMethod name %s, default %p early %d prefix %p objscope %d onerror %p verb %d target %p\n",ObjStr(method), withDefault, withEarlybinding, withMethodprefix, withObjscope, withOnerror, withVerbose,target);*/
+  /*fprintf(stderr,"XOTclCInstForwardMethod name %s, default %p early %d prefix %p objscope %d onerror %p verb %d target %p objc=%d\n",ObjStr(method), withDefault, withEarlybinding, withMethodprefix, withObjscope, withOnerror, withVerbose,target,nobjc);*/
   rc = forwardProcessOptions2(interp, method, 
                               withDefault, withEarlybinding, withMethodprefix, 
                               withObjscope, withOnerror, withVerbose,
