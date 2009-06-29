@@ -66,10 +66,10 @@ declare 12 generic {
 	                 ClientData cd, Tcl_CmdDeleteProc *dp)
 }
 declare 13 generic {
-    void XOTclRemovePMethod(Tcl_Interp *interp,struct XOTcl_Object *obj, char *nm)
+    int XOTclRemovePMethod(Tcl_Interp *interp,struct XOTcl_Object *obj, char *nm)
 }
 declare 14 generic {
-    void XOTclRemoveIMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, char *nm)
+    int XOTclRemoveIMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, char *nm)
 }
 declare 15 generic {
     Tcl_Obj *XOTclOSetInstVar(struct XOTcl_Object *obj, Tcl_Interp *interp,

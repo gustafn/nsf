@@ -14,7 +14,7 @@ proc genifd {argDefinitions} {
       "" {set type NULL}
       default {set type "\"$(-type)\""}
     }
-    lappend l "{\"$(-argName)\", $(-required), $(-nrArgs), $type}"
+    lappend l "{\"$(-argName)\", $(-required), $(-nrargs), $type}"
   }
   join $l ",\n  "
 }
@@ -34,6 +34,15 @@ proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar post
       set varName with[string totitle $switchName]
       set calledArg $varName
       set type "int "
+      if {$(-nrargs) == 1} {
+        switch $(-type) {
+          ""           {set type "char *"}
+          "class"      {set type "XOTclClass *"}
+          "object"     {set type "XOTclObject *"}
+          "tclobj"     {set type "Tcl_Obj *"}
+          default      {error "type '$(-type)' not allowed for parameter"}
+        }
+      }
     } else {
       set varName $(-argName)
       set calledArg $varName
@@ -44,7 +53,7 @@ proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar post
         "tclobj"     {set type "Tcl_Obj *"}
         "args"       {
           set type "int "
-          set calledArg "objc-pc.args, objv+pc.args"
+          set calledArg "objc-pc.lastobjc, objv+pc.lastobjc"
           lappend if "int nobjc" "Tcl_Obj *CONST nobjv\[\]"
           set ifSet 1
           set cVar 0
@@ -73,6 +82,7 @@ proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar post
 #    }
 #          }]
         }
+        default  {error "type '$(-type)' not allowed for argument"}
       }
     }
     if {!$ifSet} {lappend if "$type$varName"}
@@ -139,7 +149,7 @@ $post
 typedef struct {
   char *methodName;
   Tcl_ObjCmdProc *proc;
-  interfaceDefinition ifd;
+  CONST interfaceDefinition ifd;
 } methodDefinition2;
 
 static int parse2(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
@@ -170,7 +180,7 @@ proc methodDefinition {methodName methodType implementation argDefinitions} {
   }
   set completed [list]
   foreach argDefinition $argDefinitions {
-    array set "" {-required 0 -nrArgs 0 -type ""}
+    array set "" {-required 0 -nrargs 0 -type ""}
     array set "" $argDefinition
     lappend completed [array get ""]
   }
@@ -207,7 +217,58 @@ classMethod create XOTclCCreateMethod {
 classMethod dealloc XOTclCDeallocMethod {
   {-argName "object" -required 1 -type tclobj}
 }
-
+classMethod new XOTclCNewMethod {
+  {-argName "-childof" -type object -nrargs 1}
+  {-argName "args" -required 0 -type args}
+}
+classMethod instfilterguard XOTclCInstFilterGuardMethod {
+  {-argName "filter" -required 1}
+  {-argName "guard" -required 1 -type tclobj}
+}
+classMethod instinvar XOTclCInvariantsMethod {
+  {-argName "invariantlist" -required 1 -type tclobj}
+}
+classMethod instmixinguard XOTclCInstMixinGuardMethod {
+  {-argName "mixin" -required 1}
+  {-argName "guard" -required 1 -type tclobj}
+}
+classMethod instparametercmd XOTclCInstParameterCmdMethod {
+  {-argName "name" -required 1}
+}
+classMethod instproc XOTclCInstProcMethod {
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "args" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+  {-argName "precondition"  -type tclobj}
+  {-argName "postcondition" -type tclobj}
+}
+classMethod classscopedinstproc XOTclCInstProcMethodC {
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "args" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+  {-argName "precondition"  -type tclobj}
+  {-argName "postcondition" -type tclobj}
+}
+classMethod instforward XOTclCInstForwardMethod {
+  {-argName "method" -required 1 -type tclobj}
+  {-argName "-default" -nrargs 1 -type tclobj}
+  {-argName "-earlybinding"}
+  {-argName "-methodprefix" -nrargs 1 -type tclobj}
+  {-argName "-objscope"}
+  {-argName "-onerror" -nrargs 1 -type tclobj}
+  {-argName "-verbose" -nrargs 0}
+  {-argName "target" -type tclobj -required 0}
+  {-argName "args" -type args}
+}
+# todo -protected for XOTclCInstForwardMethod
+classMethod recreate XOTclCRecreateMethod {
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "args" -required 1 -type allargs}
+}
+classMethod unknown XOTclCUnknownMethod {
+  {-argName "name" -required 1}
+  {-argName "args" -required 1 -type allargs}
+}
 
 #
 # check methods

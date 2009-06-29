@@ -443,7 +443,6 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_IS_ROOT_CLASS                  0x0100
 /* DESTROYED set, when object is physically destroyed with PrimitiveODestroy  */
 #define XOTCL_DESTROYED                      0x1000
-#define XOTCL_REFCOUNTED                     0x2000
 #define XOTCL_RECREATE                       0x4000
 #define XOTCL_NS_DESTROYED                   0x8000
 

@@ -3768,13 +3768,13 @@ TestX create nonposargs -proc run {{n 20}} {
   }
   o test1 1
   o test1 -x 1
-  
+
   o proc test2 {{-x:switch true} y} {
     my append result "x=$x y=$y, "
   }
   o test2 2
   o test2 -x 2
-  
+
   o proc test3 {{-x:switch false} y} {
     my append result "x=$x y=$y, "
   }
@@ -3784,83 +3784,84 @@ TestX create nonposargs -proc run {{n 20}} {
       "x=0 y=1, x=1 y=1, x=true y=2, x=0 y=2, x=false y=3, x=1 y=3, " \
       "nonpos args switch"
 
-    Object o	
-    o proc x {a b} {
-	return "$a $b"
-    }
-    o proc x {} {a b} {
-	return "$a $b"
-    }
-    o proc y {-x {-a {1 2 3}}} {a b} {
-	return "$args"
-    }
-    o proc z1 {-x:required {-a {1 2 3}}} {a args} {
-	return "$x -- $args"
-    }
-    o proc z2 {-x:required {-a {1 }} {-b {1 2}}} {args} {return "$x -- $args -- $a -- $b"}
-    o proc z3 {-b:boolean} {arg} {
-	return "$b $arg"
-    }
-    Object colorchecker
-    colorchecker proc color {var value} {
-	lappend ::r "color <$var> <$value>"
-    }
-    colorchecker proc reddish {var value} {
-	lappend ::r "reddish <$var> <$value>"
-    }
-    
-    o proc z4 {{{-b: required, checkobj colorchecker,color, reddish,
-      		checkobj xotcl::nonposArgs,required} red} 
-	       {{-c: required }}} {arg} {
-	lappend ::r "$b $arg"
-	return "$b $arg"
-    }
-    o proc z5 {-pos args} {
-	return [list $pos $args]
-    }
+  Object o	
+  o proc x {a b} {
+    return "$a $b"
+  }
+  o proc x {} {a b} {
+    return "$a $b"
+  }
+  o proc y {-x {-a {1 2 3}}} {a b} {
+    return "$args"
+  }
+  o proc z1 {-x:required {-a {1 2 3}}} {a args} {
+    return "$x -- $args"
+  }
+  o proc z2 {-x:required {-a {1 }} {-b {1 2}}} {args} {return "$x -- $args -- $a -- $b"}
+  o proc z3 {-b:boolean} {arg} {
+    return "$b $arg"
+  }
+  Object colorchecker
+  colorchecker proc color {var value} {
+    lappend ::r "color <$var> <$value>"
+  }
+  colorchecker proc reddish {var value} {
+    lappend ::r "reddish <$var> <$value>"
+  }
+  
+  o proc z4 {{{-b: required, checkobj colorchecker,color, reddish,
+    checkobj xotcl::nonposArgs,required} red} 
+             {{-c: required }}} {arg} {
+               lappend ::r "$b $arg"
+               return "$b $arg"
+             }
+  o proc z5 {-pos args} {
+    return [list $pos $args]
+  }
 
-    Class P
-    P instproc x {a b} {
-	return "$a $b"
-    }
-    P instproc z2 {-x:required {-a 1} {-b {1 2}}} {args} {return "$x -- $args -- $a -- $b"}
-    
-    P instproc z3 {-x:required {-a 1} {-b {1 2}}} {a b c} {
-	return "$x -- $args -- $a -- $b"
-    }
-    P p
+  Class P
+  P instproc x {a b} {
+    return "$a $b"
+  }
 
-    errorCheck [o x 1 2] "1 2" "Ordinary Method"
-    errorCheck [p x 3 4] "3 4" "Ordinary Method (2)"
-    catch {
-	o y 4 56 5
-    } m
-    errorCheck $m {unknown argument '5' for method 'y': valid arguments -x {-a {1 2 3}} a b} "wrong \# check 1"
-    catch {
-	o y
-    } m
-    errorCheck $m "wrong # args for method 'y': valid arguments -x {-a {1 2 3}} a b" "wrong \# check 2"
-    catch {
-	o y -x 1
-    } m
+  P instproc z2 {-x:required {-a 1} {-b {1 2}} args} {return "$x -- $args -- $a -- $b"}
+  P instproc z3 {-x:required {-a 1} {-b {1 2}} a b c} {
+    return "$x -- $args -- $a -- $b"
+  }
+
+  P p
+
+  errorCheck [o x 1 2] "1 2" "Ordinary Method"
+  errorCheck [p x 3 4] "3 4" "Ordinary Method (2)"
+  catch {
+    o y 4 56 5
+  } m
+  errorCheck $m {unknown argument '5' for method 'y': valid arguments -x {-a {1 2 3}} a b} "wrong \# check 1"
+  catch {
+    o y
+  } m
+  errorCheck $m "wrong # args for method 'y': valid arguments -x {-a {1 2 3}} a b" "wrong \# check 2"
+  catch {
+    o y -x 1
+  } m
     errorCheck $m "wrong # args for method 'y': valid arguments -x {-a {1 2 3}} a b" "wrong \# check 3"
-    catch {
-	o z1 a 1 2 3
-    } m
-    errorCheck $m "required arg: 'x' missing" "required missing"
-    errorCheck [o z1 -x 1  a 1 2 3] "1 -- 1 2 3" "invocation 1"
-    errorCheck [o z2 -x 2  a 1 2 3] "2 -- a 1 2 3 -- 1  -- 1 2" "invocation 2"
-    catch {
-	o y -x 1 -a 2 2 3
-    } m
-    errorCheck $m "can't read \"args\": no such variable" "args unset?"
-    errorCheck [o z2 -a 2 -x 1 -b 3 a b c] \
-	"1 -- a b c -- 2 -- 3" "invocation 3"
-    errorCheck [p z2 -x 1 -a 2 -b 3 a b c] \
-	"1 -- a b c -- 2 -- 3" "invocation 4"
-
+  catch {
+    o z1 a 1 2 3
+  } m
+  errorCheck $m "required arg: 'x' missing" "required missing"
+  errorCheck [o z1 -x 1  a 1 2 3] "1 -- 1 2 3" "invocation 1"
+  errorCheck [o z2 -x 2  a 1 2 3] "2 -- a 1 2 3 -- 1  -- 1 2" "invocation 2"
+  catch {
+    o y -x 1 -a 2 2 3
+  } m
+  errorCheck $m "can't read \"args\": no such variable" "args unset?"
+  errorCheck [o z2 -a 2 -x 1 -b 3 a b c] \
+      "1 -- a b c -- 2 -- 3" "invocation 3"
+  errorCheck [p z2 -x 1 -a 2 -b 3 a b c] \
+      "1 -- a b c -- 2 -- 3" "invocation 4"
+  
     errorCheck [o z3 -b true -- -b] "true -b" "dash dash"
-
+  
     errorCheck [o z5 -pos 1 a b] "1 {a b}" "nonpos with given args"
     errorCheck [o z5 -pos 1 a] "1 a" "nonpos with given args"
     errorCheck [o z5 -pos 1] "1 {}" "nonpos without given args"
@@ -3934,12 +3935,14 @@ TestX create nonposargs -proc run {{n 20}} {
   C create c1
   C instproc m2 {
     {-flag:boolean false}
-  } {x y {z 15}} {
+    x y {z 15}
+  } {
     return $flag-$z   
   }
   c1 proc m14 {
     {-flag:boolean false}
-  } {x y {z 15}} {
+    x y {z 15}
+  } {
     return $flag-$z
   }
 
@@ -3963,7 +3966,8 @@ TestX create nonposargs -proc run {{n 20}} {
 
   C instproc m3 {
     {-flag:boolean}
-  } {x y z} {
+    x y z
+  } {
     return hu3
   }
 

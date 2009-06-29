@@ -68,11 +68,8 @@
 #define XOTCL_MEM_COUNT 1
 */
 
-/*#define REFCOUNTED 1*/
-
 /*
 #define XOTCLOBJ_TRACE 1
-#define REFCOUNT_TRACE 1
 */
 
 /* turn  tracing output on/off

@@ -62,6 +62,12 @@ Class Meta -superclass Class
 Meta C -superclass O -parameter {a {b -default ""} {c -default 1}}
 C c1 ;# c1 has no no default value for "a", before it had
 ======
+2009-06-29 <Gustaf.Neumann@wu-wien.ac.at>
+    - !!! removed obsolete features
+      * ability to specify nonpos args and pos args as different arguments
+      * compile flags AUTOVARS, REFCOUNTED, REFCOUNT_TRACE
+    - added -flags with one argument + type
+    - generated all class methods from interface descriptions
 
 2009-06-28 <Gustaf.Neumann@wu-wien.ac.at>
     - objv-stubs for all 23 class info methods

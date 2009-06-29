@@ -104,6 +104,7 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::classInfo classparent ::xotcl::cmd::ObjectInfo::parent 
   ::xotcl::alias ::xotcl::classInfo classchildren ::xotcl::cmd::ObjectInfo::children
   unset cmd
+
   ::xotcl::Object instforward info -onerror ::xotcl::infoError ::xotcl::objectInfo %1 {%@2 %self}
   ::xotcl::Class instforward info -onerror ::xotcl::infoError ::xotcl::classInfo %1 {%@2 %self}
 
@@ -265,6 +266,7 @@ namespace eval ::xotcl {
     if {$domain eq ""} {
       set domain [::xotcl::self callingobject]
     }
+    #puts stderr "???? $domain $forwarder $name -default [$manager defaultmethods] $manager %1 %self %proc"
     $domain $forwarder $name -default [$manager defaultmethods] $manager %1 %self %proc
   }
 
@@ -343,9 +345,9 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::Object::slot::class assign ::xotcl::relation
 
   ::xotcl::InterceptorSlot create ::xotcl::Object::slot::mixin
-::xotcl::InterceptorSlot create ::xotcl::Object::slot::filter -elementtype ""
+  ::xotcl::InterceptorSlot create ::xotcl::Object::slot::filter -elementtype ""
   ::xotcl::InterceptorSlot create ::xotcl::Class::slot::instmixin
-::xotcl::InterceptorSlot create ::xotcl::Class::slot::instfilter -elementtype ""
+  ::xotcl::InterceptorSlot create ::xotcl::Class::slot::instfilter -elementtype ""
 
   #
   # Attribute
