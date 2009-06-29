@@ -11060,7 +11060,7 @@ parse2(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseContex
       char *objStr;
       for (p = o; p<objc; p++) {
         objStr = ObjStr(objv[p]);
-        /* fprintf(stderr,"....checking o=%s\n", objStr);*/
+        /*fprintf(stderr,"....checking o=%s\n", objStr);*/
         if (objStr[0] == '-') {
           found = 0;
           for (bPtr = aPtr; *bPtr->name == '-'; bPtr ++) {
@@ -11072,7 +11072,8 @@ parse2(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseContex
                 o++; p++;
                 /*fprintf(stderr, "flag '%s' o=%d p=%d, objc=%d\n",objStr,o,p,objc);*/
                 if (o<objc) {
-                  if (convertToType(interp, objv[o], aPtr->type, &pc->clientData[i], &varArgs) != TCL_OK) {
+		  /*fprintf(stderr, "setting cd[%d] = %s\n", bPtr-ifdPtr[0], ObjStr(objv[o]));*/
+                  if (convertToType(interp, objv[o], aPtr->type, &pc->clientData[bPtr-ifdPtr[0]], &varArgs) != TCL_OK) {
                     return TCL_ERROR;
                   }
                 } else {
@@ -11120,7 +11121,6 @@ parse2(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseContex
     }
   }
   args = objc - flagCount - 1;
-
   pc->lastobjc = aPtr->name ? o : o-1;
 
   /* is the last argument a varargs */
@@ -11146,7 +11146,7 @@ parse2(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseContex
       }
       if (aPtr->required) {
         Tcl_AppendToObj(msg, aPtr->name, -1);
-      } else {
+      } else { /* todo nrargs>0 */
         Tcl_AppendToObj(msg, "?", 1);
         Tcl_AppendToObj(msg, aPtr->name, -1);
         Tcl_AppendToObj(msg, "?", 1);
@@ -11154,7 +11154,6 @@ parse2(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseContex
     }
     return XOTclObjErrArgCntObj(interp, objv[0],  NULL, msg);
   }
-
 
   /*fprintf(stderr, "END args=%d\n",pc->lastobjc);*/
   return TCL_OK;

@@ -256,8 +256,8 @@ classMethod instforward XOTclCInstForwardMethod {
   {-argName "-methodprefix" -nrargs 1 -type tclobj}
   {-argName "-objscope"}
   {-argName "-onerror" -nrargs 1 -type tclobj}
-  {-argName "-verbose" -nrargs 0}
-  {-argName "target" -type tclobj -required 0}
+  {-argName "-verbose"}
+  {-argName "target" -type tclobj}
   {-argName "args" -type args}
 }
 # todo -protected for XOTclCInstForwardMethod
