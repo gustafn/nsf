@@ -23,9 +23,31 @@ proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar post
   upvar $cDefsVar cDefs $ifDefVar ifDef $arglistVar arglist $preVar pre $postVar post \
       $introVar intro 
   set c [list]
-  set a [list]
   set i 0
   set pre ""; set post ""
+  set intro "  parseContext pc;\n"
+
+  switch $clientData {
+    class {
+      set a  [list cl]
+      set if [list "XOTclClass *cl"]
+      append intro \
+          "  XOTclClass *cl =  XOTclObjectToClass(clientData);" \n \
+          {  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");}
+    }
+    object {
+      set a  [list obj]
+      set if [list "XOTclObject *obj"]
+      append intro \
+          "  XOTclObject *obj =  (XOTclObject *)clientData;" \n \
+          {  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");}
+    }
+    ""    {
+      set a [list]
+      set if [list]
+      array set cd {arglist "" ifDefs ""}
+    }
+  }
   foreach argDefinition $argDefinitions {
     array set "" $argDefinition
     set ifSet 0
@@ -90,21 +112,9 @@ proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar post
     lappend a $calledArg
     incr i
   }
-  set intro "  parseContext pc;\n"
-  switch $clientData {
-    class {
-      array set cd {arglist "cl, " ifDefs "XOTclClass *cl, "}
-      append intro \
-          "  XOTclClass *cl =  XOTclObjectToClass(clientData);" \n \
-          {  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");}
-    }
-    ""    {
-      array set cd {arglist "" ifDefs ""}
-    }
-  }
-  set ifDef $cd(ifDefs)[join $if ", "]
-  set cDefs [join $c "\n    "]
-  set arglist $cd(arglist)[join $a ", "]
+  set ifDef   [join $if ", "]
+  set cDefs   [join $c "\n    "]
+  set arglist [join $a ", "]
 }
 
 
@@ -202,6 +212,117 @@ proc checkMethod {methodName implementation argDefinitions} {
 proc classMethod {methodName implementation argDefinitions} {
   methodDefinition $methodName classMethod $implementation $argDefinitions
 }
+proc objectMethod {methodName implementation argDefinitions} {
+  methodDefinition $methodName objectMethod $implementation $argDefinitions
+}
+
+#
+# object methods
+#
+objectMethod autoname XOTclOAutonameMethod {
+  {-argName "-instance"}
+  {-argName "-reset"}
+  {-argName "name" -required 1 -type tclobj}
+}
+objectMethod check XOTclOCheckMethod {
+  {-argName "flag" -required 1 -type tclobj}
+}
+objectMethod cleanup XOTclOCleanupMethod {
+}
+objectMethod configure XOTclOConfigureMethod {
+  {-argName "args" -type allargs}
+}
+objectMethod destroy XOTclODestroyMethod {
+}
+objectMethod exists XOTclOExistsMethod {
+  {-argName "var" -required 1}
+}
+objectMethod filterguard XOTclOFilterGuardMethod {
+  {-argName "filter" -required 1}
+  {-argName "guard" -required 1 -type tclobj}
+}
+objectMethod filtersearch XOTclOFilterSearchMethod {
+  {-argName "filter" -required 1}
+}
+objectMethod instvar XOTclOInstVarMethod {
+  {-argName "args" -type allargs}
+}
+objectMethod invar XOTclOInvariantsMethod {
+  {-argName "invariantlist" -required 1 -type tclobj}
+}
+objectMethod isclass XOTclOIsClassMethod {
+  {-argName "class" -type tclobj}
+}
+objectMethod ismetaclass XOTclOIsMetaClassMethod {
+  {-argName "metaclass" -type tclobj}
+}
+objectMethod ismixin XOTclOIsMixinMethod {
+  {-argName "class" -required 1 -type tclobj}
+}
+objectMethod isobject XOTclOIsObjectMethod {
+  {-argName "object"  -required 1 -type tclobj}
+}
+objectMethod istype XOTclOIsTypeMethod {
+  {-argName "class" -required 1 -type tclobj}
+}
+
+objectMethod mixinguard XOTclOMixinGuardMethod {
+  {-argName "mixin" -required 1}
+  {-argName "guard" -required 1 -type tclobj}
+}
+objectMethod __next XOTclONextMethod {
+  {-argName "args" -type allargs}
+}
+objectMethod noinit XOTclONoinitMethod {
+}
+objectMethod parametercmd XOTclOParametercmdMethod {
+  {-argName "name" -required 1}
+}
+objectMethod proc XOTclOProcMethod {
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "args" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+  {-argName "precondition"  -type tclobj}
+  {-argName "postcondition" -type tclobj}
+}
+objectMethod procsearch XOTclOProcSearchMethod {
+  {-argName "name" -required 1}
+}
+
+objectMethod requireNamespace XOTclORequireNamespaceMethod {
+}
+# "set" needed?
+objectMethod set XOTclOSetMethod {
+  {-argName "var" -required 1 -type tclobj}
+  {-argName "value" -type tclobj}
+}
+objectMethod setvalues XOTclOSetvaluesMethod {
+  {-argName "args" -type allargs}
+}
+objectMethod forward XOTclOForwardMethod {
+  {-argName "method" -required 1 -type tclobj}
+  {-argName "-default" -nrargs 1 -type tclobj}
+  {-argName "-earlybinding"}
+  {-argName "-methodprefix" -nrargs 1 -type tclobj}
+  {-argName "-objscope"}
+  {-argName "-onerror" -nrargs 1 -type tclobj}
+  {-argName "-verbose"}
+  {-argName "target" -type tclobj}
+  {-argName "args" -type args}
+}
+objectMethod uplevel XOTclOUplevelMethod {
+  {-argName "args" -type allargs}
+}
+objectMethod upvar XOTclOUpvarMethod {
+  {-argName "args" -type allargs}
+}
+objectMethod volatile XOTclOVolatileMethod {
+}
+objectMethod vwait XOTclOVwaitMethod {
+  {-argName "varname" -required 1}
+}
+
+
 
 
 #
@@ -212,7 +333,7 @@ classMethod alloc XOTclCAllocMethod {
 }
 classMethod create XOTclCCreateMethod {
   {-argName "name" -required 1}
-  {-argName "args" -required 1 -type allargs}
+  {-argName "args" -type allargs}
 }
 classMethod dealloc XOTclCDeallocMethod {
   {-argName "object" -required 1 -type tclobj}
@@ -232,7 +353,7 @@ classMethod instmixinguard XOTclCInstMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
-classMethod instparametercmd XOTclCInstParameterCmdMethod {
+classMethod instparametercmd XOTclCInstParametercmdMethod {
   {-argName "name" -required 1}
 }
 classMethod instproc XOTclCInstProcMethod {
@@ -263,11 +384,11 @@ classMethod instforward XOTclCInstForwardMethod {
 # todo -protected for XOTclCInstForwardMethod
 classMethod recreate XOTclCRecreateMethod {
   {-argName "name" -required 1 -type tclobj}
-  {-argName "args" -required 1 -type allargs}
+  {-argName "args" -type allargs}
 }
 classMethod unknown XOTclCUnknownMethod {
   {-argName "name" -required 1}
-  {-argName "args" -required 1 -type allargs}
+  {-argName "args" -type allargs}
 }
 
 #
@@ -326,7 +447,7 @@ infoObjectMethod filterguard XOTclObjInfoFilterguardMethod {
 infoObjectMethod forward XOTclObjInfoForwardMethod {
   {-argName "object" -required 1 -type object}
   {-argName "-definition"}
-  {-argName "methodName" -required 1}
+  {-argName "pattern"}
 }
 infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
   {-argName "object" -required 1 -type object}
@@ -440,7 +561,7 @@ infoClassMethod instfilterguard XOTclClassInfoInstfilterguardMethod {
 infoClassMethod instforward XOTclClassInfoInstforwardMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-definition"}
-  {-argName "methodName" -required 1}
+  {-argName "pattern"}
 }
 
 infoClassMethod instinvar XOTclClassInfoInstinvarMethod {
@@ -518,3 +639,4 @@ infoClassMethod superclass XOTclClassInfoSuperclassMethod {
 
 
 genifds
+puts stderr "[array size ::definitions] parsing stubs generated"

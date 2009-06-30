@@ -1651,7 +1651,7 @@ TestX mixinTest -proc run {{n 10}} {
     A create a0
     a0 proc f3 {} {puts hu}
     a0 forward f4 puts hu
-    a0 parametercmd f6 puts hu
+    a0 parametercmd f6
     ::errorCheck [a0 procsearch f1] "::A instproc f1" procsearch-1
     ::errorCheck [a0 procsearch f2] "::A instforward f2" procsearch-2
     ::errorCheck [a0 procsearch f3] "::a0 proc f3" procsearch-3
@@ -1659,6 +1659,7 @@ TestX mixinTest -proc run {{n 10}} {
     ::errorCheck [a0 procsearch f5] "::A instparametercmd f5" procsearch-4
     ::errorCheck [a0 procsearch f6] "::a0 parametercmd f6" procsearch-6
     ::errorCheck [a0 procsearch set] "::xotcl::Object instcmd set" procsearch-6
+    ::errorCheck [catch {a0 parametercmd f6 puts}] 1 "paramtercmd with wrong args returns error"
 
     set mixinResult ""
     i4 moveAgent 5 6
@@ -3137,7 +3138,6 @@ TestX objectReferences -proc run {{n 20}} {
     Class ::AAA
   }
   
-  
   for {set i 1} {$i < 20} {incr i} {
     # "reference to xotcl object in instvar"
     Class LexxTreeMounter
@@ -3159,6 +3159,7 @@ TestX objectReferences -proc run {{n 20}} {
       }
       next
     }
+
     set x [LexxTreeMounter new]
     set x [LexxTreeMounter new]
 
@@ -3184,7 +3185,8 @@ TestX objectReferences -proc run {{n 20}} {
     #puts r=$r
     return $r
   }
-  Class O -superclass UnknownClass
+  Class O  -superclass UnknownClass
+
   ::errorCheck $::utest ::UnknownClass "__unknown 1"
   
   Object o
@@ -3199,7 +3201,6 @@ TestX objectReferences -proc run {{n 20}} {
     Object o
     ::errorCheck [o mixin XX3] ::XX3 "__unknown XX3"
   }
-
 
   # this version of unknown creates gobal objects
   Class proc __unknown {name} {
@@ -3243,6 +3244,7 @@ TestX objectReferences -proc run {{n 20}} {
   Class C
   Class D -superclass C
   Class E -superclass D -parameter {{x 1}}
+
   E instproc t {a b {c 1}} {return ok}
   E proc p {a b {c 1}} {return ok}
   E instproc q {} {return [self proc]}
@@ -3788,17 +3790,14 @@ TestX create nonposargs -proc run {{n 20}} {
   o proc x {a b} {
     return "$a $b"
   }
-  o proc x {} {a b} {
-    return "$a $b"
-  }
-  o proc y {-x {-a {1 2 3}}} {a b} {
+  o proc y {-x {-a {1 2 3}} a b} {
     return "$args"
   }
-  o proc z1 {-x:required {-a {1 2 3}}} {a args} {
+  o proc z1 {-x:required {-a {1 2 3}} a args} {
     return "$x -- $args"
   }
-  o proc z2 {-x:required {-a {1 }} {-b {1 2}}} {args} {return "$x -- $args -- $a -- $b"}
-  o proc z3 {-b:boolean} {arg} {
+  o proc z2 {-x:required {-a {1 }} {-b {1 2}} args} {return "$x -- $args -- $a -- $b"}
+  o proc z3 {-b:boolean arg} {
     return "$b $arg"
   }
   Object colorchecker
@@ -3809,9 +3808,12 @@ TestX create nonposargs -proc run {{n 20}} {
     lappend ::r "reddish <$var> <$value>"
   }
   
-  o proc z4 {{{-b: required, checkobj colorchecker,color, reddish,
-    checkobj xotcl::nonposArgs,required} red} 
-             {{-c: required }}} {arg} {
+  o proc z4 {
+             {{-b: required, checkobj colorchecker,color, reddish,
+               checkobj xotcl::nonposArgs,required} red}
+             {{-c: required }}
+             arg
+           } {
                lappend ::r "$b $arg"
                return "$b $arg"
              }
@@ -3887,13 +3889,13 @@ TestX create nonposargs -proc run {{n 20}} {
 
 
     Object o
-    o proc foo {{-a apple}} {{b banana}} {
+    o proc foo {{-a apple} {b banana}} {
 	return [list [info locals] a: $a   b: $b]
     }
-    o proc foo2 {{-a apple}} {{b banana} {c apple}} {
+    o proc foo2 {{-a apple} {b banana} {c apple}} {
 	return [list [info locals] a: $a   b: $b c: $c]
     }
-    o proc foo3 {{-a apple}} {x y {b banana} {c apple}} {
+    o proc foo3 {{-a apple} x y {b banana} {c apple}} {
 	return [list [info locals] x: $x y: $y a: $a   b: $b c: $c]
     }
 
@@ -3912,7 +3914,7 @@ TestX create nonposargs -proc run {{n 20}} {
 	"non pos + default values 6"
 
   Object o
-  o proc foo {{-foo 1}} {} {
+  o proc foo {{-foo 1}} {
     #puts "foo: $foo"
   }
   o foo
@@ -3921,7 +3923,7 @@ TestX create nonposargs -proc run {{n 20}} {
   errorCheck $msg "Non positional arg '-foo': value missing" "Empty non-pos arg"
   
   Object oa
-  oa proc foo {{-a A}} {b} {
+  oa proc foo {{-a A} b} {
     #puts "$a $b"
   }
   oa foo "B"
