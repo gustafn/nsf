@@ -94,15 +94,19 @@ proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar post
           lappend if "char *${varName}String" "XOTclObject *${varName}Obj"
           set ifSet 1
           append pre [subst -nocommands {
-    if (getMatchObject3(interp, ${varName},  &pc, &${varName}Obj, &${varName}String) == -1) {
+    if (getMatchObject(interp, ${varName},  objv[$i], &${varName}Obj, &${varName}String) == -1) {
+      if (${varName}) {
+        DECR_REF_COUNT(${varName});
+      }
       return TCL_OK;
     }
           }]
-#          append post [subst -nocommands {
-#    if (${varName}Obj) {
-#      Tcl_SetObjResult(interp, returnCode ? ${varName}Obj->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-#    }
-#          }]
+	  append post [subst -nocommands {
+    if (${varName}) {
+      DECR_REF_COUNT(${varName});
+    }
+         }]
+	  # end of obj pattern
         }
         default  {error "type '$(-type)' not allowed for argument"}
       }
@@ -135,7 +139,7 @@ proc genifds {} {
       append cDefs "\n    int returnCode;"
       set call "returnCode = $d(implementation)(interp, $arglist);"
       set post [string trimright $post]
-      append post "\n    return TCL_OK;"
+      append post "\n    return returnCode;"
     } else {
       set call "return $d(implementation)(interp, $arglist);"
     }
@@ -143,7 +147,7 @@ proc genifds {} {
 static int
 $d(stub)(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 $intro
-  if (parse2(interp, objc, objv, $d(idx), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, $d(idx), &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     $cDefs
@@ -162,11 +166,11 @@ typedef struct {
   CONST interfaceDefinition ifd;
 } methodDefinition2;
 
-static int parse2(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-                  int idx, parseContext *pc);
+static int parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+		     int idx, parseContext *pc);
 
-static int getMatchObject3(Tcl_Interp *interp, Tcl_Obj *patternObj,  parseContext *pc,
-                           XOTclObject **matchObject, char **pattern);
+static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
+			  XOTclObject **matchObject, char **pattern);
   }
   puts $stubDecls
   puts $decls
@@ -634,7 +638,7 @@ infoClassMethod subclass XOTclClassInfoSubclassMethod {
 infoClassMethod superclass XOTclClassInfoSuperclassMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
-  {-argName "pattern"}
+  {-argName "pattern" -type tclobj}
 }
 
 

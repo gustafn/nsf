@@ -60,12 +60,13 @@ Class O -parameter {
 }
 Class Meta -superclass Class
 Meta C -superclass O -parameter {a {b -default ""} {c -default 1}}
-C c1 ;# c1 has no no default value for "a", before it had
+C c1 ;# c1 has no no default value for "a", before it had one
 ======
 2009-06-30 <Gustaf.Neumann@wu-wien.ac.at>
     - all object methods generated
-    - compiles, but must be debugged
-    - from 15356 generic/xotcl.c => 13884
+    - added reference counting for patternobj
+    - some cleanup and reordering
+    - from 15356 generic/xotcl.c => 13884 => 13560
 
 2009-06-29 <Gustaf.Neumann@wu-wien.ac.at>
     - !!! removed obsolete features
