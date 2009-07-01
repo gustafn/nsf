@@ -64,6 +64,8 @@ C c1 ;# c1 has no no default value for "a", before it had one
 ======
 2009-07-01 <Gustaf.Neumann@wu-wien.ac.at>
     - moved all definitions of method commands to generated code
+    - separated C-code generator from declarations 
+      (new file generic/gentclAPI.decls)
     - from 15356 generic/xotcl.c => 13408
 
 2009-06-30 <Gustaf.Neumann@wu-wien.ac.at>

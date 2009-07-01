@@ -465,7 +465,7 @@ install-shells:
 $(src_generic_dir)/predefined.h: $(src_generic_dir)/mk_predefined.xotcl $(src_generic_dir)/predefined.xotcl
 	(cd $(src_generic_dir); $(TCLSH) mk_predefined.xotcl > predefined.h)
 
-$(src_generic_dir)/tclAPI.h: $(src_generic_dir)/gentclAPI.tcl
+$(src_generic_dir)/tclAPI.h: $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)/gentclAPI.decls
 	$(TCLSH) $(src_generic_dir)/gentclAPI.tcl > $(src_generic_dir)/tclAPI.h
 
 xotclStubInit.$(OBJEXT): $(PKG_HEADERS)
