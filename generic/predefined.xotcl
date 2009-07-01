@@ -28,11 +28,11 @@ namespace eval ::xotcl {
     #
     ::xotcl::createobjectsystem ::xotcl::Object ::xotcl::Class
 
-#     foreach o {::xotcl::Object ::xotcl::Class} {
-#       foreach r {object class metaclass} {
-#         puts stderr "$o $r=[::xotcl::is $o $r]"
-#       }
-#     }
+#      foreach o {::xotcl::Object ::xotcl::Class} {
+#        foreach r {object class metaclass} {
+#          puts stderr "$o $r=[::xotcl::is $o $r]"
+#        }
+#      }
 
     #
     # createobjectsystem creates already the relation that Class has Object as
@@ -79,6 +79,9 @@ namespace eval ::xotcl {
   foreach cmd [info command ::xotcl::cmd::NonposArgs::*] {
     ::xotcl::alias ::xotcl::NonposArgs [namespace tail $cmd] $cmd 
   }
+  # register type boolean as checker for "switch"
+  ::xotcl::alias ::xotcl::NonposArgs type=switch ::xotcl::cmd::NonposArgs::type=boolean
+  # create an object for dispatching
   ::xotcl::NonposArgs create ::xotcl::nonposArgs 
 
   ########################
@@ -92,6 +95,7 @@ namespace eval ::xotcl {
   #    puts stderr "$o $r=[::xotcl::is $o $r]"
   #  }
   #}
+
   foreach cmd [info command ::xotcl::cmd::ObjectInfo::*] {
     ::xotcl::alias ::xotcl::objectInfo [namespace tail $cmd] $cmd 
     ::xotcl::alias ::xotcl::classInfo [namespace tail $cmd] $cmd 
@@ -188,12 +192,14 @@ namespace eval ::xotcl {
       }
       $class instparametercmd $att
     }
+
     # do a second round to ensure that the already defined objects
     # have the appropriate default values
     foreach att $definitions {
       if {[llength $att]>1} {foreach {att default} $att break}
       if {[info exists default]} {
         # checking subclasses is not required during bootstrap
+
         foreach i [$class info instances] {
           if {![$i exists $att]} {::xotcl::setinstvar $i $att $default}
         }

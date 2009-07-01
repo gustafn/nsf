@@ -21,6 +21,7 @@ static char cmd[] =
 "::xotcl::Class create ::xotcl::NonposArgs\n"
 "foreach cmd [info command ::xotcl::cmd::NonposArgs::*] {\n"
 "::xotcl::alias ::xotcl::NonposArgs [namespace tail $cmd] $cmd}\n"
+"::xotcl::alias ::xotcl::NonposArgs type=switch ::xotcl::cmd::NonposArgs::type=boolean\n"
 "::xotcl::NonposArgs create ::xotcl::nonposArgs\n"
 "::xotcl::Object create ::xotcl::objectInfo\n"
 "::xotcl::Object create ::xotcl::classInfo\n"

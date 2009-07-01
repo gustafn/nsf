@@ -78,7 +78,9 @@
 #define NAMESPACE_TRACE 1
 #define OBJDELETION_TRACE 1
 #define STACK_TRACE 1
+#define PARSE_TRACE 1
 */
+
 
 #ifdef XOTCL_MEM_COUNT
 # define DO_FULL_CLEANUP 1

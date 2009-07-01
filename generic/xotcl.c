@@ -9247,7 +9247,6 @@ XOTclDispatchCmd(ClientData clientData, Tcl_Interp *interp,
   return result;
 }
 
-
 static int
 XOTclAliasCmd(ClientData clientData, Tcl_Interp *interp, 
               int objc, Tcl_Obj *CONST objv[]) {
@@ -9330,7 +9329,6 @@ XOTclAliasCmd(ClientData clientData, Tcl_Interp *interp,
     newCmd = XOTclAddObjectMethod(interp, (XOTcl_Object*)obj, methodName, 
 				  objProc, tcd, dp, flags);
   }
-
   return TCL_OK;
 }
 
@@ -9701,7 +9699,7 @@ parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseCon
   int i, o, args, flagCount = 0, nrReq = 0, nrOpt = 0, varArgs = 0;
   /* todo benchmark with and without CONST */
   argDefinition CONST *aPtr, *bPtr;
-  interfaceDefinition CONST* ifdPtr = &methodDefinitons[idx].ifd;
+  interfaceDefinition CONST* ifdPtr = &method_definitions[idx].ifd;
 
   memset(pc, 0, sizeof(parseContext));
 
@@ -9975,8 +9973,7 @@ ListChildren(Tcl_Interp *interp, XOTclObject *obj, char *pattern, int classesOnl
 }
 
 static int
-ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern,
-            int definition) {
+ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int definition) {
   int rc;
   if (definition) {
     Tcl_HashEntry *hPtr = table && pattern ? XOTcl_FindHashEntry(table, pattern) : 0;
@@ -11706,7 +11703,7 @@ static int XOTclClassInfoInstancesMethod1(Tcl_Interp *interp, XOTclClass *startC
   int rc = 0;
 
   /*fprintf(stderr,"XOTclClassInfoInstancesMethod: clo %d pattern %s match %p\n", 
-    withClosure, pattern, matchObject); */
+    withClosure, pattern, matchObject);*/
 
   for (hPtr = Tcl_FirstHashEntry(table, &search);  hPtr;
        hPtr = Tcl_NextHashEntry(&search)) {
@@ -13291,165 +13288,16 @@ Xotcl_Init(Tcl_Interp *interp) {
     INCR_REF_COUNT(XOTclGlobalObjects[i]);
   }
 
-  /*
-#if defined(OO)
-    Tcl_CreateNamespace(interp, "::oo", (ClientData)NULL, (Tcl_NamespaceDeleteProc*)NULL);
-    XOTclCreateObjectSystem(interp, "::oo::object", "::oo::class");
-#else 
-    XOTclCreateObjectSystem(interp, "::xotcl::Object", "::xotcl::Class");
-#endif
-  */
-   {
-     typedef struct methodDefinition {
-       char *methodName;
-       Tcl_ObjCmdProc *proc;
-       int pos;
-     } methodDefinition;
-     
-     char *namespace_names[] = {
-       "::xotcl::cmd::Object",
-       "::xotcl::cmd::Class", 
-       "::xotcl::cmd::NonposArgs",
-       "::xotcl::cmd::ObjectInfo",
-       "::xotcl::cmd::ClassInfo"
-     };
+  /* create namespaces for the different command types */
+  Tcl_CreateNamespace(interp, "::xotcl::cmd", 0, (Tcl_NamespaceDeleteProc*)NULL);
+  for (i=0; i < nr_elements(method_command_namespace_names); i++) {
+    Tcl_CreateNamespace(interp, method_command_namespace_names[i], 0, (Tcl_NamespaceDeleteProc*)NULL);
+  }
 
-     methodDefinition definitions1[] = {
-       {"autoname",         XOTclOAutonameMethodStub},
-       {"check",            XOTclOCheckMethodStub},
-       {"cleanup",          XOTclOCleanupMethodStub},
-       {"configure",        XOTclOConfigureMethodStub},
-       {"destroy",          XOTclODestroyMethodStub},
-       {"exists",           XOTclOExistsMethodStub},
-       {"filterguard",      XOTclOFilterGuardMethodStub},
-       {"filtersearch",     XOTclOFilterSearchMethodStub},
-       {"instvar",          XOTclOInstVarMethodStub},
-       {"invar",            XOTclOInvariantsMethodStub},
-       {"isclass",          XOTclOIsClassMethodStub},
-       {"ismetaclass",      XOTclOIsMetaClassMethodStub},
-       {"ismixin",          XOTclOIsMixinMethodStub},
-       {"isobject",         XOTclOIsObjectMethodStub},
-       {"istype",           XOTclOIsTypeMethodStub},
-       {"mixinguard",       XOTclOMixinGuardMethodStub},
-       {"__next",           XOTclONextMethodStub},
-       {"noinit",           XOTclONoinitMethodStub},
-       {"parametercmd",     XOTclOParametercmdMethodStub},
-       {"proc",             XOTclOProcMethodStub},
-       {"procsearch",       XOTclOProcSearchMethodStub},
-       {"requireNamespace", XOTclORequireNamespaceMethodStub},
-       {"set",              XOTclOSetMethodStub}, /***??**/
-       {"setvalues",        XOTclOSetvaluesMethodStub},
-       {"forward",          XOTclOForwardMethodStub},
-       {"uplevel",          XOTclOUplevelMethodStub},
-       {"upvar",            XOTclOUpvarMethodStub},
-       {"volatile",         XOTclOVolatileMethodStub},
-       {"vwait",            XOTclOVwaitMethodStub} 
-     };
-     
-     methodDefinition definitions2[] = {
-       {"alloc",            XOTclCAllocMethodStub},
-       {"create",           XOTclCCreateMethodStub},
-       {"dealloc",          XOTclCDeallocMethodStub},
-       {"new",              XOTclCNewMethodStub},
-       {"instfilterguard",  XOTclCInstFilterGuardMethodStub},
-       {"instinvar",        XOTclCInvariantsMethodStub},
-       {"instmixinguard",   XOTclCInstMixinGuardMethodStub},
-       {"instparametercmd", XOTclCInstParametercmdMethodStub},
-       {"instproc",         XOTclCInstProcMethodStub},
-       {"classscopedinstproc", XOTclCInstProcMethodCStub},
-       {"instforward",      XOTclCInstForwardMethodStub},
-       {"recreate",         XOTclCRecreateMethodStub},
-       {"unknown",          XOTclCUnknownMethodStub}
-     };
-
-     methodDefinition definitions3[] = {
-       {"type=required", XOTclCheckRequiredArgsStub},
-       {"type=switch",   XOTclCheckBooleanArgsStub}, /* for boolean and switch, we use the same checker */
-       {"type=boolean",  XOTclCheckBooleanArgsStub}
-     };
-     methodDefinition definitions4[] = {
-       {"args",         XOTclObjInfoArgsMethodStub},
-       {"body",         XOTclObjInfoBodyMethodStub},
-       {"class",        XOTclObjInfoClassMethodStub},
-       {"commands",     XOTclObjInfoCommandsMethodStub},
-       {"children",     XOTclObjInfoChildrenMethodStub},
-       {"check",        XOTclObjInfoCheckMethodStub},
-       {"default",      XOTclObjInfoDefaultMethodStub},
-       {"filter",       XOTclObjInfoFilterMethodStub},
-       {"filterguard",  XOTclObjInfoFilterguardMethodStub},
-       {"forward",      XOTclObjInfoForwardMethodStub},
-       {"hasnamespace", XOTclObjInfoHasnamespaceMethodStub},
-       {"invar",        XOTclObjInfoInvarMethodStub},
-       {"methods",      XOTclObjInfoMethodsMethodStub},
-       {"mixin",        XOTclObjInfoMixinMethodStub},
-       {"mixinguard",   XOTclObjInfoMixinguardMethodStub},
-       {"nonposargs",   XOTclObjInfoNonposargsMethodStub},
-       {"parent",       XOTclObjInfoParentMethodStub},
-       {"parametercmd", XOTclObjInfoParametercmdMethodStub},
-       {"post",         XOTclObjInfoPostMethodStub},
-       {"pre",          XOTclObjInfoPreMethodStub},
-       {"procs",        XOTclObjInfoProcsMethodStub},
-       {"precedence",   XOTclObjInfoPrecedenceMethodStub},
-       {"slotobjects",  XOTclObjInfoSlotObjectsMethodStub},
-       {"vars",         XOTclObjInfoVarsMethodStub}
-     };
-     methodDefinition definitions5[] = {
-       {"heritage",        XOTclClassInfoHeritageMethodStub},
-       {"instances",       XOTclClassInfoInstancesMethodStub},
-       {"instargs",        XOTclClassInfoInstargsMethodStub},
-       {"instbody",        XOTclClassInfoInstbodyMethodStub},
-       {"instcommands",    XOTclClassInfoInstcommandsMethodStub},
-       {"instdefault",     XOTclClassInfoInstdefaultMethodStub},
-       {"instfilter",      XOTclClassInfoInstfilterMethodStub},
-       {"instfilterguard", XOTclClassInfoInstfilterguardMethodStub},
-       {"instforward",     XOTclClassInfoInstforwardMethodStub},
-       {"instinvar",       XOTclClassInfoInstinvarMethodStub},
-       {"instmixin",       XOTclClassInfoInstmixinMethodStub},
-       {"instmixinguard",  XOTclClassInfoInstmixinguardMethodStub},
-       {"instmixinof",     XOTclClassInfoInstmixinofMethodStub},
-       {"instprocs",       XOTclClassInfoInstprocsMethodStub},
-       {"instnonposargs",  XOTclClassInfoInstnonposargsMethodStub},
-       {"instparametercmd",XOTclClassInfoInstparametercmdMethodStub},
-       {"instpre",         XOTclClassInfoInstpreMethodStub},
-       {"instpost",        XOTclClassInfoInstpostMethodStub},
-       {"mixinof",         XOTclClassInfoMixinofMethodStub},
-       {"parameter",       XOTclClassInfoParameterMethodStub},
-       {"subclass",        XOTclClassInfoSubclassMethodStub},
-       {"superclass",      XOTclClassInfoSuperclassMethodStub},
-       {"slots",           XOTclClassInfoSlotsMethodStub}
-     };
-     
-     methodDefinition *definitions[] = {definitions1, definitions2, definitions3, 
-                                        definitions4, definitions5};
-     int nr_definitions[] = {nr_elements(definitions1), nr_elements(definitions2), 
-                             nr_elements(definitions3), nr_elements(definitions4),
-                             nr_elements(definitions5)};
-     
-     int namespacelength;
-     Tcl_DString ds, *dsPtr = &ds;
-
-     Tcl_CreateNamespace(interp, "::xotcl::cmd", 0, (Tcl_NamespaceDeleteProc*)NULL);
-
-     DSTRING_INIT(dsPtr);
-     for (i=0; i < nr_elements(namespace_names); i++) {
-       int j;
-       Tcl_DStringAppend(dsPtr, namespace_names[i], -1);
-       /*fprintf(stderr,"namespace '%s'\n", namespace_names[i]);*/
-       Tcl_CreateNamespace(interp, Tcl_DStringValue(dsPtr), 0, (Tcl_NamespaceDeleteProc*)NULL);
-       Tcl_DStringAppend(dsPtr,"::", 2);
-       namespacelength = Tcl_DStringLength(dsPtr);
-       for (j = 0; j < nr_definitions[i]; j++) {
-         Tcl_DStringAppend(dsPtr, definitions[i][j].methodName, -1);
-         /*fprintf(stderr,"defining '%s' (%d of %d)\n", Tcl_DStringValue(dsPtr), j, nr_definitions[
-           i]);*/
-         Tcl_CreateObjCommand(interp, Tcl_DStringValue(dsPtr), definitions[i][j].proc, 0, 0);
-         Tcl_DStringSetLength(dsPtr, namespacelength);
-       }
-       Tcl_DStringSetLength(dsPtr, 0);
-     }
-     
-     DSTRING_FREE(dsPtr);
-   }
+  /* create all method commands (will use the namespaces above) */
+  for (i=0; i < nr_elements(method_definitions); i++) {
+    Tcl_CreateObjCommand(interp, method_definitions[i].methodName, method_definitions[i].proc, 0, 0);
+  }
 
   /*
    * overwritten tcl objs

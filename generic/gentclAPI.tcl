@@ -4,6 +4,13 @@
 # infoObjectMethod
 # infoClassMethod
 # checkMethod
+array set ns {
+ objectMethod "::xotcl::cmd::Object"
+ classMethod  "::xotcl::cmd::Class"
+ checkMethod  "::xotcl::cmd::NonposArgs"
+ infoClassMethod  "::xotcl::cmd::ClassInfo"
+ infoObjectMethod  "::xotcl::cmd::ObjectInfo"
+}
 
 set objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv \[\]);"
 proc genifd {argDefinitions} {
@@ -112,7 +119,7 @@ proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar post
       }
     }
     if {!$ifSet} {lappend if "$type$varName"}
-    if {$cVar} {lappend c [subst -nocommands {$type $varName = ($type)pc.clientData[$i];}]}
+    if {$cVar} {lappend c [subst -nocommands {$type$varName = ($type)pc.clientData[$i];}]}
     lappend a $calledArg
     incr i
   }
@@ -122,7 +129,7 @@ proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar post
 }
 
 
-proc genifds {} {
+proc genstubs {} {
   set stubDecls ""
   set decls ""
   set enums [list]
@@ -131,7 +138,7 @@ proc genifds {} {
     array set d $::definitions($key)
     append stubDecls "static int $d(stub)$::objCmdProc\n"
     lappend enums $d(idx)
-    lappend ifds "{\"$d(methodName)\", $d(stub), {\n  [genifd $d(argDefinitions)]}\n}"
+    lappend ifds "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), {\n  [genifd $d(argDefinitions)]}\n}"
 
     gencall $d(argDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
     append decls "static int $d(implementation)(Tcl_Interp *interp, $ifDef);\n"
@@ -164,7 +171,7 @@ typedef struct {
   char *methodName;
   Tcl_ObjCmdProc *proc;
   CONST interfaceDefinition ifd;
-} methodDefinition2;
+} methodDefinition;
 
 static int parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		     int idx, parseContext *pc);
@@ -172,13 +179,19 @@ static int parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  XOTclObject **matchObject, char **pattern);
   }
+
+  set namespaces [list]
+  foreach {key value} [array get ::ns] { lappend namespaces "\"$value\"" }
+  set namespaceString [join $namespaces ",\n  "]
+  puts "char *method_command_namespace_names\[\] = {\n  $namespaceString\n};"
+
   puts $stubDecls
   puts $decls
   set enumString [join $enums ",\n "]
   puts "enum {\n $enumString\n} XOTclMethods;\n"
   puts $fns
   set definitionString [join $ifds ",\n"]
-  puts "static methodDefinition2 methodDefinitons\[\] = \{\n$definitionString\n\};\n"
+  puts "static methodDefinition method_definitions\[\] = \{\n$definitionString\n\};\n"
 }
 
 proc methodDefinition {methodName methodType implementation argDefinitions} {
@@ -205,11 +218,9 @@ proc methodDefinition {methodName methodType implementation argDefinitions} {
 proc infoClassMethod {methodName implementation argDefinitions} {
   methodDefinition $methodName infoClassMethod $implementation $argDefinitions
 }
-
 proc infoObjectMethod {methodName implementation argDefinitions} {
   methodDefinition $methodName infoObjectMethod $implementation $argDefinitions
 }
-
 proc checkMethod {methodName implementation argDefinitions} {
   methodDefinition type=$methodName checkMethod $implementation $argDefinitions
 }
@@ -518,7 +529,7 @@ infoObjectMethod vars XOTclObjInfoVarsMethod {
 #
 # info class methods
 #
-infoClassMethod instances XOTclClassInfoHeritageMethod {
+infoClassMethod heritage XOTclClassInfoHeritageMethod {
   {-argName "class"   -required 1 -type class}
   {-argName "pattern"}
 }
@@ -539,7 +550,7 @@ infoClassMethod instbody XOTclClassInfoInstbodyMethod {
   {-argName "methodName" -required 1}
 }
 
-infoClassMethod instances XOTclClassInfoInstcommandsMethod {
+infoClassMethod instcommands XOTclClassInfoInstcommandsMethod {
   {-argName "class"   -required 1 -type class}
   {-argName "pattern"}
 }
@@ -642,5 +653,5 @@ infoClassMethod superclass XOTclClassInfoSuperclassMethod {
 }
 
 
-genifds
+genstubs
 puts stderr "[array size ::definitions] parsing stubs generated"
