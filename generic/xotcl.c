@@ -10119,6 +10119,32 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   return TCL_OK;
 }
 
+static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  XOTclObject *self = GetSelfObj(interp);
+  int result;
+
+  if (!self)
+    return XOTclVarErrMsg(interp, "Cannot resolve 'self', probably called outside the context of an XOTcl Object",
+                          (char *) NULL);
+
+  if (withLocal) {
+    XOTclClass *cl = self->cl;
+    char *methodName = ObjStr(method);
+    Tcl_Command cmd = FindMethod(methodName, cl->nsPtr);
+    if (cmd == 0)
+      return XOTclVarErrMsg(interp, objectName(self), 
+                            ": unable to dispatch local method '",
+                            methodName, "' in class ", className(cl), 
+                            (char *) NULL);
+    result = DoCallProcCheck((ClientData)self, interp, nobjc+2, nobjv, cmd, self, cl,
+                             methodName, 0);
+  } else {
+    result = callMethod((ClientData)self, interp, method, nobjc+2, nobjv, 0);
+  }
+  return result;
+}
+
+
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *reltype, Tcl_Obj *value) {
   int oc; Tcl_Obj **ov;
   XOTclObject *nobj = NULL;
@@ -10861,12 +10887,10 @@ static int XOTclOForwardMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *me
                                int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, 
                                int nobjc, Tcl_Obj *CONST nobjv[]) {
   forwardCmdClientData *tcd;
-  int rc;
-
-  rc = forwardProcessOptions(interp, method, 
-			     withDefault, withEarlybinding, withMethodprefix, 
-			     withObjscope, withOnerror, withVerbose,
-			     target, nobjc, nobjv, &tcd);
+  int rc = forwardProcessOptions(interp, method, 
+                                 withDefault, withEarlybinding, withMethodprefix, 
+                                 withObjscope, withOnerror, withVerbose,
+                                 target, nobjc, nobjv, &tcd);
   if (rc == TCL_OK) {
     tcd->obj = obj;
     XOTclAddPMethod(interp, (XOTcl_Object *)obj, NSTail(ObjStr(method)),
@@ -12225,49 +12249,6 @@ XOTcl_NSCopyVars(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   return rc;
 }
 
-int
-XOTclSelfDispatchCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *self;
-  int result, i = 1;
-  char *arg1;
-
-  if (objc < 2) return XOTclObjErrArgCnt(interp, objv[0], NULL, "?-local? method ?args?");
-
-  if (!(self = GetSelfObj(interp))) {
-    result = XOTclVarErrMsg(interp, "Cannot resolve 'self', probably called outside the context of an XOTcl Object",
-                            (char *) NULL);
-  }
-
-  arg1 = ObjStr(objv[1]);
-
-  if (*arg1 == '-' && !strcmp("-local", arg1)) {
-    XOTclClass *cl = GetSelfClass(interp);
-    Tcl_Command cmd;
-    char *method;
-    if (objc < 3) return XOTclObjErrArgCnt(interp, objv[0], NULL, "?-local? method ?args?");
-    
-    method = ObjStr(objv[2]);
-    i++;
-    cmd = FindMethod(method, cl->nsPtr);
-    if (cmd == 0)
-      return XOTclVarErrMsg(interp, objectName(self), 
-                            ": unable to dispatch local method '",
-                            method, "' in class ", className(cl), 
-                            (char *) NULL);
-    /*fprintf(stderr, "method %s, cmd = %p objc=%d\n", method, cmd, objc);
-      for (i=0; i<objc; i++) {fprintf(stderr,"%d: %s\n", i, ObjStr(objv[i]));} */
-    result = DoCallProcCheck(clientData, interp, objc-1, objv+1, cmd, self, cl,
-                             method, 0);
-  } else {
-    /*fprintf(stderr,"MY self=%p %s objc=%d, 1='%s'\n", 
-      self, objectName(self), objc, ObjStr(objv[1])); 
-      {int i; fprintf(stderr, "MY\tCALL ");for(i=0; i<objc; i++) {fprintf(stderr,"%s ", ObjStr(obj
-      v[i]));} fprintf(stderr,"\n");}
-    */
-    result = callMethod((ClientData)self, interp, objv[1], objc, objv+2, 0);
-  }
-  return result;
-}
 
 #if defined(PRE85)
 int
@@ -13215,10 +13196,6 @@ Xotcl_Init(Tcl_Interp *interp) {
   /*
    * new tcl cmds
    */
-#ifdef XOTCL_BYTECODE
-  instructions[INST_SELF_DISPATCH].cmdPtr = (Command *)
-#endif
-    Tcl_CreateObjCommand(interp, "::xotcl::my", XOTclSelfDispatchCmd, 0, 0);
 #ifdef XOTCL_BYTECODE
   instructions[INST_NEXT].cmdPtr = (Command *)
 #endif

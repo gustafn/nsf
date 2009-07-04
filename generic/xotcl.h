@@ -81,7 +81,6 @@
 #define PARSE_TRACE 1
 */
 
-
 #ifdef XOTCL_MEM_COUNT
 # define DO_FULL_CLEANUP 1
 #endif

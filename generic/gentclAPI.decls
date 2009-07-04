@@ -24,6 +24,11 @@ xotclCmd alias XOTclAliasCmd {
   {-argName "-protected"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
+xotclCmd my XOTclMyCmd {
+  {-argName "-local"}
+  {-argName "method" -required 1 -type tclobj}
+  {-argName "args" -type args}
+}
 xotclCmd relation XOTclRelationCmd {
   {-argName "object" -required 1 -type object}
   {-argName "reltype" -required 1 -type tclobj}

@@ -110,6 +110,7 @@ static int XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 static int XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
@@ -205,6 +206,7 @@ static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl
 static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, char *varname);
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withObjscope, int withPer_object, int withProtected, Tcl_Obj *cmdName);
+static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *reltype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 
@@ -301,6 +303,7 @@ enum {
  XOTclOVolatileMethodIdx,
  XOTclOVwaitMethodIdx,
  XOTclAliasCmdIdx,
+ XOTclMyCmdIdx,
  XOTclRelationCmdIdx,
  XOTclSetInstvarCmdIdx
 } XOTclMethods;
@@ -1823,6 +1826,21 @@ XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 }
   
 static int
+XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (parseObjv(interp, objc, objv, XOTclMyCmdIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int withLocal = (int )pc.clientData[0];
+    Tcl_Obj *method = (Tcl_Obj *)pc.clientData[1];
+
+    return XOTclMyCmd(interp, withLocal, method, objc-pc.lastobjc, objv+pc.lastobjc);
+
+  }
+}
+  
+static int
 XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
@@ -2238,6 +2256,11 @@ static methodDefinition method_definitions[] = {
   {"-per-object", 0, 0, NULL},
   {"-protected", 0, 0, NULL},
   {"cmdName", 1, 0, "tclobj"}}
+},
+{"::xotcl::my", XOTclMyCmdStub, {
+  {"-local", 0, 0, NULL},
+  {"method", 1, 0, "tclobj"},
+  {"args", 0, 0, "args"}}
 },
 {"::xotcl::relation", XOTclRelationCmdStub, {
   {"object", 1, 0, "object"},
