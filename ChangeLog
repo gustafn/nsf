@@ -62,10 +62,13 @@ Class Meta -superclass Class
 Meta C -superclass O -parameter {a {b -default ""} {c -default 1}}
 C c1 ;# c1 has no no default value for "a", before it had one
 ======
+
 2009-07-04 <Gustaf.Neumann@wu-wien.ac.at>
     - removed compatibility for versions before Tcl 8.4 (was not tested anyhow)
       This version requires at least Tcl 8.4.
-    - from 15356 generic/xotcl.c => 13346
+    - support for generating interface for ::xotcl commands
+    - generated interface for ::xotcl::alias
+    - from 15356 generic/xotcl.c => 13313
 
 2009-07-01 <Gustaf.Neumann@wu-wien.ac.at>
     - moved all definitions of method commands to generated code

@@ -109,6 +109,7 @@ static int XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, in
 static int XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int XOTclCheckBooleanArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
 static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
@@ -201,6 +202,7 @@ static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, T
 static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, char *varname);
+static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withObjscope, int withPer_object, int withProtected, Tcl_Obj *cmdName);
 
 enum {
  XOTclCheckBooleanArgsIdx,
@@ -293,7 +295,8 @@ enum {
  XOTclOUplevelMethodIdx,
  XOTclOUpvarMethodIdx,
  XOTclOVolatileMethodIdx,
- XOTclOVwaitMethodIdx
+ XOTclOVwaitMethodIdx,
+ XOTclAliasCmdIdx
 } XOTclMethods;
 
 
@@ -1794,6 +1797,25 @@ XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   }
 }
   
+static int
+XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (parseObjv(interp, objc, objv, XOTclAliasCmdIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclObject *object = (XOTclObject *)pc.clientData[0];
+    char *methodName = (char *)pc.clientData[1];
+    int withObjscope = (int )pc.clientData[2];
+    int withPer_object = (int )pc.clientData[3];
+    int withProtected = (int )pc.clientData[4];
+    Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[5];
+
+    return XOTclAliasCmd(interp, object, methodName, withObjscope, withPer_object, withProtected, cmdName);
+
+  }
+}
+  
 static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::NonposArgs::type=boolean", XOTclCheckBooleanArgsStub, {
   {"name", 1, 0, NULL},
@@ -2170,6 +2192,14 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::cmd::Object::vwait", XOTclOVwaitMethodStub, {
   {"varname", 1, 0, NULL}}
+},
+{"::xotcl::alias", XOTclAliasCmdStub, {
+  {"object", 1, 0, "object"},
+  {"methodName", 1, 0, NULL},
+  {"-objscope", 0, 0, NULL},
+  {"-per-object", 0, 0, NULL},
+  {"-protected", 0, 0, NULL},
+  {"cmdName", 1, 0, "tclobj"}}
 }
 };
 

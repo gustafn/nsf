@@ -9195,87 +9195,55 @@ XOTclDispatchCmd(ClientData clientData, Tcl_Interp *interp,
   return result;
 }
 
-static int
-XOTclAliasCmd(ClientData clientData, Tcl_Interp *interp, 
-              int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj = NULL;
-  XOTclClass *cl = NULL;
-  Tcl_Command cmd = NULL, importedCmd, newCmd;
+static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, 
+                         int withObjscope, int withPer_object, int withProtected, Tcl_Obj *cmdName) {
+  XOTclClass *cl;
+  Tcl_Command cmd, importedCmd;
   Tcl_ObjCmdProc *objProc;
-  char allocation, *methodName, *optionName;
+  char allocation;
   Tcl_CmdDeleteProc *dp = NULL;
   aliasCmdClientData *tcd = NULL;
-  int objscope = 0, protected = 0, flags = 0, i;
+  int flags = 0;
     
-  if (objc < 4 || objc > 6) {
-    return XOTclObjErrArgCnt(interp, objv[0], NULL,
-			     "<class>|<obj> <methodName> ?-objscope? ?-per-object? <cmdName>");
-  }
-       
-  GetXOTclClassFromObj(interp, objv[1], &cl, 0); /* maybe provide base? */
-  if (!cl) {
-    XOTclObjConvertObject(interp, objv[1], &obj);
-    if (!obj) 
-      return XOTclObjErrType(interp, objv[1], "Class|Object");
-    allocation = 'o';
-  } else {
+  if (XOTclObjectIsClass(object)) {
+    cl = (XOTclClass *)object;
     allocation = 'c';
+  } else {
+    cl = NULL;
+    allocation = 'o';
   }
-
-  methodName = ObjStr(objv[2]);
-  
-  for (i=3; i<6 && i < objc; i++) {
-    optionName = ObjStr(objv[i]);
-    if (*optionName != '-') break;
-    if (!strcmp("-objscope", optionName)) {
-      objscope = 1;
-    } else if (!strcmp("-per-object", optionName)) {
-      allocation = 'o';
-    } else if (!strcmp("-protected", optionName)) {
-      protected = 1;
-    } else {
-      return XOTclErrBadVal(interp, "::xotcl::alias", 
-                            "option -objscope or -per-object", optionName);
-    }
-  }
-
-  cmd = Tcl_GetCommandFromObj(interp, objv[i]);
+  cmd = Tcl_GetCommandFromObj(interp, cmdName);
   if (cmd == NULL) 
     return XOTclVarErrMsg(interp, "cannot lookup command '",
-                          ObjStr(objv[i]), "'", (char *) NULL);
+                          ObjStr(cmdName), "'", (char *) NULL);
   
   if ((importedCmd = TclGetOriginalCommand(cmd))) {
     cmd = importedCmd;
   }
   objProc = Tcl_Command_objProc(cmd); 
 
-  if (objc>i+1) {
-    return XOTclVarErrMsg(interp, "invalid argument '",
-                          ObjStr(objv[i+1]), "'", (char *) NULL);
-  }
-
-  if (objscope) {
+  if (withObjscope) {
     tcd = NEW(aliasCmdClientData);
-    tcd->cmdName = NULL;
-    tcd->obj     = allocation == 'c' ? &cl->object : obj;
-    tcd->objProc = objProc;
-    tcd->clientData      = Tcl_Command_objClientData(cmd);
-    objProc      = XOTclObjscopedMethod;
+    tcd->cmdName    = NULL;
+    tcd->obj        = allocation == 'c' ? &cl->object : object;
+    tcd->objProc    = objProc;
+    tcd->clientData = Tcl_Command_objClientData(cmd);
+    objProc         = XOTclObjscopedMethod;
     dp = aliasCmdDeleteProc;
   } else {
     tcd = Tcl_Command_objClientData(cmd);
   }
 
-  if (protected) {
+  if (withProtected) {
     flags = XOTCL_PROTECTED_METHOD; 
   }
 
   if (allocation == 'c') {
-    newCmd = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName, 
-				    objProc, tcd, dp, flags);
+    XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName, 
+                           objProc, tcd, dp, flags);
   } else {
-    newCmd = XOTclAddObjectMethod(interp, (XOTcl_Object*)obj, methodName, 
-				  objProc, tcd, dp, flags);
+    XOTclAddObjectMethod(interp, (XOTcl_Object*)object, methodName, 
+                         objProc, tcd, dp, flags);
   }
   return TCL_OK;
 }
@@ -13261,7 +13229,6 @@ Xotcl_Init(Tcl_Interp *interp) {
     Tcl_CreateObjCommand(interp, "::xotcl::self", XOTclGetSelfObjCmd, 0, 0);
   /*Tcl_CreateObjCommand(interp, "::xotcl::K", XOTclKObjCmd, 0, 0);*/
   
-  Tcl_CreateObjCommand(interp, "::xotcl::alias", XOTclAliasCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::createobjectsystem", XOTclCreateObjectSystemCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::dispatch", XOTclDispatchCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::methodproperty", XOTclMethodPropertyCmd, 0, 0);

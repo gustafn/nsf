@@ -5,13 +5,25 @@
 
 # namespaces for types of methods
 array set ns {
- objectMethod "::xotcl::cmd::Object"
- classMethod  "::xotcl::cmd::Class"
- checkMethod  "::xotcl::cmd::NonposArgs"
- infoClassMethod  "::xotcl::cmd::ClassInfo"
- infoObjectMethod  "::xotcl::cmd::ObjectInfo"
+  xotclCmd    "::xotcl"
+  objectMethod "::xotcl::cmd::Object"
+  classMethod  "::xotcl::cmd::Class"
+  checkMethod  "::xotcl::cmd::NonposArgs"
+  infoClassMethod  "::xotcl::cmd::ClassInfo"
+  infoObjectMethod  "::xotcl::cmd::ObjectInfo"
 }
 
+#
+# XOTcl commands
+#
+xotclCmd alias XOTclAliasCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "methodName" -required 1}
+  {-argName "-objscope"}
+  {-argName "-per-object"}
+  {-argName "-protected"}
+  {-argName "cmdName" -required 1 -type tclobj}
+}
 #
 # object methods
 #

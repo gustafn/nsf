@@ -54,7 +54,8 @@ proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar post
     array set "" $argDefinition
     set ifSet 0
     set cVar 1
-    if {[regexp {^-(.*)$} $(-argName) _ switchName]} {
+    set (-argName) [string map [list - _] $(-argName)]
+    if {[regexp {^_(.*)$} $(-argName) _ switchName]} {
       set varName with[string totitle $switchName]
       set calledArg $varName
       set type "int "
@@ -176,10 +177,13 @@ static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *orig
   }
 
   set namespaces [list]
-  foreach {key value} [array get ::ns] { lappend namespaces "\"$value\"" }
+  foreach {key value} [array get ::ns] { 
+     # no need to create the ::xotcl namespace
+     if {$value eq "::xotcl"} continue
+     lappend namespaces "\"$value\"" 
+  }
   set namespaceString [join $namespaces ",\n  "]
   puts "char *method_command_namespace_names\[\] = {\n  $namespaceString\n};"
-
   puts $stubDecls
   puts $decls
   set enumString [join $enums ",\n "]
@@ -224,6 +228,9 @@ proc classMethod {methodName implementation argDefinitions} {
 }
 proc objectMethod {methodName implementation argDefinitions} {
   methodDefinition $methodName objectMethod $implementation $argDefinitions
+}
+proc xotclCmd {methodName implementation argDefinitions} {
+  methodDefinition $methodName xotclCmd $implementation $argDefinitions
 }
 
 source [file dirname [info script]]/gentclAPI.decls
