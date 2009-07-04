@@ -194,41 +194,6 @@ static void checkAllInstances(Tcl_Interp *interp, XOTclClass *startCl, int lvl);
 #endif
 
 
-
-
-#ifdef PRE81
-/* for backward compatibility only
- */
-static int
-Tcl_EvalObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int flags) {
-  int i, result;
-  Tcl_DString ds, *dsp = &ds;
-
-  assert(flags == 0);
-  DSTRING_INIT(dsp);
-  for (i = 0; i < objc; i++) {
-    Tcl_DStringAppendElement(dsp, ObjStr(objv[i]));
-  }
-  result = Tcl_Eval(interp, Tcl_DStringValue(dsp));
-  DSTRING_FREE(dsp);
-  return result;
-}
-static int
-Tcl_EvalEx(Tcl_Interp *interp, char *cmd, int len, int flags) {
-  return Tcl_Eval(interp, cmd);
-}
-static int
-Tcl_SubstObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  char *ov[20];
-  int i;
-  assert(objc<19);
-  for (i=0; i<objc; i++)
-    ov[i] = ObjStr(objv[i]);
-
-  return Tcl_SubstCmd(clientData, interp, objc, ov);
-}
-#endif
-
 /*
  * Var Reform Compatibility support
  */
@@ -688,7 +653,7 @@ XOTclCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *meth
  *  realize self, class, proc through the [self] command
  */
 
-XOTCLINLINE static CONST84 char *
+XOTCLINLINE static CONST char *
 GetSelfProc(Tcl_Interp *interp) {
   /*return Tcl_GetCommandName(interp, RUNTIME_STATE(interp)->cs.top->cmdPtr);*/
   return Tcl_GetCommandName(interp, CallStackGetFrame(interp)->cmdPtr);
@@ -1045,19 +1010,11 @@ GetCmdNameType(Tcl_ObjType *cmdType) {
   static Tcl_ObjType *tclCmdNameType = NULL;
   
   if (tclCmdNameType == NULL) {
-# if defined(PRE82)
-    if (cmdType 
-	&& cmdType != &XOTclObjectType 
-	&& !strcmp(cmdType->name,"cmdName")) {
-      tclCmdNameType = cmdType;
-    }
-# else
     static XOTclMutex initMutex = 0;
     XOTclMutexLock(&initMutex);
     if (tclCmdNameType == NULL)
       tclCmdNameType = Tcl_GetObjType("cmdName");
     XOTclMutexUnlock(&initMutex);
-# endif
   }
   return tclCmdNameType;
 }
@@ -2262,11 +2219,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *name, XOTclObject *obj,
   int valueLength, mustCopy = 1, format = 0;
   char *valueString, *c;
   Tcl_Obj *valueObject, *result = NULL, *savedResult = NULL;
-#ifdef PRE83
-  int flgs = 0;
-#else
   int flgs = TCL_LEAVE_ERR_MSG;
-#endif
   XOTcl_FrameDecls;
 
   XOTcl_PushFrame(interp, obj);
@@ -2836,7 +2789,7 @@ static XOTclCmdList*
 CmdListFindNameInList(Tcl_Interp *interp, char *name, XOTclCmdList *l) {
   register XOTclCmdList *h;
   for (h = l; h; h = h->nextPtr) {
-    CONST84 char *cmdName = Tcl_GetCommandName(interp, h->cmdPtr);
+    CONST char *cmdName = Tcl_GetCommandName(interp, h->cmdPtr);
     if (cmdName[0] == name[0] && !strcmp(cmdName, name))
       return h;
   }
@@ -4464,7 +4417,7 @@ FilterRemoveDependentFilterCmds(XOTclClass *cl, XOTclClass *removeClass) {
  * with obj
  */
 static Tcl_Obj *
-getFullProcQualifier(Tcl_Interp *interp, CONST84 char *cmdName,
+getFullProcQualifier(Tcl_Interp *interp, CONST char *cmdName,
                      XOTclObject *obj, XOTclClass *cl, Tcl_Command cmd) {
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
   Tcl_Obj *procObj = Tcl_NewStringObj(cmdName, -1);
@@ -4509,7 +4462,7 @@ getFullProcQualifier(Tcl_Interp *interp, CONST84 char *cmdName,
 static int
 FilterInfo(Tcl_Interp *interp, XOTclCmdList *f, char *pattern,
            int withGuards, int fullProcQualifiers) {
-  CONST84 char *simpleName;
+  CONST char *simpleName;
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
 
   /*fprintf(stderr,"FilterInfo %p %s %d %d\n", pattern, pattern, withGuards, fullProcQualifiers);*/
@@ -5030,16 +4983,11 @@ varExists(Tcl_Interp *interp, XOTclObject *obj, CONST char *varName, char *index
  
   XOTcl_PushFrame(interp, obj);
 
-#if defined(PRE83)
-  varPtr = TclLookupVar(interp, varName, index, flags, "access",
-                        /*createPart1*/ 0, /*createPart2*/ 0, &arrayPtr);
-#else
   if (triggerTrace) 
     varPtr = TclVarTraceExists(interp, varName);
   else 
     varPtr = TclLookupVar(interp, varName, index, flags, "access",
                           /*createPart1*/ 0, /*createPart2*/ 0, &arrayPtr);
-#endif
   /*
     fprintf(stderr, "varExists %s varPtr %p requireDefined %d, triggerTrace %d, isundef %d\n",
     varName,
@@ -7239,7 +7187,7 @@ freeUnsetTraceVariable(Tcl_Interp *interp, XOTclObject *obj) {
 }
 
 static char *
-XOTclUnsetTrace(ClientData clientData, Tcl_Interp *interp, CONST84 char *name, CONST84 char *name2, int flags)
+XOTclUnsetTrace(ClientData clientData, Tcl_Interp *interp, CONST char *name, CONST char *name2, int flags)
 {
   Tcl_Obj *obj = (Tcl_Obj *)clientData;
   XOTclObject *o;
@@ -9400,11 +9348,6 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, char **methodName, int *objc, Tcl_Ob
      be moved into the interpreter state
   */
   if (listType == NULL) {
-#if defined(PRE82)
-    Tcl_Obj *tmp = Tcl_NewListObj(1, &obj);
-    listType = tmp->typePtr;
-    DECR_REF_COUNT(tmp);
-#else
     static XOTclMutex initMutex = 0;
     XOTclMutexLock(&initMutex);
     if (listType == NULL) {
@@ -9412,7 +9355,6 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, char **methodName, int *objc, Tcl_Ob
       /*fprintf(stderr, "fetching listType=%p\n", listType);*/
     }
     XOTclMutexUnlock(&initMutex);
-#endif
   }
 
   if (obj->typePtr == listType) {
@@ -10638,7 +10580,7 @@ static int XOTclOFilterSearchMethod(Tcl_Interp *interp, XOTclObject *obj, char *
     return TCL_OK;
 
   for (cmdList = obj->filterOrder; cmdList;  cmdList = cmdList->nextPtr) {
-    CONST84 char *filterName = Tcl_GetCommandName(interp, cmdList->cmdPtr);
+    CONST char *filterName = Tcl_GetCommandName(interp, cmdList->cmdPtr);
     if (filterName[0] == filter[0] && !strcmp(filterName, filter))
       break;
   }
@@ -13064,10 +13006,8 @@ static void
 XOTcl_ThreadExitProc(ClientData clientData) {
   /*fprintf(stderr,"+++ XOTcl_ThreadExitProc\n");*/
   
-# if !defined(PRE83)
   void XOTcl_ExitProc(ClientData clientData);
   Tcl_DeleteExitHandler(XOTcl_ExitProc, clientData);
-# endif
   ExitHandler(clientData);
 }
 #endif
@@ -13078,7 +13018,7 @@ XOTcl_ThreadExitProc(ClientData clientData) {
 void
 XOTcl_ExitProc(ClientData clientData) {
   /*fprintf(stderr,"+++ XOTcl_ExitProc\n");*/
-#if !defined(PRE83) && defined(TCL_THREADS)
+#if defined(TCL_THREADS)
   Tcl_DeleteThreadExitHandler(XOTcl_ThreadExitProc, clientData);
 #endif
   ExitHandler(clientData);
@@ -13091,7 +13031,7 @@ XOTcl_ExitProc(ClientData clientData) {
 static void
 RegisterExitHandlers(ClientData clientData) {
   Tcl_Preserve(clientData);
-#if !defined(PRE83) && defined(TCL_THREADS)
+#if defined(TCL_THREADS)
   Tcl_CreateThreadExitHandler(XOTcl_ThreadExitProc, clientData);
 #endif
   Tcl_CreateExitHandler(XOTcl_ExitProc, clientData);
@@ -13164,12 +13104,10 @@ Xotcl_Init(Tcl_Interp *interp) {
   XOTclCompEnv *interpstructions = XOTclGetCompEnv();
 #endif
 
-#ifndef PRE81
-# ifdef USE_TCL_STUBS
+#ifdef USE_TCL_STUBS
   if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
     return TCL_ERROR;
   }
-# endif
 #endif
 
 #if defined(TCL_MEM_DEBUG)
@@ -13386,7 +13324,7 @@ Xotcl_Init(Tcl_Interp *interp) {
 # endif
 #endif
 
-#if !defined(TCL_THREADS) && !defined(PRE81)
+#if !defined(TCL_THREADS)
   if ((Tcl_GetVar2(interp, "tcl_platform", "threaded", TCL_GLOBAL_ONLY) != NULL)) {
     /* a non threaded XOTcl version is loaded into a threaded environment */
     fprintf(stderr, "\n A non threaded XOTCL version is loaded into threaded environment\n Please reconfigure XOTcl with --enable-threads!\n\n\n");

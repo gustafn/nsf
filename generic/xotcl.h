@@ -108,22 +108,6 @@
 # error Tcl distribution is TOO OLD, we require at least tcl8.0
 #endif
 
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<1
-# define PRE81
-#else
-# if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION==1
-#  define V81
-# endif
-#endif
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<2
-# define PRE82
-#endif
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<3
-# define PRE83
-#endif
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<4
-# define PRE84
-#endif
 #if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<5
 # define PRE85
 #endif

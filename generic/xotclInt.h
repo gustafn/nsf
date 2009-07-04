@@ -227,7 +227,7 @@ typedef struct XOTclMemCounter {
 # endif
 #endif
 
-#if !defined(PRE83) && defined(TCL_THREADS)
+#if defined(TCL_THREADS)
 # define XOTclMutex Tcl_Mutex 
 # define XOTclMutexLock(a) Tcl_MutexLock(a)
 # define XOTclMutexUnlock(a) Tcl_MutexUnlock(a)
@@ -237,37 +237,7 @@ typedef struct XOTclMemCounter {
 # define XOTclMutexUnlock(a) (*(a))--
 #endif
 
-#if defined(PRE84)
-# define CONST84 
-#else
-# define CONST84 CONST
-#endif
-
-#if defined(PRE81)
-# define ObjStr(obj) Tcl_GetStringFromObj(obj, ((int*)NULL))
-#else
-# define ObjStr(obj) (obj)->bytes ? (obj)->bytes : Tcl_GetString(obj)
-/*# define ObjStr(obj) Tcl_GetString(obj) */
-#endif
-
-#ifdef V81
-# define EvalObj(interp,cmd) Tcl_EvalObj(interp, cmd, 0)
-# define TclIsVarArgument(args) (args->isArg)
-# define Tcl_ObjSetVar2(interp,p1,p2,newval,flags) \
-	Tcl_SetObjVar2(interp,ObjStr(p1),p2,newval,flags)
-#define Tcl_ObjGetVar2(interp,name1,name2,flgs) \
-  Tcl_GetObjVar2(interp, ObjStr(name1), \
-		((name2==NULL) ? (char*)NULL : ObjStr(name2)), flgs)
-#else
-# if defined(PRE83)
-#  define EvalObj(interp, cmd) Tcl_EvalObj(interp,cmd)
-# else
-#  define EvalObj(interp, cmd) Tcl_EvalObjEx(interp,cmd,0)
-# endif
-# if defined(PRE81) && TCL_RELEASE_SERIAL<3
-#  define TclIsVarArgument(args) (args->isArg)
-# endif
-#endif
+#define ObjStr(obj) (obj)->bytes ? (obj)->bytes : Tcl_GetString(obj)
 
 #if 0
 #define XOTcl_FrameDecls CallFrame *oldFramePtr = 0, frame, *newFramePtr = &frame
