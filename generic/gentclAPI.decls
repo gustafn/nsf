@@ -24,6 +24,13 @@ xotclCmd alias XOTclAliasCmd {
   {-argName "-protected"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
+xotclCmd methodproperty XOTclMethodPropertyCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "methodName" -required 1}
+  {-argName "-per-object"}
+  {-argName "methodproperty" -required 1 -type "protected|public|slotobj"}
+  {-argName "value" -type tclobj}
+}
 xotclCmd my XOTclMyCmd {
   {-argName "-local"}
   {-argName "method" -required 1 -type tclobj}
@@ -31,7 +38,7 @@ xotclCmd my XOTclMyCmd {
 }
 xotclCmd relation XOTclRelationCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "reltype" -required 1 -type tclobj}
+  {-argName "relationtype" -required 1 -type "mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class_filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd setinstvar XOTclSetInstvarCmd {

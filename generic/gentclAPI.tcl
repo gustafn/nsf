@@ -7,21 +7,60 @@
 # Gustaf Neumann,                                fecit in June 2009
 #
 
-set objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv \[\]);"
+set ::converter ""
+set ::objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv \[\]);"
+
+proc convertername {type argname} {
+  #return [string totitle [string map [list | _] $type]]
+  return [string totitle $argname]
+}
+
+proc createconverter {type argname} {
+  set name [convertername $type $argname]
+  if {[info exists ::created($name)]} {
+    return ""
+  }
+  set domain [split $type |]
+  set opts "static CONST char *opts\[\] = {\"[join $domain {", "}]\", NULL};"
+  set enums [list]
+  foreach d $domain {lappend enums $argname[string totitle [string map [list - _] $d]]Idx}
+  subst {
+static int convertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
+  $opts
+  return Tcl_GetIndexFromObj(interp, objPtr, opts, "$argname", 0, (int *)clientData);
+}
+enum ${argname}Idx {[join $enums {, }]};
+  }
+}
+
 proc genifd {argDefinitions} {
   set l [list]
   foreach argDefinition $argDefinitions {
     array set "" $argDefinition
     switch $(-type) {
       "" {set type NULL}
-      default {set type "\"$(-type)\""}
+      default {set type $(-type)}
     }
-    lappend l "{\"$(-argName)\", $(-required), $(-nrargs), $type}"
+    switch -glob $type {
+      "NULL"       {set converter String}
+      "class"      {set converter Class}
+      "object"     {set converter Object}
+      "tclobj"     {set converter Tclobj}
+      "args"       {set converter Nothing}
+      "allargs"    {set converter Nothing}
+      "objpattern" {set converter Objpattern}
+      *|* {  
+        set converter [convertername $type $(-argName)]
+        append ::converter [createconverter $type $(-argName)]
+        set (-argName) $type
+      }
+    }
+    lappend l "{\"$(-argName)\", $(-required), $(-nrargs), convertTo$converter}"
   }
   join $l ",\n  "
 }
 
-proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar postVar introVar} {
+proc gencall {fn argDefinitions clientData cDefsVar ifDefVar arglistVar preVar postVar introVar} {
   upvar $cDefsVar cDefs $ifDefVar ifDef $arglistVar arglist $preVar pre $postVar post \
       $introVar intro 
   set c [list]
@@ -71,7 +110,7 @@ proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar post
     } else {
       set varName $(-argName)
       set calledArg $varName
-      switch $(-type) {
+      switch -glob $(-type) {
         ""           {set type "char *"}
         "class"      {set type "XOTclClass *"}
         "object"     {set type "XOTclObject *"}
@@ -111,7 +150,10 @@ proc gencall {argDefinitions clientData cDefsVar ifDefVar arglistVar preVar post
          }]
 	  # end of obj pattern
         }
-        default  {error "type '$(-type)' not allowed for argument"}
+        *|* {set type "int "}
+        default  {
+          error "type '$(-type)' not allowed for argument"
+        }
       }
     }
     if {!$ifSet} {lappend if "$type$varName"}
@@ -136,7 +178,7 @@ proc genstubs {} {
     lappend enums $d(idx)
     lappend ifds "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), {\n  [genifd $d(argDefinitions)]}\n}"
 
-    gencall $d(argDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
+    gencall $d(stub) $d(argDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
     append decls "static int $d(implementation)(Tcl_Interp *interp, $ifDef);\n"
     if {$post ne ""} {
       append cDefs "\n    int returnCode;"
@@ -162,6 +204,7 @@ $post
   }]
   }
 
+  puts $::converter
   puts {
 typedef struct {
   char *methodName;

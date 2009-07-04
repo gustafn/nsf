@@ -67,8 +67,11 @@ C c1 ;# c1 has no no default value for "a", before it had one
     - removed compatibility for versions before Tcl 8.4 (was not tested anyhow)
       This version requires at least Tcl 8.4.
     - support for generating interface for ::xotcl commands
-    - generated interface for ::xotcl::alias, ::xotcl::my, ::xotcl::relation, ::xotcl::setinstvar
-    - from 15356 generic/xotcl.c => 13288
+    - support for enumeration types in c-code generator
+    - use function pointer for type checker instead of strings
+    - generated interface for ::xotcl::alias, ::xotcl::methodproperty, 
+      ::xotcl::my, ::xotcl::relation, ::xotcl::setinstvar
+    - from 15356 generic/xotcl.c => 13216
 
 2009-07-01 <Gustaf.Neumann@wu-wien.ac.at>
     - moved all definitions of method commands to generated code
@@ -80,7 +83,7 @@ C c1 ;# c1 has no no default value for "a", before it had one
     - all object methods generated
     - added reference counting for patternobj
     - some cleanup and reordering
-    - from 15356 generic/xotcl.c => 13884 => 13560
+    - from 15356 generic/xotcl.c => 13560
 
 2009-06-29 <Gustaf.Neumann@wu-wien.ac.at>
     - !!! removed obsolete features

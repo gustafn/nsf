@@ -426,6 +426,7 @@ namespace eval ::xotcl::serializer {
   }
   Serializer instproc deepSerialize o {
     # assumes $o to be fully qualified
+puts stderr CALL-allChildren
     my serialize-objects [my allChildren $o] 1
   }
   Serializer instproc serializeMethod {object kind name} {
@@ -530,7 +531,7 @@ namespace eval ::xotcl::serializer {
     set s [my new -childof [self] -volatile]
     foreach o [eval $s configure $args] {
       append r [$s deepSerialize [$o]]
-  }
+    }
     if {[$s exists map]} {return [string map [$s map] $r]}
     return $r
   }

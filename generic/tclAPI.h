@@ -1,4 +1,17 @@
 
+static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
+  static CONST char *opts[] = {"protected", "public", "slotobj", NULL};
+  return Tcl_GetIndexFromObj(interp, objPtr, opts, "methodproperty", 0, (int *)clientData);
+}
+enum methodpropertyIdx {methodpropertyProtectedIdx, methodpropertyPublicIdx, methodpropertySlotobjIdx};
+  
+static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
+  static CONST char *opts[] = {"mixin", "instmixin", "object-mixin", "class-mixin", "filter", "instfilter", "object-filter", "class_filter", "class", "superclass", "rootclass", NULL};
+  return Tcl_GetIndexFromObj(interp, objPtr, opts, "relationtype", 0, (int *)clientData);
+}
+enum relationtypeIdx {relationtypeMixinIdx, relationtypeInstmixinIdx, relationtypeObject_mixinIdx, relationtypeClass_mixinIdx, relationtypeFilterIdx, relationtypeInstfilterIdx, relationtypeObject_filterIdx, relationtypeClass_filterIdx, relationtypeClassIdx, relationtypeSuperclassIdx, relationtypeRootclassIdx};
+  
+
 typedef struct {
   char *methodName;
   Tcl_ObjCmdProc *proc;
@@ -110,6 +123,7 @@ static int XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 static int XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -206,8 +220,9 @@ static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl
 static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, char *varname);
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withObjscope, int withPer_object, int withProtected, Tcl_Obj *cmdName);
+static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withPer_object, int methodproperty, Tcl_Obj *value);
 static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *reltype, Tcl_Obj *value);
+static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 
 enum {
@@ -303,6 +318,7 @@ enum {
  XOTclOVolatileMethodIdx,
  XOTclOVwaitMethodIdx,
  XOTclAliasCmdIdx,
+ XOTclMethodPropertyCmdIdx,
  XOTclMyCmdIdx,
  XOTclRelationCmdIdx,
  XOTclSetInstvarCmdIdx
@@ -1826,6 +1842,24 @@ XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 }
   
 static int
+XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (parseObjv(interp, objc, objv, XOTclMethodPropertyCmdIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclObject *object = (XOTclObject *)pc.clientData[0];
+    char *methodName = (char *)pc.clientData[1];
+    int withPer_object = (int )pc.clientData[2];
+    int methodproperty = (int )pc.clientData[3];
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
+
+    return XOTclMethodPropertyCmd(interp, object, methodName, withPer_object, methodproperty, value);
+
+  }
+}
+  
+static int
 XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
@@ -1848,10 +1882,10 @@ XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    Tcl_Obj *reltype = (Tcl_Obj *)pc.clientData[1];
+    int relationtype = (int )pc.clientData[1];
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
-    return XOTclRelationCmd(interp, object, reltype, value);
+    return XOTclRelationCmd(interp, object, relationtype, value);
 
   }
 }
@@ -1874,403 +1908,410 @@ XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   
 static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::NonposArgs::type=boolean", XOTclCheckBooleanArgsStub, {
-  {"name", 1, 0, NULL},
-  {"value", 0, 0, "tclobj"}}
+  {"name", 1, 0, convertToString},
+  {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::NonposArgs::type=required", XOTclCheckRequiredArgsStub, {
-  {"name", 1, 0, NULL},
-  {"value", 0, 0, "tclobj"}}
+  {"name", 1, 0, convertToString},
+  {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Class::alloc", XOTclCAllocMethodStub, {
-  {"name", 1, 0, NULL}}
+  {"name", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::Class::create", XOTclCCreateMethodStub, {
-  {"name", 1, 0, NULL},
-  {"args", 0, 0, "allargs"}}
+  {"name", 1, 0, convertToString},
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Class::dealloc", XOTclCDeallocMethodStub, {
-  {"object", 1, 0, "tclobj"}}
+  {"object", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Class::instfilterguard", XOTclCInstFilterGuardMethodStub, {
-  {"filter", 1, 0, NULL},
-  {"guard", 1, 0, "tclobj"}}
+  {"filter", 1, 0, convertToString},
+  {"guard", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Class::instforward", XOTclCInstForwardMethodStub, {
-  {"method", 1, 0, "tclobj"},
-  {"-default", 0, 1, "tclobj"},
-  {"-earlybinding", 0, 0, NULL},
-  {"-methodprefix", 0, 1, "tclobj"},
-  {"-objscope", 0, 0, NULL},
-  {"-onerror", 0, 1, "tclobj"},
-  {"-verbose", 0, 0, NULL},
-  {"target", 0, 0, "tclobj"},
-  {"args", 0, 0, "args"}}
+  {"method", 1, 0, convertToTclobj},
+  {"-default", 0, 1, convertToTclobj},
+  {"-earlybinding", 0, 0, convertToString},
+  {"-methodprefix", 0, 1, convertToTclobj},
+  {"-objscope", 0, 0, convertToString},
+  {"-onerror", 0, 1, convertToTclobj},
+  {"-verbose", 0, 0, convertToString},
+  {"target", 0, 0, convertToTclobj},
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Class::instmixinguard", XOTclCInstMixinGuardMethodStub, {
-  {"mixin", 1, 0, NULL},
-  {"guard", 1, 0, "tclobj"}}
+  {"mixin", 1, 0, convertToString},
+  {"guard", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Class::instparametercmd", XOTclCInstParametercmdMethodStub, {
-  {"name", 1, 0, NULL}}
+  {"name", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::Class::instproc", XOTclCInstProcMethodStub, {
-  {"name", 1, 0, "tclobj"},
-  {"args", 1, 0, "tclobj"},
-  {"body", 1, 0, "tclobj"},
-  {"precondition", 0, 0, "tclobj"},
-  {"postcondition", 0, 0, "tclobj"}}
+  {"name", 1, 0, convertToTclobj},
+  {"args", 1, 0, convertToTclobj},
+  {"body", 1, 0, convertToTclobj},
+  {"precondition", 0, 0, convertToTclobj},
+  {"postcondition", 0, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Class::classscopedinstproc", XOTclCInstProcMethodCStub, {
-  {"name", 1, 0, "tclobj"},
-  {"args", 1, 0, "tclobj"},
-  {"body", 1, 0, "tclobj"},
-  {"precondition", 0, 0, "tclobj"},
-  {"postcondition", 0, 0, "tclobj"}}
+  {"name", 1, 0, convertToTclobj},
+  {"args", 1, 0, convertToTclobj},
+  {"body", 1, 0, convertToTclobj},
+  {"precondition", 0, 0, convertToTclobj},
+  {"postcondition", 0, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Class::instinvar", XOTclCInvariantsMethodStub, {
-  {"invariantlist", 1, 0, "tclobj"}}
+  {"invariantlist", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Class::new", XOTclCNewMethodStub, {
-  {"-childof", 0, 1, "object"},
-  {"args", 0, 0, "args"}}
+  {"-childof", 0, 1, convertToObject},
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Class::recreate", XOTclCRecreateMethodStub, {
-  {"name", 1, 0, "tclobj"},
-  {"args", 0, 0, "allargs"}}
+  {"name", 1, 0, convertToTclobj},
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Class::unknown", XOTclCUnknownMethodStub, {
-  {"name", 1, 0, NULL},
-  {"args", 0, 0, "allargs"}}
+  {"name", 1, 0, convertToString},
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::ClassInfo::heritage", XOTclClassInfoHeritageMethodStub, {
-  {"class", 1, 0, "class"},
-  {"pattern", 0, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instances", XOTclClassInfoInstancesMethodStub, {
-  {"class", 1, 0, "class"},
-  {"-closure", 0, 0, NULL},
-  {"pattern", 0, 0, "objpattern"}}
+  {"class", 1, 0, convertToClass},
+  {"-closure", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToObjpattern}}
 },
 {"::xotcl::cmd::ClassInfo::instargs", XOTclClassInfoInstargsMethodStub, {
-  {"class", 1, 0, "class"},
-  {"methodName", 1, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"methodName", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instbody", XOTclClassInfoInstbodyMethodStub, {
-  {"class", 1, 0, "class"},
-  {"methodName", 1, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"methodName", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instcommands", XOTclClassInfoInstcommandsMethodStub, {
-  {"class", 1, 0, "class"},
-  {"pattern", 0, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instdefault", XOTclClassInfoInstdefaultMethodStub, {
-  {"class", 1, 0, "class"},
-  {"methodName", 1, 0, NULL},
-  {"arg", 1, 0, NULL},
-  {"var", 1, 0, "tclobj"}}
+  {"class", 1, 0, convertToClass},
+  {"methodName", 1, 0, convertToString},
+  {"arg", 1, 0, convertToString},
+  {"var", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::ClassInfo::instfilter", XOTclClassInfoInstfilterMethodStub, {
-  {"class", 1, 0, "class"},
-  {"-guards", 0, 0, NULL},
-  {"pattern", 0, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"-guards", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instfilterguard", XOTclClassInfoInstfilterguardMethodStub, {
-  {"class", 1, 0, "class"},
-  {"filter", 1, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"filter", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instforward", XOTclClassInfoInstforwardMethodStub, {
-  {"class", 1, 0, "class"},
-  {"-definition", 0, 0, NULL},
-  {"pattern", 0, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"-definition", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instinvar", XOTclClassInfoInstinvarMethodStub, {
-  {"class", 1, 0, "class"}}
+  {"class", 1, 0, convertToClass}}
 },
 {"::xotcl::cmd::ClassInfo::instmixin", XOTclClassInfoInstmixinMethodStub, {
-  {"class", 1, 0, "class"},
-  {"-closure", 0, 0, NULL},
-  {"-guards", 0, 0, NULL},
-  {"pattern", 0, 0, "objpattern"}}
+  {"class", 1, 0, convertToClass},
+  {"-closure", 0, 0, convertToString},
+  {"-guards", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToObjpattern}}
 },
 {"::xotcl::cmd::ClassInfo::instmixinguard", XOTclClassInfoInstmixinguardMethodStub, {
-  {"class", 1, 0, "class"},
-  {"mixin", 1, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"mixin", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instmixinof", XOTclClassInfoInstmixinofMethodStub, {
-  {"class", 1, 0, "class"},
-  {"-closure", 0, 0, NULL},
-  {"pattern", 0, 0, "objpattern"}}
+  {"class", 1, 0, convertToClass},
+  {"-closure", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToObjpattern}}
 },
 {"::xotcl::cmd::ClassInfo::instnonposargs", XOTclClassInfoInstnonposargsMethodStub, {
-  {"class", 1, 0, "class"},
-  {"methodName", 1, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"methodName", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instparametercmd", XOTclClassInfoInstparametercmdMethodStub, {
-  {"class", 1, 0, "class"},
-  {"pattern", 0, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instpost", XOTclClassInfoInstpostMethodStub, {
-  {"class", 1, 0, "class"},
-  {"methodName", 1, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"methodName", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instpre", XOTclClassInfoInstpreMethodStub, {
-  {"class", 1, 0, "class"},
-  {"methodName", 1, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"methodName", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::instprocs", XOTclClassInfoInstprocsMethodStub, {
-  {"class", 1, 0, "class"},
-  {"pattern", 0, 0, NULL}}
+  {"class", 1, 0, convertToClass},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::mixinof", XOTclClassInfoMixinofMethodStub, {
-  {"class", 1, 0, "class"},
-  {"-closure", 0, 0, NULL},
-  {"pattern", 0, 0, "objpattern"}}
+  {"class", 1, 0, convertToClass},
+  {"-closure", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToObjpattern}}
 },
 {"::xotcl::cmd::ClassInfo::parameter", XOTclClassInfoParameterMethodStub, {
-  {"class", 1, 0, "class"}}
+  {"class", 1, 0, convertToClass}}
 },
 {"::xotcl::cmd::ClassInfo::slots", XOTclClassInfoSlotsMethodStub, {
-  {"class", 1, 0, "class"}}
+  {"class", 1, 0, convertToClass}}
 },
 {"::xotcl::cmd::ClassInfo::subclass", XOTclClassInfoSubclassMethodStub, {
-  {"class", 1, 0, "class"},
-  {"-closure", 0, 0, NULL},
-  {"pattern", 0, 0, "objpattern"}}
+  {"class", 1, 0, convertToClass},
+  {"-closure", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToObjpattern}}
 },
 {"::xotcl::cmd::ClassInfo::superclass", XOTclClassInfoSuperclassMethodStub, {
-  {"class", 1, 0, "class"},
-  {"-closure", 0, 0, NULL},
-  {"pattern", 0, 0, "tclobj"}}
+  {"class", 1, 0, convertToClass},
+  {"-closure", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::ObjectInfo::args", XOTclObjInfoArgsMethodStub, {
-  {"object", 1, 0, "object"},
-  {"methodName", 1, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"methodName", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::body", XOTclObjInfoBodyMethodStub, {
-  {"object", 1, 0, "object"},
-  {"methodName", 1, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"methodName", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::check", XOTclObjInfoCheckMethodStub, {
-  {"object", 1, 0, "object"}}
+  {"object", 1, 0, convertToObject}}
 },
 {"::xotcl::cmd::ObjectInfo::children", XOTclObjInfoChildrenMethodStub, {
-  {"object", 1, 0, "object"},
-  {"pattern", 0, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::class", XOTclObjInfoClassMethodStub, {
-  {"object", 1, 0, "object"}}
+  {"object", 1, 0, convertToObject}}
 },
 {"::xotcl::cmd::ObjectInfo::commands", XOTclObjInfoCommandsMethodStub, {
-  {"object", 1, 0, "object"},
-  {"pattern", 0, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::default", XOTclObjInfoDefaultMethodStub, {
-  {"object", 1, 0, "object"},
-  {"methodName", 1, 0, NULL},
-  {"arg", 1, 0, NULL},
-  {"var", 1, 0, "tclobj"}}
+  {"object", 1, 0, convertToObject},
+  {"methodName", 1, 0, convertToString},
+  {"arg", 1, 0, convertToString},
+  {"var", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::ObjectInfo::filter", XOTclObjInfoFilterMethodStub, {
-  {"object", 1, 0, "object"},
-  {"-order", 0, 0, NULL},
-  {"-guards", 0, 0, NULL},
-  {"pattern", 0, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"-order", 0, 0, convertToString},
+  {"-guards", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::filterguard", XOTclObjInfoFilterguardMethodStub, {
-  {"object", 1, 0, "object"},
-  {"filter", 1, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"filter", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::forward", XOTclObjInfoForwardMethodStub, {
-  {"object", 1, 0, "object"},
-  {"-definition", 0, 0, NULL},
-  {"pattern", 0, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"-definition", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::hasnamespace", XOTclObjInfoHasnamespaceMethodStub, {
-  {"object", 1, 0, "object"}}
+  {"object", 1, 0, convertToObject}}
 },
 {"::xotcl::cmd::ObjectInfo::invar", XOTclObjInfoInvarMethodStub, {
-  {"object", 1, 0, "object"}}
+  {"object", 1, 0, convertToObject}}
 },
 {"::xotcl::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, {
-  {"object", 1, 0, "object"},
-  {"-noprocs", 0, 0, NULL},
-  {"-nocmds", 0, 0, NULL},
-  {"-nomixins", 0, 0, NULL},
-  {"-incontext", 0, 0, NULL},
-  {"pattern", 0, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"-noprocs", 0, 0, convertToString},
+  {"-nocmds", 0, 0, convertToString},
+  {"-nomixins", 0, 0, convertToString},
+  {"-incontext", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::mixin", XOTclObjInfoMixinMethodStub, {
-  {"object", 1, 0, "object"},
-  {"-guards", 0, 0, NULL},
-  {"-order", 0, 0, NULL},
-  {"pattern", 0, 0, "objpattern"}}
+  {"object", 1, 0, convertToObject},
+  {"-guards", 0, 0, convertToString},
+  {"-order", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToObjpattern}}
 },
 {"::xotcl::cmd::ObjectInfo::mixinguard", XOTclObjInfoMixinguardMethodStub, {
-  {"object", 1, 0, "object"},
-  {"mixin", 1, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"mixin", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::nonposargs", XOTclObjInfoNonposargsMethodStub, {
-  {"object", 1, 0, "object"},
-  {"methodName", 1, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"methodName", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::parametercmd", XOTclObjInfoParametercmdMethodStub, {
-  {"object", 1, 0, "object"},
-  {"pattern", 0, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::parent", XOTclObjInfoParentMethodStub, {
-  {"object", 1, 0, "object"}}
+  {"object", 1, 0, convertToObject}}
 },
 {"::xotcl::cmd::ObjectInfo::post", XOTclObjInfoPostMethodStub, {
-  {"object", 1, 0, "object"},
-  {"methodName", 1, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"methodName", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::pre", XOTclObjInfoPreMethodStub, {
-  {"object", 1, 0, "object"},
-  {"methodName", 1, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"methodName", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::precedence", XOTclObjInfoPrecedenceMethodStub, {
-  {"object", 1, 0, "object"},
-  {"-intrinsic", 0, 0, NULL},
-  {"pattern", 0, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"-intrinsic", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::procs", XOTclObjInfoProcsMethodStub, {
-  {"object", 1, 0, "object"},
-  {"pattern", 0, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::slotobjects", XOTclObjInfoSlotObjectsMethodStub, {
-  {"object", 1, 0, "object"},
-  {"pattern", 0, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ObjectInfo::vars", XOTclObjInfoVarsMethodStub, {
-  {"object", 1, 0, "object"},
-  {"pattern", 0, 0, NULL}}
+  {"object", 1, 0, convertToObject},
+  {"pattern", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::Object::autoname", XOTclOAutonameMethodStub, {
-  {"-instance", 0, 0, NULL},
-  {"-reset", 0, 0, NULL},
-  {"name", 1, 0, "tclobj"}}
+  {"-instance", 0, 0, convertToString},
+  {"-reset", 0, 0, convertToString},
+  {"name", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::check", XOTclOCheckMethodStub, {
-  {"flag", 1, 0, "tclobj"}}
+  {"flag", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::cleanup", XOTclOCleanupMethodStub, {
   }
 },
 {"::xotcl::cmd::Object::configure", XOTclOConfigureMethodStub, {
-  {"args", 0, 0, "allargs"}}
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Object::destroy", XOTclODestroyMethodStub, {
   }
 },
 {"::xotcl::cmd::Object::exists", XOTclOExistsMethodStub, {
-  {"var", 1, 0, NULL}}
+  {"var", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::Object::filterguard", XOTclOFilterGuardMethodStub, {
-  {"filter", 1, 0, NULL},
-  {"guard", 1, 0, "tclobj"}}
+  {"filter", 1, 0, convertToString},
+  {"guard", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::filtersearch", XOTclOFilterSearchMethodStub, {
-  {"filter", 1, 0, NULL}}
+  {"filter", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::Object::forward", XOTclOForwardMethodStub, {
-  {"method", 1, 0, "tclobj"},
-  {"-default", 0, 1, "tclobj"},
-  {"-earlybinding", 0, 0, NULL},
-  {"-methodprefix", 0, 1, "tclobj"},
-  {"-objscope", 0, 0, NULL},
-  {"-onerror", 0, 1, "tclobj"},
-  {"-verbose", 0, 0, NULL},
-  {"target", 0, 0, "tclobj"},
-  {"args", 0, 0, "args"}}
+  {"method", 1, 0, convertToTclobj},
+  {"-default", 0, 1, convertToTclobj},
+  {"-earlybinding", 0, 0, convertToString},
+  {"-methodprefix", 0, 1, convertToTclobj},
+  {"-objscope", 0, 0, convertToString},
+  {"-onerror", 0, 1, convertToTclobj},
+  {"-verbose", 0, 0, convertToString},
+  {"target", 0, 0, convertToTclobj},
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Object::instvar", XOTclOInstVarMethodStub, {
-  {"args", 0, 0, "allargs"}}
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Object::invar", XOTclOInvariantsMethodStub, {
-  {"invariantlist", 1, 0, "tclobj"}}
+  {"invariantlist", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::isclass", XOTclOIsClassMethodStub, {
-  {"class", 0, 0, "tclobj"}}
+  {"class", 0, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::ismetaclass", XOTclOIsMetaClassMethodStub, {
-  {"metaclass", 0, 0, "tclobj"}}
+  {"metaclass", 0, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::ismixin", XOTclOIsMixinMethodStub, {
-  {"class", 1, 0, "tclobj"}}
+  {"class", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::isobject", XOTclOIsObjectMethodStub, {
-  {"object", 1, 0, "tclobj"}}
+  {"object", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::istype", XOTclOIsTypeMethodStub, {
-  {"class", 1, 0, "tclobj"}}
+  {"class", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::mixinguard", XOTclOMixinGuardMethodStub, {
-  {"mixin", 1, 0, NULL},
-  {"guard", 1, 0, "tclobj"}}
+  {"mixin", 1, 0, convertToString},
+  {"guard", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::__next", XOTclONextMethodStub, {
-  {"args", 0, 0, "allargs"}}
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Object::noinit", XOTclONoinitMethodStub, {
   }
 },
 {"::xotcl::cmd::Object::parametercmd", XOTclOParametercmdMethodStub, {
-  {"name", 1, 0, NULL}}
+  {"name", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::Object::proc", XOTclOProcMethodStub, {
-  {"name", 1, 0, "tclobj"},
-  {"args", 1, 0, "tclobj"},
-  {"body", 1, 0, "tclobj"},
-  {"precondition", 0, 0, "tclobj"},
-  {"postcondition", 0, 0, "tclobj"}}
+  {"name", 1, 0, convertToTclobj},
+  {"args", 1, 0, convertToTclobj},
+  {"body", 1, 0, convertToTclobj},
+  {"precondition", 0, 0, convertToTclobj},
+  {"postcondition", 0, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::procsearch", XOTclOProcSearchMethodStub, {
-  {"name", 1, 0, NULL}}
+  {"name", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::Object::requireNamespace", XOTclORequireNamespaceMethodStub, {
   }
 },
 {"::xotcl::cmd::Object::set", XOTclOSetMethodStub, {
-  {"var", 1, 0, "tclobj"},
-  {"value", 0, 0, "tclobj"}}
+  {"var", 1, 0, convertToTclobj},
+  {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::setvalues", XOTclOSetvaluesMethodStub, {
-  {"args", 0, 0, "allargs"}}
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Object::uplevel", XOTclOUplevelMethodStub, {
-  {"args", 0, 0, "allargs"}}
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Object::upvar", XOTclOUpvarMethodStub, {
-  {"args", 0, 0, "allargs"}}
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Object::volatile", XOTclOVolatileMethodStub, {
   }
 },
 {"::xotcl::cmd::Object::vwait", XOTclOVwaitMethodStub, {
-  {"varname", 1, 0, NULL}}
+  {"varname", 1, 0, convertToString}}
 },
 {"::xotcl::alias", XOTclAliasCmdStub, {
-  {"object", 1, 0, "object"},
-  {"methodName", 1, 0, NULL},
-  {"-objscope", 0, 0, NULL},
-  {"-per-object", 0, 0, NULL},
-  {"-protected", 0, 0, NULL},
-  {"cmdName", 1, 0, "tclobj"}}
+  {"object", 1, 0, convertToObject},
+  {"methodName", 1, 0, convertToString},
+  {"-objscope", 0, 0, convertToString},
+  {"-per-object", 0, 0, convertToString},
+  {"-protected", 0, 0, convertToString},
+  {"cmdName", 1, 0, convertToTclobj}}
+},
+{"::xotcl::methodproperty", XOTclMethodPropertyCmdStub, {
+  {"object", 1, 0, convertToObject},
+  {"methodName", 1, 0, convertToString},
+  {"-per-object", 0, 0, convertToString},
+  {"protected|public|slotobj", 1, 0, convertToMethodproperty},
+  {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::my", XOTclMyCmdStub, {
-  {"-local", 0, 0, NULL},
-  {"method", 1, 0, "tclobj"},
-  {"args", 0, 0, "args"}}
+  {"-local", 0, 0, convertToString},
+  {"method", 1, 0, convertToTclobj},
+  {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::relation", XOTclRelationCmdStub, {
-  {"object", 1, 0, "object"},
-  {"reltype", 1, 0, "tclobj"},
-  {"value", 0, 0, "tclobj"}}
+  {"object", 1, 0, convertToObject},
+  {"mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class_filter|class|superclass|rootclass", 1, 0, convertToRelationtype},
+  {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::setinstvar", XOTclSetInstvarCmdStub, {
-  {"object", 1, 0, "object"},
-  {"variable", 1, 0, "tclobj"},
-  {"value", 0, 0, "tclobj"}}
+  {"object", 1, 0, convertToObject},
+  {"variable", 1, 0, convertToTclobj},
+  {"value", 0, 0, convertToTclobj}}
 }
 };
 
