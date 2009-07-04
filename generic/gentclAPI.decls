@@ -24,6 +24,16 @@ xotclCmd alias XOTclAliasCmd {
   {-argName "-protected"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
+xotclCmd relation XOTclRelationCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "reltype" -required 1 -type tclobj}
+  {-argName "value" -required 0 -type tclobj}
+}
+xotclCmd setinstvar XOTclSetInstvarCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "variable" -required 1 -type tclobj}
+  {-argName "value" -required 0 -type tclobj}
+}
 #
 # object methods
 #

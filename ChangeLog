@@ -67,8 +67,8 @@ C c1 ;# c1 has no no default value for "a", before it had one
     - removed compatibility for versions before Tcl 8.4 (was not tested anyhow)
       This version requires at least Tcl 8.4.
     - support for generating interface for ::xotcl commands
-    - generated interface for ::xotcl::alias
-    - from 15356 generic/xotcl.c => 13313
+    - generated interface for ::xotcl::alias, ::xotcl::relation, ::xotcl::setinstvar
+    - from 15356 generic/xotcl.c => 13311
 
 2009-07-01 <Gustaf.Neumann@wu-wien.ac.at>
     - moved all definitions of method commands to generated code

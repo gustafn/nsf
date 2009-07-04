@@ -9195,58 +9195,6 @@ XOTclDispatchCmd(ClientData clientData, Tcl_Interp *interp,
   return result;
 }
 
-static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, 
-                         int withObjscope, int withPer_object, int withProtected, Tcl_Obj *cmdName) {
-  XOTclClass *cl;
-  Tcl_Command cmd, importedCmd;
-  Tcl_ObjCmdProc *objProc;
-  char allocation;
-  Tcl_CmdDeleteProc *dp = NULL;
-  aliasCmdClientData *tcd = NULL;
-  int flags = 0;
-    
-  if (XOTclObjectIsClass(object)) {
-    cl = (XOTclClass *)object;
-    allocation = 'c';
-  } else {
-    cl = NULL;
-    allocation = 'o';
-  }
-  cmd = Tcl_GetCommandFromObj(interp, cmdName);
-  if (cmd == NULL) 
-    return XOTclVarErrMsg(interp, "cannot lookup command '",
-                          ObjStr(cmdName), "'", (char *) NULL);
-  
-  if ((importedCmd = TclGetOriginalCommand(cmd))) {
-    cmd = importedCmd;
-  }
-  objProc = Tcl_Command_objProc(cmd); 
-
-  if (withObjscope) {
-    tcd = NEW(aliasCmdClientData);
-    tcd->cmdName    = NULL;
-    tcd->obj        = allocation == 'c' ? &cl->object : object;
-    tcd->objProc    = objProc;
-    tcd->clientData = Tcl_Command_objClientData(cmd);
-    objProc         = XOTclObjscopedMethod;
-    dp = aliasCmdDeleteProc;
-  } else {
-    tcd = Tcl_Command_objClientData(cmd);
-  }
-
-  if (withProtected) {
-    flags = XOTCL_PROTECTED_METHOD; 
-  }
-
-  if (allocation == 'c') {
-    XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName, 
-                           objProc, tcd, dp, flags);
-  } else {
-    XOTclAddObjectMethod(interp, (XOTcl_Object*)object, methodName, 
-                         objProc, tcd, dp, flags);
-  }
-  return TCL_OK;
-}
 
 static int
 XOTclConfigureCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -9290,18 +9238,6 @@ XOTclConfigureCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
   return result;
 }
 
-static int
-XOTclSetInstvarCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj = NULL;
-
-  if (objc < 3 || objc > 4)
-    return XOTclObjErrArgCnt(interp, objv[0], NULL, "obj var ?value?");
-  /*fprintf(stderr,"setinstvar obj '%s' var '%s' %d\n", ObjStr(objv[1]), ObjStr(objv[2]), objc);*/
-  XOTclObjConvertObject(interp, objv[1], &obj);
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-
-  return setInstVar(interp, obj , objv[2], objc == 4 ? objv[3] : NULL);
-}
 
 typedef enum {NO_DASH, SKALAR_DASH, LIST_DASH} dashArgType;
 
@@ -10125,10 +10061,67 @@ ListProcArgs(Tcl_Interp *interp, Tcl_HashTable *table, char *name) {
  * End result setting commands 
  ********************************/
 
-static int
-XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+
+/*********************************
+ * Begin generated XOTcl commands 
+ *********************************/
+
+static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, 
+                         int withObjscope, int withPer_object, int withProtected, Tcl_Obj *cmdName) {
+  XOTclClass *cl;
+  Tcl_Command cmd, importedCmd;
+  Tcl_ObjCmdProc *objProc;
+  char allocation;
+  Tcl_CmdDeleteProc *dp = NULL;
+  aliasCmdClientData *tcd = NULL;
+  int flags = 0;
+    
+  if (XOTclObjectIsClass(object)) {
+    cl = (XOTclClass *)object;
+    allocation = 'c';
+  } else {
+    cl = NULL;
+    allocation = 'o';
+  }
+  cmd = Tcl_GetCommandFromObj(interp, cmdName);
+  if (cmd == NULL) 
+    return XOTclVarErrMsg(interp, "cannot lookup command '",
+                          ObjStr(cmdName), "'", (char *) NULL);
+  
+  if ((importedCmd = TclGetOriginalCommand(cmd))) {
+    cmd = importedCmd;
+  }
+  objProc = Tcl_Command_objProc(cmd); 
+
+  if (withObjscope) {
+    tcd = NEW(aliasCmdClientData);
+    tcd->cmdName    = NULL;
+    tcd->obj        = allocation == 'c' ? &cl->object : object;
+    tcd->objProc    = objProc;
+    tcd->clientData = Tcl_Command_objClientData(cmd);
+    objProc         = XOTclObjscopedMethod;
+    dp = aliasCmdDeleteProc;
+  } else {
+    tcd = Tcl_Command_objClientData(cmd);
+  }
+
+  if (withProtected) {
+    flags = XOTCL_PROTECTED_METHOD; 
+  }
+
+  if (allocation == 'c') {
+    XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName, 
+                           objProc, tcd, dp, flags);
+  } else {
+    XOTclAddObjectMethod(interp, (XOTcl_Object*)object, methodName, 
+                         objProc, tcd, dp, flags);
+  }
+  return TCL_OK;
+}
+
+static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *reltype, Tcl_Obj *value) {
   int oc; Tcl_Obj **ov;
-  XOTclObject *obj = NULL, *nobj = NULL;
+  XOTclObject *nobj = NULL;
   XOTclClass *cl = NULL;
   XOTclObjectOpt *objopt = NULL;
   XOTclClassOpt *clopt = NULL, *nclopt = NULL;
@@ -10145,10 +10138,7 @@ XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     classIdx, superclassIdx, rootclassIdx
   };
   
-  if (objc < 3 || objc > 4)
-    return XOTclObjErrArgCnt(interp, objv[0], NULL, "obj reltype value");
-
-  if (Tcl_GetIndexFromObj(interp, objv[2], opts, "relation type", 0, &opt) != TCL_OK) {
+  if (Tcl_GetIndexFromObj(interp, reltype, opts, "relation type", 0, &opt) != TCL_OK) {
     return TCL_ERROR;
   }
 
@@ -10157,30 +10147,31 @@ XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   case mixinIdx:
   case pofIdx:
   case filterIdx: 
-    XOTclObjConvertObject(interp, objv[1], &obj);
-    if (!obj) return XOTclObjErrType(interp, objv[1], "Object");
-    if (objc == 3) {
-      objopt = obj->opt;
+    if (value == NULL) {
+      objopt = object->opt;
       switch (opt) {
       case pomIdx:
       case mixinIdx: return objopt ? MixinInfo(interp, objopt->mixins, NULL, 1, NULL) : TCL_OK;
       case pofIdx:
       case filterIdx: return objopt ? FilterInfo(interp, objopt->filters, NULL, 1, 0) : TCL_OK;
       }
-    } 
-    if (Tcl_ListObjGetElements(interp, objv[3], &oc, &ov) != TCL_OK)
+    }
+    if (Tcl_ListObjGetElements(interp, value, &oc, &ov) != TCL_OK)
       return TCL_ERROR;
-    objopt = XOTclRequireObjectOpt(obj);
+    objopt = XOTclRequireObjectOpt(object);
     break;
 
   case pcmIdx:
   case instmixinIdx:
   case pcfIdx:
   case instfilterIdx: 
-    GetXOTclClassFromObj(interp, objv[1], &cl, 0);
-    if (!cl) return XOTclObjErrType(interp, objv[1], "Class");
+    if (XOTclObjectIsClass(object)) {
+      cl = (XOTclClass *)object;
+    } else {
+      return XOTclObjErrType(interp, object->cmdName, "Class");
+    }
     
-    if (objc == 3) {
+    if (value == NULL) {
       clopt = cl->opt;
       switch (opt) {
       case pcmIdx:
@@ -10190,48 +10181,50 @@ XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
       }
     } 
     
-    if (Tcl_ListObjGetElements(interp, objv[3], &oc, &ov) != TCL_OK)
+    if (Tcl_ListObjGetElements(interp, value, &oc, &ov) != TCL_OK)
       return TCL_ERROR;
     clopt = XOTclRequireClassOpt(cl);
     break;
 
   case superclassIdx: 
-    GetXOTclClassFromObj(interp, objv[1], &cl, 0);
-    if (objc == 3) {
+    if (!XOTclObjectIsClass(object))
+      return XOTclObjErrType(interp, object->cmdName, "Class");
+    cl = (XOTclClass *)object;
+    if (value == NULL) {
       return ListSuperclasses(interp, cl, NULL, 0);
     }
-    if (!cl) return XOTclObjErrType(interp, objv[1], "Class");
-    if (Tcl_ListObjGetElements(interp, objv[3], &oc, &ov) != TCL_OK)
+    if (Tcl_ListObjGetElements(interp, value, &oc, &ov) != TCL_OK)
       return TCL_ERROR;
-    return SuperclassAdd(interp, cl, oc, ov, objv[3], cl->object.cl);
+    return SuperclassAdd(interp, cl, oc, ov, value, cl->object.cl);
     
   case classIdx: 
-    XOTclObjConvertObject(interp, objv[1], &obj);
-    if (!obj) return XOTclObjErrType(interp, objv[1], "Object");
-    if (objc == 3) {
-      Tcl_SetObjResult(interp, obj->cl->object.cmdName);
+    if (value == NULL) {
+      Tcl_SetObjResult(interp, object->cl->object.cmdName);
       return TCL_OK;
     }
-    GetXOTclClassFromObj(interp, objv[3], &cl, obj->cl);
-    if (!cl) return XOTclErrBadVal(interp, "class", "a class", ObjStr(objv[1]));
-    return changeClass(interp, obj, cl);
-
+    GetXOTclClassFromObj(interp, value, &cl, object->cl);
+    if (!cl) return XOTclErrBadVal(interp, "class", "a class", objectName(object));
+    return changeClass(interp, object, cl);
+    
   case rootclassIdx: 
     {
     XOTclClass *metaClass;
-    if (objc != 4)
-      return XOTclObjErrArgCnt(interp, objv[0], NULL, "<class> rootclass <basic meta-class>");
-      
-    GetXOTclClassFromObj(interp, objv[1], &cl, 0);
-    if (!cl) return XOTclObjErrType(interp, objv[1], "Class");
-    GetXOTclClassFromObj(interp, objv[3], &metaClass, 0);
-    if (!metaClass) return XOTclObjErrType(interp, objv[3], "Class");
+
+    if (!XOTclObjectIsClass(object)) 
+      return XOTclObjErrType(interp, object->cmdName, "Class");
+    cl = (XOTclClass *)object;
+
+    if (value == NULL) {
+      return XOTclVarErrMsg(interp, "metaclass must be specified as third argument",
+                            (char *) NULL);
+    }
+    GetXOTclClassFromObj(interp, value, &metaClass, 0);
+    if (!metaClass) return XOTclObjErrType(interp, value, "Class");
 
     cl->object.flags |= XOTCL_IS_ROOT_CLASS;
     metaClass->object.flags |= XOTCL_IS_ROOT_META_CLASS;
 
     XOTclClassListAdd(&RUNTIME_STATE(interp)->rootClasses, cl, (ClientData)metaClass);
-
     return TCL_OK;
     /* todo: 
        need to remove these properties? 
@@ -10243,17 +10236,16 @@ XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   switch (opt) {
   case pomIdx: 
   case mixinIdx: 
-
     if (objopt->mixins) {
       XOTclCmdList *cmdlist, *del;
       for (cmdlist = objopt->mixins; cmdlist; cmdlist = cmdlist->nextPtr) {
         cl = XOTclGetClassFromCmdPtr(cmdlist->cmdPtr);
         clopt = cl ? cl->opt : NULL;
         if (clopt) {
-          del = CmdListFindCmdInList(obj->id, clopt->isObjectMixinOf);
+          del = CmdListFindCmdInList(object->id, clopt->isObjectMixinOf);
           if (del) {
             /* fprintf(stderr,"Removing object %s from isObjectMixinOf of class %s\n",
-               objectName(obj), ObjStr(XOTclGetClassFromCmdPtr(cmdlist->cmdPtr)->object.cmdName)); */
+               objectName(object), ObjStr(XOTclGetClassFromCmdPtr(cmdlist->cmdPtr)->object.cmdName)); */
             del = CmdListRemoveFromList(&clopt->isObjectMixinOf, del);
             CmdListDeleteCmdListEntry(del, GuardDel);
           }
@@ -10262,11 +10254,11 @@ XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
       CmdListRemoveList(&objopt->mixins, GuardDel);
     }
         
-    obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
+    object->flags &= ~XOTCL_MIXIN_ORDER_VALID;
     /*
      * since mixin procs may be used as filters -> we have to invalidate
      */
-    obj->flags &= ~XOTCL_FILTER_ORDER_VALID;
+    object->flags &= ~XOTCL_FILTER_ORDER_VALID;
 
     /*
      * now add the specified mixins
@@ -10274,7 +10266,7 @@ XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     for (i = 0; i < oc; i++) {
       Tcl_Obj *ocl = NULL;
 
-      if (MixinAdd(interp, &objopt->mixins, ov[i], obj->cl->object.cl) != TCL_OK) {
+      if (MixinAdd(interp, &objopt->mixins, ov[i], object->cl->object.cl) != TCL_OK) {
         return TCL_ERROR;
       }
       /* fprintf(stderr,"Added to mixins of %s: %s\n", objectName(obj), ObjStr(ov[i])); */
@@ -10284,13 +10276,13 @@ XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         /* fprintf(stderr,"Registering object %s to isObjectMixinOf of class %s\n",
            objectName(obj), objectName(nobj)); */
         nclopt = XOTclRequireClassOpt((XOTclClass*) nobj);
-        CmdListAdd(&nclopt->isObjectMixinOf, obj->id, NULL, /*noDuplicates*/ 1);
+        CmdListAdd(&nclopt->isObjectMixinOf, object->id, NULL, /*noDuplicates*/ 1);
       } /* else fprintf(stderr,"Problem registering %s as a mixinof of %s\n",
            ObjStr(ov[i]), className(cl)); */
     }
     
-    MixinComputeDefined(interp, obj);
-    FilterComputeDefined(interp, obj);
+    MixinComputeDefined(interp, object);
+    FilterComputeDefined(interp, object);
     break;
 
   case pofIdx: 
@@ -10298,9 +10290,9 @@ XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
     if (objopt->filters) CmdListRemoveList(&objopt->filters, GuardDel);
     
-    obj->flags &= ~XOTCL_FILTER_ORDER_VALID;
+    object->flags &= ~XOTCL_FILTER_ORDER_VALID;
     for (i = 0; i < oc; i ++) {
-      if (FilterAdd(interp, &objopt->filters, ov[i], obj, 0) != TCL_OK)
+      if (FilterAdd(interp, &objopt->filters, ov[i], object, 0) != TCL_OK)
         return TCL_ERROR;
     }
     /*FilterComputeDefined(interp, obj);*/
@@ -10355,6 +10347,14 @@ XOTclRelationCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   }
   return TCL_OK;
 }
+
+static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value) {
+  return setInstVar(interp, object , variable, value);
+}
+
+/***************************
+ * End generated XOTcl commands 
+ ***************************/
 
 /***************************
  * Begin Object Methods
@@ -13247,8 +13247,6 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_CreateObjCommand(interp, "::xotcl::namespace_copyvars", XOTcl_NSCopyVars, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::namespace_copycmds", XOTcl_NSCopyCmds, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::__qualify", XOTclQualifyObjCmd, 0, 0);
-  Tcl_CreateObjCommand(interp, "::xotcl::setinstvar", XOTclSetInstvarCmd, 0, 0);
-  Tcl_CreateObjCommand(interp, "::xotcl::relation", XOTclRelationCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::trace", XOTcl_TraceObjCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::is", XOTclIsCmd, 0, 0);
 

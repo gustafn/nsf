@@ -110,6 +110,8 @@ static int XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 static int XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int XOTclCheckBooleanArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
 static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
@@ -203,6 +205,8 @@ static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl
 static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, char *varname);
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withObjscope, int withPer_object, int withProtected, Tcl_Obj *cmdName);
+static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *reltype, Tcl_Obj *value);
+static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 
 enum {
  XOTclCheckBooleanArgsIdx,
@@ -296,7 +300,9 @@ enum {
  XOTclOUpvarMethodIdx,
  XOTclOVolatileMethodIdx,
  XOTclOVwaitMethodIdx,
- XOTclAliasCmdIdx
+ XOTclAliasCmdIdx,
+ XOTclRelationCmdIdx,
+ XOTclSetInstvarCmdIdx
 } XOTclMethods;
 
 
@@ -1816,6 +1822,38 @@ XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
   }
 }
   
+static int
+XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (parseObjv(interp, objc, objv, XOTclRelationCmdIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclObject *object = (XOTclObject *)pc.clientData[0];
+    Tcl_Obj *reltype = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
+
+    return XOTclRelationCmd(interp, object, reltype, value);
+
+  }
+}
+  
+static int
+XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (parseObjv(interp, objc, objv, XOTclSetInstvarCmdIdx, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclObject *object = (XOTclObject *)pc.clientData[0];
+    Tcl_Obj *variable = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
+
+    return XOTclSetInstvarCmd(interp, object, variable, value);
+
+  }
+}
+  
 static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::NonposArgs::type=boolean", XOTclCheckBooleanArgsStub, {
   {"name", 1, 0, NULL},
@@ -2200,6 +2238,16 @@ static methodDefinition method_definitions[] = {
   {"-per-object", 0, 0, NULL},
   {"-protected", 0, 0, NULL},
   {"cmdName", 1, 0, "tclobj"}}
+},
+{"::xotcl::relation", XOTclRelationCmdStub, {
+  {"object", 1, 0, "object"},
+  {"reltype", 1, 0, "tclobj"},
+  {"value", 0, 0, "tclobj"}}
+},
+{"::xotcl::setinstvar", XOTclSetInstvarCmdStub, {
+  {"object", 1, 0, "object"},
+  {"variable", 1, 0, "tclobj"},
+  {"value", 0, 0, "tclobj"}}
 }
 };
 
