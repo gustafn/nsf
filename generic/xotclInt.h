@@ -430,10 +430,22 @@ typedef struct XOTclStringIncrStruct {
  * object and class internals
  */
 
+typedef int (XOTclTypeConverter) _ANSI_ARGS_((Tcl_Interp *interp, Tcl_Obj *obj, ClientData *clientData));
+
+typedef struct  {
+  char *name;
+  int required;
+  int nrargs;
+  XOTclTypeConverter *converter;
+  Tcl_Obj *defaultValue;
+} argDefinition;
+
 typedef struct XOTclNonposArgs {
-    Tcl_Obj *nonposArgs;
-    Tcl_Obj *ordinaryArgs;
-    Tcl_Obj *slotObj;
+  Tcl_Obj *nonposArgs;
+  Tcl_Obj *ordinaryArgs;
+  Tcl_Obj *slotObj;
+  argDefinition *ifd;
+  int ifdSize;
 } XOTclNonposArgs;
 
 typedef struct XOTclObjectOpt {

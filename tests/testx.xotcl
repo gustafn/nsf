@@ -2627,13 +2627,20 @@ TestX copymove -proc run {{n 10}} {
     Class X
     X proc do0 {arg1 arg2} {puts "$arg1 $arg2"}
     X proc do1 {-arg1 -arg2} {puts "$arg1 $arg2"}
+
     X proc do2 {-arg1 arg2} {puts "$arg1 $arg2"}
     X proc do3 {arg1 {arg2 d1}} {puts "$arg1 $arg2"}
     X proc do4 {-arg1 {-arg2 d2}} {puts "$arg1 $arg2"}
+
     X proc do5 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
     X instproc do6 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
 
     X copy Y
+    
+    ::errorCheck [lsort [X info procs]] "do0 do1 do2 do3 do4 do5" "check procs to be copied"
+    ::errorCheck [lsort [Y info procs]] "do0 do1 do2 do3 do4 do5" "check copied procs"
+    ::errorCheck [lsort [X info instprocs]] "do6" "check instprocs to be copied"
+    ::errorCheck [lsort [Y info instprocs]] "do6" "check copied instprocs"
 
     foreach m [lsort [X info procs]] {
       foreach info {args nonposargs} {
@@ -2645,7 +2652,7 @@ TestX copymove -proc run {{n 10}} {
 	set vx ""; set vy ""
 	set dx [X info default $m $a vx]
 	set dy [Y info default $m $a vy]
-	::errorCheck $dx $dy "copy nonposargs: hasdefault $dx ne $dy"
+	::errorCheck $dx $dy "copy nonposargs: hasdefault $m $a: (source) $dx ne (copy) $dy"
 	if {[info exists dx] && [info exists dy]} {
 	  ::errorCheck $vx $vy "copy nonposargs: hasdefault value $vx ne $vy"
 	}

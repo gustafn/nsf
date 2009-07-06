@@ -192,7 +192,7 @@ proc genstubs {} {
 static int
 $d(stub)(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 $intro
-  if (parseObjv(interp, objc, objv, $d(idx), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, 1, &(method_definitions[$d(idx)].ifd[0]), &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     $cDefs
@@ -209,14 +209,18 @@ $post
 typedef struct {
   char *methodName;
   Tcl_ObjCmdProc *proc;
-  CONST interfaceDefinition ifd;
+  /*CONST interfaceDefinition ifd;*/
+  argDefinition ifd[10];
 } methodDefinition;
 
-static int parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-		     int idx, parseContext *pc);
+static int parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int start,
+		     argDefinition CONST *ifdPtr, parseContext *pc);
 
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  XOTclObject **matchObject, char **pattern);
+
+/* just to define the symbol */
+static methodDefinition method_definitions[];
   }
 
   set namespaces [list]

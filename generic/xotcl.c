@@ -155,16 +155,6 @@ typedef struct {
   int lastobjc;
 } parseContext;
 
-typedef int (XOTclTypeConverter) _ANSI_ARGS_((Tcl_Interp *interp, Tcl_Obj *obj, ClientData *clientData));
-
-typedef struct  {
-  char *name;
-  int required;
-  int nrargs;
-  XOTclTypeConverter *type;
-  char *defaultValue;
-} argDefinition;
-
 typedef argDefinition interfaceDefinition[10];
 
 XOTCLINLINE static int DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
@@ -5808,6 +5798,8 @@ XOTclDirectSelfDispatch(ClientData clientData, Tcl_Interp *interp,
  * Non Positional Args
  */
 
+static void argDefinitionsFree(argDefinition *argDefinitions, int nr);
+
 static void
 NonposArgsDeleteHashEntry(Tcl_HashEntry *hPtr) {
   XOTclNonposArgs *nonposArg = (XOTclNonposArgs*) Tcl_GetHashValue(hPtr);
@@ -5821,6 +5813,10 @@ NonposArgsDeleteHashEntry(Tcl_HashEntry *hPtr) {
     if (nonposArg->slotObj) {
       DECR_REF_COUNT(nonposArg->slotObj);
     }
+    if (nonposArg->ifd) {
+      argDefinitionsFree(nonposArg->ifd, nonposArg->ifdSize);
+    }
+
     MEM_COUNT_FREE("nonposArg", nonposArg);
     ckfree((char *) nonposArg);
     Tcl_DeleteHashEntry(hPtr);
@@ -5931,9 +5927,16 @@ static Tcl_Obj *addPrefixToBody(Tcl_Obj *body, int nonposArgs) {
   Tcl_AppendStringsToObj(resultBody, "::xotcl::initProcNS\n", (char *) NULL);
 #endif
   if (nonposArgs) {
+#if 1
+    /* just for now */
+    Tcl_AppendStringsToObj(resultBody,
+			   "::xotcl::interpretNonpositionalArgs {*}$args\n",
+			   (char *) NULL);
+#else
     Tcl_AppendStringsToObj(resultBody,
 			   "::xotcl::interpretNonpositionalArgs $args\n",
 			   (char *) NULL);
+#endif
   }
   Tcl_AppendStringsToObj(resultBody, ObjStr(body), (char *) NULL);
   return resultBody;
@@ -5952,86 +5955,225 @@ nonposargType(Tcl_Interp *interp, char *start, int len) {
   return result;
 }
 
+
+#define NEW_STRING(target,p,l)  target = ckalloc(l+1); strncpy(target,p,l); *((target)+l) = '\0'
+
+static argDefinition *argDefinitionsNew(int nr) {
+  argDefinition *interface = NEW_ARRAY(argDefinition,nr+1);
+  memset(interface, 0, sizeof(argDefinition)*(nr+1));
+  return interface;
+}
+
+static void argDefinitionsFree(argDefinition *argDefinitions, int nr) {
+  int i;
+  argDefinition *ifPtr;
+
+  /*fprintf(stderr,"freeing %d argDefinitions\n",nr);*/
+  for (i=0, ifPtr=argDefinitions; i<nr; i++,ifPtr++) {
+    /*fprintf(stderr,".... ifPtr = %p, name=%s, defaultValue %p\n",ifPtr,ifPtr->name,ifPtr->defaultValue);*/
+    if (ifPtr->name) ckfree(ifPtr->name);
+    if (ifPtr->defaultValue) {DECR_REF_COUNT(ifPtr->defaultValue);}
+  }
+  FREE(argDefinition*,argDefinitions);
+}
+
+
+static XOTclTypeConverter convertToBoolean;
+static XOTclTypeConverter convertToTclobj;
+
+static int
+parseNonposargsOption(Tcl_Interp *interp, char *option, int length, argDefinition *ifPtr) {
+  fprintf(stderr, "def %s, option '%s' (%d)\n",ifPtr->name,option,length);
+  if (strncmp(option,"switch",length) == 0) {
+    ifPtr->nrargs = 0;
+    ifPtr->converter = convertToBoolean;
+    assert(ifPtr->defaultValue == NULL);
+    ifPtr->defaultValue = Tcl_NewBooleanObj(0);
+    fprintf(stderr, "setting default for switch\n");
+    INCR_REF_COUNT(ifPtr->defaultValue);
+  } else if (strncmp(option,"boolean",length) == 0) {
+    ifPtr->nrargs = 1;
+    ifPtr->converter = convertToBoolean;
+  } else if (strncmp(option,"required",length) == 0) {
+    ifPtr->required = 1;
+  } else {
+    fprintf(stderr, "**** unknown option: def %s, option '%s' (%d)\n",ifPtr->name,option,length);
+  }
+  return TCL_OK;
+}
+
+static int
+parseArgDefinition(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int isNpa, 
+                   Tcl_Obj **argObjPtr, argDefinition *ifPtr) {
+  Tcl_Obj **npav, *argObj;
+  char *argString, *argName;
+  int rc, npac, length, j, nameLength;
+
+  rc = Tcl_ListObjGetElements(interp, arg, &npac, &npav);
+  if (rc != TCL_OK || npac < 1 || npac > 2) {
+    return XOTclVarErrMsg(interp, "wrong # of elements in non-positional args for method", 
+                          procName, " (should be 1 or 2 list elements): ",
+                          ObjStr(arg), (char *) NULL);
+  }
+
+  argString = ObjStr(npav[0]);
+  length = strlen(argString);
+
+  if (isNpa && *argString != '-') {
+    return XOTclVarErrMsg(interp, "non-positional arg '", argString,"' of method ",procName,
+                          " does not start with '-': ", argString, (char *) NULL);
+  }
+
+  if (isNpa) {
+    argName = argString+1;
+    nameLength = length-1;
+  } else {
+    argName = argString;
+    nameLength = length;
+    ifPtr->required = 1;
+  }
+
+  *argObjPtr = argObj = Tcl_NewListObj(0, NULL);
+  INCR_REF_COUNT(argObj);
+  /*fprintf(stderr, "... parsing '%s', name '%s' \n",ObjStr(arg),argName);*/
+  
+  /* find the first ':' */
+  for (j=0; j<length; j++) {
+    if (argString[j] == ':') break;
+  }
+
+  if (argString[j] == ':') {
+    /* we found a ':' */
+    int l, start, end;
+    Tcl_Obj *list = Tcl_NewListObj(0, NULL);
+    
+    Tcl_ListObjAppendElement(interp, argObj, Tcl_NewStringObj(argName, j-1));
+    NEW_STRING(ifPtr->name,argString,j);
+    /* skip space */
+    for (start = j+1; start<length && isspace((int)argString[start]); start++) {;}
+    
+    /* search for ',' */
+    for (l=start; l<length;l++) {
+      if (argString[l] == ',') {
+        for (end = l;end>0 && isspace((int)argString[end-1]); end--);
+        Tcl_ListObjAppendElement(interp, list, 
+                                 nonposargType(interp, argString+start, end-start));
+        parseNonposargsOption(interp, argString+start, end-start, ifPtr);
+        l++;
+        /* skip space */
+        for (start = l; start<length && isspace((int)argString[start]); start++) {;}
+      }
+    }
+    /* append last arg */
+    for (end = l;end>0 && isspace((int)argString[end-1]); end--);
+    Tcl_ListObjAppendElement(interp, list, 
+                             nonposargType(interp, argString+start, end-start));
+    parseNonposargsOption(interp, argString+start, end-start, ifPtr);
+    /* append the whole thing to the list */
+    Tcl_ListObjAppendElement(interp, argObj, list);
+    /*  fprintf(stderr," appending list npa='%s'\n", ObjStr(argObj));*/
+  } else {
+    /* no ':', the whole arg is the name */
+    NEW_STRING(ifPtr->name,argString,length);
+    Tcl_ListObjAppendElement(interp, argObj, Tcl_NewStringObj(argName, nameLength));
+    Tcl_ListObjAppendElement(interp, argObj, Tcl_NewStringObj("", 0));
+  }
+  /* check for default */
+  if (npac == 2) {
+    Tcl_ListObjAppendElement(interp, argObj, npav[1]);
+    if (ifPtr->defaultValue) {
+      /* might be set by parseNonposargsOption */
+      DECR_REF_COUNT(ifPtr->defaultValue);
+    }
+    ifPtr->defaultValue = Tcl_DuplicateObj(npav[1]);
+    INCR_REF_COUNT(ifPtr->defaultValue);
+    ifPtr->required = 0; /* well, not required during the call */
+  }
+
+  /*fprintf(stderr, "... argObj '%s'\n",ObjStr(argObj));*/
+  /*fprintf(stderr,"%p %s ifPtr->name = '%s', nrargs %d, required %d, converter %p default %s\n",ifPtr,procName,
+          ifPtr->name,ifPtr->nrargs,ifPtr->required, ifPtr->converter,
+          ifPtr->defaultValue ? ObjStr(ifPtr->defaultValue) : "NONE");*/
+  if (ifPtr->converter == NULL) {
+    ifPtr->converter = convertToTclobj;
+  }
+  return TCL_OK;
+}
+
 static int
 parseNonposArgs(Tcl_Interp *interp,
                 char *procName, Tcl_Obj *npArgs, Tcl_Obj *ordinaryArgs,
                 Tcl_HashTable **nonposArgsTable,
                 int *haveNonposArgs) {
-  int rc, nonposArgsDefc, npac;
-  Tcl_Obj **nonposArgsDefv;
+  int rc, i, nonposArgsDefc, ordinaryArgsDefc;
+  Tcl_Obj **nonposArgsDefv, **ordinaryArgsDefv, *argObj, *nonposArgsObj,*posArgObj;
+  argDefinition *interface, *ifPtr;
 
   rc = Tcl_ListObjGetElements(interp, npArgs, &nonposArgsDefc, &nonposArgsDefv);
   if (rc != TCL_OK) {
     return XOTclVarErrMsg(interp, "cannot break down non-positional args: ",
 			  ObjStr(npArgs), (char *) NULL);
   }
-  if (nonposArgsDefc > 0) {
-    int start, end, length, i, j, nw = 0;
-    char *arg;
-    Tcl_Obj *npaObj, **npav, *nonposArgsObj = Tcl_NewListObj(0, NULL);
-    Tcl_HashEntry *hPtr;
+  rc = Tcl_ListObjGetElements(interp, ordinaryArgs, &ordinaryArgsDefc, &ordinaryArgsDefv);
+  if (rc != TCL_OK) {
+    return XOTclVarErrMsg(interp, "cannot break down ordinary args: ",
+			  ObjStr(ordinaryArgs), (char *) NULL);
+  }
 
+  ifPtr = interface = argDefinitionsNew(nonposArgsDefc+ordinaryArgsDefc); /* TODO: add free on error exits */
+
+  if (nonposArgsDefc > 0) {
+    nonposArgsObj = Tcl_NewListObj(0, NULL);
     INCR_REF_COUNT(nonposArgsObj);
     for (i=0; i < nonposArgsDefc; i++) {
-      rc = Tcl_ListObjGetElements(interp, nonposArgsDefv[i], &npac, &npav);
-      if (rc == TCL_ERROR || npac < 1 || npac > 2) {
+      
+      if ((rc = parseArgDefinition(interp, procName, nonposArgsDefv[i], 1, &argObj, ifPtr)) != TCL_OK) {
         DECR_REF_COUNT(nonposArgsObj);
-        return XOTclVarErrMsg(interp, "wrong # of elements in non-positional args ",
-                              "(should be 1 or 2 list elements): ",
-                              ObjStr(npArgs), (char *) NULL);
+        return rc;
       }
-      npaObj = Tcl_NewListObj(0, NULL);
-      arg = ObjStr(npav[0]);
-      if (arg[0] != '-') {
-        DECR_REF_COUNT(npaObj);
-        DECR_REF_COUNT(nonposArgsObj);
-        return XOTclVarErrMsg(interp, "non-positional args does not start with '-': ",
-                              arg, " in: ", ObjStr(npArgs), (char *) NULL);
-      }
-	
-      length = strlen(arg);
-      for (j=0; j<length; j++) {
-        if (arg[j] == ':') break;
-      }
-      if (arg[j] == ':') {
-        int l;
-        Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-                
-	Tcl_ListObjAppendElement(interp, npaObj, Tcl_NewStringObj(arg+1, j-1));
-        start = j+1;
-        while(start<length && isspace((int)arg[start])) start++;
-        for (l=start; l<length;l++) {
-          if (arg[l] == ',') {
-            for (end = l;end>0 && isspace((int)arg[end-1]); end--);
-            Tcl_ListObjAppendElement(interp, list, 
-				     nonposargType(interp, arg+start, end-start));
-            l++;
-            start = l;
-            while (start<length && isspace((int)arg[start])) start++;
-          }
-        }
-        /* append last arg */
-        for (end = l;end>0 && isspace((int)arg[end-1]); end--);
-        Tcl_ListObjAppendElement(interp, list, 
-				 nonposargType(interp, arg+start, end-start));
-        /* append the whole thing to the list */
-        Tcl_ListObjAppendElement(interp, npaObj, list);
-	/*  fprintf(stderr," appending list npa='%s'\n", ObjStr(npaObj));*/
-      } else {
-	Tcl_ListObjAppendElement(interp, npaObj, Tcl_NewStringObj(arg+1, length));
-	Tcl_ListObjAppendElement(interp, npaObj, Tcl_NewStringObj("", 0));
-	/*  fprintf(stderr," no colon npa='%s'\n", ObjStr(npaObj));*/
-      }
-      if (npac == 2) {
-	Tcl_ListObjAppendElement(interp, npaObj, npav[1]);
-	/*  fprintf(stderr," npac==2 ='%s'\n", ObjStr(npaObj)); */
-      }
-      Tcl_ListObjAppendElement(interp, nonposArgsObj, npaObj);
+      
       *haveNonposArgs = 1;
+      Tcl_ListObjAppendElement(interp, nonposArgsObj, argObj);      
+      ifPtr++;
     }
 
+    /* TODO: 
+       for the time being, process the pos args only when we have nonpos args.
+       We have to benchmark the overhead and maybe we have to provide a switch
+       via e.g. configure to activate/deactivate pos args handling.
+    */
+    if (*haveNonposArgs) {
+      posArgObj = Tcl_NewListObj(0, NULL);
+      INCR_REF_COUNT(posArgObj);
+
+      for (i=0; i< ordinaryArgsDefc; i++) {
+        Tcl_Obj **resultObjv;
+        int resultObjc;
+
+        if ((rc = parseArgDefinition(interp, procName, ordinaryArgsDefv[i], 0, &argObj, ifPtr)) != TCL_OK) {
+          DECR_REF_COUNT(posArgObj);
+          return rc;
+        }
+        /* TODO: once we get all info from our interface definition, this should no be necessary */
+        rc = Tcl_ListObjGetElements(interp, argObj, &resultObjc, &resultObjv);
+        /*fprintf(stderr, "ordinary args oc %d, rc %d '%s'\n",resultObjc,rc,ObjStr(argObj));*/
+        if (resultObjc < 3) {
+          Tcl_ListObjAppendElement(interp, posArgObj, resultObjv[0]);
+        } else {
+          Tcl_Obj *pair = Tcl_NewListObj(0,NULL);
+          Tcl_ListObjAppendElement(interp, pair, resultObjv[0]);
+          Tcl_ListObjAppendElement(interp, pair, resultObjv[2]);
+          Tcl_ListObjAppendElement(interp, posArgObj, pair);
+          DECR_REF_COUNT(argObj);
+        }
+        ifPtr++;
+      }
+    }
+    
     if (*haveNonposArgs) {
       XOTclNonposArgs *nonposArg;
+      Tcl_HashEntry *hPtr;
+      int nw = 0;
 	
       if (*nonposArgsTable == NULL) {
 	*nonposArgsTable = NonposArgsCreateTable();
@@ -6044,27 +6186,13 @@ parseNonposArgs(Tcl_Interp *interp,
       nonposArg = (XOTclNonposArgs*)ckalloc(sizeof(XOTclNonposArgs));
       nonposArg->slotObj = NULL;
       nonposArg->nonposArgs = nonposArgsObj;
-      { /* FIX AND REMOVE ME */
-	int i, r2, ordinaryArgsDefc;
-	Tcl_Obj **ordinaryArgsDefv;
-	    
-	r2 = Tcl_ListObjGetElements(interp, ordinaryArgs,
-				    &ordinaryArgsDefc, &ordinaryArgsDefv);
-	if (r2 == TCL_OK) {
-	  Tcl_Obj *objv[ordinaryArgsDefc];
-	  for (i=0; i< ordinaryArgsDefc; i++) {
-	    objv[i] = Tcl_DuplicateObj(ordinaryArgsDefv[i]);
-	  }
-	  nonposArg->ordinaryArgs = Tcl_NewListObj(ordinaryArgsDefc, objv);
-	  INCR_REF_COUNT(nonposArg->ordinaryArgs);
-	} else {
-	  fprintf(stderr, "could not split ordinaryArgs\n");
-	}
-      }
+      nonposArg->ifd = interface;
+      nonposArg->ifdSize = nonposArgsDefc+ordinaryArgsDefc;
+      nonposArg->ordinaryArgs = posArgObj;
+
       Tcl_SetHashValue(hPtr, (ClientData)nonposArg);
     } else {
-      /* for strange reasons, we did not find nonpos-args, although we
-	 have definitions */
+      /* empty definitions */
       DECR_REF_COUNT(nonposArgsObj);
     }
   }
@@ -6415,10 +6543,13 @@ AppendOrdinaryArgsFromNonposArgs(Tcl_Interp *interp, XOTclNonposArgs *nonposArgs
     rc = Tcl_ListObjGetElements(interp, ordinaryArg,
                                 &defaultValueObjc, &defaultValueObjv);
     if (rc == TCL_OK) {
-      if (varsOnly && defaultValueObjc == 2) {
+      if (varsOnly || defaultValueObjc<2) {
 	Tcl_ListObjAppendElement(interp, argList, defaultValueObjv[0]);
       } else {
-	Tcl_ListObjAppendElement(interp, argList, ordinaryArg);
+        Tcl_Obj *pair = Tcl_NewListObj(0,NULL);
+	Tcl_ListObjAppendElement(interp, pair, defaultValueObjv[0]);
+	Tcl_ListObjAppendElement(interp, pair, defaultValueObjv[1]);
+	Tcl_ListObjAppendElement(interp, argList, pair);
       }
     }
   }
@@ -6480,8 +6611,11 @@ StripBodyPrefix(char *body) {
   if (strncmp(body, "::xotcl::initProcNS\n", 20) == 0)
     body+=20;
 #endif
+  /* TODO REMOVE ME 
   if (strncmp(body, "::xotcl::interpretNonpositionalArgs $args\n", 42) == 0)
-    body+=42;
+    body += 42;*/
+  if (strncmp(body, "::xotcl::interpretNonpositionalArgs {*}$args\n", 45) == 0)
+    body += 45;
   return body;
 }
 
@@ -9339,17 +9473,26 @@ static int convertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clie
   *clientData = (ClientData)objPtr;
   return TCL_OK;
 }
-
 static int convertToNothing(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
   return TCL_OK;
 }
+static int convertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
+  Tcl_Obj *boolean = Tcl_DuplicateObj(objPtr); /*TODO: is duplication still needed?*/
+  int result, bool;
 
+  INCR_REF_COUNT(boolean);
+  result = Tcl_GetBooleanFromObj(interp, boolean, &bool);
+  if (result == TCL_OK) {
+    *clientData = (ClientData)bool;
+  }
+  DECR_REF_COUNT(boolean);
+  return result;
+}
 static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
   if (GetXOTclClassFromObj(interp, objPtr, (XOTclClass **)clientData, 0) == TCL_OK)
     return TCL_OK;
   return XOTclObjErrType(interp, objPtr, "class");
 }
-
 static int convertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
   if (XOTclObjConvertObject(interp, objPtr, (XOTclObject **)clientData) == TCL_OK)
     return TCL_OK;
@@ -9388,44 +9531,49 @@ static int convertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *
 
 #include "tclAPI.h"
 
+
+/* TODO: pass method name as a single argument, omit methodName from
+   objv; this will make nonposargs case simpler */
 static int
-parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseContext *pc) {
-  int i, o, args, flagCount = 0, nrReq = 0, nrOpt = 0, varArgs = 0;
+parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int start, argDefinition CONST *ifdPtr, 
+          parseContext *pc) {
+  int i, o, args = 0, flagCount = 0, nrReq = 0, nrOpt = 0, varArgs = 0;
   /* todo benchmark with and without CONST */
   argDefinition CONST *aPtr, *bPtr;
-  interfaceDefinition CONST* ifdPtr = &method_definitions[idx].ifd;
 
   memset(pc, 0, sizeof(parseContext));
 
 #if defined(PARSE_TRACE)
-  fprintf(stderr, "BEGIN (%d) [0]%s ",objc,ObjStr(objv[0]));
-  for (o=1; o<objc; o++) {fprintf(stderr, "[%d]%s ",o,ObjStr(objv[o]));} 
+  fprintf(stderr, "BEGIN (%d) [0]%s ",objc,start==1 ? ObjStr(objv[0]) : "NONE");
+  for (o=start; o<objc; o++) {fprintf(stderr, "[%d]%s ",o,ObjStr(objv[o]));} 
   fprintf(stderr,"\n");
 #endif
 
-  for (i=0, o=1, aPtr=ifdPtr[0]; aPtr->name && o<objc;) {
-    /*fprintf(stderr,".. processing i=%d: '%s' o=%d\n",i,aPtr->name,o);*/
+  /*fprintf(stderr, "processing from %d to %d\n",start,objc-1);*/
+  for (i=0, o=start, aPtr=ifdPtr; aPtr->name && o<objc;) {
+    /* fprintf(stderr,"... processing i=%d: '%s' o=%d\n",i,aPtr->name,o);*/
     if (*aPtr->name == '-') {
-      /* the interface defintion has switches,switches can be given in
+      /* the interface defintion has switches, which can be given in
          an arbitrary order */
       int p, found;
       char *objStr;
       for (p = o; p<objc; p++) {
         objStr = ObjStr(objv[p]);
-        /*fprintf(stderr,"....checking o=%s\n", objStr);*/
+        /*fprintf(stderr,"....checking objv[%d]=%s\n", p, objStr);*/
         if (objStr[0] == '-') {
           found = 0;
           for (bPtr = aPtr; *bPtr->name == '-'; bPtr ++) {
             if (strcmp(objStr,bPtr->name) == 0) {
+              /*fprintf(stderr, "... flag '%s' o=%d p=%d, objc=%d nrargs %d\n",objStr,o,p,objc,bPtr->nrargs);*/
+              pc->objv[bPtr-ifdPtr] = objv[p];
               if (bPtr->nrargs == 0) {
-                pc->clientData[bPtr-ifdPtr[0]] = (ClientData)1;
+                pc->clientData[bPtr-ifdPtr] = (ClientData)1;
               } else {
                 /* we assume for now, nrargs is at most 1 */ 
                 o++; p++;
-                /*fprintf(stderr, "flag '%s' o=%d p=%d, objc=%d\n",objStr,o,p,objc);*/
                 if (o<objc) {
-		  /*fprintf(stderr, "setting cd[%d] = %s\n", bPtr-ifdPtr[0], ObjStr(objv[o]));*/
-                  if ((*aPtr->type)(interp, objv[o], &pc->clientData[bPtr-ifdPtr[0]]) != TCL_OK) {
+		  /*fprintf(stderr, "setting cd[%d] = %s\n", bPtr-ifdPtr, ObjStr(objv[o]));*/
+                  if ((*aPtr->converter)(interp, objv[o], &pc->clientData[bPtr-ifdPtr]) != TCL_OK) {
                     return TCL_ERROR;
                   }
                 } else {
@@ -9455,37 +9603,39 @@ parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseCon
     } else {
 
       if (aPtr->required) nrReq++; else nrOpt++;
-
-      /*fprintf(stderr,"... arg %s req %d type %s try to set on %d: '%s'\n",
-        aPtr->name,aPtr->required,aPtr->type,i, ObjStr(objv[o]));*/
-      if ((*aPtr->type)(interp, objv[o], &pc->clientData[i]) != TCL_OK) {
+      args ++;
+      /*fprintf(stderr,"... arg %s req %d converter %p try to set on %d: '%s'\n",
+        aPtr->name,aPtr->required,aPtr->converter,i, ObjStr(objv[o]));*/
+      if ((*aPtr->converter)(interp, objv[o], &pc->clientData[i]) != TCL_OK) {
         return TCL_ERROR;
       }
 
       /* 
        * objv is always passed via pc->objv
        */
+      /*fprintf(stderr, "... setting %s pc->objv[%d] to '%s'\n",aPtr->name,i,ObjStr(objv[o]));*/
       pc->objv[i] = objv[o];
       o++; i++; aPtr++;
     }
   }
-  args = objc - flagCount - 1;
   pc->lastobjc = aPtr->name ? o : o-1;
+  /* pc->lastobjc = aPtr->name ? o+1 : o;*/
 
   /* process to end of interface;*/ 
   while (aPtr->name) {
+    /*fprintf(stderr, "end of if def %s\n",aPtr->name);*/
     if (aPtr->required) nrReq++; else nrOpt++;
     aPtr++;
   }
   
   /* is last argument a vararg? */
   aPtr--;
-  if (!varArgs && aPtr->type == convertToNothing) {
+  if (!varArgs && aPtr->converter == convertToNothing) {
     varArgs = 1;
     /*fprintf(stderr, "last arg is varargs\n");*/
   }
 
-  /* fprintf(stderr, "less nrreq %d last arg %s type %s\n", args < nrReq, aPtr->name, aPtr->type);
+  /* fprintf(stderr, "less nrreq %d last arg %s type %s\n", args < nrReq, aPtr->name, aPtr->converter);
   fprintf(stderr, "objc = %d, args = %d, nrReq %d, nrReq + nrOpt = %d, varArgs %d i %d %s\n", 
   objc,args,nrReq,nrReq + nrOpt, varArgs, i,aPtr->name);*/
 
@@ -9496,8 +9646,8 @@ parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int idx, parseCon
 
   if (args < nrReq || (!varArgs && args > nrReq + nrOpt)) {
     Tcl_Obj *msg = Tcl_NewStringObj("", 0);
-    for (aPtr=ifdPtr[0]; aPtr->name; aPtr++) {
-      if (aPtr != ifdPtr[0]) {
+    for (aPtr=ifdPtr; aPtr->name; aPtr++) {
+      if (aPtr != ifdPtr) {
         Tcl_AppendToObj(msg, " ", 1);
       }
       if (aPtr->required) {
@@ -12027,6 +12177,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
               XOTclRequireObjectOpt(obj);
               AssertionAppendPrePost(interp, dsPtr, procs);
             }
+            /*fprintf(stderr, "new proc = '%s'\n",Tcl_DStringValue(dsPtr));*/
             Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
             DSTRING_FREE(dsPtr);
           }
@@ -12239,6 +12390,59 @@ isNonposArg(Tcl_Interp *interp, char * argStr,
   return 0;
 }
 
+#if 1
+int
+XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
+                                   Tcl_Obj *CONST objv[]) {
+  XOTclObject *object = GetSelfObj(interp);
+  XOTclClass *class = XOTclObjectIsClass(object) ? (XOTclClass *)object : NULL;
+  Tcl_HashTable *nonposArgsTable = class ? class->nonposArgsTable : object->nonposArgsTable;
+  char *methodName = (char *)GetSelfProc(interp);
+  XOTclNonposArgs *nonposArgs = NonposArgsGet(nonposArgsTable, methodName);
+  parseContext pc;
+  argDefinition CONST *aPtr, *bPtr;
+  Tcl_Obj *argsv;
+  int i, rc, argsc;
+
+  /* the arguments are passed via the single argument "args"; strictly
+     speaking, this is not necessary and could be handled as well via
+     introspection (this is a possible TODO for optimization)
+  */
+  
+  /*  rc = Tcl_ListObjGetElements(interp, objv[1], &argsc, &argsv);
+  fprintf(stderr, "oc=%d %s, argsc %d, rc=%d\n",objc,ObjStr(objv[1]),argsc,rc);
+  */
+  /*fprintf(stderr, "oc=%d\n",objc);*/
+  if (parseObjv(interp, objc, objv, 1, nonposArgs->ifd, &pc) != TCL_OK) {
+    return TCL_ERROR;
+  }
+  for (aPtr = nonposArgs->ifd, i=0; aPtr->name; aPtr++, i++) {
+    char *argName = aPtr->name;
+    if (*argName == '-') argName++;
+    /*fprintf(stderr, "got for arg %s (%d) => %p, default %s\n",aPtr->name, aPtr->required,
+            pc.clientData[i], 
+            aPtr->defaultValue ? ObjStr(aPtr->defaultValue) : "NONE");*/
+    
+    if (pc.clientData[i] == 0) {
+      /* no valued passed, try take default */
+      if (aPtr->defaultValue) {
+        /* TODO not jet checked */
+        Tcl_SetVar2Ex(interp, argName, NULL, aPtr->defaultValue, 0);
+      } else if (aPtr->required) {
+        fprintf(stderr, "required argument %s missing\n",argName);
+        return TCL_ERROR;
+      }
+    } else {
+      /* got a value, already checked by objv parser */
+      /*fprintf(stderr, "setting passed value for %s to '%s'\n",argName,ObjStr(pc.objv[i]));*/
+      Tcl_SetVar2Ex(interp, argName, NULL, pc.objv[i], 0);
+    }
+    
+  }
+  return TCL_OK;
+}
+#else 
+
 int
 XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                                    Tcl_Obj *CONST objv[]) {
@@ -12252,7 +12456,7 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   int endOfNonposArgsReached = 0;
   Var *varPtr;
 
-  XOTclClass *selfClass = GetSelfClass(interp);
+  XOTclClass *currentClass = GetSelfClass(interp);
   char *methodName = (char *) GetSelfProc(interp);
   Tcl_HashTable *nonposArgsTable;
   XOTclNonposArgs *nonposArgs;
@@ -12263,8 +12467,8 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
     return XOTclObjErrArgCnt(interp, objv[0], NULL, "?args?");
   }
 
-  if (selfClass) {
-    nonposArgsTable = selfClass->nonposArgsTable;
+  if (currentClass) {
+    nonposArgsTable = currentClass->nonposArgsTable;
   } else if ((selfObj = GetSelfObj(interp))) {
     nonposArgsTable = selfObj->nonposArgsTable;
   } else {
@@ -12495,7 +12699,7 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   }
   return TCL_OK;
 }
-
+#endif
 
 /* create a slave interp that calls XOTcl Init */
 static int
