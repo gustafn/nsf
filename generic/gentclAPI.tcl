@@ -43,6 +43,7 @@ proc genifd {argDefinitions} {
     }
     switch -glob $type {
       "NULL"       {set converter String}
+      "boolean"    {set converter Boolean}
       "class"      {set converter Class}
       "object"     {set converter Object}
       "tclobj"     {set converter Tclobj}
@@ -112,6 +113,7 @@ proc gencall {fn argDefinitions clientData cDefsVar ifDefVar arglistVar preVar p
       set calledArg $varName
       switch -glob $(-type) {
         ""           {set type "char *"}
+        "boolean"    {set type "int "}
         "class"      {set type "XOTclClass *"}
         "object"     {set type "XOTclObject *"}
         "tclobj"     {set type "Tcl_Obj *"}
@@ -192,7 +194,7 @@ proc genstubs {} {
 static int
 $d(stub)(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 $intro
-  if (parseObjv(interp, objc, objv, 1, &(method_definitions[$d(idx)].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[$d(idx)].ifd[0]), &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     $cDefs
@@ -213,7 +215,7 @@ typedef struct {
   argDefinition ifd[10];
 } methodDefinition;
 
-static int parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], int start,
+static int parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName,
 		     argDefinition CONST *ifdPtr, parseContext *pc);
 
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,

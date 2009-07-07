@@ -79,7 +79,13 @@
 #define OBJDELETION_TRACE 1
 #define STACK_TRACE 1
 #define PARSE_TRACE 1
+#define PARSE_TRACE_FULL 1
 */
+
+
+#if defined PARSE_TRACE_FULL
+# define PARSE_TRACE 1
+#endif
 
 #ifdef XOTCL_MEM_COUNT
 # define DO_FULL_CLEANUP 1

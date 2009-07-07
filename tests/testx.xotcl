@@ -3289,8 +3289,8 @@ TestX objectReferences -proc run {{n 20}} {
   namespace eval ns1 {Class C; namespace export C}
   o eval {namespace import ::ns1::*}
 
-  ::errorCheck [o info children] "::o::cde ::o::bcd ::o::abc" "info children 1"
-  ::errorCheck [o info children *cd*] "::o::cde ::o::bcd" "info children 2"
+  ::errorCheck [lsort [o info children]] "::o::abc ::o::bcd ::o::cde" "info children 1"
+  ::errorCheck [lsort [o info children *cd*]] "::o::bcd ::o::cde" "info children 2"
   ::errorCheck [o info children ::o::cde] ::o::cde "info children 3"
   ::errorCheck [o info children ::o::def] "" "info children 4"
   Object new -childof o
@@ -3845,19 +3845,19 @@ TestX create nonposargs -proc run {{n 20}} {
   catch {
     o y 4 56 5
   } m
-  errorCheck $m {unknown argument '5' for method 'y': valid arguments -x {-a {1 2 3}} a b} "wrong \# check 1"
+  errorCheck $m {wrong # args: should be "y ?-x arg? ?-a arg? a b"} "wrong \# check 1"
   catch {
     o y
   } m
-  errorCheck $m "wrong # args for method 'y': valid arguments -x {-a {1 2 3}} a b" "wrong \# check 2"
+  errorCheck $m {wrong # args: should be "y ?-x arg? ?-a arg? a b"} "wrong \# check 2"
   catch {
     o y -x 1
   } m
-    errorCheck $m "wrong # args for method 'y': valid arguments -x {-a {1 2 3}} a b" "wrong \# check 3"
+  errorCheck $m {method y: required argument 'a' is missing} "wrong \# check 3"
   catch {
     o z1 a 1 2 3
   } m
-  errorCheck $m "required arg: 'x' missing" "required missing"
+  errorCheck $m {method z1: required argument 'x' is missing} "required missing"
   errorCheck [o z1 -x 1  a 1 2 3] "1 -- 1 2 3" "invocation 1"
   errorCheck [o z2 -x 2  a 1 2 3] "2 -- a 1 2 3 -- 1  -- 1 2" "invocation 2"
   catch {
@@ -3868,9 +3868,7 @@ TestX create nonposargs -proc run {{n 20}} {
       "1 -- a b c -- 2 -- 3" "invocation 3"
   errorCheck [p z2 -x 1 -a 2 -b 3 a b c] \
       "1 -- a b c -- 2 -- 3" "invocation 4"
-  
     errorCheck [o z3 -b true -- -b] "true -b" "dash dash"
-  
     errorCheck [o z5 -pos 1 a b] "1 {a b}" "nonpos with given args"
     errorCheck [o z5 -pos 1 a] "1 a" "nonpos with given args"
     errorCheck [o z5 -pos 1] "1 {}" "nonpos without given args"
@@ -3878,7 +3876,7 @@ TestX create nonposargs -proc run {{n 20}} {
     catch {
 	o z3 -b abc -- -b
     } m
-    errorCheck $m "non-positional argument: 'b' with value 'abc' is not of type=boolean" "not boolean"
+  errorCheck $m {expected boolean value but got "abc"} "not boolean"
 
     set ::r ""    
     #o z4 -c 1 1
@@ -3927,7 +3925,7 @@ TestX create nonposargs -proc run {{n 20}} {
   o foo
   o foo -foo 0
   catch {o foo -foo} msg
-  errorCheck $msg "Non positional arg '-foo': value missing" "Empty non-pos arg"
+  errorCheck $msg "Argument for parameter '-foo' expected" "Empty non-pos arg"
   
   Object oa
   oa proc foo {{-a A} b} {
@@ -3938,7 +3936,7 @@ TestX create nonposargs -proc run {{n 20}} {
   oa foo "---"
   catch {oa foo "--"} msg
   
-  errorCheck $msg "wrong # args for method 'foo': valid arguments {-a A} b" "Non-pos arg: double dash alone"
+  errorCheck $msg "method foo: required argument 'b' is missing" "Non-pos arg: double dash alone"
 	
   Class C
   C create c1
@@ -4070,7 +4068,18 @@ TestX create nonposargs -proc run {{n 20}} {
   errorCheck [catch {o p7 -x 2 1}] 0 nonpos-15
   errorCheck [catch {o p7 -x 2 }] 1 nonpos-16
   errorCheck [catch {o p8 -x 2 }] 0 nonpos-17
-  o destroy
+
+  o proc foo {-enable:switch i:integer} {
+    return "enable=$enable, i=$i"
+  }
+  o proc bar {-enable:switch o:object c:class} {
+    return "o=$o c=$c"
+  }
+  errorCheck [catch {o foo 123}] 0 check-pos-args-1
+  errorCheck [catch {o foo abc}] 1 check-pos-args-2
+  errorCheck [catch {o bar o Object}] 0 check-pos-args-3
+  errorCheck [catch {o bar ooo Object}] 1 check-pos-args-4
+  errorCheck [catch {o bar o Object1}] 1 check-pos-args-5
 
   Class X
   X instproc ListOfStringsOption {{-default "murr6"} {-cb {}} name} {

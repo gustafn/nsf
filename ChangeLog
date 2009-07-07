@@ -62,12 +62,39 @@ Class Meta -superclass Class
 Meta C -superclass O -parameter {a {b -default ""} {c -default 1}}
 C c1 ;# c1 has no no default value for "a", before it had one
 ======
+
+2009-07-07 <Gustaf.Neumann@wu-wien.ac.at>
+
+  - based introspection for procs/instprocs on new argument definition
+    structures
+
+  - allowing type checkers also for positional arguments
+    (for now only, when nonpos args are given as well; we have
+    to think about using these either for all procs/instprocs,
+    or only, when e.g. type checkers are used; we have to
+    make more benchmarking to get a better foundation)
+
+  - registered the following type checkers for procs/instprocs:
+       switch, integer, boolean, object, class
+
+    Example
+      o proc bar {-enable:switch o:object c:class} {
+         return "o=$o c=$c"
+      }
+
+   - generated interface for ::xotcl::configure; now 97 interfaces are
+     generated; shortcoming for bool/int converter stubs: optional
+     0-vaues are not recognized, so use tclobj for the time being
+
+   - extended regression test
+
+   - from 15356 generic/xotcl.c => 13097
+
 2009-07-06 <Gustaf.Neumann@wu-wien.ac.at>
     - parse non-pos-args for procs/instprocs into new argument definition structure
     - using new parseObjv for calling procs and instproc when nonpos-args are used
       (invocation time went from 9.08ms to 5.95ms)
-    - TODO: complete implementation for regression test, base introspection/copy etc.
-      on new structures
+    - TODO: base introspection/copy etc. on new structures
 
 2009-07-04 <Gustaf.Neumann@wu-wien.ac.at>
     - removed compatibility for versions before Tcl 8.4 (was not tested anyhow)

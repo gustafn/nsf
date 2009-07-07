@@ -24,6 +24,10 @@ xotclCmd alias XOTclAliasCmd {
   {-argName "-protected"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
+xotclCmd configure XOTclConfigureCmd {
+  {-argName "configureoption" -required 1 -type "filter|softrecreate"}
+  {-argName "value" -required 0 -type tclobj}
+}
 xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "methodName" -required 1}

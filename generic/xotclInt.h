@@ -1,8 +1,7 @@
 /* -*- Mode: c++ -*-
- *  $Id: xotclInt.h,v 1.27 2007/10/12 19:53:32 neumann Exp $
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2009 Gustaf Neumann, Uwe Zdun
  *
  *  xotclInt.h --
  *
@@ -44,7 +43,7 @@
 #endif
 
 #ifdef XOTCL_MEM_COUNT
-Tcl_HashTable xotclMemCount; 
+Tcl_HashTable xotclMemCount;
 extern int xotclMemCountInterpCounter;
 typedef struct XOTclMemCounter {
   int peak;
@@ -58,9 +57,9 @@ typedef struct XOTclMemCounter {
         xotclMemCountInterpCounter = 1; \
       }
 #  define MEM_COUNT_DUMP() XOTclMemCountDump(interp)
-#  define MEM_COUNT_OPEN_FRAME() 
+#  define MEM_COUNT_OPEN_FRAME()
 /*if (obj->varTable) noTableBefore = 0*/
-#  define MEM_COUNT_CLOSE_FRAME() 
+#  define MEM_COUNT_CLOSE_FRAME()
 /*      if (obj->varTable && noTableBefore) \
 	XOTclMemCountAlloc("obj->varTable",NULL)*/
 #else
@@ -184,7 +183,7 @@ typedef struct XOTclMemCounter {
     type *var = __##var + 1; var[-1] = var[__##var##_count] = (type)0xdeadbeaf
 #  define FREE_ON_STACK(var) \
     assert(var[-1] == var[__##var##_count] && (void *)var[-1] == (void*)0xdeadbeaf)
-# else 
+# else
 #  define ALLOC_ON_STACK(type,n,var) type var[(n)]
 #  define FREE_ON_STACK(var)
 # endif
@@ -228,7 +227,7 @@ typedef struct XOTclMemCounter {
 #endif
 
 #if defined(TCL_THREADS)
-# define XOTclMutex Tcl_Mutex 
+# define XOTclMutex Tcl_Mutex
 # define XOTclMutexLock(a) Tcl_MutexLock(a)
 # define XOTclMutexUnlock(a) Tcl_MutexUnlock(a)
 #else
@@ -261,7 +260,7 @@ typedef struct XOTclMemCounter {
      MEM_COUNT_CLOSE_FRAME()
 
 #else
-/* slightly slower version based on Tcl_PushCallFrame. 
+/* slightly slower version based on Tcl_PushCallFrame.
    Note that it is possible that between push and pop
    a obj->nsPtr can be created (e.g. during a read trace)
 */
@@ -300,7 +299,7 @@ typedef struct XOTclMemCounter {
 	  ctx,obj,ObjStr(obj->cmdName), obj->id, obj->teardown, \
 	  (obj->flags & XOTCL_DESTROY_CALLED))
 #else
-# define PRINTOBJ(ctx,obj) 
+# define PRINTOBJ(ctx,obj)
 #endif
 
 #define className(cl) (cl ? ObjStr(cl->object.cmdName) : "")
@@ -358,8 +357,8 @@ typedef enum { /* powers of 2; add to ALL, if default; */
   CHECK_ALL   = CHECK_INVAR   + CHECK_PRE + CHECK_POST
 } CheckOptions;
 
-void XOTclAssertionRename(Tcl_Interp *interp, Tcl_Command cmd, 
-			  XOTclAssertionStore *as, 
+void XOTclAssertionRename(Tcl_Interp *interp, Tcl_Command cmd,
+			  XOTclAssertionStore *as,
 			  char *oldSimpleCmdName, char *newName);
 /*
  * mixins
@@ -389,13 +388,13 @@ typedef struct XOTclStringIncrStruct {
   int length;
 } XOTclStringIncrStruct;
 
-/* 
+/*
  * object flags ...
  */
 
-/* DESTROY_CALLED indicates that destroy was called on obj */ 
+/* DESTROY_CALLED indicates that destroy was called on obj */
 #define XOTCL_DESTROY_CALLED                 0x0001
-/* INIT_CALLED indicates that init was called on obj */ 
+/* INIT_CALLED indicates that init was called on obj */
 #define XOTCL_INIT_CALLED                    0x0002
 /* MIXIN_ORDER_VALID set when mixin order is valid */
 #define XOTCL_MIXIN_ORDER_VALID              0x0004
@@ -438,14 +437,12 @@ typedef struct  {
   int nrargs;
   XOTclTypeConverter *converter;
   Tcl_Obj *defaultValue;
+  char *type;
 } argDefinition;
 
 typedef struct XOTclNonposArgs {
-  Tcl_Obj *nonposArgs;
-  Tcl_Obj *ordinaryArgs;
-  Tcl_Obj *slotObj;
   argDefinition *ifd;
-  int ifdSize;
+  Tcl_Obj *slotObj;
 } XOTclNonposArgs;
 
 typedef struct XOTclObjectOpt {
@@ -524,12 +521,12 @@ typedef enum {
   XOTE_EMPTY, XOTE_UNKNOWN, XOTE_CREATE, XOTE_DESTROY, XOTE_DEALLOC,
     XOTE_ALLOC, XOTE_INIT, XOTE_INSTVAR, XOTE_INTERP, XOTE_AUTONAMES,
     XOTE_ZERO, XOTE_ONE, XOTE_MOVE, XOTE_SELF, XOTE_CLASS, XOTE_RECREATE,
-    XOTE_SELF_CLASS, XOTE_SELF_PROC, 
-    XOTE_EXIT_HANDLER, XOTE_DEFAULTSUPERCLASS, XOTE_DEFAULTMETACLASS, 
+    XOTE_SELF_CLASS, XOTE_SELF_PROC,
+    XOTE_EXIT_HANDLER, XOTE_DEFAULTSUPERCLASS, XOTE_DEFAULTMETACLASS,
     XOTE_NON_POS_ARGS_OBJ, XOTE_SETVALUES,
     XOTE_CLEANUP, XOTE_CONFIGURE, XOTE_FILTER, XOTE_INSTFILTER,
     XOTE_INSTPROC, XOTE_PROC, XOTE_INSTFORWARD, XOTE_FORWARD,
-    XOTE_INSTCMD, XOTE_CMD, XOTE_INSTPARAMETERCMD, XOTE_PARAMETERCMD, 
+    XOTE_INSTCMD, XOTE_CMD, XOTE_INSTPARAMETERCMD, XOTE_PARAMETERCMD,
     XOTE_FORMAT, XOTE_INITSLOTS,
     XOTE_NEWOBJ, XOTE_GUARD_OPTION, XOTE_DEFAULTMETHOD,
     XOTE___UNKNOWN, XOTE_ARGS, XOTE_SPLIT, XOTE_COMMA,
@@ -544,14 +541,14 @@ char *XOTclGlobalStrings[] = {
   "", "unknown", "create", "destroy", "dealloc",
   "alloc", "init", "instvar", "interp", "__autonames",
   "0", "1", "move", "self", "class", "recreate",
-  "self class", "self proc", 
+  "self class", "self proc",
   "__exitHandler", "__default_superclass", "__default_metaclass",
   "::xotcl::nonposArgs", "setvalues",
   "cleanup", "configure", "filter", "instfilter",
   "instproc", "proc", "instforward", "forward",
   "instcmd", "cmd", "instparametercmd", "parametercmd",
   "format", "initslots",
-  "__#", "-guard", "defaultmethod", 
+  "__#", "-guard", "defaultmethod",
   "__unknown", "args", "split", ",",
   "expr", "info", "rename", "subst",
 };
@@ -690,7 +687,7 @@ XOTclProfilePrintTable(Tcl_HashTable *table);
 extern void
 XOTclProfilePrintData(Tcl_Interp *interp);
 
-extern void 
+extern void
 XOTclProfileInit(Tcl_Interp *interp);
 #endif
 
@@ -711,12 +708,12 @@ XOTclMetaDataDestroy(XOTclObject *obj);
 extern void
 XOTclMetaDataInit(XOTclObject *obj);
 extern int
-XOTclOMetaDataMethod (ClientData cd, Tcl_Interp *interp, 
+XOTclOMetaDataMethod (ClientData cd, Tcl_Interp *interp,
 		      int objc, Tcl_Obj *objv[]);
 #endif /* XOTCL_METADATA */
 
 
-/* 
+/*
  * bytecode support
  */
 #ifdef XOTCL_BYTECODE
@@ -727,20 +724,20 @@ typedef struct XOTclCompEnv {
   Tcl_ObjCmdProc *callProc;
 } XOTclCompEnv;
 
-typedef enum {INST_INITPROC, INST_NEXT, INST_SELF, INST_SELF_DISPATCH, 
+typedef enum {INST_INITPROC, INST_NEXT, INST_SELF, INST_SELF_DISPATCH,
 	      LAST_INSTRUCTION} XOTclByteCodeInstructions;
 
 
 extern XOTclCompEnv *XOTclGetCompEnv();
 
-Tcl_ObjCmdProc XOTclInitProcNSCmd, XOTclSelfDispatchCmd, 
+Tcl_ObjCmdProc XOTclInitProcNSCmd, XOTclSelfDispatchCmd,
   XOTclNextObjCmd, XOTclGetSelfObjCmd;
 
 int XOTclDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
 		     int objc, Tcl_Obj *CONST objv[]);
 #endif
 
-int 
+int
 XOTclObjDispatch(ClientData cd, Tcl_Interp *interp,
 		 int objc, Tcl_Obj *CONST objv[]);
 
