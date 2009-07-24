@@ -8891,7 +8891,6 @@ callForwarder(forwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   }
   if (tcd->objProc) {
     result = (tcd->objProc)(tcd->clientData, interp, objc, objv);
-    result = (tcd->objProc)(tcd->clientData, interp, objc, objv);
   } else if (tcd->cmdName->typePtr == &XOTclObjectType
              && XOTclObjConvertObject(interp, tcd->cmdName, (void*)&clientData) == TCL_OK) {
     /*fprintf(stderr, "XOTcl object %s, objc=%d\n", ObjStr(tcd->cmdName), objc);*/
