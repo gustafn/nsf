@@ -426,7 +426,6 @@ namespace eval ::xotcl::serializer {
   }
   Serializer instproc deepSerialize o {
     # assumes $o to be fully qualified
-puts stderr CALL-allChildren
     my serialize-objects [my allChildren $o] 1
   }
   Serializer instproc serializeMethod {object kind name} {

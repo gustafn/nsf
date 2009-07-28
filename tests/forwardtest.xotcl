@@ -195,6 +195,25 @@ obj forward @list x y z {%@2 2} {%@1 1} {%@0 list}
 ? {obj @list} [list x 1 y 2 z]
 ? {obj @list a b c} [list x 1 y 2 z a b c]
 
+# adding some test cases which cover the interactions
+# between %@POS and %1 substitutions
+#
+
+obj forward @end-13 list {%@end 13} %1 %self
+? {obj @end-13 1 2 3 } [list 1 ::obj 2 3 13]
+
+obj forward @end-13 list %1 {%@end 13} %self
+? {obj @end-13 1 2 3 } [list 1 ::obj 2 3 13]
+
+obj forward @end-13 list {%@end 13} %1 %1 %1 %self
+? {obj @end-13 1 2 3 } [list 1 1 1 ::obj 2 3 13]
+
+obj forward @end-13 list {%@-1 13} %1 %self
+? {obj @end-13 1 2 3 } [list 1 ::obj 2 13 3]
+
+obj forward @end-13 list {%@1 13} %1 %self
+? {obj @end-13 1 2 3 } [list 13 1 ::obj 2 3]
+
 ###############################################
 # substitution depending on number of arguments
 ###############################################

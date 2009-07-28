@@ -82,6 +82,9 @@
 #define PARSE_TRACE_FULL 1
 */
 
+/*
+#define CANONICAL_ARGS 1
+*/
 
 #if defined PARSE_TRACE_FULL
 # define PARSE_TRACE 1

@@ -153,6 +153,7 @@ typedef struct {
   ClientData clientData[10];
   Tcl_Obj *objv[10];
   int lastobjc;
+  int objc;
 } parseContext;
 
 typedef argDefinition interfaceDefinition[10];
@@ -5416,7 +5417,38 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 #if !defined(PRE85)
     /*fprintf(stderr,"\tproc=%s cp=%p %d\n", Tcl_GetCommandName(interp, cmd),cp, isTclProc);*/
 
+# if defined(CANONICAL_ARGS)
+    {
+      parseContext pc;
+      int rc;
+      Tcl_Obj *ov[100]; /* TODO: maybe make me dynamic, or better, put procName on ov[0] in pc */
+
+      rc = canonicalNonpositionalArgs(&pc, interp, objc, objv);
+
+      if (rc == TCL_CONTINUE) {
+	result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0);
+      } else {
+	int i, j;
+	ov[0] = objv[0];
+	for (i=0, j=1; i < pc.objc+1; i++) {
+	  if (pc.objv[i]) {
+	    ov[j++] = pc.objv[i];
+	  }
+	}
+	/*fprintf(stderr, "pc.objc = %d provided objc %d\n",pc.objc+1,objc);*/
+#if 0
+	for(j=0; j<pc.objc+1; j++) {
+	  /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
+	  fprintf(stderr, " o[%d]=%p %s,", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA");
+	}
+	fprintf(stderr,"\n");
+#endif
+	result = PushProcCallFrame(cp, interp, j, ov, /*isLambda*/ 0);
+      }
+    }
+# else
     result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0);
+#endif
 
     if (result == TCL_OK) {
       rst->cs.top->currentFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
@@ -5896,9 +5928,11 @@ static Tcl_Obj *addPrefixToBody(Tcl_Obj *body, int nonposArgs) {
     Tcl_AppendStringsToObj(resultBody, "::eval ::xotcl::interpretNonpositionalArgs $args\n",
 			   (char *) NULL);
 #else
+# if !defined(CANONICAL_ARGS)
   if (nonposArgs)
     Tcl_AppendStringsToObj(resultBody, "::xotcl::interpretNonpositionalArgs {*}$args\n",
 			   (char *) NULL);
+# endif
 #endif
   Tcl_AppendStringsToObj(resultBody, ObjStr(body), (char *) NULL);
   return resultBody;
@@ -6146,7 +6180,7 @@ parseArgDefinition(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int isNonpo
 
 static int
 parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *ordinaryArgs,
-                Tcl_HashTable **nonposArgsTable, int *haveNonposArgs) {
+                Tcl_HashTable **nonposArgsTable, int *haveNonposArgs, argDefinition **parsedIfPtr) {
   int rc, i, nonposArgsDefc, ordinaryArgsDefc;
   Tcl_Obj **nonposArgsDefv, **ordinaryArgsDefv;
   argDefinition *interface, *ifPtr;
@@ -6204,6 +6238,7 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
       nonposArg = (XOTclNonposArgs*)ckalloc(sizeof(XOTclNonposArgs));
       nonposArg->slotObj = NULL;
       nonposArg->ifd = interface;
+      *parsedIfPtr = interface; /* TODO only for CANONICAL_ARGS */
 
       Tcl_SetHashValue(hPtr, (ClientData)nonposArg);
     } else {
@@ -6223,6 +6258,7 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore, Tcl_HashTable **nonposA
   Tcl_Obj *ov[4],  **argsv;
   Tcl_HashEntry *hPtr = NULL;
   char *procName = ObjStr(name);
+  argDefinition *parsedIfPtr;
 
   if (*nonposArgsTable && (hPtr = XOTcl_FindHashEntry(*nonposArgsTable, procName))) {
     NonposArgsDeleteHashEntry(hPtr);
@@ -6260,7 +6296,7 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore, Tcl_HashTable **nonposA
     INCR_REF_COUNT(ordinaryArgs);
     INCR_REF_COUNT(nonposArgs);
     result = parseNonposArgs(interp, procName, nonposArgs, ordinaryArgs,
-                             nonposArgsTable, &haveNonposArgs);
+                             nonposArgsTable, &haveNonposArgs, &parsedIfPtr);
     DECR_REF_COUNT(ordinaryArgs);
     DECR_REF_COUNT(nonposArgs);
     if (result != TCL_OK)
@@ -6268,7 +6304,22 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore, Tcl_HashTable **nonposA
   }
 
   if (haveNonposArgs) {
+# if defined(CANONICAL_ARGS)
+    argDefinition *aPtr;
+    Tcl_Obj *argList = Tcl_NewListObj(0, NULL);
+    for (aPtr = parsedIfPtr; aPtr->name; aPtr++) {
+      if (*aPtr->name == '-') {
+	Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(aPtr->name+1,-1));
+      } else {
+	Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(aPtr->name,-1));
+      }
+    }
+    ov[2] = argList;
+    fprintf(stderr, "final arglist = <%s>\n",ObjStr(argList)); 
+    /* TODO: check for memleak of argList */
+#else
     ov[2] = XOTclGlobalObjects[XOTE_ARGS];
+#endif
     ov[3] = addPrefixToBody(body, 1);
   } else { /* no nonpos arguments */
     ov[2] = args;
@@ -8770,8 +8821,10 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     pos = strtol(element,&remainder, 0);
     /*fprintf(stderr,"strtol('%s) returned %ld '%s'\n", element, pos, remainder);*/
     if (element == remainder && *element == 'e' && !strncmp(element,"end", 3)) {
-      pos = totalargs;
+      pos = -1;
       remainder += 3;
+    } else if (pos < 0) {
+      pos --;
     }
     if (element == remainder || abs(pos) > totalargs) {
       return XOTclVarErrMsg(interp, "forward: invalid index specified in argument ",
@@ -8782,7 +8835,8 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     }
 
     element = ++remainder;
-    if (pos<0) pos = totalargs + pos;
+    /* in case we address from the end, we reduct further to distinguish from -1 (void) */
+    if (pos<0) pos--;
     /*fprintf(stderr,"remainder = '%s' pos = %ld\n", remainder, pos);*/
     *mapvalue = pos;
     element = remainder;
@@ -8801,7 +8855,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       *out = objv[0];
     } else if (c == '1' && (c1 == '\0' || c1 == ' ')) {
       /*fprintf(stderr, "   nrargs=%d, subcommands=%d inputarg=%d, objc=%d\n",
-        nrargs, tcd->nr_subcommands, inputarg, objc);*/
+	nrargs, tcd->nr_subcommands, *inputarg, objc);*/
       if (c1 != '\0') {
         if (Tcl_ListObjIndex(interp, o, 1, &list) != TCL_OK) {
           return XOTclVarErrMsg(interp, "forward: %1 must by a valid list, given: '",
@@ -8949,7 +9003,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
     int totalargs = objc + tcd->nr_args + 3;
     ALLOC_ON_STACK(Tcl_Obj*, totalargs, OV);
     ALLOC_ON_STACK(int, totalargs, objvmap);
-    /*fprintf(stderr,"+++ forwardMethod standard case \n");*/
+    /*fprintf(stderr,"+++ forwardMethod standard case, allocated %d args\n",totalargs);*/
 
     ov = &OV[1];
     if (tcd->needobjmap) {
@@ -8957,6 +9011,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
     }
 
 #if 0
+    memset(objvmap, -1, sizeof(int)*totalargs);
     fprintf(stderr,"command %s (%p) objc=%d, subcommand=%d, args=%p, nrargs\n",
             ObjStr(objv[0]), tcd, objc,
             tcd->nr_subcommands,
@@ -8987,8 +9042,8 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
         }
       }
     }
-    /*
-      fprintf(stderr, "objc=%d, tcd->nr_subcommands=%d size=%d\n",
+    
+    /*fprintf(stderr, "objc=%d, tcd->nr_subcommands=%d size=%d\n",
       objc, tcd->nr_subcommands, objc+ 2	    );*/
 
     if (objc-inputarg>0) {
@@ -8998,17 +9053,30 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
     } else {
       /*fprintf(stderr, "  nothing to copy, objc=%d, inputarg=%d\n", objc, inputarg);*/
     }
+    if (tcd->needobjmap) {
+      /* we have to set the adressing relative from the end; -2 means
+	 last, -3 element before last, etc. */
+      int max = objc + tcd->nr_args - inputarg;
+      for (j=0; j<totalargs; j++) {
+	if (objvmap[j] < -1) {
+	  /*fprintf(stderr, "must reduct, v=%d\n",objvmap[j]);*/
+	  objvmap[j] = max + objvmap[j] + 2; 
+	  /*fprintf(stderr, "... new value=%d, max = %d\n",objvmap[j],max);*/
+	}
+      }
+    }
     objc += outputarg - inputarg;
 
 #if 0
     for(j=0; j<objc; j++) {
       /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
-      fprintf(stderr, " o[%d]=%s (%d),", j, ObjStr(ov[j]), objvmap[j]);
+      fprintf(stderr, " o[%d]=%p %s (%d),", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA", objvmap[j]);
     }
     fprintf(stderr,"\n");
 #endif
 
-    if (tcd->needobjmap)
+    if (tcd->needobjmap) {
+
       for (j=0; j<totalargs; j++) {
         Tcl_Obj *tmp;
         int pos = objvmap[j], i;
@@ -9028,10 +9096,11 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
             objvmap[i] = objvmap[i+1];
           }
         }
-        /* fprintf(stderr,"...setting at %d -> %s\n", pos, ObjStr(tmp)); */
+        /*fprintf(stderr,"...setting at %d -> %s\n", pos, ObjStr(tmp));*/
         ov[pos] = tmp;
         objvmap[pos] = -1;
       }
+    }
 
     if (tcd->prefix) {
       /* prepend a prefix for the subcommands to avoid name clashes */
@@ -9044,7 +9113,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
 #if 0
     for(j=0; j<objc; j++) {
       /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
-      fprintf(stderr, "  ov[%d]='%s' map=%d\n", j, ObjStr(ov[j]), objvmap[j]);
+      fprintf(stderr, "  ov[%d]=%p '%s' map=%d\n", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA", objvmap[j]);
     }
 #endif
 
@@ -9524,6 +9593,7 @@ parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName
     }
   }
   pc->lastobjc = aPtr->name ? o : o-1;
+  pc->objc = i;
 
   /* Process to end of interface;*/
   while (aPtr->name) {
@@ -12305,6 +12375,78 @@ isNonposArg(Tcl_Interp *interp, char * argStr,
 }
 #endif
 
+#if defined(CANONICAL_ARGS)
+int
+canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  Tcl_Obj *CONST objv[]) {
+  XOTclObject *object = GetSelfObj(interp);
+  XOTclClass *class = GetSelfClass(interp);
+  Tcl_HashTable *nonposArgsTable = class ? class->nonposArgsTable : object->nonposArgsTable;
+  char *procName = (char *)GetSelfProc(interp);
+  XOTclNonposArgs *nonposArgs = NonposArgsGet(nonposArgsTable, procName);
+  Tcl_Obj *proc;
+  argDefinition CONST *aPtr;
+  parseContext pc;
+  int i, rc;
+
+  if (!nonposArgs) {return TCL_CONTINUE;}
+
+  proc = Tcl_NewStringObj(procName, -1);
+  INCR_REF_COUNT(proc);
+  rc = parseObjv(interp, objc, objv, proc, nonposArgs->ifd, pcPtr);
+  DECR_REF_COUNT(proc);
+
+  if (rc != TCL_OK)
+    return rc;
+
+  for (aPtr = nonposArgs->ifd, i=0; aPtr->name; aPtr++, i++) {
+    char *argName = aPtr->name;
+    if (*argName == '-') argName++;
+    /*fprintf(stderr, "got for arg %s (%d) => %p %p, default %s\n",
+            aPtr->name, aPtr->required,
+            pcPtr->clientData[i], pcPtr->objv[i],
+            aPtr->defaultValue ? ObjStr(aPtr->defaultValue) : "NONE");*/
+
+    if (pcPtr->objv[i]) {
+      /* got a value, already checked by objv parser */
+      /*fprintf(stderr, "setting passed value for %s to '%s'\n",argName,ObjStr(pcPtr->objv[i]));*/
+      if (aPtr->converter == convertToSwitch) {
+        int bool;
+        Tcl_GetBooleanFromObj(interp,  aPtr->defaultValue, &bool);
+	pcPtr->objv[i] = Tcl_NewBooleanObj(!bool); /* TODO check for leak? */
+      }
+    } else {
+      /* no valued passed, check if default is available */
+      if (aPtr->defaultValue) {
+	pcPtr->objv[i] = aPtr->defaultValue;
+        /* TODO: default value is not jet checked; should be in arg parsing */
+        /*fprintf(stderr,"=== setting default value '%s' for var '%s'\n",ObjStr(aPtr->defaultValue),argName);*/
+      } else if (aPtr->required) {
+        return XOTclVarErrMsg(interp, "method ",procName, ": required argument '",
+                              argName, "' is missing", (char *) NULL);
+      } else {
+	/* we will have to unset later */
+	/* XXX */
+	pcPtr->objv[i] = XOTclGlobalObjects[XOTE___UNKNOWN]; /* TODO other symbol ? */
+      }
+    }
+  }
+
+  aPtr--;
+  /* TODO handle "args" */
+  if (aPtr->converter == convertToNothing) {
+    /* "args" is always defined as non-required and with convertToNoting */
+    int elts = objc - pcPtr->lastobjc;
+    /*fprintf(stderr, "args last objc=%d, objc=%d, elts=%d\n", pc.lastobjc, objc, elts);*/
+    /*Tcl_SetVar2Ex(interp, aPtr->name, NULL, Tcl_NewListObj(elts,objv+pc.lastobjc), 0);*/
+  } else {
+    /* Tcl_UnsetVar2(interp, "args", NULL, 0); */
+  }
+
+  return TCL_OK;
+}
+
+#else
+
 int
 XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                                    Tcl_Obj *CONST objv[]) {
@@ -12376,7 +12518,7 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
 
   return TCL_OK;
 }
-
+#endif
 
 /* create a slave interp that calls XOTcl Init */
 static int
@@ -13026,8 +13168,10 @@ Xotcl_Init(Tcl_Interp *interp) {
 #endif
     Tcl_CreateObjCommand(interp, "::xotcl::initProcNS", XOTclInitProcNSCmd, 0, 0);
 #endif
+#if !defined(CANONICAL_ARGS)
   Tcl_CreateObjCommand(interp, "::xotcl::interpretNonpositionalArgs",
                        XOTclInterpretNonpositionalArgsCmd, 0, 0);
+#endif
   Tcl_CreateObjCommand(interp, "::xotcl::interp", XOTcl_InterpObjCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::namespace_copyvars", XOTcl_NSCopyVars, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::namespace_copycmds", XOTcl_NSCopyCmds, 0, 0);
