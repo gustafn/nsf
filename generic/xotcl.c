@@ -149,12 +149,30 @@ typedef struct aliasCmdClientData {
   ClientData clientData;
 } aliasCmdClientData;
 
+#define PARSE_CONTEXT_PREALLOC 15
 typedef struct {
-  ClientData clientData[10];
-  Tcl_Obj *objv[10];
+  ClientData *clientData;
+  Tcl_Obj **objv;
+  Tcl_Obj **full_objv;
+  ClientData clientData_[PARSE_CONTEXT_PREALLOC];
+  Tcl_Obj *objv_[PARSE_CONTEXT_PREALLOC+1];
   int lastobjc;
   int objc;
 } parseContext;
+
+void parseContextInit(parseContext *pc, int objc, Tcl_Obj *procName) {
+  if (objc < PARSE_CONTEXT_PREALLOC) {
+    memset(pc, 0, sizeof(parseContext));
+    pc->objv = &pc->objv_[1];
+    pc->full_objv = &pc->objv_[0];
+    pc->clientData = &pc->clientData_[0];
+    /*memset(pc->clientData, 0, sizeof(ClientData)*(objc));
+      memset(pc->objv+1, 0, sizeof(Tcl_Obj*)*(objc));*/
+    pc->objv_[0] = procName;
+  } else {
+    Tcl_Panic("objc to large, not implemented", NULL);
+  }
+}
 
 typedef argDefinition interfaceDefinition[10];
 
@@ -5421,21 +5439,12 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
     {
       parseContext pc;
       int rc;
-      Tcl_Obj *ov[100]; /* TODO: maybe make me dynamic, or better, put procName on ov[0] in pc */
 
       rc = canonicalNonpositionalArgs(&pc, interp, objc, objv);
 
       if (rc == TCL_CONTINUE) {
 	result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0);
       } else {
-	int i, j;
-	ov[0] = objv[0];
-	for (i=0, j=1; i < pc.objc+1; i++) {
-	  if (pc.objv[i]) {
-	    ov[j++] = pc.objv[i];
-	  }
-	}
-	/*fprintf(stderr, "pc.objc = %d provided objc %d\n",pc.objc+1,objc);*/
 #if 0
 	for(j=0; j<pc.objc+1; j++) {
 	  /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
@@ -5443,7 +5452,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	}
 	fprintf(stderr,"\n");
 #endif
-	result = PushProcCallFrame(cp, interp, j, ov, /*isLambda*/ 0);
+	result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, /*isLambda*/ 0);
       }
     }
 # else
@@ -5938,7 +5947,7 @@ static Tcl_Obj *addPrefixToBody(Tcl_Obj *body, int nonposArgs) {
   return resultBody;
 }
 
-/* todo maybe, we will need this for custom type checkers */
+/* todo: maybe, we will need this for custom type checkers, so leave it for the time being */
 static Tcl_Obj*
 nonposargType(Tcl_Interp *interp, char *start, int len) {
   Tcl_Obj *result  = Tcl_NewListObj(0, NULL);
@@ -6238,6 +6247,7 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
       nonposArg = (XOTclNonposArgs*)ckalloc(sizeof(XOTclNonposArgs));
       nonposArg->slotObj = NULL;
       nonposArg->ifd = interface;
+      /*fprintf(stderr, "ifsize = %d\n",ifPtr-interface);*/
       *parsedIfPtr = interface; /* TODO only for CANONICAL_ARGS */
 
       Tcl_SetHashValue(hPtr, (ClientData)nonposArg);
@@ -9488,12 +9498,12 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, char *specifiedName, int objc, 
 
 static int
 parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName,
-          argDefinition CONST *ifdPtr, parseContext *pc) {
+          argDefinition CONST *ifdPtr, int ifdSize, parseContext *pc) {
   int i, o, args = 0, flagCount = 0, nrReq = 0, nrOpt = 0, varArgs = 0, dashdash = 0;
   /* todo benchmark with and without CONST */
   argDefinition CONST *aPtr, *bPtr;
 
-  memset(pc, 0, sizeof(parseContext));
+  parseContextInit(pc, ifdSize, procName);
 
 #if defined(PARSE_TRACE)
   fprintf(stderr, "BEGIN (%d) [0]%s ",objc, ObjStr(procName));
@@ -12383,17 +12393,13 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
   Tcl_HashTable *nonposArgsTable = class ? class->nonposArgsTable : object->nonposArgsTable;
   char *procName = (char *)GetSelfProc(interp);
   XOTclNonposArgs *nonposArgs = NonposArgsGet(nonposArgsTable, procName);
-  Tcl_Obj *proc;
   argDefinition CONST *aPtr;
-  parseContext pc;
   int i, rc;
 
   if (!nonposArgs) {return TCL_CONTINUE;}
 
-  proc = Tcl_NewStringObj(procName, -1);
-  INCR_REF_COUNT(proc);
-  rc = parseObjv(interp, objc, objv, proc, nonposArgs->ifd, pcPtr);
-  DECR_REF_COUNT(proc);
+  /* ifdSize is per construction the same as objc */
+  rc = parseObjv(interp, objc, objv, objv[0], nonposArgs->ifd, objc, pcPtr);
 
   if (rc != TCL_OK)
     return rc;
@@ -12467,7 +12473,7 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   /*if (!nonposArgs) {return TCL_OK;}*/
 
   INCR_REF_COUNT(proc);
-  rc = parseObjv(interp, objc, objv, proc, nonposArgs->ifd, &pc);
+  rc = parseObjv(interp, objc, objv, proc, nonposArgs->ifd, objc, &pc);
   DECR_REF_COUNT(proc);
 
   if (rc != TCL_OK)

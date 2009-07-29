@@ -22,11 +22,12 @@ typedef struct {
   char *methodName;
   Tcl_ObjCmdProc *proc;
   /*CONST interfaceDefinition ifd;*/
+  int ifdSize;
   argDefinition ifd[10];
 } methodDefinition;
 
 static int parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName,
-		     argDefinition CONST *ifdPtr, parseContext *pc);
+		     argDefinition CONST *ifdPtr, int ifdSize, parseContext *pc);
 
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  XOTclObject **matchObject, char **pattern);
@@ -342,7 +343,10 @@ static int
 XOTclCheckBooleanArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCheckBooleanArgsIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCheckBooleanArgsIdx].ifd, 
+		method_definitions[XOTclCheckBooleanArgsIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *name = (char *)pc.clientData[0];
@@ -357,7 +361,10 @@ static int
 XOTclCheckRequiredArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCheckRequiredArgsIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCheckRequiredArgsIdx].ifd, 
+		method_definitions[XOTclCheckRequiredArgsIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *name = (char *)pc.clientData[0];
@@ -373,7 +380,10 @@ XOTclCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCAllocMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCAllocMethodIdx].ifd, 
+		method_definitions[XOTclCAllocMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *name = (char *)pc.clientData[0];
@@ -388,7 +398,10 @@ XOTclCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCCreateMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCCreateMethodIdx].ifd, 
+		method_definitions[XOTclCCreateMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *name = (char *)pc.clientData[0];
@@ -403,7 +416,10 @@ XOTclCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCDeallocMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCDeallocMethodIdx].ifd, 
+		method_definitions[XOTclCDeallocMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
@@ -418,7 +434,10 @@ XOTclCInstFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCInstFilterGuardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCInstFilterGuardMethodIdx].ifd, 
+		method_definitions[XOTclCInstFilterGuardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *filter = (char *)pc.clientData[0];
@@ -434,7 +453,10 @@ XOTclCInstForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCInstForwardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCInstForwardMethodIdx].ifd, 
+		method_definitions[XOTclCInstForwardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *method = (Tcl_Obj *)pc.clientData[0];
@@ -456,7 +478,10 @@ XOTclCInstMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCInstMixinGuardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCInstMixinGuardMethodIdx].ifd, 
+		method_definitions[XOTclCInstMixinGuardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *mixin = (char *)pc.clientData[0];
@@ -472,7 +497,10 @@ XOTclCInstParametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCInstParametercmdMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCInstParametercmdMethodIdx].ifd, 
+		method_definitions[XOTclCInstParametercmdMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *name = (char *)pc.clientData[0];
@@ -487,7 +515,10 @@ XOTclCInstProcMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCInstProcMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCInstProcMethodIdx].ifd, 
+		method_definitions[XOTclCInstProcMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
@@ -506,7 +537,10 @@ XOTclCInstProcMethodCStub(ClientData clientData, Tcl_Interp *interp, int objc, T
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCInstProcMethodCIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCInstProcMethodCIdx].ifd, 
+		method_definitions[XOTclCInstProcMethodCIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
@@ -525,7 +559,10 @@ XOTclCInvariantsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCInvariantsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCInvariantsMethodIdx].ifd, 
+		method_definitions[XOTclCInvariantsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *invariantlist = (Tcl_Obj *)pc.clientData[0];
@@ -540,7 +577,10 @@ XOTclCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCNewMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCNewMethodIdx].ifd, 
+		method_definitions[XOTclCNewMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *withChildof = (XOTclObject *)pc.clientData[0];
@@ -555,7 +595,10 @@ XOTclCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCRecreateMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCRecreateMethodIdx].ifd, 
+		method_definitions[XOTclCRecreateMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
@@ -570,7 +613,10 @@ XOTclCUnknownMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
   if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclCUnknownMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCUnknownMethodIdx].ifd, 
+		method_definitions[XOTclCUnknownMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *name = (char *)pc.clientData[0];
@@ -584,7 +630,10 @@ static int
 XOTclClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoHeritageMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoHeritageMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoHeritageMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -599,7 +648,10 @@ static int
 XOTclClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstancesMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstancesMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstancesMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -629,7 +681,10 @@ static int
 XOTclClassInfoInstargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstargsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstargsMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstargsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -644,7 +699,10 @@ static int
 XOTclClassInfoInstbodyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstbodyMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstbodyMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstbodyMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -659,7 +717,10 @@ static int
 XOTclClassInfoInstcommandsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstcommandsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstcommandsMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstcommandsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -674,7 +735,10 @@ static int
 XOTclClassInfoInstdefaultMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstdefaultMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstdefaultMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstdefaultMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -691,7 +755,10 @@ static int
 XOTclClassInfoInstfilterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstfilterMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstfilterMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstfilterMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -707,7 +774,10 @@ static int
 XOTclClassInfoInstfilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstfilterguardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstfilterguardMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstfilterguardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -722,7 +792,10 @@ static int
 XOTclClassInfoInstforwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstforwardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstforwardMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstforwardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -738,7 +811,10 @@ static int
 XOTclClassInfoInstinvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstinvarMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstinvarMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstinvarMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -752,7 +828,10 @@ static int
 XOTclClassInfoInstmixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstmixinMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstmixinMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstmixinMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -783,7 +862,10 @@ static int
 XOTclClassInfoInstmixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstmixinguardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstmixinguardMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstmixinguardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -798,7 +880,10 @@ static int
 XOTclClassInfoInstmixinofMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstmixinofMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstmixinofMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstmixinofMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -828,7 +913,10 @@ static int
 XOTclClassInfoInstnonposargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstnonposargsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstnonposargsMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstnonposargsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -843,7 +931,10 @@ static int
 XOTclClassInfoInstparametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstparametercmdMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstparametercmdMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstparametercmdMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -858,7 +949,10 @@ static int
 XOTclClassInfoInstpostMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstpostMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstpostMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstpostMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -873,7 +967,10 @@ static int
 XOTclClassInfoInstpreMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstpreMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstpreMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstpreMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -888,7 +985,10 @@ static int
 XOTclClassInfoInstprocsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoInstprocsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoInstprocsMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoInstprocsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -903,7 +1003,10 @@ static int
 XOTclClassInfoMixinofMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoMixinofMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoMixinofMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoMixinofMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -933,7 +1036,10 @@ static int
 XOTclClassInfoParameterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoParameterMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoParameterMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoParameterMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -947,7 +1053,10 @@ static int
 XOTclClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoSlotsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoSlotsMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoSlotsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -961,7 +1070,10 @@ static int
 XOTclClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoSubclassMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoSubclassMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoSubclassMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -991,7 +1103,10 @@ static int
 XOTclClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclClassInfoSuperclassMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclClassInfoSuperclassMethodIdx].ifd, 
+		method_definitions[XOTclClassInfoSuperclassMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
@@ -1007,7 +1122,10 @@ static int
 XOTclObjInfoArgsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoArgsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoArgsMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoArgsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1022,7 +1140,10 @@ static int
 XOTclObjInfoBodyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoBodyMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoBodyMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoBodyMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1037,7 +1158,10 @@ static int
 XOTclObjInfoCheckMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoCheckMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoCheckMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoCheckMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1051,7 +1175,10 @@ static int
 XOTclObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoChildrenMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoChildrenMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoChildrenMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1066,7 +1193,10 @@ static int
 XOTclObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoClassMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoClassMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoClassMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1080,7 +1210,10 @@ static int
 XOTclObjInfoCommandsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoCommandsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoCommandsMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoCommandsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1095,7 +1228,10 @@ static int
 XOTclObjInfoDefaultMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoDefaultMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoDefaultMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoDefaultMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1112,7 +1248,10 @@ static int
 XOTclObjInfoFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoFilterMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoFilterMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoFilterMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1129,7 +1268,10 @@ static int
 XOTclObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoFilterguardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoFilterguardMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoFilterguardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1144,7 +1286,10 @@ static int
 XOTclObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoForwardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoForwardMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoForwardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1160,7 +1305,10 @@ static int
 XOTclObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoHasnamespaceMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoHasnamespaceMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoHasnamespaceMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1174,7 +1322,10 @@ static int
 XOTclObjInfoInvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoInvarMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoInvarMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoInvarMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1188,7 +1339,10 @@ static int
 XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoMethodsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoMethodsMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoMethodsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1207,7 +1361,10 @@ static int
 XOTclObjInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoMixinMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoMixinMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoMixinMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1238,7 +1395,10 @@ static int
 XOTclObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoMixinguardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoMixinguardMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoMixinguardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1253,7 +1413,10 @@ static int
 XOTclObjInfoNonposargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoNonposargsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoNonposargsMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoNonposargsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1268,7 +1431,10 @@ static int
 XOTclObjInfoParametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoParametercmdMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoParametercmdMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoParametercmdMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1283,7 +1449,10 @@ static int
 XOTclObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoParentMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoParentMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoParentMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1297,7 +1466,10 @@ static int
 XOTclObjInfoPostMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoPostMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoPostMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoPostMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1312,7 +1484,10 @@ static int
 XOTclObjInfoPreMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoPreMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoPreMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoPreMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1327,7 +1502,10 @@ static int
 XOTclObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoPrecedenceMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoPrecedenceMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoPrecedenceMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1343,7 +1521,10 @@ static int
 XOTclObjInfoProcsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoProcsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoProcsMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoProcsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1358,7 +1539,10 @@ static int
 XOTclObjInfoSlotObjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoSlotObjectsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoSlotObjectsMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoSlotObjectsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1373,7 +1557,10 @@ static int
 XOTclObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclObjInfoVarsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclObjInfoVarsMethodIdx].ifd, 
+		method_definitions[XOTclObjInfoVarsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1389,7 +1576,10 @@ XOTclOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOAutonameMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOAutonameMethodIdx].ifd, 
+		method_definitions[XOTclOAutonameMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     int withInstance = (int )pc.clientData[0];
@@ -1406,7 +1596,10 @@ XOTclOCheckMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOCheckMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOCheckMethodIdx].ifd, 
+		method_definitions[XOTclOCheckMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *flag = (Tcl_Obj *)pc.clientData[0];
@@ -1421,7 +1614,10 @@ XOTclOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOCleanupMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOCleanupMethodIdx].ifd, 
+		method_definitions[XOTclOCleanupMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
@@ -1436,7 +1632,10 @@ XOTclOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOConfigureMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOConfigureMethodIdx].ifd, 
+		method_definitions[XOTclOConfigureMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
@@ -1451,7 +1650,10 @@ XOTclODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclODestroyMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclODestroyMethodIdx].ifd, 
+		method_definitions[XOTclODestroyMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
@@ -1466,7 +1668,10 @@ XOTclOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOExistsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOExistsMethodIdx].ifd, 
+		method_definitions[XOTclOExistsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *var = (char *)pc.clientData[0];
@@ -1481,7 +1686,10 @@ XOTclOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOFilterGuardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOFilterGuardMethodIdx].ifd, 
+		method_definitions[XOTclOFilterGuardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *filter = (char *)pc.clientData[0];
@@ -1497,7 +1705,10 @@ XOTclOFilterSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOFilterSearchMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOFilterSearchMethodIdx].ifd, 
+		method_definitions[XOTclOFilterSearchMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *filter = (char *)pc.clientData[0];
@@ -1512,7 +1723,10 @@ XOTclOForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOForwardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOForwardMethodIdx].ifd, 
+		method_definitions[XOTclOForwardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *method = (Tcl_Obj *)pc.clientData[0];
@@ -1534,7 +1748,10 @@ XOTclOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOInstVarMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOInstVarMethodIdx].ifd, 
+		method_definitions[XOTclOInstVarMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
@@ -1549,7 +1766,10 @@ XOTclOInvariantsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOInvariantsMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOInvariantsMethodIdx].ifd, 
+		method_definitions[XOTclOInvariantsMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *invariantlist = (Tcl_Obj *)pc.clientData[0];
@@ -1564,7 +1784,10 @@ XOTclOIsClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOIsClassMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOIsClassMethodIdx].ifd, 
+		method_definitions[XOTclOIsClassMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *class = (Tcl_Obj *)pc.clientData[0];
@@ -1579,7 +1802,10 @@ XOTclOIsMetaClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOIsMetaClassMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOIsMetaClassMethodIdx].ifd, 
+		method_definitions[XOTclOIsMetaClassMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *metaclass = (Tcl_Obj *)pc.clientData[0];
@@ -1594,7 +1820,10 @@ XOTclOIsMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOIsMixinMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOIsMixinMethodIdx].ifd, 
+		method_definitions[XOTclOIsMixinMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *class = (Tcl_Obj *)pc.clientData[0];
@@ -1609,7 +1838,10 @@ XOTclOIsObjectMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOIsObjectMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOIsObjectMethodIdx].ifd, 
+		method_definitions[XOTclOIsObjectMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
@@ -1624,7 +1856,10 @@ XOTclOIsTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOIsTypeMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOIsTypeMethodIdx].ifd, 
+		method_definitions[XOTclOIsTypeMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *class = (Tcl_Obj *)pc.clientData[0];
@@ -1639,7 +1874,10 @@ XOTclOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOMixinGuardMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOMixinGuardMethodIdx].ifd, 
+		method_definitions[XOTclOMixinGuardMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *mixin = (char *)pc.clientData[0];
@@ -1655,7 +1893,10 @@ XOTclONextMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclONextMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclONextMethodIdx].ifd, 
+		method_definitions[XOTclONextMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
@@ -1670,7 +1911,10 @@ XOTclONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclONoinitMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclONoinitMethodIdx].ifd, 
+		method_definitions[XOTclONoinitMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
@@ -1685,7 +1929,10 @@ XOTclOParametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOParametercmdMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOParametercmdMethodIdx].ifd, 
+		method_definitions[XOTclOParametercmdMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *name = (char *)pc.clientData[0];
@@ -1700,7 +1947,10 @@ XOTclOProcMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOProcMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOProcMethodIdx].ifd, 
+		method_definitions[XOTclOProcMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
@@ -1719,7 +1969,10 @@ XOTclOProcSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOProcSearchMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOProcSearchMethodIdx].ifd, 
+		method_definitions[XOTclOProcSearchMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *name = (char *)pc.clientData[0];
@@ -1734,7 +1987,10 @@ XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclORequireNamespaceMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclORequireNamespaceMethodIdx].ifd, 
+		method_definitions[XOTclORequireNamespaceMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
@@ -1749,7 +2005,10 @@ XOTclOSetMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOSetMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOSetMethodIdx].ifd, 
+		method_definitions[XOTclOSetMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *var = (Tcl_Obj *)pc.clientData[0];
@@ -1765,7 +2024,10 @@ XOTclOSetvaluesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOSetvaluesMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOSetvaluesMethodIdx].ifd, 
+		method_definitions[XOTclOSetvaluesMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
@@ -1780,7 +2042,10 @@ XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOUplevelMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOUplevelMethodIdx].ifd, 
+		method_definitions[XOTclOUplevelMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
@@ -1795,7 +2060,10 @@ XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOUpvarMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOUpvarMethodIdx].ifd, 
+		method_definitions[XOTclOUpvarMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
@@ -1810,7 +2078,10 @@ XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOVolatileMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOVolatileMethodIdx].ifd, 
+		method_definitions[XOTclOVolatileMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
@@ -1825,7 +2096,10 @@ XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclOVwaitMethodIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclOVwaitMethodIdx].ifd, 
+		method_definitions[XOTclOVwaitMethodIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     char *varname = (char *)pc.clientData[0];
@@ -1839,7 +2113,10 @@ static int
 XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclAliasCmdIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclAliasCmdIdx].ifd, 
+		method_definitions[XOTclAliasCmdIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1858,7 +2135,10 @@ static int
 XOTclConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclConfigureCmdIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclConfigureCmdIdx].ifd, 
+		method_definitions[XOTclConfigureCmdIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     int configureoption = (int )pc.clientData[0];
@@ -1873,7 +2153,10 @@ static int
 XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclMethodPropertyCmdIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclMethodPropertyCmdIdx].ifd, 
+		method_definitions[XOTclMethodPropertyCmdIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1891,7 +2174,10 @@ static int
 XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclMyCmdIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclMyCmdIdx].ifd, 
+		method_definitions[XOTclMyCmdIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     int withLocal = (int )pc.clientData[0];
@@ -1906,7 +2192,10 @@ static int
 XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclRelationCmdIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclRelationCmdIdx].ifd, 
+		method_definitions[XOTclRelationCmdIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1922,7 +2211,10 @@ static int
 XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[XOTclSetInstvarCmdIdx].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclSetInstvarCmdIdx].ifd, 
+		method_definitions[XOTclSetInstvarCmdIdx].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
@@ -1935,29 +2227,29 @@ XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 }
   
 static methodDefinition method_definitions[] = {
-{"::xotcl::cmd::NonposArgs::type=boolean", XOTclCheckBooleanArgsStub, {
+{"::xotcl::cmd::NonposArgs::type=boolean", XOTclCheckBooleanArgsStub, 2, {
   {"name", 1, 0, convertToString},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::NonposArgs::type=required", XOTclCheckRequiredArgsStub, {
+{"::xotcl::cmd::NonposArgs::type=required", XOTclCheckRequiredArgsStub, 2, {
   {"name", 1, 0, convertToString},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::alloc", XOTclCAllocMethodStub, {
+{"::xotcl::cmd::Class::alloc", XOTclCAllocMethodStub, 1, {
   {"name", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::Class::create", XOTclCCreateMethodStub, {
+{"::xotcl::cmd::Class::create", XOTclCCreateMethodStub, 2, {
   {"name", 1, 0, convertToString},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Class::dealloc", XOTclCDeallocMethodStub, {
+{"::xotcl::cmd::Class::dealloc", XOTclCDeallocMethodStub, 1, {
   {"object", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::instfilterguard", XOTclCInstFilterGuardMethodStub, {
+{"::xotcl::cmd::Class::instfilterguard", XOTclCInstFilterGuardMethodStub, 2, {
   {"filter", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::instforward", XOTclCInstForwardMethodStub, {
+{"::xotcl::cmd::Class::instforward", XOTclCInstForwardMethodStub, 9, {
   {"method", 1, 0, convertToTclobj},
   {"-default", 0, 1, convertToTclobj},
   {"-earlybinding", 0, 0, convertToString},
@@ -1968,192 +2260,192 @@ static methodDefinition method_definitions[] = {
   {"target", 0, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Class::instmixinguard", XOTclCInstMixinGuardMethodStub, {
+{"::xotcl::cmd::Class::instmixinguard", XOTclCInstMixinGuardMethodStub, 2, {
   {"mixin", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::instparametercmd", XOTclCInstParametercmdMethodStub, {
+{"::xotcl::cmd::Class::instparametercmd", XOTclCInstParametercmdMethodStub, 1, {
   {"name", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::Class::instproc", XOTclCInstProcMethodStub, {
+{"::xotcl::cmd::Class::instproc", XOTclCInstProcMethodStub, 5, {
   {"name", 1, 0, convertToTclobj},
   {"args", 1, 0, convertToTclobj},
   {"body", 1, 0, convertToTclobj},
   {"precondition", 0, 0, convertToTclobj},
   {"postcondition", 0, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::classscopedinstproc", XOTclCInstProcMethodCStub, {
+{"::xotcl::cmd::Class::classscopedinstproc", XOTclCInstProcMethodCStub, 5, {
   {"name", 1, 0, convertToTclobj},
   {"args", 1, 0, convertToTclobj},
   {"body", 1, 0, convertToTclobj},
   {"precondition", 0, 0, convertToTclobj},
   {"postcondition", 0, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::instinvar", XOTclCInvariantsMethodStub, {
+{"::xotcl::cmd::Class::instinvar", XOTclCInvariantsMethodStub, 1, {
   {"invariantlist", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::new", XOTclCNewMethodStub, {
+{"::xotcl::cmd::Class::new", XOTclCNewMethodStub, 2, {
   {"-childof", 0, 1, convertToObject},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Class::recreate", XOTclCRecreateMethodStub, {
+{"::xotcl::cmd::Class::recreate", XOTclCRecreateMethodStub, 2, {
   {"name", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Class::unknown", XOTclCUnknownMethodStub, {
+{"::xotcl::cmd::Class::unknown", XOTclCUnknownMethodStub, 2, {
   {"name", 1, 0, convertToString},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::ClassInfo::heritage", XOTclClassInfoHeritageMethodStub, {
+{"::xotcl::cmd::ClassInfo::heritage", XOTclClassInfoHeritageMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instances", XOTclClassInfoInstancesMethodStub, {
+{"::xotcl::cmd::ClassInfo::instances", XOTclClassInfoInstancesMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::xotcl::cmd::ClassInfo::instargs", XOTclClassInfoInstargsMethodStub, {
+{"::xotcl::cmd::ClassInfo::instargs", XOTclClassInfoInstargsMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"methodName", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instbody", XOTclClassInfoInstbodyMethodStub, {
+{"::xotcl::cmd::ClassInfo::instbody", XOTclClassInfoInstbodyMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"methodName", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instcommands", XOTclClassInfoInstcommandsMethodStub, {
+{"::xotcl::cmd::ClassInfo::instcommands", XOTclClassInfoInstcommandsMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instdefault", XOTclClassInfoInstdefaultMethodStub, {
+{"::xotcl::cmd::ClassInfo::instdefault", XOTclClassInfoInstdefaultMethodStub, 4, {
   {"class", 1, 0, convertToClass},
   {"methodName", 1, 0, convertToString},
   {"arg", 1, 0, convertToString},
   {"var", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::ClassInfo::instfilter", XOTclClassInfoInstfilterMethodStub, {
+{"::xotcl::cmd::ClassInfo::instfilter", XOTclClassInfoInstfilterMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instfilterguard", XOTclClassInfoInstfilterguardMethodStub, {
+{"::xotcl::cmd::ClassInfo::instfilterguard", XOTclClassInfoInstfilterguardMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"filter", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instforward", XOTclClassInfoInstforwardMethodStub, {
+{"::xotcl::cmd::ClassInfo::instforward", XOTclClassInfoInstforwardMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-definition", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instinvar", XOTclClassInfoInstinvarMethodStub, {
+{"::xotcl::cmd::ClassInfo::instinvar", XOTclClassInfoInstinvarMethodStub, 1, {
   {"class", 1, 0, convertToClass}}
 },
-{"::xotcl::cmd::ClassInfo::instmixin", XOTclClassInfoInstmixinMethodStub, {
+{"::xotcl::cmd::ClassInfo::instmixin", XOTclClassInfoInstmixinMethodStub, 4, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::xotcl::cmd::ClassInfo::instmixinguard", XOTclClassInfoInstmixinguardMethodStub, {
+{"::xotcl::cmd::ClassInfo::instmixinguard", XOTclClassInfoInstmixinguardMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"mixin", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instmixinof", XOTclClassInfoInstmixinofMethodStub, {
+{"::xotcl::cmd::ClassInfo::instmixinof", XOTclClassInfoInstmixinofMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::xotcl::cmd::ClassInfo::instnonposargs", XOTclClassInfoInstnonposargsMethodStub, {
+{"::xotcl::cmd::ClassInfo::instnonposargs", XOTclClassInfoInstnonposargsMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"methodName", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instparametercmd", XOTclClassInfoInstparametercmdMethodStub, {
+{"::xotcl::cmd::ClassInfo::instparametercmd", XOTclClassInfoInstparametercmdMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instpost", XOTclClassInfoInstpostMethodStub, {
+{"::xotcl::cmd::ClassInfo::instpost", XOTclClassInfoInstpostMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"methodName", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instpre", XOTclClassInfoInstpreMethodStub, {
+{"::xotcl::cmd::ClassInfo::instpre", XOTclClassInfoInstpreMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"methodName", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instprocs", XOTclClassInfoInstprocsMethodStub, {
+{"::xotcl::cmd::ClassInfo::instprocs", XOTclClassInfoInstprocsMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::mixinof", XOTclClassInfoMixinofMethodStub, {
+{"::xotcl::cmd::ClassInfo::mixinof", XOTclClassInfoMixinofMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::xotcl::cmd::ClassInfo::parameter", XOTclClassInfoParameterMethodStub, {
+{"::xotcl::cmd::ClassInfo::parameter", XOTclClassInfoParameterMethodStub, 1, {
   {"class", 1, 0, convertToClass}}
 },
-{"::xotcl::cmd::ClassInfo::slots", XOTclClassInfoSlotsMethodStub, {
+{"::xotcl::cmd::ClassInfo::slots", XOTclClassInfoSlotsMethodStub, 1, {
   {"class", 1, 0, convertToClass}}
 },
-{"::xotcl::cmd::ClassInfo::subclass", XOTclClassInfoSubclassMethodStub, {
+{"::xotcl::cmd::ClassInfo::subclass", XOTclClassInfoSubclassMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::xotcl::cmd::ClassInfo::superclass", XOTclClassInfoSuperclassMethodStub, {
+{"::xotcl::cmd::ClassInfo::superclass", XOTclClassInfoSuperclassMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::ObjectInfo::args", XOTclObjInfoArgsMethodStub, {
+{"::xotcl::cmd::ObjectInfo::args", XOTclObjInfoArgsMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"methodName", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::body", XOTclObjInfoBodyMethodStub, {
+{"::xotcl::cmd::ObjectInfo::body", XOTclObjInfoBodyMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"methodName", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::check", XOTclObjInfoCheckMethodStub, {
+{"::xotcl::cmd::ObjectInfo::check", XOTclObjInfoCheckMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::xotcl::cmd::ObjectInfo::children", XOTclObjInfoChildrenMethodStub, {
+{"::xotcl::cmd::ObjectInfo::children", XOTclObjInfoChildrenMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::class", XOTclObjInfoClassMethodStub, {
+{"::xotcl::cmd::ObjectInfo::class", XOTclObjInfoClassMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::xotcl::cmd::ObjectInfo::commands", XOTclObjInfoCommandsMethodStub, {
+{"::xotcl::cmd::ObjectInfo::commands", XOTclObjInfoCommandsMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::default", XOTclObjInfoDefaultMethodStub, {
+{"::xotcl::cmd::ObjectInfo::default", XOTclObjInfoDefaultMethodStub, 4, {
   {"object", 1, 0, convertToObject},
   {"methodName", 1, 0, convertToString},
   {"arg", 1, 0, convertToString},
   {"var", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::ObjectInfo::filter", XOTclObjInfoFilterMethodStub, {
+{"::xotcl::cmd::ObjectInfo::filter", XOTclObjInfoFilterMethodStub, 4, {
   {"object", 1, 0, convertToObject},
   {"-order", 0, 0, convertToString},
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::filterguard", XOTclObjInfoFilterguardMethodStub, {
+{"::xotcl::cmd::ObjectInfo::filterguard", XOTclObjInfoFilterguardMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"filter", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::forward", XOTclObjInfoForwardMethodStub, {
+{"::xotcl::cmd::ObjectInfo::forward", XOTclObjInfoForwardMethodStub, 3, {
   {"object", 1, 0, convertToObject},
   {"-definition", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::hasnamespace", XOTclObjInfoHasnamespaceMethodStub, {
+{"::xotcl::cmd::ObjectInfo::hasnamespace", XOTclObjInfoHasnamespaceMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::xotcl::cmd::ObjectInfo::invar", XOTclObjInfoInvarMethodStub, {
+{"::xotcl::cmd::ObjectInfo::invar", XOTclObjInfoInvarMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::xotcl::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, {
+{"::xotcl::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, 6, {
   {"object", 1, 0, convertToObject},
   {"-noprocs", 0, 0, convertToString},
   {"-nocmds", 0, 0, convertToString},
@@ -2161,80 +2453,80 @@ static methodDefinition method_definitions[] = {
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::mixin", XOTclObjInfoMixinMethodStub, {
+{"::xotcl::cmd::ObjectInfo::mixin", XOTclObjInfoMixinMethodStub, 4, {
   {"object", 1, 0, convertToObject},
   {"-guards", 0, 0, convertToString},
   {"-order", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::xotcl::cmd::ObjectInfo::mixinguard", XOTclObjInfoMixinguardMethodStub, {
+{"::xotcl::cmd::ObjectInfo::mixinguard", XOTclObjInfoMixinguardMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"mixin", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::nonposargs", XOTclObjInfoNonposargsMethodStub, {
+{"::xotcl::cmd::ObjectInfo::nonposargs", XOTclObjInfoNonposargsMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"methodName", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::parametercmd", XOTclObjInfoParametercmdMethodStub, {
+{"::xotcl::cmd::ObjectInfo::parametercmd", XOTclObjInfoParametercmdMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::parent", XOTclObjInfoParentMethodStub, {
+{"::xotcl::cmd::ObjectInfo::parent", XOTclObjInfoParentMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::xotcl::cmd::ObjectInfo::post", XOTclObjInfoPostMethodStub, {
+{"::xotcl::cmd::ObjectInfo::post", XOTclObjInfoPostMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"methodName", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::pre", XOTclObjInfoPreMethodStub, {
+{"::xotcl::cmd::ObjectInfo::pre", XOTclObjInfoPreMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"methodName", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::precedence", XOTclObjInfoPrecedenceMethodStub, {
+{"::xotcl::cmd::ObjectInfo::precedence", XOTclObjInfoPrecedenceMethodStub, 3, {
   {"object", 1, 0, convertToObject},
   {"-intrinsic", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::procs", XOTclObjInfoProcsMethodStub, {
+{"::xotcl::cmd::ObjectInfo::procs", XOTclObjInfoProcsMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::slotobjects", XOTclObjInfoSlotObjectsMethodStub, {
+{"::xotcl::cmd::ObjectInfo::slotobjects", XOTclObjInfoSlotObjectsMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::vars", XOTclObjInfoVarsMethodStub, {
+{"::xotcl::cmd::ObjectInfo::vars", XOTclObjInfoVarsMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::Object::autoname", XOTclOAutonameMethodStub, {
+{"::xotcl::cmd::Object::autoname", XOTclOAutonameMethodStub, 3, {
   {"-instance", 0, 0, convertToString},
   {"-reset", 0, 0, convertToString},
   {"name", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::check", XOTclOCheckMethodStub, {
+{"::xotcl::cmd::Object::check", XOTclOCheckMethodStub, 1, {
   {"flag", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::cleanup", XOTclOCleanupMethodStub, {
+{"::xotcl::cmd::Object::cleanup", XOTclOCleanupMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Object::configure", XOTclOConfigureMethodStub, {
+{"::xotcl::cmd::Object::configure", XOTclOConfigureMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::destroy", XOTclODestroyMethodStub, {
+{"::xotcl::cmd::Object::destroy", XOTclODestroyMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Object::exists", XOTclOExistsMethodStub, {
+{"::xotcl::cmd::Object::exists", XOTclOExistsMethodStub, 1, {
   {"var", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::Object::filterguard", XOTclOFilterGuardMethodStub, {
+{"::xotcl::cmd::Object::filterguard", XOTclOFilterGuardMethodStub, 2, {
   {"filter", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::filtersearch", XOTclOFilterSearchMethodStub, {
+{"::xotcl::cmd::Object::filtersearch", XOTclOFilterSearchMethodStub, 1, {
   {"filter", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::Object::forward", XOTclOForwardMethodStub, {
+{"::xotcl::cmd::Object::forward", XOTclOForwardMethodStub, 9, {
   {"method", 1, 0, convertToTclobj},
   {"-default", 0, 1, convertToTclobj},
   {"-earlybinding", 0, 0, convertToString},
@@ -2245,73 +2537,73 @@ static methodDefinition method_definitions[] = {
   {"target", 0, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::instvar", XOTclOInstVarMethodStub, {
+{"::xotcl::cmd::Object::instvar", XOTclOInstVarMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::invar", XOTclOInvariantsMethodStub, {
+{"::xotcl::cmd::Object::invar", XOTclOInvariantsMethodStub, 1, {
   {"invariantlist", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::isclass", XOTclOIsClassMethodStub, {
+{"::xotcl::cmd::Object::isclass", XOTclOIsClassMethodStub, 1, {
   {"class", 0, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::ismetaclass", XOTclOIsMetaClassMethodStub, {
+{"::xotcl::cmd::Object::ismetaclass", XOTclOIsMetaClassMethodStub, 1, {
   {"metaclass", 0, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::ismixin", XOTclOIsMixinMethodStub, {
+{"::xotcl::cmd::Object::ismixin", XOTclOIsMixinMethodStub, 1, {
   {"class", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::isobject", XOTclOIsObjectMethodStub, {
+{"::xotcl::cmd::Object::isobject", XOTclOIsObjectMethodStub, 1, {
   {"object", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::istype", XOTclOIsTypeMethodStub, {
+{"::xotcl::cmd::Object::istype", XOTclOIsTypeMethodStub, 1, {
   {"class", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::mixinguard", XOTclOMixinGuardMethodStub, {
+{"::xotcl::cmd::Object::mixinguard", XOTclOMixinGuardMethodStub, 2, {
   {"mixin", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::__next", XOTclONextMethodStub, {
+{"::xotcl::cmd::Object::__next", XOTclONextMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::noinit", XOTclONoinitMethodStub, {
+{"::xotcl::cmd::Object::noinit", XOTclONoinitMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Object::parametercmd", XOTclOParametercmdMethodStub, {
+{"::xotcl::cmd::Object::parametercmd", XOTclOParametercmdMethodStub, 1, {
   {"name", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::Object::proc", XOTclOProcMethodStub, {
+{"::xotcl::cmd::Object::proc", XOTclOProcMethodStub, 5, {
   {"name", 1, 0, convertToTclobj},
   {"args", 1, 0, convertToTclobj},
   {"body", 1, 0, convertToTclobj},
   {"precondition", 0, 0, convertToTclobj},
   {"postcondition", 0, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::procsearch", XOTclOProcSearchMethodStub, {
+{"::xotcl::cmd::Object::procsearch", XOTclOProcSearchMethodStub, 1, {
   {"name", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::Object::requireNamespace", XOTclORequireNamespaceMethodStub, {
+{"::xotcl::cmd::Object::requireNamespace", XOTclORequireNamespaceMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Object::set", XOTclOSetMethodStub, {
+{"::xotcl::cmd::Object::set", XOTclOSetMethodStub, 2, {
   {"var", 1, 0, convertToTclobj},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::setvalues", XOTclOSetvaluesMethodStub, {
+{"::xotcl::cmd::Object::setvalues", XOTclOSetvaluesMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::uplevel", XOTclOUplevelMethodStub, {
+{"::xotcl::cmd::Object::uplevel", XOTclOUplevelMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::upvar", XOTclOUpvarMethodStub, {
+{"::xotcl::cmd::Object::upvar", XOTclOUpvarMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::volatile", XOTclOVolatileMethodStub, {
+{"::xotcl::cmd::Object::volatile", XOTclOVolatileMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Object::vwait", XOTclOVwaitMethodStub, {
+{"::xotcl::cmd::Object::vwait", XOTclOVwaitMethodStub, 1, {
   {"varname", 1, 0, convertToString}}
 },
-{"::xotcl::alias", XOTclAliasCmdStub, {
+{"::xotcl::alias", XOTclAliasCmdStub, 6, {
   {"object", 1, 0, convertToObject},
   {"methodName", 1, 0, convertToString},
   {"-objscope", 0, 0, convertToString},
@@ -2319,28 +2611,28 @@ static methodDefinition method_definitions[] = {
   {"-protected", 0, 0, convertToString},
   {"cmdName", 1, 0, convertToTclobj}}
 },
-{"::xotcl::configure", XOTclConfigureCmdStub, {
+{"::xotcl::configure", XOTclConfigureCmdStub, 2, {
   {"filter|softrecreate", 1, 0, convertToConfigureoption},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::methodproperty", XOTclMethodPropertyCmdStub, {
+{"::xotcl::methodproperty", XOTclMethodPropertyCmdStub, 5, {
   {"object", 1, 0, convertToObject},
   {"methodName", 1, 0, convertToString},
   {"-per-object", 0, 0, convertToString},
   {"protected|public|slotobj", 1, 0, convertToMethodproperty},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::my", XOTclMyCmdStub, {
+{"::xotcl::my", XOTclMyCmdStub, 3, {
   {"-local", 0, 0, convertToString},
   {"method", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::relation", XOTclRelationCmdStub, {
+{"::xotcl::relation", XOTclRelationCmdStub, 3, {
   {"object", 1, 0, convertToObject},
   {"mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class_filter|class|superclass|rootclass", 1, 0, convertToRelationtype},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::setinstvar", XOTclSetInstvarCmdStub, {
+{"::xotcl::setinstvar", XOTclSetInstvarCmdStub, 3, {
   {"object", 1, 0, convertToObject},
   {"variable", 1, 0, convertToTclobj},
   {"value", 0, 0, convertToTclobj}}

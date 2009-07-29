@@ -178,7 +178,7 @@ proc genstubs {} {
     array set d $::definitions($key)
     append stubDecls "static int $d(stub)$::objCmdProc\n"
     lappend enums $d(idx)
-    lappend ifds "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), {\n  [genifd $d(argDefinitions)]}\n}"
+    lappend ifds "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), [llength $d(argDefinitions)], {\n  [genifd $d(argDefinitions)]}\n}"
 
     gencall $d(stub) $d(argDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
     append decls "static int $d(implementation)(Tcl_Interp *interp, $ifDef);\n"
@@ -194,7 +194,10 @@ proc genstubs {} {
 static int
 $d(stub)(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 $intro
-  if (parseObjv(interp, objc, objv, objv[0], &(method_definitions[$d(idx)].ifd[0]), &pc) != TCL_OK) {
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[$d(idx)].ifd, 
+		method_definitions[$d(idx)].ifdSize, 
+		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     $cDefs
@@ -212,11 +215,12 @@ typedef struct {
   char *methodName;
   Tcl_ObjCmdProc *proc;
   /*CONST interfaceDefinition ifd;*/
+  int ifdSize;
   argDefinition ifd[10];
 } methodDefinition;
 
 static int parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName,
-		     argDefinition CONST *ifdPtr, parseContext *pc);
+		     argDefinition CONST *ifdPtr, int ifdSize, parseContext *pc);
 
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  XOTclObject **matchObject, char **pattern);
