@@ -149,28 +149,41 @@ typedef struct aliasCmdClientData {
   ClientData clientData;
 } aliasCmdClientData;
 
-#define PARSE_CONTEXT_PREALLOC 15
+#define PARSE_CONTEXT_PREALLOC 10
 typedef struct {
   ClientData *clientData;
   Tcl_Obj **objv;
   Tcl_Obj **full_objv;
-  ClientData clientData_[PARSE_CONTEXT_PREALLOC];
-  Tcl_Obj *objv_[PARSE_CONTEXT_PREALLOC+1];
+  ClientData clientData_static[PARSE_CONTEXT_PREALLOC];
+  Tcl_Obj *objv_static[PARSE_CONTEXT_PREALLOC+1];
   int lastobjc;
   int objc;
 } parseContext;
 
 void parseContextInit(parseContext *pc, int objc, Tcl_Obj *procName) {
   if (objc < PARSE_CONTEXT_PREALLOC) {
+    /* the single larger memset below .... */
     memset(pc, 0, sizeof(parseContext));
-    pc->objv = &pc->objv_[1];
-    pc->full_objv = &pc->objv_[0];
-    pc->clientData = &pc->clientData_[0];
-    /*memset(pc->clientData, 0, sizeof(ClientData)*(objc));
-      memset(pc->objv+1, 0, sizeof(Tcl_Obj*)*(objc));*/
-    pc->objv_[0] = procName;
+    /* ... is faster than the two smaller memsets below */
+    /* memset(pc->clientData_static, 0, sizeof(ClientData)*(objc));
+       memset(pc->objv_static, 0, sizeof(Tcl_Obj*)*(objc+1));*/
+    pc->full_objv = &pc->objv_static[0];
+    pc->clientData = &pc->clientData_static[0];
   } else {
-    Tcl_Panic("objc to large, not implemented", NULL);
+    pc->full_objv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*)*(objc+1));
+    pc->clientData = (ClientData*)ckalloc(sizeof(ClientData)*objc);
+    /*fprintf(stderr,"ParseContextMalloc %d objc, %p %p\n",objc,pc->full_objv,pc->clientData);*/
+    memset(pc->full_objv, 0, sizeof(Tcl_Obj*)*(objc+1));
+    memset(pc->clientData, 0, sizeof(ClientData)*(objc));
+  }
+  pc->objv = &pc->full_objv[1];
+  pc->full_objv[0] = procName;
+}
+void parseContextRelease(parseContext *pc) {
+  if (pc->objv != &pc->objv_static[1]) {
+    /*fprintf(stderr,"release free %p %p\n",pc->full_objv,pc->clientData);*/
+    ckfree((char *)pc->full_objv);
+    ckfree((char *)pc->clientData);
   }
 }
 
@@ -2154,10 +2167,10 @@ Tcl_Command
 XOTclAddPMethod(Tcl_Interp *interp, XOTcl_Object *object, CONST char *methodName,
                 Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp) {
   int flags = 0;
-  if (clientData == (ClientData) XOTCL_NONLEAF_METHOD) {
-    fprintf(stderr, "XOTclAddPMethod(,,,, XOTCL_NONLEAF_METHOD,) deprecated.\n"
-	    "Use XOTclAddObjectMethod(,,,,,, XOTCL_NONLEAF_METHOD) instead.\n");
-    flags = XOTCL_NONLEAF_METHOD;
+  if (clientData == (ClientData) XOTCL_CMD_NONLEAF_METHOD) {
+    fprintf(stderr, "XOTclAddPMethod(,,,, XOTCL_CMD_NONLEAF_METHOD,) deprecated.\n"
+	    "Use XOTclAddObjectMethod(,,,,,, XOTCL_CMD_NONLEAF_METHOD) instead.\n");
+    flags = XOTCL_CMD_NONLEAF_METHOD;
     clientData = NULL;
   }
   return XOTclAddObjectMethod(interp, object, methodName, proc, clientData, dp, flags);
@@ -2184,10 +2197,10 @@ Tcl_Command
 XOTclAddIMethod(Tcl_Interp *interp, XOTcl_Class *class, CONST char *methodName,
                 Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp) {
   int flags = 0;
-  if (clientData == (ClientData) XOTCL_NONLEAF_METHOD) {
-    fprintf(stderr, "XOTclAddIMethod(,,,, XOTCL_NONLEAF_METHOD,) deprecated.\n"
-	    "Use XOTclAddInstanceMethod(,,,,,, XOTCL_NONLEAF_METHOD) instead.\n");
-    flags = XOTCL_NONLEAF_METHOD;
+  if (clientData == (ClientData) XOTCL_CMD_NONLEAF_METHOD) {
+    fprintf(stderr, "XOTclAddIMethod(,,,, XOTCL_CMD_NONLEAF_METHOD,) deprecated.\n"
+	    "Use XOTclAddInstanceMethod(,,,,,, XOTCL_CMD_NONLEAF_METHOD) instead.\n");
+    flags = XOTCL_CMD_NONLEAF_METHOD;
     clientData = NULL;
   }
   return XOTclAddInstanceMethod(interp, class, methodName, proc, clientData, dp, flags);
@@ -5436,11 +5449,24 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
     /*fprintf(stderr,"\tproc=%s cp=%p %d\n", Tcl_GetCommandName(interp, cmd),cp, isTclProc);*/
 
 # if defined(CANONICAL_ARGS)
+    /* 
+       If the method to be invoked hasnonposArgs, we have to call the
+       argument parser with the argument definitions. The argument
+       definitions are looked up in canonicalNonpositionalArgs via a
+       hash table, which causes a per-proc overhead. It would be
+       certainly nicer and more efficient to store both the argument
+       definitions in the Tcl Proc structure, which has unfortunately
+       no clientData.
+
+       If would be already nice if the Proc structure would contain a
+       "flags" variable, where we could check, whether nonposArgs are
+       provided. This would make method invocations as efficient as
+       without nonposArgs.
+
+     */
     {
       parseContext pc;
-      int rc;
-
-      rc = canonicalNonpositionalArgs(&pc, interp, objc, objv);
+      int rc = canonicalNonpositionalArgs(&pc, interp, objc, objv);
 
       if (rc == TCL_CONTINUE) {
 	result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0);
@@ -5454,7 +5480,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 #endif
 	result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, /*isLambda*/ 0);
       }
-    }
+    } 
 # else
     result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0);
 #endif
@@ -5539,7 +5565,7 @@ DoCallProcCheck(ClientData clientData, Tcl_Interp *interp,
       tclCmdClientData *tcd = (tclCmdClientData *)cp;
       tcd->obj = obj;
       assert((TclIsProc((Command *)cmd) == NULL));
-    } else if (cp == (ClientData)XOTCL_NONLEAF_METHOD) {
+    } else if (cp == (ClientData)XOTCL_CMD_NONLEAF_METHOD) {
       cp = clientData;
       assert((TclIsProc((Command *)cmd) == NULL));
     }
@@ -5693,7 +5719,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
        protected method, called on a different object. In this case,
        we call as well the unknown method */
 
-    if ((Tcl_Command_flags(cmd) & XOTCL_PROTECTED_METHOD) &&
+    if ((Tcl_Command_flags(cmd) & XOTCL_CMD_PROTECTED_METHOD) &&
 	(flags & XOTCL_CM_NO_UNKNOWN) == 0) {
       XOTclCallStackContent *csc = CallStackGetTopFrame(interp);
       XOTclObject *o = NULL;
@@ -6247,6 +6273,7 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
       nonposArg = (XOTclNonposArgs*)ckalloc(sizeof(XOTclNonposArgs));
       nonposArg->slotObj = NULL;
       nonposArg->ifd = interface;
+
       /*fprintf(stderr, "ifsize = %d\n",ifPtr-interface);*/
       *parsedIfPtr = interface; /* TODO only for CANONICAL_ARGS */
 
@@ -9748,7 +9775,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern,
       }
     }
 
-    if (((Command *) cmd)->flags & XOTCL_PROTECTED_METHOD) {
+    if (((Command *) cmd)->flags & XOTCL_CMD_PROTECTED_METHOD) {
       /*fprintf(stderr, "--- dont list protected name '%s'\n", key);*/
       continue;
     }
@@ -10073,7 +10100,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   }
 
   if (withProtected) {
-    flags = XOTCL_PROTECTED_METHOD;
+    flags = XOTCL_CMD_PROTECTED_METHOD;
   }
 
   if (allocation == 'c') {
@@ -10155,9 +10182,9 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char 
     protected = (methodproperty == methodpropertyProtectedIdx);
 
     if (protected) {
-      Tcl_Command_flags(cmd) |= XOTCL_PROTECTED_METHOD;
+      Tcl_Command_flags(cmd) |= XOTCL_CMD_PROTECTED_METHOD;
     } else {
-      Tcl_Command_flags(cmd) &= XOTCL_PROTECTED_METHOD;
+      Tcl_Command_flags(cmd) &= XOTCL_CMD_PROTECTED_METHOD;
     }
   } else { /* slotobj */
     Tcl_HashTable **nonposArgsTable = allocation == 'o' ?
@@ -12188,7 +12215,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         ClientData clientData;
         if (objProc) {
           clientData = Tcl_Command_objClientData(cmd);
-          if (clientData == NULL || clientData == (ClientData)XOTCL_NONLEAF_METHOD) {
+          if (clientData == NULL || clientData == (ClientData)XOTCL_CMD_NONLEAF_METHOD) {
             /* if client data not null, we would have to copy
                the client data; we don't know its size...., so rely
                on introspection for copying */
@@ -12197,7 +12224,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
           }
         } else {
           clientData = Tcl_Command_clientData(cmd);
-          if (clientData == NULL || clientData == (ClientData)XOTCL_NONLEAF_METHOD) {
+          if (clientData == NULL || clientData == (ClientData)XOTCL_CMD_NONLEAF_METHOD) {
             Tcl_CreateCommand(interp, newName, Tcl_Command_proc(cmd),
                               Tcl_Command_clientData(cmd), deleteProc);
           }
@@ -12401,8 +12428,10 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
   /* ifdSize is per construction the same as objc */
   rc = parseObjv(interp, objc, objv, objv[0], nonposArgs->ifd, objc, pcPtr);
 
-  if (rc != TCL_OK)
+  if (rc != TCL_OK) {
+    parseContextRelease(pcPtr);
     return rc;
+  }
 
   for (aPtr = nonposArgs->ifd, i=0; aPtr->name; aPtr++, i++) {
     char *argName = aPtr->name;
@@ -12427,6 +12456,7 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
         /* TODO: default value is not jet checked; should be in arg parsing */
         /*fprintf(stderr,"=== setting default value '%s' for var '%s'\n",ObjStr(aPtr->defaultValue),argName);*/
       } else if (aPtr->required) {
+	parseContextRelease(pcPtr);
         return XOTclVarErrMsg(interp, "method ",procName, ": required argument '",
                               argName, "' is missing", (char *) NULL);
       } else {
@@ -12447,7 +12477,7 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
   } else {
     /* Tcl_UnsetVar2(interp, "args", NULL, 0); */
   }
-
+  parseContextRelease(pcPtr);
   return TCL_OK;
 }
 
@@ -12476,8 +12506,10 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   rc = parseObjv(interp, objc, objv, proc, nonposArgs->ifd, objc, &pc);
   DECR_REF_COUNT(proc);
 
-  if (rc != TCL_OK)
+  if (rc != TCL_OK) {
+    parseContextRelease(pcPtr);
     return rc;
+  }
 
   for (aPtr = nonposArgs->ifd, i=0; aPtr->name; aPtr++, i++) {
     char *argName = aPtr->name;
@@ -12506,6 +12538,7 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
         /*fprintf(stderr,"=== setting default value '%s' for var '%s'\n",ObjStr(aPtr->defaultValue),argName);*/
         Tcl_SetVar2Ex(interp, argName, NULL, aPtr->defaultValue, 0);
       } else if (aPtr->required) {
+	parseContextRelease(pcPtr);
         return XOTclVarErrMsg(interp, "method ",procName, ": required argument '",
                               argName, "' is missing", (char *) NULL);
       }
@@ -12521,7 +12554,7 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   } else {
     Tcl_UnsetVar2(interp, "args", NULL, 0);
   }
-
+  parseContextRelease(pcPtr);
   return TCL_OK;
 }
 #endif

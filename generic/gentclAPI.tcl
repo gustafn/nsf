@@ -202,6 +202,7 @@ $intro
   } else {
     $cDefs
 $pre
+    parseContextRelease(&pc);
     $call
 $post
   }
