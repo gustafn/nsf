@@ -442,8 +442,14 @@ typedef struct  {
 
 typedef struct XOTclNonposArgs {
   argDefinition *ifd;
+  int ifdSize;
   Tcl_Obj *slotObj;
 } XOTclNonposArgs;
+
+typedef struct XOTclParsedInterfaceDefinition {
+  argDefinition *ifd;
+  int possibleUnknowns;
+} XOTclParsedInterfaceDefinition;
 
 typedef struct XOTclObjectOpt {
   XOTclAssertionStore *assertions;

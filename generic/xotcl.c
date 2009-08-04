@@ -160,6 +160,9 @@ typedef struct {
   int objc;
 } parseContext;
 
+#if defined(CANONICAL_ARGS)
+int canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  Tcl_Obj *CONST objv[]);
+#endif
 void parseContextInit(parseContext *pc, int objc, Tcl_Obj *procName) {
   if (objc < PARSE_CONTEXT_PREALLOC) {
     /* the single larger memset below .... */
@@ -186,8 +189,6 @@ void parseContextRelease(parseContext *pc) {
     ckfree((char *)pc->clientData);
   }
 }
-
-typedef argDefinition interfaceDefinition[10];
 
 XOTCLINLINE static int DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
                                   Tcl_Obj *CONST objv[], int flags);
@@ -5467,18 +5468,21 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
     {
       parseContext pc;
       int rc = canonicalNonpositionalArgs(&pc, interp, objc, objv);
-
       if (rc == TCL_CONTINUE) {
 	result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0);
       } else {
-#if 0
-	for(j=0; j<pc.objc+1; j++) {
-	  /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
-	  fprintf(stderr, " o[%d]=%p %s,", j, ov[j], ov[j] ? ObjStr(ov[j]) : "NADA");
-	}
-	fprintf(stderr,"\n");
+#if 1
+        {int j;
+          for(j=0; j<pc.objc+1; j++) {
+            /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
+            fprintf(stderr, " o[%d]=%p %s,", j, pc.full_objv[j], pc.full_objv[j] ? ObjStr(pc.full_objv[j]) : "NADA");
+          }
+          fprintf(stderr,"\n");
+        }
 #endif
 	result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, /*isLambda*/ 0);
+        /* maybe release is to early */
+        parseContextRelease(&pc);
       }
     } 
 # else
@@ -5953,7 +5957,7 @@ NonposArgsFormat(Tcl_Interp *interp, XOTclNonposArgs *nonposArgs) {
  *  Proc-Creation
  */
 
-static Tcl_Obj *addPrefixToBody(Tcl_Obj *body, int nonposArgs) {
+static Tcl_Obj *addPrefixToBody(Tcl_Obj *body, int nonposArgs, XOTclParsedInterfaceDefinition *ifPtr) {
   Tcl_Obj *resultBody = Tcl_NewStringObj("", 0);
 
   INCR_REF_COUNT(resultBody);
@@ -5967,6 +5971,9 @@ static Tcl_Obj *addPrefixToBody(Tcl_Obj *body, int nonposArgs) {
   if (nonposArgs)
     Tcl_AppendStringsToObj(resultBody, "::xotcl::interpretNonpositionalArgs {*}$args\n",
 			   (char *) NULL);
+# else
+  if (nonposArgs && ifPtr->possibleUnknowns > 0)
+    Tcl_AppendStringsToObj(resultBody, "::xotcl::unsetUnknownArgs\n", (char *) NULL);
 # endif
 #endif
   Tcl_AppendStringsToObj(resultBody, ObjStr(body), (char *) NULL);
@@ -6125,7 +6132,7 @@ parseNonposargsOption(Tcl_Interp *interp, char *option, int length, argDefinitio
 
 static int
 parseArgDefinition(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int isNonposArgument,
-                   argDefinition *ifPtr) {
+                   argDefinition *ifPtr, int *possibleUnknowns) {
   Tcl_Obj **npav;
   char *argString, *argName;
   int rc, npac, length, j, nameLength;
@@ -6192,8 +6199,9 @@ parseArgDefinition(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int isNonpo
     }
   }
 
-  /* check for default values */
+  /* if we have two arguments in the list, the second one is a default value */
   if (npac == 2) {
+    /* if we have for some reason already a default value, free it */
     if (ifPtr->defaultValue) {
       /* might be set by parseNonposargsOption */
       DECR_REF_COUNT(ifPtr->defaultValue);
@@ -6210,13 +6218,24 @@ parseArgDefinition(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int isNonpo
   if (ifPtr->converter == NULL) {
     ifPtr->converter = convertToTclobj;
   }
+
+  /*
+   * If the argument is not required and no default value is
+   * specified, we have to handle in the client code (eg. in the
+   * canonical arg handlers for instprocs) the unknown value
+   * (e.g. don't set/unset a variable)
+   */
+  if (ifPtr->required == 0 && ifPtr->defaultValue == NULL) {
+    (*possibleUnknowns)++;
+  }
   return TCL_OK;
 }
 
 static int
 parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *ordinaryArgs,
-                Tcl_HashTable **nonposArgsTable, int *haveNonposArgs, argDefinition **parsedIfPtr) {
-  int rc, i, nonposArgsDefc, ordinaryArgsDefc;
+                Tcl_HashTable **nonposArgsTable, int *haveNonposArgs, 
+                XOTclParsedInterfaceDefinition *parsedIfPtr) {
+  int rc, i, nonposArgsDefc, ordinaryArgsDefc, possibleUnknowns = 0;
   Tcl_Obj **nonposArgsDefv, **ordinaryArgsDefv;
   argDefinition *interface, *ifPtr;
 
@@ -6234,7 +6253,7 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
   ifPtr = interface = argDefinitionsNew(nonposArgsDefc+ordinaryArgsDefc);
   if (nonposArgsDefc > 0) {
     for (i=0; i < nonposArgsDefc; i++, ifPtr++) {
-      rc = parseArgDefinition(interp, procName, nonposArgsDefv[i], 1, ifPtr);
+      rc = parseArgDefinition(interp, procName, nonposArgsDefv[i], 1, ifPtr, &possibleUnknowns);
       if (rc != TCL_OK) {
         argDefinitionsFree(interface);
         return rc;
@@ -6249,7 +6268,7 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
     */
     if (*haveNonposArgs) {
       for (i=0; i< ordinaryArgsDefc; i++, ifPtr++) {
-        rc = parseArgDefinition(interp, procName, ordinaryArgsDefv[i], 0, ifPtr);
+        rc = parseArgDefinition(interp, procName, ordinaryArgsDefv[i], 0, ifPtr, &possibleUnknowns);
         if (rc != TCL_OK) {
           argDefinitionsFree(interface);
           return rc;
@@ -6273,10 +6292,11 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
       nonposArg = (XOTclNonposArgs*)ckalloc(sizeof(XOTclNonposArgs));
       nonposArg->slotObj = NULL;
       nonposArg->ifd = interface;
-
-      /*fprintf(stderr, "ifsize = %d\n",ifPtr-interface);*/
-      *parsedIfPtr = interface; /* TODO only for CANONICAL_ARGS */
-
+      nonposArg->ifdSize = ifPtr-interface;
+      fprintf(stderr, "method %s ifsize %d, possible unknowns = %d,\n",
+              procName,ifPtr-interface,possibleUnknowns);
+      parsedIfPtr->ifd = interface; /* TODO only necessary for CANONICAL_ARGS */
+      parsedIfPtr->possibleUnknowns = possibleUnknowns; /* TODO only necessary for CANONICAL_ARGS */
       Tcl_SetHashValue(hPtr, (ClientData)nonposArg);
     } else {
       /* empty definitions */
@@ -6295,7 +6315,7 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore, Tcl_HashTable **nonposA
   Tcl_Obj *ov[4],  **argsv;
   Tcl_HashEntry *hPtr = NULL;
   char *procName = ObjStr(name);
-  argDefinition *parsedIfPtr;
+  XOTclParsedInterfaceDefinition parsedIf;
 
   if (*nonposArgsTable && (hPtr = XOTcl_FindHashEntry(*nonposArgsTable, procName))) {
     NonposArgsDeleteHashEntry(hPtr);
@@ -6333,7 +6353,7 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore, Tcl_HashTable **nonposA
     INCR_REF_COUNT(ordinaryArgs);
     INCR_REF_COUNT(nonposArgs);
     result = parseNonposArgs(interp, procName, nonposArgs, ordinaryArgs,
-                             nonposArgsTable, &haveNonposArgs, &parsedIfPtr);
+                             nonposArgsTable, &haveNonposArgs, &parsedIf);
     DECR_REF_COUNT(ordinaryArgs);
     DECR_REF_COUNT(nonposArgs);
     if (result != TCL_OK)
@@ -6344,7 +6364,7 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore, Tcl_HashTable **nonposA
 # if defined(CANONICAL_ARGS)
     argDefinition *aPtr;
     Tcl_Obj *argList = Tcl_NewListObj(0, NULL);
-    for (aPtr = parsedIfPtr; aPtr->name; aPtr++) {
+    for (aPtr = parsedIf.ifd; aPtr->name; aPtr++) {
       if (*aPtr->name == '-') {
 	Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(aPtr->name+1,-1));
       } else {
@@ -6352,15 +6372,15 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore, Tcl_HashTable **nonposA
       }
     }
     ov[2] = argList;
-    fprintf(stderr, "final arglist = <%s>\n",ObjStr(argList)); 
+    /*fprintf(stderr, "final arglist = <%s>\n",ObjStr(argList)); */
     /* TODO: check for memleak of argList */
 #else
     ov[2] = XOTclGlobalObjects[XOTE_ARGS];
 #endif
-    ov[3] = addPrefixToBody(body, 1);
+    ov[3] = addPrefixToBody(body, 1, &parsedIf);
   } else { /* no nonpos arguments */
     ov[2] = args;
-    ov[3] = addPrefixToBody(body, 0);
+    ov[3] = addPrefixToBody(body, 0, &parsedIf);
   }
 
   Tcl_PushCallFrame(interp,(Tcl_CallFrame *)framePtr, ns, 0);
@@ -8609,118 +8629,115 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
     newName = varName;
   }
 #if 0
+  if (strstr(newName, "::")) {
+    return XOTclVarErrMsg(interp, "variable name \"", newName,
+                          "\" illegal: must not contain namespace separator",
+                          (char *) NULL);
+  }
+#endif
   varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-  ObjStr(Tcl_GetObjResult(interp)), newName, arrayPtr, otherPtr);
-*/
-if (strstr(newName, "::")) {
-  return XOTclVarErrMsg(interp, "variable name \"", newName,
-			"\" illegal: must not contain namespace separator",
-			(char *) NULL);
- }
-#endif
-varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
-/*
- * If we are executing inside a Tcl procedure, create a local
- * variable linked to the new namespace variable "varName".
- */
-if (varFramePtr && Tcl_CallFrame_isProcCallFrame(varFramePtr)) {
-  Proc *procPtr           = Tcl_CallFrame_procPtr(varFramePtr);
-  int localCt             = procPtr->numCompiledLocals;
-  CompiledLocal *localPtr = procPtr->firstLocalPtr;
-  Var *localVarPtr        = Tcl_CallFrame_compiledLocals(varFramePtr);
-  char *newNameString     = ObjStr(newName);
-  int i, nameLen          = strlen(newNameString);
-
-  for (i = 0;  i < localCt;  i++) {    /* look in compiled locals */
-    /* fprintf(stderr,"%d of %d %s flags %x not isTemp %d\n", i, localCt,
-       localPtr->name, localPtr->flags,
-       !TclIsCompiledLocalTemporary(localPtr));*/
-
-    if (!TclIsCompiledLocalTemporary(localPtr)) {
-      char *localName = localPtr->name;
-      if ((newNameString[0] == localName[0])
-	  && (nameLen == localPtr->nameLength)
-	  && (strcmp(newNameString, localName) == 0)) {
-	varPtr = getNthVar(localVarPtr, i);
-	new = 0;
-	break;
-      }
-    }
-    localPtr = localPtr->nextPtr;
-  }
-
-  if (varPtr == NULL) {	/* look in frame's local var hashtable */
-    tablePtr = Tcl_CallFrame_varTablePtr(varFramePtr);
-    if (tablePtr == NULL) {
-      tablePtr = (TclVarHashTable *) ckalloc(varHashTableSize);
-      InitVarHashTable(tablePtr, NULL);
-      Tcl_CallFrame_varTablePtr(varFramePtr) = tablePtr;
-    }
-    varPtr = VarHashCreateVar(tablePtr, newName, &new);
-  }
   /*
-   * if we define an alias (newName != varName), be sure that
-   * the target does not exist already
+   * If we are executing inside a Tcl procedure, create a local
+   * variable linked to the new namespace variable "varName".
    */
-  if (!new) {
-    /*fprintf(stderr,"GetIntoScope createalias\n");*/
-    if (varPtr == otherPtr)
-      return XOTclVarErrMsg(interp, "can't instvar to variable itself",
-			    (char *) NULL);
-
-    if (TclIsVarLink(varPtr)) {
-      /* we try to make the same instvar again ... this is ok */
-      Var *linkPtr = valueOfVar(Var, varPtr, linkPtr);
-      if (linkPtr == otherPtr) {
-	return TCL_OK;
+  if (varFramePtr && Tcl_CallFrame_isProcCallFrame(varFramePtr)) {
+    Proc *procPtr           = Tcl_CallFrame_procPtr(varFramePtr);
+    int localCt             = procPtr->numCompiledLocals;
+    CompiledLocal *localPtr = procPtr->firstLocalPtr;
+    Var *localVarPtr        = Tcl_CallFrame_compiledLocals(varFramePtr);
+    char *newNameString     = ObjStr(newName);
+    int i, nameLen          = strlen(newNameString);
+    
+    for (i = 0;  i < localCt;  i++) {    /* look in compiled locals */
+      /* fprintf(stderr,"%d of %d %s flags %x not isTemp %d\n", i, localCt,
+         localPtr->name, localPtr->flags,
+         !TclIsCompiledLocalTemporary(localPtr));*/
+      
+      if (!TclIsCompiledLocalTemporary(localPtr)) {
+        char *localName = localPtr->name;
+        if ((newNameString[0] == localName[0])
+            && (nameLen == localPtr->nameLength)
+            && (strcmp(newNameString, localName) == 0)) {
+          varPtr = getNthVar(localVarPtr, i);
+          new = 0;
+          break;
+        }
       }
-
-      /*fprintf(stderr, "linkvar flags=%x\n", linkPtr->flags);
-	Tcl_Panic("new linkvar %s... When does this happen?", newNameString, NULL);*/
-
-      /* We have already a variable with the same name imported
-	 from a different object. Get rid of this old variable
+      localPtr = localPtr->nextPtr;
+    }
+    
+    if (varPtr == NULL) {	/* look in frame's local var hashtable */
+      tablePtr = Tcl_CallFrame_varTablePtr(varFramePtr);
+      if (tablePtr == NULL) {
+        tablePtr = (TclVarHashTable *) ckalloc(varHashTableSize);
+        InitVarHashTable(tablePtr, NULL);
+        Tcl_CallFrame_varTablePtr(varFramePtr) = tablePtr;
+      }
+      varPtr = VarHashCreateVar(tablePtr, newName, &new);
+    }
+    /*
+     * if we define an alias (newName != varName), be sure that
+     * the target does not exist already
+     */
+    if (!new) {
+      /*fprintf(stderr,"GetIntoScope createalias\n");*/
+      if (varPtr == otherPtr)
+        return XOTclVarErrMsg(interp, "can't instvar to variable itself",
+                              (char *) NULL);
+      
+      if (TclIsVarLink(varPtr)) {
+        /* we try to make the same instvar again ... this is ok */
+        Var *linkPtr = valueOfVar(Var, varPtr, linkPtr);
+        if (linkPtr == otherPtr) {
+          return TCL_OK;
+        }
+        
+        /*fprintf(stderr, "linkvar flags=%x\n", linkPtr->flags);
+          Tcl_Panic("new linkvar %s... When does this happen?", newNameString, NULL);*/
+        
+        /* We have already a variable with the same name imported
+           from a different object. Get rid of this old variable
       */
-      VarHashRefCount(linkPtr)--;
-      if (TclIsVarUndefined(linkPtr)) {
-	CleanupVar(linkPtr, (Var *) NULL);
+        VarHashRefCount(linkPtr)--;
+        if (TclIsVarUndefined(linkPtr)) {
+          CleanupVar(linkPtr, (Var *) NULL);
+        }
+        
+      } else if (!TclIsVarUndefined(varPtr)) {
+        return XOTclVarErrMsg(interp, "variable '", ObjStr(newName),
+                              "' exists already", (char *) NULL);
+      } else if (TclIsVarTraced(varPtr)) {
+        return XOTclVarErrMsg(interp, "variable '", ObjStr(newName),
+                              "' has traces: can't use for instvar", (char *) NULL);
       }
-
-    } else if (!TclIsVarUndefined(varPtr)) {
-      return XOTclVarErrMsg(interp, "variable '", ObjStr(newName),
-			    "' exists already", (char *) NULL);
-    } else if (TclIsVarTraced(varPtr)) {
-      return XOTclVarErrMsg(interp, "variable '", ObjStr(newName),
-			    "' has traces: can't use for instvar", (char *) NULL);
     }
-  }
-
-  TclSetVarLink(varPtr);
-  TclClearVarUndefined(varPtr);
+    
+    TclSetVarLink(varPtr);
+    TclClearVarUndefined(varPtr);
 #if FORWARD_COMPATIBLE
-  if (forwardCompatibleMode) {
-    Var85 *vPtr = (Var85 *)varPtr;
-    vPtr->value.linkPtr = (Var85 *)otherPtr;
-  } else {
-    varPtr->value.linkPtr = otherPtr;
-  }
-#else
-  varPtr->value.linkPtr = otherPtr;
-#endif
-  VarHashRefCount(otherPtr)++;
-
-  /*
-    {
-    Var85 *p = (Var85 *)varPtr;
-    fprintf(stderr,"defining an alias var='%s' in obj %s fwd %d flags %x isLink %d isTraced %d isUndefined %d\n",
-    ObjStr(newName), objectName(obj), forwardCompatibleMode,
-    varFlags(varPtr),
-    TclIsVarLink(varPtr), TclIsVarTraced(varPtr), TclIsVarUndefined(varPtr));
+    if (forwardCompatibleMode) {
+      Var85 *vPtr = (Var85 *)varPtr;
+      vPtr->value.linkPtr = (Var85 *)otherPtr;
+    } else {
+      varPtr->value.linkPtr = otherPtr;
     }
-  */
- }
-return TCL_OK;
+#else
+    varPtr->value.linkPtr = otherPtr;
+#endif
+    VarHashRefCount(otherPtr)++;
+    
+    /*
+      {
+      Var85 *p = (Var85 *)varPtr;
+      fprintf(stderr,"defining an alias var='%s' in obj %s fwd %d flags %x isLink %d isTraced %d isUndefined %d\n",
+      ObjStr(newName), objectName(obj), forwardCompatibleMode,
+      varFlags(varPtr),
+      TclIsVarLink(varPtr), TclIsVarTraced(varPtr), TclIsVarUndefined(varPtr));
+      }
+    */
+  }
+  return TCL_OK;
 }
 
 static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
@@ -9632,7 +9649,7 @@ parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName
   pc->lastobjc = aPtr->name ? o : o-1;
   pc->objc = i;
 
-  /* Process to end of interface;*/
+  /* Process all args until end of interface to get correct conters */
   while (aPtr->name) {
     /*fprintf(stderr, "end of if def %s\n",aPtr->name);*/
     if (aPtr->required) nrReq++; else nrOpt++;
@@ -12425,21 +12442,18 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
 
   if (!nonposArgs) {return TCL_CONTINUE;}
 
-  /* ifdSize is per construction the same as objc */
-  rc = parseObjv(interp, objc, objv, objv[0], nonposArgs->ifd, objc, pcPtr);
-
+  rc = parseObjv(interp, objc, objv, objv[0], nonposArgs->ifd, nonposArgs->ifdSize, pcPtr);
   if (rc != TCL_OK) {
-    parseContextRelease(pcPtr);
     return rc;
   }
 
   for (aPtr = nonposArgs->ifd, i=0; aPtr->name; aPtr++, i++) {
     char *argName = aPtr->name;
     if (*argName == '-') argName++;
-    /*fprintf(stderr, "got for arg %s (%d) => %p %p, default %s\n",
+    fprintf(stderr, "got for arg %s (%d) => %p %p, default %s\n",
             aPtr->name, aPtr->required,
             pcPtr->clientData[i], pcPtr->objv[i],
-            aPtr->defaultValue ? ObjStr(aPtr->defaultValue) : "NONE");*/
+            aPtr->defaultValue ? ObjStr(aPtr->defaultValue) : "NONE");
 
     if (pcPtr->objv[i]) {
       /* got a value, already checked by objv parser */
@@ -12454,9 +12468,8 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
       if (aPtr->defaultValue) {
 	pcPtr->objv[i] = aPtr->defaultValue;
         /* TODO: default value is not jet checked; should be in arg parsing */
-        /*fprintf(stderr,"=== setting default value '%s' for var '%s'\n",ObjStr(aPtr->defaultValue),argName);*/
+        fprintf(stderr,"=== setting default value '%s' for var '%s'\n",ObjStr(aPtr->defaultValue),argName);
       } else if (aPtr->required) {
-	parseContextRelease(pcPtr);
         return XOTclVarErrMsg(interp, "method ",procName, ": required argument '",
                               argName, "' is missing", (char *) NULL);
       } else {
@@ -12477,8 +12490,32 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
   } else {
     /* Tcl_UnsetVar2(interp, "args", NULL, 0); */
   }
-  parseContextRelease(pcPtr);
+
+  /* Set objc always to the size of the interface */
+  pcPtr->objc = nonposArgs->ifdSize;
+
   return TCL_OK;
+}
+
+int
+XOTclUnsetUnknownArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
+                                   Tcl_Obj *CONST objv[]) {
+  Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
+  CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
+  Proc *proc = Tcl_CallFrame_procPtr(framePtr);
+  if (proc) {
+    CompiledLocal *ap;
+    int i;
+    for (ap = proc->firstLocalPtr, i=0; ap; ap = ap->nextPtr, i++) {
+      if (!TclIsCompiledLocalArgument(ap)) continue;
+      /*Var *varPtr = getNthVar(proc->firstLocalPtr, i);*/
+      Var *varPtr = &varFramePtr->compiledLocals[i];
+      fprintf(stderr, "var '%s' i %d fi %d var %p flags %.8x obj %p\n",
+              ap->name, i, ap->frameIndex, varPtr, varPtr->flags, varPtr->value.objPtr);
+    }
+  }
+  
+  return TCL_OK;  
 }
 
 #else
@@ -13210,6 +13247,9 @@ Xotcl_Init(Tcl_Interp *interp) {
 #if !defined(CANONICAL_ARGS)
   Tcl_CreateObjCommand(interp, "::xotcl::interpretNonpositionalArgs",
                        XOTclInterpretNonpositionalArgsCmd, 0, 0);
+#else 
+  Tcl_CreateObjCommand(interp, "::xotcl::unsetUnknownArgs",
+                       XOTclUnsetUnknownArgsCmd, 0,0);
 #endif
   Tcl_CreateObjCommand(interp, "::xotcl::interp", XOTcl_InterpObjCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::namespace_copyvars", XOTcl_NSCopyVars, 0, 0);
