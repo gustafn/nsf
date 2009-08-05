@@ -5471,7 +5471,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
       if (rc == TCL_CONTINUE) {
 	result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0);
       } else {
-#if 1
+#if 0
         {int j;
           for(j=0; j<pc.objc+1; j++) {
             /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
@@ -12450,10 +12450,10 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
   for (aPtr = nonposArgs->ifd, i=0; aPtr->name; aPtr++, i++) {
     char *argName = aPtr->name;
     if (*argName == '-') argName++;
-    fprintf(stderr, "got for arg %s (%d) => %p %p, default %s\n",
+    /*fprintf(stderr, "canonicalNonpositionalArgs got for arg %s (%d) => %p %p, default %s\n",
             aPtr->name, aPtr->required,
             pcPtr->clientData[i], pcPtr->objv[i],
-            aPtr->defaultValue ? ObjStr(aPtr->defaultValue) : "NONE");
+            aPtr->defaultValue ? ObjStr(aPtr->defaultValue) : "NONE");*/
 
     if (pcPtr->objv[i]) {
       /* got a value, already checked by objv parser */
@@ -12468,7 +12468,7 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
       if (aPtr->defaultValue) {
 	pcPtr->objv[i] = aPtr->defaultValue;
         /* TODO: default value is not jet checked; should be in arg parsing */
-        fprintf(stderr,"=== setting default value '%s' for var '%s'\n",ObjStr(aPtr->defaultValue),argName);
+        /*fprintf(stderr,"==> setting default value '%s' for var '%s'\n",ObjStr(aPtr->defaultValue),argName);*/
       } else if (aPtr->required) {
         return XOTclVarErrMsg(interp, "method ",procName, ": required argument '",
                               argName, "' is missing", (char *) NULL);
@@ -12497,21 +12497,29 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
   return TCL_OK;
 }
 
+/* XOTclUnsetUnknownArgsCmd was developed and tested for Tcl 8.5 and
+   needs probably modifications in earlier versions. However, since
+   CANONICAL_ARGS requires Tcl 8.5 this is not an issue.
+ */
 int
 XOTclUnsetUnknownArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                                    Tcl_Obj *CONST objv[]) {
-  Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
-  Proc *proc = Tcl_CallFrame_procPtr(framePtr);
+  Proc *proc = Tcl_CallFrame_procPtr(varFramePtr);
+  int i;
+
   if (proc) {
     CompiledLocal *ap;
-    int i;
+    Var *varPtr;
     for (ap = proc->firstLocalPtr, i=0; ap; ap = ap->nextPtr, i++) {
       if (!TclIsCompiledLocalArgument(ap)) continue;
-      /*Var *varPtr = getNthVar(proc->firstLocalPtr, i);*/
-      Var *varPtr = &varFramePtr->compiledLocals[i];
-      fprintf(stderr, "var '%s' i %d fi %d var %p flags %.8x obj %p\n",
-              ap->name, i, ap->frameIndex, varPtr, varPtr->flags, varPtr->value.objPtr);
+      varPtr = &Tcl_CallFrame_compiledLocals(varFramePtr)[i];
+      /*fprintf(stderr, "XOTclUnsetUnknownArgsCmd var '%s' i %d fi %d var %p flags %.8x obj %p unk %p\n",
+              ap->name, i, ap->frameIndex, varPtr, varPtr->flags, varPtr->value.objPtr,
+              XOTclGlobalObjects[XOTE___UNKNOWN]);*/
+      if (varPtr->value.objPtr != XOTclGlobalObjects[XOTE___UNKNOWN]) continue;
+      /* fprintf(stderr, "XOTclUnsetUnknownArgsCmd must unset %s\n", ap->name);*/
+      Tcl_UnsetVar2(interp, ap->name, NULL, 0);
     }
   }
   
