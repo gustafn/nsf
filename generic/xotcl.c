@@ -6372,8 +6372,8 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore, Tcl_HashTable **nonposA
       }
     }
     ov[2] = argList;
+    INCR_REF_COUNT(ov[2]);
     /*fprintf(stderr, "final arglist = <%s>\n",ObjStr(argList)); */
-    /* TODO: check for memleak of argList */
 #else
     ov[2] = XOTclGlobalObjects[XOTE_ARGS];
 #endif
@@ -6416,6 +6416,11 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore, Tcl_HashTable **nonposA
     AssertionAddProc(interp, ObjStr(name), aStore, precondition, postcondition);
   }
 
+#if defined(CANONICAL_ARGS)
+  if (haveNonposArgs) {
+    DECR_REF_COUNT(ov[2]);
+  }
+#endif
   DECR_REF_COUNT(ov[3]);
 
   return result;
