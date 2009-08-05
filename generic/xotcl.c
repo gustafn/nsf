@@ -5491,17 +5491,6 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 
     if (result == TCL_OK) {
       rst->cs.top->currentFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
-
-      /* It would be nice to be able to call the arg parser
-         XOTclInterpretNonpositionalArgsCmd() here and not
-         ::xotcl::interpretNonpositionalArgs, but unfortonately, the
-         variable environment is setup by InitArgsAndLocals() from
-         TclObjInterpProcCore(), so we can't reach the variable scope
-         from here; TODO: look for a way....
-
-         XOTclInterpretNonpositionalArgsCmd(cp, interp, objc, objv);
-      */
-
       result = TclObjInterpProcCore(interp, objv[0], 1, &MakeProcError);
     } else {
       result = TCL_ERROR;
@@ -9886,10 +9875,10 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int definit
         }
         Tcl_SetObjResult(interp, list);
       } else {
-        /* ERROR HANDLING ****GN**** */
+        /* TODO: ERROR HANDLING */
       }
     } else {
-      /* ERROR HANDLING TODO ****GN**** */
+      /* TODO: ERROR HANDLING TODO */
     }
     rc = TCL_OK;
   } else {
@@ -12478,9 +12467,10 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
         return XOTclVarErrMsg(interp, "method ",procName, ": required argument '",
                               argName, "' is missing", (char *) NULL);
       } else {
-	/* we will have to unset later */
-	/* XXX */
-	pcPtr->objv[i] = XOTclGlobalObjects[XOTE___UNKNOWN]; /* TODO other symbol ? */
+	/* Use as dummy default value an arbitrary symbol, normally
+           not provided returned to the Tcl level level; this value is
+           unset later by unsetUnknownArgs */
+	pcPtr->objv[i] = XOTclGlobalObjects[XOTE___UNKNOWN__];
       }
     }
   }
@@ -12521,8 +12511,8 @@ XOTclUnsetUnknownArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
       varPtr = &Tcl_CallFrame_compiledLocals(varFramePtr)[i];
       /*fprintf(stderr, "XOTclUnsetUnknownArgsCmd var '%s' i %d fi %d var %p flags %.8x obj %p unk %p\n",
               ap->name, i, ap->frameIndex, varPtr, varPtr->flags, varPtr->value.objPtr,
-              XOTclGlobalObjects[XOTE___UNKNOWN]);*/
-      if (varPtr->value.objPtr != XOTclGlobalObjects[XOTE___UNKNOWN]) continue;
+              XOTclGlobalObjects[XOTE___UNKNOWN__]);*/
+      if (varPtr->value.objPtr != XOTclGlobalObjects[XOTE___UNKNOWN__]) continue;
       /* fprintf(stderr, "XOTclUnsetUnknownArgsCmd must unset %s\n", ap->name);*/
       Tcl_UnsetVar2(interp, ap->name, NULL, 0);
     }
@@ -12557,7 +12547,9 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   DECR_REF_COUNT(proc);
 
   if (rc != TCL_OK) {
+#if defined(CANONICAL_ARGS)
     parseContextRelease(pcPtr);
+#endif
     return rc;
   }
 
@@ -12588,7 +12580,9 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
         /*fprintf(stderr,"=== setting default value '%s' for var '%s'\n",ObjStr(aPtr->defaultValue),argName);*/
         Tcl_SetVar2Ex(interp, argName, NULL, aPtr->defaultValue, 0);
       } else if (aPtr->required) {
+#if defined(CANONICAL_ARGS)
 	parseContextRelease(pcPtr);
+#endif
         return XOTclVarErrMsg(interp, "method ",procName, ": required argument '",
                               argName, "' is missing", (char *) NULL);
       }
@@ -12604,7 +12598,10 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   } else {
     Tcl_UnsetVar2(interp, "args", NULL, 0);
   }
+
+#if defined(CANONICAL_ARGS)
   parseContextRelease(pcPtr);
+#endif
   return TCL_OK;
 }
 #endif

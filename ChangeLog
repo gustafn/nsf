@@ -63,6 +63,46 @@ Meta C -superclass O -parameter {a {b -default ""} {c -default 1}}
 C c1 ;# c1 has no no default value for "a", before it had one
 ======
 
+2009-08-05 <Gustaf.Neumann@wu-wien.ac.at>
+
+  - Finishing unset unspefied values in nonpos arg passing under
+    canonical args, when a nonposarg has no default, and the parameter
+    is not required, we have to unset the dummy default value. Since
+    causes some overhead, since unset is done via
+    ::xotcl::unsetUnknownArgs
+
+  - Tried to reduce overhead of method invocation when no nonposArgs
+    are used, but failed, sind proc has has neither flags not
+    clientData
+
+2009-08-03 <Gustaf.Neumann@wu-wien.ac.at>
+
+  - releasing dynamically allocated parse contexts
+  - tried to reduce overhead of method invocation when no nonposArgs
+    are used, but failed, sind proc has has neither flags not
+    clientData
+
+2009-07-29 <Gustaf.Neumann@wu-wien.ac.at>
+
+  - improve canonical parser: make interface size explicit in method
+    definitions, new c function parseContextInit() for arbitrary sized
+    interfaces.
+
+2009-07-28 <Gustaf.Neumann@wu-wien.ac.at>
+
+  - compile switch CANONICAL_ARGUMENTS: Implemented a new idea to
+    handle nonpositional arguments: pass technically nonpos arguments
+    as positional arguments after being parsed by the objv parser used
+    everywhere else. The parse handles reordeing and arg checking. The
+    major advantages are conformity and speed, since we avoid the need
+    to call ::xotcl::interpretNonpositionalArgs. Only in cases, where
+    nonposargs are not required and no arguments are specified, we
+    have to reset the passed value. At this stage, the implementation
+    handles just the base cases.
+
+2009-07-24 <Gustaf.Neumann@wu-wien.ac.at>
+  - removed duplicate line
+
 2009-07-07 <Gustaf.Neumann@wu-wien.ac.at>
 
   - based introspection for procs/instprocs on new argument definition

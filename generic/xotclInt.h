@@ -535,7 +535,7 @@ typedef enum {
     XOTE_INSTCMD, XOTE_CMD, XOTE_INSTPARAMETERCMD, XOTE_PARAMETERCMD,
     XOTE_FORMAT, XOTE_INITSLOTS,
     XOTE_NEWOBJ, XOTE_GUARD_OPTION, XOTE_DEFAULTMETHOD,
-    XOTE___UNKNOWN, XOTE_ARGS, XOTE_SPLIT, XOTE_COMMA,
+    XOTE___UNKNOWN, XOTE___UNKNOWN__, XOTE_ARGS, XOTE_SPLIT, XOTE_COMMA, 
     /** these are the redefined tcl commands; leave them
 	together at the end */
     XOTE_EXPR, XOTE_INFO, XOTE_RENAME, XOTE_SUBST
@@ -555,7 +555,7 @@ char *XOTclGlobalStrings[] = {
   "instcmd", "cmd", "instparametercmd", "parametercmd",
   "format", "initslots",
   "__#", "-guard", "defaultmethod",
-  "__unknown", "args", "split", ",",
+  "__unknown", "__unknown__", "args", "split", ",",
   "expr", "info", "rename", "subst",
 };
 #endif
