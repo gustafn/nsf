@@ -167,9 +167,7 @@ namespace eval ::xotcl {
     if {![::xotcl::is $slotobject object]} {::xotcl::Object create $slotobject}
     eval next -childof $slotobject $args
   }
-
   ::xotcl::MetaSlot create ::xotcl::Slot
-
   #foreach o {::xotcl::MetaSlot ::xotcl::Slot} {
   #  foreach r {object class metaclass} {
   #    puts stderr "$o $r=[::xotcl::is $o $r]"
@@ -284,7 +282,6 @@ namespace eval ::xotcl {
     {multivalued true}
     {elementtype ::xotcl::Class}
   }
-  
   ::xotcl::relation ::xotcl::InfoSlot superclass ::xotcl::Slot
   ::xotcl::InfoSlot instproc get {obj prop} {$obj info $prop}
   ::xotcl::InfoSlot instproc add {obj prop value {pos 0}} {

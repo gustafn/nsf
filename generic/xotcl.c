@@ -436,6 +436,17 @@ static int varHashTableSize;
 # define valueOfVar(type, varPtr, field) (type *)(varPtr)->value.field
 #endif
 
+#if defined(TCL85STACK)
+/* 
+   Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
+   for further extensions of tcl and tcloo...
+*/
+# define FRAME_IS_XOTCL_METHOD 0x10000
+# define FRAME_IS_XOTCL_OBJECT 0x20000
+#else 
+# define FRAME_IS_XOTCL_METHOD 0x0
+# define FRAME_IS_XOTCL_OBJECT 0x0
+#endif
 
 #if defined(PRE85)
 /*
@@ -691,10 +702,34 @@ GetSelfClass(Tcl_Interp *interp) {
   return CallStackGetFrame(interp)->cl;
 }
 
+#if defined(TCL85STACK)
+XOTCLINLINE static XOTclObject*
+GetSelfObj(Tcl_Interp *interp) {
+  CallFrame *varFramePtr = (CallFrame *)Tcl_Interp_varFramePtr(interp);
+  
+  /*fprintf(stderr, "interp has frame %p and varframe %p\n",
+    Tcl_Interp_framePtr(interp),Tcl_Interp_varFramePtr(interp));*/
+  for (; varFramePtr; varFramePtr = varFramePtr->callerPtr) {
+    /*fprintf(stderr, "check frame %p flags %.4x cd %p objv[0] %s\n",
+            varFramePtr, varFramePtr->isProcCallFrame, 
+            varFramePtr->clientData,
+            varFramePtr->objc ? ObjStr(varFramePtr->objv[0]) : "(null)");*/
+    if (varFramePtr->isProcCallFrame & FRAME_IS_XOTCL_OBJECT) {
+      return (XOTclObject *)(varFramePtr->clientData);
+    }
+    if (varFramePtr->isProcCallFrame & FRAME_IS_XOTCL_METHOD) {
+      XOTclCallStackContent *csc = (XOTclCallStackContent *)varFramePtr->clientData;
+      return csc->self;
+    }
+  }
+  return NULL;
+}
+#else
 XOTCLINLINE static XOTclObject*
 GetSelfObj(Tcl_Interp *interp) {
   return CallStackGetFrame(interp)->self;
 }
+#endif
 
 /* extern callable GetSelfObj */
 XOTcl_Object*
@@ -2461,43 +2496,6 @@ CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ctx) {
   }
 }
 
-
-XOTCLINLINE static int
-CallStackPush(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl,
-              Tcl_Command cmd, int objc, Tcl_Obj *CONST objv[], int frameType) {
-  XOTclCallStack *cs;
-  register XOTclCallStackContent *csc;
-
-  cs = &RUNTIME_STATE(interp)->cs;
-  if (cs->top >= &cs->content[MAX_NESTING_DEPTH-1]) {
-    Tcl_SetResult(interp, "too many nested calls to Tcl_EvalObj (infinite loop?)",
-                  TCL_STATIC);
-    return TCL_ERROR;
-  }
-  /*fprintf(stderr, "CallStackPush sets self\n");*/
-  csc = ++cs->top;
-  csc->self          = obj;
-  csc->cl            = cl;
-  csc->cmdPtr        = cmd;
-  csc->destroyedCmd  = NULL;
-  csc->frameType     = frameType;
-  csc->callType      = 0;
-  csc->currentFramePtr = NULL; /* this will be set by InitProcNSCmd */
-
-  if (frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER)
-    csc->filterStackEntry = obj->filterStack;
-  else
-    csc->filterStackEntry = NULL;
-
-  /*fprintf(stderr, "PUSH obj %s, self=%p cmd=%p (%s) id=%p (%s) frame=%p\n",
-    objectName(obj), obj,
-    cmd, (char *) Tcl_GetCommandName(interp, cmd),
-    obj->id, Tcl_GetCommandName(interp, obj->id), csc);*/
-
-  MEM_COUNT_ALLOC("CallStack", NULL);
-  return TCL_OK;
-}
-
 XOTCLINLINE static void
 CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
   Tcl_Command oid;
@@ -2512,6 +2510,84 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
     Tcl_SetObjResult(interp, savedObjResult);
     DECR_REF_COUNT(savedObjResult);
   }
+}
+
+XOTCLINLINE static int
+CallStackPush(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl,
+              Tcl_Command cmd, int objc, Tcl_Obj *CONST objv[], int frameType) {
+  XOTclCallStack *cs;
+  register XOTclCallStackContent *csc;
+
+  cs = &RUNTIME_STATE(interp)->cs;
+  if (cs->top >= &cs->content[MAX_NESTING_DEPTH-1]) {
+    Tcl_SetResult(interp, "too many nested calls to Tcl_EvalObj (infinite loop?)",
+                  TCL_STATIC);
+    return TCL_ERROR;
+  }
+  csc = ++cs->top;
+  csc->self          = obj;
+  csc->cl            = cl;
+  csc->cmdPtr        = cmd;
+  csc->destroyedCmd  = NULL;
+  csc->frameType     = frameType;
+  csc->callType      = 0;
+  csc->currentFramePtr = NULL; /* this will be set by InitProcNSCmd */
+
+  if (frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER)
+    csc->filterStackEntry = obj->filterStack;
+  else
+    csc->filterStackEntry = NULL;
+
+  /*fprintf(stderr, "PUSH obj %s, self=%p cmd=%p (%s) objc=%d id=%p (%s) csc=%p type %d, frame %p\n",
+    objectName(obj), obj,
+    cmd, (char *) Tcl_GetCommandName(interp, cmd),
+          objc, obj->id, Tcl_GetCommandName(interp, obj->id), csc, frameType,
+          Tcl_Interp_framePtr(interp));*/
+#if defined(TCL85STACK)
+  /* if CallStackPush() is called with objc==0, this means that the
+     xotcl context of a cmd (e.g. subst) should be the given object
+     (e.g. self should resolve). We could do at least 3 things:
+     (1) push here a tcl frame, which could cause confusions with uplevel
+     (2) make the current object not only accessible via the FRAME_IS_XOTCL_METHOD
+         of the stack, but get it differently (a new frame type FRAME_IS_XOTCL_OBJECT)
+     (3) patch (and unpatch in pop) the clientdata and flags
+  */
+#endif
+
+  MEM_COUNT_ALLOC("CallStack", NULL);
+  return TCL_OK;
+}
+
+XOTCLINLINE static void
+CallStackPop(Tcl_Interp *interp) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  XOTclCallStackContent *csc;
+  XOTclCallStackContent *h = cs->top;
+
+  assert(cs->top > cs->content);
+  csc = cs->top;
+
+  /*fprintf(stderr, "POP  csc=%p, frame %p\n", csc, Tcl_Interp_framePtr(interp));*/
+
+  if (csc->destroyedCmd) {
+    int destroy = 1;
+    TclCleanupCommand((Command *)csc->destroyedCmd);
+    MEM_COUNT_FREE("command refCount", csc->destroyedCmd);
+    /* do not physically destroy, when callstack still contains "self"
+       entries of the object */
+    while (--h > cs->content) {
+      if (h->self == csc->self) {
+        destroy = 0;
+        break;
+      }
+    }
+    if (destroy) {
+      CallStackDoDestroy(interp, csc->self);
+    }
+  }
+
+  cs->top--;
+  MEM_COUNT_FREE("CallStack", NULL);
 }
 
 
@@ -2555,40 +2631,6 @@ XOTCLINLINE static int
 CallStackIsDestroyed(Tcl_Interp *interp) {
   return (RUNTIME_STATE(interp)->cs.top->destroyedCmd == NULL) ? 0 : 1;
 }
-
-XOTCLINLINE static void
-CallStackPop(Tcl_Interp *interp) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc;
-  XOTclCallStackContent *h = cs->top;
-
-  assert(cs->top > cs->content);
-  csc = cs->top;
-
-  /*fprintf(stderr, "POP frame=%p\n", csc);*/
-
-  if (csc->destroyedCmd) {
-    int destroy = 1;
-    TclCleanupCommand((Command *)csc->destroyedCmd);
-    MEM_COUNT_FREE("command refCount", csc->destroyedCmd);
-    /* do not physically destroy, when callstack still contains "self"
-       entries of the object */
-    while (--h > cs->content) {
-      if (h->self == csc->self) {
-        destroy = 0;
-        break;
-      }
-    }
-    if (destroy) {
-      CallStackDoDestroy(interp, csc->self);
-    }
-  }
-
-  cs->top--;
-  MEM_COUNT_FREE("CallStack", NULL);
-}
-
-
 
 XOTCLINLINE static XOTclCallStackContent*
 CallStackGetTopFrame(Tcl_Interp *interp) {
@@ -5113,12 +5155,12 @@ setDefaultValue(Tcl_Interp *interp, XOTclObject *obj, XOTclObject *slotObj) {
 					 TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
       if (initCmd) {
 	char *cmd = ObjStr(initCmd);
-	/*fprintf(stderr, "----- we have an initcmd %s\n", cmd);*/
+	fprintf(stderr, "----- we have an initcmd %s\n", cmd);
 	if (*cmd) {
 	  CallStackPush(interp, obj, NULL, 0, 0,
 			0, XOTCL_CSC_TYPE_PLAIN); /*allow to call self*/
 
-	  /*fprintf(stderr,"!!!! evaluating '%s'\n", cmd); */
+	  fprintf(stderr,"!!!! evaluating '%s'\n", cmd);
 	  rc = Tcl_EvalObjEx(interp, initCmd, TCL_EVAL_DIRECT);
 	  CallStackPop(interp);
 
@@ -5177,19 +5219,18 @@ MakeProcError(
 						 (overflow ? "..." : ""), interp->errorLine));
 }
 
+/* 
+   PushProcCallFrame() compiles conditionally a proc and pushes a
+   callframe. Interesting fields:
 
+   clientData: Record describing procedure to be interpreted. 
+   isLambda: 1 if this is a call by ApplyObjCmd: it needs special rules for error msg
 
-static int PushProcCallFrame(
-			     ClientData clientData, 	/* Record describing procedure to be
-							 * interpreted. */
-			     register Tcl_Interp *interp,/* Interpreter in which procedure was
-							  * invoked. */
-			     int objc,			/* Count of number of arguments to this
-							 * procedure. */
-			     Tcl_Obj *CONST objv[],	/* Argument value objects. */
-			     int isLambda)		/* 1 if this is a call by ApplyObjCmd: it
-							 * needs special rules for error msg */
-{
+ */
+
+static int 
+PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	Tcl_Obj *CONST objv[], 
+                  int isLambda, XOTclCallStackContent *csc)	{
   Proc *procPtr = (Proc *) clientData;
   Namespace *nsPtr = procPtr->cmdPtr->nsPtr;
   CallFrame *framePtr, **framePtrPtr = &framePtr;
@@ -5248,7 +5289,8 @@ static int PushProcCallFrame(
 
   result = TclPushStackFrame(interp, (Tcl_CallFrame **) framePtrPtr,
 			     (Tcl_Namespace *) nsPtr,
-			     (isLambda? (FRAME_IS_PROC|FRAME_IS_LAMBDA) : FRAME_IS_PROC));
+			     (isLambda? (FRAME_IS_PROC|FRAME_IS_LAMBDA|FRAME_IS_XOTCL_METHOD) :
+                              FRAME_IS_PROC|FRAME_IS_XOTCL_METHOD));
 
   if (result != TCL_OK) {
     return result;
@@ -5257,6 +5299,10 @@ static int PushProcCallFrame(
   framePtr->objc = objc;
   framePtr->objv = objv;
   framePtr->procPtr = procPtr;
+#if defined(TCL85STACK)
+  /*fprintf(stderr,"push csc %p into frame %p flags %.4x\n",csc,framePtr,framePtr->isProcCallFrame);*/
+#endif
+  framePtr->clientData = (ClientData)csc;
 
   return TCL_OK;
 }
@@ -5289,7 +5335,7 @@ getVarAndNameFromHash(Tcl_HashEntry *hPtr, Var **val, Tcl_Obj **varNameObj) {
 static int
 callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               Tcl_Command cmd, XOTclObject *obj, XOTclClass *cl, char *methodName,
-              int frameType, int isTclProc) {
+              int frameType, int isTclProc, XOTclCallStackContent *csc) {
   int result = TCL_OK;
   XOTclRuntimeState *rst = RUNTIME_STATE(interp);
   CheckOptions co;
@@ -5332,6 +5378,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
   }
 
   if (isTclProc == 0) {
+    /*fprintf(stderr,"... calling cmd %s isTclProc %d tearDown %p csc %p\n",methodName,isTclProc,obj->teardown,csc);*/
     if (obj->opt) {
       co = obj->opt->checkoptions;
       if ((co & CHECK_INVAR) &&
@@ -5344,7 +5391,6 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
     printCall(interp,"callProcCheck cmd", objc, objv);
     fprintf(stderr,"\tcmd=%s\n", Tcl_GetCommandName(interp, cmd));
 #endif
-
     result = (*Tcl_Command_objProc(cmd))(cp, interp, objc, objv);
 
 #ifdef DISPATCH_TRACE
@@ -5360,7 +5406,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
       fprintf(stderr, "method=%s\n", methodName);
       }
     */
-    /* The order of the check is important, since obj might be already
+    /* The order of the if-condition below is important, since obj might be already
        freed in case the call was a "dealloc" */
     if (!rst->callIsDestroy && obj->opt) {
       co = obj->opt->checkoptions;
@@ -5374,7 +5420,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
      * if this is a filter, check whether its guard applies,
      * if not: just step forward to the next filter
      */
-    /*fprintf(stderr,"calling proc %s isTclProc %d tearDown %d\n",methodName,isTclProc,obj->teardown);*/
+    /*fprintf(stderr,"calling proc %s isTclProc %d tearDown %p\n",methodName,isTclProc,obj->teardown);*/
 
     if (frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
       XOTclCmdList *cmdList;
@@ -5405,21 +5451,12 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
                                  objc, objv, /*useCallStackObjs*/ 0);
             /*fprintf(stderr, "... after nextmethod\n");
               XOTclCallStackDump(interp);*/
-
           }
 
           return rc;
         }
       }
     }
-
-    /*fprintf(stderr, "AFTER FILTER, teardown=%p call is destroy %d\n",obj->teardown,rst->callIsDestroy);*/
-
-    /*
-      if (!obj->teardown || rst->callIsDestroy) {
-      goto finish;
-      }
-    */
 
     if (obj->opt &&
         (obj->opt->checkoptions & CHECK_PRE) &&
@@ -5469,7 +5506,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
       parseContext pc;
       int rc = canonicalNonpositionalArgs(&pc, interp, objc, objv);
       if (rc == TCL_CONTINUE) {
-	result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0);
+	result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0, csc);
       } else {
 #if 0
         {int j;
@@ -5480,13 +5517,13 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
           fprintf(stderr,"\n");
         }
 #endif
-	result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, /*isLambda*/ 0);
+	result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, /*isLambda*/ 0, csc);
         /* maybe release is to early */
         parseContextRelease(&pc);
       }
     } 
 # else
-    result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0);
+    result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0, csc);
 #endif
 
     if (result == TCL_OK) {
@@ -5575,13 +5612,15 @@ DoCallProcCheck(ClientData clientData, Tcl_Interp *interp,
     cp = clientData;
   }
 
-  /*fprintf(stderr,"DoCallProcCheck push=%d (%d), obj=%s fromNext %d\n",
-    push, forcePush, objectName(obj), fromNext);*/
+  /*fprintf(stderr,"... DoCallProcCheck %s push=%d, obj=%s\n", methodName, push, objectName(obj));*/
 
   /*{int i; fprintf(stderr, "\tCALL ");for(i=0; i<objc; i++) {fprintf(stderr,"%s ", ObjStr(objv[i]));} fprintf(stderr,"\n");}*/
 
-  rc = callProcCheck(cp, interp, objc, objv, cmd, obj, cl,
-		     methodName, frameType, isTclProc);
+  {  
+    XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+    rc = callProcCheck(cp, interp, objc, objv, cmd, obj, cl,
+                       methodName, frameType, isTclProc, push ? cs->top : NULL);
+  }
   if (push) {
     CallStackPop(interp);
   }
@@ -9036,7 +9075,6 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
   if (tcd->passthrough) { /* two short cuts for simple cases */
     /* early binding, cmd *resolved, we have to care only for objscope */
     return callForwarder(tcd, interp, objc, objv);
-    return callForwarder(tcd, interp, objc, objv);
   } else if (!tcd->args && *(ObjStr(tcd->cmdName)) != '%') {
     /* we have ony to replace the method name with the given cmd name */
     ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
@@ -9200,7 +9238,7 @@ XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   XOTclObject *obj = tcd->obj;
   int rc;
   XOTcl_FrameDecls;
-  /* fprintf(stderr,"objscopedMethod obj=%p, ptr=%p\n", obj, tcd->objProc); */
+  /*fprintf(stderr,"objscopedMethod obj=%p, ptr=%p\n", obj, tcd->objProc);*/
 
   XOTcl_PushFrame(interp, obj);
   rc = (tcd->objProc)(tcd->clientData, interp, objc, objv);

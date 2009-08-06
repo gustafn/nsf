@@ -265,28 +265,36 @@ typedef struct XOTclMemCounter {
    a obj->nsPtr can be created (e.g. during a read trace)
 */
 #define XOTcl_FrameDecls TclCallFrame frame, *framePtr = &frame; int frame_constructed = 1
+# ifndef PRE85
+#  define XOTcl_PushFrameCd(obj) ((CallFrame *)framePtr)->clientData = (ClientData)obj
+# else
+#  define XOTcl_PushFrameCd(obj)
+# endif
 #define XOTcl_PushFrame(interp,obj) \
-     if ((obj)->nsPtr) {				     \
+     if ((obj)->nsPtr) { \
        frame_constructed = 0; \
-       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, (obj)->nsPtr, 0);   \
+       /*fprintf(stderr,"XOTcl_PushFrame frame %p\n",framePtr);*/ \
+       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, (obj)->nsPtr, 0|FRAME_IS_XOTCL_OBJECT); \
      } else { \
-       CallFrame *myframePtr = (CallFrame *)framePtr;		\
-       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, RUNTIME_STATE(interp)->fakeNS, 1);	\
-       Tcl_CallFrame_procPtr(myframePtr) = &RUNTIME_STATE(interp)->fakeProc;	\
+       CallFrame *myframePtr = (CallFrame *)framePtr; \
+       /*fprintf(stderr,"XOTcl_PushFrame frame %p (with fakeNS)\n",framePtr);*/ \
+       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, RUNTIME_STATE(interp)->fakeNS, 1|FRAME_IS_XOTCL_OBJECT); \
+       Tcl_CallFrame_procPtr(myframePtr) = &RUNTIME_STATE(interp)->fakeProc; \
        Tcl_CallFrame_varTablePtr(myframePtr) = (obj)->varTable;	\
-     }
+     } \
+     XOTcl_PushFrameCd(obj)
 #define XOTcl_PopFrame(interp,obj) \
-     if (!(obj)->nsPtr) {	       \
-       CallFrame *myframe = (CallFrame *)framePtr;		\
-       if ((obj)->varTable == 0)			    \
-         (obj)->varTable = Tcl_CallFrame_varTablePtr(myframe);	\
+     if (!(obj)->nsPtr) { \
+       CallFrame *myframe = (CallFrame *)framePtr; \
+       if ((obj)->varTable == 0) \
+         (obj)->varTable = Tcl_CallFrame_varTablePtr(myframe); \
      } \
      if (frame_constructed) { \
-       register Interp *iPtr = (Interp *) interp; \
-       register CallFrame *myframe = iPtr->framePtr; \
+       register CallFrame *myframe = (CallFrame *)Tcl_Interp_framePtr(interp); \
        Tcl_CallFrame_varTablePtr(myframe) = 0; \
        Tcl_CallFrame_procPtr(myframe) = 0; \
      } \
+     /*fprintf(stderr,"XOTcl_PopFrame frame %p\n",framePtr); */ \
      Tcl_PopCallFrame(interp)
 #endif
 
