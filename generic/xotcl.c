@@ -9474,12 +9474,20 @@ callConfigureMethod(Tcl_Interp *interp, XOTclObject *obj,
 
 #if defined(TCL85STACK)
 void tcl85showStack(Tcl_Interp *interp) {
-  Tcl_CallFrame *inFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp), *varFramePtr = inFramePtr;
-  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+  Tcl_CallFrame *framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+  for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     fprintf(stderr, "... frame %p flags %.6x cd %p objv[0] %s\n",
-            varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr), 
-            Tcl_CallFrame_clientData(varFramePtr),
-            Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
+            framePtr, Tcl_CallFrame_isProcCallFrame(framePtr), 
+            Tcl_CallFrame_clientData(framePtr),
+            Tcl_CallFrame_objc(framePtr) ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)");
+  }
+  framePtr = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp);
+  for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
+    fprintf(stderr, "... var frame %p flags %.6x cd %p objv[0] %s\n",
+            framePtr, Tcl_CallFrame_isProcCallFrame(framePtr), 
+            Tcl_CallFrame_clientData(framePtr),
+            Tcl_CallFrame_objc(framePtr) ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)");
+  
   }
 }
 Tcl_CallFrame *
