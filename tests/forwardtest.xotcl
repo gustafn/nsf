@@ -40,7 +40,7 @@ Object obj
 obj forward addOne expr 1 +
 
 ? {obj addOne 5} 6
-#puts "======"
+#puts stderr "======"
 
 ###########################################
 # more arguments
@@ -122,13 +122,13 @@ C instproc XXXo {} {}
 # get the definition of a instforwarder
 ? {C info instforward -definition Info} [list -methodprefix @ Info %1 %self]
 
-# chek introspection for objects
+# check introspection for objects
 ? {lsort [obj info forward]} "Mixin addOne foo i1"
 ? {obj info forward -definition Mixin} "-default {getter setter} mixin %1 %self"
 ? {obj info forward -definition addOne} "expr 1 +"
 ? {obj info forward -definition foo} "target %proc %self %%self %%p"
 ? {obj info forward -definition i1} "-objscope ::incr x"
-#puts "======"
+#puts stderr "======"
 
 ###########################################
 # test serializer

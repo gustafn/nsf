@@ -17,6 +17,7 @@
 #define Tcl_CallFrame_callerVarPtr(cf)    ((Tcl_CallFrame*)((CallFrame *)cf)->callerVarPtr)
 #define Tcl_CallFrame_objc(cf)            ((CallFrame *)cf)->objc
 #define Tcl_CallFrame_objv(cf)            ((CallFrame *)cf)->objv
+#define Tcl_CallFrame_clientData(cf)      ((CallFrame *)cf)->clientData
 
 #define Tcl_Namespace_cmdTable(nsPtr)    &((Namespace *)nsPtr)->cmdTable
 #define Tcl_Namespace_varTable(nsPtr)    &((Namespace *)nsPtr)->varTable
