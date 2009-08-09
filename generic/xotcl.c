@@ -1770,7 +1770,7 @@ makeObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
   *	        int flags, Tcl_Var *rPtr));
   */
 int
-varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns, int flags, Tcl_Var *varPtr) {
+varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
   int new;
   Tcl_Obj *key;
   Tcl_CallFrame *varFramePtr;
@@ -1827,7 +1827,7 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns, int flags, 
   }
 
   /* Case 3: Does the variable exist in the per-object namespace? */
-  *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(ns),name,NULL);
+  *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(nsPtr), name, NULL);
 
   if(*varPtr == NULL) {
     /* We failed to find the variable so far, therefore we create it
@@ -1838,11 +1838,11 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns, int flags, 
     key = Tcl_NewStringObj(name, -1);
 
     INCR_REF_COUNT(key);
-    newVar = VarHashCreateVar(Tcl_Namespace_varTable(ns), key, &new);
+    newVar = VarHashCreateVar(Tcl_Namespace_varTable(nsPtr), key, &new);
     DECR_REF_COUNT(key);
 
 #if defined(PRE85)
-    newVar->nsPtr = (Namespace *)ns;
+    newVar->nsPtr = (Namespace *)nsPtr;
 #endif
     *varPtr = (Tcl_Var)newVar;
   }
@@ -1873,13 +1873,13 @@ XOTclRequireObjNamespace(Tcl_Interp *interp, XOTcl_Object *obj) {
  */
 
 static int
-NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *ns, char *name) {
+NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, char *name) {
   /* a simple deletion would delete a global command with
      the same name, if the command is not existing, so
      we use the CmdToken */
   Tcl_Command token;
-  assert(ns);
-  if ((token = FindMethod(name, ns))) {
+  assert(nsPtr);
+  if ((token = FindMethod(name, nsPtr))) {
     return Tcl_DeleteCommandFromToken(interp, token);
   }
   return -1;
@@ -2057,21 +2057,21 @@ XOTcl_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
 
 static Tcl_Namespace*
 NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, char *name) {
-  Tcl_Namespace *ns = Tcl_FindNamespace(interp, name, NULL, 0);
+  Tcl_Namespace *nsPtr = Tcl_FindNamespace(interp, name, NULL, 0);
 
-  if (ns) {
-    if (ns->deleteProc || ns->clientData) {
+  if (nsPtr) {
+    if (nsPtr->deleteProc || nsPtr->clientData) {
       Tcl_Panic("Namespace '%s' exists already with delProc %p and clientData %p; Can only convert a plain Tcl namespace into an XOTcl namespace",
-		name, ns->deleteProc, ns->clientData);
+		name, nsPtr->deleteProc, nsPtr->clientData);
     }
-    ns->clientData = clientData;
-    ns->deleteProc = (Tcl_NamespaceDeleteProc *)NSNamespaceDeleteProc;
+    nsPtr->clientData = clientData;
+    nsPtr->deleteProc = (Tcl_NamespaceDeleteProc *)NSNamespaceDeleteProc;
   } else {
-    ns = Tcl_CreateNamespace(interp, name, clientData,
+    nsPtr = Tcl_CreateNamespace(interp, name, clientData,
                              (Tcl_NamespaceDeleteProc *)NSNamespaceDeleteProc);
   }
-  MEM_COUNT_ALLOC("TclNamespace", ns);
-  return ns;
+  MEM_COUNT_ALLOC("TclNamespace", nsPtr);
+  return nsPtr;
 }
 
 
@@ -6425,7 +6425,7 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
 }
 
 static int
-MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore, Tcl_HashTable **nonposArgsTable,
+MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_HashTable **nonposArgsTable,
 	 Tcl_Interp *interp,
 	 Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition, Tcl_Obj *postcondition,
 	 XOTclObject *obj, int clsns) {
@@ -6502,7 +6502,7 @@ MakeProc(Tcl_Namespace *ns, XOTclAssertionStore *aStore, Tcl_HashTable **nonposA
     ov[3] = addPrefixToBody(body, 0, &parsedIf);
   }
 
-  Tcl_PushCallFrame(interp,(Tcl_CallFrame *)framePtr, ns, 0);
+  Tcl_PushCallFrame(interp,(Tcl_CallFrame *)framePtr, nsPtr, 0);
 
   result = Tcl_ProcObjCmd(0, interp, 4, ov) != TCL_OK;
 #if defined(NAMESPACEINSTPROCS)
@@ -8190,7 +8190,7 @@ PrimitiveCDestroy(ClientData clientData) {
 static void
 PrimitiveCInit(XOTclClass *cl, Tcl_Interp *interp, char *name) {
   TclCallFrame frame, *framePtr = &frame;
-  Tcl_Namespace *ns;
+  Tcl_Namespace *nsPtr;
 
   /*
    * ensure that namespace is newly created during CleanupInitClass
@@ -8199,10 +8199,10 @@ PrimitiveCInit(XOTclClass *cl, Tcl_Interp *interp, char *name) {
   if (Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr,
                         RUNTIME_STATE(interp)->XOTclClassesNS, 0) != TCL_OK)
     return;
-  ns = NSGetFreshNamespace(interp, (ClientData)cl, name);
+  nsPtr = NSGetFreshNamespace(interp, (ClientData)cl, name);
   Tcl_PopCallFrame(interp);
 
-  CleanupInitClass(interp, cl, ns, 0, 0);
+  CleanupInitClass(interp, cl, nsPtr, 0, 0);
   return;
 }
 
@@ -9365,7 +9365,7 @@ XOTclDispatchCmd(ClientData clientData, Tcl_Interp *interp,
 
   if ((n-method)>1 || *method == ':') {
     Tcl_DString parentNSName, *dsp = &parentNSName;
-    Tcl_Namespace *ns;
+    Tcl_Namespace *nsPtr;
     Tcl_Command cmd, importedCmd;
     char *parentName, *tail = n+2;
     DSTRING_INIT(dsp);
@@ -9373,17 +9373,17 @@ XOTclDispatchCmd(ClientData clientData, Tcl_Interp *interp,
     if (n-method != 0) {
       Tcl_DStringAppend(dsp, method, (n-method));
       parentName = Tcl_DStringValue(dsp);
-      ns = Tcl_FindNamespace(interp, parentName, (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
+      nsPtr = Tcl_FindNamespace(interp, parentName, (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
       DSTRING_FREE(dsp);
     } else {
-      ns = Tcl_FindNamespace(interp, "::", (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
+      nsPtr = Tcl_FindNamespace(interp, "::", (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
     }
-    if (!ns) {
+    if (!nsPtr) {
       return XOTclVarErrMsg(interp, "cannot lookup parent namespace '",
 			    method, "'", (char *) NULL);
     }
-    fprintf(stderr, "    .... findmethod '%s' in %s\n",tail, ns->fullName);
-    cmd = FindMethod(tail, ns);
+    fprintf(stderr, "    .... findmethod '%s' in %s\n",tail, nsPtr->fullName);
+    cmd = FindMethod(tail, nsPtr);
     if (cmd && (importedCmd = TclGetOriginalCommand(cmd))) {
       cmd = importedCmd;
     }
@@ -12111,7 +12111,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   Tcl_Command cmd;
   Tcl_Obj *newFullCmdName, *oldFullCmdName;
   char *newName, *oldName, *name;
-  Tcl_Namespace *ns, *newNs;
+  Tcl_Namespace *nsPtr, *newNsPtr;
   Tcl_HashTable *cmdTable, *nonposArgsTable;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
@@ -12121,8 +12121,8 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   if (objc != 3)
     return XOTclObjErrArgCnt(interp, objv[0], NULL, "<fromNs> <toNs>");
 
-  ns = ObjFindNamespace(interp, objv[1]);
-  if (!ns)
+  nsPtr = ObjFindNamespace(interp, objv[1]);
+  if (!nsPtr)
     return TCL_OK;
 
   name = ObjStr(objv[1]);
@@ -12143,14 +12143,14 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   }
   /*  obj = XOTclpGetObject(interp, ObjStr(objv[1]));*/
 
-  newNs = ObjFindNamespace(interp, objv[2]);
-  if (!newNs)
+  newNsPtr = ObjFindNamespace(interp, objv[2]);
+  if (!newNsPtr)
     return XOTclVarErrMsg(interp, "CopyCmds: Destination namespace ",
                           ObjStr(objv[2]), " does not exist", (char *) NULL);
   /*
    * copy all procs & commands in the ns
    */
-  cmdTable = Tcl_Namespace_cmdTable(ns);
+  cmdTable = Tcl_Namespace_cmdTable(nsPtr);
   hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch);
   while (hPtr) {
     /*fprintf(stderr,"copy cmdTable = %p, first=%p\n", cmdTable, hPtr);*/
@@ -12159,8 +12159,8 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     /*
      * construct full cmd names
      */
-    newFullCmdName = Tcl_NewStringObj(newNs->fullName,-1);
-    oldFullCmdName = Tcl_NewStringObj(ns->fullName,-1);
+    newFullCmdName = Tcl_NewStringObj(newNsPtr->fullName,-1);
+    oldFullCmdName = Tcl_NewStringObj(nsPtr->fullName,-1);
 
     INCR_REF_COUNT(newFullCmdName); INCR_REF_COUNT(oldFullCmdName);
     Tcl_AppendStringsToObj(newFullCmdName, "::", name, (char *) NULL);
@@ -12266,7 +12266,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
             /* XOTcl InstProc */
             DSTRING_INIT(dsPtr);
-            Tcl_DStringAppendElement(dsPtr, NSCutXOTclClasses(newNs->fullName));
+            Tcl_DStringAppendElement(dsPtr, NSCutXOTclClasses(newNsPtr->fullName));
             Tcl_DStringAppendElement(dsPtr, "instproc");
             Tcl_DStringAppendElement(dsPtr, name);
             Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
@@ -12278,7 +12278,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
             Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
             DSTRING_FREE(dsPtr);
           } else {
-            XOTclObject *obj = XOTclpGetObject(interp, ns->fullName);
+            XOTclObject *obj = XOTclpGetObject(interp, nsPtr->fullName);
             XOTclProcAssertion *procs;
             if (obj) {
               procs = obj->opt ?
@@ -12292,7 +12292,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
             /* XOTcl Proc */
             DSTRING_INIT(dsPtr);
-            Tcl_DStringAppendElement(dsPtr, newNs->fullName);
+            Tcl_DStringAppendElement(dsPtr, newNsPtr->fullName);
             Tcl_DStringAppendElement(dsPtr, "proc");
             Tcl_DStringAppendElement(dsPtr, name);
             Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
@@ -12344,7 +12344,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 static int
 XOTcl_NSCopyVars(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  Tcl_Namespace *ns, *newNs;
+  Tcl_Namespace *nsPtr, *newNsPtr;
   Var *varPtr = NULL;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
@@ -12359,21 +12359,21 @@ XOTcl_NSCopyVars(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   if (objc != 3)
     return XOTclObjErrArgCnt(interp, objv[0], NULL, "<fromNs> <toNs>");
 
-  ns = ObjFindNamespace(interp, objv[1]);
+  nsPtr = ObjFindNamespace(interp, objv[1]);
   /*fprintf(stderr,"copyvars from %s to %s, ns=%p\n", ObjStr(objv[1]), ObjStr(objv[2]), ns);*/
 
-  if (ns) {
-    newNs = ObjFindNamespace(interp, objv[2]);
-    if (!newNs)
+  if (nsPtr) {
+    newNsPtr = ObjFindNamespace(interp, objv[2]);
+    if (!newNsPtr)
       return XOTclVarErrMsg(interp, "CopyVars: Destination namespace ",
                             ObjStr(objv[2]), " does not exist", (char *) NULL);
 
     obj = XOTclpGetObject(interp, ObjStr(objv[1]));
-    destFullName = newNs->fullName;
+    destFullName = newNsPtr->fullName;
     destFullNameObj = Tcl_NewStringObj(destFullName, -1);
     INCR_REF_COUNT(destFullNameObj);
-    varTable = Tcl_Namespace_varTable(ns);
-    Tcl_PushCallFrame(interp,(Tcl_CallFrame *)framePtr, newNs, 0);
+    varTable = Tcl_Namespace_varTable(nsPtr);
+    Tcl_PushCallFrame(interp,(Tcl_CallFrame *)framePtr, newNsPtr, 0);
   } else {
     XOTclObject *newObj;
     if (XOTclObjConvertObject(interp, objv[1], &obj) != TCL_OK) {
@@ -12446,7 +12446,7 @@ XOTcl_NSCopyVars(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     DECR_REF_COUNT(varNameObj);
     hPtr = Tcl_NextHashEntry(&hSrch);
   }
-  if (ns) {
+  if (nsPtr) {
     DECR_REF_COUNT(destFullNameObj);
     Tcl_PopCallFrame(interp);
   }
@@ -12764,9 +12764,9 @@ checkAllInstances(Tcl_Interp *interp, XOTclClass *cl, int lvl) {
 /* delete global variables and procs */
 static void
 deleteProcsAndVars(Tcl_Interp *interp) {
-  Tcl_Namespace *ns = Tcl_GetGlobalNamespace(interp);
-  Tcl_HashTable *varTable = ns ? Tcl_Namespace_varTable(ns) : NULL;
-  Tcl_HashTable *cmdTable = ns ? Tcl_Namespace_cmdTable(ns) : NULL;
+  Tcl_Namespace *nsPtr = Tcl_GetGlobalNamespace(interp);
+  Tcl_HashTable *varTable = nsPtr ? Tcl_Namespace_varTable(ns) : NULL;
+  Tcl_HashTable *cmdTable = nsPtr ? Tcl_Namespace_cmdTable(ns) : NULL;
   Tcl_HashSearch search;
   Var *varPtr;
   Tcl_Command cmd;
