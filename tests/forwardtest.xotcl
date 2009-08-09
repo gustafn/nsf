@@ -298,15 +298,21 @@ NS::Main m1
 NS::Main create m
 m i1
 
-#puts ====
+puts ====
 ? [list set _ [NS create n1]] ::n1
+puts FFFFFF
 NS filter f
+puts GGGG
 ? [list set _ [NS create n2]] ::n2
+puts HHHH
 NS filter ""
+puts IIII
 
 #puts ====
 namespace eval test {
+puts JJJJJ
   ? [list set _ [NS create n1]] ::test::n1
+puts KKKKK
   ? [list set _ [NS create n3]] ::test::n3
   NS filter f
   ? [list set _ [NS create n4]] ::test::n4

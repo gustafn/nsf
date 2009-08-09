@@ -279,7 +279,7 @@ typedef struct XOTclMemCounter {
      } else { \
        CallFrame *myframePtr = (CallFrame *)framePtr; \
        /*fprintf(stderr,"XOTcl_PushFrame frame %p (with fakeNS)\n",framePtr);*/ \
-       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, RUNTIME_STATE(interp)->fakeNS /*Tcl_Interp_varFramePtr(interp)->nsPtr*/, 1|FRAME_IS_XOTCL_OBJECT); \
+       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, /* RUNTIME_STATE(interp)->fakeNS */ Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)), 1|FRAME_IS_XOTCL_OBJECT); \
        Tcl_CallFrame_procPtr(myframePtr) = &RUNTIME_STATE(interp)->fakeProc; \
        Tcl_CallFrame_varTablePtr(myframePtr) = (obj)->varTable;	\
      } \
