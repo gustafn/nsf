@@ -740,14 +740,14 @@ GetSelfObj(Tcl_Interp *interp) {
   /*fprintf(stderr, "GetSelfObj interp has frame %p and varframe %p\n",
     Tcl_Interp_framePtr(interp),Tcl_Interp_varFramePtr(interp));*/
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-#if defined(TCL85STACKTRACE)
+#if defined(TCL85STACK_TRACE)
     fprintf(stderr, "GetSelfObj check frame %p flags %.6x cd %p objv[0] %s\n",
             varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr), 
             Tcl_CallFrame_clientData(varFramePtr),
             Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
 #endif
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_OBJECT) {
-#if defined(TCL85STACKTRACE)
+#if defined(TCL85STACK_TRACE)
       fprintf(stderr, "... self returns %s\n",
               objectName(((XOTclObject*)Tcl_CallFrame_clientData(varFramePtr))));
 #endif
@@ -755,7 +755,7 @@ GetSelfObj(Tcl_Interp *interp) {
     }
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
       XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-#if defined(TCL85STACKTRACE)
+#if defined(TCL85STACK_TRACE)
       fprintf(stderr, "... self returns %s\n",objectName(csc->self));
 #endif
       return csc->self;
@@ -2489,7 +2489,7 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
 
   active = XOTclCallStackFindActiveFrame(interp, 0);
 #if defined(TCL85STACK)
-# if defined(TCL85STACKTRACE)
+# if defined(TCL85STACK_TRACE)
   for (varFramePtr = inFramePtr; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     fprintf(stderr, "check frame %p flags %.6x cd %p objv[0] %s\n",
             varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr), 
@@ -2601,7 +2601,7 @@ CallStackPush(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl,
     csc->filterStackEntry = obj->filterStack;
   else
     csc->filterStackEntry = NULL;
-#if defined(TCL85STACKTRACE)
+#if defined(TCL85STACK_TRACE)
   fprintf(stderr, "PUSH obj %s, self=%p cmd=%p (%s) objc=%d id=%p (%s) csc=%p type %d, frame %p\n",
     objectName(obj), obj,
     cmd, (char *) Tcl_GetCommandName(interp, cmd),
@@ -2632,7 +2632,7 @@ CallStackPop(Tcl_Interp *interp) {
   assert(cs->top > cs->content);
   csc = cs->top;
 
-#if defined(TCL85STACKTRACE)
+#if defined(TCL85STACK_TRACE)
   fprintf(stderr, "POP  csc=%p, frame %p\n", csc, Tcl_Interp_framePtr(interp));
 #endif
 
@@ -5350,7 +5350,7 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
    * namespace to another.
    */
 
-#if defined(TCL85STACKTRACE)
+#if defined(TCL85STACK_TRACE)
   fprintf(stderr,"PUSH METHOD_FRAME (PushProcCallFrame) frame %p csc %p %s\n", *framePtrPtr,csc,
           csc? Tcl_GetCommandName(interp, csc->cmdPtr) : NULL);
 #endif
@@ -5439,7 +5439,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
   XOTclCallStackDump(interp);
 #endif
 
-#if defined(TCL85STACKTRACE)
+#if defined(TCL85STACK_TRACE)
   fprintf(stderr, "+++ callProcCheck teardown %p, method=%s, isTclProc %d csc %p\n",obj->teardown,methodName,isTclProc,csc);
 #endif
 
@@ -5627,7 +5627,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 #else
     result = (*Tcl_Command_objProc(cmd))(cp, interp, objc, objv);
 
-#if defined(TCL85STACKTRACE)
+#if defined(TCL85STACK_TRACE)
     fprintf(stderr,"POP  OBJECT_FRAME (implicit) frame %p csc %p\n", NULL, csc);
 #endif
 #endif
@@ -6417,8 +6417,8 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
       nonposArg->slotObj = NULL;
       nonposArg->ifd = interface;
       nonposArg->ifdSize = ifPtr-interface;
-      fprintf(stderr, "method %s ifsize %d, possible unknowns = %d,\n",
-	procName,ifPtr-interface,possibleUnknowns);
+      /*fprintf(stderr, "method %s ifsize %d, possible unknowns = %d,\n",
+	procName,ifPtr-interface,possibleUnknowns);*/
       parsedIfPtr->ifd = interface; /* TODO only necessary for CANONICAL_ARGS */
       parsedIfPtr->possibleUnknowns = possibleUnknowns; /* TODO only necessary for CANONICAL_ARGS */
       Tcl_SetHashValue(hPtr, (ClientData)nonposArg);
