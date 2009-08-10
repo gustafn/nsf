@@ -50,6 +50,20 @@ CallStackGetFrame(Tcl_Interp *interp) {
   return NULL;
 }
 
+static void 
+CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
+  register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+
+  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
+      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (csc->cmdPtr == cmd) {
+        csc->cmdPtr = NULL;
+      }
+    }
+  }
+}
+
 #endif /* TCL85STACK */
 
 

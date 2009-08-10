@@ -1,5 +1,10 @@
 #if !defined(TCL85STACK)
 
+XOTCLINLINE static XOTclObject*
+GetSelfObj(Tcl_Interp *interp) {
+  return CallStackGetFrame(interp)->self;
+}
+
 static XOTclCallStackContent*
 CallStackGetFrame(Tcl_Interp *interp) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
@@ -23,11 +28,17 @@ CallStackGetFrame(Tcl_Interp *interp) {
   return top;
 }
 
-XOTCLINLINE static XOTclObject*
-GetSelfObj(Tcl_Interp *interp) {
-  return CallStackGetFrame(interp)->self;
-}
+static void 
+CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  XOTclCallStackContent *csc = cs->top;
 
+  for (; csc > cs->content; csc--) {
+    if (csc->cmdPtr == cmd) {
+      csc->cmdPtr = NULL;
+    }
+  }
+}
 #endif /* TCL85STACK */
 
 

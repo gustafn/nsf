@@ -721,7 +721,6 @@ XOTclCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *meth
 
 XOTCLINLINE static CONST char *
 GetSelfProc(Tcl_Interp *interp) {
-  /*return Tcl_GetCommandName(interp, RUNTIME_STATE(interp)->cs.top->cmdPtr);*/
   return Tcl_GetCommandName(interp, CallStackGetFrame(interp)->cmdPtr);
 
 }
@@ -1934,14 +1933,7 @@ NSRequireVariableOnObj(Tcl_Interp *interp, XOTclObject *obj, char *name, int flg
 
 static int
 XOTcl_DeleteCommandFromToken(Tcl_Interp *interp, Tcl_Command cmd) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc = cs->top;
-
-  for (; csc > cs->content; csc--) {
-    if (csc->cmdPtr == cmd) {
-      csc->cmdPtr = NULL;
-    }
-  }
+  CallStackClearCmdReferences(interp, cmd);
   return Tcl_DeleteCommandFromToken(interp, cmd);
 }
 
