@@ -728,47 +728,15 @@ GetSelfProc(Tcl_Interp *interp) {
 
 XOTCLINLINE static XOTclClass*
 GetSelfClass(Tcl_Interp *interp) {
-  /*return RUNTIME_STATE(interp)->cs.top->cl;*/
   return CallStackGetFrame(interp)->cl;
 }
 
 #if defined(TCL85STACK)
-XOTCLINLINE static XOTclObject*
-GetSelfObj(Tcl_Interp *interp) {
-  Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-  
-  /*fprintf(stderr, "GetSelfObj interp has frame %p and varframe %p\n",
-    Tcl_Interp_framePtr(interp),Tcl_Interp_varFramePtr(interp));*/
-  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-#if defined(TCL85STACK_TRACE)
-    fprintf(stderr, "GetSelfObj check frame %p flags %.6x cd %p objv[0] %s\n",
-            varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr), 
-            Tcl_CallFrame_clientData(varFramePtr),
-            Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
-#endif
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_OBJECT) {
-#if defined(TCL85STACK_TRACE)
-      fprintf(stderr, "... self returns %s\n",
-              objectName(((XOTclObject*)Tcl_CallFrame_clientData(varFramePtr))));
-#endif
-      return (XOTclObject *)Tcl_CallFrame_clientData(varFramePtr);
-    }
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
-      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-#if defined(TCL85STACK_TRACE)
-      fprintf(stderr, "... self returns %s\n",objectName(csc->self));
-#endif
-      return csc->self;
-    }
-  }
-  return NULL;
-}
+# include "xotclStack85.c"
 #else
-XOTCLINLINE static XOTclObject*
-GetSelfObj(Tcl_Interp *interp) {
-  return CallStackGetFrame(interp)->self;
-}
+# include "xotclStack.c"
 #endif
+
 
 /* extern callable GetSelfObj */
 XOTcl_Object*
@@ -778,7 +746,6 @@ XOTclGetSelfObj(Tcl_Interp *interp) {
 
 XOTCLINLINE static Tcl_Command
 GetSelfProcCmdPtr(Tcl_Interp *interp) {
-  /*return RUNTIME_STATE(interp)->cs.top->cmdPtr;*/
   return CallStackGetFrame(interp)->cmdPtr;
 }
 
@@ -2602,11 +2569,10 @@ CallStackPush(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl,
   else
     csc->filterStackEntry = NULL;
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "PUSH obj %s, self=%p cmd=%p (%s) objc=%d id=%p (%s) csc=%p type %d, frame %p\n",
-    objectName(obj), obj,
+  fprintf(stderr, "PUSH csc %p type %d frame %p, obj %s, self=%p cmd=%p (%s) objc=%d id=%p (%s)\n",
+          csc, frameType, Tcl_Interp_framePtr(interp), objectName(obj), obj,
     cmd, (char *) Tcl_GetCommandName(interp, cmd),
-          objc, obj->id, Tcl_GetCommandName(interp, obj->id), csc, frameType,
-          Tcl_Interp_framePtr(interp));
+          objc, obj->id, Tcl_GetCommandName(interp, obj->id));
 #endif
 #if defined(TCL85STACK)
   /* if CallStackPush() is called with objc==0, this means that the
@@ -2705,23 +2671,6 @@ CallStackGetTopFrame(Tcl_Interp *interp) {
   return cs->top;
 }
 
-static XOTclCallStackContent*
-CallStackGetFrame(Tcl_Interp *interp) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  register XOTclCallStackContent *top = cs->top;
-  Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-
-  /* fprintf(stderr, "Tcl_Interp_framePtr(interp) %p != varFramePtr %p && top->currentFramePtr %p\n", Tcl_Interp_framePtr(interp), varFramePtr, top->currentFramePtr);*/
-  if (Tcl_Interp_framePtr(interp) != varFramePtr && top->currentFramePtr) {
-    XOTclCallStackContent *bot = cs->content + 1;
-
-    /* we are in a uplevel */
-    while (varFramePtr != top->currentFramePtr && top>bot) {
-      top--;
-    }
-  }
-  return top;
-}
 
 /*
  * cmd list handling
@@ -3155,13 +3104,13 @@ AssertionCheckList(Tcl_Interp *interp, XOTclObject *obj,
       INCR_REF_COUNT(sr);	
       XOTclVarErrMsg(interp, "Error in Assertion: {",
 		     ObjStr(checkFailed->content), "} in proc '",
-		     GetSelfProc(interp), "'\n\n", ObjStr(sr), (char *) NULL);
+		     methodName, "'\n\n", ObjStr(sr), (char *) NULL);
       DECR_REF_COUNT(sr);
       return TCL_ERROR;
     }
     return XOTclVarErrMsg(interp, "Assertion failed check: {",
 			  ObjStr(checkFailed->content), "} in proc '",
-			  GetSelfProc(interp), "'", (char *) NULL);
+                          methodName, "'", (char *) NULL);
   }
 
   Tcl_SetObjResult(interp, savedObjResult);
@@ -5367,8 +5316,8 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
   framePtr->objc = objc;
   framePtr->objv = objv;
   framePtr->procPtr = procPtr;
-#if defined(TCL85STACK)
-  /*fprintf(stderr,"push csc %p into frame %p flags %.4x\n",csc,framePtr,framePtr->isProcCallFrame);*/
+#if defined(TCL85STACK_TRACE)
+  fprintf(stderr,"     put csc %p into frame %p flags %.4x\n",csc,framePtr,framePtr->isProcCallFrame);
 #endif
   framePtr->clientData = (ClientData)csc;
 
@@ -5440,7 +5389,8 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 #endif
 
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "+++ callProcCheck teardown %p, method=%s, isTclProc %d csc %p\n",obj->teardown,methodName,isTclProc,csc);
+  fprintf(stderr, "+++ callProcCheck %s, isTclProc %d csc %p, teardown %p\n",
+          methodName,isTclProc,csc,obj->teardown);
 #endif
 
   if (!obj->teardown) {
@@ -5448,7 +5398,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
   }
 
   if (isTclProc == 0) {
-    /*fprintf(stderr,"... calling cmd %s isTclProc %d tearDown %p csc %p\n",methodName,isTclProc,obj->teardown,csc);*/
+    /*fprintf(stderr,".. calling cmd %s isTclProc %d tearDown %p csc %p\n",methodName,isTclProc,obj->teardown,csc);*/
 
     if (obj->opt) {
       co = obj->opt->checkoptions;
@@ -5598,7 +5548,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
       if (rc == TCL_CONTINUE) {
 	result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0, csc);
       } else if (rc == TCL_OK) {
-#if 0
+#  if 0
         {int j;
           for(j=0; j<pc.objc+1; j++) {
             /*fprintf(stderr, "  ov[%d]=%p, objc=%d\n", j, ov[j], objc);*/
@@ -5606,7 +5556,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
           }
           fprintf(stderr,"\n");
         }
-#endif
+#  endif
 	result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, /*isLambda*/ 0, csc);
         /* maybe release is to early */
         parseContextRelease(&pc);
@@ -5614,9 +5564,9 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
         result = TCL_ERROR;
       }
     }
-# else
+# else /* no CANONICAL ARGS */
     result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0, csc);
-#endif
+# endif 
 
     if (result == TCL_OK) {
       rst->cs.top->currentFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
@@ -5624,12 +5574,11 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
     } else {
       result = TCL_ERROR;
     }
-#else
-    result = (*Tcl_Command_objProc(cmd))(cp, interp, objc, objv);
-
-#if defined(TCL85STACK_TRACE)
+# if defined(TCL85STACK_TRACE)
     fprintf(stderr,"POP  OBJECT_FRAME (implicit) frame %p csc %p\n", NULL, csc);
-#endif
+# endif
+#else /* BEFORE TCL85 */
+    result = (*Tcl_Command_objProc(cmd))(cp, interp, objc, objv);
 #endif
 
 #ifdef DISPATCH_TRACE
