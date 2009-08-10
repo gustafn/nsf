@@ -161,7 +161,8 @@ typedef struct {
 } parseContext;
 
 #if defined(CANONICAL_ARGS)
-int canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  Tcl_Obj *CONST objv[]);
+int canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclObject *object,
+                               int objc,  Tcl_Obj *CONST objv[]);
 #endif
 void parseContextInit(parseContext *pc, int objc, Tcl_Obj *procName) {
   if (objc < PARSE_CONTEXT_PREALLOC) {
@@ -736,11 +737,11 @@ XOTCLINLINE static XOTclObject*
 GetSelfObj(Tcl_Interp *interp) {
   Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   
-  /*fprintf(stderr, "interp has frame %p and varframe %p\n",
+  /*fprintf(stderr, "GetSelfObj interp has frame %p and varframe %p\n",
     Tcl_Interp_framePtr(interp),Tcl_Interp_varFramePtr(interp));*/
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
 #if defined(TCL85STACKTRACE)
-    fprintf(stderr, "check frame %p flags %.6x cd %p objv[0] %s\n",
+    fprintf(stderr, "GetSelfObj check frame %p flags %.6x cd %p objv[0] %s\n",
             varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr), 
             Tcl_CallFrame_clientData(varFramePtr),
             Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
@@ -5507,7 +5508,8 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
      * if this is a filter, check whether its guard applies,
      * if not: just step forward to the next filter
      */
-    /*fprintf(stderr,"calling proc %s isTclProc %d tearDown %p\n",methodName,isTclProc,obj->teardown);*/
+    /*fprintf(stderr,"calling proc %s isTclProc %d tearDown %p frameType %d\n",
+      methodName,isTclProc,obj->teardown,frameType);*/
 
     if (frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
       XOTclCmdList *cmdList;
@@ -5591,10 +5593,11 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
      */
     {
       parseContext pc;
-      int rc = canonicalNonpositionalArgs(&pc, interp, objc, objv);
+      int rc = canonicalNonpositionalArgs(&pc, interp, obj, objc, objv);
+
       if (rc == TCL_CONTINUE) {
 	result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0, csc);
-      } else {
+      } else if (rc == TCL_OK) {
 #if 0
         {int j;
           for(j=0; j<pc.objc+1; j++) {
@@ -5607,8 +5610,10 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 	result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, /*isLambda*/ 0, csc);
         /* maybe release is to early */
         parseContextRelease(&pc);
+      } else {
+        result = TCL_ERROR;
       }
-    } 
+    }
 # else
     result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0, csc);
 #endif
@@ -6413,7 +6418,7 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
       nonposArg->ifd = interface;
       nonposArg->ifdSize = ifPtr-interface;
       fprintf(stderr, "method %s ifsize %d, possible unknowns = %d,\n",
-              procName,ifPtr-interface,possibleUnknowns);
+	procName,ifPtr-interface,possibleUnknowns);
       parsedIfPtr->ifd = interface; /* TODO only necessary for CANONICAL_ARGS */
       parsedIfPtr->possibleUnknowns = possibleUnknowns; /* TODO only necessary for CANONICAL_ARGS */
       Tcl_SetHashValue(hPtr, (ClientData)nonposArg);
@@ -9748,7 +9753,7 @@ parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName
   aPtr--;
   if (!varArgs && aPtr->converter == convertToNothing) {
     varArgs = 1;
-    /*fprintf(stderr, "last arg is varargs\n");*/
+    /*fprintf(stderr, "last arg of proc '%s' is varargs\n", ObjStr(procName));*/
   }
 
   /* fprintf(stderr, "less nrreq %d last arg %s type %s\n", args < nrReq, aPtr->name, aPtr->converter);
@@ -9756,9 +9761,10 @@ parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName
   objc,args,nrReq,nrReq + nrOpt, varArgs, i,aPtr->name);*/
 
 #if defined(PARSE_TRACE)
-  fprintf(stderr, "END lastobjc %d, varargs %d, not enough args (%d<%d) = %d, to many (%d>%d) = %d\n",
+  fprintf(stderr, "PROC '%s', END lastobjc %d, varargs %d, not enough args (%d<%d) = %d, to many (%d>%d) = %d, check = %d\n", ObjStr(procName),
           pc->lastobjc, varArgs, args, nrReq, args < nrReq,
-          objc-dashdash-1, nrReq + nrOpt, objc-dashdash-1 > nrReq + nrOpt
+          objc-dashdash-1, nrReq + nrOpt, objc-dashdash-1 > nrReq + nrOpt, 
+          !varArgs && objc-dashdash-1 > nrReq + nrOpt
           );
 #endif
 
@@ -12519,9 +12525,9 @@ isNonposArg(Tcl_Interp *interp, char * argStr,
 
 #if defined(CANONICAL_ARGS)
 int
-canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  Tcl_Obj *CONST objv[]) {
-  XOTclObject *object = GetSelfObj(interp);
-  XOTclClass *class = GetSelfClass(interp);
+canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclObject *object,
+                           int objc,  Tcl_Obj *CONST objv[]) {
+  XOTclClass *class = XOTclObjectIsClass(object) ? (XOTclClass *)object : NULL;
   Tcl_HashTable *nonposArgsTable = class ? class->nonposArgsTable : object->nonposArgsTable;
   char *procName = (char *)GetSelfProc(interp);
   XOTclNonposArgs *nonposArgs = NonposArgsGet(nonposArgsTable, procName);
@@ -12569,19 +12575,80 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, int objc,  T
     }
   }
 
+  /* Rewind to the last argument in the spec */
   aPtr--;
-  /* TODO handle "args" */
-  if (aPtr->converter == convertToNothing) {
-    /* "args" is always defined as non-required and with convertToNoting */
-    int elts = objc - pcPtr->lastobjc;
-    /*fprintf(stderr, "args last objc=%d, objc=%d, elts=%d\n", pc.lastobjc, objc, elts);*/
-    /*Tcl_SetVar2Ex(interp, aPtr->name, NULL, Tcl_NewListObj(elts,objv+pc.lastobjc), 0);*/
-  } else {
-    /* Tcl_UnsetVar2(interp, "args", NULL, 0); */
-  }
+  i--;
 
-  /* Set objc always to the size of the interface */
+  /* fprintf(stderr, "***PRE: args last objc=%d, objc=%d, elts=%d, ifdSize=%d, pc->objc=%d\n", pcPtr->lastobjc, objc, objc - pcPtr->lastobjc,nonposArgs->ifdSize,pcPtr->objc);
+   */
+
+  /* 
+   * Set objc of the parse context to the size of the interface.
+   * pcPtr->objc and nonposArgs->ifdSize will be equivalent in cases
+   * where argument values are passed to the call in absence of var
+   * args ('args'). However, there are important points of deviation
+   * which need to be handled, e.g.: 
+   *
+   * 1) No argument values have been passed and defaults are provided
+   *    and initialised by parseObjv. objc will then not reflect the
+   *    required ifdSize.
+   *
+   * 2) Var args have been enabled (=specified) but there are either
+   *    no args values provided in the call or there are more than 1
+   *    var args (see below).
+   */
   pcPtr->objc = nonposArgs->ifdSize;
+
+  if (aPtr->converter == convertToNothing) {
+      /* 
+       * Var args ('args') are expected.
+       */
+      int elts = objc - pcPtr->lastobjc;
+      /*
+       * 1) elts = 0: 'args' is specified, but there are no var args
+       * passed in the call. At this point, pcPtr->objv[i] has the
+       * value XOTclGlobalObjects[XOTE___UNKNOWN__] (see
+       * above). However, tclProc.c:InitArgsAndLocals initialises an
+       * empty list for 'args' because pcPtr->objc does not reflect
+       * the __unknown__ value. The work is so effectively
+       * delegated. Note that unsetUnknownArgs is not involved, as the
+       * __unknown__ value is not to make it through
+       * tclProc.c:InitArgsAndLocals
+       *
+       * TODO: Should unsetUnknownArgs handle 'args' with an
+       * __unknown__ value separately, effectively setting it to an
+       * emtpy list rep (empty string) rather than unsetting the
+       * 'args' var?
+       *
+       * stefan, man sollte für "args" das __unknown__ nicht
+       * benötigen, unsetUnknownArgs() sollte für den args-fall nicht
+       * notwendig sein, die standardmäßige tcl-logik sollte hier ausreichen.
+       */
+      if (elts == 0) {
+	  pcPtr->objc--;
+      }
+
+      /*
+       * 2) elts = 1: 'args' is specified, and a single var arg was
+       * passed. there is no need to mutate the pcPtr->objv, because
+       * this has been achieved in parseObjvs (i.e., pcPtr->objv[i]
+       * contains this element). We can so avoid a memcpy operation.
+       */
+
+       /* 3) elts > 1: 'args' is specified and more than a single var
+       * args were passed. subsequently, pcPtr->objv is only pointing
+       * to the first of the var args. First, copy the sublist of var
+       * args to pcPtr->objv, second correct pcPtr->objc. The
+       * corrected pcPtr->objc will ascertain that
+       * tclProc.c:InitArgsAndLocals will set up a list of the
+       * appropriate size and content. There is no need to deal with a
+       * list representation for 'args' at this point.
+       */
+      if (elts > 1) {
+	  memcpy(pcPtr->objv+i,objv+pcPtr->lastobjc,sizeof(Tcl_Obj *)*elts);
+	  pcPtr->objc = pcPtr->objc + elts - 1;
+      }
+  } 
 
   return TCL_OK;
 }
@@ -12607,7 +12674,7 @@ XOTclUnsetUnknownArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
               ap->name, i, ap->frameIndex, varPtr, varPtr->flags, varPtr->value.objPtr,
               XOTclGlobalObjects[XOTE___UNKNOWN__]);*/
       if (varPtr->value.objPtr != XOTclGlobalObjects[XOTE___UNKNOWN__]) continue;
-      /* fprintf(stderr, "XOTclUnsetUnknownArgsCmd must unset %s\n", ap->name);*/
+      /*fprintf(stderr, "XOTclUnsetUnknownArgsCmd must unset %s\n", ap->name);*/
       Tcl_UnsetVar2(interp, ap->name, NULL, 0);
     }
   }

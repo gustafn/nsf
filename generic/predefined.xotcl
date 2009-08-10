@@ -518,7 +518,6 @@ namespace eval ::xotcl {
   ::xotcl::Class instforward slots %self contains \
       -object {%::xotcl::my subst [::xotcl::self]::slot}
   
-
   #
   # define parameter for backward compatibility and convenience
   #
@@ -599,7 +598,6 @@ namespace eval ::xotcl {
     [::xotcl::self]::slot set __parameter $arglist
   }
 
-
   #
   # utilities
   #
@@ -610,15 +608,15 @@ namespace eval ::xotcl {
     #}
     return [::xotcl::self]
   }
-  
+
   # support for XOTcl specific convenience routines
   ::xotcl::Object instproc hasclass cl {
     if {[::xotcl::my ismixin $cl]} {return 1}
     ::xotcl::my istype $cl
   }
   ::xotcl::Class instproc allinstances {} {
-  # TODO: mark it deprecated
-  return [::xotcl::my info instances -closure]
+    # TODO: mark it deprecated
+    return [::xotcl::my info instances -closure]
   }
 
   # Exit Handler
