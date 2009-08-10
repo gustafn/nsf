@@ -39,6 +39,28 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
     }
   }
 }
-#endif /* TCL85STACK */
+
+static int
+CallStackMarkDestroyed(Tcl_Interp *interp, XOTclObject *obj) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  XOTclCallStackContent *csc;
+  int countSelfs = 0;
+  Tcl_Command oid = obj->id;
+
+  for (csc = &cs->content[1]; csc <= cs->top; csc++) {
+    if (csc->self == obj) {
+      csc->destroyedCmd = oid;
+      csc->callType |= XOTCL_CSC_CALL_IS_DESTROY;
+      /*fprintf(stderr,"setting destroy on csc %p for obj %p\n", csc, obj);*/
+      if (csc->destroyedCmd) {
+        Tcl_Command_refCount(csc->destroyedCmd)++;
+        MEM_COUNT_ALLOC("command refCount", csc->destroyedCmd);
+      }
+      countSelfs++;
+    }
+  }
+  return countSelfs;
+}
+#endif /* NOT TCL85STACK */
 
 

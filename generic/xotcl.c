@@ -633,6 +633,8 @@ LookupVarFromTable85(TclVarHashTable *tablePtr, CONST char *simpleName,
 #if defined(TCL85STACK)
 void tcl85showStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
+  fprintf(stderr, "tcl85showStack framePtr %p varFramePtr %p\n",
+          Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));
   /* framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
     for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     fprintf(stderr, "... frame %p flags %.6x cd %p objv[0] %s\n",
@@ -2618,31 +2620,16 @@ CallStackPop(Tcl_Interp *interp) {
 
 static void
 CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *obj) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc;
-  int countSelfs = 0;
-  Tcl_Command oid = obj->id;
+  int marked = CallStackMarkDestroyed(interp, obj);
 
-  for (csc = &cs->content[1]; csc <= cs->top; csc++) {
-    if (csc->self == obj) {
-      csc->destroyedCmd = oid;
-      csc->callType |= XOTCL_CSC_CALL_IS_DESTROY;
-      /*fprintf(stderr,"setting destroy on frame %p for obj %p\n", csc, obj);*/
-      if (csc->destroyedCmd) {
-        Tcl_Command_refCount(csc->destroyedCmd)++;
-        MEM_COUNT_ALLOC("command refCount", csc->destroyedCmd);
-      }
-      countSelfs++;
-    }
-  }
-  /* if the object is not referenced at the callstack anymore
-     we have to directly destroy it, because CallStackPop won't
+  /* if the object is not referenced on the callstack anymore
+     we have to destroy it directly, because CallStackPop won't
      find the object destroy */
-  if (countSelfs == 0) {
-    /*fprintf(stderr,"directdestroy %p\n", obj);*/
+  if (marked == 0) {
+    /*fprintf(stderr,"direct destroy %p\n", obj);*/
     CallStackDoDestroy(interp, obj);
   } else {
-    /*fprintf(stderr,"selfcount for %p = %d\n", obj, countSelfs);*/
+    /*fprintf(stderr,"selfcount for %p = %d\n", obj, marked);*/
     /* to prevail the deletion order call delete children now
        -> children destructors are called before parent's
        destructor */
