@@ -3898,13 +3898,13 @@ TestX create nonposargs -proc run {{n 20}} {
 
     Object o
     o proc foo {{-a apple} {b banana}} {
-	return [list [info locals] a: $a   b: $b]
+      return [list [lsort [info locals]] a: $a   b: $b]
     }
     o proc foo2 {{-a apple} {b banana} {c apple}} {
-	return [list [info locals] a: $a   b: $b c: $c]
+      return [list [lsort [info locals]] a: $a   b: $b c: $c]
     }
     o proc foo3 {{-a apple} x y {b banana} {c apple}} {
-	return [list [info locals] x: $x y: $y a: $a   b: $b c: $c]
+      return [list [lsort [info locals]] x: $x y: $y a: $a   b: $b c: $c]
     }
 
     errorCheck [o foo] [list {a b} a: apple b: banana] \
@@ -3917,7 +3917,7 @@ TestX create nonposargs -proc run {{n 20}} {
 	"non pos + default values 4"
     errorCheck [o foo2 -a ack] [list {a b c} a: ack b: banana c: apple] \
 	"non pos + default values 5"
-    errorCheck [ o foo3 -a ack 1 2] [list {x y a b c} x: 1 y: 2 \
+    errorCheck [ o foo3 -a ack 1 2] [list {a b c x y} x: 1 y: 2 \
 				     a: ack b: banana c: apple] \
 	"non pos + default values 6"
 

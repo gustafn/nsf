@@ -161,7 +161,8 @@ typedef struct {
 } parseContext;
 
 #if defined(CANONICAL_ARGS)
-int canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclObject *object,
+int canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, 
+                               XOTclCallStackContent *csc, char *procName,
                                int objc,  Tcl_Obj *CONST objv[]);
 #endif
 void parseContextInit(parseContext *pc, int objc, Tcl_Obj *procName) {
@@ -5500,7 +5501,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
     /* 
        If the method to be invoked hasnonposArgs, we have to call the
        argument parser with the argument definitions. The argument
-       definitions are looked up in canonicalNonpositionalArgs via a
+       definitions are looked up in canonicalNonpositionalArgs() via a
        hash table, which causes a per-proc overhead. It would be
        certainly nicer and more efficient to store both the argument
        definitions in the Tcl Proc structure, which has unfortunately
@@ -5514,7 +5515,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
      */
     {
       parseContext pc;
-      int rc = canonicalNonpositionalArgs(&pc, interp, obj, objc, objv);
+      int rc = canonicalNonpositionalArgs(&pc, interp, csc, methodName, objc, objv);
 
       if (rc == TCL_CONTINUE) {
 	result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0, csc);
@@ -6764,8 +6765,13 @@ StripBodyPrefix(char *body) {
   if (strncmp(body, "::eval ::xotcl::interpretNonpositionalArgs $args\n", 49) == 0)
     body += 49;
 #else
+# if !defined(CANONICAL_ARGS)
   if (strncmp(body, "::xotcl::interpretNonpositionalArgs {*}$args\n", 45) == 0)
     body += 45;
+# else
+  if (strncmp(body, "::xotcl::unsetUnknownArgs\n", 26) == 0)
+    body += 26;
+# endif
 #endif
   return body;
 }
@@ -12444,12 +12450,11 @@ isNonposArg(Tcl_Interp *interp, char * argStr,
 
 #if defined(CANONICAL_ARGS)
 int
-canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclObject *object,
+canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, 
+                           XOTclCallStackContent *csc, char *methodName,
                            int objc,  Tcl_Obj *CONST objv[]) {
-  XOTclClass *class = XOTclObjectIsClass(object) ? (XOTclClass *)object : NULL;
-  Tcl_HashTable *nonposArgsTable = class ? class->nonposArgsTable : object->nonposArgsTable;
-  char *procName = (char *)GetSelfProc(interp);
-  XOTclNonposArgs *nonposArgs = NonposArgsGet(nonposArgsTable, procName);
+  Tcl_HashTable *nonposArgsTable = csc->cl ? csc->cl->nonposArgsTable : csc->self->nonposArgsTable;
+  XOTclNonposArgs *nonposArgs = NonposArgsGet(nonposArgsTable, methodName);
   argDefinition CONST *aPtr;
   int i, rc;
 
@@ -12483,7 +12488,7 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclObject 
         /* TODO: default value is not jet checked; should be in arg parsing */
         /*fprintf(stderr,"==> setting default value '%s' for var '%s'\n",ObjStr(aPtr->defaultValue),argName);*/
       } else if (aPtr->required) {
-        return XOTclVarErrMsg(interp, "method ",procName, ": required argument '",
+        return XOTclVarErrMsg(interp, "method ",methodName, ": required argument '",
                               argName, "' is missing", (char *) NULL);
       } else {
 	/* Use as dummy default value an arbitrary symbol, normally
