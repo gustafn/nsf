@@ -770,10 +770,6 @@ int
 XOTclObjDispatch(ClientData cd, Tcl_Interp *interp,
 		 int objc, Tcl_Obj *CONST objv[]);
 
-XOTclCallStackContent *
-XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset);
-
-
 /* functions from xotclUtil.c */
 char *XOTcl_ltoa(char *buf, long i, int *len);
 char *XOTclStringIncr(XOTclStringIncrStruct *iss);

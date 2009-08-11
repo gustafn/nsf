@@ -65,6 +65,24 @@ XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset) {
   return NULL;
 }
 
+XOTclCallStackContent *
+XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  register XOTclCallStackContent *csc;
+
+  /* search for first active frame and set tcl frame pointers */
+  for (csc=cs->top-offset; csc > cs->content; csc --) {
+    if (!(csc->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
+      /* we found the highest active frame */
+      return csc;
+    }
+  }
+  /* we could not find an active frame; called from toplevel? */
+  return NULL;
+}
+
+
+
 static void 
 CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
