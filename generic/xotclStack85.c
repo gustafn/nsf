@@ -50,6 +50,30 @@ CallStackGetFrame(Tcl_Interp *interp) {
   return NULL;
 }
 
+#if 1
+XOTCLINLINE static XOTclCallStackContent*
+CallStackGetTopFrame(Tcl_Interp *interp) {
+  return CallStackGetFrame(interp);
+}
+#else
+XOTCLINLINE static XOTclCallStackContent*
+CallStackGetTopFrameOld(Tcl_Interp *interp) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  return cs->top;
+}
+
+XOTCLINLINE static XOTclCallStackContent*
+CallStackGetTopFrame(Tcl_Interp *interp, int i) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  XOTclCallStackContent* csc =  CallStackGetFrame(interp);
+  fprintf(stderr, "old csc %p, new %p ok %d (%d)\n",cs->top,csc,csc==cs->top,i);
+  if (csc != cs->top) {
+    tcl85showStack(interp);
+  }
+  return csc;
+}
+#endif
+
 static void 
 CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
@@ -62,6 +86,21 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
       }
     }
   }
+}
+
+static XOTclCallStackContent* 
+CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *obj) {
+  register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+
+  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
+      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (csc->self == obj) {
+        return csc;
+      }
+    }
+  }
+  return NULL;
 }
 
 /* 

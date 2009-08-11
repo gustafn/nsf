@@ -28,6 +28,12 @@ CallStackGetFrame(Tcl_Interp *interp) {
   return top;
 }
 
+XOTCLINLINE static XOTclCallStackContent*
+CallStackGetTopFrame(Tcl_Interp *interp) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  return cs->top;
+}
+
 static void 
 CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
@@ -38,6 +44,19 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
       csc->cmdPtr = NULL;
     }
   }
+}
+
+static XOTclCallStackContent* 
+CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *obj) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  XOTclCallStackContent *csc = CallStackGetTopFrame(interp);
+
+  for (; csc >= cs->content; csc--) {
+    if (csc->self == obj) {
+      return csc;
+    }
+  }
+  return NULL;
 }
 
 static int

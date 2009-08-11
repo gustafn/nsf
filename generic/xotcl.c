@@ -195,7 +195,7 @@ XOTCLINLINE static int DoDispatch(ClientData clientData, Tcl_Interp *interp, int
                                   Tcl_Obj *CONST objv[], int flags);
 static int XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
                            char *givenMethod, int objc, Tcl_Obj *CONST objv[],
-                           int useCSObjs);
+                           int useCSObjs, XOTclCallStackContent *csc);
 
 static int XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp, int objc,
                               Tcl_Obj *CONST objv[]);
@@ -2643,13 +2643,6 @@ XOTCLINLINE static int
 CallStackIsDestroyed(Tcl_Interp *interp) {
   return (RUNTIME_STATE(interp)->cs.top->destroyedCmd == NULL) ? 0 : 1;
 }
-
-XOTCLINLINE static XOTclCallStackContent*
-CallStackGetTopFrame(Tcl_Interp *interp) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  return cs->top;
-}
-
 
 /*
  * cmd list handling
@@ -5368,8 +5361,8 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 #endif
 
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "+++ callProcCheck %s, isTclProc %d csc %p, teardown %p\n",
-          methodName,isTclProc,csc,obj->teardown);
+  fprintf(stderr, "+++ callProcCheck %s, isTclProc %d csc %p, frametype %d, teardown %p\n",
+          methodName, isTclProc, csc, frameType, obj->teardown);
 #endif
 
   if (!obj->teardown) {
@@ -5437,8 +5430,6 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
      * if this is a filter, check whether its guard applies,
      * if not: just step forward to the next filter
      */
-    /*fprintf(stderr,"calling proc %s isTclProc %d tearDown %p frameType %d\n",
-      methodName,isTclProc,obj->teardown,frameType);*/
 
     if (frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
       XOTclCmdList *cmdList;
@@ -5463,12 +5454,13 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
              * we may not be in a method, thus there may be wrong or
              * no callstackobjs
              */
-            /*fprintf(stderr, "... calling nextmethod\n");  XOTclCallStackDump(interp);*/
+            /*fprintf(stderr, "... calling nextmethod csc %p\n", csc); XOTclCallStackDump(interp);*/
 
+            /* the call stack content is not jet pushed to the tcl
+               stack, so we pass it here explicitely */
             rc = XOTclNextMethod(obj, interp, cl, methodName,
-                                 objc, objv, /*useCallStackObjs*/ 0);
-            /*fprintf(stderr, "... after nextmethod\n");
-              XOTclCallStackDump(interp);*/
+                                 objc, objv, /*useCallStackObjs*/ 0, csc);
+            /*fprintf(stderr, "... after nextmethod\n"); XOTclCallStackDump(interp);*/
           }
 
           return rc;
@@ -6961,8 +6953,7 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
 static int
 XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
                 char *givenMethod, int objc, Tcl_Obj *CONST objv[],
-                int useCallstackObjs) {
-  XOTclCallStackContent *csc = CallStackGetTopFrame(interp);
+                int useCallstackObjs, XOTclCallStackContent *csc) {
   Tcl_Command cmd, currentCmd = NULL;
   int result = TCL_OK,
     frameType = XOTCL_CSC_TYPE_PLAIN,
@@ -6971,6 +6962,10 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
   int nobjc; Tcl_Obj **nobjv;
   XOTclClass **cl = &givenCl;
   char **methodName = &givenMethod;
+
+  if (!csc) {
+    csc = CallStackGetTopFrame(interp);
+  }
 
 #if !defined(NDEBUG)
   if (useCallstackObjs) {
@@ -6990,8 +6985,8 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
   }
 #endif
 
-  /*fprintf(stderr,"givenMethod = %s, csc = %p, useCallstackObj %d, objc %d\n",
-    givenMethod, csc, useCallstackObjs, objc);*/
+  /*fprintf(stderr,"XOTclNextMethod givenMethod = %s, csc = %p, useCallstackObj %d, objc %d cfp %p\n",
+    givenMethod, csc, useCallstackObjs, objc, csc->currentFramePtr);*/
 
   /* if no args are given => use args from stack */
   if (objc < 2 && useCallstackObjs && csc->currentFramePtr) {
@@ -7108,7 +7103,7 @@ XOTclNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 
   return XOTclNextMethod(csc->self, interp, csc->cl,
                          (char *)Tcl_GetCommandName(interp, csc->cmdPtr),
-                         objc, objv, 1);
+                         objc, objv, 1, NULL);
 }
 
 
@@ -10863,18 +10858,14 @@ static int XOTclOMixinGuardMethod(Tcl_Interp *interp, XOTclObject *obj, char *mi
 
 /* method for calling e.g.  $obj __next  */
 static int XOTclONextMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc = CallStackGetTopFrame(interp);
+  XOTclCallStackContent *csc = CallStackGetObjectFrame(interp, obj);
   char *methodName;
 
-  for (; csc >= cs->content; csc--) {
-    if (csc->self == obj) break;
-  }
-  if (csc<cs->content)
+  if (!csc)
     return XOTclVarErrMsg(interp, "__next: can't find object",
 			  objectName(obj), (char *) NULL);
   methodName = (char *)Tcl_GetCommandName(interp, csc->cmdPtr);
-  return XOTclNextMethod(obj, interp, csc->cl, methodName, objc-1, &objv[1], 0);
+  return XOTclNextMethod(obj, interp, csc->cl, methodName, objc-1, &objv[1], 0, NULL);
 }
 
 static int XOTclONoinitMethod(Tcl_Interp *interp, XOTclObject *obj) {
