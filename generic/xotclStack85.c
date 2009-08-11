@@ -20,7 +20,7 @@ GetSelfObj(Tcl_Interp *interp) {
 #endif
       return (XOTclObject *)Tcl_CallFrame_clientData(varFramePtr);
     }
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
       XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
 #if defined(TCL85STACK_TRACE)
       fprintf(stderr, "... self returns %s\n",objectName(csc->self));
@@ -43,7 +43,7 @@ CallStackGetFrame(Tcl_Interp *interp) {
               Tcl_CallFrame_clientData(varFramePtr),
               Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
 # endif
-      if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
+      if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
         return (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       }
   }
@@ -74,12 +74,35 @@ CallStackGetTopFrame(Tcl_Interp *interp, int i) {
 }
 #endif
 
+XOTclCallStackContent *
+XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset) {
+  register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+  int topLevel = Tcl_CallFrame_level(varFramePtr);
+
+  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if ((csc->callType & XOTCL_CSC_CALL_IS_NEXT) || (csc->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
+        continue;
+      }
+      if (offset)
+        offset--;
+      else {
+        if (Tcl_CallFrame_level(varFramePtr) < topLevel) {
+          return csc;
+        }
+      }
+    }
+  }
+  return NULL;
+}
+
 static void 
 CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
       XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (csc->cmdPtr == cmd) {
         csc->cmdPtr = NULL;
@@ -93,7 +116,7 @@ CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *obj) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
       XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (csc->self == obj) {
         return csc;
@@ -146,7 +169,7 @@ CallStackMarkDestroyed(Tcl_Interp *interp, XOTclObject *obj) {
   Tcl_Command oid = obj->id;
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
       XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (csc->self == obj) {
         csc->destroyedCmd = oid;

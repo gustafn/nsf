@@ -443,11 +443,13 @@ static int varHashTableSize;
    Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
    for further extensions of tcl and tcloo...
 */
-# define FRAME_IS_XOTCL_METHOD 0x10000
-# define FRAME_IS_XOTCL_OBJECT 0x20000
+# define FRAME_IS_XOTCL_OBJECT  0x10000
+# define FRAME_IS_XOTCL_METHOD  0x20000
+# define FRAME_IS_XOTCL_CMETHOD 0x40000
 #else 
-# define FRAME_IS_XOTCL_METHOD 0x0
-# define FRAME_IS_XOTCL_OBJECT 0x0
+# define FRAME_IS_XOTCL_OBJECT  0x0
+# define FRAME_IS_XOTCL_METHOD  0x0
+# define FRAME_IS_XOTCL_CMETHOD 0x0
 #endif
 
 #if defined(PRE85)
@@ -645,9 +647,10 @@ void tcl85showStack(Tcl_Interp *interp) {
             }*/
   framePtr = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp);
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
-    fprintf(stderr, "... var frame %p flags %.6x cd %p ns %p %s objv[0] %s\n",
+    fprintf(stderr, "... var frame %p flags %.6x cd %p lvl %d ns %p %s objv[0] %s\n",
             framePtr, Tcl_CallFrame_isProcCallFrame(framePtr), 
             Tcl_CallFrame_clientData(framePtr),
+            Tcl_CallFrame_level(framePtr),
             Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,
             Tcl_CallFrame_objc(framePtr) ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)");
   }
@@ -656,7 +659,7 @@ Tcl_CallFrame *
 nonXotclObjectProcFrame(Tcl_CallFrame *framePtr) {
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(framePtr) & FRAME_IS_PROC) break;
-    if ((Tcl_CallFrame_isProcCallFrame(framePtr) & FRAME_IS_XOTCL_OBJECT) == 0) break;
+    if ((Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_XOTCL_OBJECT|FRAME_IS_XOTCL_CMETHOD)) == 0) break;
   }
   return framePtr;
 }
@@ -2383,37 +2386,6 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *name, XOTclObject *obj,
 /*
  * XOTcl CallStack
  */
-
-XOTclCallStackContent *
-XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  register XOTclCallStackContent *csc = cs->top;
-  int topLevel = csc->currentFramePtr ? Tcl_CallFrame_level(csc->currentFramePtr) : 0;
-  int deeper = offset;
-
-  /* skip through toplevel inactive filters, do this offset times */
-  for (csc=cs->top; csc > cs->content; csc--) {
-    /* fprintf(stderr, "csc %p callType = %x, frameType = %x, offset=%d\n",
-       csc,csc->callType,csc->frameType,offset); */
-    if ((csc->callType & XOTCL_CSC_CALL_IS_NEXT) ||
-        (csc->frameType & XOTCL_CSC_TYPE_INACTIVE))
-      continue;
-    if (offset)
-      offset--;
-    else {
-      /* fprintf(stderr, "csc %p offset ok, deeper=%d\n",csc,deeper); */
-      if (!deeper || cs->top->callType & XOTCL_CSC_CALL_IS_GUARD) {
-        return csc;
-      }
-      if (csc->currentFramePtr && Tcl_CallFrame_level(csc->currentFramePtr) < topLevel) {
-        return csc;
-      }
-    }
-  }
-  /* for some reasons, we could not find invocation (topLevel, destroy) */
-  /* fprintf(stderr, "csc %p could not find invocation\n",csc);*/
-  return NULL;
-}
 
 static XOTclCallStackContent *
 CallStackFindActiveFilter(Tcl_Interp *interp) {
@@ -5389,7 +5361,8 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
        * TODO: maybe push should happend alread before assertion checking,
        * but we have to check what happens in the finish target etc.
        */
-      XOTcl_PushFrame(interp, obj);
+      XOTcl_PushFrameCsc(interp, obj, csc);
+      /*XOTcl_PushFrame(interp, obj);*/
     }
 #endif
 
@@ -6972,24 +6945,6 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
   if (!csc) {
     csc = CallStackGetTopFrame(interp);
   }
-
-#if !defined(NDEBUG)
-  if (useCallstackObjs) {
-    Tcl_CallFrame *cf = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-    int found = 0;
-    while (cf) {
-      /*      fprintf(stderr, " ... compare fp = %p and cfp %p procFrame %p oc=%d\n",
-              cf, csc->currentFramePtr,
-              Tcl_Interp_framePtr(interp), Tcl_CallFrame_objc(Tcl_Interp_framePtr(interp))
-              );*/
-      if (cf == csc->currentFramePtr) {
-        found = 1;
-        break;
-      }
-      cf = (Tcl_CallFrame *)((CallFrame *)cf)->callerPtr;
-    }
-  }
-#endif
 
   /*fprintf(stderr,"XOTclNextMethod givenMethod = %s, csc = %p, useCallstackObj %d, objc %d cfp %p\n",
     givenMethod, csc, useCallstackObjs, objc, csc->currentFramePtr);*/
@@ -9074,12 +9029,27 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
 		   int objc, Tcl_Obj *CONST objv[]) {
   forwardCmdClientData *tcd = (forwardCmdClientData *)clientData;
   int result, j, inputarg = 1, outputarg = 0;
+#if TCL85STACK
+  XOTclCallStackContent *csc = NULL;
+  Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+
+  /*fprintf(stderr, "XOTclForwardMethod varFramePtr %p flags %.6x\n",
+    varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr));*/
+  if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+    csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+  }
+  if (csc == NULL) {
+    tcl85showStack(interp);
+    fprintf(stderr, "??? would set in csc %p to %p\n",RUNTIME_STATE(interp)->cs.top,Tcl_Interp_varFramePtr(interp));
+    csc = RUNTIME_STATE(interp)->cs.top;
+  }
+  /* no need to store varFramePtr in call frame for tcl85stack */
+#else
+  XOTclCallStackContent *csc = CallStackGetTopFrame(interp);
+  csc->currentFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
+#endif
 
   if (!tcd || !tcd->obj) return XOTclObjErrType(interp, objv[0], "Object");
-
-  /* it is a c-method; establish a value for the currentFramePtr */
-  RUNTIME_STATE(interp)->cs.top->currentFramePtr =
-    (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
 
   /*fprintf(stderr,"...setting currentFramePtr %p to %p (ForwardMethod)\n",
     RUNTIME_STATE(interp)->cs.top->currentFramePtr,

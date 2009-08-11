@@ -266,9 +266,9 @@ typedef struct XOTclMemCounter {
 */
 #define XOTcl_FrameDecls TclCallFrame frame, *framePtr = &frame; int frame_constructed = 1
 # ifndef PRE85
-#  define XOTcl_PushFrameCd(obj) ((CallFrame *)framePtr)->clientData = (ClientData)obj
+#  define XOTcl_PushFrameSetCd(obj) ((CallFrame *)framePtr)->clientData = (ClientData)obj
 # else
-#  define XOTcl_PushFrameCd(obj)
+#  define XOTcl_PushFrameSetCd(obj)
 # endif
 #define XOTcl_PushFrame(interp,obj) \
   /*fprintf(stderr,"PUSH OBJECT_FRAME (XOTcl_PushFrame) frame %p\n",framePtr); */  \
@@ -283,7 +283,21 @@ typedef struct XOTclMemCounter {
        Tcl_CallFrame_procPtr(myframePtr) = &RUNTIME_STATE(interp)->fakeProc; \
        Tcl_CallFrame_varTablePtr(myframePtr) = (obj)->varTable;	\
      } \
-     XOTcl_PushFrameCd(obj)
+     XOTcl_PushFrameSetCd(obj)
+#define XOTcl_PushFrameCsc(interp,obj,csc)                                    \
+  /*fprintf(stderr,"PUSH OBJECT_FRAME (XOTcl_PushFrame) frame %p\n",framePtr); */  \
+     if ((obj)->nsPtr) { \
+       frame_constructed = 0; \
+       /*fprintf(stderr,"XOTcl_PushFrame frame %p\n",framePtr);*/ \
+       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, (obj)->nsPtr, 0|FRAME_IS_XOTCL_CMETHOD); \
+     } else { \
+       CallFrame *myframePtr = (CallFrame *)framePtr; \
+       /*fprintf(stderr,"XOTcl_PushFrame frame %p (with fakeNS)\n",framePtr);*/ \
+       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, /* RUNTIME_STATE(interp)->fakeNS */ Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)), 1|FRAME_IS_XOTCL_CMETHOD); \
+       Tcl_CallFrame_procPtr(myframePtr) = &RUNTIME_STATE(interp)->fakeProc; \
+       Tcl_CallFrame_varTablePtr(myframePtr) = (obj)->varTable;	\
+     } \
+     XOTcl_PushFrameSetCd(csc)
 #define XOTcl_PopFrame(interp,obj) \
      if (!(obj)->nsPtr) { \
        CallFrame *myframe = (CallFrame *)framePtr; \
@@ -759,8 +773,6 @@ XOTclObjDispatch(ClientData cd, Tcl_Interp *interp,
 XOTclCallStackContent *
 XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset);
 
-XOTclCallStackContent *
-XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset);
 
 /* functions from xotclUtil.c */
 char *XOTcl_ltoa(char *buf, long i, int *len);

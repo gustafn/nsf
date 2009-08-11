@@ -3724,8 +3724,8 @@ uplevelCmds proc run {{n 20}} {
   errorCheck [t loop1] 3 "uplevel eval loop"
   errorCheck [t loop2] 12 "nested uplevel eval loop"
   t filter f
-  errorCheck [t loop1] 3 "uplevel eval loop"
-  errorCheck [t loop2] 12 "nested uplevel eval loop"
+  errorCheck [t loop1] 3 "uplevel eval loop with filter"
+  errorCheck [t loop2] 12 "nested uplevel eval loop with filter"
   t destroy
 
 }
