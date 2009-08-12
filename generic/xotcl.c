@@ -7039,30 +7039,28 @@ FindSelfNext(Tcl_Interp *interp, XOTclObject *obj) {
 
 static Tcl_Obj *
 computeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc;
+  Tcl_CallFrame *framePtr;
   Tcl_Obj *resultObj;
 
   switch (level) {
-  case CALLING_LEVEL: csc = XOTclCallStackFindLastInvocation(interp, 1); break;
-  case ACTIVE_LEVEL:  csc = XOTclCallStackFindActiveFrame(interp, 1, NULL /*todo*/); break;
-  default: csc = NULL;
+  case CALLING_LEVEL: XOTclCallStackFindLastInvocation(interp, 1, &framePtr); break;
+  case ACTIVE_LEVEL:  XOTclCallStackFindActiveFrame(interp,    1, &framePtr); break;
+  default: framePtr = NULL;
   }
 
-  if (cs->top->currentFramePtr == ((Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp))
-      && csc && csc < cs->top && csc->currentFramePtr) {
-    /* this was from an xotcl frame, return absolute frame number */
+  if (framePtr) {
+    /* the call was from an xotcl frame, return absolute frame number */
     char buffer[LONG_AS_STRING];
     int l;
+
     buffer[0] = '#';
-    /* fprintf(stderr,"*** csc=%p\n", csc);*/
-    XOTcl_ltoa(buffer+1,(long)Tcl_CallFrame_level(csc->currentFramePtr),&l);
+    XOTcl_ltoa(buffer+1,(long)Tcl_CallFrame_level(framePtr), &l);
+    fprintf(stderr,"*** framePtr=%p buffer %s\n", framePtr, buffer);
     resultObj = Tcl_NewStringObj(buffer, l+1);
   } else {
     /* If not called from an xotcl frame, return 1 as default */
     resultObj = Tcl_NewIntObj(1);
   }
-  /*XOTclStackDump(interp);XOTclCallStackDump(interp);*/
 
   return resultObj;
 }
@@ -7179,13 +7177,13 @@ XOTclSelfSubCommand(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *option) {
     break;
 
   case callingprocIdx:
-    csc = XOTclCallStackFindLastInvocation(interp, 1);
+    csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
     Tcl_SetResult(interp, csc ? (char *)Tcl_GetCommandName(interp, csc->cmdPtr) : "",
 		  TCL_VOLATILE);
     break;
 
   case callingclassIdx:
-    csc = XOTclCallStackFindLastInvocation(interp, 1);
+    csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
     Tcl_SetObjResult(interp, csc && csc->cl ? csc->cl->object.cmdName :
 		     XOTclGlobalObjects[XOTE_EMPTY]);
     break;
@@ -7199,7 +7197,7 @@ XOTclSelfSubCommand(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *option) {
     break;
 
   case callingobjectIdx:
-    csc = XOTclCallStackFindLastInvocation(interp, 1);
+    csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
     Tcl_SetObjResult(interp, csc ? csc->self->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
     break;
 
@@ -10953,9 +10951,7 @@ static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, T
   objv += i;
 
   if (!framePtr) {
-    XOTclCallStackContent *csc = XOTclCallStackFindLastInvocation(interp, 1);
-    if (csc)
-      framePtr = csc->currentFramePtr;
+    XOTclCallStackFindLastInvocation(interp, 1, &framePtr);
   }
 
   savedVarFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);

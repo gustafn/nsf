@@ -35,7 +35,7 @@ CallStackGetTopFrame(Tcl_Interp *interp) {
 }
 
 XOTclCallStackContent *
-XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset) {
+XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
   register XOTclCallStackContent *csc = cs->top;
   int topLevel = csc->currentFramePtr ? Tcl_CallFrame_level(csc->currentFramePtr) : 0;
@@ -53,15 +53,18 @@ XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset) {
     else {
       /* fprintf(stderr, "csc %p offset ok, deeper=%d\n",csc,deeper); */
       if (!deeper || cs->top->callType & XOTCL_CSC_CALL_IS_GUARD) {
+        if (framePtrPtr) *framePtrPtr = csc->currentFramePtr;
         return csc;
       }
       if (csc->currentFramePtr && Tcl_CallFrame_level(csc->currentFramePtr) < topLevel) {
+        if (framePtrPtr) *framePtrPtr = csc->currentFramePtr;
         return csc;
       }
     }
   }
   /* for some reasons, we could not find invocation (topLevel, destroy) */
   /* fprintf(stderr, "csc %p could not find invocation\n",csc);*/
+  if (framePtrPtr) *framePtrPtr = NULL;
   return NULL;
 }
 
@@ -95,7 +98,6 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx, int i) {
 
   /*fprintf(stderr,"CallStackUseActiveFrames inframe %p varFrame %p activeFrame %p lvl %d\n",
     inFramePtr,varFramePtr,activeFramePtr, Tcl_CallFrame_level(inFramePtr));*/
-
 
   if (activeFramePtr == varFramePtr || active == top || Tcl_CallFrame_level(inFramePtr) == 0) {
     /* top frame is a active frame, or we could not find a calling frame */

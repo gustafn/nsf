@@ -75,9 +75,9 @@ CallStackGetTopFrame(Tcl_Interp *interp, int i) {
 #endif
 
 XOTclCallStackContent *
-XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset) {
+XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-  int topLevel = Tcl_CallFrame_level(varFramePtr);
+  int lvl = Tcl_CallFrame_level(varFramePtr);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
@@ -85,15 +85,17 @@ XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset) {
       if ((csc->callType & XOTCL_CSC_CALL_IS_NEXT) || (csc->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
         continue;
       }
-      if (offset)
+      if (offset) {
         offset--;
-      else {
-        if (Tcl_CallFrame_level(varFramePtr) < topLevel) {
+      } else {
+        if (Tcl_CallFrame_level(varFramePtr) < lvl) {
+          if (framePtrPtr) *framePtrPtr = varFramePtr;
           return csc;
         }
       }
     }
   }
+  if (framePtrPtr) *framePtrPtr = NULL;
   return NULL;
 }
 
