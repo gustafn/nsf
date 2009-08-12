@@ -66,7 +66,7 @@ XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset) {
 }
 
 XOTclCallStackContent *
-XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset) {
+XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
   register XOTclCallStackContent *csc;
 
@@ -74,13 +74,61 @@ XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset) {
   for (csc=cs->top-offset; csc > cs->content; csc --) {
     if (!(csc->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
       /* we found the highest active frame */
+      if (framePtrPtr) *framePtrPtr = csc->currentFramePtr;
       return csc;
     }
   }
   /* we could not find an active frame; called from toplevel? */
+  if (framePtrPtr) *framePtrPtr = NULL;
   return NULL;
 }
 
+static void
+CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx, int i) {
+  XOTclCallStackContent *active, *top;
+  Tcl_CallFrame *inFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp), 
+    *varFramePtr, *activeFramePtr, *framePtr;
+
+  active = XOTclCallStackFindActiveFrame(interp, 0, &activeFramePtr);
+  top = CallStackGetTopFrame(interp);
+  varFramePtr = inFramePtr;
+
+  /*fprintf(stderr,"CallStackUseActiveFrames inframe %p varFrame %p activeFrame %p lvl %d\n",
+    inFramePtr,varFramePtr,activeFramePtr, Tcl_CallFrame_level(inFramePtr));*/
+
+
+  if (activeFramePtr == varFramePtr || active == top || Tcl_CallFrame_level(inFramePtr) == 0) {
+    /* top frame is a active frame, or we could not find a calling frame */
+    framePtr = varFramePtr;
+
+  } else if (active == NULL) {
+    /* There is no xotcl callframe active; use the caller of inframe */
+    fprintf(stderr,"active == NULL\n");
+    for (framePtr = inFramePtr; framePtr && Tcl_CallFrame_level(framePtr); framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
+      if (framePtr != top->currentFramePtr)
+        break;
+    }
+  } else {
+    /* The active framePtr is an entry deeper in the stack. When XOTcl
+       is interleaved with Tcl, we return the Tcl frame */
+
+    /* fprintf(stderr,"active == deeper, use Tcl frame\n"); */
+    if ((framePtr = (active+1)->currentFramePtr)) {
+      framePtr = Tcl_CallFrame_callerPtr(framePtr);
+    } else {
+      framePtr = active->currentFramePtr;
+    }
+  }
+  if (inFramePtr == framePtr) {
+    /* call frame pointers are fine */
+    /*fprintf(stderr, "... no need to save frames\n");*/
+    ctx->framesSaved = 0;
+  } else {
+    ctx->varFramePtr = inFramePtr;
+    Tcl_Interp_varFramePtr(interp) = (CallFrame *)framePtr;
+    ctx->framesSaved = 1;
+  }
+}
 
 
 static void 

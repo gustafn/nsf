@@ -4199,14 +4199,15 @@ proc x1 {} {
   set c1 [llength [C info instances]]
   errorCheck [expr {$c1 - $c0 != 2}] 0 "exit x1, two more objects"
 }
-
 x1
+
 errorCheck [expr {[llength [C info instances]] > 0}] 0 "top, volatile objects gone"
 
 Object o
 o proc test {} {
   x1; errorCheck [expr {[llength [C info instances]] > 0}] 0 "x1 from o"
 }
+
 o test
 
 puts "PASSED ::topLevelCommands"
