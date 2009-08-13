@@ -12735,7 +12735,6 @@ XOTclFinalizeObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
   XOTclClassListFree(RUNTIME_STATE(interp)->rootClasses);
 
 #ifdef DO_CLEANUP
-  XOTcl_DeleteNamespace(interp, RUNTIME_STATE(interp)->fakeNS);
   XOTcl_DeleteNamespace(interp, RUNTIME_STATE(interp)->XOTclClassesNS);
   XOTcl_DeleteNamespace(interp, RUNTIME_STATE(interp)->XOTclNS);
 #endif
@@ -13004,10 +13003,6 @@ Xotcl_Init(Tcl_Interp *interp) {
   RUNTIME_STATE(interp)->fakeProc.numCompiledLocals = 0;
   RUNTIME_STATE(interp)->fakeProc.firstLocalPtr = NULL;
   RUNTIME_STATE(interp)->fakeProc.lastLocalPtr = NULL;
-  RUNTIME_STATE(interp)->fakeNS =
-    Tcl_CreateNamespace(interp, "::xotcl::fakeNS", (ClientData)NULL,
-                        (Tcl_NamespaceDeleteProc*)NULL);
-  MEM_COUNT_ALLOC("TclNamespace", RUNTIME_STATE(interp)->fakeNS);
 
   /* XOTclClasses in separate Namespace / Objects */
   RUNTIME_STATE(interp)->XOTclClassesNS =

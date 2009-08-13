@@ -238,32 +238,10 @@ typedef struct XOTclMemCounter {
 
 #define ObjStr(obj) (obj)->bytes ? (obj)->bytes : Tcl_GetString(obj)
 
-#if 0
-#define XOTcl_FrameDecls CallFrame *oldFramePtr = 0, frame, *newFramePtr = &frame
-#define XOTcl_PushFrame(interp, obj) \
-     memset(newFramePtr, 0, sizeof(CallFrame)); \
-     oldFramePtr = ((Interp *)interp)->varFramePtr; \
-     if ((obj)->nsPtr) {				     \
-       newFramePtr->nsPtr = (Namespace*) (obj)->nsPtr;	     \
-     } else { \
-       newFramePtr->nsPtr = (Namespace*) RUNTIME_STATE(interp)->fakeNS; \
-       newFramePtr->isProcCallFrame = 1; \
-       newFramePtr->procPtr = &RUNTIME_STATE(interp)->fakeProc; \
-       newFramePtr->varTablePtr = (obj)->varTable;	    \
-     } \
-     ((Interp *)interp)->varFramePtr = newFramePtr; \
-     MEM_COUNT_OPEN_FRAME()
-#define XOTcl_PopFrame(interp, obj) \
-  if (!(obj)->nsPtr && (obj)->varTable == 0)	 \
-      (obj)->varTable = newFramePtr->varTablePtr;	 \
-     ((Interp *)interp)->varFramePtr = oldFramePtr; \
-     MEM_COUNT_CLOSE_FRAME()
-
-#else
-/* slightly slower version based on Tcl_PushCallFrame.
-   Note that it is possible that between push and pop
-   a obj->nsPtr can be created (e.g. during a read trace)
-*/
+/* 
+ *  Note that it is possible that between push and pop
+ *  a obj->nsPtr can be created (e.g. during a read trace)
+ */
 #define XOTcl_FrameDecls TclCallFrame frame, *framePtr = &frame; int frame_constructed = 1
 # ifndef PRE85
 #  define XOTcl_PushFrameSetCd(obj) ((CallFrame *)framePtr)->clientData = (ClientData)obj
@@ -279,11 +257,12 @@ typedef struct XOTclMemCounter {
      } else { \
        CallFrame *myframePtr = (CallFrame *)framePtr; \
        /*fprintf(stderr,"XOTcl_PushFrame frame %p (with fakeNS)\n",framePtr);*/ \
-       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, /* RUNTIME_STATE(interp)->fakeNS */ Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)), 1|FRAME_IS_XOTCL_OBJECT); \
+       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)), 1|FRAME_IS_XOTCL_OBJECT); \
        Tcl_CallFrame_procPtr(myframePtr) = &RUNTIME_STATE(interp)->fakeProc; \
        Tcl_CallFrame_varTablePtr(myframePtr) = (obj)->varTable;	\
      } \
      XOTcl_PushFrameSetCd(obj)
+
 #define XOTcl_PushFrameCsc(interp,obj,csc)                                    \
   /*fprintf(stderr,"PUSH OBJECT_FRAME (XOTcl_PushFrame) frame %p\n",framePtr); */  \
      if ((obj)->nsPtr) { \
@@ -293,25 +272,22 @@ typedef struct XOTclMemCounter {
      } else { \
        CallFrame *myframePtr = (CallFrame *)framePtr; \
        /*fprintf(stderr,"XOTcl_PushFrame frame %p (with fakeNS)\n",framePtr);*/ \
-       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, /* RUNTIME_STATE(interp)->fakeNS */ Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)), 1|FRAME_IS_XOTCL_CMETHOD); \
+       Tcl_PushCallFrame(interp, (Tcl_CallFrame*)framePtr, Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)), 1|FRAME_IS_XOTCL_CMETHOD); \
        Tcl_CallFrame_procPtr(myframePtr) = &RUNTIME_STATE(interp)->fakeProc; \
        Tcl_CallFrame_varTablePtr(myframePtr) = (obj)->varTable;	\
      } \
      XOTcl_PushFrameSetCd(csc)
+
 #define XOTcl_PopFrame(interp,obj) \
-     if (!(obj)->nsPtr) { \
-       CallFrame *myframe = (CallFrame *)framePtr; \
-       if ((obj)->varTable == 0) \
-         (obj)->varTable = Tcl_CallFrame_varTablePtr(myframe); \
+     if (!(obj)->nsPtr && ((obj)->varTable == 0)) {        \
+         (obj)->varTable = Tcl_CallFrame_varTablePtr(framePtr); \
      } \
-     if (frame_constructed) { \
-       register CallFrame *myframe = (CallFrame *)Tcl_Interp_framePtr(interp); \
-       Tcl_CallFrame_varTablePtr(myframe) = 0; \
-       Tcl_CallFrame_procPtr(myframe) = 0; \
-     } \
+     if (frame_constructed) {                                         \
+       Tcl_CallFrame_varTablePtr(Tcl_Interp_framePtr(interp)) = 0;                        \
+       /*Tcl_CallFrame_procPtr(myFramePtr) = 0;                  */       \
+       }                                                               \
      /*fprintf(stderr,"POP  OBJECT_FRAME (XOTcl_PopFrame) frame %p\n",framePtr); */  \
      Tcl_PopCallFrame(interp)
-#endif
 
 
 #define INCR_REF_COUNT(A) MEM_COUNT_ALLOC("INCR_REF_COUNT",A); Tcl_IncrRefCount(A)
