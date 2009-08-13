@@ -7297,37 +7297,6 @@ XOTclUnsetTrace(ClientData clientData, Tcl_Interp *interp, CONST char *name, CON
 }
 
 /*
- * mark an obj on the existing callstack, as not destroyed
- */
-static void
-UndestroyObj(Tcl_Interp *interp, XOTclObject *obj) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc;
-
-  /*
-   * mark the object on the whole callstack as not destroyed
-   */
-  for (csc = &cs->content[1]; csc <= cs->top; csc++) {
-    if (obj == csc->self && csc->destroyedCmd) {
-      /*
-       * The ref count was incremented, when csc->destroyedCmd
-       * was set. We revert this first before forgetting the
-       * destroyedCmd.
-       */
-      if (Tcl_Command_refCount(csc->destroyedCmd) > 1) {
-        Tcl_Command_refCount(csc->destroyedCmd)--;
-        MEM_COUNT_FREE("command refCount", csc->destroyedCmd);
-      }
-      csc->destroyedCmd  = 0;
-    }
-  }
-  /*
-   * mark obj->flags XOTCL_DESTROY_CALLED as NOT CALLED (0)
-   */
-  obj->flags &= ~XOTCL_DESTROY_CALLED;
-}
-
-/*
  * bring an object into a state, as after initialization
  */
 static void
@@ -7516,7 +7485,7 @@ PrimitiveOInit(void *mem, Tcl_Interp *interp, char *name, XOTclClass *cl) {
   /* if the command of the obj was used before, we have to clean
    * up the callstack from set "destroyedCmd" flags
    */
-  UndestroyObj(interp, obj);
+  CallStackMarkUndestroyed(interp, obj);
 
   if (Tcl_FindNamespace(interp, name, NULL, 0)) {
     nsPtr = NSGetFreshNamespace(interp, (ClientData)obj, name);
@@ -8038,7 +8007,7 @@ doCleanup(Tcl_Interp *interp, XOTclObject *newobj, XOTclObject *classobj,
   }
 
   if (destroyed) {
-    UndestroyObj(interp, newobj);
+    CallStackMarkUndestroyed(interp, newobj);
   }
 
   /*

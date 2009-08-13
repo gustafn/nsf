@@ -331,6 +331,35 @@ CallStackMarkDestroyed(Tcl_Interp *interp, XOTclObject *obj) {
   return marked;
 }
 
+/*
+ * Mark the given obj existing in the callstack as "not destroyed"
+ */
+static void
+CallStackMarkUndestroyed(Tcl_Interp *interp, XOTclObject *obj) {
+  register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+
+  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (obj == csc->self && csc->destroyedCmd) {
+        /*
+         * The ref count was incremented, when csc->destroyedCmd
+         * was set. We revert this first before clearing the
+         * destroyedCmd.
+         */
+        if (Tcl_Command_refCount(csc->destroyedCmd) > 1) {
+          Tcl_Command_refCount(csc->destroyedCmd)--;
+          MEM_COUNT_FREE("command refCount", csc->destroyedCmd);
+        }
+        csc->destroyedCmd  = 0;
+      }
+    }
+  }
+  /*
+   * mark obj->flags XOTCL_DESTROY_CALLED as NOT CALLED
+   */
+  obj->flags &= ~XOTCL_DESTROY_CALLED;
+}
 #endif /* TCL85STACK */
 
 
