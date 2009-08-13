@@ -87,7 +87,7 @@ XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fr
 }
 
 static void
-CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx, int i) {
+CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
   XOTclCallStackContent *active, *top;
   Tcl_CallFrame *inFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp), 
     *varFramePtr, *activeFramePtr, *framePtr;
@@ -132,6 +132,18 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx, int i) {
   }
 }
 
+static XOTclCallStackContent *
+CallStackFindActiveFilter(Tcl_Interp *interp) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  register XOTclCallStackContent *csc;
+
+  /* search for first active frame and set tcl frame pointers */
+  for (csc=cs->top; csc > cs->content; csc --) {
+    if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) return csc;
+  }
+  /* for some reasons, we could not find invocation (topLevel, destroy) */
+  return NULL;
+}
 
 static void 
 CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {

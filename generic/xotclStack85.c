@@ -1,3 +1,5 @@
+/* TODO final touch: unify names, make all static */
+
 #if defined(TCL85STACK)
 
 XOTCLINLINE static XOTclObject*
@@ -63,7 +65,7 @@ CallStackGetTopFrameOld(Tcl_Interp *interp) {
 }
 
 XOTCLINLINE static XOTclCallStackContent*
-CallStackGetTopFrame(Tcl_Interp *interp, int i) {
+CallStackGetTopFrame(Tcl_Interp *interp) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
   XOTclCallStackContent* csc =  CallStackGetFrame(interp);
   fprintf(stderr, "old csc %p, new %p ok %d (%d)\n",cs->top,csc,csc==cs->top,i);
@@ -123,7 +125,7 @@ XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fr
 }
 
 static void
-CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx, int i) {
+CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
   Tcl_CallFrame *inFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp), 
     *varFramePtr, *activeFramePtr, *framePtr;
 
@@ -174,6 +176,22 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx, int i) {
   }
 }
 
+
+static XOTclCallStackContent *
+CallStackFindActiveFilter(Tcl_Interp *interp) {
+  register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+
+  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+        return csc;
+      }
+    }
+  }
+  /* for some reasons, we could not find invocation (topLevel, destroy) */
+  return NULL;
+}
 
 static void 
 CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
