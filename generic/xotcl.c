@@ -633,58 +633,6 @@ LookupVarFromTable85(TclVarHashTable *tablePtr, CONST char *simpleName,
 #endif
 
 
-#if defined(TCL85STACK)
-void tcl85showStack(Tcl_Interp *interp) {
-  Tcl_CallFrame *framePtr;
-  fprintf(stderr, "tcl85showStack framePtr %p varFramePtr %p\n",
-          Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));
-  /* framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-    for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
-    fprintf(stderr, "... frame %p flags %.6x cd %p objv[0] %s\n",
-            framePtr, Tcl_CallFrame_isProcCallFrame(framePtr), 
-            Tcl_CallFrame_clientData(framePtr),
-            Tcl_CallFrame_objc(framePtr) ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)");
-            }*/
-  framePtr = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp);
-  for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
-    fprintf(stderr, "... var frame %p flags %.6x cd %.8x lvl %d frameType %d ns %p %s objv[0] %s\n",
-            framePtr, Tcl_CallFrame_isProcCallFrame(framePtr), 
-            (int)Tcl_CallFrame_clientData(framePtr),
-            Tcl_CallFrame_level(framePtr),
-            Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD) 
-            ? ((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType : -1,
-            Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,
-            Tcl_CallFrame_objc(framePtr) ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)");
-  }
-}
-Tcl_CallFrame *
-nonXotclObjectProcFrame(Tcl_CallFrame *framePtr) {
-  for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
-    int flag = Tcl_CallFrame_isProcCallFrame(framePtr);
-    if (flag & FRAME_IS_XOTCL_METHOD) {
-      /* never return an inactive method frame */
-      if (!(((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType & XOTCL_CSC_TYPE_INACTIVE)) break;
-    } else {
-      if ((flag & (FRAME_IS_XOTCL_OBJECT|FRAME_IS_XOTCL_CMETHOD)) == 0) break;
-      if (flag & FRAME_IS_PROC) break;
-    }
-  }
-  return framePtr;
-}
-
-Tcl_CallFrame *
-nextFrameOfType(Tcl_CallFrame *framePtr, int flags) {
-  for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(framePtr) & flags) 
-      return framePtr;
-  }
-  return framePtr;
-}
-#else
-Tcl_CallFrame * nonXotclObjectProcFrame(Tcl_CallFrame *framePtr) {return framePtr;}
-#endif
-
-
 /*
  * call an XOTcl method
  */

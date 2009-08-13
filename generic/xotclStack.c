@@ -1,5 +1,7 @@
 #if !defined(TCL85STACK)
 
+Tcl_CallFrame * nonXotclObjectProcFrame(Tcl_CallFrame *framePtr) {return framePtr;}
+
 XOTCLINLINE static XOTclObject*
 GetSelfObj(Tcl_Interp *interp) {
   return CallStackGetFrame(interp, NULL)->self;
