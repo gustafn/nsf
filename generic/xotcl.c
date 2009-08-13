@@ -104,6 +104,7 @@ static int setInstVar(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *name, Tcl_O
 static void MixinComputeDefined(Tcl_Interp *interp, XOTclObject *obj);
 static XOTclClass *DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclClass *mcl, int isMeta);
 static XOTclCallStackContent *CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr);
+XOTCLINLINE static void CallStackPop(Tcl_Interp *interp);
 
 static Tcl_ObjType XOTclObjectType = {
   "XOTclObject",
@@ -12745,7 +12746,6 @@ static void
 ExitHandler(ClientData clientData) {
   Tcl_Interp *interp = (Tcl_Interp *)clientData;
   int i, flags;
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
 
   /*
    * Don't use exit handler, if the interpreted is destroyed already
@@ -12777,20 +12777,7 @@ ExitHandler(ClientData clientData) {
     XOTclFinalizeObjCmd(NULL, interp, 0, NULL);
   }
 
-  /*
-   * Pop any callstack entry that is still alive (e.g.
-   * if "exit" is called and we were jumping out of the
-   * callframe
-   */
-  while (cs->top > cs->content)
-    CallStackPop(interp);
-
-  while (1) {
-    Tcl_CallFrame *f = Tcl_Interp_framePtr(interp);
-    if (!f) break;
-    if (Tcl_CallFrame_level(f) == 0) break;
-    Tcl_PopCallFrame(interp);
-  }
+  CallStackPopAll(interp);
 
   /* must be before freeing of XOTclGlobalObjects */
   XOTclShadowTclCommands(interp, SHADOW_UNLOAD);

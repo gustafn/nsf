@@ -243,4 +243,22 @@ CallStackMarkUndestroyed(Tcl_Interp *interp, XOTclObject *obj) {
   obj->flags &= ~XOTCL_DESTROY_CALLED;
 }
 
+/*
+ * Pop any callstack entry that is still alive (e.g.
+ * if "exit" is called and we were jumping out of the
+ * callframe
+ */
+void CallStackPopAll(Tcl_Interp *interp) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+
+  while (cs->top > cs->content)
+    CallStackPop(interp);
+
+  while (1) {
+    Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
+    if (!framePtr) break;
+    if (Tcl_CallFrame_level(framePtr) == 0) break;
+    Tcl_PopCallFrame(interp);
+  }
+}
 #endif /* NOT TCL85STACK */

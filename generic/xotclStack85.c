@@ -360,6 +360,26 @@ CallStackMarkUndestroyed(Tcl_Interp *interp, XOTclObject *obj) {
    */
   obj->flags &= ~XOTCL_DESTROY_CALLED;
 }
+
+/*
+ * Pop any callstack entry that is still alive (e.g.
+ * if "exit" is called and we were jumping out of the
+ * callframe
+ */
+void CallStackPopAll(Tcl_Interp *interp) {
+
+  while (1) {
+    Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
+    if (!framePtr) break;
+    if (Tcl_CallFrame_level(framePtr) == 0) break;
+    if (Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+      /* free the call stack content; for now, we pop it from the allocation stack */
+      CallStackPop(interp);
+    }
+    /* pop the Tcl frame */
+    Tcl_PopCallFrame(interp);
+  }
+}
 #endif /* TCL85STACK */
 
 
