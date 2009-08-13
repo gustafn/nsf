@@ -750,11 +750,6 @@ XOTclGetSelfObj(Tcl_Interp *interp) {
   return (XOTcl_Object*)GetSelfObj(interp);
 }
 
-XOTCLINLINE static CONST char *
-GetSelfProc(Tcl_Interp *interp, XOTclCallStackContent *csc) {
-  return Tcl_GetCommandName(interp, csc->cmdPtr);
-}
-
 
 /*
  * prints a msg to the screen that oldCmd is deprecated
@@ -6703,7 +6698,7 @@ FindCalledClass(Tcl_Interp *interp, XOTclObject *obj) {
   if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER)
     methodName = ObjStr(csc->filterStackEntry->calledProc);
   else if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_MIXIN && obj->mixinStack)
-    methodName = (char *)GetSelfProc(interp, csc);
+    methodName = (char *)Tcl_GetCommandName(interp, csc->cmdPtr);
   else
     return NULL;
 
@@ -6832,18 +6827,26 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
   int nobjc; Tcl_Obj **nobjv;
   XOTclClass **cl = &givenCl;
   char **methodName = &givenMethod;
+  TclCallFrame *framePtr = NULL;
 
   if (!csc) {
-    csc = CallStackGetTopFrame(interp, NULL);
+    csc = CallStackGetTopFrame(interp, &framePtr);
+  } else {
+    /* 
+     * csc was given (i.e. it is not yet on the stack. So we cannot 
+     *  get objc from the associated stack frame
+     */
+    assert(useCallstackObjs == 0);
+    /* fprintf(stderr, "XOTclNextMethod csc given, use %d, framePtr %p\n", useCallstackObjs, framePtr); */
   }
 
   /*fprintf(stderr,"XOTclNextMethod givenMethod = %s, csc = %p, useCallstackObj %d, objc %d cfp %p\n",
-    givenMethod, csc, useCallstackObjs, objc, csc->currentFramePtr);*/
+    givenMethod, csc, useCallstackObjs, objc, framePtr);*/
 
   /* if no args are given => use args from stack */
-  if (objc < 2 && useCallstackObjs && csc->currentFramePtr) {
-    nobjc = Tcl_CallFrame_objc(csc->currentFramePtr);
-    nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(csc->currentFramePtr);
+  if (objc < 2 && useCallstackObjs && framePtr) {
+    nobjc = Tcl_CallFrame_objc(framePtr);
+    nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(framePtr);
   } else {
     nobjc = objc;
     nobjv = (Tcl_Obj **)objv;
@@ -6852,8 +6855,8 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
        replace the first word with the value from the callstack to be
        compatible with the case where next is called without args.
     */
-    if (useCallstackObjs && csc->currentFramePtr) {
-      nobjv[0] = Tcl_CallFrame_objv(csc->currentFramePtr)[0];
+    if (useCallstackObjs && framePtr) {
+      nobjv[0] = Tcl_CallFrame_objv(framePtr)[0];
       INCR_REF_COUNT(nobjv[0]); /* we seem to need this here */
       decrObjv0 = 1;
     }
@@ -6991,7 +6994,7 @@ FindSelfNext(Tcl_Interp *interp, XOTclObject *obj) {
 
   Tcl_ResetResult(interp);
 
-  methodName = (char *)GetSelfProc(interp, csc);
+  methodName = (char *)Tcl_GetCommandName(interp, csc->cmdPtr);
   if (!methodName)
     return TCL_OK;
 
@@ -7080,7 +7083,7 @@ XOTclSelfSubCommand(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *option) {
   case procIdx: { /* proc subcommand */
     csc = CallStackGetTopFrame(interp, NULL);
     if (csc) {
-      CONST char *procName = GetSelfProc(interp, csc);
+      CONST char *procName = Tcl_GetCommandName(interp, csc->cmdPtr);
       Tcl_SetResult(interp, (char *)procName, TCL_VOLATILE);
     } else {
       return XOTclVarErrMsg(interp, "Can't find proc", (char *) NULL);
@@ -12451,7 +12454,7 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   XOTclObject *object = csc->self;
   XOTclClass *class = csc->cl;
   Tcl_HashTable *nonposArgsTable = class ? class->nonposArgsTable : object->nonposArgsTable;
-  char *procName = (char *)GetSelfProc(interp, csc);
+  char *procName = Tcl_GetCommandName(interp, csc->cmdPtr);
   XOTclNonposArgs *nonposArgs = NonposArgsGet(nonposArgsTable, procName);
   Tcl_Obj *proc = Tcl_NewStringObj(procName, -1);
   argDefinition CONST *aPtr;
