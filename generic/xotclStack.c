@@ -244,5 +244,3 @@ CallStackMarkUndestroyed(Tcl_Interp *interp, XOTclObject *obj) {
 }
 
 #endif /* NOT TCL85STACK */
-
-
