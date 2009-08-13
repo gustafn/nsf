@@ -8919,28 +8919,15 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
 		   int objc, Tcl_Obj *CONST objv[]) {
   forwardCmdClientData *tcd = (forwardCmdClientData *)clientData;
   int result, j, inputarg = 1, outputarg = 0;
-#if TCL85STACK
-  XOTclCallStackContent *csc = NULL;
-  Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-
-  /*fprintf(stderr, "XOTclForwardMethod varFramePtr %p flags %.6x\n",
-    varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr));*/
-  if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-    csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-  }
-  if (csc == NULL) {
-    tcl85showStack(interp);
-    fprintf(stderr, "??? would set in csc %p to %p\n",RUNTIME_STATE(interp)->cs.top,Tcl_Interp_varFramePtr(interp));
-    csc = RUNTIME_STATE(interp)->cs.top;
-  }
+#if defined(TCL85STACK)
   /* no need to store varFramePtr in call frame for tcl85stack */
 #else
   XOTclCallStackContent *csc = CallStackGetTopFrame(interp, NULL);
   csc->currentFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
 
   /*fprintf(stderr,"...setting currentFramePtr %p to %p (ForwardMethod)\n",
-    RUNTIME_STATE(interp)->cs.top->currentFramePtr,
-    (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp)); */
+    RUNTIME_STATE(interp)->cs.top->currentFramePtr, (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp)); 
+  */
 #endif
 
   if (!tcd || !tcd->obj) return XOTclObjErrType(interp, objv[0], "Object");
