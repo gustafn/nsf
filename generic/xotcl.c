@@ -2459,11 +2459,6 @@ CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *obj) {
   }
 }
 
-XOTCLINLINE static int
-CallStackIsDestroyed(Tcl_Interp *interp) {
-  return (RUNTIME_STATE(interp)->cs.top->destroyedCmd == NULL) ? 0 : 1;
-}
-
 /*
  * cmd list handling
  */
