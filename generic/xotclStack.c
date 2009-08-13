@@ -2,11 +2,11 @@
 
 XOTCLINLINE static XOTclObject*
 GetSelfObj(Tcl_Interp *interp) {
-  return CallStackGetFrame(interp)->self;
+  return CallStackGetFrame(interp, NULL)->self;
 }
 
 static XOTclCallStackContent*
-CallStackGetFrame(Tcl_Interp *interp) {
+CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
   register XOTclCallStackContent *top = cs->top;
   Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
@@ -24,13 +24,14 @@ CallStackGetFrame(Tcl_Interp *interp) {
       top--;
     }
   }
-
+  if (framePtrPtr) *framePtrPtr = top->currentFramePtr;
   return top;
 }
 
 XOTCLINLINE static XOTclCallStackContent*
-CallStackGetTopFrame(Tcl_Interp *interp) {
+CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  if (framePtrPtr) *framePtrPtr = cs->top->currentFramePtr;
   return cs->top;
 }
 
@@ -93,7 +94,7 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
     *varFramePtr, *activeFramePtr, *framePtr;
 
   active = XOTclCallStackFindActiveFrame(interp, 0, &activeFramePtr);
-  top = CallStackGetTopFrame(interp);
+  top = CallStackGetTopFrame(interp, NULL);
   varFramePtr = inFramePtr;
 
   /*fprintf(stderr,"CallStackUseActiveFrames inframe %p varFrame %p activeFrame %p lvl %d\n",
@@ -180,7 +181,7 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
 static XOTclCallStackContent* 
 CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *obj) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc = CallStackGetTopFrame(interp);
+  XOTclCallStackContent *csc = CallStackGetTopFrame(interp, NULL);
 
   for (; csc >= cs->content; csc--) {
     if (csc->self == obj) {

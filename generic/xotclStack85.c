@@ -33,9 +33,8 @@ GetSelfObj(Tcl_Interp *interp) {
   return NULL;
 }
 
-
 static XOTclCallStackContent*
-CallStackGetFrame(Tcl_Interp *interp) {
+CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
@@ -46,35 +45,18 @@ CallStackGetFrame(Tcl_Interp *interp) {
               Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
 # endif
       if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+        if (framePtrPtr) *framePtrPtr = varFramePtr;
         return (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       }
   }
+  if (framePtrPtr) *framePtrPtr = NULL;
   return NULL;
 }
 
-#if 1
 XOTCLINLINE static XOTclCallStackContent*
-CallStackGetTopFrame(Tcl_Interp *interp) {
-  return CallStackGetFrame(interp);
+CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
+  return CallStackGetFrame(interp, framePtrPtr);
 }
-#else
-XOTCLINLINE static XOTclCallStackContent*
-CallStackGetTopFrameOld(Tcl_Interp *interp) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  return cs->top;
-}
-
-XOTCLINLINE static XOTclCallStackContent*
-CallStackGetTopFrame(Tcl_Interp *interp) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent* csc =  CallStackGetFrame(interp);
-  fprintf(stderr, "old csc %p, new %p ok %d (%d)\n",cs->top,csc,csc==cs->top,i);
-  if (csc != cs->top) {
-    tcl85showStack(interp);
-  }
-  return csc;
-}
-#endif
 
 XOTclCallStackContent *
 XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
