@@ -2377,7 +2377,9 @@ CallStackPush(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl,
   csc->destroyedCmd  = NULL;
   csc->frameType     = frameType;
   csc->callType      = 0;
+#if !defined(TCL85STACK)
   csc->currentFramePtr = NULL; /* this will be set by InitProcNSCmd */
+#endif
 
   if (frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER)
     csc->filterStackEntry = obj->filterStack;
@@ -5346,7 +5348,9 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 # endif 
 
     if (result == TCL_OK) {
+#if !defined(TCL85STACK)
       rst->cs.top->currentFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
+#endif
       result = TclObjInterpProcCore(interp, objv[0], 1, &MakeProcError);
     } else {
       result = TCL_ERROR;

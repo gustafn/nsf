@@ -605,7 +605,9 @@ typedef struct XOTclCallStackContent {
   XOTclClass *cl;
   Tcl_Command cmdPtr;
   Tcl_Command destroyedCmd;
+#if !defined(TCL85STACK)
   Tcl_CallFrame *currentFramePtr;
+#endif
   unsigned short frameType;
   unsigned short callType;
   XOTclFilterStack *filterStackEntry;

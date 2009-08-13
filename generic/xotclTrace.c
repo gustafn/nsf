@@ -87,34 +87,17 @@ XOTclCallStackDump(Tcl_Interp *interp) {
 
     fprintf(stderr, "frameType: %d, ", csc->frameType);
     fprintf(stderr, "callType: %d ", csc->callType);
-    fprintf(stderr, "cframe %p  ", csc->currentFramePtr);
 
+#if !defined(TCL85STACK)
+    fprintf(stderr, "cframe %p  ", csc->currentFramePtr);
     if (csc->currentFramePtr) 
       fprintf(stderr,"l=%d ",Tcl_CallFrame_level(csc->currentFramePtr));
-
+#endif
     if (csc->destroyedCmd)
       fprintf(stderr, "--destroyed cmd set (%p) ", csc->destroyedCmd);
 
     fprintf(stderr, "\n");
   }
-  /*
-  if (entries > 0) {
-    XOTclCallStackContent *c;
-    c = XOTclCallStackFindLastInvocation(interp);
-    fprintf(stderr,"     --- findLastInvocation %p ",c);
-    if (c) {
-      if (c <= cs->top && c->currentFramePtr) 
-	fprintf(stderr," l=%d", Tcl_CallFrame_level(c->currentFramePtr));
-    }
-    c = XOTclCallStackFindActiveFrame(interp, 1);
-    fprintf(stderr,"     findActiveFrame    %p ",c);
-    if (c) {
-      if (c <= cs->top && c->currentFramePtr) 
-	fprintf(stderr," l=%d", Tcl_CallFrame_level(c->currentFramePtr));
-    }
-    fprintf(stderr," --- \n");
-  }
-  */
 }
 
 /* helper function to print the vars dynamically created on a
