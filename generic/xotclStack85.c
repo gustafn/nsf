@@ -193,6 +193,25 @@ CallStackFindActiveFilter(Tcl_Interp *interp) {
   return NULL;
 }
 
+/*
+ * check, if there is an active filters on "obj" using cmd
+ */
+XOTCLINLINE static int
+FilterActiveOnObj(Tcl_Interp *interp, XOTclObject *obj, Tcl_Command cmd) {
+  register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+
+  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (cmd == csc->cmdPtr && obj == csc->self && 
+          csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
 static void 
 CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);

@@ -4631,27 +4631,6 @@ FilterStackPop(XOTclObject *obj) {
 }
 
 /*
- * seek through the filters active for "obj" and check whether cmdPtr
- * is among them
- */
-XOTCLINLINE static int
-FilterActiveOnObj(Tcl_Interp *interp, XOTclObject *obj, Tcl_Command cmd) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *bot = cs->content;
-  register XOTclCallStackContent *csc = cs->top;
-  while (csc > bot) {
-    /* only check the callstack entries for this object &&
-       only check the callstack entries for the given cmd */
-    if (obj == csc->self && cmd == csc->cmdPtr &&
-        csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
-      return 1;
-    }
-    csc--;
-  }
-  return 0;
-}
-
-/*
  * search through the filter list on obj and class hierarchy
  * for registration of a command ptr as filter
  *

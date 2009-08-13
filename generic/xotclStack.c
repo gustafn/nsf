@@ -145,6 +145,26 @@ CallStackFindActiveFilter(Tcl_Interp *interp) {
   return NULL;
 }
 
+/*
+ * check, if there is an active filters on "obj" using cmd
+ */
+XOTCLINLINE static int
+FilterActiveOnObj(Tcl_Interp *interp, XOTclObject *obj, Tcl_Command cmd) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  XOTclCallStackContent *bot = cs->content;
+  register XOTclCallStackContent *csc = cs->top;
+  while (csc > bot) {
+    /* only check the callstack entries for this object &&
+       only check the callstack entries for the given cmd */
+    if (obj == csc->self && cmd == csc->cmdPtr &&
+        csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+      return 1;
+    }
+    csc--;
+  }
+  return 0;
+}
+
 static void 
 CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
