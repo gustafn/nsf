@@ -6102,6 +6102,7 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
   }
 
   ifPtr = interface = argDefinitionsNew(nonposArgsDefc+ordinaryArgsDefc);
+
   if (nonposArgsDefc > 0) {
     for (i=0; i < nonposArgsDefc; i++, ifPtr++) {
       rc = parseArgDefinition(interp, procName, nonposArgsDefv[i], 1, ifPtr, &possibleUnknowns);
@@ -6167,6 +6168,9 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_HashTable **nonp
   Tcl_HashEntry *hPtr = NULL;
   char *procName = ObjStr(name);
   XOTclParsedInterfaceDefinition parsedIf;
+
+  parsedIf.ifd = NULL;
+  parsedIf.possibleUnknowns = 0;
 
   if (*nonposArgsTable && (hPtr = XOTcl_FindHashEntry(*nonposArgsTable, procName))) {
     NonposArgsDeleteHashEntry(hPtr);
@@ -6445,7 +6449,7 @@ forwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *name,
 
 static XOTclClasses *
 ComputePrecedenceList(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
-		      int withMixins) {
+		      int withMixins, int withRootClass) {
   XOTclClasses *precedenceList = NULL, *pcl, **npl = &precedenceList;
 
   if (withMixins) {
@@ -6469,6 +6473,9 @@ ComputePrecedenceList(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
 
   pcl = ComputeOrder(obj->cl, obj->cl->order, Super);
   for (; pcl; pcl = pcl->nextPtr) {
+    if (withRootClass == 0 && pcl->cl->object.flags & XOTCL_IS_ROOT_CLASS)
+      continue;
+
     if (pattern) {
       char *name = className(pcl->cl);
       if (!Tcl_StringMatch(name, pattern)) continue;
@@ -6585,7 +6592,7 @@ StripBodyPrefix(char *body) {
 
 
 static XOTclObjects *
-computeSlotObjects(Tcl_Interp *interp, XOTclObject *obj, char *pattern) {
+computeSlotObjects(Tcl_Interp *interp, XOTclObject *obj, char *pattern, int withRootClass) {
   XOTclObjects *slotObjects = NULL, **npl = &slotObjects;
   XOTclClasses *pl;
   XOTclObject *childobj, *o;
@@ -6596,7 +6603,7 @@ computeSlotObjects(Tcl_Interp *interp, XOTclObject *obj, char *pattern) {
   Tcl_InitHashTable(&slotTable, TCL_STRING_KEYS);
   MEM_COUNT_ALLOC("Tcl_InitHashTable", slotTable);
 
-  pl = ComputePrecedenceList(interp, obj, NULL /* pattern*/, 1);
+  pl = ComputePrecedenceList(interp, obj, NULL /* pattern*/, 1, withRootClass);
   for (; pl; pl = pl->nextPtr) {
     Tcl_DString ds, *dsPtr = &ds;
 
@@ -7159,6 +7166,16 @@ XOTclSelfSubCommand(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *option) {
   return TCL_OK;
   }
 */
+
+static int GetInstvarsIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
+
+int
+XOTclInstvarCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  XOTclObject *obj = GetSelfObj(interp);
+  if (!obj) 
+    return XOTclVarErrMsg(interp, "instvar: no current object", (char *) NULL);
+  return GetInstvarsIntoCurrentScope(interp, obj, objc, objv);
+}
 
 int
 XOTclGetSelfObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -8047,6 +8064,7 @@ doObjInitialization(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CON
    */
   result = callMethod((ClientData) obj, interp,
                       XOTclGlobalObjects[XOTE_CONFIGURE], objc, objv+2, 0);
+
   if (result != TCL_OK) {
     goto objinitexit;
   }
@@ -8407,7 +8425,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
     flgs = flgs|TCL_NAMESPACE_ONLY;
   }
 
-  otherPtr = XOTclObjLookupVar(interp, varName, (char *) NULL, flgs, "define",
+  otherPtr = XOTclObjLookupVar(interp, varName, NULL, flgs, "define",
                                /*createPart1*/ 1, /*createPart2*/ 1, &arrayPtr);
   XOTcl_PopFrame(interp, obj);
 
@@ -10388,7 +10406,7 @@ static int XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc,
   /*
    * Search for default values on slots
    */
-  slotObjects = computeSlotObjects(interp, obj, NULL);
+  slotObjects = computeSlotObjects(interp, obj, NULL, 0);
   for (so = slotObjects; so; so = so->nextPtr) {
     result = setDefaultValue(interp, obj, so->obj);
     if (result != TCL_OK) {
@@ -10409,7 +10427,7 @@ static int XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc,
   if (result != TCL_OK) {
     goto configure_exit;
   }
-
+#if 1
   /*
    * Check, if we got the required values
    */
@@ -10419,7 +10437,7 @@ static int XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc,
       goto configure_exit;
     }
   }
-
+#endif
  configure_exit:
   /*XOTcl_PopFrame(interp, obj);*/
 
@@ -10496,22 +10514,13 @@ static int XOTclOFilterSearchMethod(Tcl_Interp *interp, XOTclObject *obj, char *
   return TCL_OK;
 }
 
-static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
-  Tcl_Obj      **ov;
-  int          i, oc, result = TCL_OK;
-  callFrameContext ctx = {0};
-
-  if (obj && (obj->filterStack || obj->mixinStack) ) {
-    CallStackUseActiveFrames(interp, &ctx);
-  }
-  if (!Tcl_Interp_varFramePtr(interp)) {
-    CallStackRestoreSavedFrames(interp, &ctx);
-    return XOTclVarErrMsg(interp, "instvar used on ", objectName(obj),
-                          ", but callstack is not in procedure scope",
-			  (char *) NULL);
-  }
+static int GetInstvarsIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
+  int i, result = TCL_OK;
 
   for (i=1; i<objc; i++) {
+    Tcl_Obj  **ov;
+    int oc;
+
     /*fprintf(stderr,"ListGetElements %p %s\n", objv[i], ObjStr(objv[i]));*/
     if ((result = Tcl_ListObjGetElements(interp, objv[i], &oc, &ov)) == TCL_OK) {
       Tcl_Obj *varname = NULL, *alias = NULL;
@@ -10533,6 +10542,24 @@ static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, T
       break;
     }
   }
+  return result;
+}
+
+static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
+  callFrameContext ctx = {0};
+  int result;
+
+  if (obj && (obj->filterStack || obj->mixinStack) ) {
+    CallStackUseActiveFrames(interp, &ctx);
+  }
+  if (!Tcl_Interp_varFramePtr(interp)) {
+    CallStackRestoreSavedFrames(interp, &ctx);
+    return XOTclVarErrMsg(interp, "instvar used on ", objectName(obj),
+                          ", but callstack is not in procedure scope",
+			  (char *) NULL);
+  }
+  
+  result = GetInstvarsIntoCurrentScope(interp, obj, objc, objv);
   CallStackRestoreSavedFrames(interp, &ctx);
   return result;
 }
@@ -11439,7 +11466,7 @@ static int XOTclObjInfoPrecedenceMethod(Tcl_Interp *interp, XOTclObject *object,
                                         int withIntrinsicOnly, char *pattern) {
   XOTclClasses *precedenceList = NULL, *pl;
 
-  precedenceList = ComputePrecedenceList(interp, object, pattern, !withIntrinsicOnly);
+  precedenceList = ComputePrecedenceList(interp, object, pattern, !withIntrinsicOnly, 1);
   for (pl = precedenceList; pl; pl = pl->nextPtr) {
     char *name = className(pl->cl);
     Tcl_AppendElement(interp, name);
@@ -11457,7 +11484,7 @@ static int XOTclObjInfoSlotObjectsMethod(Tcl_Interp *interp, XOTclObject *object
   XOTclObjects *pl;
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
 
-  pl = computeSlotObjects(interp, object, pattern /* not used */ );
+  pl = computeSlotObjects(interp, object, pattern /* not used */, 1);
   for (; pl; pl = pl->nextPtr) {
     Tcl_ListObjAppendElement(interp, list, pl->obj->cmdName);
   }
@@ -11705,7 +11732,7 @@ static int XOTclClassInfoInstprocsMethod(Tcl_Interp *interp, XOTclClass * class,
 static int XOTclClassInfoMixinofMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure,
                             char *patternString, XOTclObject *patternObj) {
   XOTclClassOpt *opt = class->opt;
-  int rc;
+  int rc = 0;
 
   if (opt && !withClosure) {
     rc = AppendMatchingElementsFromCmdList(interp, opt->isObjectMixinOf, patternString, patternObj);
@@ -13061,6 +13088,7 @@ Xotcl_Init(Tcl_Interp *interp) {
 #endif
     Tcl_CreateObjCommand(interp, "::xotcl::self", XOTclGetSelfObjCmd, 0, 0);
   /*Tcl_CreateObjCommand(interp, "::xotcl::K", XOTclKObjCmd, 0, 0);*/
+  Tcl_CreateObjCommand(interp, "::xotcl::instvar", XOTclInstvarCmd, 0, 0);
 
   Tcl_CreateObjCommand(interp, "::xotcl::createobjectsystem", XOTclCreateObjectSystemCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::dispatch", XOTclDispatchCmd, 0, 0);
@@ -13089,6 +13117,7 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "self", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "next", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "my", 0);
+  Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "instvar", 0);
 
 #ifdef XOTCL_BYTECODE
   XOTclBytecodeInit();
