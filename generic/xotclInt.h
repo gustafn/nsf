@@ -18,6 +18,10 @@
 #include <string.h>
 #include <assert.h>
 
+#if defined(HAVE_TCL_COMPILE_H)
+# include <tclCompile.h>
+#endif
+
 #if defined(PROFILE)
 #  include <sys/time.h>
 #endif
@@ -601,11 +605,12 @@ typedef struct XOTclCallStackContent {
 #define XOTCL_CSC_CALL_IS_DESTROY 2
 #define XOTCL_CSC_CALL_IS_GUARD 4
 
+#if !defined(TCL85STACK)
 typedef struct XOTclCallStack {
   XOTclCallStackContent content[MAX_NESTING_DEPTH];
   XOTclCallStackContent *top;
-  short guardCount;
 } XOTclCallStack;
+#endif
 
 #if defined(PROFILE)
 typedef struct XOTclProfile {
@@ -616,7 +621,9 @@ typedef struct XOTclProfile {
 #endif
 
 typedef struct XOTclRuntimeState {
+#if !defined(TCL85STACK)
   XOTclCallStack cs;
+#endif
   Tcl_Namespace *XOTclClassesNS;
   Tcl_Namespace *XOTclNS;
   /*
@@ -648,6 +655,7 @@ typedef struct XOTclRuntimeState {
 #if defined(PROFILE)
   XOTclProfile profile;
 #endif
+  short guardCount;
   ClientData clientData;
 } XOTclRuntimeState;
 

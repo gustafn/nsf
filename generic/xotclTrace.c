@@ -60,6 +60,7 @@ XOTclStackDump(Tcl_Interp *interp) {
   DECR_REF_COUNT(varCmdObj);
 }
 
+#if !defined(TCL85STACK)
 void
 XOTclCallStackDump(Tcl_Interp *interp) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
@@ -99,6 +100,11 @@ XOTclCallStackDump(Tcl_Interp *interp) {
     fprintf(stderr, "\n");
   }
 }
+#else
+void XOTclCallStackDump(Tcl_Interp *interp) {
+  /* dummy function, since this is referenced in stubs table */
+}
+#endif
 
 /* helper function to print the vars dynamically created on a
   callframe

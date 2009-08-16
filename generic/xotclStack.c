@@ -1,5 +1,73 @@
 #if !defined(TCL85STACK)
 
+XOTCLINLINE static XOTclCallStackContent *
+CallStackPush(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Command cmd, int frameType) {
+  XOTclCallStack *cs;
+  register XOTclCallStackContent *csc;
+
+  cs = &RUNTIME_STATE(interp)->cs;
+  if (cs->top >= &cs->content[MAX_NESTING_DEPTH-1]) {
+    Tcl_SetResult(interp, "too many nested calls to Tcl_EvalObj (infinite loop?)",
+                  TCL_STATIC);
+    return NULL;
+  }
+  csc = ++cs->top;
+  csc->self          = obj;
+  csc->cl            = cl;
+  csc->cmdPtr        = cmd;
+  csc->destroyedCmd  = NULL;
+  csc->frameType     = frameType;
+  csc->callType      = 0;
+#if !defined(TCL85STACK)
+  csc->currentFramePtr = NULL; /* this will be set by InitProcNSCmd */
+#endif
+  csc->filterStackEntry = frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER ? obj->filterStack : NULL;
+
+#if defined(TCL85STACK_TRACE)
+  fprintf(stderr, "PUSH csc %p type %d frame %p, obj %s, self=%p cmd=%p (%s) id=%p (%s)\n",
+          csc, frameType, Tcl_Interp_framePtr(interp), objectName(obj), obj,
+    cmd, (char *) Tcl_GetCommandName(interp, cmd),
+          obj->id, Tcl_GetCommandName(interp, obj->id));
+#endif
+
+  MEM_COUNT_ALLOC("CallStack", NULL);
+  return csc;
+}
+
+XOTCLINLINE static void
+CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  XOTclCallStackContent *csc;
+  XOTclCallStackContent *h = cs->top;
+
+  assert(cs->top > cs->content);
+  csc = cs->top;
+
+#if defined(TCL85STACK_TRACE)
+  fprintf(stderr, "POP  csc=%p, frame %p\n", csc, Tcl_Interp_framePtr(interp));
+#endif
+
+  if (csc->destroyedCmd) {
+    int destroy = 1;
+    TclCleanupCommand((Command *)csc->destroyedCmd);
+    MEM_COUNT_FREE("command refCount", csc->destroyedCmd);
+    /* do not physically destroy, when callstack still contains "self"
+       entries of the object */
+    while (--h > cs->content) {
+      if (h->self == csc->self) {
+        destroy = 0;
+        break;
+      }
+    }
+    if (destroy) {
+      CallStackDoDestroy(interp, csc->self);
+    }
+  }
+
+  cs->top--;
+  MEM_COUNT_FREE("CallStack", NULL);
+}
+
 Tcl_CallFrame * nonXotclObjectProcFrame(Tcl_CallFrame *framePtr) {return framePtr;}
 
 XOTCLINLINE static XOTclObject*
@@ -252,7 +320,7 @@ void CallStackPopAll(Tcl_Interp *interp) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
 
   while (cs->top > cs->content)
-    CallStackPop(interp);
+    CallStackPop(interp, NULL);
 
   while (1) {
     Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);

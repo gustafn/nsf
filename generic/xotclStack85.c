@@ -57,25 +57,25 @@ GetSelfObj(Tcl_Interp *interp) {
   /*fprintf(stderr, "GetSelfObj interp has frame %p and varframe %p\n",
     Tcl_Interp_framePtr(interp),Tcl_Interp_varFramePtr(interp));*/
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+    register int flag = Tcl_CallFrame_isProcCallFrame(varFramePtr);
 #if defined(TCL85STACK_TRACE)
     fprintf(stderr, "GetSelfObj check frame %p flags %.6x cd %p objv[0] %s\n",
             varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr), 
             Tcl_CallFrame_clientData(varFramePtr),
             Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
 #endif
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_OBJECT) {
-#if defined(TCL85STACK_TRACE)
-      fprintf(stderr, "... self returns %s\n",
-              objectName(((XOTclObject*)Tcl_CallFrame_clientData(varFramePtr))));
-#endif
-      return (XOTclObject *)Tcl_CallFrame_clientData(varFramePtr);
-    }
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+    if (flag & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
       XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
 #if defined(TCL85STACK_TRACE)
       fprintf(stderr, "... self returns %s\n",objectName(csc->self));
 #endif
       return csc->self;
+    } else if (flag & FRAME_IS_XOTCL_OBJECT) {
+#if defined(TCL85STACK_TRACE)
+      fprintf(stderr, "... self returns %s\n",
+              objectName(((XOTclObject*)Tcl_CallFrame_clientData(varFramePtr))));
+#endif
+      return (XOTclObject *)Tcl_CallFrame_clientData(varFramePtr);
     }
   }
   return NULL;
@@ -285,27 +285,6 @@ CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *obj) {
         tcl85showStack(interp);
      }
 */
-static int
-CallStackMarkDestroyed84dummy(Tcl_Interp *interp, XOTclObject *obj) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc;
-  int countSelfs = 0;
-  Tcl_Command oid = obj->id;
-
-  for (csc = &cs->content[1]; csc <= cs->top; csc++) {
-    if (csc->self == obj) {
-      /*csc->destroyedCmd = oid;
-        csc->callType |= XOTCL_CSC_CALL_IS_DESTROY;*/
-      fprintf(stderr,"84 setting destroy on csc %p for obj %p\n", csc, obj);
-      if (oid) {
-        /*Tcl_Command_refCount(csc->destroyedCmd)++;*/
-        MEM_COUNT_ALLOC("command refCount", csc->destroyedCmd);
-      }
-      countSelfs++;
-    }
-  }
-  return countSelfs;
-}
 
 static int
 CallStackMarkDestroyed(Tcl_Interp *interp, XOTclObject *obj) {
@@ -372,12 +351,55 @@ void CallStackPopAll(Tcl_Interp *interp) {
     Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
     if (!framePtr) break;
     if (Tcl_CallFrame_level(framePtr) == 0) break;
+#if 0
     if (Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
       /* free the call stack content; for now, we pop it from the allocation stack */
       CallStackPop(interp);
     }
+#endif
     /* pop the Tcl frame */
     Tcl_PopCallFrame(interp);
+  }
+}
+
+XOTCLINLINE static void
+CallStackPush(XOTclCallStackContent *csc, XOTclObject *obj, XOTclClass *cl, Tcl_Command cmd, int frameType) {
+  csc->self          = obj;
+  csc->cl            = cl;
+  csc->cmdPtr        = cmd;
+  csc->destroyedCmd  = NULL;
+  csc->frameType     = frameType;
+  csc->callType      = 0;
+  csc->filterStackEntry = frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER ? obj->filterStack : NULL;
+
+#if defined(TCL85STACK_TRACE)
+  fprintf(stderr, "PUSH csc %p type %d frame %p, obj %s, self=%p cmd=%p (%s) id=%p (%s)\n",
+          csc, frameType, Tcl_Interp_framePtr(interp), objectName(obj), obj,
+    cmd, (char *) Tcl_GetCommandName(interp, cmd),
+          obj->id, Tcl_GetCommandName(interp, obj->id));
+#endif
+}
+
+XOTCLINLINE static void
+CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *csc) {
+
+#if defined(TCL85STACK_TRACE)
+  fprintf(stderr, "POP  csc=%p, frame %p\n", csc);
+#endif
+
+  if (csc->destroyedCmd) {
+    int destroy = 1;
+    TclCleanupCommand((Command *)csc->destroyedCmd);
+    MEM_COUNT_FREE("command refCount", csc->destroyedCmd);
+    /* do not physically destroy, when callstack still contains "self"
+       entries of the object */
+
+    if (CallStackGetObjectFrame(interp, csc->self)) {
+      destroy = 0;
+    }
+    if (destroy) {
+      CallStackDoDestroy(interp, csc->self);
+    }
   }
 }
 #endif /* TCL85STACK */
