@@ -5053,20 +5053,14 @@ getVarAndNameFromHash(Tcl_HashEntry *hPtr, Var **val, Tcl_Obj **varNameObj) {
  * method dispatch
  */
 
-/* actually call a method (with assertion checking) */
+/* invoke a method implemented as a proc/instproc (with assertion checking) */
 static int
-callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-              char *methodName, 
-              XOTclObject *obj, XOTclClass *cl, Tcl_Command cmdPtr, int frameType,
-              int isTclProc, XOTclCallStackContent *csc) {
-  int result = TCL_OK;
+invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+         char *methodName, XOTclObject *obj, XOTclClass *cl, Tcl_Command cmdPtr, 
+         XOTclCallStackContent *csc) {
   XOTclRuntimeState *rst = RUNTIME_STATE(interp);
-  CheckOptions co;
-#if defined(PROFILE)
-  struct timeval trt;
-  long int startUsec = (gettimeofday(&trt, NULL), trt.tv_usec), startSec = trt.tv_sec;
-#endif
-#if defined(TCL85STACK)
+  int result;
+#if defined(PRE85)
   XOTcl_FrameDecls;
 #endif
 
@@ -5075,235 +5069,270 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
 
   rst->callIsDestroy = 0;
 
-#ifdef CALLSTACK_TRACE
-  XOTclCallStackDump(interp);
-#endif
-
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "+++ callProcCheck %s, isTclProc %d csc %p, frametype %d, teardown %p\n",
-          methodName, isTclProc, csc, frameType, obj->teardown);
+  fprintf(stderr, "+++ invokeProcMethod %s, isTclProc %d csc %p, frametype %d, teardown %p\n",
+          methodName, isTclProc, csc, csc->frameType, obj->teardown);
 #endif
 
-  if (isTclProc == 0) {
-    /*fprintf(stderr,".. calling cmd %s isTclProc %d tearDown %p csc %p\n",methodName,isTclProc,obj->teardown,csc);*/
+  /* 
+   * if this is a filter, check whether its guard applies,
+   * if not: just step forward to the next filter
+   */
 
-    if (obj->opt) {
-      co = obj->opt->checkoptions;
-      if ((co & CHECK_INVAR) &&
-          ((result = AssertionCheckInvars(interp, obj, methodName, co)) == TCL_ERROR)) {
-        goto finish;
-      }
-    }
-
-#if defined(TCL85STACK)
-    if (csc) {
-      /* We have a call stack content, but the following dispatch will
-       * by itself no stack it; in order to get e.g. self working, we
-       * have to stack at least an FRAME_IS_XOTCL_OBJECT.
-       * TODO: maybe push should happen already before assertion checking,
-       * but we have to check what happens in the finish target etc.
-       */
-      XOTcl_PushFrameCsc(interp, obj, csc);
-      /*XOTcl_PushFrame(interp, obj);*/
-    }
-#endif
-
-#ifdef DISPATCH_TRACE
-    printCall(interp,"callProcCheck cmd", objc, objv);
-    fprintf(stderr,"\tcmd=%s\n", Tcl_GetCommandName(interp, cmdPtr));
-#endif
-    result = (*Tcl_Command_objProc(cmdPtr))(cp, interp, objc, objv);
-#ifdef DISPATCH_TRACE
-    printExit(interp,"callProcCheck cmd", objc, objv, result);
-    /*fprintf(stderr, " returnCode %d xotcl rc %d\n",
-      Tcl_Interp_returnCode(interp), rst->returnCode);*/
-#endif
-
-#if defined(TCL85STACK)
-    if (csc) {
-      XOTcl_PopFrame(interp, obj);
-    }
-#endif
-
+  if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+    XOTclCmdList *cmdList;
     /*
-      if (obj && obj->teardown && cl && !(obj->flags & XOTCL_DESTROY_CALLED)) {
-      fprintf(stderr, "Obj= %s ", objectName(obj));
-      fprintf(stderr, "CL= %s ", className(cl));
-      fprintf(stderr, "method=%s\n", methodName);
-      }
-    */
-    /* The order of the if-condition below is important, since obj might be already
-       freed in case the call was a "dealloc" */
-    if (!rst->callIsDestroy && obj->opt) {
-      co = obj->opt->checkoptions;
-      if ((co & CHECK_INVAR) &&
-          ((result = AssertionCheckInvars(interp, obj, methodName, co)) == TCL_ERROR)) {
-        goto finish;
-      }
-    }
-  } else {
-    /* isTclProc == 1
-     * if this is a filter, check whether its guard applies,
-     * if not: just step forward to the next filter
+     * seek cmd in obj's filterOrder
      */
-
-    if (frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
-      XOTclCmdList *cmdList;
-      /*
-       * seek cmd in obj's filterOrder
-       */
-      assert(obj->flags & XOTCL_FILTER_ORDER_VALID);
-      /* otherwise: FilterComputeDefined(interp, obj);*/
-
-      for (cmdList = obj->filterOrder; cmdList && cmdList->cmdPtr != cmdPtr; cmdList = cmdList->nextPtr);
-
-      /*
-       * when it is found, check whether it has a filter guard
-       */
-      if (cmdList) {
-        int rc = GuardCall(obj, cl, (Tcl_Command) cmdList->cmdPtr, interp,
-                           cmdList->clientData, csc);
-        if (rc != TCL_OK) {
-          if (rc != TCL_ERROR) {
-            /*
-             * call next, use the given objv's, not the callstack objv
-             * we may not be in a method, thus there may be wrong or
-             * no callstackobjs
-             */
-            /*fprintf(stderr, "... calling nextmethod csc %p\n", csc); XOTclCallStackDump(interp);*/
-
-            /* the call stack content is not jet pushed to the tcl
-               stack, so we pass it here explicitely */
-            rc = XOTclNextMethod(obj, interp, cl, methodName,
-                                 objc, objv, /*useCallStackObjs*/ 0, csc);
-            /*fprintf(stderr, "... after nextmethod\n"); XOTclCallStackDump(interp);*/
-          }
-
-          return rc;
+    assert(obj->flags & XOTCL_FILTER_ORDER_VALID);
+    /* otherwise: FilterComputeDefined(interp, obj);*/
+    
+    for (cmdList = obj->filterOrder; cmdList && cmdList->cmdPtr != cmdPtr; cmdList = cmdList->nextPtr);
+    
+    /*
+     * when it is found, check whether it has a filter guard
+     */
+    if (cmdList) {
+      int rc = GuardCall(obj, cl, (Tcl_Command) cmdList->cmdPtr, interp,
+                         cmdList->clientData, csc);
+      if (rc != TCL_OK) {
+        if (rc != TCL_ERROR) {
+          /*
+           * call next, use the given objv's, not the callstack objv
+           * we may not be in a method, thus there may be wrong or
+           * no callstackobjs
+           */
+          /*fprintf(stderr, "... calling nextmethod csc %p\n", csc); XOTclCallStackDump(interp);*/
+          
+          /* the call stack content is not jet pushed to the tcl
+             stack, so we pass it here explicitely */
+          rc = XOTclNextMethod(obj, interp, cl, methodName,
+                               objc, objv, /*useCallStackObjs*/ 0, csc);
+          /*fprintf(stderr, "... after nextmethod\n"); XOTclCallStackDump(interp);*/
         }
+        
+        return rc;
       }
     }
-
-    if (obj->opt &&
-        (obj->opt->checkoptions & CHECK_PRE) &&
-        (result = AssertionCheck(interp, obj, cl, methodName, CHECK_PRE)) == TCL_ERROR) {
-      goto finish;
-    }
-
+  }
+  
+  if (obj->opt &&
+      (obj->opt->checkoptions & CHECK_PRE) &&
+      (result = AssertionCheck(interp, obj, cl, methodName, CHECK_PRE)) == TCL_ERROR) {
+    goto finish;
+  }
+  
 #ifdef DISPATCH_TRACE
-    printCall(interp,"callProcCheck tclCmd", objc, objv);
-    fprintf(stderr,"\tproc=%s\n", Tcl_GetCommandName(interp, cmdPtr));
+  printCall(interp,"invokeProcMethod", objc, objv);
+  fprintf(stderr,"\tproc=%s\n", Tcl_GetCommandName(interp, cmdPtr));
 #endif
-
-    /*
-     * In case, we have Tcl 8.5.* or better, we can avoid calling the
-     * standard TclObjInterpProc() and ::xotcl::initProcNS defined in
-     * the method, since Tcl 8.5 has a separate functions
-     * PushProcCallFrame() and TclObjInterpProcCore(), where the
-     * latter is callable from the outside (e.g. from XOTcl). This new
-     * interface allows us to setup the XOTcl callframe before the
-     * bytecode of the method body (provisioned by PushProcCallFrame)
-     * is executed. On the medium range, we do not need the xotcl
-     * callframe when we stop supporting Tcl 8.4 (we should simply use
-     * the calldata field in the callstack), which should be managed
-     * here or in PushProcCallFrame. At the same time, we could do the
-     * non-pos-arg handling here as well.
-     */
+  
+  /*
+   * In case, we have Tcl 8.5.* or better, we can avoid calling the
+   * standard TclObjInterpProc() and ::xotcl::initProcNS defined in
+   * the method, since Tcl 8.5 has a separate functions
+   * PushProcCallFrame() and TclObjInterpProcCore(), where the
+   * latter is callable from the outside (e.g. from XOTcl). This new
+   * interface allows us to setup the XOTcl callframe before the
+   * bytecode of the method body (provisioned by PushProcCallFrame)
+   * is executed. On the medium range, we do not need the xotcl
+   * callframe when we stop supporting Tcl 8.4 (we should simply use
+   * the calldata field in the callstack), which should be managed
+   * here or in PushProcCallFrame. At the same time, we could do the
+   * non-pos-arg handling here as well.
+   */
 #if !defined(PRE85)
-    /*fprintf(stderr,"\tproc=%s cp=%p %d\n", Tcl_GetCommandName(interp, cmd),cp, isTclProc);*/
-
+  /*fprintf(stderr,"\tproc=%s cp=%p %d\n", Tcl_GetCommandName(interp, cmd),cp, isTclProc);*/
+  
 # if defined(CANONICAL_ARGS)
-    /* 
-       If the method to be invoked hasnonposArgs, we have to call the
-       argument parser with the argument definitions. The argument
-       definitions are looked up in canonicalNonpositionalArgs() via a
-       hash table, which causes a per-proc overhead. It would be
-       certainly nicer and more efficient to store both the argument
-       definitions in the Tcl Proc structure, which has unfortunately
-       no clientData.
-
-       If would be already nice if the Proc structure would contain a
-       "flags" variable, where we could check, whether nonposArgs are
-       provided. This would make method invocations as efficient as
-       without nonposArgs.
-
-     */
-    {
-      parseContext pc;
-      int rc = canonicalNonpositionalArgs(&pc, interp, csc, methodName, objc, objv);
-
-      if (rc == TCL_CONTINUE) {
-	result = PushProcCallFrame(cp, interp, objc, objv, csc);
-      } else if (rc == TCL_OK) {
-	result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, csc);
-        /* maybe release is to early */
-        parseContextRelease(&pc);
-      } else {
-        result = TCL_ERROR;
-      }
-    }
-# else /* no CANONICAL ARGS */
-    result = PushProcCallFrame(cp, interp, objc, objv, csc);
-# endif 
-
-    if (result == TCL_OK) {
-#if !defined(TCL85STACK)
-      rst->cs.top->currentFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
-#endif
-      result = TclObjInterpProcCore(interp, objv[0], 1, &MakeProcError);
+  /* 
+     If the method to be invoked hasnonposArgs, we have to call the
+     argument parser with the argument definitions. The argument
+     definitions are looked up in canonicalNonpositionalArgs() via a
+     hash table, which causes a per-proc overhead. It would be
+     certainly nicer and more efficient to store both the argument
+     definitions in the Tcl Proc structure, which has unfortunately
+     no clientData.
+     
+     If would be already nice if the Proc structure would contain a
+     "flags" variable, where we could check, whether nonposArgs are
+     provided. This would make method invocations as efficient as
+     without nonposArgs.
+     
+  */
+  {
+    parseContext pc;
+    result = canonicalNonpositionalArgs(&pc, interp, csc, methodName, objc, objv);
+    
+    if (result == TCL_CONTINUE) {
+      result = PushProcCallFrame(cp, interp, objc, objv, csc);
+    } else if (result == TCL_OK) {
+      result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, csc);
+      /* maybe release is to early */
+      parseContextRelease(&pc);
     } else {
       result = TCL_ERROR;
     }
+  }
+# else /* no CANONICAL ARGS */
+  result = PushProcCallFrame(cp, interp, objc, objv, csc);
+# endif 
+
+  /*
+   * The stack frame is pushed, we could do something here before
+   * running the byte code of the body.
+   */
+  if (result == TCL_OK) {
+#if !defined(TCL85STACK)
+    rst->cs.top->currentFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
+#endif
+    result = TclObjInterpProcCore(interp, objv[0], 1, &MakeProcError);
+  } else {
+    result = TCL_ERROR;
+  }
 # if defined(TCL85STACK_TRACE)
-    fprintf(stderr,"POP  OBJECT_FRAME (implicit) frame %p csc %p\n", NULL, csc);
+  fprintf(stderr,"POP  OBJECT_FRAME (implicit) frame %p csc %p\n", NULL, csc);
 # endif
 #else /* BEFORE TCL85 */
-    result = (*Tcl_Command_objProc(cmdPtr))(cp, interp, objc, objv);
+  result = (*Tcl_Command_objProc(cmdPtr))(cp, interp, objc, objv);
 #endif
 
 #ifdef DISPATCH_TRACE
-    printExit(interp,"callProcCheck tclCmd", objc, objv, result);
-    /* fprintf(stderr, " returnCode %d xotcl rc %d\n",
-       Tcl_Interp_returnCode(interp), result);*/
+  printExit(interp,"invokeProcMethod", objc, objv, result);
+  /* fprintf(stderr, " returnCode %d xotcl rc %d\n",
+     Tcl_Interp_returnCode(interp), result);*/
 #endif
 
-    /*    fprintf(stderr, "dispatch returned %d rst = %d\n", result, rst->returnCode);*/
+  /*    fprintf(stderr, "dispatch returned %d rst = %d\n", result, rst->returnCode);*/
 
-    /* we give the information whether the call has destroyed the
-       object back to the caller, because after CallStackPop it
-       cannot be retrieved via the call stack */
-    /* if the object is destroyed -> the assertion structs's are already
-       destroyed */
-    if (csc->callType & XOTCL_CSC_CALL_IS_DESTROY) {
-      rst->callIsDestroy = 1;
-      /*fprintf(stderr,"callProcCheck: setting callIsDestroy = 1 method = %s\n",
-	methodName);*/
+  /* we give the information whether the call has destroyed the
+     object back to the caller via the runtime state, because after CallStackPop it
+     cannot be retrieved via the call stack */
+  if (csc->callType & XOTCL_CSC_CALL_IS_DESTROY) {
+    rst->callIsDestroy = 1;
+    /*fprintf(stderr,"invokeProcMethod: setting callIsDestroy = 1 method = %s\n",
+      methodName);*/
+  }
+
+  if (obj->opt && /*!rst->callIsDestroy &&*/ obj->teardown &&
+      (obj->opt->checkoptions & CHECK_POST)) {
+    result = AssertionCheck(interp, obj, cl, methodName, CHECK_POST);
+  }
+ finish:
+  return result;
+}
+
+/* Invoke a method implemented as a cmd (with assertion checking) */
+static int
+invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+        char *methodName, XOTclObject *obj, Tcl_Command cmdPtr,
+        XOTclCallStackContent *csc) {
+  XOTclRuntimeState *rst = RUNTIME_STATE(interp);
+  CheckOptions co;
+  int result;
+#if defined(TCL85STACK)
+  XOTcl_FrameDecls;
+#endif
+
+  assert(obj);
+  assert(!obj->teardown);
+
+  rst->callIsDestroy = 0;
+  
+#if defined(TCL85STACK_TRACE)
+  fprintf(stderr, "+++ invokeCmdMethodCheck %s, isTclProc %d csc %p, teardown %p\n",
+          methodName, isTclProc, csc, obj->teardown);
+#endif
+
+  /*fprintf(stderr,".. calling cmd %s isTclProc %d tearDown %p csc %p\n",methodName,isTclProc,obj->teardown,csc);*/
+
+  if (obj->opt) {
+    co = obj->opt->checkoptions;
+    if ((co & CHECK_INVAR) &&
+        ((result = AssertionCheckInvars(interp, obj, methodName, co)) == TCL_ERROR)) {
+      goto finish;
     }
-
-    if (obj->opt && !rst->callIsDestroy && obj->teardown &&
-        (obj->opt->checkoptions & CHECK_POST) &&
-        (result = AssertionCheck(interp, obj, cl, methodName, CHECK_POST) == TCL_ERROR)) {
+  }
+  
+#if defined(TCL85STACK)
+  if (csc) {
+    /* We have a call stack content, but the following dispatch will
+     * by itself no stack it; in order to get e.g. self working, we
+     * have to stack at least an FRAME_IS_XOTCL_OBJECT.
+     * TODO: maybe push should happen already before assertion checking,
+     * but we have to check what happens in the finish target etc.
+     */
+    XOTcl_PushFrameCsc(interp, obj, csc);
+    /*XOTcl_PushFrame(interp, obj);*/
+  }
+#endif
+  
+#ifdef DISPATCH_TRACE
+  printCall(interp,"invokeCmdMethod cmd", objc, objv);
+  fprintf(stderr,"\tcmd=%s\n", Tcl_GetCommandName(interp, cmdPtr));
+#endif
+  result = (*Tcl_Command_objProc(cmdPtr))(cp, interp, objc, objv);
+#ifdef DISPATCH_TRACE
+  printExit(interp,"invokeCmdMethod cmd", objc, objv, result);
+  /*fprintf(stderr, " returnCode %d xotcl rc %d\n",
+    Tcl_Interp_returnCode(interp), rst->returnCode);*/
+#endif
+  
+#if defined(TCL85STACK)
+  if (csc) {
+    XOTcl_PopFrame(interp, obj);
+  }
+#endif
+  
+  /* The order of the if-condition below is important, since obj might be already
+     freed in case the call was a "dealloc" */
+  if (!rst->callIsDestroy && obj->opt) {
+    co = obj->opt->checkoptions;
+    if ((co & CHECK_INVAR) &&
+        ((result = AssertionCheckInvars(interp, obj, methodName, co)) == TCL_ERROR)) {
       goto finish;
     }
   }
 
  finish:
-#if defined(PROFILE)
-  if (rst->callIsDestroy == 0) {
-    XOTclProfileEvaluateData(interp, startSec, startUsec, obj, cl, methodName);
-  }
-#endif
   return result;
 }
 
+#if defined(PROFILE)
 static int
-DoCallProcCheck(ClientData clientData, Tcl_Interp *interp,
-                int objc, Tcl_Obj *CONST objv[],
-                Tcl_Command cmd, XOTclObject *obj, XOTclClass *cl,
-                char *methodName, int frameType) {
-  int rc, isTclProc = 0;
+InvokeMethod(ClientData clientData, Tcl_Interp *interp,
+             int objc, Tcl_Obj *CONST objv[], Tcl_Command cmd, XOTclObject *obj, XOTclClass *cl,
+             char *methodName, int frameType) {
+  struct timeval trt;
+  long int startUsec = (gettimeofday(&trt, NULL), trt.tv_usec), startSec = trt.tv_sec;
+  XOTclRuntimeState *rst = RUNTIME_STATE(interp);
+
+  result = __InvokeMethod__(clientData, interp, objc, objv, cmd, obj, cl, methodName, frameType);
+
+  if (rst->callIsDestroy == 0) {
+    XOTclProfileEvaluateData(interp, startSec, startUsec, obj, cl, methodName);
+  }
+  return result;
+}
+# define InvokeMethod __InvokeMethod__
+#endif
+
+/*
+ * InvokeMethod() calls an XOTcl method. It calls either a
+ * Tcl-implemented method (via invokeProcMethod()) or a C-implemented
+ * method (via invokeCmdMethod()) and sets up stack and client data
+ * accordingly.
+ */
+
+static int
+InvokeMethod(ClientData clientData, Tcl_Interp *interp,
+             int objc, Tcl_Obj *CONST objv[],
+             Tcl_Command cmd, XOTclObject *obj, XOTclClass *cl,
+             char *methodName, int frameType) {
   ClientData cp = Tcl_Command_objClientData(cmd);
   XOTclCallStackContent csc, *cscPtr = &csc;
+  register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
+  int rc;
 
   assert (!obj->teardown);
   /* before, we had a logic like the following:
@@ -5311,23 +5340,22 @@ DoCallProcCheck(ClientData clientData, Tcl_Interp *interp,
     return TCL_OK;
     } */
 
-  /*fprintf(stderr, "DoCallProcCheck method '%s' cmd %p cp=%p objc=%d\n",methodName,cmd, cp, objc);*/
+  /*fprintf(stderr, "InvokeMethod method '%s' cmd %p cp=%p objc=%d\n",methodName,cmd, cp, objc);*/
 
-  if (cp) {
-    register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
-
-    /* push the xotcl info */
+  if (proc == TclObjInterpProc) {
 #if defined(TCL85STACK)
     CallStackPush(cscPtr, obj, cl, cmd, frameType);
 #else
     if (!(cscPtr = CallStackPush(interp, obj, cl, cmd, frameType))) 
       return TCL_ERROR;
 #endif
+    rc = invokeProcMethod(cp, interp, objc, objv, methodName, obj, cl, cmd, cscPtr);
+    CallStackPop(interp, cscPtr);
+    return rc;
 
-    if (proc == TclObjInterpProc) {
-      assert((TclIsProc((Command *)cmd)));
-      isTclProc = 1;
-    } else if (proc == XOTclObjDispatch) {
+  } else if (cp) {
+    /* a cmd with client data */
+    if (proc == XOTclObjDispatch) {
       assert((TclIsProc((Command *)cmd) == NULL));
       /*fprintf(stderr,"\t ObjDispatch\n");*/
     } else if (proc == XOTclForwardMethod ||
@@ -5340,17 +5368,20 @@ DoCallProcCheck(ClientData clientData, Tcl_Interp *interp,
       assert((TclIsProc((Command *)cmd) == NULL));
     }
 
+#if defined(TCL85STACK)
+    CallStackPush(cscPtr, obj, cl, cmd, frameType);
+#else
+    if (!(cscPtr = CallStackPush(interp, obj, cl, cmd, frameType))) 
+      return TCL_ERROR;
+#endif
   } else {
+    /* a cmd without client data */
     assert((TclIsProc((Command *)cmd) == NULL));
     cp = clientData;
     cscPtr = NULL;
   }
 
-  /*fprintf(stderr,"... DoCallProcCheck %s csc=%p, obj=%s\n", methodName, cscPtr, objectName(obj));*/
-  
-  /*{int i; fprintf(stderr, "\tCALL ");for(i=0; i<objc; i++) {fprintf(stderr,"%s ", ObjStr(objv[i]));} fprintf(stderr,"\n");}*/
-  
-  rc = callProcCheck(cp, interp, objc, objv, methodName, obj, cl, cmd, frameType, isTclProc, cscPtr);
+  rc = invokeCmdMethod(cp, interp, objc, objv, methodName, obj, cmd, cscPtr);
 
   if (cscPtr) {
     CallStackPop(interp, cscPtr);
@@ -5502,10 +5533,10 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     }
 
     if (!unknown) {
-      /*fprintf(stderr,"DoDispatch calls DoCallProcCheck with obj = %s frameType %d\n",
+      /*fprintf(stderr,"DoDispatch calls InvokeMethod with obj = %s frameType %d\n",
 	objectName(obj), frameType);*/
-      if ((result = DoCallProcCheck(clientData, interp, objc-1, objv+1, cmd, obj, cl,
-				    methodName, frameType)) == TCL_ERROR) {
+      if ((result = InvokeMethod(clientData, interp, objc-1, objv+1, cmd, obj, cl,
+                                 methodName, frameType)) == TCL_ERROR) {
 	result = XOTclErrInProc(interp, cmdName,
 				cl ? cl->object.cmdName : NULL,
 				methodName);
@@ -6792,8 +6823,8 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
     }
     csc->callType |= XOTCL_CSC_CALL_IS_NEXT;
     RUNTIME_STATE(interp)->unknown = 0;
-    result = DoCallProcCheck((ClientData)obj, interp, nobjc, nobjv, cmd,
-                             obj, *cl, *methodName, frameType);
+    result = InvokeMethod((ClientData)obj, interp, nobjc, nobjv, cmd,
+                          obj, *cl, *methodName, frameType);
 
     csc->callType &= ~XOTCL_CSC_CALL_IS_NEXT;
 
@@ -9019,10 +9050,10 @@ XOTclDispatchCmd(ClientData clientData, Tcl_Interp *interp,
 			    tail, "'", (char *) NULL);
     }
 
-    result = DoCallProcCheck((ClientData)obj, interp,
-			     objc-2, objv+2, cmd, obj,
-			     NULL /*XOTclClass *cl*/, tail,
-			     XOTCL_CSC_TYPE_PLAIN);
+    result = InvokeMethod((ClientData)obj, interp,
+                          objc-2, objv+2, cmd, obj,
+                          NULL /*XOTclClass *cl*/, tail,
+                          XOTCL_CSC_TYPE_PLAIN);
   } else {
     /* no colons, use method from dispatch order, with filters etc. -
        strictly speaking unneccessary, but can be used to invoke protected methods */
@@ -9982,8 +10013,8 @@ static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int no
                             ": unable to dispatch local method '",
                             methodName, "' in class ", className(cl),
                             (char *) NULL);
-    result = DoCallProcCheck((ClientData)self, interp, nobjc+2, nobjv, cmd, self, cl,
-                             methodName, 0);
+    result = InvokeMethod((ClientData)self, interp, nobjc+2, nobjv, cmd, self, cl,
+                          methodName, 0);
   } else {
     result = callMethod((ClientData)self, interp, method, nobjc+2, nobjv, 0);
   }
