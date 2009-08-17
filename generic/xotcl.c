@@ -1503,8 +1503,7 @@ XOTclIsClass(Tcl_Interp *interp, ClientData clientData) {
 /*
  * methods lookup
  */
-XOTCLINLINE
-static Tcl_Command
+XOTCLINLINE static Tcl_Command
 FindMethod(char *methodName, Tcl_Namespace *nsPtr) {
   register Tcl_HashEntry *entryPtr;
   if ((entryPtr = XOTcl_FindHashEntry(Tcl_Namespace_cmdTable(nsPtr), methodName))) {
@@ -1517,21 +1516,22 @@ FindMethod(char *methodName, Tcl_Namespace *nsPtr) {
 static XOTclClass*
 SearchPLMethod(XOTclClasses *pl, char *methodName, Tcl_Command *cmd) {
   /* Search the precedence list (class hierarchy) */
-#if 0
-  Tcl_HashEntry *entryPtr;
-  if ((entryPtr = XOTcl_FindHashEntry(Tcl_Namespace_cmdTable(pl->cl->nsPtr), methodName))) {
-    *cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
-    return pl->cl;
+#if 1
+  for (; pl;  pl = pl->nextPtr) {
+    register Tcl_HashEntry *entryPtr = XOTcl_FindHashEntry(Tcl_Namespace_cmdTable(pl->cl->nsPtr), methodName);
+    if (entryPtr) {
+      *cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
+      return pl->cl;
+    }
   }
-}
 #else
-for (; pl;  pl = pl->nextPtr) {
-  if ((*cmd = FindMethod(methodName, pl->cl->nsPtr))) {
-    return pl->cl;
+  for (; pl;  pl = pl->nextPtr) {
+    if ((*cmd = FindMethod(methodName, pl->cl->nsPtr))) {
+      return pl->cl;
+    }
   }
- }
 #endif
-return NULL;
+  return NULL;
 }
 
 
@@ -5398,9 +5398,6 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   int result = TCL_OK, mixinStackPushed = 0,
     filterStackPushed = 0, unknown = 0, objflags,
     frameType = XOTCL_CSC_TYPE_PLAIN;
-#ifdef OBJDELETION_TRACE
-  Tcl_Obj *method;
-#endif
   char *methodName;
   XOTclClass *cl = NULL;
   Tcl_Command cmd = NULL;
@@ -5418,12 +5415,14 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 #endif
 
 #ifdef OBJDELETION_TRACE
-  method = objv[1];
-  if (method == XOTclGlobalObjects[XOTE_CLEANUP] ||
-      method == XOTclGlobalObjects[XOTE_DESTROY]) {
-    fprintf(stderr, "%s->%s id=%p destroyCalled=%d\n",
-            ObjStr(cmdName), methodName, obj,
-            (obj->flags & XOTCL_DESTROY_CALLED));
+  {
+    Tcl_Obj *method = objv[1];
+    if (method == XOTclGlobalObjects[XOTE_CLEANUP] ||
+        method == XOTclGlobalObjects[XOTE_DESTROY]) {
+      fprintf(stderr, "%s->%s id=%p destroyCalled=%d\n",
+              ObjStr(cmdName), methodName, obj,
+              (obj->flags & XOTCL_DESTROY_CALLED));
+    }
   }
 #endif
 
@@ -5467,43 +5466,44 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     }
   }
 
-    /* check if a mixin is to be called.
-       don't use mixins on next method calls, since normally it is not
-       intercepted (it is used as a primitive command).
-       don't use mixins on init calls, since init is invoked on mixins
-       during mixin registration (in XOTclOMixinMethod)
-    */
+  /* check if a mixin is to be called.
+     don't use mixins on next method calls, since normally it is not
+     intercepted (it is used as a primitive command).
+     don't use mixins on init calls, since init is invoked on mixins
+     during mixin registration (in XOTclOMixinMethod)
+  */
   if ((obj->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) == XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
-
-      mixinStackPushed = MixinStackPush(obj);
-
-      if (frameType != XOTCL_CSC_TYPE_ACTIVE_FILTER) {
-        cmd = MixinSearchProc(interp, obj, methodName, &cl,
-                              &obj->mixinStack->currentCmdPtr);
-        if (cmd) {
-          frameType = XOTCL_CSC_TYPE_ACTIVE_MIXIN;
-        } else { /* the else branch could be deleted */
-          MixinStackPop(obj);
-          mixinStackPushed = 0;
-        }
+    
+    mixinStackPushed = MixinStackPush(obj);
+      
+    if (frameType != XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+      cmd = MixinSearchProc(interp, obj, methodName, &cl,
+                            &obj->mixinStack->currentCmdPtr);
+      if (cmd) {
+        frameType = XOTCL_CSC_TYPE_ACTIVE_MIXIN;
+      } else { /* the else branch could be deleted */
+        MixinStackPop(obj);
+        mixinStackPushed = 0;
       }
     }
-
-
+  }
+  
   /* if no filter/mixin is found => do ordinary method lookup */
   if (cmd == NULL) {
 
+    /* do we have a object-specific proc? */
     if (obj->nsPtr) {
       cmd = FindMethod(methodName, obj->nsPtr);
       /* fprintf(stderr,"lookup for proc in obj %p method %s nsPtr %p => %p\n",
          obj, methodName, obj->nsPtr, cmd);*/
     }
-
     /*fprintf(stderr,"findMethod for proc '%s' in %p returned %p\n", methodName, obj->nsPtr, cmd);*/
-
+    
     if (cmd == NULL) {
-      if (obj->cl->order == NULL) obj->cl->order = TopoOrder(obj->cl, Super);
-      cl = SearchPLMethod(obj->cl->order, methodName, &cmd);
+      /* check for a method */
+      XOTclClass *currentClass = obj->cl;
+      if (currentClass->order == NULL) currentClass->order = TopoOrder(currentClass, Super);
+      cl = SearchPLMethod(currentClass->order, methodName, &cmd);
     }
   }
 
@@ -8428,6 +8428,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
             && (strcmp(newNameString, localName) == 0)) {
           varPtr = getNthVar(localVarPtr, i);
           new = 0;
+          /*fprintf(stderr, "var in locals: %s\n",newNameString);*/
           break;
         }
       }
