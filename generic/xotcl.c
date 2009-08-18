@@ -164,9 +164,8 @@ typedef struct {
 } parseContext;
 
 #if defined(CANONICAL_ARGS)
-int canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, 
-                               XOTclCallStackContent *csc, char *procName,
-                               int objc,  Tcl_Obj *CONST objv[]);
+int canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, Tcl_Command cmdPtr,
+                               XOTclCallStackContent *csc, int objc,  Tcl_Obj *CONST objv[]);
 #endif
 void parseContextInit(parseContext *pc, int objc, Tcl_Obj *procName) {
   if (objc < PARSE_CONTEXT_PREALLOC) {
@@ -5049,6 +5048,24 @@ getVarAndNameFromHash(Tcl_HashEntry *hPtr, Var **val, Tcl_Obj **varNameObj) {
 }
 
 
+/* xxx */
+typedef struct XOTclProcContext {
+  ClientData oldDeleteData;
+  Tcl_CmdDeleteProc *oldDeleteProc;
+  XOTclNonposArgs *nonposArgs;
+} XOTclProcContext;
+
+void XOTclProcDeleteProc(ClientData clientData) {
+  XOTclProcContext *ctxPtr = (XOTclProcContext *)clientData;
+  (*ctxPtr->oldDeleteProc)(ctxPtr->oldDeleteData);
+  if (ctxPtr->nonposArgs) {
+    fprintf(stderr, "would free %p\n",ctxPtr->nonposArgs);
+    /*FREE(XOTclProcContext, ctxPtr->clientData);*/
+  }
+  /*fprintf(stderr, "free %p\n",ctxPtr);*/
+  FREE(XOTclProcContext, ctxPtr);
+}
+
 /*
  * method dispatch
  */
@@ -5162,8 +5179,8 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   */
   {
     parseContext pc;
-    result = canonicalNonpositionalArgs(&pc, interp, csc, methodName, objc, objv);
-    
+
+    result = canonicalNonpositionalArgs(&pc, interp, cmdPtr, csc, objc, objv);
     if (result == TCL_CONTINUE) {
       result = PushProcCallFrame(cp, interp, objc, objv, csc);
     } else if (result == TCL_OK) {
@@ -6090,7 +6107,7 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
       nonposArg->ifdSize = ifPtr-interface;
       /*fprintf(stderr, "method %s ifsize %d, possible unknowns = %d,\n",
 	procName,ifPtr-interface,possibleUnknowns);*/
-      parsedIfPtr->ifd = interface; /* TODO only necessary for CANONICAL_ARGS */
+      parsedIfPtr->nonposArgs = nonposArg; /* TODO only necessary for CANONICAL_ARGS */
       parsedIfPtr->possibleUnknowns = possibleUnknowns; /* TODO only necessary for CANONICAL_ARGS */
       Tcl_SetHashValue(hPtr, (ClientData)nonposArg);
     } else {
@@ -6112,7 +6129,7 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_HashTable **nonp
   char *procName = ObjStr(name);
   XOTclParsedInterfaceDefinition parsedIf;
 
-  parsedIf.ifd = NULL;
+  parsedIf.nonposArgs = NULL;
   parsedIf.possibleUnknowns = 0;
 
   if (*nonposArgsTable && (hPtr = XOTcl_FindHashEntry(*nonposArgsTable, procName))) {
@@ -6162,7 +6179,7 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_HashTable **nonp
 # if defined(CANONICAL_ARGS)
     argDefinition *aPtr;
     Tcl_Obj *argList = Tcl_NewListObj(0, NULL);
-    for (aPtr = parsedIf.ifd; aPtr->name; aPtr++) {
+    for (aPtr = parsedIf.nonposArgs->ifd; aPtr->name; aPtr++) {
       if (*aPtr->name == '-') {
 	Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(aPtr->name+1,-1));
       } else {
@@ -6187,8 +6204,7 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_HashTable **nonp
 #if defined(NAMESPACEINSTPROCS)
   {
     Proc *procPtr = TclFindProc((Interp *)interp, procName);
-    /*fprintf(stderr,"proc=%p cmd=%p ns='%s' objns=%s\n", procPtr, procPtr->cmdPtr,
-      procPtr->cmdPtr->nsPtr->fullName, cmd->nsPtr->fullName);*/
+
     /*** patch the command ****/
     if (procPtr) {
       if (clsns) {
@@ -6204,6 +6220,16 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_HashTable **nonp
 	/* set the namespace of the method to the same namespace the class has */
 	procPtr->cmdPtr->nsPtr = ((Command *)obj->id)->nsPtr;
       }
+    }
+    { /* TODO accessInt, make it 1st class */
+      Command *cmdPtr = procPtr->cmdPtr;
+      XOTclProcContext *ctxPtr = NEW(XOTclProcContext);
+
+      ctxPtr->oldDeleteData = (Proc *)cmdPtr->deleteData;
+      ctxPtr->oldDeleteProc = cmdPtr->deleteProc;
+      cmdPtr->deleteProc = XOTclProcDeleteProc;
+      ctxPtr->nonposArgs = parsedIf.nonposArgs;
+      cmdPtr->deleteData = (ClientData)ctxPtr;
     }
   }
 #endif
@@ -12172,13 +12198,17 @@ isNonposArg(Tcl_Interp *interp, char * argStr,
 
 #if defined(CANONICAL_ARGS)
 int
-canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, 
-                           XOTclCallStackContent *csc, char *methodName,
-                           int objc,  Tcl_Obj *CONST objv[]) {
-  Tcl_HashTable *nonposArgsTable = csc->cl ? csc->cl->nonposArgsTable : csc->self->nonposArgsTable;
-  XOTclNonposArgs *nonposArgs = NonposArgsGet(nonposArgsTable, methodName);
+canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, Tcl_Command cmdPtr,
+                           XOTclCallStackContent *csc, int objc,  Tcl_Obj *CONST objv[]) {
+  XOTclNonposArgs *nonposArgs;
   argDefinition CONST *aPtr;
   int i, rc;
+  
+  if (Tcl_Command_deleteProc(cmdPtr) == XOTclProcDeleteProc) {
+    nonposArgs = ((XOTclProcContext *)Tcl_Command_deleteData(cmdPtr))->nonposArgs;
+  } else {
+    nonposArgs = NULL;
+  }
 
   if (!nonposArgs) {return TCL_CONTINUE;}
 
@@ -12201,7 +12231,7 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp,
       if (aPtr->converter == convertToSwitch) {
         int bool;
         Tcl_GetBooleanFromObj(interp,  aPtr->defaultValue, &bool);
-	pcPtr->objv[i] = Tcl_NewBooleanObj(!bool); /* TODO check for leak? */
+	pcPtr->objv[i] = Tcl_NewBooleanObj(!bool); 
       }
     } else {
       /* no valued passed, check if default is available */
@@ -12210,6 +12240,7 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp,
         /* TODO: default value is not jet checked; should be in arg parsing */
         /*fprintf(stderr,"==> setting default value '%s' for var '%s'\n",ObjStr(aPtr->defaultValue),argName);*/
       } else if (aPtr->required) {
+        char *methodName = (char *)Tcl_GetCommandName(interp, csc->cmdPtr);
         return XOTclVarErrMsg(interp, "method ",methodName, ": required argument '",
                               argName, "' is missing", (char *) NULL);
       } else {
@@ -12261,14 +12292,6 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp,
        * __unknown__ value is not to make it through
        * tclProc.c:InitArgsAndLocals
        *
-       * TODO: Should unsetUnknownArgs handle 'args' with an
-       * __unknown__ value separately, effectively setting it to an
-       * emtpy list rep (empty string) rather than unsetting the
-       * 'args' var?
-       *
-       * stefan, man sollte für "args" das __unknown__ nicht
-       * benötigen, unsetUnknownArgs() sollte für den args-fall nicht
-       * notwendig sein, die standardmäßige tcl-logik sollte hier ausreichen.
        */
       if (elts == 0) {
 	  pcPtr->objc--;
@@ -12300,8 +12323,8 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp,
 }
 
 /* XOTclUnsetUnknownArgsCmd was developed and tested for Tcl 8.5 and
-   needs probably modifications in earlier versions. However, since
-   CANONICAL_ARGS requires Tcl 8.5 this is not an issue.
+ * needs probably modifications for earlier versions of Tcl. However,
+ * since CANONICAL_ARGS requires Tcl 8.5 this is not an issue.
  */
 int
 XOTclUnsetUnknownArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,

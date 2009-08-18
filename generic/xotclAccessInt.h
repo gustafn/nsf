@@ -37,6 +37,7 @@
 #define Tcl_Command_proc(cmd)          ((Command *)cmd)->proc
 #define Tcl_Command_clientData(cmd)    ((Command *)cmd)->clientData
 #define Tcl_Command_deleteProc(cmd)    ((Command *)cmd)->deleteProc
+#define Tcl_Command_deleteData(cmd)    ((Command *)cmd)->deleteData
 
 /*
  * Conversion from CmdPtr to Class / Object

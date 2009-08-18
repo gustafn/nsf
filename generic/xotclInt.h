@@ -450,7 +450,7 @@ typedef struct XOTclNonposArgs {
 } XOTclNonposArgs;
 
 typedef struct XOTclParsedInterfaceDefinition {
-  argDefinition *ifd;
+  XOTclNonposArgs *nonposArgs;
   int possibleUnknowns;
 } XOTclParsedInterfaceDefinition;
 
