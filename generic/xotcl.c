@@ -164,7 +164,7 @@ typedef struct {
 } parseContext;
 
 #if defined(CANONICAL_ARGS)
-int canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, Tcl_Command cmdPtr,
+int canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclNonposArgs *nonposArgs,
                                XOTclCallStackContent *csc, int objc,  Tcl_Obj *CONST objv[]);
 #endif
 void parseContextInit(parseContext *pc, int objc, Tcl_Obj *procName) {
@@ -5066,6 +5066,47 @@ void XOTclProcDeleteProc(ClientData clientData) {
   FREE(XOTclProcContext, ctxPtr);
 }
 
+static Proc *FindProc(Tcl_Interp *interp, Tcl_HashTable *table, char *name);
+
+static Proc *
+getObjectProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName) {
+  if (obj->nsPtr) {
+    return FindProc(interp, Tcl_Namespace_cmdTable(obj->nsPtr), methodName);
+  }
+  return NULL;
+}
+
+static Proc *
+getClassProc(Tcl_Interp *interp, XOTclClass *class, char *methodName) {
+  return FindProc(interp, Tcl_Namespace_cmdTable(class->nsPtr), methodName);
+}
+
+static XOTclNonposArgs *
+getNonposArgs(Tcl_Command cmdPtr) {
+  if (Tcl_Command_deleteProc(cmdPtr) == XOTclProcDeleteProc) {
+    return ((XOTclProcContext *)Tcl_Command_deleteData(cmdPtr))->nonposArgs;
+  }
+  return NULL;
+}
+
+static int
+addNonposArgs(Tcl_Interp *interp, Tcl_Command cmd, XOTclNonposArgs *nonposArgs) {
+  Command *cmdPtr = (Command *)cmd;
+
+  if (cmdPtr->deleteProc == TclProcDeleteProc) {
+    XOTclProcContext *ctxPtr = NEW(XOTclProcContext);
+
+    ctxPtr->oldDeleteData = (Proc *)cmdPtr->deleteData;
+    ctxPtr->oldDeleteProc = cmdPtr->deleteProc;
+    cmdPtr->deleteProc = XOTclProcDeleteProc;
+    ctxPtr->nonposArgs = nonposArgs;
+    cmdPtr->deleteData = (ClientData)ctxPtr;
+    return TCL_OK;
+  }
+  return TCL_ERROR;
+}
+
+
 /*
  * method dispatch
  */
@@ -5132,7 +5173,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       }
     }
   }
-  
+
   if (obj->opt &&
       (obj->opt->checkoptions & CHECK_PRE) &&
       (result = AssertionCheck(interp, obj, cl, methodName, CHECK_PRE)) == TCL_ERROR) {
@@ -5178,17 +5219,19 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
      
   */
   {
-    parseContext pc;
+    XOTclNonposArgs *nonposArgs = Tcl_Command_deleteProc(cmdPtr) == XOTclProcDeleteProc ?
+      ((XOTclProcContext *)Tcl_Command_deleteData(cmdPtr))->nonposArgs : NULL;
 
-    result = canonicalNonpositionalArgs(&pc, interp, cmdPtr, csc, objc, objv);
-    if (result == TCL_CONTINUE) {
-      result = PushProcCallFrame(cp, interp, objc, objv, csc);
-    } else if (result == TCL_OK) {
-      result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, csc);
-      /* maybe release is to early */
-      parseContextRelease(&pc);
+    if (nonposArgs) {
+      parseContext pc;
+      result = canonicalNonpositionalArgs(&pc, interp, nonposArgs, csc, objc, objv);
+      if (result == TCL_OK) {
+        result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, csc);
+        /* maybe release is to early */
+        parseContextRelease(&pc);
+      }
     } else {
-      result = TCL_ERROR;
+      result = PushProcCallFrame(cp, interp, objc, objv, csc);
     }
   }
 # else /* no CANONICAL ARGS */
@@ -5235,6 +5278,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       (obj->opt->checkoptions & CHECK_POST)) {
     result = AssertionCheck(interp, obj, cl, methodName, CHECK_POST);
   }
+
  finish:
   return result;
 }
@@ -5463,7 +5507,6 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
   if (((objflags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID) == XOTCL_FILTER_ORDER_DEFINED_AND_VALID)
       && rst->doFilters
-      && !(flags & XOTCL_CM_NO_FILTERS)
       && !rst->guardCount) {
     XOTclCallStackContent *csc = CallStackGetTopFrame(interp, NULL);
 
@@ -5471,7 +5514,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
                 csc->frameType != XOTCL_CSC_TYPE_ACTIVE_FILTER)) {
       
       filterStackPushed = FilterStackPush(interp, obj, objv[1]);
-      cmd = FilterSearchProc(interp, obj, &obj->filterStack->currentCmdPtr,&cl);
+      cmd = FilterSearchProc(interp, obj, &obj->filterStack->currentCmdPtr, &cl);
       if (cmd) {
         /*fprintf(stderr,"filterSearchProc returned cmd %p proc %p\n", cmd, proc);*/
         frameType = XOTCL_CSC_TYPE_ACTIVE_FILTER;
@@ -5489,7 +5532,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
      don't use mixins on init calls, since init is invoked on mixins
      during mixin registration (in XOTclOMixinMethod)
   */
-  if ((obj->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) == XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
+  if ((objflags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) == XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
     
     mixinStackPushed = MixinStackPush(obj);
       
@@ -5681,53 +5724,6 @@ XOTclDirectSelfDispatch(ClientData clientData, Tcl_Interp *interp,
  */
 
 static void argDefinitionsFree(argDefinition *argDefinitions);
-
-static void
-NonposArgsDeleteHashEntry(Tcl_HashEntry *hPtr) {
-  XOTclNonposArgs *nonposArg = (XOTclNonposArgs*) Tcl_GetHashValue(hPtr);
-  if (nonposArg) {
-    if (nonposArg->slotObj) {
-      DECR_REF_COUNT(nonposArg->slotObj);
-    }
-    if (nonposArg->ifd) {
-      argDefinitionsFree(nonposArg->ifd);
-    }
-
-    MEM_COUNT_FREE("nonposArg", nonposArg);
-    ckfree((char *) nonposArg);
-    Tcl_DeleteHashEntry(hPtr);
-  }
-}
-
-static Tcl_HashTable*
-NonposArgsCreateTable() {
-  Tcl_HashTable *nonposArgsTable =
-    (Tcl_HashTable *) ckalloc(sizeof(Tcl_HashTable));
-  MEM_COUNT_ALLOC("Tcl_HashTable", nonposArgsTable);
-  Tcl_InitHashTable(nonposArgsTable, TCL_STRING_KEYS);
-  MEM_COUNT_ALLOC("Tcl_InitHashTable", nonposArgsTable);
-  return nonposArgsTable;
-}
-
-static void
-NonposArgsFreeTable(Tcl_HashTable *nonposArgsTable) {
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr = nonposArgsTable ?
-    Tcl_FirstHashEntry(nonposArgsTable, &hSrch) : 0;
-  for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-    NonposArgsDeleteHashEntry(hPtr);
-  }
-}
-
-static XOTclNonposArgs*
-NonposArgsGet(Tcl_HashTable *nonposArgsTable, char * methodName) {
-  Tcl_HashEntry *hPtr;
-  if (nonposArgsTable &&
-      ((hPtr = XOTcl_FindHashEntry(nonposArgsTable, methodName)))) {
-    return (XOTclNonposArgs*) Tcl_GetHashValue(hPtr);
-  }
-  return NULL;
-}
 
 static Tcl_Obj *
 NonposArgsFormat(Tcl_Interp *interp, XOTclNonposArgs *nonposArgs) {
@@ -6044,8 +6040,7 @@ parseArgDefinition(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int isNonpo
 
 static int
 parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *ordinaryArgs,
-                Tcl_HashTable **nonposArgsTable, int *haveNonposArgs, 
-                XOTclParsedInterfaceDefinition *parsedIfPtr) {
+                int *haveNonposArgs, XOTclParsedInterfaceDefinition *parsedIfPtr) {
   int rc, i, nonposArgsDefc, ordinaryArgsDefc, possibleUnknowns = 0;
   Tcl_Obj **nonposArgsDefv, **ordinaryArgsDefv;
   argDefinition *interface, *ifPtr;
@@ -6089,27 +6084,16 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
     }
 
     if (*haveNonposArgs) {
-      XOTclNonposArgs *nonposArg;
-      Tcl_HashEntry *hPtr;
-      int nw = 0;
-	
-      if (*nonposArgsTable == NULL) {
-	*nonposArgsTable = NonposArgsCreateTable();
-      }
-	
-      hPtr = Tcl_CreateHashEntry(*nonposArgsTable, procName, &nw);
-      assert(nw);
-
+      XOTclNonposArgs *nonposArg = NEW(XOTclNonposArgs);
       MEM_COUNT_ALLOC("nonposArg", nonposArg);
-      nonposArg = (XOTclNonposArgs*)ckalloc(sizeof(XOTclNonposArgs));
+
       nonposArg->slotObj = NULL;
       nonposArg->ifd = interface;
       nonposArg->ifdSize = ifPtr-interface;
       /*fprintf(stderr, "method %s ifsize %d, possible unknowns = %d,\n",
 	procName,ifPtr-interface,possibleUnknowns);*/
-      parsedIfPtr->nonposArgs = nonposArg; /* TODO only necessary for CANONICAL_ARGS */
-      parsedIfPtr->possibleUnknowns = possibleUnknowns; /* TODO only necessary for CANONICAL_ARGS */
-      Tcl_SetHashValue(hPtr, (ClientData)nonposArg);
+      parsedIfPtr->nonposArgs = nonposArg;
+      parsedIfPtr->possibleUnknowns = possibleUnknowns;
     } else {
       /* empty definitions */
     }
@@ -6118,23 +6102,18 @@ parseNonposArgs(Tcl_Interp *interp, char *procName, Tcl_Obj *npArgs, Tcl_Obj *or
 }
 
 static int
-MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_HashTable **nonposArgsTable,
+MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, 
 	 Tcl_Interp *interp,
 	 Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition, Tcl_Obj *postcondition,
 	 XOTclObject *obj, int clsns) {
   int result, haveNonposArgs = 0, argsc, i;
   TclCallFrame frame, *framePtr = &frame;
   Tcl_Obj *ov[4],  **argsv;
-  Tcl_HashEntry *hPtr = NULL;
   char *procName = ObjStr(name);
   XOTclParsedInterfaceDefinition parsedIf;
 
   parsedIf.nonposArgs = NULL;
   parsedIf.possibleUnknowns = 0;
-
-  if (*nonposArgsTable && (hPtr = XOTcl_FindHashEntry(*nonposArgsTable, procName))) {
-    NonposArgsDeleteHashEntry(hPtr);
-  }
 
   ov[0] = NULL; /*objv[0];*/
   ov[1] = name;
@@ -6168,7 +6147,7 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_HashTable **nonp
     INCR_REF_COUNT(ordinaryArgs);
     INCR_REF_COUNT(nonposArgs);
     result = parseNonposArgs(interp, procName, nonposArgs, ordinaryArgs,
-                             nonposArgsTable, &haveNonposArgs, &parsedIf);
+                             &haveNonposArgs, &parsedIf);
     DECR_REF_COUNT(ordinaryArgs);
     DECR_REF_COUNT(nonposArgs);
     if (result != TCL_OK)
@@ -6221,16 +6200,7 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_HashTable **nonp
 	procPtr->cmdPtr->nsPtr = ((Command *)obj->id)->nsPtr;
       }
     }
-    { /* TODO accessInt, make it 1st class */
-      Command *cmdPtr = procPtr->cmdPtr;
-      XOTclProcContext *ctxPtr = NEW(XOTclProcContext);
-
-      ctxPtr->oldDeleteData = (Proc *)cmdPtr->deleteData;
-      ctxPtr->oldDeleteProc = cmdPtr->deleteProc;
-      cmdPtr->deleteProc = XOTclProcDeleteProc;
-      ctxPtr->nonposArgs = parsedIf.nonposArgs;
-      cmdPtr->deleteData = (ClientData)ctxPtr;
-    }
+    addNonposArgs(interp, (Tcl_Command)procPtr->cmdPtr, parsedIf.nonposArgs);
   }
 #endif
 
@@ -6281,7 +6251,7 @@ static int makeMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name, Tcl_Obj
         opt->assertions = AssertionCreateStore();
       aStore = opt->assertions;
     }
-    result = MakeProc(cl->nsPtr, aStore, &(cl->nonposArgsTable),
+    result = MakeProc(cl->nsPtr, aStore, 
 		      interp, name, args, body, precondition, postcondition,
 		      &cl->object, clsns);
   }
@@ -6490,9 +6460,7 @@ AppendOrdinaryArgsFromNonposArgs(Tcl_Interp *interp, XOTclNonposArgs *nonposArgs
 }
 
 static int
-GetProcDefault(Tcl_Interp *interp, Tcl_HashTable *table,
-               char *name, char *arg, Tcl_Obj **resultObj) {
-  Proc *proc = FindProc(interp, table, name);
+GetProcDefault(Tcl_Interp *interp, Proc *proc, char *arg, Tcl_Obj **resultObj) {
   *resultObj = NULL;
   if (proc) {
     CompiledLocal *ap;
@@ -7337,14 +7305,6 @@ CleanupDestroyObject(Tcl_Interp *interp, XOTclObject *obj, int softrecreate) {
     }
   }
 
-  if (obj->nonposArgsTable) {
-    NonposArgsFreeTable(obj->nonposArgsTable);
-    Tcl_DeleteHashTable(obj->nonposArgsTable);
-    MEM_COUNT_FREE("Tcl_InitHashTable", obj->nonposArgsTable);
-    ckfree((char *) obj->nonposArgsTable);
-    MEM_COUNT_FREE("Tcl_HashTable", obj->nonposArgsTable);
-  }
-
   obj->flags &= ~XOTCL_MIXIN_ORDER_VALID;
   if (obj->mixinOrder)  MixinResetOrder(obj);
   obj->flags &= ~XOTCL_FILTER_ORDER_VALID;
@@ -7368,7 +7328,6 @@ CleanupInitObject(Tcl_Interp *interp, XOTclObject *obj,
   if (obj->flags & XOTCL_RECREATE) {
     obj->opt = 0;
     obj->varTable = 0;
-    obj->nonposArgsTable = 0;
     obj->mixinOrder = 0;
     obj->filterOrder = 0;
     obj->flags = 0;
@@ -7706,14 +7665,6 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
     MEM_COUNT_FREE("Tcl_InitHashTable",&cl->instances);
   }
 
-  if (cl->nonposArgsTable) {
-    NonposArgsFreeTable(cl->nonposArgsTable);
-    Tcl_DeleteHashTable(cl->nonposArgsTable);
-    MEM_COUNT_FREE("Tcl_InitHashTable", cl->nonposArgsTable);
-    ckfree((char *) cl->nonposArgsTable);
-    MEM_COUNT_FREE("Tcl_HashTable", cl->nonposArgsTable);
-  }
-
   if (cl->parameters) {
     DECR_REF_COUNT(cl->parameters);
   }
@@ -7810,8 +7761,6 @@ CleanupInitClass(Tcl_Interp *interp, XOTclClass *cl, Tcl_Namespace *namespacePtr
   if (!recreate) {
     cl->opt = NULL;
   }
-
-  cl->nonposArgsTable = NULL;
 }
 
 /*
@@ -9750,15 +9699,13 @@ ListSuperclasses(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *pattern, int withC
 
 /* proc/instproc specific code */
 static int
-ListProcBody(Tcl_Interp *interp, Tcl_HashTable *table, char *name) {
-  Proc *proc = FindProc(interp, table, name);
-
-  if (proc) {
-    char *body = ObjStr(proc->bodyPtr);
+ListProcBody(Tcl_Interp *interp, Proc *procPtr, char *methodName) {
+  if (procPtr) {
+    char *body = ObjStr(procPtr->bodyPtr);
     Tcl_SetObjResult(interp, Tcl_NewStringObj(StripBodyPrefix(body), -1));
     return TCL_OK;
   }
-  return XOTclErrBadVal(interp, "info body", "a tcl method name", name);
+  return XOTclErrBadVal(interp, "info body", "a tcl method name", methodName);
 }
 
 static int
@@ -9770,11 +9717,11 @@ ListArgsFromOrdinaryArgs(Tcl_Interp *interp, XOTclNonposArgs *nonposArgs) {
 }
 
 static int
-ListProcDefault(Tcl_Interp *interp, Tcl_HashTable *table,
+ListProcDefault(Tcl_Interp *interp, Proc *procPtr,
                 char *name, char *arg, Tcl_Obj *var) {
   Tcl_Obj *defVal;
 
-  if (GetProcDefault(interp, table, name, arg, &defVal) == TCL_OK) {
+  if (GetProcDefault(interp, procPtr, arg, &defVal) == TCL_OK) {
     return SetProcDefault(interp, var, defVal);
   } else {
     return XOTclVarErrMsg(interp, "method '", name,
@@ -9799,15 +9746,13 @@ ListDefaultFromOrdinaryArgs(Tcl_Interp *interp, char *procName,
 }
 
 static int
-ListProcArgs(Tcl_Interp *interp, Tcl_HashTable *table, char *name) {
-  Proc *proc = FindProc(interp, table, name);
+ListProcArgs(Tcl_Interp *interp, Proc *proc, char *name) {
   if (proc) {
     CompiledLocal *args = proc->firstLocalPtr;
     Tcl_ResetResult(interp);
     for ( ; args; args = args->nextPtr) {
       if (TclIsCompiledLocalArgument(args))
 	Tcl_AppendElement(interp, args->name);
-
     }
     return TCL_OK;
   }
@@ -9975,10 +9920,9 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char 
     } else {
       Tcl_Command_flags(cmd) &= XOTCL_CMD_PROTECTED_METHOD;
     }
+    /* TODO check: can cmd be a proc? */
+
   } else { /* slotobj */
-    Tcl_HashTable **nonposArgsTable = allocation == 'o' ?
-      &(object->nonposArgsTable) :
-      &(cl->nonposArgsTable);
     XOTclNonposArgs *nonposArgs;
 
     if (value == NULL) {
@@ -9986,30 +9930,17 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char 
                             " requires argument '", (char *) NULL);
     }
 
-    if (*nonposArgsTable == 0) {
-      *nonposArgsTable = NonposArgsCreateTable();
-      fprintf(stderr,"this can only happen if we define a slotobj for a class/object without nonposargs\n");
-    }
-    nonposArgs = NonposArgsGet(*nonposArgsTable, methodName);
+    nonposArgs = getNonposArgs(cmd);
     if (nonposArgs == NULL) {
-      int nw;
-      Tcl_HashEntry *hPtr = Tcl_CreateHashEntry(*nonposArgsTable, methodName, &nw);
-      assert(nw);
-
-      fprintf(stderr,"this can only happen if we define a slotobj for a method without nonpospargs\n slotobj = %s\n", ObjStr(value));
-
-      MEM_COUNT_ALLOC("nonposArg", nonposArgs);
-      nonposArgs = (XOTclNonposArgs*)ckalloc(sizeof(XOTclNonposArgs));
-      nonposArgs->slotObj = NULL;
-      nonposArgs->ifd = NULL;
-      Tcl_SetHashValue(hPtr, (ClientData)nonposArgs);
-
+      nonposArgs = NEW(XOTclNonposArgs);
+      memset(nonposArgs, 0, sizeof(XOTclNonposArgs));
+      addNonposArgs(interp, cmd, nonposArgs);
       /* TODO check:
+         handle cases: cmd is not a proc.
 	 what happens if first method property and then method.
 	 what happens if method then property then new method?
       */
     } else {
-
       fprintf(stderr,"define slotobj for a method with nonpospargs\n slotobj = %s \n", ObjStr(value));
       if (nonposArgs->slotObj) {
 	DECR_REF_COUNT(nonposArgs->slotObj);
@@ -10669,7 +10600,7 @@ static int XOTclOProcMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *name,
       aStore = opt->assertions;
     }
     requireObjNamespace(interp, obj);
-    result = MakeProc(obj->nsPtr, aStore, &(obj->nonposArgsTable),
+    result = MakeProc(obj->nsPtr, aStore,
                       interp, name, args, body, precondition, postcondition,
 		      obj, 0);
   }
@@ -11297,17 +11228,18 @@ static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value
  ***************************/
 
 static int XOTclObjInfoArgsMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
-  if (object->nonposArgsTable) {
-    XOTclNonposArgs *nonposArgs = NonposArgsGet(object->nonposArgsTable, methodName);
-    if (nonposArgs) {
-      return ListArgsFromOrdinaryArgs(interp, nonposArgs);
-    }
+  Proc *proc = getObjectProc(interp, object, methodName);
+  XOTclNonposArgs *nonposArgs = proc ? getNonposArgs((Tcl_Command)proc->cmdPtr) : NULL;
+
+  if (nonposArgs) {
+    return ListArgsFromOrdinaryArgs(interp, nonposArgs);
   }
-  return object->nsPtr ? ListProcArgs(interp, Tcl_Namespace_cmdTable(object->nsPtr), methodName) : TCL_OK;
+  return ListProcArgs(interp, proc, methodName);
 }
 
 static int XOTclObjInfoBodyMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
-  return object->nsPtr ?  ListProcBody(interp, Tcl_Namespace_cmdTable( object->nsPtr), methodName) : TCL_OK;
+  Proc *proc = getObjectProc(interp, object, methodName);
+  return ListProcBody(interp, proc, methodName);
 }
 
 static int XOTclObjInfoCheckMethod(Tcl_Interp *interp, XOTclObject *object) {
@@ -11327,20 +11259,19 @@ static int XOTclObjInfoCommandsMethod(Tcl_Interp *interp, XOTclObject *object, c
   return ListKeys(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern);
 }
 
-static int XOTclObjInfoDefaultMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, char *arg, Tcl_Obj *var) {
-  if (object->nonposArgsTable) {
-    XOTclNonposArgs *nonposArgs = NonposArgsGet(object->nonposArgsTable,  methodName);
-    if (nonposArgs) {
+static int XOTclObjInfoDefaultMethod(Tcl_Interp *interp, XOTclObject *object, 
+                                     char *methodName, char *arg, Tcl_Obj *var) {
+  Proc *procPtr = getObjectProc(interp, object, methodName);
+  XOTclNonposArgs *nonposArgs = procPtr ? getNonposArgs((Tcl_Command)procPtr->cmdPtr) : NULL;
+
+  if (nonposArgs) {
       return ListDefaultFromOrdinaryArgs(interp, methodName, nonposArgs, arg, var);
-    }
   }
-  return object->nsPtr ?
-    ListProcDefault(interp, Tcl_Namespace_cmdTable(object->nsPtr), methodName, arg, var) :
-    TCL_OK;
+  return ListProcDefault(interp, procPtr, methodName, arg, var);
 }
 
-static int XOTclObjInfoFilterMethod(Tcl_Interp *interp, XOTclObject *object, int withOrder, int withGuards,
-                         char *pattern) {
+static int XOTclObjInfoFilterMethod(Tcl_Interp *interp, XOTclObject *object, 
+                                    int withOrder, int withGuards, char *pattern) {
   XOTclObjectOpt *opt = object->opt;
   if (withOrder) {
     if (!(object->flags & XOTCL_FILTER_ORDER_VALID))
@@ -11393,11 +11324,11 @@ static int XOTclObjInfoMixinguardMethod(Tcl_Interp *interp, XOTclObject *object,
 }
 
 static int XOTclObjInfoNonposargsMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
-  if (object->nonposArgsTable) {
-    XOTclNonposArgs *nonposArgs = NonposArgsGet(object->nonposArgsTable, methodName);
-    if (nonposArgs) {
-      Tcl_SetObjResult(interp, NonposArgsFormat(interp, nonposArgs));
-    }
+  Proc *procPtr = getObjectProc(interp, object, methodName);
+  XOTclNonposArgs *nonposArgs = procPtr ? getNonposArgs((Tcl_Command)procPtr->cmdPtr) : NULL;
+
+  if (nonposArgs) {
+    Tcl_SetObjResult(interp, NonposArgsFormat(interp, nonposArgs));
   }
   return TCL_OK;
 }
@@ -11557,19 +11488,18 @@ static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *startCl
 }
 
 static int XOTclClassInfoInstargsMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName) {
-  Tcl_Namespace *nsp = class->nsPtr;
+  Proc *proc = getClassProc(interp, class, methodName);
+  XOTclNonposArgs *nonposArgs = proc ? getNonposArgs((Tcl_Command)proc->cmdPtr) : NULL;
 
-  if (class->nonposArgsTable) {
-    XOTclNonposArgs *nonposArgs = NonposArgsGet(class->nonposArgsTable, methodName);
-    if (nonposArgs) {
-      return ListArgsFromOrdinaryArgs(interp, nonposArgs);
-    }
+  if (nonposArgs) {
+    return ListArgsFromOrdinaryArgs(interp, nonposArgs);
   }
-  return ListProcArgs(interp, Tcl_Namespace_cmdTable(nsp), methodName);
+  return ListProcArgs(interp, proc, methodName);
 }
 
 static int XOTclClassInfoInstbodyMethod(Tcl_Interp *interp, XOTclClass *class, char * methodName) {
-  return ListProcBody(interp, Tcl_Namespace_cmdTable(class->nsPtr), methodName);
+  Proc *proc = getClassProc(interp, class, methodName);
+  return ListProcBody(interp, proc, methodName);
 }
 
 static int XOTclClassInfoInstcommandsMethod(Tcl_Interp *interp, XOTclClass * class, char * pattern) {
@@ -11578,17 +11508,13 @@ static int XOTclClassInfoInstcommandsMethod(Tcl_Interp *interp, XOTclClass * cla
 
 static int XOTclClassInfoInstdefaultMethod(Tcl_Interp *interp, XOTclClass *class,
                                 char *methodName, char *arg, Tcl_Obj *var) {
-  Tcl_Namespace *nsp = class->nsPtr;
+  Proc *procPtr = getClassProc(interp, class, methodName);
+  XOTclNonposArgs *nonposArgs = procPtr ? getNonposArgs((Tcl_Command)procPtr->cmdPtr) : NULL;
 
-  if (class->nonposArgsTable) {
-    XOTclNonposArgs *nonposArgs = NonposArgsGet(class->nonposArgsTable,  methodName);
-    if (nonposArgs) {
-      return ListDefaultFromOrdinaryArgs(interp, methodName, nonposArgs, arg, var);
-    }
+  if (nonposArgs) {
+    return ListDefaultFromOrdinaryArgs(interp, methodName, nonposArgs, arg, var);
   }
-  return nsp ?
-    ListProcDefault(interp, Tcl_Namespace_cmdTable(nsp), methodName, arg, var) :
-    TCL_OK;
+  return ListProcDefault(interp, procPtr, methodName, arg, var);
 }
 
 static int XOTclClassInfoInstfilterMethod(Tcl_Interp *interp, XOTclClass * class, int withGuards, char * pattern) {
@@ -11664,12 +11590,13 @@ static int XOTclClassInfoInstmixinofMethod(Tcl_Interp *interp, XOTclClass * clas
   return TCL_OK;
 }
 
-static int XOTclClassInfoInstnonposargsMethod(Tcl_Interp *interp, XOTclClass * class, char * methodName) {
-  if (class->nonposArgsTable) {
-    XOTclNonposArgs *nonposArgs = NonposArgsGet(class->nonposArgsTable, methodName);
-    if (nonposArgs) {
-      Tcl_SetObjResult(interp, NonposArgsFormat(interp, nonposArgs));
-    }
+static int XOTclClassInfoInstnonposargsMethod(Tcl_Interp *interp, XOTclClass * class, 
+                                              char * methodName) {
+  Proc *procPtr = getClassProc(interp, class, methodName);
+  XOTclNonposArgs *nonposArgs = procPtr ? getNonposArgs((Tcl_Command)procPtr->cmdPtr) : NULL;
+
+  if (nonposArgs) {
+    Tcl_SetObjResult(interp, NonposArgsFormat(interp, nonposArgs));
   }
   return TCL_OK;
 }
@@ -11800,7 +11727,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   Tcl_Obj *newFullCmdName, *oldFullCmdName;
   char *newName, *oldName, *name;
   Tcl_Namespace *nsPtr, *newNsPtr;
-  Tcl_HashTable *cmdTable, *nonposArgsTable;
+  Tcl_HashTable *cmdTable;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
   XOTclObject *obj;
@@ -11818,11 +11745,9 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   if (isClassName(name)) {
     cl  = XOTclpGetClass(interp, NSCutXOTclClasses(name));
     obj = (XOTclObject *)cl;
-    nonposArgsTable = cl->nonposArgsTable;
   } else {
     cl  = NULL;
     obj = XOTclpGetObject(interp, name);
-    nonposArgsTable = obj->nonposArgsTable;
   }
 
   if (obj == NULL) {
@@ -11894,7 +11819,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
      */
     if (!XOTclpGetObject(interp, oldName)) {
       if (TclIsProc((Command*)cmd)) {
-        Proc *procPtr = TclFindProc((Interp *)interp, oldName);
+        Proc *procPtr = (Proc*) Tcl_Command_objClientData(cmd);
         Tcl_Obj *arglistObj = NULL;
         CompiledLocal *localPtr;
         XOTclNonposArgs *nonposArgs = NULL;
@@ -11903,13 +11828,11 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
          * Build a list containing the arguments of the proc
          */
 
-        if (nonposArgsTable) {
-          nonposArgs = NonposArgsGet(nonposArgsTable, name);
-          if (nonposArgs) {
-            arglistObj = NonposArgsFormat(interp, nonposArgs);
-            INCR_REF_COUNT(arglistObj);
-            AppendOrdinaryArgsFromNonposArgs(interp, nonposArgs, 0, arglistObj);
-          }
+        nonposArgs = getNonposArgs(cmd);
+        if (nonposArgs) {
+          arglistObj = NonposArgsFormat(interp, nonposArgs);
+          INCR_REF_COUNT(arglistObj);
+          AppendOrdinaryArgsFromNonposArgs(interp, nonposArgs, 0, arglistObj);
         }
 
         if (!arglistObj) {
@@ -11924,8 +11847,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
               INCR_REF_COUNT(defStringObj);
 
               /* check for default values */
-              if ((GetProcDefault(interp, cmdTable, name,
-                                  localPtr->name, &defVal) == TCL_OK) && defVal) {
+              if ((GetProcDefault(interp, procPtr, localPtr->name, &defVal) == TCL_OK) && defVal) {
                 Tcl_AppendStringsToObj(defStringObj, " ", ObjStr(defVal),
                                        (char *) NULL);
               }
@@ -12198,20 +12120,11 @@ isNonposArg(Tcl_Interp *interp, char * argStr,
 
 #if defined(CANONICAL_ARGS)
 int
-canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, Tcl_Command cmdPtr,
+canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclNonposArgs *nonposArgs,
                            XOTclCallStackContent *csc, int objc,  Tcl_Obj *CONST objv[]) {
-  XOTclNonposArgs *nonposArgs;
   argDefinition CONST *aPtr;
   int i, rc;
   
-  if (Tcl_Command_deleteProc(cmdPtr) == XOTclProcDeleteProc) {
-    nonposArgs = ((XOTclProcContext *)Tcl_Command_deleteData(cmdPtr))->nonposArgs;
-  } else {
-    nonposArgs = NULL;
-  }
-
-  if (!nonposArgs) {return TCL_CONTINUE;}
-
   rc = parseObjv(interp, objc, objv, objv[0], nonposArgs->ifd, nonposArgs->ifdSize, pcPtr);
   if (rc != TCL_OK) {
     return rc;
@@ -12357,11 +12270,8 @@ int
 XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                                    Tcl_Obj *CONST objv[]) {
   XOTclCallStackContent *csc = CallStackGetFrame(interp, NULL);
-  XOTclObject *object = csc->self;
-  XOTclClass *class = csc->cl;
-  Tcl_HashTable *nonposArgsTable = class ? class->nonposArgsTable : object->nonposArgsTable;
-  char *procName = Tcl_GetCommandName(interp, csc->cmdPtr);
-  XOTclNonposArgs *nonposArgs = NonposArgsGet(nonposArgsTable, procName);
+  XOTclNonposArgs *nonposArgs = getNonposArgs(csc->cmdPtr);
+  char *procName = (char *)Tcl_GetCommandName(interp, csc->cmdPtr);
   Tcl_Obj *proc = Tcl_NewStringObj(procName, -1);
   argDefinition CONST *aPtr;
   parseContext pc;

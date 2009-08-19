@@ -316,8 +316,7 @@ typedef struct XOTclMemCounter {
 #define XOTCL_CHECK_FAILED 6
 
 /* flags for call method */
-#define XOTCL_CM_NO_FILTERS 1
-#define XOTCL_CM_NO_UNKNOWN 2
+#define XOTCL_CM_NO_UNKNOWN 1
 
 /*
  *
@@ -480,7 +479,6 @@ typedef struct XOTclObject {
   XOTclMixinStack *mixinStack;
   int refCount;
   short flags;
-  Tcl_HashTable *nonposArgsTable;
 } XOTclObject;
 
 typedef struct XOTclObjects {
@@ -513,7 +511,6 @@ typedef struct XOTclClass {
   Tcl_Namespace *nsPtr;
   Tcl_Obj *parameters;
   XOTclClassOpt *opt;
-  Tcl_HashTable *nonposArgsTable;
 } XOTclClass;
 
 typedef struct XOTclClasses {
