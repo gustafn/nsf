@@ -4949,6 +4949,7 @@ static int
 PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	Tcl_Obj *CONST objv[], 
                   XOTclCallStackContent *csc) {
   Proc *procPtr = (Proc *) clientData;
+  Tcl_Obj *bodyPtr = procPtr->bodyPtr;
   Namespace *nsPtr = procPtr->cmdPtr->nsPtr;
   CallFrame *framePtr;
   int result;
@@ -4963,7 +4964,7 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
     XOTclMutexUnlock(&initMutex);
   }
 
-  if (procPtr->bodyPtr->typePtr == byteCodeType) {
+  if (bodyPtr->typePtr == byteCodeType) {
 # if defined(HAVE_TCL_COMPILE_H)
     ByteCode *codePtr;
     Interp *iPtr = (Interp *) interp;
@@ -4977,11 +4978,12 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
      * commands and/or resolver changes are considered).
      */
 
-    codePtr = procPtr->bodyPtr->internalRep.otherValuePtr;
+    codePtr = bodyPtr->internalRep.otherValuePtr;
     if (((Interp *) *codePtr->interpHandle != iPtr)
 	|| (codePtr->compileEpoch != iPtr->compileEpoch)
 	|| (codePtr->nsPtr != nsPtr)
 	|| (codePtr->nsEpoch != nsPtr->resolverEpoch)) {
+
       goto doCompilation;
     }
 # endif
@@ -4989,10 +4991,9 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
 # if defined(HAVE_TCL_COMPILE_H)
   doCompilation:
 # endif
-    result = TclProcCompileProc(interp, procPtr, procPtr->bodyPtr,
+    result = TclProcCompileProc(interp, procPtr, bodyPtr,
 				(Namespace *) nsPtr, "body of proc", 
                                 TclGetString(objv[0]));
-    /*fprintf(stderr,"compile returned %d",result);*/
     if (result != TCL_OK) {
       return result;
     }
@@ -12612,7 +12613,7 @@ destroyObjectSystem(Tcl_Interp *interp, XOTclClass *rootClass, XOTclClass *rootM
  * ::xotcl::finalize command
  */
 static int
-XOTclFinalizeObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+XOTclFinalizeObjCmd(Tcl_Interp *interp) {
   XOTclClasses *os;
   int result;
 
@@ -12681,7 +12682,7 @@ ExitHandler(ClientData clientData) {
   Tcl_Interp_flags(interp) &= ~DELETED;
 
   if (RUNTIME_STATE(interp)->exitHandlerDestroyRound == XOTCL_EXITHANDLER_OFF) {
-    XOTclFinalizeObjCmd(NULL, interp, 0, NULL);
+    XOTclFinalizeObjCmd(interp);
   }
 
   CallStackPopAll(interp);
@@ -12752,7 +12753,7 @@ RegisterExitHandlers(ClientData clientData) {
 
 
 int
-XOTclCreateObjectSystem(Tcl_Interp *interp, char *Object, char *Class) {
+XOTclCreateObjectSystemCmd(Tcl_Interp *interp, char *Object, char *Class) {
   XOTclClass *theobj = 0;
   XOTclClass *thecls = 0;
 
@@ -12794,15 +12795,6 @@ XOTclCreateObjectSystem(Tcl_Interp *interp, char *Object, char *Class) {
   AddSuper(thecls, theobj);
 
   return TCL_OK;
-}
-
-static int
-XOTclCreateObjectSystemCmd(ClientData clientData, Tcl_Interp *interp,
-                           int objc, Tcl_Obj *CONST objv[]) {
-  if (objc < 3) {
-    return XOTclObjErrArgCnt(interp, objv[0], NULL, "rootClass rootMetaClass");
-  }
-  return XOTclCreateObjectSystem(interp, ObjStr(objv[1]), ObjStr(objv[2]));
 }
 
 /*
@@ -12970,10 +12962,8 @@ Xotcl_Init(Tcl_Interp *interp) {
   /*Tcl_CreateObjCommand(interp, "::xotcl::K", XOTclKObjCmd, 0, 0);*/
   Tcl_CreateObjCommand(interp, "::xotcl::instvar", XOTclInstvarCmd, 0, 0);
 
-  Tcl_CreateObjCommand(interp, "::xotcl::createobjectsystem", XOTclCreateObjectSystemCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::dispatch", XOTclDispatchCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::deprecated", XOTcl_DeprecatedCmd, 0, 0);
-  Tcl_CreateObjCommand(interp, "::xotcl::finalize", XOTclFinalizeObjCmd, 0, 0);
 #if defined(PRE85)
 #ifdef XOTCL_BYTECODE
   instructions[INST_INITPROC].cmdPtr = (Command *)

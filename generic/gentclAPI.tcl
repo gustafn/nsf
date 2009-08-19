@@ -168,35 +168,14 @@ proc gencall {fn argDefinitions clientData cDefsVar ifDefVar arglistVar preVar p
   set arglist [join $a ", "]
 }
 
-
-proc genstubs {} {
-  set stubDecls ""
-  set decls ""
-  set enums [list]
-  set ifds [list]
-  foreach key [lsort [array names ::definitions]] {
-    array set d $::definitions($key)
-    append stubDecls "static int $d(stub)$::objCmdProc\n"
-    lappend enums $d(idx)
-    lappend ifds "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), [llength $d(argDefinitions)], {\n  [genifd $d(argDefinitions)]}\n}"
-
-    gencall $d(stub) $d(argDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
-    append decls "static int $d(implementation)(Tcl_Interp *interp, $ifDef);\n"
-    if {$post ne ""} {
-      append cDefs "\n    int returnCode;"
-      set call "returnCode = $d(implementation)(interp, $arglist);"
-      set post [string trimright $post]
-      append post "\n    return returnCode;"
-    } else {
-      set call "return $d(implementation)(interp, $arglist);"
-    }
-    append fns [subst -nocommands {
+proc genStub {stub intro idx cDefs pre call post} {
+  return [subst -nocommands {
 static int
-$d(stub)(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 $intro
   if (parseObjv(interp, objc, objv, objv[0], 
-		method_definitions[$d(idx)].ifd, 
-		method_definitions[$d(idx)].ifdSize, 
+		method_definitions[$idx].ifd, 
+		method_definitions[$idx].ifdSize, 
 		&pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -207,7 +186,38 @@ $pre
 $post
   }
 }
-  }]
+}]}
+
+proc implArgList {implementation prefix arglist} {
+  if {$arglist ne ""} {
+    return "${implementation}(${prefix}interp, $arglist)"
+  }
+  return "${implementation}(${prefix}interp)"
+}
+
+proc genstubs {} {
+  set stubDecls ""
+  set decls ""
+  set enums [list]
+  set ifds [list]
+  foreach key [lsort [array names ::definitions]] {
+    array set d $::definitions($key)
+    lappend enums $d(idx)
+    set nrArgs [llength $d(argDefinitions)]
+    append stubDecls "static int $d(stub)$::objCmdProc\n"
+    lappend ifds "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), $nrArgs, {\n  [genifd $d(argDefinitions)]}\n}"
+
+    gencall $d(stub) $d(argDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
+    append decls "static int [implArgList $d(implementation) {Tcl_Interp *} $ifDef];\n"
+    if {$post ne ""} {
+      append cDefs "\n    int returnCode;"
+      set call "returnCode = [implArgList $d(implementation) {} $arglist];"
+      set post [string trimright $post]
+      append post "\n    return returnCode;"
+    } else {
+      set call "return [implArgList $d(implementation) {} $arglist];"
+    }
+    append fns [genStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
   }
 
   puts $::converter

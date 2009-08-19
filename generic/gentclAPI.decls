@@ -28,6 +28,12 @@ xotclCmd configure XOTclConfigureCmd {
   {-argName "configureoption" -required 1 -type "filter|softrecreate"}
   {-argName "value" -required 0 -type tclobj}
 }
+xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
+  {-argName "rootClass" -required 1}
+  {-argName "rootMetaClass" -required 1}
+}
+xotclCmd finalize XOTclFinalizeObjCmd {
+}
 xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "methodName" -required 1}

@@ -135,6 +135,8 @@ static int XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, i
 static int XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -233,6 +235,8 @@ static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, char *varname);
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withObjscope, int withPer_object, int withProtected, Tcl_Obj *cmdName);
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
+static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, char *rootClass, char *rootMetaClass);
+static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
 static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withPer_object, int methodproperty, Tcl_Obj *value);
 static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
@@ -332,6 +336,8 @@ enum {
  XOTclOVwaitMethodIdx,
  XOTclAliasCmdIdx,
  XOTclConfigureCmdIdx,
+ XOTclCreateObjectSystemCmdIdx,
+ XOTclFinalizeObjCmdIdx,
  XOTclMethodPropertyCmdIdx,
  XOTclMyCmdIdx,
  XOTclRelationCmdIdx,
@@ -357,7 +363,7 @@ XOTclCheckBooleanArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 
   }
 }
-  
+
 static int
 XOTclCheckRequiredArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -376,7 +382,7 @@ XOTclCheckRequiredArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 
   }
 }
-  
+
 static int
 XOTclCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -395,7 +401,7 @@ XOTclCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
   }
 }
-  
+
 static int
 XOTclCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -414,7 +420,7 @@ XOTclCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
   }
 }
-  
+
 static int
 XOTclCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -433,7 +439,7 @@ XOTclCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   }
 }
-  
+
 static int
 XOTclCInstFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -453,7 +459,7 @@ XOTclCInstFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
 
   }
 }
-  
+
 static int
 XOTclCInstForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -479,7 +485,7 @@ XOTclCInstForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
 
   }
 }
-  
+
 static int
 XOTclCInstMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -499,7 +505,7 @@ XOTclCInstMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
 
   }
 }
-  
+
 static int
 XOTclCInstParametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -518,7 +524,7 @@ XOTclCInstParametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
   }
 }
-  
+
 static int
 XOTclCInstProcMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -541,7 +547,7 @@ XOTclCInstProcMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   }
 }
-  
+
 static int
 XOTclCInstProcMethodCStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -564,7 +570,7 @@ XOTclCInstProcMethodCStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 
   }
 }
-  
+
 static int
 XOTclCInvariantsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -583,7 +589,7 @@ XOTclCInvariantsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 
   }
 }
-  
+
 static int
 XOTclCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -602,7 +608,7 @@ XOTclCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
   }
 }
-  
+
 static int
 XOTclCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -621,7 +627,7 @@ XOTclCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   }
 }
-  
+
 static int
 XOTclCUnknownMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -640,7 +646,7 @@ XOTclCUnknownMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   }
 }
-  
+
 static int
 XOTclClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -659,7 +665,7 @@ XOTclClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -693,7 +699,7 @@ XOTclClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int
     return returnCode;
   }
 }
-  
+
 static int
 XOTclClassInfoInstargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -712,7 +718,7 @@ XOTclClassInfoInstargsMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstbodyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -731,7 +737,7 @@ XOTclClassInfoInstbodyMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstcommandsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -750,7 +756,7 @@ XOTclClassInfoInstcommandsMethodStub(ClientData clientData, Tcl_Interp *interp, 
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstdefaultMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -771,7 +777,7 @@ XOTclClassInfoInstdefaultMethodStub(ClientData clientData, Tcl_Interp *interp, i
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstfilterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -791,7 +797,7 @@ XOTclClassInfoInstfilterMethodStub(ClientData clientData, Tcl_Interp *interp, in
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstfilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -810,7 +816,7 @@ XOTclClassInfoInstfilterguardMethodStub(ClientData clientData, Tcl_Interp *inter
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstforwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -830,7 +836,7 @@ XOTclClassInfoInstforwardMethodStub(ClientData clientData, Tcl_Interp *interp, i
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstinvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -848,7 +854,7 @@ XOTclClassInfoInstinvarMethodStub(ClientData clientData, Tcl_Interp *interp, int
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstmixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -883,7 +889,7 @@ XOTclClassInfoInstmixinMethodStub(ClientData clientData, Tcl_Interp *interp, int
     return returnCode;
   }
 }
-  
+
 static int
 XOTclClassInfoInstmixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -902,7 +908,7 @@ XOTclClassInfoInstmixinguardMethodStub(ClientData clientData, Tcl_Interp *interp
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstmixinofMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -936,7 +942,7 @@ XOTclClassInfoInstmixinofMethodStub(ClientData clientData, Tcl_Interp *interp, i
     return returnCode;
   }
 }
-  
+
 static int
 XOTclClassInfoInstnonposargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -955,7 +961,7 @@ XOTclClassInfoInstnonposargsMethodStub(ClientData clientData, Tcl_Interp *interp
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstparametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -974,7 +980,7 @@ XOTclClassInfoInstparametercmdMethodStub(ClientData clientData, Tcl_Interp *inte
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstpostMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -993,7 +999,7 @@ XOTclClassInfoInstpostMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstpreMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1012,7 +1018,7 @@ XOTclClassInfoInstpreMethodStub(ClientData clientData, Tcl_Interp *interp, int o
 
   }
 }
-  
+
 static int
 XOTclClassInfoInstprocsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1031,7 +1037,7 @@ XOTclClassInfoInstprocsMethodStub(ClientData clientData, Tcl_Interp *interp, int
 
   }
 }
-  
+
 static int
 XOTclClassInfoMixinofMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1065,7 +1071,7 @@ XOTclClassInfoMixinofMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     return returnCode;
   }
 }
-  
+
 static int
 XOTclClassInfoParameterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1083,7 +1089,7 @@ XOTclClassInfoParameterMethodStub(ClientData clientData, Tcl_Interp *interp, int
 
   }
 }
-  
+
 static int
 XOTclClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1101,7 +1107,7 @@ XOTclClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
 
   }
 }
-  
+
 static int
 XOTclClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1135,7 +1141,7 @@ XOTclClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     return returnCode;
   }
 }
-  
+
 static int
 XOTclClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1155,7 +1161,7 @@ XOTclClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, in
 
   }
 }
-  
+
 static int
 XOTclObjInfoArgsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1174,7 +1180,7 @@ XOTclObjInfoArgsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 
   }
 }
-  
+
 static int
 XOTclObjInfoBodyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1193,7 +1199,7 @@ XOTclObjInfoBodyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 
   }
 }
-  
+
 static int
 XOTclObjInfoCheckMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1211,7 +1217,7 @@ XOTclObjInfoCheckMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
 
   }
 }
-  
+
 static int
 XOTclObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1230,7 +1236,7 @@ XOTclObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
 
   }
 }
-  
+
 static int
 XOTclObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1248,7 +1254,7 @@ XOTclObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
 
   }
 }
-  
+
 static int
 XOTclObjInfoCommandsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1267,7 +1273,7 @@ XOTclObjInfoCommandsMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
 
   }
 }
-  
+
 static int
 XOTclObjInfoDefaultMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1288,7 +1294,7 @@ XOTclObjInfoDefaultMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
 
   }
 }
-  
+
 static int
 XOTclObjInfoFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1309,7 +1315,7 @@ XOTclObjInfoFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
 
   }
 }
-  
+
 static int
 XOTclObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1328,7 +1334,7 @@ XOTclObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int
 
   }
 }
-  
+
 static int
 XOTclObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1348,7 +1354,7 @@ XOTclObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
 
   }
 }
-  
+
 static int
 XOTclObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1366,7 +1372,7 @@ XOTclObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, in
 
   }
 }
-  
+
 static int
 XOTclObjInfoInvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1384,7 +1390,7 @@ XOTclObjInfoInvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
 
   }
 }
-  
+
 static int
 XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1407,7 +1413,7 @@ XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
 
   }
 }
-  
+
 static int
 XOTclObjInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1442,7 +1448,7 @@ XOTclObjInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return returnCode;
   }
 }
-  
+
 static int
 XOTclObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1461,7 +1467,7 @@ XOTclObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
   }
 }
-  
+
 static int
 XOTclObjInfoNonposargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1480,7 +1486,7 @@ XOTclObjInfoNonposargsMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
   }
 }
-  
+
 static int
 XOTclObjInfoParametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1499,7 +1505,7 @@ XOTclObjInfoParametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, in
 
   }
 }
-  
+
 static int
 XOTclObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1517,7 +1523,7 @@ XOTclObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
 
   }
 }
-  
+
 static int
 XOTclObjInfoPostMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1536,7 +1542,7 @@ XOTclObjInfoPostMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 
   }
 }
-  
+
 static int
 XOTclObjInfoPreMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1555,7 +1561,7 @@ XOTclObjInfoPreMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 
   }
 }
-  
+
 static int
 XOTclObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1575,7 +1581,7 @@ XOTclObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
   }
 }
-  
+
 static int
 XOTclObjInfoProcsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1594,7 +1600,7 @@ XOTclObjInfoProcsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
 
   }
 }
-  
+
 static int
 XOTclObjInfoSlotObjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1613,7 +1619,7 @@ XOTclObjInfoSlotObjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int
 
   }
 }
-  
+
 static int
 XOTclObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1632,7 +1638,7 @@ XOTclObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 
   }
 }
-  
+
 static int
 XOTclOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1653,7 +1659,7 @@ XOTclOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   }
 }
-  
+
 static int
 XOTclOCheckMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1672,7 +1678,7 @@ XOTclOCheckMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
   }
 }
-  
+
 static int
 XOTclOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1691,7 +1697,7 @@ XOTclOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   }
 }
-  
+
 static int
 XOTclOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1710,7 +1716,7 @@ XOTclOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 
   }
 }
-  
+
 static int
 XOTclODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1729,7 +1735,7 @@ XOTclODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   }
 }
-  
+
 static int
 XOTclOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1748,7 +1754,7 @@ XOTclOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
   }
 }
-  
+
 static int
 XOTclOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1768,7 +1774,7 @@ XOTclOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
 
   }
 }
-  
+
 static int
 XOTclOFilterSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1787,7 +1793,7 @@ XOTclOFilterSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
 
   }
 }
-  
+
 static int
 XOTclOForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1813,7 +1819,7 @@ XOTclOForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   }
 }
-  
+
 static int
 XOTclOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1832,7 +1838,7 @@ XOTclOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   }
 }
-  
+
 static int
 XOTclOInvariantsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1851,7 +1857,7 @@ XOTclOInvariantsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 
   }
 }
-  
+
 static int
 XOTclOIsClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1870,7 +1876,7 @@ XOTclOIsClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   }
 }
-  
+
 static int
 XOTclOIsMetaClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1889,7 +1895,7 @@ XOTclOIsMetaClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
 
   }
 }
-  
+
 static int
 XOTclOIsMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1908,7 +1914,7 @@ XOTclOIsMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   }
 }
-  
+
 static int
 XOTclOIsObjectMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1927,7 +1933,7 @@ XOTclOIsObjectMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   }
 }
-  
+
 static int
 XOTclOIsTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1946,7 +1952,7 @@ XOTclOIsTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
   }
 }
-  
+
 static int
 XOTclOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1966,7 +1972,7 @@ XOTclOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 
   }
 }
-  
+
 static int
 XOTclONextMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -1985,7 +1991,7 @@ XOTclONextMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
   }
 }
-  
+
 static int
 XOTclONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2004,7 +2010,7 @@ XOTclONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
   }
 }
-  
+
 static int
 XOTclOParametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2023,7 +2029,7 @@ XOTclOParametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
 
   }
 }
-  
+
 static int
 XOTclOProcMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2046,7 +2052,7 @@ XOTclOProcMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
   }
 }
-  
+
 static int
 XOTclOProcSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2065,7 +2071,7 @@ XOTclOProcSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 
   }
 }
-  
+
 static int
 XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2084,7 +2090,7 @@ XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
   }
 }
-  
+
 static int
 XOTclOSetMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2104,7 +2110,7 @@ XOTclOSetMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
   }
 }
-  
+
 static int
 XOTclOSetvaluesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2123,7 +2129,7 @@ XOTclOSetvaluesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 
   }
 }
-  
+
 static int
 XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2142,7 +2148,7 @@ XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
   }
 }
-  
+
 static int
 XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2161,7 +2167,7 @@ XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
   }
 }
-  
+
 static int
 XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2180,7 +2186,7 @@ XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
   }
 }
-  
+
 static int
 XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2199,7 +2205,7 @@ XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
   }
 }
-  
+
 static int
 XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2222,7 +2228,7 @@ XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   }
 }
-  
+
 static int
 XOTclConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2241,7 +2247,44 @@ XOTclConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
   }
 }
-  
+
+static int
+XOTclCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclCreateObjectSystemCmdIdx].ifd, 
+		method_definitions[XOTclCreateObjectSystemCmdIdx].ifdSize, 
+		&pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    char *rootClass = (char *)pc.clientData[0];
+    char *rootMetaClass = (char *)pc.clientData[1];
+
+    parseContextRelease(&pc);
+    return XOTclCreateObjectSystemCmd(interp, rootClass, rootMetaClass);
+
+  }
+}
+
+static int
+XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (parseObjv(interp, objc, objv, objv[0], 
+		method_definitions[XOTclFinalizeObjCmdIdx].ifd, 
+		method_definitions[XOTclFinalizeObjCmdIdx].ifdSize, 
+		&pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    
+
+    parseContextRelease(&pc);
+    return XOTclFinalizeObjCmd(interp);
+
+  }
+}
+
 static int
 XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2263,7 +2306,7 @@ XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 
   }
 }
-  
+
 static int
 XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2282,7 +2325,7 @@ XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
   }
 }
-  
+
 static int
 XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2302,7 +2345,7 @@ XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
   }
 }
-  
+
 static int
 XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
@@ -2322,7 +2365,7 @@ XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
   }
 }
-  
+
 static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::NonposArgs::type=boolean", XOTclCheckBooleanArgsStub, 2, {
   {"name", 1, 0, convertToString},
@@ -2711,6 +2754,13 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::configure", XOTclConfigureCmdStub, 2, {
   {"filter|softrecreate", 1, 0, convertToConfigureoption},
   {"value", 0, 0, convertToTclobj}}
+},
+{"::xotcl::createobjectsystem", XOTclCreateObjectSystemCmdStub, 2, {
+  {"rootClass", 1, 0, convertToString},
+  {"rootMetaClass", 1, 0, convertToString}}
+},
+{"::xotcl::finalize", XOTclFinalizeObjCmdStub, 0, {
+  }
 },
 {"::xotcl::methodproperty", XOTclMethodPropertyCmdStub, 5, {
   {"object", 1, 0, convertToObject},
