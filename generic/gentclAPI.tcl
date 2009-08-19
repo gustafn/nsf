@@ -67,7 +67,7 @@ proc gencall {fn argDefinitions clientData cDefsVar ifDefVar arglistVar preVar p
   set c [list]
   set i 0
   set pre ""; set post ""
-  set intro "  parseContext pc;\n"
+  set intro ""
 
   switch $clientData {
     class {
@@ -172,6 +172,7 @@ proc genStub {stub intro idx cDefs pre call post} {
   return [subst -nocommands {
 static int
 ${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
 $intro
   if (parseObjv(interp, objc, objv, objv[0], 
 		method_definitions[$idx].ifd, 
@@ -185,6 +186,17 @@ $pre
     $call
 $post
   }
+}
+}]}
+proc genSimpleStub {stub intro idx cDefs pre call post} {
+  return [subst -nocommands {
+static int
+${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+$intro
+    $cDefs
+$pre
+    $call
+$post
 }
 }]}
 
@@ -217,7 +229,12 @@ proc genstubs {} {
     } else {
       set call "return [implArgList $d(implementation) {} $arglist];"
     }
-    append fns [genStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
+    if {$nrArgs == 1 && $arglist eq "obj, objc, objv"} {
+      #puts stderr "$d(stub) => '$arglist'"
+      append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
+    } else {
+      append fns [genStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
+    }
   }
 
   puts $::converter
