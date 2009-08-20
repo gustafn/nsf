@@ -217,8 +217,8 @@ proc genstubs {} {
     array set d $::definitions($key)
     lappend enums $d(idx)
     set nrArgs [llength $d(argDefinitions)]
-    append stubDecls "static int $d(stub)$::objCmdProc\n"
-    lappend ifds "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), $nrArgs, {\n  [genifd $d(argDefinitions)]}\n}"
+    set stubDecl "static int $d(stub)$::objCmdProc\n"
+    set ifd "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), $nrArgs, {\n  [genifd $d(argDefinitions)]}\n}"
 
     gencall $d(stub) $d(argDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
     append decls "static int [implArgList $d(implementation) {Tcl_Interp *} $ifDef];\n"
@@ -230,9 +230,12 @@ proc genstubs {} {
     } else {
       set call "return [implArgList $d(implementation) {} $arglist];"
     }
+
     #if {$nrArgs == 1} { puts stderr "$d(stub) => '$arglist'" }
     if {$nrArgs == 1 && $arglist eq "objc, objv"} {
       # TODO we would not need to generate a stub at all.... 
+      #set ifd "{\"$::ns($d(methodType))::$d(methodName)\", $d(implementation), $nrArgs, {\n  [genifd $d(argDefinitions)]}\n}"
+      #set stubDecl "static int $d(implementation)$::objCmdProc\n"
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
     } elseif {$nrArgs == 1 && $arglist eq "obj, objc, objv"} {
       # no need to call objv parser
@@ -241,6 +244,8 @@ proc genstubs {} {
     } else {
       append fns [genStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
     }
+    lappend ifds $ifd
+    append stubDecls $stubDecl
   }
 
   puts $::converter

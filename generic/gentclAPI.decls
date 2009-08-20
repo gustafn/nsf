@@ -32,6 +32,10 @@ xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
   {-argName "rootClass" -required 1}
   {-argName "rootMetaClass" -required 1}
 }
+xotclCmd deprecated XOTclDeprecatedCmd {
+  {-argName "oldCmd" -required 1}
+  {-argName "newCmd" -required 0}
+}
 xotclCmd finalize XOTclFinalizeObjCmd {
 }
 xotclCmd instvar XOTclInstvarCmd {

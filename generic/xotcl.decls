@@ -115,9 +115,9 @@ declare 25 generic {
     int XOTclErrInProc (Tcl_Interp *interp, Tcl_Obj *objName,
 		Tcl_Obj *clName, char *procName)
 }
-declare 26 generic {
+#declare 26 generic {
 #
-}
+#}
 declare 27 generic {
    int XOTclErrBadVal_(Tcl_Interp *interp, char *expected, char *value)
 }
@@ -130,9 +130,9 @@ declare 29 generic {
 declare 30 generic {
     void XOTclCallStackDump (Tcl_Interp *interp)
 }
-declare 31 generic {
-    void XOTclDeprecatedMsg(char *oldCmd, char *newCmd)
-}
+#declare 31 generic {
+#    void XOTclDeprecatedMsg(char *oldCmd, char *newCmd)
+#}
 declare 32 generic {
     void XOTclSetObjClientData(XOTcl_Object *obj, ClientData data)
 }

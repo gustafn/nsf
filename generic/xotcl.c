@@ -704,26 +704,15 @@ XOTclGetSelfObj(Tcl_Interp *interp) {
  * prints a msg to the screen that oldCmd is deprecated
  * optinal: give a new cmd
  */
-extern void
-XOTclDeprecatedMsg(char *oldCmd, char *newCmd) {
+static int 
+XOTclDeprecatedCmd(Tcl_Interp *interp, char *oldCmd, char *newCmd) {
   fprintf(stderr, "**\n**\n** The command/method <%s> is deprecated.\n", oldCmd);
   if (newCmd)
     fprintf(stderr, "** Use <%s> instead.\n", newCmd);
   fprintf(stderr, "**\n");
-}
-
-static int
-XOTcl_DeprecatedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  char *new;
-  if (objc == 2)
-    new = 0;
-  else if (objc == 3)
-    new = ObjStr(objv[2]);
-  else
-    return XOTclObjErrArgCnt(interp, NULL, NULL, "deprecated oldcmd ?newcmd?");
-  XOTclDeprecatedMsg(ObjStr(objv[1]), new);
   return TCL_OK;
 }
+
 #ifdef DISPATCH_TRACE
 static void printObjv(int objc, Tcl_Obj *CONST objv[]) {
   int i, j;
@@ -12970,7 +12959,6 @@ Xotcl_Init(Tcl_Interp *interp) {
   /*Tcl_CreateObjCommand(interp, "::xotcl::K", XOTclKObjCmd, 0, 0);*/
 
   Tcl_CreateObjCommand(interp, "::xotcl::dispatch", XOTclDispatchCmd, 0, 0);
-  Tcl_CreateObjCommand(interp, "::xotcl::deprecated", XOTcl_DeprecatedCmd, 0, 0);
 #if defined(PRE85)
 #ifdef XOTCL_BYTECODE
   instructions[INST_INITPROC].cmdPtr = (Command *)
