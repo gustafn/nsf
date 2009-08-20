@@ -34,6 +34,9 @@ xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
 }
 xotclCmd finalize XOTclFinalizeObjCmd {
 }
+xotclCmd instvar XOTclInstvarCmd {
+  {-argName "args" -type allargs}
+}
 xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "methodName" -required 1}

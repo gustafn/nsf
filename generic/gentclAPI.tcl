@@ -188,6 +188,7 @@ $post
   }
 }
 }]}
+
 proc genSimpleStub {stub intro idx cDefs pre call post} {
   return [subst -nocommands {
 static int
@@ -229,7 +230,12 @@ proc genstubs {} {
     } else {
       set call "return [implArgList $d(implementation) {} $arglist];"
     }
-    if {$nrArgs == 1 && $arglist eq "obj, objc, objv"} {
+    #if {$nrArgs == 1} { puts stderr "$d(stub) => '$arglist'" }
+    if {$nrArgs == 1 && $arglist eq "objc, objv"} {
+      # TODO we would not need to generate a stub at all.... 
+      append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
+    } elseif {$nrArgs == 1 && $arglist eq "obj, objc, objv"} {
+      # no need to call objv parser
       #puts stderr "$d(stub) => '$arglist'"
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
     } else {

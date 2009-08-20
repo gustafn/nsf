@@ -1082,6 +1082,30 @@ XOTclObjConvertObject(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **obj) {
    * references upon object kills and then will get dangling
    * internalRep references to killed XOTclObjects
    */
+  /*fprintf(stderr, "cmdtype of %s is xotclObjectType %d cmdType %d\n", 
+    ObjStr(objPtr), cmdType == &XOTclObjectType,cmdType == GetCmdNameType(cmdType));*/
+
+#ifdef KEEP_TCL_CMD_TYPE
+  if (cmdType == GetCmdNameType(cmdType)) {
+    Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objPtr);
+    /*fprintf(stderr,"obj %s is of type tclCmd, cmd=%p\n", ObjStr(objPtr), cmd);*/
+    if (cmd) {
+      XOTclObject *o = XOTclGetObjectFromCmdPtr(cmd);
+
+      /*fprintf(stderr,"Got Object from '%s' %p\n", objPtr->bytes, o);
+	fprintf(stderr,"cmd->objProc %p == %p, proc=%p\n",
+	Tcl_Command_objProc(cmd), XOTclObjDispatch,
+	Tcl_Command_proc(cmd) );*/
+
+      if (o) {
+        if (obj) *obj = o;
+        result = TCL_OK;
+      } else {
+        goto convert_to_xotcl_object;
+      }
+    } else goto convert_to_xotcl_object;
+  } else
+#endif
   if (cmdType == &XOTclObjectType) {
     /* fprintf(stderr,"obj is of type XOTclObjectType\n");*/
     if (obj) {
@@ -1113,26 +1137,6 @@ XOTclObjConvertObject(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **obj) {
     } else {
       result = TCL_OK;
     }
-#ifdef KEEP_TCL_CMD_TYPE
-  } else if (cmdType == GetCmdNameType(cmdType)) {
-    Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objPtr);
-    /*fprintf(stderr,"obj %s is of type tclCmd, cmd=%p\n", ObjStr(objPtr), cmd);*/
-    if (cmd) {
-      XOTclObject *o = XOTclGetObjectFromCmdPtr(cmd);
-
-      /*fprintf(stderr,"Got Object from '%s' %p\n", objPtr->bytes, o);
-	fprintf(stderr,"cmd->objProc %p == %p, proc=%p\n",
-	Tcl_Command_objProc(cmd), XOTclObjDispatch,
-	Tcl_Command_proc(cmd) );*/
-
-      if (o) {
-        if (obj) *obj = o;
-        result = TCL_OK;
-      } else {
-        goto convert_to_xotcl_object;
-      }
-    } else goto convert_to_xotcl_object;
-#endif
   } else {
 #ifdef KEEP_TCL_CMD_TYPE
   convert_to_xotcl_object:
@@ -1899,6 +1903,10 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
   Tcl_Command cmd;
+
+#ifdef OBJDELETION_TRACE
+  fprintf(stderr, "NSCleanupNamespace %p\n", ns);
+#endif
   /*
    * Delete all variables and initialize var table again
    * (DeleteVars frees the vartable)
@@ -7107,8 +7115,8 @@ XOTclSelfSubCommand(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *option) {
 
 static int GetInstvarsIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 
-int
-XOTclInstvarCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+static int
+XOTclInstvarCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj = GetSelfObj(interp);
   if (!obj) 
     return XOTclVarErrMsg(interp, "instvar: no current object", (char *) NULL);
@@ -7477,11 +7485,11 @@ PrimitiveOCreate(Tcl_Interp *interp, char *name, XOTclClass *cl) {
                                  (ClientData)obj, PrimitiveODestroy);
 
   PrimitiveOInit(obj, interp, name, cl);
-#if 0
+#if defined(KEEP_TCL_CMD_TYPE)
   /*defined(KEEP_TCL_CMD_TYPE)*/
-  /*TclNewObj(obj->cmdName);*/
   obj->cmdName = Tcl_NewStringObj(name, length);
-  TclSetCmdNameObj(interp, obj->cmdName, (Command*)obj->id);
+  Tcl_GetCommandFromObj(interp,obj->cmdName);
+  /*TclSetCmdNameObj(interp, obj->cmdName, (Command*)obj->id);*/
   /*fprintf(stderr, "new command has name '%s'\n", objectName(obj));*/
 #else
   obj->cmdName = NewXOTclObjectObjName(obj, name, length);
@@ -12960,7 +12968,6 @@ Xotcl_Init(Tcl_Interp *interp) {
 #endif
     Tcl_CreateObjCommand(interp, "::xotcl::self", XOTclGetSelfObjCmd, 0, 0);
   /*Tcl_CreateObjCommand(interp, "::xotcl::K", XOTclKObjCmd, 0, 0);*/
-  Tcl_CreateObjCommand(interp, "::xotcl::instvar", XOTclInstvarCmd, 0, 0);
 
   Tcl_CreateObjCommand(interp, "::xotcl::dispatch", XOTclDispatchCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::deprecated", XOTcl_DeprecatedCmd, 0, 0);

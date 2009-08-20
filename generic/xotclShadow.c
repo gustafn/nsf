@@ -45,7 +45,7 @@ XOTclReplaceCommandCheck(Tcl_Interp *interp, XOTclGlobalNames name, Tcl_ObjCmdPr
 	    XOTclGlobalStrings[name], Tcl_Command_objProc(cmd), proc);
     */
     ti->proc = Tcl_Command_objProc(cmd);
-    ti->clientData   = Tcl_Command_objClientData(cmd);
+    ti->clientData = Tcl_Command_objClientData(cmd);
     Tcl_Command_objProc(cmd) = proc;
   }
 }
