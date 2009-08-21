@@ -6,7 +6,7 @@
 #
 set XOTCL_MAJOR_VERSION 2
 set XOTCL_MINOR_VERSION 0
-set XOTCL_RELEASE_LEVEL .0a
+set XOTCL_RELEASE_LEVEL .0
 
 # example settings: 
 # 1.0

@@ -1845,7 +1845,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
             if (callDestroyMethod((ClientData)obj, interp, obj, 0) != TCL_OK) {
               /* destroy method failed, but we have to remove the command
                  anyway. */
-              obj->flags |= XOTCL_DESTROY_CALLED;
+              /*obj->flags |= XOTCL_DESTROY_CALLED;*/
 	
               if (obj->teardown) {
                 CallStackDestroyObject(interp, obj);
@@ -2349,7 +2349,14 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
   if (obj->teardown && oid) {
     Tcl_Obj *savedObjResult = Tcl_GetObjResult(interp);
     INCR_REF_COUNT(savedObjResult);
+
     Tcl_DeleteCommandFromToken(interp, oid); /* this can change the result */
+#if !defined(OLD_DELETE)
+    if (XOTclObjectIsClass(obj))
+      PrimitiveCDestroy((ClientData) obj);
+    else
+      PrimitiveODestroy((ClientData) obj);
+#endif
     Tcl_SetObjResult(interp, savedObjResult);
     DECR_REF_COUNT(savedObjResult);
   }
@@ -2358,6 +2365,12 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
 static void
 CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *obj) {
   int marked = CallStackMarkDestroyed(interp, obj);
+
+#ifdef OBJDELETION_TRACE
+  fprintf(stderr, "  CallStackDestroyObject %s marked %d\n", objectName(obj), marked);
+#endif
+
+  obj->flags |= XOTCL_DESTROY_CALLED;
 
   /* if the object is not referenced on the callstack anymore
      we have to destroy it directly, because CallStackPop won't
@@ -5116,6 +5129,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
          XOTclCallStackContent *csc) {
   XOTclRuntimeState *rst = RUNTIME_STATE(interp);
   int result;
+  XOTclObjectOpt *opt = obj->opt;
 #if defined(PRE85)
   XOTcl_FrameDecls;
 #endif
@@ -5172,8 +5186,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
     }
   }
 
-  if (obj->opt &&
-      (obj->opt->checkoptions & CHECK_PRE) &&
+  if (opt && (opt->checkoptions & CHECK_PRE) &&
       (result = AssertionCheck(interp, obj, cl, methodName, CHECK_PRE)) == TCL_ERROR) {
     goto finish;
   }
@@ -5272,8 +5285,8 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       methodName);*/
   }
 
-  if (obj->opt && /*!rst->callIsDestroy &&*/ obj->teardown &&
-      (obj->opt->checkoptions & CHECK_POST)) {
+  if (opt && !rst->callIsDestroy && obj->teardown &&
+      (opt->checkoptions & CHECK_POST)) {
     result = AssertionCheck(interp, obj, cl, methodName, CHECK_POST);
   }
 
@@ -7335,6 +7348,28 @@ CleanupInitObject(Tcl_Interp *interp, XOTclObject *obj,
     obj->cmdName ? objectName(obj) : "", obj, obj->cl);*/
 }
 
+static void
+tclDeletesObject(ClientData clientData) {
+  XOTclObject *obj = (XOTclObject*)clientData;
+  Tcl_Interp *interp;
+#if defined(OLD_DELETE)
+  if (XOTclObjectIsClass(obj))
+    PrimitiveCDestroy((ClientData) obj);
+  else
+    PrimitiveODestroy((ClientData) obj);
+#else
+# ifdef OBJDELETION_TRACE
+  fprintf(stderr,"tclDeletesObject %p\n",obj);
+# endif
+  if (!obj || !obj->teardown) return;
+  interp = obj->teardown;
+# ifdef OBJDELETION_TRACE
+  fprintf(stderr,"... %p %s\n",obj,objectName(obj));
+# endif
+  CallStackDestroyObject(interp,obj);
+#endif
+}
+
 /*
  * physical object destroy
  */
@@ -7471,7 +7506,7 @@ PrimitiveOCreate(Tcl_Interp *interp, char *name, XOTclClass *cl) {
     return 0;
   }
   obj->id = Tcl_CreateObjCommand(interp, name, XOTclObjDispatch,
-                                 (ClientData)obj, PrimitiveODestroy);
+                                 (ClientData)obj, tclDeletesObject);
 
   PrimitiveOInit(obj, interp, name, cl);
 #if defined(KEEP_TCL_CMD_TYPE)
@@ -7867,7 +7902,7 @@ PrimitiveCCreate(Tcl_Interp *interp, char *name, XOTclClass *class) {
     return 0;
   }
   obj->id = Tcl_CreateObjCommand(interp, name, XOTclObjDispatch,
-                                 (ClientData)cl, PrimitiveCDestroy);
+                                 (ClientData)cl, tclDeletesObject);
 
   PrimitiveOInit(obj, interp, name, class);
 
@@ -8678,7 +8713,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     } else if (c == 'a' && !strncmp(element,"argcl", 4)) {
       if (Tcl_ListObjIndex(interp, o, 1, &list) != TCL_OK) {
         return XOTclVarErrMsg(interp, "forward: %argclindex must by a valid list, given: '",
-                              ObjStr(o), "'", (char *) NULL);
+                              element, "'", (char *) NULL);
       }
       if (Tcl_ListObjGetElements(interp, list, &nrElements, &listElements) != TCL_OK) {
         return XOTclVarErrMsg(interp, "forward: %argclindex contains invalid list '",
@@ -8686,7 +8721,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       }
       if (nrargs >= nrElements) {
         return XOTclVarErrMsg(interp, "forward: not enough elements in specified list of ARGC argument ",
-                              ObjStr(o), (char *) NULL);
+                              element, (char *) NULL);
       }
       *out = listElements[nrargs];
     } else if (c == '%') {
@@ -8728,6 +8763,7 @@ static int
 callForwarder(forwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ClientData clientData;
   int result;
+  XOTclObject *obj = tcd->obj;
   XOTcl_FrameDecls;
 
   if (tcd->verbose) {
@@ -8736,7 +8772,7 @@ callForwarder(forwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     DECR_REF_COUNT(cmd);
   }
   if (tcd->objscope) {
-    XOTcl_PushFrame(interp, tcd->obj);
+    XOTcl_PushFrame(interp, obj);
   }
   if (tcd->objProc) {
     result = (tcd->objProc)(tcd->clientData, interp, objc, objv);
@@ -8750,7 +8786,7 @@ callForwarder(forwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   }
 
   if (tcd->objscope) {
-    XOTcl_PopFrame(interp, tcd->obj);
+    XOTcl_PopFrame(interp, obj);
   }
   if (result == TCL_ERROR && tcd && tcd->onerror) {
     Tcl_Obj *ov[2];
@@ -10990,7 +11026,7 @@ static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *obje
   /*
    * latch, and call delete command if not already in progress
    */
-  delobj->flags |= XOTCL_DESTROY_CALLED;
+  /*delobj->flags |= XOTCL_DESTROY_CALLED;*/
   RUNTIME_STATE(interp)->callIsDestroy = 1;
   /*fprintf(stderr,"dealloc %s : setting callIsDestroy = 1\n", ObjStr(object);*/
   if (RUNTIME_STATE(interp)->exitHandlerDestroyRound !=

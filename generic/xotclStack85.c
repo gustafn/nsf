@@ -384,9 +384,12 @@ XOTCLINLINE static void
 CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *csc) {
 
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "POP  csc=%p, frame %p\n", csc);
+  fprintf(stderr, "POP  csc=%p\n", csc);
 #endif
 
+#ifdef OBJDELETION_TRACE
+  fprintf(stderr, "POP  csc=%p, obj %s, destroyed %p\n", csc, objectName(csc->self), csc->destroyedCmd);
+#endif
   if (csc->destroyedCmd) {
     int destroy = 1;
     TclCleanupCommand((Command *)csc->destroyedCmd);
@@ -397,6 +400,9 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *csc) {
     if (CallStackGetObjectFrame(interp, csc->self)) {
       destroy = 0;
     }
+#ifdef OBJDELETION_TRACE
+    fprintf(stderr, "  callDoDestroy ?%d\n",destroy);
+#endif
     if (destroy) {
       CallStackDoDestroy(interp, csc->self);
     }

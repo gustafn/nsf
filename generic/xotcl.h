@@ -83,6 +83,10 @@
 */
 
 /*
+#define OBJDELETION_TRACE 1
+*/
+#define OLD_DELETE
+/*
 #define TCL85STACK_TRACE 1
 #define TCL85STACK 1
 #define CANONICAL_ARGS 1
