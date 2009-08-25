@@ -304,8 +304,9 @@ typedef struct XOTclMemCounter {
 #ifdef OBJDELETION_TRACE
 # define PRINTOBJ(ctx,obj) \
   fprintf(stderr, "  %s %p %s oid=%p teardown=%p destroyCalled=%d\n", \
-	  ctx,obj,ObjStr(obj->cmdName), obj->id, obj->teardown, \
-	  (obj->flags & XOTCL_DESTROY_CALLED))
+          ctx,obj,(obj)->teardown?ObjStr((obj)->cmdName):"(deleted)", \
+          (obj)->id, (obj)->teardown,                                 \
+          ((obj)->flags & XOTCL_DESTROY_CALLED))
 #else
 # define PRINTOBJ(ctx,obj)
 #endif
@@ -418,9 +419,11 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_IS_ROOT_META_CLASS             0x0080
 #define XOTCL_IS_ROOT_CLASS                  0x0100
 /* DESTROYED set, when object is physically destroyed with PrimitiveODestroy  */
-#define XOTCL_DESTROYED                      0x1000
-#define XOTCL_RECREATE                       0x4000
-#define XOTCL_NS_DESTROYED                   0x8000
+#define XOTCL_MUST_DELETE                    0x1000
+#define XOTCL_DURING_DELETE                  0x2000
+#define XOTCL_DELETED                        0x4000
+#define XOTCL_RECREATE                       0x8000
+#define XOTCL_NS_DESTROYED                   0xc000
 
 #define XOTclObjectSetClass(obj) \
 	(obj)->flags |= XOTCL_IS_CLASS
@@ -484,6 +487,7 @@ typedef struct XOTclObject {
   XOTclMixinStack *mixinStack;
   int refCount;
   short flags;
+  short activationCount;
 } XOTclObject;
 
 typedef struct XOTclObjects {
@@ -586,7 +590,6 @@ typedef struct XOTclCallStackContent {
   XOTclObject *self;
   XOTclClass *cl;
   Tcl_Command cmdPtr;
-  Tcl_Command destroyedCmd;
 #if !defined(TCL85STACK)
   Tcl_CallFrame *currentFramePtr;
 #endif
@@ -604,8 +607,7 @@ typedef struct XOTclCallStackContent {
 #define XOTCL_CSC_TYPE_GUARD 16
 
 #define XOTCL_CSC_CALL_IS_NEXT 1
-#define XOTCL_CSC_CALL_IS_DESTROY 2
-#define XOTCL_CSC_CALL_IS_GUARD 4
+#define XOTCL_CSC_CALL_IS_GUARD 2
 
 #if !defined(TCL85STACK)
 typedef struct XOTclCallStack {
@@ -641,7 +643,6 @@ typedef struct XOTclRuntimeState {
   int errorCount;
   /* these flags could move into a bitarray, but are used only once per interp*/
   int callDestroy;
-  int callIsDestroy;
   int unknown;
   int doFilters;
   int doSoftrecreate;

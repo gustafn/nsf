@@ -82,10 +82,7 @@
 #define PARSE_TRACE_FULL 1
 */
 
-/*
-#define OBJDELETION_TRACE 1
-*/
-#define OLD_DELETE
+/*#define OBJDELETION_TRACE 1*/
 /*
 #define TCL85STACK_TRACE 1
 #define TCL85STACK 1
@@ -94,7 +91,7 @@
 #define CANONICAL_ARGS 1
 #define TCL85STACK 1
 
-#if defined PARSE_TRACE_FULL
+#if defined(PARSE_TRACE_FULL)
 # define PARSE_TRACE 1
 #endif
 

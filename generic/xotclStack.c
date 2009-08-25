@@ -11,11 +11,11 @@ CallStackPush(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Command 
                   TCL_STATIC);
     return NULL;
   }
+  obj->activationCount ++;
   csc = ++cs->top;
   csc->self          = obj;
   csc->cl            = cl;
   csc->cmdPtr        = cmd;
-  csc->destroyedCmd  = NULL;
   csc->frameType     = frameType;
   csc->callType      = 0;
 #if !defined(TCL85STACK)
@@ -37,31 +37,18 @@ CallStackPush(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Command 
 XOTCLINLINE static void
 CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc;
-  XOTclCallStackContent *h = cs->top;
+  XOTclCallStackContent *csc = cs->top;
+  XOTclObject *obj = csc->self;
 
   assert(cs->top > cs->content);
-  csc = cs->top;
 
 #if defined(TCL85STACK_TRACE)
   fprintf(stderr, "POP  csc=%p, frame %p\n", csc, Tcl_Interp_framePtr(interp));
 #endif
+  obj->activationCount --;
 
-  if (csc->destroyedCmd) {
-    int destroy = 1;
-    TclCleanupCommand((Command *)csc->destroyedCmd);
-    MEM_COUNT_FREE("command refCount", csc->destroyedCmd);
-    /* do not physically destroy, when callstack still contains "self"
-       entries of the object */
-    while (--h > cs->content) {
-      if (h->self == csc->self) {
-        destroy = 0;
-        break;
-      }
-    }
-    if (destroy) {
-      CallStackDoDestroy(interp, csc->self);
-    }
+  if (obj->activationCount < 1 && obj->flags & XOTCL_DESTROY_CALLED) {
+    CallStackDoDestroy(interp, obj);
   }
 
   cs->top--;
@@ -259,56 +246,6 @@ CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *obj) {
     }
   }
   return NULL;
-}
-
-static int
-CallStackMarkDestroyed(Tcl_Interp *interp, XOTclObject *obj) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc;
-  int countSelfs = 0;
-  Tcl_Command oid = obj->id;
-
-  for (csc = &cs->content[1]; csc <= cs->top; csc++) {
-    if (csc->self == obj) {
-      csc->destroyedCmd = oid;
-      csc->callType |= XOTCL_CSC_CALL_IS_DESTROY;
-      /*fprintf(stderr,"setting destroy on csc %p for obj %p\n", csc, obj);*/
-      if (csc->destroyedCmd) {
-        Tcl_Command_refCount(csc->destroyedCmd)++;
-        MEM_COUNT_ALLOC("command refCount", csc->destroyedCmd);
-      }
-      countSelfs++;
-    }
-  }
-  return countSelfs;
-}
-
-/*
- * Mark the given obj existing in the callstack as "not destroyed"
- */
-static void
-CallStackMarkUndestroyed(Tcl_Interp *interp, XOTclObject *obj) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc;
-
-  for (csc = &cs->content[1]; csc <= cs->top; csc++) {
-    if (obj == csc->self && csc->destroyedCmd) {
-      /*
-       * The ref count was incremented, when csc->destroyedCmd
-       * was set. We revert this first before clearing the
-       * destroyedCmd.
-       */
-      if (Tcl_Command_refCount(csc->destroyedCmd) > 1) {
-        Tcl_Command_refCount(csc->destroyedCmd)--;
-        MEM_COUNT_FREE("command refCount", csc->destroyedCmd);
-      }
-      csc->destroyedCmd  = 0;
-    }
-  }
-  /*
-   * mark obj->flags XOTCL_DESTROY_CALLED as NOT CALLED 
-   */
-  obj->flags &= ~XOTCL_DESTROY_CALLED;
 }
 
 /*

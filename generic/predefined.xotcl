@@ -337,11 +337,8 @@ namespace eval ::xotcl {
   ######################
   # system slots
   ######################
-  #namespace eval ::xotcl::Class::slot {}
-  namespace eval ::xotcl::Object::slot {}
-  ::xotcl::Object alloc ::xotcl::Class::slot
+  ::xotcl::Object alloc ::xotcl::Class::slot    ;# already created through createBootstrapAttributeSlots
   ::xotcl::Object alloc ::xotcl::Object::slot
-
   ::xotcl::InfoSlot create ::xotcl::Class::slot::superclass
   ::xotcl::alias ::xotcl::Class::slot::superclass assign ::xotcl::relation
   ::xotcl::InfoSlot create ::xotcl::Object::slot::class
@@ -699,7 +696,7 @@ namespace eval ::xotcl {
   }
   
   ::xotcl::Object::CopyHandler instproc copyTargets {} {
-    #puts stderr "copy targetList = [::xotcl::my set targetList]"
+    #puts stderr "COPY will copy targetList = [::xotcl::my set targetList]"
     foreach origin [::xotcl::my set targetList] {
       set dest [::xotcl::my getDest $origin]
       if {[::xotcl::my isobject $origin]} {
@@ -713,7 +710,7 @@ namespace eval ::xotcl {
           $cl instinvar [$origin info instinvar]
           $cl instfilter [$origin info instfilter -guards]
           $cl instmixin [$origin info instmixin]
-	my copyNSVarsAndCmds ::xotcl::classes$origin ::xotcl::classes$dest
+          my copyNSVarsAndCmds ::xotcl::classes$origin ::xotcl::classes$dest
           #$cl parameter [$origin info parameter]
         } else {
           # create obj
@@ -748,7 +745,7 @@ namespace eval ::xotcl {
         if {$cmds ne ""} {
           foreach cmd $cmds {
             foreach {op def} $cmd break
-          #$origin trace remove variable $var $op $def
+            #$origin trace remove variable $var $op $def
             if {[lindex $def 0] eq $origin} {
               set def [concat $dest [lrange $def 1 end]]
             }
@@ -756,14 +753,17 @@ namespace eval ::xotcl {
           }
         }
       }
+      #puts stderr "====="
     }
-    # alter 'domain' and 'manager' in slot objects
-    set origin [lindex [::xotcl::my set targetList] 0]
-    if {[::xotcl::my isclass $origin]} {
-      foreach oldslot [$origin info slots] {
-        set newslot ${cl}::slot::[namespace tail $oldslot]
-        if {[$oldslot domain] eq $origin}   {$newslot domain $cl}
-        if {[$oldslot manager] eq $oldslot} {$newslot manager $newslot}
+    # alter 'domain' and 'manager' in slot objects for classes
+    foreach origin [::xotcl::my set targetList] {
+      if {[::xotcl::my isclass $origin]} {
+        set dest [::xotcl::my getDest $origin]
+        foreach oldslot [$origin info slots] {
+          set newslot ${dest}::slot::[namespace tail $oldslot]
+          if {[$oldslot domain] eq $origin}   {$newslot domain $cl}
+          if {[$oldslot manager] eq $oldslot} {$newslot manager $newslot}
+        }
       }
     }
   }

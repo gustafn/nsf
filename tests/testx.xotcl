@@ -616,13 +616,14 @@ TestX filterGuards -proc run {{n 20}} {
       }
       set filterResult ""
       B b
-
+puts stderr ====b-created
       ::errorCheck $filterResult "" \
 	    "Filter guard: Filter never to be applied + filter inheritance on this filter"
       # filter w/o guard -> has to be applied
       A instfilter f1
+puts stderr ====b-instfilter-set
       b destroy
-
+puts stderr ====b-destroyed2
       set filterResult ""
       B b
       # TODO: with tcl85stack, we get here 
@@ -2505,6 +2506,7 @@ TestX copymove -proc run {{n 10}} {
     # class hierarchy copy
     Class O
     X copy O::X
+
     O::X x1; O::X::Y y1; O::X::Y::Z z1
     ::errorCheck "[x1 q 1 2 3]--[y1 q 1 2 3]--[z1 q 1 2 3]" \
       "::x1--::O::X--q------::y1--::O::X::Y--q------::z1--::O::X::Y::Z--q----"\
@@ -2516,6 +2518,7 @@ TestX copymove -proc run {{n 10}} {
     proc ::x::tclProc args {return tclProc}
     x proc q {a b c} {return [self]--[self class]--[self proc]--[next]--}
     x copy y
+
     ::errorCheck "[::y::tclProc]--[x q 1 2 3]--[y q 1 2 3]" \
       "tclProc--::x----q--::x--::X--q--------::y----q--::y--::X--q------"\
       "object copy"
@@ -2540,6 +2543,7 @@ TestX copymove -proc run {{n 10}} {
     x set var1 12
     x proc p1 {} {return [self]-p1}
     x copy y
+
     ::errorCheck "[x p1]--[x set var1]--[::x info class]" "::x-p1--12--::O"\
       "Simple Copy - Origin"
     ::errorCheck "[y p1]--[y set var1]--[::y info class]" "::y-p1--12--::O"\
@@ -2608,6 +2612,7 @@ TestX copymove -proc run {{n 10}} {
       commands::cellcmd setproc {return "coucou" }
       commands::cellcmd proc x args {return xxx}
       commands::cellcmd copy toto
+
       ::errorCheck [::toto info class] ::Command "Copy with Filter: info class"
       ::errorCheck [toto set label] cell "Copy with Filter: set var"
       ::errorCheck [toto x] xxx "Copy with Filter: call proc"
@@ -2620,6 +2625,7 @@ TestX copymove -proc run {{n 10}} {
     Class B -superclass A
     Class B1 -superclass {V A Z}
     A move X
+
     ::errorCheck [B info superclass]-[B1 info superclass]-[X info subclass] \
 	"::X-::V ::X ::Z-::B ::B1" \
 	"Move of subclass relationship"
@@ -2638,8 +2644,10 @@ TestX copymove -proc run {{n 10}} {
     X proc do5 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
     X instproc do6 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
 
+puts stderr "**** call copy Y"
     X copy Y
-    
+    puts stderr "**** copy to Y done (nonpos)"
+
     ::errorCheck [lsort [X info procs]] "do0 do1 do2 do3 do4 do5" "check procs to be copied"
     ::errorCheck [lsort [Y info procs]] "do0 do1 do2 do3 do4 do5" "check copied procs"
     ::errorCheck [lsort [X info instprocs]] "do6" "check instprocs to be copied"

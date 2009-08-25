@@ -491,14 +491,23 @@ objectvariables proc run {{n 100}} {
   # trace variables
   #
   Variables avar2
+  
+  proc ::traceproc {maj min op} {
+    set majTmp [namespace tail "$maj"]
+    puts stderr ...TRACE
+    global trail; lappend trail [list $majTmp $min $op]
+  }
+
 
   avar2 proc trace {var ops} {
     my instvar $var
     ::trace variable $var $ops "avar2 traceproc"
+    #::trace variable $var $ops "traceproc"
   }
 
   avar2 proc traceproc {maj min op} {
     set majTmp [namespace tail "$maj"]
+    puts stderr ...TRACE
     global trail; lappend trail [list $majTmp $min $op]
   }
 
@@ -533,9 +542,11 @@ objectvariables proc run {{n 100}} {
   for {set i 0} {$i < $n} {incr i} {
     lappend guide [list scalar$i {} u]
   }
-
+puts stderr KILLSELF
   avar2 killSelf
- 
+ puts stderr KILLSELF-done
+puts stderr guide=$guide
+puts stderr trail=$trail
   if {[lsort $guide] != [lsort $trail]} then {
     error "FAILED [self] - trace: expected $guide, got $trail"
   }

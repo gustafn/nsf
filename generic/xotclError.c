@@ -41,26 +41,26 @@ XOTclVarErrMsg TCL_VARARGS_DEF (Tcl_Interp *, arg1) {
 
 
 int
-XOTclErrInProc (Tcl_Interp *interp, Tcl_Obj *objName,
-		Tcl_Obj *clName, char *procName) {
-    Tcl_DString errMsg;
-    char *cName, *space;
-    ALLOC_DSTRING(&errMsg, "\n    ");
-    if (clName) {
-      cName = ObjStr(clName);
-      space = " ";
-    } else {
-      cName = "";
-      space ="";
-    }
-    Tcl_DStringAppend(&errMsg, ObjStr(objName),-1);
-    Tcl_DStringAppend(&errMsg, space, -1);
-    Tcl_DStringAppend(&errMsg, cName, -1);
-    Tcl_DStringAppend(&errMsg, "->", 2);
-    Tcl_DStringAppend(&errMsg, procName, -1);
-    Tcl_AddErrorInfo (interp, Tcl_DStringValue(&errMsg));
-    DSTRING_FREE(&errMsg);
-    return TCL_ERROR;
+XOTclErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
+               Tcl_Obj *clName, char *procName) {
+  Tcl_DString errMsg;
+  char *cName, *space;
+  ALLOC_DSTRING(&errMsg, "\n    ");
+  if (clName) {
+    cName = ObjStr(clName);
+    space = " ";
+  } else {
+    cName = "";
+    space ="";
+  }
+  Tcl_DStringAppend(&errMsg, ObjStr(objName),-1);
+  Tcl_DStringAppend(&errMsg, space, -1);
+  Tcl_DStringAppend(&errMsg, cName, -1);
+  Tcl_DStringAppend(&errMsg, "->", 2);
+  Tcl_DStringAppend(&errMsg, procName, -1);
+  Tcl_AddErrorInfo (interp, Tcl_DStringValue(&errMsg));
+  DSTRING_FREE(&errMsg);
+  return TCL_ERROR;
 }
 
 int

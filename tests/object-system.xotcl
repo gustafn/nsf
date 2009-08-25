@@ -43,7 +43,7 @@ Class C0
 ? {C0 ismetaclass} 0
 ? {C0 info superclass} ::xotcl::Object
 ? {C0 info class} ::xotcl::Class
-? {lsort [Class info vars]} "__default_metaclass __default_superclass"
+#? {lsort [Class info vars]} "__default_metaclass __default_superclass"
 
 Class M -superclass ::xotcl::Class
 ? {Object isobject M} 1
@@ -68,6 +68,7 @@ C c1
 # destroy meta-class M, reclass meta-class instances to the base meta-class
 M destroy
 ? {Object isobject C} 1
+puts stderr XXX
 ? {C isclass} 1
 ? {C ismetaclass} 0
 ? {C info superclass} ::xotcl::Object

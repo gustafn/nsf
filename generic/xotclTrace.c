@@ -80,7 +80,7 @@ XOTclCallStackDump(Tcl_Interp *interp) {
     fprintf(stderr, " cmd %p, obj %p, epoch %d, ",
 	    csc->cmdPtr, csc->self, csc->cmdPtr ? Tcl_Command_cmdEpoch(csc->cmdPtr) : -1);
     */
-    if (csc->cmdPtr && !csc->destroyedCmd && !Tcl_Command_cmdEpoch(csc->cmdPtr))
+    if (csc->cmdPtr && !Tcl_Command_cmdEpoch(csc->cmdPtr))
       fprintf(stderr, "%s (%p), ", Tcl_GetCommandName(interp, (Tcl_Command)csc->cmdPtr),
 	      csc->cmdPtr);
     else 
@@ -94,8 +94,6 @@ XOTclCallStackDump(Tcl_Interp *interp) {
     if (csc->currentFramePtr) 
       fprintf(stderr,"l=%d ",Tcl_CallFrame_level(csc->currentFramePtr));
 #endif
-    if (csc->destroyedCmd)
-      fprintf(stderr, "--destroyed cmd set (%p) ", csc->destroyedCmd);
 
     fprintf(stderr, "\n");
   }
