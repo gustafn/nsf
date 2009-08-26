@@ -625,10 +625,8 @@ TestX filterGuards -proc run {{n 20}} {
 
       set filterResult ""
       B b
-      # TODO: with tcl85stack, we get here 
-      #    -::b-f1-::A-cleanup-::b-f1-::A-configure-::b-f1-::A-setvalues-::b-f1-::A-init
-      # due to the different lifetime of the stack. For the time being, we deactivate this test....
-      #::errorCheck $filterResult "-::b-f1-::A-configure-::b-f1-::A-setvalues-::b-f1-::A-init" \
+
+      ::errorCheck $filterResult "-::b-f1-::A-configure-::b-f1-::A-setvalues-::b-f1-::A-init" \
 	"Filter guard: two different filters, same name + different class, one guarded, one not"
 
       # two filter w/o guard -> both have to be applied
