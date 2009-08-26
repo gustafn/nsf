@@ -1,0 +1,428 @@
+package require XOTcl
+namespace import -force xotcl::*
+package require xotcl::test
+
+proc ? {cmd expected {msg ""}} {
+  set count 10
+  if {$msg ne ""} {
+    set t [Test new -cmd $cmd -count $count -msg $msg]
+  } else {
+    set t [Test new -cmd $cmd -count $count]
+  }
+  $t expected $expected 
+  $t run
+}
+Class O -superclass Object 
+O instproc init {} {
+  set ::ObjectDestroy 0
+  set ::firstDestroy 0
+}
+O instproc destroy {} {
+  incr ::ObjectDestroy
+  #[my info class] dealloc [self]
+  next
+}
+
+#
+# classical simple case
+#
+set case "simple destroy (1)"
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  my destroy
+  puts stderr "AAAA [self] exists [Object isobject [self]]"
+  my set x 1
+  ? "[self] set x" 1 "$::case can still access [self]"
+  puts stderr "BBBB"
+  ? {Object isobject c1} 1 "$::case object still exists in proc"
+  ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+  ? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
+}
+C c1
+c1 foo
+puts stderr ======[Object isobject c1]
+? {Object isobject c1} 0 "$::case object deleted"
+? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+
+#
+# simple case, destroy does not propagate, c1 survives
+#
+set case "simple destroy (2), destroy blocks"
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy block"}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  my destroy
+  puts stderr "AAAA [self] exists [Object isobject [self]]"
+  my set x 1
+  ? "[self] set x" 1 "$::case can still access [self]"
+  puts stderr "BBBB"
+  ? {Object isobject c1} 1 "$::case object still exists in proc"
+  ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+  ? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+}
+C c1
+c1 foo
+puts stderr ======[Object isobject c1]
+? {Object isobject c1} 1 "$::case object deleted"
+? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+
+#
+# simple object recreate
+#
+set case "recreate"
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  [my info class] create [self]
+  puts stderr "AAAA [self] exists [Object isobject [self]]"
+  my set x 1
+  ? "[self] set x" 1 "$::case can still access [self]"
+  puts stderr "BBBB"
+  ? {Object isobject c1} 1 "$::case object still exists in proc"
+  ? "set ::firstDestroy" 0 "$::case, firstDestroy called"
+  ? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+}
+C c1
+c1 foo
+puts stderr ======[Object isobject c1]
+? {Object isobject c1} 1 "$::case object deleted"
+? "set ::firstDestroy" 0 "$::case, firstDestroy called"
+
+#
+# cmd rename to empty, xotcl provides its own rename and calls destroy
+# .. like simple case above
+#
+set case "cmd rename empty (1)"
+Object o
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  rename [self] ""
+  puts stderr "AAAA [self] exists [Object isobject [self]]"
+  my set x 1
+  ? "[self] set x" 1 "$::case can still access [self]"
+  puts stderr "BBB"
+  ? {Object isobject c1} 1 "$::case object still exists in proc"
+  ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+  ? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
+}
+C c1
+c1 foo
+puts stderr ======[Object isobject c1]
+? {Object isobject c1} 0 "$::case object still exists after proc"
+? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
+
+#
+# cmd rename to empty, xotcl provides its own rename and calls
+# destroy, but destroy does not propagate, c1 survives rename, since
+# this is the situation like above, as long xotcl's rename is used.
+#
+set case "cmd rename empty (2)"
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy block"}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  rename [self] ""
+  puts stderr "AAAA [self] exists [Object isobject [self]]"
+  my set x 1
+  ? "[self] set x" 1 "$::case can still access [self]"
+  puts stderr "BBB"
+  ? {Object isobject c1} 1 "$::case object still exists in proc"
+  ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+  ? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+}
+C c1
+c1 foo
+puts stderr ======[Object isobject c1]
+puts stderr ======[c1 set x]
+? {Object isobject c1} 1 "$::case object still exists after proc"
+? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+
+#
+# cmd rename other xotcl object to current, 
+# xotcl's rename invokes a move 
+#
+set case "cmd rename object to self"
+Object o
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  rename o [self]
+  puts stderr "AAAA [self] exists [Object isobject [self]]"
+  my set x 1
+  ? "[self] set x" 1 "$::case can still access [self]"
+  puts stderr "BBB"
+  ? {Object isobject c1} 1 "$::case object still exists in proc"
+  ? "set ::firstDestroy" 0 "$::case, firstDestroy called"
+  ? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+}
+C c1
+c1 foo
+puts stderr ======[Object isobject c1]
+? {Object isobject c1} 1 "$::case object still exists after proc"
+? "set ::firstDestroy" 0 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+
+#
+# cmd rename other proc to current object, 
+# xotcl's rename invokes a move 
+#
+set case "cmd rename proc to self"
+proc o args {}
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  set x [catch {rename o [self]}]
+  ? "set _ $x" 1 "$::case tcl refuses to rename into an existing command"
+}
+C c1
+c1 foo
+? {Object isobject c1} 1 "$::case object still exists after proc"
+? "set ::firstDestroy" 0 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+
+
+#
+# namespace delete: tcl delays delete until the namespace is not
+# active anymore. destroy is called after BBBB. Hypothesis: destroy is
+# called only when we are lucky, since C might be destroyed before c1
+# by the namespace delete
+#
+
+set case "delete parent namespace (1)"
+namespace eval ::test {
+  Class C -superclass O
+  C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+  C instproc foo {} {
+    puts stderr "==== $::case [self]"
+    namespace delete ::test
+    puts stderr "AAAA [self] exists [Object isobject [self]]"
+    my set x 1
+    #
+    # If the following line is commented in, the namespace is deleted
+    # here. Is there a bug with nsPtr->activationCount
+    #
+    #? "[self] set x" 1 "$::case can still access [self]"
+    puts stderr "BBB"
+    puts stderr "???? [self] exists [Object isobject [self]]"
+    ? "Object isobject [self]" 0 ;# WHY?
+    puts stderr "???? [self] exists [Object isobject [self]]"
+    ? "set ::firstDestroy" 0 "$::case, firstDestroy called"
+    ? "set ::ObjectDestroy" 0 "$::case destroy not yet called"
+  }
+}
+test::C test::c1
+test::c1 foo
+puts stderr ======[Object isobject test::c1]
+? {Object isobject test::c1} 0  "$::case object still exists after proc"
+? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 1 "$::case: destroy was called when poping stack frame"
+
+#
+# namespace delete: tcl delays delete until the namespace is not
+# active anymore. destroy is called after BBBB, but does not
+# propagate.  
+#
+set case "delete parent namespace (2)"
+namespace eval ::test {
+  Class C -superclass O
+  C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy block"}
+  C instproc foo {} {
+    puts stderr "==== $::case [self]"
+    namespace delete ::test
+    puts stderr "AAAA [self] exists [Object isobject [self]]"
+    my set x 1
+    #
+    # If the following line is commented in, the namespace is deleted
+    # here. Is there a bug with nsPtr->activationCount
+    #
+    #? "[self] set x" 1 "$::case can still access [self]"
+    puts stderr "BBB"
+    puts stderr "???? [self] exists [Object isobject [self]]"
+    ? "Object isobject [self]" 0 "$::case object still exists in proc";# WHY?
+    puts stderr "???? [self] exists [Object isobject [self]]"
+    ? "set ::firstDestroy" 0 "$::case, firstDestroy called"
+    ? "set ::ObjectDestroy" 0  "$::case, ObjectDestroy called"; # NOT YET CALLED
+  }
+}
+test::C test::c1
+test::c1 foo
+puts stderr ======[Object isobject test::c1]
+? {Object isobject test::c1} 0  "$::case object still exists after proc"
+? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"  ;# toplevel destroy was blocked
+
+#
+# controlled namespace delete: xotcl has its own namespace cleanup,
+# topological order should be always ok. however, the object o::c1 is
+# already deleted, while a method of it is excuted
+#
+set case "delete parent object (1)"
+Object o
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  o destroy
+  puts stderr "AAAA [self] exists [Object isobject [self]]"
+  my set x 1
+  #? "[self] set x" 1 "$::case can still access [self]"
+  puts stderr "BBB"
+  ? {Object isobject ::o::c1} 0 "$::case object still exists in proc"
+  ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+  ? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
+}
+C o::c1
+o::c1 foo
+puts stderr ======[Object isobject ::o::c1]
+? {Object isobject ::o::c1} 0 "$::case object o::c1 still exists after proc"
+? {Object isobject o} 0 "$::case object o still exists after proc"
+? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
+
+#
+# controlled namespace delete: xotcl has its own namespace cleanup.
+# destroy does not delegate, but still o::c1 does not survive, since o
+# is deleted.
+#
+set case "delete parent object (2)"
+Object o
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy block"}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  o destroy
+  puts stderr "AAAA [self] exists [Object isobject [self]]"
+  my set x 1
+  #? "[self] set x" 1 "$::case can still access [self]"
+  puts stderr "BBB"
+  ? {Object isobject ::o::c1} 0 "$::case object still exists in proc"
+  ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+  ? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+}
+C o::c1
+o::c1 foo
+puts stderr ======[Object isobject ::o::c1]
+? {Object isobject ::o::c1} 0 "$::case object still exists after proc"
+? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+
+
+#
+# create an other cmd with the current object's name. 
+# xotcl 1.6 crashed on this test
+#
+set case "redefined current object as proc"
+Object o
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  proc [self] {args} {puts HELLO}
+  puts stderr "AAAA [self] exists [Object isobject [self]]"
+  my set x 1
+  #? "[self] set x" 1 "$::case can still access [self]"
+  puts stderr "BBB"
+  ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+  ? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
+  ? {Object isobject c1} 0 "$::case object still exists in proc"
+}
+C c1
+c1 foo
+puts stderr ======[Object isobject c1]
+? {Object isobject c1} 0 "$::case object still exists after proc"
+? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
+
+
+
+#
+# delete the active class
+#
+set case "delete active class"
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  C destroy
+  puts stderr "AAAA [self] exists [Object isobject [self]]"
+  my set x 1
+  #? "[self] set x" 1 "$::case can still access [self]"
+  puts stderr "BBB"
+  #? [my info class] ::xotcl::Object "$::case, object reclassed"
+  ? [my info class] ::C "$::case, object reclassed?"
+  ? "set ::firstDestroy" 0 "$::case, firstDestroy called"
+  ? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+  ? {Object isobject c1} 1 "$::case: object still exists in proc"
+  #? {Object isclass ::C} 0 "$::case: class still exists in proc"
+  ? {Object isclass ::C} 1 "$::case: class still exists in proc"
+}
+C c1
+c1 foo
+puts stderr ======[Object isobject c1]
+? {Object isobject c1} 1 "$::case: object still exists after proc"
+? [c1 info class] ::xotcl::Object "$::case, after proc: object reclassed?"
+? "set ::firstDestroy" 0 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+
+#
+# delete active object nested in class
+#
+set case "delete active object nested in class"
+Class C -superclass O
+C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C instproc foo {} {
+  puts stderr "==== $::case [self]"
+  C destroy
+  puts stderr "AAAA [self] exists [Object isobject [self]]"
+  my set x 1
+  #? "[self] set x" 1 "$::case can still access [self]"
+  puts stderr "BBB"
+  #? "set ::firstDestroy" 0 "$::case, firstDestroy called"
+  ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+  #? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"
+  ? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
+  ? [my info class] ::C "$::case, object reclassed"
+  #? [my info class] ::xotcl::Object "$::case, object reclassed"
+  ? {Object isobject ::C::c1} 1 "$::case: object still exists in proc"
+  ? {Object isclass ::C} 1 "$::case: class still exists in proc"
+}
+C create ::C::c1
+C::c1 foo
+puts stderr ======[Object isobject ::C::c1]
+? {Object isobject ::C::c1} 0 "$::case: object still exists after proc"
+? {Object isclass ::C} 0 "$::case: class still exists after proc"
+? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
+
+puts stderr "==== EXIT ===="
+exit
+
+TODO:
+fix crashes in regression test: DONE, 
+     -> well we can't call traceprocs on the object being destroyed; maybe call CleanupDestroyObject() ealier
+  move destroy logic to activationCount DONE
+  simplify logic (remove callIsDestroy, callstate XOTCL_CSC_CALL_IS_DESTROY, destroyedCmd on stack content) DONE
+  remove CallStackMarkDestroyed(), CallStackMarkUndestroyed() DONE
+  remove traces of rst->callIsDestroy DONE
+  revive tclStack (without 85) DONE
+  check state changes DONE
+
+more generic */
+XOTCLINLINE static Tcl_ObjType *
+GetCmdNameType(Tcl_ObjType *cmdType) {
+
+  delete active class; maybe C destroy, c1 destroy (or C::c1 + C destroy)
+  add recreate logic test case
+
+  MATRIX
