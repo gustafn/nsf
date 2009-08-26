@@ -5296,7 +5296,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       if ((result = InvokeMethod(clientData, interp, objc-1, objv+1, cmd, obj, cl,
                                  methodName, frameType)) == TCL_ERROR) {
 	result = XOTclErrInProc(interp, cmdName,
-				cl ? cl->object.cmdName : NULL,
+				cl && cl->object.teardown ? cl->object.cmdName : NULL,
 				methodName);
       }
       unknown = rst->unknown;

@@ -300,6 +300,9 @@ void CallStackPopAll(Tcl_Interp *interp) {
 XOTCLINLINE static void
 CallStackPush(XOTclCallStackContent *csc, XOTclObject *obj, XOTclClass *cl, Tcl_Command cmd, int frameType) {
   obj->activationCount ++;
+#if 1
+  if (cl) {cl->object.activationCount ++;}
+#endif
   /*fprintf(stderr, "incr activationCount for %s to %d\n", objectName(obj), obj->activationCount);*/
   csc->self          = obj;
   csc->cl            = cl;
@@ -308,7 +311,6 @@ CallStackPush(XOTclCallStackContent *csc, XOTclObject *obj, XOTclClass *cl, Tcl_
   csc->callType      = 0;
   csc->filterStackEntry = frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER ? obj->filterStack : NULL;
 
-#if 0
 #if defined(TCL85STACK_TRACE)
   fprintf(stderr, "PUSH csc %p type %d obj %s, self=%p cmd=%p (%s) id=%p (%s) obj refcount %d name refcount %d\n",
           csc, frameType, objectName(obj), obj,
@@ -316,7 +318,6 @@ CallStackPush(XOTclCallStackContent *csc, XOTclObject *obj, XOTclClass *cl, Tcl_
           obj->id, obj->id ? Tcl_GetCommandName(obj->teardown, obj->id) : "(deleted)",
           obj->id ? Tcl_Command_refCount(obj->id) : -100, obj->cmdName->refCount
           );
-#endif
 #endif
 }
 
@@ -333,6 +334,15 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *csc) {
   if (obj->activationCount < 1 && obj->flags & XOTCL_DESTROY_CALLED) {
     CallStackDoDestroy(interp, obj);
   }
+#if 1
+  if (csc->cl) {
+    obj = &csc->cl->object;
+    obj->activationCount --;
+    if (obj->activationCount < 1 && obj->flags & XOTCL_DESTROY_CALLED) {
+      CallStackDoDestroy(interp, obj);
+    }
+  }
+#endif
 }
 #endif /* TCL85STACK */
 
