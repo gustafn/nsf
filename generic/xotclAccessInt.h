@@ -44,18 +44,24 @@
  */
 
 static XOTCLINLINE ClientData
-XOTclGetCDFromCmdPtr(Tcl_Command cmd) {
+XOTclGetClientDataFromCmdPtr(Tcl_Command cmd) {
   assert(cmd);
   /*fprintf(stderr, "objProc=%p %p\n",Tcl_Command_objProc(cmd),XOTclObjDispatch);*/
-  if (Tcl_Command_objProc(cmd) == XOTclObjDispatch && !Tcl_Command_cmdEpoch(cmd))
+  if (Tcl_Command_objProc(cmd) == XOTclObjDispatch /* && !Tcl_Command_cmdEpoch(cmd)*/)
     return Tcl_Command_objClientData(cmd);
-  else
+  else {
+    cmd = TclGetOriginalCommand(cmd);
+    if (cmd && Tcl_Command_objProc(cmd) == XOTclObjDispatch) {
+      /*fprintf(stderr, "???? got cmd right in 2nd round\n");*/
+      return Tcl_Command_objClientData(cmd);
+    }
     return NULL;
+  }
 }
 
 static XOTCLINLINE XOTclClass*
 XOTclGetClassFromCmdPtr(Tcl_Command cmd) {
-  ClientData cd = XOTclGetCDFromCmdPtr(cmd);
+  ClientData cd = XOTclGetClientDataFromCmdPtr(cmd);
   /*fprintf(stderr, "cd=%p\n",cd);*/
   if (cd) 
     return XOTclObjectToClass(cd);
@@ -65,5 +71,5 @@ XOTclGetClassFromCmdPtr(Tcl_Command cmd) {
 
 static XOTCLINLINE XOTclObject*
 XOTclGetObjectFromCmdPtr(Tcl_Command cmd) {
-  return (XOTclObject*) XOTclGetCDFromCmdPtr(cmd);
+  return (XOTclObject*) XOTclGetClientDataFromCmdPtr(cmd);
 }

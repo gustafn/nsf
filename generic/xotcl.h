@@ -56,8 +56,6 @@
 #define AUTOVARS
 */
 
-#define KEEP_TCL_CMD_TYPE 1
-
 /* activate/deacticate assert 
 #define NDEBUG 1
 */
@@ -82,7 +80,6 @@
 #define PARSE_TRACE_FULL 1
 */
 
-/*#define OBJDELETION_TRACE 1*/
 /*
 #define TCL85STACK_TRACE 1
 #define TCL85STACK 1

@@ -616,14 +616,13 @@ TestX filterGuards -proc run {{n 20}} {
       }
       set filterResult ""
       B b
-puts stderr ====b-created
+
       ::errorCheck $filterResult "" \
 	    "Filter guard: Filter never to be applied + filter inheritance on this filter"
       # filter w/o guard -> has to be applied
       A instfilter f1
-puts stderr ====b-instfilter-set
       b destroy
-puts stderr ====b-destroyed2
+
       set filterResult ""
       B b
       # TODO: with tcl85stack, we get here 
@@ -2644,9 +2643,7 @@ TestX copymove -proc run {{n 10}} {
     X proc do5 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
     X instproc do6 {{-arg1 d3} {arg2 d4}} {puts "$arg1 $arg2"}
 
-puts stderr "**** call copy Y"
     X copy Y
-    puts stderr "**** copy to Y done (nonpos)"
 
     ::errorCheck [lsort [X info procs]] "do0 do1 do2 do3 do4 do5" "check procs to be copied"
     ::errorCheck [lsort [Y info procs]] "do0 do1 do2 do3 do4 do5" "check copied procs"

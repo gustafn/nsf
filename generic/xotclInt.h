@@ -423,7 +423,6 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_DURING_DELETE                  0x2000
 #define XOTCL_DELETED                        0x4000
 #define XOTCL_RECREATE                       0x8000
-#define XOTCL_NS_DESTROYED                   0xc000
 
 #define XOTclObjectSetClass(obj) \
 	(obj)->flags |= XOTCL_IS_CLASS
@@ -501,7 +500,6 @@ typedef struct XOTclClassOpt {
   XOTclCmdList *isObjectMixinOf;
   XOTclCmdList *isClassMixinOf;
   XOTclAssertionStore *assertions;
-  Tcl_Obj *parameterClass;
 #ifdef XOTCL_OBJECTDATA
   Tcl_HashTable *objectdata;
 #endif
@@ -518,7 +516,7 @@ typedef struct XOTclClass {
     /*struct XOTclClass *parent;*/
   Tcl_HashTable instances;
   Tcl_Namespace *nsPtr;
-  Tcl_Obj *parameters;
+  /*Tcl_Obj *parameters;*/
   XOTclClassOpt *opt;
 } XOTclClass;
 

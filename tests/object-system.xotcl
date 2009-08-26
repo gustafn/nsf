@@ -68,7 +68,6 @@ C c1
 # destroy meta-class M, reclass meta-class instances to the base meta-class
 M destroy
 ? {Object isobject C} 1
-puts stderr XXX
 ? {C isclass} 1
 ? {C ismetaclass} 0
 ? {C info superclass} ::xotcl::Object

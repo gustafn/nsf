@@ -494,7 +494,7 @@ objectvariables proc run {{n 100}} {
   
   proc ::traceproc {maj min op} {
     set majTmp [namespace tail "$maj"]
-    puts stderr ...TRACE
+    #puts stderr ...TRACE
     global trail; lappend trail [list $majTmp $min $op]
   }
 
@@ -507,7 +507,7 @@ objectvariables proc run {{n 100}} {
 
   avar2 proc traceproc {maj min op} {
     set majTmp [namespace tail "$maj"]
-    puts stderr ...TRACE
+    #puts stderr ...TRACE
     global trail; lappend trail [list $majTmp $min $op]
   }
 
