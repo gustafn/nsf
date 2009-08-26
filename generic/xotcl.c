@@ -12368,11 +12368,11 @@ ExitHandler(ClientData clientData) {
   flags = Tcl_Interp_flags(interp);
   Tcl_Interp_flags(interp) &= ~DELETED;
 
+  CallStackPopAll(interp);
+
   if (RUNTIME_STATE(interp)->exitHandlerDestroyRound == XOTCL_EXITHANDLER_OFF) {
     XOTclFinalizeObjCmd(interp);
   }
-
-  CallStackPopAll(interp);
 
   /* must be before freeing of XOTclGlobalObjects */
   XOTclShadowTclCommands(interp, SHADOW_UNLOAD);
