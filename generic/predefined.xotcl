@@ -192,6 +192,7 @@ namespace eval ::xotcl {
       }
       $class instparametercmd $att
     }
+
     # do a second round to ensure that the already defined objects
     # have the appropriate default values
     foreach att $definitions {
@@ -204,12 +205,14 @@ namespace eval ::xotcl {
 	  #
 	  # re-run configure to catch slot settings from "configureargs",
 	  # such as defaults etc.
-	  # TODO: put this somewhere else?!
-	  $i configure
+	  # TODO: still needed?
+	  #$i configure
         }
         unset default
       }
     }
+    puts stderr "Bootstrapslot for $class calls invalidateinterfacedefinition"
+    $class invalidateinterfacedefinition
   }
 
   # We provide a default value for superclass (when no superclass is specified explicitely)
@@ -223,9 +226,11 @@ namespace eval ::xotcl {
       set arg "-[namespace tail $slot]"
       set opts [list]
       #
-      # the should be a ::xotcl::getinstvar for the bootstrap phase
+      # there should be a ::xotcl::getinstvar for the bootstrap phase
       # because InterceptorSlots overload the setter set, leading
-      # to an issue with the convertToInterceptor converter.
+      # to an issue with the convertToRelation converter.
+      #
+      # TODO what's wrong with ::xotcl::setinstvar without a <value>?
       #
       if {[$slot exists required] && [$slot required]} {
 	lappend opts required
@@ -241,6 +246,7 @@ namespace eval ::xotcl {
       }
       lappend arg_list $arg
     } 
+    # todo: why do we need "args"? temporary solution?
     lappend arg_list args
     #puts stderr "*** args spec for [self]: $arg_list"
     return $arg_list
@@ -284,6 +290,7 @@ namespace eval ::xotcl {
     } else {
       $obj set $prop [list $value]
     }
+    #[::xotcl::my domain] invalidateinterfacedefinition  ;# TODO maybe not needed here
   }
   ::xotcl::Slot instproc delete {-nocomplain:switch obj prop value} {
     set old [$obj set $prop]
@@ -304,10 +311,24 @@ namespace eval ::xotcl {
   }
   ::xotcl::Slot instproc init {} {
     ::xotcl::my instvar name domain manager per-object
+    #puts stderr "slot init [self] exists name? [info exists name] '$name'"
     set forwarder [expr {${per-object} ? "forward" : "instforward"}]
     #puts "domain=$domain /[::xotcl::self callingobject]/[::xotcl::my info parent]"
     if {$domain eq ""} {
       set domain [::xotcl::self callingobject]
+    } else {
+      #todo could be done via slotoptimizer
+      puts stderr "Slot [self] (name $name) init $domain calls invalidateinterfacedefinition"
+      $domain invalidateinterfacedefinition
+      # TODO: the following line should not be here. It is necessary to handle currently
+      # computed default values, such as
+      #     {name "[namespace tail [::xotcl::self]]"}
+      #
+      # Computed defaults could not be cached. Options:
+      #  - define a new converter type and delay for set value
+      #  - invent some non-caching (not preferable).
+      #
+      [my info class] invalidateinterfacedefinition
     }
     #puts stderr "???? $domain $forwarder $name -default [$manager defaultmethods] $manager %1 %self %proc"
     $domain $forwarder $name -default [$manager defaultmethods] $manager %1 %self %proc
@@ -386,20 +407,20 @@ namespace eval ::xotcl {
   ::xotcl::Object alloc ::xotcl::Object::slot
 
 
-  ::xotcl::InfoSlot create ::xotcl::Class::slot::superclass -type interceptor
+  ::xotcl::InfoSlot create ::xotcl::Class::slot::superclass -type relation
   ::xotcl::alias ::xotcl::Class::slot::superclass assign ::xotcl::relation
-  ::xotcl::InfoSlot create ::xotcl::Object::slot::class -type interceptor
+  ::xotcl::InfoSlot create ::xotcl::Object::slot::class -type relation
   ::xotcl::alias ::xotcl::Object::slot::class assign ::xotcl::relation
 
   ::xotcl::InterceptorSlot create ::xotcl::Object::slot::mixin \
-      -type interceptor 
+      -type relation 
   ::xotcl::InterceptorSlot create ::xotcl::Object::slot::filter \
-      -elementtype "" -type interceptor 
+      -elementtype "" -type relation 
   ::xotcl::InterceptorSlot create ::xotcl::Class::slot::instmixin \
-      -type interceptor 
+      -type relation 
   ::xotcl::InterceptorSlot create ::xotcl::Class::slot::instfilter \
       -elementtype "" \
-      -type interceptor 
+      -type relation 
 
   #
   # Attribute
@@ -509,6 +530,8 @@ namespace eval ::xotcl {
       -instproc forward args {::xotcl::next; ::xotcl::my optimize} \
       -instproc init args    {::xotcl::next; ::xotcl::my optimize} \
       -instproc optimize {} {
+        #puts stderr "slot optimizer for [::xotcl::my domain] calls invalidateinterfacedefinition"
+        #[::xotcl::my domain] invalidateinterfacedefinition
         if {[::xotcl::my multivalued]} return
         if {[::xotcl::my defaultmethods] ne {get assign}} return
         if {[::xotcl::my procsearch assign] ne "::xotcl::Slot instcmd assign"} return
@@ -575,7 +598,6 @@ namespace eval ::xotcl {
       ::xotcl::Object create [::xotcl::self]::slot
     }
     foreach arg $arglist {
-      #puts "arg=$arg"
       set l [llength $arg]
       set name [lindex $arg 0]
       if {[string first : $name] > -1} {
@@ -597,10 +619,10 @@ namespace eval ::xotcl {
       }
       if {$l == 1} {
         eval $cmd
-        #puts stderr "parameter without default -> $cmd"
+        #puts stderr "parameter $arg without default -> $cmd"
       } elseif {$l == 2} {
         lappend cmd [list -default [lindex $arg 1]]
-        #puts stderr "parameter with default -> $cmd"
+        #puts stderr "parameter $arg with default -> $cmd"
         eval $cmd
       } elseif {$l == 3 && [lindex $arg 1] eq "-default"} {
         lappend cmd [list -default [lindex $arg 2]]

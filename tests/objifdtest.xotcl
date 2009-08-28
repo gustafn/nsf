@@ -1,0 +1,56 @@
+package require XOTcl
+namespace import -force xotcl::*
+package require xotcl::test
+
+proc ? {cmd expected {msg ""}} {
+  set count 10
+  if {$msg ne ""} {
+    set t [Test new -cmd $cmd -count $count -msg $msg]
+  } else {
+    set t [Test new -cmd $cmd -count $count]
+  }
+  $t expected $expected 
+  $t run
+}
+
+catch {::xotcl::configure cacheinterface true}
+
+puts stderr =====START
+Class C -parameter {a {b:boolean} {c 1}}
+
+C c1 
+? {C configureargs} "-instfilter:relation -superclass:relation -instmixin:relation -mixin:relation -filter:relation -class:relation args"
+? {c1 configureargs} "-a -b:boolean {-c 1} -mixin:relation -filter:relation -class:relation args"
+
+# reclass to Object, no neet to do anything on caching
+puts stderr "=== reclass c1 to Object"
+c1 class Object
+? {c1 configureargs} "-mixin:relation -filter:relation -class:relation args"
+
+puts stderr "=== create Class D"
+Class D -superclass C -parameter {d:required}
+D d1 -d 100
+? {d1 configureargs} "-d:required -a -b:boolean {-c 1} -mixin:relation -filter:relation -class:relation args"
+
+
+set case "instmixin M into D"
+Class M -parameter {m1 m2 b}
+Class M2 -parameter {b2}
+puts stderr "=== $case"
+D instmixin M
+? {d1 configureargs} "-b -m1 -m2 -d:required -a {-c 1} -mixin:relation -filter:relation -class:relation args" "$case: mixin added"
+M instmixin M2
+? {d1 configureargs} "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation -filter:relation -class:relation args" "$case: transitive mixin added"
+D instmixin ""
+#we should have again the old interface
+? {d1 configureargs} "-d:required -a -b:boolean {-c 1} -mixin:relation -filter:relation -class:relation args" "$case: mixin removed"
+
+set case "instmixin M into C"
+puts stderr "=== $case"
+C instmixin M
+? {d1 configureargs} "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation -filter:relation -class:relation args" "$case: mixin added"
+C instmixin ""
+#we should have again the old interface
+? {d1 configureargs} "-d:required -a -b:boolean {-c 1} -mixin:relation -filter:relation -class:relation args" "$case: mixin removed"
+
+puts stderr =====END
