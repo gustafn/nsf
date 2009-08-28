@@ -73,6 +73,8 @@ namespace eval ::xotcl {
   # "init" must exist on Object. per default it is empty.
   ::xotcl::Object instproc init args {}
 
+  ::xotcl::Object instproc configureargs {} {;}
+
   #
   # create class and object for nonpositional argument processing
   ::xotcl::Class create ::xotcl::NonposArgs
@@ -190,7 +192,6 @@ namespace eval ::xotcl {
       }
       $class instparametercmd $att
     }
-
     # do a second round to ensure that the already defined objects
     # have the appropriate default values
     foreach att $definitions {
@@ -200,6 +201,11 @@ namespace eval ::xotcl {
 
         foreach i [$class info instances] {
           if {![$i exists $att]} {::xotcl::setinstvar $i $att $default}
+	  #
+	  # re-run configure to catch slot settings from "configureargs",
+	  # such as defaults etc.
+	  # TODO: put this somewhere else?!
+	  $i configure
         }
         unset default
       }
@@ -209,6 +215,39 @@ namespace eval ::xotcl {
   # We provide a default value for superclass (when no superclass is specified explicitely)
   # for defining the top-level class of the object system, such that different
   # object systems might co-exist.
+
+  # provide the generator for the initialisation argument specification
+  ::xotcl::Object instproc configureargs {} {
+    set arg_list [list]
+    foreach slot [my info slotobjects] {
+      set arg "-[namespace tail $slot]"
+      set opts [list]
+      #
+      # the should be a ::xotcl::getinstvar for the bootstrap phase
+      # because InterceptorSlots overload the setter set, leading
+      # to an issue with the convertToInterceptor converter.
+      #
+      if {[$slot exists required] && [$slot required]} {
+	lappend opts required
+      }
+      if {[$slot exists type]} {
+	lappend opts [$slot type]
+      }
+      if {[llength $opts] > 0} {
+	set arg "$arg:[join $opts ,]";
+      }
+      if {[$slot exists default]} {
+	set arg [list $arg [subst [$slot set default]]]
+      }
+      lappend arg_list $arg
+    } 
+    lappend arg_list args
+    #puts stderr "*** args spec for [self]: $arg_list"
+    return $arg_list
+  }
+  
+
+
   createBootstrapAttributeSlots ::xotcl::Class {
     {__default_superclass ::xotcl::Object}
     {__default_metaclass ::xotcl::Class}
@@ -337,17 +376,30 @@ namespace eval ::xotcl {
   ######################
   # system slots
   ######################
-  ::xotcl::Object alloc ::xotcl::Class::slot    ;# already created through createBootstrapAttributeSlots
+  # <<<<<<<<< FUNKTIONIERT !!!!!
+  #namespace eval ::xotcl::Class::slot {}
+  namespace eval ::xotcl::Object::slot {}
+  ::xotcl::Object alloc ::xotcl::Class::slot
+  # =========
+  #::xotcl::Object alloc ::xotcl::Class::slot    ;# already created through createBootstrapAttributeSlots
+  # >>>>>>>>> FUNKTIERT NICHT!!!
   ::xotcl::Object alloc ::xotcl::Object::slot
-  ::xotcl::InfoSlot create ::xotcl::Class::slot::superclass
+
+
+  ::xotcl::InfoSlot create ::xotcl::Class::slot::superclass -type interceptor
   ::xotcl::alias ::xotcl::Class::slot::superclass assign ::xotcl::relation
-  ::xotcl::InfoSlot create ::xotcl::Object::slot::class
+  ::xotcl::InfoSlot create ::xotcl::Object::slot::class -type interceptor
   ::xotcl::alias ::xotcl::Object::slot::class assign ::xotcl::relation
 
-  ::xotcl::InterceptorSlot create ::xotcl::Object::slot::mixin
-  ::xotcl::InterceptorSlot create ::xotcl::Object::slot::filter -elementtype ""
-  ::xotcl::InterceptorSlot create ::xotcl::Class::slot::instmixin
-  ::xotcl::InterceptorSlot create ::xotcl::Class::slot::instfilter -elementtype ""
+  ::xotcl::InterceptorSlot create ::xotcl::Object::slot::mixin \
+      -type interceptor 
+  ::xotcl::InterceptorSlot create ::xotcl::Object::slot::filter \
+      -elementtype "" -type interceptor 
+  ::xotcl::InterceptorSlot create ::xotcl::Class::slot::instmixin \
+      -type interceptor 
+  ::xotcl::InterceptorSlot create ::xotcl::Class::slot::instfilter \
+      -elementtype "" \
+      -type interceptor 
 
   #
   # Attribute

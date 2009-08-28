@@ -417,12 +417,11 @@ fix crashes in regression test: DONE,
   remove traces of rst->callIsDestroy DONE
   revive tclStack (without 85) DONE
   check state changes DONE
+  delete active class; maybe C destroy, c1 destroy (or C::c1 + C destroy) DONE
+  add recreate logic test case DONE
 
 more generic */
 XOTCLINLINE static Tcl_ObjType *
 GetCmdNameType(Tcl_ObjType *cmdType) {
-
-  delete active class; maybe C destroy, c1 destroy (or C::c1 + C destroy)
-  add recreate logic test case
 
   MATRIX

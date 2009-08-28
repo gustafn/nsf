@@ -516,7 +516,7 @@ typedef struct XOTclClass {
     /*struct XOTclClass *parent;*/
   Tcl_HashTable instances;
   Tcl_Namespace *nsPtr;
-  /*Tcl_Obj *parameters;*/
+  XOTclParsedInterfaceDefinition *parsedIf;
   XOTclClassOpt *opt;
 } XOTclClass;
 
@@ -543,6 +543,7 @@ typedef enum {
     XOTE_FORMAT, XOTE_INITSLOTS,
     XOTE_NEWOBJ, XOTE_GUARD_OPTION, XOTE_DEFAULTMETHOD,
     XOTE___UNKNOWN, XOTE___UNKNOWN__, XOTE_ARGS, XOTE_SPLIT, XOTE_COMMA, 
+    XOTE_CONFIGUREARGS,
     /** these are the redefined tcl commands; leave them
 	together at the end */
     XOTE_EXPR, XOTE_INFO, XOTE_RENAME, XOTE_SUBST
@@ -563,6 +564,7 @@ char *XOTclGlobalStrings[] = {
   "format", "initslots",
   "__#", "-guard", "defaultmethod",
   "__unknown", "__unknown__", "args", "split", ",",
+  "configureargs",
   "expr", "info", "rename", "subst",
 };
 #endif
@@ -644,6 +646,7 @@ typedef struct XOTclRuntimeState {
   int unknown;
   int doFilters;
   int doSoftrecreate;
+  int cacheInterface;
   int exitHandlerDestroyRound;
   int returnCode;
   long newCounter;

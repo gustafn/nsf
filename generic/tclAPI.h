@@ -1,9 +1,9 @@
 
 static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
-  static CONST char *opts[] = {"filter", "softrecreate", NULL};
+  static CONST char *opts[] = {"filter", "softrecreate", "cacheinterface", NULL};
   return Tcl_GetIndexFromObj(interp, objPtr, opts, "configureoption", 0, (int *)clientData);
 }
-enum configureoptionIdx {configureoptionFilterIdx, configureoptionSoftrecreateIdx};
+enum configureoptionIdx {configureoptionFilterIdx, configureoptionSoftrecreateIdx, configureoptionCacheinterfaceIdx};
   
 static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
   static CONST char *opts[] = {"protected", "public", "slotobj", NULL};
@@ -2732,7 +2732,7 @@ static methodDefinition method_definitions[] = {
   {"cmdName", 1, 0, convertToTclobj}}
 },
 {"::xotcl::configure", XOTclConfigureCmdStub, 2, {
-  {"filter|softrecreate", 1, 0, convertToConfigureoption},
+  {"filter|softrecreate|cacheinterface", 1, 0, convertToConfigureoption},
   {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::createobjectsystem", XOTclCreateObjectSystemCmdStub, 2, {

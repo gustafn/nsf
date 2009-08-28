@@ -25,7 +25,7 @@ xotclCmd alias XOTclAliasCmd {
   {-argName "cmdName" -required 1 -type tclobj}
 }
 xotclCmd configure XOTclConfigureCmd {
-  {-argName "configureoption" -required 1 -type "filter|softrecreate"}
+  {-argName "configureoption" -required 1 -type "filter|softrecreate|cacheinterface"}
   {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
