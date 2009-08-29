@@ -76,7 +76,7 @@ namespace eval ::xotcl {
 
   # provide a placeholder for the bootup process. The real definition
   # is based on slots, which are not available at this point.
-  ::xotcl::Object instproc objinterface {} {;}
+  ::xotcl::Object instproc objectparameter {} {;}
 
   #
   # create class and object for nonpositional argument processing
@@ -176,9 +176,9 @@ namespace eval ::xotcl {
 
   ::xotcl::MetaSlot create ::xotcl::Slot
 
-  # We have no working objinterface yet. So invalidate MetaSlot to
+  # We have no working objectparameter yet. So invalidate MetaSlot to
   # avoid caching.
-  ::xotcl::MetaSlot invalidateinterfacedefinition
+  ::xotcl::MetaSlot invalidateobjectparameter
 
   #foreach o {::xotcl::MetaSlot ::xotcl::Slot} {
   #  foreach r {object class metaclass} {
@@ -188,9 +188,13 @@ namespace eval ::xotcl {
 
   # Provide the a slot based mechanism for building an object
   # configuration interface from slot definitions
-  ::xotcl::Object instproc objinterface {} {
+  ::xotcl::Object instproc objectparameter {} {
     set arg_list [list]
-    foreach slot [my info slotobjects] {
+    # don't call [my info slotobjects], since filters on [self]
+    # modifying the result (such as in the regression test) will cause
+    # problems.
+    set slots [::xotcl::objectInfo slotobjects [self]]
+    foreach slot $slots {
       set arg "-[namespace tail $slot]"
       set opts [list]
 
@@ -249,7 +253,7 @@ namespace eval ::xotcl {
         foreach i [$class info instances] {
           if {![$i exists $att]} {::xotcl::setinstvar $i $att $default}
 	  #
-	  # re-run configure to catch slot settings from "objinterface",
+	  # re-run configure to catch slot settings from "objectparameter",
 	  # such as defaults etc.
 	  # TODO: still needed?
 	  #$i configure
@@ -257,8 +261,8 @@ namespace eval ::xotcl {
         unset default
       }
     }
-    puts stderr "Bootstrapslot for $class calls invalidateinterfacedefinition"
-    $class invalidateinterfacedefinition
+    puts stderr "Bootstrapslot for $class calls invalidateobjectparameter"
+    $class invalidateobjectparameter
   }
 
   # We provide a default value for superclass (when no superclass is specified explicitely)
@@ -301,7 +305,7 @@ namespace eval ::xotcl {
     } else {
       $obj set $prop [list $value]
     }
-    #[::xotcl::my domain] invalidateinterfacedefinition  ;# TODO maybe not needed here
+    #[::xotcl::my domain] invalidateobjectparameter  ;# TODO maybe not needed here
   }
   ::xotcl::Slot instproc delete {-nocomplain:switch obj prop value} {
     set old [$obj set $prop]
@@ -329,8 +333,8 @@ namespace eval ::xotcl {
       set domain [::xotcl::self callingobject]
     } else {
       #todo could be done via slotoptimizer
-      puts stderr "Slot [self] (name $name) init $domain calls invalidateinterfacedefinition"
-      $domain invalidateinterfacedefinition
+      puts stderr "Slot [self] (name $name) init $domain calls invalidateobjectparameter"
+      $domain invalidateobjectparameter
       # TODO: the following line should not be here. It is necessary to handle currently
       # computed default values, such as
       #     {name "[namespace tail [::xotcl::self]]"}
@@ -339,7 +343,7 @@ namespace eval ::xotcl {
       #  - define a new converter type and delay for set value
       #  - invent some non-caching (not preferable).
       #
-      [my info class] invalidateinterfacedefinition
+      [my info class] invalidateobjectparameter
     }
     #puts stderr "???? $domain $forwarder $name -default [$manager defaultmethods] $manager %1 %self %proc"
     $domain $forwarder $name -default [$manager defaultmethods] $manager %1 %self %proc
@@ -541,8 +545,8 @@ namespace eval ::xotcl {
       -instproc forward args {::xotcl::next; ::xotcl::my optimize} \
       -instproc init args    {::xotcl::next; ::xotcl::my optimize} \
       -instproc optimize {} {
-        #puts stderr "slot optimizer for [::xotcl::my domain] calls invalidateinterfacedefinition"
-        #[::xotcl::my domain] invalidateinterfacedefinition
+        #puts stderr "slot optimizer for [::xotcl::my domain] calls invalidateobjectparameter"
+        #[::xotcl::my domain] invalidateobjectparameter
         if {[::xotcl::my multivalued]} return
         if {[::xotcl::my defaultmethods] ne {get assign}} return
         if {[::xotcl::my procsearch assign] ne "::xotcl::Slot instcmd assign"} return

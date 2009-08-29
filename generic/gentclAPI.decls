@@ -224,7 +224,7 @@ classMethod instforward XOTclCInstForwardMethod {
   {-argName "args" -type args}
 }
 # todo -protected for XOTclCInstForwardMethod
-classMethod invalidateinterfacedefinition XOTclCInvalidateInterfaceDefinitionMethod {
+classMethod invalidateobjectparameter XOTclCInvalidateObjectParameterMethod {
 }
 classMethod recreate XOTclCRecreateMethod {
   {-argName "name" -required 1 -type tclobj}

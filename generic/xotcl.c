@@ -98,7 +98,7 @@ static XOTclClass *DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclCl
 static XOTclCallStackContent *CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr);
 XOTCLINLINE static void CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr);
 XOTCLINLINE static void CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclCInvalidateInterfaceDefinitionMethod(Tcl_Interp *interp, XOTclClass *cl);
+static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass *cl);
 
 typedef enum { CALLING_LEVEL, ACTIVE_LEVEL } CallStackLevel;
 
@@ -3268,7 +3268,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
   cl->order = NULL;
   /*
   fprintf(stderr, "MixinInvalidateObjOrders %s calls ifd invalidate\n",className(cl));
-  XOTclCInvalidateInterfaceDefinitionMethod(interp, cl); TODO REMOVEMEIFYOUARESURE
+  XOTclCInvalidateObjectParameterMethod(interp, cl); TODO REMOVEMEIFYOUARESURE
   */
 
   /* reset mixin order for all instances of the class and the
@@ -3280,7 +3280,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
       Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : NULL;
     /*
     fprintf(stderr, "MixinInvalidateObjOrders subclass %s calls ifd invalidate \n",className(clPtr->cl));
-    XOTclCInvalidateInterfaceDefinitionMethod(interp, clPtr->cl); TODO REMOVEMEIFYOUARESURE
+    XOTclCInvalidateObjectParameterMethod(interp, clPtr->cl); TODO REMOVEMEIFYOUARESURE
     */
     /* reset mixin order for all objects having this class as per object mixin */
     ResetOrderOfClassesUsedAsMixins(clPtr->cl);
@@ -3313,7 +3313,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
     if (ncl) {
       MixinResetOrderForInstances(interp, ncl);
       fprintf(stderr, "MixinInvalidateObjOrders via instmixin %s calls ifd invalidate \n",className(ncl));
-      XOTclCInvalidateInterfaceDefinitionMethod(interp, ncl);
+      XOTclCInvalidateObjectParameterMethod(interp, ncl);
     }
   }
   MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
@@ -7353,7 +7353,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
   FilterInvalidateObjOrders(interp, cl);
 
   /* todo: maybe not needed, of done by MixinInvalidateObjOrders() already */
-  XOTclCInvalidateInterfaceDefinitionMethod(interp, cl);
+  XOTclCInvalidateObjectParameterMethod(interp, cl);
 
   if (clopt) {
     /*
@@ -10103,7 +10103,7 @@ GetObjectInterface(Tcl_Interp *interp, char *methodName, XOTclObject *obj,
     result = TCL_OK;
   } else {
     /* get the string representation of the interface */
-    result = callMethod((ClientData) obj, interp, XOTclGlobalObjects[XOTE_OBJINTERFACE], 2, 0, 0);
+    result = callMethod((ClientData) obj, interp, XOTclGlobalObjects[XOTE_OBJECTPARAMETER], 2, 0, 0);
     if (result == TCL_OK) {
       rawConfArgs = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(rawConfArgs);
@@ -11128,7 +11128,7 @@ static int XOTclCInstForwardMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *
   return rc;
 }
 
-static int XOTclCInvalidateInterfaceDefinitionMethod(Tcl_Interp *interp, XOTclClass *cl) {
+static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass *cl) {
   fprintf(stderr, "   %s invalidate %p\n", className(cl), cl->parsedIf);
   if (cl->parsedIf) {
     ParsedInterfaceDefinitionFree(cl->parsedIf);

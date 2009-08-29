@@ -285,27 +285,37 @@ TestX filterAddRemove -proc run {{n 20}} {
     SA($i) instproc fa args {
       incr ::filterCount
       my set x 150
-      return "[next]-[self class]::[self proc]"
+      set r [next]
+      lappend ::result "$r-[self class]::[self proc]"
+      return $r
     }
     SA($i) instproc f2 args {
       incr ::filterCount
       my set x 150
-      return "[next]-[self class]::[self proc]" 
+      set r [next]
+      lappend ::result "$r-[self class]::[self proc]"
+      return $r
     }
     SB($i) instproc f2 args {	    
       incr ::filterCount
       my set x 150
-      return "[next]-[self class]::[self proc]" 
+      set r [next]
+      lappend ::result "$r-[self class]::[self proc]"
+      return $r
     }
     SB($i) instproc fb args {
       incr ::filterCount
       my set x 150
-      return "[next]-[self class]::[self proc]" 
+      set r [next]
+      lappend ::result "$r-[self class]::[self proc]"
+      return $r
     }
     SC($i) instproc fc args {
       incr ::filterCount
       my set x 150
-      return "[next]-[self class]::[self proc]" 
+      set r [next]
+      lappend ::result "$r-[self class]::[self proc]" 
+      return $r
     }
     SC($i) instfilter fc
     SB($i) instfilter {fb f2}
@@ -316,51 +326,60 @@ TestX filterAddRemove -proc run {{n 20}} {
     Filtered${i} instproc testfilter args {
       incr ::filterCount
       T s
-      return "[next]-[self class]::[self proc]"  
+      set r [next]
+      lappend ::result "$r-[self class]::[self proc]"
+      return $r
     }
     Filtered${i} instfilter testfilter
     Filtered${i} instproc a args {
       return "in a"
     }
     Filtered${i} f${i}
+    set ::result ""
     set erg [f${i} a]
-    ::errorCheck $erg \
-      "in a-::SA(${i})::f2-::SA(${i})::fa-::SB(${i})::f2-::SB(${i})::fb-::SC(${i})::fc-::Filtered${i}::testfilter" \
-      "Filter Test - add"
+    ::errorCheck $::result \
+        "{in a-::SA($i)::f2} {in a-::SA($i)::fa} {in a-::SB($i)::f2} {in a-::SB($i)::fb} {in a-::SC($i)::fc} {in a-::Filtered${i}::testfilter}" \
+        "Filter Test - add"
     SC($i) instfilter {}
     SB($i) instfilter fb
     SA($i) instfilter {}
+    set ::result ""
     set erg [f${i} a]
-    ::errorCheck $erg "in a-::SB(${i})::fb-::Filtered${i}::testfilter" \
-      "Filter Test - remove"
-
+    ::errorCheck $::result "{in a-::SB($i)::fb} {in a-::Filtered${i}::testfilter}" \
+        "Filter Test - remove"
+    
     f${i} proc procFilter args {
       return "[next]-[self class]::[self proc]" 
     }
     f${i} filter {fa f2 procFilter}
-
-
+    
+    set ::result ""
     set erg [f${i} a]
-    ::errorCheck $erg "in a-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa" \
-      "Obj Filter Test call three filter + instfilter"
-
-    ::errorCheck "[f${i} info filter]-[SB($i) info instfilter]-[SC($i) info instfilter]" \
-      "fa f2 procFilter-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa-fb-"\
-      "filter infos" 
-
-    ::errorCheck [f${i} filtersearch fa]-[f${i} filtersearch fb]-[f${i} filtersearch procFilter] "::SA(${i}) instproc fa-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa-::SB(${i}) instproc fb-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa-::f${i} proc procFilter-::SB(${i})::fb-::Filtered${i}::testfilter-::procFilter-::SB(${i})::f2-::SA(${i})::fa" "filtersearch"
-
+    ::errorCheck $::result "{in a-::SB($i)::fb} {in a-::Filtered${i}::testfilter} {in a-::procFilter-::SB($i)::f2} {in a-::procFilter-::SA($i)::fa}" \
+        "Obj Filter Test call three filter + instfilter"
+    
+    ::errorCheck [f${i} info filter]-[SB($i) info instfilter]-[SC($i) info instfilter] \
+        "fa f2 procFilter-::procFilter-fb-" \
+        "filter infos"
+    
+    ::errorCheck [f${i} filtersearch fa]-[f${i} filtersearch fb]-[f${i} filtersearch procFilter] \
+        "::SA($i) instproc fa-::procFilter-::SB($i) instproc fb-::procFilter-::f${i} proc procFilter-::procFilter" \
+        "filtersearch"
+    
     Filtered${i} instfilter {}
     SB($i) instfilter {}
-    set erg [f${i} a]
 
-    ::errorCheck $erg "in a-::procFilter-::SB(${i})::f2-::SA(${i})::fa" \
-      "only obj filter"
+    set ::result ""
+    set erg [f${i} a]
+    ::errorCheck $::result \
+        "{in a-::procFilter-::SB($i)::f2} {in a-::procFilter-::SA($i)::fa}" \
+        "only obj filter"
 
     f${i} filter {}
+    set ::result ""
     set erg [f${i} a]
     ::errorCheck $erg "in a" \
-      "obj filter remove"
+        "obj filter remove"
   }
   for {set i 0} {$i < $n} {incr i} {
     SA($i) destroy
@@ -369,12 +388,12 @@ TestX filterAddRemove -proc run {{n 20}} {
   }
 
   ::errorCheck $::filterCount 1080 \
-    "Filter Test  - Filter Count -- Got: $::filterCount"
+      "Filter Test  - Filter Count -- Got: $::filterCount"
   
   #
   # instvar test
   #
-
+  
   Object o
   o set x 1
   Object o1
@@ -513,7 +532,8 @@ TestX filterAddRemove -proc run {{n 20}} {
   D filter f
   D d1
   ::errorCheck $::r "::D-d1 ::D-alloc ::D-create ::D-unknown" "filter state after next" 
-
+  Object instproc f {} {}
+  D destroy
 }
 
 @ TestX filterClassChange {
@@ -562,17 +582,33 @@ TestX filterClassChange -proc run {{n 20}} {
       Class F2 -superclass F1
       Class F3 -superclass F2
 
-      F1 instproc testf args {return [next]-filtered}
-      F2 instproc testf2 args {return [next]-filtered}
+      F1 instproc testf args {
+        set r [next]
+        lappend ::result $r-filtered
+        return $r
+      }
+      F2 instproc testf2 args {
+        set r [next]
+        lappend ::result $r-filtered
+        return $r
+      }
       F3 instfilter {testf testf2}
       F3 f2
 
-      ::errorCheck [f2 filtersearch testf2] "::F2 instproc testf2-filtered-filtered" "filtersearch 2"
+      set ::result ""
+      ::errorCheck [f2 filtersearch testf2] "::F2 instproc testf2" "filtersearch 2"
 
-      ::errorCheck [f2 set r 45] "45-filtered-filtered" \
+      set ::result ""
+      f2 set r 45
+      ::errorCheck $::result "45-filtered 45-filtered" \
 	  "Removing a superclass ... before"
+
       F3 superclass [F1 info superclass]
+
+      set ::result ""
       ::errorCheck [f2 filtersearch testf2] "" "filtersearch 2 after"
+
+      set ::result ""
       ::errorCheck [f2 set r 45] "45" "Class F2 removed from classtree ... after"
     }
     B destroy
@@ -626,8 +662,10 @@ TestX filterGuards -proc run {{n 20}} {
       set filterResult ""
       B b
 
-      ::errorCheck $filterResult "-::b-f1-::A-configure-::b-f1-::A-setvalues-::b-f1-::A-init" \
-	"Filter guard: two different filters, same name + different class, one guarded, one not"
+      set r1 "-::b-f1-::A-configure-::b-f1-::A-setvalues-::b-f1-::A-init"
+      set r2 "-::b-f1-::A-configure-::b-f1-::A-init"
+      ::errorCheck $filterResult $r2 \
+          "Filter guard: two different filters, same name + different class, one guarded, one not"
 
       # two filter w/o guard -> both have to be applied
       B instfilter f1
@@ -635,8 +673,10 @@ TestX filterGuards -proc run {{n 20}} {
 
       set filterResult ""
       B b
-      ::errorCheck $filterResult "-::b-f1-::B-configure-::b-f1-::A-configure-::b-f1-::B-setvalues-::b-f1-::A-setvalues-::b-f1-::B-init-::b-f1-::A-init" \
-	"Filter guard: two different filters, both not guarded anymore"
+      set r1 "-::b-f1-::B-configure-::b-f1-::A-configure-::b-f1-::B-setvalues-::b-f1-::A-setvalues-::b-f1-::B-init-::b-f1-::A-init"
+      set r2 "-::b-f1-::B-configure-::b-f1-::A-configure-::b-f1-::B-init-::b-f1-::A-init"
+      ::errorCheck $filterResult $r2 \
+          "Filter guard: two different filters, both not guarded anymore"
 
       # three filters with guards, not to be applied, in one chain
       b destroy
@@ -653,10 +693,14 @@ TestX filterGuards -proc run {{n 20}} {
       B b1 
       B b2
       if {$i == 0} {
-	::errorCheck $filterResult "-::b2-f2-::A-configure-::b2-f2-::A-setvalues-::b2-f2-::A-init" \
+        set r1 "-::b2-f2-::A-configure-::b2-f2-::A-setvalues-::b2-f2-::A-init"
+        set r2 "-::b2-f2-::A-configure-::b2-f2-::A-init"
+	::errorCheck $filterResult $r2 \
 	  "Filter guard: creation with less restrictive guards"
       } else {
-	::errorCheck $filterResult "-::b2-f2-::A-cleanup-::b2-f2-::A-configure-::b2-f2-::A-setvalues-::b2-f2-::A-init" \
+        set r1 "-::b2-f2-::A-cleanup-::b2-f2-::A-configure-::b2-f2-::A-setvalues-::b2-f2-::A-init"
+        set r2 "-::b2-f2-::A-cleanup-::b2-f2-::A-configure-::b2-f2-::A-init"
+	::errorCheck $filterResult $r2 \
 	  "Filter guard: creation with less restrictive guards (b)"
       }
       set filterResult ""
@@ -747,8 +791,9 @@ TestX filterGuards -proc run {{n 20}} {
 	lappend ::r [f baz] [f set r 1]
 	f filterguard myFilter {}
 	lappend ::r [f baz] [f set r 1]
-	::errorCheck $::r [list myFilter->configure myFilter->setvalues myFilter->init myFilter->set myFilter->filter myFilter->filterguard myFilter->baz hello 1 myFilter->baz myFilter->instvar myFilter->set hello 1] \
-	  {Filter guard from method call}
+      set r1 [list myFilter->configure myFilter->setvalues myFilter->init myFilter->set myFilter->filter myFilter->filterguard myFilter->baz hello 1 myFilter->baz myFilter->instvar myFilter->set hello 1]
+      set r2 [list myFilter->configure myFilter->init myFilter->set myFilter->filter myFilter->filterguard myFilter->baz hello 1 myFilter->baz myFilter->instvar myFilter->set hello 1]
+      ::errorCheck $::r $r2 "Filter guard from method call"
 	f destroy
 
 	Class Room
@@ -1126,6 +1171,9 @@ proc ::showCall {} {
 }
 
 filterInfo proc run {{n 20}} {
+  # TODO for now, deactivated, since different configure-semantics leads to very different traces"
+  return
+
     for {set i 0} {$i < $n} {incr i} {
 	global FInfo
 	set FInfo ""
@@ -3014,7 +3062,7 @@ smallScripts proc run {{n 20}} {
 
     ::errorCheck [lsort [b info methods -nocmds]] "abstract contains copy defaultmethod extractConfigureArg f hasclass infoTraceFilter init method move myProc myProc2 myProcMix1 myProcMix2 objproc self setFilter signature" "b info methods -nocmds"
 
-    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard noinit objinterface parametercmd proc procsearch requireNamespace set setvalues subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
+    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard noinit objectparameter parametercmd proc procsearch requireNamespace set setvalues subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
     ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract contains copy defaultmethod extractConfigureArg f hasclass infoTraceFilter init method move myProc myProc2 objproc self setFilter signature" "b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "b info methods -nocmds -noprocs"
@@ -3408,9 +3456,9 @@ condMixins proc run {{n 20}} {
 
   set ::context payrollApp
 
-  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit objinterface parametercmd print proc procsearch requireNamespace salary self set setvalues signature subst trace unset uplevel upvar volatile vwait" "condmixin all methods"
+  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit objectparameter parametercmd print proc procsearch requireNamespace salary self set setvalues signature subst trace unset uplevel upvar volatile vwait" "condmixin all methods"
 
-  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit objinterface parametercmd print proc procsearch requireNamespace salary self set setvalues signature subst trace unset uplevel upvar volatile vwait" "all methods in context"
+  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit objectparameter parametercmd print proc procsearch requireNamespace salary self set setvalues signature subst trace unset uplevel upvar volatile vwait" "all methods in context"
 
   ::errorCheck [my show payrollApp jim] "{payrollApp:  jim info methods salary => salary} {payrollApp:  jim info methods -incontext salary => salary} {payrollApp:  jim info methods driv* => driving-license} {payrollApp:  jim info methods -incontext driv* => }" "payrollApp jim"
   ::errorCheck [my show shipmentApp jim] "{shipmentApp:  jim info methods salary => salary} {shipmentApp:  jim info methods -incontext salary => } {shipmentApp:  jim info methods driv* => driving-license} {shipmentApp:  jim info methods -incontext driv* => driving-license}" "shipmentApp jim"
