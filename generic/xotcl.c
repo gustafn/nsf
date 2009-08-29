@@ -10103,7 +10103,7 @@ GetObjectInterface(Tcl_Interp *interp, char *methodName, XOTclObject *obj,
     result = TCL_OK;
   } else {
     /* get the string representation of the interface */
-    result = callMethod((ClientData) obj, interp, XOTclGlobalObjects[XOTE_CONFIGUREARGS], 2, 0, 0);
+    result = callMethod((ClientData) obj, interp, XOTclGlobalObjects[XOTE_OBJINTERFACE], 2, 0, 0);
     if (result == TCL_OK) {
       rawConfArgs = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(rawConfArgs);

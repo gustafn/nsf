@@ -66,6 +66,7 @@ namespace eval ::xotcl {
   foreach cmd {array append eval incr lappend trace subst unset} {
     ::xotcl::alias ::xotcl::Object $cmd -objscope ::$cmd
   }
+
   # provide the standard command set for ::xotcl::Class
   foreach cmd [info command ::xotcl::cmd::Class::*] {
     ::xotcl::alias ::xotcl::Class [namespace tail $cmd] $cmd 
@@ -73,7 +74,9 @@ namespace eval ::xotcl {
   # "init" must exist on Object. per default it is empty.
   ::xotcl::Object instproc init args {}
 
-  ::xotcl::Object instproc configureargs {} {;}
+  # provide a placeholder for the bootup process. The real definition
+  # is based on slots, which are not available at this point.
+  ::xotcl::Object instproc objinterface {} {;}
 
   #
   # create class and object for nonpositional argument processing
@@ -173,7 +176,7 @@ namespace eval ::xotcl {
 
   ::xotcl::MetaSlot create ::xotcl::Slot
 
-  # We have no working configureargs yet. So invalidate MetaSlot to
+  # We have no working objinterface yet. So invalidate MetaSlot to
   # avoid caching.
   ::xotcl::MetaSlot invalidateinterfacedefinition
 
@@ -183,8 +186,9 @@ namespace eval ::xotcl {
   #  }
   #}
 
-  # provide the generator for the initialisation argument specification
-  ::xotcl::Object instproc configureargs {} {
+  # Provide the a slot based mechanism for building an object
+  # configuration interface from slot definitions
+  ::xotcl::Object instproc objinterface {} {
     set arg_list [list]
     foreach slot [my info slotobjects] {
       set arg "-[namespace tail $slot]"
@@ -245,7 +249,7 @@ namespace eval ::xotcl {
         foreach i [$class info instances] {
           if {![$i exists $att]} {::xotcl::setinstvar $i $att $default}
 	  #
-	  # re-run configure to catch slot settings from "configureargs",
+	  # re-run configure to catch slot settings from "objinterface",
 	  # such as defaults etc.
 	  # TODO: still needed?
 	  #$i configure
