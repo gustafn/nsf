@@ -424,6 +424,11 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_DELETED                        0x4000
 #define XOTCL_RECREATE                       0x8000
 
+/* flags for argDefinitions */
+
+#define XOTCL_ARG_REQUIRED		     0x0001
+#define XOTCL_ARG_SUBST_DEFAULT		     0x0002
+
 #define XOTclObjectSetClass(obj) \
 	(obj)->flags |= XOTCL_IS_CLASS
 #define XOTclObjectClearClass(obj) \
@@ -442,7 +447,7 @@ typedef int (XOTclTypeConverter) _ANSI_ARGS_((Tcl_Interp *interp, Tcl_Obj *obj, 
 
 typedef struct  {
   char *name;
-  int required;
+  int flags;
   int nrargs;
   XOTclTypeConverter *converter;
   Tcl_Obj *defaultValue;

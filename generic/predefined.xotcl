@@ -157,6 +157,7 @@ namespace eval ::xotcl {
 
   namespace export Object Class @ myproc myvar Attribute
 
+
   ##################
   # Slot definitions
   ##################
@@ -169,12 +170,53 @@ namespace eval ::xotcl {
     if {![::xotcl::is $slotobject object]} {::xotcl::Object create $slotobject}
     eval next -childof $slotobject $args
   }
+
   ::xotcl::MetaSlot create ::xotcl::Slot
+
+  # We have no working configureargs yet. So invalidate MetaSlot to
+  # avoid caching.
+  ::xotcl::MetaSlot invalidateinterfacedefinition
+
   #foreach o {::xotcl::MetaSlot ::xotcl::Slot} {
   #  foreach r {object class metaclass} {
   #    puts stderr "$o $r=[::xotcl::is $o $r]"
   #  }
   #}
+
+  # provide the generator for the initialisation argument specification
+  ::xotcl::Object instproc configureargs {} {
+    set arg_list [list]
+    foreach slot [my info slotobjects] {
+      set arg "-[namespace tail $slot]"
+      set opts [list]
+
+      if {[$slot exists required] && [$slot required]} {
+	lappend opts required
+      }
+      if {[$slot exists type]} {
+	lappend opts [$slot type]
+      }
+      if {[$slot exists default]} {
+        set default [$slot set default]
+        if {[string match {*\[*\]*} $default] || [string first $default {$}] > -1} {
+          lappend opts substdefault
+        }
+      } elseif [info exists default] {
+        unset default
+      }
+      if {[llength $opts] > 0} {
+	set arg "$arg:[join $opts ,]"
+      }
+      if {[info exists default]} {
+        lappend arg $default
+      }
+      lappend arg_list $arg
+    } 
+    # todo: why do we need "args"? temporary solution?
+    lappend arg_list args
+    #puts stderr "*** args spec for [self]: $arg_list"
+    return $arg_list
+  }
 
   # use low level interface for defining slot values. Normally, this is
   # done via slot objects, which are defined later. 
@@ -218,42 +260,7 @@ namespace eval ::xotcl {
   # We provide a default value for superclass (when no superclass is specified explicitely)
   # for defining the top-level class of the object system, such that different
   # object systems might co-exist.
-
-  # provide the generator for the initialisation argument specification
-  ::xotcl::Object instproc configureargs {} {
-    set arg_list [list]
-    foreach slot [my info slotobjects] {
-      set arg "-[namespace tail $slot]"
-      set opts [list]
-      #
-      # there should be a ::xotcl::getinstvar for the bootstrap phase
-      # because InterceptorSlots overload the setter set, leading
-      # to an issue with the convertToRelation converter.
-      #
-      # TODO what's wrong with ::xotcl::setinstvar without a <value>?
-      #
-      if {[$slot exists required] && [$slot required]} {
-	lappend opts required
-      }
-      if {[$slot exists type]} {
-	lappend opts [$slot type]
-      }
-      if {[llength $opts] > 0} {
-	set arg "$arg:[join $opts ,]";
-      }
-      if {[$slot exists default]} {
-	set arg [list $arg [subst [$slot set default]]]
-      }
-      lappend arg_list $arg
-    } 
-    # todo: why do we need "args"? temporary solution?
-    lappend arg_list args
-    #puts stderr "*** args spec for [self]: $arg_list"
-    return $arg_list
-  }
   
-
-
   createBootstrapAttributeSlots ::xotcl::Class {
     {__default_superclass ::xotcl::Object}
     {__default_metaclass ::xotcl::Class}
@@ -352,28 +359,28 @@ namespace eval ::xotcl {
   }
   ::xotcl::InfoSlot instproc delete {-nocomplain:switch obj prop value} {
     set old [$obj info $prop]
-  if {[string first * $value] > -1 || [string first \[ $value] > -1} {
-    # string contains meta characters
-    if {[my elementtype] ne "" && ![string match ::* $value]} {
-      # prefix string with ::, since all object names have leading ::
-      set value ::$value
-    }
-    return [$obj $prop [lsearch -all -not -glob -inline $old $value]]
-  } elseif {[my elementtype] ne ""} {
-    if {[string first :: $value] == -1} {
-      if {![my isobject $value]} {
-        error "$value does not appear to be an object"
+    if {[string first * $value] > -1 || [string first \[ $value] > -1} {
+      # string contains meta characters
+      if {[my elementtype] ne "" && ![string match ::* $value]} {
+        # prefix string with ::, since all object names have leading ::
+        set value ::$value
       }
-      set value [$value self]
+      return [$obj $prop [lsearch -all -not -glob -inline $old $value]]
+    } elseif {[my elementtype] ne ""} {
+      if {[string first :: $value] == -1} {
+        if {![my isobject $value]} {
+          error "$value does not appear to be an object"
+        }
+        set value [$value self]
+      }
+      if {![$value isclass [my elementtype]]} {
+        error "$value does not appear to be of type [my elementtype]"
+      }
     }
-    if {![$value isclass [my elementtype]]} {
-      error "$value does not appear to be of type [my elementtype]"
-    }
-  }
-  set p [lsearch -exact $old $value]
-  if {$p > -1} {
-    $obj $prop [lreplace $old $p $p]
-  } else {
+    set p [lsearch -exact $old $value]
+    if {$p > -1} {
+      $obj $prop [lreplace $old $p $p]
+    } else {
       error "$value is not a $prop of $obj (valid are: $old)"
     }
   }
@@ -403,7 +410,7 @@ namespace eval ::xotcl {
   ::xotcl::Object alloc ::xotcl::Class::slot
   # =========
   #::xotcl::Object alloc ::xotcl::Class::slot    ;# already created through createBootstrapAttributeSlots
-  # >>>>>>>>> FUNKTIERT NICHT!!!
+  # >>>>>>>>> FUNKTIERT NICHT!!!   ...todo why not...
   ::xotcl::Object alloc ::xotcl::Object::slot
 
 

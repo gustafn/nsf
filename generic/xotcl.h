@@ -90,16 +90,10 @@
 #define TCL85STACK 1
 
 #define CONFIGURE_ARGS 1
-/* #define CONFIGURE_SIGNATURE_GENERATOR 1 */
 
 #if defined(CONFIGURE_ARGS)
 # define CANONICAL_ARGS 1
 /*# define CONFIGURE_ARGS_TRACE 1*/
-#endif
-
-#if defined(CONFIGURE_SIGNATURE_GENERATOR)
-# define CANONICAL_ARGS 1
-/*#define CONFIGURE_TRACE 1*/
 #endif
 
 #if defined(PARSE_TRACE_FULL)
