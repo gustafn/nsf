@@ -428,6 +428,7 @@ typedef struct XOTclStringIncrStruct {
 
 #define XOTCL_ARG_REQUIRED		     0x0001
 #define XOTCL_ARG_SUBST_DEFAULT		     0x0002
+#define XOTCL_ARG_INITCMD		     0x0004
 
 #define XOTclObjectSetClass(obj) \
 	(obj)->flags |= XOTCL_IS_CLASS

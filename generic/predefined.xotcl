@@ -189,13 +189,13 @@ namespace eval ::xotcl {
   # Provide the a slot based mechanism for building an object
   # configuration interface from slot definitions
   ::xotcl::Object instproc objectparameter {} {
-    set arg_list [list]
+    set parameterdefinitions [list]
     # don't call [my info slotobjects], since filters on [self]
     # modifying the result (such as in the regression test) will cause
     # problems.
     set slots [::xotcl::objectInfo slotobjects [self]]
     foreach slot $slots {
-      set arg "-[namespace tail $slot]"
+      set parameterdefinition "-[namespace tail $slot]"
       set opts [list]
 
       if {[$slot exists required] && [$slot required]} {
@@ -205,25 +205,27 @@ namespace eval ::xotcl {
 	lappend opts [$slot type]
       }
       if {[$slot exists default]} {
-        set default [$slot set default]
-        if {[string match {*\[*\]*} $default] || [string first $default {$}] > -1} {
+        set arg [$slot set default]
+        if {[string match {*\[*\]*} $arg] || [string first $arg {$}] > -1} {
           lappend opts substdefault
         }
-      } elseif [info exists default] {
-        unset default
+      } elseif {[$slot exists initcmd]} {
+        set arg [$slot set initcmd]
+        lappend opts initcmd
       }
       if {[llength $opts] > 0} {
-	set arg "$arg:[join $opts ,]"
+	append parameterdefinition :[join $opts ,]
       }
-      if {[info exists default]} {
-        lappend arg $default
+      if {[info exists arg]} {
+        lappend parameterdefinition $arg
+        unset arg
       }
-      lappend arg_list $arg
+      lappend parameterdefinitions $parameterdefinition
     } 
     # todo: why do we need "args"? temporary solution?
-    lappend arg_list args
-    #puts stderr "*** args spec for [self]: $arg_list"
-    return $arg_list
+    lappend parameterdefinitions args
+    #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
+    return $parameterdefinitions
   }
 
   # use low level interface for defining slot values. Normally, this is

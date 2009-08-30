@@ -4615,13 +4615,13 @@ setDefaultValue(Tcl_Interp *interp, XOTclObject *obj, XOTclObject *slotObj) {
 					 TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
       if (initCmd) {
 	char *cmd = ObjStr(initCmd);
-	fprintf(stderr, "----- we have an initcmd %s\n", cmd);
+	/*fprintf(stderr, "----- we have an initcmd %s\n", cmd);*/
 	if (*cmd) {
 #if !defined(TCL85STACK)
 	  CallStackPush(interp, obj, NULL, 0, XOTCL_CSC_TYPE_PLAIN); /*allow to call self*/
 #endif
 
-	  fprintf(stderr,"!!!! evaluating '%s'\n", cmd);
+	  /*fprintf(stderr,"!!!! evaluating '%s'\n", cmd);*/
 	  rc = Tcl_EvalObjEx(interp, initCmd, TCL_EVAL_DIRECT);
 #if !defined(TCL85STACK)
 	  CallStackPop(interp, NULL);
@@ -5620,6 +5620,8 @@ parseNonposargsOption(Tcl_Interp *interp, char *option, int length, argDefinitio
     ifPtr->flags |= XOTCL_ARG_REQUIRED;
   } else if (strncmp(option,"substdefault",length) == 0) {
     ifPtr->flags |= XOTCL_ARG_SUBST_DEFAULT;
+  } else if (strncmp(option,"initcmd",length) == 0) {
+    ifPtr->flags |= XOTCL_ARG_INITCMD;
   } else if (strncmp(option,"switch",length) == 0) {
     ifPtr->nrargs = 0;
     ifPtr->converter = convertToSwitch;
@@ -5648,7 +5650,7 @@ parseNonposargsOption(Tcl_Interp *interp, char *option, int length, argDefinitio
     ifPtr->converter = convertToRelation;
     ifPtr->type = "tclobj";
   } else {
-    fprintf(stderr, "**** unknown argument option: def %s, option '%s' (%d)\n",ifPtr->name,option,length);
+    fprintf(stderr, "**** unknown parameter option: def %s, option '%s' (%d)\n",ifPtr->name,option,length);
   }
   return TCL_OK;
 }
@@ -10164,6 +10166,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
   /* 2. continue parsing the actual args passed */
   result = canonicalNonpositionalArgs(&pc, interp, nonposArgs, "configure", objc, objv);
   if (result != TCL_OK) {
+    XOTcl_PopFrame(interp, obj);
     parseContextRelease(&pc);
     goto configure_exit;
   }
@@ -10201,24 +10204,36 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
      * through a mixin or filter)
      */
     if (oldValue == NULL) {
+      int setvalue = 1; /* TODO: should not be needed */
 
       /* TODO: should not be relation handling here and subst handling
          in canonicalNonpositionalArgs(); we do subst handling here due to reference counting */
-
+      
       if (ifPtr->flags & XOTCL_ARG_SUBST_DEFAULT) {
         result = SubstValue(interp, obj, &newValue);
+        fprintf(stderr, "XOTclOConfigureMethod: attribute %s substituted value => %p '%s'\n", argName,
+          newValue,ObjStr(newValue));
         if (result != TCL_OK) {
           parseContextRelease(&pc);
           goto configure_exit;
         }
-        fprintf(stderr, "substituted value for attribute %s => %p '%s'\n", argName,
-                newValue,ObjStr(newValue));
-      }
+      } else if (ifPtr->flags & XOTCL_ARG_INITCMD) {
+        result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
+        /*fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n", argName,
+          ObjStr(newValue), result);*/
+        if (result != TCL_OK) {
+          parseContextRelease(&pc);
+          goto configure_exit;
+        }
+        setvalue = 0;
+      } 
 
+      if (setvalue) {
 #if defined(CONFIGURE_ARGS_TRACE)
-      fprintf(stderr, "*** %s SET %s '%s'\n",objectName(obj),argName, ObjStr(newValue));
+        fprintf(stderr, "*** %s SET %s '%s'\n",objectName(obj),argName, ObjStr(newValue));
 #endif
-      Tcl_ObjSetVar2(interp, argNameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+        Tcl_ObjSetVar2(interp, argNameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+      }
     } else {
 #if defined(CONFIGURE_ARGS_TRACE)
       fprintf(stderr, "*** no need to set, we have already '%s' for arg '%s'\n",ObjStr(oldValue),argName);
@@ -12144,6 +12159,9 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclNonposA
           if (result == TCL_OK) {
             result = XOTclRelationCmd(interp, self, relIdx, pcPtr->objv[i]);
             fprintf(stderr, "   relationcmd %s %d %s returned (%d)\n", objectName(self), relIdx, ObjStr(pcPtr->objv[i]), result);
+            if (result != TCL_OK) {
+              return result;
+            }
             /* TODO: For the time being, we fall back to an unknown value
              * so that we do not obtain proc-local (through InitArgsAndLocals())
              * or object variables (through XOTclOConfigureMethod) from relational commands
@@ -12253,7 +12271,8 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclNonposA
        * list representation for 'args' at this point.
        */
       if (elts > 1) {
-	  memcpy(pcPtr->objv+i,objv+pcPtr->lastobjc,sizeof(Tcl_Obj *)*elts);
+        /* TODO: this cannot stay like this */
+	  memcpy(pcPtr->objv+i, objv+pcPtr->lastobjc, sizeof(Tcl_Obj *)*elts);
 	  pcPtr->objc = pcPtr->objc + elts - 1;
       }
   } 

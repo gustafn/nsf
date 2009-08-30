@@ -36,17 +36,6 @@ proc t {cmd expected {txt ""}} {
 
 package require xotcl::serializer
 
-#proc ? {cmd expected} {
-#   set r [eval $cmd]		       
-#   if {$r ne $expected} {error "$cmd returned '$r' ne '$expected'"}
-#}
-
-# proc t {cmd {txt ""}} {
-#   set n 1000
-#   #set ms [lindex [time [list time $cmd $n] 10] 0]
-#   set ms [lindex [time [list time $cmd $n] 5] 0]
-#   puts "[format %7.4f [expr {$ms*1.0/$n}]]ms for [format %-30s $cmd] ($txt)"
-# }
 #######################################################
 # testing __initcmds
 set ::hu 0
@@ -61,6 +50,7 @@ Class C -slots {
   Attribute y -initcmd {incr ::hu} 
   Attribute z -initcmd {my trace add variable z read T1}
 }
+
 C create c1
 ? {c1 info vars x} ""
 ? {c1 x} "1"
