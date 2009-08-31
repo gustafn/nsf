@@ -155,9 +155,10 @@ typedef struct {
 } parseContext;
 
 #if defined(CANONICAL_ARGS)
-int canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclNonposArgs *nonposArgs,
-                               char *methodName, int objc,  Tcl_Obj *CONST objv[]);
+int ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp, XOTclNonposArgs *nonposArgs,
+                            char *methodName, int objc,  Tcl_Obj *CONST objv[]);
 #endif
+
 void parseContextInit(parseContext *pc, int objc, Tcl_Obj *procName) {
   if (objc < PARSE_CONTEXT_PREALLOC) {
     /* the single larger memset below .... */
@@ -3266,10 +3267,6 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
   Tcl_HashTable objTable, *commandTable = &objTable;
 
   cl->order = NULL;
-  /*
-  fprintf(stderr, "MixinInvalidateObjOrders %s calls ifd invalidate\n",className(cl));
-  XOTclCInvalidateObjectParameterMethod(interp, cl); TODO REMOVEMEIFYOUARESURE
-  */
 
   /* reset mixin order for all instances of the class and the
      instances of its subclasses
@@ -3278,10 +3275,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr = &clPtr->cl->instances ?
       Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : NULL;
-    /*
-    fprintf(stderr, "MixinInvalidateObjOrders subclass %s calls ifd invalidate \n",className(clPtr->cl));
-    XOTclCInvalidateObjectParameterMethod(interp, clPtr->cl); TODO REMOVEMEIFYOUARESURE
-    */
+
     /* reset mixin order for all objects having this class as per object mixin */
     ResetOrderOfClassesUsedAsMixins(clPtr->cl);
 
@@ -3312,7 +3306,8 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
     /*fprintf(stderr,"Got %s, reset for ncl %p\n",ncl?ObjStr(ncl->object.cmdName):"NULL",ncl);*/
     if (ncl) {
       MixinResetOrderForInstances(interp, ncl);
-      fprintf(stderr, "MixinInvalidateObjOrders via instmixin %s calls ifd invalidate \n",className(ncl));
+      /* this place seems to be sufficient to invalidate the computed object parameter definitions */
+      /*fprintf(stderr, "MixinInvalidateObjOrders via instmixin %s calls ifd invalidate \n",className(ncl));*/
       XOTclCInvalidateObjectParameterMethod(interp, ncl);
     }
   }
@@ -4954,7 +4949,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 
     if (nonposArgs) {
       parseContext pc;
-      result = canonicalNonpositionalArgs(&pc, interp, nonposArgs, methodName, objc, objv);
+      result = ProcessMethodArguments(&pc, interp, nonposArgs, methodName, objc, objv);
       if (result == TCL_OK) {
         result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, csc);
         /* maybe release is to early */
@@ -5874,9 +5869,6 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
   char *procName = ObjStr(name);
   XOTclParsedInterfaceDefinition parsedIf;
 
-  //parsedIf.nonposArgs = NULL;
-  //parsedIf.possibleUnknowns = 0;
-
   ov[0] = NULL; /*objv[0];*/
   ov[1] = name;
 
@@ -5884,42 +5876,6 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
   result = GenerateIfd(interp, procName, args, &parsedIf, &haveNonposArgs);
   if (result != TCL_OK)
     return result;
-
-  /* see, if we have nonposArgs in the ordinary argument list */
-  /*result = Tcl_ListObjGetElements(interp, args, &argsc, &argsv);
-  if (result != TCL_OK) {
-    return XOTclVarErrMsg(interp, "cannot break args into list: ",
-                          ObjStr(args), (char *) NULL);
-  }
-  for (i=0; i<argsc; i++) {
-    char *arg;
-    int npac, rc;
-    Tcl_Obj **npav;
-
-    rc = Tcl_ListObjGetElements(interp, argsv[i], &npac, &npav);
-    if (rc == TCL_OK && npac > 0) {
-      arg = ObjStr(npav[0]);
-      // fprintf(stderr, "*** argparse1 arg='%s' rc=%d\n", arg, rc);
-      if (*arg == '-') {
-        haveNonposArgs = 1;
-        continue;
-      }
-    }
-    break;
-  }
-  if (haveNonposArgs) {
-    int nrOrdinaryArgs = argsc - i;
-    Tcl_Obj *ordinaryArgs = Tcl_NewListObj(nrOrdinaryArgs, &argsv[i]);
-    Tcl_Obj *nonposArgs = Tcl_NewListObj(i, &argsv[0]);
-    INCR_REF_COUNT(ordinaryArgs);
-    INCR_REF_COUNT(nonposArgs);
-    result = parseNonposArgs(interp, procName, nonposArgs, ordinaryArgs,
-                             &haveNonposArgs, &parsedIf);
-    DECR_REF_COUNT(ordinaryArgs);
-    DECR_REF_COUNT(nonposArgs);
-    if (result != TCL_OK)
-      return result;
-  }*/
 
   if (haveNonposArgs) {
 # if defined(CANONICAL_ARGS)
@@ -10064,20 +10020,9 @@ static int XOTclOCleanupMethod(Tcl_Interp *interp, XOTclObject *obj) {
   return TCL_OK;
 }
 
-/*
-typedef struct  {
-  char *name;
-  int required;
-  int nrargs;
-  XOTclTypeConverter *converter;
-  Tcl_Obj *defaultValue;
-  char *type;
-} argDefinition;
- */
-
 static int 
-GetObjectInterface(Tcl_Interp *interp, char *methodName, XOTclObject *obj,  
-                   XOTclParsedInterfaceDefinition *parsedIf, int *hasNonposArgs) {
+GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *obj,  
+                             XOTclParsedInterfaceDefinition *parsedIf, int *hasNonposArgs) {
   int result;
   Tcl_Obj *rawConfArgs;
 
@@ -10123,7 +10068,7 @@ GetObjectInterface(Tcl_Interp *interp, char *methodName, XOTclObject *obj,
           ifd->possibleUnknowns = parsedIf->possibleUnknowns;
           obj->cl->parsedIf = ifd; /* free with ParsedInterfaceDefinitionFree(cl->parsedIf); */
           
-          /*fprintf(stderr, "--- GetObjectInterface cache objif for obj %s nonposArgs %p possibleUnknowns %d ifd %p ifdSize %d\n",
+          /*fprintf(stderr, "--- GetObjectParameterDefinition cache objif for obj %s nonposArgs %p possibleUnknowns %d ifd %p ifdSize %d\n",
                   objectName(obj),className(obj->cl),
                   ifd->nonposArgs,ifd->possibleUnknowns, ifd->nonposArgs ? ifd->nonposArgs->ifdSize : -1);*/
         }
@@ -10141,30 +10086,28 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
 
 #if defined(CONFIGURE_ARGS)
   /* TODO: check for CONST, check for mem leaks and cleanups, especially XOTclParsedInterfaceDefinition */
-  Tcl_Obj *oldValue, *newValue;
+  Tcl_Obj *newValue;
   XOTclParsedInterfaceDefinition parsedIf;
   int haveNonposArgs = 0, i, remainingArgsc;
-  argDefinition *iConfigure, *iConfigurePtr, *ifPtr;
+  int setvalue = 1; /* TODO: should not be needed */
+  argDefinition *ifPtr;
   XOTclNonposArgs *nonposArgs;
   parseContext pc;
-  Tcl_Obj *argNameObj;
   XOTcl_FrameDecls;
 
-  result = GetObjectInterface(interp, ObjStr(objv[0]), obj, &parsedIf, &haveNonposArgs);
+  /* Get the object parameter definition */
+  result = GetObjectParameterDefinition(interp, ObjStr(objv[0]), obj, &parsedIf, &haveNonposArgs);
   if (result != TCL_OK || !parsedIf.nonposArgs) {
-    fprintf(stderr, "... nothing to do for method %s\n", ObjStr(objv[0]));
+    /*fprintf(stderr, "... nothing to do for method %s\n", ObjStr(objv[0]));*/
     goto configure_exit;
   }
 
-  nonposArgs = parsedIf.nonposArgs;
-  iConfigurePtr = iConfigure = nonposArgs->ifd;
-
-  /* allow the retrieval of self (GetSelfObj(); needed in convertToRelation)
-   * + make instvars of obj accessible */
+  /* Push to allow for [self] and make instvars of obj accessible as locals */
   XOTcl_PushFrame(interp, obj);
 
-  /* 2. continue parsing the actual args passed */
-  result = canonicalNonpositionalArgs(&pc, interp, nonposArgs, "configure", objc, objv);
+  /* Call the objv parser and postprocess like with method parameters */
+  nonposArgs = parsedIf.nonposArgs;
+  result = ProcessMethodArguments(&pc, interp, nonposArgs, "configure", objc, objv);
   if (result != TCL_OK) {
     XOTcl_PopFrame(interp, obj);
     parseContextRelease(&pc);
@@ -10178,13 +10121,14 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
 #if defined(CONFIGURE_ARGS_TRACE)
   fprintf(stderr, "*** POPULATE OBJ ''''%s'''': nr of parsed args '%d'\n",objectName(obj),pc.objc);
 #endif
-  for (i = 1, ifPtr = iConfigure; i < nonposArgs->ifdSize; i++, ifPtr++) {
+  for (i = 1, ifPtr = nonposArgs->ifd; i < nonposArgs->ifdSize; i++, ifPtr++) {
     char *argName = ifPtr->name;
 
     if (*argName == '-') argName++;
-    newValue = pc.full_objv[i];
 
+    newValue = pc.full_objv[i];
     /*fprintf(stderr, "newValue of %s = %p '%s'\n", argName, newValue, ObjStr(newValue));*/
+
     if (newValue == XOTclGlobalObjects[XOTE___UNKNOWN__]) {
 #if defined(CONFIGURE_ARGS_TRACE)
       fprintf(stderr, "*** POPULATE OBJ SKIPPING: arg '%s' would be unset\n",argName);
@@ -10192,61 +10136,44 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
       continue;
     }
 
-    argNameObj = Tcl_NewStringObj(argName,strlen(argName));
-    INCR_REF_COUNT(argNameObj);
-    /* TODO: we dont need oldValue, .... work on this, when we are back in business with regression test */
-    oldValue = Tcl_ObjGetVar2(interp, argNameObj, NULL, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
-    /*oldValue = Tcl_GetVar2Ex(interp, argName, NULL, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);*/
-    /*fprintf(stderr, "*** old value for %s => %p\n",argName,oldValue); */
-
-    /*
-     * Existing per-object vars take precedence (could have been set
-     * through a mixin or filter)
-     */
-    if (oldValue == NULL) {
-      int setvalue = 1; /* TODO: should not be needed */
-
-      /* TODO: should not be relation handling here and subst handling
-         in canonicalNonpositionalArgs(); we do subst handling here due to reference counting */
+    /* TODO: should not be relation handling here and subst handling
+       in ProcessMethodArguments(); we do subst handling here due to reference counting */
       
-      if (ifPtr->flags & XOTCL_ARG_SUBST_DEFAULT) {
-        result = SubstValue(interp, obj, &newValue);
-        fprintf(stderr, "XOTclOConfigureMethod: attribute %s substituted value => %p '%s'\n", argName,
-          newValue,ObjStr(newValue));
-        if (result != TCL_OK) {
-          parseContextRelease(&pc);
-          goto configure_exit;
-        }
-      } else if (ifPtr->flags & XOTCL_ARG_INITCMD) {
-        result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
-        /*fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n", argName,
-          ObjStr(newValue), result);*/
-        if (result != TCL_OK) {
-          parseContextRelease(&pc);
-          goto configure_exit;
-        }
-        setvalue = 0;
-      } 
-
-      if (setvalue) {
-#if defined(CONFIGURE_ARGS_TRACE)
-        fprintf(stderr, "*** %s SET %s '%s'\n",objectName(obj),argName, ObjStr(newValue));
-#endif
-        Tcl_ObjSetVar2(interp, argNameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+    if (ifPtr->flags & XOTCL_ARG_SUBST_DEFAULT) {
+      result = SubstValue(interp, obj, &newValue);
+      fprintf(stderr, "XOTclOConfigureMethod: attribute %s substituted value => %p '%s'\n", argName,
+              newValue,ObjStr(newValue));
+      if (result != TCL_OK) {
+        parseContextRelease(&pc);
+        goto configure_exit;
       }
-    } else {
+    } else if (ifPtr->flags & XOTCL_ARG_INITCMD) {
+      result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
+      /*fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n", argName,
+        ObjStr(newValue), result);*/
+      if (result != TCL_OK) {
+        parseContextRelease(&pc);
+        goto configure_exit;
+      }
+      setvalue = 0;
+    } 
+    
+    if (setvalue) {
+      Tcl_Obj *argNameObj = Tcl_NewStringObj(argName, -1);
+      INCR_REF_COUNT(argNameObj);
 #if defined(CONFIGURE_ARGS_TRACE)
-      fprintf(stderr, "*** no need to set, we have already '%s' for arg '%s'\n",ObjStr(oldValue),argName);
+      fprintf(stderr, "*** %s SET %s '%s'\n",objectName(obj),argName, ObjStr(newValue));
 #endif
+      Tcl_ObjSetVar2(interp, argNameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+      DECR_REF_COUNT(argNameObj);
     }
-    DECR_REF_COUNT(argNameObj);
   }
 
   XOTcl_PopFrame(interp, obj);
-  remainingArgsc = pc.objc-(nonposArgs->ifdSize-1);
+  remainingArgsc = pc.objc - (nonposArgs->ifdSize - 1);
 
 #if defined(CONFIGURE_ARGS_TRACE)
-  fprintf(stderr, "*** POPULATE OBJ SETVALUES with '%d' elements:\n",remainingArgsc);
+  fprintf(stderr, "*** POPULATE OBJ SETVALUES with '%d' elements:\n", remainingArgsc);
   { int j;
     for (j = i; j < i + remainingArgsc; j++) {
       fprintf(stderr, "*** SETVALUES[%d] with '%s'\n",j,ObjStr(pc.full_objv[j]));
@@ -10263,7 +10190,6 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
       goto configure_exit;
     }
   } else {
-    Tcl_ResetResult(interp);
     Tcl_SetObjResult(interp,XOTclGlobalObjects[XOTE_EMPTY]);
   }
   parseContextRelease(&pc);
@@ -10659,7 +10585,6 @@ static int XOTclOSetvaluesMethod(Tcl_Interp *interp, XOTclObject *obj, int objc,
       break;
   }
   normalArgs = i-1;
-  Tcl_ResetResult(interp);
 
   for( ; i < objc;  argc=nextArgc, argv=nextArgv, methodName=nextMethodName) {
     Tcl_ResetResult(interp);
@@ -11144,7 +11069,7 @@ static int XOTclCInstForwardMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *
 }
 
 static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass *cl) {
-  fprintf(stderr, "   %s invalidate %p\n", className(cl), cl->parsedIf);
+  /*fprintf(stderr, "   %s invalidate %p\n", className(cl), cl->parsedIf);*/
   if (cl->parsedIf) {
     ParsedInterfaceDefinitionFree(cl->parsedIf);
     cl->parsedIf = NULL;
@@ -12122,7 +12047,7 @@ isNonposArg(Tcl_Interp *interp, char * argStr,
 
 #if defined(CANONICAL_ARGS)
 int
-canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclNonposArgs *nonposArgs,
+ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp, XOTclNonposArgs *nonposArgs,
                            char *methodName, int objc,  Tcl_Obj *CONST objv[]) {
   argDefinition CONST *aPtr;
   int i, rc;
@@ -12135,7 +12060,7 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclNonposA
   for (aPtr = nonposArgs->ifd, i=0; aPtr->name; aPtr++, i++) {
     char *argName = aPtr->name;
     if (*argName == '-') argName++;
-    /*fprintf(stderr, "canonicalNonpositionalArgs got for arg %s (%d) => %p %p, default %s\n",
+    /*fprintf(stderr, "ProcessMethodArguments got for arg %s (%d) => %p %p, default %s\n",
             aPtr->name, aPtr->flags & XOTCL_ARG_REQUIRED,
             pcPtr->clientData[i], pcPtr->objv[i],
             aPtr->defaultValue ? ObjStr(aPtr->defaultValue) : "NONE");*/
@@ -12158,7 +12083,7 @@ canonicalNonpositionalArgs(parseContext *pcPtr, Tcl_Interp *interp, XOTclNonposA
           DECR_REF_COUNT(dummy);
           if (result == TCL_OK) {
             result = XOTclRelationCmd(interp, self, relIdx, pcPtr->objv[i]);
-            fprintf(stderr, "   relationcmd %s %d %s returned (%d)\n", objectName(self), relIdx, ObjStr(pcPtr->objv[i]), result);
+            /*fprintf(stderr, "   relationcmd %s %d %s returned (%d)\n", objectName(self), relIdx, ObjStr(pcPtr->objv[i]), result);*/
             if (result != TCL_OK) {
               return result;
             }
@@ -13005,9 +12930,9 @@ Xotcl_Init(Tcl_Interp *interp) {
 
   Tcl_CreateObjCommand(interp, "::xotcl::dispatch", XOTclDispatchCmd, 0, 0);
 #if defined(PRE85)
-#ifdef XOTCL_BYTECODE
+# ifdef XOTCL_BYTECODE
   instructions[INST_INITPROC].cmdPtr = (Command *)
-#endif
+# endif
     Tcl_CreateObjCommand(interp, "::xotcl::initProcNS", XOTclInitProcNSCmd, 0, 0);
 #endif
 #if !defined(CANONICAL_ARGS)
