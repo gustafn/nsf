@@ -430,6 +430,9 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_ARG_SUBST_DEFAULT		     0x0002
 #define XOTCL_ARG_INITCMD		     0x0004
 
+/* flags for parseContext */
+#define XOTCL_PC_MUST_DECR		     0x0001
+
 #define XOTclObjectSetClass(obj) \
 	(obj)->flags |= XOTCL_IS_CLASS
 #define XOTclObjectClearClass(obj) \
@@ -453,6 +456,7 @@ typedef struct  {
   XOTclTypeConverter *converter;
   Tcl_Obj *defaultValue;
   char *type;
+  Tcl_Obj *nameObj;
 } argDefinition;
 
 typedef struct XOTclNonposArgs {

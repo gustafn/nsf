@@ -68,6 +68,8 @@ if {[::xotcl::my exists b]} {::xotcl::my set __oldvalue(b) [::xotcl::my set b]}
 # test passed arguments
 ? {catch {D create d1 -d 123}} 0 "create d1 with required argument given"
 ? {catch {D create d1}} 1 "create d1 without required argument given"
+catch {D create d1} errorMsg
+? {set _ $errorMsg} XX "check error msg"
 
 ## TODO: initcmd->trackType {obj var type} => trace var ...
 
