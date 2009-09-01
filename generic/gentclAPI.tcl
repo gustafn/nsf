@@ -33,10 +33,10 @@ enum ${argname}Idx {[join $enums {, }]};
   }
 }
 
-proc genifd {argDefinitions} {
+proc genifd {parameterDefinitions} {
   set l [list]
-  foreach argDefinition $argDefinitions {
-    array set "" $argDefinition
+  foreach parameterDefinition $parameterDefinitions {
+    array set "" $parameterDefinition
     switch $(-type) {
       "" {set type NULL}
       default {set type $(-type)}
@@ -61,7 +61,7 @@ proc genifd {argDefinitions} {
   join $l ",\n  "
 }
 
-proc gencall {fn argDefinitions clientData cDefsVar ifDefVar arglistVar preVar postVar introVar} {
+proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar preVar postVar introVar} {
   upvar $cDefsVar cDefs $ifDefVar ifDef $arglistVar arglist $preVar pre $postVar post \
       $introVar intro 
   set c [list]
@@ -90,8 +90,8 @@ proc gencall {fn argDefinitions clientData cDefsVar ifDefVar arglistVar preVar p
       array set cd {arglist "" ifDefs ""}
     }
   }
-  foreach argDefinition $argDefinitions {
-    array set "" $argDefinition
+  foreach parameterDefinition $parameterDefinitions {
+    array set "" $parameterDefinition
     set ifSet 0
     set cVar 1
     set (-argName) [string map [list - _] $(-argName)]
@@ -174,10 +174,10 @@ static int
 ${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 $intro
-  if (parseObjv(interp, objc, objv, objv[0], 
-		method_definitions[$idx].ifd, 
-		method_definitions[$idx].ifdSize, 
-		&pc) != TCL_OK) {
+  if (ArgumentParse(interp, objc, objv, objv[0], 
+                     method_definitions[$idx].paramDefs, 
+                     method_definitions[$idx].nrParameters, 
+                     &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     $cDefs
@@ -216,11 +216,11 @@ proc genstubs {} {
   foreach key [lsort [array names ::definitions]] {
     array set d $::definitions($key)
     lappend enums $d(idx)
-    set nrArgs [llength $d(argDefinitions)]
+    set nrArgs [llength $d(parameterDefinitions)]
     set stubDecl "static int $d(stub)$::objCmdProc\n"
-    set ifd "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), $nrArgs, {\n  [genifd $d(argDefinitions)]}\n}"
+    set ifd "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), $nrArgs, {\n  [genifd $d(parameterDefinitions)]}\n}"
 
-    gencall $d(stub) $d(argDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
+    gencall $d(stub) $d(parameterDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
     append decls "static int [implArgList $d(implementation) {Tcl_Interp *} $ifDef];\n"
     if {$post ne ""} {
       append cDefs "\n    int returnCode;"
@@ -234,7 +234,7 @@ proc genstubs {} {
     #if {$nrArgs == 1} { puts stderr "$d(stub) => '$arglist'" }
     if {$nrArgs == 1 && $arglist eq "objc, objv"} {
       # TODO we would not need to generate a stub at all.... 
-      #set ifd "{\"$::ns($d(methodType))::$d(methodName)\", $d(implementation), $nrArgs, {\n  [genifd $d(argDefinitions)]}\n}"
+      #set ifd "{\"$::ns($d(methodType))::$d(methodName)\", $d(implementation), $nrArgs, {\n  [genifd $d(parameterDefinitions)]}\n}"
       #set stubDecl "static int $d(implementation)$::objCmdProc\n"
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
     } elseif {$nrArgs == 1 && $arglist eq "obj, objc, objv"} {
@@ -253,13 +253,12 @@ proc genstubs {} {
 typedef struct {
   char *methodName;
   Tcl_ObjCmdProc *proc;
-  /*CONST interfaceDefinition ifd;*/
-  int ifdSize;
-  argDefinition ifd[10];
+  int nrParameters;
+  parameterDefinition paramDefs[10];
 } methodDefinition;
 
-static int parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName,
-		     argDefinition CONST *ifdPtr, int ifdSize, parseContext *pc);
+static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName,
+                          parameterDefinition CONST *paramPtr, int nrParameters, parseContext *pc);
 
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  XOTclObject **matchObject, char **pattern);
@@ -285,7 +284,7 @@ static methodDefinition method_definitions[];
   puts "static methodDefinition method_definitions\[\] = \{\n$definitionString\n\};\n"
 }
 
-proc methodDefinition {methodName methodType implementation argDefinitions} {
+proc methodDefinition {methodName methodType implementation parameterDefinitions} {
   set d(methodName) $methodName
   set d(implementation) $implementation
   set d(stub) ${implementation}Stub
@@ -297,32 +296,32 @@ proc methodDefinition {methodName methodType implementation argDefinitions} {
     default      {set d(clientData) ""}
   }
   set completed [list]
-  foreach argDefinition $argDefinitions {
+  foreach parameterDefinition $parameterDefinitions {
     array set "" {-required 0 -nrargs 0 -type ""}
-    array set "" $argDefinition
+    array set "" $parameterDefinition
     lappend completed [array get ""]
   }
-  set d(argDefinitions) $completed
+  set d(parameterDefinitions) $completed
   set ::definitions($d(methodType)-$d(implementation)-$d(methodName)) [array get d]
 }
 
-proc infoClassMethod {methodName implementation argDefinitions} {
-  methodDefinition $methodName infoClassMethod $implementation $argDefinitions
+proc infoClassMethod {methodName implementation parameterDefinitions} {
+  methodDefinition $methodName infoClassMethod $implementation $parameterDefinitions
 }
-proc infoObjectMethod {methodName implementation argDefinitions} {
-  methodDefinition $methodName infoObjectMethod $implementation $argDefinitions
+proc infoObjectMethod {methodName implementation parameterDefinitions} {
+  methodDefinition $methodName infoObjectMethod $implementation $parameterDefinitions
 }
-proc checkMethod {methodName implementation argDefinitions} {
-  methodDefinition type=$methodName checkMethod $implementation $argDefinitions
+proc checkMethod {methodName implementation parameterDefinitions} {
+  methodDefinition type=$methodName checkMethod $implementation $parameterDefinitions
 }
-proc classMethod {methodName implementation argDefinitions} {
-  methodDefinition $methodName classMethod $implementation $argDefinitions
+proc classMethod {methodName implementation parameterDefinitions} {
+  methodDefinition $methodName classMethod $implementation $parameterDefinitions
 }
-proc objectMethod {methodName implementation argDefinitions} {
-  methodDefinition $methodName objectMethod $implementation $argDefinitions
+proc objectMethod {methodName implementation parameterDefinitions} {
+  methodDefinition $methodName objectMethod $implementation $parameterDefinitions
 }
-proc xotclCmd {methodName implementation argDefinitions} {
-  methodDefinition $methodName xotclCmd $implementation $argDefinitions
+proc xotclCmd {methodName implementation parameterDefinitions} {
+  methodDefinition $methodName xotclCmd $implementation $parameterDefinitions
 }
 
 source [file dirname [info script]]/gentclAPI.decls

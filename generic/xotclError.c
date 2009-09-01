@@ -64,10 +64,10 @@ XOTclErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
 }
 
 int
-XOTclObjErrArgCnt(Tcl_Interp *interp, Tcl_Obj *cmdName,  Tcl_Obj *methodName, char *arglist) {
+XOTclObjWrongArgs(Tcl_Interp *interp, char *msg, Tcl_Obj *cmdName, Tcl_Obj *methodName, char *arglist) {
   int need_space = 0;
   Tcl_ResetResult(interp);
-  Tcl_AppendResult(interp, "wrong # args: should be \"", (char *) NULL);
+  Tcl_AppendResult(interp, msg, " should be \"", (char *) NULL);
   if (cmdName) {
     Tcl_AppendResult(interp, ObjStr(cmdName), (char *) NULL);
     need_space = 1;
@@ -86,10 +86,8 @@ XOTclObjErrArgCnt(Tcl_Interp *interp, Tcl_Obj *cmdName,  Tcl_Obj *methodName, ch
 }
 
 int
-XOTclObjErrArgCntObj(Tcl_Interp *interp, Tcl_Obj *cmdName,  Tcl_Obj *methodName, Tcl_Obj *msg) {
-  int rc = XOTclObjErrArgCnt(interp, cmdName,  methodName, ObjStr(msg));
-  DECR_REF_COUNT(msg);
-  return rc;
+XOTclObjErrArgCnt(Tcl_Interp *interp, Tcl_Obj *cmdName,  Tcl_Obj *methodName, char *arglist) {
+  return XOTclObjWrongArgs(interp, "wrong # args:", cmdName, methodName, arglist);
 }
 
 int

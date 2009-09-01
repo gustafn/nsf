@@ -424,7 +424,7 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_DELETED                        0x4000
 #define XOTCL_RECREATE                       0x8000
 
-/* flags for argDefinitions */
+/* flags for parameterDefinitions */
 
 #define XOTCL_ARG_REQUIRED		     0x0001
 #define XOTCL_ARG_SUBST_DEFAULT		     0x0002
@@ -457,18 +457,18 @@ typedef struct  {
   Tcl_Obj *defaultValue;
   char *type;
   Tcl_Obj *nameObj;
-} argDefinition;
+} parameterDefinition;
 
-typedef struct XOTclNonposArgs {
-  argDefinition *ifd;
-  int ifdSize;
+typedef struct XOTclParamDefs {
+  parameterDefinition *paramPtr;
+  int nrParameters;
   Tcl_Obj *slotObj;
-} XOTclNonposArgs;
+} XOTclParamDefs;
 
-typedef struct XOTclParsedInterfaceDefinition {
-  XOTclNonposArgs *nonposArgs;
+typedef struct XOTclParsedParameterDefinition {
+  XOTclParamDefs *paramDefs;
   int possibleUnknowns;
-} XOTclParsedInterfaceDefinition;
+} XOTclParsedParameterDefinition;
 
 typedef struct XOTclObjectOpt {
   XOTclAssertionStore *assertions;
@@ -523,10 +523,9 @@ typedef struct XOTclClass {
   struct XOTclClasses *sub;
   short color;
   struct XOTclClasses *order;
-    /*struct XOTclClass *parent;*/
   Tcl_HashTable instances;
   Tcl_Namespace *nsPtr;
-  XOTclParsedInterfaceDefinition *parsedIf;
+  XOTclParsedParameterDefinition *parsedParamPtr;
   XOTclClassOpt *opt;
 } XOTclClass;
 
