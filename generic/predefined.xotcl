@@ -263,7 +263,7 @@ namespace eval ::xotcl {
         unset default
       }
     }
-    puts stderr "Bootstrapslot for $class calls invalidateobjectparameter"
+    #puts stderr "Bootstrapslot for $class calls invalidateobjectparameter"
     $class invalidateobjectparameter
   }
 
@@ -326,8 +326,18 @@ namespace eval ::xotcl {
     }
     error "Method '$method' unknown for slot [::xotcl::self]; valid are: {[lsort $methods]]}"
   }
+
+  # TODO crashes currently
+  #::xotcl::Slot instproc destroy {} {
+  #  ::xotcl::instvar domain
+  #  if {$domain ne ""} {
+  #    $domain invalidateobjectparameter
+  #  }
+  #  next
+  #}
+
   ::xotcl::Slot instproc init {} {
-    ::xotcl::my instvar name domain manager per-object
+    ::xotcl::instvar name domain manager per-object
     #puts stderr "slot init [self] exists name? [info exists name] '$name'"
     set forwarder [expr {${per-object} ? "forward" : "instforward"}]
     #puts "domain=$domain /[::xotcl::self callingobject]/[::xotcl::my info parent]"
@@ -335,7 +345,7 @@ namespace eval ::xotcl {
       set domain [::xotcl::self callingobject]
     } else {
       #todo could be done via slotoptimizer
-      puts stderr "Slot [self] (name $name) init $domain calls invalidateobjectparameter"
+      #puts stderr "Slot [self] (name $name) init $domain calls invalidateobjectparameter"
       $domain invalidateobjectparameter
       # TODO: the following line should not be here. It is necessary to handle currently
       # computed default values, such as
@@ -345,7 +355,7 @@ namespace eval ::xotcl {
       #  - define a new converter type and delay for set value
       #  - invent some non-caching (not preferable).
       #
-      [my info class] invalidateobjectparameter
+      #[my info class] invalidateobjectparameter
     }
     #puts stderr "???? $domain $forwarder $name -default [$manager defaultmethods] $manager %1 %self %proc"
     $domain $forwarder $name -default [$manager defaultmethods] $manager %1 %self %proc

@@ -143,6 +143,16 @@ XOTcl_TraceObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   return XOTclVarErrMsg(interp, "xotcltrace: unknown option", (char*) NULL);
 }
 
+void 
+XOTclPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
+  int j; 
+  fprintf(stderr, string);
+  for (j = 0; j < objc; j++) {
+    fprintf(stderr, "  objv[%d]=%s, ",j, objv[j] ? ObjStr(objv[j]) : "NULL");
+  }
+  fprintf(stderr, "\n");
+}
+
 #ifdef XOTCL_MEM_COUNT
 void 
 XOTclMemCountAlloc(char *id, void *p) {

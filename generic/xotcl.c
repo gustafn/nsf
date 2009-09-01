@@ -143,7 +143,7 @@ typedef struct aliasCmdClientData {
   ClientData clientData;
 } aliasCmdClientData;
 
-#define PARSE_CONTEXT_PREALLOC 40
+#define PARSE_CONTEXT_PREALLOC 20
 typedef struct {
   ClientData *clientData;
   Tcl_Obj **objv;
@@ -181,24 +181,52 @@ void parseContextInit(parseContext *pc, int objc, Tcl_Obj *procName) {
     memset(pc->full_objv, 0, sizeof(Tcl_Obj*)*(objc+1));
     memset(pc->flags, 0, sizeof(int)*(objc+1));
     memset(pc->clientData, 0, sizeof(ClientData)*(objc));
-
   }
   pc->objv = &pc->full_objv[1];
   pc->full_objv[0] = procName;
 }
 
+void parseContextExtendObjv(parseContext *pc, int from, int elts, Tcl_Obj *CONST source[]) {
+  int requiredSize = from + elts;
+  
+  /* XOTclPrintObjv("BEFORE: ", pc->objc, pc->full_objv); */
+
+  if (requiredSize > PARSE_CONTEXT_PREALLOC) {
+    if (pc->objv == &pc->objv_static[1]) {
+      /* realloc from preallocated memory */
+      fprintf(stderr, "alloc %d\n", requiredSize);
+      pc->full_objv  = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*) * (requiredSize+1));
+      memcpy(pc->full_objv, &pc->objv_static[0], sizeof(Tcl_Obj*) * PARSE_CONTEXT_PREALLOC);
+    } else {
+      /* realloc from mallocated memory */
+      pc->full_objv = (Tcl_Obj **)ckrealloc((char *)pc->full_objv, sizeof(Tcl_Obj*) * (requiredSize));
+      fprintf(stderr, "realloc %d\n", requiredSize);
+    }
+    pc->objv = &pc->full_objv[1];
+  }
+
+  memcpy(pc->objv + from, source, sizeof(Tcl_Obj *) * (elts));
+  pc->objc += elts; 
+
+  /* XOTclPrintObjv("AFTER:  ", pc->objc, pc->full_objv); */
+}
+
 void parseContextRelease(parseContext *pc) {
   if (pc->mustDecr) {
     int i;
-    for (i = 0; i < pc->objc; i++) {
+    for (i = 0; i < pc->lastobjc; i++) {
       if (pc->flags[i] & XOTCL_PC_MUST_DECR) {
         DECR_REF_COUNT(pc->objv[i]);
       }
     }
   }
+  /* objv can be separately extended */
   if (pc->objv != &pc->objv_static[1]) {
     /*fprintf(stderr,"release free %p %p\n",pc->full_objv,pc->clientData);*/
     ckfree((char *)pc->full_objv);
+  }
+  /* if the interface was extended, both clientData and flags are extended */
+  if (pc->clientData != &pc->clientData_static[0]) {
     ckfree((char *)pc->clientData);
     ckfree((char *)pc->flags);
   }
@@ -4973,7 +5001,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       result = ProcessMethodArguments(&pc, interp, obj, nonposArgs, methodName, objc, objv);
       /* TODO: check potential leak for */
       if (result == TCL_OK) {
-        result = PushProcCallFrame(cp, interp, pc.objc+1, pc.full_objv, csc);
+        result = PushProcCallFrame(cp, interp, pc.objc, pc.full_objv, csc);
         /* maybe release is to early */
         parseContextRelease(&pc);
       }
@@ -9126,7 +9154,7 @@ parseObjv(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName
     }
   }
   pc->lastobjc = aPtr->name ? o : o-1;
-  pc->objc = i;
+  pc->objc = i + 1;
 
   /* Process all args until end of interface to get correct counters */
   while (aPtr->name) {
@@ -10156,10 +10184,10 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
 
   /*
    * STEP 3: stage the object under initialisation/ construction; using:
-   * pc.objc+1, pc.full_objv
+   * pc.objc, pc.full_objv
    */
 #if defined(CONFIGURE_ARGS_TRACE)
-  fprintf(stderr, "*** POPULATE OBJ ''''%s'''': nr of parsed args '%d'\n",objectName(obj),pc.objc);
+  fprintf(stderr, "*** POPULATE OBJ ''''%s'''': nr of parsed args '%d'\n", objectName(obj), pc.objc);
 #endif
   for (i = 1, ifPtr = nonposArgs->ifd; i < nonposArgs->ifdSize; i++, ifPtr++) {
     char *argName = ifPtr->name;
@@ -10214,13 +10242,13 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
   }
   
   XOTcl_PopFrame(interp, obj);
-  remainingArgsc = pc.objc - (nonposArgs->ifdSize - 1);
+  remainingArgsc = pc.objc - nonposArgs->ifdSize;
 
-#if defined(CONFIGURE_ARGS_TRACE)
+#if 0 || defined(CONFIGURE_ARGS_TRACE)
   fprintf(stderr, "*** POPULATE OBJ SETVALUES with '%d' elements:\n", remainingArgsc);
   { int j;
     for (j = i; j < i + remainingArgsc; j++) {
-      fprintf(stderr, "*** SETVALUES[%d] with '%s'\n",j,ObjStr(pc.full_objv[j]));
+      fprintf(stderr, "*** SETVALUES[%d] with '%s'\n", j, pc.full_objv[j] ? ObjStr(pc.full_objv[j]) : "NULL");
     }
   }
 #endif
@@ -12097,7 +12125,7 @@ ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
                        char *methodName, int objc,  Tcl_Obj *CONST objv[]) {
   argDefinition CONST *aPtr;
   int i, rc;
-  
+
   rc = parseObjv(interp, objc, objv, objv[0], nonposArgs->ifd, nonposArgs->ifdSize, pcPtr);
   if (rc != TCL_OK) {
     return rc;
@@ -12169,62 +12197,38 @@ ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
    * Set objc of the parse context to the size of the interface.
    * pcPtr->objc and nonposArgs->ifdSize will be equivalent in cases
    * where argument values are passed to the call in absence of var
-   * args ('args'). However, there are important points of deviation
-   * which need to be handled, e.g.: 
-   *
-   * 1) No argument values have been passed and defaults are provided
-   *    and initialised by parseObjv. objc will then not reflect the
-   *    required ifdSize.
-   *
-   * 2) Var args have been enabled (=specified) but there are either
-   *    no args values provided in the call or there are more than 1
-   *    var args (see below).
+   * args ('args'). Treating "args is more involved.
    */
-  pcPtr->objc = nonposArgs->ifdSize;
+  pcPtr->objc = nonposArgs->ifdSize + 1;
 
   if (aPtr->converter == convertToNothing) {
-      /* 
-       * Var args ('args') are expected.
-       */
-      int elts = objc - pcPtr->lastobjc;
+    /* 
+     * The last argument was "args".
+     */
+    int elts = objc - pcPtr->lastobjc;
+    
+    if (elts == 0) {
       /*
-       * 1) elts = 0: 'args' is specified, but there are no var args
-       * passed in the call. At this point, pcPtr->objv[i] has the
-       * value XOTclGlobalObjects[XOTE___UNKNOWN__] (see
-       * above). However, tclProc.c:InitArgsAndLocals initialises an
-       * empty list for 'args' because pcPtr->objc does not reflect
-       * the __unknown__ value. The work is so effectively
-       * delegated. Note that unsetUnknownArgs is not involved, as the
-       * __unknown__ value is not to make it through
-       * tclProc.c:InitArgsAndLocals
-       *
+       * No arguments were passed to "args".  We simply decrement objc.
        */
-      if (elts == 0) {
-	  pcPtr->objc--;
-      }
-
+      pcPtr->objc--;
+    } else if (elts > 1) {
       /*
-       * 2) elts = 1: 'args' is specified, and a single var arg was
-       * passed. there is no need to mutate the pcPtr->objv, because
-       * this has been achieved in parseObjvs (i.e., pcPtr->objv[i]
-       * contains this element). We can so avoid a memcpy operation.
+       * Multiple arguments were passed to "args".  pcPtr->objv is
+       * pointing to the first of the var args. We have to copy the
+       * remaining actual argument vector objv to the parse context.
        */
-
-       /* 3) elts > 1: 'args' is specified and more than a single var
-       * args were passed. subsequently, pcPtr->objv is only pointing
-       * to the first of the var args. First, copy the sublist of var
-       * args to pcPtr->objv, second correct pcPtr->objc. The
-       * corrected pcPtr->objc will ascertain that
-       * tclProc.c:InitArgsAndLocals will set up a list of the
-       * appropriate size and content. There is no need to deal with a
-       * list representation for 'args' at this point.
+      
+      /*XOTclPrintObjv("actual:  ", objc, objv);*/
+      parseContextExtendObjv(pcPtr, nonposArgs->ifdSize, elts-1, objv + 1 + pcPtr->lastobjc);
+    } else {
+      /*
+       * A single argument was passed to "args". There is no need to
+       * mutate the pcPtr->objv, because this has been achieved in
+       * parseObjvs (i.e., pcPtr->objv[i] contains this element).
        */
-      if (elts > 1) {
-        /* TODO: this cannot stay like this */
-	  memcpy(pcPtr->objv+i, objv+pcPtr->lastobjc, sizeof(Tcl_Obj *)*elts);
-	  pcPtr->objc = pcPtr->objc + elts - 1;
-      }
-  } 
+    }
+  }
 
   return TCL_OK;
 }
