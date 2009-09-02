@@ -156,15 +156,16 @@ typedef struct {
   int objc;
   int mustDecr;
   int varArgs;
+  XOTclObject *obj;
 } parseContext;
 
 #if defined(CANONICAL_ARGS)
 int ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp, 
-                           XOTclObject *obj, XOTclParamDefs *paramDefs,
+                           XOTclObject *obj, int pushFrame, XOTclParamDefs *paramDefs,
                            char *methodName, int objc,  Tcl_Obj *CONST objv[]);
 #endif
 
-void parseContextInit(parseContext *pc, int objc, Tcl_Obj *procName) {
+void parseContextInit(parseContext *pc, int objc, XOTclObject *obj, Tcl_Obj *procName) {
   if (objc < PARSE_CONTEXT_PREALLOC) {
     /* the single larger memset below .... */
     memset(pc, 0, sizeof(parseContext));
@@ -185,6 +186,7 @@ void parseContextInit(parseContext *pc, int objc, Tcl_Obj *procName) {
   }
   pc->objv = &pc->full_objv[1];
   pc->full_objv[0] = procName;
+  pc->obj = obj;
 }
 
 void parseContextExtendObjv(parseContext *pc, int from, int elts, Tcl_Obj *CONST source[]) {
@@ -972,10 +974,13 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
     if (cls) {
       if (cl) *cl = cls;
       return TCL_OK;      
+    } else {
+      /* flag, that we could not convert so far */
+      result = TCL_ERROR;
     }
   }
 
-  /*fprintf(stderr,"try unknown\n");*/
+  /*fprintf(stderr,"try unknown, result so far is %d\n",result);*/
   if (base) {
     Tcl_Obj *ov[3];
     ov[0] = base->object.cmdName;
@@ -4999,8 +5004,8 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 
     if (paramDefs) {
       parseContext pc;
-      result = ProcessMethodArguments(&pc, interp, obj, paramDefs, methodName, objc, objv);
-      /* TODO: check potential leak for */
+
+      result = ProcessMethodArguments(&pc, interp, obj, 1, paramDefs, methodName, objc, objv);
       if (result == TCL_OK) {
         result = PushProcCallFrame(cp, interp, pc.objc, pc.full_objv, csc);
         /* maybe release is to early */
@@ -5586,6 +5591,7 @@ noMetaChars(char *pattern) {
 /*
  * type converter
  */
+/* we could define parameterTypes with a converter, setter, canCheck, name */
 static int convertToString(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
   *clientData = (char *)ObjStr(objPtr);
   return TCL_OK;
@@ -5612,9 +5618,15 @@ static int convertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *cli
 static int convertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
   return convertToBoolean(interp, objPtr, clientData);
 }
-static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
-  if (GetClassFromObj(interp, objPtr, (XOTclClass **)clientData, 0) == TCL_OK)
+static int convertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
+  if (GetObjectFromObj(interp, objPtr, (XOTclObject **)clientData) == TCL_OK)
     return TCL_OK;
+  return XOTclObjErrType(interp, objPtr, "object");
+}
+static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
+  if (GetClassFromObj(interp, objPtr, (XOTclClass **)clientData, 0) == TCL_OK) {
+    return TCL_OK;
+  }
   return XOTclObjErrType(interp, objPtr, "class");
 }
 
@@ -5624,13 +5636,6 @@ static int convertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *cl
      treat it here just like a tclobj */
   *clientData = (ClientData)objPtr;
   return TCL_OK;
-}
-
-
-static int convertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
-  if (GetObjectFromObj(interp, objPtr, (XOTclObject **)clientData) == TCL_OK)
-    return TCL_OK;
-  return XOTclObjErrType(interp, objPtr, "object");
 }
 
 static int convertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
@@ -9041,7 +9046,8 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, char *specifiedName, int objc, 
 #include "tclAPI.h"
 
 static int 
-ArgumentError(Tcl_Interp *interp, char *errorMsg, parameterDefinition CONST *paramPtr, Tcl_Obj *procNameObj) {
+ArgumentError(Tcl_Interp *interp, char *errorMsg, parameterDefinition CONST *paramPtr, 
+              Tcl_Obj *cmdNameObj, Tcl_Obj *methodNameObj) {
   Tcl_Obj *argStringObj = Tcl_NewStringObj("", 0);
   parameterDefinition CONST *aPtr;
   
@@ -9060,20 +9066,19 @@ ArgumentError(Tcl_Interp *interp, char *errorMsg, parameterDefinition CONST *par
       Tcl_AppendToObj(argStringObj, "?", 1);
     }
   }
-  XOTclObjWrongArgs(interp, errorMsg, procNameObj,  NULL, ObjStr(argStringObj));
+  XOTclObjWrongArgs(interp, errorMsg, cmdNameObj,  methodNameObj, ObjStr(argStringObj));
   DECR_REF_COUNT(argStringObj);
   return TCL_ERROR;
 }
 
 int
 ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp, 
-                 XOTclObject *obj, /* if provided, we might have to push the frame */
-                 parameterDefinition CONST *ifd, int nrParameters, char *methodName) {
+                 parameterDefinition CONST *ifd, int nrParameters) {
   parameterDefinition CONST *aPtr;
   int i, rc;
 
   for (aPtr = ifd, i=0; i<nrParameters; aPtr++, i++) {
-    /*fprintf(stderr, "ProcessMethodArguments got for arg %s (%d) => %p %p, default %s\n",
+    /*fprintf(stderr, "ArgumentDefaults got for arg %s (%d) => %p %p, default %s\n",
       aPtr->name, aPtr->flags & XOTCL_ARG_REQUIRED,
       pcPtr->clientData[i], pcPtr->objv[i],
       aPtr->defaultValue ? ObjStr(aPtr->defaultValue) : "NONE");*/
@@ -9091,11 +9096,12 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
       
       if (aPtr->defaultValue) {
         Tcl_Obj *newValue = aPtr->defaultValue;
+        ClientData checkedData;
 
         /* we have a default, do we have to subst it? */
         if (aPtr->flags & XOTCL_ARG_SUBST_DEFAULT) {
 
-          rc = SubstValue(interp, obj, &newValue);
+          rc = SubstValue(interp, pcPtr->obj, &newValue);
           if (rc != TCL_OK) {
             return rc;
           }
@@ -9109,11 +9115,20 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
         }
 
         pcPtr->objv[i] = newValue;        
-        /* TODO: default value is not jet checked; could be done (without subt) in arg parsing */
-        /*fprintf(stderr,"==> setting default value '%s' for var '%s'\n",ObjStr(newValue),aPtr->name);*/
-
+        /*fprintf(stderr,"==> setting default value '%s' for var '%s' flag %d type %s conv %p\n",
+                ObjStr(newValue),aPtr->name, aPtr->flags & XOTCL_ARG_INITCMD,
+                aPtr->type, aPtr->converter);*/
+      
+        /* Check the default value, unless we have an INITCMD */
+        if ((aPtr->flags & XOTCL_ARG_INITCMD) == 0) {
+          if ((*aPtr->converter)(interp, newValue, &checkedData) != TCL_OK) {
+            return TCL_ERROR;
+          }
+        }
       } else if (aPtr->flags & XOTCL_ARG_REQUIRED) {
-        return XOTclVarErrMsg(interp, "method ", methodName, ": required argument '",
+        return XOTclVarErrMsg(interp, 
+                              pcPtr->obj ? objectName(pcPtr->obj) : "", pcPtr->obj ? " " : "", 
+                              ObjStr(pcPtr->full_objv[0]), ": required argument '",
                               ObjStr(aPtr->nameObj), "' is missing", (char *) NULL);
       } else {
         /* Use as dummy default value an arbitrary symbol, which must not be
@@ -9128,13 +9143,15 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
 }
 
 static int
-ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procNameObj,
-          parameterDefinition CONST *paramPtr, int nrParameters, parseContext *pc) {
+ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
+              XOTclObject *obj, Tcl_Obj *procNameObj,
+              parameterDefinition CONST *paramPtr, int nrParameters, 
+              parseContext *pc) {
   int i, o, flagCount = 0, nrReq = 0, nrOpt = 0, dashdash = 0;
   /* todo benchmark with and without CONST */
   parameterDefinition CONST *aPtr, *bPtr;
-
-  parseContextInit(pc, nrParameters, procNameObj);
+  
+  parseContextInit(pc, nrParameters, obj, procNameObj);
 
 #if defined(PARSE_TRACE)
   fprintf(stderr, "BEGIN (%d) [0]%s ",objc, ObjStr(procNameObj));
@@ -9256,12 +9273,14 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *proc
   }
 
   /* handle missing or unexpected arguments */
-  if (pc->lastobjc < nrReq || (!pc->varArgs && objc-dashdash-1 > nrReq + nrOpt)) {
-    ArgumentError(interp, "wrong # args:", paramPtr, procNameObj);
+  if (pc->lastobjc < nrReq) {
+    return ArgumentError(interp, "not enough arguments:", paramPtr, NULL, procNameObj); /* for methods and cmds */
+  }
+  if (!pc->varArgs && objc-dashdash-1 > nrReq + nrOpt) {
+    return ArgumentError(interp, "to many arguments:", paramPtr, NULL, procNameObj); /* for methods and cmds */
   }
 
-  return ArgumentDefaults(pc, interp, NULL /* TODO if obj is provided, we might have to push the frame */,
-                          paramPtr, nrParameters, ObjStr(procNameObj));
+  return ArgumentDefaults(pc, interp, paramPtr, nrParameters);
 
   return TCL_OK;
 }
@@ -10236,7 +10255,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
 
   /* Call the objv parser and postprocess like with method parameters */
   paramDefs = parsedParam.paramDefs;
-  result = ProcessMethodArguments(&pc, interp, NULL, paramDefs, "configure", objc, objv);
+  result = ProcessMethodArguments(&pc, interp, obj, 0, paramDefs, "configure", objc, objv);
   if (result != TCL_OK) {
     XOTcl_PopFrame(interp, obj);
     parseContextRelease(&pc);
@@ -12181,12 +12200,19 @@ isNonposArg(Tcl_Interp *interp, char * argStr,
 #if defined(CANONICAL_ARGS)
 int
 ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp, 
-                       XOTclObject *obj, /* if provided, we might have to push the frame */
+                       XOTclObject *obj, int pushFrame,
                        XOTclParamDefs *paramDefs,
                        char *methodName, int objc,  Tcl_Obj *CONST objv[]) {
   int rc;
+  XOTcl_FrameDecls;
 
-  rc = ArgumentParse(interp, objc, objv, objv[0], paramDefs->paramPtr, paramDefs->nrParameters, pcPtr);
+  if (obj && pushFrame) {
+    XOTcl_PushFrame(interp, obj);
+  }
+  rc = ArgumentParse(interp, objc, objv, obj, objv[0], paramDefs->paramPtr, paramDefs->nrParameters, pcPtr);
+  if (obj && pushFrame) {
+    XOTcl_PopFrame(interp, obj);
+  }
   if (rc != TCL_OK) {
     return rc;
   }
@@ -12227,7 +12253,7 @@ ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
        */
     }
   }
-  
+
   return TCL_OK;
 }
 
@@ -12280,7 +12306,7 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   /*if (!paramDefs) {return TCL_OK;}*/
 
   INCR_REF_COUNT(proc);
-  rc = ArgumentParse(interp, objc, objv, proc, paramDefs->paramPtr, objc, &pc);
+  rc = ArgumentParse(interp, objc, objv, csc->self, proc, paramDefs->paramPtr, objc, &pc);
   DECR_REF_COUNT(proc);
 
   if (rc != TCL_OK) {
@@ -12320,7 +12346,7 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
 #if defined(CANONICAL_ARGS)
 	parseContextRelease(pcPtr);
 #endif
-        return XOTclVarErrMsg(interp, "method ",procName, ": required argument '",
+        return XOTclVarErrMsg(interp, "method ", procName, ": required argument '",
                               argName, "' is missing", (char *) NULL);
       }
     }

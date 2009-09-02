@@ -168,13 +168,13 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
   set arglist [join $a ", "]
 }
 
-proc genStub {stub intro idx cDefs pre call post} {
+proc genStub {stub intro obj idx cDefs pre call post} {
   return [subst -nocommands {
 static int
 ${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 $intro
-  if (ArgumentParse(interp, objc, objv, objv[0], 
+  if (ArgumentParse(interp, objc, objv, $obj, objv[0], 
                      method_definitions[$idx].paramDefs, 
                      method_definitions[$idx].nrParameters, 
                      &pc) != TCL_OK) {
@@ -219,7 +219,7 @@ proc genstubs {} {
     set nrArgs [llength $d(parameterDefinitions)]
     set stubDecl "static int $d(stub)$::objCmdProc\n"
     set ifd "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), $nrArgs, {\n  [genifd $d(parameterDefinitions)]}\n}"
-
+    
     gencall $d(stub) $d(parameterDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
     append decls "static int [implArgList $d(implementation) {Tcl_Interp *} $ifDef];\n"
     if {$post ne ""} {
@@ -230,7 +230,7 @@ proc genstubs {} {
     } else {
       set call "return [implArgList $d(implementation) {} $arglist];"
     }
-
+    
     #if {$nrArgs == 1} { puts stderr "$d(stub) => '$arglist'" }
     if {$nrArgs == 1 && $arglist eq "objc, objv"} {
       # TODO we would not need to generate a stub at all.... 
@@ -242,12 +242,17 @@ proc genstubs {} {
       #puts stderr "$d(stub) => '$arglist'"
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
     } else {
-      append fns [genStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
+      switch $d(methodType) {
+        objectMethod {set obj "obj"}
+        classMethod {set obj "(XOTclObject *) cl"}
+        default {set obj "NULL"}
+      }
+      append fns [genStub $d(stub) $intro $obj $d(idx) $cDefs $pre $call $post]
     }
     lappend ifds $ifd
     append stubDecls $stubDecl
   }
-
+  
   puts $::converter
   puts {
 typedef struct {
@@ -257,8 +262,9 @@ typedef struct {
   parameterDefinition paramDefs[10];
 } methodDefinition;
 
-static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], Tcl_Obj *procName,
-                          parameterDefinition CONST *paramPtr, int nrParameters, parseContext *pc);
+static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
+                         XOTclObject *obj, Tcl_Obj *procName,
+                         parameterDefinition CONST *paramPtr, int nrParameters, parseContext *pc);
 
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  XOTclObject **matchObject, char **pattern);

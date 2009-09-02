@@ -14,16 +14,24 @@ proc ? {cmd expected {msg ""}} {
 }
 
 catch {::xotcl::configure cacheinterface true}
+set mkTypeChecker 0
 
 puts stderr =====START
 Class C -parameter {a {b:boolean} {c 1}}
 
 C c1 
-? {C objectparameter} "-instfilter:relation -superclass:relation -instmixin:relation -mixin:relation -filter:relation -class:relation args"
-? {c1 objectparameter} {-a {-b:boolean,initcmd {
+? {C objectparameter} "-instfilter:relation -superclass:relation -instmixin:relation\
+-mixin:relation -filter:relation -class:relation args"
+
+if {$mkTypeChecker} {
+  set e {-a {-b:boolean,initcmd {
 if {[::xotcl::my exists b]} {::xotcl::my set __oldvalue(b) [::xotcl::my set b]}
 ::xotcl::my trace add variable b write  [list ::C::slot::b __value_changed_cmd [::xotcl::self] {
 ::xotcl::my check_single_value [$obj set b]  {[::C::slot::b type=boolean b $value]} boolean $obj b}]}} {-c 1} -mixin:relation -filter:relation -class:relation args}
+} else {
+  set e {-a -b:boolean {-c 1} -mixin:relation -filter:relation -class:relation args}
+}
+? {c1 objectparameter} $e
 
 # reclass to Object, no neet to do anything on caching
 puts stderr "=== reclass c1 to Object"
@@ -33,12 +41,17 @@ c1 class Object
 puts stderr "=== create Class D"
 Class D -superclass C -parameter {d:required}
 D d1 -d 100
-? {d1 objectparameter} {-d:required -a {-b:boolean,initcmd {
+
+if {$mkTypeChecker} {
+  set e {-d:required -a {-b:boolean,initcmd {
 if {[::xotcl::my exists b]} {::xotcl::my set __oldvalue(b) [::xotcl::my set b]}
 ::xotcl::my trace add variable b write  [list ::C::slot::b __value_changed_cmd [::xotcl::self] {
 ::xotcl::my check_single_value [$obj set b]  {[::C::slot::b type=boolean b $value]} boolean $obj b}]}} {-c 1} -mixin:relation -filter:relation -class:relation args}
+} else {
+  set e {-d:required -a -b:boolean {-c 1} -mixin:relation -filter:relation -class:relation args}
+}
+? {d1 objectparameter} $e
 
-puts stderr 2
 set case "instmixin M into D"
 Class M -parameter {m1 m2 b}
 Class M2 -parameter {b2}
@@ -49,10 +62,17 @@ M instmixin M2
 ? {d1 objectparameter} "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation -filter:relation -class:relation args" "$case: transitive mixin added"
 D instmixin ""
 #we should have again the old interface
-? {d1 objectparameter} {-d:required -a {-b:boolean,initcmd {
+
+if {$mkTypeChecker} {
+  set e {-d:required -a {-b:boolean,initcmd {
 if {[::xotcl::my exists b]} {::xotcl::my set __oldvalue(b) [::xotcl::my set b]}
 ::xotcl::my trace add variable b write  [list ::C::slot::b __value_changed_cmd [::xotcl::self] {
 ::xotcl::my check_single_value [$obj set b]  {[::C::slot::b type=boolean b $value]} boolean $obj b}]}} {-c 1} -mixin:relation -filter:relation -class:relation args}
+} else {
+  set e {-d:required -a -b:boolean {-c 1} -mixin:relation -filter:relation -class:relation args}
+}
+
+? {d1 objectparameter} $e
 
 set case "instmixin M into C"
 puts stderr "=== $case"
@@ -60,18 +80,107 @@ C instmixin M
 ? {d1 objectparameter} "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation -filter:relation -class:relation args" "$case: mixin added"
 C instmixin ""
 #we should have again the old interface
-? {d1 objectparameter} {-d:required -a {-b:boolean,initcmd {
+
+if {$mkTypeChecker} {
+  set e {-d:required -a {-b:boolean,initcmd {
 if {[::xotcl::my exists b]} {::xotcl::my set __oldvalue(b) [::xotcl::my set b]}
 ::xotcl::my trace add variable b write  [list ::C::slot::b __value_changed_cmd [::xotcl::self] {
 ::xotcl::my check_single_value [$obj set b]  {[::C::slot::b type=boolean b $value]} boolean $obj b}]}} {-c 1} -mixin:relation -filter:relation -class:relation args}
+} else {
+  set e {-d:required -a -b:boolean {-c 1} -mixin:relation -filter:relation -class:relation args}
+}
+
+? {d1 objectparameter} $e
 
 # test passed arguments
 ? {catch {D create d1 -d 123}} 0 "create d1 with required argument given"
 ? {catch {D create d1}} 1 "create d1 without required argument given"
 catch {D create d1} errorMsg
-? {set _ $errorMsg} XX "check error msg"
+? {set _ $errorMsg} "::d1 configure: required argument 'd' is missing" "check error msg"
 
-## TODO: initcmd->trackType {obj var type} => trace var ...
+? {if {[catch {D create d2 -d x -b a} errorMsg]} {set errorMsg}} \
+    {expected boolean value but got "a"} \
+    "create d2 without required argument given"
+
+D create d1 -d 1
+D instproc foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:class}} {
+  #if {[info exists x]} {puts stderr x=$x}
+}
+
+? {if {[catch {d1 foo} errorMsg]} {set errorMsg}} \
+    {::d1 foo: required argument 'r' is missing} \
+    "call method without a required argument"
+
+? {if {[catch {d1 foo -r a} errorMsg]} {set errorMsg}} \
+    {expected integer but got "a"} \
+    "required argument is not integer"
+
+? {if {[catch {d1 foo -r 1} errorMsg]} {set errorMsg}} \
+    {expected integer but got "aaa"} \
+    "default value is not of type integer"
+
+? {if {[catch {d1 foo -r 1 -x 1 -object d1} errorMsg]} {set errorMsg}} \
+    "" \
+    "pass object"
+
+? {if {[catch {d1 foo -r 1 -x 1 -object d11} errorMsg]} {set errorMsg}} \
+    {Invalid argument: cannot convert 'd11' to object} \
+    "pass non-existing object"
+
+? {if {[catch {d1 foo -r 1 -x 1 -class D} errorMsg]} {set errorMsg}} \
+    "" \
+    "pass class"
+
+? {if {[catch {d1 foo -r 1 -x 1 -class d1} errorMsg]} {set errorMsg}} \
+    {Invalid argument: cannot convert 'd1' to class} \
+    "pass object instead of class"
+
+? {if {[catch {d1 foo -r 1 -x 1 -class D11} errorMsg]} {set errorMsg}} \
+    {Invalid argument: cannot convert 'D11' to class} \
+    "pass non-existing class"
+
+#
+# subst default tests
+#
+D instproc bar {
+  {-s:substdefault "[self]"} 
+  {-literal "[self]"} 
+  {-c:substdefault "[my c]"} 
+  {-d:integer,substdefault "$d"}
+} {
+  return $s-$literal-$c-$d
+}
+
+? {d1 bar -c 1} {::d1-[self]-1-1} "substdefault on method"  
+
+Class create Bar -superclass D -parameter {
+  {s "[self]"} 
+  {literal "\\[self\\]"} 
+  {c "[my info class]"} 
+  {d "$d"}
+}
+Bar create bar1
+#puts stderr [bar1 objectparameter]
+
+? {subst {[bar1 s]-[bar1 literal]-[bar1 c]-[bar1 d]}} \
+    {::bar1-[self]-::Bar-$d} \
+    "substdefault on object"  
+
+# Observations:
+#  1) syntax for "-parameter" and method parameter is quite different.
+#     it would be nice to be able to specify the objparameters in
+#     the same syntax as the method parameters. 
+#
+# 1a) Especially specifying "-" in front of a -parameter or not might
+#     be confusing.
+#
+# 1b) Positional args for obj parameter and arguments for init
+#     might be confusing as well. Should we forget about 
+#     passing arguments to init?
+#
+#  2) substdefault for '$' in -parameter defaults does not make much sense.
+#     deactivated for now; otherwise we would need "\\"
+
 
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.

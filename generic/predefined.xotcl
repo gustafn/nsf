@@ -206,7 +206,8 @@ namespace eval ::xotcl {
       }
       if {[$slot exists default]} {
         set arg [$slot set default]
-        if {[string match {*\[*\]*} $arg] || [string first $arg {$}] > -1} {
+        # deactivated for now: || [string first {$} $arg] > -1
+        if {[string match {*\[*\]*} $arg]} {
           lappend opts substdefault
         }
       } elseif {[$slot exists initcmd]} {
@@ -347,15 +348,6 @@ namespace eval ::xotcl {
       #todo could be done via slotoptimizer
       #puts stderr "Slot [self] (name $name) init $domain calls invalidateobjectparameter"
       $domain invalidateobjectparameter
-      # TODO: the following line should not be here. It is necessary to handle currently
-      # computed default values, such as
-      #     {name "[namespace tail [::xotcl::self]]"}
-      #
-      # Computed defaults could not be cached. Options:
-      #  - define a new converter type and delay for set value
-      #  - invent some non-caching (not preferable).
-      #
-      #[my info class] invalidateobjectparameter
     }
     #puts stderr "???? $domain $forwarder $name -default [$manager defaultmethods] $manager %1 %self %proc"
     $domain $forwarder $name -default [$manager defaultmethods] $manager %1 %self %proc
@@ -538,7 +530,7 @@ namespace eval ::xotcl {
       append __initcmd "::xotcl::my trace add variable [list $name] read \
 	\[list [::xotcl::self] __value_from_cmd \[::xotcl::self\] [list [::xotcl::my valuecmd]]\]"
     }
-    append __initcmd [::xotcl::my mk_type_checker]
+    #append __initcmd [::xotcl::my mk_type_checker]
     if {[::xotcl::my exists valuechangedcmd]} {
       append __initcmd "::xotcl::my trace add variable [list $name] write \
 	\[list [::xotcl::self] __value_changed_cmd \[::xotcl::self\] [list [::xotcl::my valuechangedcmd]]\]"
