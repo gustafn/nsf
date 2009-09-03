@@ -22,12 +22,12 @@ typedef struct {
   char *methodName;
   Tcl_ObjCmdProc *proc;
   int nrParameters;
-  parameterDefinition paramDefs[10];
+  XOTclParam paramDefs[10];
 } methodDefinition;
 
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
                          XOTclObject *obj, Tcl_Obj *procName,
-                         parameterDefinition CONST *paramPtr, int nrParameters, parseContext *pc);
+                         XOTclParam CONST *paramPtr, int nrParameters, parseContext *pc);
 
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  XOTclObject **matchObject, char **pattern);

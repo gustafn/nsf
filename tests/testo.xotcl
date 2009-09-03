@@ -61,6 +61,8 @@ objectdispatch proc run {{n 50}} {
     if {$ukn != $args} then {
       error "wrong order in unknown: $ukns"
     }
+    set X [concat [self proc] [list $l] [list $n] [list $l] $args]
+    puts stderr "l=[llength $X], $X"
     eval [list [self]] [list [self proc]] [list $l] [list $n] [list $l] $args
   }
 

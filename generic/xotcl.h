@@ -79,6 +79,7 @@
 #define STACK_TRACE 1
 #define PARSE_TRACE 1
 #define PARSE_TRACE_FULL 1
+#define CONFIGURE_ARGS_TRACE 1
 */
 
 /*
@@ -88,13 +89,6 @@
 */
 #define CANONICAL_ARGS 1
 #define TCL85STACK 1
-
-#define CONFIGURE_ARGS 1
-
-#if defined(CONFIGURE_ARGS)
-# define CANONICAL_ARGS 1
-/*# define CONFIGURE_ARGS_TRACE 1*/
-#endif
 
 #if defined(PARSE_TRACE_FULL)
 # define PARSE_TRACE 1
