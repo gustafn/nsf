@@ -160,12 +160,14 @@ typedef struct {
 } parseContext;
 
 #if defined(CANONICAL_ARGS)
-int ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp, 
-                           XOTclObject *obj, int pushFrame, XOTclParamDefs *paramDefs,
-                           char *methodName, int objc, Tcl_Obj *CONST objv[]);
+static int 
+ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp, 
+                       XOTclObject *obj, int pushFrame, XOTclParamDefs *paramDefs,
+                       char *methodName, int objc, Tcl_Obj *CONST objv[]);
 #endif
 
-void parseContextInit(parseContext *pc, int objc, XOTclObject *obj, Tcl_Obj *procName) {
+static void 
+parseContextInit(parseContext *pc, int objc, XOTclObject *obj, Tcl_Obj *procName) {
   if (objc < PARSE_CONTEXT_PREALLOC) {
     /* the single larger memset below .... */
     memset(pc, 0, sizeof(parseContext));
@@ -189,7 +191,7 @@ void parseContextInit(parseContext *pc, int objc, XOTclObject *obj, Tcl_Obj *pro
   pc->obj = obj;
 }
 
-void parseContextExtendObjv(parseContext *pc, int from, int elts, Tcl_Obj *CONST source[]) {
+static void parseContextExtendObjv(parseContext *pc, int from, int elts, Tcl_Obj *CONST source[]) {
   int requiredSize = from + elts;
   
   /*XOTclPrintObjv("BEFORE: ", pc->objc, pc->full_objv);*/
@@ -214,7 +216,7 @@ void parseContextExtendObjv(parseContext *pc, int from, int elts, Tcl_Obj *CONST
   /*XOTclPrintObjv("AFTER:  ", pc->objc, pc->full_objv);*/
 }
 
-void parseContextRelease(parseContext *pc) {
+static void parseContextRelease(parseContext *pc) {
   if (pc->mustDecr) {
     int i;
     for (i = 0; i < pc->lastobjc; i++) {
@@ -1459,7 +1461,7 @@ makeObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
   *	        Tcl_Interp *interp, CONST char * name, Tcl_Namespace *context,
   *	        int flags, Tcl_Var *rPtr));
   */
-int
+static int
 varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
   int new;
   Tcl_Obj *key;
@@ -8886,7 +8888,7 @@ ArgumentError(Tcl_Interp *interp, char *errorMsg, XOTclParam CONST *paramPtr,
   return TCL_ERROR;
 }
 
-int
+static int
 ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp, 
                  XOTclParam CONST *ifd, int nrParams) {
   XOTclParam CONST *pPtr;
@@ -11823,7 +11825,7 @@ XOTclInitProcNSCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 #endif
 
 #if defined(CANONICAL_ARGS)
-int
+static int
 ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp, 
                        XOTclObject *obj, int pushFrame,
                        XOTclParamDefs *paramDefs,

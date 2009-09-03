@@ -35,7 +35,7 @@ static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *orig
 /* just to define the symbol */
 static methodDefinition method_definitions[];
   
-char *method_command_namespace_names[] = {
+static char *method_command_namespace_names[] = {
   "::xotcl::cmd::ObjectInfo",
   "::xotcl::cmd::Object",
   "::xotcl::cmd::ClassInfo",

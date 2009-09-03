@@ -253,7 +253,7 @@ CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *obj) {
  * if "exit" is called and we were jumping out of the
  * callframe
  */
-void CallStackPopAll(Tcl_Interp *interp) {
+static void CallStackPopAll(Tcl_Interp *interp) {
   XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
 
   while (cs->top > cs->content)

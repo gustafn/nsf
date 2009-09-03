@@ -30,7 +30,7 @@ static void tcl85showStack(Tcl_Interp *interp) {
   }
 }
 
-Tcl_CallFrame *
+static Tcl_CallFrame *
 nonXotclObjectProcFrame(Tcl_CallFrame *framePtr) {
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     int flag = Tcl_CallFrame_isProcCallFrame(framePtr);
@@ -45,7 +45,7 @@ nonXotclObjectProcFrame(Tcl_CallFrame *framePtr) {
   return framePtr;
 }
 
-Tcl_CallFrame *
+static Tcl_CallFrame *
 nextFrameOfType(Tcl_CallFrame *framePtr, int flags) {
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(framePtr) & flags) 
@@ -280,7 +280,7 @@ CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *obj) {
  * if "exit" is called and we were jumping out of the
  * callframe
  */
-void CallStackPopAll(Tcl_Interp *interp) {
+static void CallStackPopAll(Tcl_Interp *interp) {
 
   while (1) {
     Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);

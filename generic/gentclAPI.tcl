@@ -280,7 +280,7 @@ static methodDefinition method_definitions[];
      lappend namespaces "\"$value\"" 
   }
   set namespaceString [join $namespaces ",\n  "]
-  puts "char *method_command_namespace_names\[\] = {\n  $namespaceString\n};"
+  puts "static char *method_command_namespace_names\[\] = {\n  $namespaceString\n};"
   puts $stubDecls
   puts $decls
   set enumString [join $enums ",\n "]
