@@ -61,8 +61,6 @@ objectdispatch proc run {{n 50}} {
     if {$ukn != $args} then {
       error "wrong order in unknown: $ukns"
     }
-    set X [concat [self proc] [list $l] [list $n] [list $l] $args]
-    puts stderr "l=[llength $X], $X"
     eval [list [self]] [list [self proc]] [list $l] [list $n] [list $l] $args
   }
 
@@ -544,11 +542,7 @@ objectvariables proc run {{n 100}} {
   for {set i 0} {$i < $n} {incr i} {
     lappend guide [list scalar$i {} u]
   }
-puts stderr KILLSELF
   avar2 killSelf
- puts stderr KILLSELF-done
-puts stderr guide=$guide
-puts stderr trail=$trail
   if {[lsort $guide] != [lsort $trail]} then {
     error "FAILED [self] - trace: expected $guide, got $trail"
   }
