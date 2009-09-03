@@ -324,6 +324,11 @@ infoObjectMethod nonposargs XOTclObjInfoNonposargsMethod {
 infoObjectMethod parent XOTclObjInfoParentMethod {
   {-argName "object" -required 1 -type object}
 }
+infoObjectMethod params XOTclObjInfoParamsMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "methodName" -required 1}
+  {-argName "-varNames"}
+}
 infoObjectMethod parametercmd XOTclObjInfoParametercmdMethod {
   {-argName "object" -required 1 -type object}
   {-argName "pattern"}
@@ -424,6 +429,11 @@ infoClassMethod instnonposargs XOTclClassInfoInstnonposargsMethod {
 infoClassMethod instparametercmd XOTclClassInfoInstparametercmdMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "pattern"}
+}
+infoClassMethod instparams XOTclClassInfoInstparamsMethod {
+  {-argName "class" -required 1 -type class}
+  {-argName "methodName" -required 1}
+  {-argName "-varNames"}
 }
 infoClassMethod instpost XOTclClassInfoInstpostMethod {
   {-argName "class"  -required 1 -type class}

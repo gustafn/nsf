@@ -4940,31 +4940,56 @@ ParamDefsFormat(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
   XOTclParam CONST *pPtr;
 
   for (pPtr = paramDefs->paramsPtr; pPtr->name; pPtr++) {
-    if (*pPtr->name == '-') {
-      first = 1;
-      nameStringObj = Tcl_NewStringObj(pPtr->name, -1);
-      if ((pPtr->flags & XOTCL_ARG_REQUIRED) || pPtr->type) {
-        Tcl_AppendToObj(nameStringObj,":", 1);
-        if (pPtr->flags & XOTCL_ARG_REQUIRED) {
-          first = 0;
-          Tcl_AppendToObj(nameStringObj,"required", 8);
-        }
-        if (pPtr->type) {
-          if (!first)
-            Tcl_AppendToObj(nameStringObj,",", 1);
-          Tcl_AppendToObj(nameStringObj,pPtr->type, -1);
-        }
+    int isNonpos = *pPtr->name == '-';
+    int outputRequired = (isNonpos && (pPtr->flags & XOTCL_ARG_REQUIRED));
+    /*
+    char *argName = paramPtr->name;
+    if (*argName == '-') argName++;
+
+    if (*pPtr->name == '-') {..}
+    */
+    first = 1;
+    nameStringObj = Tcl_NewStringObj(pPtr->name, -1);
+    if (outputRequired 
+        || pPtr->type || 
+        (pPtr->flags & (XOTCL_ARG_SUBST_DEFAULT|XOTCL_ARG_INITCMD))) {
+      Tcl_AppendToObj(nameStringObj,":", 1);
+      if (pPtr->type) {
+        first = 0;
+        Tcl_AppendToObj(nameStringObj,pPtr->type, -1);
       }
 
-      innerlist = Tcl_NewListObj(0, NULL);
-      Tcl_ListObjAppendElement(interp, innerlist, nameStringObj);
-      if (pPtr->defaultValue) {
-        Tcl_ListObjAppendElement(interp, innerlist, pPtr->defaultValue);
+      if (outputRequired) {
+        if (first) first = 0; else {
+          Tcl_AppendToObj(nameStringObj,",", 1);
+        }
+        Tcl_AppendToObj(nameStringObj,"required", 8);
       }
 
-      Tcl_ListObjAppendElement(interp, list, innerlist);
+      if ((pPtr->flags & XOTCL_ARG_SUBST_DEFAULT)) {
+        if (first) first = 0; else {
+          Tcl_AppendToObj(nameStringObj,",", 1);
+        }
+        Tcl_AppendToObj(nameStringObj,"substdefault", -1);
+      }
+
+      if ((pPtr->flags & XOTCL_ARG_INITCMD)) {
+        if (first) first = 0; else {
+          Tcl_AppendToObj(nameStringObj,",", 1);
+        }
+        Tcl_AppendToObj(nameStringObj,"initcmd", -1);
+      }
     }
+    
+    innerlist = Tcl_NewListObj(0, NULL);
+    Tcl_ListObjAppendElement(interp, innerlist, nameStringObj);
+    if (pPtr->defaultValue) {
+      Tcl_ListObjAppendElement(interp, innerlist, pPtr->defaultValue);
+    }
+    
+    Tcl_ListObjAppendElement(interp, list, innerlist);
   }
+
   return list;
 }
 
@@ -9203,6 +9228,9 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
        * "-"; arguments must be always in same order
        */
 
+      /* reset dashdash, if needed */
+      if (dashdash) {dashdash = 0;}
+
       if (pPtr->flags & XOTCL_ARG_REQUIRED) nrReq++; else nrOpt++;
       /*fprintf(stderr,"... arg %s req %d converter %p try to set on %d: '%s'\n",
         pPtr->name,pPtr->flags & XOTCL_ARG_REQUIRED,pPtr->converter,i, ObjStr(objv[o]));*/
@@ -9590,32 +9618,17 @@ ListProcArgs(Tcl_Interp *interp, Proc *proc, char *name) {
   return XOTclErrBadVal(interp, "info args", "a tcl method name", name);
 }
 
-/* static int */
-/* ListObjPtrHashTable(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern) { */
-/*   Tcl_HashEntry *hPtr; */
-/*   if (pattern && noMetaChars(pattern)) { */
-/*     XOTclObject *childobj = XOTclpGetObject(interp, pattern); */
-/*     hPtr = XOTcl_FindHashEntry(table, (char *)childobj); */
-/*     if (hPtr) { */
-/*       Tcl_SetObjResult(interp, childobj->cmdName); */
-/*     } else { */
-/*       Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_EMPTY]); */
-/*     } */
-/*   } else { */
-/*     Tcl_Obj *list = Tcl_NewListObj(0, NULL); */
-/*     Tcl_HashSearch hSrch; */
-/*     hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : 0; */
-/*     for (;  hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) { */
-/*       XOTclObject *obj = (XOTclObject*)Tcl_GetHashKey(table, hPtr); */
-/*       if (!pattern || Tcl_StringMatch(objectName(obj), pattern)) { */
-/*         Tcl_ListObjAppendElement(interp, list, obj->cmdName); */
-/*       } */
-/*     } */
-/*     Tcl_SetObjResult(interp, list); */
-/*   } */
-/*   return TCL_OK; */
-/* } */
+static int 
+ListParameter(Tcl_Interp *interp, Proc *procPtr, char *methodName, int withVarnames) {
+  XOTclParamDefs *paramDefs = procPtr ? ParamDefsGet((Tcl_Command)procPtr->cmdPtr) : NULL;
 
+  if (paramDefs) {
+    Tcl_Obj *arglistObj = ParamDefsFormat(interp, paramDefs);
+    Tcl_SetObjResult(interp, arglistObj);
+    return TCL_OK;
+  }
+  return ListProcArgs(interp, procPtr, methodName);
+}
 /********************************
  * End result setting commands
  ********************************/
@@ -11324,6 +11337,10 @@ static int XOTclObjInfoNonposargsMethod(Tcl_Interp *interp, XOTclObject *object,
   return TCL_OK;
 }
 
+static int XOTclObjInfoParamsMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withVarnames) {
+  return ListParameter(interp, getObjectProc(interp, object, methodName), methodName, withVarnames);
+}
+
 static int XOTclObjInfoParametercmdMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern) {
   if (object->nsPtr) {
     return ListMethodKeys(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern, 1, 0, 0, 0, 1);
@@ -11594,6 +11611,10 @@ static int XOTclClassInfoInstnonposargsMethod(Tcl_Interp *interp, XOTclClass * c
 
 static int XOTclClassInfoInstparametercmdMethod(Tcl_Interp *interp, XOTclClass * class, char * pattern) {
   return ListMethodKeys(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, 1, 0, 0, 0, 1);
+}
+
+static int XOTclClassInfoInstparamsMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName, int withVarnames) {
+  return ListParameter(interp, getClassProc(interp, class, methodName), methodName, withVarnames);
 }
 
 static int XOTclClassInfoInstpostMethod(Tcl_Interp *interp, XOTclClass * class, char * methodName) {

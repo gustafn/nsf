@@ -181,11 +181,31 @@ Bar create bar1
 #  2) substdefault for '$' in -parameter defaults does not make much sense.
 #     deactivated for now; otherwise we would need "\\"
 
-puts stderr [D info info]
+D instproc bar {
+  {-s:substdefault "[self]"} 
+  {-literal "[self]"} 
+  {-c:substdefault "[my c]"} 
+  {-d:integer,substdefault "$d"}
+  {-switch:switch}
+  {-optflag}
+  x
+  y:integer
+  {z 1}
+} {
+  return $s-$literal-$c-$d
+}
 
-? {D info instargs bar} {::d1-[self]-1-1} "query arguments" 
+? {D info instargs bar} {x y z} "query old instargs" 
+? {D info instparams bar} \
+    {{-s:substdefault {[self]}} {-literal {[self]}} {-c:substdefault {[my c]}} {-d:integer,substdefault {$d}} {-switch:switch 0} -optflag x y:integer {z 1}} \
+    "query instparams" 
 
-
+D instproc foo {a b {-c 1} {-d} x {-end 100}} {
+  foreach v [list a b c d x end] {
+    puts stderr $v?[info exists $v]
+  }
+}
+d1 foo 1 2 3
 
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
