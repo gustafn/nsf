@@ -250,10 +250,6 @@ checkMethod boolean XOTclCheckBooleanArgs {
 #
 # info object methods
 #
-infoObjectMethod args XOTclObjInfoArgsMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "methodName" -required 1}
-}
 infoObjectMethod body XOTclObjInfoBodyMethod {
   {-argName "object" -required 1 -type object}
   {-argName "methodName" -required 1}
@@ -271,12 +267,6 @@ infoObjectMethod class XOTclObjInfoClassMethod {
 infoObjectMethod commands XOTclObjInfoCommandsMethod {
   {-argName "object" -required 1 -type object}
   {-argName "pattern" -required 0}
-}
-infoObjectMethod default XOTclObjInfoDefaultMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "methodName" -required 1}
-  {-argName "arg" -required 1}
-  {-argName "var" -required 1 -type tclobj}
 }
 infoObjectMethod filter XOTclObjInfoFilterMethod {
   {-argName "object" -required 1 -type object}
@@ -316,10 +306,6 @@ infoObjectMethod mixin XOTclObjInfoMixinMethod {
 infoObjectMethod mixinguard XOTclObjInfoMixinguardMethod {
   {-argName "object" -required 1 -type object}
   {-argName "mixin"  -required 1}
-}
-infoObjectMethod nonposargs XOTclObjInfoNonposargsMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "methodName" -required 1}
 }
 infoObjectMethod parent XOTclObjInfoParentMethod {
   {-argName "object" -required 1 -type object}
@@ -372,10 +358,6 @@ infoClassMethod instances XOTclClassInfoInstancesMethod {
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
-infoClassMethod instargs XOTclClassInfoInstargsMethod {
-  {-argName "class" -required 1 -type class}
-  {-argName "methodName" -required 1}
-}
 infoClassMethod instbody XOTclClassInfoInstbodyMethod {
   {-argName "class" -required 1 -type class}
   {-argName "methodName" -required 1}
@@ -383,12 +365,6 @@ infoClassMethod instbody XOTclClassInfoInstbodyMethod {
 infoClassMethod instcommands XOTclClassInfoInstcommandsMethod {
   {-argName "class"   -required 1 -type class}
   {-argName "pattern"}
-}
-infoClassMethod instdefault XOTclClassInfoInstdefaultMethod {
-  {-argName "class"   -required 1 -type class}
-  {-argName "methodName" -required 1}
-  {-argName "arg" -required 1}
-  {-argName "var" -required 1 -type tclobj}
 }
 infoClassMethod instfilter XOTclClassInfoInstfilterMethod {
   {-argName "class"   -required 1 -type class}
@@ -421,10 +397,6 @@ infoClassMethod instmixinof XOTclClassInfoInstmixinofMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
-}
-infoClassMethod instnonposargs XOTclClassInfoInstnonposargsMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "methodName" -required 1}
 }
 infoClassMethod instparametercmd XOTclClassInfoInstparametercmdMethod {
   {-argName "class"  -required 1 -type class}

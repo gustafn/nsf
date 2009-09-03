@@ -108,15 +108,15 @@ namespace eval ::xotcl {
   foreach cmd [info command ::xotcl::cmd::ClassInfo::*] {
     ::xotcl::alias ::xotcl::classInfo [namespace tail $cmd] $cmd 
   }
+  unset cmd
   ::xotcl::alias ::xotcl::objectInfo is ::xotcl::is
   ::xotcl::alias ::xotcl::classInfo is ::xotcl::is
   ::xotcl::alias ::xotcl::classInfo classparent ::xotcl::cmd::ObjectInfo::parent 
   ::xotcl::alias ::xotcl::classInfo classchildren ::xotcl::cmd::ObjectInfo::children
-  unset cmd
 
   ::xotcl::Object instforward info -onerror ::xotcl::infoError ::xotcl::objectInfo %1 {%@2 %self}
   ::xotcl::Class instforward info -onerror ::xotcl::infoError ::xotcl::classInfo %1 {%@2 %self}
-
+  
   proc ::xotcl::infoError msg {
     #puts stderr "INFO ERROR: <$msg>\n$::errorInfo"
     regsub -all " <object>" $msg "" msg
@@ -149,6 +149,60 @@ namespace eval ::xotcl {
   ::xotcl::classInfo proc unknown {method args} {
     error "unknown info option \"$method\"; [my info info]"
   }
+
+  #
+  # Backward compatibility info subcommands; TODO: should go finally into a library.
+  #
+  proc ::xotcl::info_args {inst o method} {
+    set result [list]
+    foreach \
+        argName [::xotcl::classInfo ${inst}params $o $method -varNames] \
+        flag    [::xotcl::classInfo ${inst}params $o $method] {
+          if {[string match -* $flag]} continue
+          lappend result $argName
+        }
+    #puts stderr "+++ get ${inst}args for $o $method => $result"
+    return $result
+  }
+  proc ::xotcl::info_nonposargs {inst o method} {
+    set result [list]
+    foreach flag [::xotcl::classInfo ${inst}params $o $method] {
+      if {![string match -* $flag]} continue
+      lappend result $flag
+    }
+    #puts stderr "+++ get ${inst}nonposargs for $o $method => $result"
+    return $result
+  }
+  proc ::xotcl::info_default {inst o method arg varName} {
+    foreach \
+        argName [::xotcl::classInfo ${inst}params $o $method -varNames] \
+        flag    [::xotcl::classInfo ${inst}params $o $method] {
+          if {$argName eq $arg} {
+            upvar 3 $varName default
+            if {[llength $flag] == 2} {
+              set default [lindex $flag 1]
+              #puts stderr "--- get ${inst}default for $o $method $arg => $default"
+              return 1
+            }
+            #puts stderr "--- get ${inst}default for $o $method $arg fails"
+            set default ""
+            return 0
+          }
+        }
+    error "procedure \"$method\" doesn't have an argument \"$varName\""
+  }
+  
+  ::xotcl::classInfo  proc instargs {o method} {::xotcl::info_args inst $o $method}
+  ::xotcl::classInfo  proc args     {o method} {::xotcl::info_args "" $o $method}
+  ::xotcl::objectInfo proc args     {o method} {::xotcl::info_args "" $o $method}
+
+  ::xotcl::classInfo  proc instnonposargs {o method} {::xotcl::info_nonposargs inst $o $method}
+  ::xotcl::classInfo  proc nonposargs     {o method} {::xotcl::info_nonposargs "" $o $method}
+  ::xotcl::objectInfo proc nonposargs     {o method} {::xotcl::info_nonposargs "" $o $method}
+
+  ::xotcl::classInfo  proc instdefault {o method arg var} {::xotcl::info_default inst $o $method $arg $var}
+  ::xotcl::classInfo  proc default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
+  ::xotcl::objectInfo proc default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
 
   # documentation stub object -> just ignore per default. 
   # if xoDoc is loaded, documentation will be activated
@@ -799,12 +853,10 @@ namespace eval ::xotcl {
           # class object
           set obj $cl
           $cl superclass [$origin info superclass]
-          #$cl parameterclass [$origin info parameterclass]
           $cl instinvar [$origin info instinvar]
           $cl instfilter [$origin info instfilter -guards]
           $cl instmixin [$origin info instmixin]
           my copyNSVarsAndCmds ::xotcl::classes$origin ::xotcl::classes$dest
-          #$cl parameter [$origin info parameter]
         } else {
           # create obj
           set obj [[$origin info class] create $dest -noinit]
@@ -814,9 +866,6 @@ namespace eval ::xotcl {
         $obj check [$origin info check]
         $obj mixin [$origin info mixin]
         $obj filter [$origin info filter -guards]
-        # set md [$origin info metadata]
-        # $obj metadata add $md
-        # foreach m $md { $obj metadata $m [$origin metadata $m] }
         if {[$origin info hasnamespace]} {
           $obj requireNamespace
         }

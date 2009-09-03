@@ -201,11 +201,31 @@ D instproc bar {
     "query instparams" 
 
 D instproc foo {a b {-c 1} {-d} x {-end 100}} {
-  foreach v [list a b c d x end] {
-    puts stderr $v?[info exists $v]
+  set result [list]
+  foreach v [[self class] info instparams [self proc] -varNames] {
+    lappend result $v [info exists $v]
   }
+  return $result
 }
-d1 foo 1 2 3
+? {d1 foo 1 2 3} \
+    "a 1 b 1 c 1 d 0 x 1 end 1" \
+    "parse multiple groups of nonpos args"
+
+D instproc foo {a b c {end 100}} {
+  set result [list]
+  foreach v [[self class] info instparams [self proc] -varNames] {
+    lappend result $v [info exists $v]
+  }
+  return $result
+}
+? {d1 foo 1 2 3} \
+    "a 1 b 1 c 1 end 1" \
+    "query arguments with default, no paramdefs needed"
+
+? {D info instparams foo} \
+    "a b c {end 100}" \
+    "query instparams with default, no paramdefs needed"
+
 
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
