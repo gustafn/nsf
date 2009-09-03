@@ -452,7 +452,7 @@ typedef int (XOTclTypeConverter) _ANSI_ARGS_((Tcl_Interp *interp, Tcl_Obj *obj, 
 typedef struct  {
   char *name;
   int flags;
-  int nrargs;
+  int nrArgs;
   XOTclTypeConverter *converter;
   Tcl_Obj *defaultValue;
   char *type;

@@ -5685,30 +5685,30 @@ parseParamOption(Tcl_Interp *interp, char *option, int length, XOTclParam *param
   } else if (strncmp(option,"initcmd",length) == 0) {
     paramPtr->flags |= XOTCL_ARG_INITCMD;
   } else if (strncmp(option,"switch",length) == 0) {
-    paramPtr->nrargs = 0;
+    paramPtr->nrArgs = 0;
     paramPtr->converter = convertToSwitch;
     assert(paramPtr->defaultValue == NULL);
     paramPtr->defaultValue = Tcl_NewBooleanObj(0);
     INCR_REF_COUNT(paramPtr->defaultValue);
     paramPtr->type = "switch";
   } else if (strncmp(option,"integer",length) == 0) {
-    paramPtr->nrargs = 1;
+    paramPtr->nrArgs = 1;
     paramPtr->converter = convertToInteger;
     paramPtr->type = "integer";
   } else if (strncmp(option,"boolean",length) == 0) {
-    paramPtr->nrargs = 1;
+    paramPtr->nrArgs = 1;
     paramPtr->converter = convertToBoolean;
     paramPtr->type = "boolean";
   } else if (strncmp(option,"object",length) == 0) {
-    paramPtr->nrargs = 1;
+    paramPtr->nrArgs = 1;
     paramPtr->converter = convertToObject;
     paramPtr->type = "object";
   } else if (strncmp(option,"class",length) == 0) {
-    paramPtr->nrargs = 1;
+    paramPtr->nrArgs = 1;
     paramPtr->converter = convertToClass;
     paramPtr->type = "class";
   } else if (strncmp(option,"relation",length) == 0) {
-    paramPtr->nrargs = 1;
+    paramPtr->nrArgs = 1;
     paramPtr->converter = convertToRelation;
     paramPtr->type = "tclobj";
   } else {
@@ -5739,7 +5739,7 @@ ParseParamDefinition(Tcl_Interp *interp, char *procName, Tcl_Obj *arg,
   if (isNonposArgument) {
     argName = argString+1;
     nameLength = length-1;
-    paramPtr->nrargs = 1; /* per default 1 argument, switches set their arg numbers */
+    paramPtr->nrArgs = 1; /* per default 1 argument, switches set their arg numbers */
   } else {
     argName = argString;
     nameLength = length;
@@ -8389,7 +8389,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   /*fprintf(stderr,"c==%c element = '%s'\n", c, element);*/
   if (c == '%') {
     Tcl_Obj *list = NULL, **listElements;
-    int nrargs = objc-1, nrElements = 0;
+    int nrArgs = objc-1, nrElements = 0;
     c = *++element;
     c1 = *(element+1);
 
@@ -8398,8 +8398,8 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     } else if (c == 'p' && !strcmp(element,"proc")) {
       *out = objv[0];
     } else if (c == '1' && (c1 == '\0' || c1 == ' ')) {
-      /*fprintf(stderr, "   nrargs=%d, subcommands=%d inputarg=%d, objc=%d\n",
-	nrargs, tcd->nr_subcommands, *inputarg, objc);*/
+      /*fprintf(stderr, "   nrArgs=%d, subcommands=%d inputarg=%d, objc=%d\n",
+	nrArgs, tcd->nr_subcommands, *inputarg, objc);*/
       if (c1 != '\0') {
         if (Tcl_ListObjIndex(interp, o, 1, &list) != TCL_OK) {
           return XOTclVarErrMsg(interp, "forward: %1 must by a valid list, given: '",
@@ -8415,9 +8415,9 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                                 ObjStr(list),"'", (char *) NULL);
         }
       }
-      if (nrElements > nrargs) {
+      if (nrElements > nrArgs) {
         /* insert default subcommand depending on number of arguments */
-        *out = listElements[nrargs];
+        *out = listElements[nrArgs];
       } else if (objc<=1) {
 	return XOTclObjErrArgCnt(interp, objv[0], NULL, "option");
       } else {
@@ -8433,11 +8433,11 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         return XOTclVarErrMsg(interp, "forward: %argclindex contains invalid list '",
                               ObjStr(list),"'", (char *) NULL);
       }
-      if (nrargs >= nrElements) {
+      if (nrArgs >= nrElements) {
         return XOTclVarErrMsg(interp, "forward: not enough elements in specified list of ARGC argument ",
                               element, (char *) NULL);
       }
-      *out = listElements[nrargs];
+      *out = listElements[nrArgs];
     } else if (c == '%') {
       Tcl_Obj *newarg = Tcl_NewStringObj(element,-1);
       *out = newarg;
@@ -8557,7 +8557,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
 
 #if 0
     memset(objvmap, -1, sizeof(int)*totalargs);
-    fprintf(stderr,"command %s (%p) objc=%d, subcommand=%d, args=%p, nrargs\n",
+    fprintf(stderr,"command %s (%p) objc=%d, subcommand=%d, args=%p, nrArgs\n",
             ObjStr(objv[0]), tcd, objc,
             tcd->nr_subcommands,
             tcd->args
@@ -9023,7 +9023,7 @@ ArgumentError(Tcl_Interp *interp, char *errorMsg, XOTclParam CONST *paramPtr,
     } else {
       Tcl_AppendToObj(argStringObj, "?", 1);
       Tcl_AppendToObj(argStringObj, pPtr->name, -1);
-      if (pPtr->nrargs >0) {
+      if (pPtr->nrArgs >0) {
         Tcl_AppendToObj(argStringObj, " arg", 4);
       }
       Tcl_AppendToObj(argStringObj, "?", 1);
@@ -9142,19 +9142,19 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
           found = 0;
           for (nppPtr = pPtr; nppPtr->name && *nppPtr->name == '-'; nppPtr ++) {
             if (strcmp(objStr,nppPtr->name) == 0) {
-              /*fprintf(stderr, "...     flag '%s' o=%d p=%d, objc=%d nrargs %d\n",objStr,o,p,objc,nppPtr->nrargs);*/
+              /*fprintf(stderr, "...     flag '%s' o=%d p=%d, objc=%d nrArgs %d\n",objStr,o,p,objc,nppPtr->nrArgs);*/
               if (nppPtr->flags & XOTCL_ARG_REQUIRED) nrReq++; else nrOpt++;
-              if (nppPtr->nrargs == 0) {
+              if (nppPtr->nrArgs == 0) {
                 pc->clientData[nppPtr-paramPtr] = (ClientData)1;  /* the flag was given */
                 pc->objv[nppPtr-paramPtr] = XOTclGlobalObjects[XOTE_ONE];
               } else {
-                /* we assume for now, nrargs is at most 1 */
+                /* we assume for now, nrArgs is at most 1 */
                 o++; p++;
                 if (nppPtr->flags & XOTCL_ARG_REQUIRED) nrReq++; else nrOpt++;
                 if (o < objc) {
 #if defined(PARSE_TRACE_FULL)
 		  fprintf(stderr, "...     setting cd[%d] '%s' = %s (%d) %s\n",
-                          nppPtr-paramPtr, nppPtr->name, ObjStr(objv[p]), nppPtr->nrargs,
+                          nppPtr-paramPtr, nppPtr->name, ObjStr(objv[p]), nppPtr->nrArgs,
                           nppPtr->flags & XOTCL_ARG_REQUIRED ? "req":"not req");
 #endif
                   if ((*nppPtr->converter)(interp, objv[p], &pc->clientData[nppPtr-paramPtr]) != TCL_OK) {
