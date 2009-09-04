@@ -1306,7 +1306,7 @@ FindMethod(char *methodName, Tcl_Namespace *nsPtr) {
 }
 
 static XOTclClass*
-SearchPLMethod(XOTclClasses *pl, char *methodName, Tcl_Command *cmd) {
+SearchPLMethod(register XOTclClasses *pl, char *methodName, Tcl_Command *cmd) {
   /* Search the precedence list (class hierarchy) */
 #if 1
   for (; pl;  pl = pl->nextPtr) {
@@ -5596,7 +5596,7 @@ static int convertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *
 }
 
 static int
-parseParamOption(Tcl_Interp *interp, char *option, int length, XOTclParam *paramPtr) {
+ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOptions, XOTclParam *paramPtr) {
   /*fprintf(stderr, "def %s, option '%s' (%d)\n",paramPtr->name,option,length);*/
   if (strncmp(option,"required",length) == 0) {
     paramPtr->flags |= XOTCL_ARG_REQUIRED;
@@ -5628,24 +5628,32 @@ parseParamOption(Tcl_Interp *interp, char *option, int length, XOTclParam *param
     paramPtr->converter = convertToClass;
     paramPtr->type = "class";
   } else if (strncmp(option,"relation",length) == 0) {
+    paramPtr->flags |= XOTCL_ARG_RELATION;
     paramPtr->nrArgs = 1;
     paramPtr->converter = convertToRelation;
     paramPtr->type = "tclobj";
   } else {
-    fprintf(stderr, "**** unknown parameter option: def %s, option '%s' (%d)\n",paramPtr->name,option,length);
+    fprintf(stderr, "**** unknown parameter option: def %s, option '%s' (%d)\n", paramPtr->name, option, length);
   }
+
+  if ((paramPtr->flags & disallowedOptions)) {
+    Tcl_ResetResult(interp);
+    Tcl_AppendResult(interp, "Parameter option '", option, "' not allowed", (char *) NULL);
+    return TCL_ERROR;
+  }
+
   return TCL_OK;
 }
 
 static int
-ParseParamDefinition(Tcl_Interp *interp, char *procName, Tcl_Obj *arg,
-                     XOTclParam *paramPtr, int *possibleUnknowns, int *plainParams) {
-  int rc, npac, length, j, nameLength, isNonposArgument;
+ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptions,
+           XOTclParam *paramPtr, int *possibleUnknowns, int *plainParams) {
+  int result, npac, length, j, nameLength, isNonposArgument;
   char *argString, *argName;
   Tcl_Obj **npav;
 
-  rc = Tcl_ListObjGetElements(interp, arg, &npac, &npav);
-  if (rc != TCL_OK || npac < 1 || npac > 2) {
+  result = Tcl_ListObjGetElements(interp, arg, &npac, &npav);
+  if (result != TCL_OK || npac < 1 || npac > 2) {
     return XOTclVarErrMsg(interp, "wrong # of elements in parameter definition for method",
                           procName, " (should be 1 or 2 list elements): ",
                           ObjStr(arg), (char *) NULL);
@@ -5688,7 +5696,10 @@ ParseParamDefinition(Tcl_Interp *interp, char *procName, Tcl_Obj *arg,
     for (l=start; l<length;l++) {
       if (argString[l] == ',') {
         for (end = l; end>0 && isspace((int)argString[end-1]); end--);
-        parseParamOption(interp, argString+start, end-start, paramPtr);
+        result = ParamOptionParse(interp, argString+start, end-start, disallowedOptions, paramPtr);
+        if (result != TCL_OK) {
+          goto param_error;
+        }
         l++;
         /* skip space */
         for (start = l; start<length && isspace((int)argString[start]); start++) {;}
@@ -5696,7 +5707,10 @@ ParseParamDefinition(Tcl_Interp *interp, char *procName, Tcl_Obj *arg,
     }
     for (end = l; end>0 && isspace((int)argString[end-1]); end--);
     /* process last option */
-    parseParamOption(interp, argString+start, end-start, paramPtr);
+    result = ParamOptionParse(interp, argString+start, end-start, disallowedOptions, paramPtr);
+    if (result != TCL_OK) {
+      goto param_error;
+    }
   } else {
     /* no ':', the whole arg is the name */
     NEW_STRING(paramPtr->name,argString,length);
@@ -5739,11 +5753,17 @@ ParseParamDefinition(Tcl_Interp *interp, char *procName, Tcl_Obj *arg,
     (*possibleUnknowns)++;
   }
   return TCL_OK;
+
+ param_error:
+  ckfree((char *)paramPtr->name);
+  paramPtr->name = NULL
+  DECR_REF_COUNT(paramPtr->nameObj);
+  return TCL_ERROR;
 }
 
 static int
-ParseArgumentDefinitions(Tcl_Interp *interp, char *procName, Tcl_Obj *args, 
-            XOTclParsedParam *parsedParamPtr) {
+ParamDefsParse(Tcl_Interp *interp, char *procName, Tcl_Obj *args, int allowedOptinons,
+               XOTclParsedParam *parsedParamPtr) {
   Tcl_Obj **argsv;
   int rc, argsc;
 
@@ -5764,8 +5784,8 @@ ParseArgumentDefinitions(Tcl_Interp *interp, char *procName, Tcl_Obj *args,
     paramPtr = paramsPtr = ParamsNew(argsc);
 
     for (i=0; i < argsc; i++, paramPtr++) {
-      rc = ParseParamDefinition(interp, procName, argsv[i], 
-                                paramPtr, &possibleUnknowns, &plainParams);
+      rc = ParamParse(interp, procName, argsv[i], allowedOptinons,
+                      paramPtr, &possibleUnknowns, &plainParams);
       if (rc != TCL_OK) {
         ParamsFree(paramsPtr);
         return rc;
@@ -5822,7 +5842,7 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
   ov[1] = nameObj;
 
   /* Obtain an method parameter definitions */
-  result = ParseArgumentDefinitions(interp, procName, args, &parsedParam);
+  result = ParamDefsParse(interp, procName, args, XOTCL_ARG_METHOD_PARAMETER, &parsedParam);
   if (result != TCL_OK)
     return result;
 
@@ -8409,15 +8429,6 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
       memset(objvmap, -1, sizeof(int)*totalargs);
     }
 
-#if 0
-    memset(objvmap, -1, sizeof(int)*totalargs);
-    fprintf(stderr,"command %s (%p) objc=%d, subcommand=%d, args=%p, nrArgs\n",
-            ObjStr(objv[0]), tcd, objc,
-            tcd->nr_subcommands,
-            tcd->args
-            );
-#endif
-
     /* the first argument is always the command, to which we forward */
 
     if ((result = forwardArg(interp, objc, objv, tcd->cmdName, tcd,
@@ -9961,7 +9972,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
   int result;
   Tcl_Obj *rawConfArgs;
 
-  /* WARNING:
+  /* TODO cleanup here around....
 
      a) definitions are freed on a class cleanup, with 
         ParsedParamFree(cl->parsedParamPtr)
@@ -9994,8 +10005,8 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
         
         /* Obtain parameter structure */
         /* TODO: rather ObjStr(rawConfArgs) or unnecessary */
-        result = ParseArgumentDefinitions(interp, methodName, rawConfArgs, parsedParamPtr);
-        /*fprintf(stderr, "ParseArgumentDefinitions obj %s for '%s' returned parsedParamPtr->paramDefs %p\n",
+        result = ParamDefsParse(interp, methodName, rawConfArgs, XOTCL_ARG_OBJECT_PARAMETER, parsedParamPtr);
+        /*fprintf(stderr, "ParamDefsParse obj %s for '%s' returned parsedParamPtr->paramDefs %p\n",
           objectName(obj), ObjStr(rawConfArgs), parsedParamPtr->paramDefs);*/
         if (result == TCL_OK && RUNTIME_STATE(interp)->cacheInterface) {
           XOTclParsedParam *ppDefPtr = NEW(XOTclParsedParam);
@@ -10108,7 +10119,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
   XOTcl_PopFrame(interp, obj);
   remainingArgsc = pc.objc - paramDefs->nrParams;
 
-#if 0 || defined(CONFIGURE_ARGS_TRACE)
+#if defined(CONFIGURE_ARGS_TRACE)
   fprintf(stderr, "*** POPULATE OBJ SETVALUES with '%d' elements:\n", remainingArgsc);
   { int j;
     for (j = i; j < i + remainingArgsc; j++) {

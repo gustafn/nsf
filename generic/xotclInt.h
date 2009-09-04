@@ -429,6 +429,11 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_ARG_REQUIRED		     0x0001
 #define XOTCL_ARG_SUBST_DEFAULT		     0x0002
 #define XOTCL_ARG_INITCMD		     0x0004
+#define XOTCL_ARG_RELATION		     0x0100
+
+/* disallowed options */
+#define XOTCL_ARG_METHOD_PARAMETER	     (XOTCL_ARG_RELATION)  /* maybe add ARG_INITCMD */
+#define XOTCL_ARG_OBJECT_PARAMETER	     0
 
 /* flags for parseContext */
 #define XOTCL_PC_MUST_DECR		     0x0001

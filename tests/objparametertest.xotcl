@@ -139,6 +139,10 @@ D instproc foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class
     {Invalid argument: cannot convert 'D11' to class} \
     "pass non-existing class"
 
+? {if {[catch {D instproc foo {a:relation} {}} errorMsg]} {set errorMsg}} \
+    {Parameter option 'relation' not allowed} \
+    "don't allow relation option as method parameter"
+
 #
 # subst default tests
 #
