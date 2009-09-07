@@ -9438,8 +9438,10 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVar
         return TCL_OK;
       }
     }
+    return XOTclVarErrMsg(interp, "info params: could not obtain parameter definition for method '", 
+                          methodName, "'", (char *) NULL);
   }
-  return XOTclErrBadVal(interp, "info parameter", "a method name", methodName);
+  return XOTclErrBadVal(interp, "info params", "a method name", methodName);
 }
 /********************************
  * End result setting commands
