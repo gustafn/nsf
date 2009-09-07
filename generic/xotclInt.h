@@ -648,9 +648,6 @@ typedef struct XOTclRuntimeState {
    * definitions of the main xotcl objects
    */
   struct XOTclClasses *rootClasses;
-#if USE_INTERP_PROC
-  Tcl_CmdProc *interpProc;
-#endif
   Tcl_ObjCmdProc *objInterpProc;
   Tcl_Obj **methodObjNames;
   struct XOTclShadowTclCommandInfo *tclCommands;

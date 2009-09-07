@@ -1295,14 +1295,28 @@ XOTclIsClass(Tcl_Interp *interp, ClientData clientData) {
 /*
  * methods lookup
  */
+static Proc *GetProcFromCommand(Tcl_Command cmd) {
+  if (cmd) {
+    Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
+    if (proc == TclObjInterpProc)
+      return (Proc*) Tcl_Command_objClientData(cmd);
+  }
+  return NULL;
+}
+
 XOTCLINLINE static Tcl_Command
-FindMethod(char *methodName, Tcl_Namespace *nsPtr) {
+FindMethod(Tcl_Namespace *nsPtr, char *methodName) {
   register Tcl_HashEntry *entryPtr;
   if ((entryPtr = XOTcl_FindHashEntry(Tcl_Namespace_cmdTable(nsPtr), methodName))) {
     return (Tcl_Command) Tcl_GetHashValue(entryPtr);
   }
   /*fprintf(stderr, "find %s in %p returns %p\n", methodName, cmdTable, cmd);*/
   return NULL;
+}
+
+static Proc *
+FindProcMethod(Tcl_Namespace *nsPtr, char *methodName) {
+  return GetProcFromCommand(FindMethod(nsPtr, methodName));
 }
 
 static XOTclClass*
@@ -1318,7 +1332,7 @@ SearchPLMethod(register XOTclClasses *pl, char *methodName, Tcl_Command *cmd) {
   }
 #else
   for (; pl;  pl = pl->nextPtr) {
-    if ((*cmd = FindMethod(methodName, pl->cl->nsPtr))) {
+    if ((*cmd = FindMethod(pl->cl->nsPtr, methodName))) {
       return pl->cl;
     }
   }
@@ -1571,7 +1585,7 @@ NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, char *name) {
      we use the CmdToken */
   Tcl_Command token;
   assert(nsPtr);
-  if ((token = FindMethod(name, nsPtr))) {
+  if ((token = FindMethod(nsPtr, name))) {
     return Tcl_DeleteCommandFromToken(interp, token);
   }
   return -1;
@@ -3447,7 +3461,7 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
       */
       if (cls) {
         int guardOk = TCL_OK;
-        cmd = FindMethod(methodName, cls->nsPtr);
+        cmd = FindMethod(cls->nsPtr, methodName);
         if (cmd && cmdList->clientData) {
           if (!RUNTIME_STATE(interp)->guardCount) {
             guardOk = GuardCall(obj, cls, (Tcl_Command) cmd, interp,
@@ -3581,7 +3595,7 @@ FilterSearch(Tcl_Interp *interp, char *name, XOTclObject *startingObj,
    */
   if (startingObj && startingObj->nsPtr) {
     /*fprintf(stderr,"search filter %s as proc \n",name);*/
-    if ((cmd = FindMethod(name, startingObj->nsPtr))) {
+    if ((cmd = FindMethod(startingObj->nsPtr, name))) {
       *cl = (XOTclClass*)startingObj;
       return cmd;
     }
@@ -4132,7 +4146,7 @@ FilterComputeOrderFullList(Tcl_Interp *interp, XOTclCmdList **filters,
         pl = pl->nextPtr;
         /* now go up the hierarchy */
         for(; pl; pl = pl->nextPtr) {
-          Tcl_Command pi = FindMethod(simpleName, pl->cl->nsPtr);
+          Tcl_Command pi = FindMethod(pl->cl->nsPtr, simpleName);
           if (pi) {
             CmdListAdd(filterList, pi, pl->cl, /*noDuplicates*/ 0);
             /*
@@ -4744,22 +4758,6 @@ void XOTclProcDeleteProc(ClientData clientData) {
   FREE(XOTclProcContext, ctxPtr);
 }
 
-static Proc *FindProc(Tcl_Interp *interp, Tcl_HashTable *table, char *name);
-
-static Proc *
-getObjectProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName) {
-  if (obj->nsPtr) {
-    return FindProc(interp, Tcl_Namespace_cmdTable(obj->nsPtr), methodName);
-  }
-  return NULL;
-}
-
-static Proc *
-getClassProc(Tcl_Interp *interp, XOTclClass *class, char *methodName) {
-  return FindProc(interp, Tcl_Namespace_cmdTable(class->nsPtr), methodName);
-}
-
-
 static XOTclParam *ParamsNew(int nr) {
   XOTclParam *paramsPtr = NEW_ARRAY(XOTclParam,nr+1);
   memset(paramsPtr, 0, sizeof(XOTclParam)*(nr+1));
@@ -5310,7 +5308,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
     /* do we have a object-specific proc? */
     if (obj->nsPtr) {
-      cmd = FindMethod(methodName, obj->nsPtr);
+      cmd = FindMethod(obj->nsPtr, methodName);
       /* fprintf(stderr,"lookup for proc in obj %p method %s nsPtr %p => %p\n",
          obj, methodName, obj->nsPtr, cmd);*/
     }
@@ -6114,23 +6112,6 @@ ComputePrecedenceList(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
   return precedenceList;
 }
 
-
-static Proc*
-FindProc(Tcl_Interp *interp, Tcl_HashTable *table, char *name) {
-  Tcl_HashEntry *hPtr = table ? XOTcl_FindHashEntry(table, name) : 0;
-  if (hPtr) {
-    Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
-    Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
-    if (proc == RUNTIME_STATE(interp)->objInterpProc)
-      return (Proc*) Tcl_Command_objClientData(cmd);
-#if USE_INTERP_PROC
-    else if ((Tcl_CmdProc*)proc == RUNTIME_STATE(interp)->interpProc)
-      return (Proc*) Tcl_Command_clientData(cmd);
-#endif
-  }
-  return 0;
-}
-
 static char *
 StripBodyPrefix(char *body) {
 #if defined(PRE85)
@@ -6218,7 +6199,7 @@ FindCalledClass(Tcl_Interp *interp, XOTclObject *obj) {
     return NULL;
 
   if (obj->nsPtr) {
-    cmd = FindMethod(methodName, obj->nsPtr);
+    cmd = FindMethod(obj->nsPtr, methodName);
     if (cmd) {
       /* we called an object specific method */
       return NULL;
@@ -6306,7 +6287,7 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
      the obj-specific methods as well */
 
   if (obj->nsPtr && endOfChain) {
-    *cmd = FindMethod(*method, obj->nsPtr);
+    *cmd = FindMethod(obj->nsPtr, *method);
   } else {
     *cmd = 0;
   }
@@ -8625,7 +8606,7 @@ XOTclDispatchCmd(ClientData clientData, Tcl_Interp *interp,
 			    method, "'", (char *) NULL);
     }
     fprintf(stderr, "    .... findmethod '%s' in %s\n",tail, nsPtr->fullName);
-    cmd = FindMethod(tail, nsPtr);
+    cmd = FindMethod(nsPtr, tail);
     if (cmd && (importedCmd = TclGetOriginalCommand(cmd))) {
       cmd = importedCmd;
     }
@@ -9405,7 +9386,8 @@ ListProcBody(Tcl_Interp *interp, Proc *procPtr, char *methodName) {
 }
 
 static int 
-ListParams(Tcl_Interp *interp, Proc *procPtr, char *methodName, int withVarnames) {
+ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVarnames) {
+  Proc *procPtr = GetProcFromCommand(cmd);
   if (procPtr) {
     XOTclParamDefs *paramDefs = procPtr ? ParamDefsGet((Tcl_Command)procPtr->cmdPtr) : NULL;
     Tcl_Obj *list;
@@ -9442,9 +9424,22 @@ ListParams(Tcl_Interp *interp, Proc *procPtr, char *methodName, int withVarnames
     Tcl_SetObjResult(interp, list);
     return TCL_OK;
 
-  } else {
-    return XOTclErrBadVal(interp, "info parameter", "a tcl method name", methodName);
+  } else if (cmd) {
+    /* 
+     * If a command is found for the object|class, check whether we
+     * find the parameter definitions for the C-defined method.
+     */
+    methodDefinition *mdPtr = &method_definitions[0];
+    for (; mdPtr->methodName; mdPtr ++) {
+      if (((Command *)cmd)->objProc == mdPtr->proc) {
+        XOTclParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters};
+        Tcl_Obj *list = withVarnames ? ParamDefsList(interp, &paramDefs) : ParamDefsFormat(interp, &paramDefs);
+        Tcl_SetObjResult(interp, list);
+        return TCL_OK;
+      }
+    }
   }
+  return XOTclErrBadVal(interp, "info parameter", "a method name", methodName);
 }
 /********************************
  * End result setting commands
@@ -9564,7 +9559,7 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char 
 
   if (allocation == 'o') {
     if (object->nsPtr)
-      cmd = FindMethod(methodName, object->nsPtr);
+      cmd = FindMethod(object->nsPtr, methodName);
     if (!cmd) {
       return XOTclVarErrMsg(interp, "Cannot lookup object method '",
 			    methodName, "' for object ", objectName(object),
@@ -9572,7 +9567,7 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char 
     }
   } else {
     if (cl->nsPtr)
-      cmd = FindMethod(methodName, cl->nsPtr);
+      cmd = FindMethod(cl->nsPtr, methodName);
     if (!cmd)
       return XOTclVarErrMsg(interp, "Cannot lookup method '",
 			    methodName, "' from class  ", objectName(object),
@@ -9632,8 +9627,8 @@ static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int no
   if (withLocal) {
     XOTclClass *cl = self->cl;
     char *methodName = ObjStr(method);
-    Tcl_Command cmd = FindMethod(methodName, cl->nsPtr);
-    if (cmd == 0)
+    Tcl_Command cmd = FindMethod(cl->nsPtr, methodName);
+    if (cmd == NULL)
       return XOTclVarErrMsg(interp, objectName(self),
                             ": unable to dispatch local method '",
                             methodName, "' in class ", className(cl),
@@ -10438,7 +10433,7 @@ static int XOTclOProcSearchMethod(Tcl_Interp *interp, XOTclObject *obj, char *na
   }
 
   if (!cmd && obj->nsPtr) {
-    cmd = FindMethod(name, obj->nsPtr);
+    cmd = FindMethod(obj->nsPtr, name);
   }
 
   if (!cmd && obj->cl)
@@ -11042,7 +11037,7 @@ static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value
  ***************************/
 
 static int XOTclObjInfoBodyMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
-  Proc *proc = getObjectProc(interp, object, methodName);
+  Proc *proc = object->nsPtr ? FindProcMethod(object->nsPtr, methodName) : NULL;
   return ListProcBody(interp, proc, methodName);
 }
 
@@ -11117,7 +11112,9 @@ static int XOTclObjInfoMixinguardMethod(Tcl_Interp *interp, XOTclObject *object,
 }
 
 static int XOTclObjInfoParamsMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withVarnames) {
-  return ListParams(interp, getObjectProc(interp, object, methodName), methodName, withVarnames);
+  return ListCmdParams(interp, 
+                       object->nsPtr ? FindMethod(object->nsPtr, methodName) : NULL, 
+                       methodName, withVarnames);
 }
 
 static int XOTclObjInfoParametercmdMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern) {
@@ -11275,7 +11272,7 @@ static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *startCl
 }
 
 static int XOTclClassInfoInstbodyMethod(Tcl_Interp *interp, XOTclClass *class, char * methodName) {
-  Proc *proc = getClassProc(interp, class, methodName);
+  Proc *proc = FindProcMethod(class->nsPtr, methodName);
   return ListProcBody(interp, proc, methodName);
 }
 
@@ -11361,7 +11358,7 @@ static int XOTclClassInfoInstparametercmdMethod(Tcl_Interp *interp, XOTclClass *
 }
 
 static int XOTclClassInfoInstparamsMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName, int withVarnames) {
-  return ListParams(interp, getClassProc(interp, class, methodName), methodName, withVarnames);
+  return ListCmdParams(interp, FindMethod(class->nsPtr, methodName), methodName, withVarnames);
 }
 
 static int XOTclClassInfoInstpostMethod(Tcl_Interp *interp, XOTclClass * class, char * methodName) {
@@ -11585,7 +11582,7 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
         /*
          * Build a list containing the arguments of the proc
          */
-        result = ListParams(interp, procPtr, oldName, 0);
+        result = ListCmdParams(interp, cmd, oldName, 0);
         if (result != TCL_OK) {
           return result;
         }
@@ -12536,9 +12533,6 @@ Xotcl_Init(Tcl_Interp *interp) {
 
   /* cache interpreters proc interpretation functions */
   RUNTIME_STATE(interp)->objInterpProc = TclGetObjInterpProc();
-#if USE_INTERP_PROC
-  RUNTIME_STATE(interp)->interpProc = TclGetInterpProc();
-#endif
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_OFF;
 
   RegisterExitHandlers((ClientData)interp);

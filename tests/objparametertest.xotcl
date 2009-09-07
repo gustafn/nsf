@@ -230,6 +230,18 @@ D instproc foo {a b c {end 100}} {
     "a b c {end 100}" \
     "query instparams with default, no paramdefs needed"
 
+? {Class info instparams instproc} \
+    "name args body precondition postcondition" \
+    "query instparams for C-defined 'instproc' method"
+
+? {Object info instparams forward} \
+    "method -default -earlybinding -methodprefix -objscope -onerror -verbose target args" \
+    "query instparams for C-defined 'forward' method"
+
+# TODO: how to query the params/instparams of info subcommands?
+#? {::xotcl::objectInfo info params params} \
+#    "xxx" \
+#    "query instparams for info method 'params' method"
 
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
