@@ -785,19 +785,19 @@ static void printExit(Tcl_Interp *interp, char *string,
  */
 #if defined(XOTCLOBJ_TRACE)
 # define XOTclObjectRefCountIncr(obj)                                   \
-  obj->refCount++;                                                      \
+  (obj)->refCount++;                                                    \
   fprintf(stderr, "RefCountIncr %p count=%d %s\n", obj, obj->refCount, obj->cmdName?ObjStr(obj->cmdName):"no name"); \
   MEM_COUNT_ALLOC("XOTclObject RefCount", obj)
 # define XOTclObjectRefCountDecr(obj)					\
-  obj->refCount--;							\
+  (obj)->refCount--;							\
   fprintf(stderr, "RefCountDecr %p count=%d\n", obj, obj->refCount);	\
   MEM_COUNT_FREE("XOTclObject RefCount", obj)
 #else
 # define XOTclObjectRefCountIncr(obj)           \
-  obj->refCount++;                              \
+  (obj)->refCount++;                            \
   MEM_COUNT_ALLOC("XOTclObject RefCount", obj)
 # define XOTclObjectRefCountDecr(obj)           \
-  obj->refCount--;                              \
+  (obj)->refCount--;                            \
   MEM_COUNT_FREE("XOTclObject RefCount", obj)
 #endif
 
@@ -849,6 +849,8 @@ static void
 XOTclCleanupObject(XOTclObject *obj) {
   XOTclObjectRefCountDecr(obj);
 
+  /*fprintf(stderr, "XOTclCleanupObject %p refcount %d\n", obj, obj->refCount);*/
+
   if (obj->refCount <= 0) {
     assert(obj->refCount == 0);
     assert(obj->flags & XOTCL_DELETED);
@@ -860,7 +862,7 @@ XOTclCleanupObject(XOTclObject *obj) {
 #if !defined(NDEBUG)
     memset(obj, 0, sizeof(XOTclObject));
 #endif
-    /* fprintf(stderr,"CKFREE obj %p\n", obj);*/
+    /*fprintf(stderr,"CKFREE obj %p\n", obj);*/
     ckfree((char *) obj);
   }
 }
@@ -1676,7 +1678,6 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
   Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(ns);
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
-  Tcl_Command cmd;
 
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "NSCleanupNamespace %p varTable %p\n", ns, varTable);
@@ -1693,13 +1694,22 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
    */
   for (hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
-    cmd = (Tcl_Command) Tcl_GetHashValue(hPtr);
-    /* objects should not be deleted here to preseve children deletion order*/
-    if (!XOTclGetObjectFromCmdPtr(cmd)) {
+      Tcl_Command cmd = (Tcl_Command) Tcl_GetHashValue(hPtr);
+      Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
+      XOTclObject *invokeObj = proc == XOTclObjDispatch ? (XOTclObject *)Tcl_Command_objClientData(cmd) : NULL;
+      
+      /* objects should not be deleted here to preseve children deletion order*/
+      if (invokeObj && cmd != invokeObj->id) {
+        /*
+         * cmd is an aliased object, reduce the refcount
+         */
+        XOTclCleanupObject(invokeObj);
+      }
+      
       /*fprintf(stderr,"NSCleanupNamespace deleting %s %p\n",
         Tcl_Command_nsPtr(cmd)->fullName, cmd);*/
+        
       XOTcl_DeleteCommandFromToken(interp, cmd);
-    }
   }
 }
 
@@ -5158,7 +5168,7 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
              char *methodName, int frameType) {
   ClientData cp = Tcl_Command_objClientData(cmd);
   XOTclCallStackContent csc, *cscPtr = &csc;
-  register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
+  register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd); 
   int rc;
 
   assert (!obj->teardown);
@@ -5170,6 +5180,9 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
   /*fprintf(stderr, "InvokeMethod method '%s' cmd %p cp=%p objc=%d\n",methodName,cmd, cp, objc);*/
 
   if (proc == TclObjInterpProc) {
+    /*
+     * invoke a Tcl-defined method 
+     */
 #if defined(TCL85STACK)
     CallStackPush(cscPtr, obj, cl, cmd, frameType);
 #else
@@ -5181,10 +5194,22 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
     return rc;
 
   } else if (cp) {
-    /* a cmd with client data */
+    /* some cmd with client data */
     if (proc == XOTclObjDispatch) {
-      assert((TclIsProc((Command *)cmd) == NULL));
-      /*fprintf(stderr,"\t ObjDispatch\n");*/
+      /*
+       * invoke an aliased object via method interface
+       */
+      XOTclObject *invokeObj = (XOTclObject *)cp;
+      if (invokeObj->flags & XOTCL_DELETED) {
+        /*
+         * when we try to call a deleted object, the cmd (alias) is
+         * automatically removed
+         */
+        Tcl_DeleteCommandFromToken(interp, cmd);
+        XOTclCleanupObject(invokeObj);
+        return XOTclVarErrMsg(interp, "Trying to dispatch deleted object via method '", 
+                              methodName, "'", (char *) NULL);
+      }
     } else if (proc == XOTclForwardMethod ||
 	       proc == XOTclObjscopedMethod) {
       tclCmdClientData *tcd = (tclCmdClientData *)cp;
@@ -6864,6 +6889,7 @@ XOTclUnsetTrace(ClientData clientData, Tcl_Interp *interp, CONST char *name, CON
  */
 static void
 CleanupDestroyObject(Tcl_Interp *interp, XOTclObject *obj, int softrecreate) {
+  /*fprintf(stderr, "CleanupDestroyObject obj %p\n", obj);*/
 
   /* remove the instance, but not for ::Class/::Object */
   if ((obj->flags & XOTCL_IS_ROOT_CLASS) == 0 &&
@@ -6903,7 +6929,6 @@ CleanupDestroyObject(Tcl_Interp *interp, XOTclObject *obj, int softrecreate) {
 
       CmdListRemoveList(&opt->mixins, GuardDel);
       CmdListRemoveList(&opt->filters, GuardDel);
-
       FREE(XOTclObjectOpt, opt);
       opt = obj->opt = 0;
     }
@@ -6975,7 +7000,7 @@ PrimitiveODestroy(ClientData clientData) {
   XOTclObject *obj = (XOTclObject*)clientData;
   Tcl_Interp *interp;
 
-  /* fprintf(stderr, "****** PrimitiveODestroy %p\n", obj);*/
+  /*fprintf(stderr, "****** PrimitiveODestroy %p flags %.6x\n", obj, obj->flags);*/
   assert(obj && !(obj->flags & XOTCL_DELETED));
 
   /*
@@ -7012,7 +7037,6 @@ PrimitiveODestroy(ClientData clientData) {
     FilterStackPop(obj);
 
   obj->teardown = NULL;
-
   if (obj->nsPtr) {
     /*fprintf(stderr,"primitive odestroy calls deletenamespace for obj %p\n", obj);*/
     XOTcl_DeleteNamespace(interp, obj->nsPtr);
@@ -9489,6 +9513,17 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     dp = aliasCmdDeleteProc;
   } else {
     tcd = Tcl_Command_objClientData(cmd);
+  }
+
+  if (objProc == XOTclObjDispatch) {
+    /* 
+     * if we register an alias for an object, we have to take care to
+     * handle cases, where the aliased object is destroyed and the
+     * alias points to nowhere. We realize this via using the object
+     * refcount.
+     */
+    /*fprintf(stderr, "registering an object %p\n",tcd);*/
+    XOTclObjectRefCountIncr((XOTclObject *)tcd);
   }
 
   if (withProtected) {

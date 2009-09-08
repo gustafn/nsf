@@ -405,6 +405,90 @@ puts stderr ======[Object isobject ::C::c1]
 ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
 ? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
 
+#
+set case "nesting destroy"
+Object x
+Object x::y
+x destroy
+? {Object isobject x} 0 "$case: parent object gone"
+? {Object isobject x::y} 0 "$case: child object gone"
+
+set case "deleting aliased object"
+Object o
+Object o2
+::xotcl::alias o x o2
+? {o x} ::o2 "$case: call object via alias"
+? {o x info vars} "" "$case: call info on aliased object"
+? {o2 set x 10} 10   "$case: set variable on object"
+? {o x info vars} x  "$case: query vars via alias"
+? {o x set x} 10     "$case: set var via alias"
+o2 destroy
+catch {o x info vars} errMsg
+? {set errMsg} "Trying to dispatch deleted object via method 'x'" "$case: 1st call on deleted object"
+catch {o x info vars} errMsg
+? {set errMsg} "::o: unable to dispatch method 'x'" "$case: 2nd call on deleted object"
+o destroy
+
+set case "deleting object with alias to object"
+Object o
+Object o3
+::xotcl::alias o x o3
+o destroy
+? {Object isobject o} 0 "$case: parent object gone"
+? {Object isobject o3} 1 "$case: aliased object still here"
+o3 destroy
+? {Object isobject o3} 0 "$case: aliased object destroyed"
+
+set case "create an alias, and delete cmd via aggregation"
+Object o
+Object o3
+::xotcl::alias o x o3
+o::x destroy
+? {Object isobject o3} 0 "$case: aliased object destroyed"
+o destroy
+
+set case "create an alias, and recreate obj"
+Object o
+Object o3
+::xotcl::alias o x o3
+Object o3
+o3 set a 13
+? {o x set a} 13 "$case: aliased object works after recreate"
+o destroy
+
+set case "create an alias on the class level, double aliasing, delete aliased object"
+Class C
+Object o
+Object o3
+::xotcl::alias o a o3
+::xotcl::alias C b o
+C c1
+? {c1 b set B 2} 2 "$case: call 1st level"
+? {c1 b a set A 3} 3 "$case: call 2nd level"
+? {o set B} 2 "$case: call 1st level ok"
+? {o3 set A} 3 "$case: call 2nd level ok"
+o destroy
+catch {c1 b} errMsg
+? {set errMsg} "Trying to dispatch deleted object via method 'b'" "$case: call via alias to deleted object"
+C destroy
+c1 destroy
+o3 destroy
+
+set case "create an alias on the class level, double aliasing, destroy class"
+Class C
+Object o
+Object o3
+::xotcl::alias o a o3
+::xotcl::alias C b o
+C c1
+C destroy
+? {Object isobject o} 1 "$case: object o still here"
+? {Object isobject o3} 1 "$case: object o3 still here"
+o destroy
+o3 destroy
+c1 destroy
+
+
 puts stderr "==== EXIT ===="
 exit
 
