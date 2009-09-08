@@ -143,6 +143,21 @@ D instproc foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class
     {Parameter option 'relation' not allowed} \
     "don't allow relation option as method parameter"
 
+# non required positional arguments
+D instproc foo {a b:optional c:optional} {
+  return "[info exists a]-[info exists b]-[info exists c]"
+}
+? {d1 foo 1 2} "1-1-0" "omit optional argument"
+? {d1 foo 1} "1-0-0" "omit optional arguments"
+
+# non required positional arguments and args
+D instproc foo {a b:optional c:optional args} {
+  return "[info exists a]-[info exists b]-[info exists c]-[info exists args]"
+}
+? {d1 foo 1 2} "1-1-0-1" "omit optional argument"
+? {d1 foo 1} "1-0-0-1" "omit optional arguments"
+
+#
 #
 # subst default tests
 #
@@ -231,11 +246,11 @@ D instproc foo {a b c {end 100}} {
     "query instparams with default, no paramdefs needed"
 
 ? {Class info instparams instproc} \
-    "name args body precondition postcondition" \
+    "name args body precondition:optional postcondition:optional" \
     "query instparams for C-defined 'instproc' method"
 
 ? {Object info instparams forward} \
-    "method -default -earlybinding -methodprefix -objscope -onerror -verbose target args" \
+    "method -default -earlybinding -methodprefix -objscope -onerror -verbose target:optional args" \
     "query instparams for C-defined 'forward' method"
 
 # TODO: how to query the params/instparams of info subcommands?

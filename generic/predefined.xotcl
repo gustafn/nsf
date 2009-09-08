@@ -63,7 +63,7 @@ namespace eval ::xotcl {
   }
 
   # provide some Tcl-commands as methods for ::xotcl::Object
-  foreach cmd {array append eval incr lappend trace subst unset} {
+  foreach cmd {array append eval incr lappend set subst unset trace} {
     ::xotcl::alias ::xotcl::Object $cmd -objscope ::$cmd
   }
 

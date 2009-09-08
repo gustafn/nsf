@@ -147,11 +147,6 @@ objectMethod procsearch XOTclOProcSearchMethod {
 }
 objectMethod requireNamespace XOTclORequireNamespaceMethod {
 }
-# "set" needed?
-objectMethod set XOTclOSetMethod {
-  {-argName "var" -required 1 -type tclobj}
-  {-argName "value" -type tclobj}
-}
 objectMethod setvalues XOTclOSetvaluesMethod {
   {-argName "args" -type allargs}
 }

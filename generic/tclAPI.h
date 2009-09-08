@@ -124,7 +124,6 @@ static int XOTclOParametercmdMethodStub(ClientData clientData, Tcl_Interp *inter
 static int XOTclOProcMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOProcSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOSetMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOSetvaluesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -223,7 +222,6 @@ static int XOTclOParametercmdMethod(Tcl_Interp *interp, XOTclObject *obj, char *
 static int XOTclOProcMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition, Tcl_Obj *postcondition);
 static int XOTclOProcSearchMethod(Tcl_Interp *interp, XOTclObject *obj, char *name);
 static int XOTclORequireNamespaceMethod(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclOSetMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *var, Tcl_Obj *value);
 static int XOTclOSetvaluesMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
@@ -323,7 +321,6 @@ enum {
  XOTclOProcMethodIdx,
  XOTclOProcSearchMethodIdx,
  XOTclORequireNamespaceMethodIdx,
- XOTclOSetMethodIdx,
  XOTclOSetvaluesMethodIdx,
  XOTclOUplevelMethodIdx,
  XOTclOUpvarMethodIdx,
@@ -2003,26 +2000,6 @@ XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 }
 
 static int
-XOTclOSetMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclOSetMethodIdx].paramDefs, 
-                     method_definitions[XOTclOSetMethodIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *var = (Tcl_Obj *)pc.clientData[0];
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclOSetMethod(interp, obj, var, value);
-
-  }
-}
-
-static int
 XOTclOSetvaluesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
@@ -2620,10 +2597,6 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::cmd::Object::requireNamespace", XOTclORequireNamespaceMethodStub, 0, {
   }
-},
-{"::xotcl::cmd::Object::set", XOTclOSetMethodStub, 2, {
-  {"var", 1, 0, convertToTclobj},
-  {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Object::setvalues", XOTclOSetvaluesMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
