@@ -258,6 +258,31 @@ D instproc foo {a b c {end 100}} {
 #    "xxx" \
 #    "query instparams for info method 'params' method"
 
+::xotcl::parameterType proc type=mytype {name value} {
+  if {$value < 1 || $value > 3} {
+    error "Value '$value' of parameter $name is not between 1 and 3"
+  }
+}
+
+D instproc foo {a:mytype} {
+  puts stderr a=$a
+}
+d1 foo 1
+
+catch {d1 foo 10} errorMsg
+? {set ::errorMsg} \
+    "Value '10' of parameter a is not between 1 and 3" \
+    "invalid value"
+
+D instproc foo {a:unknowntype} {
+  puts stderr a=$a
+}
+
+catch {d1 foo 10} errorMsg
+? {set ::errorMsg} \
+    "::xotcl::parameterType: unable to dispatch method 'type=unknowntype'" \
+    "missing type checker"
+
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
 

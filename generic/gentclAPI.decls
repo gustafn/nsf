@@ -8,7 +8,7 @@ array set ns {
   xotclCmd    "::xotcl"
   objectMethod "::xotcl::cmd::Object"
   classMethod  "::xotcl::cmd::Class"
-  checkMethod  "::xotcl::cmd::NonposArgs"
+  checkMethod  "::xotcl::cmd::ParameterType"
   infoClassMethod  "::xotcl::cmd::ClassInfo"
   infoObjectMethod  "::xotcl::cmd::ObjectInfo"
 }
@@ -35,6 +35,12 @@ xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
 xotclCmd deprecated XOTclDeprecatedCmd {
   {-argName "oldCmd" -required 1}
   {-argName "newCmd" -required 0}
+}
+xotclCmd dispatch XOTclDispatchCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "methodName" -required 1}
+  {-argName "-objscope"}
+  {-argName "args"  -type args}
 }
 xotclCmd finalize XOTclFinalizeObjCmd {
 }
@@ -144,6 +150,11 @@ objectMethod proc XOTclOProcMethod {
 }
 objectMethod procsearch XOTclOProcSearchMethod {
   {-argName "name" -required 1}
+}
+# "set" needed?
+objectMethod set XOTclOSetMethod {
+  {-argName "var" -required 1 -type tclobj}
+  {-argName "value" -type tclobj}
 }
 objectMethod requireNamespace XOTclORequireNamespaceMethod {
 }

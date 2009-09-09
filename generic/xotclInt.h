@@ -451,10 +451,11 @@ typedef struct XOTclStringIncrStruct {
 /*
  * object and class internals
  */
+struct XOTclParam;
+typedef int (XOTclTypeConverter)(Tcl_Interp *interp, Tcl_Obj *obj,
+                                 struct XOTclParam CONST *pPtr, ClientData *clientData);
 
-typedef int (XOTclTypeConverter) _ANSI_ARGS_((Tcl_Interp *interp, Tcl_Obj *obj, ClientData *clientData));
-
-typedef struct  {
+typedef struct XOTclParam {
   char *name;
   int flags;
   int nrArgs;
@@ -462,6 +463,7 @@ typedef struct  {
   Tcl_Obj *defaultValue;
   char *type;
   Tcl_Obj *nameObj;
+  Tcl_Obj *arg;
 } XOTclParam;
 
 typedef struct XOTclParamDefs {
@@ -550,7 +552,7 @@ typedef enum {
     XOTE_ZERO, XOTE_ONE, XOTE_MOVE, XOTE_SELF, XOTE_CLASS, XOTE_RECREATE,
     XOTE_SELF_CLASS, XOTE_SELF_PROC,
     XOTE_EXIT_HANDLER, XOTE_DEFAULTSUPERCLASS, XOTE_DEFAULTMETACLASS,
-    XOTE_NON_POS_ARGS_OBJ, XOTE_SETVALUES,
+    XOTE_PARAMETER_TYPE_OBJ, XOTE_SETVALUES,
     XOTE_CLEANUP, XOTE_CONFIGURE, XOTE_FILTER, XOTE_INSTFILTER,
     XOTE_INSTPROC, XOTE_PROC, XOTE_INSTFORWARD, XOTE_FORWARD,
     XOTE_INSTCMD, XOTE_CMD, XOTE_INSTPARAMETERCMD, XOTE_PARAMETERCMD,
@@ -571,7 +573,7 @@ char *XOTclGlobalStrings[] = {
   "0", "1", "move", "self", "class", "recreate",
   "self class", "self proc",
   "__exitHandler", "__default_superclass", "__default_metaclass",
-  "::xotcl::nonposArgs", "setvalues",
+  "::xotcl::parameterType", "setvalues",
   "cleanup", "configure", "filter", "instfilter",
   "instproc", "proc", "instforward", "forward",
   "instcmd", "cmd", "instparametercmd", "parametercmd",

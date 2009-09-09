@@ -25,7 +25,7 @@ proc createconverter {type argname} {
   set enums [list]
   foreach d $domain {lappend enums $argname[string totitle [string map [list - _] $d]]Idx}
   subst {
-static int convertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, ClientData *clientData) {
+static int convertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   $opts
   return Tcl_GetIndexFromObj(interp, objPtr, opts, "$argname", 0, (int *)clientData);
 }
