@@ -4814,6 +4814,7 @@ static void ParamsFree(XOTclParam *paramsPtr) {
     if (paramPtr->name) ckfree(paramPtr->name);
     if (paramPtr->nameObj) {DECR_REF_COUNT(paramPtr->nameObj);}
     if (paramPtr->defaultValue) {DECR_REF_COUNT(paramPtr->defaultValue);}
+    if (paramPtr->arg) {DECR_REF_COUNT(paramPtr->arg);}
   }
   FREE(XOTclParam*,paramsPtr);
 }
@@ -5543,21 +5544,6 @@ static Tcl_Obj *addPrefixToBody(Tcl_Obj *body, int paramDefs, XOTclParsedParam *
   return resultBody;
 }
 
-/* todo: maybe, we will need this for custom type checkers, so leave it for the time being */
-static Tcl_Obj*
-nonposargType(Tcl_Interp *interp, char *start, int len) {
-  /*Tcl_Obj *result  = Tcl_NewListObj(0, NULL);
-    Tcl_Obj *type    = Tcl_NewStringObj(start, len);*/
-  Tcl_Obj *checker = Tcl_NewStringObj("type=", 5);
-
-  Tcl_AppendToObj(checker, start, len);
-  /* TODO CLEANUP
-  Tcl_ListObjAppendElement(interp, result, type);
-  Tcl_ListObjAppendElement(interp, result, checker);
-  */
-  return checker;
-}
-
 #define NEW_STRING(target,p,l)  target = ckalloc(l+1); strncpy(target,p,l); *((target)+l) = '\0'
 
 XOTCLINLINE static int
@@ -5615,9 +5601,9 @@ static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST
 }
 
 static int convertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
-  /* XOTclRelationCmd is the setter, which checks the values according
-     to the relation type (Class, List of Class, list of filters; we
-     treat it here just like a tclobj */
+  /* XOTclRelationCmd is the real setter, which checks the values
+     according to the relation type (Class, List of Class, list of
+     filters; we treat it here just like a tclobj */
   *clientData = (ClientData)objPtr;
   return TCL_OK;
 }
@@ -5667,6 +5653,13 @@ static int convertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam 
   return TCL_OK;
 }
 
+static Tcl_Obj*
+ParamCheckObj(Tcl_Interp *interp, char *start, int len) {
+  Tcl_Obj *checker = Tcl_NewStringObj("type=", 5);
+  Tcl_AppendToObj(checker, start, len);
+  return checker;
+}
+
 static int
 ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOptions, XOTclParam *paramPtr) {
   /*fprintf(stderr, "def %s, option '%s' (%d)\n",paramPtr->name,option, length);*/
@@ -5707,8 +5700,8 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     paramPtr->converter = convertToRelation;
     paramPtr->type = "tclobj";
   } else {
-    Tcl_Obj *checker = nonposargType(interp, option, length);
     XOTclObject *paramObj;
+    Tcl_Obj *checker;
     XOTclClass *pcl;
     Tcl_Command cmd;
     int result;
@@ -5717,17 +5710,18 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     if (result != TCL_OK)
       return result;
       
+    checker = ParamCheckObj(interp, option, length);
+    INCR_REF_COUNT(checker);
     cmd = ObjectFindMethod(interp,paramObj, ObjStr(checker), &pcl);
 
     if (cmd == NULL) {
       fprintf(stderr, "**** could not find checker method %s defined on %s\n", 
               ObjStr(checker), objectName(paramObj));
+      /* TODO: for the time being, we do not return an error here */
     }
-
     paramPtr->converter = convertViaCmd;
     paramPtr->nrArgs = 1;
     paramPtr->arg = checker;
-    /* TODO: free checker on paramsfree*/
   }
 
   if ((paramPtr->flags & disallowedOptions)) {
