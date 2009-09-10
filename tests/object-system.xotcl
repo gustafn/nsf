@@ -7,14 +7,14 @@ namespace import -force xotcl::*
 # since even class Test might not work at that time.
 #
 proc ? {cmd expected {msg ""}} {
-   puts "??? $cmd"                                
+   #puts "??? $cmd"                 
    set r [uplevel $cmd]
    if {$msg eq ""} {set msg $cmd}
    if {$r ne $expected} {
-     puts stderr "$msg returned '$r' ne '$expected'"
+     puts stderr "ERROR $msg returned '$r' ne '$expected'"
      exit
    } else {
-     puts  -nonewline stderr "."
+     puts stderr "OK $msg"
    }
 }
 
@@ -91,6 +91,29 @@ C copy X
 ? {X::slot info vars} __parameter
 ? {X info parameter} {{x 1} {y 2}}
 
-puts stderr "DONE"
 
-#puts stderr ===EXIT
+#
+# tests for the dispatch command
+ 
+Object o
+o proc foo {} {return goo}
+o proc bar {x} {return goo-$x}
+
+# dispatch without colon names
+::xotcl::dispatch o set x 1
+? {o info vars} x "simple dispatch has set variable x"
+? {o set x} 1 "simple dispatch has set variable x to 1"
+? {::xotcl::dispatch o foo} "goo" "simple dispatch with one arg works"
+? {::xotcl::dispatch o bar 1} "goo-1" "simple dispatch with two args works"
+o destroy
+
+# dispatch without colon names
+Object o -set x 1
+::xotcl::dispatch ::o ::incr x
+? {o set x} 1 "cmd dispatch without -objscope did not modify the instance variable"
+::xotcl::dispatch ::o -objscope ::incr x
+? {o set x} 2 "cmd dispatch -objscope modifies the instance variable"
+? {catch {::xotcl::dispatch ::o -objscope ::xxx x}} 1 "cmd dispatch with unknown command"
+o destroy
+
+puts stderr ===EXIT

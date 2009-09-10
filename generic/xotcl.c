@@ -8646,19 +8646,20 @@ static void aliasCmdDeleteProc(ClientData clientData) {
 }
 
 static int 
-XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, 
-                 int withObjscope, int nobjc, Tcl_Obj *CONST nobjv[]) {
+XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, 
+                 Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int result;
+  char *methodName = ObjStr(command);
   register char *n = methodName + strlen(methodName);
 
-  /* TODO: test, handle withObjScope */
+  /* fprintf(stderr, "Dispatch obj=%s, o=%p cmd m='%s'\n",objectName(object),object,methodName);*/
 
-  /*fprintf(stderr, "Dispatch obj=%s, o=%p cmd m='%s'\n",ObjStr(objv[2]),obj,method);*/
-
-  /* if the specified method is a fully qualified cmd name like e.g.
-     ::xotcl::cmd::Class::alloc, this method is called on the
-     specified <Class|Object>, no matter whether it was registered on
-     it */
+  /* 
+   * If the specified method is a fully qualified cmd name like
+   * e.g. ::xotcl::cmd::Class::alloc, this method is called on the
+   * specified <Class|Object>, no matter whether it was registered on
+   * it.
+   */
 
   /*search for last '::'*/
   while ((*n != ':' || *(n-1) != ':') && n-1 > methodName) {n--; }
@@ -8671,6 +8672,14 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName,
     char *parentName, *tail = n+2;
     DSTRING_INIT(dsp);
 
+    /* 
+     * We have an absolute name. We assume, the name is the name of a
+     * tcl command, that will be dispatched. If "withObjscope is
+     * specified, a callstack frame is pushed to make instvars
+     * accessible for the command.
+     */
+
+    /*fprintf(stderr, "colon name %s\n",tail);*/
     if (n-methodName != 0) {
       Tcl_DStringAppend(dsp, methodName, (n-methodName));
       parentName = Tcl_DStringValue(dsp);
@@ -8683,40 +8692,54 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName,
       return XOTclVarErrMsg(interp, "cannot lookup parent namespace '",
 			    methodName, "'", (char *) NULL);
     }
-    fprintf(stderr, "    .... findmethod '%s' in %s\n",tail, nsPtr->fullName);
     cmd = FindMethod(nsPtr, tail);
     if (cmd && (importedCmd = TclGetOriginalCommand(cmd))) {
       cmd = importedCmd;
     }
+    /*fprintf(stderr, "    .... findmethod '%s' in %s returns %p\n",tail, nsPtr->fullName, cmd);*/
 
     if (cmd == NULL) {
       return XOTclVarErrMsg(interp, "cannot lookup command '",
 			    tail, "'", (char *) NULL);
     }
+    {XOTcl_FrameDecls;
 
-    result = InvokeMethod((ClientData)object, interp,
-                          nobjc, nobjv, cmd, object,
-                          NULL /*XOTclClass *cl*/, tail,
-                          XOTCL_CSC_TYPE_PLAIN);
+      if (withObjscope) {
+        XOTcl_PushFrame(interp, object);
+      }
+      /* 
+       * Since we know, that we are always called with a full argument
+       * vector, we can include the cmd name in the objv by using
+       * nobjv-1; this way, we avoid a memcpy() 
+       */
+      result = InvokeMethod((ClientData)object, interp,
+                            nobjc+1, nobjv-1, cmd, object,
+                            NULL /*XOTclClass *cl*/, tail,
+                            XOTCL_CSC_TYPE_PLAIN);
+      if (withObjscope) {
+        XOTcl_PopFrame(interp, object);
+      }
+    }
   } else {
-    /* no colons, use method from dispatch order, with filters etc. -
-       strictly speaking unneccessary, but can be used to invoke protected methods */
-
-    /* TODO: adjust objv, objc, wont't be correct after switch to parameter interface */
-    int objc;
+    /* 
+     * No colons in command name, use method from the precedence
+     * order, with filters etc. -- strictly speaking unneccessary,
+     * since we could dispatch the method also without
+     * XOTclDispatchCmd(), but it can be used to invoke protected
+     * methods. 'withObjscope' is here a no-op.
+     */
     Tcl_Obj *arg;
     Tcl_Obj *CONST *objv;
 
-    if (nobjc >= 3) {
-      arg = nobjv[3];
-      objv = nobjv + 2;
+    if (nobjc >= 1) {
+      arg = nobjv[0];
+      objv = nobjv+1;
     } else {
       arg = NULL;
       objv = NULL;
     }
-    objc = nobjc-3;
-    result = XOTclCallMethodWithArgs((ClientData)object, interp, nobjv[1], arg,
-				     objc, objv, XOTCL_CM_NO_UNKNOWN);
+    result = XOTclCallMethodWithArgs((ClientData)object, interp, command, arg,
+				     nobjc, objv, XOTCL_CM_NO_UNKNOWN);
   }
   return result;
 }

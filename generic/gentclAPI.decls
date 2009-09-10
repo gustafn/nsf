@@ -38,8 +38,8 @@ xotclCmd deprecated XOTclDeprecatedCmd {
 }
 xotclCmd dispatch XOTclDispatchCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "methodName" -required 1}
   {-argName "-objscope"}
+  {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
 }
 xotclCmd finalize XOTclFinalizeObjCmd {

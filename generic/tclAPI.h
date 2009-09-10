@@ -234,7 +234,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
 static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, char *rootClass, char *rootMetaClass);
 static int XOTclDeprecatedCmd(Tcl_Interp *interp, char *oldCmd, char *newCmd);
-static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withObjscope, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
 static int XOTclInstvarCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withPer_object, int methodproperty, Tcl_Obj *value);
@@ -2184,11 +2184,11 @@ XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    char *methodName = (char *)pc.clientData[1];
-    int withObjscope = (int )pc.clientData[2];
+    int withObjscope = (int )pc.clientData[1];
+    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
 
     parseContextRelease(&pc);
-    return XOTclDispatchCmd(interp, object, methodName, withObjscope, objc-pc.lastobjc, objv+pc.lastobjc);
+    return XOTclDispatchCmd(interp, object, withObjscope, command, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
 }
@@ -2685,8 +2685,8 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::dispatch", XOTclDispatchCmdStub, 4, {
   {"object", 1, 0, convertToObject},
-  {"methodName", 1, 0, convertToString},
   {"-objscope", 0, 0, convertToString},
+  {"command", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::finalize", XOTclFinalizeObjCmdStub, 0, {
