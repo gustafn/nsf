@@ -1,9 +1,5 @@
 # $Id: predefined.xotcl,v 1.12 2006/10/04 20:40:23 neumann Exp $
 namespace eval ::xotcl {
-  proc ::xotcl::setrelation args {
-    puts stderr "::xotcl::setrelation is deprecated, use '::xotcl::relation $args' instead"
-    uplevel ::xotcl::relation $args
-  }
 
   # first we create the ::oo:: object system. Actually, we do not need it.
   namespace eval ::oo {}
@@ -151,8 +147,44 @@ namespace eval ::xotcl {
   }
 
   #
-  # Backward compatibility info subcommands; TODO: should go finally into a library.
+  # Backward compatibility info subcommands; 
   #
+  # TODO: should go finally into a library.
+  #
+  # Obsolete methods
+  #
+  #   already emulated:
+  #
+  #    => info params
+  #     info args
+  #     info nonposargs
+  #     info default
+  #
+  #    => info instparams
+  #     info instargs
+  #     info instnonposargs
+  #     info instdefault
+  #
+  #   => maybe instead of "info params" and "info instparams"
+  #      info params ?-per-object?
+  #
+  #   => TODO: use "params" in serializer, and all other occurances
+  #
+  #  TODO: not yet emulated:
+  #
+  #    => info is 
+  #     isobject
+  #     isclass
+  #     ismetaclass
+  #     ismixin
+  #     istype??
+  # 
+  #    => method (should get pre- and postconditions via positional params)
+  #     proc
+  #     instproc
+  #
+  # TODO mark all absolete calls at least as deprecated in library
+  
   proc ::xotcl::info_args {inst o method} {
     set result [list]
     foreach \
@@ -306,14 +338,11 @@ namespace eval ::xotcl {
       if {[llength $att]>1} {foreach {att default} $att break}
       if {[info exists default]} {
         # checking subclasses is not required during bootstrap
-
         foreach i [$class info instances] {
-          if {![$i exists $att]} {::xotcl::setinstvar $i $att $default}
-	  #
-	  # re-run configure to catch slot settings from "objectparameter",
-	  # such as defaults etc.
-	  # TODO: still needed?
-	  #$i configure
+          if {![$i exists $att]} {
+            if {[string match {*[*]*} $default]} {set default [$i eval subst $default]}
+            ::xotcl::setinstvar $i $att $default
+          }
         }
         unset default
       }
@@ -383,13 +412,13 @@ namespace eval ::xotcl {
   }
 
   # TODO crashes currently
-  #::xotcl::Slot instproc destroy {} {
-  #  ::xotcl::instvar domain
-  #  if {$domain ne ""} {
-  #    $domain invalidateobjectparameter
-  #  }
-  #  next
-  #}
+  ::xotcl::Slot instproc destroy {} {
+    ::xotcl::instvar domain
+    if {$domain ne ""} {
+      $domain invalidateobjectparameter
+    }
+    next
+  }
 
   ::xotcl::Slot instproc init {} {
     ::xotcl::instvar name domain manager per-object
@@ -1175,12 +1204,12 @@ namespace eval ::xotcl {
  
 
   #
-  # define method method
+  # define method "method"
   #
   ::xotcl::Object instproc method {name arguments body} {
     my proc name $arguments $body				  
   }
-::xotcl::Class instproc method {-per-object:switch name arguments body} {
+  ::xotcl::Class instproc method {-per-object:switch name arguments body} {
     if {${per-object}} {
       my proc $name $arguments $body       
     } else {

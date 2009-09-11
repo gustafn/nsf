@@ -1376,8 +1376,8 @@ callDestroyMethod(Tcl_Interp *interp, XOTclObject *obj, int flags) {
       XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY)
     return TCL_OK;
 
-  /* fprintf(stderr, " obj %p flags %.4x %d\n", obj, obj->flags,
-     RUNTIME_STATE(interp)->callDestroy);*/
+  /*fprintf(stderr, "    callDestroy obj %p flags %.6x %d active %d\n", obj, obj->flags,
+    RUNTIME_STATE(interp)->callDestroy, obj->activationCount);*/
 
   if (obj->flags & XOTCL_DESTROY_CALLED)
     return TCL_OK;
@@ -1640,7 +1640,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
       obj = XOTclpGetObject(interp, Tcl_DStringValue(&name));
 
       if (obj) {
-        /* fprintf(stderr, " ... obj= %s\n", objectName(obj));*/
+        /*fprintf(stderr, " ... obj=%s flags %.6x\n", objectName(obj), obj->flags);*/
 	
         /* in the exit handler physical destroy --> directly call destroy */
         if (RUNTIME_STATE(interp)->exitHandlerDestroyRound
@@ -2159,6 +2159,7 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
   if (obj->flags & XOTCL_DURING_DELETE) {
     return;
   }
+  /*fprintf(stderr,"CallStackDoDestroy %p flags %.6x activation %d\n",obj,obj->flags,obj->activationCount);*/
   obj->flags |= XOTCL_DURING_DELETE;
 
   oid = obj->id;
@@ -2179,11 +2180,13 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
 
 static void
 CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *obj) {
+  /*fprintf(stderr, "  CallStackDestroyObject %p %s activationcount %d\n", 
+    obj, objectName(obj), obj->activationCount == 0); */
 
   if ((obj->flags & XOTCL_DESTROY_CALLED) == 0) {
     /* if the destroy method was not called yet, do it now */
 #ifdef OBJDELETION_TRACE
-    fprintf(stderr, "  CallStackDestroyObject has to call destroy method for %p\n",obj);
+    fprintf(stderr, "  CallStackDestroyObject has to call destroy method for %p\n", obj);
 #endif
     callDestroyMethod(interp, obj, 0);
     /*fprintf(stderr, "  CallStackDestroyObject after callDestroyMethod %p\n",obj);*/
@@ -7455,14 +7458,9 @@ PrimitiveCDestroy(ClientData clientData) {
   /*
    * call and latch user destroy with obj->id if we haven't
    */
-  /*fprintf(stderr, "PrimitiveCDestroy %s flags %x\n", objectName(obj), obj->flags);*/
-
-  if (!(obj->flags & XOTCL_DESTROY_CALLED))
-    fprintf(stderr, "???? PrimitiveCDestroy call destroy\n");
-    callDestroyMethod(interp, obj, 0);
+  /*fprintf(stderr, "PrimitiveCDestroy %s flags %.6x\n", objectName(obj), obj->flags);*/
 
   obj->teardown = 0;
-
   CleanupDestroyClass(interp, cl, 0, 0);
 
   /*
@@ -10690,10 +10688,15 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
 
 static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *obj) {
   PRINTOBJ("XOTclODestroyMethod", obj);
-  /* XOTCL_DESTROY_CALLED might be set already be callDestroyMethod(),
+  /* 
+   * XOTCL_DESTROY_CALLED might be set already be callDestroyMethod(),
    * the implicit destroy calls. It is necessary to set it here for
    * the explicit destroy calls in the script, which reach the
-   * Object->destroy. */
+   * Object->destroy. 
+   */
+  /*fprintf(stderr,"XOTclODestroyMethod %p flags %.6x activation %d\n",
+    obj,obj->flags,obj->activationCount); */
+
   if ((obj->flags & XOTCL_DESTROY_CALLED) == 0) {
     obj->flags |= XOTCL_DESTROY_CALLED;
   }
@@ -11313,14 +11316,13 @@ static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *obje
   XOTclObject *delobj;
   int result;
 
-  /*fprintf(stderr, "  dealloc %s\n",ObjStr(object));*/
-
   if (GetObjectFromObj(interp, object, &delobj) != TCL_OK)
     return XOTclVarErrMsg(interp, "Can't destroy object ",
-                          ObjStr(object), " that does not exist.",
-			  (char *) NULL);
+                          ObjStr(object), " that does not exist.", (char *) NULL);
 
-  /* fprintf(stderr, "dealloc obj=%s, opt=%p\n", objectName(delobj), delobj->opt);*/
+  /*fprintf(stderr, "dealloc obj=%s flags %.6x activation %d opt=%p\n", 
+    objectName(delobj), delobj->flags, delobj->activationCount, delobj->opt);*/
+
   result = freeUnsetTraceVariable(interp, delobj);
   if (result != TCL_OK) {
     return result;
@@ -11329,7 +11331,6 @@ static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *obje
   /*
    * latch, and call delete command if not already in progress
    */
-  
   if (RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
       XOTCL_EXITHANDLER_ON_SOFT_DESTROY) {
     CallStackDestroyObject(interp, delobj);
