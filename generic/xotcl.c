@@ -742,20 +742,6 @@ XOTclGetSelfObj(Tcl_Interp *interp) {
   return (XOTcl_Object*)GetSelfObj(interp);
 }
 
-
-/*
- * prints a msg to the screen that oldCmd is deprecated
- * optinal: give a new cmd
- */
-static int 
-XOTclDeprecatedCmd(Tcl_Interp *interp, char *oldCmd, char *newCmd) {
-  fprintf(stderr, "**\n**\n** The command/method <%s> is deprecated.\n", oldCmd);
-  if (newCmd)
-    fprintf(stderr, "** Use <%s> instead.\n", newCmd);
-  fprintf(stderr, "**\n");
-  return TCL_OK;
-}
-
 #ifdef DISPATCH_TRACE
 static void printObjv(int objc, Tcl_Obj *CONST objv[]) {
   int i, j;
@@ -6798,15 +6784,6 @@ XOTclSelfSubCommand(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *option) {
   }
 */
 
-static int GetInstvarsIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
-
-static int
-XOTclInstvarCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj = GetSelfObj(interp);
-  if (!obj) 
-    return XOTclVarErrMsg(interp, "instvar: no current object", (char *) NULL);
-  return GetInstvarsIntoCurrentScope(interp, obj, objc, objv);
-}
 
 int
 XOTclGetSelfObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -8645,104 +8622,6 @@ static void aliasCmdDeleteProc(ClientData clientData) {
   FREE(aliasCmdClientData, tcd);
 }
 
-static int 
-XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, 
-                 Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  int result;
-  char *methodName = ObjStr(command);
-  register char *n = methodName + strlen(methodName);
-
-  /* fprintf(stderr, "Dispatch obj=%s, o=%p cmd m='%s'\n",objectName(object),object,methodName);*/
-
-  /* 
-   * If the specified method is a fully qualified cmd name like
-   * e.g. ::xotcl::cmd::Class::alloc, this method is called on the
-   * specified <Class|Object>, no matter whether it was registered on
-   * it.
-   */
-
-  /*search for last '::'*/
-  while ((*n != ':' || *(n-1) != ':') && n-1 > methodName) {n--; }
-  if (*n == ':' && n > methodName && *(n-1) == ':') {n--;}
-
-  if ((n-methodName)>1 || *methodName == ':') {
-    Tcl_DString parentNSName, *dsp = &parentNSName;
-    Tcl_Namespace *nsPtr;
-    Tcl_Command cmd, importedCmd;
-    char *parentName, *tail = n+2;
-    DSTRING_INIT(dsp);
-
-    /* 
-     * We have an absolute name. We assume, the name is the name of a
-     * tcl command, that will be dispatched. If "withObjscope is
-     * specified, a callstack frame is pushed to make instvars
-     * accessible for the command.
-     */
-
-    /*fprintf(stderr, "colon name %s\n",tail);*/
-    if (n-methodName != 0) {
-      Tcl_DStringAppend(dsp, methodName, (n-methodName));
-      parentName = Tcl_DStringValue(dsp);
-      nsPtr = Tcl_FindNamespace(interp, parentName, (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
-      DSTRING_FREE(dsp);
-    } else {
-      nsPtr = Tcl_FindNamespace(interp, "::", (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
-    }
-    if (!nsPtr) {
-      return XOTclVarErrMsg(interp, "cannot lookup parent namespace '",
-			    methodName, "'", (char *) NULL);
-    }
-    cmd = FindMethod(nsPtr, tail);
-    if (cmd && (importedCmd = TclGetOriginalCommand(cmd))) {
-      cmd = importedCmd;
-    }
-    /*fprintf(stderr, "    .... findmethod '%s' in %s returns %p\n",tail, nsPtr->fullName, cmd);*/
-
-    if (cmd == NULL) {
-      return XOTclVarErrMsg(interp, "cannot lookup command '",
-			    tail, "'", (char *) NULL);
-    }
-    {XOTcl_FrameDecls;
-
-      if (withObjscope) {
-        XOTcl_PushFrame(interp, object);
-      }
-      /* 
-       * Since we know, that we are always called with a full argument
-       * vector, we can include the cmd name in the objv by using
-       * nobjv-1; this way, we avoid a memcpy() 
-       */
-      result = InvokeMethod((ClientData)object, interp,
-                            nobjc+1, nobjv-1, cmd, object,
-                            NULL /*XOTclClass *cl*/, tail,
-                            XOTCL_CSC_TYPE_PLAIN);
-      if (withObjscope) {
-        XOTcl_PopFrame(interp, object);
-      }
-    }
-  } else {
-    /* 
-     * No colons in command name, use method from the precedence
-     * order, with filters etc. -- strictly speaking unneccessary,
-     * since we could dispatch the method also without
-     * XOTclDispatchCmd(), but it can be used to invoke protected
-     * methods. 'withObjscope' is here a no-op.
-     */
-    Tcl_Obj *arg;
-    Tcl_Obj *CONST *objv;
-
-    if (nobjc >= 1) {
-      arg = nobjv[0];
-      objv = nobjv+1;
-    } else {
-      arg = NULL;
-      objv = NULL;
-    }
-    result = XOTclCallMethodWithArgs((ClientData)object, interp, command, arg,
-				     nobjc, objv, XOTCL_CM_NO_UNKNOWN);
-  }
-  return result;
-}
 
 typedef enum {NO_DASH, SKALAR_DASH, LIST_DASH} dashArgType;
 
@@ -9654,6 +9533,252 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
   return TCL_OK;
 }
 
+
+int
+XOTclCreateObjectSystemCmd(Tcl_Interp *interp, char *Object, char *Class) {
+  XOTclClass *theobj = 0;
+  XOTclClass *thecls = 0;
+
+  /* Create a basic object system with the basic root class Object and
+     the basic metaclass Class, and store them in the RUNTIME STATE if
+     successful */
+
+  theobj = PrimitiveCCreate(interp, Object, 0);
+  thecls = PrimitiveCCreate(interp, Class, 0);
+  /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
+
+#if defined(PROFILE)
+  XOTclProfileInit(interp);
+#endif
+
+  /* test Object and Class creation */
+  if (!theobj || !thecls) {
+    int i;
+    RUNTIME_STATE(interp)->callDestroy = 0;
+
+    if (thecls) PrimitiveCDestroy((ClientData) thecls);
+    if (theobj) PrimitiveCDestroy((ClientData) theobj);
+
+    for (i = 0; i < nr_elements(XOTclGlobalStrings); i++) {
+      DECR_REF_COUNT(XOTclGlobalObjects[i]);
+    }
+    FREE(Tcl_Obj **, XOTclGlobalObjects);
+    FREE(XOTclRuntimeState, RUNTIME_STATE(interp));
+
+    return XOTclErrMsg(interp, "Creation of object system failed", TCL_STATIC);
+  }
+  theobj->object.flags |= XOTCL_IS_ROOT_CLASS;
+  thecls->object.flags |= XOTCL_IS_ROOT_META_CLASS;
+
+  XOTclClassListAdd(&RUNTIME_STATE(interp)->rootClasses, theobj, (ClientData)thecls);
+
+  AddInstance((XOTclObject*)theobj, thecls);
+  AddInstance((XOTclObject*)thecls, thecls);
+  AddSuper(thecls, theobj);
+
+  return TCL_OK;
+}
+
+/*
+ * prints a msg to the screen that oldCmd is deprecated
+ * optinal: give a new cmd
+ */
+static int 
+XOTclDeprecatedCmd(Tcl_Interp *interp, char *oldCmd, char *newCmd) {
+  fprintf(stderr, "**\n**\n** The command/method <%s> is deprecated.\n", oldCmd);
+  if (newCmd)
+    fprintf(stderr, "** Use <%s> instead.\n", newCmd);
+  fprintf(stderr, "**\n");
+  return TCL_OK;
+}
+
+
+static int 
+XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, 
+                 Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  int result;
+  char *methodName = ObjStr(command);
+  register char *n = methodName + strlen(methodName);
+
+  /* fprintf(stderr, "Dispatch obj=%s, o=%p cmd m='%s'\n",objectName(object),object,methodName);*/
+
+  /* 
+   * If the specified method is a fully qualified cmd name like
+   * e.g. ::xotcl::cmd::Class::alloc, this method is called on the
+   * specified <Class|Object>, no matter whether it was registered on
+   * it.
+   */
+
+  /*search for last '::'*/
+  while ((*n != ':' || *(n-1) != ':') && n-1 > methodName) {n--; }
+  if (*n == ':' && n > methodName && *(n-1) == ':') {n--;}
+
+  if ((n-methodName)>1 || *methodName == ':') {
+    Tcl_DString parentNSName, *dsp = &parentNSName;
+    Tcl_Namespace *nsPtr;
+    Tcl_Command cmd, importedCmd;
+    char *parentName, *tail = n+2;
+    DSTRING_INIT(dsp);
+
+    /* 
+     * We have an absolute name. We assume, the name is the name of a
+     * tcl command, that will be dispatched. If "withObjscope is
+     * specified, a callstack frame is pushed to make instvars
+     * accessible for the command.
+     */
+
+    /*fprintf(stderr, "colon name %s\n",tail);*/
+    if (n-methodName != 0) {
+      Tcl_DStringAppend(dsp, methodName, (n-methodName));
+      parentName = Tcl_DStringValue(dsp);
+      nsPtr = Tcl_FindNamespace(interp, parentName, (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
+      DSTRING_FREE(dsp);
+    } else {
+      nsPtr = Tcl_FindNamespace(interp, "::", (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
+    }
+    if (!nsPtr) {
+      return XOTclVarErrMsg(interp, "cannot lookup parent namespace '",
+			    methodName, "'", (char *) NULL);
+    }
+    cmd = FindMethod(nsPtr, tail);
+    if (cmd && (importedCmd = TclGetOriginalCommand(cmd))) {
+      cmd = importedCmd;
+    }
+    /*fprintf(stderr, "    .... findmethod '%s' in %s returns %p\n",tail, nsPtr->fullName, cmd);*/
+
+    if (cmd == NULL) {
+      return XOTclVarErrMsg(interp, "cannot lookup command '",
+			    tail, "'", (char *) NULL);
+    }
+    {XOTcl_FrameDecls;
+
+      if (withObjscope) {
+        XOTcl_PushFrame(interp, object);
+      }
+      /* 
+       * Since we know, that we are always called with a full argument
+       * vector, we can include the cmd name in the objv by using
+       * nobjv-1; this way, we avoid a memcpy() 
+       */
+      result = InvokeMethod((ClientData)object, interp,
+                            nobjc+1, nobjv-1, cmd, object,
+                            NULL /*XOTclClass *cl*/, tail,
+                            XOTCL_CSC_TYPE_PLAIN);
+      if (withObjscope) {
+        XOTcl_PopFrame(interp, object);
+      }
+    }
+  } else {
+    /* 
+     * No colons in command name, use method from the precedence
+     * order, with filters etc. -- strictly speaking unneccessary,
+     * since we could dispatch the method also without
+     * XOTclDispatchCmd(), but it can be used to invoke protected
+     * methods. 'withObjscope' is here a no-op.
+     */
+    Tcl_Obj *arg;
+    Tcl_Obj *CONST *objv;
+
+    if (nobjc >= 1) {
+      arg = nobjv[0];
+      objv = nobjv+1;
+    } else {
+      arg = NULL;
+      objv = NULL;
+    }
+    result = XOTclCallMethodWithArgs((ClientData)object, interp, command, arg,
+				     nobjc, objv, XOTCL_CM_NO_UNKNOWN);
+  }
+  return result;
+}
+
+/*
+ * ::xotcl::finalize command
+ */
+static int destroyObjectSystem(Tcl_Interp *interp, XOTclClass *rootClass, XOTclClass *rootMetaClass);
+static int
+XOTclFinalizeObjCmd(Tcl_Interp *interp) {
+  XOTclClasses *os;
+  int result;
+
+  /* fprintf(stderr, "+++ call EXIT handler\n");  */
+
+#if defined(PROFILE)
+  XOTclProfilePrintData(interp);
+#endif
+  /*
+   * evaluate user-defined exit handler
+   */
+  result = Tcl_Eval(interp, "::xotcl::__exitHandler");
+
+  if (result != TCL_OK) {
+    fprintf(stderr, "User defined exit handler contains errors!\n"
+            "Error in line %d: %s\nExecution interrupted.\n",
+            interp->errorLine, ObjStr(Tcl_GetObjResult(interp)));
+  }
+
+  for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
+    destroyObjectSystem(interp, os->cl, (XOTclClass *)os->clientData);
+  }
+
+  XOTclClassListFree(RUNTIME_STATE(interp)->rootClasses);
+
+#ifdef DO_CLEANUP
+  XOTcl_DeleteNamespace(interp, RUNTIME_STATE(interp)->XOTclClassesNS);
+  XOTcl_DeleteNamespace(interp, RUNTIME_STATE(interp)->XOTclNS);
+#endif
+
+  return TCL_OK;
+}
+static int GetInstvarsIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
+
+static int
+XOTclInstvarCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  XOTclObject *obj = GetSelfObj(interp);
+  if (!obj) 
+    return XOTclVarErrMsg(interp, "instvar: no current object", (char *) NULL);
+  return GetInstvarsIntoCurrentScope(interp, obj, objc, objv);
+}
+
+/* create a slave interp that calls XOTcl Init */
+static int 
+XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]) {
+  Tcl_Interp *slave;
+  ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
+
+  /* do not overwrite the provided objv */
+  memcpy(ov, objv, sizeof(Tcl_Obj *)*objc);
+
+  /* create a fresh Tcl interpreter, or pass command to an existing one */
+  ov[0] = XOTclGlobalObjects[XOTE_INTERP];
+  if (Tcl_EvalObjv(interp, objc, ov, TCL_GLOBAL_ONLY|TCL_LEAVE_ERR_MSG) != TCL_OK) {
+    goto interp_error;
+  }
+
+  if (isCreateString(name)) {
+    /* 
+     * The command was an interp create, so perform an Xotcl_Init() on
+     * the new interpreter
+     */
+    slave = Tcl_GetSlave(interp, ObjStr(ov[2]));
+    if (!slave) {
+      XOTclVarErrMsg(interp, "Creation of slave interpreter failed", (char *) NULL);
+      goto interp_error;
+    }
+    if (Xotcl_Init(slave) == TCL_ERROR) {
+      goto interp_error;
+    }
+#ifdef XOTCL_MEM_COUNT
+    xotclMemCountInterpCounter++;
+#endif
+  }
+  FREE_ON_STACK(ov);
+  return TCL_OK;
+ interp_error:
+  FREE_ON_STACK(ov);
+  return TCL_ERROR;
+}
+
 static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName,
                                   int withPer_object, int methodproperty, Tcl_Obj *value) {
   XOTclClass *cl;
@@ -9757,6 +9882,113 @@ static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int no
     result = callMethod((ClientData)self, interp, method, nobjc+2, nobjv, 0);
   }
   return result;
+}
+
+static int 
+XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
+  Tcl_Namespace *fromNsPtr, *newNsPtr;
+  Var *varPtr = NULL;
+  Tcl_HashSearch hSrch;
+  Tcl_HashEntry *hPtr;
+  TclVarHashTable *varTable;
+  XOTclObject *obj, *destObj;
+  char *destFullName;
+  Tcl_Obj *destFullNameObj;
+  TclCallFrame frame, *framePtr = &frame;
+  Tcl_Obj *varNameObj = NULL;
+
+  fromNsPtr = ObjFindNamespace(interp, fromNs);
+  /*fprintf(stderr, "copyvars from %s to %s, ns=%p\n", ObjStr(objv[1]), ObjStr(objv[2]), ns);*/
+
+  if (fromNsPtr) {
+    newNsPtr = ObjFindNamespace(interp, toNs);
+    if (!newNsPtr)
+      return XOTclVarErrMsg(interp, "CopyVars: Destination namespace ",
+                            ObjStr(toNs), " does not exist", (char *) NULL);
+
+    obj = XOTclpGetObject(interp, ObjStr(fromNs));
+    destFullName = newNsPtr->fullName;
+    destFullNameObj = Tcl_NewStringObj(destFullName, -1);
+    INCR_REF_COUNT(destFullNameObj);
+    varTable = Tcl_Namespace_varTable(fromNsPtr);
+    Tcl_PushCallFrame(interp,(Tcl_CallFrame *)framePtr, newNsPtr, 0);
+  } else {
+    XOTclObject *newObj;
+    if (GetObjectFromObj(interp,fromNs, &obj) != TCL_OK) {
+      return XOTclVarErrMsg(interp, "CopyVars: Origin object/namespace ",
+                            ObjStr(fromNs), " does not exist", (char *) NULL);
+    }
+    if (GetObjectFromObj(interp, toNs, &newObj) != TCL_OK) {
+      return XOTclVarErrMsg(interp, "CopyVars: Destination object/namespace ",
+                            ObjStr(toNs), " does not exist", (char *) NULL);
+    }
+    varTable = obj->varTable;
+    destFullNameObj = newObj->cmdName;
+    destFullName = ObjStr(destFullNameObj);
+  }
+
+  destObj = XOTclpGetObject(interp, destFullName);
+
+  /* copy all vars in the ns */
+  hPtr = varTable ? Tcl_FirstHashEntry(VarHashTable(varTable), &hSrch) : NULL;
+  while (hPtr) {
+
+    getVarAndNameFromHash(hPtr, &varPtr, &varNameObj);
+    INCR_REF_COUNT(varNameObj);
+
+    if (!TclIsVarUndefined(varPtr) && !TclIsVarLink(varPtr)) {
+      if (TclIsVarScalar(varPtr)) {
+        /* it may seem odd that we do not copy obj vars with the
+         * same SetVar2 as normal vars, but we want to dispatch it in order to
+         * be able to intercept the copying */
+
+        if (obj) {
+          /* fprintf(stderr, "copy in obj %s var %s val '%s'\n",objectName(obj),ObjStr(varNameObj),
+	     ObjStr(valueOfVar(Tcl_Obj, varPtr, objPtr)));*/
+
+          /* can't rely on "set", if there are multiple object systems */
+          setInstVar(interp, destObj, varNameObj, valueOfVar(Tcl_Obj, varPtr, objPtr));
+        } else {
+          Tcl_ObjSetVar2(interp, varNameObj, NULL,
+                         valueOfVar(Tcl_Obj, varPtr, objPtr),
+                         TCL_NAMESPACE_ONLY);
+        }
+      } else {
+        if (TclIsVarArray(varPtr)) {
+          /* HERE!! PRE85 Why not [array get/set] based? Let the core iterate*/
+          TclVarHashTable *aTable = valueOfVar(TclVarHashTable, varPtr, tablePtr);
+          Tcl_HashSearch ahSrch;
+          Tcl_HashEntry *ahPtr = aTable ? Tcl_FirstHashEntry(VarHashTable(aTable), &ahSrch) :0;
+          for (; ahPtr; ahPtr = Tcl_NextHashEntry(&ahSrch)) {
+            Tcl_Obj *eltNameObj;
+            Var *eltVar;
+
+            getVarAndNameFromHash(ahPtr, &eltVar, &eltNameObj);
+            INCR_REF_COUNT(eltNameObj);
+
+            if (TclIsVarScalar(eltVar)) {
+              if (obj) {
+                XOTcl_ObjSetVar2((XOTcl_Object*)destObj, interp, varNameObj, eltNameObj,
+				 valueOfVar(Tcl_Obj, eltVar, objPtr), 0);
+              } else {
+                Tcl_ObjSetVar2(interp, varNameObj, eltNameObj,
+                               valueOfVar(Tcl_Obj, eltVar, objPtr),
+                               TCL_NAMESPACE_ONLY);
+              }
+            }
+            DECR_REF_COUNT(eltNameObj);
+          }
+        }
+      }
+    }
+    DECR_REF_COUNT(varNameObj);
+    hPtr = Tcl_NextHashEntry(&hSrch);
+  }
+  if (fromNsPtr) {
+    DECR_REF_COUNT(destFullNameObj);
+    Tcl_PopCallFrame(interp);
+  }
+  return TCL_OK;
 }
 
 
@@ -11782,116 +12014,6 @@ XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   return TCL_OK;
 }
 
-static int
-XOTcl_NSCopyVars(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  Tcl_Namespace *nsPtr, *newNsPtr;
-  Var *varPtr = NULL;
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr;
-  TclVarHashTable *varTable;
-  XOTclObject *obj, *destObj;
-  char *destFullName;
-  Tcl_Obj *destFullNameObj;
-  TclCallFrame frame, *framePtr = &frame;
-  Tcl_Obj *varNameObj = NULL;
-
-  if (objc != 3)
-    return XOTclObjErrArgCnt(interp, objv[0], NULL, "<fromNs> <toNs>");
-
-  nsPtr = ObjFindNamespace(interp, objv[1]);
-  /*fprintf(stderr, "copyvars from %s to %s, ns=%p\n", ObjStr(objv[1]), ObjStr(objv[2]), ns);*/
-
-  if (nsPtr) {
-    newNsPtr = ObjFindNamespace(interp, objv[2]);
-    if (!newNsPtr)
-      return XOTclVarErrMsg(interp, "CopyVars: Destination namespace ",
-                            ObjStr(objv[2]), " does not exist", (char *) NULL);
-
-    obj = XOTclpGetObject(interp, ObjStr(objv[1]));
-    destFullName = newNsPtr->fullName;
-    destFullNameObj = Tcl_NewStringObj(destFullName, -1);
-    INCR_REF_COUNT(destFullNameObj);
-    varTable = Tcl_Namespace_varTable(nsPtr);
-    Tcl_PushCallFrame(interp,(Tcl_CallFrame *)framePtr, newNsPtr, 0);
-  } else {
-    XOTclObject *newObj;
-    if (GetObjectFromObj(interp, objv[1], &obj) != TCL_OK) {
-      return XOTclVarErrMsg(interp, "CopyVars: Origin object/namespace ",
-                            ObjStr(objv[1]), " does not exist", (char *) NULL);
-    }
-    if (GetObjectFromObj(interp, objv[2], &newObj) != TCL_OK) {
-      return XOTclVarErrMsg(interp, "CopyVars: Destination object/namespace ",
-                            ObjStr(objv[2]), " does not exist", (char *) NULL);
-    }
-    varTable = obj->varTable;
-    destFullNameObj = newObj->cmdName;
-    destFullName = ObjStr(destFullNameObj);
-  }
-
-  destObj = XOTclpGetObject(interp, destFullName);
-
-  /* copy all vars in the ns */
-  hPtr = varTable ? Tcl_FirstHashEntry(VarHashTable(varTable), &hSrch) : NULL;
-  while (hPtr) {
-
-    getVarAndNameFromHash(hPtr, &varPtr, &varNameObj);
-    INCR_REF_COUNT(varNameObj);
-
-    if (!TclIsVarUndefined(varPtr) && !TclIsVarLink(varPtr)) {
-      if (TclIsVarScalar(varPtr)) {
-        /* it may seem odd that we do not copy obj vars with the
-         * same SetVar2 as normal vars, but we want to dispatch it in order to
-         * be able to intercept the copying */
-
-        if (obj) {
-          /* fprintf(stderr, "copy in obj %s var %s val '%s'\n",objectName(obj),ObjStr(varNameObj),
-	     ObjStr(valueOfVar(Tcl_Obj, varPtr, objPtr)));*/
-
-          /* can't rely on "set", if there are multiple object systems */
-          setInstVar(interp, destObj, varNameObj, valueOfVar(Tcl_Obj, varPtr, objPtr));
-        } else {
-          Tcl_ObjSetVar2(interp, varNameObj, NULL,
-                         valueOfVar(Tcl_Obj, varPtr, objPtr),
-                         TCL_NAMESPACE_ONLY);
-        }
-      } else {
-        if (TclIsVarArray(varPtr)) {
-          /* HERE!! PRE85 Why not [array get/set] based? Let the core iterate*/
-          TclVarHashTable *aTable = valueOfVar(TclVarHashTable, varPtr, tablePtr);
-          Tcl_HashSearch ahSrch;
-          Tcl_HashEntry *ahPtr = aTable ? Tcl_FirstHashEntry(VarHashTable(aTable), &ahSrch) :0;
-          for (; ahPtr; ahPtr = Tcl_NextHashEntry(&ahSrch)) {
-            Tcl_Obj *eltNameObj;
-            Var *eltVar;
-
-            getVarAndNameFromHash(ahPtr, &eltVar, &eltNameObj);
-            INCR_REF_COUNT(eltNameObj);
-
-            if (TclIsVarScalar(eltVar)) {
-              if (obj) {
-                XOTcl_ObjSetVar2((XOTcl_Object*)destObj, interp, varNameObj, eltNameObj,
-				 valueOfVar(Tcl_Obj, eltVar, objPtr), 0);
-              } else {
-                Tcl_ObjSetVar2(interp, varNameObj, eltNameObj,
-                               valueOfVar(Tcl_Obj, eltVar, objPtr),
-                               TCL_NAMESPACE_ONLY);
-              }
-            }
-            DECR_REF_COUNT(eltNameObj);
-          }
-        }
-      }
-    }
-    DECR_REF_COUNT(varNameObj);
-    hPtr = Tcl_NextHashEntry(&hSrch);
-  }
-  if (nsPtr) {
-    DECR_REF_COUNT(destFullNameObj);
-    Tcl_PopCallFrame(interp);
-  }
-  return TCL_OK;
-}
-
 
 #if defined(PRE85)
 int
@@ -12063,40 +12185,6 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   return TCL_OK;
 }
 #endif
-
-/* create a slave interp that calls XOTcl Init */
-static int 
-XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]) {
-  Tcl_Interp *slave;
-  ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
-
-  /* do not overwrite the provided objv */
-  memcpy(ov, objv, sizeof(Tcl_Obj *)*objc);
-
-  ov[0] = XOTclGlobalObjects[XOTE_INTERP];
-  if (Tcl_EvalObjv(interp, objc, ov, TCL_GLOBAL_ONLY|TCL_LEAVE_ERR_MSG) != TCL_OK) {
-    goto interp_error;
-  }
-
-  if (isCreateString(name)) {
-    slave = Tcl_GetSlave(interp, ObjStr(ov[2]));
-    if (!slave) {
-      XOTclVarErrMsg(interp, "Creation of slave interpreter failed", (char *) NULL);
-      goto interp_error;
-    }
-    if (Xotcl_Init(slave) == TCL_ERROR) {
-      goto interp_error;
-    }
-#ifdef XOTCL_MEM_COUNT
-    xotclMemCountInterpCounter++;
-#endif
-  }
-  FREE_ON_STACK(ov);
-  return TCL_OK;
- interp_error:
-  FREE_ON_STACK(ov);
-  return TCL_ERROR;
-}
 
 #if !defined(NDEBUG)
 static void
@@ -12321,44 +12409,6 @@ destroyObjectSystem(Tcl_Interp *interp, XOTclClass *rootClass, XOTclClass *rootM
 }
 
 /*
- * ::xotcl::finalize command
- */
-static int
-XOTclFinalizeObjCmd(Tcl_Interp *interp) {
-  XOTclClasses *os;
-  int result;
-
-  /* fprintf(stderr, "+++ call EXIT handler\n");  */
-
-#if defined(PROFILE)
-  XOTclProfilePrintData(interp);
-#endif
-  /*
-   * evaluate user-defined exit handler
-   */
-  result = Tcl_Eval(interp, "::xotcl::__exitHandler");
-
-  if (result != TCL_OK) {
-    fprintf(stderr, "User defined exit handler contains errors!\n"
-            "Error in line %d: %s\nExecution interrupted.\n",
-            interp->errorLine, ObjStr(Tcl_GetObjResult(interp)));
-  }
-
-  for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
-    destroyObjectSystem(interp, os->cl, (XOTclClass *)os->clientData);
-  }
-
-  XOTclClassListFree(RUNTIME_STATE(interp)->rootClasses);
-
-#ifdef DO_CLEANUP
-  XOTcl_DeleteNamespace(interp, RUNTIME_STATE(interp)->XOTclClassesNS);
-  XOTcl_DeleteNamespace(interp, RUNTIME_STATE(interp)->XOTclNS);
-#endif
-
-  return TCL_OK;
-}
-
-/*
  *  Exit Handler
  */
 static void
@@ -12460,52 +12510,6 @@ RegisterExitHandlers(ClientData clientData) {
   Tcl_CreateThreadExitHandler(XOTcl_ThreadExitProc, clientData);
 #endif
   Tcl_CreateExitHandler(XOTcl_ExitProc, clientData);
-}
-
-
-int
-XOTclCreateObjectSystemCmd(Tcl_Interp *interp, char *Object, char *Class) {
-  XOTclClass *theobj = 0;
-  XOTclClass *thecls = 0;
-
-  /* Create a basic object system with the basic root class Object and
-     the basic metaclass Class, and store them in the RUNTIME STATE if
-     successful */
-
-  theobj = PrimitiveCCreate(interp, Object, 0);
-  thecls = PrimitiveCCreate(interp, Class, 0);
-  /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
-
-#if defined(PROFILE)
-  XOTclProfileInit(interp);
-#endif
-
-  /* test Object and Class creation */
-  if (!theobj || !thecls) {
-    int i;
-    RUNTIME_STATE(interp)->callDestroy = 0;
-
-    if (thecls) PrimitiveCDestroy((ClientData) thecls);
-    if (theobj) PrimitiveCDestroy((ClientData) theobj);
-
-    for (i = 0; i < nr_elements(XOTclGlobalStrings); i++) {
-      DECR_REF_COUNT(XOTclGlobalObjects[i]);
-    }
-    FREE(Tcl_Obj **, XOTclGlobalObjects);
-    FREE(XOTclRuntimeState, RUNTIME_STATE(interp));
-
-    return XOTclErrMsg(interp, "Creation of object system failed", TCL_STATIC);
-  }
-  theobj->object.flags |= XOTCL_IS_ROOT_CLASS;
-  thecls->object.flags |= XOTCL_IS_ROOT_META_CLASS;
-
-  XOTclClassListAdd(&RUNTIME_STATE(interp)->rootClasses, theobj, (ClientData)thecls);
-
-  AddInstance((XOTclObject*)theobj, thecls);
-  AddInstance((XOTclObject*)thecls, thecls);
-  AddSuper(thecls, theobj);
-
-  return TCL_OK;
 }
 
 /*
@@ -12680,7 +12684,6 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_CreateObjCommand(interp, "::xotcl::unsetUnknownArgs",
                        XOTclUnsetUnknownArgsCmd, 0,0);
 #endif
-  Tcl_CreateObjCommand(interp, "::xotcl::namespace_copyvars", XOTcl_NSCopyVars, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::namespace_copycmds", XOTcl_NSCopyCmds, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::__qualify", XOTclQualifyObjCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::trace", XOTcl_TraceObjCmd, 0, 0);

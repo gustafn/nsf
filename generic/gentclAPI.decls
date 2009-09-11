@@ -63,6 +63,10 @@ xotclCmd my XOTclMyCmd {
   {-argName "method" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
+xotclCmd namespace_copyvars XOTclNSCopyVars {
+  {-argName "fromNs" -required 1 -type tclobj}
+  {-argName "toNs" -required 1 -type tclobj}
+}
 xotclCmd relation XOTclRelationCmd {
   {-argName "object" -required 1 -type object}
   {-argName "relationtype" -required 1 -type "mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class_filter|class|superclass|rootclass"}

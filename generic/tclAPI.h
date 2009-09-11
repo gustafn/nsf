@@ -140,6 +140,7 @@ static int XOTclInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int XOTclInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
@@ -241,6 +242,7 @@ static int XOTclInstvarCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withPer_object, int methodproperty, Tcl_Obj *value);
 static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 
@@ -343,6 +345,7 @@ enum {
  XOTclInterpObjCmdIdx,
  XOTclMethodPropertyCmdIdx,
  XOTclMyCmdIdx,
+ XOTclNSCopyVarsIdx,
  XOTclRelationCmdIdx,
  XOTclSetInstvarCmdIdx
 } XOTclMethods;
@@ -2283,6 +2286,25 @@ XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 }
 
 static int
+XOTclNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclNSCopyVarsIdx].paramDefs, 
+                     method_definitions[XOTclNSCopyVarsIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *fromNs = (Tcl_Obj *)pc.clientData[0];
+    Tcl_Obj *toNs = (Tcl_Obj *)pc.clientData[1];
+
+    parseContextRelease(&pc);
+    return XOTclNSCopyVars(interp, fromNs, toNs);
+
+  }
+}
+
+static int
 XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
@@ -2731,6 +2753,10 @@ static methodDefinition method_definitions[] = {
   {"-local", 0, 0, convertToString},
   {"method", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
+},
+{"::xotcl::namespace_copyvars", XOTclNSCopyVarsStub, 2, {
+  {"fromNs", 1, 0, convertToTclobj},
+  {"toNs", 1, 0, convertToTclobj}}
 },
 {"::xotcl::relation", XOTclRelationCmdStub, 3, {
   {"object", 1, 0, convertToObject},
