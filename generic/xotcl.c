@@ -12065,25 +12065,20 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
 #endif
 
 /* create a slave interp that calls XOTcl Init */
-static int
-XOTcl_InterpObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+static int 
+XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Interp *slave;
-  char *subCmd;
   ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
 
+  /* do not overwrite the provided objv */
   memcpy(ov, objv, sizeof(Tcl_Obj *)*objc);
-  if (objc < 1) {
-    XOTclObjErrArgCnt(interp, objv[0], NULL, "name ?args?");
-    goto interp_error;
-  }
 
   ov[0] = XOTclGlobalObjects[XOTE_INTERP];
   if (Tcl_EvalObjv(interp, objc, ov, TCL_GLOBAL_ONLY|TCL_LEAVE_ERR_MSG) != TCL_OK) {
     goto interp_error;
   }
 
-  subCmd = ObjStr(ov[1]);
-  if (isCreateString(subCmd)) {
+  if (isCreateString(name)) {
     slave = Tcl_GetSlave(interp, ObjStr(ov[2]));
     if (!slave) {
       XOTclVarErrMsg(interp, "Creation of slave interpreter failed", (char *) NULL);
@@ -12685,7 +12680,6 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_CreateObjCommand(interp, "::xotcl::unsetUnknownArgs",
                        XOTclUnsetUnknownArgsCmd, 0,0);
 #endif
-  Tcl_CreateObjCommand(interp, "::xotcl::interp", XOTcl_InterpObjCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::namespace_copyvars", XOTcl_NSCopyVars, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::namespace_copycmds", XOTcl_NSCopyCmds, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::__qualify", XOTclQualifyObjCmd, 0, 0);

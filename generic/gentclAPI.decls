@@ -44,6 +44,10 @@ xotclCmd dispatch XOTclDispatchCmd {
 }
 xotclCmd finalize XOTclFinalizeObjCmd {
 }
+xotclCmd interp XOTclInterpObjCmd {
+  {-argName "name"}
+  {-argName "args" -type allargs}
+}
 xotclCmd instvar XOTclInstvarCmd {
   {-argName "args" -type allargs}
 }
@@ -219,7 +223,7 @@ classMethod classscopedinstproc XOTclCInstProcMethodC {
   {-argName "postcondition" -type tclobj}
 }
 classMethod instforward XOTclCInstForwardMethod {
-  {-argName "method" -required 1 -type tclobj}
+  {-argName "name" -required 1 -type tclobj}
   {-argName "-default" -nrargs 1 -type tclobj}
   {-argName "-earlybinding"}
   {-argName "-methodprefix" -nrargs 1 -type tclobj}

@@ -283,6 +283,7 @@ catch {d1 foo 10} errorMsg
     "::xotcl::parameterType: unable to dispatch method 'type=unknowntype'" \
     "missing type checker"
 
+
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
 
