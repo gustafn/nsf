@@ -9884,9 +9884,213 @@ static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int no
   return result;
 }
 
+static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
+  Tcl_Command cmd;
+  Tcl_Obj *newFullCmdName, *oldFullCmdName;
+  char *newName, *oldName, *name;
+  Tcl_Namespace *fromNsPtr, *toNsPtr;
+  Tcl_HashTable *cmdTable;
+  Tcl_HashSearch hSrch;
+  Tcl_HashEntry *hPtr;
+  XOTclObject *obj;
+  XOTclClass *cl;
+
+  fromNsPtr = ObjFindNamespace(interp, fromNs);
+  if (!fromNsPtr)
+    return TCL_OK;
+
+  name = ObjStr(fromNs);
+  /* check, if we work on an object or class namespace */
+  if (isClassName(name)) {
+    cl  = XOTclpGetClass(interp, NSCutXOTclClasses(name));
+    obj = (XOTclObject *)cl;
+  } else {
+    cl  = NULL;
+    obj = XOTclpGetObject(interp, name);
+  }
+
+  if (obj == NULL) {
+    return XOTclVarErrMsg(interp, "CopyCmds argument 1 (",ObjStr(fromNs), ") is not an object",
+                          NULL);
+  }
+  /*  obj = XOTclpGetObject(interp, ObjStr(fromNs));*/
+
+  toNsPtr = ObjFindNamespace(interp, toNs);
+  if (!toNsPtr)
+    return XOTclVarErrMsg(interp, "CopyCmds: Destination namespace ",
+                          ObjStr(toNs), " does not exist", (char *) NULL);
+  /*
+   * copy all procs & commands in the ns
+   */
+  cmdTable = Tcl_Namespace_cmdTable(fromNsPtr);
+  hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch);
+  while (hPtr) {
+    /*fprintf(stderr, "copy cmdTable = %p, first=%p\n", cmdTable, hPtr);*/
+    name = Tcl_GetHashKey(cmdTable, hPtr);
+
+    /*
+     * construct full cmd names
+     */
+    newFullCmdName = Tcl_NewStringObj(toNsPtr->fullName,-1);
+    oldFullCmdName = Tcl_NewStringObj(fromNsPtr->fullName,-1);
+
+    INCR_REF_COUNT(newFullCmdName); INCR_REF_COUNT(oldFullCmdName);
+    Tcl_AppendStringsToObj(newFullCmdName, "::", name, (char *) NULL);
+    Tcl_AppendStringsToObj(oldFullCmdName, "::", name, (char *) NULL);
+    newName = ObjStr(newFullCmdName);
+    oldName = ObjStr(oldFullCmdName);
+
+    /*fprintf(stderr, "try to copy command from '%s' to '%s'\n", oldName, newName);*/
+    /*
+     * Make sure that the destination command does not already exist.
+     * Otherwise: do not copy
+     */
+    cmd = Tcl_FindCommand(interp, newName, 0, 0);
+    if (cmd) {
+      /*fprintf(stderr, "%s already exists\n", newName);*/
+      if (!XOTclpGetObject(interp, newName)) {
+        /* command or instproc will be deleted & then copied */
+        Tcl_DeleteCommandFromToken(interp, cmd);
+      } else {
+        /* don't overwrite objects -> will be recreated */
+        hPtr = Tcl_NextHashEntry(&hSrch);
+        DECR_REF_COUNT(newFullCmdName);
+        DECR_REF_COUNT(oldFullCmdName);
+        continue;
+      }
+    }
+
+    /*
+     * Find the existing command. An error is returned if simpleName can't
+     * be found
+     */
+    cmd = Tcl_FindCommand(interp, oldName, 0, 0);
+    if (cmd == NULL) {
+      Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), "can't copy ", " \"",
+                             oldName, "\": command doesn't exist",
+                             (char *) NULL);
+      DECR_REF_COUNT(newFullCmdName);
+      DECR_REF_COUNT(oldFullCmdName);
+      return TCL_ERROR;
+    }
+    /*
+     * Do not copy Objects or Classes
+     */
+    if (!XOTclpGetObject(interp, oldName)) {
+      if (TclIsProc((Command*)cmd)) {
+        Proc *procPtr = (Proc*) Tcl_Command_objClientData(cmd);
+        Tcl_Obj *arglistObj;
+        int result;
+
+        /*
+         * Build a list containing the arguments of the proc
+         */
+        result = ListCmdParams(interp, cmd, oldName, 0);
+        if (result != TCL_OK) {
+          return result;
+        }
+
+        arglistObj = Tcl_GetObjResult(interp);
+        INCR_REF_COUNT(arglistObj);
+
+        if (Tcl_Command_objProc(cmd) == RUNTIME_STATE(interp)->objInterpProc) {
+          Tcl_DString ds, *dsPtr = &ds;
+
+          if (cl) {
+            /* we have a class */
+            XOTclProcAssertion *procs;
+
+            if (cl) {
+              procs = cl->opt ?
+                AssertionFindProcs(cl->opt->assertions, name) : 0;
+            } else {
+              DECR_REF_COUNT(newFullCmdName);
+              DECR_REF_COUNT(oldFullCmdName);
+              DECR_REF_COUNT(arglistObj);
+              return XOTclVarErrMsg(interp, "No class for inst - assertions", (char *) NULL);
+            }
+
+            /* XOTcl InstProc */
+            DSTRING_INIT(dsPtr);
+            Tcl_DStringAppendElement(dsPtr, NSCutXOTclClasses(toNsPtr->fullName));
+            Tcl_DStringAppendElement(dsPtr, "instproc");
+            Tcl_DStringAppendElement(dsPtr, name);
+            Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
+            Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
+            if (procs) {
+              XOTclRequireClassOpt(cl);
+              AssertionAppendPrePost(interp, dsPtr, procs);
+            }
+            Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
+            DSTRING_FREE(dsPtr);
+          } else {
+            XOTclObject *obj = XOTclpGetObject(interp, fromNsPtr->fullName);
+            XOTclProcAssertion *procs;
+            if (obj) {
+              procs = obj->opt ?
+                AssertionFindProcs(obj->opt->assertions, name) : 0;
+            } else {
+              DECR_REF_COUNT(newFullCmdName);
+              DECR_REF_COUNT(oldFullCmdName);
+              DECR_REF_COUNT(arglistObj);
+              return XOTclVarErrMsg(interp, "No object for assertions", (char *) NULL);
+            }
+
+            /* XOTcl Proc */
+            DSTRING_INIT(dsPtr);
+            Tcl_DStringAppendElement(dsPtr, toNsPtr->fullName);
+            Tcl_DStringAppendElement(dsPtr, "proc");
+            Tcl_DStringAppendElement(dsPtr, name);
+            Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
+            Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
+            if (procs) {
+              XOTclRequireObjectOpt(obj);
+              AssertionAppendPrePost(interp, dsPtr, procs);
+            }
+            /*fprintf(stderr, "new proc = '%s'\n",Tcl_DStringValue(dsPtr));*/
+            Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
+            DSTRING_FREE(dsPtr);
+          }
+          DECR_REF_COUNT(arglistObj);
+        } else {
+          /* Tcl Proc */
+          Tcl_VarEval(interp, "proc ", newName, " {", ObjStr(arglistObj), "} {\n",
+                      ObjStr(procPtr->bodyPtr), "}", (char *) NULL);
+        }
+      } else {
+        /*
+         * Otherwise copy command
+         */
+        Tcl_ObjCmdProc *objProc = Tcl_Command_objProc(cmd);
+        Tcl_CmdDeleteProc *deleteProc = Tcl_Command_deleteProc(cmd);
+        ClientData clientData;
+        if (objProc) {
+          clientData = Tcl_Command_objClientData(cmd);
+          if (clientData == NULL || clientData == (ClientData)XOTCL_CMD_NONLEAF_METHOD) {
+            /* if client data not null, we would have to copy
+               the client data; we don't know its size...., so rely
+               on introspection for copying */
+            Tcl_CreateObjCommand(interp, newName, objProc,
+                                 Tcl_Command_objClientData(cmd), deleteProc);
+          }
+        } else {
+          clientData = Tcl_Command_clientData(cmd);
+          if (clientData == NULL || clientData == (ClientData)XOTCL_CMD_NONLEAF_METHOD) {
+            Tcl_CreateCommand(interp, newName, Tcl_Command_proc(cmd),
+                              Tcl_Command_clientData(cmd), deleteProc);
+          }
+        }
+      }
+    }
+    hPtr = Tcl_NextHashEntry(&hSrch);
+    DECR_REF_COUNT(newFullCmdName); DECR_REF_COUNT(oldFullCmdName);
+  }
+  return TCL_OK;
+}
+
 static int 
 XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
-  Tcl_Namespace *fromNsPtr, *newNsPtr;
+  Tcl_Namespace *fromNsPtr, *toNsPtr;
   Var *varPtr = NULL;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
@@ -9901,17 +10105,17 @@ XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   /*fprintf(stderr, "copyvars from %s to %s, ns=%p\n", ObjStr(objv[1]), ObjStr(objv[2]), ns);*/
 
   if (fromNsPtr) {
-    newNsPtr = ObjFindNamespace(interp, toNs);
-    if (!newNsPtr)
+    toNsPtr = ObjFindNamespace(interp, toNs);
+    if (!toNsPtr)
       return XOTclVarErrMsg(interp, "CopyVars: Destination namespace ",
                             ObjStr(toNs), " does not exist", (char *) NULL);
 
     obj = XOTclpGetObject(interp, ObjStr(fromNs));
-    destFullName = newNsPtr->fullName;
+    destFullName = toNsPtr->fullName;
     destFullNameObj = Tcl_NewStringObj(destFullName, -1);
     INCR_REF_COUNT(destFullNameObj);
     varTable = Tcl_Namespace_varTable(fromNsPtr);
-    Tcl_PushCallFrame(interp,(Tcl_CallFrame *)framePtr, newNsPtr, 0);
+    Tcl_PushCallFrame(interp,(Tcl_CallFrame *)framePtr, toNsPtr, 0);
   } else {
     XOTclObject *newObj;
     if (GetObjectFromObj(interp,fromNs, &obj) != TCL_OK) {
@@ -11806,214 +12010,6 @@ static int XOTclClassInfoSuperclassMethod(Tcl_Interp *interp, XOTclClass *class,
 /*
  * New Tcl Commands
  */
-static int
-XOTcl_NSCopyCmds(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  Tcl_Command cmd;
-  Tcl_Obj *newFullCmdName, *oldFullCmdName;
-  char *newName, *oldName, *name;
-  Tcl_Namespace *nsPtr, *newNsPtr;
-  Tcl_HashTable *cmdTable;
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr;
-  XOTclObject *obj;
-  XOTclClass *cl;
-
-  if (objc != 3)
-    return XOTclObjErrArgCnt(interp, objv[0], NULL, "<fromNs> <toNs>");
-
-  nsPtr = ObjFindNamespace(interp, objv[1]);
-  if (!nsPtr)
-    return TCL_OK;
-
-  name = ObjStr(objv[1]);
-  /* check, if we work on an object or class namespace */
-  if (isClassName(name)) {
-    cl  = XOTclpGetClass(interp, NSCutXOTclClasses(name));
-    obj = (XOTclObject *)cl;
-  } else {
-    cl  = NULL;
-    obj = XOTclpGetObject(interp, name);
-  }
-
-  if (obj == NULL) {
-    return XOTclVarErrMsg(interp, "CopyCmds argument 1 (",ObjStr(objv[1]), ") is not an object",
-                          NULL);
-  }
-  /*  obj = XOTclpGetObject(interp, ObjStr(objv[1]));*/
-
-  newNsPtr = ObjFindNamespace(interp, objv[2]);
-  if (!newNsPtr)
-    return XOTclVarErrMsg(interp, "CopyCmds: Destination namespace ",
-                          ObjStr(objv[2]), " does not exist", (char *) NULL);
-  /*
-   * copy all procs & commands in the ns
-   */
-  cmdTable = Tcl_Namespace_cmdTable(nsPtr);
-  hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch);
-  while (hPtr) {
-    /*fprintf(stderr, "copy cmdTable = %p, first=%p\n", cmdTable, hPtr);*/
-    name = Tcl_GetHashKey(cmdTable, hPtr);
-
-    /*
-     * construct full cmd names
-     */
-    newFullCmdName = Tcl_NewStringObj(newNsPtr->fullName,-1);
-    oldFullCmdName = Tcl_NewStringObj(nsPtr->fullName,-1);
-
-    INCR_REF_COUNT(newFullCmdName); INCR_REF_COUNT(oldFullCmdName);
-    Tcl_AppendStringsToObj(newFullCmdName, "::", name, (char *) NULL);
-    Tcl_AppendStringsToObj(oldFullCmdName, "::", name, (char *) NULL);
-    newName = ObjStr(newFullCmdName);
-    oldName = ObjStr(oldFullCmdName);
-
-    /*fprintf(stderr, "try to copy command from '%s' to '%s'\n", oldName, newName);*/
-    /*
-     * Make sure that the destination command does not already exist.
-     * Otherwise: do not copy
-     */
-    cmd = Tcl_FindCommand(interp, newName, 0, 0);
-    if (cmd) {
-      /*fprintf(stderr, "%s already exists\n", newName);*/
-      if (!XOTclpGetObject(interp, newName)) {
-        /* command or instproc will be deleted & then copied */
-        Tcl_DeleteCommandFromToken(interp, cmd);
-      } else {
-        /* don't overwrite objects -> will be recreated */
-        hPtr = Tcl_NextHashEntry(&hSrch);
-        DECR_REF_COUNT(newFullCmdName);
-        DECR_REF_COUNT(oldFullCmdName);
-        continue;
-      }
-    }
-
-    /*
-     * Find the existing command. An error is returned if simpleName can't
-     * be found
-     */
-    cmd = Tcl_FindCommand(interp, oldName, 0, 0);
-    if (cmd == NULL) {
-      Tcl_AppendStringsToObj(Tcl_GetObjResult(interp), "can't copy ", " \"",
-                             oldName, "\": command doesn't exist",
-                             (char *) NULL);
-      DECR_REF_COUNT(newFullCmdName);
-      DECR_REF_COUNT(oldFullCmdName);
-      return TCL_ERROR;
-    }
-    /*
-     * Do not copy Objects or Classes
-     */
-    if (!XOTclpGetObject(interp, oldName)) {
-      if (TclIsProc((Command*)cmd)) {
-        Proc *procPtr = (Proc*) Tcl_Command_objClientData(cmd);
-        Tcl_Obj *arglistObj;
-        int result;
-
-        /*
-         * Build a list containing the arguments of the proc
-         */
-        result = ListCmdParams(interp, cmd, oldName, 0);
-        if (result != TCL_OK) {
-          return result;
-        }
-
-        arglistObj = Tcl_GetObjResult(interp);
-        INCR_REF_COUNT(arglistObj);
-
-        if (Tcl_Command_objProc(cmd) == RUNTIME_STATE(interp)->objInterpProc) {
-          Tcl_DString ds, *dsPtr = &ds;
-
-          if (cl) {
-            /* we have a class */
-            XOTclProcAssertion *procs;
-
-            if (cl) {
-              procs = cl->opt ?
-                AssertionFindProcs(cl->opt->assertions, name) : 0;
-            } else {
-              DECR_REF_COUNT(newFullCmdName);
-              DECR_REF_COUNT(oldFullCmdName);
-              DECR_REF_COUNT(arglistObj);
-              return XOTclVarErrMsg(interp, "No class for inst - assertions", (char *) NULL);
-            }
-
-            /* XOTcl InstProc */
-            DSTRING_INIT(dsPtr);
-            Tcl_DStringAppendElement(dsPtr, NSCutXOTclClasses(newNsPtr->fullName));
-            Tcl_DStringAppendElement(dsPtr, "instproc");
-            Tcl_DStringAppendElement(dsPtr, name);
-            Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
-            Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
-            if (procs) {
-              XOTclRequireClassOpt(cl);
-              AssertionAppendPrePost(interp, dsPtr, procs);
-            }
-            Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
-            DSTRING_FREE(dsPtr);
-          } else {
-            XOTclObject *obj = XOTclpGetObject(interp, nsPtr->fullName);
-            XOTclProcAssertion *procs;
-            if (obj) {
-              procs = obj->opt ?
-                AssertionFindProcs(obj->opt->assertions, name) : 0;
-            } else {
-              DECR_REF_COUNT(newFullCmdName);
-              DECR_REF_COUNT(oldFullCmdName);
-              DECR_REF_COUNT(arglistObj);
-              return XOTclVarErrMsg(interp, "No object for assertions", (char *) NULL);
-            }
-
-            /* XOTcl Proc */
-            DSTRING_INIT(dsPtr);
-            Tcl_DStringAppendElement(dsPtr, newNsPtr->fullName);
-            Tcl_DStringAppendElement(dsPtr, "proc");
-            Tcl_DStringAppendElement(dsPtr, name);
-            Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
-            Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
-            if (procs) {
-              XOTclRequireObjectOpt(obj);
-              AssertionAppendPrePost(interp, dsPtr, procs);
-            }
-            /*fprintf(stderr, "new proc = '%s'\n",Tcl_DStringValue(dsPtr));*/
-            Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
-            DSTRING_FREE(dsPtr);
-          }
-          DECR_REF_COUNT(arglistObj);
-        } else {
-          /* Tcl Proc */
-          Tcl_VarEval(interp, "proc ", newName, " {", ObjStr(arglistObj), "} {\n",
-                      ObjStr(procPtr->bodyPtr), "}", (char *) NULL);
-        }
-      } else {
-        /*
-         * Otherwise copy command
-         */
-        Tcl_ObjCmdProc *objProc = Tcl_Command_objProc(cmd);
-        Tcl_CmdDeleteProc *deleteProc = Tcl_Command_deleteProc(cmd);
-        ClientData clientData;
-        if (objProc) {
-          clientData = Tcl_Command_objClientData(cmd);
-          if (clientData == NULL || clientData == (ClientData)XOTCL_CMD_NONLEAF_METHOD) {
-            /* if client data not null, we would have to copy
-               the client data; we don't know its size...., so rely
-               on introspection for copying */
-            Tcl_CreateObjCommand(interp, newName, objProc,
-                                 Tcl_Command_objClientData(cmd), deleteProc);
-          }
-        } else {
-          clientData = Tcl_Command_clientData(cmd);
-          if (clientData == NULL || clientData == (ClientData)XOTCL_CMD_NONLEAF_METHOD) {
-            Tcl_CreateCommand(interp, newName, Tcl_Command_proc(cmd),
-                              Tcl_Command_clientData(cmd), deleteProc);
-          }
-        }
-      }
-    }
-    hPtr = Tcl_NextHashEntry(&hSrch);
-    DECR_REF_COUNT(newFullCmdName); DECR_REF_COUNT(oldFullCmdName);
-  }
-  return TCL_OK;
-}
-
 
 #if defined(PRE85)
 int
@@ -12684,7 +12680,6 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_CreateObjCommand(interp, "::xotcl::unsetUnknownArgs",
                        XOTclUnsetUnknownArgsCmd, 0,0);
 #endif
-  Tcl_CreateObjCommand(interp, "::xotcl::namespace_copycmds", XOTcl_NSCopyCmds, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::__qualify", XOTclQualifyObjCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::trace", XOTcl_TraceObjCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::is", XOTclIsCmd, 0, 0);

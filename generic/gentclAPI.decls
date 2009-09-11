@@ -63,6 +63,10 @@ xotclCmd my XOTclMyCmd {
   {-argName "method" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
+xotclCmd namespace_copycmds XOTclNSCopyCmds {
+  {-argName "fromNs" -required 1 -type tclobj}
+  {-argName "toNs" -required 1 -type tclobj}
+}
 xotclCmd namespace_copyvars XOTclNSCopyVars {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
