@@ -10514,21 +10514,20 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
   int result;
   Tcl_Obj *rawConfArgs;
 
-  /* TODO cleanup here around....
-
-     a) definitions are freed on a class cleanup, with 
-        ParsedParamFree(cl->parsedParamPtr)
-
-     What should be done:
-
-    b) the same cleanup should be performed, whenever 
-        1) the class structure changes, DONE
-        2) instmixins are added DONE
-        3) slots are defined, DONE
-        4) slots defaults or types are changed ... maybe higher level support ?
-        5) slots removals (destroy on slots)
-
-  */
+  /* 
+   * Parameter definitions are cached in the class, for which
+   * instances are created. The parameter definitions are flushed in
+   * the following situations:
+   *
+   * a) on class cleanup: ParsedParamFree(cl->parsedParamPtr)
+   * b) on class structure changes,
+   * c) when instmixins are added,
+   * d) when new slots are defined,
+   * e) when slots are removed
+   *
+   * When slot defaults or types are changed, the slots have to 
+   * perform a manual "$domain invalidateobjectparameter"
+   */
 
   /*
    * Check, if there is already a parameter definition available for
