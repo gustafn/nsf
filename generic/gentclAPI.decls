@@ -29,8 +29,8 @@ xotclCmd configure XOTclConfigureCmd {
   {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
-  {-argName "rootClass" -required 1}
-  {-argName "rootMetaClass" -required 1}
+  {-argName "rootClass" -required 1 -type tclobj}
+  {-argName "rootMetaClass" -required 1 -type tclobj}
 }
 xotclCmd deprecated XOTclDeprecatedCmd {
   {-argName "oldCmd" -required 1}
@@ -189,7 +189,7 @@ objectMethod vwait XOTclOVwaitMethod {
 # class methods
 #
 classMethod alloc XOTclCAllocMethod {
-  {-argName "name" -required 1}
+  {-argName "name" -required 1 -type tclobj}
 }
 classMethod create XOTclCCreateMethod {
   {-argName "name" -required 1}

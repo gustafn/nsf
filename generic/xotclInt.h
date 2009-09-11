@@ -655,7 +655,6 @@ typedef struct XOTclRuntimeState {
   struct XOTclShadowTclCommandInfo *tclCommands;
   int errorCount;
   /* these flags could move into a bitarray, but are used only once per interp*/
-  int callDestroy;
   int unknown;
   int doFilters;
   int doSoftrecreate;

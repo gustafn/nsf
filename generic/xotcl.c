@@ -1436,7 +1436,7 @@ XOTclRequireClassOpt(XOTclClass *cl) {
 
 
 static Tcl_Namespace*
-NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, char *name);
+NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, char *name, int create);
 
 static void
 makeObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
@@ -1446,7 +1446,7 @@ makeObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
   if (!obj->nsPtr) {
     Tcl_Namespace *nsPtr;
     char *cmdName =  objectName(obj);
-    obj->nsPtr = NSGetFreshNamespace(interp, (ClientData)obj, cmdName);
+    obj->nsPtr = NSGetFreshNamespace(interp, (ClientData)obj, cmdName, 1);
     if (!obj->nsPtr)
       Tcl_Panic("makeObjNamespace: Unable to make namespace", NULL);
     nsPtr = obj->nsPtr;
@@ -1776,7 +1776,7 @@ XOTcl_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
 }
 
 static Tcl_Namespace*
-NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, char *name) {
+NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, char *name, int create) {
   Tcl_Namespace *nsPtr = Tcl_FindNamespace(interp, name, NULL, 0);
 
   if (nsPtr) {
@@ -1786,7 +1786,7 @@ NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, char *name) {
     }
     nsPtr->clientData = clientData;
     nsPtr->deleteProc = (Tcl_NamespaceDeleteProc *)NSNamespaceDeleteProc;
-  } else {
+  } else if (create) {
     nsPtr = Tcl_CreateNamespace(interp, name, clientData,
                              (Tcl_NamespaceDeleteProc *)NSNamespaceDeleteProc);
   }
@@ -7125,9 +7125,7 @@ PrimitiveOInit(void *mem, Tcl_Interp *interp, char *name, XOTclClass *cl) {
   XOTclObjectRefCountIncr(obj);
   MarkUndestroyed(obj);
 
-  if (Tcl_FindNamespace(interp, name, NULL, 0)) {
-    nsPtr = NSGetFreshNamespace(interp, (ClientData)obj, name);
-  }
+  nsPtr = NSGetFreshNamespace(interp, (ClientData)obj, name, 0);
   CleanupInitObject(interp, obj, cl, nsPtr, 0);
 
   /*obj->flags = XOTCL_MIXIN_ORDER_VALID | XOTCL_FILTER_ORDER_VALID;*/
@@ -7139,12 +7137,13 @@ PrimitiveOInit(void *mem, Tcl_Interp *interp, char *name, XOTclClass *cl) {
  * Object creation: create object name (full name) and Tcl command
  */
 static XOTclObject*
-PrimitiveOCreate(Tcl_Interp *interp, char *name, XOTclClass *cl) {
+PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTclClass *cl) {
   XOTclObject *obj = (XOTclObject*)ckalloc(sizeof(XOTclObject));
+  char *nameString = ObjStr(nameObj);
   unsigned length;
 
 #if defined(XOTCLOBJ_TRACE)
-  fprintf(stderr, "CKALLOC Object %p %s\n", obj, name);
+  fprintf(stderr, "CKALLOC Object %p %s\n", obj, nameString);
 #endif
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "+++ PrimitiveOCreate\n");
@@ -7153,24 +7152,23 @@ PrimitiveOCreate(Tcl_Interp *interp, char *name, XOTclClass *cl) {
   memset(obj, 0, sizeof(XOTclObject));
   MEM_COUNT_ALLOC("XOTclObject/XOTclClass", obj);
   assert(obj); /* ckalloc panics, if malloc fails */
-  assert(isAbsolutePath(name));
+  assert(isAbsolutePath(nameString));
 
-  length = strlen(name);
-  if (!NSCheckForParent(interp, name, length, cl)) {
+  length = strlen(nameString);
+  if (!NSCheckForParent(interp, nameString, length, cl)) {
     ckfree((char *) obj);
     return 0;
   }
-  obj->id = Tcl_CreateObjCommand(interp, name, XOTclObjDispatch,
+  obj->id = Tcl_CreateObjCommand(interp, nameString, XOTclObjDispatch,
                                  (ClientData)obj, tclDeletesObject);
 
-  PrimitiveOInit(obj, interp, name, cl);
+  PrimitiveOInit(obj, interp, nameString, cl);
 
-  obj->cmdName = Tcl_NewStringObj(name, length);
+  obj->cmdName = nameObj;
   /* convert cmdName to Tcl Obj of type cmdName */
-  Tcl_GetCommandFromObj(interp, obj->cmdName);
+  /*Tcl_GetCommandFromObj(interp, obj->cmdName);*/
 
   INCR_REF_COUNT(obj->cmdName);
-
   objTrace("PrimitiveOCreate", obj);
 
   return obj;
@@ -7498,7 +7496,7 @@ PrimitiveCInit(XOTclClass *cl, Tcl_Interp *interp, char *name) {
   if (Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr,
                         RUNTIME_STATE(interp)->XOTclClassesNS, 0) != TCL_OK)
     return;
-  nsPtr = NSGetFreshNamespace(interp, (ClientData)cl, name);
+  nsPtr = NSGetFreshNamespace(interp, (ClientData)cl, name, 1);
   Tcl_PopCallFrame(interp);
 
   CleanupInitClass(interp, cl, nsPtr, 0, 0);
@@ -7510,40 +7508,41 @@ PrimitiveCInit(XOTclClass *cl, Tcl_Interp *interp, char *name) {
  * calls class object creation
  */
 static XOTclClass*
-PrimitiveCCreate(Tcl_Interp *interp, char *name, XOTclClass *class) {
+PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTclClass *class) {
   XOTclClass *cl = (XOTclClass*)ckalloc(sizeof(XOTclClass));
+  char *nameString = ObjStr(nameObj);
   unsigned length;
   XOTclObject *obj = (XOTclObject*)cl;
 
-  /*fprintf(stderr, "CKALLOC Class %p %s\n", cl, name);*/
+  /*fprintf(stderr, "CKALLOC Class %p %s\n", cl, nameString);*/
 
   memset(cl, 0, sizeof(XOTclClass));
   MEM_COUNT_ALLOC("XOTclObject/XOTclClass", cl);
   /*
-    fprintf(stderr, " +++ CLS alloc: %s\n", name);
+    fprintf(stderr, " +++ CLS alloc: %s\n", nameString);
   */
-  assert(isAbsolutePath(name));
-  length = strlen(name);
+  assert(isAbsolutePathnameString);
+  length = strlen(nameString);
   /*
-    fprintf(stderr, "Class alloc %p '%s'\n", cl, name);
+    fprintf(stderr, "Class alloc %p '%s'\n", cl, nameString);
   */
   /* check whether Object parent NS already exists,
      otherwise: error */
-  if (!NSCheckForParent(interp, name, length, class)) {
+  if (!NSCheckForParent(interp, nameString, length, class)) {
     ckfree((char *) cl);
     return 0;
   }
-  obj->id = Tcl_CreateObjCommand(interp, name, XOTclObjDispatch,
+  obj->id = Tcl_CreateObjCommand(interp, nameString, XOTclObjDispatch,
                                  (ClientData)cl, tclDeletesObject);
 
-  PrimitiveOInit(obj, interp, name, class);
+  PrimitiveOInit(obj, interp, nameString, class);
 
-  obj->cmdName = Tcl_NewStringObj(name, length);
+  obj->cmdName = nameObj;
   /* convert cmdName to Tcl Obj of type cmdName */
-  Tcl_GetCommandFromObj(interp,obj->cmdName);
+  /* Tcl_GetCommandFromObj(interp,obj->cmdName);*/
 
   INCR_REF_COUNT(obj->cmdName);
-  PrimitiveCInit(cl, interp, name+2);
+  PrimitiveCInit(cl, interp, nameString+2);
 
   objTrace("PrimitiveCCreate", obj);
   return cl;
@@ -9533,9 +9532,9 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
 
 
 int
-XOTclCreateObjectSystemCmd(Tcl_Interp *interp, char *Object, char *Class) {
-  XOTclClass *theobj = 0;
-  XOTclClass *thecls = 0;
+XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class) {
+  XOTclClass *theobj;
+  XOTclClass *thecls;
 
   /* Create a basic object system with the basic root class Object and
      the basic metaclass Class, and store them in the RUNTIME STATE if
@@ -9552,7 +9551,6 @@ XOTclCreateObjectSystemCmd(Tcl_Interp *interp, char *Object, char *Class) {
   /* test Object and Class creation */
   if (!theobj || !thecls) {
     int i;
-    RUNTIME_STATE(interp)->callDestroy = 0;
 
     if (thecls) PrimitiveCDestroy((ClientData) thecls);
     if (theobj) PrimitiveCDestroy((ClientData) theobj);
@@ -11242,8 +11240,9 @@ static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, char *varname
  * Begin Class Methods
  ***************************/
 
-static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, char *name) {
+static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name) {
   Tcl_Obj *tmpName = NULL;
+  char *nameString = ObjStr(name);
   int result;
 
   /*
@@ -11251,20 +11250,20 @@ static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, char *name) {
    */
 
   /*fprintf(stderr, " **** 0 class '%s' wants to alloc '%s'\n",className(cl),name);*/
-  if (!NSCheckColons(name, 0)) {
+  if (!NSCheckColons(nameString, 0)) {
     return XOTclVarErrMsg(interp, "Cannot allocate object -- illegal name '",
-                          name, "'", (char *) NULL);
+                          nameString, "'", (char *) NULL);
   }
 
   /*
    * If the path is not absolute, we add the appropriate namespace
    */
-  if (!isAbsolutePath(name)) {
-    tmpName = NameInNamespaceObj(interp, name, callingNameSpace(interp));
+  if (!isAbsolutePath(nameString)) {
+    name = tmpName = NameInNamespaceObj(interp, nameString, callingNameSpace(interp));
+    INCR_REF_COUNT(tmpName);
     /*fprintf(stderr, " **** NoAbsoluteName for '%s' -> determined = '%s'\n",
       name, ObjStr(tmpName));*/
-    name = ObjStr(tmpName);
-    INCR_REF_COUNT(tmpName);
+    nameString = ObjStr(tmpName);
   }
 
   if (IsMetaClass(interp, cl, 1)) {
@@ -11277,7 +11276,7 @@ static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, char *name) {
                               "' (possibly parent namespace does not exist)",
                               (char *) NULL);
     } else {
-      Tcl_SetObjResult(interp, newcl->object.cmdName);
+      Tcl_SetObjResult(interp, name);
       result = TCL_OK;
     }
   } else {
@@ -11286,12 +11285,12 @@ static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, char *name) {
      */
     XOTclObject *newObj = PrimitiveOCreate(interp, name, cl);
     if (newObj == 0)
-      result = XOTclVarErrMsg(interp, "Object alloc failed for '", name,
+      result = XOTclVarErrMsg(interp, "Object alloc failed for '", nameString,
                               "' (possibly parent namespace does not exist)",
                               (char *) NULL);
     else {
+      Tcl_SetObjResult(interp, name);
       result = TCL_OK;
-      Tcl_SetObjResult(interp, newObj->cmdName);
     }
   }
 
@@ -12338,7 +12337,6 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable,
   deleteProcsAndVars(interp);
 #endif
 
-  RUNTIME_STATE(interp)->callDestroy = 0;
   RemoveSuper(rootMetaClass, rootClass);
   RemoveInstance((XOTclObject*)rootMetaClass, rootMetaClass);
   RemoveInstance((XOTclObject*)rootClass, rootMetaClass);
@@ -12595,7 +12593,6 @@ Xotcl_Init(Tcl_Interp *interp) {
 #endif
 
   RUNTIME_STATE(interp)->doFilters = 1;
-  RUNTIME_STATE(interp)->callDestroy = 1;
   RUNTIME_STATE(interp)->cacheInterface = 1; /* TODO xxx should not stay */
 
   /* create xotcl namespace */
