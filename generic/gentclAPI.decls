@@ -54,7 +54,7 @@ xotclCmd instvar XOTclInstvarCmd {
 xotclCmd is XOTclIsCmd {
   {-argName "object" -required 1 -type tclobj}
   {-argName "objectkind" -type "type|object|class|metaclass|mixin"}
-  {-argName "value" -required 0 -type class}
+  {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
@@ -133,21 +133,6 @@ objectMethod instvar XOTclOInstVarMethod {
 }
 objectMethod invar XOTclOInvariantsMethod {
   {-argName "invariantlist" -required 1 -type tclobj}
-}
-objectMethod isclass XOTclOIsClassMethod {
-  {-argName "class" -type tclobj}
-}
-objectMethod ismetaclass XOTclOIsMetaClassMethod {
-  {-argName "metaclass" -type tclobj}
-}
-objectMethod ismixin XOTclOIsMixinMethod {
-  {-argName "class" -required 1 -type tclobj}
-}
-objectMethod isobject XOTclOIsObjectMethod {
-  {-argName "object"  -required 1 -type tclobj}
-}
-objectMethod istype XOTclOIsTypeMethod {
-  {-argName "class" -required 1 -type tclobj}
 }
 objectMethod mixinguard XOTclOMixinGuardMethod {
   {-argName "mixin" -required 1}

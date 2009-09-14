@@ -9699,36 +9699,41 @@ XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[
 }
 
 
-static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, XOTclClass *value) {
+static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_Obj *value) {
   int success = TCL_ERROR;
   XOTclObject *obj;
+  XOTclClass *cl;
 
   switch (objectkind) {
   case objectkindTypeIdx:
-    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "type <object> <type>");
-    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) && isSubType(obj->cl, value);
+    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> type <type>");
+    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) 
+      && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK) 
+      && isSubType(obj->cl, cl);
     break;
 
   case objectkindObjectIdx:
-    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "object <object>");
+    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> object");
     success = (GetObjectFromObj(interp, object, &obj) == TCL_OK);
     break;
 
   case objectkindClassIdx:
-    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "class <class>");
+    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<class> class");
     success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) && XOTclObjectIsClass(obj);
     break;
 
   case objectkindMetaclassIdx:
-    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "metaclass <class>");
+    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<class> metaclass");
     success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) 
-      && XOTclObjectIsClass(obj) && IsMetaClass(interp, (XOTclClass*)obj, 1);
+      && XOTclObjectIsClass(obj) 
+      && IsMetaClass(interp, (XOTclClass*)obj, 1);
     break;
 
   case objectkindMixinIdx:
-    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "mixin <object> <class>");
-    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) && 
-      (hasMixin(interp, obj, value) == TCL_OK);
+    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> mixin <class>");
+    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) 
+      && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK) 
+      && hasMixin(interp, obj, cl);
     break;
   }
 
@@ -10833,12 +10838,6 @@ static int XOTclOIsMixinMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *cl
   }
   Tcl_ResetResult(interp);
   Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
-  return TCL_OK;
-}
-
-static int XOTclOIsObjectMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *object) {
-  XOTclObject *o;
-  Tcl_SetIntObj(Tcl_GetObjResult(interp), (GetObjectFromObj(interp, object, &o) == TCL_OK));
   return TCL_OK;
 }
 

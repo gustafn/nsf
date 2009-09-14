@@ -3062,14 +3062,14 @@ smallScripts proc run {{n 20}} {
 
     ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg f filter filterguard filtersearch forward hasclass incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move myProc myProc2 myProcMix1 myProcMix2 noinit objectparameter objproc parametercmd proc procsearch requireNamespace self set setFilter setvalues signature subst trace unset uplevel upvar volatile vwait"  "b info methods"
 
-    ::errorCheck [lsort [b info methods -nocmds]] "abstract contains copy defaultmethod extractConfigureArg f hasclass init method move myProc myProc2 myProcMix1 myProcMix2 objectparameter objproc self setFilter signature" "b info methods -nocmds"
+    ::errorCheck [lsort [b info methods -nocmds]] "abstract contains copy defaultmethod extractConfigureArg f hasclass init isclass ismetaclass ismixin isobject istype method move myProc myProc2 myProcMix1 myProcMix2 objectparameter objproc self setFilter signature" "b info methods -nocmds"
 
-    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar isclass ismetaclass ismixin isobject istype lappend mixin mixinguard noinit parametercmd proc procsearch requireNamespace set setvalues subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
-    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract contains copy defaultmethod extractConfigureArg f hasclass init method move myProc myProc2 objectparameter objproc self setFilter signature" "b info methods -nocmds -nomixins"
+    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar lappend mixin mixinguard noinit parametercmd proc procsearch requireNamespace set setvalues subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
+    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract contains copy defaultmethod extractConfigureArg f hasclass init isclass ismetaclass ismixin isobject istype method move myProc myProc2 objectparameter objproc self setFilter signature" "b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "b info methods -nocmds -noprocs"
 
-    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances contains copy defaultmethod extractConfigureArg f hasclass init method move objectparameter parameter self setFilter signature uses" "B info methods -nocmds"
+    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances contains copy defaultmethod extractConfigureArg f hasclass init isclass ismetaclass ismixin isobject istype method move objectparameter parameter self setFilter signature uses" "B info methods -nocmds"
 
     namespace eval a {
 	proc o args {return o}

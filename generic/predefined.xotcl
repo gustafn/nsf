@@ -155,12 +155,12 @@ namespace eval ::xotcl {
   #
   #   already emulated:
   #
-  #    => info params
+  #    => info params .... replaces
   #     info args
   #     info nonposargs
   #     info default
   #
-  #    => info instparams
+  #    => info instparams .... replaces
   #     info instargs
   #     info instnonposargs
   #     info instdefault
@@ -172,12 +172,12 @@ namespace eval ::xotcl {
   #
   #  TODO: not yet emulated:
   #
-  #    => info is 
+  #    => info is (bzw. ::xotcl::is) replaces
   #     isobject
   #     isclass
   #     ismetaclass
   #     ismixin
-  #     istype??
+  #     istype
   # 
   #    => method (should get pre- and postconditions via positional params)
   #     proc
@@ -239,6 +239,13 @@ namespace eval ::xotcl {
   ::xotcl::classInfo  proc instdefault {o method arg var} {::xotcl::info_default inst $o $method $arg $var}
   ::xotcl::classInfo  proc default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
   ::xotcl::objectInfo proc default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
+
+  # emulation of isobject, ...
+  ::xotcl::Object instproc isobject    {{object:substdefault "[self]"}} {::xotcl::is $object object}
+  ::xotcl::Object instproc isclass     {{class:substdefault  "[self]"}} {::xotcl::is $class class}
+  ::xotcl::Object instproc ismetaclass {{class:substdefault  "[self]"}} {::xotcl::is $class metaclass}
+  ::xotcl::Object instproc ismixin     {class}  {::xotcl::is [self] mixin $class}
+  ::xotcl::Object instproc istype      {class}  {::xotcl::is [self] type $class}
 
   # documentation stub object -> just ignore per default. 
   # if xoDoc is loaded, documentation will be activated
@@ -467,12 +474,12 @@ namespace eval ::xotcl {
       return [$obj $prop [lsearch -all -not -glob -inline $old $value]]
     } elseif {[my elementtype] ne ""} {
       if {[string first :: $value] == -1} {
-        if {![my isobject $value]} {
+        if {![::xotcl::is $value object]} {
           error "$value does not appear to be an object"
         }
         set value [$value self]
       }
-      if {![$value isclass [my elementtype]]} {
+      if {![::xotcl::is [my elementtype] class]} {
         error "$value does not appear to be of type [my elementtype]"
       }
     }
@@ -581,9 +588,9 @@ namespace eval ::xotcl {
     set __initcmd ""
     if {[::xotcl::my exists type]} {
       ::xotcl::my instvar type name
-      if {[::xotcl::Object isclass $type]} {
+      if {[::xotcl::is $type class]} {
         set predicate [subst -nocommands {
-          [::xotcl::Object isobject \$value] && [\$value istype $type]
+          [::xotcl::is \$value object] && [::xotcl::is \$value type $type]
         }]
       } elseif {[llength $type]>1} {
         set predicate "\[$type \$value\]"
@@ -663,7 +670,7 @@ namespace eval ::xotcl {
   ::xotcl::ScopedNew instproc init {} {
     ::xotcl::my instproc new {-childof args} {
       [::xotcl::self class] instvar {inobject object} withclass
-      if {![::xotcl::my isobject $object]} {
+      if {![::xotcl::is $object object]} {
         $withclass create $object
       }
       eval ::xotcl::next -childof $object $args
@@ -681,7 +688,7 @@ namespace eval ::xotcl {
     {-class ::xotcl::Object} 
     cmds} {
       if {![info exists object]} {set object [::xotcl::self]}
-      if {![::xotcl::my isobject $object]} {$class create $object}
+      if {![::xotcl::is $object object]} {$class create $object}
       $object requireNamespace
       if {$withnew} {
         set m [::xotcl::ScopedNew new \
@@ -788,8 +795,8 @@ namespace eval ::xotcl {
 
   # support for XOTcl specific convenience routines
   ::xotcl::Object instproc hasclass cl {
-    if {[::xotcl::my ismixin $cl]} {return 1}
-    ::xotcl::my istype $cl
+    if {[::xotcl::is [self] mixin $cl]} {return 1}
+    ::xotcl::is [self] type $cl
   }
   ::xotcl::Class instproc allinstances {} {
     # TODO: mark it deprecated
@@ -840,7 +847,7 @@ namespace eval ::xotcl {
   ::xotcl::Object::CopyHandler instproc makeTargetList t {
     ::xotcl::my lappend targetList $t
     # if it is an object without namespace, it is a leaf
-    if {[::xotcl::my isobject $t]} {
+    if {[::xotcl::is $t object]} {
       if {[$t info hasnamespace]} {
         # make target list from all children
         set children [$t info children]
@@ -852,7 +859,7 @@ namespace eval ::xotcl {
     # now append all namespaces that are in the obj, but that
     # are not objects
     foreach c [namespace children $t] {
-      if {![::xotcl::my isobject $c]} {
+      if {![::xotcl::is $c object]} {
         lappend children [namespace children $t]
       }
     }
@@ -879,9 +886,9 @@ namespace eval ::xotcl {
     #puts stderr "COPY will copy targetList = [::xotcl::my set targetList]"
     foreach origin [::xotcl::my set targetList] {
       set dest [::xotcl::my getDest $origin]
-      if {[::xotcl::my isobject $origin]} {
+      if {[::xotcl::is $origin object]} {
         # copy class information
-        if {[::xotcl::my isclass $origin]} {
+        if {[::xotcl::is $origin class]} {
           set cl [[$origin info class] create $dest -noinit]
           # class object
           set obj $cl
@@ -909,7 +916,7 @@ namespace eval ::xotcl {
       foreach i [$origin info forward] {
         eval [concat $dest forward $i [$origin info forward -definition $i]]
       }
-      if {[::xotcl::my isclass $origin]} {
+      if {[::xotcl::is $origin class]} {
         foreach i [$origin info instforward] {
           eval [concat $dest instforward $i [$origin info instforward -definition $i]]
         }
@@ -932,7 +939,7 @@ namespace eval ::xotcl {
     }
     # alter 'domain' and 'manager' in slot objects for classes
     foreach origin [::xotcl::my set targetList] {
-      if {[::xotcl::my isclass $origin]} {
+      if {[::xotcl::is $origin class]} {
         set dest [::xotcl::my getDest $origin]
         foreach oldslot [$origin info slots] {
           set newslot ${dest}::slot::[namespace tail $oldslot]
@@ -967,7 +974,7 @@ namespace eval ::xotcl {
         ::xotcl::my copy $newName
       }
       ### let all subclasses get the copied class as superclass
-      if {[::xotcl::my isclass [::xotcl::self]] && $newName ne ""} {
+      if {[::xotcl::is [::xotcl::self] class] && $newName ne ""} {
         foreach subclass [::xotcl::my info subclass] {
           set scl [$subclass info superclass]
           if {[set index [lsearch -exact $scl [::xotcl::self]]] != -1} {
