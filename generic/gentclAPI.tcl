@@ -44,6 +44,7 @@ proc genifd {parameterDefinitions} {
     switch -glob $type {
       "NULL"       {set converter String}
       "boolean"    {set converter Boolean}
+      "switch"     {set converter Boolean}
       "class"      {set converter Class}
       "object"     {set converter Object}
       "tclobj"     {set converter Tclobj}

@@ -68,11 +68,11 @@ namespace eval ::xotcl {
     ::xotcl::alias ::xotcl::Class [namespace tail $cmd] $cmd 
   }
   # "init" must exist on Object. per default it is empty.
-  ::xotcl::Object instproc init args {}
+  ::xotcl::Object method init args {}
 
   # provide a placeholder for the bootup process. The real definition
   # is based on slots, which are not available at this point.
-  ::xotcl::Object instproc objectparameter {} {;}
+  ::xotcl::Object method objectparameter {} {;}
 
   #
   # create class and object for nonpositional argument processing
@@ -120,7 +120,7 @@ namespace eval ::xotcl {
     regsub {\"} $msg "\"info " msg
     error $msg ""
   }
-  ::xotcl::objectInfo proc info {obj} {
+  ::xotcl::objectInfo method info {obj} {
     set methods [list]
     foreach m [::info commands ::xotcl::objectInfo::*] {
       set name [namespace tail $m]
@@ -129,11 +129,11 @@ namespace eval ::xotcl {
     }
     return "valid options are: [join [lsort $methods] {, }]"
   }
-  ::xotcl::objectInfo proc unknown {method args} {
+  ::xotcl::objectInfo method unknown {method args} {
     error "unknown info option \"$method\"; [my info info]"
   }
 
-  ::xotcl::classInfo proc info {cl} {
+  ::xotcl::classInfo method info {cl} {
     set methods [list]
     foreach m [::info commands ::xotcl::classInfo::*] {
       set name [namespace tail $m]
@@ -142,7 +142,7 @@ namespace eval ::xotcl {
     }
     return "valid options are: [join [lsort $methods] {, }]"
   }
-  ::xotcl::classInfo proc unknown {method args} {
+  ::xotcl::classInfo method unknown {method args} {
     error "unknown info option \"$method\"; [my info info]"
   }
 
@@ -228,30 +228,50 @@ namespace eval ::xotcl {
     error "procedure \"$method\" doesn't have an argument \"$varName\""
   }
   
-  ::xotcl::classInfo  proc instargs {o method} {::xotcl::info_args inst $o $method}
-  ::xotcl::classInfo  proc args     {o method} {::xotcl::info_args "" $o $method}
-  ::xotcl::objectInfo proc args     {o method} {::xotcl::info_args "" $o $method}
+  ::xotcl::classInfo  method instargs {o method} {::xotcl::info_args inst $o $method}
+  ::xotcl::classInfo  method args     {o method} {::xotcl::info_args "" $o $method}
+  ::xotcl::objectInfo method args     {o method} {::xotcl::info_args "" $o $method}
 
-  ::xotcl::classInfo  proc instnonposargs {o method} {::xotcl::info_nonposargs inst $o $method}
-  ::xotcl::classInfo  proc nonposargs     {o method} {::xotcl::info_nonposargs "" $o $method}
-  ::xotcl::objectInfo proc nonposargs     {o method} {::xotcl::info_nonposargs "" $o $method}
+  ::xotcl::classInfo  method instnonposargs {o method} {::xotcl::info_nonposargs inst $o $method}
+  ::xotcl::classInfo  method nonposargs     {o method} {::xotcl::info_nonposargs "" $o $method}
+  ::xotcl::objectInfo method nonposargs     {o method} {::xotcl::info_nonposargs "" $o $method}
 
-  ::xotcl::classInfo  proc instdefault {o method arg var} {::xotcl::info_default inst $o $method $arg $var}
-  ::xotcl::classInfo  proc default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
-  ::xotcl::objectInfo proc default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
+  ::xotcl::classInfo  method instdefault {o method arg var} {::xotcl::info_default inst $o $method $arg $var}
+  ::xotcl::classInfo  method default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
+  ::xotcl::objectInfo method default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
 
   # emulation of isobject, ...
-  ::xotcl::Object instproc isobject    {{object:substdefault "[self]"}} {::xotcl::is $object object}
-  ::xotcl::Object instproc isclass     {{class:substdefault  "[self]"}} {::xotcl::is $class class}
-  ::xotcl::Object instproc ismetaclass {{class:substdefault  "[self]"}} {::xotcl::is $class metaclass}
-  ::xotcl::Object instproc ismixin     {class}  {::xotcl::is [self] mixin $class}
-  ::xotcl::Object instproc istype      {class}  {::xotcl::is [self] type $class}
+  ::xotcl::Object method isobject    {{object:substdefault "[self]"}} {::xotcl::is $object object}
+  ::xotcl::Object method isclass     {{class:substdefault  "[self]"}} {::xotcl::is $class class}
+  ::xotcl::Object method ismetaclass {{class:substdefault  "[self]"}} {::xotcl::is $class metaclass}
+  ::xotcl::Object method ismixin     {class}  {::xotcl::is [self] mixin $class}
+  ::xotcl::Object method istype      {class}  {::xotcl::is [self] type $class}
+
+  #
+  ::xotcl::Object method proc {name arglist body precondition:optional postcondition:optional} {
+     set cmd [list my method $name $arglist $body]
+     if {[info exists precondition]}  {lappend cmd -precondition  $precondition}
+     if {[info exists postcondition]} {lappend cmd -postcondition $postcondition}
+     eval $cmd
+  }
+  ::xotcl::Class method proc {name arglist body precondition:optional postcondition:optional} {
+     set cmd [list my method -per-object $name $arglist $body]
+     if {[info exists precondition]}  {lappend cmd -precondition  $precondition}
+     if {[info exists postcondition]} {lappend cmd -postcondition $postcondition}
+     eval $cmd
+  }
+  ::xotcl::Class method instproc {name arglist body precondition:optional postcondition:optional} {
+     set cmd [list my method $name $arglist $body]
+     if {[info exists precondition]}  {lappend cmd -precondition  $precondition}
+     if {[info exists postcondition]} {lappend cmd -postcondition $postcondition}
+     eval $cmd
+  }
 
   # documentation stub object -> just ignore per default. 
   # if xoDoc is loaded, documentation will be activated
   ::xotcl::Object create ::xotcl::@
 
-  ::xotcl::@ proc unknown args {}
+  ::xotcl::@ method unknown args {}
   proc ::xotcl::myproc {args} {linsert $args 0 [::xotcl::self]} 
   proc ::xotcl::myvar  {var}  {::xotcl::my requireNamespace; return [::xotcl::self]::$var} 
 
@@ -265,7 +285,7 @@ namespace eval ::xotcl {
   ::xotcl::Class create ::xotcl::MetaSlot
   ::xotcl::relation ::xotcl::MetaSlot superclass ::xotcl::Class
 
-  ::xotcl::MetaSlot instproc new args {
+  ::xotcl::MetaSlot method new args {
     set slotobject [::xotcl::self callingobject]::slot
     if {![::xotcl::is $slotobject object]} {::xotcl::Object create $slotobject}
     eval next -childof $slotobject $args
@@ -285,7 +305,7 @@ namespace eval ::xotcl {
 
   # Provide the a slot based mechanism for building an object
   # configuration interface from slot definitions
-  ::xotcl::Object instproc objectparameter {} {
+  ::xotcl::Object method objectparameter {} {
     set parameterdefinitions [list]
     # don't call [my info slotobjects], since filters on [self]
     # modifying the result (such as in the regression test) will cause
@@ -393,7 +413,7 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::Slot get ::xotcl::setinstvar
   ::xotcl::alias ::xotcl::Slot assign ::xotcl::setinstvar
 
-  ::xotcl::Slot instproc add {obj prop value {pos 0}} {
+  ::xotcl::Slot method add {obj prop value {pos 0}} {
     if {![::xotcl::my multivalued]} {
       error "Property $prop of [::xotcl::my domain]->$obj ist not multivalued"
     }
@@ -404,7 +424,7 @@ namespace eval ::xotcl {
     }
     #[::xotcl::my domain] invalidateobjectparameter  ;# TODO maybe not needed here
   }
-  ::xotcl::Slot instproc delete {-nocomplain:switch obj prop value} {
+  ::xotcl::Slot method delete {-nocomplain:switch obj prop value} {
     set old [$obj set $prop]
     set p [lsearch -glob $old $value]
     if {$p>-1} {$obj set $prop [lreplace $old $p $p]} else {
@@ -412,7 +432,7 @@ namespace eval ::xotcl {
     }
   }
 
-  ::xotcl::Slot instproc unknown {method args} {
+  ::xotcl::Slot method unknown {method args} {
     set methods [list]
     foreach m [::xotcl::my info methods] {
       if {[::xotcl::Object info methods $m] ne ""} continue
@@ -423,7 +443,7 @@ namespace eval ::xotcl {
   }
 
   # TODO crashes currently
-  ::xotcl::Slot instproc destroy {} {
+  ::xotcl::Slot method destroy {} {
     ::xotcl::instvar domain
     if {$domain ne ""} {
       $domain invalidateobjectparameter
@@ -431,7 +451,7 @@ namespace eval ::xotcl {
     next
   }
 
-  ::xotcl::Slot instproc init {} {
+  ::xotcl::Slot method init {} {
     ::xotcl::instvar name domain manager per-object
     #puts stderr "slot init [self] exists name? [info exists name] '$name'"
     set forwarder [expr {${per-object} ? "forward" : "instforward"}]
@@ -456,14 +476,14 @@ namespace eval ::xotcl {
     {elementtype ::xotcl::Class}
   }
   ::xotcl::relation ::xotcl::InfoSlot superclass ::xotcl::Slot
-  ::xotcl::InfoSlot instproc get {obj prop} {$obj info $prop}
-  ::xotcl::InfoSlot instproc add {obj prop value {pos 0}} {
+  ::xotcl::InfoSlot method get {obj prop} {$obj info $prop}
+  ::xotcl::InfoSlot method add {obj prop value {pos 0}} {
     if {![::xotcl::my multivalued]} {
       error "Property $prop of [::xotcl::my domain]->$obj ist not multivalued"
     }
     $obj $prop [linsert [$obj info $prop] $pos $value]
   }
-  ::xotcl::InfoSlot instproc delete {-nocomplain:switch obj prop value} {
+  ::xotcl::InfoSlot method delete {-nocomplain:switch obj prop value} {
     set old [$obj info $prop]
     if {[string first * $value] > -1 || [string first \[ $value] > -1} {
       # string contains meta characters
@@ -500,7 +520,7 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::InterceptorSlot set ::xotcl::relation ;# for backwards compatibility
   ::xotcl::alias ::xotcl::InterceptorSlot assign ::xotcl::relation
 
-  ::xotcl::InterceptorSlot instproc add {obj prop value {pos 0}} {
+  ::xotcl::InterceptorSlot method add {obj prop value {pos 0}} {
     if {![::xotcl::my multivalued]} {
       error "Property $prop of [::xotcl::my domain]->$obj ist not multivalued"
     }
@@ -547,21 +567,21 @@ namespace eval ::xotcl {
     valuechangedcmd
   }
 
-  ::xotcl::Attribute instproc __default_from_cmd {obj cmd var sub op} {
+  ::xotcl::Attribute method __default_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
     $obj trace remove variable $var $op [list [::xotcl::self] [::xotcl::self proc] $obj $cmd]
     $obj set $var [$obj eval $cmd]
   }
-  ::xotcl::Attribute instproc __value_from_cmd {obj cmd var sub op} {
+  ::xotcl::Attribute method __value_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
     $obj set $var [$obj eval $cmd]
   }
-  ::xotcl::Attribute instproc __value_changed_cmd {obj cmd var sub op} {
+  ::xotcl::Attribute method __value_changed_cmd {obj cmd var sub op} {
     # puts stderr "**************************"
     # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [$obj set $var]"
     eval $cmd
   }
-  ::xotcl::Attribute instproc check_single_value {
+  ::xotcl::Attribute method check_single_value {
     {-keep_old_value:boolean true}
     value predicate type obj var
   } {
@@ -578,13 +598,13 @@ namespace eval ::xotcl {
     #puts "+++ checking single value done"
   }
 
-  ::xotcl::Attribute instproc check_multiple_values {values predicate type obj var} {
+  ::xotcl::Attribute method check_multiple_values {values predicate type obj var} {
     foreach value $values {
       ::xotcl::my check_single_value -keep_old_value false $value $predicate $type $obj $var
     }
     $obj set __oldvalue($var) $value
   }
-  ::xotcl::Attribute instproc mk_type_checker {} {
+  ::xotcl::Attribute method mk_type_checker {} {
     set __initcmd ""
     if {[::xotcl::my exists type]} {
       ::xotcl::my instvar type name
@@ -611,7 +631,7 @@ namespace eval ::xotcl {
     }
     return $__initcmd
   }
-  ::xotcl::Attribute instproc init {} {
+  ::xotcl::Attribute method init {} {
     ::xotcl::my instvar domain name
     next ;# do first ordinary slot initialization
     # there might be already default values registered on the class
@@ -636,13 +656,13 @@ namespace eval ::xotcl {
 
   # mixin class for decativating all checks
 ::xotcl::Class create ::xotcl::Slot::Nocheck \
-      -instproc check_single_value args {;} -instproc check_multiple_values args {;} \
-      -instproc mk_type_checker args {return ""}
+      -method check_single_value args {;} -method check_multiple_values args {;} \
+      -method mk_type_checker args {return ""}
   ::xotcl::Class create ::xotcl::Slot::Optimizer \
-      -instproc proc args    {::xotcl::next; ::xotcl::my optimize} \
-      -instproc forward args {::xotcl::next; ::xotcl::my optimize} \
-      -instproc init args    {::xotcl::next; ::xotcl::my optimize} \
-      -instproc optimize {} {
+      -method proc args    {::xotcl::next; ::xotcl::my optimize} \
+      -method forward args {::xotcl::next; ::xotcl::my optimize} \
+      -method init args    {::xotcl::next; ::xotcl::my optimize} \
+      -method optimize {} {
         #puts stderr "slot optimizer for [::xotcl::my domain] calls invalidateobjectparameter"
         #[::xotcl::my domain] invalidateobjectparameter
         if {[::xotcl::my multivalued]} return
@@ -667,8 +687,8 @@ namespace eval ::xotcl {
     inobject
   }
 
-  ::xotcl::ScopedNew instproc init {} {
-    ::xotcl::my instproc new {-childof args} {
+  ::xotcl::ScopedNew method init {} {
+    ::xotcl::my method new {-childof args} {
       [::xotcl::self class] instvar {inobject object} withclass
       if {![::xotcl::is $object object]} {
         $withclass create $object
@@ -682,7 +702,7 @@ namespace eval ::xotcl {
   # nested object structures. Optionally, creating new objects
   # in the specified scope can be turned off.
   #
-  ::xotcl::Object instproc contains {
+  ::xotcl::Object method contains {
     {-withnew:boolean true} 
     -object 
     {-class ::xotcl::Object} 
@@ -706,7 +726,7 @@ namespace eval ::xotcl {
   #
   # define parameter for backward compatibility and convenience
   #
-  ::xotcl::Class instproc parameter arglist {
+  ::xotcl::Class method parameter arglist {
     if {![::xotcl::is [::xotcl::self]::slot object]} {
       ::xotcl::Object create [::xotcl::self]::slot
     }
@@ -765,7 +785,7 @@ namespace eval ::xotcl {
           if {![info exists setter]} {set setter set}
           if {![info exists getter]} {set getter set}
           if {![info exists access]} {set access ::xotcl::my}
-          $cl instproc $name args "
+          $cl method $name args "
          if {\[llength \$args] == 0} {
            return \[$access $getter $extra $name\]
          } else {
@@ -785,8 +805,8 @@ namespace eval ::xotcl {
   #
   # utilities
   #
-  ::xotcl::Object instproc self {} {::xotcl::self}
-  ::xotcl::Object instproc defaultmethod {} {
+  ::xotcl::Object method self {} {::xotcl::self}
+  ::xotcl::Object method defaultmethod {} {
     #if {"::" ne [::xotcl::my info parent] } {
     #  [::xotcl::my info parent] __next
     #}
@@ -794,35 +814,35 @@ namespace eval ::xotcl {
   }
 
   # support for XOTcl specific convenience routines
-  ::xotcl::Object instproc hasclass cl {
+  ::xotcl::Object method hasclass cl {
     if {[::xotcl::is [self] mixin $cl]} {return 1}
     ::xotcl::is [self] type $cl
   }
-  ::xotcl::Class instproc allinstances {} {
+  ::xotcl::Class method allinstances {} {
     # TODO: mark it deprecated
     return [::xotcl::my info instances -closure]
   }
 
   # Exit Handler
-  ::xotcl::Object proc unsetExitHandler {} {
-    ::xotcl::Object proc __exitHandler {} {
+  ::xotcl::Object method -per-object unsetExitHandler {} {
+    ::xotcl::Object method -per-object __exitHandler {} {
       # clients should append exit handlers to this proc body
       ;
     }
   }
   # pre-defined as empty method
   ::xotcl::Object unsetExitHandler
-  ::xotcl::Object proc setExitHandler {newbody} {
-    ::xotcl::Object proc __exitHandler {} $newbody
+  ::xotcl::Object method -per-object setExitHandler {newbody} {
+    ::xotcl::Object method -per-object __exitHandler {} $newbody
   }
-  ::xotcl::Object proc getExitHandler {} {
+  ::xotcl::Object method -per-object getExitHandler {} {
     ::xotcl::Object info body __exitHandler
   }
   # provide a global handler to avoid a proc on the global object.
   proc ::xotcl::__exitHandler {} {
     ::xotcl::Object __exitHandler
   }
-  ::xotcl::Object instproc abstract {methtype methname arglist} {
+  ::xotcl::Object method abstract {methtype methname arglist} {
   if {$methtype ne "proc" && $methtype ne "instproc" && $methtype ne "method"} {
       error "invalid method type '$methtype', \
 	must be either 'proc', 'instproc' or 'method'."
@@ -844,7 +864,7 @@ namespace eval ::xotcl {
   }
   
   # targets are all namspaces and objs part-of the copied obj
-  ::xotcl::Object::CopyHandler instproc makeTargetList t {
+  ::xotcl::Object::CopyHandler method makeTargetList t {
     ::xotcl::my lappend targetList $t
     # if it is an object without namespace, it is a leaf
     if {[::xotcl::is $t object]} {
@@ -871,18 +891,18 @@ namespace eval ::xotcl {
     }
   }
   
-  ::xotcl::Object::CopyHandler instproc copyNSVarsAndCmds {orig dest} {
+  ::xotcl::Object::CopyHandler method copyNSVarsAndCmds {orig dest} {
     ::xotcl::namespace_copyvars $orig $dest
     ::xotcl::namespace_copycmds $orig $dest
   }
   
   # construct destination obj name from old qualified ns name
-  ::xotcl::Object::CopyHandler instproc getDest origin {
+  ::xotcl::Object::CopyHandler method getDest origin {
     set tail [string range $origin [::xotcl::my set objLength] end]
     return ::[string trimleft [::xotcl::my set dest]$tail :]
   }
   
-  ::xotcl::Object::CopyHandler instproc copyTargets {} {
+  ::xotcl::Object::CopyHandler method copyTargets {} {
     #puts stderr "COPY will copy targetList = [::xotcl::my set targetList]"
     foreach origin [::xotcl::my set targetList] {
       set dest [::xotcl::my getDest $origin]
@@ -950,7 +970,7 @@ namespace eval ::xotcl {
     }
   }
   
-  ::xotcl::Object::CopyHandler instproc copy {obj dest} {
+  ::xotcl::Object::CopyHandler method copy {obj dest} {
     #puts stderr "[::xotcl::self] copy <$obj> <$dest>"
     ::xotcl::my set objLength [string length $obj]
     ::xotcl::my set dest $dest
@@ -959,16 +979,16 @@ namespace eval ::xotcl {
   }
   
   #Class create ::xotcl::NoInit
-  #::xotcl::NoInit instproc init args {;}
+  #::xotcl::NoInit method init args {;}
   
   
-  ::xotcl::Object instproc copy newName {
+  ::xotcl::Object method copy newName {
     if {[string compare [string trimleft $newName :] [string trimleft [::xotcl::self] :]]} {
       [[::xotcl::self class]::CopyHandler new -volatile] copy [::xotcl::self] $newName
     }
   }
   
-  ::xotcl::Object instproc move newName {
+  ::xotcl::Object method move newName {
     if {[string trimleft $newName :] ne [string trimleft [::xotcl::self] :]} {
       if {$newName ne ""} {
         ::xotcl::my copy $newName
@@ -988,7 +1008,7 @@ namespace eval ::xotcl {
   }
   
   ::xotcl::Object create ::xotcl::config
-  ::xotcl::config proc load {obj file} {
+  ::xotcl::config method load {obj file} {
     source $file
     foreach i [array names ::auto_index [list $obj *proc *]] {
       set type [lindex $i 1]
@@ -999,7 +1019,7 @@ namespace eval ::xotcl {
     }
   }
   
-  ::xotcl::config proc mkindex {meta dir args} {
+  ::xotcl::config method mkindex {meta dir args} {
     set sp {[ 	]+}
     set st {^[ 	]*}
     set wd {([^ 	;]+)}
@@ -1066,7 +1086,7 @@ namespace eval ::xotcl {
   #
   # if cutTheArg not 0, it cut from upvar argsList
   # 
-  ::xotcl::Object instproc extractConfigureArg {al name {cutTheArg 0}} {
+  ::xotcl::Object method extractConfigureArg {al name {cutTheArg 0}} {
     set value ""
     upvar $al argList
     set largs [llength $argList]
@@ -1088,10 +1108,10 @@ namespace eval ::xotcl {
   }
   
   ::xotcl::Object create ::xotcl::rcs
-  ::xotcl::rcs proc date string {
+  ::xotcl::rcs method date string {
     lreplace [lreplace $string 0 0] end end
   } 
-  ::xotcl::rcs proc version string {
+  ::xotcl::rcs method version string {
     lindex $string 2
   } 
   
@@ -1100,14 +1120,14 @@ namespace eval ::xotcl {
   set ::xotcl::confdir ~/.xotcl
   set ::xotcl::logdir $::xotcl::confdir/log
   
-  ::xotcl::Class proc __unknown name {
+  ::xotcl::Class method -per-object __unknown name {
     #unknown $name
   }
   
   #
   # package support
   #
-  ::xotcl::Class instproc uses list {
+  ::xotcl::Class method uses list {
     foreach package $list {
       ::xotcl::package import -into [::xotcl::self] $package
       puts stderr "*** using ${package}::* in [::xotcl::self]"
@@ -1119,16 +1139,16 @@ namespace eval ::xotcl {
     {autoexport {}}
     {export {}}
   }
-  ::xotcl::package proc create {name args} {
+  ::xotcl::package method -per-object create {name args} {
     set nq [namespace qualifiers $name]
     if {$nq ne "" && ![namespace exists $nq]} {Object create $nq}
     next
   }
-  ::xotcl::package proc extend {name args} {
+  ::xotcl::package method -per-object  extend {name args} {
     my require $name
     eval $name configure $args
   }
-  ::xotcl::package instproc contains script {
+  ::xotcl::package method -per-object  contains script {
     if {[my exists provide]} {
       package provide [my provide] [my version]
     } else {
@@ -1153,14 +1173,14 @@ namespace eval ::xotcl {
       -set verbose 0 \
       -set packagecmd ::package
   
-  ::xotcl::package proc unknown args {
+  ::xotcl::package method -per-object unknown args {
     #puts stderr "unknown: package $args"
     eval [my set packagecmd] $args
   }
-  ::xotcl::package proc verbose value {
+  ::xotcl::package method -per-object verbose value {
     my set verbose $value
   }
-  ::xotcl::package proc present args {
+  ::xotcl::package method -per-object present args {
     if {$::tcl_version<8.3} {
       my instvar loaded
       switch -exact -- [lindex $args 0] {
@@ -1176,7 +1196,7 @@ namespace eval ::xotcl {
       eval [my set packagecmd] present $args
     }
   }
-  ::xotcl::package proc import {{-into ::} pkg} {
+  ::xotcl::package method -per-object import {{-into ::} pkg} {
     my require $pkg
     namespace eval $into [subst -nocommands {
       #puts stderr "*** package import ${pkg}::* into [namespace current]"
@@ -1190,7 +1210,7 @@ namespace eval ::xotcl {
       }
     }
   }
-  ::xotcl::package proc require args {
+  ::xotcl::package method -per-object  require args {
     #puts "XOTCL package require $args, current=[namespace current]"
     ::xotcl::my instvar component verbose uses loaded
     set prevComponent $component
@@ -1213,21 +1233,6 @@ namespace eval ::xotcl {
     return $v
   }
  
-
-  #
-  # define method "method"
-  #
-  ::xotcl::Object instproc method {name arguments body} {
-    my proc name $arguments $body				  
-  }
-  ::xotcl::Class instproc method {-per-object:switch name arguments body} {
-    if {${per-object}} {
-      my proc $name $arguments $body       
-    } else {
-      my instproc $name $arguments $body  
-    }
-  }
-
   # return temp directory
   proc ::xotcl::tmpdir {} {
     foreach e [list TMPDIR TEMP TMP] {

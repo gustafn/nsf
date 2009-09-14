@@ -134,6 +134,14 @@ objectMethod instvar XOTclOInstVarMethod {
 objectMethod invar XOTclOInvariantsMethod {
   {-argName "invariantlist" -required 1 -type tclobj}
 }
+objectMethod method XOTclOMethodMethod {
+  {-argName "-inner-namespace" -type switch}
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "args" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+  {-argName "-precondition"  -nrargs 1 -type tclobj}
+  {-argName "-postcondition" -nrargs 1 -type tclobj}
+}
 objectMethod mixinguard XOTclOMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
@@ -145,13 +153,6 @@ objectMethod noinit XOTclONoinitMethod {
 }
 objectMethod parametercmd XOTclOParametercmdMethod {
   {-argName "name" -required 1}
-}
-objectMethod proc XOTclOProcMethod {
-  {-argName "name" -required 1 -type tclobj}
-  {-argName "args" -required 1 -type tclobj}
-  {-argName "body" -required 1 -type tclobj}
-  {-argName "precondition"  -type tclobj}
-  {-argName "postcondition" -type tclobj}
 }
 objectMethod procsearch XOTclOProcSearchMethod {
   {-argName "name" -required 1}
@@ -209,12 +210,14 @@ classMethod instmixinguard XOTclCInstMixinGuardMethod {
 classMethod instparametercmd XOTclCInstParametercmdMethod {
   {-argName "name" -required 1}
 }
-classMethod instproc XOTclCInstProcMethod {
+classMethod method XOTclCMethodMethod {
+  {-argName "-per-object" -type switch}
+  {-argName "-inner-namespace" -type switch}
   {-argName "name" -required 1 -type tclobj}
   {-argName "args" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
-  {-argName "precondition"  -type tclobj}
-  {-argName "postcondition" -type tclobj}
+  {-argName "-precondition"  -nrargs 1 -type tclobj}
+  {-argName "-postcondition" -nrargs 1 -type tclobj}
 }
 classMethod classscopedinstproc XOTclCInstProcMethodC {
   {-argName "name" -required 1 -type tclobj}
