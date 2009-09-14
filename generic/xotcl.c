@@ -6537,21 +6537,6 @@ XOTclNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 }
 
 
-int
-XOTclQualifyObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  char *string;
-  if (objc != 2)
-    return XOTclVarErrMsg(interp, "wrong # of args for __qualify", (char *) NULL);
-
-  string = ObjStr(objv[1]);
-  if (!isAbsolutePath(string)) {
-    Tcl_SetObjResult(interp, NameInNamespaceObj(interp, string, callingNameSpace(interp)));
-  } else {
-    Tcl_SetObjResult(interp, objv[1]);
-  }
-  return TCL_OK;
-}
-
 /*
  * "self" object command
  */
@@ -7045,15 +7030,18 @@ PrimitiveODestroy(ClientData clientData) {
   XOTclObject *obj = (XOTclObject*)clientData;
   Tcl_Interp *interp;
 
+  if (!obj || !obj->teardown) return;
+
   /*fprintf(stderr, "****** PrimitiveODestroy %p flags %.6x\n", obj, obj->flags);*/
-  assert(obj && !(obj->flags & XOTCL_DELETED));
+  assert(!(obj->flags & XOTCL_DELETED));
+
+  /* destroy must have been called already */
+  assert(obj->flags & XOTCL_DESTROY_CALLED);
 
   /*
    * check and latch against recurrent calls with obj->teardown
    */
   PRINTOBJ("PrimitiveODestroy", obj);
-
-  if (!obj || !obj->teardown) return;
   interp = obj->teardown;
 
   /*
@@ -7061,13 +7049,6 @@ PrimitiveODestroy(ClientData clientData) {
    * e.g. TK calls Tcl_DeleteInterp directly, if the window is killed
    */
   if (Tcl_InterpDeleted(interp)) return;
-  /*
-   * call and latch user destroy with obj->id if we haven't
-   */
-  if (!(obj->flags & XOTCL_DESTROY_CALLED)) {
-    fprintf(stderr, "--- final chance to call destroy ******* NEVER CALLED\n");
-    callDestroyMethod(interp, obj, 0);
-  }
 
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "  physical delete of %p id=%p destroyCalled=%d '%s'\n",
@@ -7838,64 +7819,6 @@ isSubType(XOTclClass *subcl, XOTclClass *cl) {
   }
   return success;
 }
-
-static int
-XOTclIsCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj = NULL;
-  XOTclClass *cl = NULL;
-  int success = 0, opt;
-
-  static CONST char *opts[] = {
-    "type", "object", "class", "metaclass", "mixin",
-    NULL
-  };
-  enum subCmdIdx {
-    typeIdx, objectIdx, classIdx, metaclassIdx, mixinIdx
-  };
-
-  if (Tcl_GetIndexFromObj(interp, objv[2], opts, "option", 0, &opt) != TCL_OK) {
-    return TCL_ERROR;
-  }
-
-  switch (opt) {
-  case typeIdx:
-    if (objc != 4) return XOTclObjErrArgCnt(interp, objv[0], NULL, "type <object> <type>");
-    success = (GetObjectFromObj(interp, objv[1], &obj) == TCL_OK
-	       && GetClassFromObj(interp, objv[3], &cl, 0) == TCL_OK
-	       && isSubType(obj->cl, cl));
-    break;
-
-  case objectIdx:
-    if (objc != 3) return XOTclObjErrArgCnt(interp, objv[0], NULL, "object <object>");
-    success = (GetObjectFromObj(interp, objv[1], &obj) == TCL_OK);
-    break;
-
-  case classIdx:
-    if (objc != 3) return XOTclObjErrArgCnt(interp, objv[0], NULL, "class <class>");
-    success = (GetClassFromObj(interp, objv[1], &cl, 0) == TCL_OK);
-    break;
-
-  case metaclassIdx:
-    if (objc != 3) return XOTclObjErrArgCnt(interp, objv[0], NULL, "metaclass <class>");
-
-    success = (GetObjectFromObj(interp, objv[1], &obj) == TCL_OK
-	       && XOTclObjectIsClass(obj)
-	       && IsMetaClass(interp, (XOTclClass*)obj, 1));
-    break;
-
-  case mixinIdx:
-    if (objc != 4) return XOTclObjErrArgCnt(interp, objv[0], NULL, "mixin <object> <class>");
-
-    success = (GetObjectFromObj(interp, objv[1], &obj) == TCL_OK
-	       && GetClassFromObj(interp, objv[3], &cl, 0) == TCL_OK
-	       && hasMixin(interp, obj, cl));
-    break;
-  }
-
-  Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
-  return TCL_OK;
-}
-
 
 static int
 hasMixin(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl) {
@@ -9775,6 +9698,44 @@ XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[
   return TCL_ERROR;
 }
 
+
+static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, XOTclClass *value) {
+  int success = TCL_ERROR;
+  XOTclObject *obj;
+
+  switch (objectkind) {
+  case objectkindTypeIdx:
+    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "type <object> <type>");
+    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) && isSubType(obj->cl, value);
+    break;
+
+  case objectkindObjectIdx:
+    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "object <object>");
+    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK);
+    break;
+
+  case objectkindClassIdx:
+    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "class <class>");
+    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) && XOTclObjectIsClass(obj);
+    break;
+
+  case objectkindMetaclassIdx:
+    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "metaclass <class>");
+    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) 
+      && XOTclObjectIsClass(obj) && IsMetaClass(interp, (XOTclClass*)obj, 1);
+    break;
+
+  case objectkindMixinIdx:
+    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "mixin <object> <class>");
+    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) && 
+      (hasMixin(interp, obj, value) == TCL_OK);
+    break;
+  }
+
+  Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
+  return TCL_OK;
+}
+
 static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName,
                                   int withPer_object, int methodproperty, Tcl_Obj *value) {
   XOTclClass *cl;
@@ -10191,6 +10152,16 @@ XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   return TCL_OK;
 }
 
+static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
+  char *nameString = ObjStr(name);
+
+  if (isAbsolutePath(nameString)) {
+    Tcl_SetObjResult(interp, name);
+  } else {
+    Tcl_SetObjResult(interp, NameInNamespaceObj(interp, nameString, callingNameSpace(interp)));
+  }
+  return TCL_OK;
+}
 
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value) {
   int oc; Tcl_Obj **ov;
@@ -12677,10 +12648,6 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_CreateObjCommand(interp, "::xotcl::unsetUnknownArgs",
                        XOTclUnsetUnknownArgsCmd, 0,0);
 #endif
-  Tcl_CreateObjCommand(interp, "::xotcl::__qualify", XOTclQualifyObjCmd, 0, 0);
-  Tcl_CreateObjCommand(interp, "::xotcl::trace", XOTcl_TraceObjCmd, 0, 0);
-  Tcl_CreateObjCommand(interp, "::xotcl::is", XOTclIsCmd, 0, 0);
-
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "self", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "next", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "my", 0);

@@ -184,6 +184,10 @@ namespace eval ::xotcl {
   #     instproc
   #
   # TODO mark all absolete calls at least as deprecated in library
+  #
+  # TODO move unknown handler for Class into a library, make sure that
+  # regression test and library function use explicit "creates".
+  #
   
   proc ::xotcl::info_args {inst o method} {
     set result [list]

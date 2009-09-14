@@ -5,6 +5,12 @@ static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPa
 }
 enum configureoptionIdx {configureoptionFilterIdx, configureoptionSoftrecreateIdx, configureoptionCacheinterfaceIdx};
   
+static int convertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
+  static CONST char *opts[] = {"type", "object", "class", "metaclass", "mixin", NULL};
+  return Tcl_GetIndexFromObj(interp, objPtr, opts, "objectkind", 0, (int *)clientData);
+}
+enum objectkindIdx {objectkindTypeIdx, objectkindObjectIdx, objectkindClassIdx, objectkindMetaclassIdx, objectkindMixinIdx};
+  
 static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   static CONST char *opts[] = {"protected", "public", "slotobj", NULL};
   return Tcl_GetIndexFromObj(interp, objPtr, opts, "methodproperty", 0, (int *)clientData);
@@ -138,10 +144,12 @@ static int XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int o
 static int XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclNSCopyCmdsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
@@ -241,10 +249,12 @@ static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObj
 static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
 static int XOTclInstvarCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]);
+static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, XOTclClass *value);
 static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withPer_object, int methodproperty, Tcl_Obj *value);
 static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
+static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 
@@ -345,10 +355,12 @@ enum {
  XOTclFinalizeObjCmdIdx,
  XOTclInstvarCmdIdx,
  XOTclInterpObjCmdIdx,
+ XOTclIsCmdIdx,
  XOTclMethodPropertyCmdIdx,
  XOTclMyCmdIdx,
  XOTclNSCopyCmdsIdx,
  XOTclNSCopyVarsIdx,
+ XOTclQualifyObjCmdIdx,
  XOTclRelationCmdIdx,
  XOTclSetInstvarCmdIdx
 } XOTclMethods;
@@ -2248,6 +2260,26 @@ XOTclInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 }
 
 static int
+XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclIsCmdIdx].paramDefs, 
+                     method_definitions[XOTclIsCmdIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
+    int objectkind = (int )pc.clientData[1];
+    XOTclClass *value = (XOTclClass *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return XOTclIsCmd(interp, object, objectkind, value);
+
+  }
+}
+
+static int
 XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
@@ -2322,6 +2354,24 @@ XOTclNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
     parseContextRelease(&pc);
     return XOTclNSCopyVars(interp, fromNs, toNs);
+
+  }
+}
+
+static int
+XOTclQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclQualifyObjCmdIdx].paramDefs, 
+                     method_definitions[XOTclQualifyObjCmdIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
+
+    parseContextRelease(&pc);
+    return XOTclQualifyObjCmd(interp, name);
 
   }
 }
@@ -2764,6 +2814,11 @@ static methodDefinition method_definitions[] = {
   {"name", 0, 0, convertToString},
   {"args", 0, 0, convertToNothing}}
 },
+{"::xotcl::is", XOTclIsCmdStub, 3, {
+  {"object", 1, 0, convertToTclobj},
+  {"type|object|class|metaclass|mixin", 0, 0, convertToObjectkind},
+  {"value", 0, 0, convertToClass}}
+},
 {"::xotcl::methodproperty", XOTclMethodPropertyCmdStub, 5, {
   {"object", 1, 0, convertToObject},
   {"methodName", 1, 0, convertToString},
@@ -2783,6 +2838,9 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::namespace_copyvars", XOTclNSCopyVarsStub, 2, {
   {"fromNs", 1, 0, convertToTclobj},
   {"toNs", 1, 0, convertToTclobj}}
+},
+{"::xotcl::__qualify", XOTclQualifyObjCmdStub, 1, {
+  {"name", 1, 0, convertToTclobj}}
 },
 {"::xotcl::relation", XOTclRelationCmdStub, 3, {
   {"object", 1, 0, convertToObject},

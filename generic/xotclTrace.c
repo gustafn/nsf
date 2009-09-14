@@ -104,45 +104,6 @@ void XOTclCallStackDump(Tcl_Interp *interp) {
 }
 #endif
 
-/* helper function to print the vars dynamically created on a
-  callframe
-static void printLocalTable (CallFrame *c) {
-  Tcl_HashEntry *entryPtr;
-  Tcl_HashTable *localVarTablePtr = c->varTablePtr;
-  Tcl_HashSearch search;
-
-  fprintf(stderr, "LocalVars:");
-
-  if (localVarTablePtr != NULL) {
-    for (entryPtr = Tcl_FirstHashEntry(localVarTablePtr, &search);
-	 entryPtr != NULL;
-	 entryPtr = Tcl_NextHashEntry(&search)) {
-      char *varName = Tcl_GetHashKey(localVarTablePtr, entryPtr);
-      fprintf(stderr, " %s,", varName);
-    }
-  }
-  fprintf(stderr,"\n");
-}
-*/
-
-int
-XOTcl_TraceObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  char *option;
-  if (objc != 2)
-    return XOTclObjErrArgCnt(interp, objv[0], NULL, "stack|callstack");
-
-  option = ObjStr(objv[1]);
-  if (strcmp(option,"stack") == 0) {
-    XOTclStackDump(interp);
-    return TCL_OK;
-  }
-  if (strcmp(option,"callstack") == 0) {
-    XOTclCallStackDump(interp);
-    return TCL_OK;
-  }
-  return XOTclVarErrMsg(interp, "xotcltrace: unknown option", (char*) NULL);
-}
-
 void 
 XOTclPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
   int j; 

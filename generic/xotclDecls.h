@@ -144,13 +144,7 @@ EXTERN int		XOTclUnsetInstVar2 (struct XOTcl_Object * obj,
 				Tcl_Interp * interp, char * name1, 
 				char * name2, int flgs);
 #endif
-#ifndef XOTcl_TraceObjCmd_TCL_DECLARED
-#define XOTcl_TraceObjCmd_TCL_DECLARED
-/* 22 */
-EXTERN int		XOTcl_TraceObjCmd (ClientData cd, 
-				Tcl_Interp * interp, int objc, 
-				Tcl_Obj *CONST objv[]);
-#endif
+/* Slot 22 is reserved */
 #ifndef XOTclErrMsg_TCL_DECLARED
 #define XOTclErrMsg_TCL_DECLARED
 /* 23 */
@@ -302,7 +296,7 @@ typedef struct XotclStubs {
     Tcl_Obj * (*xOTcl_ObjSetVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name1, Tcl_Obj * name2, Tcl_Obj * value, int flgs); /* 19 */
     Tcl_Obj * (*xOTcl_ObjGetVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name1, Tcl_Obj * name2, int flgs); /* 20 */
     int (*xOTclUnsetInstVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, char * name1, char * name2, int flgs); /* 21 */
-    int (*xOTcl_TraceObjCmd) (ClientData cd, Tcl_Interp * interp, int objc, Tcl_Obj *CONST objv[]); /* 22 */
+    void *reserved22;
     int (*xOTclErrMsg) (Tcl_Interp * interp, char * msg, Tcl_FreeProc * type); /* 23 */
     int (*xOTclVarErrMsg) (Tcl_Interp * interp, ...); /* 24 */
     int (*xOTclErrInProc) (Tcl_Interp * interp, Tcl_Obj * objName, Tcl_Obj * clName, char * procName); /* 25 */
@@ -416,10 +410,7 @@ extern XotclStubs *xotclStubsPtr;
 #define XOTclUnsetInstVar2 \
 	(xotclStubsPtr->xOTclUnsetInstVar2) /* 21 */
 #endif
-#ifndef XOTcl_TraceObjCmd
-#define XOTcl_TraceObjCmd \
-	(xotclStubsPtr->xOTcl_TraceObjCmd) /* 22 */
-#endif
+/* Slot 22 is reserved */
 #ifndef XOTclErrMsg
 #define XOTclErrMsg \
 	(xotclStubsPtr->xOTclErrMsg) /* 23 */

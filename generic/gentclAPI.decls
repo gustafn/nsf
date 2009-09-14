@@ -51,6 +51,11 @@ xotclCmd interp XOTclInterpObjCmd {
 xotclCmd instvar XOTclInstvarCmd {
   {-argName "args" -type allargs}
 }
+xotclCmd is XOTclIsCmd {
+  {-argName "object" -required 1 -type tclobj}
+  {-argName "objectkind" -type "type|object|class|metaclass|mixin"}
+  {-argName "value" -required 0 -type class}
+}
 xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "methodName" -required 1}
@@ -70,6 +75,9 @@ xotclCmd namespace_copycmds XOTclNSCopyCmds {
 xotclCmd namespace_copyvars XOTclNSCopyVars {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
+}
+xotclCmd __qualify XOTclQualifyObjCmd {
+  {-argName "name" -required 1 -type tclobj}
 }
 xotclCmd relation XOTclRelationCmd {
   {-argName "object" -required 1 -type object}

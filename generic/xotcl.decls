@@ -101,10 +101,10 @@ declare 21 generic {
                            char *name1, char *name2, 
 		           int flgs)
 }
-declare 22 generic {
-    int XOTcl_TraceObjCmd(ClientData cd, Tcl_Interp *interp,
-                          int objc, Tcl_Obj *CONST objv[])
-}
+#declare 22 generic {
+#    int XOTcl_TraceObjCmd(ClientData cd, Tcl_Interp *interp,
+#                          int objc, Tcl_Obj *CONST objv[])
+#}
 declare 23 generic {
     int XOTclErrMsg(Tcl_Interp *interp, char *msg, Tcl_FreeProc *type)
 }

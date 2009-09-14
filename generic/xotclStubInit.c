@@ -58,7 +58,7 @@ XotclStubs xotclStubs = {
     XOTcl_ObjSetVar2, /* 19 */
     XOTcl_ObjGetVar2, /* 20 */
     XOTclUnsetInstVar2, /* 21 */
-    XOTcl_TraceObjCmd, /* 22 */
+    NULL, /* 22 */
     XOTclErrMsg, /* 23 */
     XOTclVarErrMsg, /* 24 */
     XOTclErrInProc, /* 25 */
