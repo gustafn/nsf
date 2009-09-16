@@ -55,16 +55,16 @@ declare 9 generic {
 declare 10 generic {
     int XOTclDeleteClass(Tcl_Interp *interp, struct XOTcl_Class *cl)
 }
-declare 11 generic {
-    Tcl_Command XOTclAddPMethod(Tcl_Interp *interp, struct XOTcl_Object *obj, 
-                         CONST char* nm, Tcl_ObjCmdProc* proc,
-	                 ClientData cd, Tcl_CmdDeleteProc *dp)
-}
-declare 12 generic {
-    Tcl_Command XOTclAddIMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, 
-                         CONST char* nm, Tcl_ObjCmdProc* proc,
-	                 ClientData cd, Tcl_CmdDeleteProc *dp)
-}
+#declare 11 generic {
+#    int XOTclAddPMethod(Tcl_Interp *interp, struct XOTcl_Object *obj, 
+#                         CONST char* nm, Tcl_ObjCmdProc* proc,
+#	                 ClientData cd, Tcl_CmdDeleteProc *dp)
+#}
+#declare 12 generic {
+#    int XOTclAddIMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, 
+#                         CONST char* nm, Tcl_ObjCmdProc* proc,
+#	                 ClientData cd, Tcl_CmdDeleteProc *dp)
+#}
 declare 13 generic {
     int XOTclRemovePMethod(Tcl_Interp *interp,struct XOTcl_Object *obj, char *nm)
 }
@@ -164,12 +164,12 @@ declare 40 generic {
                                      char *arglist)
 }
 declare 41 generic {
-    Tcl_Command XOTclAddObjectMethod(Tcl_Interp *interp, struct XOTcl_Object *obj, 
+    int XOTclAddObjectMethod(Tcl_Interp *interp, struct XOTcl_Object *obj, 
                          CONST char *nm, Tcl_ObjCmdProc *proc,
 	                 ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
 }
 declare 42 generic {
-    Tcl_Command XOTclAddInstanceMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, 
+   int XOTclAddInstanceMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, 
                          CONST char *nm, Tcl_ObjCmdProc *proc,
 	                 ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
 }

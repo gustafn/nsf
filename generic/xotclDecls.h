@@ -73,22 +73,8 @@ EXTERN int		XOTclDeleteObject (Tcl_Interp * interp,
 EXTERN int		XOTclDeleteClass (Tcl_Interp * interp, 
 				struct XOTcl_Class * cl);
 #endif
-#ifndef XOTclAddPMethod_TCL_DECLARED
-#define XOTclAddPMethod_TCL_DECLARED
-/* 11 */
-EXTERN Tcl_Command	XOTclAddPMethod (Tcl_Interp * interp, 
-				struct XOTcl_Object * obj, CONST char* nm, 
-				Tcl_ObjCmdProc* proc, ClientData cd, 
-				Tcl_CmdDeleteProc * dp);
-#endif
-#ifndef XOTclAddIMethod_TCL_DECLARED
-#define XOTclAddIMethod_TCL_DECLARED
-/* 12 */
-EXTERN Tcl_Command	XOTclAddIMethod (Tcl_Interp * interp, 
-				struct XOTcl_Class * cl, CONST char* nm, 
-				Tcl_ObjCmdProc* proc, ClientData cd, 
-				Tcl_CmdDeleteProc * dp);
-#endif
+/* Slot 11 is reserved */
+/* Slot 12 is reserved */
 #ifndef XOTclRemovePMethod_TCL_DECLARED
 #define XOTclRemovePMethod_TCL_DECLARED
 /* 13 */
@@ -245,7 +231,7 @@ EXTERN int		XOTclObjErrArgCnt (Tcl_Interp * interp,
 #ifndef XOTclAddObjectMethod_TCL_DECLARED
 #define XOTclAddObjectMethod_TCL_DECLARED
 /* 41 */
-EXTERN Tcl_Command	XOTclAddObjectMethod (Tcl_Interp * interp, 
+EXTERN int		XOTclAddObjectMethod (Tcl_Interp * interp, 
 				struct XOTcl_Object * obj, CONST char * nm, 
 				Tcl_ObjCmdProc * proc, ClientData cd, 
 				Tcl_CmdDeleteProc * dp, int flags);
@@ -253,7 +239,7 @@ EXTERN Tcl_Command	XOTclAddObjectMethod (Tcl_Interp * interp,
 #ifndef XOTclAddInstanceMethod_TCL_DECLARED
 #define XOTclAddInstanceMethod_TCL_DECLARED
 /* 42 */
-EXTERN Tcl_Command	XOTclAddInstanceMethod (Tcl_Interp * interp, 
+EXTERN int		XOTclAddInstanceMethod (Tcl_Interp * interp, 
 				struct XOTcl_Class * cl, CONST char * nm, 
 				Tcl_ObjCmdProc * proc, ClientData cd, 
 				Tcl_CmdDeleteProc * dp, int flags);
@@ -285,8 +271,8 @@ typedef struct XotclStubs {
     int (*xOTclCreateClass) (Tcl_Interp * interp, Tcl_Obj * name, struct XOTcl_Class * cl); /* 8 */
     int (*xOTclDeleteObject) (Tcl_Interp * interp, struct XOTcl_Object * obj); /* 9 */
     int (*xOTclDeleteClass) (Tcl_Interp * interp, struct XOTcl_Class * cl); /* 10 */
-    Tcl_Command (*xOTclAddPMethod) (Tcl_Interp * interp, struct XOTcl_Object * obj, CONST char* nm, Tcl_ObjCmdProc* proc, ClientData cd, Tcl_CmdDeleteProc * dp); /* 11 */
-    Tcl_Command (*xOTclAddIMethod) (Tcl_Interp * interp, struct XOTcl_Class * cl, CONST char* nm, Tcl_ObjCmdProc* proc, ClientData cd, Tcl_CmdDeleteProc * dp); /* 12 */
+    void *reserved11;
+    void *reserved12;
     int (*xOTclRemovePMethod) (Tcl_Interp * interp, struct XOTcl_Object * obj, char * nm); /* 13 */
     int (*xOTclRemoveIMethod) (Tcl_Interp * interp, struct XOTcl_Class * cl, char * nm); /* 14 */
     Tcl_Obj * (*xOTclOSetInstVar) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name, Tcl_Obj * value, int flgs); /* 15 */
@@ -315,8 +301,8 @@ typedef struct XotclStubs {
     int (*xOTclNextObjCmd) (ClientData cd, Tcl_Interp * interp, int objc, Tcl_Obj *CONST objv[]); /* 38 */
     int (*xOTclCallMethodWithArgs) (ClientData cd, Tcl_Interp * interp, Tcl_Obj * method, Tcl_Obj * arg, int objc, Tcl_Obj *CONST objv[], int flags); /* 39 */
     int (*xOTclObjErrArgCnt) (Tcl_Interp * interp, Tcl_Obj * cmdName, Tcl_Obj * methodName, char * arglist); /* 40 */
-    Tcl_Command (*xOTclAddObjectMethod) (Tcl_Interp * interp, struct XOTcl_Object * obj, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags); /* 41 */
-    Tcl_Command (*xOTclAddInstanceMethod) (Tcl_Interp * interp, struct XOTcl_Class * cl, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags); /* 42 */
+    int (*xOTclAddObjectMethod) (Tcl_Interp * interp, struct XOTcl_Object * obj, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags); /* 41 */
+    int (*xOTclAddInstanceMethod) (Tcl_Interp * interp, struct XOTcl_Class * cl, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags); /* 42 */
     int (*xOTclCreate) (Tcl_Interp * in, XOTcl_Class * class, Tcl_Obj * name, ClientData data, int objc, Tcl_Obj *CONST objv[]); /* 43 */
 } XotclStubs;
 
@@ -369,14 +355,8 @@ extern XotclStubs *xotclStubsPtr;
 #define XOTclDeleteClass \
 	(xotclStubsPtr->xOTclDeleteClass) /* 10 */
 #endif
-#ifndef XOTclAddPMethod
-#define XOTclAddPMethod \
-	(xotclStubsPtr->xOTclAddPMethod) /* 11 */
-#endif
-#ifndef XOTclAddIMethod
-#define XOTclAddIMethod \
-	(xotclStubsPtr->xOTclAddIMethod) /* 12 */
-#endif
+/* Slot 11 is reserved */
+/* Slot 12 is reserved */
 #ifndef XOTclRemovePMethod
 #define XOTclRemovePMethod \
 	(xotclStubsPtr->xOTclRemovePMethod) /* 13 */

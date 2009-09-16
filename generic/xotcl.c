@@ -994,24 +994,6 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   return result;
 }
 
-
-#ifndef NAMESPACEINSTPROCS
-static Tcl_Namespace *
-GetCallerVarFrame(Tcl_Interp *interp, Tcl_CallFrame *varFramePtr) {
-  Tcl_Namespace *nsPtr = NULL;
-  if (varFramePtr) {
-    Tcl_CallFrame *callerVarPtr = Tcl_CallFrame_callerVarPtr(varFramePtr);
-    if (callerVarPtr) {
-      nsPtr = (Tcl_Namespace *)callerVarPtr->nsPtr;
-    }
-  }
-  if (nsPtr == NULL)
-    nsPtr = Tcl_Interp_globalNsPtr(interp);
-
-  return nsPtr;
-}
-#endif
-
 static Tcl_Obj *
 NameInNamespaceObj(Tcl_Interp *interp, char *name, Tcl_Namespace *nsPtr) {
   Tcl_Obj *objName;
@@ -1936,14 +1918,37 @@ XOTclpGetClass(Tcl_Interp *interp, char *name) {
   return (obj && XOTclObjectIsClass(obj)) ? (XOTclClass*)obj : NULL;
 }
 
-Tcl_Command
+static int
+CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, XOTclObject *obj, char *methodName) {
+  int result, ok;
+  Tcl_Command cmd = FindMethod(nsPtr, methodName);
+
+  ok = cmd ? (Tcl_Command_flags(cmd) & XOTCL_CMD_STATIC_METHOD) == 0 : 1;
+  if (ok) {
+    result = TCL_OK;
+  } else {
+    result = XOTclVarErrMsg(interp, "Method '", methodName, "' of ", objectName(obj), 
+                            " can not be overwritten. Derive e.g. a ",
+                            "sub-class!", (char *) NULL);
+  }
+  return result;
+}
+
+int
 XOTclAddObjectMethod(Tcl_Interp *interp, XOTcl_Object *object, CONST char *methodName,
                      Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
                      int flags) {
   XOTclObject *obj = (XOTclObject *)object;
   Tcl_DString newCmdName, *dsPtr = &newCmdName;
-  Tcl_Command newCmd;
   Tcl_Namespace *ns = requireObjNamespace(interp, obj);
+  Tcl_Command newCmd;
+  int result;
+
+  /* Check, if we are allowed to redefine the method */
+  result = CanRedefineCmd(interp, obj->nsPtr, obj, (char*)methodName);
+  if (result != TCL_OK) {
+    return result;
+  }
 
   ALLOC_NAME_NS(dsPtr, ns->fullName, methodName);
 
@@ -1952,53 +1957,33 @@ XOTclAddObjectMethod(Tcl_Interp *interp, XOTcl_Object *object, CONST char *metho
     ((Command *) newCmd)->flags |= flags;
   }
   DSTRING_FREE(dsPtr);
-  return newCmd;
+  return TCL_OK;
 }
 
-Tcl_Command
-XOTclAddPMethod(Tcl_Interp *interp, XOTcl_Object *object, CONST char *methodName,
-                Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp) {
-  int flags = 0;
-  if (clientData == (ClientData) XOTCL_CMD_NONLEAF_METHOD) {
-    fprintf(stderr, "XOTclAddPMethod(,,,, XOTCL_CMD_NONLEAF_METHOD,) deprecated.\n"
-	    "Use XOTclAddObjectMethod(,,,,,, XOTCL_CMD_NONLEAF_METHOD) instead.\n");
-    flags = XOTCL_CMD_NONLEAF_METHOD;
-    clientData = NULL;
-  }
-  return XOTclAddObjectMethod(interp, object, methodName, proc, clientData, dp, flags);
-}
-
-
-Tcl_Command
+int
 XOTclAddInstanceMethod(Tcl_Interp *interp, XOTcl_Class *class, CONST char *methodName,
                        Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
                        int flags) {
-  XOTclClass *cl = (XOTclClass*) class;
+  XOTclClass *cl = (XOTclClass *)class;
   Tcl_DString newCmdName, *dsPtr = &newCmdName;
   Tcl_Command newCmd;
+  int result;
+
+  /* Check, if we are allowed to redefine the method */
+  result = CanRedefineCmd(interp, cl->nsPtr, &cl->object, (char*)methodName);
+  if (result != TCL_OK) {
+    return result;
+  }
+
   ALLOC_NAME_NS(dsPtr, cl->nsPtr->fullName, methodName);
   newCmd = Tcl_CreateObjCommand(interp, Tcl_DStringValue(dsPtr), proc, clientData, dp);
+
   if (flags) {
     ((Command *) newCmd)->flags |= flags;
   }
   DSTRING_FREE(dsPtr);
-  return newCmd;
+  return TCL_OK;
 }
-
-Tcl_Command
-XOTclAddIMethod(Tcl_Interp *interp, XOTcl_Class *class, CONST char *methodName,
-                Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp) {
-  int flags = 0;
-  if (clientData == (ClientData) XOTCL_CMD_NONLEAF_METHOD) {
-    fprintf(stderr, "XOTclAddIMethod(,,,, XOTCL_CMD_NONLEAF_METHOD,) deprecated.\n"
-	    "Use XOTclAddInstanceMethod(,,,,,, XOTCL_CMD_NONLEAF_METHOD) instead.\n");
-    flags = XOTCL_CMD_NONLEAF_METHOD;
-    clientData = NULL;
-  }
-  return XOTclAddInstanceMethod(interp, class, methodName, proc, clientData, dp, flags);
-}
-
-
 
 /*
  * Generic Tcl_Obj List
@@ -2581,6 +2566,12 @@ AssertionCheckList(Tcl_Interp *interp, XOTclObject *obj,
 
   /* we do not check assertion modifying methods, otherwise
      we can not react in catch on a runtime assertion check failure */
+
+  /* TODO this check operations are not generic. these should be
+     removed, most of the is*String() definition are then obsolete and
+     should be deleted from xotclInt.h as well.
+  */
+
   if (isCheckString(methodName) || isInfoString(methodName) ||
       isInvarString(methodName) || isInstinvarString(methodName) ||
       isProcString(methodName) || isInstprocString(methodName))
@@ -5908,25 +5899,32 @@ ParamDefsParse(Tcl_Interp *interp, char *procName, Tcl_Obj *args, int allowedOpt
 static int
 MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp, 
          Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition, 
-         Tcl_Obj *postcondition, XOTclObject *obj, int clsns) {
-  int result;
+         Tcl_Obj *postcondition, XOTclObject *obj, int withProtected, int clsns) {
   TclCallFrame frame, *framePtr = &frame;
-  Tcl_Obj *ov[4];
   char *procName = ObjStr(nameObj);
   XOTclParsedParam parsedParam;
+  Tcl_Obj *ov[4];
+  Proc *procPtr;
+  int result;
+
+  /* Check, if we are allowed to redefine the method */
+  result = CanRedefineCmd(interp, nsPtr, obj, procName);
+  if (result == TCL_OK) {
+    /* Yes, so obtain an method parameter definitions */
+    result = ParamDefsParse(interp, procName, args, XOTCL_ARG_METHOD_PARAMETER, &parsedParam);
+  }
+  if (result != TCL_OK) {
+    return result;
+  }
 
   ov[0] = NULL; /*objv[0];*/
   ov[1] = nameObj;
-
-  /* Obtain an method parameter definitions */
-  result = ParamDefsParse(interp, procName, args, XOTCL_ARG_METHOD_PARAMETER, &parsedParam);
-  if (result != TCL_OK)
-    return result;
 
   if (parsedParam.paramDefs) {
 # if defined(CANONICAL_ARGS)
     XOTclParam *pPtr;
     Tcl_Obj *argList = Tcl_NewListObj(0, NULL);
+
     for (pPtr = parsedParam.paramDefs->paramsPtr; pPtr->name; pPtr++) {
       if (*pPtr->name == '-') {
 	Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name+1,-1));
@@ -5947,32 +5945,36 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
   }
 
   Tcl_PushCallFrame(interp,(Tcl_CallFrame *)framePtr, nsPtr, 0);
-
+  /* create the method in the provided namespace */
   result = Tcl_ProcObjCmd(0, interp, 4, ov) != TCL_OK;
-#if defined(NAMESPACEINSTPROCS)
-  {
-    Proc *procPtr = TclFindProc((Interp *)interp, procName);
 
-    /*** patch the command ****/
-    if (procPtr) {
-      if (clsns) {
-	/* set the namespace of the method as inside of the class */
-	if (!obj->nsPtr) {
-	  makeObjNamespace(interp, obj);
-	}
-	/*fprintf(stderr, "obj %s\n", objectName(obj));
-	  fprintf(stderr, "ns %p obj->ns %p\n", ns, obj->nsPtr);
-	  fprintf(stderr, "ns %s obj->ns %s\n", ns->fullName, obj->nsPtr->fullName);*/
-	procPtr->cmdPtr->nsPtr = (Namespace*) obj->nsPtr;
-      } else {
-	/* set the namespace of the method to the same namespace the class has */
-	procPtr->cmdPtr->nsPtr = ((Command *)obj->id)->nsPtr;
+  /* retrieve the defined proc */
+  procPtr = FindProcMethod(nsPtr, procName);
+  if (procPtr) {
+    /* modify the cmd of the proc to set the current namespace for the body */
+    if (clsns) {
+      /* 
+       * Set the namespace of the method as inside of the class 
+       */
+      if (!obj->nsPtr) {
+        makeObjNamespace(interp, obj);
       }
+      /*fprintf(stderr, "obj %s\n", objectName(obj));
+        fprintf(stderr, "ns %p obj->ns %p\n", ns, obj->nsPtr);
+        fprintf(stderr, "ns %s obj->ns %s\n", ns->fullName, obj->nsPtr->fullName);*/
+      procPtr->cmdPtr->nsPtr = (Namespace*) obj->nsPtr;
+    } else {
+      /* 
+       * Set the namespace of the method to the same namespace the class has 
+       */
+      procPtr->cmdPtr->nsPtr = ((Command *)obj->id)->nsPtr;
     }
+    
     ParamDefsStore(interp, (Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs);
+    if (withProtected) {
+      Tcl_Command_flags((Tcl_Command)procPtr->cmdPtr) |= XOTCL_CMD_PROTECTED_METHOD;
+    }
   }
-#endif
-
   Tcl_PopCallFrame(interp);
 
   if (precondition || postcondition) {
@@ -5989,57 +5991,14 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
   return result;
 }
 
-static int
-MakeObjectMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *name,
-                 Tcl_Obj *args, Tcl_Obj *body,
-                 Tcl_Obj *precondition, Tcl_Obj *postcondition, int clsns) {
-  char *argStr = ObjStr(args), *bdyStr = ObjStr(body), *nameStr = ObjStr(name);
+static int 
+MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameObj, 
+           Tcl_Obj *args, Tcl_Obj *body,
+           Tcl_Obj *precondition, Tcl_Obj *postcondition, 
+           int withProtected, int clsns) {
+  char *argStr = ObjStr(args), *bdyStr = ObjStr(body), *nameStr = ObjStr(nameObj);
   int result;
 
-  if (precondition && !postcondition) {
-    return XOTclVarErrMsg(interp, objectName(obj), " method '", nameStr,
-                          "'; when specifying a precondition (", ObjStr(precondition),
-                          ") a postcondition must be specified as well",
-                          (char *) NULL);
-  }
-
-  /* if both, args and body are empty strings, we delete the method */
-  if (*argStr == 0 && *bdyStr == 0) {
-    result = XOTclRemovePMethod(interp, (XOTcl_Object *)obj, nameStr);
-
-  } else {
-    XOTclAssertionStore *aStore = NULL;
-    if (precondition || postcondition) {
-      XOTclObjectOpt *opt = XOTclRequireObjectOpt(obj);
-      if (!opt->assertions)
-	opt->assertions = AssertionCreateStore();
-      aStore = opt->assertions;
-    }
-    requireObjNamespace(interp, obj);
-    result = MakeProc(obj->nsPtr, aStore,
-                      interp, name, args, body, precondition, postcondition,
-		      obj, clsns);
-  }
-
-  /* could be a filter => recompute filter order */
-  FilterComputeDefined(interp, obj);
-  return result;
-}
-
-static int MakeClassMethod(Tcl_Interp *interp, XOTclClass *cl, 
-                           Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body,
-                           Tcl_Obj *precondition, Tcl_Obj *postcondition, int clsns) {
-  XOTclClassOpt *opt = cl->opt;
-  int result = TCL_OK;
-  char *argStr = ObjStr(args), *bdyStr = ObjStr(body), *nameStr = ObjStr(nameObj);
-
-  if ((cl->object.flags & XOTCL_IS_ROOT_CLASS && isDestroyString(nameStr)) ||
-      (cl->object.flags & XOTCL_IS_ROOT_META_CLASS && isDeallocString(nameStr)) ||
-      (cl->object.flags & XOTCL_IS_ROOT_META_CLASS && isAllocString(nameStr)) ||
-      (cl->object.flags & XOTCL_IS_ROOT_META_CLASS && isCreateString(nameStr)))
-    return XOTclVarErrMsg(interp, className(cl), " method '", nameStr, "' of ",
-                          className(cl), " can not be overwritten. Derive a ",
-                          "sub-class", (char *) NULL);
   if (precondition && !postcondition) {
     return XOTclVarErrMsg(interp, className(cl), " method '", nameStr,
                           "'; when specifying a precondition (", ObjStr(precondition),
@@ -6049,22 +6008,36 @@ static int MakeClassMethod(Tcl_Interp *interp, XOTclClass *cl,
 
   /* if both, args and body are empty strings, we delete the method */
   if (*argStr == 0 && *bdyStr == 0) {
-    result = XOTclRemoveIMethod(interp, (XOTcl_Class *)cl, nameStr);
+    result = cl ? 
+      XOTclRemoveIMethod(interp, (XOTcl_Class *)cl, nameStr) :
+      XOTclRemovePMethod(interp, (XOTcl_Object *)obj, nameStr);
   } else {
     XOTclAssertionStore *aStore = NULL;
     if (precondition || postcondition) {
-      opt = XOTclRequireClassOpt(cl);
-      if (!opt->assertions)
-        opt->assertions = AssertionCreateStore();
-      aStore = opt->assertions;
+      if (cl) {
+        XOTclClassOpt *opt = XOTclRequireClassOpt(cl);
+        if (!opt->assertions)
+          opt->assertions = AssertionCreateStore();
+        aStore = opt->assertions;
+      } else {
+        XOTclObjectOpt *opt = XOTclRequireObjectOpt(obj);
+        if (!opt->assertions)
+          opt->assertions = AssertionCreateStore();
+        aStore = opt->assertions;
+      }
     }
-    result = MakeProc(cl->nsPtr, aStore, 
+    result = MakeProc(cl ? cl->nsPtr : obj->nsPtr, aStore, 
 		      interp, nameObj, args, body, precondition, postcondition,
-		      &cl->object, clsns);
+		      obj, withProtected, clsns);
   }
 
-  /* could be a filter or filter inheritance ... update filter orders */
-  FilterInvalidateObjOrders(interp, cl);
+  if (cl) {
+    /* could be a filter or filter inheritance ... update filter orders */
+    FilterInvalidateObjOrders(interp, cl);
+  } else {
+    /* could be a filter => recompute filter order */
+    FilterComputeDefined(interp, obj);
+  }
 
   return result;
 }
@@ -8874,7 +8847,8 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
         return XOTclVarErrMsg(interp, 
                               pcPtr->obj ? objectName(pcPtr->obj) : "", pcPtr->obj ? " " : "", 
                               ObjStr(pcPtr->full_objv[0]), ": required argument '",
-                              ObjStr(pPtr->nameObj), "' is missing", (char *) NULL);
+                              pPtr->nameObj ? ObjStr(pPtr->nameObj) : pPtr->name, 
+                              "' is missing", (char *) NULL);
       } else {
         /* Use as dummy default value an arbitrary symbol, which must not be
          * returned to the Tcl level level; this value is
@@ -9401,7 +9375,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   char allocation;
   Tcl_CmdDeleteProc *dp = NULL;
   aliasCmdClientData *tcd = NULL;
-  int flags = 0;
+  int flags = 0, result;
 
   if (XOTclObjectIsClass(object)) {
     cl = (XOTclClass *)object;
@@ -9449,13 +9423,13 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   }
 
   if (allocation == 'c') {
-    XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName,
+    result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName,
                            objProc, tcd, dp, flags);
   } else {
-    XOTclAddObjectMethod(interp, (XOTcl_Object*)object, methodName,
+    result = XOTclAddObjectMethod(interp, (XOTcl_Object*)object, methodName,
                          objProc, tcd, dp, flags);
   }
-  return TCL_OK;
+  return result;
 }
 
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value) {
@@ -9784,7 +9758,6 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char 
   XOTclClass *cl;
   Tcl_Command cmd = NULL;
   char allocation;
-  int protected = 0;
 
   /* TODO: introspection for method properties */
 
@@ -9817,16 +9790,26 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char 
 			    (char *) NULL);
   }
 
-  if (methodproperty == methodpropertyProtectedIdx || methodproperty == methodpropertyPublicIdx) {
-    protected = (methodproperty == methodpropertyProtectedIdx);
+  if (methodproperty == methodpropertyProtectedIdx 
+      || methodproperty == methodpropertyStaticIdx) {
 
-    if (protected) {
-      Tcl_Command_flags(cmd) |= XOTCL_CMD_PROTECTED_METHOD;
-    } else {
-      Tcl_Command_flags(cmd) &= XOTCL_CMD_PROTECTED_METHOD;
+    int flag = methodproperty == methodpropertyProtectedIdx ? 
+      XOTCL_CMD_PROTECTED_METHOD : 
+      XOTCL_CMD_STATIC_METHOD;
+
+    if (value) {
+      int bool, result; 
+      result = Tcl_GetBooleanFromObj(interp, value, &bool);
+      if (result != TCL_OK) {
+        return result;
+      }
+      if (bool) {
+        Tcl_Command_flags(cmd) |= flag;
+      } else {
+        Tcl_Command_flags(cmd) &= ~flag;
+      }
     }
-    /* TODO check: what about procs? */
-
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), (Tcl_Command_flags(cmd) & flag) != 0);
   } else { /* slotobj */
     XOTclParamDefs *paramDefs;
 
@@ -10890,8 +10873,7 @@ static int XOTclONoinitMethod(Tcl_Interp *interp, XOTclObject *obj) {
 }
 
 static int XOTclOParametercmdMethod(Tcl_Interp *interp, XOTclObject *obj, char *name) {
-  XOTclAddObjectMethod(interp, (XOTcl_Object*) obj, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
-  return TCL_OK;
+  return XOTclAddObjectMethod(interp, (XOTcl_Object*) obj, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
 }
 
 static int XOTclOProcSearchMethod(Tcl_Interp *interp, XOTclObject *obj, char *name) {
@@ -10981,9 +10963,9 @@ static int XOTclOForwardMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *me
                                  target, nobjc, nobjv, &tcd);
   if (result == TCL_OK) {
     tcd->obj = obj;
-    XOTclAddPMethod(interp, (XOTcl_Object *)obj, NSTail(ObjStr(method)),
-                    (Tcl_ObjCmdProc*)XOTclForwardMethod,
-                    (ClientData)tcd, forwardCmdDeleteProc);
+    result = XOTclAddObjectMethod(interp, (XOTcl_Object *)obj, NSTail(ObjStr(method)), 
+                                  (Tcl_ObjCmdProc*)XOTclForwardMethod, 
+                                  (ClientData)tcd, forwardCmdDeleteProc, 0);
   }
   return result;
 }
@@ -11372,38 +11354,35 @@ static int XOTclCInstMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *
 }
 
 static int XOTclCInstParametercmdMethod(Tcl_Interp *interp, XOTclClass *cl, char *name) {
-  XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
-  return TCL_OK;
+  return XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
 }
 /* TODO move me at the right place */
 static int XOTclOMethodMethod(Tcl_Interp *interp, XOTclObject *obj, 
-                              int withInner_namespace,
+                              int withInner_namespace, int withProtected,
                               Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, 
                               Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
-  return MakeObjectMethod(interp, obj, name, args, body, 
-                          withPrecondition, withPostcondition, 
-                          withInner_namespace);
+  requireObjNamespace(interp, obj);
+  return MakeMethod(interp, obj, NULL, name, args, body, 
+                    withPrecondition, withPostcondition, 
+                    withProtected, withInner_namespace);
 }
+
 /* TODO move me at the right place */
 static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl, 
-                              int withPer_object, int withInner_namespace,
+                              int withInner_namespace, int withPer_object, int withProtected,
                               Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, 
                               Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
   if (withPer_object) {
-    return MakeObjectMethod(interp, &cl->object, name, args, body, 
-                            withPrecondition, withPostcondition, withInner_namespace);
+    requireObjNamespace(interp, &cl->object);
+    return MakeMethod(interp, &cl->object, NULL, name, args, body, 
+                      withPrecondition, withPostcondition, 
+                      withProtected, withInner_namespace);
   } else {
-    return MakeClassMethod(interp, cl, name, args, body, 
-                           withPrecondition, withPostcondition, withInner_namespace);
+    return MakeMethod(interp, &cl->object, cl, name, args, body, 
+                      withPrecondition, withPostcondition, 
+                      withProtected, withInner_namespace);
   }
 }
-
-static int XOTclCInstProcMethodC(Tcl_Interp *interp, XOTclClass *cl,
-                                 Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
-                                 Tcl_Obj *precondition, Tcl_Obj *postcondition) {
-  return MakeClassMethod(interp, cl, name, args, body, precondition, postcondition, 1);
-}
-
 
 static int XOTclCInstForwardMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *method,
                                    Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
@@ -11416,12 +11395,11 @@ static int XOTclCInstForwardMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *
                                  withDefault, withEarlybinding, withMethodprefix,
                                  withObjscope, withOnerror, withVerbose,
                                  target, nobjc, nobjv, &tcd);
-  
   if (result == TCL_OK) {
     tcd->obj = &cl->object;
-    XOTclAddIMethod(interp, (XOTcl_Class*)cl, NSTail(ObjStr(method)),
-                    (Tcl_ObjCmdProc*)XOTclForwardMethod,
-                    (ClientData)tcd, forwardCmdDeleteProc);
+    result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, NSTail(ObjStr(method)),
+                                    (Tcl_ObjCmdProc*)XOTclForwardMethod,
+                                    (ClientData)tcd, forwardCmdDeleteProc, 0);
   }
   return result;
 }
@@ -11454,17 +11432,6 @@ static int XOTclCRecreateMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *nam
   DECR_REF_COUNT(name);
   return result;
 }
-
-static int XOTclCUnknownMethod(Tcl_Interp *interp, XOTclClass *cl, char *name,
-                               int objc, Tcl_Obj *CONST objv[]) {
-  if (isCreateString(name))
-    return XOTclVarErrMsg(interp, "error ", className(cl), ": unable to dispatch '",
-			  name, "'", (char *)NULL);
-
-  return callMethod((ClientData)cl, interp, XOTclGlobalObjects[XOTE_CREATE], objc+1, objv+1, 0);
-}
-
-
 
 /***************************
  * End Class Methods
@@ -11963,18 +11930,7 @@ XOTclInitProcNSCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   if (RUNTIME_STATE(interp)->cs.top->currentFramePtr == NULL) {
     RUNTIME_STATE(interp)->cs.top->currentFramePtr = varFramePtr;
-  } /* else {
-
-       fprintf(stderr, "not overwriting currentFramePtr in %p from %p to %p\n",
-       RUNTIME_STATE(interp)->cs.top,
-       RUNTIME_STATE(interp)->cs.top->currentFramePtr, varFramePtr);
-       }     */
-
-#if !defined(NAMESPACEINSTPROCS)
-  if (varFramePtr) {
-    varFramePtr->nsPtr = GetCallerVarFrame(interp, varFramePtr);
-  }
-#endif
+  } 
   return TCL_OK;
 }
 #endif

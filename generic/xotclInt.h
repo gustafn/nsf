@@ -111,14 +111,9 @@ typedef struct XOTclMemCounter {
 #define isArgsString(m) (\
 	*m   == 'a' && m[1] == 'r' && m[2] == 'g' && m[3] == 's' && \
 	m[4] == '\0')
-#define isDoubleDashString(m) (\
-	*m   == '-' && m[1] == '-' && m[2] == '\0')
 #define isBodyString(m) (\
 	*m   == 'b' && m[1] == 'o' && m[2] == 'd' && m[3] == 'y' && \
 	m[4] == '\0')
-#define isClassString(m) (\
-	*m   == 'c' && m[1] == 'l' && m[2] == 'a' && m[3] == 's' && \
-	m[4] == 's' && m[5] == '\0')
 #define isCheckString(m) (\
 	*m   == 'c' && m[1] == 'h' && m[2] == 'e' && m[3] == 'c' && \
 	m[4] == 'k' && m[5] == '\0')
@@ -129,26 +124,12 @@ typedef struct XOTclMemCounter {
 #define isCreateString(m) (\
 	*m   == 'c' && m[1] == 'r' && m[2] == 'e' && m[3] == 'a' && \
 	m[4] == 't' && m[5] == 'e' && m[6] == '\0')
-#define isAllocString(m) (\
-	*m   == 'a' && m[1] == 'l' && m[2] == 'l' && m[3] == 'o' && \
-	m[4] == 'c' && m[5] == '\0')
-#define isDeallocString(m) (\
-	*m   == 'd' && m[1] == 'e' && m[2] == 'a' && m[3] == 'l' && \
-        m[4] == 'l' && m[5] == 'o' && m[6] == 'c' && m[7] == '\0')
-#define isDestroyString(m) (\
-	*m   == 'd' && m[1] == 'e' && m[2] == 's' && m[3] == 't' && \
-	m[4] == 'r' && m[5] == 'o' && m[6] == 'y' && m[7] == '\0')
 #define isInitString(m) (\
 	*m   == 'i' && m[1] == 'n' && m[2] == 'i' && m[3] == 't' && \
 	m[4] == '\0')
 #define isInfoString(m) (\
 	*m   == 'i' && m[1] == 'n' && m[2] == 'f' && m[3] == 'o' && \
 	m[4] == '\0')
-#ifdef AUTOVARS
-# define isNextString(m) (\
-	*m   == 'n' && m[1] == 'e' && m[2] == 'x' && m[3] == 't' && \
-	m[4] == '\0')
-#endif
 #define isInstinvarString(m) (\
         *m   == 'i' && m[1] == 'n' && m[2] == 's' && m[3] == 't' && \
 	m[4] == 'i' && m[5] == 'n' && m[6] == 'v' && m[7] == 'a' && \

@@ -60,7 +60,7 @@ xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "methodName" -required 1}
   {-argName "-per-object"}
-  {-argName "methodproperty" -required 1 -type "protected|public|slotobj"}
+  {-argName "methodproperty" -required 1 -type "protected|static|slotobj"}
   {-argName "value" -type tclobj}
 }
 xotclCmd my XOTclMyCmd {
@@ -135,7 +135,8 @@ objectMethod invar XOTclOInvariantsMethod {
   {-argName "invariantlist" -required 1 -type tclobj}
 }
 objectMethod method XOTclOMethodMethod {
-  {-argName "-inner-namespace" -type switch}
+  {-argName "-inner-namespace"}
+  {-argName "-protected"}
   {-argName "name" -required 1 -type tclobj}
   {-argName "args" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
@@ -211,20 +212,14 @@ classMethod instparametercmd XOTclCInstParametercmdMethod {
   {-argName "name" -required 1}
 }
 classMethod method XOTclCMethodMethod {
-  {-argName "-per-object" -type switch}
   {-argName "-inner-namespace" -type switch}
+  {-argName "-per-object" -type switch}
+  {-argName "-protected"}
   {-argName "name" -required 1 -type tclobj}
   {-argName "args" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
   {-argName "-precondition"  -nrargs 1 -type tclobj}
   {-argName "-postcondition" -nrargs 1 -type tclobj}
-}
-classMethod classscopedinstproc XOTclCInstProcMethodC {
-  {-argName "name" -required 1 -type tclobj}
-  {-argName "args" -required 1 -type tclobj}
-  {-argName "body" -required 1 -type tclobj}
-  {-argName "precondition"  -type tclobj}
-  {-argName "postcondition" -type tclobj}
 }
 classMethod instforward XOTclCInstForwardMethod {
   {-argName "name" -required 1 -type tclobj}
@@ -242,10 +237,6 @@ classMethod invalidateobjectparameter XOTclCInvalidateObjectParameterMethod {
 }
 classMethod recreate XOTclCRecreateMethod {
   {-argName "name" -required 1 -type tclobj}
-  {-argName "args" -type allargs}
-}
-classMethod unknown XOTclCUnknownMethod {
-  {-argName "name" -required 1}
   {-argName "args" -type allargs}
 }
 

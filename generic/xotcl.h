@@ -40,9 +40,6 @@
 # endif
 #endif
 
-/* new namespace support (post 1.2.0) */
-#define NAMESPACEINSTPROCS 1
-
 /* activate bytecode support 
 #define XOTCL_BYTECODE
 */
@@ -50,10 +47,6 @@
 /* activate/deacticate profiling information at the end
    of running the program
 #define PROFILE
-*/
-
-/* make self, proc and class in instproc and procs
-#define AUTOVARS
 */
 
 /* activate/deacticate assert 
@@ -133,8 +126,9 @@
 #endif
 
 #define XOTCL_CMD_PROTECTED_METHOD 0x00010000
+#define XOTCL_CMD_STATIC_METHOD    0x00020000
 /* XOTCL_CMD_NONLEAF_METHOD is used to flag, if a Method implemented via cmd calls "next" */
-#define XOTCL_CMD_NONLEAF_METHOD   0x00020000
+#define XOTCL_CMD_NONLEAF_METHOD   0x00040000
 
 /* 
  * A special definition used to allow this header file to be included 

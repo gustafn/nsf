@@ -67,6 +67,18 @@ namespace eval ::xotcl {
   foreach cmd [info command ::xotcl::cmd::Class::*] {
     ::xotcl::alias ::xotcl::Class [namespace tail $cmd] $cmd 
   }
+
+  # protect some methods against redefinition
+  ::xotcl::methodproperty ::xotcl::Object destroy static true
+  ::xotcl::methodproperty ::xotcl::Class  alloc   static true
+  ::xotcl::methodproperty ::xotcl::Class  dealloc static true
+  ::xotcl::methodproperty ::xotcl::Class  create  static true
+
+  ::xotcl::Class method unknown {args} {
+    #puts stderr "use explict create commands!, not [self] $args"
+    eval my create $args
+  }
+
   # "init" must exist on Object. per default it is empty.
   ::xotcl::Object method init args {}
 
