@@ -21,7 +21,7 @@ namespace eval ::xotcl::xodoc {
 	    are registered for all token types.
 	}
     }
-    Class MetadataTokenHTML
+    Class create MetadataTokenHTML
     @ MetadataTokenHTML abstract instproc printHTML {} {
 	description {Print token to HTML document object}
     }
@@ -72,7 +72,7 @@ namespace eval ::xotcl::xodoc {
     MetadataToken instmixin [concat [MetadataToken info instmixin] MetadataTokenHTML]
 
     @ Class FileTokenHTML -superclass MetadataTokenHTML
-    Class FileTokenHTML -superclass MetadataTokenHTML
+    Class create FileTokenHTML -superclass MetadataTokenHTML
     FileTokenHTML instproc printHTML {htmlDoc} {
 	$htmlDoc addLineBreak
 	$htmlDoc addString "<b> Filename: </b>"
@@ -87,7 +87,7 @@ namespace eval ::xotcl::xodoc {
     FileToken instmixin [concat [FileToken info instmixin] FileTokenHTML]
 
     @ Class ConstraintTokenHTML -superclass MetadataTokenHTML
-    Class ConstraintTokenHTML -superclass MetadataTokenHTML
+    Class create ConstraintTokenHTML -superclass MetadataTokenHTML
     ConstraintTokenHTML instproc printHTML {htmlDoc} {
 	$htmlDoc addAnchor "" -name [my set name]
 	$htmlDoc addString "<h2> Constraint: <em> [my set name] </em> </h2>"
@@ -100,7 +100,7 @@ namespace eval ::xotcl::xodoc {
     ConstraintToken instmixin [concat [ConstraintToken info instmixin] ConstraintTokenHTML]
 
     @ Class ObjTokenHTML -superclass MetadataTokenHTML
-    Class ObjTokenHTML -superclass MetadataTokenHTML
+    Class create ObjTokenHTML -superclass MetadataTokenHTML
     ObjTokenHTML instproc getProcsHTML {htmlDoc} {
 	set c ""
 	set pl [MetadataToken sortTokenList [my procList]]
@@ -154,14 +154,14 @@ namespace eval ::xotcl::xodoc {
     ObjToken instmixin [concat [ObjToken info instmixin] ObjTokenHTML]
 
     @ Class MethodTokenHTML -superclass MetadataTokenHTML
-    Class MethodTokenHTML -superclass MetadataTokenHTML
+    Class create MethodTokenHTML -superclass MetadataTokenHTML
 
     # Prints out method information as HTML.
     MethodTokenHTML instproc printHTML {htmlDoc} {
 	#my showVars
 	set argText "\n"
 
-	HtmlBuilder args
+	HtmlBuilder create args
 
 	set a  "<em>Arguments:</em>"
 
@@ -211,7 +211,7 @@ namespace eval ::xotcl::xodoc {
 
     @ Class XODoc { description "Handler class for building a documentation database" }
 
-    Class XODoc -superclass StaticMetadataAnalyzer
+    Class create XODoc -superclass StaticMetadataAnalyzer
 
     @ XODoc proc documentFileAsHTML {
 				     file "filename of the xotcl file to be documented"
@@ -224,7 +224,7 @@ namespace eval ::xotcl::xodoc {
     }
 
     XODoc proc documentFileAsHTML {file docdir} {
-	set docdb [XODoc [XODoc autoname docdb]]
+	set docdb [XODoc create [XODoc autoname docdb]]
 	::@ set analyzerObj $docdb
 	$docdb analyzeFile $file
 	set ext [file extension $file]
@@ -361,7 +361,7 @@ namespace eval ::xotcl::xodoc {
 	description "Create HTML documentation object from metadata token"
     }
     XODoc instproc printHTML {name} {
-	HtmlBuilder htmlDoc
+	HtmlBuilder create htmlDoc
 	htmlDoc startDocument -title "XOTcl - Documentation -- $name" \
 	    -bgcolor FFFFFF -stylesheet xotcl-doc.css
 	htmlDoc addStringIncr "<h1>"

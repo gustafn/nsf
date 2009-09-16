@@ -1,0 +1,108 @@
+package require XOTcl; namespace import ::xotcl::*
+package require xotcl::test
+
+set count 1
+proc ? {cmd expected {msg ""}} {
+  if {$msg ne ""} {
+    set t [Test new -cmd $cmd -count $::count -msg $msg]
+  } else {
+    set t [Test new -cmd $cmd -count $::count]
+  }
+  $t expected $expected 
+  $t run
+}
+
+Class create C
+::xotcl::alias C SET ::set
+C method foo {} {return [self proc]}
+C method bar {} {return [self proc]}
+C method bar-foo {} {
+  c1 foo
+}
+C method bar-SET {} {
+  c1 SET x 1
+}
+
+C create c1
+C create c2
+
+? {c1 SET x 1} {1}
+? {c1 foo} {foo}
+? {c1 bar-SET} {1}
+? {c1 bar-foo} {foo}
+
+::xotcl::methodproperty C SET protected true
+? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
+? {::xotcl::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
+? {c1 foo} {foo}
+? {c1 bar} {bar}
+? {c1 bar-SET} {1}
+? {c1 bar-foo} {foo}
+? {catch {c2 bar-SET} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
+? {c2 bar-foo} {foo}
+
+::xotcl::methodproperty C foo protected true
+? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
+? {::xotcl::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
+? {c1 bar} {bar} "other method work"
+? {catch {c1 foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
+? {c1 bar-SET} {1} "internal call of protected C implementend method"
+? {c1 bar-foo} {foo} "internal call of protected Tcl implemented method"
+? {catch {c2 bar-SET} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
+? {catch {c2 bar-foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
+
+# unset protected
+? {::xotcl::methodproperty C SET protected} 1
+::xotcl::methodproperty C SET protected false
+? {::xotcl::methodproperty C SET protected} 0
+? {::xotcl::methodproperty C foo protected} 1
+::xotcl::methodproperty C foo protected false
+? {::xotcl::methodproperty C foo protected} 0
+
+? {c1 SET x 3} 3
+? {::xotcl::dispatch c1 SET x 2} {2} 
+? {c1 foo} {foo}
+? {c1 bar} {bar}
+? {c1 bar-SET} {1}
+? {c1 bar-foo} {foo}
+? {c2 bar-SET} 1
+? {c2 bar-foo} {foo}
+
+# define a protected method
+C method -protected foo {} {return [self proc]}
+? {::xotcl::methodproperty C SET protected} 0
+? {c1 SET x 3} 3
+? {::xotcl::dispatch c1 SET x 4} {4} 
+? {catch {c1 foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
+? {c1 bar} {bar}
+? {c1 bar-SET} {1}
+? {c1 bar-foo} foo
+? {c2 bar-SET} 1
+? {catch {c2 bar-foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
+
+? {::xotcl::methodproperty C SET static true} 1
+? {catch {C method SET {a b c} {...}}  errorMsg; set errorMsg} \
+    {Method 'SET' of ::C can not be overwritten. Derive e.g. a sub-class!}
+? {::xotcl::methodproperty C foo static true} 1
+? {catch {C method foo {a b c} {...}}  errorMsg; set errorMsg} \
+    {Method 'foo' of ::C can not be overwritten. Derive e.g. a sub-class!}
+# check a predefined protection
+? {catch {::xotcl::Class method dealloc {a b c} {...}}  errorMsg; set errorMsg} \
+    {Method 'dealloc' of ::xotcl::Class can not be overwritten. Derive e.g. a sub-class!}
+# try to redefined via alias
+? {catch {::xotcl::alias Class dealloc ::set}  errorMsg; set errorMsg} \
+    {Method 'dealloc' of ::xotcl::Class can not be overwritten. Derive e.g. a sub-class!}
+# try to redefine via forward
+? {catch {C instforward SET ::set}  errorMsg; set errorMsg} \
+    {Method 'SET' of ::C can not be overwritten. Derive e.g. a sub-class!}
+# try to redefine via forward
+? {catch {C instparametercmd SET}  errorMsg; set errorMsg} \
+    {Method 'SET' of ::C can not be overwritten. Derive e.g. a sub-class!}
+
+# overwrite-protect object specific method
+Object create o
+o method foo {} {return 13}
+::xotcl::methodproperty o foo static true
+? {catch {o method foo {} {return 14}} errorMsg; set errorMsg} \
+    {Method 'foo' of ::o can not be overwritten. Derive e.g. a sub-class!}
+

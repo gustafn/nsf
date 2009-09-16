@@ -60,7 +60,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 
 	}
     }
-    Class MetadataToken -parameter {
+    Class create MetadataToken -parameter {
 	{name ""}
 	{properties ""}
     }
@@ -126,7 +126,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	    Token for @File Metadata.
 	}
     }
-    Class FileToken -superclass MetadataToken
+    Class create FileToken -superclass MetadataToken
     FileToken instproc print {} {
 	set c "FILE=[my set name]\n"
 	append c [my printProperties]
@@ -138,7 +138,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	    Token for @Constraint Metadata.
 	}
     }
-    Class ConstraintToken -superclass MetadataToken
+    Class create ConstraintToken -superclass MetadataToken
     ConstraintToken instproc print {} {
 	set c "CONSTRAINT=[my set name]\n"
 	append c [my printProperties]
@@ -152,7 +152,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 
 	}
     }
-    Class PackageToken -superclass MetadataToken -parameter {
+    Class create PackageToken -superclass MetadataToken -parameter {
 	{version ""}
 	{type ""}
     }
@@ -163,7 +163,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	    "procList" = list of all proc token and "cl"= class name.
 	}
     }
-    Class ObjToken -superclass MetadataToken -parameter {
+    Class create ObjToken -superclass MetadataToken -parameter {
 	{procList ""}
 	cl
     }
@@ -203,7 +203,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	    "instprocList" = list of all instproc token.
 	}
     }
-    Class ClassToken -superclass ObjToken -parameter {
+    Class create ClassToken -superclass ObjToken -parameter {
 	{instprocList ""}
     }
     ClassToken instproc print {} {
@@ -216,7 +216,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	    Token for Meta-Class metadata.
 	}
     }
-    Class MetaClassToken -superclass ClassToken
+    Class create MetaClassToken -superclass ClassToken
     MetaClassToken instproc print {} {
 	regsub "^CLASS=" [next] "META-CLASS=" r
 	return $r
@@ -229,7 +229,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	    "obj" name, "abstract" = 0 or 1 (whether its an abstract method or not).
 	}
     }
-    Class MethodToken -superclass MetadataToken -parameter {
+    Class create MethodToken -superclass MetadataToken -parameter {
 	arguments
 	returnValue
 	obj
@@ -256,7 +256,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	    Token for Proc metadata
 	}
     }
-    Class ProcToken -superclass MethodToken
+    Class create ProcToken -superclass MethodToken
     ProcToken instproc print {} {
 	regsub "^  METHOD=" [next] "  PROC=" r
 	return $r
@@ -267,7 +267,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	    Token for Instproc metadata.
 	}
     }
-    Class InstprocToken -superclass MethodToken
+    Class create InstprocToken -superclass MethodToken
     InstprocToken instproc print {} {
 	regsub "^  METHOD=" [next] "  INSTPROC=" r
 	return $r
@@ -277,7 +277,7 @@ namespace eval ::xotcl::metadataAnalyzer {
 	description "Handler class for building a metadata runtime structure"
     }
 
-    Class MetadataAnalyzer -parameter {
+    Class create MetadataAnalyzer -parameter {
 	{objList ""}
 	{packageList ""}
 	{knownMetaclasses "Class"}
@@ -446,7 +446,7 @@ namespace eval ::xotcl::metadataAnalyzer {
     @ Class AnalyzerCmd {
 	description {Class that overload the unknown mechanism of @ to provide metadata analysis.}
     }
-    Class AnalyzerCmd -parameter {
+    Class create AnalyzerCmd -parameter {
 	{analyzerObj ""}
 	{onOff 0}
     } 
@@ -492,7 +492,7 @@ namespace eval ::xotcl::metadataAnalyzer {
     @ AnalyzerCmd @ {
 	description {Recreate @ with metadata analyis funtionality.}
     }
-    AnalyzerCmd @
+    AnalyzerCmd create @
 
     namespace export \
 	MetadataToken FileToken ConstraintToken PackageToken ObjToken \

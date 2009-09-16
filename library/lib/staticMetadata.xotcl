@@ -20,7 +20,7 @@ namespace eval ::xotcl::staticMetadataAnalyzer {
     }
   }
 
-  Class StaticMetadataAnalyzer -superclass MetadataAnalyzer \
+  Class create StaticMetadataAnalyzer -superclass MetadataAnalyzer \
       -parameter {{namespace ::}}
   StaticMetadataAnalyzer instproc cmdsplit {cmd} {
     # from Jeffrey's tkcon

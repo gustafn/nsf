@@ -33,7 +33,7 @@ namespace eval ::xotcl::package {
 	}
     } 
 
-    Object package
+    Object create package
     package set component .
     package set verbose 0
     package proc unknown args {
@@ -82,7 +82,7 @@ namespace eval ::xotcl::package {
 	return $v
     }
 
-    Object package::tracker
+    Object create package::tracker
     package::tracker set verbose 0
     package::tracker proc storeEntry {table index} {
 	my instvar verbose $table
@@ -103,7 +103,7 @@ namespace eval ::xotcl::package {
 	::Object add mixin [self]::M
     }
 
-    Class package::tracker::M
+    Class create package::tracker::M
     package::tracker::M instproc create {cls args} {
 	set table [string tolower [string trimleft [self] :]]
 	package::tracker storeEntry $table [lindex $args 0]

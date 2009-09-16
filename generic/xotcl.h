@@ -40,6 +40,7 @@
 # endif
 #endif
 
+
 /* activate bytecode support 
 #define XOTCL_BYTECODE
 */
@@ -50,7 +51,6 @@
 */
 
 /* activate/deacticate assert 
-
 #define NDEBUG 1
 */
 #define NDEBUG 1

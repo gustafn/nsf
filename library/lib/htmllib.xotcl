@@ -58,7 +58,7 @@ namespace eval ::xotcl::htmllib {
     # the compressed parameter means that minimal HTML page are created
     # i.e. that space indentation is turned off
     #
-    Class HtmlBuilder -parameter {
+    Class create HtmlBuilder -parameter {
 	{compressed 0}
     }
 
