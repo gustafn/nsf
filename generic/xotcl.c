@@ -1516,8 +1516,8 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flag
             varFramePtr ? Tcl_CallFrame_procPtr(varFramePtr): 0);*/
 
   if (varFramePtr && (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_PROC)) {
-    /*fprintf(stderr, "proc-scoped var detected '%s' in NS '%s', frame %p flags %.6x\n", 
-      name, varFramePtr->nsPtr->fullName, varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr));*/
+    /*fprintf(stderr, "proc-scoped var '%s' assumed, frame %p flags %.6x\n", 
+      name, varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr));*/
     return TCL_CONTINUE;
   }
 
