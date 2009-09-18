@@ -10,7 +10,7 @@ static char cmd[] =
 "set bootstrap 1\n"
 "foreach cmd [info command ::xotcl::cmd::Object::*] {\n"
 "::xotcl::alias ::xotcl::Object [namespace tail $cmd] $cmd}\n"
-"foreach cmd {array append eval incr lappend    subst unset trace} {\n"
+"foreach cmd {array append eval incr lappend set subst unset trace} {\n"
 "::xotcl::alias ::xotcl::Object $cmd -objscope ::$cmd}\n"
 "foreach cmd [info command ::xotcl::cmd::Class::*] {\n"
 "::xotcl::alias ::xotcl::Class [namespace tail $cmd] $cmd}\n"

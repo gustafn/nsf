@@ -1488,8 +1488,6 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flag
    *
    * Note: For now, I am not aware of this case to become effective,
    * it is a mere safeguard measure.
-   *
-   * TODO: Can it be omitted safely?
    */
 
   if (flags & TCL_GLOBAL_ONLY) {
@@ -1510,16 +1508,16 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flag
    * directly (by digging into compiled and non-compiled locals etc.),
    * however, it would cause further code redundance.
    */
-
-  varFramePtr = nonXotclObjectProcFrame((Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp));
   
+  varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+
   /*fprintf(stderr, "varFramePtr=%p, isProcCallFrame=%.6x %p\n",varFramePtr,
             varFramePtr ? Tcl_CallFrame_isProcCallFrame(varFramePtr): 0,
             varFramePtr ? Tcl_CallFrame_procPtr(varFramePtr): 0);*/
 
-  if (varFramePtr && Tcl_CallFrame_isProcCallFrame(varFramePtr)) {
-    /*fprintf(stderr, "proc-scoped var detected '%s' in NS '%s'\n", name,
-      varFramePtr->nsPtr->fullName);*/
+  if (varFramePtr && (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_PROC)) {
+    /*fprintf(stderr, "proc-scoped var detected '%s' in NS '%s', frame %p flags %.6x\n", 
+      name, varFramePtr->nsPtr->fullName, varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr));*/
     return TCL_CONTINUE;
   }
 
@@ -7979,7 +7977,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
    * If we are executing inside a Tcl procedure, create a local
    * variable linked to the new namespace variable "varName".
    */
-  if (varFramePtr && Tcl_CallFrame_isProcCallFrame(varFramePtr)) {
+  if (varFramePtr && (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_PROC)) {
     Proc *procPtr           = Tcl_CallFrame_procPtr(varFramePtr);
     int localCt             = procPtr->numCompiledLocals;
     CompiledLocal *localPtr = procPtr->firstLocalPtr;
@@ -10893,10 +10891,6 @@ static int XOTclOProcSearchMethod(Tcl_Interp *interp, XOTclObject *obj, char *na
 static int XOTclORequireNamespaceMethod(Tcl_Interp *interp, XOTclObject *obj) {
   requireObjNamespace(interp, obj);
   return TCL_OK;
-}
-
-static int XOTclOSetMethod(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value) {
-  return setInstVar(interp, object, variable, value);
 }
 
 static int XOTclOSetvaluesMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
