@@ -84,7 +84,10 @@ namespace eval ::xotcl {
 
   # provide a placeholder for the bootup process. The real definition
   # is based on slots, which are not available at this point.
-  ::xotcl::Object method objectparameter {} {;}
+  ::xotcl::Object method objectparameter {} {    
+    #puts stderr "XXXX-objectparameter for [self] - INITIAL"
+    return ""
+  }
 
   #
   # create class and object for nonpositional argument processing
@@ -318,6 +321,7 @@ namespace eval ::xotcl {
   # Provide the a slot based mechanism for building an object
   # configuration interface from slot definitions
   ::xotcl::Object method objectparameter {} {
+    #puts stderr "XXXX-objectparameter for [self]"
     set parameterdefinitions [list]
     # don't call [my info slotobjects], since filters on [self]
     # modifying the result (such as in the regression test) will cause

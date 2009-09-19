@@ -76,12 +76,15 @@
 #define CONFIGURE_ARGS_TRACE 1
 */
 
-/*
+/* some features
 #define TCL85STACK 1
 #define CANONICAL_ARGS 1
 */
+
+#if !defined(PRE86)
 #define CANONICAL_ARGS 1
 #define TCL85STACK 1
+#endif
 
 #if defined(PARSE_TRACE_FULL)
 # define PARSE_TRACE 1
@@ -116,6 +119,17 @@
 #if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<5
 # define PRE85
 #endif
+
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<6
+# define PRE86
+#endif
+
+#if defined(PRE86)
+# define CONST86
+# else
+/*#  define NRE*/
+#endif
+
 
 #if !defined(FORWARD_COMPATIBLE)
 # if defined(PRE85)

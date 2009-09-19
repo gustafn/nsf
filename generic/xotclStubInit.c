@@ -83,3 +83,6 @@ XotclStubs xotclStubs = {
 };
 
 /* !END!: Do not edit above this line. */
+
+MODULE_SCOPE const XotclStubs * const xotclConstStubPtr;
+const XotclStubs * const xotclConstStubPtr = &xotclStubs;

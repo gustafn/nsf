@@ -19,7 +19,7 @@
  */
 
 #ifndef USE_TCL_STUBS
-#define USE_TCL_STUBS
+# define USE_TCL_STUBS
 #endif
 #undef USE_TCL_STUB_PROCS
 
@@ -29,13 +29,20 @@
  */
 
 #ifndef USE_XOTCL_STUBS
-#define USE_XOTCL_STUBS
+# define USE_XOTCL_STUBS
 #endif
 
 #include "xotclInt.h"
 
-XotclStubs *xotclStubsPtr = NULL;
-XotclIntStubs *xotclIntStubsPtr = NULL;
+#if defined(PRE86)
+extern XotclStubs *xotclStubsPtr;
+#else
+MODULE_SCOPE const XotclStubs *xotclStubsPtr;
+MODULE_SCOPE const XotclIntStubs *xotclIntStubsPtr;
+#endif
+CONST86 XotclStubs *xotclStubsPtr = NULL;
+CONST86 XotclIntStubs *xotclIntStubsPtr = NULL;
+
 
 /*
  *----------------------------------------------------------------------
@@ -56,30 +63,40 @@ XotclIntStubs *xotclIntStubsPtr = NULL;
  */
 
 CONST char *
-Xotcl_InitStubs (interp, version, exact)
-    Tcl_Interp *interp;
-    CONST char *version;
-    int exact;
-{
+Xotcl_InitStubs (Tcl_Interp *interp, CONST char *version, int exact) {
     CONST char *actualVersion;
+    const char *packageName = "XOTcl";
+    ClientData clientData = NULL;
 
     actualVersion = Tcl_PkgRequireEx(interp, "XOTcl", version, exact,
-        (ClientData *) &xotclStubsPtr);
+        &clientData);
 
-    if (actualVersion == NULL) {
-        xotclStubsPtr = NULL;
+    if (clientData == NULL) {
+      Tcl_ResetResult(interp);
+      Tcl_AppendResult(interp, "Error loading ", packageName, " package; ",
+                         "package not present or incomplete", NULL);
         return NULL;
-    }
-
-    if (xotclStubsPtr == NULL) {
-        return NULL;
-    }
-
-    if (xotclStubsPtr->hooks) {
-        xotclIntStubsPtr = xotclStubsPtr->hooks->xotclIntStubs;
     } else {
-        xotclIntStubsPtr = NULL;
-    }
+      CONST86 XotclStubs * const stubsPtr = clientData;
+      CONST86 XotclIntStubs * const intStubsPtr = stubsPtr->hooks ?
+        stubsPtr->hooks->xotclIntStubs : NULL;
 
-    return actualVersion;
+      if (actualVersion == NULL) {
+        return NULL;
+      }
+
+      if (!stubsPtr || !intStubsPtr) {
+        static char *errMsg = "missing stub table pointer";
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "Error loading ", packageName, " package",
+                         " (requested version '", version, "', loaded version '",
+                         actualVersion, "'): ", errMsg, NULL);
+        return NULL;
+      }
+
+      xotclStubsPtr = stubsPtr;
+      xotclIntStubsPtr = intStubsPtr;
+
+      return actualVersion;
+    }
 }

@@ -48,13 +48,16 @@
 #include "xotclAccessInt.h"
 
 #ifdef COMPILE_XOTCL_STUBS
+# if defined(PRE86)
 extern XotclStubs xotclStubs;
+# else
+MODULE_SCOPE const XotclStubs * const xotclConstStubPtr;
+# endif
 #endif
 
 #ifdef XOTCL_MEM_COUNT
 int xotclMemCountInterpCounter = 0;
 #endif
-
 
 /*
  * Tcl_Obj Types for XOTcl Objects
@@ -858,9 +861,9 @@ XOTclCleanupObject(XOTclObject *obj) {
  */
 
 /* todo more generic */
-XOTCLINLINE static Tcl_ObjType *
-GetCmdNameType(Tcl_ObjType *cmdType) {
-  static Tcl_ObjType *tclCmdNameType = NULL;
+XOTCLINLINE static CONST86 Tcl_ObjType *
+GetCmdNameType(Tcl_ObjType CONST86 *cmdType) {
+  static Tcl_ObjType CONST86 *tclCmdNameType = NULL;
 
   if (tclCmdNameType == NULL) {
     static XOTclMutex initMutex = 0;
@@ -874,7 +877,7 @@ GetCmdNameType(Tcl_ObjType *cmdType) {
 
 static int
 IsXOTclTclObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **obj) {
-  Tcl_ObjType *cmdType = objPtr->typePtr;
+  Tcl_ObjType CONST86 *cmdType = objPtr->typePtr;
   if (cmdType == GetCmdNameType(cmdType)) {
     Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objPtr);
     if (cmd) {
@@ -1534,7 +1537,7 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flag
   /* Case 3: Does the variable exist in the per-object namespace? */
   *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(nsPtr), name, NULL);
 
-  if(*varPtr == NULL) {
+  if (*varPtr == NULL) {
     /* We failed to find the variable so far, therefore we create it
      * here in the namespace.  Note that the cases (1), (2) and (3)
      * TCL_CONTINUE care for variable creation if necessary.
@@ -4632,10 +4635,13 @@ SubstValue(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj **value) {
 #  include <tclCompile.h>
 # endif
 
+#if defined(PRE86)
+# define Tcl_GetErrorLine(interp) (interp)->errorLine
+#endif
+
 static void
 MakeProcError(
-	      Tcl_Interp *interp,		/* The interpreter in which the procedure was
-						 * called. */
+	      Tcl_Interp *interp,	/* The interpreter in which the procedure was called. */
 	      Tcl_Obj *procNameObj)	/* Name of the procedure. Used for error
 					 * messages and trace information. */
 {
@@ -4646,7 +4652,7 @@ MakeProcError(
   Tcl_AppendObjToErrorInfo(interp, Tcl_ObjPrintf(
 						 "\n    (procedure \"%.*s%s\" line %d)",
 						 (overflow ? limit : nameLen), procName,
-						 (overflow ? "..." : ""), interp->errorLine));
+						 (overflow ? "..." : ""), Tcl_GetErrorLine(interp)));
 }
 
 /* 
@@ -4666,7 +4672,7 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
   Namespace *nsPtr = procPtr->cmdPtr->nsPtr;
   CallFrame *framePtr;
   int result;
-  static Tcl_ObjType *byteCodeType = NULL;
+  static Tcl_ObjType CONST86 *byteCodeType = NULL;
 
   if (byteCodeType == NULL) {
     static XOTclMutex initMutex = 0;
@@ -4918,6 +4924,52 @@ static void ParsedParamFree(XOTclParsedParam *parsedParamPtr) {
 /*
  * method dispatch
  */
+#if defined(NRE)
+static int
+FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
+  parseContext *pcPtr = data[0];
+  XOTclCallStackContent *cscPtr = data[1];
+  XOTclObject *obj = cscPtr->self;
+  
+  fprintf(stderr, "FinalizeProcMethod result %d, csc %p, pcPtr %p, obj %p\n",
+          result, cscPtr, pcPtr, obj);
+# if defined(TCL85STACK_TRACE)
+  fprintf(stderr, "POP  OBJECT_FRAME (implicit) frame %p csc %p obj %s obj refcount %d %d\n", NULL, csc,
+          objectName(obj),
+          obj->id ? Tcl_Command_refCount(obj->id) : -100,
+          obj->refCount
+          );
+# endif
+
+#if 0
+#ifdef DISPATCH_TRACE
+  printExit(interp, "invokeProcMethod", objc, objv, result);
+  /* fprintf(stderr, " returnCode %d xotcl rc %d\n",
+     Tcl_Interp_returnCode(interp), result);*/
+#endif
+#endif
+
+#if 0
+  /* for now, we have no methodname etc.... so we deactivete post checks temporarly */
+  opt = obj->opt;
+  if (opt && obj->teardown && (opt->checkoptions & CHECK_POST)) {
+    result = AssertionCheck(interp, obj, cl, methodName, CHECK_POST);
+  }
+#endif
+  
+  if (pcPtr) {
+    fprintf(stderr, "FinalizeProcMethod calls pop\n");
+    parseContextRelease(pcPtr);
+    TclStackFree(interp, pcPtr);
+  }
+
+  fprintf(stderr, "FinalizeProcMethod calls pop\n");
+  CallStackPop(interp, cscPtr);
+  TclStackFree(interp, cscPtr);
+
+  return result;
+}
+#endif
 
 /* invoke a method implemented as a proc/instproc (with assertion checking) */
 static int
@@ -4926,8 +4978,11 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
          XOTclCallStackContent *csc) {
   int result, releasePc = 0;
   XOTclObjectOpt *opt = obj->opt;
-  parseContext pc;
-
+#if defined(NRE)
+  parseContext *pcPtr = NULL;
+#else
+  parseContext pc, *pcPtr = &pc;
+#endif
 #if defined(PRE85)
   XOTcl_FrameDecls;
 #endif
@@ -5001,11 +5056,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
    * latter is callable from the outside (e.g. from XOTcl). This new
    * interface allows us to setup the XOTcl callframe before the
    * bytecode of the method body (provisioned by PushProcCallFrame)
-   * is executed. On the medium range, we do not need the xotcl
-   * callframe when we stop supporting Tcl 8.4 (we should simply use
-   * the calldata field in the callstack), which should be managed
-   * here or in PushProcCallFrame. At the same time, we could do the
-   * non-pos-arg handling here as well.
+   * is executed for tcl 8.4 versions. 
    */
 #if !defined(PRE85)
   /*fprintf(stderr, "\tproc=%s cp=%p %d\n", Tcl_GetCommandName(interp, cmd),cp, isTclProc);*/
@@ -5021,10 +5072,13 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       ((XOTclProcContext *)Tcl_Command_deleteData(cmdPtr))->paramDefs : NULL;
 
     if (paramDefs) {
-      result = ProcessMethodArguments(&pc, interp, obj, 1, paramDefs, methodName, objc, objv);
+#if defined(NRE)
+      pcPtr = (parseContext *) TclStackAlloc(interp, sizeof(parseContext));
+#endif
+      result = ProcessMethodArguments(pcPtr, interp, obj, 1, paramDefs, methodName, objc, objv);
       if (result == TCL_OK) {
         releasePc = 1;
-        result = PushProcCallFrame(cp, interp, pc.objc, pc.full_objv, csc);
+        result = PushProcCallFrame(cp, interp, pcPtr->objc, pcPtr->full_objv, csc);
       }
     } else {
       result = PushProcCallFrame(cp, interp, objc, objv, csc);
@@ -5034,6 +5088,12 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   result = PushProcCallFrame(cp, interp, objc, objv, csc);
 # endif 
 
+  if (result != TCL_OK) {
+#if defined(NRE)
+    if (pcPtr) TclStackFree(interp, pcPtr);
+#endif
+  }
+
   /*
    * The stack frame is pushed, we could do something here before
    * running the byte code of the body.
@@ -5042,12 +5102,17 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 #if !defined(TCL85STACK)
     RUNTIME_STATE(interp)->cs.top->currentFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
 #endif
+#if !defined(NRE)
     result = TclObjInterpProcCore(interp, objv[0], 1, &MakeProcError);
     if (releasePc) {
       parseContextRelease(&pc);
     }
-  } else {
-    result = TCL_ERROR;
+#else
+    fprintf(stderr, "CALL TclNRInterpProcCore %s.%s\n", objectName(obj), ObjStr(objv[0]));
+    Tcl_NRAddCallback(interp, FinalizeProcMethod, releasePc ? pcPtr : NULL, csc, NULL, NULL);
+    result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
+    fprintf(stderr, "CALL TclNRInterpProcCore DONE\n");
+#endif
   }
 # if defined(TCL85STACK_TRACE)
   fprintf(stderr, "POP  OBJECT_FRAME (implicit) frame %p csc %p obj %s obj refcount %d %d\n", NULL, csc,
@@ -5060,20 +5125,19 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   result = (*Tcl_Command_objProc(cmdPtr))(cp, interp, objc, objv);
 #endif
 
-#ifdef DISPATCH_TRACE
+#if defined(PRE86)
+# ifdef DISPATCH_TRACE
   printExit(interp, "invokeProcMethod", objc, objv, result);
   /* fprintf(stderr, " returnCode %d xotcl rc %d\n",
      Tcl_Interp_returnCode(interp), result);*/
-#endif
-
-  /*    fprintf(stderr, "dispatch returned %d rst = %d\n", result, rst->returnCode);*/
+# endif
 
   opt = obj->opt;
   if (opt && obj->teardown &&
       (opt->checkoptions & CHECK_POST)) {
     result = AssertionCheck(interp, obj, cl, methodName, CHECK_POST);
   }
-
+#endif
  finish:
   return result;
 }
@@ -5125,7 +5189,11 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
   printCall(interp, "invokeCmdMethod cmd", objc, objv);
   fprintf(stderr, "\tcmd=%s\n", Tcl_GetCommandName(interp, cmdPtr));
 #endif
+#if 1 || !defined(NRE)
   result = (*Tcl_Command_objProc(cmdPtr))(cp, interp, objc, objv);
+#else
+  result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmdPtr), cp, objc, objv);
+#endif
 #ifdef DISPATCH_TRACE
   printExit(interp, "invokeCmdMethod cmd", objc, objv, result);
 #endif
@@ -5178,19 +5246,20 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
              Tcl_Command cmd, XOTclObject *obj, XOTclClass *cl,
              char *methodName, int frameType) {
   ClientData cp = Tcl_Command_objClientData(cmd);
-  XOTclCallStackContent csc, *cscPtr = &csc;
+  XOTclCallStackContent *cscPtr;
   register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd); 
   int result;
 
   assert (!obj->teardown);
-  /* before, we had a logic like the following:
-  if (!obj->teardown) {
-    return TCL_OK;
-    } */
-
   /*fprintf(stderr, "InvokeMethod method '%s' cmd %p cp=%p objc=%d\n",methodName,cmd, cp, objc);*/
 
   if (proc == TclObjInterpProc) {
+#if defined(NRE)
+    cscPtr = (XOTclCallStackContent *) TclStackAlloc(interp, sizeof(XOTclCallStackContent));
+#else
+    XOTclCallStackContent csc;
+    cscPtr = &csc;
+#endif
     /*
      * invoke a Tcl-defined method 
      */
@@ -5201,10 +5270,14 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
 #endif
     result = invokeProcMethod(cp, interp, objc, objv, methodName, obj, cl, cmd, cscPtr);
+#if !defined(NRE)
     CallStackPop(interp, cscPtr);
+#endif
     return result;
 
   } else if (cp) {
+    XOTclCallStackContent csc;
+    cscPtr = &csc;
 
     /* some cmd with client data */
     if (proc == XOTclObjDispatch) {
@@ -8336,7 +8409,11 @@ callForwarder(forwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     XOTcl_PushFrame(interp, obj);
   }
   if (tcd->objProc) {
-    result = (tcd->objProc)(tcd->clientData, interp, objc, objv);
+#if 1 || !defined(NRE)
+    result = (*tcd->objProc)(tcd->clientData, interp, objc, objv);
+#else
+    result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->clientData, objc, objv);
+#endif
   } else if (IsXOTclTclObj(interp, tcd->cmdName, (XOTclObject**)&clientData)) {
     /*fprintf(stderr, "XOTcl object %s, objc=%d\n", ObjStr(tcd->cmdName), objc);*/
     result = XOTclObjDispatch(clientData, interp, objc, objv);
@@ -8538,9 +8615,14 @@ XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   /*fprintf(stderr, "objscopedMethod obj=%p, ptr=%p\n", obj, tcd->objProc);*/
 
   XOTcl_PushFrame(interp, obj);
-  result = (tcd->objProc)(tcd->clientData, interp, objc, objv);
-  XOTcl_PopFrame(interp, obj);
 
+#if 1 || !defined(NRE)
+  result = (*tcd->objProc)(tcd->clientData, interp, objc, objv);
+#else
+  result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->clientData, objc, objv);
+#endif
+  
+  XOTcl_PopFrame(interp, obj);
   return result;
 }
 
@@ -8557,7 +8639,7 @@ typedef enum {NO_DASH, SKALAR_DASH, LIST_DASH} dashArgType;
 static dashArgType
 isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, char **methodName, int *objc, Tcl_Obj **objv[]) {
   char *flag;
-  static Tcl_ObjType *listType = NULL;
+  static Tcl_ObjType CONST86 *listType = NULL;
 
   assert(obj);
 
@@ -9643,7 +9725,7 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
   if (result != TCL_OK) {
     fprintf(stderr, "User defined exit handler contains errors!\n"
             "Error in line %d: %s\nExecution interrupted.\n",
-            interp->errorLine, ObjStr(Tcl_GetObjResult(interp)));
+            Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
   }
 
   for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
@@ -10541,7 +10623,9 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
     if (result == TCL_OK) {
       rawConfArgs = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(rawConfArgs);
-        
+#if !defined(PRE86)
+      fprintf(stderr, "the result of OBJECTPARAMETER was %s, now parse it...\n", ObjStr(rawConfArgs));
+#endif
       /* Parse the string representation to obtain the internal representation */
       result = ParamDefsParse(interp, methodName, rawConfArgs, XOTCL_ARG_OBJECT_PARAMETER, parsedParamPtr);
       if (result == TCL_OK && RUNTIME_STATE(interp)->cacheInterface) {
@@ -10599,8 +10683,8 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
   for (i = 1, paramPtr = paramDefs->paramsPtr; i < paramDefs->nrParams; i++, paramPtr++) {
 
     newValue = pc.full_objv[i];
-    /*fprintf(stderr, "newValue of %s = %p '%s'\n", ObjStr(paramPtr->objName), 
-      newValue, newValue ? ObjStr(newValue) : "(null)"); */
+    /* fprintf(stderr, "newValue of %s = %p '%s'\n", ObjStr(paramPtr->nameObj), 
+       newValue, newValue ? ObjStr(newValue) : "(null)"); */
 
     if (newValue == XOTclGlobalObjects[XOTE___UNKNOWN__]) {
       /* nothing to do here */
@@ -11012,7 +11096,7 @@ static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, T
   }
   if (result == TCL_ERROR) {
     char msg[32 + TCL_INTEGER_SPACE];
-    sprintf(msg, "\n    (\"uplevel\" body line %d)", interp->errorLine);
+    sprintf(msg, "\n    (\"uplevel\" body line %d)", Tcl_GetErrorLine(interp));
     Tcl_AddObjErrorInfo(interp, msg, -1);
   }
 
@@ -12605,7 +12689,11 @@ Xotcl_Init(Tcl_Interp *interp) {
 #ifndef AOL_SERVER
   /* the AOL server uses a different package loading mechanism */
 # ifdef COMPILE_XOTCL_STUBS
+#  if defined(PRE86)
   Tcl_PkgProvideEx(interp, "XOTcl", PACKAGE_VERSION, (ClientData)&xotclStubs);
+#  else
+  Tcl_PkgProvideEx(interp, "XOTcl", PACKAGE_VERSION, (ClientData)&xotclConstStubPtr);
+#  endif
 # else
   Tcl_PkgProvide(interp, "XOTcl", PACKAGE_VERSION);
 # endif
