@@ -4043,7 +4043,10 @@ getFullProcQualifier(Tcl_Interp *interp, CONST char *cmdName,
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
   Tcl_Obj *procObj = Tcl_NewStringObj(cmdName, -1);
   Tcl_ObjCmdProc *objProc = Tcl_Command_objProc(cmd);
-  int isTcl = (TclIsProc((Command *)cmd) != NULL);
+
+  /* TODO general take care about change in 8.6: TclIsProc((Command*)cmd) no equiv to following */ 
+  /*int isTcl = (TclIsProc((Command *)cmd) != NULL);*/
+  int isTcl = (Tcl_Command_objProc(cmd) == TclObjInterpProc);
 
   if (cl) {
     Tcl_ListObjAppendElement(interp, list, cl->object.cmdName);
@@ -4818,6 +4821,9 @@ ParamDefsStore(Tcl_Interp *interp, Tcl_Command cmd, XOTclParamDefs *paramDefs) {
   if (cmdPtr->deleteProc == TclProcDeleteProc) {
     XOTclProcContext *ctxPtr = NEW(XOTclProcContext);
 
+    /*fprintf(stderr, "paramDefsStore replace deleteProc %p by %p\n", 
+      cmdPtr->deleteProc, XOTclProcDeleteProc);*/
+
     ctxPtr->oldDeleteData = (Proc *)cmdPtr->deleteData;
     ctxPtr->oldDeleteProc = cmdPtr->deleteProc;
     cmdPtr->deleteProc = XOTclProcDeleteProc;
@@ -4929,10 +4935,12 @@ static int
 FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
   parseContext *pcPtr = data[0];
   XOTclCallStackContent *cscPtr = data[1];
+  char *methodName = data[2];
   XOTclObject *obj = cscPtr->self;
+  XOTclObjectOpt *opt = obj->opt;
   
-  fprintf(stderr, "FinalizeProcMethod result %d, csc %p, pcPtr %p, obj %p\n",
-          result, cscPtr, pcPtr, obj);
+  /*fprintf(stderr, "---- FinalizeProcMethod result %d, csc %p, pcPtr %p, obj %p\n",
+    result, cscPtr, pcPtr, obj);*/
 # if defined(TCL85STACK_TRACE)
   fprintf(stderr, "POP  OBJECT_FRAME (implicit) frame %p csc %p obj %s obj refcount %d %d\n", NULL, csc,
           objectName(obj),
@@ -4949,21 +4957,19 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
 #endif
 #endif
 
-#if 0
-  /* for now, we have no methodname etc.... so we deactivete post checks temporarly */
   opt = obj->opt;
   if (opt && obj->teardown && (opt->checkoptions & CHECK_POST)) {
-    result = AssertionCheck(interp, obj, cl, methodName, CHECK_POST);
+    fprintf(stderr, "call assertionCheck for %s\n",methodName);
+    result = AssertionCheck(interp, obj, cscPtr->cl, methodName, CHECK_POST);
   }
-#endif
   
   if (pcPtr) {
-    fprintf(stderr, "FinalizeProcMethod calls pop\n");
+    fprintf(stderr, "---- FinalizeProcMethod calls releasePc\n");
     parseContextRelease(pcPtr);
     TclStackFree(interp, pcPtr);
   }
 
-  fprintf(stderr, "FinalizeProcMethod calls pop\n");
+  /*fprintf(stderr, "---- FinalizeProcMethod calls pop\n");*/
   CallStackPop(interp, cscPtr);
   TclStackFree(interp, cscPtr);
 
@@ -5108,10 +5114,16 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       parseContextRelease(&pc);
     }
 #else
-    fprintf(stderr, "CALL TclNRInterpProcCore %s.%s\n", objectName(obj), ObjStr(objv[0]));
-    Tcl_NRAddCallback(interp, FinalizeProcMethod, releasePc ? pcPtr : NULL, csc, NULL, NULL);
-    result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
-    fprintf(stderr, "CALL TclNRInterpProcCore DONE\n");
+    {
+      TEOV_callback *rootPtr = TOP_CB(interp);
+      /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n", objectName(obj), ObjStr(objv[0]));*/
+      Tcl_NRAddCallback(interp, FinalizeProcMethod, 
+                        releasePc ? pcPtr : NULL, csc, methodName, NULL);
+      result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
+      /*fprintf(stderr, ".... run callbacks rootPtr = %p\n", rootPtr);*/
+      result = TclNRRunCallbacks(interp, result, rootPtr, 0);
+      /*fprintf(stderr, ".... run callbacks DONE\n");*/
+    }
 #endif
   }
 # if defined(TCL85STACK_TRACE)
@@ -5189,7 +5201,7 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
   printCall(interp, "invokeCmdMethod cmd", objc, objv);
   fprintf(stderr, "\tcmd=%s\n", Tcl_GetCommandName(interp, cmdPtr));
 #endif
-#if 1 || !defined(NRE)
+#if !defined(NRE)
   result = (*Tcl_Command_objProc(cmdPtr))(cp, interp, objc, objv);
 #else
   result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmdPtr), cp, objc, objv);
@@ -5270,7 +5282,10 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
 #endif
     result = invokeProcMethod(cp, interp, objc, objv, methodName, obj, cl, cmd, cscPtr);
-#if !defined(NRE)
+#if defined(NRE)
+    /* CallStackPop() is performed by the callbacks */
+    /*fprintf(stderr, "no pop for %s\n",methodName);*/
+#else
     CallStackPop(interp, cscPtr);
 #endif
     return result;
@@ -5317,9 +5332,7 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
     cp = clientData;
     cscPtr = NULL;
   }
-
   result = invokeCmdMethod(cp, interp, objc, objv, methodName, obj, cmd, cscPtr);
-
   if (cscPtr) {
     CallStackPop(interp, cscPtr);
   }
@@ -6067,7 +6080,7 @@ MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameOb
            Tcl_Obj *args, Tcl_Obj *body,
            Tcl_Obj *precondition, Tcl_Obj *postcondition, 
            int withProtected, int clsns) {
-  char *argStr = ObjStr(args), *bdyStr = ObjStr(body), *nameStr = ObjStr(nameObj);
+  char *argsStr = ObjStr(args), *bodyStr = ObjStr(body), *nameStr = ObjStr(nameObj);
   int result;
 
   if (precondition && !postcondition) {
@@ -6078,7 +6091,7 @@ MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameOb
   }
 
   /* if both, args and body are empty strings, we delete the method */
-  if (*argStr == 0 && *bdyStr == 0) {
+  if (*argsStr == 0 && *bodyStr == 0) {
     result = cl ? 
       XOTclRemoveIMethod(interp, (XOTcl_Class *)cl, nameStr) :
       XOTclRemovePMethod(interp, (XOTcl_Object *)obj, nameStr);
@@ -6864,8 +6877,7 @@ XOTclGetSelfObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     return XOTclVarErrMsg(interp, "wrong # of args for self", (char *) NULL);
 
   obj = GetSelfObj(interp);
-
-  /*fprintf(stderr, "getSelfObj returns %p\n", obj);XOTclCallStackDump(interp);*/
+  /*fprintf(stderr, "getSelfObj returns %p\n", obj); tcl85showStack(interp);*/
 
   if (objc == 1) {
     if (obj) {
@@ -10040,7 +10052,9 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
      * Do not copy Objects or Classes
      */
     if (!XOTclpGetObject(interp, oldName)) {
-      if (TclIsProc((Command*)cmd)) {
+
+      /* TODO general take care about change in 8.6: TclIsProc((Command*)cmd) no equiv to following */ 
+      if (Tcl_Command_objProc(cmd) == TclObjInterpProc) {
         Proc *procPtr = (Proc*) Tcl_Command_objClientData(cmd);
         Tcl_Obj *arglistObj;
         int result;
@@ -10623,14 +10637,11 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
     if (result == TCL_OK) {
       rawConfArgs = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(rawConfArgs);
-#if !defined(PRE86)
-      fprintf(stderr, "the result of OBJECTPARAMETER was %s, now parse it...\n", ObjStr(rawConfArgs));
-#endif
+
       /* Parse the string representation to obtain the internal representation */
       result = ParamDefsParse(interp, methodName, rawConfArgs, XOTCL_ARG_OBJECT_PARAMETER, parsedParamPtr);
       if (result == TCL_OK && RUNTIME_STATE(interp)->cacheInterface) {
         XOTclParsedParam *ppDefPtr = NEW(XOTclParsedParam);
-        
         ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
         ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
         obj->cl->parsedParamPtr = ppDefPtr; 

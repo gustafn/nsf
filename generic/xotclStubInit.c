@@ -24,16 +24,16 @@
 
 /* !BEGIN!: Do not edit below this line. */
 
-XotclIntStubs xotclIntStubs = {
+static const XotclIntStubs xotclIntStubs = {
     TCL_STUB_MAGIC,
     NULL,
 };
 
-static XotclStubHooks xotclStubHooks = {
+static const XotclStubHooks xotclStubHooks = {
     &xotclIntStubs
 };
 
-XotclStubs xotclStubs = {
+static const XotclStubs xotclStubs = {
     TCL_STUB_MAGIC,
     &xotclStubHooks,
     Xotcl_Init, /* 0 */

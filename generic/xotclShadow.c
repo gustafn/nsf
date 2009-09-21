@@ -95,8 +95,7 @@ XOTcl_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   /* if an obj/cl should be renamed => call the XOTcl move method */
   cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL,0);
-
-  if (cmd != NULL) {
+  if (cmd) {
     obj = XOTclGetObjectFromCmdPtr(cmd);
     if (obj) {
       return XOTclCallMethodWithArgs((ClientData)obj, interp,
@@ -188,7 +187,7 @@ int XOTclCallCommand(Tcl_Interp *interp, XOTclGlobalNames name,
   ov[0] = XOTclGlobalObjects[name];
   if (objc > 1)
     memcpy(ov+1, objv+1, sizeof(Tcl_Obj *)*(objc-1));
-  result = (*ti->proc)(ti->clientData, interp, objc, ov);
+  result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, objc, objv);
   FREE_ON_STACK(ov);
   return result;
 }

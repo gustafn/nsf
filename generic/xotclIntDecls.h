@@ -31,17 +31,13 @@
 
 typedef struct XotclIntStubs {
     int magic;
-    struct XotclIntStubHooks *hooks;
+    const struct XotclIntStubHooks *hooks;
 
 } XotclIntStubs;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern XotclIntStubs *xotclIntStubsPtr;
-#ifdef __cplusplus
-}
-#endif
+#if defined(USE_XOTCL_STUBS) && !defined(USE_XOTCL_STUB_PROCS)
+extern const XotclIntStubs *xotclIntStubsPtr;
+#endif /* defined(USE_XOTCL_STUBS) && !defined(USE_XOTCL_STUB_PROCS) */
 
 #if defined(USE_XOTCL_STUBS) && !defined(USE_XOTCL_STUB_PROCS)
 

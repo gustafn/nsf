@@ -126,8 +126,8 @@
 
 #if defined(PRE86)
 # define CONST86
-# else
-/*#  define NRE*/
+#else
+# define NRE
 #endif
 
 

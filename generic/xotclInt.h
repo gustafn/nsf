@@ -46,6 +46,11 @@
 # define TclVarHashTable Tcl_HashTable
 #endif
 
+#if defined(PRE86)
+# define Tcl_NRCallObjProc(interp, proc, cd, objc, objv) \
+  (*(proc))((cd), (interp), (objc), (objv))
+#endif
+
 #ifdef XOTCL_MEM_COUNT
 Tcl_HashTable xotclMemCount;
 extern int xotclMemCountInterpCounter;

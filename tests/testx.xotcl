@@ -201,11 +201,13 @@ TestX assertions -proc run {{n 20}} {
   b proc p {a b c} {
     return p
   } {pre1 pre2 pre3} {post1 post2 post3}
+puts stderr RENAME
   ::rename b a
+puts stderr RENAME-done
   ::errorCheck [a info pre p]  {{pre1} {pre2} {pre3}} \
-     "Obj proc pre assertion " 
+     "renamed Obj proc pre assertion " 
   ::errorCheck [a info post p]  {{post1} {post2} {post3}} \
-     "Obj proc post assertion "
+     "renamed Obj proc post assertion "
 
 
   Class Sensor -parameter {{value 1}}

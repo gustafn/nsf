@@ -326,7 +326,8 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *csc) {
   XOTclObject *obj = csc->self;
 
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "POP  csc=%p, obj %s\n", csc, objectName(obj));
+  fprintf(stderr, "POP  csc=%p, obj %s method %s (%d)\n", csc, objectName(obj), 
+          Tcl_GetCommandName(interp, csc->cmdPtr));
 #endif
   obj->activationCount --;
   /*fprintf(stderr, "decr activationCount for %s to %d\n", objectName(csc->self), csc->self->activationCount);*/
