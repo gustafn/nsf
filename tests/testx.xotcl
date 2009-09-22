@@ -201,9 +201,7 @@ TestX assertions -proc run {{n 20}} {
   b proc p {a b c} {
     return p
   } {pre1 pre2 pre3} {post1 post2 post3}
-puts stderr RENAME
   ::rename b a
-puts stderr RENAME-done
   ::errorCheck [a info pre p]  {{pre1} {pre2} {pre3}} \
      "renamed Obj proc pre assertion " 
   ::errorCheck [a info post p]  {{post1} {post2} {post3}} \
@@ -642,7 +640,20 @@ TestX filterGuards -proc run {{n 20}} {
         append filterResult "-[self]-[self proc]-[self class]-[self calledproc]"
 	next
       }
-      B instfilter {{f1 -guard "1<0"}}
+      B instproc f01 args { append ::filterResult 1; next }
+      B instproc f02 args { append ::filterResult 2; next }
+      B instfilter {{f1 -guard "1 2 3"}} ;# guard with error
+      set r [catch {B b}]
+      ::errorCheck $r-$filterResult "1-" "Filter guard: Filter guard with error"
+      #b destroy
+
+      set ::filterResult ""
+      B instfilter {f01 {f02 -guard "a b"}}
+      set r [catch {B b}]
+      ::errorCheck $r-$filterResult "1-1" "Filter guard: Filter guard with error iva next"
+
+      set ::filterResult ""
+      B instfilter {{f1 -guard "1<0"}} ;# failing guard
       B b
       ::errorCheck $filterResult "" "Filter guard: Filter never to be applied"
       b destroy
@@ -989,6 +1000,28 @@ TestX mixinGuards -proc run {{n 20}} {
     ::errorCheck [set info] [list {[my age] > 4} {} {[my age] > 3}  \
 				 {[my age] > 4} {} ] {info (inst)mixinguard}
 
+  Class create C
+  C method foo {} {return 0}
+  Class create M
+  M method foo {} {return 1}
+  Class create M1
+  M1 method foo {} {return 2}
+  C c1 -mixin {M}
+  ::errorCheck [c1 foo] 1 "no mixin guard"
+
+  C c1 -mixin {{M -guard {0>1}}}
+  ::errorCheck [c1 foo] 0 "mixin guard prevents call"
+
+  C c1 -mixin {{M -guard {0 1 2}}}
+  ::errorCheck [catch {c1 foo}] 1 "mixin guard with error"
+
+  M method foo {} {next}
+  C c1 -mixin {M {M1 -guard {a b c}}}
+  ::errorCheck [catch {c1 foo}] 1 "mixin guard with error in next"
+  c1 destroy
+  C destroy
+  M destroy
+  M1 destroy
 }
 
 @ TestX filterSimpleObserver {
@@ -3040,7 +3073,7 @@ smallScripts proc run {{n 20}} {
     Object o
     o proc x args {puts r}
     ::errorCheck [o info body x] "puts r" "Info Body"
-    ::errorCheck [info body o::x] "puts r" "Info Body"
+  #::errorCheck [info body o::x] "puts r" "Info Body"; #don't do this
 
     Object o
     o proc a {} {

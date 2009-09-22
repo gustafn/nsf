@@ -1268,6 +1268,11 @@ XOTclIsClass(Tcl_Interp *interp, ClientData clientData) {
 /*
  * methods lookup
  */
+static int CmdIsProc(Tcl_Command cmd) {
+  /* In 8.6: TclIsProc((Command*)cmd) no equiv to the definition below */ 
+  return (Tcl_Command_objProc(cmd) == TclObjInterpProc);
+}
+
 static Proc *GetProcFromCommand(Tcl_Command cmd) {
   if (cmd) {
     Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
@@ -1502,12 +1507,7 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flag
   /* Case 2: The variable appears as to be proc-local, so proceed in
    * resolver chain (i.e. return TCL_CONTINUE)
    *
-   * Note 1: This happens to be a rare occurrence, e.g. for nested
-   * object structures which are shadowed by nested Tcl namespaces.
-   *
-   * TODO: Cannot reproduce the issue found with xotcl::package->require()
-   *
-   * Note 2: It would be possible to resolve the proc-local variable
+   * Note: It would be possible to resolve the proc-local variable
    * directly (by digging into compiled and non-compiled locals etc.),
    * however, it would cause further code redundance.
    */
@@ -2568,7 +2568,7 @@ AssertionCheckList(Tcl_Interp *interp, XOTclObject *obj,
   /* we do not check assertion modifying methods, otherwise
      we can not react in catch on a runtime assertion check failure */
 
-  /* TODO this check operations are not generic. these should be
+  /* TODO: the following check operations are not generic. these should be
      removed, most of the is*String() definition are then obsolete and
      should be deleted from xotclInt.h as well.
   */
@@ -3447,12 +3447,13 @@ seekCurrent(Tcl_Command currentCmd, register XOTclCmdList *cmdl) {
  * before we can perform a mixin dispatch, MixinSearchProc seeks the
  * current mixin and the relevant calling information
  */
-static Tcl_Command
+static int
 MixinSearchProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
-                XOTclClass **cl, Tcl_Command *currentCmdPtr) {
+                XOTclClass **cl, Tcl_Command *currentCmdPtr, Tcl_Command *cmdPtr) {
   Tcl_Command cmd = NULL;
   XOTclCmdList *cmdList;
   XOTclClass *cls;
+  int result = TCL_OK;
 
   assert(obj);
   assert(obj->mixinStack);
@@ -3482,22 +3483,24 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
 	cmdList->cmdPtr, cmdList->clientData);
       */
       if (cls) {
-        int guardOk = TCL_OK;
         cmd = FindMethod(cls->nsPtr, methodName);
         if (cmd && cmdList->clientData) {
           if (!RUNTIME_STATE(interp)->guardCount) {
-            guardOk = GuardCall(obj, cls, (Tcl_Command) cmd, interp,
+            result = GuardCall(obj, cls, (Tcl_Command) cmd, interp,
                                 (Tcl_Obj*)cmdList->clientData, NULL);
           }
         }
-        if (cmd && guardOk == TCL_OK) {
+        if (cmd && result == TCL_OK) {
           /*
            * on success: compute mixin call data
            */
           *cl = cls;
           *currentCmdPtr = cmdList->cmdPtr;
           break;
-	} else {
+	} else if (result == TCL_ERROR) {
+          break;
+        } else {
+          if (result == XOTCL_CHECK_FAILED) result = TCL_OK;
           cmd = NULL;
           cmdList = cmdList->nextPtr;
         }
@@ -3505,7 +3508,8 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
     }
   }
 
-  return cmd;
+  *cmdPtr = cmd;
+  return result;
 }
 
 /*
@@ -3754,13 +3758,15 @@ GuardCall(XOTclObject *obj, XOTclClass *cl, Tcl_Command cmd,
     XOTcl_PushFrame(interp, obj);
 #endif
     result = GuardCheck(interp, guard);
+
     XOTcl_PopFrame(interp, obj);
 #if defined(TCL85STACK)
 #else
     CallStackPop(interp, NULL);
 #endif
-
-    Tcl_SetObjResult(interp, res);  /* restore the result */
+    if (result != TCL_ERROR) {
+      Tcl_SetObjResult(interp, res);  /* restore the result */
+    }
     DECR_REF_COUNT(res);
   }
 
@@ -4043,16 +4049,13 @@ getFullProcQualifier(Tcl_Interp *interp, CONST char *cmdName,
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
   Tcl_Obj *procObj = Tcl_NewStringObj(cmdName, -1);
   Tcl_ObjCmdProc *objProc = Tcl_Command_objProc(cmd);
-
-  /* TODO general take care about change in 8.6: TclIsProc((Command*)cmd) no equiv to following */ 
-  /*int isTcl = (TclIsProc((Command *)cmd) != NULL);*/
-  int isTcl = (Tcl_Command_objProc(cmd) == TclObjInterpProc);
+  int isTcl = CmdIsProc(cmd);
 
   if (cl) {
     Tcl_ListObjAppendElement(interp, list, cl->object.cmdName);
     /*fprintf(stderr, "current %p, dispatch %p, forward %p, parametermcd %p, is tcl %p\n",
       objProc, XOTclObjDispatch, XOTclForwardMethod,
-      XOTclSetterMethod, TclIsProc((Command *)cmd)); */
+      XOTclSetterMethod, CmdIsProc(cmd)); */
     if (isTcl) {
       Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_INSTPROC]);
     } else if (objProc == XOTclForwardMethod) {
@@ -4938,12 +4941,13 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
   char *methodName = data[2];
   XOTclObject *obj = cscPtr->self;
   XOTclObjectOpt *opt = obj->opt;
+  int rc;
   
   /*fprintf(stderr, "---- FinalizeProcMethod result %d, csc %p, pcPtr %p, obj %p\n",
     result, cscPtr, pcPtr, obj);*/
 # if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "POP  OBJECT_FRAME (implicit) frame %p csc %p obj %s obj refcount %d %d\n", NULL, csc,
-          objectName(obj),
+  fprintf(stderr, "POP  FRAME (implicit)  csc %p obj %s obj refcount %d %d\n", 
+          cscPtr, objectName(obj),
           obj->id ? Tcl_Command_refCount(obj->id) : -100,
           obj->refCount
           );
@@ -4959,17 +4963,27 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
 
   opt = obj->opt;
   if (opt && obj->teardown && (opt->checkoptions & CHECK_POST)) {
-    fprintf(stderr, "call assertionCheck for %s\n",methodName);
-    result = AssertionCheck(interp, obj, cscPtr->cl, methodName, CHECK_POST);
+    /* even, when the passed result != TCL_OK, run assertion to report
+     * the highest possible method from the callstack (e.g. "set" would not
+     * be very meaningful; however, do not flush a TCL_ERROR.
+     */
+    rc = AssertionCheck(interp, obj, cscPtr->cl, methodName, CHECK_POST);
+    if (result == TCL_OK) {
+      result = rc;
+    }
   }
   
   if (pcPtr) {
-    fprintf(stderr, "---- FinalizeProcMethod calls releasePc\n");
+#if defined(TCL_STACK_ALLOC_TRACE)
+    fprintf(stderr, "---- FinalizeProcMethod calls releasePc, stackFree %p\n", pcPtr);
+#endif
     parseContextRelease(pcPtr);
     TclStackFree(interp, pcPtr);
   }
 
-  /*fprintf(stderr, "---- FinalizeProcMethod calls pop\n");*/
+#if defined(TCL_STACK_ALLOC_TRACE)
+  fprintf(stderr, "---- FinalizeProcMethod calls pop, csc free %p method %s\n", cscPtr, methodName);
+#endif
   CallStackPop(interp, cscPtr);
   TclStackFree(interp, cscPtr);
 
@@ -4981,7 +4995,7 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
 static int
 invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
          char *methodName, XOTclObject *obj, XOTclClass *cl, Tcl_Command cmdPtr, 
-         XOTclCallStackContent *csc) {
+         XOTclCallStackContent *cscPtr) {
   int result, releasePc = 0;
   XOTclObjectOpt *opt = obj->opt;
 #if defined(NRE)
@@ -4997,8 +5011,8 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   assert(!obj->teardown);
 
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "+++ invokeProcMethod %s, csc %p, frametype %d, teardown %p\n",
-          methodName, csc, csc->frameType, obj->teardown);
+  fprintf(stderr, "+++ invokeProcMethod %s, cscPtr %p, frametype %d, teardown %p\n",
+          methodName, cscPtr, cscPtr->frameType, obj->teardown);
 #endif
 
   /* 
@@ -5006,7 +5020,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
    * if not: just step forward to the next filter
    */
 
-  if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+  if (cscPtr->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
     XOTclCmdList *cmdList;
     /*
      * seek cmd in obj's filterOrder
@@ -5016,29 +5030,39 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
     
     for (cmdList = obj->filterOrder; cmdList && cmdList->cmdPtr != cmdPtr; cmdList = cmdList->nextPtr);
     
-    /*
-     * when it is found, check whether it has a filter guard
-     */
     if (cmdList) {
+      /*
+       * A filter was found, check whether it has a guard.
+       */
       result = GuardCall(obj, cl, (Tcl_Command) cmdList->cmdPtr, interp,
-                         cmdList->clientData, csc);
+                         cmdList->clientData, cscPtr);
+
       if (result != TCL_OK) {
+        /*fprintf(stderr, "Filter GuardCall in invokeProc returned %d\n", result);*/
+
         if (result != TCL_ERROR) {
           /*
-           * call next, use the given objv's, not the callstack objv
-           * we may not be in a method, thus there may be wrong or
-           * no callstackobjs
+           * The guard failed (but no error); call "next", use the
+           * actual objv's, not the callstack objv, since we may not
+           * be in a method resulting in invalid callstackobjs.
+           *
+           * The call stack content is not jet pushed to the Tcl
+           * stack, so we pass it here explicitly.
            */
 
-          /*fprintf(stderr, "... calling nextmethod csc %p\n", csc); */
-          
-          /* the call stack content is not jet pushed to the tcl
-             stack, so we pass it here explicitely */
+          /*fprintf(stderr, "... calling nextmethod cscPtr %p\n", cscPtr); */
           result = XOTclNextMethod(obj, interp, cl, methodName,
-                               objc, objv, /*useCallStackObjs*/ 0, csc);
-          /*fprintf(stderr, "... after nextmethod\n");*/
+                               objc, objv, /*useCallStackObjs*/ 0, cscPtr);
+          /*fprintf(stderr, "... after nextmethod result %d\n", result);*/
         }
-        
+#if defined(NRE)
+# if defined(TCL_STACK_ALLOC_TRACE)
+        fprintf(stderr, "---- GuardFailed calls pop, cscPtr free %p method %s\n", cscPtr, methodName);
+# endif
+        CallStackPop(interp, cscPtr);
+        TclStackFree(interp, cscPtr);
+        /* todo check mixin guards for same case? */
+#endif
         return result;
       }
     }
@@ -5080,23 +5104,31 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
     if (paramDefs) {
 #if defined(NRE)
       pcPtr = (parseContext *) TclStackAlloc(interp, sizeof(parseContext));
+# if defined(TCL_STACK_ALLOC_TRACE)
+      fprintf(stderr, "---- parseContext alloc %p\n",pcPtr);
+# endif
 #endif
       result = ProcessMethodArguments(pcPtr, interp, obj, 1, paramDefs, methodName, objc, objv);
       if (result == TCL_OK) {
         releasePc = 1;
-        result = PushProcCallFrame(cp, interp, pcPtr->objc, pcPtr->full_objv, csc);
+        result = PushProcCallFrame(cp, interp, pcPtr->objc, pcPtr->full_objv, cscPtr);
       }
     } else {
-      result = PushProcCallFrame(cp, interp, objc, objv, csc);
+      result = PushProcCallFrame(cp, interp, objc, objv, cscPtr);
     }
   }
 # else /* no CANONICAL ARGS */
-  result = PushProcCallFrame(cp, interp, objc, objv, csc);
+  result = PushProcCallFrame(cp, interp, objc, objv, cscPtr);
 # endif 
 
   if (result != TCL_OK) {
 #if defined(NRE)
     if (pcPtr) TclStackFree(interp, pcPtr);
+# if defined(TCL_STACK_ALLOC_TRACE)
+    fprintf(stderr, "---- ProcPrep fails and calls pop, cscPtr free %p method %s\n", cscPtr, methodName);
+# endif
+    CallStackPop(interp, cscPtr);
+    TclStackFree(interp, cscPtr);
 #endif
   }
 
@@ -5118,16 +5150,16 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       TEOV_callback *rootPtr = TOP_CB(interp);
       /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n", objectName(obj), ObjStr(objv[0]));*/
       Tcl_NRAddCallback(interp, FinalizeProcMethod, 
-                        releasePc ? pcPtr : NULL, csc, methodName, NULL);
+                        releasePc ? pcPtr : NULL, cscPtr, methodName, NULL);
       result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
-      /*fprintf(stderr, ".... run callbacks rootPtr = %p\n", rootPtr);*/
+      /*fprintf(stderr, ".... run callbacks rootPtr = %p, result %d methodName %s\n", rootPtr, result, methodName);*/
       result = TclNRRunCallbacks(interp, result, rootPtr, 0);
-      /*fprintf(stderr, ".... run callbacks DONE\n");*/
+      /*fprintf(stderr, ".... run callbacks DONE result %d methodName %s\n", result, methodName);*/
     }
 #endif
   }
 # if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "POP  OBJECT_FRAME (implicit) frame %p csc %p obj %s obj refcount %d %d\n", NULL, csc,
+  fprintf(stderr, "POP  OBJECT_FRAME (implicit) frame %p cscPtr %p obj %s obj refcount %d %d\n", NULL, cscPtr,
           objectName(obj),
           obj->id ? Tcl_Command_refCount(obj->id) : -100,
           obj->refCount
@@ -5158,7 +5190,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 static int
 invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         char *methodName, XOTclObject *obj, Tcl_Command cmdPtr,
-        XOTclCallStackContent *csc) {
+        XOTclCallStackContent *cscPtr) {
   CheckOptions co;
   int result;
 #if defined(TCL85STACK)
@@ -5169,11 +5201,11 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
   assert(!obj->teardown);
 
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "+++ invokeCmdMethodCheck %s, obj %p %s, csc %p, teardown %p\n",
-          methodName, obj, objectName(obj), csc, obj->teardown);
+  fprintf(stderr, "+++ invokeCmdMethodCheck %s, obj %p %s, cscPtr %p, teardown %p\n",
+          methodName, obj, objectName(obj), cscPtr, obj->teardown);
 #endif
 
-  /* fprintf(stderr, ".. calling cmd %s csc %p\n", methodName,csc);*/
+  /* fprintf(stderr, ".. calling cmd %s cscPtr %p\n", methodName,cscPtr);*/
 
   if (obj->opt) {
     co = obj->opt->checkoptions;
@@ -5184,14 +5216,14 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
   }
   
 #if defined(TCL85STACK)
-  if (csc) {
+  if (cscPtr) {
     /* We have a call stack content, but the following dispatch will
      * by itself no stack it; in order to get e.g. self working, we
      * have to stack at least an FRAME_IS_XOTCL_OBJECT.
      * TODO: maybe push should happen already before assertion checking,
      * but we have to check what happens in the finish target etc.
      */
-    XOTcl_PushFrameCsc(interp, obj, csc);
+    XOTcl_PushFrameCsc(interp, obj, cscPtr);
     /*fprintf(stderr, "pushing callframe for %s\n",methodName);*/
     /*XOTcl_PushFrame(interp, obj);*/
   }
@@ -5211,7 +5243,7 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
 #endif
   
 #if defined(TCL85STACK)
-  if (csc) {
+  if (cscPtr) {
     XOTcl_PopFrame(interp, obj);
   }
 #endif
@@ -5268,6 +5300,9 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
   if (proc == TclObjInterpProc) {
 #if defined(NRE)
     cscPtr = (XOTclCallStackContent *) TclStackAlloc(interp, sizeof(XOTclCallStackContent));
+# if defined(TCL_STACK_ALLOC_TRACE)
+    fprintf(stderr, "---- csc alloc %p method %s\n", cscPtr, methodName);
+# endif
 #else
     XOTclCallStackContent csc;
     cscPtr = &csc;
@@ -5283,7 +5318,7 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
 #endif
     result = invokeProcMethod(cp, interp, objc, objv, methodName, obj, cl, cmd, cscPtr);
 #if defined(NRE)
-    /* CallStackPop() is performed by the callbacks */
+    /* CallStackPop() is performed by the callbacks or in error case base invokeProcMethod */
     /*fprintf(stderr, "no pop for %s\n",methodName);*/
 #else
     CallStackPop(interp, cscPtr);
@@ -5314,10 +5349,10 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
 	       proc == XOTclObjscopedMethod) {
       tclCmdClientData *tcd = (tclCmdClientData *)cp;
       tcd->obj = obj;
-      assert((TclIsProc((Command *)cmd) == NULL));
+      assert((CmdIsProc(cmd) == 0));
     } else if (cp == (ClientData)XOTCL_CMD_NONLEAF_METHOD) {
       cp = clientData;
-      assert((TclIsProc((Command *)cmd) == NULL));
+      assert((CmdIsProc(cmd) == 0));
     }
 
 #if defined(TCL85STACK)
@@ -5328,7 +5363,7 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
 #endif
   } else {
     /* a cmd without client data */
-    assert((TclIsProc((Command *)cmd) == NULL));
+    assert((CmdIsProc(cmd) == 0));
     cp = clientData;
     cscPtr = NULL;
   }
@@ -5336,7 +5371,6 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
   if (cscPtr) {
     CallStackPop(interp, cscPtr);
   }
-
   return result;
 }
 
@@ -5363,7 +5397,6 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 #ifdef DISPATCH_TRACE
   printCall(interp, "DISPATCH", objc, objv);
 #endif
-
 
   objflags = obj->flags; /* avoid stalling */
   INCR_REF_COUNT(cmdName);
@@ -5415,8 +5448,11 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     mixinStackPushed = MixinStackPush(obj);
       
     if (frameType != XOTCL_CSC_TYPE_ACTIVE_FILTER) {
-      cmd = MixinSearchProc(interp, obj, methodName, &cl,
-                            &obj->mixinStack->currentCmdPtr);
+      result = MixinSearchProc(interp, obj, methodName, &cl,
+                               &obj->mixinStack->currentCmdPtr, &cmd);
+      if (result != TCL_OK) {
+        goto exit_dispatch;
+      }
       if (cmd) {
         frameType = XOTCL_CSC_TYPE_ACTIVE_MIXIN;
       } else { /* the else branch could be deleted */
@@ -5471,14 +5507,15 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     }
 
     if (!unknown) {
-      /*fprintf(stderr, "DoDispatch calls InvokeMethod with obj = %s frameType %d\n",
-	objectName(obj), frameType);*/
+      /*fprintf(stderr, "DoDispatch calls InvokeMethod with obj = %s frameType %d method %s\n",
+        objectName(obj), frameType, methodName);*/
       if ((result = InvokeMethod(clientData, interp, objc-1, objv+1, cmd, obj, cl,
                                  methodName, frameType)) == TCL_ERROR) {
 	result = XOTclErrInProc(interp, cmdName,
 				cl && cl->object.teardown ? cl->object.cmdName : NULL,
 				methodName);
       }
+      /*fprintf(stderr, "DoDispatch InvokeMethod returned %d method %s\n",result, methodName);*/
       unknown = rst->unknown;
     }
   } else {
@@ -5527,11 +5564,12 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   if (unknown)
     rst->unknown = 0;
 
+ exit_dispatch:
 #ifdef DISPATCH_TRACE
   printExit(interp, "DISPATCH", objc, objv, result);
 #endif
 
-  /*!(obj->flags & XOTCL_DESTROY_CALLED)) */
+    /*!(obj->flags & XOTCL_DESTROY_CALLED)) */
   if (mixinStackPushed && obj->mixinStack)
     MixinStackPop(obj);
 
@@ -6386,20 +6424,20 @@ FindCalledClass(Tcl_Interp *interp, XOTclObject *obj) {
 /*
  * Next Primitive Handling
  */
-XOTCLINLINE static void
+XOTCLINLINE static int
 NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *csc,
                  XOTclClass **cl, char **method, Tcl_Command *cmd,
                  int *isMixinEntry, int *isFilterEntry,
                  int *endOfFilterChain, Tcl_Command *currentCmd) {
+  int endOfChain = 0, result;
   XOTclClasses *pl = 0;
-  int endOfChain = 0;
 
   *endOfFilterChain = 0;
 
   /*
    *  Next in filters
    */
-  /*assert(obj->flags & XOTCL_FILTER_ORDER_VALID);   *** strange, worked before ****/
+  /*assert(obj->flags & XOTCL_FILTER_ORDER_VALID);   *** TODO strange, worked before ****/
 
   FilterComputeDefined(interp, obj);
 
@@ -6423,7 +6461,7 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
     } else {
       *method = (char *) Tcl_GetCommandName(interp, *cmd);
       *isFilterEntry = 1;
-      return;
+      return TCL_OK;
     }
   }
 
@@ -6437,7 +6475,10 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
     obj->flags & XOTCL_MIXIN_ORDER_VALID, obj->mixinStack);*/
 
   if ((obj->flags & XOTCL_MIXIN_ORDER_VALID) &&  obj->mixinStack) {
-    *cmd = MixinSearchProc(interp, obj, *method, cl, currentCmd);
+    result = MixinSearchProc(interp, obj, *method, cl, currentCmd, cmd);
+    if (result != TCL_OK) {
+      return result;
+    }
     /*fprintf(stderr, "nextsearch: mixinsearch cmd %p, currentCmd %p\n",*cmd, *currentCmd);*/
     if (*cmd == 0) {
       if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_MIXIN) {
@@ -6446,7 +6487,7 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
       }
     } else {
       *isMixinEntry = 1;
-      return;
+      return TCL_OK;
     }
   }
 
@@ -6482,7 +6523,7 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
     *cl = 0;
   }
 
-  return;
+  return TCL_OK;
 }
 
 static int
@@ -6490,8 +6531,7 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
                 char *givenMethod, int objc, Tcl_Obj *CONST objv[],
                 int useCallstackObjs, XOTclCallStackContent *csc) {
   Tcl_Command cmd, currentCmd = NULL;
-  int result = TCL_OK,
-    frameType = XOTCL_CSC_TYPE_PLAIN,
+  int result, frameType = XOTCL_CSC_TYPE_PLAIN,
     isMixinEntry = 0, isFilterEntry = 0,
     endOfFilterChain = 0, decrObjv0 = 0;
   int nobjc; Tcl_Obj **nobjv;
@@ -6535,8 +6575,11 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
   /*
    * Search the next method & compute its method data
    */
-  NextSearchMethod(obj, interp, csc, cl, methodName, &cmd,
-                   &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
+  result = NextSearchMethod(obj, interp, csc, cl, methodName, &cmd,
+                            &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
+  if (result != TCL_OK) {
+    return result;
+  }
 
   /*
     fprintf(stderr, "NextSearchMethod -- RETURN: method=%s eoffc=%d,",
@@ -6549,7 +6592,7 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
     fprintf(stderr, " mixin=%d, filter=%d, proc=%p\n",
     isMixinEntry, isFilterEntry, proc);
   */
-
+  
   Tcl_ResetResult(interp); /* needed for bytecode support */
 
   if (cmd) {
@@ -6640,7 +6683,7 @@ static int
 FindSelfNext(Tcl_Interp *interp, XOTclObject *obj) {
   XOTclCallStackContent *csc = CallStackGetTopFrame(interp, NULL);
   Tcl_Command cmd, currentCmd = 0;
-  int isMixinEntry = 0,
+  int result, isMixinEntry = 0,
     isFilterEntry = 0,
     endOfFilterChain = 0;
   XOTclClass *cl = csc->cl;
@@ -6653,14 +6696,14 @@ FindSelfNext(Tcl_Interp *interp, XOTclObject *obj) {
   if (!methodName)
     return TCL_OK;
 
-  NextSearchMethod(o, interp, csc, &cl, &methodName, &cmd,
+  result = NextSearchMethod(o, interp, csc, &cl, &methodName, &cmd,
                    &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
 
   if (cmd) {
     Tcl_SetObjResult(interp, getFullProcQualifier(interp, Tcl_GetCommandName(interp, cmd),
                                                   o, cl, cmd));
   }
-  return TCL_OK;
+  return result;
 }
 
 static Tcl_Obj *
@@ -10053,8 +10096,7 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
      */
     if (!XOTclpGetObject(interp, oldName)) {
 
-      /* TODO general take care about change in 8.6: TclIsProc((Command*)cmd) no equiv to following */ 
-      if (Tcl_Command_objProc(cmd) == TclObjInterpProc) {
+      if (CmdIsProc(cmd)) {
         Proc *procPtr = (Proc*) Tcl_Command_objClientData(cmd);
         Tcl_Obj *arglistObj;
         int result;
@@ -12128,7 +12170,7 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   int i, result;
 
   /* The arguments are passed via argument vector (not the single
-     argument) at least for Tcl 8.5. TODO: Tcl 8.4 support? possible
+     argument) at least for Tcl 8.5 or newer. TODO: Tcl 8.4 support? possible
      via introspection? (this is a possible TODO for optimization)
   */
   /*if (!paramDefs) {return TCL_OK;}*/

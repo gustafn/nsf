@@ -239,7 +239,7 @@ typedef struct XOTclMemCounter {
 #  define XOTcl_PushFrameSetCd(obj)
 # endif
 #define XOTcl_PushFrame(interp,obj) \
-  /*fprintf(stderr,"PUSH OBJECT_FRAME (XOTcl_PushFrame) frame %p\n",framePtr); */  \
+     /*fprintf(stderr,"PUSH OBJECT_FRAME (XOTcl_PushFrame) frame %p\n",framePtr);*/ \
      if ((obj)->nsPtr) { \
        frame_constructed = 0; \
        /*fprintf(stderr,"XOTcl_PushFrame frame %p\n",framePtr);*/ \
@@ -252,8 +252,8 @@ typedef struct XOTclMemCounter {
      } \
      XOTcl_PushFrameSetCd(obj)
 
-#define XOTcl_PushFrameCsc(interp,obj,csc)                                    \
-  /*fprintf(stderr,"PUSH CMETHOD_FRAME (XOTcl_PushFrame) frame %p\n",framePtr); */  \
+#define XOTcl_PushFrameCsc(interp,obj,csc) \
+     /*fprintf(stderr,"PUSH CMETHOD_FRAME (XOTcl_PushFrame) frame %p\n",framePtr);*/ \
      if ((obj)->nsPtr) { \
        frame_constructed = 0; \
        /*fprintf(stderr,"XOTcl_PushFrame frame %p\n",framePtr);*/ \
@@ -274,7 +274,7 @@ typedef struct XOTclMemCounter {
        Tcl_CallFrame_varTablePtr(Tcl_Interp_framePtr(interp)) = 0;                        \
        /*Tcl_CallFrame_procPtr(myFramePtr) = 0;                  */       \
        }                                                               \
-     /*fprintf(stderr,"POP  OBJECT_FRAME (XOTcl_PopFrame) frame %p\n",framePtr); */  \
+     /*fprintf(stderr,"POP  OBJECT_FRAME (XOTcl_PopFrame) frame %p\n",framePtr);*/ \
      Tcl_PopCallFrame(interp)
 
 #if 0
