@@ -1567,6 +1567,8 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flag
 #if defined(USE_COMPILED_VAR_RESOLVER)
 typedef struct xotclResolvedVarInfo {
   Tcl_ResolvedVarInfo vInfo;        /* This must be the first element. */
+  XOTclObject *lastObj;
+  Tcl_Var var;
   char buffer[64]; /* for now */
 } xotclResolvedVarInfo;
 
@@ -1577,6 +1579,9 @@ xotclObjectVarResolver(Tcl_Interp *interp, xotclResolvedVarInfo *resVarInfo) {
   Tcl_Var var;
   int new;
 
+  if (obj == resVarInfo->lastObj) {
+    return resVarInfo->var;
+  }
   /*fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p\n",resVarInfo->buffer, obj, obj->nsPtr);*/
   var = (Tcl_Var)LookupVarFromTable(varTable, resVarInfo->buffer, NULL);
 
@@ -1592,6 +1597,8 @@ xotclObjectVarResolver(Tcl_Interp *interp, xotclResolvedVarInfo *resVarInfo) {
     var = (Tcl_Var)VarHashCreateVar(varTable, key, &new);
     DECR_REF_COUNT(key);
   }
+  resVarInfo->lastObj = obj;
+  resVarInfo->var = var;
   return var;
 }
 
@@ -1606,6 +1613,7 @@ int compiledVarResolver(Tcl_Interp *interp,
     xotclResolvedVarInfo *vInfoPtr = (xotclResolvedVarInfo *) ckalloc(sizeof(xotclResolvedVarInfo));
     vInfoPtr->vInfo.fetchProc = xotclObjectVarResolver;
     vInfoPtr->vInfo.deleteProc = NULL;
+    vInfoPtr->lastObj = NULL;
     memcpy(vInfoPtr->buffer,name+1,length-1);
     vInfoPtr->buffer[length-1] = 0;
     *rPtr = (Tcl_ResolvedVarInfo *)vInfoPtr;
