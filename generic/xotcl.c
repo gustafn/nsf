@@ -653,8 +653,7 @@ ObjFindNamespace(Tcl_Interp *interp, Tcl_Obj *objPtr) {
 
 #if !defined(PRE85) || FORWARD_COMPATIBLE
 static XOTCLINLINE Var *
-VarHashCreateVar85(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr)
-{
+VarHashCreateVar85(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
   Var *varPtr = NULL;
   Tcl_HashEntry *hPtr;
   hPtr = Tcl_CreateHashEntry((Tcl_HashTable *) tablePtr,
@@ -1574,31 +1573,61 @@ typedef struct xotclResolvedVarInfo {
 
 static Tcl_Var
 xotclObjectVarResolver(Tcl_Interp *interp, xotclResolvedVarInfo *resVarInfo) {
-  XOTclObject *obj = GetSelfObj(interp);
-  TclVarHashTable *varTable = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
+  XOTclCallStackContent *cscPtr = CallStackGetFrame(interp, NULL);
+  XOTclObject *obj = cscPtr ? cscPtr->self : NULL;
+  TclVarHashTable *varTablePtr;
   Tcl_Var var;
   int new;
 
-  if (obj == resVarInfo->lastObj) {
+  /* 
+   * We cache lookups based on obj; we have to care about cases, where
+   * variables are deleted in recreates or on single deletes. In these
+   * cases, the var flags are reset.
+   */
+
+  if (obj == resVarInfo->lastObj && ((Var*)(resVarInfo->var))->flags & VAR_IN_HASHTABLE) {
+    /*Var *v = (Var*)(resVarInfo->var);
+      fprintf(stderr,".... var flags = %.6x\n",v->flags);*/
     return resVarInfo->var;
   }
-  /*fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p\n",resVarInfo->buffer, obj, obj->nsPtr);*/
-  var = (Tcl_Var)LookupVarFromTable(varTable, resVarInfo->buffer, NULL);
+
+  varTablePtr = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
+  if (varTablePtr == NULL) {
+    /* 
+     * The variable table does not exist. This seems to be is the
+     * first access to a variable on this object. We create the and
+     * initialize the variable hash table and update the object
+     */
+    varTablePtr = (TclVarHashTable *) ckalloc(varHashTableSize);
+    InitVarHashTable(varTablePtr, NULL);
+    assert(obj->varTable == 0); /* the nsVarPtr should always be initialized */
+    if (obj->varTable == NULL) {
+      obj->varTable = varTablePtr;
+    }
+  }
+
+  /* fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p, varTable %p\n",
+          resVarInfo->buffer, obj, obj->nsPtr, varTablePtr); */
+  var = (Tcl_Var)LookupVarFromTable(varTablePtr, resVarInfo->buffer, NULL);
 
   if (var == NULL) {
-    /* We failed to find the variable so far, therefore we create it
-     * here in the namespace.  Note that the cases (1), (2) and (3)
-     * TCL_CONTINUE care for variable creation if necessary.
+    /* We failed to find the variable, therefore we create it in the
+     * vartable.
      */
     Tcl_Obj *key = Tcl_NewStringObj(resVarInfo->buffer, -1);
     /*fprintf(stderr, "create %s in ns\n", resVarInfo->buffer);*/
 
     INCR_REF_COUNT(key);
-    var = (Tcl_Var)VarHashCreateVar(varTable, key, &new);
+    var = (Tcl_Var)VarHashCreateVar(varTablePtr, key, &new);
     DECR_REF_COUNT(key);
   }
   resVarInfo->lastObj = obj;
   resVarInfo->var = var;
+
+  /*{
+    Var *v = (Var*)(resVarInfo->var);
+    fprintf(stderr,"==== looked up var %s flags = %.6x\n",resVarInfo->buffer, v->flags);
+    }*/
   return var;
 }
 
@@ -1612,8 +1641,9 @@ int compiledVarResolver(Tcl_Interp *interp,
   if (obj && *name == '.') {
     xotclResolvedVarInfo *vInfoPtr = (xotclResolvedVarInfo *) ckalloc(sizeof(xotclResolvedVarInfo));
     vInfoPtr->vInfo.fetchProc = xotclObjectVarResolver;
-    vInfoPtr->vInfo.deleteProc = NULL;
+    vInfoPtr->vInfo.deleteProc = NULL; /* if NULL, tcl does a ckfree on proc clean up */
     vInfoPtr->lastObj = NULL;
+    vInfoPtr->var = NULL;
     memcpy(vInfoPtr->buffer,name+1,length-1);
     vInfoPtr->buffer[length-1] = 0;
     *rPtr = (Tcl_ResolvedVarInfo *)vInfoPtr;
@@ -7121,7 +7151,7 @@ XOTclUnsetTrace(ClientData clientData, Tcl_Interp *interp, CONST char *name, CON
  */
 static void
 CleanupDestroyObject(Tcl_Interp *interp, XOTclObject *obj, int softrecreate) {
-  /*fprintf(stderr, "CleanupDestroyObject obj %p\n", obj);*/
+  /*fprintf(stderr, "CleanupDestroyObject obj %p softrecreate %d\n", obj, softrecreate);*/
 
   /* remove the instance, but not for ::Class/::Object */
   if ((obj->flags & XOTCL_IS_ROOT_CLASS) == 0 &&
