@@ -11748,11 +11748,15 @@ if test "$no_create" != yes; then
 fi
 
 
+echo "==================== building genstubs (needed for Tcl 8.6)"
+make genstubs
+echo "==================== genstubs built"
+
 here=${PWD}
 
 for subdir in ${subdirs}
 do
-	echo "==================== configure $subdir ====================="
+	echo "==================== configure $subdir"
 	if test x"${srcdir}" = x. ; then
 		confdir=.
 	else

@@ -5224,7 +5224,6 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
      * but we have to check what happens in the finish target etc.
      */
     XOTcl_PushFrameCsc(interp, obj, cscPtr);
-    /*fprintf(stderr, "pushing callframe for %s\n",methodName);*/
     /*XOTcl_PushFrame(interp, obj);*/
   }
 #endif
@@ -5290,12 +5289,12 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
              Tcl_Command cmd, XOTclObject *obj, XOTclClass *cl,
              char *methodName, int frameType) {
   ClientData cp = Tcl_Command_objClientData(cmd);
-  XOTclCallStackContent *cscPtr;
+  XOTclCallStackContent csc, *cscPtr;
   register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd); 
   int result;
 
   assert (!obj->teardown);
-  /*fprintf(stderr, "InvokeMethod method '%s' cmd %p cp=%p objc=%d\n",methodName,cmd, cp, objc);*/
+  /*fprintf(stderr, "InvokeMethod method '%s' cmd %p cp=%p objc=%d\n", methodName, cmd, cp, objc);*/
 
   if (proc == TclObjInterpProc) {
 #if defined(NRE)
@@ -5304,7 +5303,6 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
     fprintf(stderr, "---- csc alloc %p method %s\n", cscPtr, methodName);
 # endif
 #else
-    XOTclCallStackContent csc;
     cscPtr = &csc;
 #endif
     /*
@@ -5326,7 +5324,6 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
     return result;
 
   } else if (cp) {
-    XOTclCallStackContent csc;
     cscPtr = &csc;
 
     /* some cmd with client data */
@@ -5369,6 +5366,7 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
   }
   result = invokeCmdMethod(cp, interp, objc, objv, methodName, obj, cmd, cscPtr);
   if (cscPtr) {
+    /* make sure, that csc is still in the scope; therefore, csc is currently on the top scope of this function */
     CallStackPop(interp, cscPtr);
   }
   return result;

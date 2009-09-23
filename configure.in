@@ -460,11 +460,15 @@ AC_CONFIG_FILES(CONFIG_OUTPUT_FILES)
 
 AC_OUTPUT
 
+echo "==================== building genstubs (needed for Tcl 8.6)"
+make genstubs
+echo "==================== genstubs built"
+
 here=${PWD}
 
 for subdir in ${subdirs}
 do
-	echo "==================== configure $subdir ====================="
+	echo "==================== configure $subdir"
 	if test x"${srcdir}" = x. ; then
 		confdir=.
 	else
