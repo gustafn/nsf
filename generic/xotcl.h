@@ -80,7 +80,10 @@
 /* some features
 #define TCL85STACK 1
 #define CANONICAL_ARGS 1
+#define USE_COMPILED_VAR_RESOLVER 1
 */
+
+#define USE_COMPILED_VAR_RESOLVER 1
 
 #if !defined(PRE86)
 #define CANONICAL_ARGS 1

@@ -1535,6 +1535,14 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flag
   }
 
   /* Case 3: Does the variable exist in the per-object namespace? */
+
+#if 0 && defined(USE_COMPILED_VAR_RESOLVER)
+  /* strip of a leading "." */
+  if (*name == '.') {
+    name++;
+  }
+#endif
+
   *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(nsPtr), name, NULL);
 
   if (*varPtr == NULL) {
@@ -1542,7 +1550,6 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flag
      * here in the namespace.  Note that the cases (1), (2) and (3)
      * TCL_CONTINUE care for variable creation if necessary.
      */
-
     key = Tcl_NewStringObj(name, -1);
 
     INCR_REF_COUNT(key);
@@ -1557,6 +1564,66 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flag
   return *varPtr ? TCL_OK : TCL_ERROR;
 }
 
+#if defined(USE_COMPILED_VAR_RESOLVER)
+typedef struct xotclResolvedVarInfo {
+  Tcl_ResolvedVarInfo vInfo;        /* This must be the first element. */
+  XOTclObject *lastObj;
+  Tcl_Var var;
+  char buffer[64]; /* for now */
+} xotclResolvedVarInfo;
+
+static Tcl_Var
+xotclObjectVarResolver(Tcl_Interp *interp, xotclResolvedVarInfo *resVarInfo) {
+  XOTclObject *obj = GetSelfObj(interp);
+  TclVarHashTable *varTable = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
+  Tcl_Var var;
+  int new;
+
+  if (obj == resVarInfo->lastObj) {
+    return resVarInfo->var;
+  }
+  /*fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p\n",resVarInfo->buffer, obj, obj->nsPtr);*/
+  var = (Tcl_Var)LookupVarFromTable(varTable, resVarInfo->buffer, NULL);
+
+  if (var == NULL) {
+    /* We failed to find the variable so far, therefore we create it
+     * here in the namespace.  Note that the cases (1), (2) and (3)
+     * TCL_CONTINUE care for variable creation if necessary.
+     */
+    Tcl_Obj *key = Tcl_NewStringObj(resVarInfo->buffer, -1);
+    /*fprintf(stderr, "create %s in ns\n", resVarInfo->buffer);*/
+
+    INCR_REF_COUNT(key);
+    var = (Tcl_Var)VarHashCreateVar(varTable, key, &new);
+    DECR_REF_COUNT(key);
+  }
+  resVarInfo->lastObj = obj;
+  resVarInfo->var = var;
+  return var;
+}
+
+int compiledVarResolver(Tcl_Interp *interp,
+			CONST84 char *name, int length, Tcl_Namespace *context,
+			Tcl_ResolvedVarInfo **rPtr) {
+  /* getting the self object is a weak protection against handling of wrong vars */
+  XOTclObject *obj = GetSelfObj(interp);
+  /*fprintf(stderr, "compiled var resolver for %s, obj %p\n", name, obj);*/
+
+  if (obj && *name == '.') {
+    xotclResolvedVarInfo *vInfoPtr = (xotclResolvedVarInfo *) ckalloc(sizeof(xotclResolvedVarInfo));
+    vInfoPtr->vInfo.fetchProc = xotclObjectVarResolver;
+    vInfoPtr->vInfo.deleteProc = NULL;
+    vInfoPtr->lastObj = NULL;
+    memcpy(vInfoPtr->buffer,name+1,length-1);
+    vInfoPtr->buffer[length-1] = 0;
+    *rPtr = (Tcl_ResolvedVarInfo *)vInfoPtr;
+    /*fprintf(stderr, ".... allocated %p\n", *rPtr);*/
+    return TCL_OK;
+  }
+  return TCL_CONTINUE;
+}
+#endif
+
 static Tcl_Namespace *
 requireObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
   if (!obj->nsPtr) makeObjNamespace(interp, obj);
@@ -1566,7 +1633,7 @@ requireObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
    * and object-only ones (set, unset, ...)
    */
   Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
-                            varResolver, (Tcl_ResolveCompiledVarProc*)NULL);
+                            varResolver, /*(Tcl_ResolveCompiledVarProc*)compiledVarResolver*/NULL);
   return obj->nsPtr;
 }
 
@@ -12717,6 +12784,15 @@ Xotcl_Init(Tcl_Interp *interp) {
 
   Tcl_SetVar(interp, "::xotcl::version", XOTCLVERSION, TCL_GLOBAL_ONLY);
   Tcl_SetVar(interp, "::xotcl::patchlevel", XOTCLPATCHLEVEL, TCL_GLOBAL_ONLY);
+
+#if defined(USE_COMPILED_VAR_RESOLVER)
+  /*
+  Tcl_SetNamespaceResolvers(Tcl_FindNamespace(interp, "::xotcl", NULL, 0), (Tcl_ResolveCmdProc*)NULL,
+                            varResolver, (Tcl_ResolveCompiledVarProc*)compiledVarResolver);
+  */
+  Tcl_AddInterpResolvers(interp,"xotcl", (Tcl_ResolveCmdProc*)NULL,
+                            NULL, (Tcl_ResolveCompiledVarProc*)compiledVarResolver);
+#endif
 
   /*
    * with some methods and library procs in tcl - they could go in a
