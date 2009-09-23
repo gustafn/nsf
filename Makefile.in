@@ -472,7 +472,7 @@ $(src_generic_dir)/predefined.h: $(src_generic_dir)/mk_predefined.xotcl $(src_ge
 $(src_generic_dir)/tclAPI.h: $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)/gentclAPI.decls
 	$(TCLSH) $(src_generic_dir)/gentclAPI.tcl > $(src_generic_dir)/tclAPI.h
 
-xotclStubInit.$(OBJEXT): $(src_generic_dir)/xotclStubInit.c $(PKG_HEADERS)
+xotclStubInit.$(OBJEXT): $(PKG_HEADERS)
 xotclStubLib.$(OBJEXT): $(src_generic_dir)/xotclStubLib.c $(PKG_HEADERS)
 xotcl.$(OBJEXT): $(src_generic_dir)/xotcl.c $(src_generic_dir)/predefined.h $(src_generic_dir)/xotclAccessInt.h $(src_generic_dir)/tclAPI.h $(PKG_HEADERS)  $(src_generic_dir)/xotclStack.c $(src_generic_dir)/xotclStack85.c
 xotclError.$(OBJEXT): $(src_generic_dir)/xotclError.c $(PKG_HEADERS)
@@ -483,10 +483,6 @@ xotclTrace.$(OBJEXT): $(src_generic_dir)/xotclTrace.c $(PKG_HEADERS)
 xotclUtil.$(OBJEXT): $(src_generic_dir)/xotclUtil.c $(PKG_HEADERS)
 xotclShadow.$(OBJEXT): $(src_generic_dir)/xotclShadow.c $(PKG_HEADERS)
 aolstub.$(OBJEXT): $(src_generic_dir)/aolstub.c $(PKG_HEADERS)
-
-$(src_generic_dir)/xotclStubInit.c: $(src_generic_dir)/xotcl.decls $(src_generic_dir)/xotclInt.decls
-	$(MAKE) genstubs
-	$(MAKE)
 
 #
 # Target to regenerate header files and stub files from the *.decls tables.
