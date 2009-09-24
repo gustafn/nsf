@@ -282,8 +282,8 @@ namespace eval ::xotcl {
   # documentation stub object -> just ignore per default. 
   # if xoDoc is loaded, documentation will be activated
   ::xotcl::Object create ::xotcl::@
-
   ::xotcl::@ method unknown args {}
+
   proc ::xotcl::myproc {args} {linsert $args 0 [::xotcl::self]} 
   proc ::xotcl::myvar  {var}  {::xotcl::my requireNamespace; return [::xotcl::self]::$var} 
 

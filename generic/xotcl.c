@@ -1290,7 +1290,7 @@ static Proc *GetProcFromCommand(Tcl_Command cmd) {
 }
 
 XOTCLINLINE static Tcl_Command
-FindMethod(Tcl_Namespace *nsPtr, char *methodName) {
+FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
   register Tcl_HashEntry *entryPtr;
   if ((entryPtr = XOTcl_FindHashEntry(Tcl_Namespace_cmdTable(nsPtr), methodName))) {
     return (Tcl_Command) Tcl_GetHashValue(entryPtr);
@@ -1305,7 +1305,7 @@ FindProcMethod(Tcl_Namespace *nsPtr, char *methodName) {
 }
 
 static XOTclClass*
-SearchPLMethod(register XOTclClasses *pl, char *methodName, Tcl_Command *cmd) {
+SearchPLMethod(register XOTclClasses *pl, CONST char *methodName, Tcl_Command *cmd) {
   /* Search the precedence list (class hierarchy) */
 #if 1
   for (; pl;  pl = pl->nextPtr) {
@@ -1327,7 +1327,7 @@ SearchPLMethod(register XOTclClasses *pl, char *methodName, Tcl_Command *cmd) {
 
 
 static XOTclClass*
-SearchCMethod(XOTclClass *cl, char *nm, Tcl_Command *cmd) {
+SearchCMethod(XOTclClass *cl, CONST char *nm, Tcl_Command *cmd) {
   assert(cl);
   return SearchPLMethod(ComputeOrder(cl, cl->order, Super), nm, cmd);
 }
@@ -1336,7 +1336,7 @@ SearchCMethod(XOTclClass *cl, char *nm, Tcl_Command *cmd) {
  * Find a method for a given object in the precedence path 
  */
 static Tcl_Command
-ObjectFindMethod(Tcl_Interp *interp, XOTclObject *obj, char *name, XOTclClass **pcl) {
+ObjectFindMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *name, XOTclClass **pcl) {
   Tcl_Command cmd = NULL;
 
   if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
@@ -1665,6 +1665,35 @@ int CompiledDotVarResolver(Tcl_Interp *interp,
     /*fprintf(stderr, ".... allocated %p\n", *rPtr);*/
     return TCL_OK;
   }
+  return TCL_CONTINUE;
+}
+
+static int
+DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
+  XOTclClass *pcl;
+  CallFrame *varFramePtr;
+
+  if (*cmdName != '.' || flags & TCL_GLOBAL_ONLY) {
+    /* ordinary names and global lookups are not for us */
+    return TCL_CONTINUE;
+  }
+
+  fprintf(stderr, "DotCmdResolver called with %s\n",cmdName);
+
+  varFramePtr = Tcl_Interp_varFramePtr(interp);
+  if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
+    XOTclObject *obj = ((XOTclCallStackContent *)varFramePtr->clientData)->self;
+    Tcl_Command cmd;
+
+    cmdName ++;
+    cmd = ObjectFindMethod(interp, obj, cmdName, &pcl);
+    fprintf(stderr, "DotCmdResolver found %p for %s\n",cmd, cmdName);
+    if (cmd) {
+      *cmdPtr = cmd;
+      return TCL_OK;
+    }
+  }
+  
   return TCL_CONTINUE;
 }
 
@@ -12872,7 +12901,7 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_SetNamespaceResolvers(Tcl_FindNamespace(interp, "::xotcl", NULL, 0), (Tcl_ResolveCmdProc*)NULL,
                             varResolver, (Tcl_ResolveCompiledVarProc*)CompiledDotVarResolver);
   */
-  Tcl_AddInterpResolvers(interp,"xotcl", (Tcl_ResolveCmdProc*)NULL,
+  Tcl_AddInterpResolvers(interp,"xotcl", (Tcl_ResolveCmdProc*)DotCmdResolver,
                          DotVarResolver, (Tcl_ResolveCompiledVarProc*)CompiledDotVarResolver);
 #endif
 
