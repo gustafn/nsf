@@ -81,7 +81,7 @@ xotclCmd __qualify XOTclQualifyObjCmd {
 }
 xotclCmd relation XOTclRelationCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "relationtype" -required 1 -type "mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class_filter|class|superclass|rootclass"}
+  {-argName "relationtype" -required 1 -type "mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd setinstvar XOTclSetInstvarCmd {

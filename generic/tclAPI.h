@@ -18,7 +18,7 @@ static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPar
 enum methodpropertyIdx {methodpropertyProtectedIdx, methodpropertyStaticIdx, methodpropertySlotobjIdx};
   
 static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
-  static CONST char *opts[] = {"mixin", "instmixin", "object-mixin", "class-mixin", "filter", "instfilter", "object-filter", "class_filter", "class", "superclass", "rootclass", NULL};
+  static CONST char *opts[] = {"mixin", "instmixin", "object-mixin", "class-mixin", "filter", "instfilter", "object-filter", "class-filter", "class", "superclass", "rootclass", NULL};
   return Tcl_GetIndexFromObj(interp, objPtr, opts, "relationtype", 0, (int *)clientData);
 }
 enum relationtypeIdx {relationtypeMixinIdx, relationtypeInstmixinIdx, relationtypeObject_mixinIdx, relationtypeClass_mixinIdx, relationtypeFilterIdx, relationtypeInstfilterIdx, relationtypeObject_filterIdx, relationtypeClass_filterIdx, relationtypeClassIdx, relationtypeSuperclassIdx, relationtypeRootclassIdx};
@@ -2643,7 +2643,7 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::relation", XOTclRelationCmdStub, 3, {
   {"object", 1, 0, convertToObject},
-  {"mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class_filter|class|superclass|rootclass", 1, 0, convertToRelationtype},
+  {"mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class-filter|class|superclass|rootclass", 1, 0, convertToRelationtype},
   {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::setinstvar", XOTclSetInstvarCmdStub, 3, {
