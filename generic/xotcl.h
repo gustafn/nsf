@@ -75,6 +75,7 @@
 #define PARSE_TRACE_FULL 1
 #define CONFIGURE_ARGS_TRACE 1
 #define TCL_STACK_ALLOC_TRACE 1
+#define VAR_RESOLVER_TRACE 1
 */
 
 /* some features

@@ -678,6 +678,14 @@ LookupVarFromTable85(TclVarHashTable *tablePtr, CONST char *simpleName,
 }
 #endif
 
+static TclVarHashTable *
+VarHashTableCreate() {
+  TclVarHashTable *varTablePtr = (TclVarHashTable *) ckalloc(varHashTableSize);
+  InitVarHashTable(varTablePtr, NULL);
+  return varTablePtr;
+}
+
+
 
 /*
  * call an XOTcl method
@@ -1478,13 +1486,33 @@ makeObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
   }
 }
 
+static Tcl_Var
+CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
+  int i, localCt = varFramePtr->numCompiledLocals;
+  Tcl_Obj **objPtrPtr = &varFramePtr->localCachePtr->varName0;
+
+  /*fprintf(stderr, ".. search #local vars %d\n", localCt);*/
+  for (i=0 ; i<localCt ; i++, objPtrPtr++) {
+    register Tcl_Obj *objPtr = *objPtrPtr;
+    if (objPtr) {
+      char *localName = TclGetString(objPtr);
+      if ((varName[0] == localName[0])
+          && (strcmp(varName, localName) == 0)) {
+        return (Tcl_Var) &varFramePtr->compiledLocals[i];
+      }
+    }
+  }
+  return NULL;
+}
+
+
 /*
   typedef int (Tcl_ResolveVarProc) _ANSI_ARGS_((
   *	        Tcl_Interp *interp, CONST char * name, Tcl_Namespace *context,
   *	        int flags, Tcl_Var *rPtr));
   */
 static int
-varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
+varResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
   int new;
   Tcl_Obj *key;
   Tcl_CallFrame *varFramePtr;
@@ -1492,31 +1520,18 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flag
 
   /* Case 1: The variable is to be resolved in global scope, proceed in
    * resolver chain (i.e. return TCL_CONTINUE)
-   *
-   * Note: For now, I am not aware of this case to become effective,
-   * it is a mere safeguard measure.
    */
-
   if (flags & TCL_GLOBAL_ONLY) {
-    /*fprintf(stderr, "global-scoped var detected '%s' in NS '%s'\n", name, \
-      varFramePtr->nsPtr->fullName);*/
+    /*fprintf(stderr, "global-scoped lookup for var '%s' in NS '%s'\n", varName,
+      nsPtr->fullName);*/
     return TCL_CONTINUE;
   }
 
-  /* Case 2: The variable appears as to be proc-local, so proceed in
-   * resolver chain (i.e. return TCL_CONTINUE)
-   *
-   * Note: It would be possible to resolve the proc-local variable
-   * directly (by digging into compiled and non-compiled locals etc.),
-   * however, it would cause further code redundance.
+  /* Case 2: The lookup happens in a proc frame (lookup in compiled
+   * locals and hash table vars).  We are not interested to handle
+   * these cases here, so proceed in resolver chain.
    */
-  
   varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-
-  /*fprintf(stderr, "varFramePtr=%p, isProcCallFrame=%.6x %p\n",varFramePtr,
-            varFramePtr ? Tcl_CallFrame_isProcCallFrame(varFramePtr): 0,
-            varFramePtr ? Tcl_CallFrame_procPtr(varFramePtr): 0);*/
-
   if (varFramePtr && (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_PROC)) {
     /*fprintf(stderr, "proc-scoped var '%s' assumed, frame %p flags %.6x\n", 
       name, varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr));*/
@@ -1524,32 +1539,30 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr, int flag
   }
 
   /*
-   * Check for absolutely/relatively qualified variable names, i.e.
-   * make sure that the variable name does not contain any namespace qualifiers.
-   * Proceed with a TCL_CONTINUE, otherwise.
+   * Case 3: Check for absolutely/relatively qualified variable names,
+   * i.e.  make sure that the variable name does not contain any
+   * namespace qualifiers.  Proceed with a TCL_CONTINUE, otherwise.
    */
-
-  if ((*name == ':' && *(name+1) == ':') || NSTail(name) != name) {
+  if ((*varName == ':' && *(varName+1) == ':') || NSTail(varName) != varName) {
     return TCL_CONTINUE;
   }
 
-  /* Case 3: Does the variable exist in the per-object namespace? */
+  /* Case 4: Does the variable exist in the per-object namespace? */
 
 #if 0 && defined(USE_COMPILED_VAR_RESOLVER)
   /* strip of a leading "." */
-  if (*name == '.') {
-    name++;
+  if (*varName == '.') {
+    varName++;
   }
 #endif
 
-  *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(nsPtr), name, NULL);
-
+  *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(nsPtr), varName, NULL);
   if (*varPtr == NULL) {
     /* We failed to find the variable so far, therefore we create it
      * here in the namespace.  Note that the cases (1), (2) and (3)
      * TCL_CONTINUE care for variable creation if necessary.
      */
-    key = Tcl_NewStringObj(name, -1);
+    key = Tcl_NewStringObj(varName, -1);
 
     INCR_REF_COUNT(key);
     newVar = VarHashCreateVar(Tcl_Namespace_varTable(nsPtr), key, &new);
@@ -1572,7 +1585,8 @@ typedef struct xotclResolvedVarInfo {
 } xotclResolvedVarInfo;
 
 static Tcl_Var
-xotclObjectVarResolver(Tcl_Interp *interp, xotclResolvedVarInfo *resVarInfo) {
+CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
+  xotclResolvedVarInfo *resVarInfo = (xotclResolvedVarInfo *)vinfoPtr;
   XOTclCallStackContent *cscPtr = CallStackGetFrame(interp, NULL);
   XOTclObject *obj = cscPtr ? cscPtr->self : NULL;
   TclVarHashTable *varTablePtr;
@@ -1586,24 +1600,21 @@ xotclObjectVarResolver(Tcl_Interp *interp, xotclResolvedVarInfo *resVarInfo) {
    */
 
   if (obj == resVarInfo->lastObj && ((Var*)(resVarInfo->var))->flags & VAR_IN_HASHTABLE) {
-    /*Var *v = (Var*)(resVarInfo->var);
-      fprintf(stderr,".... var flags = %.6x\n",v->flags);*/
+#if defined(VAR_RESOLVER_TRACE)
+    Var *v = (Var*)(resVarInfo->var);
+    fprintf(stderr,".... cached var flags = %.6x\n",v->flags);
+#endif
     return resVarInfo->var;
   }
 
   varTablePtr = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
-  if (varTablePtr == NULL) {
+  if (varTablePtr == NULL && obj->varTable == NULL) {
     /* 
      * The variable table does not exist. This seems to be is the
      * first access to a variable on this object. We create the and
      * initialize the variable hash table and update the object
      */
-    varTablePtr = (TclVarHashTable *) ckalloc(varHashTableSize);
-    InitVarHashTable(varTablePtr, NULL);
-    assert(obj->varTable == 0); /* the nsVarPtr should always be initialized */
-    if (obj->varTable == NULL) {
-      obj->varTable = varTablePtr;
-    }
+    varTablePtr = obj->varTable = VarHashTableCreate();
   }
 
   /* fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p, varTable %p\n",
@@ -1624,23 +1635,27 @@ xotclObjectVarResolver(Tcl_Interp *interp, xotclResolvedVarInfo *resVarInfo) {
   resVarInfo->lastObj = obj;
   resVarInfo->var = var;
 
-  /*{
+#if defined(VAR_RESOLVER_TRACE)
+  {
     Var *v = (Var*)(resVarInfo->var);
-    fprintf(stderr,"==== looked up var %s flags = %.6x\n",resVarInfo->buffer, v->flags);
-    }*/
+    fprintf(stderr,".... looked up var %s flags = %.6x\n",resVarInfo->buffer, v->flags);
+  }
+#endif
   return var;
 }
 
-int compiledVarResolver(Tcl_Interp *interp,
+int CompiledDotVarResolver(Tcl_Interp *interp,
 			CONST84 char *name, int length, Tcl_Namespace *context,
 			Tcl_ResolvedVarInfo **rPtr) {
   /* getting the self object is a weak protection against handling of wrong vars */
   XOTclObject *obj = GetSelfObj(interp);
-  /*fprintf(stderr, "compiled var resolver for %s, obj %p\n", name, obj);*/
+#if defined(VAR_RESOLVER_TRACE)
+  fprintf(stderr, "compiled var resolver for %s, obj %p\n", name, obj);
+#endif
 
   if (obj && *name == '.') {
     xotclResolvedVarInfo *vInfoPtr = (xotclResolvedVarInfo *) ckalloc(sizeof(xotclResolvedVarInfo));
-    vInfoPtr->vInfo.fetchProc = xotclObjectVarResolver;
+    vInfoPtr->vInfo.fetchProc = CompiledDotVarFetch;
     vInfoPtr->vInfo.deleteProc = NULL; /* if NULL, tcl does a ckfree on proc clean up */
     vInfoPtr->lastObj = NULL;
     vInfoPtr->var = NULL;
@@ -1652,6 +1667,67 @@ int compiledVarResolver(Tcl_Interp *interp,
   }
   return TCL_CONTINUE;
 }
+
+static int
+DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
+  int new;
+  CallFrame *varFramePtr;
+  Tcl_Var var;
+
+  if (*varName != '.' || flags & TCL_GLOBAL_ONLY) {
+    /* ordinary names and global lookups are not for us */
+    return TCL_CONTINUE;
+  }
+#if defined(VAR_RESOLVER_TRACE)
+  fprintf(stderr, "dotVarResolver called var=%s flags %.8x\n", varName, flags);
+#endif
+  varName ++;
+  varFramePtr = Tcl_Interp_varFramePtr(interp);
+
+  if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
+    TclVarHashTable *varTablePtr;
+    XOTclObject *obj;
+
+    if ((*varPtr = CompiledLocalsLookup(varFramePtr, varName))) {
+#if defined(VAR_RESOLVER_TRACE)
+      fprintf(stderr, ".... found local %s\n",varName);
+#endif
+      return TCL_OK;
+    }
+    
+    obj = ((XOTclCallStackContent *)varFramePtr->clientData)->self;
+    varTablePtr = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
+    if (varTablePtr == NULL && obj->varTable == NULL) {
+      varTablePtr = obj->varTable = VarHashTableCreate();
+    }
+
+    /* fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p, varTable %p\n",
+       resVarInfo->buffer, obj, obj->nsPtr, varTablePtr); */
+    var = (Tcl_Var)LookupVarFromTable(varTablePtr,varName, NULL);
+    if (var) {
+#if defined(VAR_RESOLVER_TRACE)
+      fprintf(stderr, ".... found in hashtable %s %p\n",varName, var);
+#endif
+    } else {
+      /* We failed to find the variable, therefore we create it new */
+      Tcl_Obj *key = Tcl_NewStringObj(varName, -1);
+
+      INCR_REF_COUNT(key);
+      var = (Tcl_Var)VarHashCreateVar(varTablePtr, key, &new);
+      DECR_REF_COUNT(key);
+#if defined(VAR_RESOLVER_TRACE)
+      fprintf(stderr, ".... created in hashtable %s %p\n",varName, var);
+#endif
+    }
+    *varPtr = var;
+    return TCL_OK;
+  }
+#if defined(VAR_RESOLVER_TRACE)
+  fprintf(stderr, ".... not found %s\n",varName);
+#endif
+  return TCL_CONTINUE;
+}
+
 #endif
 
 static Tcl_Namespace *
@@ -1663,7 +1739,7 @@ requireObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
    * and object-only ones (set, unset, ...)
    */
   Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
-                            varResolver, /*(Tcl_ResolveCompiledVarProc*)compiledVarResolver*/NULL);
+                            varResolver, /*(Tcl_ResolveCompiledVarProc*)CompiledDotVarResolver*/NULL);
   return obj->nsPtr;
 }
 
@@ -5147,7 +5223,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
            * stack, so we pass it here explicitly.
            */
 
-          /*fprintf(stderr, "... calling nextmethod cscPtr %p\n", cscPtr); */
+          /*fprintf(stderr, "... calling nextmethod cscPtr %p\n", cscPtr);*/
           result = XOTclNextMethod(obj, interp, cl, methodName,
                                objc, objv, /*useCallStackObjs*/ 0, cscPtr);
           /*fprintf(stderr, "... after nextmethod result %d\n", result);*/
@@ -5276,7 +5352,11 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   opt = obj->opt;
   if (opt && obj->teardown &&
       (opt->checkoptions & CHECK_POST)) {
-    result = AssertionCheck(interp, obj, cl, methodName, CHECK_POST);
+    int rc = AssertionCheck(interp, obj, cscPtr->cl, methodName, CHECK_POST);
+    /* don't clobber error codes */
+    if (result == TCL_OK) {
+      result = rc;
+    }
   }
 #endif
  finish:
@@ -5610,7 +5690,6 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 				cl && cl->object.teardown ? cl->object.cmdName : NULL,
 				methodName);
       }
-      /*fprintf(stderr, "DoDispatch InvokeMethod returned %d method %s\n",result, methodName);*/
       unknown = rst->unknown;
     }
   } else {
@@ -6735,7 +6814,6 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
     RUNTIME_STATE(interp)->unknown = 0;
     result = InvokeMethod((ClientData)obj, interp, nobjc, nobjv, cmd,
                           obj, *cl, *methodName, frameType);
-
     csc->callType &= ~XOTCL_CSC_CALL_IS_NEXT;
 
     if (csc->frameType == XOTCL_CSC_TYPE_INACTIVE_FILTER)
@@ -8201,38 +8279,12 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
    * variable linked to the new namespace variable "varName".
    */
   if (varFramePtr && (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_PROC)) {
-    Proc *procPtr           = Tcl_CallFrame_procPtr(varFramePtr);
-    int localCt             = procPtr->numCompiledLocals;
-    CompiledLocal *localPtr = procPtr->firstLocalPtr;
-    Var *localVarPtr        = Tcl_CallFrame_compiledLocals(varFramePtr);
-    char *newNameString     = ObjStr(newName);
-    int i, nameLen          = strlen(newNameString);
-    
-    for (i = 0;  i < localCt;  i++) {    /* look in compiled locals */
-      /* fprintf(stderr, "%d of %d %s flags %x not isTemp %d\n", i, localCt,
-         localPtr->name, localPtr->flags,
-         !TclIsCompiledLocalTemporary(localPtr));*/
-      
-      if (!TclIsCompiledLocalTemporary(localPtr)) {
-        char *localName = localPtr->name;
-        if ((newNameString[0] == localName[0])
-            && (nameLen == localPtr->nameLength)
-            && (strcmp(newNameString, localName) == 0)) {
-          varPtr = getNthVar(localVarPtr, i);
-          new = 0;
-          /*fprintf(stderr, "var in locals: %s\n",newNameString);*/
-          break;
-        }
-      }
-      localPtr = localPtr->nextPtr;
-    }
+    varPtr = (Var *)CompiledLocalsLookup((CallFrame *)varFramePtr, ObjStr(newName));
     
     if (varPtr == NULL) {	/* look in frame's local var hashtable */
       tablePtr = Tcl_CallFrame_varTablePtr(varFramePtr);
       if (tablePtr == NULL) {
-        tablePtr = (TclVarHashTable *) ckalloc(varHashTableSize);
-        InitVarHashTable(tablePtr, NULL);
-        Tcl_CallFrame_varTablePtr(varFramePtr) = tablePtr;
+        Tcl_CallFrame_varTablePtr(varFramePtr) = tablePtr = VarHashTableCreate();
       }
       varPtr = VarHashCreateVar(tablePtr, newName, &new);
     }
@@ -8254,7 +8306,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
         }
         
         /*fprintf(stderr, "linkvar flags=%x\n", linkPtr->flags);
-          Tcl_Panic("new linkvar %s... When does this happen?", newNameString, NULL);*/
+          Tcl_Panic("new linkvar %s... When does this happen?", ObjStr(newName), NULL);*/
         
         /* We have already a variable with the same name imported
            from a different object. Get rid of this old variable
@@ -12818,10 +12870,10 @@ Xotcl_Init(Tcl_Interp *interp) {
 #if defined(USE_COMPILED_VAR_RESOLVER)
   /*
   Tcl_SetNamespaceResolvers(Tcl_FindNamespace(interp, "::xotcl", NULL, 0), (Tcl_ResolveCmdProc*)NULL,
-                            varResolver, (Tcl_ResolveCompiledVarProc*)compiledVarResolver);
+                            varResolver, (Tcl_ResolveCompiledVarProc*)CompiledDotVarResolver);
   */
   Tcl_AddInterpResolvers(interp,"xotcl", (Tcl_ResolveCmdProc*)NULL,
-                            NULL, (Tcl_ResolveCompiledVarProc*)compiledVarResolver);
+                         DotVarResolver, (Tcl_ResolveCompiledVarProc*)CompiledDotVarResolver);
 #endif
 
   /*

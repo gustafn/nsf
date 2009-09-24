@@ -221,10 +221,10 @@ C method foo {x} {
 C method bar {} {puts ${.x};return [info exists .x],[info exists .y]}
 C method bar2 {} {if {[info exists .x]} {set .x 1000}; return [info exists .x],[info exists .y]}
 ? {c1 foo 1} "1,100"
-? {c1 bar} "1,0"
-? {c1 bar2} "1,0"
+? {c1 bar} "1,1"
+? {c1 bar2} "1,1"
 c1 unset x
-? {c1 bar2} "0,0"
+? {c1 bar2} "0,1"
 c1 destroy
 C destroy
 
@@ -242,4 +242,27 @@ C method foo {} {
 puts call-foo
 c1 foo
 puts call-foo-done
-#? {c1 info vars} "a"
+? {c1 info vars} "a z"
+
+
+###############################################
+# tests for the var resolver
+###############################################Class C
+C method bar0 {} {return ${.x}}
+C method bar1 {} {set a ${.x}; return [info exists .x],[info exists .y]}
+C method bar2 {} {return [info exists .x],[info exists .y]}
+C method foo {} {
+  array set .a {a 1 b 2 c 3}
+  set .z 100
+}
+C create c1
+c1 set x 100
+? {c1 bar0} 100 "single compiled local"
+? {c1 bar1} 1,0 "lookup one compiled var and one non-existing"
+? {c1 bar2} 1,0 "lookup one non compiled var and one non-existing"
+C create c2
+? {c2 bar2} 0,0 "lookup two one non-existing, first access to varTable"
+c1 foo
+? {lsort [c1 info vars]} "a x z" "array variable set via resolver"
+? {lsort [c1 array names a]} "a b c" "array looks ok"
+puts stderr ===EXIT

@@ -650,7 +650,7 @@ TestX filterGuards -proc run {{n 20}} {
       set ::filterResult ""
       B instfilter {f01 {f02 -guard "a b"}}
       set r [catch {B b}]
-      ::errorCheck $r-$filterResult "1-1" "Filter guard: Filter guard with error iva next"
+      ::errorCheck $r-$filterResult "1-1" "Filter guard: Filter guard with error via next"
 
       set ::filterResult ""
       B instfilter {{f1 -guard "1<0"}} ;# failing guard
