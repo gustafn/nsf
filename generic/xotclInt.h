@@ -314,6 +314,7 @@ typedef struct XOTclMemCounter {
 
 /* flags for call method */
 #define XOTCL_CM_NO_UNKNOWN 1
+#define XOTCL_CM_NO_SHIFT   2
 
 /*
  *
@@ -658,7 +659,8 @@ typedef struct XOTclRuntimeState {
   Tcl_Namespace *fakeNS;
   XotclStubs *xotclStubs;
   Tcl_CallFrame *varFramePtr;
-  Command *cmdPtr;
+  Command *cmdPtr; /* used for ACTIVE_MIXIN */
+  Tcl_Command dotCmd;
 #if defined(PROFILE)
   XOTclProfile profile;
 #endif

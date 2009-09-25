@@ -1670,7 +1670,6 @@ int CompiledDotVarResolver(Tcl_Interp *interp,
 
 static int
 DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
-  XOTclClass *pcl;
   CallFrame *varFramePtr;
 
   if (*cmdName != '.' || flags & TCL_GLOBAL_ONLY) {
@@ -1678,20 +1677,15 @@ DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, in
     return TCL_CONTINUE;
   }
 
-  fprintf(stderr, "DotCmdResolver called with %s\n",cmdName);
-
   varFramePtr = Tcl_Interp_varFramePtr(interp);
   if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
-    XOTclObject *obj = ((XOTclCallStackContent *)varFramePtr->clientData)->self;
-    Tcl_Command cmd;
-
-    cmdName ++;
-    cmd = ObjectFindMethod(interp, obj, cmdName, &pcl);
-    fprintf(stderr, "DotCmdResolver found %p for %s\n",cmd, cmdName);
-    if (cmd) {
-      *cmdPtr = cmd;
-      return TCL_OK;
-    }
+    /*fprintf(stderr, "DotCmdResolver called with %s\n",cmdName);*/
+    /*
+     * We have a cmd starting with ".", we are in an xotcl frame, so
+     * forward to the dotCmd.
+     */
+    *cmdPtr = RUNTIME_STATE(interp)->dotCmd;
+    return TCL_OK;
   }
   
   return TCL_CONTINUE;
@@ -5584,19 +5578,33 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
            Tcl_Obj *CONST objv[], int flags) {
   register XOTclObject *obj = (XOTclObject*)clientData;
   int result = TCL_OK, mixinStackPushed = 0,
-    filterStackPushed = 0, unknown = 0, objflags,
+    filterStackPushed = 0, unknown = 0, objflags, shift,
     frameType = XOTCL_CSC_TYPE_PLAIN;
   char *methodName;
   XOTclClass *cl = NULL;
   Tcl_Command cmd = NULL;
   XOTclRuntimeState *rst = RUNTIME_STATE(interp);
-  Tcl_Obj *cmdName = obj->cmdName;
+  Tcl_Obj *cmdName = obj->cmdName, *methodObj, *cmdObj;
 
   assert(objc>0);
-  methodName = ObjStr(objv[1]);
+  if (flags & XOTCL_CM_NO_SHIFT) {
+    shift = 0;
+    cmdObj = obj->cmdName;
+    methodObj = objv[0];
+  } else {
+    shift = 1;
+    cmdObj = objv[0];
+    methodObj = objv[1];
+  }
 
+  methodName = ObjStr(methodObj);
+#if defined(USE_COMPILED_VAR_RESOLVER)
+  if (*methodName == '.') {
+    methodName ++;
+  }
+#endif
   /*fprintf(stderr, "DoDispatch obj = %s objc = %d 0=%s methodName=%s\n",
-    objectName(obj), objc, ObjStr(objv[0]), methodName);*/
+    objectName(obj), objc, ObjStr(cmdObj), methodName);*/
 
 #ifdef DISPATCH_TRACE
   printCall(interp, "DISPATCH", objc, objv);
@@ -5628,7 +5636,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     if (csc && (obj != csc->self ||
                 csc->frameType != XOTCL_CSC_TYPE_ACTIVE_FILTER)) {
       
-      filterStackPushed = FilterStackPush(interp, obj, objv[1]);
+      filterStackPushed = FilterStackPush(interp, obj, methodObj);
       cmd = FilterSearchProc(interp, obj, &obj->filterStack->currentCmdPtr, &cl);
       if (cmd) {
         /*fprintf(stderr, "filterSearchProc returned cmd %p proc %p\n", cmd, proc);*/
@@ -5697,14 +5705,13 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
     if ((Tcl_Command_flags(cmd) & XOTCL_CMD_PROTECTED_METHOD) &&
 	(flags & XOTCL_CM_NO_UNKNOWN) == 0) {
-      XOTclCallStackContent *csc = CallStackGetTopFrame(interp, NULL);
-      XOTclObject *o = NULL, *self = csc ? csc->self : NULL;
-
-      GetObjectFromObj(interp, objv[0], &o);
-      /*fprintf(stderr, "+++ %s is protected, therefore maybe unknown %p %s self=%p o=%p\n",
-	methodName, objv[0], ObjStr(objv[0]),
-	csc->self, o);*/
-      if (o != self) {
+      XOTclObject *o, *lastSelf = GetSelfObj(interp);
+      
+      /* we do not want to rely on clientData, so get obj from cmdObj */
+      GetObjectFromObj(interp, cmdObj, &o);
+      /*fprintf(stderr, "+++ %s is protected, therefore maybe unknown %p %s self=%p o=%p cd %p\n",
+        methodName, cmdObj, ObjStr(cmdObj), lastSelf, o, clientData);*/
+      if (o != lastSelf) {
 	/*fprintf(stderr, "+++ protected method %s is not invoked\n", methodName);*/
 	unknown = 1;
       }
@@ -5713,7 +5720,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     if (!unknown) {
       /*fprintf(stderr, "DoDispatch calls InvokeMethod with obj = %s frameType %d method %s\n",
         objectName(obj), frameType, methodName);*/
-      if ((result = InvokeMethod(clientData, interp, objc-1, objv+1, cmd, obj, cl,
+      if ((result = InvokeMethod(clientData, interp, objc-shift, objv+shift, cmd, obj, cl,
                                  methodName, frameType)) == TCL_ERROR) {
 	result = XOTclErrInProc(interp, cmdName,
 				cl && cl->object.teardown ? cl->object.cmdName : NULL,
@@ -5731,10 +5738,10 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       Tcl_Obj *unknownObj = XOTclGlobalObjects[XOTE_UNKNOWN];
 
       if (XOTclObjectIsClass(obj) && (flags & XOTCL_CM_NO_UNKNOWN)) {
-	return XOTclVarErrMsg(interp, ObjStr(objv[0]),
+	return XOTclVarErrMsg(interp, objectName(obj),
 			      ": unable to dispatch method '",
 			      methodName, "'", (char *) NULL);
-      } else if (objv[1] != unknownObj) {
+      } else if (methodObj != unknownObj) {
 	/*
 	 * back off and try unknown;
 	 */
@@ -5742,23 +5749,23 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
         ALLOC_ON_STACK(Tcl_Obj*, objc+1, tov);
         /*
           fprintf(stderr, "calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s\n",
-          objectName(obj), ObjStr(objv[1]), flags, XOTCL_CM_NO_UNKNOWN,
+          objectName(obj), methodName, flags, XOTCL_CM_NO_UNKNOWN,
           XOTclObjectIsClass(obj), obj, objectName(obj));
         */
         tov[0] = obj->cmdName;
         tov[1] = unknownObj;
-        if (objc>1)
-          memcpy(tov+2, objv+1, sizeof(Tcl_Obj *)*(objc-1));
+        if (objc>1) /*shift?*/
+          memcpy(tov+2, objv+shift, sizeof(Tcl_Obj *)*(objc-shift));
         /*
           fprintf(stderr, "?? %s unknown %s\n", objectName(obj), ObjStr(tov[2]));
         */
-        result = DoDispatch(clientData, interp, objc+1, tov, flags | XOTCL_CM_NO_UNKNOWN);
+        result = DoDispatch(clientData, interp, objc+shift, tov, flags | XOTCL_CM_NO_UNKNOWN);
         FREE_ON_STACK(tov);
 	
       } else { /* unknown failed */
-        return XOTclVarErrMsg(interp, ObjStr(objv[0]),
+        return XOTclVarErrMsg(interp, objectName(obj),
 			      ": unable to dispatch method '",
-			      ObjStr(objv[2]), "'", (char *) NULL);
+			      ObjStr(objv[shift+1]), "'", (char *) NULL);
       }
 
     }
@@ -10178,6 +10185,16 @@ static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int no
   return result;
 }
 
+static int XOTclDotCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  XOTclObject *self = GetSelfObj(interp);
+
+  if (!self) {
+    return XOTclVarErrMsg(interp, "Cannot resolve 'self', probably called outside the context of an XOTcl Object",
+                          (char *) NULL);
+  }
+  return DoDispatch(self, interp, nobjc, nobjv, XOTCL_CM_NO_SHIFT);
+}
+
 static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   Tcl_Command cmd;
   Tcl_Obj *newFullCmdName, *oldFullCmdName;
@@ -12903,6 +12920,7 @@ Xotcl_Init(Tcl_Interp *interp) {
   */
   Tcl_AddInterpResolvers(interp,"xotcl", (Tcl_ResolveCmdProc*)DotCmdResolver,
                          DotVarResolver, (Tcl_ResolveCompiledVarProc*)CompiledDotVarResolver);
+  RUNTIME_STATE(interp)->dotCmd = Tcl_FindCommand(interp, "::xotcl::dot", 0, 0);
 #endif
 
   /*

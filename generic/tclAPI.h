@@ -133,6 +133,7 @@ static int XOTclConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int 
 static int XOTclCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclDotCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -230,6 +231,7 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
 static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass);
 static int XOTclDeprecatedCmd(Tcl_Interp *interp, char *oldCmd, char *newCmd);
 static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int XOTclDotCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
 static int XOTclInstvarCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]);
@@ -328,6 +330,7 @@ enum {
  XOTclCreateObjectSystemCmdIdx,
  XOTclDeprecatedCmdIdx,
  XOTclDispatchCmdIdx,
+ XOTclDotCmdIdx,
  XOTclFinalizeObjCmdIdx,
  XOTclInstvarCmdIdx,
  XOTclInterpObjCmdIdx,
@@ -2039,6 +2042,15 @@ XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 }
 
 static int
+XOTclDotCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+
+    
+
+    return XOTclDotCmd(interp, objc, objv);
+
+}
+
+static int
 XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
@@ -2601,6 +2613,9 @@ static methodDefinition method_definitions[] = {
   {"object", 1, 0, convertToObject},
   {"-objscope", 0, 0, convertToString},
   {"command", 1, 0, convertToTclobj},
+  {"args", 0, 0, convertToNothing}}
+},
+{"::xotcl::dot", XOTclDotCmdStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::finalize", XOTclFinalizeObjCmdStub, 0, {
