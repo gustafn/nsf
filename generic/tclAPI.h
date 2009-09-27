@@ -123,7 +123,7 @@ static int XOTclONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int
 static int XOTclOParametercmdMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOProcSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOSetvaluesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -221,7 +221,7 @@ static int XOTclONoinitMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOParametercmdMethod(Tcl_Interp *interp, XOTclObject *obj, char *name);
 static int XOTclOProcSearchMethod(Tcl_Interp *interp, XOTclObject *obj, char *name);
 static int XOTclORequireNamespaceMethod(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclOSetvaluesMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
+static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
@@ -320,7 +320,7 @@ enum {
  XOTclOParametercmdMethodIdx,
  XOTclOProcSearchMethodIdx,
  XOTclORequireNamespaceMethodIdx,
- XOTclOSetvaluesMethodIdx,
+ XOTclOResidualargsMethodIdx,
  XOTclOUplevelMethodIdx,
  XOTclOUpvarMethodIdx,
  XOTclOVolatileMethodIdx,
@@ -1874,12 +1874,12 @@ XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 }
 
 static int
-XOTclOSetvaluesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+XOTclOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
     
 
-    return XOTclOSetvaluesMethod(interp, obj, objc, objv);
+    return XOTclOResidualargsMethod(interp, obj, objc, objv);
 
 }
 
@@ -2574,7 +2574,7 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::Object::requireNamespace", XOTclORequireNamespaceMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Object::setvalues", XOTclOSetvaluesMethodStub, 1, {
+{"::xotcl::cmd::Object::residualargs", XOTclOResidualargsMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::cmd::Object::uplevel", XOTclOUplevelMethodStub, 1, {

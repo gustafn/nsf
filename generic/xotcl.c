@@ -10977,20 +10977,10 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
   XOTcl_PopFrame(interp, obj);
   remainingArgsc = pc.objc - paramDefs->nrParams;
 
-#if defined(CONFIGURE_ARGS_TRACE)
-  fprintf(stderr, "*** POPULATE OBJ SETVALUES with '%d' elements:\n", remainingArgsc);
-  { int j;
-    for (j = i; j < i + remainingArgsc; j++) {
-      fprintf(stderr, "*** SETVALUES[%d] with '%s'\n", j, pc.full_objv[j] ? ObjStr(pc.full_objv[j]) : "NULL");
-    }
-  }
-#endif
-
   if (remainingArgsc > 0) {
     result = callMethod((ClientData) obj, interp,
-                        XOTclGlobalObjects[XOTE_SETVALUES], remainingArgsc+2, pc.full_objv+i, 0);
+                        XOTclGlobalObjects[XOTE_RESIDUALARGS], remainingArgsc+2, pc.full_objv+i, 0);
     if (result != TCL_OK) {
-      /* TODO: interp reset achieved by Object->setvalues?*/
       parseContextRelease(&pc);
       goto configure_exit;
     }
@@ -11223,7 +11213,7 @@ static int XOTclORequireNamespaceMethod(Tcl_Interp *interp, XOTclObject *obj) {
   return TCL_OK;
 }
 
-static int XOTclOSetvaluesMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
+static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Obj **argv, **nextArgv, *resultObj;
   int i, argc, nextArgc, normalArgs, result = TCL_OK, isdasharg = NO_DASH;
   char *methodName, *nextMethodName;
@@ -11270,7 +11260,6 @@ static int XOTclOSetvaluesMethod(Tcl_Interp *interp, XOTclObject *obj, int objc,
     }
   }
   resultObj = Tcl_NewListObj(normalArgs, objv+1);
-  //fprintf(stderr, ".... setvalues returns %s\n", ObjStr(resultObj));
   Tcl_SetObjResult(interp, resultObj);
 
   return result;

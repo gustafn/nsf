@@ -169,7 +169,7 @@ objectMethod procsearch XOTclOProcSearchMethod {
 #}
 objectMethod requireNamespace XOTclORequireNamespaceMethod {
 }
-objectMethod setvalues XOTclOSetvaluesMethod {
+objectMethod residualargs XOTclOResidualargsMethod {
   {-argName "args" -type allargs}
 }
 objectMethod uplevel XOTclOUplevelMethod {
