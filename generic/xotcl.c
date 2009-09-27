@@ -8875,7 +8875,7 @@ static void aliasCmdDeleteProc(ClientData clientData) {
 typedef enum {NO_DASH, SKALAR_DASH, LIST_DASH} dashArgType;
 
 static dashArgType
-isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, char **methodName, int *objc, Tcl_Obj **objv[]) {
+isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, char **methodName, int *objc, Tcl_Obj **objv[]) {
   char *flag;
   static Tcl_ObjType CONST86 *listType = NULL;
 
@@ -8898,7 +8898,7 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, char **methodName, int *objc, Tcl_Ob
     if (Tcl_ListObjGetElements(interp, obj, objc, objv) == TCL_OK && *objc>1) {
       flag = ObjStr(*objv[0]);
       /*fprintf(stderr, "we have a list starting with '%s'\n", flag);*/
-      if (*flag == '-') {
+      if (*flag == '-' || *flag == '.') {
         *methodName = flag+1;
         return LIST_DASH;
       }
@@ -8906,7 +8906,19 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, char **methodName, int *objc, Tcl_Ob
   }
   flag = ObjStr(obj);
   /*fprintf(stderr, "we have a scalar '%s'\n", flag);*/
-  if (*flag == '-' && isalpha((int)*((flag)+1))) {
+  if ((*flag == '-' || *flag == '.') && isalpha(*((flag)+1))) {
+    if (firstArg) {
+      /* if the argument contains a space, try to split */
+      char *p= flag+1;
+      while (*p && *p != ' ') p++;
+      if (*p == ' ') {
+        if (Tcl_ListObjGetElements(interp, obj, objc, objv) == TCL_OK) {
+          *methodName = ObjStr(*objv[0]);
+          if (**methodName == '-') {(*methodName)++ ;}
+          return LIST_DASH;
+        }
+      }
+    }
     *methodName = flag+1;
     *objc = 1;
     return SKALAR_DASH;
@@ -8915,16 +8927,17 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, char **methodName, int *objc, Tcl_Ob
 }
 
 static int
-callConfigureMethod(Tcl_Interp *interp, XOTclObject *obj,
-                    char *methodName, int argc, Tcl_Obj *CONST argv[]) {
+callConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, char *methodName, 
+                    int argc, Tcl_Obj *CONST argv[]) {
   int result;
   Tcl_Obj *method = Tcl_NewStringObj(methodName,-1);
-
-  /*fprintf(stderr, "callConfigureMethod method %s->'%s' argc %d\n",
-    objectName(obj), methodName, argc);*/
-
-  if (isInitString(methodName))
+  
+  /* fprintf(stderr, "callConfigureMethod method %s->'%s' level %d, argc %d\n",
+     objectName(obj), methodName, level, argc);*/
+  
+  if (isInitString(methodName)) {
     obj->flags |= XOTCL_INIT_CALLED;
+  }
 
   Tcl_ResetResult(interp);
   INCR_REF_COUNT(method);
@@ -10192,6 +10205,7 @@ static int XOTclDotCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
     return XOTclVarErrMsg(interp, "Cannot resolve 'self', probably called outside the context of an XOTcl Object",
                           (char *) NULL);
   }
+  /*fprintf(stderr, "dispatch %s on %s\n",ObjStr(nobjv[0]), objectName(self));*/
   return DoDispatch(self, interp, nobjc, nobjv, XOTCL_CM_NO_SHIFT);
 }
 
@@ -11215,13 +11229,40 @@ static int XOTclORequireNamespaceMethod(Tcl_Interp *interp, XOTclObject *obj) {
 
 static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Obj **argv, **nextArgv, *resultObj;
-  int i, argc, nextArgc, normalArgs, result = TCL_OK, isdasharg = NO_DASH;
+  int i, start = 1, argc, nextArgc, normalArgs, result = TCL_OK, isdasharg = NO_DASH;
   char *methodName, *nextMethodName;
 
+  /* if we got a single argument, try to split it (unless it starts
+   * with our magic chars) to distinguish between
+   *    Object create foo {.method foo {} {...}}
+   * and 
+   *    Object create foo {
+   *      {.method foo {} {...}}
+   *    }
+   */ 
+  if (objc == 2) {
+    Tcl_Obj **ov;
+    char *word = ObjStr(objv[1]);
+    if (*word != '.' && *word != '-') {
+      char *p = word;
+      while (*p && *p != ' ') p++;
+      if (*p) {
+        fprintf(stderr, "split %s\n",word);
+        if (Tcl_ListObjGetElements(interp, objv[1], &objc, &ov) == TCL_OK) {
+          objv = (Tcl_Obj *CONST*)ov;
+          start = 0;
+        } else {
+          return TCL_ERROR;
+        }
+      }
+    }
+  }
+
   /* find arguments without leading dash */
-  for (i=1; i < objc; i++) {
-    if ((isdasharg = isDashArg(interp, objv[i], &methodName, &argc, &argv)))
+  for (i=start; i < objc; i++) {
+    if ((isdasharg = isDashArg(interp, objv[i], 1, &methodName, &argc, &argv))) {
       break;
+    }
   }
   normalArgs = i-1;
 
@@ -11231,8 +11272,9 @@ static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int ob
     case SKALAR_DASH:    /* Argument is a skalar with a leading dash */
       { int j;
         for (j = i+1; j < objc; j++, argc++) {
-          if ((isdasharg = isDashArg(interp, objv[j], &nextMethodName, &nextArgc, &nextArgv)))
+          if ((isdasharg = isDashArg(interp, objv[j], j==i+1, &nextMethodName, &nextArgc, &nextArgv))) {
             break;
+          }
         }
         result = callConfigureMethod(interp, obj, methodName, argc+1, objv+i+1);
         if (result != TCL_OK) {
@@ -11243,11 +11285,13 @@ static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int ob
       }
     case LIST_DASH:  /* Argument is a list with a leading dash, grouping determined by list */
       {	i++;
-	if (i<objc)
-	  isdasharg = isDashArg(interp, objv[i], &nextMethodName, &nextArgc, &nextArgv);
+	if (i<objc) {
+	  isdasharg = isDashArg(interp, objv[i], 1, &nextMethodName, &nextArgc, &nextArgv);
+        }
 	result = callConfigureMethod(interp, obj, methodName, argc+1, argv+1);
-	if (result != TCL_OK)
+	if (result != TCL_OK) {
 	  return result;
+        }
 	break;
       }
     default:
@@ -11309,6 +11353,12 @@ static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, T
 
   if (!framePtr) {
     XOTclCallStackFindLastInvocation(interp, 1, &framePtr);
+    if (!framePtr) {
+      framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp)->callerVarPtr;
+      if (!framePtr) {
+        framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
+      }
+    }
   }
 
   savedVarFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);

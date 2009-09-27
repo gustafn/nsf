@@ -2,7 +2,7 @@
 
 #if defined(TCL85STACK)
 
-static void tcl85showStack(Tcl_Interp *interp) {
+void tcl85showStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
   fprintf(stderr, "tcl85showStack framePtr %p varFramePtr %p\n",
           Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));

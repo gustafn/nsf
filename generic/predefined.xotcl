@@ -767,17 +767,16 @@ namespace eval ::xotcl {
         eval $cmd
         #puts stderr "parameter $arg without default -> $cmd"
       } elseif {$l == 2} {
-        lappend cmd [list -default [lindex $arg 1]]
+        lappend cmd -default [lindex $arg 1]
         #puts stderr "parameter $arg with default -> $cmd"
         eval $cmd
       } elseif {$l == 3 && [lindex $arg 1] eq "-default"} {
-        lappend cmd [list -default [lindex $arg 2]]
+        lappend cmd -default [lindex $arg 2]
         eval $cmd
       } else {
         set paramstring [string range $arg [expr {[string length $name]+1}] end]
-        #puts  stderr "remaining arg = '$paramstring'"
         if {[string match {[$\[]*} $paramstring]} {
-          lappend cmd [list -default $paramstring]
+          lappend cmd -default $paramstring
           eval $cmd
           continue
         }
@@ -875,7 +874,7 @@ namespace eval ::xotcl {
     {dest ""}
     objLength
   }
-  
+
   # targets are all namspaces and objs part-of the copied obj
   ::xotcl::Object::CopyHandler method makeTargetList t {
     ::xotcl::my lappend targetList $t

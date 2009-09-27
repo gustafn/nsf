@@ -162,11 +162,6 @@ objectMethod parametercmd XOTclOParametercmdMethod {
 objectMethod procsearch XOTclOProcSearchMethod {
   {-argName "name" -required 1}
 }
-# "set" needed?
-#objectMethod set XOTclOSetMethod {
-#  {-argName "var" -required 1 -type tclobj}
-#  {-argName "value" -type tclobj}
-#}
 objectMethod requireNamespace XOTclORequireNamespaceMethod {
 }
 objectMethod residualargs XOTclOResidualargsMethod {
