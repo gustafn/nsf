@@ -11247,7 +11247,7 @@ static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int ob
       char *p = word;
       while (*p && *p != ' ') p++;
       if (*p) {
-        fprintf(stderr, "split %s\n",word);
+        /*fprintf(stderr, "split %s\n",word);*/
         if (Tcl_ListObjGetElements(interp, objv[1], &objc, &ov) == TCL_OK) {
           objv = (Tcl_Obj *CONST*)ov;
           start = 0;
