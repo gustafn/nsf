@@ -9715,6 +9715,11 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     cl = NULL;
     allocation = 'o';
   }
+
+  if (withPer_object) {
+    allocation = 'o';
+  }
+
   cmd = Tcl_GetCommandFromObj(interp, cmdName);
   if (cmd == NULL)
     return XOTclVarErrMsg(interp, "cannot lookup command '",

@@ -196,6 +196,8 @@ puts stderr "after recreate"
 c1 destroy
 C destroy
 
+
+
 ###############################################
 # tests for the compiled var resolver with eval
 ###############################################
@@ -289,3 +291,34 @@ C method foo {} {
 C create c3
 ? {c3 foo} "{x 1} {a b c} 3"
 
+###############################################
+# refined tests for the var resolver under
+# Tcl namespaces parallelling XOTcl objects 
+# (! not declared through requireNamespace !)
+# e.g., "info hasnamespace" reports 0 rather
+# than 1 as under "requireNamespace"
+###############################################
+
+set ::w 1
+array set ::tmpArray {key value}
+
+Class create ::C
+::xotcl::alias ::C Set -objscope ::set
+::xotcl::alias ::C Unset -objscope ::unset
+
+::C create ::c
+namespace eval ::c {}
+? {namespace exists ::c} 1
+? {::xotcl::Object isobject ::c} 1
+? {::c info hasnamespace} 0
+
+puts [::c Set w 2]
+? {::c Set w 2; expr {[::c Set w] == $::w}} 0
+? {::c Unset w; info exists ::w} 1
+? {::c Set tmpArray(key) value2; expr {[::c Set tmpArray(key)] == $::tmpArray(key)}} 0
+? {::c Unset tmpArray(key); info exists ::tmpArray(key)} 1
+
+::c destroy
+::C destroy
+unset ::w
+unset ::tmpArray
