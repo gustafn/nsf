@@ -8554,7 +8554,12 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     if (c == 's' && !strcmp(element, "self")) {
       *out = tcd->obj->cmdName;
     } else if (c == 'p' && !strcmp(element, "proc")) {
-      *out = objv[0];
+      char *methodName = ObjStr(objv[0]);
+      if (*methodName == '.') {
+	*out = Tcl_NewStringObj(methodName + 1, -1);
+      } else {
+	*out = objv[0];
+      }
     } else if (c == '1' && (c1 == '\0' || c1 == ' ')) {
       /*fprintf(stderr, "   nrArgs=%d, subcommands=%d inputarg=%d, objc=%d\n",
 	nrArgs, tcd->nr_subcommands, *inputarg, objc);*/
