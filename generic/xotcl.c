@@ -9217,17 +9217,22 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     if (*pPtr->name == '-') {
       int p, found;
       char *objStr;
-
-      /* Handle non-positional (named) parameters, starting with a
-       * "-"; arguments can be given in an arbitrary order
+      /* 
+       * We expect now a non-positional (named) parameter, starting
+       * with a "-"; such arguments can be given in an arbitrary order
        */
       for (p = o; p<objc; p++) {
         objStr = ObjStr(objv[p]);
-        /*fprintf(stderr, "....checking objv[%d]=%s\n", p, objStr);*/
-        if (objStr[0] == '-') {
-          XOTclParam CONST *nppPtr;
+	found = 0;
 
-          found = 0;
+        /*fprintf(stderr, "....checking objv[%d]=%s\n", p, objStr);*/
+        if (objStr[0] != '-') {
+	  /* there is no positional arg in the given argument vector */
+	  break; 
+	} else {
+          XOTclParam CONST *nppPtr;
+	  /* We have an argument starting with a "-"; is it really one of the possible flags? */
+
           for (nppPtr = pPtr; nppPtr->name && *nppPtr->name == '-'; nppPtr ++) {
             if (strcmp(objStr,nppPtr->name) == 0) {
               /*fprintf(stderr, "...     flag '%s' o=%d p=%d, objc=%d nrArgs %d\n",objStr,o,p,objc,nppPtr->nrArgs);*/
