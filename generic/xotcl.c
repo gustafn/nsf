@@ -3658,10 +3658,7 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
   assert(obj->flags & XOTCL_MIXIN_ORDER_VALID);
   /*MixinComputeDefined(interp, obj);*/
   cmdList = seekCurrent(obj->mixinStack->currentCmdPtr, obj->mixinOrder);
-
-#if defined(ACTIVEMIXIN)
   RUNTIME_STATE(interp)->cmdPtr = cmdList->cmdPtr;
-#endif
 
   /*
     fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList);
@@ -6943,171 +6940,6 @@ computeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
   return resultObj;
 }
 
-static int
-XOTclSelfSubCommand(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *option) {
-  int result = TCL_OK;
-  int opt;
-  XOTclCallStackContent *csc = NULL;
-
-  static CONST char *opts[] = {
-    "proc", "class",
-    "activelevel", "args",
-#if defined(ACTIVEMIXIN)
-    "activemixin",
-#endif
-    "calledproc", "calledmethod",
-    "calledclass", "callingproc",
-    "callingclass", "callinglevel",
-    "callingobject", "filterreg",
-    "isnextcall", "next",
-    NULL
-  };
-
-  enum selfOptionIdx {
-    procIdx, classIdx,
-    activelevelIdx, argsIdx,
-#if defined(ACTIVEMIXIN)
-    activemixinIdx,
-#endif
-    calledprocIdx, calledmethodIdx,
-    calledclassIdx, callingprocIdx,
-    callingclassIdx, callinglevelIdx,
-    callingobjectIdx, filterregIdx,
-    isnextcallIdx, nextIdx
-  };
-
-  assert(option);
-
-  if (Tcl_GetIndexFromObj(interp, option, opts, "self option", 0, &opt) != TCL_OK) {
-    return TCL_ERROR;
-  }
-
-  if (!obj && opt != callinglevelIdx) {
-    return XOTclVarErrMsg(interp, "self: no current object", (char *) NULL);
-  }
-
-  switch (opt) {
-  case procIdx: { /* proc subcommand */
-    csc = CallStackGetTopFrame(interp, NULL);
-    if (csc) {
-      CONST char *procName = Tcl_GetCommandName(interp, csc->cmdPtr);
-      Tcl_SetResult(interp, (char *)procName, TCL_VOLATILE);
-    } else {
-      return XOTclVarErrMsg(interp, "Can't find proc", (char *) NULL);
-    }
-    break;
-  }
-
-  case classIdx: { /* class subcommand */
-    csc = CallStackGetTopFrame(interp, NULL);
-    Tcl_SetObjResult(interp, csc->cl ? csc->cl->object.cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-    break;
-  }
-
-  case activelevelIdx: {
-    Tcl_SetObjResult(interp, computeLevelObj(interp, ACTIVE_LEVEL));
-    break;
-  }
-
-  case argsIdx: {
-    int nobjc;
-    Tcl_Obj **nobjv;
-    Tcl_CallFrame *topFramePtr;
-
-    CallStackGetTopFrame(interp, &topFramePtr);
-    nobjc = Tcl_CallFrame_objc(topFramePtr);
-    nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(topFramePtr);
-    Tcl_SetObjResult(interp, Tcl_NewListObj(nobjc-1, nobjv+1));
-    break;
-  }
-
-#if defined(ACTIVEMIXIN)
-  case activemixinIdx: {
-    XOTclObject *o = NULL;
-    if (RUNTIME_STATE(interp)->cmdPtr) {
-      o = XOTclGetObjectFromCmdPtr(RUNTIME_STATE(interp)->cmdPtr);
-    }
-    Tcl_SetObjResult(interp, o ? o->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-    break;
-  }
-#endif
-  case calledprocIdx:
-  case calledmethodIdx: {
-    csc = CallStackFindActiveFilter(interp);
-    if (csc) {
-      Tcl_SetObjResult(interp, csc->filterStackEntry->calledProc);
-    } else {
-      result = XOTclVarErrMsg(interp, "self ", ObjStr(option),
-			  " called from outside of a filter",
-			  (char *) NULL);
-    }
-    break;
-  }
-
-  case calledclassIdx:
-    Tcl_SetResult(interp, className(FindCalledClass(interp, obj)), TCL_VOLATILE);
-    break;
-
-  case callingprocIdx:
-    csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
-    Tcl_SetResult(interp, csc ? (char *)Tcl_GetCommandName(interp, csc->cmdPtr) : "",
-		  TCL_VOLATILE);
-    break;
-
-  case callingclassIdx:
-    csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
-    Tcl_SetObjResult(interp, csc && csc->cl ? csc->cl->object.cmdName :
-		     XOTclGlobalObjects[XOTE_EMPTY]);
-    break;
-
-  case callinglevelIdx:
-    if (!obj) {
-      Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
-    } else {
-      Tcl_SetObjResult(interp, computeLevelObj(interp, CALLING_LEVEL));
-    }
-    break;
-
-  case callingobjectIdx:
-    csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
-    Tcl_SetObjResult(interp, csc ? csc->self->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-    break;
-
-  case filterregIdx:
-    csc = CallStackFindActiveFilter(interp);
-    if (csc) {
-      Tcl_SetObjResult(interp, FilterFindReg(interp, obj, csc->cmdPtr));
-    } else {
-      result = XOTclVarErrMsg(interp,
-                          "self filterreg called from outside of a filter",
-                          (char *) NULL);
-    }
-    break;
-
-  case isnextcallIdx: {
-    Tcl_CallFrame *framePtr;
-    csc = CallStackGetTopFrame(interp, &framePtr);
-#if defined(TCL85STACK)
-    framePtr = nextFrameOfType(Tcl_CallFrame_callerPtr(framePtr), FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD);
-    csc = framePtr ? Tcl_CallFrame_clientData(framePtr) : NULL;
-#else
-    csc--;
-    if (csc <= RUNTIME_STATE(interp)->cs.content)
-      csc = NULL;
-#endif
-    Tcl_SetBooleanObj(Tcl_GetObjResult(interp), 
-                      (csc && (csc->callType & XOTCL_CSC_CALL_IS_NEXT)));
-    break;
-  }
-
-  case nextIdx:
-    result = FindSelfNext(interp, obj);
-    break;
-  }
-
-  return result;
-}
-
 /*
   int
   XOTclKObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -7118,33 +6950,6 @@ XOTclSelfSubCommand(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *option) {
   return TCL_OK;
   }
 */
-
-
-int
-XOTclGetSelfObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj;
-  int result;
-
-  if (objc > 2)
-    return XOTclVarErrMsg(interp, "wrong # of args for self", (char *) NULL);
-
-  obj = GetSelfObj(interp);
-  /*fprintf(stderr, "getSelfObj returns %p\n", obj); tcl85showStack(interp);*/
-
-  if (objc == 1) {
-    if (obj) {
-      Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
-      result = TCL_OK;
-    } else {
-      return XOTclVarErrMsg(interp, "self: no current object", (char *) NULL);
-    }
-    Tcl_SetObjResult(interp, obj->cmdName);
-  } else {
-    return XOTclSelfSubCommand(interp, obj, objv[1]);
-  }
-  return result;
-}
-
 
 /*
  * object creation & destruction
@@ -8555,6 +8360,9 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       *out = tcd->obj->cmdName;
     } else if (c == 'p' && !strcmp(element, "proc")) {
       char *methodName = ObjStr(objv[0]);
+      /* if we dispatch a method via ".", we do not want to see the
+	 "." in the %proc, e.g. for the interceptor slots (such as
+	 .mixin, ... */
       if (*methodName == '.') {
 	*out = Tcl_NewStringObj(methodName + 1, -1);
       } else {
@@ -10105,6 +9913,8 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char 
   Tcl_Command cmd = NULL;
   char allocation;
 
+  fprintf(stderr, "##### methodproperty = %d\n",methodproperty);
+
   /* TODO: introspection for method properties */
 
   if (XOTclObjectIsClass(object)) {
@@ -10760,6 +10570,146 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
   }
   return TCL_OK;
 }
+static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
+  XOTclObject *obj =  GetSelfObj(interp);
+  XOTclCallStackContent *csc;
+  int result = TCL_OK;
+
+  /*fprintf(stderr, "getSelfObj returns %p\n", obj); tcl85showStack(interp);*/
+
+  if (selfoption == 0) {
+    if (obj) {
+      Tcl_SetObjResult(interp, obj->cmdName);
+      return TCL_OK;
+    } else {
+      return XOTclVarErrMsg(interp, "self: no current object", (char *) NULL);
+    }
+  }
+  
+  if (!obj && selfoption != selfoptionCallinglevelIdx) {
+    return XOTclVarErrMsg(interp, "self: no current object", (char *) NULL);
+  }
+
+  switch (selfoption) {
+  case selfoptionProcIdx: { /* proc subcommand */
+    csc = CallStackGetTopFrame(interp, NULL);
+    if (csc) {
+      CONST char *procName = Tcl_GetCommandName(interp, csc->cmdPtr);
+      Tcl_SetResult(interp, (char *)procName, TCL_VOLATILE);
+    } else {
+      return XOTclVarErrMsg(interp, "Can't find proc", (char *) NULL);
+    }
+    break;
+  }
+
+  case selfoptionClassIdx: { /* class subcommand */
+    csc = CallStackGetTopFrame(interp, NULL);
+    Tcl_SetObjResult(interp, csc->cl ? csc->cl->object.cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+    break;
+  }
+
+  case selfoptionActivelevelIdx: {
+    Tcl_SetObjResult(interp, computeLevelObj(interp, ACTIVE_LEVEL));
+    break;
+  }
+
+  case selfoptionArgsIdx: {
+    int nobjc;
+    Tcl_Obj **nobjv;
+    Tcl_CallFrame *topFramePtr;
+
+    CallStackGetTopFrame(interp, &topFramePtr);
+    nobjc = Tcl_CallFrame_objc(topFramePtr);
+    nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(topFramePtr);
+    Tcl_SetObjResult(interp, Tcl_NewListObj(nobjc-1, nobjv+1));
+    break;
+  }
+
+  case selfoptionActivemixinIdx: {
+    XOTclObject *o = NULL;
+    if (RUNTIME_STATE(interp)->cmdPtr) {
+      o = XOTclGetObjectFromCmdPtr(RUNTIME_STATE(interp)->cmdPtr);
+    }
+    Tcl_SetObjResult(interp, o ? o->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+    break;
+  }
+
+  case selfoptionCalledprocIdx:
+  case selfoptionCalledmethodIdx: {
+    csc = CallStackFindActiveFilter(interp);
+    if (csc) {
+      Tcl_SetObjResult(interp, csc->filterStackEntry->calledProc);
+    } else {
+      result = XOTclVarErrMsg(interp, "called from outside of a filter",
+			  (char *) NULL);
+    }
+    break;
+  }
+
+  case selfoptionCalledclassIdx:
+    Tcl_SetResult(interp, className(FindCalledClass(interp, obj)), TCL_VOLATILE);
+    break;
+
+  case selfoptionCallingprocIdx:
+    csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
+    Tcl_SetResult(interp, csc ? (char *)Tcl_GetCommandName(interp, csc->cmdPtr) : "",
+		  TCL_VOLATILE);
+    break;
+
+  case selfoptionCallingclassIdx:
+    csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
+    Tcl_SetObjResult(interp, csc && csc->cl ? csc->cl->object.cmdName :
+		     XOTclGlobalObjects[XOTE_EMPTY]);
+    break;
+
+  case selfoptionCallinglevelIdx:
+    if (!obj) {
+      Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
+    } else {
+      Tcl_SetObjResult(interp, computeLevelObj(interp, CALLING_LEVEL));
+    }
+    break;
+
+  case selfoptionCallingobjectIdx:
+    csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
+    Tcl_SetObjResult(interp, csc ? csc->self->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+    break;
+
+  case selfoptionFilterregIdx:
+    csc = CallStackFindActiveFilter(interp);
+    if (csc) {
+      Tcl_SetObjResult(interp, FilterFindReg(interp, obj, csc->cmdPtr));
+    } else {
+      result = XOTclVarErrMsg(interp,
+                          "self filterreg called from outside of a filter",
+                          (char *) NULL);
+    }
+    break;
+
+  case selfoptionIsnextcallIdx: {
+    Tcl_CallFrame *framePtr;
+    csc = CallStackGetTopFrame(interp, &framePtr);
+#if defined(TCL85STACK)
+    framePtr = nextFrameOfType(Tcl_CallFrame_callerPtr(framePtr), FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD);
+    csc = framePtr ? Tcl_CallFrame_clientData(framePtr) : NULL;
+#else
+    csc--;
+    if (csc <= RUNTIME_STATE(interp)->cs.content)
+      csc = NULL;
+#endif
+    Tcl_SetBooleanObj(Tcl_GetObjResult(interp), 
+                      (csc && (csc->callType & XOTCL_CSC_CALL_IS_NEXT)));
+    break;
+  }
+
+  case selfoptionNextIdx:
+    result = FindSelfNext(interp, obj);
+    break;
+  }
+
+  return result;
+}
+
 
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value) {
   return setInstVar(interp, object , variable, value);
@@ -12939,7 +12889,6 @@ Xotcl_Init(Tcl_Interp *interp) {
 #ifdef XOTCL_BYTECODE
   instructions[INST_SELF].cmdPtr = (Command *)
 #endif
-    Tcl_CreateObjCommand(interp, "::xotcl::self", XOTclGetSelfObjCmd, 0, 0);
   /*Tcl_CreateObjCommand(interp, "::xotcl::K", XOTclKObjCmd, 0, 0);*/
 
 #if defined(PRE85)

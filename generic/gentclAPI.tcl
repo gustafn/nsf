@@ -22,12 +22,15 @@ proc createconverter {type argname} {
   }
   set domain [split $type |]
   set opts "static CONST char *opts\[\] = {\"[join $domain {", "}]\", NULL};"
-  set enums [list]
+  set enums [list ${argname}NULL]
   foreach d $domain {lappend enums $argname[string totitle [string map [list - _] $d]]Idx}
   subst {
 static int convertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
+  int index, result;
   $opts
-  return Tcl_GetIndexFromObj(interp, objPtr, opts, "$argname", 0, (int *)clientData);
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "$argname", 0, &index);
+  *clientData = (ClientData) index + 1;
+  return result;
 }
 enum ${argname}Idx {[join $enums {, }]};
   }

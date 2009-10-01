@@ -88,6 +88,9 @@ xotclCmd relation XOTclRelationCmd {
   {-argName "relationtype" -required 1 -type "mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }
+xotclCmd self XOTclGetSelfObjCmd {
+  {-argName "selfoption" -required 0 -type "proc|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
+}
 xotclCmd setinstvar XOTclSetInstvarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "variable" -required 1 -type tclobj}
