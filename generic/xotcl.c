@@ -1678,7 +1678,7 @@ DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, in
   }
 
   varFramePtr = Tcl_Interp_varFramePtr(interp);
-  if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
+  if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_OBJECT)) {
     /*fprintf(stderr, "DotCmdResolver called with %s\n",cmdName);*/
     /*
      * We have a cmd starting with ".", we are in an xotcl frame, so
@@ -1707,7 +1707,7 @@ DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, in
   varName ++;
   varFramePtr = Tcl_Interp_varFramePtr(interp);
 
-  if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
+  if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_OBJECT)) {
     TclVarHashTable *varTablePtr;
     XOTclObject *obj;
 
@@ -10899,13 +10899,13 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
    * apply the arguments (mostly setting instance variables).
    */
 #if defined(CONFIGURE_ARGS_TRACE)
-  fprintf(stderr, "*** POPULATE OBJ ''''%s'''': nr of parsed args '%d'\n", objectName(obj), pc.objc);
+  fprintf(stderr, "*** POPULATE OBJ '%s': nr of parsed args %d\n", objectName(obj), pc.objc);
 #endif
-  for (i = 1, paramPtr = paramDefs->paramsPtr; i < paramDefs->nrParams; i++, paramPtr++) {
+  for (i=1, paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++, i++) {
 
     newValue = pc.full_objv[i];
-    /* fprintf(stderr, "newValue of %s = %p '%s'\n", ObjStr(paramPtr->nameObj), 
-       newValue, newValue ? ObjStr(newValue) : "(null)"); */
+    /*fprintf(stderr, "newValue of %s = %p '%s'\n", ObjStr(paramPtr->nameObj), 
+      newValue, newValue ? ObjStr(newValue) : "(null)"); */
 
     if (newValue == XOTclGlobalObjects[XOTE___UNKNOWN__]) {
       /* nothing to do here */
@@ -10931,22 +10931,25 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
     /* special setter for init commands */
     if (paramPtr->flags & XOTCL_ARG_INITCMD) {
       result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
-      /*fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n", 
-        ObjStr(paramPtr->objName), ObjStr(newValue), result);*/
+      fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n", 
+	      ObjStr(paramPtr->nameObj), ObjStr(newValue), result);
       if (result != TCL_OK) {
         XOTcl_PopFrame(interp, obj);
         parseContextRelease(&pc);
         goto configure_exit;
       }
       /* done with init command handling */
-      continue;     
+      continue;
     }
 
-    /* standard setter */
+    /* set the variables unless the last argument of the definition is varArgs */
+    if (i < paramDefs->nrParams || !pc.varArgs) {
+      /* standard setter */
 #if defined(CONFIGURE_ARGS_TRACE)
-    fprintf(stderr, "*** %s SET %s '%s'\n",objectName(obj), ObjStr(paramPtr->nameObj), ObjStr(newValue));
+      fprintf(stderr, "*** %s SET %s '%s'\n",objectName(obj), ObjStr(paramPtr->nameObj), ObjStr(newValue));
 #endif
-    Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+      Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+    }
   }
   
   XOTcl_PopFrame(interp, obj);
@@ -10954,7 +10957,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
 
   if (remainingArgsc > 0) {
     result = callMethod((ClientData) obj, interp,
-                        XOTclGlobalObjects[XOTE_RESIDUALARGS], remainingArgsc+2, pc.full_objv+i, 0);
+                        XOTclGlobalObjects[XOTE_RESIDUALARGS], remainingArgsc+2, pc.full_objv + i-1, 0);
     if (result != TCL_OK) {
       parseContextRelease(&pc);
       goto configure_exit;
