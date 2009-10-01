@@ -3658,7 +3658,7 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
   assert(obj->flags & XOTCL_MIXIN_ORDER_VALID);
   /*MixinComputeDefined(interp, obj);*/
   cmdList = seekCurrent(obj->mixinStack->currentCmdPtr, obj->mixinOrder);
-  RUNTIME_STATE(interp)->cmdPtr = cmdList->cmdPtr;
+  RUNTIME_STATE(interp)->cmdPtr = cmdList ? cmdList->cmdPtr : NULL;
 
   /*
     fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList);
@@ -9913,10 +9913,6 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char 
   Tcl_Command cmd = NULL;
   char allocation;
 
-  fprintf(stderr, "##### methodproperty = %d\n",methodproperty);
-
-  /* TODO: introspection for method properties */
-
   if (XOTclObjectIsClass(object)) {
     cl = (XOTclClass *)object;
     allocation = 'c';
@@ -12887,7 +12883,7 @@ Xotcl_Init(Tcl_Interp *interp) {
 #endif
     Tcl_CreateObjCommand(interp, "::xotcl::next", XOTclNextObjCmd, 0, 0);
 #ifdef XOTCL_BYTECODE
-  instructions[INST_SELF].cmdPtr = (Command *)
+  instructions[INST_SELF].cmdPtr = (Command *)Tcl_FindCommand(interp, "::xotcl::self", 0, 0);
 #endif
   /*Tcl_CreateObjCommand(interp, "::xotcl::K", XOTclKObjCmd, 0, 0);*/
 
