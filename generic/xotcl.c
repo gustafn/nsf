@@ -8719,7 +8719,7 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, char **methodName, int
   }
   flag = ObjStr(obj);
   /*fprintf(stderr, "we have a scalar '%s'\n", flag);*/
-  if ((*flag == '-' || *flag == '.') && isalpha(*((flag)+1))) {
+  if ((*flag == '-' /*|| *flag == '.'*/) && isalpha(*((flag)+1))) {
     if (firstArg) {
       /* if the argument contains a space, try to split */
       char *p= flag+1;
@@ -11192,7 +11192,7 @@ static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int ob
   Tcl_Obj **argv, **nextArgv, *resultObj;
   int i, start = 1, argc, nextArgc, normalArgs, result = TCL_OK, isdasharg = NO_DASH;
   char *methodName, *nextMethodName;
-
+#if 0
   /* if we got a single argument, try to split it (unless it starts
    * with our magic chars) to distinguish between
    *    Object create foo {.method foo {} {...}}
@@ -11218,7 +11218,7 @@ static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int ob
       }
     }
   }
-
+#endif
   /* find arguments without leading dash */
   for (i=start; i < objc; i++) {
     if ((isdasharg = isDashArg(interp, objv[i], 1, &methodName, &argc, &argv))) {
