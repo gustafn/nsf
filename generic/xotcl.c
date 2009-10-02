@@ -6869,7 +6869,7 @@ int
 XOTclNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclCallStackContent *csc = CallStackGetTopFrame(interp, NULL);
 
-  if (!csc->self)
+  if (!csc)
     return XOTclVarErrMsg(interp, "next: can't find self", (char *) NULL);
 
   if (!csc->cmdPtr)
