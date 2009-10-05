@@ -682,6 +682,8 @@ static TclVarHashTable *
 VarHashTableCreate() {
   TclVarHashTable *varTablePtr = (TclVarHashTable *) ckalloc(varHashTableSize);
   InitVarHashTable(varTablePtr, NULL);
+  fprintf(stderr, "VarHashTableCreate returns %p createProc %p\n",varTablePtr, 
+	  ((Tcl_HashTable *)varTablePtr)->createProc);
   return varTablePtr;
 }
 
@@ -1701,12 +1703,15 @@ DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, in
     /* ordinary names and global lookups are not for us */
     return TCL_CONTINUE;
   }
+
 #if defined(VAR_RESOLVER_TRACE)
   fprintf(stderr, "dotVarResolver called var=%s flags %.8x\n", varName, flags);
 #endif
   varName ++;
   varFramePtr = Tcl_Interp_varFramePtr(interp);
 
+  fprintf(stderr, "dotVarResolver called var=%s var flags %.8x frame flags %.6x\n", 
+	  varName, flags, Tcl_CallFrame_isProcCallFrame(varFramePtr));
   if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_OBJECT)) {
     TclVarHashTable *varTablePtr;
     XOTclObject *obj;
@@ -1720,14 +1725,22 @@ DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, in
     
     obj = ((XOTclCallStackContent *)varFramePtr->clientData)->self;
     varTablePtr = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
+    fprintf(stderr, "varTablePtr = %p obj varTable %p\n",varTablePtr, obj->varTable);
     if (varTablePtr == NULL && obj->varTable == NULL) {
       varTablePtr = obj->varTable = VarHashTableCreate();
+      fprintf(stderr, "hashTable %p created, proc = %p, should be %p\n",
+	      varTablePtr, ((Tcl_HashTable *)varTablePtr)->createProc,
+	      /*Tcl_CreateHashEntry*/NULL);
     }
 
-    /* fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p, varTable %p\n",
-       resVarInfo->buffer, obj, obj->nsPtr, varTablePtr); */
-    var = (Tcl_Var)LookupVarFromTable(varTablePtr,varName, NULL);
+    fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p, varTable %p proc %p\n",
+	    varName, obj, obj->nsPtr, varTablePtr,  
+	    ((Tcl_HashTable *)varTablePtr)->createProc);
+    var = (Tcl_Var)LookupVarFromTable(varTablePtr, varName, NULL);
+    fprintf(stderr, "hashTable %p, proc = %p, lookup %p\n",
+	    varTablePtr, ((Tcl_HashTable *)varTablePtr)->createProc, var);
     if (var) {
+      fprintf(stderr, ".... found in hashtable %s %p\n",varName, var);
 #if defined(VAR_RESOLVER_TRACE)
       fprintf(stderr, ".... found in hashtable %s %p\n",varName, var);
 #endif
@@ -1738,6 +1751,7 @@ DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, in
       INCR_REF_COUNT(key);
       var = (Tcl_Var)VarHashCreateVar(varTablePtr, key, &new);
       DECR_REF_COUNT(key);
+      fprintf(stderr, ".... created in hashtable %s %p\n",varName, var);
 #if defined(VAR_RESOLVER_TRACE)
       fprintf(stderr, ".... created in hashtable %s %p\n",varName, var);
 #endif
@@ -7134,6 +7148,7 @@ CleanupDestroyObject(Tcl_Interp *interp, XOTclObject *obj, int softrecreate) {
 static void
 CleanupInitObject(Tcl_Interp *interp, XOTclObject *obj,
                   XOTclClass *cl, Tcl_Namespace *namespacePtr, int softrecreate) {
+  fprintf(stderr, "+++ CleanupInitObject\n");
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "+++ CleanupInitObject\n");
 #endif
@@ -7292,7 +7307,7 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTclClass *cl) {
   MEM_COUNT_ALLOC("XOTclObject/XOTclClass", obj);
   assert(obj); /* ckalloc panics, if malloc fails */
   assert(isAbsolutePath(nameString));
-
+  fprintf(stderr, "+++ PrimitiveOCreate varTable %p\n",obj->varTable);
   length = strlen(nameString);
   if (!NSCheckForParent(interp, nameString, length, cl)) {
     ckfree((char *) obj);
@@ -7302,14 +7317,14 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTclClass *cl) {
                                  (ClientData)obj, tclDeletesObject);
 
   PrimitiveOInit(obj, interp, nameString, cl);
-
+  fprintf(stderr, "+++ after OInit varTable %p\n",obj->varTable);
   obj->cmdName = nameObj;
   /* convert cmdName to Tcl Obj of type cmdName */
   /*Tcl_GetCommandFromObj(interp, obj->cmdName);*/
 
   INCR_REF_COUNT(obj->cmdName);
   objTrace("PrimitiveOCreate", obj);
-
+  fprintf(stderr, "+++ after PrimitiveOCreate varTable %p\n",obj->varTable);
   return obj;
 }
 
@@ -8922,6 +8937,8 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, char *specifiedName, int objc, 
   /*fprintf(stderr, "create -- end ... %s => %d\n", ObjStr(tov[1]),result);*/
   if (tmpObj)  {DECR_REF_COUNT(tmpObj);}
   FREE_ON_STACK(tov);
+
+  fprintf(stderr, "+++ after create %p\n",newObj->varTable);
   return result;
 }
 
@@ -10917,6 +10934,10 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
     goto configure_exit;
   }
 
+  /* make sure, we have a varTable */
+  if (obj->nsPtr == NULL && obj->varTable == NULL) {
+    obj->varTable = VarHashTableCreate();
+  }
   /* Push frame to allow for [self] and make instvars of obj accessible as locals */
   XOTcl_PushFrame(interp, obj);
 
@@ -10966,6 +10987,9 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
 
     /* special setter for init commands */
     if (paramPtr->flags & XOTCL_ARG_INITCMD) {
+      fprintf(stderr, "+++ before initcmd %p createproc %p\n",obj->varTable, 
+	      ((Tcl_HashTable *)obj->varTable)->createProc);
+
       result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
       fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n", 
 	      ObjStr(paramPtr->nameObj), ObjStr(newValue), result);
@@ -11564,6 +11588,7 @@ static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name) 
       Tcl_SetObjResult(interp, name);
       result = TCL_OK;
     }
+    fprintf(stderr, "+++ after alloc %p\n",newObj->varTable);
   }
 
   if (tmpName) {
