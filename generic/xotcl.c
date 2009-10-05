@@ -1276,7 +1276,7 @@ XOTclIsClass(Tcl_Interp *interp, ClientData clientData) {
  * methods lookup
  */
 static int CmdIsProc(Tcl_Command cmd) {
-  /* In 8.6: TclIsProc((Command*)cmd) no equiv to the definition below */ 
+  /* In 8.6: TclIsProc((Command*)cmd) is not equiv to the definition below */ 
   return (Tcl_Command_objProc(cmd) == TclObjInterpProc);
 }
 
@@ -6574,10 +6574,13 @@ computeSlotObjects(Tcl_Interp *interp, XOTclObject *obj, char *pattern, int with
     if (o) {
       Tcl_HashSearch hSrch;
       Tcl_HashEntry *hPtr, *slotEntry;
-      /*fprintf(stderr, "we have slots %s\n", Tcl_DStringValue(dsPtr));*/
-      Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(o->nsPtr);
+      Tcl_HashTable *cmdTable;
       Tcl_Command cmd;
       int new;
+
+      if (!o->nsPtr) continue;
+      cmdTable = Tcl_Namespace_cmdTable(o->nsPtr);
+
       hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch);
       for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
 	char *key = Tcl_GetHashKey(cmdTable, hPtr);
@@ -8776,36 +8779,52 @@ callConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
  * class method implementations
  */
 
+static int isRootNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
+  XOTclClasses *os;
+  for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
+    Tcl_Command cmd = os->cl->object.id;
+    if ((Tcl_Namespace *)((Command *)cmd)->nsPtr == nsPtr) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static Tcl_Namespace *
 callingNameSpace(Tcl_Interp *interp) {
-  Tcl_CallFrame *framePtr = nonXotclObjectProcFrame((Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp));
-  Tcl_Namespace *nsPtr = Tcl_CallFrame_nsPtr(framePtr);
-
-  /*fprintf(stderr, " **** callingNameSpace\n");*/
-  /* tcl85showStack(interp); */
+  Tcl_CallFrame *framePtr;
+  Tcl_Namespace *nsPtr;
 
   /* fprintf(stderr, "nonXotclObjectProcFrame returned %p frame %p, currentNs %p %s, xot %p %s\n",
      framePtr,Tcl_CallFrame_callerPtr(csc->currentFramePtr), nsPtr,nsPtr?nsPtr->fullName:NULL,
-     RUNTIME_STATE(interp)->XOTclNS,RUNTIME_STATE(interp)->XOTclNS->fullName);
-     tcl85showStack(interp);*/
+     RUNTIME_STATE(interp)->XOTclNS,RUNTIME_STATE(interp)->XOTclNS->fullName); */
+  /*tcl85showStack(interp);*/
+
   /*
-  * Find last incovation outside the ::xotcl (system) namespace. For
-  *  example, the pre defined slot handlers for relations (defined in
-  *  the ::xotcl namespace) handle mixin and class
-  *  registration. etc. If we would use this namespace, we would
-  *  resolve non-fully-qualified names against ::xotcl).
+  * Find last incovation outside the XOTcl system namespaces. For
+  * example, the pre defined slot handlers for relations (defined in
+  * the ::xotcl namespace) handle mixin and class
+  * registration. etc. If we would use this namespace, we would
+  * resolve non-fully-qualified names against ::xotcl).
   */
-  while (nsPtr == RUNTIME_STATE(interp)->XOTclNS) {
-    /*fprintf(stderr, "... ns %s\n",nsPtr->fullName);*/
-    if (framePtr) {
-      nsPtr = Tcl_CallFrame_nsPtr(framePtr);
-      framePtr = nonXotclObjectProcFrame(Tcl_CallFrame_callerPtr(framePtr));
-    } else {
-      nsPtr = Tcl_GetGlobalNamespace(interp);
+  for (framePtr = nonXotclObjectProcFrame((Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp));
+       framePtr;
+       framePtr = nonXotclObjectProcFrame(Tcl_CallFrame_callerVarPtr(framePtr))) {
+    nsPtr = Tcl_CallFrame_nsPtr(framePtr);
+    if (isRootNamespace(interp, nsPtr)) {
+      /* fprintf(stderr, "... %p skip %s\n", framePtr, nsPtr->fullName); */
+      continue;
     }
+    /* fprintf(stderr, "... %p take %s\n", framePtr, nsPtr->fullName); */
+    break;
+  }
+   
+  if (!framePtr) {
+    nsPtr = Tcl_GetGlobalNamespace(interp);
   }
   
-  /*fprintf(stderr, " **** callingNameSpace: returns %p %s\n", nsPtr, nsPtr?nsPtr->fullName:"(null)");*/
+  /*fprintf(stderr, " **** callingNameSpace: returns %p %s framePtr %p\n", 
+    nsPtr, nsPtr?nsPtr->fullName:"(null)", framePtr);*/
   return nsPtr;
 }
 
@@ -9569,6 +9588,22 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
      */
     /*fprintf(stderr, "registering an object %p\n",tcd);*/
     XOTclObjectRefCountIncr((XOTclObject *)tcd);
+  } else if (CmdIsProc(cmd)) {
+    if (allocation == 'c') {
+      Tcl_DString ds, *dsPtr = &ds;
+      DSTRING_INIT(dsPtr);
+      Tcl_DStringAppend(dsPtr, "::interp alias {} ", -1);
+      Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
+      Tcl_DStringAppend(dsPtr, " {} ::xotcl::classes", -1);
+      Tcl_DStringAppend(dsPtr, objectName(object), -1);
+      Tcl_DStringAppend(dsPtr, "::", -1);
+      Tcl_DStringAppend(dsPtr, methodName, -1);
+      result = 0;
+      /* todo: why does this not work */
+      /*result = Tcl_Eval(interp, Tcl_DStringValue(dsPtr));*/
+      fprintf(stderr, "CMD = %s => %d\n", Tcl_DStringValue(dsPtr), result);
+      /*return result;*/
+    }
   }
   /* TODO: check aliases for procs, problem when proc is deleted */
 
@@ -9780,10 +9815,9 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
 /*
  * ::xotcl::finalize command
  */
-static int destroyObjectSystem(Tcl_Interp *interp, XOTclClass *rootClass, XOTclClass *rootMetaClass);
+static int destroyObjectSystems(Tcl_Interp *interp);
 static int
 XOTclFinalizeObjCmd(Tcl_Interp *interp) {
-  XOTclClasses *os;
   int result;
 
   /* fprintf(stderr, "+++ call EXIT handler\n");  */
@@ -9802,9 +9836,7 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
             Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
   }
 
-  for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
-    destroyObjectSystem(interp, os->cl, (XOTclClass *)os->clientData);
-  }
+  destroyObjectSystems(interp);
 
   XOTclClassListFree(RUNTIME_STATE(interp)->rootClasses);
 
@@ -12506,8 +12538,7 @@ ObjectHasChildren(Tcl_Interp *interp, XOTclObject *obj) {
 }
 
 static void
-freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable,
-                              XOTclClass *rootClass, XOTclClass *rootMetaClass) {
+freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
   Tcl_HashEntry *hPtr;
   Tcl_HashSearch hSrch;
   XOTclObject *obj;
@@ -12558,30 +12589,27 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable,
       break;
     }
   }
+}
 
-#ifdef DO_FULL_CLEANUP
-  deleteProcsAndVars(interp);
-#endif
-
+static void
+freeRootClasses(Tcl_Interp *interp, XOTclClass *rootClass, XOTclClass *rootMetaClass) {
   RemoveSuper(rootMetaClass, rootClass);
   RemoveInstance((XOTclObject*)rootMetaClass, rootMetaClass);
   RemoveInstance((XOTclObject*)rootClass, rootMetaClass);
 
   Tcl_DeleteCommandFromToken(interp, rootClass->object.id);
   Tcl_DeleteCommandFromToken(interp, rootMetaClass->object.id);
-
-
-
 }
 #endif /* DO_CLEANUP */
 
 static int
-destroyObjectSystem(Tcl_Interp *interp, XOTclClass *rootClass, XOTclClass *rootMetaClass) {
+destroyObjectSystems(Tcl_Interp *interp) {
   XOTclObject *obj;
-  XOTclClass *cl;
+  XOTclClass *cl, *rootClass, *rootMetaClass;
+  Tcl_HashTable objTable, *commandTable = &objTable;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
-  Tcl_HashTable objTable, *commandTable = &objTable;
+  XOTclClasses *os;
 
   /* deleting in two rounds:
    *  (a) SOFT DESTROY: call all user-defined destroys
@@ -12595,7 +12623,14 @@ destroyObjectSystem(Tcl_Interp *interp, XOTclClass *rootClass, XOTclClass *rootM
 
   Tcl_InitHashTable(commandTable, TCL_STRING_KEYS);
   MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-  getAllInstances(interp, commandTable, rootClass);
+
+  /* collect all instances from all object systems */
+  for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
+    rootClass = os->cl;
+    rootMetaClass =  (XOTclClass *)os->clientData;
+    /*fprintf(stderr, "destroyObjectSystem deletes %s\n",className(rootClass));*/
+    getAllInstances(interp, commandTable, rootClass);
+  }
 
   /***** SOFT DESTROY *****/
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
@@ -12620,8 +12655,22 @@ destroyObjectSystem(Tcl_Interp *interp, XOTclClass *rootClass, XOTclClass *rootM
   }
 
 #ifdef DO_CLEANUP
-  freeAllXOTclObjectsAndClasses(interp, commandTable, rootClass, rootMetaClass);
+  freeAllXOTclObjectsAndClasses(interp, commandTable);
+
+  for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
+    rootClass = os->cl;
+    rootMetaClass =  (XOTclClass *)os->clientData;
+    /*fprintf(stderr, "physical destroy on %s\n",className(rootClass));*/
+    freeRootClasses(interp, rootClass, rootMetaClass);
+  }
+
+#ifdef DO_FULL_CLEANUP
+  deleteProcsAndVars(interp);
 #endif
+
+#endif
+
+
 
   MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
   Tcl_DeleteHashTable(commandTable);
@@ -12821,7 +12870,7 @@ Xotcl_Init(Tcl_Interp *interp) {
   RUNTIME_STATE(interp)->doFilters = 1;
   RUNTIME_STATE(interp)->cacheInterface = 1; /* TODO xxx should not stay */
 
-  /* create xotcl namespace */
+  /* create xotcl namespaces */
   RUNTIME_STATE(interp)->XOTclNS =
     Tcl_CreateNamespace(interp, "::xotcl", (ClientData)NULL, (Tcl_NamespaceDeleteProc*)NULL);
 
