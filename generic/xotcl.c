@@ -5729,12 +5729,14 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     unknown = 1;
   }
 
+  /*fprintf(stderr, "cmd %p unknown %d result %d\n", cmd, unknown, result);*/
+
   if (result == TCL_OK) {
     /*fprintf(stderr, "after doCallProcCheck unknown == %d\n", unknown);*/
     if (unknown) {
       Tcl_Obj *unknownObj = XOTclGlobalObjects[XOTE_UNKNOWN];
 
-      if (XOTclObjectIsClass(obj) && (flags & XOTCL_CM_NO_UNKNOWN)) {
+      if (/*XOTclObjectIsClass(obj) &&*/ (flags & XOTCL_CM_NO_UNKNOWN)) {
 	return XOTclVarErrMsg(interp, objectName(obj),
 			      ": unable to dispatch method '",
 			      methodName, "'", (char *) NULL);
@@ -5743,20 +5745,22 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 	 * back off and try unknown;
 	 */
         XOTclObject *obj = (XOTclObject*)clientData;
-        ALLOC_ON_STACK(Tcl_Obj*, objc+1, tov);
-        /*
-          fprintf(stderr, "calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s\n",
-          objectName(obj), methodName, flags, XOTCL_CM_NO_UNKNOWN,
-          XOTclObjectIsClass(obj), obj, objectName(obj));
-        */
+        ALLOC_ON_STACK(Tcl_Obj*, objc+2, tov);
+        
+	/*fprintf(stderr, "calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s objc %d shift %d\n",
+		objectName(obj), methodName, flags, XOTCL_CM_NO_UNKNOWN,
+		XOTclObjectIsClass(obj), obj, objectName(obj), objc, shift);*/
+        
         tov[0] = obj->cmdName;
         tov[1] = unknownObj;
-        if (objc>1) /*shift?*/
+        if (objc-shift>0) {
           memcpy(tov+2, objv+shift, sizeof(Tcl_Obj *)*(objc-shift));
+	}
         /*
           fprintf(stderr, "?? %s unknown %s\n", objectName(obj), ObjStr(tov[2]));
         */
-        result = DoDispatch(clientData, interp, objc+shift, tov, flags | XOTCL_CM_NO_UNKNOWN);
+	flags &= ~XOTCL_CM_NO_SHIFT;
+        result = DoDispatch(clientData, interp, objc+2-shift, tov, flags | XOTCL_CM_NO_UNKNOWN);
         FREE_ON_STACK(tov);
 	
       } else { /* unknown failed */
@@ -10058,7 +10062,7 @@ static int XOTclDotCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
     return XOTclVarErrMsg(interp, "Cannot resolve 'self', probably called outside the context of an XOTcl Object",
                           (char *) NULL);
   }
-  /*fprintf(stderr, "dispatch %s on %s\n",ObjStr(nobjv[0]), objectName(self));*/
+  fprintf(stderr, "dispatch %s on %s\n",ObjStr(nobjv[0]), objectName(self));
   return DoDispatch(self, interp, nobjc, nobjv, XOTCL_CM_NO_SHIFT);
 }
 

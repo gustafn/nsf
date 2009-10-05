@@ -28,6 +28,11 @@ namespace eval xotcl2 {
     puts stderr "use '[self] create $args', not '[self] $args'"
     eval my create $args
   }
+  Object method unknown {m args} {
+    if {![self isnext]} {
+      error "[self]: unable to dispatch method '$m'"
+    }
+  }
 
   # "init" must exist on Object. per default it is empty.
   Object method init args {}
@@ -173,6 +178,12 @@ foreach cmd [info command ::xotcl::cmd::Class::*] {
 ::xotcl::Class method unknown {args} {
   #puts stderr "use '[self] create $args', not '[self] $args'"
   eval my create $args
+}
+
+::xotcl::Object method unknown {m args} {
+  if {![self isnext]} {
+    error "[self]: unable to dispatch method '$m'"
+  }
 }
 
 # "init" must exist on Object. per default it is empty.
