@@ -1548,14 +1548,6 @@ varResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int f
   }
 
   /* Case 4: Does the variable exist in the per-object namespace? */
-
-#if 0 && defined(USE_COMPILED_VAR_RESOLVER)
-  /* strip of a leading "." */
-  if (*varName == '.') {
-    varName++;
-  }
-#endif
-
   *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(nsPtr), varName, NULL);
   if (*varPtr == NULL) {
     /* We failed to find the variable so far, therefore we create it
@@ -1581,6 +1573,7 @@ typedef struct xotclResolvedVarInfo {
   Tcl_ResolvedVarInfo vInfo;        /* This must be the first element. */
   XOTclObject *lastObj;
   Tcl_Var var;
+  Tcl_Obj *nameObj;
   char buffer[64]; /* for now */
 } xotclResolvedVarInfo;
 
@@ -1619,21 +1612,8 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
 
   /* fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p, varTable %p\n",
           resVarInfo->buffer, obj, obj->nsPtr, varTablePtr); */
-  var = (Tcl_Var)LookupVarFromTable(varTablePtr, resVarInfo->buffer, NULL);
-
-  if (var == NULL) {
-    /* We failed to find the variable, therefore we create it in the
-     * vartable.
-     */
-    Tcl_Obj *key = Tcl_NewStringObj(resVarInfo->buffer, -1);
-    /*fprintf(stderr, "create %s in ns\n", resVarInfo->buffer);*/
-
-    INCR_REF_COUNT(key);
-    var = (Tcl_Var)VarHashCreateVar(varTablePtr, key, &new);
-    DECR_REF_COUNT(key);
-  }
   resVarInfo->lastObj = obj;
-  resVarInfo->var = var;
+  resVarInfo->var = var = (Tcl_Var) VarHashCreateVar(varTablePtr, resVarInfo->nameObj, &new);
 
 #if defined(VAR_RESOLVER_TRACE)
   {
@@ -1642,6 +1622,12 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   }
 #endif
   return var;
+}
+
+void CompiledDotVarFree(Tcl_ResolvedVarInfo *vinfoPtr) {
+  xotclResolvedVarInfo *resVarInfo = (xotclResolvedVarInfo *)vinfoPtr;
+  DECR_REF_COUNT(resVarInfo->nameObj);
+  ckfree((char *) vinfoPtr);
 }
 
 int CompiledDotVarResolver(Tcl_Interp *interp,
@@ -1656,10 +1642,12 @@ int CompiledDotVarResolver(Tcl_Interp *interp,
   if (obj && *name == '.') {
     xotclResolvedVarInfo *vInfoPtr = (xotclResolvedVarInfo *) ckalloc(sizeof(xotclResolvedVarInfo));
     vInfoPtr->vInfo.fetchProc = CompiledDotVarFetch;
-    vInfoPtr->vInfo.deleteProc = NULL; /* if NULL, tcl does a ckfree on proc clean up */
+    vInfoPtr->vInfo.deleteProc = CompiledDotVarFree; /* if NULL, tcl does a ckfree on proc clean up */
     vInfoPtr->lastObj = NULL;
     vInfoPtr->var = NULL;
     memcpy(vInfoPtr->buffer,name+1,length-1);
+    vInfoPtr->nameObj = Tcl_NewStringObj(name+1,length-1);
+    INCR_REF_COUNT(vInfoPtr->nameObj);
     vInfoPtr->buffer[length-1] = 0;
     *rPtr = (Tcl_ResolvedVarInfo *)vInfoPtr;
     /*fprintf(stderr, ".... allocated %p\n", *rPtr);*/
@@ -6650,10 +6638,7 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
                  XOTclClass **cl, char **method, Tcl_Command *cmd,
                  int *isMixinEntry, int *isFilterEntry,
                  int *endOfFilterChain, Tcl_Command *currentCmd) {
-  int endOfChain = 0, result;
-  XOTclClasses *pl = 0;
-
-  *endOfFilterChain = 0;
+  int endOfChain = 0, objflags;
 
   /*
    *  Next in filters
@@ -6661,8 +6646,9 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
   /*assert(obj->flags & XOTCL_FILTER_ORDER_VALID);   *** TODO strange, worked before ****/
 
   FilterComputeDefined(interp, obj);
+  objflags = obj->flags; /* avoid stalling */
 
-  if ((obj->flags & XOTCL_FILTER_ORDER_VALID) &&
+  if ((objflags & XOTCL_FILTER_ORDER_VALID) &&
       obj->filterStack &&
       obj->filterStack->currentCmdPtr) {
     *cmd = FilterSearchProc(interp, obj, currentCmd, cl);
@@ -6681,6 +6667,7 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
       }
     } else {
       *method = (char *) Tcl_GetCommandName(interp, *cmd);
+      *endOfFilterChain = 0;
       *isFilterEntry = 1;
       return TCL_OK;
     }
@@ -6689,14 +6676,14 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
   /*
    *  Next in Mixins
    */
-  assert(obj->flags & XOTCL_MIXIN_ORDER_VALID);
+  assert(objflags & XOTCL_MIXIN_ORDER_VALID);
   /* otherwise: MixinComputeDefined(interp, obj); */
 
   /*fprintf(stderr, "nextsearch: mixinorder valid %d stack=%p\n",
     obj->flags & XOTCL_MIXIN_ORDER_VALID, obj->mixinStack);*/
 
-  if ((obj->flags & XOTCL_MIXIN_ORDER_VALID) &&  obj->mixinStack) {
-    result = MixinSearchProc(interp, obj, *method, cl, currentCmd, cmd);
+  if ((objflags & XOTCL_MIXIN_ORDER_VALID) &&  obj->mixinStack) {
+    int result = MixinSearchProc(interp, obj, *method, cl, currentCmd, cmd);
     if (result != TCL_OK) {
       return result;
     }
@@ -6725,15 +6712,31 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
   if (obj->nsPtr && endOfChain) {
     *cmd = FindMethod(obj->nsPtr, *method);
   } else {
-    *cmd = 0;
+    *cmd = NULL;
   }
 
 
   if (!*cmd) {
-    for (pl = ComputeOrder(obj->cl, obj->cl->order, Super); pl && *cl; pl = pl->nextPtr) {
-      if (pl->cl == *cl)
-        *cl = 0;
+    XOTclClasses *pl;
+#if 0
+    /* a more explicit version, but slower */
+    pl = ComputeOrder(obj->cl, obj->cl->order, Super);
+    /* if we have a class, skip to the next class in the precedence order */
+    if (*cl) {
+      for (; pl; pl = pl->nextPtr) {
+        if (pl->cl == *cl) {
+          pl = pl->nextPtr;
+          break;
+        }
+      }
     }
+#else
+    for (pl = ComputeOrder(obj->cl, obj->cl->order, Super); *cl && pl; pl = pl->nextPtr) {
+      if (pl->cl == *cl) {
+        *cl = NULL;
+      }
+    }
+#endif
 
     /*
      * search for a further class method
@@ -6758,7 +6761,7 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
   int nobjc; Tcl_Obj **nobjv;
   XOTclClass **cl = &givenCl;
   char **methodName = &givenMethod;
-  TclCallFrame *framePtr = NULL;
+  TclCallFrame *framePtr;
 
   if (!csc) {
     csc = CallStackGetTopFrame(interp, &framePtr);
@@ -6767,6 +6770,7 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
      * csc was given (i.e. it is not yet on the stack. So we cannot 
      *  get objc from the associated stack frame
      */
+    framePtr = NULL;
     assert(useCallstackObjs == 0);
     /* fprintf(stderr, "XOTclNextMethod csc given, use %d, framePtr %p\n", useCallstackObjs, framePtr); */
   }
@@ -6813,9 +6817,9 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
     fprintf(stderr, " mixin=%d, filter=%d, proc=%p\n",
     isMixinEntry, isFilterEntry, proc);
   */
-  
+#if 0  
   Tcl_ResetResult(interp); /* needed for bytecode support */
-
+#endif
   if (cmd) {
     /*
      * change mixin state
