@@ -6652,16 +6652,12 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
   /*
    *  Next in filters
    */
-  /*assert(obj->flags & XOTCL_FILTER_ORDER_VALID);   *** TODO strange, worked before ****/
-#if 0
-  if (!obj->flags & XOTCL_FILTER_ORDER_VALID) {
-    FilterComputeDefined(interp, obj);
-  }
-  /*xxx*/
-#else
-    FilterComputeDefined(interp, obj);
-#endif
+
   objflags = obj->flags; /* avoid stalling */
+  if (!(objflags & XOTCL_MIXIN_ORDER_VALID)) {
+    MixinComputeDefined(interp, obj);
+    objflags = obj->flags; /* avoid stalling */
+  }
 
   if ((objflags & XOTCL_FILTER_ORDER_VALID) &&
       obj->filterStack &&
