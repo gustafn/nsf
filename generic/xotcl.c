@@ -5084,6 +5084,8 @@ ParamDefsFormat(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
     }
     if ((pPtr->flags & XOTCL_ARG_INITCMD)) {
       ParamDefsFormatOption(interp, nameStringObj, "initcmd", &colonWritten, &first);
+    } else if ((pPtr->flags & XOTCL_ARG_METHOD)) {
+      ParamDefsFormatOption(interp, nameStringObj, "method", &colonWritten, &first);
     }
     
     innerlist = Tcl_NewListObj(0, NULL);
@@ -5308,6 +5310,11 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 # else /* no CANONICAL ARGS */
   result = PushProcCallFrame(cp, interp, objc, objv, cscPtr);
 # endif 
+
+  /* we could consider to run here ARGS_METHO or INITCMD 
+  if (result == TCL_OK) {
+   
+  } */
 
   if (result != TCL_OK) {
 #if defined(NRE)
@@ -5979,6 +5986,8 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     paramPtr->flags |= XOTCL_ARG_SUBST_DEFAULT;
   } else if (strncmp(option, "initcmd", length) == 0) {
     paramPtr->flags |= XOTCL_ARG_INITCMD;
+  } else if (strncmp(option, "method", length) == 0) {
+    paramPtr->flags |= XOTCL_ARG_METHOD;
   } else if (strncmp(option, "switch", length) == 0) {
     paramPtr->nrArgs = 0;
     paramPtr->converter = convertToSwitch;
@@ -6644,8 +6653,14 @@ NextSearchMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclCallStackContent *cs
    *  Next in filters
    */
   /*assert(obj->flags & XOTCL_FILTER_ORDER_VALID);   *** TODO strange, worked before ****/
-
-  FilterComputeDefined(interp, obj);
+#if 0
+  if (!obj->flags & XOTCL_FILTER_ORDER_VALID) {
+    FilterComputeDefined(interp, obj);
+  }
+  /*xxx*/
+#else
+    FilterComputeDefined(interp, obj);
+#endif
   objflags = obj->flags; /* avoid stalling */
 
   if ((objflags & XOTCL_FILTER_ORDER_VALID) &&
@@ -9013,8 +9028,8 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
                 ObjStr(newValue),pPtr->name, pPtr->flags & XOTCL_ARG_INITCMD,
                 pPtr->type, pPtr->converter);*/
       
-        /* Check the default value, unless we have an INITCMD */
-        if ((pPtr->flags & XOTCL_ARG_INITCMD) == 0) {
+        /* Check the default value, unless we have an INITCMD or METHOD */
+        if ((pPtr->flags & (XOTCL_ARG_INITCMD|XOTCL_ARG_METHOD)) == 0) {
           if ((*pPtr->converter)(interp, newValue, pPtr, &checkedData) != TCL_OK) {
             return TCL_ERROR;
           }
@@ -9076,7 +9091,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	  break; 
 	} else {
           XOTclParam CONST *nppPtr;
-	  /* We have an argument starting with a "-"; is it really one of the possible flags? */
+	  /* We have an argument starting with a "-"; is it really one of the specified flags? */
 
           for (nppPtr = pPtr; nppPtr->name && *nppPtr->name == '-'; nppPtr ++) {
             if (strcmp(objStr,nppPtr->name) == 0) {
@@ -10974,8 +10989,13 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
     }
 
     /* special setter for init commands */
-    if (paramPtr->flags & XOTCL_ARG_INITCMD) {
-      result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
+    if (paramPtr->flags & (XOTCL_ARG_INITCMD|XOTCL_ARG_METHOD)) {
+      if (paramPtr->flags & XOTCL_ARG_INITCMD) {
+        result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
+      } else {
+        result = callMethod((ClientData) obj, interp,
+                            paramPtr->nameObj, 3, &newValue, 0);
+      }
       fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n", 
 	      ObjStr(paramPtr->nameObj), ObjStr(newValue), result);
       if (result != TCL_OK) {
