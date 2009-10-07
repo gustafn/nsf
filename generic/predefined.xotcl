@@ -371,8 +371,6 @@ namespace eval ::xotcl {
 # Slot definitions
 ##################
 #
-# TODO: define base slots on xotcl2::Object + Class instead of ::xotcl::Object
-#
 # still bootstrap code; we cannot use slots/-parameter yet
 ::xotcl2::Class create ::xotcl::MetaSlot
 ::xotcl::relation ::xotcl::MetaSlot superclass ::xotcl2::Class
@@ -441,12 +439,12 @@ proc ::xotcl::parametersFromSlots {obj} {
 }
 ::xotcl2::Object method objectparameter {} {
   set parameterdefinitions [::xotcl::parametersFromSlots [self]]
-  #if {[::xotcl::is [self] class]} {
-  #  lappend parameterdefinitions -parameter:method,optional
-  #}
-  #lappend parameterdefinitions arg:initcmd,optional
+  if {[::xotcl::is [self] class]} {
+    lappend parameterdefinitions -parameter:method,optional
+  }
+  lappend parameterdefinitions -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional
   # for the time being, use:
-  lappend parameterdefinitions args
+  #lappend parameterdefinitions args
   #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
   return $parameterdefinitions
 }
@@ -567,7 +565,6 @@ createBootstrapAttributeSlots ::xotcl::Slot {
 }
 
 ::xotcl::Slot method init {args} {
-  #puts stderr init-got-'$args'
   set forwarder [expr {${.per-object} ? "forward" : "instforward"}]
   if {${.domain} eq ""} {
     set .domain [::xotcl::self callingobject]
@@ -669,6 +666,9 @@ foreach os {::xotcl ::xotcl2} {
 #
 # TODO: why does -superclass not work here?
 #       before, the subsequent ::xotcl::relation was not needed.
+
+::xotcl::MetaSlot invalidateobjectparameter
+
 ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::xotcl::Slot
 ::xotcl::relation ::xotcl::Attribute superclass ::xotcl::Slot
 
@@ -761,25 +761,28 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
 }
 
 # mixin class for decativating all checks
-::xotcl2::Class create ::xotcl::Slot::Nocheck \
-    -method check_single_value args {;} -method check_multiple_values args {;} \
-    -method mk_type_checker args {return ""}
+::xotcl2::Class create ::xotcl::Slot::Nocheck {
+  .method check_single_value args {;} 
+  .method check_multiple_values args {;}
+  .method mk_type_checker args {return ""}
+}
 # mixin class for optimizing slots
-::xotcl2::Class create ::xotcl::Slot::Optimizer \
-    -method proc args    {::xotcl::next; .optimize} \
-    -method forward args {::xotcl::next; .optimize} \
-    -method init args    {::xotcl::next; .optimize} \
-    -method optimize {} {
-      #puts stderr "slot optimizer for ${.domain} calls invalidateobjectparameter"
-      #${.domain} invalidateobjectparameter
-      if {[set .multivalued]} return
-      if {[set .defaultmethods] ne {get assign}} return
-      if {[.procsearch assign] ne "::xotcl::Slot instcmd assign"} return
-      if {[.procsearch get]    ne "::xotcl::Slot instcmd get"} return
-      set forwarder [expr {[set .per-object] ? "parametercmd":"instparametercmd"}]
-      #puts stderr "**** optimizing       ${.domain} $forwarder ${.name}"
-      ${.domain} $forwarder ${.name}
-    }
+::xotcl2::Class create ::xotcl::Slot::Optimizer {
+  .method proc args    {::xotcl::next; .optimize}
+  .method forward args {::xotcl::next; .optimize}
+  .method init args    {::xotcl::next; .optimize}
+  .method optimize {} {
+    #puts stderr "slot optimizer for ${.domain} calls invalidateobjectparameter"
+    #${.domain} invalidateobjectparameter
+    if {[set .multivalued]} return
+    if {[set .defaultmethods] ne {get assign}} return
+    if {[.procsearch assign] ne "::xotcl::Slot instcmd assign"} return
+    if {[.procsearch get]    ne "::xotcl::Slot instcmd get"} return
+    set forwarder [expr {[set .per-object] ? "parametercmd":"instparametercmd"}]
+    #puts stderr "**** optimizing       ${.domain} $forwarder ${.name}"
+    ${.domain} $forwarder ${.name}
+  }
+}
 # register the optimizer per default
 ::xotcl::Attribute instmixin add ::xotcl::Slot::Optimizer
 

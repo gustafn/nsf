@@ -5116,6 +5116,8 @@ ParamDefsFormat(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
       ParamDefsFormatOption(interp, nameStringObj, "initcmd", &colonWritten, &first);
     } else if ((pPtr->flags & XOTCL_ARG_METHOD)) {
       ParamDefsFormatOption(interp, nameStringObj, "method", &colonWritten, &first);
+    } else if ((pPtr->flags & XOTCL_ARG_NOARG)) {
+      ParamDefsFormatOption(interp, nameStringObj, "noarg", &colonWritten, &first);
     }
     
     innerlist = Tcl_NewListObj(0, NULL);
@@ -6018,6 +6020,9 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     paramPtr->flags |= XOTCL_ARG_INITCMD;
   } else if (strncmp(option, "method", length) == 0) {
     paramPtr->flags |= XOTCL_ARG_METHOD;
+  } else if (strncmp(option, "noarg", length) == 0) {
+    paramPtr->flags |= XOTCL_ARG_NOARG;
+    paramPtr->nrArgs = 0;
   } else if (strncmp(option, "switch", length) == 0) {
     paramPtr->nrArgs = 0;
     paramPtr->converter = convertToSwitch;
@@ -11020,7 +11025,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
         result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
       } else {
         result = callMethod((ClientData) obj, interp,
-                            paramPtr->nameObj, 3, &newValue, 0);
+                            paramPtr->nameObj, 2+(paramPtr->nrArgs), &newValue, 0);
       }
       fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n", 
 	      ObjStr(paramPtr->nameObj), ObjStr(newValue), result);
@@ -11046,7 +11051,8 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
   XOTcl_PopFrame(interp, obj);
   remainingArgsc = pc.objc - paramDefs->nrParams;
 
-  if (remainingArgsc > 0) {
+  /* call residualargs only, when we have varargs and left over arguments */
+  if (pc.varArgs && remainingArgsc > 0) {
     result = callMethod((ClientData) obj, interp,
                         XOTclGlobalObjects[XOTE_RESIDUALARGS], remainingArgsc+2, pc.full_objv + i-1, 0);
     if (result != TCL_OK) {
