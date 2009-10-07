@@ -444,13 +444,13 @@ proc ::xotcl::parametersFromSlots {obj} {
       lappend opts [$slot type]
     }
     if {[$slot exists default]} {
-      set arg [$slot set default]
+      set arg [::xotcl::setinstvar $slot default]
       # deactivated for now: || [string first {$} $arg] > -1
       if {[string match {*\[*\]*} $arg]} {
 	lappend opts substdefault
       }
     } elseif {[$slot exists initcmd]} {
-      set arg [$slot set initcmd]
+      set arg [::xotcl::setinstvar $slot initcmd]
       lappend opts initcmd
     }
     if {[llength $opts] > 0} {
@@ -554,16 +554,16 @@ createBootstrapAttributeSlots ::xotcl::Slot {
     error "Property $prop of [set .domain]->$obj ist not multivalued"
   }
   if {[$obj exists $prop]} {
-    $obj set $prop [linsert [$obj set $prop] $pos $value]
+    ::xotcl::setinstvar $obj $prop [linsert [::xotcl::setinstvar $obj $prop] $pos $value]
   } else {
-    $obj set $prop [list $value]
+    ::xotcl::setinstvar $obj $prop [list $value]
   }
   #[set .domain] invalidateobjectparameter  ;# TODO maybe not needed here
 }
 ::xotcl::Slot method delete {-nocomplain:switch obj prop value} {
-  set old [$obj set $prop]
+  set old [::xotcl::setinstvar $obj $prop]
   set p [lsearch -glob $old $value]
-  if {$p>-1} {$obj set $prop [lreplace $old $p $p]} else {
+  if {$p>-1} {::xotcl::setinstvar $obj $prop [lreplace $old $p $p]} else {
     error "$value is not a $prop of $obj (valid are: $old)"
   }
 }
@@ -696,15 +696,15 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
 ::xotcl::Attribute method __default_from_cmd {obj cmd var sub op} {
   #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
   $obj trace remove variable $var $op [list [::xotcl::self] [::xotcl::self proc] $obj $cmd]
-  $obj set $var [$obj eval $cmd]
+  ::xotcl::setinstvar $obj $var [$obj eval $cmd]
 }
 ::xotcl::Attribute method __value_from_cmd {obj cmd var sub op} {
   #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
-  $obj set $var [$obj eval $cmd]
+  ::xotcl::setinstvar $obj $var [$obj eval $cmd]
 }
 ::xotcl::Attribute method __value_changed_cmd {obj cmd var sub op} {
   # puts stderr "**************************"
-  # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [$obj set $var]"
+  # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [::xotcl::setinstvar $obj $var]"
   eval $cmd
 }
 ::xotcl::Attribute method check_single_value {
@@ -714,13 +714,13 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
   #puts "+++ checking single value '$value' with $predicate ==> [expr $predicate]"
   if {![expr $predicate]} {
     if {[$obj exists __oldvalue($var)]} {
-      $obj set $var [$obj set __oldvalue($var)]
+      ::xotcl::setinstvar $obj $var [::xotcl::setinstvar $obj __oldvalue($var)]
     } else {
       $obj unset -nocomplain $var
     }
     error "'$value' is not of type $type"
   }
-  if {$keep_old_value} {$obj set __oldvalue($var) $value}
+  if {$keep_old_value} {::xotcl::setinstvar $obj __oldvalue($var) $value}
   #puts "+++ checking single value done"
 }
 
@@ -728,7 +728,7 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
   foreach value $values {
     .check_single_value -keep_old_value false $value $predicate $type $obj $var
   }
-  $obj set __oldvalue($var) $value
+  ::xotcl::setinstvar $obj __oldvalue($var) $value
 }
 ::xotcl::Attribute method mk_type_checker {} {
   set __initcmd ""
@@ -746,7 +746,7 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
     #puts stderr predicate=$predicate
     append .valuechangedcmd [subst {
       [expr {${.multivalued} ? ".check_multiple_values" : ".check_single_value"
-           }] \[\$obj set ${.name}\] \
+           }] \[::xotcl::setinstvar \$obj ${.name}\] \
 	  {$predicate} [list ${.type}] \$obj ${.name}
     }]
     append __initcmd [subst -nocommands {
@@ -895,8 +895,8 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
       puts stderr "deprecated parameter usage '$arg'; use '-slots {Attribute ...}' instead"
       
       set cl [::xotcl::self]
-      $po set name $name
-      $po set cl [::xotcl::self]
+      ::xotcl::setinstvar $po name $name
+      ::xotcl::setinstvar $po cl [::xotcl::self]
       ::eval $po configure [lrange $arg 1 end]
       
       if {[$po exists extra] || [$po exists setter] || 
@@ -921,7 +921,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
       }
     }
   }
-  [::xotcl::self]::slot set __parameter $arglist
+  ::xotcl::setinstvar [::xotcl::self]::slot __parameter $arglist
 }
 
 #
