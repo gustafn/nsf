@@ -15,6 +15,7 @@ set ccount 20
 set ocount 1014
 set ocount [expr {$ccount + 206}]
 set ocount [expr {$ccount + 15}]
+set ocount [expr {$ccount + 7}]
 
 set startObjects [Object info instances]
 set x [llength [Object info instances]]

@@ -2025,11 +2025,11 @@ TestX mixinTest -proc run {{n 10}} {
     Object instfilter ""
     
     ::errorCheck $::calling \
-	"{filter f: ::mixinTest {} run draw {::MenuDecorator instproc draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class instforward instfilter}} {filter f: ::xotcl::Object ::xotcl::Class instfilter assign {::xotcl::InterceptorSlot instcmd assign}}" \
+	"{filter f: ::mixinTest {} run draw {::MenuDecorator instproc draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class instforward instfilter}}" \
 	"Mixin: Calling-Obj/Cl/Proc failed"	
   
     ::errorCheck $::mixinResult \
-	"{filter ::mainImage f ::xotcl::Object} {m1 ::mainImage draw ::MenuDecorator} {m2 ::mainImage draw ::ScrollBarDecorator} {image ::mainImage draw ::Image} {grObject ::mainImage draw ::GrObject} {filter ::zoom f ::xotcl::Object} {m2 ::zoom draw ::ScrollBarDecorator} {image ::zoom draw ::Image} {grObject ::zoom draw ::GrObject} {filter ::xotcl::Object f ::xotcl::Object} {filter ::xotcl::Class::slot::instfilter f ::xotcl::Object}" \
+	"{filter ::mainImage f ::xotcl::Object} {m1 ::mainImage draw ::MenuDecorator} {m2 ::mainImage draw ::ScrollBarDecorator} {image ::mainImage draw ::Image} {grObject ::mainImage draw ::GrObject} {filter ::zoom f ::xotcl::Object} {m2 ::zoom draw ::ScrollBarDecorator} {image ::zoom draw ::Image} {grObject ::zoom draw ::GrObject} {filter ::xotcl::Object f ::xotcl::Object}" \
 	  "Mixin: Filter failed"
 
     set ::mixinResult ""
