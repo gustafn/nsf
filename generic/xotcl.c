@@ -1577,14 +1577,28 @@ typedef struct xotclResolvedVarInfo {
   char buffer[64]; /* for now */
 } xotclResolvedVarInfo;
 
+static void
+HashVarFree(Tcl_Var var) {
+  /*fprintf(stderr,"#### refcount %d\n", VarHashRefCount(var));*/
+  if (VarHashRefCount(var) == 1) {
+    /*fprintf(stderr,"#### free %p\n", var);*/
+    ckfree((char *) var);
+  } else {
+    VarHashRefCount(var)--;
+  }
+}
+
 static Tcl_Var
 CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   xotclResolvedVarInfo *resVarInfo = (xotclResolvedVarInfo *)vinfoPtr;
   XOTclCallStackContent *cscPtr = CallStackGetFrame(interp, NULL);
   XOTclObject *obj = cscPtr ? cscPtr->self : NULL;
   TclVarHashTable *varTablePtr;
-  Tcl_Var var;
-  int new;
+  Tcl_Var var = resVarInfo->var;
+  int new, flags = var ? ((Var*)var)->flags : 0;
+
+  /*fprintf(stderr,"CompiledDotVarFetch var '%s' var %p flags = %.4x dead? %.4x\n",
+    ObjStr(resVarInfo->nameObj), var, flags, flags&VAR_DEAD_HASH);*/
 
   /* 
    * We cache lookups based on obj; we have to care about cases, where
@@ -1592,12 +1606,19 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
    * cases, the var flags are reset.
    */
 
-  if (obj == resVarInfo->lastObj && ((Var*)(resVarInfo->var))->flags & VAR_IN_HASHTABLE) {
+  if (obj == resVarInfo->lastObj && ((flags & VAR_DEAD_HASH)) == 0) {
 #if defined(VAR_RESOLVER_TRACE)
-    Var *v = (Var*)(resVarInfo->var);
-    fprintf(stderr,".... cached var flags = %.6x\n",v->flags);
+    fprintf(stderr,".... cached var '%s' var %p flags = %.4x\n",ObjStr(resVarInfo->nameObj), var, flags);
 #endif
-    return resVarInfo->var;
+    return var;
+  }
+
+  if (var) {
+    /* 
+     * we have already a variable, which is not valid anymore. clean
+     * it up.
+     */
+    HashVarFree(var);
   }
 
   varTablePtr = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
@@ -1614,11 +1635,18 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
           resVarInfo->buffer, obj, obj->nsPtr, varTablePtr); */
   resVarInfo->lastObj = obj;
   resVarInfo->var = var = (Tcl_Var) VarHashCreateVar(varTablePtr, resVarInfo->nameObj, &new);
+  /* 
+   * Increment the reference counter to avoid ckfree() of the variable
+   * in Tcl's FreeVarEntry(); for cleanup, we provide our own
+   * HashVarFree();
+   */
+  VarHashRefCount(var)++;
 
 #if defined(VAR_RESOLVER_TRACE)
   {
     Var *v = (Var*)(resVarInfo->var);
-    fprintf(stderr,".... looked up var %s flags = %.6x\n",resVarInfo->buffer, v->flags);
+    fprintf(stderr,".... looked up var %s (%s) var %p flags = %.6x\n",resVarInfo->buffer, ObjStr(resVarInfo->nameObj), 
+            v, v->flags);
   }
 #endif
   return var;
@@ -1627,6 +1655,7 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
 void CompiledDotVarFree(Tcl_ResolvedVarInfo *vinfoPtr) {
   xotclResolvedVarInfo *resVarInfo = (xotclResolvedVarInfo *)vinfoPtr;
   DECR_REF_COUNT(resVarInfo->nameObj);
+  if (resVarInfo->var) {HashVarFree(resVarInfo->var);}
   ckfree((char *) vinfoPtr);
 }
 
@@ -1691,7 +1720,7 @@ DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, in
   }
 
 #if defined(VAR_RESOLVER_TRACE)
-  fprintf(stderr, "dotVarResolver called var=%s flags %.8x\n", varName, flags);
+  fprintf(stderr, "dotVarResolver called var=%s flags %.4x\n", varName, flags);
 #endif
   varName ++;
   varFramePtr = Tcl_Interp_varFramePtr(interp);
@@ -1804,17 +1833,18 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
   for (hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
+
     if (!Tcl_Command_cmdEpoch(cmd)) {
       char *oname = Tcl_GetHashKey(cmdTable, hPtr);
       Tcl_DString name;
       XOTclObject *obj;
-      /* fprintf(stderr, " ... child %s\n", oname); */
+      /*fprintf(stderr, " ... child %s\n", oname);*/
 
       ALLOC_NAME_NS(&name, ns->fullName, oname);
       obj = XOTclpGetObject(interp, Tcl_DStringValue(&name));
 
       if (obj) {
-        /*fprintf(stderr, " ... obj=%s flags %.6x\n", objectName(obj), obj->flags);*/
+        /*fprintf(stderr, " ... obj=%s flags %.4x\n", objectName(obj), obj->flags);*/
 	
         /* in the exit handler physical destroy --> directly call destroy */
         if (RUNTIME_STATE(interp)->exitHandlerDestroyRound
@@ -1894,12 +1924,12 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
         /*
          * cmd is an aliased object, reduce the refcount
          */
+        /*fprintf(stderr, "NSCleanupNamespace cleanup aliased object %p\n",invokeObj);*/
         XOTclCleanupObject(invokeObj);
       }
-      
+
       /*fprintf(stderr, "NSCleanupNamespace deleting %s %p\n",
         Tcl_Command_nsPtr(cmd)->fullName, cmd);*/
-        
       XOTcl_DeleteCommandFromToken(interp, cmd);
   }
 }
