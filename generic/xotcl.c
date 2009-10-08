@@ -240,7 +240,7 @@ static void parseContextRelease(parseContext *pc) {
   }
 }
 
-XOTCLINLINE static int DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
+XOTCLINLINE static int ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
                                   Tcl_Obj *CONST objv[], int flags);
 static int XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
                            char *givenMethod, int objc, Tcl_Obj *CONST objv[],
@@ -709,7 +709,7 @@ callMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *method,
     {int i; fprintf(stderr, "\t CALL: %s ", ObjStr(method));for(i=0; i<objc-2; i++) {
     fprintf(stderr, "%s ", ObjStr(objv[i]));} fprintf(stderr, "\n");}*/
 
-  result = DoDispatch(clientData, interp, objc, tov, flags);
+  result = ObjectDispatch(clientData, interp, objc, tov, flags);
 
   FREE_ON_STACK(tov);
   return result;
@@ -734,7 +734,7 @@ XOTclCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *meth
 
   /*fprintf(stderr, "%%%% callMethodWithArg cmdname=%s, method=%s, objc=%d\n",
     ObjStr(tov[0]), ObjStr(tov[1]), objc);*/
-  result = DoDispatch(clientData, interp, objc, tov, flags);
+  result = ObjectDispatch(clientData, interp, objc, tov, flags);
 
   FREE_ON_STACK(tov);
   return result;
@@ -5177,7 +5177,7 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
 
 #if 0
 #ifdef DISPATCH_TRACE
-  printExit(interp, "invokeProcMethod", objc, objv, result);
+  printExit(interp, "ProcMethodDispatch", objc, objv, result);
   /* fprintf(stderr, " returnCode %d xotcl rc %d\n",
      Tcl_Interp_returnCode(interp), result);*/
 #endif
@@ -5215,7 +5215,7 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
 
 /* invoke a method implemented as a proc/instproc (with assertion checking) */
 static int
-invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
          char *methodName, XOTclObject *obj, XOTclClass *cl, Tcl_Command cmdPtr,
          XOTclCallStackContent *cscPtr) {
   int result, releasePc = 0;
@@ -5233,7 +5233,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   assert(!obj->teardown);
 
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "+++ invokeProcMethod %s, cscPtr %p, frametype %d, teardown %p\n",
+  fprintf(stderr, "+++ ProcMethodDispatch %s, cscPtr %p, frametype %d, teardown %p\n",
           methodName, cscPtr, cscPtr->frameType, obj->teardown);
 #endif
 
@@ -5296,7 +5296,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   }
 
 #ifdef DISPATCH_TRACE
-  printCall(interp, "invokeProcMethod", objc, objv);
+  printCall(interp, "ProcMethodDispatch", objc, objv);
   fprintf(stderr, "\tproc=%s\n", Tcl_GetCommandName(interp, cmdPtr));
 #endif
 
@@ -5398,7 +5398,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 
 #if defined(PRE86)
 # ifdef DISPATCH_TRACE
-  printExit(interp, "invokeProcMethod", objc, objv, result);
+  printExit(interp, "ProcMethodDispatch", objc, objv, result);
   /* fprintf(stderr, " returnCode %d xotcl rc %d\n",
      Tcl_Interp_returnCode(interp), result);*/
 # endif
@@ -5419,7 +5419,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
 
 /* Invoke a method implemented as a cmd (with assertion checking) */
 static int
-invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         char *methodName, XOTclObject *obj, Tcl_Command cmdPtr,
         XOTclCallStackContent *cscPtr) {
   CheckOptions co;
@@ -5432,7 +5432,7 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
   assert(!obj->teardown);
 
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "+++ invokeCmdMethodCheck %s, obj %p %s, cscPtr %p, teardown %p\n",
+  fprintf(stderr, "+++ CmdMethodDispatchCheck %s, obj %p %s, cscPtr %p, teardown %p\n",
           methodName, obj, objectName(obj), cscPtr, obj->teardown);
 #endif
 
@@ -5460,7 +5460,7 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
 #endif
 
 #ifdef DISPATCH_TRACE
-  printCall(interp, "invokeCmdMethod cmd", objc, objv);
+  printCall(interp, "CmdMethodDispatch cmd", objc, objv);
   fprintf(stderr, "\tcmd=%s\n", Tcl_GetCommandName(interp, cmdPtr));
 #endif
 #if !defined(NRE)
@@ -5469,7 +5469,7 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
   result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmdPtr), cp, objc, objv);
 #endif
 #ifdef DISPATCH_TRACE
-  printExit(interp, "invokeCmdMethod cmd", objc, objv, result);
+  printExit(interp, "CmdMethodDispatch cmd", objc, objv, result);
 #endif
 
 #if defined(TCL85STACK)
@@ -5494,28 +5494,28 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
 
 #if defined(PROFILE)
 static int
-InvokeMethod(ClientData clientData, Tcl_Interp *interp,
+MethodDispatch(ClientData clientData, Tcl_Interp *interp,
              int objc, Tcl_Obj *CONST objv[], Tcl_Command cmd, XOTclObject *obj, XOTclClass *cl,
              char *methodName, int frameType) {
   struct timeval trt;
   long int startUsec = (gettimeofday(&trt, NULL), trt.tv_usec), startSec = trt.tv_sec;
 
-  result = __InvokeMethod__(clientData, interp, objc, objv, cmd, obj, cl, methodName, frameType);
+  result = __MethodDispatch__(clientData, interp, objc, objv, cmd, obj, cl, methodName, frameType);
   XOTclProfileEvaluateData(interp, startSec, startUsec, obj, cl, methodName);
   return result;
 }
-# define InvokeMethod __InvokeMethod__
+# define MethodDispatch __MethodDispatch__
 #endif
 
 /*
- * InvokeMethod() calls an XOTcl method. It calls either a
- * Tcl-implemented method (via invokeProcMethod()) or a C-implemented
- * method (via invokeCmdMethod()) and sets up stack and client data
+ * MethodDispatch() calls an XOTcl method. It calls either a
+ * Tcl-implemented method (via ProcMethodDispatch()) or a C-implemented
+ * method (via CmdMethodDispatch()) and sets up stack and client data
  * accordingly.
  */
 
 static int
-InvokeMethod(ClientData clientData, Tcl_Interp *interp,
+MethodDispatch(ClientData clientData, Tcl_Interp *interp,
              int objc, Tcl_Obj *CONST objv[],
              Tcl_Command cmd, XOTclObject *obj, XOTclClass *cl,
              char *methodName, int frameType) {
@@ -5525,7 +5525,7 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
   int result;
 
   assert (!obj->teardown);
-  /*fprintf(stderr, "InvokeMethod method '%s' cmd %p cp=%p objc=%d\n", methodName, cmd, cp, objc);*/
+  /*fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d\n", methodName, cmd, cp, objc);*/
 
   if (proc == TclObjInterpProc) {
 #if defined(NRE)
@@ -5545,9 +5545,9 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
     if (!(cscPtr = CallStackPush(interp, obj, cl, cmd, frameType)))
       return TCL_ERROR;
 #endif
-    result = invokeProcMethod(cp, interp, objc, objv, methodName, obj, cl, cmd, cscPtr);
+    result = ProcMethodDispatch(cp, interp, objc, objv, methodName, obj, cl, cmd, cscPtr);
 #if defined(NRE)
-    /* CallStackPop() is performed by the callbacks or in error case base invokeProcMethod */
+    /* CallStackPop() is performed by the callbacks or in error case base ProcMethodDispatch */
     /*fprintf(stderr, "no pop for %s\n",methodName);*/
 #else
     CallStackPop(interp, cscPtr);
@@ -5595,7 +5595,7 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
     cp = clientData;
     cscPtr = NULL;
   }
-  result = invokeCmdMethod(cp, interp, objc, objv, methodName, obj, cmd, cscPtr);
+  result = CmdMethodDispatch(cp, interp, objc, objv, methodName, obj, cmd, cscPtr);
   if (cscPtr) {
     /* make sure, that csc is still in the scope; therefore, csc is currently on the top scope of this function */
     CallStackPop(interp, cscPtr);
@@ -5605,7 +5605,7 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
 
 
 XOTCLINLINE static int
-DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
+ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
            Tcl_Obj *CONST objv[], int flags) {
   register XOTclObject *obj = (XOTclObject*)clientData;
   int result = TCL_OK, mixinStackPushed = 0,
@@ -5634,7 +5634,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     methodName ++;
   }
 #endif
-  /*fprintf(stderr, "DoDispatch obj = %s objc = %d 0=%s methodName=%s\n",
+  /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s\n",
     objectName(obj), objc, ObjStr(cmdObj), methodName);*/
 
 #ifdef DISPATCH_TRACE
@@ -5749,9 +5749,9 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     }
 
     if (!unknown) {
-      /*fprintf(stderr, "DoDispatch calls InvokeMethod with obj = %s frameType %d method %s\n",
+      /*fprintf(stderr, "ObjectDispatch calls MethodDispatch with obj = %s frameType %d method %s\n",
         objectName(obj), frameType, methodName);*/
-      if ((result = InvokeMethod(clientData, interp, objc-shift, objv+shift, cmd, obj, cl,
+      if ((result = MethodDispatch(clientData, interp, objc-shift, objv+shift, cmd, obj, cl,
                                  methodName, frameType)) == TCL_ERROR) {
 	result = XOTclErrInProc(interp, cmdName,
 				cl && cl->object.teardown ? cl->object.cmdName : NULL,
@@ -5794,7 +5794,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
           fprintf(stderr, "?? %s unknown %s\n", objectName(obj), ObjStr(tov[2]));
         */
 	flags &= ~XOTCL_CM_NO_SHIFT;
-        result = DoDispatch(clientData, interp, objc+2-shift, tov, flags | XOTCL_CM_NO_UNKNOWN);
+        result = ObjectDispatch(clientData, interp, objc+2-shift, tov, flags | XOTCL_CM_NO_UNKNOWN);
         FREE_ON_STACK(tov);
 	
       } else { /* unknown failed */
@@ -5838,12 +5838,12 @@ XOTclObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
   if (objc > 1) {
     /* normal dispatch */
-    result = DoDispatch(clientData, interp, objc, objv, 0);
+    result = ObjectDispatch(clientData, interp, objc, objv, 0);
   } else {
     Tcl_Obj *tov[2];
     tov[0] = objv[0];
     tov[1] = XOTclGlobalObjects[XOTE_DEFAULTMETHOD];
-    result = DoDispatch(clientData, interp, 2, tov, 0);
+    result = ObjectDispatch(clientData, interp, 2, tov, 0);
   }
 
   return result;
@@ -6909,7 +6909,7 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
     }
     csc->callType |= XOTCL_CSC_CALL_IS_NEXT;
     RUNTIME_STATE(interp)->unknown = 0;
-    result = InvokeMethod((ClientData)obj, interp, nobjc, nobjv, cmd,
+    result = MethodDispatch((ClientData)obj, interp, nobjc, nobjv, cmd,
                           obj, *cl, *methodName, frameType);
     csc->callType &= ~XOTCL_CSC_CALL_IS_NEXT;
 
@@ -9839,7 +9839,7 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
        * vector, we can include the cmd name in the objv by using
        * nobjv-1; this way, we avoid a memcpy()
        */
-      result = InvokeMethod((ClientData)object, interp,
+      result = MethodDispatch((ClientData)object, interp,
                             nobjc+1, nobjv-1, cmd, object,
                             NULL /*XOTclClass *cl*/, tail,
                             XOTCL_CSC_TYPE_PLAIN);
@@ -10102,7 +10102,7 @@ static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int no
                             ": unable to dispatch local method '",
                             methodName, "' in class ", className(cl),
                             (char *) NULL);
-    result = InvokeMethod((ClientData)self, interp, nobjc+2, nobjv, cmd, self, cl,
+    result = MethodDispatch((ClientData)self, interp, nobjc+2, nobjv, cmd, self, cl,
                           methodName, 0);
   } else {
     result = callMethod((ClientData)self, interp, method, nobjc+2, nobjv, 0);
@@ -10118,7 +10118,7 @@ static int XOTclDotCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
                           (char *) NULL);
   }
   /*fprintf(stderr, "dispatch %s on %s\n",ObjStr(nobjv[0]), objectName(self));*/
-  return DoDispatch(self, interp, nobjc, nobjv, XOTCL_CM_NO_SHIFT);
+  return ObjectDispatch(self, interp, nobjc, nobjv, XOTCL_CM_NO_SHIFT);
 }
 
 static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
@@ -11710,7 +11710,7 @@ static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *with
     if (objc >= 1)
       memcpy(ov+3, objv, sizeof(Tcl_Obj *)*objc);
 
-    result = DoDispatch((ClientData)cl, interp, objc+3, ov, 0);
+    result = ObjectDispatch((ClientData)cl, interp, objc+3, ov, 0);
     FREE_ON_STACK(ov);
   }
 
