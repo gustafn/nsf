@@ -53,7 +53,7 @@ namespace eval xotcl2 {
   # create class and object for nonpositional argument processing
   Class create ::xotcl2::ParameterType
   foreach cmd [info command ::xotcl::cmd::ParameterType::*] {
-    ::xotcl::alias ::xotcl2::ParameterType [namespace tail $cmd] $cmd 
+    ::xotcl::alias ::xotcl2::ParameterType [namespace tail $cmd] $cmd
   }
 
   # create an object for dispatching
@@ -66,16 +66,16 @@ namespace eval xotcl2 {
   Object create ::xotcl2::classInfo
 
   foreach cmd [info command ::xotcl::cmd::ObjectInfo::*] {
-    ::xotcl::alias ::xotcl2::objectInfo [namespace tail $cmd] $cmd 
-    ::xotcl::alias ::xotcl2::classInfo [namespace tail $cmd] $cmd 
+    ::xotcl::alias ::xotcl2::objectInfo [namespace tail $cmd] $cmd
+    ::xotcl::alias ::xotcl2::classInfo [namespace tail $cmd] $cmd
   }
   foreach cmd [info command ::xotcl::cmd::ClassInfo::*] {
-    ::xotcl::alias ::xotcl2::classInfo [namespace tail $cmd] $cmd 
+    ::xotcl::alias ::xotcl2::classInfo [namespace tail $cmd] $cmd
   }
   unset cmd
   ::xotcl::alias ::xotcl2::objectInfo is ::xotcl::is
   ::xotcl::alias ::xotcl2::classInfo is ::xotcl::is
-  ::xotcl::alias ::xotcl2::classInfo classparent ::xotcl::cmd::ObjectInfo::parent 
+  ::xotcl::alias ::xotcl2::classInfo classparent ::xotcl::cmd::ObjectInfo::parent
   ::xotcl::alias ::xotcl2::classInfo classchildren ::xotcl::cmd::ObjectInfo::children
 
   Object instforward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
@@ -126,20 +126,20 @@ namespace eval ::xotcl {
   # of the object system and as root meta class.
   #
   ::xotcl::createobjectsystem ::xotcl::Object ::xotcl::Class
-  
+
   # provide the standard command set for ::xotcl::Object
   foreach cmd [info command ::xotcl::cmd::Object::*] {
-    ::xotcl::alias Object [namespace tail $cmd] $cmd 
+    ::xotcl::alias Object [namespace tail $cmd] $cmd
   }
 
   # provide some Tcl-commands as methods for ::xotcl::Object
   foreach cmd {array append eval incr lappend set subst unset trace} {
     ::xotcl::alias Object $cmd -objscope ::$cmd
   }
-  
+
   # provide the standard command set for ::xotcl::Class
   foreach cmd [info command ::xotcl::cmd::Class::*] {
-    ::xotcl::alias Class [namespace tail $cmd] $cmd 
+    ::xotcl::alias Class [namespace tail $cmd] $cmd
   }
   unset cmd
 
@@ -171,7 +171,7 @@ namespace eval ::xotcl {
   # create class and object for nonpositional argument processing
   Class create ::xotcl::ParameterType
   foreach cmd [info command ::xotcl::cmd::ParameterType::*] {
-    ::xotcl::alias ::xotcl::ParameterType [namespace tail $cmd] $cmd 
+    ::xotcl::alias ::xotcl::ParameterType [namespace tail $cmd] $cmd
   }
   # register type boolean as checker for "switch"
   ::xotcl::alias ::xotcl::ParameterType type=switch ::xotcl::cmd::ParameterType::type=boolean
@@ -185,16 +185,16 @@ namespace eval ::xotcl {
   Object create ::xotcl::classInfo
 
   foreach cmd [info command ::xotcl::cmd::ObjectInfo::*] {
-    ::xotcl::alias ::xotcl::objectInfo [namespace tail $cmd] $cmd 
-    ::xotcl::alias ::xotcl::classInfo [namespace tail $cmd] $cmd 
+    ::xotcl::alias ::xotcl::objectInfo [namespace tail $cmd] $cmd
+    ::xotcl::alias ::xotcl::classInfo [namespace tail $cmd] $cmd
   }
   foreach cmd [info command ::xotcl::cmd::ClassInfo::*] {
-    ::xotcl::alias ::xotcl::classInfo [namespace tail $cmd] $cmd 
+    ::xotcl::alias ::xotcl::classInfo [namespace tail $cmd] $cmd
   }
   unset cmd
   ::xotcl::alias ::xotcl::objectInfo is ::xotcl::is
   ::xotcl::alias ::xotcl::classInfo is ::xotcl::is
-  ::xotcl::alias ::xotcl::classInfo classparent ::xotcl::cmd::ObjectInfo::parent 
+  ::xotcl::alias ::xotcl::classInfo classparent ::xotcl::cmd::ObjectInfo::parent
   ::xotcl::alias ::xotcl::classInfo classchildren ::xotcl::cmd::ObjectInfo::children
 
   Object instforward info -onerror ::xotcl::infoError ::xotcl::objectInfo %1 {%@2 %self}
@@ -220,7 +220,7 @@ namespace eval ::xotcl {
   objectInfo method unknown {method args} {
     error "unknown info option \"$method\"; [.info info]"
   }
-  
+
   classInfo method info {cl} {
     set methods [list]
     foreach m [::info commands ::xotcl::classInfo::*] {
@@ -235,7 +235,7 @@ namespace eval ::xotcl {
   }
 
   #
-  # Backward compatibility info subcommands; 
+  # Backward compatibility info subcommands;
   #
   # TODO: should go finally into a library.
   #
@@ -266,7 +266,7 @@ namespace eval ::xotcl {
   #     ismetaclass
   #     ismixin
   #     istype
-  # 
+  #
   #    => method (should get pre- and postconditions via positional params)
   #     proc
   #     instproc
@@ -316,15 +316,15 @@ namespace eval ::xotcl {
         }
     error "procedure \"$method\" doesn't have an argument \"$varName\""
   }
-  
+
   classInfo  method instargs {o method} {::xotcl::info_args inst $o $method}
   classInfo  method args     {o method} {::xotcl::info_args "" $o $method}
   objectInfo method args     {o method} {::xotcl::info_args "" $o $method}
-  
+
   classInfo  method instnonposargs {o method} {::xotcl::info_nonposargs inst $o $method}
   classInfo  method nonposargs     {o method} {::xotcl::info_nonposargs "" $o $method}
   objectInfo method nonposargs     {o method} {::xotcl::info_nonposargs "" $o $method}
-  
+
   classInfo  method instdefault {o method arg var} {::xotcl::info_default inst $o $method $arg $var}
   classInfo  method default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
   objectInfo method default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
@@ -356,14 +356,14 @@ namespace eval ::xotcl {
     eval $cmd
   }
 
-  # documentation stub object -> just ignore per default. 
+  # documentation stub object -> just ignore per default.
   # if xoDoc is loaded, documentation will be activated
   Object create ::xotcl::@
   @ method unknown args {}
 
-  proc myproc {args} {linsert $args 0 [::xotcl::self]} 
-  proc myvar  {var}  {.requireNamespace; return [::xotcl::self]::$var} 
-  
+  proc myproc {args} {linsert $args 0 [::xotcl::self]}
+  proc myvar  {var}  {.requireNamespace; return [::xotcl::self]::$var}
+
   namespace export Object Class @ myproc myvar Attribute
 }
 
@@ -402,7 +402,7 @@ proc ::xotcl::parametersFromSlots {obj} {
   foreach slot $slots {
     set parameterdefinition "-[namespace tail $slot]"
     set opts [list]
-    
+
     if {[$slot exists required] && [$slot required]} {
       lappend opts required
     }
@@ -451,7 +451,7 @@ proc ::xotcl::parametersFromSlots {obj} {
 
 
 # use low level interface for defining slot values. Normally, this is
-# done via slot objects, which are defined later. 
+# done via slot objects, which are defined later.
 
 proc createBootstrapAttributeSlots {class definitions} {
   if {![::xotcl::is ${class}::slot object]} {
@@ -491,9 +491,9 @@ proc createBootstrapAttributeSlots {class definitions} {
 
 
 #
-# TODO: 
+# TODO:
 # - are createBootstrapAttributeSlots for ::xotcl::Class still needed?
-# - Defaults for objectparameter seem more natural. 
+# - Defaults for objectparameter seem more natural.
 # - no definition yet for xotcl2::Class
 #
 
@@ -517,7 +517,7 @@ createBootstrapAttributeSlots ::xotcl::Slot {
   {multivalued false}
   {per-object false}
   {required false}
-  default 
+  default
   type
 }
 # maybe add the following slots at some later time here
@@ -579,7 +579,7 @@ createBootstrapAttributeSlots ::xotcl::Slot {
 #
 #  InfoSlot
 #
-::xotcl::MetaSlot create ::xotcl::InfoSlot 
+::xotcl::MetaSlot create ::xotcl::InfoSlot
 createBootstrapAttributeSlots ::xotcl::InfoSlot {
   {multivalued true}
   {elementtype ::xotcl2::Class}
@@ -643,22 +643,22 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
 foreach os {::xotcl ::xotcl2} {
   ${os}::Object alloc ${os}::Class::slot
   ${os}::Object alloc ${os}::Object::slot
-  
+
   ::xotcl::InfoSlot create ${os}::Class::slot::superclass -type relation
   ::xotcl::alias           ${os}::Class::slot::superclass assign ::xotcl::relation
   ::xotcl::InfoSlot create ${os}::Object::slot::class -type relation
   ::xotcl::alias           ${os}::Object::slot::class assign ::xotcl::relation
-  
+
   ::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \
-      -type relation 
+      -type relation
   ::xotcl::InterceptorSlot create ${os}::Object::slot::filter \
-      -elementtype "" -type relation 
+      -elementtype "" -type relation
   ::xotcl::InterceptorSlot create ${os}::Class::slot::instmixin \
-      -type relation 
+      -type relation
   ::xotcl::InterceptorSlot create ${os}::Class::slot::instfilter \
       -elementtype "" \
       -type relation
-} 
+}
 
 #
 #
@@ -762,7 +762,7 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
 
 # mixin class for decativating all checks
 ::xotcl2::Class create ::xotcl::Slot::Nocheck {
-  .method check_single_value args {;} 
+  .method check_single_value args {;}
   .method check_multiple_values args {;}
   .method mk_type_checker args {return ""}
 }
@@ -808,14 +808,14 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 }
 #
 # change the namespace to the specified object and create
-# objects there. This is a friendly notation for creating 
+# objects there. This is a friendly notation for creating
 # nested object structures. Optionally, creating new objects
 # in the specified scope can be turned off.
 #
 ::xotcl2::Object method contains {
-   {-withnew:boolean true} 
-   -object 
-   {-class ::xotcl2::Object} 
+   {-withnew:boolean true}
+   -object
+   {-class ::xotcl2::Object}
    cmds
  } {
   if {![info exists object]} {set object [::xotcl::self]}
@@ -836,9 +836,9 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 
 # this will go into the optional xotcl block
 ::xotcl::Object method contains {
-   {-withnew:boolean true} 
-   -object 
-   {-class ::xotcl2::Object} 
+   {-withnew:boolean true}
+   -object
+   {-class ::xotcl2::Object}
    cmds
  } {
   if {![info exists object]} {set object [::xotcl::self]}
@@ -899,16 +899,16 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 	eval $cmd
 	continue
       }
-      
+
       set po ::xotcl2::Class::Parameter
       puts stderr "deprecated parameter usage '$arg'; use '-slots {Attribute ...}' instead"
-      
+
       set cl [::xotcl::self]
       ::xotcl::setinstvar $po name $name
       ::xotcl::setinstvar $po cl [::xotcl::self]
       ::eval $po configure [lrange $arg 1 end]
-      
-      if {[$po exists extra] || [$po exists setter] || 
+
+      if {[$po exists extra] || [$po exists setter] ||
 	  [$po exists getter] || [$po exists access]} {
 	$po instvar extra setter getter access defaultParam
 	if {![info exists extra]} {set extra ""}
@@ -958,7 +958,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 ::xotcl::alias ::xotcl2::Object defaultmethod ::xotcl::classes::xotcl::Object::defaultmethod
 
 #interp alias {} ::xotcl::classes::xotcl::Class::parameter {} ::xotcl::classes::xotcl2::Class::parameter
-#interp alias {} ::xotcl::classes::xotcl::Object::defaultmethod {} ::xotcl::classes::xotcl2::Object::defaultmethod 
+#interp alias {} ::xotcl::classes::xotcl::Object::defaultmethod {} ::xotcl::classes::xotcl2::Object::defaultmethod
 
 #
 # TODO remainder should move from ::xotcl::Object -> xotcl2::*
@@ -996,7 +996,7 @@ proc ::xotcl::__exitHandler {} {
 }
 
 #
-# copy/move implementation 
+# copy/move implementation
 #
 ::xotcl2::Class create ::xotcl::Object::CopyHandler -parameter {
   {targetList ""}
@@ -1013,7 +1013,7 @@ proc ::xotcl::__exitHandler {} {
       # make target list from all children
       set children [$t info children]
     } else {
-      # ok, no namespace -> no more children 
+      # ok, no namespace -> no more children
       return
     }
   }
@@ -1024,7 +1024,7 @@ proc ::xotcl::__exitHandler {} {
       lappend children [namespace children $t]
     }
   }
-  
+
   # a namespace or an obj with namespace may have children
   # itself
   foreach c $children {
@@ -1138,7 +1138,7 @@ proc ::xotcl::__exitHandler {} {
 	  set scl [lreplace $scl $index $index $newName]
 	  $subclass superclass $scl
 	}
-      }	     
+      }	
     }
     .destroy
   }
@@ -1222,7 +1222,7 @@ proc ::xotcl::__exitHandler {} {
 
 #
 # if cutTheArg not 0, it cut from upvar argsList
-# 
+#
 ::xotcl::Object method extractConfigureArg {al name {cutTheArg 0}} {
   set value ""
   upvar $al argList
@@ -1247,10 +1247,10 @@ proc ::xotcl::__exitHandler {} {
 ::xotcl::Object create ::xotcl::rcs
 ::xotcl::rcs method date string {
   lreplace [lreplace $string 0 0] end end
-} 
+}
 ::xotcl::rcs method version string {
   lindex $string 2
-} 
+}
 
 # if HOME is not set, and ~ is resolved, Tcl chokes on that
 if {![info exists ::env(HOME)]} {set ::env(HOME) /root}
@@ -1271,8 +1271,8 @@ set ::xotcl::logdir $::xotcl::confdir/log
   }
 }
 ::xotcl::Class create ::xotcl::package -superclass ::xotcl::Class -parameter {
-  provide 
-  {version 1.0} 
+  provide
+  {version 1.0}
   {autoexport {}}
   {export {}}
 }
@@ -1293,15 +1293,15 @@ set ::xotcl::logdir $::xotcl::confdir/log
   }
   namespace eval [::xotcl::self] {namespace import ::xotcl::*}
   namespace eval [::xotcl::self] $script
-  foreach e [set .export] { 
+  foreach e [set .export] {
     set nq [namespace qualifiers $e]
     if {$nq ne ""} {
       namespace eval [::xotcl::self]::$nq [list namespace export [namespace tail $e]]
     } else {
-      namespace eval [::xotcl::self] [list namespace export $e] 
+      namespace eval [::xotcl::self] [list namespace export $e]
     }
   }
-  foreach e [set .autoexport] { 
+  foreach e [set .autoexport] {
     namespace eval :: [list namespace import [::xotcl::self]::$e]
   }
 }
