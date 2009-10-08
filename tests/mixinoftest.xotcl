@@ -479,7 +479,6 @@ Class A
 ? {b1 info precedence} "::B ::A ::xotcl::Object"
 foreach o {A O B a1 b1 o1} {$o destroy} 
 
-
 #foreach o [::xotcl::test::Test info instances] {$o destroy}
 #::xotcl::test::Test destroy
 #puts [lsort [::xotcl::Object allinstances]]

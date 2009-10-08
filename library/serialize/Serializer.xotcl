@@ -198,7 +198,7 @@ namespace eval ::xotcl::serializer {
   }
   Serializer instproc Object-serialize o {
     my collect-var-traces $o
-    append cmd [list [$o info class] create [$o self]]
+    append cmd [list [$o info class] create [::xotcl::dispatch $o -objscope ::xotcl::self]]
     # slots needs to be initialized when optimized, since
     # parametercmds are not serialized
     #if {![$o istype ::xotcl::Slot]} {append cmd " -noinit"}
@@ -220,10 +220,10 @@ namespace eval ::xotcl::serializer {
       set setcmd [list]
       if {![my exists ignoreVarsRE] || 
 	  ![regexp [my set ignoreVarsRE] ${o}::$v]} {
-	if {[$o array exists $v]} {
-	  lappend setcmd array set $v [$o array get $v]
+	if {[::xotcl::dispatch $o ::array exists $v]} {
+	  lappend setcmd array set $v [::xotcl::dispatch $o ::array get .$v]
 	} else {
-	  lappend setcmd set $v [$o set $v]
+	  lappend setcmd set $v [::xotcl::instvar $o $v]
 	}
 	incr nrVars
 	append cmd \t [my pcmd $setcmd] " \\\n"
@@ -280,7 +280,7 @@ namespace eval ::xotcl::serializer {
     return $arglist
   }
   Serializer instproc category c {
-    if {[$c istype ::xotcl::Class]} {return Class} {return Object}
+    if {[::xotcl::is $c type ::xotcl::Class]} {return Class} {return Object}
   }
   Serializer instproc allChildren o {
     set set $o
@@ -312,8 +312,8 @@ namespace eval ::xotcl::serializer {
   }
   
   Serializer instproc topoSort {set all} {
-    if {[my array exists s]} {my array unset s}
-    if {[my array exists level]} {my array unset level}
+    if {[array exists .s]} {array unset .s}
+    if {[array exists .level]} {array unset .level}
     foreach c $set {
       if {!$all &&
 	  [string match "::xotcl::*" $c] && 
@@ -323,7 +323,7 @@ namespace eval ::xotcl::serializer {
     }
     set stratum 0
     while {1} {
-      set set [my array names s]
+      set set [array names .s]
       if {[llength $set] == 0} break
       incr stratum
       #my warn "$stratum set=$set"
@@ -379,10 +379,11 @@ namespace eval ::xotcl::serializer {
     set post_cmds ""
     # register for introspection purposes "trace" under a different name
     ::xotcl::alias ::xotcl::Object __trace__ -objscope ::trace
+    ::xotcl::alias ::xotcl2::Object __trace__ -objscope ::trace
     my topoSort $list $all
-    #foreach i [lsort [my array names level]] {my warn "$i: [my set level($i)]"}
+    #foreach i [lsort [array names .level]] {my warn "$i: [my set level($i)]"}
     set result ""
-    foreach l [lsort -integer [my array names level]] {
+    foreach l [lsort -integer [array names .level]] {
       foreach i [my set level($l)] {
 	#my warn "serialize $i"
         #append result "# Stratum $l\n"
@@ -393,7 +394,8 @@ namespace eval ::xotcl::serializer {
       set namespace($e) 1
       set namespace([namespace qualifiers $e]) 1
     }
-    ::xotcl::Object instproc __trace__ {} {}
+    ::xotcl::Object method __trace__ {} {}
+    ::xotcl2::Object method __trace__ {} {}
 
     # Handling of variable traces: traces might require a 
     # different topological sort, which is hard to handle.
@@ -461,7 +463,7 @@ namespace eval ::xotcl::serializer {
 
   Serializer proc serializeExportedMethods {s} {
     set r ""
-    foreach k [my array names exportMethods] {
+    foreach k [array names .exportMethods] {
       foreach {o p m} [split $k ,] break
       #if {$o ne "::xotcl::Object" && $o ne "::xotcl::Class"} {
 	#error "method export only for ::xotcl::Object and\
@@ -502,8 +504,8 @@ namespace eval ::xotcl::serializer {
     append r "::xotcl::configure softrecreate [::xotcl::configure softrecreate]"
     append r \n [my serializeExportedMethods $s]
     # export the objects and classes
-    #$s warn "export objects = [my array names exportObjects]"
-    #$s warn "export objects = [my array names exportMethods]"
+    #$s warn "export objects = [array names .exportObjects]"
+    #$s warn "export objects = [array names .exportMethods]"
     append r [$s serialize-objects [$s allInstances ::xotcl::Object] 0]    
     foreach o [list ::xotcl::Object ::xotcl::Class] {
       foreach x {mixin instmixin invar instinvar} {

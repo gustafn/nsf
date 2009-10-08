@@ -46,9 +46,9 @@ proc T2 {var sub op} {c1 set $var t2}
 #  y {incr ::hu} 
 #  z {my trace add variable z read T1}}
 Class C -slots {
-  Attribute x -initcmd {set x 1} 
-  Attribute y -initcmd {incr ::hu} 
-  Attribute z -initcmd {my trace add variable z read T1}
+  Attribute create x -initcmd {set x 1} 
+  Attribute create y -initcmd {incr ::hu} 
+  Attribute create z -initcmd {my trace add variable z read T1}
 }
 
 C create c1
@@ -61,8 +61,8 @@ C create c1
 ? {set ::hu} 1
 
 Class D -slots {
-  Attribute x -initcmd {set x 2} 
-  Attribute z -initcmd {my trace add variable z read T2}
+  Attribute create x -initcmd {set x 2} 
+  Attribute create z -initcmd {my trace add variable z read T2}
 } -superclass C
 D create c1
 ? {c1 set x} 2
@@ -119,7 +119,7 @@ Class O2 -superclass O
 #t {O2 superclass O} "superclass 1"
 ? {O superclass} "::xotcl::Object"
 
-::xotcl::Slot instproc slot {object name property} {
+::xotcl::Slot method slot {object name property} {
   switch $property {
     self {return [self]}
     domain {return [my domain]}
@@ -128,7 +128,6 @@ Class O2 -superclass O
 
 ? {O superclass slot self} "::xotcl::Class::slot::superclass"
 ? {O superclass slot domain} "::xotcl::Class"
-
 
 ? {O2 superclass} "::O"
 O2 superclass add M
@@ -146,24 +145,24 @@ Class Role -superclass Attribute -parameter {references}
 # application classes
 ######################
 Class Person -slots {
-  Attribute name
-  Attribute age -default 0
+  Attribute create name
+  Attribute create age -default 0
 }
 
 Class Article -slots {
-  Attribute title
-  Attribute date
+  Attribute create title
+  Attribute create date
 }
 
 Class publishes -slots {
-  Role written_by -references Person -multivalued true
-  Role has_published -references Paper -multivalued true
+  Role create written_by -references Person -multivalued true
+  Role create has_published -references Paper -multivalued true
 }
 
 Class Project -slots {
-  Attribute name
-  Role manager -references Person
-  Role member -references Person -multivalued true
+  Attribute create name
+  Role create manager -references Person
+  Role create member -references Person -multivalued true
 }
 
 puts [Person serialize]
@@ -274,9 +273,9 @@ C1 c1 -a 1
 
 
 Class C2 -slots {
-  Attribute a 
-  Attribute b -default 10
-  Attribute c -default "Hello World"
+  Attribute create a 
+  Attribute create b -default 10
+  Attribute create c -default "Hello World"
 }
 C2 c2 -a 1
 ? {c2 procsearch a} "::C2 instforward a"
@@ -290,9 +289,9 @@ t {c2 a 1} 1 "new indirect parametercmd"
 
 ::xotcl::Slot instmixin add ::xotcl::Slot::Optimizer
 Class C3 -slots {
-  Attribute a 
-  Attribute b -default 10
-  Attribute c -default "Hello World"
+  Attribute create a 
+  Attribute create b -default 10
+  Attribute create c -default "Hello World"
 }
 C3 c3 -a 1
 ? {c3 procsearch a} "::C3 instparametercmd a"
@@ -313,7 +312,7 @@ D d1
 Class create A -parameter {{foo 1}}
 # or
 Class create A -slots {
-  Attribute foo -default 1
+  Attribute create foo -default 1
 }
 
 A create a1 -foo 234 ;# calls default foo setter
@@ -350,9 +349,9 @@ a1 foo 123 ;# calls overridden foosetter
 #
 
 Class Person -slots {
-  Attribute name
-  Attribute age -default 0
-  Attribute projects -default {} -multivalued true
+  Attribute create name
+  Attribute create age -default 0
+  Attribute create projects -default {} -multivalued true
 }
 
 Person p1 -name "Gustaf"
@@ -361,8 +360,8 @@ Person p1 -name "Gustaf"
 ? {p1 projects} {}
 
 Class Project -slots {
-  Attribute name 
-  Attribute description
+  Attribute create name 
+  Attribute create description
 }
   
 Project project1 -name XOTcl -description "A highly flexible OO scripting language"
@@ -372,7 +371,7 @@ p1 projects add ::project1
 #p1 projects add some-other-value
 #? {p1 projects} "some-other-value ::project1"
 
-::xotcl::Slot instproc check {
+::xotcl::Slot method check {
   {-keep_old_value:boolean true} 
   value predicate type obj var
 } {
@@ -388,7 +387,7 @@ p1 projects add ::project1
   if {$keep_old_value} {$obj set __oldvalue($var) $value}
 }
 
-::xotcl::Slot instproc checkall {values predicate type obj var} {
+::xotcl::Slot method checkall {values predicate type obj var} {
   foreach value $values {
     my check -keep_old_value false $value $predicate $type $obj $var
   }
@@ -396,8 +395,8 @@ p1 projects add ::project1
 }
     
 Person slots {
-  Attribute projects -default "" -multivalued true -type ::Project
-  Attribute salary -type integer
+  Attribute create projects -default "" -multivalued true -type ::Project
+  Attribute create salary -type integer
 }
 
 Person p2 -name "Gustaf"
@@ -458,7 +457,7 @@ Rectangle r0 -color pink -contains {
 
 #####
 Class create A -slots {
-  Attribute foo -default 1 -proc assign { domain var value} {
+  Attribute create foo -default 1 -proc assign { domain var value} {
     if {$value < 0 || $value > 99} {
       error "$value is not in the range of 0 .. 99"
     }

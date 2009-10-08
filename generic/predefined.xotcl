@@ -833,6 +833,27 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 }
 ::xotcl2::Class instforward slots %self contains \
     -object {%::xotcl::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
+
+# this will go into the optional xotcl block
+::xotcl::Object method contains {
+   {-withnew:boolean true} 
+   -object 
+   {-class ::xotcl2::Object} 
+   cmds
+ } {
+  if {![info exists object]} {set object [::xotcl::self]}
+  if {![::xotcl::is $object object]} {$class create $object}
+  $object requireNamespace
+  if {$withnew} {
+    set m [::xotcl::ScopedNew new \
+	       -inobject $object -withclass $class -volatile]
+    ::xotcl2::Class instmixin add $m end
+    namespace eval $object $cmds
+    ::xotcl2::Class instmixin delete $m
+  } else {
+    namespace eval $object $cmds
+  }
+}
 ::xotcl::Class instforward slots %self contains \
     -object {%::xotcl::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
 #
@@ -933,7 +954,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 # reuse definitions from xotcl in xotcl2
 # TODO: can this be done with interp aliases?
 ::xotcl::alias ::xotcl::Class   parameter     ::xotcl::classes::xotcl2::Class::parameter
-::xotcl::alias ::xotcl::Object  contains      ::xotcl::classes::xotcl2::Object::contains
+#::xotcl::alias ::xotcl::Object  contains      ::xotcl::classes::xotcl2::Object::contains
 ::xotcl::alias ::xotcl2::Object defaultmethod ::xotcl::classes::xotcl::Object::defaultmethod
 
 #interp alias {} ::xotcl::classes::xotcl::Class::parameter {} ::xotcl::classes::xotcl2::Class::parameter
