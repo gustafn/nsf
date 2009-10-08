@@ -8867,13 +8867,13 @@ callingNameSpace(Tcl_Interp *interp) {
   */
   for (framePtr = nonXotclObjectProcFrame((Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp));
        framePtr;
-       framePtr = nonXotclObjectProcFrame(Tcl_CallFrame_callerVarPtr(framePtr))) {
+       framePtr = Tcl_CallFrame_callerVarPtr(framePtr)) {
     nsPtr = Tcl_CallFrame_nsPtr(framePtr);
     if (isRootNamespace(interp, nsPtr)) {
-      /* fprintf(stderr, "... %p skip %s\n", framePtr, nsPtr->fullName); */
+      /*fprintf(stderr, "... %p skip %s\n", framePtr, nsPtr->fullName);*/
       continue;
     }
-    /* fprintf(stderr, "... %p take %s\n", framePtr, nsPtr->fullName); */
+    /*fprintf(stderr, "... %p take %s\n", framePtr, nsPtr->fullName); */
     break;
   }
    
@@ -9229,7 +9229,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     return ArgumentError(interp, "not enough arguments:", paramPtr, NULL, procNameObj); /* for methods and cmds */
   }
   if (!pc->varArgs && objc-nrDashdash-1 > nrReq + nrOpt) {
-    return ArgumentError(interp, "to many arguments:", paramPtr, NULL, procNameObj); /* for methods and cmds */
+    return ArgumentError(interp, "too many arguments:", paramPtr, NULL, procNameObj); /* for methods and cmds */
   }
 
   return ArgumentDefaults(pc, interp, paramPtr, nrParams);
@@ -11027,8 +11027,8 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
         result = callMethod((ClientData) obj, interp,
                             paramPtr->nameObj, 2+(paramPtr->nrArgs), &newValue, 0);
       }
-      fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n", 
-	      ObjStr(paramPtr->nameObj), ObjStr(newValue), result);
+      /*fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n", 
+        ObjStr(paramPtr->nameObj), ObjStr(newValue), result);*/
       if (result != TCL_OK) {
         XOTcl_PopFrame(interp, obj);
         parseContextRelease(&pc);
@@ -11047,7 +11047,6 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
       Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
     }
   }
-  
   XOTcl_PopFrame(interp, obj);
   remainingArgsc = pc.objc - paramDefs->nrParams;
 
@@ -11506,7 +11505,7 @@ static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj) {
   if (Tcl_SetVar2(interp, vn, NULL, fullName, 0)) {
     XOTclObjectOpt *opt = XOTclRequireObjectOpt(obj);
 
-    /*fprintf(stderr, "### setting trace for %s\n", fullName);*/
+    /*fprintf(stderr, "### setting trace for %s on frame %p\n", fullName, Tcl_Interp_varFramePtr(interp));*/
     result = Tcl_TraceVar(interp, vn, TCL_TRACE_UNSETS,
 			  (Tcl_VarTraceProc*)XOTclUnsetTrace,
                           (ClientData)o);

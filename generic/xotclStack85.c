@@ -38,8 +38,9 @@ nonXotclObjectProcFrame(Tcl_CallFrame *framePtr) {
       /* never return an inactive method frame */
       if (!(((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType & XOTCL_CSC_TYPE_INACTIVE)) break;
     } else {
-      if ((flag & (FRAME_IS_XOTCL_OBJECT|FRAME_IS_XOTCL_CMETHOD)) == 0) break;
-      if (flag & FRAME_IS_PROC) break;
+      if (flag & FRAME_IS_XOTCL_OBJECT) continue;
+      /*if ((flag & (FRAME_IS_XOTCL_OBJECT|FRAME_IS_XOTCL_CMETHOD)) == 0) break;*/
+      if (flag == 0 || flag & FRAME_IS_PROC) break;
     }
   }
   return framePtr;
@@ -164,6 +165,7 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
     *varFramePtr, *activeFramePtr, *framePtr;
 
   XOTclCallStackFindActiveFrame(interp, 0, &activeFramePtr);
+  /*tcl85showStack(interp);*/
 # if defined(TCL85STACK_TRACE)
   tcl85showStack(interp);
 # endif
@@ -191,7 +193,7 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
     /* The active framePtr is an entry deeper in the stack. When XOTcl
        is interleaved with Tcl, we return the Tcl frame */
 
-    /* fprintf(stderr,"active == deeper, use Tcl frame\n"); */
+    /*fprintf(stderr,"active == deeper, use Tcl frame\n"); */
     for (framePtr = varFramePtr; framePtr && framePtr != activeFramePtr; 
          framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
       if ((Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) == 0) {
@@ -199,6 +201,7 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
       }
     }
   }
+
   if (inFramePtr == framePtr) {
     /* call frame pointers are fine */
     /*fprintf(stderr, "... no need to save frames\n");*/
