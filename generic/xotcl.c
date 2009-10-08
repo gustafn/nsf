@@ -89,7 +89,7 @@ static int NSisXOTclNamespace(Tcl_Namespace *nsPtr);
 
 XOTCLINLINE static void GuardAdd(Tcl_Interp *interp, XOTclCmdList *filterCL, Tcl_Obj *guard);
 static int GuardCheck(Tcl_Interp *interp, Tcl_Obj *guards);
-static int GuardCall(XOTclObject *obj, XOTclClass *cl, Tcl_Command cmd, Tcl_Interp *interp, 
+static int GuardCall(XOTclObject *obj, XOTclClass *cl, Tcl_Command cmd, Tcl_Interp *interp,
                      Tcl_Obj *guard, XOTclCallStackContent *csc);
 static void GuardDel(XOTclCmdList *filterCL);
 static int IsMetaClass(Tcl_Interp *interp, XOTclClass *cl, int withMixins);
@@ -163,13 +163,13 @@ typedef struct {
 } parseContext;
 
 #if defined(CANONICAL_ARGS)
-static int 
-ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp, 
+static int
+ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
                        XOTclObject *obj, int pushFrame, XOTclParamDefs *paramDefs,
                        char *methodName, int objc, Tcl_Obj *CONST objv[]);
 #endif
 
-static void 
+static void
 parseContextInit(parseContext *pc, int objc, XOTclObject *obj, Tcl_Obj *procName) {
   if (objc < PARSE_CONTEXT_PREALLOC) {
     /* the single larger memset below .... */
@@ -196,7 +196,7 @@ parseContextInit(parseContext *pc, int objc, XOTclObject *obj, Tcl_Obj *procName
 
 static void parseContextExtendObjv(parseContext *pc, int from, int elts, Tcl_Obj *CONST source[]) {
   int requiredSize = from + elts;
-  
+
   /*XOTclPrintObjv("BEFORE: ", pc->objc, pc->full_objv);*/
 
   if (requiredSize > PARSE_CONTEXT_PREALLOC) {
@@ -214,7 +214,7 @@ static void parseContextExtendObjv(parseContext *pc, int from, int elts, Tcl_Obj
   }
 
   memcpy(pc->objv + from, source, sizeof(Tcl_Obj *) * (elts));
-  pc->objc += elts; 
+  pc->objc += elts;
 
   /*XOTclPrintObjv("AFTER:  ", pc->objc, pc->full_objv);*/
 }
@@ -486,14 +486,14 @@ static int varHashTableSize;
 #endif
 
 #if defined(TCL85STACK)
-/* 
+/*
    Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
    for further extensions of tcl and tcloo...
 */
 # define FRAME_IS_XOTCL_OBJECT  0x10000
 # define FRAME_IS_XOTCL_METHOD  0x20000
 # define FRAME_IS_XOTCL_CMETHOD 0x40000
-#else 
+#else
 # define FRAME_IS_XOTCL_OBJECT  0x0
 # define FRAME_IS_XOTCL_METHOD  0x0
 # define FRAME_IS_XOTCL_CMETHOD 0x0
@@ -912,15 +912,15 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **obj) {
   /*fprintf(stderr, "GetObjectFromObj  obj %s is of type tclCmd, cmd=%p\n", ObjStr(objPtr), cmd);*/
   if (cmd) {
     XOTclObject *o = XOTclGetObjectFromCmdPtr(cmd);
-    /*fprintf(stderr, "GetObjectFromObj obj %s, o is %p objProc %p XOTclObjDispatch %p\n", ObjStr(objPtr), 
+    /*fprintf(stderr, "GetObjectFromObj obj %s, o is %p objProc %p XOTclObjDispatch %p\n", ObjStr(objPtr),
       o, Tcl_Command_objProc(cmd), XOTclObjDispatch);*/
     if (o) {
       if (obj) *obj = o;
       return TCL_OK;
     }
-  } 
+  }
 
-  /*fprintf(stderr, "GetObjectFromObj convertFromAny for %s type %p %s\n",ObjStr(objPtr), 
+  /*fprintf(stderr, "GetObjectFromObj convertFromAny for %s type %p %s\n",ObjStr(objPtr),
     objPtr->typePtr, objPtr->typePtr?objPtr->typePtr->name : "(none)");*/
 
   /* In case, we have to revolve via the callingNameSpace (i.e. the
@@ -973,7 +973,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
     cls = XOTclObjectToClass(obj);
     if (cls) {
       if (cl) *cl = cls;
-      return TCL_OK;      
+      return TCL_OK;
     } else {
       /* flag, that we could not convert so far */
       result = TCL_ERROR;
@@ -1276,7 +1276,7 @@ XOTclIsClass(Tcl_Interp *interp, ClientData clientData) {
  * methods lookup
  */
 static int CmdIsProc(Tcl_Command cmd) {
-  /* In 8.6: TclIsProc((Command*)cmd) is not equiv to the definition below */ 
+  /* In 8.6: TclIsProc((Command*)cmd) is not equiv to the definition below */
   return (Tcl_Command_objProc(cmd) == TclObjInterpProc);
 }
 
@@ -1333,7 +1333,7 @@ SearchCMethod(XOTclClass *cl, CONST char *nm, Tcl_Command *cmd) {
 }
 
 /*
- * Find a method for a given object in the precedence path 
+ * Find a method for a given object in the precedence path
  */
 static Tcl_Command
 ObjectFindMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *name, XOTclClass **pcl) {
@@ -1341,7 +1341,7 @@ ObjectFindMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *name, XOTclCl
 
   if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
     MixinComputeDefined(interp, obj);
-  
+
   if (obj->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
     XOTclCmdList *mixinList;
     for (mixinList = obj->mixinOrder; mixinList; mixinList = mixinList->nextPtr) {
@@ -1533,7 +1533,7 @@ varResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int f
    */
   varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   if (varFramePtr && (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_PROC)) {
-    /*fprintf(stderr, "proc-scoped var '%s' assumed, frame %p flags %.6x\n", 
+    /*fprintf(stderr, "proc-scoped var '%s' assumed, frame %p flags %.6x\n",
       name, varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr));*/
     return TCL_CONTINUE;
   }
@@ -1600,7 +1600,7 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   /*fprintf(stderr,"CompiledDotVarFetch var '%s' var %p flags = %.4x dead? %.4x\n",
     ObjStr(resVarInfo->nameObj), var, flags, flags&VAR_DEAD_HASH);*/
 
-  /* 
+  /*
    * We cache lookups based on obj; we have to care about cases, where
    * variables are deleted in recreates or on single deletes. In these
    * cases, the var flags are reset.
@@ -1614,7 +1614,7 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   }
 
   if (var) {
-    /* 
+    /*
      * we have already a variable, which is not valid anymore. clean
      * it up.
      */
@@ -1623,7 +1623,7 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
 
   varTablePtr = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
   if (varTablePtr == NULL && obj->varTable == NULL) {
-    /* 
+    /*
      * The variable table does not exist. This seems to be is the
      * first access to a variable on this object. We create the and
      * initialize the variable hash table and update the object
@@ -1635,7 +1635,7 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
           resVarInfo->buffer, obj, obj->nsPtr, varTablePtr); */
   resVarInfo->lastObj = obj;
   resVarInfo->var = var = (Tcl_Var) VarHashCreateVar(varTablePtr, resVarInfo->nameObj, &new);
-  /* 
+  /*
    * Increment the reference counter to avoid ckfree() of the variable
    * in Tcl's FreeVarEntry(); for cleanup, we provide our own
    * HashVarFree();
@@ -1645,7 +1645,7 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
 #if defined(VAR_RESOLVER_TRACE)
   {
     Var *v = (Var*)(resVarInfo->var);
-    fprintf(stderr,".... looked up var %s (%s) var %p flags = %.6x\n",resVarInfo->buffer, ObjStr(resVarInfo->nameObj), 
+    fprintf(stderr,".... looked up var %s (%s) var %p flags = %.6x\n",resVarInfo->buffer, ObjStr(resVarInfo->nameObj),
             v, v->flags);
   }
 #endif
@@ -1704,7 +1704,7 @@ DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, in
     *cmdPtr = RUNTIME_STATE(interp)->dotCmd;
     return TCL_OK;
   }
-  
+
   return TCL_CONTINUE;
 }
 
@@ -1725,7 +1725,7 @@ DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, in
   varName ++;
   varFramePtr = Tcl_Interp_varFramePtr(interp);
   frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
-  /*fprintf(stderr, "dotVarResolver called var=%s var flags %.8x frame flags %.6x\n", 
+  /*fprintf(stderr, "dotVarResolver called var=%s var flags %.8x frame flags %.6x\n",
     varName, flags, frameFlags);*/
 
   if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_OBJECT)) {
@@ -1738,9 +1738,9 @@ DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, in
 #endif
       return TCL_OK;
     }
-    
-    obj = frameFlags & FRAME_IS_XOTCL_METHOD ? 
-      ((XOTclCallStackContent *)varFramePtr->clientData)->self : 
+
+    obj = frameFlags & FRAME_IS_XOTCL_METHOD ?
+      ((XOTclCallStackContent *)varFramePtr->clientData)->self :
       (XOTclObject *)(varFramePtr->clientData);
     varTablePtr = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
 
@@ -1918,7 +1918,7 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
       Tcl_Command cmd = (Tcl_Command) Tcl_GetHashValue(hPtr);
       Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
       XOTclObject *invokeObj = proc == XOTclObjDispatch ? (XOTclObject *)Tcl_Command_objClientData(cmd) : NULL;
-      
+
       /* objects should not be deleted here to preseve children deletion order*/
       if (invokeObj && cmd != invokeObj->id) {
         /*
@@ -2149,7 +2149,7 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, XOTclObject *obj, char 
   if (ok) {
     result = TCL_OK;
   } else {
-    result = XOTclVarErrMsg(interp, "Method '", methodName, "' of ", objectName(obj), 
+    result = XOTclVarErrMsg(interp, "Method '", methodName, "' of ", objectName(obj),
                             " can not be overwritten. Derive e.g. a ",
                             "sub-class!", (char *) NULL);
   }
@@ -2387,7 +2387,7 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
 
 static void
 CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *obj) {
-  /*fprintf(stderr, "  CallStackDestroyObject %p %s activationcount %d\n", 
+  /*fprintf(stderr, "  CallStackDestroyObject %p %s activationcount %d\n",
     obj, objectName(obj), obj->activationCount == 0); */
 
   if ((obj->flags & XOTCL_DESTROY_CALLED) == 0) {
@@ -4844,7 +4844,7 @@ SubstValue(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj **value) {
     CallStackPop(interp, NULL);
   }
 #endif
-  
+
   /*fprintf(stderr, "+++++ %s.%s subst returned %d OK %d\n",
     objectName(obj), varName, rc, TCL_OK);*/
 
@@ -4879,17 +4879,17 @@ MakeProcError(
 						 (overflow ? "..." : ""), Tcl_GetErrorLine(interp)));
 }
 
-/* 
+/*
    PushProcCallFrame() compiles conditionally a proc and pushes a
    callframe. Interesting fields:
 
-   clientData: Record describing procedure to be interpreted. 
+   clientData: Record describing procedure to be interpreted.
    isLambda: 1 if this is a call by ApplyObjCmd: it needs special rules for error msg
 
  */
 
-static int 
-PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	Tcl_Obj *CONST objv[], 
+static int
+PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	Tcl_Obj *CONST objv[],
                   XOTclCallStackContent *csc) {
   Proc *procPtr = (Proc *) clientData;
   Tcl_Obj *bodyPtr = procPtr->bodyPtr;
@@ -4935,7 +4935,7 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
   doCompilation:
 # endif
     result = TclProcCompileProc(interp, procPtr, bodyPtr,
-				(Namespace *) nsPtr, "body of proc", 
+				(Namespace *) nsPtr, "body of proc",
                                 TclGetString(objv[0]));
     if (result != TCL_OK) {
       return result;
@@ -5042,7 +5042,7 @@ ParamDefsStore(Tcl_Interp *interp, Tcl_Command cmd, XOTclParamDefs *paramDefs) {
   if (cmdPtr->deleteProc == TclProcDeleteProc) {
     XOTclProcContext *ctxPtr = NEW(XOTclProcContext);
 
-    /*fprintf(stderr, "paramDefsStore replace deleteProc %p by %p\n", 
+    /*fprintf(stderr, "paramDefsStore replace deleteProc %p by %p\n",
       cmdPtr->deleteProc, XOTclProcDeleteProc);*/
 
     ctxPtr->oldDeleteData = (Proc *)cmdPtr->deleteData;
@@ -5055,7 +5055,7 @@ ParamDefsStore(Tcl_Interp *interp, Tcl_Command cmd, XOTclParamDefs *paramDefs) {
   return TCL_ERROR;
 }
 
-static void 
+static void
 ParamDefsFree(XOTclParamDefs *paramDefs) {
   /*fprintf(stderr, "ParamDefsFree %p\n",paramDefs);*/
   if (paramDefs->paramsPtr) {
@@ -5069,7 +5069,7 @@ ParamDefsFree(XOTclParamDefs *paramDefs) {
  */
 
 static void
-ParamDefsFormatOption(Tcl_Interp *interp, Tcl_Obj *nameStringObj, char* option, 
+ParamDefsFormatOption(Tcl_Interp *interp, Tcl_Obj *nameStringObj, char* option,
                       int *colonWritten, int *firstOption) {
   if (!*colonWritten) {
     Tcl_AppendToObj(nameStringObj, ":", 1);
@@ -5094,12 +5094,12 @@ ParamDefsFormat(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
   for (pPtr = paramDefs->paramsPtr; pPtr->name; pPtr++) {
     int isNonpos = *pPtr->name == '-';
     int outputRequired = (isNonpos && (pPtr->flags & XOTCL_ARG_REQUIRED));
-    int outputOptional = (!isNonpos && !(pPtr->flags & XOTCL_ARG_REQUIRED) 
-                          && !pPtr->defaultValue && 
+    int outputOptional = (!isNonpos && !(pPtr->flags & XOTCL_ARG_REQUIRED)
+                          && !pPtr->defaultValue &&
                           pPtr->converter != convertToNothing);
-    first = 1; 
+    first = 1;
     colonWritten = 0;
-    
+
     nameStringObj = Tcl_NewStringObj(pPtr->name, -1);
     if (pPtr->type) {
       ParamDefsFormatOption(interp, nameStringObj, pPtr->type, &colonWritten, &first);
@@ -5119,13 +5119,13 @@ ParamDefsFormat(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
     } else if ((pPtr->flags & XOTCL_ARG_NOARG)) {
       ParamDefsFormatOption(interp, nameStringObj, "noarg", &colonWritten, &first);
     }
-    
+
     innerlist = Tcl_NewListObj(0, NULL);
     Tcl_ListObjAppendElement(interp, innerlist, nameStringObj);
     if (pPtr->defaultValue) {
       Tcl_ListObjAppendElement(interp, innerlist, pPtr->defaultValue);
     }
-    
+
     Tcl_ListObjAppendElement(interp, list, innerlist);
   }
 
@@ -5164,11 +5164,11 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
   XOTclObject *obj = cscPtr->self;
   XOTclObjectOpt *opt = obj->opt;
   int rc;
-  
+
   /*fprintf(stderr, "---- FinalizeProcMethod result %d, csc %p, pcPtr %p, obj %p\n",
     result, cscPtr, pcPtr, obj);*/
 # if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "POP  FRAME (implicit)  csc %p obj %s obj refcount %d %d\n", 
+  fprintf(stderr, "POP  FRAME (implicit)  csc %p obj %s obj refcount %d %d\n",
           cscPtr, objectName(obj),
           obj->id ? Tcl_Command_refCount(obj->id) : -100,
           obj->refCount
@@ -5194,7 +5194,7 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
       result = rc;
     }
   }
-  
+
   if (pcPtr) {
 #if defined(TCL_STACK_ALLOC_TRACE)
     fprintf(stderr, "---- FinalizeProcMethod calls releasePc, stackFree %p\n", pcPtr);
@@ -5216,7 +5216,7 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
 /* invoke a method implemented as a proc/instproc (with assertion checking) */
 static int
 invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-         char *methodName, XOTclObject *obj, XOTclClass *cl, Tcl_Command cmdPtr, 
+         char *methodName, XOTclObject *obj, XOTclClass *cl, Tcl_Command cmdPtr,
          XOTclCallStackContent *cscPtr) {
   int result, releasePc = 0;
   XOTclObjectOpt *opt = obj->opt;
@@ -5237,7 +5237,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
           methodName, cscPtr, cscPtr->frameType, obj->teardown);
 #endif
 
-  /* 
+  /*
    * if this is a filter, check whether its guard applies,
    * if not: just step forward to the next filter
    */
@@ -5249,9 +5249,9 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
      */
     assert(obj->flags & XOTCL_FILTER_ORDER_VALID);
     /* otherwise: FilterComputeDefined(interp, obj);*/
-    
+
     for (cmdList = obj->filterOrder; cmdList && cmdList->cmdPtr != cmdPtr; cmdList = cmdList->nextPtr);
-    
+
     if (cmdList) {
       /*
        * A filter was found, check whether it has a guard.
@@ -5294,12 +5294,12 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
       (result = AssertionCheck(interp, obj, cl, methodName, CHECK_PRE)) == TCL_ERROR) {
     goto finish;
   }
-  
+
 #ifdef DISPATCH_TRACE
   printCall(interp, "invokeProcMethod", objc, objv);
   fprintf(stderr, "\tproc=%s\n", Tcl_GetCommandName(interp, cmdPtr));
 #endif
-  
+
   /*
    * In case, we have Tcl 8.5.* or better, we can avoid calling the
    * standard TclObjInterpProc() and ::xotcl::initProcNS defined in
@@ -5308,13 +5308,13 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
    * latter is callable from the outside (e.g. from XOTcl). This new
    * interface allows us to setup the XOTcl callframe before the
    * bytecode of the method body (provisioned by PushProcCallFrame)
-   * is executed for tcl 8.4 versions. 
+   * is executed for tcl 8.4 versions.
    */
 #if !defined(PRE85)
   /*fprintf(stderr, "\tproc=%s cp=%p %d\n", Tcl_GetCommandName(interp, cmd),cp, isTclProc);*/
-  
+
 # if defined(CANONICAL_ARGS)
-  /* 
+  /*
      If the method to be invoked hasparamDefs, we have to call the
      argument parser with the argument definitions obtained from the
      proc context from the cmdPtr.
@@ -5341,11 +5341,11 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   }
 # else /* no CANONICAL ARGS */
   result = PushProcCallFrame(cp, interp, objc, objv, cscPtr);
-# endif 
+# endif
 
-  /* we could consider to run here ARGS_METHO or INITCMD 
+  /* we could consider to run here ARGS_METHO or INITCMD
   if (result == TCL_OK) {
-   
+
   } */
 
   if (result != TCL_OK) {
@@ -5376,7 +5376,7 @@ invokeProcMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
     {
       TEOV_callback *rootPtr = TOP_CB(interp);
       /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n", objectName(obj), ObjStr(objv[0]));*/
-      Tcl_NRAddCallback(interp, FinalizeProcMethod, 
+      Tcl_NRAddCallback(interp, FinalizeProcMethod,
                         releasePc ? pcPtr : NULL, cscPtr, methodName, NULL);
       result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
       /*fprintf(stderr, ".... run callbacks rootPtr = %p, result %d methodName %s\n", rootPtr, result, methodName);*/
@@ -5445,7 +5445,7 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
       goto finish;
     }
   }
-  
+
 #if defined(TCL85STACK)
   if (cscPtr) {
     /* We have a call stack content, but the following dispatch will
@@ -5458,7 +5458,7 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
     /*XOTcl_PushFrame(interp, obj);*/
   }
 #endif
-  
+
 #ifdef DISPATCH_TRACE
   printCall(interp, "invokeCmdMethod cmd", objc, objv);
   fprintf(stderr, "\tcmd=%s\n", Tcl_GetCommandName(interp, cmdPtr));
@@ -5471,13 +5471,13 @@ invokeCmdMethod(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
 #ifdef DISPATCH_TRACE
   printExit(interp, "invokeCmdMethod cmd", objc, objv, result);
 #endif
-  
+
 #if defined(TCL85STACK)
   if (cscPtr) {
     XOTcl_PopFrame(interp, obj);
   }
 #endif
-  
+
   /* The order of the if-condition below is important, since obj might be already
      freed in case the call was a "dealloc" */
   if (obj->opt) {
@@ -5521,7 +5521,7 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
              char *methodName, int frameType) {
   ClientData cp = Tcl_Command_objClientData(cmd);
   XOTclCallStackContent csc, *cscPtr;
-  register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd); 
+  register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
   int result;
 
   assert (!obj->teardown);
@@ -5537,12 +5537,12 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
     cscPtr = &csc;
 #endif
     /*
-     * invoke a Tcl-defined method 
+     * invoke a Tcl-defined method
      */
 #if defined(TCL85STACK)
     CallStackPush(cscPtr, obj, cl, cmd, frameType);
 #else
-    if (!(cscPtr = CallStackPush(interp, obj, cl, cmd, frameType))) 
+    if (!(cscPtr = CallStackPush(interp, obj, cl, cmd, frameType)))
       return TCL_ERROR;
 #endif
     result = invokeProcMethod(cp, interp, objc, objv, methodName, obj, cl, cmd, cscPtr);
@@ -5570,7 +5570,7 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
          */
         Tcl_DeleteCommandFromToken(interp, cmd);
         XOTclCleanupObject(invokeObj);
-        return XOTclVarErrMsg(interp, "Trying to dispatch deleted object via method '", 
+        return XOTclVarErrMsg(interp, "Trying to dispatch deleted object via method '",
                               methodName, "'", (char *) NULL);
       }
     } else if (proc == XOTclForwardMethod ||
@@ -5586,7 +5586,7 @@ InvokeMethod(ClientData clientData, Tcl_Interp *interp,
 #if defined(TCL85STACK)
     CallStackPush(cscPtr, obj, cl, cmd, frameType);
 #else
-    if (!(cscPtr = CallStackPush(interp, obj, cl, cmd, frameType))) 
+    if (!(cscPtr = CallStackPush(interp, obj, cl, cmd, frameType)))
       return TCL_ERROR;
 #endif
   } else {
@@ -5666,7 +5666,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
     if (csc && (obj != csc->self ||
                 csc->frameType != XOTCL_CSC_TYPE_ACTIVE_FILTER)) {
-      
+
       filterStackPushed = FilterStackPush(interp, obj, methodObj);
       cmd = FilterSearchProc(interp, obj, &obj->filterStack->currentCmdPtr, &cl);
       if (cmd) {
@@ -5687,9 +5687,9 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
      during mixin registration (in XOTclOMixinMethod)
   */
   if ((objflags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) == XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
-    
+
     mixinStackPushed = MixinStackPush(obj);
-      
+
     if (frameType != XOTCL_CSC_TYPE_ACTIVE_FILTER) {
       result = MixinSearchProc(interp, obj, methodName, &cl,
                                &obj->mixinStack->currentCmdPtr, &cmd);
@@ -5704,7 +5704,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       }
     }
   }
-  
+
   /* if no filter/mixin is found => do ordinary method lookup */
   if (cmd == NULL) {
 
@@ -5715,7 +5715,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
          obj, methodName, obj->nsPtr, cmd);*/
     }
     /*fprintf(stderr, "findMethod for proc '%s' in %p returned %p\n", methodName, obj->nsPtr, cmd);*/
-    
+
     if (cmd == NULL) {
       /* check for a method */
       XOTclClass *currentClass = obj->cl;
@@ -5737,7 +5737,7 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     if ((Tcl_Command_flags(cmd) & XOTCL_CMD_PROTECTED_METHOD) &&
 	(flags & XOTCL_CM_NO_UNKNOWN) == 0) {
       XOTclObject *o, *lastSelf = GetSelfObj(interp);
-      
+
       /* we do not want to rely on clientData, so get obj from cmdObj */
       GetObjectFromObj(interp, cmdObj, &o);
       /*fprintf(stderr, "+++ %s is protected, therefore maybe unknown %p %s self=%p o=%p cd %p\n",
@@ -5780,11 +5780,11 @@ DoDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 	 */
         XOTclObject *obj = (XOTclObject*)clientData;
         ALLOC_ON_STACK(Tcl_Obj*, objc+2, tov);
-        
+
 	/*fprintf(stderr, "calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s objc %d shift %d\n",
 		objectName(obj), methodName, flags, XOTCL_CM_NO_UNKNOWN,
 		XOTclObjectIsClass(obj), obj, objectName(obj), objc, shift);*/
-        
+
         tov[0] = obj->cmdName;
         tov[1] = unknownObj;
         if (objc-shift>0) {
@@ -6061,13 +6061,13 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     result = GetObjectFromObj(interp, XOTclGlobalObjects[XOTE_PARAMETER_TYPE_OBJ], &paramObj);
     if (result != TCL_OK)
       return result;
-      
+
     checker = ParamCheckObj(interp, option, length);
     INCR_REF_COUNT(checker);
     cmd = ObjectFindMethod(interp,paramObj, ObjStr(checker), &pcl);
 
     if (cmd == NULL) {
-      fprintf(stderr, "**** could not find checker method %s defined on %s\n", 
+      fprintf(stderr, "**** could not find checker method %s defined on %s\n",
               ObjStr(checker), objectName(paramObj));
       /* TODO: for the time being, we do not return an error here */
     }
@@ -6101,7 +6101,7 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
 
   argString = ObjStr(npav[0]);
   length = strlen(argString);
-  
+
   isNonposArgument = *argString == '-';
 
   if (isNonposArgument) {
@@ -6171,7 +6171,7 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
     }
     paramPtr->defaultValue = Tcl_DuplicateObj(npav[1]);
     INCR_REF_COUNT(paramPtr->defaultValue);
-    /* 
+    /*
      * The argument will be not required for an invocation, since we
      * have a default.
      */
@@ -6231,7 +6231,7 @@ ParamDefsParse(Tcl_Interp *interp, char *procName, Tcl_Obj *args, int allowedOpt
         return result;
       }
     }
-    
+
     /*
      * If all arguments are good old Tcl arguments, there is no need
      * to use the parameter definition structure.
@@ -6244,7 +6244,7 @@ ParamDefsParse(Tcl_Interp *interp, char *procName, Tcl_Obj *args, int allowedOpt
     fprintf(stderr, "we need param definition structure for {%s}, argsc %d plain %d\n",
             ObjStr(args), argsc,plainParams);
     */
-    /* 
+    /*
      * Check the last argument. If the last argument is named 'args',
      * force converter and make it non-required.
      */
@@ -6269,8 +6269,8 @@ ParamDefsParse(Tcl_Interp *interp, char *procName, Tcl_Obj *args, int allowedOpt
 }
 
 static int
-MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp, 
-         Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition, 
+MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
+         Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition,
          Tcl_Obj *postcondition, XOTclObject *obj, int withProtected, int clsns) {
   TclCallFrame frame, *framePtr = &frame;
   char *procName = ObjStr(nameObj);
@@ -6325,8 +6325,8 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
   if (procPtr) {
     /* modify the cmd of the proc to set the current namespace for the body */
     if (clsns) {
-      /* 
-       * Set the namespace of the method as inside of the class 
+      /*
+       * Set the namespace of the method as inside of the class
        */
       if (!obj->nsPtr) {
         makeObjNamespace(interp, obj);
@@ -6336,12 +6336,12 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
         fprintf(stderr, "ns %s obj->ns %s\n", ns->fullName, obj->nsPtr->fullName);*/
       procPtr->cmdPtr->nsPtr = (Namespace*) obj->nsPtr;
     } else {
-      /* 
-       * Set the namespace of the method to the same namespace the class has 
+      /*
+       * Set the namespace of the method to the same namespace the class has
        */
       procPtr->cmdPtr->nsPtr = ((Command *)obj->id)->nsPtr;
     }
-    
+
     ParamDefsStore(interp, (Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs);
     if (withProtected) {
       Tcl_Command_flags((Tcl_Command)procPtr->cmdPtr) |= XOTCL_CMD_PROTECTED_METHOD;
@@ -6363,10 +6363,10 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
   return result;
 }
 
-static int 
-MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameObj, 
+static int
+MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameObj,
            Tcl_Obj *args, Tcl_Obj *body,
-           Tcl_Obj *precondition, Tcl_Obj *postcondition, 
+           Tcl_Obj *precondition, Tcl_Obj *postcondition,
            int withProtected, int clsns) {
   char *argsStr = ObjStr(args), *bodyStr = ObjStr(body), *nameStr = ObjStr(nameObj);
   int result;
@@ -6380,7 +6380,7 @@ MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameOb
 
   /* if both, args and body are empty strings, we delete the method */
   if (*argsStr == 0 && *bodyStr == 0) {
-    result = cl ? 
+    result = cl ?
       XOTclRemoveIMethod(interp, (XOTcl_Class *)cl, nameStr) :
       XOTclRemovePMethod(interp, (XOTcl_Object *)obj, nameStr);
   } else {
@@ -6398,7 +6398,7 @@ MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameOb
         aStore = opt->assertions;
       }
     }
-    result = MakeProc(cl ? cl->nsPtr : obj->nsPtr, aStore, 
+    result = MakeProc(cl ? cl->nsPtr : obj->nsPtr, aStore,
 		      interp, nameObj, args, body, precondition, postcondition,
 		      obj, withProtected, clsns);
   }
@@ -6812,8 +6812,8 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
   if (!csc) {
     csc = CallStackGetTopFrame(interp, &framePtr);
   } else {
-    /* 
-     * csc was given (i.e. it is not yet on the stack. So we cannot 
+    /*
+     * csc was given (i.e. it is not yet on the stack. So we cannot
      *  get objc from the associated stack frame
      */
     framePtr = NULL;
@@ -6863,7 +6863,7 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
     fprintf(stderr, " mixin=%d, filter=%d, proc=%p\n",
     isMixinEntry, isFilterEntry, proc);
   */
-#if 0  
+#if 0
   Tcl_ResetResult(interp); /* needed for bytecode support */
 #endif
   if (cmd) {
@@ -7796,7 +7796,7 @@ doCleanup(Tcl_Interp *interp, XOTclObject *newObj, XOTclObject *classobj,
   int result;
 
   /*
-   * Check whether we have a pending destroy on the object; if yes, clear it, 
+   * Check whether we have a pending destroy on the object; if yes, clear it,
    * such that the recreated object and won't be destroyed on a POP
    */
   MarkUndestroyed(newObj);
@@ -8182,7 +8182,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
    */
   if (varFramePtr && (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_PROC)) {
     varPtr = (Var *)CompiledLocalsLookup((CallFrame *)varFramePtr, ObjStr(newName));
-    
+
     if (varPtr == NULL) {	/* look in frame's local var hashtable */
       tablePtr = Tcl_CallFrame_varTablePtr(varFramePtr);
       if (tablePtr == NULL) {
@@ -8199,17 +8199,17 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
       if (varPtr == otherPtr)
         return XOTclVarErrMsg(interp, "can't instvar to variable itself",
                               (char *) NULL);
-      
+
       if (TclIsVarLink(varPtr)) {
         /* we try to make the same instvar again ... this is ok */
         Var *linkPtr = valueOfVar(Var, varPtr, linkPtr);
         if (linkPtr == otherPtr) {
           return TCL_OK;
         }
-        
+
         /*fprintf(stderr, "linkvar flags=%x\n", linkPtr->flags);
           Tcl_Panic("new linkvar %s... When does this happen?", ObjStr(newName), NULL);*/
-        
+
         /* We have already a variable with the same name imported
            from a different object. Get rid of this old variable
       */
@@ -8217,7 +8217,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
         if (TclIsVarUndefined(linkPtr)) {
           CleanupVar(linkPtr, (Var *) NULL);
         }
-        
+
       } else if (!TclIsVarUndefined(varPtr)) {
         return XOTclVarErrMsg(interp, "variable '", ObjStr(newName),
                               "' exists already", (char *) NULL);
@@ -8226,7 +8226,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
                               "' has traces: can't use for instvar", (char *) NULL);
       }
     }
-    
+
     TclSetVarLink(varPtr);
     TclClearVarUndefined(varPtr);
 #if FORWARD_COMPATIBLE
@@ -8240,7 +8240,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
     varPtr->value.linkPtr = otherPtr;
 #endif
     VarHashRefCount(otherPtr)++;
-    
+
     /*
       {
       Var85 *p = (Var85 *)varPtr;
@@ -8561,7 +8561,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
   csc->currentFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
 
   /*fprintf(stderr, "...setting currentFramePtr %p to %p (ForwardMethod)\n",
-    RUNTIME_STATE(interp)->cs.top->currentFramePtr, (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp)); 
+    RUNTIME_STATE(interp)->cs.top->currentFramePtr, (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp));
   */
 #endif
 
@@ -8614,7 +8614,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
         }
       }
     }
-    
+
     /*fprintf(stderr, "objc=%d, tcd->nr_subcommands=%d size=%d\n",
       objc, tcd->nr_subcommands, objc+ 2	    );*/
 
@@ -8632,7 +8632,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
       for (j=0; j<totalargs; j++) {
 	if (objvmap[j] < -1) {
 	  /*fprintf(stderr, "must reduct, v=%d\n",objvmap[j]);*/
-	  objvmap[j] = max + objvmap[j] + 2; 
+	  objvmap[j] = max + objvmap[j] + 2;
 	  /*fprintf(stderr, "... new value=%d, max = %d\n",objvmap[j],max);*/
 	}
       }
@@ -8733,7 +8733,7 @@ XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 #else
   result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->clientData, objc, objv);
 #endif
-  
+
   XOTcl_PopFrame(interp, obj);
   return result;
 }
@@ -8801,14 +8801,14 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, char **methodName, int
 }
 
 static int
-callConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, char *methodName, 
+callConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
                     int argc, Tcl_Obj *CONST argv[]) {
   int result;
   Tcl_Obj *method = Tcl_NewStringObj(methodName,-1);
-  
+
   /* fprintf(stderr, "callConfigureMethod method %s->'%s' level %d, argc %d\n",
      objectName(obj), methodName, level, argc);*/
-  
+
   if (isInitString(methodName)) {
     obj->flags |= XOTCL_INIT_CALLED;
   }
@@ -8876,12 +8876,12 @@ callingNameSpace(Tcl_Interp *interp) {
     /*fprintf(stderr, "... %p take %s\n", framePtr, nsPtr->fullName); */
     break;
   }
-   
+
   if (!framePtr) {
     nsPtr = Tcl_GetGlobalNamespace(interp);
   }
-  
-  /*fprintf(stderr, " **** callingNameSpace: returns %p %s framePtr %p\n", 
+
+  /*fprintf(stderr, " **** callingNameSpace: returns %p %s framePtr %p\n",
     nsPtr, nsPtr?nsPtr->fullName:"(null)", framePtr);*/
   return nsPtr;
 }
@@ -8986,12 +8986,12 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, char *specifiedName, int objc, 
 
 #include "tclAPI.h"
 
-static int 
-ArgumentError(Tcl_Interp *interp, char *errorMsg, XOTclParam CONST *paramPtr, 
+static int
+ArgumentError(Tcl_Interp *interp, char *errorMsg, XOTclParam CONST *paramPtr,
               Tcl_Obj *cmdNameObj, Tcl_Obj *methodNameObj) {
   Tcl_Obj *argStringObj = Tcl_NewStringObj("", 0);
   XOTclParam CONST *pPtr;
-  
+
   for (pPtr = paramPtr; pPtr->name; pPtr++) {
     if (pPtr != paramPtr) {
       Tcl_AppendToObj(argStringObj, " ", 1);
@@ -9013,7 +9013,7 @@ ArgumentError(Tcl_Interp *interp, char *errorMsg, XOTclParam CONST *paramPtr,
 }
 
 static int
-ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp, 
+ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
                  XOTclParam CONST *ifd, int nrParams) {
   XOTclParam CONST *pPtr;
   int i;
@@ -9023,18 +9023,18 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
       pPtr->name, pPtr->flags & XOTCL_ARG_REQUIRED,
       pcPtr->clientData[i], pcPtr->objv[i],
       pPtr->defaultValue ? ObjStr(pPtr->defaultValue) : "NONE");*/
-    
+
     if (pcPtr->objv[i]) {
       /* we got an actual value, which was already checked by objv parser */
       /*fprintf(stderr, "setting passed value for %s to '%s'\n",pPtr->name,ObjStr(pcPtr->objv[i]));*/
       if (pPtr->converter == convertToSwitch) {
         int bool;
         Tcl_GetBooleanFromObj(interp, pPtr->defaultValue, &bool);
-	pcPtr->objv[i] = Tcl_NewBooleanObj(!bool); 
+	pcPtr->objv[i] = Tcl_NewBooleanObj(!bool);
       }
     } else {
       /* no valued passed, check if default is available */
-      
+
       if (pPtr->defaultValue) {
         Tcl_Obj *newValue = pPtr->defaultValue;
         ClientData checkedData;
@@ -9045,20 +9045,20 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
           if (result != TCL_OK) {
             return result;
           }
-          /*fprintf(stderr, "attribute %s default %p %s => %p '%s'\n", pPtr->name, 
+          /*fprintf(stderr, "attribute %s default %p %s => %p '%s'\n", pPtr->name,
                   pPtr->defaultValue, ObjStr(pPtr->defaultValue),
                   newValue,ObjStr(newValue));*/
 
           /* the according DECR is performed by parseContextRelease() */
-          INCR_REF_COUNT(newValue); 
+          INCR_REF_COUNT(newValue);
           pcPtr->flags[i] |= XOTCL_PC_MUST_DECR;
         }
 
-        pcPtr->objv[i] = newValue;        
+        pcPtr->objv[i] = newValue;
         /*fprintf(stderr, "==> setting default value '%s' for var '%s' flag %d type %s conv %p\n",
                 ObjStr(newValue),pPtr->name, pPtr->flags & XOTCL_ARG_INITCMD,
                 pPtr->type, pPtr->converter);*/
-      
+
         /* Check the default value, unless we have an INITCMD or METHOD */
         if ((pPtr->flags & (XOTCL_ARG_INITCMD|XOTCL_ARG_METHOD)) == 0) {
           if ((*pPtr->converter)(interp, newValue, pPtr, &checkedData) != TCL_OK) {
@@ -9066,15 +9066,15 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
           }
         }
       } else if (pPtr->flags & XOTCL_ARG_REQUIRED) {
-        return XOTclVarErrMsg(interp, 
-                              pcPtr->obj ? objectName(pcPtr->obj) : "", pcPtr->obj ? " " : "", 
+        return XOTclVarErrMsg(interp,
+                              pcPtr->obj ? objectName(pcPtr->obj) : "", pcPtr->obj ? " " : "",
                               ObjStr(pcPtr->full_objv[0]), ": required argument '",
-                              pPtr->nameObj ? ObjStr(pPtr->nameObj) : pPtr->name, 
+                              pPtr->nameObj ? ObjStr(pPtr->nameObj) : pPtr->name,
                               "' is missing", (char *) NULL);
       } else {
         /* Use as dummy default value an arbitrary symbol, which must not be
          * returned to the Tcl level level; this value is
-         * unset later by unsetUnknownArgs 
+         * unset later by unsetUnknownArgs
          */
         pcPtr->objv[i] = XOTclGlobalObjects[XOTE___UNKNOWN__];
       }
@@ -9084,14 +9084,14 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
 }
 
 static int
-ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
+ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               XOTclObject *obj, Tcl_Obj *procNameObj,
-              XOTclParam CONST *paramPtr, int nrParams, 
+              XOTclParam CONST *paramPtr, int nrParams,
               parseContext *pc) {
   int i, o, flagCount = 0, nrReq = 0, nrOpt = 0, dashdash = 0, nrDashdash = 0;
   /* todo benchmark with and without CONST */
   XOTclParam CONST *pPtr;
-  
+
   parseContextInit(pc, nrParams, obj, procNameObj);
 
 #if defined(PARSE_TRACE)
@@ -9108,7 +9108,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     if (*pPtr->name == '-') {
       int p, found;
       char *objStr;
-      /* 
+      /*
        * We expect now a non-positional (named) parameter, starting
        * with a "-"; such arguments can be given in an arbitrary order
        */
@@ -9119,7 +9119,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         /*fprintf(stderr, "....checking objv[%d]=%s\n", p, objStr);*/
         if (objStr[0] != '-') {
 	  /* there is no positional arg in the given argument vector */
-	  break; 
+	  break;
 	} else {
           XOTclParam CONST *nppPtr;
 	  /* We have an argument starting with a "-"; is it really one of the specified flags? */
@@ -9527,21 +9527,21 @@ ListProcBody(Tcl_Interp *interp, Proc *procPtr, char *methodName) {
   return XOTclErrBadVal(interp, "info body", "a tcl method name", methodName);
 }
 
-static int 
+static int
 ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVarnames) {
   Proc *procPtr = GetProcFromCommand(cmd);
   if (procPtr) {
     XOTclParamDefs *paramDefs = procPtr ? ParamDefsGet((Tcl_Command)procPtr->cmdPtr) : NULL;
     Tcl_Obj *list;
-    
+
     if (paramDefs) {
-      /* 
-       * Obtain parameter info from paramDefs 
+      /*
+       * Obtain parameter info from paramDefs
        */
       list = withVarnames ? ParamDefsList(interp, paramDefs) : ParamDefsFormat(interp, paramDefs);
 
     } else {
-      /* 
+      /*
        * Obtain parameter info from compiled locals
        */
       CompiledLocal *args = procPtr->firstLocalPtr;
@@ -9553,7 +9553,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVar
         if (!TclIsCompiledLocalArgument(args)) {
           continue;
         }
-        
+
         innerlist = Tcl_NewListObj(0, NULL);
         Tcl_ListObjAppendElement(interp, innerlist, Tcl_NewStringObj(args->name, -1));
         if (!withVarnames && args->defValuePtr) {
@@ -9567,7 +9567,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVar
     return TCL_OK;
 
   } else if (cmd) {
-    /* 
+    /*
      * If a command is found for the object|class, check whether we
      * find the parameter definitions for the C-defined method.
      */
@@ -9580,7 +9580,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVar
         return TCL_OK;
       }
     }
-    return XOTclVarErrMsg(interp, "info params: could not obtain parameter definition for method '", 
+    return XOTclVarErrMsg(interp, "info params: could not obtain parameter definition for method '",
                           methodName, "'", (char *) NULL);
   }
   return XOTclErrBadVal(interp, "info params", "a method name", methodName);
@@ -9639,7 +9639,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   }
 
   if (objProc == XOTclObjDispatch) {
-    /* 
+    /*
      * if we register an alias for an object, we have to take care to
      * handle cases, where the aliased object is destroyed and the
      * alias points to nowhere. We realize this via using the object
@@ -9688,7 +9688,7 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
     if (result != TCL_OK)
       return result;
   }
-  
+
   switch (configureoption) {
   case configureoptionFilterIdx:
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
@@ -9762,7 +9762,7 @@ XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class) 
  * prints a msg to the screen that oldCmd is deprecated
  * optinal: give a new cmd
  */
-static int 
+static int
 XOTclDeprecatedCmd(Tcl_Interp *interp, char *oldCmd, char *newCmd) {
   fprintf(stderr, "**\n**\n** The command/method <%s> is deprecated.\n", oldCmd);
   if (newCmd)
@@ -9772,8 +9772,8 @@ XOTclDeprecatedCmd(Tcl_Interp *interp, char *oldCmd, char *newCmd) {
 }
 
 
-static int 
-XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, 
+static int
+XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
                  Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int result;
   char *methodName = ObjStr(command);
@@ -9781,7 +9781,7 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
 
   /* fprintf(stderr, "Dispatch obj=%s, o=%p cmd m='%s'\n",objectName(object),object,methodName);*/
 
-  /* 
+  /*
    * If the specified method is a fully qualified cmd name like
    * e.g. ::xotcl::cmd::Class::alloc, this method is called on the
    * specified <Class|Object>, no matter whether it was registered on
@@ -9799,7 +9799,7 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
     char *parentName, *tail = n+2;
     DSTRING_INIT(dsp);
 
-    /* 
+    /*
      * We have an absolute name. We assume, the name is the name of a
      * tcl command, that will be dispatched. If "withObjscope is
      * specified, a callstack frame is pushed to make instvars
@@ -9834,10 +9834,10 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
       if (withObjscope) {
         XOTcl_PushFrame(interp, object);
       }
-      /* 
+      /*
        * Since we know, that we are always called with a full argument
        * vector, we can include the cmd name in the objv by using
-       * nobjv-1; this way, we avoid a memcpy() 
+       * nobjv-1; this way, we avoid a memcpy()
        */
       result = InvokeMethod((ClientData)object, interp,
                             nobjc+1, nobjv-1, cmd, object,
@@ -9848,7 +9848,7 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
       }
     }
   } else {
-    /* 
+    /*
      * No colons in command name, use method from the precedence
      * order, with filters etc. -- strictly speaking unneccessary,
      * since we could dispatch the method also without
@@ -9911,13 +9911,13 @@ static int GetInstvarsIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj, int
 static int
 XOTclInstvarCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj = GetSelfObj(interp);
-  if (!obj) 
+  if (!obj)
     return XOTclVarErrMsg(interp, "instvar: no current object", (char *) NULL);
   return GetInstvarsIntoCurrentScope(interp, obj, objc, objv);
 }
 
 /* create a slave interp that calls XOTcl Init */
-static int 
+static int
 XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Interp *slave;
   ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
@@ -9932,7 +9932,7 @@ XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[
   }
 
   if (isCreateString(name)) {
-    /* 
+    /*
      * The command was an interp create, so perform an Xotcl_Init() on
      * the new interpreter
      */
@@ -9964,8 +9964,8 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_O
   switch (objectkind) {
   case objectkindTypeIdx:
     if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> type <type>");
-    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) 
-      && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK) 
+    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK)
+      && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK)
       && isSubType(obj->cl, cl);
     break;
 
@@ -9981,15 +9981,15 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_O
 
   case objectkindMetaclassIdx:
     if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<class> metaclass");
-    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) 
-      && XOTclObjectIsClass(obj) 
+    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK)
+      && XOTclObjectIsClass(obj)
       && IsMetaClass(interp, (XOTclClass*)obj, 1);
     break;
 
   case objectkindMixinIdx:
     if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> mixin <class>");
-    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) 
-      && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK) 
+    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK)
+      && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK)
       && hasMixin(interp, obj, cl);
     break;
   }
@@ -10033,15 +10033,15 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char 
 			    (char *) NULL);
   }
 
-  if (methodproperty == methodpropertyProtectedIdx 
+  if (methodproperty == methodpropertyProtectedIdx
       || methodproperty == methodpropertyStaticIdx) {
 
-    int flag = methodproperty == methodpropertyProtectedIdx ? 
-      XOTCL_CMD_PROTECTED_METHOD : 
+    int flag = methodproperty == methodpropertyProtectedIdx ?
+      XOTCL_CMD_PROTECTED_METHOD :
       XOTCL_CMD_STATIC_METHOD;
 
     if (value) {
-      int bool, result; 
+      int bool, result;
       result = Tcl_GetBooleanFromObj(interp, value, &bool);
       if (result != TCL_OK) {
         return result;
@@ -10326,7 +10326,7 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   return TCL_OK;
 }
 
-static int 
+static int
 XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   Tcl_Namespace *fromNsPtr, *toNsPtr;
   Var *varPtr = NULL;
@@ -10672,7 +10672,7 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
       return XOTclVarErrMsg(interp, "self: no current object", (char *) NULL);
     }
   }
-  
+
   if (!obj && selfoption != selfoptionCallinglevelIdx) {
     return XOTclVarErrMsg(interp, "self: no current object", (char *) NULL);
   }
@@ -10784,7 +10784,7 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
     if (csc <= RUNTIME_STATE(interp)->cs.content)
       csc = NULL;
 #endif
-    Tcl_SetBooleanObj(Tcl_GetObjResult(interp), 
+    Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (csc && (csc->callType & XOTCL_CSC_CALL_IS_NEXT)));
     break;
   }
@@ -10900,13 +10900,13 @@ static int XOTclOCleanupMethod(Tcl_Interp *interp, XOTclObject *obj) {
   return TCL_OK;
 }
 
-static int 
+static int
 GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *obj,
                              XOTclParsedParam *parsedParamPtr) {
   int result;
   Tcl_Obj *rawConfArgs;
 
-  /* 
+  /*
    * Parameter definitions are cached in the class, for which
    * instances are created. The parameter definitions are flushed in
    * the following situations:
@@ -10917,7 +10917,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
    * d) when new slots are defined,
    * e) when slots are removed
    *
-   * When slot defaults or types are changed, the slots have to 
+   * When slot defaults or types are changed, the slots have to
    * perform a manual "$domain invalidateobjectparameter"
    */
 
@@ -10930,7 +10930,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
     parsedParamPtr->possibleUnknowns = obj->cl->parsedParamPtr->possibleUnknowns;
     result = TCL_OK;
   } else {
-    /* 
+    /*
      * There is no parameter definition available, get a new one in
      * the the string representation.
      */
@@ -10945,7 +10945,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
         XOTclParsedParam *ppDefPtr = NEW(XOTclParsedParam);
         ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
         ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
-        obj->cl->parsedParamPtr = ppDefPtr; 
+        obj->cl->parsedParamPtr = ppDefPtr;
       }
       DECR_REF_COUNT(rawConfArgs);
     }
@@ -10953,7 +10953,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
   return result;
 }
 
-static int 
+static int
 XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
   int result, i, remainingArgsc;
   XOTclParsedParam parsedParam;
@@ -10995,7 +10995,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
   for (i=1, paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++, i++) {
 
     newValue = pc.full_objv[i];
-    /*fprintf(stderr, "newValue of %s = %p '%s'\n", ObjStr(paramPtr->nameObj), 
+    /*fprintf(stderr, "newValue of %s = %p '%s'\n", ObjStr(paramPtr->nameObj),
       newValue, newValue ? ObjStr(newValue) : "(null)"); */
 
     if (newValue == XOTclGlobalObjects[XOTE___UNKNOWN__]) {
@@ -11016,7 +11016,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
         goto configure_exit;
       }
       /* done with relation handling */
-      continue; 
+      continue;
     }
 
     /* special setter for init commands */
@@ -11027,7 +11027,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
         result = callMethod((ClientData) obj, interp,
                             paramPtr->nameObj, 2+(paramPtr->nrArgs), &newValue, 0);
       }
-      /*fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n", 
+      /*fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n",
         ObjStr(paramPtr->nameObj), ObjStr(newValue), result);*/
       if (result != TCL_OK) {
         XOTcl_PopFrame(interp, obj);
@@ -11074,11 +11074,11 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
 
 static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *obj) {
   PRINTOBJ("XOTclODestroyMethod", obj);
-  /* 
+  /*
    * XOTCL_DESTROY_CALLED might be set already be callDestroyMethod(),
    * the implicit destroy calls. It is necessary to set it here for
    * the explicit destroy calls in the script, which reach the
-   * Object->destroy. 
+   * Object->destroy.
    */
   /*fprintf(stderr,"XOTclODestroyMethod %p flags %.6x activation %d\n",
     obj,obj->flags,obj->activationCount); */
@@ -11204,7 +11204,7 @@ static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, T
                           ", but callstack is not in procedure scope",
 			  (char *) NULL);
   }
-  
+
   result = GetInstvarsIntoCurrentScope(interp, obj, objc, objv);
   CallStackRestoreSavedFrames(interp, &ctx);
   return result;
@@ -11295,11 +11295,11 @@ static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int ob
   /* if we got a single argument, try to split it (unless it starts
    * with our magic chars) to distinguish between
    *    Object create foo {.method foo {} {...}}
-   * and 
+   * and
    *    Object create foo {
    *      {.method foo {} {...}}
    *    }
-   */ 
+   */
   if (objc == 2) {
     Tcl_Obj **ov;
     char *word = ObjStr(objv[1]);
@@ -11380,8 +11380,8 @@ static int XOTclOForwardMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *me
                                  target, nobjc, nobjv, &tcd);
   if (result == TCL_OK) {
     tcd->obj = obj;
-    result = XOTclAddObjectMethod(interp, (XOTcl_Object *)obj, NSTail(ObjStr(method)), 
-                                  (Tcl_ObjCmdProc*)XOTclForwardMethod, 
+    result = XOTclAddObjectMethod(interp, (XOTcl_Object *)obj, NSTail(ObjStr(method)),
+                                  (Tcl_ObjCmdProc*)XOTclForwardMethod,
                                   (ClientData)tcd, forwardCmdDeleteProc, 0);
   }
   return result;
@@ -11651,7 +11651,7 @@ static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *obje
     return XOTclVarErrMsg(interp, "Can't destroy object ",
                           ObjStr(object), " that does not exist.", (char *) NULL);
 
-  /*fprintf(stderr, "dealloc obj=%s flags %.6x activation %d opt=%p\n", 
+  /*fprintf(stderr, "dealloc obj=%s flags %.6x activation %d opt=%p\n",
     objectName(delobj), delobj->flags, delobj->activationCount, delobj->opt);*/
 
   result = freeUnsetTraceVariable(interp, delobj);
@@ -11780,29 +11780,29 @@ static int XOTclCInstParametercmdMethod(Tcl_Interp *interp, XOTclClass *cl, char
   return XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
 }
 /* TODO move me at the right place */
-static int XOTclOMethodMethod(Tcl_Interp *interp, XOTclObject *obj, 
+static int XOTclOMethodMethod(Tcl_Interp *interp, XOTclObject *obj,
                               int withInner_namespace, int withProtected,
-                              Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, 
+                              Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
                               Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
   requireObjNamespace(interp, obj);
-  return MakeMethod(interp, obj, NULL, name, args, body, 
-                    withPrecondition, withPostcondition, 
+  return MakeMethod(interp, obj, NULL, name, args, body,
+                    withPrecondition, withPostcondition,
                     withProtected, withInner_namespace);
 }
 
 /* TODO move me at the right place */
-static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl, 
+static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl,
                               int withInner_namespace, int withPer_object, int withProtected,
-                              Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, 
+                              Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
                               Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
   if (withPer_object) {
     requireObjNamespace(interp, &cl->object);
-    return MakeMethod(interp, &cl->object, NULL, name, args, body, 
-                      withPrecondition, withPostcondition, 
+    return MakeMethod(interp, &cl->object, NULL, name, args, body,
+                      withPrecondition, withPostcondition,
                       withProtected, withInner_namespace);
   } else {
-    return MakeMethod(interp, &cl->object, cl, name, args, body, 
-                      withPrecondition, withPostcondition, 
+    return MakeMethod(interp, &cl->object, cl, name, args, body,
+                      withPrecondition, withPostcondition,
                       withProtected, withInner_namespace);
   }
 }
@@ -11924,7 +11924,7 @@ static int XOTclObjInfoCommandsMethod(Tcl_Interp *interp, XOTclObject *object, c
   return ListKeys(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern);
 }
 
-static int XOTclObjInfoFilterMethod(Tcl_Interp *interp, XOTclObject *object, 
+static int XOTclObjInfoFilterMethod(Tcl_Interp *interp, XOTclObject *object,
                                     int withOrder, int withGuards, char *pattern) {
   XOTclObjectOpt *opt = object->opt;
   if (withOrder) {
@@ -11978,8 +11978,8 @@ static int XOTclObjInfoMixinguardMethod(Tcl_Interp *interp, XOTclObject *object,
 }
 
 static int XOTclObjInfoParamsMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withVarnames) {
-  return ListCmdParams(interp, 
-                       object->nsPtr ? FindMethod(object->nsPtr, methodName) : NULL, 
+  return ListCmdParams(interp,
+                       object->nsPtr ? FindMethod(object->nsPtr, methodName) : NULL,
                        methodName, withVarnames);
 }
 
@@ -12353,14 +12353,14 @@ XOTclInitProcNSCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
   if (RUNTIME_STATE(interp)->cs.top->currentFramePtr == NULL) {
     RUNTIME_STATE(interp)->cs.top->currentFramePtr = varFramePtr;
-  } 
+  }
   return TCL_OK;
 }
 #endif
 
 #if defined(CANONICAL_ARGS)
 static int
-ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp, 
+ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
                        XOTclObject *obj, int pushFrame,
                        XOTclParamDefs *paramDefs,
                        char *methodName, int objc, Tcl_Obj *CONST objv[]) {
@@ -12370,7 +12370,7 @@ ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
   if (obj && pushFrame) {
     XOTcl_PushFrame(interp, obj);
   }
-  result = ArgumentParse(interp, objc, objv, obj, objv[0], 
+  result = ArgumentParse(interp, objc, objv, obj, objv[0],
                          paramDefs->paramsPtr, paramDefs->nrParams, pcPtr);
   if (obj && pushFrame) {
     XOTcl_PopFrame(interp, obj);
@@ -12379,7 +12379,7 @@ ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
     return result;
   }
 
-  /* 
+  /*
    * Set objc of the parse context to the number of defined parameters.
    * pcPtr->objc and paramDefs->nrParams will be equivalent in cases
    * where argument values are passed to the call in absence of var
@@ -12388,7 +12388,7 @@ ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
   pcPtr->objc = paramDefs->nrParams + 1;
 
   if (pcPtr->varArgs) {
-    /* 
+    /*
      * The last argument was "args".
      */
     int elts = objc - pcPtr->lastobjc;
@@ -12444,8 +12444,8 @@ XOTclUnsetUnknownArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
       Tcl_UnsetVar2(interp, ap->name, NULL, 0);
     }
   }
-  
-  return TCL_OK;  
+
+  return TCL_OK;
 }
 
 #else
@@ -12481,7 +12481,7 @@ XOTclInterpretNonpositionalArgsCmd(ClientData clientData, Tcl_Interp *interp, in
   /* apply the arguments, which means to set the appropiate instance variables */
   for (pPtr = paramDefs->paramsPtr, i=0; pPtr->name; pPtr++, i++) {
     if (pc.objv[i] && pc.objv[i] != XOTclGlobalObjects[XOTE___UNKNOWN__]) {
-    /* 
+    /*
      * if we have a provided value, we set it.
      */
       Tcl_SetVar2(interp, pPtr->nameObj, NULL, pc.objv[i], 0);
@@ -13012,7 +13012,7 @@ Xotcl_Init(Tcl_Interp *interp) {
 #if !defined(CANONICAL_ARGS)
   Tcl_CreateObjCommand(interp, "::xotcl::interpretNonpositionalArgs",
                        XOTclInterpretNonpositionalArgsCmd, 0, 0);
-#else 
+#else
   Tcl_CreateObjCommand(interp, "::xotcl::unsetUnknownArgs",
                        XOTclUnsetUnknownArgsCmd, 0,0);
 #endif
