@@ -139,12 +139,13 @@ typedef struct forwardCmdClientData {
   Tcl_Obj *subcommands;
 } forwardCmdClientData;
 
-typedef struct aliasCmdClientData {
+typedef struct AliasCmdClientData {
   XOTclObject *obj;
   Tcl_Obj *cmdName;
   Tcl_ObjCmdProc *objProc;
+  Tcl_Command aliasedCmd;
   ClientData clientData;
-} aliasCmdClientData;
+} AliasCmdClientData;
 
 #define PARSE_CONTEXT_PREALLOC 20
 typedef struct {
@@ -6064,7 +6065,7 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
 
     checker = ParamCheckObj(interp, option, length);
     INCR_REF_COUNT(checker);
-    cmd = ObjectFindMethod(interp,paramObj, ObjStr(checker), &pcl);
+    cmd = ObjectFindMethod(interp, paramObj, ObjStr(checker), &pcl);
 
     if (cmd == NULL) {
       fprintf(stderr, "**** could not find checker method %s defined on %s\n",
@@ -8705,12 +8706,12 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
  * copied from Tcl, since not exported
  */
 static char *
-VwaitVarProc(clientData, interp, name1, name2, flags)
-     ClientData clientData;	/* Pointer to integer to set to 1. */
-     Tcl_Interp *interp;		/* Interpreter containing variable. */
-     char *name1;		/* Name of variable. */
-     char *name2;		/* Second part of variable name. */
-     int flags;			/* Information about what happened. */
+VwaitVarProc(
+             ClientData clientData,	/* Pointer to integer to set to 1. */
+             Tcl_Interp *interp,	/* Interpreter containing variable. */
+             char *name1,		/* Name of variable. */
+             char *name2,		/* Second part of variable name. */
+             int flags)			/* Information about what happened. */
 {
   int *donePtr = (int *) clientData;
 
@@ -8719,8 +8720,21 @@ VwaitVarProc(clientData, interp, name1, name2, flags)
 }
 
 static int
+XOTclProcAliasMethod(ClientData clientData, 
+                     Tcl_Interp *interp, int objc, 
+                     Tcl_Obj *CONST objv[]) {
+  AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
+  XOTclObject *self = GetSelfObj(interp);
+  char *methodName = ObjStr(objv[0]);
+  /*TODO: resolve the 'real' command at the end of the imported cmd chain */
+
+  return MethodDispatch((ClientData)self, interp, objc, objv, tcd->aliasedCmd, self, self->cl,
+                        methodName, 0);
+}
+
+static int
 XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  aliasCmdClientData *tcd = (aliasCmdClientData *)clientData;
+  AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
   XOTclObject *obj = tcd->obj;
   int result;
   XOTcl_FrameDecls;
@@ -8739,10 +8753,10 @@ XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 }
 
 static void aliasCmdDeleteProc(ClientData clientData) {
-  aliasCmdClientData *tcd = (aliasCmdClientData *)clientData;
+  AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
   if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
   /*fprintf(stderr, "aliasCmdDeleteProc\n");*/
-  FREE(aliasCmdClientData, tcd);
+  FREE(AliasCmdClientData, tcd);
 }
 
 
@@ -9311,8 +9325,20 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern,
   Tcl_HashEntry *hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : 0;
   for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(table, hPtr);
-    Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
-    Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
+    Tcl_Command importedCmd, cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
+    Tcl_ObjCmdProc *proc;
+
+    if ((importedCmd = TclGetOriginalCommand(cmd))) {
+      cmd = importedCmd;
+    }
+    proc = Tcl_Command_objProc(cmd);
+
+    if (proc == XOTclProcAliasMethod || proc == XOTclObjscopedMethod) {
+      AliasCmdClientData *tcd = Tcl_Command_objClientData(cmd);
+      /* TODO: resolve our chain */
+      assert(tcd);
+      proc = tcd->objProc;
+    }
 
     if (pattern && !Tcl_StringMatch(key, pattern)) continue;
     if (noCmds  && proc != RUNTIME_STATE(interp)->objInterpProc) continue;
@@ -9595,47 +9621,73 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVar
  *********************************/
 
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName,
-                         int withObjscope, int withPer_object, int withProtected, Tcl_Obj *cmdName) {
-  XOTclClass *cl;
-  Tcl_Command cmd, importedCmd;
-  Tcl_ObjCmdProc *objProc;
+                         int withObjscope, int withPer_object, int withProtected, 
+                         Tcl_Obj *cmdName) {
+  Tcl_Command cmd, importedCmd, newCmd;
+  Tcl_ObjCmdProc *objProc, *newObjProc = NULL;
+  Tcl_CmdDeleteProc *deleteProc = NULL;
+  AliasCmdClientData *tcd = NULL; /* make compiler happy */
+  int flags, result;
   char allocation;
-  Tcl_CmdDeleteProc *dp = NULL;
-  aliasCmdClientData *tcd = NULL;
-  int flags = 0, result;
-
-  if (XOTclObjectIsClass(object)) {
-    cl = (XOTclClass *)object;
-    allocation = 'c';
-  } else {
-    cl = NULL;
-    allocation = 'o';
-  }
 
   if (withPer_object) {
+    allocation = 'o';
+  } else if (XOTclObjectIsClass(object)) {
+    allocation = 'c';
+  } else {
     allocation = 'o';
   }
 
   cmd = Tcl_GetCommandFromObj(interp, cmdName);
-  if (cmd == NULL)
+  if (cmd == NULL) {
     return XOTclVarErrMsg(interp, "cannot lookup command '",
                           ObjStr(cmdName), "'", (char *) NULL);
+  }
 
   if ((importedCmd = TclGetOriginalCommand(cmd))) {
     cmd = importedCmd;
   }
   objProc = Tcl_Command_objProc(cmd);
 
+  /* objProc is either ...  
+
+     1. XOTclObjDispatch: a command representing an xotcl object 
+
+     2. TclObjInterpProc: a cmd standing for a
+        Tcl proc (including XOTcl methods), verified through 
+        CmdIsProc() -> to be wrapped by XOTclProcAliasMethod()
+     
+     3. XOTclForwardMethod: an XOTcl forwarder 
+
+     4. XOTclSetterMethod: an XOTcl parametercmd 
+
+     ... or other helper/ intermediate wrapper functions 
+     (e.g., XOTclSetRelation)
+
+     5. arbitrary Tcl commands (e.g. set, ...)
+
+     TODO: only 1 & 2 are relevant, right? what about aliasing
+     forwarders? should there be explicit errors thrown on 3. (and
+     4.?)? 
+     
+     GN: why limit objProc; ideally, one should be able to use the
+     same mechanism for every method?
+
+     TODO: where does '-objscope' makes sense? i'd say 2-4 (for now,
+     we consider only case 2). should there be an error thrown upon 1?
+     
+     GN: it make sense, whever an "input/output variable" targeted to the
+     current (proc)scope should should effect the instance
+     variables. 3&4 do not make sense (they set already instance
+     variables, one has to experience with e.g. procs + upvar)
+
+     GN: i think, we should use XOTclProcAliasMethod, whenever the clientData
+     is not 0. These are the cases, where the clientData will be freed,
+     when the original command is deleted.
+  */
+
   if (withObjscope) {
-    tcd = NEW(aliasCmdClientData);
-    tcd->cmdName    = NULL;
-    tcd->obj        = allocation == 'c' ? &cl->object : object;
-    tcd->objProc    = objProc;
-    tcd->clientData = Tcl_Command_objClientData(cmd);
-    objProc         = XOTclObjscopedMethod;
-    dp = aliasCmdDeleteProc;
-  } else {
-    tcd = Tcl_Command_objClientData(cmd);
+    newObjProc = XOTclObjscopedMethod;
   }
 
   if (objProc == XOTclObjDispatch) {
@@ -9646,37 +9698,56 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
      * refcount.
      */
     /*fprintf(stderr, "registering an object %p\n",tcd);*/
-    XOTclObjectRefCountIncr((XOTclObject *)tcd);
+    XOTclObjectRefCountIncr((XOTclObject *)Tcl_Command_objClientData(cmd));
   } else if (CmdIsProc(cmd)) {
-    if (allocation == 'c') {
-      Tcl_DString ds, *dsPtr = &ds;
-      DSTRING_INIT(dsPtr);
-      Tcl_DStringAppend(dsPtr, "::interp alias {} ", -1);
-      Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
-      Tcl_DStringAppend(dsPtr, " {} ::xotcl::classes", -1);
-      Tcl_DStringAppend(dsPtr, objectName(object), -1);
-      Tcl_DStringAppend(dsPtr, "::", -1);
-      Tcl_DStringAppend(dsPtr, methodName, -1);
-      result = 0;
-      /* todo: why does this not work */
-      /*result = Tcl_Eval(interp, Tcl_DStringValue(dsPtr));*/
-      fprintf(stderr, "CMD = %s => %d\n", Tcl_DStringValue(dsPtr), result);
-      /*return result;*/
+    /* 
+     * if we have a tcl proc|xotcl-method as alias, then use the 
+     * wrapper, which will be deleted automatically when the original
+     * proc/method is deleted. 
+     */
+    newObjProc = XOTclProcAliasMethod;
+
+    if (withObjscope) {
+      return XOTclVarErrMsg(interp, "cannot use -objscope for tcl implemented command '",
+                            ObjStr(cmdName), "'", (char *) NULL);
     }
   }
-  /* TODO: check aliases for procs, problem when proc is deleted */
 
-  if (withProtected) {
-    flags = XOTCL_CMD_PROTECTED_METHOD;
+  if (newObjProc) {
+    /* add a wrapper */
+    tcd = NEW(AliasCmdClientData);
+    tcd->cmdName    = NULL;
+    tcd->obj        = object;
+    tcd->objProc    = objProc;
+    tcd->aliasedCmd = cmd;
+    tcd->clientData = Tcl_Command_objClientData(cmd);
+    objProc         = newObjProc;
+    deleteProc      = aliasCmdDeleteProc;
+  } else {
+    /* call the command directly (must be a c-implemented command not depending on a volatile client data) */
+    tcd = Tcl_Command_objClientData(cmd);
   }
+
+  flags = withProtected ? XOTCL_CMD_PROTECTED_METHOD : 0;
 
   if (allocation == 'c') {
-    result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName,
-                           objProc, tcd, dp, flags);
+    XOTclClass *cl = (XOTclClass *)object;
+    result = XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, methodName,
+                                    objProc, tcd, deleteProc, flags);
+    newCmd = FindMethod(cl->nsPtr, methodName);
   } else {
     result = XOTclAddObjectMethod(interp, (XOTcl_Object*)object, methodName,
-                         objProc, tcd, dp, flags);
+                                  objProc, tcd, deleteProc, flags);
+    newCmd = FindMethod(object->nsPtr, methodName);
   }
+
+  if (newObjProc) {
+    ImportRef *refPtr = (ImportRef *) ckalloc(sizeof(ImportRef));
+    refPtr->importedCmdPtr = (Command *) newCmd;
+    refPtr->nextPtr = ((Command *) newCmd)->importRefPtr;
+    ((Command *) tcd->aliasedCmd)->importRefPtr = refPtr;
+  }
+
   return result;
 }
 
