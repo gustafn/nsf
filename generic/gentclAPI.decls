@@ -49,7 +49,8 @@ xotclCmd interp XOTclInterpObjCmd {
   {-argName "args" -type allargs}
 }
 xotclCmd instvar XOTclInstvarCmd {
-  {-argName "args" -type allargs}
+  {-argName "-object" -nrargs 1 -type object}
+  {-argName "args" -type args}
 }
 xotclCmd is XOTclIsCmd {
   {-argName "object" -required 1 -type tclobj}

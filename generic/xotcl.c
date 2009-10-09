@@ -9980,11 +9980,11 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
 static int GetInstvarsIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 
 static int
-XOTclInstvarCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj = GetSelfObj(interp);
-  if (!obj)
+XOTclInstvarCmd(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]) {
+  if (object == NULL) object = GetSelfObj(interp);
+  if (!object)
     return XOTclVarErrMsg(interp, "instvar: no current object", (char *) NULL);
-  return GetInstvarsIntoCurrentScope(interp, obj, objc, objv);
+  return GetInstvarsIntoCurrentScope(interp, object, objc, objv);
 }
 
 /* create a slave interp that calls XOTcl Init */

@@ -256,7 +256,7 @@ static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObj
 static int XOTclDotCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
 static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption);
-static int XOTclInstvarCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+static int XOTclInstvarCmd(Tcl_Interp *interp, XOTclObject *withObject, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_Obj *value);
 static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withPer_object, int methodproperty, Tcl_Obj *value);
@@ -2112,11 +2112,20 @@ XOTclGetSelfObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
 static int
 XOTclInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
 
-    
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclInstvarCmdIdx].paramDefs, 
+                     method_definitions[XOTclInstvarCmdIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclObject *withObject = (XOTclObject *)pc.clientData[0];
 
-    return XOTclInstvarCmd(interp, objc, objv);
+    parseContextRelease(&pc);
+    return XOTclInstvarCmd(interp, withObject, objc-pc.lastobjc, objv+pc.lastobjc);
 
+  }
 }
 
 static int
@@ -2666,7 +2675,8 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::self", XOTclGetSelfObjCmdStub, 1, {
   {"proc|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingclass|callinglevel|callingobject|filterreg|isnextcall|next", 0, 0, convertToSelfoption}}
 },
-{"::xotcl::instvar", XOTclInstvarCmdStub, 1, {
+{"::xotcl::instvar", XOTclInstvarCmdStub, 2, {
+  {"-object", 0, 1, convertToObject},
   {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::interp", XOTclInterpObjCmdStub, 2, {

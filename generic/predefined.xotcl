@@ -1,12 +1,15 @@
-#
-# By setting the variable bootstrap, we can check later, whether we
-# are in bootstrapping mode
-#
-set bootstrap 1
+namespace eval ::xotcl {
+  #
+  # By setting the variable bootstrap, we can check later, whether we
+  # are in bootstrapping mode
+  #
+  set bootstrap 1
+}
 
 #
 # First create the ::xotcl2 object system. 
 #
+
 namespace eval xotcl2 {
   namespace path ::xotcl
   ::xotcl::createobjectsystem ::xotcl2::Object ::xotcl2::Class
@@ -45,19 +48,12 @@ namespace eval xotcl2 {
   # "init" must exist on Object. per default it is empty.
   Object method init args {}
 
+  # this method is called on calls to object without a specified method
+  Object method defaultmethod {} {::xotcl::self}
+
   # provide a placeholder for the bootup process. The real definition
   # is based on slots, which are not available at this point.
   Object method objectparameter {} {;}
-
-  #
-  # create class and object for nonpositional argument processing
-  Class create ::xotcl2::ParameterType
-  foreach cmd [info command ::xotcl::cmd::ParameterType::*] {
-    ::xotcl::alias ::xotcl2::ParameterType [namespace tail $cmd] $cmd
-  }
-
-  # create an object for dispatching
-  ::xotcl2::ParameterType create ::xotcl2::parameterType
 
   ########################
   # Info definition
@@ -115,8 +111,37 @@ namespace eval xotcl2 {
     error "[::xotcl::self] unknown info option \"$method\"; [.info info]"
   }
 
+  
+  Object method abstract {methtype -per-object:switch methname arglist} {
+    if {$methtype ne "method"} {
+      error "invalid method type '$methtype', must be 'method'"
+    }
+    set body "
+      if {!\[::xotcl::self isnextcall\]} {
+        error \"Abstract method $methname $arglist called\"
+      } else {::xotcl::next}
+    "
+    if {${per-object}} {
+      .method -per-object $methname $arglist $body
+    }  else {
+      .method $methname $arglist $body
+    }
+  }
+
+  # exit handlers
+  proc ::xotcl::unsetExitHandler {} {
+    proc ::xotcl::__exitHandler {} {
+      # clients should append exit handlers to this proc body
+    }
+  }
+  proc ::xotcl::setExitHandler {newbody} {proc ::xotcl::__exitHandler {} $newbody}
+  proc ::xotcl::getExitHandler {} {::info body ::xotcl::__exitHandler}
+  # initialize exit handler
+  ::xotcl::unsetExitHandler
+  
   namespace export Object Class
 }
+
 
 ##################
 # Slot definitions
@@ -193,6 +218,16 @@ proc ::xotcl::parametersFromSlots {obj} {
   #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
   return $parameterdefinitions
 }
+
+#
+# create class and object for nonpositional argument processing
+::xotcl2::Class create ::xotcl2::ParameterType
+foreach cmd [info command ::xotcl::cmd::ParameterType::*] {
+  ::xotcl::alias ::xotcl2::ParameterType [namespace tail $cmd] $cmd
+}
+
+# create an object for dispatching
+::xotcl2::ParameterType create ::xotcl2::parameterType
 
 
 # use low level interface for defining slot values. Normally, this is
@@ -522,7 +557,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 
 ::xotcl::ScopedNew method init {} {
   .method new {-childof args} {
-    [::xotcl::self class] instvar {inobject object} withclass
+    ::xotcl::instvar -object [::xotcl::self class] {inobject object} withclass
     if {![::xotcl::is $object object]} {
       $withclass create $object
     }
@@ -611,7 +646,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 
       if {[$po exists extra] || [$po exists setter] ||
 	  [$po exists getter] || [$po exists access]} {
-	$po instvar extra setter getter access defaultParam
+	::xotcl::instvar -object $po extra setter getter access defaultParam
 	if {![info exists extra]} {set extra ""}
 	if {![info exists defaultParam]} {set defaultParam ""}
 	if {![info exists setter]} {set setter set}
@@ -694,18 +729,18 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 	# class object
 	set obj $cl
 	$cl superclass [$origin info superclass]
-	$cl instinvar [$origin info instinvar]
+	$cl instinvar  [$origin info instinvar]
 	$cl instfilter [$origin info instfilter -guards]
-	$cl instmixin [$origin info instmixin]
+	$cl instmixin  [$origin info instmixin]
 	.copyNSVarsAndCmds ::xotcl::classes$origin ::xotcl::classes$dest
       } else {
 	# create obj
 	set obj [[$origin info class] create $dest -noinit]
       }
       # copy object -> may be a class obj
-      $obj invar [$origin info invar]
-      $obj check [$origin info check]
-      $obj mixin [$origin info mixin]
+      $obj invar  [$origin info invar]
+      $obj check  [$origin info check]
+      $obj mixin  [$origin info mixin]
       $obj filter [$origin info filter -guards]
       if {[$origin info hasnamespace]} {
 	$obj requireNamespace
@@ -759,9 +794,23 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
   .copyTargets
 }
 
+#######################################################
+# some utilities
+#######################################################
+
+# documentation stub object -> just ignore per default.
+# if xoDoc is loaded, documentation will be activated
+::xotcl2::Object create ::xotcl::@ {
+  .method unknown args {}
+}
 
 
-#######################################################################
+
+
+
+#######################################################
+# Classical ::xotcl 1.*
+#######################################################
 namespace eval ::xotcl {
   #
   # Perform the basic setup of XOTcl 1.x. First, let us allocate the
@@ -807,9 +856,17 @@ namespace eval ::xotcl {
   # "init" must exist on Object. per default it is empty.
   Object method init args {}
 
-  # provide a placeholder for the bootup process. The real definition
-  # is based on slots, which are not available at this point.
-  Object method objectparameter {} {;}
+  Object method self {} {::xotcl::self}
+
+  #
+  # object-parameter definition, backwards compatible
+  #
+  ::xotcl::Object method objectparameter {} {
+    set parameterdefinitions [::xotcl::parametersFromSlots [self]]
+    lappend parameterdefinitions args
+    #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
+    return $parameterdefinitions
+  }
 
   #
   # create class and object for nonpositional argument processing
@@ -821,16 +878,6 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::ParameterType type=switch ::xotcl::cmd::ParameterType::type=boolean
   # create an object for dispatching
   ::xotcl::ParameterType create ::xotcl::parameterType
-
-  #
-  # object-parameter definition, backwards compatible
-  #
-  ::xotcl::Object method objectparameter {} {
-    set parameterdefinitions [::xotcl::parametersFromSlots [self]]
-    lappend parameterdefinitions args
-    #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
-    return $parameterdefinitions
-  }
 
   #
   # TODO:
@@ -869,17 +916,10 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::classInfo classparent ::xotcl::cmd::ObjectInfo::parent
   ::xotcl::alias ::xotcl::classInfo classchildren ::xotcl::cmd::ObjectInfo::children
 
+  # note, we are using ::xotcl::infoError defined earlier
   Object instforward info -onerror ::xotcl::infoError ::xotcl::objectInfo %1 {%@2 %self}
   Class instforward info -onerror ::xotcl::infoError ::xotcl::classInfo %1 {%@2 %self}
 
-  # TODO: the following method is defined redundantly
-  proc ::xotcl::infoError msg {
-    #puts stderr "INFO ERROR: <$msg>\n$::errorInfo"
-    regsub -all " <object>" $msg "" msg
-    regsub -all " <class>" $msg "" msg
-    regsub {\"} $msg "\"info " msg
-    error $msg ""
-  }
   objectInfo method info {obj} {
     set methods [list]
     foreach m [::info commands ::xotcl::objectInfo::*] {
@@ -1008,30 +1048,11 @@ namespace eval ::xotcl {
   Object method ismixin     {class}  {::xotcl::is [self] mixin $class}
   Object method istype      {class}  {::xotcl::is [self] type $class}
 
-
-  # todo: it should be possible to use an alias for the xotcl2 implementation
-  ::xotcl::Object method contains {
-    {-withnew:boolean true}
-    -object
-    {-class ::xotcl2::Object}
-    cmds
-  } {
-    if {![info exists object]} {set object [::xotcl::self]}
-    if {![::xotcl::is $object object]} {$class create $object}
-    $object requireNamespace
-    if {$withnew} {
-      set m [::xotcl::ScopedNew new \
-                 -inobject $object -withclass $class -volatile]
-      ::xotcl2::Class instmixin add $m end
-      namespace eval $object $cmds
-      ::xotcl2::Class instmixin delete $m
-    } else {
-      namespace eval $object $cmds
-    }
-  }
+  ::xotcl::alias ::xotcl::Object contains ::xotcl::classes::xotcl2::Object::contains
   ::xotcl::Class instforward slots %self contains \
       -object {%::xotcl::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
-  
+  #
+  # define proc and instproc in terms of method
   #
   Object method proc {name arglist body precondition:optional postcondition:optional} {
     set cmd [list my method $name $arglist $body]
@@ -1051,11 +1072,36 @@ namespace eval ::xotcl {
     if {[info exists postcondition]} {lappend cmd -postcondition $postcondition}
     eval $cmd
   }
+  Object method abstract {methtype methname arglist} {
+    if {$methtype ne "proc" && $methtype ne "instproc" && $methtype ne "method"} {
+      error "invalid method type '$methtype', \
+	must be either 'proc', 'instproc' or 'method'."
+    }
+    .$methtype $methname $arglist "
+      if {!\[::xotcl::self isnextcall\]} {
+        error \"Abstract method $methname $arglist called\"
+      } else {::xotcl::next}
+    "
+  }
 
-  # documentation stub object -> just ignore per default.
-  # if xoDoc is loaded, documentation will be activated
-  Object create ::xotcl::@
-  @ method unknown args {}
+  # support for XOTcl 1.* specific convenience routines
+  Object method hasclass cl {
+    if {[::xotcl::is [self] mixin $cl]} {return 1}
+    ::xotcl::is [self] type $cl
+  }
+  Class method allinstances {} {
+    # TODO: mark it deprecated
+    return [.info instances -closure]
+  }
+
+  # keep old object interface for xotcl 1.*
+  Object method -per-object unsetExitHandler {} {::xotcl::unsetExitHandler $newbody}
+  Object method -per-object setExitHandler   {newbody} {::xotcl::setExitHandler $newbody}
+  Object method -per-object getExitHandler   {} {:xotcl::getExitHandler}
+
+  # resue some definitions from ::xotcl2
+  ::xotcl::alias ::xotcl::Class   parameter     ::xotcl::classes::xotcl2::Class::parameter
+  ::xotcl::alias ::xotcl::Object defaultmethod ::xotcl::classes::xotcl2::Object::defaultmethod
 
   proc myproc {args} {linsert $args 0 [::xotcl::self]}
   proc myvar  {var}  {.requireNamespace; return [::xotcl::self]::$var}
@@ -1065,69 +1111,13 @@ namespace eval ::xotcl {
 #######################################################################
 
 
-
 #
 # utilities
 #
-::xotcl::Object method self {} {::xotcl::self}
-::xotcl2::Object method defaultmethod {} {
-  return [::xotcl::self]
-}
-
-# support for XOTcl specific convenience routines
-::xotcl::Object method hasclass cl {
-  if {[::xotcl::is [self] mixin $cl]} {return 1}
-  ::xotcl::is [self] type $cl
-}
-::xotcl::Class method allinstances {} {
-  # TODO: mark it deprecated
-  return [.info instances -closure]
-}
-
-# reuse definitions from xotcl in xotcl2
-# TODO: can this be done with interp aliases?
-::xotcl::alias ::xotcl::Class   parameter     ::xotcl::classes::xotcl2::Class::parameter
-#::xotcl::alias ::xotcl::Object  contains      ::xotcl::classes::xotcl2::Object::contains
-::xotcl::alias ::xotcl::Object defaultmethod ::xotcl::classes::xotcl2::Object::defaultmethod
-
-#interp alias {} ::xotcl::classes::xotcl::Class::parameter {} ::xotcl::classes::xotcl2::Class::parameter
-#interp alias {} ::xotcl::classes::xotcl::Object::defaultmethod {} ::xotcl::classes::xotcl2::Object::defaultmethod
 
 #
 # TODO remainder should move from ::xotcl::Object -> xotcl2::*
 #
-
-# Exit Handler
-::xotcl::Object method -per-object unsetExitHandler {} {
-  ::xotcl::Object method -per-object __exitHandler {} {
-    # clients should append exit handlers to this proc body
-    ;
-  }
-}
-# pre-defined as empty method
-::xotcl::Object unsetExitHandler
-::xotcl::Object method -per-object setExitHandler {newbody} {
-  ::xotcl::Object method -per-object __exitHandler {} $newbody
-}
-::xotcl::Object method -per-object getExitHandler {} {
-  ::xotcl::Object info body __exitHandler
-}
-# provide a global handler to avoid a proc on the global object.
-proc ::xotcl::__exitHandler {} {
-  ::xotcl::Object __exitHandler
-}
-::xotcl::Object method abstract {methtype methname arglist} {
-  if {$methtype ne "proc" && $methtype ne "instproc" && $methtype ne "method"} {
-    error "invalid method type '$methtype', \
-	must be either 'proc', 'instproc' or 'method'."
-  }
-  .$methtype $methname $arglist "
-    if {!\[::xotcl::self isnextcall\]} {
-      error \"Abstract method $methname $arglist called\"
-    } else {::xotcl::next}
-  "
-}
-
 
 ::xotcl::Object method copy newName {
   if {[string compare [string trimleft $newName :] [string trimleft [::xotcl::self] :]]} {
@@ -1378,23 +1368,25 @@ set ::xotcl::logdir $::xotcl::confdir/log
   return $v
 }
 
-# return temp directory
-proc ::xotcl::tmpdir {} {
-  foreach e [list TMPDIR TEMP TMP] {
-    if {[info exists ::env($e)] \
-	    && [file isdirectory $::env($e)] \
-	    && [file writable $::env($e)]} {
-      return $::env($e)
-    }
-  }
-  if {$::tcl_platform(platform) eq "windows"} {
-    foreach d [list "C:\\TEMP" "C:\\TMP" "\\TEMP" "\\TMP"] {
-      if {[file isdirectory $d] && [file writable $d]} {
-	return $d
+namespace eval ::xotcl {
+  # return platform aware temp directory
+  proc tmpdir {} {
+    foreach e [list TMPDIR TEMP TMP] {
+      if {[info exists ::env($e)] \
+              && [file isdirectory $::env($e)] \
+              && [file writable $::env($e)]} {
+        return $::env($e)
       }
     }
+    if {$::tcl_platform(platform) eq "windows"} {
+      foreach d [list "C:\\TEMP" "C:\\TMP" "\\TEMP" "\\TMP"] {
+        if {[file isdirectory $d] && [file writable $d]} {
+          return $d
+        }
+      }
+    }
+    return /tmp
   }
-  return /tmp
-}
 
-unset bootstrap
+  unset bootstrap
+}
