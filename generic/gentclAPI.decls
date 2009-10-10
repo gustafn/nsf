@@ -299,6 +299,8 @@ infoObjectMethod invar XOTclObjInfoInvarMethod {
 }
 infoObjectMethod methods XOTclObjInfoMethodsMethod {
   {-argName "object" -required 1 -type object}
+  {-argName "-defined"}
+  {-argName "-per-object"}
   {-argName "-noprocs"}
   {-argName "-nocmds"}
   {-argName "-nomixins"}
@@ -338,10 +340,6 @@ infoObjectMethod pre XOTclObjInfoPreMethod {
 infoObjectMethod precedence XOTclObjInfoPrecedenceMethod {
   {-argName "object" -required 1 -type object}
   {-argName "-intrinsic"}
-  {-argName "pattern" -required 0}
-}
-infoObjectMethod procs XOTclObjInfoProcsMethod {
-  {-argName "object" -required 1 -type object}
   {-argName "pattern" -required 0}
 }
 infoObjectMethod slotobjects XOTclObjInfoSlotObjectsMethod {
@@ -422,10 +420,6 @@ infoClassMethod instpost XOTclClassInfoInstpostMethod {
 infoClassMethod instpre XOTclClassInfoInstpreMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "methodName" -required 1}
-}
-infoClassMethod instprocs XOTclClassInfoInstprocsMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "pattern"}
 }
 infoClassMethod mixinof XOTclClassInfoMixinofMethod {
   {-argName "class"  -required 1 -type class}

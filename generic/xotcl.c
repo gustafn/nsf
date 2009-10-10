@@ -9488,15 +9488,27 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int definit
 
 static int
 ListMethods(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
+            int withDefined, int withPer_object, 
             int noProcs, int noCmds, int noMixins, int inContext) {
   XOTclClasses *pl;
-  Tcl_HashTable dupsTable, *dups = &dupsTable;
+  Tcl_HashTable *cmdTable, dupsTable, *dups = &dupsTable;
   Tcl_InitHashTable(dups, TCL_STRING_KEYS);
 
   /*fprintf(stderr, "listMethods %s %d %d %d %d\n", pattern, noProcs, noCmds, noMixins, inContext);*/
 
+  if (withDefined) {
+    if (XOTclObjectIsClass(obj) && !withPer_object) {
+      cmdTable = Tcl_Namespace_cmdTable(((XOTclClass *)obj)->nsPtr);
+    } else {
+      cmdTable = obj->nsPtr ? Tcl_Namespace_cmdTable(obj->nsPtr) : NULL;
+    }
+    ListMethodKeys(interp, cmdTable, pattern, noProcs, noCmds, dups, 0, 0);
+    Tcl_DeleteHashTable(dups);
+    return TCL_OK;
+  }
+
   if (obj->nsPtr) {
-    Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(obj->nsPtr);
+    cmdTable = Tcl_Namespace_cmdTable(obj->nsPtr);
     ListMethodKeys(interp, cmdTable, pattern, noProcs, noCmds, dups, 0, 0);
   }
 
@@ -12078,9 +12090,12 @@ static int XOTclObjInfoInvarMethod(Tcl_Interp *interp, XOTclObject *object) {
   return TCL_OK;
 }
 
-static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, int withNoprocs,
-                          int withNocmds, int withNomixins, int withIncontext, char *pattern) {
-  return ListMethods(interp, object, pattern, withNoprocs, withNocmds, withNomixins, withIncontext);
+static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, 
+                                     int withDefined, int withPer_object, 
+                                     int withNoprocs, int withNocmds, int withNomixins, 
+                                     int withIncontext, char *pattern) {
+  return ListMethods(interp, object, pattern, withDefined, withPer_object, 
+                     withNoprocs, withNocmds, withNomixins, withIncontext);
 }
 
 static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int withGuards, int withOrder,
@@ -12145,11 +12160,6 @@ static int XOTclObjInfoPrecedenceMethod(Tcl_Interp *interp, XOTclObject *object,
   }
   XOTclClassListFree(pl);
   return TCL_OK;
-}
-
-static int XOTclObjInfoProcsMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern) {
-  return object->nsPtr ? ListMethodKeys(interp, Tcl_Namespace_cmdTable(object->nsPtr),
-			      pattern, /*noProcs*/ 0, /*noCmds*/ 1, NULL, 0, 0) : TCL_OK;
 }
 
 static int XOTclObjInfoSlotObjectsMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern) {
@@ -12362,11 +12372,6 @@ static int XOTclClassInfoInstpreMethod(Tcl_Interp *interp, XOTclClass *class, ch
     if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->pre));
   }
   return TCL_OK;
-}
-
-static int XOTclClassInfoInstprocsMethod(Tcl_Interp *interp, XOTclClass * class, char * pattern) {
-  return ListMethodKeys(interp, Tcl_Namespace_cmdTable(class->nsPtr),
-			pattern, /*noProcs*/ 0, /*noCmds*/ 1, NULL, 0, 0 );
 }
 
 static int XOTclClassInfoMixinofMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure,

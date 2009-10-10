@@ -204,7 +204,7 @@ namespace eval ::xotcl::serializer {
     #if {![$o istype ::xotcl::Slot]} {append cmd " -noinit"}
     append cmd " -noinit"
     append cmd " \\\n"
-    foreach i [$o info procs] {
+    foreach i [$o info methods -defined -nocmd] {
       append cmd " " [my method-serialize $o $i ""] " \\\n"
     }
     foreach i [$o info forward] {
@@ -434,7 +434,7 @@ namespace eval ::xotcl::serializer {
     set code ""
     switch $kind {
       proc {
-	if {[$object info procs $name] ne ""} {
+	if {[$object info methods -defined -nocmd $name] ne ""} {
 	  set code [my method-serialize $object $name ""]
 	}
       }
