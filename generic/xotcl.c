@@ -144,6 +144,7 @@ typedef struct AliasCmdClientData {
   Tcl_Obj *cmdName;
   Tcl_ObjCmdProc *objProc;
   Tcl_Command aliasedCmd;
+  Tcl_Command aliasCmd;
   ClientData clientData;
 } AliasCmdClientData;
 
@@ -8754,8 +8755,33 @@ XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 static void aliasCmdDeleteProc(ClientData clientData) {
   AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
-  if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
+  ImportRef *refPtr, *prevPtr = NULL;
+
   /*fprintf(stderr, "aliasCmdDeleteProc\n");*/
+  if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
+  if (tcd->aliasedCmd) {
+    Command *aliasedCmd = (Command *)(tcd->aliasedCmd);
+    /* 
+     * Clear the aliasCmd from the imported-ref chain of the aliased
+     * (or real) cmd.  This widely resembles what happens in the
+     * DeleteImportedCmd() (see tclNamesp.c), however, as we do not
+     * provide for ImportedCmdData client data etc., we cannot
+     * directly use it.
+     */
+    for (refPtr = aliasedCmd->importRefPtr; refPtr; refPtr = refPtr->nextPtr) {
+      if (refPtr->importedCmdPtr == (Command *) tcd->aliasCmd) {
+        if (prevPtr == NULL) {
+          aliasedCmd->importRefPtr = refPtr->nextPtr;
+        } else {
+          prevPtr->nextPtr = refPtr->nextPtr;
+        }
+        ckfree((char *) refPtr);
+        break;
+      }
+      prevPtr = refPtr;
+    }
+  }
+
   FREE(AliasCmdClientData, tcd);
 }
 
@@ -9615,6 +9641,27 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVar
  * End result setting commands
  ********************************/
 
+static Tcl_Command
+GetOriginalCommand(Tcl_Command cmd) /* The imported command for which the original
+                                     * command should be returned. */
+{
+  Tcl_Command importedCmd;
+  
+  while (1) {
+    /* dereference the namespace import reference chain */
+    if ((importedCmd = TclGetOriginalCommand(cmd))) {
+      cmd = importedCmd;
+    }
+    /* dereference the XOtcl alias chain */
+    if (Tcl_Command_deleteProc(cmd) == aliasCmdDeleteProc) {
+      AliasCmdClientData *tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
+      cmd = tcd->aliasedCmd;
+      continue;
+    } 
+    break;
+  }
+  return cmd;
+}
 
 /*********************************
  * Begin generated XOTcl commands
@@ -9623,10 +9670,10 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVar
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName,
                          int withObjscope, int withPer_object, int withProtected, 
                          Tcl_Obj *cmdName) {
-  Tcl_Command cmd, importedCmd, newCmd;
   Tcl_ObjCmdProc *objProc, *newObjProc = NULL;
   Tcl_CmdDeleteProc *deleteProc = NULL;
   AliasCmdClientData *tcd = NULL; /* make compiler happy */
+  Tcl_Command cmd, newCmd;
   int flags, result;
   char allocation;
 
@@ -9644,9 +9691,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
                           ObjStr(cmdName), "'", (char *) NULL);
   }
 
-  if ((importedCmd = TclGetOriginalCommand(cmd))) {
-    cmd = importedCmd;
-  }
+  cmd = GetOriginalCommand(cmd);
   objProc = Tcl_Command_objProc(cmd);
 
   /* objProc is either ...  
@@ -9742,10 +9787,15 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   }
 
   if (newObjProc) {
+    /* 
+     * Define the reference chain like for 'namespace import' to
+     *  obtain automatic deletes when the original command is deleted.
+     */
     ImportRef *refPtr = (ImportRef *) ckalloc(sizeof(ImportRef));
     refPtr->importedCmdPtr = (Command *) newCmd;
-    refPtr->nextPtr = ((Command *) newCmd)->importRefPtr;
+    refPtr->nextPtr = ((Command *) tcd->aliasedCmd)->importRefPtr;
     ((Command *) tcd->aliasedCmd)->importRefPtr = refPtr;
+    tcd->aliasCmd = newCmd;
   }
 
   return result;
