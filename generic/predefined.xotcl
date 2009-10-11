@@ -112,7 +112,7 @@ namespace eval xotcl2 {
 
     .method info {obj} {
       set methods [list]
-      foreach name [::xotcl::dispatch [self] ::xotcl::cmd::ObjectInfo::methods [self] -defined] {
+      foreach name [::xotcl::cmd::ObjectInfo::methods [self] -defined] {
         if {$name eq "unknown"} continue
         lappend methods $name
       }
@@ -292,7 +292,7 @@ proc createBootstrapAttributeSlots {class definitions} {
     if {[info exists default]} {
       # checking subclasses is not required during bootstrap
       # todo: do we really need $class twice?
-      foreach i [::xotcl::dispatch $class ::xotcl::cmd::ClassInfo::instances $class] {
+      foreach i [::xotcl::cmd::ClassInfo::instances $class] {
 	if {![$i exists $att]} {
 	  if {[string match {*[*]*} $default]} {
             #set default [$i eval subst $default]
