@@ -1,10 +1,10 @@
 # $Id: xodoc.xotcl,v 1.7 2006/09/27 08:12:40 neumann Exp $
-
+package require XOTcl
+package require xotcl1
 package provide xotcl::xodoc 0.84
 package require xotcl::staticMetadataAnalyzer
 package require xotcl::htmllib
 #package require xotcl::trace
-package require XOTcl
 
 namespace eval ::xotcl::xodoc {
     namespace import ::xotcl::*

@@ -540,6 +540,10 @@ distclean: clean
 # .lib files.  Because the .lib files are not explicitly listed anywhere,
 # we need to deduce their existence from the .dll file of the same name.
 # Library files go into the lib directory.
+#
+# A manual generation of the pkgIndex files via tclsh should look like
+#     pkg_mkIndex -direct -verbose library/lib *tcl
+#
 # In addition, this will generate the pkgIndex.tcl
 # file in the install location (assuming it can find a usable tclsh shell)
 #

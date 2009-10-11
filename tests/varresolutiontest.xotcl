@@ -1,8 +1,8 @@
 # testing var resolution for namespace-shadowed objects 
 
-package require XOTcl
+package require XOTcl; xotcl::use xotcl1
 package require xotcl::test
-namespace import -force xotcl::*
+
 
 proc ? {cmd expected {msg ""}} {
   set count 1

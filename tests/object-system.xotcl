@@ -1,7 +1,5 @@
 package require XOTcl
-package require xotcl::test
-namespace import -force xotcl::*
-
+xotcl::use xotcl1
 #
 # Basic tests of the object system, should not require Class Test,
 # since even class Test might not work at that time.

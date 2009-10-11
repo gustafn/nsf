@@ -1,6 +1,5 @@
 #$Id: testx.xotcl,v 1.36 2007/10/12 19:53:32 neumann Exp $
-package require XOTcl
-namespace import -force xotcl::*
+package require XOTcl; xotcl::use xotcl1
 
 proc ::errorCheck {got expected msg} {
   if {$got != $expected} {
@@ -3127,7 +3126,7 @@ smallScripts proc run {{n 20}} {
 
     xotcl::interp create in
     set ::r [in eval {
-	namespace import -force xotcl::*
+	xotcl::use xotcl1
 	Object o
     }]
     xotcl::interp delete in

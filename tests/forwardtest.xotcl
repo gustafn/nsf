@@ -1,6 +1,5 @@
 # $Id: forwardtest.xotcl,v 1.12 2007/08/14 16:38:27 neumann Exp $
-package require XOTcl
-namespace import -force xotcl::*
+package require XOTcl; xotcl::use xotcl1
 package require xotcl::test
 
 proc ? {cmd expected} {

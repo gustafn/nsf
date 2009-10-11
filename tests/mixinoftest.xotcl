@@ -1,6 +1,5 @@
 # testing mixinof
-package require XOTcl
-namespace import -force xotcl::*
+package require XOTcl; xotcl::use xotcl1
 package require xotcl::test
 
 proc ? {cmd expected} {
@@ -74,7 +73,7 @@ o destroy
 ###########################################
 # testing simple per class mixins
 ###########################################
-::xotcl::test::case pcm
+Test case pcm
 Class A
 Class B -instmixin A
 Class C -superclass B
@@ -96,7 +95,7 @@ c1 destroy
 ###########################################
 # testing simple per class mixins with guards
 ###########################################
-::xotcl::test::case pcm2
+Test case pcm2
 Class M1
 Class M2
 Class X
@@ -122,7 +121,7 @@ M2 destroy
 ###########################################
 # testing transitive per class mixins
 ###########################################
-::xotcl::test::case trans-pcm1
+Test case trans-pcm1
 Class A
 Class B -instmixin A
 Class C -superclass B
@@ -164,7 +163,7 @@ foreach o {A C a1 b1 c1} { $o destroy }
 ###########################################
 # testing transitive per class mixins with subclasses
 ###########################################
-::xotcl::test::case trans-pcm2
+Test case trans-pcm2
 Class X
 Class D
 Class C -superclass D
@@ -192,7 +191,7 @@ foreach o {X D C A B b1 b2} {$o destroy}
 ###########################################
 # testing transitive per class mixins with subclasses
 ###########################################
-::xotcl::test::case trans-pcm3
+Test case trans-pcm3
 Class A3 -superclass [Class A2 -superclass [Class A1]]
 Class B3 -superclass [Class B2 -superclass [Class B1 -superclass [Class B0]]]
 Class C3 -superclass [Class C2 -superclass [Class C1]]
@@ -218,7 +217,7 @@ foreach o {A1 A2 A3 B0 B1 B2 B3 C1 C2 C3} {$o destroy}
 ###########################################
 # testing transitive per class mixins with destroy
 ###########################################
-::xotcl::test::case pcm-trans-destroy-A
+Test case pcm-trans-destroy-A
 Class A -instmixin [Class M]
 Class B -instmixin A
 Class C -superclass B
@@ -253,7 +252,7 @@ foreach o {M C a1 b1 c1} { $o destroy }
 ###########################################
 # testing transitive per class mixins with destroy
 ###########################################
-::xotcl::test::case pcm-trans-destroy-B
+Test case pcm-trans-destroy-B
 Class A -instmixin [Class M]
 Class B -instmixin A
 Class C -superclass B
@@ -285,7 +284,7 @@ foreach o {M C a1 b1 c1} {
 ###########################################
 # testing simple per class mixins with redefinition
 ###########################################
-::xotcl::test::case pcm-redefine
+Test case pcm-redefine
 Class A
 Class B -instmixin A
 Class C -superclass B
@@ -320,7 +319,7 @@ c1 destroy
 # testing simple per class mixins with 
 # redefinition and softrecreate
 ###########################################
-::xotcl::test::case pcm-redefine-soft
+Test case pcm-redefine-soft
 ::xotcl::configure softrecreate true
 Class A
 Class B -instmixin A
@@ -354,7 +353,7 @@ c1 destroy
 # test of recreate with same superclass, 
 # with softrecreate off
 ###########################################
-::xotcl::test::case precedence
+Test case precedence
 ::xotcl::configure softrecreate false
 Class O
 Class A -superclass O
@@ -386,7 +385,7 @@ foreach o {A O B a1 b1 o1} {$o destroy}
 # test of recreate with different superclass 
 # with softrecreate on
 ###########################################
-::xotcl::test::case alternate-precedence
+Test case alternate-precedence
 ::xotcl::configure softrecreate false
 Class O
 Class A -superclass O
@@ -419,7 +418,7 @@ foreach o {A O B a1 b1 o1} {$o destroy}
 # test of recreate with same superclass, 
 # with softrecreate on
 ###########################################
-::xotcl::test::case recreate-precedence
+Test case recreate-precedence
 ::xotcl::configure softrecreate true
 Class O
 Class A -superclass O
@@ -451,7 +450,7 @@ foreach o {A O B a1 b1 o1} {$o destroy}
 # test of recreate with different superclass 
 # with softrecreate on
 ###########################################
-::xotcl::test::case recreate-alternate-precedence
+Test case recreate-alternate-precedence
 ::xotcl::configure softrecreate true
 Class O
 Class A -superclass O

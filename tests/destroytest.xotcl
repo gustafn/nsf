@@ -1,5 +1,5 @@
 package require XOTcl
-namespace import -force xotcl::*
+xotcl::use xotcl1
 package require xotcl::test
 
 proc ? {cmd expected {msg ""}} {

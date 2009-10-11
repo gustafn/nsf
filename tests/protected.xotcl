@@ -1,4 +1,4 @@
-package require XOTcl; namespace import ::xotcl::*
+package require XOTcl; xotcl::use xotcl1
 package require xotcl::test
 
 set count 1
