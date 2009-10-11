@@ -9344,33 +9344,76 @@ ListVarKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr, char *pattern) {
 }
 #endif
 
+static Tcl_Command
+GetOriginalCommand(Tcl_Command cmd) /* The imported command for which the original
+                                     * command should be returned. */
+{
+  Tcl_Command importedCmd;
+  
+  while (1) {
+    /* dereference the namespace import reference chain */
+    if ((importedCmd = TclGetOriginalCommand(cmd))) {
+      cmd = importedCmd;
+    }
+    /* dereference the XOtcl alias chain */
+    if (Tcl_Command_deleteProc(cmd) == aliasCmdDeleteProc) {
+      AliasCmdClientData *tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
+      cmd = tcd->aliasedCmd;
+      continue;
+    } 
+    break;
+  }
+  return cmd;
+}
+
+
 static int
-ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern,
-               int noProcs, int noCmds, Tcl_HashTable *dups, int onlyForwarder, int onlySetter) {
+ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int methodType,
+               Tcl_HashTable *dups, int onlyForwarder, int onlySetter) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : 0;
   for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(table, hPtr);
     Tcl_Command importedCmd, cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
-    Tcl_ObjCmdProc *proc;
+    Tcl_ObjCmdProc *proc, *resolvedProc;
 
-    if ((importedCmd = TclGetOriginalCommand(cmd))) {
-      cmd = importedCmd;
-    }
     proc = Tcl_Command_objProc(cmd);
+    importedCmd = GetOriginalCommand(cmd);
+    resolvedProc = Tcl_Command_objProc(importedCmd);
 
+#if 0
     if (proc == XOTclProcAliasMethod || proc == XOTclObjscopedMethod) {
       AliasCmdClientData *tcd = Tcl_Command_objClientData(cmd);
       /* TODO: resolve our chain */
       assert(tcd);
-      proc = tcd->objProc;
+      resolvedProc = tcd->objProc;
     }
+#endif
 
     if (pattern && !Tcl_StringMatch(key, pattern)) continue;
+    if (proc == XOTclProcAliasMethod) {
+      if ((methodType & XOTCL_METHODTYPE_ALIAS) == 0) continue;
+    }
+    /* the following cases are disjoint */
+    if (CmdIsProc(importedCmd)) {
+      /*fprintf(stderr,"%s scripted %d\n",key, methodType & XOTCL_METHODTYPE_SCRIPTED);*/
+      if ((methodType & XOTCL_METHODTYPE_SCRIPTED) == 0) continue;
+    } else if (resolvedProc == XOTclForwardMethod) {
+      if ((methodType & XOTCL_METHODTYPE_FORWARDER) == 0) continue;
+    } else if (resolvedProc == XOTclSetterMethod) {
+      if ((methodType & XOTCL_METHODTYPE_SETTER) == 0) continue;
+    } else if (resolvedProc == XOTclObjDispatch) {
+      if ((methodType & XOTCL_METHODTYPE_OBJECT) == 0) continue;
+    } else if ((methodType & XOTCL_METHODTYPE_OTHER) == 0) {
+      /*fprintf(stderr,"OTHER %s not wanted %.4x\n",key, methodType);*/
+      continue;
+    } 
+    /*
     if (noCmds  && proc != RUNTIME_STATE(interp)->objInterpProc) continue;
     if (noProcs && proc == RUNTIME_STATE(interp)->objInterpProc) continue;
     if (onlyForwarder && proc != XOTclForwardMethod) continue;
     if (onlySetter && proc != XOTclSetterMethod) continue;
+    */
     /* XOTclObjscopedMethod ??? */
 
     if (dups) {
@@ -9481,20 +9524,20 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int definit
     }
     result = TCL_OK;
   } else {
-    result = ListMethodKeys(interp, table, pattern, 1, 0, NULL, 1, 0);
+    result = ListMethodKeys(interp, table, pattern, XOTCL_METHODTYPE_FORWARDER, NULL, 1, 0);
   }
   return result;
 }
 
 static int
 ListMethods(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
-            int withDefined, int withPer_object, 
-            int noProcs, int noCmds, int noMixins, int inContext) {
+            int withDefined, int withPer_object, int methodType,
+            int noMixins, int inContext) {
   XOTclClasses *pl;
   Tcl_HashTable *cmdTable, dupsTable, *dups = &dupsTable;
   Tcl_InitHashTable(dups, TCL_STRING_KEYS);
 
-  /*fprintf(stderr, "listMethods %s %d %d %d %d\n", pattern, noProcs, noCmds, noMixins, inContext);*/
+  /*fprintf(stderr, "listMethods %s %d %d\n", pattern, noMixins, inContext);*/
 
   if (withDefined) {
     if (XOTclObjectIsClass(obj) && !withPer_object) {
@@ -9502,14 +9545,14 @@ ListMethods(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
     } else {
       cmdTable = obj->nsPtr ? Tcl_Namespace_cmdTable(obj->nsPtr) : NULL;
     }
-    ListMethodKeys(interp, cmdTable, pattern, noProcs, noCmds, dups, 0, 0);
+    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, 0, 0);
     Tcl_DeleteHashTable(dups);
     return TCL_OK;
   }
 
   if (obj->nsPtr) {
     cmdTable = Tcl_Namespace_cmdTable(obj->nsPtr);
-    ListMethodKeys(interp, cmdTable, pattern, noProcs, noCmds, dups, 0, 0);
+    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, 0, 0);
   }
 
   if (!noMixins) {
@@ -9528,7 +9571,7 @@ ListMethods(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
         }
         if (mixin && guardOk == TCL_OK) {
           Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(mixin->nsPtr);
-          ListMethodKeys(interp, cmdTable, pattern, noProcs, noCmds, dups, 0, 0);
+          ListMethodKeys(interp, cmdTable, pattern, methodType, dups, 0, 0);
         }
       }
     }
@@ -9537,7 +9580,7 @@ ListMethods(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
   /* append per-class filters */
   for (pl = ComputeOrder(obj->cl, obj->cl->order, Super); pl; pl = pl->nextPtr) {
     Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(pl->cl->nsPtr);
-    ListMethodKeys(interp, cmdTable, pattern, noProcs, noCmds, dups, 0, 0);
+    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, 0, 0);
   }
   Tcl_DeleteHashTable(dups);
   return TCL_OK;
@@ -9652,28 +9695,6 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVar
 /********************************
  * End result setting commands
  ********************************/
-
-static Tcl_Command
-GetOriginalCommand(Tcl_Command cmd) /* The imported command for which the original
-                                     * command should be returned. */
-{
-  Tcl_Command importedCmd;
-  
-  while (1) {
-    /* dereference the namespace import reference chain */
-    if ((importedCmd = TclGetOriginalCommand(cmd))) {
-      cmd = importedCmd;
-    }
-    /* dereference the XOtcl alias chain */
-    if (Tcl_Command_deleteProc(cmd) == aliasCmdDeleteProc) {
-      AliasCmdClientData *tcd = (AliasCmdClientData *)Tcl_Command_objClientData(cmd);
-      cmd = tcd->aliasedCmd;
-      continue;
-    } 
-    break;
-  }
-  return cmd;
-}
 
 /*********************************
  * Begin generated XOTcl commands
@@ -9823,20 +9844,20 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
   }
 
   switch (configureoption) {
-  case configureoptionFilterIdx:
+  case ConfigureoptionFilterIdx:
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (RUNTIME_STATE(interp)->doFilters));
     if (value)
       RUNTIME_STATE(interp)->doFilters = bool;
     break;
 
-  case configureoptionSoftrecreateIdx:
+  case ConfigureoptionSoftrecreateIdx:
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (RUNTIME_STATE(interp)->doSoftrecreate));
     if (value)
       RUNTIME_STATE(interp)->doSoftrecreate = bool;
     break;
- case configureoptionCacheinterfaceIdx:
+ case ConfigureoptionCacheinterfaceIdx:
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
                       (RUNTIME_STATE(interp)->cacheInterface));
     if (value)
@@ -10095,31 +10116,31 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_O
   XOTclClass *cl;
 
   switch (objectkind) {
-  case objectkindTypeIdx:
+  case ObjectkindTypeIdx:
     if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> type <type>");
     success = (GetObjectFromObj(interp, object, &obj) == TCL_OK)
       && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK)
       && isSubType(obj->cl, cl);
     break;
 
-  case objectkindObjectIdx:
+  case ObjectkindObjectIdx:
     if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> object");
     success = (GetObjectFromObj(interp, object, &obj) == TCL_OK);
     break;
 
-  case objectkindClassIdx:
+  case ObjectkindClassIdx:
     if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<class> class");
     success = (GetObjectFromObj(interp, object, &obj) == TCL_OK) && XOTclObjectIsClass(obj);
     break;
 
-  case objectkindMetaclassIdx:
+  case ObjectkindMetaclassIdx:
     if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<class> metaclass");
     success = (GetObjectFromObj(interp, object, &obj) == TCL_OK)
       && XOTclObjectIsClass(obj)
       && IsMetaClass(interp, (XOTclClass*)obj, 1);
     break;
 
-  case objectkindMixinIdx:
+  case ObjectkindMixinIdx:
     if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> mixin <class>");
     success = (GetObjectFromObj(interp, object, &obj) == TCL_OK)
       && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK)
@@ -10166,10 +10187,10 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char 
 			    (char *) NULL);
   }
 
-  if (methodproperty == methodpropertyProtectedIdx
-      || methodproperty == methodpropertyStaticIdx) {
+  if (methodproperty == MethodpropertyProtectedIdx
+      || methodproperty == MethodpropertyStaticIdx) {
 
-    int flag = methodproperty == methodpropertyProtectedIdx ?
+    int flag = methodproperty == MethodpropertyProtectedIdx ?
       XOTCL_CMD_PROTECTED_METHOD :
       XOTCL_CMD_STATIC_METHOD;
 
@@ -10586,17 +10607,17 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
   int i;
 
   switch (relationtype) {
-  case relationtypeObject_mixinIdx:
-  case relationtypeMixinIdx:
-  case relationtypeObject_filterIdx:
-  case relationtypeFilterIdx:
+  case RelationtypeObject_mixinIdx:
+  case RelationtypeMixinIdx:
+  case RelationtypeObject_filterIdx:
+  case RelationtypeFilterIdx:
     if (value == NULL) {
       objopt = object->opt;
       switch (relationtype) {
-      case relationtypeObject_mixinIdx:
-      case relationtypeMixinIdx: return objopt ? MixinInfo(interp, objopt->mixins, NULL, 1, NULL) : TCL_OK;
-      case relationtypeObject_filterIdx:
-      case relationtypeFilterIdx: return objopt ? FilterInfo(interp, objopt->filters, NULL, 1, 0) : TCL_OK;
+      case RelationtypeObject_mixinIdx:
+      case RelationtypeMixinIdx: return objopt ? MixinInfo(interp, objopt->mixins, NULL, 1, NULL) : TCL_OK;
+      case RelationtypeObject_filterIdx:
+      case RelationtypeFilterIdx: return objopt ? FilterInfo(interp, objopt->filters, NULL, 1, 0) : TCL_OK;
       }
     }
     if (Tcl_ListObjGetElements(interp, value, &oc, &ov) != TCL_OK)
@@ -10604,10 +10625,10 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
     objopt = XOTclRequireObjectOpt(object);
     break;
 
-  case relationtypeClass_mixinIdx:
-  case relationtypeInstmixinIdx:
-  case relationtypeClass_filterIdx:
-  case relationtypeInstfilterIdx:
+  case RelationtypeClass_mixinIdx:
+  case RelationtypeInstmixinIdx:
+  case RelationtypeClass_filterIdx:
+  case RelationtypeInstfilterIdx:
     if (XOTclObjectIsClass(object)) {
       cl = (XOTclClass *)object;
     } else {
@@ -10617,10 +10638,10 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
     if (value == NULL) {
       clopt = cl->opt;
       switch (relationtype) {
-      case relationtypeClass_mixinIdx:
-      case relationtypeInstmixinIdx: return clopt ? MixinInfo(interp, clopt->instmixins, NULL, 1, NULL) : TCL_OK;
-      case relationtypeClass_filterIdx:
-      case relationtypeInstfilterIdx: return objopt ? FilterInfo(interp, clopt->instfilters, NULL, 1, 0) : TCL_OK;
+      case RelationtypeClass_mixinIdx:
+      case RelationtypeInstmixinIdx: return clopt ? MixinInfo(interp, clopt->instmixins, NULL, 1, NULL) : TCL_OK;
+      case RelationtypeClass_filterIdx:
+      case RelationtypeInstfilterIdx: return objopt ? FilterInfo(interp, clopt->instfilters, NULL, 1, 0) : TCL_OK;
       }
     }
 
@@ -10629,7 +10650,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
     clopt = XOTclRequireClassOpt(cl);
     break;
 
-  case relationtypeSuperclassIdx:
+  case RelationtypeSuperclassIdx:
     if (!XOTclObjectIsClass(object))
       return XOTclObjErrType(interp, object->cmdName, "Class");
     cl = (XOTclClass *)object;
@@ -10640,7 +10661,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
       return TCL_ERROR;
     return SuperclassAdd(interp, cl, oc, ov, value, cl->object.cl);
 
-  case relationtypeClassIdx:
+  case RelationtypeClassIdx:
     if (value == NULL) {
       Tcl_SetObjResult(interp, object->cl->object.cmdName);
       return TCL_OK;
@@ -10649,7 +10670,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
     if (!cl) return XOTclErrBadVal(interp, "class", "a class", objectName(object));
     return changeClass(interp, object, cl);
 
-  case relationtypeRootclassIdx:
+  case RelationtypeRootclassIdx:
     {
     XOTclClass *metaClass;
 
@@ -10677,8 +10698,8 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
   }
 
   switch (relationtype) {
-  case relationtypeObject_mixinIdx:
-  case relationtypeMixinIdx:
+  case RelationtypeObject_mixinIdx:
+  case RelationtypeMixinIdx:
     if (objopt->mixins) {
       XOTclCmdList *cmdlist, *del;
       for (cmdlist = objopt->mixins; cmdlist; cmdlist = cmdlist->nextPtr) {
@@ -10728,8 +10749,8 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
     FilterComputeDefined(interp, object);
     break;
 
-  case relationtypeObject_filterIdx:
-  case relationtypeFilterIdx:
+  case RelationtypeObject_filterIdx:
+  case RelationtypeFilterIdx:
 
     if (objopt->filters) CmdListRemoveList(&objopt->filters, GuardDel);
 
@@ -10741,8 +10762,8 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
     /*FilterComputeDefined(interp, obj);*/
     break;
 
-  case relationtypeClass_mixinIdx:
-  case relationtypeInstmixinIdx:
+  case RelationtypeClass_mixinIdx:
+  case RelationtypeInstmixinIdx:
 
     if (clopt->instmixins) {
       RemoveFromClassMixinsOf(cl->object.id, clopt->instmixins);
@@ -10775,8 +10796,8 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
     }
     break;
 
-  case relationtypeClass_filterIdx:
-  case relationtypeInstfilterIdx:
+  case RelationtypeClass_filterIdx:
+  case RelationtypeInstfilterIdx:
 
     if (clopt->instfilters) CmdListRemoveList(&clopt->instfilters, GuardDel);
 
@@ -10790,6 +10811,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relatio
   }
   return TCL_OK;
 }
+
 static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
   XOTclObject *obj =  GetSelfObj(interp);
   XOTclCallStackContent *csc;
@@ -10806,12 +10828,12 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
     }
   }
 
-  if (!obj && selfoption != selfoptionCallinglevelIdx) {
+  if (!obj && selfoption != SelfoptionCallinglevelIdx) {
     return XOTclVarErrMsg(interp, "self: no current object", (char *) NULL);
   }
 
   switch (selfoption) {
-  case selfoptionProcIdx: { /* proc subcommand */
+  case SelfoptionProcIdx: { /* proc subcommand */
     csc = CallStackGetTopFrame(interp, NULL);
     if (csc) {
       CONST char *procName = Tcl_GetCommandName(interp, csc->cmdPtr);
@@ -10822,18 +10844,18 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
     break;
   }
 
-  case selfoptionClassIdx: { /* class subcommand */
+  case SelfoptionClassIdx: { /* class subcommand */
     csc = CallStackGetTopFrame(interp, NULL);
     Tcl_SetObjResult(interp, csc->cl ? csc->cl->object.cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
     break;
   }
 
-  case selfoptionActivelevelIdx: {
+  case SelfoptionActivelevelIdx: {
     Tcl_SetObjResult(interp, computeLevelObj(interp, ACTIVE_LEVEL));
     break;
   }
 
-  case selfoptionArgsIdx: {
+  case SelfoptionArgsIdx: {
     int nobjc;
     Tcl_Obj **nobjv;
     Tcl_CallFrame *topFramePtr;
@@ -10845,7 +10867,7 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
     break;
   }
 
-  case selfoptionActivemixinIdx: {
+  case SelfoptionActivemixinIdx: {
     XOTclObject *o = NULL;
     if (RUNTIME_STATE(interp)->cmdPtr) {
       o = XOTclGetObjectFromCmdPtr(RUNTIME_STATE(interp)->cmdPtr);
@@ -10854,8 +10876,8 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
     break;
   }
 
-  case selfoptionCalledprocIdx:
-  case selfoptionCalledmethodIdx: {
+  case SelfoptionCalledprocIdx:
+  case SelfoptionCalledmethodIdx: {
     csc = CallStackFindActiveFilter(interp);
     if (csc) {
       Tcl_SetObjResult(interp, csc->filterStackEntry->calledProc);
@@ -10866,23 +10888,23 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
     break;
   }
 
-  case selfoptionCalledclassIdx:
+  case SelfoptionCalledclassIdx:
     Tcl_SetResult(interp, className(FindCalledClass(interp, obj)), TCL_VOLATILE);
     break;
 
-  case selfoptionCallingprocIdx:
+  case SelfoptionCallingprocIdx:
     csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
     Tcl_SetResult(interp, csc ? (char *)Tcl_GetCommandName(interp, csc->cmdPtr) : "",
 		  TCL_VOLATILE);
     break;
 
-  case selfoptionCallingclassIdx:
+  case SelfoptionCallingclassIdx:
     csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
     Tcl_SetObjResult(interp, csc && csc->cl ? csc->cl->object.cmdName :
 		     XOTclGlobalObjects[XOTE_EMPTY]);
     break;
 
-  case selfoptionCallinglevelIdx:
+  case SelfoptionCallinglevelIdx:
     if (!obj) {
       Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
     } else {
@@ -10890,12 +10912,12 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
     }
     break;
 
-  case selfoptionCallingobjectIdx:
+  case SelfoptionCallingobjectIdx:
     csc = XOTclCallStackFindLastInvocation(interp, 1, NULL);
     Tcl_SetObjResult(interp, csc ? csc->self->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
     break;
 
-  case selfoptionFilterregIdx:
+  case SelfoptionFilterregIdx:
     csc = CallStackFindActiveFilter(interp);
     if (csc) {
       Tcl_SetObjResult(interp, FilterFindReg(interp, obj, csc->cmdPtr));
@@ -10906,7 +10928,7 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
     }
     break;
 
-  case selfoptionIsnextcallIdx: {
+  case SelfoptionIsnextcallIdx: {
     Tcl_CallFrame *framePtr;
     csc = CallStackGetTopFrame(interp, &framePtr);
 #if defined(TCL85STACK)
@@ -10922,7 +10944,7 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
     break;
   }
 
-  case selfoptionNextIdx:
+  case SelfoptionNextIdx:
     result = FindSelfNext(interp, obj);
     break;
   }
@@ -12091,11 +12113,39 @@ static int XOTclObjInfoInvarMethod(Tcl_Interp *interp, XOTclObject *object) {
 }
 
 static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, 
-                                     int withDefined, int withPer_object, 
-                                     int withNoprocs, int withNocmds, int withNomixins, 
-                                     int withIncontext, char *pattern) {
+				     int withDefined, int withPer_object, 
+				     int withMethodtype, 
+				     int withNomixins, 
+				     int withIncontext, char *pattern) {
+
+  int methodType;
+
+  switch (withMethodtype) {
+  case MethodtypeNULL: /* default */
+  case MethodtypeAllIdx: 
+    methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_CMD;
+    break;
+  case MethodtypeScriptedIdx:
+    methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_ALIAS;
+    break;
+  case MethodtypeCompiledIdx:
+    methodType = XOTCL_METHODTYPE_CMD;
+    break;
+  case MethodtypeForwarderIdx:
+    methodType = XOTCL_METHODTYPE_FORWARDER;
+    break;
+  case MethodtypeAliasIdx:
+    methodType = XOTCL_METHODTYPE_ALIAS;
+    break;
+  case MethodtypeSetterIdx:
+    methodType = XOTCL_METHODTYPE_SETTER;
+    break;
+  case MethodtypeObjectIdx:
+    methodType = XOTCL_METHODTYPE_OBJECT;
+    break;
+  }
   return ListMethods(interp, object, pattern, withDefined, withPer_object, 
-                     withNoprocs, withNocmds, withNomixins, withIncontext);
+		     methodType, withNomixins, withIncontext);
 }
 
 static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int withGuards, int withOrder,
@@ -12121,7 +12171,7 @@ static int XOTclObjInfoParamsMethod(Tcl_Interp *interp, XOTclObject *object, cha
 
 static int XOTclObjInfoParametercmdMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern) {
   if (object->nsPtr) {
-    return ListMethodKeys(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern, 1, 0, 0, 0, 1);
+    return ListMethodKeys(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern, XOTCL_METHODTYPE_SETTER, 0, 0, 1);
   }
   return TCL_OK;
 }
@@ -12351,7 +12401,7 @@ static int XOTclClassInfoInstmixinofMethod(Tcl_Interp *interp, XOTclClass * clas
 }
 
 static int XOTclClassInfoInstparametercmdMethod(Tcl_Interp *interp, XOTclClass * class, char * pattern) {
-  return ListMethodKeys(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, 1, 0, 0, 0, 1);
+  return ListMethodKeys(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, XOTCL_METHODTYPE_SETTER, 0, 0, 1);
 }
 
 static int XOTclClassInfoInstparamsMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName, int withVarnames) {

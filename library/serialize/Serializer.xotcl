@@ -204,14 +204,14 @@ namespace eval ::xotcl::serializer {
     #if {![$o istype ::xotcl::Slot]} {append cmd " -noinit"}
     append cmd " -noinit"
     append cmd " \\\n"
-    foreach i [$o info methods -defined -nocmd] {
+    foreach i [::xotcl::cmd::ObjectInfo::methods $o -defined -per-object -methodtype scripted] {
       append cmd " " [my method-serialize $o $i ""] " \\\n"
     }
-    foreach i [$o info forward] {
+    foreach i [::xotcl::cmd::ObjectInfo::methods $o -defined -per-object -methodtype forward] {
       set fwd [concat [list forward $i] [$o info forward -definition $i]]
       append cmd \t [my pcmd $fwd] " \\\n"
     }
-    foreach i [$o info parametercmd] {
+    foreach i [::xotcl::cmd::ObjectInfo::methods $o -defined -per-object -methodtype setter] {
       append cmd \t [my pcmd [list parametercmd $i]] " \\\n"
     }
     set vset {}

@@ -301,8 +301,7 @@ infoObjectMethod methods XOTclObjInfoMethodsMethod {
   {-argName "object" -required 1 -type object}
   {-argName "-defined"}
   {-argName "-per-object"}
-  {-argName "-noprocs"}
-  {-argName "-nocmds"}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|compiled|alias|forwarder|object|setter"}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern"}

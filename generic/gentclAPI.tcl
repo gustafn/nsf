@@ -11,8 +11,7 @@ set ::converter ""
 set ::objCmdProc "(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv \[\]);"
 
 proc convertername {type argname} {
-  #return [string totitle [string map [list | _] $type]]
-  return [string totitle $argname]
+  return [string totitle [string trimleft $argname -]]
 }
 
 proc createconverter {type argname} {
@@ -22,8 +21,8 @@ proc createconverter {type argname} {
   }
   set domain [split $type |]
   set opts "static CONST char *opts\[\] = {\"[join $domain {", "}]\", NULL};"
-  set enums [list ${argname}NULL]
-  foreach d $domain {lappend enums $argname[string totitle [string map [list - _] $d]]Idx}
+  set enums [list ${name}NULL]
+  foreach d $domain {lappend enums $name[string totitle [string map [list - _] $d]]Idx}
   subst {
 static int convertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
@@ -32,7 +31,7 @@ static int convertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONS
   *clientData = (ClientData) index + 1;
   return result;
 }
-enum ${argname}Idx {[join $enums {, }]};
+enum ${name}Idx {[join $enums {, }]};
   }
 }
 
@@ -44,6 +43,7 @@ proc genifd {parameterDefinitions} {
       "" {set type NULL}
       default {set type $(-type)}
     }
+    set argName $(-argName)
     switch -glob $type {
       "NULL"       {set converter String}
       "boolean"    {set converter Boolean}
@@ -60,7 +60,7 @@ proc genifd {parameterDefinitions} {
         set (-argName) $type
       }
     }
-    lappend l "{\"$(-argName)\", $(-required), $(-nrargs), convertTo$converter}"
+    lappend l "{\"$argName\", $(-required), $(-nrargs), convertTo$converter}"
   }
   join $l ",\n  "
 }
@@ -104,11 +104,12 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
       set calledArg $varName
       set type "int "
       if {$(-nrargs) == 1} {
-        switch $(-type) {
+        switch -glob $(-type) {
           ""           {set type "char *"}
           "class"      {set type "XOTclClass *"}
           "object"     {set type "XOTclObject *"}
           "tclobj"     {set type "Tcl_Obj *"}
+          "*|*"        {set type "int "}
           default      {error "type '$(-type)' not allowed for parameter"}
         }
       }

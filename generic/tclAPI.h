@@ -1,4 +1,13 @@
 
+static int convertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
+  int index, result;
+  static CONST char *opts[] = {"all", "scripted", "compiled", "alias", "forwarder", "object", "setter", NULL};
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-methodtype", 0, &index);
+  *clientData = (ClientData) index + 1;
+  return result;
+}
+enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeCompiledIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx};
+  
 static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
   static CONST char *opts[] = {"filter", "softrecreate", "cacheinterface", NULL};
@@ -6,7 +15,7 @@ static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPa
   *clientData = (ClientData) index + 1;
   return result;
 }
-enum configureoptionIdx {configureoptionNULL, configureoptionFilterIdx, configureoptionSoftrecreateIdx, configureoptionCacheinterfaceIdx};
+enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionCacheinterfaceIdx};
   
 static int convertToSelfoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
@@ -15,7 +24,7 @@ static int convertToSelfoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam C
   *clientData = (ClientData) index + 1;
   return result;
 }
-enum selfoptionIdx {selfoptionNULL, selfoptionProcIdx, selfoptionClassIdx, selfoptionActivelevelIdx, selfoptionArgsIdx, selfoptionActivemixinIdx, selfoptionCalledprocIdx, selfoptionCalledmethodIdx, selfoptionCalledclassIdx, selfoptionCallingprocIdx, selfoptionCallingclassIdx, selfoptionCallinglevelIdx, selfoptionCallingobjectIdx, selfoptionFilterregIdx, selfoptionIsnextcallIdx, selfoptionNextIdx};
+enum SelfoptionIdx {SelfoptionNULL, SelfoptionProcIdx, SelfoptionClassIdx, SelfoptionActivelevelIdx, SelfoptionArgsIdx, SelfoptionActivemixinIdx, SelfoptionCalledprocIdx, SelfoptionCalledmethodIdx, SelfoptionCalledclassIdx, SelfoptionCallingprocIdx, SelfoptionCallingclassIdx, SelfoptionCallinglevelIdx, SelfoptionCallingobjectIdx, SelfoptionFilterregIdx, SelfoptionIsnextcallIdx, SelfoptionNextIdx};
   
 static int convertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
@@ -24,7 +33,7 @@ static int convertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam C
   *clientData = (ClientData) index + 1;
   return result;
 }
-enum objectkindIdx {objectkindNULL, objectkindTypeIdx, objectkindObjectIdx, objectkindClassIdx, objectkindMetaclassIdx, objectkindMixinIdx};
+enum ObjectkindIdx {ObjectkindNULL, ObjectkindTypeIdx, ObjectkindObjectIdx, ObjectkindClassIdx, ObjectkindMetaclassIdx, ObjectkindMixinIdx};
   
 static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
@@ -33,7 +42,7 @@ static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPar
   *clientData = (ClientData) index + 1;
   return result;
 }
-enum methodpropertyIdx {methodpropertyNULL, methodpropertyProtectedIdx, methodpropertyStaticIdx, methodpropertySlotobjIdx};
+enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyProtectedIdx, MethodpropertyStaticIdx, MethodpropertySlotobjIdx};
   
 static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
@@ -42,7 +51,7 @@ static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam
   *clientData = (ClientData) index + 1;
   return result;
 }
-enum relationtypeIdx {relationtypeNULL, relationtypeMixinIdx, relationtypeInstmixinIdx, relationtypeObject_mixinIdx, relationtypeClass_mixinIdx, relationtypeFilterIdx, relationtypeInstfilterIdx, relationtypeObject_filterIdx, relationtypeClass_filterIdx, relationtypeClassIdx, relationtypeSuperclassIdx, relationtypeRootclassIdx};
+enum RelationtypeIdx {RelationtypeNULL, RelationtypeMixinIdx, RelationtypeInstmixinIdx, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeFilterIdx, RelationtypeInstfilterIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx};
   
 
 typedef struct {
@@ -210,7 +219,7 @@ static int XOTclObjInfoFilterguardMethod(Tcl_Interp *interp, XOTclObject *object
 static int XOTclObjInfoForwardMethod(Tcl_Interp *interp, XOTclObject *object, int withDefinition, char *pattern);
 static int XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *object);
 static int XOTclObjInfoInvarMethod(Tcl_Interp *interp, XOTclObject *object);
-static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, int withDefined, int withPer_object, int withNoprocs, int withNocmds, int withNomixins, int withIncontext, char *pattern);
+static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, int withDefined, int withPer_object, int withMethodtype, int withNomixins, int withIncontext, char *pattern);
 static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int withGuards, int withOrder, char *patternString, XOTclObject *patternObj);
 static int XOTclObjInfoMixinguardMethod(Tcl_Interp *interp, XOTclObject *object, char *mixin);
 static int XOTclObjInfoParametercmdMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern);
@@ -1304,14 +1313,13 @@ XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
     int withDefined = (int )pc.clientData[1];
     int withPer_object = (int )pc.clientData[2];
-    int withNoprocs = (int )pc.clientData[3];
-    int withNocmds = (int )pc.clientData[4];
-    int withNomixins = (int )pc.clientData[5];
-    int withIncontext = (int )pc.clientData[6];
-    char *pattern = (char *)pc.clientData[7];
+    int withMethodtype = (int )pc.clientData[3];
+    int withNomixins = (int )pc.clientData[4];
+    int withIncontext = (int )pc.clientData[5];
+    char *pattern = (char *)pc.clientData[6];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoMethodsMethod(interp, object, withDefined, withPer_object, withNoprocs, withNocmds, withNomixins, withIncontext, pattern);
+    return XOTclObjInfoMethodsMethod(interp, object, withDefined, withPer_object, withMethodtype, withNomixins, withIncontext, pattern);
 
   }
 }
@@ -2452,12 +2460,11 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::ObjectInfo::invar", XOTclObjInfoInvarMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::xotcl::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, 8, {
+{"::xotcl::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, 7, {
   {"object", 1, 0, convertToObject},
   {"-defined", 0, 0, convertToString},
   {"-per-object", 0, 0, convertToString},
-  {"-noprocs", 0, 0, convertToString},
-  {"-nocmds", 0, 0, convertToString},
+  {"-methodtype", 0, 1, convertToMethodtype},
   {"-nomixins", 0, 0, convertToString},
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
@@ -2601,7 +2608,7 @@ static methodDefinition method_definitions[] = {
   {"cmdName", 1, 0, convertToTclobj}}
 },
 {"::xotcl::configure", XOTclConfigureCmdStub, 2, {
-  {"filter|softrecreate|cacheinterface", 1, 0, convertToConfigureoption},
+  {"configureoption", 1, 0, convertToConfigureoption},
   {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::createobjectsystem", XOTclCreateObjectSystemCmdStub, 2, {
@@ -2625,7 +2632,7 @@ static methodDefinition method_definitions[] = {
   }
 },
 {"::xotcl::self", XOTclGetSelfObjCmdStub, 1, {
-  {"proc|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingclass|callinglevel|callingobject|filterreg|isnextcall|next", 0, 0, convertToSelfoption}}
+  {"selfoption", 0, 0, convertToSelfoption}}
 },
 {"::xotcl::instvar", XOTclInstvarCmdStub, 2, {
   {"-object", 0, 1, convertToObject},
@@ -2637,14 +2644,14 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::is", XOTclIsCmdStub, 3, {
   {"object", 1, 0, convertToTclobj},
-  {"type|object|class|metaclass|mixin", 0, 0, convertToObjectkind},
+  {"objectkind", 0, 0, convertToObjectkind},
   {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::methodproperty", XOTclMethodPropertyCmdStub, 5, {
   {"object", 1, 0, convertToObject},
   {"methodName", 1, 0, convertToString},
   {"-per-object", 0, 0, convertToString},
-  {"protected|static|slotobj", 1, 0, convertToMethodproperty},
+  {"methodproperty", 1, 0, convertToMethodproperty},
   {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::my", XOTclMyCmdStub, 3, {
@@ -2665,7 +2672,7 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::relation", XOTclRelationCmdStub, 3, {
   {"object", 1, 0, convertToObject},
-  {"mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class-filter|class|superclass|rootclass", 1, 0, convertToRelationtype},
+  {"relationtype", 1, 0, convertToRelationtype},
   {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::setinstvar", XOTclSetInstvarCmdStub, 3, {
