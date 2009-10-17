@@ -1,3 +1,12 @@
+2009-10-17 <Gustaf.Neumann@wu-wien.ac.at>
+    * clean removal of __trace__ method in serializer
+    * Some documentation fixes, added stack example to documentation
+    * Bumped version number to 1.6.4
+    * Release of XOTcl 1.6.4
+
+2009-06-19 <Gustaf.Neumann@wu-wien.ac.at>
+    - minor variable renaming to follow tcl naming convetions more closely
+
 2009-06-14 <Gustaf.Neumann@wu-wien.ac.at>
     - fixed potential access to deleted command list item in
       FilterSearchAgain()
