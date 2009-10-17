@@ -283,7 +283,7 @@ Language Extensions of XOTcl
 To give you an impression of the language before we go into the details of the extended language constructs, we present in this section a simple, classical example, familiar to many from introductory programming courses: the <em>Stack</em> example. In the later section, we will present the <em>soccer club</em> example, which focuses more on the dynamic features of the Extended Object Tcl.
 </p>
         
-<p>In a first step, we define a class <tt>Stack</tt>. A new class is defined in XOTcl via the command <tt>Class create yourclass</tt>. The stack will have a constructor (in XOTcl, the method <tt>init</tt>) and the methods <tt>push</tt> and <tt>pop</tt>. Methods which are inherited to objects are defined via <tt>instproc</tt>. In the following example, all prededined commands (some from Tcl, some from XOTcl) are emphasiszed.
+<p>In a first step, we define a class <tt>Stack</tt>. A new class is defined in XOTcl via the command <tt>Class create yourclass</tt>. The stack will have a constructor (in XOTcl, the method <tt>init</tt>) and the methods <tt>push</tt> and <tt>pop</tt>. Methods which are inherited to objects are defined via <tt>instproc</tt>. In the following example, all predefined commands (some from Tcl, some from XOTcl) are emphasized.
 </p>
         
 <pre CLASS="code">
@@ -313,7 +313,7 @@ Stack <tt>instproc</tt> pop {} {
 </pre>
 
 <p>
-The defintion of the class <tt>Stack</tt> is typically saved in a file (say <tt>stack.xotcl</tt>)
+The definition of the class <tt>Stack</tt> is typically saved in a file (say <tt>stack.xotcl</tt>)
 and can be used e.g. in an interactive Tcl shell (<tt>tclsh</tt>) as follows. The percent sign
 indicates the prompt of the Tcl shell, the reminder of the line is typed in, the result
 of the command is shown in the line below. Comments are lines starting with a hash symbol <tt>#</tt>.
@@ -376,8 +376,8 @@ stack <tt>proc</tt> pop {} {
 
 <H3><A NAME="refining-methods"></A>&#160;<BR>Refining the behavior of objects and classes</h3>
 
-<p>So far, the definition of stacks were pretty minimal. Suppose, we want to define safe stacks, that check e.g. for stack underruns (more pop the push operations are issued).  Checking safety can be done mostly independent from the implementation details of the stack (usage of interal data structures).
-With XOTcl, one can define stack-safety as a seaprate class using methods with the same names as the implementations before, and "mix" this behavior later into classes or objects. The implementation of <tt>Safety</tt> uses a counter to check for stack underruns.</p>
+<p>So far, the definition of stacks were pretty minimal. Suppose, we want to define safe stacks, that check e.g. for stack underruns (more pop the push operations are issued).  Checking safety can be done mostly independent from the implementation details of the stack (usage of internal data structures).
+With XOTcl, one can define stack-safety as a separate class using methods with the same names as the implementations before, and "mix" this behavior later into classes or objects. The implementation of <tt>Safety</tt> uses a counter to check for stack underruns.</p>
 
 <pre CLASS="code">
 <it>#</it>
@@ -416,7 +416,7 @@ a
 Stack empty!
 </pre>
 
-Note that the definition of Saftey can be used not only for instances of the class <tt>Stack</tt>, but for arbitrary objects supporting the same interface.  Therefore we could as well make the stack object <tt>stack</tt> (that we created before) safe at any time by adding the safety at arbitray times with the method <tt>mixin</tt>, and we can remove the saftey as well at any time.
+Note that the definition of Saftey can be used not only for instances of the class <tt>Stack</tt>, but for arbitrary objects supporting the same interface.  Therefore we could as well make the stack object <tt>stack</tt> (that we created before) safe at any time by adding the safety at arbitrary times with the method <tt>mixin</tt>, and we can remove the safety as well at any time.
 
 <pre CLASS="code">
 <it># Add Safety to the object stack</it>
