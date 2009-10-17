@@ -141,6 +141,7 @@ typedef struct forwardCmdClientData {
 
 typedef struct AliasCmdClientData {
   XOTclObject *obj;
+  XOTclClass *class;
   Tcl_Obj *cmdName;
   Tcl_ObjCmdProc *objProc;
   Tcl_Command aliasedCmd;
@@ -8729,7 +8730,7 @@ XOTclProcAliasMethod(ClientData clientData,
   char *methodName = ObjStr(objv[0]);
   /*TODO: resolve the 'real' command at the end of the imported cmd chain */
 
-  return MethodDispatch((ClientData)self, interp, objc, objv, tcd->aliasedCmd, self, self->cl,
+  return MethodDispatch((ClientData)self, interp, objc, objv, tcd->aliasedCmd, self, tcd->class,
                         methodName, 0);
 }
 
@@ -9796,6 +9797,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     tcd = NEW(AliasCmdClientData);
     tcd->cmdName    = NULL;
     tcd->obj        = object;
+    tcd->class	    = allocation == 'c' ? (XOTclClass *) object : NULL;
     tcd->objProc    = objProc;
     tcd->aliasedCmd = cmd;
     tcd->clientData = Tcl_Command_objClientData(cmd);
@@ -12118,7 +12120,7 @@ static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object,
 				     int withNomixins, 
 				     int withIncontext, char *pattern) {
 
-  int methodType;
+  int methodType = 0;
 
   switch (withMethodtype) {
   case MethodtypeNULL: /* default */

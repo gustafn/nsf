@@ -488,6 +488,7 @@ static char cmd[] =
 "puts stderr \"current=[namespace current], ul=[uplevel {namespace current}]\"\n"
 "if {$callingNs ne \"::xotcl\"} {uplevel {namespace import -force ::xotcl::*}}}\n"
 "default {\n"
+"if {$callingNs ne \"::xotcl\"} {uplevel {namespace import -force ::xotcl::*}}\n"
 "if {$callingNs ne \"::xotcl2\"} {uplevel {namespace import -force ::xotcl2::*}}}}}\n"
 "unset bootstrap}\n"
 "";

@@ -919,6 +919,7 @@ namespace eval ::xotcl {
 	if {$callingNs ne "::xotcl"} {uplevel {namespace import -force ::xotcl::*}}
       }
       default {
+	if {$callingNs ne "::xotcl"} {uplevel {namespace import -force ::xotcl::*}}
 	if {$callingNs ne "::xotcl2"} {uplevel {namespace import -force ::xotcl2::*}}
       }
     }

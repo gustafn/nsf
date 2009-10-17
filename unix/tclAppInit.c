@@ -160,8 +160,7 @@ Tcl_AppInit(interp)
     }    
  
     Tcl_StaticPackage(interp, "XOTcl", Xotcl_Init, 0);
-    if (Tcl_Import(interp, Tcl_GetGlobalNamespace(interp),
-            "::xotcl::*", /* allowOverwrite */ 1) != TCL_OK) {
+    if (Tcl_Eval(interp, "::xotcl::use xotcl2") != TCL_OK) {
         return TCL_ERROR;
     }
    
