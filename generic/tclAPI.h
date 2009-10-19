@@ -1,12 +1,12 @@
 
 static int convertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
-  static CONST char *opts[] = {"all", "scripted", "compiled", "alias", "forwarder", "object", "setter", NULL};
+  static CONST char *opts[] = {"all", "scripted", "system", "alias", "forwarder", "object", "setter", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-methodtype", 0, &index);
   *clientData = (ClientData) index + 1;
   return result;
 }
-enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeCompiledIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx};
+enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeSystemIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx};
   
 static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;

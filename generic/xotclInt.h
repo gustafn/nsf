@@ -86,7 +86,7 @@ typedef struct XOTclMemCounter {
 #if USE_ASSOC_DATA
 # define RUNTIME_STATE(interp) ((XOTclRuntimeState*)Tcl_GetAssocData((interp), "XOTclRuntimeState", NULL))
 #else
-# define RUNTIME_STATE(interp) ((XOTclRuntimeState*)((Interp*)interp)->globalNsPtr->clientData)
+# define RUNTIME_STATE(interp) ((XOTclRuntimeState*)((Interp*)(interp))->globalNsPtr->clientData)
 #endif
 
 
@@ -432,7 +432,7 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_METHODTYPE_FORWARDER 0x0008
 #define XOTCL_METHODTYPE_OBJECT    0x0010
 #define XOTCL_METHODTYPE_OTHER     0x0100
-#define XOTCL_METHODTYPE_CMD       XOTCL_METHODTYPE_ALIAS|XOTCL_METHODTYPE_SETTER|XOTCL_METHODTYPE_FORWARDER|XOTCL_METHODTYPE_OBJECT|XOTCL_METHODTYPE_OTHER
+#define XOTCL_METHODTYPE_SYSTEM    XOTCL_METHODTYPE_ALIAS|XOTCL_METHODTYPE_SETTER|XOTCL_METHODTYPE_FORWARDER|XOTCL_METHODTYPE_OBJECT|XOTCL_METHODTYPE_OTHER
 
 /* disallowed options */
 #define XOTCL_ARG_METHOD_PARAMETER	     (XOTCL_ARG_RELATION)  /* maybe add ARG_INITCMD */

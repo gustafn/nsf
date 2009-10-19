@@ -23,10 +23,12 @@ Class create Foo
 Foo create f1
 ? {f1 foo} 1
 ? {f1 foo -x 2} 2
+? {Foo info methods -defined -methodtype alias} "foo"
 
 ? {Base info methods -defined -methodtype scripted} {foo}
 ? {Foo info methods -defined -methodtype scripted} {foo}
 Base method foo {} {}
+? {Foo info methods -defined -methodtype alias} ""
 ? {Base info methods -defined -methodtype scripted} {}
 ? {Foo info methods -defined -methodtype scripted} {}
 
@@ -35,34 +37,13 @@ Base method foo {{-x 1}} {return $x}
 
 ? {Base info methods -defined -methodtype scripted} {foo} "defined again"
 ? {Foo info methods -defined -methodtype scripted} {foo} "aliased again"
-# When the next three lines are added, we crash on exit
 Foo method foo {} {}
 ? {Base info methods -defined -methodtype scripted} {foo} "still defined"
 ? {Foo info methods -defined -methodtype scripted} {} "removed"
 
-::xotcl::use xotcl1
-
-::xotcl::alias ::xotcl::Object contains ::xotcl::classes::xotcl2::Object::contains
-
-::xotcl::Class create C
-::C contains -object ::C::slot { 
-  Attribute create x -initcmd {set x 1} 
-  Attribute create y -initcmd {incr ::hu} 
-  Attribute create z -initcmd {my trace add variable z read T1}
-}
-
-? {::C info slots} "::C::slot::x ::C::slot::y ::C::slot::z"
-
-? {catch {::C contains -x 1 -object ::C::slot { 
-  Attribute create w -initcmd {my trace add variable z read T1}
-}}} 1
-
-::xotcl::use xotcl2
-
 #
 # chaining aliases
 #
-
 
 Class create T
 Class create S
@@ -113,6 +94,7 @@ T method -per-object bar args { return [self class]->[self proc] }
 ::xotcl::alias T BAR -per-object ::T::FOO 
 ::xotcl::alias T ZAP -per-object ::T::BAR 
 ? {T info methods -defined -methodtype scripted} {foo}
+? {lsort [T info methods -defined -per-object -methodtype alias]} {BAR FOO ZAP}
 ? {lsort [T info methods -per-object -defined -methodtype scripted]} {BAR FOO ZAP bar}
 ? {t foo} ::T->foo
 #

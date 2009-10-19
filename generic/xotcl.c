@@ -103,6 +103,11 @@ XOTCLINLINE static void CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *
 XOTCLINLINE static void CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass *cl);
 
+static CONST char* AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
+static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, char *cmd);
+static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
+static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
+
 typedef enum { CALLING_LEVEL, ACTIVE_LEVEL } CallStackLevel;
 
 typedef struct callFrameContext {
@@ -126,10 +131,10 @@ typedef struct forwardCmdClientData {
   XOTclObject *obj;
   Tcl_Obj *cmdName;
   Tcl_ObjCmdProc *objProc;
+  ClientData clientData;
   int passthrough;
   int needobjmap;
   int verbose;
-  ClientData clientData;
   int nr_args;
   Tcl_Obj *args;
   int objscope;
@@ -141,12 +146,13 @@ typedef struct forwardCmdClientData {
 
 typedef struct AliasCmdClientData {
   XOTclObject *obj;
-  XOTclClass *class;
   Tcl_Obj *cmdName;
   Tcl_ObjCmdProc *objProc;
+  ClientData clientData;
+  XOTclClass *class;
+  Tcl_Interp *interp;
   Tcl_Command aliasedCmd;
   Tcl_Command aliasCmd;
-  ClientData clientData;
 } AliasCmdClientData;
 
 #define PARSE_CONTEXT_PREALLOC 20
@@ -1804,7 +1810,7 @@ XOTclRequireObjNamespace(Tcl_Interp *interp, XOTcl_Object *obj) {
  */
 
 static int
-NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, char *name) {
+NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *name) {
   /* a simple deletion would delete a global command with
      the same name, if the command is not existing, so
      we use the CmdToken */
@@ -1927,12 +1933,12 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
         /*
          * cmd is an aliased object, reduce the refcount
          */
-        /*fprintf(stderr, "NSCleanupNamespace cleanup aliased object %p\n",invokeObj);*/
+        fprintf(stderr, "NSCleanupNamespace cleanup aliased object %p\n",invokeObj);
         XOTclCleanupObject(invokeObj);
       }
 
-      /*fprintf(stderr, "NSCleanupNamespace deleting %s %p\n",
-        Tcl_Command_nsPtr(cmd)->fullName, cmd);*/
+      /*fprintf(stderr, "NSCleanupNamespace deleting %s %p (%s)\n",
+        Tcl_Command_nsPtr(cmd)->fullName, cmd,  Tcl_GetCommandName(interp, cmd) );*/
       XOTcl_DeleteCommandFromToken(interp, cmd);
   }
 }
@@ -1977,7 +1983,7 @@ XOTcl_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   */
   MEM_COUNT_FREE("TclNamespace", nsPtr);
   if (Tcl_Namespace_deleteProc(nsPtr)) {
-    /*fprintf(stderr, "calling deteteNamespace\n");*/
+    /*fprintf(stderr, "calling deteteNamespace %s\n", nsPtr->fullName);*/
     Tcl_DeleteNamespace(nsPtr);
   }
 }
@@ -2175,6 +2181,9 @@ XOTclAddObjectMethod(Tcl_Interp *interp, XOTcl_Object *object, CONST char *metho
     return result;
   }
 
+  /* delete an alias definition, if it exists */
+  AliasDelete(interp, obj->cmdName, methodName, 1);
+
   ALLOC_NAME_NS(dsPtr, ns->fullName, methodName);
 
   newCmd = Tcl_CreateObjCommand(interp, Tcl_DStringValue(dsPtr), proc, clientData, dp);
@@ -2194,11 +2203,14 @@ XOTclAddInstanceMethod(Tcl_Interp *interp, XOTcl_Class *class, CONST char *metho
   Tcl_Command newCmd;
   int result;
 
-  /* Check, if we are allowed to redefine the method */
+   /* Check, if we are allowed to redefine the method */
   result = CanRedefineCmd(interp, cl->nsPtr, &cl->object, (char*)methodName);
   if (result != TCL_OK) {
     return result;
   }
+
+ /* delete an alias definition, if it exists */
+  AliasDelete(interp, class->object.cmdName, methodName, 0);
 
   ALLOC_NAME_NS(dsPtr, cl->nsPtr->fullName, methodName);
   newCmd = Tcl_CreateObjCommand(interp, Tcl_DStringValue(dsPtr), proc, clientData, dp);
@@ -2695,7 +2707,7 @@ AssertionFindProcs(XOTclAssertionStore *aStore, char *name) {
 }
 
 static void
-AssertionRemoveProc(XOTclAssertionStore *aStore, char *name) {
+AssertionRemoveProc(XOTclAssertionStore *aStore, CONST char *name) {
   Tcl_HashEntry *hPtr;
   if (aStore) {
     hPtr = XOTcl_FindHashEntry(&aStore->procs, name);
@@ -5560,6 +5572,8 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   } else if (cp) {
     cscPtr = &csc;
 
+    /*fprintf(stderr, "we could stuff obj %p %s\n",obj,objectName(obj));*/
+
     /* some cmd with client data */
     if (proc == XOTclObjDispatch) {
       /*
@@ -8287,33 +8301,37 @@ XOTclInstVar(XOTcl_Object *obji, Tcl_Interp *interp, char *name, char *destName)
 }
 
 extern int
-XOTclRemovePMethod(Tcl_Interp *interp, XOTcl_Object *obji, char *name) {
-  XOTclObject *obj = (XOTclObject*) obji;
+XOTclRemovePMethod(Tcl_Interp *interp, XOTcl_Object *object, CONST char *methodName) {
+  XOTclObject *obj = (XOTclObject*) object;
+
+  AliasDelete(interp, obj->cmdName, methodName, 1);
 
   if (obj->opt)
-    AssertionRemoveProc(obj->opt->assertions, name);
+    AssertionRemoveProc(obj->opt->assertions, methodName);
 
   if (obj->nsPtr) {
-    int rc = NSDeleteCmd(interp, obj->nsPtr, name);
+    int rc = NSDeleteCmd(interp, obj->nsPtr, methodName);
     if (rc < 0)
-      return XOTclVarErrMsg(interp, objectName(obj), " cannot delete method '", name,
+      return XOTclVarErrMsg(interp, objectName(obj), " cannot delete method '", methodName,
                             "' of object ", objectName(obj), (char *) NULL);
   }
   return TCL_OK;
 }
 
 extern int
-XOTclRemoveIMethod(Tcl_Interp *interp, XOTcl_Class *cli, char *name) {
-  XOTclClass *cl = (XOTclClass*) cli;
+XOTclRemoveIMethod(Tcl_Interp *interp, XOTcl_Class *class, CONST char *methodName) {
+  XOTclClass *cl = (XOTclClass*) class;
   XOTclClassOpt *opt = cl->opt;
   int rc;
 
+  AliasDelete(interp, class->object.cmdName, methodName, 0);
+  
   if (opt && opt->assertions)
-    AssertionRemoveProc(opt->assertions, name);
+    AssertionRemoveProc(opt->assertions, methodName);
 
-  rc = NSDeleteCmd(interp, cl->nsPtr, name);
+  rc = NSDeleteCmd(interp, cl->nsPtr, methodName);
   if (rc < 0)
-    return XOTclVarErrMsg(interp, className(cl), " cannot delete method '", name,
+    return XOTclVarErrMsg(interp, className(cl), " cannot delete method '", methodName,
                           "' of class ", className(cl), (char *) NULL);
   return TCL_OK;
 }
@@ -8730,6 +8748,12 @@ XOTclProcAliasMethod(ClientData clientData,
   char *methodName = ObjStr(objv[0]);
   /*TODO: resolve the 'real' command at the end of the imported cmd chain */
 
+  if (self == NULL) {
+    return XOTclVarErrMsg(interp, "no object active for alias '",
+                          Tcl_GetCommandName(interp, tcd->aliasCmd), 
+                          "'; don't call aliased methods via namespace paths", 
+                          (char *) NULL);
+  }
   return MethodDispatch((ClientData)self, interp, objc, objv, tcd->aliasedCmd, self, tcd->class,
                         methodName, 0);
 }
@@ -8740,7 +8764,7 @@ XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   XOTclObject *obj = tcd->obj;
   int result;
   XOTcl_FrameDecls;
-  /*fprintf(stderr, "objscopedMethod obj=%p, ptr=%p\n", obj, tcd->objProc);*/
+  /*fprintf(stderr, "objscopedMethod obj=%p %s, ptr=%p\n", obj, objectName(obj), tcd->objProc);*/
 
   XOTcl_PushFrame(interp, obj);
 
@@ -8757,6 +8781,19 @@ XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 static void aliasCmdDeleteProc(ClientData clientData) {
   AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
   ImportRef *refPtr, *prevPtr = NULL;
+
+  /* 
+   * Since we just get the clientData, we have to obtain interp,
+   * object, methodName and per-object from tcd; the obj might be
+   * deleted already. We need as well at least still the global
+   * namespace.
+   */
+  if (tcd->interp && 
+      ((Interp *)(tcd->interp))->globalNsPtr &&
+      RUNTIME_STATE(tcd->interp)->exitHandlerDestroyRound != XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY) {
+    CONST char *methodName = Tcl_GetCommandName(tcd->interp, tcd->aliasCmd);
+    AliasDelete(tcd->interp, tcd->cmdName, methodName, tcd->class == NULL);
+  }
 
   /*fprintf(stderr, "aliasCmdDeleteProc\n");*/
   if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
@@ -9392,23 +9429,32 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int meth
 #endif
 
     if (pattern && !Tcl_StringMatch(key, pattern)) continue;
-    if (proc == XOTclProcAliasMethod) {
-      if ((methodType & XOTCL_METHODTYPE_ALIAS) == 0) continue;
+    if (methodType == XOTCL_METHODTYPE_ALIAS) {
+      if (proc != XOTclProcAliasMethod) {
+        /* for the time being, we just return aliases, which are
+           aliases to procs or to other methods; aliases to built-in
+           cmds are not returned */
+        continue;
+      }
+    } else {
+      if (proc == XOTclProcAliasMethod) {
+        if ((methodType & XOTCL_METHODTYPE_ALIAS) == 0) continue;
+      }
+      /* the following cases are disjoint */
+      if (CmdIsProc(importedCmd)) {
+        /*fprintf(stderr,"%s scripted %d\n",key, methodType & XOTCL_METHODTYPE_SCRIPTED);*/
+        if ((methodType & XOTCL_METHODTYPE_SCRIPTED) == 0) continue;
+      } else if (resolvedProc == XOTclForwardMethod) {
+        if ((methodType & XOTCL_METHODTYPE_FORWARDER) == 0) continue;
+      } else if (resolvedProc == XOTclSetterMethod) {
+        if ((methodType & XOTCL_METHODTYPE_SETTER) == 0) continue;
+      } else if (resolvedProc == XOTclObjDispatch) {
+        if ((methodType & XOTCL_METHODTYPE_OBJECT) == 0) continue;
+      } else if ((methodType & XOTCL_METHODTYPE_OTHER) == 0) {
+        /*fprintf(stderr,"OTHER %s not wanted %.4x\n",key, methodType);*/
+        continue;
+      } 
     }
-    /* the following cases are disjoint */
-    if (CmdIsProc(importedCmd)) {
-      /*fprintf(stderr,"%s scripted %d\n",key, methodType & XOTCL_METHODTYPE_SCRIPTED);*/
-      if ((methodType & XOTCL_METHODTYPE_SCRIPTED) == 0) continue;
-    } else if (resolvedProc == XOTclForwardMethod) {
-      if ((methodType & XOTCL_METHODTYPE_FORWARDER) == 0) continue;
-    } else if (resolvedProc == XOTclSetterMethod) {
-      if ((methodType & XOTCL_METHODTYPE_SETTER) == 0) continue;
-    } else if (resolvedProc == XOTclObjDispatch) {
-      if ((methodType & XOTCL_METHODTYPE_OBJECT) == 0) continue;
-    } else if ((methodType & XOTCL_METHODTYPE_OTHER) == 0) {
-      /*fprintf(stderr,"OTHER %s not wanted %.4x\n",key, methodType);*/
-      continue;
-    } 
     /*
     if (noCmds  && proc != RUNTIME_STATE(interp)->objInterpProc) continue;
     if (noProcs && proc == RUNTIME_STATE(interp)->objInterpProc) continue;
@@ -9697,10 +9743,53 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVar
  * End result setting commands
  ********************************/
 
+static CONST char* AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object) {
+  Tcl_DStringInit(dsPtr);
+  Tcl_DStringAppend(dsPtr,  ObjStr(cmdName), -1);
+  Tcl_DStringAppend(dsPtr,  ",", 1);
+  Tcl_DStringAppend(dsPtr,  methodName, -11);
+  if (withPer_object) {
+    Tcl_DStringAppend(dsPtr,  ",1", 2);
+  } else {
+    Tcl_DStringAppend(dsPtr,  ",0", 2);
+  }
+  /*fprintf(stderr, "AI %s\n",Tcl_DStringValue(dsPtr));*/
+  return Tcl_DStringValue(dsPtr);
+}
+
+static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, 
+                    char *cmd) {
+  Tcl_DString ds, *dsPtr = &ds;
+  Tcl_SetVar2Ex(interp, "::xotcl::alias", 
+                AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
+                Tcl_NewStringObj(cmd,-1), 
+                TCL_GLOBAL_ONLY);
+  Tcl_DStringFree(dsPtr);
+  return TCL_OK;
+}
+
+static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object) {
+  Tcl_DString ds, *dsPtr = &ds;
+  int result = Tcl_UnsetVar2(interp, "::xotcl::alias", 
+                             AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
+                             TCL_GLOBAL_ONLY);
+  Tcl_DStringFree(dsPtr);
+  return result;
+}
+
+static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object) {
+  Tcl_DString ds, *dsPtr = &ds;
+  Tcl_Obj *obj = Tcl_GetVar2Ex(interp, "::xotcl::alias", 
+                               AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
+                               TCL_GLOBAL_ONLY);
+  Tcl_DStringFree(dsPtr);
+  return obj;
+}
+
+
 /*********************************
  * Begin generated XOTcl commands
  *********************************/
-
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName,
                          int withObjscope, int withPer_object, int withProtected, 
                          Tcl_Obj *cmdName) {
@@ -9717,6 +9806,17 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     allocation = 'c';
   } else {
     allocation = 'o';
+  }
+
+  {  
+    Tcl_DString ds, *dsPtr = &ds;
+    Tcl_DStringInit(dsPtr);
+    if (withPer_object) {Tcl_DStringAppend(dsPtr, "-per-object ", -1);}
+    if (withObjscope) {Tcl_DStringAppend(dsPtr, "-objscope ", -1);}
+    if (withProtected) {Tcl_DStringAppend(dsPtr, "-protected ", -1);}
+    Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
+    AliasAdd(interp, object->cmdName, methodName, withPer_object, Tcl_DStringValue(dsPtr));
+    Tcl_DStringFree(dsPtr);
   }
 
   cmd = Tcl_GetCommandFromObj(interp, cmdName);
@@ -9776,8 +9876,12 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
      * alias points to nowhere. We realize this via using the object
      * refcount.
      */
-    /*fprintf(stderr, "registering an object %p\n",tcd);*/
+    fprintf(stderr, "registering an object %p\n",tcd);
+    
     XOTclObjectRefCountIncr((XOTclObject *)Tcl_Command_objClientData(cmd));
+    
+    /*newObjProc = XOTclProcAliasMethod;*/
+
   } else if (CmdIsProc(cmd)) {
     /* 
      * if we have a tcl proc|xotcl-method as alias, then use the 
@@ -9795,7 +9899,8 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   if (newObjProc) {
     /* add a wrapper */
     tcd = NEW(AliasCmdClientData);
-    tcd->cmdName    = NULL;
+    tcd->cmdName    = object->cmdName;
+    tcd->interp     = interp; /* just for deleting the associated variable */
     tcd->obj        = object;
     tcd->class	    = allocation == 'c' ? (XOTclClass *) object : NULL;
     tcd->objProc    = objProc;
@@ -9803,6 +9908,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     tcd->clientData = Tcl_Command_objClientData(cmd);
     objProc         = newObjProc;
     deleteProc      = aliasCmdDeleteProc;
+    if (tcd->cmdName) {INCR_REF_COUNT(tcd->cmdName);}
   } else {
     /* call the command directly (must be a c-implemented command not depending on a volatile client data) */
     tcd = Tcl_Command_objClientData(cmd);
@@ -10052,10 +10158,10 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
   }
 
   destroyObjectSystems(interp);
-
   XOTclClassListFree(RUNTIME_STATE(interp)->rootClasses);
 
 #ifdef DO_CLEANUP
+  /*fprintf(stderr, "CLEANUP TOP NS\n");*/
   XOTcl_DeleteNamespace(interp, RUNTIME_STATE(interp)->XOTclClassesNS);
   XOTcl_DeleteNamespace(interp, RUNTIME_STATE(interp)->XOTclNS);
 #endif
@@ -12125,13 +12231,13 @@ static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object,
   switch (withMethodtype) {
   case MethodtypeNULL: /* default */
   case MethodtypeAllIdx: 
-    methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_CMD;
+    methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_SYSTEM;
     break;
   case MethodtypeScriptedIdx:
     methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_ALIAS;
     break;
-  case MethodtypeCompiledIdx:
-    methodType = XOTCL_METHODTYPE_CMD;
+  case MethodtypeSystemIdx:
+    methodType = XOTCL_METHODTYPE_SYSTEM;
     break;
   case MethodtypeForwarderIdx:
     methodType = XOTCL_METHODTYPE_FORWARDER;
@@ -12898,7 +13004,7 @@ destroyObjectSystems(Tcl_Interp *interp) {
 
 #ifdef DO_CLEANUP
   freeAllXOTclObjectsAndClasses(interp, commandTable);
-
+  /*fprintf(stderr, "delete root classes\n");*/
   for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
     rootClass = os->cl;
     rootMetaClass =  (XOTclClass *)os->clientData;
@@ -12911,8 +13017,6 @@ destroyObjectSystems(Tcl_Interp *interp) {
 #endif
 
 #endif
-
-
 
   MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
   Tcl_DeleteHashTable(commandTable);

@@ -79,13 +79,13 @@ EXTERN int		XOTclDeleteClass (Tcl_Interp * interp,
 #define XOTclRemovePMethod_TCL_DECLARED
 /* 13 */
 EXTERN int		XOTclRemovePMethod (Tcl_Interp * interp, 
-				struct XOTcl_Object * obj, char * nm);
+				struct XOTcl_Object * obj, CONST char * nm);
 #endif
 #ifndef XOTclRemoveIMethod_TCL_DECLARED
 #define XOTclRemoveIMethod_TCL_DECLARED
 /* 14 */
 EXTERN int		XOTclRemoveIMethod (Tcl_Interp * interp, 
-				struct XOTcl_Class * cl, char * nm);
+				struct XOTcl_Class * cl, CONST char * nm);
 #endif
 #ifndef XOTclOSetInstVar_TCL_DECLARED
 #define XOTclOSetInstVar_TCL_DECLARED
@@ -273,8 +273,8 @@ typedef struct XotclStubs {
     int (*xOTclDeleteClass) (Tcl_Interp * interp, struct XOTcl_Class * cl); /* 10 */
     void *reserved11;
     void *reserved12;
-    int (*xOTclRemovePMethod) (Tcl_Interp * interp, struct XOTcl_Object * obj, char * nm); /* 13 */
-    int (*xOTclRemoveIMethod) (Tcl_Interp * interp, struct XOTcl_Class * cl, char * nm); /* 14 */
+    int (*xOTclRemovePMethod) (Tcl_Interp * interp, struct XOTcl_Object * obj, CONST char * nm); /* 13 */
+    int (*xOTclRemoveIMethod) (Tcl_Interp * interp, struct XOTcl_Class * cl, CONST char * nm); /* 14 */
     Tcl_Obj * (*xOTclOSetInstVar) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name, Tcl_Obj * value, int flgs); /* 15 */
     Tcl_Obj * (*xOTclOGetInstVar) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name, int flgs); /* 16 */
     int (*xOTclInstVar) (struct XOTcl_Object * obj, Tcl_Interp * interp, char * name, char * destName); /* 17 */

@@ -420,11 +420,13 @@ Object o2
 ? {o x} ::o2 "$case: call object via alias"
 ? {o x info vars} "" "$case: call info on aliased object"
 ? {o2 set x 10} 10   "$case: set variable on object"
+? {o2 info vars} x   "$case: query vars"
 ? {o x info vars} x  "$case: query vars via alias"
 ? {o x set x} 10     "$case: set var via alias"
 o2 destroy
 catch {o x info vars} errMsg
 ? {set errMsg} "Trying to dispatch deleted object via method 'x'" "$case: 1st call on deleted object"
+#? {set errMsg} "::o: unable to dispatch method 'x'" "$case: 1st call on deleted object"
 catch {o x info vars} errMsg
 ? {set errMsg} "::o: unable to dispatch method 'x'" "$case: 2nd call on deleted object"
 o destroy
@@ -446,7 +448,6 @@ Object o3
 o::x destroy
 ? {Object isobject o3} 0 "$case: aliased object destroyed"
 o destroy
-
 set case "create an alias, and recreate obj"
 Object o
 Object o3
