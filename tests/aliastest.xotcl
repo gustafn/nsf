@@ -14,6 +14,9 @@ proc ? {cmd expected {msg ""}} {
 
 ::xotcl::use xotcl2
 
+# the system methods of Object are either alias or forwarders
+? {lsort [::xotcl::Slot info methods -defined -methodtype alias]} {assign get}
+
 Class create Base
 Base method foo {{-x 1}} {return $x}
 

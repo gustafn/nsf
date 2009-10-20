@@ -9407,7 +9407,7 @@ GetOriginalCommand(Tcl_Command cmd) /* The imported command for which the origin
 
 static int
 ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int methodType,
-               Tcl_HashTable *dups, int onlyForwarder, int onlySetter) {
+               Tcl_HashTable *dups, XOTclObject *object, int withPer_object) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : 0;
   for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -9430,10 +9430,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int meth
 
     if (pattern && !Tcl_StringMatch(key, pattern)) continue;
     if (methodType == XOTCL_METHODTYPE_ALIAS) {
-      if (proc != XOTclProcAliasMethod) {
-        /* for the time being, we just return aliases, which are
-           aliases to procs or to other methods; aliases to built-in
-           cmds are not returned */
+      if (!(proc == XOTclProcAliasMethod || AliasGet(interp, object->cmdName, key, withPer_object))) {
         continue;
       }
     } else {
@@ -9571,13 +9568,13 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int definit
     }
     result = TCL_OK;
   } else {
-    result = ListMethodKeys(interp, table, pattern, XOTCL_METHODTYPE_FORWARDER, NULL, 1, 0);
+    result = ListMethodKeys(interp, table, pattern, XOTCL_METHODTYPE_FORWARDER, NULL, NULL, 0);
   }
   return result;
 }
 
 static int
-ListMethods(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
+ListMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
             int withDefined, int withPer_object, int methodType,
             int noMixins, int inContext) {
   XOTclClasses *pl;
@@ -9587,47 +9584,47 @@ ListMethods(Tcl_Interp *interp, XOTclObject *obj, char *pattern,
   /*fprintf(stderr, "listMethods %s %d %d\n", pattern, noMixins, inContext);*/
 
   if (withDefined) {
-    if (XOTclObjectIsClass(obj) && !withPer_object) {
-      cmdTable = Tcl_Namespace_cmdTable(((XOTclClass *)obj)->nsPtr);
+    if (XOTclObjectIsClass(object) && !withPer_object) {
+      cmdTable = Tcl_Namespace_cmdTable(((XOTclClass *)object)->nsPtr);
     } else {
-      cmdTable = obj->nsPtr ? Tcl_Namespace_cmdTable(obj->nsPtr) : NULL;
+      cmdTable = object->nsPtr ? Tcl_Namespace_cmdTable(object->nsPtr) : NULL;
     }
-    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, 0, 0);
+    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, object, withPer_object);
     Tcl_DeleteHashTable(dups);
     return TCL_OK;
   }
 
-  if (obj->nsPtr) {
-    cmdTable = Tcl_Namespace_cmdTable(obj->nsPtr);
-    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, 0, 0);
+  if (object->nsPtr) {
+    cmdTable = Tcl_Namespace_cmdTable(object->nsPtr);
+    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, object, withPer_object);
   }
 
   if (!noMixins) {
-    if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
-      MixinComputeDefined(interp, obj);
-    if (obj->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
+    if (!(object->flags & XOTCL_MIXIN_ORDER_VALID))
+      MixinComputeDefined(interp, object);
+    if (object->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
       XOTclCmdList *ml;
       XOTclClass *mixin;
-      for (ml = obj->mixinOrder; ml; ml = ml->nextPtr) {
+      for (ml = object->mixinOrder; ml; ml = ml->nextPtr) {
 	int guardOk = TCL_OK;
         mixin = XOTclGetClassFromCmdPtr(ml->cmdPtr);
         if (inContext) {
           if (!RUNTIME_STATE(interp)->guardCount) {
-            guardOk = GuardCall(obj, 0, 0, interp, ml->clientData, NULL);
+            guardOk = GuardCall(object, 0, 0, interp, ml->clientData, NULL);
           }
         }
         if (mixin && guardOk == TCL_OK) {
           Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(mixin->nsPtr);
-          ListMethodKeys(interp, cmdTable, pattern, methodType, dups, 0, 0);
+          ListMethodKeys(interp, cmdTable, pattern, methodType, dups, object, withPer_object);
         }
       }
     }
   }
 
   /* append per-class filters */
-  for (pl = ComputeOrder(obj->cl, obj->cl->order, Super); pl; pl = pl->nextPtr) {
+  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
     Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(pl->cl->nsPtr);
-    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, 0, 0);
+    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, object, withPer_object);
   }
   Tcl_DeleteHashTable(dups);
   return TCL_OK;
@@ -9760,10 +9757,12 @@ static CONST char* AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, CONST char *
 static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, 
                     char *cmd) {
   Tcl_DString ds, *dsPtr = &ds;
-  Tcl_SetVar2Ex(interp, "::xotcl::alias", 
+  Tcl_Obj *obj = Tcl_SetVar2Ex(interp, "::xotcl::alias", 
                 AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                 Tcl_NewStringObj(cmd,-1), 
                 TCL_GLOBAL_ONLY);
+  /*fprintf(stderr, "aliasAdd ::xotcl::alias(%s) '%s' returned %p\n",
+    AliasIndex(dsPtr, cmdName, methodName, withPer_object), cmd,obj);*/
   Tcl_DStringFree(dsPtr);
   return TCL_OK;
 }
@@ -9773,6 +9772,8 @@ static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodN
   int result = Tcl_UnsetVar2(interp, "::xotcl::alias", 
                              AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                              TCL_GLOBAL_ONLY);
+  /*fprintf(stderr, "aliasDelete ::xotcl::alias(%s) returned %d (%d)\n",
+    AliasIndex(dsPtr, cmdName, methodName, withPer_object), result, usage);*/
   Tcl_DStringFree(dsPtr);
   return result;
 }
@@ -9782,6 +9783,7 @@ static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *metho
   Tcl_Obj *obj = Tcl_GetVar2Ex(interp, "::xotcl::alias", 
                                AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                                TCL_GLOBAL_ONLY);
+  /*fprintf(stderr, "aliasGet returns %p\n",obj);*/
   Tcl_DStringFree(dsPtr);
   return obj;
 }
@@ -9808,16 +9810,6 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     allocation = 'o';
   }
 
-  {  
-    Tcl_DString ds, *dsPtr = &ds;
-    Tcl_DStringInit(dsPtr);
-    if (withPer_object) {Tcl_DStringAppend(dsPtr, "-per-object ", -1);}
-    if (withObjscope) {Tcl_DStringAppend(dsPtr, "-objscope ", -1);}
-    if (withProtected) {Tcl_DStringAppend(dsPtr, "-protected ", -1);}
-    Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
-    AliasAdd(interp, object->cmdName, methodName, withPer_object, Tcl_DStringValue(dsPtr));
-    Tcl_DStringFree(dsPtr);
-  }
 
   cmd = Tcl_GetCommandFromObj(interp, cmdName);
   if (cmd == NULL) {
@@ -9937,6 +9929,17 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     refPtr->nextPtr = ((Command *) tcd->aliasedCmd)->importRefPtr;
     ((Command *) tcd->aliasedCmd)->importRefPtr = refPtr;
     tcd->aliasCmd = newCmd;
+  }
+
+  if (newCmd) {  
+    Tcl_DString ds, *dsPtr = &ds;
+    Tcl_DStringInit(dsPtr);
+    if (withPer_object) {Tcl_DStringAppend(dsPtr, "-per-object ", -1);}
+    if (withObjscope) {Tcl_DStringAppend(dsPtr, "-objscope ", -1);}
+    if (withProtected) {Tcl_DStringAppend(dsPtr, "-protected ", -1);}
+    Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
+    AliasAdd(interp, object->cmdName, methodName, allocation == 'o', Tcl_DStringValue(dsPtr));
+    Tcl_DStringFree(dsPtr);
   }
 
   return result;
@@ -12279,7 +12282,8 @@ static int XOTclObjInfoParamsMethod(Tcl_Interp *interp, XOTclObject *object, cha
 
 static int XOTclObjInfoParametercmdMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern) {
   if (object->nsPtr) {
-    return ListMethodKeys(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern, XOTCL_METHODTYPE_SETTER, 0, 0, 1);
+    return ListMethodKeys(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern, 
+                          XOTCL_METHODTYPE_SETTER, NULL, NULL, 0);
   }
   return TCL_OK;
 }
@@ -12509,7 +12513,8 @@ static int XOTclClassInfoInstmixinofMethod(Tcl_Interp *interp, XOTclClass * clas
 }
 
 static int XOTclClassInfoInstparametercmdMethod(Tcl_Interp *interp, XOTclClass * class, char * pattern) {
-  return ListMethodKeys(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, XOTCL_METHODTYPE_SETTER, 0, 0, 1);
+  return ListMethodKeys(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, 
+                        XOTCL_METHODTYPE_SETTER, NULL, NULL, 0);
 }
 
 static int XOTclClassInfoInstparamsMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName, int withVarnames) {
