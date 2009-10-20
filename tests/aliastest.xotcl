@@ -12,16 +12,21 @@ proc ? {cmd expected {msg ""}} {
   $t run
 }
 
+::xotcl::use xotcl1
 ::xotcl::use xotcl2
 
 # the system methods of Object are either alias or forwarders
 ? {lsort [::xotcl::Slot info methods -defined -methodtype alias]} {assign get}
+? {::xotcl::Slot info alias -definition get} "::xotcl::setinstvar"
+? {::xotcl::Object info alias -definition set} "-objscope ::set"
 
 Class create Base
 Base method foo {{-x 1}} {return $x}
 
 Class create Foo
 ::xotcl::alias ::Foo foo ::xotcl::classes::Base::foo
+
+? {Foo info alias -definition foo} "::xotcl::classes::Base::foo"
 
 Foo create f1
 ? {f1 foo} 1
@@ -34,6 +39,8 @@ Base method foo {} {}
 ? {Foo info methods -defined -methodtype alias} ""
 ? {Base info methods -defined -methodtype scripted} {}
 ? {Foo info methods -defined -methodtype scripted} {}
+? {Foo info alias -definition foo} ""
+
 
 Base method foo {{-x 1}} {return $x}
 ::xotcl::alias ::Foo foo ::xotcl::classes::Base::foo
@@ -69,6 +76,8 @@ T method foo args { return [self class]->[self proc] }
 ::xotcl::alias T FOO ::xotcl::classes::T::foo 
 ::xotcl::alias S BAR ::xotcl::classes::T::FOO
 
+? {T info methods -defined -methodtype alias} "FOO"
+? {T info alias -definition FOO} "::xotcl::classes::T::foo"
 ? {lsort [T info methods -defined -methodtype scripted]} {FOO foo}
 ? {S info methods -defined -methodtype scripted} {BAR}
 T method FOO {} {}
@@ -76,6 +85,8 @@ T method FOO {} {}
 ? {S info methods -defined -methodtype scripted} {BAR}
 ? {s BAR} ::S->foo
 ? {t foo} ::T->foo
+? {S info alias -definition BAR} "::xotcl::classes::T::FOO"
+
 
 T method foo {} {}
 ? {T info methods -defined -methodtype scripted} {}
@@ -100,10 +111,8 @@ T method -per-object bar args { return [self class]->[self proc] }
 ? {lsort [T info methods -defined -per-object -methodtype alias]} {BAR FOO ZAP}
 ? {lsort [T info methods -per-object -defined -methodtype scripted]} {BAR FOO ZAP bar}
 ? {t foo} ::T->foo
-#
-# ISSUE: Why does a [self class] in per-object aliases on method procs
-# resolves to [::xotcl::Class]
-#
+? {T info alias -per-object -definition ZAP} {-per-object ::T::BAR}
+
 ? {T FOO} ->foo
 ? {T BAR} ->foo
 ? {T ZAP} ->foo

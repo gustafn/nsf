@@ -258,6 +258,11 @@ checkMethod boolean XOTclCheckBooleanArgs {
 #
 # info object methods
 #
+infoObjectMethod alias XOTclObjInfoAliasMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "-definition"}
+  {-argName "name"}
+}
 infoObjectMethod body XOTclObjInfoBodyMethod {
   {-argName "object" -required 1 -type object}
   {-argName "methodName" -required 1}
@@ -289,7 +294,7 @@ infoObjectMethod filterguard XOTclObjInfoFilterguardMethod {
 infoObjectMethod forward XOTclObjInfoForwardMethod {
   {-argName "object" -required 1 -type object}
   {-argName "-definition"}
-  {-argName "pattern"}
+  {-argName "name"}
 }
 infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
   {-argName "object" -required 1 -type object}
@@ -354,6 +359,12 @@ infoObjectMethod vars XOTclObjInfoVarsMethod {
 #
 # info class methods
 #
+infoClassMethod alias XOTclClassInfoAliasMethod {
+  {-argName "object" -required 1 -type class}
+  {-argName "-definition"}
+  {-argName "-per-object"}
+  {-argName "name"}
+}
 infoClassMethod heritage XOTclClassInfoHeritageMethod {
   {-argName "class"   -required 1 -type class}
   {-argName "pattern"}
@@ -383,7 +394,7 @@ infoClassMethod instfilterguard XOTclClassInfoInstfilterguardMethod {
 infoClassMethod instforward XOTclClassInfoInstforwardMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-definition"}
-  {-argName "pattern"}
+  {-argName "name"}
 }
 infoClassMethod instinvar XOTclClassInfoInstinvarMethod {
   {-argName "class"  -required 1 -type class}

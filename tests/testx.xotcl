@@ -3328,7 +3328,7 @@ TestX objectReferences -proc run {{n 20}} {
     ::errorCheck [o mixin XY4] ::XY4 " __unknown XY4"
   }
 
-  ::errorCheck [UnknownClass info info] {valid options are: args, body, check, children, class, classchildren, classparent, commands, default, filter, filterguard, forward, hasnamespace, heritage, info, instances, instargs, instbody, instcommands, instdefault, instfilter, instfilterguard, instforward, instinvar, instmixin, instmixinguard, instmixinof, instnonposargs, instparametercmd, instparams, instpost, instpre, instprocs, invar, is, methods, mixin, mixinguard, mixinof, nonposargs, parameter, parametercmd, params, parent, post, pre, precedence, procs, slotobjects, slots, subclass, superclass, vars} "info info"
+  ::errorCheck [UnknownClass info info] {valid options are: alias, args, body, check, children, class, classchildren, classparent, commands, default, filter, filterguard, forward, hasnamespace, heritage, info, instances, instargs, instbody, instcommands, instdefault, instfilter, instfilterguard, instforward, instinvar, instmixin, instmixinguard, instmixinof, instnonposargs, instparametercmd, instparams, instpost, instpre, instprocs, invar, is, methods, mixin, mixinguard, mixinof, nonposargs, parameter, parametercmd, params, parent, post, pre, precedence, procs, slotobjects, slots, subclass, superclass, vars} "info info"
 
   # clear unknown handler to avoid strange results later
   Class proc __unknown "" ""

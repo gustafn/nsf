@@ -9526,9 +9526,32 @@ ListChildren(Tcl_Interp *interp, XOTclObject *obj, char *pattern, int classesOnl
 }
 
 static int
-ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int definition) {
+ListAlias(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int withDefinition, 
+          XOTclObject *object, int withPer_object) {
   int result;
-  if (definition) {
+
+  if (withDefinition) {
+    Tcl_HashEntry *hPtr = table && pattern ? XOTcl_FindHashEntry(table, pattern) : 0;
+    /* notice: we don't use pattern for wildcard matching here;
+       pattern can only contain wildcards when used without
+       "-definition" */
+    if (hPtr) {
+      Tcl_Obj *entryObj = AliasGet(interp, object->cmdName, pattern, withPer_object);
+      if (entryObj) {
+        Tcl_SetObjResult(interp, entryObj);
+      }
+    }
+    result = TCL_OK;
+  } else {
+    result = ListMethodKeys(interp, table, pattern, XOTCL_METHODTYPE_ALIAS, NULL, object, withPer_object);
+  }
+  return result;
+}
+
+static int
+ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int withDefinition) {
+  int result;
+  if (withDefinition) {
     Tcl_HashEntry *hPtr = table && pattern ? XOTcl_FindHashEntry(table, pattern) : 0;
     /* notice: we don't use pattern for wildcard matching here;
        pattern can only contain wildcards when used without
@@ -9757,12 +9780,12 @@ static CONST char* AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, CONST char *
 static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, 
                     char *cmd) {
   Tcl_DString ds, *dsPtr = &ds;
-  Tcl_Obj *obj = Tcl_SetVar2Ex(interp, "::xotcl::alias", 
+  Tcl_SetVar2Ex(interp, "::xotcl::alias", 
                 AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                 Tcl_NewStringObj(cmd,-1), 
                 TCL_GLOBAL_ONLY);
   /*fprintf(stderr, "aliasAdd ::xotcl::alias(%s) '%s' returned %p\n",
-    AliasIndex(dsPtr, cmdName, methodName, withPer_object), cmd,obj);*/
+    AliasIndex(dsPtr, cmdName, methodName, withPer_object), cmd, 1);*/
   Tcl_DStringFree(dsPtr);
   return TCL_OK;
 }
@@ -9773,7 +9796,7 @@ static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodN
                              AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                              TCL_GLOBAL_ONLY);
   /*fprintf(stderr, "aliasDelete ::xotcl::alias(%s) returned %d (%d)\n",
-    AliasIndex(dsPtr, cmdName, methodName, withPer_object), result, usage);*/
+    AliasIndex(dsPtr, cmdName, methodName, withPer_object), result);*/
   Tcl_DStringFree(dsPtr);
   return result;
 }
@@ -12167,6 +12190,11 @@ static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value
 /***************************
  * Begin Object Info Methods
  ***************************/
+static int XOTclObjInfoAliasMethod(Tcl_Interp *interp, XOTclObject *object, int withDefinition, char *pattern) {
+  return object->nsPtr ?
+    ListAlias(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern, withDefinition, object, 1) :
+    TCL_OK;
+}
 
 static int XOTclObjInfoBodyMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
   Proc *proc = object->nsPtr ? FindProcMethod(object->nsPtr, methodName) : NULL;
@@ -12379,6 +12407,14 @@ static int XOTclObjInfoVarsMethod(Tcl_Interp *interp, XOTclObject *object, char 
 /***************************
  * Begin Class Info methods
  ***************************/
+static int XOTclClassInfoAliasMethod(Tcl_Interp *interp, XOTclClass *class, 
+                                     int withDefinition, int withPer_object, char *pattern) {
+  Tcl_HashTable *table = withPer_object ? 
+    Tcl_Namespace_cmdTable(class->object.nsPtr) : 
+    Tcl_Namespace_cmdTable(class->nsPtr);
+  return ListAlias(interp, table, pattern, withDefinition, &class->object, withPer_object);
+}
+
 static int XOTclClassInfoHeritageMethod(Tcl_Interp *interp, XOTclClass *cl, char *pattern) {
   XOTclClasses *pl = ComputeOrder(cl, cl->order, Super);
   Tcl_ResetResult(interp);

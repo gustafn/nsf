@@ -94,15 +94,6 @@ namespace eval xotcl2 {
   Object create ::xotcl2::objectInfo
   Object create ::xotcl2::classInfo
 
-  foreach cmd [info command ::xotcl::cmd::ObjectInfo::*] {
-    ::xotcl::alias ::xotcl2::objectInfo [namespace tail $cmd] $cmd
-    ::xotcl::alias ::xotcl2::classInfo [namespace tail $cmd] $cmd
-  }
-  foreach cmd [info command ::xotcl::cmd::ClassInfo::*] {
-    ::xotcl::alias ::xotcl2::classInfo [namespace tail $cmd] $cmd
-  }
-  unset cmd
-
   #
   # It would be nice to do here "objectInfo configure {.alias ..}", but
   # we have no working objectparameter yet due to bootstrapping
@@ -131,6 +122,15 @@ namespace eval xotcl2 {
     .alias info -source-object objectInfo -source-per-object -source-method info
     .alias unknown -source-object objectInfo -source-per-object -source-method unknown
   }
+
+  foreach cmd [info command ::xotcl::cmd::ObjectInfo::*] {
+    ::xotcl::alias ::xotcl2::objectInfo [namespace tail $cmd] $cmd
+    ::xotcl::alias ::xotcl2::classInfo [namespace tail $cmd] $cmd
+  }
+  foreach cmd [info command ::xotcl::cmd::ClassInfo::*] {
+    ::xotcl::alias ::xotcl2::classInfo [namespace tail $cmd] $cmd
+  }
+  unset cmd
 
   Object instforward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
   Class instforward info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
