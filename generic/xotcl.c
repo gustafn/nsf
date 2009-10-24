@@ -1568,9 +1568,15 @@ varResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int f
     INCR_REF_COUNT(key);
     newVar = VarHashCreateVar(Tcl_Namespace_varTable(nsPtr), key, &new);
     DECR_REF_COUNT(key);
-
+    
 #if defined(PRE85)
-    newVar->nsPtr = (Namespace *)nsPtr;
+# if FORWARD_COMPATIBLE
+    if (!forwardCompatibleMode) {
+      newVar->nsPtr = (Namespace *)ns;
+    }
+# else
+    newVar->nsPtr = (Namespace *)ns;
+# endif
 #endif
     *varPtr = (Tcl_Var)newVar;
   }
