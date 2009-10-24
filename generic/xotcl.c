@@ -1761,7 +1761,13 @@ varResolver(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns, int flags, 
     DECR_REF_COUNT(key);
 
 #if defined(PRE85)
+# if FORWARD_COMPATIBLE
+    if (!forwardCompatibleMode) {
+      newVar->nsPtr = (Namespace *)ns;
+    }
+# else
     newVar->nsPtr = (Namespace *)ns;
+# endif
 #endif
     *varPtr = (Tcl_Var)newVar;
   }
