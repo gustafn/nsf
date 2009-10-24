@@ -1,3 +1,7 @@
+2009-10-24 <Gustaf.Neumann@wu-wien.ac.at>
+    * fixed var resolver/memory leak problem reported by Victor Mayevski
+    * bumped version number to 1.6.5
+
 2009-10-17 <Gustaf.Neumann@wu-wien.ac.at>
     * clean removal of __trace__ method in serializer
     * Some documentation fixes, added stack example to documentation
