@@ -1,3 +1,10 @@
+2009-11-06 <Gustaf.Neumann@wu-wien.ac.at>
+    * applied per-object slot changes from Stefan Sobernig
+    * extended regression tests
+
+2009-11-02 <Gustaf.Neumann@wu-wien.ac.at>
+    * fixed namespace visibilty problem reported by Mykhaylo Sorochan
+
 2009-10-24 <Gustaf.Neumann@wu-wien.ac.at>
     * fixed var resolver/memory leak problem reported by Victor Mayevski
     * bumped version number to 1.6.5
