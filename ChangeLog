@@ -1,6 +1,7 @@
 2009-11-06 <Gustaf.Neumann@wu-wien.ac.at>
     * applied per-object slot changes from Stefan Sobernig
     * extended regression tests
+    * fix package resolution, if multiple XOTcl versions are installed
 
 2009-11-02 <Gustaf.Neumann@wu-wien.ac.at>
     * fixed namespace visibilty problem reported by Mykhaylo Sorochan
