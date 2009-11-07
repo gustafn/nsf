@@ -1,10 +1,17 @@
 #$Id: package.xotcl,v 1.7 2006/09/27 08:12:40 neumann Exp $
 package provide xotcl::package 0.91
 
-package require xotcl::mixinStrategy
 package require XOTcl
+package require xotcl::mixinStrategy
 
-rename package tcl_package
+# if pgk_mkIndex is running, there is a conflict with the 
+# new command package provided here. We can detect when 
+# pkg_mkIndex is running by checking for the namespace variable 
+# ::tcl::file.
+
+if {![info exists ::tcl::file]} {
+  rename package tcl_package
+}
 
 namespace eval ::xotcl::package {
     namespace import ::xotcl::*
@@ -33,17 +40,17 @@ namespace eval ::xotcl::package {
 	}
     } 
 
-    Object create package
-    package set component .
-    package set verbose 0
-    package proc unknown args {
+    set package_obj [Object create package]
+    $package_obj set component .
+    $package_obj set verbose 0
+    $package_obj proc unknown args {
       #puts stderr "unknown: package $args"
       namespace eval :: tcl_package $args
     }
-    package proc verbose value {
+    $package_obj proc verbose value {
 	my set verbose $value
     }
-    package proc present args {
+    $package_obj proc present args {
 	if {$::tcl_version<8.3} {
 	    my instvar loaded
 	    switch -exact -- [lindex $args 0] {
@@ -60,7 +67,7 @@ namespace eval ::xotcl::package {
 	}
     }
 
-    package proc require args {
+    $package_obj proc require args {
 	my instvar component verbose uses loaded
 	set prevComponent $component
 	if {[catch {set v [eval package present $args]} msg]} {
