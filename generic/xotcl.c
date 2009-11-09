@@ -1289,7 +1289,7 @@ static int CmdIsProc(Tcl_Command cmd) {
   return (Tcl_Command_objProc(cmd) == TclObjInterpProc);
 }
 
-static Proc *GetProcFromCommand(Tcl_Command cmd) {
+static Proc *GetTclProcFromCommand(Tcl_Command cmd) {
   if (cmd) {
     Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
     if (proc == TclObjInterpProc)
@@ -1310,7 +1310,7 @@ FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
 
 static Proc *
 FindProcMethod(Tcl_Namespace *nsPtr, char *methodName) {
-  return GetProcFromCommand(FindMethod(nsPtr, methodName));
+  return GetTclProcFromCommand(FindMethod(nsPtr, methodName));
 }
 
 static XOTclClass*
@@ -1939,7 +1939,7 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
         /*
          * cmd is an aliased object, reduce the refcount
          */
-        fprintf(stderr, "NSCleanupNamespace cleanup aliased object %p\n",invokeObj);
+        /*fprintf(stderr, "NSCleanupNamespace cleanup aliased object %p\n",invokeObj);*/
         XOTclCleanupObject(invokeObj);
       }
 
@@ -2663,15 +2663,14 @@ AssertionNewList(Tcl_Interp *interp, Tcl_Obj *aObj) {
 
 static Tcl_Obj *
 AssertionList(Tcl_Interp *interp, XOTclTclObjList *alist) {
-  Tcl_Obj *newAssStr = Tcl_NewStringObj("", 0);
+  Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
   for (; alist; alist = alist->nextPtr) {
-    Tcl_AppendStringsToObj(newAssStr, "{", ObjStr(alist->content),
-                           "}", (char *) NULL);
-    if (alist->nextPtr)
-      Tcl_AppendStringsToObj(newAssStr, " ", (char *) NULL);
+    Tcl_ListObjAppendElement(interp, listObj, alist->content);
   }
-  return newAssStr;
+  return listObj;
 }
+
+
 
 /* append a string of pre and post assertions to a proc
    or instproc body */
@@ -6497,7 +6496,7 @@ forwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *name,
 
   for (i=0; i<objc; i++) {
     char *element = ObjStr(objv[i]);
-    /*fprintf(stderr, "...forwardprocess element '%s'\n",element);*/
+    /*fprintf(stderr, "... [%d] forwardprocess element '%s'\n",i,element);*/
     tcd->needobjmap |= (*element == '%' && *(element+1) == '@');
     if (tcd->args == NULL) {
       tcd->args = Tcl_NewListObj(1, &objv[i]);
@@ -9172,7 +9171,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               XOTclObject *obj, Tcl_Obj *procNameObj,
               XOTclParam CONST *paramPtr, int nrParams,
               parseContext *pc) {
-  int i, o, flagCount = 0, nrReq = 0, nrOpt = 0, dashdash = 0, nrDashdash = 0;
+  int i, o, flagCount, nrReq = 0, nrOpt = 0, dashdash = 0, nrDashdash = 0;
   /* todo benchmark with and without CONST */
   XOTclParam CONST *pPtr;
 
@@ -9189,6 +9188,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     fprintf(stderr, "... (%d) processing [%d]: '%s' %s\n", i, o,
             pPtr->name,pPtr->flags & XOTCL_ARG_REQUIRED ? "req":"not req");
 #endif
+    flagCount = 0;
     if (*pPtr->name == '-') {
       int p, found;
       char *objStr;
@@ -9317,8 +9317,6 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   }
 
   return ArgumentDefaults(pc, interp, paramPtr, nrParams);
-
-  return TCL_OK;
 }
 
 
@@ -9326,6 +9324,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
  * Begin result setting commands
  * (essentially List*() and support
  ***********************************/
+#if defined(PRE85)
 static int
 ListKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern) {
   Tcl_HashEntry *hPtr;
@@ -9353,6 +9352,7 @@ ListKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern) {
   }
   return TCL_OK;
 }
+#endif
 
 #if !defined(PRE85) || FORWARD_COMPATIBLE
 static int
@@ -9410,12 +9410,249 @@ GetOriginalCommand(Tcl_Command cmd) /* The imported command for which the origin
   return cmd;
 }
 
+/* proc/instproc specific code */
+static int
+ListProcBody(Tcl_Interp *interp, Proc *procPtr, char *methodName) {
+  if (procPtr) {
+    char *body = ObjStr(procPtr->bodyPtr);
+    Tcl_SetObjResult(interp, Tcl_NewStringObj(StripBodyPrefix(body), -1));
+    return TCL_OK;
+  }
+  return XOTclErrBadVal(interp, "info body", "a tcl method name", methodName);
+}
+
+static int
+ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVarnames) {
+  Proc *procPtr = GetTclProcFromCommand(cmd);
+  if (procPtr) {
+    XOTclParamDefs *paramDefs = procPtr ? ParamDefsGet((Tcl_Command)procPtr->cmdPtr) : NULL;
+    Tcl_Obj *list;
+
+    if (paramDefs) {
+      /*
+       * Obtain parameter info from paramDefs
+       */
+      list = withVarnames ? ParamDefsList(interp, paramDefs) : ParamDefsFormat(interp, paramDefs);
+
+    } else {
+      /*
+       * Obtain parameter info from compiled locals
+       */
+      CompiledLocal *args = procPtr->firstLocalPtr;
+
+      list = Tcl_NewListObj(0, NULL);
+      for ( ; args; args = args->nextPtr) {
+        Tcl_Obj *innerlist;
+
+        if (!TclIsCompiledLocalArgument(args)) {
+          continue;
+        }
+
+        innerlist = Tcl_NewListObj(0, NULL);
+        Tcl_ListObjAppendElement(interp, innerlist, Tcl_NewStringObj(args->name, -1));
+        if (!withVarnames && args->defValuePtr) {
+          Tcl_ListObjAppendElement(interp, innerlist, args->defValuePtr);
+        }
+        Tcl_ListObjAppendElement(interp, list, innerlist);
+      }
+    }
+
+    Tcl_SetObjResult(interp, list);
+    return TCL_OK;
+
+  } else if (cmd) {
+    /*
+     * If a command is found for the object|class, check whether we
+     * find the parameter definitions for the C-defined method.
+     */
+    methodDefinition *mdPtr = &method_definitions[0];
+    for (; mdPtr->methodName; mdPtr ++) {
+      if (((Command *)cmd)->objProc == mdPtr->proc) {
+        XOTclParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters};
+        Tcl_Obj *list = withVarnames ? ParamDefsList(interp, &paramDefs) : ParamDefsFormat(interp, &paramDefs);
+        Tcl_SetObjResult(interp, list);
+        return TCL_OK;
+      }
+    }
+    return XOTclVarErrMsg(interp, "info params: could not obtain parameter definition for method '",
+                          methodName, "'", (char *) NULL);
+  }
+  return XOTclErrBadVal(interp, "info params", "a method name", methodName);
+}
+
+static void
+AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, forwardCmdClientData *tcd) {
+  if (tcd->prefix) {
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-methodprefix",-1));
+    Tcl_ListObjAppendElement(interp, listObj, tcd->prefix);
+  }
+  if (tcd->subcommands) {
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-default",-1));
+    Tcl_ListObjAppendElement(interp, listObj, tcd->subcommands);
+  }
+  if (tcd->objscope) {
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objscope",-1));
+  }
+  Tcl_ListObjAppendElement(interp, listObj, tcd->cmdName);
+  if (tcd->args) {
+    Tcl_Obj **args;
+    int nrArgs, i;
+    Tcl_ListObjGetElements(interp, tcd->args, &nrArgs, &args);
+    for (i=0; i<nrArgs; i++) {
+      Tcl_ListObjAppendElement(interp, listObj, args[i]);
+    }
+  }
+}
+
+static void
+AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, char *registerCmdName,
+                         XOTclObject *object, char *methodName, Tcl_Command cmd, int withPer_object) {
+  Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
+  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName,-1));
+  if (withPer_object) {
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-per-object",-1));
+  }
+  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName,-1));
+}
+
+static int
+ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Command cmd, 
+           int subcmd, int withPer_object) {
+
+  /*fprintf(stderr, "ListMethodtype %s %s %p subcmd %d per-object %d\n",
+    objectName(object), methodName, cmd, subcmd, withPer_object);*/
+
+  if (!cmd) {
+    Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_EMPTY]);
+  } else {
+    Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
+    /*Tcl_Command importedCmd = GetOriginalCommand(cmd);*/
+    /* Tcl_ObjCmdProc *resolvedProc = Tcl_Command_objProc(importedCmd);*/
+    Tcl_Obj *resultObj;
+
+    if (!XOTclObjectIsClass(object)) {
+      withPer_object = 1;
+    }
+
+    if (subcmd == InfomethodsubcmdNameIdx) {
+      resultObj = Tcl_NewStringObj(withPer_object ? "" : "::xotcl::classes", -1);
+      Tcl_AppendObjToObj(resultObj, object->cmdName);
+      Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
+      Tcl_SetObjResult(interp, resultObj);
+      return TCL_OK;
+    }
+
+    /* 
+     * Subcommands different per type of method.  converter in
+     * InfoMethods defines the types:
+     * "all|scripted|system|alias|forwarder|object|setter"
+     */
+    if (GetTclProcFromCommand(cmd)) {
+      /* a scripted method */
+      switch (subcmd) {
+
+      case InfomethodsubcmdTypeIdx:
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("scripted",-1));
+        break;
+
+      case InfomethodsubcmdDefinitionIdx: 
+        {
+          XOTclAssertionStore *assertions;
+
+          resultObj = Tcl_NewListObj(0, NULL);
+          /* todo: don't hard-code registering command name "method" */
+          AppendMethodRegistration(interp, resultObj, "method", object, methodName, cmd, withPer_object);
+          ListCmdParams(interp, cmd, methodName, 0);
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
+          ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
+
+          if (withPer_object) {
+            assertions = object->opt ? object->opt->assertions : NULL;
+          } else {
+            XOTclClass *class = (XOTclClass *)object;
+            assertions = class->opt ? class->opt->assertions : NULL;
+          }
+          if (assertions) {
+            XOTclProcAssertion *procs = AssertionFindProcs(assertions, methodName);
+            if (procs) {
+              Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-precondition", -1));
+              Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->pre));
+              Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-postcondition", -1));
+              Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->post));
+            }
+          }
+          Tcl_SetObjResult(interp, resultObj);
+          break;
+        }
+      }
+
+    } else if (procPtr == XOTclForwardMethod) {
+      /* forwarder */
+      switch (subcmd) {
+      case InfomethodsubcmdTypeIdx: 
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("forward",-1));
+        break;
+      case InfomethodsubcmdDefinitionIdx:
+        {
+          ClientData clientData = cmd ? Tcl_Command_objClientData(cmd) : NULL;
+          if (clientData) {
+            resultObj = Tcl_NewListObj(0, NULL);
+            /* todo: don't hard-code registering command name "forward" */
+            AppendMethodRegistration(interp, resultObj, "forward", object, methodName, cmd, withPer_object);
+            AppendForwardDefinition(interp, resultObj, clientData);
+            Tcl_SetObjResult(interp, resultObj);
+            break;
+          }
+        }
+      }
+
+    } else if (procPtr == XOTclSetterMethod) {
+      /* setter methods */
+      switch (subcmd) {
+      case InfomethodsubcmdTypeIdx: 
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("setter",-1));
+        break;
+      case InfomethodsubcmdDefinitionIdx:
+        resultObj = Tcl_NewListObj(0, NULL);
+        /* todo: don't hard-code registering command name "setter" */
+        AppendMethodRegistration(interp, resultObj, "setter", object, methodName, cmd, withPer_object);
+        Tcl_SetObjResult(interp, resultObj);        
+        break;
+      }
+
+    } else {
+      /* must be an alias */
+      switch (subcmd) {
+      case InfomethodsubcmdTypeIdx: 
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("alias",-1));
+        break;
+      case InfomethodsubcmdDefinitionIdx:
+        {
+          Tcl_Obj *entryObj = AliasGet(interp, object->cmdName, methodName, withPer_object);
+          if (entryObj) {
+            resultObj = Tcl_NewListObj(0, NULL);
+            /* todo: don't hard-code registering command name "alias" */
+            AppendMethodRegistration(interp, resultObj, "alias", object, methodName, cmd, withPer_object);
+            Tcl_ListObjAppendElement(interp, resultObj, entryObj);
+            Tcl_SetObjResult(interp, resultObj);
+            break;
+          }
+        }
+      }
+    }
+  }
+  return TCL_OK;
+}
 
 static int
 ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int methodType,
                Tcl_HashTable *dups, XOTclObject *object, int withPer_object) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : 0;
+
+  /* TODO: could be made faster, when pattern contains no wild cards */
+
   for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(table, hPtr);
     Tcl_Command importedCmd, cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
@@ -9556,7 +9793,6 @@ ListAlias(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int withDefin
 
 static int
 ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int withDefinition) {
-  int result;
   if (withDefinition) {
     Tcl_HashEntry *hPtr = table && pattern ? XOTcl_FindHashEntry(table, pattern) : 0;
     /* notice: we don't use pattern for wildcard matching here;
@@ -9566,40 +9802,16 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int withDef
       Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
       ClientData clientData = cmd? Tcl_Command_objClientData(cmd) : NULL;
       forwardCmdClientData *tcd = (forwardCmdClientData *)clientData;
-      if (tcd) {
-        Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-        if (tcd->prefix) {
-          Tcl_ListObjAppendElement(interp, list, Tcl_NewStringObj("-methodprefix",-1));
-          Tcl_ListObjAppendElement(interp, list, tcd->prefix);
-        }
-        if (tcd->subcommands) {
-          Tcl_ListObjAppendElement(interp, list, Tcl_NewStringObj("-default",-1));
-          Tcl_ListObjAppendElement(interp, list, tcd->subcommands);
-        }
-        if (tcd->objscope) {
-          Tcl_ListObjAppendElement(interp, list, Tcl_NewStringObj("-objscope",-1));
-        }
-        Tcl_ListObjAppendElement(interp, list, tcd->cmdName);
-        if (tcd->args) {
-          Tcl_Obj **args;
-          int nrArgs, i;
-          Tcl_ListObjGetElements(interp, tcd->args, &nrArgs, &args);
-          for (i=0; i<nrArgs; i++) {
-            Tcl_ListObjAppendElement(interp, list, args[i]);
-          }
-        }
-        Tcl_SetObjResult(interp, list);
-      } else {
-        /* TODO: ERROR HANDLING */
+      if (tcd && Tcl_Command_objProc(cmd) == XOTclForwardMethod) {
+        Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
+        AppendForwardDefinition(interp, listObj, tcd);
+        Tcl_SetObjResult(interp, listObj);
+        return TCL_OK;
       }
-    } else {
-      /* TODO: ERROR HANDLING TODO */
     }
-    result = TCL_OK;
-  } else {
-    result = ListMethodKeys(interp, table, pattern, XOTCL_METHODTYPE_FORWARDER, NULL, NULL, 0);
+    return XOTclVarErrMsg(interp, "'", pattern, "' is not a forwarder", (char *) NULL);
   }
-  return result;
+  return ListMethodKeys(interp, table, pattern, XOTCL_METHODTYPE_FORWARDER, NULL, NULL, 0);
 }
 
 static int
@@ -9696,75 +9908,6 @@ ListSuperclasses(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *pattern, int withC
 }
 
 
-/* proc/instproc specific code */
-static int
-ListProcBody(Tcl_Interp *interp, Proc *procPtr, char *methodName) {
-  if (procPtr) {
-    char *body = ObjStr(procPtr->bodyPtr);
-    Tcl_SetObjResult(interp, Tcl_NewStringObj(StripBodyPrefix(body), -1));
-    return TCL_OK;
-  }
-  return XOTclErrBadVal(interp, "info body", "a tcl method name", methodName);
-}
-
-static int
-ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVarnames) {
-  Proc *procPtr = GetProcFromCommand(cmd);
-  if (procPtr) {
-    XOTclParamDefs *paramDefs = procPtr ? ParamDefsGet((Tcl_Command)procPtr->cmdPtr) : NULL;
-    Tcl_Obj *list;
-
-    if (paramDefs) {
-      /*
-       * Obtain parameter info from paramDefs
-       */
-      list = withVarnames ? ParamDefsList(interp, paramDefs) : ParamDefsFormat(interp, paramDefs);
-
-    } else {
-      /*
-       * Obtain parameter info from compiled locals
-       */
-      CompiledLocal *args = procPtr->firstLocalPtr;
-
-      list = Tcl_NewListObj(0, NULL);
-      for ( ; args; args = args->nextPtr) {
-        Tcl_Obj *innerlist;
-
-        if (!TclIsCompiledLocalArgument(args)) {
-          continue;
-        }
-
-        innerlist = Tcl_NewListObj(0, NULL);
-        Tcl_ListObjAppendElement(interp, innerlist, Tcl_NewStringObj(args->name, -1));
-        if (!withVarnames && args->defValuePtr) {
-          Tcl_ListObjAppendElement(interp, innerlist, args->defValuePtr);
-        }
-        Tcl_ListObjAppendElement(interp, list, innerlist);
-      }
-    }
-
-    Tcl_SetObjResult(interp, list);
-    return TCL_OK;
-
-  } else if (cmd) {
-    /*
-     * If a command is found for the object|class, check whether we
-     * find the parameter definitions for the C-defined method.
-     */
-    methodDefinition *mdPtr = &method_definitions[0];
-    for (; mdPtr->methodName; mdPtr ++) {
-      if (((Command *)cmd)->objProc == mdPtr->proc) {
-        XOTclParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters};
-        Tcl_Obj *list = withVarnames ? ParamDefsList(interp, &paramDefs) : ParamDefsFormat(interp, &paramDefs);
-        Tcl_SetObjResult(interp, list);
-        return TCL_OK;
-      }
-    }
-    return XOTclVarErrMsg(interp, "info params: could not obtain parameter definition for method '",
-                          methodName, "'", (char *) NULL);
-  }
-  return XOTclErrBadVal(interp, "info params", "a method name", methodName);
-}
 /********************************
  * End result setting commands
  ********************************/
@@ -9897,7 +10040,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
      * alias points to nowhere. We realize this via using the object
      * refcount.
      */
-    fprintf(stderr, "registering an object %p\n",tcd);
+    /*fprintf(stderr, "registering an object %p\n",tcd);*/
     
     XOTclObjectRefCountIncr((XOTclObject *)Tcl_Command_objClientData(cmd));
     
@@ -9963,7 +10106,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   if (newCmd) {  
     Tcl_DString ds, *dsPtr = &ds;
     Tcl_DStringInit(dsPtr);
-    if (withPer_object) {Tcl_DStringAppend(dsPtr, "-per-object ", -1);}
+    /*if (withPer_object) {Tcl_DStringAppend(dsPtr, "-per-object ", -1);}*/
     if (withObjscope) {Tcl_DStringAppend(dsPtr, "-objscope ", -1);}
     if (withProtected) {Tcl_DStringAppend(dsPtr, "-protected ", -1);}
     Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
@@ -11559,9 +11702,10 @@ static int XOTclONoinitMethod(Tcl_Interp *interp, XOTclObject *obj) {
   return TCL_OK;
 }
 
-static int XOTclOParametercmdMethod(Tcl_Interp *interp, XOTclObject *obj, char *name) {
+
+/*static int XOTclOParametercmdMethod(Tcl_Interp *interp, XOTclObject *obj, char *name) {
   return XOTclAddObjectMethod(interp, (XOTcl_Object*) obj, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
-}
+  }*/
 
 static int XOTclOProcSearchMethod(Tcl_Interp *interp, XOTclObject *obj, char *name) {
   XOTclClass *pcl = NULL;
@@ -11669,6 +11813,7 @@ static int XOTclOForwardMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *me
                                int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target,
                                int nobjc, Tcl_Obj *CONST nobjv[]) {
   forwardCmdClientData *tcd;
+
   int result = forwardProcessOptions(interp, method,
                                  withDefault, withEarlybinding, withMethodprefix,
                                  withObjscope, withOnerror, withVerbose,
@@ -12070,10 +12215,18 @@ static int XOTclCInstMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *
   return XOTclVarErrMsg(interp, "Instmixinguard: can't find mixin ",
                         mixin, " on ", className(cl), (char *) NULL);
 }
-
-static int XOTclCInstParametercmdMethod(Tcl_Interp *interp, XOTclClass *cl, char *name) {
-  return XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+/* TODO move me at the right place */
+static int XOTclCSetterMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *name) {
+  if (withPer_object) {
+    return XOTclAddObjectMethod(interp, (XOTcl_Object*) cl, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+  } else {
+    return XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+  }
 }
+static int XOTclOSetterMethod(Tcl_Interp *interp, XOTclObject *object, char *name) {
+  return XOTclAddObjectMethod(interp, (XOTcl_Object*) object, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+}
+
 /* TODO move me at the right place */
 static int XOTclOMethodMethod(Tcl_Interp *interp, XOTclObject *obj,
                               int withInner_namespace, int withProtected,
@@ -12102,10 +12255,11 @@ static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl,
   }
 }
 
-static int XOTclCInstForwardMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *method,
-                                   Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-                                   int withObjscope, Tcl_Obj *withOnerror, int withVerbose,
-                                   Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
+static int XOTclCForwardMethod(Tcl_Interp *interp, XOTclClass *cl, 
+                               int withPer_object, Tcl_Obj *method,
+                               Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
+                               int withObjscope, Tcl_Obj *withOnerror, int withVerbose,
+                               Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
   forwardCmdClientData *tcd;
   int result;
 
@@ -12113,7 +12267,15 @@ static int XOTclCInstForwardMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *
                                  withDefault, withEarlybinding, withMethodprefix,
                                  withObjscope, withOnerror, withVerbose,
                                  target, nobjc, nobjv, &tcd);
-  if (result == TCL_OK) {
+  if (result != TCL_OK) {
+    return result;
+  }
+  if (withPer_object) {
+    tcd->obj = &cl->object;
+    result = XOTclAddObjectMethod(interp, (XOTcl_Object *)cl, NSTail(ObjStr(method)),
+                                  (Tcl_ObjCmdProc*)XOTclForwardMethod,
+                                  (ClientData)tcd, forwardCmdDeleteProc, 0);
+  } else {
     tcd->obj = &cl->object;
     result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, NSTail(ObjStr(method)),
                                     (Tcl_ObjCmdProc*)XOTclForwardMethod,
@@ -12202,11 +12364,6 @@ static int XOTclObjInfoAliasMethod(Tcl_Interp *interp, XOTclObject *object, int 
     TCL_OK;
 }
 
-static int XOTclObjInfoBodyMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
-  Proc *proc = object->nsPtr ? FindProcMethod(object->nsPtr, methodName) : NULL;
-  return ListProcBody(interp, proc, methodName);
-}
-
 static int XOTclObjInfoCheckMethod(Tcl_Interp *interp, XOTclObject *object) {
   return AssertionListCheckOption(interp, object);
 }
@@ -12218,10 +12375,6 @@ static int XOTclObjInfoChildrenMethod(Tcl_Interp *interp, XOTclObject *object, c
 static int XOTclObjInfoClassMethod(Tcl_Interp *interp, XOTclObject *object) {
   Tcl_SetObjResult(interp, object->cl->object.cmdName);
   return TCL_OK;
-}
-
-static int XOTclObjInfoCommandsMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern) {
-  return ListKeys(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern);
 }
 
 static int XOTclObjInfoFilterMethod(Tcl_Interp *interp, XOTclObject *object,
@@ -12293,6 +12446,22 @@ static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object,
 		     methodType, withNomixins, withIncontext);
 }
 
+static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object, 
+                                    int withPer_object, int subcmd,
+                                    char *methodName) {
+  Tcl_Namespace *nsPtr;
+  if (XOTclObjectIsClass(object)) {
+    XOTclClass *class = (XOTclClass *)object;
+    nsPtr = withPer_object ? class->object.nsPtr : class->nsPtr;
+  } else {
+    nsPtr = object->nsPtr;
+  }
+
+  return ListMethod(interp, object, 
+                    methodName, nsPtr ? FindMethod(nsPtr, methodName) : NULL, 
+                    subcmd, withPer_object);
+}
+
 static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int withGuards, int withOrder,
                         char *patternString, XOTclObject *patternObj) {
   if (withOrder) {
@@ -12312,14 +12481,6 @@ static int XOTclObjInfoParamsMethod(Tcl_Interp *interp, XOTclObject *object, cha
   return ListCmdParams(interp,
                        object->nsPtr ? FindMethod(object->nsPtr, methodName) : NULL,
                        methodName, withVarnames);
-}
-
-static int XOTclObjInfoParametercmdMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern) {
-  if (object->nsPtr) {
-    return ListMethodKeys(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern, 
-                          XOTCL_METHODTYPE_SETTER, NULL, NULL, 0);
-  }
-  return TCL_OK;
 }
 
 static int XOTclObjInfoParentMethod(Tcl_Interp *interp, XOTclObject *object) {
@@ -12472,15 +12633,6 @@ static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *startCl
   return TCL_OK;
 }
 
-static int XOTclClassInfoInstbodyMethod(Tcl_Interp *interp, XOTclClass *class, char * methodName) {
-  Proc *proc = FindProcMethod(class->nsPtr, methodName);
-  return ListProcBody(interp, proc, methodName);
-}
-
-static int XOTclClassInfoInstcommandsMethod(Tcl_Interp *interp, XOTclClass * class, char * pattern) {
-  return ListKeys(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern);
-}
-
 static int XOTclClassInfoInstfilterMethod(Tcl_Interp *interp, XOTclClass * class, int withGuards, char * pattern) {
   return class->opt ? FilterInfo(interp, class->opt->instfilters, pattern, withGuards, 0) : TCL_OK;
 }
@@ -12552,11 +12704,6 @@ static int XOTclClassInfoInstmixinofMethod(Tcl_Interp *interp, XOTclClass * clas
     }
   }
   return TCL_OK;
-}
-
-static int XOTclClassInfoInstparametercmdMethod(Tcl_Interp *interp, XOTclClass * class, char * pattern) {
-  return ListMethodKeys(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, 
-                        XOTCL_METHODTYPE_SETTER, NULL, NULL, 0);
 }
 
 static int XOTclClassInfoInstparamsMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName, int withVarnames) {

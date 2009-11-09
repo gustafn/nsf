@@ -67,10 +67,10 @@ obj forward Mixin mixin %1 %self
 ? {catch {obj Mixin}} 1
 
 
-obj forward Mixin -default {getter setter} mixin %1  %self
+obj forward Mixin -default {Getter Setter} mixin %1  %self
 ? {obj Mixin add M1} [list ::mixin add ::obj M1]
-? {obj Mixin M1} [list ::mixin setter ::obj M1]
-? {obj Mixin} [list ::mixin getter ::obj]
+? {obj Mixin M1} [list ::mixin Setter ::obj M1]
+? {obj Mixin} [list ::mixin Getter ::obj]
 #puts "======"
 
 
@@ -123,7 +123,7 @@ C instproc XXXo {} {}
 
 # check introspection for objects
 ? {lsort [obj info forward]} "Mixin addOne foo i1"
-? {obj info forward -definition Mixin} "-default {getter setter} mixin %1 %self"
+? {obj info forward -definition Mixin} "-default {Getter Setter} mixin %1 %self"
 ? {obj info forward -definition addOne} "expr 1 +"
 ? {obj info forward -definition foo} "target %proc %self %%self %%p"
 ? {obj info forward -definition i1} "-objscope ::incr x"

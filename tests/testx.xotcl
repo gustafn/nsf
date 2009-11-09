@@ -138,17 +138,17 @@ TestX assertions -proc run {{n 20}} {
     Class C($i)
     C($i) invar {
       {$a > 2} {$c < 3} {$d > 5}
-      {#a} {#b} 
+      {#a } {#b } 
     }
     C($i) instinvar {
       {$a > 2} {$c < 3} {$d > 5}
-      {#a} {#b} 
+      {#a } {#b } 
     }
 
-    ::errorCheck [C($i) info invar]  {{$a > 2} {$c < 3} {$d > 5} {#a} {#b}} \
+    ::errorCheck [C($i) info invar]  {{$a > 2} {$c < 3} {$d > 5} {#a } {#b }} \
       "Class invar " 
 
-    ::errorCheck [C($i) info invar]  {{$a > 2} {$c < 3} {$d > 5} {#a} {#b}} \
+    ::errorCheck [C($i) info invar]  {{$a > 2} {$c < 3} {$d > 5} {#a } {#b }} \
       "Class instinvar "
 
     Object b($i)
@@ -157,16 +157,16 @@ TestX assertions -proc run {{n 20}} {
       {$a > 2} {$c < 3} {$d > 5}
       {#a} {#b} 
     }
-    ::errorCheck [C($i) info invar] {{$a > 2} {$c < 3} {$d > 5} {#a} {#b}} \
+    ::errorCheck [C($i) info invar] {{$a > 2} {$c < 3} {$d > 5} {#a } {#b }} \
       "Object invar " 
 
     b($i) proc p {a b c} {
       return p
     } {pre1 pre2 pre3} {post1 post2 post3}
 
-    ::errorCheck [b($i) info pre p]  {{pre1} {pre2} {pre3}} \
+    ::errorCheck [b($i) info pre p]  {pre1 pre2 pre3} \
 	"Obj proc pre assertion " 
-    ::errorCheck [b($i) info post p]  {{post1} {post2} {post3}} \
+    ::errorCheck [b($i) info post p]  {post1 post2 post3} \
 	"Obj proc post assertion " 
     C($i) instproc p {a b c} {
       return p
@@ -174,7 +174,7 @@ TestX assertions -proc run {{n 20}} {
 
     ::errorCheck [C($i) info instpre p]  "" \
 	"CL proc pre assertion " 
-    ::errorCheck [C($i) info instpost p] {{post1} {post2} {post3}} \
+    ::errorCheck [C($i) info instpost p] {post1 post2 post3} \
 	"CL proc post assertion "
 
     C(0) set a 3; C(0) set c 2; C(0) set d 7; C(0) set f 50;
@@ -201,9 +201,9 @@ TestX assertions -proc run {{n 20}} {
     return p
   } {pre1 pre2 pre3} {post1 post2 post3}
   ::rename b a
-  ::errorCheck [a info pre p]  {{pre1} {pre2} {pre3}} \
+  ::errorCheck [a info pre p]  {pre1 pre2 pre3} \
      "renamed Obj proc pre assertion " 
-  ::errorCheck [a info post p]  {{post1} {post2} {post3}} \
+  ::errorCheck [a info post p]  {post1 post2 post3} \
      "renamed Obj proc post assertion "
 
 
@@ -1736,7 +1736,14 @@ TestX mixinTest -proc run {{n 10}} {
     A create a0
     a0 proc f3 {} {puts hu}
     a0 forward f4 puts hu
+
+    puts stderr "### [Object self] info commands parametercmd => [Object info commands parametercmd]"
+    puts stderr a0->[a0 info class]-[A info class]-[::xotcl::Class info class]-[a0 info methods *parameter*]
+    puts stderr "### heritage: [a0 info precedence]"
+
     a0 parametercmd f6
+    puts stderr OK
+
     ::errorCheck [a0 procsearch f1] "::A instproc f1" procsearch-1
     ::errorCheck [a0 procsearch f2] "::A instforward f2" procsearch-2
     ::errorCheck [a0 procsearch f3] "::a0 proc f3" procsearch-3
@@ -3094,11 +3101,11 @@ smallScripts proc run {{n 20}} {
     ::errorCheck [b info procs] objproc "info procs"
     ::errorCheck [B info instprocs] myProc2 "info instprocs"
 
-    ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg f filter filterguard filtersearch forward hasclass incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move myProc myProc2 myProcMix1 myProcMix2 noinit objectparameter objproc parametercmd proc procsearch requireNamespace residualargs self set setFilter signature subst trace unknown unset uplevel upvar volatile vwait"  "b info methods"
+    ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg f filter filterguard filtersearch forward hasclass incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move myProc myProc2 myProcMix1 myProcMix2 noinit objectparameter objproc parametercmd proc procsearch requireNamespace residualargs self set setFilter setter signature subst trace unknown unset uplevel upvar volatile vwait"  "b info methods"
 
     ::errorCheck [lsort [b info methods -nocmds]] "abstract contains copy defaultmethod extractConfigureArg f hasclass init isclass ismetaclass ismixin isobject istype move myProc myProc2 myProcMix1 myProcMix2 objectparameter objproc proc self setFilter signature unknown" "b info methods -nocmds"
 
-    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar lappend method mixin mixinguard noinit parametercmd procsearch requireNamespace residualargs set subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
+    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname check class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar lappend method mixin mixinguard noinit parametercmd procsearch requireNamespace residualargs set setter subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
     ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract contains copy defaultmethod extractConfigureArg f hasclass init isclass ismetaclass ismixin isobject istype move myProc myProc2 objectparameter objproc proc self setFilter signature unknown" "b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "b info methods -nocmds -noprocs"
@@ -3369,8 +3376,8 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [e1 exists X] "1" "forward 3"
   ::errorCheck [e1 q] q "self proc"
 
-  ::errorCheck [E info commands] {p slot} "class commands"
-  ::errorCheck [E info instcommands] "t x q" "class instcommands"
+  ::errorCheck [lsort [E info commands]] {p slot} "class commands"
+  ::errorCheck [lsort [E info instcommands]] "q t x" "class instcommands"
   ::errorCheck [E info instbody t] "return ok" "class info instbody"
   
   Object o
@@ -3493,9 +3500,9 @@ condMixins proc run {{n 20}} {
 
   set ::context payrollApp
 
-  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit objectparameter parametercmd print proc procsearch requireNamespace residualargs salary self set signature subst trace unknown unset uplevel upvar volatile vwait" "condmixin all methods"
+  ::errorCheck [lsort [jim info methods]] "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy driving-license eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit objectparameter parametercmd print proc procsearch requireNamespace residualargs salary self set setter signature subst trace unknown unset uplevel upvar volatile vwait" "condmixin all methods"
 
-  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit objectparameter parametercmd print proc procsearch requireNamespace residualargs salary self set signature subst trace unknown unset uplevel upvar volatile vwait" "all methods in context"
+  ::errorCheck "[lsort [jim info methods -incontext]]" "__next abstract age append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg filter filterguard filtersearch forward hasclass id incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move name noinit objectparameter parametercmd print proc procsearch requireNamespace residualargs salary self set setter signature subst trace unknown unset uplevel upvar volatile vwait" "all methods in context"
 
   ::errorCheck [my show payrollApp jim] "{payrollApp:  jim info methods salary => salary} {payrollApp:  jim info methods -incontext salary => salary} {payrollApp:  jim info methods driv* => driving-license} {payrollApp:  jim info methods -incontext driv* => }" "payrollApp jim"
   ::errorCheck [my show shipmentApp jim] "{shipmentApp:  jim info methods salary => salary} {shipmentApp:  jim info methods -incontext salary => } {shipmentApp:  jim info methods driv* => driving-license} {shipmentApp:  jim info methods -incontext driv* => driving-license}" "shipmentApp jim"

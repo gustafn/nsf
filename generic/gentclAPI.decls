@@ -160,9 +160,6 @@ objectMethod __next XOTclONextMethod {
 }
 objectMethod noinit XOTclONoinitMethod {
 }
-objectMethod parametercmd XOTclOParametercmdMethod {
-  {-argName "name" -required 1}
-}
 objectMethod procsearch XOTclOProcSearchMethod {
   {-argName "name" -required 1}
 }
@@ -170,6 +167,9 @@ objectMethod requireNamespace XOTclORequireNamespaceMethod {
 }
 objectMethod residualargs XOTclOResidualargsMethod {
   {-argName "args" -type allargs}
+}
+objectMethod setter XOTclOSetterMethod {
+  {-argName "name" -required 1}
 }
 objectMethod uplevel XOTclOUplevelMethod {
   {-argName "args" -type allargs}
@@ -211,9 +211,6 @@ classMethod instmixinguard XOTclCInstMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
-classMethod instparametercmd XOTclCInstParametercmdMethod {
-  {-argName "name" -required 1}
-}
 classMethod method XOTclCMethodMethod {
   {-argName "-inner-namespace" -type switch}
   {-argName "-per-object" -type switch}
@@ -224,7 +221,8 @@ classMethod method XOTclCMethodMethod {
   {-argName "-precondition"  -nrargs 1 -type tclobj}
   {-argName "-postcondition" -nrargs 1 -type tclobj}
 }
-classMethod instforward XOTclCInstForwardMethod {
+classMethod forward XOTclCForwardMethod {
+  {-argName "-per-object" -type switch}
   {-argName "name" -required 1 -type tclobj}
   {-argName "-default" -nrargs 1 -type tclobj}
   {-argName "-earlybinding"}
@@ -242,7 +240,10 @@ classMethod recreate XOTclCRecreateMethod {
   {-argName "name" -required 1 -type tclobj}
   {-argName "args" -type allargs}
 }
-
+classMethod setter XOTclCSetterMethod {
+  {-argName "-per-object" -type switch}
+  {-argName "name" -required 1}
+}
 #
 # check methods
 #
@@ -263,10 +264,6 @@ infoObjectMethod alias XOTclObjInfoAliasMethod {
   {-argName "-definition"}
   {-argName "name"}
 }
-infoObjectMethod body XOTclObjInfoBodyMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "methodName" -required 1}
-}
 infoObjectMethod check XOTclObjInfoCheckMethod {
   {-argName "object" -required 1 -type object}
 }
@@ -276,10 +273,6 @@ infoObjectMethod children XOTclObjInfoChildrenMethod {
 }
 infoObjectMethod class XOTclObjInfoClassMethod {
   {-argName "object" -required 1 -type object}
-}
-infoObjectMethod commands XOTclObjInfoCommandsMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "pattern" -required 0}
 }
 infoObjectMethod filter XOTclObjInfoFilterMethod {
   {-argName "object" -required 1 -type object}
@@ -302,6 +295,14 @@ infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
 infoObjectMethod invar XOTclObjInfoInvarMethod {
   {-argName "object" -required 1 -type object}
 }
+#### TODO should object methods have -per-object?
+infoObjectMethod method XOTclObjInfoMethodMethod {
+  {-argName "object" -required 1 -type object}
+  {-argName "-per-object"}
+  {-argName "infomethodsubcmd" -type "definition|name|type"}
+  {-argName "name"}
+}
+### TODO should object methods have -per-object?
 infoObjectMethod methods XOTclObjInfoMethodsMethod {
   {-argName "object" -required 1 -type object}
   {-argName "-defined"}
@@ -328,10 +329,6 @@ infoObjectMethod params XOTclObjInfoParamsMethod {
   {-argName "object" -required 1 -type object}
   {-argName "methodName" -required 1}
   {-argName "-varNames"}
-}
-infoObjectMethod parametercmd XOTclObjInfoParametercmdMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "pattern"}
 }
 infoObjectMethod post XOTclObjInfoPostMethod {
   {-argName "object" -required 1 -type object}
@@ -374,14 +371,6 @@ infoClassMethod instances XOTclClassInfoInstancesMethod {
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
-infoClassMethod instbody XOTclClassInfoInstbodyMethod {
-  {-argName "class" -required 1 -type class}
-  {-argName "methodName" -required 1}
-}
-infoClassMethod instcommands XOTclClassInfoInstcommandsMethod {
-  {-argName "class"   -required 1 -type class}
-  {-argName "pattern"}
-}
 infoClassMethod instfilter XOTclClassInfoInstfilterMethod {
   {-argName "class"   -required 1 -type class}
   {-argName "-guards"}
@@ -413,10 +402,6 @@ infoClassMethod instmixinof XOTclClassInfoInstmixinofMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
-}
-infoClassMethod instparametercmd XOTclClassInfoInstparametercmdMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "pattern"}
 }
 infoClassMethod instparams XOTclClassInfoInstparamsMethod {
   {-argName "class" -required 1 -type class}

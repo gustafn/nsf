@@ -399,7 +399,7 @@ C instproc foo {} {
 }
 C create ::C::c1
 C::c1 foo
-puts stderr ======[Object isobject ::C::c1]
+#puts stderr ======[Object isobject ::C::c1]
 ? {Object isobject ::C::c1} 0 "$::case: object still exists after proc"
 ? {Object isclass ::C} 0 "$::case: class still exists after proc"
 ? "set ::firstDestroy" 1 "$::case, firstDestroy called"

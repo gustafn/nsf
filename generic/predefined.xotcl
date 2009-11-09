@@ -63,30 +63,12 @@ namespace eval xotcl2 {
   Class method -per-object __unknown {name} {
   }
 
-  #
-  # TODO: ::xotcl::alias has -per-object after methodName, "method" before it (because auf arguments)
-  #
-  Object method alias {-per-object:switch methodName -cmd -source-object -source-method -source-per-object:switch} {
-    if {[info exists cmd]} {
-      set cmd [namespace origin $cmd]
-    } elseif {[info exists source-method]} {
-      if {![info exists source-object]} {
-        set source-object [self]
-      } else {
-        set source-object [::xotcl::dispatch ${source-object} -objscope ::xotcl::self]
-      }
-      if {${source-per-object}} {
-        set cmd ${source-object}::$methodName
-      } else {
-        set cmd ::xotcl::classes${source-object}::${source-method}
-      }
-    }
-    if {${per-object} && [::xotcl::is [self] class]} {
-      eval ::xotcl::alias [self] $methodName -per-object $cmd
-    } else {
-      eval ::xotcl::alias [self] $methodName $cmd
-    }
+  # Add an alias method. cmdName for XOTcl method can be added via
+  #   [... info method name <methodName>]
+  Object method alias {-per-object:switch methodName cmd} {
+    ::xotcl::alias [self] $methodName {*}[expr {${per-object} ? "-per-object" : ""}] $cmd
   }
+
 
   ########################
   # Info definition
@@ -99,7 +81,7 @@ namespace eval xotcl2 {
   # we have no working objectparameter yet due to bootstrapping
   #
   ::xotcl::dispatch objectInfo -objscope ::eval {
-    .alias is -cmd ::xotcl::is
+    .alias is ::xotcl::is
 
     .method info {obj} {
       set methods [list]
@@ -113,14 +95,15 @@ namespace eval xotcl2 {
     .method unknown {method obj args} {
       error "[::xotcl::self] unknown info option \"$method\"; [$obj info info]"
     }
+
   }
 
   ::xotcl::dispatch classInfo -objscope ::eval {
-    .alias is -cmd ::xotcl::is
-    .alias classparent -cmd ::xotcl::cmd::ObjectInfo::parent
-    .alias classchildren -cmd ::xotcl::cmd::ObjectInfo::children
-    .alias info -source-object objectInfo -source-per-object -source-method info
-    .alias unknown -source-object objectInfo -source-per-object -source-method unknown
+    .alias is ::xotcl::is
+    .alias classparent ::xotcl::cmd::ObjectInfo::parent
+    .alias classchildren ::xotcl::cmd::ObjectInfo::children
+    .alias info [::xotcl::cmd::ObjectInfo::method objectInfo -per-object name info]
+    .alias unknown [::xotcl::cmd::ObjectInfo::method objectInfo -per-object name info]
   }
 
   foreach cmd [info command ::xotcl::cmd::ObjectInfo::*] {
@@ -132,8 +115,8 @@ namespace eval xotcl2 {
   }
   unset cmd
 
-  Object instforward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
-  Class instforward info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
+  Object forward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
+  Class  forward info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
 
   proc ::xotcl::infoError msg {
     #puts stderr "INFO ERROR: <$msg>\n$::errorInfo"
@@ -282,7 +265,7 @@ proc createBootstrapAttributeSlots {class definitions} {
       ::xotcl::setinstvar ${class}::slot::$att default $default
       unset default
     }
-    $class instparametercmd $att
+    $class setter $att
   }
 
   # do a second round to ensure that the already defined objects
@@ -368,13 +351,15 @@ createBootstrapAttributeSlots ::xotcl::Slot {
 }
 
 ::xotcl::Slot method init {args} {
-  set forwarder [expr {${.per-object} ? "forward" : "instforward"}]
   if {${.domain} eq ""} {
     set .domain [::xotcl::self callingobject]
   }
   if {${.domain} ne ""} {
     ${.domain} invalidateobjectparameter
-    ${.domain} $forwarder ${.name} -default [${.manager} defaultmethods] ${.manager} %1 %self %proc
+    # since the domain object might be xotcl1 or 2, use dispatch
+    ::xotcl::dispatch ${.domain} ::xotcl::cmd::Class::forward \
+        {*}[expr {${.per-object} ? "-per-object" : ""}] ${.name} \
+        -default [${.manager} defaultmethods] ${.manager} %1 %self %proc
   }
 }
 
@@ -574,9 +559,8 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
     if {[set .defaultmethods] ne {get assign}} return
     if {[.procsearch assign] ne "::xotcl::Slot instcmd assign"} return
     if {[.procsearch get]    ne "::xotcl::Slot instcmd get"} return
-    set forwarder [expr {[set .per-object] ? "parametercmd":"instparametercmd"}]
     #puts stderr "**** optimizing       ${.domain} $forwarder ${.name}"
-    ${.domain} $forwarder ${.name}
+    ${.domain} setter {*}[expr {${.per-object} ? "-per-object" : ""}] ${.name}
   }
 }
 # register the optimizer per default
@@ -627,7 +611,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
     namespace eval $object $cmds
   }
 }
-::xotcl2::Class instforward slots %self contains \
+::xotcl2::Class forward slots %self contains \
     -object {%::xotcl::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
 
 ############################################
@@ -701,7 +685,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 	  $po unset -nocomplain $instvar
 	}
       } else {
-	.instparametercmd $name
+	.setter $name
       }
     }
   }

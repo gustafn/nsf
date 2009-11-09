@@ -1,5 +1,6 @@
-package require XOTcl; xotcl::use xotcl1
+package require XOTcl
 package require xotcl::test
+xotcl::use xotcl2
 
 set count 1
 proc ? {cmd expected {msg ""}} {
@@ -87,16 +88,16 @@ C method -protected foo {} {return [self proc]}
 ? {catch {C method foo {a b c} {...}}  errorMsg; set errorMsg} \
     {Method 'foo' of ::C can not be overwritten. Derive e.g. a sub-class!}
 # check a predefined protection
-? {catch {::xotcl::Class method dealloc {a b c} {...}}  errorMsg; set errorMsg} \
-    {Method 'dealloc' of ::xotcl::Class can not be overwritten. Derive e.g. a sub-class!}
+? {catch {::xotcl2::Class method dealloc {a b c} {...}}  errorMsg; set errorMsg} \
+    {Method 'dealloc' of ::xotcl2::Class can not be overwritten. Derive e.g. a sub-class!}
 # try to redefined via alias
 ? {catch {::xotcl::alias Class dealloc ::set}  errorMsg; set errorMsg} \
-    {Method 'dealloc' of ::xotcl::Class can not be overwritten. Derive e.g. a sub-class!}
+    {Method 'dealloc' of ::xotcl2::Class can not be overwritten. Derive e.g. a sub-class!}
 # try to redefine via forward
-? {catch {C instforward SET ::set}  errorMsg; set errorMsg} \
+? {catch {C forward SET ::set}  errorMsg; set errorMsg} \
     {Method 'SET' of ::C can not be overwritten. Derive e.g. a sub-class!}
-# try to redefine via forward
-? {catch {C instparametercmd SET}  errorMsg; set errorMsg} \
+# try to redefine via setter
+? {catch {C setter SET}  errorMsg; set errorMsg} \
     {Method 'SET' of ::C can not be overwritten. Derive e.g. a sub-class!}
 
 # overwrite-protect object specific method

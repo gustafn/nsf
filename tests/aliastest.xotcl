@@ -18,6 +18,7 @@ proc ? {cmd expected {msg ""}} {
 # the system methods of Object are either alias or forwarders
 ? {lsort [::xotcl::Slot info methods -defined -methodtype alias]} {assign get}
 ? {::xotcl::Slot info alias -definition get} "::xotcl::setinstvar"
+? {::xotcl::Slot info method definition get} "::xotcl::Slot alias get ::xotcl::setinstvar"
 ? {::xotcl::Object info alias -definition set} "-objscope ::set"
 
 Class create Base
@@ -111,7 +112,7 @@ T method -per-object bar args { return [self class]->[self proc] }
 ? {lsort [T info methods -defined -per-object -methodtype alias]} {BAR FOO ZAP}
 ? {lsort [T info methods -per-object -defined -methodtype scripted]} {BAR FOO ZAP bar}
 ? {t foo} ::T->foo
-? {T info alias -per-object -definition ZAP} {-per-object ::T::BAR}
+? {T info alias -per-object -definition ZAP} {::T::BAR}
 
 ? {T FOO} ->foo
 ? {T BAR} ->foo
