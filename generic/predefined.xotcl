@@ -73,6 +73,7 @@ namespace eval xotcl2 {
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         {*}[expr {${protected} ? "-protected" : ""}] \
         $cmd
+  }
 
   Class method alias {-objscope:switch -per-object:switch -protected:switch methodName cmd} {
     ::xotcl::alias [self] $methodName \
