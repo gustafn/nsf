@@ -299,7 +299,7 @@ infoObjectMethod invar XOTclObjInfoInvarMethod {
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
-  {-argName "infomethodsubcmd" -type "definition|name|type"}
+  {-argName "infomethodsubcmd" -type "definition|name|parameter|type"}
   {-argName "name"}
 }
 ### TODO should object methods have -per-object?

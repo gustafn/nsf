@@ -9534,12 +9534,21 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
       withPer_object = 1;
     }
 
-    if (subcmd == InfomethodsubcmdNameIdx) {
-      resultObj = Tcl_NewStringObj(withPer_object ? "" : "::xotcl::classes", -1);
-      Tcl_AppendObjToObj(resultObj, object->cmdName);
-      Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
-      Tcl_SetObjResult(interp, resultObj);
-      return TCL_OK;
+    switch (subcmd) {
+    case InfomethodsubcmdNameIdx: 
+      {
+        resultObj = Tcl_NewStringObj(withPer_object ? "" : "::xotcl::classes", -1);
+        Tcl_AppendObjToObj(resultObj, object->cmdName);
+        Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
+        Tcl_SetObjResult(interp, resultObj);
+        return TCL_OK;
+      }
+
+    case InfomethodsubcmdParameterIdx:
+      {
+        Tcl_Command importedCmd = GetOriginalCommand(cmd);
+        return ListCmdParams(interp, importedCmd, methodName, 0);
+      }
     }
 
     /* 
