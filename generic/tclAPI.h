@@ -2545,8 +2545,8 @@ static methodDefinition method_definitions[] = {
   {"varname", 1, 0, convertToString}}
 },
 {"::xotcl::alias", XOTclAliasCmdStub, 6, {
-  {"object", 1, 0, convertToObject},
-  {"methodName", 1, 0, convertToString},
+  {"object", 0, 0, convertToObject},
+  {"methodName", 0, 0, convertToString},
   {"-objscope", 0, 0, convertToString},
   {"-per-object", 0, 0, convertToString},
   {"-protected", 0, 0, convertToString},

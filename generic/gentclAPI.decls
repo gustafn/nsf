@@ -17,8 +17,8 @@ array set ns {
 # XOTcl commands
 #
 xotclCmd alias XOTclAliasCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "methodName" -required 1}
+  {-argName "object" -type object}
+  {-argName "methodName"}
   {-argName "-objscope"}
   {-argName "-per-object"}
   {-argName "-protected"}

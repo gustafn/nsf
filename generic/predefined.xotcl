@@ -65,10 +65,22 @@ namespace eval xotcl2 {
 
   # Add an alias method. cmdName for XOTcl method can be added via
   #   [... info method name <methodName>]
-  Object method alias {-per-object:switch methodName cmd} {
-    ::xotcl::alias [self] $methodName {*}[expr {${per-object} ? "-per-object" : ""}] $cmd
-  }
 
+  ::xotcl::alias Object $cmd -objscope ::$cmd
+
+  Object method alias {-objscope:switch -protected:switch methodName cmd} {
+    ::xotcl::alias [self] $methodName \
+        {*}[expr {${objscope} ? "-objscope" : ""}] \
+        {*}[expr {${protected} ? "-protected" : ""}] \
+        $cmd
+
+  Class method alias {-objscope:switch -per-object:switch -protected:switch methodName cmd} {
+    ::xotcl::alias [self] $methodName \
+        {*}[expr {${objscope} ? "-objscope" : ""}] \
+        {*}[expr {${per-object} ? "-per-object" : ""}] \
+        {*}[expr {${protected} ? "-protected" : ""}] \
+        $cmd
+  }
 
   ########################
   # Info definition
