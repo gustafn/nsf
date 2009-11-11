@@ -12419,15 +12419,8 @@ static int XOTclObjInfoInvarMethod(Tcl_Interp *interp, XOTclObject *object) {
   return TCL_OK;
 }
 
-static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, 
-				     int withDefined, int withPer_object, 
-				     int withMethodtype, 
-				     int withNomixins, 
-				     int withIncontext, char *pattern) {
-
-  int methodType = 0;
-
-  switch (withMethodtype) {
+static int AggregatedMethodType(int methodType) {
+  switch (methodType) {
   case MethodtypeNULL: /* default */
   case MethodtypeAllIdx: 
     methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_SYSTEM;
@@ -12450,25 +12443,44 @@ static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object,
   case MethodtypeObjectIdx:
     methodType = XOTCL_METHODTYPE_OBJECT;
     break;
+  default:
+    methodType = 0;
   }
-  return ListMethods(interp, object, pattern, withDefined, withPer_object, 
-		     methodType, withNomixins, withIncontext);
+
+  return methodType;
+}
+
+static int XOTclClassInfoMethodsMethod(Tcl_Interp *interp, XOTclClass *class, 
+				     int withDefined, int withMethodtype, int withNomixins, 
+				     int withIncontext, char *pattern) {
+
+  return ListMethods(interp, &class->object, pattern, withDefined, 0, 
+		     AggregatedMethodType(withMethodtype), withNomixins, withIncontext);
+}
+static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, 
+				     int withDefined, int withMethodtype, int withNomixins, 
+				     int withIncontext, char *pattern) {
+
+  return ListMethods(interp, object, pattern, withDefined, 1, 
+		     AggregatedMethodType(withMethodtype), withNomixins, withIncontext);
 }
 
 static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object, 
-                                    int withPer_object, int subcmd,
+                                    int subcmd,
                                     char *methodName) {
-  Tcl_Namespace *nsPtr;
-  if (XOTclObjectIsClass(object)) {
-    XOTclClass *class = (XOTclClass *)object;
-    nsPtr = withPer_object ? class->object.nsPtr : class->nsPtr;
-  } else {
-    nsPtr = object->nsPtr;
-  }
-
+  Tcl_Namespace *nsPtr = object->nsPtr;
   return ListMethod(interp, object, 
                     methodName, nsPtr ? FindMethod(nsPtr, methodName) : NULL, 
-                    subcmd, withPer_object);
+                    subcmd, 1);
+}
+
+static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class, 
+                                      int subcmd,
+                                      char *methodName) {
+  Tcl_Namespace *nsPtr = class->nsPtr;
+  return ListMethod(interp, &class->object, 
+                    methodName, nsPtr ? FindMethod(nsPtr, methodName) : NULL, 
+                    subcmd, 0);
 }
 
 static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int withGuards, int withOrder,

@@ -115,8 +115,8 @@ namespace eval xotcl2 {
     .alias is ::xotcl::is
     .alias classparent ::xotcl::cmd::ObjectInfo::parent
     .alias classchildren ::xotcl::cmd::ObjectInfo::children
-    .alias info [::xotcl::cmd::ObjectInfo::method objectInfo -per-object name info]
-    .alias unknown [::xotcl::cmd::ObjectInfo::method objectInfo -per-object name info]
+    .alias info [::xotcl::cmd::ObjectInfo::method objectInfo name info]
+    .alias unknown [::xotcl::cmd::ObjectInfo::method objectInfo name info]
   }
 
   foreach cmd [info command ::xotcl::cmd::ObjectInfo::*] {
@@ -128,8 +128,12 @@ namespace eval xotcl2 {
   }
   unset cmd
 
+  #Object forward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
+  #Class  forward info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
+
   Object forward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
-  Class  forward info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
+  Class forward  info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
+  ::xotcl::dispatch ::xotcl2::classInfo ::xotcl::cmd::Object::forward "-per-object" ::xotcl2::objectInfo {%@2 %1}
 
   proc ::xotcl::infoError msg {
     #puts stderr "INFO ERROR: <$msg>\n$::errorInfo"

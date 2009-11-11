@@ -114,6 +114,8 @@ static int XOTclClassInfoInstmixinofMethodStub(ClientData clientData, Tcl_Interp
 static int XOTclClassInfoInstparamsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoInstpostMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoInstpreMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoMixinofMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoParameterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -208,6 +210,8 @@ static int XOTclClassInfoInstmixinofMethod(Tcl_Interp *interp, XOTclClass *class
 static int XOTclClassInfoInstparamsMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName, int withVarnames);
 static int XOTclClassInfoInstpostMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName);
 static int XOTclClassInfoInstpreMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName);
+static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class, int infomethodsubcmd, char *name);
+static int XOTclClassInfoMethodsMethod(Tcl_Interp *interp, XOTclClass *object, int withDefined, int withMethodtype, int withNomixins, int withIncontext, char *pattern);
 static int XOTclClassInfoMixinofMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoParameterMethod(Tcl_Interp *interp, XOTclClass *class);
 static int XOTclClassInfoSlotsMethod(Tcl_Interp *interp, XOTclClass *class);
@@ -222,8 +226,8 @@ static int XOTclObjInfoFilterguardMethod(Tcl_Interp *interp, XOTclObject *object
 static int XOTclObjInfoForwardMethod(Tcl_Interp *interp, XOTclObject *object, int withDefinition, char *name);
 static int XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *object);
 static int XOTclObjInfoInvarMethod(Tcl_Interp *interp, XOTclObject *object);
-static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object, int withPer_object, int infomethodsubcmd, char *name);
-static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, int withDefined, int withPer_object, int withMethodtype, int withNomixins, int withIncontext, char *pattern);
+static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object, int infomethodsubcmd, char *name);
+static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, int withDefined, int withMethodtype, int withNomixins, int withIncontext, char *pattern);
 static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int withGuards, int withOrder, char *patternString, XOTclObject *patternObj);
 static int XOTclObjInfoMixinguardMethod(Tcl_Interp *interp, XOTclObject *object, char *mixin);
 static int XOTclObjInfoParamsMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withVarnames);
@@ -303,6 +307,8 @@ enum {
  XOTclClassInfoInstparamsMethodIdx,
  XOTclClassInfoInstpostMethodIdx,
  XOTclClassInfoInstpreMethodIdx,
+ XOTclClassInfoMethodMethodIdx,
+ XOTclClassInfoMethodsMethodIdx,
  XOTclClassInfoMixinofMethodIdx,
  XOTclClassInfoParameterMethodIdx,
  XOTclClassInfoSlotsMethodIdx,
@@ -954,6 +960,49 @@ XOTclClassInfoInstpreMethodStub(ClientData clientData, Tcl_Interp *interp, int o
 }
 
 static int
+XOTclClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclClassInfoMethodMethodIdx].paramDefs, 
+                     method_definitions[XOTclClassInfoMethodMethodIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *class = (XOTclClass *)pc.clientData[0];
+    int infomethodsubcmd = (int )pc.clientData[1];
+    char *name = (char *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return XOTclClassInfoMethodMethod(interp, class, infomethodsubcmd, name);
+
+  }
+}
+
+static int
+XOTclClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclClassInfoMethodsMethodIdx].paramDefs, 
+                     method_definitions[XOTclClassInfoMethodsMethodIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *object = (XOTclClass *)pc.clientData[0];
+    int withDefined = (int )pc.clientData[1];
+    int withMethodtype = (int )pc.clientData[2];
+    int withNomixins = (int )pc.clientData[3];
+    int withIncontext = (int )pc.clientData[4];
+    char *pattern = (char *)pc.clientData[5];
+
+    parseContextRelease(&pc);
+    return XOTclClassInfoMethodsMethod(interp, object, withDefined, withMethodtype, withNomixins, withIncontext, pattern);
+
+  }
+}
+
+static int
 XOTclClassInfoMixinofMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
@@ -1259,12 +1308,11 @@ XOTclObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withPer_object = (int )pc.clientData[1];
-    int infomethodsubcmd = (int )pc.clientData[2];
-    char *name = (char *)pc.clientData[3];
+    int infomethodsubcmd = (int )pc.clientData[1];
+    char *name = (char *)pc.clientData[2];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoMethodMethod(interp, object, withPer_object, infomethodsubcmd, name);
+    return XOTclObjInfoMethodMethod(interp, object, infomethodsubcmd, name);
 
   }
 }
@@ -1281,14 +1329,13 @@ XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
     int withDefined = (int )pc.clientData[1];
-    int withPer_object = (int )pc.clientData[2];
-    int withMethodtype = (int )pc.clientData[3];
-    int withNomixins = (int )pc.clientData[4];
-    int withIncontext = (int )pc.clientData[5];
-    char *pattern = (char *)pc.clientData[6];
+    int withMethodtype = (int )pc.clientData[2];
+    int withNomixins = (int )pc.clientData[3];
+    int withIncontext = (int )pc.clientData[4];
+    char *pattern = (char *)pc.clientData[5];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoMethodsMethod(interp, object, withDefined, withPer_object, withMethodtype, withNomixins, withIncontext, pattern);
+    return XOTclObjInfoMethodsMethod(interp, object, withDefined, withMethodtype, withNomixins, withIncontext, pattern);
 
   }
 }
@@ -2346,6 +2393,19 @@ static methodDefinition method_definitions[] = {
   {"class", 1, 0, convertToClass},
   {"methodName", 1, 0, convertToString}}
 },
+{"::xotcl::cmd::ClassInfo::method", XOTclClassInfoMethodMethodStub, 3, {
+  {"class", 0, 0, convertToClass},
+  {"infomethodsubcmd", 0, 0, convertToInfomethodsubcmd},
+  {"name", 0, 0, convertToString}}
+},
+{"::xotcl::cmd::ClassInfo::methods", XOTclClassInfoMethodsMethodStub, 6, {
+  {"object", 0, 0, convertToClass},
+  {"-defined", 0, 0, convertToString},
+  {"-methodtype", 0, 1, convertToMethodtype},
+  {"-nomixins", 0, 0, convertToString},
+  {"-incontext", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToString}}
+},
 {"::xotcl::cmd::ClassInfo::mixinof", XOTclClassInfoMixinofMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
@@ -2403,16 +2463,14 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::ObjectInfo::invar", XOTclObjInfoInvarMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::xotcl::cmd::ObjectInfo::method", XOTclObjInfoMethodMethodStub, 4, {
-  {"object", 1, 0, convertToObject},
-  {"-per-object", 0, 0, convertToString},
+{"::xotcl::cmd::ObjectInfo::method", XOTclObjInfoMethodMethodStub, 3, {
+  {"object", 0, 0, convertToObject},
   {"infomethodsubcmd", 0, 0, convertToInfomethodsubcmd},
   {"name", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, 7, {
-  {"object", 1, 0, convertToObject},
+{"::xotcl::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, 6, {
+  {"object", 0, 0, convertToObject},
   {"-defined", 0, 0, convertToString},
-  {"-per-object", 0, 0, convertToString},
   {"-methodtype", 0, 1, convertToMethodtype},
   {"-nomixins", 0, 0, convertToString},
   {"-incontext", 0, 0, convertToString},

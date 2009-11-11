@@ -297,21 +297,34 @@ infoObjectMethod invar XOTclObjInfoInvarMethod {
 }
 #### TODO should object methods have -per-object?
 infoObjectMethod method XOTclObjInfoMethodMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "-per-object"}
+  {-argName "object" -type object}
   {-argName "infomethodsubcmd" -type "definition|name|parameter|type"}
   {-argName "name"}
 }
+infoClassMethod method XOTclClassInfoMethodMethod {
+  {-argName "class" -type class}
+  {-argName "infomethodsubcmd" -type "definition|name|parameter|type"}
+  {-argName "name"}
+}
+
 ### TODO should object methods have -per-object?
 infoObjectMethod methods XOTclObjInfoMethodsMethod {
-  {-argName "object" -required 1 -type object}
+  {-argName "object" -type object}
   {-argName "-defined"}
-  {-argName "-per-object"}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|system|alias|forwarder|object|setter"}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern"}
 }
+infoClassMethod methods XOTclClassInfoMethodsMethod {
+  {-argName "object" -type class}
+  {-argName "-defined"}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|system|alias|forwarder|object|setter"}
+  {-argName "-nomixins"}
+  {-argName "-incontext"}
+  {-argName "pattern"}
+}
+
 infoObjectMethod mixin XOTclObjInfoMixinMethod {
   {-argName "object" -required 1 -type object}
   {-argName "-guards"}
