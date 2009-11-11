@@ -112,7 +112,7 @@ T method -per-object bar args { return [self class]->[self proc] }
 ? {lsort [T info -per-object methods -defined -methodtype alias]} {BAR FOO ZAP}
 ? {lsort [T info -per-object methods -defined -methodtype scripted]} {BAR FOO ZAP bar}
 ? {t foo} ::T->foo
-? {T info alias -per-object -definition ZAP} {::T::BAR}
+? {T info -per-object alias -definition ZAP} {::T::BAR}
 
 ? {T FOO} ->foo
 ? {T BAR} ->foo

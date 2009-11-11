@@ -372,7 +372,6 @@ infoObjectMethod vars XOTclObjInfoVarsMethod {
 infoClassMethod alias XOTclClassInfoAliasMethod {
   {-argName "object" -required 1 -type class}
   {-argName "-definition"}
-  {-argName "-per-object"}
   {-argName "name"}
 }
 infoClassMethod heritage XOTclClassInfoHeritageMethod {

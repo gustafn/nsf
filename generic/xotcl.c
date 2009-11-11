@@ -12596,11 +12596,9 @@ static int XOTclObjInfoVarsMethod(Tcl_Interp *interp, XOTclObject *object, char 
  * Begin Class Info methods
  ***************************/
 static int XOTclClassInfoAliasMethod(Tcl_Interp *interp, XOTclClass *class, 
-                                     int withDefinition, int withPer_object, char *pattern) {
-  Tcl_HashTable *table = withPer_object ? 
-    Tcl_Namespace_cmdTable(class->object.nsPtr) : 
-    Tcl_Namespace_cmdTable(class->nsPtr);
-  return ListAlias(interp, table, pattern, withDefinition, &class->object, withPer_object);
+                                     int withDefinition, char *pattern) {
+  Tcl_HashTable *table = Tcl_Namespace_cmdTable(class->nsPtr);
+  return ListAlias(interp, table, pattern, withDefinition, &class->object, 0);
 }
 
 static int XOTclClassInfoHeritageMethod(Tcl_Interp *interp, XOTclClass *cl, char *pattern) {

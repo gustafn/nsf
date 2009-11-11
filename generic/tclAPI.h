@@ -197,7 +197,7 @@ static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl, int withInner_
 static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclCRecreateMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclCSetterMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *name);
-static int XOTclClassInfoAliasMethod(Tcl_Interp *interp, XOTclClass *object, int withDefinition, int withPer_object, char *name);
+static int XOTclClassInfoAliasMethod(Tcl_Interp *interp, XOTclClass *object, int withDefinition, char *name);
 static int XOTclClassInfoHeritageMethod(Tcl_Interp *interp, XOTclClass *class, char *pattern);
 static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoInstfilterMethod(Tcl_Interp *interp, XOTclClass *class, int withGuards, char *pattern);
@@ -674,11 +674,10 @@ XOTclClassInfoAliasMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
   } else {
     XOTclClass *object = (XOTclClass *)pc.clientData[0];
     int withDefinition = (int )pc.clientData[1];
-    int withPer_object = (int )pc.clientData[2];
-    char *name = (char *)pc.clientData[3];
+    char *name = (char *)pc.clientData[2];
 
     parseContextRelease(&pc);
-    return XOTclClassInfoAliasMethod(interp, object, withDefinition, withPer_object, name);
+    return XOTclClassInfoAliasMethod(interp, object, withDefinition, name);
 
   }
 }
@@ -2333,10 +2332,9 @@ static methodDefinition method_definitions[] = {
   {"-per-object", 0, 0, convertToBoolean},
   {"name", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::alias", XOTclClassInfoAliasMethodStub, 4, {
+{"::xotcl::cmd::ClassInfo::alias", XOTclClassInfoAliasMethodStub, 3, {
   {"object", 1, 0, convertToClass},
   {"-definition", 0, 0, convertToString},
-  {"-per-object", 0, 0, convertToString},
   {"name", 0, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::heritage", XOTclClassInfoHeritageMethodStub, 2, {
