@@ -19,6 +19,7 @@ proc createconverter {type argname} {
   if {[info exists ::created($name)]} {
     return ""
   }
+  set ::created($name) 1
   set domain [split $type |]
   set opts "static CONST char *opts\[\] = {\"[join $domain {", "}]\", NULL};"
   set enums [list ${name}NULL]
