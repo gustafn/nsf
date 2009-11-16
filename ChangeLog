@@ -1,3 +1,6 @@
+2009-11-13 <Gustaf.Neumann@wu-wien.ac.at>
+    * Release of XOTcl 1.6.5
+
 2009-11-06 <Gustaf.Neumann@wu-wien.ac.at>
     * applied per-object slot changes from Stefan Sobernig
     * extended regression tests
