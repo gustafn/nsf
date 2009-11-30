@@ -276,7 +276,7 @@ static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int no
 static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
-static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
+static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, int relationtype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 
 enum {
@@ -2236,11 +2236,12 @@ XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int relationtype = (int )pc.clientData[1];
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
+    int withPer_object = (int )pc.clientData[1];
+    int relationtype = (int )pc.clientData[2];
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[3];
 
     parseContextRelease(&pc);
-    return XOTclRelationCmd(interp, object, relationtype, value);
+    return XOTclRelationCmd(interp, object, withPer_object, relationtype, value);
 
   }
 }
@@ -2671,8 +2672,9 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::__qualify", XOTclQualifyObjCmdStub, 1, {
   {"name", 1, 0, convertToTclobj}}
 },
-{"::xotcl::relation", XOTclRelationCmdStub, 3, {
-  {"object", 1, 0, convertToObject},
+{"::xotcl::relation", XOTclRelationCmdStub, 4, {
+  {"object", 0, 0, convertToObject},
+  {"-per-object", 0, 0, convertToString},
   {"relationtype", 1, 0, convertToRelationtype},
   {"value", 0, 0, convertToTclobj}}
 },

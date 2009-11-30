@@ -9655,80 +9655,95 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
 }
 
 static int
+MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd, 
+                  XOTclObject *object, char *key, int withPer_object) {
+  Tcl_Command importedCmd;
+  Tcl_ObjCmdProc *proc, *resolvedProc;
+
+  proc = Tcl_Command_objProc(cmd);
+  importedCmd = GetOriginalCommand(cmd);
+  resolvedProc = Tcl_Command_objProc(importedCmd);
+
+  if (methodType == XOTCL_METHODTYPE_ALIAS) {
+    if (!(proc == XOTclProcAliasMethod || AliasGet(interp, object->cmdName, key, withPer_object))) {
+      return 0;
+    }
+  } else {
+    if (proc == XOTclProcAliasMethod) {
+      if ((methodType & XOTCL_METHODTYPE_ALIAS) == 0) return 0;
+    }
+    /* the following cases are disjoint */
+    if (CmdIsProc(importedCmd)) {
+      /*fprintf(stderr,"%s scripted %d\n",key, methodType & XOTCL_METHODTYPE_SCRIPTED);*/
+      if ((methodType & XOTCL_METHODTYPE_SCRIPTED) == 0) return 0;
+    } else if (resolvedProc == XOTclForwardMethod) {
+      if ((methodType & XOTCL_METHODTYPE_FORWARDER) == 0) return 0;
+    } else if (resolvedProc == XOTclSetterMethod) {
+      if ((methodType & XOTCL_METHODTYPE_SETTER) == 0) return 0;
+    } else if (resolvedProc == XOTclObjDispatch) {
+      if ((methodType & XOTCL_METHODTYPE_OBJECT) == 0) return 0;
+    } else if ((methodType & XOTCL_METHODTYPE_OTHER) == 0) {
+      /*fprintf(stderr,"OTHER %s not wanted %.4x\n",key, methodType);*/
+      return 0;
+    } 
+    /* XOTclObjscopedMethod ??? */
+  }
+  return 1;
+}
+
+static int
 ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int methodType,
                Tcl_HashTable *dups, XOTclObject *object, int withPer_object) {
   Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : 0;
+  Tcl_HashEntry *hPtr, *duphPtr;
+  Tcl_Command cmd;
+  char *key;
+  int new;
 
-  /* TODO: could be made faster, when pattern contains no wild cards */
-
-  for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-    char *key = Tcl_GetHashKey(table, hPtr);
-    Tcl_Command importedCmd, cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
-    Tcl_ObjCmdProc *proc, *resolvedProc;
-
-    proc = Tcl_Command_objProc(cmd);
-    importedCmd = GetOriginalCommand(cmd);
-    resolvedProc = Tcl_Command_objProc(importedCmd);
-
-#if 0
-    if (proc == XOTclProcAliasMethod || proc == XOTclObjscopedMethod) {
-      AliasCmdClientData *tcd = Tcl_Command_objClientData(cmd);
-      /* TODO: resolve our chain */
-      assert(tcd);
-      resolvedProc = tcd->objProc;
-    }
-#endif
-
-    if (pattern && !Tcl_StringMatch(key, pattern)) continue;
-    if (methodType == XOTCL_METHODTYPE_ALIAS) {
-      if (!(proc == XOTclProcAliasMethod || AliasGet(interp, object->cmdName, key, withPer_object))) {
-        continue;
-      }
-    } else {
-      if (proc == XOTclProcAliasMethod) {
-        if ((methodType & XOTCL_METHODTYPE_ALIAS) == 0) continue;
-      }
-      /* the following cases are disjoint */
-      if (CmdIsProc(importedCmd)) {
-        /*fprintf(stderr,"%s scripted %d\n",key, methodType & XOTCL_METHODTYPE_SCRIPTED);*/
-        if ((methodType & XOTCL_METHODTYPE_SCRIPTED) == 0) continue;
-      } else if (resolvedProc == XOTclForwardMethod) {
-        if ((methodType & XOTCL_METHODTYPE_FORWARDER) == 0) continue;
-      } else if (resolvedProc == XOTclSetterMethod) {
-        if ((methodType & XOTCL_METHODTYPE_SETTER) == 0) continue;
-      } else if (resolvedProc == XOTclObjDispatch) {
-        if ((methodType & XOTCL_METHODTYPE_OBJECT) == 0) continue;
-      } else if ((methodType & XOTCL_METHODTYPE_OTHER) == 0) {
-        /*fprintf(stderr,"OTHER %s not wanted %.4x\n",key, methodType);*/
-        continue;
+#if 1
+  if (pattern && noMetaChars(pattern)) {
+    /* We have a pattern that can be used for direct lookup; no need to iterate */
+    hPtr = table ? XOTcl_FindHashEntry(table, pattern) : 0;
+    if (hPtr) {
+      key = Tcl_GetHashKey(table, hPtr);
+      cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
+      if (MethodTypeMatches(interp, methodType, cmd, object, key, withPer_object)) {
+        if (dups) {
+          duphPtr = Tcl_CreateHashEntry(dups, key, &new);
+          if (new) {
+            Tcl_AppendElement(interp, key);
+          }
+        } else {
+          Tcl_AppendElement(interp, key);
+        }
       } 
     }
-    /*
-    if (noCmds  && proc != RUNTIME_STATE(interp)->objInterpProc) continue;
-    if (noProcs && proc == RUNTIME_STATE(interp)->objInterpProc) continue;
-    if (onlyForwarder && proc != XOTclForwardMethod) continue;
-    if (onlySetter && proc != XOTclSetterMethod) continue;
-    */
-    /* XOTclObjscopedMethod ??? */
+    return TCL_OK;
 
-    if (dups) {
-      int new;
-      Tcl_HashEntry *duphPtr;
-      duphPtr = Tcl_CreateHashEntry(dups, key, &new);
-      if (!new) {
-	/*fprintf(stderr, "preexisting entry %s\n", key);*/
-	continue;
-      } else {
-	/*fprintf(stderr, "new entry %s\n", key);*/
+  } else {
+#else
+    {
+#endif
+    hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : 0;
+
+    for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+      key = Tcl_GetHashKey(table, hPtr);
+      cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
+
+      if (pattern && !Tcl_StringMatch(key, pattern)) continue;
+      if (!MethodTypeMatches(interp, methodType, cmd, object, key, withPer_object)) continue;
+      
+      if (dups) {
+        duphPtr = Tcl_CreateHashEntry(dups, key, &new);
+        if (!new) continue;
       }
+      
+      if (((Command *) cmd)->flags & XOTCL_CMD_PROTECTED_METHOD) {
+        /*fprintf(stderr, "--- dont list protected name '%s'\n", key);*/
+        continue;
+      }
+      Tcl_AppendElement(interp, key);
     }
-
-    if (((Command *) cmd)->flags & XOTCL_CMD_PROTECTED_METHOD) {
-      /*fprintf(stderr, "--- dont list protected name '%s'\n", key);*/
-      continue;
-    }
-    Tcl_AppendElement(interp, key);
   }
   /*fprintf(stderr, "listkeys returns '%s'\n", ObjStr(Tcl_GetObjResult(interp)));*/
   return TCL_OK;
@@ -9829,7 +9844,7 @@ ListMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
             int noMixins, int inContext) {
   XOTclClasses *pl;
   Tcl_HashTable *cmdTable, dupsTable, *dups = &dupsTable;
-  Tcl_InitHashTable(dups, TCL_STRING_KEYS);
+
 
   /*fprintf(stderr, "listMethods %s %d %d\n", pattern, noMixins, inContext);*/
 
@@ -9839,11 +9854,18 @@ ListMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
     } else {
       cmdTable = object->nsPtr ? Tcl_Namespace_cmdTable(object->nsPtr) : NULL;
     }
-    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, object, withPer_object);
-    Tcl_DeleteHashTable(dups);
+    ListMethodKeys(interp, cmdTable, pattern, methodType, NULL, object, withPer_object);
     return TCL_OK;
   }
 
+  /* 
+   * TODO: we could make this faster for patterns without metachars 
+   * by letting ListMethodKeys() to signal us when an entry was found.
+   * we wait, until the we decided about "info methods defined" 
+   * vs. "info method search" vs. "info defined" etc.
+   */
+
+  Tcl_InitHashTable(dups, TCL_STRING_KEYS);
   if (object->nsPtr) {
     cmdTable = Tcl_Namespace_cmdTable(object->nsPtr);
     ListMethodKeys(interp, cmdTable, pattern, methodType, dups, object, withPer_object);
@@ -10890,13 +10912,49 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
   return TCL_OK;
 }
 
-static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value) {
+ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, 
+                             int withPer_object, int relationtype, Tcl_Obj *value) {
   int oc; Tcl_Obj **ov;
   XOTclObject *nobj = NULL;
   XOTclClass *cl = NULL;
   XOTclObjectOpt *objopt = NULL;
   XOTclClassOpt *clopt = NULL, *nclopt = NULL;
   int i;
+
+  /*fprintf(stderr, "XOTclRelationCmd %s %d rel=%d val='%s'\n",
+          objectName(object),withPer_object,relationtype,value?ObjStr(value):"NULL");
+  */
+  if (withPer_object) {
+    switch (relationtype) {
+    case RelationtypeClass_mixinIdx:
+    case RelationtypeInstmixinIdx:
+      relationtype = RelationtypeObject_mixinIdx;
+      break;
+    case RelationtypeClass_filterIdx:
+    case RelationtypeInstfilterIdx:
+      relationtype = RelationtypeObject_filterIdx;
+      break;
+    }
+  } else {
+    switch (relationtype) {
+    case RelationtypeObject_mixinIdx:
+    case RelationtypeMixinIdx:
+      if (
+          XOTclObjectIsClass(object)
+          ) {
+        relationtype = RelationtypeClass_mixinIdx;
+      }
+      break;
+    case RelationtypeObject_filterIdx:
+    case RelationtypeFilterIdx:
+      if (
+          XOTclObjectIsClass(object)
+          ) {
+        /*relationtype = RelationtypeClass_filterIdx;*/
+      }
+      break;
+    }
+  }
 
   switch (relationtype) {
   case RelationtypeObject_mixinIdx:
@@ -11455,7 +11513,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
       int relIdx;
       result = convertToRelationtype(interp, paramPtr->nameObj, paramPtr, (ClientData)&relIdx);
       if (result == TCL_OK) {
-        result = XOTclRelationCmd(interp, obj, relIdx, newValue);
+        result = XOTclRelationCmd(interp, obj, 0 /*fixme*/, relIdx, newValue);
       }
       if (result != TCL_OK) {
         XOTcl_PopFrame(interp, obj);

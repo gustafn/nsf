@@ -85,7 +85,31 @@ namespace eval ::xotcl {
     {__default_metaclass ::xotcl::Class}
   }
 
-  ::xotcl::register_system_slots ::xotcl
+############################################
+# system slots
+############################################
+  proc register_system_slots1 {os} {
+    ${os}::Object alloc ${os}::Class::slot
+    ${os}::Object alloc ${os}::Object::slot
+    
+    ::xotcl::InfoSlot create ${os}::Class::slot::superclass -type relation
+    ::xotcl::alias           ${os}::Class::slot::superclass assign ::xotcl::relation
+    ::xotcl::InfoSlot create ${os}::Object::slot::class -type relation
+    ::xotcl::alias           ${os}::Object::slot::class assign ::xotcl::relation
+
+    ::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \
+        -forward-per-object true \
+        -type relation
+    ::xotcl::InterceptorSlot create ${os}::Object::slot::filter \
+        -forward-per-object true \
+        -elementtype "" -type relation
+    ::xotcl::InterceptorSlot create ${os}::Class::slot::instmixin \
+        -type relation
+    ::xotcl::InterceptorSlot create ${os}::Class::slot::instfilter \
+        -elementtype "" \
+        -type relation
+  }
+  ::xotcl::register_system_slots1 ::xotcl
 
   ########################
   # Info definition

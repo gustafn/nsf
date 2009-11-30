@@ -84,6 +84,7 @@ Object instproc slots cmds {
 
 Class M
 Class O -mixin M
+? {O mixin} ::M
 ? {catch {Object o -mixin check1 M}} 1
 ? {O mixin} ::M
 Class M2

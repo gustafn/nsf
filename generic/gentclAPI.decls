@@ -42,6 +42,9 @@ xotclCmd dispatch XOTclDispatchCmd {
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
 }
+xotclCmd dot XOTclDotCmd {
+  {-argName "args" -type allargs}
+}
 xotclCmd finalize XOTclFinalizeObjCmd {
 }
 xotclCmd interp XOTclInterpObjCmd {
@@ -69,10 +72,6 @@ xotclCmd my XOTclMyCmd {
   {-argName "method" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
-#move to right place
-xotclCmd dot XOTclDotCmd {
-  {-argName "args" -type allargs}
-}
 xotclCmd namespace_copycmds XOTclNSCopyCmds {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
@@ -85,7 +84,8 @@ xotclCmd __qualify XOTclQualifyObjCmd {
   {-argName "name" -required 1 -type tclobj}
 }
 xotclCmd relation XOTclRelationCmd {
-  {-argName "object" -required 1 -type object}
+  {-argName "object" -type object}
+  {-argName "-per-object"}
   {-argName "relationtype" -required 1 -type "mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }

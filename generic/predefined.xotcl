@@ -214,6 +214,10 @@ proc ::xotcl::parametersFromSlots {obj} {
   set parameterdefinitions [list]
   set slots [::xotcl2::objectInfo slotobjects $obj]
   foreach slot $slots {
+    # skip some lots for xotcl1; TODO: maybe different parameterFromSlots for xotcl1?
+    if {[::xotcl::is $obj type ::xotcl::Object] && 
+        ([$slot name] eq "mixin" || [$slot name] eq "filter")
+      } continue
     set parameterdefinition "-[namespace tail $slot]"
     set opts [list]
 
@@ -250,7 +254,10 @@ proc ::xotcl::parametersFromSlots {obj} {
   if {[::xotcl::is [self] class]} {
     lappend parameterdefinitions -parameter:method,optional
   }
-  lappend parameterdefinitions -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional
+  lappend parameterdefinitions \
+      -noinit:method,optional,noarg \
+      -volatile:method,optional,noarg \
+      arg:initcmd,optional
   # for the time being, use:
   #lappend parameterdefinitions args
   #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
@@ -319,6 +326,7 @@ createBootstrapAttributeSlots ::xotcl::Slot {
   {manager "[::xotcl::self]"}
   {multivalued false}
   {per-object false}
+  {forward-per-object}
   {required false}
   default
   type
@@ -376,7 +384,9 @@ createBootstrapAttributeSlots ::xotcl::Slot {
     # since the domain object might be xotcl1 or 2, use dispatch
     ::xotcl::dispatch ${.domain} ::xotcl::cmd::Class::forward \
         {*}[expr {${.per-object} ? "-per-object" : ""}] ${.name} \
-        -default [${.manager} defaultmethods] ${.manager} %1 %self %proc
+        -default [${.manager} defaultmethods] ${.manager} %1 %self \
+        {*}[expr {[info exists .forward-per-object] ? "-per-object" : ""}] \
+        %proc
   }
 }
 
@@ -389,11 +399,12 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
   {elementtype ::xotcl2::Class}
 }
 ::xotcl::relation ::xotcl::InfoSlot superclass ::xotcl::Slot
-::xotcl::InfoSlot method get {obj prop} {$obj info $prop}
-::xotcl::InfoSlot method add {obj prop value {pos 0}} {
+::xotcl::InfoSlot method get {obj -per-object:switch prop} {$obj info $prop}
+::xotcl::InfoSlot method add {obj -per-object:switch prop value {pos 0}} {
   if {![set .multivalued]} {
     error "Property $prop of ${.domain}->$obj ist not multivalued"
   }
+  puts stderr "adding infoslot: $obj $prop [linsert [$obj info $prop] $pos $value]"
   $obj $prop [linsert [$obj info $prop] $pos $value]
 }
 ::xotcl::InfoSlot method delete {-nocomplain:switch obj prop value} {
@@ -433,7 +444,7 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
 ::xotcl::alias ::xotcl::InterceptorSlot set ::xotcl::relation ;# for backwards compatibility
 ::xotcl::alias ::xotcl::InterceptorSlot assign ::xotcl::relation
 
-::xotcl::InterceptorSlot method add {obj prop value {pos 0}} {
+::xotcl::InterceptorSlot method add {obj -per-object:switch prop value {pos 0}} {
   if {![set .multivalued]} {
     error "Property $prop of ${.domain}->$obj ist not multivalued"
   }
