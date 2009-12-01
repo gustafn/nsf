@@ -116,6 +116,7 @@ static int XOTclClassInfoInstpostMethodStub(ClientData clientData, Tcl_Interp *i
 static int XOTclClassInfoInstpreMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclClassInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoMixinofMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoParameterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -212,6 +213,7 @@ static int XOTclClassInfoInstpostMethod(Tcl_Interp *interp, XOTclClass *class, c
 static int XOTclClassInfoInstpreMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName);
 static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class, int infomethodsubcmd, char *name);
 static int XOTclClassInfoMethodsMethod(Tcl_Interp *interp, XOTclClass *object, int withDefined, int withMethodtype, int withNomixins, int withIncontext, char *pattern);
+static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, int withGuards, char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoMixinofMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoParameterMethod(Tcl_Interp *interp, XOTclClass *class);
 static int XOTclClassInfoSlotsMethod(Tcl_Interp *interp, XOTclClass *class);
@@ -309,6 +311,7 @@ enum {
  XOTclClassInfoInstpreMethodIdx,
  XOTclClassInfoMethodMethodIdx,
  XOTclClassInfoMethodsMethodIdx,
+ XOTclClassInfoMixinMethodIdx,
  XOTclClassInfoMixinofMethodIdx,
  XOTclClassInfoParameterMethodIdx,
  XOTclClassInfoSlotsMethodIdx,
@@ -998,6 +1001,41 @@ XOTclClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     parseContextRelease(&pc);
     return XOTclClassInfoMethodsMethod(interp, object, withDefined, withMethodtype, withNomixins, withIncontext, pattern);
 
+  }
+}
+
+static int
+XOTclClassInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclClassInfoMixinMethodIdx].paramDefs, 
+                     method_definitions[XOTclClassInfoMixinMethodIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *class = (XOTclClass *)pc.clientData[0];
+    int withClosure = (int )pc.clientData[1];
+    int withGuards = (int )pc.clientData[2];
+    char *patternString = NULL;
+    XOTclObject *patternObj = NULL;
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
+    int returnCode;
+
+    if (getMatchObject(interp, pattern,  objv[3], &patternObj, &patternString) == -1) {
+      if (pattern) {
+        DECR_REF_COUNT(pattern);
+      }
+      return TCL_OK;
+    }
+          
+    parseContextRelease(&pc);
+    returnCode = XOTclClassInfoMixinMethod(interp, class, withClosure, withGuards, patternString, patternObj);
+
+    if (pattern) {
+      DECR_REF_COUNT(pattern);
+    }
+    return returnCode;
   }
 }
 
@@ -2404,6 +2442,12 @@ static methodDefinition method_definitions[] = {
   {"-nomixins", 0, 0, convertToString},
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
+},
+{"::xotcl::cmd::ClassInfo::mixin", XOTclClassInfoMixinMethodStub, 4, {
+  {"class", 1, 0, convertToClass},
+  {"-closure", 0, 0, convertToString},
+  {"-guards", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToObjpattern}}
 },
 {"::xotcl::cmd::ClassInfo::mixinof", XOTclClassInfoMixinofMethodStub, 3, {
   {"class", 1, 0, convertToClass},

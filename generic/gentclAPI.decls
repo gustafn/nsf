@@ -400,6 +400,12 @@ infoClassMethod instforward XOTclClassInfoInstforwardMethod {
 infoClassMethod instinvar XOTclClassInfoInstinvarMethod {
   {-argName "class"  -required 1 -type class}
 }
+infoClassMethod mixin XOTclClassInfoMixinMethod {
+  {-argName "class"  -required 1 -type class}
+  {-argName "-closure"}
+  {-argName "-guards"}
+  {-argName "pattern" -type objpattern}
+}
 infoClassMethod instmixin XOTclClassInfoInstmixinMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-closure"}

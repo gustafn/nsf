@@ -10921,9 +10921,9 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
   XOTclClassOpt *clopt = NULL, *nclopt = NULL;
   int i;
 
-  /*fprintf(stderr, "XOTclRelationCmd %s %d rel=%d val='%s'\n",
+  fprintf(stderr, "XOTclRelationCmd %s %d rel=%d val='%s'\n",
           objectName(object),withPer_object,relationtype,value?ObjStr(value):"NULL");
-  */
+  
   if (withPer_object) {
     switch (relationtype) {
     case RelationtypeClass_mixinIdx:
@@ -10943,6 +10943,7 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
           XOTclObjectIsClass(object)
           ) {
         relationtype = RelationtypeClass_mixinIdx;
+        fprintf(stderr, "using class mixin\n");
       }
       break;
     case RelationtypeObject_filterIdx:
@@ -12543,6 +12544,9 @@ static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class,
 
 static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int withGuards, int withOrder,
                         char *patternString, XOTclObject *patternObj) {
+
+  fprintf(stderr, "XOTclObjInfoMixinMethod'\n");
+
   if (withOrder) {
     if (!(object->flags & XOTCL_MIXIN_ORDER_VALID))
       MixinComputeDefined(interp, object);
@@ -12732,13 +12736,13 @@ static int XOTclClassInfoInstinvarMethod(Tcl_Interp *interp, XOTclClass * class)
   return TCL_OK;
 }
 
-static int XOTclClassInfoInstmixinMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure, int withGuards,
+static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure, int withGuards,
 			      char *patternString, XOTclObject *patternObj) {
   XOTclClassOpt *opt = class->opt;
   int rc;
 
-  /*fprintf(stderr, "XOTclClassInfoInstmixinMethod guard %d clo %d set %.4x pattern '%s'\n",
-    withGuards,withClosure,patternString);*/
+  fprintf(stderr, "XOTclClassInfoMixinMethod guard %d clo %d pattern '%s'\n",
+          withGuards,withClosure,patternString);
 
   if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;
@@ -12755,6 +12759,14 @@ static int XOTclClassInfoInstmixinMethod(Tcl_Interp *interp, XOTclClass * class,
 
   return TCL_OK;
 }
+
+/* TODO: this method should be removed, we should register XOTclClassInfoMixinMethod for 
+   xotcl1 under name ... instmxin ... */
+static int XOTclClassInfoInstmixinMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure, int withGuards,
+			      char *patternString, XOTclObject *patternObj) {
+  return XOTclClassInfoMixinMethod(interp, class, withClosure, withGuards, patternString, patternObj);
+}
+
 
 static int XOTclClassInfoInstmixinguardMethod(Tcl_Interp *interp, XOTclClass * class, char * mixin) {
   return class->opt ? GuardList(interp, class->opt->instmixins, mixin) : TCL_OK;
