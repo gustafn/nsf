@@ -265,7 +265,7 @@ static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, char *varname
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withObjscope, int withPer_object, int withProtected, Tcl_Obj *cmdName);
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
 static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass);
-static int XOTclDeprecatedCmd(Tcl_Interp *interp, char *oldCmd, char *newCmd);
+static int XOTclDeprecatedCmd(Tcl_Interp *interp, char *what, char *oldCmd, char *newCmd);
 static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclDotCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
@@ -2036,11 +2036,12 @@ XOTclDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    char *oldCmd = (char *)pc.clientData[0];
-    char *newCmd = (char *)pc.clientData[1];
+    char *what = (char *)pc.clientData[0];
+    char *oldCmd = (char *)pc.clientData[1];
+    char *newCmd = (char *)pc.clientData[2];
 
     parseContextRelease(&pc);
-    return XOTclDeprecatedCmd(interp, oldCmd, newCmd);
+    return XOTclDeprecatedCmd(interp, what, oldCmd, newCmd);
 
   }
 }
@@ -2661,7 +2662,8 @@ static methodDefinition method_definitions[] = {
   {"rootClass", 1, 0, convertToTclobj},
   {"rootMetaClass", 1, 0, convertToTclobj}}
 },
-{"::xotcl::deprecated", XOTclDeprecatedCmdStub, 2, {
+{"::xotcl::deprecated", XOTclDeprecatedCmdStub, 3, {
+  {"what", 1, 0, convertToString},
   {"oldCmd", 1, 0, convertToString},
   {"newCmd", 0, 0, convertToString}}
 },

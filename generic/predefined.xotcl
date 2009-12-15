@@ -108,7 +108,6 @@ namespace eval xotcl2 {
     .method unknown {method obj args} {
       error "[::xotcl::self] unknown info option \"$method\"; [$obj info info]"
     }
-
   }
 
   ::xotcl::dispatch classInfo -objscope ::eval {
@@ -384,13 +383,15 @@ createBootstrapAttributeSlots ::xotcl::Slot {
   }
   if {${.domain} ne ""} {
     ${.domain} invalidateobjectparameter
-    # since the domain object might be xotcl1 or 2, use dispatch
+    # since the domain object might be xotcl1 or xotcl2, use dispatch
+    
     ::xotcl::dispatch ${.domain} ::xotcl::cmd::Class::forward \
         {*}[expr {${.per-object} ? "-per-object" : ""}] ${.name} \
         -verbose \
-        -default [${.manager} defaultmethods] ${.manager} %1 %self \
-        {*}[expr {[info exists .forward-per-object] ? "-per-object" : ""}] \
+        ${.manager} [list %1 [${.manager} defaultmethods]] %self \
+        "%-per-object [info exists .forward-per-object]" \
         %proc
+
   }
 }
 
@@ -451,13 +452,17 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
 ::xotcl::alias ::xotcl::InterceptorSlot assign ::xotcl::relation
 
 ::xotcl::InterceptorSlot method add {obj -per-object:switch prop value {pos 0}} {
-  puts stderr interceptorslot-add-[self args]
+  puts stderr interceptorslot-add-obj=$obj,per-object=${per-object},prop=$prop,value=$value,pos=$pos
   if {![set .multivalued]} {
     error "Property $prop of ${.domain}->$obj ist not multivalued"
   }
-  puts stderr "BEFORE: $obj info $prop -guards => '[$obj info $prop -guards]'"
-  puts stderr "$obj $prop [linsert [$obj info $prop -guards] $pos $value]"
-  $obj $prop [linsert [$obj info $prop -guards] $pos $value]
+  set perObject [expr {${per-object} ? "-per-object" : ""}]
+  #puts stderr "perObject=$perObject // ${per-object} // ${.per-object}"
+  set oldSetting [::xotcl::relation $obj {*}$perObject $prop]
+  #set oldSetting [$obj info $prop -guards]
+  #puts stderr "BEFORE: $obj info $perObject $prop -guards => '$oldSetting', pos=$pos, value=$value"
+  #puts stderr "CALL $obj $prop [list [linsert $oldSetting $pos $value]]"
+  $obj $prop {*}$perObject [linsert $oldSetting $pos $value]
 }
 
 ############################################
@@ -472,10 +477,23 @@ proc ::xotcl::register_system_slots {os} {
   ::xotcl::InfoSlot create ${os}::Object::slot::class -type relation
   ::xotcl::alias           ${os}::Object::slot::class assign ::xotcl::relation
 
+
   ::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \
       -type relation
+#   ::xotcl::InterceptorSlot create ${os}::Class::slot::mixin \
+#       -forward-per-object true \
+#       -type relation
+#   ::xotcl::dispatch ::xotcl2::Class ::xotcl::cmd::Class::forward  mixin -verbose -default [list get assign] ::xotcl2::Class::slot::mixin %1 %self %proc
+
+  ::xotcl::dispatch ::xotcl2::Class ::xotcl::cmd::Class::forward -- \
+      "-per-object" -verbose -default [list get assign] ::xotcl2::Object::slot::mixin add %self %proc
+
+#  ::xotcl::dispatch ::xotcl2::classInfo ::xotcl::cmd::Object::forward \
+#      "-per-object" -verbose ::xotcl2::objectInfo {%@2 %1}
+
   ::xotcl::InterceptorSlot create ${os}::Object::slot::filter \
       -elementtype "" -type relation
+
 #  ::xotcl::InterceptorSlot create ${os}::Class::slot::object-mixin \
 #      -type relation
 #  ::xotcl::InterceptorSlot create ${os}::Class::slot::instfilter \

@@ -135,6 +135,7 @@ typedef struct forwardCmdClientData {
   int passthrough;
   int needobjmap;
   int verbose;
+  int hasNonposArgs;
   int nr_args;
   Tcl_Obj *args;
   int objscope;
@@ -870,6 +871,19 @@ XOTclCleanupObject(XOTclObject *obj) {
     /*fprintf(stderr, "CKFREE obj %p\n", obj);*/
     ckfree((char *) obj);
   }
+}
+
+/*
+ * prints a msg to the screen that oldCmd is deprecated
+ * optinal: give a new cmd
+ */
+static int
+XOTclDeprecatedCmd(Tcl_Interp *interp, char *what, char *oldCmd, char *newCmd) {
+  fprintf(stderr, "**\n**\n** The %s <%s> is deprecated.\n", what, oldCmd);
+  if (newCmd)
+    fprintf(stderr, "** Use <%s> instead.\n", newCmd);
+  fprintf(stderr, "**\n");
+  return TCL_OK;
 }
 
 /*
@@ -3759,6 +3773,9 @@ MixinInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern,
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
   XOTclClass *mixinClass;
 
+  /*fprintf(stderr, "   mixin info m=%p, pattern %s, matchObject %p\n",
+    m, pattern, matchObject);*/
+
   while (m) {
     /* fprintf(stderr, "   mixin info m=%p, next=%p, pattern %s, matchObject %p\n",
        m, m->next, pattern, matchObject);*/
@@ -6476,6 +6493,14 @@ forwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *name,
   memset(tcd, 0, sizeof(forwardCmdClientData));
 
   if (withDefault) {
+    Tcl_DString ds, *dsPtr = &ds;
+    DSTRING_INIT(dsPtr);
+    Tcl_DStringAppend(dsPtr, "%1 {", 4);
+    Tcl_DStringAppend(dsPtr, ObjStr(withDefault), -1);
+    Tcl_DStringAppend(dsPtr, "}", 1);
+    XOTclDeprecatedCmd(interp, "forward option","-default ...",Tcl_DStringValue(dsPtr));
+    DSTRING_FREE(dsPtr);
+
     tcd->subcommands = withDefault;
     result = Tcl_ListObjLength(interp, withDefault, &tcd->nr_subcommands);
     INCR_REF_COUNT(tcd->subcommands);
@@ -6498,6 +6523,7 @@ forwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *name,
     char *element = ObjStr(objv[i]);
     /*fprintf(stderr, "... [%d] forwardprocess element '%s'\n",i,element);*/
     tcd->needobjmap |= (*element == '%' && *(element+1) == '@');
+    tcd->hasNonposArgs |= (*element == '%' && *(element+1) == '-');
     if (tcd->args == NULL) {
       tcd->args = Tcl_NewListObj(1, &objv[i]);
       tcd->nr_args++;
@@ -8400,52 +8426,60 @@ XOTclSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 static int
 forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-           Tcl_Obj *o, forwardCmdClientData *tcd, Tcl_Obj **out,
-           Tcl_Obj **freeList, int *inputarg, int *mapvalue) {
-  char *element = ObjStr(o), *p;
+           Tcl_Obj *forwardArgObj, forwardCmdClientData *tcd, Tcl_Obj **out,
+           Tcl_Obj **freeList, int *inputArg, int *mapvalue,
+           int firstPosArg, int *outputincr) {
+  char *forwardArgString = ObjStr(forwardArgObj), *p;
   int totalargs = objc + tcd->nr_args - 1;
-  char c = *element, c1;
+  char c = *forwardArgString, c1;
+  
+  /* per default every forwardArgString from the processed list corresponds to exactly
+     one forwardArgString in the computed final list */
+  *outputincr = 1; 
+  p = forwardArgString;
 
-  p = element;
+  /*fprintf(stderr, "ForwardArg: processing '%s'\n", forwardArgString);*/
 
-  if (c == '%' && *(element+1) == '@') {
+  if (c == '%' && *(forwardArgString+1) == '@') {
     char *remainder = NULL;
     long pos;
-    element += 2;
-    pos = strtol(element,&remainder, 0);
-    /*fprintf(stderr, "strtol('%s) returned %ld '%s'\n", element, pos, remainder);*/
-    if (element == remainder && *element == 'e' && !strncmp(element, "end", 3)) {
+    forwardArgString += 2;
+    pos = strtol(forwardArgString,&remainder, 0);
+    /*fprintf(stderr, "strtol('%s) returned %ld '%s'\n", forwardArgString, pos, remainder);*/
+    if (forwardArgString == remainder && *forwardArgString == 'e' 
+        && !strncmp(forwardArgString, "end", 3)) {
       pos = -1;
       remainder += 3;
     } else if (pos < 0) {
       pos --;
     }
-    if (element == remainder || abs(pos) > totalargs) {
+    if (forwardArgString == remainder || abs(pos) > totalargs) {
       return XOTclVarErrMsg(interp, "forward: invalid index specified in argument ",
-                            ObjStr(o), (char *) NULL);
+                            ObjStr(forwardArgObj), (char *) NULL);
     }    if (!remainder || *remainder != ' ') {
-      return XOTclVarErrMsg(interp, "forward: invaild syntax in '", ObjStr(o),
+      return XOTclVarErrMsg(interp, "forward: invaild syntax in '", ObjStr(forwardArgObj),
                             "' use: %@<pos> <cmd>",(char *) NULL);
     }
 
-    element = ++remainder;
+    forwardArgString = ++remainder;
     /* in case we address from the end, we reduct further to distinguish from -1 (void) */
     if (pos<0) pos--;
     /*fprintf(stderr, "remainder = '%s' pos = %ld\n", remainder, pos);*/
     *mapvalue = pos;
-    element = remainder;
-    c = *element;
+    forwardArgString = remainder;
+    c = *forwardArgString;
   }
-  /*fprintf(stderr, "c==%c element = '%s'\n", c, element);*/
+
   if (c == '%') {
     Tcl_Obj *list = NULL, **listElements;
-    int nrArgs = objc-1, nrElements = 0;
-    c = *++element;
-    c1 = *(element+1);
+    int nrArgs = objc-firstPosArg, nrElements = 0;
+    char *firstActualArgument = nrArgs>0 ? ObjStr(objv[1]) : NULL;
+    c = *++forwardArgString;
+    c1 = *(forwardArgString+1);
 
-    if (c == 's' && !strcmp(element, "self")) {
+    if (c == 's' && !strcmp(forwardArgString, "self")) {
       *out = tcd->obj->cmdName;
-    } else if (c == 'p' && !strcmp(element, "proc")) {
+    } else if (c == 'p' && !strcmp(forwardArgString, "proc")) {
       char *methodName = ObjStr(objv[0]);
       /* if we dispatch a method via ".", we do not want to see the
 	 "." in the %proc, e.g. for the interceptor slots (such as
@@ -8456,36 +8490,102 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	*out = objv[0];
       }
     } else if (c == '1' && (c1 == '\0' || c1 == ' ')) {
-      /*fprintf(stderr, "   nrArgs=%d, subcommands=%d inputarg=%d, objc=%d\n",
-	nrArgs, tcd->nr_subcommands, *inputarg, objc);*/
+
       if (c1 != '\0') {
-        if (Tcl_ListObjIndex(interp, o, 1, &list) != TCL_OK) {
-          return XOTclVarErrMsg(interp, "forward: %1 must by a valid list, given: '",
-                                ObjStr(o), "'", (char *) NULL);
+        if (Tcl_ListObjIndex(interp, forwardArgObj, 1, &list) != TCL_OK) {
+          return XOTclVarErrMsg(interp, "forward: %1 must be followed by a valid list, given: '",
+                                ObjStr(forwardArgObj), "'", (char *) NULL);
         }
         if (Tcl_ListObjGetElements(interp, list, &nrElements, &listElements) != TCL_OK) {
           return XOTclVarErrMsg(interp, "forward: %1 contains invalid list '",
                                 ObjStr(list), "'", (char *) NULL);
         }
       } else if (tcd->subcommands) { /* deprecated part */
-        if (Tcl_ListObjGetElements(interp, tcd->subcommands,&nrElements,&listElements) != TCL_OK) {
+        if (Tcl_ListObjGetElements(interp, tcd->subcommands, &nrElements, &listElements) != TCL_OK) {
           return XOTclVarErrMsg(interp, "forward: %1 contains invalid list '",
                                 ObjStr(list), "'", (char *) NULL);
         }
       }
+      /*fprintf(stderr, "nrElements=%d, nra=%d firstPos %d objc %d\n",
+        nrElements ,nrArgs, firstPosArg, objc);*/
+
       if (nrElements > nrArgs) {
         /* insert default subcommand depending on number of arguments */
+        /*fprintf(stderr, "inserting listElements[%d] '%s'\n", nrArgs, ObjStr(listElements[nrArgs]));*/
         *out = listElements[nrArgs];
       } else if (objc<=1) {
 	return XOTclObjErrArgCnt(interp, objv[0], NULL, "option");
       } else {
-        *out = objv[1];
-        *inputarg = 2;
+        /*fprintf(stderr, "copying %%1: '%s'\n",ObjStr(objv[firstPosArg]));*/
+        *out = objv[firstPosArg];
+        *inputArg = firstPosArg+1;
       }
-    } else if (c == 'a' && !strncmp(element, "argcl", 4)) {
-      if (Tcl_ListObjIndex(interp, o, 1, &list) != TCL_OK) {
+    } else if (c == '-') {
+      char *firstElementString;
+      int i, insertRequired, done = 0;
+
+      /*fprintf(stderr, "process flag '%s'\n",firstActualArgument);*/
+      if (Tcl_ListObjGetElements(interp, forwardArgObj, &nrElements, &listElements) != TCL_OK) {
+        return XOTclVarErrMsg(interp, "forward: '", forwardArgString, "' is not a valid list",
+                              (char *) NULL);
+      }
+      if (nrElements < 1 || nrElements > 2) {
+        return XOTclVarErrMsg(interp, "forward: '", forwardArgString, 
+                              "' must contain 1 or 2 arguments",
+                              (char *) NULL);
+      }
+      firstElementString = ObjStr(listElements[0]);
+      firstElementString++; /* we skip the dash */
+
+      if (firstActualArgument && *firstActualArgument == '-') {
+        /*fprintf(stderr, "we have a flag in first argument '%s'\n",firstActualArgument);*/
+        
+        for (i = 1; i < firstPosArg; i++) {
+          if (strcmp(firstElementString, ObjStr(objv[i])) == 0) {
+            fprintf(stderr, "We have a MATCH for '%s' oldInputArg %d\n", forwardArgString, *inputArg);
+            *out = objv[i];
+            /* %1 will start at a different place. Proceed if necessary to firstPosArg */
+            if (*inputArg < firstPosArg) {
+              *inputArg = firstPosArg;
+            }
+            done = 1;
+            break;
+          }
+        } 
+      }
+
+      if (!done) {
+        /* We have a flag in the actual arguments that does not match.
+         * We proceed to the actual arguments without dashes.
+         */        
+        if (*inputArg < firstPosArg) {
+          *inputArg = firstPosArg;
+        }
+        /* 
+         * If the user requested we output the argument also when not
+         * given in the argument list.
+         */
+        if (nrElements == 2 
+            && Tcl_GetIntFromObj(interp, listElements[1], &insertRequired) == TCL_OK
+            && insertRequired) {
+          /* no match, but insert of flag is required */
+          fprintf(stderr, "no match, but insert of %s required\n", firstElementString);
+          *out = Tcl_NewStringObj(firstElementString,-1);
+          *outputincr = 1;
+          goto add_to_freelist;
+        } else {
+          /* no match, no insert of flag required, we skip the
+           * forwarder option and output nothing
+           */
+          fprintf(stderr, "no match, nrElements %d insert req %d\n", nrElements, insertRequired);
+          *outputincr = 0;
+        }
+      }
+
+    } else if (c == 'a' && !strncmp(forwardArgString, "argcl", 4)) {
+      if (Tcl_ListObjIndex(interp, forwardArgObj, 1, &list) != TCL_OK) {
         return XOTclVarErrMsg(interp, "forward: %argclindex must by a valid list, given: '",
-                              element, "'", (char *) NULL);
+                              forwardArgString, "'", (char *) NULL);
       }
       if (Tcl_ListObjGetElements(interp, list, &nrElements, &listElements) != TCL_OK) {
         return XOTclVarErrMsg(interp, "forward: %argclindex contains invalid list '",
@@ -8493,28 +8593,28 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       }
       if (nrArgs >= nrElements) {
         return XOTclVarErrMsg(interp, "forward: not enough elements in specified list of ARGC argument ",
-                              element, (char *) NULL);
+                              forwardArgString, (char *) NULL);
       }
       *out = listElements[nrArgs];
     } else if (c == '%') {
-      Tcl_Obj *newarg = Tcl_NewStringObj(element,-1);
+      Tcl_Obj *newarg = Tcl_NewStringObj(forwardArgString,-1);
       *out = newarg;
       goto add_to_freelist;
     } else {
       /* evaluating given command */
       int result;
-      /*fprintf(stderr, "evaluating '%s'\n", element);*/
-      if ((result = Tcl_EvalEx(interp, element, -1, 0)) != TCL_OK)
+      /*fprintf(stderr, "evaluating '%s'\n", forwardArgString);*/
+      if ((result = Tcl_EvalEx(interp, forwardArgString, -1, 0)) != TCL_OK)
         return result;
       *out = Tcl_DuplicateObj(Tcl_GetObjResult(interp));
       /*fprintf(stderr, "result = '%s'\n", ObjStr(*out));*/
       goto add_to_freelist;
     }
   } else {
-    if (p == element)
-      *out = o;
+    if (p == forwardArgString)
+      *out = forwardArgObj;
     else {
-      Tcl_Obj *newarg = Tcl_NewStringObj(element,-1);
+      Tcl_Obj *newarg = Tcl_NewStringObj(forwardArgString,-1);
       *out = newarg;
       goto add_to_freelist;
     }
@@ -8579,7 +8679,7 @@ static int
 XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
 		   int objc, Tcl_Obj *CONST objv[]) {
   forwardCmdClientData *tcd = (forwardCmdClientData *)clientData;
-  int result, j, inputarg = 1, outputarg = 0;
+  int result, j, inputArg = 1, outputArg = 0;
 #if defined(TCL85STACK)
   /* no need to store varFramePtr in call frame for tcl85stack */
 #else
@@ -8607,7 +8707,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
     return result;
   } else {
     Tcl_Obj **ov, *freeList=NULL;
-    int totalargs = objc + tcd->nr_args + 3;
+    int outputincr, firstPosArg=1, totalargs = objc + tcd->nr_args + 3;
     ALLOC_ON_STACK(Tcl_Obj*, totalargs, OV);
     ALLOC_ON_STACK(int, totalargs, objvmap);
     /*fprintf(stderr, "+++ forwardMethod standard case, allocated %d args\n",totalargs);*/
@@ -8618,13 +8718,24 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
     }
 
     /* the first argument is always the command, to which we forward */
-
     if ((result = forwardArg(interp, objc, objv, tcd->cmdName, tcd,
-                             &ov[outputarg], &freeList, &inputarg,
-                             &objvmap[outputarg])) != TCL_OK) {
+                             &ov[outputArg], &freeList, &inputArg,
+                             &objvmap[outputArg], 
+                             firstPosArg, &outputincr)) != TCL_OK) {
       goto exitforwardmethod;
     }
-    outputarg++;
+    outputArg += outputincr;
+
+    /* if we have nonpos args, determine the first pos arg position for %1 */
+    if (tcd->hasNonposArgs) {
+      for (j=outputArg; j<objc; j++) {
+        char *arg = ObjStr(objv[j]);
+        if (*arg != '-') {
+          firstPosArg = j;
+          break;
+        }
+      }
+    }
 
     if (tcd->args) {
       /* copy argument list from definition */
@@ -8632,10 +8743,11 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
       int nrElements;
       Tcl_ListObjGetElements(interp, tcd->args, &nrElements, &listElements);
 
-      for (j=0; j<nrElements; j++, outputarg++) {
+      for (j=0; j<nrElements; j++, outputArg += outputincr) {
         if ((result = forwardArg(interp, objc, objv, listElements[j], tcd,
-                                 &ov[outputarg], &freeList, &inputarg,
-                                 &objvmap[outputarg])) != TCL_OK) {
+                                 &ov[outputArg], &freeList, &inputArg,
+                                 &objvmap[outputArg], 
+                                 firstPosArg, &outputincr)) != TCL_OK) {
           goto exitforwardmethod;
         }
       }
@@ -8644,17 +8756,17 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
     /*fprintf(stderr, "objc=%d, tcd->nr_subcommands=%d size=%d\n",
       objc, tcd->nr_subcommands, objc+ 2	    );*/
 
-    if (objc-inputarg>0) {
+    if (objc-inputArg>0) {
       /*fprintf(stderr, "  copying remaining %d args starting at [%d]\n",
-        objc-inputarg, outputarg);*/
-      memcpy(ov+outputarg, objv+inputarg, sizeof(Tcl_Obj *)*(objc-inputarg));
+        objc-inputArg, outputArg);*/
+      memcpy(ov+outputArg, objv+inputArg, sizeof(Tcl_Obj *)*(objc-inputArg));
     } else {
-      /*fprintf(stderr, "  nothing to copy, objc=%d, inputarg=%d\n", objc, inputarg);*/
+      /*fprintf(stderr, "  nothing to copy, objc=%d, inputArg=%d\n", objc, inputArg);*/
     }
     if (tcd->needobjmap) {
       /* we have to set the adressing relative from the end; -2 means
 	 last, -3 element before last, etc. */
-      int max = objc + tcd->nr_args - inputarg;
+      int max = objc + tcd->nr_args - inputArg;
       for (j=0; j<totalargs; j++) {
 	if (objvmap[j] < -1) {
 	  /*fprintf(stderr, "must reduct, v=%d\n",objvmap[j]);*/
@@ -8663,7 +8775,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
 	}
       }
     }
-    objc += outputarg - inputarg;
+    objc += outputArg - inputArg;
 
 #if 0
     for(j=0; j<objc; j++) {
@@ -10226,19 +10338,6 @@ XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class) 
   return TCL_OK;
 }
 
-/*
- * prints a msg to the screen that oldCmd is deprecated
- * optinal: give a new cmd
- */
-static int
-XOTclDeprecatedCmd(Tcl_Interp *interp, char *oldCmd, char *newCmd) {
-  fprintf(stderr, "**\n**\n** The command/method <%s> is deprecated.\n", oldCmd);
-  if (newCmd)
-    fprintf(stderr, "** Use <%s> instead.\n", newCmd);
-  fprintf(stderr, "**\n");
-  return TCL_OK;
-}
-
 
 static int
 XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
@@ -10921,8 +11020,8 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
   XOTclClassOpt *clopt = NULL, *nclopt = NULL;
   int i;
 
-  fprintf(stderr, "XOTclRelationCmd %s %d rel=%d val='%s'\n",
-          objectName(object),withPer_object,relationtype,value?ObjStr(value):"NULL");
+  /*fprintf(stderr, "XOTclRelationCmd %s %d rel=%d val='%s'\n",
+    objectName(object),withPer_object,relationtype,value?ObjStr(value):"NULL");*/
   
   if (withPer_object) {
     switch (relationtype) {
@@ -12544,8 +12643,6 @@ static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class,
 
 static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int withGuards, int withOrder,
                         char *patternString, XOTclObject *patternObj) {
-
-  fprintf(stderr, "XOTclObjInfoMixinMethod'\n");
 
   if (withOrder) {
     if (!(object->flags & XOTCL_MIXIN_ORDER_VALID))
