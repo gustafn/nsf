@@ -12357,6 +12357,36 @@ static int XOTclCInvariantsMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *i
   return TCL_OK;
 }
 
+static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *mixin, Tcl_Obj *guard) {
+  XOTclClassOpt *opt = cl->opt;
+  XOTclCmdList *h;
+
+  if (withPer_object) {
+    return XOTclOMixinGuardMethod(interp, &cl->object, mixin, guard);
+  }
+
+  if (opt && opt->instmixins) {
+    XOTclClass *mixinCl = XOTclpGetClass(interp, mixin);
+    Tcl_Command mixinCmd = NULL;
+    if (mixinCl) {
+      mixinCmd = Tcl_GetCommandFromObj(interp, mixinCl->object.cmdName);
+    }
+    if (mixinCmd) {
+      h = CmdListFindCmdInList(mixinCmd, opt->instmixins);
+      if (h) {
+        if (h->clientData)
+          GuardDel((XOTclCmdList*) h);
+        GuardAdd(interp, h, guard);
+        MixinInvalidateObjOrders(interp, cl);
+        return TCL_OK;
+      }
+    }
+  }
+
+  return XOTclVarErrMsg(interp, "Instmixinguard: can't find mixin ",
+                        mixin, " on ", className(cl), (char *) NULL);
+}
+
 static int XOTclCInstMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *mixin, Tcl_Obj *guard) {
   XOTclClassOpt *opt = cl->opt;
   XOTclCmdList *h;

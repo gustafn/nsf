@@ -208,7 +208,8 @@ classMethod instfilterguard XOTclCInstFilterGuardMethod {
 classMethod instinvar XOTclCInvariantsMethod {
   {-argName "invariantlist" -required 1 -type tclobj}
 }
-classMethod instmixinguard XOTclCInstMixinGuardMethod {
+classMethod mixinguard XOTclCMixinGuardMethod {
+  {-argName "-per-object" -type switch}
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }

@@ -94,10 +94,10 @@ static int XOTclCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int
 static int XOTclCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCInstFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclCInstMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCInvalidateObjectParameterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCInvariantsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCSetterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -191,10 +191,10 @@ static int XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, char *name, in
 static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *object);
 static int XOTclCForwardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, Tcl_Obj *name, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclCInstFilterGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *filter, Tcl_Obj *guard);
-static int XOTclCInstMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *mixin, Tcl_Obj *guard);
 static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass *cl);
 static int XOTclCInvariantsMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *invariantlist);
 static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl, int withInner_namespace, int withPer_object, int withProtected, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
+static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *mixin, Tcl_Obj *guard);
 static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclCRecreateMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclCSetterMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *name);
@@ -289,10 +289,10 @@ enum {
  XOTclCDeallocMethodIdx,
  XOTclCForwardMethodIdx,
  XOTclCInstFilterGuardMethodIdx,
- XOTclCInstMixinGuardMethodIdx,
  XOTclCInvalidateObjectParameterMethodIdx,
  XOTclCInvariantsMethodIdx,
  XOTclCMethodMethodIdx,
+ XOTclCMixinGuardMethodIdx,
  XOTclCNewMethodIdx,
  XOTclCRecreateMethodIdx,
  XOTclCSetterMethodIdx,
@@ -524,26 +524,6 @@ XOTclCInstFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
 }
 
 static int
-XOTclCInstMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclCInstMixinGuardMethodIdx].paramDefs, 
-                     method_definitions[XOTclCInstMixinGuardMethodIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    char *mixin = (char *)pc.clientData[0];
-    Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclCInstMixinGuardMethod(interp, cl, mixin, guard);
-
-  }
-}
-
-static int
 XOTclCInvalidateObjectParameterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
@@ -603,6 +583,27 @@ XOTclCMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
     parseContextRelease(&pc);
     return XOTclCMethodMethod(interp, cl, withInner_namespace, withPer_object, withProtected, name, args, body, withPrecondition, withPostcondition);
+
+  }
+}
+
+static int
+XOTclCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+  XOTclClass *cl =  XOTclObjectToClass(clientData);
+  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
+  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
+                     method_definitions[XOTclCMixinGuardMethodIdx].paramDefs, 
+                     method_definitions[XOTclCMixinGuardMethodIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int withPer_object = (int )pc.clientData[0];
+    char *mixin = (char *)pc.clientData[1];
+    Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return XOTclCMixinGuardMethod(interp, cl, withPer_object, mixin, guard);
 
   }
 }
@@ -2340,10 +2341,6 @@ static methodDefinition method_definitions[] = {
   {"filter", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::instmixinguard", XOTclCInstMixinGuardMethodStub, 2, {
-  {"mixin", 1, 0, convertToString},
-  {"guard", 1, 0, convertToTclobj}}
-},
 {"::xotcl::cmd::Class::invalidateobjectparameter", XOTclCInvalidateObjectParameterMethodStub, 0, {
   }
 },
@@ -2359,6 +2356,11 @@ static methodDefinition method_definitions[] = {
   {"body", 1, 0, convertToTclobj},
   {"-precondition", 0, 1, convertToTclobj},
   {"-postcondition", 0, 1, convertToTclobj}}
+},
+{"::xotcl::cmd::Class::mixinguard", XOTclCMixinGuardMethodStub, 3, {
+  {"-per-object", 0, 0, convertToBoolean},
+  {"mixin", 1, 0, convertToString},
+  {"guard", 1, 0, convertToTclobj}}
 },
 {"::xotcl::cmd::Class::new", XOTclCNewMethodStub, 2, {
   {"-childof", 0, 1, convertToObject},

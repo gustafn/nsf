@@ -332,6 +332,10 @@ namespace eval ::xotcl {
       -object {%::xotcl::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
   #
   # define proc and instproc in terms of method
+  # define forward and instforward in terms of forward
+  # define parametercmd and instparametercmd in terms of setter
+  # define parametercmd and instparametercmd in terms of setter
+  # define mixinguard and instmixinguard in terms of mixinguard
   #
   Object method proc {name arglist body precondition:optional postcondition:optional} {
     set cmd [list my method $name $arglist $body]
@@ -339,7 +343,8 @@ namespace eval ::xotcl {
     if {[info exists postcondition]} {lappend cmd -postcondition $postcondition}
     eval $cmd
   }
-  Object forward parametercmd %self setter
+  ::xotcl::alias Object parametercmd ::xotcl::cmd::Object::setter
+
   Class method proc {name arglist body precondition:optional postcondition:optional} {
     set cmd [list my method -per-object $name $arglist $body]
     if {[info exists precondition]}  {lappend cmd -precondition  $precondition}
@@ -352,15 +357,16 @@ namespace eval ::xotcl {
     if {[info exists postcondition]} {lappend cmd -postcondition $postcondition}
     eval $cmd
   }
-  Class forward parametercmd %self setter -per-object
-  Class forward instparametercmd %self setter
+  ::xotcl::alias Class instparametercmd ::xotcl::cmd::Class::setter
+  ::xotcl::alias Class parametercmd     ::xotcl::cmd::Object::setter
+  ::xotcl::alias Class instmixinguard   ::xotcl::cmd::Class::mixinguard
+  ::xotcl::alias Class mixinguard       ::xotcl::cmd::Object::mixinguard
 
-  # we are changing the the semantics from forward -> instforward
-  ::xotcl::alias Class instforward ::xotcl::cmd::Class::forward
-  ::xotcl::alias Class forward ::xotcl::cmd::Object::forward
-  #Class method forward {name args} {
-  #  ::xotcl::dispatch [self] ::xotcl::cmd::Class::forward -per-object $name {*}$args
-  #}
+  # we are changing the the semantics from forward -> instforward,
+  # this has to be done at the end to avoid confusion with the
+  # previous forward invocation in this script.
+  ::xotcl::alias Class instforward      ::xotcl::cmd::Class::forward
+  ::xotcl::alias Class forward          ::xotcl::cmd::Object::forward
 
   Object method abstract {methtype methname arglist} {
     if {$methtype ne "proc" && $methtype ne "instproc" && $methtype ne "method"} {
