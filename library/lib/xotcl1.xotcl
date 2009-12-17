@@ -312,6 +312,7 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::classInfo is ::xotcl::is
   ::xotcl::alias ::xotcl::classInfo classparent ::xotcl::cmd::ObjectInfo::parent
   ::xotcl::alias ::xotcl::classInfo classchildren ::xotcl::cmd::ObjectInfo::children
+  ::xotcl::alias ::xotcl::classInfo instmixin ::xotcl::cmd::ClassInfo::mixin
 
   # define info methods from objectInfo on classInfo as well
   ::xotcl::alias classInfo body     objectInfo::body

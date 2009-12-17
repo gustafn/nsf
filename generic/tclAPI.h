@@ -108,7 +108,6 @@ static int XOTclClassInfoInstfilterMethodStub(ClientData clientData, Tcl_Interp 
 static int XOTclClassInfoInstfilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoInstforwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoInstinvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoInstmixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoInstmixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoInstmixinofMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoInstparamsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -205,7 +204,6 @@ static int XOTclClassInfoInstfilterMethod(Tcl_Interp *interp, XOTclClass *class,
 static int XOTclClassInfoInstfilterguardMethod(Tcl_Interp *interp, XOTclClass *class, char *filter);
 static int XOTclClassInfoInstforwardMethod(Tcl_Interp *interp, XOTclClass *class, int withDefinition, char *name);
 static int XOTclClassInfoInstinvarMethod(Tcl_Interp *interp, XOTclClass *class);
-static int XOTclClassInfoInstmixinMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, int withGuards, char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoInstmixinguardMethod(Tcl_Interp *interp, XOTclClass *class, char *mixin);
 static int XOTclClassInfoInstmixinofMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoInstparamsMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName, int withVarnames);
@@ -303,7 +301,6 @@ enum {
  XOTclClassInfoInstfilterguardMethodIdx,
  XOTclClassInfoInstforwardMethodIdx,
  XOTclClassInfoInstinvarMethodIdx,
- XOTclClassInfoInstmixinMethodIdx,
  XOTclClassInfoInstmixinguardMethodIdx,
  XOTclClassInfoInstmixinofMethodIdx,
  XOTclClassInfoInstparamsMethodIdx,
@@ -813,41 +810,6 @@ XOTclClassInfoInstinvarMethodStub(ClientData clientData, Tcl_Interp *interp, int
     parseContextRelease(&pc);
     return XOTclClassInfoInstinvarMethod(interp, class);
 
-  }
-}
-
-static int
-XOTclClassInfoInstmixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclClassInfoInstmixinMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoInstmixinMethodIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclClass *class = (XOTclClass *)pc.clientData[0];
-    int withClosure = (int )pc.clientData[1];
-    int withGuards = (int )pc.clientData[2];
-    char *patternString = NULL;
-    XOTclObject *patternObj = NULL;
-    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
-    int returnCode;
-
-    if (getMatchObject(interp, pattern,  objv[3], &patternObj, &patternString) == -1) {
-      if (pattern) {
-        DECR_REF_COUNT(pattern);
-      }
-      return TCL_OK;
-    }
-          
-    parseContextRelease(&pc);
-    returnCode = XOTclClassInfoInstmixinMethod(interp, class, withClosure, withGuards, patternString, patternObj);
-
-    if (pattern) {
-      DECR_REF_COUNT(pattern);
-    }
-    return returnCode;
   }
 }
 
@@ -2404,12 +2366,6 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::cmd::ClassInfo::instinvar", XOTclClassInfoInstinvarMethodStub, 1, {
   {"class", 1, 0, convertToClass}}
-},
-{"::xotcl::cmd::ClassInfo::instmixin", XOTclClassInfoInstmixinMethodStub, 4, {
-  {"class", 1, 0, convertToClass},
-  {"-closure", 0, 0, convertToString},
-  {"-guards", 0, 0, convertToString},
-  {"pattern", 0, 0, convertToObjpattern}}
 },
 {"::xotcl::cmd::ClassInfo::instmixinguard", XOTclClassInfoInstmixinguardMethodStub, 2, {
   {"class", 1, 0, convertToClass},

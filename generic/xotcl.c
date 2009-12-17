@@ -12866,11 +12866,6 @@ static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass * class, int
 
 /* TODO: this method should be removed, we should register XOTclClassInfoMixinMethod for 
    xotcl1 under name ... instmxin ... */
-static int XOTclClassInfoInstmixinMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure, int withGuards,
-			      char *patternString, XOTclObject *patternObj) {
-  return XOTclClassInfoMixinMethod(interp, class, withClosure, withGuards, patternString, patternObj);
-}
-
 
 static int XOTclClassInfoInstmixinguardMethod(Tcl_Interp *interp, XOTclClass * class, char * mixin) {
   return class->opt ? GuardList(interp, class->opt->instmixins, mixin) : TCL_OK;
