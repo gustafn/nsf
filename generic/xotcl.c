@@ -9657,18 +9657,22 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
         Tcl_SetObjResult(interp, resultObj);
         return TCL_OK;
       }
-
+    case InfomethodsubcmdArgsIdx:
+      {
+        Tcl_Command importedCmd = GetOriginalCommand(cmd);
+        return ListCmdParams(interp, importedCmd, methodName, 1);
+      }
     case InfomethodsubcmdParameterIdx:
       {
         Tcl_Command importedCmd = GetOriginalCommand(cmd);
         return ListCmdParams(interp, importedCmd, methodName, 0);
       }
     }
-
     /* 
-     * Subcommands different per type of method.  converter in
+     * Subcommands different per type of method. The Converter in
      * InfoMethods defines the types:
-     * "all|scripted|system|alias|forwarder|object|setter"
+     *
+     *    "all|scripted|system|alias|forwarder|object|setter"
      */
     if (GetTclProcFromCommand(cmd)) {
       /* a scripted method */
@@ -12636,8 +12640,7 @@ static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object,
 }
 
 static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object, 
-                                    int subcmd,
-                                    char *methodName) {
+                                    int subcmd, char *methodName) {
   Tcl_Namespace *nsPtr = object->nsPtr;
   return ListMethod(interp, object, 
                     methodName, nsPtr ? FindMethod(nsPtr, methodName) : NULL, 
@@ -12645,16 +12648,16 @@ static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object,
 }
 
 static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class, 
-                                      int subcmd,
-                                      char *methodName) {
+                                      int subcmd, char *methodName) {
   Tcl_Namespace *nsPtr = class->nsPtr;
   return ListMethod(interp, &class->object, 
                     methodName, nsPtr ? FindMethod(nsPtr, methodName) : NULL, 
                     subcmd, 0);
 }
 
-static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int withGuards, int withOrder,
-                        char *patternString, XOTclObject *patternObj) {
+static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, 
+                                   int withGuards, int withOrder,
+                                   char *patternString, XOTclObject *patternObj) {
 
   if (withOrder) {
     if (!(object->flags & XOTCL_MIXIN_ORDER_VALID))
@@ -12667,12 +12670,6 @@ static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int 
 
 static int XOTclObjInfoMixinguardMethod(Tcl_Interp *interp, XOTclObject *object, char *mixin) {
   return object->opt ? GuardList(interp, object->opt->mixins, mixin) : TCL_OK;
-}
-
-static int XOTclObjInfoParamsMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withVarnames) {
-  return ListCmdParams(interp,
-                       object->nsPtr ? FindMethod(object->nsPtr, methodName) : NULL,
-                       methodName, withVarnames);
 }
 
 static int XOTclObjInfoParentMethod(Tcl_Interp *interp, XOTclObject *object) {
@@ -12897,10 +12894,6 @@ static int XOTclClassInfoInstmixinofMethod(Tcl_Interp *interp, XOTclClass * clas
     }
   }
   return TCL_OK;
-}
-
-static int XOTclClassInfoInstparamsMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName, int withVarnames) {
-  return ListCmdParams(interp, FindMethod(class->nsPtr, methodName), methodName, withVarnames);
 }
 
 static int XOTclClassInfoInstpostMethod(Tcl_Interp *interp, XOTclClass * class, char * methodName) {

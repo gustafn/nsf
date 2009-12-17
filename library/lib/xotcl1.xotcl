@@ -156,18 +156,15 @@ namespace eval ::xotcl {
   #
   #   already emulated:
   #
-  #    => info params .... replaces
+  #    => info method parameter .... replaces
   #     info args
   #     info nonposargs
   #     info default
   #
-  #    => info instparams .... replaces
+  #    => info -per-object method parameter .... replaces
   #     info instargs
   #     info instnonposargs
   #     info instdefault
-  #
-  #    => maybe instead of "info params" and "info instparams"
-  #     info params ?-per-object?
   #
   #    => info method .... replaces
   #     info body
@@ -200,11 +197,11 @@ namespace eval ::xotcl {
   # TODO move unknown handler for Class into a library
   #
 
-  proc ::xotcl::info_args {inst o method} {
+  proc ::xotcl::info_args {allocation o method} {
   set result [list]
   foreach \
-      argName [::xotcl::classInfo ${inst}params $o $method -varNames] \
-      flag    [::xotcl::classInfo ${inst}params $o $method] {
+      argName [::xotcl::cmd::${allocation}Info::method $o args $method] \
+      flag    [::xotcl::cmd::${allocation}Info::method $o parameter $method] {
 	if {[string match -* $flag]} continue
 	lappend result $argName
       }
@@ -212,19 +209,19 @@ namespace eval ::xotcl {
     return $result
   }
 
-  proc ::xotcl::info_nonposargs {inst o method} {
+  proc ::xotcl::info_nonposargs {allocation o method} {
     set result [list]
-    foreach flag [::xotcl::classInfo ${inst}params $o $method] {
+    foreach flag [::xotcl::cmd::${allocation}Info::method $o parameter $method] {
       if {![string match -* $flag]} continue
       lappend result $flag
     }
     #puts stderr "+++ get ${inst}nonposargs for $o $method => $result"
     return $result
   }
-  proc ::xotcl::info_default {inst o method arg varName} {
+  proc ::xotcl::info_default {allocation o method arg varName} {
     foreach \
-        argName [::xotcl::classInfo ${inst}params $o $method -varNames] \
-        flag    [::xotcl::classInfo ${inst}params $o $method] {
+        argName [::xotcl::cmd::${allocation}Info::method $o args $method] \
+        flag    [::xotcl::cmd::${allocation}Info::method $o parameter $method] {
           if {$argName eq $arg} {
             upvar 3 $varName default
             if {[llength $flag] == 2} {
@@ -240,12 +237,12 @@ namespace eval ::xotcl {
     error "procedure \"$method\" doesn't have an argument \"$varName\""
   }
   classInfo eval {
-    .method instargs {o method} {::xotcl::info_args inst $o $method}
-    .method args     {o method} {::xotcl::info_args "" $o $method}
-    .method instnonposargs {o method} {::xotcl::info_nonposargs inst $o $method}
-    .method nonposargs     {o method} {::xotcl::info_nonposargs "" $o $method}
-    .method instdefault {o method arg var} {::xotcl::info_default inst $o $method $arg $var}
-    .method default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
+    .method instargs {o method} {::xotcl::info_args Class $o $method}
+    .method args     {o method} {::xotcl::info_args Object $o $method}
+    .method instnonposargs {o method} {::xotcl::info_nonposargs Class $o $method}
+    .method nonposargs     {o method} {::xotcl::info_nonposargs Object $o $method}
+    .method instdefault {o method arg var} {::xotcl::info_default Class $o $method $arg $var}
+    .method default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
     # info options emulated by "info method"
     .method instbody    {o methodName} {
@@ -268,9 +265,9 @@ namespace eval ::xotcl {
   }
 
   objectInfo eval {
-    .method args        {o method} {::xotcl::info_args "" $o $method}
-    .method nonposargs  {o method} {::xotcl::info_nonposargs "" $o $method}
-    .method default     {o method arg var} {::xotcl::info_default "" $o $method $arg $var}
+    .method args        {o method} {::xotcl::info_args Object $o $method}
+    .method nonposargs  {o method} {::xotcl::info_nonposargs Object $o $method}
+    .method default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
     # info options emulated by "info method"
     .method body        {o methodName} {

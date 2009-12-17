@@ -298,19 +298,19 @@ infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
 infoObjectMethod invar XOTclObjInfoInvarMethod {
   {-argName "object" -required 1 -type object}
 }
-#### TODO should object methods have -per-object?
+
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "definition|name|parameter|type"}
+  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type"}
   {-argName "name"}
 }
+### TODO move finally to infoclassmethod
 infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "definition|name|parameter|type"}
+  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type"}
   {-argName "name"}
 }
 
-### TODO should object methods have -per-object?
 infoObjectMethod methods XOTclObjInfoMethodsMethod {
   {-argName "object" -type object}
   {-argName "-defined"}
@@ -319,6 +319,7 @@ infoObjectMethod methods XOTclObjInfoMethodsMethod {
   {-argName "-incontext"}
   {-argName "pattern"}
 }
+### TODO move finally to infoclassmethod
 infoClassMethod methods XOTclClassInfoMethodsMethod {
   {-argName "object" -type class}
   {-argName "-defined"}
@@ -340,11 +341,6 @@ infoObjectMethod mixinguard XOTclObjInfoMixinguardMethod {
 }
 infoObjectMethod parent XOTclObjInfoParentMethod {
   {-argName "object" -required 1 -type object}
-}
-infoObjectMethod params XOTclObjInfoParamsMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "methodName" -required 1}
-  {-argName "-varNames"}
 }
 infoObjectMethod post XOTclObjInfoPostMethod {
   {-argName "object" -required 1 -type object}
@@ -417,11 +413,6 @@ infoClassMethod instmixinof XOTclClassInfoInstmixinofMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
-}
-infoClassMethod instparams XOTclClassInfoInstparamsMethod {
-  {-argName "class" -required 1 -type class}
-  {-argName "methodName" -required 1}
-  {-argName "-varNames"}
 }
 infoClassMethod instpost XOTclClassInfoInstpostMethod {
   {-argName "class"  -required 1 -type class}
