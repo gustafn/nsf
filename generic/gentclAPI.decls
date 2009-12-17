@@ -301,13 +301,13 @@ infoObjectMethod invar XOTclObjInfoInvarMethod {
 
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type"}
+  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type|pre|post"}
   {-argName "name"}
 }
 ### TODO move finally to infoclassmethod
 infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type"}
+  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type|pre|post"}
   {-argName "name"}
 }
 
@@ -341,14 +341,6 @@ infoObjectMethod mixinguard XOTclObjInfoMixinguardMethod {
 }
 infoObjectMethod parent XOTclObjInfoParentMethod {
   {-argName "object" -required 1 -type object}
-}
-infoObjectMethod post XOTclObjInfoPostMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "methodName" -required 1}
-}
-infoObjectMethod pre XOTclObjInfoPreMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "methodName" -required 1}
 }
 infoObjectMethod precedence XOTclObjInfoPrecedenceMethod {
   {-argName "object" -required 1 -type object}
@@ -396,7 +388,7 @@ infoClassMethod forward XOTclClassInfoForwardMethod {
   {-argName "-definition"}
   {-argName "name"}
 }
-infoClassMethod instinvar XOTclClassInfoInstinvarMethod {
+infoClassMethod invar XOTclClassInfoInvarMethod {
   {-argName "class"  -required 1 -type class}
 }
 infoClassMethod mixin XOTclClassInfoMixinMethod {
@@ -413,14 +405,6 @@ infoClassMethod instmixinof XOTclClassInfoInstmixinofMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
-}
-infoClassMethod instpost XOTclClassInfoInstpostMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "methodName" -required 1}
-}
-infoClassMethod instpre XOTclClassInfoInstpreMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "methodName" -required 1}
 }
 infoClassMethod mixinof XOTclClassInfoMixinofMethod {
   {-argName "class"  -required 1 -type class}

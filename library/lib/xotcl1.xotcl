@@ -248,6 +248,8 @@ namespace eval ::xotcl {
     .method instbody    {o methodName} {
       lindex [::xotcl::cmd::ClassInfo::method $o definition $methodName] end
     }
+    .method instpre     {o methodName} {::xotcl::cmd::ClassInfo::method $o pre $methodName}
+    .method instpost    {o methodName} {::xotcl::cmd::ClassInfo::method $o post $methodName}
 
     # info options emulated by "info methods"
     .method instcommands {o {pattern:optional ""}} {
@@ -273,6 +275,8 @@ namespace eval ::xotcl {
     .method body        {o methodName} {
       lindex [::xotcl::cmd::ObjectInfo::method $o definition $methodName] end
     }
+    .method pre         {o methodName} {::xotcl::cmd::ObjectInfo::method $o pre $methodName}
+    .method post        {o methodName} {::xotcl::cmd::ObjectInfo::method $o post $methodName}
 
     # info options emulated by "info methods"
     .method commands    {o {pattern:optional ""}} {
@@ -317,12 +321,15 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::classInfo instfilter ::xotcl::cmd::ClassInfo::filter
   ::xotcl::alias ::xotcl::classInfo instfilterguard ::xotcl::cmd::ClassInfo::filterguard
   ::xotcl::alias ::xotcl::classInfo instforward ::xotcl::cmd::ClassInfo::forward
+  ::xotcl::alias ::xotcl::classInfo instinvar ::xotcl::cmd::ClassInfo::invar
 
   # define info methods from objectInfo on classInfo as well
   ::xotcl::alias classInfo body     objectInfo::body
   ::xotcl::alias classInfo commands objectInfo::commands
   ::xotcl::alias classInfo methods  objectInfo::methods
   ::xotcl::alias classInfo procs    objectInfo::procs
+  ::xotcl::alias classInfo pre      objectInfo::pre
+  ::xotcl::alias classInfo post     objectInfo::post
 
 
   # emulation of isobject, isclass ...

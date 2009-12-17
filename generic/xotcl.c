@@ -9667,7 +9667,33 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
         Tcl_Command importedCmd = GetOriginalCommand(cmd);
         return ListCmdParams(interp, importedCmd, methodName, 0);
       }
+    case InfomethodsubcmdPreIdx:
+      {
+        XOTclProcAssertion *procs;
+        if (withPer_object) {
+          procs = object->opt ? AssertionFindProcs(object->opt->assertions, methodName) : NULL;
+        } else {
+          XOTclClass *class = (XOTclClass *)object;
+          procs = class->opt ? AssertionFindProcs(class->opt->assertions, methodName) : NULL;
+        }
+        if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->pre));
+        return TCL_OK;
+      }
+    case InfomethodsubcmdPostIdx:
+      {
+        XOTclProcAssertion *procs;
+        if (withPer_object) {
+          procs = object->opt ? AssertionFindProcs(object->opt->assertions, methodName) : NULL;
+        } else {
+          XOTclClass *class = (XOTclClass *)object;
+          procs = class->opt ? AssertionFindProcs(class->opt->assertions, methodName) : NULL;
+        }
+        if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->post));
+        return TCL_OK;
+      }
+
     }
+
     /* 
      * Subcommands different per type of method. The Converter in
      * InfoMethods defines the types:
@@ -12679,22 +12705,6 @@ static int XOTclObjInfoParentMethod(Tcl_Interp *interp, XOTclObject *object) {
   return TCL_OK;
 }
 
-static int XOTclObjInfoPostMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
-  if (object->opt) {
-    XOTclProcAssertion *procs = AssertionFindProcs(object->opt->assertions, methodName);
-    if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->post));
-  }
-  return TCL_OK;
-}
-
-static int XOTclObjInfoPreMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
-  if (object->opt) {
-    XOTclProcAssertion *procs = AssertionFindProcs(object->opt->assertions, methodName);
-    if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->pre));
-  }
-  return TCL_OK;
-}
-
 static int XOTclObjInfoPrecedenceMethod(Tcl_Interp *interp, XOTclObject *object,
                                         int withIntrinsicOnly, char *pattern) {
   XOTclClasses *precedenceList = NULL, *pl;
@@ -12833,7 +12843,7 @@ static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *class,
   return ListForward(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, withDefinition);
 }
 
-static int XOTclClassInfoInstinvarMethod(Tcl_Interp *interp, XOTclClass * class) {
+static int XOTclClassInfoInvarMethod(Tcl_Interp *interp, XOTclClass * class) {
   XOTclClassOpt *opt = class->opt;
 
   if (opt && opt->assertions) {
@@ -12892,22 +12902,6 @@ static int XOTclClassInfoInstmixinofMethod(Tcl_Interp *interp, XOTclClass * clas
     if (patternObj) {
       Tcl_SetObjResult(interp, rc ? patternObj->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
     }
-  }
-  return TCL_OK;
-}
-
-static int XOTclClassInfoInstpostMethod(Tcl_Interp *interp, XOTclClass * class, char * methodName) {
-  if (class->opt) {
-    XOTclProcAssertion *procs = AssertionFindProcs(class->opt->assertions, methodName);
-    if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->post));
-  }
-  return TCL_OK;
-}
-
-static int XOTclClassInfoInstpreMethod(Tcl_Interp *interp, XOTclClass *class, char *methodName) {
-  if (class->opt) {
-    XOTclProcAssertion *procs = AssertionFindProcs(class->opt->assertions, methodName);
-    if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->pre));
   }
   return TCL_OK;
 }
