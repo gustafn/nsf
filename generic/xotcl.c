@@ -12818,7 +12818,7 @@ static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *startCl
   return TCL_OK;
 }
 
-static int XOTclClassInfoInstfilterMethod(Tcl_Interp *interp, XOTclClass * class, int withGuards, char * pattern) {
+static int XOTclClassInfoFilterMethod(Tcl_Interp *interp, XOTclClass * class, int withGuards, char * pattern) {
   return class->opt ? FilterInfo(interp, class->opt->instfilters, pattern, withGuards, 0) : TCL_OK;
 }
 

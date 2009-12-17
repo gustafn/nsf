@@ -385,7 +385,7 @@ infoClassMethod instances XOTclClassInfoInstancesMethod {
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
-infoClassMethod instfilter XOTclClassInfoInstfilterMethod {
+infoClassMethod filter XOTclClassInfoFilterMethod {
   {-argName "class"   -required 1 -type class}
   {-argName "-guards"}
   {-argName "pattern"}
