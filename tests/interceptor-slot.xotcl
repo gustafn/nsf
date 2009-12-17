@@ -1,0 +1,96 @@
+package require XOTcl
+package require xotcl::test
+
+
+proc ? {cmd expected {msg ""}} {
+  set count 10
+  if {$msg ne ""} {
+    set t [Test new -cmd $cmd -count $count -msg $msg]
+  } else {
+    set t [Test new -cmd $cmd -count $count]
+  }
+  $t expected $expected 
+  $t run
+}
+
+::xotcl::use xotcl2
+puts stderr START
+Class create M {
+  .method mfoo {} {puts [self proc]}
+}
+Class create M2
+Class create C 
+? {C procsearch mixin} "::xotcl2::Object instforward mixin"
+C mixin M
+? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
+? {C mixin} "::M"
+? {C info mixin} "::M"
+C create c1
+? {c1 info precedence} "::M ::C ::xotcl2::Object"
+C mixin add M2
+? {c1 info precedence} "::M2 ::M ::C ::xotcl2::Object"
+C mixin delete M2
+? {c1 info precedence} "::M ::C ::xotcl2::Object"
+C mixin delete M
+? {c1 info precedence} "::C ::xotcl2::Object"
+c1 mixin add M
+? {c1 info precedence} "::M ::C ::xotcl2::Object"
+c1 mixin add M2
+? {c1 info precedence} "::M2 ::M ::C ::xotcl2::Object"
+c1 mixin delete M
+? {c1 info precedence} "::M2 ::C ::xotcl2::Object"
+c1 mixin delete M2
+? {c1 info precedence} "::C ::xotcl2::Object"
+
+#
+# adding, removing per-object mixins for classes through relation 
+#
+::xotcl::relation C -per-object mixin M
+? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
+? {C info -per-object mixin} "::M"
+::xotcl::relation C -per-object mixin ""
+? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
+
+#
+# adding per-object mixins for classes via "mixin -per-object add M"
+#
+C mixin -per-object add M 
+? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
+C mixin -per-object ""
+? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
+
+#
+# adding per-object mixins for classes via "mixin -per-object M"
+#
+C mixin -per-object M 
+? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
+
+# forwarder with 0 arguments + flag
+? {C mixin -per-object} "::M"
+
+puts stderr "==================== XOTcl 1"
+::xotcl::use xotcl1
+
+Class create M1
+Class create M11
+M1 instproc mfoo {} {puts [self proc]}
+Class create C1 
+? {C1 procsearch mixin} "::xotcl::Object instforward mixin"
+C1 mixin M1
+? {C1 info precedence} "::M1 ::xotcl::Class ::xotcl::Object"
+C1 create c11
+? {c11 info precedence} "::C1 ::xotcl::Object"
+C1 mixin add M11
+? {C1 info precedence} "::M11 ::M1 ::xotcl::Class ::xotcl::Object"
+puts stderr ===obj-create+add
+Object o -mixin M1
+puts stderr ====[o info class]-[o procsearch mixin]-[Object info instforward -definition mixin]
+? {o info precedence} "::M1 ::xotcl::Object"
+puts stderr ===class-create+add
+Class O 
+O mixin M1
+? {O info precedence} "::M1 ::xotcl::Class ::xotcl::Object"
+puts stderr ===class-create+add-via-parameter
+Class O -mixin M1
+puts stderr ====[O info class]
+? {O info precedence} "::M1 ::xotcl::Class ::xotcl::Object"

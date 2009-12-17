@@ -1,0 +1,63 @@
+package req XOTcl
+package require xotcl::test
+
+proc ? {cmd expected {msg ""}} {
+  set count 10
+  if {$msg ne ""} {
+    set t [Test new -cmd $cmd -count $count -msg $msg]
+  } else {
+    set t [Test new -cmd $cmd -count $count]
+  }
+  $t expected $expected 
+  $t run
+}
+#::xotcl::use xotcl1
+::xotcl::use xotcl2
+
+Object create o {
+  .alias set ::set
+}
+
+Class create C {
+  .method m {x} {return proc-[self proc]}
+  .method -per-object mpo {} {return instproc-[self proc]}
+  .method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2
+
+  .forward addOne expr 1 +
+  .forward -per-object add1 expr 1 +
+  .forward -per-object fpo ::o
+
+  .setter s 
+  .setter -per-object spo
+
+  .alias a ::set
+  .alias -per-object apo ::puts
+}
+
+? {lsort [C info methods -defined]} "a addOne m m-with-assertions s"
+
+? {C info method name m} "::xotcl::classes::C::m"
+? {C info -per-object method name mpo} "::C::mpo"
+
+? {C info method definition m} {::C method m x {return proc-[self proc]}}
+? {C info method def m} {::C method m x {return proc-[self proc]}}
+? {C info -per-object method definition mpo} {::C method -per-object mpo {} {return instproc-[self proc]}}
+? {C info method definition m-with-assertions} \
+    {::C method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
+? {C info method parameter m} {x}
+? {Class info method parameter method} \
+    {-inner-namespace -per-object -protected name args body -precondition -postcondition}
+? {Object info method parameter alias} \
+    {{-objscope:switch 0} {-protected:switch 0} methodName cmd}
+# raises currently an error
+? {catch {C info method parameter a}} 1
+  
+? {C info method definition addOne} "::C forward addOne expr 1 +"
+? {C info -per-object method definition add1} "::C forward -per-object add1 expr 1 +"
+? {C info -per-object method definition fpo} "::C forward -per-object fpo ::o"
+
+? {C info method definition s} "::C setter s"
+? {C info -per-object method definition spo} "::C setter -per-object spo"
+
+? {C info method definition a} "::C alias a ::set"
+? {C info -per-object method definition apo} "::C alias -per-object apo ::puts"

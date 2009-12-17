@@ -405,7 +405,13 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
 }
 ::xotcl::relation ::xotcl::InfoSlot superclass ::xotcl::Slot
 ::xotcl::InfoSlot method get {obj -per-object:switch prop} {
-  $obj info {*}[expr {${per-object} ? "-per-object" : ""}] $prop
+  # this check is not nice, but one has to care about cases
+  # where get is used an xotcl1 objects
+  if {[::xotcl::is $obj type ::xotcl2::Object]} {
+    $obj info {*}[expr {${per-object} ? "-per-object" : ""}] $prop
+  } else {
+    $obj info $prop
+  }
 }
 ::xotcl::InfoSlot method add {obj -per-object:switch prop value {pos 0}} {
   puts stderr infoslot-add-[self args]
@@ -453,17 +459,16 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
 ::xotcl::alias ::xotcl::InterceptorSlot set ::xotcl::relation ;# for backwards compatibility
 ::xotcl::alias ::xotcl::InterceptorSlot assign ::xotcl::relation
 
+::xotcl::InterceptorSlot method get {obj -per-object:switch prop} {
+  ::xotcl::relation $obj {*}[expr {${per-object} ? "-per-object" : ""}] $prop
+}
 ::xotcl::InterceptorSlot method add {obj -per-object:switch prop value {pos 0}} {
   puts stderr interceptorslot-add-obj=$obj,per-object=${per-object},prop=$prop,value=$value,pos=$pos
   if {![set .multivalued]} {
     error "Property $prop of ${.domain}->$obj ist not multivalued"
   }
   set perObject [expr {${per-object} ? "-per-object" : ""}]
-  #puts stderr "perObject=$perObject // ${per-object} // ${.per-object}"
   set oldSetting [::xotcl::relation $obj {*}$perObject $prop]
-  #set oldSetting [$obj info $prop -guards]
-  #puts stderr "BEFORE: $obj info $perObject $prop -guards => '$oldSetting', pos=$pos, value=$value"
-  #puts stderr "CALL $obj $prop [list [linsert $oldSetting $pos $value]]"
   $obj $prop {*}$perObject [linsert $oldSetting $pos $value]
 }
 
