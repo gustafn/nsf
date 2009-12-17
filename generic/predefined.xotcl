@@ -488,9 +488,6 @@ proc ::xotcl::register_system_slots {os} {
   ::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \
       -type relation
 
-  ::xotcl::dispatch ::xotcl2::Class ::xotcl::cmd::Class::forward -- \
-      "-per-object" -verbose ::xotcl2::Object::slot::mixin add %self %proc
-
   ::xotcl::InterceptorSlot create ${os}::Object::slot::filter \
       -elementtype "" -type relation
 

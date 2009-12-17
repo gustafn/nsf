@@ -251,8 +251,6 @@ static char cmd[] =
 "::xotcl::alias           ${os}::Object::slot::class assign ::xotcl::relation\n"
 "::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \\\n"
 "-type relation\n"
-"::xotcl::dispatch ::xotcl2::Class ::xotcl::cmd::Class::forward -- \\\n"
-"\"-per-object\" -verbose ::xotcl2::Object::slot::mixin add %self %proc\n"
 "::xotcl::InterceptorSlot create ${os}::Object::slot::filter \\\n"
 "-elementtype \"\" -type relation}\n"
 "::xotcl::register_system_slots ::xotcl2\n"
