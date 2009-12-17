@@ -493,7 +493,7 @@ proc ::xotcl::register_system_slots {os} {
 #   ::xotcl::dispatch ::xotcl2::Class ::xotcl::cmd::Class::forward  mixin -verbose -default [list get assign] ::xotcl2::Class::slot::mixin %1 %self %proc
 
   ::xotcl::dispatch ::xotcl2::Class ::xotcl::cmd::Class::forward -- \
-      "-per-object" -verbose -default [list get assign] ::xotcl2::Object::slot::mixin add %self %proc
+      "-per-object" -verbose ::xotcl2::Object::slot::mixin add %self %proc
 
 #  ::xotcl::dispatch ::xotcl2::classInfo ::xotcl::cmd::Object::forward \
 #      "-per-object" -verbose ::xotcl2::objectInfo {%@2 %1}
