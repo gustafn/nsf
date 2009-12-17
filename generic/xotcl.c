@@ -8472,7 +8472,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
   if (c == '%') {
     Tcl_Obj *list = NULL, **listElements;
-    int nrArgs = objc-firstPosArg, nrElements = 0;
+    int nrArgs = objc-1, nrPosArgs = objc-firstPosArg, nrElements = 0;
     char *firstActualArgument = nrArgs>0 ? ObjStr(objv[1]) : NULL;
     c = *++forwardArgString;
     c1 = *(forwardArgString+1);
@@ -8509,10 +8509,11 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       /*fprintf(stderr, "nrElements=%d, nra=%d firstPos %d objc %d\n",
         nrElements ,nrArgs, firstPosArg, objc);*/
 
-      if (nrElements > nrArgs) {
+      if (nrElements > nrPosArgs) {
         /* insert default subcommand depending on number of arguments */
-        /*fprintf(stderr, "inserting listElements[%d] '%s'\n", nrArgs, ObjStr(listElements[nrArgs]));*/
-        *out = listElements[nrArgs];
+        /*fprintf(stderr, "inserting listElements[%d] '%s'\n", nrPosArgs, 
+          ObjStr(listElements[nrPosArgs]));*/
+        *out = listElements[nrPosArgs];
       } else if (objc<=1) {
 	return XOTclObjErrArgCnt(interp, objv[0], NULL, "option");
       } else {
@@ -8728,6 +8729,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
 
     /* if we have nonpos args, determine the first pos arg position for %1 */
     if (tcd->hasNonposArgs) {
+      firstPosArg = objc;
       for (j=outputArg; j<objc; j++) {
         char *arg = ObjStr(objv[j]);
         if (*arg != '-') {
@@ -12387,31 +12389,6 @@ static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPe
                         mixin, " on ", className(cl), (char *) NULL);
 }
 
-static int XOTclCInstMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *mixin, Tcl_Obj *guard) {
-  XOTclClassOpt *opt = cl->opt;
-  XOTclCmdList *h;
-
-  if (opt && opt->instmixins) {
-    XOTclClass *mixinCl = XOTclpGetClass(interp, mixin);
-    Tcl_Command mixinCmd = NULL;
-    if (mixinCl) {
-      mixinCmd = Tcl_GetCommandFromObj(interp, mixinCl->object.cmdName);
-    }
-    if (mixinCmd) {
-      h = CmdListFindCmdInList(mixinCmd, opt->instmixins);
-      if (h) {
-        if (h->clientData)
-          GuardDel((XOTclCmdList*) h);
-        GuardAdd(interp, h, guard);
-        MixinInvalidateObjOrders(interp, cl);
-        return TCL_OK;
-      }
-    }
-  }
-
-  return XOTclVarErrMsg(interp, "Instmixinguard: can't find mixin ",
-                        mixin, " on ", className(cl), (char *) NULL);
-}
 /* TODO move me at the right place */
 static int XOTclCSetterMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *name) {
   if (withPer_object) {

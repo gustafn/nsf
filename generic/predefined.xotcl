@@ -404,7 +404,9 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
   {elementtype ::xotcl2::Class}
 }
 ::xotcl::relation ::xotcl::InfoSlot superclass ::xotcl::Slot
-::xotcl::InfoSlot method get {obj -per-object:switch prop} {$obj info $prop}
+::xotcl::InfoSlot method get {obj -per-object:switch prop} {
+  $obj info {*}[expr {${per-object} ? "-per-object" : ""}] $prop
+}
 ::xotcl::InfoSlot method add {obj -per-object:switch prop value {pos 0}} {
   puts stderr infoslot-add-[self args]
   if {![set .multivalued]} {
