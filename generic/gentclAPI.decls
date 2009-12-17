@@ -390,7 +390,7 @@ infoClassMethod filter XOTclClassInfoFilterMethod {
   {-argName "-guards"}
   {-argName "pattern"}
 }
-infoClassMethod instfilterguard XOTclClassInfoInstfilterguardMethod {
+infoClassMethod filterguard XOTclClassInfoFilterguardMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "filter" -required 1}
 }

@@ -12822,7 +12822,7 @@ static int XOTclClassInfoFilterMethod(Tcl_Interp *interp, XOTclClass * class, in
   return class->opt ? FilterInfo(interp, class->opt->instfilters, pattern, withGuards, 0) : TCL_OK;
 }
 
-static int XOTclClassInfoInstfilterguardMethod(Tcl_Interp *interp, XOTclClass * class, char * filter) {
+static int XOTclClassInfoFilterguardMethod(Tcl_Interp *interp, XOTclClass * class, char * filter) {
   return class->opt ? GuardList(interp, class->opt->instfilters, filter) : TCL_OK;
 }
 
