@@ -367,6 +367,9 @@ namespace eval ::xotcl {
   }
   ::xotcl::alias Class instparametercmd ::xotcl::cmd::Class::setter
   ::xotcl::alias Class parametercmd     ::xotcl::cmd::Object::setter
+  ::xotcl::alias Class filterguard      ::xotcl::cmd::Object::filterguard
+  ::xotcl::alias Class instfilterguard  ::xotcl::cmd::Class::filterguard
+  ::xotcl::alias Class mixinguard       ::xotcl::cmd::Object::mixinguard
   ::xotcl::alias Class instmixinguard   ::xotcl::cmd::Class::mixinguard
   ::xotcl::alias Class mixinguard       ::xotcl::cmd::Object::mixinguard
 

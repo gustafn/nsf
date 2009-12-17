@@ -201,7 +201,8 @@ classMethod new XOTclCNewMethod {
   {-argName "-childof" -type object -nrargs 1}
   {-argName "args" -required 0 -type args}
 }
-classMethod instfilterguard XOTclCInstFilterGuardMethod {
+classMethod filterguard XOTclCFilterGuardMethod {
+  {-argName "-per-object" -type switch}
   {-argName "filter" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }

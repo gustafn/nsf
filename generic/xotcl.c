@@ -12329,8 +12329,13 @@ static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *with
   return result;
 }
 
-static int XOTclCInstFilterGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *filter, Tcl_Obj *guard) {
+static int XOTclCFilterGuardMethod(Tcl_Interp *interp, XOTclClass *cl, 
+                                   int withPer_object, char *filter, Tcl_Obj *guard) {
   XOTclClassOpt *opt = cl->opt;
+  
+  if (withPer_object) {
+    return XOTclOFilterGuardMethod(interp, &cl->object, filter, guard);
+  }
 
   if (opt && opt->instfilters) {
     XOTclCmdList *h = CmdListFindNameInList(interp, filter, opt->instfilters);
