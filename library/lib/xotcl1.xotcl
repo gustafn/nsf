@@ -305,7 +305,10 @@ namespace eval ::xotcl {
   }
   foreach cmd [::info command ::xotcl::cmd::ClassInfo::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "method" "methods" "filter" "filterguard" "mixin" "mixinguard"]} continue
+    if {$cmdName in [list "method" "methods" \
+                         "filter" "filterguard" \
+                         "forward" \
+                         "mixin" "mixinguard"]} continue
     ::xotcl::alias ::xotcl::classInfo $cmdName $cmd
   }
   ::xotcl::alias ::xotcl::objectInfo is ::xotcl::is
@@ -316,6 +319,7 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::classInfo instmixinguard ::xotcl::cmd::ClassInfo::mixinguard
   ::xotcl::alias ::xotcl::classInfo instfilter ::xotcl::cmd::ClassInfo::filter
   ::xotcl::alias ::xotcl::classInfo instfilterguard ::xotcl::cmd::ClassInfo::filterguard
+  ::xotcl::alias ::xotcl::classInfo instforward ::xotcl::cmd::ClassInfo::forward
 
   # define info methods from objectInfo on classInfo as well
   ::xotcl::alias classInfo body     objectInfo::body

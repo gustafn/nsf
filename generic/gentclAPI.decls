@@ -394,7 +394,7 @@ infoClassMethod filterguard XOTclClassInfoFilterguardMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "filter" -required 1}
 }
-infoClassMethod instforward XOTclClassInfoInstforwardMethod {
+infoClassMethod forward XOTclClassInfoForwardMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-definition"}
   {-argName "name"}

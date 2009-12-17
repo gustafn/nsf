@@ -12826,7 +12826,7 @@ static int XOTclClassInfoFilterguardMethod(Tcl_Interp *interp, XOTclClass * clas
   return class->opt ? GuardList(interp, class->opt->instfilters, filter) : TCL_OK;
 }
 
-static int XOTclClassInfoInstforwardMethod(Tcl_Interp *interp, XOTclClass *class,
+static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *class,
 				int withDefinition, char *pattern) {
   return ListForward(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, withDefinition);
 }
