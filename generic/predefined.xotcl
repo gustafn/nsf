@@ -487,24 +487,14 @@ proc ::xotcl::register_system_slots {os} {
 
   ::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \
       -type relation
-#   ::xotcl::InterceptorSlot create ${os}::Class::slot::mixin \
-#       -forward-per-object true \
-#       -type relation
-#   ::xotcl::dispatch ::xotcl2::Class ::xotcl::cmd::Class::forward  mixin -verbose -default [list get assign] ::xotcl2::Class::slot::mixin %1 %self %proc
 
   ::xotcl::dispatch ::xotcl2::Class ::xotcl::cmd::Class::forward -- \
       "-per-object" -verbose ::xotcl2::Object::slot::mixin add %self %proc
-
-#  ::xotcl::dispatch ::xotcl2::classInfo ::xotcl::cmd::Object::forward \
-#      "-per-object" -verbose ::xotcl2::objectInfo {%@2 %1}
 
   ::xotcl::InterceptorSlot create ${os}::Object::slot::filter \
       -elementtype "" -type relation
 
 #  ::xotcl::InterceptorSlot create ${os}::Class::slot::object-mixin \
-#      -type relation
-#  ::xotcl::InterceptorSlot create ${os}::Class::slot::instfilter \
-#      -elementtype "" \
 #      -type relation
 }
 ::xotcl::register_system_slots ::xotcl2
