@@ -403,17 +403,10 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
   {elementtype ::xotcl2::Class}
 }
 ::xotcl::relation ::xotcl::InfoSlot superclass ::xotcl::Slot
-::xotcl::InfoSlot method get {obj -per-object:switch prop} {
-  # this check is not nice, but one has to care about cases
-  # where get is used an xotcl1 objects
-  if {[::xotcl::is $obj type ::xotcl2::Object]} {
-    $obj info {*}[expr {${per-object} ? "-per-object" : ""}] $prop
-  } else {
+::xotcl::InfoSlot method get {obj prop} {
     $obj info $prop
-  }
 }
-::xotcl::InfoSlot method add {obj -per-object:switch prop value {pos 0}} {
-  puts stderr infoslot-add-[self args]
+::xotcl::InfoSlot method add {obj prop value {pos 0}} {
   if {![set .multivalued]} {
     error "Property $prop of ${.domain}->$obj ist not multivalued"
   }
