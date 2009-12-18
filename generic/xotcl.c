@@ -8543,7 +8543,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         
         for (i = 1; i < firstPosArg; i++) {
           if (strcmp(firstElementString, ObjStr(objv[i])) == 0) {
-            fprintf(stderr, "We have a MATCH for '%s' oldInputArg %d\n", forwardArgString, *inputArg);
+            /*fprintf(stderr, "We have a MATCH for '%s' oldInputArg %d\n", forwardArgString, *inputArg);*/
             *out = objv[i];
             /* %1 will start at a different place. Proceed if necessary to firstPosArg */
             if (*inputArg < firstPosArg) {
@@ -8570,7 +8570,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
             && Tcl_GetIntFromObj(interp, listElements[1], &insertRequired) == TCL_OK
             && insertRequired) {
           /* no match, but insert of flag is required */
-          fprintf(stderr, "no match, but insert of %s required\n", firstElementString);
+          /*fprintf(stderr, "no match, but insert of %s required\n", firstElementString);*/
           *out = Tcl_NewStringObj(firstElementString,-1);
           *outputincr = 1;
           goto add_to_freelist;
@@ -8578,7 +8578,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
           /* no match, no insert of flag required, we skip the
            * forwarder option and output nothing
            */
-          fprintf(stderr, "no match, nrElements %d insert req %d\n", nrElements, insertRequired);
+          /*fprintf(stderr, "no match, nrElements %d insert req %d\n", nrElements, insertRequired);*/
           *outputincr = 0;
         }
       }
@@ -11074,7 +11074,6 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
           XOTclObjectIsClass(object)
           ) {
         relationtype = RelationtypeClass_mixinIdx;
-        fprintf(stderr, "using class mixin\n");
       }
       break;
     case RelationtypeObject_filterIdx:
@@ -12872,9 +12871,6 @@ static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass * class, int
 			      char *patternString, XOTclObject *patternObj) {
   XOTclClassOpt *opt = class->opt;
   int rc;
-
-  fprintf(stderr, "XOTclClassInfoMixinMethod guard %d clo %d pattern '%s'\n",
-          withGuards,withClosure,patternString);
 
   if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;

@@ -132,10 +132,10 @@ namespace eval xotcl2 {
   #Object forward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
   #Class  forward info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
 
-  Object forward info -onerror ::xotcl::infoError -verbose ::xotcl2::objectInfo %1 {%@2 %self}
-  Class forward  info -onerror ::xotcl::infoError -verbose ::xotcl2::classInfo %1 {%@2 %self}
+  Object forward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
+  Class forward  info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
   ::xotcl::dispatch ::xotcl2::classInfo ::xotcl::cmd::Object::forward \
-      "-per-object" -verbose ::xotcl2::objectInfo {%@2 %1}
+      "-per-object" ::xotcl2::objectInfo {%@2 %1}
 
   proc ::xotcl::infoError msg {
     #puts stderr "INFO ERROR: <$msg>\n$::errorInfo"
@@ -387,7 +387,6 @@ createBootstrapAttributeSlots ::xotcl::Slot {
     
     ::xotcl::dispatch ${.domain} ::xotcl::cmd::Class::forward \
         {*}[expr {${.per-object} ? "-per-object" : ""}] ${.name} \
-        -verbose \
         ${.manager} [list %1 [${.manager} defaultmethods]] %self \
         "%-per-object [info exists .forward-per-object]" \
         %proc
@@ -463,7 +462,6 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
   ::xotcl::relation $obj {*}[expr {${per-object} ? "-per-object" : ""}] $prop
 }
 ::xotcl::InterceptorSlot method add {obj -per-object:switch prop value {pos 0}} {
-  puts stderr interceptorslot-add-obj=$obj,per-object=${per-object},prop=$prop,value=$value,pos=$pos
   if {![set .multivalued]} {
     error "Property $prop of ${.domain}->$obj ist not multivalued"
   }
@@ -653,7 +651,6 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
     set m [::xotcl::ScopedNew new \
 	       -inobject $object -withclass $class -volatile]
     ::xotcl2::Class mixin add $m end
-    puts stderr "after add $m: ::xotcl2::Class info mixin => [::xotcl2::Class info mixin]"
     namespace eval $object $cmds
     ::xotcl2::Class mixin delete $m
   } else {
