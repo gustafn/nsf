@@ -11182,54 +11182,63 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
   switch (relationtype) {
   case RelationtypeObject_mixinIdx:
   case RelationtypeMixinIdx:
-    if (objopt->mixins) {
-      XOTclCmdList *cmdlist, *del;
-      for (cmdlist = objopt->mixins; cmdlist; cmdlist = cmdlist->nextPtr) {
-        cl = XOTclGetClassFromCmdPtr(cmdlist->cmdPtr);
-        clopt = cl ? cl->opt : NULL;
-        if (clopt) {
-          del = CmdListFindCmdInList(object->id, clopt->isObjectMixinOf);
-          if (del) {
-            /* fprintf(stderr, "Removing object %s from isObjectMixinOf of class %s\n",
-               objectName(object), ObjStr(XOTclGetClassFromCmdPtr(cmdlist->cmdPtr)->object.cmdName)); */
-            del = CmdListRemoveFromList(&clopt->isObjectMixinOf, del);
-            CmdListDeleteCmdListEntry(del, GuardDel);
-          }
+    {
+      XOTclCmdList *newMixinCmdList = NULL;
+
+      for (i = 0; i < oc; i++) {
+        if (MixinAdd(interp, &newMixinCmdList, ov[i], object->cl->object.cl) != TCL_OK) {
+          CmdListRemoveList(&newMixinCmdList, GuardDel);
+          return TCL_ERROR;
         }
       }
-      CmdListRemoveList(&objopt->mixins, GuardDel);
-    }
 
-    object->flags &= ~XOTCL_MIXIN_ORDER_VALID;
-    /*
-     * since mixin procs may be used as filters -> we have to invalidate
-     */
-    object->flags &= ~XOTCL_FILTER_ORDER_VALID;
-
-    /*
-     * now add the specified mixins
-     */
-    for (i = 0; i < oc; i++) {
-      Tcl_Obj *ocl = NULL;
-
-      if (MixinAdd(interp, &objopt->mixins, ov[i], object->cl->object.cl) != TCL_OK) {
-        return TCL_ERROR;
+      if (objopt->mixins) {
+        XOTclCmdList *cmdlist, *del;
+        for (cmdlist = objopt->mixins; cmdlist; cmdlist = cmdlist->nextPtr) {
+          cl = XOTclGetClassFromCmdPtr(cmdlist->cmdPtr);
+          clopt = cl ? cl->opt : NULL;
+          if (clopt) {
+            del = CmdListFindCmdInList(object->id, clopt->isObjectMixinOf);
+            if (del) {
+              /* fprintf(stderr, "Removing object %s from isObjectMixinOf of class %s\n",
+                 objectName(object), ObjStr(XOTclGetClassFromCmdPtr(cmdlist->cmdPtr)->object.cmdName)); */
+              del = CmdListRemoveFromList(&clopt->isObjectMixinOf, del);
+              CmdListDeleteCmdListEntry(del, GuardDel);
+            }
+          }
+        }
+        CmdListRemoveList(&objopt->mixins, GuardDel);
       }
-      /* fprintf(stderr, "Added to mixins of %s: %s\n", objectName(obj), ObjStr(ov[i])); */
-      Tcl_ListObjIndex(interp, ov[i], 0, &ocl);
-      GetObjectFromObj(interp, ocl, &nobj);
-      if (nobj) {
-        /* fprintf(stderr, "Registering object %s to isObjectMixinOf of class %s\n",
-           objectName(obj), objectName(nobj)); */
-        nclopt = XOTclRequireClassOpt((XOTclClass*) nobj);
-        CmdListAdd(&nclopt->isObjectMixinOf, object->id, NULL, /*noDuplicates*/ 1);
-      } /* else fprintf(stderr, "Problem registering %s as a mixinof of %s\n",
-           ObjStr(ov[i]), className(cl)); */
+      
+      object->flags &= ~XOTCL_MIXIN_ORDER_VALID;
+      /*
+       * since mixin procs may be used as filters -> we have to invalidate
+       */
+      object->flags &= ~XOTCL_FILTER_ORDER_VALID;
+      
+      /*
+       * now add the specified mixins
+       */
+      objopt->mixins = newMixinCmdList;
+      for (i = 0; i < oc; i++) {
+        Tcl_Obj *ocl = NULL;
+        
+        /* fprintf(stderr, "Added to mixins of %s: %s\n", objectName(obj), ObjStr(ov[i])); */
+        Tcl_ListObjIndex(interp, ov[i], 0, &ocl);
+        GetObjectFromObj(interp, ocl, &nobj);
+        if (nobj) {
+          /* fprintf(stderr, "Registering object %s to isObjectMixinOf of class %s\n",
+             objectName(obj), objectName(nobj)); */
+          nclopt = XOTclRequireClassOpt((XOTclClass*) nobj);
+          CmdListAdd(&nclopt->isObjectMixinOf, object->id, NULL, /*noDuplicates*/ 1);
+        } /* else fprintf(stderr, "Problem registering %s as a mixinof of %s\n",
+             ObjStr(ov[i]), className(cl)); */
+      }
+      
+      MixinComputeDefined(interp, object);
+      FilterComputeDefined(interp, object);
+      break;
     }
-
-    MixinComputeDefined(interp, object);
-    FilterComputeDefined(interp, object);
-    break;
 
   case RelationtypeObject_filterIdx:
   case RelationtypeFilterIdx:
@@ -11246,37 +11255,44 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
 
   case RelationtypeClass_mixinIdx:
   case RelationtypeInstmixinIdx:
+    {
+      XOTclCmdList *newMixinCmdList = NULL;
 
-    if (clopt->instmixins) {
-      RemoveFromClassMixinsOf(cl->object.id, clopt->instmixins);
-      CmdListRemoveList(&clopt->instmixins, GuardDel);
-    }
-    MixinInvalidateObjOrders(interp, cl);
-    /*
-     * since mixin procs may be used as filters,
-     * we have to invalidate the filters as well
-     */
-    FilterInvalidateObjOrders(interp, cl);
-
-    for (i = 0; i < oc; i++) {
-      Tcl_Obj *ocl = NULL;
-      if (MixinAdd(interp, &clopt->instmixins, ov[i], cl->object.cl) != TCL_OK) {
-        return TCL_ERROR;
+      for (i = 0; i < oc; i++) {
+        if (MixinAdd(interp, &newMixinCmdList, ov[i], cl->object.cl) != TCL_OK) {
+          CmdListRemoveList(&newMixinCmdList, GuardDel);
+          return TCL_ERROR;
+        }
       }
-      /* fprintf(stderr, "Added to instmixins of %s: %s\n",
-         className(cl), ObjStr(ov[i])); */
+      if (clopt->instmixins) {
+        RemoveFromClassMixinsOf(cl->object.id, clopt->instmixins);
+        CmdListRemoveList(&clopt->instmixins, GuardDel);
+      }
 
-      Tcl_ListObjIndex(interp, ov[i], 0, &ocl);
-      GetObjectFromObj(interp, ocl, &nobj);
-      if (nobj) {
-        /* fprintf(stderr, "Registering class %s to isClassMixinOf of class %s\n",
-           className(cl), objectName(nobj)); */
-        nclopt = XOTclRequireClassOpt((XOTclClass*) nobj);
-        CmdListAdd(&nclopt->isClassMixinOf, cl->object.id, NULL, /*noDuplicates*/ 1);
-      } /* else fprintf(stderr, "Problem registering %s as a instmixinof of %s\n",
-           ObjStr(ov[i]), className(cl)); */
+      MixinInvalidateObjOrders(interp, cl);
+      /*
+       * since mixin procs may be used as filters,
+       * we have to invalidate the filters as well
+       */
+      FilterInvalidateObjOrders(interp, cl);
+      clopt->instmixins = newMixinCmdList;
+      for (i = 0; i < oc; i++) {
+        Tcl_Obj *ocl = NULL;
+        /* fprintf(stderr, "Added to instmixins of %s: %s\n",
+           className(cl), ObjStr(ov[i])); */
+        
+        Tcl_ListObjIndex(interp, ov[i], 0, &ocl);
+        GetObjectFromObj(interp, ocl, &nobj);
+        if (nobj) {
+          /* fprintf(stderr, "Registering class %s to isClassMixinOf of class %s\n",
+             className(cl), objectName(nobj)); */
+          nclopt = XOTclRequireClassOpt((XOTclClass*) nobj);
+          CmdListAdd(&nclopt->isClassMixinOf, cl->object.id, NULL, /*noDuplicates*/ 1);
+        } /* else fprintf(stderr, "Problem registering %s as a instmixinof of %s\n",
+             ObjStr(ov[i]), className(cl)); */
+      }
+      break;
     }
-    break;
 
   case RelationtypeClass_filterIdx:
   case RelationtypeInstfilterIdx:
