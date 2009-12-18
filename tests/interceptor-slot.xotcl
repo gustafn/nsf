@@ -36,9 +36,9 @@ C mixin delete M
 ? {c1 info precedence} "::C ::xotcl2::Object"
 c1 mixin add M
 ? {::xotcl::relation c1 mixin} ::M
-? {catch {c1 mixin UNKNWON}} 1
-# after an error in mixin, the list is reset to empty. Wanted?
-? {::xotcl::relation c1 mixin} ""
+? {catch {c1 mixin UNKNOWN}} 1
+? {::xotcl::relation c1 mixin} "::M"
+# add again the same mixin
 c1 mixin add M
 ? {c1 info precedence} "::M ::C ::xotcl2::Object"
 c1 mixin add M2
@@ -64,9 +64,8 @@ c1 mixin delete M2
 C mixin -per-object add M 
 ? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
 ? {::xotcl::relation C -per-object mixin} ::M
-# is the following wanted?
-? {catch {C mixin -per-object add UNKNWON}} 1
-? {::xotcl::relation C -per-object mixin} ""
+? {catch {C mixin -per-object add UNKNOWN}} 1
+? {::xotcl::relation C -per-object mixin} "::M"
 C mixin -per-object ""
 ? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
 
