@@ -9667,7 +9667,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
         Tcl_Command importedCmd = GetOriginalCommand(cmd);
         return ListCmdParams(interp, importedCmd, methodName, 0);
       }
-    case InfomethodsubcmdPreIdx:
+    case InfomethodsubcmdPreconditionIdx:
       {
         XOTclProcAssertion *procs;
         if (withPer_object) {
@@ -9679,7 +9679,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
         if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->pre));
         return TCL_OK;
       }
-    case InfomethodsubcmdPostIdx:
+    case InfomethodsubcmdPostconditionIdx:
       {
         XOTclProcAssertion *procs;
         if (withPer_object) {

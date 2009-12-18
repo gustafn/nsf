@@ -248,8 +248,8 @@ namespace eval ::xotcl {
     .method instbody    {o methodName} {
       lindex [::xotcl::cmd::ClassInfo::method $o definition $methodName] end
     }
-    .method instpre     {o methodName} {::xotcl::cmd::ClassInfo::method $o pre $methodName}
-    .method instpost    {o methodName} {::xotcl::cmd::ClassInfo::method $o post $methodName}
+    .method instpre     {o methodName} {::xotcl::cmd::ClassInfo::method $o precondition  $methodName}
+    .method instpost    {o methodName} {::xotcl::cmd::ClassInfo::method $o postcondition $methodName}
 
     # info options emulated by "info methods"
     .method instcommands {o {pattern:optional ""}} {

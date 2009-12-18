@@ -301,13 +301,13 @@ infoObjectMethod invar XOTclObjInfoInvarMethod {
 
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type|pre|post"}
+  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type|precondition|postcondition"}
   {-argName "name"}
 }
 ### TODO move finally to infoclassmethod
 infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type|pre|post"}
+  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type|precondition|postcondition"}
   {-argName "name"}
 }
 
