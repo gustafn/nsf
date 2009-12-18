@@ -9620,11 +9620,15 @@ AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, forwardCmdClientDa
 
 static void
 AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, char *registerCmdName,
-                         XOTclObject *object, char *methodName, Tcl_Command cmd, int withPer_object) {
+                         XOTclObject *object, char *methodName, Tcl_Command cmd, 
+                         int withObjscope, int withPer_object) {
   Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName,-1));
   if (withPer_object) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-per-object",-1));
+  }
+  if (withObjscope) {
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objscope",-1));
   }
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName,-1));
 }
@@ -9714,7 +9718,8 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
 
           resultObj = Tcl_NewListObj(0, NULL);
           /* todo: don't hard-code registering command name "method" */
-          AppendMethodRegistration(interp, resultObj, "method", object, methodName, cmd, withPer_object);
+          AppendMethodRegistration(interp, resultObj, "method", object, methodName, cmd, 
+                                   0, withPer_object);
           ListCmdParams(interp, cmd, methodName, 0);
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
           ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
@@ -9752,7 +9757,8 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
           if (clientData) {
             resultObj = Tcl_NewListObj(0, NULL);
             /* todo: don't hard-code registering command name "forward" */
-            AppendMethodRegistration(interp, resultObj, "forward", object, methodName, cmd, withPer_object);
+            AppendMethodRegistration(interp, resultObj, "forward", object, methodName, cmd, 
+                                     0, withPer_object);
             AppendForwardDefinition(interp, resultObj, clientData);
             Tcl_SetObjResult(interp, resultObj);
             break;
@@ -9769,7 +9775,8 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
       case InfomethodsubcmdDefinitionIdx:
         resultObj = Tcl_NewListObj(0, NULL);
         /* todo: don't hard-code registering command name "setter" */
-        AppendMethodRegistration(interp, resultObj, "setter", object, methodName, cmd, withPer_object);
+        AppendMethodRegistration(interp, resultObj, "setter", object, methodName, cmd, 
+                                 0, withPer_object);
         Tcl_SetObjResult(interp, resultObj);        
         break;
       }
@@ -9784,10 +9791,15 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
         {
           Tcl_Obj *entryObj = AliasGet(interp, object->cmdName, methodName, withPer_object);
           if (entryObj) {
+            int nrElements;
+            Tcl_Obj **listElements;
             resultObj = Tcl_NewListObj(0, NULL);
+            Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
             /* todo: don't hard-code registering command name "alias" */
-            AppendMethodRegistration(interp, resultObj, "alias", object, methodName, cmd, withPer_object);
-            Tcl_ListObjAppendElement(interp, resultObj, entryObj);
+            AppendMethodRegistration(interp, resultObj, "alias", object, 
+                                     methodName, cmd, 
+                                     nrElements!=1, withPer_object);
+            Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
             Tcl_SetObjResult(interp, resultObj);
             break;
           }
@@ -9934,29 +9946,6 @@ ListChildren(Tcl_Interp *interp, XOTclObject *obj, char *pattern, int classesOnl
     Tcl_SetObjResult(interp, list);
   }
   return TCL_OK;
-}
-
-static int
-ListAlias(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int withDefinition, 
-          XOTclObject *object, int withPer_object) {
-  int result;
-
-  if (withDefinition) {
-    Tcl_HashEntry *hPtr = table && pattern ? XOTcl_FindHashEntry(table, pattern) : 0;
-    /* notice: we don't use pattern for wildcard matching here;
-       pattern can only contain wildcards when used without
-       "-definition" */
-    if (hPtr) {
-      Tcl_Obj *entryObj = AliasGet(interp, object->cmdName, pattern, withPer_object);
-      if (entryObj) {
-        Tcl_SetObjResult(interp, entryObj);
-      }
-    }
-    result = TCL_OK;
-  } else {
-    result = ListMethodKeys(interp, table, pattern, XOTCL_METHODTYPE_ALIAS, NULL, object, withPer_object);
-  }
-  return result;
 }
 
 static int
@@ -12582,12 +12571,6 @@ static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value
 /***************************
  * Begin Object Info Methods
  ***************************/
-static int XOTclObjInfoAliasMethod(Tcl_Interp *interp, XOTclObject *object, int withDefinition, char *pattern) {
-  return object->nsPtr ?
-    ListAlias(interp, Tcl_Namespace_cmdTable(object->nsPtr), pattern, withDefinition, object, 1) :
-    TCL_OK;
-}
-
 static int XOTclObjInfoCheckMethod(Tcl_Interp *interp, XOTclObject *object) {
   return AssertionListCheckOption(interp, object);
 }
@@ -12788,12 +12771,6 @@ static int XOTclObjInfoVarsMethod(Tcl_Interp *interp, XOTclObject *object, char 
 /***************************
  * Begin Class Info methods
  ***************************/
-static int XOTclClassInfoAliasMethod(Tcl_Interp *interp, XOTclClass *class, 
-                                     int withDefinition, char *pattern) {
-  Tcl_HashTable *table = Tcl_Namespace_cmdTable(class->nsPtr);
-  return ListAlias(interp, table, pattern, withDefinition, &class->object, 0);
-}
-
 static int XOTclClassInfoHeritageMethod(Tcl_Interp *interp, XOTclClass *cl, char *pattern) {
   XOTclClasses *pl = ComputeOrder(cl, cl->order, Super);
   Tcl_ResetResult(interp);

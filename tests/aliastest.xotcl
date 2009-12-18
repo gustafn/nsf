@@ -17,9 +17,11 @@ proc ? {cmd expected {msg ""}} {
 
 # the system methods of Object are either alias or forwarders
 ? {lsort [::xotcl::Slot info methods -defined -methodtype alias]} {assign get}
-? {::xotcl::Slot info alias -definition get} "::xotcl::setinstvar"
 ? {::xotcl::Slot info method definition get} "::xotcl::Slot alias get ::xotcl::setinstvar"
-? {::xotcl::Object info alias -definition set} "-objscope ::set"
+
+set cmd "::xotcl2::Object alias -objscope set ::set"
+eval $cmd
+? {Object info method definition set} $cmd
 
 Class create Base
 Base method foo {{-x 1}} {return $x}
@@ -27,7 +29,7 @@ Base method foo {{-x 1}} {return $x}
 Class create Foo
 ::xotcl::alias ::Foo foo ::xotcl::classes::Base::foo
 
-? {Foo info alias -definition foo} "::xotcl::classes::Base::foo"
+? {Foo info method definition foo} "::Foo alias foo ::xotcl::classes::Base::foo"
 
 Foo create f1
 ? {f1 foo} 1
@@ -40,7 +42,7 @@ Base method foo {} {}
 ? {Foo info methods -defined -methodtype alias} ""
 ? {Base info methods -defined -methodtype scripted} {}
 ? {Foo info methods -defined -methodtype scripted} {}
-? {Foo info alias -definition foo} ""
+? {Foo info method definition foo} ""
 
 
 Base method foo {{-x 1}} {return $x}
@@ -78,7 +80,7 @@ T method foo args { return [self class]->[self proc] }
 ::xotcl::alias S BAR ::xotcl::classes::T::FOO
 
 ? {T info methods -defined -methodtype alias} "FOO"
-? {T info alias -definition FOO} "::xotcl::classes::T::foo"
+? {T info method definition FOO} "::T alias FOO ::xotcl::classes::T::foo"
 ? {lsort [T info methods -defined -methodtype scripted]} {FOO foo}
 ? {S info methods -defined -methodtype scripted} {BAR}
 T method FOO {} {}
@@ -86,7 +88,7 @@ T method FOO {} {}
 ? {S info methods -defined -methodtype scripted} {BAR}
 ? {s BAR} ::S->foo
 ? {t foo} ::T->foo
-? {S info alias -definition BAR} "::xotcl::classes::T::FOO"
+? {S info method definition BAR} "::S alias BAR ::xotcl::classes::T::FOO"
 
 
 T method foo {} {}
@@ -112,7 +114,7 @@ T method -per-object bar args { return [self class]->[self proc] }
 ? {lsort [T info -per-object methods -defined -methodtype alias]} {BAR FOO ZAP}
 ? {lsort [T info -per-object methods -defined -methodtype scripted]} {BAR FOO ZAP bar}
 ? {t foo} ::T->foo
-? {T info -per-object alias -definition ZAP} {::T::BAR}
+? {T info -per-object method definition ZAP} {::T alias -per-object ZAP ::T::BAR}
 
 ? {T FOO} ->foo
 ? {T BAR} ->foo
@@ -275,25 +277,25 @@ proc ::foo args {;}
 ? {info exists ::xotcl::alias(::C,FOO,0)} 1
 ? {array get ::xotcl::alias ::o,FOO,1} "::o,FOO,1 ::foo"
 ? {array get ::xotcl::alias ::C,FOO,0} "::C,FOO,0 ::foo"
-? {o info alias -definition FOO} ::foo
-? {C info alias -definition FOO} ::foo
+? {o info method definition FOO} "::o alias -per-object FOO ::foo"
+? {C info method definition FOO} "::C alias FOO ::foo"
 
 ::xotcl::alias o FOO ::o::bar
 ? {info exists ::xotcl::alias(::o,FOO,1)} 1
 ? {array get ::xotcl::alias ::o,FOO,1} "::o,FOO,1 ::o::bar"
-? {o info alias -definition FOO} ::o::bar
+? {o info method definition FOO} "::o alias -per-object FOO ::o::bar"
 
 # AliasDelete in XOTclRemovePMethod
 o method FOO {} {}
 ? {info exists ::xotcl::alias(::o,FOO,1)} 0
 ? {array get ::xotcl::alias ::o,FOO,1} ""
-? {o info alias -definition FOO} ""
+? {o info method definition FOO} ""
 
 # AliasDelete in XOTclRemoveIMethod
 C method FOO {} {}
 ? {info exists ::xotcl::alias(::C,FOO,0)} 0
 ? {array get ::xotcl::alias ::C,FOO,0} ""
-? {C info alias -definition FOO} ""
+? {C info method definition FOO} ""
 
 ::xotcl::alias ::o BAR ::foo
 ::xotcl::alias ::C BAR ::foo  
@@ -331,18 +333,18 @@ proc ::foo args {;}
 ? {info exists ::xotcl::alias(::C,FOO,0)} 1
 unset ::xotcl::alias(::C,FOO,0)
 ? {info exists ::xotcl::alias(::C,FOO,0)} 0
-? {C info alias -definition FOO} ""
+? {C info method definition FOO} ""
 ? {C info methods -defined -methodtype alias} FOO
 rename ::foo ""
 ? {C info methods -defined -methodtype alias} ""
 ? {info exists ::xotcl::alias(::C,FOO,0)} 0
-? {C info alias -definition FOO} ""
+? {C info method definition FOO} ""
 
 #
 # test renaming of Tcl proc (actually sensed by the alias, though not
 # reflected by the alias definition store)
 # a) is this acceptable?
-# b) sync ::xotcl::alias upon "info alias" calls? is this feasible,
+# b) sync ::xotcl::alias upon "info method definition" calls? is this feasible,
 # e.g. through rename traces?
 #
 
@@ -356,6 +358,6 @@ rename ::foo ::foo2
 ? {info exists ::xotcl::alias(::C,FOO,0)} 1
 ? {C info methods -defined -methodtype alias} FOO
 ? {c FOO} ::c->foo2
-? {C info alias -definition FOO} "::foo"; # should be ::foo2 (!)
+? {C info method definition FOO} "::C alias FOO ::foo"; # should be ::foo2 (!)
 
 
