@@ -469,7 +469,7 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
   }
   set perObject [expr {${per-object} ? "-per-object" : ""}]
   set oldSetting [::xotcl::relation $obj {*}$perObject $prop]
-  $obj $prop {*}$perObject [linsert $oldSetting $pos $value]
+  ::xotcl::relation $obj {*}$perObject $prop [linsert $oldSetting $pos $value]
 }
 
 ############################################
@@ -483,7 +483,6 @@ proc ::xotcl::register_system_slots {os} {
   ::xotcl::alias           ${os}::Class::slot::superclass assign ::xotcl::relation
   ::xotcl::InfoSlot create ${os}::Object::slot::class -type relation
   ::xotcl::alias           ${os}::Object::slot::class assign ::xotcl::relation
-
 
   ::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \
       -type relation

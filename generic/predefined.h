@@ -241,7 +241,7 @@ static char cmd[] =
 "error \"Property $prop of ${.domain}->$obj ist not multivalued\"}\n"
 "set perObject [expr {${per-object} ? \"-per-object\" : \"\"}]\n"
 "set oldSetting [::xotcl::relation $obj {*}$perObject $prop]\n"
-"$obj $prop {*}$perObject [linsert $oldSetting $pos $value]}\n"
+"::xotcl::relation $obj {*}$perObject $prop [linsert $oldSetting $pos $value]}\n"
 "proc ::xotcl::register_system_slots {os} {\n"
 "${os}::Object alloc ${os}::Class::slot\n"
 "${os}::Object alloc ${os}::Object::slot\n"
