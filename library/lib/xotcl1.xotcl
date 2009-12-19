@@ -253,16 +253,16 @@ namespace eval ::xotcl {
 
     # info options emulated by "info methods"
     .method instcommands {o {pattern:optional ""}} {
-      ::xotcl::cmd::ClassInfo::methods $o -defined {*}$pattern
+      ::xotcl::cmd::ClassInfo::methods $o {*}$pattern
     }
     .method instprocs   {o {pattern:optional ""}} {
-      ::xotcl::cmd::ClassInfo::methods $o -defined -methodtype scripted {*}$pattern
+      ::xotcl::cmd::ClassInfo::methods $o -methodtype scripted {*}$pattern
     }
     .method parametercmd {o {pattern:optional ""}} {
-      ::xotcl::cmd::ClassInfo::methods $o -defined -per-object -methodtype setter {*}$pattern
+      ::xotcl::cmd::ClassInfo::methods $o -per-object -methodtype setter {*}$pattern
     }
     .method instparametercmd {o {pattern:optional ""}} {
-      ::xotcl::cmd::ClassInfo::methods $o -defined -methodtype setter {*}$pattern
+      ::xotcl::cmd::ClassInfo::methods $o -methodtype setter {*}$pattern
     }
   }
 
@@ -280,10 +280,10 @@ namespace eval ::xotcl {
 
     # info options emulated by "info methods"
     .method commands    {o {pattern:optional ""}} {
-      ::xotcl::cmd::ObjectInfo::methods $o -defined {*}$pattern
+      ::xotcl::cmd::ObjectInfo::methods $o {*}$pattern
     }
     .method procs       {o {pattern:optional ""}} {
-      ::xotcl::cmd::ObjectInfo::methods $o -defined -methodtype scripted {*}$pattern
+      ::xotcl::cmd::ObjectInfo::methods $o -methodtype scripted {*}$pattern
     }
     .method methods {
       o -nocmds:switch -noprocs:switch -incontext:switch pattern:optional
@@ -291,7 +291,7 @@ namespace eval ::xotcl {
       set methodtype all
       if {$nocmds} {set methodtype scripted}
       if {$noprocs} {if {$nocmds} {return ""}; set methodtype system}
-      set cmd [list ::xotcl::cmd::ObjectInfo::methods $o -methodtype $methodtype]
+      set cmd [list ::xotcl::cmd::ObjectInfo::callable $o -methodtype $methodtype]
       if {$incontext} {lappend cmd -incontext}
       if {[::info exists pattern]} {lappend cmd $pattern}
       eval $cmd
@@ -300,7 +300,7 @@ namespace eval ::xotcl {
 
   foreach cmd [::info command ::xotcl::cmd::ObjectInfo::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "method" "methods"]} continue
+    if {$cmdName in [list "callable" "method" "methods"]} continue
     ::xotcl::alias ::xotcl::objectInfo $cmdName $cmd
     ::xotcl::alias ::xotcl::classInfo $cmdName $cmd
   }
@@ -399,6 +399,23 @@ namespace eval ::xotcl {
   Object method hasclass cl {
     if {[::xotcl::is [self] mixin $cl]} {return 1}
     ::xotcl::is [self] type $cl
+  }
+  Object method procsearch {name} {
+    set definition [::xotcl::cmd::ObjectInfo::callable [self] -which $name]
+    if {$definition ne ""} {
+      foreach {obj kind arg} $definition break
+      set perClass [expr {[::xotcl::is $obj class] && $arg ne "-per-object"}]
+      switch $kind {
+        alias   {if {$perClass} {set kind "instcmd"} else {set kind "cmd"}}
+        forward {if {$perClass} {set kind "instforward"}}
+        mixin   {if {$perClass} {set kind "instmixin"}}
+        method  {if {$perClass} {set kind "instproc"} else {set kind "proc"}}
+        setter  {if {$perClass} {set kind "instparametercmd"} else {set kind "parametercmd"}}
+        default {error "not handeled: $definition"}
+      }
+      #puts stderr "return: [list $obj $kind $name]"
+      return [list $obj $kind $name]
+    }
   }
   Class method allinstances {} {
     # TODO: mark it deprecated

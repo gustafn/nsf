@@ -98,7 +98,7 @@ namespace eval xotcl2 {
 
     .method info {obj} {
       set methods [list]
-      foreach name [::xotcl::cmd::ObjectInfo::methods [self] -defined] {
+      foreach name [::xotcl::cmd::ObjectInfo::methods [self]] {
         if {$name eq "unknown"} continue
         lappend methods $name
       }
@@ -362,8 +362,8 @@ createBootstrapAttributeSlots ::xotcl::Slot {
 
 ::xotcl::Slot method unknown {method args} {
   set methods [list]
-  foreach m [.info methods] {
-    if {[::xotcl2::Object info methods $m] ne ""} continue
+  foreach m [.info callable] {
+    if {[::xotcl2::Object info callable $m] ne ""} continue
     if {[string match __* $m]} continue
     lappend methods $m
   }
@@ -596,8 +596,9 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
     #${.domain} invalidateobjectparameter
     if {[set .multivalued]} return
     if {[set .defaultmethods] ne {get assign}} return
-    if {[.procsearch assign] ne "::xotcl::Slot instcmd assign"} return
-    if {[.procsearch get]    ne "::xotcl::Slot instcmd get"} return
+    #puts stderr assign=[.info callable -which assign]
+    if {[.info callable -which assign] ne "::xotcl::Slot alias assign ::xotcl::setinstvar"} return
+    if {[.info callable -which get]    ne "::xotcl::Slot alias get ::xotcl::setinstvar"} return
     #puts stderr "**** optimizing       ${.domain} $forwarder ${.name}"
     ${.domain} setter {*}[expr {${.per-object} ? "-per-object" : ""}] ${.name}
   }

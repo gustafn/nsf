@@ -9715,11 +9715,13 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
       case InfomethodsubcmdDefinitionIdx: 
         {
           XOTclAssertionStore *assertions;
+          /* don't output -per-object, if object is not a class */
+          int outputPerObject = XOTclObjectIsClass(object) ? withPer_object : 0;
 
           resultObj = Tcl_NewListObj(0, NULL);
           /* todo: don't hard-code registering command name "method" */
           AppendMethodRegistration(interp, resultObj, "method", object, methodName, cmd, 
-                                   0, withPer_object);
+                                   0, outputPerObject);
           ListCmdParams(interp, cmd, methodName, 0);
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
           ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
@@ -11906,24 +11908,6 @@ static int XOTclONoinitMethod(Tcl_Interp *interp, XOTclObject *obj) {
 }
 
 
-/*static int XOTclOParametercmdMethod(Tcl_Interp *interp, XOTclObject *obj, char *name) {
-  return XOTclAddObjectMethod(interp, (XOTcl_Object*) obj, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
-  }*/
-
-static int XOTclOProcSearchMethod(Tcl_Interp *interp, XOTclObject *obj, char *name) {
-  XOTclClass *pcl = NULL;
-  Tcl_Command cmd = ObjectFindMethod(interp, obj, name, &pcl);
-
-  Tcl_ResetResult(interp);
-
-  if (cmd) {
-    XOTclObject *pobj = pcl ? NULL : obj;
-    char *simpleName = (char *)Tcl_GetCommandName(interp, cmd);
-    Tcl_SetObjResult(interp, getFullProcQualifier(interp, simpleName, pobj, pcl, cmd));
-  }
-  return TCL_OK;
-}
-
 static int XOTclORequireNamespaceMethod(Tcl_Interp *interp, XOTclObject *obj) {
   requireObjNamespace(interp, obj);
   return TCL_OK;
@@ -12649,17 +12633,37 @@ static int AggregatedMethodType(int methodType) {
 }
 
 static int XOTclClassInfoMethodsMethod(Tcl_Interp *interp, XOTclClass *class, 
-				     int withDefined, int withMethodtype, int withNomixins, 
+				     int withMethodtype, int withNomixins, 
 				     int withIncontext, char *pattern) {
 
-  return ListMethods(interp, &class->object, pattern, withDefined, 0, 
+  return ListMethods(interp, &class->object, pattern, 1 /*withDefined*/, 0 /* per-object */, 
 		     AggregatedMethodType(withMethodtype), withNomixins, withIncontext);
 }
 static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, 
-				     int withDefined, int withMethodtype, int withNomixins, 
+				     int withMethodtype, int withNomixins, 
 				     int withIncontext, char *pattern) {
 
-  return ListMethods(interp, object, pattern, withDefined, 1, 
+  return ListMethods(interp, object, pattern, 1 /*withDefined*/, 1 /* per-object */, 
+		     AggregatedMethodType(withMethodtype), withNomixins, withIncontext);
+}
+/* todo move me to the right place 
+   cleanup withDefined (above always 1)
+   xxxx */
+static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object, 
+                                      int withWhich, int withMethodtype, int withNomixins, 
+                                      int withIncontext, char *pattern) {
+  if (withWhich) {
+    XOTclClass *pcl = NULL;
+    Tcl_Command cmd = ObjectFindMethod(interp, object, pattern, &pcl);
+    if (cmd) {
+      XOTclObject *pobj = pcl ? &pcl->object : object;
+      int perObject = (pcl == NULL);
+      ListMethod(interp, pobj, pattern, cmd, InfomethodsubcmdDefinitionIdx, perObject);
+      return TCL_OK;
+    }
+  }
+
+  return ListMethods(interp, object, pattern, 0 /* withDefined */, 1 /* per-object */, 
 		     AggregatedMethodType(withMethodtype), withNomixins, withIncontext);
 }
 

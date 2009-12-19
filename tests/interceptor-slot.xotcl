@@ -20,7 +20,7 @@ Class create M {
 }
 Class create M2
 Class create C 
-? {C procsearch mixin} "::xotcl2::Object instforward mixin"
+? {C info callable -which mixin} "::xotcl2::Object forward mixin ::xotcl2::Object::slot::mixin {%1 {get assign}} %self {%-per-object 0} %proc"
 C mixin M
 ? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
 ? {C mixin} "::M"

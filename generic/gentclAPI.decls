@@ -161,9 +161,6 @@ objectMethod __next XOTclONextMethod {
 }
 objectMethod noinit XOTclONoinitMethod {
 }
-objectMethod procsearch XOTclOProcSearchMethod {
-  {-argName "name" -required 1}
-}
 objectMethod requireNamespace XOTclORequireNamespaceMethod {
 }
 objectMethod residualargs XOTclOResidualargsMethod {
@@ -306,9 +303,17 @@ infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "name"}
 }
 
+infoObjectMethod callable XOTclObjInfoCallableMethod {
+  {-argName "object" -type object}
+  {-argName "-which"}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|system|alias|forwarder|object|setter"}
+  {-argName "-nomixins"}
+  {-argName "-incontext"}
+  {-argName "pattern" -required 0}
+}
+
 infoObjectMethod methods XOTclObjInfoMethodsMethod {
   {-argName "object" -type object}
-  {-argName "-defined"}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|system|alias|forwarder|object|setter"}
   {-argName "-nomixins"}
   {-argName "-incontext"}
@@ -317,7 +322,6 @@ infoObjectMethod methods XOTclObjInfoMethodsMethod {
 ### TODO move finally to infoclassmethod
 infoClassMethod methods XOTclClassInfoMethodsMethod {
   {-argName "object" -type class}
-  {-argName "-defined"}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|system|alias|forwarder|object|setter"}
   {-argName "-nomixins"}
   {-argName "-incontext"}
