@@ -9858,9 +9858,10 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int meth
   char *key;
   int new;
 
-#if 1
   if (pattern && noMetaChars(pattern)) {
-    /* We have a pattern that can be used for direct lookup; no need to iterate */
+    /* We have a pattern that can be used for direct lookup; 
+     * no need to iterate 
+     */
     hPtr = table ? XOTcl_FindHashEntry(table, pattern) : 0;
     if (hPtr) {
       key = Tcl_GetHashKey(table, hPtr);
@@ -9879,9 +9880,6 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int meth
     return TCL_OK;
 
   } else {
-#else
-    {
-#endif
     hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : 0;
 
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -9974,24 +9972,26 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int withDef
 }
 
 static int
-ListMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
-            int withDefined, int withPer_object, int methodType,
-            int noMixins, int inContext) {
+ListDefinedMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
+                   int withPer_object, int methodType,
+                   int noMixins, int inContext) {
+  Tcl_HashTable *cmdTable;
+
+  if (XOTclObjectIsClass(object) && !withPer_object) {
+    cmdTable = Tcl_Namespace_cmdTable(((XOTclClass *)object)->nsPtr);
+  } else {
+    cmdTable = object->nsPtr ? Tcl_Namespace_cmdTable(object->nsPtr) : NULL;
+  }
+  ListMethodKeys(interp, cmdTable, pattern, methodType, NULL, object, withPer_object);
+  return TCL_OK;
+}
+
+static int
+ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
+                    int withPer_object, int methodType,
+                    int noMixins, int inContext) {
   XOTclClasses *pl;
   Tcl_HashTable *cmdTable, dupsTable, *dups = &dupsTable;
-
-
-  /*fprintf(stderr, "listMethods %s %d %d\n", pattern, noMixins, inContext);*/
-
-  if (withDefined) {
-    if (XOTclObjectIsClass(object) && !withPer_object) {
-      cmdTable = Tcl_Namespace_cmdTable(((XOTclClass *)object)->nsPtr);
-    } else {
-      cmdTable = object->nsPtr ? Tcl_Namespace_cmdTable(object->nsPtr) : NULL;
-    }
-    ListMethodKeys(interp, cmdTable, pattern, methodType, NULL, object, withPer_object);
-    return TCL_OK;
-  }
 
   /* 
    * TODO: we could make this faster for patterns without metachars 
@@ -12636,14 +12636,14 @@ static int XOTclClassInfoMethodsMethod(Tcl_Interp *interp, XOTclClass *class,
 				     int withMethodtype, int withNomixins, 
 				     int withIncontext, char *pattern) {
 
-  return ListMethods(interp, &class->object, pattern, 1 /*withDefined*/, 0 /* per-object */, 
+  return ListDefinedMethods(interp, &class->object, pattern, 0 /* per-object */, 
 		     AggregatedMethodType(withMethodtype), withNomixins, withIncontext);
 }
 static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, 
 				     int withMethodtype, int withNomixins, 
 				     int withIncontext, char *pattern) {
 
-  return ListMethods(interp, object, pattern, 1 /*withDefined*/, 1 /* per-object */, 
+  return ListDefinedMethods(interp, object, pattern, 1 /* per-object */, 
 		     AggregatedMethodType(withMethodtype), withNomixins, withIncontext);
 }
 /* todo move me to the right place 
@@ -12663,7 +12663,7 @@ static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object,
     }
   }
 
-  return ListMethods(interp, object, pattern, 0 /* withDefined */, 1 /* per-object */, 
+  return ListCallableMethods(interp, object, pattern, 1 /* per-object */, 
 		     AggregatedMethodType(withMethodtype), withNomixins, withIncontext);
 }
 
