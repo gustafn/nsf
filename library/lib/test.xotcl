@@ -36,7 +36,7 @@ namespace eval ::xotcl::test {
   } {
     set .count 0
 
-    .method -per-object new args {
+    .method -per-object -public new args {
       if {[info exists .case]} {
 	if {![info exists .ccount(${.case})]} {set .ccount(${.case}) 0}
 	set .name ${.case}.[format %.3d [incr .ccount(${.case})]]
@@ -46,7 +46,7 @@ namespace eval ::xotcl::test {
       eval .create ${.name} -name ${.name} $args
     }
 
-    .method -per-object run {} {
+    .method -per-object -public run {} {
       set startTime [clock clicks -milliseconds]
       foreach example [lsort [.info instances -closure]] {
 	$example run
@@ -54,12 +54,12 @@ namespace eval ::xotcl::test {
       puts stderr "Total Time: [expr {[clock clicks -milliseconds]-$startTime}] ms"
     }
 
-    .method call {msg cmd} {
+    .method -public call {msg cmd} {
       if {[.verbose]} {puts stderr "$msg: $cmd"}
       namespace eval [set .namespace] $cmd
     }
    
-    .method run args {
+    .method -public run args {
       if {[info exists .pre]} {.call "pre" ${.pre}}
       if {![info exists .msg]} {set .msg ${.cmd}}
       set r [.call "run" ${.cmd}]

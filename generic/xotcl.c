@@ -5774,16 +5774,17 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
        we call as well the unknown method */
 
     if ((Tcl_Command_flags(cmd) & XOTCL_CMD_PROTECTED_METHOD) &&
-	(flags & XOTCL_CM_NO_UNKNOWN) == 0) {
+	(flags & (XOTCL_CM_NO_UNKNOWN|XOTCL_CM_NO_PROTECT)) == 0) {
       XOTclObject *o, *lastSelf = GetSelfObj(interp);
 
       /* we do not want to rely on clientData, so get obj from cmdObj */
       GetObjectFromObj(interp, cmdObj, &o);
-      /*fprintf(stderr, "+++ %s is protected, therefore maybe unknown %p %s self=%p o=%p cd %p\n",
-        methodName, cmdObj, ObjStr(cmdObj), lastSelf, o, clientData);*/
       if (o != lastSelf) {
 	/*fprintf(stderr, "+++ protected method %s is not invoked\n", methodName);*/
 	unknown = 1;
+        fprintf(stderr, "+++ %s is protected, therefore maybe unknown %p %s lastself=%p o=%p cd %p flags = %.6x\n",
+                methodName, cmdObj, ObjStr(cmdObj), lastSelf, o, clientData, flags);
+        tcl85showStack(interp);
       }
     }
 
@@ -6310,7 +6311,7 @@ ParamDefsParse(Tcl_Interp *interp, char *procName, Tcl_Obj *args, int allowedOpt
 static int
 MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
          Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition,
-         Tcl_Obj *postcondition, XOTclObject *obj, int withProtected, int clsns) {
+         Tcl_Obj *postcondition, XOTclObject *obj, int withPublic, int clsns) {
   TclCallFrame frame, *framePtr = &frame;
   char *procName = ObjStr(nameObj);
   XOTclParsedParam parsedParam;
@@ -6382,7 +6383,7 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
     }
 
     ParamDefsStore(interp, (Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs);
-    if (withProtected) {
+    if (!withPublic) {
       Tcl_Command_flags((Tcl_Command)procPtr->cmdPtr) |= XOTCL_CMD_PROTECTED_METHOD;
     }
   }
@@ -6406,7 +6407,7 @@ static int
 MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameObj,
            Tcl_Obj *args, Tcl_Obj *body,
            Tcl_Obj *precondition, Tcl_Obj *postcondition,
-           int withProtected, int clsns) {
+           int withPublic, int clsns) {
   char *argsStr = ObjStr(args), *bodyStr = ObjStr(body), *nameStr = ObjStr(nameObj);
   int result;
 
@@ -6439,7 +6440,7 @@ MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameOb
     }
     result = MakeProc(cl ? cl->nsPtr : obj->nsPtr, aStore,
 		      interp, nameObj, args, body, precondition, postcondition,
-		      obj, withProtected, clsns);
+		      obj, withPublic, clsns);
   }
 
   if (cl) {
@@ -7858,7 +7859,9 @@ doCleanup(Tcl_Interp *interp, XOTclObject *newObj, XOTclObject *classobj,
     /*
      * dispatch "cleanup"
      */
-    result = callMethod((ClientData) newObj, interp, XOTclGlobalObjects[XOTE_CLEANUP], 2, 0, 0);
+    result = callMethod((ClientData) newObj, interp, 
+                        XOTclGlobalObjects[XOTE_CLEANUP], 
+                        2, 0, XOTCL_CM_NO_PROTECT);
   }
   return result;
 }
@@ -7904,7 +7907,7 @@ doObjInitialization(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CON
     INCR_REF_COUNT(resultObj);
     Tcl_ListObjGetElements(interp, resultObj, &nobjc, &nobjv);
     result = callMethod((ClientData) obj, interp, XOTclGlobalObjects[XOTE_INIT],
-			nobjc+2, nobjv, 0);
+			nobjc+2, nobjv, XOTCL_CM_NO_PROTECT);
     obj->flags |= XOTCL_INIT_CALLED;
     DECR_REF_COUNT(resultObj);
   }
@@ -8641,7 +8644,7 @@ callForwarder(forwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
 
   if (tcd->verbose) {
     Tcl_Obj *cmd = Tcl_NewListObj(objc, objv);
-    fprintf(stderr, "calling %s\n", ObjStr(cmd));
+    fprintf(stderr, "forwarder calls '%s'\n", ObjStr(cmd));
     DECR_REF_COUNT(cmd);
   }
   if (tcd->objscope) {
@@ -9132,7 +9135,7 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, char *specifiedName, int objc, 
 
     /* call recreate --> initialization */
     result = callMethod((ClientData) cl, interp,
-                        XOTclGlobalObjects[XOTE_RECREATE], objc+1, tov+1, 0);
+                        XOTclGlobalObjects[XOTE_RECREATE], objc+1, tov+1, XOTCL_CM_NO_PROTECT);
     if (result != TCL_OK)
       goto create_method_exit;
 
@@ -9813,6 +9816,21 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
 }
 
 static int
+ProtectionMatches(Tcl_Interp *interp, int withCallprotection, Tcl_Command cmd) {
+  int result, isProtected = Tcl_Command_flags(cmd) & XOTCL_CMD_PROTECTED_METHOD;
+  if (withCallprotection == CallprotectionNULL) {
+    withCallprotection = CallprotectionPublicIdx;
+  }
+  switch (withCallprotection) {
+  case CallprotectionAllIdx: result = 1; break;
+  case CallprotectionPublicIdx: result = (isProtected == 0); break;
+  case CallprotectionProtectedIdx: result = (isProtected == 1); break;
+  default: result = 1;
+  }
+  return result;
+}
+
+static int
 MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd, 
                   XOTclObject *object, char *key, int withPer_object) {
   Tcl_Command importedCmd;
@@ -9850,7 +9868,8 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
 }
 
 static int
-ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int methodType,
+ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, 
+               int methodType, int withCallprotection,
                Tcl_HashTable *dups, XOTclObject *object, int withPer_object) {
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr, *duphPtr;
@@ -9866,7 +9885,9 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int meth
     if (hPtr) {
       key = Tcl_GetHashKey(table, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
-      if (MethodTypeMatches(interp, methodType, cmd, object, key, withPer_object)) {
+
+      if (ProtectionMatches(interp, withCallprotection, cmd) 
+          && MethodTypeMatches(interp, methodType, cmd, object, key, withPer_object)) {
         if (dups) {
           duphPtr = Tcl_CreateHashEntry(dups, key, &new);
           if (new) {
@@ -9875,7 +9896,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int meth
         } else {
           Tcl_AppendElement(interp, key);
         }
-      } 
+      }
     }
     return TCL_OK;
 
@@ -9887,16 +9908,13 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int meth
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
 
       if (pattern && !Tcl_StringMatch(key, pattern)) continue;
-      if (!MethodTypeMatches(interp, methodType, cmd, object, key, withPer_object)) continue;
+      if (!ProtectionMatches(interp, withCallprotection, cmd)
+          || !MethodTypeMatches(interp, methodType, cmd, object, key, withPer_object)
+          ) continue;
       
       if (dups) {
         duphPtr = Tcl_CreateHashEntry(dups, key, &new);
         if (!new) continue;
-      }
-      
-      if (((Command *) cmd)->flags & XOTCL_CMD_PROTECTED_METHOD) {
-        /*fprintf(stderr, "--- dont list protected name '%s'\n", key);*/
-        continue;
       }
       Tcl_AppendElement(interp, key);
     }
@@ -9968,12 +9986,12 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int withDef
     }
     return XOTclVarErrMsg(interp, "'", pattern, "' is not a forwarder", (char *) NULL);
   }
-  return ListMethodKeys(interp, table, pattern, XOTCL_METHODTYPE_FORWARDER, NULL, NULL, 0);
+  return ListMethodKeys(interp, table, pattern, XOTCL_METHODTYPE_FORWARDER, CallprotectionAllIdx, NULL, NULL, 0);
 }
 
 static int
 ListDefinedMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
-                   int withPer_object, int methodType,
+                   int withPer_object, int methodType, int withCallproctection,
                    int noMixins, int inContext) {
   Tcl_HashTable *cmdTable;
 
@@ -9982,13 +10000,14 @@ ListDefinedMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
   } else {
     cmdTable = object->nsPtr ? Tcl_Namespace_cmdTable(object->nsPtr) : NULL;
   }
-  ListMethodKeys(interp, cmdTable, pattern, methodType, NULL, object, withPer_object);
+  ListMethodKeys(interp, cmdTable, pattern, methodType, withCallproctection, 
+                 NULL, object, withPer_object);
   return TCL_OK;
 }
 
 static int
 ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
-                    int withPer_object, int methodType,
+                    int withPer_object, int methodType, int withCallprotection,
                     int noMixins, int inContext) {
   XOTclClasses *pl;
   Tcl_HashTable *cmdTable, dupsTable, *dups = &dupsTable;
@@ -9999,11 +10018,15 @@ ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
    * we wait, until the we decided about "info methods defined" 
    * vs. "info method search" vs. "info defined" etc.
    */
+  if (withCallprotection == CallprotectionNULL) {
+    withCallprotection = CallprotectionAllIdx;
+  }
 
   Tcl_InitHashTable(dups, TCL_STRING_KEYS);
   if (object->nsPtr) {
     cmdTable = Tcl_Namespace_cmdTable(object->nsPtr);
-    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, object, withPer_object);
+    ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
+                   dups, object, withPer_object);
   }
 
   if (!noMixins) {
@@ -10022,7 +10045,8 @@ ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
         }
         if (mixin && guardOk == TCL_OK) {
           Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(mixin->nsPtr);
-          ListMethodKeys(interp, cmdTable, pattern, methodType, dups, object, withPer_object);
+          ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
+                         dups, object, withPer_object);
         }
       }
     }
@@ -10031,7 +10055,8 @@ ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
   /* append per-class filters */
   for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
     Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(pl->cl->nsPtr);
-    ListMethodKeys(interp, cmdTable, pattern, methodType, dups, object, withPer_object);
+    ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
+                   dups, object, withPer_object);
   }
   Tcl_DeleteHashTable(dups);
   return TCL_OK;
@@ -11577,7 +11602,9 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
      * There is no parameter definition available, get a new one in
      * the the string representation.
      */
-    result = callMethod((ClientData) obj, interp, XOTclGlobalObjects[XOTE_OBJECTPARAMETER], 2, 0, 0);
+    /*fprintf(stderr, "calling %s objectparameter\n",objectName(obj));*/
+    result = callMethod((ClientData) obj, interp, XOTclGlobalObjects[XOTE_OBJECTPARAMETER], 
+                        2, 0, XOTCL_CM_NO_PROTECT);
     if (result == TCL_OK) {
       rawConfArgs = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(rawConfArgs);
@@ -12426,29 +12453,29 @@ static int XOTclOSetterMethod(Tcl_Interp *interp, XOTclObject *object, char *nam
 
 /* TODO move me at the right place */
 static int XOTclOMethodMethod(Tcl_Interp *interp, XOTclObject *obj,
-                              int withInner_namespace, int withProtected,
+                              int withInner_namespace, int withPublic,
                               Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
                               Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
   requireObjNamespace(interp, obj);
   return MakeMethod(interp, obj, NULL, name, args, body,
                     withPrecondition, withPostcondition,
-                    withProtected, withInner_namespace);
+                    withPublic, withInner_namespace);
 }
 
 /* TODO move me at the right place */
 static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl,
-                              int withInner_namespace, int withPer_object, int withProtected,
+                              int withInner_namespace, int withPer_object, int withPublic,
                               Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
                               Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
   if (withPer_object) {
     requireObjNamespace(interp, &cl->object);
     return MakeMethod(interp, &cl->object, NULL, name, args, body,
                       withPrecondition, withPostcondition,
-                      withProtected, withInner_namespace);
+                      withPublic, withInner_namespace);
   } else {
     return MakeMethod(interp, &cl->object, cl, name, args, body,
                       withPrecondition, withPostcondition,
-                      withProtected, withInner_namespace);
+                      withPublic, withInner_namespace);
   }
 }
 
@@ -12633,25 +12660,26 @@ static int AggregatedMethodType(int methodType) {
 }
 
 static int XOTclClassInfoMethodsMethod(Tcl_Interp *interp, XOTclClass *class, 
-				     int withMethodtype, int withNomixins, 
-				     int withIncontext, char *pattern) {
-
+                                       int withMethodtype, int withCallproctection,
+                                       int withNomixins, int withIncontext, char *pattern) {
   return ListDefinedMethods(interp, &class->object, pattern, 0 /* per-object */, 
-		     AggregatedMethodType(withMethodtype), withNomixins, withIncontext);
+                            AggregatedMethodType(withMethodtype), withCallproctection,
+                            withNomixins, withIncontext);
 }
 static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, 
-				     int withMethodtype, int withNomixins, 
-				     int withIncontext, char *pattern) {
-
+				     int withMethodtype, int withCallproctection,
+                                     int withNomixins, int withIncontext, char *pattern) {
   return ListDefinedMethods(interp, object, pattern, 1 /* per-object */, 
-		     AggregatedMethodType(withMethodtype), withNomixins, withIncontext);
+                            AggregatedMethodType(withMethodtype), withCallproctection,
+                            withNomixins, withIncontext);
 }
+
 /* todo move me to the right place 
    cleanup withDefined (above always 1)
    xxxx */
 static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object, 
-                                      int withWhich, int withMethodtype, int withNomixins, 
-                                      int withIncontext, char *pattern) {
+                                      int withWhich, int withMethodtype, int withCallprotection,
+                                      int withNomixins, int withIncontext, char *pattern) {
   if (withWhich) {
     XOTclClass *pcl = NULL;
     Tcl_Command cmd = ObjectFindMethod(interp, object, pattern, &pcl);
@@ -12664,7 +12692,8 @@ static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object,
   }
 
   return ListCallableMethods(interp, object, pattern, 1 /* per-object */, 
-		     AggregatedMethodType(withMethodtype), withNomixins, withIncontext);
+                             AggregatedMethodType(withMethodtype), withCallprotection,
+                             withNomixins, withIncontext);
 }
 
 static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object, 

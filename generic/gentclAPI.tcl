@@ -61,6 +61,13 @@ proc genifd {parameterDefinitions} {
         set (-argName) $type
       }
     }
+    # this does not work, since initializer element is not constant.
+#     if {[info exists (-default)]} {
+#       puts stderr "default of $argName = '$(-default)'"
+#       set default ", Tcl_NewStringObj(\"$(-default)\",-1)"
+#     } else {
+#       set default ""
+#     }
     lappend l "{\"$argName\", $(-required), $(-nrargs), convertTo$converter}"
   }
   join $l ",\n  "

@@ -315,6 +315,7 @@ typedef struct XOTclMemCounter {
 /* flags for call method */
 #define XOTCL_CM_NO_UNKNOWN 1
 #define XOTCL_CM_NO_SHIFT   2
+#define XOTCL_CM_NO_PROTECT 4
 
 /*
  *

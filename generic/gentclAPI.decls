@@ -65,7 +65,7 @@ xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "methodName" -required 1}
   {-argName "-per-object"}
-  {-argName "methodproperty" -required 1 -type "protected|static|slotobj"}
+  {-argName "methodproperty" -required 1 -type "protected|public|static|slotobj"}
   {-argName "value" -type tclobj}
 }
 xotclCmd my XOTclMyCmd {
@@ -145,7 +145,7 @@ objectMethod invar XOTclOInvariantsMethod {
 }
 objectMethod method XOTclOMethodMethod {
   {-argName "-inner-namespace"}
-  {-argName "-protected"}
+  {-argName "-public"}
   {-argName "name" -required 1 -type tclobj}
   {-argName "args" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
@@ -214,7 +214,7 @@ classMethod mixinguard XOTclCMixinGuardMethod {
 classMethod method XOTclCMethodMethod {
   {-argName "-inner-namespace" -type switch}
   {-argName "-per-object" -type switch}
-  {-argName "-protected"}
+  {-argName "-public"}
   {-argName "name" -required 1 -type tclobj}
   {-argName "args" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
@@ -234,7 +234,7 @@ classMethod forward XOTclCForwardMethod {
   {-argName "args" -type args}
 }
 # todo -protected for XOTclCInstForwardMethod
-classMethod invalidateobjectparameter XOTclCInvalidateObjectParameterMethod {
+classMethod __invalidateobjectparameter XOTclCInvalidateObjectParameterMethod {
 }
 classMethod recreate XOTclCRecreateMethod {
   {-argName "name" -required 1 -type tclobj}
@@ -307,6 +307,7 @@ infoObjectMethod callable XOTclObjInfoCallableMethod {
   {-argName "object" -type object}
   {-argName "-which"}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|system|alias|forwarder|object|setter"}
+  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern" -required 0}
@@ -315,6 +316,7 @@ infoObjectMethod callable XOTclObjInfoCallableMethod {
 infoObjectMethod methods XOTclObjInfoMethodsMethod {
   {-argName "object" -type object}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|system|alias|forwarder|object|setter"}
+  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern"}
@@ -323,6 +325,7 @@ infoObjectMethod methods XOTclObjInfoMethodsMethod {
 infoClassMethod methods XOTclClassInfoMethodsMethod {
   {-argName "object" -type class}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|system|alias|forwarder|object|setter"}
+  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern"}

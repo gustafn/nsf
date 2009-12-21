@@ -35,9 +35,10 @@ Class create C {
 }
 C create c1
 
-? {lsort [C info methods]} "a addOne m m-with-assertions s"
-foreach m [lsort [C info methods]] {
-  ? {lsort [c1 info callable $m]} $m
+? {lsort [C info methods -callprotection all]} "a addOne m m-with-assertions s"
+? {lsort [C info methods]} "a addOne s"
+foreach m [lsort [C info methods -callprotection all]] {
+  ? [subst -nocommands {lsort [c1 info callable $m]}] $m
 }
 ? {C info method definition a} "::C alias a ::set"
 ? {c1 info callable -which a} "::C alias a ::set"

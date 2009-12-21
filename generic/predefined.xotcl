@@ -18,7 +18,7 @@ namespace eval xotcl2 {
   foreach cmd [info command ::xotcl::cmd::Object::*] {
     ::xotcl::alias Object [namespace tail $cmd] $cmd 
   }
-
+  
   # provide some Tcl-commands as methods for ::xotcl2::Object
   #foreach cmd {array append eval incr lappend set subst unset trace} {
   #  ::xotcl::alias Object $cmd -objscope ::$cmd
@@ -28,6 +28,15 @@ namespace eval xotcl2 {
   foreach cmd [info command ::xotcl::cmd::Class::*] {
     ::xotcl::alias Class [namespace tail $cmd] $cmd 
   }
+
+  # set a few aliases as protected
+  foreach cmd [list __next cleanup  noinit residualargs] {
+    ::xotcl::methodproperty Object $cmd protected 1
+  }
+  foreach cmd [list recreate] {
+    ::xotcl::methodproperty Class $cmd protected 1
+  }
+  # TODO: info methods shows finally "slots" and "slot". Wanted?
 
   # protect some methods against redefinition
   ::xotcl::methodproperty Object destroy static true
@@ -66,16 +75,16 @@ namespace eval xotcl2 {
   # Add an alias method. cmdName for XOTcl method can be added via
   #   [... info method name <methodName>]
 
-  ::xotcl::alias Object $cmd -objscope ::$cmd
+  #::xotcl::alias Object $cmd -objscope ::$cmd
 
-  Object method alias {-objscope:switch -protected:switch methodName cmd} {
+  Object method -public alias {-objscope:switch -protected:switch methodName cmd} {
     ::xotcl::alias [self] $methodName \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         {*}[expr {${protected} ? "-protected" : ""}] \
         $cmd
   }
 
-  Class method alias {-objscope:switch -per-object:switch -protected:switch methodName cmd} {
+  Class method -public alias {-objscope:switch -per-object:switch -protected:switch methodName cmd} {
     ::xotcl::alias [self] $methodName \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         {*}[expr {${per-object} ? "-per-object" : ""}] \
@@ -96,7 +105,7 @@ namespace eval xotcl2 {
   ::xotcl::dispatch objectInfo -objscope ::eval {
     .alias is ::xotcl::is
 
-    .method info {obj} {
+    .method -public info {obj} {
       set methods [list]
       foreach name [::xotcl::cmd::ObjectInfo::methods [self]] {
         if {$name eq "unknown"} continue
@@ -193,7 +202,7 @@ namespace eval xotcl2 {
 ::xotcl2::Class create ::xotcl::MetaSlot
 ::xotcl::relation ::xotcl::MetaSlot superclass ::xotcl2::Class
 
-::xotcl::MetaSlot method new args {
+::xotcl::MetaSlot method -public new args {
   set slotobject [::xotcl::self callingobject]::slot
   if {![::xotcl::is $slotobject object]} {::xotcls::Object create $slotobject}
   eval next -childof $slotobject $args
@@ -202,7 +211,7 @@ namespace eval xotcl2 {
 ::xotcl::MetaSlot create ::xotcl::Slot
 # We have no working objectparameter yet. So invalidate MetaSlot to
 # avoid caching.
-::xotcl::MetaSlot invalidateobjectparameter
+::xotcl::MetaSlot __invalidateobjectparameter
 
 #foreach o {::xotcl::MetaSlot ::xotcl2::Slot} {
 #  foreach r {object class metaclass} {
@@ -313,8 +322,8 @@ proc createBootstrapAttributeSlots {class definitions} {
       unset default
     }
   }
-  #puts stderr "Bootstrapslot for $class calls invalidateobjectparameter"
-  $class invalidateobjectparameter
+  #puts stderr "Bootstrapslot for $class calls __invalidateobjectparameter"
+  $class __invalidateobjectparameter
 }
 
 
@@ -341,7 +350,7 @@ createBootstrapAttributeSlots ::xotcl::Slot {
 ::xotcl::alias ::xotcl::Slot get ::xotcl::setinstvar
 ::xotcl::alias ::xotcl::Slot assign ::xotcl::setinstvar
 
-::xotcl::Slot method add {obj prop value {pos 0}} {
+::xotcl::Slot method -public add {obj prop value {pos 0}} {
   if {![set .multivalued]} {
     error "Property $prop of [set .domain]->$obj ist not multivalued"
   }
@@ -350,9 +359,8 @@ createBootstrapAttributeSlots ::xotcl::Slot {
   } else {
     ::xotcl::setinstvar $obj $prop [list $value]
   }
-  #[set .domain] invalidateobjectparameter  ;# TODO maybe not needed here
 }
-::xotcl::Slot method delete {-nocomplain:switch obj prop value} {
+::xotcl::Slot method -public delete {-nocomplain:switch obj prop value} {
   set old [::xotcl::setinstvar $obj $prop]
   set p [lsearch -glob $old $value]
   if {$p>-1} {::xotcl::setinstvar $obj $prop [lreplace $old $p $p]} else {
@@ -370,9 +378,9 @@ createBootstrapAttributeSlots ::xotcl::Slot {
   error "Method '$method' unknown for slot [::xotcl::self]; valid are: {[lsort $methods]]}"
 }
 
-::xotcl::Slot method destroy {} {
+::xotcl::Slot method -public destroy {} {
   if {${.domain} ne ""} {
-    ${.domain} invalidateobjectparameter
+    ${.domain} __invalidateobjectparameter
   }
   next
 }
@@ -382,7 +390,7 @@ createBootstrapAttributeSlots ::xotcl::Slot {
     set .domain [::xotcl::self callingobject]
   }
   if {${.domain} ne ""} {
-    ${.domain} invalidateobjectparameter
+    ${.domain} __invalidateobjectparameter
     # since the domain object might be xotcl1 or xotcl2, use dispatch
     
     ::xotcl::dispatch ${.domain} ::xotcl::cmd::Class::forward \
@@ -403,17 +411,17 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
   {elementtype ::xotcl2::Class}
 }
 ::xotcl::relation ::xotcl::InfoSlot superclass ::xotcl::Slot
-::xotcl::InfoSlot method get {obj prop} {
+::xotcl::InfoSlot method -public get {obj prop} {
     $obj info $prop
 }
-::xotcl::InfoSlot method add {obj prop value {pos 0}} {
+::xotcl::InfoSlot method -public add {obj prop value {pos 0}} {
   if {![set .multivalued]} {
     error "Property $prop of ${.domain}->$obj ist not multivalued"
   }
   puts stderr "adding infoslot: $obj $prop [linsert [$obj info $prop] $pos $value]"
   $obj $prop [linsert [$obj info $prop] $pos $value]
 }
-::xotcl::InfoSlot method delete {-nocomplain:switch obj prop value} {
+::xotcl::InfoSlot method -public delete {-nocomplain:switch obj prop value} {
   puts stderr infoslot-delete-[self args]
   set old [$obj info $prop]
   if {[string first * $value] > -1 || [string first \[ $value] > -1} {
@@ -451,10 +459,10 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
 ::xotcl::alias ::xotcl::InterceptorSlot set ::xotcl::relation ;# for backwards compatibility
 ::xotcl::alias ::xotcl::InterceptorSlot assign ::xotcl::relation
 
-::xotcl::InterceptorSlot method get {obj -per-object:switch prop} {
+::xotcl::InterceptorSlot method -public get {obj -per-object:switch prop} {
   ::xotcl::relation $obj {*}[expr {${per-object} ? "-per-object" : ""}] $prop
 }
-::xotcl::InterceptorSlot method add {obj -per-object:switch prop value {pos 0}} {
+::xotcl::InterceptorSlot method -public add {obj -per-object:switch prop value {pos 0}} {
   if {![set .multivalued]} {
     error "Property $prop of ${.domain}->$obj ist not multivalued"
   }
@@ -489,7 +497,7 @@ proc ::xotcl::register_system_slots {os} {
 ############################################
 # Attribute slots
 ############################################
-::xotcl::MetaSlot invalidateobjectparameter
+::xotcl::MetaSlot __invalidateobjectparameter
 ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::xotcl::Slot
 
 createBootstrapAttributeSlots ::xotcl::Attribute {
@@ -588,12 +596,10 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
 }
 # mixin class for optimizing slots
 ::xotcl2::Class create ::xotcl::Slot::Optimizer {
-  .method proc args    {::xotcl::next; .optimize}
+  .method method args  {::xotcl::next; .optimize}
   .method forward args {::xotcl::next; .optimize}
   .method init args    {::xotcl::next; .optimize}
-  .method optimize {} {
-    #puts stderr "slot optimizer for ${.domain} calls invalidateobjectparameter"
-    #${.domain} invalidateobjectparameter
+  .method -public optimize {} {
     if {[set .multivalued]} return
     if {[set .defaultmethods] ne {get assign}} return
     #puts stderr assign=[.info callable -which assign]
@@ -618,7 +624,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 }
 
 ::xotcl::ScopedNew method init {} {
-  .method new {-childof args} {
+  .method -public new {-childof args} {
     ::xotcl::instvar -object [::xotcl::self class] {inobject object} withclass
     if {![::xotcl::is $object object]} {
       $withclass create $object
@@ -632,7 +638,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 # nested object structures. Optionally, creating new objects
 # in the specified scope can be turned off.
 #
-::xotcl2::Object method contains {
+::xotcl2::Object method -public contains {
    {-withnew:boolean true}
    -object
    {-class ::xotcl2::Object}
@@ -658,7 +664,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 # Define method "parameter" for backward 
 # compatibility and convenience
 ############################################
-::xotcl2::Class method parameter arglist {
+::xotcl2::Class method -public parameter arglist {
   if {![::xotcl::is [::xotcl::self]::slot object]} {
     ::xotcl2::Object create [::xotcl::self]::slot
   }
@@ -715,7 +721,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 	if {![info exists setter]} {set setter set}
 	if {![info exists getter]} {set getter set}
 	if {![info exists access]} {set access ::xotcl::my}
-	$cl method $name args "
+	$cl method -public $name args "
          if {\[llength \$args] == 0} {
            return \[$access $getter $extra $name\]
          } else {
@@ -853,7 +859,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
     }
   }
   
-  .method copy {obj dest} {
+  .method -public copy {obj dest} {
     #puts stderr "[::xotcl::self] copy <$obj> <$dest>"
     set .objLength [string length $obj]
     set .dest $dest
@@ -862,13 +868,13 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
   }
 }
 
-::xotcl2::Object method copy newName {
+::xotcl2::Object method -public copy newName {
   if {[string compare [string trimleft $newName :] [string trimleft [::xotcl::self] :]]} {
     [::xotcl::CopyHandler new -volatile] copy [::xotcl::self] $newName
   }
 }
 
-::xotcl2::Object method move newName {
+::xotcl2::Object method -public move newName {
   if {[string trimleft $newName :] ne [string trimleft [::xotcl::self] :]} {
     if {$newName ne ""} {
       .copy $newName

@@ -32,21 +32,21 @@ namespace eval ::xotcl {
   ::xotcl::methodproperty Class  dealloc static true
   ::xotcl::methodproperty Class  create  static true
 
-  Class method unknown {args} {
+  Class method -public unknown {args} {
     #puts stderr "use '[self] create $args', not '[self] $args'"
     eval my create $args
   }
 
-  Object method unknown {m args} {
+  Object method -public unknown {m args} {
     if {![self isnext]} {
       error "[self]: unable to dispatch method '$m'"
     }
   }
 
   # "init" must exist on Object. per default it is empty.
-  Object method init args {}
+  Object method -public init args {}
 
-  Object method self {} {::xotcl::self}
+  Object method -public self {} {::xotcl::self}
 
   #
   # object-parameter definition, backwards compatible
@@ -121,7 +121,7 @@ namespace eval ::xotcl {
   Object forward info -onerror ::xotcl::infoError ::xotcl::objectInfo %1 {%@2 %self}
   Class  forward info -onerror ::xotcl::infoError ::xotcl::classInfo %1 {%@2 %self}
 
-  objectInfo method info {obj} {
+  objectInfo method -public info {obj} {
     set methods [list]
     foreach m [::info commands ::xotcl::objectInfo::*] {
       set name [namespace tail $m]
@@ -134,7 +134,7 @@ namespace eval ::xotcl {
     error "[::xotcl::self] unknown info option \"$method\"; [.info info]"
   }
 
-  classInfo method info {cl} {
+  classInfo method -public info {cl} {
     set methods [list]
     foreach m [::info commands ::xotcl::classInfo::*] {
       set name [namespace tail $m]
@@ -237,55 +237,55 @@ namespace eval ::xotcl {
     error "procedure \"$method\" doesn't have an argument \"$varName\""
   }
   classInfo eval {
-    .method instargs {o method} {::xotcl::info_args Class $o $method}
-    .method args     {o method} {::xotcl::info_args Object $o $method}
-    .method instnonposargs {o method} {::xotcl::info_nonposargs Class $o $method}
-    .method nonposargs     {o method} {::xotcl::info_nonposargs Object $o $method}
-    .method instdefault {o method arg var} {::xotcl::info_default Class $o $method $arg $var}
-    .method default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
+    .method -public instargs {o method} {::xotcl::info_args Class $o $method}
+    .method -public args     {o method} {::xotcl::info_args Object $o $method}
+    .method -public instnonposargs {o method} {::xotcl::info_nonposargs Class $o $method}
+    .method -public nonposargs     {o method} {::xotcl::info_nonposargs Object $o $method}
+    .method -public instdefault {o method arg var} {::xotcl::info_default Class $o $method $arg $var}
+    .method -public default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
     # info options emulated by "info method"
-    .method instbody    {o methodName} {
+    .method -public instbody    {o methodName} {
       lindex [::xotcl::cmd::ClassInfo::method $o definition $methodName] end
     }
-    .method instpre     {o methodName} {::xotcl::cmd::ClassInfo::method $o precondition  $methodName}
-    .method instpost    {o methodName} {::xotcl::cmd::ClassInfo::method $o postcondition $methodName}
+    .method -public instpre     {o methodName} {::xotcl::cmd::ClassInfo::method $o precondition  $methodName}
+    .method -public instpost    {o methodName} {::xotcl::cmd::ClassInfo::method $o postcondition $methodName}
 
     # info options emulated by "info methods"
-    .method instcommands {o {pattern:optional ""}} {
+    .method -public instcommands {o {pattern:optional ""}} {
       ::xotcl::cmd::ClassInfo::methods $o {*}$pattern
     }
-    .method instprocs   {o {pattern:optional ""}} {
+    .method -public instprocs   {o {pattern:optional ""}} {
       ::xotcl::cmd::ClassInfo::methods $o -methodtype scripted {*}$pattern
     }
-    .method parametercmd {o {pattern:optional ""}} {
+    .method -public parametercmd {o {pattern:optional ""}} {
       ::xotcl::cmd::ClassInfo::methods $o -per-object -methodtype setter {*}$pattern
     }
-    .method instparametercmd {o {pattern:optional ""}} {
+    .method -public instparametercmd {o {pattern:optional ""}} {
       ::xotcl::cmd::ClassInfo::methods $o -methodtype setter {*}$pattern
     }
   }
 
   objectInfo eval {
-    .method args        {o method} {::xotcl::info_args Object $o $method}
-    .method nonposargs  {o method} {::xotcl::info_nonposargs Object $o $method}
-    .method default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
+    .method -public args        {o method} {::xotcl::info_args Object $o $method}
+    .method -public nonposargs  {o method} {::xotcl::info_nonposargs Object $o $method}
+    .method -public default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
     # info options emulated by "info method"
-    .method body        {o methodName} {
+    .method -public body        {o methodName} {
       lindex [::xotcl::cmd::ObjectInfo::method $o definition $methodName] end
     }
-    .method pre         {o methodName} {::xotcl::cmd::ObjectInfo::method $o pre $methodName}
-    .method post        {o methodName} {::xotcl::cmd::ObjectInfo::method $o post $methodName}
+    .method -public pre         {o methodName} {::xotcl::cmd::ObjectInfo::method $o pre $methodName}
+    .method -public post        {o methodName} {::xotcl::cmd::ObjectInfo::method $o post $methodName}
 
     # info options emulated by "info methods"
-    .method commands    {o {pattern:optional ""}} {
+    .method -public commands    {o {pattern:optional ""}} {
       ::xotcl::cmd::ObjectInfo::methods $o {*}$pattern
     }
-    .method procs       {o {pattern:optional ""}} {
+    .method -public procs       {o {pattern:optional ""}} {
       ::xotcl::cmd::ObjectInfo::methods $o -methodtype scripted {*}$pattern
     }
-    .method methods {
+    .method -public methods {
       o -nocmds:switch -noprocs:switch -incontext:switch pattern:optional
     } {
       set methodtype all
@@ -306,9 +306,8 @@ namespace eval ::xotcl {
   }
   foreach cmd [::info command ::xotcl::cmd::ClassInfo::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "method" "methods" \
+    if {$cmdName in [list "forward" "method" "methods" \
                          "filter" "filterguard" \
-                         "forward" \
                          "mixin" "mixinguard"]} continue
     ::xotcl::alias ::xotcl::classInfo $cmdName $cmd
   }
@@ -333,11 +332,11 @@ namespace eval ::xotcl {
 
 
   # emulation of isobject, isclass ...
-  Object method isobject    {{object:substdefault "[self]"}} {::xotcl::is $object object}
-  Object method isclass     {{class:substdefault  "[self]"}} {::xotcl::is $class class}
-  Object method ismetaclass {{class:substdefault  "[self]"}} {::xotcl::is $class metaclass}
-  Object method ismixin     {class}  {::xotcl::is [self] mixin $class}
-  Object method istype      {class}  {::xotcl::is [self] type $class}
+  Object method -public isobject    {{object:substdefault "[self]"}} {::xotcl::is $object object}
+  Object method -public isclass     {{class:substdefault  "[self]"}} {::xotcl::is $class class}
+  Object method -public ismetaclass {{class:substdefault  "[self]"}} {::xotcl::is $class metaclass}
+  Object method -public ismixin     {class}  {::xotcl::is [self] mixin $class}
+  Object method -public istype      {class}  {::xotcl::is [self] type $class}
 
   ::xotcl::alias ::xotcl::Object contains ::xotcl::classes::xotcl2::Object::contains
   ::xotcl::Class forward slots %self contains \
@@ -349,22 +348,22 @@ namespace eval ::xotcl {
   # define parametercmd and instparametercmd in terms of setter
   # define mixinguard and instmixinguard in terms of mixinguard
   #
-  Object method proc {name arglist body precondition:optional postcondition:optional} {
-    set cmd [list my method $name $arglist $body]
+  Object method -public proc {name arglist body precondition:optional postcondition:optional} {
+    set cmd [list my method -public $name $arglist $body]
     if {[info exists precondition]}  {lappend cmd -precondition  $precondition}
     if {[info exists postcondition]} {lappend cmd -postcondition $postcondition}
     eval $cmd
   }
   ::xotcl::alias Object parametercmd ::xotcl::cmd::Object::setter
 
-  Class method proc {name arglist body precondition:optional postcondition:optional} {
-    set cmd [list my method -per-object $name $arglist $body]
+  Class method -public proc {name arglist body precondition:optional postcondition:optional} {
+    set cmd [list my method -public -per-object $name $arglist $body]
     if {[info exists precondition]}  {lappend cmd -precondition  $precondition}
     if {[info exists postcondition]} {lappend cmd -postcondition $postcondition}
     eval $cmd
   }
-  Class method instproc {name arglist body precondition:optional postcondition:optional} {
-    set cmd [list my method $name $arglist $body]
+  Class method -public instproc {name arglist body precondition:optional postcondition:optional} {
+    set cmd [list my method -public $name $arglist $body]
     if {[info exists precondition]}  {lappend cmd -precondition  $precondition}
     if {[info exists postcondition]} {lappend cmd -postcondition $postcondition}
     eval $cmd
@@ -383,7 +382,7 @@ namespace eval ::xotcl {
   ::xotcl::alias Class instforward      ::xotcl::cmd::Class::forward
   ::xotcl::alias Class forward          ::xotcl::cmd::Object::forward
 
-  Object method abstract {methtype methname arglist} {
+  Object method -public abstract {methtype methname arglist} {
     if {$methtype ne "proc" && $methtype ne "instproc" && $methtype ne "method"} {
       error "invalid method type '$methtype', \
 	must be either 'proc', 'instproc' or 'method'."
@@ -396,11 +395,11 @@ namespace eval ::xotcl {
   }
 
   # support for XOTcl 1.* specific convenience routines
-  Object method hasclass cl {
+  Object method -public hasclass cl {
     if {[::xotcl::is [self] mixin $cl]} {return 1}
     ::xotcl::is [self] type $cl
   }
-  Object method procsearch {name} {
+  Object method -public procsearch {name} {
     set definition [::xotcl::cmd::ObjectInfo::callable [self] -which $name]
     if {$definition ne ""} {
       foreach {obj kind arg} $definition break
@@ -417,15 +416,15 @@ namespace eval ::xotcl {
       return [list $obj $kind $name]
     }
   }
-  Class method allinstances {} {
+  Class method -public allinstances {} {
     # TODO: mark it deprecated
     return [.info instances -closure]
   }
 
   # keep old object interface for xotcl 1.*
-  Object method -per-object unsetExitHandler {} {::xotcl::unsetExitHandler $newbody}
-  Object method -per-object setExitHandler   {newbody} {::xotcl::setExitHandler $newbody}
-  Object method -per-object getExitHandler   {} {:xotcl::getExitHandler}
+  Object method -public -per-object unsetExitHandler {} {::xotcl::unsetExitHandler $newbody}
+  Object method -public -per-object setExitHandler   {newbody} {::xotcl::setExitHandler $newbody}
+  Object method -public -per-object getExitHandler   {} {:xotcl::getExitHandler}
 
   # resue some definitions from ::xotcl2
   ::xotcl::alias ::xotcl::Object copy ::xotcl::classes::xotcl2::Object::copy
@@ -439,7 +438,7 @@ namespace eval ::xotcl {
   proc myvar  {var}  {.requireNamespace; return [::xotcl::self]::$var}
 
   Object create ::xotcl::config
-  config method load {obj file} {
+  config method -public load {obj file} {
     source $file
     foreach i [array names ::auto_index [list $obj *proc *]] {
       set type [lindex $i 1]
@@ -450,7 +449,7 @@ namespace eval ::xotcl {
   }
   }
   
-  config method mkindex {meta dir args} {
+  config method -public mkindex {meta dir args} {
     set sp {[ 	]+}
     set st {^[ 	]*}
     set wd {([^ 	;]+)}
@@ -517,7 +516,7 @@ namespace eval ::xotcl {
   #
   # if cutTheArg not 0, it cut from upvar argsList
   #
-  Object method extractConfigureArg {al name {cutTheArg 0}} {
+  Object method -public extractConfigureArg {al name {cutTheArg 0}} {
     set value ""
     upvar $al argList
     set largs [llength $argList]
@@ -539,10 +538,10 @@ namespace eval ::xotcl {
   }
 
   Object create ::xotcl::rcs
-  rcs method date string {
+  rcs method -public date string {
     lreplace [lreplace $string 0 0] end end
   }
-  rcs method version string {
+  rcs method -public version string {
     lindex $string 2
   }
 
@@ -551,7 +550,7 @@ namespace eval ::xotcl {
   #
   # puts this for the time being into xotcl 1.*
   #
-  ::xotcl::Class method uses list {
+  ::xotcl::Class method -public uses list {
     foreach package $list {
       ::xotcl::package import -into [::xotcl::self] $package
       puts stderr "*** using ${package}::* in [::xotcl::self]"
@@ -564,18 +563,18 @@ namespace eval ::xotcl {
     {export {}}
   } {
     
-    .method -per-object create {name args} {
+    .method -public -per-object create {name args} {
       set nq [namespace qualifiers $name]
       if {$nq ne "" && ![namespace exists $nq]} {Object create $nq}
       next
     }
 
-    .method -per-object  extend {name args} {
+    .method -public -per-object extend {name args} {
       .require $name
       eval $name configure $args
     }
     
-    .method -per-object contains script {
+    .method -public -per-object contains script {
       if {[.exists provide]} {
         package provide [set .provide] [set .version]
       } else {
@@ -596,16 +595,16 @@ namespace eval ::xotcl {
       }
     }
     
-    .method -per-object unknown args {
+    .method -public -per-object unknown args {
       #puts stderr "unknown: package $args"
       eval [set .packagecmd] $args
     }
     
-    .method -per-object verbose value {
+    .method -public -per-object verbose value {
       set .verbose $value
     }
     
-    .method -per-object present args {
+    .method -public -per-object present args {
       if {$::tcl_version<8.3} {
         switch -exact -- [lindex $args 0] {
           -exact  {set pkg [lindex $args 1]}
@@ -621,7 +620,7 @@ namespace eval ::xotcl {
       }
     }
     
-    .method -per-object import {{-into ::} pkg} {
+    .method -public -per-object import {{-into ::} pkg} {
       .require $pkg
       namespace eval $into [subst -nocommands {
         #puts stderr "*** package import ${pkg}::* into [namespace current]"
@@ -636,7 +635,7 @@ namespace eval ::xotcl {
       }
     }
     
-    .method -per-object require args {
+    .method -public -per-object require args {
       #puts "XOTCL package require $args, current=[namespace current]"
       set prevComponent ${.component}
       if {[catch {set v [eval package present $args]} msg]} {
