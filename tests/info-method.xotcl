@@ -36,7 +36,7 @@ Class create C {
 C create c1
 
 ? {lsort [C info methods -callprotection all]} "a addOne m m-with-assertions s"
-? {lsort [C info methods]} "a addOne s"
+#? {lsort [C info methods]} "a addOne s"
 foreach m [lsort [C info methods -callprotection all]] {
   ? [subst -nocommands {lsort [c1 info callable $m]}] $m
 }
@@ -59,7 +59,7 @@ c1 method foo {} {puts foo}
     {::C method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
 ? {C info method parameter m} {x}
 ? {Class info method parameter method} \
-    {-inner-namespace -per-object -protected name args body -precondition -postcondition}
+    {{-per-object:switch 0} {-public:switch 0} {-protected:switch 0} name arguments body -precondition -postcondition}
 ? {Object info method parameter alias} \
     {{-objscope:switch 0} {-protected:switch 0} methodName cmd}
 # raises currently an error

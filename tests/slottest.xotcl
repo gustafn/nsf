@@ -327,10 +327,10 @@ a0 forward f4 puts hu
 ? {a0 procsearch f3} "::a0 proc f3"
 ? {a0 procsearch f4} "::a0 forward f4"
 ? {a0 procsearch set} "::xotcl::Object instcmd set"
-? {A slot foo procsearch assign} "::xotcl::Slot instcmd assign"
+? {A slot foo info callable -which assign} "::xotcl::Slot alias assign ::xotcl::setinstvar"
 
 # redefine setter for foo of class A
-A slot foo proc assign {domain var val} {
+A slot foo method assign {domain var val} {
   # Do something with [self] that isn't valid pre-init
   puts setter-[self proc]
   $domain set $var $val

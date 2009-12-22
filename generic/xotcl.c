@@ -6383,9 +6383,11 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
     }
 
     ParamDefsStore(interp, (Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs);
+#if 0
     if (!withPublic) {
       Tcl_Command_flags((Tcl_Command)procPtr->cmdPtr) |= XOTCL_CMD_PROTECTED_METHOD;
     }
+#endif
   }
   Tcl_PopCallFrame(interp);
 
@@ -10019,7 +10021,7 @@ ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
    * vs. "info method search" vs. "info defined" etc.
    */
   if (withCallprotection == CallprotectionNULL) {
-    withCallprotection = CallprotectionAllIdx;
+    withCallprotection = CallprotectionPublicIdx;
   }
 
   Tcl_InitHashTable(dups, TCL_STRING_KEYS);
@@ -12464,19 +12466,13 @@ static int XOTclOMethodMethod(Tcl_Interp *interp, XOTclObject *obj,
 
 /* TODO move me at the right place */
 static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl,
-                              int withInner_namespace, int withPer_object, int withPublic,
+                              int withInner_namespace, int withPublic,
                               Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
                               Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
-  if (withPer_object) {
-    requireObjNamespace(interp, &cl->object);
-    return MakeMethod(interp, &cl->object, NULL, name, args, body,
+
+  return MakeMethod(interp, &cl->object, cl, name, args, body,
                       withPrecondition, withPostcondition,
                       withPublic, withInner_namespace);
-  } else {
-    return MakeMethod(interp, &cl->object, cl, name, args, body,
-                      withPrecondition, withPostcondition,
-                      withPublic, withInner_namespace);
-  }
 }
 
 static int XOTclCForwardMethod(Tcl_Interp *interp, XOTclClass *cl, 

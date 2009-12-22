@@ -17,7 +17,7 @@ namespace eval xotcl2 {
   # provide the standard command set for ::xotcl2::Object
   foreach cmd [info command ::xotcl::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "instvar"]} continue
+    if {$cmdName in [list "instvar" "object-method"]} continue
     ::xotcl::alias Object $cmdName $cmd 
   }
   
@@ -28,7 +28,9 @@ namespace eval xotcl2 {
 
   # provide the standard command set for Class
   foreach cmd [info command ::xotcl::cmd::Class::*] {
-    ::xotcl::alias Class [namespace tail $cmd] $cmd 
+    set cmdName [namespace tail $cmd]
+    if {$cmdName in [list "class-method"]} continue
+    ::xotcl::alias Class $cmdName $cmd 
   }
 
   # set a few aliases as protected
@@ -45,11 +47,50 @@ namespace eval xotcl2 {
   ::xotcl::methodproperty Class  alloc   static true
   ::xotcl::methodproperty Class  dealloc static true
   ::xotcl::methodproperty Class  create  static true
+  
+  # TODO: both switches -protected and -public don't make much sense,
+  # but we allow it for the time being
+  #
+  # TODO: methodproperty is not necessary, when the base method
+  # supports all settings (e.g. -callprotection public|protected)
+  ::xotcl::dispatch Class ::xotcl::cmd::Class::class-method method {
+    -per-object:switch -public:switch -protected:switch 
+    name arguments body -precondition -postcondition
+  } {
+    set conditions [list]
+    if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
+    if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
+    if {${per-object}} {
+      set cls Object
+      set prefix object
+    } else {
+      set cls Class
+      set prefix class
+    }
+    ::xotcl::dispatch [self] ::xotcl::cmd::${cls}::$prefix-method \
+        $name $arguments $body {*}$conditions
+    if {$protected} {::xotcl::methodproperty [self] $name protected true}
+    #puts stderr "[self] $name defined ($prefix-method)"
+  }
+
+  ::xotcl::dispatch Object ::xotcl::cmd::Class::class-method method {
+    -public:switch -protected:switch 
+    name arguments body -precondition -postcondition
+  } {
+    set conditions [list]
+    if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
+    if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
+    ::xotcl::dispatch [self] ::xotcl::cmd::Object::object-method \
+        $name $arguments $body {*}$conditions
+    if {$protected} {::xotcl::methodproperty [self] $name -per-object protected true}
+    #puts stderr "[self] $name defined (object-method)"
+  }
 
   Class method unknown {args} {
     puts stderr "use '[self] create $args', not '[self] $args'"
     eval my create $args
   }
+
   Object method unknown {m args} {
     if {![self isnext]} {
       error "[self]: unable to dispatch method '$m'"
@@ -57,14 +98,14 @@ namespace eval xotcl2 {
   }
 
   # "init" must exist on Object. per default it is empty.
-  Object method init args {}
+  Object method -protected init args {}
 
   # this method is called on calls to object without a specified method
   Object method defaultmethod {} {::xotcl::self}
 
   # provide a placeholder for the bootup process. The real definition
   # is based on slots, which are not available at this point.
-  Object method objectparameter {} {;}
+  Object method -protected objectparameter {} {;}
 
   # The method __unknown is called in cases, where we try to resolve
   # an unkown class. one could define a custom resolver with this name
@@ -262,7 +303,7 @@ proc ::xotcl::parametersFromSlots {obj} {
   return $parameterdefinitions
 }
 
-::xotcl2::Object method objectparameter {} {
+::xotcl2::Object method -protected objectparameter {} {
   set parameterdefinitions [::xotcl::parametersFromSlots [self]]
   if {[::xotcl::is [self] class]} {
     lappend parameterdefinitions -parameter:method,optional
@@ -608,7 +649,7 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
     if {[.info callable -which assign] ne "::xotcl::Slot alias assign ::xotcl::setinstvar"} return
     if {[.info callable -which get]    ne "::xotcl::Slot alias get ::xotcl::setinstvar"} return
     #puts stderr "**** optimizing       ${.domain} $forwarder ${.name}"
-    ${.domain} setter {*}[expr {${.per-object} ? "-per-object" : ""}] ${.name}
+    ::xotcl::dispatch ${.domain} ::xotcl::cmd::Class::setter {*}[expr {${.per-object} ? "-per-object" : ""}] ${.name}
   }
 }
 # register the optimizer per default

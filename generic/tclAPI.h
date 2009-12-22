@@ -193,7 +193,7 @@ static int XOTclCFilterGuardMethod(Tcl_Interp *interp, XOTclClass *cl, int withP
 static int XOTclCForwardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, Tcl_Obj *name, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass *cl);
 static int XOTclCInvariantsMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *invariantlist);
-static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
+static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl, int withInner_namespace, int withPublic, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *mixin, Tcl_Obj *guard);
 static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclCRecreateMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name, int objc, Tcl_Obj *CONST objv[]);
@@ -556,16 +556,15 @@ XOTclCMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return TCL_ERROR;
   } else {
     int withInner_namespace = (int )pc.clientData[0];
-    int withPer_object = (int )pc.clientData[1];
-    int withPublic = (int )pc.clientData[2];
-    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[3];
-    Tcl_Obj *args = (Tcl_Obj *)pc.clientData[4];
-    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[5];
-    Tcl_Obj *withPrecondition = (Tcl_Obj *)pc.clientData[6];
-    Tcl_Obj *withPostcondition = (Tcl_Obj *)pc.clientData[7];
+    int withPublic = (int )pc.clientData[1];
+    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *args = (Tcl_Obj *)pc.clientData[3];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[4];
+    Tcl_Obj *withPrecondition = (Tcl_Obj *)pc.clientData[5];
+    Tcl_Obj *withPostcondition = (Tcl_Obj *)pc.clientData[6];
 
     parseContextRelease(&pc);
-    return XOTclCMethodMethod(interp, cl, withInner_namespace, withPer_object, withPublic, name, args, body, withPrecondition, withPostcondition);
+    return XOTclCMethodMethod(interp, cl, withInner_namespace, withPublic, name, args, body, withPrecondition, withPostcondition);
 
   }
 }
@@ -2145,9 +2144,8 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::Class::instinvar", XOTclCInvariantsMethodStub, 1, {
   {"invariantlist", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::method", XOTclCMethodMethodStub, 8, {
+{"::xotcl::cmd::Class::class-method", XOTclCMethodMethodStub, 7, {
   {"-inner-namespace", 0, 0, convertToBoolean},
-  {"-per-object", 0, 0, convertToBoolean},
   {"-public", 0, 0, convertToString},
   {"name", 1, 0, convertToTclobj},
   {"args", 1, 0, convertToTclobj},
@@ -2370,7 +2368,7 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::Object::invar", XOTclOInvariantsMethodStub, 1, {
   {"invariantlist", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::method", XOTclOMethodMethodStub, 7, {
+{"::xotcl::cmd::Object::object-method", XOTclOMethodMethodStub, 7, {
   {"-inner-namespace", 0, 0, convertToString},
   {"-public", 0, 0, convertToString},
   {"name", 1, 0, convertToTclobj},

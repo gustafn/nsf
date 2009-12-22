@@ -143,7 +143,7 @@ objectMethod instvar XOTclOInstVarMethod {
 objectMethod invar XOTclOInvariantsMethod {
   {-argName "invariantlist" -required 1 -type tclobj}
 }
-objectMethod method XOTclOMethodMethod {
+objectMethod object-method XOTclOMethodMethod {
   {-argName "-inner-namespace"}
   {-argName "-public"}
   {-argName "name" -required 1 -type tclobj}
@@ -211,9 +211,8 @@ classMethod mixinguard XOTclCMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
-classMethod method XOTclCMethodMethod {
+classMethod class-method XOTclCMethodMethod {
   {-argName "-inner-namespace" -type switch}
-  {-argName "-per-object" -type switch}
   {-argName "-public"}
   {-argName "name" -required 1 -type tclobj}
   {-argName "args" -required 1 -type tclobj}
