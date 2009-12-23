@@ -107,6 +107,8 @@ static CONST char* AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, CONST char *
 static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, char *cmd);
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
 static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
+static int ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Command cmd, 
+                      int subcmd, int withPer_object);
 
 typedef enum { CALLING_LEVEL, ACTIVE_LEVEL } CallStackLevel;
 
@@ -6311,19 +6313,19 @@ ParamDefsParse(Tcl_Interp *interp, char *procName, Tcl_Obj *args, int allowedOpt
 static int
 MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
          Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition,
-         Tcl_Obj *postcondition, XOTclObject *obj, int withPublic, int clsns) {
+         Tcl_Obj *postcondition, XOTclObject *object, 
+         int withPublic, int withPer_object, int clsns) {
   TclCallFrame frame, *framePtr = &frame;
-  char *procName = ObjStr(nameObj);
+  char *methodName = ObjStr(nameObj);
   XOTclParsedParam parsedParam;
   Tcl_Obj *ov[4];
-  Proc *procPtr;
   int result;
-
+  
   /* Check, if we are allowed to redefine the method */
-  result = CanRedefineCmd(interp, nsPtr, obj, procName);
+  result = CanRedefineCmd(interp, nsPtr, object, methodName);
   if (result == TCL_OK) {
     /* Yes, so obtain an method parameter definitions */
-    result = ParamDefsParse(interp, procName, args, XOTCL_ARG_METHOD_PARAMETER, &parsedParam);
+    result = ParamDefsParse(interp, methodName, args, XOTCL_ARG_METHOD_PARAMETER, &parsedParam);
   }
   if (result != TCL_OK) {
     return result;
@@ -6355,44 +6357,50 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
     ov[2] = args;
     ov[3] = addPrefixToBody(body, 0, &parsedParam);
   }
-
+  
   Tcl_PushCallFrame(interp,(Tcl_CallFrame *)framePtr, nsPtr, 0);
   /* create the method in the provided namespace */
   result = Tcl_ProcObjCmd(0, interp, 4, ov) != TCL_OK;
-
-  /* retrieve the defined proc */
-  procPtr = FindProcMethod(nsPtr, procName);
-  if (procPtr) {
-    /* modify the cmd of the proc to set the current namespace for the body */
-    if (clsns) {
-      /*
-       * Set the namespace of the method as inside of the class
+  if (result == TCL_OK) {
+    /* retrieve the defined proc */
+    Proc *procPtr = FindProcMethod(nsPtr, methodName);
+    if (procPtr) {
+      /* modify the cmd of the proc to set the current namespace for the body */
+      if (clsns) {
+        /*
+         * Set the namespace of the method as inside of the class
+         */
+        if (!object->nsPtr) {
+          makeObjNamespace(interp, object);
+        }
+        /*fprintf(stderr, "obj %s\n", objectName(object));
+          fprintf(stderr, "ns %p object->ns %p\n", ns, object->nsPtr);
+          fprintf(stderr, "ns %s object->ns %s\n", ns->fullName, object->nsPtr->fullName);*/
+        procPtr->cmdPtr->nsPtr = (Namespace*) object->nsPtr;
+      } else {
+        /*
+         * Set the namespace of the method to the same namespace the class has
        */
-      if (!obj->nsPtr) {
-        makeObjNamespace(interp, obj);
+        procPtr->cmdPtr->nsPtr = ((Command *)object->id)->nsPtr;
       }
-      /*fprintf(stderr, "obj %s\n", objectName(obj));
-        fprintf(stderr, "ns %p obj->ns %p\n", ns, obj->nsPtr);
-        fprintf(stderr, "ns %s obj->ns %s\n", ns->fullName, obj->nsPtr->fullName);*/
-      procPtr->cmdPtr->nsPtr = (Namespace*) obj->nsPtr;
-    } else {
-      /*
-       * Set the namespace of the method to the same namespace the class has
-       */
-      procPtr->cmdPtr->nsPtr = ((Command *)obj->id)->nsPtr;
-    }
-
-    ParamDefsStore(interp, (Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs);
+      
+      ParamDefsStore(interp, (Tcl_Command)procPtr->cmdPtr, parsedParam.paramDefs);
 #if 0
-    if (!withPublic) {
-      Tcl_Command_flags((Tcl_Command)procPtr->cmdPtr) |= XOTCL_CMD_PROTECTED_METHOD;
-    }
+      if (!withPublic) {
+        Tcl_Command_flags((Tcl_Command)procPtr->cmdPtr) |= XOTCL_CMD_PROTECTED_METHOD;
+      }
 #endif
+      fprintf(stderr, "CALL listMethod for %s %p\n", methodName, procPtr->cmdPtr);
+      result = ListMethod(interp, object, methodName, 
+                          (Tcl_Command)procPtr->cmdPtr, 3 /*InfomethodsubcmdNameIdx*/, 
+                          withPer_object);
+      fprintf(stderr, "    listmethod returns %s\n", ObjStr(Tcl_GetObjResult(interp)));
+    }
   }
   Tcl_PopCallFrame(interp);
 
-  if (precondition || postcondition) {
-    AssertionAddProc(interp, ObjStr(nameObj), aStore, precondition, postcondition);
+  if (result == TCL_OK && (precondition || postcondition)) {
+    AssertionAddProc(interp, methodName, aStore, precondition, postcondition);
   }
 
 #if defined(CANONICAL_ARGS)
@@ -6401,6 +6409,8 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
   }
 #endif
   DECR_REF_COUNT(ov[3]);
+
+  fprintf(stderr, "    makeproc returns %s\n", ObjStr(Tcl_GetObjResult(interp)));
 
   return result;
 }
@@ -6442,7 +6452,7 @@ MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameOb
     }
     result = MakeProc(cl ? cl->nsPtr : obj->nsPtr, aStore,
 		      interp, nameObj, args, body, precondition, postcondition,
-		      obj, withPublic, clsns);
+		      obj, withPublic, cl == NULL, clsns);
   }
 
   if (cl) {
@@ -6452,6 +6462,7 @@ MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameOb
     /* could be a filter => recompute filter order */
     FilterComputeDefined(interp, obj);
   }
+  fprintf(stderr, "    makemethod returns %s\n", ObjStr(Tcl_GetObjResult(interp)));
 
   return result;
 }

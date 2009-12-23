@@ -67,10 +67,11 @@ namespace eval xotcl2 {
       set cls Class
       set prefix class
     }
-    ::xotcl::dispatch [self] ::xotcl::cmd::${cls}::$prefix-method \
-        $name $arguments $body {*}$conditions
+    set result [::xotcl::dispatch [self] ::xotcl::cmd::${cls}::$prefix-method \
+                    $name $arguments $body {*}$conditions]
     if {$protected} {::xotcl::methodproperty [self] $name protected true}
     #puts stderr "[self] $name defined ($prefix-method)"
+    return $result
   }
 
   ::xotcl::dispatch Object ::xotcl::cmd::Class::class-method method {
@@ -80,10 +81,11 @@ namespace eval xotcl2 {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::xotcl::dispatch [self] ::xotcl::cmd::Object::object-method \
-        $name $arguments $body {*}$conditions
+    set result [::xotcl::dispatch [self] ::xotcl::cmd::Object::object-method \
+                    $name $arguments $body {*}$conditions]
     if {$protected} {::xotcl::methodproperty [self] $name -per-object protected true}
     #puts stderr "[self] $name defined (object-method)"
+    return $result
   }
 
   Class method unknown {args} {
