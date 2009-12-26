@@ -21,7 +21,6 @@ xotclCmd alias XOTclAliasCmd {
   {-argName "methodName"}
   {-argName "-objscope"}
   {-argName "-per-object"}
-  {-argName "-protected"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
 xotclCmd configure XOTclConfigureCmd {
@@ -232,7 +231,6 @@ classMethod forward XOTclCForwardMethod {
   {-argName "target" -type tclobj}
   {-argName "args" -type args}
 }
-# todo -protected for XOTclCInstForwardMethod
 classMethod __invalidateobjectparameter XOTclCInvalidateObjectParameterMethod {
 }
 classMethod recreate XOTclCRecreateMethod {

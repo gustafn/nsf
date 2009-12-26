@@ -59,9 +59,9 @@ c1 method foo {} {puts foo}
     {::C method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
 ? {C info method parameter m} {x}
 ? {Class info method parameter method} \
-    {{-per-object:switch 0} {-public:switch 0} {-protected:switch 0} name arguments body -precondition -postcondition}
+    {{-per-object:switch 0} name arguments body -precondition -postcondition}
 ? {Object info method parameter alias} \
-    {{-objscope:switch 0} {-protected:switch 0} methodName cmd}
+    {{-objscope:switch 0} methodName cmd}
 # raises currently an error
 ? {catch {C info method parameter a}} 1
   

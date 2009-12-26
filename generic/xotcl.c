@@ -10170,8 +10170,7 @@ static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *metho
  * Begin generated XOTcl commands
  *********************************/
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName,
-                         int withObjscope, int withPer_object, int withProtected, 
-                         Tcl_Obj *cmdName) {
+                         int withObjscope, int withPer_object, Tcl_Obj *cmdName) {
   Tcl_ObjCmdProc *objProc, *newObjProc = NULL;
   Tcl_CmdDeleteProc *deleteProc = NULL;
   AliasCmdClientData *tcd = NULL; /* make compiler happy */
@@ -10284,7 +10283,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     tcd = Tcl_Command_objClientData(cmd);
   }
 
-  flags = withProtected ? XOTCL_CMD_PROTECTED_METHOD : 0;
+  flags = 0;
 
   if (allocation == 'c') {
     XOTclClass *cl = (XOTclClass *)object;
@@ -10318,7 +10317,6 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     Tcl_DStringInit(dsPtr);
     /*if (withPer_object) {Tcl_DStringAppend(dsPtr, "-per-object ", -1);}*/
     if (withObjscope) {Tcl_DStringAppend(dsPtr, "-objscope ", -1);}
-    if (withProtected) {Tcl_DStringAppend(dsPtr, "-protected ", -1);}
     Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
     AliasAdd(interp, object->cmdName, methodName, allocation == 'o', Tcl_DStringValue(dsPtr));
     Tcl_DStringFree(dsPtr);
@@ -10648,21 +10646,14 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_O
     }
   } else {
     XOTclClass *cl;
-    char allocation;
-
-    if (XOTclObjectIsClass(object)) {
-      cl = (XOTclClass *)object;
-      allocation = 'c';
-    } else {
-      cl = NULL;
-      allocation = 'o';
-    }
 
     if (withPer_object) {
-      allocation = 'o';
+      cl = NULL;
+    } else {
+      cl = XOTclObjectIsClass(object) ? (XOTclClass *)object : NULL;
     }
 
-    if (allocation == 'o') {
+    if (cl == NULL) {
       if (object->nsPtr)
         cmd = FindMethod(object->nsPtr, methodName);
       if (!cmd) {

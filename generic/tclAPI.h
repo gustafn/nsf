@@ -253,7 +253,7 @@ static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, T
 static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, char *varname);
-static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withObjscope, int withPer_object, int withProtected, Tcl_Obj *cmdName);
+static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withObjscope, int withPer_object, Tcl_Obj *cmdName);
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
 static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass);
 static int XOTclDeprecatedCmd(Tcl_Interp *interp, char *what, char *oldCmd, char *newCmd);
@@ -1776,11 +1776,10 @@ XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     char *methodName = (char *)pc.clientData[1];
     int withObjscope = (int )pc.clientData[2];
     int withPer_object = (int )pc.clientData[3];
-    int withProtected = (int )pc.clientData[4];
-    Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[5];
+    Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[4];
 
     parseContextRelease(&pc);
-    return XOTclAliasCmd(interp, object, methodName, withObjscope, withPer_object, withProtected, cmdName);
+    return XOTclAliasCmd(interp, object, methodName, withObjscope, withPer_object, cmdName);
 
   }
 }
@@ -2408,12 +2407,11 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::Object::vwait", XOTclOVwaitMethodStub, 1, {
   {"varname", 1, 0, convertToString}}
 },
-{"::xotcl::alias", XOTclAliasCmdStub, 6, {
+{"::xotcl::alias", XOTclAliasCmdStub, 5, {
   {"object", 0, 0, convertToObject},
   {"methodName", 0, 0, convertToString},
   {"-objscope", 0, 0, convertToString},
   {"-per-object", 0, 0, convertToString},
-  {"-protected", 0, 0, convertToString},
   {"cmdName", 1, 0, convertToTclobj}}
 },
 {"::xotcl::configure", XOTclConfigureCmdStub, 2, {
