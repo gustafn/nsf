@@ -2177,7 +2177,7 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, XOTclObject *obj, char 
   int result, ok;
   Tcl_Command cmd = FindMethod(nsPtr, methodName);
 
-  ok = cmd ? (Tcl_Command_flags(cmd) & XOTCL_CMD_STATIC_METHOD) == 0 : 1;
+  ok = cmd ? (Tcl_Command_flags(cmd) & XOTCL_CMD_REDEFINE_PROTECTED_METHOD) == 0 : 1;
   if (ok) {
     result = TCL_OK;
   } else {
@@ -10672,11 +10672,11 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_O
   }
 
   if (methodproperty == MethodpropertyProtectedIdx
-      || methodproperty == MethodpropertyStaticIdx) {
+      || methodproperty == MethodpropertyRedefine_protectedIdx) {
 
     int flag = methodproperty == MethodpropertyProtectedIdx ?
       XOTCL_CMD_PROTECTED_METHOD :
-      XOTCL_CMD_STATIC_METHOD;
+      XOTCL_CMD_REDEFINE_PROTECTED_METHOD;
 
     if (value) {
       int bool, result;

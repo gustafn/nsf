@@ -64,7 +64,7 @@ xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "-per-object"}
-  {-argName "methodproperty" -required 1 -type "protected|public|static|slotobj"}
+  {-argName "methodproperty" -required 1 -type "protected|redefine-protected|slotobj"}
   {-argName "value" -type tclobj}
 }
 xotclCmd my XOTclMyCmd {

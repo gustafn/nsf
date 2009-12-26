@@ -31,10 +31,10 @@ namespace eval ::xotcl {
   }
 
   # protect some methods against redefinition
-  ::xotcl::methodproperty Object destroy static true
-  ::xotcl::methodproperty Class  alloc   static true
-  ::xotcl::methodproperty Class  dealloc static true
-  ::xotcl::methodproperty Class  create  static true
+  ::xotcl::methodproperty Object destroy redefine-protected true
+  ::xotcl::methodproperty Class  alloc   redefine-protected true
+  ::xotcl::methodproperty Class  dealloc redefine-protected true
+  ::xotcl::methodproperty Class  create  redefine-protected true
 
   # define instproc and proc
   ::xotcl::dispatch Class ::xotcl::cmd::Class::class-method instproc {

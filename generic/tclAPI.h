@@ -55,12 +55,12 @@ enum ObjectkindIdx {ObjectkindNULL, ObjectkindTypeIdx, ObjectkindObjectIdx, Obje
   
 static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
-  static CONST char *opts[] = {"protected", "public", "static", "slotobj", NULL};
+  static CONST char *opts[] = {"protected", "redefine-protected", "slotobj", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodproperty", 0, &index);
   *clientData = (ClientData) index + 1;
   return result;
 }
-enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyProtectedIdx, MethodpropertyPublicIdx, MethodpropertyStaticIdx, MethodpropertySlotobjIdx};
+enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyProtectedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertySlotobjIdx};
   
 static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;

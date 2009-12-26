@@ -43,10 +43,10 @@ namespace eval xotcl2 {
   # TODO: info methods shows finally "slots" and "slot". Wanted?
 
   # protect some methods against redefinition
-  ::xotcl::methodproperty Object destroy static true
-  ::xotcl::methodproperty Class  alloc   static true
-  ::xotcl::methodproperty Class  dealloc static true
-  ::xotcl::methodproperty Class  create  static true
+  ::xotcl::methodproperty Object destroy redefine-protected true
+  ::xotcl::methodproperty Class  alloc   redefine-protected true
+  ::xotcl::methodproperty Class  dealloc redefine-protected true
+  ::xotcl::methodproperty Class  create  redefine-protected true
   
   # define method "method" for Class and Object
   ::xotcl::dispatch Class ::xotcl::cmd::Class::class-method method {

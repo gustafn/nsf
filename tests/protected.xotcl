@@ -81,10 +81,10 @@ C protected method foo {} {return [self proc]}
 ? {c2 bar-SET} 1
 ? {catch {c2 bar-foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 
-? {::xotcl::methodproperty C SET static true} 1
+? {::xotcl::methodproperty C SET redefine-protected true} 1
 ? {catch {C method SET {a b c} {...}}  errorMsg; set errorMsg} \
     {Method 'SET' of ::C can not be overwritten. Derive e.g. a sub-class!}
-? {::xotcl::methodproperty C foo static true} 1
+? {::xotcl::methodproperty C foo redefine-protected true} 1
 ? {catch {C method foo {a b c} {...}}  errorMsg; set errorMsg} \
     {Method 'foo' of ::C can not be overwritten. Derive e.g. a sub-class!}
 # check a predefined protection
@@ -103,7 +103,7 @@ C protected method foo {} {return [self proc]}
 # overwrite-protect object specific method
 Object create o
 o method foo {} {return 13}
-::xotcl::methodproperty o foo static true
+::xotcl::methodproperty o foo redefine-protected true
 ? {catch {o method foo {} {return 14}} errorMsg; set errorMsg} \
     {Method 'foo' of ::o can not be overwritten. Derive e.g. a sub-class!}
 
