@@ -88,9 +88,35 @@ namespace eval xotcl2 {
     return $result
   }
 
-  Class method unknown {args} {
-    puts stderr "use '[self] create $args', not '[self] $args'"
-    eval my create $args
+  # define method modifiers "object", "public" and "protected"
+  Object method -public public {args} {
+    set p [lsearch -regexp $args {^(method|alias|forward|setter)$}]
+    if {$p == -1} {error "$args is not a method defining method"}
+    set r [{*}.$args]
+    ::xotcl::methodproperty [self] $r protected false
+    return $r
+  }
+
+  Object method -public protected {args} {
+    set p [lsearch -regexp $args {^(method|alias|forward|setter)$}]
+    if {$p == -1} {error "$args is not a method defining command"}
+    set r [{*}.$args]
+    ::xotcl::methodproperty [self] $r [self proc] true
+    return $r
+  }
+
+  Class method -public object {args} {
+    set p [expr {[lsearch -regexp $args {^(method|alias|forward|setter)$}] + 1}]
+    set cmd [linsert $args $p "-per-object"]
+    return [{*}.$cmd]
+  }
+
+  #
+  # unknown handlers
+  #
+  Class method unknown {m args} {
+    error "Method '$m' unknown for [self]. Consider '[self] create $m $args' instead of '[self] $m $args'"
+    #eval my create $args
   }
 
   Object method unknown {m args} {

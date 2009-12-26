@@ -344,6 +344,7 @@ test-nohttp: binaries libraries test-core
 test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/object-system.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/destroytest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/method-modifiers.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/info-method.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/interceptor-slot.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/aliastest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)

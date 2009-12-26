@@ -264,7 +264,7 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption);
 static int XOTclInstvarCmd(Tcl_Interp *interp, XOTclObject *withObject, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_Obj *value);
-static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withPer_object, int methodproperty, Tcl_Obj *value);
+static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *methodName, int withPer_object, int methodproperty, Tcl_Obj *value);
 static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
@@ -1975,7 +1975,7 @@ XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    char *methodName = (char *)pc.clientData[1];
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[1];
     int withPer_object = (int )pc.clientData[2];
     int methodproperty = (int )pc.clientData[3];
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
@@ -2459,7 +2459,7 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::methodproperty", XOTclMethodPropertyCmdStub, 5, {
   {"object", 1, 0, convertToObject},
-  {"methodName", 1, 0, convertToString},
+  {"methodName", 1, 0, convertToTclobj},
   {"-per-object", 0, 0, convertToString},
   {"methodproperty", 1, 0, convertToMethodproperty},
   {"value", 0, 0, convertToTclobj}}

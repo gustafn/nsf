@@ -107,8 +107,9 @@ static CONST char* AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, CONST char *
 static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, char *cmd);
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
 static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
-static int ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Command cmd, 
-                      int subcmd, int withPer_object);
+static int ListMethodName(Tcl_Interp *interp, XOTclObject *object, int withPer_object, 
+                          CONST char *methodName);
+
 
 typedef enum { CALLING_LEVEL, ACTIVE_LEVEL } CallStackLevel;
 
@@ -5783,10 +5784,11 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       GetObjectFromObj(interp, cmdObj, &o);
       if (o != lastSelf) {
 	/*fprintf(stderr, "+++ protected method %s is not invoked\n", methodName);*/
+        /* allow unknown-handler to handle this case */
 	unknown = 1;
         fprintf(stderr, "+++ %s is protected, therefore maybe unknown %p %s lastself=%p o=%p cd %p flags = %.6x\n",
                 methodName, cmdObj, ObjStr(cmdObj), lastSelf, o, clientData, flags);
-        tcl85showStack(interp);
+        /*tcl85showStack(interp);*/
       }
     }
 
@@ -6390,11 +6392,7 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
         Tcl_Command_flags((Tcl_Command)procPtr->cmdPtr) |= XOTCL_CMD_PROTECTED_METHOD;
       }
 #endif
-      fprintf(stderr, "CALL listMethod for %s %p\n", methodName, procPtr->cmdPtr);
-      result = ListMethod(interp, object, methodName, 
-                          (Tcl_Command)procPtr->cmdPtr, 3 /*InfomethodsubcmdNameIdx*/, 
-                          withPer_object);
-      fprintf(stderr, "    listmethod returns %s\n", ObjStr(Tcl_GetObjResult(interp)));
+      result = ListMethodName(interp, object, withPer_object, methodName);
     }
   }
   Tcl_PopCallFrame(interp);
@@ -6409,8 +6407,6 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
   }
 #endif
   DECR_REF_COUNT(ov[3]);
-
-  fprintf(stderr, "    makeproc returns %s\n", ObjStr(Tcl_GetObjResult(interp)));
 
   return result;
 }
@@ -6462,7 +6458,6 @@ MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameOb
     /* could be a filter => recompute filter order */
     FilterComputeDefined(interp, obj);
   }
-  fprintf(stderr, "    makemethod returns %s\n", ObjStr(Tcl_GetObjResult(interp)));
 
   return result;
 }
@@ -9650,6 +9645,16 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, char *registerCmd
 }
 
 static int
+ListMethodName(Tcl_Interp *interp, XOTclObject *object, int withPer_object, CONST char *methodName) {
+  Tcl_Obj *resultObj = Tcl_NewStringObj(withPer_object ? "" : "::xotcl::classes", -1);
+  Tcl_AppendObjToObj(resultObj, object->cmdName);
+  Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
+  Tcl_SetObjResult(interp, resultObj);
+  return TCL_OK;
+}
+
+
+static int
 ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Command cmd, 
            int subcmd, int withPer_object) {
 
@@ -9671,11 +9676,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
     switch (subcmd) {
     case InfomethodsubcmdNameIdx: 
       {
-        resultObj = Tcl_NewStringObj(withPer_object ? "" : "::xotcl::classes", -1);
-        Tcl_AppendObjToObj(resultObj, object->cmdName);
-        Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
-        Tcl_SetObjResult(interp, resultObj);
-        return TCL_OK;
+        return ListMethodName(interp, object, withPer_object, methodName);
       }
     case InfomethodsubcmdArgsIdx:
       {
@@ -10174,7 +10175,8 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   Tcl_ObjCmdProc *objProc, *newObjProc = NULL;
   Tcl_CmdDeleteProc *deleteProc = NULL;
   AliasCmdClientData *tcd = NULL; /* make compiler happy */
-  Tcl_Command cmd, newCmd;
+  Tcl_Command cmd, newCmd = NULL;
+  Tcl_Namespace *nsPtr;
   int flags, result;
   char allocation;
 
@@ -10288,13 +10290,17 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     XOTclClass *cl = (XOTclClass *)object;
     result = XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, methodName,
                                     objProc, tcd, deleteProc, flags);
-    newCmd = FindMethod(cl->nsPtr, methodName);
+    nsPtr = cl->nsPtr;
   } else {
     result = XOTclAddObjectMethod(interp, (XOTcl_Object*)object, methodName,
                                   objProc, tcd, deleteProc, flags);
-    newCmd = FindMethod(object->nsPtr, methodName);
+    nsPtr = object->nsPtr;
   }
 
+  if (result == TCL_OK) {
+    newCmd = FindMethod(nsPtr, methodName);
+  }
+  
   if (newObjProc) {
     /* 
      * Define the reference chain like for 'namespace import' to
@@ -10316,6 +10322,8 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
     AliasAdd(interp, object->cmdName, methodName, allocation == 'o', Tcl_DStringValue(dsPtr));
     Tcl_DStringFree(dsPtr);
+
+    result = ListMethodName(interp, object, allocation == 'o', methodName);
   }
 
   return result;
@@ -10626,39 +10634,50 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_O
   return TCL_OK;
 }
 
-static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName,
+static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *methodObj,
                                   int withPer_object, int methodproperty, Tcl_Obj *value) {
-  XOTclClass *cl;
+  char *methodName = ObjStr(methodObj);
   Tcl_Command cmd = NULL;
-  char allocation;
-
-  if (XOTclObjectIsClass(object)) {
-    cl = (XOTclClass *)object;
-    allocation = 'c';
-  } else {
-    cl = NULL;
-    allocation = 'o';
-  }
-
-  if (withPer_object) {
-    allocation = 'o';
-  }
-
-  if (allocation == 'o') {
-    if (object->nsPtr)
-      cmd = FindMethod(object->nsPtr, methodName);
+  
+  if (*methodName == ':') {
+    cmd = Tcl_GetCommandFromObj(interp, methodObj);
     if (!cmd) {
       return XOTclVarErrMsg(interp, "Cannot lookup object method '",
-			    methodName, "' for object ", objectName(object),
-			    (char *) NULL);
+                            methodName, "' for object ", objectName(object),
+                            (char *) NULL);
     }
   } else {
-    if (cl->nsPtr)
-      cmd = FindMethod(cl->nsPtr, methodName);
-    if (!cmd)
-      return XOTclVarErrMsg(interp, "Cannot lookup method '",
-			    methodName, "' from class  ", objectName(object),
-			    (char *) NULL);
+    XOTclClass *cl;
+    char allocation;
+
+    if (XOTclObjectIsClass(object)) {
+      cl = (XOTclClass *)object;
+      allocation = 'c';
+    } else {
+      cl = NULL;
+      allocation = 'o';
+    }
+
+    if (withPer_object) {
+      allocation = 'o';
+    }
+
+    if (allocation == 'o') {
+      if (object->nsPtr)
+        cmd = FindMethod(object->nsPtr, methodName);
+      if (!cmd) {
+        return XOTclVarErrMsg(interp, "Cannot lookup object method '",
+                              methodName, "' for object ", objectName(object),
+                              (char *) NULL);
+      }
+    } else {
+      if (cl->nsPtr)
+        cmd = FindMethod(cl->nsPtr, methodName);
+      if (!cmd)
+        return XOTclVarErrMsg(interp, "Cannot lookup method '",
+                              methodName, "' from class  ", objectName(object),
+                              (char *) NULL);
+    }
   }
 
   if (methodproperty == MethodpropertyProtectedIdx
@@ -12035,7 +12054,7 @@ static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int ob
   return result;
 }
 
-static int XOTclOForwardMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *method,
+static int XOTclOForwardMethod(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *method,
                                Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
                                int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target,
                                int nobjc, Tcl_Obj *CONST nobjv[]) {
@@ -12046,10 +12065,14 @@ static int XOTclOForwardMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *me
                                  withObjscope, withOnerror, withVerbose,
                                  target, nobjc, nobjv, &tcd);
   if (result == TCL_OK) {
-    tcd->obj = obj;
-    result = XOTclAddObjectMethod(interp, (XOTcl_Object *)obj, NSTail(ObjStr(method)),
+    CONST char *methodName = NSTail(ObjStr(method));
+    tcd->obj = object;
+    result = XOTclAddObjectMethod(interp, (XOTcl_Object *)object, methodName,
                                   (Tcl_ObjCmdProc*)XOTclForwardMethod,
                                   (ClientData)tcd, forwardCmdDeleteProc, 0);
+    if (result == TCL_OK) {
+      result = ListMethodName(interp, object, 1, methodName);
+    }
   }
   return result;
 }
@@ -12453,15 +12476,26 @@ static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPe
 }
 
 /* TODO move me at the right place */
-static int XOTclCSetterMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *name) {
+static int XOTclCSetterMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *methodName) {
+  int result;
   if (withPer_object) {
-    return XOTclAddObjectMethod(interp, (XOTcl_Object*) cl, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+    result = XOTclAddObjectMethod(interp, (XOTcl_Object*) cl, methodName, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
   } else {
-    return XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+    result = XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, methodName, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
   }
+  if (result == TCL_OK) {
+    result = ListMethodName(interp, &cl->object, withPer_object, methodName);
+  }
+  return result;
 }
-static int XOTclOSetterMethod(Tcl_Interp *interp, XOTclObject *object, char *name) {
-  return XOTclAddObjectMethod(interp, (XOTcl_Object*) object, name, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+
+static int XOTclOSetterMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
+  int result = XOTclAddObjectMethod(interp, (XOTcl_Object*) object, methodName, 
+                                    (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+  if (result == TCL_OK) {
+    result = ListMethodName(interp, object, 1, methodName);
+  }
+  return result;
 }
 
 /* TODO move me at the right place */
@@ -12493,6 +12527,7 @@ static int XOTclCForwardMethod(Tcl_Interp *interp, XOTclClass *cl,
                                Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
   forwardCmdClientData *tcd;
   int result;
+  CONST char *methodName;
 
   result = forwardProcessOptions(interp, method,
                                  withDefault, withEarlybinding, withMethodprefix,
@@ -12501,16 +12536,20 @@ static int XOTclCForwardMethod(Tcl_Interp *interp, XOTclClass *cl,
   if (result != TCL_OK) {
     return result;
   }
+  methodName = NSTail(ObjStr(method));
   if (withPer_object) {
     tcd->obj = &cl->object;
-    result = XOTclAddObjectMethod(interp, (XOTcl_Object *)cl, NSTail(ObjStr(method)),
+    result = XOTclAddObjectMethod(interp, (XOTcl_Object *)cl, methodName,
                                   (Tcl_ObjCmdProc*)XOTclForwardMethod,
                                   (ClientData)tcd, forwardCmdDeleteProc, 0);
   } else {
     tcd->obj = &cl->object;
-    result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, NSTail(ObjStr(method)),
+    result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName,
                                     (Tcl_ObjCmdProc*)XOTclForwardMethod,
                                     (ClientData)tcd, forwardCmdDeleteProc, 0);
+  }
+  if (result == TCL_OK) {
+    result = ListMethodName(interp, &cl->object, withPer_object, methodName);
   }
   return result;
 }

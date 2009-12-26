@@ -1,0 +1,159 @@
+package require XOTcl
+package require xotcl::test
+
+proc ? {cmd expected {msg ""}} {
+  set count 10
+  if {$msg ne ""} {
+    set t [Test new -cmd $cmd -count $count -msg $msg]
+  } else {
+    set t [Test new -cmd $cmd -count $count]
+  }
+  $t expected $expected 
+  $t run
+}
+
+::xotcl::use xotcl2
+
+Class create C {
+  # methods
+  .method plain_method {} {return [self proc]}
+  .public method public_method {} {return [self proc]}
+  .protected method protected_method {} {return [self proc]}
+
+  # forwards
+  .forward plain_forward %self plain_method
+  .public forward public_forward %self public_method
+  .protected forward protected_forward %self protected_method
+
+  # setter
+  .setter plain_setter 
+  .public setter public_setter 
+  .protected setter protected_setter 
+
+  # alias
+  .alias plain_alias [C info method name plain_method]
+  .public alias public_alias [C info method name public_method]
+  .protected alias protected_alias [C info method name protected_method]
+  
+  # object
+  .object method plain_object_method {} {return [self proc]}
+  .object public method public_object_method {} {return [self proc]}
+  .object protected method protected_object_method {}  {return [self proc]}
+  .object forward plain_object_forward %self plain_object_method
+  .object public forward public_object_forward %self public_object_method
+  .object protected forward protected_object_forward %self protected_object_method
+  .object setter plain_object_setter 
+  .object public setter public_object_setter 
+  .object protected setter protected_object_setter 
+  .object alias plain_object_alias [.info -per-object method name plain_object_method]
+  .object public alias public_object_alias [.info -per-object method name public_object_method]
+  .object protected alias protected_object_alias [.info -per-object method name protected_object_method]
+}
+C create c1 {
+  # methods
+  .method plain_object_method {} {return [self proc]}
+  .public method public_object_method {} {return [self proc]}
+  .protected method protected_object_method {} {return [self proc]}
+
+  # forwards
+  .forward plain_object_forward %self plain_object_method
+  .public forward public_object_forward %self public_object_method
+  .protected forward protected_object_forward %self protected_object_method
+
+  # setter
+  .setter plain_object_setter 
+  .public setter public_object_setter 
+  .protected setter protected_object_setter 
+
+  # alias
+  .alias plain_object_alias [.info method name plain_object_method]
+  .public alias public_object_alias [.info method name public_object_method]
+  .protected alias protected_object_alias [.info method name protected_object_method]
+}
+C public setter s0
+C protected setter s1
+? {c1 s0 0} 0
+? {::xotcl::dispatch c1 s1 1} 1
+C object setter s3
+? {C s3 3} 3
+
+# create a fresh object (different from c1)
+C create c2
+
+# test scripted class level methods
+? {c2 plain_method} "plain_method"
+? {c2 public_method} "public_method"
+? {catch {c2 protected_method}} 1
+? {::xotcl::dispatch c2 protected_method} "protected_method"
+
+# class level forwards
+? {c2 plain_forward} "plain_method"
+? {c2 public_forward} "public_method"
+? {catch {c2 protected_forward}} 1
+? {::xotcl::dispatch c2 protected_forward} "protected_method"
+
+# class level setter
+? {c2 plain_setter 1} "1"
+? {c2 public_setter 2} "2"
+? {catch {c2 protected_setter 3}} 1
+? {::xotcl::dispatch c2 protected_setter 4} "4"
+
+# class level alias ....TODO: wanted behavior of [self proc]? not "plain_alias"?
+? {c2 plain_alias} "plain_method"
+? {c2 public_alias} "public_method"
+? {catch {c2 protected_alias}} 1
+? {::xotcl::dispatch c2 protected_alias} "protected_method"
+
+###########
+
+# scripted class-object level methods
+? {C plain_object_method} "plain_object_method"
+? {C public_object_method} "public_object_method"
+? {catch {C protected_object_method}} 1
+? {::xotcl::dispatch C protected_object_method} "protected_object_method"
+
+# class-object level forwards
+? {C plain_object_forward} "plain_object_method"
+? {C public_object_forward} "public_object_method"
+? {catch {C protected_object_forward}} 1
+? {::xotcl::dispatch C protected_object_forward} "protected_object_method"
+
+# class-object level setter
+? {C plain_object_setter 1} "1"
+? {C public_object_setter 2} "2"
+? {catch {C protected_object_setter 3}} 1
+? {::xotcl::dispatch C protected_object_setter 4} "4"
+
+# class-object level alias ....TODO: wanted behavior of [self proc]? not "plain_alias"?
+? {C plain_object_alias} "plain_object_method"
+? {C public_object_alias} "public_object_method"
+? {catch {C protected_object_alias}} 1
+? {::xotcl::dispatch C protected_object_alias} "protected_object_method"
+
+###########
+
+# scripted object level methods
+? {c1 plain_object_method} "plain_object_method"
+? {c1 public_object_method} "public_object_method"
+? {catch {c1 protected_object_method}} 1
+? {::xotcl::dispatch c1 protected_object_method} "protected_object_method"
+
+# object level forwards
+? {c1 plain_object_forward} "plain_object_method"
+? {c1 public_object_forward} "public_object_method"
+? {catch {c1 protected_object_forward}} 1
+? {::xotcl::dispatch c1 protected_object_forward} "protected_object_method"
+
+# object level setter
+? {c1 plain_object_setter 1} "1"
+? {c1 public_object_setter 2} "2"
+? {catch {c1 protected_object_setter 3}} 1
+? {::xotcl::dispatch c1 protected_object_setter 4} "4"
+
+# object level alias ....TODO: wanted behavior of [self proc]? not "plain_alias"?
+? {c1 plain_object_alias} "plain_object_method"
+? {c1 public_object_alias} "public_object_method"
+? {catch {c1 protected_object_alias}} 1
+? {::xotcl::dispatch c1 protected_object_alias} "protected_object_method"
+
+
