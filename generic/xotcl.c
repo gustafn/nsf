@@ -1008,23 +1008,19 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
 
   /*fprintf(stderr, "try unknown, result so far is %d\n",result);*/
   if (base) {
-    Tcl_Obj *ov[3];
-    ov[0] = base->object.cmdName;
-    ov[1] = XOTclGlobalObjects[XOTE___UNKNOWN];
-    if (isAbsolutePath(objName)) {
-      ov[2] = objPtr;
-    } else {
-      ov[2] = NameInNamespaceObj(interp, objName, callingNameSpace(interp));
-    }
-    INCR_REF_COUNT(ov[2]);
-    /*fprintf(stderr, "+++ calling %s __unknown for %s, objPtr=%s\n",
-      ObjStr(ov[0]), ObjStr(ov[2]), ObjStr(objPtr)); */
+    Tcl_Obj *nameObj = 
+      isAbsolutePath(objName) ? objPtr :
+      NameInNamespaceObj(interp, objName, callingNameSpace(interp));
 
-    result = Tcl_EvalObjv(interp, 3, ov, 0);
+    INCR_REF_COUNT(nameObj);
+    /*fprintf(stderr, "+++ calling __unknown for %s name=%s\n",objectName(base), ObjStr(nameObj));*/
+    result = callMethod((ClientData) base, interp,
+                        XOTclGlobalObjects[XOTE___UNKNOWN], 
+                        3, &nameObj, XOTCL_CM_NO_PROTECT);
     if (result == TCL_OK) {
       result = GetClassFromObj(interp, objPtr, cl, 0);
     }
-    DECR_REF_COUNT(ov[2]);
+    DECR_REF_COUNT(nameObj);
   }
 
   return result;
@@ -12676,9 +12672,7 @@ static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object,
                             withNomixins, withIncontext);
 }
 
-/* todo move me to the right place 
-   cleanup withDefined (above always 1)
-   xxxx */
+/* todo move me to the right place */
 static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object, 
                                       int withWhich, int withMethodtype, int withCallprotection,
                                       int withNomixins, int withIncontext, char *pattern) {
