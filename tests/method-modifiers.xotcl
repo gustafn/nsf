@@ -37,17 +37,17 @@ Class create C {
   
   # object
   .object method plain_object_method {} {return [self proc]}
-  .object public method public_object_method {} {return [self proc]}
-  .object protected method protected_object_method {}  {return [self proc]}
+  .public object method public_object_method {} {return [self proc]}
+  .protected object method protected_object_method {}  {return [self proc]}
   .object forward plain_object_forward %self plain_object_method
-  .object public forward public_object_forward %self public_object_method
-  .object protected forward protected_object_forward %self protected_object_method
+  .public object forward public_object_forward %self public_object_method
+  .protected object forward protected_object_forward %self protected_object_method
   .object setter plain_object_setter 
-  .object public setter public_object_setter 
-  .object protected setter protected_object_setter 
-  .object alias plain_object_alias [.info -per-object method name plain_object_method]
-  .object public alias public_object_alias [.info -per-object method name public_object_method]
-  .object protected alias protected_object_alias [.info -per-object method name protected_object_method]
+  .public object setter public_object_setter 
+  .protected object setter protected_object_setter 
+  .object alias plain_object_alias [.object info method name plain_object_method]
+  .public object alias public_object_alias [.object info method name public_object_method]
+  .protected object alias protected_object_alias [.object info method name protected_object_method]
 }
 C create c1 {
   # methods
@@ -156,4 +156,8 @@ C create c2
 ? {catch {c1 protected_object_alias}} 1
 ? {::xotcl::dispatch c1 protected_object_alias} "protected_object_method"
 
+? {lsort [c1 info methods]} \
+    "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter"
+? {lsort [C object info methods]} \
+    "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter s3"
 

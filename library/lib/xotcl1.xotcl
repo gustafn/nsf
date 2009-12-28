@@ -376,7 +376,7 @@ namespace eval ::xotcl {
   Object instproc ismixin     {class}  {::xotcl::is [self] mixin $class}
   Object instproc istype      {class}  {::xotcl::is [self] type $class}
 
-  ::xotcl::alias Object parametercmd ::xotcl::cmd::Object::setter
+  ::xotcl::alias Object parametercmd ::xotcl::classes::xotcl2::Object::setter
   ::xotcl::alias Object contains ::xotcl::classes::xotcl2::Object::contains
 
   ::xotcl::Class forward slots %self contains \
@@ -387,8 +387,8 @@ namespace eval ::xotcl {
   # define parametercmd and instparametercmd in terms of setter
   # define mixinguard and instmixinguard in terms of mixinguard
   #
-  ::xotcl::alias Class instparametercmd ::xotcl::cmd::Class::setter
-  ::xotcl::alias Class parametercmd     ::xotcl::cmd::Object::setter
+  ::xotcl::alias Class instparametercmd ::xotcl::classes::xotcl2::Class::setter
+  #::xotcl::alias Class parametercmd     ::xotcl::cmd::Object::setter
   ::xotcl::alias Class filterguard      ::xotcl::cmd::Object::filterguard
   ::xotcl::alias Class instfilterguard  ::xotcl::cmd::Class::filterguard
   ::xotcl::alias Class mixinguard       ::xotcl::cmd::Object::mixinguard

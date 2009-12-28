@@ -21,6 +21,7 @@ Class create M {
 Class create M2
 Class create C 
 ? {C info callable -which mixin} "::xotcl2::Object forward mixin ::xotcl2::Object::slot::mixin {%1 {get assign}} %self {%-per-object 0} %proc"
+#? {C info callable -which mixin} "::xotcl2::Object forward mixin ::xotcl2::Object::slot::mixin {%1 {get assign}} %self %proc"
 C mixin M
 ? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
 ? {C mixin} "::M"
@@ -54,7 +55,7 @@ c1 mixin delete M2
 #
 ::xotcl::relation C -per-object mixin M
 ? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
-? {C info -per-object mixin} "::M"
+? {C object info mixin} "::M"
 ::xotcl::relation C -per-object mixin ""
 ? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
 

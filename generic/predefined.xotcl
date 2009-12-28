@@ -67,6 +67,8 @@ namespace eval xotcl2 {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
+    #puts stderr [subst {::xotcl::dispatch [self] ::xotcl::cmd::Object::object-method \
+    #                        $name $arguments $body {*}$conditions}]
     ::xotcl::dispatch [self] ::xotcl::cmd::Object::object-method \
         $name $arguments $body {*}$conditions
   }
@@ -75,10 +77,13 @@ namespace eval xotcl2 {
   ::xotcl::dispatch Class -objscope ::eval {
 
     # method-modifier for object specific methos
-    .method object {args} {
-      set p [expr {[lsearch -regexp $args {^(method|alias|forward|setter)$}] + 1}]
-      set cmd [linsert $args $p "-per-object"]
-      return [{*}.$cmd]
+    .method object {what args} {
+      if {$what in [list "alias" "forward" "method" "setter"]} {
+        return [::xotcl::dispatch [self] ::xotcl::classes::xotcl2::Object::$what {*}$args]
+      }
+      if {$what in [list "info"]} {
+        ::xotcl2::objectInfo [lindex $args 0] [self] {*}[lrange $args 1 end]
+      }
     }
 
     # define unknown handler for class
@@ -143,6 +148,7 @@ namespace eval xotcl2 {
 
   Object public method alias {-objscope:switch methodName cmd} {
     ::xotcl::alias [self] $methodName \
+        -per-object \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         $cmd
   }
@@ -152,6 +158,22 @@ namespace eval xotcl2 {
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         {*}[expr {${per-object} ? "-per-object" : ""}] \
         $cmd
+  }
+  
+  Object public method setter {methodName value:optional} {
+    if {[info exists value]} {
+      ::xotcl::setter [self] $methodName -per-object $value
+    } else {
+      ::xotcl::setter [self] $methodName -per-object
+    }
+  }
+
+  Class public method setter {methodName value:optional} {
+    if {[info exists value]} {
+      ::xotcl::setter [self] $methodName  $value
+    } else {
+      ::xotcl::setter [self] $methodName
+    }
   }
 
   ########################
@@ -205,8 +227,8 @@ namespace eval xotcl2 {
 
   Object forward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
   Class forward  info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
-  ::xotcl::dispatch ::xotcl2::classInfo ::xotcl::cmd::Object::forward \
-      "-per-object" ::xotcl2::objectInfo {%@2 %1}
+#  ::xotcl::dispatch ::xotcl2::classInfo ::xotcl::cmd::Object::forward \
+#      "-per-object" -verbose ::xotcl2::objectInfo {%@2 %1}
 
   proc ::xotcl::infoError msg {
     #puts stderr "INFO ERROR: <$msg>\n$::errorInfo"
@@ -455,12 +477,11 @@ createBootstrapAttributeSlots ::xotcl::Slot {
     ${.domain} __invalidateobjectparameter
     # since the domain object might be xotcl1 or xotcl2, use dispatch
     
-    ::xotcl::dispatch ${.domain} ::xotcl::cmd::Class::forward \
-        {*}[expr {${.per-object} ? "-per-object" : ""}] ${.name} \
-        ${.manager} [list %1 [${.manager} defaultmethods]] %self \
+    set cl [expr {${.per-object} ? "Object" : "Class"}]
+    ::xotcl::dispatch ${.domain} ::xotcl::classes::xotcl2::${cl}::forward \
+        ${.name} ${.manager} [list %1 [${.manager} defaultmethods]] %self \
         "%-per-object [info exists .forward-per-object]" \
         %proc
-
   }
 }
 
@@ -668,7 +689,7 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
     if {[.info callable -which assign] ne "::xotcl::Slot alias assign ::xotcl::setinstvar"} return
     if {[.info callable -which get]    ne "::xotcl::Slot alias get ::xotcl::setinstvar"} return
     #puts stderr "**** optimizing       ${.domain} $forwarder ${.name}"
-    ::xotcl::dispatch ${.domain} ::xotcl::cmd::Class::setter {*}[expr {${.per-object} ? "-per-object" : ""}] ${.name}
+    ::xotcl::setter ${.domain} {*}[expr {${.per-object} ? "-per-object" : ""}] ${.name}
   }
 }
 # register the optimizer per default

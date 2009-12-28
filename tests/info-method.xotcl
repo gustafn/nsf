@@ -24,14 +24,14 @@ Class create C {
   .method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2
 
   .forward addOne expr 1 +
-  .forward -per-object add1 expr 1 +
-  .forward -per-object fpo ::o
+  .object forward add1 expr 1 +
+  .object forward fpo ::o
 
   .setter s 
-  .setter -per-object spo
+  .object setter spo
 
   .alias a ::set
-  .alias -per-object apo ::puts
+  .object alias apo ::puts
 }
 C create c1
 
@@ -50,11 +50,11 @@ c1 method foo {} {puts foo}
 ? {c1 info callable -which foo} "::c1 method foo {} {puts foo}"
 
 ? {C info method name m} "::xotcl::classes::C::m"
-? {C info -per-object method name mpo} "::C::mpo"
+? {C object info method name mpo} "::C::mpo"
 
 ? {C info method definition m} {::C method m x {return proc-[self proc]}}
 ? {C info method def m} {::C method m x {return proc-[self proc]}}
-? {C info -per-object method definition mpo} {::C method -per-object mpo {} {return instproc-[self proc]}}
+? {C object info method definition mpo} {::C method -per-object mpo {} {return instproc-[self proc]}}
 ? {C info method definition m-with-assertions} \
     {::C method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
 ? {C info method parameter m} {x}
@@ -66,11 +66,11 @@ c1 method foo {} {puts foo}
 ? {catch {C info method parameter a}} 1
   
 ? {C info method definition addOne} "::C forward addOne expr 1 +"
-? {C info -per-object method definition add1} "::C forward -per-object add1 expr 1 +"
-? {C info -per-object method definition fpo} "::C forward -per-object fpo ::o"
+? {C object info method definition add1} "::C forward -per-object add1 expr 1 +"
+? {C object info method definition fpo} "::C forward -per-object fpo ::o"
 
 ? {C info method definition s} "::C setter s"
-? {C info -per-object method definition spo} "::C setter -per-object spo"
+? {C object info method definition spo} "::C setter -per-object spo"
 
 ? {C info method definition a} "::C alias a ::set"
-? {C info -per-object method definition apo} "::C alias -per-object apo ::puts"
+? {C object info method definition apo} "::C alias -per-object apo ::puts"

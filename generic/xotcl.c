@@ -10177,16 +10177,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   Tcl_Command cmd, newCmd = NULL;
   Tcl_Namespace *nsPtr;
   int flags, result;
-  char allocation;
-
-  if (withPer_object) {
-    allocation = 'o';
-  } else if (XOTclObjectIsClass(object)) {
-    allocation = 'c';
-  } else {
-    allocation = 'o';
-  }
-
+  XOTclClass *cl = (withPer_object || ! XOTclObjectIsClass(object)) ? NULL : (XOTclClass *)object;
 
   cmd = Tcl_GetCommandFromObj(interp, cmdName);
   if (cmd == NULL) {
@@ -10199,7 +10190,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
 
   /* objProc is either ...  
 
-     1. XOTclObjDispatch: a command representing an xotcl object 
+     1. XOTclObjDispatch: a command representing an XOTcl object 
 
      2. TclObjInterpProc: a cmd standing for a
         Tcl proc (including XOTcl methods), verified through 
@@ -10207,29 +10198,11 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
      
      3. XOTclForwardMethod: an XOTcl forwarder 
 
-     4. XOTclSetterMethod: an XOTcl parametercmd 
+     4. XOTclSetterMethod: an XOTcl setter 
 
-     ... or other helper/ intermediate wrapper functions 
-     (e.g., XOTclSetRelation)
+     5. arbitrary Tcl commands (e.g. set, ..., ::xotcl::relation, ...)
 
-     5. arbitrary Tcl commands (e.g. set, ...)
-
-     TODO: only 1 & 2 are relevant, right? what about aliasing
-     forwarders? should there be explicit errors thrown on 3. (and
-     4.?)? 
-     
-     GN: why limit objProc; ideally, one should be able to use the
-     same mechanism for every method?
-
-     TODO: where does '-objscope' makes sense? i'd say 2-4 (for now,
-     we consider only case 2). should there be an error thrown upon 1?
-     
-     GN: it make sense, whever an "input/output variable" targeted to the
-     current (proc)scope should should effect the instance
-     variables. 3&4 do not make sense (they set already instance
-     variables, one has to experience with e.g. procs + upvar)
-
-     GN: i think, we should use XOTclProcAliasMethod, whenever the clientData
+     TODO GN: i think, we should use XOTclProcAliasMethod, whenever the clientData
      is not 0. These are the cases, where the clientData will be freed,
      when the original command is deleted.
   */
@@ -10271,7 +10244,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     tcd->cmdName    = object->cmdName;
     tcd->interp     = interp; /* just for deleting the associated variable */
     tcd->obj        = object;
-    tcd->class	    = allocation == 'c' ? (XOTclClass *) object : NULL;
+    tcd->class	    = cl ? (XOTclClass *) object : NULL;
     tcd->objProc    = objProc;
     tcd->aliasedCmd = cmd;
     tcd->clientData = Tcl_Command_objClientData(cmd);
@@ -10279,14 +10252,15 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     deleteProc      = aliasCmdDeleteProc;
     if (tcd->cmdName) {INCR_REF_COUNT(tcd->cmdName);}
   } else {
-    /* call the command directly (must be a c-implemented command not depending on a volatile client data) */
+    /* call the command directly (must be a c-implemented command not 
+     * depending on a volatile client data) 
+     */
     tcd = Tcl_Command_objClientData(cmd);
   }
 
   flags = 0;
 
-  if (allocation == 'c') {
-    XOTclClass *cl = (XOTclClass *)object;
+  if (cl) {
     result = XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, methodName,
                                     objProc, tcd, deleteProc, flags);
     nsPtr = cl->nsPtr;
@@ -10318,10 +10292,10 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
     /*if (withPer_object) {Tcl_DStringAppend(dsPtr, "-per-object ", -1);}*/
     if (withObjscope) {Tcl_DStringAppend(dsPtr, "-objscope ", -1);}
     Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
-    AliasAdd(interp, object->cmdName, methodName, allocation == 'o', Tcl_DStringValue(dsPtr));
+    AliasAdd(interp, object->cmdName, methodName, cl == NULL, Tcl_DStringValue(dsPtr));
     Tcl_DStringFree(dsPtr);
 
-    result = ListMethodName(interp, object, allocation == 'o', methodName);
+    result = ListMethodName(interp, object, cl == NULL, methodName);
   }
 
   return result;
@@ -11493,6 +11467,25 @@ static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *
   return setInstVar(interp, object , variable, value);
 }
 
+/* TODO move me at the right place */
+static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, 
+                          int withPer_object) {
+  int result;
+  XOTclClass *cl = (withPer_object || ! XOTclObjectIsClass(object)) ? NULL : (XOTclClass *)object;
+
+  if (cl) {
+    result = XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, methodName,
+                                    (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+  } else {
+    result = XOTclAddObjectMethod(interp, (XOTcl_Object *)object, methodName, 
+                                  (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+  }
+  if (result == TCL_OK) {
+    result = ListMethodName(interp, object, withPer_object, methodName);
+  }
+  return result;
+}
+
 /***************************
  * End generated XOTcl commands
  ***************************/
@@ -12050,7 +12043,6 @@ static int XOTclOForwardMethod(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj 
                                int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target,
                                int nobjc, Tcl_Obj *CONST nobjv[]) {
   forwardCmdClientData *tcd;
-
   int result = forwardProcessOptions(interp, method,
                                  withDefault, withEarlybinding, withMethodprefix,
                                  withObjscope, withOnerror, withVerbose,
@@ -12467,29 +12459,6 @@ static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPe
 }
 
 /* TODO move me at the right place */
-static int XOTclCSetterMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *methodName) {
-  int result;
-  if (withPer_object) {
-    result = XOTclAddObjectMethod(interp, (XOTcl_Object*) cl, methodName, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
-  } else {
-    result = XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, methodName, (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
-  }
-  if (result == TCL_OK) {
-    result = ListMethodName(interp, &cl->object, withPer_object, methodName);
-  }
-  return result;
-}
-
-static int XOTclOSetterMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName) {
-  int result = XOTclAddObjectMethod(interp, (XOTcl_Object*) object, methodName, 
-                                    (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
-  if (result == TCL_OK) {
-    result = ListMethodName(interp, object, 1, methodName);
-  }
-  return result;
-}
-
-/* TODO move me at the right place */
 static int XOTclOMethodMethod(Tcl_Interp *interp, XOTclObject *obj,
                               int withInner_namespace, int withPublic,
                               Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
@@ -12512,35 +12481,24 @@ static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl,
 }
 
 static int XOTclCForwardMethod(Tcl_Interp *interp, XOTclClass *cl, 
-                               int withPer_object, Tcl_Obj *method,
+                               Tcl_Obj *method,
                                Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
                                int withObjscope, Tcl_Obj *withOnerror, int withVerbose,
                                Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
   forwardCmdClientData *tcd;
-  int result;
-  CONST char *methodName;
-
-  result = forwardProcessOptions(interp, method,
-                                 withDefault, withEarlybinding, withMethodprefix,
-                                 withObjscope, withOnerror, withVerbose,
-                                 target, nobjc, nobjv, &tcd);
-  if (result != TCL_OK) {
-    return result;
-  }
-  methodName = NSTail(ObjStr(method));
-  if (withPer_object) {
-    tcd->obj = &cl->object;
-    result = XOTclAddObjectMethod(interp, (XOTcl_Object *)cl, methodName,
-                                  (Tcl_ObjCmdProc*)XOTclForwardMethod,
-                                  (ClientData)tcd, forwardCmdDeleteProc, 0);
-  } else {
+  int result = forwardProcessOptions(interp, method,
+                                     withDefault, withEarlybinding, withMethodprefix,
+                                     withObjscope, withOnerror, withVerbose,
+                                     target, nobjc, nobjv, &tcd);
+  if (result == TCL_OK) {
+    CONST char *methodName = NSTail(ObjStr(method));
     tcd->obj = &cl->object;
     result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName,
                                     (Tcl_ObjCmdProc*)XOTclForwardMethod,
                                     (ClientData)tcd, forwardCmdDeleteProc, 0);
-  }
-  if (result == TCL_OK) {
-    result = ListMethodName(interp, &cl->object, withPer_object, methodName);
+    if (result == TCL_OK) {
+      result = ListMethodName(interp, &cl->object, 0, methodName);
+    }
   }
   return result;
 }

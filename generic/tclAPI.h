@@ -109,7 +109,6 @@ static int XOTclCMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int
 static int XOTclCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclCSetterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -160,7 +159,6 @@ static int XOTclONextMethodStub(ClientData clientData, Tcl_Interp *interp, int o
 static int XOTclONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOSetterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -183,6 +181,7 @@ static int XOTclNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int XOTclQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int XOTclCheckBooleanArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
 static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
@@ -190,14 +189,13 @@ static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name);
 static int XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *object);
 static int XOTclCFilterGuardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *filter, Tcl_Obj *guard);
-static int XOTclCForwardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, Tcl_Obj *name, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int XOTclCForwardMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass *cl);
 static int XOTclCInvariantsMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *invariantlist);
 static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl, int withInner_namespace, int withPublic, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *mixin, Tcl_Obj *guard);
 static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclCRecreateMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclCSetterMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *name);
 static int XOTclClassInfoFilterMethod(Tcl_Interp *interp, XOTclClass *class, int withGuards, char *pattern);
 static int XOTclClassInfoFilterguardMethod(Tcl_Interp *interp, XOTclClass *class, char *filter);
 static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *class, int withDefinition, char *name);
@@ -248,7 +246,6 @@ static int XOTclONextMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_
 static int XOTclONoinitMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclORequireNamespaceMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclOSetterMethod(Tcl_Interp *interp, XOTclObject *obj, char *name);
 static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
@@ -271,6 +268,7 @@ static int XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, int relationtype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
+static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withPer_object);
 
 enum {
  XOTclCheckBooleanArgsIdx,
@@ -286,7 +284,6 @@ enum {
  XOTclCMixinGuardMethodIdx,
  XOTclCNewMethodIdx,
  XOTclCRecreateMethodIdx,
- XOTclCSetterMethodIdx,
  XOTclClassInfoFilterMethodIdx,
  XOTclClassInfoFilterguardMethodIdx,
  XOTclClassInfoForwardMethodIdx,
@@ -337,7 +334,6 @@ enum {
  XOTclONoinitMethodIdx,
  XOTclORequireNamespaceMethodIdx,
  XOTclOResidualargsMethodIdx,
- XOTclOSetterMethodIdx,
  XOTclOUplevelMethodIdx,
  XOTclOUpvarMethodIdx,
  XOTclOVolatileMethodIdx,
@@ -359,7 +355,8 @@ enum {
  XOTclNSCopyVarsIdx,
  XOTclQualifyObjCmdIdx,
  XOTclRelationCmdIdx,
- XOTclSetInstvarCmdIdx
+ XOTclSetInstvarCmdIdx,
+ XOTclSetterCmdIdx
 } XOTclMethods;
 
 
@@ -490,18 +487,17 @@ XOTclCForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    int withPer_object = (int )pc.clientData[0];
-    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *withDefault = (Tcl_Obj *)pc.clientData[2];
-    int withEarlybinding = (int )pc.clientData[3];
-    Tcl_Obj *withMethodprefix = (Tcl_Obj *)pc.clientData[4];
-    int withObjscope = (int )pc.clientData[5];
-    Tcl_Obj *withOnerror = (Tcl_Obj *)pc.clientData[6];
-    int withVerbose = (int )pc.clientData[7];
-    Tcl_Obj *target = (Tcl_Obj *)pc.clientData[8];
+    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
+    Tcl_Obj *withDefault = (Tcl_Obj *)pc.clientData[1];
+    int withEarlybinding = (int )pc.clientData[2];
+    Tcl_Obj *withMethodprefix = (Tcl_Obj *)pc.clientData[3];
+    int withObjscope = (int )pc.clientData[4];
+    Tcl_Obj *withOnerror = (Tcl_Obj *)pc.clientData[5];
+    int withVerbose = (int )pc.clientData[6];
+    Tcl_Obj *target = (Tcl_Obj *)pc.clientData[7];
 
     parseContextRelease(&pc);
-    return XOTclCForwardMethod(interp, cl, withPer_object, name, withDefault, withEarlybinding, withMethodprefix, withObjscope, withOnerror, withVerbose, target, objc-pc.lastobjc, objv+pc.lastobjc);
+    return XOTclCForwardMethod(interp, cl, name, withDefault, withEarlybinding, withMethodprefix, withObjscope, withOnerror, withVerbose, target, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
 }
@@ -624,26 +620,6 @@ XOTclCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
     parseContextRelease(&pc);
     return XOTclCRecreateMethod(interp, cl, name, objc, objv);
-
-  }
-}
-
-static int
-XOTclCSetterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclCSetterMethodIdx].paramDefs, 
-                     method_definitions[XOTclCSetterMethodIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    int withPer_object = (int )pc.clientData[0];
-    char *name = (char *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclCSetterMethod(interp, cl, withPer_object, name);
 
   }
 }
@@ -1686,25 +1662,6 @@ XOTclOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
 }
 
 static int
-XOTclOSetterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclOSetterMethodIdx].paramDefs, 
-                     method_definitions[XOTclOSetterMethodIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    char *name = (char *)pc.clientData[0];
-
-    parseContextRelease(&pc);
-    return XOTclOSetterMethod(interp, obj, name);
-
-  }
-}
-
-static int
 XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
@@ -2101,6 +2058,26 @@ XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   }
 }
 
+static int
+XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclSetterCmdIdx].paramDefs, 
+                     method_definitions[XOTclSetterCmdIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclObject *object = (XOTclObject *)pc.clientData[0];
+    char *methodName = (char *)pc.clientData[1];
+    int withPer_object = (int )pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return XOTclSetterCmd(interp, object, methodName, withPer_object);
+
+  }
+}
+
 static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::ParameterType::type=boolean", XOTclCheckBooleanArgsStub, 2, {
   {"name", 1, 0, convertToString},
@@ -2125,8 +2102,7 @@ static methodDefinition method_definitions[] = {
   {"filter", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::forward", XOTclCForwardMethodStub, 10, {
-  {"-per-object", 0, 0, convertToBoolean},
+{"::xotcl::cmd::Class::forward", XOTclCForwardMethodStub, 9, {
   {"name", 1, 0, convertToTclobj},
   {"-default", 0, 1, convertToTclobj},
   {"-earlybinding", 0, 0, convertToString},
@@ -2164,10 +2140,6 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::Class::recreate", XOTclCRecreateMethodStub, 2, {
   {"name", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
-},
-{"::xotcl::cmd::Class::setter", XOTclCSetterMethodStub, 2, {
-  {"-per-object", 0, 0, convertToBoolean},
-  {"name", 1, 0, convertToString}}
 },
 {"::xotcl::cmd::ClassInfo::filter", XOTclClassInfoFilterMethodStub, 3, {
   {"class", 1, 0, convertToClass},
@@ -2392,9 +2364,6 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::Object::residualargs", XOTclOResidualargsMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::setter", XOTclOSetterMethodStub, 1, {
-  {"name", 1, 0, convertToString}}
-},
 {"::xotcl::cmd::Object::uplevel", XOTclOUplevelMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
@@ -2488,6 +2457,11 @@ static methodDefinition method_definitions[] = {
   {"object", 1, 0, convertToObject},
   {"variable", 1, 0, convertToTclobj},
   {"value", 0, 0, convertToTclobj}}
+},
+{"::xotcl::setter", XOTclSetterCmdStub, 3, {
+  {"object", 1, 0, convertToObject},
+  {"methodName", 1, 0, convertToString},
+  {"-per-object", 0, 0, convertToBoolean}}
 }
 };
 

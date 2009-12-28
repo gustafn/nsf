@@ -97,6 +97,11 @@ xotclCmd setinstvar XOTclSetInstvarCmd {
   {-argName "variable" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
+xotclCmd setter XOTclSetterCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "methodName" -required 1}
+  {-argName "-per-object" -type switch}
+}
 #
 # object methods
 #
@@ -165,9 +170,6 @@ objectMethod requireNamespace XOTclORequireNamespaceMethod {
 objectMethod residualargs XOTclOResidualargsMethod {
   {-argName "args" -type allargs}
 }
-objectMethod setter XOTclOSetterMethod {
-  {-argName "name" -required 1}
-}
 objectMethod uplevel XOTclOUplevelMethod {
   {-argName "args" -type allargs}
 }
@@ -220,7 +222,6 @@ classMethod class-method XOTclCMethodMethod {
   {-argName "-postcondition" -nrargs 1 -type tclobj}
 }
 classMethod forward XOTclCForwardMethod {
-  {-argName "-per-object" -type switch}
   {-argName "name" -required 1 -type tclobj}
   {-argName "-default" -nrargs 1 -type tclobj}
   {-argName "-earlybinding"}
@@ -236,10 +237,6 @@ classMethod __invalidateobjectparameter XOTclCInvalidateObjectParameterMethod {
 classMethod recreate XOTclCRecreateMethod {
   {-argName "name" -required 1 -type tclobj}
   {-argName "args" -type allargs}
-}
-classMethod setter XOTclCSetterMethod {
-  {-argName "-per-object" -type switch}
-  {-argName "name" -required 1}
 }
 #
 # check methods
