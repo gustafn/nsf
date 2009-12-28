@@ -135,16 +135,15 @@ namespace eval ::xotcl {
     ::xotcl::alias           ${os}::Object::slot::class assign ::xotcl::relation
 
     ::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \
-        -forward-per-object true \
-        -type relation
+        -type relation -methodname object-mixin
     ::xotcl::InterceptorSlot create ${os}::Object::slot::filter \
-        -forward-per-object true \
-        -elementtype "" -type relation
+        -type relation  -methodname object-filter \
+        -elementtype ""
     ::xotcl::InterceptorSlot create ${os}::Class::slot::instmixin \
-        -type relation
+        -type relation  -methodname class-mixin
     ::xotcl::InterceptorSlot create ${os}::Class::slot::instfilter \
-        -elementtype "" \
-        -type relation
+        -type relation -methodname class-filter \
+        -elementtype ""
   }
   ::xotcl::register_system_slots1 ::xotcl
 

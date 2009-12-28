@@ -1,6 +1,6 @@
 package require XOTcl
 package require xotcl::test
-
+::xotcl::use xotcl2
 
 proc ? {cmd expected {msg ""}} {
   set count 10
@@ -13,15 +13,14 @@ proc ? {cmd expected {msg ""}} {
   $t run
 }
 
-::xotcl::use xotcl2
 puts stderr START
 Class create M {
   .method mfoo {} {puts [self proc]}
 }
 Class create M2
 Class create C 
-? {C info callable -which mixin} "::xotcl2::Object forward mixin ::xotcl2::Object::slot::mixin {%1 {get assign}} %self {%-per-object 0} %proc"
-#? {C info callable -which mixin} "::xotcl2::Object forward mixin ::xotcl2::Object::slot::mixin {%1 {get assign}} %self %proc"
+
+? {C info callable -which mixin} "::xotcl2::Class forward mixin ::xotcl2::Class::slot::mixin {%1 {get assign}} %self class-mixin"
 C mixin M
 ? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
 ? {C mixin} "::M"
@@ -33,12 +32,14 @@ C mixin add M2
 C mixin delete M2
 ? {c1 info precedence} "::M ::C ::xotcl2::Object"
 C mixin delete M
+
 # per-object mixins
 ? {c1 info precedence} "::C ::xotcl2::Object"
 c1 mixin add M
 ? {::xotcl::relation c1 mixin} ::M
 ? {catch {c1 mixin UNKNOWN}} 1
 ? {::xotcl::relation c1 mixin} "::M"
+
 # add again the same mixin
 c1 mixin add M
 ? {c1 info precedence} "::M ::C ::xotcl2::Object"
@@ -49,9 +50,9 @@ c1 mixin delete M
 c1 mixin delete M2
 ? {c1 info precedence} "::C ::xotcl2::Object"
 
-
 #
-# adding, removing per-object mixins for classes through relation 
+# adding, removing per-object mixins for classes through relation
+# "mixin" and "-per-object" (deprecated)
 #
 ::xotcl::relation C -per-object mixin M
 ? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
@@ -60,24 +61,63 @@ c1 mixin delete M2
 ? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
 
 #
-# adding per-object mixins for classes via "mixin -per-object add M"
+# adding, removing per-object mixins for classes through relation
+# "object-mixin"
 #
-C mixin -per-object add M 
+::xotcl::relation C object-mixin M
 ? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
-? {::xotcl::relation C -per-object mixin} ::M
-? {catch {C mixin -per-object add UNKNOWN}} 1
-? {::xotcl::relation C -per-object mixin} "::M"
-C mixin -per-object ""
+? {C object info mixin} "::M"
+::xotcl::relation C object-mixin ""
 ? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
 
 #
-# adding per-object mixins for classes via "mixin -per-object M"
+# adding, removing per-object mixins for classes through slot
+# "object-mixin"
 #
-C mixin -per-object M 
+C object-mixin M
+? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
+? {C object info mixin} "::M"
+C object-mixin ""
+? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
+
+#
+# add and remove object mixin for classes via modifier "object" and
+# "mixin"
+#
+C object mixin M
+? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
+? {C object info mixin} "::M"
+C object mixin ""
+? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
+
+#
+#  add and remove object mixin for classes via object mixin add
+#
+C object mixin add M
+? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
+? {C object info mixin} "::M"
+C object mixin ""
+? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
+
+#
+# adding per-object mixins for classes via "object mixin add M"
+#
+C object mixin add M 
+? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
+? {::xotcl::relation C object-mixin} ::M
+? {catch {C object mixin add UNKNOWN}} 1
+? {::xotcl::relation C object-mixin} "::M"
+C object mixin ""
+? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
+
+#
+# adding per-object mixins for classes via "object mixin M"
+#
+C object mixin M 
 ? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
 
 # forwarder with 0 arguments + flag
-? {C mixin -per-object} "::M"
+? {C object-mixin} "::M"
 
 puts stderr "==================== XOTcl 1"
 ::xotcl::use xotcl1

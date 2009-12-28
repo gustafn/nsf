@@ -11067,7 +11067,14 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
 
   /*fprintf(stderr, "XOTclRelationCmd %s %d rel=%d val='%s'\n",
     objectName(object),withPer_object,relationtype,value?ObjStr(value):"NULL");*/
-  
+  /* set withPer_object according to object- or class- */
+  switch (relationtype) {
+  case RelationtypeObject_mixinIdx: withPer_object = 1; break;
+  case RelationtypeObject_filterIdx: withPer_object = 1; break;
+  case RelationtypeClass_mixinIdx: withPer_object = 0; break;
+  case RelationtypeClass_filterIdx: withPer_object = 0; break;
+  }
+
   if (withPer_object) {
     switch (relationtype) {
     case RelationtypeClass_mixinIdx:

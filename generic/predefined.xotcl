@@ -82,7 +82,10 @@ namespace eval xotcl2 {
         return [::xotcl::dispatch [self] ::xotcl::classes::xotcl2::Object::$what {*}$args]
       }
       if {$what in [list "info"]} {
-        ::xotcl2::objectInfo [lindex $args 0] [self] {*}[lrange $args 1 end]
+        return [::xotcl2::objectInfo [lindex $args 0] [self] {*}[lrange $args 1 end]]
+      }
+      if {$what in [list "filter" "mixin"]} {
+        return [.object-$what {*}$args]
       }
     }
 
@@ -170,7 +173,7 @@ namespace eval xotcl2 {
 
   Class public method setter {methodName value:optional} {
     if {[info exists value]} {
-      ::xotcl::setter [self] $methodName  $value
+      ::xotcl::setter [self] $methodName $value
     } else {
       ::xotcl::setter [self] $methodName
     }
@@ -222,13 +225,8 @@ namespace eval xotcl2 {
   }
   unset cmd
 
-  #Object forward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
-  #Class  forward info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
-
   Object forward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
   Class forward  info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
-#  ::xotcl::dispatch ::xotcl2::classInfo ::xotcl::cmd::Object::forward \
-#      "-per-object" -verbose ::xotcl2::objectInfo {%@2 %1}
 
   proc ::xotcl::infoError msg {
     #puts stderr "INFO ERROR: <$msg>\n$::errorInfo"
@@ -416,6 +414,7 @@ proc createBootstrapAttributeSlots {class definitions} {
 ############################################
 createBootstrapAttributeSlots ::xotcl::Slot {
   {name "[namespace tail [::xotcl::self]]"}
+  {methodname "[namespace tail [::xotcl::self]]"}
   {domain "[lindex [regexp -inline {^(.*)::slot::[^:]+$} [::xotcl::self]] 1]"}
   {defaultmethods {get assign}}
   {manager "[::xotcl::self]"}
@@ -475,13 +474,11 @@ createBootstrapAttributeSlots ::xotcl::Slot {
   }
   if {${.domain} ne ""} {
     ${.domain} __invalidateobjectparameter
-    # since the domain object might be xotcl1 or xotcl2, use dispatch
-    
     set cl [expr {${.per-object} ? "Object" : "Class"}]
+    # since the domain object might be xotcl1 or xotcl2, use dispatch
     ::xotcl::dispatch ${.domain} ::xotcl::classes::xotcl2::${cl}::forward \
         ${.name} ${.manager} [list %1 [${.manager} defaultmethods]] %self \
-        "%-per-object [info exists .forward-per-object]" \
-        %proc
+       ${.methodname}
   }
 }
 
@@ -501,19 +498,17 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
   if {![set .multivalued]} {
     error "Property $prop of ${.domain}->$obj ist not multivalued"
   }
-  puts stderr "adding infoslot: $obj $prop [linsert [$obj info $prop] $pos $value]"
+  #puts stderr "adding infoslot: $obj $prop [linsert [$obj info $prop] $pos $value]"
   $obj $prop [linsert [$obj info $prop] $pos $value]
 }
-::xotcl::InfoSlot public method delete {-nocomplain:switch obj prop value} {
-  puts stderr infoslot-delete-[self args]
-  set old [$obj info $prop]
+::xotcl::InfoSlot protected method delete_value {obj prop old value} {
   if {[string first * $value] > -1 || [string first \[ $value] > -1} {
     # string contains meta characters
     if {${.elementtype} ne "" && ![string match ::* $value]} {
       # prefix string with ::, since all object names have leading ::
       set value ::$value
     }
-    return [$obj $prop [lsearch -all -not -glob -inline $old $value]]
+    return [lsearch -all -not -glob -inline $old $value]
   } elseif {${.elementtype} ne ""} {
     if {[string first :: $value] == -1} {
       if {![::xotcl::is $value object]} {
@@ -527,10 +522,15 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
   }
   set p [lsearch -exact $old $value]
   if {$p > -1} {
-    $obj $prop [lreplace $old $p $p]
+    return [lreplace $old $p $p]
   } else {
     error "$value is not a $prop of $obj (valid are: $old)"
   }
+}
+
+::xotcl::InfoSlot public method delete {-nocomplain:switch obj prop value} {
+  #puts stderr infoslot-delete-[self args]
+  $obj $prop [.delete_value $obj $prop [$obj info $prop] $value]
 }
 
 ############################################
@@ -542,16 +542,18 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
 ::xotcl::alias ::xotcl::InterceptorSlot set ::xotcl::relation ;# for backwards compatibility
 ::xotcl::alias ::xotcl::InterceptorSlot assign ::xotcl::relation
 
-::xotcl::InterceptorSlot public method get {obj -per-object:switch prop} {
-  ::xotcl::relation $obj {*}[expr {${per-object} ? "-per-object" : ""}] $prop
+::xotcl::InterceptorSlot public method get {obj prop} {
+  ::xotcl::relation $obj $prop
 }
-::xotcl::InterceptorSlot public method add {obj -per-object:switch prop value {pos 0}} {
+::xotcl::InterceptorSlot public method add {obj prop value {pos 0}} {
   if {![set .multivalued]} {
     error "Property $prop of ${.domain}->$obj ist not multivalued"
   }
-  set perObject [expr {${per-object} ? "-per-object" : ""}]
-  set oldSetting [::xotcl::relation $obj {*}$perObject $prop]
-  ::xotcl::relation $obj {*}$perObject $prop [linsert $oldSetting $pos $value]
+  set oldSetting [::xotcl::relation $obj $prop]
+  ::xotcl::relation $obj $prop [linsert $oldSetting $pos $value]
+}
+::xotcl::InterceptorSlot public method delete {-nocomplain:switch obj prop value} {
+  ::xotcl::relation $obj $prop [.delete_value $obj $prop [::xotcl::relation $obj $prop] $value]
 }
 
 ############################################
@@ -567,13 +569,27 @@ proc ::xotcl::register_system_slots {os} {
   ::xotcl::alias           ${os}::Object::slot::class assign ::xotcl::relation
 
   ::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \
-      -type relation
+      -type relation -methodname object-mixin
 
   ::xotcl::InterceptorSlot create ${os}::Object::slot::filter \
       -elementtype "" -type relation
 
-#  ::xotcl::InterceptorSlot create ${os}::Class::slot::object-mixin \
-#      -type relation
+  ::xotcl::InterceptorSlot create ${os}::Class::slot::mixin \
+      -type relation -methodname class-mixin
+  ::xotcl::InterceptorSlot create ${os}::Class::slot::filter \
+      -type relation -methodname filter-mixin
+
+  # create tho conveniance slots to allow configuration of 
+  # object-slots for classes via object-mixin
+  ::xotcl::InterceptorSlot create ${os}::Class::slot::object-mixin \
+      -type relation
+  ::xotcl::InterceptorSlot create ${os}::Class::slot::object-filter \
+      -elementtype "" -type relation
+
+  # We could define a mixin on class, the calls always class-mixin.
+  # therfore, 
+  #::xotcl::InterceptorSlot create ${os}::Class::slot::mixin \
+  #    -type relation -methodname class-mixin
 }
 ::xotcl::register_system_slots ::xotcl2
 
