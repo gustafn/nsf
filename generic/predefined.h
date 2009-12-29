@@ -41,7 +41,6 @@ static char cmd[] =
 "if {$what in [list \"info\"]} {\n"
 "return [::xotcl2::objectInfo [lindex $args 0] [self] {*}[lrange $args 1 end]]}\n"
 "if {$what in [list \"filter\" \"mixin\"]} {\n"
-"puts stderr \"call .object-$what {*}$args\"\n"
 "return [.object-$what {*}$args]}\n"
 "if {$what in [list \"filterguard\" \"mixinguard\"]} {\n"
 "return [::xotcl::dispatch [self] ::xotcl::cmd::Object::$what {*}$args]}}\n"

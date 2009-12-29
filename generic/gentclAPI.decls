@@ -290,7 +290,7 @@ infoObjectMethod method XOTclObjInfoMethodMethod {
 ### TODO move finally to infoclassmethod
 infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|name|parameter|type|precondition|postcondition"}
   {-argName "name"}
 }
 

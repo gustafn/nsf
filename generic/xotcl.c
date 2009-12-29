@@ -9727,6 +9727,10 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
       case InfomethodsubcmdTypeIdx:
         Tcl_SetObjResult(interp, Tcl_NewStringObj("scripted",-1));
         break;
+        
+      case InfomethodsubcmdBodyIdx: 
+        ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
+        break;
 
       case InfomethodsubcmdDefinitionIdx: 
         {

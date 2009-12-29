@@ -281,10 +281,8 @@ namespace eval ::xotcl {
     .proc instdefault {o method arg var} {::xotcl::info_default Class $o $method $arg $var}
     .proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
-    # info options emulated by "info method"
-    .proc instbody    {o methodName} {
-      lindex [::xotcl::cmd::ClassInfo::method $o definition $methodName] end
-    }
+    # info options emulated by "info method ..."
+    .proc instbody    {o methodName} {::xotcl::cmd::ClassInfo::method $o body $methodName}
     .proc instpre     {o methodName} {::xotcl::cmd::ClassInfo::method $o precondition  $methodName}
     .proc instpost    {o methodName} {::xotcl::cmd::ClassInfo::method $o postcondition $methodName}
 
@@ -308,10 +306,8 @@ namespace eval ::xotcl {
     .proc nonposargs  {o method} {::xotcl::info_nonposargs Object $o $method}
     .proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
-    # info options emulated by "info method"
-    .proc body        {o methodName} {
-      lindex [::xotcl::cmd::ObjectInfo::method $o definition $methodName] end
-    }
+    # info options emulated by "info method ..."
+    .proc body        {o methodName} {::xotcl::cmd::ObjectInfo::method $o body $methodName}
     .proc pre         {o methodName} {::xotcl::cmd::ObjectInfo::method $o pre $methodName}
     .proc post        {o methodName} {::xotcl::cmd::ObjectInfo::method $o post $methodName}
 
