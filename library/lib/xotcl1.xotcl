@@ -375,25 +375,24 @@ namespace eval ::xotcl {
   Object instproc ismixin     {class}  {::xotcl::is [self] mixin $class}
   Object instproc istype      {class}  {::xotcl::is [self] type $class}
 
-  ::xotcl::alias Object parametercmd ::xotcl::classes::xotcl2::Object::setter
   ::xotcl::alias Object contains ::xotcl::classes::xotcl2::Object::contains
-
   ::xotcl::Class forward slots %self contains \
       -object {%::xotcl::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
   #
-  # define forward and instforward in terms of forward
-  # define parametercmd and instparametercmd in terms of setter
-  # define parametercmd and instparametercmd in terms of setter
+  # define parametercmd and instparametercmd in terms of ::xotcl2 method setter
+  # define filterguard and instfilterguard in terms of filterguard
   # define mixinguard and instmixinguard in terms of mixinguard
   #
+  ::xotcl::alias Object parametercmd    ::xotcl::classes::xotcl2::Object::setter
   ::xotcl::alias Class instparametercmd ::xotcl::classes::xotcl2::Class::setter
-  #::xotcl::alias Class parametercmd     ::xotcl::cmd::Object::setter
+
   ::xotcl::alias Class filterguard      ::xotcl::cmd::Object::filterguard
   ::xotcl::alias Class instfilterguard  ::xotcl::cmd::Class::filterguard
+
   ::xotcl::alias Class mixinguard       ::xotcl::cmd::Object::mixinguard
   ::xotcl::alias Class instmixinguard   ::xotcl::cmd::Class::mixinguard
-  ::xotcl::alias Class mixinguard       ::xotcl::cmd::Object::mixinguard
 
+  # define forward and instforward in terms of forward
   # we are changing the the semantics from forward -> instforward,
   # this has to be done at the end to avoid confusion with the
   # previous forward invocation in this script.
@@ -420,12 +419,16 @@ namespace eval ::xotcl {
   Object instproc procsearch {name} {
     set definition [::xotcl::cmd::ObjectInfo::callable [self] -which $name]
     if {$definition ne ""} {
-      foreach {obj kind arg} $definition break
-      set perClass [expr {[::xotcl::is $obj class] && $arg ne "-per-object"}]
+      foreach {obj modifier kind} $definition break
+      if {$modifier ne "object"} {
+        set kind $modifier
+        set perClass [::xotcl::is $obj class]
+      } else {
+        set perClass 0
+      }
       switch $kind {
         alias   {if {$perClass} {set kind "instcmd"} else {set kind "cmd"}}
         forward {if {$perClass} {set kind "instforward"}}
-        mixin   {if {$perClass} {set kind "instmixin"}}
         method  {if {$perClass} {set kind "instproc"} else {set kind "proc"}}
         setter  {if {$perClass} {set kind "instparametercmd"} else {set kind "parametercmd"}}
         default {error "not handeled: $definition"}

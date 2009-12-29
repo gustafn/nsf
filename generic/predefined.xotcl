@@ -50,14 +50,12 @@ namespace eval xotcl2 {
   
   # define method "method" for Class and Object
   ::xotcl::dispatch Class ::xotcl::cmd::Class::class-method method {
-    -per-object:switch 
     name arguments body -precondition -postcondition
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    set cls [expr {${per-object} ? "Object" : "Class"}]
-    ::xotcl::dispatch [self] ::xotcl::cmd::${cls}::[string tolower $cls]-method \
+    ::xotcl::dispatch [self] ::xotcl::cmd::Class::class-method \
         $name $arguments $body {*}$conditions
   }
 
@@ -67,8 +65,6 @@ namespace eval xotcl2 {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    #puts stderr [subst {::xotcl::dispatch [self] ::xotcl::cmd::Object::object-method \
-    #                        $name $arguments $body {*}$conditions}]
     ::xotcl::dispatch [self] ::xotcl::cmd::Object::object-method \
         $name $arguments $body {*}$conditions
   }
@@ -86,6 +82,9 @@ namespace eval xotcl2 {
       }
       if {$what in [list "filter" "mixin"]} {
         return [.object-$what {*}$args]
+      }
+      if {$what in [list "filterguard" "mixinguard"]} {
+        return [::xotcl::dispatch [self] ::xotcl::cmd::Object::$what {*}$args]
       }
     }
 
@@ -156,10 +155,9 @@ namespace eval xotcl2 {
         $cmd
   }
 
-  Class public method alias {-objscope:switch -per-object:switch methodName cmd} {
+  Class public method alias {-objscope:switch methodName cmd} {
     ::xotcl::alias [self] $methodName \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
-        {*}[expr {${per-object} ? "-per-object" : ""}] \
         $cmd
   }
   

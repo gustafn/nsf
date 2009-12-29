@@ -106,7 +106,7 @@ T method foo {} {}
 ? {T info methods -methodtype scripted} {}
 
 T method foo args { return [self class]->[self proc] }
-T method -per-object bar args { return [self class]->[self proc] }
+T object method bar args { return [self class]->[self proc] }
 ::xotcl::alias T FOO -per-object ::xotcl::classes::T::foo 
 ::xotcl::alias T BAR -per-object ::T::FOO 
 ::xotcl::alias T ZAP -per-object ::T::BAR 
@@ -114,13 +114,13 @@ T method -per-object bar args { return [self class]->[self proc] }
 ? {lsort [T object info methods -methodtype alias]} {BAR FOO ZAP}
 ? {lsort [T object info methods -methodtype scripted]} {BAR FOO ZAP bar}
 ? {t foo} ::T->foo
-? {T object info method definition ZAP} {::T alias -per-object ZAP ::T::BAR}
+? {T object info method definition ZAP} {::T object alias ZAP ::T::BAR}
 
 ? {T FOO} ->foo
 ? {T BAR} ->foo
 ? {T ZAP} ->foo
 ? {T bar} ->bar
-T method -per-object FOO {} {}
+T object method FOO {} {}
 ? {T info methods -methodtype scripted} {foo}
 ? {lsort [T object info methods -methodtype scripted]} {BAR ZAP bar}
 ? {T BAR} ->foo
@@ -130,7 +130,7 @@ rename ::T::BAR ""
 ? {lsort [T object info methods -methodtype scripted]} {ZAP bar}
 #? {T BAR} ""; #  now calling the proc defined above, alias chain seems intact
 ? {T ZAP} ->foo; # is ok, still pointing to 'foo'
-#T method -per-object BAR {} {}
+#T object method BAR {} {}
 ? {T info methods -methodtype scripted} {foo}
 ? {lsort [T object info methods -methodtype scripted]} {ZAP bar}
 ? {T ZAP} ->foo
@@ -141,18 +141,18 @@ T method foo {} {}
 #
 # per-object methods as per-object aliases
 #
-T method -per-object m1 args { return [self class]->[self proc] }
+T object method m1 args { return [self class]->[self proc] }
 ::xotcl::alias T M1 -per-object ::T::m1 
 ::xotcl::alias T M11 -per-object ::T::M1 
 ? {lsort [T object info methods -methodtype scripted]} {M1 M11 bar m1}
 ? {T m1} ->m1
 ? {T M1} ->m1
 ? {T M11} ->m1
-T method -per-object M1 {} {}
+T object method M1 {} {}
 ? {lsort [T object info methods -methodtype scripted]} {M11 bar m1}
 ? {T m1} ->m1
 ? {T M11} ->m1
-T method -per-object m1 {} {}
+T object method m1 {} {}
 ? {lsort [T object info methods -methodtype scripted]} {bar}
 
 #
@@ -203,12 +203,12 @@ namespace delete ::ns1
 Class create U
 U create u
 ? {namespace exists ::U} 0
-U method -per-object zap args { return [self class]->[self proc] }
+U object method zap args { return [self class]->[self proc] }
 ::xotcl::alias ::U ZAP -per-object ::U::zap 
 U requireNamespace
 ? {namespace exists ::U} 1
 
-U method -per-object bar args { return [self class]->[self proc] }
+U object method bar args { return [self class]->[self proc] }
 ::xotcl::alias U BAR -per-object ::U::bar
 ? {lsort [U object info methods -methodtype scripted]} {BAR ZAP bar zap}
 ? {U BAR} ->bar
@@ -232,7 +232,7 @@ V create v {
 }
 
 V method bar {z} { return $z }
-V method -per-object bar {z} { return $z }
+V object method bar {z} { return $z }
 
 proc foo args { return [.bar ${.z}]-[set .z]-[my bar [set .z]] }
 
@@ -277,13 +277,13 @@ proc ::foo args {;}
 ? {info exists ::xotcl::alias(::C,FOO,0)} 1
 ? {array get ::xotcl::alias ::o,FOO,1} "::o,FOO,1 ::foo"
 ? {array get ::xotcl::alias ::C,FOO,0} "::C,FOO,0 ::foo"
-? {o info method definition FOO} "::o alias -per-object FOO ::foo"
+? {o info method definition FOO} "::o alias FOO ::foo"
 ? {C info method definition FOO} "::C alias FOO ::foo"
 
 ::xotcl::alias o FOO ::o::bar
 ? {info exists ::xotcl::alias(::o,FOO,1)} 1
 ? {array get ::xotcl::alias ::o,FOO,1} "::o,FOO,1 ::o::bar"
-? {o info method definition FOO} "::o alias -per-object FOO ::o::bar"
+? {o info method definition FOO} "::o alias FOO ::o::bar"
 
 # AliasDelete in XOTclRemovePMethod
 o method FOO {} {}

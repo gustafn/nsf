@@ -9630,10 +9630,10 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, char *registerCmd
                          XOTclObject *object, char *methodName, Tcl_Command cmd, 
                          int withObjscope, int withPer_object) {
   Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
-  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName,-1));
   if (withPer_object) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-per-object",-1));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object",-1));
   }
+  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName,-1));
   if (withObjscope) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objscope",-1));
   }
@@ -9661,12 +9661,15 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
     Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_EMPTY]);
   } else {
     Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
-    /*Tcl_Command importedCmd = GetOriginalCommand(cmd);*/
-    /* Tcl_ObjCmdProc *resolvedProc = Tcl_Command_objProc(importedCmd);*/
+    int outputPerObject = 0;
     Tcl_Obj *resultObj;
 
     if (!XOTclObjectIsClass(object)) {
       withPer_object = 1;
+      /* don't output "object" modifier, if object is not a class */
+      outputPerObject = 0;
+    } else {
+      outputPerObject = withPer_object;
     }
 
     switch (subcmd) {
@@ -9728,8 +9731,6 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
       case InfomethodsubcmdDefinitionIdx: 
         {
           XOTclAssertionStore *assertions;
-          /* don't output -per-object, if object is not a class */
-          int outputPerObject = XOTclObjectIsClass(object) ? withPer_object : 0;
 
           resultObj = Tcl_NewListObj(0, NULL);
           /* todo: don't hard-code registering command name "method" */
@@ -9773,7 +9774,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
             resultObj = Tcl_NewListObj(0, NULL);
             /* todo: don't hard-code registering command name "forward" */
             AppendMethodRegistration(interp, resultObj, "forward", object, methodName, cmd, 
-                                     0, withPer_object);
+                                     0, outputPerObject);
             AppendForwardDefinition(interp, resultObj, clientData);
             Tcl_SetObjResult(interp, resultObj);
             break;
@@ -9791,7 +9792,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
         resultObj = Tcl_NewListObj(0, NULL);
         /* todo: don't hard-code registering command name "setter" */
         AppendMethodRegistration(interp, resultObj, "setter", object, methodName, cmd, 
-                                 0, withPer_object);
+                                 0, outputPerObject);
         Tcl_SetObjResult(interp, resultObj);        
         break;
       }
@@ -9813,7 +9814,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
             /* todo: don't hard-code registering command name "alias" */
             AppendMethodRegistration(interp, resultObj, "alias", object, 
                                      methodName, cmd, 
-                                     nrElements!=1, withPer_object);
+                                     nrElements!=1, outputPerObject);
             Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
             Tcl_SetObjResult(interp, resultObj);
             break;
@@ -11053,7 +11054,7 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
 }
 
  static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, 
-                             int withPer_object, int relationtype, Tcl_Obj *value) {
+                             int relationtype, Tcl_Obj *value) {
   int oc; Tcl_Obj **ov;
   XOTclObject *nobj = NULL;
   XOTclClass *cl = NULL;
@@ -11064,43 +11065,18 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
   /*fprintf(stderr, "XOTclRelationCmd %s %d rel=%d val='%s'\n",
     objectName(object),withPer_object,relationtype,value?ObjStr(value):"NULL");*/
   /* set withPer_object according to object- or class- */
-  switch (relationtype) {
-  case RelationtypeObject_mixinIdx: withPer_object = 1; break;
-  case RelationtypeObject_filterIdx: withPer_object = 1; break;
-  case RelationtypeClass_mixinIdx: withPer_object = 0; break;
-  case RelationtypeClass_filterIdx: withPer_object = 0; break;
-  }
 
-  if (withPer_object) {
-    switch (relationtype) {
-    case RelationtypeClass_mixinIdx:
-    case RelationtypeInstmixinIdx:
-      relationtype = RelationtypeObject_mixinIdx;
-      break;
-    case RelationtypeClass_filterIdx:
-    case RelationtypeInstfilterIdx:
-      relationtype = RelationtypeObject_filterIdx;
-      break;
+  switch (relationtype) {
+  case RelationtypeMixinIdx:
+    if (XOTclObjectIsClass(object)) {
+      relationtype = RelationtypeClass_mixinIdx;
     }
-  } else {
-    switch (relationtype) {
-    case RelationtypeObject_mixinIdx:
-    case RelationtypeMixinIdx:
-      if (
-          XOTclObjectIsClass(object)
-          ) {
-        relationtype = RelationtypeClass_mixinIdx;
-      }
-      break;
-    case RelationtypeObject_filterIdx:
-    case RelationtypeFilterIdx:
-      if (
-          XOTclObjectIsClass(object)
-          ) {
-        /*relationtype = RelationtypeClass_filterIdx;*/
-      }
-      break;
+    break;
+  case RelationtypeFilterIdx:
+    if (XOTclObjectIsClass(object)) {
+      relationtype = RelationtypeClass_filterIdx;
     }
+    break;
   }
 
   switch (relationtype) {
@@ -11697,7 +11673,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
       int relIdx;
       result = convertToRelationtype(interp, paramPtr->nameObj, paramPtr, (ClientData)&relIdx);
       if (result == TCL_OK) {
-        result = XOTclRelationCmd(interp, obj, 0 /*fixme*/, relIdx, newValue);
+        result = XOTclRelationCmd(interp, obj, relIdx, newValue);
       }
       if (result != TCL_OK) {
         XOTcl_PopFrame(interp, obj);
@@ -12397,13 +12373,9 @@ static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *with
 }
 
 static int XOTclCFilterGuardMethod(Tcl_Interp *interp, XOTclClass *cl, 
-                                   int withPer_object, char *filter, Tcl_Obj *guard) {
+                                   char *filter, Tcl_Obj *guard) {
   XOTclClassOpt *opt = cl->opt;
   
-  if (withPer_object) {
-    return XOTclOFilterGuardMethod(interp, &cl->object, filter, guard);
-  }
-
   if (opt && opt->instfilters) {
     XOTclCmdList *h = CmdListFindNameInList(interp, filter, opt->instfilters);
     if (h) {
@@ -12431,13 +12403,8 @@ static int XOTclCInvariantsMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *i
   return TCL_OK;
 }
 
-static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPer_object, char *mixin, Tcl_Obj *guard) {
+static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *mixin, Tcl_Obj *guard) {
   XOTclClassOpt *opt = cl->opt;
-  XOTclCmdList *h;
-
-  if (withPer_object) {
-    return XOTclOMixinGuardMethod(interp, &cl->object, mixin, guard);
-  }
 
   if (opt && opt->instmixins) {
     XOTclClass *mixinCl = XOTclpGetClass(interp, mixin);
@@ -12446,7 +12413,7 @@ static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, int withPe
       mixinCmd = Tcl_GetCommandFromObj(interp, mixinCl->object.cmdName);
     }
     if (mixinCmd) {
-      h = CmdListFindCmdInList(mixinCmd, opt->instmixins);
+      XOTclCmdList *h = CmdListFindCmdInList(mixinCmd, opt->instmixins);
       if (h) {
         if (h->clientData)
           GuardDel((XOTclCmdList*) h);

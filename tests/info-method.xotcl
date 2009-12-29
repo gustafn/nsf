@@ -20,7 +20,7 @@ Object create o {
 
 Class create C {
   .method m {x} {return proc-[self proc]}
-  .method -per-object mpo {} {return instproc-[self proc]}
+  .object method mpo {} {return instproc-[self proc]}
   .method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2
 
   .forward addOne expr 1 +
@@ -54,23 +54,23 @@ c1 method foo {} {puts foo}
 
 ? {C info method definition m} {::C method m x {return proc-[self proc]}}
 ? {C info method def m} {::C method m x {return proc-[self proc]}}
-? {C object info method definition mpo} {::C method -per-object mpo {} {return instproc-[self proc]}}
+? {C object info method definition mpo} {::C object method mpo {} {return instproc-[self proc]}}
 ? {C info method definition m-with-assertions} \
     {::C method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
 ? {C info method parameter m} {x}
 ? {Class info method parameter method} \
-    {{-per-object:switch 0} name arguments body -precondition -postcondition}
+    {name arguments body -precondition -postcondition}
 ? {Object info method parameter alias} \
     {{-objscope:switch 0} methodName cmd}
 # raises currently an error
 ? {catch {C info method parameter a}} 1
   
 ? {C info method definition addOne} "::C forward addOne expr 1 +"
-? {C object info method definition add1} "::C forward -per-object add1 expr 1 +"
-? {C object info method definition fpo} "::C forward -per-object fpo ::o"
+? {C object info method definition add1} "::C object forward add1 expr 1 +"
+? {C object info method definition fpo} "::C object forward fpo ::o"
 
 ? {C info method definition s} "::C setter s"
-? {C object info method definition spo} "::C setter -per-object spo"
+? {C object info method definition spo} "::C object setter spo"
 
 ? {C info method definition a} "::C alias a ::set"
-? {C object info method definition apo} "::C alias -per-object apo ::puts"
+? {C object info method definition apo} "::C object alias apo ::puts"

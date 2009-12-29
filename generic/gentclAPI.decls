@@ -85,7 +85,6 @@ xotclCmd __qualify XOTclQualifyObjCmd {
 }
 xotclCmd relation XOTclRelationCmd {
   {-argName "object" -type object}
-  {-argName "-per-object"}
   {-argName "relationtype" -required 1 -type "mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }
@@ -200,7 +199,6 @@ classMethod new XOTclCNewMethod {
   {-argName "args" -required 0 -type args}
 }
 classMethod filterguard XOTclCFilterGuardMethod {
-  {-argName "-per-object" -type switch}
   {-argName "filter" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
@@ -208,7 +206,6 @@ classMethod instinvar XOTclCInvariantsMethod {
   {-argName "invariantlist" -required 1 -type tclobj}
 }
 classMethod mixinguard XOTclCMixinGuardMethod {
-  {-argName "-per-object" -type switch}
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
