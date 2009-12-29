@@ -2,7 +2,7 @@
 # It demonstrates the basic language constructs on the example of
 # a soccer club.
 
-package require XOTcl; namespace import -force xotcl::*
+package require XOTcl; ::xotcl::use xotcl2
  
 # All the characters in this example are fictitious, and any
 # resemblance to actual persons, living or deceased, is coincidental.
@@ -28,69 +28,69 @@ package require XOTcl; namespace import -force xotcl::*
 # Common to all members is that they have a name. Common properties defined
 # across all instances of a class are called "Parameters" in XOTcl.
 #
-Class ClubMember -parameter {{name ""}}
+Class create ClubMember -parameter {{name ""}}
 
 # A special club member is a Player. Derived classes can be build with
 # inheritance (specified through 'superclass'). Players may have a
 # playerRole (defaults to NONE):
-Class Player -superclass ClubMember -parameter {{playerRole NONE}}
+Class create Player -superclass ClubMember -parameter {{playerRole NONE}}
 
 # other club member types are trainers, player-trainers, and presidents
-Class Trainer -superclass ClubMember
-Class President -superclass ClubMember
+Class create Trainer -superclass ClubMember
+Class create President -superclass ClubMember
 
 # the PlayerTrainer uses multiple inheritance by being both a player
 # and a trainer
-Class PlayerTrainer -superclass {Player Trainer}
+Class create PlayerTrainer -superclass {Player Trainer}
 
 #
 # Now we define the SoccerTeam class.
 #
-Class SoccerTeam -parameter {name location type}
+Class create SoccerTeam -parameter {name location type}
 
 # We may add a player. This is done by a method. Instance methods are
-# in XOTcl defined with 'instproc'. All club members are aggregated in
+# in XOTcl defined with 'method'. All club members are aggregated in
 # the team (denoted by :: namespace syntax).
-SoccerTeam instproc newPlayer args {
+SoccerTeam method newPlayer args {
   # we use a unique autoname for the object to prevent name
   # collisions, like <soccerteam>::player01, <soccerteam>::player02, ...
-  eval Player [self]::[my autoname player%02d] $args
+  eval Player new -childof [self] $args
 }
 
 # A player can be transfered to another team. The player object does
 # not change internally (e.g. the playerRole stays the same). Therefore we
 # 'move' it to the destination team.
-SoccerTeam instproc transferPlayer {playername destinationTeam} {
+SoccerTeam method transferPlayer {playername destinationTeam} {
   # We use the aggregation introspection option 'children' in order
   # to get all club members
-  foreach player [my info children] {
+  foreach player [.info children] {
     # But we only remove matching playernames of type "Player". We do
     # not want to remove another club member type who has the same
     # name.
-    if {[$player istype Player] && [$player name] == $playername} {
+    if {[$player info is type Player] && [$player name] eq $playername} {
       # We simply 'move' the player object to the destination team.
       # Again we use a unique autoname in the new scope
-      $player move [set destinationTeam]::[$destinationTeam autoname player%02d]
+      $player move ${destinationTeam}::[$destinationTeam autoname player%02d]
     }
   }
 }
 
 # Finally we define two convenience methods to print the members/players to
 # stdout with puts.
-SoccerTeam instproc printMembers {} {
-  puts "Members of [my name]:"
-  foreach m [my info children] {puts "  [$m name]"}
+SoccerTeam method printMembers {} {
+  puts "Members of ${.name}:"
+  foreach m [.info children] {puts "  [$m name]"}
 }
-SoccerTeam instproc printPlayers {} {
-  puts "Players of [my name]:"
-  foreach m [my info children] {
-    if {[$m istype Player]} {puts "  [$m name]"}
+SoccerTeam method printPlayers {} {
+  puts "Players of ${.name}:"
+  foreach m [.info children] {
+    if {[$m info is type Player]} {puts "  [$m name]"}
   }
 }
       
 # Now let us build to example soccer team objects.
-SoccerTeam lyon -name "Olympique Lyon" -location "Lyon"
-SoccerTeam bayernMunich -name "F.C. Bayern München" -location "Munich"
+SoccerTeam create lyon -name "Olympique Lyon" -location "Lyon"
+SoccerTeam create bayernMunich -name "F.C. Bayern München" -location "Munich"
 
 # With 'addPlayer' we can create new aggregated player objects
 #
@@ -104,19 +104,17 @@ set fb [bayernMunich newPlayer -name "Franz Beckenbauer" \
 # gives an invariant covering all instances of a class). In XOTcl 
 # the rules are syntactically identical to 'if' statements
 Player instinvar {
-    {[my set playerRole] eq "NONE" ||  
-	[my set playerRole] eq "PLAYER" || 
-	[my set playerRole] eq "GOALY"}
+    {${.playerRole} in [list "NONE" "PLAYER" "GOALY"]}
 }
 
 # If we break the invariant and turn assertions checking on, we should
 # get an error message:
 $fb check all
-if {[catch {$fb set playerRole SINGER} errMsg]} {
+if {[catch {$fb playerRole SINGER} errMsg]} {
   puts "CAUGHT EXCEPTION: playerRole has either to be NONE, PLAYER, or TRAINER"
   # turn assertion checking off again and reset to PLAYER
   $fb check {}
-  $fb set playerRole PLAYER
+  $fb playerRole PLAYER
 }
 
 # But soccer players may play quite different, orthogonal
@@ -133,9 +131,10 @@ if {[catch {$fb set playerRole SINGER} errMsg]} {
 # extension to an object.
 
 # First we just define the Singer class.
-Class Singer
-Singer instproc sing text {
-  puts "[my name] sings: $text, lala."
+Class create Singer {
+  .method sing text {
+    puts "${.name} sings: $text, lala."
+  }
 }
 
 # Now we register this class as a per-object mixin on the player object:
@@ -152,8 +151,8 @@ $fb sing "lali"
 # Before we perform the class change, we extend the Player class to
 # support it. I.e. the playerRole is not valid after class change
 # anymore (we unset the instance variable).
-Player instproc class args {
-  my unset playerRole
+Player method class args {
+  unset .playerRole
   next
 }
 
@@ -161,7 +160,7 @@ Player instproc class args {
 # Beckenbauer is President of Bayern Munich.
 $fb class President
 # Check that the playerRole isn't there anymore.
-if {[catch {$fb set playerRole} errMsg]} {
+if {[catch {$fb playerRole} errMsg]} {
   puts "CAUGHT EXCEPTION: The player role doesn't exist anymore (as it should be after the class change)"
 }
 
@@ -186,10 +185,11 @@ bayernMunich printMembers
 # the existing implementation at all. Moreover, the targeted kind of
 # extension has also to work on all subclasses of SoccerTeam. Firstly, we
 # just create the extension as an ordinary class:
-Class TransferObserver
-TransferObserver instproc transferPlayer {pname destinationTeam} {
-  puts "Player '$pname' is transfered to Team '[$destinationTeam name]'"
-  next
+Class create TransferObserver {
+  .method transferPlayer {pname destinationTeam} {
+    puts "Player '$pname' is transfered to Team '[$destinationTeam name]'"
+    next
+  }
 }
 
 # Now we can apply the class as a per-class mixin, which functions
@@ -197,7 +197,7 @@ TransferObserver instproc transferPlayer {pname destinationTeam} {
 # its subclasses.  The 'next' primitive ensures that the original
 # method on 'SoccerTeam' is called after notifying the transfer (with
 # puts to stdout)
-SoccerTeam instmixin TransferObserver
+SoccerTeam mixin TransferObserver
 
 # If we perform a transfer of one of the players, he is moved to the new 
 # club and the transfer is reported to the stdout:

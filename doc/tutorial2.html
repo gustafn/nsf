@@ -4,7 +4,7 @@
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
 	<META NAME="AUTHOR" CONTENT="Gustaf Neumann and Uwe Zdun">
-	<META NAME="DOCNUMBER" CONTENT="1.6.4">
+	<META NAME="DOCNUMBER" CONTENT="2.0.0">
 	<META NAME="CHANGEDBY" CONTENT="Gustaf Neumann">
 <STYLE>
 BODY	{
@@ -45,6 +45,12 @@ tt em {
 table {
       font-size: 80%;
 }
+span.fixme {
+   color: red;
+   border: solid 1px red;
+   background-color: #ffaaaa;
+   padding: 2px;
+}
 </STYLE>
 </HEAD>
 <BODY BGCOLOR="#ffffff">
@@ -59,7 +65,7 @@ table {
 			<IMG SRC="logo-100.jpg" NAME="Graphic1" ALIGN=RIGHT WIDTH=102 HEIGHT=42 BORDER=0></TD>
 	</TR>
 </TABLE>
-<p align=right>Version: 1.6.4</p>
+<p align=right>Version: 2.0.0</p>
 
 <UL>
 	<LI>
@@ -181,18 +187,25 @@ Interception Techniques</A>
 <H2><A NAME="langOverview"></A>&#160;<BR>Language Overview
 </H2>
 
-<P>XOTcl <a href="#xotcl">[Neumann and Zdun 2000a]</a> is an extension
-to the object-oriented scripting language OTcl <a
-href="#otcl">[Wetherall and Lindblad 1995]</a> which itself extends
-Tcl <a href="#tcl">[Ousterhout 1990]</a> (Tool Command Language) with
-object-orientation. XOTcl is a value-added replacement for OTcl and
-does not require OTcl to compile.</P>
+<P>XOTcl <a href="#xotcl">[Neumann and Zdun 2000a]</a> is a successor
+of the object-oriented scripting language OTcl <a
+href="#otcl">[Wetherall and Lindblad 1995]</a> which itself was an
+early highly flexible object oriented exitension of 
+Tcl <a href="#tcl">[Ousterhout 1990]</a> (Tool Command Language).
+XOTcl was so far released in more than 30 versions, is described in
+its detail in more than 20 papers and serves as a basis for TclOO <a
+href="#tcloo">[Donal ???]</a>. XOTcl 2.0 <a
+href="#xotcl2">[Neumann and Sobernig 2009]</a>
+extends the basic ideas of XOTcl 1.0 by providing support for
+language-oriented programming and makes it easy to host several
+object oriented languages by a common environment...
+
 
 <P>XOTcl runs in the <tt>tclsh</tt> and provides a few extension
-commands. These are offered in a Tcl namespace <tt>::xotcl</tt>, and
-can be imported into the current namespace to reduce typing and
-improve readability. All Tcl commands remain available (and are also
-applicable on the extension constructs).  </P>
+commands. These are offered via the Tcl namespaces <tt>::xotcl</tt>
+and <tt>::xotcl2</tt>, and can be imported into the current namespace
+to reduce typing and improve readability. All Tcl commands remain
+available (and are also applicable on the extension constructs).  </P>
 
 <P>A central property of Tcl is, that it uses strings solely for the
 representation of data. Internally it uses an dynamic type system with
@@ -263,9 +276,12 @@ following support:
 <P ALIGN=CENTER STYLE="margin-bottom: 0in"><A NAME="features"></A><A NAME="1176"></A>
 &#160;&#160; 
 </P>
+
 <P ALIGN=CENTER STYLE="margin-bottom: 0in"><STRONG>Figure 1:</STRONG>
-Language Extensions of XOTcl 
-</P>
+Language Extensions of XOTcl <br><span class="fixme">new graphic,
+extension of the features above, history with OTcl, XOTcl1, tcloo and
+XOTcl2</span> </P>
+
 <CENTER>
 	<TABLE WIDTH=455 BORDER=0 CELLPADDING=2 CELLSPACING=0>
 		<COL WIDTH=451>
@@ -283,35 +299,39 @@ Language Extensions of XOTcl
 To give you an impression of the language before we go into the details of the extended language constructs, we present in this section a simple, classical example, familiar to many from introductory programming courses: the <em>Stack</em> example. In the later section, we will present the <em>soccer club</em> example, which focuses more on the dynamic features of the Extended Object Tcl.
 </p>
         
-<p>In a first step, we define a class <tt>Stack</tt>. A new class is defined in XOTcl via the command <tt>Class create yourclass</tt>. The stack will have a constructor (in XOTcl, the method <tt>init</tt>) and the methods <tt>push</tt> and <tt>pop</tt>. Methods which are inherited to objects are defined via <tt>instproc</tt>. In the following example, all predefined commands (some from Tcl, some from XOTcl) are emphasized.
+<p>In a first step, we define a class <tt>Stack</tt>. A new class is defined in XOTcl via the command <tt>Class create yourclass</tt>. The stack will have a constructor (in XOTcl, the method <tt>init</tt>) and the methods <tt>push</tt> and <tt>pop</tt>. In the following example, all predefined commands (some from Tcl, some from XOTcl) are emphasized.
 </p>
         
 <pre CLASS="code">
 <it>#</it>
 <it># Create a stack class </it>
 <it>#</it>
-<tt>Class create</tt> Stack 
+<tt>Class create</tt> Stack {
+        
+  <tt>.method</tt> init {} { <it># Constructor</it>
+    <tt>set</tt> .things ""
+  } 
 
-Stack <tt>instproc</tt> init {} {
-  <it># Constructor</it>
-  <tt>my instvar</tt> things
-  <tt>set</tt> things ""
-}
-
-Stack <tt>instproc</tt> push {thing} {
-  <tt>my instvar</tt> things
-  <tt>set</tt> things [<tt>concat</tt> [<tt>list</tt> $thing] $things]
-  <tt>return</tt> $thing
-}
+  <tt>.method</tt> push {thing} {
+    <tt>set</tt> .things [<tt>linsert</tt> ${.things} 0 $thing] 
+    <tt>return</tt> $thing
+  }
   
-Stack <tt>instproc</tt> pop {} {
-  <tt>my instvar</tt> things
-  <tt>set</tt> top [<tt>lindex</tt> $things 0]
-  <tt>set</tt> things [<tt>lrange</tt> $things 1 end]
-  <tt>return</tt> $top
+  <tt>.method</tt> pop {} {
+    <tt>set</tt> top [<tt>lindex</tt> ${.things} 0]
+    <tt>set</tt> .things [<tt>lrange</tt> ${.things} 1 end]
+    <tt>return</tt> $top
+  }
 }
 </pre>
-
+<p>
+The three methods are defined via <tt>.method</tt> (which means:
+define a method for the current class). Variables are set with the
+Tcl command <tt>set</tt>. Variable names starting with a dot "<tt>.</tt>"
+are treated as instance variables (variables of an instance of the
+Stack, i.e. an Stack object). The other variables are scoped to
+the methods.
+</p>
 <p>
 The definition of the class <tt>Stack</tt> is typically saved in a file (say <tt>stack.xotcl</tt>)
 and can be used e.g. in an interactive Tcl shell (<tt>tclsh</tt>) as follows. The percent sign
@@ -320,7 +340,7 @@ of the command is shown in the line below. Comments are lines starting with a ha
 
 <pre CLASS="code">
 % <tt>package require</tt> XOTcl
-% <tt>namespace import</tt> xotcl::*
+% <tt>::xotcl::use</tt> xotcl2
 % <tt>source</tt> stack.xotcl
   
 <it># Create Object s1 of class Stack</it>
@@ -344,27 +364,34 @@ s1 <tt>destroy</tt>
 
 <H3><A NAME="object-methods"></A>&#160;<BR>Object specific methods</h3>
 
-<p>This definition is pretty similar to stack definitions in many other object oriented languages. The example below shows how to define purely object specific behavior. This way we can define an object <tt>stack</tt> without the need of a class <tt>Stack</tt>. Notice that the methods of the object <tt>stack</tt> are defined via <tt>proc</tt> and not via <tt>instproc</tt> in the example of the class <tt>Stack</tt>.
+<p>The definition of <tt>Stack</tt> provided above is pretty similar
+to stack definitions in many other object oriented languages. The next
+example shows how to define purely object specific behavior. We can
+define an object <tt>stack</tt> without the need of a class
+<tt>Stack</tt>. Notice that the methods of the object <tt>stack</tt>
+are defined exactly the same way as in the previous example with the
+class <tt>Stack</tt>. Instead of defining a constructor, we can
+set the instance variable <tt>things</tt> directly in the
+definition block of the object.
 
 <pre CLASS="code">
 <it>#</it>
 <it># Create an object named stack</it>
 <it>#</it>
-<tt>Object create</tt> stack
+<tt>Object create</tt> stack {
 
-stack <tt>set</tt> things ""
+  <tt>set</tt> .things ""
 
-stack <tt>proc</tt> push {thing} {
-  <tt>my instvar</tt> things
-  <tt>set</tt> things [<tt>concat</tt> [<tt>list</tt> $thing] $things]
-  <tt>return</tt> $thing
-}
+  <tt>.method</tt> push {thing} {
+    <tt>set</tt> .things [<tt>linsert</tt> ${.things} 0 $thing] 
+    <tt>return</tt> $thing
+  }
   
-stack <tt>proc</tt> pop {} {
-  <tt>my instvar</tt> things
-  <tt>set</tt> top [<tt>lindex</tt> $things 0]
-  <tt>set</tt> things [<tt>lrange</tt> $things 1 end]
-  <tt>return</tt> $top
+  <tt>.method</tt> pop {} {
+    <tt>set</tt> top [<tt>lindex</tt> ${.things} 0]
+    <tt>set</tt> .things [<tt>lrange</tt> ${.things} 1 end]
+    <tt>return</tt> $top
+  }
 }
 </pre>
 
@@ -372,27 +399,30 @@ stack <tt>proc</tt> pop {} {
 
 <H3><A NAME="refining-methods"></A>&#160;<BR>Refining the behavior of objects and classes</h3>
 
-<p>So far, the definition of stacks were pretty minimal. Suppose, we want to define safe stacks, that check e.g. for stack underruns (more pop than push operations are issued).  Checking safety can be done mostly independent from the implementation details of the stack (usage of internal data structures).
+<p>So far, the definition of stacks were pretty minimal. Suppose, we want to define "safe stacks", that check e.g. for stack underruns (more pop than push operations are issued).  Checking safety can be done mostly independent from the implementation details of the stack (usage of internal data structures).
 With XOTcl, one can define stack-safety as a separate class using methods with the same names as the implementations before, and "mix" this behavior later into classes or objects. The implementation of <tt>Safety</tt> uses a counter to check for stack underruns.</p>
 
 <pre CLASS="code">
 <it>#</it>
 <it># Create a safety class </it>
 <it>#</it>
-<tt>Class create</tt> Safety
-Safety <tt>instproc</tt> init {} {
-  <tt>my set</tt> count 0
-  <tt>next</tt>
-}
-Safety <tt>instproc</tt> push {thing} {
-  <tt>my incr</tt> count
-  <tt>next</tt>
-}
+<tt>Class create</tt> Safety {
+        
+  <tt>.method</tt> init {} { <it># Constructor</it>
+    <tt>set</tt> .count 0
+    <tt>next</tt>
+  } 
+
+  <tt>.method</tt> push {thing} {
+    <tt>incr</tt> .count
+    <tt>next</tt>
+  }
   
-Safety <tt>instproc</tt> pop {} {
-  <tt>if</tt> {[<tt>my set</tt> count] == 0} <tt>then</tt> { <tt>error</tt> "Stack empty!" }
-  <tt>my incr</tt> count -1
-  <tt>next</tt>
+  <tt>.method</tt> pop {} {
+    <tt>if</tt> {${.count} == 0} <tt>then</tt> { <tt>error</tt> "Stack empty!" }
+    <tt>incr</tt> .count -1
+    <tt>next</tt>
+  }
 }
 </pre>
 
@@ -423,14 +453,21 @@ class <tt>SafeStack</tt>. In this case, all instances of
 <it># Create a safe stack class by using Stack and mixin </it>
 <it># Safety </it>
 <it>#</it>
-<tt>Class create</tt> SafeStack <tt>-superclass</tt> Stack <tt>-instmixin</tt> Safety
+<tt>Class create</tt> SafeStack <tt>-superclass</tt> Stack <tt>-mixin</tt> Safety
 
 SafeStack <tt>create</tt> s3
 </pre>
 
 <H3><A NAME="integer-stack"></A>&#160;<BR>Stack of integers</h3>
 
-<p>The definition of <tt>Stack</tt> is generic and allows all kind of elements to be stacked. Suppose, we want to use the generic stack definition, but a certain stack (say, <tt>s4</tt>) should allow only stacking of integers. This behavior can be achieved by defining an object specific method for the stack <tt>s4</tt> that checks the values to be pushed. In case the pushed value is ok, the push definition of <tt>Stack</tt> is called via <tt>next</tt>.
+<p>The definition of <tt>Stack</tt> is generic and allows all kind of
+elements to be stacked. Suppose, we want to use the generic stack
+definition, but a certain stack (say, <tt>s4</tt>) should allow only
+stacking of integers. This behavior can be achieved by defining an
+object specific method for the stack <tt>s4</tt> that checks the
+values to be pushed. In case the pushed value is ok, the push
+definition of <tt>Stack</tt> is called via <tt>next</tt>.
+
 <pre CLASS="code">
 <it># </it>
 <it># Create a stack with a object-specific method </it>
@@ -438,26 +475,41 @@ SafeStack <tt>create</tt> s3
 <it>#</it>
 <it># s4 is a stack of integer </it>
  
-Stack <tt>create</tt> s4
-s4 <tt>proc </tt> push {value} {
-   <tt>if </tt> {![ <tt>string is</tt> integer $value]} {
-     <tt>error</tt> "value $value is not an integer"
+Stack <tt>create</tt> s4 {
+
+  <tt>.method </tt> push {value} {
+    <tt>if </tt> {![<tt>string is</tt> integer $value]} {
+      <tt>error</tt> "value $value is not an integer"
+    }
+    <tt>next</tt>
   }
-   <tt>next</tt>
+
 }
 </pre>
 
 <H3><A NAME="class-specific-method"></A>&#160;<BR>Class specifc methods</h3>
 
-<p>In extended object Tcl, classes are objects as well (objects with different properties). We will come to this later in more detail. However, we can define as well methods of classes, which are not inherited to the instances,
-by defining class-specific methods using <tt>proc</tt>. This happens exactly like defining objects specific methods as shown before. In the following example, we will define a class-specific method <tt>available_stacks</tt> that returns the number of the currently existing stack instances.
-</p>
+<p>In extended object Tcl, classes are objects as well (objects with
+certain properties; we will come to this later in more
+detail). However, we can define as well methods of classes, which are
+not inherited to the instances, but which are to be applied on the
+class object itself. This can be achieved by the modifier
+<tt>object</tt> which is placed in front of <tt>method</tt>. Such
+methods defined on the class object are actually exactly same as the
+object specific methods in the example with the object named
+<tt>stack</tt> above.</p>
+
+<p>In the following example, we will define the method
+<tt>available_stacks</tt> on the class object, that returns the number
+of the currently existing stack instances.  </p>
 
 <pre CLASS="code">
-Class <tt>create</tt> Stack
-<it># ...</it>
-Stack <tt>proc</tt> available_stacks {} {
-   <tt>return</tt> [<tt>llength</tt> [<tt>my info</tt> instances]]
+Class <tt>create</tt> Stack {
+
+   <it># ...</it>
+    <tt>.object method</tt> available_stacks {} {
+      <tt>return</tt> [<tt>llength</tt> [<tt>.info</tt> instances]]
+   }
 }
 
 Stack <tt>create</tt> s1
@@ -465,6 +517,7 @@ Stack <tt>create</tt> s2
 
 <tt>puts</tt> [Stack available_stacks]
 </pre>
+<p>The final command <tt>puts</tt> prints 2 to the console.</p>
 
 <H2><A NAME="soccerClub"></A>&#160;<BR>Introductory Overview Example: Soccer Club
 </H2>
@@ -499,7 +552,7 @@ XOTcl. In this example the instance variable <tt>name</tt> will be
 initialized by default with an empty string.
 </p>
 <pre CLASS="code">
-  <tt>Class</tt> ClubMember <tt>-parameter</tt> {{name ""}}
+  <tt>Class create</tt> ClubMember <tt>-parameter</tt> {{name ""}}
 </pre>
 <p>
 A special club member is a <tt>Player</tt>. Derived classes can be
@@ -508,37 +561,39 @@ build with inheritance (specified through
 to NONE).
 </p>
 <pre CLASS="code">
-  <tt>Class</tt> Player <tt>-superclass</tt> ClubMember <tt>-parameter</tt> {{playerRole NONE}}
+  <tt>Class create</tt> Player <tt>-superclass</tt> ClubMember <tt>-parameter</tt> {{playerRole NONE}}
 </pre>
 <p>
 Other club member types are trainers, player-trainers, and presidents:
 </p>
 <pre CLASS="code">
-  <tt>Class</tt> Trainer <tt>-superclass</tt> ClubMember
-  <tt>Class</tt> President <tt>-superclass</tt> ClubMember
+  <tt>Class create</tt> Trainer <tt>-superclass</tt> ClubMember
+  <tt>Class create</tt> President <tt>-superclass</tt> ClubMember
 </pre>
 <p>
 The PlayerTrainer uses multiple inheritances by being both a player
 and a trainer:
 </p>
 <pre CLASS="code">
-  <tt>Class</tt> PlayerTrainer <tt>-superclass</tt> {Player Trainer}
+  <tt>Class create</tt> PlayerTrainer <tt>-superclass</tt> {Player Trainer}
 </pre>
 <p>
 Now we define the SoccerTeam class:
 </p>
 <pre CLASS="code">
-  <tt>Class</tt> SoccerTeam <tt>-parameter</tt> {name location type}
+  <tt>Class create</tt> SoccerTeam <tt>-parameter</tt> {name location type}
 </pre>
 <p>
-We may add a player. This is done by a method. Instance methods are
-in XOTcl defined with <tt>instproc</tt>. All club members are aggregated in
-the team (denoted by :: namespace syntax).
+We may add a player by using method. Methods can be defined
+in XOTcl2 either by <tt>.method</tt> in the class creation block, or
+via "<tt><em>ClassName</em> method ...</tt>". The added players (as
+well as other club members) are aggregated in
+the object of the soccer team (denoted by :: namespace syntax).
 </p>
 <pre CLASS="code">
-  SoccerTeam <tt>instproc</tt> newPlayer args {
+  SoccerTeam <tt>method</tt> newPlayer args {
     <it># we create a new player who is part of the soccer team</it>
-    <it># "eval" is needed to pass the provided arguments to the call of new</it>
+    <it># "eval" is needed to pass the provided arguments seperately to the call of new</it>
     <tt>eval</tt> Player <tt>new</tt> -childof [<tt>self</tt>] $args
   }
 </pre>
@@ -548,34 +603,34 @@ not change internally (e.g. the playerRole stays the same). Therefore we
 <tt>move</tt> it to the destination team.
 </p>
 <pre CLASS="code">
-  SoccerTeam <tt>instproc</tt> transferPlayer {playername destinationTeam} {
+  SoccerTeam <tt>method</tt> transferPlayer {playername destinationTeam} {
     <it># We use the aggregation introspection option <tt>children</tt> in order</it>
     <it># to get all club members</it>
-    <tt>foreach</tt> player [<tt>my</tt> <tt>info</tt> children] {
+    <tt>foreach</tt> player [<tt>.info</tt> children] {
       <it># But we only remove matching playernames of type "Player". We do</it>
       <it># not want to remove another club member type who has the same</it>
       <it># name.</it>
-      <tt>if</tt> {[$player istype Player] && [$player name] == $playername} {
+      <tt>if</tt>{[$player info is type Player] && [$player name] eq $playername} {
         <it># We simply 'move' the player object to the destination team.</it>
         <it># Again we use a unique autoname in the new scope</it>
-        $player <tt>move</tt> [set destinationTeam]::[$destinationTeam <tt>autoname</tt> player%02d]
+        $player <tt>move</tt> ${destinationTeam}::[$destinationTeam <tt>autoname</tt> player%02d]
       }
     }
   }
 </pre>
 <p>
 Finally we define two convenience to print the members/players to
-the stdout with puts.
+the console with <tt>puts</tt>.
 </p>
 <pre CLASS="code">
-  SoccerTeam <tt>instproc</tt> printMembers {} {
-    <tt>puts</tt> "Members of [<tt>my</tt> name]:"
-    <tt>foreach</tt> m [<tt>my</tt> <tt>info</tt> children] {<tt>puts</tt> "  [$m name]"}
+  SoccerTeam <tt>method</tt> printMembers {} {
+    <tt>puts</tt> "Members of ${.name}:"
+    <tt>foreach</tt> m [<tt>.info</tt> children] {<tt>puts</tt> "  [$m name]"}
   }
-  SoccerTeam <tt>instproc</tt> printPlayers {} {
-    <tt>puts</tt> "Players of [<tt>my</tt> name]:"
-    <tt>foreach</tt> m [<tt>my</tt> <tt>info</tt> children] {
-      <tt>if</tt> {[$m istype Player]} {<tt>puts</tt> "  [$m name]"}
+  SoccerTeam <tt>method</tt> printPlayers {} {
+    <tt>puts</tt> "Players of ${.name}:"
+    <tt>foreach</tt> m [<tt>.info</tt> children] {
+      <tt>if</tt> {[$m info is type Player]} {<tt>puts</tt> "  [$m name]"}
     }
   }
 </pre>
@@ -583,8 +638,8 @@ the stdout with puts.
 Now let us build to example soccer team objects.
 </p>
 <pre CLASS="code">
-  SoccerTeam chelsea -name "Chelsea FC" -location "Chelsea"
-  SoccerTeam bayernMunich -name "F.C. Bayern Mnchen" -location "Munich"
+  SoccerTeam <tt>create</tt> chelsea -name "Chelsea FC" -location "Chelsea"
+  SoccerTeam <tt>create</tt> bayernMunich -name "F.C. Bayern M&uuml;nchen" -location "Munich"
 </pre>
 <p>
 
@@ -594,8 +649,7 @@ Let us start some years in the past, when "Franz Beckenbauer" was
 still a player.
 </p>
 <pre CLASS="code">
-  <tt>set</tt> fb [bayernMunich newPlayer -name "Franz Beckenbauer" \
-    -playerRole PLAYER]
+  <tt>set</tt> fb [bayernMunich newPlayer -name "Franz Beckenbauer" -playerRole PLAYER]
 </pre>
 <p>
 <tt>playerRole</tt> may not take any value. It may either be NONE, PLAYER, 
@@ -605,9 +659,7 @@ the rules are syntactically identical to <tt>if</tt> statements:
 </p>
 <pre CLASS="code">
   Player instinvar {
-      {[<tt>my</tt> playerRole] == "NONE" ||  
-       [<tt>my</tt> playerRole] == "PLAYER" || 
-       [<tt>my</tt> playerRole] == "GOALY"}
+    {${.playerRole} <tt>in</tt> [<tt>list</tt> "NONE" "PLAYER" "GOALY"]}
   }
 </pre>
 <p>
@@ -616,11 +668,11 @@ get an error message:
 </p>
 <pre CLASS="code">
   $fb check all
-  <tt>if</tt> {[<tt>catch</tt> {$fb <tt>set</tt> playerRole SINGER} errMsg]} {
+  <tt>if</tt> {[<tt>catch</tt> {$fb playerRole SINGER} errMsg]} {
     <tt>puts</tt> "CAUGHT EXCEPTION: playerRole has either to be NONE, PLAYER, or TRAINER"
     <it># turn assertion checking off again and reset to PLAYER</it>
     $fb check {}
-    $fb <tt>set</tt> playerRole PLAYER
+    $fb playerRole PLAYER
   }
 </pre>
 <p>
@@ -640,9 +692,11 @@ extension to an object.
 First we just define the Singer class.
 </p>
 <pre CLASS="code">
-  <tt>Class</tt> Singer
-  Singer <tt>instproc</tt> sing text {
-    <tt>puts</tt> "[<tt>my</tt> name] sings: $text, lala."
+  <tt>Class create</tt> Singer {
+
+    <tt>.method</tt> sing text {
+      <tt>puts</tt> "${.name} sings: $text, lala."
+    }
   }
 </pre>
 <p>
@@ -668,8 +722,8 @@ support it. I.e. the playerRole is not valid after class change
 anymore (we unset the instance variable).
 </p>
 <pre CLASS="code">
-  Player <tt>instproc</tt> class args {
-    <tt>my</tt> <tt>unset</tt> playerRole
+  Player <tt>method</tt> class args {
+    <tt>unset</tt> .playerRole
     <tt>next</tt>
   }
 </pre>
@@ -680,7 +734,7 @@ Beckenbauer is President of Bayern Munich.
 <pre CLASS="code">
   $fb <tt>class</tt> President
   <it># Check that the playerRole isn't there anymore.</it>
-  <tt>if</tt> {[<tt>catch</tt> {$fb <tt>set</tt> playerRole} errMsg]} {
+  <tt>if</tt> {[<tt>catch</tt> {$fb playerRole} errMsg]} {
     <tt>puts</tt> "CAUGHT EXCEPTION: The player role doesn't exist anymore \
          (as it should be after the class change)"
   }
@@ -721,10 +775,11 @@ extension has also to work on all subclasses of SoccerTeam. Firstly, we
 just create the extension as an ordinary class:
 </p>
 <pre CLASS="code">
-  <tt>Class</tt> TransferObserver
-  TransferObserver <tt>instproc</tt> transferPlayer {pname destinationTeam} {
-    <tt>puts</tt> "Player '$pname' is transfered to Team '[$destinationTeam name]'"
-    <tt>next</tt>
+  <tt>Class</tt> TransferObserver {
+    <tt>.method</tt> transferPlayer {pname destinationTeam} {
+      <tt>puts</tt> "Player '$pname' is transfered to Team '[$destinationTeam name]'"
+      <tt>next</tt>
+    }
   }
 </pre>
 <p>
@@ -735,7 +790,7 @@ method on <tt>SoccerTeam</tt> is called after notifying the transfer (with
 puts to stdout):
 </p>
 <pre CLASS="code">
-  SoccerTeam <tt>instmixin</tt> TransferObserver
+  SoccerTeam <tt>mixin</tt> TransferObserver
 </pre>
 <p>
 If we perform a transfer of one of the players, he is moved to the new 
@@ -845,16 +900,20 @@ Object and Class System
 <TABLE COLS=2 WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=0 BGCOLOR="#000055">
 	<TR>
 		<TD WIDTH=75%>
-			<P><A NAME="basic"></A><FONT COLOR="#ffffff"><FONT FACE="Arial, Helvetica"><FONT SIZE=6>Basic
-			Functionalities </FONT></FONT></FONT>
+			<P><A NAME="basic"></A><FONT
+                  COLOR="#ffffff"><FONT FACE="Arial, Helvetica"><FONT
+                  SIZE=6>Basic Functionalities </FONT></FONT></FONT>
 			</P>
 		</TD>
 		<TD>
-			<IMG SRC="logo-100.jpg" NAME="Graphic6" ALIGN=RIGHT WIDTH=102 HEIGHT=42 BORDER=0></TD>
+	<IMG SRC="logo-100.jpg" NAME="Graphic6" ALIGN=RIGHT WIDTH=102 HEIGHT=42 BORDER=0></TD>
 	</TR>
 </TABLE>
-<H2><A NAME="object"></A>&#160;<BR>Objects 
-</H2>
+<H2><A NAME="object"></A>&#160;<BR>Objects </H2>
+<span class="fixme">xotcl2 changes until here, reminder is
+missing;</span><br>
+<span class="fixme">at least the first paragraph has to be rewritten;
+"2 commands" don't really hold</span><br>
 <P>Initially XOTcl offers two new commands: <tt>Object</tt> and
 <tt>Class</tt>. They represent hooks to the features of the language.
 This section discusses both of them in detail and shows how they
@@ -4975,6 +5034,9 @@ In <EM>Proceedings of Tcl2k: The 7th USENIX Tcl/Tk Conference</EM>,
 G. Neumann and U. Zdun. Towards the Usage of Dynamic Object
                   Aggregations as a Form of Composition
 In: <EM>Proceedings of Symposium of Applied Computing (SAC'00)</EM>, Como, Italy, Mar 19-21, 2000.
+
+<P></P><A NAME="xotcl2"><strong>[Neumann and Sobernig 2009]</strong></A>
+G. Neumann, S. Sobernig: XOTcl 2.0 - A Ten-Year Retrospective and Outlook, in: <em>Proceedings of the Sixteenth Annual Tcl/Tk Conference</em>, Portland, Oregon, October, 2009. 
 
 
 <P></P><A NAME="tcl"><STRONG>[Ousterhout 1990]</STRONG></A>
