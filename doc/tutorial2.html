@@ -821,18 +821,17 @@ Finally we verify the transfer by printing the players:
 			<IMG SRC="logo-100.jpg" NAME="Graphic4" ALIGN=RIGHT WIDTH=102 HEIGHT=42 BORDER=0></TD>
 	</TR>
 </TABLE>
-<P>In XOTcl every object is associated with a class over the <tt>class</tt>
-relationship. Classes are special objects with the purpose of
-managing other objects. ``Managing'' means that a class controls the
+
+<P>In XOTcl every object is associated with its managing class by a relationship
+called <tt>class</tt>. Classes are special objects with the purpose of
+managing other objects. "Managing" means that a class controls the
 creation and destruction of its instances and that it contains a
-repository of methods (``instprocs'') accessible for the instances.
-Object-specific methods are called ``procs'', instance methods are
-called ``instprocs''. 
+repository of methods accessible for the instances.
 </P>
-<P>The instance methods common to all objects are defined in the root
-class <tt>Object</tt> (predefined or user-defined). Since a class is a
+
+<p>Since a class is a
 special (managing) kind of object it is managed itself by a special
-class called ``meta-class'' (which manages itself). Meta-Classes are
+class called a "meta-class" (which manages itself). Meta-Classes are
 used to define classes and to provides methods for these.  Most
 classes are defined by the predefined meta-class <tt>Class</tt>. One
 interesting aspect of meta-classes is that by providing a constructor
@@ -845,46 +844,95 @@ possible to collect these entities in pattern libraries for later
 reuse easily (more details about meta-classes are given in a later <A
 HREF="meta-classes">section</A>).
 </P>
+
+<P>The methods common to all objects in the XOTcl 2 object system are
+defined in the root class <tt>Object</tt> (fully qualified name
+<tt>::xotcl2::Object</tt>). All methods can be predefined (defined by
+XOTcl) or user-defined. All objects of XOTcl 2 are either direct
+instances of <tt>Object</tt> or instances of subclasses of
+<tt>Object</tt>.</p>
+
+<p>The most basic meta-class is <tt>Class</tt> (fully qualified name
+<tt>::xotcl2::Class</tt>). All classes of XOTcl 2 are either direct
+instances of <tt>Class</tt> or instances of subclasses of
+<tt>Class</tt>. Since - as noted before - a class is a special kind of
+object, <tt>Class</tt> is a subclass of <tt>Object</tt>. Therefore,
+all methods available in all classes are the union of the methods of
+<tt>Object</tt> and <tt>Class</tt> (see Figure 2a).</p>
+
+<P ALIGN=CENTER STYLE="margin-bottom: 0in"><STRONG>Figure 2a:</STRONG>
+Basic Classes of the XOTcl2 object system
+</P>
+<CENTER>
+<IMG SRC="object-class.png" NAME="Graphic5" ALIGN=BOTTOM WIDTH=400 BORDER=0>
+</center>
+
+<p>
+When we create an application class such as the class <tt>Stack</tt>
+in the examples above, we create it as instance of the basic
+meta-class <tt>::xotcl2::Class</tt>. The application class will have
+<tt>::xotcl2::Object</tt> as it superclass, unless we spefify this
+differently. When we create an instance of the class <tt>Stack</tt>
+(such as e.g. the stack <tt>s1</tt>) we create it by using the method
+<tt>create</tt> provided by <tt>::xotcl2::Class</tt> (an instance can
+use the methods provided by its class).
+</p>
+
+<P ALIGN=CENTER STYLE="margin-bottom: 0in"><STRONG>Figure 2b:</STRONG>
+Application class Stack and instance of Stack together with the Basic Classes of the XOTcl2 object system
+</P>
+<CENTER>
+<IMG SRC="object-class-appclass.png" NAME="Graphic5" ALIGN=BOTTOM WIDTH=400 BORDER=0>
+</center>
+
 <P>XOTcl supports single and multiple inheritance. Classes are ordered
 by the relationship <tt>superclass</tt> in a directed acyclic
 graph. The root of the class hierarchy is the class <tt>Object</tt>.
-A single object can be instantiated directly from this class. An
-inherent problem of multiple inheritance is the problem of name
+Note that it is possible to create as well objects from this most
+general class; we have done this already above by creating an object
+named <tt>stack</tt>.</p>
+
+<p>A classical problem of multiple inheritance is the problem of name
 resolution, when for example two super-classes contain an instance
 method with the same name. XOTcl provides an intuitive and unambiguous
 approach for name resolution by defining the precedence order along a
-linear ``<EM>next-path</EM>'' incorporating the class and mixin
-hierarchies, which is modeled after CLOS. A method can invoke
-explicitly the shadowed methods by the predefined command
-<tt>next</tt>.  When this command is executed a shadowed method is
-``mixed into'' the execution of the current method. Method chaining
-without explicit naming of the targeted method is very important for
-languages supporting a dynamic class system, because one cannot always
-predict which classes are currently participating in the inheritance
-hierarchy at design time (often necessary in inheritance models, like
-C++).
-</P>
-<P STYLE="margin-bottom: 0in">An important feature of all XOTcl
-objects is the read/write introspection. The reading introspection
-abilities of XOTcl are packed compactly into the <tt>info</tt>
-instance method which is available for objects and classes. All
-obtained information can be changed at run-time dynamically with
-immediate effect. Unlike languages with a static class concept, XOTcl
-supports dynamic class/superclass relationships. At any time the class
-graph may be changed entirely using the <tt>superclass</tt> method, or
+linear "<EM>next-path</EM>" incorporating the class and mixin
+hierarchies. A method can invoke explicitly the shadowed methods by
+the predefined command <tt>next</tt>.  When <tt>next</tt> is executed
+a shadowed method is invoked. The execution of the shadowed methods is
+called "method chaining". Method chaining without explicit naming of
+the targeted method is very important for languages supporting a
+dynamic class system, because one cannot always predict which classes
+are currently participating in the inheritance hierarchy at design
+time (often necessary in inheritance models, like C++).  </P>
+
+
+<P
+ STYLE="margin-bottom: 0in">An important feature of all XOTcl objects
+is the read/write introspection. The reading introspection abilities
+of XOTcl are packed compactly into the <tt>info</tt> instance method
+which is available for objects and classes. All obtained information
+can be changed at run-time dynamically with immediate effect. Unlike
+languages with a static class concept, XOTcl supports dynamic
+class/superclass relationships. At any time the class graph may be
+changed entirely using the <tt>superclass</tt> method, or
 an object may change its class through the <tt>class</tt> method. This
 feature can be used for an implementation of a life-cycle or other
 intrinsic changes of object properties (in contrast to extrinsic
 properties e.g. modeled through roles and implemented through
 per-object and per-class mixins <a href="#xotcl-mixin">[Neumann and
 Zdun 1999c]</a> ) . These changes can be achieved without loosing the
-object's identity, its inner state, and its per-object behavior (procs
-and per-object mixins).
+object's identity, its inner state, and its per-object behavior (methods
+and mixins).
 </P>
+
+<span class="fixme">xotcl2 changes until here, reminder is
+missing;</span><br>
+
 <P ALIGN=CENTER STYLE="margin-bottom: 0in"><A NAME="features1"></A><A NAME="11761"></A>
 &#160;&#160; 
 </P>
-<P ALIGN=CENTER STYLE="margin-bottom: 0in"><STRONG>Figure 2:</STRONG>
+<P ALIGN=CENTER STYLE="margin-bottom: 0in"><STRONG>Figure 2b:</STRONG>
 Object and Class System 
 </P>
 <CENTER>
@@ -910,8 +958,6 @@ Object and Class System
 	</TR>
 </TABLE>
 <H2><A NAME="object"></A>&#160;<BR>Objects </H2>
-<span class="fixme">xotcl2 changes until here, reminder is
-missing;</span><br>
 <span class="fixme">at least the first paragraph has to be rewritten;
 "2 commands" don't really hold</span><br>
 <P>Initially XOTcl offers two new commands: <tt>Object</tt> and
