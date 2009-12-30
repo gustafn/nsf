@@ -183,73 +183,76 @@ ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
 #endif
 
 static void
-parseContextInit(parseContext *pc, int objc, XOTclObject *obj, Tcl_Obj *procName) {
+parseContextInit(parseContext *pcPtr, int objc, XOTclObject *obj, Tcl_Obj *procName) {
   if (objc < PARSE_CONTEXT_PREALLOC) {
     /* the single larger memset below .... */
-    memset(pc, 0, sizeof(parseContext));
+    memset(pcPtr, 0, sizeof(parseContext));
     /* ... is faster than the two smaller memsets below */
-    /* memset(pc->clientData_static, 0, sizeof(ClientData)*(objc));
-       memset(pc->objv_static, 0, sizeof(Tcl_Obj*)*(objc+1));*/
-    pc->full_objv  = &pc->objv_static[0];
-    pc->clientData = &pc->clientData_static[0];
-    pc->flags      = &pc->flags_static[0];
+    /* memset(pcPtr->clientData_static, 0, sizeof(ClientData)*(objc));
+       memset(pcPtr->objv_static, 0, sizeof(Tcl_Obj*)*(objc+1));*/
+    pcPtr->full_objv  = &pcPtr->objv_static[0];
+    pcPtr->clientData = &pcPtr->clientData_static[0];
+    pcPtr->flags      = &pcPtr->flags_static[0];
   } else {
-    pc->full_objv  = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*)*(objc+1));
-    pc->flags      = (int*)ckalloc(sizeof(int)*(objc+1));
-    pc->clientData = (ClientData*)ckalloc(sizeof(ClientData)*objc);
-    /*fprintf(stderr, "ParseContextMalloc %d objc, %p %p\n",objc,pc->full_objv,pc->clientData);*/
-    memset(pc->full_objv, 0, sizeof(Tcl_Obj*)*(objc+1));
-    memset(pc->flags, 0, sizeof(int)*(objc+1));
-    memset(pc->clientData, 0, sizeof(ClientData)*(objc));
+    pcPtr->full_objv  = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*)*(objc+1));
+    pcPtr->flags      = (int*)ckalloc(sizeof(int)*(objc+1));
+    pcPtr->clientData = (ClientData*)ckalloc(sizeof(ClientData)*objc);
+    /*fprintf(stderr, "ParseContextMalloc %d objc, %p %p\n",objc,pcPtr->full_objv,pcPtr->clientData);*/
+    memset(pcPtr->full_objv, 0, sizeof(Tcl_Obj*)*(objc+1));
+    memset(pcPtr->flags, 0, sizeof(int)*(objc+1));
+    memset(pcPtr->clientData, 0, sizeof(ClientData)*(objc));
   }
-  pc->objv = &pc->full_objv[1];
-  pc->full_objv[0] = procName;
-  pc->obj = obj;
+  pcPtr->objv = &pcPtr->full_objv[1];
+  pcPtr->full_objv[0] = procName;
+  pcPtr->obj = obj;
+  pcPtr->varArgs = 0;
+  pcPtr->mustDecr = 0;
 }
 
-static void parseContextExtendObjv(parseContext *pc, int from, int elts, Tcl_Obj *CONST source[]) {
+static void parseContextExtendObjv(parseContext *pcPtr, int from, int elts, Tcl_Obj *CONST source[]) {
   int requiredSize = from + elts;
 
-  /*XOTclPrintObjv("BEFORE: ", pc->objc, pc->full_objv);*/
+  /*XOTclPrintObjv("BEFORE: ", pcPtr->objc, pcPtr->full_objv);*/
 
   if (requiredSize > PARSE_CONTEXT_PREALLOC) {
-    if (pc->objv == &pc->objv_static[1]) {
+    if (pcPtr->objv == &pcPtr->objv_static[1]) {
       /* realloc from preallocated memory */
       fprintf(stderr, "alloc %d\n", requiredSize);
-      pc->full_objv  = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*) * (requiredSize+1));
-      memcpy(pc->full_objv, &pc->objv_static[0], sizeof(Tcl_Obj*) * PARSE_CONTEXT_PREALLOC);
+      pcPtr->full_objv  = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*) * (requiredSize+1));
+      memcpy(pcPtr->full_objv, &pcPtr->objv_static[0], sizeof(Tcl_Obj*) * PARSE_CONTEXT_PREALLOC);
     } else {
       /* realloc from mallocated memory */
-      pc->full_objv = (Tcl_Obj **)ckrealloc((char *)pc->full_objv, sizeof(Tcl_Obj*) * (requiredSize));
+      pcPtr->full_objv = (Tcl_Obj **)ckrealloc((char *)pcPtr->full_objv, sizeof(Tcl_Obj*) * (requiredSize));
       fprintf(stderr, "realloc %d\n", requiredSize);
     }
-    pc->objv = &pc->full_objv[1];
+    pcPtr->objv = &pcPtr->full_objv[1];
   }
 
-  memcpy(pc->objv + from, source, sizeof(Tcl_Obj *) * (elts));
-  pc->objc += elts;
+  memcpy(pcPtr->objv + from, source, sizeof(Tcl_Obj *) * (elts));
+  pcPtr->objc += elts;
 
-  /*XOTclPrintObjv("AFTER:  ", pc->objc, pc->full_objv);*/
+  /*XOTclPrintObjv("AFTER:  ", pcPtr->objc, pcPtr->full_objv);*/
 }
 
-static void parseContextRelease(parseContext *pc) {
-  if (pc->mustDecr) {
+static void parseContextRelease(parseContext *pcPtr) {
+  if (pcPtr->mustDecr) {
     int i;
-    for (i = 0; i < pc->lastobjc; i++) {
-      if (pc->flags[i] & XOTCL_PC_MUST_DECR) {
-        DECR_REF_COUNT(pc->objv[i]);
+    for (i = 0; i < pcPtr->lastobjc; i++) {
+      if (pcPtr->flags[i] & XOTCL_PC_MUST_DECR) {
+        DECR_REF_COUNT(pcPtr->objv[i]);
       }
     }
   }
+
   /* objv can be separately extended */
-  if (pc->objv != &pc->objv_static[1]) {
-    /*fprintf(stderr, "release free %p %p\n",pc->full_objv,pc->clientData);*/
-    ckfree((char *)pc->full_objv);
+  if (pcPtr->objv != &pcPtr->objv_static[1]) {
+    /*fprintf(stderr, "release free %p %p\n",pcPtr->full_objv,pcPtr->clientData);*/
+    ckfree((char *)pcPtr->full_objv);
   }
   /* if the parameter definition was extended, both clientData and flags are extended */
-  if (pc->clientData != &pc->clientData_static[0]) {
-    ckfree((char *)pc->clientData);
-    ckfree((char *)pc->flags);
+  if (pcPtr->clientData != &pcPtr->clientData_static[0]) {
+    ckfree((char *)pcPtr->clientData);
+    ckfree((char *)pcPtr->flags);
   }
 }
 
@@ -9256,6 +9259,7 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
           /* the according DECR is performed by parseContextRelease() */
           INCR_REF_COUNT(newValue);
           pcPtr->flags[i] |= XOTCL_PC_MUST_DECR;
+          pcPtr->mustDecr = 1;
         }
 
         pcPtr->objv[i] = newValue;
@@ -9291,12 +9295,12 @@ static int
 ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               XOTclObject *obj, Tcl_Obj *procNameObj,
               XOTclParam CONST *paramPtr, int nrParams,
-              parseContext *pc) {
+              parseContext *pcPtr) {
   int i, o, flagCount, nrReq = 0, nrOpt = 0, dashdash = 0, nrDashdash = 0;
   /* todo benchmark with and without CONST */
   XOTclParam CONST *pPtr;
 
-  parseContextInit(pc, nrParams, obj, procNameObj);
+  parseContextInit(pcPtr, nrParams, obj, procNameObj);
 
 #if defined(PARSE_TRACE)
   fprintf(stderr, "BEGIN (%d) [0]%s ",objc, ObjStr(procNameObj));
@@ -9334,8 +9338,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               /*fprintf(stderr, "...     flag '%s' o=%d p=%d, objc=%d nrArgs %d\n",objStr,o,p,objc,nppPtr->nrArgs);*/
               if (nppPtr->flags & XOTCL_ARG_REQUIRED) nrReq++; else nrOpt++;
               if (nppPtr->nrArgs == 0) {
-                pc->clientData[nppPtr-paramPtr] = (ClientData)1;  /* the flag was given */
-                pc->objv[nppPtr-paramPtr] = XOTclGlobalObjects[XOTE_ONE];
+                pcPtr->clientData[nppPtr-paramPtr] = (ClientData)1;  /* the flag was given */
+                pcPtr->objv[nppPtr-paramPtr] = XOTclGlobalObjects[XOTE_ONE];
               } else {
                 /* we assume for now, nrArgs is at most 1 */
                 o++; p++;
@@ -9346,10 +9350,11 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                           nppPtr-paramPtr, nppPtr->name, ObjStr(objv[p]), nppPtr->nrArgs,
                           nppPtr->flags & XOTCL_ARG_REQUIRED ? "req":"not req");
 #endif
-                  if ((*nppPtr->converter)(interp, objv[p], nppPtr, &pc->clientData[nppPtr-paramPtr]) != TCL_OK) {
+                  if ((*nppPtr->converter)(interp, objv[p], nppPtr, 
+                                           &pcPtr->clientData[nppPtr-paramPtr]) != TCL_OK) {
                     return TCL_ERROR;
                   }
-                  pc->objv[nppPtr-paramPtr] = objv[p];
+                  pcPtr->objv[nppPtr-paramPtr] = objv[p];
                 } else {
                   Tcl_ResetResult(interp);
                   Tcl_AppendResult(interp, "Argument for parameter '", objStr, "' expected", (char *) NULL);
@@ -9399,22 +9404,22 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       if (pPtr->flags & XOTCL_ARG_REQUIRED) nrReq++; else nrOpt++;
       /*fprintf(stderr, "... arg %s req %d converter %p try to set on %d: '%s'\n",
         pPtr->name,pPtr->flags & XOTCL_ARG_REQUIRED,pPtr->converter,i, ObjStr(objv[o]));*/
-      if ((*pPtr->converter)(interp, objv[o], pPtr, &pc->clientData[i]) != TCL_OK) {
+      if ((*pPtr->converter)(interp, objv[o], pPtr, &pcPtr->clientData[i]) != TCL_OK) {
         return TCL_ERROR;
       }
 
       /*
-       * objv is always passed via pc->objv
+       * objv is always passed via pcPtr->objv
        */
 #if defined(PARSE_TRACE_FULL)
-      fprintf(stderr, "...     setting %s pc->objv[%d] to [%d]'%s'\n",pPtr->name,i,o,ObjStr(objv[o]));
+      fprintf(stderr, "...     setting %s pPtr->objv[%d] to [%d]'%s'\n",pPtr->name,i,o,ObjStr(objv[o]));
 #endif
-      pc->objv[i] = objv[o];
+      pcPtr->objv[i] = objv[o];
       o++; i++; pPtr++;
     }
   }
-  pc->lastobjc = pPtr->name ? o : o-1;
-  pc->objc = i + 1;
+  pcPtr->lastobjc = pPtr->name ? o : o-1;
+  pcPtr->objc = i + 1;
 
   /* Process all args until end of parameter definitions to get correct counters */
   while (pPtr->name) {
@@ -9425,19 +9430,19 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   /* is last argument a vararg? */
   pPtr--;
   if (pPtr->converter == convertToNothing) {
-    pc->varArgs = 1;
+    pcPtr->varArgs = 1;
     /*fprintf(stderr, "last arg of proc '%s' is varargs\n", ObjStr(procNameObj));*/
   }
 
   /* handle missing or unexpected arguments */
-  if (pc->lastobjc < nrReq) {
+  if (pcPtr->lastobjc < nrReq) {
     return ArgumentError(interp, "not enough arguments:", paramPtr, NULL, procNameObj); /* for methods and cmds */
   }
-  if (!pc->varArgs && objc-nrDashdash-1 > nrReq + nrOpt) {
+  if (!pcPtr->varArgs && objc-nrDashdash-1 > nrReq + nrOpt) {
     return ArgumentError(interp, "too many arguments:", paramPtr, NULL, procNameObj); /* for methods and cmds */
   }
 
-  return ArgumentDefaults(pc, interp, paramPtr, nrParams);
+  return ArgumentDefaults(pcPtr, interp, paramPtr, nrParams);
 }
 
 
@@ -13017,6 +13022,7 @@ ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
   if (obj && pushFrame) {
     XOTcl_PushFrame(interp, obj);
   }
+
   result = ArgumentParse(interp, objc, objv, obj, objv[0],
                          paramDefs->paramsPtr, paramDefs->nrParams, pcPtr);
   if (obj && pushFrame) {
