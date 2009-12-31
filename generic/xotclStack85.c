@@ -72,7 +72,8 @@ GetSelfObj(Tcl_Interp *interp) {
     if (flag & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
       XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
 #if defined(TCL85STACK_TRACE)
-      fprintf(stderr, "... self returns %s\n",objectName(csc->self));
+      fprintf(stderr, "... self returns %p %.6x %s\n",csc->self, 
+              csc->self->flags, objectName(csc->self));
 #endif
       return csc->self;
     } else if (flag & FRAME_IS_XOTCL_OBJECT) {
@@ -304,7 +305,19 @@ XOTCLINLINE static void
 CallStackPush(XOTclCallStackContent *csc, XOTclObject *obj, XOTclClass *cl, Tcl_Command cmd, int frameType) {
   obj->activationCount ++;
 #if 1
-  if (cl) {cl->object.activationCount ++;}
+  if (cl) {
+    Namespace *nsPtr = ((Command *)cmd)->nsPtr;
+    cl->object.activationCount ++;
+    /*fprintf(stderr, "... %s cmd %s cmd ns %p (%s) obj ns %p parent %p\n", 
+            className(cl), 
+            Tcl_GetCommandName(obj->teardown, cmd),
+            ((Command *)cmd)->nsPtr, ((Command *)cmd)->nsPtr->fullName,
+            cl->object.nsPtr,cl->object.nsPtr ? ((Namespace*)cl->object.nsPtr)->parentPtr : NULL);*/
+    
+    /* incremement the namespace ptr in case tcl tries to delete this namespace 
+       during the invocation */
+    nsPtr->refCount ++;
+  }
 #endif
   /*fprintf(stderr, "incr activationCount for %s to %d\n", objectName(obj), obj->activationCount);*/
   csc->self          = obj;
@@ -333,18 +346,48 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *csc) {
           Tcl_GetCommandName(interp, csc->cmdPtr));
 #endif
   obj->activationCount --;
-  /*fprintf(stderr, "decr activationCount for %s to %d\n", objectName(csc->self), csc->self->activationCount);*/
+  
+  /*fprintf(stderr, "decr activationCount for %s to %d\n", objectName(csc->self), 
+    csc->self->activationCount);*/
 
   if (obj->activationCount < 1 && obj->flags & XOTCL_DESTROY_CALLED) {
     CallStackDoDestroy(interp, obj);
   }
 #if 1
   if (csc->cl) {
+    Namespace *nsPtr = ((Command *)(csc->cmdPtr))->nsPtr;
+
     obj = &csc->cl->object;
     obj->activationCount --;
+    /*  fprintf(stderr, "CallStackPop cl=%p %s (%d) flags %.6x cl ns=%p cmd %p cmd ns %p\n",
+            obj, objectName(obj), obj->activationCount, obj->flags, csc->cl->nsPtr, 
+            csc->cmdPtr, ((Command *)csc->cmdPtr)->nsPtr); */
+
+    /*fprintf(stderr, "dealloc called %d\n",rst->deallocCalled);*/
+
+    /*fprintf(stderr, "CallStackPop check ac %d flags %.6x\n",
+      obj->activationCount, obj->flags & XOTCL_DESTROY_CALLED);*/
+
     if (obj->activationCount < 1 && obj->flags & XOTCL_DESTROY_CALLED) {
+      /* fprintf(stderr, "CallStackPop calls CallStackDoDestroy %p\n",obj);*/
       CallStackDoDestroy(interp, obj);
     }
+
+    nsPtr->refCount--;
+    /*fprintf(stderr, "CallStackPop parent %s activationCount %d flags %.4x refCount %d\n", 
+      nsPtr->fullName, nsPtr->activationCount, nsPtr->flags, nsPtr->refCount);*/
+
+    if ((nsPtr->refCount == 0) && (nsPtr->flags & NS_DEAD)) {
+      /* the namspace refcound has reached 0, we have to free
+         it. unfortunately, NamespaceFree() is not exported */
+      fprintf(stderr, "HAVE TO FREE %p\n",nsPtr);
+      /*NamespaceFree(nsPtr);*/
+      ckfree(nsPtr->fullName);
+      ckfree(nsPtr->name);
+      ckfree((char*)nsPtr);
+    }
+
+    /*fprintf(stderr, "CallStackPop done\n");*/
   }
 #endif
 }

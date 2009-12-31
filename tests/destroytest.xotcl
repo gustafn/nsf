@@ -1,6 +1,12 @@
 package require XOTcl
+puts stderr XXXX===1
+
 xotcl::use xotcl1
+puts stderr XXXX===2
+
 package require xotcl::test
+
+puts stderr XXXX===3
 
 proc ? {cmd expected {msg ""}} {
   set count 10
@@ -45,6 +51,7 @@ c1 foo
 puts stderr ======[Object isobject c1]
 ? {Object isobject c1} 0 "$::case object deleted"
 ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
+
 
 #
 # simple case, destroy does not propagate, c1 survives
@@ -227,6 +234,11 @@ puts stderr ======[Object isobject test::c1]
 ? {Object isobject test::c1} 0  "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
 ? "set ::ObjectDestroy" 1 "$::case: destroy was called when poping stack frame"
+? {Object isobject ::test::C} 0  "$::case class still exists after proc"
+? {namespace exists ::test::C} 0  "$::case namespace ::test::C still exists after proc"
+? {namespace exists ::test} 0  "$::case parent ::test namespace still exists after proc"
+? {namespace exists ::xotcl::classes::test::C} 0  "$::case namespace ::xotcl::classes::test::C still exists after proc"
+puts stderr XXXXX3
 
 #
 # namespace delete: tcl delays delete until the namespace is not
@@ -235,7 +247,10 @@ puts stderr ======[Object isobject test::c1]
 #
 set case "delete parent namespace (2)"
 namespace eval ::test {
+  ? {namespace exists test::C} 0 "exists test::C"
+  puts stderr AAA
   Class C -superclass O
+  puts stderr BBB
   C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy block"}
   C instproc foo {} {
     puts stderr "==== $::case [self]"
@@ -261,6 +276,7 @@ puts stderr ======[Object isobject test::c1]
 ? {Object isobject test::c1} 0  "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
 ? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"  ;# toplevel destroy was blocked
+puts stderr =============OK_STILL-after-61
 
 #
 # controlled namespace delete: xotcl has its own namespace cleanup,
@@ -274,6 +290,9 @@ C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; 
 C instproc foo {} {
   puts stderr "==== $::case [self]"
   o destroy
+  puts stderr "AAAA"
+  # the following isobject call has a problem in Tcl_GetCommandFromObj(), 
+  # which tries to access invalid memory
   puts stderr "AAAA [self] exists [Object isobject [self]]"
   my set x 1
   #? "[self] set x" 1 "$::case can still access [self]"
@@ -283,7 +302,9 @@ C instproc foo {} {
   ? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
 }
 C o::c1
+puts stderr =====OK1
 o::c1 foo
+puts stderr =====OK-DONE
 puts stderr ======[Object isobject ::o::c1]
 ? {Object isobject ::o::c1} 0 "$::case object o::c1 still exists after proc"
 ? {Object isobject o} 0 "$::case object o still exists after proc"

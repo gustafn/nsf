@@ -912,14 +912,14 @@ GetCmdNameType(Tcl_ObjType CONST86 *cmdType) {
 }
 
 static int
-IsXOTclTclObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **obj) {
+IsXOTclTclObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **objectPtr) {
   Tcl_ObjType CONST86 *cmdType = objPtr->typePtr;
   if (cmdType == GetCmdNameType(cmdType)) {
     Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objPtr);
     if (cmd) {
       XOTclObject *o = XOTclGetObjectFromCmdPtr(cmd);
       if (o) {
-        *obj = o;
+        *objectPtr = o;
         return 1;
       }
     }
@@ -927,24 +927,29 @@ IsXOTclTclObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **obj) {
   return 0;
 }
 
-/* Lookup an xotcl object from the given objPtr, preferably from an
+/* Lookup an XOTcl object from the given objPtr, preferably from an
  * object of type "cmdName". objPtr might be converted in this process.
  */
 
 static int
-GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **obj) {
+GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **objectPtr) {
   int result;
-  XOTclObject *nobj;
+  XOTclObject *nobject;
   char *string;
-  Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objPtr);
+  Tcl_Command cmd;
 
-  /*fprintf(stderr, "GetObjectFromObj  obj %s is of type tclCmd, cmd=%p\n", ObjStr(objPtr), cmd);*/
+  /*fprintf(stderr, "GetObjectFromObj obj %p %s is of type %s\n", 
+    objPtr, ObjStr(objPtr), objPtr->typePtr ? objPtr->typePtr->name : "(null)");*/
+
+  /* in case, objPtr was not of type cmdName, try to convert */
+  cmd = Tcl_GetCommandFromObj(interp, objPtr);
+  /*fprintf(stderr, "GetObjectFromObj obj %s => cmd=%p\n", ObjStr(objPtr), cmd);*/
   if (cmd) {
     XOTclObject *o = XOTclGetObjectFromCmdPtr(cmd);
     /*fprintf(stderr, "GetObjectFromObj obj %s, o is %p objProc %p XOTclObjDispatch %p\n", ObjStr(objPtr),
       o, Tcl_Command_objProc(cmd), XOTclObjDispatch);*/
     if (o) {
-      if (obj) *obj = o;
+      if (objectPtr) *objectPtr = o;
       return TCL_OK;
     }
   }
@@ -961,15 +966,15 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **obj) {
     char *nsString = ObjStr(tmpName);
 
     INCR_REF_COUNT(tmpName);
-    nobj = XOTclpGetObject(interp, nsString);
+    nobject = XOTclpGetObject(interp, nsString);
     /*fprintf(stderr, " RETRY, string '%s' returned %p\n", nsString, nobj);*/
     DECR_REF_COUNT(tmpName);
   } else {
-    nobj = NULL;
+    nobject = NULL;
   }
 
-  if (nobj) {
-    if (obj) *obj = nobj;
+  if (nobject) {
+    if (objectPtr) *objectPtr = nobject;
     result = TCL_OK;
   } else {
     result = TCL_ERROR;
@@ -1917,6 +1922,7 @@ NSRequireVariableOnObj(Tcl_Interp *interp, XOTclObject *obj, char *name, int flg
 
 static int
 XOTcl_DeleteCommandFromToken(Tcl_Interp *interp, Tcl_Command cmd) {
+  /*fprintf(stderr, "XOTcl_DeleteCommandFromToken %p\n",cmd);*/
   CallStackClearCmdReferences(interp, cmd);
   return Tcl_DeleteCommandFromToken(interp, cmd);
 }
@@ -1932,7 +1938,7 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
   Tcl_HashEntry *hPtr;
 
 #ifdef OBJDELETION_TRACE
-  fprintf(stderr, "NSCleanupNamespace %p varTable %p\n", ns, varTable);
+  fprintf(stderr, "NSCleanupNamespace %p %.6x varTable %p\n", ns, ((Namespace *)ns)->flags, varTable);
 #endif
   /*
    * Delete all variables and initialize var table again
@@ -1950,7 +1956,7 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
       Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
       XOTclObject *invokeObj = proc == XOTclObjDispatch ? (XOTclObject *)Tcl_Command_objClientData(cmd) : NULL;
 
-      /* objects should not be deleted here to preseve children deletion order*/
+      /* objects should not be deleted here to preseve children deletion order */
       if (invokeObj && cmd != invokeObj->id) {
         /*
          * cmd is an aliased object, reduce the refcount
@@ -1959,8 +1965,11 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
         XOTclCleanupObject(invokeObj);
       }
 
-      /*fprintf(stderr, "NSCleanupNamespace deleting %s %p (%s)\n",
-        Tcl_Command_nsPtr(cmd)->fullName, cmd,  Tcl_GetCommandName(interp, cmd) );*/
+      /*fprintf(stderr, "NSCleanupNamespace calls DeleteCommandFromToken for %p flags %.6x\n",
+        cmd,((Command *)cmd)->flags);
+      fprintf(stderr, "    nsPtr = %p\n",((Command *)cmd)->nsPtr);
+      fprintf(stderr, "    flags %.6x\n",((Namespace *)((Command *)cmd)->nsPtr)->flags);*/
+
       XOTcl_DeleteCommandFromToken(interp, cmd);
   }
 }
@@ -1970,7 +1979,7 @@ static void
 NSNamespaceDeleteProc(ClientData clientData) {
   /* dummy for ns identification by pointer comparison */
   XOTclObject *obj = (XOTclObject*) clientData;
-  /*fprintf(stderr, "namespacedeleteproc obj=%p\n", clientData);*/
+  /*fprintf(stderr, "namespacedeleteproc obj=%p ns=%p\n", clientData,obj? obj->nsPtr:NULL);*/
   if (obj) {
     obj->nsPtr = NULL;
   }
@@ -1988,21 +1997,23 @@ XOTcl_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   int activationCount = 0;
   Tcl_CallFrame *f = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp);
 
-  /*
-    fprintf(stderr, "  ... correcting ActivationCount for %s was %d ",
-    nsPtr->fullName, nsp->activationCount);
-  */
+  /*fprintf(stderr, "  ... correcting ActivationCount for %s was %d ",
+    nsPtr->fullName, ((Namespace *)nsPtr)->activationCount);*/
+
   while (f) {
     if (f->nsPtr == nsPtr)
       activationCount++;
     f = Tcl_CallFrame_callerPtr(f);
   }
+  
+  if (((Namespace *)nsPtr)->activationCount != activationCount) {
+    fprintf(stderr, "WE HAVE TO FIX ACTIVATIONCOUNT\n");
+  }
 
   Tcl_Namespace_activationCount(nsPtr) = activationCount;
 
-  /*
-    fprintf(stderr, "to %d. \n", nsp->activationCount);
-  */
+  /*fprintf(stderr, "to %d. \n", ((Namespace *)nsPtr)->activationCount);*/
+
   MEM_COUNT_FREE("TclNamespace", nsPtr);
   if (Tcl_Namespace_deleteProc(nsPtr)) {
     /*fprintf(stderr, "calling deteteNamespace %s\n", nsPtr->fullName);*/
@@ -2016,8 +2027,8 @@ NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, char *name, int c
 
   if (nsPtr) {
     if (nsPtr->deleteProc || nsPtr->clientData) {
-      Tcl_Panic("Namespace '%s' exists already with delProc %p and clientData %p; Can only convert a plain Tcl namespace into an XOTcl namespace",
-		name, nsPtr->deleteProc, nsPtr->clientData);
+      Tcl_Panic("Namespace '%s' exists already with delProc %p and clientData %p; Can only convert a plain Tcl namespace into an XOTcl namespace, my delete Proc %p",
+		name, nsPtr->deleteProc, nsPtr->clientData, NSNamespaceDeleteProc);
     }
     nsPtr->clientData = clientData;
     nsPtr->deleteProc = (Tcl_NamespaceDeleteProc *)NSNamespaceDeleteProc;
@@ -2400,46 +2411,64 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
   /* Don't do anything, if a recursive DURING_DELETE is for some
    * reason active.
    */
+  /*fprintf(stderr, "CallStackDoDestroy %p flags %.6x cmd %p\n", obj, obj->flags, obj->id);*/
   if (obj->flags & XOTCL_DURING_DELETE) {
     return;
   }
-  /*fprintf(stderr, "CallStackDoDestroy %p flags %.6x activation %d\n", 
-    obj, obj->flags, obj->activationCount);*/
+  /*fprintf(stderr, "CallStackDoDestroy %p flags %.6x activation %d cmd %p\n", 
+    obj, obj->flags, obj->activationCount, obj->id);*/
   obj->flags |= XOTCL_DURING_DELETE;
 
   oid = obj->id;
   if (obj->teardown && oid) {
     Tcl_Obj *savedObjResult = Tcl_GetObjResult(interp);
+    /*int flags = obj->flags;*/
+
     INCR_REF_COUNT(savedObjResult);
 
+    if (!(obj->flags & XOTCL_CMD_NOT_FOUND)) {
+      /*fprintf(stderr, "    before DeleteCommandFromToken %p %.6x\n", oid, ((Command*)oid)->flags);*/
+      Tcl_DeleteCommandFromToken(interp, oid); /* this can change the result */
+      /*fprintf(stderr, "    after DeleteCommandFromToken %p %.6x\n", oid, ((Command*)oid)->flags);*/
+      Tcl_SetObjResult(interp, savedObjResult);
+    }
+
     PrimitiveDestroy((ClientData) obj);
-
-    /*fprintf(stderr, "    before DeleteCommandFromToken %p %.6x\n", oid, ((Command*)oid)->flags);*/
-    Tcl_DeleteCommandFromToken(interp, oid); /* this can change the result */
-    /*fprintf(stderr, "    after DeleteCommandFromToken %p %.6x\n", oid, ((Command*)oid)->flags);*/
-
-    Tcl_SetObjResult(interp, savedObjResult);
+    /*fprintf(stderr, "CallStackDoDestroy after primitiveDestroy of obj %p flags %.6x\n", 
+      obj, flags);*/
     DECR_REF_COUNT(savedObjResult);
   }
 }
 
 static void
 CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *obj) {
-  /*fprintf(stderr, "  CallStackDestroyObject %p %s activationcount %d\n",
-    obj, objectName(obj), obj->activationCount == 0); */
+
+  /*fprintf(stderr, "  CallStackDestroyObject %p %s activationcount %d flags %.6x\n",
+    obj, objectName(obj), obj->activationCount, obj->flags); */
 
   if ((obj->flags & XOTCL_DESTROY_CALLED) == 0) {
+    int activationCount = obj->activationCount;
     /* if the destroy method was not called yet, do it now */
 #ifdef OBJDELETION_TRACE
-    fprintf(stderr, "  CallStackDestroyObject has to call destroy method for %p\n", obj);
+    fprintf(stderr, "  CallStackDestroyObject has to callDestroyMethod %p activationCount %d\n", obj, activationCount);
 #endif
     callDestroyMethod(interp, obj, 0);
-    /*fprintf(stderr, "  CallStackDestroyObject after callDestroyMethod %p\n", obj);*/
+    /*fprintf(stderr, "  CallStackDestroyObject after callDestroyMethod %p activationCount %d\n", 
+      obj, activationCount);*/
+    if (activationCount == 0) {
+      /* We assume, the object is now freed. if the obj is already
+         freed, we cannot access activation count, and we cannot call
+         CallStackDoDestroy */
+      /* todo: check if this is leak; */
+      /*fprintf(stderr, "  CallStackDestroyObject %p done\n",  obj);*/
+      return;
+    }
   }
 
   /* if the object is not referenced on the callstack anymore
      we have to destroy it directly, because CallStackPop won't
      find the object destroy */
+  /* fprintf(stderr, "  CallStackDestroyObject check activation count of %p => %d\n", obj, obj->activationCount);*/
   if (obj->activationCount == 0) {
     CallStackDoDestroy(interp, obj);
   } else {
@@ -2447,9 +2476,11 @@ CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *obj) {
        -> children destructors are called before parent's
        destructor */
     if (obj->teardown && obj->nsPtr) {
+      /*fprintf(stderr, "  CallStackDestroyObject calls NSDeleteChildren\n");*/
       NSDeleteChildren(interp, obj->nsPtr);
     }
   }
+  /*fprintf(stderr, "  CallStackDestroyObject %p final done\n",  obj);*/
 }
 
 /*
@@ -5464,6 +5495,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
         XOTclCallStackContent *cscPtr) {
   CheckOptions co;
   int result;
+  XOTclRuntimeState *rst = RUNTIME_STATE(interp);
 #if defined(TCL85STACK)
   XOTcl_FrameDecls;
 #endif
@@ -5503,6 +5535,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   printCall(interp, "CmdMethodDispatch cmd", objc, objv);
   fprintf(stderr, "\tcmd=%s\n", Tcl_GetCommandName(interp, cmdPtr));
 #endif
+  rst->deallocCalled = 0;
 #if !defined(NRE)
   result = (*Tcl_Command_objProc(cmdPtr))(cp, interp, objc, objv);
 #else
@@ -5518,9 +5551,12 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   }
 #endif
 
+  /*fprintf(stderr, "CmdDispatch obj %p %s  deallocCalled %d\n",
+    obj, methodName, rst->deallocCalled);*/
+
   /* The order of the if-condition below is important, since obj might be already
      freed in case the call was a "dealloc" */
-  if (obj->opt) {
+  if (!rst->deallocCalled && obj->opt) {
     co = obj->opt->checkoptions;
     if ((co & CHECK_INVAR) &&
         ((result = AssertionCheckInvars(interp, obj, methodName, co)) == TCL_ERROR)) {
@@ -5797,9 +5833,13 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
         objectName(obj), frameType, methodName);*/
       if ((result = MethodDispatch(clientData, interp, objc-shift, objv+shift, cmd, obj, cl,
                                  methodName, frameType)) == TCL_ERROR) {
+#if 0
+        fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, flags %.6x\n",
+                cl, cl ? cl->object.id : 0, cl ? cl->object.flags : 0);
 	result = XOTclErrInProc(interp, cmdName,
 				cl && cl->object.teardown ? cl->object.cmdName : NULL,
 				methodName);
+#endif
       }
       unknown = rst->unknown;
     }
@@ -7284,7 +7324,7 @@ tclDeletesObject(ClientData clientData) {
   Tcl_Interp *interp;
 
 #ifdef OBJDELETION_TRACE
-  fprintf(stderr, "tclDeletesObject %p obj->id %p\n", obj, obj->id);
+  fprintf(stderr, "tclDeletesObject %p obj->id %p flags %.6x\n", obj, obj->id, obj->flags);
 #endif
   if ((obj->flags & XOTCL_DURING_DELETE) || !obj->teardown) return;
   interp = obj->teardown;
@@ -7336,7 +7376,7 @@ PrimitiveODestroy(ClientData clientData) {
 
   obj->teardown = NULL;
   if (obj->nsPtr) {
-    /*fprintf(stderr, "primitive odestroy calls deletenamespace for obj %p\n", obj);*/
+    /*fprintf(stderr, "primitive odestroy calls deletenamespace for obj %p nsPtr %p\n", obj, obj->nsPtr);*/
     XOTcl_DeleteNamespace(interp, obj->nsPtr);
     obj->nsPtr = NULL;
   }
@@ -7721,13 +7761,14 @@ PrimitiveCDestroy(ClientData clientData) {
   /*
    * class object destroy + physical destroy
    */
-  /* fprintf(stderr, "primitive cdestroy calls primitive odestroy\n");*/
+  /*fprintf(stderr, "primitive cdestroy %p %.6x calls primitive odestroy\n", cl, flags);*/
   PrimitiveODestroy(clientData);
 
-  /*fprintf(stderr, "primitive cdestroy calls deletenamespace for obj %p\n", cl);*/
+  /*fprintf(stderr, "primitive cdestroy calls deletenamespace for obj %p, nsPtr %p flags %.6x\n", 
+    cl, saved, ((Namespace *)saved)->flags);*/
   saved->clientData = NULL;
   XOTcl_DeleteNamespace(interp, saved);
-
+  /*fprintf(stderr, "primitive cdestroy %p DONE\n",cl);*/
   return;
 }
 
@@ -11746,6 +11787,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
   }
   return result;
 }
+static int DoDealloc(Tcl_Interp *interp, XOTclObject *delobj);
 
 static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *obj) {
   PRINTOBJ("XOTclODestroyMethod", obj);
@@ -11755,23 +11797,32 @@ static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *obj) {
    * the explicit destroy calls in the script, which reach the
    * Object->destroy.
    */
-  /*fprintf(stderr,"XOTclODestroyMethod %p flags %.6x activation %d\n",
-    obj, obj->flags, obj->activationCount); */
+  /*fprintf(stderr,"XOTclODestroyMethod %p flags %.6x activation %d cmd %p cmd->flags %.6x\n",
+    obj, obj->flags, obj->activationCount, obj->id, ((Command*)obj->id)->flags); */
 
   if ((obj->flags & XOTCL_DESTROY_CALLED) == 0) {
     obj->flags |= XOTCL_DESTROY_CALLED;
   }
 
   if ((obj->flags & XOTCL_DURING_DELETE) == 0) {
-    return XOTclCallMethodWithArgs((ClientData)obj->cl, interp,
-                                   XOTclGlobalObjects[XOTE_DEALLOC], obj->cmdName,
-                                   1, NULL, 0);
+    int result;
+    /*fprintf(stderr, "   call dealloc on %p %s\n", obj, objectName(obj));*/
+
+    result = XOTclCallMethodWithArgs((ClientData)obj->cl, interp,
+                                     XOTclGlobalObjects[XOTE_DEALLOC], obj->cmdName,
+                                     1, NULL, 0);
+    if (result != TCL_OK) {
+      obj->flags |= XOTCL_CMD_NOT_FOUND;
+      fprintf(stderr, "*** dealloc failed for %p %s flags %.6x, retry\n", obj, objectName(obj), obj->flags);
+      result = DoDealloc(interp, obj);
+    }
+    return result;
   } else {
 #if defined(OBJDELETION_TRACE)
     fprintf(stderr, "  Object->destroy already during delete, don't call dealloc %p\n", obj);
 #endif
-    return TCL_OK;
   }
+  return TCL_OK;
 }
 
 static int XOTclOExistsMethod(Tcl_Interp *interp, XOTclObject *obj, char *var) {
@@ -12305,16 +12356,15 @@ static int XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, char *name,
   return createMethod(interp, cl, name, objc, objv);
 }
 
-static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *object) {
-  XOTclObject *delobj;
+
+static int DoDealloc(Tcl_Interp *interp, XOTclObject *delobj) {
   int result;
 
-  if (GetObjectFromObj(interp, object, &delobj) != TCL_OK)
-    return XOTclVarErrMsg(interp, "Can't destroy object ",
-                          ObjStr(object), " that does not exist.", (char *) NULL);
+  /*delobj->flags |= XOTCL_DURING_DELETE;*/
 
-  /*fprintf(stderr, "dealloc obj=%s flags %.6x activation %d opt=%p\n",
-    objectName(delobj), delobj->flags, delobj->activationCount, delobj->opt);*/
+  /*fprintf(stderr, "DoDealloc obj= %s %p flags %.6x activation %d cmd %p opt=%p\n",
+          objectName(delobj), delobj, delobj->flags, delobj->activationCount, 
+          delobj->id, delobj->opt);*/
 
   result = freeUnsetTraceVariable(interp, delobj);
   if (result != TCL_OK) {
@@ -12329,7 +12379,26 @@ static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *obje
     CallStackDestroyObject(interp, delobj);
   }
 
+  /* fprintf(stderr, "DoDealloc obj=%p done\n",      delobj);*/
   return TCL_OK;
+}
+
+
+static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *object) {
+  XOTclObject *delobj;
+  XOTclRuntimeState *rst = RUNTIME_STATE(interp);
+
+  rst->deallocCalled = 1;
+
+  /*fprintf(stderr, "XOTclCDeallocMethod obj %p\n",object);*/
+
+  if (GetObjectFromObj(interp, object, &delobj) != TCL_OK) {
+    fprintf(stderr, "obj %s does not exist\n", ObjStr(object));
+    return XOTclVarErrMsg(interp, "Can't destroy object ",
+                          ObjStr(object), " that does not exist.", (char *) NULL);
+  }
+  
+  return DoDealloc(interp, delobj);
 }
 
 static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *withChildof,
@@ -13275,7 +13344,7 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
         /* fprintf(stderr, "  ... delete object %s %p, class=%s\n", key, obj,
            className(obj->cl));*/
         freeUnsetTraceVariable(interp, obj);
-        Tcl_DeleteCommandFromToken(interp, obj->id);
+        if (obj->id) Tcl_DeleteCommandFromToken(interp, obj->id);
         Tcl_DeleteHashEntry(hPtr);
         deleted++;
       }
@@ -13297,7 +13366,7 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
           ) {
         /* fprintf(stderr, "  ... delete class %s %p\n", key, cl); */
         freeUnsetTraceVariable(interp, &cl->object);
-        Tcl_DeleteCommandFromToken(interp, cl->object.id);
+        if (cl->object.id) Tcl_DeleteCommandFromToken(interp, cl->object.id);
         Tcl_DeleteHashEntry(hPtr);
         deleted++;
       }
