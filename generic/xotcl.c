@@ -11814,6 +11814,9 @@ static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *obj) {
     if (result != TCL_OK) {
       obj->flags |= XOTCL_CMD_NOT_FOUND;
       fprintf(stderr, "*** dealloc failed for %p %s flags %.6x, retry\n", obj, objectName(obj), obj->flags);
+      /* In case, the call of the dealloc method has failed above (e.g. NS_DYING), 
+       * we have to call dealloc manually, otherwise we have a memory leak 
+       */
       result = DoDealloc(interp, obj);
     }
     return result;
