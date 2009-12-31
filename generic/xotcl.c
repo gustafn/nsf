@@ -246,7 +246,7 @@ static void parseContextRelease(parseContext *pcPtr) {
 
   /* objv can be separately extended */
   if (pcPtr->objv != &pcPtr->objv_static[1]) {
-    /*fprintf(stderr, "release free %p %p\n", pcPtr->full_objv, pcPtr->clientData);*/
+    /*fprintf(stderr, "parseContextRelease free %p %p\n", pcPtr->full_objv, pcPtr->clientData);*/
     ckfree((char *)pcPtr->full_objv);
   }
   /* if the parameter definition was extended, both clientData and flags are extended */
@@ -5536,6 +5536,8 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   fprintf(stderr, "\tcmd=%s\n", Tcl_GetCommandName(interp, cmdPtr));
 #endif
   rst->deallocCalled = 0;
+  /*fprintf(stderr, "CmdDispatch obj %p %p %s\n", obj, methodName, methodName);*/
+
 #if !defined(NRE)
   result = (*Tcl_Command_objProc(cmdPtr))(cp, interp, objc, objv);
 #else
@@ -5551,7 +5553,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   }
 #endif
 
-  /*fprintf(stderr, "CmdDispatch obj %p %s  deallocCalled %d\n",
+  /*fprintf(stderr, "CmdDispatch obj %p %p  deallocCalled %d\n",
     obj, methodName, rst->deallocCalled);*/
 
   /* The order of the if-condition below is important, since obj might be already
@@ -5696,6 +5698,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   Tcl_Obj *cmdName = obj->cmdName, *methodObj, *cmdObj;
 
   assert(objc>0);
+
   if (flags & XOTCL_CM_NO_SHIFT) {
     shift = 0;
     cmdObj = obj->cmdName;
@@ -5720,7 +5723,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 #endif
 
   objflags = obj->flags; /* avoid stalling */
+
+  /* make sure, cmdName and obj survive this method until the end */
   INCR_REF_COUNT(cmdName);
+  obj->refCount ++; 
 
   if (!(objflags & XOTCL_FILTER_ORDER_VALID)) {
     FilterComputeDefined(interp, obj);
@@ -5855,9 +5861,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       Tcl_Obj *unknownObj = XOTclGlobalObjects[XOTE_UNKNOWN];
 
       if (/*XOTclObjectIsClass(obj) &&*/ (flags & XOTCL_CM_NO_UNKNOWN)) {
-	return XOTclVarErrMsg(interp, objectName(obj),
-			      ": unable to dispatch method '",
-			      methodName, "'", (char *) NULL);
+	result = XOTclVarErrMsg(interp, objectName(obj),
+                                ": unable to dispatch method '",
+                                methodName, "'", (char *) NULL);
+        goto exit_dispatch;
       } else if (methodObj != unknownObj) {
 	/*
 	 * back off and try unknown;
@@ -5882,9 +5889,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
         FREE_ON_STACK(tov);
 	
       } else { /* unknown failed */
-        return XOTclVarErrMsg(interp, objectName(obj),
-			      ": unable to dispatch method '",
-			      ObjStr(objv[shift+1]), "'", (char *) NULL);
+        result = XOTclVarErrMsg(interp, objectName(obj),
+                                ": unable to dispatch method '",
+                                ObjStr(objv[shift+1]), "'", (char *) NULL);
+        goto exit_dispatch; 
       }
 
     }
@@ -5898,13 +5906,13 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   printExit(interp, "DISPATCH", objc, objv, result);
 #endif
 
-    /*!(obj->flags & XOTCL_DESTROY_CALLED)) */
   if (mixinStackPushed && obj->mixinStack)
     MixinStackPop(obj);
-
+    
   if (filterStackPushed && obj->filterStack)
     FilterStackPop(obj);
-
+  
+  XOTclCleanupObject(obj);
   DECR_REF_COUNT(cmdName); /* must be after last dereferencing of obj */
   return result;
 }

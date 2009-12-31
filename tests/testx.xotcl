@@ -2594,8 +2594,12 @@ TestX copymove -proc run {{n 10}} {
     # class hierarchy copy
     Class O
     X copy O::X
+    ::errorCheck "[::xotcl::is O::X object]" 1 "O::X is an object"
+    ::errorCheck "[::xotcl::is O::X::Y object]" 1 "O::X::Y is an object"
+    ::errorCheck "[::xotcl::is O::X::Y::Z object]" 1 "O::X::Y::Z is an object"
 
     O::X x1; O::X::Y y1; O::X::Y::Z z1
+
     ::errorCheck "[x1 q 1 2 3]--[y1 q 1 2 3]--[z1 q 1 2 3]" \
       "::x1--::O::X--q------::y1--::O::X::Y--q------::z1--::O::X::Y::Z--q----"\
       "class hierarchy copy"
@@ -2614,13 +2618,23 @@ TestX copymove -proc run {{n 10}} {
     x copy x::a
     
     x copy x::a::z
-    
+
     ::errorCheck "[::x::a::tclProc]--[::x::a::z::a::tclProc]" \
       "tclProc--tclProc"\
       "object hierarchy copy"
 
+#todo REMOVE ME
+    Class DestroyWatch
+    DestroyWatch instproc destroy args {
+      puts stderr "[self] destroy"
+      next
+    }
+    ::xotcl::Class instmixin DestroyWatch
+### until here
+
     Class O
     O x
+
     x invar {{7 > 5} {
       #a comment
     }}

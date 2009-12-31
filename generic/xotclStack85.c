@@ -355,7 +355,7 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *csc) {
   }
 #if 1
   if (csc->cl) {
-    Namespace *nsPtr = ((Command *)(csc->cmdPtr))->nsPtr;
+    Namespace *nsPtr = csc->cmdPtr ? ((Command *)(csc->cmdPtr))->nsPtr : NULL;
 
     obj = &csc->cl->object;
     obj->activationCount --;
@@ -373,18 +373,20 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *csc) {
       CallStackDoDestroy(interp, obj);
     }
 
-    nsPtr->refCount--;
-    /*fprintf(stderr, "CallStackPop parent %s activationCount %d flags %.4x refCount %d\n", 
-      nsPtr->fullName, nsPtr->activationCount, nsPtr->flags, nsPtr->refCount);*/
-
-    if ((nsPtr->refCount == 0) && (nsPtr->flags & NS_DEAD)) {
-      /* the namspace refcound has reached 0, we have to free
-         it. unfortunately, NamespaceFree() is not exported */
-      fprintf(stderr, "HAVE TO FREE %p\n",nsPtr);
-      /*NamespaceFree(nsPtr);*/
-      ckfree(nsPtr->fullName);
-      ckfree(nsPtr->name);
-      ckfree((char*)nsPtr);
+    if (nsPtr) {
+      nsPtr->refCount--;
+      /*fprintf(stderr, "CallStackPop parent %s activationCount %d flags %.4x refCount %d\n", 
+        nsPtr->fullName, nsPtr->activationCount, nsPtr->flags, nsPtr->refCount);*/
+    
+      if ((nsPtr->refCount == 0) && (nsPtr->flags & NS_DEAD)) {
+        /* the namspace refcound has reached 0, we have to free
+           it. unfortunately, NamespaceFree() is not exported */
+        fprintf(stderr, "HAVE TO FREE %p\n",nsPtr);
+        /*NamespaceFree(nsPtr);*/
+        ckfree(nsPtr->fullName);
+        ckfree(nsPtr->name);
+        ckfree((char*)nsPtr);
+      }
     }
 
     /*fprintf(stderr, "CallStackPop done\n");*/
