@@ -5838,13 +5838,11 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
         objectName(obj), frameType, methodName);*/
       if ((result = MethodDispatch(clientData, interp, objc-shift, objv+shift, cmd, obj, cl,
                                  methodName, frameType)) == TCL_ERROR) {
-#if 0
-        fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, flags %.6x\n",
-                cl, cl ? cl->object.id : 0, cl ? cl->object.flags : 0);
+        /*fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, flags %.6x\n",
+          cl, cl ? cl->object.id : 0, cl ? cl->object.flags : 0);*/
 	result = XOTclErrInProc(interp, cmdName,
 				cl && cl->object.teardown ? cl->object.cmdName : NULL,
 				methodName);
-#endif
       }
       unknown = rst->unknown;
     }
