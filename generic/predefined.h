@@ -232,7 +232,7 @@ static char cmd[] =
 "lappend methods $m}\n"
 "error \"Method '$method' unknown for slot [::xotcl::self]; valid are: {[lsort $methods]]}\"}\n"
 "::xotcl::Slot public method destroy {} {\n"
-"if {${.domain} ne \"\"} {\n"
+"if {${.domain} ne \"\" && [::xotcl::is ${.domain} object]} {\n"
 "${.domain} __invalidateobjectparameter}\n"
 "next}\n"
 "::xotcl::Slot method init {args} {\n"

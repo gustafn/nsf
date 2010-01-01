@@ -1742,7 +1742,6 @@ TestX mixinTest -proc run {{n 10}} {
     puts stderr "### heritage: [a0 info precedence]"
 
     a0 parametercmd f6
-    puts stderr OK
 
     ::errorCheck [a0 procsearch f1] "::A instproc f1" procsearch-1
     ::errorCheck [a0 procsearch f2] "::A instforward f2" procsearch-2
@@ -2622,15 +2621,6 @@ TestX copymove -proc run {{n 10}} {
     ::errorCheck "[::x::a::tclProc]--[::x::a::z::a::tclProc]" \
       "tclProc--tclProc"\
       "object hierarchy copy"
-
-#todo REMOVE ME
-    Class DestroyWatch
-    DestroyWatch instproc destroy args {
-      puts stderr "[self] destroy"
-      next
-    }
-    ::xotcl::Class instmixin DestroyWatch
-### until here
 
     Class O
     O x

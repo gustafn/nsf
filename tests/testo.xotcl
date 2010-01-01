@@ -470,7 +470,7 @@ objectvariables proc run {{n 100}} {
     #
     
     if {[$obj set scalar] != $n} then {
-      error "FAILED [self] - scalar"
+      error "FAILED [self] - scalar [$obj set scalar] != $n"
     }
 
     $obj unset scalar
@@ -501,11 +501,11 @@ objectvariables proc run {{n 100}} {
   avar2 proc trace {var ops} {
     my instvar $var
     ::trace variable $var $ops "avar2 traceproc"
-    #::trace variable $var $ops "traceproc"
+    #puts stderr "::trace variable $var $ops avar2 traceproc"
   }
 
   avar2 proc traceproc {maj min op} {
-    set majTmp [namespace tail "$maj"]
+    set majTmp [namespace tail $maj]
     #puts stderr ...TRACE
     global trail; lappend trail [list $majTmp $min $op]
   }
@@ -527,11 +527,9 @@ objectvariables proc run {{n 100}} {
     avar2 set array($i) [avar2 set scalar$i]
     lappend guide [list array $i w]
   }
-
- if {$guide != $trail} then {
+  if {$guide != $trail} then {
     error "FAILED [self] - trace: expected $guide, got $trail"
   }
-
   #
   # destroy must trigger unset traces
   #
@@ -541,7 +539,9 @@ objectvariables proc run {{n 100}} {
   for {set i 0} {$i < $n} {incr i} {
     lappend guide [list scalar$i {} u]
   }
+
   avar2 killSelf
+
   if {[lsort $guide] != [lsort $trail]} then {
     error "FAILED [self] - trace: expected $guide, got $trail"
   }

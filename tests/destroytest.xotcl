@@ -1,12 +1,7 @@
 package require XOTcl
-puts stderr XXXX===1
 
 xotcl::use xotcl1
-puts stderr XXXX===2
-
 package require xotcl::test
-
-puts stderr XXXX===3
 
 proc ? {cmd expected {msg ""}} {
   set count 10
@@ -238,7 +233,6 @@ puts stderr ======[Object isobject test::c1]
 ? {namespace exists ::test::C} 0  "$::case namespace ::test::C still exists after proc"
 ? {namespace exists ::test} 0  "$::case parent ::test namespace still exists after proc"
 ? {namespace exists ::xotcl::classes::test::C} 0  "$::case namespace ::xotcl::classes::test::C still exists after proc"
-puts stderr XXXXX3
 
 #
 # namespace delete: tcl delays delete until the namespace is not
@@ -248,9 +242,7 @@ puts stderr XXXXX3
 set case "delete parent namespace (2)"
 namespace eval ::test {
   ? {namespace exists test::C} 0 "exists test::C"
-  puts stderr AAA
   Class C -superclass O
-  puts stderr BBB
   C instproc destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy block"}
   C instproc foo {} {
     puts stderr "==== $::case [self]"
@@ -262,7 +254,7 @@ namespace eval ::test {
     # here. Is there a bug with nsPtr->activationCount
     #
     #? "[self] set x" 1 "$::case can still access [self]"
-    puts stderr "BBB"
+    puts stderr "BBBB"
     puts stderr "???? [self] exists [Object isobject [self]]"
     ? "Object isobject [self]" 0 "$::case object still exists in proc";# WHY?
     puts stderr "???? [self] exists [Object isobject [self]]"
@@ -276,7 +268,6 @@ puts stderr ======[Object isobject test::c1]
 ? {Object isobject test::c1} 0  "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
 ? "set ::ObjectDestroy" 0 "$::case, ObjectDestroy called"  ;# toplevel destroy was blocked
-puts stderr =============OK_STILL-after-61
 
 #
 # controlled namespace delete: xotcl has its own namespace cleanup,
@@ -296,15 +287,14 @@ C instproc foo {} {
   puts stderr "AAAA [self] exists [Object isobject [self]]"
   my set x 1
   #? "[self] set x" 1 "$::case can still access [self]"
-  puts stderr "BBB"
+  puts stderr "BBBB"
   ? {Object isobject ::o::c1} 0 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "$::case, firstDestroy called"
   ? "set ::ObjectDestroy" 1 "$::case, ObjectDestroy called"
 }
 C o::c1
-puts stderr =====OK1
 o::c1 foo
-puts stderr =====OK-DONE
+
 puts stderr ======[Object isobject ::o::c1]
 ? {Object isobject ::o::c1} 0 "$::case object o::c1 still exists after proc"
 ? {Object isobject o} 0 "$::case object o still exists after proc"

@@ -2421,22 +2421,26 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
 
   oid = obj->id;
   if (obj->teardown && oid) {
-    Tcl_Obj *savedObjResult = Tcl_GetObjResult(interp);
-    /*int flags = obj->flags;*/
 
-    INCR_REF_COUNT(savedObjResult);
+    /* PrimitiveDestroy() has to be before DeleteCommandFromToken(),
+       otherwise e.g. unset traces on this object cannot be executed
+       from Tcl. We make sure via refcounting that the object structure 
+       is kept until after DeleteCommandFromToken().
+    */
+    obj->refCount ++;
+    PrimitiveDestroy((ClientData) obj);
 
     if (!(obj->flags & XOTCL_CMD_NOT_FOUND)) {
+      Tcl_Obj *savedObjResult = Tcl_GetObjResult(interp);
+      INCR_REF_COUNT(savedObjResult);
+
       /*fprintf(stderr, "    before DeleteCommandFromToken %p %.6x\n", oid, ((Command*)oid)->flags);*/
       Tcl_DeleteCommandFromToken(interp, oid); /* this can change the result */
       /*fprintf(stderr, "    after DeleteCommandFromToken %p %.6x\n", oid, ((Command*)oid)->flags);*/
       Tcl_SetObjResult(interp, savedObjResult);
+      DECR_REF_COUNT(savedObjResult);
     }
-
-    PrimitiveDestroy((ClientData) obj);
-    /*fprintf(stderr, "CallStackDoDestroy after primitiveDestroy of obj %p flags %.6x\n", 
-      obj, flags);*/
-    DECR_REF_COUNT(savedObjResult);
+    XOTclCleanupObject(obj);
   }
 }
 
@@ -5911,7 +5915,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     
   if (filterStackPushed && obj->filterStack)
     FilterStackPop(obj);
-  
+
   XOTclCleanupObject(obj);
   DECR_REF_COUNT(cmdName); /* must be after last dereferencing of obj */
   return result;
@@ -11799,14 +11803,17 @@ static int DoDealloc(Tcl_Interp *interp, XOTclObject *delobj);
 
 static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *obj) {
   PRINTOBJ("XOTclODestroyMethod", obj);
+
+  /*fprintf(stderr,"XOTclODestroyMethod %p %s flags %.6x activation %d cmd %p cmd->flags %.6x\n",
+          obj, ((Command*)obj->id)->flags == 0 ? objectName(obj) : "(deleted)", 
+          obj->flags, obj->activationCount, obj->id, ((Command*)obj->id)->flags); */
+
   /*
    * XOTCL_DESTROY_CALLED might be set already be callDestroyMethod(),
    * the implicit destroy calls. It is necessary to set it here for
    * the explicit destroy calls in the script, which reach the
    * Object->destroy.
    */
-  /*fprintf(stderr,"XOTclODestroyMethod %p flags %.6x activation %d cmd %p cmd->flags %.6x\n",
-    obj, obj->flags, obj->activationCount, obj->id, ((Command*)obj->id)->flags); */
 
   if ((obj->flags & XOTCL_DESTROY_CALLED) == 0) {
     obj->flags |= XOTCL_DESTROY_CALLED;
@@ -11814,7 +11821,8 @@ static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *obj) {
 
   if ((obj->flags & XOTCL_DURING_DELETE) == 0) {
     int result;
-    /*fprintf(stderr, "   call dealloc on %p %s\n", obj, objectName(obj));*/
+    /*fprintf(stderr, "   call dealloc on %p %s\n", obj, 
+      ((Command*)obj->id)->flags == 0 ? objectName(obj) : "(deleted)");*/
 
     result = XOTclCallMethodWithArgs((ClientData)obj->cl, interp,
                                      XOTclGlobalObjects[XOTE_DEALLOC], obj->cmdName,
@@ -12395,21 +12403,21 @@ static int DoDealloc(Tcl_Interp *interp, XOTclObject *delobj) {
 }
 
 
-static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *object) {
-  XOTclObject *delobj;
+static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *obj) {
+  XOTclObject *delobject;
   XOTclRuntimeState *rst = RUNTIME_STATE(interp);
 
   rst->deallocCalled = 1;
 
-  /*fprintf(stderr, "XOTclCDeallocMethod obj %p\n",object);*/
-
-  if (GetObjectFromObj(interp, object, &delobj) != TCL_OK) {
-    fprintf(stderr, "obj %s does not exist\n", ObjStr(object));
+  /*fprintf(stderr, "XOTclCDeallocMethod obj %p %s\n",obj, ObjStr(obj));*/
+  
+  if (GetObjectFromObj(interp, obj, &delobject) != TCL_OK) {
+    fprintf(stderr, "XOTcl object %s does not exist\n", ObjStr(obj));
     return XOTclVarErrMsg(interp, "Can't destroy object ",
-                          ObjStr(object), " that does not exist.", (char *) NULL);
+                          ObjStr(obj), " that does not exist.", (char *) NULL);
   }
   
-  return DoDealloc(interp, delobj);
+  return DoDealloc(interp, delobject);
 }
 
 static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *withChildof,

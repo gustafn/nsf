@@ -460,7 +460,7 @@ createBootstrapAttributeSlots ::xotcl::Slot {
 }
 
 ::xotcl::Slot public method destroy {} {
-  if {${.domain} ne ""} {
+  if {${.domain} ne "" && [::xotcl::is ${.domain} object]} {
     ${.domain} __invalidateobjectparameter
   }
   next

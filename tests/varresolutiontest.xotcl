@@ -190,7 +190,7 @@ C method bar {} {return ${.x},${.y}}
 # we do not have to recreate bar, compiled var persists,
 # change must be detected
 C create c1
-puts stderr "after recreate"
+#puts stderr "after recreate"
 ? {catch {c1 bar}} "1" "compiled var y should not exist"
 ? {c1 info vars} "x" 
 c1 destroy
@@ -241,9 +241,7 @@ C method foo {} {
   set .z 100
 }
 ? {c1 info vars} ""
-puts call-foo
 c1 foo
-puts call-foo-done
 ? {c1 info vars} "a z"
 
 
@@ -312,7 +310,6 @@ namespace eval ::c {}
 ? {::xotcl::Object isobject ::c} 1
 ? {::c info hasnamespace} 0
 
-puts [::c Set w 2]
 ? {::c Set w 2; expr {[::c Set w] == $::w}} 0
 ? {::c Unset w; info exists ::w} 1
 ? {::c Set tmpArray(key) value2; expr {[::c Set tmpArray(key)] == $::tmpArray(key)}} 0

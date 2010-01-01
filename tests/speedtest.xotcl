@@ -54,10 +54,16 @@ C instproc existsViaMyInstvar {} {
   info exists v
 }
 C instproc existsViaExistsMethod {}  { 
-  my exists v
+  [self] exists v
 }
 C instproc existsViaMyExistsMethod {}  { 
   my exists v
+}
+C instproc existsViaDotExistsMethod {}  { 
+  .exists v
+}
+C instproc existsViaResolver {}  { 
+  info exists .v
 }
 C instproc notExistsViaInstvar {} {
   my instvar xxx
@@ -200,6 +206,8 @@ Test new -cmd {c existsViaInstvar}
 Test new -cmd {c existsViaMyInstvar}
 Test new -cmd {c existsViaExistsMethod}
 Test new -cmd {c existsViaMyExistsMethod}
+Test new -cmd {c existsViaDotExistsMethod}
+Test new -cmd {c existsViaResolver}
 Test new -cmd {c exists v}
 Test new -cmd {c notExistsViaInstvar}  -expected 0
 Test new -cmd {c notExistsViaExistsMethod} -expected 0
