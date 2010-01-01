@@ -11336,7 +11336,7 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
              className(cl), objectName(nobj)); */
           nclopt = XOTclRequireClassOpt((XOTclClass*) nobj);
           CmdListAdd(&nclopt->isClassMixinOf, cl->object.id, NULL, /*noDuplicates*/ 1);
-        } /* else fprintf(stderr, "Problem registering %s as a instmixinof of %s\n",
+        } /* else fprintf(stderr, "Problem registering %s as a class-mixin of %s\n",
              ObjStr(ov[i]), className(cl)); */
       }
       break;
@@ -12957,7 +12957,7 @@ static int XOTclClassInfoMixinguardMethod(Tcl_Interp *interp, XOTclClass * class
   return class->opt ? GuardList(interp, class->opt->instmixins, mixin) : TCL_OK;
 }
 
-static int XOTclClassInfoInstmixinofMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure,
+static int XOTclClassInfoClassMixinOfMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure,
 				char *patternString, XOTclObject *patternObj) {
   XOTclClassOpt *opt = class->opt;
   int rc;
@@ -12980,7 +12980,7 @@ static int XOTclClassInfoInstmixinofMethod(Tcl_Interp *interp, XOTclClass * clas
   return TCL_OK;
 }
 
-static int XOTclClassInfoMixinofMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure,
+static int XOTclClassInfoObjectMixinOfMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure,
                             char *patternString, XOTclObject *patternObj) {
   XOTclClassOpt *opt = class->opt;
   int rc = 0;

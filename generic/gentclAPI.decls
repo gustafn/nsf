@@ -389,12 +389,12 @@ infoClassMethod mixinguard XOTclClassInfoMixinguardMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "mixin" -required 1}
 }
-infoClassMethod instmixinof XOTclClassInfoInstmixinofMethod {
+infoClassMethod class-mixin-of  XOTclClassInfoClassMixinOfMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
-infoClassMethod mixinof XOTclClassInfoMixinofMethod {
+infoClassMethod object-mixin-of  XOTclClassInfoObjectMixinOfMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
