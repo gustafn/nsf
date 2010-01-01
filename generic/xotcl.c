@@ -2418,8 +2418,9 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
   /*fprintf(stderr, "CallStackDoDestroy %p flags %.6x activation %d cmd %p\n", 
     obj, obj->flags, obj->activationCount, obj->id);*/
   obj->flags |= XOTCL_DURING_DELETE;
-
   oid = obj->id;
+  /* oid might be freed already, we can't even use (((Command*)oid)->flags & CMD_IS_DELETED) */
+
   if (obj->teardown && oid) {
 
     /* PrimitiveDestroy() has to be before DeleteCommandFromToken(),
