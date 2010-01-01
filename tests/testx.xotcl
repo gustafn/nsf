@@ -1737,10 +1737,6 @@ TestX mixinTest -proc run {{n 10}} {
     a0 proc f3 {} {puts hu}
     a0 forward f4 puts hu
 
-    puts stderr "### [Object self] info commands parametercmd => [Object info commands parametercmd]"
-    puts stderr a0->[a0 info class]-[A info class]-[::xotcl::Class info class]-[a0 info methods *parameter*]
-    puts stderr "### heritage: [a0 info precedence]"
-
     a0 parametercmd f6
 
     ::errorCheck [a0 procsearch f1] "::A instproc f1" procsearch-1

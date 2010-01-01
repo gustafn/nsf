@@ -665,7 +665,6 @@ typedef struct XOTclRuntimeState {
   int cacheInterface;
   int exitHandlerDestroyRound;
   int returnCode;
-  int deallocCalled;
   long newCounter;
   XOTclStringIncrStruct iss;
   Proc fakeProc;

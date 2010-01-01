@@ -363,8 +363,6 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *csc) {
             obj, objectName(obj), obj->activationCount, obj->flags, csc->cl->nsPtr, 
             csc->cmdPtr, ((Command *)csc->cmdPtr)->nsPtr); */
 
-    /*fprintf(stderr, "dealloc called %d\n",rst->deallocCalled);*/
-
     /*fprintf(stderr, "CallStackPop check ac %d flags %.6x\n",
       obj->activationCount, obj->flags & XOTCL_DESTROY_CALLED);*/
 

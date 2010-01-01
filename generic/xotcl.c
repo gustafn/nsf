@@ -217,13 +217,13 @@ static void parseContextExtendObjv(parseContext *pcPtr, int from, int elts, Tcl_
   if (requiredSize > PARSE_CONTEXT_PREALLOC) {
     if (pcPtr->objv == &pcPtr->objv_static[1]) {
       /* realloc from preallocated memory */
-      fprintf(stderr, "alloc %d\n", requiredSize);
       pcPtr->full_objv  = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*) * (requiredSize+1));
       memcpy(pcPtr->full_objv, &pcPtr->objv_static[0], sizeof(Tcl_Obj*) * PARSE_CONTEXT_PREALLOC);
+      /*fprintf(stderr, "alloc %d\n", requiredSize);*/
     } else {
       /* realloc from mallocated memory */
       pcPtr->full_objv = (Tcl_Obj **)ckrealloc((char *)pcPtr->full_objv, sizeof(Tcl_Obj*) * (requiredSize));
-      fprintf(stderr, "realloc %d\n", requiredSize);
+      /*fprintf(stderr, "realloc %d\n", requiredSize);*/
     }
     pcPtr->objv = &pcPtr->full_objv[1];
   }
@@ -5499,7 +5499,6 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
         XOTclCallStackContent *cscPtr) {
   CheckOptions co;
   int result;
-  XOTclRuntimeState *rst = RUNTIME_STATE(interp);
 #if defined(TCL85STACK)
   XOTcl_FrameDecls;
 #endif
@@ -5539,9 +5538,8 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   printCall(interp, "CmdMethodDispatch cmd", objc, objv);
   fprintf(stderr, "\tcmd=%s\n", Tcl_GetCommandName(interp, cmdPtr));
 #endif
-  rst->deallocCalled = 0;
-  /*fprintf(stderr, "CmdDispatch obj %p %p %s\n", obj, methodName, methodName);*/
 
+  /*fprintf(stderr, "CmdDispatch obj %p %p %s\n", obj, methodName, methodName);*/
 #if !defined(NRE)
   result = (*Tcl_Command_objProc(cmdPtr))(cp, interp, objc, objv);
 #else
@@ -5557,12 +5555,9 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   }
 #endif
 
-  /*fprintf(stderr, "CmdDispatch obj %p %p  deallocCalled %d\n",
-    obj, methodName, rst->deallocCalled);*/
-
-  /* The order of the if-condition below is important, since obj might be already
-     freed in case the call was a "dealloc" */
-  if (!rst->deallocCalled && obj->opt) {
+  /* Reference counting in the calling ObjectDispatch() makes sure
+     that obj->opt is still accessible even after "dealloc" */
+  if (obj->opt) {
     co = obj->opt->checkoptions;
     if ((co & CHECK_INVAR) &&
         ((result = AssertionCheckInvars(interp, obj, methodName, co)) == TCL_ERROR)) {
@@ -12405,9 +12400,6 @@ static int DoDealloc(Tcl_Interp *interp, XOTclObject *delobj) {
 
 static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *obj) {
   XOTclObject *delobject;
-  XOTclRuntimeState *rst = RUNTIME_STATE(interp);
-
-  rst->deallocCalled = 1;
 
   /*fprintf(stderr, "XOTclCDeallocMethod obj %p %s\n",obj, ObjStr(obj));*/
   
