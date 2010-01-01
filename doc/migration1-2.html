@@ -1,0 +1,199 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+<title>Migration Guide from XOTcl 1 to XOTcl 2</title>
+<style>
+body	{
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+    	font-weight: normal;
+	background-color : white;
+	color: black;
+}
+code em {
+    	/*font-family: cursive;*/
+	color: #888888;
+}
+code tt {
+    	font-family: helvetica;
+    	font-weight: 900;
+}
+code i {
+    	font-style: italic;
+	color: green;
+}
+tt em {
+font-family: cursive;
+	color: #888888;
+}
+th {color: #888888;}
+td hr {color: #FFFFFF; margin: 10 10 10 10;}
+
+
+/*table {font-size: 80%;}*/
+table {width: 700;}
+</style>
+</head>
+
+<body>
+<h1>Introduction</h1>
+
+... general text, maybe partly from slides/paper ....
+
+<h1>Supporting XOTcl 1 in XOTcl 2</h1>
+
+<p>
+... multiple object systems ....
+<p>
+<code>::xotcl::use xotcl1</code>
+<p>
+<code>::xotcl::use xotcl2</code>
+<p>
+describe, what <code>::xotcl::use</code> does
+
+<h1>XOTcl 1 Idioms in XOTcl 2</h1>
+
+<h1>Defining Objects and Classes</h1>
+<table border=1>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code>Class <i>ClassName</i></code></td>
+    <td><code>Class create <i>ClassName</i></code></td>
+  </tr>
+  <tr>
+    <td><code>Object <i>ObjectName</i></code></td>
+    <td><code>Object create <i>ObjectName</i></code></td>
+  </tr>
+  <tr>
+    <td><code>::xotcl::Class <i>ClassName</i></code></td>
+    <td><code>::xotcl2::Class create <i>ClassName</i></code></td>
+  </tr>
+  <tr>
+    <td><code>::xotcl::Object <i>ObjectName</i></code></td>
+    <td><code>::xotcl2::Object create <i>ObjectName</i></code></td>
+  </tr>
+</table>
+
+<h1>Defining Methods</h1>
+<table border=1>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code>Class <i>C</i><br>
+      <i>C</i> instproc <i>foo args</i> {...}<br>
+      <i>C</i> proc <i>bar args</i> {...}<br>
+      </code></td>
+    <td><code>Class create <i>C</i> {<br>
+      &nbsp;&nbsp;.method <i>foo args</i> {...}<br>
+      &nbsp;&nbsp;.object method <i>bar args</i> {...}<br>
+      }<br></code><hr>
+      <code>Class create <i>C</i><br>
+      <i>C</i> method <i>foo args</i> {...}<br>
+      <i>C</i> object method <i>bar args</i> {...}<br>
+     </code></td>
+  </tr>
+    <tr>
+    <td><code>Object <i>o</i><br>
+      <i>o</i> set <i>x 1</i><br>
+      <i>o</i> proc <i>foo args</i> {...}<br>
+      </code></td>
+    <td><code>Object create <i>o</i> {<br>
+      &nbsp;&nbsp;set .<i>x 1</i><br>
+      &nbsp;&nbsp;.method <i>foo args</i> {...}<br>
+     }<br></code><hr>
+      <code>Object create <i>o</i><br>
+      <i># recommendation missing: alternatives:</i><br>
+      <i># &nbsp;&nbsp; o eval {set .x 1}</i><br>
+      <i># &nbsp;&nbsp; ::xotcl::setinstvar o x 1</i><br>
+      <i>o</i> method <i>foo args</i> {...}<br>
+     </code></td>
+  </tr>
+</table>
+
+
+<h1>Invoking Methods</h1>
+<table border=1>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code>Class <i>C</i><br>
+      <i>C</i> instproc <i>foo args</i> {...}<br>
+      <i>C</i> instproc <i>bar args</i> {<br>
+      &nbsp;&nbsp;my <i>foo 1 2 3</i> ;# invoke own method<br>
+      &nbsp;&nbsp;<i>o baz</i> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;# invoke others method<br>
+      }<br>
+      Object <i>o</i><br>
+      <i>o</i> proc <i>baz</i> {} {...}<br>
+     </code></td>
+     <td><code>Class create <i>C</i> {<br>
+      &nbsp;&nbsp;.method <i>foo args</i> {...}<br>
+      &nbsp;&nbsp;.method <i>bar args</i> {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp; .<i>foo 1 2 3</i>  ;# invoke own method<br>
+      &nbsp;&nbsp;&nbsp;&nbsp; <i>o baz</i> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;# invoke others method<br>
+      &nbsp;&nbsp;}<br>
+      }</br>
+      Object create <i>o</i> {<br>
+      &nbsp;&nbsp;.method <i>baz</i> {} {...}<br>
+      }</br>
+      </code></td>
+    </tr>
+</table>
+
+
+<h1>Accessing Instance Variables from Method Bodies</h1>
+<table border=1>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code>my set <i>varname value</i></code></td>
+    <td><code>set .<i>varname value</i></code></td>
+  </tr>
+    <tr>
+    <td><code>set <i>newVar</i> [my set <i>otherVar</i>]</code></td>
+    <td><code>set <i>newVar</i> [set <i>.otherVar</i>]</code><br><hr>
+      <code>set <i>newVar</i> ${.otherVar}</i></code><br>
+    </td>
+  </tr>
+  <tr>
+    <td><code>my instvar <i>newVar</i><br>
+      set <i>newVar value</i> </code>
+    </td>
+    <td><code>set <i>.newVar value</i></td>
+ </tr>
+  <tr>
+    <td><code>my exists <i>varname</i></code></td>
+    <td><code>info .<i>varname</i></code></td>
+  </tr>
+</table>
+
+<h1>Accessing Instance Variables of other Objects</h1>
+<table border=1>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code><i>someObject</i> set <i>varname value</i></code></td>
+    <td><code>...</code></td>
+  </tr>
+    <tr>
+    <td><code>set <i>newVar</i> [<i>someObject</i> set <i>otherVar</i>]</code></td>
+    <td><code>set <i>newVar</i> [...]</code><br>
+    </td>
+  </tr>
+  <tr>
+    <td><code><i>someObject</i> instvar <i>newVar</i><br>
+      set <i>newVar value</i> </code>
+    </td>
+    <td><code>::xotcl::instvar -object <i>someObject newVar</i><br>
+      set <i>newVar value</i></td>
+ </tr>
+  <tr>
+    <td><code><i>someObject</i> exists <i>varname</i></code></td>
+    <td><code>... do we have to keep exists for this reason? ...</code></td>
+  </tr>
+</table>
+
+
+<h1>Introspection</h1>
+<h1>Predefined Methods</h1>
+<h1>Dispatch, Aliases, etc.</h1>
+<h1>Method Protection</h1>
+
+
+<hr>
+<address></address>
+<!-- hhmts start --> Last modified: Fri Jan  1 18:19:12 CET 2010 <!-- hhmts end -->
+</body> </html>
