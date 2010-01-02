@@ -19,9 +19,9 @@ void tcl85showStack(Tcl_Interp *interp) {
       & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD) ?
       ((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr)) : NULL;
 
-    fprintf(stderr, "... var frame %p flags %.6x cd %.8x lvl %d frameType %d ns %p %s, %p %s %s\n",
+    fprintf(stderr, "... var frame %p flags %.6x cd %p lvl %d frameType %d ns %p %s, %p %s %s\n",
             framePtr, Tcl_CallFrame_isProcCallFrame(framePtr),
-            (int)Tcl_CallFrame_clientData(framePtr),
+            Tcl_CallFrame_clientData(framePtr),
             Tcl_CallFrame_level(framePtr),
             csc ? csc->frameType : -1,
             Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,

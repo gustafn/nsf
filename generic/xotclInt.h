@@ -11,6 +11,11 @@
 #ifndef _xotcl_int_h_
 #define _xotcl_int_h_
 
+#if defined(HAVE_STDINT_H)
+/*# define intptr_t intptr_t*/
+# define HAVE_INTPTR_T 
+#endif
+
 #include <tclInt.h>
 #include "xotcl.h"
 

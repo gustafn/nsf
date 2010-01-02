@@ -19,7 +19,7 @@ AC_INIT([xotcl], [XOTclVersion])
 # This will define a ${TEA_PLATFORM} variable == "unix" or "windows".
 #--------------------------------------------------------------------
 
-TEA_INIT([3.5])
+TEA_INIT([3.7])
 AC_CONFIG_AUX_DIR(config)
 
 #--------------------------------------------------------------------

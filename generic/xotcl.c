@@ -6013,13 +6013,13 @@ static int convertToNothing(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CON
 static int convertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
   int result, bool;
   result = Tcl_GetBooleanFromObj(interp, objPtr, &bool);
-  if (result == TCL_OK) *clientData = (ClientData)bool;
+  if (result == TCL_OK) *clientData = (ClientData)INT2PTR(bool);
   return result;
 }
 static int convertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
   int result, i;
   result = Tcl_GetIntFromObj(interp, objPtr, &i);
-  if (result == TCL_OK) *clientData = (ClientData)i;
+  if (result == TCL_OK) *clientData = (ClientData)INT2PTR(i);
   return result;
 }
 static int convertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
