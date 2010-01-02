@@ -223,7 +223,7 @@ namespace eval ::xotcl::serializer {
 	if {[::xotcl::dispatch $o ::array exists $v]} {
 	  lappend setcmd array set $v [::xotcl::dispatch $o ::array get .$v]
 	} else {
-	  lappend setcmd set $v [::xotcl::instvar $o $v]
+	  lappend setcmd set $v [::xotcl::setinstvar $o $v]
 	}
 	incr nrVars
 	append cmd \t [my pcmd $setcmd] " \\\n"
