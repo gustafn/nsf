@@ -99,8 +99,7 @@ describe, what <code>::xotcl::use</code> does
       &nbsp;&nbsp;.method <i>foo args</i> {...}<br>
      }<br></code><hr>
       <code>Object create <i>o</i><br>
-      <i># recommendation missing: alternatives:</i><br>
-      <i># &nbsp;&nbsp; o eval {set .x 1}</i><br>
+      <i>o</i> eval {set <i>.x 1</i>}</i><br>
       <i># &nbsp;&nbsp; ::xotcl::setinstvar o x 1</i><br>
       <i>o</i> method <i>foo args</i> {...}<br>
      </code></td>
@@ -166,11 +165,11 @@ describe, what <code>::xotcl::use</code> does
   <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
   <tr>
     <td><code><i>someObject</i> set <i>varname value</i></code></td>
-    <td><code>...</code></td>
+    <td><code><i>someObject</i> eval [list set <i>.varname value</i>]</code></td>
   </tr>
     <tr>
     <td><code>set <i>newVar</i> [<i>someObject</i> set <i>otherVar</i>]</code></td>
-    <td><code>set <i>newVar</i> [...]</code><br>
+    <td><code>set <i>newVar</i> [<i>someObject</i> eval {set <i>.otherVar</i>}]</code><br>
     </td>
   </tr>
   <tr>
@@ -182,7 +181,7 @@ describe, what <code>::xotcl::use</code> does
  </tr>
   <tr>
     <td><code><i>someObject</i> exists <i>varname</i></code></td>
-    <td><code>... do we have to keep exists for this reason? ...</code></td>
+    <td><code><i>someObject</i> eval {info exists <i>.varname</i>}</code></td>
   </tr>
 </table>
 
@@ -197,5 +196,5 @@ describe, what <code>::xotcl::use</code> does
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Sat Jan  2 15:04:41 CET 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sat Jan  2 19:05:22 CET 2010 <!-- hhmts end -->
 </body> </html>

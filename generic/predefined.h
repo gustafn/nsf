@@ -8,6 +8,7 @@ static char cmd[] =
 "set cmdName [namespace tail $cmd]\n"
 "if {$cmdName in [list \"instvar\" \"object-method\"]} continue\n"
 "::xotcl::alias Object $cmdName $cmd}\n"
+"::xotcl::alias Object eval -objscope ::eval\n"
 "foreach cmd [info command ::xotcl::cmd::Class::*] {\n"
 "set cmdName [namespace tail $cmd]\n"
 "if {$cmdName in [list \"class-method\"]} continue\n"

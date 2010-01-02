@@ -25,6 +25,7 @@ namespace eval xotcl2 {
   #foreach cmd {array append eval incr lappend set subst unset trace} {
   #  ::xotcl::alias Object $cmd -objscope ::$cmd
   #}
+  ::xotcl::alias Object eval -objscope ::eval
 
   # provide the standard command set for Class
   foreach cmd [info command ::xotcl::cmd::Class::*] {
