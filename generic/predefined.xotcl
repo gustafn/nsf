@@ -722,7 +722,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 
 ::xotcl::ScopedNew method init {} {
   .public method new {-childof args} {
-    ::xotcl::instvar -object [::xotcl::self class] {inobject object} withclass
+    ::xotcl::importvar [::xotcl::self class] {inobject object} withclass
     if {![::xotcl::is $object object]} {
       $withclass create $object
     }
@@ -812,7 +812,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 
       if {[$po exists extra] || [$po exists setter] ||
 	  [$po exists getter] || [$po exists access]} {
-	::xotcl::instvar -object $po extra setter getter access defaultParam
+	::xotcl::importvar $po extra setter getter access defaultParam
 	if {![info exists extra]} {set extra ""}
 	if {![info exists defaultParam]} {set defaultParam ""}
 	if {![info exists setter]} {set setter set}

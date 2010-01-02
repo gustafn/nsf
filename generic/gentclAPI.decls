@@ -51,8 +51,8 @@ xotclCmd interp XOTclInterpObjCmd {
   {-argName "name"}
   {-argName "args" -type allargs}
 }
-xotclCmd instvar XOTclInstvarCmd {
-  {-argName "-object" -nrargs 1 -type object}
+xotclCmd importvar XOTclImportvarCmd {
+  {-argName "object" -type object}
   {-argName "args" -type args}
 }
 xotclCmd is XOTclIsCmd {

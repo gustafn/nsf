@@ -171,7 +171,7 @@ static int XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int o
 static int XOTclDotCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclGetSelfObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -258,7 +258,7 @@ static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObj
 static int XOTclDotCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
 static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption);
-static int XOTclInstvarCmd(Tcl_Interp *interp, XOTclObject *withObject, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_Obj *value);
 static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *methodName, int withPer_object, int methodproperty, Tcl_Obj *value);
@@ -346,7 +346,7 @@ enum {
  XOTclDotCmdIdx,
  XOTclFinalizeObjCmdIdx,
  XOTclGetSelfObjCmdIdx,
- XOTclInstvarCmdIdx,
+ XOTclImportvarCmdIdx,
  XOTclInterpObjCmdIdx,
  XOTclIsCmdIdx,
  XOTclMethodPropertyCmdIdx,
@@ -1863,19 +1863,19 @@ XOTclGetSelfObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 }
 
 static int
-XOTclInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+XOTclImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclInstvarCmdIdx].paramDefs, 
-                     method_definitions[XOTclInstvarCmdIdx].nrParameters, 
+                     method_definitions[XOTclImportvarCmdIdx].paramDefs, 
+                     method_definitions[XOTclImportvarCmdIdx].nrParameters, 
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    XOTclObject *withObject = (XOTclObject *)pc.clientData[0];
+    XOTclObject *object = (XOTclObject *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclInstvarCmd(interp, withObject, objc-pc.lastobjc, objv+pc.lastobjc);
+    return XOTclImportvarCmd(interp, object, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
 }
@@ -2406,8 +2406,8 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::self", XOTclGetSelfObjCmdStub, 1, {
   {"selfoption", 0, 0, convertToSelfoption}}
 },
-{"::xotcl::instvar", XOTclInstvarCmdStub, 2, {
-  {"-object", 0, 1, convertToObject},
+{"::xotcl::importvar", XOTclImportvarCmdStub, 2, {
+  {"object", 0, 0, convertToObject},
   {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::interp", XOTclInterpObjCmdStub, 2, {
