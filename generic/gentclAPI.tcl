@@ -29,7 +29,7 @@ static int convertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONS
   int index, result;
   $opts
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "$argname", 0, &index);
-  *clientData = (ClientData) index + 1;
+  *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
 enum ${name}Idx {[join $enums {, }]};
@@ -172,7 +172,13 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
       }
     }
     if {!$ifSet} {lappend if "$type$varName"}
-    if {$cVar} {lappend c [subst -nocommands {$type$varName = ($type)pc.clientData[$i];}]}
+    if {$cVar} {
+      if {$type eq "int "} {
+        lappend c [subst -nocommands {$type$varName = ($type)PTR2INT(pc.clientData[$i]);}]
+      } else {
+        lappend c [subst -nocommands {$type$varName = ($type)pc.clientData[$i];}]
+      }
+    }
     lappend a $calledArg
     incr i
   }

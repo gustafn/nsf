@@ -3,7 +3,7 @@ static int convertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclP
   int index, result;
   static CONST char *opts[] = {"args", "body", "definition", "name", "parameter", "type", "precondition", "postcondition", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infomethodsubcmd", 0, &index);
-  *clientData = (ClientData) index + 1;
+  *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
 enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdNameIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx};
@@ -12,7 +12,7 @@ static int convertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam C
   int index, result;
   static CONST char *opts[] = {"all", "scripted", "system", "alias", "forwarder", "object", "setter", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-methodtype", 0, &index);
-  *clientData = (ClientData) index + 1;
+  *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
 enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeSystemIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx};
@@ -21,7 +21,7 @@ static int convertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPar
   int index, result;
   static CONST char *opts[] = {"all", "protected", "public", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-callprotection", 0, &index);
-  *clientData = (ClientData) index + 1;
+  *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
 enum CallprotectionIdx {CallprotectionNULL, CallprotectionAllIdx, CallprotectionProtectedIdx, CallprotectionPublicIdx};
@@ -30,7 +30,7 @@ static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPa
   int index, result;
   static CONST char *opts[] = {"filter", "softrecreate", "cacheinterface", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "configureoption", 0, &index);
-  *clientData = (ClientData) index + 1;
+  *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
 enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionCacheinterfaceIdx};
@@ -39,7 +39,7 @@ static int convertToSelfoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam C
   int index, result;
   static CONST char *opts[] = {"proc", "class", "activelevel", "args", "activemixin", "calledproc", "calledmethod", "calledclass", "callingproc", "callingclass", "callinglevel", "callingobject", "filterreg", "isnextcall", "next", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "selfoption", 0, &index);
-  *clientData = (ClientData) index + 1;
+  *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
 enum SelfoptionIdx {SelfoptionNULL, SelfoptionProcIdx, SelfoptionClassIdx, SelfoptionActivelevelIdx, SelfoptionArgsIdx, SelfoptionActivemixinIdx, SelfoptionCalledprocIdx, SelfoptionCalledmethodIdx, SelfoptionCalledclassIdx, SelfoptionCallingprocIdx, SelfoptionCallingclassIdx, SelfoptionCallinglevelIdx, SelfoptionCallingobjectIdx, SelfoptionFilterregIdx, SelfoptionIsnextcallIdx, SelfoptionNextIdx};
@@ -48,7 +48,7 @@ static int convertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam C
   int index, result;
   static CONST char *opts[] = {"type", "object", "class", "metaclass", "mixin", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectkind", 0, &index);
-  *clientData = (ClientData) index + 1;
+  *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
 enum ObjectkindIdx {ObjectkindNULL, ObjectkindTypeIdx, ObjectkindObjectIdx, ObjectkindClassIdx, ObjectkindMetaclassIdx, ObjectkindMixinIdx};
@@ -57,7 +57,7 @@ static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPar
   int index, result;
   static CONST char *opts[] = {"protected", "redefine-protected", "slotobj", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodproperty", 0, &index);
-  *clientData = (ClientData) index + 1;
+  *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
 enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyProtectedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertySlotobjIdx};
@@ -66,7 +66,7 @@ static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam
   int index, result;
   static CONST char *opts[] = {"mixin", "instmixin", "object-mixin", "class-mixin", "filter", "instfilter", "object-filter", "class-filter", "class", "superclass", "rootclass", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "relationtype", 0, &index);
-  *clientData = (ClientData) index + 1;
+  *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
 enum RelationtypeIdx {RelationtypeNULL, RelationtypeMixinIdx, RelationtypeInstmixinIdx, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeFilterIdx, RelationtypeInstfilterIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx};
@@ -488,11 +488,11 @@ XOTclCForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   } else {
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
     Tcl_Obj *withDefault = (Tcl_Obj *)pc.clientData[1];
-    int withEarlybinding = (int )pc.clientData[2];
+    int withEarlybinding = (int )PTR2INT(pc.clientData[2]);
     Tcl_Obj *withMethodprefix = (Tcl_Obj *)pc.clientData[3];
-    int withObjscope = (int )pc.clientData[4];
+    int withObjscope = (int )PTR2INT(pc.clientData[4]);
     Tcl_Obj *withOnerror = (Tcl_Obj *)pc.clientData[5];
-    int withVerbose = (int )pc.clientData[6];
+    int withVerbose = (int )PTR2INT(pc.clientData[6]);
     Tcl_Obj *target = (Tcl_Obj *)pc.clientData[7];
 
     parseContextRelease(&pc);
@@ -550,8 +550,8 @@ XOTclCMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    int withInner_namespace = (int )pc.clientData[0];
-    int withPublic = (int )pc.clientData[1];
+    int withInner_namespace = (int )PTR2INT(pc.clientData[0]);
+    int withPublic = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[2];
     Tcl_Obj *args = (Tcl_Obj *)pc.clientData[3];
     Tcl_Obj *body = (Tcl_Obj *)pc.clientData[4];
@@ -633,7 +633,7 @@ XOTclClassInfoClassMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, 
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
-    int withClosure = (int )pc.clientData[1];
+    int withClosure = (int )PTR2INT(pc.clientData[1]);
     char *patternString = NULL;
     XOTclObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
@@ -667,7 +667,7 @@ XOTclClassInfoFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
-    int withGuards = (int )pc.clientData[1];
+    int withGuards = (int )PTR2INT(pc.clientData[1]);
     char *pattern = (char *)pc.clientData[2];
 
     parseContextRelease(&pc);
@@ -706,7 +706,7 @@ XOTclClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
-    int withDefinition = (int )pc.clientData[1];
+    int withDefinition = (int )PTR2INT(pc.clientData[1]);
     char *name = (char *)pc.clientData[2];
 
     parseContextRelease(&pc);
@@ -745,7 +745,7 @@ XOTclClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
-    int withClosure = (int )pc.clientData[1];
+    int withClosure = (int )PTR2INT(pc.clientData[1]);
     char *patternString = NULL;
     XOTclObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
@@ -797,7 +797,7 @@ XOTclClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
-    int infomethodsubcmd = (int )pc.clientData[1];
+    int infomethodsubcmd = (int )PTR2INT(pc.clientData[1]);
     char *name = (char *)pc.clientData[2];
 
     parseContextRelease(&pc);
@@ -817,10 +817,10 @@ XOTclClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     return TCL_ERROR;
   } else {
     XOTclClass *object = (XOTclClass *)pc.clientData[0];
-    int withMethodtype = (int )pc.clientData[1];
-    int withCallprotection = (int )pc.clientData[2];
-    int withNomixins = (int )pc.clientData[3];
-    int withIncontext = (int )pc.clientData[4];
+    int withMethodtype = (int )PTR2INT(pc.clientData[1]);
+    int withCallprotection = (int )PTR2INT(pc.clientData[2]);
+    int withNomixins = (int )PTR2INT(pc.clientData[3]);
+    int withIncontext = (int )PTR2INT(pc.clientData[4]);
     char *pattern = (char *)pc.clientData[5];
 
     parseContextRelease(&pc);
@@ -840,8 +840,8 @@ XOTclClassInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
-    int withClosure = (int )pc.clientData[1];
-    int withGuards = (int )pc.clientData[2];
+    int withClosure = (int )PTR2INT(pc.clientData[1]);
+    int withGuards = (int )PTR2INT(pc.clientData[2]);
     char *patternString = NULL;
     XOTclObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
@@ -894,7 +894,7 @@ XOTclClassInfoObjectMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp,
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
-    int withClosure = (int )pc.clientData[1];
+    int withClosure = (int )PTR2INT(pc.clientData[1]);
     char *patternString = NULL;
     XOTclObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
@@ -964,7 +964,7 @@ XOTclClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
-    int withClosure = (int )pc.clientData[1];
+    int withClosure = (int )PTR2INT(pc.clientData[1]);
     char *patternString = NULL;
     XOTclObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
@@ -998,7 +998,7 @@ XOTclClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, in
     return TCL_ERROR;
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
-    int withClosure = (int )pc.clientData[1];
+    int withClosure = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
 
     parseContextRelease(&pc);
@@ -1018,11 +1018,11 @@ XOTclObjInfoCallableMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withWhich = (int )pc.clientData[1];
-    int withMethodtype = (int )pc.clientData[2];
-    int withCallprotection = (int )pc.clientData[3];
-    int withNomixins = (int )pc.clientData[4];
-    int withIncontext = (int )pc.clientData[5];
+    int withWhich = (int )PTR2INT(pc.clientData[1]);
+    int withMethodtype = (int )PTR2INT(pc.clientData[2]);
+    int withCallprotection = (int )PTR2INT(pc.clientData[3]);
+    int withNomixins = (int )PTR2INT(pc.clientData[4]);
+    int withIncontext = (int )PTR2INT(pc.clientData[5]);
     char *pattern = (char *)pc.clientData[6];
 
     parseContextRelease(&pc);
@@ -1097,8 +1097,8 @@ XOTclObjInfoFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withOrder = (int )pc.clientData[1];
-    int withGuards = (int )pc.clientData[2];
+    int withOrder = (int )PTR2INT(pc.clientData[1]);
+    int withGuards = (int )PTR2INT(pc.clientData[2]);
     char *pattern = (char *)pc.clientData[3];
 
     parseContextRelease(&pc);
@@ -1137,7 +1137,7 @@ XOTclObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withDefinition = (int )pc.clientData[1];
+    int withDefinition = (int )PTR2INT(pc.clientData[1]);
     char *name = (char *)pc.clientData[2];
 
     parseContextRelease(&pc);
@@ -1193,7 +1193,7 @@ XOTclObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int infomethodsubcmd = (int )pc.clientData[1];
+    int infomethodsubcmd = (int )PTR2INT(pc.clientData[1]);
     char *name = (char *)pc.clientData[2];
 
     parseContextRelease(&pc);
@@ -1213,10 +1213,10 @@ XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withMethodtype = (int )pc.clientData[1];
-    int withCallprotection = (int )pc.clientData[2];
-    int withNomixins = (int )pc.clientData[3];
-    int withIncontext = (int )pc.clientData[4];
+    int withMethodtype = (int )PTR2INT(pc.clientData[1]);
+    int withCallprotection = (int )PTR2INT(pc.clientData[2]);
+    int withNomixins = (int )PTR2INT(pc.clientData[3]);
+    int withIncontext = (int )PTR2INT(pc.clientData[4]);
     char *pattern = (char *)pc.clientData[5];
 
     parseContextRelease(&pc);
@@ -1236,8 +1236,8 @@ XOTclObjInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withGuards = (int )pc.clientData[1];
-    int withOrder = (int )pc.clientData[2];
+    int withGuards = (int )PTR2INT(pc.clientData[1]);
+    int withOrder = (int )PTR2INT(pc.clientData[2]);
     char *patternString = NULL;
     XOTclObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
@@ -1308,7 +1308,7 @@ XOTclObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withIntrinsic = (int )pc.clientData[1];
+    int withIntrinsic = (int )PTR2INT(pc.clientData[1]);
     char *pattern = (char *)pc.clientData[2];
 
     parseContextRelease(&pc);
@@ -1366,8 +1366,8 @@ XOTclOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    int withInstance = (int )pc.clientData[0];
-    int withReset = (int )pc.clientData[1];
+    int withInstance = (int )PTR2INT(pc.clientData[0]);
+    int withReset = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[2];
 
     parseContextRelease(&pc);
@@ -1514,11 +1514,11 @@ XOTclOForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
   } else {
     Tcl_Obj *method = (Tcl_Obj *)pc.clientData[0];
     Tcl_Obj *withDefault = (Tcl_Obj *)pc.clientData[1];
-    int withEarlybinding = (int )pc.clientData[2];
+    int withEarlybinding = (int )PTR2INT(pc.clientData[2]);
     Tcl_Obj *withMethodprefix = (Tcl_Obj *)pc.clientData[3];
-    int withObjscope = (int )pc.clientData[4];
+    int withObjscope = (int )PTR2INT(pc.clientData[4]);
     Tcl_Obj *withOnerror = (Tcl_Obj *)pc.clientData[5];
-    int withVerbose = (int )pc.clientData[6];
+    int withVerbose = (int )PTR2INT(pc.clientData[6]);
     Tcl_Obj *target = (Tcl_Obj *)pc.clientData[7];
 
     parseContextRelease(&pc);
@@ -1567,8 +1567,8 @@ XOTclOMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    int withInner_namespace = (int )pc.clientData[0];
-    int withPublic = (int )pc.clientData[1];
+    int withInner_namespace = (int )PTR2INT(pc.clientData[0]);
+    int withPublic = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[2];
     Tcl_Obj *args = (Tcl_Obj *)pc.clientData[3];
     Tcl_Obj *body = (Tcl_Obj *)pc.clientData[4];
@@ -1729,8 +1729,8 @@ XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
     char *methodName = (char *)pc.clientData[1];
-    int withObjscope = (int )pc.clientData[2];
-    int withPer_object = (int )pc.clientData[3];
+    int withObjscope = (int )PTR2INT(pc.clientData[2]);
+    int withPer_object = (int )PTR2INT(pc.clientData[3]);
     Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[4];
 
     parseContextRelease(&pc);
@@ -1749,7 +1749,7 @@ XOTclConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    int configureoption = (int )pc.clientData[0];
+    int configureoption = (int )PTR2INT(pc.clientData[0]);
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[1];
 
     parseContextRelease(&pc);
@@ -1808,7 +1808,7 @@ XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withObjscope = (int )pc.clientData[1];
+    int withObjscope = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
 
     parseContextRelease(&pc);
@@ -1854,7 +1854,7 @@ XOTclGetSelfObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    int selfoption = (int )pc.clientData[0];
+    int selfoption = (int )PTR2INT(pc.clientData[0]);
 
     parseContextRelease(&pc);
     return XOTclGetSelfObjCmd(interp, selfoption);
@@ -1909,7 +1909,7 @@ XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
     return TCL_ERROR;
   } else {
     Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
-    int objectkind = (int )pc.clientData[1];
+    int objectkind = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
     parseContextRelease(&pc);
@@ -1930,8 +1930,8 @@ XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, 
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
     Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[1];
-    int withPer_object = (int )pc.clientData[2];
-    int methodproperty = (int )pc.clientData[3];
+    int withPer_object = (int )PTR2INT(pc.clientData[2]);
+    int methodproperty = (int )PTR2INT(pc.clientData[3]);
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
 
     parseContextRelease(&pc);
@@ -1950,7 +1950,7 @@ XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    int withLocal = (int )pc.clientData[0];
+    int withLocal = (int )PTR2INT(pc.clientData[0]);
     Tcl_Obj *method = (Tcl_Obj *)pc.clientData[1];
 
     parseContextRelease(&pc);
@@ -2026,7 +2026,7 @@ XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int relationtype = (int )pc.clientData[1];
+    int relationtype = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
     parseContextRelease(&pc);
@@ -2067,7 +2067,7 @@ XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
     char *methodName = (char *)pc.clientData[1];
-    int withPer_object = (int )pc.clientData[2];
+    int withPer_object = (int )PTR2INT(pc.clientData[2]);
 
     parseContextRelease(&pc);
     return XOTclSetterCmd(interp, object, methodName, withPer_object);
