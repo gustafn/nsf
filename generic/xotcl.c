@@ -2745,9 +2745,9 @@ AssertionListCheckOption(Tcl_Interp *interp, XOTclObject *obj) {
   if (!opt)
     return TCL_OK;
   if (opt->checkoptions & CHECK_OBJINVAR)
-    Tcl_AppendElement(interp, "invar");
+    Tcl_AppendElement(interp, "object-invar");
   if (opt->checkoptions & CHECK_CLINVAR)
-    Tcl_AppendElement(interp, "instinvar");
+    Tcl_AppendElement(interp, "class-invar");
   if (opt->checkoptions & CHECK_PRE)
     Tcl_AppendElement(interp, "pre");
   if (opt->checkoptions & CHECK_POST)
@@ -2862,15 +2862,18 @@ AssertionCheckList(Tcl_Interp *interp, XOTclObject *obj,
   /* we do not check assertion modifying methods, otherwise
      we can not react in catch on a runtime assertion check failure */
 
-  /* TODO: the following check operations are not generic. these should be
-     removed, most of the is*String() definition are then obsolete and
-     should be deleted from xotclInt.h as well.
+#if 1
+  /* TODO: the following check operations is xotcl1 legacy and is not
+     generic. it should be replaced by another methodproperty.
+     Most of the is*String()
+     definition are then obsolete and should be deleted from
+     xotclInt.h as well.
   */
 
-  if (isCheckString(methodName) || isInfoString(methodName) ||
-      isInvarString(methodName) || isInstinvarString(methodName) ||
-      isProcString(methodName) || isInstprocString(methodName))
+  if (isCheckString(methodName)) {
     return TCL_OK;
+  }
+#endif
 
   INCR_REF_COUNT(savedObjResult);
 
@@ -2997,6 +3000,63 @@ AssertionCheck(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl,
   }
   return result;
 }
+
+static int AssertionSetCheckOptions(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *arg) {
+  XOTclObjectOpt *opt = XOTclRequireObjectOpt(obj);
+  int ocArgs, i;
+  Tcl_Obj **ovArgs;
+  opt->checkoptions = CHECK_NONE;
+
+  if (Tcl_ListObjGetElements(interp, arg, &ocArgs, &ovArgs) == TCL_OK
+      && ocArgs > 0) {
+    for (i = 0; i < ocArgs; i++) {
+      char *option = ObjStr(ovArgs[i]);
+      if (option) {
+        switch (*option) {
+        case 'c':
+          if (strcmp(option, "class-invar") == 0) {
+            opt->checkoptions |= CHECK_CLINVAR;
+          }
+          break;
+        case 'o':
+          if (strcmp(option, "object-invar") == 0) {
+            opt->checkoptions |= CHECK_OBJINVAR;
+          }
+          break;
+        case 'p':
+          if (strcmp(option, "pre") == 0) {
+            opt->checkoptions |= CHECK_PRE;
+          } else if (strcmp(option, "post") == 0) {
+            opt->checkoptions  |= CHECK_POST;
+          }
+          break;
+        case 'a':
+          if (strcmp(option, "all") == 0) {
+            opt->checkoptions |= CHECK_ALL;
+          }
+          break;	
+        }
+      }
+    }
+  }
+  if (opt->checkoptions == CHECK_NONE && ocArgs>0) {
+    return XOTclVarErrMsg(interp, "Unknown check option in command '",
+                          objectName(obj), " check  ", ObjStr(arg),
+                          "', valid: all pre post object-invar class-invar",
+                          (char *) NULL);
+  }
+  return TCL_OK;
+}
+
+static void AssertionSetInvariants(Tcl_Interp *interp, XOTclAssertionStore **assertions, Tcl_Obj *arg) {
+  if (*assertions)
+    TclObjListFreeList((*assertions)->invariants);
+  else
+    *assertions = AssertionCreateStore();
+
+  (*assertions)->invariants = AssertionNewList(interp, arg);
+}
+
 
 
 
@@ -5251,14 +5311,6 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
           );
 # endif
 
-#if 0
-#ifdef DISPATCH_TRACE
-  printExit(interp, "ProcMethodDispatch", objc, objv, result);
-  /* fprintf(stderr, " returnCode %d xotcl rc %d\n",
-     Tcl_Interp_returnCode(interp), result);*/
-#endif
-#endif
-
   opt = obj->opt;
   if (opt && obj->teardown && (opt->checkoptions & CHECK_POST)) {
     /* even, when the passed result != TCL_OK, run assertion to report
@@ -5272,16 +5324,16 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
   }
 
   if (pcPtr) {
-#if defined(TCL_STACK_ALLOC_TRACE)
+# if defined(TCL_STACK_ALLOC_TRACE)
     fprintf(stderr, "---- FinalizeProcMethod calls releasePc, stackFree %p\n", pcPtr);
-#endif
+# endif
     parseContextRelease(pcPtr);
     TclStackFree(interp, pcPtr);
   }
 
-#if defined(TCL_STACK_ALLOC_TRACE)
+# if defined(TCL_STACK_ALLOC_TRACE)
   fprintf(stderr, "---- FinalizeProcMethod calls pop, csc free %p method %s\n", cscPtr, methodName);
-#endif
+# endif
   CallStackPop(interp, cscPtr);
   TclStackFree(interp, cscPtr);
 
@@ -10355,6 +10407,59 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   return result;
 }
 
+/* TODO: MOVE ME */
+/* todo move me xxx */
+/*
+xotclCmd assertion XOTclAssertionCmd {
+  {-argName "object" -type object}
+  {-argName "assertionsubcmd" -required 1 -type "check|object-invar|class-invar"}
+  {-argName "arg" -required 0 -type tclobj}
+}
+
+  Make "::xotcl::assertion" a cmd rather than a method, otherwise we
+  cannot define e.g. a "method check options {...}" to reset the check
+  options in case of a failed option, since assertion checking would
+  be applied on the sketched method already.
+*/
+
+static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int subcmd, Tcl_Obj *arg) {
+  XOTclClass *class;
+
+  switch (subcmd) {
+  case AssertionsubcmdCheckIdx:
+    if (arg) {
+      return AssertionSetCheckOptions(interp, object, arg);
+    } else {
+      return AssertionListCheckOption(interp, object);
+    }
+    break;
+    
+  case AssertionsubcmdObject_invarIdx:
+    if (arg) {
+      XOTclObjectOpt *opt = XOTclRequireObjectOpt(object);
+      AssertionSetInvariants(interp, &opt->assertions, arg);
+    } else {
+      if (object->opt && object->opt->assertions) {
+        Tcl_SetObjResult(interp, AssertionList(interp, object->opt->assertions->invariants));
+      }
+    }
+    break;
+
+  case AssertionsubcmdClass_invarIdx:
+    class = (XOTclClass *)object;
+    if (arg) {
+      XOTclClassOpt *opt = XOTclRequireClassOpt(class);
+      AssertionSetInvariants(interp, &opt->assertions, arg);
+    } else {
+      if (class->opt && class->opt->assertions) {
+        Tcl_SetObjResult(interp, AssertionList(interp, class->opt->assertions->invariants));
+      }
+    }
+  }
+  return TCL_OK;
+}
+
+
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value) {
   int bool;
 
@@ -10435,7 +10540,8 @@ XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class) 
 
 
 static int
-XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
+XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, 
+                 int withObjscope, int withNoassertions,
                  Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int result;
   char *methodName = ObjStr(command);
@@ -10492,7 +10598,7 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
 			    tail, "'", (char *) NULL);
     }
     {XOTcl_FrameDecls;
-
+      
       if (withObjscope) {
         XOTcl_PushFrame(interp, object);
       }
@@ -10501,6 +10607,7 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
        * vector, we can include the cmd name in the objv by using
        * nobjv-1; this way, we avoid a memcpy()
        */
+
       result = MethodDispatch((ClientData)object, interp,
                             nobjc+1, nobjv-1, cmd, object,
                             NULL /*XOTclClass *cl*/, tail,
@@ -10530,6 +10637,7 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
     result = XOTclCallMethodWithArgs((ClientData)object, interp, command, arg,
 				     nobjc, objv, XOTCL_CM_NO_UNKNOWN);
   }
+
   return result;
 }
 
@@ -11541,52 +11649,6 @@ static int XOTclOAutonameMethod(Tcl_Interp *interp, XOTclObject *obj, int withIn
   return TCL_OK;
 }
 
-static int XOTclOCheckMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *flag) {
-  XOTclObjectOpt *opt = XOTclRequireObjectOpt(obj);
-  int ocArgs, i;
-  Tcl_Obj **ovArgs;
-  opt->checkoptions = CHECK_NONE;
-
-  if (Tcl_ListObjGetElements(interp, flag, &ocArgs, &ovArgs) == TCL_OK
-      && ocArgs > 0) {
-    for (i = 0; i < ocArgs; i++) {
-      char *option = ObjStr(ovArgs[i]);
-      if (option) {
-        switch (*option) {
-        case 'i':
-          if (strcmp(option, "instinvar") == 0) {
-            opt->checkoptions |= CHECK_CLINVAR;
-          } else if (strcmp(option, "invar") == 0) {
-            opt->checkoptions |= CHECK_OBJINVAR;
-          }
-          break;
-        case 'p':
-          if (strcmp(option, "pre") == 0) {
-            opt->checkoptions |= CHECK_PRE;
-          } else if (strcmp(option, "post") == 0) {
-            opt->checkoptions  |= CHECK_POST;
-          }
-          break;
-        case 'a':
-          if (strcmp(option, "all") == 0) {
-            opt->checkoptions |= CHECK_ALL;
-          }
-          break;	
-        }
-      }
-    }
-  }
-  if (opt->checkoptions == CHECK_NONE && ocArgs>0) {
-    return XOTclVarErrMsg(interp, "Unknown check option in command '",
-                          objectName(obj), " check  ", ObjStr(flag),
-                          "', valid: all pre post invar instinvar",
-			  (char *) NULL);
-  }
-
-  Tcl_ResetResult(interp);
-  return TCL_OK;
-}
-
 static int XOTclOCleanupMethod(Tcl_Interp *interp, XOTclObject *obj) {
   XOTclClass  *cl  = XOTclObjectToClass(obj);
   char *fn;
@@ -11944,18 +12006,6 @@ static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, T
   result = GetInstvarsIntoCurrentScope(interp, obj, objc, objv);
   CallStackRestoreSavedFrames(interp, &ctx);
   return result;
-}
-
-static int XOTclOInvariantsMethod(Tcl_Interp *interp, XOTclObject *obj, Tcl_Obj *invariantlist) {
-  XOTclObjectOpt *opt = XOTclRequireObjectOpt(obj);
-
-  if (opt->assertions)
-    TclObjListFreeList(opt->assertions->invariants);
-  else
-    opt->assertions = AssertionCreateStore();
-
-  opt->assertions->invariants = AssertionNewList(interp, invariantlist);
-  return TCL_OK;
 }
 
 static int XOTclOMixinGuardMethod(Tcl_Interp *interp, XOTclObject *obj, char *mixin, Tcl_Obj *guard) {
@@ -12477,18 +12527,6 @@ static int XOTclCFilterGuardMethod(Tcl_Interp *interp, XOTclClass *cl,
 			filter, " on ", className(cl),	(char *) NULL);
 }
 
-static int XOTclCInvariantsMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *invariantlist) {
-  XOTclClassOpt *opt = XOTclRequireClassOpt(cl);
-
-  if (opt->assertions)
-    TclObjListFreeList(opt->assertions->invariants);
-  else
-    opt->assertions = AssertionCreateStore();
-
-  opt->assertions->invariants = AssertionNewList(interp, invariantlist);
-  return TCL_OK;
-}
-
 static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *mixin, Tcl_Obj *guard) {
   XOTclClassOpt *opt = cl->opt;
 
@@ -12633,10 +12671,6 @@ static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value
 /***************************
  * Begin Object Info Methods
  ***************************/
-static int XOTclObjInfoCheckMethod(Tcl_Interp *interp, XOTclObject *object) {
-  return AssertionListCheckOption(interp, object);
-}
-
 static int XOTclObjInfoChildrenMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern) {
   return ListChildren(interp, object, pattern, 0);
 }
@@ -12669,13 +12703,6 @@ static int XOTclObjInfoForwardMethod(Tcl_Interp *interp, XOTclObject *object, in
 
 static int XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *object) {
   Tcl_SetBooleanObj(Tcl_GetObjResult(interp), object->nsPtr != NULL);
-  return TCL_OK;
-}
-
-static int XOTclObjInfoInvarMethod(Tcl_Interp *interp, XOTclObject *object) {
-  if (object->opt && object->opt->assertions) {
-    Tcl_SetObjResult(interp, AssertionList(interp, object->opt->assertions->invariants));
-  }
   return TCL_OK;
 }
 
@@ -12915,15 +12942,6 @@ static int XOTclClassInfoFilterguardMethod(Tcl_Interp *interp, XOTclClass * clas
 static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *class,
 				int withDefinition, char *pattern) {
   return ListForward(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, withDefinition);
-}
-
-static int XOTclClassInfoInvarMethod(Tcl_Interp *interp, XOTclClass * class) {
-  XOTclClassOpt *opt = class->opt;
-
-  if (opt && opt->assertions) {
-    Tcl_SetObjResult(interp, AssertionList(interp, opt->assertions->invariants));
-  }
-  return TCL_OK;
 }
 
 static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure, int withGuards,

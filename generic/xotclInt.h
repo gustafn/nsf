@@ -137,23 +137,7 @@ typedef struct XOTclMemCounter {
 #define isInitString(m) (\
 	*m   == 'i' && m[1] == 'n' && m[2] == 'i' && m[3] == 't' && \
 	m[4] == '\0')
-#define isInfoString(m) (\
-	*m   == 'i' && m[1] == 'n' && m[2] == 'f' && m[3] == 'o' && \
-	m[4] == '\0')
-#define isInstinvarString(m) (\
-        *m   == 'i' && m[1] == 'n' && m[2] == 's' && m[3] == 't' && \
-	m[4] == 'i' && m[5] == 'n' && m[6] == 'v' && m[7] == 'a' && \
-	m[8] == 'r' && m[9] == '\0')
-#define isInvarString(m) (\
-	*m   == 'i' && m[1] == 'n' && m[2] == 'v' && m[3] == 'a' && \
-	m[4] == 'r' && m[5] == '\0')
-#define isInstprocString(m) (\
-	*m   == 'i' && m[1] == 'n' && m[2] == 's' && m[3] == 't' && \
-	m[4] == 'p' && m[5] == 'r' && m[6] == 'o' && m[7] == 'c' && \
-        m[8] == '\0')
-#define isProcString(m) (\
-	*m   == 'p' && m[1] == 'r' && m[2] == 'o' && m[3] == 'c' && \
-	m[4] == '\0')
+
 
 #if (defined(sun) || defined(__hpux)) && !defined(__GNUC__)
 #  define USE_ALLOCA

@@ -900,19 +900,19 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
           # class object
           set obj $cl
           $cl superclass [$origin info superclass]
-          $cl instinvar  [$origin info instinvar]
-          $cl instfilter [$origin info instfilter -guards]
-          $cl instmixin  [$origin info instmixin]
+          ::xotcl::assertion $cl class-invar [::xotcl::assertion $origin class-invar]
+          ::xotcl::relation $cl class-filter [::xotcl::relation $origin class-filter]
+          ::xotcl::relation $cl class-mixin [::xotcl::relation $origin class-mixin]
           .copyNSVarsAndCmds ::xotcl::classes$origin ::xotcl::classes$dest
         } else {
           # create obj
           set obj [[$origin info class] create $dest -noinit]
         }
         # copy object -> may be a class obj
-        $obj invar  [$origin info invar]
-        $obj check  [$origin info check]
-        $obj mixin  [$origin info mixin]
-        $obj filter [$origin info filter -guards]
+        ::xotcl::assertion $obj check [::xotcl::assertion $origin check]
+        ::xotcl::assertion $obj object-invar [::xotcl::assertion $origin object-invar]
+        ::xotcl::relation $obj object-filter [::xotcl::relation $origin object-filter]
+        ::xotcl::relation $obj object-mixin [::xotcl::relation $origin object-mixin]
         if {[$origin info hasnamespace]} {
           $obj requireNamespace
         }

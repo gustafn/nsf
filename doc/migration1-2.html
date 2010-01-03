@@ -191,10 +191,50 @@ describe, what <code>::xotcl::use</code> does
 <h2>Introspection</h2>
 <h2>Predefined Methods</h2>
 <h2>Dispatch, Aliases, etc.</h2>
+<h2>Assertions</h2>
+<table border=1>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code><i>objectName</i> check <i>checkptions</i></code></td>
+    <td><code>::xotcl::assertion <i>objectName</i> check <i>checkptions</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>objectName</i> info check</code></td>
+    <td><code>::xotcl::assertion <i>objectName</i> check</code></td>
+  </tr>
+  
+  <tr>
+    <td><code><i>objectName</i> invar <i>conditions</i></code></td>
+    <td><code>::xotcl::assertion <i>objectName</i> object-invar <i>conditions</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>objectName</i> info invar</code></td>
+    <td><code>::xotcl::assertion <i>objectName</i> object-invar</code></td>
+  </tr>
+  
+  <tr>
+    <td><code><i>className</i> instinvar <i>conditions</i></code></td>
+    <td><code>::xotcl::assertion <i>className</i> class-invar <i>conditions</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>className</i> info instinvar</code></td>
+    <td><code>::xotcl::assertion <i>className</i> class-invar</code></td>
+  </tr>
+
+    <tr>
+    <td><code><i>className</i> invar <i>conditions</i></code></td>
+    <td><code>::xotcl::assertion <i>className</i> object-invar <i>conditions</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>className</i> info invar</code></td>
+    <td><code>::xotcl::assertion <i>className</i> object-invar</code></td>
+  </tr
+  
+</table>
 <h2>Method Protection</h2>
 
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Sat Jan  2 19:05:22 CET 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sun Jan  3 18:26:04 CET 2010 <!-- hhmts end -->
 </body> </html>

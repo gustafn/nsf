@@ -23,6 +23,11 @@ xotclCmd alias XOTclAliasCmd {
   {-argName "-per-object"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
+xotclCmd assertion XOTclAssertionCmd {
+  {-argName "object" -type object}
+  {-argName "assertionsubcmd" -required 1 -type "check|object-invar|class-invar"}
+  {-argName "arg" -required 0 -type tclobj}
+}
 xotclCmd configure XOTclConfigureCmd {
   {-argName "configureoption" -required 1 -type "filter|softrecreate|cacheinterface"}
   {-argName "value" -required 0 -type tclobj}
@@ -39,6 +44,7 @@ xotclCmd deprecated XOTclDeprecatedCmd {
 xotclCmd dispatch XOTclDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-objscope"}
+  {-argName "-noassertions"}
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
 }
@@ -109,9 +115,6 @@ objectMethod autoname XOTclOAutonameMethod {
   {-argName "-reset"}
   {-argName "name" -required 1 -type tclobj}
 }
-objectMethod check XOTclOCheckMethod {
-  {-argName "flag" -required 1 -type tclobj}
-}
 objectMethod cleanup XOTclOCleanupMethod {
 }
 objectMethod configure XOTclOConfigureMethod {
@@ -142,9 +145,6 @@ objectMethod forward XOTclOForwardMethod {
 }
 objectMethod instvar XOTclOInstVarMethod {
   {-argName "args" -type allargs}
-}
-objectMethod invar XOTclOInvariantsMethod {
-  {-argName "invariantlist" -required 1 -type tclobj}
 }
 objectMethod object-method XOTclOMethodMethod {
   {-argName "-inner-namespace"}
@@ -202,9 +202,6 @@ classMethod filterguard XOTclCFilterGuardMethod {
   {-argName "filter" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
-classMethod instinvar XOTclCInvariantsMethod {
-  {-argName "invariantlist" -required 1 -type tclobj}
-}
 classMethod mixinguard XOTclCMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
@@ -250,9 +247,6 @@ checkMethod boolean XOTclCheckBooleanArgs {
 #
 # info object methods
 #
-infoObjectMethod check XOTclObjInfoCheckMethod {
-  {-argName "object" -required 1 -type object}
-}
 infoObjectMethod children XOTclObjInfoChildrenMethod {
   {-argName "object" -required 1 -type object}
   {-argName "pattern" -required 0}
@@ -276,9 +270,6 @@ infoObjectMethod forward XOTclObjInfoForwardMethod {
   {-argName "name"}
 }
 infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
-  {-argName "object" -required 1 -type object}
-}
-infoObjectMethod invar XOTclObjInfoInvarMethod {
   {-argName "object" -required 1 -type object}
 }
 
@@ -375,9 +366,6 @@ infoClassMethod forward XOTclClassInfoForwardMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-definition"}
   {-argName "name"}
-}
-infoClassMethod invar XOTclClassInfoInvarMethod {
-  {-argName "class"  -required 1 -type class}
 }
 infoClassMethod mixin XOTclClassInfoMixinMethod {
   {-argName "class"  -required 1 -type class}

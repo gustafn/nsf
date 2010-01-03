@@ -57,7 +57,7 @@ namespace eval ::xotcl {
     #puts stderr "[self] [self proc] $name defined"
   }
 
-  # define - like in xotcl - a minimal implementation of "method"
+  # define - like in XOTcl 1 - a minimal implementation of "method"
   Object instproc method {name arguments body} {
     .proc $name $arguments $body                                  
   }
@@ -299,6 +299,8 @@ namespace eval ::xotcl {
     .proc instparametercmd {o {pattern:optional ""}} {
       ::xotcl::cmd::ClassInfo::methods $o -methodtype setter {*}$pattern
     }
+    # assertion handling
+    .proc instinvar   {o} {::xotcl::assertion $o class-invar}
   }
 
   objectInfo eval {
@@ -329,6 +331,11 @@ namespace eval ::xotcl {
       if {[::info exists pattern]} {lappend cmd $pattern}
       eval $cmd
     }
+    # assertion handling
+    .proc check       {o} {
+      ::xotcl::checkoption_internal_to_xotcl1 [::xotcl::assertion $o check]
+    }
+    .proc invar       {o} {::xotcl::assertion $o object-invar}
   }
 
   foreach cmd [::info command ::xotcl::cmd::ObjectInfo::*] {
@@ -355,8 +362,10 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::classInfo instfilter ::xotcl::cmd::ClassInfo::filter
   ::xotcl::alias ::xotcl::classInfo instfilterguard ::xotcl::cmd::ClassInfo::filterguard
   ::xotcl::alias ::xotcl::classInfo instforward ::xotcl::cmd::ClassInfo::forward
-  ::xotcl::alias ::xotcl::classInfo instinvar ::xotcl::cmd::ClassInfo::invar
   ::xotcl::alias ::xotcl::classInfo mixinof ::xotcl::cmd::ClassInfo::object-mixin-of
+  # assertion handling
+  ::xotcl::alias ::xotcl::classInfo invar objectInfo::invar
+  ::xotcl::alias ::xotcl::classInfo check objectInfo::check
 
   # define info methods from objectInfo on classInfo as well
   ::xotcl::alias classInfo body     objectInfo::body
@@ -390,6 +399,40 @@ namespace eval ::xotcl {
 
   ::xotcl::alias Class mixinguard       ::xotcl::cmd::Object::mixinguard
   ::xotcl::alias Class instmixinguard   ::xotcl::cmd::Class::mixinguard
+
+  # assertion handling
+  proc checkoption_xotcl1_to_internal checkoptions {
+    set options [list]
+    foreach option $checkoptions {
+      if {$option eq "invar"} {
+        lappend options "object-invar"
+      } elseif {$option eq "instinvar"} {
+        lappend options "class-invar"
+      } else {
+        lappend options $option
+      }
+    }
+    return $options
+  }
+  proc checkoption_internal_to_xotcl1 checkoptions {
+    set options [list]
+    foreach option $checkoptions {
+      if {$option eq "object-invar"} {
+        lappend options "invar"
+      } elseif {$option eq "class-invar"} {
+        lappend options "instinvar"
+      } else {
+        lappend options $option
+      }
+    }
+    return $options
+  }
+
+  Object instproc check {checkoptions} {
+    ::xotcl::assertion [self] check [::xotcl::checkoption_xotcl1_to_internal $checkoptions]
+  }
+  Object forward invar     ::xotcl::assertion %self object-invar
+  Class  forward instinvar ::xotcl::assertion %self class-invar
 
   # define forward and instforward in terms of forward
   # we are changing the the semantics from forward -> instforward,
