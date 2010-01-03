@@ -10514,8 +10514,6 @@ static int XOTclForwardCmd(Tcl_Interp *interp,
   forwardCmdClientData *tcd;
   int result;
 
-  fprintf(stderr, "ForwardCmd \n");
-
   result = forwardProcessOptions(interp, method,
                                  withDefault, withEarlybinding, withMethodprefix,
                                  withObjscope, withOnerror, withVerbose,

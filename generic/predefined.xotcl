@@ -6,8 +6,6 @@ namespace eval ::xotcl {
   set bootstrap 1
 }
 
-puts stderr HELLLO-0
-
 #
 # First create the ::xotcl2 object system. 
 #
@@ -137,8 +135,8 @@ namespace eval xotcl2 {
   }
 
   # define forward methods
-  ::xotcl::forward Object forward -verbose ::xotcl::forward %self -per-object
-  ::xotcl::forward Class  forward -verbose ::xotcl::forward %self
+  ::xotcl::forward Object forward ::xotcl::forward %self -per-object
+  ::xotcl::forward Class  forward ::xotcl::forward %self
 
   # The method __unknown is called in cases, where we try to resolve
   # an unkown class. one could define a custom resolver with this name
