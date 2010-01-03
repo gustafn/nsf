@@ -10459,7 +10459,6 @@ static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int subcmd
   return TCL_OK;
 }
 
-
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value) {
   int bool;
 
@@ -10493,6 +10492,32 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
   return TCL_OK;
 }
 
+/*
+xotclCmd method XOTclMethodCmd {
+  {-argName "class" -required 1 -type class}
+  {-argName "-inner-namespace"}
+  {-argName "-per-object"}
+  {-argName "-public"}
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "args" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+  {-argName "-precondition"  -nrargs 1 -type tclobj}
+  {-argName "-postcondition" -nrargs 1 -type tclobj}
+}
+*/
+static int XOTclMethodCmd(Tcl_Interp *interp, XOTclObject *object,
+                               int withInner_namespace, int withPer_object, int withPublic,
+                               Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
+                               Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
+  
+  XOTclClass *cl = (withPer_object || ! XOTclObjectIsClass(object)) ? NULL : (XOTclClass *)object;
+  if (cl == 0) {
+    requireObjNamespace(interp, object);
+  }
+  return MakeMethod(interp, object, cl, name, args, body,
+                    withPrecondition, withPostcondition,
+                    withPublic, withInner_namespace);
+}
 
 int
 XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class) {
@@ -12553,28 +12578,6 @@ static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *mixi
 
   return XOTclVarErrMsg(interp, "Instmixinguard: can't find mixin ",
                         mixin, " on ", className(cl), (char *) NULL);
-}
-
-/* TODO move me at the right place */
-static int XOTclOMethodMethod(Tcl_Interp *interp, XOTclObject *obj,
-                              int withInner_namespace, int withPublic,
-                              Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
-                              Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
-  requireObjNamespace(interp, obj);
-  return MakeMethod(interp, obj, NULL, name, args, body,
-                    withPrecondition, withPostcondition,
-                    withPublic, withInner_namespace);
-}
-
-/* TODO move me at the right place */
-static int XOTclCMethodMethod(Tcl_Interp *interp, XOTclClass *cl,
-                              int withInner_namespace, int withPublic,
-                              Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
-                              Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
-
-  return MakeMethod(interp, &cl->object, cl, name, args, body,
-                      withPrecondition, withPostcondition,
-                      withPublic, withInner_namespace);
 }
 
 static int XOTclCForwardMethod(Tcl_Interp *interp, XOTclClass *cl, 

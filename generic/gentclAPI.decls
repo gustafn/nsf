@@ -70,6 +70,17 @@ xotclCmd is XOTclIsCmd {
   {-argName "objectkind" -type "type|object|class|metaclass|mixin"}
   {-argName "value" -required 0 -type tclobj}
 }
+xotclCmd method XOTclMethodCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-inner-namespace"}
+  {-argName "-per-object"}
+  {-argName "-public"}
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "args" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+  {-argName "-precondition"  -nrargs 1 -type tclobj}
+  {-argName "-postcondition" -nrargs 1 -type tclobj}
+}
 xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "methodName" -required 1 -type tclobj}
@@ -150,15 +161,6 @@ objectMethod forward XOTclOForwardMethod {
 objectMethod instvar XOTclOInstVarMethod {
   {-argName "args" -type allargs}
 }
-objectMethod object-method XOTclOMethodMethod {
-  {-argName "-inner-namespace"}
-  {-argName "-public"}
-  {-argName "name" -required 1 -type tclobj}
-  {-argName "args" -required 1 -type tclobj}
-  {-argName "body" -required 1 -type tclobj}
-  {-argName "-precondition"  -nrargs 1 -type tclobj}
-  {-argName "-postcondition" -nrargs 1 -type tclobj}
-}
 objectMethod mixinguard XOTclOMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
@@ -209,15 +211,6 @@ classMethod filterguard XOTclCFilterGuardMethod {
 classMethod mixinguard XOTclCMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
-}
-classMethod class-method XOTclCMethodMethod {
-  {-argName "-inner-namespace" -type switch}
-  {-argName "-public"}
-  {-argName "name" -required 1 -type tclobj}
-  {-argName "args" -required 1 -type tclobj}
-  {-argName "body" -required 1 -type tclobj}
-  {-argName "-precondition"  -nrargs 1 -type tclobj}
-  {-argName "-postcondition" -nrargs 1 -type tclobj}
 }
 classMethod forward XOTclCForwardMethod {
   {-argName "name" -required 1 -type tclobj}

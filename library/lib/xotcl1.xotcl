@@ -14,7 +14,7 @@ namespace eval ::xotcl {
   # provide the standard command set for ::xotcl::Object
   foreach cmd [info command ::xotcl::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "setter" "object-method"]} continue
+    if {$cmdName in [list "setter"]} continue
     ::xotcl::alias Object $cmdName $cmd
   }
 
@@ -26,7 +26,7 @@ namespace eval ::xotcl {
   # provide the standard command set for ::xotcl::Class
   foreach cmd [info command ::xotcl::cmd::Class::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "setter" "class-method"]} continue
+    if {$cmdName in [list "setter"]} continue
     ::xotcl::alias Class $cmdName $cmd
   }
 
@@ -37,24 +37,22 @@ namespace eval ::xotcl {
   ::xotcl::methodproperty Class  create  redefine-protected true
 
   # define instproc and proc
-  ::xotcl::dispatch Class ::xotcl::cmd::Class::class-method instproc {
+  ::xotcl::method Class instproc {
     name arguments body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::xotcl::dispatch [self] ::xotcl::cmd::Class::class-method $name $arguments $body {*}$conditions
-    #puts stderr "[self] [self proc] $name defined"
+    ::xotcl::method [self] $name $arguments $body {*}$conditions
   }
 
-  ::xotcl::dispatch Object ::xotcl::cmd::Class::class-method proc {
+  ::xotcl::method Object proc {
     name arguments body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::xotcl::dispatch [self] ::xotcl::cmd::Object::object-method $name $arguments $body {*}$conditions
-    #puts stderr "[self] [self proc] $name defined"
+    ::xotcl::method [self] -per-object $name $arguments $body {*}$conditions
   }
 
   # define - like in XOTcl 1 - a minimal implementation of "method"
