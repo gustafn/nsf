@@ -150,7 +150,7 @@ namespace eval xotcl2 {
   #   [... info method name <methodName>]
   #
   Object public method alias {-objscope:switch methodName cmd} {
-    ::xotcl::alias [self] $methodName -per-object \
+    ::xotcl::alias [self] -per-object $methodName \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         $cmd
   }
@@ -164,9 +164,9 @@ namespace eval xotcl2 {
   #  
   Object public method setter {methodName value:optional} {
     if {[info exists value]} {
-      ::xotcl::setter [self] $methodName -per-object $value
+      ::xotcl::setter [self] -per-object $methodName $value
     } else {
-      ::xotcl::setter [self] $methodName -per-object
+      ::xotcl::setter [self] -per-object $methodName
     }
   }
   Class public method setter {methodName value:optional} {

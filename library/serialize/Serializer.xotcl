@@ -378,7 +378,7 @@ namespace eval ::xotcl::serializer {
     my instvar post_cmds
     set post_cmds ""
     # register for introspection purposes "trace" under a different name
-    ::xotcl::alias ::xotcl::Object __trace__ -objscope ::trace
+    ::xotcl::alias ::xotcl::Object  __trace__ -objscope ::trace
     ::xotcl::alias ::xotcl2::Object __trace__ -objscope ::trace
     my topoSort $list $all
     #foreach i [lsort [array names .level]] {my warn "$i: [my set level($i)]"}

@@ -489,7 +489,7 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::Object move ::xotcl::classes::xotcl2::Object::move
   ::xotcl::alias ::xotcl::Object defaultmethod ::xotcl::classes::xotcl2::Object::defaultmethod
 
-  ::xotcl::alias ::xotcl::Class __unknown -per-object ::xotcl2::Class::__unknown
+  ::xotcl::alias ::xotcl::Class -per-object __unknown ::xotcl2::Class::__unknown
   ::xotcl::alias ::xotcl::Class parameter ::xotcl::classes::xotcl2::Class::parameter
 
   proc myproc {args} {linsert $args 0 [::xotcl::self]}

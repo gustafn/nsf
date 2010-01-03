@@ -18,9 +18,9 @@ array set ns {
 #
 xotclCmd alias XOTclAliasCmd {
   {-argName "object" -type object}
+  {-argName "-per-object"}
   {-argName "methodName"}
   {-argName "-objscope"}
-  {-argName "-per-object"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
 xotclCmd assertion XOTclAssertionCmd {
@@ -44,7 +44,6 @@ xotclCmd deprecated XOTclDeprecatedCmd {
 xotclCmd dispatch XOTclDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-objscope"}
-  {-argName "-noassertions"}
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
 }
@@ -96,8 +95,8 @@ xotclCmd method XOTclMethodCmd {
 }
 xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "methodName" -required 1 -type tclobj}
   {-argName "-per-object"}
+  {-argName "methodName" -required 1 -type tclobj}
   {-argName "methodproperty" -required 1 -type "protected|redefine-protected|slotobj"}
   {-argName "value" -type tclobj}
 }
@@ -132,8 +131,8 @@ xotclCmd setinstvar XOTclSetInstvarCmd {
 }
 xotclCmd setter XOTclSetterCmd {
   {-argName "object" -required 1 -type object}
+  {-argName "-per-object"}
   {-argName "methodName" -required 1}
-  {-argName "-per-object" -type switch}
 }
 #
 # object methods

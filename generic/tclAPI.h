@@ -243,12 +243,12 @@ static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, T
 static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, char *varname);
-static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withObjscope, int withPer_object, Tcl_Obj *cmdName);
+static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, char *methodName, int withObjscope, Tcl_Obj *cmdName);
 static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int assertionsubcmd, Tcl_Obj *arg);
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
 static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass);
 static int XOTclDeprecatedCmd(Tcl_Interp *interp, char *what, char *oldCmd, char *newCmd);
-static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, int withNoassertions, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclDotCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclExistsCmd(Tcl_Interp *interp, XOTclObject *object, char *var);
 static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
@@ -258,14 +258,14 @@ static int XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int nobjc,
 static int XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_Obj *value);
 static int XOTclMethodCmd(Tcl_Interp *interp, XOTclObject *object, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
-static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *methodName, int withPer_object, int methodproperty, Tcl_Obj *value);
+static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
 static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
-static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, int withPer_object);
+static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, char *methodName);
 
 enum {
  XOTclCheckBooleanArgsIdx,
@@ -1506,13 +1506,13 @@ XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    char *methodName = (char *)pc.clientData[1];
-    int withObjscope = (int )PTR2INT(pc.clientData[2]);
-    int withPer_object = (int )PTR2INT(pc.clientData[3]);
+    int withPer_object = (int )PTR2INT(pc.clientData[1]);
+    char *methodName = (char *)pc.clientData[2];
+    int withObjscope = (int )PTR2INT(pc.clientData[3]);
     Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[4];
 
     parseContextRelease(&pc);
-    return XOTclAliasCmd(interp, object, methodName, withObjscope, withPer_object, cmdName);
+    return XOTclAliasCmd(interp, object, withPer_object, methodName, withObjscope, cmdName);
 
   }
 }
@@ -1607,11 +1607,10 @@ XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
     int withObjscope = (int )PTR2INT(pc.clientData[1]);
-    int withNoassertions = (int )PTR2INT(pc.clientData[2]);
-    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[3];
+    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
 
     parseContextRelease(&pc);
-    return XOTclDispatchCmd(interp, object, withObjscope, withNoassertions, command, objc-pc.lastobjc, objv+pc.lastobjc);
+    return XOTclDispatchCmd(interp, object, withObjscope, command, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
 }
@@ -1800,13 +1799,13 @@ XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[1];
-    int withPer_object = (int )PTR2INT(pc.clientData[2]);
+    int withPer_object = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[2];
     int methodproperty = (int )PTR2INT(pc.clientData[3]);
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
 
     parseContextRelease(&pc);
-    return XOTclMethodPropertyCmd(interp, object, methodName, withPer_object, methodproperty, value);
+    return XOTclMethodPropertyCmd(interp, object, withPer_object, methodName, methodproperty, value);
 
   }
 }
@@ -1937,11 +1936,11 @@ XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    char *methodName = (char *)pc.clientData[1];
-    int withPer_object = (int )PTR2INT(pc.clientData[2]);
+    int withPer_object = (int )PTR2INT(pc.clientData[1]);
+    char *methodName = (char *)pc.clientData[2];
 
     parseContextRelease(&pc);
-    return XOTclSetterCmd(interp, object, methodName, withPer_object);
+    return XOTclSetterCmd(interp, object, withPer_object, methodName);
 
   }
 }
@@ -2186,9 +2185,9 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::alias", XOTclAliasCmdStub, 5, {
   {"object", 0, 0, convertToObject},
+  {"-per-object", 0, 0, convertToString},
   {"methodName", 0, 0, convertToString},
   {"-objscope", 0, 0, convertToString},
-  {"-per-object", 0, 0, convertToString},
   {"cmdName", 1, 0, convertToTclobj}}
 },
 {"::xotcl::assertion", XOTclAssertionCmdStub, 3, {
@@ -2209,10 +2208,9 @@ static methodDefinition method_definitions[] = {
   {"oldCmd", 1, 0, convertToString},
   {"newCmd", 0, 0, convertToString}}
 },
-{"::xotcl::dispatch", XOTclDispatchCmdStub, 5, {
+{"::xotcl::dispatch", XOTclDispatchCmdStub, 4, {
   {"object", 1, 0, convertToObject},
   {"-objscope", 0, 0, convertToString},
-  {"-noassertions", 0, 0, convertToString},
   {"command", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
@@ -2268,8 +2266,8 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::methodproperty", XOTclMethodPropertyCmdStub, 5, {
   {"object", 1, 0, convertToObject},
-  {"methodName", 1, 0, convertToTclobj},
   {"-per-object", 0, 0, convertToString},
+  {"methodName", 1, 0, convertToTclobj},
   {"methodproperty", 1, 0, convertToMethodproperty},
   {"value", 0, 0, convertToTclobj}}
 },
@@ -2301,8 +2299,8 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::setter", XOTclSetterCmdStub, 3, {
   {"object", 1, 0, convertToObject},
-  {"methodName", 1, 0, convertToString},
-  {"-per-object", 0, 0, convertToBoolean}}
+  {"-per-object", 0, 0, convertToString},
+  {"methodName", 1, 0, convertToString}}
 }
 };
 

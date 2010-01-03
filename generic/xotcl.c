@@ -10275,8 +10275,17 @@ static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *metho
 /*********************************
  * Begin generated XOTcl commands
  *********************************/
-static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName,
-                         int withObjscope, int withPer_object, Tcl_Obj *cmdName) {
+/*
+xotclCmd alias XOTclAliasCmd {
+  {-argName "object" -type object}
+  {-argName "-per-object"}
+  {-argName "methodName"}
+  {-argName "-objscope"}
+  {-argName "cmdName" -required 1 -type tclobj}
+}
+*/
+static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, 
+                         char *methodName, int withObjscope, Tcl_Obj *cmdName) {
   Tcl_ObjCmdProc *objProc, *newObjProc = NULL;
   Tcl_CmdDeleteProc *deleteProc = NULL;
   AliasCmdClientData *tcd = NULL; /* make compiler happy */
@@ -10616,8 +10625,7 @@ XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class) 
 
 
 static int
-XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, 
-                 int withObjscope, int withNoassertions,
+XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, 
                  Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int result;
   char *methodName = ObjStr(command);
@@ -10875,8 +10883,17 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_O
   return TCL_OK;
 }
 
-static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *methodObj,
-                                  int withPer_object, int methodproperty, Tcl_Obj *value) {
+/*
+xotclCmd methodproperty XOTclMethodPropertyCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-per-object"}
+  {-argName "methodName" -required 1 -type tclobj}
+  {-argName "methodproperty" -required 1 -type "protected|redefine-protected|slotobj"}
+  {-argName "value" -type tclobj}
+}
+*/
+static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object,
+                                  Tcl_Obj *methodObj, int methodproperty, Tcl_Obj *value) {
   char *methodName = ObjStr(methodObj);
   Tcl_Command cmd = NULL;
   
@@ -11718,9 +11735,14 @@ static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *
   return setInstVar(interp, object , variable, value);
 }
 
-/* TODO move me at the right place */
-static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, char *methodName, 
-                          int withPer_object) {
+/* 
+xotclCmd setter XOTclSetterCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-per-object"}
+  {-argName "methodName" -required 1}
+  } */
+static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object,  int withPer_object,
+                          char *methodName) {
   int result;
   XOTclClass *cl = (withPer_object || ! XOTclObjectIsClass(object)) ? NULL : (XOTclClass *)object;
 

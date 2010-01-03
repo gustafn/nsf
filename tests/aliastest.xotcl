@@ -107,9 +107,9 @@ T method foo {} {}
 
 T method foo args { return [self class]->[self proc] }
 T object method bar args { return [self class]->[self proc] }
-::xotcl::alias T FOO -per-object ::xotcl::classes::T::foo 
-::xotcl::alias T BAR -per-object ::T::FOO 
-::xotcl::alias T ZAP -per-object ::T::BAR 
+::xotcl::alias T -per-object FOO ::xotcl::classes::T::foo 
+::xotcl::alias T -per-object BAR ::T::FOO 
+::xotcl::alias T -per-object ZAP ::T::BAR 
 ? {T info methods -methodtype scripted} {foo}
 ? {lsort [T object info methods -methodtype alias]} {BAR FOO ZAP}
 ? {lsort [T object info methods -methodtype scripted]} {BAR FOO ZAP bar}
@@ -142,8 +142,8 @@ T method foo {} {}
 # per-object methods as per-object aliases
 #
 T object method m1 args { return [self class]->[self proc] }
-::xotcl::alias T M1 -per-object ::T::m1 
-::xotcl::alias T M11 -per-object ::T::M1 
+::xotcl::alias T -per-object M1 ::T::m1 
+::xotcl::alias T -per-object M11 ::T::M1 
 ? {lsort [T object info methods -methodtype scripted]} {M1 M11 bar m1}
 ? {T m1} ->m1
 ? {T M1} ->m1
@@ -161,7 +161,7 @@ T object method m1 {} {}
 
 proc foo args { return [self class]->[self proc] }
 ::xotcl::alias T FOO1 ::foo 
-::xotcl::alias T FOO2 -per-object ::foo
+::xotcl::alias T -per-object FOO2 ::foo
 #
 # ! per-object alias referenced as per-class alias !
 #
@@ -204,12 +204,12 @@ Class create U
 U create u
 ? {namespace exists ::U} 0
 U object method zap args { return [self class]->[self proc] }
-::xotcl::alias ::U ZAP -per-object ::U::zap 
+::xotcl::alias ::U -per-object ZAP ::U::zap 
 U requireNamespace
 ? {namespace exists ::U} 1
 
 U object method bar args { return [self class]->[self proc] }
-::xotcl::alias U BAR -per-object ::U::bar
+::xotcl::alias U -per-object BAR ::U::bar
 ? {lsort [U object info methods -methodtype scripted]} {BAR ZAP bar zap}
 ? {U BAR} ->bar
 ? {U ZAP} ->zap
@@ -237,7 +237,7 @@ V object method bar {z} { return $z }
 proc foo args { return [.bar ${.z}]-[set .z]-[my bar [set .z]] }
 
 ::xotcl::alias V FOO1 ::foo 
-::xotcl::alias V FOO2 -per-object ::foo
+::xotcl::alias V -per-object FOO2 ::foo
 ? {lsort [V object info methods -methodtype scripted]} {FOO2 bar}
 ? {lsort [V info methods -methodtype scripted]} {FOO1 bar}
 ? {V FOO2} 1-1-1
