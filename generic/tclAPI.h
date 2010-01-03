@@ -173,6 +173,7 @@ static int XOTclCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *int
 static int XOTclDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclDotCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclGetSelfObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -255,6 +256,7 @@ static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tc
 static int XOTclDeprecatedCmd(Tcl_Interp *interp, char *what, char *oldCmd, char *newCmd);
 static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, int withNoassertions, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclDotCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+static int XOTclExistsCmd(Tcl_Interp *interp, XOTclObject *object, char *var);
 static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
 static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption);
 static int XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
@@ -338,6 +340,7 @@ enum {
  XOTclDeprecatedCmdIdx,
  XOTclDispatchCmdIdx,
  XOTclDotCmdIdx,
+ XOTclExistsCmdIdx,
  XOTclFinalizeObjCmdIdx,
  XOTclGetSelfObjCmdIdx,
  XOTclImportvarCmdIdx,
@@ -1731,6 +1734,25 @@ XOTclDotCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 }
 
 static int
+XOTclExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclExistsCmdIdx].paramDefs, 
+                     method_definitions[XOTclExistsCmdIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclObject *object = (XOTclObject *)pc.clientData[0];
+    char *var = (char *)pc.clientData[1];
+
+    parseContextRelease(&pc);
+    return XOTclExistsCmd(interp, object, var);
+
+  }
+}
+
+static int
 XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
@@ -2291,6 +2313,10 @@ static methodDefinition method_definitions[] = {
 },
 {"::xotcl::dot", XOTclDotCmdStub, 1, {
   {"args", 0, 0, convertToNothing}}
+},
+{"::xotcl::exists", XOTclExistsCmdStub, 2, {
+  {"object", 1, 0, convertToObject},
+  {"var", 1, 0, convertToString}}
 },
 {"::xotcl::finalize", XOTclFinalizeObjCmdStub, 0, {
   }

@@ -10642,6 +10642,14 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object,
 }
 
 /*
+ * ::xotcl::exists command
+ */
+static int XOTclExistsCmd(Tcl_Interp *interp, XOTclObject *obj, char *var) {
+  Tcl_SetIntObj(Tcl_GetObjResult(interp), varExists(interp, obj, var, NULL, 1, 1));
+  return TCL_OK;
+}
+
+/*
  * ::xotcl::finalize command
  */
 static int destroyObjectSystems(Tcl_Interp *interp);

@@ -51,6 +51,10 @@ xotclCmd dispatch XOTclDispatchCmd {
 xotclCmd dot XOTclDotCmd {
   {-argName "args" -type allargs}
 }
+xotclCmd exists XOTclExistsCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "var" -required 1}
+}
 xotclCmd finalize XOTclFinalizeObjCmd {
 }
 xotclCmd interp XOTclInterpObjCmd {

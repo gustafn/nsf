@@ -109,7 +109,6 @@ static char cmd[] =
 "::xotcl::alias ::xotcl2::classInfo [namespace tail $cmd] $cmd}\n"
 "foreach cmd [info command ::xotcl::cmd::ClassInfo::*] {\n"
 "set cmdName [namespace tail $cmd]\n"
-"if {$cmdName in [list \"instfilter\" \"instforward\" \"instmixin\" \"instmixinguard\" \"instparams\"]} continue\n"
 "::xotcl::alias ::xotcl2::classInfo $cmdName $cmd}\n"
 "unset cmd\n"
 "Object forward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}\n"

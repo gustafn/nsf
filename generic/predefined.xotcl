@@ -221,7 +221,6 @@ namespace eval xotcl2 {
   }
   foreach cmd [info command ::xotcl::cmd::ClassInfo::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "instfilter" "instforward" "instmixin" "instmixinguard" "instparams"]} continue
     ::xotcl::alias ::xotcl2::classInfo $cmdName $cmd
   }
   unset cmd
