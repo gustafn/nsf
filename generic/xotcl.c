@@ -10676,11 +10676,37 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
 
   return TCL_OK;
 }
-static int GetInstvarsIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 
 static int
 XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]) {
-  return GetInstvarsIntoCurrentScope(interp, object, objc, objv);
+  int i, result = TCL_OK;
+
+  for (i=1; i<objc; i++) {
+    Tcl_Obj  **ov;
+    int oc;
+
+    /*fprintf(stderr, "ListGetElements %p %s\n", objv[i], ObjStr(objv[i]));*/
+    if ((result = Tcl_ListObjGetElements(interp, objv[i], &oc, &ov)) == TCL_OK) {
+      Tcl_Obj *varname = NULL, *alias = NULL;
+      switch (oc) {
+      case 0: {varname = objv[i]; break;}
+      case 1: {varname = ov[0];   break;}
+      case 2: {varname = ov[0];   alias = ov[1]; break;}
+      }
+      if (varname) {
+        result = GetInstVarIntoCurrentScope(interp, object, varname, alias);
+      } else {
+        result = XOTclVarErrMsg(interp, "invalid variable specification '",
+                                ObjStr(objv[i]), "'", (char *) NULL);
+      }
+      if (result != TCL_OK) {
+        break;	
+      }
+    } else {
+      break;
+    }
+  }
+  return result;
 }
 
 /* create a slave interp that calls XOTcl Init */
@@ -10957,7 +10983,7 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
     if (cmd) {
       /*fprintf(stderr, "%s already exists\n", newName);*/
       if (!XOTclpGetObject(interp, newName)) {
-        /* command or instproc will be deleted & then copied */
+        /* command or scripted method will be deleted & then copied */
         Tcl_DeleteCommandFromToken(interp, cmd);
       } else {
         /* don't overwrite objects -> will be recreated */
@@ -11016,10 +11042,10 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
               DECR_REF_COUNT(newFullCmdName);
               DECR_REF_COUNT(oldFullCmdName);
               DECR_REF_COUNT(arglistObj);
-              return XOTclVarErrMsg(interp, "No class for inst - assertions", (char *) NULL);
+              return XOTclVarErrMsg(interp, "No class for class - assertions", (char *) NULL);
             }
 
-            /* XOTcl InstProc */
+            /* XOTcl class-methods */
             DSTRING_INIT(dsPtr);
             Tcl_DStringAppendElement(dsPtr, NSCutXOTclClasses(toNsPtr->fullName));
             Tcl_DStringAppendElement(dsPtr, "instproc");
@@ -11958,37 +11984,6 @@ static int XOTclOFilterSearchMethod(Tcl_Interp *interp, XOTclObject *obj, char *
   return TCL_OK;
 }
 
-static int GetInstvarsIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
-  int i, result = TCL_OK;
-
-  for (i=1; i<objc; i++) {
-    Tcl_Obj  **ov;
-    int oc;
-
-    /*fprintf(stderr, "ListGetElements %p %s\n", objv[i], ObjStr(objv[i]));*/
-    if ((result = Tcl_ListObjGetElements(interp, objv[i], &oc, &ov)) == TCL_OK) {
-      Tcl_Obj *varname = NULL, *alias = NULL;
-      switch (oc) {
-      case 0: {varname = objv[i]; break;}
-      case 1: {varname = ov[0];   break;}
-      case 2: {varname = ov[0];   alias = ov[1]; break;}
-      }
-      if (varname) {
-        result = GetInstVarIntoCurrentScope(interp, obj, varname, alias);
-      } else {
-        result = XOTclVarErrMsg(interp, "invalid variable specification '",
-                                ObjStr(objv[i]), "'", (char *) NULL);
-      }
-      if (result != TCL_OK) {
-        break;	
-      }
-    } else {
-      break;
-    }
-  }
-  return result;
-}
-
 static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
   callFrameContext ctx = {0};
   int result;
@@ -12003,7 +11998,7 @@ static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, T
 			  (char *) NULL);
   }
 
-  result = GetInstvarsIntoCurrentScope(interp, obj, objc, objv);
+  result = XOTclImportvarCmd(interp, obj, objc, objv);
   CallStackRestoreSavedFrames(interp, &ctx);
   return result;
 }
