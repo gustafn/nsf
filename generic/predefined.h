@@ -1,6 +1,7 @@
 static char cmd[] = 
 "namespace eval ::xotcl {\n"
 "set bootstrap 1}\n"
+"puts stderr HELLLO-0\n"
 "namespace eval xotcl2 {\n"
 "namespace path ::xotcl\n"
 "::xotcl::createobjectsystem ::xotcl2::Object ::xotcl2::Class\n"
@@ -65,6 +66,10 @@ static char cmd[] =
 ".protected method init args {}\n"
 ".protected method defaultmethod {} {::xotcl::self}\n"
 ".protected method objectparameter {} {;}}\n"
+"puts stderr HELLLO-1\n"
+"::xotcl::forward Object forward -verbose ::xotcl::forward %self -per-object\n"
+"::xotcl::forward Class  forward -verbose ::xotcl::forward %self\n"
+"puts stderr HELLLO-3\n"
 "Class protected object method __unknown {name} {}\n"
 "Object public method alias {-objscope:switch methodName cmd} {\n"
 "::xotcl::alias [self] $methodName \\\n"

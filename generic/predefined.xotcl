@@ -6,6 +6,8 @@ namespace eval ::xotcl {
   set bootstrap 1
 }
 
+puts stderr HELLLO-0
+
 #
 # First create the ::xotcl2 object system. 
 #
@@ -134,33 +136,34 @@ namespace eval xotcl2 {
     .protected method objectparameter {} {;}
   }
 
+  # define forward methods
+  ::xotcl::forward Object forward -verbose ::xotcl::forward %self -per-object
+  ::xotcl::forward Class  forward -verbose ::xotcl::forward %self
+
   # The method __unknown is called in cases, where we try to resolve
   # an unkown class. one could define a custom resolver with this name
   # to load the class on the fly. After the call to __unknown, XOTcl
   # tries to resolve the class again. This meachnism is used e.g. by
   # the ::ttrace mechanism for partial loading by Zoran.
   #
-  # TODO: check, of protected is OK
   Class protected object method __unknown {name} {}
 
-  # Add an alias method. cmdName for XOTcl method can be added via
+  # Add alias methods. cmdName for XOTcl method can be added via
   #   [... info method name <methodName>]
-
-  #::xotcl::alias Object $cmd -objscope ::$cmd
-
+  #
   Object public method alias {-objscope:switch methodName cmd} {
-    ::xotcl::alias [self] $methodName \
-        -per-object \
+    ::xotcl::alias [self] $methodName -per-object \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         $cmd
   }
-
   Class public method alias {-objscope:switch methodName cmd} {
     ::xotcl::alias [self] $methodName \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         $cmd
   }
-  
+
+  # Add setter methods. 
+  #  
   Object public method setter {methodName value:optional} {
     if {[info exists value]} {
       ::xotcl::setter [self] $methodName -per-object $value
@@ -168,7 +171,6 @@ namespace eval xotcl2 {
       ::xotcl::setter [self] $methodName -per-object
     }
   }
-
   Class public method setter {methodName value:optional} {
     if {[info exists value]} {
       ::xotcl::setter [self] $methodName $value

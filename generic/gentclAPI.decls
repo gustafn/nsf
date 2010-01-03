@@ -57,6 +57,19 @@ xotclCmd exists XOTclExistsCmd {
 }
 xotclCmd finalize XOTclFinalizeObjCmd {
 }
+xotclCmd forward XOTclForwardCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-per-object"}
+  {-argName "method" -required 1 -type tclobj}
+  {-argName "-default" -nrargs 1 -type tclobj}
+  {-argName "-earlybinding"}
+  {-argName "-methodprefix" -nrargs 1 -type tclobj}
+  {-argName "-objscope"}
+  {-argName "-onerror" -nrargs 1 -type tclobj}
+  {-argName "-verbose"}
+  {-argName "target" -type tclobj}
+  {-argName "args" -type args}
+}
 xotclCmd interp XOTclInterpObjCmd {
   {-argName "name"}
   {-argName "args" -type allargs}
@@ -147,17 +160,6 @@ objectMethod filterguard XOTclOFilterGuardMethod {
 objectMethod filtersearch XOTclOFilterSearchMethod {
   {-argName "filter" -required 1}
 }
-objectMethod forward XOTclOForwardMethod {
-  {-argName "method" -required 1 -type tclobj}
-  {-argName "-default" -nrargs 1 -type tclobj}
-  {-argName "-earlybinding"}
-  {-argName "-methodprefix" -nrargs 1 -type tclobj}
-  {-argName "-objscope"}
-  {-argName "-onerror" -nrargs 1 -type tclobj}
-  {-argName "-verbose"}
-  {-argName "target" -type tclobj}
-  {-argName "args" -type args}
-}
 objectMethod instvar XOTclOInstVarMethod {
   {-argName "args" -type allargs}
 }
@@ -211,17 +213,6 @@ classMethod filterguard XOTclCFilterGuardMethod {
 classMethod mixinguard XOTclCMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
-}
-classMethod forward XOTclCForwardMethod {
-  {-argName "name" -required 1 -type tclobj}
-  {-argName "-default" -nrargs 1 -type tclobj}
-  {-argName "-earlybinding"}
-  {-argName "-methodprefix" -nrargs 1 -type tclobj}
-  {-argName "-objscope"}
-  {-argName "-onerror" -nrargs 1 -type tclobj}
-  {-argName "-verbose"}
-  {-argName "target" -type tclobj}
-  {-argName "args" -type args}
 }
 classMethod __invalidateobjectparameter XOTclCInvalidateObjectParameterMethod {
 }

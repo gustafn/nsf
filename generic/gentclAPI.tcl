@@ -278,7 +278,7 @@ typedef struct {
   char *methodName;
   Tcl_ObjCmdProc *proc;
   int nrParameters;
-  XOTclParam paramDefs[11];
+  XOTclParam paramDefs[12];
 } methodDefinition;
 
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 

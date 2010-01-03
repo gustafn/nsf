@@ -67,6 +67,10 @@ namespace eval ::xotcl {
     }
   }
 
+  # define forward methods
+  ::xotcl::forward Object forward ::xotcl::forward %self -per-object
+  ::xotcl::forward Class instforward ::xotcl::forward %self
+
   Class instproc unknown {args} {
     #puts stderr "use '[self] create $args', not '[self] $args'"
     eval my create $args
@@ -152,8 +156,8 @@ namespace eval ::xotcl {
   Object create ::xotcl::classInfo
 
   # note, we are using ::xotcl::infoError defined earlier
-  Object forward info -onerror ::xotcl::infoError ::xotcl::objectInfo %1 {%@2 %self}
-  Class  forward info -onerror ::xotcl::infoError ::xotcl::classInfo %1 {%@2 %self}
+  Object instforward info -onerror ::xotcl::infoError ::xotcl::objectInfo %1 {%@2 %self}
+  Class  instforward info -onerror ::xotcl::infoError ::xotcl::classInfo %1 {%@2 %self}
 
   objectInfo proc info {obj} {
     set methods [list]
@@ -382,7 +386,7 @@ namespace eval ::xotcl {
   Object instproc istype      {class}  {::xotcl::is [self] type $class}
 
   ::xotcl::alias Object contains ::xotcl::classes::xotcl2::Object::contains
-  ::xotcl::Class forward slots %self contains \
+  ::xotcl::Class instforward slots %self contains \
       -object {%::xotcl::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
   #
   # define parametercmd and instparametercmd in terms of ::xotcl2 method setter
@@ -429,15 +433,8 @@ namespace eval ::xotcl {
   Object instproc check {checkoptions} {
     ::xotcl::assertion [self] check [::xotcl::checkoption_xotcl1_to_internal $checkoptions]
   }
-  Object forward invar     ::xotcl::assertion %self object-invar
-  Class  forward instinvar ::xotcl::assertion %self class-invar
-
-  # define forward and instforward in terms of forward
-  # we are changing the the semantics from forward -> instforward,
-  # this has to be done at the end to avoid confusion with the
-  # previous forward invocation in this script.
-  ::xotcl::alias Class instforward      ::xotcl::cmd::Class::forward
-  ::xotcl::alias Class forward          ::xotcl::cmd::Object::forward
+  Object instforward invar     ::xotcl::assertion %self object-invar
+  Class  instforward instinvar ::xotcl::assertion %self class-invar
 
   Object instproc abstract {methtype methname arglist} {
     if {$methtype ne "proc" && $methtype ne "instproc" && $methtype ne "method"} {

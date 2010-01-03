@@ -10407,8 +10407,6 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, char *methodNa
   return result;
 }
 
-/* TODO: MOVE ME */
-/* todo move me xxx */
 /*
 xotclCmd assertion XOTclAssertionCmd {
   {-argName "object" -type object}
@@ -10493,8 +10491,61 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
 }
 
 /*
+xotclCmd forward XOTclForwardCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-per-object"}
+  {-argName "method" -required 1 -type tclobj}
+  {-argName "-default" -nrargs 1 -type tclobj}
+  {-argName "-earlybinding"}
+  {-argName "-methodprefix" -nrargs 1 -type tclobj}
+  {-argName "-objscope"}
+  {-argName "-onerror" -nrargs 1 -type tclobj}
+  {-argName "-verbose"}
+  {-argName "target" -type tclobj}
+  {-argName "args" -type args}
+}
+*/
+static int XOTclForwardCmd(Tcl_Interp *interp, 
+                           XOTclObject *object, int withPer_object,
+                           Tcl_Obj *method,
+                           Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
+                           int withObjscope, Tcl_Obj *withOnerror, int withVerbose, 
+                           Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  forwardCmdClientData *tcd;
+  int result;
+
+  fprintf(stderr, "ForwardCmd \n");
+
+  result = forwardProcessOptions(interp, method,
+                                 withDefault, withEarlybinding, withMethodprefix,
+                                 withObjscope, withOnerror, withVerbose,
+                                 target, nobjc, nobjv, &tcd);
+  if (result == TCL_OK) {
+    CONST char *methodName = NSTail(ObjStr(method));
+    XOTclClass *cl = 
+      (withPer_object || ! XOTclObjectIsClass(object)) ? 
+      NULL : (XOTclClass *)object;
+    
+    tcd->obj = object;
+    if (cl == NULL) {
+      result = XOTclAddObjectMethod(interp, (XOTcl_Object *)object, methodName,
+                                    (Tcl_ObjCmdProc*)XOTclForwardMethod,
+                                    (ClientData)tcd, forwardCmdDeleteProc, 0);
+    } else {
+      result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName,
+                                      (Tcl_ObjCmdProc*)XOTclForwardMethod,
+                                      (ClientData)tcd, forwardCmdDeleteProc, 0);
+    }
+    if (result == TCL_OK) {
+      result = ListMethodName(interp, object, cl == NULL, methodName);
+    }
+  }
+  return result;
+}
+
+/*
 xotclCmd method XOTclMethodCmd {
-  {-argName "class" -required 1 -type class}
+  {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}
   {-argName "-public"}
@@ -10506,11 +10557,13 @@ xotclCmd method XOTclMethodCmd {
 }
 */
 static int XOTclMethodCmd(Tcl_Interp *interp, XOTclObject *object,
-                               int withInner_namespace, int withPer_object, int withPublic,
-                               Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
-                               Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
-  
-  XOTclClass *cl = (withPer_object || ! XOTclObjectIsClass(object)) ? NULL : (XOTclClass *)object;
+                          int withInner_namespace, int withPer_object, int withPublic,
+                          Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
+                          Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
+  XOTclClass *cl = 
+    (withPer_object || ! XOTclObjectIsClass(object)) ? 
+    NULL : (XOTclClass *)object;
+
   if (cl == 0) {
     requireObjNamespace(interp, object);
   }
@@ -12166,28 +12219,6 @@ static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int ob
   return result;
 }
 
-static int XOTclOForwardMethod(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *method,
-                               Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-                               int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target,
-                               int nobjc, Tcl_Obj *CONST nobjv[]) {
-  forwardCmdClientData *tcd;
-  int result = forwardProcessOptions(interp, method,
-                                 withDefault, withEarlybinding, withMethodprefix,
-                                 withObjscope, withOnerror, withVerbose,
-                                 target, nobjc, nobjv, &tcd);
-  if (result == TCL_OK) {
-    CONST char *methodName = NSTail(ObjStr(method));
-    tcd->obj = object;
-    result = XOTclAddObjectMethod(interp, (XOTcl_Object *)object, methodName,
-                                  (Tcl_ObjCmdProc*)XOTclForwardMethod,
-                                  (ClientData)tcd, forwardCmdDeleteProc, 0);
-    if (result == TCL_OK) {
-      result = ListMethodName(interp, object, 1, methodName);
-    }
-  }
-  return result;
-}
-
 static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]) {
   int i, result = TCL_ERROR;
   char *frameInfo = NULL;
@@ -12578,29 +12609,6 @@ static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *mixi
 
   return XOTclVarErrMsg(interp, "Instmixinguard: can't find mixin ",
                         mixin, " on ", className(cl), (char *) NULL);
-}
-
-static int XOTclCForwardMethod(Tcl_Interp *interp, XOTclClass *cl, 
-                               Tcl_Obj *method,
-                               Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-                               int withObjscope, Tcl_Obj *withOnerror, int withVerbose,
-                               Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  forwardCmdClientData *tcd;
-  int result = forwardProcessOptions(interp, method,
-                                     withDefault, withEarlybinding, withMethodprefix,
-                                     withObjscope, withOnerror, withVerbose,
-                                     target, nobjc, nobjv, &tcd);
-  if (result == TCL_OK) {
-    CONST char *methodName = NSTail(ObjStr(method));
-    tcd->obj = &cl->object;
-    result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName,
-                                    (Tcl_ObjCmdProc*)XOTclForwardMethod,
-                                    (ClientData)tcd, forwardCmdDeleteProc, 0);
-    if (result == TCL_OK) {
-      result = ListMethodName(interp, &cl->object, 0, methodName);
-    }
-  }
-  return result;
 }
 
 static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass *cl) {
