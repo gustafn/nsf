@@ -35,7 +35,7 @@ namespace eval xotcl2 {
   }
 
   # set a few aliases as protected
-  foreach cmd [list __next cleanup  noinit residualargs] {
+  foreach cmd [list __next cleanup  noinit residualargs uplevel upvar] {
     ::xotcl::methodproperty Object $cmd protected 1
   }
   foreach cmd [list recreate] {
@@ -94,8 +94,10 @@ namespace eval xotcl2 {
       error "Method '$m' unknown for [self].\
 	Consider '[self] create $m $args' instead of '[self] $m $args'"
     }
-
+    # protected is not jet defined
+    ::xotcl::methodproperty [self] unknown protected 1
   }
+
 
   ::xotcl::dispatch Object -objscope ::eval {
 
@@ -118,7 +120,7 @@ namespace eval xotcl2 {
     }
 
     # unknown handler for Object
-    .method unknown {m args} {
+    .protected method unknown {m args} {
       if {![self isnext]} {
         error "[self]: unable to dispatch method '$m'"
       }
@@ -137,7 +139,7 @@ namespace eval xotcl2 {
 
   # The method __unknown is called in cases, where we try to resolve
   # an unkown class. one could define a custom resolver with this name
-  # to load the class on the fly. After the call to __unknwn, XOTcl
+  # to load the class on the fly. After the call to __unknown, XOTcl
   # tries to resolve the class again. This meachnism is used e.g. by
   # the ::ttrace mechanism for partial loading by Zoran.
   #
