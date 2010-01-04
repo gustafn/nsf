@@ -378,6 +378,15 @@ typedef struct XOTclStringIncrStruct {
   int length;
 } XOTclStringIncrStruct;
 
+/* 
+ * cmd flags
+ */
+
+#define XOTCL_CMD_PROTECTED_METHOD 		0x00010000
+#define XOTCL_CMD_REDEFINE_PROTECTED_METHOD	0x00020000
+/* XOTCL_CMD_NONLEAF_METHOD is used to flag, if a Method implemented via cmd calls "next" */
+#define XOTCL_CMD_NONLEAF_METHOD		0x00040000
+
 /*
  * object flags ...
  */
