@@ -15,18 +15,31 @@ void tcl85showStack(Tcl_Interp *interp) {
             }*/
   framePtr = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp);
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
-    XOTclCallStackContent *csc = Tcl_CallFrame_isProcCallFrame(framePtr)
-      & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD) ?
+    int frameFlags = Tcl_CallFrame_isProcCallFrame(framePtr);
+    XOTclCallStackContent *csc = 
+      (frameFlags & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) ?
       ((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr)) : NULL;
 
-    fprintf(stderr, "... var frame %p flags %.6x cd %p lvl %d frameType %d ns %p %s, %p %s %s\n",
-            framePtr, Tcl_CallFrame_isProcCallFrame(framePtr),
+    fprintf(stderr, "... var frame %p flags %.6x cd %p lvl %d ns %p %s ov %s %d",
+            framePtr, frameFlags,
             Tcl_CallFrame_clientData(framePtr),
             Tcl_CallFrame_level(framePtr),
-            csc ? csc->frameType : -1,
             Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,
-            csc ? csc->self : NULL, csc ? objectName(csc->self) : "",
-            Tcl_CallFrame_objc(framePtr) ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)");
+            Tcl_CallFrame_objc(framePtr) ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
+            Tcl_CallFrame_objc(framePtr) ? Tcl_CallFrame_objc(framePtr) : -1);
+    if (csc) {
+      fprintf(stderr, " frameType %d %p %s\n",
+              csc ? csc->frameType : -1,
+              csc ? csc->self : NULL, 
+              csc ? objectName(csc->self) : "");
+    } else {
+      fprintf(stderr, " no csc");
+      if (frameFlags & FRAME_IS_XOTCL_OBJECT) {
+        XOTclObject *object = (XOTclObject *)Tcl_CallFrame_clientData(framePtr);
+        fprintf(stderr, " obj %p %s", object, objectName(object));
+      }
+      fprintf(stderr, "\n");
+    }
   }
 }
 

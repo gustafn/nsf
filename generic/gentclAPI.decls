@@ -20,6 +20,7 @@ xotclCmd alias XOTclAliasCmd {
   {-argName "object" -type object}
   {-argName "-per-object"}
   {-argName "methodName"}
+  {-argName "-nonleaf"}
   {-argName "-objscope"}
   {-argName "cmdName" -required 1 -type tclobj}
 }

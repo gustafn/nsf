@@ -2840,6 +2840,7 @@ TestX recreation -proc run {{n 10}} {
   
   Class C
   C set w 3
+
   append ::recreateResult "+[C info vars],"
   append ::recreateResult "[C info instprocs] +"
    if {$i > 0} {

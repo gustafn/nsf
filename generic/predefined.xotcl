@@ -718,7 +718,6 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
   {withclass ::xotcl2::Object}
   inobject
 }
-
 ::xotcl::ScopedNew method init {} {
   .public method new {-childof args} {
     ::xotcl::importvar [::xotcl::self class] {inobject object} withclass
@@ -728,6 +727,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
     eval ::xotcl::next -childof $object $args
   }
 }
+
 #
 # change the namespace to the specified object and create
 # objects there. This is a friendly notation for creating
@@ -764,6 +764,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
   if {![::xotcl::is [::xotcl::self]::slot object]} {
     ::xotcl2::Object create [::xotcl::self]::slot
   }
+
   foreach arg $arglist {
     set l [llength $arg]
     set name [lindex $arg 0]
@@ -847,7 +848,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
   {dest ""}
   objLength
 } {
-  
+
   .method makeTargetList {t} {
     lappend .targetList $t
     # if it is an object without namespace, it is a leaf
@@ -963,6 +964,7 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
     .copyTargets
   }
 }
+
 
 ::xotcl2::Object public method copy newName {
   if {[string compare [string trimleft $newName :] [string trimleft [::xotcl::self] :]]} {

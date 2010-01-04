@@ -1543,10 +1543,12 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
   */
 static int
 varResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
-  int new;
+  int new, frameFlags;
   Tcl_Obj *key;
   Tcl_CallFrame *varFramePtr;
   Var *newVar;
+
+  /*fprintf(stderr, "varResolver '%s' flags %.6x\n", varName, flags);*/
 
   /* Case 1: The variable is to be resolved in global scope, proceed in
    * resolver chain (i.e. return TCL_CONTINUE)
@@ -1562,26 +1564,46 @@ varResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int f
    * these cases here, so proceed in resolver chain.
    */
   varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-  if (varFramePtr && (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_PROC)) {
+  assert(varFramePtr);
+
+  frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+#if defined (VAR_RESOLVER_TRACE)
+  fprintf(stderr, "varResolver '%s' frame flags %.6x\n", varName, 
+          Tcl_CallFrame_isProcCallFrame(varFramePtr));
+#endif
+
+  if (frameFlags & FRAME_IS_PROC) {
+#if defined (VAR_RESOLVER_TRACE)
+    fprintf(stderr, "...... forwarding to next resolver\n");
+#endif
     /*fprintf(stderr, "proc-scoped var '%s' assumed, frame %p flags %.6x\n",
       name, varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr));*/
     return TCL_CONTINUE;
   }
 
-  /*
-   * Case 3: Check for absolutely/relatively qualified variable names,
-   * i.e.  make sure that the variable name does not contain any
-   * namespace qualifiers.  Proceed with a TCL_CONTINUE, otherwise.
-   */
-  if ((*varName == ':' && *(varName+1) == ':') || NSTail(varName) != varName) {
+  if ((frameFlags & (FRAME_IS_XOTCL_CMETHOD|FRAME_IS_XOTCL_OBJECT)) && *varName == '.') {
+    /*
+     * Case 3: we are in an XOTcl frame and the variable name starts with a "."
+     * We skip the dot, but stay in the resolver.
+     */
+    varName ++;
+  } else if ((*varName == ':' && *(varName+1) == ':') || NSTail(varName) != varName) {
+
+    /*
+     * Case 4: Check for absolutely/relatively qualified variable names,
+     * i.e.  make sure that the variable name does not contain any
+     * namespace qualifiers.  Proceed with a TCL_CONTINUE, otherwise.
+     */
     return TCL_CONTINUE;
   }
 
-  /* Case 4: Does the variable exist in the per-object namespace? */
+  /* 
+   * Does the variable exist in the per-object namespace? 
+   */
   *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(nsPtr), varName, NULL);
   if (*varPtr == NULL) {
     /* We failed to find the variable so far, therefore we create it
-     * here in the namespace.  Note that the cases (1), (2) and (3)
+     * in this namespace.  Note that the cases (1), (2) and (4)
      * TCL_CONTINUE care for variable creation if necessary.
      */
     key = Tcl_NewStringObj(varName, -1);
@@ -1724,6 +1746,7 @@ int CompiledDotVarResolver(Tcl_Interp *interp,
 static int
 DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
   CallFrame *varFramePtr;
+  int frameFlags;
 
   if (*cmdName != '.' || flags & TCL_GLOBAL_ONLY) {
     /* ordinary names and global lookups are not for us */
@@ -1731,8 +1754,25 @@ DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, in
   }
 
   varFramePtr = Tcl_Interp_varFramePtr(interp);
-  if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_OBJECT)) {
-    /*fprintf(stderr, "DotCmdResolver called with %s\n", cmdName);*/
+  frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+
+  /* skip over a nonproc frame, in case Tcl stacks it */
+ if (frameFlags == 0 && Tcl_CallFrame_callerPtr(varFramePtr)) {
+    varFramePtr = (CallFrame *)Tcl_CallFrame_callerPtr(varFramePtr);
+    frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+#if defined(DOT_CMD_RESOLVER_TRACE)
+    fprintf(stderr, "DotCmdResolver uses parent frame\n");
+#endif
+  }
+#if defined(DOT_CMD_RESOLVER_TRACE)
+  fprintf(stderr, "DotCmdResolver cmdName %s frame flags %.6x\n",cmdName,
+          Tcl_CallFrame_isProcCallFrame(varFramePtr));
+#endif
+
+  if (frameFlags & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_OBJECT|FRAME_IS_XOTCL_CMETHOD )) {
+#if defined(DOT_CMD_RESOLVER_TRACE)
+    fprintf(stderr, "    ... call dotCmd for %s\n", cmdName);
+#endif
     /*
      * We have a cmd starting with ".", we are in an xotcl frame, so
      * forward to the dotCmd.
@@ -1740,7 +1780,10 @@ DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, in
     *cmdPtr = RUNTIME_STATE(interp)->dotCmd;
     return TCL_OK;
   }
-
+#if defined(DOT_CMD_RESOLVER_TRACE)
+  fprintf(stderr, "    ... not found %s\n", cmdName);
+  tcl85showStack(interp);
+#endif
   return TCL_CONTINUE;
 }
 
@@ -1748,7 +1791,11 @@ static int
 DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
   int new, frameFlags;
   CallFrame *varFramePtr;
+  TclVarHashTable *varTablePtr;
+  XOTclObject *obj;
   Tcl_Var var;
+
+  /*fprintf(stderr, "dotVarResolver '%s' flags %.6x\n", varName, flags);*/
 
   if (*varName != '.' || flags & TCL_GLOBAL_ONLY) {
     /* ordinary names and global lookups are not for us */
@@ -1761,54 +1808,73 @@ DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, in
   varName ++;
   varFramePtr = Tcl_Interp_varFramePtr(interp);
   frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
-  /*fprintf(stderr, "dotVarResolver called var=%s var flags %.8x frame flags %.6x\n",
-    varName, flags, frameFlags);*/
 
-  if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_OBJECT)) {
-    TclVarHashTable *varTablePtr;
-    XOTclObject *obj;
+  
+#if 0
+  /* This chunk is needed in the dotcmd resolver, but does not seem to
+     be required here */
+  if (frameFlags == 0 && Tcl_CallFrame_callerPtr(varFramePtr)) {
+    varFramePtr = (CallFrame *)Tcl_CallFrame_callerPtr(varFramePtr);
+    frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+    fprintf(stderr, "    use parent frame\n");
+  }
+#endif
 
+#if defined(VAR_RESOLVER_TRACE)
+  fprintf(stderr, "    frame flags %.6x\n", frameFlags);
+#endif
+
+  if (frameFlags & FRAME_IS_XOTCL_METHOD) {
     if ((*varPtr = CompiledLocalsLookup(varFramePtr, varName))) {
 #if defined(VAR_RESOLVER_TRACE)
       fprintf(stderr, ".... found local %s\n", varName);
 #endif
       return TCL_OK;
     }
-
-    obj = frameFlags & FRAME_IS_XOTCL_METHOD ?
-      ((XOTclCallStackContent *)varFramePtr->clientData)->self :
-      (XOTclObject *)(varFramePtr->clientData);
-    varTablePtr = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
-
-    if (varTablePtr == NULL && obj->varTable == NULL) {
-      varTablePtr = obj->varTable = VarHashTableCreate();
-    }
-
-    /*fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p, varTable %p\n",
-	    varName, obj, obj->nsPtr, varTablePtr);*/
-    var = (Tcl_Var)LookupVarFromTable(varTablePtr, varName, NULL);
-    if (var) {
+    
+    obj = ((XOTclCallStackContent *)varFramePtr->clientData)->self;
+    
+  } else if (frameFlags & FRAME_IS_XOTCL_CMETHOD) {
+    obj = ((XOTclCallStackContent *)varFramePtr->clientData)->self;
+    
+  } else if (frameFlags & FRAME_IS_XOTCL_OBJECT) {
+    obj = (XOTclObject *)(varFramePtr->clientData);
+    
+  } else {
 #if defined(VAR_RESOLVER_TRACE)
-      fprintf(stderr, ".... found in hashtable %s %p\n", varName, var);
+    fprintf(stderr, ".... not found %s\n", varName);
 #endif
-    } else {
-      /* We failed to find the variable, therefore we create it new */
-      Tcl_Obj *key = Tcl_NewStringObj(varName, -1);
-
-      INCR_REF_COUNT(key);
-      var = (Tcl_Var)VarHashCreateVar(varTablePtr, key, &new);
-      DECR_REF_COUNT(key);
-#if defined(VAR_RESOLVER_TRACE)
-      fprintf(stderr, ".... created in hashtable %s %p\n", varName, var);
-#endif
-    }
-    *varPtr = var;
-    return TCL_OK;
+    return TCL_CONTINUE;
   }
+
+  /* We have an object and create the variable if not found */
+  assert(obj);
+  
+  varTablePtr = obj->nsPtr ? Tcl_Namespace_varTable(obj->nsPtr) : obj->varTable;
+  if (varTablePtr == NULL && obj->varTable == NULL) {
+    varTablePtr = obj->varTable = VarHashTableCreate();
+  }
+  
+  /*fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p, varTable %p\n",
+    varName, obj, obj->nsPtr, varTablePtr);*/
+  var = (Tcl_Var)LookupVarFromTable(varTablePtr, varName, NULL);
+  if (var) {
 #if defined(VAR_RESOLVER_TRACE)
-  fprintf(stderr, ".... not found %s\n", varName);
+    fprintf(stderr, ".... found in hashtable %s %p\n", varName, var);
 #endif
-  return TCL_CONTINUE;
+  } else {
+    /* We failed to find the variable, therefore we create it new */
+    Tcl_Obj *key = Tcl_NewStringObj(varName, -1);
+    
+    INCR_REF_COUNT(key);
+    var = (Tcl_Var)VarHashCreateVar(varTablePtr, key, &new);
+    DECR_REF_COUNT(key);
+#if defined(VAR_RESOLVER_TRACE)
+    fprintf(stderr, ".... created in hashtable %s %p\n", varName, var);
+#endif
+  }
+  *varPtr = var;
+  return TCL_OK;
 }
 
 #endif
@@ -5577,11 +5643,12 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 #if defined(TCL85STACK)
   if (cscPtr) {
     /* We have a call stack content, but the following dispatch will
-     * by itself no stack it; in order to get e.g. self working, we
+     * by itself not stack it; in order to get e.g. self working, we
      * have to stack at least an FRAME_IS_XOTCL_OBJECT.
      * TODO: maybe push should happen already before assertion checking,
      * but we have to check what happens in the finish target etc.
      */
+    /*fprintf(stderr, "XOTcl_PushFrameCsc %s %s\n",objectName(obj), methodName);*/
     XOTcl_PushFrameCsc(interp, obj, cscPtr);
     /*XOTcl_PushFrame(interp, obj);*/
   }
@@ -5652,12 +5719,16 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   ClientData cp = Tcl_Command_objClientData(cmd);
   XOTclCallStackContent csc, *cscPtr;
   register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
+
   int result;
 
   assert (!obj->teardown);
   /*fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d\n", methodName, cmd, cp, objc);*/
 
   if (proc == TclObjInterpProc) {
+    /* 
+       The cmd is a scripted method 
+    */
 #if defined(NRE)
     cscPtr = (XOTclCallStackContent *) TclStackAlloc(interp, sizeof(XOTclCallStackContent));
 # if defined(TCL_STACK_ALLOC_TRACE)
@@ -5666,9 +5737,6 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 #else
     cscPtr = &csc;
 #endif
-    /*
-     * invoke a Tcl-defined method
-     */
 #if defined(TCL85STACK)
     CallStackPush(cscPtr, obj, cl, cmd, frameType);
 #else
@@ -5684,12 +5752,14 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 #endif
     return result;
 
-  } else if (cp) {
+  } else if (cp || Tcl_Command_flags(cmd) & XOTCL_CMD_NONLEAF_METHOD) {
+    /* 
+       The cmd has client data or is an aliased method
+    */
     cscPtr = &csc;
 
     /*fprintf(stderr, "we could stuff obj %p %s\n", obj, objectName(obj));*/
 
-    /* some cmd with client data */
     if (proc == XOTclObjDispatch) {
       /*
        * invoke an aliased object via method interface
@@ -5722,16 +5792,19 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
       return TCL_ERROR;
 #endif
   } else {
-    /* a cmd without client data */
-    assert((CmdIsProc(cmd) == 0));
-    cp = clientData;
-    cscPtr = NULL;
+    /* 
+       The cmd has no client data
+    */
+    /*fprintf(stderr, "cmdMethodDispatch %s %s, nothing stacked\n",objectName(obj), methodName);*/
+
+    return CmdMethodDispatch(clientData, interp, objc, objv, methodName, obj, cmd, NULL);
   }
+  
   result = CmdMethodDispatch(cp, interp, objc, objv, methodName, obj, cmd, cscPtr);
-  if (cscPtr) {
-    /* make sure, that csc is still in the scope; therefore, csc is currently on the top scope of this function */
-    CallStackPop(interp, cscPtr);
-  }
+  /* make sure, that csc is still in the scope; therefore, csc is
+     currently on the top scope of this function */
+  CallStackPop(interp, cscPtr);
+
   return result;
 }
 
@@ -7756,12 +7829,6 @@ CleanupInitClass(Tcl_Interp *interp, XOTclClass *cl, Tcl_Namespace *namespacePtr
 
   /* Look for a configured default superclass */
   defaultSuperclass = DefaultSuperClass(interp, cl, cl->object.cl, 0);
-    /*
-      if (defaultSuperclass) {
-      fprintf(stderr, "default superclass= %s\n", className(defaultSuperclass));
-      } else {
-      fprintf(stderr, "empty super class\n");
-      }*/
 
   AddSuper(cl, defaultSuperclass);
   cl->color = WHITE;
@@ -10280,12 +10347,14 @@ xotclCmd alias XOTclAliasCmd {
   {-argName "object" -type object}
   {-argName "-per-object"}
   {-argName "methodName"}
+  {-argName "-nonleaf"}
   {-argName "-objscope"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
 */
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, 
-                         char *methodName, int withObjscope, Tcl_Obj *cmdName) {
+                         char *methodName, int withNonleaf, int withObjscope, 
+                         Tcl_Obj *cmdName) {
   Tcl_ObjCmdProc *objProc, *newObjProc = NULL;
   Tcl_CmdDeleteProc *deleteProc = NULL;
   AliasCmdClientData *tcd = NULL; /* make compiler happy */
@@ -10409,6 +10478,12 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_ob
     Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
     AliasAdd(interp, object->cmdName, methodName, cl == NULL, Tcl_DStringValue(dsPtr));
     Tcl_DStringFree(dsPtr);
+
+    if (!withObjscope && withNonleaf) {
+      Tcl_Command_flags(newCmd) |= XOTCL_CMD_NONLEAF_METHOD;
+      fprintf(stderr, "setting aliased for cmd %p %s flags %.6x, tcd = %p\n",
+              newCmd,methodName,Tcl_Command_flags(newCmd), tcd);
+    }
 
     result = ListMethodName(interp, object, cl == NULL, methodName);
   }
@@ -11934,6 +12009,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
 
     /* special setter for init commands */
     if (paramPtr->flags & (XOTCL_ARG_INITCMD|XOTCL_ARG_METHOD)) {
+
       if (paramPtr->flags & XOTCL_ARG_INITCMD) {
         result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
       } else {
@@ -11965,6 +12041,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
 
   /* call residualargs only, when we have varargs and left over arguments */
   if (pc.varArgs && remainingArgsc > 0) {
+
     result = callMethod((ClientData) obj, interp,
                         XOTclGlobalObjects[XOTE_RESIDUALARGS], remainingArgsc+2, pc.full_objv + i-1, 0);
     if (result != TCL_OK) {

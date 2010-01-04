@@ -243,7 +243,7 @@ static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, T
 static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, char *varname);
-static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, char *methodName, int withObjscope, Tcl_Obj *cmdName);
+static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, char *methodName, int withNonleaf, int withObjscope, Tcl_Obj *cmdName);
 static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int assertionsubcmd, Tcl_Obj *arg);
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
 static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass);
@@ -1508,11 +1508,12 @@ XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
     int withPer_object = (int )PTR2INT(pc.clientData[1]);
     char *methodName = (char *)pc.clientData[2];
-    int withObjscope = (int )PTR2INT(pc.clientData[3]);
-    Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[4];
+    int withNonleaf = (int )PTR2INT(pc.clientData[3]);
+    int withObjscope = (int )PTR2INT(pc.clientData[4]);
+    Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[5];
 
     parseContextRelease(&pc);
-    return XOTclAliasCmd(interp, object, withPer_object, methodName, withObjscope, cmdName);
+    return XOTclAliasCmd(interp, object, withPer_object, methodName, withNonleaf, withObjscope, cmdName);
 
   }
 }
@@ -2183,10 +2184,11 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::Object::vwait", XOTclOVwaitMethodStub, 1, {
   {"varname", 1, 0, convertToString}}
 },
-{"::xotcl::alias", XOTclAliasCmdStub, 5, {
+{"::xotcl::alias", XOTclAliasCmdStub, 6, {
   {"object", 0, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"methodName", 0, 0, convertToString},
+  {"-nonleaf", 0, 0, convertToString},
   {"-objscope", 0, 0, convertToString},
   {"cmdName", 1, 0, convertToTclobj}}
 },
