@@ -879,18 +879,6 @@ XOTclCleanupObject(XOTclObject *obj) {
   }
 }
 
-/*
- * prints a msg to the screen that oldCmd is deprecated
- * optinal: give a new cmd
- */
-static int
-XOTclDeprecatedCmd(Tcl_Interp *interp, char *what, char *oldCmd, char *newCmd) {
-  fprintf(stderr, "**\n**\n** The %s <%s> is deprecated.\n", what, oldCmd);
-  if (newCmd)
-    fprintf(stderr, "** Use <%s> instead.\n", newCmd);
-  fprintf(stderr, "**\n");
-  return TCL_OK;
-}
 
 /*
  *  Tcl_Obj functions for objects
@@ -8684,7 +8672,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         }
       }
       /*fprintf(stderr, "nrElements=%d, nra=%d firstPos %d objc %d\n",
-        nrElements , nrArgs, firstPosArg, objc);*/
+        nrElements, nrArgs, firstPosArg, objc);*/
 
       if (nrElements > nrPosArgs) {
         /* insert default subcommand depending on number of arguments */
@@ -10541,6 +10529,12 @@ static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int subcmd
   return TCL_OK;
 }
 
+/*
+xotclCmd configure XOTclConfigureCmd {
+  {-argName "configureoption" -required 1 -type "filter|softrecreate|cacheinterface"}
+  {-argName "value" -required 0 -type tclobj}
+}
+*/
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value) {
   int bool;
 
@@ -10575,86 +10569,12 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
 }
 
 /*
-xotclCmd forward XOTclForwardCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "-per-object"}
-  {-argName "method" -required 1 -type tclobj}
-  {-argName "-default" -nrargs 1 -type tclobj}
-  {-argName "-earlybinding"}
-  {-argName "-methodprefix" -nrargs 1 -type tclobj}
-  {-argName "-objscope"}
-  {-argName "-onerror" -nrargs 1 -type tclobj}
-  {-argName "-verbose"}
-  {-argName "target" -type tclobj}
-  {-argName "args" -type args}
+xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
+  {-argName "rootClass" -required 1 -type tclobj}
+  {-argName "rootMetaClass" -required 1 -type tclobj}
 }
 */
-static int XOTclForwardCmd(Tcl_Interp *interp, 
-                           XOTclObject *object, int withPer_object,
-                           Tcl_Obj *method,
-                           Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-                           int withObjscope, Tcl_Obj *withOnerror, int withVerbose, 
-                           Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  forwardCmdClientData *tcd;
-  int result;
-
-  result = forwardProcessOptions(interp, method,
-                                 withDefault, withEarlybinding, withMethodprefix,
-                                 withObjscope, withOnerror, withVerbose,
-                                 target, nobjc, nobjv, &tcd);
-  if (result == TCL_OK) {
-    CONST char *methodName = NSTail(ObjStr(method));
-    XOTclClass *cl = 
-      (withPer_object || ! XOTclObjectIsClass(object)) ? 
-      NULL : (XOTclClass *)object;
-    
-    tcd->obj = object;
-    if (cl == NULL) {
-      result = XOTclAddObjectMethod(interp, (XOTcl_Object *)object, methodName,
-                                    (Tcl_ObjCmdProc*)XOTclForwardMethod,
-                                    (ClientData)tcd, forwardCmdDeleteProc, 0);
-    } else {
-      result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName,
-                                      (Tcl_ObjCmdProc*)XOTclForwardMethod,
-                                      (ClientData)tcd, forwardCmdDeleteProc, 0);
-    }
-    if (result == TCL_OK) {
-      result = ListMethodName(interp, object, cl == NULL, methodName);
-    }
-  }
-  return result;
-}
-
-/*
-xotclCmd method XOTclMethodCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "-inner-namespace"}
-  {-argName "-per-object"}
-  {-argName "-public"}
-  {-argName "name" -required 1 -type tclobj}
-  {-argName "args" -required 1 -type tclobj}
-  {-argName "body" -required 1 -type tclobj}
-  {-argName "-precondition"  -nrargs 1 -type tclobj}
-  {-argName "-postcondition" -nrargs 1 -type tclobj}
-}
-*/
-static int XOTclMethodCmd(Tcl_Interp *interp, XOTclObject *object,
-                          int withInner_namespace, int withPer_object, int withPublic,
-                          Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
-                          Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
-  XOTclClass *cl = 
-    (withPer_object || ! XOTclObjectIsClass(object)) ? 
-    NULL : (XOTclClass *)object;
-
-  if (cl == 0) {
-    requireObjNamespace(interp, object);
-  }
-  return MakeMethod(interp, object, cl, name, args, body,
-                    withPrecondition, withPostcondition,
-                    withPublic, withInner_namespace);
-}
-
-int
+static int
 XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class) {
   XOTclClass *theobj;
   XOTclClass *thecls;
@@ -10698,7 +10618,34 @@ XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class) 
   return TCL_OK;
 }
 
+/*
+xotclCmd deprecated XOTclDeprecatedCmd {
+  {-argName "what" -required 1}
+  {-argName "oldCmd" -required 1}
+  {-argName "newCmd" -required 0}
+}
+*/
+/*
+ * Prints a msg to the screen that oldCmd is deprecated
+ * optinal: give a new cmd
+ */
+static int
+XOTclDeprecatedCmd(Tcl_Interp *interp, char *what, char *oldCmd, char *newCmd) {
+  fprintf(stderr, "**\n**\n** The %s <%s> is deprecated.\n", what, oldCmd);
+  if (newCmd)
+    fprintf(stderr, "** Use <%s> instead.\n", newCmd);
+  fprintf(stderr, "**\n");
+  return TCL_OK;
+}
 
+/*
+xotclCmd dispatch XOTclDispatchCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-objscope"}
+  {-argName "command" -required 1 -type tclobj}
+  {-argName "args"  -type args}
+}
+*/
 static int
 XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, 
                  Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
@@ -10801,13 +10748,37 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
 }
 
 /*
- * ::xotcl::exists command
- */
+xotclCmd dot XOTclDotCmd {
+  {-argName "args" -type allargs}
+}
+*/
+static int XOTclDotCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  XOTclObject *self = GetSelfObj(interp);
+
+  if (!self) {
+    return XOTclVarErrMsg(interp, "Cannot resolve 'self', probably called outside the context of an XOTcl Object",
+                          (char *) NULL);
+  }
+  /*fprintf(stderr, "dispatch %s on %s\n", ObjStr(nobjv[0]), objectName(self));*/
+  return ObjectDispatch(self, interp, nobjc, nobjv, XOTCL_CM_NO_SHIFT);
+}
+
+/*
+xotclCmd exists XOTclExistsCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "var" -required 1}
+}
+*/
 static int XOTclExistsCmd(Tcl_Interp *interp, XOTclObject *obj, char *var) {
   Tcl_SetIntObj(Tcl_GetObjResult(interp), varExists(interp, obj, var, NULL, 1, 1));
   return TCL_OK;
 }
 
+
+/*
+xotclCmd finalize XOTclFinalizeObjCmd {
+}
+*/
 /*
  * ::xotcl::finalize command
  */
@@ -10844,6 +10815,63 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
   return TCL_OK;
 }
 
+/*
+xotclCmd forward XOTclForwardCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-per-object"}
+  {-argName "method" -required 1 -type tclobj}
+  {-argName "-default" -nrargs 1 -type tclobj}
+  {-argName "-earlybinding"}
+  {-argName "-methodprefix" -nrargs 1 -type tclobj}
+  {-argName "-objscope"}
+  {-argName "-onerror" -nrargs 1 -type tclobj}
+  {-argName "-verbose"}
+  {-argName "target" -type tclobj}
+  {-argName "args" -type args}
+}
+*/
+static int XOTclForwardCmd(Tcl_Interp *interp, 
+                           XOTclObject *object, int withPer_object,
+                           Tcl_Obj *method,
+                           Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
+                           int withObjscope, Tcl_Obj *withOnerror, int withVerbose, 
+                           Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  forwardCmdClientData *tcd;
+  int result;
+
+  result = forwardProcessOptions(interp, method,
+                                 withDefault, withEarlybinding, withMethodprefix,
+                                 withObjscope, withOnerror, withVerbose,
+                                 target, nobjc, nobjv, &tcd);
+  if (result == TCL_OK) {
+    CONST char *methodName = NSTail(ObjStr(method));
+    XOTclClass *cl = 
+      (withPer_object || ! XOTclObjectIsClass(object)) ? 
+      NULL : (XOTclClass *)object;
+    
+    tcd->obj = object;
+    if (cl == NULL) {
+      result = XOTclAddObjectMethod(interp, (XOTcl_Object *)object, methodName,
+                                    (Tcl_ObjCmdProc*)XOTclForwardMethod,
+                                    (ClientData)tcd, forwardCmdDeleteProc, 0);
+    } else {
+      result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName,
+                                      (Tcl_ObjCmdProc*)XOTclForwardMethod,
+                                      (ClientData)tcd, forwardCmdDeleteProc, 0);
+    }
+    if (result == TCL_OK) {
+      result = ListMethodName(interp, object, cl == NULL, methodName);
+    }
+  }
+  return result;
+}
+
+/*
+xotclCmd importvar XOTclImportvarCmd {
+  {-argName "object" -type object}
+  {-argName "args" -type args}
+}
+*/
 static int
 XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]) {
   int i, result = TCL_OK;
@@ -10876,6 +10904,12 @@ XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CO
   return result;
 }
 
+/*
+xotclCmd interp XOTclInterpObjCmd {
+  {-argName "name"}
+  {-argName "args" -type allargs}
+}
+*/
 /* create a slave interp that calls XOTcl Init */
 static int
 XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]) {
@@ -10915,7 +10949,13 @@ XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[
   return TCL_ERROR;
 }
 
-
+/*
+xotclCmd is XOTclIsCmd {
+  {-argName "object" -required 1 -type tclobj}
+  {-argName "objectkind" -type "type|object|class|metaclass|mixin"}
+  {-argName "value" -required 0 -type tclobj}
+}
+*/
 static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_Obj *value) {
   int success = TCL_ERROR;
   XOTclObject *obj;
@@ -10956,6 +10996,35 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_O
 
   Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
   return TCL_OK;
+}
+
+/*
+xotclCmd method XOTclMethodCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "-inner-namespace"}
+  {-argName "-per-object"}
+  {-argName "-public"}
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "args" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+  {-argName "-precondition"  -nrargs 1 -type tclobj}
+  {-argName "-postcondition" -nrargs 1 -type tclobj}
+}
+*/
+static int XOTclMethodCmd(Tcl_Interp *interp, XOTclObject *object,
+                          int withInner_namespace, int withPer_object, int withPublic,
+                          Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body,
+                          Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
+  XOTclClass *cl = 
+    (withPer_object || ! XOTclObjectIsClass(object)) ? 
+    NULL : (XOTclClass *)object;
+
+  if (cl == 0) {
+    requireObjNamespace(interp, object);
+  }
+  return MakeMethod(interp, object, cl, name, args, body,
+                    withPrecondition, withPostcondition,
+                    withPublic, withInner_namespace);
 }
 
 /*
@@ -11039,11 +11108,6 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int w
       paramDefs = NEW(XOTclParamDefs);
       memset(paramDefs, 0, sizeof(XOTclParamDefs));
       ParamDefsStore(interp, cmd, paramDefs);
-      /* TODO check:
-         handle cases: cmd is not a proc.
-	 what happens if first method property and then method.
-	 what happens if method then property then new method?
-      */
     } else {
       fprintf(stderr, "define slotobj for a method with nonpospargs\n slotobj = %s \n", ObjStr(value));
       if (paramDefs->slotObj) {
@@ -11057,6 +11121,13 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int w
   return TCL_OK;
 }
 
+/*
+xotclCmd my XOTclMyCmd {
+  {-argName "-local"}
+  {-argName "method" -required 1 -type tclobj}
+  {-argName "args" -type args}
+}
+*/
 static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]) {
   XOTclObject *self = GetSelfObj(interp);
   int result;
@@ -11083,17 +11154,12 @@ static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int no
   return result;
 }
 
-static int XOTclDotCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  XOTclObject *self = GetSelfObj(interp);
-
-  if (!self) {
-    return XOTclVarErrMsg(interp, "Cannot resolve 'self', probably called outside the context of an XOTcl Object",
-                          (char *) NULL);
-  }
-  /*fprintf(stderr, "dispatch %s on %s\n", ObjStr(nobjv[0]), objectName(self));*/
-  return ObjectDispatch(self, interp, nobjc, nobjv, XOTCL_CM_NO_SHIFT);
+/*
+xotclCmd namespace_copycmds XOTclNSCopyCmds {
+  {-argName "fromNs" -required 1 -type tclobj}
+  {-argName "toNs" -required 1 -type tclobj}
 }
-
+*/
 static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   Tcl_Command cmd;
   Tcl_Obj *newFullCmdName, *oldFullCmdName;
@@ -11299,6 +11365,12 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   return TCL_OK;
 }
 
+/*
+xotclCmd namespace_copyvars XOTclNSCopyVars {
+  {-argName "fromNs" -required 1 -type tclobj}
+  {-argName "toNs" -required 1 -type tclobj}
+}
+*/
 static int
 XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   Tcl_Namespace *fromNsPtr, *toNsPtr;
@@ -11406,6 +11478,11 @@ XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   return TCL_OK;
 }
 
+/*
+xotclCmd __qualify XOTclQualifyObjCmd {
+  {-argName "name" -required 1 -type tclobj}
+}
+*/
 static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
   char *nameString = ObjStr(name);
 
@@ -11417,8 +11494,15 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
   return TCL_OK;
 }
 
- static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, 
-                             int relationtype, Tcl_Obj *value) {
+/*
+xotclCmd relation XOTclRelationCmd {
+  {-argName "object" -type object}
+  {-argName "relationtype" -required 1 -type "mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class-filter|class|superclass|rootclass"}
+  {-argName "value" -required 0 -type tclobj}
+}
+*/
+static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, 
+                            int relationtype, Tcl_Obj *value) {
   int oc; Tcl_Obj **ov;
   XOTclObject *nobj = NULL;
   XOTclClass *cl = NULL;
@@ -11665,6 +11749,11 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
   return TCL_OK;
 }
 
+/*
+xotclCmd self XOTclGetSelfObjCmd {
+  {-argName "selfoption" -required 0 -type "proc|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
+}
+*/
 static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
   XOTclObject *obj =  GetSelfObj(interp);
   XOTclCallStackContent *csc;
@@ -11805,9 +11894,15 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
   return result;
 }
 
-
+/*
+xotclCmd setinstvar XOTclSetInstvarCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "variable" -required 1 -type tclobj}
+  {-argName "value" -required 0 -type tclobj}
+}
+*/
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value) {
-  return setInstVar(interp, object , variable, value);
+  return setInstVar(interp, object, variable, value);
 }
 
 /* 
@@ -11833,7 +11928,6 @@ static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object,  int withPer_
   }
   return result;
 }
-
 /***************************
  * End generated XOTcl commands
  ***************************/
@@ -13020,7 +13114,7 @@ static int XOTclClassInfoInstancesMethod1(Tcl_Interp *interp, XOTclClass *startC
        hPtr = Tcl_NextHashEntry(&search)) {
     XOTclObject *inst = (XOTclObject*) Tcl_GetHashKey(table, hPtr);
     /*fprintf(stderr, "match '%s' %p %p '%s'\n",
-      matchObject ? objectName(matchObject) : "NULL" , matchObject, inst, objectName(inst));*/
+      matchObject ? objectName(matchObject) : "NULL", matchObject, inst, objectName(inst));*/
     if (matchObject && inst == matchObject) {
       Tcl_SetObjResult(interp, matchObject->cmdName);
       return 1;

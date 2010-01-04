@@ -70,13 +70,13 @@ xotclCmd forward XOTclForwardCmd {
   {-argName "target" -type tclobj}
   {-argName "args" -type args}
 }
-xotclCmd interp XOTclInterpObjCmd {
-  {-argName "name"}
-  {-argName "args" -type allargs}
-}
 xotclCmd importvar XOTclImportvarCmd {
   {-argName "object" -type object}
   {-argName "args" -type args}
+}
+xotclCmd interp XOTclInterpObjCmd {
+  {-argName "name"}
+  {-argName "args" -type allargs}
 }
 xotclCmd is XOTclIsCmd {
   {-argName "object" -required 1 -type tclobj}
