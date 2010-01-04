@@ -2785,12 +2785,14 @@ AssertionList(Tcl_Interp *interp, XOTclTclObjList *alist) {
 static void
 AssertionAppendPrePost(Tcl_Interp *interp, Tcl_DString *dsPtr, XOTclProcAssertion *procs) {
   if (procs) {
-    Tcl_Obj *preAss = AssertionList(interp, procs->pre);
-    Tcl_Obj *postAss = AssertionList(interp, procs->post);
-    INCR_REF_COUNT(preAss); INCR_REF_COUNT(postAss);
-    Tcl_DStringAppendElement(dsPtr, ObjStr(preAss));
-    Tcl_DStringAppendElement(dsPtr, ObjStr(postAss));
-    DECR_REF_COUNT(preAss); DECR_REF_COUNT(postAss);
+    Tcl_Obj *preCondition = AssertionList(interp, procs->pre);
+    Tcl_Obj *postCondition = AssertionList(interp, procs->post);
+    INCR_REF_COUNT(preCondition); INCR_REF_COUNT(postCondition);
+    Tcl_DStringAppendElement(dsPtr, "-precondition");
+    Tcl_DStringAppendElement(dsPtr, ObjStr(preCondition));
+    Tcl_DStringAppendElement(dsPtr, "-postcondition");
+    Tcl_DStringAppendElement(dsPtr, ObjStr(postCondition));
+    DECR_REF_COUNT(preCondition); DECR_REF_COUNT(postCondition);
   }
 }
 
@@ -11291,23 +11293,13 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
           Tcl_DString ds, *dsPtr = &ds;
 
           if (cl) {
-            /* we have a class */
-            XOTclProcAssertion *procs;
-
-            if (cl) {
-              procs = cl->opt ?
-                AssertionFindProcs(cl->opt->assertions, name) : 0;
-            } else {
-              DECR_REF_COUNT(newFullCmdName);
-              DECR_REF_COUNT(oldFullCmdName);
-              DECR_REF_COUNT(arglistObj);
-              return XOTclVarErrMsg(interp, "No class for class - assertions", (char *) NULL);
-            }
-
             /* XOTcl class-methods */
+            XOTclProcAssertion *procs;
+            procs = cl->opt ? AssertionFindProcs(cl->opt->assertions, name) : 0;
+            
             DSTRING_INIT(dsPtr);
+            Tcl_DStringAppendElement(dsPtr, "::xotcl::method");
             Tcl_DStringAppendElement(dsPtr, NSCutXOTclClasses(toNsPtr->fullName));
-            Tcl_DStringAppendElement(dsPtr, "instproc");
             Tcl_DStringAppendElement(dsPtr, name);
             Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
             Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
@@ -11317,12 +11309,14 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
             }
             Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
             DSTRING_FREE(dsPtr);
+
           } else {
+            /* XOTcl object-methods */
             XOTclObject *obj = XOTclpGetObject(interp, fromNsPtr->fullName);
             XOTclProcAssertion *procs;
+
             if (obj) {
-              procs = obj->opt ?
-                AssertionFindProcs(obj->opt->assertions, name) : 0;
+              procs = obj->opt ? AssertionFindProcs(obj->opt->assertions, name) : 0;
             } else {
               DECR_REF_COUNT(newFullCmdName);
               DECR_REF_COUNT(oldFullCmdName);
@@ -11330,10 +11324,10 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
               return XOTclVarErrMsg(interp, "No object for assertions", (char *) NULL);
             }
 
-            /* XOTcl Proc */
             DSTRING_INIT(dsPtr);
+            Tcl_DStringAppendElement(dsPtr, "::xotcl::method");
             Tcl_DStringAppendElement(dsPtr, toNsPtr->fullName);
-            Tcl_DStringAppendElement(dsPtr, "proc");
+            Tcl_DStringAppendElement(dsPtr, "-per-object");
             Tcl_DStringAppendElement(dsPtr, name);
             Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
             Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
@@ -11341,7 +11335,6 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
               XOTclRequireObjectOpt(obj);
               AssertionAppendPrePost(interp, dsPtr, procs);
             }
-            /*fprintf(stderr, "new proc = '%s'\n", Tcl_DStringValue(dsPtr));*/
             Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
             DSTRING_FREE(dsPtr);
           }
