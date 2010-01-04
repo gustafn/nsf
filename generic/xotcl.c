@@ -5852,10 +5852,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     objflags = obj->flags;
   }
 
-    /* Only start new filter chain, if
-       (a) filters are defined and
-       (b) the toplevel csc entry is not an filter on self
-    */
+  /* Only start new filter chain, if
+     (a) filters are defined and
+     (b) the toplevel csc entry is not an filter on self
+  */
 
   if (((objflags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID) == XOTCL_FILTER_ORDER_DEFINED_AND_VALID)
       && rst->doFilters
@@ -5902,6 +5902,22 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       }
     }
   }
+
+  /* check if an absolute method name was provided */
+  if (*methodName == ':') {
+    cmd = Tcl_GetCommandFromObj(interp, methodObj);
+   if (cmd) {
+     CONST char *mn = Tcl_GetCommandName(interp, cmd);
+     if (isClassName(methodName)) {
+       char *className = NSCutXOTclClasses(methodName);
+       Tcl_DString ds, *dsPtr = &ds;
+       DSTRING_INIT(dsPtr);
+       Tcl_DStringAppend(dsPtr, className, strlen(className)-strlen(mn)-2);
+       cl = (XOTclClass *)XOTclpGetObject(interp, Tcl_DStringValue(dsPtr));
+       DSTRING_FREE(dsPtr);
+     }
+   }
+ }
 
   /* if no filter/mixin is found => do ordinary method lookup */
   if (cmd == NULL) {
