@@ -14,7 +14,7 @@ namespace eval ::xotcl {
   # provide the standard command set for ::xotcl::Object
   foreach cmd [info command ::xotcl::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "setter"]} continue
+    if {$cmdName in [list "filtersearch" "setter"]} continue
     ::xotcl::alias Object $cmdName $cmd
   }
 
@@ -333,16 +333,30 @@ namespace eval ::xotcl {
       if {[::info exists pattern]} {lappend cmd $pattern}
       eval $cmd
     }
+    # object filter mapping
+    .proc filter {o -order:switch -guards:switch pattern:optional} {
+      set guardsFlag [expr {$guards ? "-guards" : ""}]
+      set patternArg [expr {[info exists pattern] ? [list $pattern] : ""}]
+      if {$order && !$guards} {
+        set def [::xotcl::cmd::ObjectInfo::filter $o -order {*}$guardsFlag {*}$patternArg]
+        #puts stderr "TO CONVERT: $def"
+        set def [filterorder_list_to_xotcl1 $def]
+      } else {
+        set def [::xotcl::cmd::ObjectInfo::filter $o {*}$guardsFlag {*}$patternArg]
+      }
+      #puts stderr "  => $def"
+      return $def
+    }
     # assertion handling
-    .proc check       {o} {
+    .proc check {o} {
       ::xotcl::checkoption_internal_to_xotcl1 [::xotcl::assertion $o check]
     }
-    .proc invar       {o} {::xotcl::assertion $o object-invar}
+    .proc invar {o} {::xotcl::assertion $o object-invar}
   }
 
   foreach cmd [::info command ::xotcl::cmd::ObjectInfo::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "callable" "method" "methods"]} continue
+    if {$cmdName in [list "callable" "filter" "method" "methods"]} continue
     ::xotcl::alias ::xotcl::objectInfo $cmdName $cmd
     ::xotcl::alias ::xotcl::classInfo $cmdName $cmd
   }
@@ -372,6 +386,7 @@ namespace eval ::xotcl {
   # define info methods from objectInfo on classInfo as well
   ::xotcl::alias classInfo body     objectInfo::body
   ::xotcl::alias classInfo commands objectInfo::commands
+  ::xotcl::alias classInfo filter   objectInfo::filter
   ::xotcl::alias classInfo methods  objectInfo::methods
   ::xotcl::alias classInfo procs    objectInfo::procs
   ::xotcl::alias classInfo pre      objectInfo::pre
@@ -429,6 +444,33 @@ namespace eval ::xotcl {
     }
     return $options
   }
+  proc filterorder_list_to_xotcl1 definitions {
+    set defs [list]
+    foreach def $definitions {lappend defs [filterorder_to_xotcl1 $def]}
+    return $defs
+  }
+  proc filterorder_to_xotcl1 definition {
+    if {$definition ne ""} {
+      set modifier [lindex $definition 1]
+      if {$modifier eq "object"} {
+        set prefix ""
+        set kind [lindex $definition 2]
+        set name [lindex $definition 3]
+      } else {
+        set prefix "inst"
+        set kind $modifier
+        set name [lindex $definition 2]
+      }
+      if {$kind eq "method"} {
+        set kind proc
+      } elseif {$kind eq "setter"} {
+        set kind parametercmd
+      }
+      set definition [list [lindex $definition 0] ${prefix}$kind $name]
+    }
+    return $definition
+  }
+ 
 
   Object instproc check {checkoptions} {
     ::xotcl::assertion [self] check [::xotcl::checkoption_xotcl1_to_internal $checkoptions]
@@ -452,6 +494,10 @@ namespace eval ::xotcl {
   Object instproc hasclass cl {
     if {[::xotcl::is [self] mixin $cl]} {return 1}
     ::xotcl::is [self] type $cl
+  }
+  Object instproc filtersearch {filter} {
+    set definition [::xotcl::dispatch [self] ::xotcl::cmd::Object::filtersearch $filter]
+    return [filterorder_to_xotcl1 $definition]
   }
   Object instproc procsearch {name} {
     set definition [::xotcl::cmd::ObjectInfo::callable [self] -which $name]

@@ -189,6 +189,18 @@ describe, what <code>::xotcl::use</code> does
 <h2>Object Parameters</h2>
 <h2>Method Parameters</h2>
 <h2>Introspection</h2>
+<table border=1>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+    <tr>
+    <td><code><i>someObject</i> info methods <i>?pattern?</i></code></td>
+    <td><code><i>someObject</i> info callable <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>someObject</i> procsearch <i>methodName</i></code></td>
+    <td><code><i>someObject</i> info callable -which <i>methodName</i></code></td>
+  </tr>
+</table>
+  
 <h2>Predefined Methods</h2>
 <h2>Dispatch, Aliases, etc.</h2>
 <h2>Assertions</h2>
@@ -236,5 +248,5 @@ describe, what <code>::xotcl::use</code> does
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Sun Jan  3 18:26:04 CET 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Mon Jan  4 21:25:17 CET 2010 <!-- hhmts end -->
 </body> </html>

@@ -774,9 +774,10 @@ TestX filterGuards -proc run {{n 20}} {
       ::errorCheck [b info filter -order]-[a info filter -order] "{::B instproc f1} {::B instproc f2} {::A instproc f1} {::A instproc fx}-{::a proc x} {::A instproc f1} {::A instproc fx}" \
 	{[self] -- Filter guard: -order option}
 
-	::errorCheck [b info filter -order -guards]-[a info filter -order -guards] {{f1 -guard {[self] eq "::b"}} {f2 -guard 0} f1 fx-x f1 fx} \
-	{[self] -- Filter guard: -order -guards options}
-
+      ::errorCheck [b info filter -order -guards] {{f1 -guard {[self] eq "::b"}} {f2 -guard 0}} \
+          "filter order guards 1"
+      ::errorCheck [a info filter -order -guards] {x} \
+          "filter order guards 2"
 
 	Class Foo
 	Foo instproc init {args} {my set bar hello}
@@ -1422,7 +1423,7 @@ TestX nextTest -proc run {{n 20}} {
 	  next
 	}
 	y n
-	::errorCheck $infoNext " ::y+::Y->m*<> ::y+::Y->n*<::X instproc n> ::y+::X->n*<> ::y+->n*<::Y instproc n> ::y+::Y->n*<::X instproc n> ::y+::X->n*<>" \
+	::errorCheck $infoNext " ::y+::Y->m*<> ::y+::Y->n*<::X method n> ::y+::X->n*<> ::y+->n*<::Y method n> ::y+::Y->n*<::X method n> ::y+::X->n*<>" \
 	  "simple self next test"
 	set infoNext ""
 	set result ""
@@ -1462,7 +1463,7 @@ TestX nextTest -proc run {{n 20}} {
 	X x -test 
 	::errorCheck $result "-::x-::x-" \
 	    "Next Test X -- Wrong result"
-	::errorCheck $infoNext " 2::b0+::B->m*<::A instproc m> 2::b+::B->m*<::A instproc m> 1::x+::X->init*<::xotcl::Object instproc init>" \
+	::errorCheck $infoNext " 2::b0+::B->m*<::A method m> 2::b+::B->m*<::A method m> 1::x+::X->init*<::xotcl::Object method init>" \
 	    "self next test 2"
 	X destroy
 	x destroy
@@ -1484,7 +1485,7 @@ TestX nextTest -proc run {{n 20}} {
 	}
 	set result ""
 	o mProc
-	::errorCheck $result "::o-::MIX-::o proc mProc::o--" \
+	::errorCheck $result "::o-::MIX-::o object method mProc::o--" \
 	    "Next Test Proc & Mixin"
 
 	o destroy; MIX destroy
@@ -2025,9 +2026,13 @@ TestX mixinTest -proc run {{n 10}} {
     zoom draw
   
     Object instfilter ""
+
+#     ::errorCheck $::calling \
+# 	"{filter f: ::mixinTest {} run draw {::MenuDecorator instproc draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class instforward instfilter}}" \
+# 	"Mixin: Calling-Obj/Cl/Proc failed"
     
     ::errorCheck $::calling \
-	"{filter f: ::mixinTest {} run draw {::MenuDecorator instproc draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class instforward instfilter}}" \
+	"{filter f: ::mixinTest {} run draw {::MenuDecorator method draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator method draw}} {m2 draw: ::mixinTest {} run {::Image method draw}} {image draw: ::mixinTest {} run {::GrObject method draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator method draw}} {m2 draw: ::mixinTest {} run {::Image method draw}} {image draw: ::mixinTest {} run {::GrObject method draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class forward instfilter}}" \
 	"Mixin: Calling-Obj/Cl/Proc failed"	
   
     ::errorCheck $::mixinResult \
@@ -2066,10 +2071,14 @@ TestX mixinTest -proc run {{n 10}} {
     
     callingObject callingProc
     
+#     ::errorCheck $::calling \
+# 	{self ::filteredObject {self proc} infoTraceFilter2 {self class} ::InfoTrace2 {self calledproc} set {self callingproc} callingProc {self callingobject} ::callingObject {self callingclass} ::CallingObjectsClass {self filterreg} {::FilterRegClass instfilter infoTraceFilter2} {self next} {::xotcl::Object instcmd set}} \
+# 	"call stack info" 
     ::errorCheck $::calling \
-	{self ::filteredObject {self proc} infoTraceFilter2 {self class} ::InfoTrace2 {self calledproc} set {self callingproc} callingProc {self callingobject} ::callingObject {self callingclass} ::CallingObjectsClass {self filterreg} {::FilterRegClass instfilter infoTraceFilter2} {self next} {::xotcl::Object instcmd set}} \
+	{self ::filteredObject {self proc} infoTraceFilter2 {self class} ::InfoTrace2 {self calledproc} set {self callingproc} callingProc {self callingobject} ::callingObject {self callingclass} ::CallingObjectsClass {self filterreg} {::FilterRegClass filter infoTraceFilter2} {self next} {::xotcl::Object cmd set}} \
 	"call stack info" 
     
+
     Class M1; Class M2; Class M3; Class M4
     Class A; Class B -superclass A; B b
     A instmixin {M1 M2}
@@ -3105,13 +3114,13 @@ smallScripts proc run {{n 20}} {
 
     ::errorCheck [lsort [b info methods]] "__next abstract append array autoname check class cleanup configure contains copy defaultmethod destroy eval exists extractConfigureArg f filter filterguard filtersearch forward hasclass incr info init instvar invar isclass ismetaclass ismixin isobject istype lappend method mixin mixinguard move myProc myProc2 myProcMix1 myProcMix2 noinit objectparameter objproc parametercmd proc procsearch requireNamespace residualargs self set setFilter signature subst trace unknown unset uplevel upvar volatile vwait"  "b info methods"
 
-    ::errorCheck [lsort [b info methods -nocmds]] "abstract check contains copy defaultmethod extractConfigureArg f hasclass init isclass ismetaclass ismixin isobject istype method move myProc myProc2 myProcMix1 myProcMix2 objectparameter objproc parametercmd proc procsearch self setFilter signature unknown" "b info methods -nocmds"
+    ::errorCheck [lsort [b info methods -nocmds]] "abstract check contains copy defaultmethod extractConfigureArg f filtersearch hasclass init isclass ismetaclass ismixin isobject istype method move myProc myProc2 myProcMix1 myProcMix2 objectparameter objproc parametercmd proc procsearch self setFilter signature unknown" "b info methods -nocmds"
 
-    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname class cleanup configure destroy eval exists filter filterguard filtersearch forward incr info instvar invar lappend mixin mixinguard noinit requireNamespace residualargs set subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
-    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract check contains copy defaultmethod extractConfigureArg f hasclass init isclass ismetaclass ismixin isobject istype method move myProc myProc2 objectparameter objproc parametercmd proc procsearch self setFilter signature unknown" "b info methods -nocmds -nomixins"
+    ::errorCheck [lsort [b info methods -noprocs]] "__next append array autoname class cleanup configure destroy eval exists filter filterguard forward incr info instvar invar lappend mixin mixinguard noinit requireNamespace residualargs set subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
+    ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract check contains copy defaultmethod extractConfigureArg f filtersearch hasclass init isclass ismetaclass ismixin isobject istype method move myProc myProc2 objectparameter objproc parametercmd proc procsearch self setFilter signature unknown" "b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "b info methods -nocmds -noprocs"
-    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances check contains copy defaultmethod extractConfigureArg f hasclass init instparametercmd instproc isclass ismetaclass ismixin isobject istype method move objectparameter parameter parametercmd proc procsearch self setFilter signature unknown uses" "B info methods -nocmds"
+    ::errorCheck [lsort [B info methods -nocmds]] "abstract allinstances check contains copy defaultmethod extractConfigureArg f filtersearch hasclass init instparametercmd instproc isclass ismetaclass ismixin isobject istype method move objectparameter parameter parametercmd proc procsearch self setFilter signature unknown uses" "B info methods -nocmds"
 
     namespace eval a {
 	proc o args {return o}
@@ -3337,7 +3346,7 @@ TestX objectReferences -proc run {{n 20}} {
     ::errorCheck [o mixin XY4] ::XY4 " __unknown XY4"
   }
 
-  ::errorCheck [UnknownClass info info] {valid options are: args, body, check, children, class, classchildren, classparent, commands, default, filter, filterguard, forward, hasnamespace, heritage, info, instances, instargs, instbody, instcommands, instdefault, instfilter, instfilterguard, instforward, instinvar, instmixin, instmixinguard, instmixinof, instnonposargs, instparametercmd, instpost, instpre, instprocs, invar, is, methods, mixin, mixinguard, mixinof, nonposargs, parameter, parametercmd, parent, post, pre, precedence, procs, slotobjects, slots, subclass, superclass, vars} "info info"
+  ::errorCheck [UnknownClass info info] {valid options are: args, body, check, children, class, classchildren, classparent, commands, default, filter, filterguard, forward, hasnamespace, heritage, info, instances, instargs, instbody, instcommands, instdefault, instfilter, instfilterguard, instforward, instinvar, instmixin, instmixinguard, instmixinof, instnonposargs, instparametercmd, instpost, instpre, instprocs, invar, is, methods, mixin, mixinguard, mixinof, nonposargs, parameter, parametercmd, parent, post, pre, precedence, procs, slotobjects, slots, subclass, superclass, vars} "UnknownClass info info"
 
   # clear unknown handler to avoid strange results later
   Class proc __unknown "" ""

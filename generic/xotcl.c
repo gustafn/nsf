@@ -2780,8 +2780,7 @@ AssertionList(Tcl_Interp *interp, XOTclTclObjList *alist) {
 
 
 
-/* append a string of pre and post assertions to a proc
-   or instproc body */
+/* append a string of pre and post assertions to a method body */
 static void
 AssertionAppendPrePost(Tcl_Interp *interp, Tcl_DString *dsPtr, XOTclProcAssertion *procs) {
   if (procs) {
@@ -3985,8 +3984,8 @@ MixinSearchMethodByName(Tcl_Interp *interp, XOTclCmdList *mixinList, char *name,
 /*
  * The search method implements filter search order for filter
  * and instfilter: first a given name is interpreted as fully
- * qualified instproc name. If no instproc is found, a proc is
- * search with fully name. Otherwise the simple name is searched
+ * qualified method name. If no method is found, a proc is
+ * searched with fully name. Otherwise the simple name is searched
  * on the heritage order: object (only for
  * per-object filters), class, meta-class
  */
@@ -4246,11 +4245,11 @@ GuardAddInheritedGuards(Tcl_Interp *interp, XOTclCmdList *dest,
 
     /*
      * if this is not a registered filter, it is an inherited filter, like:
-     *   Class A
-     *   A instproc f ...
-     *   Class B -superclass A
-     *   B instproc {{f {<guard>}}}
-     *   B instfilter f
+     *   Class create A
+     *   A method f ...
+     *   Class create B -superclass A
+     *   B method {{f {<guard>}}}
+     *   B filter f
      * -> get the guard from the filter that inherits it (here B->f)
      */
     if (!guardAdded) {
@@ -4464,29 +4463,18 @@ getFullProcQualifier(Tcl_Interp *interp, CONST char *cmdName,
 
   if (cl) {
     Tcl_ListObjAppendElement(interp, list, cl->object.cmdName);
-    /*fprintf(stderr, "current %p, dispatch %p, forward %p, parametermcd %p, is tcl %p\n",
-      objProc, XOTclObjDispatch, XOTclForwardMethod,
-      XOTclSetterMethod, CmdIsProc(cmd)); */
-    if (isTcl) {
-      Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_INSTPROC]);
-    } else if (objProc == XOTclForwardMethod) {
-      Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_INSTFORWARD]);
-    } else if (objProc == XOTclSetterMethod) {
-      Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_INSTPARAMETERCMD]);
-    } else {
-      Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_INSTCMD]);
-    }
   } else {
     Tcl_ListObjAppendElement(interp, list, obj->cmdName);
-    if (isTcl) {
-      Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_PROC]);
-    } else if (objProc == XOTclForwardMethod) {
-      Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_FORWARD]);
-    } else if (objProc == XOTclSetterMethod) {
-      Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_PARAMETERCMD]);
-    } else {
-      Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_CMD]);
-    }
+    Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_OBJECT]);
+  }
+  if (isTcl) {
+    Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_METHOD]);
+  } else if (objProc == XOTclForwardMethod) {
+    Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_FORWARD]);
+  } else if (objProc == XOTclSetterMethod) {
+    Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_SETTER]);
+  } else {
+    Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_CMD]);
   }
   Tcl_ListObjAppendElement(interp, list, procObj);
   return list;
@@ -4740,6 +4728,7 @@ FilterFindReg(Tcl_Interp *interp, XOTclObject *obj, Tcl_Command cmd) {
   /* search per-object filters */
   if (obj->opt && CmdListFindCmdInList(cmd, obj->opt->filters)) {
     Tcl_ListObjAppendElement(interp, list, obj->cmdName);
+    Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_OBJECT]);
     Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_FILTER]);
     Tcl_ListObjAppendElement(interp, list,
                              Tcl_NewStringObj(Tcl_GetCommandName(interp, cmd), -1));
@@ -4752,7 +4741,7 @@ FilterFindReg(Tcl_Interp *interp, XOTclObject *obj, Tcl_Command cmd) {
     if (opt && opt->instfilters) {
       if (CmdListFindCmdInList(cmd, opt->instfilters)) {
         Tcl_ListObjAppendElement(interp, list, pl->cl->object.cmdName);
-        Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_INSTFILTER]);
+        Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_FILTER]);
         Tcl_ListObjAppendElement(interp, list,
                                  Tcl_NewStringObj(Tcl_GetCommandName(interp, cmd), -1));
         return list;
