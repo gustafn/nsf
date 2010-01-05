@@ -321,7 +321,119 @@ describe, what <code>::xotcl::use</code> does
     <td><code><i>obj</i> info callable -which <i>methodName</i></code></td>
   </tr>
 </table>
- 
+
+<h4>List definition of scripted methods defined by classes</h4>
+
+<table border=1>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code><i>cls</i> info instbody <i>methodName</i></code></td>
+    <td><code><i>cls</i> info method body <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info instargs <i>methodName</i></code></td>
+    <td><code><i>cls</i> info method args <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info instnonposargs <i>methodName</i></code></td>
+    <td><code><i>cls</i> info method parameter <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info instdefault <i>methodName</i></code></td>
+    <td><code><i>cls</i> info method parameter <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info instpre <i>methodName</i></code></td>
+    <td><code><i>cls</i> info method precondition <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info instpost <i>methodName</i></code></td>
+    <td><code><i>cls</i> info method postcondition <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> info method definition <i>methodName</i></code></td>
+  </tr>  
+</table>
+
+<h4>List definition of scripted object specific methods</h4>
+
+<table>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code><i>obj</i> info body <i>methodName</i></code></td>
+    <td><code><i>obj</i> info method body <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>obj</i> info args <i>methodName</i></code></td>
+    <td><code><i>obj</i> info method args <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>obj</i> info nonposargs <i>methodName</i></code></td>
+    <td><code><i>obj</i> info method parameter <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>obj</i> info default <i>methodName</i></code></td>
+    <td><code><i>obj</i> info method parameter <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>obj</i> info pre <i>methodName</i></code></td>
+    <td><code><i>obj</i> info method precondition <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>obj</i> info post <i>methodName</i></code></td>
+    <td><code><i>obj</i> info method postcondition <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>obj</i> info method definition <i>methodName</i></code></td>
+  </tr>  
+</table>
+<p>For definition of class object specific methods, use modifier
+  <code>object</code> as shown in examples above.
+</p>
+
+<h4>List definition of methods defined by aliases, setters or forwarders</h4>
+<table>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>obj</i> info method definition <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> info method definition <i>methodName</i></code></td>
+  </tr  
+</table>
+
+<h4>List fully qualified name of method</h4>
+<table>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>obj</i> info method name <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> info method name <i>methodName</i></code></td>
+  </tr  
+</table>
+
+<h4>List type of a method</h4>
+<table>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>obj</i> info method type <i>methodName</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> info method type <i>methodName</i></code></td>
+  </tr  
+</table>
+
+
+
 <h2>Predefined Methods</h2>
 <h2>Dispatch, Aliases, etc.</h2>
 <h2>Assertions</h2>
@@ -369,5 +481,5 @@ describe, what <code>::xotcl::use</code> does
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Tue Jan  5 18:26:03 CET 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Tue Jan  5 19:00:20 CET 2010 <!-- hhmts end -->
 </body> </html>
