@@ -550,7 +550,7 @@ typedef struct XOTclClasses {
    every time they are used; now they are built once in XOTcl_Init */
 typedef enum {
   XOTE_EMPTY, XOTE_UNKNOWN, XOTE_CREATE, XOTE_DESTROY, XOTE_DEALLOC,
-    XOTE_ALLOC, XOTE_INIT, XOTE_INSTVAR, XOTE_INTERP, XOTE_AUTONAMES,
+    XOTE_ALLOC, XOTE_INIT, XOTE_INTERP, XOTE_AUTONAMES,
     XOTE_ZERO, XOTE_ONE, XOTE_MOVE, XOTE_SELF, XOTE_CLASS, XOTE_RECREATE,
     XOTE_SELF_CLASS, XOTE_SELF_PROC,
     XOTE_EXIT_HANDLER, XOTE_DEFAULTSUPERCLASS, XOTE_DEFAULTMETACLASS,
@@ -571,7 +571,7 @@ extern char *XOTclGlobalStrings[];
 #else
 char *XOTclGlobalStrings[] = {
   "", "unknown", "create", "destroy", "dealloc",
-  "alloc", "init", "instvar", "interp", "__autonames",
+  "alloc", "init", "interp", "__autonames",
   "0", "1", "move", "self", "class", "recreate",
   "self class", "self proc",
   "__exitHandler", "__default_superclass", "__default_metaclass",

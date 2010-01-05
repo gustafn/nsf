@@ -53,7 +53,7 @@ XotclStubs xotclStubs = {
     XOTclRemoveIMethod, /* 14 */
     XOTclOSetInstVar, /* 15 */
     XOTclOGetInstVar, /* 16 */
-    XOTclInstVar, /* 17 */
+    NULL, /* 17 */
     NULL, /* 18 */
     XOTcl_ObjSetVar2, /* 19 */
     XOTcl_ObjGetVar2, /* 20 */

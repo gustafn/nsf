@@ -79,10 +79,10 @@ declare 16 generic {
     Tcl_Obj *XOTclOGetInstVar(struct XOTcl_Object *obj, Tcl_Interp *interp,
 	       Tcl_Obj *name, int flgs)
 }
-declare 17 generic {
-    int	XOTclInstVar(struct XOTcl_Object *obj, Tcl_Interp *interp,
-	     char *name, char *destName)
-}
+#declare 17 generic {
+#    int	XOTclInstVar(struct XOTcl_Object *obj, Tcl_Interp *interp,
+#	     char *name, char *destName)
+#}
 #declare 18 generic {
 #
 #}

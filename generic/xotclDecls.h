@@ -101,13 +101,7 @@ EXTERN Tcl_Obj *	XOTclOGetInstVar (struct XOTcl_Object * obj,
 				Tcl_Interp * interp, Tcl_Obj * name, 
 				int flgs);
 #endif
-#ifndef XOTclInstVar_TCL_DECLARED
-#define XOTclInstVar_TCL_DECLARED
-/* 17 */
-EXTERN int		XOTclInstVar (struct XOTcl_Object * obj, 
-				Tcl_Interp * interp, char * name, 
-				char * destName);
-#endif
+/* Slot 17 is reserved */
 /* Slot 18 is reserved */
 #ifndef XOTcl_ObjSetVar2_TCL_DECLARED
 #define XOTcl_ObjSetVar2_TCL_DECLARED
@@ -277,7 +271,7 @@ typedef struct XotclStubs {
     int (*xOTclRemoveIMethod) (Tcl_Interp * interp, struct XOTcl_Class * cl, CONST char * nm); /* 14 */
     Tcl_Obj * (*xOTclOSetInstVar) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name, Tcl_Obj * value, int flgs); /* 15 */
     Tcl_Obj * (*xOTclOGetInstVar) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name, int flgs); /* 16 */
-    int (*xOTclInstVar) (struct XOTcl_Object * obj, Tcl_Interp * interp, char * name, char * destName); /* 17 */
+    void *reserved17;
     void *reserved18;
     Tcl_Obj * (*xOTcl_ObjSetVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name1, Tcl_Obj * name2, Tcl_Obj * value, int flgs); /* 19 */
     Tcl_Obj * (*xOTcl_ObjGetVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name1, Tcl_Obj * name2, int flgs); /* 20 */
@@ -373,10 +367,7 @@ extern XotclStubs *xotclStubsPtr;
 #define XOTclOGetInstVar \
 	(xotclStubsPtr->xOTclOGetInstVar) /* 16 */
 #endif
-#ifndef XOTclInstVar
-#define XOTclInstVar \
-	(xotclStubsPtr->xOTclInstVar) /* 17 */
-#endif
+/* Slot 17 is reserved */
 /* Slot 18 is reserved */
 #ifndef XOTcl_ObjSetVar2
 #define XOTcl_ObjSetVar2 \

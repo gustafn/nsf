@@ -8475,35 +8475,6 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
   return TCL_OK;
 }
 
-static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
-
-extern int
-XOTclInstVar(XOTcl_Object *obji, Tcl_Interp *interp, char *name, char *destName) {
-  XOTclObject *obj = (XOTclObject*) obji;
-  int result;
-  Tcl_Obj *alias = NULL;
-  ALLOC_ON_STACK(Tcl_Obj*, 2, objv);
-
-  objv[0] = XOTclGlobalObjects[XOTE_INSTVAR];
-  objv[1] = Tcl_NewStringObj(name, -1);
-  INCR_REF_COUNT(objv[1]);
-
-  if (destName) {
-    alias = Tcl_NewStringObj(destName, -1);
-    INCR_REF_COUNT(alias);
-    Tcl_ListObjAppendElement(interp, objv[1], alias);
-  }
-
-  result = XOTclOInstVarMethod(interp, obj, 2, objv);
-
-  if (destName) {
-    DECR_REF_COUNT(alias);
-  }
-  DECR_REF_COUNT(objv[1]);
-  FREE_ON_STACK(objv);
-  return result;
-}
-
 extern int
 XOTclRemovePMethod(Tcl_Interp *interp, XOTcl_Object *object, CONST char *methodName) {
   XOTclObject *obj = (XOTclObject*) object;
