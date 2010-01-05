@@ -5204,6 +5204,7 @@ static void ParamsFree(XOTclParam *paramsPtr) {
     if (paramPtr->nameObj) {DECR_REF_COUNT(paramPtr->nameObj);}
     if (paramPtr->defaultValue) {DECR_REF_COUNT(paramPtr->defaultValue);}
     if (paramPtr->arg) {DECR_REF_COUNT(paramPtr->arg);}
+    if (paramPtr->converterArg) {DECR_REF_COUNT(paramPtr->converterArg);}
   }
   FREE(XOTclParam*, paramsPtr);
 }
@@ -6233,6 +6234,8 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
   } else if (strncmp(option, "noarg", length) == 0) {
     paramPtr->flags |= XOTCL_ARG_NOARG;
     paramPtr->nrArgs = 0;
+  } else if (length >= 5 && strncmp(option, "arg=", 4) == 0) {
+    paramPtr->converterArg =  Tcl_NewStringObj(option+4, length-4);
   } else if (strncmp(option, "switch", length) == 0) {
     paramPtr->nrArgs = 0;
     paramPtr->converter = convertToSwitch;
@@ -11455,7 +11458,7 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name) {
 /*
 xotclCmd relation XOTclRelationCmd {
   {-argName "object" -type object}
-  {-argName "relationtype" -required 1 -type "mixin|instmixin|object-mixin|class-mixin|filter|instfilter|object-filter|class-filter|class|superclass|rootclass"}
+  {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -11473,30 +11476,15 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
   /* set withPer_object according to object- or class- */
 
   switch (relationtype) {
-  case RelationtypeMixinIdx:
-    if (XOTclObjectIsClass(object)) {
-      relationtype = RelationtypeClass_mixinIdx;
-    }
-    break;
-  case RelationtypeFilterIdx:
-    if (XOTclObjectIsClass(object)) {
-      relationtype = RelationtypeClass_filterIdx;
-    }
-    break;
-  }
-
-  switch (relationtype) {
-  case RelationtypeObject_mixinIdx:
-  case RelationtypeMixinIdx:
   case RelationtypeObject_filterIdx:
-  case RelationtypeFilterIdx:
+  case RelationtypeObject_mixinIdx:
     if (value == NULL) {
       objopt = object->opt;
       switch (relationtype) {
       case RelationtypeObject_mixinIdx:
-      case RelationtypeMixinIdx: return objopt ? MixinInfo(interp, objopt->mixins, NULL, 1, NULL) : TCL_OK;
+        return objopt ? MixinInfo(interp, objopt->mixins, NULL, 1, NULL) : TCL_OK;
       case RelationtypeObject_filterIdx:
-      case RelationtypeFilterIdx: return objopt ? FilterInfo(interp, objopt->filters, NULL, 1, 0) : TCL_OK;
+        return objopt ? FilterInfo(interp, objopt->filters, NULL, 1, 0) : TCL_OK;
       }
     }
     if (Tcl_ListObjGetElements(interp, value, &oc, &ov) != TCL_OK)
@@ -11505,9 +11493,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     break;
 
   case RelationtypeClass_mixinIdx:
-  case RelationtypeInstmixinIdx:
   case RelationtypeClass_filterIdx:
-  case RelationtypeInstfilterIdx:
     if (XOTclObjectIsClass(object)) {
       cl = (XOTclClass *)object;
     } else {
@@ -11517,10 +11503,9 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     if (value == NULL) {
       clopt = cl->opt;
       switch (relationtype) {
-      case RelationtypeClass_mixinIdx:
-      case RelationtypeInstmixinIdx: return clopt ? MixinInfo(interp, clopt->instmixins, NULL, 1, NULL) : TCL_OK;
+      case RelationtypeClass_mixinIdx: return clopt ? MixinInfo(interp, clopt->instmixins, NULL, 1, NULL) : TCL_OK;
       case RelationtypeClass_filterIdx:
-      case RelationtypeInstfilterIdx: return objopt ? FilterInfo(interp, clopt->instfilters, NULL, 1, 0) : TCL_OK;
+        return objopt ? FilterInfo(interp, clopt->instfilters, NULL, 1, 0) : TCL_OK;
       }
     }
 
@@ -11578,7 +11563,6 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
 
   switch (relationtype) {
   case RelationtypeObject_mixinIdx:
-  case RelationtypeMixinIdx:
     {
       XOTclCmdList *newMixinCmdList = NULL;
 
@@ -11638,7 +11622,6 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     }
 
   case RelationtypeObject_filterIdx:
-  case RelationtypeFilterIdx:
 
     if (objopt->filters) CmdListRemoveList(&objopt->filters, GuardDel);
 
@@ -11651,7 +11634,6 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     break;
 
   case RelationtypeClass_mixinIdx:
-  case RelationtypeInstmixinIdx:
     {
       XOTclCmdList *newMixinCmdList = NULL;
 
@@ -11692,7 +11674,6 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     }
 
   case RelationtypeClass_filterIdx:
-  case RelationtypeInstfilterIdx:
 
     if (clopt->instfilters) CmdListRemoveList(&clopt->instfilters, GuardDel);
 
@@ -12046,7 +12027,8 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
     /* special setter due to relation handling */
     if (paramPtr->converter == convertToRelation) {
       int relIdx;
-      result = convertToRelationtype(interp, paramPtr->nameObj, paramPtr, (ClientData)&relIdx);
+      Tcl_Obj *relationObj = paramPtr->converterArg ? paramPtr->converterArg : paramPtr->nameObj;
+      result = convertToRelationtype(interp, relationObj, paramPtr, (ClientData)&relIdx);
       if (result == TCL_OK) {
         result = XOTclRelationCmd(interp, obj, relIdx, newValue);
       }

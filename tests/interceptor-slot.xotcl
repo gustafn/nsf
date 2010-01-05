@@ -36,9 +36,9 @@ C mixin delete M
 # per-object mixins
 ? {c1 info precedence} "::C ::xotcl2::Object"
 c1 mixin add M
-? {::xotcl::relation c1 mixin} ::M
+? {::xotcl::relation c1 object-mixin} ::M
 ? {catch {c1 mixin UNKNOWN}} 1
-? {::xotcl::relation c1 mixin} "::M"
+? {::xotcl::relation c1 object-mixin} "::M"
 
 # add again the same mixin
 c1 mixin add M
@@ -49,16 +49,6 @@ c1 mixin delete M
 ? {c1 info precedence} "::M2 ::C ::xotcl2::Object"
 c1 mixin delete M2
 ? {c1 info precedence} "::C ::xotcl2::Object"
-
-#
-# adding, removing per-object mixins for classes through relation
-# "mixin" and "-per-object" (deprecated)
-#
-# ::xotcl::relation C -per-object mixin M
-# ? {C info precedence} "::M ::xotcl2::Class ::xotcl2::Object"
-# ? {C object info mixin} "::M"
-# ::xotcl::relation C -per-object mixin ""
-# ? {C info precedence} "::xotcl2::Class ::xotcl2::Object"
 
 #
 # adding, removing per-object mixins for classes through relation

@@ -308,9 +308,9 @@ proc ::xotcl::parametersFromSlots {obj} {
     if {[::xotcl::is $obj type ::xotcl::Object] && 
         ([$slot name] eq "mixin" || [$slot name] eq "filter")
       } continue
-    set parameterdefinition "-[namespace tail $slot]"
+    set name [namespace tail $slot]
+    set parameterdefinition "-$name"
     set opts [list]
-
     if {[$slot exists required] && [$slot required]} {
       lappend opts required
     }
@@ -326,6 +326,12 @@ proc ::xotcl::parametersFromSlots {obj} {
     } elseif {[$slot exists initcmd]} {
       set arg [::xotcl::setinstvar $slot initcmd]
       lappend opts initcmd
+    } 
+    if {[$slot exists methodname]} {
+      set methodname [::xotcl::setinstvar $slot methodname]
+      if {$methodname ne $name} {
+        lappend opts arg=$methodname
+      }
     }
     if {[llength $opts] > 0} {
       append parameterdefinition :[join $opts ,]
@@ -411,7 +417,7 @@ proc createBootstrapAttributeSlots {class definitions} {
 ############################################
 createBootstrapAttributeSlots ::xotcl::Slot {
   {name "[namespace tail [::xotcl::self]]"}
-  {methodname "[namespace tail [::xotcl::self]]"}
+  {methodname}
   {domain "[lindex [regexp -inline {^(.*)::slot::[^:]+$} [::xotcl::self]] 1]"}
   {defaultmethods {get assign}}
   {manager "[::xotcl::self]"}
@@ -470,6 +476,9 @@ createBootstrapAttributeSlots ::xotcl::Slot {
     set .domain [::xotcl::self callingobject]
   }
   if {${.domain} ne ""} {
+    if {![info exists .methodname]} {
+      set .methodname ${.name}
+    }
     ${.domain} __invalidateobjectparameter
     set cl [expr {${.per-object} ? "Object" : "Class"}]
     # since the domain object might be xotcl1 or xotcl2, use dispatch

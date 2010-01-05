@@ -73,12 +73,12 @@ enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyProtectedIdx, Methodpr
   
 static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
-  static CONST char *opts[] = {"mixin", "instmixin", "object-mixin", "class-mixin", "filter", "instfilter", "object-filter", "class-filter", "class", "superclass", "rootclass", NULL};
+  static CONST char *opts[] = {"object-mixin", "class-mixin", "object-filter", "class-filter", "class", "superclass", "rootclass", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "relationtype", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
-enum RelationtypeIdx {RelationtypeNULL, RelationtypeMixinIdx, RelationtypeInstmixinIdx, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeFilterIdx, RelationtypeInstfilterIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx};
+enum RelationtypeIdx {RelationtypeNULL, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx};
   
 
 typedef struct {
