@@ -107,26 +107,6 @@ XOTcl_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   return XOTclCallCommand(interp, XOTE_RENAME, objc, objv);
 }
 
-static int
-XOTcl_InfoObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  int result, isBody = 0;
-  if (objc > 1) {
-    char *opt = ObjStr(objv[1]);
-    if (isBodyString(opt) && objc > 2)
-      isBody = 1;
-  }
-  result = XOTclCallCommand(interp, XOTE_INFO, objc, objv);
-
-  if (isBody && result == TCL_OK) {
-    char *body = ObjStr(Tcl_GetObjResult(interp));
-    if (strncmp(body, "::xotcl::initProcNS\n",20) == 0)
-      body += 20;
-    Tcl_SetObjResult(interp, Tcl_NewStringObj(body, -1));
-  }
-  return result;
-}
-
-
 /*
  * Obtain the names of the tcl commands
  * not available through the stub interface and overload some global commands
@@ -146,20 +126,18 @@ XOTclShadowTclCommands(Tcl_Interp *interp, XOTclShadowOperations load) {
     /* no commands are overloaded, these are only used for calling 
        e.g. Tcl_ExprObjCmd(), Tcl_IncrObjCmd() and Tcl_SubstObjCmd(), 
        which are not available in though the stub table */
-    rc|= XOTclReplaceCommand(interp, XOTE_EXPR,     0, initialized);
-    rc|= XOTclReplaceCommand(interp, XOTE_SUBST,    0, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_EXPR,     0, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_SUBST,    0, initialized);
 #endif
+    rc |= XOTclReplaceCommand(interp, XOTE_FORMAT,   0, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_INTERP,   0, initialized);
+
     /* for the following commands, we have to add our own semantics */
-#if 1
-    rc|= XOTclReplaceCommand(interp, XOTE_INFO,     XOTcl_InfoObjCmd, initialized);
-#endif
-    rc|= XOTclReplaceCommand(interp, XOTE_RENAME,   XOTcl_RenameObjCmd, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_RENAME,   XOTcl_RenameObjCmd, initialized);
     
   } else if (load == SHADOW_REFETCH) {
-    XOTclReplaceCommandCheck(interp, XOTE_INFO,     XOTcl_InfoObjCmd);
     XOTclReplaceCommandCheck(interp, XOTE_RENAME,   XOTcl_RenameObjCmd);
   } else {
-    XOTclReplaceCommandCleanup(interp, XOTE_INFO);
     XOTclReplaceCommandCleanup(interp, XOTE_RENAME);
     FREE(XOTclShadowTclCommandInfo*, RUNTIME_STATE(interp)->tclCommands);
     RUNTIME_STATE(interp)->tclCommands = NULL;

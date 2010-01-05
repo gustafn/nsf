@@ -549,41 +549,47 @@ typedef struct XOTclClasses {
    and Strings - otherwise these "constants" would have to be built
    every time they are used; now they are built once in XOTcl_Init */
 typedef enum {
-  XOTE_EMPTY, XOTE_UNKNOWN, XOTE_CREATE, XOTE_DESTROY, XOTE_DEALLOC,
-    XOTE_ALLOC, XOTE_INIT, XOTE_INTERP, XOTE_AUTONAMES,
-    XOTE_ZERO, XOTE_ONE, XOTE_MOVE, XOTE_SELF, XOTE_CLASS, XOTE_RECREATE,
-    XOTE_SELF_CLASS, XOTE_SELF_PROC,
-    XOTE_EXIT_HANDLER, XOTE_DEFAULTSUPERCLASS, XOTE_DEFAULTMETACLASS,
-    XOTE_PARAMETER_TYPE_OBJ, XOTE_RESIDUALARGS,
-    XOTE_CLEANUP, XOTE_CONFIGURE, XOTE_FILTER, XOTE_INSTFILTER,
-    XOTE_METHOD, XOTE_PROC, XOTE_OBJECT, XOTE_FORWARD,
-    XOTE_INSTCMD, XOTE_CMD, XOTE_SETTER, XOTE_PARAMETERCMD,
-    XOTE_FORMAT, XOTE_INITSLOTS,
-    XOTE_NEWOBJ, XOTE_GUARD_OPTION, XOTE_DEFAULTMETHOD,
-    XOTE___UNKNOWN, XOTE___UNKNOWN__, XOTE_ARGS, XOTE_SPLIT, XOTE_COMMA, 
-    XOTE_OBJECTPARAMETER,
-    /** these are the redefined tcl commands; leave them
-	together at the end */
-    XOTE_EXPR, XOTE_INFO, XOTE_RENAME, XOTE_SUBST
+  XOTE_EMPTY, XOTE_ONE,
+  /* methods called internally */
+  XOTE_ALLOC, XOTE_CLEANUP, XOTE_CONFIGURE, XOTE_CREATE, 
+  XOTE_DEFAULTMETHOD, XOTE_DESTROY, XOTE_DEALLOC,
+  XOTE_INIT, XOTE_MOVE, XOTE_OBJECTPARAMETER,
+  XOTE_RECREATE, XOTE_RESIDUALARGS,
+  XOTE_UNKNOWN, XOTE___UNKNOWN,
+  /* var names */
+  XOTE_AUTONAMES, XOTE_DEFAULTMETACLASS, XOTE_DEFAULTSUPERCLASS, 
+  XOTE_ALIAS_ARRAY,
+  /* object/class names */
+  XOTE_PARAMETER_TYPE_OBJ, 
+  /* constants */
+  XOTE_ALIAS, XOTE_ARGS, XOTE_CMD, XOTE_FILTER, XOTE_FORWARD, 
+  XOTE_METHOD, XOTE_OBJECT, XOTE_SETTER, 
+  XOTE_GUARD_OPTION, XOTE___UNKNOWN__, 
+  /* Patly redefined Tcl commands; leave them together at the end */
+  XOTE_EXPR, XOTE_FORMAT, XOTE_INFO, XOTE_INTERP, XOTE_RENAME, XOTE_SUBST
 } XOTclGlobalNames;
 #if !defined(XOTCL_C)
 extern char *XOTclGlobalStrings[];
 #else
 char *XOTclGlobalStrings[] = {
-  "", "unknown", "create", "destroy", "dealloc",
-  "alloc", "init", "interp", "__autonames",
-  "0", "1", "move", "self", "class", "recreate",
-  "self class", "self proc",
-  "__exitHandler", "__default_superclass", "__default_metaclass",
-  "::xotcl::parameterType", "residualargs",
-  "cleanup", "configure", "filter", "instfilter",
-  "method", "proc", "object", "forward",
-  "instcmd", "cmd", "setter", "parametercmd",
-  "format", "initslots",
-  "__#", "-guard", "defaultmethod",
-  "__unknown", "__unknown__", "args", "split", ",",
-  "objectparameter",
-  "expr", "info", "rename", "subst",
+  "", "1", 
+  /* methods called internally */
+  "alloc", "cleanup", "configure", "create", 
+  "defaultmethod", "destroy", "dealloc",
+  "init", "move", "objectparameter", 
+  "recreate", "residualargs",
+  "unknown", "__unknown", 
+  /* var names */
+  "__autonames", "__default_metaclass", "__default_superclass", 
+  "::xotcl::alias",
+  /* object/class names */
+  "::xotcl::parameterType", 
+  /* constants */
+  "alias", "args", "cmd", "filter",  "forward", 
+  "method", "object", "setter", 
+  "-guard", "__unknown__",
+  /* tcl commands */
+  "expr", "format", "info", "interp", "rename", "subst",
 };
 #endif
 

@@ -2417,10 +2417,9 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *name, XOTclObject *obj,
       ALLOC_ON_STACK(Tcl_Obj*, 3, ov);
       savedResult = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(savedResult);
-      ov[0] = XOTclGlobalObjects[XOTE_FORMAT];
       ov[1] = result;
       ov[2] = valueObject;
-      if (Tcl_EvalObjv(interp, 3, ov, 0) != TCL_OK) {
+      if (XOTclCallCommand(interp, XOTE_FORMAT, 3, ov) != TCL_OK) {
         XOTcl_PopFrame(interp, obj);
         DECR_REF_COUNT(savedResult);
         FREE_ON_STACK(ov);
@@ -9877,8 +9876,8 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
 
           resultObj = Tcl_NewListObj(0, NULL);
           /* todo: don't hard-code registering command name "method" */
-          AppendMethodRegistration(interp, resultObj, "method", object, methodName, cmd, 
-                                   0, outputPerObject);
+          AppendMethodRegistration(interp, resultObj, XOTclGlobalStrings[XOTE_METHOD], 
+                                   object, methodName, cmd, 0, outputPerObject);
           ListCmdParams(interp, cmd, methodName, 0);
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
           ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
@@ -9908,7 +9907,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
       /* forwarder */
       switch (subcmd) {
       case InfomethodsubcmdTypeIdx: 
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("forward",-1));
+        Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_FORWARD]);
         break;
       case InfomethodsubcmdDefinitionIdx:
         {
@@ -9916,8 +9915,8 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
           if (clientData) {
             resultObj = Tcl_NewListObj(0, NULL);
             /* todo: don't hard-code registering command name "forward" */
-            AppendMethodRegistration(interp, resultObj, "forward", object, methodName, cmd, 
-                                     0, outputPerObject);
+            AppendMethodRegistration(interp, resultObj, XOTclGlobalStrings[XOTE_FORWARD], 
+                                     object, methodName, cmd, 0, outputPerObject);
             AppendForwardDefinition(interp, resultObj, clientData);
             Tcl_SetObjResult(interp, resultObj);
             break;
@@ -9929,13 +9928,13 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
       /* setter methods */
       switch (subcmd) {
       case InfomethodsubcmdTypeIdx: 
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("setter",-1));
+        Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_SETTER]);
         break;
       case InfomethodsubcmdDefinitionIdx:
         resultObj = Tcl_NewListObj(0, NULL);
         /* todo: don't hard-code registering command name "setter" */
-        AppendMethodRegistration(interp, resultObj, "setter", object, methodName, cmd, 
-                                 0, outputPerObject);
+        AppendMethodRegistration(interp, resultObj, XOTclGlobalStrings[XOTE_SETTER],
+                                 object, methodName, cmd, 0, outputPerObject);
         Tcl_SetObjResult(interp, resultObj);        
         break;
       }
@@ -9944,7 +9943,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
       /* must be an alias */
       switch (subcmd) {
       case InfomethodsubcmdTypeIdx: 
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("alias",-1));
+        Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_ALIAS]);
         break;
       case InfomethodsubcmdDefinitionIdx:
         {
@@ -9955,9 +9954,8 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
             resultObj = Tcl_NewListObj(0, NULL);
             Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
             /* todo: don't hard-code registering command name "alias" */
-            AppendMethodRegistration(interp, resultObj, "alias", object, 
-                                     methodName, cmd, 
-                                     nrElements!=1, outputPerObject);
+            AppendMethodRegistration(interp, resultObj, XOTclGlobalStrings[XOTE_ALIAS], 
+                                     object, methodName, cmd, nrElements!=1, outputPerObject);
             Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
             Tcl_SetObjResult(interp, resultObj);
             break;
@@ -10274,7 +10272,7 @@ static CONST char* AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, CONST char *
 static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, 
                     char *cmd) {
   Tcl_DString ds, *dsPtr = &ds;
-  Tcl_SetVar2Ex(interp, "::xotcl::alias", 
+  Tcl_SetVar2Ex(interp, XOTclGlobalStrings[XOTE_ALIAS_ARRAY], 
                 AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                 Tcl_NewStringObj(cmd,-1), 
                 TCL_GLOBAL_ONLY);
@@ -10286,7 +10284,7 @@ static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName
 
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object) {
   Tcl_DString ds, *dsPtr = &ds;
-  int result = Tcl_UnsetVar2(interp, "::xotcl::alias", 
+  int result = Tcl_UnsetVar2(interp, XOTclGlobalStrings[XOTE_ALIAS_ARRAY], 
                              AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                              TCL_GLOBAL_ONLY);
   /*fprintf(stderr, "aliasDelete ::xotcl::alias(%s) returned %d (%d)\n",
@@ -10297,7 +10295,7 @@ static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodN
 
 static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object) {
   Tcl_DString ds, *dsPtr = &ds;
-  Tcl_Obj *obj = Tcl_GetVar2Ex(interp, "::xotcl::alias", 
+  Tcl_Obj *obj = Tcl_GetVar2Ex(interp, XOTclGlobalStrings[XOTE_ALIAS_ARRAY], 
                                AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                                TCL_GLOBAL_ONLY);
   /*fprintf(stderr, "aliasGet returns %p\n", obj);*/
@@ -10893,15 +10891,10 @@ xotclCmd interp XOTclInterpObjCmd {
 static int
 XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Interp *slave;
-  ALLOC_ON_STACK(Tcl_Obj*, objc, ov);
-
-  /* do not overwrite the provided objv */
-  memcpy(ov, objv, sizeof(Tcl_Obj *)*objc);
 
   /* create a fresh Tcl interpreter, or pass command to an existing one */
-  ov[0] = XOTclGlobalObjects[XOTE_INTERP];
-  if (Tcl_EvalObjv(interp, objc, ov, TCL_GLOBAL_ONLY|TCL_LEAVE_ERR_MSG) != TCL_OK) {
-    goto interp_error;
+  if (XOTclCallCommand(interp, XOTE_INTERP, objc, objv) != TCL_OK) {
+    return TCL_ERROR;
   }
 
   if (isCreateString(name)) {
@@ -10909,23 +10902,18 @@ XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[
      * The command was an interp create, so perform an Xotcl_Init() on
      * the new interpreter
      */
-    slave = Tcl_GetSlave(interp, ObjStr(ov[2]));
+    slave = Tcl_GetSlave(interp, ObjStr(objv[2]));
     if (!slave) {
-      XOTclVarErrMsg(interp, "Creation of slave interpreter failed", (char *) NULL);
-      goto interp_error;
+      return XOTclVarErrMsg(interp, "Creation of slave interpreter failed", (char *) NULL);
     }
     if (Xotcl_Init(slave) == TCL_ERROR) {
-      goto interp_error;
+      return TCL_ERROR;
     }
 #ifdef XOTCL_MEM_COUNT
     xotclMemCountInterpCounter++;
 #endif
   }
-  FREE_ON_STACK(ov);
   return TCL_OK;
- interp_error:
-  FREE_ON_STACK(ov);
-  return TCL_ERROR;
 }
 
 /*
