@@ -1,30 +1,21 @@
-package require XOTcl
+package require XOTcl; ::xotcl::use xotcl2
 package require xotcl::test
 
-proc ? {cmd expected {msg ""}} {
-  set count 10
-  if {$msg ne ""} {
-    set t [Test new -cmd $cmd -count $count -msg $msg]
-  } else {
-    set t [Test new -cmd $cmd -count $count]
-  }
-  $t expected $expected 
-  $t run
-}
+Test parameter count 10
 
-::xotcl::use xotcl1
-::xotcl::use xotcl2
-
-# the system methods of Object are either alias or forwarders
+# The system methods of Object are either alias or forwarders
 ? {lsort [::xotcl::Slot info methods -methodtype alias]} {assign get}
 ? {::xotcl::Slot info method definition get} "::xotcl::Slot alias get ::xotcl::setinstvar"
 
+# define an alias and retrieve its definition
 set cmd "::xotcl2::Object alias -objscope set ::set"
 eval $cmd
 ? {Object info method definition set} $cmd
 
-Class create Base
-Base method foo {{-x 1}} {return $x}
+# define an alias and retrieve its definition
+Class create Base {
+  .method foo {{-x 1}} {return $x}
+}
 
 Class create Foo
 ::xotcl::alias ::Foo foo ::xotcl::classes::Base::foo

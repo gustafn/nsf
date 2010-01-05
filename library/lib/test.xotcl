@@ -30,11 +30,23 @@ namespace eval ::xotcl::test {
     {namespace ::}
     {verbose 0} 
     {expected 1} 
-    {count 1000} 
+    {count 100} 
     msg setResult errorReport
     pre post
   } {
     set .count 0
+
+    .public object method case {name} {set .case $name}
+
+    .public object method parameter {name value:optional} {
+      if {[info exists value]} {
+        #[[self] slot $name] default $value
+        [self] slot $name default $value
+        .__invalidateobjectparameter
+      } else {
+        return [[self] slot $name default]
+      }
+    }
 
     .public object method new args {
       if {[info exists .case]} {
@@ -64,7 +76,7 @@ namespace eval ::xotcl::test {
       if {![info exists .msg]} {set .msg ${.cmd}}
       set r [.call "run" ${.cmd}]
       if {[info exists .setResult]} {set r [eval [set .setResult]]}
-      if {$r == ${.expected}} {
+      if {$r eq ${.expected}} {
 	if {[info exists .count]} {set c ${.count}} {set c 1000}
 	if {[.verbose]} {
 	  puts stderr "running test $c times"
@@ -89,9 +101,18 @@ namespace eval ::xotcl::test {
       if {[info exists .post]} {.call "post" ${.post}}
     }
 
-    .public object method case {name} {set .case $name}
   }
   namespace export Test
+}
+
+proc ? {cmd expected {msg ""}} {
+  if {$msg ne ""} {
+    set t [Test new -cmd $cmd -msg $msg]
+  } else {
+    set t [Test new -cmd $cmd]
+  }
+  $t expected $expected 
+  $t run
 }
 
 namespace import ::xotcl::test::*

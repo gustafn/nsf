@@ -1,22 +1,12 @@
 package require XOTcl
-namespace import -force xotcl::*
 package require xotcl::test
 
-proc ? {cmd expected {msg ""}} {
-  set count 10
-  if {$msg ne ""} {
-    set t [Test new -cmd $cmd -count $count -msg $msg]
-  } else {
-    set t [Test new -cmd $cmd -count $count]
-  }
-  $t expected $expected 
-  $t run
-}
+::xotcl::use xotcl1
+Test parameter count 10
 
 catch {::xotcl::configure cacheinterface true}
 set mkTypeChecker 0
 
-puts stderr =====START
 Class C -parameter {a {b:boolean} {c 1}}
 
 C c1 

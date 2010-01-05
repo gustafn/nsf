@@ -1,16 +1,7 @@
 package require XOTcl
 package require xotcl::test
 
-proc ? {cmd expected {msg ""}} {
-  set count 10
-  if {$msg ne ""} {
-    set t [Test new -cmd $cmd -count $count -msg $msg]
-  } else {
-    set t [Test new -cmd $cmd -count $count]
-  }
-  $t expected $expected 
-  $t run
-}
+Test parameter count 10
 
 ::xotcl::use xotcl2
 
@@ -179,7 +170,6 @@ C mixinguard M {}
 
 # now the same as object mixin and object mixin guard
 C object mixin M
-puts M=[C object info mixin]
 C object mixinguard M {1 == 1}
 ? {C object info mixinguard M} "1 == 1"
 C object mixinguard M {}

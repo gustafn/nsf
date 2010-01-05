@@ -1,9 +1,10 @@
 #memory trace on
 # $Id: speedtest.xotcl,v 1.10 2007/08/14 16:38:27 neumann Exp $
 package require XOTcl; xotcl::use xotcl1
+#lappend auto_path [file dirname [info script]]/..
 
-lappend auto_path [file dirname [info script]]/..
 package require xotcl::test
+Test parameter count 1000
 
 @ @File {description {
   Regression and speed test for various ways to achieve a similar

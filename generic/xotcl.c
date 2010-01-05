@@ -6050,7 +6050,7 @@ XOTclObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     Tcl_Obj *tov[2];
     tov[0] = objv[0];
     tov[1] = XOTclGlobalObjects[XOTE_DEFAULTMETHOD];
-    result = ObjectDispatch(clientData, interp, 2, tov, 0);
+    result = ObjectDispatch(clientData, interp, 2, tov, XOTCL_CM_NO_UNKNOWN);
   }
 
   return result;

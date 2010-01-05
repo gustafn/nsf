@@ -2,26 +2,18 @@ package require XOTcl
 package require xotcl::test
 xotcl::use xotcl2
 
-set count 1
-proc ? {cmd expected {msg ""}} {
-  if {$msg ne ""} {
-    set t [Test new -cmd $cmd -count $::count -msg $msg]
-  } else {
-    set t [Test new -cmd $cmd -count $::count]
-  }
-  $t expected $expected 
-  $t run
-}
+Test parameter count 1
 
-Class create C
-::xotcl::alias C SET ::set
-C method foo {} {return [self proc]}
-C method bar {} {return [self proc]}
-C method bar-foo {} {
-  c1 foo
-}
-C method bar-SET {} {
-  c1 SET x 1
+Class create C {
+  .alias SET ::set
+  .method foo {} {return [self proc]}
+  .method bar {} {return [self proc]}
+  .method bar-foo {} {
+    c1 foo
+  }
+  .method bar-SET {} {
+    c1 SET x 1
+  }
 }
 
 C create c1

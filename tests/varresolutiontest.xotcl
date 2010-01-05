@@ -3,16 +3,7 @@
 package require XOTcl; xotcl::use xotcl2
 package require xotcl::test
 
-proc ? {cmd expected {msg ""}} {
-  set count 1
-  if {$msg ne ""} {
-    set t [Test new -cmd $cmd -count $count -msg $msg]
-  } else {
-    set t [Test new -cmd $cmd -count $count]
-  }
-  $t expected $expected 
-  $t run
-}
+Test parameter count 1
 
 ::xotcl::alias ::xotcl2::Object eval -objscope ::eval 
 ::xotcl::alias ::xotcl2::Object array -objscope ::array

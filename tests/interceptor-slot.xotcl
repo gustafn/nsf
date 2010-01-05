@@ -2,18 +2,6 @@ package require XOTcl
 package require xotcl::test
 ::xotcl::use xotcl2
 
-proc ? {cmd expected {msg ""}} {
-  set count 10
-  if {$msg ne ""} {
-    set t [Test new -cmd $cmd -count $count -msg $msg]
-  } else {
-    set t [Test new -cmd $cmd -count $count]
-  }
-  $t expected $expected 
-  $t run
-}
-
-puts stderr START
 Class create M {
   .method mfoo {} {puts [self proc]}
 }

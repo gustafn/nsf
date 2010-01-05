@@ -2,12 +2,6 @@
 package require XOTcl; xotcl::use xotcl1
 package require xotcl::test
 
-proc ? {cmd expected} {
-  set t [Test new -cmd $cmd]
-  $t expected $expected 
-  $t run
-}
-
 ###########################################
 # testing simple per object mixins
 ###########################################
@@ -48,6 +42,7 @@ B destroy
 C destroy
 ::o destroy
 ::o1 destroy
+
 ###########################################
 # testing per object mixins with redefinition
 ###########################################
