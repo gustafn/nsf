@@ -393,14 +393,14 @@ Xotclsdbm_Init(Tcl_Interp * in) {
       return TCL_ERROR;
     }
 
-    XOTclAddIMethod(in, cl, "open", XOTclSdbmOpenMethod, 0, 0);
-    XOTclAddIMethod(in, cl, "close", XOTclSdbmCloseMethod, 0, 0);
-    XOTclAddIMethod(in, cl, "set", XOTclSdbmSetMethod, 0, 0);
-    XOTclAddIMethod(in, cl, "exists", XOTclSdbmExistsMethod, 0, 0);
-    XOTclAddIMethod(in, cl, "names", XOTclSdbmNamesMethod, 0, 0);
-    XOTclAddIMethod(in, cl, "unset", XOTclSdbmUnsetMethod, 0, 0);
-    XOTclAddIMethod(in, cl, "firstkey", XOTclSdbmFirstKeyMethod, 0, 0);
-    XOTclAddIMethod(in, cl, "nextkey", XOTclSdbmNextKeyMethod, 0, 0);
+    XOTclAddClassMethod(in, cl, "open", XOTclSdbmOpenMethod, 0, 0);
+    XOTclAddClassMethod(in, cl, "close", XOTclSdbmCloseMethod, 0, 0);
+    XOTclAddClassMethod(in, cl, "set", XOTclSdbmSetMethod, 0, 0);
+    XOTclAddClassMethod(in, cl, "exists", XOTclSdbmExistsMethod, 0, 0);
+    XOTclAddClassMethod(in, cl, "names", XOTclSdbmNamesMethod, 0, 0);
+    XOTclAddClassMethod(in, cl, "unset", XOTclSdbmUnsetMethod, 0, 0);
+    XOTclAddClassMethod(in, cl, "firstkey", XOTclSdbmFirstKeyMethod, 0, 0);
+    XOTclAddClassMethod(in, cl, "nextkey", XOTclSdbmNextKeyMethod, 0, 0);
 
     Tcl_SetIntObj(Tcl_GetObjResult(in), 1);
     return TCL_OK;

@@ -285,13 +285,13 @@ proc ::foo args {;}
 ? {array get ::xotcl::alias ::o,FOO,1} "::o,FOO,1 ::o::bar"
 ? {o info method definition FOO} "::o alias FOO ::o::bar"
 
-# AliasDelete in XOTclRemovePMethod
+# AliasDelete in XOTclRemoveObjectMethod
 o method FOO {} {}
 ? {info exists ::xotcl::alias(::o,FOO,1)} 0
 ? {array get ::xotcl::alias ::o,FOO,1} ""
 ? {o info method definition FOO} ""
 
-# AliasDelete in XOTclRemoveIMethod
+# AliasDelete in XOTclRemoveClassMethod
 C method FOO {} {}
 ? {info exists ::xotcl::alias(::C,FOO,0)} 0
 ? {array get ::xotcl::alias ::C,FOO,0} ""

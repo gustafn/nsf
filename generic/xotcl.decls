@@ -56,20 +56,20 @@ declare 10 generic {
     int XOTclDeleteClass(Tcl_Interp *interp, struct XOTcl_Class *cl)
 }
 #declare 11 generic {
-#    int XOTclAddPMethod(Tcl_Interp *interp, struct XOTcl_Object *obj, 
+#    int XOTclAddObjectMethod(Tcl_Interp *interp, struct XOTcl_Object *obj, 
 #                         CONST char* nm, Tcl_ObjCmdProc* proc,
 #	                 ClientData cd, Tcl_CmdDeleteProc *dp)
 #}
 #declare 12 generic {
-#    int XOTclAddIMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, 
+#    int XOTclAddClassMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, 
 #                         CONST char* nm, Tcl_ObjCmdProc* proc,
 #	                 ClientData cd, Tcl_CmdDeleteProc *dp)
 #}
 declare 13 generic {
-    int XOTclRemovePMethod(Tcl_Interp *interp,struct XOTcl_Object *obj, CONST char *nm)
+    int XOTclRemoveObjectMethod(Tcl_Interp *interp,struct XOTcl_Object *obj, CONST char *nm)
 }
 declare 14 generic {
-    int XOTclRemoveIMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, CONST char *nm)
+    int XOTclRemoveClassMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, CONST char *nm)
 }
 declare 15 generic {
     Tcl_Obj *XOTclOSetInstVar(struct XOTcl_Object *obj, Tcl_Interp *interp,
@@ -169,7 +169,7 @@ declare 41 generic {
 	                 ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
 }
 declare 42 generic {
-   int XOTclAddInstanceMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, 
+   int XOTclAddClassMethod(Tcl_Interp *interp, struct XOTcl_Class *cl, 
                          CONST char *nm, Tcl_ObjCmdProc *proc,
 	                 ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
 }

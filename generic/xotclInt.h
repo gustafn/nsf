@@ -1,7 +1,7 @@
 /* -*- Mode: c++ -*-
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2009 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
  *  xotclInt.h --
  *
@@ -515,8 +515,8 @@ typedef struct XOTclObjects {
 } XOTclObjects;
 
 typedef struct XOTclClassOpt {
-  XOTclCmdList *instfilters;
-  XOTclCmdList *instmixins;
+  XOTclCmdList *classfilters;
+  XOTclCmdList *classmixins;
   XOTclCmdList *isObjectMixinOf;
   XOTclCmdList *isClassMixinOf;
   XOTclAssertionStore *assertions;

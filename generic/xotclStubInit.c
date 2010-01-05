@@ -49,8 +49,8 @@ XotclStubs xotclStubs = {
     XOTclDeleteClass, /* 10 */
     NULL, /* 11 */
     NULL, /* 12 */
-    XOTclRemovePMethod, /* 13 */
-    XOTclRemoveIMethod, /* 14 */
+    XOTclRemoveObjectMethod, /* 13 */
+    XOTclRemoveClassMethod, /* 14 */
     XOTclOSetInstVar, /* 15 */
     XOTclOGetInstVar, /* 16 */
     NULL, /* 17 */
@@ -78,7 +78,7 @@ XotclStubs xotclStubs = {
     XOTclCallMethodWithArgs, /* 39 */
     XOTclObjErrArgCnt, /* 40 */
     XOTclAddObjectMethod, /* 41 */
-    XOTclAddInstanceMethod, /* 42 */
+    XOTclAddClassMethod, /* 42 */
     XOTclCreate, /* 43 */
 };
 

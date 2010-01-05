@@ -1,8 +1,7 @@
-/* $Id: xotcl.c,v 1.43 2006/10/04 20:40:23 neumann Exp $
- *
+/* 
  *  XOTcl - Extended Object Tcl
  *
- *  Copyright (C) 1999-2009 Gustaf Neumann (a), Uwe Zdun (a)
+ *  Copyright (C) 1999-2010 Gustaf Neumann (a), Uwe Zdun (a)
  *
  * (a) Vienna University of Economics and Business Administration
  *     Institute. of Information Systems and New Media
@@ -2283,7 +2282,7 @@ XOTclAddObjectMethod(Tcl_Interp *interp, XOTcl_Object *object, CONST char *metho
 }
 
 int
-XOTclAddInstanceMethod(Tcl_Interp *interp, XOTcl_Class *class, CONST char *methodName,
+XOTclAddClassMethod(Tcl_Interp *interp, XOTcl_Class *class, CONST char *methodName,
                        Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
                        int flags) {
   XOTclClass *cl = (XOTclClass *)class;
@@ -3162,9 +3161,9 @@ MixinComputeOrderFullList(Tcl_Interp *interp, XOTclCmdList **mixinList,
         /*fprintf(stderr, " %s, ", ObjStr(pl->cl->object.cmdName));*/
         if ((pl->cl->object.flags & XOTCL_IS_ROOT_CLASS) == 0) {
           XOTclClassOpt *opt = pl->cl->opt;
-          if (opt && opt->instmixins) {
-            /* compute transitively the instmixin classes of this added
-               class */
+          if (opt && opt->classmixins) {
+            /* compute transitively the (class) mixin classes of this
+               added class */
             XOTclClasses *cls;
             int i, found = 0;
             for (i=0, cls = *checkList; cls; i++, cls = cls->nextPtr) {
@@ -3180,7 +3179,7 @@ MixinComputeOrderFullList(Tcl_Interp *interp, XOTclCmdList **mixinList,
               /*fprintf(stderr, "+++ transitive %s\n",
                 ObjStr(pl->cl->object.cmdName));*/
 
-              MixinComputeOrderFullList(interp, &opt->instmixins, mixinClasses,
+              MixinComputeOrderFullList(interp, &opt->classmixins, mixinClasses,
                                         checkList, level+1);
             }
           }
@@ -3227,8 +3226,8 @@ MixinComputeOrder(Tcl_Interp *interp, XOTclObject *obj) {
   /* append per-class mixins */
   for (pl = ComputeOrder(obj->cl, obj->cl->order, Super); pl; pl = pl->nextPtr) {
     XOTclClassOpt *opt = pl->cl->opt;
-    if (opt && opt->instmixins) {
-      MixinComputeOrderFullList(interp, &opt->instmixins, &mixinClasses,
+    if (opt && opt->classmixins) {
+      MixinComputeOrderFullList(interp, &opt->classmixins, &mixinClasses,
                                 &checkList, 0);
     }
   }
@@ -3575,7 +3574,7 @@ getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *st
 }
 
 /*
- * recursively get all instmixins of a class into an initialized
+ * recursively get all classmixins of a class into an initialized
  * object ptr hashtable (TCL_ONE_WORD_KEYS)
  */
 
@@ -3587,12 +3586,12 @@ getAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *star
   XOTclClasses *sc;
 
   /*
-   * check this class for instmixins
+   * check this class for classmixins
    */
   if (startCl->opt) {
     XOTclCmdList *m;
 
-    for (m = startCl->opt->instmixins; m; m = m->nextPtr) {
+    for (m = startCl->opt->classmixins; m; m = m->nextPtr) {
 
       /* we should have no deleted commands in the list */
       assert(Tcl_Command_cmdEpoch(m->cmdPtr) == NULL);
@@ -3600,7 +3599,7 @@ getAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *star
       cl = XOTclGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
 
-      /* fprintf(stderr, "Instmixin found: %s\n", className(cl)); */
+      /* fprintf(stderr, "class mixin found: %s\n", className(cl)); */
 
       if ((withGuards) && (m->clientData)) {
         /* fprintf(stderr, "addToResultSetWithGuards: %s\n", className(cl)); */
@@ -3612,7 +3611,7 @@ getAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *star
       if (rc == 1) {return rc;}
 
       if (new) {
-        /* fprintf(stderr, "Instmixin getAllClassMixins for: %s (%s)\n", className(cl), ObjStr(startCl->object.cmdName)); */
+        /* fprintf(stderr, "class mixin getAllClassMixins for: %s (%s)\n", className(cl), ObjStr(startCl->object.cmdName)); */
         rc = getAllClassMixins(interp, destTable, cl, withGuards, pattern, matchObject);
         if (rc) {return rc;}
       }
@@ -3621,7 +3620,7 @@ getAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *star
 
 
   /*
-   * check all superclasses of startCl for instmixins
+   * check all superclasses of startCl for classmixins
    */
   for (sc = startCl->super; sc; sc = sc->nextPtr) {
     /* fprintf(stderr, "Superclass getAllClassMixins for %s (%s)\n", ObjStr(sc->cl->object.cmdName), ObjStr(startCl->object.cmdName)); */
@@ -3668,16 +3667,16 @@ removeFromObjectMixinsOf(Tcl_Command cmd, XOTclCmdList *cmdlist) {
 }
 
 static void
-RemoveFromInstmixins(Tcl_Command cmd, XOTclCmdList *cmdlist) {
+RemoveFromClassmixins(Tcl_Command cmd, XOTclCmdList *cmdlist) {
   for ( ; cmdlist; cmdlist = cmdlist->nextPtr) {
     XOTclClass *cl = XOTclGetClassFromCmdPtr(cmdlist->cmdPtr);
     XOTclClassOpt *clopt = cl ? cl->opt : NULL;
     if (clopt) {
-      XOTclCmdList *del = CmdListFindCmdInList(cmd, clopt->instmixins);
+      XOTclCmdList *del = CmdListFindCmdInList(cmd, clopt->classmixins);
       if (del) {
         /* fprintf(stderr, "Removing class %s from mixins of object %s\n",
            className(cl), ObjStr(XOTclGetObjectFromCmdPtr(cmdlist->cmdPtr)->cmdName)); */
-        del = CmdListRemoveFromList(&clopt->instmixins, del);
+        del = CmdListRemoveFromList(&clopt->classmixins, del);
         CmdListDeleteCmdListEntry(del, GuardDel);
 	if (cl->object.mixinOrder) MixinResetOrder(&cl->object);
       }
@@ -3718,9 +3717,9 @@ MixinResetOrderForInstances(Tcl_Interp *interp, XOTclClass *cl) {
   /*fprintf(stderr, "invalidating instances of class %s\n",
     ObjStr(clPtr->cl->object.cmdName));*/
 
-  /* here we should check, whether this class is used as
-     a mixin / instmixin somewhere else and invalidate
-     the objects of these as well -- */
+  /* Here we should check, whether this class is used as an object or
+     class mixin somewhere else and invalidate the objects of these as
+     well -- */
 
   for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
     XOTclObject *obj = (XOTclObject *)Tcl_GetHashKey(&cl->instances, hPtr);
@@ -3791,8 +3790,8 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
   cl->order = saved;
 
   /* Reset mixin order for all objects having this class as a per
-     class mixin (instmixin).  This means that we have to work through
-     the instmixin hierarchy with its corresponding instances.
+     class mixin.  This means that we have to work through
+     the class mixin hierarchy with its corresponding instances.
   */
   Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
   MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
@@ -3805,7 +3804,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
     if (ncl) {
       MixinResetOrderForInstances(interp, ncl);
       /* this place seems to be sufficient to invalidate the computed object parameter definitions */
-      /*fprintf(stderr, "MixinInvalidateObjOrders via instmixin %s calls ifd invalidate \n", className(ncl));*/
+      /*fprintf(stderr, "MixinInvalidateObjOrders via class mixin %s calls ifd invalidate \n", className(ncl));*/
       XOTclCInvalidateObjectParameterMethod(interp, ncl);
     }
   }
@@ -3919,7 +3918,7 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *obj, char *methodName,
 }
 
 /*
- * info option for mixins and instmixins
+ * info option for mixins and classmixins
  */
 static int
 MixinInfo(Tcl_Interp *interp, XOTclCmdList *m, char *pattern,
@@ -3981,12 +3980,11 @@ MixinSearchMethodByName(Tcl_Interp *interp, XOTclCmdList *mixinList, char *name,
  */
 
 /*
- * The search method implements filter search order for filter
- * and instfilter: first a given name is interpreted as fully
- * qualified method name. If no method is found, a proc is
- * searched with fully name. Otherwise the simple name is searched
- * on the heritage order: object (only for
- * per-object filters), class, meta-class
+ * The search method implements filter search order for object and
+ * class ilter: first a given name is interpreted as fully qualified
+ * method name. If no method is found, a proc is searched with fully
+ * name. Otherwise the simple name is searched on the heritage order:
+ * object (only for per-object filters), class, meta-class
  */
 
 static Tcl_Command
@@ -3998,7 +3996,7 @@ FilterSearch(Tcl_Interp *interp, char *name, XOTclObject *startingObj,
     XOTclObjectOpt *opt = startingObj->opt;
     /*
      * the object-specific filter can also be defined on the object's
-     * class, its hierarchy, or the respective instmixins; thus use the
+     * class, its hierarchy, or the respective classmixins; thus use the
      * object's class as start point for the class-specific search then ...
      */
     startingCl = startingObj->cl;
@@ -4014,12 +4012,12 @@ FilterSearch(Tcl_Interp *interp, char *name, XOTclObject *startingObj,
   }
 
   /*
-   * search for instfilters on instmixins
+   * search for classfilters on classmixins
    */
   if (startingCl) {
     XOTclClassOpt *opt = startingCl->opt;
-    if (opt && opt->instmixins) {
-      if ((cmd = MixinSearchMethodByName(interp, opt->instmixins, name, cl))) {
+    if (opt && opt->classmixins) {
+      if ((cmd = MixinSearchMethodByName(interp, opt->classmixins, name, cl))) {
         return cmd;
       }
     }
@@ -4210,7 +4208,7 @@ GuardAddInheritedGuards(Tcl_Interp *interp, XOTclCmdList *dest,
   int guardAdded = 0;
   XOTclObjectOpt *opt;
 
-  /* search guards for instfilters registered on mixins */
+  /* search guards for classfilters registered on mixins */
   if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
     MixinComputeDefined(interp, obj);
   if (obj->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
@@ -4220,7 +4218,7 @@ GuardAddInheritedGuards(Tcl_Interp *interp, XOTclCmdList *dest,
       mixin = XOTclGetClassFromCmdPtr(ml->cmdPtr);
       if (mixin && mixin->opt) {
         guardAdded = GuardAddFromDefinitionList(interp, dest, obj, filterCmd,
-                                                mixin->opt->instfilters);
+                                                mixin->opt->classfilters);
       }
     }
   }
@@ -4237,7 +4235,7 @@ GuardAddInheritedGuards(Tcl_Interp *interp, XOTclCmdList *dest,
       XOTclClassOpt *opt = pl->cl->opt;
       if (opt) {
         guardAdded = GuardAddFromDefinitionList(interp, dest, obj, filterCmd,
-                                                opt->instfilters);
+                                                opt->classfilters);
       }
     }
 
@@ -4309,11 +4307,11 @@ FilterAdd(Tcl_Interp *interp, XOTclCmdList **filterList, Tcl_Obj *name,
 
   if (!(cmd = FilterSearch(interp, ObjStr(name), startingObj, startingCl, &cl))) {
     if (startingObj)
-      return XOTclVarErrMsg(interp, "filter: can't find filterproc on: ",
+      return XOTclVarErrMsg(interp, "object filter: can't find filterproc on: ",
                             objectName(startingObj), " - proc: ",
                             ObjStr(name), (char *) NULL);
     else
-      return XOTclVarErrMsg(interp, "instfilter: can't find filterproc on: ",
+      return XOTclVarErrMsg(interp, "class filter: can't find filterproc on: ",
                             ObjStr(startingCl->object.cmdName), " - proc: ",
                             ObjStr(name), (char *) NULL);
   }
@@ -4394,9 +4392,9 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
     Tcl_HashEntry *hPtr = &clPtr->cl->instances ?
       Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : 0;
 
-    /* recalculate the commands of all instfilter registrations */
+    /* recalculate the commands of all class-filter registrations */
     if (clPtr->cl->opt) {
-      FilterSearchAgain(interp, &clPtr->cl->opt->instfilters, 0, clPtr->cl);
+      FilterSearchAgain(interp, &clPtr->cl->opt->classfilters, 0, clPtr->cl);
     }
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       XOTclObject *obj = (XOTclObject *)Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
@@ -4433,7 +4431,7 @@ FilterRemoveDependentFilterCmds(XOTclClass *cl, XOTclClass *removeClass) {
       Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : NULL;
     XOTclClassOpt *opt = clPtr->cl->opt;
     if (opt) {
-      CmdListRemoveContextClassFromList(&opt->instfilters, removeClass, GuardDel);
+      CmdListRemoveContextClassFromList(&opt->classfilters, removeClass, GuardDel);
     }
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       XOTclObject *obj = (XOTclObject*)	Tcl_GetHashKey(&clPtr->cl->instances, hPtr);
@@ -4448,9 +4446,8 @@ FilterRemoveDependentFilterCmds(XOTclClass *cl, XOTclClass *removeClass) {
 }
 
 /*
- * build up a qualifier of the form <obj/cl> proc/instproc <procName>
- * if cl is not NULL, we build an instproc identifier for cl, else a proc
- * with obj
+ * Build up a qualifier of the form <obj/cl> method <procName>.
+ * If cl is NULL, we add the modifier "object".
  */
 static Tcl_Obj *
 getFullProcQualifier(Tcl_Interp *interp, CONST char *cmdName,
@@ -4480,9 +4477,9 @@ getFullProcQualifier(Tcl_Interp *interp, CONST char *cmdName,
 }
 
 /*
- * info option for filters and instfilters
+ * info option for filters and classfilters
  * withGuards -> if not 0 => append guards
- * fullProcQualifiers -> if not 0 => full names with obj/class proc/instproc
+ * fullProcQualifiers -> if not 0 => full names with obj/class method
  */
 static int
 FilterInfo(Tcl_Interp *interp, XOTclCmdList *f, char *pattern,
@@ -4587,11 +4584,10 @@ FilterComputeOrderFullList(Tcl_Interp *interp, XOTclCmdList **filters,
 }
 
 /*
- * Computes a linearized order of filter and instfilter. Then
+ * Computes a linearized order of object and class filter. Then
  * duplicates in the full list and with the class inheritance list of
- * 'obj' are eliminated.
- * The precendence rule is that the last occurence makes it into the
- * final list.
+ * 'obj' are eliminated.  The precendence rule is that the last
+ * occurence makes it into the final list.
  */
 static void
 FilterComputeOrder(Tcl_Interp *interp, XOTclObject *obj) {
@@ -4603,7 +4599,7 @@ FilterComputeOrder(Tcl_Interp *interp, XOTclObject *obj) {
     fprintf(stderr, "<Filter Order obj=%s> List: ", objectName(obj));
   */
 
-  /* append instfilters registered for mixins */
+  /* append classfilters registered for mixins */
   if (!(obj->flags & XOTCL_MIXIN_ORDER_VALID))
     MixinComputeDefined(interp, obj);
 
@@ -4613,8 +4609,8 @@ FilterComputeOrder(Tcl_Interp *interp, XOTclObject *obj) {
 
     for (ml = obj->mixinOrder; ml; ml = ml->nextPtr) {
       mixin = XOTclGetClassFromCmdPtr(ml->cmdPtr);
-      if (mixin && mixin->opt && mixin->opt->instfilters)
-        FilterComputeOrderFullList(interp, &mixin->opt->instfilters, &filterList);
+      if (mixin && mixin->opt && mixin->opt->classfilters)
+        FilterComputeOrderFullList(interp, &mixin->opt->classfilters, &filterList);
     }
   }
 
@@ -4625,8 +4621,8 @@ FilterComputeOrder(Tcl_Interp *interp, XOTclObject *obj) {
   /* append per-class filters */
   for (pl = ComputeOrder(obj->cl, obj->cl->order, Super); pl; pl=pl->nextPtr) {
     XOTclClassOpt *opt = pl->cl->opt;
-    if (opt && opt->instfilters) {
-      FilterComputeOrderFullList(interp, &opt->instfilters, &filterList);
+    if (opt && opt->classfilters) {
+      FilterComputeOrderFullList(interp, &opt->classfilters, &filterList);
     }
   }
 
@@ -4716,7 +4712,7 @@ FilterStackPop(XOTclObject *obj) {
  *
  * returns a tcl obj list with the filter registration, like:
  * "<obj> filter <filterName>,
- * "<class> instfilter <filterName>,
+ * "<class> filter <filterName>,
  * or an empty list, if not registered
  */
 static Tcl_Obj *
@@ -4737,8 +4733,8 @@ FilterFindReg(Tcl_Interp *interp, XOTclObject *obj, Tcl_Command cmd) {
   /* search per-class filters */
   for (pl = ComputeOrder(obj->cl, obj->cl->order, Super); pl; pl = pl->nextPtr) {
     XOTclClassOpt *opt = pl->cl->opt;
-    if (opt && opt->instfilters) {
-      if (CmdListFindCmdInList(cmd, opt->instfilters)) {
+    if (opt && opt->classfilters) {
+      if (CmdListFindCmdInList(cmd, opt->classfilters)) {
         Tcl_ListObjAppendElement(interp, list, pl->cl->object.cmdName);
         Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjects[XOTE_FILTER]);
         Tcl_ListObjAppendElement(interp, list,
@@ -5387,7 +5383,7 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
 }
 #endif
 
-/* invoke a method implemented as a proc/instproc (with assertion checking) */
+/* invoke a scripted method (with assertion checking) */
 static int
 ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
          char *methodName, XOTclObject *obj, XOTclClass *cl, Tcl_Command cmdPtr,
@@ -6399,7 +6395,7 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
   /*
    * If the argument is not required and no default value is
    * specified, we have to handle in the client code (eg. in the
-   * canonical arg handlers for instprocs) the unknown value
+   * canonical arg handlers for scripted methods) the unknown value
    * (e.g. don't set/unset a variable)
    */
   if (!(paramPtr->flags & XOTCL_ARG_REQUIRED) && paramPtr->defaultValue == NULL) {
@@ -6598,8 +6594,8 @@ MakeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *cl, Tcl_Obj *nameOb
   /* if both, args and body are empty strings, we delete the method */
   if (*argsStr == 0 && *bodyStr == 0) {
     result = cl ?
-      XOTclRemoveIMethod(interp, (XOTcl_Class *)cl, nameStr) :
-      XOTclRemovePMethod(interp, (XOTcl_Object *)obj, nameStr);
+      XOTclRemoveClassMethod(interp, (XOTcl_Class *)cl, nameStr) :
+      XOTclRemoveObjectMethod(interp, (XOTcl_Object *)obj, nameStr);
   } else {
     XOTclAssertionStore *aStore = NULL;
     if (precondition || postcondition) {
@@ -7682,14 +7678,15 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
 
   if (clopt) {
     /*
-     *  Remove this class from all isClassMixinOf lists and clear the instmixin list
+     *  Remove this class from all isClassMixinOf lists and clear the
+     *  class mixin list
      */
-    RemoveFromClassMixinsOf(clopt->id, clopt->instmixins);
+    RemoveFromClassMixinsOf(clopt->id, clopt->classmixins);
 
-    CmdListRemoveList(&clopt->instmixins, GuardDel);
+    CmdListRemoveList(&clopt->classmixins, GuardDel);
     /*MixinInvalidateObjOrders(interp, cl);*/
 
-    CmdListRemoveList(&clopt->instfilters, GuardDel);
+    CmdListRemoveList(&clopt->classfilters, GuardDel);
     /*FilterInvalidateObjOrders(interp, cl);*/
 
     if (!recreate) {
@@ -7701,10 +7698,11 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
       CmdListRemoveList(&clopt->isObjectMixinOf, GuardDel);
 
       /*
-       *  Remove this class from all instmixin lists and clear the isClassMixinOf list
+       *  Remove this class from all class mixin lists and clear the
+       *  isClassMixinOf list
        */
 
-      RemoveFromInstmixins(clopt->id, clopt->isClassMixinOf);
+      RemoveFromClassmixins(clopt->id, clopt->isClassMixinOf);
       CmdListRemoveList(&clopt->isClassMixinOf, GuardDel);
     }
     /* remove dependent filters of this class from all subclasses*/
@@ -8211,9 +8209,9 @@ IsMetaClass(Tcl_Interp *interp, XOTclClass *cl, int withMixins) {
     /* has the class metaclass mixed in? */
     for (pl = ComputeOrder(cl, cl->order, Super); pl; pl = pl->nextPtr) {
       XOTclClassOpt *clopt = pl->cl->opt;
-      if (clopt && clopt->instmixins) {
+      if (clopt && clopt->classmixins) {
 	MixinComputeOrderFullList(interp,
-				  &clopt->instmixins,
+				  &clopt->classmixins,
 				  &mixinClasses,
 				  &checkList, 0);
       }
@@ -8478,7 +8476,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *obj,
 }
 
 extern int
-XOTclRemovePMethod(Tcl_Interp *interp, XOTcl_Object *object, CONST char *methodName) {
+XOTclRemoveObjectMethod(Tcl_Interp *interp, XOTcl_Object *object, CONST char *methodName) {
   XOTclObject *obj = (XOTclObject*) object;
 
   AliasDelete(interp, obj->cmdName, methodName, 1);
@@ -8496,7 +8494,7 @@ XOTclRemovePMethod(Tcl_Interp *interp, XOTcl_Object *object, CONST char *methodN
 }
 
 extern int
-XOTclRemoveIMethod(Tcl_Interp *interp, XOTcl_Class *class, CONST char *methodName) {
+XOTclRemoveClassMethod(Tcl_Interp *interp, XOTcl_Class *class, CONST char *methodName) {
   XOTclClass *cl = (XOTclClass*) class;
   XOTclClassOpt *opt = cl->opt;
   int rc;
@@ -9672,7 +9670,6 @@ GetOriginalCommand(Tcl_Command cmd) /* The imported command for which the origin
   return cmd;
 }
 
-/* proc/instproc specific code */
 static int
 ListProcBody(Tcl_Interp *interp, Proc *procPtr, char *methodName) {
   if (procPtr) {
@@ -10413,7 +10410,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_ob
   flags = 0;
 
   if (cl) {
-    result = XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, methodName,
+    result = XOTclAddClassMethod(interp, (XOTcl_Class *)cl, methodName,
                                     objProc, tcd, deleteProc, flags);
     nsPtr = cl->nsPtr;
   } else {
@@ -10835,7 +10832,7 @@ static int XOTclForwardCmd(Tcl_Interp *interp,
                                     (Tcl_ObjCmdProc*)XOTclForwardMethod,
                                     (ClientData)tcd, forwardCmdDeleteProc, 0);
     } else {
-      result = XOTclAddInstanceMethod(interp, (XOTcl_Class*)cl, methodName,
+      result = XOTclAddClassMethod(interp, (XOTcl_Class*)cl, methodName,
                                       (Tcl_ObjCmdProc*)XOTclForwardMethod,
                                       (ClientData)tcd, forwardCmdDeleteProc, 0);
     }
@@ -11503,9 +11500,10 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     if (value == NULL) {
       clopt = cl->opt;
       switch (relationtype) {
-      case RelationtypeClass_mixinIdx: return clopt ? MixinInfo(interp, clopt->instmixins, NULL, 1, NULL) : TCL_OK;
+      case RelationtypeClass_mixinIdx: 
+        return clopt ? MixinInfo(interp, clopt->classmixins, NULL, 1, NULL) : TCL_OK;
       case RelationtypeClass_filterIdx:
-        return objopt ? FilterInfo(interp, clopt->instfilters, NULL, 1, 0) : TCL_OK;
+        return objopt ? FilterInfo(interp, clopt->classfilters, NULL, 1, 0) : TCL_OK;
       }
     }
 
@@ -11643,9 +11641,9 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
           return TCL_ERROR;
         }
       }
-      if (clopt->instmixins) {
-        RemoveFromClassMixinsOf(cl->object.id, clopt->instmixins);
-        CmdListRemoveList(&clopt->instmixins, GuardDel);
+      if (clopt->classmixins) {
+        RemoveFromClassMixinsOf(cl->object.id, clopt->classmixins);
+        CmdListRemoveList(&clopt->classmixins, GuardDel);
       }
 
       MixinInvalidateObjOrders(interp, cl);
@@ -11654,10 +11652,10 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
        * we have to invalidate the filters as well
        */
       FilterInvalidateObjOrders(interp, cl);
-      clopt->instmixins = newMixinCmdList;
+      clopt->classmixins = newMixinCmdList;
       for (i = 0; i < oc; i++) {
         Tcl_Obj *ocl = NULL;
-        /* fprintf(stderr, "Added to instmixins of %s: %s\n",
+        /* fprintf(stderr, "Added to classmixins of %s: %s\n",
            className(cl), ObjStr(ov[i])); */
         
         Tcl_ListObjIndex(interp, ov[i], 0, &ocl);
@@ -11675,11 +11673,11 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
 
   case RelationtypeClass_filterIdx:
 
-    if (clopt->instfilters) CmdListRemoveList(&clopt->instfilters, GuardDel);
+    if (clopt->classfilters) CmdListRemoveList(&clopt->classfilters, GuardDel);
 
     FilterInvalidateObjOrders(interp, cl);
     for (i = 0; i < oc; i ++) {
-      if (FilterAdd(interp, &clopt->instfilters, ov[i], 0, cl) != TCL_OK)
+      if (FilterAdd(interp, &clopt->classfilters, ov[i], 0, cl) != TCL_OK)
         return TCL_ERROR;
     }
     break;
@@ -11856,7 +11854,7 @@ static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object,  int withPer_
   XOTclClass *cl = (withPer_object || ! XOTclObjectIsClass(object)) ? NULL : (XOTclClass *)object;
 
   if (cl) {
-    result = XOTclAddInstanceMethod(interp, (XOTcl_Class *)cl, methodName,
+    result = XOTclAddClassMethod(interp, (XOTcl_Class *)cl, methodName,
                                     (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
   } else {
     result = XOTclAddObjectMethod(interp, (XOTcl_Object *)object, methodName, 
@@ -11932,7 +11930,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
    *
    * a) on class cleanup: ParsedParamFree(cl->parsedParamPtr)
    * b) on class structure changes,
-   * c) when instmixins are added,
+   * c) when classmixins are added,
    * d) when new slots are defined,
    * e) when slots are removed
    *
@@ -12702,8 +12700,8 @@ static int XOTclCFilterGuardMethod(Tcl_Interp *interp, XOTclClass *cl,
                                    char *filter, Tcl_Obj *guard) {
   XOTclClassOpt *opt = cl->opt;
   
-  if (opt && opt->instfilters) {
-    XOTclCmdList *h = CmdListFindNameInList(interp, filter, opt->instfilters);
+  if (opt && opt->classfilters) {
+    XOTclCmdList *h = CmdListFindNameInList(interp, filter, opt->classfilters);
     if (h) {
       if (h->clientData)
 	GuardDel(h);
@@ -12713,21 +12711,21 @@ static int XOTclCFilterGuardMethod(Tcl_Interp *interp, XOTclClass *cl,
     }
   }
 
-  return XOTclVarErrMsg(interp, "Instfilterguard: can't find filter ",
+  return XOTclVarErrMsg(interp, "filterguard: can't find filter ",
 			filter, " on ", className(cl),	(char *) NULL);
 }
 
 static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *mixin, Tcl_Obj *guard) {
   XOTclClassOpt *opt = cl->opt;
 
-  if (opt && opt->instmixins) {
+  if (opt && opt->classmixins) {
     XOTclClass *mixinCl = XOTclpGetClass(interp, mixin);
     Tcl_Command mixinCmd = NULL;
     if (mixinCl) {
       mixinCmd = Tcl_GetCommandFromObj(interp, mixinCl->object.cmdName);
     }
     if (mixinCmd) {
-      XOTclCmdList *h = CmdListFindCmdInList(mixinCmd, opt->instmixins);
+      XOTclCmdList *h = CmdListFindCmdInList(mixinCmd, opt->classmixins);
       if (h) {
         if (h->clientData)
           GuardDel((XOTclCmdList*) h);
@@ -12738,7 +12736,7 @@ static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, char *mixi
     }
   }
 
-  return XOTclVarErrMsg(interp, "Instmixinguard: can't find mixin ",
+  return XOTclVarErrMsg(interp, "mixinguard: can't find mixin ",
                         mixin, " on ", className(cl), (char *) NULL);
 }
 
@@ -13077,11 +13075,11 @@ static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *startCl
 }
 
 static int XOTclClassInfoFilterMethod(Tcl_Interp *interp, XOTclClass * class, int withGuards, char * pattern) {
-  return class->opt ? FilterInfo(interp, class->opt->instfilters, pattern, withGuards, 0) : TCL_OK;
+  return class->opt ? FilterInfo(interp, class->opt->classfilters, pattern, withGuards, 0) : TCL_OK;
 }
 
 static int XOTclClassInfoFilterguardMethod(Tcl_Interp *interp, XOTclClass * class, char * filter) {
-  return class->opt ? GuardList(interp, class->opt->instfilters, filter) : TCL_OK;
+  return class->opt ? GuardList(interp, class->opt->classfilters, filter) : TCL_OK;
 }
 
 static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *class,
@@ -13104,17 +13102,14 @@ static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass * class, int
     }
     MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
   } else {
-    rc = opt ? MixinInfo(interp, opt->instmixins, patternString, withGuards, patternObj) : TCL_OK;
+    rc = opt ? MixinInfo(interp, opt->classmixins, patternString, withGuards, patternObj) : TCL_OK;
   }
 
   return TCL_OK;
 }
 
-/* TODO: this method should be removed, we should register XOTclClassInfoMixinMethod for 
-   xotcl1 under name ... instmxin ... */
-
 static int XOTclClassInfoMixinguardMethod(Tcl_Interp *interp, XOTclClass * class, char * mixin) {
-  return class->opt ? GuardList(interp, class->opt->instmixins, mixin) : TCL_OK;
+  return class->opt ? GuardList(interp, class->opt->classmixins, mixin) : TCL_OK;
 }
 
 static int XOTclClassInfoClassMixinOfMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure,
@@ -13910,7 +13905,7 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "self", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "next", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "my", 0);
-  Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "instvar", 0);
+  Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "importvar", 0);
 
 #ifdef XOTCL_BYTECODE
   XOTclBytecodeInit();
