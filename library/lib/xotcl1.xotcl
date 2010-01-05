@@ -327,7 +327,7 @@ namespace eval ::xotcl {
     } {
       set methodtype all
       if {$nocmds} {set methodtype scripted}
-      if {$noprocs} {if {$nocmds} {return ""}; set methodtype system}
+      if {$noprocs} {if {$nocmds} {return ""}; set methodtype builtin}
       set cmd [list ::xotcl::cmd::ObjectInfo::callable $o -methodtype $methodtype]
       if {$incontext} {lappend cmd -incontext}
       if {[::info exists pattern]} {lappend cmd $pattern}

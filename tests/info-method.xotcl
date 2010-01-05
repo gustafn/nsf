@@ -74,3 +74,9 @@ c1 method foo {} {puts foo}
 
 ? {C info method definition a} "::C alias a ::set"
 ? {C object info method definition apo} "::C object alias apo ::puts"
+
+
+? {::xotcl2::Object info callable -application} ""
+? {::xotcl2::Class info callable -application} ""
+? {lsort [C info callable -application]} "add1 apo fpo mpo spo"
+? {lsort [c1 info callable -application]} "a addOne foo m m-with-assertions s"

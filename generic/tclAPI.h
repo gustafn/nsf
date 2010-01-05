@@ -10,12 +10,12 @@ enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, Infomet
   
 static int convertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
-  static CONST char *opts[] = {"all", "scripted", "system", "alias", "forwarder", "object", "setter", NULL};
+  static CONST char *opts[] = {"all", "scripted", "builtin", "alias", "forwarder", "object", "setter", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-methodtype", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
-enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeSystemIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx};
+enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeBuiltinIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx};
   
 static int convertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
@@ -211,7 +211,7 @@ static int XOTclClassInfoParameterMethod(Tcl_Interp *interp, XOTclClass *class);
 static int XOTclClassInfoSlotsMethod(Tcl_Interp *interp, XOTclClass *class);
 static int XOTclClassInfoSubclassMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoSuperclassMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, Tcl_Obj *pattern);
-static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object, int withWhich, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, char *pattern);
+static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object, int withWhich, int withMethodtype, int withCallprotection, int withApplication, int withNomixins, int withIncontext, char *pattern);
 static int XOTclObjInfoChildrenMethod(Tcl_Interp *interp, XOTclObject *object, char *pattern);
 static int XOTclObjInfoClassMethod(Tcl_Interp *interp, XOTclObject *object);
 static int XOTclObjInfoFilterMethod(Tcl_Interp *interp, XOTclObject *object, int withOrder, int withGuards, char *pattern);
@@ -924,12 +924,13 @@ XOTclObjInfoCallableMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     int withWhich = (int )PTR2INT(pc.clientData[1]);
     int withMethodtype = (int )PTR2INT(pc.clientData[2]);
     int withCallprotection = (int )PTR2INT(pc.clientData[3]);
-    int withNomixins = (int )PTR2INT(pc.clientData[4]);
-    int withIncontext = (int )PTR2INT(pc.clientData[5]);
-    char *pattern = (char *)pc.clientData[6];
+    int withApplication = (int )PTR2INT(pc.clientData[4]);
+    int withNomixins = (int )PTR2INT(pc.clientData[5]);
+    int withIncontext = (int )PTR2INT(pc.clientData[6]);
+    char *pattern = (char *)pc.clientData[7];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoCallableMethod(interp, object, withWhich, withMethodtype, withCallprotection, withNomixins, withIncontext, pattern);
+    return XOTclObjInfoCallableMethod(interp, object, withWhich, withMethodtype, withCallprotection, withApplication, withNomixins, withIncontext, pattern);
 
   }
 }
@@ -2056,11 +2057,12 @@ static methodDefinition method_definitions[] = {
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::ObjectInfo::callable", XOTclObjInfoCallableMethodStub, 7, {
+{"::xotcl::cmd::ObjectInfo::callable", XOTclObjInfoCallableMethodStub, 8, {
   {"object", 0, 0, convertToObject},
   {"-which", 0, 0, convertToString},
   {"-methodtype", 0, 1, convertToMethodtype},
   {"-callprotection", 0, 1, convertToCallprotection},
+  {"-application", 0, 0, convertToString},
   {"-nomixins", 0, 0, convertToString},
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}

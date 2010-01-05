@@ -8,28 +8,40 @@ body	{
 	background-color : white;
 	color: black;
 }
-code em {
-    	/*font-family: cursive;*/
-	color: #888888;
+table i {
+       font-size: 80%;
 }
-code tt {
-    	font-family: helvetica;
-    	font-weight: 900;
+table td code i {
+      font-style: italic;
+       color: green;
 }
-code i {
-    	font-style: italic;
-	color: green;
-}
-tt em {
-font-family: cursive;
-	color: #888888;
-}
+
 th {color: #888888;}
-td hr {color: #FFFFFF; margin: 10 10 10 10;}
+td hr {
+  color: #FFFFFF;
+  border-bottom-style: none;
+  border-left-style: none;
+  border-right-style: none;
+  border-top-style: dashed;
+  border-color: #AAAAAA;
+  margin: 10 10 10 10;
+}
 
 
 /*table {font-size: 80%;}*/
-table {width: 700;}
+table {
+   width: 900;
+   border-collapse:collapse;
+}
+table th {
+   width: 400;
+   border:1px solid black;
+}
+table td {
+   width: 400;
+   border:1px solid #AAAAAA;
+}
+
 </style>
 </head>
 
@@ -52,7 +64,7 @@ describe, what <code>::xotcl::use</code> does
 <h1>XOTcl 1 Idioms in XOTcl 2</h1>
 
 <h2>Defining Objects and Classes</h2>
-<table border=1>
+<table>
   <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
   <tr>
     <td><code>Class <i>ClassName</i></code></td>
@@ -164,24 +176,24 @@ describe, what <code>::xotcl::use</code> does
 <table border=1>
   <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
   <tr>
-    <td><code><i>someObject</i> set <i>varname value</i></code></td>
-    <td><code><i>someObject</i> eval [list set <i>.varname value</i>]</code></td>
+    <td><code><i>obj</i> set <i>varname value</i></code></td>
+    <td><code><i>obj</i> eval [list set <i>.varname value</i>]</code></td>
   </tr>
     <tr>
-    <td><code>set <i>newVar</i> [<i>someObject</i> set <i>otherVar</i>]</code></td>
-    <td><code>set <i>newVar</i> [<i>someObject</i> eval {set <i>.otherVar</i>}]</code><br>
+    <td><code>set <i>newVar</i> [<i>obj</i> set <i>otherVar</i>]</code></td>
+    <td><code>set <i>newVar</i> [<i>obj</i> eval {set <i>.otherVar</i>}]</code><br>
     </td>
   </tr>
   <tr>
-    <td><code><i>someObject</i> instvar <i>newVar</i><br>
+    <td><code><i>obj</i> instvar <i>newVar</i><br>
       set <i>newVar value</i> </code>
     </td>
-    <td><code>::xotcl::importvar <i>someObject newVar</i><br>
+    <td><code>::xotcl::importvar <i>obj newVar</i><br>
       set <i>newVar value</i></td>
  </tr>
   <tr>
-    <td><code><i>someObject</i> exists <i>varname</i></code></td>
-    <td><code><i>someObject</i> eval {info exists <i>.varname</i>}</code></td>
+    <td><code><i>obj</i> exists <i>varname</i></code></td>
+    <td><code><i>obj</i> eval {info exists <i>.varname</i>}</code></td>
   </tr>
 </table>
 
@@ -189,57 +201,166 @@ describe, what <code>::xotcl::use</code> does
 <h2>Object Parameters</h2>
 <h2>Method Parameters</h2>
 <h2>Introspection</h2>
+
+<h4>List methods defined by objects</h4>
 <table border=1>
   <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
-    <tr>
-    <td><code><i>someObject</i> info methods <i>?pattern?</i></code></td>
-    <td><code><i>someObject</i> info callable <i>?pattern?</i></code></td>
+  <tr>
+    <td><code><i>obj</i> info commands <i>?pattern?</i></code></td>
+    <td><code><i>obj</i> info methods <i>?pattern?</i></code></td>
   </tr>
   <tr>
-    <td><code><i>someObject</i> procsearch <i>methodName</i></code></td>
-    <td><code><i>someObject</i> info callable -which <i>methodName</i></code></td>
+    <td><code><i>obj</i> info parametercmd <i>?pattern?</i></code></td>
+    <td><code><i>obj</i> info methods -methodtype setter <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>obj</i> info procs <i>?pattern?</i></code></td>
+    <td><code><i>obj</i> info methods -methodtype scripted <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>obj</i> info methods -methodtype alias <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>obj</i> info methods -methodtype forwarder <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>obj</i> info methods -methodtype object <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>obj</i> info methods -callprotection <i>public|protected ...</i></code></td>
   </tr>
 </table>
-  
+<h4>List methods defined by classes</h4>
+<table>
+  <tr>
+    <td><code><i>cls</i> info instcommands <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> info methods <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info instparametercmd <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> info methods -methodtype setter <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info instprocs <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> info methods -methodtype scripted <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> info methods -methodtype alias <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> info methods -methodtype forwarder <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> info methods -methodtype object <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> info methods -callprotection <i>public|protected ...</i></code></td>
+  </tr>  
+</table>
+
+<h4>List class object specific methods</h4>
+<table>
+  <tr>
+    <td><code><i>cls</i> info commands <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> object info methods <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info parametercmd <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> object info methods -methodtype setter <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info procs <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> object info methods -methodtype scripted <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> object info methods -methodtype alias <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> object info methods -methodtype forwarder <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> object info methods -methodtype object <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> object info methods -callprotection <i>public|protected ...</i></code></td>
+  </tr> 
+</table>
+
+<h4>List callable methods</h4>
+<table border=1>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code><i>obj</i> info methods <i>?pattern?</i></code></td>
+    <td><code><i>obj</i> info callable <i>?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i># list only application specific methods</i></code><br>
+      <code><i>obj</i> info callable -application</code></td>
+  </tr>
+</table>
+
+<h4>List object/class where some method is defined</h4>
+
+<table border=1>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code><i>obj</i> procsearch <i>methodName</i></code></td>
+    <td><code><i>obj</i> info callable -which <i>methodName</i></code></td>
+  </tr>
+</table>
+ 
 <h2>Predefined Methods</h2>
 <h2>Dispatch, Aliases, etc.</h2>
 <h2>Assertions</h2>
 <table border=1>
   <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
   <tr>
-    <td><code><i>objectName</i> check <i>checkptions</i></code></td>
-    <td><code>::xotcl::assertion <i>objectName</i> check <i>checkptions</i></code></td>
+    <td><code><i>obj</i> check <i>checkptions</i></code></td>
+    <td><code>::xotcl::assertion <i>obj</i> check <i>checkptions</i></code></td>
   </tr>
   <tr>
-    <td><code><i>objectName</i> info check</code></td>
-    <td><code>::xotcl::assertion <i>objectName</i> check</code></td>
-  </tr>
-  
-  <tr>
-    <td><code><i>objectName</i> invar <i>conditions</i></code></td>
-    <td><code>::xotcl::assertion <i>objectName</i> object-invar <i>conditions</i></code></td>
-  </tr>
-  <tr>
-    <td><code><i>objectName</i> info invar</code></td>
-    <td><code>::xotcl::assertion <i>objectName</i> object-invar</code></td>
+    <td><code><i>obj</i> info check</code></td>
+    <td><code>::xotcl::assertion <i>obj</i> check</code></td>
   </tr>
   
   <tr>
-    <td><code><i>className</i> instinvar <i>conditions</i></code></td>
-    <td><code>::xotcl::assertion <i>className</i> class-invar <i>conditions</i></code></td>
+    <td><code><i>obj</i> invar <i>conditions</i></code></td>
+    <td><code>::xotcl::assertion <i>obj</i> object-invar <i>conditions</i></code></td>
   </tr>
   <tr>
-    <td><code><i>className</i> info instinvar</code></td>
-    <td><code>::xotcl::assertion <i>className</i> class-invar</code></td>
+    <td><code><i>obj</i> info invar</code></td>
+    <td><code>::xotcl::assertion <i>obj</i> object-invar</code></td>
+  </tr>
+  
+  <tr>
+    <td><code><i>cls</i> instinvar <i>conditions</i></code></td>
+    <td><code>::xotcl::assertion <i>cls</i> class-invar <i>conditions</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info instinvar</code></td>
+    <td><code>::xotcl::assertion <i>cls</i> class-invar</code></td>
   </tr>
 
     <tr>
-    <td><code><i>className</i> invar <i>conditions</i></code></td>
-    <td><code>::xotcl::assertion <i>className</i> object-invar <i>conditions</i></code></td>
+    <td><code><i>cls</i> invar <i>conditions</i></code></td>
+    <td><code>::xotcl::assertion <i>cls</i> object-invar <i>conditions</i></code></td>
   </tr>
   <tr>
-    <td><code><i>className</i> info invar</code></td>
-    <td><code>::xotcl::assertion <i>className</i> object-invar</code></td>
+    <td><code><i>cls</i> info invar</code></td>
+    <td><code>::xotcl::assertion <i>cls</i> object-invar</code></td>
   </tr
   
 </table>
@@ -248,5 +369,5 @@ describe, what <code>::xotcl::use</code> does
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Mon Jan  4 21:25:17 CET 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Tue Jan  5 18:26:03 CET 2010 <!-- hhmts end -->
 </body> </html>

@@ -10160,7 +10160,7 @@ ListDefinedMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
 static int
 ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
                     int withPer_object, int methodType, int withCallprotection,
-                    int noMixins, int inContext) {
+                    int withApplication, int noMixins, int inContext) {
   XOTclClasses *pl;
   Tcl_HashTable *cmdTable, dupsTable, *dups = &dupsTable;
 
@@ -10172,6 +10172,10 @@ ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
    */
   if (withCallprotection == CallprotectionNULL) {
     withCallprotection = CallprotectionPublicIdx;
+  }
+
+  if (withApplication && object->flags & (XOTCL_IS_ROOT_META_CLASS|XOTCL_IS_ROOT_CLASS)) {
+    return TCL_OK;
   }
 
   Tcl_InitHashTable(dups, TCL_STRING_KEYS);
@@ -10204,9 +10208,12 @@ ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
     }
   }
 
-  /* append per-class filters */
+  /* append method keys from inheritance order */
   for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
     Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(pl->cl->nsPtr);
+    if (withApplication && pl->cl->object.flags & (XOTCL_IS_ROOT_META_CLASS|XOTCL_IS_ROOT_CLASS)) {
+      break;
+    }
     ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
                    dups, object, withPer_object);
   }
@@ -12853,13 +12860,13 @@ static int AggregatedMethodType(int methodType) {
   switch (methodType) {
   case MethodtypeNULL: /* default */
   case MethodtypeAllIdx: 
-    methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_SYSTEM;
+    methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_BUILTIN;
     break;
   case MethodtypeScriptedIdx:
     methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_ALIAS;
     break;
-  case MethodtypeSystemIdx:
-    methodType = XOTCL_METHODTYPE_SYSTEM;
+  case MethodtypeBuiltinIdx:
+    methodType = XOTCL_METHODTYPE_BUILTIN;
     break;
   case MethodtypeForwarderIdx:
     methodType = XOTCL_METHODTYPE_FORWARDER;
@@ -12896,8 +12903,20 @@ static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object,
 }
 
 /* todo move me to the right place */
+/*
+infoObjectMethod callable XOTclObjInfoCallableMethod {
+  {-argName "object" -type object}
+  {-argName "-which"}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
+  {-argName "-application"}
+  {-argName "-nomixins"}
+  {-argName "-incontext"}
+  {-argName "pattern" -required 0}
+*/
 static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object, 
                                       int withWhich, int withMethodtype, int withCallprotection,
+                                      int withApplication,
                                       int withNomixins, int withIncontext, char *pattern) {
   if (withWhich) {
     XOTclClass *pcl = NULL;
@@ -12912,7 +12931,7 @@ static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object,
 
   return ListCallableMethods(interp, object, pattern, 1 /* per-object */, 
                              AggregatedMethodType(withMethodtype), withCallprotection,
-                             withNomixins, withIncontext);
+                             withApplication, withNomixins, withIncontext);
 }
 
 static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object, 
