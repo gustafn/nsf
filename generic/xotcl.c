@@ -8190,6 +8190,12 @@ hasMetaProperty(Tcl_Interp *interp, XOTclClass *cl) {
 }
 
 static int
+IsBaseClass(XOTclClass *cl) {
+  return cl->object.flags & (XOTCL_IS_ROOT_META_CLASS|XOTCL_IS_ROOT_CLASS);
+}
+
+
+static int
 IsMetaClass(Tcl_Interp *interp, XOTclClass *cl, int withMixins) {
   /* check if class is a meta-class */
   XOTclClasses *pl, *checkList = NULL, *mixinClasses = NULL, *mc;
@@ -10174,7 +10180,7 @@ ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
     withCallprotection = CallprotectionPublicIdx;
   }
 
-  if (withApplication && object->flags & (XOTCL_IS_ROOT_META_CLASS|XOTCL_IS_ROOT_CLASS)) {
+  if (withApplication && object->flags & IsBaseClass((XOTclClass*)object)) {
     return TCL_OK;
   }
 
@@ -10211,7 +10217,7 @@ ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
   /* append method keys from inheritance order */
   for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
     Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(pl->cl->nsPtr);
-    if (withApplication && pl->cl->object.flags & (XOTCL_IS_ROOT_META_CLASS|XOTCL_IS_ROOT_CLASS)) {
+    if (withApplication && IsBaseClass(pl->cl)) {
       break;
     }
     ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
@@ -10515,12 +10521,26 @@ static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int subcmd
 
 /*
 xotclCmd configure XOTclConfigureCmd {
-  {-argName "configureoption" -required 1 -type "filter|softrecreate|cacheinterface"}
+  {-argName "configureoption" -required 1 -type "filter|softrecreate|cacheinterface|objectsystems"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value) {
   int bool;
+
+  if (configureoption == ConfigureoptionObjectsystemsIdx) {
+    XOTclClasses *os;
+    Tcl_Obj *list = Tcl_NewListObj(0, NULL);
+
+    for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
+      Tcl_Obj *osObj = Tcl_NewListObj(0, NULL);
+      Tcl_ListObjAppendElement(interp, osObj, os->cl->object.cmdName);
+      Tcl_ListObjAppendElement(interp, osObj, ((XOTclClass *)os->clientData)->object.cmdName);
+      Tcl_ListObjAppendElement(interp, list, osObj);
+    }
+    Tcl_SetObjResult(interp, list);
+    return TCL_OK;
+  }
 
   if (value) {
     int result = Tcl_GetBooleanFromObj(interp, value, &bool);
@@ -10551,6 +10571,7 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
   }
   return TCL_OK;
 }
+
 
 /*
 xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
@@ -10926,7 +10947,7 @@ XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[
 /*
 xotclCmd is XOTclIsCmd {
   {-argName "object" -required 1 -type tclobj}
-  {-argName "objectkind" -type "type|object|class|metaclass|mixin"}
+  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|mixin"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -10960,6 +10981,13 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_O
       && IsMetaClass(interp, (XOTclClass*)obj, 1);
     break;
 
+  case ObjectkindBaseclassIdx:
+    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> baseclass");
+    success = (GetObjectFromObj(interp, object, &obj) == TCL_OK)
+      && XOTclObjectIsClass(obj)
+      && IsBaseClass((XOTclClass*)obj);
+    break;
+
   case ObjectkindMixinIdx:
     if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> mixin <class>");
     success = (GetObjectFromObj(interp, object, &obj) == TCL_OK)
@@ -10967,6 +10995,7 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_O
       && hasMixin(interp, obj, cl);
     break;
   }
+
 
   Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
   return TCL_OK;
@@ -12863,7 +12892,8 @@ static int AggregatedMethodType(int methodType) {
     methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_BUILTIN;
     break;
   case MethodtypeScriptedIdx:
-    methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_ALIAS;
+    /*methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_ALIAS;*/
+    methodType = XOTCL_METHODTYPE_SCRIPTED;
     break;
   case MethodtypeBuiltinIdx:
     methodType = XOTCL_METHODTYPE_BUILTIN;
@@ -13546,7 +13576,7 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
           && !ObjectHasChildren(interp, (XOTclObject*)cl)
           && !ClassHasInstances(cl)
           && !ClassHasSubclasses(cl)
-          && (cl->object.flags & (XOTCL_IS_ROOT_META_CLASS|XOTCL_IS_ROOT_CLASS)) == 0
+          && !IsBaseClass(cl)
           ) {
         /* fprintf(stderr, "  ... delete class %s %p\n", key, cl); */
         freeUnsetTraceVariable(interp, &cl->object);

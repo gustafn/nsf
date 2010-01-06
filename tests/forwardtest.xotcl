@@ -5,6 +5,7 @@ package require xotcl::test
 ###########################################
 # trivial object delegation
 ###########################################
+Test case delegation
 Object dog
 Object tail
 tail proc wag args { return $args }
@@ -16,6 +17,7 @@ dog forward wag tail %proc
 ###########################################
 # evaluating in scope 
 ###########################################
+Test case inscope
 Class X -parameter {{x 1}}
 X instforward Incr -objscope incr
 
@@ -29,6 +31,7 @@ x1 Incr x
 ###########################################
 # adding 
 ###########################################
+Test case adding
 Object obj
 obj forward addOne expr 1 +
 
@@ -38,6 +41,7 @@ obj forward addOne expr 1 +
 ###########################################
 # more arguments
 ###########################################
+Test case multiple-args
 Object target
 target proc foo args {return $args}
 obj forward foo target %proc %self a1 a2
@@ -53,6 +57,7 @@ obj forward foo target %proc %self %%self %%p
 ###########################################
 # mixin example
 ###########################################
+Test case mixin-via-forward
 Object create mixin
 mixin proc unknown {m args} {return [concat [self] $m $args]}
  
@@ -71,6 +76,7 @@ obj forward Mixin mixin "%1 {Getter Setter}" %self
 ###########################################
 # sketching extensibe info
 ###########################################
+Test case info-via-forward
 Object Info
 Info proc @mixin {o} {
   $o info mixin
@@ -90,6 +96,7 @@ Object instforward Info -methodprefix @ Info %1 %self
 ###########################################
 # variations of placement of options
 ###########################################
+Test case incr
 obj set x 1
 obj forward i1 -objscope incr x 
 
@@ -99,6 +106,7 @@ obj forward i1 -objscope incr x
 ###########################################
 # introspeciton options
 ###########################################
+Test case introspection
 Class C 
 C instforward Info -methodprefix @ Info %1 %self 
 
@@ -126,6 +134,7 @@ C instproc XXXo {} {}
 ###########################################
 # test serializer
 ###########################################
+Test case serializer
 package require xotcl::serializer
 obj proc test {} {puts "i am [self proc]"}
 set a [Serializer deepSerialize obj]
@@ -136,6 +145,7 @@ eval $a
 ###########################################
 # test optional target cmd
 ###########################################
+Test case optional-target
 obj set x 2
 obj forward append -objscope
 ? {obj append x y z} 2yz
@@ -147,6 +157,7 @@ o forward ::n::x
 ###########################################
 # arg including instvar
 ###########################################
+Test case percent-cmd
 obj set x 10
 obj forward x* expr {%my set x} *
 ? {obj x* 10} "100"
@@ -154,7 +165,7 @@ obj forward x* expr {%my set x} *
 ###########################################
 # positional arguments
 ###########################################
-
+Test case positioning-args
 obj forward @end-13 list {%@end 13}
 ? {obj @end-13 1 2 3 } [list 1 2 3 13]
 
@@ -210,7 +221,7 @@ obj forward @end-13 list {%@1 13} %1 %self
 ###############################################
 # substitution depending on number of arguments
 ###############################################
-
+Test case num-args
 obj forward f %self [list %argclindex [list a b c]]
 obj proc a args {return [list [self proc] $args]}
 obj proc b args {return [list [self proc] $args]}
@@ -223,6 +234,7 @@ obj proc c args {return [list [self proc] $args]}
 ###############################################
 # option earlybinding
 ###############################################
+Test case earlyinging
 obj forward s -earlybinding ::set %proc
 ? {obj s 100} 100
 ? {obj s} 100
@@ -309,7 +321,7 @@ namespace eval test {
 ###########################################
 # forward to expr + callstack
 ###########################################
-
+Test case callstack
 Object instforward expr -objscope
 
 Class C

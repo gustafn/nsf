@@ -30,7 +30,7 @@ xotclCmd assertion XOTclAssertionCmd {
   {-argName "arg" -required 0 -type tclobj}
 }
 xotclCmd configure XOTclConfigureCmd {
-  {-argName "configureoption" -required 1 -type "filter|softrecreate|cacheinterface"}
+  {-argName "configureoption" -required 1 -type "filter|softrecreate|cacheinterface|objectsystems"}
   {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
@@ -80,7 +80,7 @@ xotclCmd interp XOTclInterpObjCmd {
 }
 xotclCmd is XOTclIsCmd {
   {-argName "object" -required 1 -type tclobj}
-  {-argName "objectkind" -type "type|object|class|metaclass|mixin"}
+  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|mixin"}
   {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd method XOTclMethodCmd {

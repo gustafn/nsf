@@ -37,12 +37,12 @@ enum AssertionsubcmdIdx {AssertionsubcmdNULL, AssertionsubcmdCheckIdx, Assertion
   
 static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
-  static CONST char *opts[] = {"filter", "softrecreate", "cacheinterface", NULL};
+  static CONST char *opts[] = {"filter", "softrecreate", "cacheinterface", "objectsystems", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "configureoption", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
-enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionCacheinterfaceIdx};
+enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionCacheinterfaceIdx, ConfigureoptionObjectsystemsIdx};
   
 static int convertToSelfoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
@@ -55,12 +55,12 @@ enum SelfoptionIdx {SelfoptionNULL, SelfoptionProcIdx, SelfoptionClassIdx, Selfo
   
 static int convertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;
-  static CONST char *opts[] = {"type", "object", "class", "metaclass", "mixin", NULL};
+  static CONST char *opts[] = {"type", "object", "class", "baseclass", "metaclass", "mixin", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectkind", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   return result;
 }
-enum ObjectkindIdx {ObjectkindNULL, ObjectkindTypeIdx, ObjectkindObjectIdx, ObjectkindClassIdx, ObjectkindMetaclassIdx, ObjectkindMixinIdx};
+enum ObjectkindIdx {ObjectkindNULL, ObjectkindTypeIdx, ObjectkindObjectIdx, ObjectkindClassIdx, ObjectkindBaseclassIdx, ObjectkindMetaclassIdx, ObjectkindMixinIdx};
   
 static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   int index, result;

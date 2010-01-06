@@ -260,7 +260,7 @@ namespace eval xotcl2 {
       # clients should append exit handlers to this proc body
     }
   }
-  proc ::xotcl::setExitHandler {newbody} {proc ::xotcl::__exitHandler {} $newbody}
+  proc ::xotcl::setExitHandler {newbody} {::proc ::xotcl::__exitHandler {} $newbody}
   proc ::xotcl::getExitHandler {} {::info body ::xotcl::__exitHandler}
   # initialize exit handler
   ::xotcl::unsetExitHandler
@@ -385,7 +385,7 @@ proc createBootstrapAttributeSlots {class definitions} {
       ::xotcl::setinstvar ${class}::slot::$att default $default
       unset default
     }
-    $class setter $att
+    ::xotcl::setter $class $att
   }
 
   # do a second round to ensure that the already defined objects

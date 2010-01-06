@@ -118,11 +118,12 @@ namespace eval ::xotcl {
   # We provide a default value for superclass (when no superclass is specified explicitely)
   # for defining the top-level class of the object system, such that different
   # object systems might co-exist.
-  
+
   createBootstrapAttributeSlots ::xotcl::Class {
     {__default_superclass ::xotcl::Object}
     {__default_metaclass ::xotcl::Class}
   }
+
 
 ############################################
 # system slots
@@ -148,6 +149,7 @@ namespace eval ::xotcl {
         -elementtype ""
   }
   ::xotcl::register_system_slots1 ::xotcl
+
 
   ########################
   # Info definition
@@ -273,6 +275,7 @@ namespace eval ::xotcl {
         }
     error "procedure \"$method\" doesn't have an argument \"$varName\""
   }
+
   classInfo eval {
     .proc instargs {o method} {::xotcl::info_args Class $o $method}
     .proc args     {o method} {::xotcl::info_args Object $o $method}
@@ -358,6 +361,7 @@ namespace eval ::xotcl {
     ::xotcl::alias ::xotcl::objectInfo $cmdName $cmd
     ::xotcl::alias ::xotcl::classInfo $cmdName $cmd
   }
+
   foreach cmd [::info command ::xotcl::cmd::ClassInfo::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "forward" "method" "methods" \
@@ -366,6 +370,7 @@ namespace eval ::xotcl {
                          "mixin" "mixinguard"]} continue
     ::xotcl::alias ::xotcl::classInfo $cmdName $cmd
   }
+
   ::xotcl::alias ::xotcl::objectInfo is ::xotcl::is
   ::xotcl::alias ::xotcl::classInfo is ::xotcl::is
   ::xotcl::alias ::xotcl::classInfo classparent ::xotcl::cmd::ObjectInfo::parent
@@ -389,7 +394,6 @@ namespace eval ::xotcl {
   ::xotcl::alias classInfo procs    objectInfo::procs
   ::xotcl::alias classInfo pre      objectInfo::pre
   ::xotcl::alias classInfo post     objectInfo::post
-
 
   # emulation of isobject, isclass ...
   Object instproc isobject    {{object:substdefault "[self]"}} {::xotcl::is $object object}
