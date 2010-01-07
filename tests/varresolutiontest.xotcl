@@ -358,7 +358,8 @@ o softeval {
 ? {o exists b} 1
 ? {o exists bbb} 1
 
-# softeval2 should not set variables
+# todo: softeval2 should not set variables without dot prefix
+# ... should behave like in a create statement
 o softeval2 {
   set zzz 1
   set .z 1
