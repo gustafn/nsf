@@ -8,7 +8,7 @@
 # the "lib" directory within the AOLserver tree.
 #
 
-package require XOTcl; namespace import ::xotcl::*
+package require XOTcl; xotcl::use xotcl1
 package require xotcl::serializer
 ns_log notice "XOTcl version $::xotcl::version$::xotcl::patchlevel loaded"
 

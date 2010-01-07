@@ -2,6 +2,15 @@
 package require XOTcl
 package provide xotcl::serializer 1.0
 
+# For the time being, we require xotcl1.
+
+# TODO: separate into two packages (i.e. make one xotcl1 specific
+# serializer package, and (a) load this package on a load of this
+# package (when ::xotcl::Object is defined), and (b) load it from
+# "xotcl::use xotcl1", when the serializer is alreaded loaded.
+
+package require xotcl1
+
 namespace eval ::xotcl::serializer {
 
   ::xotcl::use xotcl2
@@ -133,9 +142,9 @@ namespace eval ::xotcl::serializer {
 
   Class create Serializer -parameter {ignoreVarsRE} {
     
-    #todo: copy to oss? use ignorePattern?
     .method ignore args {
-      # ignore the objects passed via args
+      # Ignore the objects passed via args.
+      # .skip is used for filtering only in the topological sort.
       foreach element $args { 
         foreach o [Serializer allChildren $element] {
           set .skip($o) 1
@@ -144,7 +153,7 @@ namespace eval ::xotcl::serializer {
     }
     
     .method init {} {
-      # never serialize the (volatile) serializer object
+      # Never serialize the (volatile) serializer object
       .ignore [self]
     }
 
@@ -301,11 +310,7 @@ namespace eval ::xotcl::serializer {
     }
 
     .object method exportObjects list {
-      foreach element $list {
-        foreach o [Serializer allChildren $element] {
-          set .exportObjects($o) 1
-        }
-      }
+      foreach o $list {set .exportObjects($o) 1}
     }
 
     .object method exportedMethods {} {array names .exportMethods}
@@ -326,6 +331,20 @@ namespace eval ::xotcl::serializer {
         if {!$ok} {
           error "method export is only for classes in\
 		[join [array names .ignorePattern] {, }] not for $o"
+        }
+      }
+    }
+
+    .object method checkExportedObject {} {
+      foreach o [array names .exportObjects] {
+        if {![::xotcl::is $o object]} {
+          puts stderr "Serializer exportObject: ignore non-existing object $o"
+          unset .exportObjects($o)
+        } else {
+          # add all child objects
+          foreach o [.allChildren $element] {
+            set .exportObjects($o) 1
+          }
         }
       }
     }
