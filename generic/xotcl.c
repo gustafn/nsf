@@ -210,20 +210,20 @@ parseContextInit(parseContext *pcPtr, int objc, XOTclObject *obj, Tcl_Obj *procN
 }
 
 static void parseContextExtendObjv(parseContext *pcPtr, int from, int elts, Tcl_Obj *CONST source[]) {
-  int requiredSize = from + elts;
+  int requiredSize = from + elts + 1;
 
   /*XOTclPrintObjv("BEFORE: ", pcPtr->objc, pcPtr->full_objv);*/
 
-  if (requiredSize > PARSE_CONTEXT_PREALLOC) {
+  if (requiredSize >= PARSE_CONTEXT_PREALLOC) {
     if (pcPtr->objv == &pcPtr->objv_static[1]) {
       /* realloc from preallocated memory */
-      pcPtr->full_objv  = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*) * (requiredSize+1));
+      pcPtr->full_objv  = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*) * requiredSize);
       memcpy(pcPtr->full_objv, &pcPtr->objv_static[0], sizeof(Tcl_Obj*) * PARSE_CONTEXT_PREALLOC);
-      /*fprintf(stderr, "alloc %d\n", requiredSize);*/
+      /*fprintf(stderr, "alloc %d new objv=%p pcPtr %p\n", requiredSize, pcPtr->full_objv, pcPtr);*/
     } else {
       /* realloc from mallocated memory */
-      pcPtr->full_objv = (Tcl_Obj **)ckrealloc((char *)pcPtr->full_objv, sizeof(Tcl_Obj*) * (requiredSize));
-      /*fprintf(stderr, "realloc %d\n", requiredSize);*/
+      pcPtr->full_objv = (Tcl_Obj **)ckrealloc((char *)pcPtr->full_objv, sizeof(Tcl_Obj*) * requiredSize);
+      /*fprintf(stderr, "realloc %d  new objv=%p pcPtr %p\n", requiredSize, pcPtr->full_objv, pcPtr);*/
     }
     pcPtr->objv = &pcPtr->full_objv[1];
   }
@@ -246,11 +246,12 @@ static void parseContextRelease(parseContext *pcPtr) {
 
   /* objv can be separately extended */
   if (pcPtr->objv != &pcPtr->objv_static[1]) {
-    /*fprintf(stderr, "parseContextRelease free %p %p\n", pcPtr->full_objv, pcPtr->clientData);*/
+    /*fprintf(stderr, "parseContextRelease %p free %p %p\n", pcPtr, pcPtr->full_objv, pcPtr->clientData);*/
     ckfree((char *)pcPtr->full_objv);
   }
   /* if the parameter definition was extended, both clientData and flags are extended */
   if (pcPtr->clientData != &pcPtr->clientData_static[0]) {
+    /*fprintf(stderr, "free clientdata and flags\n");*/
     ckfree((char *)pcPtr->clientData);
     ckfree((char *)pcPtr->flags);
   }
@@ -3526,10 +3527,9 @@ getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *st
   XOTclClass *cl;
   XOTclClasses *sc;
 
-  /*
-    fprintf(stderr, "startCl = %s, opt %p, isMixin %d\n",
-    ObjStr(startCl->object.cmdName), startCl->opt, isMixin);
-  */
+  
+  /*fprintf(stderr, "startCl = %p %s, opt %p, isMixin %d\n",
+    startCl, className(startCl), startCl->opt, isMixin);*/
 
   /*
    * the startCl is a per class mixin, add it to the result set
@@ -3542,8 +3542,16 @@ getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *st
      * check all subclasses of startCl for mixins
      */
     for (sc = startCl->sub; sc; sc = sc->nextPtr) {
-      rc = getAllClassMixinsOf(interp, destTable, sc->cl, isMixin, appendResult, pattern, matchObject);
-      if (rc) {return rc;}
+      if (sc->cl != startCl) {
+        rc = getAllClassMixinsOf(interp, destTable, sc->cl, isMixin, appendResult, pattern, matchObject);
+        if (rc) {return rc;}
+      } else {
+        /* TODO: sanity check; it seems that we can create via
+           __default_superclass a class which has itself als
+           subclass */
+        fprintf(stderr, "... STRANGE %p is subclass of %p %s, sub %p\n", sc->cl, 
+                startCl, className(startCl), startCl->sub);
+      }
     }
   }
 
@@ -3564,6 +3572,7 @@ getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *st
       rc = addToResultSet(interp, destTable, &cl->object, &new, appendResult, pattern, matchObject);
       if (rc == 1) {return rc;}
       if (new) {
+        fprintf(stderr, "... new\n");
         rc = getAllClassMixinsOf(interp, destTable, cl, 1, appendResult, pattern, matchObject);
         if (rc) {return rc;}
       }
@@ -10841,7 +10850,7 @@ static int XOTclForwardCmd(Tcl_Interp *interp,
                            Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
                            int withObjscope, Tcl_Obj *withOnerror, int withVerbose, 
                            Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  forwardCmdClientData *tcd;
+  forwardCmdClientData *tcd = NULL;
   int result;
 
   result = forwardProcessOptions(interp, method,
