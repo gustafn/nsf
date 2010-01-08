@@ -5088,24 +5088,11 @@ MakeProcError(
 						 (overflow ? "..." : ""), Tcl_GetErrorLine(interp)));
 }
 
-/*
-   PushProcCallFrame() compiles conditionally a proc and pushes a
-   callframe. Interesting fields:
-
-   clientData: Record describing procedure to be interpreted.
-   isLambda: 1 if this is a call by ApplyObjCmd: it needs special rules for error msg
-
- */
-
-static int
-PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	Tcl_Obj *CONST objv[],
-                  XOTclCallStackContent *csc) {
-  Proc *procPtr = (Proc *) clientData;
+static int 
+ByteCompiled(register Tcl_Interp *interp, Proc *procPtr, char *body) {
+  static Tcl_ObjType CONST86 *byteCodeType = NULL;
   Tcl_Obj *bodyPtr = procPtr->bodyPtr;
   Namespace *nsPtr = procPtr->cmdPtr->nsPtr;
-  CallFrame *framePtr;
-  int result;
-  static Tcl_ObjType CONST86 *byteCodeType = NULL;
 
   if (byteCodeType == NULL) {
     static XOTclMutex initMutex = 0;
@@ -5120,7 +5107,7 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
 # if defined(HAVE_TCL_COMPILE_H)
     ByteCode *codePtr;
     Interp *iPtr = (Interp *) interp;
-
+    
     /*
      * When we've got bytecode, this is the check for validity. That is,
      * the bytecode must be for the right interpreter (no cross-leaks!),
@@ -5138,18 +5125,36 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
 
       goto doCompilation;
     }
+    return TCL_OK;
 # endif
   } else {
+
 # if defined(HAVE_TCL_COMPILE_H)
   doCompilation:
 # endif
-    result = TclProcCompileProc(interp, procPtr, bodyPtr,
-				(Namespace *) nsPtr, "body of proc",
-                                TclGetString(objv[0]));
-    if (result != TCL_OK) {
-      return result;
-    }
+    
+    return TclProcCompileProc(interp, procPtr, bodyPtr,
+                              (Namespace *) nsPtr, "body of proc",
+                              body);
   }
+}
+
+/*
+   PushProcCallFrame() compiles conditionally a proc and pushes a
+   callframe. Interesting fields:
+
+   clientData: Record describing procedure to be interpreted.
+   isLambda: 1 if this is a call by ApplyObjCmd: it needs special rules for error msg
+
+ */
+
+static int
+PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	Tcl_Obj *CONST objv[],
+                  XOTclCallStackContent *csc) {
+  Proc *procPtr = (Proc *) clientData;
+  CallFrame *framePtr;
+  int result;
+
   /*
    * Set up and push a new call frame for the new procedure invocation.
    * This call frame will execute in the proc's namespace, which might be
@@ -5165,9 +5170,10 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
           csc && csc->self->id ? Tcl_Command_refCount(csc->self->id) : -100
           );
 #endif
+  
   /* TODO: we could use Tcl_PushCallFrame(), if we would allocate the tcl stack frame earlier */
   result = TclPushStackFrame(interp, (Tcl_CallFrame **)&framePtr,
-			     (Tcl_Namespace *) nsPtr,
+			     (Tcl_Namespace *)  procPtr->cmdPtr->nsPtr,
 			     (FRAME_IS_PROC|FRAME_IS_XOTCL_METHOD));
   if (result != TCL_OK) {
     return result;
@@ -5181,7 +5187,7 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
 #endif
   framePtr->clientData = (ClientData)csc;
 
-  return TCL_OK;
+  return ByteCompiled(interp, procPtr, TclGetString(objv[0]));
 }
 #endif
 
