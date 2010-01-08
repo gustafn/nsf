@@ -68,7 +68,7 @@ namespace eval ::xotcl::test {
     
     .public method call {msg cmd} {
       if {[.verbose]} {puts stderr "$msg: $cmd"}
-      namespace eval [set .namespace] $cmd
+      namespace eval ${.namespace} $cmd
     }
    
     .public method run args {
@@ -84,7 +84,7 @@ namespace eval ::xotcl::test {
 	if {$c > 1} {
 	  #set r0 [time ${.cmd} $c]
 	  #puts stderr "time {time ${.cmd} $c}"
-	  set r1 [time {time {namespace eval [set .namespace] ${.cmd}} $c}]
+	  set r1 [time {time {namespace eval ${.namespace} ${.cmd}} $c}]
 	  #regexp {^(-?[0-9]+) +} $r0 _ mS0
 	  regexp {^(-?[0-9]+) +} $r1 _ mS1
 	  set ms [expr {$mS1*1.0/$c}]
@@ -106,10 +106,12 @@ namespace eval ::xotcl::test {
 }
 
 proc ? {cmd expected {msg ""}} {
+  set namespace [uplevel {namespace current}]
+  #puts stderr "eval in namespace $namespace"
   if {$msg ne ""} {
-    set t [Test new -cmd $cmd -msg $msg]
+    set t [Test new -cmd $cmd -msg $msg -namespace $namespace]
   } else {
-    set t [Test new -cmd $cmd]
+    set t [Test new -cmd $cmd -namespace $namespace]
   }
   $t expected $expected 
   $t run

@@ -47,9 +47,11 @@ static Tcl_CallFrame *
 nonXotclObjectProcFrame(Tcl_CallFrame *framePtr) {
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     register int flag = Tcl_CallFrame_isProcCallFrame(framePtr);
+
     if (flag & FRAME_IS_XOTCL_METHOD) {
       /* never return an inactive method frame */
-      if (!(((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType & XOTCL_CSC_TYPE_INACTIVE)) break;
+      if (!(((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType 
+            & XOTCL_CSC_TYPE_INACTIVE)) break;
     } else {
       if (flag & FRAME_IS_XOTCL_OBJECT) continue;
       /*if ((flag & (FRAME_IS_XOTCL_OBJECT|FRAME_IS_XOTCL_CMETHOD)) == 0) break;*/

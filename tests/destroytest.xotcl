@@ -227,13 +227,13 @@ namespace eval ::test {
 test::C create test::c1
 test::c1 foo
 puts stderr ======[::xotcl::is test::c1 object]
-? {::xotcl::is test::c1 object} 0  "$::case object still exists after proc"
+? {::xotcl::is test::c1 object} 0  "object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "destroy was called when poping stack frame"
-? {::xotcl::is ::test::C object} 0  "$::case class still exists after proc"
-? {namespace exists ::test::C} 0  "$::case namespace ::test::C still exists after proc"
-? {namespace exists ::test} 0  "$::case parent ::test namespace still exists after proc"
-? {namespace exists ::xotcl::classes::test::C} 0  "$::case namespace ::xotcl::classes::test::C still exists after proc"
+? {::xotcl::is ::test::C object} 0  "class still exists after proc"
+? {namespace exists ::test::C} 0  "namespace ::test::C still exists after proc"
+? {namespace exists ::test} 1  "parent ::test namespace still exists after proc"
+? {namespace exists ::xotcl::classes::test::C} 0  "namespace ::xotcl::classes::test::C still exists after proc"
 
 #
 # namespace delete: tcl delays delete until the namespace is not

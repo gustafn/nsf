@@ -1032,7 +1032,7 @@ NameInNamespaceObj(Tcl_Interp *interp, char *name, Tcl_Namespace *nsPtr) {
   /*fprintf(stderr, "NameInNamespaceObj %s (%p, %s) ", name, nsPtr, nsPtr?nsPtr->fullName:NULL);*/
   if (!nsPtr)
     nsPtr = Tcl_GetCurrentNamespace(interp);
-  /*fprintf(stderr, " (resolved %p, %s) ", nsPtr, nsPtr?nsPtr->fullName:NULL);*/
+  /* fprintf(stderr, " (resolved %p, %s) ", nsPtr, nsPtr?nsPtr->fullName:NULL);*/
   objName = Tcl_NewStringObj(nsPtr->fullName,-1);
   len = Tcl_GetCharLength(objName);
   p = ObjStr(objName);
@@ -3595,7 +3595,7 @@ getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *st
       rc = addToResultSet(interp, destTable, &cl->object, &new, appendResult, pattern, matchObject);
       if (rc == 1) {return rc;}
       if (new) {
-        fprintf(stderr, "... new\n");
+        /*fprintf(stderr, "... new\n");*/
         rc = getAllClassMixinsOf(interp, destTable, cl, 1, appendResult, pattern, matchObject);
         if (rc) {return rc;}
       }
@@ -9238,9 +9238,6 @@ callingNameSpace(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
   Tcl_Namespace *nsPtr;
 
-  /* fprintf(stderr, "nonXotclObjectProcFrame returned %p frame %p, currentNs %p %s, xot %p %s\n",
-     framePtr, Tcl_CallFrame_callerPtr(csc->currentFramePtr), nsPtr, nsPtr?nsPtr->fullName:NULL,
-     RUNTIME_STATE(interp)->XOTclNS, RUNTIME_STATE(interp)->XOTclNS->fullName); */
   /*tcl85showStack(interp);*/
 
   /*

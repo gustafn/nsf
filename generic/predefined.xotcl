@@ -556,10 +556,11 @@ createBootstrapAttributeSlots ::xotcl::InfoSlot {
     error "Property $prop of ${.domain}->$obj ist not multivalued"
   }
   set oldSetting [::xotcl::relation $obj $prop]
-  ::xotcl::relation $obj $prop [linsert $oldSetting $pos $value]
+  # use uplevel to avoid namespace surprises
+  uplevel [list ::xotcl::relation $obj $prop [linsert $oldSetting $pos $value]]
 }
 ::xotcl::InterceptorSlot public method delete {-nocomplain:switch obj prop value} {
-  ::xotcl::relation $obj $prop [.delete_value $obj $prop [::xotcl::relation $obj $prop] $value]
+  uplevel [list ::xotcl::relation $obj $prop [.delete_value $obj $prop [::xotcl::relation $obj $prop] $value]]
 }
 
 ############################################

@@ -494,3 +494,20 @@ vwait X
 
 ? {set ::C} 1
 ? {f1 eval {set .c}} 4
+
+
+##################################################
+# test for namespace resolver
+##################################################
+Test case nsresolver
+namespace eval module {
+  Class create C
+  Class create M1
+  Class create M2
+
+  C mixin M1
+  ? {::xotcl::relation C class-mixin} "::module::M1"
+  puts stderr "mixin add M"
+  C mixin add M2
+  ? {::xotcl::relation C class-mixin} "::module::M2 ::module::M1"
+}
