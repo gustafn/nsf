@@ -399,6 +399,7 @@ o softeval2 {
 # The same as above, but with some global vars.
 # The global vars should not influence the behavior.
 ##################################################
+Test case with-global-vars
 foreach var {.x x xxx .a a aaa .b b bbb .c c ccc .d d ddd .z z zzz} {set $var 1}
 
 Object create o {
@@ -458,3 +459,38 @@ o softeval2 {
 }
 ? {o exists z} 0
 ? {o exists zzz} 0
+
+##################################################
+# dotCmd tests
+##################################################
+Test case dotcmd
+set C 0
+proc .bar {} {incr ::C}
+Class create Foo {
+  .method init {} {set .c 0}
+  .method callDot1 {} {.bar}
+  .method callDot2 {} {.bar}
+  .method callDot3 {} {.bar; ..bar; .bar}
+  .method bar {} {incr .c}
+}
+
+Foo create f1
+f1 callDot1
+? {set ::C} 0
+? {f1 eval {set .c}} 1
+
+# call via callback
+after 1 {f1 callDot2}
+after 10 {set ::X 1}
+vwait X
+
+? {set ::C} 0
+? {f1 eval {set .c}} 2
+
+# call via callback, call .bar via .. from method
+after 1 {f1 callDot3}
+after 10 {set ::X 2}
+vwait X
+
+? {set ::C} 1
+? {f1 eval {set .c}} 4
