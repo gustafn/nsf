@@ -1531,7 +1531,7 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
   *	        int flags, Tcl_Var *rPtr));
   */
 static int
-varResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
+NsDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
   int new, frameFlags;
   Tcl_Obj *key;
   Tcl_CallFrame *varFramePtr;
@@ -1614,6 +1614,16 @@ varResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int f
   }
   return *varPtr ? TCL_OK : TCL_ERROR;
 }
+
+#if 0
+static int
+NsDotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
+
+  fprintf(stderr, "NsDotCmdResolver cmdName %s flags %.6x\n",cmdName,flags);
+  return TCL_CONTINUE;
+}
+#endif
+
 
 #if defined(USE_COMPILED_VAR_RESOLVER)
 typedef struct xotclResolvedVarInfo {
@@ -1706,7 +1716,7 @@ void CompiledDotVarFree(Tcl_ResolvedVarInfo *vinfoPtr) {
   ckfree((char *) vinfoPtr);
 }
 
-int CompiledDotVarResolver(Tcl_Interp *interp,
+int InterpCompiledDotVarResolver(Tcl_Interp *interp,
 			CONST84 char *name, int length, Tcl_Namespace *context,
 			Tcl_ResolvedVarInfo **rPtr) {
   /* getting the self object is a weak protection against handling of wrong vars */
@@ -1733,7 +1743,7 @@ int CompiledDotVarResolver(Tcl_Interp *interp,
 }
 
 static int
-DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
+InterpDotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
   CallFrame *varFramePtr;
   int frameFlags;
 
@@ -1750,18 +1760,29 @@ DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, in
     varFramePtr = (CallFrame *)Tcl_CallFrame_callerPtr(varFramePtr);
     frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
 #if defined(DOT_CMD_RESOLVER_TRACE)
-    fprintf(stderr, "DotCmdResolver uses parent frame\n");
+    fprintf(stderr, "InterpDotCmdResolver uses parent frame\n");
 #endif
   }
 #if defined(DOT_CMD_RESOLVER_TRACE)
-  fprintf(stderr, "DotCmdResolver cmdName %s frame flags %.6x\n",cmdName,
-          Tcl_CallFrame_isProcCallFrame(varFramePtr));
+  fprintf(stderr, "InterpDotCmdResolver cmdName %s flags %.6x, frame flags %.6x\n",cmdName,
+          flags, Tcl_CallFrame_isProcCallFrame(varFramePtr));
 #endif
 
   if (frameFlags & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_OBJECT|FRAME_IS_XOTCL_CMETHOD )) {
 #if defined(DOT_CMD_RESOLVER_TRACE)
     fprintf(stderr, "    ... call dotCmd for %s\n", cmdName);
 #endif
+  if (*(cmdName+1) == '.') {
+    /* the command name starts with ".." */
+    Tcl_Command cmd = Tcl_FindCommand(interp, cmdName+1, NULL, TCL_GLOBAL_ONLY);
+    if (cmd) {
+      fprintf(stderr, "    we found a CMD for %s\n", cmdName+1);
+      *cmdPtr = RUNTIME_STATE(interp)->dotDotCmd;
+      return TCL_OK;
+    } else {
+      fprintf(stderr, "    we found NO CMD for %s\n", cmdName+1);
+    }
+  }
     /*
      * We have a cmd starting with ".", we are in an xotcl frame, so
      * forward to the dotCmd.
@@ -1769,6 +1790,7 @@ DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, in
     *cmdPtr = RUNTIME_STATE(interp)->dotCmd;
     return TCL_OK;
   }
+
 #if defined(DOT_CMD_RESOLVER_TRACE)
   fprintf(stderr, "    ... not found %s\n", cmdName);
   tcl85showStack(interp);
@@ -1777,14 +1799,14 @@ DotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, in
 }
 
 static int
-DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
+InterpDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
   int new, frameFlags;
   CallFrame *varFramePtr;
   TclVarHashTable *varTablePtr;
   XOTclObject *obj;
   Tcl_Var var;
 
-  /*fprintf(stderr, "dotVarResolver '%s' flags %.6x\n", varName, flags);*/
+  /*fprintf(stderr, "InterpDotVarResolver '%s' flags %.6x\n", varName, flags);*/
 
   if (*varName != '.' || flags & TCL_GLOBAL_ONLY) {
     /* ordinary names and global lookups are not for us */
@@ -1792,7 +1814,7 @@ DotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, in
   }
 
 #if defined(VAR_RESOLVER_TRACE)
-  fprintf(stderr, "dotVarResolver called var=%s flags %.4x\n", varName, flags);
+  fprintf(stderr, "InterpDotVarResolver called var=%s flags %.4x\n", varName, flags);
 #endif
   varName ++;
   varFramePtr = Tcl_Interp_varFramePtr(interp);
@@ -1876,8 +1898,9 @@ requireObjNamespace(Tcl_Interp *interp, XOTclObject *obj) {
    * acquiring the namespace. Works for object-scoped commands/procs
    * and object-only ones (set, unset, ...)
    */
-  Tcl_SetNamespaceResolvers(obj->nsPtr, (Tcl_ResolveCmdProc*)NULL,
-                            varResolver, /*(Tcl_ResolveCompiledVarProc*)CompiledDotVarResolver*/NULL);
+  Tcl_SetNamespaceResolvers(obj->nsPtr, /*(Tcl_ResolveCmdProc*)NsDotCmdResolver*/ NULL,
+                            NsDotVarResolver, 
+                            /*(Tcl_ResolveCompiledVarProc*)NsCompiledDotVarResolver*/NULL);
   return obj->nsPtr;
 }
 
@@ -10768,14 +10791,43 @@ xotclCmd dot XOTclDotCmd {
 */
 static int XOTclDotCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
   XOTclObject *self = GetSelfObj(interp);
-
   if (!self) {
     return XOTclVarErrMsg(interp, "Cannot resolve 'self', probably called outside the context of an XOTcl Object",
                           (char *) NULL);
   }
-  /*fprintf(stderr, "dispatch %s on %s\n", ObjStr(nobjv[0]), objectName(self));*/
+  /*fprintf(stderr, "Dot dispatch %s on %s\n", ObjStr(nobjv[0]), objectName(self));*/
+
   return ObjectDispatch(self, interp, nobjc, nobjv, XOTCL_CM_NO_SHIFT);
 }
+
+/*
+xotclCmd dotdot XOTclDotDotCmd {
+  {-argName "args" -type allargs}
+}
+*/
+static int XOTclDotDotCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
+  char *methodName = ObjStr(nobjv[0]);
+
+  /* We want to call a command with bypassing the command resolver,
+     since the the command resolver will call InterpDotCmdResolver
+     again. Therefore we perform a single lookup and call the cmd
+     directly 
+  */
+  fprintf(stderr, "DotDot dispatch %s\n", methodName);
+  if (*(methodName+1) == '.') {
+    Tcl_Command cmd = Tcl_FindCommand(interp, methodName+1, NULL, TCL_GLOBAL_ONLY);
+    if (cmd) {
+      fprintf(stderr, "   ... calling DotDot on %s cmd %p\n", methodName+1, cmd);
+      return Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmd), 
+                               Tcl_Command_objClientData(cmd), 
+                               nobjc, nobjv);
+    }
+  }
+
+  return XOTclVarErrMsg(interp, "unknown command name '",
+                        methodName+1, "'", (char *) NULL);
+}
+ 
 
 /*
 xotclCmd exists XOTclExistsCmd {
@@ -13973,13 +14025,12 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_SetVar(interp, "::xotcl::patchlevel", XOTCLPATCHLEVEL, TCL_GLOBAL_ONLY);
 
 #if defined(USE_COMPILED_VAR_RESOLVER)
-  /*
-  Tcl_SetNamespaceResolvers(Tcl_FindNamespace(interp, "::xotcl", NULL, 0), (Tcl_ResolveCmdProc*)NULL,
-                            varResolver, (Tcl_ResolveCompiledVarProc*)CompiledDotVarResolver);
-  */
-  Tcl_AddInterpResolvers(interp,"xotcl", (Tcl_ResolveCmdProc*)DotCmdResolver,
-                         DotVarResolver, (Tcl_ResolveCompiledVarProc*)CompiledDotVarResolver);
+  Tcl_AddInterpResolvers(interp,"xotcl", 
+                         (Tcl_ResolveCmdProc*)InterpDotCmdResolver,
+                         InterpDotVarResolver, 
+                         (Tcl_ResolveCompiledVarProc*)InterpCompiledDotVarResolver);
   RUNTIME_STATE(interp)->dotCmd = Tcl_FindCommand(interp, "::xotcl::dot", 0, 0);
+  RUNTIME_STATE(interp)->dotDotCmd = Tcl_FindCommand(interp, "::xotcl::dotdot", 0, 0);
 #endif
 
   /*

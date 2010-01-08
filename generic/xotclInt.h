@@ -678,6 +678,7 @@ typedef struct XOTclRuntimeState {
   Tcl_CallFrame *varFramePtr;
   Tcl_Command cmdPtr; /* used for ACTIVE_MIXIN */
   Tcl_Command dotCmd;
+  Tcl_Command dotDotCmd;
 #if defined(PROFILE)
   XOTclProfile profile;
 #endif
