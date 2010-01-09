@@ -73,3 +73,4 @@ static XOTCLINLINE XOTclObject*
 XOTclGetObjectFromCmdPtr(Tcl_Command cmd) {
   return (XOTclObject*) XOTclGetClientDataFromCmdPtr(cmd);
 }
+

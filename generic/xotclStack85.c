@@ -43,6 +43,76 @@ void tcl85showStack(Tcl_Interp *interp) {
   }
 }
 
+/* 
+ * Push and pop operations.
+ *
+ * Note that it is possible that between push and pop
+ * a obj->nsPtr can be created (e.g. during a read trace)
+ */
+#define XOTcl_FrameDecls TclCallFrame frame, *framePtr = &frame
+# ifndef PRE85
+#  define XOTcl_PushFrameSetCd(obj) ((CallFrame *)framePtr)->clientData = (ClientData)(obj)
+# else
+#  define XOTcl_PushFrameSetCd(obj)
+# endif
+
+static TclVarHashTable *VarHashTableCreate();
+
+#define XOTcl_PushFrameObj(interp,obj) XOTcl_PushFrameObj2(interp, obj, framePtr)
+#define XOTcl_PopFrameObj(interp,obj) XOTcl_PopFrameObj2(interp, obj, framePtr)
+
+static void XOTcl_PushFrameObj2(Tcl_Interp *interp, XOTclObject *obj, Tcl_CallFrame *framePtr) {
+  /*fprintf(stderr,"PUSH OBJECT_FRAME (XOTcl_PushFrame) frame %p\n",framePtr);*/
+  if (obj->nsPtr) {
+    /*fprintf(stderr,"XOTcl_PushFrame frame %p\n",framePtr);*/
+    Tcl_PushCallFrame(interp, framePtr, obj->nsPtr, 
+                      0|FRAME_IS_XOTCL_OBJECT); 
+  } else {
+    /*fprintf(stderr,"XOTcl_PushFrame frame %p (with fakeProc)\n",framePtr);*/ 
+    Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)), 
+                      1|FRAME_IS_XOTCL_OBJECT);
+    
+    Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
+    if (obj->varTable == NULL) {
+      obj->varTable = VarHashTableCreate();
+      /*fprintf(stderr, "+++ create varTable %p in PushFrameObj obj %p framePtr %p\n",  
+        obj->varTable, obj, framePtr);*/
+    }
+    Tcl_CallFrame_varTablePtr(framePtr) = obj->varTable;
+  }
+  XOTcl_PushFrameSetCd(obj);
+}
+static void XOTcl_PopFrameObj2(Tcl_Interp *interp, XOTclObject *obj, Tcl_CallFrame *framePtr) {
+  Tcl_CallFrame_varTablePtr(Tcl_Interp_framePtr(interp)) = 0;
+  /*fprintf(stderr,"POP  OBJECT_FRAME (XOTcl_PopFrame) frame %p\n",framePtr);*/
+  Tcl_PopCallFrame(interp);
+}
+
+
+#define XOTcl_PushFrameCsc(interp,obj,csc) XOTcl_PushFrameCsc2(interp,obj,csc, framePtr)
+#define XOTcl_PopFrameCsc(interp,obj) XOTcl_PopFrameCsc2(interp, framePtr)
+
+static void XOTcl_PushFrameCsc2(Tcl_Interp *interp, XOTclObject *obj, XOTclCallStackContent *csc, 
+                               Tcl_CallFrame *framePtr) {
+  /*fprintf(stderr,"PUSH CMETHOD_FRAME (XOTcl_PushFrame) frame %p\n",framePtr);*/
+
+  Tcl_PushCallFrame(interp, framePtr, 
+                    obj->nsPtr ? obj->nsPtr : Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)), 
+                    0|FRAME_IS_XOTCL_CMETHOD);
+
+  assert(obj == csc->self);
+  XOTcl_PushFrameSetCd(csc);
+}
+
+static void XOTcl_PopFrameCsc2(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+  Tcl_PopCallFrame(interp);
+}
+
+/* 
+ * query operations.
+ *
+ */
+
 static Tcl_CallFrame *
 nonXotclObjectProcFrame(Tcl_CallFrame *framePtr) {
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {

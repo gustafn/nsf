@@ -107,7 +107,7 @@ void XOTclCallStackDump(Tcl_Interp *interp) {
 void 
 XOTclPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
   int j; 
-  fprintf(stderr, string);
+  fprintf(stderr, "%s", string);
   for (j = 0; j < objc; j++) {
     /*fprintf(stderr, "  objv[%d]=%s, ",j, objv[j] ? ObjStr(objv[j]) : "NULL");*/
     fprintf(stderr, "  objv[%d]=%s %p, ",j, objv[j] ? ObjStr(objv[j]) : "NULL", objv[j]);

@@ -332,7 +332,7 @@ unset ::tmpArray
 #
 # with a required namespace and without
 ##################################################
-
+Test case eval-variants
 ::xotcl::alias ::xotcl2::Object eval -objscope ::eval 
 ::xotcl::alias ::xotcl2::Object softeval -nonleaf ::eval 
 ::xotcl::alias ::xotcl2::Object softeval2 ::eval 
@@ -344,6 +344,7 @@ Object create o {
 ? {o exists x} 1
 ? {o exists xxx} 0
 
+# eval does an objcope, all vars are instance variables
 o eval {
   set aaa 1
   set .a 1
@@ -351,15 +352,15 @@ o eval {
 ? {o exists a} 1
 ? {o exists aaa} 1
 
+# softeval should behave like the creation initcmd (just set dot vars)
 o softeval {
   set bbb 1
   set .b 1
 }
 ? {o exists b} 1
-? {o exists bbb} 1
+? {o exists bbb} 0
 
-# todo: softeval2 should not set variables without dot prefix
-# ... should behave like in a create statement
+# softeval2 never sets variables
 o softeval2 {
   set zzz 1
   set .z 1
@@ -367,10 +368,14 @@ o softeval2 {
 ? {o exists z} 0
 ? {o exists zzz} 0
 
-? {lsort [o info vars]} "a aaa b bbb x"
+? {lsort [o info vars]} "a aaa b x"
+o destroy
 
+# now with namespace 
+Object create o
 o requireNamespace
 
+# eval does an objcope, all vars are instance variables
 o eval {
   set ccc 1
   set .c 1
@@ -378,22 +383,23 @@ o eval {
 ? {o exists c} 1
 ? {o exists ccc} 1
 
+# softeval2 should behave like the creation initcmd (just set dot vars)
 o softeval {
   set ddd 1
   set .d 1
 }
 ? {o exists d} 1
-? {o exists ddd} 1
+? {o exists ddd} 1 ;# TODO: should be 0
 
-# softeval2 should not set variables
+# softeval2 never sets variables
 o softeval2 {
   set zzz 1
   set .z 1
 }
 ? {o exists z} 0
 ? {o exists zzz} 0
-? {lsort [o info vars]} "a aaa b bbb c ccc d ddd x"
-
+? {lsort [o info vars]} "c ccc d ddd"
+o destroy
 
 ##################################################
 # The same as above, but with some global vars.
@@ -406,14 +412,10 @@ Object create o {
   set xxx 1
   set .x 1
 }
-
 ? {o exists x} 1
-# TODO: this should be 
-#? {o exists xxx} 0
-#? {lsort [o info vars]} "x"
-? {o exists xxx} 1
-? {lsort [o info vars]} "x xxx"
+? {o exists xxx} 0
 
+# eval does an objcope, all vars are instance variables
 o eval {
   set aaa 1
   set .a 1
@@ -421,14 +423,15 @@ o eval {
 ? {o exists a} 1
 ? {o exists aaa} 1
 
+# softeval should behave like the creation initcmd (just set dot vars)
 o softeval {
   set bbb 1
   set .b 1
 }
 ? {o exists b} 1
-? {o exists bbb} 1
+? {o exists bbb} 0
 
-# softeval2 should not set variables
+# softeval2 never sets variables
 o softeval2 {
   set zzz 1
   set .z 1
@@ -436,8 +439,14 @@ o softeval2 {
 ? {o exists z} 0
 ? {o exists zzz} 0
 
+? {lsort [o info vars]} "a aaa b x"
+o destroy
+
+# now with namespace 
+Object create o
 o requireNamespace
 
+# eval does an objcope, all vars are instance variables
 o eval {
   set ccc 1
   set .c 1
@@ -445,20 +454,24 @@ o eval {
 ? {o exists c} 1
 ? {o exists ccc} 1
 
+# softeval2 should behave like the creation initcmd (just set dot vars)
 o softeval {
   set ddd 1
   set .d 1
 }
 ? {o exists d} 1
-? {o exists ddd} 1
+? {o exists ddd} 0
 
-# softeval2 should not set variables
+# softeval2 never sets variables
 o softeval2 {
   set zzz 1
   set .z 1
 }
 ? {o exists z} 0
 ? {o exists zzz} 0
+? {lsort [o info vars]} "c ccc d"
+o destroy
+
 
 ##################################################
 # dotCmd tests
