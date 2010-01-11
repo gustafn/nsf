@@ -423,7 +423,8 @@ namespace eval ::xotcl::serializer {
   Class create ObjectSystemSerializer {
     
     .method init {} {
-      # Include object system serializers in "Serializer all"
+      # Include object system serializers and the meta-class in "Serializer all"
+      Serializer exportObjects [self class]
       Serializer exportObjects [self]
     }
 
@@ -592,6 +593,7 @@ namespace eval ::xotcl::serializer {
       if {![.Object-needsNothing $x $s]} {return 0}
       set scs [$x info superclass]
       if {[$s needsOneOf $scs]} {return 0}
+      if {[$s needsOneOf [::xotcl::relation $x class-mixin]]} {return 0}
       foreach sc $scs {if {[$s needsOneOf [$sc info slots]]} {return 0}}
       return 1
     }
@@ -615,6 +617,15 @@ namespace eval ::xotcl::serializer {
     set .rootClass ::xotcl2::Object
     set .rootMetaClass ::xotcl2::Class
     array set .ignorePattern [list "::xotcl2::*" 1 "::xotcl::*" 1]
+
+    .method serialize-all-start {s} {
+      if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::xotcl2::Object"} {
+        set intro "::xotcl::use xotcl2"
+      } else {
+        set intro ""
+      }
+      return "$intro\n[next]"
+    }
 
     ###############################
     # XOTcl 2 method serialization
@@ -701,7 +712,11 @@ namespace eval ::xotcl::serializer {
     array set .ignorePattern [list "::xotcl::*" 1]
 
     .method serialize-all-start {s} {
-      return "::xotcl::Object instproc trace args {}\n[next]"
+      set intro "package require xotcl1"
+      if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::xotcl::Object"} {
+        set intro "::xotcl::use xotcl1"
+      }
+      return "$intro\n::xotcl::Object instproc trace args {}\n[next]"
     }
 
     .method serialize-all-end {s} {
@@ -729,12 +744,13 @@ namespace eval ::xotcl::serializer {
       switch $kind {
         proc - instproc {
           if {[$object info ${kind}s $name] ne ""} {
-            set code [.method-serialize $object $name ""]
+            set prefix [expr {$kind eq "proc" ? "" : "inst"}] 
+            set code [.method-serialize $object $name $prefix]\n
           }
         }
         forward - instforward {
           if {[$object info $kind $name] ne ""} {
-            set code [list $kind $name [$object info $kind -definition $name]]
+            set code [concat [list $object] $kind $name [$object info $kind -definition $name]]\n
           }
         }
       }
@@ -800,6 +816,15 @@ namespace eval ::xotcl::serializer {
       foreach i [$o info instparametercmd] {
         append cmd [list $o instparametercmd $i] "\n"
       }
+      # provide limited support for exporting aliases for xotcl1 objects
+      foreach i [::xotcl::cmd::ClassInfo::methods $o -methodtype alias] {
+        set xotcl2Def [::xotcl::cmd::ClassInfo::method $o definition $i]
+        set objscope   [lindex $xotcl2Def end-2]
+        set methodName [lindex $xotcl2Def end-1]
+        set cmdName    [lindex $xotcl2Def end]
+        if {$objscope ne "-objscope"} {set objscope ""}
+        append cmd [list ::xotcl::alias $o $methodName {*}$objscope $cmdName]\n
+      }
       append cmd \
           [.frameWorkCmd ::xotcl::relation $o superclass -unless ${.rootClass}] \
           [.frameWorkCmd ::xotcl::relation $o class-mixin] \
@@ -813,6 +838,7 @@ namespace eval ::xotcl::serializer {
     ::xotcl::Object instproc serialize {} {
       ::Serializer deepSerialize [self]
     }
+
     
     # include this method in the serialized code
     #Serializer exportMethods {
