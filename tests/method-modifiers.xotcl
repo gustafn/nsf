@@ -70,26 +70,29 @@ C object setter s3
 
 # create a fresh object (different from c1)
 C create c2
-
 # test scripted class level methods
+Test case scripted-class-level-methods
 ? {c2 plain_method} "plain_method"
 ? {c2 public_method} "public_method"
 ? {catch {c2 protected_method}} 1
 ? {::xotcl::dispatch c2 protected_method} "protected_method"
 
 # class level forwards
+Test case class-level-forwards
 ? {c2 plain_forward} "plain_method"
 ? {c2 public_forward} "public_method"
 ? {catch {c2 protected_forward}} 1
 ? {::xotcl::dispatch c2 protected_forward} "protected_method"
 
 # class level setter
+Test case class-level-setter
 ? {c2 plain_setter 1} "1"
 ? {c2 public_setter 2} "2"
 ? {catch {c2 protected_setter 3}} 1
 ? {::xotcl::dispatch c2 protected_setter 4} "4"
 
 # class level alias ....TODO: wanted behavior of [self proc]? not "plain_alias"?
+Test case class-level-alias
 ? {c2 plain_alias} "plain_method"
 ? {c2 public_alias} "public_method"
 ? {catch {c2 protected_alias}} 1
@@ -98,24 +101,28 @@ C create c2
 ###########
 
 # scripted class-object level methods
+Test case scripted-class-object-level
 ? {C plain_object_method} "plain_object_method"
 ? {C public_object_method} "public_object_method"
 ? {catch {C protected_object_method}} 1
 ? {::xotcl::dispatch C protected_object_method} "protected_object_method"
 
 # class-object level forwards
+Test case class-object-level-forwards
 ? {C plain_object_forward} "plain_object_method"
 ? {C public_object_forward} "public_object_method"
 ? {catch {C protected_object_forward}} 1
 ? {::xotcl::dispatch C protected_object_forward} "protected_object_method"
 
 # class-object level setter
+Test case class-object-level-setter
 ? {C plain_object_setter 1} "1"
 ? {C public_object_setter 2} "2"
 ? {catch {C protected_object_setter 3}} 1
 ? {::xotcl::dispatch C protected_object_setter 4} "4"
 
 # class-object level alias ....TODO: wanted behavior of [self proc]? not "plain_alias"?
+Test case class-object-level-alias
 ? {C plain_object_alias} "plain_object_method"
 ? {C public_object_alias} "public_object_method"
 ? {catch {C protected_object_alias}} 1
@@ -124,24 +131,28 @@ C create c2
 ###########
 
 # scripted object level methods
+Test case scripted-object-level-methods
 ? {c1 plain_object_method} "plain_object_method"
 ? {c1 public_object_method} "public_object_method"
 ? {catch {c1 protected_object_method}} 1
 ? {::xotcl::dispatch c1 protected_object_method} "protected_object_method"
 
 # object level forwards
+Test case object-level-forwards
 ? {c1 plain_object_forward} "plain_object_method"
 ? {c1 public_object_forward} "public_object_method"
 ? {catch {c1 protected_object_forward}} 1
 ? {::xotcl::dispatch c1 protected_object_forward} "protected_object_method"
 
 # object level setter
+Test case object-level-setter
 ? {c1 plain_object_setter 1} "1"
 ? {c1 public_object_setter 2} "2"
 ? {catch {c1 protected_object_setter 3}} 1
 ? {::xotcl::dispatch c1 protected_object_setter 4} "4"
 
 # object level alias ....TODO: wanted behavior of [self proc]? not "plain_alias"?
+Test case object-level-alias
 ? {c1 plain_object_alias} "plain_object_method"
 ? {c1 public_object_alias} "public_object_method"
 ? {catch {c1 protected_object_alias}} 1
@@ -157,6 +168,7 @@ C destroy
 Class create C
 Class create M
 
+Test case mixinguards
 # define a Class C and mixin class M
 Class create C
 Class create M
@@ -175,7 +187,7 @@ C object mixinguard M {1 == 1}
 C object mixinguard M {}
 ? {C object info mixinguard M} ""
 
-
+Test case mixin-via-objectparam
 # add an object and class mixin via object-parameter and via slots
 Class create M1; Class create M2; Class create M3; Class create M4
 Class create C -mixin M1 -object-mixin M2 {
@@ -185,3 +197,27 @@ Class create C -mixin M1 -object-mixin M2 {
 
 ? {lsort [C object info mixin]} "::M2 ::M4"
 ? {lsort [C info mixin]} "::M1 ::M3"
+C destroy
+M1 destroy; M2 destroy; M3 destroy; M4 destroy;
+
+# testing next via nonpos-args
+Test case next-from-nonpos-args
+
+Object create o {
+  .method bar {-y:required -x:required} {
+    #puts stderr "+++ o x=$x, y=$y [self args] ... next [self next]"
+    return [list x $x y $y [self args]]
+  }
+}
+Class create M {
+  .method bar {-x:required -y:required} {
+    #puts stderr "+++ M x=$x, y=$y [self args] ... next [self next]"
+    return [list x $x y $y [self args] -- {*}[next]]
+  }
+}
+
+o mixin M
+puts stderr =====
+? {o bar -x 13 -y 14} "x 13 y 14 {-x 13 -y 14} -- x 13 y 14 {-x 13 -y 14}"
+puts stderr =====
+? {o bar -y 14 -x 13} "x 13 y 14 {-y 14 -x 13} -- x 13 y 14 {-y 14 -x 13}"

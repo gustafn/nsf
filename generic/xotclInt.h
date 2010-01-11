@@ -556,9 +556,11 @@ typedef struct XOTclCallStackContent {
 #if !defined(TCL85STACK)
   Tcl_CallFrame *currentFramePtr;
 #endif
+  XOTclFilterStack *filterStackEntry;
+  Tcl_Obj ** objv;
+  int objc;
   unsigned short frameType;
   unsigned short callType;
-  XOTclFilterStack *filterStackEntry;
 } XOTclCallStackContent;
 
 #define XOTCL_CSC_TYPE_PLAIN 0

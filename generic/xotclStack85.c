@@ -412,6 +412,7 @@ CallStackPush(XOTclCallStackContent *csc, XOTclObject *obj, XOTclClass *cl, Tcl_
   csc->frameType     = frameType;
   csc->callType      = 0;
   csc->filterStackEntry = frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER ? obj->filterStack : NULL;
+  csc->objv          = NULL;
 
 #if defined(TCL85STACK_TRACE)
   fprintf(stderr, "PUSH csc %p type %d obj %s, self=%p cmd=%p (%s) id=%p (%s) obj refcount %d name refcount %d\n",
