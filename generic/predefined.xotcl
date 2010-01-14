@@ -25,7 +25,7 @@ namespace eval xotcl2 {
   #foreach cmd {array append eval incr lappend set subst unset trace} {
   #  ::xotcl::alias Object $cmd -objscope ::$cmd
   #}
-  ::xotcl::alias Object eval -objscope ::eval
+  ::xotcl::alias Object eval -nonleaf ::eval
 
   # provide the standard command set for Class
   foreach cmd [info command ::xotcl::cmd::Class::*] {
@@ -68,7 +68,7 @@ namespace eval xotcl2 {
   }
 
   # define method modifiers "object", "public" and "protected"
-  ::xotcl::dispatch Class -objscope ::eval {
+  Class eval {
 
     # method-modifier for object specific methos
     .method object {what args} {
@@ -96,7 +96,7 @@ namespace eval xotcl2 {
   }
 
 
-  ::xotcl::dispatch Object -objscope ::eval {
+  Object eval {
 
     # method modifier "public"
     .method public {args} {
@@ -187,9 +187,10 @@ namespace eval xotcl2 {
   # It would be nice to do here "objectInfo configure {.alias ..}", but
   # we have no working objectparameter yet due to bootstrapping
   #
-  ::xotcl::dispatch objectInfo -objscope ::eval {
+  objectInfo eval {
     .alias is ::xotcl::is
 
+    # info info
     .public method info {obj} {
       set methods [list]
       foreach name [::xotcl::cmd::ObjectInfo::methods [self]] {
@@ -198,13 +199,27 @@ namespace eval xotcl2 {
       }
       return "valid options are: [join [lsort $methods] {, }]"
     }
-    
+
     .method unknown {method obj args} {
       error "[::xotcl::self] unknown info option \"$method\"; [$obj info info]"
     }
   }
 
-  ::xotcl::dispatch classInfo -objscope ::eval {
+  classInfo eval {
+    .public method mixinof {obj -closure:switch {-scope all} pattern:optional} {
+      # scope eq "all" or "object" returns objects, scope eq "class" returns classes
+      set withClosure [expr {$closure ? "-closure" : ""}]
+      set withPattern [expr {[info exists pattern] ? $pattern : ""}]
+      if {$scope eq "all"} {
+        set r [::xotcl::cmd::ClassInfo::object-mixin-of $obj {*}$withClosure {*}$withPattern]
+        foreach c [::xotcl::cmd::ClassInfo::class-mixin-of $obj {*}$withClosure] {
+          lappend r {*}[$c info instances {*}$withPattern]
+        }
+        return [lsort -unique $r]
+      } else {
+        return [::xotcl::cmd::ClassInfo::$scope-mixin-of $obj {*}$withClosure {*}$withPattern]
+      }
+    }
     .alias is ::xotcl::is
     .alias classparent ::xotcl::cmd::ObjectInfo::parent
     .alias classchildren ::xotcl::cmd::ObjectInfo::children
@@ -218,10 +233,12 @@ namespace eval xotcl2 {
   }
   foreach cmd [info command ::xotcl::cmd::ClassInfo::*] {
     set cmdName [namespace tail $cmd]
+    if {$cmdName in [list "object-mixin-of" "class-mixin-of"]} continue
     ::xotcl::alias ::xotcl2::classInfo $cmdName $cmd
   }
   unset cmd
 
+  # register method "info" on Object and Class
   Object forward info -onerror ::xotcl::infoError ::xotcl2::objectInfo %1 {%@2 %self}
   Class forward  info -onerror ::xotcl::infoError ::xotcl2::classInfo %1 {%@2 %self}
 

@@ -9,13 +9,16 @@ body	{
 	color: black;
 }
 table i {
-       font-size: 80%;
+     font-size: 80%;
 }
 table td code i {
-      font-style: italic;
-       color: green;
+     font-style: italic;
+     color: green;
 }
-
+pre i {
+     font-style: italic;
+     color: green;
+}
 th {color: #888888;}
 td hr {
   color: #FFFFFF;
@@ -39,6 +42,7 @@ table th {
 }
 table td {
    width: 400;
+   padding: 10px;
    border:1px solid #AAAAAA;
 }
 
@@ -52,14 +56,47 @@ table td {
 
 <h2>Supporting XOTcl 1 in XOTcl 2</h2>
 
-<p>
-... multiple object systems ....
-<p>
-<code>::xotcl::use xotcl1</code>
-<p>
-<code>::xotcl::use xotcl2</code>
-<p>
-describe, what <code>::xotcl::use</code> does
+<p> In general, the XOTcl 2 environment supports multiple object
+systems concurrently. Effectively, every object system has different
+base classes for creating both, objects and classes. Therefore, the
+object systems can have different different interfaces and names of
+builtin methods. Currently, XOTcl 2 supports primarily XOTcl 1 and
+XOTcl 2 (XOTcl 1 provides about twice as many predefined builtin
+methods).  </p>
+
+<p> The support for multiple object systems can be used to load XOTcl
+1 and XOTcl 2 scripts into the same interpreter. This makes migration
+from XOTcl 1 to XOTcl 2 easier. The XOTcl environment provides the
+predefined command ::xotcl::use to make switching between these
+objects systems convenient. The following example script shows a single
+script defining classes of XOTcl 1 and 2:<p>
+
+<pre>
+   package require XOTcl
+
+   namespace eval mypackage {
+
+      <i># Some definitions for XOTcl 1</i>
+      ::xotcl::use xotcl1
+
+      Class C1
+      C1 instproc foo {} {puts "hello world"}
+
+      <i># Some definitions for XOTcl 2</i>
+      ::xotcl::use xotcl2
+
+      Class create C2 {
+         .method foo {} {puts "hello world"}
+      }
+   }
+</pre>
+
+<p> "Switching" effectively means the load some libraries if needed
+and to import either the XOTcl 1 or XOTcl 2 base classes as
+<code>Object</code> and <code>Class</code> into the current namespace.
+If the import is not wanted, just use <code>package require</code> to
+load the necessary pieces.
+</p>
 
 <h1>XOTcl 1 Idioms in XOTcl 2</h1>
 
@@ -118,6 +155,15 @@ describe, what <code>::xotcl::use</code> does
   </tr>
 </table>
 
+<h2>Resolvers</h2>
+
+XOTcl 2 defines Tcl resolvers for method and variable names to refer
+to object specific behavior. Withing method bodies these resolver
+treat names staring with a dot "." specially. If one wants to refer to
+a name starting with a "." (e.g. the name of a Tcl function starts
+with a dot), the dot has to be duplicated, or one has to use the
+usual namespace prefix "::" to refer to a namespaced entity. Note that
+the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 
 <h2>Invoking Methods</h2>
 <table border=1>
@@ -150,6 +196,30 @@ describe, what <code>::xotcl::use</code> does
 <h2>Accessing Instance Variables from Method Bodies</h2>
 <table border=1>
   <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code>Class <i>C</i><br>
+      <i>C</i> instproc <i>foo args</i> {<br>
+      &nbsp;&nbsp;<i># method scoped variable a</i><br>
+      &nbsp;&nbsp;set a 1 <br>
+      &nbsp;&nbsp;<i># instance variable b</i><br>
+      &nbsp;&nbsp;my instvar b<br>
+      &nbsp;&nbsp;set b 2<br>
+      &nbsp;&nbsp;<i># global variable/namespaced variable c</i><br>
+      &nbsp;&nbsp;set ::c 3<br>
+    }<br>
+      </code></td>
+    <td><code>Class create <i>C</i> {<br>
+      &nbsp;&nbsp;.method <i>foo args</i> {...}<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<i># method scoped variable a</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;set a 1 <br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<i># instance variable b</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;set .b 2<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<i># global variable/namespaced variable c</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;set ::c 3<br>
+      &nbsp;&nbsp;}<br>
+      }<br>
+     </code></td>
+  </tr>  
   <tr>
     <td><code>my set <i>varname value</i></code></td>
     <td><code>set .<i>varname value</i></code></td>
@@ -393,6 +463,35 @@ describe, what <code>::xotcl::use</code> does
   <code>object</code> as shown in examples above.
 </p>
 
+<h4>List filter or mixins</h4>
+<table>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code><i>obj</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
+    <td><code><i>obj</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
+    <td><code><i>cls</i> object info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info instfilter <i>?-order? ?-guards? ?pattern?</i></code></td>
+    <td><code><i>cls</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>obj</i> info mixin <i>?-order? ?-guards? ?pattern?</i></code></td>
+    <td><code><i>obj</i> info mixin <i>?-order? ?-guards? ?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info mixin <i>?-order? ?-guards? ?pattern?</i></code></td>
+    <td><code><i>cls</i> object info mixin <i>?-order? ?-guards? ?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info instmixin <i>?-order? ?-guards? ?pattern?</i></code></td>
+    <td><code><i>cls</i> info mixin <i>?-order? ?-guards? ?pattern?</i></code></td>
+  </tr> 
+</table>
+
 <h4>List definition of methods defined by aliases, setters or forwarders</h4>
 <table>
   <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
@@ -402,8 +501,8 @@ describe, what <code>::xotcl::use</code> does
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-    <td><code><i>cls</i> info method definition <i>methodName</i></code></td>
-  </tr  
+    <td><code><i>cls ?object?</i> info method definition <i>methodName</i></code></td>
+  </tr>  
 </table>
 
 <h4>List fully qualified name of method</h4>
@@ -415,8 +514,8 @@ describe, what <code>::xotcl::use</code> does
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-    <td><code><i>cls</i> info method name <i>methodName</i></code></td>
-  </tr  
+    <td><code><i>cls ?object?</i> info method name <i>methodName</i></code></td>
+  </tr>  
 </table>
 
 <h4>List type of a method</h4>
@@ -428,10 +527,77 @@ describe, what <code>::xotcl::use</code> does
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-    <td><code><i>cls</i> info method type <i>methodName</i></code></td>
-  </tr  
+    <td><code><i>cls ?object?</i> info method type <i>methodName</i></code></td>
+  </tr>  
 </table>
 
+<h4>List the scope of mixin classes</h4>
+<table>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code><i>cls</i> info mixinof <i>?-closure? ?pattern?</i></code></td>
+    <td><code><i>cls</i> info mixinof -scope object <i>?-closure? ?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><code><i>cls</i> info instmixinof <i>?-closure? ?pattern?</i></code></td>
+    <td><code><i>cls</i> info mixinof -scope class <i>?-closure? ?pattern?</i></code></td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i>cls</i> info mixinof -scope all <i>?-closure? ?pattern?</i></code></td>
+  </tr>
+</table>
+
+<h4>Check properties of object and classes</h4>
+
+<table>
+  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr>
+    <td><code><i>obj</i> istype <i>sometype</i></code></td>
+    <td>
+      <code>::xotcl::is <i>obj</i> type <i>sometype</i></code><br>
+      <hr>
+      <code><i>obj</i> info is type <i>sometype</i></code>
+    </td>
+  </tr>
+  <tr>
+    <td><code><i>obj</i> ismixin <i>cls</i></code></td>
+    <td>
+      <code>::xotcl::is <i>obj</i> mixin <i>cls</i></code><br>
+      <hr>
+      <code><i>obj</i> info is mixin <i>cls</i></code>
+    </td>
+  </tr>
+  <tr>
+    <td><code><i>obj</i> isclass <i>?cls?</i></code></td>
+    <td>
+      <code>::xotcl::is <i>obj|cls</i> class</code><br>
+      <hr>
+      <code><i>obj</i> info is class</code>
+    </td>
+  </tr>
+  <tr>
+    <td><code><i>obj</i> ismetaclass <i>cls</i></code></td>
+    <td><code>::xotcl::is <i>obj|cls</i> metaclass</code>
+      <hr>
+      <code><i>obj</i> info is metaclass</code>
+    </td>
+  </tr>
+  <tr>
+    <td><i>n.a.</i></td>
+   <td><code>::xotcl::is <i>cls</i> baseclass</code>
+      <hr>
+      <code><i>cls</i> info is baseclass</code>
+    </td>
+  </tr>  
+ <tr>
+    <td><code><i>obj</i> isobject <i>obj2</i></code></td>
+    <td><code>::xotcl::is <i>obj|obj2</i> object</code>
+      <hr>
+      <code><i>obj</i> info is object</code>
+    </td>
+  </tr>
+</table>
 
 
 <h2>Predefined Methods</h2>
@@ -479,7 +645,48 @@ describe, what <code>::xotcl::use</code> does
 <h2>Method Protection</h2>
 
 
+<h2>Incompatibilities</h2>
+
+<h3>Namespace resolvers</h3>
+<p>The XOTcl 2 namespace resolvers are use as well when XOTcl 1 is used
+within XOTcl 2.
+</p>
+
+<h3>Stronger Checking</h3>
+<p>XOTcl 2 performs stronger checking than XOTcl 1. The requiredness
+of slots in XOTcl 1 was just a comment, while XOTcl 2 enforces it.
+</p>
+
+<h3>Different results</h3>
+<ul>
+<li><code>[self next]</code> returns <br>
+      instead of "proc" and "instproc" => "method"<br>
+      instead of "parametercmd" and "instparametercmd" => "setter"<br>
+      instead of "instforward" => "forward"<br>
+      instead of "instcmd" => "cmd".<br>
+  The modifier "object" is added when needed.
+  </li>
+<li><code>[self filterreg]</code> returns <br>
+      instead of "instforward" => "forward"<br>
+    The modifier "object" is added when needed.
+  </li>
+</ul>
+
+
+
+<h3>Exit handlers</h3>
+<p>
+The exit hander interface changed from a method of
+<code>::xotcl::Object</code> into procs in the <code>::xotcl</code>
+namespace. XOTcl 2 provides now:
+<pre>
+   ::xotcl::setExitHandler script
+   ::xotcl::getExitHandler
+   ::xotcl::unsetExitHandler
+</pre>
+
+
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Tue Jan  5 19:00:20 CET 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Tue Jan 12 11:35:29 CET 2010 <!-- hhmts end -->
 </body> </html>

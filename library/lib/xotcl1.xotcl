@@ -73,7 +73,7 @@ namespace eval ::xotcl {
 
   Class instproc unknown {args} {
     #puts stderr "use '[self] create $args', not '[self] $args'"
-    eval my create $args
+    uplevel [list [self] create {*}$args]
   }
 
   Object instproc unknown {m args} {
@@ -228,12 +228,7 @@ namespace eval ::xotcl {
   #     info nonposargs
   #     info default
   #
-  #   => TODO: use "params" in serializer, and all other occurances
-  #
-  #
   # TODO mark all absolete calls at least as deprecated in library
-  #
-  # TODO move unknown handler for Class into a library
   #
 
   proc ::xotcl::info_args {allocation o method} {

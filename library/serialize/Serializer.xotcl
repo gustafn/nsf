@@ -533,7 +533,7 @@ namespace eval ::xotcl::serializer {
       foreach k [array names .exportMethods] {
         foreach {o p m} $k break
         if {![.methodExists $o $p $m]} {
-          $s warn "Method does not exists: $o $p $m"
+          $s warn "Method does not exist: $o $p $m"
           continue
         }
         append methods($o) [.serializeExportedMethod $o $p $m]
