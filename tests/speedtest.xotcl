@@ -61,10 +61,10 @@ C instproc existsViaMyExistsMethod {}  {
   my exists v
 }
 C instproc existsViaDotExistsMethod {}  { 
-  .exists v
+  :exists v
 }
 C instproc existsViaResolver {}  { 
-  info exists .v
+  info exists :v
 }
 C instproc notExistsViaInstvar {} {
   my instvar xxx

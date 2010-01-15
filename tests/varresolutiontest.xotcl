@@ -46,7 +46,7 @@ o eval {
   #global z
   #::xotcl::importvar [self] y
   set x 1
-  set .y 2
+  set :y 2
   set ::z 3
   set [self]::X 4
 }
@@ -164,8 +164,8 @@ o destroy
 ###############################################
 
 Object create o
-o method foo {x} {set .y 2; return ${.x},${.y}}
-o method bar {} {return ${.x},${.y}}
+o method foo {x} {set :y 2; return ${:x},${:y}}
+o method bar {} {return ${:x},${:y}}
 o set x 1
 ? {o foo 1} "1,2" "create var y and fetch var x"
 ? {o bar} "1,2" "fetch two instance variables"
@@ -174,7 +174,7 @@ o set x 1
 # we have to recreate bar, so no problem
 Object create o
 o set x 1
-o method bar {} {return ${.x},${.y}}
+o method bar {} {return ${:x},${:y}}
 ? {catch {o bar}} "1" "compiled var y should not exist"
 o destroy
 
@@ -184,8 +184,8 @@ o destroy
 
 Class create C -parameter {{x 1}}
 C create c1
-C method foo {x} {set .y 2; return ${.x},${.y}}
-C method bar {} {return ${.x},${.y}}
+C method foo {x} {set :y 2; return ${:x},${:y}}
+C method bar {} {return ${:x},${:y}}
 ? {c1 info vars} "x" 
 ? {c1 foo 1} "1,2" "create var y and fetch var x"
 ? {c1 bar} "1,2" "fetch two instance variables"
@@ -208,9 +208,9 @@ C destroy
 Class create C -parameter {{x 1}}
 C create c1
 C method foo {x} {
-  set .y 2; 
-  eval "set .z 3"
-  return ${.x},${.y},${.z}
+  set :y 2; 
+  eval "set :z 3"
+  return ${:x},${:y},${:z}
 }
 ? {c1 info vars} "x"
 ? {c1 foo 1} "1,2,3"
@@ -219,13 +219,13 @@ C create c1
 ? {c1 info vars} "x"
 C method foo {x} {
   set cmd set
-  lappend cmd .y
+  lappend cmd :y
   lappend cmd 100
   eval $cmd
-  return $x,${.y}
+  return $x,${:y}
 }
-C method bar {} {puts ${.x};return [info exists .x],[info exists .y]}
-C method bar2 {} {if {[info exists .x]} {set .x 1000}; return [info exists .x],[info exists .y]}
+C method bar {} {puts ${:x};return [info exists :x],[info exists :y]}
+C method bar2 {} {if {[info exists :x]} {set :x 1000}; return [info exists :x],[info exists :y]}
 ? {c1 foo 1} "1,100"
 ? {c1 bar} "1,1"
 ? {c1 bar2} "1,1"
@@ -241,8 +241,8 @@ puts "array tests"
 Class create C
 C create c1
 C method foo {} {
-  array set .a {a 1 b 2 c 3}
-  set .z 100
+  array set :a {a 1 b 2 c 3}
+  set :z 100
 }
 ? {c1 info vars} ""
 c1 foo
@@ -253,12 +253,12 @@ c1 foo
 # tests for the var resolver
 ###############################################
 Class create C
-C method bar0 {} {return ${.x}}
-C method bar1 {} {set a ${.x}; return [info exists .x],[info exists .y]}
-C method bar2 {} {return [info exists .x],[info exists .y]}
+C method bar0 {} {return ${:x}}
+C method bar1 {} {set a ${:x}; return [info exists :x],[info exists :y]}
+C method bar2 {} {return [info exists :x],[info exists :y]}
 C method foo {} {
-  array set .a {a 1 b 2 c 3}
-  set .z 100
+  array set :a {a 1 b 2 c 3}
+  set :z 100
 }
 C create c1
 c1 set x 100
@@ -282,13 +282,13 @@ C method bar {args} {
 C forward test %self bar
 C method foo {} {
   # this works
-  lappend .r [.bar x 1]
-  lappend .r [.test a b c]
+  lappend :r [:bar x 1]
+  lappend :r [:test a b c]
   # these kind of works, but vars are nowhere....
-  .set x 1
-  .incr x 1
-  .incr x 1
-  return [lappend .r ${.x}]
+  :set x 1
+  :incr x 1
+  :incr x 1
+  return [lappend :r ${:x}]
 }
 C create c3
 ? {c3 foo} "{x 1} {a b c} 3"
@@ -339,7 +339,7 @@ Test case eval-variants
 
 Object create o {
   set xxx 1
-  set .x 1
+  set :x 1
 }
 ? {o exists x} 1
 ? {o exists xxx} 0
@@ -347,7 +347,7 @@ Object create o {
 # eval does an objcope, all vars are instance variables
 o eval {
   set aaa 1
-  set .a 1
+  set :a 1
 }
 ? {o exists a} 1
 ? {o exists aaa} 1
@@ -355,7 +355,7 @@ o eval {
 # softeval should behave like the creation initcmd (just set dot vars)
 o softeval {
   set bbb 1
-  set .b 1
+  set :b 1
 }
 ? {o exists b} 1
 ? {o exists bbb} 0
@@ -363,7 +363,7 @@ o softeval {
 # softeval2 never sets variables
 o softeval2 {
   set zzz 1
-  set .z 1
+  set :z 1
 }
 ? {o exists z} 0
 ? {o exists zzz} 0
@@ -378,7 +378,7 @@ o requireNamespace
 # eval does an objcope, all vars are instance variables
 o eval {
   set ccc 1
-  set .c 1
+  set :c 1
 }
 ? {o exists c} 1
 ? {o exists ccc} 1
@@ -386,7 +386,7 @@ o eval {
 # softeval2 should behave like the creation initcmd (just set dot vars)
 o softeval {
   set ddd 1
-  set .d 1
+  set :d 1
 }
 ? {o exists d} 1
 ? {o exists ddd} 1 ;# TODO: should be 0
@@ -394,7 +394,7 @@ o softeval {
 # softeval2 never sets variables
 o softeval2 {
   set zzz 1
-  set .z 1
+  set :z 1
 }
 ? {o exists z} 0
 ? {o exists zzz} 0
@@ -406,11 +406,11 @@ o destroy
 # The global vars should not influence the behavior.
 ##################################################
 Test case with-global-vars
-foreach var {.x x xxx .a a aaa .b b bbb .c c ccc .d d ddd .z z zzz} {set $var 1}
+foreach var {.x x xxx :a a aaa :b b bbb :c c ccc :d d ddd :z z zzz} {set $var 1}
 
 Object create o {
   set xxx 1
-  set .x 1
+  set :x 1
 }
 ? {o exists x} 1
 ? {o exists xxx} 0
@@ -418,7 +418,7 @@ Object create o {
 # eval does an objcope, all vars are instance variables
 o eval {
   set aaa 1
-  set .a 1
+  set :a 1
 }
 ? {o exists a} 1
 ? {o exists aaa} 1
@@ -426,7 +426,7 @@ o eval {
 # softeval should behave like the creation initcmd (just set dot vars)
 o softeval {
   set bbb 1
-  set .b 1
+  set :b 1
 }
 ? {o exists b} 1
 ? {o exists bbb} 0
@@ -434,7 +434,7 @@ o softeval {
 # softeval2 never sets variables
 o softeval2 {
   set zzz 1
-  set .z 1
+  set :z 1
 }
 ? {o exists z} 0
 ? {o exists zzz} 0
@@ -449,7 +449,7 @@ o requireNamespace
 # eval does an objcope, all vars are instance variables
 o eval {
   set ccc 1
-  set .c 1
+  set :c 1
 }
 ? {o exists c} 1
 ? {o exists ccc} 1
@@ -457,7 +457,7 @@ o eval {
 # softeval2 should behave like the creation initcmd (just set dot vars)
 o softeval {
   set ddd 1
-  set .d 1
+  set :d 1
 }
 ? {o exists d} 1
 ? {o exists ddd} 0
@@ -465,7 +465,7 @@ o softeval {
 # softeval2 never sets variables
 o softeval2 {
   set zzz 1
-  set .z 1
+  set :z 1
 }
 ? {o exists z} 0
 ? {o exists zzz} 0
@@ -478,19 +478,19 @@ o destroy
 ##################################################
 Test case dotcmd
 set C 0
-proc .bar {} {incr ::C}
+proc bar {} {incr ::C}
 Class create Foo {
-  .method init {} {set .c 0}
-  .method callDot1 {} {.bar}
-  .method callDot2 {} {.bar}
-  .method callDot3 {} {.bar; ..bar; .bar}
-  .method bar {} {incr .c}
+  :method init {} {set :c 0}
+  :method callDot1 {} {:bar}
+  :method callDot2 {} {:bar}
+  :method callDot3 {} {:bar; ::bar; :bar}
+  :method bar {} {incr :c}
 }
 
 Foo create f1
 f1 callDot1
 ? {set ::C} 0
-? {f1 eval {set .c}} 1
+? {f1 eval {set :c}} 1
 
 # call via callback
 after 1 {f1 callDot2}
@@ -498,15 +498,15 @@ after 10 {set ::X 1}
 vwait X
 
 ? {set ::C} 0
-? {f1 eval {set .c}} 2
+? {f1 eval {set :c}} 2
 
-# call via callback, call .bar via .. from method
+# call via callback, call :bar via .. from method
 after 1 {f1 callDot3}
 after 10 {set ::X 2}
 vwait X
 
 ? {set ::C} 1
-? {f1 eval {set .c}} 4
+? {f1 eval {set :c}} 4
 
 
 ##################################################

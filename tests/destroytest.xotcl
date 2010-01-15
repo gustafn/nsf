@@ -6,11 +6,11 @@ Test parameter count 10
 ::xotcl::alias ::xotcl2::Object set -objscope ::set
 
 Class create O -superclass Object {
-  .method init {} {
+  :method init {} {
     set ::ObjectDestroy 0
     set ::firstDestroy 0
   }
-  .method destroy {} {
+  :method destroy {} {
     incr ::ObjectDestroy
     #[my info class] dealloc [self]
     next

@@ -86,6 +86,7 @@
 #define USE_COMPILED_VAR_RESOLVER 1
 */
 
+#define USE_COLON 1
 #define USE_COMPILED_VAR_RESOLVER 1
 
 #if !defined(PRE86)

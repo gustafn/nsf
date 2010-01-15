@@ -57,13 +57,13 @@ namespace eval ::xotcl {
 
   # define - like in XOTcl 1 - a minimal implementation of "method"
   Object instproc method {name arguments body} {
-    .proc $name $arguments $body                                  
+    :proc $name $arguments $body                                  
   }
   Class instproc method {-per-object:switch name arguments body} {
     if {${per-object}} {
-      .proc $name $arguments $body       
+      :proc $name $arguments $body       
     } else {
-      .instproc $name $arguments $body  
+      :instproc $name $arguments $body  
     }
   }
 
@@ -171,7 +171,7 @@ namespace eval ::xotcl {
     return "valid options are: [join [lsort $methods] {, }]"
   }
   objectInfo proc unknown {method args} {
-    error "[::xotcl::self] unknown info option \"$method\"; [.info info]"
+    error "[::xotcl::self] unknown info option \"$method\"; [:info info]"
   }
 
   classInfo proc info {cl} {
@@ -185,7 +185,7 @@ namespace eval ::xotcl {
   }
 
   classInfo proc unknown {method args} {
-    error "[::xotcl::self] unknown info option \"$method\"; [.info info]"
+    error "[::xotcl::self] unknown info option \"$method\"; [:info info]"
   }
 
   #
@@ -272,53 +272,53 @@ namespace eval ::xotcl {
   }
 
   classInfo eval {
-    .proc instargs {o method} {::xotcl::info_args Class $o $method}
-    .proc args     {o method} {::xotcl::info_args Object $o $method}
-    .proc instnonposargs {o method} {::xotcl::info_nonposargs Class $o $method}
-    .proc nonposargs     {o method} {::xotcl::info_nonposargs Object $o $method}
-    .proc instdefault {o method arg var} {::xotcl::info_default Class $o $method $arg $var}
-    .proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
+    :proc instargs {o method} {::xotcl::info_args Class $o $method}
+    :proc args     {o method} {::xotcl::info_args Object $o $method}
+    :proc instnonposargs {o method} {::xotcl::info_nonposargs Class $o $method}
+    :proc nonposargs     {o method} {::xotcl::info_nonposargs Object $o $method}
+    :proc instdefault {o method arg var} {::xotcl::info_default Class $o $method $arg $var}
+    :proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
     # info options emulated by "info method ..."
-    .proc instbody    {o methodName} {::xotcl::cmd::ClassInfo::method $o body $methodName}
-    .proc instpre     {o methodName} {::xotcl::cmd::ClassInfo::method $o precondition  $methodName}
-    .proc instpost    {o methodName} {::xotcl::cmd::ClassInfo::method $o postcondition $methodName}
+    :proc instbody    {o methodName} {::xotcl::cmd::ClassInfo::method $o body $methodName}
+    :proc instpre     {o methodName} {::xotcl::cmd::ClassInfo::method $o precondition  $methodName}
+    :proc instpost    {o methodName} {::xotcl::cmd::ClassInfo::method $o postcondition $methodName}
 
     # info options emulated by "info methods"
-    .proc instcommands {o {pattern:optional ""}} {
+    :proc instcommands {o {pattern:optional ""}} {
       ::xotcl::cmd::ClassInfo::methods $o {*}$pattern
     }
-    .proc instprocs   {o {pattern:optional ""}} {
+    :proc instprocs   {o {pattern:optional ""}} {
       ::xotcl::cmd::ClassInfo::methods $o -methodtype scripted {*}$pattern
     }
-    .proc parametercmd {o {pattern:optional ""}} {
+    :proc parametercmd {o {pattern:optional ""}} {
       ::xotcl::cmd::ClassInfo::methods $o -per-object -methodtype setter {*}$pattern
     }
-    .proc instparametercmd {o {pattern:optional ""}} {
+    :proc instparametercmd {o {pattern:optional ""}} {
       ::xotcl::cmd::ClassInfo::methods $o -methodtype setter {*}$pattern
     }
     # assertion handling
-    .proc instinvar   {o} {::xotcl::assertion $o class-invar}
+    :proc instinvar   {o} {::xotcl::assertion $o class-invar}
   }
 
   objectInfo eval {
-    .proc args        {o method} {::xotcl::info_args Object $o $method}
-    .proc nonposargs  {o method} {::xotcl::info_nonposargs Object $o $method}
-    .proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
+    :proc args        {o method} {::xotcl::info_args Object $o $method}
+    :proc nonposargs  {o method} {::xotcl::info_nonposargs Object $o $method}
+    :proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
     # info options emulated by "info method ..."
-    .proc body        {o methodName} {::xotcl::cmd::ObjectInfo::method $o body $methodName}
-    .proc pre         {o methodName} {::xotcl::cmd::ObjectInfo::method $o pre $methodName}
-    .proc post        {o methodName} {::xotcl::cmd::ObjectInfo::method $o post $methodName}
+    :proc body        {o methodName} {::xotcl::cmd::ObjectInfo::method $o body $methodName}
+    :proc pre         {o methodName} {::xotcl::cmd::ObjectInfo::method $o pre $methodName}
+    :proc post        {o methodName} {::xotcl::cmd::ObjectInfo::method $o post $methodName}
 
     # info options emulated by "info methods"
-    .proc commands    {o {pattern:optional ""}} {
+    :proc commands    {o {pattern:optional ""}} {
       ::xotcl::cmd::ObjectInfo::methods $o {*}$pattern
     }
-    .proc procs       {o {pattern:optional ""}} {
+    :proc procs       {o {pattern:optional ""}} {
       ::xotcl::cmd::ObjectInfo::methods $o -methodtype scripted {*}$pattern
     }
-    .proc methods {
+    :proc methods {
       o -nocmds:switch -noprocs:switch -incontext:switch pattern:optional
     } {
       set methodtype all
@@ -330,7 +330,7 @@ namespace eval ::xotcl {
       eval $cmd
     }
     # object filter mapping
-    .proc filter {o -order:switch -guards:switch pattern:optional} {
+    :proc filter {o -order:switch -guards:switch pattern:optional} {
       set guardsFlag [expr {$guards ? "-guards" : ""}]
       set patternArg [expr {[info exists pattern] ? [list $pattern] : ""}]
       if {$order && !$guards} {
@@ -344,10 +344,10 @@ namespace eval ::xotcl {
       return $def
     }
     # assertion handling
-    .proc check {o} {
+    :proc check {o} {
       ::xotcl::checkoption_internal_to_xotcl1 [::xotcl::assertion $o check]
     }
-    .proc invar {o} {::xotcl::assertion $o object-invar}
+    :proc invar {o} {::xotcl::assertion $o object-invar}
   }
 
   foreach cmd [::info command ::xotcl::cmd::ObjectInfo::*] {
@@ -480,7 +480,7 @@ namespace eval ::xotcl {
       error "invalid method type '$methtype', \
 	must be either 'proc', 'instproc' or 'method'."
     }
-    .$methtype $methname $arglist "
+    :$methtype $methname $arglist "
       if {!\[::xotcl::self isnextcall\]} {
         error \"Abstract method $methname $arglist called\"
       } else {::xotcl::next}
@@ -519,7 +519,7 @@ namespace eval ::xotcl {
   }
   Class instproc allinstances {} {
     # TODO: mark it deprecated
-    return [.info instances -closure]
+    return [:info instances -closure]
   }
 
   # keep old object interface for xotcl 1.*
@@ -664,26 +664,26 @@ namespace eval ::xotcl {
     {export {}}
   } {
     
-    .public object method create {name args} {
+    :public object method create {name args} {
       set nq [namespace qualifiers $name]
       if {$nq ne "" && ![namespace exists $nq]} {Object create $nq}
       next
     }
 
-    .public object method extend {name args} {
-      .require $name
+    :public object method extend {name args} {
+      :require $name
       eval $name configure $args
     }
     
-    .public object method contains script {
-      if {[.exists provide]} {
-        package provide [set .provide] [set .version]
+    :public object method contains script {
+      if {[:exists provide]} {
+        package provide [set :provide] [set :version]
       } else {
-        package provide [::xotcl::self] [set .version]
+        package provide [::xotcl::self] [set :version]
       }
       namespace eval [::xotcl::self] {namespace import ::xotcl::*}
       namespace eval [::xotcl::self] $script
-      foreach e [set .export] {
+      foreach e [set :export] {
         set nq [namespace qualifiers $e]
         if {$nq ne ""} {
           namespace eval [::xotcl::self]::$nq [list namespace export [namespace tail $e]]
@@ -691,38 +691,38 @@ namespace eval ::xotcl {
           namespace eval [::xotcl::self] [list namespace export $e]
         }
       }
-      foreach e [set .autoexport] {
+      foreach e [set :autoexport] {
         namespace eval :: [list namespace import [::xotcl::self]::$e]
       }
     }
     
-    .public object method unknown args {
+    :public object method unknown args {
       #puts stderr "unknown: package $args"
-      eval [set .packagecmd] $args
+      eval [set :packagecmd] $args
     }
     
-    .public object method verbose value {
-      set .verbose $value
+    :public object method verbose value {
+      set :verbose $value
     }
     
-    .public object method present args {
+    :public object method present args {
       if {$::tcl_version<8.3} {
         switch -exact -- [lindex $args 0] {
           -exact  {set pkg [lindex $args 1]}
           default {set pkg [lindex $args 0]}
         }
-        if {[info exists .loaded($pkg)]} {
-          return ${.loaded}($pkg)
+        if {[info exists :loaded($pkg)]} {
+          return ${:loaded}($pkg)
         } else {
           error "not found"
         }
       } else {
-        eval [set .packagecmd] present $args
+        eval [set :packagecmd] present $args
       }
     }
     
-    .public object method import {{-into ::} pkg} {
-      .require $pkg
+    :public object method import {{-into ::} pkg} {
+      :require $pkg
       namespace eval $into [subst -nocommands {
         #puts stderr "*** package import ${pkg}::* into [namespace current]"
         namespace import ${pkg}::*
@@ -736,31 +736,31 @@ namespace eval ::xotcl {
       }
     }
     
-    .public object method require args {
+    :public object method require args {
       #puts "XOTCL package require $args, current=[namespace current]"
-      set prevComponent ${.component}
+      set prevComponent ${:component}
       if {[catch {set v [eval package present $args]} msg]} {
         #puts stderr "we have to load $msg"
         switch -exact -- [lindex $args 0] {
           -exact  {set pkg [lindex $args 1]}
           default {set pkg [lindex $args 0]}
         }
-        set .component $pkg
-        lappend .uses($prevComponent) ${.component}
-        set v [uplevel \#1 [set .packagecmd] require $args]
-        if {$v ne "" && ${.verbose}} {
+        set :component $pkg
+        lappend :uses($prevComponent) ${:component}
+        set v [uplevel \#1 [set :packagecmd] require $args]
+        if {$v ne "" && ${:verbose}} {
         set path [lindex [::package ifneeded $pkg $v] 1]
           puts "... $pkg $v loaded from '$path'"
-          set .loaded($pkg) $v   ;# loaded stuff needed for Tcl 8.0
+          set :loaded($pkg) $v   ;# loaded stuff needed for Tcl 8.0
         }
       }
-      set .component $prevComponent
+      set :component $prevComponent
       return $v
     }
     
-    set .component .
-    set .verbose 0
-    set .packagecmd ::package
+    set :component .
+    set :verbose 0
+    set :packagecmd ::package
   }
   
   if {[info exists cmd]} {unset cmd}

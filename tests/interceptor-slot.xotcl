@@ -3,7 +3,7 @@ package require xotcl::test
 ::xotcl::use xotcl2
 
 Class create M {
-  .method mfoo {} {puts [self proc]}
+  :method mfoo {} {puts [self proc]}
 }
 Class create M2
 Class create C 

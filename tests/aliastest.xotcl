@@ -14,7 +14,7 @@ eval $cmd
 
 # define an alias and retrieve its definition
 Class create Base {
-  .method foo {{-x 1}} {return $x}
+  :method foo {{-x 1}} {return $x}
 }
 
 Class create Foo
@@ -216,17 +216,17 @@ namespace delete ::U
 # dot-resolver/ dot-dispatcher used in aliased proc
 
 Class create V {
-  set .z 1
+  set :z 1
 }
 
 V create v {
-  set .z 2
+  set :z 2
 }
 
 V method bar {z} { return $z }
 V object method bar {z} { return $z }
 
-proc foo args { return [.bar ${.z}]-[set .z]-[my bar [set .z]] }
+proc foo args { return [:bar ${:z}]-[set :z]-[my bar [set :z]] }
 
 ::xotcl::alias V FOO1 ::foo 
 ::xotcl::alias V -per-object FOO2 ::foo

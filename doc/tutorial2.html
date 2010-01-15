@@ -308,24 +308,24 @@ To give you an impression of the language before we go into the details of the e
 <it>#</it>
 <tt>Class create</tt> Stack {
         
-  <tt>.method</tt> init {} { <it># Constructor</it>
-    <tt>set</tt> .things ""
+  <tt>:method</tt> init {} { <it># Constructor</it>
+    <tt>set</tt> :things ""
   } 
 
-  <tt>.method</tt> push {thing} {
-    <tt>set</tt> .things [<tt>linsert</tt> ${.things} 0 $thing] 
+  <tt>:method</tt> push {thing} {
+    <tt>set</tt> :things [<tt>linsert</tt> ${:things} 0 $thing] 
     <tt>return</tt> $thing
   }
   
-  <tt>.method</tt> pop {} {
-    <tt>set</tt> top [<tt>lindex</tt> ${.things} 0]
-    <tt>set</tt> .things [<tt>lrange</tt> ${.things} 1 end]
+  <tt>:method</tt> pop {} {
+    <tt>set</tt> top [<tt>lindex</tt> ${:things} 0]
+    <tt>set</tt> :things [<tt>lrange</tt> ${:things} 1 end]
     <tt>return</tt> $top
   }
 }
 </pre>
 <p>
-The three methods are defined via <tt>.method</tt> (which means:
+The three methods are defined via <tt>:method</tt> (which means:
 define a method for the current class). Variables are set with the
 Tcl command <tt>set</tt>. Variable names starting with a dot "<tt>.</tt>"
 are treated as instance variables (variables of an instance of the
@@ -380,16 +380,16 @@ definition block of the object.
 <it>#</it>
 <tt>Object create</tt> stack {
 
-  <tt>set</tt> .things ""
+  <tt>set</tt> :things ""
 
-  <tt>.method</tt> push {thing} {
-    <tt>set</tt> .things [<tt>linsert</tt> ${.things} 0 $thing] 
+  <tt>:method</tt> push {thing} {
+    <tt>set</tt> :things [<tt>linsert</tt> ${:things} 0 $thing] 
     <tt>return</tt> $thing
   }
   
-  <tt>.method</tt> pop {} {
-    <tt>set</tt> top [<tt>lindex</tt> ${.things} 0]
-    <tt>set</tt> .things [<tt>lrange</tt> ${.things} 1 end]
+  <tt>:method</tt> pop {} {
+    <tt>set</tt> top [<tt>lindex</tt> ${:things} 0]
+    <tt>set</tt> :things [<tt>lrange</tt> ${:things} 1 end]
     <tt>return</tt> $top
   }
 }
@@ -408,19 +408,19 @@ With XOTcl, one can define stack-safety as a separate class using methods with t
 <it>#</it>
 <tt>Class create</tt> Safety {
         
-  <tt>.method</tt> init {} { <it># Constructor</it>
-    <tt>set</tt> .count 0
+  <tt>:method</tt> init {} { <it># Constructor</it>
+    <tt>set</tt> :count 0
     <tt>next</tt>
   } 
 
-  <tt>.method</tt> push {thing} {
-    <tt>incr</tt> .count
+  <tt>:method</tt> push {thing} {
+    <tt>incr</tt> :count
     <tt>next</tt>
   }
   
-  <tt>.method</tt> pop {} {
-    <tt>if</tt> {${.count} == 0} <tt>then</tt> { <tt>error</tt> "Stack empty!" }
-    <tt>incr</tt> .count -1
+  <tt>:method</tt> pop {} {
+    <tt>if</tt> {${:count} == 0} <tt>then</tt> { <tt>error</tt> "Stack empty!" }
+    <tt>incr</tt> :count -1
     <tt>next</tt>
   }
 }
@@ -477,7 +477,7 @@ definition of <tt>Stack</tt> is called via <tt>next</tt>.
  
 Stack <tt>create</tt> s4 {
 
-  <tt>.method </tt> push {value} {
+  <tt>:method </tt> push {value} {
     <tt>if </tt> {![<tt>string is</tt> integer $value]} {
       <tt>error</tt> "value $value is not an integer"
     }
@@ -507,8 +507,8 @@ of the currently existing stack instances.  </p>
 Class <tt>create</tt> Stack {
 
    <it># ...</it>
-    <tt>.object method</tt> available_stacks {} {
-      <tt>return</tt> [<tt>llength</tt> [<tt>.info</tt> instances]]
+    <tt>:object method</tt> available_stacks {} {
+      <tt>return</tt> [<tt>llength</tt> [<tt>:info</tt> instances]]
    }
 }
 
@@ -585,7 +585,7 @@ Now we define the SoccerTeam class:
 </pre>
 <p>
 We may add a player by using method. Methods can be defined
-in XOTcl2 either by <tt>.method</tt> in the class creation block, or
+in XOTcl2 either by <tt>:method</tt> in the class creation block, or
 via "<tt><em>ClassName</em> method ...</tt>". The added players (as
 well as other club members) are aggregated in
 the object of the soccer team (denoted by :: namespace syntax).
@@ -606,7 +606,7 @@ not change internally (e.g. the playerRole stays the same). Therefore we
   SoccerTeam <tt>method</tt> transferPlayer {playername destinationTeam} {
     <it># We use the aggregation introspection option <tt>children</tt> in order</it>
     <it># to get all club members</it>
-    <tt>foreach</tt> player [<tt>.info</tt> children] {
+    <tt>foreach</tt> player [<tt>:info</tt> children] {
       <it># But we only remove matching playernames of type "Player". We do</it>
       <it># not want to remove another club member type who has the same</it>
       <it># name.</it>
@@ -624,12 +624,12 @@ the console with <tt>puts</tt>.
 </p>
 <pre CLASS="code">
   SoccerTeam <tt>method</tt> printMembers {} {
-    <tt>puts</tt> "Members of ${.name}:"
-    <tt>foreach</tt> m [<tt>.info</tt> children] {<tt>puts</tt> "  [$m name]"}
+    <tt>puts</tt> "Members of ${:name}:"
+    <tt>foreach</tt> m [<tt>:info</tt> children] {<tt>puts</tt> "  [$m name]"}
   }
   SoccerTeam <tt>method</tt> printPlayers {} {
-    <tt>puts</tt> "Players of ${.name}:"
-    <tt>foreach</tt> m [<tt>.info</tt> children] {
+    <tt>puts</tt> "Players of ${:name}:"
+    <tt>foreach</tt> m [<tt>:info</tt> children] {
       <tt>if</tt> {[$m info is type Player]} {<tt>puts</tt> "  [$m name]"}
     }
   }
@@ -659,7 +659,7 @@ the rules are syntactically identical to <tt>if</tt> statements:
 </p>
 <pre CLASS="code">
   Player instinvar {
-    {${.playerRole} <tt>in</tt> [<tt>list</tt> "NONE" "PLAYER" "GOALY"]}
+    {${:playerRole} <tt>in</tt> [<tt>list</tt> "NONE" "PLAYER" "GOALY"]}
   }
 </pre>
 <p>
@@ -694,8 +694,8 @@ First we just define the Singer class.
 <pre CLASS="code">
   <tt>Class create</tt> Singer {
 
-    <tt>.method</tt> sing text {
-      <tt>puts</tt> "${.name} sings: $text, lala."
+    <tt>:method</tt> sing text {
+      <tt>puts</tt> "${:name} sings: $text, lala."
     }
   }
 </pre>
@@ -723,7 +723,7 @@ anymore (we unset the instance variable).
 </p>
 <pre CLASS="code">
   Player <tt>method</tt> class args {
-    <tt>unset</tt> .playerRole
+    <tt>unset</tt> :playerRole
     <tt>next</tt>
   }
 </pre>
@@ -776,7 +776,7 @@ just create the extension as an ordinary class:
 </p>
 <pre CLASS="code">
   <tt>Class</tt> TransferObserver {
-    <tt>.method</tt> transferPlayer {pname destinationTeam} {
+    <tt>:method</tt> transferPlayer {pname destinationTeam} {
       <tt>puts</tt> "Player '$pname' is transfered to Team '[$destinationTeam name]'"
       <tt>next</tt>
     }

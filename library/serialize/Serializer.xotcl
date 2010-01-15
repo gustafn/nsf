@@ -142,22 +142,22 @@ namespace eval ::xotcl::serializer {
 
   Class create Serializer -parameter {ignoreVarsRE} {
     
-    .method ignore args {
+    :method ignore args {
       # Ignore the objects passed via args.
-      # .skip is used for filtering only in the topological sort.
+      # :skip is used for filtering only in the topological sort.
       foreach element $args { 
         foreach o [Serializer allChildren $element] {
-          set .skip($o) 1
+          set :skip($o) 1
         }
       }
     }
     
-    .method init {} {
+    :method init {} {
       # Never serialize the (volatile) serializer object
-      .ignore [self]
+      :ignore [self]
     }
 
-    .method warn msg {
+    :method warn msg {
       if {[info command ns_log] ne ""} {
         ns_log Notice $msg
       } else {
@@ -165,15 +165,15 @@ namespace eval ::xotcl::serializer {
       }
     }
 
-    .method addPostCmd {cmd} {
-      if {$cmd ne ""} {append .post_cmds $cmd "\n"}
+    :method addPostCmd {cmd} {
+      if {$cmd ne ""} {append :post_cmds $cmd "\n"}
     }
     
-    .method setObjectSystemSerializer {o serializer} {
-      set .serializer($o) $serializer
+    :method setObjectSystemSerializer {o serializer} {
+      set :serializer($o) $serializer
     }
 
-    .method isExportedObject {o} {
+    :method isExportedObject {o} {
       # Check, whether o is exported. For exported objects.
       # we export the object tree.
       set oo $o
@@ -189,45 +189,45 @@ namespace eval ::xotcl::serializer {
       }
     }
     
-    .method topoSort {set all} {
-      if {[array exists .s]} {array unset .s}
-      if {[array exists .level]} {array unset .level}
+    :method topoSort {set all} {
+      if {[array exists :s]} {array unset :s}
+      if {[array exists :level]} {array unset :level}
 
       foreach c $set {
         if {!$all &&
             [string match "::xotcl::*" $c] && 
-            ![.isExportedObject $c]} continue
-        if {[info exists .skip($c)]} continue
-        set .s($c) 1
+            ![:isExportedObject $c]} continue
+        if {[info exists :skip($c)]} continue
+        set :s($c) 1
       }
       set stratum 0
       while {1} {
-        set set [array names .s]
+        set set [array names :s]
         if {[llength $set] == 0} break
         incr stratum
-        # .warn "$stratum set=$set"
-        set .level($stratum) {}
+        # :warn "$stratum set=$set"
+        set :level($stratum) {}
         foreach c $set {
-          set oss [set .serializer($c)]
+          set oss [set :serializer($c)]
           if {[$oss needsNothing $c [self]]} {
-            lappend .level($stratum) $c
+            lappend :level($stratum) $c
           }
         }
-        if {[set .level($stratum)] eq ""} {
-          set .level($stratum) $set
-          .warn "Cyclic dependency in $set"
+        if {[set :level($stratum)] eq ""} {
+          set :level($stratum) $set
+          :warn "Cyclic dependency in $set"
         }
-        foreach i [set .level($stratum)] {unset .s($i)}
+        foreach i [set :level($stratum)] {unset :s($i)}
       }
     }
 
-    .method needsOneOf list {
-      foreach e $list {if {[info exists .s($e)]} {return 1}}
+    :method needsOneOf list {
+      foreach e $list {if {[info exists :s($e)]} {return 1}}
       return 0
     }
     
-    .method serialize-objects {list all} {
-      set .post_cmds ""
+    :method serialize-objects {list all} {
+      set :post_cmds ""
 
       # register for introspection purposes "trace" under a different
       # name for every object system
@@ -235,14 +235,14 @@ namespace eval ::xotcl::serializer {
         $oss registerTrace 1
       }
 
-      .topoSort $list $all
-      #foreach i [lsort [array names .level]] { .warn "$i: [set .level($i)]"}
+      :topoSort $list $all
+      #foreach i [lsort [array names :level]] { :warn "$i: [set :level($i)]"}
       set result ""
-      foreach l [lsort -integer [array names .level]] {
-        foreach i [set .level($l)] {
+      foreach l [lsort -integer [array names :level]] {
+        foreach i [set :level($l)] {
           #.warn "serialize $i"
           #append result "# Stratum $l\n"
-          set oss [set .serializer($i)]
+          set oss [set :serializer($i)]
           append result [$oss serialize $i [self]] \n
         }
       }
@@ -280,80 +280,80 @@ namespace eval ::xotcl::serializer {
           append exports "namespace eval $ns {namespace export $exp}" \n
         }
       }
-      return $pre_cmds$result${.post_cmds}$exports
+      return $pre_cmds$result${:post_cmds}$exports
     }
 
-    .method deepSerialize o {
+    :method deepSerialize o {
       # assumes $o to be fully qualified
       set instances [Serializer allChildren $o] 
       foreach oss [ObjectSystemSerializer info instances] {
         $oss registerSerializer [self] $instances
       }
-      .serialize-objects $instances 1
+      :serialize-objects $instances 1
     }
 
     ###############################
     # class object specfic methods
     ###############################
 
-    .object method allChildren o {
+    :object method allChildren o {
       # return o and all its children fully qualified
       set set [::xotcl::dispatch $o -objscope ::xotcl::self]
       foreach c [$o info children] {
-        lappend set {*}[.allChildren $c]
+        lappend set {*}[:allChildren $c]
       }
       return $set
     }
 
-    .object method exportMethods list {
-      foreach {o p m} $list {set .exportMethods([list $o $p $m]) 1}
+    :object method exportMethods list {
+      foreach {o p m} $list {set :exportMethods([list $o $p $m]) 1}
     }
 
-    .object method exportObjects list {
-      foreach o $list {set .exportObjects($o) 1}
+    :object method exportObjects list {
+      foreach o $list {set :exportObjects($o) 1}
     }
 
-    .object method exportedMethods {} {array names .exportMethods}
-    .object method exportedObjects {} {array names .exportObjects}
+    :object method exportedMethods {} {array names :exportMethods}
+    :object method exportedObjects {} {array names :exportObjects}
 
-    .object method resetPattern {} {array unset .ignorePattern}
-    .object method addPattern {p} {set .ignorePattern($p) 1}
+    :object method resetPattern {} {array unset :ignorePattern}
+    :object method addPattern {p} {set :ignorePattern($p) 1}
     
-    .object method checkExportedMethods {} {
-      foreach k [array names .exportMethods] {
+    :object method checkExportedMethods {} {
+      foreach k [array names :exportMethods] {
         foreach {o p m} $k break
         set ok 0
-        foreach p [array names .ignorePattern] {
+        foreach p [array names :ignorePattern] {
           if {[string match $p $o]} {
             set ok 1; break
           }
         }
         if {!$ok} {
           error "method export is only for classes in\
-		[join [array names .ignorePattern] {, }] not for $o"
+		[join [array names :ignorePattern] {, }] not for $o"
         }
       }
     }
 
-    .object method checkExportedObject {} {
-      foreach o [array names .exportObjects] {
+    :object method checkExportedObject {} {
+      foreach o [array names :exportObjects] {
         if {![::xotcl::is $o object]} {
           puts stderr "Serializer exportObject: ignore non-existing object $o"
-          unset .exportObjects($o)
+          unset :exportObjects($o)
         } else {
           # add all child objects
-          foreach o [.allChildren $element] {
-            set .exportObjects($o) 1
+          foreach o [:allChildren $element] {
+            set :exportObjects($o) 1
           }
         }
       }
     }
 
-    .object method all {-ignoreVarsRE -ignore} {
+    :object method all {-ignoreVarsRE -ignore} {
 
       # don't filter anything during serialization
       set filterstate [::xotcl::configure filter off]
-      set s [.new -childof [self] -volatile]
+      set s [:new -childof [self] -volatile]
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
 
@@ -363,7 +363,7 @@ namespace eval ::xotcl::serializer {
         ::xotcl::configure softrecreate [::xotcl::configure softrecreate]
         ::xotcl::setExitHandler [list [::xotcl::getExitHandler]]
       }]\n
-      .resetPattern
+      :resetPattern
       set instances [list]
       foreach oss [ObjectSystemSerializer info instances] {
         append r [$oss serialize-all-start $s]
@@ -371,11 +371,11 @@ namespace eval ::xotcl::serializer {
       }
 
       # provide error messages for invalid exports
-      .checkExportedMethods
+      :checkExportedMethods
 
       # export the objects and classes
-      #$s warn "export objects = [array names .exportObjects]"
-      #$s warn "export objects = [array names .exportMethods]"
+      #$s warn "export objects = [array names :exportObjects]"
+      #$s warn "export objects = [array names :exportMethods]"
       
       append r [$s serialize-objects $instances 0] 
 
@@ -392,14 +392,14 @@ namespace eval ::xotcl::serializer {
       return $r
     }
 
-    .object method methodSerialize {object method prefix} {
-      set s [.new -childof [self] -volatile]
+    :object method methodSerialize {object method prefix} {
+      set s [:new -childof [self] -volatile]
       concat $object [$s method-serialize $object $method $prefix]
     }
 
-    .object method deepSerialize {-ignoreVarsRE -ignore -map args} {
-      .resetPattern
-      set s [.new -childof [self] -volatile]
+    :object method deepSerialize {-ignoreVarsRE -ignore -map args} {
+      :resetPattern
+      set s [:new -childof [self] -volatile]
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
       
@@ -411,7 +411,7 @@ namespace eval ::xotcl::serializer {
     }
 
     # include Serializer in the serialized code
-    .exportObjects [self]
+    :exportObjects [self]
     
   }
 
@@ -422,7 +422,7 @@ namespace eval ::xotcl::serializer {
 
   Class create ObjectSystemSerializer {
     
-    .method init {} {
+    :method init {} {
       # Include object system serializers and the meta-class in "Serializer all"
       Serializer exportObjects [self class]
       Serializer exportObjects [self]
@@ -431,48 +431,48 @@ namespace eval ::xotcl::serializer {
     #
     # Methods to be executed at the begin and end of serialize all
     #
-    .method serialize-all-start {s} {
-      .getExported
-      return [.serializeExportedMethods $s]
+    :method serialize-all-start {s} {
+      :getExported
+      return [:serializeExportedMethods $s]
     }
 
-    .method serialize-all-end {s} {
+    :method serialize-all-end {s} {
       set cmd ""
-      foreach o [list ${.rootClass} ${.rootMetaClass}] {
+      foreach o [list ${:rootClass} ${:rootMetaClass}] {
         append cmd \
-            [.frameWorkCmd ::xotcl::relation $o object-mixin] \
-            [.frameWorkCmd ::xotcl::relation $o class-mixin] \
-            [.frameWorkCmd ::xotcl::assertion $o object-invar] \
-            [.frameWorkCmd ::xotcl::assertion $o class-invar]
+            [:frameWorkCmd ::xotcl::relation $o object-mixin] \
+            [:frameWorkCmd ::xotcl::relation $o class-mixin] \
+            [:frameWorkCmd ::xotcl::assertion $o object-invar] \
+            [:frameWorkCmd ::xotcl::assertion $o class-invar]
       }
       return $cmd
     }
     
-    .method registerTrace {on} {
+    :method registerTrace {on} {
       if {$on} {
-        ::xotcl::alias ${.rootClass}  __trace__ -objscope ::trace
+        ::xotcl::alias ${:rootClass}  __trace__ -objscope ::trace
       } else {
-        ::xotcl::method ${.rootClass} __trace__ {} {}
+        ::xotcl::method ${:rootClass} __trace__ {} {}
       }
     }
 
     #
     # Handle association between objects and responsible serializers
     #
-    .method registerSerializer {s instances} {
+    :method registerSerializer {s instances} {
       # Communicate responsibility to serializer object $s
       foreach i $instances {
-        if {![::xotcl::is $i type ${.rootClass}]} continue
+        if {![::xotcl::is $i type ${:rootClass}]} continue
         $s setObjectSystemSerializer $i [self]
       }
     }
 
-    .method instances {s} {
+    :method instances {s} {
       # Compute all instances, for which we are responsible and
       # notify serializer object $s
       set instances [list]
-      foreach i [${.rootClass} info instances -closure] {
-        if {[.matchesIgnorePattern $i] && ![info exists .exportObjects($i)]} {
+      foreach i [${:rootClass} info instances -closure] {
+        if {[:matchesIgnorePattern $i] && ![info exists :exportObjects($i)]} {
           continue
         }
         $s setObjectSystemSerializer $i [self]
@@ -482,19 +482,19 @@ namespace eval ::xotcl::serializer {
       return $instances
     }
 
-    .method getExported {} {
+    :method getExported {} {
       #
       # get exported objects and methods from main Serializer for
       # which this object specific serializer is responsible
       #
       foreach k [Serializer exportedMethods] {
         foreach {o p m} $k break
-        if {[::xotcl::is $o type ${.rootClass}]} {set .exportMethods($k) 1}
+        if {[::xotcl::is $o type ${:rootClass}]} {set :exportMethods($k) 1}
       }
       foreach o [Serializer exportedObjects] {
-        if {[::xotcl::is $o type ${.rootClass}]} {set .exportObjects($o) 1}
+        if {[::xotcl::is $o type ${:rootClass}]} {set :exportObjects($o) 1}
       }
-      foreach p [array names .ignorePattern] {Serializer addPattern $p}
+      foreach p [array names :ignorePattern] {Serializer addPattern $p}
     }
     
 
@@ -502,47 +502,47 @@ namespace eval ::xotcl::serializer {
     # general method serialization
     ###############################    
 
-    .method classify {o} {
-      if {[::xotcl::is $o type ${.rootMetaClass}]} \
+    :method classify {o} {
+      if {[::xotcl::is $o type ${:rootMetaClass}]} \
           {return Class} {return Object}
     }
 
-    .method collectVars o {
+    :method collectVars o {
       set setcmd [list]
       foreach v [lsort [$o info vars]] {
-        if {![.exists ignoreVarsRE] || ![regexp [set .ignoreVarsRE] ${o}::$v]} {
-          if {[$o eval [list ::array exists .$v]]} {
-            lappend setcmd [list array set .$v [$o eval [list array get .$v]]]
+        if {![:exists ignoreVarsRE] || ![regexp [set :ignoreVarsRE] ${o}::$v]} {
+          if {[$o eval [list ::array exists :$v]]} {
+            lappend setcmd [list array set :$v [$o eval [list array get :$v]]]
           } else {
-            lappend setcmd [list set .$v [::xotcl::setinstvar $o $v]]
+            lappend setcmd [list set :$v [::xotcl::setinstvar $o $v]]
           }
         }
       }
       return $setcmd
     }
 
-    .method frameWorkCmd {cmd o relation -unless} {
+    :method frameWorkCmd {cmd o relation -unless} {
       set v [$cmd $o $relation]
       if {$v eq ""} {return ""}
       if {[info exists unless] && $v eq $unless} {return ""}
       return [list $cmd $o $relation $v]\n
     }
 
-    .method serializeExportedMethods {s} {
+    :method serializeExportedMethods {s} {
       set r ""
-      foreach k [array names .exportMethods] {
+      foreach k [array names :exportMethods] {
         foreach {o p m} $k break
-        if {![.methodExists $o $p $m]} {
+        if {![:methodExists $o $p $m]} {
           $s warn "Method does not exist: $o $p $m"
           continue
         }
-        append methods($o) [.serializeExportedMethod $o $p $m]
+        append methods($o) [:serializeExportedMethod $o $p $m]
       }
       foreach o [array names methods] {set ($o) 1}
-      foreach o [list ${.rootClass} ${.rootMetaClass}] {
+      foreach o [list ${:rootClass} ${:rootMetaClass}] {
         if {[info exists ($o)]} {unset ($o)}
       }
-      foreach o [concat ${.rootClass} ${.rootMetaClass} [array names ""]] {
+      foreach o [concat ${:rootClass} ${:rootMetaClass} [array names ""]] {
         if {![info exists methods($o)]} continue
         append r \n $methods($o)
       }
@@ -554,18 +554,18 @@ namespace eval ::xotcl::serializer {
     # general object serialization
     ###############################
 
-    .method serialize {objectOrClass s} {
-      .[.classify $objectOrClass]-serialize $objectOrClass $s
+    :method serialize {objectOrClass s} {
+      :[:classify $objectOrClass]-serialize $objectOrClass $s
     }
 
-    .method matchesIgnorePattern {o} {
-      foreach p [array names .ignorePattern] {
+    :method matchesIgnorePattern {o} {
+      foreach p [array names :ignorePattern] {
         if {[string match $p $o]} {return 1}
       }
       return 0
     }
 
-    .method collect-var-traces {o s} {
+    :method collect-var-traces {o s} {
       foreach v [$o info vars] {
         set t [$o __trace__ info variable $v]
         if {$t ne ""} {
@@ -585,12 +585,12 @@ namespace eval ::xotcl::serializer {
     # general dependency handling 
     ###############################
 
-    .method needsNothing {x s} {
-      return [.[.classify $x]-needsNothing $x $s]
+    :method needsNothing {x s} {
+      return [:[:classify $x]-needsNothing $x $s]
     }
 
-    .method Class-needsNothing {x s} {
-      if {![.Object-needsNothing $x $s]} {return 0}
+    :method Class-needsNothing {x s} {
+      if {![:Object-needsNothing $x $s]} {return 0}
       set scs [$x info superclass]
       if {[$s needsOneOf $scs]} {return 0}
       if {[$s needsOneOf [::xotcl::relation $x class-mixin]]} {return 0}
@@ -598,7 +598,7 @@ namespace eval ::xotcl::serializer {
       return 1
     }
 
-    .method Object-needsNothing {x s} {
+    :method Object-needsNothing {x s} {
       set p [$x info parent]
       if {$p ne "::"  && [$s needsOneOf $p]} {return 0}
       if {[$s needsOneOf [$x info class]]}  {return 0}
@@ -614,11 +614,11 @@ namespace eval ::xotcl::serializer {
 
   ObjectSystemSerializer create Serializer2 {
     
-    set .rootClass ::xotcl2::Object
-    set .rootMetaClass ::xotcl2::Class
-    array set .ignorePattern [list "::xotcl2::*" 1 "::xotcl::*" 1]
+    set :rootClass ::xotcl2::Object
+    set :rootMetaClass ::xotcl2::Class
+    array set :ignorePattern [list "::xotcl2::*" 1 "::xotcl::*" 1]
 
-    .method serialize-all-start {s} {
+    :method serialize-all-start {s} {
       if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::xotcl2::Object"} {
         set intro "::xotcl::use xotcl2"
       } else {
@@ -631,16 +631,16 @@ namespace eval ::xotcl::serializer {
     # XOTcl 2 method serialization
     ###############################
 
-    .method methodExists {object kind name} {
+    :method methodExists {object kind name} {
       expr {[$object info method type $name] != ""}
     }
 
-    .method serializeExportedMethod {object kind name} {
+    :method serializeExportedMethod {object kind name} {
       # todo: object modifier is missing
-      return [.method-serialize $object $name ""]
+      return [:method-serialize $object $name ""]
     }
 
-    .method method-serialize {o m modifier} {
+    :method method-serialize {o m modifier} {
       if {![::xotcl::is $o class]} {set modifier ""}
       return [$o {*}$modifier info method definition $m]
     }
@@ -649,19 +649,19 @@ namespace eval ::xotcl::serializer {
     # XOTcl 2 object serialization
     ###############################
 
-    .method Object-serialize {o s} {
-      .collect-var-traces $o $s
+    :method Object-serialize {o s} {
+      :collect-var-traces $o $s
       append cmd [list [$o info class] create \
                       [::xotcl::dispatch $o -objscope ::xotcl::self]]
 
       append cmd " -noinit\n"
       foreach i [lsort [::xotcl::cmd::ObjectInfo::methods $o]] {
-        append cmd [.method-serialize $o $i "object"] "\n"
+        append cmd [:method-serialize $o $i "object"] "\n"
       }
       append cmd \
-          [list $o eval [join [.collectVars $o] "\n   "]]\n \
-          [.frameWorkCmd ::xotcl::relation $o object-mixin] \
-          [.frameWorkCmd ::xotcl::assertion $o object-invar]
+          [list $o eval [join [:collectVars $o] "\n   "]]\n \
+          [:frameWorkCmd ::xotcl::relation $o object-mixin] \
+          [:frameWorkCmd ::xotcl::assertion $o object-invar]
 
       if {[::xotcl::is $o type ::xotcl::Slot]} {
         # Slots needs to be initialized to ensure
@@ -669,7 +669,7 @@ namespace eval ::xotcl::serializer {
         append cmd [list $o init] \n
       }
 
-      $s addPostCmd [.frameWorkCmd ::xotcl::relation $o object-filter]
+      $s addPostCmd [:frameWorkCmd ::xotcl::relation $o object-filter]
       return $cmd
     }
 
@@ -677,18 +677,18 @@ namespace eval ::xotcl::serializer {
     # XOTcl 2 class serialization
     ###############################
     
-    .method Class-serialize {o s} {
+    :method Class-serialize {o s} {
 
-      set cmd [.Object-serialize $o $s]
+      set cmd [:Object-serialize $o $s]
       foreach i [lsort [::xotcl::cmd::ClassInfo::methods $o]] {
-        append cmd [.method-serialize $o $i ""] "\n"
+        append cmd [:method-serialize $o $i ""] "\n"
       }
       append cmd \
-          [.frameWorkCmd ::xotcl::relation $o superclass -unless ${.rootClass}] \
-          [.frameWorkCmd ::xotcl::relation $o class-mixin] \
-          [.frameWorkCmd ::xotcl::assertion $o class-invar]
+          [:frameWorkCmd ::xotcl::relation $o superclass -unless ${:rootClass}] \
+          [:frameWorkCmd ::xotcl::relation $o class-mixin] \
+          [:frameWorkCmd ::xotcl::assertion $o class-invar]
       
-      $s addPostCmd [.frameWorkCmd ::xotcl::relation $o class-filter]
+      $s addPostCmd [:frameWorkCmd ::xotcl::relation $o class-filter]
       return $cmd\n
     }
 
@@ -707,11 +707,11 @@ namespace eval ::xotcl::serializer {
 
   ObjectSystemSerializer create Serializer1 {
     
-    set .rootClass ::xotcl::Object
-    set .rootMetaClass ::xotcl::Class
-    array set .ignorePattern [list "::xotcl::*" 1]
+    set :rootClass ::xotcl::Object
+    set :rootMetaClass ::xotcl::Class
+    array set :ignorePattern [list "::xotcl::*" 1]
 
-    .method serialize-all-start {s} {
+    :method serialize-all-start {s} {
       set intro "package require xotcl1"
       if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::xotcl::Object"} {
         set intro "::xotcl::use xotcl1"
@@ -719,7 +719,7 @@ namespace eval ::xotcl::serializer {
       return "$intro\n::xotcl::Object instproc trace args {}\n[next]"
     }
 
-    .method serialize-all-end {s} {
+    :method serialize-all-end {s} {
       return "[next]\n::xotcl::alias ::xotcl::Object trace -objscope ::trace\n"
     }
 
@@ -728,7 +728,7 @@ namespace eval ::xotcl::serializer {
     # XOTcl 1 method serialization
     ###############################
 
-    .method methodExists {object kind name} {
+    :method methodExists {object kind name} {
       switch $kind {
         proc - instproc {
           return [expr {[$object info ${kind}s $name] ne ""}]
@@ -739,13 +739,13 @@ namespace eval ::xotcl::serializer {
       }
     }
 
-    .method serializeExportedMethod {object kind name} {
+    :method serializeExportedMethod {object kind name} {
       set code ""
       switch $kind {
         proc - instproc {
           if {[$object info ${kind}s $name] ne ""} {
             set prefix [expr {$kind eq "proc" ? "" : "inst"}] 
-            set code [.method-serialize $object $name $prefix]\n
+            set code [:method-serialize $object $name $prefix]\n
           }
         }
         forward - instforward {
@@ -757,7 +757,7 @@ namespace eval ::xotcl::serializer {
       return $code
     }
 
-    .method method-serialize {o m prefix} {
+    :method method-serialize {o m prefix} {
       set arglist [list]
       foreach v [$o info ${prefix}args $m] {
         if {[$o info ${prefix}default $m $v x]} {
@@ -776,14 +776,14 @@ namespace eval ::xotcl::serializer {
     # XOTcl 1 object serialization
     ###############################
 
-    .method Object-serialize {o s} {
-      .collect-var-traces $o $s
+    :method Object-serialize {o s} {
+      :collect-var-traces $o $s
       append cmd [list [$o info class] create [::xotcl::dispatch $o -objscope ::xotcl::self]]
       # slots needs to be initialized when optimized, since
       # parametercmds are not serialized
       append cmd " -noinit\n"
       foreach i [::xotcl::cmd::ObjectInfo::methods $o -methodtype scripted] {
-        append cmd [.method-serialize $o $i ""] "\n"
+        append cmd [:method-serialize $o $i ""] "\n"
       }
       foreach i [::xotcl::cmd::ObjectInfo::methods $o -methodtype forward] {
         append cmd [concat [list $o] forward $i [$o info forward -definition $i]] "\n"
@@ -792,11 +792,11 @@ namespace eval ::xotcl::serializer {
         append cmd [list $o parametercmd $i] "\n"
       }
       append cmd \
-          [list $o eval [join [.collectVars $o] "\n   "]] \n \
-          [.frameWorkCmd ::xotcl::relation $o object-mixin] \
-          [.frameWorkCmd ::xotcl::assertion $o object-invar]
+          [list $o eval [join [:collectVars $o] "\n   "]] \n \
+          [:frameWorkCmd ::xotcl::relation $o object-mixin] \
+          [:frameWorkCmd ::xotcl::assertion $o object-invar]
 
-      $s addPostCmd [.frameWorkCmd ::xotcl::relation $o object-filter]
+      $s addPostCmd [:frameWorkCmd ::xotcl::relation $o object-filter]
 
       return $cmd
     }
@@ -805,10 +805,10 @@ namespace eval ::xotcl::serializer {
     # XOTcl 1 class serialization
     ###############################
     
-    .method Class-serialize {o s} {
-      set cmd [.Object-serialize $o $s]
+    :method Class-serialize {o s} {
+      set cmd [:Object-serialize $o $s]
       foreach i [$o info instprocs] {
-        append cmd [.method-serialize $o $i inst] "\n"
+        append cmd [:method-serialize $o $i inst] "\n"
       }
       foreach i [$o info instforward] {
         append cmd [concat [list $o] instforward $i [$o info instforward -definition $i]] "\n"
@@ -826,11 +826,11 @@ namespace eval ::xotcl::serializer {
         append cmd [list ::xotcl::alias $o $methodName {*}$objscope $cmdName]\n
       }
       append cmd \
-          [.frameWorkCmd ::xotcl::relation $o superclass -unless ${.rootClass}] \
-          [.frameWorkCmd ::xotcl::relation $o class-mixin] \
-          [.frameWorkCmd ::xotcl::assertion $o class-invar]
+          [:frameWorkCmd ::xotcl::relation $o superclass -unless ${:rootClass}] \
+          [:frameWorkCmd ::xotcl::relation $o class-mixin] \
+          [:frameWorkCmd ::xotcl::assertion $o class-invar]
 
-      $s addPostCmd [.frameWorkCmd ::xotcl::relation $o class-filter]
+      $s addPostCmd [:frameWorkCmd ::xotcl::relation $o class-filter]
       return $cmd
     }
 

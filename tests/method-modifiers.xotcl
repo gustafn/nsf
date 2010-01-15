@@ -7,59 +7,59 @@ Test parameter count 10
 
 Class create C {
   # methods
-  .method plain_method {} {return [self proc]}
-  .public method public_method {} {return [self proc]}
-  .protected method protected_method {} {return [self proc]}
+  :method plain_method {} {return [self proc]}
+  :public method public_method {} {return [self proc]}
+  :protected method protected_method {} {return [self proc]}
 
   # forwards
-  .forward plain_forward %self plain_method
-  .public forward public_forward %self public_method
-  .protected forward protected_forward %self protected_method
+  :forward plain_forward %self plain_method
+  :public forward public_forward %self public_method
+  :protected forward protected_forward %self protected_method
 
   # setter
-  .setter plain_setter 
-  .public setter public_setter 
-  .protected setter protected_setter 
+  :setter plain_setter 
+  :public setter public_setter 
+  :protected setter protected_setter 
 
   # alias
-  .alias plain_alias [C info method name plain_method]
-  .public alias public_alias [C info method name public_method]
-  .protected alias protected_alias [C info method name protected_method]
+  :alias plain_alias [C info method name plain_method]
+  :public alias public_alias [C info method name public_method]
+  :protected alias protected_alias [C info method name protected_method]
   
   # object
-  .object method plain_object_method {} {return [self proc]}
-  .public object method public_object_method {} {return [self proc]}
-  .protected object method protected_object_method {}  {return [self proc]}
-  .object forward plain_object_forward %self plain_object_method
-  .public object forward public_object_forward %self public_object_method
-  .protected object forward protected_object_forward %self protected_object_method
-  .object setter plain_object_setter 
-  .public object setter public_object_setter 
-  .protected object setter protected_object_setter 
-  .object alias plain_object_alias [.object info method name plain_object_method]
-  .public object alias public_object_alias [.object info method name public_object_method]
-  .protected object alias protected_object_alias [.object info method name protected_object_method]
+  :object method plain_object_method {} {return [self proc]}
+  :public object method public_object_method {} {return [self proc]}
+  :protected object method protected_object_method {}  {return [self proc]}
+  :object forward plain_object_forward %self plain_object_method
+  :public object forward public_object_forward %self public_object_method
+  :protected object forward protected_object_forward %self protected_object_method
+  :object setter plain_object_setter 
+  :public object setter public_object_setter 
+  :protected object setter protected_object_setter 
+  :object alias plain_object_alias [:object info method name plain_object_method]
+  :public object alias public_object_alias [:object info method name public_object_method]
+  :protected object alias protected_object_alias [:object info method name protected_object_method]
 }
 C create c1 {
   # methods
-  .method plain_object_method {} {return [self proc]}
-  .public method public_object_method {} {return [self proc]}
-  .protected method protected_object_method {} {return [self proc]}
+  :method plain_object_method {} {return [self proc]}
+  :public method public_object_method {} {return [self proc]}
+  :protected method protected_object_method {} {return [self proc]}
 
   # forwards
-  .forward plain_object_forward %self plain_object_method
-  .public forward public_object_forward %self public_object_method
-  .protected forward protected_object_forward %self protected_object_method
+  :forward plain_object_forward %self plain_object_method
+  :public forward public_object_forward %self public_object_method
+  :protected forward protected_object_forward %self protected_object_method
 
   # setter
-  .setter plain_object_setter 
-  .public setter public_object_setter 
-  .protected setter protected_object_setter 
+  :setter plain_object_setter 
+  :public setter public_object_setter 
+  :protected setter protected_object_setter 
 
   # alias
-  .alias plain_object_alias [.info method name plain_object_method]
-  .public alias public_object_alias [.info method name public_object_method]
-  .protected alias protected_object_alias [.info method name protected_object_method]
+  :alias plain_object_alias [:info method name plain_object_method]
+  :public alias public_object_alias [:info method name public_object_method]
+  :protected alias protected_object_alias [:info method name protected_object_method]
 }
 C public setter s0
 C protected setter s1
@@ -191,8 +191,8 @@ Test case mixin-via-objectparam
 # add an object and class mixin via object-parameter and via slots
 Class create M1; Class create M2; Class create M3; Class create M4
 Class create C -mixin M1 -object-mixin M2 {
-  .mixin add M3
-  .object mixin add M4
+  :mixin add M3
+  :object mixin add M4
 }
 
 ? {lsort [C object info mixin]} "::M2 ::M4"
@@ -204,13 +204,13 @@ M1 destroy; M2 destroy; M3 destroy; M4 destroy;
 Test case next-from-nonpos-args
 
 Object create o {
-  .method bar {-y:required -x:required} {
+  :method bar {-y:required -x:required} {
     #puts stderr "+++ o x=$x, y=$y [self args] ... next [self next]"
     return [list x $x y $y [self args]]
   }
 }
 Class create M {
-  .method bar {-x:required -y:required} {
+  :method bar {-x:required -y:required} {
     #puts stderr "+++ M x=$x, y=$y [self args] ... next [self next]"
     return [list x $x y $y [self args] -- {*}[next]]
   }

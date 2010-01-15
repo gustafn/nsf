@@ -1520,7 +1520,7 @@ static int
 NsDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
   Tcl_CallFrame *varFramePtr;
   int new, frameFlags;
-  char firstChar;
+  char firstChar, secondChar;
   Tcl_Obj *key;
   Var *newVar;
 
@@ -1558,14 +1558,22 @@ NsDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, 
   }
   
   firstChar = *varName;
+  secondChar = *(varName+1);
 
-  if ((frameFlags & (FRAME_IS_XOTCL_CMETHOD|FRAME_IS_XOTCL_OBJECT)) && firstChar == '.') {
+  if ((frameFlags & (FRAME_IS_XOTCL_CMETHOD|FRAME_IS_XOTCL_OBJECT)) && 
+#if USE_DOT
+      firstChar == '.'
+#endif
+#if USE_COLON
+      firstChar == ':' && secondChar != ':'
+#endif
+      ) {
     /*
      * Case 3: we are in an XOTcl frame and the variable name starts with a "."
      * We skip the dot, but stay in the resolver.
      */
     varName ++;
-  } else if ((*varName == ':' && *(varName+1) == ':') || NSTail(varName) != varName) {
+  } else if ((firstChar == ':' && secondChar == ':') || NSTail(varName) != varName) {
 
     /*
      * Case 4: Check for absolutely/relatively qualified variable names,
@@ -1585,7 +1593,14 @@ NsDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, 
      * TCL_CONTINUE care for variable creation if necessary.
      */
 
-    if (firstChar != '.' && (frameFlags & FRAME_IS_XOTCL_CMETHOD)) {
+    if (
+#if USE_DOT
+        firstChar != '.' 
+#endif
+#if USE_COLON
+        firstChar != ':'
+#endif
+        && (frameFlags & FRAME_IS_XOTCL_CMETHOD)) {
       fprintf(stderr, ".... refuse to create var %s\n", varName);
       return TCL_CONTINUE;
     }
@@ -1712,6 +1727,13 @@ void CompiledDotVarFree(Tcl_ResolvedVarInfo *vinfoPtr) {
   ckfree((char *) vinfoPtr);
 }
 
+#if USE_DOT
+#define FOR_RESOLVER(ptr) (*(ptr) == '.')
+#endif
+#if USE_COLON
+#define FOR_RESOLVER(ptr) (*(ptr) == ':' && *(ptr+1) != ':')
+#endif
+
 int InterpCompiledDotVarResolver(Tcl_Interp *interp,
 			CONST84 char *name, int length, Tcl_Namespace *context,
 			Tcl_ResolvedVarInfo **rPtr) {
@@ -1721,7 +1743,7 @@ int InterpCompiledDotVarResolver(Tcl_Interp *interp,
   fprintf(stderr, "compiled var resolver for %s, obj %p\n", name, obj);
 #endif
 
-  if (obj && *name == '.') {
+  if (obj && FOR_RESOLVER(name)) {
     xotclResolvedVarInfo *vInfoPtr = (xotclResolvedVarInfo *) ckalloc(sizeof(xotclResolvedVarInfo));
 
     vInfoPtr->vInfo.fetchProc = CompiledDotVarFetch;
@@ -1744,7 +1766,7 @@ InterpDotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsP
   CallFrame *varFramePtr;
   int frameFlags;
 
-  if (*cmdName != '.' || flags & TCL_GLOBAL_ONLY) {
+  if (!FOR_RESOLVER(cmdName) || flags & TCL_GLOBAL_ONLY) {
     /* ordinary names and global lookups are not for us */
     return TCL_CONTINUE;
   }
@@ -1805,7 +1827,7 @@ InterpDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsP
 
   /*fprintf(stderr, "InterpDotVarResolver '%s' flags %.6x\n", varName, flags);*/
 
-  if (*varName != '.' || flags & TCL_GLOBAL_ONLY) {
+  if (!FOR_RESOLVER(varName) || flags & TCL_GLOBAL_ONLY) {
     /* ordinary names and global lookups are not for us */
     return TCL_CONTINUE;
   }
@@ -5852,7 +5874,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
   methodName = ObjStr(methodObj);
 #if defined(USE_COMPILED_VAR_RESOLVER)
-  if (*methodName == '.') {
+  if (FOR_RESOLVER(methodName)) {
     methodName ++;
   }
 #endif
@@ -8682,7 +8704,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       /* if we dispatch a method via ".", we do not want to see the
 	 "." in the %proc, e.g. for the interceptor slots (such as
 	 .mixin, ... */
-      if (*methodName == '.') {
+      if (FOR_RESOLVER(methodName)) {
 	*out = Tcl_NewStringObj(methodName + 1, -1);
       } else {
 	*out = objv[0];
@@ -9167,7 +9189,7 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, char **methodName, int
     if (Tcl_ListObjGetElements(interp, obj, objc, objv) == TCL_OK && *objc>1) {
       flag = ObjStr(*objv[0]);
       /*fprintf(stderr, "we have a list starting with '%s'\n", flag);*/
-      if (*flag == '-' || *flag == '.') {
+      if (*flag == '-' || *flag == '.') {  /* TODO '.' needed? */
         *methodName = flag+1;
         return LIST_DASH;
       }
@@ -9175,7 +9197,7 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, char **methodName, int
   }
   flag = ObjStr(obj);
   /*fprintf(stderr, "we have a scalar '%s'\n", flag);*/
-  if ((*flag == '-' /*|| *flag == '.'*/) && isalpha(*((flag)+1))) {
+  if ((*flag == '-') && isalpha(*((flag)+1))) {
     if (firstArg) {
       /* if the argument contains a space, try to split */
       char *p= flag+1;
@@ -12424,7 +12446,7 @@ static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int ob
   if (objc == 2) {
     Tcl_Obj **ov;
     char *word = ObjStr(objv[1]);
-    if (*word != '.' && *word != '-') {
+    if (*word != '.' && *word != '-') {  /* TODO '.' needed */
       char *p = word;
       while (*p && *p != ' ') p++;
       if (*p) {

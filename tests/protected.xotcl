@@ -5,13 +5,13 @@ xotcl::use xotcl2
 Test parameter count 1
 
 Class create C {
-  .alias SET ::set
-  .method foo {} {return [self proc]}
-  .method bar {} {return [self proc]}
-  .method bar-foo {} {
+  :alias SET ::set
+  :method foo {} {return [self proc]}
+  :method bar {} {return [self proc]}
+  :method bar-foo {} {
     c1 foo
   }
-  .method bar-SET {} {
+  :method bar-SET {} {
     c1 SET x 1
   }
 }

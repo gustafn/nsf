@@ -4,23 +4,23 @@ package require xotcl::test
 ::xotcl::use xotcl2
 
 Object create o {
-  .alias set ::set
+  :alias set ::set
 }
 
 Class create C {
-  .method m {x} {return proc-[self proc]}
-  .object method mpo {} {return instproc-[self proc]}
-  .method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2
+  :method m {x} {return proc-[self proc]}
+  :object method mpo {} {return instproc-[self proc]}
+  :method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2
 
-  .forward addOne expr 1 +
-  .object forward add1 expr 1 +
-  .object forward fpo ::o
+  :forward addOne expr 1 +
+  :object forward add1 expr 1 +
+  :object forward fpo ::o
 
-  .setter s 
-  .object setter spo
+  :setter s 
+  :object setter spo
 
-  .alias a ::set
-  .object alias apo ::puts
+  :alias a ::set
+  :object alias apo ::puts
 }
 C create c1
 
