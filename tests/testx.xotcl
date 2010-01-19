@@ -3924,15 +3924,15 @@ TestX create nonposargs -proc run {{n 20}} {
     lappend ::r "reddish <$var> <$value>"
   }
   
-  o proc z4 {
-             {{-b: required, checkobj colorchecker,color, reddish,
-               checkobj xotcl::nonposArgs,required} red}
-             {{-c: required }}
-             arg
-           } {
-               lappend ::r "$b $arg"
-               return "$b $arg"
-             }
+#   o proc z4 {
+#              {{-b: required, checkobj colorchecker,color, reddish,
+#                checkobj xotcl::nonposArgs,required} red}
+#              {{-c: required }}
+#              arg
+#            } {
+#                lappend ::r "$b $arg"
+#                return "$b $arg"
+#              }
   o proc z5 {-pos args} {
     return [list $pos $args]
   }
@@ -3994,7 +3994,7 @@ TestX create nonposargs -proc run {{n 20}} {
 
     errorCheck [o info body z2] {return "$x -- $args -- $a -- $b"} "info body 1"
     errorCheck [P info instbody z2] {return "$x -- $args -- $a -- $b"} "info instbody z2"
-    errorCheck [o info args z4] {arg} "info args"
+#    errorCheck [o info args z4] {arg} "info args"
 #    errorCheck [o info nonposargs z4] "{{-b:required,checkobj colorchecker,color,reddish,checkobj xotcl::nonposArgs,required} red} -c:required"  "info nonposargs 1"
     errorCheck [o info nonposargs x] {} "info nonposargs 2"
     errorCheck [P info instargs z3] {a b c} "info instargs"

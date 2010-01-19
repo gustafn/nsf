@@ -306,7 +306,7 @@ static methodDefinition method_definitions[];
   puts "enum {\n $enumString\n} XOTclMethods;\n"
   puts $fns
   set definitionString [join $ifds ",\n"]
-  puts "static methodDefinition method_definitions\[\] = \{\n$definitionString\n\};\n"
+puts "static methodDefinition method_definitions\[\] = \{\n$definitionString,\{NULL\}\n\};\n"
 }
 
 proc methodDefinition {methodName methodType implementation parameterDefinitions} {

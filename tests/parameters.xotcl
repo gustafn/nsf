@@ -1,0 +1,374 @@
+package require XOTcl
+package require xotcl::test
+
+Test parameter count 10
+
+catch {::xotcl::configure cacheinterface true}
+
+::xotcl::use xotcl2
+
+Class create C -parameter {a {b:boolean} {c 1}}
+C create c1 
+? {C eval {:objectparameter}} "-object-mixin:relation -mixin:relation,arg=class-mixin\
+-superclass:relation -object-filter:relation -filter:relation,arg=filter-mixin\
+-class:relation -parameter:method,optional -noinit:method,optional,noarg\
+-volatile:method,optional,noarg arg:initcmd,optional"
+
+? {c1 eval {:objectparameter}} \
+    "-a -b:boolean {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
+-class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
+arg:initcmd,optional"
+#
+# reclass to Object, no need to do anything on caching
+#
+Test case reclass
+c1 class Object
+? {c1 eval :objectparameter} "-mixin:relation,arg=object-mixin -filter:relation\
+-class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
+arg:initcmd,optional"
+
+Class create D -superclass C -parameter {d:required}
+D create d1 -d 100
+
+? {d1 eval :objectparameter} \
+    "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
+-class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
+arg:initcmd,optional"
+
+#
+# Add mixin
+#
+Test case objparam-mixins
+Class create M -parameter {m1 m2 b}
+Class create M2 -parameter {b2}
+D mixin M
+? {d1 eval :objectparameter} \
+    "-b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
+-class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
+arg:initcmd,optional" \
+    "mixin added"
+M mixin M2
+? {d1 eval :objectparameter} \
+    "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
+-class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
+arg:initcmd,optional" \
+    "transitive mixin added"
+D mixin ""
+#we should have again the old interface
+
+? {d1 eval :objectparameter} \
+    "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
+-class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
+arg:initcmd,optional"
+
+C mixin M
+? {d1 eval :objectparameter} \
+    "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
+-class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
+arg:initcmd,optional" \
+    "mixin added"
+C mixin ""
+#we should have again the old interface
+
+
+? {d1 eval :objectparameter} \
+    "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
+-class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
+arg:initcmd,optional"
+
+
+#
+# test passed arguments
+#
+Test case passed-arguments
+
+? {catch {D create d1 -d 123}} 0 "create d1 with required argument given"
+? {catch {D create d1}} 1 "create d1 without required argument given"
+catch {D create d1} errorMsg
+? {set _ $errorMsg} "::d1 configure: required argument 'd' is missing" "check error msg"
+
+? {if {[catch {D create d2 -d x -b a} errorMsg]} {set errorMsg}} \
+    {expected boolean value but got "a"} \
+    "create d2 without required argument given"
+
+D create d1 -d 1
+D method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:class}} {
+  #if {[info exists x]} {puts stderr x=$x}
+}
+
+? {if {[catch {d1 foo} errorMsg]} {set errorMsg}} \
+    {::d1 foo: required argument 'r' is missing} \
+    "call method without a required argument"
+
+? {if {[catch {d1 foo -r a} errorMsg]} {set errorMsg}} \
+    {expected integer but got "a"} \
+    "required argument is not integer"
+
+? {if {[catch {d1 foo -r 1} errorMsg]} {set errorMsg}} \
+    {expected integer but got "aaa"} \
+    "default value is not of type integer"
+
+? {if {[catch {d1 foo -r 1 -x 1 -object d1} errorMsg]} {set errorMsg}} \
+    "" \
+    "pass object"
+
+? {if {[catch {d1 foo -r 1 -x 1 -object d11} errorMsg]} {set errorMsg}} \
+    {Invalid argument: cannot convert 'd11' to object} \
+    "pass non-existing object"
+
+? {if {[catch {d1 foo -r 1 -x 1 -class D} errorMsg]} {set errorMsg}} \
+    "" \
+    "pass class"
+
+? {if {[catch {d1 foo -r 1 -x 1 -class d1} errorMsg]} {set errorMsg}} \
+    {Invalid argument: cannot convert 'd1' to class} \
+    "pass object instead of class"
+
+? {if {[catch {d1 foo -r 1 -x 1 -class D11} errorMsg]} {set errorMsg}} \
+    {Invalid argument: cannot convert 'D11' to class} \
+    "pass non-existing class"
+
+? {if {[catch {D method foo {a:relation} {}} errorMsg]} {set errorMsg}} \
+    {Parameter option 'relation' not allowed} \
+    "don't allow relation option as method parameter"
+
+#
+# non required positional arguments
+#
+Test case non-reg-args
+
+D method foo {a b:optional c:optional} {
+  return "[info exists a]-[info exists b]-[info exists c]"
+}
+? {d1 foo 1 2} "1-1-0" "omit optional argument"
+? {d1 foo 1} "1-0-0" "omit optional arguments"
+
+# non required positional arguments and args
+D method foo {a b:optional c:optional args} {
+  return "[info exists a]-[info exists b]-[info exists c]-[info exists args]"
+}
+? {d1 foo 1 2} "1-1-0-1" "omit optional argument"
+? {d1 foo 1} "1-0-0-1" "omit optional arguments"
+
+
+#
+# subst default tests
+#
+Test case subst-default
+
+D method bar {
+  {-s:substdefault "[self]"} 
+  {-literal "[self]"} 
+  {-c:substdefault "[my c]"} 
+  {-d:integer,substdefault "$d"}
+} {
+  return $s-$literal-$c-$d
+}
+
+? {d1 bar -c 1} {::d1-[self]-1-1} "substdefault on method"  
+
+Class create Bar -superclass D -parameter {
+  {s "[self]"} 
+  {literal "\\[self\\]"} 
+  {c "[my info class]"} 
+  {d "$d"}
+}
+Bar create bar1
+#puts stderr [bar1 objectparameter]
+
+? {subst {[bar1 s]-[bar1 literal]-[bar1 c]-[bar1 d]}} \
+    {::bar1-[self]-::Bar-$d} \
+    "substdefault on object"  
+
+# Observations:
+#  1) syntax for "-parameter" and method parameter is quite different.
+#     it would be nice to be able to specify the objparameters in
+#     the same syntax as the method parameters. 
+#
+# 1a) Especially specifying "-" in front of a -parameter or not might
+#     be confusing.
+#
+# 1b) Positional args for obj parameter and arguments for init
+#     might be confusing as well. Should we forget about 
+#     passing arguments to init?
+#
+#  2) substdefault for '$' in -parameter defaults does not make much sense.
+#     deactivated for now; otherwise we would need "\\"
+
+D method bar {
+  {-s:substdefault "[self]"} 
+  {-literal "[self]"} 
+  {-c:substdefault "[my c]"} 
+  {-d:integer,substdefault "$d"}
+  {-switch:switch}
+  {-optflag}
+  x
+  y:integer
+  {z 1}
+} {
+  return $s-$literal-$c-$d
+}
+
+? {D info method args bar} {s literal c d switch optflag x y z} "all args" 
+? {D info method parameter bar} \
+    {{-s:substdefault {[self]}} {-literal {[self]}} {-c:substdefault {[my c]}} {-d:integer,substdefault {$d}} {-switch:switch 0} -optflag x y:integer {z 1}} \
+    "query method parameter" 
+
+D method foo {a b {-c 1} {-d} x {-end 100}} {
+  set result [list]
+  foreach v [[self class] info method args [self proc]] {
+    lappend result $v [info exists $v]
+  }
+  return $result
+}
+? {d1 foo 1 2 3} \
+    "a 1 b 1 c 1 d 0 x 1 end 1" \
+    "parse multiple groups of nonpos args"
+
+D method foo {a b c {end 100}} {
+  set result [list]
+  foreach v [[self class] info method args [self proc]] {
+    lappend result $v [info exists $v]
+  }
+  return $result
+}
+? {d1 foo 1 2 3} \
+    "a 1 b 1 c 1 end 1" \
+    "query arguments with default, no paramdefs needed"
+
+#
+# Query method parameter
+#
+Test case query-method-parameter
+
+? {D info method parameter foo} \
+    "a b c {end 100}" \
+    "query instparams with default, no paramdefs needed"
+
+? {Class info method parameter method} \
+    "name arguments body -precondition -postcondition" \
+    "query instparams for scripted method 'method'"
+
+? {catch {Object info method parameter forward}} \
+    "1" \
+    "query parameter for C-defined method 'forward'"
+
+? {Object info method parameter autoname} \
+    "-instance -reset name" \
+    "query parameter for C-defined method 'autoname'"
+
+# TODO: how to query the params/instparams of info subcommands?
+#? {::xotcl::objectInfo info params params} \
+#    "xxx" \
+#    "query instparams for info method 'params' method"
+
+
+#
+# user defined parameter types
+#
+Test case user-types
+
+#
+# create class and object for nonpositional argument processing
+Class create ::xotcl::ParameterType
+foreach cmd [info command ::xotcl::cmd::ParameterType::*] {
+  ::xotcl::alias ::xotcl::ParameterType [namespace tail $cmd] $cmd
+}
+# create an object for dispatching
+::xotcl::ParameterType create ::xotcl::parameterType
+
+# create a userdefined type
+::xotcl::parameterType method type=mytype {name value args} {
+  if {$value < 1 || $value > 3} {
+    error "Value '$value' of parameter $name is not between 1 and 3"
+  }
+}
+
+D method foo {a:mytype} {
+  puts stderr a=$a
+}
+d1 foo 1
+
+catch {d1 foo 10} errorMsg
+? {set ::errorMsg} \
+    "Value '10' of parameter a is not between 1 and 3" \
+    "invalid value"
+
+D method foo {a:unknowntype} {
+  puts stderr a=$a
+}
+
+catch {d1 foo 10} errorMsg
+? {set ::errorMsg} \
+    "::xotcl::parameterType: unable to dispatch method 'type=unknowntype'" \
+    "missing type checker"
+
+# create a userdefined type with a simple argument
+::xotcl::parameterType method type=in {name value arg} {
+  if {$value ni [split $arg |]} {
+    error "Value '$value' of parameter $name not in permissible values $arg"
+  }
+}
+
+D method foo {a:in,arg=a|b|c} {
+  return a=$a
+}
+
+? {d1 foo a} "a=a"
+catch {d1 foo 10} errorMsg
+? {set ::errorMsg} \
+    "Value '10' of parameter a not in permissible values a|b|c" \
+    "invalid value"
+
+D method foo {a:in,arg=a|b|c b:in,arg=good|bad {-c:in,arg=a|b a}} {
+  return a=$a,b=$b,c=$c
+}
+
+? {d1 foo a good -c b} "a=a,b=good,c=b"
+? {d1 foo a good} "a=a,b=good,c=a"
+catch {d1 foo b "very good"} errorMsg
+? {set ::errorMsg} \
+    "Value 'very good' of parameter b not in permissible values good|bad" \
+    "invalid value (not included)"
+
+::xotcl::parameterType method type=range {name value arg} {
+  foreach {min max} [split $arg -] break
+  if {$value < $min || $value > $max} {
+    error "Value '$value' of parameter $name not between $min and $max"
+  }
+}
+
+D method foo {a:range,arg=1-3 {-b:range,arg=2-6 3} c:range,arg=5-10} {
+  return a=$a,b=$b,c=$c
+}
+
+? {d1 foo 2 -b 4 9} "a=2,b=4,c=9"
+? {d1 foo 2 10} "a=2,b=3,c=10"
+catch {d1 foo 2 11} errorMsg
+? {set ::errorMsg} \
+    "Value '11' of parameter c not between 5 and 10" \
+    "invalid value"
+
+# define type twice
+catch {D method foo {a:int,range,arg=1-3} {return a=$a}} errorMsg
+? {set ::errorMsg} \
+    "Refuse to redefine parameter converter to use usertype" \
+    "invalid value"
+
+#
+# handling of arg with spaces/arg as list
+#
+::xotcl::parameterType method type=list {name value arg} {
+  #puts $value/$arg
+}
+
+# handling spaces in "arg" is not not particular nice
+D method foo {{"-a:list,arg=2 6" 3} {"b:list,arg=5 10"}} {
+  return a=$a,b=$b
+}
+? {d1 foo -a 2 10} "a=2,b=10"
+
+
+## TODO regression test for type checking, parameter options (initcmd,
+## substdefault, combinations with defaults, ...), etc.
+puts stderr =====END

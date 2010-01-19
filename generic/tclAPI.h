@@ -2320,6 +2320,6 @@ static methodDefinition method_definitions[] = {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"methodName", 1, 0, convertToString}}
-}
+},{NULL}
 };
 
