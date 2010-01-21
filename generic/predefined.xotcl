@@ -334,6 +334,9 @@ proc ::xotcl::parametersFromSlots {obj} {
     if {[$slot exists type]} {
       lappend opts [$slot type]
     }
+    if {[$slot exists arg]} {
+      lappend opts arg=[$slot arg]
+    }
     if {[$slot exists default]} {
       set arg [::xotcl::setinstvar $slot default]
       # deactivated for now: || [string first {$} $arg] > -1
@@ -628,6 +631,7 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
   initcmd
   valuecmd
   valuechangedcmd
+  arg
 }
 
 ::xotcl::Attribute method __default_from_cmd {obj cmd var sub op} {
@@ -795,12 +799,18 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
   foreach arg $arglist {
     set l [llength $arg]
     set name [lindex $arg 0]
-    if {[string first : $name] > -1} {
-      foreach {name type} [split $name :] break
-      # TODO: comma list processing missing
-      if {$type eq "required"} {
-	set required 1
-	unset type
+    set colonPos [string first : $name]
+    if {$colonPos > -1} {
+      set properties [string range $name [expr {$colonPos+1}] end]
+      set name [string range $name 0 [expr {$colonPos -1}]]
+      foreach property [split $properties ,] {
+	if {$property eq "required"} {
+	  set required 1
+	} elseif {[string match arg=* $property]} {
+	  set argument [string range $property 4 end]
+	} else {
+	  set type $property
+	}
       }
     }
     set cmd [list ::xotcl::Attribute create [::xotcl::self]::slot::$name]
@@ -808,10 +818,15 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
       lappend cmd -type $type
       unset type
     }
+    if {[info exists argument]} {
+      lappend cmd -arg $argument
+      unset argument
+    }
     if {[info exists required]} {
       lappend cmd -required 1
       unset required
     }
+
     if {$l == 1} {
       eval $cmd
       #puts stderr "parameter $arg without default -> $cmd"

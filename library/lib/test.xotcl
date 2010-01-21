@@ -116,5 +116,17 @@ proc ? {cmd expected {msg ""}} {
   $t expected $expected 
   $t run
 }
+proc ?? {cmd expected {msg ""}} {
+  set namespace [uplevel {namespace current}]
+  #catch {namespace eval $namespace {$cmd}} errorMsg
+  catch $cmd ::xotcl::test::errorMsg
+  if {$msg ne ""} {
+    set t [Test new -cmd {set ::xotcl::test::errorMsg} -msg $msg -namespace $namespace]
+  } else {
+    set t [Test new -cmd {set ::xotcl::test::errorMsg} -namespace $namespace]
+  }
+  $t expected $expected 
+  $t run
+}
 
 namespace import ::xotcl::test::*

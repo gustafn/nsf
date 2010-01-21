@@ -84,10 +84,9 @@ Test case passed-arguments
 
 ? {catch {D create d1 -d 123}} 0 "create d1 with required argument given"
 ? {catch {D create d1}} 1 "create d1 without required argument given"
-catch {D create d1} errorMsg
-? {set _ $errorMsg} "::d1 configure: required argument 'd' is missing" "check error msg"
+?? {D create d1} "::d1 configure: required argument 'd' is missing" "check error msg"
 
-? {if {[catch {D create d2 -d x -b a} errorMsg]} {set errorMsg}} \
+?? {D create d2 -d x -b a} \
     {expected boolean value but got "a"} \
     "create d2 without required argument given"
 
@@ -96,39 +95,39 @@ D method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:c
   #if {[info exists x]} {puts stderr x=$x}
 }
 
-? {if {[catch {d1 foo} errorMsg]} {set errorMsg}} \
-    {::d1 foo: required argument 'r' is missing} \
+?? {d1 foo} \
+    "::d1 foo: required argument 'r' is missing" \
     "call method without a required argument"
 
-? {if {[catch {d1 foo -r a} errorMsg]} {set errorMsg}} \
+?? {d1 foo -r a} \
     {expected integer but got "a"} \
     "required argument is not integer"
 
-? {if {[catch {d1 foo -r 1} errorMsg]} {set errorMsg}} \
+?? {d1 foo -r 1} \
     {expected integer but got "aaa"} \
     "default value is not of type integer"
 
-? {if {[catch {d1 foo -r 1 -x 1 -object d1} errorMsg]} {set errorMsg}} \
+?? {d1 foo -r 1 -x 1 -object d1} \
     "" \
     "pass object"
 
-? {if {[catch {d1 foo -r 1 -x 1 -object d11} errorMsg]} {set errorMsg}} \
+?? {d1 foo -r 1 -x 1 -object d11} \
     {Invalid argument: cannot convert 'd11' to object} \
     "pass non-existing object"
 
-? {if {[catch {d1 foo -r 1 -x 1 -class D} errorMsg]} {set errorMsg}} \
+?? {d1 foo -r 1 -x 1 -class D} \
     "" \
     "pass class"
 
-? {if {[catch {d1 foo -r 1 -x 1 -class d1} errorMsg]} {set errorMsg}} \
+?? {d1 foo -r 1 -x 1 -class d1} \
     {Invalid argument: cannot convert 'd1' to class} \
     "pass object instead of class"
 
-? {if {[catch {d1 foo -r 1 -x 1 -class D11} errorMsg]} {set errorMsg}} \
+?? {d1 foo -r 1 -x 1 -class D11} \
     {Invalid argument: cannot convert 'D11' to class} \
     "pass non-existing class"
 
-? {if {[catch {D method foo {a:relation} {}} errorMsg]} {set errorMsg}} \
+?? {D method foo {a:relation} {}} \
     {Parameter option 'relation' not allowed} \
     "don't allow relation option as method parameter"
 
@@ -289,8 +288,7 @@ D method foo {a:mytype} {
 }
 d1 foo 1
 
-catch {d1 foo 10} errorMsg
-? {set ::errorMsg} \
+?? {d1 foo 10} \
     "Value '10' of parameter a is not between 1 and 3" \
     "invalid value"
 
@@ -298,8 +296,7 @@ D method foo {a:unknowntype} {
   puts stderr a=$a
 }
 
-catch {d1 foo 10} errorMsg
-? {set ::errorMsg} \
+?? {d1 foo 10} \
     "::xotcl::parameterType: unable to dispatch method 'type=unknowntype'" \
     "missing type checker"
 
@@ -315,8 +312,7 @@ D method foo {a:in,arg=a|b|c} {
 }
 
 ? {d1 foo a} "a=a"
-catch {d1 foo 10} errorMsg
-? {set ::errorMsg} \
+?? {d1 foo 10} \
     "Value '10' of parameter a not in permissible values a|b|c" \
     "invalid value"
 
@@ -326,8 +322,7 @@ D method foo {a:in,arg=a|b|c b:in,arg=good|bad {-c:in,arg=a|b a}} {
 
 ? {d1 foo a good -c b} "a=a,b=good,c=b"
 ? {d1 foo a good} "a=a,b=good,c=a"
-catch {d1 foo b "very good"} errorMsg
-? {set ::errorMsg} \
+?? {d1 foo b "very good"} \
     "Value 'very good' of parameter b not in permissible values good|bad" \
     "invalid value (not included)"
 
@@ -344,14 +339,12 @@ D method foo {a:range,arg=1-3 {-b:range,arg=2-6 3} c:range,arg=5-10} {
 
 ? {d1 foo 2 -b 4 9} "a=2,b=4,c=9"
 ? {d1 foo 2 10} "a=2,b=3,c=10"
-catch {d1 foo 2 11} errorMsg
-? {set ::errorMsg} \
+?? {d1 foo 2 11} \
     "Value '11' of parameter c not between 5 and 10" \
     "invalid value"
 
 # define type twice
-catch {D method foo {a:int,range,arg=1-3} {return a=$a}} errorMsg
-? {set ::errorMsg} \
+?? {D method foo {a:int,range,arg=1-3} {return a=$a}} \
     "Refuse to redefine parameter converter to use usertype" \
     "invalid value"
 
@@ -368,6 +361,127 @@ D method foo {{"-a:list,arg=2 6" 3} {"b:list,arg=5 10"}} {
 }
 ? {d1 foo -a 2 10} "a=2,b=10"
 
+
+#
+# testing object types in method parameters
+#
+Test case mp-object-types
+Class create M
+D create d1 -d 1
+C create c1 -mixin M
+Object create o
+
+# ::xotcl::is supports predicates for objects
+#
+#   ::xotcl::is <obj> object
+#   ::xotcl::is <obj> type <class> 
+#   ::xotcl::is <obj> class
+#   ::xotcl::is <obj> baseclass
+#   ::xotcl::is <obj> metaclass
+#   ::xotcl::is <obj> mixin <class>
+#
+# Map these to type checkers. "object" and "class"
+# are already predefined, define the rest.
+# TODO: should go finally to predefined.
+ 
+::xotcl::parameterType method type=type {name value arg} {
+  if {![::xotcl::is $value type $arg]} {
+    error "Value '$value' of $name of not of type $arg"
+  }
+}
+::xotcl::parameterType method type=mixin {name value arg} {
+  if {![::xotcl::is $value mixin $arg]} {
+    error "Value '$value' of $name has not mixin $arg"
+  }
+}
+::xotcl::parameterType method type=baseclass {name value} {
+  if {![::xotcl::is $value baseclass]} {
+    error "Value '$value' of $name is not a baseclass"
+  }
+}
+::xotcl::parameterType method type=metaclass {name value} {
+  if {![::xotcl::is $value metaclass]} {
+    error "Value '$value' of $name is not a metaclass"
+  }
+}
+
+D method foo-base   {x:baseclass} {return $x}
+D method foo-class  {x:class} {return $x}
+D method foo-object {x:object} {return $x}
+D method foo-meta   {x:metaclass} {return $x}
+D method foo-mixin  {x:mixin,arg=::M} {return $x}
+D method foo-type   {x:type,arg=::C} {return $x}
+
+? {d1 foo-base ::xotcl2::Object} "::xotcl2::Object"
+?? {d1 foo-base C} \
+    "Value 'C' of x is not a baseclass" \
+    "not a base class"
+
+? {d1 foo-class D} "D"
+?? {d1 foo-class xxx} \
+    "Invalid argument: cannot convert 'xxx' to class" \
+    "not a class"
+?? {d1 foo-class o} \
+    "Invalid argument: cannot convert 'o' to class" \
+    "not a class"
+
+? {d1 foo-meta ::xotcl2::Class} "::xotcl2::Class"
+?? {d1 foo-meta ::xotcl2::Object} \
+    "Value '::xotcl2::Object' of x is not a metaclass" \
+    "not a base class"
+
+? {d1 foo-mixin c1} "c1"
+?? {d1 foo-mixin o} \
+    "Value 'o' of x has not mixin ::M" \
+    "does not have mixin M"
+
+? {d1 foo-object o} "o"
+?? {d1 foo-object xxx} \
+    "Invalid argument: cannot convert 'xxx' to object" \
+    "not an object"
+
+? {d1 foo-type d1} "d1"
+? {d1 foo-type c1} "c1"
+?? {d1 foo-type o} \
+    "Value 'o' of x of not of type ::C" \
+    "o not of type ::C"
+
+
+#
+# testing object types in object parameters
+#
+Test case op-object-types
+Class create M
+D create d1 -d 1
+C create c1 -mixin M
+Object create o
+
+Class create ParamTest -parameter {
+  o:object
+  c:class
+  d:type,arg=D
+  m:metaclass
+  mix:mixin,arg=M
+  b:baseclass
+}
+? {ParamTest create p -o o} ::p
+?? {ParamTest create p -o xxx} \
+    "Invalid argument: cannot convert 'xxx' to object" \
+    "not an object"
+
+? {ParamTest create p -mix c1} ::p
+?? {ParamTest create p -mix o} \
+    "Value 'o' of mix has not mixin M" \
+    "does not have mixin M"
+
+# TODO: error messages for failed conversions not consistent
+# TODO: setter should perform parameter checking:
+#       (a) simple approach: make scripted setter methods
+#       (b) maybe nicer: provide arguments to c-setter to 
+#           pass parameter definition
+# 
+# The following test fails currently:
+#?? {p o xxx} "Invalid argument: cannot convert 'xxx' to object"
 
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
