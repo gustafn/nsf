@@ -474,14 +474,46 @@ Class create ParamTest -parameter {
     "Value 'o' of mix has not mixin M" \
     "does not have mixin M"
 
-# TODO: error messages for failed conversions not consistent
-# TODO: setter should perform parameter checking:
-#       (a) simple approach: make scripted setter methods
+# TODO: naming "type" and "mixin" not perfect.
+#       maybe "type" => "hastype"
+#       maybe "mixin" => "hasmixin"
+#       => effects as well ::xotcl::is
+#
+# TODO: It looks, as if we need multivalues as well on object
+#       parameters. If a slot has multivalued set, objectparameter
+#       must honor it. This would allow general checking of e.g.  list
+#       of integers, list of objects, etc. Therefore, we would not
+#       need to duplicate this functionality on the slots.
+#
+# TODO (optimization): optimizer can improve parameter checking:
+#       (a) simple approach: make scripted setter methods on domain
 #       (b) maybe nicer: provide arguments to c-setter to 
 #           pass parameter definition
+#
+# TODO: error messages for failed conversions are not consistent
+#       should happen, when all kind of parameters finally settled
 # 
-# The following test fails currently:
-#?? {p o xxx} "Invalid argument: cannot convert 'xxx' to object"
+? {p o o} \
+    "o" \
+    "value is an object"
+?? {p o xxx} \
+    "Invalid argument: cannot convert 'xxx' to object" \
+    "value is not an object"
+
+ParamTest slots {
+  ::xotcl::Attribute create os -type object -multivalued true
+}
+
+? {p os o} \
+    "o" \
+    "value is a list of objects (1 element)"
+? {p os {o c1 d1}} \
+    "o c1 d1" \
+    "value is a list of objects (multiple elements)"
+
+?? {p os {o xxx d1}} \
+    "Invalid argument: cannot convert 'xxx' to object" \
+    "list with invalid object"
 
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.

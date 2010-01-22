@@ -317,6 +317,43 @@ namespace eval xotcl2 {
 
 # Provide the a slot based mechanism for building an object
 # configuration interface from slot definitions
+proc ::xotcl::parameterFromSlot {slot name} {
+  set parameterdefinition $name
+  set opts [list]
+  if {[$slot exists required] && [$slot required]} {
+    lappend opts required
+  }
+  if {[$slot exists type]} {
+    lappend opts [$slot type]
+  }
+  if {[$slot exists arg]} {
+    lappend opts arg=[$slot arg]
+  }
+  if {[$slot exists default]} {
+    set arg [::xotcl::setinstvar $slot default]
+    # deactivated for now: || [string first {$} $arg] > -1
+    if {[string match {*\[*\]*} $arg]} {
+      lappend opts substdefault
+    }
+  } elseif {[$slot exists initcmd]} {
+    set arg [::xotcl::setinstvar $slot initcmd]
+    lappend opts initcmd
+  } 
+  if {[$slot exists methodname]} {
+    set methodname [::xotcl::setinstvar $slot methodname]
+    if {$methodname ne $name} {
+      lappend opts arg=$methodname
+    }
+  }
+  if {[llength $opts] > 0} {
+    append parameterdefinition :[join $opts ,]
+  }
+  if {[info exists arg]} {
+    lappend parameterdefinition $arg
+  }
+  return $parameterdefinition
+}
+
 proc ::xotcl::parametersFromSlots {obj} {
   set parameterdefinitions [list]
   set slots [::xotcl2::objectInfo slotobjects $obj]
@@ -326,41 +363,7 @@ proc ::xotcl::parametersFromSlots {obj} {
         ([$slot name] eq "mixin" || [$slot name] eq "filter")
       } continue
     set name [namespace tail $slot]
-    set parameterdefinition "-$name"
-    set opts [list]
-    if {[$slot exists required] && [$slot required]} {
-      lappend opts required
-    }
-    if {[$slot exists type]} {
-      lappend opts [$slot type]
-    }
-    if {[$slot exists arg]} {
-      lappend opts arg=[$slot arg]
-    }
-    if {[$slot exists default]} {
-      set arg [::xotcl::setinstvar $slot default]
-      # deactivated for now: || [string first {$} $arg] > -1
-      if {[string match {*\[*\]*} $arg]} {
-	lappend opts substdefault
-      }
-    } elseif {[$slot exists initcmd]} {
-      set arg [::xotcl::setinstvar $slot initcmd]
-      lappend opts initcmd
-    } 
-    if {[$slot exists methodname]} {
-      set methodname [::xotcl::setinstvar $slot methodname]
-      if {$methodname ne $name} {
-        lappend opts arg=$methodname
-      }
-    }
-    if {[llength $opts] > 0} {
-      append parameterdefinition :[join $opts ,]
-    }
-    if {[info exists arg]} {
-      lappend parameterdefinition $arg
-      unset arg
-    }
-    lappend parameterdefinitions $parameterdefinition
+    lappend parameterdefinitions -[::xotcl::parameterFromSlot $slot $name]
   }
   return $parameterdefinitions
 }
@@ -502,9 +505,10 @@ createBootstrapAttributeSlots ::xotcl::Slot {
     ${:domain} __invalidateobjectparameter
     set cl [expr {${:per-object} ? "Object" : "Class"}]
     # since the domain object might be xotcl1 or xotcl2, use dispatch
-    ::xotcl::dispatch ${:domain} ::xotcl::classes::xotcl2::${cl}::forward \
-        ${:name} ${:manager} [list %1 [${:manager} defaultmethods]] %self \
-       ${:methodname}
+    ::xotcl::forward ${:domain} ${:name} \
+        ${:manager} \
+        [list %1 [${:manager} defaultmethods]] %self \
+        ${:methodname}
   }
 }
 
@@ -669,6 +673,7 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
   ::xotcl::setinstvar $obj __oldvalue($var) $value
 }
 ::xotcl::Attribute method mk_type_checker {} {
+  puts stderr "[self] [self proc]"
   set __initcmd ""
   if {[:exists type]} {
     if {[::xotcl::is ${:type} class]} {
@@ -705,6 +710,21 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
     append __initcmd ":trace add variable [list ${:name}] read \
 	\[list [::xotcl::self] __value_from_cmd \[::xotcl::self\] [list [set :valuecmd]]\]"
   }
+  set valueParam [::xotcl::parameterFromSlot [self] "value"]
+  if {$valueParam ne "value"} {
+    if {[set :multivalued]} {
+      :method check_single_value [list $valueParam] {return 1}
+      :method check_multiple_values list {foreach a $list {:check_single_value $a}}
+      #puts stderr "adding multiple assignmethod for [self] with $valueParam"
+      :method assign [list obj var value] {
+        :check_multiple_values $value
+        ::xotcl::setinstvar $obj $var $value
+      }
+    } else {
+      #puts stderr "adding single assignmethod for [self] with $valueParam"
+      :method assign [list obj var $valueParam] {::xotcl::setinstvar $obj $var $value}
+    }
+  }
   #append __initcmd [:mk_type_checker]
   if {[:exists valuechangedcmd]} {
     append __initcmd ":trace add variable [list ${:name}] write \
@@ -727,12 +747,13 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
   :method forward args {::xotcl::next; :optimize}
   :method init args    {::xotcl::next; :optimize}
   :public method optimize {} {
+    #puts stderr OPTIMIZER
     if {[set :multivalued]} return
     if {[set :defaultmethods] ne {get assign}} return
     #puts stderr assign=[:info callable -which assign]
     if {[:info callable -which assign] ne "::xotcl::Slot alias assign ::xotcl::setinstvar"} return
     if {[:info callable -which get]    ne "::xotcl::Slot alias get ::xotcl::setinstvar"} return
-    #puts stderr "**** optimizing       ${:domain} $forwarder ${:name}"
+    #puts stderr "**** optimizing       [${:domain} info method definition ${:name}]"
     ::xotcl::setter ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] ${:name}
   }
 }
