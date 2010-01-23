@@ -68,16 +68,25 @@ namespace eval ::xotcl::test {
     
     :public method call {msg cmd} {
       if {[:verbose]} {puts stderr "$msg: $cmd"}
-      namespace eval ${:namespace} $cmd
+      #if {[catch {namespace eval ${:namespace} $cmd} result]} {
+        #puts stderr ERROR=$result
+      #}
+      #puts stderr "$msg: $cmd => $result"
+      #return $result
+      return [namespace eval ${:namespace} $cmd]
     }
    
     :public method run args {
       if {[info exists :pre]} {:call "pre" ${:pre}}
       if {![info exists :msg]} {set :msg ${:cmd}}
-      set r [:call "run" ${:cmd}]
+      set gotError [catch {:call "run" ${:cmd}} r]
       if {[info exists :setResult]} {set r [eval [set :setResult]]}
       if {$r eq ${:expected}} {
-	if {[info exists :count]} {set c ${:count}} {set c 1000}
+        if {$gotError} {
+          set c 1
+        } else {
+          if {[info exists :count]} {set c ${:count}} {set c 1000}
+        }
 	if {[:verbose]} {
 	  puts stderr "running test $c times"
 	}
@@ -116,17 +125,6 @@ proc ? {cmd expected {msg ""}} {
   $t expected $expected 
   $t run
 }
-proc ?? {cmd expected {msg ""}} {
-  set namespace [uplevel {namespace current}]
-  #catch {namespace eval $namespace {$cmd}} errorMsg
-  catch $cmd ::xotcl::test::errorMsg
-  if {$msg ne ""} {
-    set t [Test new -cmd {set ::xotcl::test::errorMsg} -msg $msg -namespace $namespace -count 1]
-  } else {
-    set t [Test new -cmd {set ::xotcl::test::errorMsg} -namespace $namespace -count 1]
-  }
-  $t expected $expected 
-  $t run
-}
+
 
 namespace import ::xotcl::test::*

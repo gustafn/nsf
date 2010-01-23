@@ -108,9 +108,9 @@ XOTclErrBadVal_(Tcl_Interp *interp, char *expected, char *value) {
 }
 
 extern int
-XOTclObjErrType(Tcl_Interp *interp, Tcl_Obj *nm, char *wt) {
+XOTclObjErrType(Tcl_Interp *interp, Tcl_Obj *value, char *type) {
   Tcl_ResetResult(interp);
-  Tcl_AppendResult(interp,"Invalid argument: cannot convert '",ObjStr(nm), "' to ",
-		   wt, (char *) NULL);
+  Tcl_AppendResult(interp,"expected ", type, " but got \"",  ObjStr(value), "\"", 
+                   (char *) NULL);
   return TCL_ERROR;
 }

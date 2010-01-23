@@ -5359,6 +5359,8 @@ ParamDefsFormat(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
       ParamDefsFormatOption(interp, nameStringObj, "method", &colonWritten, &first);
     } else if ((pPtr->flags & XOTCL_ARG_NOARG)) {
       ParamDefsFormatOption(interp, nameStringObj, "noarg", &colonWritten, &first);
+    } else if ((pPtr->flags & XOTCL_ARG_MULTIVALUED)) {
+      ParamDefsFormatOption(interp, nameStringObj, "multivalued", &colonWritten, &first);
     }
 
     innerlist = Tcl_NewListObj(0, NULL);
@@ -6313,6 +6315,8 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     paramPtr->flags |= XOTCL_ARG_INITCMD;
   } else if (strncmp(option, "method", 6) == 0) {
     paramPtr->flags |= XOTCL_ARG_METHOD;
+  } else if (strncmp(option, "multivalued", 11) == 0) {
+    paramPtr->flags |= XOTCL_ARG_MULTIVALUED;
   } else if (strncmp(option, "noarg", 5) == 0) {
     paramPtr->flags |= XOTCL_ARG_NOARG;
     paramPtr->nrArgs = 0;
@@ -8650,7 +8654,7 @@ static int
 XOTclSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj = (XOTclObject*)clientData;
 
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "object");
   if (objc > 2) return XOTclObjErrArgCnt(interp, obj->cmdName, objv[0], "?value?");
   return setInstVar(interp, obj, objv[0], objc == 2 ? objv[1] : NULL);
 }
@@ -8923,7 +8927,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
   */
 #endif
 
-  if (!tcd || !tcd->obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!tcd || !tcd->obj) return XOTclObjErrType(interp, objv[0], "object");
 
   if (tcd->passthrough) { /* two short cuts for simple cases */
     /* early binding, cmd *resolved, we have to care only for objscope */
@@ -9439,6 +9443,34 @@ ArgumentError(Tcl_Interp *interp, char *errorMsg, XOTclParam CONST *paramPtr,
 }
 
 static int
+ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *obj, struct XOTclParam CONST *pPtr, ClientData *clientData) {
+  int result;
+
+  if (pPtr->flags & XOTCL_ARG_MULTIVALUED) {
+    int objc, i;
+    Tcl_Obj **ov;
+    
+    result = Tcl_ListObjGetElements(interp, obj, &objc, &ov);
+    if (result == TCL_OK) {
+      for (i=0; i<objc; i++) {
+        result = (*pPtr->converter)(interp, ov[i], pPtr, clientData);
+        if (result != TCL_OK) {
+          Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
+          INCR_REF_COUNT(resultObj);
+          XOTclVarErrMsg(interp, "invalid value in \"", ObjStr(obj),
+                         "\": ", ObjStr(resultObj), (char *) NULL);
+          DECR_REF_COUNT(resultObj);
+          break;
+        }
+      }
+    }
+  } else {
+    result = (*pPtr->converter)(interp, obj, pPtr, clientData);
+  }
+  return result;
+}
+
+static int
 ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
                  XOTclParam CONST *ifd, int nrParams) {
   XOTclParam CONST *pPtr;
@@ -9488,7 +9520,7 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
 
         /* Check the default value, unless we have an INITCMD or METHOD */
         if ((pPtr->flags & (XOTCL_ARG_INITCMD|XOTCL_ARG_METHOD)) == 0) {
-          if ((*pPtr->converter)(interp, newValue, pPtr, &checkedData) != TCL_OK) {
+          if (ArgumentCheck(interp, newValue, pPtr, &checkedData) != TCL_OK) {
             return TCL_ERROR;
           }
         }
@@ -9569,7 +9601,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                           i, nppPtr->name, ObjStr(objv[p]), nppPtr->nrArgs,
                           nppPtr->flags & XOTCL_ARG_REQUIRED ? "req":"not req", nppPtr->converter);
 #endif
-                  if ((*nppPtr->converter)(interp, objv[p], nppPtr, 
+                  if (ArgumentCheck(interp, objv[p], nppPtr, 
                                            &pcPtr->clientData[nppPtr-paramPtr]) != TCL_OK) {
                     return TCL_ERROR;
                   }
@@ -9624,7 +9656,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       /*fprintf(stderr, "... arg %s req %d converter %p try to set on %d: '%s' convertViaCmd %p\n",
               pPtr->name, pPtr->flags & XOTCL_ARG_REQUIRED, pPtr->converter, i, ObjStr(objv[o]), 
               convertViaCmd);*/
-      if ((*pPtr->converter)(interp, objv[o], pPtr, &pcPtr->clientData[i]) != TCL_OK) {
+      if (ArgumentCheck(interp, objv[o], pPtr, &pcPtr->clientData[i]) != TCL_OK) {
         return TCL_ERROR;
       }
 
@@ -11653,7 +11685,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     if (XOTclObjectIsClass(object)) {
       cl = (XOTclClass *)object;
     } else {
-      return XOTclObjErrType(interp, object->cmdName, "Class");
+      return XOTclObjErrType(interp, object->cmdName, "class");
     }
 
     if (value == NULL) {
@@ -11673,7 +11705,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
 
   case RelationtypeSuperclassIdx:
     if (!XOTclObjectIsClass(object))
-      return XOTclObjErrType(interp, object->cmdName, "Class");
+      return XOTclObjErrType(interp, object->cmdName, "class");
     cl = (XOTclClass *)object;
     if (value == NULL) {
       return ListSuperclasses(interp, cl, NULL, 0);
@@ -11696,7 +11728,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     XOTclClass *metaClass;
 
     if (!XOTclObjectIsClass(object))
-      return XOTclObjErrType(interp, object->cmdName, "Class");
+      return XOTclObjErrType(interp, object->cmdName, "class");
     cl = (XOTclClass *)object;
 
     if (value == NULL) {
@@ -11704,7 +11736,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
                             (char *) NULL);
     }
     GetClassFromObj(interp, value, &metaClass, 0);
-    if (!metaClass) return XOTclObjErrType(interp, value, "Class");
+    if (!metaClass) return XOTclObjErrType(interp, value, "class");
 
     cl->object.flags |= XOTCL_IS_ROOT_CLASS;
     metaClass->object.flags |= XOTCL_IS_ROOT_META_CLASS;

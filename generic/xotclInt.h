@@ -361,6 +361,7 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_ARG_METHOD		     0x0008
 #define XOTCL_ARG_NOARG 		     0x0010
 #define XOTCL_ARG_RELATION		     0x0100
+#define XOTCL_ARG_MULTIVALUED		     0x0200
 
 /* method types */
 #define XOTCL_METHODTYPE_ALIAS     0x0001
