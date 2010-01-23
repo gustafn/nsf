@@ -9457,8 +9457,8 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *obj, struct XOTclParam CONST *pPtr, C
         if (result != TCL_OK) {
           Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
           INCR_REF_COUNT(resultObj);
-          XOTclVarErrMsg(interp, "invalid value in \"", ObjStr(obj),
-                         "\": ", ObjStr(resultObj), (char *) NULL);
+          XOTclVarErrMsg(interp, "invalid value in \"", ObjStr(obj), "\": ",
+                         ObjStr(resultObj), (char *) NULL);
           DECR_REF_COUNT(resultObj);
           break;
         }

@@ -1,6 +1,6 @@
 #!../../xotcl-0.9.4/xotclsh
 # $Id: xocomm.test,v 1.4 2005/09/09 21:09:01 neumann Exp $
-package require XOTcl; namespace import -force xotcl::*
+package require XOTcl; xotcl::use xotcl1
 lappend auto_path [file dirname [info script]]/..
 package require xotcl::test
 
@@ -61,10 +61,10 @@ userPwd proc show {realm userVar pwVar} {
   return 1
 }       
 
-Test parameter {{errorReport {
-    puts "\tcontent-length: \[r0::sink set contentLength\]\n\
-          \tstatus-code: \[\[r0 set token\] set responseCode\]"
-}}}
+#Test parameter {{errorReport {
+#    puts "\tcontent-length: \[r0::sink set contentLength\]\n\
+#          \tstatus-code: \[\[r0 set token\] set responseCode\]"
+#}}}
 
 Test new -msg "Trying to load image logo-100.jpg ... " -count 1 \
      -verbose 1 \

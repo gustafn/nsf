@@ -326,6 +326,15 @@ proc ::xotcl::parameterFromSlot {slot name} {
   if {[$slot exists type]} {
     lappend opts [$slot type]
   }
+  # TODO: remove multivalued check on relations by handling multivalued
+  # not in relation, but in the converters
+  if {[$slot exists multivalued] && [$slot multivalued]} {
+    if {!([$slot exists type] && [$slot type] eq "relation")} {
+      lappend opts multivalued
+    } else {
+      #puts stderr "ignore multivalued for $name in relation"
+    }
+  }
   if {[$slot exists arg]} {
     lappend opts arg=[$slot arg]
   }
@@ -716,17 +725,13 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
   set valueParam [lindex [::xotcl::parameterFromSlot [self] "value"] 0]
   #puts stderr "valueParam for [self] is $valueParam"
   if {$valueParam ne "value" && [string first : $valueParam] > -1} {
+    #puts stderr "adding assign [list obj var $valueParam] // for [self] with $valueParam"
+    :method assign [list obj var $valueParam] {::xotcl::setinstvar $obj $var $value}
     if {[set :multivalued]} {
-      :method check_single_value [list $valueParam] {return 1}
-      :method check_multiple_values list {foreach a $list {:check_single_value $a}}
-      puts stderr "adding multiple assignmethod for [self] with $valueParam"
-      :method assign [list obj var value] {
-        :check_multiple_values $value
-        ::xotcl::setinstvar $obj $var $value
-      }
-    } else {
-      #puts stderr "adding single assignmethod for [self] with $valueParam"
-      :method assign [list obj var $valueParam] {::xotcl::setinstvar $obj $var $value}
+      # remove multivalued flag and use "next" to handle actual adding
+      regsub ,multivalued $valueParam "" param
+      puts stderr "adding add method for [self] with $param"
+      :method add [list obj prop $param {pos 0}] {next}
     }
   }
   #append __initcmd [:mk_type_checker]
@@ -824,33 +829,26 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
   foreach arg $arglist {
     set l [llength $arg]
     set name [lindex $arg 0]
+    set opts [list]
     set colonPos [string first : $name]
     if {$colonPos > -1} {
       set properties [string range $name [expr {$colonPos+1}] end]
       set name [string range $name 0 [expr {$colonPos -1}]]
       foreach property [split $properties ,] {
 	if {$property eq "required"} {
-	  set required 1
+	  lappend opts -required 1
+	} elseif {$property eq "multivalued"} {
+	  lappend opts -multivalued 1
 	} elseif {[string match arg=* $property]} {
 	  set argument [string range $property 4 end]
+	  lappend opts -arg $argument
 	} else {
-	  set type $property
+	  lappend opts -type $property
 	}
       }
     }
-    set cmd [list ::xotcl::Attribute create [::xotcl::self]::slot::$name]
-    if {[info exists type]} {
-      lappend cmd -type $type
-      unset type
-    }
-    if {[info exists argument]} {
-      lappend cmd -arg $argument
-      unset argument
-    }
-    if {[info exists required]} {
-      lappend cmd -required 1
-      unset required
-    }
+    set cmd [list ::xotcl::Attribute create [::xotcl::self]::slot::$name {*}$opts]
+    #puts stderr cmd=$cmd
 
     if {$l == 1} {
       eval $cmd

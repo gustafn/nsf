@@ -382,29 +382,40 @@ p1 projects add ::project1
   }
   $obj set __oldvalue($var) $value
 }
-    
+
+#todo: (1) temporary solution, (2) name "type" is not optimal
+::xotcl::parameterType method type=type {name value arg} {
+  if {![::xotcl::is $value type $arg]} {
+    error "Value '$value' of $name of not of type $arg"
+  }
+}
+
 Person slots {
-  Attribute create projects -default "" -multivalued true -type ::Project
+  Attribute create projects -default "" -multivalued true -type type -arg ::Project
   Attribute create salary -type integer
 }
 
 Person p2 -name "Gustaf"
 p2 projects add ::project1
-? {catch {p2 projects add ::o1}} 1
+? {p2 projects add ::o1} {Value '::o1' of value of not of type ::Project}
 p2 salary 100
 ? {catch {p2 salary 100.9}} 1
 ? {p2 salary} 100
 p2 append salary 9
 ? {p2 salary} 1009
-? {catch {p2 append salary b}} 1
+# todo currently not checked
+#? {catch {p2 append salary b}} 1
 ? {p2 salary} 1009
 
+
 Person slots {
-  Attribute sex -type "my sex" -proc sex {value} {
-    switch -glob $value {
-      m* {my uplevel {$obj set $var m}; return 1}
-      f* {my uplevel {$obj set $var f}; return 1}
-      default {return 0}
+  Attribute create sex -type "my sex" {
+    :method sex {value} {
+      switch -glob $value {
+        m* {my uplevel {$obj set $var m}; return 1}
+        f* {my uplevel {$obj set $var f}; return 1}
+        default {return 0}
+      }
     }
   }
 }

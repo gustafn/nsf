@@ -174,6 +174,16 @@ D method foo {m:object,multivalued} {
     {invalid value in "o d1 x": expected object but got "x"} \
     "multiple values"
 
+Class create Foo -parameter {
+  {ints:integer,multivalued}
+}
+? {Foo create foo -ints {1 2}} "::foo"
+? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a"}
+
+Foo create foo -ints {1 2}
+? {foo ints add 0} "0 1 2"
+? {foo ints add a} {expected integer but got "a"}
+
 #
 # subst default tests
 #
@@ -536,7 +546,7 @@ ParamTest slots {
     "value is a list of objects (multiple elements)"
 
 ? {p os {o xxx d1}} \
-    {expected object but got "xxx"} \
+    {invalid value in "o xxx d1": expected object but got "xxx"} \
     "list with invalid object"
 
 ## TODO regression test for type checking, parameter options (initcmd,
