@@ -340,9 +340,11 @@ proc ::xotcl::parameterFromSlot {slot name} {
     lappend opts initcmd
   } 
   if {[$slot exists methodname]} {
-    set methodname [::xotcl::setinstvar $slot methodname]
-    if {$methodname ne $name} {
+    set methodname [$slot methodname]
+    set slotname [$slot name]
+    if {$methodname ne $slotname} {
       lappend opts arg=$methodname
+      #puts stderr "..... setting arg for methodname: $slot has arg arg=$methodname"
     }
   }
   if {[llength $opts] > 0} {
@@ -351,6 +353,7 @@ proc ::xotcl::parameterFromSlot {slot name} {
   if {[info exists arg]} {
     lappend parameterdefinition $arg
   }
+  #puts stderr "parameterFromSlot {$slot $name} returns $parameterdefinition"
   return $parameterdefinition
 }
 
@@ -710,12 +713,13 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
     append __initcmd ":trace add variable [list ${:name}] read \
 	\[list [::xotcl::self] __value_from_cmd \[::xotcl::self\] [list [set :valuecmd]]\]"
   }
-  set valueParam [::xotcl::parameterFromSlot [self] "value"]
-  if {$valueParam ne "value"} {
+  set valueParam [lindex [::xotcl::parameterFromSlot [self] "value"] 0]
+  #puts stderr "valueParam for [self] is $valueParam"
+  if {$valueParam ne "value" && [string first : $valueParam] > -1} {
     if {[set :multivalued]} {
       :method check_single_value [list $valueParam] {return 1}
       :method check_multiple_values list {foreach a $list {:check_single_value $a}}
-      #puts stderr "adding multiple assignmethod for [self] with $valueParam"
+      puts stderr "adding multiple assignmethod for [self] with $valueParam"
       :method assign [list obj var value] {
         :check_multiple_values $value
         ::xotcl::setinstvar $obj $var $value

@@ -121,9 +121,9 @@ proc ?? {cmd expected {msg ""}} {
   #catch {namespace eval $namespace {$cmd}} errorMsg
   catch $cmd ::xotcl::test::errorMsg
   if {$msg ne ""} {
-    set t [Test new -cmd {set ::xotcl::test::errorMsg} -msg $msg -namespace $namespace]
+    set t [Test new -cmd {set ::xotcl::test::errorMsg} -msg $msg -namespace $namespace -count 1]
   } else {
-    set t [Test new -cmd {set ::xotcl::test::errorMsg} -namespace $namespace]
+    set t [Test new -cmd {set ::xotcl::test::errorMsg} -namespace $namespace -count 1]
   }
   $t expected $expected 
   $t run
