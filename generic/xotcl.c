@@ -12340,8 +12340,19 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
       if (paramPtr->flags & XOTCL_ARG_INITCMD) {
         result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
       } else /* must be XOTCL_ARG_METHOD */ {
-        result = callMethod((ClientData) obj, interp,
-                            paramPtr->nameObj, 2+(paramPtr->nrArgs), &newValue, 0);
+        Tcl_Obj *ov[3];
+        int oc = 0;
+        if (paramPtr->converterArg) {
+          /* if arg= was given, pass it as first argument */
+          ov[0] = paramPtr->converterArg;
+          oc = 1;
+        }
+        if (paramPtr->nrArgs == 1) {
+          ov[oc] = newValue;
+          oc ++;
+        }
+        result = XOTclCallMethodWithArgs((ClientData) obj, interp, paramPtr->nameObj, 
+                                         ov[0], oc, &ov[1], 0);
       }
       Tcl_PopCallFrame(interp); /* pop previously stacked frame for eval context */
 
