@@ -5580,7 +5580,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   result = PushProcCallFrame(cp, interp, objc, objv, cscPtr);
 # endif
 
-  /* we could consider to run here ARGS_METHO or INITCMD
+  /* we could consider to run here ARG_METHOD or ARG_INITCMD
   if (result == TCL_OK) {
 
   } */
@@ -6304,7 +6304,7 @@ static int
 ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOptions, XOTclParam *paramPtr) {
   int result = TCL_OK; 
 
-  /*fprintf(stderr, "def %s, option '%s' (%d)\n", paramPtr->name, option, length);*/
+  /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%d) disallowed %.6x\n", paramPtr->name, option, length, disallowedOptions);*/
   if (strncmp(option, "required", MAX(3,length)) == 0) {
     paramPtr->flags |= XOTCL_ARG_REQUIRED;
   } else if (strncmp(option, "optional",  MAX(3,length)) == 0) {
@@ -6325,6 +6325,7 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     INCR_REF_COUNT(paramPtr->converterArg);
   } else if (strncmp(option, "switch", 6) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "switch", convertToSwitch);
+    paramPtr->flags |= XOTCL_ARG_SWITCH;
     paramPtr->nrArgs = 0;
     assert(paramPtr->defaultValue == NULL);
     paramPtr->defaultValue = Tcl_NewBooleanObj(0);
@@ -6569,7 +6570,7 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
   result = CanRedefineCmd(interp, nsPtr, object, methodName);
   if (result == TCL_OK) {
     /* Yes, so obtain an method parameter definitions */
-    result = ParamDefsParse(interp, methodName, args, XOTCL_ARG_METHOD_PARAMETER, &parsedParam);
+    result = ParamDefsParse(interp, methodName, args, XOTCL_DISALLOWED_ARG_METHOD_PARAMETER, &parsedParam);
   }
   if (result != TCL_OK) {
     return result;
@@ -12099,7 +12100,7 @@ ParamSetFromAny(
   Tcl_AppendToObj(fullParamObj, ObjStr(objPtr), -1);
   INCR_REF_COUNT(fullParamObj);
   result = ParamParse(interp, "valuecheck", fullParamObj, 
-                      XOTCL_ARG_METHOD_PARAMETER /* allowed options */,
+                      XOTCL_DISALLOWED_ARG_VALUEECHECK /* disallowed options */,
                       paramPtr, &possibleUnknowns, &plainParams);
   if (result == TCL_OK) {
     TclFreeIntRep(objPtr);
@@ -12235,7 +12236,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
       INCR_REF_COUNT(rawConfArgs);
 
       /* Parse the string representation to obtain the internal representation */
-      result = ParamDefsParse(interp, methodName, rawConfArgs, XOTCL_ARG_OBJECT_PARAMETER, parsedParamPtr);
+      result = ParamDefsParse(interp, methodName, rawConfArgs, XOTCL_DISALLOWED_ARG_OBJECT_PARAMETER, parsedParamPtr);
       if (result == TCL_OK && RUNTIME_STATE(interp)->cacheInterface) {
         XOTclParsedParam *ppDefPtr = NEW(XOTclParsedParam);
         ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
@@ -12334,15 +12335,15 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *C
       */
       
       Tcl_PushCallFrame(interp, framePtr, obj->nsPtr, FRAME_IS_XOTCL_OBJECT); 
-      XOTcl_PushFrameSetCd(obj);
+      XOTcl_PushFrameSetCd(obj); /* just set client data */
 
       if (paramPtr->flags & XOTCL_ARG_INITCMD) {
         result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
-      } else {
+      } else /* must be XOTCL_ARG_METHOD */ {
         result = callMethod((ClientData) obj, interp,
                             paramPtr->nameObj, 2+(paramPtr->nrArgs), &newValue, 0);
       }
-      Tcl_PopCallFrame(interp); 
+      Tcl_PopCallFrame(interp); /* pop previously stacked frame for eval context */
 
       /*fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n",
         ObjStr(paramPtr->nameObj), ObjStr(newValue), result);*/
@@ -12570,6 +12571,7 @@ static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int ob
   Tcl_Obj **argv, **nextArgv, *resultObj;
   int i, start = 1, argc, nextArgc, normalArgs, result = TCL_OK, isdasharg = NO_DASH;
   char *methodName, *nextMethodName;
+  
 #if 0
   /* if we got a single argument, try to split it (unless it starts
    * with our magic chars) to distinguish between

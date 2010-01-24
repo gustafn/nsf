@@ -24,6 +24,35 @@ Object create o1
 ? {::xotcl::valuecheck integer,multivalued [list 1 2 3 a]} 0
 ? {::xotcl::valuecheck in1 aaa} {invalid value constraints "in1"}
 
+#
+# parameter options
+#   required
+#   optional
+#   multivalued
+#   noarg
+#   arg=
+#
+#   substdefault:  if no value given, subst on default (result is substituted value); for scripted/c methods/obj parm
+#   initcmd:       evaluate body in an xotcl nonleaf frame, called via configure 
+#                  (example: last arg on create)
+#   method         call specified method in an xotcl nonleaf frame, called via configure;
+#                  specified value is the first argument unless "noarg" is used  
+#                  (example: -noinit).
+#
+# parameter type   multivalued  required  noarg   arg=  valueCheck  methodParm   objectParm
+#  substdefault       NO         NO         NO    NO      NO           YES         YES (autmatically set by -parameter on []}
+#  initcmd            NO         YES        NO    NO      NO        NO/POSSIBLE    YES
+#  method             NO         YES        YES   YES     NO        NO/POSSIBLE    YES
+#
+#  relation           NO         YES        NO    YES     NO           NO          YES
+#
+#  switch             NO         NO         NO    NO      NO           YES         YES
+#  integer            YES        YES        NO    NO      YES          YES         YES    
+#  boolean            YES        YES        NO    NO      YES          YES         YES
+#  object             YES        YES        NO    NO      YES          YES         YES
+#  class              YES        YES        NO    NO      YES          YES         YES
+#  userdefined        YES        YES        NO    YES     YES          YES         YES
+
 #######################################################
 # objectparameter
 #######################################################
@@ -222,20 +251,26 @@ D method bar {
   return $s-$literal-$c-$d
 }
 
-? {d1 bar -c 1} {::d1-[self]-1-1} "substdefault on method"  
+? {d1 bar -c 1} {::d1-[self]-1-1} "substdefault in method parameter"
 
 Class create Bar -superclass D -parameter {
   {s "[self]"} 
   {literal "\\[self\\]"} 
   {c "[my info class]"} 
-  {d "$d"}
+  {d "literal $d"}
+  {switch:switch}
 }
 Bar create bar1
 #puts stderr [bar1 objectparameter]
 
-? {subst {[bar1 s]-[bar1 literal]-[bar1 c]-[bar1 d]}} \
-    {::bar1-[self]-::Bar-$d} \
-    "substdefault on object"  
+? {subst {[bar1 s]-[bar1 literal]-[bar1 c]-[bar1 d]-[bar1 switch]}} \
+    {::bar1-[self]-::Bar-literal $d-0} \
+    "substdefault and switch in object parameter 1"
+
+Bar create bar2 -switch
+? {subst {[bar2 s]-[bar2 literal]-[bar2 c]-[bar2 d]-[bar2 switch]}} \
+    {::bar2-[self]-::Bar-literal $d-1} \
+    "substdefault and switch in object parameter 2"
 
 # Observations:
 #  1) syntax for "-parameter" and method parameter is quite different.

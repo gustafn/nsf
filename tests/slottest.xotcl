@@ -34,6 +34,7 @@ proc T2 {var sub op} {c1 set $var t2}
 #  x {set x 1} 
 #  y {incr ::hu} 
 #  z {my trace add variable z read T1}}
+
 Class C -slots {
   Attribute create x -initcmd {set x 1} 
   Attribute create y -initcmd {incr ::hu} 

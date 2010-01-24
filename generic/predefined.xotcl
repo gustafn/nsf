@@ -318,52 +318,61 @@ namespace eval xotcl2 {
 # Provide the a slot based mechanism for building an object
 # configuration interface from slot definitions
 proc ::xotcl::parameterFromSlot {slot name} {
-  set parameterdefinition $name
-  set opts [list]
+  set objparamdefinition $name
+  set methodparamdefinition ""
+  set objopts [list]
+  set methodopts [list]
   if {[$slot exists required] && [$slot required]} {
-    lappend opts required
+    lappend objopts required
+    lappend methodopts required
   }
   if {[$slot exists type]} {
-    lappend opts [$slot type]
+    lappend objopts [$slot type]
+    lappend methodopts [$slot type]
   }
   # TODO: remove multivalued check on relations by handling multivalued
   # not in relation, but in the converters
   if {[$slot exists multivalued] && [$slot multivalued]} {
     if {!([$slot exists type] && [$slot type] eq "relation")} {
-      lappend opts multivalued
+      lappend objopts multivalued
     } else {
       #puts stderr "ignore multivalued for $name in relation"
     }
   }
   if {[$slot exists arg]} {
-    lappend opts arg=[$slot arg]
+    lappend objopts arg=[$slot arg]
+    lappend methodopts arg=[$slot arg]
   }
   if {[$slot exists default]} {
     set arg [::xotcl::setinstvar $slot default]
     # deactivated for now: || [string first {$} $arg] > -1
     if {[string match {*\[*\]*} $arg]} {
-      lappend opts substdefault
+      lappend objopts substdefault
     }
   } elseif {[$slot exists initcmd]} {
     set arg [::xotcl::setinstvar $slot initcmd]
-    lappend opts initcmd
+    lappend objopts initcmd
   } 
   if {[$slot exists methodname]} {
     set methodname [$slot methodname]
     set slotname [$slot name]
     if {$methodname ne $slotname} {
-      lappend opts arg=$methodname
+      lappend objopts arg=$methodname
+      lappend methodopts arg=$methodname
       #puts stderr "..... setting arg for methodname: $slot has arg arg=$methodname"
     }
   }
-  if {[llength $opts] > 0} {
-    append parameterdefinition :[join $opts ,]
+  if {[llength $objopts] > 0} {
+    append objparamdefinition :[join $objopts ,]
+  }
+  if {[llength $methodopts] > 0} {
+    set methodparamdefinition [join $methodopts ,]
   }
   if {[info exists arg]} {
-    lappend parameterdefinition $arg
+    lappend objparamdefinition $arg
   }
-  #puts stderr "parameterFromSlot {$slot $name} returns $parameterdefinition"
-  return $parameterdefinition
+  #puts stderr "parameterFromSlot {$slot $name} returns [list oparam $objparamdefinition mparam $methodparamdefinition]"
+  return [list oparam $objparamdefinition mparam $methodparamdefinition]
 }
 
 proc ::xotcl::parametersFromSlots {obj} {
@@ -375,7 +384,8 @@ proc ::xotcl::parametersFromSlots {obj} {
         ([$slot name] eq "mixin" || [$slot name] eq "filter")
       } continue
     set name [namespace tail $slot]
-    lappend parameterdefinitions -[::xotcl::parameterFromSlot $slot $name]
+    array set "" [::xotcl::parameterFromSlot $slot $name]
+    lappend parameterdefinitions -$(oparam)
   }
   return $parameterdefinitions
 }
@@ -722,16 +732,17 @@ createBootstrapAttributeSlots ::xotcl::Attribute {
     append __initcmd ":trace add variable [list ${:name}] read \
 	\[list [::xotcl::self] __value_from_cmd \[::xotcl::self\] [list [set :valuecmd]]\]"
   }
-  set valueParam [lindex [::xotcl::parameterFromSlot [self] "value"] 0]
-  #puts stderr "valueParam for [self] is $valueParam"
-  if {$valueParam ne "value" && [string first : $valueParam] > -1} {
-    #puts stderr "adding assign [list obj var $valueParam] // for [self] with $valueParam"
-    :method assign [list obj var $valueParam] {::xotcl::setinstvar $obj $var $value}
-    if {[set :multivalued]} {
-      # remove multivalued flag and use "next" to handle actual adding
-      regsub ,multivalued $valueParam "" param
-      puts stderr "adding add method for [self] with $param"
-      :method add [list obj prop $param {pos 0}] {next}
+  array set "" [::xotcl::parameterFromSlot [self] "value"]
+  #puts stderr "Attribute.init valueParam for [self] is $(mparam)"
+  if {$(mparam) ne ""} {
+    if {[info exists :multivalued] && ${:multivalued}} {
+      #puts stderr "adding assign [list obj var value:$(mparam),multivalued] // for [self] with $(mparam)"
+      :method assign [list obj var value:$(mparam),multivalued] {::xotcl::setinstvar $obj $var $value}
+      #puts stderr "adding add method for [self] with value:$(mparam)"
+      :method add [list obj prop value:$(mparam) {pos 0}] {next}
+    } else {
+      #puts stderr "adding assign [list obj var value:$(mparam)] // for [self] with $(mparam)"
+      :method assign [list obj var value:$(mparam)] {::xotcl::setinstvar $obj $var $value}
     }
   }
   #append __initcmd [:mk_type_checker]
