@@ -7,6 +7,29 @@ catch {::xotcl::configure cacheinterface true}
 
 ::xotcl::use xotcl2
 
+#######################################################
+# valuecheck
+#######################################################
+Test case valuecheck
+Test parameter count 10000
+#Test parameter count 10
+Object create o1
+? {::xotcl::valuecheck object o1} 1
+? {::xotcl::is o1 object} 1
+? {::xotcl::valuecheck class o1} 0
+? {::xotcl::valuecheck class Test} 1
+? {::xotcl::valuecheck object,multivalued [list o1 Test]} 1
+? {::xotcl::valuecheck integer 1} 1
+? {::xotcl::valuecheck integer,multivalued [list 1 2 3]} 1
+? {::xotcl::valuecheck integer,multivalued [list 1 2 3 a]} 0
+? {::xotcl::valuecheck in1 aaa} {invalid value constraints "in1"}
+
+#######################################################
+# objectparameter
+#######################################################
+Test case objectparameter
+
+Test parameter count 10
 Class create C -parameter {a {b:boolean} {c 1}}
 C create c1 
 ? {C eval {:objectparameter}} "-object-mixin:relation -mixin:relation,arg=class-mixin\
@@ -18,9 +41,10 @@ C create c1
     "-a -b:boolean {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
 -class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
 arg:initcmd,optional"
-#
+
+#######################################################
 # reclass to Object, no need to do anything on caching
-#
+#######################################################
 Test case reclass
 c1 class Object
 ? {c1 eval :objectparameter} "-mixin:relation,arg=object-mixin -filter:relation\
@@ -35,9 +59,9 @@ D create d1 -d 100
 -class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
 arg:initcmd,optional"
 
-#
+#######################################################
 # Add mixin
-#
+#######################################################
 Test case objparam-mixins
 Class create M -parameter {m1 m2 b}
 Class create M2 -parameter {b2}
@@ -77,9 +101,9 @@ C mixin ""
 arg:initcmd,optional"
 
 
-#
+#######################################################
 # test passed arguments
-#
+#######################################################
 Test case passed-arguments
 
 ? {catch {D create d1 -d 123}} 0 "create d1 with required argument given"
@@ -131,9 +155,9 @@ D method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:c
     {Parameter option 'relation' not allowed} \
     "don't allow relation option as method parameter"
 
-#
+#######################################################
 # non required positional arguments
-#
+#######################################################
 Test case non-reg-args
 
 D method foo {a b:optional c:optional} {
@@ -149,9 +173,9 @@ D method foo {a b:optional c:optional args} {
 ? {d1 foo 1 2} "1-1-0-1" "omit optional argument"
 ? {d1 foo 1} "1-0-0-1" "omit optional arguments"
 
-#
+#######################################################
 # non required positional arguments
-#
+#######################################################
 Test case multivalued
 Object create o
 
@@ -184,9 +208,9 @@ Foo create foo -ints {1 2}
 ? {foo ints add 0} "0 1 2"
 ? {foo ints add a} {expected integer but got "a"}
 
-#
+#######################################################
 # subst default tests
-#
+#######################################################
 Test case subst-default
 
 D method bar {
@@ -269,9 +293,9 @@ D method foo {a b c {end 100}} {
     "a 1 b 1 c 1 end 1" \
     "query arguments with default, no paramdefs needed"
 
-#
+#######################################################
 # Query method parameter
-#
+#######################################################
 Test case query-method-parameter
 
 ? {D info method parameter foo} \
@@ -296,9 +320,9 @@ Test case query-method-parameter
 #    "query instparams for info method 'params' method"
 
 
-#
+#######################################################
 # user defined parameter types
-#
+#######################################################
 Test case user-types
 
 #
@@ -396,9 +420,9 @@ D method foo {{"-a:list,arg=2 6" 3} {"b:list,arg=5 10"}} {
 ? {d1 foo -a 2 10} "a=2,b=10"
 
 
-#
+#######################################################
 # testing object types in method parameters
-#
+#######################################################
 Test case mp-object-types
 Class create M
 D create d1 -d 1
@@ -481,9 +505,9 @@ D method foo-type   {x:type,arg=::C} {return $x}
     "o not of type ::C"
 
 
-#
+#######################################################
 # testing object types in object parameters
-#
+#######################################################
 Test case op-object-types
 Class create M
 D create d1 -d 1
@@ -512,12 +536,6 @@ Class create ParamTest -parameter {
 #       maybe "type" => "hastype"
 #       maybe "mixin" => "hasmixin"
 #       => effects as well ::xotcl::is
-#
-# TODO: It looks, as if we need multivalues as well on object
-#       parameters. If a slot has multivalued set, objectparameter
-#       must honor it. This would allow general checking of e.g.  list
-#       of integers, list of objects, etc. Therefore, we would not
-#       need to duplicate this functionality on the slots.
 #
 # TODO (optimization): optimizer can improve parameter checking:
 #       (a) simple approach: make scripted setter methods on domain

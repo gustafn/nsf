@@ -138,6 +138,10 @@ xotclCmd setter XOTclSetterCmd {
   {-argName "-per-object"}
   {-argName "methodName" -required 1}
 }
+xotclCmd valuecheck XOTclValuecheckCmd {
+  {-argName "param" -type tclobj}
+  {-argName "value" -required 0 -type tclobj}
+}
 #
 # object methods
 #

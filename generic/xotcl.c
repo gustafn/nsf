@@ -12061,6 +12061,86 @@ static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object,  int withPer_
   }
   return result;
 }
+
+static void ParamFreeInternalRep(register Tcl_Obj *objPtr);
+static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
+static Tcl_ObjType paramObjType = {
+    "xotclParam",				/* name */
+    ParamFreeInternalRep,		/* freeIntRepProc */
+    NULL,				/* dupIntRepProc */
+    NULL,				/* updateStringProc */
+    ParamSetFromAny			/* setFromAnyProc */
+};
+
+static void
+ParamFreeInternalRep(
+    register Tcl_Obj *objPtr)	/* Param structure object with internal
+				 * representation to free. */
+{
+  XOTclParam *paramPtr = (XOTclParam *) objPtr->internalRep.twoPtrValue.ptr1;
+  if (paramPtr != NULL) {
+    /*fprintf(stderr, "freeing %p\n",paramPtr);*/
+    ParamsFree(paramPtr);
+  }
+}
+
+static int
+ParamSetFromAny(
+    Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
+    register Tcl_Obj *objPtr)	/* The object to convert. */
+{
+  XOTclParam *paramPtr;
+  Tcl_Obj *fullParamObj = Tcl_NewStringObj("value:", 6);
+  int result, possibleUnknowns = 0, plainParams = 0;
+
+  paramPtr = ParamsNew(1);
+  /*fprintf(stderr, "allocating  %p\n",paramPtr);*/
+
+  Tcl_AppendToObj(fullParamObj, ObjStr(objPtr), -1);
+  INCR_REF_COUNT(fullParamObj);
+  result = ParamParse(interp, "valuecheck", fullParamObj, 
+                      XOTCL_ARG_METHOD_PARAMETER /* allowed options */,
+                      paramPtr, &possibleUnknowns, &plainParams);
+  if (result == TCL_OK) {
+    TclFreeIntRep(objPtr);
+    objPtr->internalRep.twoPtrValue.ptr1 = (void *)paramPtr;
+    objPtr->internalRep.twoPtrValue.ptr2 = NULL;
+    objPtr->typePtr = &paramObjType;    
+  }
+
+  DECR_REF_COUNT(fullParamObj);
+  return result;
+}
+
+/*
+xotclCmd valuecheck XOTclValuecheckCmd {
+  {-argName "param" -type tclobj}
+  {-argName "value" -required 0 -type tclobj}
+  } */
+static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *value) {
+  /* xxxx */
+  ClientData checkedData;
+  XOTclParam *paramPtr;
+  int result;
+
+  if (objPtr->typePtr == &paramObjType) {
+    paramPtr = (XOTclParam *) objPtr->internalRep.twoPtrValue.ptr1;
+  } else {
+    result = ParamSetFromAny(interp, objPtr);
+    if (result == TCL_OK) {
+      paramPtr = (XOTclParam *) objPtr->internalRep.twoPtrValue.ptr1;
+    } else {
+      return XOTclVarErrMsg(interp,
+                            "invalid value constraints \"", ObjStr(objPtr), "\"",
+                            (char *) NULL);
+    }
+  }
+
+  result = ArgumentCheck(interp, value, paramPtr, &checkedData);
+  Tcl_SetIntObj(Tcl_GetObjResult(interp), (result == TCL_OK));
+  return TCL_OK;
+}
+
 /***************************
  * End generated XOTcl commands
  ***************************/

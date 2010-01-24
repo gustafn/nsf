@@ -186,6 +186,7 @@ static int XOTclQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int
 static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclValuecheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int XOTclCheckBooleanArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
 static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
@@ -268,6 +269,7 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, char *methodName);
+static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *param, Tcl_Obj *value);
 
 enum {
  XOTclCheckBooleanArgsIdx,
@@ -350,7 +352,8 @@ enum {
  XOTclQualifyObjCmdIdx,
  XOTclRelationCmdIdx,
  XOTclSetInstvarCmdIdx,
- XOTclSetterCmdIdx
+ XOTclSetterCmdIdx,
+ XOTclValuecheckCmdIdx
 } XOTclMethods;
 
 
@@ -1959,6 +1962,25 @@ XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   }
 }
 
+static int
+XOTclValuecheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclValuecheckCmdIdx].paramDefs, 
+                     method_definitions[XOTclValuecheckCmdIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *param = (Tcl_Obj *)pc.clientData[0];
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[1];
+
+    parseContextRelease(&pc);
+    return XOTclValuecheckCmd(interp, param, value);
+
+  }
+}
+
 static methodDefinition method_definitions[] = {
 {"::xotcl::cmd::ParameterType::type=boolean", XOTclCheckBooleanArgsStub, 2, {
   {"name", 1, 0, convertToString},
@@ -2320,6 +2342,10 @@ static methodDefinition method_definitions[] = {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"methodName", 1, 0, convertToString}}
+},
+{"::xotcl::valuecheck", XOTclValuecheckCmdStub, 2, {
+  {"param", 0, 0, convertToTclobj},
+  {"value", 0, 0, convertToTclobj}}
 },{NULL}
 };
 
