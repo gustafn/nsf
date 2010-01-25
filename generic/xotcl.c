@@ -10238,13 +10238,12 @@ static int
 ListChildren(Tcl_Interp *interp, XOTclObject *object, char *pattern, int classesOnly) {
   XOTclObject *childObject;
   Tcl_HashTable *cmdTable;
-  XOTcl_FrameDecls;
 
   if (!object->nsPtr) return TCL_OK;
 
   cmdTable = Tcl_Namespace_cmdTable(object->nsPtr);
   if (pattern && noMetaChars(pattern)) {
-    XOTcl_PushFrameObj(interp, object);
+
     if ((childObject = XOTclpGetObject(interp, pattern)) &&
         (!classesOnly || XOTclObjectIsClass(childObject)) &&
         (Tcl_Command_nsPtr(childObject->id) == object->nsPtr)  /* true children */
@@ -10253,13 +10252,13 @@ ListChildren(Tcl_Interp *interp, XOTclObject *object, char *pattern, int classes
     } else {
       Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_EMPTY]);
     }
-    XOTcl_PopFrameObj(interp, object);
+
   } else {
     Tcl_Obj *list = Tcl_NewListObj(0, NULL);
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch);
     char *key;
-    XOTcl_PushFrameObj(interp, object);
+
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       key = Tcl_GetHashKey(cmdTable, hPtr);
       if (!pattern || Tcl_StringMatch(key, pattern)) {
@@ -10271,9 +10270,9 @@ ListChildren(Tcl_Interp *interp, XOTclObject *object, char *pattern, int classes
         }
       }
     }
-    XOTcl_PopFrameObj(interp, object);
     Tcl_SetObjResult(interp, list);
   }
+
   return TCL_OK;
 }
 
@@ -13824,9 +13823,7 @@ ObjectHasChildren(Tcl_Interp *interp, XOTclObject *object) {
     Tcl_HashEntry *hPtr;
     Tcl_HashSearch hSrch;
     Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(ns);
-    XOTcl_FrameDecls;
 
-    XOTcl_PushFrameObj(interp, object); /* TODO: needed? */
     for (hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch); hPtr;
          hPtr = Tcl_NextHashEntry(&hSrch)) {
       char *key = Tcl_GetHashKey(cmdTable, hPtr);
@@ -13836,7 +13833,6 @@ ObjectHasChildren(Tcl_Interp *interp, XOTclObject *object) {
         break;
       }
     }
-    XOTcl_PopFrameObj(interp, object);
   }
   return result;
 }
