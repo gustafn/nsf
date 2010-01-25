@@ -5262,8 +5262,9 @@ static void ParamsFree(XOTclParam *paramsPtr) {
     if (paramPtr->name) ckfree(paramPtr->name);
     if (paramPtr->nameObj) {DECR_REF_COUNT(paramPtr->nameObj);}
     if (paramPtr->defaultValue) {DECR_REF_COUNT(paramPtr->defaultValue);}
-    if (paramPtr->arg) {DECR_REF_COUNT(paramPtr->arg);}
+    if (paramPtr->converterName) {DECR_REF_COUNT(paramPtr->converterName);}
     if (paramPtr->converterArg) {DECR_REF_COUNT(paramPtr->converterArg);}
+    if (paramPtr->paramObj) {DECR_REF_COUNT(paramPtr->paramObj);}
   }
   FREE(XOTclParam*, paramsPtr);
 }
@@ -5329,47 +5330,58 @@ static int convertToNothing(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclPar
 static Tcl_Obj *
 ParamDefsFormat(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
   int first, colonWritten;
-  Tcl_Obj *list = Tcl_NewListObj(0, NULL), *innerlist, *nameStringObj;
+  Tcl_Obj *list = Tcl_NewListObj(0, NULL), *innerList, *nameStringObj;
   XOTclParam CONST *pPtr;
 
   for (pPtr = paramDefs->paramsPtr; pPtr->name; pPtr++) {
-    int isNonpos = *pPtr->name == '-';
-    int outputRequired = (isNonpos && (pPtr->flags & XOTCL_ARG_REQUIRED));
-    int outputOptional = (!isNonpos && !(pPtr->flags & XOTCL_ARG_REQUIRED)
-                          && !pPtr->defaultValue &&
-                          pPtr->converter != convertToNothing);
-    first = 1;
-    colonWritten = 0;
+    if (pPtr -> paramObj) {
+      innerList = pPtr->paramObj;
+    } else {
+      /* We need this part only for C-defined parameter definitions,
+         defined via genTclAPI.
 
-    nameStringObj = Tcl_NewStringObj(pPtr->name, -1);
-    if (pPtr->type) {
-      ParamDefsFormatOption(interp, nameStringObj, pPtr->type, &colonWritten, &first);
+         TODO: we could streamline this by defining as well C-Api via
+         the same syntax as for accepted for tcl obj types
+         "xotclParam"
+      */
+      int isNonpos = *pPtr->name == '-';
+      int outputRequired = (isNonpos && (pPtr->flags & XOTCL_ARG_REQUIRED));
+      int outputOptional = (!isNonpos && !(pPtr->flags & XOTCL_ARG_REQUIRED)
+                            && !pPtr->defaultValue &&
+                            pPtr->converter != convertToNothing);
+      first = 1;
+      colonWritten = 0;
+      
+      nameStringObj = Tcl_NewStringObj(pPtr->name, -1);
+      if (pPtr->type) {
+        ParamDefsFormatOption(interp, nameStringObj, pPtr->type, &colonWritten, &first);
+      }
+      if (outputRequired) {
+        ParamDefsFormatOption(interp, nameStringObj, "required", &colonWritten, &first);
+      } else if (outputOptional) {
+        ParamDefsFormatOption(interp, nameStringObj, "optional", &colonWritten, &first);
+      }
+      if ((pPtr->flags & XOTCL_ARG_SUBST_DEFAULT)) {
+        ParamDefsFormatOption(interp, nameStringObj, "substdefault", &colonWritten, &first);
+      }
+      if ((pPtr->flags & XOTCL_ARG_INITCMD)) {
+        ParamDefsFormatOption(interp, nameStringObj, "initcmd", &colonWritten, &first);
+      } else if ((pPtr->flags & XOTCL_ARG_METHOD)) {
+        ParamDefsFormatOption(interp, nameStringObj, "method", &colonWritten, &first);
+      } else if ((pPtr->flags & XOTCL_ARG_NOARG)) {
+        ParamDefsFormatOption(interp, nameStringObj, "noarg", &colonWritten, &first);
+      } else if ((pPtr->flags & XOTCL_ARG_MULTIVALUED)) {
+        ParamDefsFormatOption(interp, nameStringObj, "multivalued", &colonWritten, &first);
+      }
+      
+      innerList = Tcl_NewListObj(0, NULL);
+      Tcl_ListObjAppendElement(interp, innerList, nameStringObj);
+      if (pPtr->defaultValue) {
+        Tcl_ListObjAppendElement(interp, innerList, pPtr->defaultValue);
+      }
     }
-    if (outputRequired) {
-      ParamDefsFormatOption(interp, nameStringObj, "required", &colonWritten, &first);
-    } else if (outputOptional) {
-      ParamDefsFormatOption(interp, nameStringObj, "optional", &colonWritten, &first);
-    }
-    if ((pPtr->flags & XOTCL_ARG_SUBST_DEFAULT)) {
-      ParamDefsFormatOption(interp, nameStringObj, "substdefault", &colonWritten, &first);
-    }
-    if ((pPtr->flags & XOTCL_ARG_INITCMD)) {
-      ParamDefsFormatOption(interp, nameStringObj, "initcmd", &colonWritten, &first);
-    } else if ((pPtr->flags & XOTCL_ARG_METHOD)) {
-      ParamDefsFormatOption(interp, nameStringObj, "method", &colonWritten, &first);
-    } else if ((pPtr->flags & XOTCL_ARG_NOARG)) {
-      ParamDefsFormatOption(interp, nameStringObj, "noarg", &colonWritten, &first);
-    } else if ((pPtr->flags & XOTCL_ARG_MULTIVALUED)) {
-      ParamDefsFormatOption(interp, nameStringObj, "multivalued", &colonWritten, &first);
-    }
-
-    innerlist = Tcl_NewListObj(0, NULL);
-    Tcl_ListObjAppendElement(interp, innerlist, nameStringObj);
-    if (pPtr->defaultValue) {
-      Tcl_ListObjAppendElement(interp, innerlist, pPtr->defaultValue);
-    }
-
-    Tcl_ListObjAppendElement(interp, list, innerlist);
+    
+    Tcl_ListObjAppendElement(interp, list, innerList);
   }
 
   return list;
@@ -6219,6 +6231,30 @@ static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST
   }
   return XOTclObjErrType(interp, objPtr, "class");
 }
+static int convertToObjectOfType(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
+  XOTclObject *object;
+  XOTclClass *cl;
+  Tcl_Obj *valueObj = pPtr->converterArg;
+  Tcl_DString ds, *dsPtr = &ds;
+
+  if (valueObj == NULL)
+    return XOTclVarErrMsg(interp, "No object type specified", (char *) NULL);
+
+  if ((GetObjectFromObj(interp, objPtr, &object) == TCL_OK)
+      && (GetClassFromObj(interp, valueObj, &cl, 0) == TCL_OK)
+      && isSubType(object->cl, cl)) {
+    *clientData = object;
+    return TCL_OK;
+  }
+
+  DSTRING_INIT(dsPtr);
+  Tcl_DStringAppend(dsPtr, "object of type ", -1);
+  Tcl_DStringAppend(dsPtr, ObjStr(valueObj), -1);
+  XOTclObjErrType(interp, objPtr, Tcl_DStringValue(dsPtr));
+  DSTRING_FREE(dsPtr);
+
+  return TCL_ERROR;
+}
 
 static int convertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
   /* XOTclRelationCmd is the real setter, which checks the values
@@ -6233,7 +6269,7 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
   int result, oc;
 
   ov[0] = XOTclGlobalObjects[XOTE_PARAMETER_TYPE_OBJ];
-  ov[1] = pPtr->arg;
+  ov[1] = pPtr->converterName;
   ov[2] = pPtr->nameObj;
   ov[3] = objPtr;
 
@@ -6342,6 +6378,12 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     result = ParamOptionSetConverter(interp, paramPtr, "relation", convertToRelation);
     paramPtr->flags |= XOTCL_ARG_RELATION;
     /*paramPtr->type = "tclobj";*/
+  } else if (length >= 6 && strncmp(option, "type=", 5) == 0) {
+    if (paramPtr->converterArg) 
+      return XOTclVarErrMsg(interp, "Converter arg specified twice", (char *) NULL);
+    result = ParamOptionSetConverter(interp, paramPtr, option, convertToObjectOfType);
+    paramPtr->converterArg = Tcl_NewStringObj(option+5, length-5);
+    INCR_REF_COUNT(paramPtr->converterArg);
   } else {
     XOTclObject *paramObj;
     Tcl_Obj *checker;
@@ -6362,7 +6404,7 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
       /* TODO: for the time being, we do not return an error here */
     }
     result = ParamOptionSetConverter(interp, paramPtr, "usertype", convertViaCmd);
-    paramPtr->arg = checker;
+    paramPtr->converterName = checker;
   }
 
   if ((paramPtr->flags & disallowedOptions)) {
@@ -6378,6 +6420,9 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
   int result, npac, length, j, nameLength, isNonposArgument;
   char *argString, *argName;
   Tcl_Obj **npav;
+
+  paramPtr->paramObj = arg;
+  INCR_REF_COUNT(paramPtr->paramObj);
 
   result = Tcl_ListObjGetElements(interp, arg, &npac, &npav);
   if (result != TCL_OK || npac < 1 || npac > 2) {

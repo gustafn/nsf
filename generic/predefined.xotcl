@@ -327,8 +327,14 @@ proc ::xotcl::parameterFromSlot {slot name} {
     lappend methodopts required
   }
   if {[$slot exists type]} {
-    lappend objopts [$slot type]
-    lappend methodopts [$slot type]
+    set type [$slot type]
+    if {[string match ::* $type]} {
+      lappend objopts type=$type
+      lappend methodopts type=$type      
+    } else {
+      lappend objopts $type
+      lappend methodopts $type
+    }
   }
   # TODO: remove multivalued check on relations by handling multivalued
   # not in relation, but in the converters

@@ -50,7 +50,7 @@ c1 method foo {} {puts foo}
 ? {Class info method parameter method} \
     {name arguments body -precondition -postcondition}
 ? {Object info method parameter alias} \
-    {{-objscope:switch 0} methodName cmd}
+    {-objscope:switch methodName cmd}
 # raises currently an error
 ? {catch {C info method parameter a}} 1
   
