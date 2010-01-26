@@ -27,10 +27,10 @@ C create c1
 ? {::xotcl::valuecheck integer,multivalued [list 1 2 3]} 1
 ? {::xotcl::valuecheck integer,multivalued [list 1 2 3 a]} 0
 ? {::xotcl::valuecheck in1 aaa} {invalid value constraints "in1"}
-? {::xotcl::valuecheck type=::C c1} 1
-? {::xotcl::valuecheck type=::C o} 0 "object, but different type"
-? {::xotcl::valuecheck type=::C c} 0 "no object"
-? {::xotcl::valuecheck type=::xotcl2::Object c1} 1 "general type"
+? {::xotcl::valuecheck object,type=::C c1} 1
+? {::xotcl::valuecheck object,type=::C o} 0 "object, but different type"
+? {::xotcl::valuecheck object,type=::C c} 0 "no object"
+? {::xotcl::valuecheck object,type=::xotcl2::Object c1} 1 "general type"
 
 #
 # parameter options
@@ -392,7 +392,7 @@ d1 foo 1
 
 ? {d1 foo 10} \
     "Value '10' of parameter a is not between 1 and 3" \
-    "invalid value"
+    "value not between 1 and 3"
 
 D method foo {a:unknowntype} {
   puts stderr a=$a
@@ -507,11 +507,11 @@ D method foo-class  {x:class} {return $x}
 D method foo-object {x:object} {return $x}
 D method foo-meta   {x:metaclass} {return $x}
 D method foo-mixin  {x:mixin,arg=::M} {return $x}
-D method foo-type   {x:type=::C} {return $x}
+D method foo-type   {x:object,type=::C} {return $x}
 
 ? {D info method parameter foo-base} "x:baseclass"
 ? {D info method parameter foo-mixin} "x:mixin,arg=::M"
-? {D info method parameter foo-type} "x:type=::C"
+? {D info method parameter foo-type} "x:object,type=::C"
 
 ? {d1 foo-base ::xotcl2::Object} "::xotcl2::Object"
 ? {d1 foo-base C} \
@@ -560,8 +560,8 @@ Object create o
 Class create ParamTest -parameter {
   o:object
   c:class
-  d:type=::C
-  d1:type=C
+  d:object,type=::C
+  d1:object,type=C
   m:metaclass
   mix:mixin,arg=M
   b:baseclass
@@ -576,8 +576,8 @@ proc parameterFromSlot {class objectparameter} {
 }
 
 ? {parameterFromSlot ParamTest o} "o:object"
-? {parameterFromSlot ParamTest d} "d:type=::C"
-? {parameterFromSlot ParamTest d1} "d1:type=C"
+? {parameterFromSlot ParamTest d} "d:object,type=::C"
+? {parameterFromSlot ParamTest d1} "d1:object,type=::C"
 ? {parameterFromSlot ParamTest mix} "mix:mixin,arg=M"
 ? {parameterFromSlot ParamTest x} "x:object,multivalued o"
 

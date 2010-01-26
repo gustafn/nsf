@@ -329,8 +329,8 @@ proc ::xotcl::parameterFromSlot {slot name} {
   if {[$slot exists type]} {
     set type [$slot type]
     if {[string match ::* $type]} {
-      lappend objopts type=$type
-      lappend methodopts type=$type      
+      lappend objopts object type=$type
+      lappend methodopts object type=$type      
     } else {
       lappend objopts $type
       lappend methodopts $type
@@ -856,14 +856,22 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 	  lappend opts -required 1
 	} elseif {$property eq "multivalued"} {
 	  lappend opts -multivalued 1
+	} elseif {[string match type=* $property]} {
+          set type [string range $property 5 end]
+          if {![string match ::* $type]} {set type ::$type}
 	} elseif {[string match arg=* $property]} {
 	  set argument [string range $property 4 end]
 	  lappend opts -arg $argument
 	} else {
-	  lappend opts -type $property
+	  set type $property
 	}
       }
     }
+    if {[info exists type]} {
+      lappend opts -type $type
+      unset type
+    }
+    
     set cmd [list ::xotcl::Attribute create [::xotcl::self]::slot::$name {*}$opts]
     #puts stderr cmd=$cmd
 

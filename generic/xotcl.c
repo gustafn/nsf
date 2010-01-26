@@ -6361,8 +6361,11 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     paramPtr->flags |= XOTCL_ARG_RELATION;
     /*paramPtr->type = "tclobj";*/
   } else if (length >= 6 && strncmp(option, "type=", 5) == 0) {
-    if (paramPtr->converterArg) 
-      return XOTclVarErrMsg(interp, "Converter arg specified twice", (char *) NULL);
+    if (paramPtr->converter != NULL &&
+        paramPtr->converter != convertToObject && 
+        paramPtr->converter != convertToClass) 
+      return XOTclVarErrMsg(interp, "option type= only allowed for object or class", (char *) NULL);
+    paramPtr->converter = NULL;
     result = ParamOptionSetConverter(interp, paramPtr, option, convertToObjectOfType);
     paramPtr->converterArg = Tcl_NewStringObj(option+5, length-5);
     INCR_REF_COUNT(paramPtr->converterArg);
