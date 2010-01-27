@@ -358,6 +358,7 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_ARG_REQUIRED		     0x0001
 #define XOTCL_ARG_MULTIVALUED		     0x0002
 #define XOTCL_ARG_NOARG 		     0x0004
+#define XOTCL_ARG_CURRENTLY_UNKNOWN	     0x0008
 #define XOTCL_ARG_SUBST_DEFAULT		     0x0010
 #define XOTCL_ARG_INITCMD		     0x0020
 #define XOTCL_ARG_METHOD		     0x0040
@@ -367,7 +368,7 @@ typedef struct XOTclStringIncrStruct {
 /* disallowed options */
 #define XOTCL_DISALLOWED_ARG_METHOD_PARAMETER	     (XOTCL_ARG_METHOD|XOTCL_ARG_INITCMD|XOTCL_ARG_RELATION)
 #define XOTCL_DISALLOWED_ARG_OBJECT_PARAMETER	     0
-#define XOTCL_DISALLOWED_ARG_VALUEECHECK	     (XOTCL_ARG_SUBST_DEFAULT|XOTCL_ARG_METHOD|XOTCL_ARG_INITCMD|XOTCL_ARG_RELATION|XOTCL_ARG_SWITCH)
+#define XOTCL_DISALLOWED_ARG_VALUEECHECK	     (XOTCL_ARG_SUBST_DEFAULT|XOTCL_ARG_METHOD|XOTCL_ARG_INITCMD|XOTCL_ARG_RELATION|XOTCL_ARG_SWITCH|XOTCL_ARG_CURRENTLY_UNKNOWN)
 
 
 /* method types */
@@ -505,7 +506,7 @@ typedef enum {
   XOTE_AUTONAMES, XOTE_DEFAULTMETACLASS, XOTE_DEFAULTSUPERCLASS, 
   XOTE_ALIAS_ARRAY,
   /* object/class names */
-  XOTE_PARAMETER_TYPE_OBJ, 
+  XOTE_PARAMETER_SLOT_OBJ, 
   /* constants */
   XOTE_ALIAS, XOTE_ARGS, XOTE_CMD, XOTE_FILTER, XOTE_FORWARD, 
   XOTE_METHOD, XOTE_OBJECT, XOTE_SETTER, 
@@ -528,7 +529,7 @@ char *XOTclGlobalStrings[] = {
   "__autonames", "__default_metaclass", "__default_superclass", 
   "::xotcl::alias",
   /* object/class names */
-  "::xotcl::parameterType", 
+  "::xotcl::parameterSlot", 
   /* constants */
   "alias", "args", "cmd", "filter",  "forward", 
   "method", "object", "setter", 

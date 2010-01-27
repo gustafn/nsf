@@ -6250,7 +6250,7 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
   Tcl_Obj *ov[5];
   int result, oc;
 
-  ov[0] = XOTclGlobalObjects[XOTE_PARAMETER_TYPE_OBJ];
+  ov[0] = XOTclGlobalObjects[XOTE_PARAMETER_SLOT_OBJ];
   ov[1] = pPtr->converterName;
   ov[2] = pPtr->nameObj;
   ov[3] = objPtr;
@@ -6321,7 +6321,6 @@ ParamOptionSetConverter(Tcl_Interp *interp, XOTclParam *paramPtr,
 static int
 ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOptions, XOTclParam *paramPtr) {
   int result = TCL_OK; 
-
   /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%d) disallowed %.6x\n", paramPtr->name, option, length, disallowedOptions);*/
   if (strncmp(option, "required", MAX(3,length)) == 0) {
     paramPtr->flags |= XOTCL_ARG_REQUIRED;
@@ -6375,7 +6374,7 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     XOTclClass *pcl;
     Tcl_Command cmd;
 
-    result = GetObjectFromObj(interp, XOTclGlobalObjects[XOTE_PARAMETER_TYPE_OBJ], &paramObj);
+    result = GetObjectFromObj(interp, XOTclGlobalObjects[XOTE_PARAMETER_SLOT_OBJ], &paramObj);
     if (result != TCL_OK)
       return result;
 
@@ -6386,6 +6385,7 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     if (cmd == NULL) {
       fprintf(stderr, "**** could not find checker method %s defined on %s\n",
               ObjStr(checker), objectName(paramObj));
+      paramPtr->flags |= XOTCL_ARG_CURRENTLY_UNKNOWN;
       /* TODO: for the time being, we do not return an error here */
     }
     result = ParamOptionSetConverter(interp, paramPtr, "usertype", convertViaCmd);
@@ -6442,26 +6442,29 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
     /* we found a ':' */
     int l, start, end;
 
+    /* get parameter name */
     NEW_STRING(paramPtr->name, argString, j);
     paramPtr->nameObj = Tcl_NewStringObj(argName, isNonposArgument ? j-1 : j);
     INCR_REF_COUNT(paramPtr->nameObj);
 
-    /* skip space */
+    /* skip space at begin */
     for (start = j+1; start<length && isspace((int)argString[start]); start++) {;}
 
     /* search for ',' */
     for (l=start; l<length; l++) {
       if (argString[l] == ',') {
+	/* skip space from end */
         for (end = l; end>0 && isspace((int)argString[end-1]); end--);
         result = ParamOptionParse(interp, argString+start, end-start, disallowedOptions, paramPtr);
         if (result != TCL_OK) {
           goto param_error;
         }
         l++;
-        /* skip space */
+        /* skip space from begin */
         for (start = l; start<length && isspace((int)argString[start]); start++) {;}
       }
     }
+    /* skip space from end */
     for (end = l; end>0 && isspace((int)argString[end-1]); end--);
     /* process last option */
     result = ParamOptionParse(interp, argString+start, end-start, disallowedOptions, paramPtr);
@@ -6469,7 +6472,7 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
       goto param_error;
     }
   } else {
-    /* no ':', the whole arg is the name */
+    /* no ':', the whole arg is the name, we have not options */
     NEW_STRING(paramPtr->name, argString, length);
     if (isNonposArgument) {
       paramPtr->nameObj = Tcl_NewStringObj(argName, length-1);
@@ -12147,7 +12150,6 @@ xotclCmd valuecheck XOTclValuecheckCmd {
   {-argName "value" -required 0 -type tclobj}
   } */
 static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *value) {
-  /* xxxx */
   ClientData checkedData;
   XOTclParam *paramPtr;
   int result;

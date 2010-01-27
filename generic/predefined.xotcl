@@ -412,14 +412,14 @@ proc ::xotcl::parametersFromSlots {obj} {
 }
 
 #
-# create class and object for nonpositional argument processing
-::xotcl2::Class create ::xotcl2::ParameterType
-foreach cmd [info command ::xotcl::cmd::ParameterType::*] {
-  ::xotcl::alias ::xotcl2::ParameterType [namespace tail $cmd] $cmd
+# create class and object for parameter slots
+::xotcl2::Class create ::xotcl::ParameterSlot
+foreach cmd [info command ::xotcl::cmd::ParameterSlot::*] {
+  ::xotcl::alias ::xotcl::ParameterSlot [namespace tail $cmd] $cmd
 }
 
 # create an object for dispatching
-::xotcl2::ParameterType create ::xotcl2::parameterType
+::xotcl::ParameterSlot create ::xotcl::parameterSlot
 
 
 # use low level interface for defining slot values. Normally, this is
