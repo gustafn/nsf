@@ -6250,7 +6250,7 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
   Tcl_Obj *ov[5];
   int result, oc;
 
-  ov[0] = XOTclGlobalObjects[XOTE_PARAMETER_SLOT_OBJ];
+  ov[0] = XOTclGlobalObjects[XOTE_METHOD_PARAMETER_SLOT_OBJ];
   ov[1] = pPtr->converterName;
   ov[2] = pPtr->nameObj;
   ov[3] = objPtr;
@@ -6374,7 +6374,7 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     XOTclClass *pcl;
     Tcl_Command cmd;
 
-    result = GetObjectFromObj(interp, XOTclGlobalObjects[XOTE_PARAMETER_SLOT_OBJ], &paramObj);
+    result = GetObjectFromObj(interp, XOTclGlobalObjects[XOTE_METHOD_PARAMETER_SLOT_OBJ], &paramObj);
     if (result != TCL_OK)
       return result;
 

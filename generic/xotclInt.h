@@ -506,7 +506,7 @@ typedef enum {
   XOTE_AUTONAMES, XOTE_DEFAULTMETACLASS, XOTE_DEFAULTSUPERCLASS, 
   XOTE_ALIAS_ARRAY,
   /* object/class names */
-  XOTE_PARAMETER_SLOT_OBJ, 
+  XOTE_METHOD_PARAMETER_SLOT_OBJ, 
   /* constants */
   XOTE_ALIAS, XOTE_ARGS, XOTE_CMD, XOTE_FILTER, XOTE_FORWARD, 
   XOTE_METHOD, XOTE_OBJECT, XOTE_SETTER, 
@@ -529,7 +529,7 @@ char *XOTclGlobalStrings[] = {
   "__autonames", "__default_metaclass", "__default_superclass", 
   "::xotcl::alias",
   /* object/class names */
-  "::xotcl::parameterSlot", 
+  "::xotcl::methodParameterSlot", 
   /* constants */
   "alias", "args", "cmd", "filter",  "forward", 
   "method", "object", "setter", 

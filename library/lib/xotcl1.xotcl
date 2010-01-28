@@ -128,20 +128,20 @@ namespace eval ::xotcl {
     ${os}::Object alloc ${os}::Class::slot
     ${os}::Object alloc ${os}::Object::slot
     
-    ::xotcl::InfoSlot create ${os}::Class::slot::superclass -type relation
+    ::xotcl::RelationSlot create ${os}::Class::slot::superclass
     ::xotcl::alias           ${os}::Class::slot::superclass assign ::xotcl::relation
-    ::xotcl::InfoSlot create ${os}::Object::slot::class -type relation
+    ::xotcl::RelationSlot create ${os}::Object::slot::class -multivalued false
     ::xotcl::alias           ${os}::Object::slot::class assign ::xotcl::relation
 
-    ::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \
-        -type relation -methodname object-mixin
-    ::xotcl::InterceptorSlot create ${os}::Object::slot::filter \
-        -type relation  -methodname object-filter \
+    ::xotcl::RelationSlot create ${os}::Object::slot::mixin \
+        -methodname object-mixin
+    ::xotcl::RelationSlot create ${os}::Object::slot::filter \
+        -methodname object-filter \
         -elementtype ""
-    ::xotcl::InterceptorSlot create ${os}::Class::slot::instmixin \
-        -type relation  -methodname class-mixin
-    ::xotcl::InterceptorSlot create ${os}::Class::slot::instfilter \
-        -type relation -methodname class-filter \
+    ::xotcl::RelationSlot create ${os}::Class::slot::instmixin \
+        -methodname class-mixin
+    ::xotcl::RelationSlot create ${os}::Class::slot::instfilter \
+        -methodname class-filter \
         -elementtype ""
   }
   ::xotcl::register_system_slots1 ::xotcl

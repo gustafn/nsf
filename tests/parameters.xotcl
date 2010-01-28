@@ -64,7 +64,36 @@ C create c1
 #  objectOfType       YES        YES        NO    NO      YES          YES         YES
 #  userdefined        YES        YES        NO    YES     YES          YES         YES
 
-# MetaSlot create ParameterSlot -parameter {type required multivalued noarg arg}
+#::xotcl::Slot {
+#     {name "[namespace tail [::xotcl::self]]"}
+#     {methodname}
+#     {domain "[lindex [regexp -inline {^(.*)::slot::[^:]+$} [::xotcl::self]] 1]"}
+#     {defaultmethods {get assign}}
+#     {manager "[::xotcl::self]"}
+#     {multivalued false}
+#     {per-object false}
+#     {forward-per-object}
+#     {required false}
+#     default
+#     type
+# } -- No instances
+#
+# ::xotcl::RelationSlot -superclass ::xotcl::Slot {
+#     {multivalued true}
+#     {type relation}
+#     {elementtype ::xotcl2::Class}
+# } -- sample instances: class superclass, mixin filter
+#
+# ::xotcl::Attribute -superclass ::xotcl::Slot {
+#     {value_check once}
+#     initcmd
+#     valuecmd
+#     valuechangedcmd
+#     arg
+# } -- typical object parameters
+#
+# MethodParameterSlot -parameter {type required multivalued noarg arg}
+# -- typical method parameters
 
 
 #######################################################
@@ -375,7 +404,7 @@ Test case query-method-parameter
 Test case user-types
 
 # create a userdefined type
-::xotcl::parameterSlot method type=mytype {name value args} {
+::xotcl::methodParameterSlot method type=mytype {name value args} {
   if {$value < 1 || $value > 3} {
     error "Value '$value' of parameter $name is not between 1 and 3"
   }
@@ -395,11 +424,11 @@ D method foo {a:unknowntype} {
 }
 
 ? {d1 foo 10} \
-    "::xotcl::parameterSlot: unable to dispatch method 'type=unknowntype'" \
+    "::xotcl::methodParameterSlot: unable to dispatch method 'type=unknowntype'" \
     "missing type checker"
 
 # create a userdefined type with a simple argument
-::xotcl::parameterSlot method type=in {name value arg} {
+::xotcl::methodParameterSlot method type=in {name value arg} {
   if {$value ni [split $arg |]} {
     error "Value '$value' of parameter $name not in permissible values $arg"
   }
@@ -424,7 +453,7 @@ D method foo {a:in,arg=a|b|c b:in,arg=good|bad {-c:in,arg=a|b a}} {
     "Value 'very good' of parameter b not in permissible values good|bad" \
     "invalid value (not included)"
 
-::xotcl::parameterSlot method type=range {name value arg} {
+::xotcl::methodParameterSlot method type=range {name value arg} {
   foreach {min max} [split $arg -] break
   if {$value < $min || $value > $max} {
     error "Value '$value' of parameter $name not between $min and $max"
@@ -449,7 +478,7 @@ D method foo {a:range,arg=1-3 {-b:range,arg=2-6 3} c:range,arg=5-10} {
 #
 # handling of arg with spaces/arg as list
 #
-::xotcl::parameterSlot method type=list {name value arg} {
+::xotcl::methodParameterSlot method type=list {name value arg} {
   #puts $value/$arg
 }
 
@@ -482,17 +511,17 @@ Object create o
 # are already predefined, define the rest.
 # TODO: should go finally to predefined.
  
-::xotcl::parameterSlot method type=mixin {name value arg} {
+::xotcl::methodParameterSlot method type=mixin {name value arg} {
   if {![::xotcl::is $value mixin $arg]} {
     error "Value '$value' of $name has not mixin $arg"
   }
 }
-::xotcl::parameterSlot method type=baseclass {name value} {
+::xotcl::methodParameterSlot method type=baseclass {name value} {
   if {![::xotcl::is $value baseclass]} {
     error "Value '$value' of $name is not a baseclass"
   }
 }
-::xotcl::parameterSlot method type=metaclass {name value} {
+::xotcl::methodParameterSlot method type=metaclass {name value} {
   if {![::xotcl::is $value metaclass]} {
     error "Value '$value' of $name is not a metaclass"
   }

@@ -85,7 +85,8 @@ O mixin M2
 ? {O mixin} ::M2
 O mixin ""
 ? {O mixin} ""
-O mixin set M ;# not sure, whether we should keep set here, or use assign or some better term
+#O mixin set M ;# not sure, whether we should keep set here, or use assign or some better term
+O mixin assign M ;# new name
 ? {O mixin} ::M
 ? {O mixin ""} ""
 
@@ -96,7 +97,7 @@ O mixin set M ;# not sure, whether we should keep set here, or use assign or som
 
 # "class" is not multivalued, therefore we should not add (or remove) add/delete 
 # from the set of subcommands...
-? {::xotcl::InfoSlot class} "::xotcl::MetaSlot"
+? {::xotcl::RelationSlot class} "::xotcl::MetaSlot"
 O o1
 ? {o1 class} "::O"
 o1 class Object
