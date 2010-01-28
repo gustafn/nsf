@@ -97,32 +97,28 @@ namespace eval ::xotcl {
     return $parameterdefinitions
   }
 
-  #
-  # create class and object for nonpositional argument processing
-  Class create ::xotcl::ParameterType
-  foreach cmd [info command ::xotcl::cmd::ParameterType::*] {
-    ::xotcl::alias ::xotcl::ParameterType [namespace tail $cmd] $cmd
-  }
-  # register type boolean as checker for "switch"
-  ::xotcl::alias ::xotcl::ParameterType type=switch ::xotcl::cmd::ParameterType::type=boolean
-  # create an object for dispatching
-  ::xotcl::ParameterType create ::xotcl::parameterType
+#   #
+#   # create class and object for nonpositional argument processing
+#   Class create ::xotcl::ParameterType
+#   foreach cmd [info command ::xotcl::cmd::ParameterType::*] {
+#     ::xotcl::alias ::xotcl::ParameterType [namespace tail $cmd] $cmd
+#   }
+#   # register type boolean as checker for "switch"
+#   ::xotcl::alias ::xotcl::ParameterType type=switch ::xotcl::cmd::ParameterType::type=boolean
+#   # create an object for dispatching
+#   ::xotcl::ParameterType create ::xotcl::parameterType
 
-  #
-  # TODO:
-  # - are createBootstrapAttributeSlots for ::xotcl::Class still needed?
-  # - Defaults for objectparameter seem more natural.
-  # - no definition yet for xotcl2::Class
-  #
-  
-  # We provide a default value for superclass (when no superclass is specified explicitely)
-  # for defining the top-level class of the object system, such that different
-  # object systems might co-exist.
+  # We provide a default value for superclass (when no superclass is
+  # specified explicitely) and metaclass, in case they should differ
+  # from the root classes of the object system.
 
-  createBootstrapAttributeSlots ::xotcl::Class {
+  ::xotcl::alias ::xotcl::Class parameter ::xotcl::classes::xotcl2::Class::parameter
+  ::xotcl::Class parameter {
     {__default_superclass ::xotcl::Object}
     {__default_metaclass ::xotcl::Class}
   }
+  #xotcl::setinstvar ::xotcl::Class __default_superclass ::xotcl::Object
+  #xotcl::setinstvar ::xotcl::Class __default_metaclass ::xotcl::Class
 
 
 ############################################
@@ -533,7 +529,6 @@ namespace eval ::xotcl {
   ::xotcl::alias ::xotcl::Object defaultmethod ::xotcl::classes::xotcl2::Object::defaultmethod
 
   ::xotcl::alias ::xotcl::Class -per-object __unknown ::xotcl2::Class::__unknown
-  ::xotcl::alias ::xotcl::Class parameter ::xotcl::classes::xotcl2::Class::parameter
 
   proc myproc {args} {linsert $args 0 [::xotcl::self]}
   proc myvar  {var}  {.requireNamespace; return [::xotcl::self]::$var}

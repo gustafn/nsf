@@ -7738,18 +7738,29 @@ DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclClass *mcl, int isMet
       XOTclClass *result;
       XOTclClasses *sc;
       /* check superclasses of metaclass */
-      /*fprintf(stderr, "DefaultSuperClass: search in superclasses starting with %p\n", cl->super);*/
+      /*fprintf(stderr, "DefaultSuperClass for %s: search in superclasses starting with %p meta %d\n", 
+        className(cl), cl->super, isMeta);*/
+
+      if (isMeta) {
+	/*fprintf(stderr, "  ... is %s already root meta %d\n",
+                className(mcl->object.cl), 
+                mcl->object.cl->object.flags & XOTCL_IS_ROOT_META_CLASS);*/
+        if (mcl->object.cl->object.flags & XOTCL_IS_ROOT_META_CLASS) {
+          return mcl->object.cl;
+        }
+      }
       for (sc = mcl->super; sc && sc->cl != cl; sc = sc->nextPtr) {
 	/*fprintf(stderr, "  ... check ismeta %d %s root mcl %d root cl %d\n",
-	  isMeta, className(sc->cl),
-	  sc->cl->object.flags & XOTCL_IS_ROOT_META_CLASS,
-	  sc->cl->object.flags & XOTCL_IS_ROOT_CLASS);*/
+                isMeta, className(sc->cl),
+                sc->cl->object.flags & XOTCL_IS_ROOT_META_CLASS,
+                sc->cl->object.flags & XOTCL_IS_ROOT_CLASS);*/
 	if (isMeta) {
 	  if (sc->cl->object.flags & XOTCL_IS_ROOT_META_CLASS) {
 	    return sc->cl;
 	  }
 	} else {
 	  if (sc->cl->object.flags & XOTCL_IS_ROOT_CLASS) {
+            /*fprintf(stderr, "found root class %p\n", sc->cl);*/
 	    return sc->cl;
 	  }
 	}

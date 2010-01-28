@@ -289,510 +289,608 @@ namespace eval xotcl2 {
 ########################################
 # Slot definitions
 ########################################
-#
-# We are still in bootstrap code; we cannot use slots/parameter to
-# define slots, so the code is a little low level. After the defintion
-# of the slots, we can use slot-based code such as "-parameter" or
-# "objectparameter".
-#
-::xotcl2::Class create ::xotcl::MetaSlot
-::xotcl::relation ::xotcl::MetaSlot superclass ::xotcl2::Class
-
-::xotcl::MetaSlot public method new args {
-  set slotobject [::xotcl::self callingobject]::slot
-  if {![::xotcl::is $slotobject object]} {::xotcls::Object create $slotobject}
-  eval next -childof $slotobject $args
-}
-
-::xotcl::MetaSlot create ::xotcl::Slot
-# We have no working objectparameter yet. So invalidate MetaSlot to
-# avoid caching.
-::xotcl::MetaSlot __invalidateobjectparameter
-
-#foreach o {::xotcl::MetaSlot ::xotcl2::Slot} {
-#  foreach r {object class metaclass} {
-#    puts stderr "$o $r=[::xotcl::is $o $r]"
-#  }
-#}
-
-# Provide the a slot based mechanism for building an object
-# configuration interface from slot definitions
-proc ::xotcl::parameterFromSlot {slot name} {
-  set objparamdefinition $name
-  set methodparamdefinition ""
-  set objopts [list]
-  set methodopts [list]
-  if {[$slot exists required] && [$slot required]} {
-    lappend objopts required
-    lappend methodopts required
-  }
-  if {[$slot exists type]} {
-    set type [$slot type]
-    if {[string match ::* $type]} {
-      lappend objopts object type=$type
-      lappend methodopts object type=$type      
-    } else {
-      lappend objopts $type
-      lappend methodopts $type
-    }
-  }
-  # TODO: remove multivalued check on relations by handling multivalued
-  # not in relation, but in the converters
-  if {[$slot exists multivalued] && [$slot multivalued]} {
-    if {!([$slot exists type] && [$slot type] eq "relation")} {
-      lappend objopts multivalued
-    } else {
-      #puts stderr "ignore multivalued for $name in relation"
-    }
-  }
-  if {[$slot exists arg]} {
-    lappend objopts arg=[$slot arg]
-    lappend methodopts arg=[$slot arg]
-  }
-  if {[$slot exists default]} {
-    set arg [::xotcl::setinstvar $slot default]
-    # deactivated for now: || [string first {$} $arg] > -1
-    if {[string match {*\[*\]*} $arg]} {
-      lappend objopts substdefault
-    }
-  } elseif {[$slot exists initcmd]} {
-    set arg [::xotcl::setinstvar $slot initcmd]
-    lappend objopts initcmd
-  } 
-  if {[$slot exists methodname]} {
-    set methodname [$slot methodname]
-    set slotname [$slot name]
-    if {$methodname ne $slotname} {
-      lappend objopts arg=$methodname
-      lappend methodopts arg=$methodname
-      #puts stderr "..... setting arg for methodname: $slot has arg arg=$methodname"
-    }
-  }
-  if {[llength $objopts] > 0} {
-    append objparamdefinition :[join $objopts ,]
-  }
-  if {[llength $methodopts] > 0} {
-    set methodparamdefinition [join $methodopts ,]
-  }
-  if {[info exists arg]} {
-    lappend objparamdefinition $arg
-  }
-  #puts stderr "parameterFromSlot {$slot $name} returns [list oparam $objparamdefinition mparam $methodparamdefinition]"
-  return [list oparam $objparamdefinition mparam $methodparamdefinition]
-}
-
-proc ::xotcl::parametersFromSlots {obj} {
-  set parameterdefinitions [list]
-  set slots [::xotcl2::objectInfo slotobjects $obj]
-  foreach slot $slots {
-    # skip some lots for xotcl1; TODO: maybe different parameterFromSlots for xotcl1?
-    if {[::xotcl::is $obj type ::xotcl::Object] && 
-        ([$slot name] eq "mixin" || [$slot name] eq "filter")
-      } continue
-    set name [namespace tail $slot]
-    array set "" [::xotcl::parameterFromSlot $slot $name]
-    lappend parameterdefinitions -$(oparam)
-  }
-  return $parameterdefinitions
-}
-
-::xotcl2::Object protected method objectparameter {} {
-  set parameterdefinitions [::xotcl::parametersFromSlots [self]]
-  if {[::xotcl::is [self] class]} {
-    lappend parameterdefinitions -parameter:method,optional
-  }
-  lappend parameterdefinitions \
-      -noinit:method,optional,noarg \
-      -volatile:method,optional,noarg \
-      arg:initcmd,optional
-  # for the time being, use:
-  #lappend parameterdefinitions args
-  #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
-  return $parameterdefinitions
-}
-
-#
-# create class and object for parameter slots
-::xotcl2::Class create ::xotcl::ParameterSlot
-foreach cmd [info command ::xotcl::cmd::ParameterSlot::*] {
-  ::xotcl::alias ::xotcl::ParameterSlot [namespace tail $cmd] $cmd
-}
-
-# create an object for dispatching
-::xotcl::ParameterSlot create ::xotcl::parameterSlot
-
-
-# use low level interface for defining slot values. Normally, this is
-# done via slot objects, which are defined later.
-
-proc createBootstrapAttributeSlots {class definitions} {
-  if {![::xotcl::is ${class}::slot object]} {
-    ::xotcl2::Object create ${class}::slot
-  }
-  foreach att $definitions {
-    if {[llength $att]>1} {foreach {att default} $att break}
-    ::xotcl::Slot create ${class}::slot::$att
-    if {[info exists default]} {
-      ::xotcl::setinstvar ${class}::slot::$att default $default
-      unset default
-    }
-    ::xotcl::setter $class $att
-  }
-
-  # do a second round to ensure that the already defined objects
-  # have the appropriate default values
-  foreach att $definitions {
-    if {[llength $att]>1} {foreach {att default} $att break}
-    if {[info exists default]} {
-      # checking subclasses is not required during bootstrap
-      # todo: do we really need $class twice?
-      foreach i [::xotcl::cmd::ClassInfo::instances $class] {
-	if {![$i exists $att]} {
-	  if {[string match {*[*]*} $default]} {
-            #set default [$i eval subst $default]
-            set default [::xotcl::dispatch $i -objscope ::eval subst $default]
-          }
-	  ::xotcl::setinstvar $i $att $default
-	}
-      }
-      unset default
-    }
-  }
-  #puts stderr "Bootstrapslot for $class calls __invalidateobjectparameter"
-  $class __invalidateobjectparameter
-}
-
-
-############################################
-# Define slots for slots
-############################################
-createBootstrapAttributeSlots ::xotcl::Slot {
-  {name "[namespace tail [::xotcl::self]]"}
-  {methodname}
-  {domain "[lindex [regexp -inline {^(.*)::slot::[^:]+$} [::xotcl::self]] 1]"}
-  {defaultmethods {get assign}}
-  {manager "[::xotcl::self]"}
-  {multivalued false}
-  {per-object false}
-  {forward-per-object}
-  {required false}
-  default
-  type
-}
-# maybe add the following slots at some later time here
-#   initcmd
-#   valuecmd
-#   valuechangedcmd
-
-::xotcl::alias ::xotcl::Slot get ::xotcl::setinstvar
-::xotcl::alias ::xotcl::Slot assign ::xotcl::setinstvar
-
-::xotcl::Slot public method add {obj prop value {pos 0}} {
-  if {![set :multivalued]} {
-    error "Property $prop of [set :domain]->$obj ist not multivalued"
-  }
-  if {[$obj exists $prop]} {
-    ::xotcl::setinstvar $obj $prop [linsert [::xotcl::setinstvar $obj $prop] $pos $value]
-  } else {
-    ::xotcl::setinstvar $obj $prop [list $value]
-  }
-}
-::xotcl::Slot public method delete {-nocomplain:switch obj prop value} {
-  set old [::xotcl::setinstvar $obj $prop]
-  set p [lsearch -glob $old $value]
-  if {$p>-1} {::xotcl::setinstvar $obj $prop [lreplace $old $p $p]} else {
-    error "$value is not a $prop of $obj (valid are: $old)"
-  }
-}
-
-::xotcl::Slot method unknown {method args} {
-  set methods [list]
-  foreach m [:info callable] {
-    if {[::xotcl2::Object info callable $m] ne ""} continue
-    if {[string match __* $m]} continue
-    lappend methods $m
-  }
-  error "Method '$method' unknown for slot [::xotcl::self]; valid are: {[lsort $methods]]}"
-}
-
-::xotcl::Slot public method destroy {} {
-  if {${:domain} ne "" && [::xotcl::is ${:domain} object]} {
-    ${:domain} __invalidateobjectparameter
-  }
-  next
-}
-
-::xotcl::Slot method init {args} {
-  if {${:domain} eq ""} {
-    set :domain [::xotcl::self callingobject]
-  }
-  if {${:domain} ne ""} {
-    if {![info exists :methodname]} {
-      set :methodname ${:name}
-    }
-    ${:domain} __invalidateobjectparameter
-    set cl [expr {${:per-object} ? "Object" : "Class"}]
-    # since the domain object might be xotcl1 or xotcl2, use dispatch
-    ::xotcl::forward ${:domain} ${:name} \
-        ${:manager} \
-        [list %1 [${:manager} defaultmethods]] %self \
-        ${:methodname}
-  }
-}
-
-############################################
-#  InfoSlot
-############################################
-::xotcl::MetaSlot create ::xotcl::InfoSlot
-createBootstrapAttributeSlots ::xotcl::InfoSlot {
-  {multivalued true}
-  {elementtype ::xotcl2::Class}
-}
-::xotcl::relation ::xotcl::InfoSlot superclass ::xotcl::Slot
-::xotcl::InfoSlot public method get {obj prop} {
-    $obj info $prop
-}
-::xotcl::InfoSlot public method add {obj prop value {pos 0}} {
-  if {![set :multivalued]} {
-    error "Property $prop of ${:domain}->$obj ist not multivalued"
-  }
-  #puts stderr "adding infoslot: $obj $prop [linsert [$obj info $prop] $pos $value]"
-  $obj $prop [linsert [$obj info $prop] $pos $value]
-}
-::xotcl::InfoSlot protected method delete_value {obj prop old value} {
-  if {[string first * $value] > -1 || [string first \[ $value] > -1} {
-    # string contains meta characters
-    if {${:elementtype} ne "" && ![string match ::* $value]} {
-      # prefix string with ::, since all object names have leading ::
-      set value ::$value
-    }
-    return [lsearch -all -not -glob -inline $old $value]
-  } elseif {${:elementtype} ne ""} {
-    if {[string first :: $value] == -1} {
-      if {![::xotcl::is $value object]} {
-	error "$value does not appear to be an object"
-      }
-      set value [::xotcl::dispatch $value -objscope ::xotcl::self]
-    }
-    if {![::xotcl::is ${:elementtype} class]} {
-      error "$value does not appear to be of type ${:elementtype}"
-    }
-  }
-  set p [lsearch -exact $old $value]
-  if {$p > -1} {
-    return [lreplace $old $p $p]
-  } else {
-    error "$value is not a $prop of $obj (valid are: $old)"
-  }
-}
-
-::xotcl::InfoSlot public method delete {-nocomplain:switch obj prop value} {
-  #puts stderr infoslot-delete-[self args]
-  $obj $prop [:delete_value $obj $prop [$obj info $prop] $value]
-}
-
-############################################
-# InterceptorSlot
-############################################
-::xotcl::MetaSlot alloc ::xotcl::InterceptorSlot
-
-::xotcl::relation ::xotcl::InterceptorSlot superclass ::xotcl::InfoSlot
-::xotcl::alias ::xotcl::InterceptorSlot set ::xotcl::relation ;# for backwards compatibility
-::xotcl::alias ::xotcl::InterceptorSlot assign ::xotcl::relation
-
-::xotcl::InterceptorSlot public method get {obj prop} {
-  ::xotcl::relation $obj $prop
-}
-::xotcl::InterceptorSlot public method add {obj prop value {pos 0}} {
-  if {![set :multivalued]} {
-    error "Property $prop of ${:domain}->$obj ist not multivalued"
-  }
-  set oldSetting [::xotcl::relation $obj $prop]
-  # use uplevel to avoid namespace surprises
-  uplevel [list ::xotcl::relation $obj $prop [linsert $oldSetting $pos $value]]
-}
-::xotcl::InterceptorSlot public method delete {-nocomplain:switch obj prop value} {
-  uplevel [list ::xotcl::relation $obj $prop [:delete_value $obj $prop [::xotcl::relation $obj $prop] $value]]
-}
-
-############################################
-# system slots
-############################################
-proc ::xotcl::register_system_slots {os} {
-  ${os}::Object alloc ${os}::Class::slot
-  ${os}::Object alloc ${os}::Object::slot
+namespace eval ::xotcl {
+  #
+  # We are in bootstrap code; we cannot use slots/parameter to define
+  # slots, so the code is a little low level. After the defintion of
+  # the slots, we can use slot-based code such as "-parameter" or
+  # "objectparameter".
+  #
+  ::xotcl2::Class create ::xotcl::MetaSlot
+  ::xotcl::relation ::xotcl::MetaSlot superclass ::xotcl2::Class
   
-  ::xotcl::InfoSlot create ${os}::Class::slot::superclass -type relation
-  ::xotcl::alias           ${os}::Class::slot::superclass assign ::xotcl::relation
-  ::xotcl::InfoSlot create ${os}::Object::slot::class -type relation
-  ::xotcl::alias           ${os}::Object::slot::class assign ::xotcl::relation
-
-  ::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \
-      -type relation -methodname object-mixin
-
-  ::xotcl::InterceptorSlot create ${os}::Object::slot::filter \
-      -elementtype "" -type relation
-
-  ::xotcl::InterceptorSlot create ${os}::Class::slot::mixin \
-      -type relation -methodname class-mixin
-  ::xotcl::InterceptorSlot create ${os}::Class::slot::filter \
-      -type relation -methodname filter-mixin
-
-  # create tho conveniance slots to allow configuration of 
-  # object-slots for classes via object-mixin
-  ::xotcl::InterceptorSlot create ${os}::Class::slot::object-mixin \
-      -type relation
-  ::xotcl::InterceptorSlot create ${os}::Class::slot::object-filter \
-      -elementtype "" -type relation
-
-  # We could define a mixin on class, the calls always class-mixin.
-  # therfore, 
-  #::xotcl::InterceptorSlot create ${os}::Class::slot::mixin \
-  #    -type relation -methodname class-mixin
-}
-::xotcl::register_system_slots ::xotcl2
-
-############################################
-# Attribute slots
-############################################
-::xotcl::MetaSlot __invalidateobjectparameter
-::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::xotcl::Slot
-
-createBootstrapAttributeSlots ::xotcl::Attribute {
-  {value_check once}
-  initcmd
-  valuecmd
-  valuechangedcmd
-  arg
-}
-
-::xotcl::Attribute method __default_from_cmd {obj cmd var sub op} {
-  #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
-  $obj trace remove variable $var $op [list [::xotcl::self] [::xotcl::self proc] $obj $cmd]
-  ::xotcl::setinstvar $obj $var [$obj eval $cmd]
-}
-::xotcl::Attribute method __value_from_cmd {obj cmd var sub op} {
-  #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
-  ::xotcl::setinstvar $obj $var [$obj eval $cmd]
-}
-::xotcl::Attribute method __value_changed_cmd {obj cmd var sub op} {
-  # puts stderr "**************************"
-  # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [::xotcl::setinstvar $obj $var]"
-  eval $cmd
-}
-::xotcl::Attribute method check_single_value { {-keep_old_value:boolean true} value predicate type obj var} {
-  #puts "+++ checking single value '$value' with $predicate ==> [expr $predicate]"
-  if {![expr $predicate]} {
-    if {[$obj exists __oldvalue($var)]} {
-      ::xotcl::setinstvar $obj $var [::xotcl::setinstvar $obj __oldvalue($var)]
-    } else {
-      $obj unset -nocomplain $var
+  # ::xotcl::MetaSlot public method new args {
+  #   set slotobject [::xotcl::self callingobject]::slot
+  #   if {![::xotcl::is $slotobject object]} {::xotcls::Object create $slotobject}
+  #   eval next -childof $slotobject $args
+  # }
+  
+  ::xotcl::MetaSlot create ::xotcl::Slot
+  # We have no working objectparameter yet. So invalidate MetaSlot to
+  # avoid caching.
+  ::xotcl::MetaSlot __invalidateobjectparameter
+  
+  #foreach o {::xotcl::MetaSlot ::xotcl2::Slot} {
+  #  foreach r {object class metaclass} {
+  #    puts stderr "$o $r=[::xotcl::is $o $r]"
+  #  }
+  #}
+  
+  # Provide the a slot based mechanism for building an object
+  # configuration interface from slot definitions
+  proc ::xotcl::parameterFromSlot {slot name} {
+    set objparamdefinition $name
+    set methodparamdefinition ""
+    set objopts [list]
+    set methodopts [list]
+    if {[$slot exists required] && [$slot required]} {
+      lappend objopts required
+      lappend methodopts required
     }
-    error "'$value' is not of type $type"
+    if {[$slot exists type]} {
+      set type [$slot type]
+      if {[string match ::* $type]} {
+        lappend objopts object type=$type
+        lappend methodopts object type=$type      
+      } else {
+        lappend objopts $type
+        lappend methodopts $type
+      }
+    }
+    # TODO: remove multivalued check on relations by handling multivalued
+    # not in relation, but in the converters
+    if {[$slot exists multivalued] && [$slot multivalued]} {
+      if {!([$slot exists type] && [$slot type] eq "relation")} {
+        lappend objopts multivalued
+      } else {
+        #puts stderr "ignore multivalued for $name in relation"
+      }
+    }
+    if {[$slot exists arg]} {
+      lappend objopts arg=[$slot arg]
+      lappend methodopts arg=[$slot arg]
+    }
+    if {[$slot exists default]} {
+      set arg [::xotcl::setinstvar $slot default]
+      # deactivated for now: || [string first {$} $arg] > -1
+      if {[string match {*\[*\]*} $arg]} {
+        lappend objopts substdefault
+      }
+    } elseif {[$slot exists initcmd]} {
+      set arg [::xotcl::setinstvar $slot initcmd]
+      lappend objopts initcmd
+    } 
+    if {[$slot exists methodname]} {
+      set methodname [$slot methodname]
+      set slotname [$slot name]
+      if {$methodname ne $slotname} {
+        lappend objopts arg=$methodname
+        lappend methodopts arg=$methodname
+        #puts stderr "..... setting arg for methodname: $slot has arg arg=$methodname"
+      }
+    }
+    if {[llength $objopts] > 0} {
+      append objparamdefinition :[join $objopts ,]
+    }
+    if {[llength $methodopts] > 0} {
+      set methodparamdefinition [join $methodopts ,]
+    }
+    if {[info exists arg]} {
+      lappend objparamdefinition $arg
+    }
+    #puts stderr "parameterFromSlot {$slot $name} returns [list oparam $objparamdefinition mparam $methodparamdefinition]"
+    return [list oparam $objparamdefinition mparam $methodparamdefinition]
   }
-  if {$keep_old_value} {::xotcl::setinstvar $obj __oldvalue($var) $value}
-  #puts "+++ checking single value done"
-}
-
-::xotcl::Attribute method check_multiple_values {values predicate type obj var} {
-  foreach value $values {
-    :check_single_value -keep_old_value false $value $predicate $type $obj $var
+  
+  proc ::xotcl::parametersFromSlots {obj} {
+    set parameterdefinitions [list]
+    set slots [::xotcl2::objectInfo slotobjects $obj]
+    foreach slot $slots {
+      # skip some lots for xotcl1; TODO: maybe different parameterFromSlots for xotcl1?
+      if {[::xotcl::is $obj type ::xotcl::Object] && 
+          ([$slot name] eq "mixin" || [$slot name] eq "filter")
+        } continue
+      set name [namespace tail $slot]
+      array set "" [::xotcl::parameterFromSlot $slot $name]
+      lappend parameterdefinitions -$(oparam)
+    }
+    return $parameterdefinitions
   }
-  ::xotcl::setinstvar $obj __oldvalue($var) $value
+  
+  ::xotcl2::Object protected method objectparameter {} {
+    set parameterdefinitions [::xotcl::parametersFromSlots [self]]
+    if {[::xotcl::is [self] class]} {
+      lappend parameterdefinitions -parameter:method,optional
+    }
+    lappend parameterdefinitions \
+        -noinit:method,optional,noarg \
+        -volatile:method,optional,noarg \
+        arg:initcmd,optional
+    # for the time being, use:
+    #lappend parameterdefinitions args
+    #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
+    return $parameterdefinitions
+  }
+  
+  #
+  # create class and object for parameter slots
+  ::xotcl::MetaSlot create ::xotcl::ParameterSlot
+  foreach cmd [info command ::xotcl::cmd::ParameterSlot::*] {
+    ::xotcl::alias ::xotcl::ParameterSlot [namespace tail $cmd] $cmd
+  }
+  
+  # create an object for dispatching
+  ::xotcl::ParameterSlot create ::xotcl::parameterSlot
+  
+  
+  # use low level interface for defining slot values. Normally, this is
+  # done via slot objects, which are defined later.
+  
+  proc createBootstrapAttributeSlots {class definitions} {
+    if {![::xotcl::is ${class}::slot object]} {
+      ::xotcl2::Object create ${class}::slot
+    }
+    foreach att $definitions {
+      if {[llength $att]>1} {foreach {att default} $att break}
+      ::xotcl::Slot create ${class}::slot::$att
+      if {[info exists default]} {
+        ::xotcl::setinstvar ${class}::slot::$att default $default
+        unset default
+      }
+      ::xotcl::setter $class $att
+    }
+    
+    # do a second round to ensure that the already defined objects
+    # have the appropriate default values
+    foreach att $definitions {
+      if {[llength $att]>1} {foreach {att default} $att break}
+      if {[info exists default]} {
+        # checking subclasses is not required during bootstrap
+        # todo: do we really need $class twice?
+        foreach i [::xotcl::cmd::ClassInfo::instances $class] {
+          if {![$i exists $att]} {
+            if {[string match {*[*]*} $default]} {
+              #set default [$i eval subst $default]
+              set default [::xotcl::dispatch $i -objscope ::eval subst $default]
+            }
+            ::xotcl::setinstvar $i $att $default
+          }
+        }
+        unset default
+      }
+    }
+    #puts stderr "Bootstrapslot for $class calls __invalidateobjectparameter"
+    $class __invalidateobjectparameter
+  }
+  
+  
+  ############################################
+  # Define slots for slots
+  ############################################
+  createBootstrapAttributeSlots ::xotcl::Slot {
+    {name "[namespace tail [::xotcl::self]]"}
+    {methodname}
+    {domain "[lindex [regexp -inline {^(.*)::slot::[^:]+$} [::xotcl::self]] 1]"}
+    {defaultmethods {get assign}}
+    {manager "[::xotcl::self]"}
+    {multivalued false}
+    {per-object false}
+    {forward-per-object}
+    {required false}
+    default
+    type
+  }
+  # maybe add the following slots at some later time here
+  #   initcmd
+  #   valuecmd
+  #   valuechangedcmd
+  
+  ::xotcl::alias ::xotcl::Slot get ::xotcl::setinstvar
+  ::xotcl::alias ::xotcl::Slot assign ::xotcl::setinstvar
+  
+  ::xotcl::Slot public method add {obj prop value {pos 0}} {
+    if {![set :multivalued]} {
+      error "Property $prop of [set :domain]->$obj ist not multivalued"
+    }
+    if {[$obj exists $prop]} {
+      ::xotcl::setinstvar $obj $prop [linsert [::xotcl::setinstvar $obj $prop] $pos $value]
+    } else {
+      ::xotcl::setinstvar $obj $prop [list $value]
+    }
+  }
+  ::xotcl::Slot public method delete {-nocomplain:switch obj prop value} {
+    set old [::xotcl::setinstvar $obj $prop]
+    set p [lsearch -glob $old $value]
+    if {$p>-1} {::xotcl::setinstvar $obj $prop [lreplace $old $p $p]} else {
+      error "$value is not a $prop of $obj (valid are: $old)"
+    }
 }
-::xotcl::Attribute method mk_type_checker {} {
-  puts stderr "[self] [self proc]"
-  set __initcmd ""
-  if {[:exists type]} {
-    if {[::xotcl::is ${:type} class]} {
-      set predicate [subst -nocommands {
-	[::xotcl::is \$value object] && [::xotcl::is \$value type ${:type}]
+  
+  ::xotcl::Slot method unknown {method args} {
+    set methods [list]
+    foreach m [:info callable] {
+      if {[::xotcl2::Object info callable $m] ne ""} continue
+      if {[string match __* $m]} continue
+      lappend methods $m
+    }
+    error "Method '$method' unknown for slot [::xotcl::self]; valid are: {[lsort $methods]]}"
+  }
+  
+  ::xotcl::Slot public method destroy {} {
+    if {${:domain} ne "" && [::xotcl::is ${:domain} object]} {
+      ${:domain} __invalidateobjectparameter
+    }
+    next
+  }
+  
+  ::xotcl::Slot method init {args} {
+    if {${:domain} eq ""} {
+      set :domain [::xotcl::self callingobject]
+    }
+    if {${:domain} ne ""} {
+      if {![info exists :methodname]} {
+        set :methodname ${:name}
+      }
+      ${:domain} __invalidateobjectparameter
+      set cl [expr {${:per-object} ? "Object" : "Class"}]
+      # since the domain object might be xotcl1 or xotcl2, use dispatch
+      ::xotcl::forward ${:domain} ${:name} \
+          ${:manager} \
+          [list %1 [${:manager} defaultmethods]] %self \
+          ${:methodname}
+    }
+  }
+  
+  ############################################
+  #  InfoSlot
+  ############################################
+  ::xotcl::MetaSlot create ::xotcl::InfoSlot
+  createBootstrapAttributeSlots ::xotcl::InfoSlot {
+    {multivalued true}
+    {elementtype ::xotcl2::Class}
+  }
+  ::xotcl::relation ::xotcl::InfoSlot superclass ::xotcl::Slot
+  ::xotcl::InfoSlot public method get {obj prop} {
+    $obj info $prop
+  }
+  ::xotcl::InfoSlot public method add {obj prop value {pos 0}} {
+    if {![set :multivalued]} {
+      error "Property $prop of ${:domain}->$obj ist not multivalued"
+    }
+    #puts stderr "adding infoslot: $obj $prop [linsert [$obj info $prop] $pos $value]"
+    $obj $prop [linsert [$obj info $prop] $pos $value]
+  }
+  ::xotcl::InfoSlot protected method delete_value {obj prop old value} {
+    if {[string first * $value] > -1 || [string first \[ $value] > -1} {
+      # string contains meta characters
+      if {${:elementtype} ne "" && ![string match ::* $value]} {
+        # prefix string with ::, since all object names have leading ::
+        set value ::$value
+      }
+      return [lsearch -all -not -glob -inline $old $value]
+    } elseif {${:elementtype} ne ""} {
+      if {[string first :: $value] == -1} {
+        if {![::xotcl::is $value object]} {
+          error "$value does not appear to be an object"
+        }
+        set value [::xotcl::dispatch $value -objscope ::xotcl::self]
+      }
+      if {![::xotcl::is ${:elementtype} class]} {
+        error "$value does not appear to be of type ${:elementtype}"
+      }
+    }
+    set p [lsearch -exact $old $value]
+    if {$p > -1} {
+      return [lreplace $old $p $p]
+    } else {
+      error "$value is not a $prop of $obj (valid are: $old)"
+    }
+  }
+  
+  ::xotcl::InfoSlot public method delete {-nocomplain:switch obj prop value} {
+    #puts stderr infoslot-delete-[self args]
+    $obj $prop [:delete_value $obj $prop [$obj info $prop] $value]
+  }
+  
+  ############################################
+  # InterceptorSlot
+  ############################################
+  ::xotcl::MetaSlot alloc ::xotcl::InterceptorSlot
+  
+  ::xotcl::relation ::xotcl::InterceptorSlot superclass ::xotcl::InfoSlot
+  ::xotcl::alias ::xotcl::InterceptorSlot set ::xotcl::relation ;# for backwards compatibility
+  ::xotcl::alias ::xotcl::InterceptorSlot assign ::xotcl::relation
+  
+  ::xotcl::InterceptorSlot public method get {obj prop} {
+    ::xotcl::relation $obj $prop
+  }
+  ::xotcl::InterceptorSlot public method add {obj prop value {pos 0}} {
+    if {![set :multivalued]} {
+      error "Property $prop of ${:domain}->$obj ist not multivalued"
+    }
+    set oldSetting [::xotcl::relation $obj $prop]
+    # use uplevel to avoid namespace surprises
+    uplevel [list ::xotcl::relation $obj $prop [linsert $oldSetting $pos $value]]
+  }
+  ::xotcl::InterceptorSlot public method delete {-nocomplain:switch obj prop value} {
+    uplevel [list ::xotcl::relation $obj $prop [:delete_value $obj $prop [::xotcl::relation $obj $prop] $value]]
+  }
+  
+  ############################################
+  # system slots
+  ############################################
+  proc ::xotcl::register_system_slots {os} {
+    ${os}::Object alloc ${os}::Class::slot
+    ${os}::Object alloc ${os}::Object::slot
+    
+    ::xotcl::InfoSlot create ${os}::Class::slot::superclass -type relation
+    ::xotcl::alias           ${os}::Class::slot::superclass assign ::xotcl::relation
+    ::xotcl::InfoSlot create ${os}::Object::slot::class -type relation
+    ::xotcl::alias           ${os}::Object::slot::class assign ::xotcl::relation
+    
+    ::xotcl::InterceptorSlot create ${os}::Object::slot::mixin \
+        -type relation -methodname object-mixin
+    
+    ::xotcl::InterceptorSlot create ${os}::Object::slot::filter \
+        -elementtype "" -type relation
+    
+    ::xotcl::InterceptorSlot create ${os}::Class::slot::mixin \
+        -type relation -methodname class-mixin
+    ::xotcl::InterceptorSlot create ${os}::Class::slot::filter \
+        -type relation -methodname filter-mixin
+    
+    # create tho conveniance slots to allow configuration of 
+    # object-slots for classes via object-mixin
+    ::xotcl::InterceptorSlot create ${os}::Class::slot::object-mixin \
+        -type relation
+    ::xotcl::InterceptorSlot create ${os}::Class::slot::object-filter \
+        -elementtype "" -type relation
+    
+    # We could define a mixin on class, the calls always class-mixin.
+    # therfore, 
+    #::xotcl::InterceptorSlot create ${os}::Class::slot::mixin \
+        #    -type relation -methodname class-mixin
+  }
+  ::xotcl::register_system_slots ::xotcl2
+  
+  ############################################
+  # Attribute slots
+  ############################################
+  ::xotcl::MetaSlot __invalidateobjectparameter
+  ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::xotcl::Slot
+  
+  createBootstrapAttributeSlots ::xotcl::Attribute {
+    {value_check once}
+    initcmd
+    valuecmd
+    valuechangedcmd
+    arg
+  }
+  
+  ::xotcl::Attribute method __default_from_cmd {obj cmd var sub op} {
+    #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
+    $obj trace remove variable $var $op [list [::xotcl::self] [::xotcl::self proc] $obj $cmd]
+    ::xotcl::setinstvar $obj $var [$obj eval $cmd]
+  }
+  ::xotcl::Attribute method __value_from_cmd {obj cmd var sub op} {
+    #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
+    ::xotcl::setinstvar $obj $var [$obj eval $cmd]
+  }
+  ::xotcl::Attribute method __value_changed_cmd {obj cmd var sub op} {
+    # puts stderr "**************************"
+    # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [::xotcl::setinstvar $obj $var]"
+    eval $cmd
+  }
+  ::xotcl::Attribute method check_single_value { {-keep_old_value:boolean true} value predicate type obj var} {
+    #puts "+++ checking single value '$value' with $predicate ==> [expr $predicate]"
+    if {![expr $predicate]} {
+      if {[$obj exists __oldvalue($var)]} {
+        ::xotcl::setinstvar $obj $var [::xotcl::setinstvar $obj __oldvalue($var)]
+      } else {
+        $obj unset -nocomplain $var
+      }
+      error "'$value' is not of type $type"
+    }
+    if {$keep_old_value} {::xotcl::setinstvar $obj __oldvalue($var) $value}
+    #puts "+++ checking single value done"
+  }
+  
+  ::xotcl::Attribute method check_multiple_values {values predicate type obj var} {
+    foreach value $values {
+      :check_single_value -keep_old_value false $value $predicate $type $obj $var
+    }
+    ::xotcl::setinstvar $obj __oldvalue($var) $value
+  }
+  ::xotcl::Attribute method mk_type_checker {} {
+    puts stderr "[self] [self proc]"
+    set __initcmd ""
+    if {[:exists type]} {
+      if {[::xotcl::is ${:type} class]} {
+        set predicate [subst -nocommands {
+          [::xotcl::is \$value object] && [::xotcl::is \$value type ${:type}]
+        }]
+      } elseif {[llength ${:type}]>1} {
+        set predicate "\[${:type} \$value\]"
+      } else {
+        #set predicate "\[string is ${:type} \$value\]"
+        set predicate "\[:type=${:type} ${:name} \$value\]"
+      }
+      #puts stderr predicate=$predicate
+      append :valuechangedcmd [subst {
+        [expr {${:multivalued} ? ":check_multiple_values" : ":check_single_value"
+             }] \[::xotcl::setinstvar \$obj ${:name}\] \
+            {$predicate} [list ${:type}] \$obj ${:name}
       }]
-    } elseif {[llength ${:type}]>1} {
-      set predicate "\[${:type} \$value\]"
-    } else {
-      #set predicate "\[string is ${:type} \$value\]"
-      set predicate "\[:type=${:type} ${:name} \$value\]"
+      append __initcmd [subst -nocommands {
+        if {[:exists ${:name}]} {set :__oldvalue(${:name}) [set :${:name}]}\n
+      }]
     }
-    #puts stderr predicate=$predicate
-    append :valuechangedcmd [subst {
-      [expr {${:multivalued} ? ":check_multiple_values" : ":check_single_value"
-           }] \[::xotcl::setinstvar \$obj ${:name}\] \
-	  {$predicate} [list ${:type}] \$obj ${:name}
-    }]
-    append __initcmd [subst -nocommands {
-      if {[:exists ${:name}]} {set :__oldvalue(${:name}) [set :${:name}]}\n
-    }]
+    return $__initcmd
   }
-  return $__initcmd
-}
-::xotcl::Attribute method init {} {
-  next ;# do first ordinary slot initialization
-  # there might be already default values registered on the class
-  set __initcmd ""
-  if {[:exists default]} {
-  } elseif [:exists initcmd] {
-    append __initcmd ":trace add variable [list ${:name}] read \
+  ::xotcl::Attribute method init {} {
+    next ;# do first ordinary slot initialization
+    # there might be already default values registered on the class
+    set __initcmd ""
+    if {[:exists default]} {
+    } elseif [:exists initcmd] {
+      append __initcmd ":trace add variable [list ${:name}] read \
 	\[list [::xotcl::self] __default_from_cmd \[::xotcl::self\] [list [set :initcmd]]\]\n"
-  } elseif [:exists valuecmd] {
-    append __initcmd ":trace add variable [list ${:name}] read \
+    } elseif [:exists valuecmd] {
+      append __initcmd ":trace add variable [list ${:name}] read \
 	\[list [::xotcl::self] __value_from_cmd \[::xotcl::self\] [list [set :valuecmd]]\]"
-  }
-  array set "" [::xotcl::parameterFromSlot [self] "value"]
-  #puts stderr "Attribute.init valueParam for [self] is $(mparam)"
-  if {$(mparam) ne ""} {
-    if {[info exists :multivalued] && ${:multivalued}} {
-      #puts stderr "adding assign [list obj var value:$(mparam),multivalued] // for [self] with $(mparam)"
-      :method assign [list obj var value:$(mparam),multivalued] {::xotcl::setinstvar $obj $var $value}
-      #puts stderr "adding add method for [self] with value:$(mparam)"
-      :method add [list obj prop value:$(mparam) {pos 0}] {next}
-    } else {
-      #puts stderr "adding assign [list obj var value:$(mparam)] // for [self] with $(mparam)"
-      :method assign [list obj var value:$(mparam)] {::xotcl::setinstvar $obj $var $value}
+    }
+    array set "" [::xotcl::parameterFromSlot [self] "value"]
+    #puts stderr "Attribute.init valueParam for [self] is $(mparam)"
+    if {$(mparam) ne ""} {
+      if {[info exists :multivalued] && ${:multivalued}} {
+        #puts stderr "adding assign [list obj var value:$(mparam),multivalued] // for [self] with $(mparam)"
+        :method assign [list obj var value:$(mparam),multivalued] {::xotcl::setinstvar $obj $var $value}
+        #puts stderr "adding add method for [self] with value:$(mparam)"
+        :method add [list obj prop value:$(mparam) {pos 0}] {next}
+      } else {
+        #puts stderr "adding assign [list obj var value:$(mparam)] // for [self] with $(mparam)"
+        :method assign [list obj var value:$(mparam)] {::xotcl::setinstvar $obj $var $value}
+      }
+    }
+    #append __initcmd [:mk_type_checker]
+    if {[:exists valuechangedcmd]} {
+      append __initcmd ":trace add variable [list ${:name}] write \
+	\[list [::xotcl::self] __value_changed_cmd \[::xotcl::self\] [list [set :valuechangedcmd]]\]"
+    }
+    if {$__initcmd ne ""} {
+      set :initcmd $__initcmd
     }
   }
-  #append __initcmd [:mk_type_checker]
-  if {[:exists valuechangedcmd]} {
-    append __initcmd ":trace add variable [list ${:name}] write \
-	\[list [::xotcl::self] __value_changed_cmd \[::xotcl::self\] [list [set :valuechangedcmd]]\]"
+  
+  # mixin class for decativating all value checks in slots
+  ::xotcl2::Class create ::xotcl::Slot::Nocheck {
+    :method check_single_value args {;}
+    :method check_multiple_values args {;}
+    :method mk_type_checker args {return ""}
   }
-  if {$__initcmd ne ""} {
-    set :initcmd $__initcmd
+  # mixin class for optimizing slots
+  ::xotcl2::Class create ::xotcl::Slot::Optimizer {
+    :method method args  {::xotcl::next; :optimize}
+    :method forward args {::xotcl::next; :optimize}
+    :method init args    {::xotcl::next; :optimize}
+    :public method optimize {} {
+      #puts stderr OPTIMIZER
+      if {[set :multivalued]} return
+      if {[set :defaultmethods] ne {get assign}} return
+      #puts stderr assign=[:info callable -which assign]
+      if {[:info callable -which assign] ne "::xotcl::Slot alias assign ::xotcl::setinstvar"} return
+      if {[:info callable -which get]    ne "::xotcl::Slot alias get ::xotcl::setinstvar"} return
+      #puts stderr "**** optimizing       [${:domain} info method definition ${:name}]"
+      ::xotcl::setter ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] ${:name}
+    }
   }
+  # register the optimizer per default
+  ::xotcl::Attribute mixin add ::xotcl::Slot::Optimizer
+
+
+  ############################################
+  # Define method "parameter" for backward 
+  # compatibility and convenience
+  ############################################
+  ::xotcl2::Class public method parameter arglist {
+    if {![::xotcl::is [::xotcl::self]::slot object]} {
+      ::xotcl2::Object create [::xotcl::self]::slot
+    }
+    
+    foreach arg $arglist {
+      set l [llength $arg]
+      set name [lindex $arg 0]
+      set opts [list]
+      set colonPos [string first : $name]
+      if {$colonPos > -1} {
+        set properties [string range $name [expr {$colonPos+1}] end]
+        set name [string range $name 0 [expr {$colonPos -1}]]
+        foreach property [split $properties ,] {
+          if {$property eq "required"} {
+            lappend opts -required 1
+          } elseif {$property eq "multivalued"} {
+            lappend opts -multivalued 1
+          } elseif {[string match type=* $property]} {
+            set type [string range $property 5 end]
+            if {![string match ::* $type]} {set type ::$type}
+          } elseif {[string match arg=* $property]} {
+            set argument [string range $property 4 end]
+            lappend opts -arg $argument
+          } else {
+            set type $property
+          }
+        }
+      }
+      if {[info exists type]} {
+        lappend opts -type $type
+        unset type
+      }
+      
+      set cmd [list ::xotcl::Attribute create [::xotcl::self]::slot::$name {*}$opts]
+      #puts stderr cmd=$cmd
+      
+      if {$l == 1} {
+        eval $cmd
+        #puts stderr "parameter $arg without default -> $cmd"
+      } elseif {$l == 2} {
+        lappend cmd -default [lindex $arg 1]
+        eval $cmd
+      } elseif {$l == 3 && [lindex $arg 1] eq "-default"} {
+        lappend cmd -default [lindex $arg 2]
+        eval $cmd
+      } else {
+        set paramstring [string range $arg [expr {[string length $name]+1}] end]
+        if {[string match {[$\[]*} $paramstring]} {
+          lappend cmd -default $paramstring
+          eval $cmd
+          continue
+        }
+        
+        set po ::xotcl2::Class::Parameter
+        puts stderr "deprecated parameter usage '$arg'; use '-slots {Attribute ...}' instead"
+        
+        set cl [::xotcl::self]
+        ::xotcl::setinstvar $po name $name
+        ::xotcl::setinstvar $po cl [::xotcl::self]
+        ::eval $po configure [lrange $arg 1 end]
+        
+        if {[$po exists extra] || [$po exists setter] ||
+            [$po exists getter] || [$po exists access]} {
+          ::xotcl::importvar $po extra setter getter access defaultParam
+          if {![info exists extra]} {set extra ""}
+          if {![info exists defaultParam]} {set defaultParam ""}
+          if {![info exists setter]} {set setter set}
+          if {![info exists getter]} {set getter set}
+          if {![info exists access]} {set access ::xotcl::my}
+          $cl public method $name args "
+         if {\[llength \$args] == 0} {
+           return \[$access $getter $extra $name\]
+         } else {
+           return \[eval $access $setter $extra $name \$args $defaultParam \]
+         }"
+          foreach instvar {extra defaultParam setter getter access} {
+            $po unset -nocomplain $instvar
+          }
+        } else {
+          .setter $name
+        }
+      }
+    }
+    ::xotcl::setinstvar [::xotcl::self]::slot __parameter $arglist
+  }
+
+  ##################################################################
+  # now the slots are defined; now we can defines the Objects or 
+  # classes with parameters more easily.
+  ##################################################################
+  proc createBootstrapAttributeSlots {} {}
 }
 
-# mixin class for decativating all value checks in slots
-::xotcl2::Class create ::xotcl::Slot::Nocheck {
-  :method check_single_value args {;}
-  :method check_multiple_values args {;}
-  :method mk_type_checker args {return ""}
-}
-# mixin class for optimizing slots
-::xotcl2::Class create ::xotcl::Slot::Optimizer {
-  :method method args  {::xotcl::next; :optimize}
-  :method forward args {::xotcl::next; :optimize}
-  :method init args    {::xotcl::next; :optimize}
-  :public method optimize {} {
-    #puts stderr OPTIMIZER
-    if {[set :multivalued]} return
-    if {[set :defaultmethods] ne {get assign}} return
-    #puts stderr assign=[:info callable -which assign]
-    if {[:info callable -which assign] ne "::xotcl::Slot alias assign ::xotcl::setinstvar"} return
-    if {[:info callable -which get]    ne "::xotcl::Slot alias get ::xotcl::setinstvar"} return
-    #puts stderr "**** optimizing       [${:domain} info method definition ${:name}]"
-    ::xotcl::setter ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] ${:name}
-  }
-}
-# register the optimizer per default
-::xotcl::Attribute mixin add ::xotcl::Slot::Optimizer
-
-##################################################################
 # Create a mixin class to overload method "new", such it does not allocate
 # new objects in ::xotcl::*, but in the specified object (without
 # syntactic overhead).
 #
-::xotcl2::Class create ::xotcl::ScopedNew -superclass ::xotcl2::Class
-createBootstrapAttributeSlots ::xotcl::ScopedNew {
+::xotcl2::Class create ::xotcl::ScopedNew -superclass ::xotcl2::Class -parameter {
   {withclass ::xotcl2::Object}
   inobject
 }
@@ -805,12 +903,11 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
     eval ::xotcl::next -childof $object $args
   }
 }
-
 #
-# change the namespace to the specified object and create
-# objects there. This is a friendly notation for creating
-# nested object structures. Optionally, creating new objects
-# in the specified scope can be turned off.
+# The method 'contains' changes the namespace in which objects with
+# realtive names are created.  Therefore, 'contains' provides a
+# friendly notation for creating nested object structures. Optionally,
+# creating new objects in the specified scope can be turned off.
 #
 ::xotcl2::Object public method contains {
    {-withnew:boolean true}
@@ -833,102 +930,6 @@ createBootstrapAttributeSlots ::xotcl::ScopedNew {
 }
 ::xotcl2::Class forward slots %self contains \
     -object {%::xotcl::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
-
-############################################
-# Define method "parameter" for backward 
-# compatibility and convenience
-############################################
-::xotcl2::Class public method parameter arglist {
-  if {![::xotcl::is [::xotcl::self]::slot object]} {
-    ::xotcl2::Object create [::xotcl::self]::slot
-  }
-
-  foreach arg $arglist {
-    set l [llength $arg]
-    set name [lindex $arg 0]
-    set opts [list]
-    set colonPos [string first : $name]
-    if {$colonPos > -1} {
-      set properties [string range $name [expr {$colonPos+1}] end]
-      set name [string range $name 0 [expr {$colonPos -1}]]
-      foreach property [split $properties ,] {
-	if {$property eq "required"} {
-	  lappend opts -required 1
-	} elseif {$property eq "multivalued"} {
-	  lappend opts -multivalued 1
-	} elseif {[string match type=* $property]} {
-          set type [string range $property 5 end]
-          if {![string match ::* $type]} {set type ::$type}
-	} elseif {[string match arg=* $property]} {
-	  set argument [string range $property 4 end]
-	  lappend opts -arg $argument
-	} else {
-	  set type $property
-	}
-      }
-    }
-    if {[info exists type]} {
-      lappend opts -type $type
-      unset type
-    }
-    
-    set cmd [list ::xotcl::Attribute create [::xotcl::self]::slot::$name {*}$opts]
-    #puts stderr cmd=$cmd
-
-    if {$l == 1} {
-      eval $cmd
-      #puts stderr "parameter $arg without default -> $cmd"
-    } elseif {$l == 2} {
-      lappend cmd -default [lindex $arg 1]
-      eval $cmd
-    } elseif {$l == 3 && [lindex $arg 1] eq "-default"} {
-      lappend cmd -default [lindex $arg 2]
-      eval $cmd
-    } else {
-      set paramstring [string range $arg [expr {[string length $name]+1}] end]
-      if {[string match {[$\[]*} $paramstring]} {
-	lappend cmd -default $paramstring
-	eval $cmd
-	continue
-      }
-
-      set po ::xotcl2::Class::Parameter
-      puts stderr "deprecated parameter usage '$arg'; use '-slots {Attribute ...}' instead"
-
-      set cl [::xotcl::self]
-      ::xotcl::setinstvar $po name $name
-      ::xotcl::setinstvar $po cl [::xotcl::self]
-      ::eval $po configure [lrange $arg 1 end]
-
-      if {[$po exists extra] || [$po exists setter] ||
-	  [$po exists getter] || [$po exists access]} {
-	::xotcl::importvar $po extra setter getter access defaultParam
-	if {![info exists extra]} {set extra ""}
-	if {![info exists defaultParam]} {set defaultParam ""}
-	if {![info exists setter]} {set setter set}
-	if {![info exists getter]} {set getter set}
-	if {![info exists access]} {set access ::xotcl::my}
-	$cl public method $name args "
-         if {\[llength \$args] == 0} {
-           return \[$access $getter $extra $name\]
-         } else {
-           return \[eval $access $setter $extra $name \$args $defaultParam \]
-         }"
-	foreach instvar {extra defaultParam setter getter access} {
-	  $po unset -nocomplain $instvar
-	}
-      } else {
-	.setter $name
-      }
-    }
-  }
-  ::xotcl::setinstvar [::xotcl::self]::slot __parameter $arglist
-}
-
-##################################################################
-# new the slots are defined; now we can defines the Objects or 
-# classes with parameters more easily.
-##################################################################
 
 #
 # copy/move implementation
