@@ -251,7 +251,7 @@ o1 parametercmd y
 #   }
 # }
 
-::xotcl::Attribute mixin delete ::xotcl::ObjectParameterSlot::Optimizer
+::xotcl::Attribute mixin delete ::xotcl::Attribute::Optimizer
 
 Class C1 -parameter {a {b 10} {c "Hello World"}}
 C1 c1 -a 1
@@ -277,7 +277,7 @@ C2 c2 -a 1
 ? {c2 a} 1 "new indirect parametercmd"
 ? {c2 a 1} 1 "new indirect parametercmd"
 
-::xotcl::ObjectParameterSlot mixin add ::xotcl::ObjectParameterSlot::Optimizer
+::xotcl::Attribute mixin add ::xotcl::Attribute::Optimizer
 
 Class C3 -slots {
   Attribute create a 

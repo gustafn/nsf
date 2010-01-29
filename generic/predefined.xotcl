@@ -784,13 +784,13 @@ namespace eval ::xotcl {
   }
   
   # mixin class for decativating all value checks in slots
-  ::xotcl2::Class create ::xotcl::ObjectParameterSlot::Nocheck {
+  ::xotcl2::Class create ::xotcl::Attribute::Nocheck {
     :method check_single_value args {;}
     :method check_multiple_values args {;}
     :method mk_type_checker args {return ""}
   }
   # mixin class for optimizing slots
-  ::xotcl2::Class create ::xotcl::ObjectParameterSlot::Optimizer {
+  ::xotcl2::Class create ::xotcl::Attribute::Optimizer {
     :method method args  {::xotcl::next; :optimize}
     :method forward args {::xotcl::next; :optimize}
     :protected method init args    {::xotcl::next; :optimize}
@@ -806,7 +806,7 @@ namespace eval ::xotcl {
     }
   }
   # register the optimizer per default
-  ::xotcl::Attribute mixin add ::xotcl::ObjectParameterSlot::Optimizer
+  ::xotcl::Attribute mixin add ::xotcl::Attribute::Optimizer
 
 
   ############################################
