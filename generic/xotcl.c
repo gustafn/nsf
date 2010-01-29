@@ -1697,7 +1697,8 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
      * initialize the variable hash table and update the object
      */
     varTablePtr = object->varTable = VarHashTableCreate();
-    fprintf(stderr, "+++ create varTable in CompiledDotVarFetch\n");
+    fprintf(stderr, "+++ create varTable in %s CompiledDotVarFetch for '%s'\n", 
+            objectName(object), ObjStr(resVarInfo->nameObj));
   }
 
   resVarInfo->lastObj = object;
@@ -5253,7 +5254,7 @@ static XOTclParam *ParamsNew(int nr) {
 
 static void ParamsFree(XOTclParam *paramsPtr) {
   XOTclParam *paramPtr;
-
+  
   /*fprintf(stderr, "ParamsFree %p\n", paramsPtr);*/
   for (paramPtr=paramsPtr; paramPtr->name; paramPtr++) {
     /*fprintf(stderr, ".... paramPtr = %p, name=%s, defaultValue %p\n", paramPtr, paramPtr->name, paramPtr->defaultValue);*/
@@ -9521,10 +9522,10 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
   int i;
 
   for (pPtr = ifd, i=0; i<nrParams; pPtr++, i++) {
-    /*fprintf(stderr, "ArgumentDefaults got for arg %s (%d) => %p %p, default %s\n",
-      pPtr->name, pPtr->flags & XOTCL_ARG_REQUIRED,
-      pcPtr->clientData[i], pcPtr->objv[i],
-      pPtr->defaultValue ? ObjStr(pPtr->defaultValue) : "NONE");*/
+    /*fprintf(stderr, "ArgumentDefaults got for arg %s (%d) %p => %p %p, default %s\n",
+            pPtr->name, pPtr->flags & XOTCL_ARG_REQUIRED, pPtr,
+            pcPtr->clientData[i], pcPtr->objv[i],
+            pPtr->defaultValue ? ObjStr(pPtr->defaultValue) : "NONE");*/
 
     if (pcPtr->objv[i]) {
       /* we got an actual value, which was already checked by objv parser */
@@ -12274,6 +12275,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
                         2, 0, XOTCL_CM_NO_PROTECT);
     if (result == TCL_OK) {
       rawConfArgs = Tcl_GetObjResult(interp);
+      /*fprintf(stderr, ".... rawConfArgs for %s => %s\n", objectName(object), ObjStr(rawConfArgs));*/
       INCR_REF_COUNT(rawConfArgs);
 
       /* Parse the string representation to obtain the internal representation */

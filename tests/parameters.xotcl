@@ -72,7 +72,6 @@ C create c1
 #     {manager "[::xotcl::self]"}
 #     {multivalued false}
 #     {per-object false}
-#     {forward-per-object}
 #     {required false}
 #     default
 #     type
@@ -596,7 +595,7 @@ Class create ParamTest -parameter {
 # TODO: we have no good interface for querying the slot notation for parameters
 proc parameterFromSlot {class objectparameter} {
   set slot ${class}::slot::$objectparameter
-  array set "" [::xotcl::parameterFromSlot $slot $objectparameter]
+  array set "" [$slot toParameterSyntax $objectparameter]
   return $(oparam)
 }
 

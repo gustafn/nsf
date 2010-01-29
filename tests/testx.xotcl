@@ -1559,10 +1559,10 @@ TestX init_params -proc run {{n 20}} {
 
     for {set i 0} {$i < $n} {incr i} {
 	Class O -parameter {
-	    {a -default 0}
-	    {b -default {[cmd 3 4]}} c d 
-	    {e -default 3} 
-	    {Self -default [self]}
+	    {a 0}
+	    {b {[cmd 3 4]}} c d 
+	    {e 3} 
+	    {Self [self]}
 	}	
 	O instproc init args {
 	  global initResult 
@@ -1578,8 +1578,8 @@ TestX init_params -proc run {{n 20}} {
 	}
 	Class Meta -superclass Class
 	Meta instproc create args {next; return Meta-create}
-	Meta C -superclass O -parameter {a {b -default ""} {c -default 1}}
-	Class D -parameter {a {c -default 1}} -superclass O
+	Meta C -superclass O -parameter {a {b ""} {c 1}}
+	Class D -parameter {a {c 1}} -superclass O
 	# create on class should not be called
 	D instproc create args {next; return D-create}
 	D instproc init args {

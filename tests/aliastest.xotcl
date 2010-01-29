@@ -4,8 +4,8 @@ package require xotcl::test
 Test parameter count 10
 
 # The system methods of Object are either alias or forwarders
-? {lsort [::xotcl::Slot info methods -methodtype alias]} {assign get}
-? {::xotcl::Slot info method definition get} "::xotcl::Slot alias get ::xotcl::setinstvar"
+? {lsort [::xotcl::ObjectParameterSlot info methods -methodtype alias]} {assign get}
+? {::xotcl::ObjectParameterSlot info method definition get} "::xotcl::ObjectParameterSlot alias get ::xotcl::setinstvar"
 
 # define an alias and retrieve its definition
 set cmd "::xotcl2::Object alias -objscope set ::set"

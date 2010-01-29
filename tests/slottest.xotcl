@@ -111,7 +111,7 @@ Class O2 -superclass O
 #? {O2 superclass O} "superclass 1"
 ? {O superclass} "::xotcl::Object"
 
-::xotcl::Slot method slot {object name property} {
+::xotcl::ObjectParameterSlot method slot {object name property} {
   switch $property {
     self {return [self]}
     domain {return [my domain]}
@@ -130,7 +130,7 @@ O2 superclass delete ::O
 
 # the main difference between an Attribute and a Role is that 
 # it references some other objects
-#Class Attribute -superclass ::xotcl::Slot
+#Class Attribute -superclass ::xotcl::ObjectParameterSlot
 Class Role -superclass Attribute -parameter {references}
 
 ######################
@@ -251,7 +251,7 @@ o1 parametercmd y
 #   }
 # }
 
-::xotcl::Attribute mixin delete ::xotcl::Slot::Optimizer
+::xotcl::Attribute mixin delete ::xotcl::ObjectParameterSlot::Optimizer
 
 Class C1 -parameter {a {b 10} {c "Hello World"}}
 C1 c1 -a 1
@@ -277,7 +277,7 @@ C2 c2 -a 1
 ? {c2 a} 1 "new indirect parametercmd"
 ? {c2 a 1} 1 "new indirect parametercmd"
 
-::xotcl::Slot mixin add ::xotcl::Slot::Optimizer
+::xotcl::ObjectParameterSlot mixin add ::xotcl::ObjectParameterSlot::Optimizer
 
 Class C3 -slots {
   Attribute create a 
@@ -319,7 +319,7 @@ a0 forward f4 puts hu
 ? {a0 procsearch f3} "::a0 proc f3"
 ? {a0 procsearch f4} "::a0 forward f4"
 ? {a0 procsearch set} "::xotcl::Object instcmd set"
-? {A slot foo info callable -which assign} "::xotcl::Slot alias assign ::xotcl::setinstvar"
+? {A slot foo info callable -which assign} "::xotcl::ObjectParameterSlot alias assign ::xotcl::setinstvar"
 
 # redefine setter for foo of class A
 A slot foo method assign {domain var val} {
@@ -362,7 +362,7 @@ p1 projects add ::project1
 #p1 projects add some-other-value
 #? {p1 projects} "some-other-value ::project1"
 
-::xotcl::Slot method check {
+::xotcl::ObjectParameterSlot method check {
   {-keep_old_value:boolean true} 
   value predicate type obj var
 } {
@@ -378,7 +378,7 @@ p1 projects add ::project1
   if {$keep_old_value} {$obj set __oldvalue($var) $value}
 }
 
-::xotcl::Slot method checkall {values predicate type obj var} {
+::xotcl::ObjectParameterSlot method checkall {values predicate type obj var} {
   foreach value $values {
     my check -keep_old_value false $value $predicate $type $obj $var
   }
