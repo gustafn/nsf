@@ -6181,10 +6181,43 @@ static int convertToString(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST
   *clientData = (char *)ObjStr(objPtr);
   return TCL_OK;
 }
+enum stringTypeIdx {StringTypeAlnum, StringTypeAlpha, StringTypeAscii, StringTypeBoolean, StringTypeControl, 
+		    StringTypeDigit, StringTypeDouble, StringTypeFalse,StringTypeGraph, StringTypeInteger, 
+		    StringTypeLower, StringTypePrint, StringTypePunct, StringTypeSpace, StringTypeTrue, 
+		    StringTypeUpper, StringTypeWordchar, StringTypeXdigit };
+static CONST char *stringTypeOpts[] = {"alnum", "alpha", "ascii", "boolean", "control", 
+			       "digit", "double", "false", "graph", "integer", 
+			       "lower", "print", "punct", "space", "true", 
+			       "upper", "wordchar", "xdigit", NULL};
+
 static int convertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
-  *clientData = (ClientData)objPtr;
-  return TCL_OK;
+  Tcl_Obj *objv[3];
+  int result;
+
+  if (pPtr->converterArg) {
+    /*fprintf(stderr, "convertToStringType %s (must be %s)\n", ObjStr(objPtr), ObjStr(pPtr->converterArg));*/
+
+    objv[1] = pPtr->converterArg;
+    objv[2] = objPtr;
+
+    result = XOTclCallCommand(interp, XOTE_IS, 3, objv);
+    if (result == TCL_OK) {
+      int success;
+      Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &success);
+      if (success == 1) {
+	*clientData = (ClientData)objPtr;
+      } else {
+	result = XOTclVarErrMsg(interp, "expected ", ObjStr(pPtr->converterArg), 
+				" but got \"", ObjStr(objPtr), "\"", NULL);
+      }
+    }
+  } else {
+    *clientData = (ClientData)objPtr;
+    result = TCL_OK;
+  }
+  return result;
 }
+
 static int convertToNothing(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
   return TCL_OK;
 }
@@ -6319,6 +6352,7 @@ ParamOptionSetConverter(Tcl_Interp *interp, XOTclParam *paramPtr,
   paramPtr->type = typeName;
   return TCL_OK;
 }
+
 static int
 ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOptions, XOTclParam *paramPtr) {
   int result = TCL_OK; 
@@ -6370,27 +6404,45 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     paramPtr->converterArg = Tcl_NewStringObj(option+5, length-5);
     INCR_REF_COUNT(paramPtr->converterArg);
   } else {
-    XOTclObject *paramObj;
-    Tcl_Obj *checker;
-    XOTclClass *pcl;
-    Tcl_Command cmd;
-
-    result = GetObjectFromObj(interp, XOTclGlobalObjects[XOTE_METHOD_PARAMETER_SLOT_OBJ], &paramObj);
-    if (result != TCL_OK)
-      return result;
-
-    checker = ParamCheckObj(interp, option, length);
-    INCR_REF_COUNT(checker);
-    cmd = ObjectFindMethod(interp, paramObj, ObjStr(checker), &pcl);
-
-    if (cmd == NULL) {
-      fprintf(stderr, "**** could not find checker method %s defined on %s\n",
-              ObjStr(checker), objectName(paramObj));
-      paramPtr->flags |= XOTCL_ARG_CURRENTLY_UNKNOWN;
-      /* TODO: for the time being, we do not return an error here */
+    int i, found = -1;
+    
+    for (i=0; stringTypeOpts[i]; i++) {
+      /* Do not allow abbreviations, so the additional strlen checks
+	 for a full match */
+      if (strncmp(option, stringTypeOpts[i], length) == 0 && strlen(stringTypeOpts[i]) == length) {
+	found = i;
+	break;
+      }
     }
-    result = ParamOptionSetConverter(interp, paramPtr, "usertype", convertViaCmd);
-    paramPtr->converterName = checker;
+    if (found > -1) {
+      /* converter is stringType */
+      result = ParamOptionSetConverter(interp, paramPtr, "stringtype", convertToTclobj);
+      paramPtr->converterArg =  Tcl_NewStringObj(stringTypeOpts[i], -1);
+      INCR_REF_COUNT(paramPtr->converterArg);      
+    } else {
+      /* converter defined via method */
+      XOTclObject *paramObj;
+      Tcl_Obj *checker;
+      XOTclClass *pcl;
+      Tcl_Command cmd;
+
+      result = GetObjectFromObj(interp, XOTclGlobalObjects[XOTE_METHOD_PARAMETER_SLOT_OBJ], &paramObj);
+      if (result != TCL_OK)
+	return result;
+      
+      checker = ParamCheckObj(interp, option, length);
+      INCR_REF_COUNT(checker);
+      cmd = ObjectFindMethod(interp, paramObj, ObjStr(checker), &pcl);
+
+      if (cmd == NULL) {
+	fprintf(stderr, "**** could not find checker method %s defined on %s\n",
+		ObjStr(checker), objectName(paramObj));
+	paramPtr->flags |= XOTCL_ARG_CURRENTLY_UNKNOWN;
+	/* TODO: for the time being, we do not return an error here */
+      }
+      result = ParamOptionSetConverter(interp, paramPtr, "usertype", convertViaCmd);
+      paramPtr->converterName = checker;
+    }
   }
 
   if ((paramPtr->flags & disallowedOptions)) {

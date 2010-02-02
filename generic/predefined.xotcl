@@ -565,14 +565,16 @@ namespace eval ::xotcl {
   }
   ::xotcl::RelationSlot protected method delete_value {obj prop old value} {
     if {[string first * $value] > -1 || [string first \[ $value] > -1} {
-      # string contains meta characters
+      # value contains globbing meta characters
       if {${:elementtype} ne "" && ![string match ::* $value]} {
-        # prefix string with ::, since all object names have leading ::
+        # prefix glob pattern with ::, since all object names have leading ::
         set value ::$value
       }
       return [lsearch -all -not -glob -inline $old $value]
     } elseif {${:elementtype} ne ""} {
+      # value contains no globbing meta characters, but elementtype is given
       if {[string first :: $value] == -1} {
+	# get fully qualified name
         if {![::xotcl::is $value object]} {
           error "$value does not appear to be an object"
         }

@@ -12,7 +12,6 @@ catch {::xotcl::configure cacheinterface true}
 #######################################################
 Test case valuecheck
 Test parameter count 10000
-#Test parameter count 10
 
 Object create o1
 Class create C -parameter {a {b:boolean} {c 1}}
@@ -33,6 +32,11 @@ C create c1
 
 # do not allow "currently unknown" user defined types in valuecheck
 ? {::xotcl::valuecheck in1 aaa} {invalid value constraints "in1"}
+
+? {::xotcl::valuecheck lower c} 1 "lower case char"
+? {::xotcl::valuecheck lower abc} 1 "lower case chars"
+? {::xotcl::valuecheck lower Abc} 0 "no lower case chars"
+? {string is lower abc} 1 "tcl command 'string is lower'"
 
 #
 # parameter options
@@ -55,6 +59,7 @@ C create c1
 #  method             NO         YES        YES   YES     NO        NO/POSSIBLE    YES
 #
 #  relation           NO         YES        NO    YES     NO           NO          YES
+#  stringtype         YES        YES        NO    NO      YES          YES         YES
 #
 #  switch             NO         NO         NO    NO      NO           YES         YES
 #  integer            YES        YES        NO    NO      YES          YES         YES    
@@ -226,6 +231,14 @@ D method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:c
     {Parameter option 'relation' not allowed} \
     "don't allow relation option as method parameter"
 
+? {D method foo {a:double} {return $a}} \
+    {::xotcl::classes::D::foo} \
+    "allow 'string is XXXX' for argument checking"
+? {d1 foo 1} 1 "check int as double"
+? {d1 foo 1.1} 1.1 "check double as double"
+? {d1 foo 1.1a} {expected double but got "1.1a"} "check non-double as double"
+? {D info method parameter foo} a:double
+
 #######################################################
 # non required positional arguments
 #######################################################
@@ -245,7 +258,7 @@ D method foo {a b:optional c:optional args} {
 ? {d1 foo 1} "1-0-0-1" "omit optional arguments"
 
 #######################################################
-# non required positional arguments
+# multivalued arguments
 #######################################################
 Test case multivalued
 Object create o
@@ -581,6 +594,7 @@ D create d1 -d 1
 C create c1 -mixin M
 Object create o
 
+puts stderr =====
 Class create ParamTest -parameter {
   o:object
   c:class
@@ -589,6 +603,8 @@ Class create ParamTest -parameter {
   m:metaclass
   mix:mixin,arg=M
   b:baseclass
+  u:upper
+  us:upper,multivalued
   {x:object,multivalued {o}}
 }
 
@@ -604,6 +620,8 @@ proc parameterFromSlot {class objectparameter} {
 ? {parameterFromSlot ParamTest d1} "d1:object,type=::C"
 ? {parameterFromSlot ParamTest mix} "mix:mixin,arg=M"
 ? {parameterFromSlot ParamTest x} "x:object,multivalued o"
+? {parameterFromSlot ParamTest u} "u:upper"
+? {parameterFromSlot ParamTest us} "us:upper,multivalued"
 
 ? {ParamTest create p -o o} ::p
 ? {ParamTest create p -o xxx} \
@@ -621,6 +639,10 @@ proc parameterFromSlot {class objectparameter} {
 ? {ParamTest create p -d o} \
     {expected object of type ::C but got "o"} \
     "o not of type ::C"
+? {ParamTest create p -u A} ::p
+? {ParamTest create p -u c1} {expected upper but got "c1"}
+? {ParamTest create p -us {A B}} ::p
+? {p us add C end} "A B C"
 
 # TODO: naming "type" and "mixin" not perfect.
 #       maybe "type" => "hastype"

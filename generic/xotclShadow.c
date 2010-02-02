@@ -131,6 +131,7 @@ XOTclShadowTclCommands(Tcl_Interp *interp, XOTclShadowOperations load) {
 #endif
     rc |= XOTclReplaceCommand(interp, XOTE_FORMAT,   0, initialized);
     rc |= XOTclReplaceCommand(interp, XOTE_INTERP,   0, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_IS,       0, initialized);
 
     /* for the following commands, we have to add our own semantics */
     rc |= XOTclReplaceCommand(interp, XOTE_RENAME,   XOTcl_RenameObjCmd, initialized);
