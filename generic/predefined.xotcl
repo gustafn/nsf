@@ -309,109 +309,7 @@ namespace eval ::xotcl {
   ::xotcl::MetaSlot create ::xotcl::ObjectParameterSlot
   ::xotcl::relation ::xotcl::ObjectParameterSlot superclass ::xotcl::Slot
 
-  # We have no working objectparameter yet. So invalidate MetaSlot to
-  # avoid caching.
-  ::xotcl::MetaSlot __invalidateobjectparameter
-  
-  #foreach o {::xotcl::MetaSlot ::xotcl2::ObjectParameterSlot} {
-  #  foreach r {object class metaclass} {
-  #    puts stderr "$o $r=[::xotcl::is $o $r]"
-  #  }
-  #}
 
-  # Provide the a slot based mechanism for building an object
-  # configuration interface from slot definitions
-  ::xotcl::ObjectParameterSlot method toParameterSyntax {name} {
-    set objparamdefinition $name
-    set methodparamdefinition ""
-    set objopts [list]
-    set methodopts [list]
-    if {[info exists :required] && ${:required}} {
-      lappend objopts required
-      lappend methodopts required
-    }
-    if {[info exists :type]} {
-      if {[string match ::* ${:type}]} {
-        lappend objopts object type=${:type}
-        lappend methodopts object type=${:type}
-      } else {
-        lappend objopts ${:type}
-        lappend methodopts ${:type}
-      }
-    }
-    # TODO: remove multivalued check on relations by handling multivalued
-    # not in relation, but in the converters
-    if {[info exists :multivalued] && ${:multivalued}} {
-      if {!([info exists :type] && ${:type} eq "relation")} {
-        lappend objopts multivalued
-      } else {
-        #puts stderr "ignore multivalued for $name in relation"
-      }
-    }
-    if {[info exists :arg]} {
-      lappend objopts arg=${:arg}
-      lappend methodopts arg=${:arg}
-    }
-    if {[info exists :default]} {
-      set arg ${:default}
-      # deactivated for now: || [string first {$} $arg] > -1
-      if {[string match {*\[*\]*} $arg]} {
-        lappend objopts substdefault
-      }
-    } elseif {[info exists :initcmd]} {
-      set arg ${:initcmd}
-      lappend objopts initcmd
-    }
-    if {[info exists :methodname]} {
-      if {${:methodname} ne ${:name}} {
-        lappend objopts arg=${:methodname}
-        lappend methodopts arg=${:methodname}
-        #puts stderr "..... setting arg for methodname: $slot has arg arg=${:methodname}"
-      }
-    }
-    if {[llength $objopts] > 0} {
-      append objparamdefinition :[join $objopts ,]
-    }
-    if {[llength $methodopts] > 0} {
-      set methodparamdefinition [join $methodopts ,]
-    }
-    if {[info exists arg]} {
-      lappend objparamdefinition $arg
-    }
-    #puts stderr "[self proc] ${name} returns [list oparam $objparamdefinition mparam $methodparamdefinition]"
-    return [list oparam $objparamdefinition mparam $methodparamdefinition]
-  }
-   
-  proc ::xotcl::parametersFromSlots {obj} {
-    set parameterdefinitions [list]
-    foreach slot [::xotcl2::objectInfo slotobjects $obj] {
-      # Skip some slots for xotcl1; 
-      # TODO: maybe different parameterFromSlots for xotcl1?
-      if {[::xotcl::is $obj type ::xotcl::Object] && 
-          ([$slot name] eq "mixin" || [$slot name] eq "filter")
-        } continue
-      set name [namespace tail $slot]
-      array set "" [$slot toParameterSyntax $name]
-      lappend parameterdefinitions -$(oparam)
-    }
-    return $parameterdefinitions
-  }
-  
-  ::xotcl2::Object protected method objectparameter {} {
-    set parameterdefinitions [::xotcl::parametersFromSlots [self]]
-    if {[::xotcl::is [self] class]} {
-      lappend parameterdefinitions -parameter:method,optional
-    }
-    lappend parameterdefinitions \
-        -noinit:method,optional,noarg \
-        -volatile:method,optional,noarg \
-        arg:initcmd,optional
-    # for the time being, use:
-    #lappend parameterdefinitions args
-    #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
-    return $parameterdefinitions
-  }
-  
   #
   # create class and object for method parameter slots
   ::xotcl::MetaSlot create ::xotcl::MethodParameterSlot
@@ -441,25 +339,29 @@ namespace eval ::xotcl {
       ::xotcl::setter $class $att
     }
     
-    # do a second round to ensure that the already defined objects
-    # have the appropriate default values
+    #
+    # Perform a second round to set default values for already defined
+    # objects.
+    #
     foreach att $definitions {
       if {[llength $att]>1} {foreach {att default} $att break}
       if {[info exists default]} {
+
         # checking subclasses is not required during bootstrap
-        # todo: do we really need $class twice?
         foreach i [::xotcl::cmd::ClassInfo::instances $class] {
           if {![$i exists $att]} {
-            if {[string match {*[*]*} $default]} {
-              #set default [$i eval subst $default]
-              set default [::xotcl::dispatch $i -objscope ::eval subst $default]
-            }
-            ::xotcl::setinstvar $i $att $default
+            if {[string match {*\[*\]*} $default]} {
+              set value [::xotcl::dispatch $i -objscope ::eval subst $default]
+            } else {
+	      set value $default
+	    }
+            ::xotcl::setinstvar $i $att $value
           }
         }
         unset default
       }
     }
+
     #puts stderr "Bootstrapslot for $class calls __invalidateobjectparameter"
     $class __invalidateobjectparameter
   }
@@ -508,7 +410,7 @@ namespace eval ::xotcl {
     if {$p>-1} {::xotcl::setinstvar $obj $prop [lreplace $old $p $p]} else {
       error "$value is not a $prop of $obj (valid are: $old)"
     }
-}
+  }
   
   ::xotcl::ObjectParameterSlot method unknown {method args} {
     set methods [list]
@@ -545,6 +447,115 @@ namespace eval ::xotcl {
     }
   }
   
+  #################################################################
+  # We have no working objectparameter yet, since it requires a
+  # minimal slot infrastructure to build object parameters from
+  # slots. The above definitions should be sufficient. We provide the
+  # definition here before we refine the slot definitions.
+  # 
+  # Invalidate previously defined object parameter.
+  ::xotcl::MetaSlot __invalidateobjectparameter
+
+  # Provide the a slot based mechanism for building an object
+  # configuration interface from slot definitions
+  ::xotcl::ObjectParameterSlot method toParameterSyntax {{name:substdefault ${:name}}} {
+    set objparamdefinition $name
+    set methodparamdefinition ""
+    set objopts [list]
+    set methodopts [list]
+    set type ""
+    if {[info exists :required] && ${:required}} {
+      lappend objopts required
+      lappend methodopts required
+    }
+    if {[info exists :type]} {
+      if {[string match ::* ${:type}]} {
+	set type [expr {[::xotcl::is ${:type} metaclass] ? "class" : "object"}]
+        lappend objopts type=${:type}
+        lappend methodopts type=${:type}
+      } else {
+        set type ${:type}
+      }
+    }
+    # TODO: remove multivalued check on relations by handling multivalued
+    # not in relation, but in the converters
+    if {[info exists :multivalued] && ${:multivalued}} {
+      if {!([info exists :type] && ${:type} eq "relation")} {
+        lappend objopts multivalued
+      } else {
+        #puts stderr "ignore multivalued for $name in relation"
+      }
+    }
+    if {[info exists :arg]} {
+      set prefix [expr {$type eq "object" || $type eq "class" ? "type" : "arg"}]
+      lappend objopts $prefix=${:arg}
+      lappend methodopts $prefix=${:arg}
+    }
+    if {[info exists :default]} {
+      set arg ${:default}
+      # deactivated for now: || [string first {$} $arg] > -1
+      if {[string match {*\[*\]*} $arg]} {
+        lappend objopts substdefault
+      }
+    } elseif {[info exists :initcmd]} {
+      set arg ${:initcmd}
+      lappend objopts initcmd
+    }
+    if {[info exists :methodname]} {
+      if {${:methodname} ne ${:name}} {
+        lappend objopts arg=${:methodname}
+        lappend methodopts arg=${:methodname}
+        #puts stderr "..... setting arg for methodname: $slot has arg arg=${:methodname}"
+      }
+    }
+    if {$type ne ""} {
+      set objopts [linsert $objopts 0 $type]
+      set methodopts [linsert $methodopts 0 $type]
+    }
+    if {[llength $objopts] > 0} {
+      append objparamdefinition :[join $objopts ,]
+    }
+    if {[llength $methodopts] > 0} {
+      set methodparamdefinition [join $methodopts ,]
+    }
+    if {[info exists arg]} {
+      lappend objparamdefinition $arg
+    }
+    #puts stderr "[self proc] ${name} returns [list oparam $objparamdefinition mparam $methodparamdefinition]"
+    return [list oparam $objparamdefinition mparam $methodparamdefinition]
+  }
+   
+  proc ::xotcl::parametersFromSlots {obj} {
+    set parameterdefinitions [list]
+    foreach slot [::xotcl2::objectInfo slotobjects $obj] {
+      # Skip some slots for xotcl1; 
+      # TODO: maybe different parameterFromSlots for xotcl1?
+      if {[::xotcl::is $obj type ::xotcl::Object] && 
+          ([$slot name] eq "mixin" || [$slot name] eq "filter")
+        } continue
+      array set "" [$slot toParameterSyntax]
+      lappend parameterdefinitions -$(oparam)
+    }
+    return $parameterdefinitions
+  }
+  
+  ::xotcl2::Object protected method objectparameter {} {
+    #puts stderr "... objectparameter [self]"
+    set parameterdefinitions [::xotcl::parametersFromSlots [self]]
+    if {[::xotcl::is [self] class]} {
+      lappend parameterdefinitions -parameter:method,optional
+    }
+    lappend parameterdefinitions \
+        -noinit:method,optional,noarg \
+        -volatile:method,optional,noarg \
+        arg:initcmd,optional
+    # for the time being, use:
+    #lappend parameterdefinitions args
+    #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
+    return $parameterdefinitions
+  }
+  
+
   ############################################
   #  RelationSlot
   ############################################

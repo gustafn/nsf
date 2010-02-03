@@ -71,10 +71,9 @@ C create c1
 #
 # tclObj + converterArg (alnum..xdigit)            Attribute ... -type alnum
 # object + converterArg (some class, e.g. ::C)     Attribute ... -type ::C    Attribute -type object -arg ::C
-# class + converterArg (some metaclass, e.g. ::M)                             Attribute -type class -arg ::M
+# class  + converterArg (some metaclass, e.g. ::M)                            Attribute -type class -arg ::M
 #
-# todo: get rid of convertToObjectOfType() merge to convertToClass/Object
-
+#
 #::xotcl::Slot {
 #     {name "[namespace tail [::xotcl::self]]"}
 #     {methodname}
@@ -595,15 +594,18 @@ D method foo-type   {x:object,type=::C} {return $x}
 # testing object types in object parameters
 #######################################################
 Test case op-object-types
+Class create MC -superclass Class
+MC create MC1
 Class create M
 D create d1 -d 1
 C create c1 -mixin M
 Object create o
 
-puts stderr =====
+#puts stderr =====
 Class create ParamTest -parameter {
   o:object
   c:class
+  c1:class,type=::MC
   d:object,type=::C
   d1:object,type=C
   m:metaclass
@@ -621,23 +623,32 @@ proc parameterFromSlot {class objectparameter} {
   return $(oparam)
 }
 
+#puts stderr =====2
 ? {parameterFromSlot ParamTest o} "o:object"
+? {parameterFromSlot ParamTest c} "c:class"
+? {parameterFromSlot ParamTest c1} "c1:class,type=::MC"
 ? {parameterFromSlot ParamTest d} "d:object,type=::C"
 ? {parameterFromSlot ParamTest d1} "d1:object,type=::C"
 ? {parameterFromSlot ParamTest mix} "mix:mixin,arg=M"
 ? {parameterFromSlot ParamTest x} "x:object,multivalued o"
 ? {parameterFromSlot ParamTest u} "u:upper"
 ? {parameterFromSlot ParamTest us} "us:upper,multivalued"
+#puts stderr =====3
 
 ? {ParamTest create p -o o} ::p
 ? {ParamTest create p -o xxx} \
     {expected object but got "xxx"} \
     "not an object"
 
-? {ParamTest create p -mix c1} ::p
-? {ParamTest create p -mix o} \
-    "Value 'o' of mix has not mixin M" \
-    "does not have mixin M"
+? {ParamTest create p -c C} ::p "class"
+? {ParamTest create p -c o} \
+    {expected class but got "o"} \
+    "not a class"
+
+? {ParamTest create p -c1 MC1} ::p "instance of meta-class MC"
+? {ParamTest create p -c1 C} \
+    {expected class of type ::MC but got "C"} \
+    "not an instance of meta-class MC"
 
 ? {ParamTest create p -d d1} ::p
 ? {ParamTest create p -d1 d1} ::p
@@ -645,8 +656,16 @@ proc parameterFromSlot {class objectparameter} {
 ? {ParamTest create p -d o} \
     {expected object of type ::C but got "o"} \
     "o not of type ::C"
+
+? {ParamTest create p -mix c1} ::p
+? {ParamTest create p -mix o} \
+    "Value 'o' of mix has not mixin M" \
+    "does not have mixin M"
+
 ? {ParamTest create p -u A} ::p
 ? {ParamTest create p -u c1} {expected upper but got "c1"}
+? {ParamTest create p -us {A B c}} \
+    {invalid value in "A B c": expected upper but got "c"}
 ? {ParamTest create p -us {A B}} ::p
 ? {p us add C end} "A B C"
 

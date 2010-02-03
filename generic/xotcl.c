@@ -6221,22 +6221,26 @@ static int convertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONS
 static int convertToNothing(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
   return TCL_OK;
 }
+
 static int convertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
   int result, bool;
   result = Tcl_GetBooleanFromObj(interp, objPtr, &bool);
   if (result == TCL_OK) *clientData = (ClientData)INT2PTR(bool);
   return result;
 }
+
 static int convertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
   int result, i;
   result = Tcl_GetIntFromObj(interp, objPtr, &i);
   if (result == TCL_OK) *clientData = (ClientData)INT2PTR(i);
   return result;
 }
+
 static int convertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   return convertToBoolean(interp, objPtr, pPtr, clientData);
 }
-static int objectOfType(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *objPtr, XOTclParam CONST *pPtr) {
+
+static int objectOfType(Tcl_Interp *interp, XOTclObject *object, char *what, Tcl_Obj *objPtr, XOTclParam CONST *pPtr) {
   XOTclClass *cl;
   Tcl_DString ds, *dsPtr = &ds;
   
@@ -6249,7 +6253,8 @@ static int objectOfType(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *objPtr
   }
 
   DSTRING_INIT(dsPtr);
-  Tcl_DStringAppend(dsPtr, "object of type ", -1);
+  Tcl_DStringAppend(dsPtr, what, -1);
+  Tcl_DStringAppend(dsPtr, " of type ", -1);
   Tcl_DStringAppend(dsPtr, ObjStr(pPtr->converterArg), -1);
   XOTclObjErrType(interp, objPtr, Tcl_DStringValue(dsPtr));
   DSTRING_FREE(dsPtr);
@@ -6259,14 +6264,14 @@ static int objectOfType(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *objPtr
 
 static int convertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   if (GetObjectFromObj(interp, objPtr, (XOTclObject **)clientData) == TCL_OK) {
-    return objectOfType(interp, (XOTclObject *)*clientData, objPtr, pPtr);
+    return objectOfType(interp, (XOTclObject *)*clientData, "object", objPtr, pPtr);
   }
   return XOTclObjErrType(interp, objPtr, "object");
 }
 
 static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
   if (GetClassFromObj(interp, objPtr, (XOTclClass **)clientData, 0) == TCL_OK) {
-    return objectOfType(interp, (XOTclObject *)*clientData, objPtr, pPtr);
+    return objectOfType(interp, (XOTclObject *)*clientData, "class", objPtr, pPtr);
   }
   return XOTclObjErrType(interp, objPtr, "class");
 }
