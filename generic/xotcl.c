@@ -6236,40 +6236,39 @@ static int convertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CON
 static int convertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
   return convertToBoolean(interp, objPtr, pPtr, clientData);
 }
-static int convertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
-  if (GetObjectFromObj(interp, objPtr, (XOTclObject **)clientData) == TCL_OK)
-    return TCL_OK;
-  return XOTclObjErrType(interp, objPtr, "object");
-}
-static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
-  if (GetClassFromObj(interp, objPtr, (XOTclClass **)clientData, 0) == TCL_OK) {
-    return TCL_OK;
-  }
-  return XOTclObjErrType(interp, objPtr, "class");
-}
-static int convertToObjectOfType(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
-  XOTclObject *object;
+static int objectOfType(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *objPtr, XOTclParam CONST *pPtr) {
   XOTclClass *cl;
-  Tcl_Obj *valueObj = pPtr->converterArg;
   Tcl_DString ds, *dsPtr = &ds;
-
-  if (valueObj == NULL)
-    return XOTclVarErrMsg(interp, "No object type specified", (char *) NULL);
-
-  if ((GetObjectFromObj(interp, objPtr, &object) == TCL_OK)
-      && (GetClassFromObj(interp, valueObj, &cl, 0) == TCL_OK)
+  
+  if (pPtr->converterArg == NULL) 
+    return TCL_OK;
+    
+  if ((GetClassFromObj(interp, pPtr->converterArg, &cl, 0) == TCL_OK)
       && isSubType(object->cl, cl)) {
-    *clientData = object;
     return TCL_OK;
   }
 
   DSTRING_INIT(dsPtr);
   Tcl_DStringAppend(dsPtr, "object of type ", -1);
-  Tcl_DStringAppend(dsPtr, ObjStr(valueObj), -1);
+  Tcl_DStringAppend(dsPtr, ObjStr(pPtr->converterArg), -1);
   XOTclObjErrType(interp, objPtr, Tcl_DStringValue(dsPtr));
   DSTRING_FREE(dsPtr);
 
   return TCL_ERROR;
+}
+
+static int convertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
+  if (GetObjectFromObj(interp, objPtr, (XOTclObject **)clientData) == TCL_OK) {
+    return objectOfType(interp, (XOTclObject *)*clientData, objPtr, pPtr);
+  }
+  return XOTclObjErrType(interp, objPtr, "object");
+}
+
+static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
+  if (GetClassFromObj(interp, objPtr, (XOTclClass **)clientData, 0) == TCL_OK) {
+    return objectOfType(interp, (XOTclObject *)*clientData, objPtr, pPtr);
+  }
+  return XOTclObjErrType(interp, objPtr, "class");
 }
 
 static int convertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
@@ -6395,12 +6394,9 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
     paramPtr->flags |= XOTCL_ARG_RELATION;
     /*paramPtr->type = "tclobj";*/
   } else if (length >= 6 && strncmp(option, "type=", 5) == 0) {
-    if (paramPtr->converter != NULL &&
-        paramPtr->converter != convertToObject && 
+    if (paramPtr->converter != convertToObject && 
         paramPtr->converter != convertToClass) 
       return XOTclVarErrMsg(interp, "option type= only allowed for object or class", (char *) NULL);
-    paramPtr->converter = NULL;
-    result = ParamOptionSetConverter(interp, paramPtr, option, convertToObjectOfType);
     paramPtr->converterArg = Tcl_NewStringObj(option+5, length-5);
     INCR_REF_COUNT(paramPtr->converterArg);
   } else {

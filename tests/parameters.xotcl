@@ -53,21 +53,27 @@ C create c1
 #                  specified value is the first argument unless "noarg" is used  
 #                  (example: -noinit).
 #
-# parameter type   multivalued  required  noarg   arg=  valueCheck  methodParm   objectParm
-#  substdefault       NO         NO         NO    NO      NO           YES         YES (autmatically set by -parameter on []}
-#  initcmd            NO         YES        NO    NO      NO        NO/POSSIBLE    YES
-#  method             NO         YES        YES   YES     NO        NO/POSSIBLE    YES
+# parameter type   multivalued  required  noarg  type=   arg=  valueCheck  methodParm   objectParm
+#  substdefault       NO         NO         NO    NO      NO      NO           YES         YES (autmatically set by -parameter on []}
+#  initcmd            NO         YES        NO    NO      NO      NO        NO/POSSIBLE    YES
+#  method             NO         YES        YES   NO      YES     NO        NO/POSSIBLE    YES
 #
-#  relation           NO         YES        NO    YES     NO           NO          YES
-#  stringtype         YES        YES        NO    NO      YES          YES         YES
+#  relation           NO         YES        NO    NO      YES     NO           NO          YES
+#  stringtype         YES        YES        NO    NO      NO      YES          YES         YES
 #
-#  switch             NO         NO         NO    NO      NO           YES         YES
-#  integer            YES        YES        NO    NO      YES          YES         YES    
-#  boolean            YES        YES        NO    NO      YES          YES         YES
-#  object             YES        YES        NO    NO      YES          YES         YES
-#  class              YES        YES        NO    NO      YES          YES         YES
-#  objectOfType       YES        YES        NO    NO      YES          YES         YES
-#  userdefined        YES        YES        NO    YES     YES          YES         YES
+#  switch             NO         NO         NO    NO      NO      NO           YES         YES
+#  integer            YES        YES        NO    NO      NO      YES          YES         YES    
+#  boolean            YES        YES        NO    NO      NO      YES          YES         YES
+#  object             YES        YES        NO    YES     NO      YES          YES         YES
+#  class              YES        YES        NO    YES     NO      YES          YES         YES
+#
+#  userdefined        YES        YES        NO    NO      YES     YES          YES         YES
+#
+# tclObj + converterArg (alnum..xdigit)            Attribute ... -type alnum
+# object + converterArg (some class, e.g. ::C)     Attribute ... -type ::C    Attribute -type object -arg ::C
+# class + converterArg (some metaclass, e.g. ::M)                             Attribute -type class -arg ::M
+#
+# todo: get rid of convertToObjectOfType() merge to convertToClass/Object
 
 #::xotcl::Slot {
 #     {name "[namespace tail [::xotcl::self]]"}
