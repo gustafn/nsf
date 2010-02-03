@@ -6465,7 +6465,7 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
 
   result = Tcl_ListObjGetElements(interp, arg, &npac, &npav);
   if (result != TCL_OK || npac < 1 || npac > 2) {
-    return XOTclVarErrMsg(interp, "wrong # of elements in parameter definition for method",
+    return XOTclVarErrMsg(interp, "wrong # of elements in parameter definition for method ",
                           procName, " (should be 1 or 2 list elements): ",
                           ObjStr(arg), (char *) NULL);
   }
@@ -6550,6 +6550,10 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
      * have a default.
      */
     paramPtr->flags &= ~XOTCL_ARG_REQUIRED;
+  } else if (paramPtr->flags & XOTCL_ARG_SUBST_DEFAULT) {
+    XOTclVarErrMsg(interp, "parameter option substdefault specified for parameter \"", 
+		   paramPtr->name, "\" without default value", (char *) NULL);
+    goto param_error;
   }
 
   /* convertToTclobj() is the default converter */
@@ -9594,7 +9598,7 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
       if (pPtr->defaultValue) {
         Tcl_Obj *newValue = pPtr->defaultValue;
         ClientData checkedData;
-
+	
         /* we have a default, do we have to subst it? */
         if (pPtr->flags & XOTCL_ARG_SUBST_DEFAULT) {
           int result = SubstValue(interp, pcPtr->obj, &newValue);

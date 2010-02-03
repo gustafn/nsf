@@ -45,8 +45,11 @@ C create c1
 #   multivalued
 #   noarg
 #   arg=
+#   substdefault:  if no value given, subst on default (result is substituted value); 
+#                  can use variable resolvers,
+#                  for scripted/c-methods/obj-parm, 
+#                  autmatically set by  "$slot toParameterSyntax" if default contains "[" ... "]".
 #
-#   substdefault:  if no value given, subst on default (result is substituted value); for scripted/c methods/obj parm
 #   initcmd:       evaluate body in an xotcl nonleaf frame, called via configure 
 #                  (example: last arg on create)
 #   method         call specified method in an xotcl nonleaf frame, called via configure;
@@ -54,7 +57,6 @@ C create c1
 #                  (example: -noinit).
 #
 # parameter type   multivalued  required  noarg  type=   arg=  valueCheck  methodParm   objectParm
-#  substdefault       NO         NO         NO    NO      NO      NO           YES         YES (autmatically set by -parameter on []}
 #  initcmd            NO         YES        NO    NO      NO      NO        NO/POSSIBLE    YES
 #  method             NO         YES        YES   NO      YES     NO        NO/POSSIBLE    YES
 #
@@ -589,6 +591,57 @@ D method foo-type   {x:object,type=::C} {return $x}
     {expected object of type ::C but got "o"} \
     "o not of type ::C"
 
+#######################################################
+#
+#######################################################
+Test case substdefault
+Class create S -parameter {{x 1} {y b} {z {1 2 3}}}
+S create s1 {
+  :method foo {{y:substdefault ${:x}}} {
+    return $y
+  }
+  :method bar {{y:integer,substdefault ${:x}}} {
+    return $y
+  }
+  :method baz {{x:integer,substdefault ${:y}}} {
+    return $x
+  }
+  :method boz {{x:integer,multivalued,substdefault ${:z}}} {
+    return $x
+  }
+}
+? {s1 foo} 1
+? {s1 foo 2} 2
+
+? {S method foo {a:substdefault} {return 1}} \
+    {parameter option substdefault specified for parameter "a" without default value}
+
+? {s1 bar} 1
+? {s1 bar 3} 3
+? {s1 bar a} {expected integer but got "a"}
+
+? {s1 baz} {expected integer but got "b"}
+? {s1 baz 20} 20
+s1 y 100
+? {s1 baz} 100
+? {s1 baz 101} 101
+
+? {s1 boz} {1 2 3}
+s1 z {1 x 100}
+? {s1 boz} {invalid value in "1 x 100": expected integer but got "x"}
+? {s1 boz {100 200}} {100 200}
+
+set aaa 100
+? {s1 method foo {{a:substdefault $::aaa}} {return $a}} ::s1::foo
+? {s1 foo} 100
+unset aaa
+? {s1 foo} {can't read "::aaa": no such variable}
+
+? {s1 method foo {{a:substdefault $aaa}} {return $a}} ::s1::foo
+? {s1 foo} {can't read "aaa": no such variable}
+
+? {s1 method foo {{a:substdefault [self]}} {return $a}} ::s1::foo
+? {s1 foo} ::s1
 
 #######################################################
 # testing object types in object parameters
