@@ -5325,7 +5325,7 @@ ParamDefsFormatOption(Tcl_Interp *interp, Tcl_Obj *nameStringObj, char* option,
   Tcl_AppendToObj(nameStringObj, option, -1);
 }
 
-static int convertToNothing(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, ClientData *clientData);
+static int convertToNothing(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr);
 
 static Tcl_Obj *
 ParamDefsFormat(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
@@ -6178,10 +6178,13 @@ noMetaChars(char *pattern) {
  * type converter
  */
 /* we could define parameterTypes with a converter, setter, canCheck, name */
-static int convertToString(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
+static int convertToString(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+			   ClientData *clientData, Tcl_Obj **outObjPtr) {
   *clientData = (char *)ObjStr(objPtr);
+  *outObjPtr = objPtr;
   return TCL_OK;
 }
+
 enum stringTypeIdx {StringTypeAlnum, StringTypeAlpha, StringTypeAscii, StringTypeBoolean, StringTypeControl, 
 		    StringTypeDigit, StringTypeDouble, StringTypeFalse,StringTypeGraph, StringTypeInteger, 
 		    StringTypeLower, StringTypePrint, StringTypePunct, StringTypeSpace, StringTypeTrue, 
@@ -6191,7 +6194,8 @@ static CONST char *stringTypeOpts[] = {"alnum", "alpha", "ascii", "boolean", "co
 			       "lower", "print", "punct", "space", "true", 
 			       "upper", "wordchar", "xdigit", NULL};
 
-static int convertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
+static int convertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
+			   ClientData *clientData, Tcl_Obj **outObjPtr) {
   Tcl_Obj *objv[3];
   int result;
 
@@ -6207,6 +6211,7 @@ static int convertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONS
       Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &success);
       if (success == 1) {
 	*clientData = (ClientData)objPtr;
+	*outObjPtr = objPtr;
       } else {
 	result = XOTclVarErrMsg(interp, "expected ", ObjStr(pPtr->converterArg), 
 				" but got \"", ObjStr(objPtr), "\"", NULL);
@@ -6214,40 +6219,49 @@ static int convertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONS
     }
   } else {
     *clientData = (ClientData)objPtr;
+    *outObjPtr = objPtr;
     result = TCL_OK;
   }
   return result;
 }
 
-static int convertToNothing(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
+static int convertToNothing(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  *outObjPtr = objPtr;
   return TCL_OK;
 }
 
-static int convertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
+static int convertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result, bool;
   result = Tcl_GetBooleanFromObj(interp, objPtr, &bool);
   if (result == TCL_OK) *clientData = (ClientData)INT2PTR(bool);
+  *outObjPtr = objPtr;
   return result;
 }
 
-static int convertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
+static int convertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result, i;
   result = Tcl_GetIntFromObj(interp, objPtr, &i);
   if (result == TCL_OK) *clientData = (ClientData)INT2PTR(i);
+  *outObjPtr = objPtr;
   return result;
 }
 
-static int convertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
-  return convertToBoolean(interp, objPtr, pPtr, clientData);
+static int convertToSwitch(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+			   ClientData *clientData, Tcl_Obj **outObjPtr) {
+  return convertToBoolean(interp, objPtr, pPtr, clientData, outObjPtr);
 }
 
-static int objectOfType(Tcl_Interp *interp, XOTclObject *object, char *what, Tcl_Obj *objPtr, XOTclParam CONST *pPtr) {
+static int objectOfType(Tcl_Interp *interp, XOTclObject *object, char *what, Tcl_Obj *objPtr, 
+			XOTclParam CONST *pPtr) {
   XOTclClass *cl;
   Tcl_DString ds, *dsPtr = &ds;
   
   if (pPtr->converterArg == NULL) 
     return TCL_OK;
-    
+
   if ((GetClassFromObj(interp, pPtr->converterArg, &cl, 0) == TCL_OK)
       && isSubType(object->cl, cl)) {
     return TCL_OK;
@@ -6263,29 +6277,36 @@ static int objectOfType(Tcl_Interp *interp, XOTclObject *object, char *what, Tcl
   return TCL_ERROR;
 }
 
-static int convertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, ClientData *clientData) {
+static int convertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+			   ClientData *clientData, Tcl_Obj **outObjPtr) {
+  *outObjPtr = objPtr;
   if (GetObjectFromObj(interp, objPtr, (XOTclObject **)clientData) == TCL_OK) {
     return objectOfType(interp, (XOTclObject *)*clientData, "object", objPtr, pPtr);
   }
   return XOTclObjErrType(interp, objPtr, "object");
 }
 
-static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
+static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
+			  ClientData *clientData, Tcl_Obj **outObjPtr) {
+  *outObjPtr = objPtr;
   if (GetClassFromObj(interp, objPtr, (XOTclClass **)clientData, 0) == TCL_OK) {
     return objectOfType(interp, (XOTclObject *)*clientData, "class", objPtr, pPtr);
   }
   return XOTclObjErrType(interp, objPtr, "class");
 }
 
-static int convertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
+static int convertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
+			     ClientData *clientData, Tcl_Obj **outObjPtr) {
   /* XOTclRelationCmd is the real setter, which checks the values
      according to the relation type (Class, List of Class, list of
      filters; we treat it here just like a tclobj */
   *clientData = (ClientData)objPtr;
+  *outObjPtr = objPtr;
   return TCL_OK;
 }
 
-static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
+static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
+			 ClientData *clientData, Tcl_Obj **outObjPtr) {
   Tcl_Obj *ov[5];
   int result, oc;
   
@@ -6304,13 +6325,14 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
   
   if (result == TCL_OK) {
     fprintf(stderr, "convertViaCmd converts %s to '%s'\n", ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)));
-    *clientData = (ClientData)Tcl_GetObjResult(interp);
+    *outObjPtr = Tcl_GetObjResult(interp);
+    *clientData = (ClientData) *outObjPtr;
   }
-  fprintf(stderr, "convertViaCmd returns %d\n",result);
   return result;
 }
 
-static int convertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
+static int convertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
+			       ClientData *clientData, Tcl_Obj **outObjPtr) {
   Tcl_Obj *patternObj = objPtr;
   char *pattern = ObjStr(objPtr);
 
@@ -6337,6 +6359,7 @@ static int convertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam 
     INCR_REF_COUNT(patternObj);
   }
   *clientData = (ClientData)patternObj;
+  *outObjPtr = objPtr;
   return TCL_OK;
 }
 
@@ -9554,29 +9577,39 @@ ArgumentError(Tcl_Interp *interp, char *errorMsg, XOTclParam CONST *paramPtr,
 }
 
 static int
-ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *obj, struct XOTclParam CONST *pPtr, ClientData *clientData) {
+ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, 
+	      ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
 
   if (pPtr->flags & XOTCL_ARG_MULTIVALUED) {
     int objc, i;
     Tcl_Obj **ov;
     
-    result = Tcl_ListObjGetElements(interp, obj, &objc, &ov);
+    result = Tcl_ListObjGetElements(interp, objPtr, &objc, &ov);
     if (result == TCL_OK) {
       for (i=0; i<objc; i++) {
-        result = (*pPtr->converter)(interp, ov[i], pPtr, clientData);
-        if (result != TCL_OK) {
+	Tcl_Obj *elementObjPtr;
+        result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
+	if (result == TCL_OK) {
+	  if (ov[i] != elementObjPtr) {
+	    fprintf(stderr, "ignoreing converted value %s in multivalued converter\n",
+		    ObjStr(elementObjPtr));
+	  }
+	} else {
           Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
           INCR_REF_COUNT(resultObj);
-          XOTclVarErrMsg(interp, "invalid value in \"", ObjStr(obj), "\": ",
+          XOTclVarErrMsg(interp, "invalid value in \"", ObjStr(objPtr), "\": ",
                          ObjStr(resultObj), (char *) NULL);
           DECR_REF_COUNT(resultObj);
           break;
         }
       }
     }
+    /* todo: just for the time being; we will have to build an own
+       structure when converter returns a different tcl_obj */
+    *outObjPtr = objPtr;
   } else {
-    result = (*pPtr->converter)(interp, obj, pPtr, clientData);
+    result = (*pPtr->converter)(interp, objPtr, pPtr, clientData, outObjPtr);
   }
   return result;
 }
@@ -9631,14 +9664,17 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
 
         /* Check the default value, unless we have an INITCMD or METHOD */
         if ((pPtr->flags & (XOTCL_ARG_INITCMD|XOTCL_ARG_METHOD)) == 0) {
-          if (ArgumentCheck(interp, newValue, pPtr, &checkedData) != TCL_OK) {
+          if (ArgumentCheck(interp, newValue, pPtr, &checkedData, &pcPtr->objv[i]) != TCL_OK) {
             return TCL_ERROR;
           }
-	  
-	  if (pPtr->converter == convertViaCmd) {
-	    fprintf(stderr, " ArgumentCheck of default %s -> %s\n",ObjStr(newValue),ObjStr((Tcl_Obj*)checkedData));
-	    pcPtr->objv[i] = (Tcl_Obj*)checkedData;
-	    /* TODO: what happens with XOTCL_PC_MUST_DECR */
+	  if (pcPtr->objv[i] != newValue) {
+	    /* The output tcl_obj differs from the input, so it was
+	       converted; in case, we have set muse_decr on newValue,
+	       we decr here an clear the flag */
+	    if (pcPtr->flags[i] & XOTCL_PC_MUST_DECR) {
+	      DECR_REF_COUNT(newValue);
+	      pcPtr->flags[i] &= ~XOTCL_PC_MUST_DECR;
+	    }
 	  }
 
         }
@@ -9714,6 +9750,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                 /* we assume for now, nrArgs is at most 1 */
                 o++; p++;
                 if (nppPtr->flags & XOTCL_ARG_REQUIRED) nrReq++; else nrOpt++;
+
                 if (o < objc) {
 #if defined(PARSE_TRACE_FULL)
 		  fprintf(stderr, "...     setting cd[%d] '%s' = %s (%d) %s converter %p\n",
@@ -9721,17 +9758,10 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                           nppPtr->flags & XOTCL_ARG_REQUIRED ? "req":"not req", nppPtr->converter);
 #endif
                   if (ArgumentCheck(interp, objv[p], nppPtr, 
-                                           &pcPtr->clientData[j]) != TCL_OK) {
+				    &pcPtr->clientData[j], &pcPtr->objv[j]) != TCL_OK) {
                     return TCL_ERROR;
                   }
-
-		  if (nppPtr->converter == convertViaCmd) {
-		    fprintf(stderr, " ArgumentCheck of %s -> %s\n",ObjStr(objv[p]),ObjStr((Tcl_Obj*)pcPtr->clientData[j]));
-		    pcPtr->objv[j] = (Tcl_Obj*)pcPtr->clientData[j];
-		  } else {
-		    pcPtr->objv[j] = objv[p];
-		  }
-
+		  
                 } else {
                   Tcl_ResetResult(interp);
                   Tcl_AppendResult(interp, "Argument for parameter '", objStr, "' expected", (char *) NULL);
@@ -9782,7 +9812,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       /*fprintf(stderr, "... arg %s req %d converter %p try to set on %d: '%s' convertViaCmd %p\n",
               pPtr->name, pPtr->flags & XOTCL_ARG_REQUIRED, pPtr->converter, i, ObjStr(objv[o]), 
               convertViaCmd);*/
-      if (ArgumentCheck(interp, objv[o], pPtr, &pcPtr->clientData[i]) != TCL_OK) {
+      if (ArgumentCheck(interp, objv[o], pPtr, &pcPtr->clientData[i], &pcPtr->objv[i]) != TCL_OK) {
         return TCL_ERROR;
       }
 
@@ -9793,12 +9823,6 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       fprintf(stderr, "...     setting %s pPtr->objv[%d] to [%d]'%s' converter %p\n", 
               pPtr->name, i, o, ObjStr(objv[o]), pPtr->converter);
 #endif
-      if (pPtr->converter == convertViaCmd) {
-	fprintf(stderr, " ArgumentCheck of %s -> %s\n",ObjStr(objv[o]),ObjStr((Tcl_Obj*)pcPtr->clientData[i]));
-	pcPtr->objv[i] = (Tcl_Obj*)pcPtr->clientData[i];
-      } else {
-	pcPtr->objv[i] = objv[o];
-      }
       o++; i++; pPtr++;
     }
   }
@@ -10486,11 +10510,12 @@ ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, char *pattern,
 static int
 ListSuperclasses(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *pattern, int withClosure) {
   XOTclObject *matchObject = NULL;
-  Tcl_Obj *patternObj = NULL;
+  Tcl_Obj *patternObj = NULL, *outObjPtr;
   char *patternString = NULL;
   int rc;
 
-  if (pattern && convertToObjpattern(interp, pattern, NULL, (ClientData *)&patternObj) == TCL_OK) {
+  if (pattern && 
+      convertToObjpattern(interp, pattern, NULL, (ClientData *)&patternObj, &outObjPtr) == TCL_OK) {
     if (getMatchObject(interp, patternObj, pattern, &matchObject, &patternString) == -1) {
       if (patternObj) {
 	DECR_REF_COUNT(patternObj);
@@ -12255,6 +12280,7 @@ xotclCmd valuecheck XOTclValuecheckCmd {
 static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *value) {
   ClientData checkedData;
   XOTclParam *paramPtr;
+  Tcl_Obj *outObjPtr;
   int result;
 
   if (objPtr->typePtr == &paramObjType) {
@@ -12270,7 +12296,7 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valu
     }
   }
 
-  result = ArgumentCheck(interp, value, paramPtr, &checkedData);
+  result = ArgumentCheck(interp, value, paramPtr, &checkedData, &outObjPtr);
   
   Tcl_SetIntObj(Tcl_GetObjResult(interp), (result == TCL_OK));
   return TCL_OK;
@@ -12440,9 +12466,10 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
     /* special setter due to relation handling */
     if (paramPtr->converter == convertToRelation) {
       ClientData relIdx; 
-      Tcl_Obj *relationObj = paramPtr->converterArg ? paramPtr->converterArg : paramPtr->nameObj;
+      Tcl_Obj *relationObj = paramPtr->converterArg ? paramPtr->converterArg : paramPtr->nameObj,
+	*outObjPtr;
 
-      result = convertToRelationtype(interp, relationObj, paramPtr, &relIdx);
+      result = convertToRelationtype(interp, relationObj, paramPtr, &relIdx, &outObjPtr);
 
       if (result == TCL_OK) {
         result = XOTclRelationCmd(interp, object, PTR2INT(relIdx), newValue);

@@ -398,8 +398,11 @@ typedef struct XOTclStringIncrStruct {
  * object and class internals
  */
 struct XOTclParam;
-typedef int (XOTclTypeConverter)(Tcl_Interp *interp, Tcl_Obj *obj,
-                                 struct XOTclParam CONST *pPtr, ClientData *clientData);
+typedef int (XOTclTypeConverter)(Tcl_Interp *interp, 
+				 Tcl_Obj *obj,
+                                 struct XOTclParam CONST *pPtr, 
+				 ClientData *clientData, 
+				 Tcl_Obj **outObjPtr);
 
 typedef struct XOTclParam {
   char *name;
