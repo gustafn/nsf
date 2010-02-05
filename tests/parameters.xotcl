@@ -437,6 +437,7 @@ D method foo {a:unknowntype} {
   if {$value ni [split $arg |]} {
     error "Value '$value' of parameter $name not in permissible values $arg"
   }
+  return $value
 }
 
 D method foo {a:in,arg=a|b|c} {
@@ -463,6 +464,7 @@ D method foo {a:in,arg=a|b|c b:in,arg=good|bad {-c:in,arg=a|b a}} {
   if {$value < $min || $value > $max} {
     error "Value '$value' of parameter $name not between $min and $max"
   }
+  return $value
 }
 
 D method foo {a:range,arg=1-3 {-b:range,arg=2-6 3} c:range,arg=5-10} {
@@ -485,6 +487,7 @@ D method foo {a:range,arg=1-3 {-b:range,arg=2-6 3} c:range,arg=5-10} {
 #
 ::xotcl::methodParameterSlot method type=list {name value arg} {
   #puts $value/$arg
+  return $value
 }
 
 # handling spaces in "arg" is not not particular nice

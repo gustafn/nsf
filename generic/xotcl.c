@@ -6306,6 +6306,7 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
     fprintf(stderr, "convertViaCmd converts %s to '%s'\n", ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)));
     *clientData = (ClientData)Tcl_GetObjResult(interp);
   }
+  fprintf(stderr, "convertViaCmd returns %d\n",result);
   return result;
 }
 
@@ -6566,7 +6567,7 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
 	      ObjStr(paramPtr->converterName), objectName(paramObj));
       paramPtr->flags |= XOTCL_ARG_CURRENTLY_UNKNOWN;
       /* TODO: for the time being, we do not return an error here */
-    } 
+    }
   }
 
   /*
@@ -12230,7 +12231,12 @@ ParamSetFromAny(
   result = ParamParse(interp, "valuecheck", fullParamObj, 
                       XOTCL_DISALLOWED_ARG_VALUEECHECK /* disallowed options */,
                       paramPtr, &possibleUnknowns, &plainParams);
-  if (result == TCL_OK) {
+  /* Here, we want to treat currently unknown user level converters as
+     error. 
+  */
+  if (paramPtr->flags & XOTCL_ARG_CURRENTLY_UNKNOWN) {
+    result = TCL_ERROR;
+  } else if (result == TCL_OK) {
     TclFreeIntRep(objPtr);
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)paramPtr;
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
@@ -12265,6 +12271,7 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valu
   }
 
   result = ArgumentCheck(interp, value, paramPtr, &checkedData);
+  
   Tcl_SetIntObj(Tcl_GetObjResult(interp), (result == TCL_OK));
   return TCL_OK;
 }
