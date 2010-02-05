@@ -512,6 +512,8 @@ namespace eval ::xotcl {
       set objopts [linsert $objopts 0 $type]
       set methodopts [linsert $methodopts 0 $type]
     }
+    lappend objopts slot=[self]
+
     if {[llength $objopts] > 0} {
       append objparamdefinition :[join $objopts ,]
     }
@@ -549,8 +551,6 @@ namespace eval ::xotcl {
         -noinit:method,optional,noarg \
         -volatile:method,optional,noarg \
         arg:initcmd,optional
-    # for the time being, use:
-    #lappend parameterdefinitions args
     #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
     return $parameterdefinitions
   }
@@ -778,12 +778,12 @@ namespace eval ::xotcl {
     if {$(mparam) ne ""} {
       if {[info exists :multivalued] && ${:multivalued}} {
         #puts stderr "adding assign [list obj var value:$(mparam),multivalued] // for [self] with $(mparam)"
-        :method assign [list obj var value:$(mparam),multivalued] {::xotcl::setinstvar $obj $var $value}
+        :method assign [list obj var value:$(mparam),multivalued,slot=[self]] {::xotcl::setinstvar $obj $var $value}
         #puts stderr "adding add method for [self] with value:$(mparam)"
-        :method add [list obj prop value:$(mparam) {pos 0}] {next}
+        :method add [list obj prop value:$(mparam),slot=[self] {pos 0}] {next}
       } else {
         #puts stderr "adding assign [list obj var value:$(mparam)] // for [self] with $(mparam)"
-        :method assign [list obj var value:$(mparam)] {::xotcl::setinstvar $obj $var $value}
+        :method assign [list obj var value:$(mparam),slot=[self]] {::xotcl::setinstvar $obj $var $value}
       }
     }
     #append __initcmd [:mk_type_checker]

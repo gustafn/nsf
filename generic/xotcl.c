@@ -5264,6 +5264,7 @@ static void ParamsFree(XOTclParam *paramsPtr) {
     if (paramPtr->converterName) {DECR_REF_COUNT(paramPtr->converterName);}
     if (paramPtr->converterArg) {DECR_REF_COUNT(paramPtr->converterArg);}
     if (paramPtr->paramObj) {DECR_REF_COUNT(paramPtr->paramObj);}
+    if (paramPtr->slotObj) {DECR_REF_COUNT(paramPtr->slotObj);}
   }
   FREE(XOTclParam*, paramsPtr);
 }
@@ -6287,8 +6288,8 @@ static int convertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CO
 static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, ClientData *clientData) {
   Tcl_Obj *ov[5];
   int result, oc;
-
-  ov[0] = XOTclGlobalObjects[XOTE_METHOD_PARAMETER_SLOT_OBJ];
+  
+  ov[0] = pPtr->slotObj ? pPtr->slotObj : XOTclGlobalObjects[XOTE_METHOD_PARAMETER_SLOT_OBJ];
   ov[1] = pPtr->converterName;
   ov[2] = pPtr->nameObj;
   ov[3] = objPtr;
@@ -6302,7 +6303,8 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
   result = Tcl_EvalObjv(interp, oc, ov, 0);
   
   if (result == TCL_OK) {
-    *clientData = (ClientData)objPtr;
+    fprintf(stderr, "convertViaCmd converts %s to '%s'\n", ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)));
+    *clientData = (ClientData)Tcl_GetObjResult(interp);
   }
   return result;
 }
@@ -6404,6 +6406,9 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
       return XOTclVarErrMsg(interp, "option type= only allowed for object or class", (char *) NULL);
     paramPtr->converterArg = Tcl_NewStringObj(option+5, length-5);
     INCR_REF_COUNT(paramPtr->converterArg);
+  } else if (length >= 6 && strncmp(option, "slot=", 5) == 0) {
+    paramPtr->slotObj = Tcl_NewStringObj(option+5, length-5);
+    INCR_REF_COUNT(paramPtr->slotObj);
   } else {
     int i, found = -1;
     
@@ -6421,28 +6426,10 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
       paramPtr->converterArg =  Tcl_NewStringObj(stringTypeOpts[i], -1);
       INCR_REF_COUNT(paramPtr->converterArg);      
     } else {
-      /* converter defined via method */
-      XOTclObject *paramObj;
-      Tcl_Obj *checker;
-      XOTclClass *pcl;
-      Tcl_Command cmd;
-
-      result = GetObjectFromObj(interp, XOTclGlobalObjects[XOTE_METHOD_PARAMETER_SLOT_OBJ], &paramObj);
-      if (result != TCL_OK)
-	return result;
-      
-      checker = ParamCheckObj(interp, option, length);
-      INCR_REF_COUNT(checker);
-      cmd = ObjectFindMethod(interp, paramObj, ObjStr(checker), &pcl);
-
-      if (cmd == NULL) {
-	fprintf(stderr, "**** could not find checker method %s defined on %s\n",
-		ObjStr(checker), objectName(paramObj));
-	paramPtr->flags |= XOTCL_ARG_CURRENTLY_UNKNOWN;
-	/* TODO: for the time being, we do not return an error here */
-      }
+      /* must be a converter defined via method */
+      paramPtr->converterName = ParamCheckObj(interp, option, length);
+      INCR_REF_COUNT(paramPtr->converterName);
       result = ParamOptionSetConverter(interp, paramPtr, "usertype", convertViaCmd);
-      paramPtr->converterName = checker;
     }
   }
 
@@ -6556,9 +6543,30 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
     goto param_error;
   }
 
-  /* convertToTclobj() is the default converter */
+  /* postprocessing the parameter options */
+
   if (paramPtr->converter == NULL) {
+    /* convertToTclobj() is the default converter */
     paramPtr->converter = convertToTclobj;
+  } else if (paramPtr->converter == convertViaCmd) {
+    XOTclObject *paramObj;
+    XOTclClass *pcl;
+    Tcl_Command cmd;
+
+    result = GetObjectFromObj(interp, paramPtr->slotObj ? paramPtr->slotObj : 
+			      XOTclGlobalObjects[XOTE_METHOD_PARAMETER_SLOT_OBJ], 
+			      &paramObj);
+    fprintf(stderr, "slotObj = %p, %s\n", paramPtr->slotObj, objectName(paramObj));
+    if (result != TCL_OK)
+      return result;
+    
+    cmd = ObjectFindMethod(interp, paramObj, ObjStr(paramPtr->converterName), &pcl);
+    if (cmd == NULL) {
+      fprintf(stderr, "**** could not find checker method %s defined on %s\n",
+	      ObjStr(paramPtr->converterName), objectName(paramObj));
+      paramPtr->flags |= XOTCL_ARG_CURRENTLY_UNKNOWN;
+      /* TODO: for the time being, we do not return an error here */
+    } 
   }
 
   /*
@@ -9625,6 +9633,13 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
           if (ArgumentCheck(interp, newValue, pPtr, &checkedData) != TCL_OK) {
             return TCL_ERROR;
           }
+	  
+	  if (pPtr->converter == convertViaCmd) {
+	    fprintf(stderr, " ArgumentCheck of default %s -> %s\n",ObjStr(newValue),ObjStr((Tcl_Obj*)checkedData));
+	    pcPtr->objv[i] = (Tcl_Obj*)checkedData;
+	    /* TODO: what happens with XOTCL_PC_MUST_DECR */
+	  }
+
         }
       } else if (pPtr->flags & XOTCL_ARG_REQUIRED) {
         return XOTclVarErrMsg(interp,
@@ -9688,11 +9703,12 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
           for (nppPtr = pPtr; nppPtr->name && *nppPtr->name == '-'; nppPtr ++) {
             if (strcmp(objStr, nppPtr->name) == 0) {
+	      int j = nppPtr-paramPtr;
               /*fprintf(stderr, "...     flag '%s' o=%d p=%d, objc=%d nrArgs %d\n", objStr, o, p, objc, nppPtr->nrArgs);*/
               if (nppPtr->flags & XOTCL_ARG_REQUIRED) nrReq++; else nrOpt++;
               if (nppPtr->nrArgs == 0) {
-                pcPtr->clientData[nppPtr-paramPtr] = (ClientData)1;  /* the flag was given */
-                pcPtr->objv[nppPtr-paramPtr] = XOTclGlobalObjects[XOTE_ONE];
+                pcPtr->clientData[j] = (ClientData)1;  /* the flag was given */
+                pcPtr->objv[j] = XOTclGlobalObjects[XOTE_ONE];
               } else {
                 /* we assume for now, nrArgs is at most 1 */
                 o++; p++;
@@ -9704,10 +9720,17 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                           nppPtr->flags & XOTCL_ARG_REQUIRED ? "req":"not req", nppPtr->converter);
 #endif
                   if (ArgumentCheck(interp, objv[p], nppPtr, 
-                                           &pcPtr->clientData[nppPtr-paramPtr]) != TCL_OK) {
+                                           &pcPtr->clientData[j]) != TCL_OK) {
                     return TCL_ERROR;
                   }
-                  pcPtr->objv[nppPtr-paramPtr] = objv[p];
+
+		  if (nppPtr->converter == convertViaCmd) {
+		    fprintf(stderr, " ArgumentCheck of %s -> %s\n",ObjStr(objv[p]),ObjStr((Tcl_Obj*)pcPtr->clientData[j]));
+		    pcPtr->objv[j] = (Tcl_Obj*)pcPtr->clientData[j];
+		  } else {
+		    pcPtr->objv[j] = objv[p];
+		  }
+
                 } else {
                   Tcl_ResetResult(interp);
                   Tcl_AppendResult(interp, "Argument for parameter '", objStr, "' expected", (char *) NULL);
@@ -9769,7 +9792,12 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       fprintf(stderr, "...     setting %s pPtr->objv[%d] to [%d]'%s' converter %p\n", 
               pPtr->name, i, o, ObjStr(objv[o]), pPtr->converter);
 #endif
-      pcPtr->objv[i] = objv[o];
+      if (pPtr->converter == convertViaCmd) {
+	fprintf(stderr, " ArgumentCheck of %s -> %s\n",ObjStr(objv[o]),ObjStr((Tcl_Obj*)pcPtr->clientData[i]));
+	pcPtr->objv[i] = (Tcl_Obj*)pcPtr->clientData[i];
+      } else {
+	pcPtr->objv[i] = objv[o];
+      }
       o++; i++; pPtr++;
     }
   }

@@ -412,6 +412,7 @@ typedef struct XOTclParam {
   Tcl_Obj *nameObj;
   Tcl_Obj *converterName;
   Tcl_Obj *paramObj;
+  Tcl_Obj *slotObj;
 } XOTclParam;
 
 typedef struct XOTclParamDefs {

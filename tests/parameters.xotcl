@@ -114,33 +114,28 @@ Test case objectparameter
 
 Test parameter count 10
 Class create C -parameter {a {b:boolean} {c 1}}
-C create c1 
-? {C eval {:objectparameter}} "-object-mixin:relation -mixin:relation,arg=class-mixin\
--superclass:relation -object-filter:relation -filter:relation,arg=filter-mixin\
--class:relation -parameter:method,optional -noinit:method,optional,noarg\
--volatile:method,optional,noarg arg:initcmd,optional"
+C create c1
+
+ 
+? {C eval {:objectparameter}} \
+"-object-mixin:relation,slot=::xotcl2::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::xotcl2::Class::slot::mixin -superclass:relation,slot=::xotcl2::Class::slot::superclass -object-filter:relation,slot=::xotcl2::Class::slot::object-filter -filter:relation,arg=filter-mixin,slot=::xotcl2::Class::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -parameter:method,optional -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
 
 ? {c1 eval {:objectparameter}} \
-    "-a -b:boolean {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
--class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
-arg:initcmd,optional"
+"-a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
 
 #######################################################
 # reclass to Object, no need to do anything on caching
 #######################################################
 Test case reclass
 c1 class Object
-? {c1 eval :objectparameter} "-mixin:relation,arg=object-mixin -filter:relation\
--class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
-arg:initcmd,optional"
+? {c1 eval :objectparameter} \
+"-mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
 
 Class create D -superclass C -parameter {d:required}
 D create d1 -d 100
 
 ? {d1 eval :objectparameter} \
-    "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
--class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
-arg:initcmd,optional"
+"-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
 
 #######################################################
 # Add mixin
@@ -150,38 +145,29 @@ Class create M -parameter {m1 m2 b}
 Class create M2 -parameter {b2}
 D mixin M
 ? {d1 eval :objectparameter} \
-    "-b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
--class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
-arg:initcmd,optional" \
+"-b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional" \
     "mixin added"
 M mixin M2
 ? {d1 eval :objectparameter} \
-    "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
--class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
-arg:initcmd,optional" \
+    "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional" \
     "transitive mixin added"
 D mixin ""
 #we should have again the old interface
 
 ? {d1 eval :objectparameter} \
-    "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
--class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
-arg:initcmd,optional"
+    "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
 
+puts stderr ====1
 C mixin M
 ? {d1 eval :objectparameter} \
-    "-b2 -b -m1 -m2 -d:required -a {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
--class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
-arg:initcmd,optional" \
+    "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional" \
     "mixin added"
 C mixin ""
 #we should have again the old interface
 
 
 ? {d1 eval :objectparameter} \
-    "-d:required -a -b:boolean {-c 1} -mixin:relation,arg=object-mixin -filter:relation\
--class:relation -noinit:method,optional,noarg -volatile:method,optional,noarg\
-arg:initcmd,optional"
+    "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
 
 
 #######################################################
@@ -530,20 +516,23 @@ Object create o
 # are already predefined, define the rest.
 # TODO: should go finally to predefined.
  
-::xotcl::methodParameterSlot method type=mixin {name value arg} {
+::xotcl::Slot method type=mixin {name value arg} {
   if {![::xotcl::is $value mixin $arg]} {
     error "Value '$value' of $name has not mixin $arg"
   }
+  return $value
 }
-::xotcl::methodParameterSlot method type=baseclass {name value} {
+::xotcl::Slot method type=baseclass {name value} {
   if {![::xotcl::is $value baseclass]} {
     error "Value '$value' of $name is not a baseclass"
   }
+  return $value
 }
-::xotcl::methodParameterSlot method type=metaclass {name value} {
+::xotcl::Slot method type=metaclass {name value} {
   if {![::xotcl::is $value metaclass]} {
     error "Value '$value' of $name is not a metaclass"
   }
+  return $value
 }
 
 D method foo-base   {x:baseclass} {return $x}
@@ -677,15 +666,15 @@ proc parameterFromSlot {class objectparameter} {
 }
 
 #puts stderr =====2
-? {parameterFromSlot ParamTest o} "o:object"
-? {parameterFromSlot ParamTest c} "c:class"
-? {parameterFromSlot ParamTest c1} "c1:class,type=::MC"
-? {parameterFromSlot ParamTest d} "d:object,type=::C"
-? {parameterFromSlot ParamTest d1} "d1:object,type=::C"
-? {parameterFromSlot ParamTest mix} "mix:mixin,arg=M"
-? {parameterFromSlot ParamTest x} "x:object,multivalued o"
-? {parameterFromSlot ParamTest u} "u:upper"
-? {parameterFromSlot ParamTest us} "us:upper,multivalued"
+? {parameterFromSlot ParamTest o} "o:object,slot=::ParamTest::slot::o"
+? {parameterFromSlot ParamTest c} "c:class,slot=::ParamTest::slot::c"
+? {parameterFromSlot ParamTest c1} "c1:class,type=::MC,slot=::ParamTest::slot::c1"
+? {parameterFromSlot ParamTest d} "d:object,type=::C,slot=::ParamTest::slot::d"
+? {parameterFromSlot ParamTest d1} "d1:object,type=::C,slot=::ParamTest::slot::d1"
+? {parameterFromSlot ParamTest mix} "mix:mixin,arg=M,slot=::ParamTest::slot::mix"
+? {parameterFromSlot ParamTest x} "x:object,multivalued,slot=::ParamTest::slot::x o"
+? {parameterFromSlot ParamTest u} "u:upper,slot=::ParamTest::slot::u"
+? {parameterFromSlot ParamTest us} "us:upper,multivalued,slot=::ParamTest::slot::us"
 #puts stderr =====3
 
 ? {ParamTest create p -o o} ::p
