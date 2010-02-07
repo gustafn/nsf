@@ -431,7 +431,7 @@ puts stderr =====6
 
 set ::hu 0
 Class C -slots {
-  Attribute x -initcmd {incr ::hu; set x 101}
+  Attribute create x -initcmd {incr ::hu; set x 101}
 }
 C c1
 ? {c1 info vars} ""

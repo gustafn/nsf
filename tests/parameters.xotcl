@@ -749,6 +749,48 @@ ParamTest slots {
     {invalid value in "o xxx d1": expected object but got "xxx"} \
     "list with invalid object"
 
+#######################################################
+# application specific multivalued converter
+#######################################################
+Test case multivalued-app-converter
+
+::xotcl::methodParameterSlot method type=sex {name value args} {
+  #puts stderr "[self] slot specific converter"
+  switch -glob $value {
+    m* {return m}
+    f* {return f}
+    default {error "expected sex but got $value"}
+  }
+}
+Class create C {
+  :method foo {s:sex,multivalued} {return $s}
+}
+C create c1
+? {c1 foo {male female mann frau}} "m f m f"
+
+#######################################################
+# slot specific converter
+#######################################################
+Test case slot-specfic-converter
+Class create Person
+Person slots {
+  Attribute create sex -type "sex" {
+    :method type=sex {name value} {
+      #puts stderr "[self] slot specific converter"
+      switch -glob $value {
+        m* {return m}
+        f* {return f}
+        default {error "expected sex but got $value"}
+      }
+    }
+  }
+}
+Person create p1 -sex male
+? {p1 sex} m
+Person method foo {s:sex,slot=::Person::slot::sex} {return $s}
+? {p1 foo male} "m"
+? {p1 sex male} m
+
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
 puts stderr =====END
