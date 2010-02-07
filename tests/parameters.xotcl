@@ -788,7 +788,7 @@ Person slots {
 Person create p1 -sex male
 ? {p1 sex} m
 Person method foo {s:sex,slot=::Person::slot::sex} {return $s}
-? {p1 foo male} "m"
+? {p1 foo male} m
 ? {p1 sex male} m
 
 ## TODO regression test for type checking, parameter options (initcmd,
