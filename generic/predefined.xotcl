@@ -853,13 +853,13 @@ namespace eval ::xotcl {
   #   ::xotcl::is <obj> class
   #   ::xotcl::is <obj> baseclass
   #   ::xotcl::is <obj> metaclass
-  #   ::xotcl::is <obj> mixin <class>
+  #   ::xotcl::is <obj> hasmixin <class>
   #
   # Map these to type checkers. "object" and "class"
   # are already predefined, define the rest.
  
-  ::xotcl::Slot method type=mixin {name value arg} {
-    if {![::xotcl::is $value mixin $arg]} {
+  ::xotcl::Slot method type=hasmixin {name value arg} {
+    if {![::xotcl::is $value hasmixin $arg]} {
       error "Value '$value' of $name has not mixin $arg"
     }
     return $value

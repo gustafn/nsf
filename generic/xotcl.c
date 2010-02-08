@@ -11341,7 +11341,7 @@ XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[
 /*
 xotclCmd is XOTclIsCmd {
   {-argName "object" -required 1 -type tclobj}
-  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|mixin"}
+  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|hasmixin"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -11382,8 +11382,8 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectkind, Tcl_Obj 
       && IsBaseClass((XOTclClass*)object);
     break;
 
-  case ObjectkindMixinIdx:
-    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> mixin <class>");
+  case ObjectkindHasmixinIdx:
+    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> hasmixin <class>");
     success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
       && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK)
       && hasMixin(interp, object, cl);

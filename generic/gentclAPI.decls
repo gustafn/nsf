@@ -83,7 +83,7 @@ xotclCmd interp XOTclInterpObjCmd {
 }
 xotclCmd is XOTclIsCmd {
   {-argName "object" -required 1 -type tclobj}
-  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|mixin"}
+  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|hasmixin"}
   {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd method XOTclMethodCmd {

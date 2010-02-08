@@ -383,7 +383,7 @@ namespace eval ::xotcl {
   Object instproc isobject    {{object:substdefault "[self]"}} {::xotcl::is $object object}
   Object instproc isclass     {{class:substdefault  "[self]"}} {::xotcl::is $class class}
   Object instproc ismetaclass {{class:substdefault  "[self]"}} {::xotcl::is $class metaclass}
-  Object instproc ismixin     {class}  {::xotcl::is [self] mixin $class}
+  Object instproc ismixin     {class}  {::xotcl::is [self] hasmixin $class}
   Object instproc istype      {class}  {::xotcl::is [self] type $class}
 
   ::xotcl::alias Object contains ::xotcl::classes::xotcl2::Object::contains
@@ -478,7 +478,7 @@ namespace eval ::xotcl {
 
   # support for XOTcl 1.* specific convenience routines
   Object instproc hasclass cl {
-    if {[::xotcl::is [self] mixin $cl]} {return 1}
+    if {[::xotcl::is [self] hasmixin $cl]} {return 1}
     ::xotcl::is [self] type $cl
   }
   Object instproc filtersearch {filter} {

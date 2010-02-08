@@ -506,15 +506,15 @@ D create d1 -d 1
 C create c1 -mixin M
 Object create o
 
-D method foo-base   {x:baseclass} {return $x}
-D method foo-class  {x:class} {return $x}
-D method foo-object {x:object} {return $x}
-D method foo-meta   {x:metaclass} {return $x}
-D method foo-mixin  {x:mixin,arg=::M} {return $x}
-D method foo-type   {x:object,type=::C} {return $x}
+D method foo-base     {x:baseclass} {return $x}
+D method foo-class    {x:class} {return $x}
+D method foo-object   {x:object} {return $x}
+D method foo-meta     {x:metaclass} {return $x}
+D method foo-hasmixin {x:hasmixin,arg=::M} {return $x}
+D method foo-type     {x:object,type=::C} {return $x}
 
 ? {D info method parameter foo-base} "x:baseclass"
-? {D info method parameter foo-mixin} "x:mixin,arg=::M"
+? {D info method parameter foo-hasmixin} "x:hasmixin,arg=::M"
 ? {D info method parameter foo-type} "x:object,type=::C"
 
 ? {d1 foo-base ::xotcl2::Object} "::xotcl2::Object"
@@ -535,8 +535,8 @@ D method foo-type   {x:object,type=::C} {return $x}
     "Value '::xotcl2::Object' of x is not a metaclass" \
     "not a base class"
 
-? {d1 foo-mixin c1} "c1"
-? {d1 foo-mixin o} \
+? {d1 foo-hasmixin c1} "c1"
+? {d1 foo-hasmixin o} \
     "Value 'o' of x has not mixin ::M" \
     "does not have mixin M"
 
@@ -622,7 +622,7 @@ Class create ParamTest -parameter {
   d:object,type=::C
   d1:object,type=C
   m:metaclass
-  mix:mixin,arg=M
+  mix:hasmixin,arg=M
   b:baseclass
   u:upper
   us:upper,multivalued
@@ -642,7 +642,7 @@ proc parameterFromSlot {class objectparameter} {
 ? {parameterFromSlot ParamTest c1} "c1:class,type=::MC,slot=::ParamTest::slot::c1"
 ? {parameterFromSlot ParamTest d} "d:object,type=::C,slot=::ParamTest::slot::d"
 ? {parameterFromSlot ParamTest d1} "d1:object,type=::C,slot=::ParamTest::slot::d1"
-? {parameterFromSlot ParamTest mix} "mix:mixin,arg=M,slot=::ParamTest::slot::mix"
+? {parameterFromSlot ParamTest mix} "mix:hasmixin,arg=M,slot=::ParamTest::slot::mix"
 ? {parameterFromSlot ParamTest x} "x:object,multivalued,slot=::ParamTest::slot::x o"
 ? {parameterFromSlot ParamTest u} "u:upper,slot=::ParamTest::slot::u"
 ? {parameterFromSlot ParamTest us} "us:upper,multivalued,slot=::ParamTest::slot::us"
@@ -682,9 +682,8 @@ proc parameterFromSlot {class objectparameter} {
 ? {ParamTest create p -us {A B}} ::p
 ? {p us add C end} "A B C"
 
-# TODO: naming "type" and "mixin" not perfect.
+# TODO: naming "type" not perfect.
 #       maybe "type" => "hastype"
-#       maybe "mixin" => "hasmixin"
 #       => effects as well ::xotcl::is
 #
 # TODO (optimization): optimizer can improve parameter checking:
