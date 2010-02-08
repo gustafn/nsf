@@ -8594,6 +8594,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *object,
                           ": can't find variable on ", objectName(object),
 			  (char *) NULL);
   }
+
   /*
    * if newName == NULL -> there is no alias, use varName
    * as target link name
@@ -8636,6 +8637,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *object,
       }
       varPtr = VarHashCreateVar(tablePtr, newName, &new);
     }
+
     /*
      * if we define an alias (newName != varName), be sure that
      * the target does not exist already
@@ -8658,7 +8660,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *object,
 
         /* We have already a variable with the same name imported
            from a different object. Get rid of this old variable
-      */
+        */
         VarHashRefCount(linkPtr)--;
         if (TclIsVarUndefined(linkPtr)) {
           CleanupVar(linkPtr, (Var *) NULL);
@@ -8687,14 +8689,17 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *object,
 #endif
     VarHashRefCount(otherPtr)++;
 
-    /*
-      {
-      Var85 *p = (Var85 *)varPtr;
-      fprintf(stderr, "defining an alias var='%s' in obj %s fwd %d flags %x isLink %d isTraced %d isUndefined %d\n",
-      ObjStr(newName), objectName(obj), forwardCompatibleMode,
-      varFlags(varPtr),
-      TclIsVarLink(varPtr), TclIsVarTraced(varPtr), TclIsVarUndefined(varPtr));
-      }
+    
+    /* fprintf(stderr, "defining an alias var='%s' in obj %s fwd %d flags %x isLink %d isTraced %d isUndefined %d\n",
+            ObjStr(newName), objectName(object), 
+#if FORWARD_COMPATIBLE
+            forwardCompatibleMode,
+            varFlags(varPtr),
+#else
+            0,
+            varPtr->flags,
+#endif
+            TclIsVarLink(varPtr), TclIsVarTraced(varPtr), TclIsVarUndefined(varPtr));
     */
   }
   return TCL_OK;
@@ -11257,7 +11262,7 @@ static int
 XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]) {
   int i, result = TCL_OK;
 
-  for (i=1; i<objc; i++) {
+  for (i=0; i<objc; i++) {
     Tcl_Obj  **ov;
     int oc;
 

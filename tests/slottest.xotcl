@@ -429,6 +429,10 @@ puts stderr =====5
 
 puts stderr =====6
 
+#######################################################
+# initcmd via slots
+#######################################################
+Test case initcmd
 set ::hu 0
 Class C -slots {
   Attribute create x -initcmd {incr ::hu; set x 101}
@@ -439,6 +443,10 @@ C c1
 ? {c1 info vars} "x"
 ? {set ::hu 1} 1
 
+#######################################################
+# nested contains
+#######################################################
+Test case nested-contains
 
 Class Point -parameter {{x 100} {y 300}}
 Class Rectangle -parameter {color}
@@ -461,14 +469,19 @@ Rectangle r0 -color pink -contains {
 ? {r0 r2 color} green
 #puts [r0 serialize]
 
+#######################################################
+# assign via slots
+#######################################################
+Test case assign-via-slots
 
-#####
 Class create A -slots {
-  Attribute create foo -default 1 -proc assign { domain var value} {
-    if {$value < 0 || $value > 99} {
-      error "$value is not in the range of 0 .. 99"
+  Attribute create foo -default 1 {
+    :method assign { domain var value} {
+      if {$value < 0 || $value > 99} {
+        error "$value is not in the range of 0 .. 99"
+      }
+      $domain set $var $value
     }
-    $domain set $var $value
   }
 }
 

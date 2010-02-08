@@ -847,18 +847,18 @@ namespace eval ::xotcl {
   proc createBootstrapAttributeSlots {} {}
 }
 
-# Create a mixin class to overload method "new", such it does not allocate
-# new objects in ::xotcl::*, but in the specified object (without
-# syntactic overhead).
+# Create a mixin class to overload method "new" such it does not
+# allocate new objects in ::xotcl::*, but in the specified object
+# (without syntactic overhead).
 #
 ::xotcl2::Class create ::xotcl::ScopedNew -superclass ::xotcl2::Class -parameter {
   {withclass ::xotcl2::Object}
-  inobject
+  container
 }
 ::xotcl::ScopedNew protected method init {} {
   :public method new {-childof args} {
-    ::xotcl::importvar [::xotcl::self class] {inobject object} withclass
-    if {![::xotcl::is $object object]} {
+    ::xotcl::importvar [::xotcl::self class] {container object} withclass
+     if {![::xotcl::is $object object]} {
       $withclass create $object
     }
     eval ::xotcl::next -childof $object $args
@@ -880,11 +880,14 @@ namespace eval ::xotcl {
   if {![::xotcl::is $object object]} {$class create $object}
   $object requireNamespace
   if {$withnew} {
-    set m [::xotcl::ScopedNew new \
-	       -inobject $object -withclass $class -volatile]
+    set m [::xotcl::ScopedNew new -volatile \
+	       -container $object -withclass $class]
     ::xotcl2::Class mixin add $m end
+    # TODO: the following is not pretty; however, contains might build xotcl1 and xotcl2 objects.
+    if {[::xotcl::is ::xotcl::Class class]} {::xotcl::Class instmixin add $m end}
     namespace eval $object $cmds
     ::xotcl2::Class mixin delete $m
+    if {[::xotcl::is ::xotcl::Class class]} {::xotcl::Class instmixin delete $m}
   } else {
     namespace eval $object $cmds
   }
