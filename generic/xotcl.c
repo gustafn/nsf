@@ -13336,7 +13336,7 @@ static int XOTclCRecreateMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *nam
  * End Class Methods
  ***************************/
 
-
+#if 0
 /***************************
  * Begin check Methods
  ***************************/
@@ -13372,6 +13372,7 @@ static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value
 /***************************
  * End check Methods
  ***************************/
+#endif
 
 
 /***************************

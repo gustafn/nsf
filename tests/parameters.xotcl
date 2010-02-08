@@ -506,38 +506,6 @@ D create d1 -d 1
 C create c1 -mixin M
 Object create o
 
-# ::xotcl::is supports predicates for objects
-#
-#   ::xotcl::is <obj> object
-#   ::xotcl::is <obj> type <class> 
-#   ::xotcl::is <obj> class
-#   ::xotcl::is <obj> baseclass
-#   ::xotcl::is <obj> metaclass
-#   ::xotcl::is <obj> mixin <class>
-#
-# Map these to type checkers. "object" and "class"
-# are already predefined, define the rest.
-# TODO: should go finally to predefined.
- 
-::xotcl::Slot method type=mixin {name value arg} {
-  if {![::xotcl::is $value mixin $arg]} {
-    error "Value '$value' of $name has not mixin $arg"
-  }
-  return $value
-}
-::xotcl::Slot method type=baseclass {name value} {
-  if {![::xotcl::is $value baseclass]} {
-    error "Value '$value' of $name is not a baseclass"
-  }
-  return $value
-}
-::xotcl::Slot method type=metaclass {name value} {
-  if {![::xotcl::is $value metaclass]} {
-    error "Value '$value' of $name is not a metaclass"
-  }
-  return $value
-}
-
 D method foo-base   {x:baseclass} {return $x}
 D method foo-class  {x:class} {return $x}
 D method foo-object {x:object} {return $x}

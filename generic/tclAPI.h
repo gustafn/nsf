@@ -123,8 +123,6 @@ static char *method_command_namespace_names[] = {
   "::xotcl::cmd::ParameterType",
   "::xotcl::cmd::Class"
 };
-static int XOTclCheckBooleanArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclCheckRequiredArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -206,8 +204,6 @@ static int XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int
 static int XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclValuecheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
-static int XOTclCheckBooleanArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
-static int XOTclCheckRequiredArgs(Tcl_Interp *interp, char *name, Tcl_Obj *value);
 static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name);
 static int XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *object);
@@ -290,8 +286,6 @@ static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_o
 static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *param, Tcl_Obj *value);
 
 enum {
- XOTclCheckBooleanArgsIdx,
- XOTclCheckRequiredArgsIdx,
  XOTclCAllocMethodIdx,
  XOTclCCreateMethodIdx,
  XOTclCDeallocMethodIdx,
@@ -374,44 +368,6 @@ enum {
  XOTclValuecheckCmdIdx
 } XOTclMethods;
 
-
-static int
-XOTclCheckBooleanArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclCheckBooleanArgsIdx].paramDefs, 
-                     method_definitions[XOTclCheckBooleanArgsIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    char *name = (char *)pc.clientData[0];
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclCheckBooleanArgs(interp, name, value);
-
-  }
-}
-
-static int
-XOTclCheckRequiredArgsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclCheckRequiredArgsIdx].paramDefs, 
-                     method_definitions[XOTclCheckRequiredArgsIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    char *name = (char *)pc.clientData[0];
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclCheckRequiredArgs(interp, name, value);
-
-  }
-}
 
 static int
 XOTclCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -2000,14 +1956,6 @@ XOTclValuecheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 }
 
 static methodDefinition method_definitions[] = {
-{"::xotcl::cmd::ParameterType::type=boolean", XOTclCheckBooleanArgsStub, 2, {
-  {"name", 1, 0, convertToString},
-  {"value", 0, 0, convertToTclobj}}
-},
-{"::xotcl::cmd::ParameterType::type=required", XOTclCheckRequiredArgsStub, 2, {
-  {"name", 1, 0, convertToString},
-  {"value", 0, 0, convertToTclobj}}
-},
 {"::xotcl::cmd::Class::alloc", XOTclCAllocMethodStub, 1, {
   {"name", 1, 0, convertToTclobj}}
 },
