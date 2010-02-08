@@ -88,7 +88,7 @@ XOTclOMetaDataMethod (ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
   int result = TCL_OK;
   int oc; Tcl_Obj* *ov; int i;
 
-  if (!obj) return XOTclObjErrType(interp, obj->cmdName, "Object");
+  if (!obj) return XOTclObjErrType(interp, obj->cmdName, "Object", "");
   if (objc < 2)
     return XOTclObjErrArgCnt(interp,obj->cmdName,
 				  "metadata ?(add|remove)? metaDataList");

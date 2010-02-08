@@ -89,14 +89,14 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
       set if [list "XOTclClass *cl"]
       append intro \
           "  XOTclClass *cl =  XOTclObjectToClass(clientData);" \n \
-          {  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");}
+          {  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");}
     }
     object {
       set a  [list obj]
       set if [list "XOTclObject *obj"]
       append intro \
           "  XOTclObject *obj =  (XOTclObject *)clientData;" \n \
-          {  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");}
+          {  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");}
     }
     ""    {
       set a [list]

@@ -373,7 +373,7 @@ static int
 XOTclCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
+  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
   if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
                      method_definitions[XOTclCAllocMethodIdx].paramDefs, 
                      method_definitions[XOTclCAllocMethodIdx].nrParameters, 
@@ -392,7 +392,7 @@ static int
 XOTclCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
+  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
   if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
                      method_definitions[XOTclCCreateMethodIdx].paramDefs, 
                      method_definitions[XOTclCCreateMethodIdx].nrParameters, 
@@ -411,7 +411,7 @@ static int
 XOTclCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
+  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
   if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
                      method_definitions[XOTclCDeallocMethodIdx].paramDefs, 
                      method_definitions[XOTclCDeallocMethodIdx].nrParameters, 
@@ -430,7 +430,7 @@ static int
 XOTclCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
+  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
   if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
                      method_definitions[XOTclCFilterGuardMethodIdx].paramDefs, 
                      method_definitions[XOTclCFilterGuardMethodIdx].nrParameters, 
@@ -450,7 +450,7 @@ static int
 XOTclCInvalidateObjectParameterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
+  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
   if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
                      method_definitions[XOTclCInvalidateObjectParameterMethodIdx].paramDefs, 
                      method_definitions[XOTclCInvalidateObjectParameterMethodIdx].nrParameters, 
@@ -469,7 +469,7 @@ static int
 XOTclCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
+  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
   if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
                      method_definitions[XOTclCMixinGuardMethodIdx].paramDefs, 
                      method_definitions[XOTclCMixinGuardMethodIdx].nrParameters, 
@@ -489,7 +489,7 @@ static int
 XOTclCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
+  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
   if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
                      method_definitions[XOTclCNewMethodIdx].paramDefs, 
                      method_definitions[XOTclCNewMethodIdx].nrParameters, 
@@ -508,7 +508,7 @@ static int
 XOTclCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class");
+  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
   if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
                      method_definitions[XOTclCRecreateMethodIdx].paramDefs, 
                      method_definitions[XOTclCRecreateMethodIdx].nrParameters, 
@@ -1207,7 +1207,7 @@ static int
 XOTclOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[XOTclOAutonameMethodIdx].paramDefs, 
                      method_definitions[XOTclOAutonameMethodIdx].nrParameters, 
@@ -1228,7 +1228,7 @@ static int
 XOTclOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[XOTclOCleanupMethodIdx].paramDefs, 
                      method_definitions[XOTclOCleanupMethodIdx].nrParameters, 
@@ -1246,7 +1246,7 @@ XOTclOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 static int
 XOTclOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
     
 
     return XOTclOConfigureMethod(interp, obj, objc, objv);
@@ -1257,7 +1257,7 @@ static int
 XOTclODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[XOTclODestroyMethodIdx].paramDefs, 
                      method_definitions[XOTclODestroyMethodIdx].nrParameters, 
@@ -1276,7 +1276,7 @@ static int
 XOTclOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[XOTclOExistsMethodIdx].paramDefs, 
                      method_definitions[XOTclOExistsMethodIdx].nrParameters, 
@@ -1295,7 +1295,7 @@ static int
 XOTclOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[XOTclOFilterGuardMethodIdx].paramDefs, 
                      method_definitions[XOTclOFilterGuardMethodIdx].nrParameters, 
@@ -1315,7 +1315,7 @@ static int
 XOTclOFilterSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[XOTclOFilterSearchMethodIdx].paramDefs, 
                      method_definitions[XOTclOFilterSearchMethodIdx].nrParameters, 
@@ -1333,7 +1333,7 @@ XOTclOFilterSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
 static int
 XOTclOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
     
 
     return XOTclOInstVarMethod(interp, obj, objc, objv);
@@ -1344,7 +1344,7 @@ static int
 XOTclOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[XOTclOMixinGuardMethodIdx].paramDefs, 
                      method_definitions[XOTclOMixinGuardMethodIdx].nrParameters, 
@@ -1363,7 +1363,7 @@ XOTclOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 static int
 XOTclONextMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
     
 
     return XOTclONextMethod(interp, obj, objc, objv);
@@ -1374,7 +1374,7 @@ static int
 XOTclONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[XOTclONoinitMethodIdx].paramDefs, 
                      method_definitions[XOTclONoinitMethodIdx].nrParameters, 
@@ -1393,7 +1393,7 @@ static int
 XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[XOTclORequireNamespaceMethodIdx].paramDefs, 
                      method_definitions[XOTclORequireNamespaceMethodIdx].nrParameters, 
@@ -1411,7 +1411,7 @@ XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 static int
 XOTclOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
     
 
     return XOTclOResidualargsMethod(interp, obj, objc, objv);
@@ -1421,7 +1421,7 @@ XOTclOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
 static int
 XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
     
 
     return XOTclOUplevelMethod(interp, obj, objc, objv);
@@ -1431,7 +1431,7 @@ XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 static int
 XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
     
 
     return XOTclOUpvarMethod(interp, obj, objc, objv);
@@ -1442,7 +1442,7 @@ static int
 XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[XOTclOVolatileMethodIdx].paramDefs, 
                      method_definitions[XOTclOVolatileMethodIdx].nrParameters, 
@@ -1461,7 +1461,7 @@ static int
 XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object");
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
                      method_definitions[XOTclOVwaitMethodIdx].paramDefs, 
                      method_definitions[XOTclOVwaitMethodIdx].nrParameters, 

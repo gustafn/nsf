@@ -154,7 +154,7 @@ EXTERN int		XOTclErrBadVal_ (Tcl_Interp * interp,
 #define XOTclObjErrType_TCL_DECLARED
 /* 28 */
 EXTERN int		XOTclObjErrType (Tcl_Interp * interp, Tcl_Obj * nm, 
-				char * wt);
+				char * wt, char * parameterName);
 #endif
 #ifndef XOTclStackDump_TCL_DECLARED
 #define XOTclStackDump_TCL_DECLARED
@@ -282,7 +282,7 @@ typedef struct XotclStubs {
     int (*xOTclErrInProc) (Tcl_Interp * interp, Tcl_Obj * objName, Tcl_Obj * clName, char * procName); /* 25 */
     void *reserved26;
     int (*xOTclErrBadVal_) (Tcl_Interp * interp, char * expected, char * value); /* 27 */
-    int (*xOTclObjErrType) (Tcl_Interp * interp, Tcl_Obj * nm, char * wt); /* 28 */
+    int (*xOTclObjErrType) (Tcl_Interp * interp, Tcl_Obj * nm, char * wt, char * parameterName); /* 28 */
     void (*xOTclStackDump) (Tcl_Interp * interp); /* 29 */
     void (*xOTclCallStackDump) (Tcl_Interp * interp); /* 30 */
     void *reserved31;

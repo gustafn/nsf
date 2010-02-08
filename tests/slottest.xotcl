@@ -392,7 +392,7 @@ Person slots {
 
 Person p2 -name "Gustaf"
 p2 projects add ::project1
-? {p2 projects add ::o1} {expected object of type ::Project but got "::o1"}
+? {p2 projects add ::o1} {expected object of type ::Project but got "::o1" for parameter value}
 p2 salary 100
 ? {catch {p2 salary 100.9}} 1
 ? {p2 salary} 100

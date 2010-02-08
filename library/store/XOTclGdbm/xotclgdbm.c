@@ -34,7 +34,7 @@ XOTclGdbmOpenMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv
   XOTcl_Object* obj = (XOTcl_Object*) cd;
   int flags, block_size, mode;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object");
+  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 2)
     return XOTclObjErrArgCnt(in, obj->cmdName, "open filename");
 
@@ -71,7 +71,7 @@ XOTclGdbmCloseMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST obj
   db_t *db;
   XOTcl_Object* obj = (XOTcl_Object *) cd;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object");
+  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
     return XOTclObjErrArgCnt(in, obj->cmdName, "close");
     
@@ -94,7 +94,7 @@ XOTclGdbmNamesMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST obj
   Tcl_DString result;
   datum del, key;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object");
+  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
     return XOTclObjErrArgCnt(in, obj->cmdName, "names");
   
@@ -131,7 +131,7 @@ XOTclGdbmSetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
   db_t *db;
   datum key, content;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object");
+  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
   if (objc <2 || objc > 3)
     return XOTclObjErrArgCnt(in, obj->cmdName, "set key ?value?");
 
@@ -177,7 +177,7 @@ XOTclGdbmExistsMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST ob
   db_t *db;
   datum key;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object");
+  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 2)
     return XOTclObjErrArgCnt(in, obj->cmdName, "exists variable");
 
@@ -204,7 +204,7 @@ XOTclGdbmUnsetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST obj
   datum key;
   int ret;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object");
+  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 2)
     return XOTclObjErrArgCnt(in, obj->cmdName, "unset key");
   
@@ -232,7 +232,7 @@ XOTclGdbmFirstKeyMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST 
   db_t *db;
   datum key;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object");
+  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
     return XOTclObjErrArgCnt(in, obj->cmdName, "firstkey");
   
@@ -270,7 +270,7 @@ XOTclGdbmNextKeyMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST o
   db_t *db;
   datum  newkey;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object");
+  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
     return XOTclObjErrArgCnt(in, obj->cmdName, "nextkey");
   

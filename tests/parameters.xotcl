@@ -180,7 +180,7 @@ Test case passed-arguments
 ? {D create d1} "::d1 configure: required argument 'd' is missing" "check error msg"
 
 ? {D create d2 -d x -b a} \
-    {expected boolean value but got "a"} \
+    {expected boolean value but got "a" for parameter -b} \
     "create d2 without required argument given"
 
 D create d1 -d 1
@@ -193,11 +193,11 @@ D method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:c
     "call method without a required argument"
 
 ? {d1 foo -r a} \
-    {expected integer but got "a"} \
+    {expected integer but got "a" for parameter -r} \
     "required argument is not integer"
 
 ? {d1 foo -r 1} \
-    {expected integer but got "aaa"} \
+    {expected integer but got "aaa" for parameter -x} \
     "default value is not of type integer"
 
 ? {d1 foo -r 1 -x 1 -object d1} \
@@ -205,7 +205,7 @@ D method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:c
     "pass object"
 
 ? {d1 foo -r 1 -x 1 -object d11} \
-    {expected object but got "d11"} \
+    {expected object but got "d11" for parameter -object} \
     "pass non-existing object"
 
 ? {d1 foo -r 1 -x 1 -class D} \
@@ -213,11 +213,11 @@ D method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:c
     "pass class"
 
 ? {d1 foo -r 1 -x 1 -class d1} \
-    {expected class but got "d1"} \
+    {expected class but got "d1" for parameter -class} \
     "pass object instead of class"
 
 ? {d1 foo -r 1 -x 1 -class D11} \
-    {expected class but got "D11"} \
+    {expected class but got "D11" for parameter -class} \
     "pass non-existing class"
 
 ? {D method foo {a:relation} {}} \
@@ -229,7 +229,7 @@ D method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:c
     "allow 'string is XXXX' for argument checking"
 ? {d1 foo 1} 1 "check int as double"
 ? {d1 foo 1.1} 1.1 "check double as double"
-? {d1 foo 1.1a} {expected double but got "1.1a"} "check non-double as double"
+? {d1 foo 1.1a} {expected double but got "1.1a" for parameter a} "check non-double as double"
 ? {D info method parameter foo} a:double
 
 #######################################################
@@ -263,7 +263,7 @@ D method foo {m:integer,multivalued} {
 ? {d1 foo 1} "1" "single value"
 ? {d1 foo {1 2}} "1 2" "multiple values"
 ? {d1 foo {1 a 2}} \
-    {invalid value in "1 a 2": expected integer but got "a"} \
+    {invalid value in "1 a 2": expected integer but got "a" for parameter m} \
     "multiple values with wrong value"
 
 D method foo {m:object,multivalued} {
@@ -272,18 +272,18 @@ D method foo {m:object,multivalued} {
 ? {d1 foo ""} "" "emtpy list"
 ? {d1 foo o} "o" "single value"
 ? {d1 foo {o d1 x}} \
-    {invalid value in "o d1 x": expected object but got "x"} \
+    {invalid value in "o d1 x": expected object but got "x" for parameter m} \
     "multiple values"
 
 Class create Foo -parameter {
   {ints:integer,multivalued}
 }
 ? {Foo create foo -ints {1 2}} "::foo"
-? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a"}
+? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a" for parameter -ints}
 
 Foo create foo -ints {1 2}
 ? {foo ints add 0} "0 1 2"
-? {foo ints add a} {expected integer but got "a"}
+? {foo ints add a} {expected integer but got "a" for parameter value}
 
 #######################################################
 # subst default tests
@@ -519,20 +519,20 @@ D method foo-type     {x:object,type=::C} {return $x}
 
 ? {d1 foo-base ::xotcl2::Object} "::xotcl2::Object"
 ? {d1 foo-base C} \
-    "Value 'C' of x is not a baseclass" \
+    {expected baseclass but got "C" for parameter x} \
     "not a base class"
 
 ? {d1 foo-class D} "D"
 ? {d1 foo-class xxx} \
-    {expected class but got "xxx"} \
+    {expected class but got "xxx" for parameter x} \
     "not a class"
 ? {d1 foo-class o} \
-    {expected class but got "o"} \
+    {expected class but got "o" for parameter x} \
     "not a class"
 
 ? {d1 foo-meta ::xotcl2::Class} "::xotcl2::Class"
 ? {d1 foo-meta ::xotcl2::Object} \
-    "Value '::xotcl2::Object' of x is not a metaclass" \
+    {expected metaclass but got "::xotcl2::Object" for parameter x} \
     "not a base class"
 
 ? {d1 foo-hasmixin c1} "c1"
@@ -542,13 +542,13 @@ D method foo-type     {x:object,type=::C} {return $x}
 
 ? {d1 foo-object o} "o"
 ? {d1 foo-object xxx} \
-    {expected object but got "xxx"} \
+    {expected object but got "xxx" for parameter x} \
     "not an object"
 
 ? {d1 foo-type d1} "d1"
 ? {d1 foo-type c1} "c1"
 ? {d1 foo-type o} \
-    {expected object of type ::C but got "o"} \
+    {expected object of type ::C but got "o" for parameter x} \
     "o not of type ::C"
 
 #######################################################
@@ -578,9 +578,9 @@ S create s1 {
 
 ? {s1 bar} 1
 ? {s1 bar 3} 3
-? {s1 bar a} {expected integer but got "a"}
+? {s1 bar a} {expected integer but got "a" for parameter y}
 
-? {s1 baz} {expected integer but got "b"}
+? {s1 baz} {expected integer but got "b" for parameter x}
 ? {s1 baz 20} 20
 s1 y 100
 ? {s1 baz} 100
@@ -588,7 +588,7 @@ s1 y 100
 
 ? {s1 boz} {1 2 3}
 s1 z {1 x 100}
-? {s1 boz} {invalid value in "1 x 100": expected integer but got "x"}
+? {s1 boz} {invalid value in "1 x 100": expected integer but got "x" for parameter x}
 ? {s1 boz {100 200}} {100 200}
 
 set aaa 100
@@ -650,24 +650,24 @@ proc parameterFromSlot {class objectparameter} {
 
 ? {ParamTest create p -o o} ::p
 ? {ParamTest create p -o xxx} \
-    {expected object but got "xxx"} \
+    {expected object but got "xxx" for parameter -o} \
     "not an object"
 
 ? {ParamTest create p -c C} ::p "class"
 ? {ParamTest create p -c o} \
-    {expected class but got "o"} \
+    {expected class but got "o" for parameter -c} \
     "not a class"
 
 ? {ParamTest create p -c1 MC1} ::p "instance of meta-class MC"
 ? {ParamTest create p -c1 C} \
-    {expected class of type ::MC but got "C"} \
+    {expected class of type ::MC but got "C" for parameter -c1} \
     "not an instance of meta-class MC"
 
 ? {ParamTest create p -d d1} ::p
 ? {ParamTest create p -d1 d1} ::p
 ? {ParamTest create p -d c1} ::p
 ? {ParamTest create p -d o} \
-    {expected object of type ::C but got "o"} \
+    {expected object of type ::C but got "o" for parameter -d} \
     "o not of type ::C"
 
 ? {ParamTest create p -mix c1} ::p
@@ -676,9 +676,9 @@ proc parameterFromSlot {class objectparameter} {
     "does not have mixin M"
 
 ? {ParamTest create p -u A} ::p
-? {ParamTest create p -u c1} {expected upper but got "c1"}
+? {ParamTest create p -u c1} {expected upper but got "c1" for parameter -u}
 ? {ParamTest create p -us {A B c}} \
-    {invalid value in "A B c": expected upper but got "c"}
+    {invalid value in "A B c": expected upper but got "c" for parameter -us}
 ? {ParamTest create p -us {A B}} ::p
 ? {p us add C end} "A B C"
 
@@ -698,7 +698,7 @@ proc parameterFromSlot {class objectparameter} {
     "o" \
     "value is an object"
 ? {p o xxx} \
-    {expected object but got "xxx"} \
+    {expected object but got "xxx" for parameter value} \
     "value is not an object"
 
 ParamTest slots {
@@ -713,7 +713,7 @@ ParamTest slots {
     "value is a list of objects (multiple elements)"
 
 ? {p os {o xxx d1}} \
-    {invalid value in "o xxx d1": expected object but got "xxx"} \
+    {invalid value in "o xxx d1": expected object but got "xxx" for parameter value} \
     "list with invalid object"
 
 #######################################################

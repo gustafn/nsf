@@ -850,18 +850,19 @@ namespace eval ::xotcl {
   ::xotcl::Slot method type=hasmixin {name value arg} {
     if {![::xotcl::is $value hasmixin $arg]} {
       error "Value '$value' of $name has not mixin $arg"
+      error "expected object with mixin $arg but got \"$value\" for parameter $name"
     }
     return $value
   }
   ::xotcl::Slot method type=baseclass {name value} {
     if {![::xotcl::is $value baseclass]} {
-      error "Value '$value' of $name is not a baseclass"
+      error "expected baseclass but got \"$value\" for parameter $name"
     }
     return $value
   }
   ::xotcl::Slot method type=metaclass {name value} {
     if {![::xotcl::is $value metaclass]} {
-      error "Value '$value' of $name is not a metaclass"
+      error "expected metaclass but got \"$value\" for parameter $name"
     }
     return $value
   }

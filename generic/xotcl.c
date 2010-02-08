@@ -6214,7 +6214,8 @@ static int convertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONS
 	*outObjPtr = objPtr;
       } else {
 	result = XOTclVarErrMsg(interp, "expected ", ObjStr(pPtr->converterArg), 
-				" but got \"", ObjStr(objPtr), "\"", NULL);
+				" but got \"", ObjStr(objPtr), 
+                                "\" for parameter ", pPtr->name, NULL);
       }
     }
   } else {
@@ -6235,8 +6236,13 @@ static int convertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CON
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result, bool;
   result = Tcl_GetBooleanFromObj(interp, objPtr, &bool);
-  if (result == TCL_OK) *clientData = (ClientData)INT2PTR(bool);
-  *outObjPtr = objPtr;
+  if (result == TCL_OK) {
+    *clientData = (ClientData)INT2PTR(bool);
+    *outObjPtr = objPtr;
+  } else {
+    XOTclVarErrMsg(interp, "expected boolean value but got \"", ObjStr(objPtr), 
+                   "\" for parameter ", pPtr->name, NULL);
+  }
   return result;
 }
 
@@ -6244,8 +6250,13 @@ static int convertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CON
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result, i;
   result = Tcl_GetIntFromObj(interp, objPtr, &i);
-  if (result == TCL_OK) *clientData = (ClientData)INT2PTR(i);
-  *outObjPtr = objPtr;
+  if (result == TCL_OK) {
+    *clientData = (ClientData)INT2PTR(i);
+    *outObjPtr = objPtr;
+  } else {
+    XOTclVarErrMsg(interp, "expected integer but got \"", ObjStr(objPtr), 
+                   "\" for parameter ", pPtr->name, NULL);
+  }
   return result;
 }
 
@@ -6271,7 +6282,7 @@ static int objectOfType(Tcl_Interp *interp, XOTclObject *object, char *what, Tcl
   Tcl_DStringAppend(dsPtr, what, -1);
   Tcl_DStringAppend(dsPtr, " of type ", -1);
   Tcl_DStringAppend(dsPtr, ObjStr(pPtr->converterArg), -1);
-  XOTclObjErrType(interp, objPtr, Tcl_DStringValue(dsPtr));
+  XOTclObjErrType(interp, objPtr, Tcl_DStringValue(dsPtr), pPtr->name);
   DSTRING_FREE(dsPtr);
 
   return TCL_ERROR;
@@ -6283,7 +6294,7 @@ static int convertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST
   if (GetObjectFromObj(interp, objPtr, (XOTclObject **)clientData) == TCL_OK) {
     return objectOfType(interp, (XOTclObject *)*clientData, "object", objPtr, pPtr);
   }
-  return XOTclObjErrType(interp, objPtr, "object");
+  return XOTclObjErrType(interp, objPtr, "object", pPtr->name);
 }
 
 static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
@@ -6292,7 +6303,7 @@ static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST
   if (GetClassFromObj(interp, objPtr, (XOTclClass **)clientData, 0) == TCL_OK) {
     return objectOfType(interp, (XOTclObject *)*clientData, "class", objPtr, pPtr);
   }
-  return XOTclObjErrType(interp, objPtr, "class");
+  return XOTclObjErrType(interp, objPtr, "class", pPtr->name);
 }
 
 static int convertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
@@ -8806,7 +8817,7 @@ static int
 XOTclSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *object = (XOTclObject*)clientData;
 
-  if (!object) return XOTclObjErrType(interp, objv[0], "object");
+  if (!object) return XOTclObjErrType(interp, objv[0], "object", ObjStr(objv[0]));
   if (objc > 2) return XOTclObjErrArgCnt(interp, object->cmdName, objv[0], "?value?");
   return setInstVar(interp, object, objv[0], objc == 2 ? objv[1] : NULL);
 }
@@ -9079,7 +9090,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
   */
 #endif
 
-  if (!tcd || !tcd->obj) return XOTclObjErrType(interp, objv[0], "object");
+  if (!tcd || !tcd->obj) return XOTclObjErrType(interp, objv[0], "object", "");
 
   if (tcd->passthrough) { /* two short cuts for simple cases */
     /* early binding, cmd *resolved, we have to care only for objscope */
@@ -11924,7 +11935,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     if (XOTclObjectIsClass(object)) {
       cl = (XOTclClass *)object;
     } else {
-      return XOTclObjErrType(interp, object->cmdName, "class");
+      return XOTclObjErrType(interp, object->cmdName, "class", "");
     }
 
     if (value == NULL) {
@@ -11944,7 +11955,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
 
   case RelationtypeSuperclassIdx:
     if (!XOTclObjectIsClass(object))
-      return XOTclObjErrType(interp, object->cmdName, "class");
+      return XOTclObjErrType(interp, object->cmdName, "class", "");
     cl = (XOTclClass *)object;
     if (value == NULL) {
       return ListSuperclasses(interp, cl, NULL, 0);
@@ -11967,7 +11978,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     XOTclClass *metaClass;
 
     if (!XOTclObjectIsClass(object))
-      return XOTclObjErrType(interp, object->cmdName, "class");
+      return XOTclObjErrType(interp, object->cmdName, "class", "");
     cl = (XOTclClass *)object;
 
     if (value == NULL) {
@@ -11975,7 +11986,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
                             (char *) NULL);
     }
     GetClassFromObj(interp, value, &metaClass, 0);
-    if (!metaClass) return XOTclObjErrType(interp, value, "class");
+    if (!metaClass) return XOTclObjErrType(interp, value, "class", "");
 
     cl->object.flags |= XOTCL_IS_ROOT_CLASS;
     metaClass->object.flags |= XOTCL_IS_ROOT_META_CLASS;

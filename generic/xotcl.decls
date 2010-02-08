@@ -122,7 +122,7 @@ declare 27 generic {
    int XOTclErrBadVal_(Tcl_Interp *interp, char *expected, char *value)
 }
 declare 28 generic {
-    int XOTclObjErrType(Tcl_Interp *interp, Tcl_Obj *nm, char *wt)
+    int XOTclObjErrType(Tcl_Interp *interp, Tcl_Obj *nm, char *wt, char *parameterName)
 }
 declare 29 generic {
     void XOTclStackDump (Tcl_Interp *interp)

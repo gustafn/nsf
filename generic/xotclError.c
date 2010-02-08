@@ -108,9 +108,11 @@ XOTclErrBadVal_(Tcl_Interp *interp, char *expected, char *value) {
 }
 
 extern int
-XOTclObjErrType(Tcl_Interp *interp, Tcl_Obj *value, char *type) {
+XOTclObjErrType(Tcl_Interp *interp, Tcl_Obj *value, char *type, char *parameterName) {
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp,"expected ", type, " but got \"",  ObjStr(value), "\"", 
+                   parameterName ? " for parameter " : "",
+                   parameterName ? parameterName : "",
                    (char *) NULL);
   return TCL_ERROR;
 }
