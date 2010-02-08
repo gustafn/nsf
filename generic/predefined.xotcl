@@ -846,18 +846,7 @@ namespace eval ::xotcl {
   ##################################################################
   # create user-level converter/checker based on ::xotcl::ls
   ##################################################################
-  # ::xotcl::is supports predicates for objects
-  #
-  #   ::xotcl::is <obj> object
-  #   ::xotcl::is <obj> type <class> 
-  #   ::xotcl::is <obj> class
-  #   ::xotcl::is <obj> baseclass
-  #   ::xotcl::is <obj> metaclass
-  #   ::xotcl::is <obj> hasmixin <class>
-  #
-  # Map these to type checkers. "object" and "class"
-  # are already predefined, define the rest.
- 
+
   ::xotcl::Slot method type=hasmixin {name value arg} {
     if {![::xotcl::is $value hasmixin $arg]} {
       error "Value '$value' of $name has not mixin $arg"
