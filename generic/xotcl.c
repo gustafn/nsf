@@ -6399,11 +6399,24 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
   } else if (strncmp(option, "method", 6) == 0) {
     paramPtr->flags |= XOTCL_ARG_METHOD;
   } else if (strncmp(option, "multivalued", 11) == 0) {
+    if ((paramPtr->flags & (XOTCL_ARG_INITCMD|XOTCL_ARG_RELATION|XOTCL_ARG_METHOD|XOTCL_ARG_SWITCH)) != 0)
+      return XOTclVarErrMsg(interp, 
+                            "option multivalued not allowed for \"initcmd\", \"method\", \"relation\" or \"switch\"\n", 
+                            (char *) NULL);
     paramPtr->flags |= XOTCL_ARG_MULTIVALUED;
   } else if (strncmp(option, "noarg", 5) == 0) {
+    if ((paramPtr->flags & XOTCL_ARG_METHOD) == 0) {
+      return XOTclVarErrMsg(interp, "option noarg only allowed for parameter type \"method\"", 
+                            (char *) NULL);
+    }
     paramPtr->flags |= XOTCL_ARG_NOARG;
     paramPtr->nrArgs = 0;
   } else if (length >= 5 && strncmp(option, "arg=", 4) == 0) {
+    if ((paramPtr->flags & (XOTCL_ARG_METHOD|XOTCL_ARG_RELATION)) == 0
+        && paramPtr->converter != convertViaCmd)
+      return XOTclVarErrMsg(interp, 
+                            "option arg= only allowed for \"method\", \"relation\" or \"user-defined converter\"", 
+                            (char *) NULL);
     paramPtr->converterArg =  Tcl_NewStringObj(option+4, length-4);
     INCR_REF_COUNT(paramPtr->converterArg);
   } else if (strncmp(option, "switch", 6) == 0) {
