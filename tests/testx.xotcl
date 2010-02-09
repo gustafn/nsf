@@ -2978,8 +2978,10 @@ smallScripts proc run {{n 20}} {
     Object o
     o proc x args {puts r}
     ::errorCheck [o info body x] "puts r" "Info Body"
-    ::errorCheck [info body o::x] "puts r" "Info Body"
 
+  if {$::tcl_version < "8.6"} {
+    ::errorCheck [info body o::x] "puts r" "Info Body"
+  }
     Object o
     o proc a {} {
       my lappend table(i) xxx

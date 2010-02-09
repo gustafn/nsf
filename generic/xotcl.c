@@ -898,7 +898,7 @@ DupXOTclObjectInternalRep(Tcl_Obj *src, Tcl_Obj *cpy) {
 
 static int
 SetXOTclObjectFromAny(Tcl_Interp *interp, register Tcl_Obj *objPtr) {
-  Tcl_ObjType *oldTypePtr = objPtr->typePtr;
+  Tcl_ObjType *oldTypePtr = (Tcl_ObjType *)objPtr->typePtr;
   char *string = ObjStr(objPtr);
   XOTclObject *obj;
   Tcl_Obj *tmpName = NULL;
@@ -1041,9 +1041,9 @@ NewXOTclObjectObjName(register XOTclObject *obj, char *name, unsigned l)
 }
 
 #ifdef KEEP_TCL_CMD_TYPE
-XOTCLINLINE static Tcl_ObjType *
-GetCmdNameType(Tcl_ObjType *cmdType) {
-  static Tcl_ObjType *tclCmdNameType = NULL;
+XOTCLINLINE static CONST86 Tcl_ObjType *
+GetCmdNameType(Tcl_ObjType CONST86 *cmdType) {
+  static Tcl_ObjType CONST86 *tclCmdNameType = NULL;
   
   if (tclCmdNameType == NULL) {
 # if defined(PRE82)
@@ -1068,7 +1068,7 @@ GetCmdNameType(Tcl_ObjType *cmdType) {
 static int 
 XOTclObjGetObject(Tcl_Interp *interp, register Tcl_Obj *objPtr, XOTclObject **obj) {
   int result;
-  register Tcl_ObjType *cmdType = objPtr->typePtr;
+  register Tcl_ObjType CONST86 *cmdType = objPtr->typePtr;
   XOTclObject *o;
 
   if (cmdType == &XOTclObjectType) {
@@ -1103,7 +1103,7 @@ XOTclObjGetObject(Tcl_Interp *interp, register Tcl_Obj *objPtr, XOTclObject **ob
 static int
 XOTclObjConvertObject(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **obj) {
   int result;
-  register Tcl_ObjType *cmdType = objPtr->typePtr;
+  register Tcl_ObjType CONST86 *cmdType = objPtr->typePtr;
 
   /*
    * Only really share the "::x" Tcl_Objs but not "x" because we so not have
@@ -5180,7 +5180,7 @@ MakeProcError(
     Tcl_AppendObjToErrorInfo(interp, Tcl_ObjPrintf(
 	    "\n    (procedure \"%.*s%s\" line %d)",
 	    (overflow ? limit : nameLen), procName,
-	    (overflow ? "..." : ""), interp->errorLine));
+	    (overflow ? "..." : ""), Tcl_GetErrorLine(interp)));
 }
 
 static int PushProcCallFrame(
@@ -5198,7 +5198,7 @@ static int PushProcCallFrame(
     Namespace *nsPtr = procPtr->cmdPtr->nsPtr;
     CallFrame *framePtr, **framePtrPtr = &framePtr;
     int result;
-    static Tcl_ObjType *byteCodeType = NULL;
+    static Tcl_ObjType CONST86 *byteCodeType = NULL;
 
     if (byteCodeType == NULL) {
       static XOTclMutex initMutex = 0;
@@ -5330,7 +5330,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
     fprintf(stderr,"\tcmd=%s\n", Tcl_GetCommandName(interp, cmd));
 #endif
    
-    result = (*Tcl_Command_objProc(cmd))(cp, interp, objc, objv);
+    result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmd), cp, objc, objv);
       
 #ifdef DISPATCH_TRACE
     printExit(interp,"callProcCheck cmd", objc, objv, result);
@@ -5436,7 +5436,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
      * here or in PushProcCallFrame. At the same time, we could do the
      * non-pos-arg handling here as well.
      */
-#if !defined(PRE85)
+#if !defined(PRE85) && !defined(NRE)
     /*fprintf(stderr,"\tproc=%s cp=%p %d\n", Tcl_GetCommandName(interp, cmd),cp, isTclProc);*/
     
     result = PushProcCallFrame(cp, interp, objc, objv, /*isLambda*/ 0);
@@ -5448,7 +5448,7 @@ callProcCheck(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]
       result = TCL_ERROR;
     }
 #else
-    result = (*Tcl_Command_objProc(cmd))(cp, interp, objc, objv);
+    result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmd), cp, objc, objv);
 #endif
     
 #ifdef DISPATCH_TRACE
@@ -5896,7 +5896,7 @@ static Tcl_Obj *addPrefixToBody(Tcl_Obj *body, int nonposArgs) {
   Tcl_Obj *resultBody;
   resultBody = Tcl_NewStringObj("", 0);
   INCR_REF_COUNT(resultBody);
-#if defined(PRE85)
+#if defined(PRE85) || defined(NRE)
   Tcl_AppendStringsToObj(resultBody, "::xotcl::initProcNS\n", (char *) NULL);
 #endif
   if (nonposArgs) {
@@ -6666,12 +6666,13 @@ ListDefaultFromOrdinaryArgs(Tcl_Interp *interp, char *procName,
 
 static char *
 StripBodyPrefix(char *body) {
-#if defined(PRE85)
+#if defined(PRE85) || defined(NRE)
   if (strncmp(body, "::xotcl::initProcNS\n", 20) == 0)
     body+=20;
 #endif
   if (strncmp(body, "::xotcl::interpretNonpositionalArgs $args\n", 42) == 0)
     body+=42;
+  /*fprintf(stderr, "--- returing body ***%s***\n", body);*/
   return body;
 }
 
@@ -6908,10 +6909,10 @@ XOTclNextMethod(XOTclObject *obj, Tcl_Interp *interp, XOTclClass *givenCl,
     */
   }
 #endif
-  /*
-    fprintf(stderr,"givenMethod = %s, csc = %p, useCallstackObj %d, objc %d\n", 
-    givenMethod, csc, useCallstackObjs, objc);
-  */
+  
+  /*fprintf(stderr,"givenMethod = %s, csc = %p, useCallstackObj %d, objc %d currentFramePtr %p\n", 
+    givenMethod, csc, useCallstackObjs, objc, csc->currentFramePtr);*/
+  
 
   /* if no args are given => use args from stack */
   if (objc < 2 && useCallstackObjs && csc->currentFramePtr) {
@@ -9295,7 +9296,7 @@ XOTclOUplevelMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST
   }
   if (result == TCL_ERROR) {
     char msg[32 + TCL_INTEGER_SPACE];
-    sprintf(msg, "\n    (\"uplevel\" body line %d)", interp->errorLine);
+    sprintf(msg, "\n    (\"uplevel\" body line %d)", Tcl_GetErrorLine(interp));
     Tcl_AddObjErrorInfo(interp, msg, -1);
   }
 
@@ -9444,7 +9445,7 @@ callForwarder(forwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     XOTcl_PushFrame(interp, tcd->obj);
   }
   if (tcd->objProc) {
-    result = (tcd->objProc)(tcd->cd, interp, objc, objv);
+    result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->cd, objc, objv);
   } else if (tcd->cmdName->typePtr == &XOTclObjectType
              && XOTclObjConvertObject(interp, tcd->cmdName, (void*)&cd) == TCL_OK) {
     /*fprintf(stderr, "XOTcl object %s, objc=%d\n", ObjStr(tcd->cmdName), objc);*/
@@ -9873,7 +9874,7 @@ XOTclObjscopedMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
   /* fprintf(stderr,"objscopedMethod obj=%p, ptr=%p\n", obj, tcd->objProc); */
   
   XOTcl_PushFrame(interp, obj);
-  rc = (tcd->objProc)(tcd->cd, interp, objc, objv);
+  rc = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->cd, objc, objv);
   XOTcl_PopFrame(interp, obj);
   
   return rc;
@@ -10324,7 +10325,7 @@ typedef enum {NO_DASH, SKALAR_DASH, LIST_DASH} dashArgType;
 static dashArgType
 isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, char **methodName, int *objc, Tcl_Obj **objv[]) {
   char *flag;
-  static Tcl_ObjType *listType = NULL;
+  static Tcl_ObjType CONST86 *listType = NULL;
 
   assert(obj);
 
@@ -12173,7 +12174,7 @@ XOTclSelfDispatchCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
   return result;
 }
 
-#if defined(PRE85)
+#if defined(PRE85) || defined(NRE)
 int
 XOTclInitProcNSCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *) Tcl_Interp_varFramePtr(interp);
@@ -12767,7 +12768,7 @@ XOTclFinalizeObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
   if (result != TCL_OK) {
     fprintf(stderr,"User defined exit handler contains errors!\n"
             "Error in line %d: %s\nExecution interrupted.\n",
-            interp->errorLine, ObjStr(Tcl_GetObjResult(interp)));
+            Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
   }
 
   /* deleting in two rounds:
@@ -13231,7 +13232,7 @@ Xotcl_Init(Tcl_Interp *interp) {
   Tcl_CreateObjCommand(interp, "::xotcl::configure", XOTclConfigureCommand, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::deprecated", XOTcl_DeprecatedCmd, 0, 0);
   Tcl_CreateObjCommand(interp, "::xotcl::finalize", XOTclFinalizeObjCmd, 0, 0);
-#if defined(PRE85)
+#if defined(PRE85) || defined(NRE)
 #ifdef XOTCL_BYTECODE
   instructions[INST_INITPROC].cmdPtr = (Command *)
 #endif

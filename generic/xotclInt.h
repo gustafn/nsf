@@ -238,10 +238,12 @@ typedef struct XOTclMemCounter {
 # define XOTclMutexUnlock(a) (*(a))--
 #endif
 
-#if defined(PRE84)
-# define CONST84 
-#else
-# define CONST84 CONST
+#if !defined(CONST84) 
+# if defined(PRE84)
+#  define CONST84 
+# else
+#  define CONST84 CONST
+# endif
 #endif
 
 #if defined(PRE81)

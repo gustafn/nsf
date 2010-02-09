@@ -131,6 +131,9 @@
 #if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<5
 # define PRE85
 #endif
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<6
+# define PRE86
+#endif
 
 #if !defined(FORWARD_COMPATIBLE)
 # if defined(PRE85)
@@ -141,6 +144,16 @@
 #endif
 
 #define XOTCL_NONLEAF_METHOD (ClientData)0x01
+
+#if defined(PRE86)
+# define CONST86
+# define Tcl_GetErrorLine(interp) (interp)->errorLine
+# define Tcl_NRCallObjProc(interp, proc, cd, objc, objv) \
+  (*(proc))((cd), (interp), (objc), (objv))
+#else
+# define NRE
+#endif
+
 
 /* 
  * A special definition used to allow this header file to be included 

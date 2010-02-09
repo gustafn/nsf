@@ -188,7 +188,9 @@ int XOTclCallCommand(Tcl_Interp *interp, XOTclGlobalNames name,
   ov[0] = XOTclGlobalObjects[name];
   if (objc > 1)
     memcpy(ov+1, objv+1, sizeof(Tcl_Obj *)*(objc-1));
-  result = (*ti->proc)(ti->cd, interp, objc, ov);
+  
+  result = Tcl_NRCallObjProc(interp, ti->proc, ti->cd, objc, ov);
+
   FREE_ON_STACK(ov);
   return result;
 }
