@@ -38,6 +38,24 @@ C create c1
 ? {::xotcl::valuecheck lower Abc} 0 "no lower case chars"
 ? {string is lower abc} 1 "tcl command 'string is lower'"
 
+#######################################################
+# valuecheck
+#######################################################
+Test case valuecheck
+Test parameter count 10000
+
+Object create ::paramManager {
+  :method type=sex {name value} {
+    return "agamous"
+  }
+}
+
+? {::xotcl::valuecheck sex,slot=::paramManager female} "1"
+::paramManager destroy
+
+#######################################################
+# cononical feature table
+#######################################################
 #
 # parameter options
 #   required

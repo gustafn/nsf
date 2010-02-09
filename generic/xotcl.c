@@ -12393,11 +12393,16 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valu
 
   result = ArgumentCheck(interp, value, paramPtr, &flags, &checkedData, &outObjPtr);
 
+  if (value != outObjPtr) {
+    Tcl_ResetResult(interp);
+  }
+
   if (flags & XOTCL_PC_MUST_DECR) {
     DECR_REF_COUNT(outObjPtr);
   }
-  
+
   Tcl_SetIntObj(Tcl_GetObjResult(interp), (result == TCL_OK));
+
   return TCL_OK;
 }
 
