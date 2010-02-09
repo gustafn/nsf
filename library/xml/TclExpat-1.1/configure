@@ -3795,7 +3795,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 else
   ac_cv_header_stdc=no
 fi
-rm -f conftest*
+rm -f -r conftest*
 
 fi
 
@@ -3816,7 +3816,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 else
   ac_cv_header_stdc=no
 fi
-rm -f conftest*
+rm -f -r conftest*
 
 fi
 
@@ -5920,7 +5920,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 else
   tcl_ok=0
 fi
-rm -f conftest*
+rm -f -r conftest*
 
     cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -5937,7 +5937,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 else
   tcl_ok=0
 fi
-rm -f conftest*
+rm -f -r conftest*
 
     cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -5954,7 +5954,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 else
   tcl_ok=0
 fi
-rm -f conftest*
+rm -f -r conftest*
 
     if test $tcl_ok = 0; then
 
@@ -6110,7 +6110,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 else
   tcl_ok=0
 fi
-rm -f conftest*
+rm -f -r conftest*
 
     cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
@@ -6127,7 +6127,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 else
   tcl_ok=0
 fi
-rm -f conftest*
+rm -f -r conftest*
 
 
     # See also memmove check below for a place where NO_STRING_H can be
@@ -8598,7 +8598,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 else
   tcl_cv_ld_elf=no
 fi
-rm -f conftest*
+rm -f -r conftest*
 
 fi
 { echo "$as_me:$LINENO: result: $tcl_cv_ld_elf" >&5
@@ -8654,7 +8654,7 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 else
   tcl_cv_ld_elf=no
 fi
-rm -f conftest*
+rm -f -r conftest*
 
 fi
 { echo "$as_me:$LINENO: result: $tcl_cv_ld_elf" >&5
@@ -11411,6 +11411,8 @@ if test "$no_create" != yes; then
   # would make configure fail if this is the last instruction.
   $ac_cs_success || { (exit 1); exit 1; }
 fi
+
+
 
 
 
