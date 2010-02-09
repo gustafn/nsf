@@ -1834,7 +1834,7 @@ InterpDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsP
   }
 
 #if defined(VAR_RESOLVER_TRACE)
-  fprintf(stderr, "InterpDotVarResolver called var=%s flags %.4x\n", varName, flags);
+  fprintf(stderr, "InterpDotVarResolver called var '%s' flags %.4x\n", varName, flags);
 #endif
   varName ++;
   varFramePtr = Tcl_Interp_varFramePtr(interp);
@@ -5430,7 +5430,7 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
           );
 # endif
 
-  if (opt && object->teardown && (object->checkoptions & CHECK_POST)) {
+  if (opt && object->teardown && (opt->checkoptions & CHECK_POST)) {
     /* even, when the passed result != TCL_OK, run assertion to report
      * the highest possible method from the callstack (e.g. "set" would not
      * be very meaningful; however, do not flush a TCL_ERROR.
@@ -5713,11 +5713,8 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 #endif
 
   /*fprintf(stderr, "CmdDispatch obj %p %p %s\n", obj, methodName, methodName);*/
-#if !defined(NRE)
-  result = (*Tcl_Command_objProc(cmdPtr))(cp, interp, objc, objv);
-#else
   result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmdPtr), cp, objc, objv);
-#endif
+
 #ifdef DISPATCH_TRACE
   printExit(interp, "CmdMethodDispatch cmd", objc, objv, result);
 #endif
@@ -9281,11 +9278,11 @@ XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   XOTclObject *object = tcd->obj;
   int result;
   XOTcl_FrameDecls;
-  /*fprintf(stderr, "objscopedMethod obj=%p %s, ptr=%p\n", obj, objectName(obj), tcd->objProc);*/
+  /*fprintf(stderr, "objscopedMethod obj=%p %s, ptr=%p\n", object, objectName(object), tcd->objProc);*/
 
   XOTcl_PushFrameObj(interp, object);
 
-#if 1 || !defined(NRE)
+#if !defined(NRE)
   result = (*tcd->objProc)(tcd->clientData, interp, objc, objv);
 #else
   result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->clientData, objc, objv);

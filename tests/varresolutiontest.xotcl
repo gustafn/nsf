@@ -349,6 +349,7 @@ o eval {
   set aaa 1
   set :a 1
 }
+
 ? {o exists a} 1
 ? {o exists aaa} 1
 
