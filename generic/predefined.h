@@ -405,7 +405,7 @@ static char cmd[] =
 "\\[list [::xotcl::self] __default_from_cmd \\[::xotcl::self\\] [list [set :initcmd]]\\]\\n\"} elseif [:exists valuecmd] {\n"
 "append __initcmd \":trace add variable [list ${:name}] read \\\n"
 "\\[list [::xotcl::self] __value_from_cmd \\[::xotcl::self\\] [list [set :valuecmd]]\\]\"}\n"
-"array set \"\" [:toParameterSyntax \"value\"]\n"
+"array set \"\" [:toParameterSyntax ${:name}]\n"
 "if {$(mparam) ne \"\"} {\n"
 "if {[info exists :multivalued] && ${:multivalued}} {\n"
 ":method assign [list obj var value:$(mparam),multivalued,slot=[self]] {::xotcl::setinstvar $obj $var $value}\n"

@@ -136,7 +136,7 @@ xotclCmd setinstvar XOTclSetInstvarCmd {
 xotclCmd setter XOTclSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
-  {-argName "methodName" -required 1}
+  {-argName "parameter" -type tclobj}
 }
 xotclCmd valuecheck XOTclValuecheckCmd {
   {-argName "param" -type tclobj}

@@ -138,6 +138,7 @@ C create c1
 ? {C eval {:objectparameter}} \
 "-object-mixin:relation,slot=::xotcl2::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::xotcl2::Class::slot::mixin -superclass:relation,slot=::xotcl2::Class::slot::superclass -object-filter:relation,slot=::xotcl2::Class::slot::object-filter -filter:relation,arg=filter-mixin,slot=::xotcl2::Class::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -parameter:method,optional -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
 
+
 ? {c1 eval {:objectparameter}} \
 "-a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
 
@@ -497,7 +498,7 @@ D method foo {a:range,arg=1-3 {-b:range,arg=2-6 3} c:range,arg=5-10} {
 
 # define type twice
 ? {D method foo {a:int,range,arg=1-3} {return a=$a}} \
-    "Refuse to redefine parameter converter to use usertype" \
+    "Refuse to redefine parameter converter to use type=range" \
     "invalid value"
 
 #
@@ -776,6 +777,25 @@ Person method foo {s:sex,slot=::Person::slot::sex} {return $s}
 ? {p1 foo male} m
 ? {p1 sex male} m
 
+#######################################################
+# test for setters with parameters 
+#######################################################
+Test case setters
+
+Object create o
+
+? {::xotcl::setter o a} "::xotcl::classes::o::a"
+? {o a 1} "1"
+
+? {::xotcl::setter o a:integer} "::xotcl::classes::o::a"
+? {::xotcl::setter o ints:integer,multivalued} "::xotcl::classes::o::ints"
+? {::xotcl::setter o o:object} "::xotcl::classes::o::o"
+
+? {o a 2} 2
+? {o a hugo} {expected integer but got "hugo" for parameter a}
+? {o ints {10 100 1000}} {10 100 1000}
+? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter ints}
+? {o o o} o
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
 puts stderr =====END

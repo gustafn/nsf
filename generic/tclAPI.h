@@ -282,7 +282,7 @@ static int XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
-static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, char *methodName);
+static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *parameter);
 static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *param, Tcl_Obj *value);
 
 enum {
@@ -1928,10 +1928,10 @@ XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
     int withPer_object = (int )PTR2INT(pc.clientData[1]);
-    char *methodName = (char *)pc.clientData[2];
+    Tcl_Obj *parameter = (Tcl_Obj *)pc.clientData[2];
 
     parseContextRelease(&pc);
-    return XOTclSetterCmd(interp, object, withPer_object, methodName);
+    return XOTclSetterCmd(interp, object, withPer_object, parameter);
 
   }
 }
@@ -2307,7 +2307,7 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::setter", XOTclSetterCmdStub, 3, {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
-  {"methodName", 1, 0, convertToString}}
+  {"parameter", 0, 0, convertToTclobj}}
 },
 {"::xotcl::valuecheck", XOTclValuecheckCmdStub, 2, {
   {"param", 0, 0, convertToTclobj},

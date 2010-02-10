@@ -767,7 +767,7 @@ namespace eval ::xotcl {
       append __initcmd ":trace add variable [list ${:name}] read \
 	\[list [::xotcl::self] __value_from_cmd \[::xotcl::self\] [list [set :valuecmd]]\]"
     }
-    array set "" [:toParameterSyntax "value"]
+    array set "" [:toParameterSyntax ${:name}]
 
     #puts stderr "Attribute.init valueParam for [self] is $(mparam)"
     if {$(mparam) ne ""} {

@@ -110,6 +110,8 @@ static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *metho
 static int ListMethodName(Tcl_Interp *interp, XOTclObject *object, int withPer_object, 
                           CONST char *methodName);
 
+static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, int *flags,
+                         ClientData *clientData, Tcl_Obj **outObjPtr);
 
 typedef enum { CALLING_LEVEL, ACTIVE_LEVEL } CallStackLevel;
 
@@ -125,13 +127,20 @@ typedef struct XOTclProcContext {
   XOTclParamDefs *paramDefs;
 } XOTclProcContext;
 
-typedef struct tclCmdClientData {
-  XOTclObject *obj;
-  Tcl_Obj *cmdName;
-} tclCmdClientData;
+/* tclCmdClientdata is an incomplete type containing the common field(s)
+   of ForwardCmdClientData, AliasCmdClientData and SetterCmdClientData
+   used for filling in at runtime the actual object. */
+typedef struct TclCmdClientData {
+  XOTclObject *object;
+} TclCmdClientData;
 
-typedef struct forwardCmdClientData {
-  XOTclObject *obj;
+typedef struct SetterCmdClientData {
+  XOTclObject *object;
+  XOTclParam *paramsPtr;
+} SetterCmdClientData;
+
+typedef struct ForwardCmdClientData {
+  XOTclObject *object;
   Tcl_Obj *cmdName;
   Tcl_ObjCmdProc *objProc;
   ClientData clientData;
@@ -146,10 +155,10 @@ typedef struct forwardCmdClientData {
   Tcl_Obj *prefix;
   int nr_subcommands;
   Tcl_Obj *subcommands;
-} forwardCmdClientData;
+} ForwardCmdClientData;
 
 typedef struct AliasCmdClientData {
-  XOTclObject *obj;
+  XOTclObject *object;
   Tcl_Obj *cmdName;
   Tcl_ObjCmdProc *objProc;
   ClientData clientData;
@@ -5826,9 +5835,11 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
                               methodName, "'", (char *) NULL);
       }
     } else if (proc == XOTclForwardMethod ||
-	       proc == XOTclObjscopedMethod) {
-      tclCmdClientData *tcd = (tclCmdClientData *)cp;
-      tcd->obj = object;
+	       proc == XOTclObjscopedMethod ||
+	       proc == XOTclSetterMethod
+               ) {
+      TclCmdClientData *tcd = (TclCmdClientData *)cp;
+      tcd->object = object;
       assert((CmdIsProc(cmd) == 0));
     } else if (cp == (ClientData)XOTCL_CMD_NONLEAF_METHOD) {
       cp = clientData;
@@ -6475,7 +6486,7 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
       /* must be a converter defined via method */
       paramPtr->converterName = ParamCheckObj(interp, option, length);
       INCR_REF_COUNT(paramPtr->converterName);
-      result = ParamOptionSetConverter(interp, paramPtr, "usertype", convertViaCmd);
+      result = ParamOptionSetConverter(interp, paramPtr, ObjStr(paramPtr->converterName), convertViaCmd);
     }
   }
 
@@ -6867,7 +6878,7 @@ getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 }
 
 static void forwardCmdDeleteProc(ClientData clientData) {
-  forwardCmdClientData *tcd = (forwardCmdClientData *)clientData;
+  ForwardCmdClientData *tcd = (ForwardCmdClientData *)clientData;
   if (tcd->cmdName)     {DECR_REF_COUNT(tcd->cmdName);}
   if (tcd->subcommands) {DECR_REF_COUNT(tcd->subcommands);}
   if (tcd->onerror)     {DECR_REF_COUNT(tcd->onerror);}
@@ -6881,12 +6892,12 @@ forwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *name,
                        Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
                        int withObjscope, Tcl_Obj *withOnerror, int withVerbose,
                        Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
-                       forwardCmdClientData **tcdp) {
-  forwardCmdClientData *tcd;
+                       ForwardCmdClientData **tcdp) {
+  ForwardCmdClientData *tcd;
   int i, result = 0;
 
-  tcd = NEW(forwardCmdClientData);
-  memset(tcd, 0, sizeof(forwardCmdClientData));
+  tcd = NEW(ForwardCmdClientData);
+  memset(tcd, 0, sizeof(ForwardCmdClientData));
 
   if (withDefault) {
     Tcl_DString ds, *dsPtr = &ds;
@@ -8812,16 +8823,35 @@ setInstVar(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *name, Tcl_Obj *valu
 
 static int
 XOTclSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *object = (XOTclObject*)clientData;
-
+  SetterCmdClientData *cd = (SetterCmdClientData*)clientData;
+  XOTclObject *object = cd->object;
+  
   if (!object) return XOTclObjErrType(interp, objv[0], "object", ObjStr(objv[0]));
   if (objc > 2) return XOTclObjErrArgCnt(interp, object->cmdName, objv[0], "?value?");
-  return setInstVar(interp, object, objv[0], objc == 2 ? objv[1] : NULL);
+
+  if (cd->paramsPtr && objc == 2) {
+    Tcl_Obj *outObjPtr;
+    int result, flags;
+    ClientData checkedData;
+    result = ArgumentCheck(interp, objv[1], cd->paramsPtr, &flags, &checkedData, &outObjPtr);
+
+    if (result == TCL_OK) {
+      result = setInstVar(interp, object, objv[0], outObjPtr);
+
+      if (flags & XOTCL_PC_MUST_DECR) {
+        DECR_REF_COUNT(outObjPtr);
+      }
+    }
+    return result;
+
+  } else {
+    return setInstVar(interp, object, objv[0], objc == 2 ? objv[1] : NULL);
+  }
 }
 
 static int
 forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-           Tcl_Obj *forwardArgObj, forwardCmdClientData *tcd, Tcl_Obj **out,
+           Tcl_Obj *forwardArgObj, ForwardCmdClientData *tcd, Tcl_Obj **out,
            Tcl_Obj **freeList, int *inputArg, int *mapvalue,
            int firstPosArg, int *outputincr) {
   char *forwardArgString = ObjStr(forwardArgObj), *p;
@@ -8873,7 +8903,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     c1 = *(forwardArgString+1);
 
     if (c == 's' && !strcmp(forwardArgString, "self")) {
-      *out = tcd->obj->cmdName;
+      *out = tcd->object->cmdName;
     } else if (c == 'p' && !strcmp(forwardArgString, "proc")) {
       char *methodName = ObjStr(objv[0]);
       /* if we dispatch a method via ".", we do not want to see the
@@ -9028,10 +9058,10 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
 
 static int
-callForwarder(forwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+callForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ClientData clientData;
   int result;
-  XOTclObject *object = tcd->obj;
+  XOTclObject *object = tcd->object;
   XOTcl_FrameDecls;
 
   if (tcd->verbose) {
@@ -9074,7 +9104,7 @@ callForwarder(forwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
 static int
 XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
 		   int objc, Tcl_Obj *CONST objv[]) {
-  forwardCmdClientData *tcd = (forwardCmdClientData *)clientData;
+  ForwardCmdClientData *tcd = (ForwardCmdClientData *)clientData;
   int result, j, inputArg = 1, outputArg = 0;
 #if defined(TCL85STACK)
   /* no need to store varFramePtr in call frame for tcl85stack */
@@ -9087,7 +9117,7 @@ XOTclForwardMethod(ClientData clientData, Tcl_Interp *interp,
   */
 #endif
 
-  if (!tcd || !tcd->obj) return XOTclObjErrType(interp, objv[0], "object", "");
+  if (!tcd || !tcd->object) return XOTclObjErrType(interp, objv[0], "object", "");
 
   if (tcd->passthrough) { /* two short cuts for simple cases */
     /* early binding, cmd *resolved, we have to care only for objscope */
@@ -9275,7 +9305,7 @@ XOTclProcAliasMethod(ClientData clientData,
 static int
 XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
-  XOTclObject *object = tcd->obj;
+  XOTclObject *object = tcd->object;
   int result;
   XOTcl_FrameDecls;
   /*fprintf(stderr, "objscopedMethod obj=%p %s, ptr=%p\n", object, objectName(object), tcd->objProc);*/
@@ -9290,6 +9320,15 @@ XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
   XOTcl_PopFrameObj(interp, object);
   return result;
+}
+
+static void setterCmdDeleteProc(ClientData clientData) {
+  SetterCmdClientData *setterClientData = (SetterCmdClientData *)clientData;
+
+  if (setterClientData->paramsPtr) {
+    ParamsFree(setterClientData->paramsPtr);
+  }
+  FREE(SetterCmdClientData, setterClientData);
 }
 
 static void aliasCmdDeleteProc(ClientData clientData) {
@@ -10117,7 +10156,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVar
 }
 
 static void
-AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, forwardCmdClientData *tcd) {
+AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientData *tcd) {
   if (tcd->prefix) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-methodprefix",-1));
     Tcl_ListObjAppendElement(interp, listObj, tcd->prefix);
@@ -10252,7 +10291,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
           XOTclAssertionStore *assertions;
 
           resultObj = Tcl_NewListObj(0, NULL);
-          /* todo: don't hard-code registering command name "method" */
+          /* todo: don't hard-code registering command name "method" / XOTE_METHOD */
           AppendMethodRegistration(interp, resultObj, XOTclGlobalStrings[XOTE_METHOD], 
                                    object, methodName, cmd, 0, outputPerObject);
           ListCmdParams(interp, cmd, methodName, 0);
@@ -10292,7 +10331,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
 
           if (clientData) {
             resultObj = Tcl_NewListObj(0, NULL);
-            /* todo: don't hard-code registering command name "forward" */
+            /* todo: don't hard-code registering command name "forward" / XOTE_FORWARD*/
             AppendMethodRegistration(interp, resultObj, XOTclGlobalStrings[XOTE_FORWARD], 
                                      object, methodName, cmd, 0, outputPerObject);
             AppendForwardDefinition(interp, resultObj, clientData);
@@ -10310,7 +10349,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
         break;
       case InfomethodsubcmdDefinitionIdx:
         resultObj = Tcl_NewListObj(0, NULL);
-        /* todo: don't hard-code registering command name "setter" */
+        /* todo: don't hard-code registering command name "setter" / XOTE_SETTER */
         AppendMethodRegistration(interp, resultObj, XOTclGlobalStrings[XOTE_SETTER],
                                  object, methodName, cmd, 0, outputPerObject);
         Tcl_SetObjResult(interp, resultObj);        
@@ -10332,7 +10371,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
             Tcl_Obj **listElements;
             resultObj = Tcl_NewListObj(0, NULL);
             Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
-            /* todo: don't hard-code registering command name "alias" */
+            /* todo: don't hard-code registering command name "alias" / XOTE_ALIAS */
             AppendMethodRegistration(interp, resultObj, XOTclGlobalStrings[XOTE_ALIAS], 
                                      object, methodName, cmd, nrElements!=1, outputPerObject);
             Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
@@ -10505,8 +10544,8 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *table, char *pattern, int withDef
        "-definition" */
     if (hPtr) {
       Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
-      ClientData clientData = cmd? Tcl_Command_objClientData(cmd) : NULL;
-      forwardCmdClientData *tcd = (forwardCmdClientData *)clientData;
+      ClientData clientData = cmd ? Tcl_Command_objClientData(cmd) : NULL;
+      ForwardCmdClientData *tcd = (ForwardCmdClientData *)clientData;
       if (tcd && Tcl_Command_objProc(cmd) == XOTclForwardMethod) {
         Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
         AppendForwardDefinition(interp, listObj, tcd);
@@ -10778,7 +10817,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_ob
     tcd = NEW(AliasCmdClientData);
     tcd->cmdName    = object->cmdName;
     tcd->interp     = interp; /* just for deleting the associated variable */
-    tcd->obj        = object;
+    tcd->object     = object;
     tcd->class	    = cl ? (XOTclClass *) object : NULL;
     tcd->objProc    = objProc;
     tcd->aliasedCmd = cmd;
@@ -11243,7 +11282,7 @@ static int XOTclForwardCmd(Tcl_Interp *interp,
                            Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
                            int withObjscope, Tcl_Obj *withOnerror, int withVerbose, 
                            Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  forwardCmdClientData *tcd = NULL;
+  ForwardCmdClientData *tcd = NULL;
   int result;
 
   result = forwardProcessOptions(interp, method,
@@ -11256,7 +11295,7 @@ static int XOTclForwardCmd(Tcl_Interp *interp,
       (withPer_object || ! XOTclObjectIsClass(object)) ? 
       NULL : (XOTclClass *)object;
     
-    tcd->obj = object;
+    tcd->object = object;
     if (cl == NULL) {
       result = XOTclAddObjectMethod(interp, (XOTcl_Object *)object, methodName,
                                     (Tcl_ObjCmdProc*)XOTclForwardMethod,
@@ -12289,19 +12328,46 @@ static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *
 xotclCmd setter XOTclSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
-  {-argName "methodName" -required 1}
-  } */
-static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object,  int withPer_object,
-                          char *methodName) {
-  int result;
+  {-argName "parameter" -type tclobj}
+  }
+*/
+static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *parameter) {
   XOTclClass *cl = (withPer_object || ! XOTclObjectIsClass(object)) ? NULL : (XOTclClass *)object;
+  char *methodName = ObjStr(parameter);
+  SetterCmdClientData *setterClientData = NEW(SetterCmdClientData);
+  int j, length, result;
+
+  length = strlen(methodName);
+
+  for (j=0; j<length; j++) {
+    if (methodName[j] == ':') break;
+  }
+
+  if (j < length) {
+    /* looks as if we have a parameter specification */
+    int result, possibleUnknowns = 0, plainParams = 0;
+
+    setterClientData->paramsPtr = ParamsNew(1);
+    result = ParamParse(interp, "setter", parameter, 
+                        XOTCL_DISALLOWED_ARG_METHOD_PARAMETER /* disallowed options */,
+                        setterClientData->paramsPtr, &possibleUnknowns, &plainParams);
+
+    if (result != TCL_OK) {
+      ParamsFree(setterClientData->paramsPtr);
+      FREE(SetterCmdClientData, setterClientData);
+      return result;
+    }
+    methodName = setterClientData->paramsPtr->name;
+  } else {
+    setterClientData->paramsPtr = NULL;
+  }
 
   if (cl) {
     result = XOTclAddClassMethod(interp, (XOTcl_Class *)cl, methodName,
-                                    (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+                                 (Tcl_ObjCmdProc*)XOTclSetterMethod, (ClientData)setterClientData, setterCmdDeleteProc, 0);
   } else {
     result = XOTclAddObjectMethod(interp, (XOTcl_Object *)object, methodName, 
-                                  (Tcl_ObjCmdProc*)XOTclSetterMethod, 0, 0, 0);
+                                  (Tcl_ObjCmdProc*)XOTclSetterMethod, (ClientData)setterClientData, setterCmdDeleteProc, 0);
   }
   if (result == TCL_OK) {
     result = ListMethodName(interp, object, withPer_object, methodName);
