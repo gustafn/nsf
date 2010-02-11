@@ -19,15 +19,21 @@ C create c1
 
 ? {::xotcl::valuecheck object o1} 1
 ? {::xotcl::is o1 object} 1
-? {::xotcl::valuecheck class o1} 0
+? {::xotcl::valuecheck class o1} {expected class but got "o1" for parameter value}
+? {::xotcl::valuecheck class -nocomplain o1} 0
 ? {::xotcl::valuecheck class Test} 1
 ? {::xotcl::valuecheck object,multivalued [list o1 Test]} 1
 ? {::xotcl::valuecheck integer 1} 1
 ? {::xotcl::valuecheck integer,multivalued [list 1 2 3]} 1
-? {::xotcl::valuecheck integer,multivalued [list 1 2 3 a]} 0
+? {::xotcl::valuecheck integer,multivalued [list 1 2 3 a]} \
+    {invalid value in "1 2 3 a": expected integer but got "a" for parameter value}
 ? {::xotcl::valuecheck object,type=::C c1} 1
-? {::xotcl::valuecheck object,type=::C o} 0 "object, but different type"
-? {::xotcl::valuecheck object,type=::C c} 0 "no object"
+? {::xotcl::valuecheck object,type=::C o} \
+    {expected object but got "o" for parameter value} \
+    "object, but different type"
+? {::xotcl::valuecheck object,type=::C c} \
+    {expected object but got "c" for parameter value} \
+    "no object"
 ? {::xotcl::valuecheck object,type=::xotcl2::Object c1} 1 "general type"
 
 # do not allow "currently unknown" user defined types in valuecheck
@@ -35,7 +41,7 @@ C create c1
 
 ? {::xotcl::valuecheck lower c} 1 "lower case char"
 ? {::xotcl::valuecheck lower abc} 1 "lower case chars"
-? {::xotcl::valuecheck lower Abc} 0 "no lower case chars"
+? {::xotcl::valuecheck lower Abc} {expected lower but got "Abc" for parameter value} "no lower case chars"
 ? {string is lower abc} 1 "tcl command 'string is lower'"
 
 ? {::xotcl::valuecheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
@@ -760,15 +766,19 @@ C create c1
 Object create tmpObj
 tmpObj method type=mType {name value arg:optional} {
   if {$value} {
-    error invalid
+    error "expected false but got $value"
   }
   # Note that this converter does NOT return a value; it converts all
   # values into emtpy strings.
 }
 
-? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {1 0}} 0 "fail on first value"
+? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {1 0}} \
+    {invalid value in "1 0": expected false but got 1} \
+    "fail on first value"
 ? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
-? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {0 1}} 0 "fail o last value"
+? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {0 1}} \
+    {invalid value in "0 1": expected false but got 1} \
+    "fail o last value"
 
 #######################################################
 # slot specific converter

@@ -140,6 +140,7 @@ xotclCmd setter XOTclSetterCmd {
 }
 xotclCmd valuecheck XOTclValuecheckCmd {
   {-argName "param" -type tclobj}
+  {-argName "-nocomplain"}
   {-argName "value" -required 0 -type tclobj}
 }
 #

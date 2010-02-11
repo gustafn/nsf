@@ -283,7 +283,7 @@ static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *parameter);
-static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *param, Tcl_Obj *value);
+static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *param, int withNocomplain, Tcl_Obj *value);
 
 enum {
  XOTclCAllocMethodIdx,
@@ -1947,10 +1947,11 @@ XOTclValuecheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     return TCL_ERROR;
   } else {
     Tcl_Obj *param = (Tcl_Obj *)pc.clientData[0];
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[1];
+    int withNocomplain = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
     parseContextRelease(&pc);
-    return XOTclValuecheckCmd(interp, param, value);
+    return XOTclValuecheckCmd(interp, param, withNocomplain, value);
 
   }
 }
@@ -2309,8 +2310,9 @@ static methodDefinition method_definitions[] = {
   {"-per-object", 0, 0, convertToString},
   {"parameter", 0, 0, convertToTclobj}}
 },
-{"::xotcl::valuecheck", XOTclValuecheckCmdStub, 2, {
+{"::xotcl::valuecheck", XOTclValuecheckCmdStub, 3, {
   {"param", 0, 0, convertToTclobj},
+  {"-nocomplain", 0, 0, convertToString},
   {"value", 0, 0, convertToTclobj}}
 },{NULL}
 };

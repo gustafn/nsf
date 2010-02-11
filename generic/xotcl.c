@@ -6219,7 +6219,6 @@ static int convertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONS
       Tcl_GetIntFromObj(interp, Tcl_GetObjResult(interp), &success);
       if (success == 1) {
 	*clientData = (ClientData)objPtr;
-	*outObjPtr = objPtr;
       } else {
 	result = XOTclVarErrMsg(interp, "expected ", ObjStr(pPtr->converterArg), 
 				" but got \"", ObjStr(objPtr), 
@@ -6228,9 +6227,9 @@ static int convertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONS
     }
   } else {
     *clientData = (ClientData)objPtr;
-    *outObjPtr = objPtr;
     result = TCL_OK;
   }
+  *outObjPtr = objPtr;
   return result;
 }
 
@@ -6347,6 +6346,8 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
       ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)));*/
     *outObjPtr = Tcl_GetObjResult(interp);
     *clientData = (ClientData) *outObjPtr;
+  } else {
+    *outObjPtr = objPtr; /* xxx */
   }
   return result;
 }
@@ -9679,6 +9680,7 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST
       DECR_REF_COUNT(resultObj);
       DECR_REF_COUNT(*outObjPtr);
       *flags &= ~XOTCL_PC_MUST_DECR;
+      *outObjPtr = objPtr;
       break;
     }
   }
@@ -12450,9 +12452,11 @@ ParamSetFromAny(
 /*
 xotclCmd valuecheck XOTclValuecheckCmd {
   {-argName "param" -type tclobj}
+  {-argName "-nocomplain"}
   {-argName "value" -required 0 -type tclobj}
-  } */
-static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *value) {
+  } 
+*/
+static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, int withNocomplain, Tcl_Obj *value) {
   ClientData checkedData;
   XOTclParam *paramPtr;
   Tcl_Obj *outObjPtr;
@@ -12474,6 +12478,7 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valu
   result = ArgumentCheck(interp, value, paramPtr, &flags, &checkedData, &outObjPtr);
 
   if (value != outObjPtr) {
+    fprintf(stderr, "reset result %p %p\n", value, outObjPtr);
     Tcl_ResetResult(interp);
   }
 
@@ -12481,9 +12486,14 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valu
     DECR_REF_COUNT(outObjPtr);
   }
 
-  Tcl_SetIntObj(Tcl_GetObjResult(interp), (result == TCL_OK));
+  if (withNocomplain) {
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), (result == TCL_OK));
+    result = TCL_OK;
+  } else if (result == TCL_OK) {
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
+  }
 
-  return TCL_OK;
+  return result;
 }
 
 /***************************
