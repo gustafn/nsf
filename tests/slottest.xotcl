@@ -342,7 +342,7 @@ a1 foo 123 ;# calls overridden foosetter
 Class Person -slots {
   Attribute create name
   Attribute create age -default 0
-  Attribute create projects -default {} -multivalued true
+  Attribute create projects -default {} -multivalued true -incremental true
 }
 
 Person p1 -name "Gustaf"
@@ -386,7 +386,7 @@ p1 projects add ::project1
 }
 
 Person slots {
-  Attribute create projects -default "" -multivalued true -type ::Project
+  Attribute create projects -default "" -multivalued true -incremental true -type ::Project
   Attribute create salary -type integer
 }
 

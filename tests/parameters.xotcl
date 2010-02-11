@@ -308,6 +308,11 @@ Class create Foo -parameter {
 ? {Foo create foo -ints {1 2}} "::foo"
 ? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a" for parameter -ints}
 
+# make slot incremental
+Foo slot ints eval {
+  set :incremental 1
+  :optimize
+}
 Foo create foo -ints {1 2}
 ? {foo ints add 0} "0 1 2"
 ? {foo ints add a} {expected integer but got "a" for parameter value}
@@ -706,6 +711,10 @@ proc parameterFromSlot {class objectparameter} {
 ? {ParamTest create p -u c1} {expected upper but got "c1" for parameter -u}
 ? {ParamTest create p -us {A B c}} \
     {invalid value in "A B c": expected upper but got "c" for parameter -us}
+ParamTest slot us eval {
+  set :incremental 1
+  :optimize
+}
 ? {ParamTest create p -us {A B}} ::p
 ? {p us add C end} "A B C"
 
@@ -725,7 +734,7 @@ proc parameterFromSlot {class objectparameter} {
     "o" \
     "value is an object"
 ? {p o xxx} \
-    {expected object but got "xxx" for parameter value} \
+    {expected object but got "xxx" for parameter o} \
     "value is not an object"
 
 ParamTest slots {
@@ -740,7 +749,7 @@ ParamTest slots {
     "value is a list of objects (multiple elements)"
 
 ? {p os {o xxx d1}} \
-    {invalid value in "o xxx d1": expected object but got "xxx" for parameter value} \
+    {invalid value in "o xxx d1": expected object but got "xxx" for parameter os} \
     "list with invalid object"
 
 #######################################################
@@ -825,6 +834,29 @@ Object create o
 ? {::xotcl::setter o {d default}} {parameter "d" is not allowed to have default "default"}
 ? {::xotcl::setter o -x} {method name "-x" must not start with a dash}
 
+o destroy
+
+#######################################################
+# test for slot-optimizer
+#######################################################
+Test case slot-optimizer
+
+Class create C -parameter {a b:integer c:integer,multivalued}
+
+C create c1 
+? {c1 a 1} 1
+? {c1 b 1} 1
+? {c1 c 1} 1
+
+# before: 1st case: setter, 2&3: forward
+#slot-optimizer.001:	  1.50 mms, c1 a 1
+#slot-optimizer.002:	  3.30 mms, c1 b 1
+#slot-optimizer.003:	  3.40 mms, c1 c 1
+#
+# after: 1st, 2nd, 3rd case: setter 
+#slot-optimizer.001:	  1.50 mms, c1 a 1
+#slot-optimizer.002:	  1.50 mms, c1 b 1
+#slot-optimizer.003:	  1.60 mms, c1 c 1
 
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.

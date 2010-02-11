@@ -654,6 +654,7 @@ namespace eval ::xotcl {
   
   createBootstrapAttributeSlots ::xotcl::Attribute {
     {value_check once}
+    incremental
     initcmd
     valuecmd
     valuechangedcmd
@@ -779,6 +780,8 @@ namespace eval ::xotcl {
       } else {
         #puts stderr "adding assign [list obj var value:$(mparam)] // for [self] with $(mparam)"
         :method assign [list obj var value:$(mparam),slot=[self]] {::xotcl::setinstvar $obj $var $value}
+        #::xotcl::setter ${:domain} ${:name}:$(mparam),slot=[self]
+        #puts stderr "::xotcl::setter ${:domain} ${:name}:$(mparam),slot=[self]"
       }
     }
     #append __initcmd [:mk_type_checker]
@@ -801,16 +804,43 @@ namespace eval ::xotcl {
   ::xotcl2::Class create ::xotcl::Attribute::Optimizer {
     :method method args  {::xotcl::next; :optimize}
     :method forward args {::xotcl::next; :optimize}
-    :protected method init args    {::xotcl::next; :optimize}
+    :protected method init args {::xotcl::next; :optimize}
     :public method optimize {} {
-      #puts stderr OPTIMIZER
-      if {[set :multivalued]} return
+      #puts stderr OPTIMIZER-[info exists :incremental]
+      set object [expr {${:per-object} ? {object} : {}}]
+      if {${:per-object}} {
+        set perObject -per-object
+        set infokind Object
+      } else {
+        set perObject ""
+        set infokind Class
+      }
+      if {[::xotcl::cmd::${infokind}Info::method ${:domain} name ${:name}] ne ""} {
+        #puts stderr "RESETTING ${:domain} name ${:name}"
+        ::xotcl::forward ${:domain} {*}$perObject ${:name} \
+            ${:manager} \
+            [list %1 [${:manager} defaultmethods]] %self \
+            ${:methodname}
+      }
+      #if {[set :multivalued]} return
+      if {[info exists :incremental] && ${:incremental}} return
       if {[set :defaultmethods] ne {get assign}} return
-      #puts stderr assign=[:info callable -which assign]
-      if {[:info callable -which assign] ne "::xotcl::ObjectParameterSlot alias assign ::xotcl::setinstvar"} return
+      set assignInfo [:info callable -which assign]
+      #puts stderr assign=$assignInfo//[lindex $assignInfo {end 0}]
+      if {$assignInfo ne "::xotcl::ObjectParameterSlot alias assign ::xotcl::setinstvar" &&
+          [lindex $assignInfo {end 0}] ne "::xotcl::setinstvar" } return
       if {[:info callable -which get]    ne "::xotcl::ObjectParameterSlot alias get ::xotcl::setinstvar"} return
       #puts stderr "**** optimizing       [${:domain} info method definition ${:name}]"
-      ::xotcl::setter ${:domain} {*}[expr {${:per-object} ? "-per-object" : ""}] ${:name}
+
+      array set "" [:toParameterSyntax ${:name}]
+      if {$(mparam) ne ""} {
+        set setterParam [lindex $(oparam) 0]
+        #puts stderr "setterParam=$setterParam, op=$(oparam)"
+      } else {
+        set setterParam ${:name}
+      }
+      ::xotcl::setter ${:domain} {*}$perObject $setterParam
+      #puts stderr "::xotcl::setter ${:domain} {*}$perObject $setterParam"
     }
   }
   # register the optimizer per default
@@ -853,12 +883,14 @@ namespace eval ::xotcl {
     }
     return $value
   }
+
   ::xotcl::Slot method type=baseclass {name value} {
     if {![::xotcl::is $value baseclass]} {
       error "expected baseclass but got \"$value\" for parameter $name"
     }
     return $value
   }
+
   ::xotcl::Slot method type=metaclass {name value} {
     if {![::xotcl::is $value metaclass]} {
       error "expected metaclass but got \"$value\" for parameter $name"
