@@ -759,13 +759,11 @@ C create c1
 
 Object create tmpObj
 tmpObj method type=mType {name value arg:optional} {
-  if {[info exists arg]} {
-    puts stderr [arg=$arg]
-  }
-  puts stderr value=$value
   if {$value} {
     error invalid
   }
+  # Note that this converter does NOT return a value; it converts all
+  # values into emtpy strings.
 }
 
 ? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {1 0}} 0 "fail on first value"
