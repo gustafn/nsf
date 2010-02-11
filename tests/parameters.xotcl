@@ -818,13 +818,16 @@ Person method foo {s:sex,slot=::Person::slot::sex} {return $s}
 Test case setters
 
 Object create o
+Class create C
 
-? {::xotcl::setter o a} "::xotcl::classes::o::a"
+? {::xotcl::setter o a} "::o::a"
+? {::xotcl::setter C c} "::xotcl::classes::C::c"
 ? {o a 1} "1"
 
-? {::xotcl::setter o a:integer} "::xotcl::classes::o::a"
-? {::xotcl::setter o ints:integer,multivalued} "::xotcl::classes::o::ints"
-? {::xotcl::setter o o:object} "::xotcl::classes::o::o"
+? {::xotcl::setter o a:integer} "::o::a"
+? {::xotcl::setter o ints:integer,multivalued} "::o::ints"
+? {::xotcl::setter o o:object} "::o::o"
+? {o info method name o} "::o::o"
 
 ? {o a 2} 2
 ? {o a hugo} {expected integer but got "hugo" for parameter a}
@@ -835,7 +838,7 @@ Object create o
 ? {::xotcl::setter o -x} {method name "-x" must not start with a dash}
 
 o destroy
-
+C destroy
 #######################################################
 # test for slot-optimizer
 #######################################################

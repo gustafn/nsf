@@ -12389,7 +12389,7 @@ static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_o
                                   (Tcl_ObjCmdProc*)XOTclSetterMethod, (ClientData)setterClientData, setterCmdDeleteProc, 0);
   }
   if (result == TCL_OK) {
-    result = ListMethodName(interp, object, withPer_object, methodName);
+    result = ListMethodName(interp, object, cl == NULL, methodName);
   }
   return result;
 }
@@ -12478,7 +12478,7 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, int withNocom
   result = ArgumentCheck(interp, value, paramPtr, &flags, &checkedData, &outObjPtr);
 
   if (value != outObjPtr) {
-    fprintf(stderr, "reset result %p %p\n", value, outObjPtr);
+    /*fprintf(stderr, "reset result %p %p\n", value, outObjPtr);*/
     Tcl_ResetResult(interp);
   }
 

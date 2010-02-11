@@ -402,11 +402,10 @@ p2 append salary 9
 #? {catch {p2 append salary b}} 1
 ? {p2 salary} 1009
 
-puts stderr =====1
 Person slots {
   Attribute create sex -type "sex" {
     :method type=sex {name value} {
-      puts stderr "[self] slot specific converter"
+      #puts stderr "[self] slot specific converter"
       switch -glob $value {
         m* {return m}
         f* {return f}
@@ -415,19 +414,12 @@ Person slots {
     }
   }
 }
-puts stderr =====2
 Person p3 -sex male
-puts stderr =====3
 ? {p3 sex} m
-puts stderr =====4
-Person method foo {s:sex,slot=::Person::slot::sex} {puts s=$s; return $s}
-puts stderr =====5
+Person method foo {s:sex,slot=::Person::slot::sex} {return $s}
 ? {p3 foo male} "m"
-puts stderr =====6
 ? {p3 sex male} m
-puts stderr =====5
 
-puts stderr =====6
 
 #######################################################
 # initcmd via slots
