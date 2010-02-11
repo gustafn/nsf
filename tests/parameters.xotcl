@@ -38,6 +38,8 @@ C create c1
 ? {::xotcl::valuecheck lower Abc} 0 "no lower case chars"
 ? {string is lower abc} 1 "tcl command 'string is lower'"
 
+? {::xotcl::valuecheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
+
 #######################################################
 # valuecheck
 #######################################################
@@ -796,6 +798,10 @@ Object create o
 ? {o ints {10 100 1000}} {10 100 1000}
 ? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter ints}
 ? {o o o} o
+? {::xotcl::setter o {d default}} {parameter "d" is not allowed to have default "default"}
+? {::xotcl::setter o -x} {method name "-x" must not start with a dash}
+
+
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
 puts stderr =====END

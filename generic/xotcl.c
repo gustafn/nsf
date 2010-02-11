@@ -6498,7 +6498,7 @@ ParamOptionParse(Tcl_Interp *interp, char *option, int length, int disallowedOpt
 }
 
 static int
-ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptions,
+ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedFlags,
            XOTclParam *paramPtr, int *possibleUnknowns, int *plainParams) {
   int result, npac, length, j, nameLength, isNonposArgument;
   char *argString, *argName;
@@ -6553,7 +6553,7 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
       if (argString[l] == ',') {
 	/* skip space from end */
         for (end = l; end>0 && isspace((int)argString[end-1]); end--);
-        result = ParamOptionParse(interp, argString+start, end-start, disallowedOptions, paramPtr);
+        result = ParamOptionParse(interp, argString+start, end-start, disallowedFlags, paramPtr);
         if (result != TCL_OK) {
           goto param_error;
         }
@@ -6565,7 +6565,7 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
     /* skip space from end */
     for (end = l; end>0 && isspace((int)argString[end-1]); end--);
     /* process last option */
-    result = ParamOptionParse(interp, argString+start, end-start, disallowedOptions, paramPtr);
+    result = ParamOptionParse(interp, argString+start, end-start, disallowedFlags, paramPtr);
     if (result != TCL_OK) {
       goto param_error;
     }
@@ -6583,6 +6583,14 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedOptio
 
   /* if we have two arguments in the list, the second one is a default value */
   if (npac == 2) {
+
+    if (disallowedFlags & XOTCL_ARG_HAS_DEFAULT) {
+      XOTclVarErrMsg(interp, "parameter \"", argString, 
+                     "\" is not allowed to have default \"",
+                     ObjStr(npav[1]), "\"", (char *) NULL);
+      goto param_error;
+    }
+
     /* if we have for some reason already a default value, free it */
     if (paramPtr->defaultValue) {
       DECR_REF_COUNT(paramPtr->defaultValue);
@@ -12334,13 +12342,21 @@ xotclCmd setter XOTclSetterCmd {
 static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *parameter) {
   XOTclClass *cl = (withPer_object || ! XOTclObjectIsClass(object)) ? NULL : (XOTclClass *)object;
   char *methodName = ObjStr(parameter);
-  SetterCmdClientData *setterClientData = NEW(SetterCmdClientData);
+  SetterCmdClientData *setterClientData;
   int j, length, result;
 
+  if (*methodName == '-') {
+    return XOTclVarErrMsg(interp,
+                          "method name \"", methodName, "\" must not start with a dash",
+                          (char *) NULL);
+    
+  }
+
+  setterClientData = NEW(SetterCmdClientData);
   length = strlen(methodName);
 
   for (j=0; j<length; j++) {
-    if (methodName[j] == ':') break;
+    if (methodName[j] == ':' || methodName[j] == ' ') break;
   }
 
   if (j < length) {
@@ -12349,7 +12365,7 @@ static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_o
 
     setterClientData->paramsPtr = ParamsNew(1);
     result = ParamParse(interp, "setter", parameter, 
-                        XOTCL_DISALLOWED_ARG_METHOD_PARAMETER /* disallowed options */,
+                        XOTCL_DISALLOWED_ARG_METHOD_PARAMETER| XOTCL_ARG_HAS_DEFAULT,
                         setterClientData->paramsPtr, &possibleUnknowns, &plainParams);
 
     if (result != TCL_OK) {
