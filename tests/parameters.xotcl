@@ -822,12 +822,25 @@ Class create C
 
 ? {::xotcl::setter o a} "::o::a"
 ? {::xotcl::setter C c} "::xotcl::classes::C::c"
+? {o info method definition a} "::o setter a"
+? {o info method parameter a} "a"
+? {o info method args a} "a"
+? {C info method definition c} "::C setter c"
 ? {o a 1} "1"
 
 ? {::xotcl::setter o a:integer} "::o::a"
 ? {::xotcl::setter o ints:integer,multivalued} "::o::ints"
 ? {::xotcl::setter o o:object} "::o::o"
+
+? {o info method name ints} "::o::ints"
+? {o info method definition ints} "::o setter ints:integer,multivalued"
+? {o info method parameter ints} "ints:integer,multivalued"
+? {o info method args ints} "ints"
+
 ? {o info method name o} "::o::o"
+? {o info method definition o} "::o setter o:object"
+? {o info method parameter o} "o:object"
+? {o info method args o} "o"
 
 ? {o a 2} 2
 ? {o a hugo} {expected integer but got "hugo" for parameter a}
@@ -843,6 +856,7 @@ C destroy
 # test for slot-optimizer
 #######################################################
 Test case slot-optimizer
+Test parameter count 1000
 
 Class create C -parameter {a b:integer c:integer,multivalued}
 

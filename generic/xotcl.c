@@ -10155,7 +10155,22 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, char *methodName, int withVar
       }
     }
 
-    if (((Command *)cmd)->objProc == XOTclForwardMethod) {
+    if (((Command *)cmd)->objProc == XOTclSetterMethod) {
+      SetterCmdClientData *cd = (SetterCmdClientData *)Tcl_Command_objClientData(cmd);
+      if (cd->paramsPtr) {
+        Tcl_Obj *list;
+        XOTclParamDefs paramDefs;
+        paramDefs.paramsPtr = cd->paramsPtr;
+        paramDefs.nrParams = 1;
+        paramDefs.slotObj = NULL;
+        list = withVarnames ? ParamDefsList(interp, &paramDefs) : ParamDefsFormat(interp, &paramDefs);
+        Tcl_SetObjResult(interp, list);
+        return TCL_OK;
+      } else {
+        Tcl_SetObjResult(interp, Tcl_NewStringObj(methodName, -1));
+        return TCL_OK;
+      }
+    } else if (((Command *)cmd)->objProc == XOTclForwardMethod) {
       return XOTclVarErrMsg(interp, "info params: could not obtain parameter definition for forwarder '",
                             methodName, "'", (char *) NULL);
     } else {
@@ -10358,13 +10373,18 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, char *methodName, Tcl_Comman
       case InfomethodsubcmdTypeIdx: 
         Tcl_SetObjResult(interp, XOTclGlobalObjects[XOTE_SETTER]);
         break;
-      case InfomethodsubcmdDefinitionIdx:
+      case InfomethodsubcmdDefinitionIdx: {
+        SetterCmdClientData *cd = (SetterCmdClientData *)Tcl_Command_objClientData(cmd);
+
         resultObj = Tcl_NewListObj(0, NULL);
         /* todo: don't hard-code registering command name "setter" / XOTE_SETTER */
-        AppendMethodRegistration(interp, resultObj, XOTclGlobalStrings[XOTE_SETTER],
-                                 object, methodName, cmd, 0, outputPerObject);
+
+        AppendMethodRegistration(interp, resultObj, XOTclGlobalStrings[XOTE_SETTER], object, 
+                                 cd->paramsPtr ? ObjStr(cd->paramsPtr->paramObj) : methodName, 
+                                 cmd, 0, outputPerObject);
         Tcl_SetObjResult(interp, resultObj);        
         break;
+      }
       }
 
     } else {
