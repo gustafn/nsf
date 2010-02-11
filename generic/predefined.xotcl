@@ -849,7 +849,6 @@ namespace eval ::xotcl {
 
   ::xotcl::Slot method type=hasmixin {name value arg} {
     if {![::xotcl::is $value hasmixin $arg]} {
-      error "Value '$value' of $name has not mixin $arg"
       error "expected object with mixin $arg but got \"$value\" for parameter $name"
     }
     return $value

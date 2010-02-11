@@ -9650,7 +9650,7 @@ ArgumentError(Tcl_Interp *interp, char *errorMsg, XOTclParam CONST *paramPtr,
 }
 
 static int 
-ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr,
+ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, int *flags,
                         ClientData *clientData, Tcl_Obj **outObjPtr) {
   int objc, i, result;
   Tcl_Obj **ov;
@@ -9678,6 +9678,7 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST
                      ObjStr(resultObj), (char *) NULL);
       DECR_REF_COUNT(resultObj);
       DECR_REF_COUNT(*outObjPtr);
+      *flags &= ~XOTCL_PC_MUST_DECR;
       break;
     }
   }
@@ -9717,7 +9718,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr
           /*fprintf(stderr, "switch to output list construction for value %s\n",
             ObjStr(elementObjPtr));*/
           *flags |= XOTCL_PC_MUST_DECR;
-          result = ArgumentCheckHelper(interp, objPtr, pPtr, clientData, outObjPtr);
+          result = ArgumentCheckHelper(interp, objPtr, pPtr, flags, clientData, outObjPtr);
           break;
         }
       } else {

@@ -440,7 +440,6 @@ static char cmd[] =
 "proc createBootstrapAttributeSlots {} {}\n"
 "::xotcl::Slot method type=hasmixin {name value arg} {\n"
 "if {![::xotcl::is $value hasmixin $arg]} {\n"
-"error \"Value '$value' of $name has not mixin $arg\"\n"
 "error \"expected object with mixin $arg but got \\\"$value\\\" for parameter $name\"}\n"
 "return $value}\n"
 "::xotcl::Slot method type=baseclass {name value} {\n"

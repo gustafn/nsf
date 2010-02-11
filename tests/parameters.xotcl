@@ -558,7 +558,7 @@ D method foo-type     {x:object,type=::C} {return $x}
 
 ? {d1 foo-hasmixin c1} "c1"
 ? {d1 foo-hasmixin o} \
-    "Value 'o' of x has not mixin ::M" \
+    {expected object with mixin ::M but got "o" for parameter x} \
     "does not have mixin M"
 
 ? {d1 foo-object o} "o"
@@ -693,7 +693,7 @@ proc parameterFromSlot {class objectparameter} {
 
 ? {ParamTest create p -mix c1} ::p
 ? {ParamTest create p -mix o} \
-    "Value 'o' of mix has not mixin M" \
+    {expected object with mixin M but got "o" for parameter mix} \
     "does not have mixin M"
 
 ? {ParamTest create p -u A} ::p
@@ -755,6 +755,22 @@ Class create C {
 }
 C create c1
 ? {c1 foo {male female mann frau}} "m f m f"
+
+
+Object create tmpObj
+tmpObj method type=mType {name value arg:optional} {
+  if {[info exists arg]} {
+    puts stderr [arg=$arg]
+  }
+  puts stderr value=$value
+  if {$value} {
+    error invalid
+  }
+}
+
+? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {1 0}} 0 "fail on first value"
+? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
+? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {0 1}} 0 "fail o last value"
 
 #######################################################
 # slot specific converter
