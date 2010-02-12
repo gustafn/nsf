@@ -20,7 +20,7 @@ C create c1
 ? {::xotcl::valuecheck object o1} 1
 ? {::xotcl::is o1 object} 1
 ? {::xotcl::valuecheck class o1} {expected class but got "o1" for parameter value}
-? {::xotcl::valuecheck class -nocomplain o1} 0
+? {::xotcl::valuecheck -nocomplain class o1} 0
 ? {::xotcl::valuecheck class Test} 1
 ? {::xotcl::valuecheck object,multivalued [list o1 Test]} 1
 ? {::xotcl::valuecheck integer 1} 1

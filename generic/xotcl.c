@@ -12477,7 +12477,7 @@ xotclCmd valuecheck XOTclValuecheckCmd {
   {-argName "value" -required 0 -type tclobj}
   } 
 */
-static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, int withNocomplain, Tcl_Obj *value) {
+static int XOTclValuecheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *objPtr, Tcl_Obj *value) {
   ClientData checkedData;
   XOTclParam *paramPtr;
   Tcl_Obj *outObjPtr;
