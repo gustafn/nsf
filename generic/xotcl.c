@@ -6243,13 +6243,14 @@ static int convertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CON
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result, bool;
   result = Tcl_GetBooleanFromObj(interp, objPtr, &bool);
+
   if (result == TCL_OK) {
     *clientData = (ClientData)INT2PTR(bool);
-    *outObjPtr = objPtr;
   } else {
     XOTclVarErrMsg(interp, "expected boolean value but got \"", ObjStr(objPtr), 
                    "\" for parameter ", pPtr->name, NULL);
   }
+  *outObjPtr = objPtr;
   return result;
 }
 
@@ -12497,10 +12498,11 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, Tcl_Obj *objPtr, int withNocom
 
   result = ArgumentCheck(interp, value, paramPtr, &flags, &checkedData, &outObjPtr);
 
-  if (value != outObjPtr) {
-    /*fprintf(stderr, "reset result %p %p\n", value, outObjPtr);*/
+  if (paramPtr->converter == convertViaCmd && 
+      (withNocomplain || result == TCL_OK)) {
+    /* fprintf(stderr, "reset result %p %p\n", value, outObjPtr);*/
     Tcl_ResetResult(interp);
-  }
+  } 
 
   if (flags & XOTCL_PC_MUST_DECR) {
     DECR_REF_COUNT(outObjPtr);
