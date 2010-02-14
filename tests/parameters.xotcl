@@ -790,6 +790,29 @@ tmpObj method type=mType {name value arg:optional} {
     "fail o last value"
 
 #######################################################
+# application specific multivalued converter
+#######################################################
+Test case shadowing-app-converter
+
+Object create mySlot {
+  :method type=integer {name value arg:optional} {
+    return [expr {$value + 1}]
+  }
+}
+Object create o {
+  :method foo {x:integer,slot=::mySlot} {
+    return $x
+  }
+}
+
+? {::xotcl::valuecheck integer,slot=::mySlot 1} 1 
+? {o foo 3} 4
+
+o destroy
+mySlot destroy
+
+
+#######################################################
 # slot specific converter
 #######################################################
 Test case slot-specfic-converter

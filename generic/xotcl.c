@@ -6334,6 +6334,7 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
   ov[2] = pPtr->nameObj;
   ov[3] = objPtr;
 
+  /*fprintf(stderr, "call converter %s on %s \n", ObjStr(pPtr->converterName), ObjStr(ov[0]));*/
   oc = 4;
   if (pPtr->converterArg) {
     ov[4] = pPtr->converterArg;
@@ -6341,14 +6342,19 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
   }
 
   result = Tcl_EvalObjv(interp, oc, ov, 0);
-  
+
   if (result == TCL_OK) {
     /*fprintf(stderr, "convertViaCmd converts %s to '%s'\n", 
       ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)));*/
     *outObjPtr = Tcl_GetObjResult(interp);
     *clientData = (ClientData) *outObjPtr;
+
+    /* incr refCount is necessary e.g. for 
+       return [expr {$value + 1}]
+    */
+    INCR_REF_COUNT(*outObjPtr);   
   } else {
-    *outObjPtr = objPtr; /* xxx */
+    *outObjPtr = objPtr;
   }
   return result;
 }
@@ -6615,7 +6621,11 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedFlags
   if (paramPtr->converter == NULL) {
     /* convertToTclobj() is the default converter */
     paramPtr->converter = convertToTclobj;
-  } else if (paramPtr->converter == convertViaCmd) {
+  } /*else if (paramPtr->converter == convertViaCmd) {*/
+
+  if ((paramPtr->slotObj || paramPtr->converter == convertViaCmd) && paramPtr->type) {
+    Tcl_Obj *converterNameObj;
+    char *converterNameString;
     XOTclObject *paramObj;
     XOTclClass *pcl;
     Tcl_Command cmd;
@@ -6626,13 +6636,37 @@ ParamParse(Tcl_Interp *interp, char *procName, Tcl_Obj *arg, int disallowedFlags
     if (result != TCL_OK)
       return result;
     
-    cmd = ObjectFindMethod(interp, paramObj, ObjStr(paramPtr->converterName), &pcl);
-    if (cmd == NULL) {
-      fprintf(stderr, "**** could not find checker method %s defined on %s\n",
-	      ObjStr(paramPtr->converterName), objectName(paramObj));
-      paramPtr->flags |= XOTCL_ARG_CURRENTLY_UNKNOWN;
-      /* TODO: for the time being, we do not return an error here */
+    if (paramPtr->converterName == NULL) {
+      converterNameObj = ParamCheckObj(interp, paramPtr->type, strlen(paramPtr->type));
+      INCR_REF_COUNT(converterNameObj);
+    } else {
+      converterNameObj = paramPtr->converterName;
     }
+    converterNameString = ObjStr(converterNameObj);
+
+    cmd = ObjectFindMethod(interp, paramObj, converterNameString, &pcl);
+    if (cmd == NULL) {
+      if (paramPtr->converter == convertViaCmd) {
+        fprintf(stderr, "**** could not find checker method %s defined on %s\n",
+                converterNameString, objectName(paramObj));
+        paramPtr->flags |= XOTCL_ARG_CURRENTLY_UNKNOWN;
+        /* TODO: for the time being, we do not return an error here */
+      }
+    } else if (paramPtr->converter != convertViaCmd &&
+               strcmp(ObjStr(paramPtr->slotObj),XOTclGlobalStrings[XOTE_METHOD_PARAMETER_SLOT_OBJ]) != 0) {
+      /* todo remove me */
+      fprintf(stderr, "**** checker method %s defined on %s shadows built-in converter\n",
+              converterNameString, objectName(paramObj));
+      if (paramPtr->converterName == NULL) {
+        paramPtr->converterName = converterNameObj;
+        paramPtr->converter = NULL;
+        result = ParamOptionSetConverter(interp, paramPtr, converterNameString, convertViaCmd);
+      }
+    }
+    if (converterNameObj != paramPtr->converterName) {
+      DECR_REF_COUNT(converterNameObj);
+    }
+    
   }
 
   /*
