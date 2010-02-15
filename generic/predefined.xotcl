@@ -298,6 +298,50 @@ namespace eval ::xotcl {
   #
   ::xotcl2::Class create ::xotcl::MetaSlot
   ::xotcl::relation ::xotcl::MetaSlot superclass ::xotcl2::Class
+
+  ::xotcl::MetaSlot public method slotName {name baseObject} {
+    # Create slot parent object if needed
+    set slotParent ${baseObject}::slot
+    if {![::xotcl::is ${slotParent} object]} {
+      ::xotcl2::Object create ${slotParent}
+    }
+    return ${slotParent}::$name
+  }
+
+  ::xotcl::MetaSlot method createFromParameterSyntax {target {-initblock ""} value default:optional} {
+    set opts [list]
+    set colonPos [string first : $value]
+    if {$colonPos == -1} {
+      set name $value
+    } else {
+      set properties [string range $value [expr {$colonPos+1}] end]
+      set name [string range $value 0 [expr {$colonPos -1}]]
+      foreach property [split $properties ,] {
+        if {$property eq "required"} {
+          lappend opts -required 1
+        } elseif {$property eq "multivalued"} {
+          lappend opts -multivalued 1
+        } elseif {[string match type=* $property]} {
+          set type [string range $property 5 end]
+          if {![string match ::* $type]} {set type ::$type}
+        } elseif {[string match arg=* $property]} {
+          set argument [string range $property 4 end]
+          lappend opts -arg $argument
+        } else {
+          set type $property
+        }
+      }
+    }
+    if {[info exists type]} {
+      lappend opts -type $type
+    }
+
+    if {[info exists default]} {
+      lappend opts -default $default
+    }
+
+    :create [:slotName $name $target] {*}$opts $initblock
+  }
   
   # ::xotcl::MetaSlot public method new args {
   #   set slotobject [::xotcl::self callingobject]::slot
@@ -321,14 +365,12 @@ namespace eval ::xotcl {
   # done via slot objects, which are defined later.
   
   proc createBootstrapAttributeSlots {class definitions} {
-    if {![::xotcl::is ${class}::slot object]} {
-      ::xotcl2::Object create ${class}::slot
-    }
     foreach att $definitions {
       if {[llength $att]>1} {foreach {att default} $att break}
-      ::xotcl::ObjectParameterSlot create ${class}::slot::$att
+      set slotObj [::xotcl::ObjectParameterSlot slotName $att $class] 
+      ::xotcl::ObjectParameterSlot create $slotObj
       if {[info exists default]} {
-        ::xotcl::setinstvar ${class}::slot::$att default $default
+        ::xotcl::setinstvar $slotObj default $default
         unset default
       }
       ::xotcl::setter $class $att
@@ -434,7 +476,6 @@ namespace eval ::xotcl {
       }
       ${:domain} __invalidateobjectparameter
       set cl [expr {${:per-object} ? "Object" : "Class"}]
-      # since the domain object might be xotcl1 or xotcl2, use dispatch
       ::xotcl::forward ${:domain} ${:name} \
           ${:manager} \
           [list %1 [${:manager} defaultmethods]] %self \
@@ -661,41 +702,6 @@ namespace eval ::xotcl {
     arg
   }
 
-  ::xotcl::Attribute object method createFromParameterSyntax {target value default:optional} {
-    set opts [list]
-    set colonPos [string first : $value]
-    if {$colonPos == -1} {
-      set name $value
-    } else {
-      set properties [string range $value [expr {$colonPos+1}] end]
-      set name [string range $value 0 [expr {$colonPos -1}]]
-      foreach property [split $properties ,] {
-        if {$property eq "required"} {
-          lappend opts -required 1
-        } elseif {$property eq "multivalued"} {
-          lappend opts -multivalued 1
-        } elseif {[string match type=* $property]} {
-          set type [string range $property 5 end]
-          if {![string match ::* $type]} {set type ::$type}
-        } elseif {[string match arg=* $property]} {
-          set argument [string range $property 4 end]
-          lappend opts -arg $argument
-        } else {
-          set type $property
-        }
-      }
-    }
-    if {[info exists type]} {
-      lappend opts -type $type
-    }
-
-    if {[info exists default]} {
-      lappend opts -default $default
-    }
-
-    ::xotcl::Attribute create ${target}::slot::$name {*}$opts
-  }
-
   ::xotcl::Attribute method __default_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
     $obj trace remove variable $var $op [list [::xotcl::self] [::xotcl::self proc] $obj $cmd]
@@ -816,7 +822,7 @@ namespace eval ::xotcl {
         set infokind Class
       }
       if {[::xotcl::cmd::${infokind}Info::method ${:domain} name ${:name}] ne ""} {
-        #puts stderr "RESETTING ${:domain} name ${:name}"
+        #puts stderr "RESETTING ${:domain} slot ${:name}"
         ::xotcl::forward ${:domain} {*}$perObject ${:name} \
             ${:manager} \
             [list %1 [${:manager} defaultmethods]] %self \
@@ -830,7 +836,6 @@ namespace eval ::xotcl {
       if {$assignInfo ne "::xotcl::ObjectParameterSlot alias assign ::xotcl::setinstvar" &&
           [lindex $assignInfo {end 0}] ne "::xotcl::setinstvar" } return
       if {[:info callable -which get]    ne "::xotcl::ObjectParameterSlot alias get ::xotcl::setinstvar"} return
-      #puts stderr "**** optimizing       [${:domain} info method definition ${:name}]"
 
       array set "" [:toParameterSyntax ${:name}]
       if {$(mparam) ne ""} {
@@ -852,12 +857,7 @@ namespace eval ::xotcl {
   # compatibility and convenience
   ############################################
   ::xotcl2::Class public method parameter arglist {
-
-    # create subobject "slot" if necessary
-    if {![::xotcl::is [::xotcl::self]::slot object]} {
-      ::xotcl2::Object create [::xotcl::self]::slot
-    }
-    
+  
     foreach arg $arglist {
       ::xotcl::Attribute createFromParameterSyntax [self] {*}$arg
     }
@@ -1061,7 +1061,7 @@ namespace eval ::xotcl {
       if {[::xotcl::is $origin class]} {
         set dest [:getDest $origin]
         foreach oldslot [$origin info slots] {
-          set newslot ${dest}::slot::[namespace tail $oldslot]
+          set newslot [::xotcl::Slot slotName [namespace tail $oldslot] $dest] 
           if {[$oldslot domain] eq $origin}   {$newslot domain $cl}
           if {[$oldslot manager] eq $oldslot} {$newslot manager $newslot}
         }

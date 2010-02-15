@@ -1,10 +1,5 @@
 package require XOTcl
 package require xotcl::test
-
-Test parameter count 10
-
-catch {::xotcl::configure cacheinterface true}
-
 ::xotcl::use xotcl2
 
 #######################################################
