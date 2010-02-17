@@ -54,7 +54,7 @@ namespace eval ::xotcl::test {
       set :case $name
       if {[info exists arg]} {
         foreach o [Object info instances -closure] {set pre_exist($o) 1}
-        namespace eval :: [list $o eval $arg]
+        namespace eval :: [list [self] eval $arg]
         foreach o [Object info instances -closure] {
           if {[info exists pre_exist($o)]} continue
           #puts "must destroy $o"
@@ -141,6 +141,7 @@ namespace eval ::xotcl::test {
 
 proc ? {cmd expected {msg ""}} {
   set namespace [uplevel {::namespace current}]
+  if {[string match ::xotcl* $namespace]} {set namespace ::}
   #puts stderr "eval in namespace $namespace"
   if {$msg ne ""} {
     set t [Test new -cmd $cmd -msg $msg -namespace $namespace]

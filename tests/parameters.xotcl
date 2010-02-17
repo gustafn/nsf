@@ -36,7 +36,7 @@ Test case valuecheck {
   
   ? {::xotcl::valuecheck lower c} 1 "lower case char"
   ? {::xotcl::valuecheck lower abc} 1 "lower case chars"
-  ? {::xotcl::valuecheck lower Abc} {expected lower but got "Abc" for parameter value} "no lower case chars"
+  ? {::xotcl::valuecheck lower Abc} {expected lower but got "Abc" for parameter value} 
   ? {string is lower abc} 1 "tcl command 'string is lower'"
   
   ? {::xotcl::valuecheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
@@ -205,32 +205,24 @@ Test case objparam-mixins {
 #######################################################
 # test passed arguments
 #######################################################
-Test case HU {
-  puts stderr HU1:current=[::namespace current]
-}
 
-namespace eval :: {
-  puts stderr HU2:current=[::namespace current]
-}
-Test eval {
-  puts stderr HU3:current=[::namespace current]
-}
-Test case passed-arguments 
+Test case dummy {
+  set o [Object create o]
+  puts o=$o-current=[::namespace current]
 
-namespace eval :: {
+  ? {::xotcl::is ::o object} 1
+}
+? {::xotcl::is ::o object} 0 
 
-  puts stderr current=[::namespace current]
+Test case passed-arguments {
 
   Class create C -parameter {a {b:boolean} {c 1}}
-  #puts stderr current=[::namespace current]
-
   Class create D -superclass C -parameter {d:required}
-
 
   ? {catch {D create d1 -d 123}} 0 "create d1 with required argument given"
   ? {catch {D create d1}} 1 "create d1 without required argument given"
   #puts stderr current=[namespace current]
-
+  
   ? {D create d1} "::d1 configure: required argument 'd' is missing" "check error msg"
   
   ? {D create d2 -d x -b a} \
@@ -290,642 +282,667 @@ namespace eval :: {
 #######################################################
 # non required positional arguments
 #######################################################
-Test case non-reg-args
+Test case non-reg-args {
 
-D method foo {a b:optional c:optional} {
-  return "[info exists a]-[info exists b]-[info exists c]"
+  Class create D 
+  D create d1
+  
+  D method foo {a b:optional c:optional} {
+    return "[info exists a]-[info exists b]-[info exists c]"
+  }
+  ? {d1 foo 1 2} "1-1-0" "omit optional argument"
+  ? {d1 foo 1} "1-0-0" "omit optional arguments"
+  
+  # non required positional arguments and args
+  D method foo {a b:optional c:optional args} {
+    return "[info exists a]-[info exists b]-[info exists c]-[info exists args]"
+  }
+  ? {d1 foo 1 2} "1-1-0-1" "omit optional argument"
+  ? {d1 foo 1} "1-0-0-1" "omit optional arguments"
 }
-? {d1 foo 1 2} "1-1-0" "omit optional argument"
-? {d1 foo 1} "1-0-0" "omit optional arguments"
-
-# non required positional arguments and args
-D method foo {a b:optional c:optional args} {
-  return "[info exists a]-[info exists b]-[info exists c]-[info exists args]"
-}
-? {d1 foo 1 2} "1-1-0-1" "omit optional argument"
-? {d1 foo 1} "1-0-0-1" "omit optional arguments"
 
 #######################################################
 # multivalued arguments
 #######################################################
-Test case multivalued
-Object create o
+Test case multivalued {
 
-D method foo {m:integer,multivalued} {
-  return $m
-}
-? {d1 foo ""} "" "emtpy list"
-? {d1 foo 1} "1" "single value"
-? {d1 foo {1 2}} "1 2" "multiple values"
-? {d1 foo {1 a 2}} \
-    {invalid value in "1 a 2": expected integer but got "a" for parameter m} \
-    "multiple values with wrong value"
+  Class create D 
+  D create d1
+  Object create o
 
-D method foo {m:object,multivalued} {
-  return $m
+  D method foo {m:integer,multivalued} {
+    return $m
+  }
+  ? {d1 foo ""} "" "emtpy list"
+  ? {d1 foo 1} "1" "single value"
+  ? {d1 foo {1 2}} "1 2" "multiple values"
+  ? {d1 foo {1 a 2}} \
+      {invalid value in "1 a 2": expected integer but got "a" for parameter m} \
+      "multiple values with wrong value"
+  
+  D method foo {m:object,multivalued} {
+    return $m
+  }
+  ? {d1 foo ""} "" "emtpy list"
+  ? {d1 foo o} "o" "single value"
+  ? {d1 foo {o d1 x}} \
+      {invalid value in "o d1 x": expected object but got "x" for parameter m} \
+      "multiple values"
+  
+  Class create Foo -parameter {
+    {ints:integer,multivalued}
+  }
+  ? {Foo create foo -ints {1 2}} "::foo"
+  ? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a" for parameter -ints}
+  
+  # make slot incremental
+  Foo slot ints eval {
+    set :incremental 1
+    :optimize
+  }
+  Foo create foo -ints {1 2}
+  ? {foo ints add 0} "0 1 2"
+  ? {foo ints add a} {expected integer but got "a" for parameter value}
 }
-? {d1 foo ""} "" "emtpy list"
-? {d1 foo o} "o" "single value"
-? {d1 foo {o d1 x}} \
-    {invalid value in "o d1 x": expected object but got "x" for parameter m} \
-    "multiple values"
-
-Class create Foo -parameter {
-  {ints:integer,multivalued}
-}
-? {Foo create foo -ints {1 2}} "::foo"
-? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a" for parameter -ints}
-
-# make slot incremental
-Foo slot ints eval {
-  set :incremental 1
-  :optimize
-}
-Foo create foo -ints {1 2}
-? {foo ints add 0} "0 1 2"
-? {foo ints add a} {expected integer but got "a" for parameter value}
 
 #######################################################
 # subst default tests
 #######################################################
-Test case subst-default
+Test case subst-default {
+  
+  Class create D {
+    :attribute {c 1}
+    :attribute {d 2}
 
-D method bar {
-  {-s:substdefault "[self]"} 
-  {-literal "[self]"} 
-  {-c:substdefault "[my c]"} 
-  {-d:integer,substdefault "$d"}
-} {
-  return $s-$literal-$c-$d
-}
+    :create d1
 
-? {d1 bar -c 1} {::d1-[self]-1-1} "substdefault in method parameter"
-
-Class create Bar -superclass D -parameter {
-  {s "[self]"} 
-  {literal "\\[self\\]"} 
-  {c "[my info class]"} 
-  {d "literal $d"}
-  {switch:switch}
-}
-Bar create bar1
-#puts stderr [bar1 objectparameter]
-
-? {subst {[bar1 s]-[bar1 literal]-[bar1 c]-[bar1 d]-[bar1 switch]}} \
-    {::bar1-[self]-::Bar-literal $d-0} \
-    "substdefault and switch in object parameter 1"
-
-Bar create bar2 -switch
-? {subst {[bar2 s]-[bar2 literal]-[bar2 c]-[bar2 d]-[bar2 switch]}} \
-    {::bar2-[self]-::Bar-literal $d-1} \
-    "substdefault and switch in object parameter 2"
-
-# Observations:
-#  1) syntax for "-parameter" and method parameter is quite different.
-#     it would be nice to be able to specify the objparameters in
-#     the same syntax as the method parameters. 
-#
-# 1a) Especially specifying "-" in front of a -parameter or not might
-#     be confusing.
-#
-# 1b) Positional args for obj parameter and arguments for init
-#     might be confusing as well. Should we forget about 
-#     passing arguments to init?
-#
-#  2) substdefault for '$' in -parameter defaults does not make much sense.
-#     deactivated for now; otherwise we would need "\\"
-
-D method bar {
-  {-s:substdefault "[self]"} 
-  {-literal "[self]"} 
-  {-c:substdefault "[my c]"} 
-  {-d:integer,substdefault "$d"}
-  {-switch:switch}
-  {-optflag}
-  x
-  y:integer
-  {z 1}
-} {
-  return $s-$literal-$c-$d
-}
-
-? {D info method args bar} {s literal c d switch optflag x y z} "all args" 
-? {D info method parameter bar} \
-    {{-s:substdefault "[self]"} {-literal "[self]"} {-c:substdefault "[my c]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
-    "query method parameter" 
-
-D method foo {a b {-c 1} {-d} x {-end 100}} {
-  set result [list]
-  foreach v [[self class] info method args [self proc]] {
-    lappend result $v [info exists $v]
+    :method bar {
+      {-s:substdefault "[self]"} 
+      {-literal "[self]"} 
+      {-c:substdefault "[my c]"} 
+      {-d:integer,substdefault "$d"}
+    } {
+      return $s-$literal-$c-$d
+    }
   }
-  return $result
-}
-? {d1 foo 1 2 3} \
-    "a 1 b 1 c 1 d 0 x 1 end 1" \
-    "parse multiple groups of nonpos args"
-
-D method foo {a b c {end 100}} {
-  set result [list]
-  foreach v [[self class] info method args [self proc]] {
-    lappend result $v [info exists $v]
+  
+  ? {d1 bar -c 1} {::d1-[self]-1-2} "substdefault in method parameter"
+  
+  Class create Bar -superclass D -parameter {
+    {s "[self]"} 
+    {literal "\\[self\\]"} 
+    {c "[my info class]"} 
+    {d "literal $d"}
+    {switch:switch}
   }
-  return $result
+  Bar create bar1
+  #puts stderr [bar1 objectparameter]
+  
+  ? {subst {[bar1 s]-[bar1 literal]-[bar1 c]-[bar1 d]-[bar1 switch]}} \
+      {::bar1-[self]-::Bar-literal $d-0} \
+      "substdefault and switch in object parameter 1"
+  
+  Bar create bar2 -switch
+  ? {subst {[bar2 s]-[bar2 literal]-[bar2 c]-[bar2 d]-[bar2 switch]}} \
+      {::bar2-[self]-::Bar-literal $d-1} \
+      "substdefault and switch in object parameter 2"
+  
+  # Observations:
+  #  1) syntax for "-parameter" and method parameter is quite different.
+  #     it would be nice to be able to specify the objparameters in
+  #     the same syntax as the method parameters. 
+  #
+  # 1a) Especially specifying "-" in front of a -parameter or not might
+  #     be confusing.
+  #
+  # 1b) Positional args for obj parameter and arguments for init
+  #     might be confusing as well. Should we forget about 
+  #     passing arguments to init?
+  #
+  #  2) substdefault for '$' in -parameter defaults does not make much sense.
+  #     deactivated for now; otherwise we would need "\\"
+  
+  D method bar {
+		{-s:substdefault "[self]"} 
+		{-literal "[self]"} 
+		{-c:substdefault "[my c]"} 
+		{-d:integer,substdefault "$d"}
+		{-switch:switch}
+		{-optflag}
+		x
+		y:integer
+		{z 1}
+	      } {
+    return $s-$literal-$c-$d
+  }
+  
+  ? {D info method args bar} {s literal c d switch optflag x y z} "all args" 
+  ? {D info method parameter bar} \
+      {{-s:substdefault "[self]"} {-literal "[self]"} {-c:substdefault "[my c]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
+      "query method parameter" 
+  
+  D method foo {a b {-c 1} {-d} x {-end 100}} {
+    set result [list]
+    foreach v [[self class] info method args [self proc]] {
+      lappend result $v [info exists $v]
+    }
+    return $result
+  }
+  ? {d1 foo 1 2 3} \
+      "a 1 b 1 c 1 d 0 x 1 end 1" \
+      "parse multiple groups of nonpos args"
+  
+  D method foo {a b c {end 100}} {
+    set result [list]
+    foreach v [[self class] info method args [self proc]] {
+      lappend result $v [info exists $v]
+    }
+    return $result
+  }
+  ? {d1 foo 1 2 3} \
+      "a 1 b 1 c 1 end 1" \
+      "query arguments with default, no paramdefs needed"
+
+  #######################################################
+  # Query method parameter
+  #######################################################
+
+  ? {D info method parameter foo} \
+      "a b c {end 100}" \
+      "query instparams with default, no paramdefs needed"
+
+  ? {Class info method parameter method} \
+      "name arguments body -precondition -postcondition" \
+      "query instparams for scripted method 'method'"
+  
+  ? {catch {Object info method parameter forward}} \
+      "1" \
+      "query parameter for C-defined method 'forward'"
+  
+  ? {Object info method parameter autoname} \
+      "-instance -reset name" \
+      "query parameter for C-defined method 'autoname'"
+  
+  # TODO: how to query the params/instparams of info subcommands?
+  #? {::xotcl::objectInfo info params params} \
+  #    "xxx" \
+  #    "query instparams for info method 'params' method"
 }
-? {d1 foo 1 2 3} \
-    "a 1 b 1 c 1 end 1" \
-    "query arguments with default, no paramdefs needed"
-
-#######################################################
-# Query method parameter
-#######################################################
-Test case query-method-parameter
-
-? {D info method parameter foo} \
-    "a b c {end 100}" \
-    "query instparams with default, no paramdefs needed"
-
-? {Class info method parameter method} \
-    "name arguments body -precondition -postcondition" \
-    "query instparams for scripted method 'method'"
-
-? {catch {Object info method parameter forward}} \
-    "1" \
-    "query parameter for C-defined method 'forward'"
-
-? {Object info method parameter autoname} \
-    "-instance -reset name" \
-    "query parameter for C-defined method 'autoname'"
-
-# TODO: how to query the params/instparams of info subcommands?
-#? {::xotcl::objectInfo info params params} \
-#    "xxx" \
-#    "query instparams for info method 'params' method"
-
 
 #######################################################
 # user defined parameter types
 #######################################################
-Test case user-types
+Test case user-types {
 
-# create a userdefined type
-::xotcl::methodParameterSlot method type=mytype {name value args} {
-  if {$value < 1 || $value > 3} {
-    error "Value '$value' of parameter $name is not between 1 and 3"
+  Class create D -parameter d
+  D create d1
+
+  # create a userdefined type
+  ::xotcl::methodParameterSlot method type=mytype {name value args} {
+    if {$value < 1 || $value > 3} {
+      error "Value '$value' of parameter $name is not between 1 and 3"
+    }
   }
-}
 
-D method foo {a:mytype} {
-  puts stderr a=$a
-}
-d1 foo 1
 
-? {d1 foo 10} \
-    "Value '10' of parameter a is not between 1 and 3" \
-    "value not between 1 and 3"
-
-D method foo {a:unknowntype} {
-  puts stderr a=$a
-}
-
-? {d1 foo 10} \
-    "::xotcl::methodParameterSlot: unable to dispatch method 'type=unknowntype'" \
-    "missing type checker"
-
-# create a userdefined type with a simple argument
-::xotcl::methodParameterSlot method type=in {name value arg} {
-  if {$value ni [split $arg |]} {
-    error "Value '$value' of parameter $name not in permissible values $arg"
+  D method foo {a:mytype} {
+    puts stderr a=$a
   }
-  return $value
-}
+  d1 foo 1
 
-D method foo {a:in,arg=a|b|c} {
-  return a=$a
-}
-
-? {d1 foo a} "a=a"
-? {d1 foo 10} \
-    "Value '10' of parameter a not in permissible values a|b|c" \
-    "invalid value"
-
-D method foo {a:in,arg=a|b|c b:in,arg=good|bad {-c:in,arg=a|b a}} {
-  return a=$a,b=$b,c=$c
-}
-
-? {d1 foo a good -c b} "a=a,b=good,c=b"
-? {d1 foo a good} "a=a,b=good,c=a"
-? {d1 foo b "very good"} \
-    "Value 'very good' of parameter b not in permissible values good|bad" \
-    "invalid value (not included)"
-
-::xotcl::methodParameterSlot method type=range {name value arg} {
-  foreach {min max} [split $arg -] break
-  if {$value < $min || $value > $max} {
-    error "Value '$value' of parameter $name not between $min and $max"
+  ? {d1 foo 10} \
+      "Value '10' of parameter a is not between 1 and 3" \
+      "value not between 1 and 3"
+  
+  D method foo {a:unknowntype} {
+    puts stderr a=$a
   }
-  return $value
+  
+  ? {d1 foo 10} \
+      "::xotcl::methodParameterSlot: unable to dispatch method 'type=unknowntype'" \
+      "missing type checker"
+  
+  # create a userdefined type with a simple argument
+  ::xotcl::methodParameterSlot method type=in {name value arg} {
+    if {$value ni [split $arg |]} {
+      error "Value '$value' of parameter $name not in permissible values $arg"
+    }
+    return $value
+  }
+  
+  D method foo {a:in,arg=a|b|c} {
+    return a=$a
+  }
+  
+  ? {d1 foo a} "a=a"
+  ? {d1 foo 10} \
+      "Value '10' of parameter a not in permissible values a|b|c" \
+      "invalid value"
+  
+  D method foo {a:in,arg=a|b|c b:in,arg=good|bad {-c:in,arg=a|b a}} {
+    return a=$a,b=$b,c=$c
+  }
+  
+  ? {d1 foo a good -c b} "a=a,b=good,c=b"
+  ? {d1 foo a good} "a=a,b=good,c=a"
+  ? {d1 foo b "very good"} \
+      "Value 'very good' of parameter b not in permissible values good|bad" \
+      "invalid value (not included)"
+  
+  ::xotcl::methodParameterSlot method type=range {name value arg} {
+    foreach {min max} [split $arg -] break
+    if {$value < $min || $value > $max} {
+      error "Value '$value' of parameter $name not between $min and $max"
+    }
+    return $value
+  }
+  
+  D method foo {a:range,arg=1-3 {-b:range,arg=2-6 3} c:range,arg=5-10} {
+    return a=$a,b=$b,c=$c
+  }
+  
+  ? {d1 foo 2 -b 4 9} "a=2,b=4,c=9"
+  ? {d1 foo 2 10} "a=2,b=3,c=10"
+  ? {d1 foo 2 11} \
+      "Value '11' of parameter c not between 5 and 10" \
+      "invalid value"
+  
+  # define type twice
+  ? {D method foo {a:int,range,arg=1-3} {return a=$a}} \
+      "Refuse to redefine parameter converter to use type=range" \
+      "invalid value"
+  
+  #
+  # handling of arg with spaces/arg as list
+  #
+  ::xotcl::methodParameterSlot method type=list {name value arg} {
+    #puts $value/$arg
+    return $value
+  }
+  
+  # handling spaces in "arg" is not not particular nice
+  D method foo {{"-a:list,arg=2 6" 3} {"b:list,arg=5 10"}} {
+    return a=$a,b=$b
+  }
+  ? {d1 foo -a 2 10} "a=2,b=10"
+  
 }
-
-D method foo {a:range,arg=1-3 {-b:range,arg=2-6 3} c:range,arg=5-10} {
-  return a=$a,b=$b,c=$c
-}
-
-? {d1 foo 2 -b 4 9} "a=2,b=4,c=9"
-? {d1 foo 2 10} "a=2,b=3,c=10"
-? {d1 foo 2 11} \
-    "Value '11' of parameter c not between 5 and 10" \
-    "invalid value"
-
-# define type twice
-? {D method foo {a:int,range,arg=1-3} {return a=$a}} \
-    "Refuse to redefine parameter converter to use type=range" \
-    "invalid value"
-
-#
-# handling of arg with spaces/arg as list
-#
-::xotcl::methodParameterSlot method type=list {name value arg} {
-  #puts $value/$arg
-  return $value
-}
-
-# handling spaces in "arg" is not not particular nice
-D method foo {{"-a:list,arg=2 6" 3} {"b:list,arg=5 10"}} {
-  return a=$a,b=$b
-}
-? {d1 foo -a 2 10} "a=2,b=10"
-
-
 #######################################################
 # testing object types in method parameters
 #######################################################
-Test case mp-object-types
-Class create M
-D create d1 -d 1
-C create c1 -mixin M
-Object create o
+Test case mp-object-types {
 
-D method foo-base     {x:baseclass} {return $x}
-D method foo-class    {x:class} {return $x}
-D method foo-object   {x:object} {return $x}
-D method foo-meta     {x:metaclass} {return $x}
-D method foo-hasmixin {x:hasmixin,arg=::M} {return $x}
-D method foo-type     {x:object,type=::C} {return $x}
+  Class create C
+  Class create D -superclass C -parameter d
 
-? {D info method parameter foo-base} "x:baseclass"
-? {D info method parameter foo-hasmixin} "x:hasmixin,arg=::M"
-? {D info method parameter foo-type} "x:object,type=::C"
+  Class create M
+  D create d1 -d 1
+  C create c1 -mixin M
+  Object create o
+  
+  D method foo-base     {x:baseclass} {return $x}
+  D method foo-class    {x:class} {return $x}
+  D method foo-object   {x:object} {return $x}
+  D method foo-meta     {x:metaclass} {return $x}
+  D method foo-hasmixin {x:hasmixin,arg=::M} {return $x}
+  D method foo-type     {x:object,type=::C} {return $x}
+  
+  ? {D info method parameter foo-base} "x:baseclass"
+  ? {D info method parameter foo-hasmixin} "x:hasmixin,arg=::M"
+  ? {D info method parameter foo-type} "x:object,type=::C"
+  
+  ? {d1 foo-base ::xotcl2::Object} "::xotcl2::Object"
+  ? {d1 foo-base C} \
+      {expected baseclass but got "C" for parameter x} \
+      "not a base class"
+  
+  ? {d1 foo-class D} "D"
+  ? {d1 foo-class xxx} \
+      {expected class but got "xxx" for parameter x} \
+      "not a class"
+  ? {d1 foo-class o} \
+      {expected class but got "o" for parameter x} \
+      "not a class"
+  
+  ? {d1 foo-meta ::xotcl2::Class} "::xotcl2::Class"
+  ? {d1 foo-meta ::xotcl2::Object} \
+      {expected metaclass but got "::xotcl2::Object" for parameter x} \
+      "not a base class"
 
-? {d1 foo-base ::xotcl2::Object} "::xotcl2::Object"
-? {d1 foo-base C} \
-    {expected baseclass but got "C" for parameter x} \
-    "not a base class"
-
-? {d1 foo-class D} "D"
-? {d1 foo-class xxx} \
-    {expected class but got "xxx" for parameter x} \
-    "not a class"
-? {d1 foo-class o} \
-    {expected class but got "o" for parameter x} \
-    "not a class"
-
-? {d1 foo-meta ::xotcl2::Class} "::xotcl2::Class"
-? {d1 foo-meta ::xotcl2::Object} \
-    {expected metaclass but got "::xotcl2::Object" for parameter x} \
-    "not a base class"
-
-? {d1 foo-hasmixin c1} "c1"
-? {d1 foo-hasmixin o} \
-    {expected object with mixin ::M but got "o" for parameter x} \
-    "does not have mixin M"
-
-? {d1 foo-object o} "o"
-? {d1 foo-object xxx} \
-    {expected object but got "xxx" for parameter x} \
-    "not an object"
-
-? {d1 foo-type d1} "d1"
-? {d1 foo-type c1} "c1"
-? {d1 foo-type o} \
-    {expected object of type ::C but got "o" for parameter x} \
-    "o not of type ::C"
-
-#######################################################
-#
-#######################################################
-Test case substdefault
-Class create S -parameter {{x 1} {y b} {z {1 2 3}}}
-S create s1 {
-  :method foo {{y:substdefault ${:x}}} {
-    return $y
-  }
-  :method bar {{y:integer,substdefault ${:x}}} {
-    return $y
-  }
-  :method baz {{x:integer,substdefault ${:y}}} {
-    return $x
-  }
-  :method boz {{x:integer,multivalued,substdefault ${:z}}} {
-    return $x
-  }
+  ? {d1 foo-hasmixin c1} "c1"
+  ? {d1 foo-hasmixin o} \
+      {expected object with mixin ::M but got "o" for parameter x} \
+      "does not have mixin M"
+  
+  ? {d1 foo-object o} "o"
+  ? {d1 foo-object xxx} \
+      {expected object but got "xxx" for parameter x} \
+      "not an object"
+  
+  ? {d1 foo-type d1} "d1"
+  ? {d1 foo-type c1} "c1"
+  ? {d1 foo-type o} \
+      {expected object of type ::C but got "o" for parameter x} \
+      "o not of type ::C"
 }
-? {s1 foo} 1
-? {s1 foo 2} 2
 
-? {S method foo {a:substdefault} {return 1}} \
-    {parameter option substdefault specified for parameter "a" without default value}
+#######################################################
+# substdefault
+#######################################################
+Test case substdefault {
 
-? {s1 bar} 1
-? {s1 bar 3} 3
-? {s1 bar a} {expected integer but got "a" for parameter y}
-
-? {s1 baz} {expected integer but got "b" for parameter x}
-? {s1 baz 20} 20
-s1 y 100
-? {s1 baz} 100
-? {s1 baz 101} 101
-
-? {s1 boz} {1 2 3}
-s1 z {1 x 100}
-? {s1 boz} {invalid value in "1 x 100": expected integer but got "x" for parameter x}
-? {s1 boz {100 200}} {100 200}
-
-set aaa 100
-? {s1 method foo {{a:substdefault $::aaa}} {return $a}} ::s1::foo
-? {s1 foo} 100
-unset aaa
-? {s1 foo} {can't read "::aaa": no such variable}
-
-? {s1 method foo {{a:substdefault $aaa}} {return $a}} ::s1::foo
-? {s1 foo} {can't read "aaa": no such variable}
-
-? {s1 method foo {{a:substdefault [self]}} {return $a}} ::s1::foo
-? {s1 foo} ::s1
-
+  Class create S -parameter {{x 1} {y b} {z {1 2 3}}}
+  S create s1 {
+    :method foo {{y:substdefault ${:x}}} {
+      return $y
+    }
+    :method bar {{y:integer,substdefault ${:x}}} {
+      return $y
+    }
+    :method baz {{x:integer,substdefault ${:y}}} {
+      return $x
+    }
+    :method boz {{x:integer,multivalued,substdefault ${:z}}} {
+      return $x
+    }
+  }
+  ? {s1 foo} 1
+  ? {s1 foo 2} 2
+  
+  ? {S method foo {a:substdefault} {return 1}} \
+      {parameter option substdefault specified for parameter "a" without default value}
+  
+  ? {s1 bar} 1
+  ? {s1 bar 3} 3
+  ? {s1 bar a} {expected integer but got "a" for parameter y}
+  
+  ? {s1 baz} {expected integer but got "b" for parameter x}
+  ? {s1 baz 20} 20
+  s1 y 100
+  ? {s1 baz} 100
+  ? {s1 baz 101} 101
+  
+  ? {s1 boz} {1 2 3}
+  s1 z {1 x 100}
+  ? {s1 boz} {invalid value in "1 x 100": expected integer but got "x" for parameter x}
+  ? {s1 boz {100 200}} {100 200}
+  
+  set ::aaa 100
+  ? {s1 method foo {{a:substdefault $::aaa}} {return $a}} ::s1::foo
+  ? {s1 foo} 100
+  unset aaa
+  ? {s1 foo} {can't read "::aaa": no such variable}
+  
+  ? {s1 method foo {{a:substdefault $aaa}} {return $a}} ::s1::foo
+  ? {s1 foo} {can't read "aaa": no such variable}
+  
+  ? {s1 method foo {{a:substdefault [self]}} {return $a}} ::s1::foo
+  ? {s1 foo} ::s1
+}
 #######################################################
 # testing object types in object parameters
 #######################################################
-Test case op-object-types
-Class create MC -superclass Class
-MC create MC1
-Class create M
-D create d1 -d 1
-C create c1 -mixin M
-Object create o
+Test case op-object-types {
 
-#puts stderr =====
-Class create ParamTest -parameter {
-  o:object
-  c:class
-  c1:class,type=::MC
-  d:object,type=::C
-  d1:object,type=C
-  m:metaclass
-  mix:hasmixin,arg=M
-  b:baseclass
-  u:upper
-  us:upper,multivalued
-  {x:object,multivalued {o}}
+  Class create C
+  Class create D -superclass C -parameter d
+
+  Class create MC -superclass Class
+  MC create MC1
+  Class create M
+  D create d1 -d 1
+  C create c1 -mixin M
+  Object create o
+  
+  #puts stderr =====
+  Class create ParamTest -parameter {
+    o:object
+    c:class
+    c1:class,type=::MC
+    d:object,type=::C
+    d1:object,type=C
+    m:metaclass
+    mix:hasmixin,arg=M
+    b:baseclass
+    u:upper
+    us:upper,multivalued
+    {x:object,multivalued {o}}
+  }
+  
+  # TODO: we have no good interface for querying the slot notation for parameters
+  proc ::parameterFromSlot {class objectparameter} {
+    set slot ${class}::slot::$objectparameter
+    array set "" [$slot toParameterSyntax $objectparameter]
+    return $(oparam)
+  }
+  
+  #puts stderr =====2
+  ? {::parameterFromSlot ParamTest o} "o:object,slot=::ParamTest::slot::o"
+  ? {::parameterFromSlot ParamTest c} "c:class,slot=::ParamTest::slot::c"
+  ? {::parameterFromSlot ParamTest c1} "c1:class,type=::MC,slot=::ParamTest::slot::c1"
+  ? {::parameterFromSlot ParamTest d} "d:object,type=::C,slot=::ParamTest::slot::d"
+  ? {::parameterFromSlot ParamTest d1} "d1:object,type=::C,slot=::ParamTest::slot::d1"
+  ? {::parameterFromSlot ParamTest mix} "mix:hasmixin,arg=M,slot=::ParamTest::slot::mix"
+  ? {::parameterFromSlot ParamTest x} "x:object,multivalued,slot=::ParamTest::slot::x o"
+  ? {::parameterFromSlot ParamTest u} "u:upper,slot=::ParamTest::slot::u"
+  ? {::parameterFromSlot ParamTest us} "us:upper,multivalued,slot=::ParamTest::slot::us"
+  #puts stderr =====3
+  
+  ? {ParamTest create p -o o} ::p
+  ? {ParamTest create p -o xxx} \
+      {expected object but got "xxx" for parameter -o} \
+      "not an object"
+  
+  ? {ParamTest create p -c C} ::p "class"
+  ? {ParamTest create p -c o} \
+      {expected class but got "o" for parameter -c} \
+      "not a class"
+  
+  ? {ParamTest create p -c1 MC1} ::p "instance of meta-class MC"
+  ? {ParamTest create p -c1 C} \
+      {expected class of type ::MC but got "C" for parameter -c1} \
+      "not an instance of meta-class MC"
+  
+  ? {ParamTest create p -d d1} ::p
+  ? {ParamTest create p -d1 d1} ::p
+  ? {ParamTest create p -d c1} ::p
+  ? {ParamTest create p -d o} \
+      {expected object of type ::C but got "o" for parameter -d} \
+      "o not of type ::C"
+  
+  ? {ParamTest create p -mix c1} ::p
+  ? {ParamTest create p -mix o} \
+      {expected object with mixin M but got "o" for parameter mix} \
+      "does not have mixin M"
+  
+  ? {ParamTest create p -u A} ::p
+  ? {ParamTest create p -u c1} {expected upper but got "c1" for parameter -u}
+  ? {ParamTest create p -us {A B c}} \
+      {invalid value in "A B c": expected upper but got "c" for parameter -us}
+  ParamTest slot us eval {
+    set :incremental 1
+    :optimize
+  }
+  ? {ParamTest create p -us {A B}} ::p
+  ? {p us add C end} "A B C"
+  
+  # TODO: naming "type" not perfect.
+  #       maybe "type" => "hastype"
+  #       => effects as well ::xotcl::is
+  #
+  # TODO (optimization): optimizer can improve parameter checking:
+  #       (a) simple approach: make scripted setter methods on domain
+  #       (b) maybe nicer: provide arguments to c-setter to 
+  #           pass parameter definition
+  #
+  # TODO: error messages for failed conversions are not consistent
+  #       should happen, when all kind of parameters finally settled
+  # 
+  ? {p o o} \
+      "o" \
+      "value is an object"
+  ? {p o xxx} \
+      {expected object but got "xxx" for parameter o} \
+      "value is not an object"
+  
+  ParamTest slots {
+    ::xotcl::Attribute create os -type object -multivalued true
+  }
+  
+  ? {p os o} \
+      "o" \
+      "value is a list of objects (1 element)"
+  ? {p os {o c1 d1}} \
+      "o c1 d1" \
+      "value is a list of objects (multiple elements)"
+  
+  ? {p os {o xxx d1}} \
+      {invalid value in "o xxx d1": expected object but got "xxx" for parameter os} \
+      "list with invalid object"
 }
-
-# TODO: we have no good interface for querying the slot notation for parameters
-proc parameterFromSlot {class objectparameter} {
-  set slot ${class}::slot::$objectparameter
-  array set "" [$slot toParameterSyntax $objectparameter]
-  return $(oparam)
-}
-
-#puts stderr =====2
-? {parameterFromSlot ParamTest o} "o:object,slot=::ParamTest::slot::o"
-? {parameterFromSlot ParamTest c} "c:class,slot=::ParamTest::slot::c"
-? {parameterFromSlot ParamTest c1} "c1:class,type=::MC,slot=::ParamTest::slot::c1"
-? {parameterFromSlot ParamTest d} "d:object,type=::C,slot=::ParamTest::slot::d"
-? {parameterFromSlot ParamTest d1} "d1:object,type=::C,slot=::ParamTest::slot::d1"
-? {parameterFromSlot ParamTest mix} "mix:hasmixin,arg=M,slot=::ParamTest::slot::mix"
-? {parameterFromSlot ParamTest x} "x:object,multivalued,slot=::ParamTest::slot::x o"
-? {parameterFromSlot ParamTest u} "u:upper,slot=::ParamTest::slot::u"
-? {parameterFromSlot ParamTest us} "us:upper,multivalued,slot=::ParamTest::slot::us"
-#puts stderr =====3
-
-? {ParamTest create p -o o} ::p
-? {ParamTest create p -o xxx} \
-    {expected object but got "xxx" for parameter -o} \
-    "not an object"
-
-? {ParamTest create p -c C} ::p "class"
-? {ParamTest create p -c o} \
-    {expected class but got "o" for parameter -c} \
-    "not a class"
-
-? {ParamTest create p -c1 MC1} ::p "instance of meta-class MC"
-? {ParamTest create p -c1 C} \
-    {expected class of type ::MC but got "C" for parameter -c1} \
-    "not an instance of meta-class MC"
-
-? {ParamTest create p -d d1} ::p
-? {ParamTest create p -d1 d1} ::p
-? {ParamTest create p -d c1} ::p
-? {ParamTest create p -d o} \
-    {expected object of type ::C but got "o" for parameter -d} \
-    "o not of type ::C"
-
-? {ParamTest create p -mix c1} ::p
-? {ParamTest create p -mix o} \
-    {expected object with mixin M but got "o" for parameter mix} \
-    "does not have mixin M"
-
-? {ParamTest create p -u A} ::p
-? {ParamTest create p -u c1} {expected upper but got "c1" for parameter -u}
-? {ParamTest create p -us {A B c}} \
-    {invalid value in "A B c": expected upper but got "c" for parameter -us}
-ParamTest slot us eval {
-  set :incremental 1
-  :optimize
-}
-? {ParamTest create p -us {A B}} ::p
-? {p us add C end} "A B C"
-
-# TODO: naming "type" not perfect.
-#       maybe "type" => "hastype"
-#       => effects as well ::xotcl::is
-#
-# TODO (optimization): optimizer can improve parameter checking:
-#       (a) simple approach: make scripted setter methods on domain
-#       (b) maybe nicer: provide arguments to c-setter to 
-#           pass parameter definition
-#
-# TODO: error messages for failed conversions are not consistent
-#       should happen, when all kind of parameters finally settled
-# 
-? {p o o} \
-    "o" \
-    "value is an object"
-? {p o xxx} \
-    {expected object but got "xxx" for parameter o} \
-    "value is not an object"
-
-ParamTest slots {
-  ::xotcl::Attribute create os -type object -multivalued true
-}
-
-? {p os o} \
-    "o" \
-    "value is a list of objects (1 element)"
-? {p os {o c1 d1}} \
-    "o c1 d1" \
-    "value is a list of objects (multiple elements)"
-
-? {p os {o xxx d1}} \
-    {invalid value in "o xxx d1": expected object but got "xxx" for parameter os} \
-    "list with invalid object"
 
 #######################################################
 # application specific multivalued converter
 #######################################################
-Test case multivalued-app-converter
+Test case multivalued-app-converter {
 
-::xotcl::methodParameterSlot method type=sex {name value args} {
-  #puts stderr "[self] slot specific converter"
-  switch -glob $value {
-    m* {return m}
-    f* {return f}
-    default {error "expected sex but got $value"}
+  ::xotcl::methodParameterSlot method type=sex {name value args} {
+    #puts stderr "[self] slot specific converter"
+    switch -glob $value {
+      m* {return m}
+      f* {return f}
+      default {error "expected sex but got $value"}
+    }
   }
-}
-Class create C {
-  :method foo {s:sex,multivalued} {return $s}
-}
-C create c1
-? {c1 foo {male female mann frau}} "m f m f"
-
-
-Object create tmpObj
-tmpObj method type=mType {name value arg:optional} {
-  if {$value} {
-    error "expected false but got $value"
+  Class create C {
+    :method foo {s:sex,multivalued} {return $s}
   }
-  # Note that this converter does NOT return a value; it converts all
-  # values into emtpy strings.
+  C create c1
+  ? {c1 foo {male female mann frau}} "m f m f"
+  
+
+  Object create tmpObj
+  tmpObj method type=mType {name value arg:optional} {
+    if {$value} {
+      error "expected false but got $value"
+    }
+    # Note that this converter does NOT return a value; it converts all
+    # values into emtpy strings.
+  }
+  
+  ? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {1 0}} \
+      {invalid value in "1 0": expected false but got 1} \
+      "fail on first value"
+  ? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
+  ? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {0 1}} \
+      {invalid value in "0 1": expected false but got 1} \
+      "fail o last value"
 }
-
-? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {1 0}} \
-    {invalid value in "1 0": expected false but got 1} \
-    "fail on first value"
-? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
-? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {0 1}} \
-    {invalid value in "0 1": expected false but got 1} \
-    "fail o last value"
-
 #######################################################
 # application specific multivalued converter
 #######################################################
-Test case shadowing-app-converter
+Test case shadowing-app-converter {
 
-Object create mySlot {
-  :method type=integer {name value arg:optional} {
-    return [expr {$value + 1}]
+  Object create mySlot {
+    :method type=integer {name value arg:optional} {
+      return [expr {$value + 1}]
+    }
   }
-}
-Object create o {
-  :method foo {x:integer,slot=::mySlot} {
-    return $x
+  Object create o {
+    :method foo {x:integer,slot=::mySlot} {
+      return $x
+    }
   }
+  
+  ? {::xotcl::valuecheck integer,slot=::mySlot 1} 1 
+  ? {o foo 3} 4
 }
-
-? {::xotcl::valuecheck integer,slot=::mySlot 1} 1 
-? {o foo 3} 4
-
-o destroy
-mySlot destroy
-
 
 #######################################################
 # slot specific converter
 #######################################################
-Test case slot-specfic-converter
-Class create Person
-Person slots {
-  Attribute create sex -type "sex" {
-    :method type=sex {name value} {
-      #puts stderr "[self] slot specific converter"
-      switch -glob $value {
-        m* {return m}
-        f* {return f}
-        default {error "expected sex but got $value"}
+Test case slot-specfic-converter {
+  Class create Person
+  Person slots {
+    Attribute create sex -type "sex" {
+      :method type=sex {name value} {
+	#puts stderr "[self] slot specific converter"
+	switch -glob $value {
+	  m* {return m}
+	  f* {return f}
+	  default {error "expected sex but got $value"}
+	}
       }
     }
   }
+  Person create p1 -sex male
+  ? {p1 sex} m
+  Person method foo {s:sex,slot=::Person::slot::sex} {return $s}
+  ? {p1 foo male} m
+  ? {p1 sex male} m
 }
-Person create p1 -sex male
-? {p1 sex} m
-Person method foo {s:sex,slot=::Person::slot::sex} {return $s}
-? {p1 foo male} m
-? {p1 sex male} m
 
 #######################################################
 # test for setters with parameters 
 #######################################################
-Test case setters
+Test case setters {
+  Object create o
+  Class create C
+  
+  ? {::xotcl::setter o a} "::o::a"
+  ? {::xotcl::setter C c} "::xotcl::classes::C::c"
+  ? {o info method definition a} "::o setter a"
+  ? {o info method parameter a} "a"
+  ? {o info method args a} "a"
+  ? {C info method definition c} "::C setter c"
+  ? {o a 1} "1"
+  
+  ? {::xotcl::setter o a:integer} "::o::a"
+  ? {::xotcl::setter o ints:integer,multivalued} "::o::ints"
+  ? {::xotcl::setter o o:object} "::o::o"
+  
+  ? {o info method name ints} "::o::ints"
+  ? {o info method definition ints} "::o setter ints:integer,multivalued"
+  ? {o info method parameter ints} "ints:integer,multivalued"
+  ? {o info method args ints} "ints"
+  
+  ? {o info method name o} "::o::o"
+  ? {o info method definition o} "::o setter o:object"
+  ? {o info method parameter o} "o:object"
+  ? {o info method args o} "o"
+  
+  ? {o a 2} 2
+  ? {o a hugo} {expected integer but got "hugo" for parameter a}
+  ? {o ints {10 100 1000}} {10 100 1000}
+  ? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter ints}
+  ? {o o o} o
+  ? {::xotcl::setter o {d default}} {parameter "d" is not allowed to have default "default"}
+  ? {::xotcl::setter o -x} {method name "-x" must not start with a dash}
+}
 
-Object create o
-Class create C
-
-? {::xotcl::setter o a} "::o::a"
-? {::xotcl::setter C c} "::xotcl::classes::C::c"
-? {o info method definition a} "::o setter a"
-? {o info method parameter a} "a"
-? {o info method args a} "a"
-? {C info method definition c} "::C setter c"
-? {o a 1} "1"
-
-? {::xotcl::setter o a:integer} "::o::a"
-? {::xotcl::setter o ints:integer,multivalued} "::o::ints"
-? {::xotcl::setter o o:object} "::o::o"
-
-? {o info method name ints} "::o::ints"
-? {o info method definition ints} "::o setter ints:integer,multivalued"
-? {o info method parameter ints} "ints:integer,multivalued"
-? {o info method args ints} "ints"
-
-? {o info method name o} "::o::o"
-? {o info method definition o} "::o setter o:object"
-? {o info method parameter o} "o:object"
-? {o info method args o} "o"
-
-? {o a 2} 2
-? {o a hugo} {expected integer but got "hugo" for parameter a}
-? {o ints {10 100 1000}} {10 100 1000}
-? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter ints}
-? {o o o} o
-? {::xotcl::setter o {d default}} {parameter "d" is not allowed to have default "default"}
-? {::xotcl::setter o -x} {method name "-x" must not start with a dash}
-
-o destroy
-C destroy
 #######################################################
 # test for slot-optimizer
 #######################################################
-Test case slot-optimizer
 Test parameter count 1000
+Test case slot-optimizer {
 
-Class create C -parameter {a b:integer c:integer,multivalued}
+  Class create C -parameter {a b:integer c:integer,multivalued}
+  
+  C create c1 
+  ? {c1 a 1} 1
+  ? {c1 b 1} 1
+  ? {c1 c 1} 1
 
-C create c1 
-? {c1 a 1} 1
-? {c1 b 1} 1
-? {c1 c 1} 1
-
-# before: 1st case: setter, 2&3: forward
-#slot-optimizer.001:	  1.50 mms, c1 a 1
-#slot-optimizer.002:	  3.30 mms, c1 b 1
-#slot-optimizer.003:	  3.40 mms, c1 c 1
-#
-# after: 1st, 2nd, 3rd case: setter 
-#slot-optimizer.001:	  1.50 mms, c1 a 1
-#slot-optimizer.002:	  1.50 mms, c1 b 1
-#slot-optimizer.003:	  1.60 mms, c1 c 1
-
+  # before: 1st case: setter, 2&3: forward
+  #slot-optimizer.001:	  1.50 mms, c1 a 1
+  #slot-optimizer.002:	  3.30 mms, c1 b 1
+  #slot-optimizer.003:	  3.40 mms, c1 c 1
+  #
+  # after: 1st, 2nd, 3rd case: setter 
+  #slot-optimizer.001:	  1.50 mms, c1 a 1
+  #slot-optimizer.002:	  1.50 mms, c1 b 1
+  #slot-optimizer.003:	  1.60 mms, c1 c 1
+}
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
 puts stderr =====END
