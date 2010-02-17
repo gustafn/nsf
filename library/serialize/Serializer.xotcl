@@ -359,7 +359,7 @@ namespace eval ::xotcl::serializer {
 
       set r [subst {
         set ::xotcl::__filterstate \[::xotcl::configure filter off\]
-        ::xotcl::Slot mixin add ::xotcl::Slot::Nocheck
+        #::xotcl::Slot mixin add ::xotcl::Slot::Nocheck
         ::xotcl::configure softrecreate [::xotcl::configure softrecreate]
         ::xotcl::setExitHandler [list [::xotcl::getExitHandler]]
       }]\n
@@ -384,7 +384,7 @@ namespace eval ::xotcl::serializer {
       }
 
       append r {
-        ::xotcl::Slot mixin delete ::xotcl::Slot::Nocheck
+        #::xotcl::Slot mixin delete ::xotcl::Slot::Nocheck
         ::xotcl::configure filter $::xotcl::__filterstate
         unset ::xotcl::__filterstate
       }

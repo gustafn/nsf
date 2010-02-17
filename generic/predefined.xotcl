@@ -717,52 +717,6 @@ namespace eval ::xotcl {
     # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [::xotcl::setinstvar $obj $var]"
     eval $cmd
   }
-  ::xotcl::Attribute method check_single_value { {-keep_old_value:boolean true} value predicate type obj var} {
-    #puts "+++ checking single value '$value' with $predicate ==> [expr $predicate]"
-    if {![expr $predicate]} {
-      if {[$obj exists __oldvalue($var)]} {
-        ::xotcl::setinstvar $obj $var [::xotcl::setinstvar $obj __oldvalue($var)]
-      } else {
-        $obj unset -nocomplain $var
-      }
-      error "'$value' is not of type $type"
-    }
-    if {$keep_old_value} {::xotcl::setinstvar $obj __oldvalue($var) $value}
-    #puts "+++ checking single value done"
-  }
-  
-  ::xotcl::Attribute method check_multiple_values {values predicate type obj var} {
-    foreach value $values {
-      :check_single_value -keep_old_value false $value $predicate $type $obj $var
-    }
-    ::xotcl::setinstvar $obj __oldvalue($var) $value
-  }
-  ::xotcl::Attribute method mk_type_checker {} {
-    puts stderr "[self] [self proc]"
-    set __initcmd ""
-    if {[:exists type]} {
-      if {[::xotcl::is ${:type} class]} {
-        set predicate [subst -nocommands {
-          [::xotcl::is \$value object] && [::xotcl::is \$value type ${:type}]
-        }]
-      } elseif {[llength ${:type}]>1} {
-        set predicate "\[${:type} \$value\]"
-      } else {
-        #set predicate "\[string is ${:type} \$value\]"
-        set predicate "\[:type=${:type} ${:name} \$value\]"
-      }
-      #puts stderr predicate=$predicate
-      append :valuechangedcmd [subst {
-        [expr {${:multivalued} ? ":check_multiple_values" : ":check_single_value"
-             }] \[::xotcl::setinstvar \$obj ${:name}\] \
-            {$predicate} [list ${:type}] \$obj ${:name}
-      }]
-      append __initcmd [subst -nocommands {
-        if {[:exists ${:name}]} {set :__oldvalue(${:name}) [set :${:name}]}\n
-      }]
-    }
-    return $__initcmd
-  }
   ::xotcl::Attribute protected method init {} {
     next ;# do first ordinary slot initialization
     # there might be already default values registered on the class
@@ -791,7 +745,6 @@ namespace eval ::xotcl {
         #puts stderr "::xotcl::setter ${:domain} ${:name}:$(mparam),slot=[self]"
       }
     }
-    #append __initcmd [:mk_type_checker]
     if {[:exists valuechangedcmd]} {
       append __initcmd ":trace add variable [list ${:name}] write \
 	\[list [::xotcl::self] __value_changed_cmd \[::xotcl::self\] [list [set :valuechangedcmd]]\]"
@@ -801,12 +754,6 @@ namespace eval ::xotcl {
     }
   }
   
-  # mixin class for decativating all value checks in slots
-  ::xotcl2::Class create ::xotcl::Attribute::Nocheck {
-    :method check_single_value args {;}
-    :method check_multiple_values args {;}
-    :method mk_type_checker args {return ""}
-  }
   # mixin class for optimizing slots
   ::xotcl2::Class create ::xotcl::Attribute::Optimizer {
     :method method args  {::xotcl::next; :optimize}
