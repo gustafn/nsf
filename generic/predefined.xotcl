@@ -476,6 +476,7 @@ namespace eval ::xotcl {
       }
       ${:domain} __invalidateobjectparameter
       set cl [expr {${:per-object} ? "Object" : "Class"}]
+      #puts stderr "Slot [self] init, forwarder on ${:domain}"
       ::xotcl::forward ${:domain} ${:name} \
           ${:manager} \
           [list %1 [${:manager} defaultmethods]] %self \
@@ -851,6 +852,12 @@ namespace eval ::xotcl {
   # register the optimizer per default
   ::xotcl::Attribute mixin add ::xotcl::Attribute::Optimizer
 
+  ############################################
+  # Define method "attribute" for convenience
+  ############################################
+  ::xotcl2::Object method attribute {spec {-slotclass ::xotcl::Attribute} {initblock ""}} {
+    $slotclass createFromParameterSyntax [self] -initblock $initblock {*}$spec
+  }
 
   ############################################
   # Define method "parameter" for backward 
@@ -906,17 +913,19 @@ namespace eval ::xotcl {
 # (without syntactic overhead).
 ##################################################################
 
-::xotcl2::Class create ::xotcl::ScopedNew -superclass ::xotcl2::Class -parameter {
-  {withclass ::xotcl2::Object}
-  container
-}
-::xotcl::ScopedNew protected method init {} {
-  :public method new {-childof args} {
-    ::xotcl::importvar [::xotcl::self class] {container object} withclass
-     if {![::xotcl::is $object object]} {
-      $withclass create $object
+::xotcl2::Class create ::xotcl::ScopedNew -superclass ::xotcl2::Class {
+  
+  :attribute {withclass ::xotcl2::Object}
+  :attribute container
+
+  :protected method init {} {
+    :public method new {-childof args} {
+      ::xotcl::importvar [::xotcl::self class] {container object} withclass
+      if {![::xotcl::is $object object]} {
+        $withclass create $object
+      }
+      eval ::xotcl::next -childof $object $args
     }
-    eval ::xotcl::next -childof $object $args
   }
 }
 
@@ -956,11 +965,11 @@ namespace eval ::xotcl {
 # copy/move implementation
 ##################################################################
 
-::xotcl2::Class create ::xotcl::CopyHandler -parameter {
-  {targetList ""}
-  {dest ""}
-  objLength
-} {
+::xotcl2::Class create ::xotcl::CopyHandler {
+
+  :attribute {targetList ""}
+  :attribute {dest ""}
+  :attribute objLength
 
   :method makeTargetList {t} {
     lappend :targetList $t
