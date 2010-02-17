@@ -5,56 +5,57 @@ package require xotcl::test
 #######################################################
 # valuecheck
 #######################################################
-Test case valuecheck
 Test parameter count 10000
+Test case valuecheck {
 
-Object create o1
-Class create C -parameter {a {b:boolean} {c 1}}
-C create c1 
+  Object create o1
+  Class create C -parameter {a {b:boolean} {c 1}}
+  C create c1 
 
-? {::xotcl::valuecheck object o1} 1
-? {::xotcl::is o1 object} 1
-? {::xotcl::valuecheck class o1} {expected class but got "o1" for parameter value}
-? {::xotcl::valuecheck -nocomplain class o1} 0
-? {::xotcl::valuecheck class Test} 1
-? {::xotcl::valuecheck object,multivalued [list o1 Test]} 1
-? {::xotcl::valuecheck integer 1} 1
-? {::xotcl::valuecheck integer,multivalued [list 1 2 3]} 1
-? {::xotcl::valuecheck integer,multivalued [list 1 2 3 a]} \
-    {invalid value in "1 2 3 a": expected integer but got "a" for parameter value}
-? {::xotcl::valuecheck object,type=::C c1} 1
-? {::xotcl::valuecheck object,type=::C o} \
-    {expected object but got "o" for parameter value} \
-    "object, but different type"
-? {::xotcl::valuecheck object,type=::C c} \
-    {expected object but got "c" for parameter value} \
-    "no object"
-? {::xotcl::valuecheck object,type=::xotcl2::Object c1} 1 "general type"
-
-# do not allow "currently unknown" user defined types in valuecheck
-? {::xotcl::valuecheck in1 aaa} {invalid value constraints "in1"}
-
-? {::xotcl::valuecheck lower c} 1 "lower case char"
-? {::xotcl::valuecheck lower abc} 1 "lower case chars"
-? {::xotcl::valuecheck lower Abc} {expected lower but got "Abc" for parameter value} "no lower case chars"
-? {string is lower abc} 1 "tcl command 'string is lower'"
-
-? {::xotcl::valuecheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
+  ? {::xotcl::valuecheck object o1} 1
+  ? {::xotcl::is o1 object} 1
+  ? {::xotcl::valuecheck class o1} {expected class but got "o1" for parameter value}
+  ? {::xotcl::valuecheck -nocomplain class o1} 0
+  ? {::xotcl::valuecheck class Test} 1
+  ? {::xotcl::valuecheck object,multivalued [list o1 Test]} 1
+  ? {::xotcl::valuecheck integer 1} 1
+  ? {::xotcl::valuecheck integer,multivalued [list 1 2 3]} 1
+  ? {::xotcl::valuecheck integer,multivalued [list 1 2 3 a]} \
+      {invalid value in "1 2 3 a": expected integer but got "a" for parameter value}
+  ? {::xotcl::valuecheck object,type=::C c1} 1
+  ? {::xotcl::valuecheck object,type=::C o} \
+      {expected object but got "o" for parameter value} \
+      "object, but different type"
+  ? {::xotcl::valuecheck object,type=::C c} \
+      {expected object but got "c" for parameter value} \
+      "no object"
+  ? {::xotcl::valuecheck object,type=::xotcl2::Object c1} 1 "general type"
+  
+  # do not allow "currently unknown" user defined types in valuecheck
+  ? {::xotcl::valuecheck in1 aaa} {invalid value constraints "in1"}
+  
+  ? {::xotcl::valuecheck lower c} 1 "lower case char"
+  ? {::xotcl::valuecheck lower abc} 1 "lower case chars"
+  ? {::xotcl::valuecheck lower Abc} {expected lower but got "Abc" for parameter value} "no lower case chars"
+  ? {string is lower abc} 1 "tcl command 'string is lower'"
+  
+  ? {::xotcl::valuecheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
+}
 
 #######################################################
 # valuecheck
 #######################################################
-Test case valuecheck
 Test parameter count 10000
+Test case valuecheck {
 
-Object create ::paramManager {
-  :method type=sex {name value} {
-    return "agamous"
+  Object create ::paramManager {
+    :method type=sex {name value} {
+      return "agamous"
+    }
   }
+  
+  ? {::xotcl::valuecheck sex,slot=::paramManager female} "1"
 }
-
-? {::xotcl::valuecheck sex,slot=::paramManager female} "1"
-::paramManager destroy
 
 #######################################################
 # cononical feature table
@@ -131,128 +132,160 @@ Object create ::paramManager {
 #######################################################
 # objectparameter
 #######################################################
-Test case objectparameter
-
 Test parameter count 10
-Class create C -parameter {a {b:boolean} {c 1}}
-C create c1
+Test case objectparameter {
 
+  Class create C -parameter {a {b:boolean} {c 1}}
+  C create c1
  
-? {C eval {:objectparameter}} \
-"-object-mixin:relation,slot=::xotcl2::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::xotcl2::Class::slot::mixin -superclass:relation,slot=::xotcl2::Class::slot::superclass -object-filter:relation,slot=::xotcl2::Class::slot::object-filter -filter:relation,arg=filter-mixin,slot=::xotcl2::Class::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -parameter:method,optional -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
+  ? {C eval {:objectparameter}} \
+      "-object-mixin:relation,slot=::xotcl2::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::xotcl2::Class::slot::mixin -superclass:relation,slot=::xotcl2::Class::slot::superclass -object-filter:relation,slot=::xotcl2::Class::slot::object-filter -filter:relation,arg=filter-mixin,slot=::xotcl2::Class::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -parameter:method,optional -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
 
 
-? {c1 eval {:objectparameter}} \
-"-a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
+  ? {c1 eval {:objectparameter}} \
+      "-a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
+}
 
 #######################################################
 # reclass to Object, no need to do anything on caching
 #######################################################
-Test case reclass
-c1 class Object
-? {c1 eval :objectparameter} \
-"-mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
+Test case reclass {
 
-Class create D -superclass C -parameter {d:required}
-D create d1 -d 100
+  Class create C -parameter {a {b:boolean} {c 1}}
+  C create c1
 
-? {d1 eval :objectparameter} \
-"-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
+  c1 class Object
+  ? {c1 eval :objectparameter} \
+      "-mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
+  
+  Class create D -superclass C -parameter {d:required}
+  D create d1 -d 100
+  
+  ? {d1 eval :objectparameter} \
+      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
+}
 
 #######################################################
 # Add mixin
 #######################################################
-Test case objparam-mixins
-Class create M -parameter {m1 m2 b}
-Class create M2 -parameter {b2}
-D mixin M
-? {d1 eval :objectparameter} \
-"-b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional" \
+Test case objparam-mixins {
+
+  Class create C -parameter {a {b:boolean} {c 1}}
+  Class create D -superclass C -parameter {d:required}
+  D create d1 -d 100
+
+  Class create M -parameter {m1 m2 b}
+  Class create M2 -parameter {b2}
+  D mixin M
+  ? {d1 eval :objectparameter} \
+      "-b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional" \
     "mixin added"
-M mixin M2
-? {d1 eval :objectparameter} \
-    "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional" \
+  M mixin M2
+  ? {d1 eval :objectparameter} \
+      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional" \
     "transitive mixin added"
-D mixin ""
-#we should have again the old interface
+  D mixin ""
+  #we should have again the old interface
 
-? {d1 eval :objectparameter} \
-    "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
+  ? {d1 eval :objectparameter} \
+      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
 
-puts stderr ====1
-C mixin M
-? {d1 eval :objectparameter} \
-    "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional" \
+  C mixin M
+  ? {d1 eval :objectparameter} \
+      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional" \
     "mixin added"
-C mixin ""
-#we should have again the old interface
-
-
-? {d1 eval :objectparameter} \
-    "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
-
+  C mixin ""
+  #we should have again the old interface
+  
+  
+  ? {d1 eval :objectparameter} \
+      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional" 
+}
 
 #######################################################
 # test passed arguments
 #######################################################
-Test case passed-arguments
-
-? {catch {D create d1 -d 123}} 0 "create d1 with required argument given"
-? {catch {D create d1}} 1 "create d1 without required argument given"
-? {D create d1} "::d1 configure: required argument 'd' is missing" "check error msg"
-
-? {D create d2 -d x -b a} \
-    {expected boolean value but got "a" for parameter -b} \
-    "create d2 without required argument given"
-
-D create d1 -d 1
-D method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:class}} {
-  #if {[info exists x]} {puts stderr x=$x}
+Test case HU {
+  puts stderr HU1:current=[::namespace current]
 }
 
-? {d1 foo} \
-    "::d1 foo: required argument 'r' is missing" \
-    "call method without a required argument"
+namespace eval :: {
+  puts stderr HU2:current=[::namespace current]
+}
+Test eval {
+  puts stderr HU3:current=[::namespace current]
+}
+Test case passed-arguments 
 
-? {d1 foo -r a} \
-    {expected integer but got "a" for parameter -r} \
-    "required argument is not integer"
+namespace eval :: {
 
-? {d1 foo -r 1} \
-    {expected integer but got "aaa" for parameter -x} \
-    "default value is not of type integer"
+  puts stderr current=[::namespace current]
 
-? {d1 foo -r 1 -x 1 -object d1} \
-    "" \
-    "pass object"
+  Class create C -parameter {a {b:boolean} {c 1}}
+  #puts stderr current=[::namespace current]
 
-? {d1 foo -r 1 -x 1 -object d11} \
-    {expected object but got "d11" for parameter -object} \
-    "pass non-existing object"
+  Class create D -superclass C -parameter {d:required}
 
-? {d1 foo -r 1 -x 1 -class D} \
-    "" \
-    "pass class"
 
-? {d1 foo -r 1 -x 1 -class d1} \
-    {expected class but got "d1" for parameter -class} \
-    "pass object instead of class"
+  ? {catch {D create d1 -d 123}} 0 "create d1 with required argument given"
+  ? {catch {D create d1}} 1 "create d1 without required argument given"
+  #puts stderr current=[namespace current]
 
-? {d1 foo -r 1 -x 1 -class D11} \
-    {expected class but got "D11" for parameter -class} \
-    "pass non-existing class"
+  ? {D create d1} "::d1 configure: required argument 'd' is missing" "check error msg"
+  
+  ? {D create d2 -d x -b a} \
+      {expected boolean value but got "a" for parameter -b} \
+      "create d2 without required argument given"
 
-? {D method foo {a:relation} {}} \
-    {Parameter option 'relation' not allowed} \
-    "don't allow relation option as method parameter"
-
-? {D method foo {a:double} {return $a}} \
-    {::xotcl::classes::D::foo} \
-    "allow 'string is XXXX' for argument checking"
-? {d1 foo 1} 1 "check int as double"
-? {d1 foo 1.1} 1.1 "check double as double"
-? {d1 foo 1.1a} {expected double but got "1.1a" for parameter a} "check non-double as double"
-? {D info method parameter foo} a:double
+  D create d1 -d 1
+  D method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:class}} {
+    #if {[info exists x]} {puts stderr x=$x}
+  }
+  
+  ? {d1 foo} \
+      "::d1 foo: required argument 'r' is missing" \
+      "call method without a required argument"
+  
+  ? {d1 foo -r a} \
+      {expected integer but got "a" for parameter -r} \
+      "required argument is not integer"
+  
+  ? {d1 foo -r 1} \
+      {expected integer but got "aaa" for parameter -x} \
+      "default value is not of type integer"
+  
+  ? {d1 foo -r 1 -x 1 -object d1} \
+      "" \
+      "pass object"
+  
+  ? {d1 foo -r 1 -x 1 -object d11} \
+      {expected object but got "d11" for parameter -object} \
+      "pass non-existing object"
+  
+  ? {d1 foo -r 1 -x 1 -class D} \
+      "" \
+      "pass class"
+  
+  ? {d1 foo -r 1 -x 1 -class d1} \
+      {expected class but got "d1" for parameter -class} \
+      "pass object instead of class"
+  
+  ? {d1 foo -r 1 -x 1 -class D11} \
+      {expected class but got "D11" for parameter -class} \
+      "pass non-existing class"
+  
+  ? {D method foo {a:relation} {}} \
+      {Parameter option 'relation' not allowed} \
+      "don't allow relation option as method parameter"
+  
+  ? {D method foo {a:double} {return $a}} \
+      {::xotcl::classes::D::foo} \
+      "allow 'string is XXXX' for argument checking"
+  ? {d1 foo 1} 1 "check int as double"
+  ? {d1 foo 1.1} 1.1 "check double as double"
+  ? {d1 foo 1.1a} {expected double but got "1.1a" for parameter a} "check non-double as double"
+  ? {D info method parameter foo} a:double
+}
 
 #######################################################
 # non required positional arguments
