@@ -74,6 +74,9 @@ int xotclMemCountInterpCounter = 0;
   Tcl_SubstObjCmd(clientData, interp, objc, objv)
 #endif
 
+static Tcl_ObjType CONST86 *byteCodeType = NULL, *tclCmdNameType = NULL, *listType = NULL;
+
+
 int XOTclObjWrongArgs(Tcl_Interp *interp, char *msg, Tcl_Obj *cmdName, Tcl_Obj *methodName, char *arglist);
 static int XOTclDeprecatedCmd(Tcl_Interp *interp, char *what, char *oldCmd, char *newCmd);
 
@@ -878,25 +881,10 @@ XOTclCleanupObject(XOTclObject *object) {
  *  Tcl_Obj functions for objects
  */
 
-/* todo more generic */
-XOTCLINLINE static CONST86 Tcl_ObjType *
-GetCmdNameType(Tcl_ObjType CONST86 *cmdType) {
-  static Tcl_ObjType CONST86 *tclCmdNameType = NULL;
-
-  if (tclCmdNameType == NULL) {
-    static XOTclMutex initMutex = 0;
-    XOTclMutexLock(&initMutex);
-    if (tclCmdNameType == NULL)
-      tclCmdNameType = Tcl_GetObjType("cmdName");
-    XOTclMutexUnlock(&initMutex);
-  }
-  return tclCmdNameType;
-}
-
 static int
 IsXOTclTclObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **objectPtr) {
   Tcl_ObjType CONST86 *cmdType = objPtr->typePtr;
-  if (cmdType == GetCmdNameType(cmdType)) {
+  if (cmdType == tclCmdNameType) {
     Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objPtr);
     if (cmd) {
       XOTclObject *object = XOTclGetObjectFromCmdPtr(cmd);
@@ -5124,18 +5112,8 @@ MakeProcError(
 
 static int 
 ByteCompiled(register Tcl_Interp *interp, Proc *procPtr, char *body) {
-  static Tcl_ObjType CONST86 *byteCodeType = NULL;
   Tcl_Obj *bodyPtr = procPtr->bodyPtr;
   Namespace *nsPtr = procPtr->cmdPtr->nsPtr;
-
-  if (byteCodeType == NULL) {
-    static XOTclMutex initMutex = 0;
-    XOTclMutexLock(&initMutex);
-    if (byteCodeType == NULL) {
-      byteCodeType = Tcl_GetObjType("bytecode");
-    }
-    XOTclMutexUnlock(&initMutex);
-  }
 
   if (bodyPtr->typePtr == byteCodeType) {
 # if defined(HAVE_TCL_COMPILE_H)
@@ -9426,22 +9404,7 @@ typedef enum {NO_DASH, SKALAR_DASH, LIST_DASH} dashArgType;
 static dashArgType
 isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, char **methodName, int *objc, Tcl_Obj **objv[]) {
   char *flag;
-  static Tcl_ObjType CONST86 *listType = NULL;
-
   assert(obj);
-
-  /* fetch list type, if not set already; if used on more places, this should
-     be moved into the interpreter state
-  */
-  if (listType == NULL) {
-    static XOTclMutex initMutex = 0;
-    XOTclMutexLock(&initMutex);
-    if (listType == NULL) {
-      listType = Tcl_GetObjType("list");
-      /*fprintf(stderr, "fetching listType=%p\n", listType);*/
-    }
-    XOTclMutexUnlock(&initMutex);
-  }
 
   if (obj->typePtr == listType) {
     if (Tcl_ListObjGetElements(interp, obj, objc, objv) == TCL_OK && *objc>1) {
@@ -14477,6 +14440,7 @@ Xotcl_Init(Tcl_Interp *interp) {
 #ifdef XOTCL_BYTECODE
   XOTclCompEnv *interpstructions = XOTclGetCompEnv();
 #endif
+  static XOTclMutex initMutex = 0;
 
 #ifdef USE_TCL_STUBS
   if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
@@ -14489,6 +14453,13 @@ Xotcl_Init(Tcl_Interp *interp) {
 #endif
 
   MEM_COUNT_INIT();
+  
+  /* init global variables for tcl types */
+  XOTclMutexLock(&initMutex);
+  byteCodeType = Tcl_GetObjType("bytecode");
+  tclCmdNameType = Tcl_GetObjType("cmdName");
+  listType = Tcl_GetObjType("list");
+  XOTclMutexUnlock(&initMutex);
 
   /*
     fprintf(stderr, "SIZES: obj=%d, tcl_obj=%d, DString=%d, class=%d, namespace=%d, command=%d, HashTable=%d\n", sizeof(XOTclObject), sizeof(Tcl_Obj), sizeof(Tcl_DString), sizeof(XOTclClass), sizeof(Namespace), sizeof(Command), sizeof(Tcl_HashTable));
