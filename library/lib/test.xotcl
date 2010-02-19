@@ -55,6 +55,7 @@ namespace eval ::xotcl::test {
       if {[info exists arg]} {
         foreach o [Object info instances -closure] {set pre_exist($o) 1}
         namespace eval :: [list [self] eval $arg]
+        #:eval $arg
         foreach o [Object info instances -closure] {
           if {[info exists pre_exist($o)]} continue
           #puts "must destroy $o"

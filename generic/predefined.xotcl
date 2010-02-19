@@ -72,7 +72,7 @@ namespace eval xotcl2 {
 
     # method-modifier for object specific methos
     :method object {what args} {
-      if {$what in [list "alias" "forward" "method" "setter"]} {
+      if {$what in [list "alias" "attribute" "forward" "method" "setter"]} {
         return [::xotcl::dispatch [self] ::xotcl::classes::xotcl2::Object::$what {*}$args]
       }
       if {$what in [list "info"]} {
@@ -100,7 +100,7 @@ namespace eval xotcl2 {
 
     # method modifier "public"
     :method public {args} {
-      set p [lsearch -regexp $args {^(method|alias|forward|setter)$}]
+      set p [lsearch -regexp $args {^(method|alias|attribute|forward|setter)$}]
       if {$p == -1} {error "$args is not a method defining method"}
       set r [{*}:$args]
       ::xotcl::methodproperty [self] $r protected false
@@ -109,7 +109,7 @@ namespace eval xotcl2 {
 
     # method modifier "protected"
     :method protected {args} {
-      set p [lsearch -regexp $args {^(method|alias|forward|setter)$}]
+      set p [lsearch -regexp $args {^(method|alias|attribute|forward|setter)$}]
       if {$p == -1} {error "$args is not a method defining command"}
       set r [{*}:$args]
       ::xotcl::methodproperty [self] $r [self proc] true
@@ -308,7 +308,7 @@ namespace eval ::xotcl {
     return ${slotParent}::$name
   }
 
-  ::xotcl::MetaSlot method createFromParameterSyntax {target {-initblock ""} value default:optional} {
+  ::xotcl::MetaSlot method createFromParameterSyntax {target -per-object:switch {-initblock ""} value default:optional} {
     set opts [list]
     set colonPos [string first : $value]
     if {$colonPos == -1} {
@@ -339,8 +339,15 @@ namespace eval ::xotcl {
     if {[info exists default]} {
       lappend opts -default $default
     }
+    if {${per-object}} {
+      lappend opts -per-object true
+      set info ObjectInfo
+    } else {
+      set info ClassInfo
+    }
 
     :create [:slotName $name $target] {*}$opts $initblock
+    return [::xotcl::cmd::${info}::method $target name $name]
   }
   
   # ::xotcl::MetaSlot public method new args {
@@ -460,7 +467,7 @@ namespace eval ::xotcl {
   }
   
   ::xotcl::ObjectParameterSlot public method destroy {} {
-    if {${:domain} ne "" && [::xotcl::is ${:domain} object]} {
+    if {${:domain} ne "" && [::xotcl::is ${:domain} class]} {
       ${:domain} __invalidateobjectparameter
     }
     next
@@ -474,7 +481,12 @@ namespace eval ::xotcl {
       if {![info exists :methodname]} {
         set :methodname ${:name}
       }
-      ${:domain} __invalidateobjectparameter
+      if {[::xotcl::is ${:domain} class]} {
+        ${:domain} __invalidateobjectparameter
+      } 
+      if {${:per-object} && [info exists :default] } {
+        ::xotcl::setinstvar ${:domain} ${:name} ${:default}
+      }
       set cl [expr {${:per-object} ? "Object" : "Class"}]
       #puts stderr "Slot [self] init, forwarder on ${:domain}"
       ::xotcl::forward ${:domain} ${:name} \
@@ -802,10 +814,12 @@ namespace eval ::xotcl {
   ############################################
   # Define method "attribute" for convenience
   ############################################
-  ::xotcl2::Object method attribute {spec {-slotclass ::xotcl::Attribute} {initblock ""}} {
+  ::xotcl2::Class method attribute {spec {-slotclass ::xotcl::Attribute} {initblock ""}} {
     $slotclass createFromParameterSyntax [self] -initblock $initblock {*}$spec
   }
-
+  ::xotcl2::Object method attribute {spec {-slotclass ::xotcl::Attribute} {initblock ""}} {
+    $slotclass createFromParameterSyntax [self] -per-object -initblock $initblock {*}$spec
+  }
   ############################################
   # Define method "parameter" for backward 
   # compatibility and convenience
