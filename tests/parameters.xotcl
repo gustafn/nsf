@@ -23,12 +23,19 @@ Test case valuecheck {
   C create c1 
 
   ? {::xotcl::valuecheck object o1} 1
+  ? {::xotcl::valuecheck integer 1} 1
   ? {::xotcl::is o1 object} 1
+  ? {::xotcl::is c1 type C} 1
+  ? {::xotcl::is2 object o1} 1
+  ? {::xotcl::is2 integer 1} 1
+  ? {::xotcl::is2 type c1 C} 1
+  ? {::xotcl::is2 type o C} 0
+
   ? {::xotcl::valuecheck class o1} {expected class but got "o1" for parameter value}
   ? {::xotcl::valuecheck -nocomplain class o1} 0
   ? {::xotcl::valuecheck class Test} 1
   ? {::xotcl::valuecheck object,multivalued [list o1 Test]} 1
-  ? {::xotcl::valuecheck integer 1} 1
+
   ? {::xotcl::valuecheck integer,multivalued [list 1 2 3]} 1
   ? {::xotcl::valuecheck integer,multivalued [list 1 2 3 a]} \
       {invalid value in "1 2 3 a": expected integer but got "a" for parameter value}

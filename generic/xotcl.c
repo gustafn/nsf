@@ -12478,7 +12478,7 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *o
   ClientData checkedData;
   XOTclParam *paramPtr;
   Tcl_Obj *outObjPtr;
-  int result, flags;
+  int result, flags = 0;
 
   if (objPtr->typePtr == &paramObjType) {
     paramPtr = (XOTclParam *) objPtr->internalRep.twoPtrValue.ptr1;
@@ -12514,6 +12514,51 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *o
 
   return result;
 }
+
+
+/*
+xotclCmd is2 XOTclIs2Cmd {
+  {-argName "constraint" -required 1 -type tclobj}
+  {-argName "value" -required 1 -type tclobj}
+  {-argName "arg" -required 0 -type tclobj}
+}
+*/
+static int XOTclIs2Cmd(Tcl_Interp *interp, Tcl_Obj *constraintObj, Tcl_Obj *value, Tcl_Obj *arg) {
+  int result = TCL_OK;
+  char *constraintString = ObjStr(constraintObj);
+  XOTclObject *object;
+  XOTclClass *cl;
+
+  if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<constraint> <value> ?<type>?");
+
+  if (isTypeString(constraintString)) {
+    int success;
+    if (arg== NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "type <object> <type>");
+    success = (GetObjectFromObj(interp, value, &object) == TCL_OK)
+      && (GetClassFromObj(interp, arg, &cl, 0) == TCL_OK)
+      && isSubType(object->cl, cl);
+
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
+
+  } else if (arg != NULL) {
+    Tcl_Obj *paramObj =   Tcl_DuplicateObj(value);
+
+    INCR_REF_COUNT(paramObj);
+    Tcl_AppendToObj(paramObj, ",arg=", 5);
+    Tcl_AppendObjToObj(paramObj, arg);
+    
+    result = XOTclValuecheckCmd(interp, 1, paramObj, value);
+    DECR_REF_COUNT(paramObj);
+  } else {
+    result = XOTclValuecheckCmd(interp, 1, constraintObj, value);
+  }
+
+  return result;
+}
+
+
+
+
 
 /***************************
  * End generated XOTcl commands

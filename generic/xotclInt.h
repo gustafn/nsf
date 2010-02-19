@@ -137,7 +137,9 @@ typedef struct XOTclMemCounter {
 #define isInitString(m) (\
 	*m   == 'i' && m[1] == 'n' && m[2] == 'i' && m[3] == 't' && \
 	m[4] == '\0')
-
+#define isTypeString(m) (\
+	*m   == 't' && m[1] == 'y' && m[2] == 'p' && m[3] == 'e' && \
+	m[4] == '\0')
 
 #if (defined(sun) || defined(__hpux)) && !defined(__GNUC__)
 #  define USE_ALLOCA

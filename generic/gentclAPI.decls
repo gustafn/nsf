@@ -86,6 +86,11 @@ xotclCmd is XOTclIsCmd {
   {-argName "objectkind" -type "type|object|class|baseclass|metaclass|hasmixin"}
   {-argName "value" -required 0 -type tclobj}
 }
+xotclCmd is2 XOTclIs2Cmd {
+  {-argName "constraint" -required 1 -type tclobj}
+  {-argName "value" -required 1 -type tclobj}
+  {-argName "arg" -required 0 -type tclobj}
+}
 xotclCmd method XOTclMethodCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
