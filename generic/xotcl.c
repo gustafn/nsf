@@ -12518,26 +12518,45 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *o
 
 /*
 xotclCmd is2 XOTclIs2Cmd {
-  {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
+  {-argName "constraint" -required 1 -type tclobj}
+  {-argName "-hasmixin" -required 0 -nrargs 1 -type tclobj}
+  {-argName "-type" -required 0 -nrargs 1 -type tclobj}
   {-argName "arg" -required 0 -type tclobj}
 }
 */
-static int XOTclIs2Cmd(Tcl_Interp *interp, Tcl_Obj *constraintObj, Tcl_Obj *value, Tcl_Obj *arg) {
-  int result = TCL_OK;
+static int XOTclIs2Cmd(Tcl_Interp *interp, Tcl_Obj *value, Tcl_Obj *constraintObj, 
+                       Tcl_Obj *withHasmixin, Tcl_Obj *withType, Tcl_Obj *arg) {
+  int result = TCL_OK, success;
   char *constraintString = ObjStr(constraintObj);
   XOTclObject *object;
-  XOTclClass *cl;
-
-  if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<constraint> <value> ?<type>?");
+  XOTclClass *typeClass, *mixinClass;
 
   if (isTypeString(constraintString)) {
-    int success;
     if (arg== NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "type <object> <type>");
     success = (GetObjectFromObj(interp, value, &object) == TCL_OK)
-      && (GetClassFromObj(interp, arg, &cl, 0) == TCL_OK)
-      && isSubType(object->cl, cl);
+      && (GetClassFromObj(interp, arg, &typeClass, 0) == TCL_OK)
+      && isSubType(object->cl, typeClass);
 
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
+
+  } else if (withHasmixin || withType) {
+    if ((!isObjectString(constraintString) && !isClassString(constraintString)) || arg != NULL) {
+      return XOTclObjErrArgCnt(interp, NULL, NULL, "object|class <object> ?-hasmixin cl? ?-type cl?");
+    }
+    if (*constraintString == 'o') {
+      success = (GetObjectFromObj(interp, value, &object) == TCL_OK);
+    } else {
+      success = (GetClassFromObj(interp, value, (XOTclClass **)&object, 0) == TCL_OK);
+    }
+    if (success && withType) {
+      success = (GetClassFromObj(interp, withType, &typeClass, 0) == TCL_OK)
+        && isSubType(object->cl, typeClass);
+    }
+    if (success && withHasmixin) {
+      success = (GetClassFromObj(interp, withHasmixin, &mixinClass, 0) == TCL_OK)
+        && hasMixin(interp, object, mixinClass);
+    }
     Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
 
   } else if (arg != NULL) {
@@ -13859,48 +13878,49 @@ static int XOTclClassInfoMixinguardMethod(Tcl_Interp *interp, XOTclClass * class
   return class->opt ? GuardList(interp, class->opt->classmixins, mixin) : TCL_OK;
 }
 
-static int XOTclClassInfoClassMixinOfMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure,
-				char *patternString, XOTclObject *patternObj) {
+static int XOTclClassInfoMixinOfMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure, int withScope,
+                                       char *patternString, XOTclObject *patternObj) {
   XOTclClassOpt *opt = class->opt;
+  int perClass, perObject;
   int rc;
 
-  if (opt) {
-    if (withClosure) {
-      Tcl_HashTable objTable, *commandTable = &objTable;
-      MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-      Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-      rc = getAllClassMixinsOf(interp, commandTable, class, 0, 1, patternString, patternObj);
-      MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
-    } else {
-      rc = AppendMatchingElementsFromCmdList(interp, opt->isClassMixinOf,
-                                             patternString, patternObj);
-    }
-    if (patternObj) {
-      Tcl_SetObjResult(interp, rc ? patternObj->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
-    }
+  if (withScope == ScopeNULL || withScope == ScopeAllIdx) {
+    perClass = 1;
+    perObject = 1;
+  } else if (withScope == ScopeClassIdx) {
+    perClass = 1;
+    perObject = 0;
+  } else {
+    perClass = 0;
+    perObject = 1;
   }
-  return TCL_OK;
-}
-
-static int XOTclClassInfoObjectMixinOfMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure,
-                            char *patternString, XOTclObject *patternObj) {
-  XOTclClassOpt *opt = class->opt;
-  int rc = 0;
 
   if (opt && !withClosure) {
-    rc = AppendMatchingElementsFromCmdList(interp, opt->isObjectMixinOf, patternString, patternObj);
+    if (perClass) {
+      rc = AppendMatchingElementsFromCmdList(interp, opt->isClassMixinOf, patternString, patternObj);
+      if (rc && patternObj) {goto finished;}
+    }
+    if (perObject) {
+      rc = AppendMatchingElementsFromCmdList(interp, opt->isObjectMixinOf, patternString, patternObj);
+    }
   } else if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;
     MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
     Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
-    rc = getAllObjectMixinsOf(interp, commandTable, class, 0, 1, patternString, patternObj);
+    if (perClass) {
+      rc = getAllClassMixinsOf(interp, commandTable, class, 0, 1, patternString, patternObj);
+      if (rc && patternObj) {goto finished;}
+    }
+    if (perObject) {
+      rc = getAllObjectMixinsOf(interp, commandTable, class, 0, 1, patternString, patternObj);
+    }
     MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
   }
-
+  
+ finished:
   if (patternObj) {
     Tcl_SetObjResult(interp, rc ? patternObj->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
   }
-
   return TCL_OK;
 }
 

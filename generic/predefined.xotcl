@@ -206,20 +206,6 @@ namespace eval xotcl2 {
   }
 
   classInfo eval {
-    :public method mixinof {obj -closure:switch {-scope all} pattern:optional} {
-      # scope eq "all" or "object" returns objects, scope eq "class" returns classes
-      set withClosure [expr {$closure ? "-closure" : ""}]
-      set withPattern [expr {[info exists pattern] ? $pattern : ""}]
-      if {$scope eq "all"} {
-        set r [::xotcl::cmd::ClassInfo::object-mixin-of $obj {*}$withClosure {*}$withPattern]
-        foreach c [::xotcl::cmd::ClassInfo::class-mixin-of $obj {*}$withClosure] {
-          lappend r {*}[$c info instances {*}$withPattern]
-        }
-        return [lsort -unique $r]
-      } else {
-        return [::xotcl::cmd::ClassInfo::$scope-mixin-of $obj {*}$withClosure {*}$withPattern]
-      }
-    }
     :alias is ::xotcl::is
     :alias classparent ::xotcl::cmd::ObjectInfo::parent
     :alias classchildren ::xotcl::cmd::ObjectInfo::children

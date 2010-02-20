@@ -140,6 +140,12 @@ typedef struct XOTclMemCounter {
 #define isTypeString(m) (\
 	*m   == 't' && m[1] == 'y' && m[2] == 'p' && m[3] == 'e' && \
 	m[4] == '\0')
+#define isObjectString(m) (\
+	*m   == 'o' && m[1] == 'b' && m[2] == 'j' && m[3] == 'e' && \
+	m[4] == 'c' && m[5] == 't' && m[6] == '\0')
+#define isClassString(m) (\
+	*m   == 'c' && m[1] == 'l' && m[2] == 'a' && m[3] == 's' && \
+	m[4] == 's' && m[5] == '\0')
 
 #if (defined(sun) || defined(__hpux)) && !defined(__GNUC__)
 #  define USE_ALLOCA

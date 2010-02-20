@@ -87,8 +87,10 @@ xotclCmd is XOTclIsCmd {
   {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd is2 XOTclIs2Cmd {
-  {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
+  {-argName "constraint" -required 1 -type tclobj}
+  {-argName "-hasmixin" -required 0 -nrargs 1 -type tclobj}
+  {-argName "-type" -required 0 -nrargs 1 -type tclobj}
   {-argName "arg" -required 0 -type tclobj}
 }
 xotclCmd method XOTclMethodCmd {
@@ -379,14 +381,10 @@ infoClassMethod mixinguard XOTclClassInfoMixinguardMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "mixin" -required 1}
 }
-infoClassMethod class-mixin-of  XOTclClassInfoClassMixinOfMethod {
+infoClassMethod mixinof  XOTclClassInfoMixinOfMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
-  {-argName "pattern" -type objpattern}
-}
-infoClassMethod object-mixin-of  XOTclClassInfoObjectMixinOfMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "-closure"}
+  {-argName "-scope" -required 0 -nrargs 1 -type "all|class|object"}
   {-argName "pattern" -type objpattern}
 }
 infoClassMethod parameter XOTclClassInfoParameterMethod {

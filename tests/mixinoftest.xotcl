@@ -481,31 +481,35 @@ foreach o {A O B a1 b1 o1} {$o destroy}
 ###########################################
 # testing simple per object mixins
 ###########################################
-Test case xotcl2-mixinof
-Class create M
-Class create A
-Class create C
-C create c1 -mixin A
-C create c2
-? {c1 mixin} ::A
-? {c1 info mixin} ::A
-? {A info mixinof} ::c1
-? {M info mixinof} ""
-C mixin M
-? {M info mixinof} "::c1 ::c2"
-? {M info mixinof -scope object} ""
-? {M info mixinof -scope class} "::C"
-? {A info mixinof} "::c1"
-? {A info mixinof -scope object} "::c1"
-? {A info mixinof -scope class} ""
+Test case xotcl2-mixinof {
+  Class create M
+  Class create A
+  Class create C
+  C create c1 -mixin A
+  C create c2
+  Class create C2 -mixin A
+  C2 create c22
 
-c1 destroy
-? {A info mixinof} ""
-? {M info mixinof} "::c2"
-c2 destroy
-? {M info mixinof} ""
+  ? {c1 mixin} ::A
+  ? {c1 info mixin} ::A
+  ? {lsort [A info mixinof]} "::C2 ::c1"
+  ? {M info mixinof} ""
+  C mixin M
+  #? {M info mixinof -scope object} "::c1 ::c2"
+  ? {M info mixinof -scope object} ""
+  ? {M info mixinof -scope class} "::C"
+  ? {M info mixinof -scope all} "::C"
+  ? {M info mixinof} "::C"
 
-A destroy
-C destroy
-M destroy
+  ? {lsort [A info mixinof]} "::C2 ::c1"
+  ? {A info mixinof -scope object} "::c1"
+  ? {A info mixinof -scope class} "::C2"
+  
+  c1 destroy
+  ? {A info mixinof} "::C2"
+  ? {M info mixinof} "::C"
+  C destroy
+  ? {M info mixinof} ""
+}
+
 
