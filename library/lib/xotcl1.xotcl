@@ -355,8 +355,8 @@ namespace eval ::xotcl {
     ::xotcl::alias ::xotcl::classInfo $cmdName $cmd
   }
 
-  ::xotcl::alias ::xotcl::objectInfo is ::xotcl::is
-  ::xotcl::alias ::xotcl::classInfo is ::xotcl::is
+  ::xotcl::alias ::xotcl::objectInfo is ::xotcl::objectproperty
+  ::xotcl::alias ::xotcl::classInfo is ::xotcl::objectproperty
   ::xotcl::alias ::xotcl::classInfo classparent ::xotcl::cmd::ObjectInfo::parent
   ::xotcl::alias ::xotcl::classInfo classchildren ::xotcl::cmd::ObjectInfo::children
   ::xotcl::alias ::xotcl::classInfo instmixin ::xotcl::cmd::ClassInfo::mixin

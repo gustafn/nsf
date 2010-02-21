@@ -188,7 +188,7 @@ namespace eval xotcl2 {
   # we have no working objectparameter yet due to bootstrapping
   #
   objectInfo eval {
-    :alias is ::xotcl::is
+    :alias is ::xotcl::objectproperty
 
     # info info
     :public method info {obj} {
@@ -206,7 +206,7 @@ namespace eval xotcl2 {
   }
 
   classInfo eval {
-    :alias is ::xotcl::is
+    :alias is ::xotcl::objectproperty
     :alias classparent ::xotcl::cmd::ObjectInfo::parent
     :alias classchildren ::xotcl::cmd::ObjectInfo::children
     :alias info [::xotcl::cmd::ObjectInfo::method objectInfo name info]
