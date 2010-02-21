@@ -288,7 +288,7 @@ namespace eval ::xotcl {
   ::xotcl::MetaSlot public method slotName {name baseObject} {
     # Create slot parent object if needed
     set slotParent ${baseObject}::slot
-    if {![::xotcl::is ${slotParent} object]} {
+    if {![::xotcl::objectproperty ${slotParent} object]} {
       ::xotcl2::Object create ${slotParent}
     }
     return ${slotParent}::$name
@@ -338,7 +338,7 @@ namespace eval ::xotcl {
   
   # ::xotcl::MetaSlot public method new args {
   #   set slotobject [::xotcl::self callingobject]::slot
-  #   if {![::xotcl::is $slotobject object]} {::xotcls::Object create $slotobject}
+  #   if {![::xotcl::objectproperty $slotobject object]} {::xotcls::Object create $slotobject}
   #   eval next -childof $slotobject $args
   # }
 
@@ -453,7 +453,7 @@ namespace eval ::xotcl {
   }
   
   ::xotcl::ObjectParameterSlot public method destroy {} {
-    if {${:domain} ne "" && [::xotcl::is ${:domain} class]} {
+    if {${:domain} ne "" && [::xotcl::objectproperty ${:domain} class]} {
       ${:domain} __invalidateobjectparameter
     }
     next
@@ -467,7 +467,7 @@ namespace eval ::xotcl {
       if {![info exists :methodname]} {
         set :methodname ${:name}
       }
-      if {[::xotcl::is ${:domain} class]} {
+      if {[::xotcl::objectproperty ${:domain} class]} {
         ${:domain} __invalidateobjectparameter
       } 
       if {${:per-object} && [info exists :default] } {
@@ -505,7 +505,7 @@ namespace eval ::xotcl {
     }
     if {[info exists :type]} {
       if {[string match ::* ${:type}]} {
-	set type [expr {[::xotcl::is ${:type} metaclass] ? "class" : "object"}]
+	set type [expr {[::xotcl::objectproperty ${:type} metaclass] ? "class" : "object"}]
         lappend objopts type=${:type}
         lappend methodopts type=${:type}
       } else {
@@ -567,7 +567,7 @@ namespace eval ::xotcl {
     foreach slot [::xotcl2::objectInfo slotobjects $obj] {
       # Skip some slots for xotcl1; 
       # TODO: maybe different parameterFromSlots for xotcl1?
-      if {[::xotcl::is $obj type ::xotcl::Object] && 
+      if {[::xotcl::objectproperty $obj type ::xotcl::Object] && 
           ([$slot name] eq "mixin" || [$slot name] eq "filter")
         } continue
       array set "" [$slot toParameterSyntax]
@@ -579,7 +579,7 @@ namespace eval ::xotcl {
   ::xotcl2::Object protected method objectparameter {} {
     #puts stderr "... objectparameter [self]"
     set parameterdefinitions [::xotcl::parametersFromSlots [self]]
-    if {[::xotcl::is [self] class]} {
+    if {[::xotcl::objectproperty [self] class]} {
       lappend parameterdefinitions -parameter:method,optional
     }
     lappend parameterdefinitions \
@@ -621,12 +621,12 @@ namespace eval ::xotcl {
       # value contains no globbing meta characters, but elementtype is given
       if {[string first :: $value] == -1} {
 	# get fully qualified name
-        if {![::xotcl::is $value object]} {
+        if {![::xotcl::objectproperty $value object]} {
           error "$value does not appear to be an object"
         }
         set value [::xotcl::dispatch $value -objscope ::xotcl::self]
       }
-      if {![::xotcl::is ${:elementtype} class]} {
+      if {![::xotcl::objectproperty ${:elementtype} class]} {
         error "$value does not appear to be of type ${:elementtype}"
       }
     }
@@ -868,7 +868,7 @@ namespace eval ::xotcl {
   :protected method init {} {
     :public method new {-childof args} {
       ::xotcl::importvar [::xotcl::self class] {container object} withclass
-      if {![::xotcl::is $object object]} {
+      if {![::xotcl::objectproperty $object object]} {
         $withclass create $object
       }
       eval ::xotcl::next -childof $object $args
@@ -890,17 +890,17 @@ namespace eval ::xotcl {
    cmds
  } {
   if {![info exists object]} {set object [::xotcl::self]}
-  if {![::xotcl::is $object object]} {$class create $object}
+  if {![::xotcl::objectproperty $object object]} {$class create $object}
   $object requireNamespace
   if {$withnew} {
     set m [::xotcl::ScopedNew new -volatile \
 	       -container $object -withclass $class]
     ::xotcl2::Class mixin add $m end
     # TODO: the following is not pretty; however, contains might build xotcl1 and xotcl2 objects.
-    if {[::xotcl::is ::xotcl::Class class]} {::xotcl::Class instmixin add $m end}
+    if {[::xotcl::objectproperty ::xotcl::Class class]} {::xotcl::Class instmixin add $m end}
     namespace eval $object $cmds
     ::xotcl2::Class mixin delete $m
-    if {[::xotcl::is ::xotcl::Class class]} {::xotcl::Class instmixin delete $m}
+    if {[::xotcl::objectproperty ::xotcl::Class class]} {::xotcl::Class instmixin delete $m}
   } else {
     namespace eval $object $cmds
   }
@@ -921,7 +921,7 @@ namespace eval ::xotcl {
   :method makeTargetList {t} {
     lappend :targetList $t
     # if it is an object without namespace, it is a leaf
-    if {[::xotcl::is $t object]} {
+    if {[::xotcl::objectproperty $t object]} {
       if {[$t info hasnamespace]} {
         # make target list from all children
         set children [$t info children]
@@ -933,7 +933,7 @@ namespace eval ::xotcl {
     # now append all namespaces that are in the obj, but that
     # are not objects
     foreach c [namespace children $t] {
-      if {![::xotcl::is $c object]} {
+      if {![::xotcl::objectproperty $c object]} {
         lappend children [namespace children $t]
       }
     }
@@ -961,9 +961,9 @@ namespace eval ::xotcl {
     #puts stderr "COPY will copy targetList = [set :targetList]"
     foreach origin [set :targetList] {
       set dest [:getDest $origin]
-      if {[::xotcl::is $origin object]} {
+      if {[::xotcl::objectproperty $origin object]} {
         # copy class information
-        if {[::xotcl::is $origin class]} {
+        if {[::xotcl::objectproperty $origin class]} {
           set cl [[$origin info class] create $dest -noinit]
           # class object
           set obj $cl
@@ -991,7 +991,7 @@ namespace eval ::xotcl {
       foreach i [$origin info forward] {
         eval [concat $dest forward $i [$origin info forward -definition $i]]
       }
-      if {[::xotcl::is $origin class]} {
+      if {[::xotcl::objectproperty $origin class]} {
         foreach i [$origin info instforward] {
           eval [concat $dest instforward $i [$origin info instforward -definition $i]]
         }
@@ -1014,7 +1014,7 @@ namespace eval ::xotcl {
     }
     # alter 'domain' and 'manager' in slot objects for classes
     foreach origin [set :targetList] {
-      if {[::xotcl::is $origin class]} {
+      if {[::xotcl::objectproperty $origin class]} {
         set dest [:getDest $origin]
         foreach oldslot [$origin info slots] {
           set newslot [::xotcl::Slot slotName [namespace tail $oldslot] $dest] 
@@ -1047,7 +1047,7 @@ namespace eval ::xotcl {
       :copy $newName
     }
     ### let all subclasses get the copied class as superclass
-    if {[::xotcl::is [::xotcl::self] class] && $newName ne ""} {
+    if {[::xotcl::objectproperty [::xotcl::self] class] && $newName ne ""} {
       foreach subclass [:info subclass] {
         set scl [$subclass info superclass]
         if {[set index [lsearch -exact $scl [::xotcl::self]]] != -1} {
