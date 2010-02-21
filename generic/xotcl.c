@@ -11465,12 +11465,10 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *value, Tcl_Obj *constraintObj
     Tcl_AppendToObj(paramObj, ",arg=", 5);
     Tcl_AppendObjToObj(paramObj, arg);
     
-    result = XOTclValuecheckCmd(interp, 1, paramObj, value);
+    result = XOTclParametercheckCmd(interp, 1, paramObj, value);
     DECR_REF_COUNT(paramObj);
   } else {
-    INCR_REF_COUNT(constraintObj);
-    result = XOTclValuecheckCmd(interp, 1, constraintObj, value);
-    DECR_REF_COUNT(constraintObj);
+    result = XOTclParametercheckCmd(interp, 1, constraintObj, value);
   }
 
   return result;
@@ -12564,20 +12562,20 @@ ParamSetFromAny(
 }
 
 /*
-xotclCmd valuecheck XOTclValuecheckCmd {
+xotclCmd parametercheck XOTclParametercheckCmd {
   {-argName "param" -type tclobj}
   {-argName "-nocomplain"}
   {-argName "value" -required 0 -type tclobj}
   } 
 */
-static int XOTclValuecheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *objPtr, Tcl_Obj *value) {
+static int XOTclParametercheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *objPtr, Tcl_Obj *value) {
   XOTclParamWrapper *paramWrapperPtr;
   XOTclParam *paramPtr;
   ClientData checkedData;
   Tcl_Obj *outObjPtr;
   int result, flags = 0;
 
-  /*fprintf(stderr, "XOTclValuecheckCmd %s %s\n",ObjStr(objPtr), ObjStr(value));*/
+  /*fprintf(stderr, "XOTclParametercheckCmd %s %s\n",ObjStr(objPtr), ObjStr(value));*/
 
   if (objPtr->typePtr == &paramObjType) {
     paramWrapperPtr = (XOTclParamWrapper *) objPtr->internalRep.twoPtrValue.ptr1;
@@ -12611,10 +12609,10 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *o
     Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
   }
 
-  /*fprintf(stderr, "XOTclValuecheckCmd paramPtr %p final refcount of wrapper %d can free %d\n",paramPtr, 
+  /*fprintf(stderr, "XOTclParametercheckCmd paramPtr %p final refcount of wrapper %d can free %d\n",paramPtr, 
           paramWrapperPtr->refCount,  paramWrapperPtr->canFree);*/
   if (paramWrapperPtr->refCount == 0) {
-    /* fprintf(stderr, "XOTclValuecheckCmd paramPtr %p manual free\n",paramPtr);*/
+    /* fprintf(stderr, "XOTclParametercheckCmd paramPtr %p manual free\n",paramPtr);*/
     ParamsFree(paramWrapperPtr->paramPtr);
     FREE(XOTclParamWrapper, paramWrapperPtr);
   } else {

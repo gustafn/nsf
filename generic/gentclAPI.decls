@@ -124,6 +124,11 @@ xotclCmd objectproperty XOTclObjectpropertyCmd {
   {-argName "objectkind" -type "type|object|class|baseclass|metaclass|hasmixin"}
   {-argName "value" -required 0 -type tclobj}
 }
+xotclCmd parametercheck XOTclParametercheckCmd {
+  {-argName "-nocomplain"}
+  {-argName "param" -type tclobj}
+  {-argName "value" -required 0 -type tclobj}
+}
 xotclCmd __qualify XOTclQualifyObjCmd {
   {-argName "name" -required 1 -type tclobj}
 }
@@ -144,11 +149,6 @@ xotclCmd setter XOTclSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "parameter" -type tclobj}
-}
-xotclCmd valuecheck XOTclValuecheckCmd {
-  {-argName "-nocomplain"}
-  {-argName "param" -type tclobj}
-  {-argName "value" -required 0 -type tclobj}
 }
 #
 # object methods

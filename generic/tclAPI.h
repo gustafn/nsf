@@ -209,11 +209,11 @@ static int XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 static int XOTclNSCopyCmdsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjectpropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclParametercheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclValuecheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name);
 static int XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, char *name, int objc, Tcl_Obj *CONST objv[]);
@@ -290,11 +290,11 @@ static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int no
 static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_Obj *value);
+static int XOTclParametercheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *param, Tcl_Obj *value);
 static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *parameter);
-static int XOTclValuecheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *param, Tcl_Obj *value);
 
 enum {
  XOTclCAllocMethodIdx,
@@ -372,11 +372,11 @@ enum {
  XOTclNSCopyCmdsIdx,
  XOTclNSCopyVarsIdx,
  XOTclObjectpropertyCmdIdx,
+ XOTclParametercheckCmdIdx,
  XOTclQualifyObjCmdIdx,
  XOTclRelationCmdIdx,
  XOTclSetInstvarCmdIdx,
- XOTclSetterCmdIdx,
- XOTclValuecheckCmdIdx
+ XOTclSetterCmdIdx
 } XOTclMethods;
 
 
@@ -1859,6 +1859,26 @@ XOTclObjectpropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 }
 
 static int
+XOTclParametercheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclParametercheckCmdIdx].paramDefs, 
+                     method_definitions[XOTclParametercheckCmdIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int withNocomplain = (int )PTR2INT(pc.clientData[0]);
+    Tcl_Obj *param = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return XOTclParametercheckCmd(interp, withNocomplain, param, value);
+
+  }
+}
+
+static int
 XOTclQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
@@ -1932,26 +1952,6 @@ XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
     parseContextRelease(&pc);
     return XOTclSetterCmd(interp, object, withPer_object, parameter);
-
-  }
-}
-
-static int
-XOTclValuecheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclValuecheckCmdIdx].paramDefs, 
-                     method_definitions[XOTclValuecheckCmdIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    int withNocomplain = (int )PTR2INT(pc.clientData[0]);
-    Tcl_Obj *param = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
-
-    parseContextRelease(&pc);
-    return XOTclValuecheckCmd(interp, withNocomplain, param, value);
 
   }
 }
@@ -2295,6 +2295,11 @@ static methodDefinition method_definitions[] = {
   {"objectkind", 0, 0, convertToObjectkind},
   {"value", 0, 0, convertToTclobj}}
 },
+{"::xotcl::parametercheck", XOTclParametercheckCmdStub, 3, {
+  {"-nocomplain", 0, 0, convertToString},
+  {"param", 0, 0, convertToTclobj},
+  {"value", 0, 0, convertToTclobj}}
+},
 {"::xotcl::__qualify", XOTclQualifyObjCmdStub, 1, {
   {"name", 1, 0, convertToTclobj}}
 },
@@ -2312,11 +2317,6 @@ static methodDefinition method_definitions[] = {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"parameter", 0, 0, convertToTclobj}}
-},
-{"::xotcl::valuecheck", XOTclValuecheckCmdStub, 3, {
-  {"-nocomplain", 0, 0, convertToString},
-  {"param", 0, 0, convertToTclobj},
-  {"value", 0, 0, convertToTclobj}}
 },{NULL}
 };
 

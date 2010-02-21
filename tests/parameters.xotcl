@@ -13,10 +13,10 @@ Test case dummy {
 #exit
 
 #######################################################
-# valuecheck
+# parametercheck
 #######################################################
 Test parameter count 10000
-Test case valuecheck {
+Test case parametercheck {
 
   Object create o1
   Class create C -parameter {a {b:boolean} {c 1}}
@@ -24,8 +24,8 @@ Test case valuecheck {
   Class create M
   c1 mixin M
 
-  ? {::xotcl::valuecheck object o1} 1
-  ? {::xotcl::valuecheck integer 1} 1
+  ? {::xotcl::parametercheck object o1} 1
+  ? {::xotcl::parametercheck integer 1} 1
 
   ? {::xotcl::objectproperty o1 object} 1
   ? {::xotcl::objectproperty c1 type C} 1
@@ -41,39 +41,39 @@ Test case valuecheck {
   ? {::xotcl::is o object -type C} 0
   ? {::xotcl::is o object -hasmixin C} 0
 #exit
-  ? {::xotcl::valuecheck class o1} {expected class but got "o1" for parameter value}
-  ? {::xotcl::valuecheck -nocomplain class o1} 0
-  ? {::xotcl::valuecheck class Test} 1
-  ? {::xotcl::valuecheck object,multivalued [list o1 Test]} 1
+  ? {::xotcl::parametercheck class o1} {expected class but got "o1" for parameter value}
+  ? {::xotcl::parametercheck -nocomplain class o1} 0
+  ? {::xotcl::parametercheck class Test} 1
+  ? {::xotcl::parametercheck object,multivalued [list o1 Test]} 1
 
-  ? {::xotcl::valuecheck integer,multivalued [list 1 2 3]} 1
-  ? {::xotcl::valuecheck integer,multivalued [list 1 2 3 a]} \
+  ? {::xotcl::parametercheck integer,multivalued [list 1 2 3]} 1
+  ? {::xotcl::parametercheck integer,multivalued [list 1 2 3 a]} \
       {invalid value in "1 2 3 a": expected integer but got "a" for parameter value}
-  ? {::xotcl::valuecheck object,type=::C c1} 1
-  ? {::xotcl::valuecheck object,type=::C o} \
+  ? {::xotcl::parametercheck object,type=::C c1} 1
+  ? {::xotcl::parametercheck object,type=::C o} \
       {expected object but got "o" for parameter value} \
       "object, but different type"
-  ? {::xotcl::valuecheck object,type=::C c} \
+  ? {::xotcl::parametercheck object,type=::C c} \
       {expected object but got "c" for parameter value} \
       "no object"
-  ? {::xotcl::valuecheck object,type=::xotcl2::Object c1} 1 "general type"
+  ? {::xotcl::parametercheck object,type=::xotcl2::Object c1} 1 "general type"
   
-  # do not allow "currently unknown" user defined types in valuecheck
-  ? {::xotcl::valuecheck in1 aaa} {invalid value constraints "in1"}
+  # do not allow "currently unknown" user defined types in parametercheck
+  ? {::xotcl::parametercheck in1 aaa} {invalid value constraints "in1"}
   
-  ? {::xotcl::valuecheck lower c} 1 "lower case char"
-  ? {::xotcl::valuecheck lower abc} 1 "lower case chars"
-  ? {::xotcl::valuecheck lower Abc} {expected lower but got "Abc" for parameter value} 
+  ? {::xotcl::parametercheck lower c} 1 "lower case char"
+  ? {::xotcl::parametercheck lower abc} 1 "lower case chars"
+  ? {::xotcl::parametercheck lower Abc} {expected lower but got "Abc" for parameter value} 
   ? {string is lower abc} 1 "tcl command 'string is lower'"
   
-  ? {::xotcl::valuecheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
+  ? {::xotcl::parametercheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
 }
 
 #######################################################
-# valuecheck
+# parametercheck
 #######################################################
 Test parameter count 10000
-Test case valuecheck {
+Test case parametercheck {
 
   Object create ::paramManager {
     :method type=sex {name value} {
@@ -81,7 +81,7 @@ Test case valuecheck {
     }
   }
   
-  ? {::xotcl::valuecheck sex,slot=::paramManager female} "1"
+  ? {::xotcl::parametercheck sex,slot=::paramManager female} "1"
 }
 #######################################################
 # cononical feature table
@@ -104,7 +104,7 @@ Test case valuecheck {
 #                  specified value is the first argument unless "noarg" is used  
 #                  (example: -noinit).
 #
-# parameter type   multivalued  required  noarg  type=   arg=  valueCheck  methodParm  objectParm
+# parameter type   multivalued  required  noarg  type=   arg=  parametercheck  methodParm  objectParm
 #  initcmd            NO         YES        NO    NO      NO      NO       NO/POSSIBLE    YES
 #  method             NO         YES        YES   NO      YES     NO       NO/POSSIBLE    YES
 #
@@ -848,11 +848,11 @@ Test case multivalued-app-converter {
     # values into emtpy strings.
   }
   
-  ? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {1 0}} \
+  ? {::xotcl::parametercheck mType,slot=::tmpObj,multivalued {1 0}} \
       {invalid value in "1 0": expected false but got 1} \
       "fail on first value"
-  ? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
-  ? {::xotcl::valuecheck mType,slot=::tmpObj,multivalued {0 1}} \
+  ? {::xotcl::parametercheck mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
+  ? {::xotcl::parametercheck mType,slot=::tmpObj,multivalued {0 1}} \
       {invalid value in "0 1": expected false but got 1} \
       "fail o last value"
 }
@@ -872,7 +872,7 @@ Test case shadowing-app-converter {
     }
   }
   
-  ? {::xotcl::valuecheck integer,slot=::mySlot 1} 1 
+  ? {::xotcl::parametercheck integer,slot=::mySlot 1} 1 
   ? {o foo 3} 4
 }
 
