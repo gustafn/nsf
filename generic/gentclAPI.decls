@@ -82,11 +82,6 @@ xotclCmd interp XOTclInterpObjCmd {
   {-argName "args" -type allargs}
 }
 xotclCmd is XOTclIsCmd {
-  {-argName "object" -required 1 -type tclobj}
-  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|hasmixin"}
-  {-argName "value" -required 0 -type tclobj}
-}
-xotclCmd is2 XOTclIs2Cmd {
   {-argName "value" -required 1 -type tclobj}
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "-hasmixin" -required 0 -nrargs 1 -type tclobj}
@@ -123,6 +118,11 @@ xotclCmd namespace_copycmds XOTclNSCopyCmds {
 xotclCmd namespace_copyvars XOTclNSCopyVars {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
+}
+xotclCmd objectproperty XOTclObjectpropertyCmd {
+  {-argName "object" -required 1 -type tclobj}
+  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|hasmixin"}
+  {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd __qualify XOTclQualifyObjCmd {
   {-argName "name" -required 1 -type tclobj}

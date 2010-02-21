@@ -26,18 +26,20 @@ Test case valuecheck {
 
   ? {::xotcl::valuecheck object o1} 1
   ? {::xotcl::valuecheck integer 1} 1
+
+  ? {::xotcl::objectproperty o1 object} 1
+  ? {::xotcl::objectproperty c1 type C} 1
+
+  ? {::xotcl::is c1 object -type C} 1
+  ? {::xotcl::is c1 object -hasmixin M -type C} 1
+  ? {::xotcl::is c1 object -hasmixin M1 -type C} 0
+  ? {::xotcl::is c1 object -hasmixin M -type C0} 0
   ? {::xotcl::is o1 object} 1
+  ? {::xotcl::is 1 integer} 1
   ? {::xotcl::is c1 type C} 1
-  ? {::xotcl::is2 c1 object -type C} 1
-  ? {::xotcl::is2 c1 object -hasmixin M -type C} 1
-  ? {::xotcl::is2 c1 object -hasmixin M1 -type C} 0
-  ? {::xotcl::is2 c1 object -hasmixin M -type C0} 0
-  ? {::xotcl::is2 o1 object} 1
-  ? {::xotcl::is2 1 integer} 1
-  ? {::xotcl::is2 c1 type C} 1
-  ? {::xotcl::is2 o type C} 0
-  ? {::xotcl::is2 o object -type C} 0
-  ? {::xotcl::is2 o object -hasmixin C} 0
+  ? {::xotcl::is o type C} 0
+  ? {::xotcl::is o object -type C} 0
+  ? {::xotcl::is o object -hasmixin C} 0
 #exit
   ? {::xotcl::valuecheck class o1} {expected class but got "o1" for parameter value}
   ? {::xotcl::valuecheck -nocomplain class o1} 0

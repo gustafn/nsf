@@ -76,17 +76,6 @@ static int convertToSelfoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam C
 }
 enum SelfoptionIdx {SelfoptionNULL, SelfoptionProcIdx, SelfoptionClassIdx, SelfoptionActivelevelIdx, SelfoptionArgsIdx, SelfoptionActivemixinIdx, SelfoptionCalledprocIdx, SelfoptionCalledmethodIdx, SelfoptionCalledclassIdx, SelfoptionCallingprocIdx, SelfoptionCallingclassIdx, SelfoptionCallinglevelIdx, SelfoptionCallingobjectIdx, SelfoptionFilterregIdx, SelfoptionIsnextcallIdx, SelfoptionNextIdx};
   
-static int convertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
-  static CONST char *opts[] = {"type", "object", "class", "baseclass", "metaclass", "hasmixin", NULL};
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectkind", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
-  *outObjPtr = objPtr;
-  return result;
-}
-enum ObjectkindIdx {ObjectkindNULL, ObjectkindTypeIdx, ObjectkindObjectIdx, ObjectkindClassIdx, ObjectkindBaseclassIdx, ObjectkindMetaclassIdx, ObjectkindHasmixinIdx};
-  
 static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -97,6 +86,17 @@ static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPar
   return result;
 }
 enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyProtectedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertySlotobjIdx};
+  
+static int convertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int index, result;
+  static CONST char *opts[] = {"type", "object", "class", "baseclass", "metaclass", "hasmixin", NULL};
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectkind", 0, &index);
+  *clientData = (ClientData) INT2PTR(index + 1);
+  *outObjPtr = objPtr;
+  return result;
+}
+enum ObjectkindIdx {ObjectkindNULL, ObjectkindTypeIdx, ObjectkindObjectIdx, ObjectkindClassIdx, ObjectkindBaseclassIdx, ObjectkindMetaclassIdx, ObjectkindHasmixinIdx};
   
 static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -202,13 +202,13 @@ static int XOTclForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int XOTclGetSelfObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclIs2CmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclNSCopyCmdsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclObjectpropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetInstvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -283,13 +283,13 @@ static int XOTclForwardCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_
 static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption);
 static int XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclIs2Cmd(Tcl_Interp *interp, Tcl_Obj *value, Tcl_Obj *constraint, Tcl_Obj *withHasmixin, Tcl_Obj *withType, Tcl_Obj *arg);
-static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_Obj *value);
+static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *value, Tcl_Obj *constraint, Tcl_Obj *withHasmixin, Tcl_Obj *withType, Tcl_Obj *arg);
 static int XOTclMethodCmd(Tcl_Interp *interp, XOTclObject *object, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
 static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
+static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind, Tcl_Obj *value);
 static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
 static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
@@ -365,13 +365,13 @@ enum {
  XOTclGetSelfObjCmdIdx,
  XOTclImportvarCmdIdx,
  XOTclInterpObjCmdIdx,
- XOTclIs2CmdIdx,
  XOTclIsCmdIdx,
  XOTclMethodCmdIdx,
  XOTclMethodPropertyCmdIdx,
  XOTclMyCmdIdx,
  XOTclNSCopyCmdsIdx,
  XOTclNSCopyVarsIdx,
+ XOTclObjectpropertyCmdIdx,
  XOTclQualifyObjCmdIdx,
  XOTclRelationCmdIdx,
  XOTclSetInstvarCmdIdx,
@@ -1712,12 +1712,12 @@ XOTclInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 }
 
 static int
-XOTclIs2CmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclIs2CmdIdx].paramDefs, 
-                     method_definitions[XOTclIs2CmdIdx].nrParameters, 
+                     method_definitions[XOTclIsCmdIdx].paramDefs, 
+                     method_definitions[XOTclIsCmdIdx].nrParameters, 
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1728,27 +1728,7 @@ XOTclIs2CmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
     Tcl_Obj *arg = (Tcl_Obj *)pc.clientData[4];
 
     parseContextRelease(&pc);
-    return XOTclIs2Cmd(interp, value, constraint, withHasmixin, withType, arg);
-
-  }
-}
-
-static int
-XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclIsCmdIdx].paramDefs, 
-                     method_definitions[XOTclIsCmdIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
-    int objectkind = (int )PTR2INT(pc.clientData[1]);
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
-
-    parseContextRelease(&pc);
-    return XOTclIsCmd(interp, object, objectkind, value);
+    return XOTclIsCmd(interp, value, constraint, withHasmixin, withType, arg);
 
   }
 }
@@ -1854,6 +1834,26 @@ XOTclNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
     parseContextRelease(&pc);
     return XOTclNSCopyVars(interp, fromNs, toNs);
+
+  }
+}
+
+static int
+XOTclObjectpropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclObjectpropertyCmdIdx].paramDefs, 
+                     method_definitions[XOTclObjectpropertyCmdIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
+    int objectkind = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return XOTclObjectpropertyCmd(interp, object, objectkind, value);
 
   }
 }
@@ -2252,17 +2252,12 @@ static methodDefinition method_definitions[] = {
   {"name", 0, 0, convertToString},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::is2", XOTclIs2CmdStub, 5, {
+{"::xotcl::is", XOTclIsCmdStub, 5, {
   {"value", 1, 0, convertToTclobj},
   {"constraint", 1, 0, convertToTclobj},
   {"-hasmixin", 0, 1, convertToTclobj},
   {"-type", 0, 1, convertToTclobj},
   {"arg", 0, 0, convertToTclobj}}
-},
-{"::xotcl::is", XOTclIsCmdStub, 3, {
-  {"object", 1, 0, convertToTclobj},
-  {"objectkind", 0, 0, convertToObjectkind},
-  {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::method", XOTclMethodCmdStub, 9, {
   {"object", 1, 0, convertToObject},
@@ -2294,6 +2289,11 @@ static methodDefinition method_definitions[] = {
 {"::xotcl::namespace_copyvars", XOTclNSCopyVarsStub, 2, {
   {"fromNs", 1, 0, convertToTclobj},
   {"toNs", 1, 0, convertToTclobj}}
+},
+{"::xotcl::objectproperty", XOTclObjectpropertyCmdStub, 3, {
+  {"object", 1, 0, convertToTclobj},
+  {"objectkind", 0, 0, convertToObjectkind},
+  {"value", 0, 0, convertToTclobj}}
 },
 {"::xotcl::__qualify", XOTclQualifyObjCmdStub, 1, {
   {"name", 1, 0, convertToTclobj}}

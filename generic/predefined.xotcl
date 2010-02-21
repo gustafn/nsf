@@ -832,21 +832,21 @@ namespace eval ::xotcl {
   ##################################################################
 
   ::xotcl::Slot method type=hasmixin {name value arg} {
-    if {![::xotcl::is $value hasmixin $arg]} {
+    if {![::xotcl::objectproperty $value hasmixin $arg]} {
       error "expected object with mixin $arg but got \"$value\" for parameter $name"
     }
     return $value
   }
 
   ::xotcl::Slot method type=baseclass {name value} {
-    if {![::xotcl::is $value baseclass]} {
+    if {![::xotcl::objectproperty $value baseclass]} {
       error "expected baseclass but got \"$value\" for parameter $name"
     }
     return $value
   }
 
   ::xotcl::Slot method type=metaclass {name value} {
-    if {![::xotcl::is $value metaclass]} {
+    if {![::xotcl::objectproperty $value metaclass]} {
       error "expected metaclass but got \"$value\" for parameter $name"
     }
     return $value

@@ -6312,7 +6312,8 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
   ov[2] = pPtr->nameObj;
   ov[3] = objPtr;
 
-  /*fprintf(stderr, "call converter %s on %s \n", ObjStr(pPtr->converterName), ObjStr(ov[0]));*/
+  /*fprintf(stderr, "convertViaCmd call converter %s (refCount %d) on %s paramPtr %p\n", 
+    ObjStr(pPtr->converterName), pPtr->converterName->refCount, ObjStr(ov[0]), pPtr);*/
   oc = 4;
   if (pPtr->converterArg) {
     ov[4] = pPtr->converterArg;
@@ -6320,10 +6321,9 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
   }
 
   result = Tcl_EvalObjv(interp, oc, ov, 0);
-
   if (result == TCL_OK) {
-    /*fprintf(stderr, "convertViaCmd converts %s to '%s'\n", 
-      ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)));*/
+    /*fprintf(stderr, "convertViaCmd converts %s to '%s' paramPtr %p\n", 
+      ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)),pPtr);*/
     *outObjPtr = Tcl_GetObjResult(interp);
     *clientData = (ClientData) *outObjPtr;
 
@@ -11414,61 +11414,66 @@ XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[
   return TCL_OK;
 }
 
+
 /*
 xotclCmd is XOTclIsCmd {
-  {-argName "object" -required 1 -type tclobj}
-  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|hasmixin"}
-  {-argName "value" -required 0 -type tclobj}
+  {-argName "value" -required 1 -type tclobj}
+  {-argName "constraint" -required 1 -type tclobj}
+  {-argName "-hasmixin" -required 0 -nrargs 1 -type tclobj}
+  {-argName "-type" -required 0 -nrargs 1 -type tclobj}
+  {-argName "arg" -required 0 -type tclobj}
 }
 */
-static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectkind, Tcl_Obj *value) {
-  int success = TCL_ERROR;
+static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *value, Tcl_Obj *constraintObj, 
+                       Tcl_Obj *withHasmixin, Tcl_Obj *withType, Tcl_Obj *arg) {
+  int result = TCL_OK, success;
+  char *constraintString = ObjStr(constraintObj);
   XOTclObject *object;
-  XOTclClass *cl;
+  XOTclClass *typeClass, *mixinClass;
 
-  switch (objectkind) {
-  case ObjectkindTypeIdx:
-    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> type <type>");
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
-      && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK)
-      && isSubType(object->cl, cl);
-    break;
+  if (isTypeString(constraintString)) {
+    if (arg== NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "type <object> <type>");
+    success = (GetObjectFromObj(interp, value, &object) == TCL_OK)
+      && (GetClassFromObj(interp, arg, &typeClass, 0) == TCL_OK)
+      && isSubType(object->cl, typeClass);
 
-  case ObjectkindObjectIdx:
-    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> object");
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK);
-    break;
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
 
-  case ObjectkindClassIdx:
-    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<class> class");
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK) && XOTclObjectIsClass(object);
-    break;
+  } else if (withHasmixin || withType) {
+    if ((!isObjectString(constraintString) && !isClassString(constraintString)) || arg != NULL) {
+      return XOTclObjErrArgCnt(interp, NULL, NULL, "object|class <object> ?-hasmixin cl? ?-type cl?");
+    }
+    if (*constraintString == 'o') {
+      success = (GetObjectFromObj(interp, value, &object) == TCL_OK);
+    } else {
+      success = (GetClassFromObj(interp, value, (XOTclClass **)&object, 0) == TCL_OK);
+    }
+    if (success && withType) {
+      success = (GetClassFromObj(interp, withType, &typeClass, 0) == TCL_OK)
+        && isSubType(object->cl, typeClass);
+    }
+    if (success && withHasmixin) {
+      success = (GetClassFromObj(interp, withHasmixin, &mixinClass, 0) == TCL_OK)
+        && hasMixin(interp, object, mixinClass);
+    }
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
 
-  case ObjectkindMetaclassIdx:
-    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<class> metaclass");
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
-      && XOTclObjectIsClass(object)
-      && IsMetaClass(interp, (XOTclClass*)object, 1);
-    break;
+  } else if (arg != NULL) {
+    Tcl_Obj *paramObj =   Tcl_DuplicateObj(value);
 
-  case ObjectkindBaseclassIdx:
-    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> baseclass");
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
-      && XOTclObjectIsClass(object)
-      && IsBaseClass((XOTclClass*)object);
-    break;
-
-  case ObjectkindHasmixinIdx:
-    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> hasmixin <class>");
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
-      && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK)
-      && hasMixin(interp, object, cl);
-    break;
+    INCR_REF_COUNT(paramObj);
+    Tcl_AppendToObj(paramObj, ",arg=", 5);
+    Tcl_AppendObjToObj(paramObj, arg);
+    
+    result = XOTclValuecheckCmd(interp, 1, paramObj, value);
+    DECR_REF_COUNT(paramObj);
+  } else {
+    INCR_REF_COUNT(constraintObj);
+    result = XOTclValuecheckCmd(interp, 1, constraintObj, value);
+    DECR_REF_COUNT(constraintObj);
   }
 
-
-  Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
-  return TCL_OK;
+  return result;
 }
 
 /*
@@ -11943,6 +11948,65 @@ XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 }
 
 /*
+xotclCmd objectproperty XOTclObjectpropertyCmd {
+  {-argName "object" -required 1 -type tclobj}
+  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|hasmixin"}
+  {-argName "value" -required 0 -type tclobj}
+}
+*/
+static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectkind, Tcl_Obj *value) {
+  int success = TCL_ERROR;
+  XOTclObject *object;
+  XOTclClass *cl;
+
+  /* fprintf(stderr, "XOTclObjectpropertyCmd\n");*/
+
+  switch (objectkind) {
+  case ObjectkindTypeIdx:
+    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> type <type>");
+    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
+      && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK)
+      && isSubType(object->cl, cl);
+    break;
+
+  case ObjectkindObjectIdx:
+    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> object");
+    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK);
+    break;
+
+  case ObjectkindClassIdx:
+    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<class> class");
+    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK) && XOTclObjectIsClass(object);
+    break;
+
+  case ObjectkindMetaclassIdx:
+    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<class> metaclass");
+    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
+      && XOTclObjectIsClass(object)
+      && IsMetaClass(interp, (XOTclClass*)object, 1);
+    break;
+
+  case ObjectkindBaseclassIdx:
+    if (value != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> baseclass");
+    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
+      && XOTclObjectIsClass(object)
+      && IsBaseClass((XOTclClass*)object);
+    break;
+
+  case ObjectkindHasmixinIdx:
+    if (value == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> hasmixin <class>");
+    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
+      && (GetClassFromObj(interp, value, &cl, 0) == TCL_OK)
+      && hasMixin(interp, object, cl);
+    break;
+  }
+
+
+  Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
+  return TCL_OK;
+}
+
+/*
 xotclCmd __qualify XOTclQualifyObjCmd {
   {-argName "name" -required 1 -type tclobj}
 }
@@ -12412,13 +12476,32 @@ static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_o
   return result;
 }
 
-static void ParamFreeInternalRep(register Tcl_Obj *objPtr);
+typedef struct XOTclParamWrapper {
+  XOTclParam *paramPtr;
+  int refCount;
+  int canFree;
+} XOTclParamWrapper;
+
+static Tcl_DupInternalRepProc	ParamDupInteralRep;
+static Tcl_FreeInternalRepProc	ParamFreeInternalRep;
+static Tcl_UpdateStringProc	ParamUpdateString;
+
+static void ParamUpdateString(Tcl_Obj *objPtr) {
+    Tcl_Panic("%s of type %s should not be called", "updateStringProc",
+	    objPtr->typePtr->name);
+}
+
+static void ParamDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *dupPtr) {
+  Tcl_Panic("%s of type %s should not be called", "dupStringProc",
+	    srcPtr->typePtr->name);
+}
+
 static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
 static Tcl_ObjType paramObjType = {
-    "xotclParam",				/* name */
+    "xotclParam",			/* name */
     ParamFreeInternalRep,		/* freeIntRepProc */
-    NULL,				/* dupIntRepProc */
-    NULL,				/* updateStringProc */
+    ParamDupInteralRep,			/* dupIntRepProc */
+    ParamUpdateString,			/* updateStringProc */
     ParamSetFromAny			/* setFromAnyProc */
 };
 
@@ -12427,10 +12510,19 @@ ParamFreeInternalRep(
     register Tcl_Obj *objPtr)	/* Param structure object with internal
 				 * representation to free. */
 {
-  XOTclParam *paramPtr = (XOTclParam *) objPtr->internalRep.twoPtrValue.ptr1;
-  if (paramPtr != NULL) {
-    /*fprintf(stderr, "freeing %p\n",paramPtr);*/
-    ParamsFree(paramPtr);
+  XOTclParamWrapper *paramWrapperPtr = (XOTclParamWrapper *)objPtr->internalRep.twoPtrValue.ptr1;
+
+  if (paramWrapperPtr != NULL) {
+    /* fprintf(stderr, "ParamFreeInternalRep freeing wrapper %p paramPtr %p refCount %dcanFree %d\n",
+            paramWrapperPtr, paramWrapperPtr->paramPtr, paramWrapperPtr->refCount, 
+            paramWrapperPtr->canFree);*/
+
+    if (paramWrapperPtr->canFree) {
+      ParamsFree(paramWrapperPtr->paramPtr);
+      FREE(XOTclParamWrapper, paramWrapperPtr);
+    } else {
+      paramWrapperPtr->refCount--;
+    }
   }
 }
 
@@ -12439,26 +12531,30 @@ ParamSetFromAny(
     Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
     register Tcl_Obj *objPtr)	/* The object to convert. */
 {
-  XOTclParam *paramPtr;
+  XOTclParamWrapper *paramWrapperPtr = NEW(XOTclParamWrapper);
   Tcl_Obj *fullParamObj = Tcl_NewStringObj("value:", 6);
   int result, possibleUnknowns = 0, plainParams = 0;
 
-  paramPtr = ParamsNew(1);
-  /*fprintf(stderr, "allocating  %p\n",paramPtr);*/
+  paramWrapperPtr->paramPtr = ParamsNew(1);
+  paramWrapperPtr->refCount = 1;
+  paramWrapperPtr->canFree = 0;
+  /*fprintf(stderr, "allocating  %p\n",paramWrapperPtr->paramPtr);*/
 
   Tcl_AppendToObj(fullParamObj, ObjStr(objPtr), -1);
   INCR_REF_COUNT(fullParamObj);
   result = ParamParse(interp, "valuecheck", fullParamObj, 
                       XOTCL_DISALLOWED_ARG_VALUEECHECK /* disallowed options */,
-                      paramPtr, &possibleUnknowns, &plainParams);
+                      paramWrapperPtr->paramPtr, &possibleUnknowns, &plainParams);
   /* Here, we want to treat currently unknown user level converters as
      error. 
   */
-  if (paramPtr->flags & XOTCL_ARG_CURRENTLY_UNKNOWN) {
+  if (paramWrapperPtr->paramPtr->flags & XOTCL_ARG_CURRENTLY_UNKNOWN) {
+    ParamsFree(paramWrapperPtr->paramPtr);
+    FREE(XOTclParamWrapper, paramWrapperPtr);
     result = TCL_ERROR;
   } else if (result == TCL_OK) {
     TclFreeIntRep(objPtr);
-    objPtr->internalRep.twoPtrValue.ptr1 = (void *)paramPtr;
+    objPtr->internalRep.twoPtrValue.ptr1 = (void *)paramWrapperPtr;
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
     objPtr->typePtr = &paramObjType;    
   }
@@ -12475,24 +12571,27 @@ xotclCmd valuecheck XOTclValuecheckCmd {
   } 
 */
 static int XOTclValuecheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *objPtr, Tcl_Obj *value) {
-  ClientData checkedData;
+  XOTclParamWrapper *paramWrapperPtr;
   XOTclParam *paramPtr;
+  ClientData checkedData;
   Tcl_Obj *outObjPtr;
   int result, flags = 0;
 
+  /*fprintf(stderr, "XOTclValuecheckCmd %s %s\n",ObjStr(objPtr), ObjStr(value));*/
+
   if (objPtr->typePtr == &paramObjType) {
-    paramPtr = (XOTclParam *) objPtr->internalRep.twoPtrValue.ptr1;
+    paramWrapperPtr = (XOTclParamWrapper *) objPtr->internalRep.twoPtrValue.ptr1;
   } else {
     result = ParamSetFromAny(interp, objPtr);
     if (result == TCL_OK) {
-      paramPtr = (XOTclParam *) objPtr->internalRep.twoPtrValue.ptr1;
+      paramWrapperPtr = (XOTclParamWrapper *) objPtr->internalRep.twoPtrValue.ptr1;
     } else {
       return XOTclVarErrMsg(interp,
                             "invalid value constraints \"", ObjStr(objPtr), "\"",
                             (char *) NULL);
     }
   }
-
+  paramPtr = paramWrapperPtr->paramPtr;
   result = ArgumentCheck(interp, value, paramPtr, &flags, &checkedData, &outObjPtr);
 
   if (paramPtr->converter == convertViaCmd && 
@@ -12512,72 +12611,18 @@ static int XOTclValuecheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *o
     Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
   }
 
-  return result;
-}
-
-
-/*
-xotclCmd is2 XOTclIs2Cmd {
-  {-argName "value" -required 1 -type tclobj}
-  {-argName "constraint" -required 1 -type tclobj}
-  {-argName "-hasmixin" -required 0 -nrargs 1 -type tclobj}
-  {-argName "-type" -required 0 -nrargs 1 -type tclobj}
-  {-argName "arg" -required 0 -type tclobj}
-}
-*/
-static int XOTclIs2Cmd(Tcl_Interp *interp, Tcl_Obj *value, Tcl_Obj *constraintObj, 
-                       Tcl_Obj *withHasmixin, Tcl_Obj *withType, Tcl_Obj *arg) {
-  int result = TCL_OK, success;
-  char *constraintString = ObjStr(constraintObj);
-  XOTclObject *object;
-  XOTclClass *typeClass, *mixinClass;
-
-  if (isTypeString(constraintString)) {
-    if (arg== NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "type <object> <type>");
-    success = (GetObjectFromObj(interp, value, &object) == TCL_OK)
-      && (GetClassFromObj(interp, arg, &typeClass, 0) == TCL_OK)
-      && isSubType(object->cl, typeClass);
-
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
-
-  } else if (withHasmixin || withType) {
-    if ((!isObjectString(constraintString) && !isClassString(constraintString)) || arg != NULL) {
-      return XOTclObjErrArgCnt(interp, NULL, NULL, "object|class <object> ?-hasmixin cl? ?-type cl?");
-    }
-    if (*constraintString == 'o') {
-      success = (GetObjectFromObj(interp, value, &object) == TCL_OK);
-    } else {
-      success = (GetClassFromObj(interp, value, (XOTclClass **)&object, 0) == TCL_OK);
-    }
-    if (success && withType) {
-      success = (GetClassFromObj(interp, withType, &typeClass, 0) == TCL_OK)
-        && isSubType(object->cl, typeClass);
-    }
-    if (success && withHasmixin) {
-      success = (GetClassFromObj(interp, withHasmixin, &mixinClass, 0) == TCL_OK)
-        && hasMixin(interp, object, mixinClass);
-    }
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
-
-  } else if (arg != NULL) {
-    Tcl_Obj *paramObj =   Tcl_DuplicateObj(value);
-
-    INCR_REF_COUNT(paramObj);
-    Tcl_AppendToObj(paramObj, ",arg=", 5);
-    Tcl_AppendObjToObj(paramObj, arg);
-    
-    result = XOTclValuecheckCmd(interp, 1, paramObj, value);
-    DECR_REF_COUNT(paramObj);
+  /*fprintf(stderr, "XOTclValuecheckCmd paramPtr %p final refcount of wrapper %d can free %d\n",paramPtr, 
+          paramWrapperPtr->refCount,  paramWrapperPtr->canFree);*/
+  if (paramWrapperPtr->refCount == 0) {
+    /* fprintf(stderr, "XOTclValuecheckCmd paramPtr %p manual free\n",paramPtr);*/
+    ParamsFree(paramWrapperPtr->paramPtr);
+    FREE(XOTclParamWrapper, paramWrapperPtr);
   } else {
-    result = XOTclValuecheckCmd(interp, 1, constraintObj, value);
+    paramWrapperPtr->canFree = 1;
   }
 
   return result;
 }
-
-
-
-
 
 /***************************
  * End generated XOTcl commands
