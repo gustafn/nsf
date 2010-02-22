@@ -1967,7 +1967,7 @@ NSRequireVariableOnObj(Tcl_Interp *interp, XOTclObject *object, char *name, int 
   XOTcl_PushFrameObj(interp, object);
   varPtr = TclLookupVar(interp, name, 0, flgs, "obj vwait",
                         /*createPart1*/ 1, /*createPart2*/ 0, &arrayPtr);
-  XOTcl_PopFrameObj(interp, object);
+  XOTcl_PopFrameObj(interp);
   return varPtr;
 }
 
@@ -2424,7 +2424,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *name, XOTclObject *object,
       ov[1] = result;
       ov[2] = valueObject;
       if (XOTclCallCommand(interp, XOTE_FORMAT, 3, ov) != TCL_OK) {
-        XOTcl_PopFrameObj(interp, object);
+        XOTcl_PopFrameObj(interp);
         DECR_REF_COUNT(savedResult);
         FREE_ON_STACK(ov);
         return 0;
@@ -2442,7 +2442,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *name, XOTclObject *object,
     }
   }
 
-  XOTcl_PopFrameObj(interp, object);
+  XOTcl_PopFrameObj(interp);
   assert((resetOpt && result->refCount>=1) || (result->refCount == 1));
   return result;
 }
@@ -2975,7 +2975,7 @@ AssertionCheckList(Tcl_Interp *interp, XOTclObject *object,
 #if !defined(TCL85STACK)
       CallStackPop(interp, NULL);
 #endif
-      XOTcl_PopFrameObj(interp, object);
+      XOTcl_PopFrameObj(interp);
     }
     if (checkFailed)
       break;
@@ -4168,7 +4168,7 @@ GuardCall(XOTclObject *object, XOTclClass *cl, Tcl_Command cmd,
      */
 #if defined(TCL85STACK)
     if (cscPtr) {
-      XOTcl_PushFrameCsc(interp, object, cscPtr);
+      XOTcl_PushFrameCsc(interp, cscPtr);
     } else {
       XOTcl_PushFrameObj(interp, object);
     }
@@ -4179,9 +4179,9 @@ GuardCall(XOTclObject *object, XOTclClass *cl, Tcl_Command cmd,
     result = GuardCheck(interp, guard);
 
     if (cscPtr) {
-      XOTcl_PopFrameCsc(interp, object);
+      XOTcl_PopFrameCsc(interp);
     } else {
-      XOTcl_PopFrameObj(interp, object);
+      XOTcl_PopFrameObj(interp);
     }
 #if defined(TCL85STACK)
 #else
@@ -4920,7 +4920,7 @@ XOTcl_ObjSetVar2(XOTcl_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_O
     flgs |= TCL_NAMESPACE_ONLY;
 
   result = Tcl_ObjSetVar2(interp, name1, name2, value, flgs);
-  XOTcl_PopFrameObj(interp, (XOTclObject*)object);
+  XOTcl_PopFrameObj(interp);
   return result;
 }
 
@@ -4935,7 +4935,7 @@ XOTcl_SetVar2Ex(XOTcl_Object *object, Tcl_Interp *interp, CONST char *name1, CON
     flgs |= TCL_NAMESPACE_ONLY;
 
   result = Tcl_SetVar2Ex(interp, name1, name2, value, flgs);
-  XOTcl_PopFrameObj(interp, (XOTclObject*)object);
+  XOTcl_PopFrameObj(interp);
   return result;
 }
 
@@ -4957,7 +4957,7 @@ XOTcl_ObjGetVar2(XOTcl_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_O
     flgs |= TCL_NAMESPACE_ONLY;
 
   result = Tcl_ObjGetVar2(interp, name1, name2, flgs);
-  XOTcl_PopFrameObj(interp, (XOTclObject*)object);
+  XOTcl_PopFrameObj(interp);
 
   return result;
 }
@@ -4973,7 +4973,7 @@ XOTcl_GetVar2Ex(XOTcl_Object *object, Tcl_Interp *interp, CONST char *name1, CON
     flgs |= TCL_NAMESPACE_ONLY;
 
   result = Tcl_GetVar2Ex(interp, name1, name2, flgs);
-  XOTcl_PopFrameObj(interp, (XOTclObject*)object);
+  XOTcl_PopFrameObj(interp);
   return result;
 }
 
@@ -5014,7 +5014,7 @@ varExists(Tcl_Interp *interp, XOTclObject *object, CONST char *varName, char *in
   */
   result = (varPtr && (!requireDefined || !TclIsVarUndefined(varPtr)));
 
-  XOTcl_PopFrameObj(interp, object);
+  XOTcl_PopFrameObj(interp);
 
   return result;
 }
@@ -5652,7 +5652,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
      * but we have to check what happens in the finish target etc.
      */
     /*fprintf(stderr, "XOTcl_PushFrameCsc %s %s\n",objectName(obj), methodName);*/
-    XOTcl_PushFrameCsc(interp, object, cscPtr);
+    XOTcl_PushFrameCsc(interp, cscPtr);
   }
 #endif
 
@@ -5670,7 +5670,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
 
 #if defined(TCL85STACK)
   if (cscPtr) {
-    XOTcl_PopFrameCsc(interp, object);
+    XOTcl_PopFrameCsc(interp);
   }
 #endif
 
@@ -8583,7 +8583,7 @@ XOTclUnsetInstVar2(XOTcl_Object *object1, Tcl_Interp *interp, char *name1, char 
     flgs |= TCL_NAMESPACE_ONLY;
 
   result = Tcl_UnsetVar2(interp, name1, name2, flgs);
-  XOTcl_PopFrameObj(interp, object);
+  XOTcl_PopFrameObj(interp);
   return result;
 }
 
@@ -8604,7 +8604,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *object,
 
   otherPtr = XOTclObjLookupVar(interp, varName, NULL, flgs, "define",
                                /*createPart1*/ 1, /*createPart2*/ 1, &arrayPtr);
-  XOTcl_PopFrameObj(interp, object);
+  XOTcl_PopFrameObj(interp);
 
   if (otherPtr == NULL) {
     return XOTclVarErrMsg(interp, "can't make instvar ", ObjStr(varName),
@@ -8797,7 +8797,7 @@ setInstVar(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *name, Tcl_Obj *valu
     /*fprintf(stderr, "setvar in obj %s: name %s = %s\n", objectName(object), ObjStr(name), ObjStr(value));*/
     result = Tcl_ObjSetVar2(interp, name, NULL, value, flags);
   }
-  XOTcl_PopFrameObj(interp, object);
+  XOTcl_PopFrameObj(interp);
 
   if (result) {
     Tcl_SetObjResult(interp, result);
@@ -9072,7 +9072,7 @@ callForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   }
 
   if (tcd->objscope) {
-    XOTcl_PopFrameObj(interp, object);
+    XOTcl_PopFrameObj(interp);
   }
   if (result == TCL_ERROR && tcd && tcd->onerror) {
     Tcl_Obj *ov[2];
@@ -9303,7 +9303,7 @@ XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   result = Tcl_NRCallObjProc(interp, tcd->objProc, tcd->clientData, objc, objv);
 #endif
 
-  XOTcl_PopFrameObj(interp, object);
+  XOTcl_PopFrameObj(interp);
   return result;
 }
 
@@ -11134,7 +11134,7 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
                             NULL /*XOTclClass *cl*/, tail,
                             XOTCL_CSC_TYPE_PLAIN);
       if (withObjscope) {
-        XOTcl_PopFrameObj(interp, object);
+        XOTcl_PopFrameObj(interp);
       }
     }
   } else {
@@ -12697,7 +12697,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
   result = ProcessMethodArguments(&pc, interp, object, 0, paramDefs, "configure", objc, objv);
 
   if (result != TCL_OK) {
-    XOTcl_PopFrameObj(interp, object);
+    XOTcl_PopFrameObj(interp);
     parseContextRelease(&pc);
     goto configure_exit;
   }
@@ -12736,7 +12736,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
       }
 
       if (result != TCL_OK) {
-        XOTcl_PopFrameObj(interp, object);
+        XOTcl_PopFrameObj(interp);
         parseContextRelease(&pc);
         goto configure_exit;
       }
@@ -12764,7 +12764,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
 
       Tcl_Interp_varFramePtr(interp) = varFramePtr->callerPtr;
       CallStackPush(cscPtr, object, NULL /*cl*/, NULL/*cmd*/, XOTCL_CSC_TYPE_PLAIN);
-      XOTcl_PushFrameCsc(interp, object, cscPtr);
+      XOTcl_PushFrameCsc(interp, cscPtr);
 
       if (paramPtr->flags & XOTCL_ARG_INITCMD) {
         result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
@@ -12788,7 +12788,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
          Pop previously stacked frame for eval context and set the
          varFramePtr to the previous value.
       */
-      XOTcl_PopFrameCsc(interp, object); 
+      XOTcl_PopFrameCsc(interp); 
       CallStackPop(interp, cscPtr);
       Tcl_Interp_varFramePtr(interp) = varFramePtr;
 
@@ -12796,7 +12796,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
         ObjStr(paramPtr->nameObj), ObjStr(newValue), result);*/
 
       if (result != TCL_OK) {
-        XOTcl_PopFrameObj(interp, object);
+        XOTcl_PopFrameObj(interp);
         parseContextRelease(&pc);
         goto configure_exit;
       }
@@ -12814,7 +12814,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
     }
   }
 
-  XOTcl_PopFrameObj(interp, object);
+  XOTcl_PopFrameObj(interp);
 
   remainingArgsc = pc.objc - paramDefs->nrParams;
 
@@ -13233,7 +13233,7 @@ static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *object, char *varn
   }
   Tcl_UntraceVar(interp, varname, flgs, (Tcl_VarTraceProc *)VwaitVarProc,
                  (ClientData) &done);
-  XOTcl_PopFrameObj(interp, object);
+  XOTcl_PopFrameObj(interp);
   /*
    * Clear out the interpreter's result, since it may have been set
    * by event handlers.
@@ -14000,7 +14000,7 @@ ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
   result = ArgumentParse(interp, objc, objv, object, objv[0],
                          paramDefs->paramsPtr, paramDefs->nrParams, pcPtr);
   if (object && pushFrame) {
-    XOTcl_PopFrameObj(interp, object);
+    XOTcl_PopFrameObj(interp);
   }
   if (result != TCL_OK) {
     return result;

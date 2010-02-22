@@ -16,7 +16,7 @@ void tcl85showStack(Tcl_Interp *interp) {
   framePtr = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp);
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     int frameFlags = Tcl_CallFrame_isProcCallFrame(framePtr);
-    XOTclCallStackContent *csc = 
+    XOTclCallStackContent *cscPtr = 
       (frameFlags & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) ?
       ((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr)) : NULL;
 
@@ -27,12 +27,12 @@ void tcl85showStack(Tcl_Interp *interp) {
             Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,
             Tcl_CallFrame_objc(framePtr) ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
             Tcl_CallFrame_objc(framePtr) ? Tcl_CallFrame_objc(framePtr) : -1);
-    if (csc) {
+    if (cscPtr) {
       fprintf(stderr, " frameType %d callType %d (%p %s)\n",
-              csc ? csc->frameType : -1,
-              csc ? csc->callType : -1,
-              csc ? csc->self : NULL, 
-              csc ? objectName(csc->self) : "");
+              cscPtr ? cscPtr->frameType : -1,
+              cscPtr ? cscPtr->callType : -1,
+              cscPtr ? cscPtr->self : NULL, 
+              cscPtr ? objectName(cscPtr->self) : "");
     } else {
       fprintf(stderr, " no csc");
       if (frameFlags & FRAME_IS_XOTCL_OBJECT) {
@@ -52,15 +52,15 @@ void tcl85showStack(Tcl_Interp *interp) {
  */
 #define XOTcl_FrameDecls TclCallFrame frame, *framePtr = &frame
 # ifndef PRE85
-#  define XOTcl_PushFrameSetCd(object) ((CallFrame *)framePtr)->clientData = (ClientData)(object)
+#  define XOTcl_PushFrameSetCd(framePtr, object) ((CallFrame *)framePtr)->clientData = (ClientData)(object)
 # else
-#  define XOTcl_PushFrameSetCd(object)
+#  define XOTcl_PushFrameSetCd(framePtr, object)
 # endif
 
 static TclVarHashTable *VarHashTableCreate();
 
 #define XOTcl_PushFrameObj(interp,object) XOTcl_PushFrameObj2(interp, object, framePtr)
-#define XOTcl_PopFrameObj(interp,object) XOTcl_PopFrameObj2(interp, object, framePtr)
+#define XOTcl_PopFrameObj(interp) XOTcl_PopFrameObj2(interp, framePtr)
 
 static void XOTcl_PushFrameObj2(Tcl_Interp *interp, XOTclObject *object, Tcl_CallFrame *framePtr) {
   /*fprintf(stderr,"PUSH OBJECT_FRAME (XOTcl_PushFrame) frame %p\n",framePtr);*/
@@ -81,42 +81,30 @@ static void XOTcl_PushFrameObj2(Tcl_Interp *interp, XOTclObject *object, Tcl_Cal
     }
     Tcl_CallFrame_varTablePtr(framePtr) = object->varTable;
   }
-  XOTcl_PushFrameSetCd(object);
+  XOTcl_PushFrameSetCd(framePtr, object);
 }
-static void XOTcl_PopFrameObj2(Tcl_Interp *interp, XOTclObject *object, Tcl_CallFrame *framePtr) {
-  Tcl_CallFrame_varTablePtr(Tcl_Interp_framePtr(interp)) = 0;
+static void XOTcl_PopFrameObj2(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+  Tcl_CallFrame_varTablePtr(framePtr) = 0;
   /*fprintf(stderr,"POP  OBJECT_FRAME (XOTcl_PopFrame) frame %p\n",framePtr);*/
   Tcl_PopCallFrame(interp);
 }
 
 
-#define XOTcl_PushFrameCsc(interp,object,csc) XOTcl_PushFrameCsc2(interp, object ,csc, framePtr)
-#define XOTcl_PopFrameCsc(interp,object) XOTcl_PopFrameCsc2(interp, framePtr)
+#define XOTcl_PushFrameCsc(interp,cscPtr) XOTcl_PushFrameCsc2(interp, cscPtr, framePtr)
+#define XOTcl_PopFrameCsc(interp) XOTcl_PopFrameCsc2(interp, framePtr)
 
-static void XOTcl_PushFrameCsc2(Tcl_Interp *interp, XOTclObject *object, XOTclCallStackContent *csc, 
-                               Tcl_CallFrame *framePtr) {
+static void XOTcl_PushFrameCsc2(Tcl_Interp *interp, XOTclCallStackContent *cscPtr, Tcl_CallFrame *framePtr) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
-  
+
   /*fprintf(stderr,"PUSH CMETHOD_FRAME (XOTcl_PushFrame) frame %p object->nsPtr %p interp ns %p\n",
           framePtr,object->nsPtr, 
           Tcl_CallFrame_nsPtr(varFramePtr));*/
 
-  Tcl_PushCallFrame(interp, framePtr, 
-#if 1
-                    Tcl_CallFrame_nsPtr(varFramePtr), 
-#else
-                    object->nsPtr ? object->nsPtr : Tcl_CallFrame_nsPtr(varFramePtr), 
-#endif
-                    0|FRAME_IS_XOTCL_CMETHOD);
-
-  assert(object == csc->self);
-  XOTcl_PushFrameSetCd(csc);
+  Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(varFramePtr), 0|FRAME_IS_XOTCL_CMETHOD);
+  XOTcl_PushFrameSetCd(framePtr, cscPtr);
 }
 
 static void XOTcl_PopFrameCsc2(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  /*XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr);
-
-  fprintf(stderr,"POP  CSC_FRAME (XOTcl_PopFrame) frame %p obj %p nsPtr %p\n",framePtr, csc->self, csc->self->nsPtr);*/
   Tcl_PopCallFrame(interp);
 }
 
@@ -353,9 +341,9 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if (csc->cmdPtr == cmd) {
-        csc->cmdPtr = NULL;
+      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (cscPtr->cmdPtr == cmd) {
+        cscPtr->cmdPtr = NULL;
       }
     }
   }
@@ -367,9 +355,9 @@ CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *object) {
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if (csc->self == object) {
-        return csc;
+      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (cscPtr->self == object) {
+        return cscPtr;
       }
     }
   }
@@ -390,8 +378,8 @@ static void CallStackPopAll(Tcl_Interp *interp) {
 
     if (Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
       /* free the call stack content; we need this just for decr activation count */
-      XOTclCallStackContent *csc = ((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr));
-      CallStackPop(interp, csc);
+      XOTclCallStackContent *cscPtr = ((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr));
+      CallStackPop(interp, cscPtr);
     }
     /* pop the Tcl frame */
     Tcl_PopCallFrame(interp);
@@ -399,7 +387,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
 }
 
 XOTCLINLINE static void
-CallStackPush(XOTclCallStackContent *csc, XOTclObject *object, XOTclClass *cl, Tcl_Command cmd, int frameType) {
+CallStackPush(XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl, Tcl_Command cmd, int frameType) {
   object->activationCount ++;
 #if 1
   if (cl) {
@@ -417,17 +405,17 @@ CallStackPush(XOTclCallStackContent *csc, XOTclObject *object, XOTclClass *cl, T
   }
 #endif
   /* fprintf(stderr, "incr activationCount for %s to %d\n", objectName(object), object->activationCount); */
-  csc->self          = object;
-  csc->cl            = cl;
-  csc->cmdPtr        = cmd;
-  csc->frameType     = frameType;
-  csc->callType      = 0;
-  csc->filterStackEntry = frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER ? object->filterStack : NULL;
-  csc->objv          = NULL;
+  cscPtr->self          = object;
+  cscPtr->cl            = cl;
+  cscPtr->cmdPtr        = cmd;
+  cscPtr->frameType     = frameType;
+  cscPtr->callType      = 0;
+  cscPtr->filterStackEntry = frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER ? object->filterStack : NULL;
+  cscPtr->objv          = NULL;
 
 #if defined(TCL85STACK_TRACE)
   fprintf(stderr, "PUSH csc %p type %d obj %s, self=%p cmd=%p (%s) id=%p (%s) obj refcount %d name refcount %d\n",
-          csc, frameType, objectName(object), object,
+          cscPtr, frameType, objectName(object), object,
           cmd, (char *) Tcl_GetCommandName(object->teardown, cmd),
           object->id, object->id ? Tcl_GetCommandName(object->teardown, object->id) : "(deleted)",
           object->id ? Tcl_Command_refCount(object->id) : -100, object->cmdName->refCount
@@ -436,30 +424,30 @@ CallStackPush(XOTclCallStackContent *csc, XOTclObject *object, XOTclClass *cl, T
 }
 
 XOTCLINLINE static void
-CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *csc) {
-  XOTclObject *object = csc->self;
+CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
+  XOTclObject *object = cscPtr->self;
 
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "POP  csc=%p, obj %s method %s (%d)\n", csc, objectName(object),
-          Tcl_GetCommandName(interp, csc->cmdPtr));
+  fprintf(stderr, "POP  csc=%p, obj %s method %s (%d)\n", cscPtr, objectName(object),
+          Tcl_GetCommandName(interp, cscPtr->cmdPtr));
 #endif
   object->activationCount --;
   
-  /* fprintf(stderr, "decr activationCount for %s to %d csc->cl %p\n", objectName(csc->self), 
-     csc->self->activationCount, csc->cl);*/
+  /* fprintf(stderr, "decr activationCount for %s to %d cscPtr->cl %p\n", objectName(cscPtr->self), 
+     csc->self->activationCount, cscPtr->cl);*/
 
   if (object->activationCount < 1 && object->flags & XOTCL_DESTROY_CALLED) {
     CallStackDoDestroy(interp, object);
   }
 #if 1
-  if (csc->cl) {
-    Namespace *nsPtr = csc->cmdPtr ? ((Command *)(csc->cmdPtr))->nsPtr : NULL;
+  if (cscPtr->cl) {
+    Namespace *nsPtr = cscPtr->cmdPtr ? ((Command *)(cscPtr->cmdPtr))->nsPtr : NULL;
 
-    object = &csc->cl->object;
+    object = &cscPtr->cl->object;
     object->activationCount --;
     /*  fprintf(stderr, "CallStackPop cl=%p %s (%d) flags %.6x cl ns=%p cmd %p cmd ns %p\n",
-            object, objectName(object), object->activationCount, object->flags, csc->cl->nsPtr, 
-            csc->cmdPtr, ((Command *)csc->cmdPtr)->nsPtr); */
+            object, objectName(object), object->activationCount, object->flags, cscPtr->cl->nsPtr, 
+            cscPtr->cmdPtr, ((Command *)cscPtr->cmdPtr)->nsPtr); */
 
     /*fprintf(stderr, "CallStackPop check ac %d flags %.6x\n",
       object->activationCount, object->flags & XOTCL_DESTROY_CALLED);*/
