@@ -452,7 +452,7 @@ catch {o x info vars} errMsg
 o destroy
 
 set case "deleting object with alias to object"
-Test case deleting-object-with-aluas-to-object
+Test case deleting-object-with-alias-to-object
 Object create o
 Object create o3
 ::xotcl::alias o x o3

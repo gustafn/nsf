@@ -85,24 +85,18 @@ Class C -parameter {{x 1} {y 2}}
 ? {::xotcl::objectproperty C::slot object} 1
 ? {C info children} ::C::slot
 
-puts stderr ====COPY
+
 C copy X
-puts stderr ====0a
 ? {::xotcl::objectproperty X object} 1
 ? {X info vars} ""
 ? {C info vars} ""
-puts stderr ====0b
 ? {::xotcl::objectproperty X::slot object} 1
-puts stderr ====0c
 
 ? {C::slot info vars} __parameter
 ? {C info parameter} {{x 1} {y 2}}
 
-puts stderr ====1
 ? {X::slot info vars} __parameter
-puts stderr ====2
 ? {X info parameter} {{x 1} {y 2}}
-puts stderr ====3
 
 #
 # tests for the dispatch command

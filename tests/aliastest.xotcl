@@ -236,12 +236,6 @@ Test case alias-namespaced {
   ::U destroy
 }
 
-Class create V {
-  set :z 1
-}
-? {lsort [V info vars]} {z}
-
-
 # dot-resolver/ dot-dispatcher used in aliased proc
 
 Test case alias-dot-resolver {
@@ -255,9 +249,7 @@ Test case alias-dot-resolver {
     }
   }
   ? {lsort [V info vars]} {z}
-  puts stderr =====1
 
-  puts stderr =====0
   ? {lsort [V info vars]} {z}
   ? {lsort [v info vars]} {z}
 
@@ -268,7 +260,7 @@ Test case alias-dot-resolver {
 
   ? {lsort [V object info methods]} {FOO2 bar}
   ? {lsort [V info methods]} {FOO1 bar}
-puts stderr =====1
+
   ? {V FOO2} 1-1-1
   ? {v FOO1} 2-2-2
   V method FOO1 {} {}

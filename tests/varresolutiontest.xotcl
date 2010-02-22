@@ -5,7 +5,7 @@ package require xotcl::test
 
 Test parameter count 1
 
-::xotcl::alias ::xotcl2::Object eval -objscope ::eval 
+::xotcl::alias ::xotcl2::Object objeval -objscope ::eval 
 ::xotcl::alias ::xotcl2::Object array -objscope ::array
 ::xotcl::alias ::xotcl2::Object lappend -objscope ::lappend
 ::xotcl::alias ::xotcl2::Object incr -objscope ::incr
@@ -40,7 +40,7 @@ unset ::globalVar
 ###########################################
 Object create o 
 o requireNamespace
-o eval {
+o objeval {
   # TODO: the next three lines don't seem to work as expected
   #my requireNamespace
   #global z
@@ -71,11 +71,8 @@ unset ::z
 
 Object create o 
 o requireNamespace
-puts stderr =======1
 o set x 1
-puts stderr =======2
 ? {namespace eval ::o set x} 1
-puts stderr =======3
 ? {::o set x} 1
 ? {namespace eval ::o set x 3} 3
 ? {::o set x} 3
@@ -335,7 +332,7 @@ unset ::tmpArray
 # with a required namespace and without
 ##################################################
 Test case eval-variants
-::xotcl::alias ::xotcl2::Object eval -objscope ::eval 
+::xotcl::alias ::xotcl2::Object objeval -objscope ::eval 
 ::xotcl::alias ::xotcl2::Object softeval -nonleaf ::eval 
 ::xotcl::alias ::xotcl2::Object softeval2 ::eval 
 
@@ -347,7 +344,7 @@ Object create o {
 ? {o exists xxx} 0
 
 # eval does an objcope, all vars are instance variables
-o eval {
+o objeval {
   set aaa 1
   set :a 1
 }
@@ -379,7 +376,7 @@ Object create o
 o requireNamespace
 
 # eval does an objcope, all vars are instance variables
-o eval {
+o objeval {
   set ccc 1
   set :c 1
 }
@@ -392,9 +389,7 @@ o softeval {
   set :d 1
 }
 ? {o exists d} 1
-puts stderr ====111
 ? {o exists ddd} 0
-puts stderr ====222
 
 # softeval2 never sets variables
 o softeval2 {
@@ -421,7 +416,7 @@ Object create o {
 ? {o exists xxx} 0
 
 # eval does an objcope, all vars are instance variables
-o eval {
+o objeval {
   set aaa 1
   set :a 1
 }
@@ -452,7 +447,7 @@ Object create o
 o requireNamespace
 
 # eval does an objcope, all vars are instance variables
-o eval {
+o objeval {
   set ccc 1
   set :c 1
 }
@@ -555,17 +550,17 @@ Class create V {
 # dot-resolver/ dot-dispatcher used in aliased proc
 
 Test case alias-dot-resolver {
-
+  puts stderr HU
   Class create V {
     set :Z 1
     set ZZZ 1
     :method bar {z} { return $z }
-    :object method bar {z} { return $z }
-    :create v {
-      set :z 2
-      set zzz 2
-    }
+   :object method bar {z} { return $z }
+   :create v {
+     set :z 2
+     set zzz 2
+   }
   }
-  ? {lsort [V info vars]} {Z ZZZ}; #TODO: should be Z
-  ? {lsort [v info vars]} {z zzz} ; #TODO: should be z
+  ? {lsort [V info vars]} {Z}
+  ? {lsort [v info vars]} {z}
 }
