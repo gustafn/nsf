@@ -1,9 +1,9 @@
-/* TODO final touch: unify names (check tcl naming convention), make functions here static */
 
 #if defined(TCL85STACK)
 
-void tcl85showStack(Tcl_Interp *interp) {
+static void tcl85showStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
+
   fprintf(stderr, "tcl85showStack framePtr %p varFramePtr %p\n",
           Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));
   /* framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
@@ -197,7 +197,7 @@ CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   return CallStackGetFrame(interp, framePtrPtr);
 }
 
-XOTclCallStackContent *
+static XOTclCallStackContent *
 XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   int lvl = Tcl_CallFrame_level(varFramePtr);
@@ -222,7 +222,7 @@ XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame *
   return NULL;
 }
 
-XOTclCallStackContent *
+static XOTclCallStackContent *
 XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
