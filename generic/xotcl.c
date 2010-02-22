@@ -325,9 +325,6 @@ typedef void (Tcl_CleanupVarFunction) _ANSI_ARGS_ (
 typedef Var * (Tcl_DeleteVarFunction) _ANSI_ARGS_ (
                                                    (Interp *iPtr, TclVarHashTable *tablePtr)
                                                    );
-typedef Var * (lookupVarFromTableFunction) _ANSI_ARGS_ (
-                                                        (TclVarHashTable *varTable, CONST char *simpleName)
-                                                        );
 
 
 typedef struct TclVarHashTable85 {
@@ -393,7 +390,6 @@ static int forwardCompatibleMode;
 static Tcl_VarHashCreateVarFunction  *tclVarHashCreateVar;
 static Tcl_InitVarHashTableFunction  *tclInitVarHashTable;
 static Tcl_CleanupVarFunction        *tclCleanupVar;
-static lookupVarFromTableFunction    *lookupVarFromTable;
 
 static int varRefCountOffset;
 static int varHashTableSize;
@@ -578,19 +574,6 @@ TclCleanupVar84(Var * varPtr, Var *arrayPtr) {
     }
   }
 }
-static Var *
-LookupVarFromTable84(TclVarHashTable *varTable, CONST char *simpleName) {
-  Var *varPtr = NULL;
-  Tcl_HashEntry *entryPtr;
-
-  if (varTable) {
-    entryPtr = XOTcl_FindHashEntry(varTable, simpleName);
-    if (entryPtr) {
-      varPtr = VarHashGetValue(entryPtr);
-    }
-  }
-  return varPtr;
-}
 #endif
 
 
@@ -599,20 +582,17 @@ LookupVarFromTable84(TclVarHashTable *varTable, CONST char *simpleName) {
 #  define VarHashCreateVar   (*tclVarHashCreateVar)
 #  define InitVarHashTable   (*tclInitVarHashTable)
 #  define CleanupVar         (*tclCleanupVar)
-#  define LookupVarFromTable (*lookupVarFromTable)
 #  define TclCallFrame       Tcl_CallFrame85
 # else
 #  define VarHashCreateVar   VarHashCreateVar84
 #  define InitVarHashTable   InitVarHashTable84
 #  define CleanupVar         TclCleanupVar84
-#  define LookupVarFromTable LookupVarFromTable84
 #  define TclCallFrame       Tcl_CallFrame
 # endif
 #else
 # define VarHashCreateVar   VarHashCreateVar85
 # define InitVarHashTable   TclInitVarHashTable
 # define CleanupVar         TclCleanupVar
-# define LookupVarFromTable LookupVarFromTable85
 # define TclCallFrame       Tcl_CallFrame
 #endif
 
@@ -678,17 +658,6 @@ VarHashCreateVar85(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
   return varPtr;
 }
 
-static XOTCLINLINE Var *
-LookupVarFromTable85(TclVarHashTable *tablePtr, CONST char *simpleName) {
-  Var *varPtr = NULL;
-  if (tablePtr) {
-    Tcl_Obj *keyPtr = Tcl_NewStringObj(simpleName, -1);
-    Tcl_IncrRefCount(keyPtr);
-    varPtr = VarHashCreateVar85(tablePtr, keyPtr, NULL);
-    Tcl_DecrRefCount(keyPtr);
-  }
-  return varPtr;
-}
 #endif
 
 
@@ -1512,14 +1481,16 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
   *	        int flags, Tcl_Var *rPtr));
   */
 static int
-NsDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
+NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
   Tcl_CallFrame *varFramePtr;
+  TclVarHashTable *varTablePtr;
+  XOTclObject *object;
   int new, frameFlags;
   char firstChar, secondChar;
   Tcl_Obj *key;
   Var *newVar;
 
-  /*fprintf(stderr, "varResolver '%s' flags %.6x\n", varName, flags);*/
+  /*fprintf(stderr, "NsColonVarResolver '%s' flags %.6x\n", varName, flags);*/
 
   /* Case 1: The variable is to be resolved in global scope, proceed in
    * resolver chain (i.e. return TCL_CONTINUE)
@@ -1539,7 +1510,7 @@ NsDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, 
 
   frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
 #if defined (VAR_RESOLVER_TRACE)
-  fprintf(stderr, "NsDotVarResolver '%s' frame flags %.6x\n", varName, 
+  fprintf(stderr, "NsColonVarResolver '%s' frame flags %.6x\n", varName, 
           Tcl_CallFrame_isProcCallFrame(varFramePtr));
 #endif
 
@@ -1551,61 +1522,77 @@ NsDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, 
       name, varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr));*/
     return TCL_CONTINUE;
   }
-  
+
   firstChar = *varName;
   secondChar = *(varName+1);
 
-  if ((frameFlags & (FRAME_IS_XOTCL_CMETHOD|FRAME_IS_XOTCL_OBJECT)) && 
-#if USE_DOT
-      firstChar == '.'
-#endif
-#if USE_COLON
-      firstChar == ':' && secondChar != ':'
-#endif
-      ) {
-    /*
-     * Case 3: we are in an XOTcl frame and the variable name starts with a "."
-     * We skip the dot, but stay in the resolver.
-     */
-    varName ++;
-  } else if ((firstChar == ':' && secondChar == ':') || NSTail(varName) != varName) {
-
-    /*
-     * Case 4: Check for absolutely/relatively qualified variable names,
-     * i.e.  make sure that the variable name does not contain any
-     * namespace qualifiers.  Proceed with a TCL_CONTINUE, otherwise.
-     */
-    return TCL_CONTINUE;
-  }
-
-  /* 
-   * Does the variable exist in the per-object namespace? 
-   */
-  *varPtr = (Tcl_Var)LookupVarFromTable(Tcl_Namespace_varTable(nsPtr), varName);
-  if (*varPtr == NULL) {
-    /* We failed to find the variable so far, therefore we create it
-     * in this namespace.  Note that the cases (1), (2) and (4)
-     * TCL_CONTINUE care for variable creation if necessary.
-     */
-
-    if (
-#if USE_DOT
-        firstChar != '.' 
-#endif
-#if USE_COLON
-        firstChar != ':'
-#endif
-        && (frameFlags & FRAME_IS_XOTCL_CMETHOD)) {
-      fprintf(stderr, ".... refuse to create var %s\n", varName);
+  if (frameFlags & (FRAME_IS_XOTCL_CMETHOD|FRAME_IS_XOTCL_OBJECT)) {
+    /* 
+       Case 3: we are in an XOTcl frame 
+    */
+    if (firstChar == ':') {
+      if (secondChar != ':') {
+        /*
+         * Case 3a: The variable name starts with a single ":". Skip
+         * the char, but stay in the resolver.
+         */
+        varName ++;
+      } else {
+        /* 
+           Case 3b: Names starting  with "::" are not for us 
+        */
+        return TCL_CONTINUE;
+      }
+    } else if (NSTail(varName) != varName) {
+      /* 
+         Case 3c: Names containing "::" are not for us 
+      */
       return TCL_CONTINUE;
     }
 
-    key = Tcl_NewStringObj(varName, -1);
-
-    INCR_REF_COUNT(key);
-    newVar = VarHashCreateVar(Tcl_Namespace_varTable(nsPtr), key, &new);
-    DECR_REF_COUNT(key);
+    object = (frameFlags & FRAME_IS_XOTCL_CMETHOD) 
+      ? ((XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr))->self 
+      : (XOTclObject *)Tcl_CallFrame_clientData(varFramePtr);
     
+  } else {
+    /*
+     * Case 4: we are not in an XOTcl frame, so proceed with a
+     * TCL_CONTINUE.
+     */
+    return TCL_CONTINUE;
+  } 
+
+  /* We have an object and create the variable if not found */
+  assert(object);
+  
+  varTablePtr = object->nsPtr ? Tcl_Namespace_varTable(object->nsPtr) : object->varTable;
+  if (varTablePtr == NULL && object->varTable == NULL) {
+    fprintf(stderr, "+++ create varTable in InterpColonVarResolver\n");
+    varTablePtr = object->varTable = VarHashTableCreate();
+  }
+
+  /* 
+   * Does the variable exist in the object's namespace? 
+   */
+
+  key = Tcl_NewStringObj(varName, -1);
+  INCR_REF_COUNT(key);
+
+  *varPtr = (Tcl_Var)VarHashCreateVar(varTablePtr, key, NULL);
+  
+#if defined (VAR_RESOLVER_TRACE)
+  fprintf(stderr, "...... lookup of '%s' for object '%s' returns %p\n", 
+          varName, objectName(object), *varPtr);
+#endif
+  if (*varPtr == NULL) {
+    /* 
+     * We failed to find the variable so far, therefore we create it
+     * in this var table.  Note that in several cases above,
+     * TCL_CONTINUE takes care for variable creation.
+     */
+
+    newVar = VarHashCreateVar(varTablePtr, key, &new);
+
 #if defined(PRE85)
 # if FORWARD_COMPATIBLE
     if (!forwardCompatibleMode) {
@@ -1615,20 +1602,11 @@ NsDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, 
     newVar->nsPtr = (Namespace *)ns;
 # endif
 #endif
+    DECR_REF_COUNT(key);
     *varPtr = (Tcl_Var)newVar;
   }
   return *varPtr ? TCL_OK : TCL_ERROR;
 }
-
-#if 0
-static int
-NsDotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
-
-  fprintf(stderr, "NsDotCmdResolver cmdName %s flags %.6x\n",cmdName,flags);
-  return TCL_CONTINUE;
-}
-#endif
-
 
 #if defined(USE_COMPILED_VAR_RESOLVER)
 typedef struct xotclResolvedVarInfo {
@@ -1651,7 +1629,7 @@ HashVarFree(Tcl_Var var) {
 }
 
 static Tcl_Var
-CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
+CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   xotclResolvedVarInfo *resVarInfo = (xotclResolvedVarInfo *)vinfoPtr;
   XOTclCallStackContent *cscPtr = CallStackGetFrame(interp, NULL);
   XOTclObject *object = cscPtr ? cscPtr->self : NULL;
@@ -1660,7 +1638,7 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   int new, flags = var ? ((Var*)var)->flags : 0;
 
 #if defined(VAR_RESOLVER_TRACE)
-  fprintf(stderr,"CompiledDotVarFetch var '%s' var %p flags = %.4x dead? %.4x\n",
+  fprintf(stderr,"CompiledColonVarFetch var '%s' var %p flags = %.4x dead? %.4x\n",
           ObjStr(resVarInfo->nameObj), var, flags, flags&VAR_DEAD_HASH);
 #endif
 
@@ -1694,7 +1672,7 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
      * initialize the variable hash table and update the object
      */
     varTablePtr = object->varTable = VarHashTableCreate();
-    fprintf(stderr, "+++ create varTable in %s CompiledDotVarFetch for '%s'\n", 
+    fprintf(stderr, "+++ create varTable in %s CompiledColonVarFetch for '%s'\n", 
             objectName(object), ObjStr(resVarInfo->nameObj));
   }
 
@@ -1718,21 +1696,16 @@ CompiledDotVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   return var;
 }
 
-void CompiledDotVarFree(Tcl_ResolvedVarInfo *vinfoPtr) {
+void CompiledColonVarFree(Tcl_ResolvedVarInfo *vinfoPtr) {
   xotclResolvedVarInfo *resVarInfo = (xotclResolvedVarInfo *)vinfoPtr;
   DECR_REF_COUNT(resVarInfo->nameObj);
   if (resVarInfo->var) {HashVarFree(resVarInfo->var);}
   ckfree((char *) vinfoPtr);
 }
 
-#if USE_DOT
-#define FOR_RESOLVER(ptr) (*(ptr) == '.')
-#endif
-#if USE_COLON
-#define FOR_RESOLVER(ptr) (*(ptr) == ':' && *(ptr+1) != ':')
-#endif
+#define FOR_COLON_RESOLVER(ptr) (*(ptr) == ':' && *(ptr+1) != ':')
 
-int InterpCompiledDotVarResolver(Tcl_Interp *interp,
+int InterpCompiledColonVarResolver(Tcl_Interp *interp,
 			CONST84 char *name, int length, Tcl_Namespace *context,
 			Tcl_ResolvedVarInfo **rPtr) {
   /* getting the self object is a weak protection against handling of wrong vars */
@@ -1741,11 +1714,11 @@ int InterpCompiledDotVarResolver(Tcl_Interp *interp,
   fprintf(stderr, "compiled var resolver for %s, obj %p\n", name, object);
 #endif
 
-  if (object && FOR_RESOLVER(name)) {
+  if (object && FOR_COLON_RESOLVER(name)) {
     xotclResolvedVarInfo *vInfoPtr = (xotclResolvedVarInfo *) ckalloc(sizeof(xotclResolvedVarInfo));
 
-    vInfoPtr->vInfo.fetchProc = CompiledDotVarFetch;
-    vInfoPtr->vInfo.deleteProc = CompiledDotVarFree; /* if NULL, tcl does a ckfree on proc clean up */
+    vInfoPtr->vInfo.fetchProc = CompiledColonVarFetch;
+    vInfoPtr->vInfo.deleteProc = CompiledColonVarFree; /* if NULL, tcl does a ckfree on proc clean up */
     vInfoPtr->lastObj = NULL;
     vInfoPtr->var = NULL;
     memcpy(vInfoPtr->buffer, name+1, length-1);
@@ -1760,11 +1733,11 @@ int InterpCompiledDotVarResolver(Tcl_Interp *interp,
 }
 
 static int
-InterpDotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
+InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
   CallFrame *varFramePtr;
   int frameFlags;
 
-  if (!FOR_RESOLVER(cmdName) || flags & TCL_GLOBAL_ONLY) {
+  if (!FOR_COLON_RESOLVER(cmdName) || flags & TCL_GLOBAL_ONLY) {
     /* ordinary names and global lookups are not for us */
     return TCL_CONTINUE;
   }
@@ -1776,39 +1749,28 @@ InterpDotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsP
  if (frameFlags == 0 && Tcl_CallFrame_callerPtr(varFramePtr)) {
     varFramePtr = (CallFrame *)Tcl_CallFrame_callerPtr(varFramePtr);
     frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
-#if defined(DOT_CMD_RESOLVER_TRACE)
-    fprintf(stderr, "InterpDotCmdResolver uses parent frame\n");
+#if defined(CMD_RESOLVER_TRACE)
+    fprintf(stderr, "InterpColonCmdResolver uses parent frame\n");
 #endif
   }
-#if defined(DOT_CMD_RESOLVER_TRACE)
-  fprintf(stderr, "InterpDotCmdResolver cmdName %s flags %.6x, frame flags %.6x\n",cmdName,
+#if defined(CMD_RESOLVER_TRACE)
+  fprintf(stderr, "InterpColonCmdResolver cmdName %s flags %.6x, frame flags %.6x\n",cmdName,
           flags, Tcl_CallFrame_isProcCallFrame(varFramePtr));
 #endif
 
   if (frameFlags & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_OBJECT|FRAME_IS_XOTCL_CMETHOD )) {
-#if defined(DOT_CMD_RESOLVER_TRACE)
-    fprintf(stderr, "    ... call dotCmd for %s\n", cmdName);
+#if defined(CMD_RESOLVER_TRACE)
+    fprintf(stderr, "    ... call colonCmd for %s\n", cmdName);
 #endif
-  if (*(cmdName+1) == '.') {
-    /* the command name starts with ".." */
-    Tcl_Command cmd = Tcl_FindCommand(interp, cmdName+1, NULL, TCL_GLOBAL_ONLY);
-    if (cmd) {
-      fprintf(stderr, "    we found a CMD for %s\n", cmdName+1);
-      *cmdPtr = RUNTIME_STATE(interp)->dotDotCmd;
-      return TCL_OK;
-    } else {
-      fprintf(stderr, "    we found NO CMD for %s\n", cmdName+1);
-    }
-  }
     /*
-     * We have a cmd starting with ".", we are in an xotcl frame, so
-     * forward to the dotCmd.
+     * We have a cmd starting with ':', we are in an xotcl frame, so
+     * forward to the colonCmd.
      */
-    *cmdPtr = RUNTIME_STATE(interp)->dotCmd;
+    *cmdPtr = RUNTIME_STATE(interp)->colonCmd;
     return TCL_OK;
   }
 
-#if defined(DOT_CMD_RESOLVER_TRACE)
+#if defined(CMD_RESOLVER_TRACE)
   fprintf(stderr, "    ... not found %s\n", cmdName);
   tcl85showStack(interp);
 #endif
@@ -1816,22 +1778,23 @@ InterpDotCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsP
 }
 
 static int
-InterpDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
+InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
   int new, frameFlags;
   CallFrame *varFramePtr;
   TclVarHashTable *varTablePtr;
   XOTclObject *object;
+  Tcl_Obj *keyObj;
   Tcl_Var var;
 
-  /*fprintf(stderr, "InterpDotVarResolver '%s' flags %.6x\n", varName, flags);*/
+  /*fprintf(stderr, "InterpColonVarResolver '%s' flags %.6x\n", varName, flags);*/
 
-  if (!FOR_RESOLVER(varName) || flags & TCL_GLOBAL_ONLY) {
+  if (!FOR_COLON_RESOLVER(varName) || flags & TCL_GLOBAL_ONLY) {
     /* ordinary names and global lookups are not for us */
     return TCL_CONTINUE;
   }
 
 #if defined(VAR_RESOLVER_TRACE)
-  fprintf(stderr, "InterpDotVarResolver called var '%s' flags %.4x\n", varName, flags);
+  fprintf(stderr, "InterpColonVarResolver called var '%s' flags %.4x\n", varName, flags);
 #endif
   varName ++;
   varFramePtr = Tcl_Interp_varFramePtr(interp);
@@ -1839,7 +1802,7 @@ InterpDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsP
 
   
 #if 0
-  /* This chunk is needed in the dotcmd resolver, but does not seem to
+  /* This chunk is needed in the colonCmd resolver, but does not seem to
      be required here */
   if (frameFlags == 0 && Tcl_CallFrame_callerPtr(varFramePtr)) {
     varFramePtr = (CallFrame *)Tcl_CallFrame_callerPtr(varFramePtr);
@@ -1880,29 +1843,33 @@ InterpDotVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsP
   
   varTablePtr = object->nsPtr ? Tcl_Namespace_varTable(object->nsPtr) : object->varTable;
   if (varTablePtr == NULL && object->varTable == NULL) {
-    fprintf(stderr, "+++ create varTable in InterpDotVarResolver\n");
+    fprintf(stderr, "+++ create varTable in InterpColonVarResolver\n");
     varTablePtr = object->varTable = VarHashTableCreate();
   }
-  
+
   /*fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p, varTable %p\n",
     varName, obj, obj->nsPtr, varTablePtr);*/
-  var = (Tcl_Var)LookupVarFromTable(varTablePtr, varName);
+
+  keyObj = Tcl_NewStringObj(varName, -1);
+  INCR_REF_COUNT(keyObj);
+
+  var = (Tcl_Var)VarHashCreateVar(varTablePtr, keyObj, NULL);
   if (var) {
 #if defined(VAR_RESOLVER_TRACE)
     fprintf(stderr, ".... found in hashtable %s %p\n", varName, var);
 #endif
   } else {
-    /* We failed to find the variable, therefore we create it new */
-    Tcl_Obj *key = Tcl_NewStringObj(varName, -1);
-    
-    INCR_REF_COUNT(key);
-    var = (Tcl_Var)VarHashCreateVar(varTablePtr, key, &new);
-    DECR_REF_COUNT(key);
+    /* 
+       We failed to find the variable, therefore we create it new 
+    */
+    var = (Tcl_Var)VarHashCreateVar(varTablePtr, keyObj, &new);
 #if defined(VAR_RESOLVER_TRACE)
-    fprintf(stderr, ".... created in hashtable %s %p\n", varName, var);
+    fprintf(stderr, ".... var %p %s created in hashtable %p\n", var, varName, varTablePtr);
 #endif
   }
   *varPtr = var;
+  DECR_REF_COUNT(keyObj);
+
   return TCL_OK;
 }
 
@@ -1916,9 +1883,9 @@ requireObjNamespace(Tcl_Interp *interp, XOTclObject *object) {
    * acquiring the namespace. Works for object-scoped commands/procs
    * and object-only ones (set, unset, ...)
    */
-  Tcl_SetNamespaceResolvers(object->nsPtr, /*(Tcl_ResolveCmdProc*)NsDotCmdResolver*/ NULL,
-                            NsDotVarResolver, 
-                            /*(Tcl_ResolveCompiledVarProc*)NsCompiledDotVarResolver*/NULL);
+  Tcl_SetNamespaceResolvers(object->nsPtr, /*(Tcl_ResolveCmdProc*)NsColonCmdResolver*/ NULL,
+                            NsColonVarResolver, 
+                            /*(Tcl_ResolveCompiledVarProc*)NsCompiledColonVarResolver*/NULL);
   return object->nsPtr;
 }
 
@@ -5875,7 +5842,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
   methodName = ObjStr(methodObj);
 #if defined(USE_COMPILED_VAR_RESOLVER)
-  if (FOR_RESOLVER(methodName)) {
+  if (FOR_COLON_RESOLVER(methodName)) {
     methodName ++;
   }
 #endif
@@ -8931,7 +8898,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       /* if we dispatch a method via ".", we do not want to see the
 	 "." in the %proc, e.g. for the interceptor slots (such as
 	 .mixin, ... */
-      if (FOR_RESOLVER(methodName)) {
+      if (FOR_COLON_RESOLVER(methodName)) {
 	*out = Tcl_NewStringObj(methodName + 1, -1);
       } else {
 	*out = objv[0];
@@ -9410,7 +9377,7 @@ isDashArg(Tcl_Interp *interp, Tcl_Obj *obj, int firstArg, char **methodName, int
     if (Tcl_ListObjGetElements(interp, obj, objc, objv) == TCL_OK && *objc>1) {
       flag = ObjStr(*objv[0]);
       /*fprintf(stderr, "we have a list starting with '%s'\n", flag);*/
-      if (*flag == '-' || *flag == '.') {  /* TODO '.' needed? */
+      if (*flag == '-') { 
         *methodName = flag+1;
         return LIST_DASH;
       }
@@ -10550,7 +10517,13 @@ ListChildren(Tcl_Interp *interp, XOTclObject *object, char *pattern, int classes
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       key = Tcl_GetHashKey(cmdTable, hPtr);
       if (!pattern || Tcl_StringMatch(key, pattern)) {
-        if ((childObject = XOTclpGetObject(interp, key)) &&
+        Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
+
+        /*fprintf(stderr, "... check %s child key %s child object %p %p\n",
+                objectName(object),key,XOTclpGetObject(interp, key),
+                XOTclGetObjectFromCmdPtr(cmd));*/
+
+        if ((childObject = XOTclGetObjectFromCmdPtr(cmd)) &&
             (!classesOnly || XOTclObjectIsClass(childObject)) &&
             (Tcl_Command_nsPtr(childObject->id) == object->nsPtr)  /* true children */
             ) {
@@ -11194,49 +11167,20 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
 }
 
 /*
-xotclCmd dot XOTclDotCmd {
+xotclCmd colon XOTclColonCmd {
   {-argName "args" -type allargs}
 }
 */
-static int XOTclDotCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
+static int XOTclColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
   XOTclObject *self = GetSelfObj(interp);
   if (!self) {
     return XOTclVarErrMsg(interp, "Cannot resolve 'self', probably called outside the context of an XOTcl Object",
                           (char *) NULL);
   }
-  /*fprintf(stderr, "Dot dispatch %s on %s\n", ObjStr(nobjv[0]), objectName(self));*/
+  /*fprintf(stderr, "Colon dispatch %s on %s\n", ObjStr(nobjv[0]), objectName(self));*/
 
   return ObjectDispatch(self, interp, nobjc, nobjv, XOTCL_CM_NO_SHIFT);
 }
-
-/*
-xotclCmd dotdot XOTclDotDotCmd {
-  {-argName "args" -type allargs}
-}
-*/
-static int XOTclDotDotCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
-  char *methodName = ObjStr(nobjv[0]);
-
-  /* We want to call a command with bypassing the command resolver,
-     since the the command resolver will call InterpDotCmdResolver
-     again. Therefore we perform a single lookup and call the cmd
-     directly 
-  */
-  fprintf(stderr, "DotDot dispatch %s\n", methodName);
-  if (*(methodName+1) == '.') {
-    Tcl_Command cmd = Tcl_FindCommand(interp, methodName+1, NULL, TCL_GLOBAL_ONLY);
-    if (cmd) {
-      fprintf(stderr, "   ... calling DotDot on %s cmd %p\n", methodName+1, cmd);
-      return Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmd), 
-                               Tcl_Command_objClientData(cmd), 
-                               nobjc, nobjv);
-    }
-  }
-
-  return XOTclVarErrMsg(interp, "unknown command name '",
-                        methodName+1, "'", (char *) NULL);
-}
- 
 
 /*
 xotclCmd exists XOTclExistsCmd {
@@ -13065,33 +13009,6 @@ static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *object, int
   int i, start = 1, argc, nextArgc, normalArgs, result = TCL_OK, isdasharg = NO_DASH;
   char *methodName, *nextMethodName;
   
-#if 0
-  /* if we got a single argument, try to split it (unless it starts
-   * with our magic chars) to distinguish between
-   *    Object create foo {.method foo {} {...}}
-   * and
-   *    Object create foo {
-   *      {.method foo {} {...}}
-   *    }
-   */
-  if (objc == 2) {
-    Tcl_Obj **ov;
-    char *word = ObjStr(objv[1]);
-    if (*word != '.' && *word != '-') {  /* TODO '.' needed */
-      char *p = word;
-      while (*p && *p != ' ') p++;
-      if (*p) {
-        /*fprintf(stderr, "split %s\n", word);*/
-        if (Tcl_ListObjGetElements(interp, objv[1], &objc, &ov) == TCL_OK) {
-          objv = (Tcl_Obj *CONST*)ov;
-          start = 0;
-        } else {
-          return TCL_ERROR;
-        }
-      }
-    }
-  }
-#endif
   /* find arguments without leading dash */
   for (i=start; i < objc; i++) {
     if ((isdasharg = isDashArg(interp, objv[i], 1, &methodName, &argc, &argv))) {
@@ -14586,7 +14503,6 @@ Xotcl_Init(Tcl_Interp *interp) {
         fprintf(stderr, "loading a version of xotcl compiled for 8.4 version into a 8.4 Tcl\n");
       */
       forwardCompatibleMode = 0;
-      lookupVarFromTable  = LookupVarFromTable84;
       tclVarHashCreateVar = VarHashCreateVar84;
       tclInitVarHashTable = InitVarHashTable84;
       tclCleanupVar       = TclCleanupVar84;
@@ -14601,7 +14517,6 @@ Xotcl_Init(Tcl_Interp *interp) {
         fprintf(stderr, "loading a version of xotcl compiled for 8.4 version into a 8.5 Tcl\n");
       */
       forwardCompatibleMode = 1;
-      lookupVarFromTable  = LookupVarFromTable85;
       tclVarHashCreateVar = VarHashCreateVar85;
       tclInitVarHashTable = (Tcl_InitVarHashTableFunction*)*((&tclIntStubsPtr->reserved0)+235);
       tclCleanupVar       = (Tcl_CleanupVarFunction*)*((&tclIntStubsPtr->reserved0)+176);
@@ -14729,11 +14644,10 @@ Xotcl_Init(Tcl_Interp *interp) {
 
 #if defined(USE_COMPILED_VAR_RESOLVER)
   Tcl_AddInterpResolvers(interp,"xotcl", 
-                         (Tcl_ResolveCmdProc*)InterpDotCmdResolver,
-                         InterpDotVarResolver, 
-                         (Tcl_ResolveCompiledVarProc*)InterpCompiledDotVarResolver);
-  RUNTIME_STATE(interp)->dotCmd = Tcl_FindCommand(interp, "::xotcl::dot", 0, 0);
-  RUNTIME_STATE(interp)->dotDotCmd = Tcl_FindCommand(interp, "::xotcl::dotdot", 0, 0);
+                         (Tcl_ResolveCmdProc*)InterpColonCmdResolver,
+                         InterpColonVarResolver, 
+                         (Tcl_ResolveCompiledVarProc*)InterpCompiledColonVarResolver);
+  RUNTIME_STATE(interp)->colonCmd = Tcl_FindCommand(interp, "::xotcl::colon", 0, 0);
 #endif
 
   /*

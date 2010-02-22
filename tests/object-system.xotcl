@@ -10,7 +10,7 @@ proc ? {cmd expected {msg ""}} {
    if {$msg eq ""} {set msg $cmd}
    if {$r ne $expected} {
      puts stderr "ERROR $msg returned '$r' ne '$expected'"
-     exit
+     error "FAILED $msg returned '$r' ne '$expected'"
    } else {
      puts stderr "OK $msg"
    }
@@ -81,14 +81,28 @@ C destroy
 # basic parameter tests
 
 Class C -parameter {{x 1} {y 2}}
+? {::xotcl::objectproperty C object} 1
+? {::xotcl::objectproperty C::slot object} 1
+? {C info children} ::C::slot
+
+puts stderr ====COPY
 C copy X
+puts stderr ====0a
+? {::xotcl::objectproperty X object} 1
+? {X info vars} ""
+? {C info vars} ""
+puts stderr ====0b
+? {::xotcl::objectproperty X::slot object} 1
+puts stderr ====0c
 
 ? {C::slot info vars} __parameter
 ? {C info parameter} {{x 1} {y 2}}
 
+puts stderr ====1
 ? {X::slot info vars} __parameter
+puts stderr ====2
 ? {X info parameter} {{x 1} {y 2}}
-
+puts stderr ====3
 
 #
 # tests for the dispatch command

@@ -14,6 +14,7 @@
 #define Tcl_CallFrame_level(cf)           ((CallFrame *)cf)->level
 #define Tcl_CallFrame_isProcCallFrame(cf) ((CallFrame *)cf)->isProcCallFrame
 #define Tcl_CallFrame_compiledLocals(cf)  ((CallFrame *)cf)->compiledLocals
+#define Tcl_CallFrame_numCompiledLocals(cf)  ((CallFrame *)cf)->numCompiledLocals
 #define Tcl_CallFrame_callerVarPtr(cf)    ((Tcl_CallFrame*)((CallFrame *)cf)->callerVarPtr)
 #define Tcl_CallFrame_objc(cf)            ((CallFrame *)cf)->objc
 #define Tcl_CallFrame_objv(cf)            ((CallFrame *)cf)->objv

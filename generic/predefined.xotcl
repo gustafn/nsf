@@ -920,6 +920,7 @@ namespace eval ::xotcl {
 
   :method makeTargetList {t} {
     lappend :targetList $t
+    #puts stderr "COPY makeTargetList $t target= ${:targetList}"
     # if it is an object without namespace, it is a leaf
     if {[::xotcl::objectproperty $t object]} {
       if {[$t info hasnamespace]} {

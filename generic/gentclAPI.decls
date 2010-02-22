@@ -48,10 +48,7 @@ xotclCmd dispatch XOTclDispatchCmd {
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
 }
-xotclCmd dotdot XOTclDotDotCmd {
-  {-argName "args" -type allargs}
-}
-xotclCmd dot XOTclDotCmd {
+xotclCmd colon XOTclColonCmd {
   {-argName "args" -type allargs}
 }
 xotclCmd exists XOTclExistsCmd {

@@ -71,9 +71,11 @@ unset ::z
 
 Object create o 
 o requireNamespace
-
+puts stderr =======1
 o set x 1
+puts stderr =======2
 ? {namespace eval ::o set x} 1
+puts stderr =======3
 ? {::o set x} 1
 ? {namespace eval ::o set x 3} 3
 ? {::o set x} 3
@@ -390,7 +392,9 @@ o softeval {
   set :d 1
 }
 ? {o exists d} 1
-? {o exists ddd} 1 ;# TODO: should be 0
+puts stderr ====111
+? {o exists ddd} 0
+puts stderr ====222
 
 # softeval2 never sets variables
 o softeval2 {
@@ -399,7 +403,7 @@ o softeval2 {
 }
 ? {o exists z} 0
 ? {o exists zzz} 0
-? {lsort [o info vars]} "c ccc d ddd"
+? {lsort [o info vars]} "c ccc d"
 o destroy
 
 ##################################################
@@ -524,4 +528,44 @@ namespace eval module {
   puts stderr "mixin add M"
   C mixin add M2
   ? {::xotcl::relation C class-mixin} "::module::M2 ::module::M1"
+}
+
+
+##################################################
+# test setting of instance variables for 
+# objects with namespaces in and outside
+# of an eval (one case uses compiler)
+##################################################
+
+Test case alias-dot-resolver-interp
+# outside of eval scope (interpreted)
+Class create V {
+  set :Z 1
+  set ZZZ 1
+  :method bar {z} { return $z }
+  :object method bar {z} { return $z }
+  :create v {
+    set zzz 2
+    set :z 2
+  }
+}
+? {lsort [V info vars]} {Z}
+? {lsort [v info vars]} {z}
+
+# dot-resolver/ dot-dispatcher used in aliased proc
+
+Test case alias-dot-resolver {
+
+  Class create V {
+    set :Z 1
+    set ZZZ 1
+    :method bar {z} { return $z }
+    :object method bar {z} { return $z }
+    :create v {
+      set :z 2
+      set zzz 2
+    }
+  }
+  ? {lsort [V info vars]} {Z ZZZ}; #TODO: should be Z
+  ? {lsort [v info vars]} {z zzz} ; #TODO: should be z
 }

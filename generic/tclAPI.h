@@ -190,12 +190,11 @@ static int XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, i
 static int XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclDotCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclDotDotCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclExistsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -271,12 +270,11 @@ static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, char *varname);
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, char *methodName, int withNonleaf, int withObjscope, Tcl_Obj *cmdName);
 static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int assertionsubcmd, Tcl_Obj *arg);
+static int XOTclColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
 static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass);
 static int XOTclDeprecatedCmd(Tcl_Interp *interp, char *what, char *oldCmd, char *newCmd);
 static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int XOTclDotCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclDotDotCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclExistsCmd(Tcl_Interp *interp, XOTclObject *object, char *var);
 static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
 static int XOTclForwardCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
@@ -353,12 +351,11 @@ enum {
  XOTclOVwaitMethodIdx,
  XOTclAliasCmdIdx,
  XOTclAssertionCmdIdx,
+ XOTclColonCmdIdx,
  XOTclConfigureCmdIdx,
  XOTclCreateObjectSystemCmdIdx,
  XOTclDeprecatedCmdIdx,
  XOTclDispatchCmdIdx,
- XOTclDotCmdIdx,
- XOTclDotDotCmdIdx,
  XOTclExistsCmdIdx,
  XOTclFinalizeObjCmdIdx,
  XOTclForwardCmdIdx,
@@ -1498,6 +1495,15 @@ XOTclAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 }
 
 static int
+XOTclColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+
+    
+
+    return XOTclColonCmd(interp, objc, objv);
+
+}
+
+static int
 XOTclConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
@@ -1573,24 +1579,6 @@ XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     return XOTclDispatchCmd(interp, object, withObjscope, command, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
-}
-
-static int
-XOTclDotCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-
-    
-
-    return XOTclDotCmd(interp, objc, objv);
-
-}
-
-static int
-XOTclDotDotCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-
-    
-
-    return XOTclDotDotCmd(interp, objc, objv);
-
 }
 
 static int
@@ -2196,6 +2184,9 @@ static methodDefinition method_definitions[] = {
   {"assertionsubcmd", 1, 0, convertToAssertionsubcmd},
   {"arg", 0, 0, convertToTclobj}}
 },
+{"::xotcl::colon", XOTclColonCmdStub, 1, {
+  {"args", 0, 0, convertToNothing}}
+},
 {"::xotcl::configure", XOTclConfigureCmdStub, 2, {
   {"configureoption", 1, 0, convertToConfigureoption},
   {"value", 0, 0, convertToTclobj}}
@@ -2213,12 +2204,6 @@ static methodDefinition method_definitions[] = {
   {"object", 1, 0, convertToObject},
   {"-objscope", 0, 0, convertToString},
   {"command", 1, 0, convertToTclobj},
-  {"args", 0, 0, convertToNothing}}
-},
-{"::xotcl::dot", XOTclDotCmdStub, 1, {
-  {"args", 0, 0, convertToNothing}}
-},
-{"::xotcl::dotdot", XOTclDotDotCmdStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
 {"::xotcl::exists", XOTclExistsCmdStub, 2, {
