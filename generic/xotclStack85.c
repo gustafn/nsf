@@ -1,7 +1,7 @@
 
 #if defined(TCL85STACK)
 
-static void tcl85showStack(Tcl_Interp *interp) {
+void tcl85showStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
 
   fprintf(stderr, "tcl85showStack framePtr %p varFramePtr %p\n",
@@ -155,12 +155,12 @@ GetSelfObj(Tcl_Interp *interp) {
             Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
 #endif
     if (flag & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
 #if defined(TCL85STACK_TRACE)
-      fprintf(stderr, "... self returns %p %.6x %s\n",csc->self, 
-              csc->self->flags, objectName(csc->self));
+      fprintf(stderr, "... self returns %p %.6x %s\n", cscPtr->self, 
+              cscPtr->self->flags, objectName(cscPtr->self));
 #endif
-      return csc->self;
+      return cscPtr->self;
     } else if (flag & FRAME_IS_XOTCL_OBJECT) {
 #if defined(TCL85STACK_TRACE)
       fprintf(stderr, "... self returns %s\n",
@@ -204,8 +204,8 @@ XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame *
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if ((csc->callType & XOTCL_CSC_CALL_IS_NEXT) || (csc->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
+      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if ((cscPtr->callType & XOTCL_CSC_CALL_IS_NEXT) || (cscPtr->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
         continue;
       }
       if (offset) {
@@ -213,7 +213,7 @@ XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame *
       } else {
         if (Tcl_CallFrame_level(varFramePtr) < lvl) {
           if (framePtrPtr) *framePtrPtr = varFramePtr;
-          return csc;
+          return cscPtr;
         }
       }
     }
@@ -232,11 +232,11 @@ XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fr
   /* search for first active frame and set tcl frame pointers */
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if (!(csc->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
+      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (!(cscPtr->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
         /* we found the highest active frame */
         if (framePtrPtr) *framePtrPtr = varFramePtr;
-        return csc;
+        return cscPtr;
       }
     }
   }
@@ -306,9 +306,9 @@ CallStackFindActiveFilter(Tcl_Interp *interp) {
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
-        return csc;
+      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (cscPtr->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+        return cscPtr;
       }
     }
   }
@@ -325,9 +325,9 @@ FilterActiveOnObj(Tcl_Interp *interp, XOTclObject *object, Tcl_Command cmd) {
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *csc = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if (cmd == csc->cmdPtr && object == csc->self &&
-          csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (cmd == cscPtr->cmdPtr && object == cscPtr->self &&
+          cscPtr->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
         return 1;
       }
     }

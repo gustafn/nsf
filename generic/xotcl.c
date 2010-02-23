@@ -554,7 +554,7 @@ InitVarHashTable84(TclVarHashTable *tablePtr, Namespace *nsPtr) {
 }
 
 static void
-TclCleanupVar84(Var * varPtr, Var *arrayPtr) {
+TclCleanupVar84(Var *varPtr, Var *arrayPtr) {
   if (TclIsVarUndefined(varPtr) && (varPtr->refCount == 0)
       && (varPtr->tracePtr == NULL)
       && (varPtr->flags & VAR_IN_HASHTABLE)) {
@@ -1475,11 +1475,6 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
 }
 
 
-/*
-  typedef int (Tcl_ResolveVarProc) _ANSI_ARGS_((
-  *	        Tcl_Interp *interp, CONST char * name, Tcl_Namespace *context,
-  *	        int flags, Tcl_Var *rPtr));
-  */
 static int
 NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
   Tcl_CallFrame *varFramePtr;
@@ -5872,10 +5867,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   if (((objflags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID) == XOTCL_FILTER_ORDER_DEFINED_AND_VALID)
       && rst->doFilters
       && !rst->guardCount) {
-    XOTclCallStackContent *csc = CallStackGetTopFrame(interp, NULL);
+    XOTclCallStackContent *cscPtr = CallStackGetTopFrame(interp, NULL);
 
-    if (csc && (object != csc->self ||
-                csc->frameType != XOTCL_CSC_TYPE_ACTIVE_FILTER)) {
+    if (cscPtr && (object != cscPtr->self ||
+                cscPtr->frameType != XOTCL_CSC_TYPE_ACTIVE_FILTER)) {
 
       filterStackPushed = FilterStackPush(interp, object, methodObj);
       cmd = FilterSearchProc(interp, object, &object->filterStack->currentCmdPtr, &cl);
@@ -7088,17 +7083,17 @@ computeSlotObjects(Tcl_Interp *interp, XOTclObject *object, char *pattern, int w
 
 static XOTclClass*
 FindCalledClass(Tcl_Interp *interp, XOTclObject *object) {
-  XOTclCallStackContent *csc = CallStackGetTopFrame(interp, NULL);
+  XOTclCallStackContent *cscPtr = CallStackGetTopFrame(interp, NULL);
   char *methodName;
   Tcl_Command cmd;
 
-  if (csc->frameType == XOTCL_CSC_TYPE_PLAIN)
-    return csc->cl;
+  if (cscPtr->frameType == XOTCL_CSC_TYPE_PLAIN)
+    return cscPtr->cl;
 
-  if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER)
-    methodName = ObjStr(csc->filterStackEntry->calledProc);
-  else if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_MIXIN && object->mixinStack)
-    methodName = (char *)Tcl_GetCommandName(interp, csc->cmdPtr);
+  if (cscPtr->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER)
+    methodName = ObjStr(cscPtr->filterStackEntry->calledProc);
+  else if (cscPtr->frameType == XOTCL_CSC_TYPE_ACTIVE_MIXIN && object->mixinStack)
+    methodName = (char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr);
   else
     return NULL;
 
@@ -7117,7 +7112,7 @@ FindCalledClass(Tcl_Interp *interp, XOTclObject *object) {
  * Next Primitive Handling
  */
 XOTCLINLINE static int
-NextSearchMethod(XOTclObject *object, Tcl_Interp *interp, XOTclCallStackContent *csc,
+NextSearchMethod(XOTclObject *object, Tcl_Interp *interp, XOTclCallStackContent *cscPtr,
                  XOTclClass **cl, char **method, Tcl_Command *cmd,
                  int *isMixinEntry, int *isFilterEntry,
                  int *endOfFilterChain, Tcl_Command *currentCmd) {
@@ -7141,7 +7136,7 @@ NextSearchMethod(XOTclObject *object, Tcl_Interp *interp, XOTclCallStackContent 
     /*  XOTclCallStackDump(interp); XOTclStackDump(interp);*/
 
     if (*cmd == 0) {
-      if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+      if (cscPtr->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
         /* reset the information to the values of method, cl
            to the values they had before calling the filters */
         *method = ObjStr(object->filterStack->calledProc);
@@ -7174,7 +7169,7 @@ NextSearchMethod(XOTclObject *object, Tcl_Interp *interp, XOTclCallStackContent 
     }
     /*fprintf(stderr, "nextsearch: mixinsearch cmd %p, currentCmd %p\n",*cmd, *currentCmd);*/
     if (*cmd == 0) {
-      if (csc->frameType == XOTCL_CSC_TYPE_ACTIVE_MIXIN) {
+      if (cscPtr->frameType == XOTCL_CSC_TYPE_ACTIVE_MIXIN) {
         endOfChain = 1;
         *cl = 0;
       }
@@ -12842,7 +12837,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
   }
   return result;
 }
-static int DoDealloc(Tcl_Interp *interp, XOTclObject *delobj);
+static int DoDealloc(Tcl_Interp *interp, XOTclObject *object);
 
 static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *object) {
   PRINTOBJ("XOTclODestroyMethod", object);
@@ -13332,7 +13327,7 @@ static int XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, char *name,
 static int DoDealloc(Tcl_Interp *interp, XOTclObject *object) {
   int result;
 
-  /*delobj->flags |= XOTCL_DURING_DELETE;*/
+  /*object->flags |= XOTCL_DURING_DELETE;*/
 
   /*fprintf(stderr, "DoDealloc obj= %s %p flags %.6x activation %d cmd %p opt=%p\n",
           objectName(object), object, object->flags, object->activationCount, 
@@ -13357,22 +13352,22 @@ static int DoDealloc(Tcl_Interp *interp, XOTclObject *object) {
 
 
 static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *obj) {
-  XOTclObject *delobject;
+  XOTclObject *object;
 
   /* fprintf(stderr, "XOTclCDeallocMethod obj %p %s\n",obj, ObjStr(obj));*/
   
-  if (GetObjectFromObj(interp, obj, &delobject) != TCL_OK) {
+  if (GetObjectFromObj(interp, obj, &object) != TCL_OK) {
     fprintf(stderr, "XOTcl object %s does not exist\n", ObjStr(obj));
     return XOTclVarErrMsg(interp, "Can't destroy object ",
                           ObjStr(obj), " that does not exist.", (char *) NULL);
   }
   
-  return DoDealloc(interp, delobject);
+  return DoDealloc(interp, object);
 }
 
 static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *withChildof,
                            int objc, Tcl_Obj *CONST objv[]) {
-  Tcl_Obj *fullname;
+  Tcl_Obj *fullnameObj;
   int result, prefixLength;
   Tcl_DString dFullname, *dsPtr = &dFullname;
   XOTclStringIncrStruct *iss = &RUNTIME_STATE(interp)->iss;
@@ -13397,16 +13392,16 @@ static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *with
     Tcl_DStringSetLength(dsPtr, prefixLength);
   }
 
-  fullname = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
+  fullnameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
 
-  INCR_REF_COUNT(fullname);
+  INCR_REF_COUNT(fullnameObj);
 
   {
     ALLOC_ON_STACK(Tcl_Obj*, objc+3, ov);
 
     ov[0] = objv[0];
     ov[1] = XOTclGlobalObjects[XOTE_CREATE];
-    ov[2] = fullname;
+    ov[2] = fullnameObj;
     if (objc >= 1)
       memcpy(ov+3, objv, sizeof(Tcl_Obj *)*objc);
 
@@ -13414,7 +13409,7 @@ static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *with
     FREE_ON_STACK(ov);
   }
 
-  DECR_REF_COUNT(fullname);
+  DECR_REF_COUNT(fullnameObj);
   Tcl_DStringFree(dsPtr);
 
   return result;
@@ -13763,6 +13758,7 @@ static int XOTclObjInfoVarsMethod(Tcl_Interp *interp, XOTclObject *object, char 
  ***************************/
 static int XOTclClassInfoHeritageMethod(Tcl_Interp *interp, XOTclClass *cl, char *pattern) {
   XOTclClasses *pl = ComputeOrder(cl, cl->order, Super);
+
   Tcl_ResetResult(interp);
   if (pl) pl=pl->nextPtr;
   for (; pl; pl = pl->nextPtr) {
@@ -13812,11 +13808,11 @@ static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *startCl
   return TCL_OK;
 }
 
-static int XOTclClassInfoFilterMethod(Tcl_Interp *interp, XOTclClass * class, int withGuards, char * pattern) {
+static int XOTclClassInfoFilterMethod(Tcl_Interp *interp, XOTclClass *class, int withGuards, char *pattern) {
   return class->opt ? FilterInfo(interp, class->opt->classfilters, pattern, withGuards, 0) : TCL_OK;
 }
 
-static int XOTclClassInfoFilterguardMethod(Tcl_Interp *interp, XOTclClass * class, char * filter) {
+static int XOTclClassInfoFilterguardMethod(Tcl_Interp *interp, XOTclClass *class, char *filter) {
   return class->opt ? GuardList(interp, class->opt->classfilters, filter) : TCL_OK;
 }
 
@@ -13825,7 +13821,7 @@ static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *class,
   return ListForward(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, withDefinition);
 }
 
-static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure, int withGuards,
+static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, int withGuards,
 			      char *patternString, XOTclObject *patternObj) {
   XOTclClassOpt *opt = class->opt;
   int rc;
@@ -13846,11 +13842,11 @@ static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass * class, int
   return TCL_OK;
 }
 
-static int XOTclClassInfoMixinguardMethod(Tcl_Interp *interp, XOTclClass * class, char * mixin) {
+static int XOTclClassInfoMixinguardMethod(Tcl_Interp *interp, XOTclClass *class, char *mixin) {
   return class->opt ? GuardList(interp, class->opt->classmixins, mixin) : TCL_OK;
 }
 
-static int XOTclClassInfoMixinOfMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure, int withScope,
+static int XOTclClassInfoMixinOfMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, int withScope,
                                        char *patternString, XOTclObject *patternObj) {
   XOTclClassOpt *opt = class->opt;
   int perClass, perObject;
@@ -13896,7 +13892,7 @@ static int XOTclClassInfoMixinOfMethod(Tcl_Interp *interp, XOTclClass * class, i
   return TCL_OK;
 }
 
-static int XOTclClassInfoParameterMethod(Tcl_Interp *interp, XOTclClass * class) {
+static int XOTclClassInfoParameterMethod(Tcl_Interp *interp, XOTclClass *class) {
   Tcl_DString ds, *dsPtr = &ds;
   XOTclObject *object;
 
@@ -13918,7 +13914,7 @@ static int XOTclClassInfoParameterMethod(Tcl_Interp *interp, XOTclClass * class)
   return TCL_OK;
 }
 
-static int XOTclClassInfoSlotsMethod(Tcl_Interp *interp, XOTclClass * class) {
+static int XOTclClassInfoSlotsMethod(Tcl_Interp *interp, XOTclClass *class) {
   Tcl_DString ds, *dsPtr = &ds;
   XOTclObject *object;
   int result;
@@ -13936,7 +13932,7 @@ static int XOTclClassInfoSlotsMethod(Tcl_Interp *interp, XOTclClass * class) {
   return result;
 }
 
-static int XOTclClassInfoSubclassMethod(Tcl_Interp *interp, XOTclClass * class, int withClosure,
+static int XOTclClassInfoSubclassMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure,
                              char *patternString, XOTclObject *patternObj) {
   int rc;
   if (withClosure) {
