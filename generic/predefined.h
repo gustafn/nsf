@@ -576,7 +576,6 @@ static char cmd[] =
 "switch -exact $version {\n"
 "xotcl1 {\n"
 "package require xotcl1\n"
-"puts stderr \"current=[namespace current], ul=[uplevel {namespace current}]\"\n"
 "if {$callingNs ne \"::xotcl\"} {uplevel {namespace import -force ::xotcl::*}}}\n"
 "default {\n"
 "if {$callingNs ne \"::xotcl\"} {uplevel {namespace import -force ::xotcl::*}}\n"

@@ -5,7 +5,7 @@ package provide xotcl::comm::mime 0.9
 package require XOTcl
 
 namespace eval ::xotcl::comm::mime {
-  namespace import ::xotcl::*
+  xotcl::use xotcl1
 
   #######################################################################
   Class MimeTypeLoader

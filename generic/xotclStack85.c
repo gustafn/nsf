@@ -197,13 +197,14 @@ CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   return CallStackGetFrame(interp, framePtrPtr);
 }
 
+/* find last invocation of a scripted method */
 static XOTclCallStackContent *
 XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   int lvl = Tcl_CallFrame_level(varFramePtr);
-
+  
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
       XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if ((cscPtr->callType & XOTCL_CSC_CALL_IS_NEXT) || (cscPtr->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
         continue;

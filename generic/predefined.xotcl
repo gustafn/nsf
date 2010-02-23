@@ -1113,7 +1113,7 @@ namespace eval ::xotcl {
     switch -exact $version {
       xotcl1 {
 	package require xotcl1
-	puts stderr "current=[namespace current], ul=[uplevel {namespace current}]"
+	#puts stderr "current=[namespace current], ul=[uplevel {namespace current}]"
 	if {$callingNs ne "::xotcl"} {uplevel {namespace import -force ::xotcl::*}}
       }
       default {

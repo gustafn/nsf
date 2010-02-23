@@ -5,7 +5,7 @@ package provide xotcl::comm::connection 1.0
 package require XOTcl
 
 namespace eval ::xotcl::comm::connection {
-    namespace import ::xotcl::*
+    xotcl::use xotcl1
 
     Class Connection -parameter {host port req socket handle}
 
@@ -143,12 +143,13 @@ namespace eval ::xotcl::comm::connection {
 	    ::puts stderr message=$msg
 	}
     }
+
     Connection instproc gets {var} {
 	#my showCall
 	upvar [self callinglevel] $var result
 	if {[catch {set n [::gets [my socket] result]} msg]} {
 	    my set error $msg 
-	    #my showMsg "CONNECTION error"
+            #my showMsg "CONNECTION error: $msg"
 	    return 0
 	}
 	#my showMsg "n=$n, result=<$result>"
