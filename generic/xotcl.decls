@@ -46,15 +46,15 @@ declare 6 generic {
 #declare 7 generic {
 #
 #}
-declare 8 generic {
-    int XOTclCreateClass(Tcl_Interp *interp, Tcl_Obj *name, struct XOTcl_Class *cl)
-}
+#declare 8 generic {
+#    int XOTclCreateClass(Tcl_Interp *interp, Tcl_Obj *name, struct XOTcl_Class *cl)
+#}
 declare 9 generic {
     int XOTclDeleteObject(Tcl_Interp *interp, struct XOTcl_Object *obj)
 }
-declare 10 generic {
-    int XOTclDeleteClass(Tcl_Interp *interp, struct XOTcl_Class *cl)
-}
+#declare 10 generic {
+#    int XOTclDeleteClass(Tcl_Interp *interp, struct XOTcl_Class *cl)
+#}
 #declare 11 generic {
 #    int XOTclAddObjectMethod(Tcl_Interp *interp, struct XOTcl_Object *obj, 
 #                         CONST char* nm, Tcl_ObjCmdProc* proc,

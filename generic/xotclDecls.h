@@ -55,24 +55,14 @@ EXTERN int		XOTclCreateObject (Tcl_Interp * interp,
 				Tcl_Obj * name, struct XOTcl_Class * cl);
 #endif
 /* Slot 7 is reserved */
-#ifndef XOTclCreateClass_TCL_DECLARED
-#define XOTclCreateClass_TCL_DECLARED
-/* 8 */
-EXTERN int		XOTclCreateClass (Tcl_Interp * interp, 
-				Tcl_Obj * name, struct XOTcl_Class * cl);
-#endif
+/* Slot 8 is reserved */
 #ifndef XOTclDeleteObject_TCL_DECLARED
 #define XOTclDeleteObject_TCL_DECLARED
 /* 9 */
 EXTERN int		XOTclDeleteObject (Tcl_Interp * interp, 
 				struct XOTcl_Object * obj);
 #endif
-#ifndef XOTclDeleteClass_TCL_DECLARED
-#define XOTclDeleteClass_TCL_DECLARED
-/* 10 */
-EXTERN int		XOTclDeleteClass (Tcl_Interp * interp, 
-				struct XOTcl_Class * cl);
-#endif
+/* Slot 10 is reserved */
 /* Slot 11 is reserved */
 /* Slot 12 is reserved */
 #ifndef XOTclRemoveObjectMethod_TCL_DECLARED
@@ -262,9 +252,9 @@ typedef struct XotclStubs {
     struct XOTcl_Class * (*xOTclGetClass) (Tcl_Interp * interp, char * name); /* 5 */
     int (*xOTclCreateObject) (Tcl_Interp * interp, Tcl_Obj * name, struct XOTcl_Class * cl); /* 6 */
     void *reserved7;
-    int (*xOTclCreateClass) (Tcl_Interp * interp, Tcl_Obj * name, struct XOTcl_Class * cl); /* 8 */
+    void *reserved8;
     int (*xOTclDeleteObject) (Tcl_Interp * interp, struct XOTcl_Object * obj); /* 9 */
-    int (*xOTclDeleteClass) (Tcl_Interp * interp, struct XOTcl_Class * cl); /* 10 */
+    void *reserved10;
     void *reserved11;
     void *reserved12;
     int (*xOTclRemoveObjectMethod) (Tcl_Interp * interp, struct XOTcl_Object * obj, CONST char * nm); /* 13 */
@@ -337,18 +327,12 @@ extern XotclStubs *xotclStubsPtr;
 	(xotclStubsPtr->xOTclCreateObject) /* 6 */
 #endif
 /* Slot 7 is reserved */
-#ifndef XOTclCreateClass
-#define XOTclCreateClass \
-	(xotclStubsPtr->xOTclCreateClass) /* 8 */
-#endif
+/* Slot 8 is reserved */
 #ifndef XOTclDeleteObject
 #define XOTclDeleteObject \
 	(xotclStubsPtr->xOTclDeleteObject) /* 9 */
 #endif
-#ifndef XOTclDeleteClass
-#define XOTclDeleteClass \
-	(xotclStubsPtr->xOTclDeleteClass) /* 10 */
-#endif
+/* Slot 10 is reserved */
 /* Slot 11 is reserved */
 /* Slot 12 is reserved */
 #ifndef XOTclRemoveObjectMethod

@@ -8521,18 +8521,6 @@ XOTclCreateObject(Tcl_Interp *interp, Tcl_Obj *name, XOTcl_Class *class) {
 }
 
 extern int
-XOTclCreateClass(Tcl_Interp *interp, Tcl_Obj *name, XOTcl_Class *class) {
-  XOTclClass *cl = (XOTclClass *) class;
-  int result;
-
-  INCR_REF_COUNT(name);
-  result = XOTclCallMethodWithArgs((ClientData)cl, interp,
-                                   XOTclGlobalObjects[XOTE_CREATE], name, 1, 0, 0);
-  DECR_REF_COUNT(name);
-  return result;
-}
-
-extern int
 XOTclCreate(Tcl_Interp *interp, XOTcl_Class *class, Tcl_Obj *name, ClientData clientData,
             int objc, Tcl_Obj *CONST objv[]) {
   XOTclClass *cl = (XOTclClass *) class;
@@ -8557,12 +8545,6 @@ XOTclCreate(Tcl_Interp *interp, XOTcl_Class *class, Tcl_Obj *name, ClientData cl
 int
 XOTclDeleteObject(Tcl_Interp *interp, XOTcl_Object *object1) {
   XOTclObject *object = (XOTclObject *) object1;
-  return callDestroyMethod(interp, object, 0);
-}
-
-int
-XOTclDeleteClass(Tcl_Interp *interp, XOTcl_Class *cli) {
-  XOTclObject *object = (XOTclObject *) cli;
   return callDestroyMethod(interp, object, 0);
 }
 
