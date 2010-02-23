@@ -191,7 +191,7 @@ o1 set i 0
 o1 set z 100
 #o1 forward z o1 [list %argclindex [list set set]] %proc
 #o1 proc get name {my set $name}
-o1 forward get -earlybinding ::xotcl::setinstvar %self %1
+o1 forward get -earlybinding ::xotcl::setvar %self %1
 ? {o1 get z 101} 101
 ? {o1 get z} "101"
 
@@ -199,7 +199,7 @@ o1 forward get -earlybinding ::xotcl::setinstvar %self %1
 ? {o1 get z 124} 124 "set value via new parametercmd get"
 
 
-o1 forward zz -earlybinding ::xotcl::setinstvar %self %proc
+o1 forward zz -earlybinding ::xotcl::setvar %self %proc
 ? {o1 zz 123} 123
 ? {o1 zz} 123
 
@@ -319,7 +319,7 @@ a0 forward f4 puts hu
 ? {a0 procsearch f3} "::a0 proc f3"
 ? {a0 procsearch f4} "::a0 forward f4"
 ? {a0 procsearch set} "::xotcl::Object instcmd set"
-? {A slot foo info callable -which assign} "::xotcl::ObjectParameterSlot alias assign ::xotcl::setinstvar"
+? {A slot foo info callable -which assign} "::xotcl::ObjectParameterSlot alias assign ::xotcl::setvar"
 
 # redefine setter for foo of class A
 A slot foo method assign {domain var val} {
@@ -536,7 +536,7 @@ o1 forward myf -earlybinding o2 f
 ? {o1 myf 100} 200
 
 o1 set x 42
-o1 forward x -earlybinding ::xotcl::setinstvar %self %proc
+o1 forward x -earlybinding ::xotcl::setvar %self %proc
 ? [list o1 x] 42
 ? [list o1 x 41] 41
 ? {o1 x} "get parametercmd via forward (earlybinding)"
@@ -575,7 +575,7 @@ P instproc sets {var value} {
 P create p2 -age 345 -s 567
 
 ? {p2 age} "parametercmd read"
-? {::xotcl::setinstvar p2 age} "via setinstvar"
+? {::xotcl::setvar p2 age} "via setinstvar"
 ? {p2 s} "parameter read with setter"
 
 

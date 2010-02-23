@@ -6,7 +6,7 @@ Test case alias-preliminaries {
   
   # The system methods of Object are either alias or forwarders
   ? {lsort [::xotcl::ObjectParameterSlot info methods -methodtype alias]} {assign get}
-  ? {::xotcl::ObjectParameterSlot info method definition get} "::xotcl::ObjectParameterSlot alias get ::xotcl::setinstvar"
+  ? {::xotcl::ObjectParameterSlot info method definition get} "::xotcl::ObjectParameterSlot alias get ::xotcl::setvar"
 
   # define an alias and retrieve its definition
   set cmd "::xotcl2::Object alias -objscope set ::set"

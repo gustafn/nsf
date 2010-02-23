@@ -11153,12 +11153,12 @@ static int XOTclColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) 
 }
 
 /*
-xotclCmd exists XOTclExistsCmd {
+xotclCmd existsvar XOTclExistsVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "var" -required 1}
 }
 */
-static int XOTclExistsCmd(Tcl_Interp *interp, XOTclObject *object, char *var) {
+static int XOTclExistsVarCmd(Tcl_Interp *interp, XOTclObject *object, char *var) {
   Tcl_SetIntObj(Tcl_GetObjResult(interp), varExists(interp, object, var, NULL, 1, 1));
   return TCL_OK;
 }
@@ -12319,13 +12319,13 @@ static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption) {
 }
 
 /*
-xotclCmd setinstvar XOTclSetInstvarCmd {
+xotclCmd setvar XOTclSetVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "variable" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
 */
-static int XOTclSetInstvarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value) {
+static int XOTclSetVarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value) {
   return setInstVar(interp, object, variable, value);
 }
 

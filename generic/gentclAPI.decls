@@ -51,7 +51,7 @@ xotclCmd dispatch XOTclDispatchCmd {
 xotclCmd colon XOTclColonCmd {
   {-argName "args" -type allargs}
 }
-xotclCmd exists XOTclExistsCmd {
+xotclCmd existsvar XOTclExistsVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "var" -required 1}
 }
@@ -137,7 +137,7 @@ xotclCmd relation XOTclRelationCmd {
 xotclCmd self XOTclGetSelfObjCmd {
   {-argName "selfoption" -required 0 -type "proc|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
 }
-xotclCmd setinstvar XOTclSetInstvarCmd {
+xotclCmd setvar XOTclSetVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "variable" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}

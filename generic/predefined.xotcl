@@ -365,7 +365,7 @@ namespace eval ::xotcl {
       set slotObj [::xotcl::ObjectParameterSlot slotName $att $class] 
       ::xotcl::ObjectParameterSlot create $slotObj
       if {[info exists default]} {
-        ::xotcl::setinstvar $slotObj default $default
+        ::xotcl::setvar $slotObj default $default
         unset default
       }
       ::xotcl::setter $class $att
@@ -387,7 +387,7 @@ namespace eval ::xotcl {
             } else {
 	      set value $default
 	    }
-            ::xotcl::setinstvar $i $att $value
+            ::xotcl::setvar $i $att $value
           }
         }
         unset default
@@ -423,23 +423,23 @@ namespace eval ::xotcl {
   #   valuecmd
   #   valuechangedcmd
   
-  ::xotcl::alias ::xotcl::ObjectParameterSlot get ::xotcl::setinstvar
-  ::xotcl::alias ::xotcl::ObjectParameterSlot assign ::xotcl::setinstvar
+  ::xotcl::alias ::xotcl::ObjectParameterSlot get ::xotcl::setvar
+  ::xotcl::alias ::xotcl::ObjectParameterSlot assign ::xotcl::setvar
   
   ::xotcl::ObjectParameterSlot public method add {obj prop value {pos 0}} {
     if {![set :multivalued]} {
       error "Property $prop of [set :domain]->$obj ist not multivalued"
     }
     if {[$obj exists $prop]} {
-      ::xotcl::setinstvar $obj $prop [linsert [::xotcl::setinstvar $obj $prop] $pos $value]
+      ::xotcl::setvar $obj $prop [linsert [::xotcl::setvar $obj $prop] $pos $value]
     } else {
-      ::xotcl::setinstvar $obj $prop [list $value]
+      ::xotcl::setvar $obj $prop [list $value]
     }
   }
   ::xotcl::ObjectParameterSlot public method delete {-nocomplain:switch obj prop value} {
-    set old [::xotcl::setinstvar $obj $prop]
+    set old [::xotcl::setvar $obj $prop]
     set p [lsearch -glob $old $value]
-    if {$p>-1} {::xotcl::setinstvar $obj $prop [lreplace $old $p $p]} else {
+    if {$p>-1} {::xotcl::setvar $obj $prop [lreplace $old $p $p]} else {
       error "$value is not a $prop of $obj (valid are: $old)"
     }
   }
@@ -473,7 +473,7 @@ namespace eval ::xotcl {
         ${:domain} __invalidateobjectparameter
       } 
       if {${:per-object} && [info exists :default] } {
-        ::xotcl::setinstvar ${:domain} ${:name} ${:default}
+        ::xotcl::setvar ${:domain} ${:name} ${:default}
       }
       set cl [expr {${:per-object} ? "Object" : "Class"}]
       #puts stderr "Slot [self] init, forwarder on ${:domain}"
@@ -706,15 +706,15 @@ namespace eval ::xotcl {
   ::xotcl::Attribute method __default_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
     $obj trace remove variable $var $op [list [::xotcl::self] [::xotcl::self proc] $obj $cmd]
-    ::xotcl::setinstvar $obj $var [$obj eval $cmd]
+    ::xotcl::setvar $obj $var [$obj eval $cmd]
   }
   ::xotcl::Attribute method __value_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
-    ::xotcl::setinstvar $obj $var [$obj eval $cmd]
+    ::xotcl::setvar $obj $var [$obj eval $cmd]
   }
   ::xotcl::Attribute method __value_changed_cmd {obj cmd var sub op} {
     # puts stderr "**************************"
-    # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [::xotcl::setinstvar $obj $var]"
+    # puts "valuechanged obj=$obj cmd=$cmd, var=$var, op=$op, ...\n$obj exists $var -> [::xotcl::setvar $obj $var]"
     eval $cmd
   }
   ::xotcl::Attribute protected method init {} {
@@ -735,12 +735,12 @@ namespace eval ::xotcl {
     if {$(mparam) ne ""} {
       if {[info exists :multivalued] && ${:multivalued}} {
         #puts stderr "adding assign [list obj var value:$(mparam),multivalued] // for [self] with $(mparam)"
-        :method assign [list obj var value:$(mparam),multivalued,slot=[self]] {::xotcl::setinstvar $obj $var $value}
+        :method assign [list obj var value:$(mparam),multivalued,slot=[self]] {::xotcl::setvar $obj $var $value}
         #puts stderr "adding add method for [self] with value:$(mparam)"
         :method add [list obj prop value:$(mparam),slot=[self] {pos 0}] {next}
       } else {
         #puts stderr "adding assign [list obj var value:$(mparam)] // for [self] with $(mparam)"
-        :method assign [list obj var value:$(mparam),slot=[self]] {::xotcl::setinstvar $obj $var $value}
+        :method assign [list obj var value:$(mparam),slot=[self]] {::xotcl::setvar $obj $var $value}
         #::xotcl::setter ${:domain} ${:name}:$(mparam),slot=[self]
         #puts stderr "::xotcl::setter ${:domain} ${:name}:$(mparam),slot=[self]"
       }
@@ -781,9 +781,9 @@ namespace eval ::xotcl {
       if {[set :defaultmethods] ne {get assign}} return
       set assignInfo [:info callable -which assign]
       #puts stderr assign=$assignInfo//[lindex $assignInfo {end 0}]
-      if {$assignInfo ne "::xotcl::ObjectParameterSlot alias assign ::xotcl::setinstvar" &&
-          [lindex $assignInfo {end 0}] ne "::xotcl::setinstvar" } return
-      if {[:info callable -which get]    ne "::xotcl::ObjectParameterSlot alias get ::xotcl::setinstvar"} return
+      if {$assignInfo ne "::xotcl::ObjectParameterSlot alias assign ::xotcl::setvar" &&
+          [lindex $assignInfo {end 0}] ne "::xotcl::setvar" } return
+      if {[:info callable -which get]    ne "::xotcl::ObjectParameterSlot alias get ::xotcl::setvar"} return
 
       array set "" [:toParameterSyntax ${:name}]
       if {$(mparam) ne ""} {
@@ -818,7 +818,7 @@ namespace eval ::xotcl {
       ::xotcl::Attribute createFromParameterSyntax [self] {*}$arg
     }
     # todo needed?
-    ::xotcl::setinstvar [::xotcl::self]::slot __parameter $arglist
+    ::xotcl::setvar [::xotcl::self]::slot __parameter $arglist
   }
 
   ##################################################################
@@ -1126,3 +1126,5 @@ namespace eval ::xotcl {
   }
   unset bootstrap
 }
+
+

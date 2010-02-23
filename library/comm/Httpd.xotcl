@@ -23,7 +23,7 @@ namespace eval ::xotcl::comm::httpd {
     {port 80} 
     ipaddr 
     {root ./} 
-    {logdir $::xotcl::logdir} 
+    {logdir [set ::xotcl::logdir]} 
     {httpdWrk Httpd::Wrk}
     {redirects [list]}
     {workerTimeout 10000}
