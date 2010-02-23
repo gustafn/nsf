@@ -10929,7 +10929,7 @@ static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int subcmd
 
 /*
 xotclCmd configure XOTclConfigureCmd {
-  {-argName "configureoption" -required 1 -type "filter|softrecreate|cacheinterface|objectsystems"}
+  {-argName "configureoption" -required 1 -type "filter|softrecreate|objectsystems"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -10969,12 +10969,6 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
                       (RUNTIME_STATE(interp)->doSoftrecreate));
     if (value)
       RUNTIME_STATE(interp)->doSoftrecreate = bool;
-    break;
- case ConfigureoptionCacheinterfaceIdx:
-    Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
-                      (RUNTIME_STATE(interp)->cacheInterface));
-    if (value)
-      RUNTIME_STATE(interp)->cacheInterface = bool;
     break;
   }
   return TCL_OK;
@@ -12656,7 +12650,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, char *methodName, XOTclObject *
 
       /* Parse the string representation to obtain the internal representation */
       result = ParamDefsParse(interp, methodName, rawConfArgs, XOTCL_DISALLOWED_ARG_OBJECT_PARAMETER, parsedParamPtr);
-      if (result == TCL_OK && RUNTIME_STATE(interp)->cacheInterface) {
+      if (result == TCL_OK) {
         XOTclParsedParam *ppDefPtr = NEW(XOTclParsedParam);
         ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
         ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
@@ -12833,11 +12827,6 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
   parseContextRelease(&pc);
 
  configure_exit:
-  if (parsedParam.paramDefs) {
-    if (RUNTIME_STATE(interp)->cacheInterface == 0) {
-      ParamDefsFree(parsedParam.paramDefs);
-    }
-  }
   return result;
 }
 static int DoDealloc(Tcl_Interp *interp, XOTclObject *object);
@@ -14557,7 +14546,6 @@ Xotcl_Init(Tcl_Interp *interp) {
 #endif
 
   RUNTIME_STATE(interp)->doFilters = 1;
-  RUNTIME_STATE(interp)->cacheInterface = 1; /* TODO xxx should not stay */
 
   /* create xotcl namespaces */
   RUNTIME_STATE(interp)->XOTclNS =

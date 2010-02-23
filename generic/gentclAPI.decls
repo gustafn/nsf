@@ -30,7 +30,7 @@ xotclCmd assertion XOTclAssertionCmd {
   {-argName "arg" -required 0 -type tclobj}
 }
 xotclCmd configure XOTclConfigureCmd {
-  {-argName "configureoption" -required 1 -type "filter|softrecreate|cacheinterface|objectsystems"}
+  {-argName "configureoption" -required 1 -type "filter|softrecreate|objectsystems"}
   {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {

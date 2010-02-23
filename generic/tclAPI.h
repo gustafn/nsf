@@ -57,13 +57,13 @@ enum AssertionsubcmdIdx {AssertionsubcmdNULL, AssertionsubcmdCheckIdx, Assertion
 static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"filter", "softrecreate", "cacheinterface", "objectsystems", NULL};
+  static CONST char *opts[] = {"filter", "softrecreate", "objectsystems", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "configureoption", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
-enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionCacheinterfaceIdx, ConfigureoptionObjectsystemsIdx};
+enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx};
   
 static int convertToSelfoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
