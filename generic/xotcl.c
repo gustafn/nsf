@@ -10167,11 +10167,14 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, char *registerCmd
                          int withObjscope, int withPer_object) {
   Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
   if (withPer_object) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object",-1));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object",6));
   }
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName,-1));
   if (withObjscope) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objscope",-1));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objscope",9));
+  }
+  if (Tcl_Command_flags(cmd) & XOTCL_CMD_NONLEAF_METHOD) {
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-nonleaf",8));
   }
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName,-1));
 }

@@ -21,10 +21,7 @@ namespace eval xotcl2 {
     ::xotcl::alias Object $cmdName $cmd 
   }
   
-  # provide some Tcl-commands as methods for ::xotcl2::Object
-  #foreach cmd {array append eval incr lappend set subst unset trace} {
-  #  ::xotcl::alias Object $cmd -objscope ::$cmd
-  #}
+  # provide ::eval as method for ::xotcl2::Object
   ::xotcl::alias Object eval -nonleaf ::eval
 
   # provide the standard command set for Class
@@ -149,14 +146,19 @@ namespace eval xotcl2 {
   # Add alias methods. cmdName for XOTcl method can be added via
   #   [... info method name <methodName>]
   #
-  Object public method alias {-objscope:switch methodName cmd} {
+  # -nonleaf and -objscope make only sense for c-defined cmds,
+  # -objscope implies -nonleaf
+  #
+  Object public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
     ::xotcl::alias [self] -per-object $methodName \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
+        {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
         $cmd
   }
-  Class public method alias {-objscope:switch methodName cmd} {
+  Class public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
     ::xotcl::alias [self] $methodName \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
+        {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
         $cmd
   }
 
