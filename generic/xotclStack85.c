@@ -65,11 +65,11 @@ static TclVarHashTable *VarHashTableCreate();
 static void XOTcl_PushFrameObj2(Tcl_Interp *interp, XOTclObject *object, Tcl_CallFrame *framePtr) {
   /*fprintf(stderr,"PUSH OBJECT_FRAME (XOTcl_PushFrame) frame %p\n",framePtr);*/
   if (object->nsPtr) {
-    /*fprintf(stderr,"XOTcl_PushFrame frame %p\n",framePtr);*/
+    /*fprintf(stderr,"XOTcl_PushFrame frame %p with object->nsPtr %p\n", framePtr, object->nsPtr);*/
     Tcl_PushCallFrame(interp, framePtr, object->nsPtr, 
                       0|FRAME_IS_XOTCL_OBJECT); 
   } else {
-    /*fprintf(stderr,"XOTcl_PushFrame frame %p (with fakeProc)\n",framePtr);*/ 
+    /*fprintf(stderr,"XOTcl_PushFrame frame %p (with fakeProc)\n",framePtr);*/
     Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)), 
                       1|FRAME_IS_XOTCL_OBJECT);
     
@@ -80,6 +80,7 @@ static void XOTcl_PushFrameObj2(Tcl_Interp *interp, XOTclObject *object, Tcl_Cal
         object->varTable, object, framePtr);*/
     }
     Tcl_CallFrame_varTablePtr(framePtr) = object->varTable;
+    /*fprintf(stderr,"+++ setting varTable %p in varFrame %p\n",object->varTable,framePtr);*/
   }
   XOTcl_PushFrameSetCd(framePtr, object);
 }
@@ -105,6 +106,7 @@ static void XOTcl_PushFrameCsc2(Tcl_Interp *interp, XOTclCallStackContent *cscPt
 }
 
 static void XOTcl_PopFrameCsc2(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+  /*fprintf(stderr,"POP CMETHOD_FRAME (XOTcl_PopFrame) frame %p\n",framePtr);*/
   Tcl_PopCallFrame(interp);
 }
 
@@ -337,6 +339,23 @@ FilterActiveOnObj(Tcl_Interp *interp, XOTclObject *object, Tcl_Command cmd) {
 }
 
 static void
+CallStackReplaceVarTableReferences(Tcl_Interp *interp, TclVarHashTable *oldVarTablePtr, TclVarHashTable *newVarTablePtr) {   
+  Tcl_CallFrame *framePtr;
+
+  for (framePtr = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp); framePtr; 
+       framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
+    int frameFlags = Tcl_CallFrame_isProcCallFrame(framePtr);
+          
+    if (!(frameFlags & FRAME_IS_XOTCL_OBJECT)) continue;
+    if (!(Tcl_CallFrame_varTablePtr(framePtr) == oldVarTablePtr)) continue;
+    
+    fprintf(stderr, "+++ makeObjNamespace replacing vartable %p with %p in frame %p\n", 
+            oldVarTablePtr, newVarTablePtr, framePtr);
+    Tcl_CallFrame_varTablePtr(framePtr) = newVarTablePtr;
+  }
+}
+
+static void
 CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
@@ -429,7 +448,7 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
   XOTclObject *object = cscPtr->self;
 
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "POP  csc=%p, obj %s method %s (%d)\n", cscPtr, objectName(object),
+  fprintf(stderr, "POP  csc=%p, obj %s method %s\n", cscPtr, objectName(object),
           Tcl_GetCommandName(interp, cscPtr->cmdPtr));
 #endif
   object->activationCount --;

@@ -17,6 +17,7 @@ Test parameter count 1
 # Basic tests for var resolution under 
 # per-object namespaces ...
 ###########################################
+Test case globals
 set ::globalVar 1
 Object create o 
 o requireNamespace
@@ -38,56 +39,102 @@ unset ::globalVar
 ###########################################
 # scopes
 ###########################################
+Test case scopes
+
 Object create o 
-o requireNamespace
+Object create o2 {set :i 1}
 o objeval {
-  # TODO: the next three lines don't seem to work as expected
-  #my requireNamespace
-  #global z
-  #::xotcl::importvar [self] y
+  # require an namespace within an objscoped frame; it is necessary to replace
+  # vartables on the stack
+  my requireNamespace
+  global g
+  ::xotcl::importvar o2 i
   set x 1
   set :y 2
   set ::z 3
   set [self]::X 4
+  set g 1
 }
 set ::o::Y 5
+? {info vars ::x} ""
 
 ? {info exists ::z} 1
 ? {set ::z} 3
-? {lsort [o info vars]} {X Y x y}
+? {lsort [o info vars]} {X Y g i x y}
 ? {o exists x} 1
 ? {o exists y} 1
 ? {o exists z} 0
 ? {o exists X} 1
 ? {o exists Y} 1
-? {o set y} 2 
+? {o set y} 2
+? {set ::g} 1 
 
 o destroy
+o2 destroy
 unset ::z
+unset ::g
+
+# like the example above, but with the non-leaf initcmd
+
+Object create o2 {set :i 1}
+Object create o {
+  my requireNamespace
+  global g
+  ::xotcl::importvar o2 i
+  set x 1
+  set :y 2
+  set ::z 3
+  set [self]::X 4
+  set g 1
+}
+set ::o::Y 5
+? {info vars ::x} ::x
+
+? {info exists ::z} 1
+? {set ::z} 3
+? {lsort [o info vars]} {X Y y}
+? {o exists x} 0
+? {o exists y} 1
+? {o exists z} 0
+? {o exists X} 1
+? {o exists Y} 1
+? {o set y} 2
+? {set ::g} 1 
+
+o destroy
+o2 destroy
+unset ::z
+unset ::g
+unset ::x
 
 ###########################################
 # mix & match namespace and object interfaces
 ###########################################
+Test case namespaces
 
 Object create o 
 o requireNamespace
 o set x 1
-? {namespace eval ::o set x} 1
+? {namespace eval ::o {set x}} 1
 ? {::o set x} 1
-? {namespace eval ::o set x 3} 3
+? {namespace eval ::o {set x 3}} 3
 ? {::o set x} 3
-? {namespace eval ::o info exists x} 1
-? {::o unset x} "" 1
-? {namespace eval ::o info exists x} 0
+? {namespace eval ::o {info exists x}} 1
+? {::o unset x} ""
+? {::xotcl::existsvar o x} 0
+? {o exists x} 0
+? {info vars ::x} ""
+? {namespace eval ::o {info exists x}} 0
 o lappend y 3
-? {namespace eval ::o llength y} 1
-? {namespace eval ::o unset y} ""
+? {namespace eval ::o {llength y}} 1
+? {namespace eval ::o {unset y}} ""
 ? {::o exists y} 0
 o destroy
 
 ###########################################
 # array-specific tests
 ###########################################
+Test case namespaces-array
 
 Object create o 
 o requireNamespace
@@ -113,7 +160,7 @@ o destroy
 ###########################################
 # tests on namespace-qualified var names
 ###########################################
-
+Test case namespaced-var-names
 Object create o 
 o requireNamespace
 Object create o::oo 
@@ -145,7 +192,7 @@ o destroy
 
 # the tests below fail. We could consider
 # to require namespaces on the fly in the future
-Object create o
+#Object create o
 #? {::o set ::o::x 1} 1
 #? {o exists x} [::o set ::o::x]
 #? {namespace eval ::o unset x} ""
@@ -156,12 +203,12 @@ Object create o
 #? {namespace eval ::o unset x} ""
 #? {o exists x} 0
 
-o destroy
+#o destroy
 
 ###############################################
 # tests for the compiled var resolver on Object
 ###############################################
-
+Test case var-resolver-object
 Object create o
 o method foo {x} {set :y 2; return ${:x},${:y}}
 o method bar {} {return ${:x},${:y}}
@@ -180,7 +227,7 @@ o destroy
 ###############################################
 # tests for the compiled var resolver on Class
 ###############################################
-
+Test case var-resolver-class
 Class create C -parameter {{x 1}}
 C create c1
 C method foo {x} {set :y 2; return ${:x},${:y}}
@@ -204,6 +251,7 @@ C destroy
 ###############################################
 # tests for the compiled var resolver with eval
 ###############################################
+Test case compiled-var-resolver
 Class create C -parameter {{x 1}}
 C create c1
 C method foo {x} {
@@ -223,7 +271,7 @@ C method foo {x} {
   eval $cmd
   return $x,${:y}
 }
-C method bar {} {puts ${:x};return [info exists :x],[info exists :y]}
+C method bar {} {return [info exists :x],[info exists :y]}
 C method bar2 {} {if {[info exists :x]} {set :x 1000}; return [info exists :x],[info exists :y]}
 ? {c1 foo 1} "1,100"
 ? {c1 bar} "1,1"
@@ -234,9 +282,9 @@ c1 destroy
 C destroy
 
 ###############################################
-# tests for the compiled var resolver with eval
+# tests with array
 ###############################################
-puts "array tests"
+
 Class create C
 C create c1
 C method foo {} {
@@ -251,6 +299,7 @@ c1 foo
 ###############################################
 # tests for the var resolver
 ###############################################
+Test case var-resolver
 Class create C
 C method bar0 {} {return ${:x}}
 C method bar1 {} {set a ${:x}; return [info exists :x],[info exists :y]}
@@ -336,46 +385,66 @@ Test case eval-variants
 ::xotcl::alias ::xotcl2::Object softeval -nonleaf ::eval 
 ::xotcl::alias ::xotcl2::Object softeval2 ::eval 
 
+set G 1
+
 Object create o {
   set xxx 1
   set :x 1
+  ? {info exists G} 1
 }
 ? {o exists x} 1
 ? {o exists xxx} 0
 
-# eval does an objcope, all vars are instance variables
+? {info exists ::xxx} 1
+unset -nocomplain ::xxx
+
+# eval does an objcope, all vars are instance variables; can access preexisting global vars
 o objeval {
   set aaa 1
   set :a 1
+  ? {info exists G} 1
 }
 
 ? {o exists a} 1
 ? {o exists aaa} 1
 
-# softeval should behave like the creation initcmd (just set dot vars)
+? {info exists ::aaa} 0
+unset -nocomplain ::aaa
+
+# softeval (with -nonleaf) behaves like the initcmd and sets just
+# instance variables via resolver.
+
 o softeval {
   set bbb 1
   set :b 1
+  ? {info exists G} 1
 }
 ? {o exists b} 1
 ? {o exists bbb} 0
 
-# softeval2 never sets variables
+? {info vars ::bbb} ::bbb
+unset -nocomplain ::bbb
+
+# softeval2 never sets instance variables
 o softeval2 {
   set zzz 1
   set :z 1
+  ? {info exists G} 1
 }
 ? {o exists z} 0
 ? {o exists zzz} 0
 
+? {info vars ::zzz} ::zzz
+unset -nocomplain ::zzz
+
 ? {lsort [o info vars]} "a aaa b x"
 o destroy
 
-# now with namespace 
+# now with an object namespace 
 Object create o
 o requireNamespace
 
-# eval does an objcope, all vars are instance variables
+# objeval does an objcope, all vars are instance variables
 o objeval {
   set ccc 1
   set :c 1
@@ -383,7 +452,7 @@ o objeval {
 ? {o exists c} 1
 ? {o exists ccc} 1
 
-# softeval2 should behave like the creation initcmd (just set dot vars)
+# softeval behaves like the creation initcmd (just set dot vars)
 o softeval {
   set ddd 1
   set :d 1
@@ -401,10 +470,10 @@ o softeval2 {
 ? {lsort [o info vars]} "c ccc d"
 o destroy
 
-##################################################
-# The same as above, but with some global vars.
-# The global vars should not influence the behavior.
-##################################################
+#################################################################
+# The same as above, but with some global vars.  The global vars
+# should not influence the behavior on instance variables
+#################################################################
 Test case with-global-vars
 foreach var {.x x xxx :a a aaa :b b bbb :c c ccc :d d ddd :z z zzz} {set $var 1}
 
@@ -415,7 +484,7 @@ Object create o {
 ? {o exists x} 1
 ? {o exists xxx} 0
 
-# eval does an objcope, all vars are instance variables
+# objeval does an objcope, all vars are instance variables
 o objeval {
   set aaa 1
   set :a 1
@@ -431,7 +500,7 @@ o softeval {
 ? {o exists b} 1
 ? {o exists bbb} 0
 
-# softeval2 never sets variables
+# softeval2 never sets instance variables
 o softeval2 {
   set zzz 1
   set :z 1
@@ -471,6 +540,62 @@ o softeval2 {
 ? {o exists zzz} 0
 ? {lsort [o info vars]} "c ccc d"
 o destroy
+
+##################################################
+# Test with proc scopes
+##################################################
+Test case proc-scopes
+::xotcl::alias ::xotcl2::Object objscoped-eval -objscope ::eval 
+::xotcl::alias ::xotcl2::Object nonleaf-eval -nonleaf ::eval 
+::xotcl::alias ::xotcl2::Object plain-eval ::eval 
+
+proc foo-via-initcmd {} {
+  foreach v {x xxx} {unset -nocomplain ::$v}
+  set p 1
+  Object create o {
+    set xxx 1
+    set :x 1
+    set ::result G=[info exists G],p=[info exists p]
+  }
+  return [o exists x]-[o exists xxx]-[info exists x]-[info exists xxx]-[info exists ::x]-[info exists ::xxx]-$::result
+}
+
+proc foo {type} {
+  foreach v {x xxx} {unset -nocomplain ::$v}
+  set p 1
+  Object create o 
+  o $type {
+    set xxx 1
+    set :x 1
+    set ::result G=[info exists G],p=[info exists p]
+  }
+  return [o exists x]-[o exists xxx]-[info exists x]-[info exists xxx]-[info exists ::x]-[info exists ::xxx]-$::result
+}
+
+proc foo-tcl {what} {
+  foreach v {x xxx} {unset -nocomplain ::$v}
+  set p 1
+  set body {
+    set xxx 1
+    set :x 1
+    set ::result G=[info exists G],p=[info exists p]
+  }
+  switch $what {
+    eval {eval $body}
+    ns-eval {namespace eval [namespace current] $body}
+  }
+  return [o exists x]-[o exists xxx]-[info exists x]-[info exists xxx]-[info exists ::x]-[info exists ::xxx]-$::result
+}
+
+set G 1
+
+
+? {foo-via-initcmd}    1-0-0-0-0-1-G=1,p=0
+? {foo nonleaf-eval}   1-0-0-0-0-1-G=1,p=0
+? {foo objscoped-eval} 1-1-0-0-0-0-G=0,p=0
+? {foo plain-eval}     0-0-0-1-0-0-G=0,p=1
+? {foo-tcl eval}       0-0-0-1-0-0-G=0,p=1
+? {foo-tcl ns-eval}    0-0-0-0-0-1-G=1,p=0
 
 
 ##################################################
@@ -520,7 +645,7 @@ namespace eval module {
 
   C mixin M1
   ? {::xotcl::relation C class-mixin} "::module::M1"
-  puts stderr "mixin add M"
+
   C mixin add M2
   ? {::xotcl::relation C class-mixin} "::module::M2 ::module::M1"
 }
@@ -550,16 +675,16 @@ Class create V {
 # dot-resolver/ dot-dispatcher used in aliased proc
 
 Test case alias-dot-resolver {
-  puts stderr HU
+
   Class create V {
     set :Z 1
     set ZZZ 1
     :method bar {z} { return $z }
-   :object method bar {z} { return $z }
-   :create v {
-     set :z 2
-     set zzz 2
-   }
+    :object method bar {z} { return $z }
+    :create v {
+      set :z 2
+      set zzz 2
+    }
   }
   ? {lsort [V info vars]} {Z}
   ? {lsort [v info vars]} {z}

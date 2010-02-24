@@ -1448,7 +1448,11 @@ makeObjNamespace(Tcl_Interp *interp, XOTclObject *object) {
 #endif
         hPtr->tablePtr = varHashTable;
       }
-	
+      fprintf(stderr, "+++ makeObjNamespace freeing varTable %p, new VarTable now in %p\n", object->varTable, varHashTable);
+      /*tcl85showStack(interp);*/
+
+      CallStackReplaceVarTableReferences(interp, object->varTable, (TclVarHashTable *)varHashTable);
+
       ckfree((char *) object->varTable);
       object->varTable = NULL;
     }
@@ -1861,8 +1865,10 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
 
 static Tcl_Namespace *
 requireObjNamespace(Tcl_Interp *interp, XOTclObject *object) {
-  if (!object->nsPtr) makeObjNamespace(interp, object);
 
+  if (!object->nsPtr) {
+    makeObjNamespace(interp, object);
+  }
   /* This puts a per-object namespace resolver into position upon
    * acquiring the namespace. Works for object-scoped commands/procs
    * and object-only ones (set, unset, ...)
@@ -5579,9 +5585,9 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   }
 # if defined(TCL85STACK_TRACE)
   fprintf(stderr, "POP  OBJECT_FRAME (implicit) frame %p cscPtr %p obj %s obj refcount %d %d\n", NULL, cscPtr,
-          objectName(obj),
-          obj->id ? Tcl_Command_refCount(obj->id) : -100,
-          obj->refCount
+          objectName(object),
+          object->id ? Tcl_Command_refCount(object->id) : -100,
+          object->refCount
           );
 # endif
 #else /* BEFORE TCL85 */
