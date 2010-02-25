@@ -101,8 +101,13 @@ static void XOTcl_PushFrameCsc2(Tcl_Interp *interp, XOTclCallStackContent *cscPt
           framePtr,object->nsPtr, 
           Tcl_CallFrame_nsPtr(varFramePtr));*/
 
-  Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(varFramePtr), 0|FRAME_IS_XOTCL_CMETHOD);
+  Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(varFramePtr), 
+#if KEEP_VARS_IN_CMETHOD_FRAME
+1|
+#endif
+                    FRAME_IS_XOTCL_CMETHOD);
   XOTcl_PushFrameSetCd(framePtr, cscPtr);
+
 }
 
 static void XOTcl_PopFrameCsc2(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
@@ -234,7 +239,7 @@ XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fr
 
   /* search for first active frame and set tcl frame pointers */
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD/*(FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)*/) {
       XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (!(cscPtr->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
         /* we found the highest active frame */

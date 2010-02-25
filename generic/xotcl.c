@@ -1448,10 +1448,8 @@ makeObjNamespace(Tcl_Interp *interp, XOTclObject *object) {
 #endif
         hPtr->tablePtr = varHashTable;
       }
-      fprintf(stderr, "+++ makeObjNamespace freeing varTable %p, new VarTable now in %p\n", object->varTable, varHashTable);
-      /*tcl85showStack(interp);*/
-
-      CallStackReplaceVarTableReferences(interp, object->varTable, (TclVarHashTable *)varHashTable);
+      CallStackReplaceVarTableReferences(interp, object->varTable, 
+                                         (TclVarHashTable *)varHashTable);
 
       ckfree((char *) object->varTable);
       object->varTable = NULL;
@@ -1489,7 +1487,9 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
   Tcl_Obj *key;
   Var *newVar;
 
-  /*fprintf(stderr, "NsColonVarResolver '%s' flags %.6x\n", varName, flags);*/
+#if defined (VAR_RESOLVER_TRACE)
+  fprintf(stderr, "NsColonVarResolver '%s' flags %.6x\n", varName, flags);
+#endif
 
   /* Case 1: The variable is to be resolved in global scope, proceed in
    * resolver chain (i.e. return TCL_CONTINUE)
@@ -1785,9 +1785,16 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
   Tcl_Obj *keyObj;
   Tcl_Var var;
 
-  /*fprintf(stderr, "InterpColonVarResolver '%s' flags %.6x\n", varName, flags);*/
+  varFramePtr = Tcl_Interp_varFramePtr(interp);
+  frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
 
-  if (!FOR_COLON_RESOLVER(varName) || flags & TCL_GLOBAL_ONLY) {
+  /*fprintf(stderr, "InterpColonVarResolver '%s' flags %.6x frameFlags %.6x\n", varName, flags, frameFlags);*/
+
+  if (
+      !FOR_COLON_RESOLVER(varName) 
+      /*|| (frameFlags & (FRAME_IS_XOTCL_CMETHOD|FRAME_IS_XOTCL_OBJECT)) == 0 */
+      || (flags & TCL_GLOBAL_ONLY)
+      ) {
     /* ordinary names and global lookups are not for us */
     return TCL_CONTINUE;
   }
@@ -1796,8 +1803,7 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
   fprintf(stderr, "InterpColonVarResolver called var '%s' flags %.4x\n", varName, flags);
 #endif
   varName ++;
-  varFramePtr = Tcl_Interp_varFramePtr(interp);
-  frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+
 
 #if defined(VAR_RESOLVER_TRACE)
   fprintf(stderr, "    frame flags %.6x\n", frameFlags);

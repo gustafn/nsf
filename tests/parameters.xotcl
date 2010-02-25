@@ -688,7 +688,7 @@ Test case substdefault {
   set ::aaa 100
   ? {s1 method foo {{a:substdefault $::aaa}} {return $a}} ::s1::foo
   ? {s1 foo} 100
-  unset aaa
+  unset ::aaa
   ? {s1 foo} {can't read "::aaa": no such variable}
   
   ? {s1 method foo {{a:substdefault $aaa}} {return $a}} ::s1::foo
