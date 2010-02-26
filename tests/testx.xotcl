@@ -3,7 +3,10 @@ package require XOTcl; xotcl::use xotcl1
 
 proc ::errorCheck {got expected msg} {
   if {$got != $expected} {
-    puts stderr "[self] FAILED: $msg\nGot:      $got\nExpected: $expected"
+    if {[catch self self]} {
+      set self "NO CURRENT OBJECT"
+    }
+    puts stderr "$self FAILED: $msg\nGot:      $got\nExpected: $expected"
     foreach g $got e $expected {
       set result [expr {$g == $e}]
       if {[string length $g]>60} {
@@ -4285,25 +4288,27 @@ proc x {} {
   Class instmixin {}
   C instmixin {}
   set c0 [llength [C info instances]]
-  set o [C new -volatile]; errorCheck [Object isobject $o] 1 "x, check object"
+  set o1 [C new -volatile]; errorCheck [Object isobject $o1] 1 "x, check object"
   Class instmixin ::xotcl::_creator
-  set o [C new -volatile]; errorCheck [Object isobject $o] 1 "x, check object"
+  set o2 [C new -volatile]; errorCheck [Object isobject $o2] 1 "x, check object"
   C instmixin ::xotcl::I
-  set o [C new -volatile]; errorCheck [Object isobject $o] 1 "x, check object"
+  set o3 [C new -volatile]; errorCheck [Object isobject $o3] 1 "x, check object"
   set c1 [llength [C info instances]]
   errorCheck [expr {$c1 - $c0 != 3}] 0 "exit x, three more objects"
+  #puts stderr "WE HAVE $o1 $o2 $o3"
 }
 
 x
+puts stderr C-instances=[C info instances]
 errorCheck [expr {[llength [C info instances]] > 0}] 0 "top, all volatile object gone"
 
 proc x1 {} {
   set c0 [llength [C info instances]]
-  set o [C new -volatile]; errorCheck [Object isobject $o] 1 "x1, check object"
+  set o1 [C new -volatile]; errorCheck [Object isobject $o1] 1 "x1, check object $o1"
   x
-  set o [C new -volatile]; errorCheck [Object isobject $o] 1 "x1, check object"
+  set o2 [C new -volatile]; errorCheck [Object isobject $o2] 1 "x1, check object $o2"
   set c1 [llength [C info instances]]
-  errorCheck [expr {$c1 - $c0 != 2}] 0 "exit x1, two more objects"
+  errorCheck [expr {$c1 - $c0 != 2}] 0 "exit x1, two more objects - $c1 ($o1,$o2), [C info instances]"
 }
 x1
 

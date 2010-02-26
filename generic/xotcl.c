@@ -7553,7 +7553,7 @@ XOTclUnsetTrace(ClientData clientData, Tcl_Interp *interp, CONST char *name, CON
   char *resultMsg = NULL;
 
   /*fprintf(stderr, "XOTclUnsetTrace %s flags %.4x %.4x\n", name, flags,
-    flags & TCL_INTERP_DESTROYED);  */
+    flags & TCL_INTERP_DESTROYED); */
 
   if ((flags & TCL_INTERP_DESTROYED) == 0) {
     if (GetObjectFromObj(interp, obj, &object) == TCL_OK) {
@@ -9452,7 +9452,8 @@ callingNameSpace(Tcl_Interp *interp) {
   * registration. etc. If we would use this namespace, we would
   * resolve non-fully-qualified names against ::xotcl).
   */
-  for (framePtr = nonXotclObjectProcFrame((Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp));
+  for (framePtr = activeProcFrame((Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp), 
+				  FRAME_IS_XOTCL_OBJECT|FRAME_IS_XOTCL_CMETHOD);
        framePtr;
        framePtr = Tcl_CallFrame_callerVarPtr(framePtr)) {
     nsPtr = Tcl_CallFrame_nsPtr(framePtr);
@@ -13171,7 +13172,9 @@ static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *object) {
   if (Tcl_SetVar2(interp, vn, NULL, fullName, 0)) {
     XOTclObjectOpt *opt = XOTclRequireObjectOpt(object);
 
-    /*fprintf(stderr, "### setting trace for %s on frame %p\n", fullName, Tcl_Interp_varFramePtr(interp));*/
+    /*fprintf(stderr, "### setting trace for %s on frame %p\n", fullName, 
+      Tcl_Interp_varFramePtr(interp));
+      tcl85showStack(interp);*/
     result = Tcl_TraceVar(interp, vn, TCL_TRACE_UNSETS,
 			  (Tcl_VarTraceProc*)XOTclUnsetTrace,
                           (ClientData)objPtr);

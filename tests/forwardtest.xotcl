@@ -234,8 +234,8 @@ obj proc c args {return [list [self proc] $args]}
 ###############################################
 # option earlybinding
 ###############################################
-Test case earlyinging
-obj forward s -earlybinding ::set %proc
+Test case earlybinding
+obj forward s -earlybinding ::set ::X
 ? {obj s 100} 100
 ? {obj s} 100
 

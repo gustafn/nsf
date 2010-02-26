@@ -88,8 +88,8 @@ Object create o {
   set g 1
 }
 set ::o::Y 5
-#? {info vars ::x} ""
-? {info vars ::x} "::x"
+? {info vars ::x} ""
+#? {info vars ::x} "::x"
 
 ? {info exists ::z} 1
 ? {set ::z} 3
@@ -396,8 +396,8 @@ Object create o {
 ? {o exists x} 1
 ? {o exists xxx} 0
 
-#? {info exists ::xxx} 0
-? {info exists ::xxx} 1
+? {info exists ::xxx} 0
+#? {info exists ::xxx} 1
 unset -nocomplain ::xxx
 
 # eval does an objcope, all vars are instance variables; can access preexisting global vars
@@ -424,8 +424,8 @@ o softeval {
 ? {o exists b} 1
 ? {o exists bbb} 0
 
-#? {info vars ::bbb} ""
-? {info vars ::bbb} ::bbb
+? {info vars ::bbb} ""
+#? {info vars ::bbb} ::bbb
 unset -nocomplain ::bbb
 
 # softeval2 never sets instance variables
@@ -593,19 +593,19 @@ proc foo-tcl {what} {
 set G 1
 
 
-# ? {foo-via-initcmd}    1-0-0-0-0-0-G=0,p=0
-# ? {foo nonleaf-eval}   1-0-0-0-0-0-G=0,p=0
+ ? {foo-via-initcmd}    1-0-0-0-0-0-G=0,p=0
+ ? {foo nonleaf-eval}   1-0-0-0-0-0-G=0,p=0
+ ? {foo objscoped-eval} 1-1-0-0-0-0-G=0,p=0
+ ? {foo plain-eval}     0-0-0-1-0-0-G=0,p=1
+ ? {foo-tcl eval}       0-0-0-1-0-0-G=0,p=1
+ ? {foo-tcl ns-eval}    0-0-0-0-0-1-G=1,p=0
+
+# ? {foo-via-initcmd}    1-0-0-0-0-1-G=1,p=0
+# ? {foo nonleaf-eval}   1-0-0-0-0-1-G=1,p=0
 # ? {foo objscoped-eval} 1-1-0-0-0-0-G=0,p=0
 # ? {foo plain-eval}     0-0-0-1-0-0-G=0,p=1
 # ? {foo-tcl eval}       0-0-0-1-0-0-G=0,p=1
 # ? {foo-tcl ns-eval}    0-0-0-0-0-1-G=1,p=0
-
-? {foo-via-initcmd}    1-0-0-0-0-1-G=1,p=0
-? {foo nonleaf-eval}   1-0-0-0-0-1-G=1,p=0
-? {foo objscoped-eval} 1-1-0-0-0-0-G=0,p=0
-? {foo plain-eval}     0-0-0-1-0-0-G=0,p=1
-? {foo-tcl eval}       0-0-0-1-0-0-G=0,p=1
-? {foo-tcl ns-eval}    0-0-0-0-0-1-G=1,p=0
 
 ##################################################
 # dotCmd tests
