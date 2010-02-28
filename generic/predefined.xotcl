@@ -52,7 +52,7 @@ namespace eval xotcl2 {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::xotcl::method [self] $name $arguments $body {*}$conditions
+    ::xotcl::method [::xotcl::current object] $name $arguments $body {*}$conditions
   }
 
   ::xotcl::method Object method {
@@ -61,7 +61,7 @@ namespace eval xotcl2 {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::xotcl::method [self] -per-object $name $arguments $body {*}$conditions
+    ::xotcl::method [::xotcl::current object] -per-object $name $arguments $body {*}$conditions
   }
 
   # define method modifiers "object", "public" and "protected"
@@ -70,26 +70,26 @@ namespace eval xotcl2 {
     # method-modifier for object specific methos
     :method object {what args} {
       if {$what in [list "alias" "attribute" "forward" "method" "setter"]} {
-        return [::xotcl::dispatch [self] ::xotcl::classes::xotcl2::Object::$what {*}$args]
+        return [::xotcl::dispatch [::xotcl::current object] ::xotcl::classes::xotcl2::Object::$what {*}$args]
       }
       if {$what in [list "info"]} {
-        return [::xotcl2::objectInfo [lindex $args 0] [self] {*}[lrange $args 1 end]]
+        return [::xotcl2::objectInfo [lindex $args 0] [::xotcl::current object] {*}[lrange $args 1 end]]
       }
       if {$what in [list "filter" "mixin"]} {
         return [:object-$what {*}$args]
       }
       if {$what in [list "filterguard" "mixinguard"]} {
-        return [::xotcl::dispatch [self] ::xotcl::cmd::Object::$what {*}$args]
+        return [::xotcl::dispatch [::xotcl::current object] ::xotcl::cmd::Object::$what {*}$args]
       }
     }
 
     # define unknown handler for class
     :method unknown {m args} {
-      error "Method '$m' unknown for [self].\
-	Consider '[self] create $m $args' instead of '[self] $m $args'"
+      error "Method '$m' unknown for [::xotcl::current object].\
+	Consider '[::xotcl::current object] create $m $args' instead of '[::xotcl::current object] $m $args'"
     }
     # protected is not jet defined
-    ::xotcl::methodproperty [self] unknown protected 1
+    ::xotcl::methodproperty [::xotcl::current object] unknown protected 1
   }
 
 
@@ -100,7 +100,7 @@ namespace eval xotcl2 {
       set p [lsearch -regexp $args {^(method|alias|attribute|forward|setter)$}]
       if {$p == -1} {error "$args is not a method defining method"}
       set r [{*}:$args]
-      ::xotcl::methodproperty [self] $r protected false
+      ::xotcl::methodproperty [::xotcl::current object] $r protected false
       return $r
     }
 
@@ -109,14 +109,14 @@ namespace eval xotcl2 {
       set p [lsearch -regexp $args {^(method|alias|attribute|forward|setter)$}]
       if {$p == -1} {error "$args is not a method defining command"}
       set r [{*}:$args]
-      ::xotcl::methodproperty [self] $r [self proc] true
+      ::xotcl::methodproperty [::xotcl::current object] $r [::xotcl::current method] true
       return $r
     }
 
     # unknown handler for Object
     :protected method unknown {m args} {
-      if {![self isnext]} {
-        error "[self]: unable to dispatch method '$m'"
+      if {![::xotcl::current isnext]} {
+        error "[::xotcl::current object]: unable to dispatch method '$m'"
       }
     }
     
@@ -124,7 +124,7 @@ namespace eval xotcl2 {
     :protected method init args {}
 
     # this method is called on calls to object without a specified method
-    :protected method defaultmethod {} {::xotcl::self}
+    :protected method defaultmethod {} {::xotcl::current object}
 
     # provide a placeholder for the bootup process. The real definition
     # is based on slots, which are not available at this point.
@@ -150,13 +150,13 @@ namespace eval xotcl2 {
   # -objscope implies -nonleaf
   #
   Object public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
-    ::xotcl::alias [self] -per-object $methodName \
+    ::xotcl::alias [::xotcl::current object] -per-object $methodName \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
         $cmd
   }
   Class public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
-    ::xotcl::alias [self] $methodName \
+    ::xotcl::alias [::xotcl::current object] $methodName \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
         $cmd
@@ -166,16 +166,16 @@ namespace eval xotcl2 {
   #  
   Object public method setter {methodName value:optional} {
     if {[info exists value]} {
-      ::xotcl::setter [self] -per-object $methodName $value
+      ::xotcl::setter [::xotcl::current object] -per-object $methodName $value
     } else {
-      ::xotcl::setter [self] -per-object $methodName
+      ::xotcl::setter [::xotcl::current object] -per-object $methodName
     }
   }
   Class public method setter {methodName value:optional} {
     if {[info exists value]} {
-      ::xotcl::setter [self] $methodName $value
+      ::xotcl::setter [::xotcl::current object] $methodName $value
     } else {
-      ::xotcl::setter [self] $methodName
+      ::xotcl::setter [::xotcl::current object] $methodName
     }
   }
 
@@ -195,7 +195,7 @@ namespace eval xotcl2 {
     # info info
     :public method info {obj} {
       set methods [list]
-      foreach name [::xotcl::cmd::ObjectInfo::methods [self]] {
+      foreach name [::xotcl::cmd::ObjectInfo::methods [::xotcl::current object]] {
         if {$name eq "unknown"} continue
         lappend methods $name
       }
@@ -203,7 +203,7 @@ namespace eval xotcl2 {
     }
 
     :method unknown {method obj args} {
-      error "[::xotcl::self] unknown info option \"$method\"; [$obj info info]"
+      error "[::xotcl::current object] unknown info option \"$method\"; [$obj info info]"
     }
   }
 
@@ -246,7 +246,7 @@ namespace eval xotcl2 {
       error "invalid method type '$methtype', must be 'method'"
     }
     set body "
-      if {!\[::xotcl::self isnextcall\]} {
+      if {!\[::xotcl::current isnextcall\]} {
         error \"Abstract method $methname $arglist called\"
       } else {::xotcl::next}
     "
@@ -339,7 +339,7 @@ namespace eval ::xotcl {
   }
   
   # ::xotcl::MetaSlot public method new args {
-  #   set slotobject [::xotcl::self callingobject]::slot
+  #   set slotobject [::xotcl::current callingobject]::slot
   #   if {![::xotcl::objectproperty $slotobject object]} {::xotcls::Object create $slotobject}
   #   eval next -childof $slotobject $args
   # }
@@ -411,11 +411,11 @@ namespace eval ::xotcl {
   }
 
   createBootstrapAttributeSlots ::xotcl::ObjectParameterSlot {
-    {name "[namespace tail [::xotcl::self]]"}
+    {name "[namespace tail [::xotcl::current object]]"}
     {methodname}
-    {domain "[lindex [regexp -inline {^(.*)::slot::[^:]+$} [::xotcl::self]] 1]"}
+    {domain "[lindex [regexp -inline {^(.*)::slot::[^:]+$} [::xotcl::current object]] 1]"}
     {defaultmethods {get assign}}
-    {manager "[::xotcl::self]"}
+    {manager "[::xotcl::current object]"}
     {per-object false}
   }
   # maybe add the following slots at some later time here
@@ -451,7 +451,7 @@ namespace eval ::xotcl {
       if {[string match __* $m]} continue
       lappend methods $m
     }
-    error "Method '$method' unknown for slot [::xotcl::self]; valid are: {[lsort $methods]]}"
+    error "Method '$method' unknown for slot [[::xotcl::current object]; valid are: {[lsort $methods]]}"
   }
   
   ::xotcl::ObjectParameterSlot public method destroy {} {
@@ -463,7 +463,7 @@ namespace eval ::xotcl {
   
   ::xotcl::ObjectParameterSlot protected method init {args} {
     if {${:domain} eq ""} {
-      set :domain [::xotcl::self callingobject]
+      set :domain [::xotcl::current callingobject]
     }
     if {${:domain} ne ""} {
       if {![info exists :methodname]} {
@@ -476,7 +476,7 @@ namespace eval ::xotcl {
         ::xotcl::setvar ${:domain} ${:name} ${:default}
       }
       set cl [expr {${:per-object} ? "Object" : "Class"}]
-      #puts stderr "Slot [self] init, forwarder on ${:domain}"
+      #puts stderr "Slot [::xotcl::current object] init, forwarder on ${:domain}"
       ::xotcl::forward ${:domain} ${:name} \
           ${:manager} \
           [list %1 [${:manager} defaultmethods]] %self \
@@ -549,7 +549,7 @@ namespace eval ::xotcl {
       set objopts [linsert $objopts 0 $type]
       set methodopts [linsert $methodopts 0 $type]
     }
-    lappend objopts slot=[self]
+    lappend objopts slot=[::xotcl::current object]
 
     if {[llength $objopts] > 0} {
       append objparamdefinition :[join $objopts ,]
@@ -560,7 +560,7 @@ namespace eval ::xotcl {
     if {[info exists arg]} {
       lappend objparamdefinition $arg
     }
-    #puts stderr "[self proc] ${name} returns [list oparam $objparamdefinition mparam $methodparamdefinition]"
+    #puts stderr "[::xotcl::current method] ${name} returns [list oparam $objparamdefinition mparam $methodparamdefinition]"
     return [list oparam $objparamdefinition mparam $methodparamdefinition]
   }
    
@@ -579,16 +579,16 @@ namespace eval ::xotcl {
   }
   
   ::xotcl2::Object protected method objectparameter {} {
-    #puts stderr "... objectparameter [self]"
-    set parameterdefinitions [::xotcl::parametersFromSlots [self]]
-    if {[::xotcl::objectproperty [self] class]} {
+    #puts stderr "... objectparameter [::xotcl::current object]"
+    set parameterdefinitions [::xotcl::parametersFromSlots [::xotcl::current object]]
+    if {[::xotcl::objectproperty [::xotcl::current object] class]} {
       lappend parameterdefinitions -parameter:method,optional
     }
     lappend parameterdefinitions \
         -noinit:method,optional,noarg \
         -volatile:method,optional,noarg \
         arg:initcmd,optional
-    #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
+    #puts stderr "*** parameter definition for [::xotcl::current object]: $parameterdefinitions"
     return $parameterdefinitions
   }
   
@@ -626,7 +626,7 @@ namespace eval ::xotcl {
         if {![::xotcl::objectproperty $value object]} {
           error "$value does not appear to be an object"
         }
-        set value [::xotcl::dispatch $value -objscope ::xotcl::self]
+        set value [::xotcl::dispatch $value -objscope ::xotcl::current object]
       }
       if {![::xotcl::objectproperty ${:elementtype} class]} {
         error "$value does not appear to be of type ${:elementtype}"
@@ -641,7 +641,7 @@ namespace eval ::xotcl {
   }
   
   ::xotcl::RelationSlot public method delete {-nocomplain:switch obj prop value} {
-    #puts stderr RelationSlot-delete-[self args]
+    #puts stderr RelationSlot-delete-[::xotcl::current args]
     $obj $prop [:delete_value $obj $prop [$obj info $prop] $value]
   }
   
@@ -704,12 +704,12 @@ namespace eval ::xotcl {
   }
 
   ::xotcl::Attribute method __default_from_cmd {obj cmd var sub op} {
-    #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
-    $obj trace remove variable $var $op [list [::xotcl::self] [::xotcl::self proc] $obj $cmd]
+    #puts "GETVAR [::xotcl::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
+    $obj trace remove variable $var $op [list [::xotcl::current object] [::xotcl::current method] $obj $cmd]
     ::xotcl::setvar $obj $var [$obj eval $cmd]
   }
   ::xotcl::Attribute method __value_from_cmd {obj cmd var sub op} {
-    #puts "GETVAR [::xotcl::self proc] obj=$obj cmd=$cmd, var=$var, op=$op"
+    #puts "GETVAR [::xotcl::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
     ::xotcl::setvar $obj $var [$obj eval $cmd]
   }
   ::xotcl::Attribute method __value_changed_cmd {obj cmd var sub op} {
@@ -724,30 +724,30 @@ namespace eval ::xotcl {
     if {[:exists default]} {
     } elseif [:exists initcmd] {
       append __initcmd ":trace add variable [list ${:name}] read \
-	\[list [::xotcl::self] __default_from_cmd \[::xotcl::self\] [list [set :initcmd]]\]\n"
+	\[list [::xotcl::current object] __default_from_cmd \[::xotcl::current object\] [list [set :initcmd]]\]\n"
     } elseif [:exists valuecmd] {
       append __initcmd ":trace add variable [list ${:name}] read \
-	\[list [::xotcl::self] __value_from_cmd \[::xotcl::self\] [list [set :valuecmd]]\]"
+	\[list [::xotcl::current object] __value_from_cmd \[::xotcl::current object\] [list [set :valuecmd]]\]"
     }
     array set "" [:toParameterSyntax ${:name}]
 
-    #puts stderr "Attribute.init valueParam for [self] is $(mparam)"
+    #puts stderr "Attribute.init valueParam for [::xotcl::current object] is $(mparam)"
     if {$(mparam) ne ""} {
       if {[info exists :multivalued] && ${:multivalued}} {
-        #puts stderr "adding assign [list obj var value:$(mparam),multivalued] // for [self] with $(mparam)"
-        :method assign [list obj var value:$(mparam),multivalued,slot=[self]] {::xotcl::setvar $obj $var $value}
-        #puts stderr "adding add method for [self] with value:$(mparam)"
-        :method add [list obj prop value:$(mparam),slot=[self] {pos 0}] {next}
+        #puts stderr "adding assign [list obj var value:$(mparam),multivalued] // for [::xotcl::current object] with $(mparam)"
+        :method assign [list obj var value:$(mparam),multivalued,slot=[::xotcl::current object]] {::xotcl::setvar $obj $var $value}
+        #puts stderr "adding add method for [::xotcl::current object] with value:$(mparam)"
+        :method add [list obj prop value:$(mparam),slot=[::xotcl::current object] {pos 0}] {next}
       } else {
-        #puts stderr "adding assign [list obj var value:$(mparam)] // for [self] with $(mparam)"
-        :method assign [list obj var value:$(mparam),slot=[self]] {::xotcl::setvar $obj $var $value}
-        #::xotcl::setter ${:domain} ${:name}:$(mparam),slot=[self]
-        #puts stderr "::xotcl::setter ${:domain} ${:name}:$(mparam),slot=[self]"
+        #puts stderr "adding assign [list obj var value:$(mparam)] // for [::xotcl::current object] with $(mparam)"
+        :method assign [list obj var value:$(mparam),slot=[::xotcl::current object]] {::xotcl::setvar $obj $var $value}
+        #::xotcl::setter ${:domain} ${:name}:$(mparam),slot=[::xotcl::current object]
+        #puts stderr "::xotcl::setter ${:domain} ${:name}:$(mparam),slot=[::xotcl::current object]"
       }
     }
     if {[:exists valuechangedcmd]} {
       append __initcmd ":trace add variable [list ${:name}] write \
-	\[list [::xotcl::self] __value_changed_cmd \[::xotcl::self\] [list [set :valuechangedcmd]]\]"
+	\[list [::xotcl::current object] __value_changed_cmd \[::xotcl::current object\] [list [set :valuechangedcmd]]\]"
     }
     if {$__initcmd ne ""} {
       set :initcmd $__initcmd
@@ -803,10 +803,10 @@ namespace eval ::xotcl {
   # Define method "attribute" for convenience
   ############################################
   ::xotcl2::Class method attribute {spec {-slotclass ::xotcl::Attribute} {initblock ""}} {
-    $slotclass createFromParameterSyntax [self] -initblock $initblock {*}$spec
+    $slotclass createFromParameterSyntax [::xotcl::current object] -initblock $initblock {*}$spec
   }
   ::xotcl2::Object method attribute {spec {-slotclass ::xotcl::Attribute} {initblock ""}} {
-    $slotclass createFromParameterSyntax [self] -per-object -initblock $initblock {*}$spec
+    $slotclass createFromParameterSyntax [::xotcl::current object] -per-object -initblock $initblock {*}$spec
   }
   ############################################
   # Define method "parameter" for backward 
@@ -815,10 +815,10 @@ namespace eval ::xotcl {
   ::xotcl2::Class public method parameter arglist {
   
     foreach arg $arglist {
-      ::xotcl::Attribute createFromParameterSyntax [self] {*}$arg
+      ::xotcl::Attribute createFromParameterSyntax [::xotcl::current object] {*}$arg
     }
     # todo needed?
-    ::xotcl::setvar [::xotcl::self]::slot __parameter $arglist
+    ::xotcl::setvar [::xotcl::current object]::slot __parameter $arglist
   }
 
   ##################################################################
@@ -869,7 +869,7 @@ namespace eval ::xotcl {
 
   :protected method init {} {
     :public method new {-childof args} {
-      ::xotcl::importvar [::xotcl::self class] {container object} withclass
+      ::xotcl::importvar [::xotcl::current class] {container object} withclass
       if {![::xotcl::objectproperty $object object]} {
         $withclass create $object
       }
@@ -891,7 +891,7 @@ namespace eval ::xotcl {
    {-class ::xotcl2::Object}
    cmds
  } {
-  if {![info exists object]} {set object [::xotcl::self]}
+  if {![info exists object]} {set object [::xotcl::current object]}
   if {![::xotcl::objectproperty $object object]} {$class create $object}
   $object requireNamespace
   if {$withnew} {
@@ -908,7 +908,7 @@ namespace eval ::xotcl {
   }
 }
 ::xotcl2::Class forward slots %self contains \
-    -object {%::xotcl::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
+    -object {%::xotcl::dispatch [::xotcl::current object] -objscope ::subst [::xotcl::current object]::slot}
 
 ##################################################################
 # copy/move implementation
@@ -1029,7 +1029,7 @@ namespace eval ::xotcl {
   }
   
   :public method copy {obj dest} {
-    #puts stderr "[::xotcl::self] copy <$obj> <$dest>"
+    #puts stderr "[::xotcl::current object] copy <$obj> <$dest>"
     set :objLength [string length $obj]
     set :dest $dest
     :makeTargetList $obj
@@ -1039,21 +1039,21 @@ namespace eval ::xotcl {
 
 
 ::xotcl2::Object public method copy newName {
-  if {[string compare [string trimleft $newName :] [string trimleft [::xotcl::self] :]]} {
-    [::xotcl::CopyHandler new -volatile] copy [::xotcl::self] $newName
+  if {[string compare [string trimleft $newName :] [string trimleft [::xotcl::current object] :]]} {
+    [::xotcl::CopyHandler new -volatile] copy [::xotcl::current object] $newName
   }
 }
 
 ::xotcl2::Object public method move newName {
-  if {[string trimleft $newName :] ne [string trimleft [::xotcl::self] :]} {
+  if {[string trimleft $newName :] ne [string trimleft [::xotcl::current object] :]} {
     if {$newName ne ""} {
       :copy $newName
     }
     ### let all subclasses get the copied class as superclass
-    if {[::xotcl::objectproperty [::xotcl::self] class] && $newName ne ""} {
+    if {[::xotcl::objectproperty [::xotcl::current object] class] && $newName ne ""} {
       foreach subclass [:info subclass] {
         set scl [$subclass info superclass]
-        if {[set index [lsearch -exact $scl [::xotcl::self]]] != -1} {
+        if {[set index [lsearch -exact $scl [::xotcl::current object]]] != -1} {
           set scl [lreplace $scl $index $index $newName]
           $subclass superclass $scl
         }
