@@ -134,8 +134,11 @@ xotclCmd relation XOTclRelationCmd {
   {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }
-xotclCmd self XOTclGetSelfObjCmd {
-  {-argName "selfoption" -required 0 -type "proc|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
+xotclCmd current XOTclCurrentCmd {
+  {-argName "currentoption" -required 0 -type "proc|method|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
+}
+xotclCmd self XOTclSelfCmd {
+  {-argName "selfoption" -required 0 -type "proc|method|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
 }
 xotclCmd setvar XOTclSetVarCmd {
   {-argName "object" -required 1 -type object}

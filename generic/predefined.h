@@ -558,7 +558,7 @@ static char cmd[] =
 "::xotcl2::Object create ::xotcl::@ {\n"
 ":method unknown args {}}\n"
 "namespace eval ::xotcl {\n"
-"namespace export @ Attribute\n"
+"namespace export @ Attribute current\n"
 "if {![info exists ::env(HOME)]} {set ::env(HOME) /root}\n"
 "set ::xotcl::confdir ~/.xotcl\n"
 "set ::xotcl::logdir $::xotcl::confdir/log\n"

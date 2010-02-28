@@ -1084,7 +1084,7 @@ namespace eval ::xotcl {
 namespace eval ::xotcl {
 
   # export the contents for all xotcl versions
-  namespace export @ Attribute
+  namespace export @ Attribute current
 
   # if HOME is not set, and ~ is resolved, Tcl chokes on that
   if {![info exists ::env(HOME)]} {set ::env(HOME) /root}

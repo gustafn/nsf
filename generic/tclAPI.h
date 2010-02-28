@@ -65,16 +65,16 @@ static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPa
 }
 enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx};
   
-static int convertToSelfoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+static int convertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"proc", "class", "activelevel", "args", "activemixin", "calledproc", "calledmethod", "calledclass", "callingproc", "callingclass", "callinglevel", "callingobject", "filterreg", "isnextcall", "next", NULL};
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "selfoption", 0, &index);
+  static CONST char *opts[] = {"proc", "method", "object", "class", "activelevel", "args", "activemixin", "calledproc", "calledmethod", "calledclass", "callingproc", "callingmethod", "callingclass", "callinglevel", "callingobject", "filterreg", "isnextcall", "next", NULL};
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "currentoption", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
-enum SelfoptionIdx {SelfoptionNULL, SelfoptionProcIdx, SelfoptionClassIdx, SelfoptionActivelevelIdx, SelfoptionArgsIdx, SelfoptionActivemixinIdx, SelfoptionCalledprocIdx, SelfoptionCalledmethodIdx, SelfoptionCalledclassIdx, SelfoptionCallingprocIdx, SelfoptionCallingclassIdx, SelfoptionCallinglevelIdx, SelfoptionCallingobjectIdx, SelfoptionFilterregIdx, SelfoptionIsnextcallIdx, SelfoptionNextIdx};
+enum CurrentoptionIdx {CurrentoptionNULL, CurrentoptionProcIdx, CurrentoptionMethodIdx, CurrentoptionObjectIdx, CurrentoptionClassIdx, CurrentoptionActivelevelIdx, CurrentoptionArgsIdx, CurrentoptionActivemixinIdx, CurrentoptionCalledprocIdx, CurrentoptionCalledmethodIdx, CurrentoptionCalledclassIdx, CurrentoptionCallingprocIdx, CurrentoptionCallingmethodIdx, CurrentoptionCallingclassIdx, CurrentoptionCallinglevelIdx, CurrentoptionCallingobjectIdx, CurrentoptionFilterregIdx, CurrentoptionIsnextcallIdx, CurrentoptionNextIdx};
   
 static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -108,6 +108,17 @@ static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam
   return result;
 }
 enum RelationtypeIdx {RelationtypeNULL, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx};
+  
+static int convertToSelfoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int index, result;
+  static CONST char *opts[] = {"proc", "method", "object", "class", "activelevel", "args", "activemixin", "calledproc", "calledmethod", "calledclass", "callingproc", "callingmethod", "callingclass", "callinglevel", "callingobject", "filterreg", "isnextcall", "next", NULL};
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "selfoption", 0, &index);
+  *clientData = (ClientData) INT2PTR(index + 1);
+  *outObjPtr = objPtr;
+  return result;
+}
+enum SelfoptionIdx {SelfoptionNULL, SelfoptionProcIdx, SelfoptionMethodIdx, SelfoptionObjectIdx, SelfoptionClassIdx, SelfoptionActivelevelIdx, SelfoptionArgsIdx, SelfoptionActivemixinIdx, SelfoptionCalledprocIdx, SelfoptionCalledmethodIdx, SelfoptionCalledclassIdx, SelfoptionCallingprocIdx, SelfoptionCallingmethodIdx, SelfoptionCallingclassIdx, SelfoptionCallinglevelIdx, SelfoptionCallingobjectIdx, SelfoptionFilterregIdx, SelfoptionIsnextcallIdx, SelfoptionNextIdx};
   
 
 typedef struct {
@@ -193,12 +204,12 @@ static int XOTclAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int 
 static int XOTclColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclGetSelfObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -211,6 +222,7 @@ static int XOTclObjectpropertyCmdStub(ClientData clientData, Tcl_Interp *interp,
 static int XOTclParametercheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
@@ -273,12 +285,12 @@ static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int assert
 static int XOTclColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
 static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass);
+static int XOTclCurrentCmd(Tcl_Interp *interp, int currentoption);
 static int XOTclDeprecatedCmd(Tcl_Interp *interp, char *what, char *oldCmd, char *newCmd);
 static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclExistsVarCmd(Tcl_Interp *interp, XOTclObject *object, char *var);
 static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
 static int XOTclForwardCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int XOTclGetSelfObjCmd(Tcl_Interp *interp, int selfoption);
 static int XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclInterpObjCmd(Tcl_Interp *interp, char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *value, Tcl_Obj *constraint, Tcl_Obj *withHasmixin, Tcl_Obj *withType, Tcl_Obj *arg);
@@ -291,6 +303,7 @@ static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *object, int objec
 static int XOTclParametercheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *param, Tcl_Obj *value);
 static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
+static int XOTclSelfCmd(Tcl_Interp *interp, int selfoption);
 static int XOTclSetVarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *parameter);
 
@@ -354,12 +367,12 @@ enum {
  XOTclColonCmdIdx,
  XOTclConfigureCmdIdx,
  XOTclCreateObjectSystemCmdIdx,
+ XOTclCurrentCmdIdx,
  XOTclDeprecatedCmdIdx,
  XOTclDispatchCmdIdx,
  XOTclExistsVarCmdIdx,
  XOTclFinalizeObjCmdIdx,
  XOTclForwardCmdIdx,
- XOTclGetSelfObjCmdIdx,
  XOTclImportvarCmdIdx,
  XOTclInterpObjCmdIdx,
  XOTclIsCmdIdx,
@@ -372,6 +385,7 @@ enum {
  XOTclParametercheckCmdIdx,
  XOTclQualifyObjCmdIdx,
  XOTclRelationCmdIdx,
+ XOTclSelfCmdIdx,
  XOTclSetVarCmdIdx,
  XOTclSetterCmdIdx
 } XOTclMethods;
@@ -1542,6 +1556,24 @@ XOTclCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
 }
 
 static int
+XOTclCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclCurrentCmdIdx].paramDefs, 
+                     method_definitions[XOTclCurrentCmdIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int currentoption = (int )PTR2INT(pc.clientData[0]);
+
+    parseContextRelease(&pc);
+    return XOTclCurrentCmd(interp, currentoption);
+
+  }
+}
+
+static int
 XOTclDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
@@ -1641,24 +1673,6 @@ XOTclForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
     parseContextRelease(&pc);
     return XOTclForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withMethodprefix, withObjscope, withOnerror, withVerbose, target, objc-pc.lastobjc, objv+pc.lastobjc);
-
-  }
-}
-
-static int
-XOTclGetSelfObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclGetSelfObjCmdIdx].paramDefs, 
-                     method_definitions[XOTclGetSelfObjCmdIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    int selfoption = (int )PTR2INT(pc.clientData[0]);
-
-    parseContextRelease(&pc);
-    return XOTclGetSelfObjCmd(interp, selfoption);
 
   }
 }
@@ -1900,6 +1914,24 @@ XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
     parseContextRelease(&pc);
     return XOTclRelationCmd(interp, object, relationtype, value);
+
+  }
+}
+
+static int
+XOTclSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclSelfCmdIdx].paramDefs, 
+                     method_definitions[XOTclSelfCmdIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int selfoption = (int )PTR2INT(pc.clientData[0]);
+
+    parseContextRelease(&pc);
+    return XOTclSelfCmd(interp, selfoption);
 
   }
 }
@@ -2195,6 +2227,9 @@ static methodDefinition method_definitions[] = {
   {"rootClass", 1, 0, convertToTclobj},
   {"rootMetaClass", 1, 0, convertToTclobj}}
 },
+{"::xotcl::current", XOTclCurrentCmdStub, 1, {
+  {"currentoption", 0, 0, convertToCurrentoption}}
+},
 {"::xotcl::deprecated", XOTclDeprecatedCmdStub, 3, {
   {"what", 1, 0, convertToString},
   {"oldCmd", 1, 0, convertToString},
@@ -2225,9 +2260,6 @@ static methodDefinition method_definitions[] = {
   {"-verbose", 0, 0, convertToString},
   {"target", 0, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
-},
-{"::xotcl::self", XOTclGetSelfObjCmdStub, 1, {
-  {"selfoption", 0, 0, convertToSelfoption}}
 },
 {"::xotcl::importvar", XOTclImportvarCmdStub, 2, {
   {"object", 0, 0, convertToObject},
@@ -2292,6 +2324,9 @@ static methodDefinition method_definitions[] = {
   {"object", 0, 0, convertToObject},
   {"relationtype", 1, 0, convertToRelationtype},
   {"value", 0, 0, convertToTclobj}}
+},
+{"::xotcl::self", XOTclSelfCmdStub, 1, {
+  {"selfoption", 0, 0, convertToSelfoption}}
 },
 {"::xotcl::setvar", XOTclSetVarCmdStub, 3, {
   {"object", 1, 0, convertToObject},
