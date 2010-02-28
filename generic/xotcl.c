@@ -14357,7 +14357,7 @@ ExitHandler(ClientData clientData) {
   int i, flags;
 
   /*
-   * Don't use exit handler, if the interpreted is destroyed already
+   * Don't use exit handler, if the interpreter is alread destroyed.
    * Call to exit handler comes after freeing namespaces, commands, etc.
    * e.g. TK calls Tcl_DeleteInterp directly, if Window is killed
    */
