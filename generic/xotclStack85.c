@@ -116,7 +116,7 @@ static void XOTcl_PopFrameCsc2(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
  */
 
 static Tcl_CallFrame *
-activeProcFrame(Tcl_CallFrame *framePtr, int skipFrames) {
+activeProcFrame(Tcl_CallFrame *framePtr) {
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     register int flag = Tcl_CallFrame_isProcCallFrame(framePtr);
 
@@ -125,7 +125,7 @@ activeProcFrame(Tcl_CallFrame *framePtr, int skipFrames) {
       if (!(((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType 
             & XOTCL_CSC_TYPE_INACTIVE)) break;
     } else {
-      if (flag & skipFrames) continue;
+      if (flag & (FRAME_IS_XOTCL_CMETHOD|FRAME_IS_XOTCL_OBJECT)) continue;
       if (flag == 0 || flag & FRAME_IS_PROC) break;
     }
   }
@@ -258,8 +258,7 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
   tcl85showStack(interp);
 # endif
   /* Get the first active non object frame */
-  framePtr = activeProcFrame(inFramePtr, 
-			     FRAME_IS_XOTCL_CMETHOD|FRAME_IS_XOTCL_OBJECT);
+  framePtr = activeProcFrame(inFramePtr);
 
   /*fprintf(stderr,"... use frameptr %p \n", framePtr);*/
 

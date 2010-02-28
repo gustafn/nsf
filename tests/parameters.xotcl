@@ -712,7 +712,6 @@ Test case op-object-types {
   C create c1 -mixin M
   Object create o
   
-  #puts stderr =====
   Class create ParamTest -parameter {
     o:object
     c:class
@@ -734,7 +733,6 @@ Test case op-object-types {
     return $(oparam)
   }
   
-  #puts stderr =====2
   ? {::parameterFromSlot ParamTest o} "o:object,slot=::ParamTest::slot::o"
   ? {::parameterFromSlot ParamTest c} "c:class,slot=::ParamTest::slot::c"
   ? {::parameterFromSlot ParamTest c1} "c1:class,type=::MC,slot=::ParamTest::slot::c1"
@@ -744,7 +742,6 @@ Test case op-object-types {
   ? {::parameterFromSlot ParamTest x} "x:object,multivalued,slot=::ParamTest::slot::x o"
   ? {::parameterFromSlot ParamTest u} "u:upper,slot=::ParamTest::slot::u"
   ? {::parameterFromSlot ParamTest us} "us:upper,multivalued,slot=::ParamTest::slot::us"
-  #puts stderr =====3
   
   ? {ParamTest create p -o o} ::p
   ? {ParamTest create p -o xxx} \
@@ -783,26 +780,15 @@ Test case op-object-types {
   }
   ? {ParamTest create p -us {A B}} ::p
   ? {p us add C end} "A B C"
-  
-  # TODO: naming "type" not perfect.
-  #       maybe "type" => "hastype"
-  #       => effects as well ::xotcl::is
-  #
-  # TODO (optimization): optimizer can improve parameter checking:
-  #       (a) simple approach: make scripted setter methods on domain
-  #       (b) maybe nicer: provide arguments to c-setter to 
-  #           pass parameter definition
-  #
-  # TODO: error messages for failed conversions are not consistent
-  #       should happen, when all kind of parameters finally settled
-  # 
+
   ? {p o o} \
       "o" \
       "value is an object"
+
   ? {p o xxx} \
       {expected object but got "xxx" for parameter o} \
       "value is not an object"
-  
+
   ParamTest slots {
     ::xotcl::Attribute create os -type object -multivalued true
   }
@@ -928,9 +914,10 @@ Test case setters {
   ? {o info method definition o} "::o setter o:object"
   ? {o info method parameter o} "o:object"
   ? {o info method args o} "o"
-  
+
   ? {o a 2} 2
   ? {o a hugo} {expected integer but got "hugo" for parameter a}
+
   ? {o ints {10 100 1000}} {10 100 1000}
   ? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter ints}
   ? {o o o} o
