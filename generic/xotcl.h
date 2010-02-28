@@ -53,7 +53,7 @@
 /* activate/deacticate assert 
 #define NDEBUG 1
 */
-
+#define NDEBUG 1
 
 /* activate/deacticate memory tracing 
 #define XOTCL_MEM_TRACE 1
