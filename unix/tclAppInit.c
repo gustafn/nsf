@@ -155,11 +155,17 @@ Tcl_AppInit(interp)
      *
      * where "Mod" is the name of the module.
      */
+#if 0
     if (Xotcl_Init(interp) == TCL_ERROR) {
        return TCL_ERROR;
     }    
  
     Tcl_StaticPackage(interp, "XOTcl", Xotcl_Init, 0);
+#else
+    if (Tcl_PkgRequire(interp, "XOTcl", XOTCLVERSION, 1) == NULL) {
+      return TCL_ERROR;
+    }
+#endif
     if (Tcl_Eval(interp, "::xotcl::use xotcl2") != TCL_OK) {
         return TCL_ERROR;
     }

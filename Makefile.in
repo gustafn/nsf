@@ -429,7 +429,6 @@ install-pkgIndex:
 
 xotclsh: tclAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
 	$(CC) -rdynamic -o $@ tclAppInit.o \
-		$(PKG_OBJECTS) \
 		$(CFLAGS)  $(TCL_LIB_SPEC) \
 		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
 
