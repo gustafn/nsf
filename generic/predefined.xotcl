@@ -991,12 +991,12 @@ namespace eval ::xotcl {
         namespace eval $dest {}
       }
       :copyNSVarsAndCmds $origin $dest
-      foreach i [$origin info forward] {
-        eval [concat $dest forward $i [$origin info forward -definition $i]]
+      foreach i [::xotcl::cmd::ObjectInfo::forward $origin] {
+        eval [concat ::xotcl::forward $dest -per-object $i [::xotcl::cmd::ObjectInfo::forward $origin -definition $i]]
       }
       if {[::xotcl::objectproperty $origin class]} {
-        foreach i [$origin info instforward] {
-          eval [concat $dest instforward $i [$origin info instforward -definition $i]]
+        foreach i [::xotcl::cmd::ClassInfo::forward $origin] {
+          eval [concat ::xotcl::forward $dest $i [::xotcl::cmd::ClassInfo::forward $origin -definition $i]]
         }
       }
       set traces [list]

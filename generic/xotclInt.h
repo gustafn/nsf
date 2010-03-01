@@ -420,7 +420,7 @@ typedef struct XOTclParam {
   XOTclTypeConverter *converter;
   Tcl_Obj *converterArg;
   Tcl_Obj *defaultValue;
-  char *type;
+  CONST char *type;
   Tcl_Obj *nameObj;
   Tcl_Obj *converterName;
   Tcl_Obj *paramObj;

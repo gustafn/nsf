@@ -319,8 +319,8 @@ CallStackReplaceVarTableReferences(Tcl_Interp *interp, TclVarHashTable *oldVarTa
     if (!(frameFlags & FRAME_IS_XOTCL_OBJECT)) continue;
     if (!(Tcl_CallFrame_varTablePtr(framePtr) == oldVarTablePtr)) continue;
     
-    fprintf(stderr, "+++ makeObjNamespace replacing vartable %p with %p in frame %p\n", 
-            oldVarTablePtr, newVarTablePtr, framePtr);
+    /*fprintf(stderr, "+++ makeObjNamespace replacing vartable %p with %p in frame %p\n", 
+      oldVarTablePtr, newVarTablePtr, framePtr);*/
     Tcl_CallFrame_varTablePtr(framePtr) = newVarTablePtr;
   }
 }

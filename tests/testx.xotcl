@@ -2573,6 +2573,11 @@ TestX copymove -proc run {{n 10}} {
 	return [self]--[self class]--[self proc]--[next]--
       }
     }
+    X::Y::Z instforward a b
+    X::Y::Z forward c d
+    ::errorCheck [X::Y::Z info instforward -definition a] "b" "define instforward"
+    ::errorCheck [X::Y::Z info forward -definition c] "d" "define forward"
+
     X::Y::Z z
     X::Y::Z copy V
     V v
@@ -2587,6 +2592,8 @@ TestX copymove -proc run {{n 10}} {
     ::errorCheck "[::cutSpaces [V info instinvar]--[V info instpre assProc]--[V info instpost assProc]]"\
       "{7 > 6} { #a comment }--{5 > 4} { #pre }--{5 > 4} { #post }"\
       "Copy Class Assertions"
+    ::errorCheck [V info instforward -definition a] "b" "copied instforward"
+    ::errorCheck [V info forward -definition c] "d" "copied forward"
     #::errorCheck "[V info metadata]--[V metadata Author]--[V metadata Version]--[V metadata Nothing]"\
       "Version Author Nothing--Uwe--0.0.9--"\
       "Copy Metadata"
@@ -4299,7 +4306,6 @@ proc x {} {
 }
 
 x
-puts stderr C-instances=[C info instances]
 errorCheck [expr {[llength [C info instances]] > 0}] 0 "top, all volatile object gone"
 
 proc x1 {} {
