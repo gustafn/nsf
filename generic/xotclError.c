@@ -91,7 +91,7 @@ XOTclObjErrArgCnt(Tcl_Interp *interp, Tcl_Obj *cmdName,  Tcl_Obj *methodName, ch
 }
 
 int
-XOTclErrBadVal(Tcl_Interp *interp, char *context, char *expected, char *value) {
+XOTclErrBadVal(Tcl_Interp *interp, char *context, char *expected, CONST char *value) {
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp, context, ": expected ", expected, " but got '", 
 		   value, "'", (char *) NULL);

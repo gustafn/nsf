@@ -115,7 +115,7 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
       set type "int "
       if {$(-nrargs) == 1} {
         switch -glob $(-type) {
-          ""           {set type "char *"}
+          ""           {set type "CONST char *"}
           "class"      {set type "XOTclClass *"}
           "object"     {set type "XOTclObject *"}
           "tclobj"     {set type "Tcl_Obj *"}
@@ -127,7 +127,7 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
       set varName $(-argName)
       set calledArg $varName
       switch -glob $(-type) {
-        ""           {set type "char *"}
+        ""           {set type "CONST char *"}
         "boolean"    {set type "int "}
         "class"      {set type "XOTclClass *"}
         "object"     {set type "XOTclObject *"}
@@ -148,9 +148,9 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
         }
         "objpattern" {
           set type "Tcl_Obj *"
-          lappend c "char *${varName}String = NULL;" "XOTclObject *${varName}Obj = NULL;"
+          lappend c "CONST char *${varName}String = NULL;" "XOTclObject *${varName}Obj = NULL;"
           set calledArg "${varName}String, ${varName}Obj"
-          lappend if "char *${varName}String" "XOTclObject *${varName}Obj"
+          lappend if "CONST char *${varName}String" "XOTclObject *${varName}Obj"
           set ifSet 1
           append pre [subst -nocommands {
     if (getMatchObject(interp, ${varName},  objv[$i], &${varName}Obj, &${varName}String) == -1) {
@@ -277,7 +277,7 @@ proc genstubs {} {
   puts $::converter
   puts {
 typedef struct {
-  char *methodName;
+  CONST char *methodName;
   Tcl_ObjCmdProc *proc;
   int nrParameters;
   XOTclParam paramDefs[12];
@@ -288,7 +288,7 @@ static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                          XOTclParam CONST *paramPtr, int nrParameters, parseContext *pc);
 
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
-			  XOTclObject **matchObject, char **pattern);
+			  XOTclObject **matchObject, CONST char **pattern);
 
 /* just to define the symbol */
 static methodDefinition method_definitions[];
@@ -301,7 +301,7 @@ static methodDefinition method_definitions[];
      lappend namespaces "\"$value\"" 
   }
   set namespaceString [join $namespaces ",\n  "]
-  puts "static char *method_command_namespace_names\[\] = {\n  $namespaceString\n};"
+  puts "static CONST char *method_command_namespace_names\[\] = {\n  $namespaceString\n};"
   puts $stubDecls
   puts $decls
   set enumString [join $enums ",\n "]

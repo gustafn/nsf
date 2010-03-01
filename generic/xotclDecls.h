@@ -46,7 +46,8 @@ EXTERN struct XOTcl_Object * XOTclGetObject (Tcl_Interp * interp,
 #ifndef XOTclGetClass_TCL_DECLARED
 #define XOTclGetClass_TCL_DECLARED
 /* 5 */
-EXTERN struct XOTcl_Class * XOTclGetClass (Tcl_Interp * interp, char * name);
+EXTERN struct XOTcl_Class * XOTclGetClass (Tcl_Interp * interp, 
+				CONST char * name);
 #endif
 #ifndef XOTclCreateObject_TCL_DECLARED
 #define XOTclCreateObject_TCL_DECLARED
@@ -189,7 +190,7 @@ EXTERN void		XOTclRequireObjNamespace (Tcl_Interp * interp,
 #define XOTclErrBadVal_TCL_DECLARED
 /* 37 */
 EXTERN int		XOTclErrBadVal (Tcl_Interp * interp, char * context, 
-				char * expected, char * value);
+				char * expected, CONST char * value);
 #endif
 #ifndef XOTclNextObjCmd_TCL_DECLARED
 #define XOTclNextObjCmd_TCL_DECLARED
@@ -249,7 +250,7 @@ typedef struct XotclStubs {
     struct XOTcl_Class * (*xOTclIsClass) (Tcl_Interp * interp, ClientData cd); /* 2 */
     void *reserved3;
     struct XOTcl_Object * (*xOTclGetObject) (Tcl_Interp * interp, char * name); /* 4 */
-    struct XOTcl_Class * (*xOTclGetClass) (Tcl_Interp * interp, char * name); /* 5 */
+    struct XOTcl_Class * (*xOTclGetClass) (Tcl_Interp * interp, CONST char * name); /* 5 */
     int (*xOTclCreateObject) (Tcl_Interp * interp, Tcl_Obj * name, struct XOTcl_Class * cl); /* 6 */
     void *reserved7;
     void *reserved8;
@@ -281,7 +282,7 @@ typedef struct XotclStubs {
     void (*xOTclSetClassClientData) (XOTcl_Class * cl, ClientData data); /* 34 */
     ClientData (*xOTclGetClassClientData) (XOTcl_Class * cl); /* 35 */
     void (*xOTclRequireObjNamespace) (Tcl_Interp * interp, XOTcl_Object * obj); /* 36 */
-    int (*xOTclErrBadVal) (Tcl_Interp * interp, char * context, char * expected, char * value); /* 37 */
+    int (*xOTclErrBadVal) (Tcl_Interp * interp, char * context, char * expected, CONST char * value); /* 37 */
     int (*xOTclNextObjCmd) (ClientData cd, Tcl_Interp * interp, int objc, Tcl_Obj *CONST objv[]); /* 38 */
     int (*xOTclCallMethodWithArgs) (ClientData cd, Tcl_Interp * interp, Tcl_Obj * method, Tcl_Obj * arg, int objc, Tcl_Obj *CONST objv[], int flags); /* 39 */
     int (*xOTclObjErrArgCnt) (Tcl_Interp * interp, Tcl_Obj * cmdName, Tcl_Obj * methodName, char * arglist); /* 40 */

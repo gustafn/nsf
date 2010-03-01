@@ -38,7 +38,7 @@ declare 4 generic {
     struct XOTcl_Object *XOTclGetObject(Tcl_Interp *interp, char *name)
 }
 declare 5 generic {
-    struct XOTcl_Class *XOTclGetClass(Tcl_Interp *interp, char *name)
+    struct XOTcl_Class *XOTclGetClass(Tcl_Interp *interp, CONST char *name)
 }
 declare 6 generic {
     int XOTclCreateObject(Tcl_Interp *interp, Tcl_Obj *name, struct XOTcl_Class *cl)
@@ -149,7 +149,7 @@ declare 36 generic {
     void XOTclRequireObjNamespace(Tcl_Interp *interp, XOTcl_Object *obj)
 }
 declare 37 generic {
-    int XOTclErrBadVal(Tcl_Interp *interp, char *context, char *expected, char *value)
+    int XOTclErrBadVal(Tcl_Interp *interp, char *context, char *expected, CONST char *value)
 }
 declare 38 generic {
         int XOTclNextObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
