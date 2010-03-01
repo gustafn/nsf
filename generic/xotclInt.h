@@ -525,7 +525,7 @@ typedef enum {
   XOTE_METHOD, XOTE_OBJECT, XOTE_SETTER, 
   XOTE_GUARD_OPTION, XOTE___UNKNOWN__, 
   /* Patly redefined Tcl commands; leave them together at the end */
-  XOTE_EXPR, XOTE_FORMAT, XOTE_INFO, XOTE_INTERP, XOTE_IS, XOTE_RENAME, XOTE_SUBST
+  XOTE_EXPR, XOTE_FORMAT, XOTE_INFO, XOTE_INFO_FRAME, XOTE_INTERP, XOTE_IS, XOTE_RENAME, XOTE_SUBST
 } XOTclGlobalNames;
 #if !defined(XOTCL_C)
 extern char *XOTclGlobalStrings[];
@@ -548,7 +548,7 @@ char *XOTclGlobalStrings[] = {
   "method", "object", "setter", 
   "-guard", "__unknown__",
   /* tcl commands */
-  "expr", "format", "info", "interp", "::tcl::string::is", "rename", "subst",
+  "expr", "format", "info", "::tcl::info::frame", "interp", "::tcl::string::is", "rename", "subst",
 };
 #endif
 

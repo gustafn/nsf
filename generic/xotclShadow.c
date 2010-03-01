@@ -107,6 +107,49 @@ XOTcl_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   return XOTclCallCommand(interp, XOTE_RENAME, objc, objv);
 }
 
+static int
+XOTcl_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  int result;
+  CONST char* resultString; 
+
+  result = XOTclCallCommand(interp, XOTE_INFO_FRAME, objc, objv);
+
+  if (result == TCL_OK && objc == 2) {
+    int level, topLevel, frameFlags;
+    CmdFrame *framePtr = Tcl_Interp_cmdFramePtr(interp);
+    CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
+    Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
+
+    /* level must be ok, otherwise we weould not have a TCL_OK */
+    Tcl_GetIntFromObj(interp, objv[1], &level);
+
+    /* todo: coroutine level messing is missing */
+    topLevel = framePtr == NULL ? 0 :  framePtr->level;
+
+    if (level > 0) {
+      level -= topLevel;
+    }
+    /*fprintf(stderr, "topLevel %d level %d\n",topLevel, level);*/
+    while (++level <= 0) {
+      framePtr = framePtr->nextPtr;
+      varFramePtr = varFramePtr->callerPtr;
+    }
+    frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+    /*fprintf(stderr, " ... frame %p varFramePtr %p frameFlags %.6x\n", framePtr, varFramePtr, frameFlags);
+      tcl85showStack(interp);*/
+    if (frameFlags & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+      XOTclCallStackContent *cscPtr = 
+        ((XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr));
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object",6));
+      Tcl_ListObjAppendElement(interp, resultObj, cscPtr->self->cmdName);
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("class",5));
+      Tcl_ListObjAppendElement(interp, resultObj, cscPtr->cl ? cscPtr->cl->object.cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+    }
+  }
+
+  return result;
+}
+
 /*
  * Obtain the names of the tcl commands
  * not available through the stub interface and overload some global commands
@@ -126,20 +169,22 @@ XOTclShadowTclCommands(Tcl_Interp *interp, XOTclShadowOperations load) {
     /* no commands are overloaded, these are only used for calling 
        e.g. Tcl_ExprObjCmd(), Tcl_IncrObjCmd() and Tcl_SubstObjCmd(), 
        which are not available in though the stub table */
-    rc |= XOTclReplaceCommand(interp, XOTE_EXPR,     0, initialized);
-    rc |= XOTclReplaceCommand(interp, XOTE_SUBST,    0, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_EXPR,       NULL, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_SUBST,      NULL, initialized);
 #endif
-    rc |= XOTclReplaceCommand(interp, XOTE_FORMAT,   0, initialized);
-    rc |= XOTclReplaceCommand(interp, XOTE_INTERP,   0, initialized);
-    rc |= XOTclReplaceCommand(interp, XOTE_IS,       0, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_FORMAT,     NULL, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_INTERP,     NULL, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_IS,         NULL, initialized);
 
     /* for the following commands, we have to add our own semantics */
-    rc |= XOTclReplaceCommand(interp, XOTE_RENAME,   XOTcl_RenameObjCmd, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_INFO_FRAME, XOTcl_InfoFrameObjCmd, initialized);
+    rc |= XOTclReplaceCommand(interp, XOTE_RENAME,     XOTcl_RenameObjCmd, initialized);
     
   } else if (load == SHADOW_REFETCH) {
     XOTclReplaceCommandCheck(interp, XOTE_RENAME,   XOTcl_RenameObjCmd);
   } else {
     XOTclReplaceCommandCleanup(interp, XOTE_RENAME);
+    XOTclReplaceCommandCleanup(interp, XOTE_INFO_FRAME);
     FREE(XOTclShadowTclCommandInfo*, RUNTIME_STATE(interp)->tclCommands);
     RUNTIME_STATE(interp)->tclCommands = NULL;
   }
