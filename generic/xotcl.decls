@@ -35,7 +35,7 @@ declare 2 generic {
 #
 #}
 declare 4 generic {
-    struct XOTcl_Object *XOTclGetObject(Tcl_Interp *interp, char *name)
+    struct XOTcl_Object *XOTclGetObject(Tcl_Interp *interp, CONST char *name)
 }
 declare 5 generic {
     struct XOTcl_Class *XOTclGetClass(Tcl_Interp *interp, CONST char *name)
@@ -98,7 +98,7 @@ declare 20 generic {
 }
 declare 21 generic {
     int XOTclUnsetInstVar2(struct XOTcl_Object *obj, Tcl_Interp *interp, 
-                           char *name1, char *name2, 
+                           CONST char *name1, CONST char *name2, 
 		           int flgs)
 }
 #declare 22 generic {
@@ -113,7 +113,7 @@ declare 24 generic {
 }
 declare 25 generic {
     int XOTclErrInProc (Tcl_Interp *interp, Tcl_Obj *objName,
-		Tcl_Obj *clName, char *procName)
+		Tcl_Obj *clName, CONST char *procName)
 }
 #declare 26 generic {
 #

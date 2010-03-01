@@ -41,7 +41,7 @@ EXTERN struct XOTcl_Class * XOTclIsClass (Tcl_Interp * interp, ClientData cd);
 #define XOTclGetObject_TCL_DECLARED
 /* 4 */
 EXTERN struct XOTcl_Object * XOTclGetObject (Tcl_Interp * interp, 
-				char * name);
+				CONST char * name);
 #endif
 #ifndef XOTclGetClass_TCL_DECLARED
 #define XOTclGetClass_TCL_DECLARED
@@ -112,8 +112,8 @@ EXTERN Tcl_Obj *	XOTcl_ObjGetVar2 (struct XOTcl_Object * obj,
 #define XOTclUnsetInstVar2_TCL_DECLARED
 /* 21 */
 EXTERN int		XOTclUnsetInstVar2 (struct XOTcl_Object * obj, 
-				Tcl_Interp * interp, char * name1, 
-				char * name2, int flgs);
+				Tcl_Interp * interp, CONST char * name1, 
+				CONST char * name2, int flgs);
 #endif
 /* Slot 22 is reserved */
 #ifndef XOTclErrMsg_TCL_DECLARED
@@ -132,7 +132,7 @@ EXTERN int		XOTclVarErrMsg (Tcl_Interp * interp, ...);
 /* 25 */
 EXTERN int		XOTclErrInProc (Tcl_Interp * interp, 
 				Tcl_Obj * objName, Tcl_Obj * clName, 
-				char * procName);
+				CONST char * procName);
 #endif
 /* Slot 26 is reserved */
 #ifndef XOTclErrBadVal__TCL_DECLARED
@@ -249,7 +249,7 @@ typedef struct XotclStubs {
     void *reserved1;
     struct XOTcl_Class * (*xOTclIsClass) (Tcl_Interp * interp, ClientData cd); /* 2 */
     void *reserved3;
-    struct XOTcl_Object * (*xOTclGetObject) (Tcl_Interp * interp, char * name); /* 4 */
+    struct XOTcl_Object * (*xOTclGetObject) (Tcl_Interp * interp, CONST char * name); /* 4 */
     struct XOTcl_Class * (*xOTclGetClass) (Tcl_Interp * interp, CONST char * name); /* 5 */
     int (*xOTclCreateObject) (Tcl_Interp * interp, Tcl_Obj * name, struct XOTcl_Class * cl); /* 6 */
     void *reserved7;
@@ -266,11 +266,11 @@ typedef struct XotclStubs {
     void *reserved18;
     Tcl_Obj * (*xOTcl_ObjSetVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name1, Tcl_Obj * name2, Tcl_Obj * value, int flgs); /* 19 */
     Tcl_Obj * (*xOTcl_ObjGetVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, Tcl_Obj * name1, Tcl_Obj * name2, int flgs); /* 20 */
-    int (*xOTclUnsetInstVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, char * name1, char * name2, int flgs); /* 21 */
+    int (*xOTclUnsetInstVar2) (struct XOTcl_Object * obj, Tcl_Interp * interp, CONST char * name1, CONST char * name2, int flgs); /* 21 */
     void *reserved22;
     int (*xOTclErrMsg) (Tcl_Interp * interp, char * msg, Tcl_FreeProc * type); /* 23 */
     int (*xOTclVarErrMsg) (Tcl_Interp * interp, ...); /* 24 */
-    int (*xOTclErrInProc) (Tcl_Interp * interp, Tcl_Obj * objName, Tcl_Obj * clName, char * procName); /* 25 */
+    int (*xOTclErrInProc) (Tcl_Interp * interp, Tcl_Obj * objName, Tcl_Obj * clName, CONST char * procName); /* 25 */
     void *reserved26;
     int (*xOTclErrBadVal_) (Tcl_Interp * interp, char * expected, char * value); /* 27 */
     int (*xOTclObjErrType) (Tcl_Interp * interp, Tcl_Obj * nm, char * wt, char * parameterName); /* 28 */

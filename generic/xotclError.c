@@ -42,7 +42,7 @@ XOTclVarErrMsg TCL_VARARGS_DEF (Tcl_Interp *, arg1) {
 
 int
 XOTclErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
-               Tcl_Obj *clName, char *procName) {
+               Tcl_Obj *clName, CONST char *procName) {
   Tcl_DString errMsg;
   char *cName, *space;
   ALLOC_DSTRING(&errMsg, "\n    ");
