@@ -451,7 +451,7 @@ namespace eval ::xotcl {
       if {[string match __* $m]} continue
       lappend methods $m
     }
-    error "Method '$method' unknown for slot [[::xotcl::current object]; valid are: {[lsort $methods]]}"
+    error "Method '$method' unknown for slot [::xotcl::current object]; valid are: {[lsort $methods]}"
   }
   
   ::xotcl::ObjectParameterSlot public method destroy {} {
@@ -761,6 +761,7 @@ namespace eval ::xotcl {
     :protected method init args {::xotcl::next; :optimize}
     :public method optimize {} {
       #puts stderr OPTIMIZER-[info exists :incremental]
+      if {![info exists :methodname]} {return}
       set object [expr {${:per-object} ? {object} : {}}]
       if {${:per-object}} {
         set perObject -per-object
@@ -818,7 +819,7 @@ namespace eval ::xotcl {
       ::xotcl::Attribute createFromParameterSyntax [::xotcl::current object] {*}$arg
     }
     # todo needed?
-    ::xotcl::setvar [::xotcl::current object]::slot __parameter $arglist
+    #::xotcl::setvar [::xotcl::current object]::slot __parameter $arglist
   }
 
   ##################################################################

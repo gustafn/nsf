@@ -666,7 +666,7 @@ namespace eval ::xotcl::serializer {
       if {[::xotcl::is $o type ::xotcl::Slot]} {
         # Slots needs to be initialized to ensure
         # __invalidateobjectparameter to be called
-        append cmd [list $o init] \n
+        append cmd [list $o eval :init] \n
       }
 
       $s addPostCmd [:frameWorkCmd ::xotcl::relation $o object-filter]
