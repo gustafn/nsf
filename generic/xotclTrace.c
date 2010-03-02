@@ -60,50 +60,6 @@ XOTclStackDump(Tcl_Interp *interp) {
   DECR_REF_COUNT(varCmdObj);
 }
 
-#if !defined(TCL85STACK)
-void
-XOTclCallStackDump(Tcl_Interp *interp) {
-  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
-  XOTclCallStackContent *csc;
-  int i=1, entries = cs->top - cs->content;
-
-  fprintf (stderr, "     XOTCL CALLSTACK: (%d entries, top: %p) \n", entries, cs->top);
-  for (csc = &cs->content[1]; csc <= cs->top; csc++) {
-    fprintf(stderr, "       %d: %p ",i++,csc);
-    if (csc->self)
-      fprintf(stderr, "OBJ %s (%p), ", ObjStr(csc->self->cmdName), csc->self);
-    if (csc->cl)
-      fprintf(stderr, "INSTPROC %s->", className(csc->cl));
-    else
-      fprintf(stderr, "PROC ");
-    /*
-    fprintf(stderr, " cmd %p, obj %p, epoch %d, ",
-	    csc->cmdPtr, csc->self, csc->cmdPtr ? Tcl_Command_cmdEpoch(csc->cmdPtr) : -1);
-    */
-    if (csc->cmdPtr && !Tcl_Command_cmdEpoch(csc->cmdPtr))
-      fprintf(stderr, "%s (%p), ", Tcl_GetCommandName(interp, (Tcl_Command)csc->cmdPtr),
-	      csc->cmdPtr);
-    else 
-      fprintf(stderr, "NULL, ");
-
-    fprintf(stderr, "frameType: %d, ", csc->frameType);
-    fprintf(stderr, "callType: %d ", csc->callType);
-
-#if !defined(TCL85STACK)
-    fprintf(stderr, "cframe %p  ", csc->currentFramePtr);
-    if (csc->currentFramePtr) 
-      fprintf(stderr,"l=%d ",Tcl_CallFrame_level(csc->currentFramePtr));
-#endif
-
-    fprintf(stderr, "\n");
-  }
-}
-#else
-void XOTclCallStackDump(Tcl_Interp *interp) {
-  /* dummy function, since this is referenced in stubs table */
-}
-#endif
-
 void 
 XOTclPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
   int j; 

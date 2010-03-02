@@ -127,9 +127,9 @@ declare 28 generic {
 declare 29 generic {
     void XOTclStackDump (Tcl_Interp *interp)
 }
-declare 30 generic {
-    void XOTclCallStackDump (Tcl_Interp *interp)
-}
+#declare 30 generic {
+#    void XOTclCallStackDump (Tcl_Interp *interp)
+#}
 #declare 31 generic {
 #    void XOTclDeprecatedMsg(char *oldCmd, char *newCmd)
 #}

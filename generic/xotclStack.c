@@ -266,4 +266,41 @@ static void CallStackPopAll(Tcl_Interp *interp) {
     Tcl_PopCallFrame(interp);
   }
 }
+
+void
+XOTclCallStackDump(Tcl_Interp *interp) {
+  XOTclCallStack *cs = &RUNTIME_STATE(interp)->cs;
+  XOTclCallStackContent *cscPtr;
+  int i=1, entries = cs->top - cs->content;
+
+  fprintf (stderr, "     XOTCL CALLSTACK: (%d entries, top: %p) \n", entries, cs->top);
+  for (cscPtr = &cs->content[1]; cscPtr <= cs->top; cscPtr++) {
+    fprintf(stderr, "       %d: %p ",i++,cscPtr);
+    if (cscPtr->self)
+      fprintf(stderr, "OBJ %s (%p), ", ObjStr(cscPtr->self->cmdName), cscPtr->self);
+    if (cscPtr->cl)
+      fprintf(stderr, "INSTPROC %s->", className(cscPtr->cl));
+    else
+      fprintf(stderr, "PROC ");
+    /*
+    fprintf(stderr, " cmd %p, obj %p, epoch %d, ",
+	    cscPtr->cmdPtr, cscPtr->self, cscPtr->cmdPtr ? Tcl_Command_cmdEpoch(cscPtr->cmdPtr) : -1);
+    */
+    if (cscPtr->cmdPtr && !Tcl_Command_cmdEpoch(cscPtr->cmdPtr))
+      fprintf(stderr, "%s (%p), ", Tcl_GetCommandName(interp, (Tcl_Command)cscPtr->cmdPtr),
+	      cscPtr->cmdPtr);
+    else 
+      fprintf(stderr, "NULL, ");
+
+    fprintf(stderr, "frameType: %d, ", cscPtr->frameType);
+    fprintf(stderr, "callType: %d ", cscPtr->callType);
+
+    fprintf(stderr, "cframe %p  ", cscPtr->currentFramePtr);
+    if (cscPtr->currentFramePtr) 
+      fprintf(stderr,"l=%d ",Tcl_CallFrame_level(cscPtr->currentFramePtr));
+
+    fprintf(stderr, "\n");
+  }
+}
+
 #endif /* NOT TCL85STACK */

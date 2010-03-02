@@ -424,7 +424,7 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
   object->activationCount --;
   
   /* fprintf(stderr, "decr activationCount for %s to %d cscPtr->cl %p\n", objectName(cscPtr->self), 
-     csc->self->activationCount, cscPtr->cl);*/
+     cscPtr->self->activationCount, cscPtr->cl);*/
 
   if (object->activationCount < 1 && object->flags & XOTCL_DESTROY_CALLED) {
     CallStackDoDestroy(interp, object);

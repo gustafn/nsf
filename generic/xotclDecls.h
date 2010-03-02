@@ -152,11 +152,7 @@ EXTERN int		XOTclObjErrType (Tcl_Interp * interp, Tcl_Obj * nm,
 /* 29 */
 EXTERN void		XOTclStackDump (Tcl_Interp * interp);
 #endif
-#ifndef XOTclCallStackDump_TCL_DECLARED
-#define XOTclCallStackDump_TCL_DECLARED
-/* 30 */
-EXTERN void		XOTclCallStackDump (Tcl_Interp * interp);
-#endif
+/* Slot 30 is reserved */
 /* Slot 31 is reserved */
 #ifndef XOTclSetObjClientData_TCL_DECLARED
 #define XOTclSetObjClientData_TCL_DECLARED
@@ -275,7 +271,7 @@ typedef struct XotclStubs {
     int (*xOTclErrBadVal_) (Tcl_Interp * interp, char * expected, char * value); /* 27 */
     int (*xOTclObjErrType) (Tcl_Interp * interp, Tcl_Obj * nm, char * wt, char * parameterName); /* 28 */
     void (*xOTclStackDump) (Tcl_Interp * interp); /* 29 */
-    void (*xOTclCallStackDump) (Tcl_Interp * interp); /* 30 */
+    void *reserved30;
     void *reserved31;
     void (*xOTclSetObjClientData) (XOTcl_Object * obj, ClientData data); /* 32 */
     ClientData (*xOTclGetObjClientData) (XOTcl_Object * obj); /* 33 */
@@ -392,10 +388,7 @@ extern XotclStubs *xotclStubsPtr;
 #define XOTclStackDump \
 	(xotclStubsPtr->xOTclStackDump) /* 29 */
 #endif
-#ifndef XOTclCallStackDump
-#define XOTclCallStackDump \
-	(xotclStubsPtr->xOTclCallStackDump) /* 30 */
-#endif
+/* Slot 30 is reserved */
 /* Slot 31 is reserved */
 #ifndef XOTclSetObjClientData
 #define XOTclSetObjClientData \
