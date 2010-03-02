@@ -819,7 +819,11 @@ namespace eval ::xotcl {
       ::xotcl::Attribute createFromParameterSyntax [::xotcl::current object] {*}$arg
     }
     # todo needed?
-    #::xotcl::setvar [::xotcl::current object]::slot __parameter $arglist
+    set slot [::xotcl::current object]::slot
+    if {[llength arglist] < 1} {
+      if {![::xotcl::objectproperty $slot object]} {::xotcl2::Object create $slot}
+    }
+    ::xotcl::setvar $slot __parameter $arglist
   }
 
   ##################################################################

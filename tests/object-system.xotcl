@@ -92,10 +92,10 @@ C copy X
 ? {C info vars} ""
 ? {::xotcl::objectproperty X::slot object} 1
 
-? {C::slot info vars} __parameter
+#? {C::slot info vars} __parameter
 ? {C info parameter} {{x 1} {y 2}}
 
-? {X::slot info vars} __parameter
+#? {X::slot info vars} __parameter
 ? {X info parameter} {{x 1} {y 2}}
 
 #
