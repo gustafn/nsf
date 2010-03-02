@@ -115,6 +115,7 @@ XOTcl_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
   if (result == TCL_OK && objc == 2) {
     int level, topLevel, frameFlags;
+    CONST char *frameType;
     CmdFrame *framePtr = Tcl_Interp_cmdFramePtr(interp);
     CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
     Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
@@ -145,7 +146,18 @@ XOTcl_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
       Tcl_ListObjAppendElement(interp, resultObj, 
                                cscPtr->cl ? cscPtr->cl->object.cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
       Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("frametype",9));
-      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewIntObj(cscPtr->frameType));
+      if (cscPtr->frameType == XOTCL_CSC_TYPE_PLAIN) {
+        frameType = "intrinsic";
+      } else if (cscPtr->frameType & XOTCL_CSC_TYPE_ACTIVE_MIXIN) {
+        frameType = "mixin";
+      } else if (cscPtr->frameType & XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+        frameType = "filter";
+      } else if (cscPtr->frameType & XOTCL_CSC_TYPE_GUARD) {
+        frameType = "guard";
+      } else {
+        frameType = "unknown";
+      }
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(frameType,-1));
     }
   }
 
