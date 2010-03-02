@@ -356,7 +356,7 @@ static char cmd[] =
 "::xotcl::RelationSlot create ${os}::Object::slot::filter -elementtype \"\"\n"
 "::xotcl::RelationSlot create ${os}::Class::slot::mixin -methodname class-mixin\n"
 "::xotcl::RelationSlot create ${os}::Class::slot::filter -elementtype \"\" \\\n"
-"-methodname filter-mixin\n"
+"-methodname class-filter\n"
 "::xotcl::RelationSlot create ${os}::Class::slot::object-mixin\n"
 "::xotcl::RelationSlot create ${os}::Class::slot::object-filter -elementtype \"\"}\n"
 "::xotcl::register_system_slots ::xotcl2\n"

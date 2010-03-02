@@ -165,7 +165,9 @@ Test case objectparameter {
   C create c1
  
   ? {C eval {:objectparameter}} \
-      "-object-mixin:relation,slot=::xotcl2::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::xotcl2::Class::slot::mixin -superclass:relation,slot=::xotcl2::Class::slot::superclass -object-filter:relation,slot=::xotcl2::Class::slot::object-filter -filter:relation,arg=filter-mixin,slot=::xotcl2::Class::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -parameter:method,optional -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
+      "-object-mixin:relation,slot=::xotcl2::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::xotcl2::Class::slot::mixin -superclass:relation,slot=::xotcl2::Class::slot::superclass -object-filter:relation,slot=::xotcl2::Class::slot::object-filter -filter:relation,arg=class-filter,slot=::xotcl2::Class::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -parameter:method,optional -noinit:method,optional,noarg -volatile:method,optional,noarg arg:initcmd,optional"
+
+
 
 
   ? {c1 eval {:objectparameter}} \

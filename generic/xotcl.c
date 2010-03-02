@@ -5876,21 +5876,29 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
      (b) the toplevel csc entry is not an filter on self
   */
 
+  /*fprintf(stderr, "call %s, objflags %.6x, defined and valid %.6x doFilters %d guard count %d\n",
+          methodName, objflags, XOTCL_FILTER_ORDER_DEFINED_AND_VALID,
+          rst->doFilters, rst->guardCount);*/
+
   if (((objflags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID) == XOTCL_FILTER_ORDER_DEFINED_AND_VALID)
       && rst->doFilters
       && !rst->guardCount) {
     XOTclCallStackContent *cscPtr = CallStackGetTopFrame(interp, NULL);
 
-    if (cscPtr && (object != cscPtr->self ||
-                cscPtr->frameType != XOTCL_CSC_TYPE_ACTIVE_FILTER)) {
-
+    /*fprintf(stderr, "... check ok, cscPtr = %p\n", cscPtr);
+    if (!cscPtr) {
+      tcl85showStack(interp);
+      }*/
+    if (!cscPtr || (object != cscPtr->self ||
+                    cscPtr->frameType != XOTCL_CSC_TYPE_ACTIVE_FILTER)) {
       filterStackPushed = FilterStackPush(interp, object, methodObj);
       cmd = FilterSearchProc(interp, object, &object->filterStack->currentCmdPtr, &cl);
       if (cmd) {
-        /*fprintf(stderr, "filterSearchProc returned cmd %p proc %p\n", cmd, proc);*/
+        /*fprintf(stderr, "filterSearchProc returned cmd %p\n", cmd);*/
         frameType = XOTCL_CSC_TYPE_ACTIVE_FILTER;
         methodName = (char *)Tcl_GetCommandName(interp, cmd);
       } else {
+        /*fprintf(stderr, "filterSearchProc returned no cmd\n");*/
         FilterStackPop(object);
         filterStackPushed = 0;
       }
@@ -10857,8 +10865,8 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_ob
 
     if (!withObjscope && withNonleaf) {
       Tcl_Command_flags(newCmd) |= XOTCL_CMD_NONLEAF_METHOD;
-      fprintf(stderr, "setting aliased for cmd %p %s flags %.6x, tcd = %p\n",
-              newCmd,methodName,Tcl_Command_flags(newCmd), tcd);
+      /*fprintf(stderr, "setting aliased for cmd %p %s flags %.6x, tcd = %p\n",
+        newCmd,methodName,Tcl_Command_flags(newCmd), tcd);*/
     }
 
     result = ListMethodName(interp, object, cl == NULL, methodName);
@@ -11958,9 +11966,8 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
   XOTclClassOpt *clopt = NULL, *nclopt = NULL;
   int i;
 
-  /*fprintf(stderr, "XOTclRelationCmd %s %d rel=%d val='%s'\n",
-    objectName(object), withPer_object, relationtype, value?ObjStr(value):"NULL");*/
-  /* set withPer_object according to object- or class- */
+  /*fprintf(stderr, "XOTclRelationCmd %s rel=%d val='%s'\n",
+    objectName(object), relationtype, valueObj ? ObjStr(valueObj) : "NULL");*/
 
   switch (relationtype) {
   case RelationtypeObject_filterIdx:

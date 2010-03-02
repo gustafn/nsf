@@ -678,7 +678,7 @@ namespace eval ::xotcl {
     
     ::xotcl::RelationSlot create ${os}::Class::slot::mixin -methodname class-mixin
     ::xotcl::RelationSlot create ${os}::Class::slot::filter -elementtype "" \
-        -methodname filter-mixin
+        -methodname class-filter
     
     # Create two conveniance slots to allow configuration of 
     # object-slots for classes via object-mixin

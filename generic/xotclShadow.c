@@ -110,7 +110,6 @@ XOTcl_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 static int
 XOTcl_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   int result;
-  CONST char* resultString; 
 
   result = XOTclCallCommand(interp, XOTE_INFO_FRAME, objc, objv);
 
@@ -143,7 +142,10 @@ XOTcl_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
       Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object",6));
       Tcl_ListObjAppendElement(interp, resultObj, cscPtr->self->cmdName);
       Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("class",5));
-      Tcl_ListObjAppendElement(interp, resultObj, cscPtr->cl ? cscPtr->cl->object.cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+      Tcl_ListObjAppendElement(interp, resultObj, 
+                               cscPtr->cl ? cscPtr->cl->object.cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("frametype",9));
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewIntObj(cscPtr->frameType));
     }
   }
 
