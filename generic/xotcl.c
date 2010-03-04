@@ -840,7 +840,7 @@ XOTclCleanupObject(XOTclObject *object) {
 #if !defined(NDEBUG)
     memset(object, 0, sizeof(XOTclObject));
 #endif
-    /*fprintf(stderr, "CKFREE obj %p\n", obj);*/
+    /*fprintf(stderr, "CKFREE obj %p\n", object);*/
     ckfree((char *) object);
   }
 }
@@ -1348,7 +1348,7 @@ callDestroyMethod(Tcl_Interp *interp, XOTclObject *object, int flags) {
   if (object->flags & XOTCL_DESTROY_CALLED)
     return TCL_OK;
 
-  PRINTOBJ("callDestroy", obj);
+  PRINTOBJ("callDestroy", object);
 
   /* flag, that destroy was called and invoke the method */
   object->flags |= XOTCL_DESTROY_CALLED;
@@ -1367,7 +1367,7 @@ callDestroyMethod(Tcl_Interp *interp, XOTclObject *object, int flags) {
   }
 
 #ifdef OBJDELETION_TRACE
-  fprintf(stderr, "callDestroyMethod for %p exit\n", obj);
+  fprintf(stderr, "callDestroyMethod for %p exit\n", object);
 #endif
   return result;
 }
@@ -3887,7 +3887,7 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *object, CONST char *methodName,
 
   /* ensure that the mixin order is not invalid, otherwise compute order */
   assert(object->flags & XOTCL_MIXIN_ORDER_VALID);
-  /*MixinComputeDefined(interp, obj);*/
+  /*MixinComputeDefined(interp, object);*/
   cmdList = seekCurrent(object->mixinStack->currentCmdPtr, object->mixinOrder);
   RUNTIME_STATE(interp)->cmdPtr = cmdList ? cmdList->cmdPtr : NULL;
 
@@ -4784,7 +4784,7 @@ FilterSearchProc(Tcl_Interp *interp, XOTclObject *object,
   *currentCmd = NULL;
 
   /* Ensure that the filter order is not invalid, otherwise compute order
-     FilterComputeDefined(interp, obj);
+     FilterComputeDefined(interp, object);
   */
   assert(object->flags & XOTCL_FILTER_ORDER_VALID);
   cmdList = seekCurrent(object->filterStack->currentCmdPtr, object->filterOrder);
@@ -5377,7 +5377,7 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
   int rc;
 
   /*fprintf(stderr, "---- FinalizeProcMethod result %d, csc %p, pcPtr %p, obj %p\n",
-    result, cscPtr, pcPtr, obj);*/
+    result, cscPtr, pcPtr, object);*/
 # if defined(TCL85STACK_TRACE)
   fprintf(stderr, "POP  FRAME (implicit)  csc %p obj %s obj refcount %d %d\n",
           cscPtr, objectName(object),
@@ -5450,7 +5450,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
      * seek cmd in obj's filterOrder
      */
     assert(object->flags & XOTCL_FILTER_ORDER_VALID);
-    /* otherwise: FilterComputeDefined(interp, obj);*/
+    /* otherwise: FilterComputeDefined(interp, object);*/
 
     for (cmdList = object->filterOrder; cmdList && cmdList->cmdPtr != cmdPtr; cmdList = cmdList->nextPtr);
 
@@ -7179,7 +7179,7 @@ NextSearchMethod(XOTclObject *object, Tcl_Interp *interp, XOTclCallStackContent 
    *  Next in Mixins
    */
   assert(objflags & XOTCL_MIXIN_ORDER_VALID);
-  /* otherwise: MixinComputeDefined(interp, obj); */
+  /* otherwise: MixinComputeDefined(interp, object); */
 
   /*fprintf(stderr, "nextsearch: mixinorder valid %d stack=%p\n",
     obj->flags & XOTCL_MIXIN_ORDER_VALID, obj->mixinStack);*/
@@ -10717,7 +10717,7 @@ static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *metho
   Tcl_Obj *obj = Tcl_GetVar2Ex(interp, XOTclGlobalStrings[XOTE_ALIAS_ARRAY], 
                                AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                                TCL_GLOBAL_ONLY);
-  /*fprintf(stderr, "aliasGet returns %p\n", obj);*/
+  /*fprintf(stderr, "aliasGet returns %p\n", object);*/
   Tcl_DStringFree(dsPtr);
   return obj;
 }
@@ -12125,7 +12125,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
       if (FilterAdd(interp, &objopt->filters, ov[i], object, 0) != TCL_OK)
         return TCL_ERROR;
     }
-    /*FilterComputeDefined(interp, obj);*/
+    /*FilterComputeDefined(interp, object);*/
     break;
 
   case RelationtypeClass_mixinIdx:
@@ -12196,7 +12196,7 @@ static int XOTclCurrentCmd(Tcl_Interp *interp, int selfoption) {
   XOTclCallStackContent *cscPtr;
   int result = TCL_OK;
 
-  /*fprintf(stderr, "getSelfObj returns %p\n", obj); tcl85showStack(interp);*/
+  /*fprintf(stderr, "getSelfObj returns %p\n", object); tcl85showStack(interp);*/
 
   if (selfoption == 0 || selfoption == SelfoptionObjectIdx) {
     if (object) {
@@ -14354,6 +14354,8 @@ static void
 ExitHandler(ClientData clientData) {
   Tcl_Interp *interp = (Tcl_Interp *)clientData;
   int i, flags;
+
+  /*fprintf(stderr, "ExitHandler\n");*/
 
   /*
    * Don't use exit handler, if the interpreter is alread destroyed.

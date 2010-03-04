@@ -820,9 +820,7 @@ namespace eval ::xotcl {
     }
     # todo needed?
     set slot [::xotcl::current object]::slot
-    if {[llength arglist] < 1} {
-      if {![::xotcl::objectproperty $slot object]} {::xotcl2::Object create $slot}
-    }
+    if {![::xotcl::objectproperty $slot object]} {::xotcl2::Object create $slot}
     ::xotcl::setvar $slot __parameter $arglist
   }
 

@@ -536,7 +536,7 @@ namespace eval ::xotcl::serializer {
           $s warn "Method does not exist: $o $p $m"
           continue
         }
-        append methods($o) [:serializeExportedMethod $o $p $m]
+        append methods($o) [:serializeExportedMethod $o $p $m]\n
       }
       foreach o [array names methods] {set ($o) 1}
       foreach o [list ${:rootClass} ${:rootMetaClass}] {
