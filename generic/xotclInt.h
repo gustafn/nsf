@@ -629,6 +629,7 @@ typedef struct XOTclRuntimeState {
   int doSoftrecreate;
   int exitHandlerDestroyRound;
   int returnCode;
+  int overloadedMethods;
   long newCounter;
   XOTclStringIncrStruct iss;
   Proc fakeProc;
