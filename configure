@@ -1365,6 +1365,9 @@ Optional Packages:
   --with-all=yes|no,
 	   --without-all disables built of all
   --with-tclinclude       directory containing the public Tcl  header files.
+  --with-expat=sys assumes a system-wide expat installation,
+           --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
+           --without-expat falls back to the bundled expat installation
   --with-tcl              directory containing tcl configuration
                           (tclConfig.sh)
   --with-tk               directory containing tk configuration (tkConfig.sh)
@@ -2016,6 +2019,14 @@ if test "${with_tclinclude+set}" = set; then
 fi
 
 
+# Check whether --with-expat was given.
+if test "${with_expat+set}" = set; then
+  withval=$with_expat; with_expat=$withval
+else
+  with_expat=bundle
+fi
+
+
 subdirs=""
 
 if test "$with_all" = yes; then
@@ -2038,6 +2049,11 @@ else
    test_actiweb=""
    libdirs_actiweb=""
    apps_actiweb=""
+   if ! test "${with_expat}" = bundle ; then
+      { echo "$as_me:$LINENO: result: WARNING: expat configuration ${with_expat} ignored" >&5
+echo "${ECHO_T}WARNING: expat configuration ${with_expat} ignored" >&6; }
+      with_expat="bundle"
+   fi
 fi
 
 

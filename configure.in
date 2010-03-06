@@ -54,6 +54,11 @@ AC_ARG_WITH(all,
 AC_ARG_WITH(tclinclude, 
         [  --with-tclinclude       directory containing the public Tcl  header files.], 
          with_tclinclude=${withval})
+AC_ARG_WITH(expat,
+        [  --with-expat=sys assumes a system-wide expat installation, 
+           --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
+           --without-expat falls back to the bundled expat installation],
+        [with_expat=$withval],[with_expat=bundle])
 
 subdirs=""
 
@@ -77,6 +82,10 @@ else
    test_actiweb=""
    libdirs_actiweb=""
    apps_actiweb=""
+   if ! test "${with_expat}" = bundle ; then
+      AC_MSG_RESULT([WARNING: expat configuration ${with_expat} ignored])
+      with_expat="bundle"
+   fi
 fi
 
 AC_SUBST(subdirs)

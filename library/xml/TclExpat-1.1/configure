@@ -1313,6 +1313,9 @@ Optional Packages:
   --with-xotcl=DIR_CONTAINING_XOTCLCONFIG_SH
             absolute path to xotclConfig.sh,
            --without-xotcl disables, but this is pointless
+  --with-expat=sys assumes a system-wide expat installation,
+           --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
+           --without-expat falls back to the bundled expat installation
   --with-tcl              directory containing tcl configuration
                           (tclConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files
@@ -1920,6 +1923,46 @@ echo "$as_me: error: --with-xotcl is required" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
+
+
+# Check whether --with-expat was given.
+if test "${with_expat+set}" = set; then
+  withval=$with_expat; with_expat=$withval
+else
+  with_expat=bundle
+fi
+
+
+case $with_expat in
+    bundle) ;;
+    sys)
+        { echo "$as_me:$LINENO: result: search for expat in ${prefix} /usr/local /usr" >&5
+echo "${ECHO_T}search for expat in ${prefix} /usr/local /usr" >&6; }
+        for f in $prefix /usr/local /usr; do
+            if test -f "$f/include/expat.h" ; then
+		expat_dir=$f
+                EXPAT_INC_SPEC="-I`(cd $inc_dir; pwd)`"
+                break
+            fi
+        done
+        ;;
+    *)
+	inc_dir="`echo $with_expat |cut -f1 -d,`"
+        lib_dir="`echo $with_expat |cut -f2 -d, -s`"
+        if test -f "$inc_dir/expat.h"; then
+            EXPAT_INC_SPEC="-I`(cd $inc_dir; pwd)`"
+        else
+            { { echo "$as_me:$LINENO: error: ${inc_dir} directory does not contain expat.h" >&5
+echo "$as_me: error: ${inc_dir} directory does not contain expat.h" >&2;}
+   { (exit 1); exit 1; }; }
+        fi
+	expat_dir="`(cd $inc_dir/..; pwd)`"
+	if test -z "${lib_dir}"; then
+            EXPAT_LIB_SPEC=""
+	else
+            EXPAT_LIB_SPEC="-L`(cd $lib_dir; pwd)`"
+	fi
+esac
 
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file
@@ -6659,8 +6702,17 @@ source ${with_xotcl}/xotclConfig.sh
 #-----------------------------------------------------------------------
 
 if test "${TEA_PLATFORM}" = "windows" ; then
+    filemap="win32filemap.c"
+else
+    filemap="unixfilemap.c"
+fi
 
-    vars="xmltok.c win32filemap.c xmlrole.c xmlwf.c codepage.c xmlparse.c hashtable.c tclexpat.c"
+if test "${with_expat}" = bundle ; then
+    # 1) the bundled case
+    { echo "$as_me:$LINENO: result: using bundled expat distribution" >&5
+echo "${ECHO_T}using bundled expat distribution" >&6; }
+
+    vars="xmltok.c ${filemap} xmlrole.c xmlwf.c codepage.c xmlparse.c hashtable.c tclexpat.c"
     for i in $vars; do
 	case $i in
 	    \$*)
@@ -6696,8 +6748,11 @@ echo "$as_me: error: could not find source file '$i'" >&2;}
 
 
 else
+    # 2) the shared case
+    { echo "$as_me:$LINENO: result: using shared expat found in ${expat_dir}" >&5
+echo "${ECHO_T}using shared expat found in ${expat_dir}" >&6; }
 
-    vars="xmltok.c unixfilemap.c xmlrole.c xmlwf.c codepage.c xmlparse.c hashtable.c tclexpat.c"
+    vars="tclexpat.c"
     for i in $vars; do
 	case $i in
 	    \$*)
@@ -6730,6 +6785,24 @@ echo "$as_me: error: could not find source file '$i'" >&2;}
 	esac
     done
 
+
+
+
+    vars="${EXPAT_INC_SPEC}"
+    for i in $vars; do
+	PKG_INCLUDES="$PKG_INCLUDES $i"
+    done
+
+
+
+    vars="${EXPAT_LIB_SPEC} -lexpat"
+    for i in $vars; do
+	if test "${TEA_PLATFORM}" = "windows" -a "$GCC" = "yes" ; then
+	    # Convert foo.lib to -lfoo for GCC.  No-op if not *.lib
+	    i=`echo "$i" | sed -e 's/^\([^-].*\)\.lib$/-l\1/i'`
+	fi
+	PKG_LIBS="$PKG_LIBS $i"
+    done
 
 
 fi
