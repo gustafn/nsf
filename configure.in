@@ -363,8 +363,6 @@ AC_SUBST(pkgincludedir)
 
 if test "${TEA_PLATFORM}" != "windows" ; then
 
-if test "${TEA_PLATFORM}" != "windows" ; then
-
 XOTCL_BUILD_LIB_SPEC="-L`pwd` -lxotcl${PACKAGE_VERSION}"
 XOTCL_LIB_SPEC="-L${pkglibdir} -lxotcl${PACKAGE_VERSION}"
 
@@ -381,17 +379,6 @@ else
 	XOTCL_STUB_LIB_SPEC="-L${pkglibdir} -lxotclstub${PACKAGE_VERSION}"
 	AC_DEFINE(COMPILE_XOTCL_STUBS)
 fi 
-
-else
-
-XOTCL_BUILD_LIB_SPEC="`pwd`/${PKG_LIB_FILE}"
-XOTCL_LIB_SPEC="${pkglibdir}/${PKG_LIB_FILE}"
-XOTCL_BUILD_STUB_LIB_PATH="`pwd`/${PKG_STUB_LIB_FILE}"
-XOTCL_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
-XOTCL_BUILD_STUB_LIB_SPEC="`pwd`/${PKG_STUB_LIB_FILE}"
-XOTCL_STUB_LIB_SPEC="${pkglibdir}/${PKG_STUB_LIB_FILE}"
-
-fi
 
 else
 
