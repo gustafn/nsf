@@ -1696,7 +1696,7 @@ TestX mixinTest -proc run {{n 10}} {
 	"Mixin: Info failed"
     
 	
-    ::errorCheck "[i2 ismixin  MovementTest]-[i4 ismixin MovementTest]-[a ismixin MovementTest]-[i3 ismixin MovementTest]-[i4 ismixin MovementTest]-[i4 ismixin MovementLog]-[i3 ismixin YXZ]-[i3 ismixin InteractiveAgent]" \
+    ::errorCheck "[i2 ismixin MovementTest]-[i4 ismixin MovementTest]-[a ismixin MovementTest]-[i3 ismixin MovementTest]-[i4 ismixin MovementTest]-[i4 ismixin MovementLog]-[i3 ismixin YXZ]-[i3 ismixin InteractiveAgent]" \
 	"1-1-0-1-1-1-0-0" \
 	"'ismixin test' failed" 
 
