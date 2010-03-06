@@ -51,10 +51,6 @@ AC_ARG_WITH(all,
         [  --with-all=yes|no,
 	   --without-all disables built of all],
         [with_all=$withval], [with_all=no])
-AC_ARG_WITH(all,
-        [  --with-all=yes|no,
-	   --without-all disables built of all],
-        [with_all=$withval], [with_all=no])
 AC_ARG_WITH(tclinclude, 
         [  --with-tclinclude       directory containing the public Tcl  header files.], 
          with_tclinclude=${withval})
