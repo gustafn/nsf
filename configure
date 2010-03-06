@@ -2010,14 +2010,6 @@ else
 fi
 
 
-# Check whether --with-all was given.
-if test "${with_all+set}" = set; then
-  withval=$with_all; with_all=$withval
-else
-  with_all=no
-fi
-
-
 # Check whether --with-tclinclude was given.
 if test "${with_tclinclude+set}" = set; then
   withval=$with_tclinclude; with_tclinclude=${withval}
@@ -12751,7 +12743,7 @@ do
    		mkdir -p $subdir
 		confdir=${srcdir}/$subdir
 	fi
-    (cd $subdir; echo $SHELL ${confdir}/configure ${ac_configure_args} --with-xotcl=${here}; eval $SHELL ${confdir}/configure ${ac_configure_args} --with-xotcl=${here})
+    (cd $subdir; echo $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-xotcl=${here}; eval $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-xotcl=${here})
 done
 
 
