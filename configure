@@ -1365,6 +1365,9 @@ Optional Packages:
   --with-all=yes|no,
 	   --without-all disables built of all
   --with-tclinclude       directory containing the public Tcl  header files.
+  --with-expat=sys assumes a system-wide expat installation,
+           --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
+           --without-expat falls back to the bundled expat installation
   --with-tcl              directory containing tcl configuration
                           (tclConfig.sh)
   --with-tk               directory containing tk configuration (tkConfig.sh)
@@ -1831,15 +1834,15 @@ echo "$as_me: error:
 The PACKAGE_NAME variable must be defined by your TEA configure.in" >&2;}
    { (exit 1); exit 1; }; }
     fi
-    if test x"3.6" = x ; then
+    if test x"3.7" = x ; then
 	{ { echo "$as_me:$LINENO: error:
 TEA version not specified." >&5
 echo "$as_me: error:
 TEA version not specified." >&2;}
    { (exit 1); exit 1; }; }
-    elif test "3.6" != "${TEA_VERSION}" ; then
-	{ echo "$as_me:$LINENO: result: warning: requested TEA version \"3.6\", have \"${TEA_VERSION}\"" >&5
-echo "${ECHO_T}warning: requested TEA version \"3.6\", have \"${TEA_VERSION}\"" >&6; }
+    elif test "3.7" != "${TEA_VERSION}" ; then
+	{ echo "$as_me:$LINENO: result: warning: requested TEA version \"3.7\", have \"${TEA_VERSION}\"" >&5
+echo "${ECHO_T}warning: requested TEA version \"3.7\", have \"${TEA_VERSION}\"" >&6; }
     else
 	{ echo "$as_me:$LINENO: result: ok (TEA ${TEA_VERSION})" >&5
 echo "${ECHO_T}ok (TEA ${TEA_VERSION})" >&6; }
@@ -2010,17 +2013,17 @@ else
 fi
 
 
-# Check whether --with-all was given.
-if test "${with_all+set}" = set; then
-  withval=$with_all; with_all=$withval
-else
-  with_all=no
-fi
-
-
 # Check whether --with-tclinclude was given.
 if test "${with_tclinclude+set}" = set; then
   withval=$with_tclinclude; with_tclinclude=${withval}
+fi
+
+
+# Check whether --with-expat was given.
+if test "${with_expat+set}" = set; then
+  withval=$with_expat; with_expat=$withval
+else
+  with_expat=bundle
 fi
 
 
@@ -2046,6 +2049,11 @@ else
    test_actiweb=""
    libdirs_actiweb=""
    apps_actiweb=""
+   if ! test "${with_expat}" = bundle ; then
+      { echo "$as_me:$LINENO: result: WARNING: expat configuration ${with_expat} ignored" >&5
+echo "${ECHO_T}WARNING: expat configuration ${with_expat} ignored" >&6; }
+      with_expat="bundle"
+   fi
 fi
 
 
@@ -12747,7 +12755,7 @@ do
    		mkdir -p $subdir
 		confdir=${srcdir}/$subdir
 	fi
-    (cd $subdir; echo $SHELL ${confdir}/configure ${ac_configure_args} --with-xotcl=${here}; eval $SHELL ${confdir}/configure ${ac_configure_args} --with-xotcl=${here})
+    (cd $subdir; echo $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-xotcl=${here}; eval $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-xotcl=${here})
 done
 
 
