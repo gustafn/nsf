@@ -13326,8 +13326,13 @@ XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *specifiedName
       ObjStr(nameObj), objc+1);*/
 
     /* call recreate --> initialization */
-    result = callMethod((ClientData) cl, interp,
-                        XOTclGlobalObjects[XOTE_RECREATE], objc+1, nobjv+1, XOTCL_CM_NO_PROTECT);
+    if (CanInvokeDirectly(interp, &cl->object, XOTE_RECREATE)) {
+      result = XOTclCRecreateMethod(interp, cl, newObject->cmdName, objc, nobjv);
+    } else {
+      result = callMethod((ClientData) cl, interp,
+			  XOTclGlobalObjects[XOTE_RECREATE], objc+1, nobjv+1, XOTCL_CM_NO_PROTECT);
+    }
+
     if (result != TCL_OK)
       goto create_method_exit;
 
