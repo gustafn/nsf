@@ -352,14 +352,22 @@ static void CallStackPopAll(Tcl_Interp *interp) {
 
   while (1) {
     Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
+    int frameFlags; 
+
     if (!framePtr) break;
     if (Tcl_CallFrame_level(framePtr) == 0) break;
 
-    if (Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+    frameFlags = Tcl_CallFrame_isProcCallFrame(framePtr);
+    /*fprintf(stderr, "... popping %p frameflags %.6x\n", framePtr, frameFlags);*/
+
+    if (frameFlags & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
       /* free the call stack content; we need this just for decr activation count */
       XOTclCallStackContent *cscPtr = ((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr));
       CallStackPop(interp, cscPtr);
+    } else if (frameFlags & FRAME_IS_XOTCL_OBJECT) {
+      Tcl_CallFrame_varTablePtr(framePtr) = NULL;
     }
+
     /* pop the Tcl frame */
     Tcl_PopCallFrame(interp);
   }
