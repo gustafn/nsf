@@ -78,6 +78,7 @@ static Tcl_ObjType CONST86 *byteCodeType = NULL, *tclCmdNameType = NULL, *listTy
 
 int XOTclObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName, Tcl_Obj *methodObj, CONST char *arglist);
 static int XOTclDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
+static void FilterComputeDefined(Tcl_Interp *interp, XOTclObject *object);
 
 /* methods called directly when CanInvokeDirectly() allows it */
 static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *nameObj);
@@ -1357,6 +1358,38 @@ static int CanInvokeDirectly(Tcl_Interp *interp, XOTclObject *object, int method
 #endif
 
   return success;
+}
+
+static Tcl_Obj *InvokeMethodObj(Tcl_Interp *interp, XOTclObject *object, int methodIdx) {
+  /* we can call a c-implemented method directly, when 
+     a) the program does not contain a method with the appropriate name, and
+     b) filters are not active on the object
+  */
+  Tcl_Obj *methodObj = XOTclGlobalObjects[methodIdx];
+
+  if (methodObj) {
+
+    if (!(object->flags & XOTCL_FILTER_ORDER_VALID)) {
+      FilterComputeDefined(interp, object);
+    }
+
+    if (((RUNTIME_STATE(interp)->overloadedMethods & 1<<methodIdx) == 0)
+        && ((object->flags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID) != XOTCL_FILTER_ORDER_DEFINED_AND_VALID)) {
+      /*fprintf(stderr, "object %s not overloaded %d filter not active %d flags %.6x \n",
+              objectName(object),
+              ((RUNTIME_STATE(interp)->overloadedMethods & 1<<methodIdx) == 0),
+              ((object->flags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID) != XOTCL_FILTER_ORDER_DEFINED_AND_VALID),
+              object->flags);*/
+      methodObj = NULL;
+    }
+  }
+
+#if 0
+  fprintf(stderr, "InvokeMethodObj object %s returns %s\n", 
+          objectName(object), methodObj ? ObjStr(methodObj) : "(null)");
+#endif
+
+  return methodObj;
 }
 
 static int
@@ -8296,10 +8329,10 @@ changeClass(Tcl_Interp *interp, XOTclObject *object, XOTclClass *cl) {
  */
 static int
 doObjInitialization(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]) {
+  Tcl_Obj *methodObj, *savedObjResult = Tcl_GetObjResult(interp); /* save the result */
   int result;
-  Tcl_Obj *savedObjResult = Tcl_GetObjResult(interp); /* save the result */
-  INCR_REF_COUNT(savedObjResult);
 
+  INCR_REF_COUNT(savedObjResult);
   /*
    * clear INIT_CALLED flag
    */
@@ -8308,16 +8341,18 @@ doObjInitialization(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *
   /*
    * call configure methods (starting with '-')
    */
-  if (CanInvokeDirectly(interp, object, XOTE_CONFIGURE)) {
+  methodObj = InvokeMethodObj(interp, object, XOTE_CONFIGURE);
+  if (methodObj) {
+    result = callMethod((ClientData) object, interp,
+                        methodObj, objc, objv+2, 0);
+  } else {
     ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
     memcpy(tov+1, objv+2, sizeof(Tcl_Obj *)*(objc-1));
     tov[0] = XOTclGlobalObjects[XOTE_CONFIGURE];
     result = XOTclOConfigureMethod(interp, object, objc-1, tov);
     FREE_ON_STACK(tov);
-  } else {
-    result = callMethod((ClientData) object, interp,
-                      XOTclGlobalObjects[XOTE_CONFIGURE], objc, objv+2, 0);
   }
+
   if (result != TCL_OK) {
     goto objinitexit;
   }
@@ -11131,6 +11166,7 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
             Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
   }
 
+  RUNTIME_STATE(interp)->doFilters = 0;
   destroyObjectSystems(interp);
   XOTclClassListFree(RUNTIME_STATE(interp)->rootClasses);
 
