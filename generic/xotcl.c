@@ -11111,7 +11111,7 @@ static int
 XOTclFinalizeObjCmd(Tcl_Interp *interp) {
   int result;
 
-  fprintf(stderr, "+++ call EXIT handler\n");  
+  /*fprintf(stderr, "+++ call tcl-defined exit handler\n");  */
 
 #if defined(PROFILE)
   XOTclProfilePrintData(interp);
@@ -14433,7 +14433,7 @@ ExitHandler(ClientData clientData) {
   Tcl_Interp *interp = (Tcl_Interp *)clientData;
   int i, flags;
 
-  fprintf(stderr, "ExitHandler\n");
+  /*fprintf(stderr, "ExitHandler\n");*/
 
   /*
    * Don't use exit handler, if the interpreter is alread destroyed.
