@@ -6707,6 +6707,13 @@ else
     filemap="unixfilemap.c"
 fi
 
+#
+# general fallback to the bundled expat
+#
+if test "${expat_dir}" = ""; then
+    with_expat="bundle"
+fi
+
 if test "${with_expat}" = bundle ; then
     # 1) the bundled case
     { echo "$as_me:$LINENO: result: using bundled expat distribution" >&5
