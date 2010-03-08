@@ -84,6 +84,7 @@ static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *nameOb
 static int XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOCleanupMethod(Tcl_Interp *interp, XOTclObject *object);
 static int XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]);
+static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *object);
 static int DoDealloc(Tcl_Interp *interp, XOTclObject *object);
 static int RecreateObject(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]);
 
@@ -1339,28 +1340,50 @@ ObjectFindMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *name, XOTc
   return cmd;
 }
 
+static int CanInvokeDirectly(Tcl_Interp *interp, XOTclObject *object, int methodIdx) {
+  /* we can call a c-implemented method directly, when 
+     a) the program does not contain a method with the appropriate name, and
+     b) filters are not active on the object
+  */
+  int success = 
+    ((RUNTIME_STATE(interp)->overloadedMethods & 1<<methodIdx) == 0) &&
+    ((object->flags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID) != XOTCL_FILTER_ORDER_DEFINED_AND_VALID);
+
+#if 0
+  if (!success) {
+    fprintf(stderr, "CanInvokeDirectly object %s method %s returns %d\n", 
+            objectName(object), XOTclGlobalStrings[methodIdx], success);
+  }
+#endif
+
+  return success;
+}
 
 static int
 callDestroyMethod(Tcl_Interp *interp, XOTclObject *object, int flags) {
   int result;
 
   /* don't call destroy after exit handler started physical
-     destruction */
+     destruction, or when it was called already before */
   if (RUNTIME_STATE(interp)->exitHandlerDestroyRound ==
-      XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY)
+      XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY
+      || (object->flags & XOTCL_DESTROY_CALLED)
+      )
     return TCL_OK;
 
   /*fprintf(stderr, "    callDestroy obj %p flags %.6x active %d\n", object, object->flags,
     object->activationCount);*/
 
-  if (object->flags & XOTCL_DESTROY_CALLED)
-    return TCL_OK;
-
   PRINTOBJ("callDestroy", object);
 
   /* flag, that destroy was called and invoke the method */
   object->flags |= XOTCL_DESTROY_CALLED;
-  result = callMethod(object, interp, XOTclGlobalObjects[XOTE_DESTROY], 2, 0, flags);
+
+  if (CanInvokeDirectly(interp, object, XOTE_DESTROY)) {
+    result = XOTclODestroyMethod(interp, object);
+  } else {
+    result = callMethod(object, interp, XOTclGlobalObjects[XOTE_DESTROY], 2, 0, flags);
+  }
 
   if (result != TCL_OK) {
     static char cmd[] =
@@ -8266,30 +8289,6 @@ changeClass(Tcl_Interp *interp, XOTclObject *object, XOTclClass *cl) {
 
 
 /*
- * Undestroy the object, reclass it, and call "cleanup" afterwards
- */
-static int XOTclOCleanupMethod(Tcl_Interp *interp, XOTclObject *object);
-
-static int CanInvokeDirectly(Tcl_Interp *interp, XOTclObject *object, int methodIdx) {
-  /* we can call a c-implemented method directly, when 
-     a) the program does not contain a method with the appropriate name, and
-     b) filters are not active on the object
-  */
-  int success = 
-    ((RUNTIME_STATE(interp)->overloadedMethods & 1<<methodIdx) == 0) &&
-    ((object->flags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID) != XOTCL_FILTER_ORDER_DEFINED_AND_VALID);
-
-#if 0
-  if (!success) {
-    fprintf(stderr, "CanInvokeDirectly object %s method %s returns %d\n", 
-            objectName(object), XOTclGlobalStrings[methodIdx], success);
-  }
-#endif
-
-  return success;
-}
-
-/*
  * Std object initialization:
  *   call parameter default values
  *   apply "-" methods (call "configure" with given arguments)
@@ -8542,8 +8541,13 @@ XOTclCreateObject(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTcl_Class *class) {
   int result;
 
   INCR_REF_COUNT(nameObj);
-  result = XOTclCallMethodWithArgs((ClientData)cl, interp,
-                                   XOTclGlobalObjects[XOTE_CREATE], nameObj, 1, 0, 0);
+
+  if (CanInvokeDirectly(interp, &cl->object, XOTE_CREATE)) {
+    result = XOTclCCreateMethod(interp, cl, ObjStr(nameObj), 1, &nameObj);
+  } else {
+    result = XOTclCallMethodWithArgs((ClientData)cl, interp,
+                                     XOTclGlobalObjects[XOTE_CREATE], nameObj, 1, 0, 0);  
+  }
   DECR_REF_COUNT(nameObj);
   return result;
 }
