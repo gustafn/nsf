@@ -52,9 +52,6 @@ void tcl85showStack(Tcl_Interp *interp) {
  * a object->nsPtr can be created (e.g. during a read trace)
  */
 
-#define XOTcl_PushFrameSetCd(framePtr, object) ((CallFrame *)framePtr)->clientData = (ClientData)(object)
-
-
 static void XOTcl_PushFrameObj(Tcl_Interp *interp, XOTclObject *object, Tcl_CallFrame *framePtr) {
   /*fprintf(stderr,"PUSH OBJECT_FRAME (XOTcl_PushFrame) frame %p\n",framePtr);*/
   if (object->nsPtr) {
@@ -75,12 +72,13 @@ static void XOTcl_PushFrameObj(Tcl_Interp *interp, XOTclObject *object, Tcl_Call
     Tcl_CallFrame_varTablePtr(framePtr) = object->varTable;
     /*fprintf(stderr,"+++ setting varTable %p in varFrame %p\n",object->varTable,framePtr);*/
   }
-  XOTcl_PushFrameSetCd(framePtr, object);
+  Tcl_CallFrame_clientData(framePtr) = (ClientData)object;
 }
+
 static void XOTcl_PopFrameObj(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  /*printf(stderr,"POP  OBJECT_FRAME (XOTcl_PopFrame) frame %p, vartable %p set to NULL\n", 
-    framePtr, Tcl_CallFrame_varTablePtr(framePtr) );*/
-  Tcl_CallFrame_varTablePtr(framePtr) = 0;
+  /*fprintf(stderr,"POP  OBJECT_FRAME (XOTcl_PopFrame) frame %p, vartable %p set to NULL, already %d\n", 
+    framePtr, Tcl_CallFrame_varTablePtr(framePtr),  Tcl_CallFrame_varTablePtr(framePtr) == NULL);*/
+  Tcl_CallFrame_varTablePtr(framePtr) = NULL;
   Tcl_PopCallFrame(interp);
 }
 
@@ -93,8 +91,7 @@ static void XOTcl_PushFrameCsc(Tcl_Interp *interp, XOTclCallStackContent *cscPtr
 
   Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(varFramePtr), 
 		    1|FRAME_IS_XOTCL_CMETHOD);
-  XOTcl_PushFrameSetCd(framePtr, cscPtr);
-
+  Tcl_CallFrame_clientData(framePtr) = (ClientData)cscPtr;
 }
 
 static void XOTcl_PopFrameCsc(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
