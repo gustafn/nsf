@@ -85,6 +85,7 @@ static int XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *na
 static int XOTclOCleanupMethod(Tcl_Interp *interp, XOTclObject *object);
 static int XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]);
 static int DoDealloc(Tcl_Interp *interp, XOTclObject *object);
+static int RecreateObject(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]);
 
 static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
 static Tcl_Namespace *callingNameSpace(Tcl_Interp *interp);
@@ -8288,39 +8289,6 @@ static int CanInvokeDirectly(Tcl_Interp *interp, XOTclObject *object, int method
   return success;
 }
 
-static int
-doCleanup(Tcl_Interp *interp, XOTclObject *newObject, XOTclObject *classObject,
-          int objc, Tcl_Obj *CONST objv[]) {
-  int result;
-
-  /*
-   * Check whether we have a pending destroy on the object; if yes, clear it,
-   * such that the recreated object and won't be destroyed on a POP
-   */
-  MarkUndestroyed(newObject);
-
-  /*
-   *  re-create, first ensure correct class for newObject
-   */
-  result = changeClass(interp, newObject, (XOTclClass*) classObject);
-
-  if (result == TCL_OK) {
-    /*
-     * dispatch "cleanup"
-     */
-    if (CanInvokeDirectly(interp, newObject, XOTE_CLEANUP)) {
-      result = XOTclOCleanupMethod(interp, newObject);
-    } else {
-      result = callMethod((ClientData) newObject, interp, 
-                          XOTclGlobalObjects[XOTE_CLEANUP], 
-                          2, 0, XOTCL_CM_NO_PROTECT);
-    }
-  }
-  return result;
-}
-
-static int XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]);
-
 /*
  * Std object initialization:
  *   call parameter default values
@@ -13327,7 +13295,7 @@ XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *specifiedName
 
     /* call recreate --> initialization */
     if (CanInvokeDirectly(interp, &cl->object, XOTE_RECREATE)) {
-      result = XOTclCRecreateMethod(interp, cl, newObject->cmdName, objc, nobjv);
+      result = RecreateObject(interp, cl, newObject, objc, nobjv);
     } else {
       result = callMethod((ClientData) cl, interp,
 			  XOTclGlobalObjects[XOTE_RECREATE], objc+1, nobjv+1, XOTCL_CM_NO_PROTECT);
@@ -13531,24 +13499,60 @@ static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass 
   return TCL_OK;
 }
 
-static int XOTclCRecreateMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *nameObj,
-                                int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *newObject;
+static int RecreateObject(Tcl_Interp *interp, XOTclClass *class, XOTclObject *object,
+                          int objc, Tcl_Obj *CONST objv[]) {
   int result;
 
-  if (GetObjectFromObj(interp, nameObj, &newObject) != TCL_OK)
+  object->flags |= XOTCL_RECREATE;
+
+  /*
+   * First, cleanup the data from the object. 
+   * 
+   * Check whether we have a pending destroy on the object; if yes,
+   * clear it, such that the recreated object and won't be destroyed
+   * on a POP
+   */
+  MarkUndestroyed(object);
+
+  /*
+   *  ensure correct class for object
+   */
+  result = changeClass(interp, object, class);
+
+  if (result == TCL_OK) {
+    /*
+     * dispatch "cleanup" method
+     */
+    if (CanInvokeDirectly(interp, object, XOTE_CLEANUP)) {
+      result = XOTclOCleanupMethod(interp, object);
+    } else {
+      result = callMethod((ClientData) object, interp, 
+                          XOTclGlobalObjects[XOTE_CLEANUP], 
+                          2, 0, XOTCL_CM_NO_PROTECT);
+    }
+  }
+
+  /*
+   * Second: if cleanup was successful, initialize the object as usual
+   */
+  if (result == TCL_OK) {
+    result = doObjInitialization(interp, object, objc, objv);
+    if (result == TCL_OK) {
+      Tcl_SetObjResult(interp, object->cmdName);
+    }
+  }
+  return result;
+}
+
+static int XOTclCRecreateMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *nameObj,
+                                int objc, Tcl_Obj *CONST objv[]) {
+  XOTclObject *object;
+
+  if (GetObjectFromObj(interp, nameObj, &object) != TCL_OK)
     return XOTclVarErrMsg(interp, "can't recreate non existing object ",
                           ObjStr(nameObj), (char *) NULL);
-  INCR_REF_COUNT(nameObj);
-  newObject->flags |= XOTCL_RECREATE;
-  result = doCleanup(interp, newObject, &cl->object, objc, objv);
-  if (result == TCL_OK) {
-    result = doObjInitialization(interp, newObject, objc, objv);
-    if (result == TCL_OK)
-      Tcl_SetObjResult(interp, nameObj);
-  }
-  DECR_REF_COUNT(nameObj);
-  return result;
+
+  return RecreateObject(interp, cl, object, objc, objv);
 }
 
 /***************************
