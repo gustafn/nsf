@@ -837,7 +837,7 @@ static void
 XOTclCleanupObject(XOTclObject *object) {
   XOTclObjectRefCountDecr(object);
 
-  /*fprintf(stderr, "XOTclCleanupObject %p refcount %d\n", obj, obj->refCount);*/
+  /*fprintf(stderr, "XOTclCleanupObject %p %s refcount %d\n", object, objectName(object), object->refCount);*/
 
   if (object->refCount <= 0) {
     assert(object->refCount == 0);
@@ -11166,7 +11166,7 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
             Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
   }
 
-  RUNTIME_STATE(interp)->doFilters = 0;
+  /* RUNTIME_STATE(interp)->doFilters = 0;  TODO finally remove me*/
   destroyObjectSystems(interp);
   XOTclClassListFree(RUNTIME_STATE(interp)->rootClasses);
 
@@ -14435,6 +14435,16 @@ destroyObjectSystems(Tcl_Interp *interp) {
     }
   }
 
+  /* TODO: currently, we need filter deactivation here. 
+     although we have  XOTCL_EXITHANDLER_ON_SOFT_DESTROY activated,
+     objects and classes are destroyed physically, most likely 
+     via deleteCommandFromToken during cleanups. This could cause
+     a destroy callback not run....
+  */
+  RUNTIME_STATE(interp)->doFilters = 0;
+  
+  /*fprintf(stderr, "===CALL destroy on CLASSES\n");*/
+
   for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandTable, hPtr);
     cl = XOTclpGetClass(interp, key);
@@ -14442,6 +14452,8 @@ destroyObjectSystems(Tcl_Interp *interp) {
       callDestroyMethod(interp, (XOTclObject *)cl, 0);
     }
   }
+  /*fprintf(stderr, "===CALL destroy on  CLASSES done\n");*/
+  RUNTIME_STATE(interp)->doFilters = 0;
 
 #ifdef DO_CLEANUP
   freeAllXOTclObjectsAndClasses(interp, commandTable);
