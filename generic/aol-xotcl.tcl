@@ -1,5 +1,3 @@
-# $Id: aol-xotcl.tcl,v 1.12 2006/09/27 08:12:40 neumann Exp $
-
 #
 # Load XOTcl library and some related packages.
 # We expect to find them somewhere in standard

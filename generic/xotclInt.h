@@ -552,7 +552,7 @@ char *XOTclGlobalStrings[] = {
 };
 #endif
 
-#define XOTclGlobalObjects RUNTIME_STATE(interp)->methodObjNames
+#define XOTclGlobalObjs RUNTIME_STATE(interp)->methodObjNames
 
 /* XOTcl ShadowTclCommands */
 typedef struct XOTclShadowTclCommandInfo {

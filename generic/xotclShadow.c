@@ -1,9 +1,8 @@
 /* -*- Mode: c++ -*-
- * $Id: xotclShadow.c,v 1.6 2006/10/04 20:40:23 neumann Exp $
  *  
  *  Extended Object Tcl (XOTcl)
  *
- *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
+ *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
  *
  *  xotclShadow.c --
@@ -22,7 +21,7 @@ XOTclReplaceCommandCleanup(Tcl_Interp *interp, XOTclGlobalNames name) {
   XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
 
   /*fprintf(stderr," cleanup for %s  ti=%p in %p\n", XOTclGlobalStrings[name], ti, interp);*/
-  cmd = Tcl_GetCommandFromObj(interp, XOTclGlobalObjects[name]);
+  cmd = Tcl_GetCommandFromObj(interp, XOTclGlobalObjs[name]);
   if (cmd != NULL) {
     Tcl_Command_objProc(cmd) = ti->proc;
     ti->proc = NULL;
@@ -37,7 +36,7 @@ static void
 XOTclReplaceCommandCheck(Tcl_Interp *interp, XOTclGlobalNames name, Tcl_ObjCmdProc *proc) {
   Tcl_Command cmd;
   XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
-  cmd = Tcl_GetCommandFromObj(interp, XOTclGlobalObjects[name]);
+  cmd = Tcl_GetCommandFromObj(interp, XOTclGlobalObjs[name]);
   
   if (cmd != NULL && ti->proc && Tcl_Command_objProc(cmd) != proc) {
     /*
@@ -58,7 +57,7 @@ XOTclReplaceCommand(Tcl_Interp *interp, XOTclGlobalNames name,
   int result = TCL_OK;
 
   /*fprintf(stderr,"XOTclReplaceCommand %d\n",name);*/
-  cmd = Tcl_GetCommandFromObj(interp, XOTclGlobalObjects[name]);
+  cmd = Tcl_GetCommandFromObj(interp, XOTclGlobalObjs[name]);
   
   if (cmd == NULL) {
     result = TCL_ERROR;
@@ -99,7 +98,7 @@ XOTcl_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     obj = XOTclGetObjectFromCmdPtr(cmd);
     if (obj) {
       return XOTclCallMethodWithArgs((ClientData)obj, interp,
-                       XOTclGlobalObjects[XOTE_MOVE], objv[2], 1, 0, 0);
+                       XOTclGlobalObjs[XOTE_MOVE], objv[2], 1, 0, 0);
     }
   }
 
@@ -144,7 +143,7 @@ XOTcl_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
       Tcl_ListObjAppendElement(interp, resultObj, cscPtr->self->cmdName);
       Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("class",5));
       Tcl_ListObjAppendElement(interp, resultObj, 
-                               cscPtr->cl ? cscPtr->cl->object.cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
+                               cscPtr->cl ? cscPtr->cl->object.cmdName : XOTclGlobalObjs[XOTE_EMPTY]);
       Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("frametype",9));
       if (cscPtr->frameType == XOTCL_CSC_TYPE_PLAIN) {
         frameType = "intrinsic";
@@ -222,7 +221,7 @@ int XOTclCallCommand(Tcl_Interp *interp, XOTclGlobalNames name,
     fprintf(stderr,"\n");
   } 
   */
-  ov[0] = XOTclGlobalObjects[name];
+  ov[0] = XOTclGlobalObjs[name];
   if (objc > 1)
     memcpy(ov+1, objv+1, sizeof(Tcl_Obj *)*(objc-1));
   result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, objc, objv);
