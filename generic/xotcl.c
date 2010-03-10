@@ -850,7 +850,7 @@ XOTclCleanupObject(XOTclObject *object) {
 #if !defined(NDEBUG)
     memset(object, 0, sizeof(XOTclObject));
 #endif
-    /*fprintf(stderr, "CKFREE obj %p\n", object);*/
+    fprintf(stderr, "CKFREE obj %p\n", object);
     ckfree((char *) object);
   }
 }
@@ -2532,7 +2532,9 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *object) {
   /* Don't do anything, if a recursive DURING_DELETE is for some
    * reason active.
    */
-  /*fprintf(stderr, "CallStackDoDestroy %p flags %.6x cmd %p\n", obj, obj->flags, obj->id);*/
+  /*fprintf(stderr, "CallStackDoDestroy %p %s flags %.6x cmd %p\n", 
+    object, objectName(object), object->flags, object->id);*/
+
   if (object->flags & XOTCL_DURING_DELETE) {
     return;
   }
@@ -12788,7 +12790,7 @@ static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *object) {
 
   /*fprintf(stderr,"XOTclODestroyMethod %p %s flags %.6x activation %d cmd %p cmd->flags %.6x\n",
           object, ((Command*)object->id)->flags == 0 ? objectName(object) : "(deleted)", 
-          object->flags, object->activationCount, object->id, ((Command*)object->id)->flags); */
+          object->flags, object->activationCount, object->id, ((Command*)object->id)->flags);*/
 
   /*
    * XOTCL_DESTROY_CALLED might be set already be callDestroyMethod(),
@@ -13381,8 +13383,6 @@ XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *specifiedName
 static int DoDealloc(Tcl_Interp *interp, XOTclObject *object) {
   int result;
 
-  /*object->flags |= XOTCL_DURING_DELETE;*/
-
   /*fprintf(stderr, "DoDealloc obj= %s %p flags %.6x activation %d cmd %p opt=%p\n",
           objectName(object), object, object->flags, object->activationCount, 
           object->id, object->opt);*/
@@ -13397,6 +13397,7 @@ static int DoDealloc(Tcl_Interp *interp, XOTclObject *object) {
    */
   if (RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
       XOTCL_EXITHANDLER_ON_SOFT_DESTROY) {
+    fprintf(stderr, "DoDealloc calls CallStackDestroyObject\n");
     CallStackDestroyObject(interp, object);
   }
 
@@ -14414,6 +14415,7 @@ destroyObjectSystems(Tcl_Interp *interp) {
 
   /***** SOFT DESTROY *****/
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
+  fprintf(stderr, "===CALL destroy on OBJECTS\n");
 
   for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandTable, hPtr);
@@ -14432,9 +14434,9 @@ destroyObjectSystems(Tcl_Interp *interp) {
      via deleteCommandFromToken during cleanups. This could cause
      a destroy callback not run....
   */
-  RUNTIME_STATE(interp)->doFilters = 0;
+  //RUNTIME_STATE(interp)->doFilters = 0;
   
-  /*fprintf(stderr, "===CALL destroy on CLASSES\n");*/
+  fprintf(stderr, "===CALL destroy on CLASSES\n");
 
   for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandTable, hPtr);
@@ -14443,7 +14445,7 @@ destroyObjectSystems(Tcl_Interp *interp) {
       callDestroyMethod(interp, (XOTclObject *)cl, 0);
     }
   }
-  /*fprintf(stderr, "===CALL destroy on  CLASSES done\n");*/
+  fprintf(stderr, "===CALL destroy on  CLASSES done\n");
   RUNTIME_STATE(interp)->doFilters = 0;
 
 #ifdef DO_CLEANUP

@@ -414,6 +414,8 @@ CallStackPush(XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl
 XOTCLINLINE static void
 CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
   XOTclObject *object = cscPtr->self;
+  int allowDestroy = RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
+    XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
 
 #if defined(TCL85STACK_TRACE)
   fprintf(stderr, "POP  csc=%p, obj %s method %s\n", cscPtr, objectName(object),
@@ -421,11 +423,13 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
 #endif
   object->activationCount --;
   
-  /* fprintf(stderr, "decr activationCount for %s to %d cscPtr->cl %p\n", objectName(cscPtr->self), 
-     cscPtr->self->activationCount, cscPtr->cl);*/
+  /*fprintf(stderr, "decr activationCount for %s to %d cscPtr->cl %p\n", objectName(cscPtr->self), 
+    cscPtr->self->activationCount, cscPtr->cl);*/
 
-  if (object->activationCount < 1 && object->flags & XOTCL_DESTROY_CALLED) {
+  if (object->activationCount < 1 && object->flags & XOTCL_DESTROY_CALLED && allowDestroy) {
     CallStackDoDestroy(interp, object);
+  } else if (!allowDestroy) {
+    fprintf(stderr,"checkFree %p %s\n",object, objectName(object));
   }
 #if 1
   if (cscPtr->cl) {
@@ -440,9 +444,10 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
     /*fprintf(stderr, "CallStackPop check ac %d flags %.6x\n",
       object->activationCount, object->flags & XOTCL_DESTROY_CALLED);*/
 
-    if (object->activationCount < 1 && object->flags & XOTCL_DESTROY_CALLED) {
-      /* fprintf(stderr, "CallStackPop calls CallStackDoDestroy %p\n", object);*/
+    if (object->activationCount < 1 && object->flags & XOTCL_DESTROY_CALLED && allowDestroy) {
       CallStackDoDestroy(interp, object);
+    } else if (!allowDestroy) {
+      fprintf(stderr,"checkFree %p %s\n",object, objectName(object));
     }
 
     if (nsPtr) {
