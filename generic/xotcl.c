@@ -2547,21 +2547,8 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *object) {
        is kept until after DeleteCommandFromToken().
     */
 
-    if (RUNTIME_STATE(interp)->exitHandlerDestroyRound == XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY) {
-      /* If a call to exit happens from a higher stack frame, the
-         obejct refcount might not be decremented corectly. If we are
-         in the phyical destroy round, we can set the counter to an
-         appropriate value to ensure deletion 
+    object->refCount ++;
 
-         todo: remove debug line
-      */
-      if (object->refCount != 1) {
-        fprintf(stderr, "*** have to fix refcount for obj %p refcount %d\n",object, object->refCount);
-      }
-      object->refCount = 2;
-    } else {
-      object->refCount ++;
-    }
     /*fprintf(stderr, "CallStackDoDestroy %p after refCount ++ %d teardown %p\n", 
       object, object->refCount, object->teardown);*/
 
@@ -14387,6 +14374,22 @@ ObjectHasChildren(Tcl_Interp *interp, XOTclObject *object) {
   return result;
 }
 
+static void 
+finalObjectDeletion(Tcl_Interp *interp, XOTclObject *object) {
+  /* If a call to exit happens from a higher stack frame, the
+     obejct refcount might not be decremented corectly. If we are
+     in the phyical destroy round, we can set the counter to an
+     appropriate value to ensure deletion.
+     
+     todo: remove debug line
+  */
+  if (object->refCount != 1) {
+    fprintf(stderr, "*** have to fix refcount for obj %p refcount %d\n",object, object->refCount);
+    object->refCount = 1;
+  }
+  if (object->id) Tcl_DeleteCommandFromToken(interp, object->id);
+}
+
 static void
 freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
   Tcl_HashEntry *hPtr;
@@ -14401,12 +14404,14 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
     int deleted = 0;
     for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       char *key = Tcl_GetHashKey(commandTable, hPtr);
+
       object = XOTclpGetObject(interp, key);
       if (object && !XOTclObjectIsClass(object) && !ObjectHasChildren(interp, object)) {
         /*fprintf(stderr, "  ... delete object %s %p, class=%s id %p\n", key, object,
           className(object->cl), object->id);*/
+
         freeUnsetTraceVariable(interp, object);
-        if (object->id) Tcl_DeleteCommandFromToken(interp, object->id);
+        if (object->id) finalObjectDeletion(interp, object);
         Tcl_DeleteHashEntry(hPtr);
         deleted++;
       }
@@ -14428,7 +14433,8 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
           ) {
         /* fprintf(stderr, "  ... delete class %s %p\n", key, cl); */
         freeUnsetTraceVariable(interp, &cl->object);
-        if (cl->object.id) Tcl_DeleteCommandFromToken(interp, cl->object.id);
+        if (cl->object.id) finalObjectDeletion(interp, &cl->object);
+
         Tcl_DeleteHashEntry(hPtr);
         deleted++;
       }
@@ -14446,8 +14452,8 @@ freeRootClasses(Tcl_Interp *interp, XOTclClass *rootClass, XOTclClass *rootMetaC
   RemoveInstance((XOTclObject*)rootMetaClass, rootMetaClass);
   RemoveInstance((XOTclObject*)rootClass, rootMetaClass);
 
-  Tcl_DeleteCommandFromToken(interp, rootClass->object.id);
-  Tcl_DeleteCommandFromToken(interp, rootMetaClass->object.id);
+  finalObjectDeletion(interp, &rootClass->object);
+  finalObjectDeletion(interp, &rootMetaClass->object);
 }
 #endif /* DO_CLEANUP */
 
