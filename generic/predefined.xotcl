@@ -12,7 +12,13 @@ namespace eval ::xotcl {
 
 namespace eval xotcl2 {
   namespace path ::xotcl
-  ::xotcl::createobjectsystem ::xotcl2::Object ::xotcl2::Class
+  ::xotcl::createobjectsystem ::xotcl2::Object ::xotcl2::Class {
+    -alloc alloc -configure configure -create create
+    -defaultmethod defaultmethod -destroy destroy -dealloc dealloc
+    -init init -move move -objectparameter objectparameter 
+    -recreate recreate -residualargs residualargs -unknown unknown
+    -__unknown __unknown
+  }
 
   # provide the standard command set for ::xotcl2::Object
   foreach cmd [info command ::xotcl::cmd::Object::*] {

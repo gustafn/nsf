@@ -10929,18 +10929,74 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
   return TCL_OK;
 }
 
+static void ObjectSystemFree(XOTclObjectSystem *osPtr) {
+  int i;
+
+  for (i=0; i<=XO___unknown_idx; i++) {
+    Tcl_Obj *methodObj = osPtr->methods[i];
+    /*fprintf(stderr, "check %d: %p\n", i, methodObj);*/
+    if (methodObj) {
+      /*fprintf(stderr, "ObjectSystemFree %p %s refCount %d\n", 
+        methodObj, ObjStr(methodObj), methodObj->refCount);*/
+      DECR_REF_COUNT(methodObj);
+    }
+  }
+  FREE(XOTclObjectSystem *, osPtr);
+}
 
 /*
 xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
   {-argName "rootClass" -required 1 -type tclobj}
   {-argName "rootMetaClass" -required 1 -type tclobj}
+  {-argName "systemMethods" -required 0 -type tclobj}
 }
 */
 static int
-XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class) {
+XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tcl_Obj *systemMethodsObj) {
   XOTclClass *theobj;
   XOTclClass *thecls;
+  XOTclObjectSystem *osPtr = NEW(XOTclObjectSystem);
 
+  static CONST char *opts[] = {"-alloc", "-cleanup", "-configure", "-create", 
+                               "-defaultmethod", "-destroy", "-dealloc",
+                               "-init", "-move", "-objectparameter", 
+                               "-recreate", "-residualargs",
+                               "-unknown", "-__unknown", 
+                               NULL};
+
+
+  memset(osPtr, 0, sizeof(XOTclObjectSystem));
+
+  if (systemMethodsObj) {
+    int oc, i, idx, result;
+    Tcl_Obj **ov;
+
+    if ((result = Tcl_ListObjGetElements(interp, systemMethodsObj, &oc, &ov)) == TCL_OK) {
+      if (oc % 2) {
+        ObjectSystemFree(osPtr);
+        return XOTclErrMsg(interp, "System methods must be provided as pairs", TCL_STATIC);
+      }
+      for (i=0; i<oc; i += 2) {
+        result = Tcl_GetIndexFromObj(interp, ov[i], opts, "system method", 0, &idx);
+        if (result != TCL_OK) {
+          ObjectSystemFree(osPtr);
+          return XOTclVarErrMsg(interp, "invalid system method '",
+                                ObjStr(ov[i]), "'", (char *) NULL);
+        }
+        fprintf(stderr, "XOTclCreateObjectSystemCmd [%d] = %p %s (max %d)\n", 
+                idx, ov[i+1], ObjStr(ov[i+1]), XO___unknown_idx);
+        osPtr->methods[idx] = ov[i+1];
+        INCR_REF_COUNT(osPtr->methods[idx]);
+      }
+    } else {
+      ObjectSystemFree(osPtr);
+      return XOTclErrMsg(interp, "Provided system methods are not a proper list", TCL_STATIC);
+    }
+    /*xxxx*/
+  }
+  /* TODO remove me, just for developing */
+  ObjectSystemFree(osPtr);
+  
   /* Create a basic object system with the basic root class Object and
      the basic metaclass Class, and store them in the RUNTIME STATE if
      successful */

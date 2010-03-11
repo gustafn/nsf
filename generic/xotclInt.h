@@ -503,6 +503,24 @@ typedef struct XOTclClasses {
   struct XOTclClasses *nextPtr;
 } XOTclClasses;
 
+typedef enum SystemMethodsIdx {
+  XO_alloc_idx, XO_cleanup_idx, XO_configure_idx, XO_create_idx, 
+  XO_defaultmethod_idx, XO_destroy_idx, XO_dealloc_idx,
+  XO_init_idx, XO_move_idx, XO_objectparameter_idx, 
+  XO_recreate_idx, XO_residualargs_idx,
+  XO_unknown_idx, XO___unknown_idx
+} SystemMethodsIdx;
+
+typedef struct XOTclObjectSystem {
+  XOTclClass *rootClass;
+  XOTclClass *rootMetaClass;
+  Tcl_Obj *methods[XO___unknown_idx+1];
+  struct XOTclObjectSystem *nextPtr;
+} XOTclObjectSystem;
+
+
+
+
 /* XOTcl global names and strings */
 /* these are names and contents for global (corresponding) Tcl_Objs
    and Strings - otherwise these "constants" would have to be built

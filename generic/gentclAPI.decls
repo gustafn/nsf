@@ -36,6 +36,7 @@ xotclCmd configure XOTclConfigureCmd {
 xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
   {-argName "rootClass" -required 1 -type tclobj}
   {-argName "rootMetaClass" -required 1 -type tclobj}
+  {-argName "systemMethods" -required 0 -type tclobj}
 }
 xotclCmd deprecated XOTclDeprecatedCmd {
   {-argName "what" -required 1}

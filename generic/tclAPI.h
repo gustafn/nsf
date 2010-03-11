@@ -284,7 +284,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_ob
 static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int assertionsubcmd, Tcl_Obj *arg);
 static int XOTclColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
-static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass);
+static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass, Tcl_Obj *systemMethods);
 static int XOTclCurrentCmd(Tcl_Interp *interp, int currentoption);
 static int XOTclDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
 static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
@@ -1548,9 +1548,10 @@ XOTclCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
   } else {
     Tcl_Obj *rootClass = (Tcl_Obj *)pc.clientData[0];
     Tcl_Obj *rootMetaClass = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *systemMethods = (Tcl_Obj *)pc.clientData[2];
 
     parseContextRelease(&pc);
-    return XOTclCreateObjectSystemCmd(interp, rootClass, rootMetaClass);
+    return XOTclCreateObjectSystemCmd(interp, rootClass, rootMetaClass, systemMethods);
 
   }
 }
@@ -2223,9 +2224,10 @@ static methodDefinition method_definitions[] = {
   {"configureoption", 1, 0, convertToConfigureoption},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::createobjectsystem", XOTclCreateObjectSystemCmdStub, 2, {
+{"::xotcl::createobjectsystem", XOTclCreateObjectSystemCmdStub, 3, {
   {"rootClass", 1, 0, convertToTclobj},
-  {"rootMetaClass", 1, 0, convertToTclobj}}
+  {"rootMetaClass", 1, 0, convertToTclobj},
+  {"systemMethods", 0, 0, convertToTclobj}}
 },
 {"::xotcl::current", XOTclCurrentCmdStub, 1, {
   {"currentoption", 0, 0, convertToCurrentoption}}
