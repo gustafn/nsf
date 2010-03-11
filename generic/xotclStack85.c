@@ -343,6 +343,7 @@ CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *object) {
   return NULL;
 }
 
+static void XOTclCleanupObject(XOTclObject *object);
 /*
  * Pop any callstack entry that is still alive (e.g.
  * if "exit" is called and we were jumping out of the
@@ -421,6 +422,9 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
   fprintf(stderr, "POP  csc=%p, obj %s method %s\n", cscPtr, objectName(object),
           Tcl_GetCommandName(interp, cscPtr->cmdPtr));
 #endif
+  /* 
+     tracking activations of objects
+  */
   object->activationCount --;
   
   /*fprintf(stderr, "decr activationCount for %s to %d cscPtr->cl %p\n", objectName(cscPtr->self), 
@@ -428,10 +432,16 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
 
   if (object->activationCount < 1 && object->flags & XOTCL_DESTROY_CALLED && allowDestroy) {
     CallStackDoDestroy(interp, object);
-  } else if (!allowDestroy) {
+  } 
+#if defined(OBJDELETION_TRACE)
+  else if (!allowDestroy) {
     fprintf(stderr,"checkFree %p %s\n",object, objectName(object));
   }
-#if 1
+#endif
+
+  /* 
+     tracking activations of classes 
+  */
   if (cscPtr->cl) {
     Namespace *nsPtr = cscPtr->cmdPtr ? ((Command *)(cscPtr->cmdPtr))->nsPtr : NULL;
 
@@ -446,9 +456,12 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
 
     if (object->activationCount < 1 && object->flags & XOTCL_DESTROY_CALLED && allowDestroy) {
       CallStackDoDestroy(interp, object);
-    } else if (!allowDestroy) {
+    } 
+#if defined(OBJDELETION_TRACE)
+    else if (!allowDestroy) {
       fprintf(stderr,"checkFree %p %s\n",object, objectName(object));
     }
+#endif
 
     if (nsPtr) {
       nsPtr->refCount--;
@@ -468,7 +481,7 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
 
     /*fprintf(stderr, "CallStackPop done\n");*/
   }
-#endif
+
 }
 #endif /* TCL85STACK */
 

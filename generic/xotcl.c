@@ -95,6 +95,7 @@ XOTCLINLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, CONST char *nam
 #ifdef EXPERIMENTAL_CMD_RESOLVER
 static int NSisXOTclNamespace(Tcl_Namespace *nsPtr);
 #endif
+static void XOTclCleanupObject(XOTclObject *object);
 
 XOTCLINLINE static void GuardAdd(Tcl_Interp *interp, XOTclCmdList *filterCL, Tcl_Obj *guardObj);
 static int GuardCheck(Tcl_Interp *interp, Tcl_Obj *guardObjs);
@@ -837,8 +838,6 @@ static void
 XOTclCleanupObject(XOTclObject *object) {
   XOTclObjectRefCountDecr(object);
 
-  /*fprintf(stderr, "XOTclCleanupObject %p %s refcount %d\n", object, objectName(object), object->refCount);*/
-
   if (object->refCount <= 0) {
     assert(object->refCount == 0);
     assert(object->flags & XOTCL_DELETED);
@@ -850,7 +849,6 @@ XOTclCleanupObject(XOTclObject *object) {
 #if !defined(NDEBUG)
     memset(object, 0, sizeof(XOTclObject));
 #endif
-    fprintf(stderr, "CKFREE obj %p\n", object);
     ckfree((char *) object);
   }
 }
@@ -2119,11 +2117,11 @@ XOTcl_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
     f = Tcl_CallFrame_callerPtr(f);
   }
   
-  if (((Namespace *)nsPtr)->activationCount != activationCount) {
+  /* todo remove debug line */
+  if (Tcl_Namespace_activationCount(nsPtr) != activationCount) {
     fprintf(stderr, "WE HAVE TO FIX ACTIVATIONCOUNT\n");
+    Tcl_Namespace_activationCount(nsPtr) = activationCount;
   }
-
-  Tcl_Namespace_activationCount(nsPtr) = activationCount;
 
   /*fprintf(stderr, "to %d. \n", ((Namespace *)nsPtr)->activationCount);*/
 
@@ -2532,9 +2530,6 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *object) {
   /* Don't do anything, if a recursive DURING_DELETE is for some
    * reason active.
    */
-  /*fprintf(stderr, "CallStackDoDestroy %p %s flags %.6x cmd %p\n", 
-    object, objectName(object), object->flags, object->id);*/
-
   if (object->flags & XOTCL_DURING_DELETE) {
     return;
   }
@@ -2551,7 +2546,25 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *object) {
        from Tcl. We make sure via refcounting that the object structure 
        is kept until after DeleteCommandFromToken().
     */
-    object->refCount ++;
+
+    if (RUNTIME_STATE(interp)->exitHandlerDestroyRound == XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY) {
+      /* If a call to exit happens from a higher stack frame, the
+         obejct refcount might not be decremented corectly. If we are
+         in the phyical destroy round, we can set the counter to an
+         appropriate value to ensure deletion 
+
+         todo: remove debug line
+      */
+      if (object->refCount != 1) {
+        fprintf(stderr, "*** have to fix refcount for obj %p refcount %d\n",object, object->refCount);
+      }
+      object->refCount = 2;
+    } else {
+      object->refCount ++;
+    }
+    /*fprintf(stderr, "CallStackDoDestroy %p after refCount ++ %d teardown %p\n", 
+      object, object->refCount, object->teardown);*/
+
     PrimitiveDestroy((ClientData) object);
 
     if (!(object->flags & XOTCL_CMD_NOT_FOUND)) {
@@ -2571,7 +2584,7 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *object) {
 static void
 CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *object) {
 
-  /*fprintf(stderr, "  CallStackDestroyObject %p %s activationcount %d flags %.6x\n",
+  /*fprintf(stderr, "CallStackDestroyObject %p %s activationcount %d flags %.6x\n",
     object, objectName(object), object->activationCount, object->flags); */
 
   if ((object->flags & XOTCL_DESTROY_CALLED) == 0) {
@@ -2594,7 +2607,6 @@ CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *object) {
   /* If the object is not referenced on the callstack anymore
      we have to destroy it directly, because CallStackPop won't
      find the object destroy */
-  /*fprintf(stderr, "  CallStackDestroyObject check activation count of %p => %d\n", object, object->activationCount);*/
   if (object->activationCount == 0) {
     CallStackDoDestroy(interp, object);
   } else {
@@ -2606,7 +2618,7 @@ CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *object) {
       NSDeleteChildren(interp, object->nsPtr);
     }
   }
-  /*fprintf(stderr, "  CallStackDestroyObject %p final done\n",  obj);*/
+  /* fprintf(stderr, "  CallStackDestroyObject %p final done\n",  object);*/
 }
 
 /*
@@ -13397,7 +13409,6 @@ static int DoDealloc(Tcl_Interp *interp, XOTclObject *object) {
    */
   if (RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
       XOTCL_EXITHANDLER_ON_SOFT_DESTROY) {
-    fprintf(stderr, "DoDealloc calls CallStackDestroyObject\n");
     CallStackDestroyObject(interp, object);
   }
 
@@ -14326,7 +14337,7 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
   Tcl_HashSearch hSrch;
   XOTclObject *object;
  
-  /* fprintf(stderr, "??? freeAllXOTclObjectsAndClasses in %p\n", interp); */
+  /*fprintf(stderr, "freeAllXOTclObjectsAndClasses in %p\n", interp);*/
 
   /***** PHYSICAL DESTROY *****/
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY;
@@ -14336,23 +14347,23 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
       char *key = Tcl_GetHashKey(commandTable, hPtr);
       object = XOTclpGetObject(interp, key);
       if (object && !XOTclObjectIsClass(object) && !ObjectHasChildren(interp, object)) {
-        /* fprintf(stderr, "  ... delete object %s %p, class=%s\n", key, obj,
-           className(obj->cl));*/
+        /*fprintf(stderr, "  ... delete object %s %p, class=%s id %p\n", key, object,
+          className(object->cl), object->id);*/
         freeUnsetTraceVariable(interp, object);
         if (object->id) Tcl_DeleteCommandFromToken(interp, object->id);
         Tcl_DeleteHashEntry(hPtr);
         deleted++;
       }
     }
-    /* fprintf(stderr, "deleted %d Objects\n", deleted);*/
+    /*fprintf(stderr, "deleted %d Objects\n", deleted);*/
     if (deleted > 0) {
       continue;
     }
 
     for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       char *key = Tcl_GetHashKey(commandTable, hPtr);
-       XOTclClass  *cl = XOTclpGetClass(interp, key);
-      /* fprintf(stderr, "cl key = %s %p\n", key, cl); */
+      XOTclClass  *cl = XOTclpGetClass(interp, key);
+      /*fprintf(stderr, "cl key = %s %p\n", key, cl);*/
       if (cl
           && !ObjectHasChildren(interp, (XOTclObject*)cl)
           && !ClassHasInstances(cl)
@@ -14366,7 +14377,7 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
         deleted++;
       }
     }
-    /* fprintf(stderr, "deleted %d Classes\n", deleted);*/
+    /*fprintf(stderr, "deleted %d Classes\n", deleted);*/
     if (deleted == 0) {
       break;
     }
@@ -14415,7 +14426,7 @@ destroyObjectSystems(Tcl_Interp *interp) {
 
   /***** SOFT DESTROY *****/
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
-  fprintf(stderr, "===CALL destroy on OBJECTS\n");
+  /*fprintf(stderr, "===CALL destroy on OBJECTS\n");*/
 
   for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandTable, hPtr);
@@ -14428,15 +14439,7 @@ destroyObjectSystems(Tcl_Interp *interp) {
     }
   }
 
-  /* TODO: currently, we need filter deactivation here. 
-     although we have  XOTCL_EXITHANDLER_ON_SOFT_DESTROY activated,
-     objects and classes are destroyed physically, most likely 
-     via deleteCommandFromToken during cleanups. This could cause
-     a destroy callback not run....
-  */
-  //RUNTIME_STATE(interp)->doFilters = 0;
-  
-  fprintf(stderr, "===CALL destroy on CLASSES\n");
+  /*fprintf(stderr, "===CALL destroy on CLASSES\n");*/
 
   for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandTable, hPtr);
@@ -14445,7 +14448,8 @@ destroyObjectSystems(Tcl_Interp *interp) {
       callDestroyMethod(interp, (XOTclObject *)cl, 0);
     }
   }
-  fprintf(stderr, "===CALL destroy on  CLASSES done\n");
+
+  /* now, turn of filters, all destroy callbacks are done */
   RUNTIME_STATE(interp)->doFilters = 0;
 
 #ifdef DO_CLEANUP
