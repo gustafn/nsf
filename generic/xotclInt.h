@@ -539,8 +539,7 @@ typedef enum {
   XOTE_EMPTY, XOTE_ONE,
   /* methods called internally */
   XOTE_CONFIGURE, 
-  XOTE_DEFAULTMETHOD,
-  XOTE_INIT, XOTE_MOVE, XOTE_OBJECTPARAMETER,
+  XOTE_MOVE, 
   XOTE_RESIDUALARGS,
   XOTE_UNKNOWN, XOTE___UNKNOWN,
   /* var names */
@@ -562,8 +561,7 @@ char *XOTclGlobalStrings[] = {
   "", "1", 
   /* methods called internally */
   "configure", 
-  "defaultmethod", 
-  "init", "move", "objectparameter", 
+  "move", 
   "residualargs",
   "unknown", "__unknown", 
   /* var names */

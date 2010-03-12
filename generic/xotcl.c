@@ -1600,7 +1600,8 @@ static int CallDirectly(Tcl_Interp *interp, XOTclObject *object, int methodIdx, 
   if (methodObj) {
 
     if ((osPtr->overloadedMethods & 1<<methodIdx) != 0) {
-      /* not overloaded defined, we can call directly */
+      /* overloaded, we must dispatch */
+      /*fprintf(stderr, "overloaded\n");*/
       callDirectly = 0;
     } else if ((osPtr->definedMethods & 1<<methodIdx) == 0) {
       /* not defined, we must call directly */
@@ -1631,6 +1632,25 @@ static int CallDirectly(Tcl_Interp *interp, XOTclObject *object, int methodIdx, 
   /* return the methodObj in every case */
   *methodObjPtr = methodObj;
   return callDirectly;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * MethodObj --
+ *
+ *    Return the methodObj for a given method index.
+ *
+ * Results:
+ *    Returns Tcl_Obj* or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+Tcl_Obj *MethodObj(Tcl_Interp *interp, XOTclObject *object, int methodIdx) {
+  XOTclObjectSystem *osPtr = GetObjectSystem(object);
+  return osPtr->methods[methodIdx];
 }
 
 static int
@@ -6397,10 +6417,15 @@ XOTclObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     /* normal dispatch */
     result = ObjectDispatch(clientData, interp, objc, objv, 0);
   } else {
-    Tcl_Obj *tov[2];
-    tov[0] = objv[0];
-    tov[1] = XOTclGlobalObjs[XOTE_DEFAULTMETHOD];
-    result = ObjectDispatch(clientData, interp, 2, tov, XOTCL_CM_NO_UNKNOWN);
+    Tcl_Obj *methodObj = MethodObj(interp, (XOTclObject *)clientData, XO_defaultmethod_idx);
+    if (methodObj) {
+      Tcl_Obj *tov[2];
+      tov[0] = objv[0];
+      tov[1] = methodObj;
+      result = ObjectDispatch(clientData, interp, 2, tov, XOTCL_CM_NO_UNKNOWN);
+    } else {
+      result = TCL_OK;
+    }
   }
 
   return result;
@@ -8605,14 +8630,18 @@ doObjInitialization(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *
     Tcl_Obj **nobjv, *resultObj = Tcl_GetObjResult(interp);
 
     /*
-     * Call the user-defined constructor 'init' and pass the result of
+     * Call the scripted constructor and pass the result of
      * configure to it as arguments
      */
     INCR_REF_COUNT(resultObj);
     Tcl_ListObjGetElements(interp, resultObj, &nobjc, &nobjv);
-
-    result = callMethod((ClientData) object, interp, XOTclGlobalObjs[XOTE_INIT],
-			nobjc+2, nobjv, XOTCL_CM_NO_PROTECT);
+    /* CallDirectly does not make much sense, since init is already
+       defined in predefined */
+    methodObj = MethodObj(interp, object, XO_init_idx);
+    if (methodObj) {
+      result = callMethod((ClientData) object, interp, methodObj,
+			  nobjc+2, nobjv, XOTCL_CM_NO_PROTECT);
+    }
     object->flags |= XOTCL_INIT_CALLED;
     DECR_REF_COUNT(resultObj);
   }
@@ -12875,24 +12904,29 @@ GetObjectParameterDefinition(Tcl_Interp *interp, CONST char *methodName, XOTclOb
      * the the string representation.
      */
     /*fprintf(stderr, "calling %s objectparameter\n", objectName(object));*/
+    Tcl_Obj *methodObj = MethodObj(interp, object, XO_objectparameter_idx);
 
-    result = callMethod((ClientData) object, interp, XOTclGlobalObjs[XOTE_OBJECTPARAMETER], 
-                        2, 0, XOTCL_CM_NO_PROTECT);
-
-    if (result == TCL_OK) {
-      rawConfArgs = Tcl_GetObjResult(interp);
-      /*fprintf(stderr, ".... rawConfArgs for %s => %s\n", objectName(object), ObjStr(rawConfArgs));*/
-      INCR_REF_COUNT(rawConfArgs);
-
-      /* Parse the string representation to obtain the internal representation */
-      result = ParamDefsParse(interp, methodName, rawConfArgs, XOTCL_DISALLOWED_ARG_OBJECT_PARAMETER, parsedParamPtr);
+    if (methodObj) {
+      result = callMethod((ClientData) object, interp, methodObj, 
+			  2, 0, XOTCL_CM_NO_PROTECT);
+      
       if (result == TCL_OK) {
-        XOTclParsedParam *ppDefPtr = NEW(XOTclParsedParam);
-        ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
-        ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
-        object->cl->parsedParamPtr = ppDefPtr;
+	rawConfArgs = Tcl_GetObjResult(interp);
+	/*fprintf(stderr, ".... rawConfArgs for %s => %s\n", objectName(object), ObjStr(rawConfArgs));*/
+	INCR_REF_COUNT(rawConfArgs);
+	
+	/* Parse the string representation to obtain the internal representation */
+	result = ParamDefsParse(interp, methodName, rawConfArgs, XOTCL_DISALLOWED_ARG_OBJECT_PARAMETER, parsedParamPtr);
+	if (result == TCL_OK) {
+	  XOTclParsedParam *ppDefPtr = NEW(XOTclParsedParam);
+	  ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
+	  ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
+	  object->cl->parsedParamPtr = ppDefPtr;
+	}
+	DECR_REF_COUNT(rawConfArgs);
       }
-      DECR_REF_COUNT(rawConfArgs);
+    } else {
+      result = TCL_OK;
     }
   }
   return result;
