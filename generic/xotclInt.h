@@ -489,12 +489,13 @@ typedef struct XOTclClass {
   struct XOTclObject object;
   struct XOTclClasses *super;
   struct XOTclClasses *sub;
-  short color;
+  struct XOTclObjectSystem *osPtr;
   struct XOTclClasses *order;
   Tcl_HashTable instances;
   Tcl_Namespace *nsPtr;
   XOTclParsedParam *parsedParamPtr;
   XOTclClassOpt *opt;
+  short color;
 } XOTclClass;
 
 typedef struct XOTclClasses {
@@ -511,9 +512,18 @@ typedef enum SystemMethodsIdx {
   XO_unknown_idx, XO___unknown_idx
 } SystemMethodsIdx;
 
+static CONST char *sytemMethodOpts[] = {"-alloc", "-cleanup", "-configure", "-create", 
+                                        "-defaultmethod", "-destroy", "-dealloc",
+                                        "-init", "-move", "-objectparameter", 
+                                        "-recreate", "-residualargs",
+                                        "-unknown", "-__unknown", 
+                                        NULL};
+
 typedef struct XOTclObjectSystem {
   XOTclClass *rootClass;
   XOTclClass *rootMetaClass;
+  int overloadedMethods;
+  int definedMethods;
   Tcl_Obj *methods[XO___unknown_idx+1];
   struct XOTclObjectSystem *nextPtr;
 } XOTclObjectSystem;
@@ -528,10 +538,10 @@ typedef struct XOTclObjectSystem {
 typedef enum {
   XOTE_EMPTY, XOTE_ONE,
   /* methods called internally */
-  XOTE_ALLOC, XOTE_CLEANUP, XOTE_CONFIGURE, XOTE_CREATE, 
-  XOTE_DEFAULTMETHOD, XOTE_DESTROY, XOTE_DEALLOC,
+  XOTE_CONFIGURE, 
+  XOTE_DEFAULTMETHOD,
   XOTE_INIT, XOTE_MOVE, XOTE_OBJECTPARAMETER,
-  XOTE_RECREATE, XOTE_RESIDUALARGS,
+  XOTE_RESIDUALARGS,
   XOTE_UNKNOWN, XOTE___UNKNOWN,
   /* var names */
   XOTE_AUTONAMES, XOTE_DEFAULTMETACLASS, XOTE_DEFAULTSUPERCLASS, 
@@ -551,10 +561,10 @@ extern char *XOTclGlobalStrings[];
 char *XOTclGlobalStrings[] = {
   "", "1", 
   /* methods called internally */
-  "alloc", "cleanup", "configure", "create", 
-  "defaultmethod", "destroy", "dealloc",
+  "configure", 
+  "defaultmethod", 
   "init", "move", "objectparameter", 
-  "recreate", "residualargs",
+  "residualargs",
   "unknown", "__unknown", 
   /* var names */
   "__autonames", "__default_metaclass", "__default_superclass", 
@@ -636,7 +646,7 @@ typedef struct XOTclRuntimeState {
   /*
    * definitions of the main xotcl objects
    */
-  struct XOTclClasses *rootClasses;
+  struct XOTclObjectSystem *objectSystems;
   Tcl_ObjCmdProc *objInterpProc;
   Tcl_Obj **methodObjNames;
   struct XOTclShadowTclCommandInfo *tclCommands;

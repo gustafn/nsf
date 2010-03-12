@@ -80,7 +80,7 @@ int XOTclObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName, Tcl
 static int XOTclDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
 static void FilterComputeDefined(Tcl_Interp *interp, XOTclObject *object);
 
-/* methods called directly when InvokeMethodObj() returns NULL */
+/* methods called directly when CallDirectly() returns NULL */
 static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *nameObj);
 static int XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOCleanupMethod(Tcl_Interp *interp, XOTclObject *object);
@@ -88,6 +88,13 @@ static int XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int ob
 static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *object);
 static int DoDealloc(Tcl_Interp *interp, XOTclObject *object);
 static int RecreateObject(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]);
+
+static int ObjectSystemsCleanup(Tcl_Interp *interp);
+static void ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, XOTclObjectSystem *defOsPtr);
+static XOTclObjectSystem *GetObjectSystem(XOTclObject *object);
+static void finalObjectDeletion(Tcl_Interp *interp, XOTclObject *object);
+static void getAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *startClass);
+static void freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable);
 
 static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
 static Tcl_Namespace *callingNameSpace(Tcl_Interp *interp);
@@ -849,6 +856,10 @@ XOTclCleanupObject(XOTclObject *object) {
 #if !defined(NDEBUG)
     memset(object, 0, sizeof(XOTclObject));
 #endif
+    /*
+    if (object->cmdName->refCount > 1) {
+      fprintf(stderr, "--- obj %p %s cmdName->refCount %d\n",object,ObjStr(object->cmdName), object->cmdName->refCount);
+      }*/
     ckfree((char *) object);
   }
 }
@@ -1339,36 +1350,287 @@ ObjectFindMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *name, XOTc
   return cmd;
 }
 
-static Tcl_Obj *InvokeMethodObj(Tcl_Interp *interp, XOTclObject *object, int methodIdx) {
-  /* we can call a c-implemented method directly, when 
-     a) the program does not contain a method with the appropriate name, and
-     b) filters are not active on the object
+/*
+ *----------------------------------------------------------------------
+ * ObjectSystemFree --
+ *
+ *    Free a single object system structure including its root classes.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Free memory of structure, free the root classes.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static void 
+ObjectSystemFree(Tcl_Interp *interp, XOTclObjectSystem *osPtr) {
+  int i;
+
+  for (i=0; i<=XO___unknown_idx; i++) {
+    Tcl_Obj *methodObj = osPtr->methods[i];
+    /*fprintf(stderr, "ObjectSystemFree [%d] %p ", i, methodObj);*/
+    if (methodObj) {
+      /*fprintf(stderr, "%s refCount %d", ObjStr(methodObj), methodObj->refCount);*/
+      DECR_REF_COUNT(methodObj);
+    }
+    /*fprintf(stderr, "\n");*/
+  }
+
+  if (osPtr->rootMetaClass && osPtr->rootClass) {
+    RemoveSuper(osPtr->rootMetaClass, osPtr->rootClass);
+    RemoveInstance((XOTclObject*)osPtr->rootMetaClass, osPtr->rootMetaClass);
+    RemoveInstance((XOTclObject*)osPtr->rootClass, osPtr->rootMetaClass);
+
+    finalObjectDeletion(interp, &osPtr->rootClass->object);
+    finalObjectDeletion(interp, &osPtr->rootMetaClass->object);
+  }
+
+  FREE(XOTclObjectSystem *, osPtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * ObjectSystemAdd --
+ *
+ *    Add and entry to the list of object systems of the interpreter.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Updating the per interp list of object systems.
+ *
+ *----------------------------------------------------------------------
+ */
+static void 
+ObjectSystemAdd(Tcl_Interp *interp, XOTclObjectSystem *osPtr) {
+  osPtr->nextPtr = RUNTIME_STATE(interp)->objectSystems;
+  RUNTIME_STATE(interp)->objectSystems = osPtr;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * ObjectSystemsCheckSystemMethod --
+ *
+ *    Mark in all object systems the specified method as 
+ *    (potentially) overloaded and mark it in the specified
+ *    object system as defined.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Updating the object system structure(s).
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, XOTclObjectSystem *defOsPtr) {
+  XOTclObjectSystem *osPtr;
+  int i;
+
+  for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
+    for (i=0; i<=XO___unknown_idx; i++) {
+      Tcl_Obj *methodObj = osPtr->methods[i];
+      if (methodObj && !strcmp(methodName, ObjStr(methodObj))) {
+        int flag = 1<<i;
+        if (osPtr->definedMethods & flag) {
+          osPtr->overloadedMethods |= flag;
+          /*fprintf(stderr, "+++ %s %.6x overloading %s\n", className(defOsPtr->rootClass), 
+            osPtr->overloadedMethods, methodName);*/
+        }
+        if (osPtr == defOsPtr && ((osPtr->definedMethods & flag) == 0)) {
+          osPtr->definedMethods |= flag;
+          /*fprintf(stderr, "+++ %s %.6x defining %s\n", className(defOsPtr->rootClass), 
+            osPtr->definedMethods, methodName);*/
+        }
+      }
+    }
+  }
+}
+
+/*
+ *----------------------------------------------------------------------
+ * ObjectSystemsCleanup --
+ *
+ *    Delete all objects from all defined object systems.  This method
+ *    is to be called when an XOTcl process or thread exists.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    All commands and objects are deleted, memory is freed.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+ObjectSystemsCleanup(Tcl_Interp *interp) {
+  Tcl_HashTable objTable, *commandTable = &objTable;
+  Tcl_HashSearch hSrch;
+  Tcl_HashEntry *hPtr;
+  XOTclObjectSystem *osPtr, *nPtr;
+
+  /* Deletion is performed in two rounds:
+   *  (a) SOFT DESTROY: invoke all user-defined destroy methods
+   *      without destroying objects
+   *  (b) PHYSICAL DESTROY: delete the objects and classes, 
+   *      destroy methods are not invoked anymore
+   *
+   * This is to prevent that the destroy order causes classes to be
+   * deleted before the methods invoked by destroy are executed.  Note
+   * that it is necessary to iterate over all object systems
+   * simultaneous, since the might be dependencies between objects of
+   * different object systems.
+   */
+
+  Tcl_InitHashTable(commandTable, TCL_STRING_KEYS);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
+
+  /* collect all instances from all object systems */
+  for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
+    /*fprintf(stderr, "destroyObjectSystem deletes %s\n", className(osPtr->rootClass));*/
+    getAllInstances(interp, commandTable, osPtr->rootClass);
+  }
+
+  /***** SOFT DESTROY *****/
+  RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
+  /*fprintf(stderr, "===CALL destroy on OBJECTS\n");*/
+
+  for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    char *key = Tcl_GetHashKey(commandTable, hPtr);
+    XOTclObject *object = XOTclpGetObject(interp, key);
+    /* fprintf(stderr, "key = %s %p %d\n",
+       key, obj, obj && !XOTclObjectIsClass(object)); */
+    if (object && !XOTclObjectIsClass(object)
+        && !(object->flags & XOTCL_DESTROY_CALLED)) {
+      callDestroyMethod(interp, object, 0);
+    }
+  }
+
+  /*fprintf(stderr, "===CALL destroy on CLASSES\n");*/
+
+  for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    char *key = Tcl_GetHashKey(commandTable, hPtr);
+    XOTclClass *cl = XOTclpGetClass(interp, key);
+    if (cl && !(cl->object.flags & XOTCL_DESTROY_CALLED)) {
+      callDestroyMethod(interp, (XOTclObject *)cl, 0);
+    }
+  }
+
+  /* now, turn of filters, all destroy callbacks are done */
+  RUNTIME_STATE(interp)->doFilters = 0;
+
+#ifdef DO_CLEANUP
+  freeAllXOTclObjectsAndClasses(interp, commandTable);
+
+# ifdef DO_FULL_CLEANUP
+  deleteProcsAndVars(interp);
+# endif
+#endif
+
+  MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
+  Tcl_DeleteHashTable(commandTable);
+
+  /* now free all objects systems with their root classes */
+  for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = nPtr) {
+    nPtr = osPtr->nextPtr;
+    ObjectSystemFree(interp, osPtr);
+  }
+
+  return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * GetObjectSystem --
+ *
+ *    Return the object system for which the object was defined
+ *
+ * Results:
+ *    Object system pointer
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static XOTclObjectSystem * 
+GetObjectSystem(XOTclObject *object) {
+  if (XOTclObjectIsClass(object)) {
+    return ((XOTclClass *)object)->osPtr;
+  }
+  return object->cl->osPtr;
+}
+   
+/*
+ *----------------------------------------------------------------------
+ * CallDirectly --
+ *
+ *    Determine when it is possible/necessary to call a method
+ *    implementation directly or via method dispatch.
+ *
+ * Results:
+ *    1 is returned when command should be invoked directly, 0
+ *    otherwise.
+ *
+ * Side effects:
+ *    methodObjPtr is set with the Tcl_Obj of the name of the method,
+ *    if there is one defined.
+ *
+ *----------------------------------------------------------------------
+ */
+static int CallDirectly(Tcl_Interp *interp, XOTclObject *object, int methodIdx, Tcl_Obj **methodObjPtr) {
+  /* 
+     We can/must call a C-implemented method directly, when 
+     a) the object system has no such appropriate method defined
+
+     b) the script does not contain a method with the appropriate
+        name, and
+
+     c) filters are not active on the object
   */
-  Tcl_Obj *methodObj = XOTclGlobalObjs[methodIdx];
+  XOTclObjectSystem *osPtr = GetObjectSystem(object);
+  Tcl_Obj *methodObj = osPtr->methods[methodIdx];
+  int callDirectly = 1;
 
   if (methodObj) {
 
-    if (!(object->flags & XOTCL_FILTER_ORDER_VALID)) {
-      FilterComputeDefined(interp, object);
-    }
-
-    if (((RUNTIME_STATE(interp)->overloadedMethods & 1<<methodIdx) == 0)
-        && ((object->flags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID) != XOTCL_FILTER_ORDER_DEFINED_AND_VALID)) {
-      /*fprintf(stderr, "object %s not overloaded %d filter not active %d flags %.6x \n",
-              objectName(object),
-              ((RUNTIME_STATE(interp)->overloadedMethods & 1<<methodIdx) == 0),
-              ((object->flags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID) != XOTCL_FILTER_ORDER_DEFINED_AND_VALID),
-              object->flags);*/
-      methodObj = NULL;
+    if ((osPtr->overloadedMethods & 1<<methodIdx) != 0) {
+      /* not overloaded defined, we can call directly */
+      callDirectly = 0;
+    } else if ((osPtr->definedMethods & 1<<methodIdx) == 0) {
+      /* not defined, we must call directly */
+      fprintf(stderr, "CallDirectly object %s idx %s not defined\n", 
+              objectName(object), sytemMethodOpts[methodIdx]+1);
+    } else {
+      if (!(object->flags & XOTCL_FILTER_ORDER_VALID)) {
+        FilterComputeDefined(interp, object);
+      }
+      /*fprintf(stderr, "CallDirectly object %s idx %s obejct flags %.6x %.6x \n", 
+        objectName(object), sytemMethodOpts[methodIdx]+1,
+        (object->flags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID),
+        XOTCL_FILTER_ORDER_DEFINED_AND_VALID
+        );*/
+      if ((object->flags & XOTCL_FILTER_ORDER_DEFINED_AND_VALID) == XOTCL_FILTER_ORDER_DEFINED_AND_VALID) {
+        /*fprintf(stderr, "CallDirectly object %s idx %s has filter \n", 
+          objectName(object), sytemMethodOpts[methodIdx]+1);*/
+        callDirectly = 0;
+      }
     }
   }
 
 #if 0
-  fprintf(stderr, "InvokeMethodObj object %s idx %s returns %s\n", 
-          objectName(object), XOTclGlobalStrings[methodIdx], methodObj ? ObjStr(methodObj) : "(null)");
+  fprintf(stderr, "CallDirectly object %s idx %s returns %s => %d\n", 
+          objectName(object), sytemMethodOpts[methodIdx]+1, 
+          methodObj ? ObjStr(methodObj) : "(null)", callDirectly);
 #endif
-
-  return methodObj;
+  /* return the methodObj in every case */
+  *methodObjPtr = methodObj;
+  return callDirectly;
 }
 
 static int
@@ -1392,8 +1654,7 @@ callDestroyMethod(Tcl_Interp *interp, XOTclObject *object, int flags) {
   /* flag, that destroy was called and invoke the method */
   object->flags |= XOTCL_DESTROY_CALLED;
 
-  methodObj = InvokeMethodObj(interp, object, XOTE_DESTROY);
-  if (methodObj == NULL) {
+  if (CallDirectly(interp, object, XO_destroy_idx, &methodObj)) {
     result = XOTclODestroyMethod(interp, object);
   } else {
     result = callMethod(object, interp, methodObj, 2, 0, flags);
@@ -2306,15 +2567,8 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, XOTclObject *object, CO
                             " can not be overwritten. Derive e.g. a sub-class!", 
                             (char *) NULL);
   }
-  if (!duringBootstrap(interp)) {
-    int i;
-    for (i=XOTE_ALLOC; i <= XOTE___UNKNOWN; i++) {
-      if (!strcmp(methodName, XOTclGlobalStrings[i])) {
-        /*fprintf(stderr, "+++ overloading %s\n",methodName);*/
-        RUNTIME_STATE(interp)->overloadedMethods |= 1<<i;
-      }
-    }
-  }
+  ObjectSystemsCheckSystemMethod(interp, methodName, GetObjectSystem(object));
+
   return result;
 }
 
@@ -5352,7 +5606,7 @@ ParamDefsFormat(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
       /* We need this part only for C-defined parameter definitions,
          defined via genTclAPI.
 
-         TODO: we could streamline this by defining as well C-Api via
+         TODO: we could streamline this by defining as well C-API via
          the same syntax as for accepted for tcl obj types
          "xotclParam"
       */
@@ -8229,9 +8483,12 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTclClass *class) {
 
   memset(cl, 0, sizeof(XOTclClass));
   MEM_COUNT_ALLOC("XOTclObject/XOTclClass", cl);
-  /*
-    fprintf(stderr, " +++ CLS alloc: %s\n", nameString);
-  */
+
+  /* pass object system fram meta class */
+  if (class) {
+    cl->osPtr = class->osPtr;
+  }
+
   assert(isAbsolutePath(nameString));
   length = strlen(nameString);
   /*
@@ -8247,8 +8504,8 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTclClass *class) {
                                  (ClientData)cl, tclDeletesObject);
 
   PrimitiveOInit(object, interp, nameString, class);
-
   object->cmdName = nameObj;
+
   /* convert cmdName to Tcl Obj of type cmdName */
   /* Tcl_GetCommandFromObj(interp, obj->cmdName);*/
 
@@ -8325,16 +8582,15 @@ doObjInitialization(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *
   /*
    * call configure methods (starting with '-')
    */
-  methodObj = InvokeMethodObj(interp, object, XOTE_CONFIGURE);
-  if (methodObj) {
-    result = callMethod((ClientData) object, interp,
-                        methodObj, objc, objv+2, 0);
-  } else {
+  if (CallDirectly(interp, object, XO_configure_idx, &methodObj)) {
     ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
     memcpy(tov+1, objv+2, sizeof(Tcl_Obj *)*(objc-1));
-    tov[0] = XOTclGlobalObjs[XOTE_CONFIGURE]; /* TODO: remove me when variable naming */
+    /* the provided name of the method is just for error reporting */
+    tov[0] = methodObj ? methodObj : XOTclGlobalObjs[XOTE_CONFIGURE];
     result = XOTclOConfigureMethod(interp, object, objc-1, tov);
     FREE_ON_STACK(tov);
+  } else {
+    result = callMethod((ClientData) object, interp, methodObj, objc, objv+2, 0);
   }
 
   if (result != TCL_OK) {
@@ -8562,8 +8818,7 @@ XOTclCreateObject(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTcl_Class *class) {
 
   INCR_REF_COUNT(nameObj);
 
-  methodObj = InvokeMethodObj(interp, &cl->object, XOTE_CREATE);
-  if (methodObj == NULL) {
+  if (CallDirectly(interp, &cl->object, XO_create_idx, &methodObj)) {
     result = XOTclCCreateMethod(interp, cl, ObjStr(nameObj), 1, &nameObj);
   } else {
     result = XOTclCallMethodWithArgs((ClientData)cl, interp, methodObj, 
@@ -9471,9 +9726,10 @@ callConfigureMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *methodN
  */
 
 static int isRootNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
-  XOTclClasses *os;
-  for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
-    Tcl_Command cmd = os->cl->object.id;
+  XOTclObjectSystem *osPtr;
+
+  for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
+    Tcl_Command cmd = osPtr->rootClass->object.id;
     if ((Tcl_Namespace *)((Command *)cmd)->nsPtr == nsPtr) {
       return 1;
     }
@@ -9737,7 +9993,6 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               XOTclParam CONST *paramPtr, int nrParams,
               parseContext *pcPtr) {
   int i, o, flagCount, nrReq = 0, nrOpt = 0, dashdash = 0, nrDashdash = 0;
-  /* todo benchmark with and without CONST */
   XOTclParam CONST *pPtr;
 
   parseContextInit(pcPtr, nrParams, object, procNameObj);
@@ -10879,13 +11134,13 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
   int bool;
 
   if (configureoption == ConfigureoptionObjectsystemsIdx) {
-    XOTclClasses *os;
+    XOTclObjectSystem *osPtr;
     Tcl_Obj *list = Tcl_NewListObj(0, NULL);
 
-    for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
+    for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
       Tcl_Obj *osObj = Tcl_NewListObj(0, NULL);
-      Tcl_ListObjAppendElement(interp, osObj, os->cl->object.cmdName);
-      Tcl_ListObjAppendElement(interp, osObj, ((XOTclClass *)os->clientData)->object.cmdName);
+      Tcl_ListObjAppendElement(interp, osObj, osPtr->rootClass->object.cmdName);
+      Tcl_ListObjAppendElement(interp, osObj, osPtr->rootMetaClass->object.cmdName);
       Tcl_ListObjAppendElement(interp, list, osObj);
     }
     Tcl_SetObjResult(interp, list);
@@ -10916,20 +11171,6 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
   return TCL_OK;
 }
 
-static void ObjectSystemFree(XOTclObjectSystem *osPtr) {
-  int i;
-
-  for (i=0; i<=XO___unknown_idx; i++) {
-    Tcl_Obj *methodObj = osPtr->methods[i];
-    /*fprintf(stderr, "check %d: %p\n", i, methodObj);*/
-    if (methodObj) {
-      /*fprintf(stderr, "ObjectSystemFree %p %s refCount %d\n", 
-        methodObj, ObjStr(methodObj), methodObj->refCount);*/
-      DECR_REF_COUNT(methodObj);
-    }
-  }
-  FREE(XOTclObjectSystem *, osPtr);
-}
 
 /*
 xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
@@ -10944,14 +11185,6 @@ XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, 
   XOTclClass *thecls;
   XOTclObjectSystem *osPtr = NEW(XOTclObjectSystem);
 
-  static CONST char *opts[] = {"-alloc", "-cleanup", "-configure", "-create", 
-                               "-defaultmethod", "-destroy", "-dealloc",
-                               "-init", "-move", "-objectparameter", 
-                               "-recreate", "-residualargs",
-                               "-unknown", "-__unknown", 
-                               NULL};
-
-
   memset(osPtr, 0, sizeof(XOTclObjectSystem));
 
   if (systemMethodsObj) {
@@ -10960,43 +11193,40 @@ XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, 
 
     if ((result = Tcl_ListObjGetElements(interp, systemMethodsObj, &oc, &ov)) == TCL_OK) {
       if (oc % 2) {
-        ObjectSystemFree(osPtr);
+        ObjectSystemFree(interp, osPtr);
         return XOTclErrMsg(interp, "System methods must be provided as pairs", TCL_STATIC);
       }
       for (i=0; i<oc; i += 2) {
-        result = Tcl_GetIndexFromObj(interp, ov[i], opts, "system method", 0, &idx);
+        result = Tcl_GetIndexFromObj(interp, ov[i], sytemMethodOpts, "system method", 0, &idx);
         if (result != TCL_OK) {
-          ObjectSystemFree(osPtr);
+          ObjectSystemFree(interp, osPtr);
           return XOTclVarErrMsg(interp, "invalid system method '",
                                 ObjStr(ov[i]), "'", (char *) NULL);
         }
-        fprintf(stderr, "XOTclCreateObjectSystemCmd [%d] = %p %s (max %d)\n", 
-                idx, ov[i+1], ObjStr(ov[i+1]), XO___unknown_idx);
+        /*fprintf(stderr, "XOTclCreateObjectSystemCmd [%d] = %p %s (max %d, given %d)\n", 
+          idx, ov[i+1], ObjStr(ov[i+1]), XO___unknown_idx, oc);*/
         osPtr->methods[idx] = ov[i+1];
         INCR_REF_COUNT(osPtr->methods[idx]);
       }
     } else {
-      ObjectSystemFree(osPtr);
+      ObjectSystemFree(interp, osPtr);
       return XOTclErrMsg(interp, "Provided system methods are not a proper list", TCL_STATIC);
     }
-    /*xxxx*/
   }
-  /* TODO remove me, just for developing */
-  ObjectSystemFree(osPtr);
-  
-  /* Create a basic object system with the basic root class Object and
+  /* 
+     Create a basic object system with the basic root class Object and
      the basic metaclass Class, and store them in the RUNTIME STATE if
-     successful */
-
-  theobj = PrimitiveCCreate(interp, Object, 0);
-  thecls = PrimitiveCCreate(interp, Class, 0);
+     successful 
+  */
+  theobj = PrimitiveCCreate(interp, Object, NULL);
+  thecls = PrimitiveCCreate(interp, Class, NULL);
   /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
 
 #if defined(PROFILE)
   XOTclProfileInit(interp);
 #endif
 
-  /* test Object and Class creation */
+  /* check whether Object and Class creation was successful */
   if (!theobj || !thecls) {
     int i;
 
@@ -11008,13 +11238,20 @@ XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, 
     }
     FREE(Tcl_Obj **, XOTclGlobalObjs);
     FREE(XOTclRuntimeState, RUNTIME_STATE(interp));
+    ObjectSystemFree(interp, osPtr);
 
     return XOTclErrMsg(interp, "Creation of object system failed", TCL_STATIC);
   }
+
+  theobj->osPtr = osPtr;
+  thecls->osPtr = osPtr;
+  osPtr->rootClass = theobj;
+  osPtr->rootMetaClass = thecls;
+
   theobj->object.flags |= XOTCL_IS_ROOT_CLASS;
   thecls->object.flags |= XOTCL_IS_ROOT_META_CLASS;
 
-  XOTclClassListAdd(&RUNTIME_STATE(interp)->rootClasses, theobj, (ClientData)thecls);
+  ObjectSystemAdd(interp, osPtr);
 
   AddInstance((XOTclObject*)theobj, thecls);
   AddInstance((XOTclObject*)thecls, thecls);
@@ -11187,7 +11424,6 @@ xotclCmd finalize XOTclFinalizeObjCmd {
 /*
  * ::xotcl::finalize command
  */
-static int destroyObjectSystems(Tcl_Interp *interp);
 static int
 XOTclFinalizeObjCmd(Tcl_Interp *interp) {
   int result;
@@ -11208,9 +11444,7 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
             Tcl_GetErrorLine(interp), ObjStr(Tcl_GetObjResult(interp)));
   }
 
-  /* RUNTIME_STATE(interp)->doFilters = 0;  TODO finally remove me*/
-  destroyObjectSystems(interp);
-  XOTclClassListFree(RUNTIME_STATE(interp)->rootClasses);
+  ObjectSystemsCleanup(interp);
 
 #ifdef DO_CLEANUP
   /*fprintf(stderr, "CLEANUP TOP NS\n");*/
@@ -12049,8 +12283,8 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     cl->object.flags |= XOTCL_IS_ROOT_CLASS;
     metaClass->object.flags |= XOTCL_IS_ROOT_META_CLASS;
 
-    XOTclClassListAdd(&RUNTIME_STATE(interp)->rootClasses, cl, (ClientData)metaClass);
     return TCL_OK;
+
     /* todo:
        need to remove these properties?
        allow to delete a classystem at runtime?
@@ -12865,8 +13099,7 @@ static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *object) {
     /*fprintf(stderr, "   call dealloc on %p %s\n", object, 
       ((Command*)object->id)->flags == 0 ? objectName(object) : "(deleted)");*/
 
-    methodObj = InvokeMethodObj(interp, &object->cl->object, XOTE_DEALLOC);
-    if (methodObj == NULL) {
+    if (CallDirectly(interp, &object->cl->object, XO_dealloc_idx, &methodObj)) {
       result = DoDealloc(interp, object);
     } else {
       result = XOTclCallMethodWithArgs((ClientData)object->cl, interp, methodObj, 
@@ -13377,8 +13610,7 @@ XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *specifiedName
       ObjStr(nameObj), objc+1);*/
 
     /* call recreate --> initialization */
-    methodObj = InvokeMethodObj(interp, &cl->object, XOTE_RECREATE);
-    if (methodObj == NULL) {
+    if (CallDirectly(interp, &cl->object, XO_recreate_idx, &methodObj)) {
       result = RecreateObject(interp, cl, newObject, objc, nobjv);
     } else {
       result = callMethod((ClientData) cl, interp, methodObj, 
@@ -13399,8 +13631,7 @@ XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *specifiedName
      */
 
     /*fprintf(stderr, "alloc ... %s\n", ObjStr(nameObj);*/
-    methodObj = InvokeMethodObj(interp, &cl->object, XOTE_ALLOC);
-    if (methodObj == NULL) {
+    if (CallDirectly(interp, &cl->object, XO_alloc_idx, &methodObj)) {
       result = XOTclCAllocMethod(interp, cl, nameObj);
     } else {
       result = callMethod((ClientData) cl, interp, methodObj, 
@@ -13507,9 +13738,10 @@ static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *with
 
   {
     Tcl_Obj *methodObj;
+    int callDirectly;
     ALLOC_ON_STACK(Tcl_Obj*, objc+3, ov);
 
-    methodObj = InvokeMethodObj(interp, &cl->object, XOTE_CREATE);
+    callDirectly = CallDirectly(interp, &cl->object, XO_create_idx, &methodObj);
 
     ov[0] = objv[0];
     ov[1] = methodObj;
@@ -13517,7 +13749,7 @@ static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *with
     if (objc >= 1)
       memcpy(ov+3, objv, sizeof(Tcl_Obj *)*objc);
 
-    if (methodObj == NULL) {
+    if (callDirectly) {
       result = XOTclCCreateMethod(interp, cl, ObjStr(fullnameObj), objc+2, ov+1);
     } else {
       result = ObjectDispatch((ClientData)cl, interp, objc+3, ov, 0);
@@ -13610,8 +13842,7 @@ static int RecreateObject(Tcl_Interp *interp, XOTclClass *class, XOTclObject *ob
     /*
      * dispatch "cleanup" method
      */
-    methodObj = InvokeMethodObj(interp, object, XOTE_CLEANUP);
-    if (methodObj == NULL) {
+    if (CallDirectly(interp, object, XO_cleanup_idx, &methodObj)) {
       result = XOTclOCleanupMethod(interp, object);
     } else {
       result = callMethod((ClientData) object, interp, methodObj, 
@@ -14387,6 +14618,8 @@ finalObjectDeletion(Tcl_Interp *interp, XOTclObject *object) {
     fprintf(stderr, "*** have to fix refcount for obj %p refcount %d\n",object, object->refCount);
     object->refCount = 1;
   }
+  assert(object->activationCount == 0);
+  /*fprintf(stderr, "*** obj %p activationcount %d\n",object, object->activationCount);*/
   if (object->id) Tcl_DeleteCommandFromToken(interp, object->id);
 }
 
@@ -14446,95 +14679,7 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
   }
 }
 
-static void
-freeRootClasses(Tcl_Interp *interp, XOTclClass *rootClass, XOTclClass *rootMetaClass) {
-  RemoveSuper(rootMetaClass, rootClass);
-  RemoveInstance((XOTclObject*)rootMetaClass, rootMetaClass);
-  RemoveInstance((XOTclObject*)rootClass, rootMetaClass);
-
-  finalObjectDeletion(interp, &rootClass->object);
-  finalObjectDeletion(interp, &rootMetaClass->object);
-}
 #endif /* DO_CLEANUP */
-
-static int
-destroyObjectSystems(Tcl_Interp *interp) {
-  XOTclClass *cl, *rootClass, *rootMetaClass;
-  Tcl_HashTable objTable, *commandTable = &objTable;
-  Tcl_HashSearch hSrch;
-  Tcl_HashEntry *hPtr;
-  XOTclClasses *os;
-
-  /* deleting in two rounds:
-   *  (a) SOFT DESTROY: call all user-defined destroys
-   *  (b) PHYSICAL DESTROY: delete the commands, user-defined
-   *      destroys are not executed anymore
-   *
-   * this is to prevent user-defined destroys from overriding physical
-   * destroy during exit handler, but still ensure that all
-   * user-defined destroys are called.
-   */
-
-  Tcl_InitHashTable(commandTable, TCL_STRING_KEYS);
-  MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
-
-  /* collect all instances from all object systems */
-  for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
-    rootClass = os->cl;
-    rootMetaClass =  (XOTclClass *)os->clientData;
-    /*fprintf(stderr, "destroyObjectSystem deletes %s\n", className(rootClass));*/
-    getAllInstances(interp, commandTable, rootClass);
-  }
-
-  /***** SOFT DESTROY *****/
-  RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
-  /*fprintf(stderr, "===CALL destroy on OBJECTS\n");*/
-
-  for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-    char *key = Tcl_GetHashKey(commandTable, hPtr);
-    XOTclObject *object = XOTclpGetObject(interp, key);
-    /* fprintf(stderr, "key = %s %p %d\n",
-       key, obj, obj && !XOTclObjectIsClass(object)); */
-    if (object && !XOTclObjectIsClass(object)
-        && !(object->flags & XOTCL_DESTROY_CALLED)) {
-      callDestroyMethod(interp, object, 0);
-    }
-  }
-
-  /*fprintf(stderr, "===CALL destroy on CLASSES\n");*/
-
-  for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-    char *key = Tcl_GetHashKey(commandTable, hPtr);
-    cl = XOTclpGetClass(interp, key);
-    if (cl && !(cl->object.flags & XOTCL_DESTROY_CALLED)) {
-      callDestroyMethod(interp, (XOTclObject *)cl, 0);
-    }
-  }
-
-  /* now, turn of filters, all destroy callbacks are done */
-  RUNTIME_STATE(interp)->doFilters = 0;
-
-#ifdef DO_CLEANUP
-  freeAllXOTclObjectsAndClasses(interp, commandTable);
-  /*fprintf(stderr, "delete root classes\n");*/
-  for (os = RUNTIME_STATE(interp)->rootClasses; os; os = os->nextPtr) {
-    rootClass = os->cl;
-    rootMetaClass =  (XOTclClass *)os->clientData;
-    /*fprintf(stderr, "physical destroy on %s\n", className(rootClass));*/
-    freeRootClasses(interp, rootClass, rootMetaClass);
-  }
-
-#ifdef DO_FULL_CLEANUP
-  deleteProcsAndVars(interp);
-#endif
-
-#endif
-
-  MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
-  Tcl_DeleteHashTable(commandTable);
-
-  return TCL_OK;
-}
 
 /*
  *  Exit Handler

@@ -9,7 +9,13 @@ namespace eval ::xotcl {
   # ::xotcl::Object and ::xotcl::Class and defines these as root class
   # of the object system and as root meta class.
   #
-  ::xotcl::createobjectsystem ::xotcl::Object ::xotcl::Class
+  ::xotcl::createobjectsystem ::xotcl::Object ::xotcl::Class {
+    -alloc alloc -cleanup cleanup -configure configure -create create
+    -defaultmethod defaultmethod -destroy destroy -dealloc dealloc
+    -init init -move move -objectparameter objectparameter 
+    -recreate recreate -residualargs residualargs -unknown unknown
+    -__unknown __unknown
+  }
 
   # provide the standard command set for ::xotcl::Object
   foreach cmd [info command ::xotcl::cmd::Object::*] {
