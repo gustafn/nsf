@@ -86,6 +86,7 @@ static int XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *na
 static int XOTclOCleanupMethod(Tcl_Interp *interp, XOTclObject *object);
 static int XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *object);
+static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]);
 static int DoDealloc(Tcl_Interp *interp, XOTclObject *object);
 static int RecreateObject(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]);
 
@@ -13092,8 +13093,16 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
      Call residualargs when we have varargs and left over arguments 
   */
   if (pc.varArgs && remainingArgsc > 0) {
-    result = callMethod((ClientData) object, interp,
-                        XOTclGlobalObjs[XOTE_RESIDUALARGS], remainingArgsc+2, pc.full_objv + i-1, 0);
+    Tcl_Obj *methodObj;
+
+    if (CallDirectly(interp, object, XO_residualargs_idx, &methodObj)) {
+      i -= 2;
+      if (methodObj) {pc.full_objv[i] = methodObj;}
+      result = XOTclOResidualargsMethod(interp, object, remainingArgsc+1, pc.full_objv + i);
+    } else {
+      result = callMethod((ClientData) object, interp,
+                          methodObj, remainingArgsc+2, pc.full_objv + i-1, 0);
+    }
     if (result != TCL_OK) {
       parseContextRelease(&pc);
       goto configure_exit;
