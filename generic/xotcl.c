@@ -6344,7 +6344,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   if (result == TCL_OK) {
     /*fprintf(stderr, "after doCallProcCheck unknown == %d\n", unknown);*/
     if (unknown) {
-      Tcl_Obj *unknownObj = XOTclGlobalObjs[XOTE_UNKNOWN];
+      Tcl_Obj *unknownObj = XOTclMethodObj(interp, object, XO_unknown_idx);
 
       if (/*XOTclObjectIsClass(object) &&*/ (flags & XOTCL_CM_NO_UNKNOWN)) {
 	result = XOTclVarErrMsg(interp, objectName(object),
