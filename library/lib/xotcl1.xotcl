@@ -13,8 +13,8 @@ namespace eval ::xotcl {
     -alloc alloc -cleanup cleanup -configure configure -create create
     -defaultmethod defaultmethod -destroy destroy -dealloc dealloc
     -init init -move move -objectparameter objectparameter 
-    -recreate recreate -residualargs residualargs -unknown unknown
-    -__unknown __unknown
+    -recreate recreate -requireobject __unknown -residualargs residualargs
+    -unknown unknown
   }
 
   # provide the standard command set for ::xotcl::Object

@@ -683,10 +683,12 @@ VarHashTableCreate() {
   return varTablePtr;
 }
 
+#if 0
 static int duringBootstrap(Tcl_Interp *interp) {
   Tcl_Obj *bootstrap = Tcl_GetVar2Ex(interp, "::xotcl::bootstrap", NULL, TCL_GLOBAL_ONLY);
   return (bootstrap != NULL);
 }
+#endif
 
 /*
  * call an XOTcl method
@@ -943,14 +945,14 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **objectPtr) {
 
 static int
 GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
-		     XOTclClass **cl, XOTclClass *base) {
+		     XOTclClass **cl, XOTclClass *baseClass) {
   XOTclObject *object;
   XOTclClass *cls = NULL;
   int result = TCL_OK;
   CONST char *objName = ObjStr(objPtr);
   Tcl_Command cmd;
 
-  /*fprintf(stderr, "GetClassFromObj %s base %p\n", objName, base);*/
+  /*fprintf(stderr, "GetClassFromObj %s base %p\n", objName, baseClass);*/
 
   cmd = Tcl_GetCommandFromObj(interp, objPtr);
   if (cmd) {
@@ -974,18 +976,20 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   }
 
   /*fprintf(stderr, "try unknown, result so far is %d\n", result);*/
-  if (base) {
-    Tcl_Obj *nameObj = 
-      isAbsolutePath(objName) ? objPtr :
+  if (baseClass) {
+    Tcl_Obj *methodObj, *nameObj = isAbsolutePath(objName) ? objPtr :
       NameInNamespaceObj(interp, objName, callingNameSpace(interp));
 
     INCR_REF_COUNT(nameObj);
-    /*fprintf(stderr, "+++ calling __unknown for %s name=%s\n", objectName(base), ObjStr(nameObj));*/
-    result = callMethod((ClientData) base, interp,
-                        XOTclGlobalObjs[XOTE___UNKNOWN], 
-                        3, &nameObj, XOTCL_CM_NO_PROTECT);
-    if (result == TCL_OK) {
-      result = GetClassFromObj(interp, objPtr, cl, 0);
+
+    methodObj = XOTclMethodObj(interp, &baseClass->object, XO_requireobject_idx);
+    if (methodObj) {
+      /*fprintf(stderr, "+++ calling __unknown for %s name=%s\n", objectName(baseClass), ObjStr(nameObj));*/
+      result = callMethod((ClientData) baseClass, interp, methodObj,
+                          3, &nameObj, XOTCL_CM_NO_PROTECT);
+      if (result == TCL_OK) {
+        result = GetClassFromObj(interp, objPtr, cl, 0);
+      }
     }
     DECR_REF_COUNT(nameObj);
   }
@@ -1089,7 +1093,7 @@ static XOTclClasses *Sub(XOTclClass *cl) { return cl->sub; }
 
 
 static int
-TopoSort(XOTclClass *cl, XOTclClass *base, XOTclClasses *(*next)(XOTclClass*)) {
+TopoSort(XOTclClass *cl, XOTclClass *baseClass, XOTclClasses *(*next)(XOTclClass*)) {
   /*XOTclClasses *sl = (*next)(cl);*/
   XOTclClasses *sl = next == Super ? cl->super : cl->sub;
   XOTclClasses *pl;
@@ -1104,9 +1108,9 @@ TopoSort(XOTclClass *cl, XOTclClass *base, XOTclClasses *(*next)(XOTclClass*)) {
   for (; sl; sl = sl->nextPtr) {
     XOTclClass *sc = sl->cl;
     if (sc->color == GRAY) { cl->color = WHITE; return 0; }
-    if (sc->color == WHITE && !TopoSort(sc, base, next)) {
+    if (sc->color == WHITE && !TopoSort(sc, baseClass, next)) {
       cl->color = WHITE;
-      if (cl == base) {
+      if (cl == baseClass) {
         register XOTclClasses *pc;
         for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
       }
@@ -1116,9 +1120,9 @@ TopoSort(XOTclClass *cl, XOTclClass *base, XOTclClasses *(*next)(XOTclClass*)) {
   cl->color = BLACK;
   pl = NEW(XOTclClasses);
   pl->cl = cl;
-  pl->nextPtr = base->order;
-  base->order = pl;
-  if (cl == base) {
+  pl->nextPtr = baseClass->order;
+  baseClass->order = pl;
+  if (cl == baseClass) {
     register XOTclClasses *pc;
     for (pc = cl->order; pc; pc = pc->nextPtr) { pc->cl->color = WHITE; }
   }
@@ -1370,7 +1374,7 @@ static void
 ObjectSystemFree(Tcl_Interp *interp, XOTclObjectSystem *osPtr) {
   int i;
 
-  for (i=0; i<=XO___unknown_idx; i++) {
+  for (i=0; i<=XO_unknown_idx; i++) {
     Tcl_Obj *methodObj = osPtr->methods[i];
     /*fprintf(stderr, "ObjectSystemFree [%d] %p ", i, methodObj);*/
     if (methodObj) {
@@ -1434,7 +1438,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, XOTcl
   int i;
 
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
-    for (i=0; i<=XO___unknown_idx; i++) {
+    for (i=0; i<=XO_unknown_idx; i++) {
       Tcl_Obj *methodObj = osPtr->methods[i];
       if (methodObj && !strcmp(methodName, ObjStr(methodObj))) {
         int flag = 1<<i;
@@ -2477,26 +2481,32 @@ NSCheckForParent(Tcl_Interp *interp, CONST char *name, unsigned l, XOTclClass *c
         /* this is for classes */
         requireObjNamespace(interp, parentObj);
       } else {
-        /* call unknown and try again */
-        Tcl_Obj *ov[3];
-        int result;
-        ov[0] = DefaultSuperClass(interp, cl, cl->object.cl, 0)->object.cmdName;
-        ov[1] = XOTclGlobalObjs[XOTE___UNKNOWN];
-        ov[2] = Tcl_NewStringObj(parentName, -1);
-        INCR_REF_COUNT(ov[2]);
-        /*fprintf(stderr, "+++ parent... calling __unknown for %s\n", ObjStr(ov[2]));*/
-        result = Tcl_EvalObjv(interp, 3, ov, 0);
-	if (result == TCL_OK) {
-          XOTclObject *parentObj = (XOTclObject*) XOTclpGetObject(interp, parentName);
-          if (parentObj) {
-            requireObjNamespace(interp, parentObj);
-          }
-          rc = (Tcl_FindNamespace(interp, parentName,
+        XOTclClass *defaultSuperClass = DefaultSuperClass(interp, cl, cl->object.cl, 0);
+        Tcl_Obj *methodObj = XOTclMethodObj(interp, &defaultSuperClass->object, XO_requireobject_idx);
+
+        if (methodObj) {
+          /* call requireObject and try again */
+          Tcl_Obj *ov[3];
+          int result;
+          
+          ov[0] = defaultSuperClass->object.cmdName;
+          ov[1] = methodObj;
+          ov[2] = Tcl_NewStringObj(parentName, -1);
+          INCR_REF_COUNT(ov[2]);
+          /*fprintf(stderr, "+++ parent... calling __unknown for %s\n", ObjStr(ov[2]));*/
+          result = Tcl_EvalObjv(interp, 3, ov, 0);
+          if (result == TCL_OK) {
+            XOTclObject *parentObj = (XOTclObject*) XOTclpGetObject(interp, parentName);
+            if (parentObj) {
+              requireObjNamespace(interp, parentObj);
+            }
+            rc = (Tcl_FindNamespace(interp, parentName,
                                   (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY) != NULL);
-        } else {
-          rc = 0;
+          } else {
+            rc = 0;
+          }
+          DECR_REF_COUNT(ov[2]);
         }
-        DECR_REF_COUNT(ov[2]);
       }
     } else {
       XOTclObject *parentObj = (XOTclObject*) XOTclpGetObject(interp, parentName);
@@ -3629,7 +3639,7 @@ MixinComputeOrder(Tcl_Interp *interp, XOTclObject *object) {
  * add a mixin class to 'mixinList' by appending it
  */
 static int
-MixinAdd(Tcl_Interp *interp, XOTclCmdList **mixinList, Tcl_Obj *nameObj, XOTclClass *base) {
+MixinAdd(Tcl_Interp *interp, XOTclCmdList **mixinList, Tcl_Obj *nameObj, XOTclClass *baseClass) {
   XOTclClass *mixin;
   Tcl_Obj *guardObj = NULL;
   int ocName; Tcl_Obj **ovName;
@@ -3644,7 +3654,7 @@ MixinAdd(Tcl_Interp *interp, XOTclCmdList **mixinList, Tcl_Obj *nameObj, XOTclCl
         "' has too many elements.", (char *) NULL);*/
   }
 
-  if (GetClassFromObj(interp, nameObj, &mixin, base) != TCL_OK)
+  if (GetClassFromObj(interp, nameObj, &mixin, baseClass) != TCL_OK)
     return XOTclErrBadVal(interp, "mixin", "a class as mixin", ObjStr(nameObj));
 
 
@@ -5148,7 +5158,7 @@ FilterSearchProc(Tcl_Interp *interp, XOTclObject *object,
 
 
 static int
-SuperclassAdd(Tcl_Interp *interp, XOTclClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *arg, XOTclClass *base) {
+SuperclassAdd(Tcl_Interp *interp, XOTclClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *arg, XOTclClass *baseClass) {
   XOTclClasses *filterCheck, *osl = NULL;
   XOTclClass **scl;
   int reversed = 0;
@@ -5175,7 +5185,7 @@ SuperclassAdd(Tcl_Interp *interp, XOTclClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj 
 
   scl = NEW_ARRAY(XOTclClass*, oc);
   for (i = 0; i < oc; i++) {
-    if (GetClassFromObj(interp, ov[i], &scl[i], base) != TCL_OK) {
+    if (GetClassFromObj(interp, ov[i], &scl[i], baseClass) != TCL_OK) {
       FREE(XOTclClass**, scl);
       return XOTclErrBadVal(interp, "superclass", "a list of classes",
                             ObjStr(arg));
@@ -11234,7 +11244,7 @@ XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, 
                                 ObjStr(ov[i]), "'", (char *) NULL);
         }
         /*fprintf(stderr, "XOTclCreateObjectSystemCmd [%d] = %p %s (max %d, given %d)\n", 
-          idx, ov[i+1], ObjStr(ov[i+1]), XO___unknown_idx, oc);*/
+          idx, ov[i+1], ObjStr(ov[i+1]), XO_unknown_idx, oc);*/
         osPtr->methods[idx] = ov[i+1];
         INCR_REF_COUNT(osPtr->methods[idx]);
       }

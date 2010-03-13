@@ -508,15 +508,15 @@ typedef enum SystemMethodsIdx {
   XO_alloc_idx, XO_cleanup_idx, XO_configure_idx, XO_create_idx, 
   XO_defaultmethod_idx, XO_destroy_idx, XO_dealloc_idx,
   XO_init_idx, XO_move_idx, XO_objectparameter_idx, 
-  XO_recreate_idx, XO_residualargs_idx,
-  XO_unknown_idx, XO___unknown_idx
+  XO_recreate_idx, XO_requireobject_idx, XO_residualargs_idx,
+  XO_unknown_idx
 } SystemMethodsIdx;
 
 static CONST char *sytemMethodOpts[] = {"-alloc", "-cleanup", "-configure", "-create", 
                                         "-defaultmethod", "-destroy", "-dealloc",
                                         "-init", "-move", "-objectparameter", 
-                                        "-recreate", "-residualargs",
-                                        "-unknown", "-__unknown", 
+                                        "-recreate", "-requireobject",
+                                        "-residualargs", "-unknown",  
                                         NULL};
 
 typedef struct XOTclObjectSystem {
@@ -524,7 +524,7 @@ typedef struct XOTclObjectSystem {
   XOTclClass *rootMetaClass;
   int overloadedMethods;
   int definedMethods;
-  Tcl_Obj *methods[XO___unknown_idx+1];
+  Tcl_Obj *methods[XO_unknown_idx+1];
   struct XOTclObjectSystem *nextPtr;
 } XOTclObjectSystem;
 
@@ -539,7 +539,6 @@ typedef enum {
   XOTE_EMPTY, XOTE_ONE,
   /* methods called internally */
   XOTE_CONFIGURE, 
-  XOTE___UNKNOWN,
   /* var names */
   XOTE_AUTONAMES, XOTE_DEFAULTMETACLASS, XOTE_DEFAULTSUPERCLASS, 
   XOTE_ALIAS_ARRAY,
@@ -559,7 +558,6 @@ char *XOTclGlobalStrings[] = {
   "", "1", 
   /* methods called internally */
   "configure", 
-  "__unknown", 
   /* var names */
   "__autonames", "__default_metaclass", "__default_superclass", 
   "::xotcl::alias",
