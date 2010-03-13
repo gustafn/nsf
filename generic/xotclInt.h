@@ -539,7 +539,6 @@ typedef enum {
   XOTE_EMPTY, XOTE_ONE,
   /* methods called internally */
   XOTE_CONFIGURE, 
-  XOTE_MOVE, 
   XOTE_RESIDUALARGS,
   XOTE_UNKNOWN, XOTE___UNKNOWN,
   /* var names */
@@ -561,7 +560,6 @@ char *XOTclGlobalStrings[] = {
   "", "1", 
   /* methods called internally */
   "configure", 
-  "move", 
   "residualargs",
   "unknown", "__unknown", 
   /* var names */
@@ -590,6 +588,7 @@ typedef enum {SHADOW_LOAD=1, SHADOW_UNLOAD=0, SHADOW_REFETCH=2} XOTclShadowOpera
 int XOTclCallCommand(Tcl_Interp *interp, XOTclGlobalNames name,
 		     int objc, Tcl_Obj *CONST objv[]);
 int XOTclShadowTclCommands(Tcl_Interp *interp, XOTclShadowOperations load);
+Tcl_Obj * XOTclMethodObj(Tcl_Interp *interp, XOTclObject *object, int methodIdx);
 
 
 /*

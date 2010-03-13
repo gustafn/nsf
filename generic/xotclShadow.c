@@ -85,7 +85,6 @@ static int
 XOTcl_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   /* this call the Tcl_RenameObjCmd, but it ensures before that
      the renamed obj, functions, etc. are not part of XOTcl */
-  XOTclObject *obj = NULL;
   Tcl_Command cmd;
 
   /* wrong # args => normal Tcl ErrMsg*/
@@ -95,10 +94,11 @@ XOTcl_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   /* if an obj/cl should be renamed => call the XOTcl move method */
   cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL,0);
   if (cmd) {
-    obj = XOTclGetObjectFromCmdPtr(cmd);
-    if (obj) {
-      return XOTclCallMethodWithArgs((ClientData)obj, interp,
-                       XOTclGlobalObjs[XOTE_MOVE], objv[2], 1, 0, 0);
+    XOTclObject *object = XOTclGetObjectFromCmdPtr(cmd);
+    Tcl_Obj *methodObj = object ? XOTclMethodObj(interp, object, XO_move_idx) : NULL;
+    if (object && methodObj) {
+      return XOTclCallMethodWithArgs((ClientData)object, interp,
+                                     methodObj, objv[2], 1, 0, 0);
     }
   }
 

@@ -1636,7 +1636,7 @@ static int CallDirectly(Tcl_Interp *interp, XOTclObject *object, int methodIdx, 
 
 /*
  *----------------------------------------------------------------------
- * MethodObj --
+ * XOTclMethodObj --
  *
  *    Return the methodObj for a given method index.
  *
@@ -1648,7 +1648,7 @@ static int CallDirectly(Tcl_Interp *interp, XOTclObject *object, int methodIdx, 
  *
  *----------------------------------------------------------------------
  */
-Tcl_Obj *MethodObj(Tcl_Interp *interp, XOTclObject *object, int methodIdx) {
+Tcl_Obj * XOTclMethodObj(Tcl_Interp *interp, XOTclObject *object, int methodIdx) {
   XOTclObjectSystem *osPtr = GetObjectSystem(object);
   return osPtr->methods[methodIdx];
 }
@@ -6417,7 +6417,7 @@ XOTclObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     /* normal dispatch */
     result = ObjectDispatch(clientData, interp, objc, objv, 0);
   } else {
-    Tcl_Obj *methodObj = MethodObj(interp, (XOTclObject *)clientData, XO_defaultmethod_idx);
+    Tcl_Obj *methodObj = XOTclMethodObj(interp, (XOTclObject *)clientData, XO_defaultmethod_idx);
     if (methodObj) {
       Tcl_Obj *tov[2];
       tov[0] = objv[0];
@@ -8637,7 +8637,7 @@ doObjInitialization(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *
     Tcl_ListObjGetElements(interp, resultObj, &nobjc, &nobjv);
     /* CallDirectly does not make much sense, since init is already
        defined in predefined */
-    methodObj = MethodObj(interp, object, XO_init_idx);
+    methodObj = XOTclMethodObj(interp, object, XO_init_idx);
     if (methodObj) {
       result = callMethod((ClientData) object, interp, methodObj,
 			  nobjc+2, nobjv, XOTCL_CM_NO_PROTECT);
@@ -12904,7 +12904,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, CONST char *methodName, XOTclOb
      * the the string representation.
      */
     /*fprintf(stderr, "calling %s objectparameter\n", objectName(object));*/
-    Tcl_Obj *methodObj = MethodObj(interp, object, XO_objectparameter_idx);
+    Tcl_Obj *methodObj = XOTclMethodObj(interp, object, XO_objectparameter_idx);
 
     if (methodObj) {
       result = callMethod((ClientData) object, interp, methodObj, 
