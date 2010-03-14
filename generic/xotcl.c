@@ -1655,6 +1655,12 @@ static int CallDirectly(Tcl_Interp *interp, XOTclObject *object, int methodIdx, 
  */
 Tcl_Obj * XOTclMethodObj(Tcl_Interp *interp, XOTclObject *object, int methodIdx) {
   XOTclObjectSystem *osPtr = GetObjectSystem(object);
+  /*
+  fprintf(stderr, "XOTclMethodObj object %s os %p idx %d %s methodObj %p\n",
+          objectName(object), osPtr, methodIdx, 
+          XOTcl_SytemMethodOpts[methodIdx]+1,
+          osPtr->methods[methodIdx]);
+  */
   return osPtr->methods[methodIdx];
 }
 
@@ -6356,7 +6362,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     if (unknown) {
       Tcl_Obj *unknownObj = XOTclMethodObj(interp, object, XO_o_unknown_idx);
 
-      if (/*XOTclObjectIsClass(object) &&*/ (flags & XOTCL_CM_NO_UNKNOWN)) {
+      if (unknownObj == NULL || (flags & XOTCL_CM_NO_UNKNOWN)) {
 	result = XOTclVarErrMsg(interp, objectName(object),
                                 ": unable to dispatch method '",
                                 methodName, "'", (char *) NULL);
@@ -8520,7 +8526,7 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTclClass *class) {
   memset(cl, 0, sizeof(XOTclClass));
   MEM_COUNT_ALLOC("XOTclObject/XOTclClass", cl);
 
-  /* pass object system fram meta class */
+  /* pass object system from meta class */
   if (class) {
     cl->osPtr = class->osPtr;
   }
@@ -12937,6 +12943,8 @@ GetObjectParameterDefinition(Tcl_Interp *interp, CONST char *methodName, XOTclOb
 	DECR_REF_COUNT(rawConfArgs);
       }
     } else {
+      parsedParamPtr->paramDefs = NULL;
+      parsedParamPtr->possibleUnknowns = 0;
       result = TCL_OK;
     }
   }
@@ -13555,7 +13563,7 @@ static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *nameOb
    * create a new object from scratch
    */
 
-  /*fprintf(stderr, " **** 0 class '%s' wants to alloc '%s'\n", className(cl), name);*/
+  /*fprintf(stderr, " **** 0 class '%s' wants to alloc '%s'\n", className(cl), nameString);*/
   if (!NSCheckColons(nameString, 0)) {
     return XOTclVarErrMsg(interp, "Cannot allocate object -- illegal name '",
                           nameString, "'", (char *) NULL);
@@ -13652,15 +13660,23 @@ XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *specifiedName
           );*/
 
   /* don't allow to
-     - recreate an object as a class, and to
-     - recreate a class as an object
+     - recreate an object as a class, 
+     - recreate a class as an object, and to
+     - recreate an object in a different obejct system
 
      In these clases, we use destroy + create instead of recrate.
   */
 
-  if (newObject && (IsMetaClass(interp, cl, 1) == IsMetaClass(interp, newObject->cl, 1))) {
-    /*fprintf(stderr, "%%%% recreate, call recreate method ... %s, objc=%d\n",
-      ObjStr(nameObj), objc+1);*/
+  if (newObject 
+      && (IsMetaClass(interp, cl, 1) == IsMetaClass(interp, newObject->cl, 1))
+      && GetObjectSystem(newObject) == cl->osPtr) {
+
+    /*fprintf(stderr, "%%%% recreate, call recreate method ... %s, objc=%d oldOs %p != newOs %p EQ %d\n",
+            ObjStr(nameObj), objc+1,
+            GetObjectSystem(newObject), cl->osPtr,
+            GetObjectSystem(newObject) != cl->osPtr
+            );
+    */
 
     /* call recreate --> initialization */
     if (CallDirectly(interp, &cl->object, XO_c_recreate_idx, &methodObj)) {
@@ -13683,7 +13699,7 @@ XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *specifiedName
      * alloc
      */
 
-    /*fprintf(stderr, "alloc ... %s\n", ObjStr(nameObj);*/
+    /*fprintf(stderr, "alloc ... %s\n", ObjStr(nameObj));*/
     if (CallDirectly(interp, &cl->object, XO_c_alloc_idx, &methodObj)) {
       result = XOTclCAllocMethod(interp, cl, nameObj);
     } else {

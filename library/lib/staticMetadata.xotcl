@@ -1,9 +1,9 @@
+package require XOTcl
 package require xotcl::metadataAnalyzer
 package provide xotcl::staticMetadataAnalyzer 0.84
-package require XOTcl
 
 namespace eval ::xotcl::staticMetadataAnalyzer {
-  namespace import ::xotcl::*
+  ::xotcl::use xotcl1
 
   @ @File {
     description {
@@ -64,7 +64,7 @@ namespace eval ::xotcl::staticMetadataAnalyzer {
   StaticMetadataAnalyzer instproc analyzeFile name {
     my set cmd ""
 
-    set t [FileToken create [my autoname t]]  
+    set t [FileToken create [my autoname t]]
     $t set name $name
     my set fileToken $t
 

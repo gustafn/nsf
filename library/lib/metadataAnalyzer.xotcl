@@ -492,7 +492,7 @@ namespace eval ::xotcl::metadataAnalyzer {
     @ AnalyzerCmd @ {
 	description {Recreate @ with metadata analyis funtionality.}
     }
-    AnalyzerCmd create @
+    AnalyzerCmd create ::xotcl::@
 
     namespace export \
 	MetadataToken FileToken ConstraintToken PackageToken ObjToken \

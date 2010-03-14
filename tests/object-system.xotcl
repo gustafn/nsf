@@ -122,4 +122,52 @@ Object o -set x 1
 ? {catch {::xotcl::dispatch ::o -objscope ::xxx x}} 1 "cmd dispatch with unknown command"
 o destroy
 
+puts stderr ===MINI-OBJECTSYSTEM
+# test object system
+# create a minimal object system without internally dipatched methods
+::xotcl::createobjectsystem ::object ::class
+
+? {::xotcl::objectproperty ::object object} 1
+? {::xotcl::objectproperty ::object class} 1
+? {::xotcl::objectproperty ::object metaclass} 0
+? {::xotcl::relation ::object class} ::class
+? {::xotcl::relation ::object superclass} ""
+
+? {::xotcl::objectproperty ::class object} 1
+? {::xotcl::objectproperty ::class class} 1
+? {::xotcl::objectproperty ::class metaclass} 1
+? {::xotcl::relation ::class class} ::class
+? {::xotcl::relation ::class superclass} ::object
+
+# define non-standard methos to create/destroy objects and classes
+::xotcl::alias ::class  + ::xotcl::cmd::Class::create
+::xotcl::alias ::object - ::xotcl::cmd::Object::destroy
+
+# create a class named C
+::class + C
+
+? {::xotcl::objectproperty ::C object} 1
+? {::xotcl::objectproperty ::C class} 1
+? {::xotcl::objectproperty ::C metaclass} 0
+? {::xotcl::relation ::C class} ::class
+? {::xotcl::relation ::C superclass} ::object
+
+# create an instance of C
+C + c1
+
+? {::xotcl::objectproperty ::c1 object} 1
+? {::xotcl::objectproperty ::c1 class} 0
+? {::xotcl::objectproperty ::c1 metaclass} 0
+? {::xotcl::relation ::c1 class} ::C
+
+# destroy instance and class
+c1 -
+
+? {::xotcl::objectproperty ::c1 object} 0
+? {::xotcl::objectproperty ::C class} 1
+
+C -
+
+? {::xotcl::objectproperty ::C class} 0
+
 puts stderr ===EXIT
