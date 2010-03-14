@@ -88,14 +88,15 @@ XOTcl_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   Tcl_Command cmd;
 
   /* wrong # args => normal Tcl ErrMsg*/
-  if (objc != 3)
+  if (objc != 3) {
     return XOTclCallCommand(interp, XOTE_RENAME, objc, objv);
+  }
 
   /* if an obj/cl should be renamed => call the XOTcl move method */
   cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL,0);
   if (cmd) {
     XOTclObject *object = XOTclGetObjectFromCmdPtr(cmd);
-    Tcl_Obj *methodObj = object ? XOTclMethodObj(interp, object, XO_move_idx) : NULL;
+    Tcl_Obj *methodObj = object ? XOTclMethodObj(interp, object, XO_o_move_idx) : NULL;
     if (object && methodObj) {
       return XOTclCallMethodWithArgs((ClientData)object, interp,
                                      methodObj, objv[2], 1, 0, 0);

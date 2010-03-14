@@ -505,26 +505,50 @@ typedef struct XOTclClasses {
 } XOTclClasses;
 
 typedef enum SystemMethodsIdx {
-  XO_alloc_idx, XO_cleanup_idx, XO_configure_idx, XO_create_idx, 
-  XO_defaultmethod_idx, XO_destroy_idx, XO_dealloc_idx,
-  XO_init_idx, XO_move_idx, XO_objectparameter_idx, 
-  XO_recreate_idx, XO_requireobject_idx, XO_residualargs_idx,
-  XO_unknown_idx
+  XO_c_alloc_idx, 
+  XO_c_create_idx, 
+  XO_c_dealloc_idx,
+  XO_c_recreate_idx, 
+  XO_c_requireobject_idx, 
+  XO_o_cleanup_idx, 
+  XO_o_configure_idx, 
+  XO_o_defaultmethod_idx, 
+  XO_o_destroy_idx, 
+  XO_o_init_idx, 
+  XO_o_move_idx, 
+  XO_o_objectparameter_idx, 
+  XO_o_residualargs_idx,
+  XO_o_unknown_idx
 } SystemMethodsIdx;
 
-static CONST char *sytemMethodOpts[] = {"-alloc", "-cleanup", "-configure", "-create", 
-                                        "-defaultmethod", "-destroy", "-dealloc",
-                                        "-init", "-move", "-objectparameter", 
-                                        "-recreate", "-requireobject",
-                                        "-residualargs", "-unknown",  
-                                        NULL};
+#if !defined(XOTCL_C)
+extern CONST char *XOTcl_SytemMethodOpts[];
+#else 
+CONST char *XOTcl_SytemMethodOpts[] = {
+  "-class.alloc", 
+  "-class.create", 
+  "-class.dealloc",
+  "-class.recreate", 
+  "-class.requireobject",
+  "-object.cleanup", 
+  "-object.configure", 
+  "-object.defaultmethod", 
+  "-object.destroy", 
+  "-object.init", 
+  "-object.move", 
+  "-object.objectparameter", 
+  "-object.residualargs", 
+  "-object.unknown",  
+  NULL
+};
+#endif
 
 typedef struct XOTclObjectSystem {
   XOTclClass *rootClass;
   XOTclClass *rootMetaClass;
   int overloadedMethods;
   int definedMethods;
-  Tcl_Obj *methods[XO_unknown_idx+1];
+  Tcl_Obj *methods[XO_o_unknown_idx+1];
   struct XOTclObjectSystem *nextPtr;
 } XOTclObjectSystem;
 
