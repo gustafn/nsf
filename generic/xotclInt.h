@@ -47,9 +47,6 @@
 /*
  * Makros
  */
-#if defined(PRE85)
-# define TclVarHashTable Tcl_HashTable
-#endif
 
 #if defined(PRE86)
 # define Tcl_NRCallObjProc(interp, proc, cd, objc, objv) \
@@ -618,9 +615,6 @@ typedef struct XOTclCallStackContent {
   XOTclObject *self;
   XOTclClass *cl;
   Tcl_Command cmdPtr;
-#if !defined(TCL85STACK)
-  Tcl_CallFrame *currentFramePtr;
-#endif
   XOTclFilterStack *filterStackEntry;
   Tcl_Obj ** objv;
   int objc;
@@ -639,13 +633,6 @@ typedef struct XOTclCallStackContent {
 #define XOTCL_CSC_CALL_IS_NEXT 1
 #define XOTCL_CSC_CALL_IS_GUARD 2
 
-#if !defined(TCL85STACK)
-typedef struct XOTclCallStack {
-  XOTclCallStackContent content[MAX_NESTING_DEPTH];
-  XOTclCallStackContent *top;
-} XOTclCallStack;
-#endif
-
 #if defined(PROFILE)
 typedef struct XOTclProfile {
   long int overallTime;
@@ -655,9 +642,6 @@ typedef struct XOTclProfile {
 #endif
 
 typedef struct XOTclRuntimeState {
-#if !defined(TCL85STACK)
-  XOTclCallStack cs;
-#endif
   Tcl_Namespace *XOTclClassesNS;
   Tcl_Namespace *XOTclNS;
   /*
@@ -794,19 +778,13 @@ void XOTclStringIncrInit(XOTclStringIncrStruct *iss);
 void XOTclStringIncrFree(XOTclStringIncrStruct *iss);
 
 
-#if defined(TCL85STACK)
 /*
    Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
    for further extensions of tcl and tcloo...
 */
-# define FRAME_IS_XOTCL_OBJECT  0x10000
-# define FRAME_IS_XOTCL_METHOD  0x20000
-# define FRAME_IS_XOTCL_CMETHOD 0x40000
-#else
-# define FRAME_IS_XOTCL_OBJECT  0x0
-# define FRAME_IS_XOTCL_METHOD  0x0
-# define FRAME_IS_XOTCL_CMETHOD 0x0
-#endif
+#define FRAME_IS_XOTCL_OBJECT  0x10000
+#define FRAME_IS_XOTCL_METHOD  0x20000
+#define FRAME_IS_XOTCL_CMETHOD 0x40000
 
 #if !defined(NDEBUG)
 /*# define XOTCLINLINE*/

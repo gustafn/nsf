@@ -38,6 +38,32 @@
 # endif
 #endif
 
+/*
+ * prevent old TCL-versions
+ */
+
+#if TCL_MAJOR_VERSION < 8
+# error Tcl distribution is TOO OLD, we require at least tcl8.5
+#endif
+
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<5
+# error Tcl distribution is TOO OLD, we require at least tcl8.5
+#endif
+
+#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<6
+# define PRE86
+#endif
+
+#if defined(PRE86)
+# define CONST86
+# define Tcl_GetErrorLine(interp) (interp)->errorLine
+#else
+# define NRE
+#endif
+
+/*
+ * Feature activation/deactivation
+ */
 
 /* activate bytecode support 
 #define XOTCL_BYTECODE
@@ -77,20 +103,6 @@
 #define CMD_RESOLVER_TRACE 1
 */
 
-
-/* some features
-#define TCL85STACK 1
-#define CANONICAL_ARGS 1
-#define USE_COMPILED_VAR_RESOLVER 1
-*/
-
-#define USE_COMPILED_VAR_RESOLVER 1
-
-#if !defined(PRE86)
-#define CANONICAL_ARGS 1
-#define TCL85STACK 1
-#endif
-
 #if defined(PARSE_TRACE_FULL)
 # define PARSE_TRACE 1
 #endif
@@ -113,37 +125,6 @@
 # define DO_CLEANUP
 #endif
 
-/*
- * prevent old TCL-versions
- */
-
-#if TCL_MAJOR_VERSION < 8
-# error Tcl distribution is TOO OLD, we require at least tcl8.0
-#endif
-
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<5
-# define PRE85
-#endif
-
-#if TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<6
-# define PRE86
-#endif
-
-#if defined(PRE86)
-# define CONST86
-#else
-# define NRE
-#endif
-
-
-#if !defined(FORWARD_COMPATIBLE)
-# if defined(PRE85)
-#  define FORWARD_COMPATIBLE 1
-# else
-#  define FORWARD_COMPATIBLE 0
-# endif
-#endif
-
 /* 
  * A special definition used to allow this header file to be included 
  * in resource files so that they can get obtain version information from
@@ -152,13 +133,6 @@
  */
 
 #ifndef RC_INVOKED
-
-/*
-#ifdef __cplusplus
-extern "C" {
-#endif
-*/
-
 
 /*
  * The structures XOTcl_Object and XOTcl_Class define mostly opaque 
@@ -204,10 +178,5 @@ Xotcl_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, CONST char *version, int exact)
 
 #undef TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS DLLIMPORT
-
-/* backwards compatibility */
-
-#define XOTclOGetInstVar2 XOTcl_ObjGetVar2
-#define XOTclOSetInstVar2 XOTcl_ObjSetVar2
 
 #endif /* _xotcl_h_ */

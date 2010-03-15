@@ -1,5 +1,4 @@
 
-#if defined(TCL85STACK)
 static TclVarHashTable *VarHashTableCreate();
 
 void tcl85showStack(Tcl_Interp *interp) {
@@ -483,6 +482,5 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
   }
 
 }
-#endif /* TCL85STACK */
 
 
