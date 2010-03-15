@@ -100,9 +100,6 @@ static void freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *com
 static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
 static Tcl_Namespace *callingNameSpace(Tcl_Interp *interp);
 XOTCLINLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
-#ifdef EXPERIMENTAL_CMD_RESOLVER
-static int NSisXOTclNamespace(Tcl_Namespace *nsPtr);
-#endif
 static void XOTclCleanupObject(XOTclObject *object);
 
 XOTCLINLINE static void GuardAdd(Tcl_Interp *interp, XOTclCmdList *filterCL, Tcl_Obj *guardObj);
@@ -2387,13 +2384,6 @@ NSNamespaceDeleteProc(ClientData clientData) {
     object->nsPtr = NULL;
   }
 }
-
-#ifdef EXPERIMENTAL_CMD_RESOLVER
-static int
-NSisXOTclNamespace(Tcl_Namespace *nsPtr) {
-  return nsPtr->deleteProc == NSNamespaceDeleteProc;
-}
-#endif
 
 void
 XOTcl_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
@@ -8670,99 +8660,6 @@ doObjInitialization(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *
   DECR_REF_COUNT(savedObjResult);
   return result;
 }
-
-
-/*
- * experimental resolver implementation -> not used at the moment
- */
-#ifdef EXPERIMENTAL_CMD_RESOLVER
-static int
-XOTclResolveCmd(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *contextNsPtr,
-                int flags, Tcl_Command *rPtr) {
-
-  Tcl_Namespace *nsPtr[2], *cxtNsPtr;
-  char *simpleName;
-  register Tcl_HashEntry *entryPtr;
-  register Tcl_Command cmd;
-  register int search;
-
-  /*fprintf(stderr, "  ***%s->%s\n", contextNsPtr->fullName, name);*/
-
-  /*
-   * Find the namespace(s) that contain the command.
-   */
-  if (flags & TCL_GLOBAL_ONLY) {
-    cxtNsPtr = Tcl_GetGlobalNamespace(interp);
-  }
-  else if (contextNsPtr) {
-    cxtNsPtr = contextNsPtr;
-  }
-  else {
-    cxtNsPtr = Tcl_GetCurrentNamespace(interp);
-  }
-
-  TclGetNamespaceForQualName(interp, name, (Namespace *) contextNsPtr, flags,
-                             &nsPtr[0], &nsPtr[1], &cxtNsPtr, &simpleName);
-
-  /*fprintf(stderr, "  ***Found %s, %s\n", nsPtr[0]->fullName, nsPtr[0]->fullName);*/
-
-  /*
-   * Look for the command in the command table of its namespace.
-   * Be sure to check both possible search paths: from the specified
-   * namespace context and from the global namespace.
-   */
-
-  cmd = NULL;
-  for (search = 0;  (search < 2) && (cmd == NULL);  search++) {
-    if (nsPtr[search] && simpleName) {
-      cmdTable = Tcl_Namespace_cmdTable(nsPtr[search]);
-      entryPtr = XOTcl_FindHashEntry(cmdTable, simpleName);
-      if (entryPtr) {
-        cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
-      }
-    }
-  }
-  if (cmd) {
-    Tcl_ObjCmdProc *objProc = Tcl_Command_objProc(cmd);
-    if (NSisXOTclNamespace(cxtNsPtr) &&
-        objProc != XOTclObjDispatch &&
-        objProc != XOTclNextObjCmd &&
-        objProc != XOTclGetSelfObjCmd) {
-
-      /*
-       * the cmd is defined in an XOTcl object or class namespace, but
-       * not an object & not self/next -> redispatch in
-       * global namespace
-       */
-      cmd = 0;
-      nsPtr[0] = Tcl_GetGlobalNamespace(interp);
-      if (nsPtr[0] && simpleName) {
-        cmdTable = Tcl_Namespace_cmdTable(nsPtr[0]);
-        if ((entryPtr = XOTcl_FindHashEntry(cmdTable, simpleName))) {
-          cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
-        }
-      }
-
-      /*
-        XOTclStackDump(interp);
-        XOTclCallStackDump(interp);
-      */
-    }
-    *rPtr = cmd;
-    return TCL_OK;
-  }
-
-  return TCL_CONTINUE;
-}
-static int
-XOTclResolveVar(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *context,
-                Tcl_ResolvedVarInfo *rPtr) {
-  /*fprintf(stderr, "Resolving %s in %s\n", name, context->fullName);*/
-
-  return TCL_CONTINUE;
-}
-#endif
-
 
 
 static int
