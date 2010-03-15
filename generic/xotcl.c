@@ -204,8 +204,10 @@ static int hasMixin(Tcl_Interp *interp, XOTclObject *object, XOTclClass *cl);
 static int isSubType(XOTclClass *subcl, XOTclClass *cl);
 static XOTclClass *DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclClass *mcl, int isMeta);
 
+XOTCLINLINE static void CscInit(XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl, 
+                                Tcl_Command cmd, int frameType);
+XOTCLINLINE static void CscFinish(Tcl_Interp *interp, XOTclCallStackContent *cscPtr);
 static XOTclCallStackContent *CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr);
-XOTCLINLINE static void CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr);
 XOTCLINLINE static void CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *object);
 
 static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass *cl);
@@ -2518,7 +2520,7 @@ CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *object) {
   }
 
   /* If the object is not referenced on the callstack anymore
-     we have to destroy it directly, because CallStackPop won't
+     we have to destroy it directly, because CscFinish won't
      find the object destroy */
   if (object->activationCount == 0) {
     CallStackDoDestroy(interp, object);
@@ -5348,7 +5350,7 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
 # if defined(TCL_STACK_ALLOC_TRACE)
   fprintf(stderr, "---- FinalizeProcMethod calls pop, csc free %p method %s\n", cscPtr, methodName);
 # endif
-  CallStackPop(interp, cscPtr);
+  CscFinish(interp, cscPtr);
   TclStackFree(interp, cscPtr);
 
   return result;
@@ -5420,7 +5422,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 # if defined(TCL_STACK_ALLOC_TRACE)
         fprintf(stderr, "---- GuardFailed calls pop, cscPtr free %p method %s\n", cscPtr, methodName);
 # endif
-        CallStackPop(interp, cscPtr);
+        CscFinish(interp, cscPtr);
         TclStackFree(interp, cscPtr);
         /* todo check mixin guards for same case? */
 #endif
@@ -5490,7 +5492,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 # if defined(TCL_STACK_ALLOC_TRACE)
     fprintf(stderr, "---- ProcPrep fails and calls pop, cscPtr free %p method %s\n", cscPtr, methodName);
 # endif
-    CallStackPop(interp, cscPtr);
+    CscFinish(interp, cscPtr);
     TclStackFree(interp, cscPtr);
 #endif
   }
@@ -5663,13 +5665,13 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 #else
     cscPtr = &csc;
 #endif
-    CallStackPush(cscPtr, object, cl, cmd, frameType);
+    CscInit(cscPtr, object, cl, cmd, frameType);
     result = ProcMethodDispatch(cp, interp, objc, objv, methodName, object, cl, cmd, cscPtr);
 #if defined(NRE)
-    /* CallStackPop() is performed by the callbacks or in error case base ProcMethodDispatch */
+    /* CscFinish() is performed by the callbacks or in error case base ProcMethodDispatch */
     /*fprintf(stderr, "no pop for %s\n", methodName);*/
 #else
-    CallStackPop(interp, cscPtr);
+    CscFinish(interp, cscPtr);
 #endif
     return result;
 
@@ -5707,7 +5709,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
       cp = clientData;
       assert((CmdIsProc(cmd) == 0));
     }
-    CallStackPush(cscPtr, object, cl, cmd, frameType);
+    CscInit(cscPtr, object, cl, cmd, frameType);
 
   } else {
     /* 
@@ -5721,7 +5723,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   result = CmdMethodDispatch(cp, interp, objc, objv, methodName, object, cmd, cscPtr);
   /* make sure, that csc is still in the scope; therefore, csc is
      currently on the top scope of this function */
-  CallStackPop(interp, cscPtr);
+  CscFinish(interp, cscPtr);
 
   return result;
 }
@@ -12430,7 +12432,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
       */
 
       Tcl_Interp_varFramePtr(interp) = varFramePtr->callerPtr;
-      CallStackPush(cscPtr, object, NULL /*cl*/, NULL/*cmd*/, XOTCL_CSC_TYPE_PLAIN);
+      CscInit(cscPtr, object, NULL /*cl*/, NULL/*cmd*/, XOTCL_CSC_TYPE_PLAIN);
       XOTcl_PushFrameCsc(interp, cscPtr, framePtr2);
 
       if (paramPtr->flags & XOTCL_ARG_INITCMD) {
@@ -12456,7 +12458,7 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
          varFramePtr to the previous value.
       */
       XOTcl_PopFrameCsc(interp, framePtr2); 
-      CallStackPop(interp, cscPtr);
+      CscFinish(interp, cscPtr);
       Tcl_Interp_varFramePtr(interp) = varFramePtr;
 
       /*fprintf(stderr, "XOTclOConfigureMethod_ attribute %s evaluated %s => (%d)\n",

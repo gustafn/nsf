@@ -1,5 +1,6 @@
 
 static TclVarHashTable *VarHashTableCreate();
+static void XOTclCleanupObject(XOTclObject *object);
 
 void tcl85showStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
@@ -342,7 +343,6 @@ CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *object) {
   return NULL;
 }
 
-static void XOTclCleanupObject(XOTclObject *object);
 /*
  * Pop any callstack entry that is still alive (e.g.
  * if "exit" is called and we were jumping out of the
@@ -364,7 +364,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
     if (frameFlags & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
       /* free the call stack content; we need this just for decr activation count */
       XOTclCallStackContent *cscPtr = ((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr));
-      CallStackPop(interp, cscPtr);
+      CscFinish(interp, cscPtr);
     } else if (frameFlags & FRAME_IS_XOTCL_OBJECT) {
       Tcl_CallFrame_varTablePtr(framePtr) = NULL;
     }
@@ -374,10 +374,35 @@ static void CallStackPopAll(Tcl_Interp *interp) {
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CscInit --
+ *
+ *    Initialize call stack content and track activation counts
+ *    of involved objects and classes
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Initialized Csc, updated activation counts
+ *
+ *----------------------------------------------------------------------
+ */
+
 XOTCLINLINE static void
-CallStackPush(XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl, Tcl_Command cmd, int frameType) {
+CscInit(XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl, Tcl_Command cmd, int frameType) {
+
+  assert(cscPtr);
+
+  /*
+   * track object activations
+   */ 
   object->activationCount ++;
-#if 1
+
+  /*
+   * track class activations
+   */ 
   if (cl) {
     Namespace *nsPtr = ((Command *)cmd)->nsPtr;
     cl->object.activationCount ++;
@@ -391,7 +416,7 @@ CallStackPush(XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl
        during the invocation */
     nsPtr->refCount ++;
   }
-#endif
+
   /* fprintf(stderr, "incr activationCount for %s to %d\n", objectName(object), object->activationCount); */
   cscPtr->self          = object;
   cscPtr->cl            = cl;
@@ -411,8 +436,23 @@ CallStackPush(XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl
 #endif
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CscFinish --
+ *
+ *    Counterpart of CscInit(). Decreament activation counts
+ *    and delete objects/classes if necessary.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    potentially deletes objects, classes or namespaces.
+ *
+ *----------------------------------------------------------------------
+ */
 XOTCLINLINE static void
-CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
+CscFinish(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
   XOTclObject *object = cscPtr->self;
   int allowDestroy = RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
     XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
@@ -446,11 +486,11 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
 
     object = &cscPtr->cl->object;
     object->activationCount --;
-    /*  fprintf(stderr, "CallStackPop cl=%p %s (%d) flags %.6x cl ns=%p cmd %p cmd ns %p\n",
+    /*  fprintf(stderr, "CscFinish cl=%p %s (%d) flags %.6x cl ns=%p cmd %p cmd ns %p\n",
             object, objectName(object), object->activationCount, object->flags, cscPtr->cl->nsPtr, 
             cscPtr->cmdPtr, ((Command *)cscPtr->cmdPtr)->nsPtr); */
 
-    /*fprintf(stderr, "CallStackPop check ac %d flags %.6x\n",
+    /*fprintf(stderr, "CscFinish check ac %d flags %.6x\n",
       object->activationCount, object->flags & XOTCL_DESTROY_CALLED);*/
 
     if (object->activationCount < 1 && object->flags & XOTCL_DESTROY_CALLED && allowDestroy) {
@@ -464,7 +504,7 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
 
     if (nsPtr) {
       nsPtr->refCount--;
-      /*fprintf(stderr, "CallStackPop parent %s activationCount %d flags %.4x refCount %d\n", 
+      /*fprintf(stderr, "CscFinish parent %s activationCount %d flags %.4x refCount %d\n", 
         nsPtr->fullName, nsPtr->activationCount, nsPtr->flags, nsPtr->refCount);*/
     
       if ((nsPtr->refCount == 0) && (nsPtr->flags & NS_DEAD)) {
@@ -478,7 +518,7 @@ CallStackPop(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
       }
     }
 
-    /*fprintf(stderr, "CallStackPop done\n");*/
+    /*fprintf(stderr, "CscFinish done\n");*/
   }
 
 }
