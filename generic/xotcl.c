@@ -1698,6 +1698,7 @@ int InterpCompiledColonVarResolver(Tcl_Interp *interp,
     vInfoPtr->vInfo.deleteProc = CompiledColonVarFree; /* if NULL, tcl does a ckfree on proc clean up */
     vInfoPtr->lastObj = NULL;
     vInfoPtr->var = NULL;
+    fprintf(stderr, "copying %d bytes\n", length);
     memcpy(vInfoPtr->buffer, name+1, length-1);
     vInfoPtr->nameObj = Tcl_NewStringObj(name+1, length-1);
     INCR_REF_COUNT(vInfoPtr->nameObj);
