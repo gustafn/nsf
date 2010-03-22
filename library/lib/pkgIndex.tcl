@@ -7,7 +7,6 @@
 # in response to "package require" commands.  When this
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
-
 package ifneeded xotcl::htmllib 0.1 [list source [file join $dir htmllib.xotcl]]
 package ifneeded xotcl::metadataAnalyzer 0.84 [list source [file join $dir metadataAnalyzer.xotcl]]
 package ifneeded xotcl::mixinStrategy 0.9 [list source [file join $dir mixinStrategy.xotcl]]

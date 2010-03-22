@@ -191,6 +191,6 @@ int XOTclCallCommand(Tcl_Interp *interp, XOTclGlobalNames name,
   
   result = Tcl_NRCallObjProc(interp, ti->proc, ti->cd, objc, ov);
 
-  FREE_ON_STACK(ov);
+  FREE_ON_STACK(Tcl_Obj *, ov);
   return result;
 }

@@ -624,7 +624,7 @@ callMethod(ClientData cd, Tcl_Interp *interp, Tcl_Obj *method,
     ObjStr(tov[0]), ObjStr(tov[1]), objc);*/
   result = DoDispatch(cd, interp, objc, tov, flags);
   /*fprintf(stderr, "     callMethod returns %d\n", result);*/
-  FREE_ON_STACK(tov);
+  FREE_ON_STACK(Tcl_Obj *,tov);
   return result;
 }
 
@@ -647,7 +647,7 @@ XOTclCallMethodWithArgs(ClientData cd, Tcl_Interp *interp, Tcl_Obj *method, Tcl_
 
   result = DoDispatch(cd, interp, objc, tov, flags);
 
-  FREE_ON_STACK(tov);
+  FREE_ON_STACK(Tcl_Obj *, tov);
   return result;
 }
 
@@ -2278,7 +2278,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *name, XOTclObject *obj,
       if (Tcl_EvalObjv(interp, 3, ov, 0) != TCL_OK) {
         XOTcl_PopFrame(interp, obj);
         DECR_REF_COUNT(savedResult);
-        FREE_ON_STACK(ov);
+        FREE_ON_STACK(Tcl_Obj *, ov);
         return 0;
       }
       DECR_REF_COUNT(result);
@@ -2286,7 +2286,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *name, XOTclObject *obj,
       INCR_REF_COUNT(result);
       Tcl_SetObjResult(interp, savedResult);
       DECR_REF_COUNT(savedResult);
-      FREE_ON_STACK(ov);
+      FREE_ON_STACK(Tcl_Obj *, ov);
     } else {
       valueString = Tcl_GetStringFromObj(valueObject,&valueLength);
       Tcl_AppendToObj(result, valueString, valueLength);
@@ -3465,7 +3465,7 @@ getAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *s
     for (m = startCl->opt->isClassMixinOf; m; m = m->next) {
 
       /* we should have no deleted commands in the list */
-      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == NULL);
+      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0);
 
       cl = XOTclGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
@@ -3488,7 +3488,7 @@ getAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *s
     for (m = startCl->opt->isObjectMixinOf; m; m = m->next) {
 
       /* we should have no deleted commands in the list */
-      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == NULL);
+      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0);
 
       obj = XOTclGetObjectFromCmdPtr(m->cmdPtr);
       assert(obj);
@@ -3543,7 +3543,7 @@ getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *st
     for (m = startCl->opt->isClassMixinOf; m; m = m->next) {
 
       /* we should have no deleted commands in the list */
-      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == NULL);
+      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0);
 
       cl = XOTclGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
@@ -3581,7 +3581,7 @@ getAllClassMixins(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *star
     for (m = startCl->opt->instmixins; m; m = m->next) {
 
       /* we should have no deleted commands in the list */
-      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == NULL);
+      assert(Tcl_Command_cmdEpoch(m->cmdPtr) == 0);
 
       cl = XOTclGetClassFromCmdPtr(m->cmdPtr);
       assert(cl);
@@ -5696,7 +5696,7 @@ DoDispatch(ClientData cd, Tcl_Interp *interp, int objc,
           fprintf(stderr,"?? %s unknown %s\n", ObjStr(obj->cmdName), ObjStr(tov[2]));
         */
         result = DoDispatch(cd, interp, objc+1, tov, flags | XOTCL_CM_NO_UNKNOWN);
-        FREE_ON_STACK(tov);
+        FREE_ON_STACK(Tcl_Obj *, tov);
 	
       } else { /* unknown failed */
         return XOTclVarErrMsg(interp, ObjStr(objv[0]), 
@@ -9113,7 +9113,7 @@ XOTclInstVar(XOTcl_Object *obji, Tcl_Interp *interp, char *name, char *destName)
     DECR_REF_COUNT(alias);
   }
   DECR_REF_COUNT(objv[1]);
-  FREE_ON_STACK(objv);
+  FREE_ON_STACK(Tcl_Obj *, objv);
   return result;
 }
 
@@ -9485,7 +9485,7 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     memcpy(ov, objv, sizeof(Tcl_Obj *)*objc);
     ov[0] = tcd->cmdName;
     result = callForwarder(tcd, interp, objc, ov);
-    FREE_ON_STACK(ov);
+    FREE_ON_STACK(Tcl_Obj *, ov);
     return result;
   } else {
     Tcl_Obj **ov, *freeList=NULL;
@@ -9596,8 +9596,8 @@ XOTclForwardMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     if (tcd->prefix) {DECR_REF_COUNT(ov[1]);}
   exitforwardmethod:
     if (freeList)    {DECR_REF_COUNT(freeList);}
-    FREE_ON_STACK(objvmap);
-    FREE_ON_STACK(OV);
+    FREE_ON_STACK(int, objvmap);
+    FREE_ON_STACK(Tcl_Obj *,OV);
   }
   return result;
 }
@@ -10727,7 +10727,7 @@ createMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *obj,
 
   /* fprintf(stderr, "create -- end ... %s\n", ObjStr(tov[1]));*/
   if (tmpObj)  {DECR_REF_COUNT(tmpObj);}
-  FREE_ON_STACK(tov);
+  FREE_ON_STACK(Tcl_Obj *, tov);
   return result;
 }
 
@@ -10819,7 +10819,7 @@ XOTclCNewMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
       memcpy(ov+3, objv+offset, sizeof(Tcl_Obj *)*objc);
 
     result = DoDispatch(cd, interp, objc+3, ov, 0);
-    FREE_ON_STACK(ov);
+    FREE_ON_STACK(Tcl_Obj *, ov);
   }
 
 #if REFCOUNTED
@@ -12543,10 +12543,10 @@ XOTcl_InterpObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     xotclMemCountInterpCounter++;
 #endif
   }
-  FREE_ON_STACK(ov);
+  FREE_ON_STACK(Tcl_Obj *, ov);
   return TCL_OK;
  interp_error:
-  FREE_ON_STACK(ov);
+  FREE_ON_STACK(Tcl_Obj *, ov);
   return TCL_ERROR;
 }
 

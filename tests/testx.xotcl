@@ -1,5 +1,5 @@
 #$Id: testx.xotcl,v 1.36 2007/10/12 19:53:32 neumann Exp $
-package require XOTcl
+package require XOTcl 1
 namespace import -force xotcl::*
 
 proc ::errorCheck {got expected msg} {
