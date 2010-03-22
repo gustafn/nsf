@@ -226,6 +226,6 @@ int XOTclCallCommand(Tcl_Interp *interp, XOTclGlobalNames name,
   if (objc > 1)
     memcpy(ov+1, objv+1, sizeof(Tcl_Obj *)*(objc-1));
   result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, objc, objv);
-  FREE_ON_STACK(ov);
+  FREE_ON_STACK(Tcl_Obj *, ov);
   return result;
 }

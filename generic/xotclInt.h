@@ -165,18 +165,18 @@ typedef struct XOTclMemCounter {
 #  define ALLOC_ON_STACK(type,n,var) \
     int __##var##_count = (n); type __##var[n+2]; \
     type *var = __##var + 1; var[-1] = var[__##var##_count] = (type)0xdeadbeaf
-#  define FREE_ON_STACK(var) \
-    assert(var[-1] == var[__##var##_count] && (void *)var[-1] == (void*)0xdeadbeaf)
+#  define FREE_ON_STACK(type,var)                                       \
+  assert(var[-1] == var[__##var##_count] && var[-1] == (type)0xdeadbeaf)
 # else
 #  define ALLOC_ON_STACK(type,n,var) type var[(n)]
-#  define FREE_ON_STACK(var)
+#  define FREE_ON_STACK(type,var)
 # endif
 #elif defined(USE_ALLOCA)
 #  define ALLOC_ON_STACK(type,n,var) type *var = (type *)alloca((n)*sizeof(type))
-#  define FREE_ON_STACK(var)
+#  define FREE_ON_STACK(type,var)
 #else
 #  define ALLOC_ON_STACK(type,n,var) type *var = (type *)ckalloc((n)*sizeof(type))
-#  define FREE_ON_STACK(var) ckfree((char*)var)
+#  define FREE_ON_STACK(type,var) ckfree((char*)var)
 #endif
 
 #ifdef USE_ALLOCA
