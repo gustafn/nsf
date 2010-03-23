@@ -8245,7 +8245,7 @@ doObjInitialization(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *
    */
   if (CallDirectly(interp, object, XO_o_configure_idx, &methodObj)) {
     ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
-    memcpy(tov+1, objv+2, sizeof(Tcl_Obj *)*(objc-1));
+    memcpy(tov+1, objv+2, sizeof(Tcl_Obj *)*(objc-2));
     /* the provided name of the method is just for error reporting */
     tov[0] = methodObj ? methodObj : XOTclGlobalObjs[XOTE_CONFIGURE];
     result = XOTclOConfigureMethod(interp, object, objc-1, tov);
@@ -14050,9 +14050,9 @@ ObjectHasChildren(Tcl_Interp *interp, XOTclObject *object) {
 
     for (hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch); hPtr;
          hPtr = Tcl_NextHashEntry(&hSrch)) {
-      char *key = Tcl_GetHashKey(cmdTable, hPtr);
-      if (XOTclpGetObject(interp, key)) {
-        /*fprintf(stderr, "child = %s\n", key);*/
+      Tcl_Command cmd = Tcl_GetHashValue(hPtr);
+      
+      if (XOTclGetObjectFromCmdPtr(cmd)) {
         result = 1;
         break;
       }
@@ -14075,7 +14075,7 @@ finalObjectDeletion(Tcl_Interp *interp, XOTclObject *object) {
     object->refCount = 1;
   }
   assert(object->activationCount == 0);
-  /*fprintf(stderr, "*** obj %p activationcount %d\n",object, object->activationCount);*/
+  /*fprintf(stderr, "finalObjectDeletion obj %p activationcount %d\n", object, object->activationCount);*/
   if (object->id) Tcl_DeleteCommandFromToken(interp, object->id);
 }
 
