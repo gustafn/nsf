@@ -1567,10 +1567,10 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
      */
 
     newVar = VarHashCreateVar(varTablePtr, key, &new);
-
-    DECR_REF_COUNT(key);
     *varPtr = (Tcl_Var)newVar;
   }
+  DECR_REF_COUNT(key);
+
   return *varPtr ? TCL_OK : TCL_ERROR;
 }
 
@@ -10966,9 +10966,11 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
 
 #ifdef DO_CLEANUP
   /*fprintf(stderr, "CLEANUP TOP NS\n");*/
-  XOTcl_DeleteNamespace(interp, RUNTIME_STATE(interp)->XOTclClassesNS);
-  XOTcl_DeleteNamespace(interp, RUNTIME_STATE(interp)->XOTclNS);
+  Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "", 1);
+  Tcl_DeleteNamespace(RUNTIME_STATE(interp)->XOTclClassesNS);
+  Tcl_DeleteNamespace(RUNTIME_STATE(interp)->XOTclNS);
 #endif
+  /*xxxx*/
 
   return TCL_OK;
 }
