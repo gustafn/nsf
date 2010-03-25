@@ -517,10 +517,6 @@ XOTclCleanupObject(XOTclObject *object) {
 #if !defined(NDEBUG)
     memset(object, 0, sizeof(XOTclObject));
 #endif
-    /*
-    if (object->cmdName->refCount > 1) {
-      fprintf(stderr, "--- obj %p %s cmdName->refCount %d\n",object,ObjStr(object->cmdName), object->cmdName->refCount);
-      }*/
     ckfree((char *) object);
   }
 }
@@ -2045,7 +2041,6 @@ NSRequireVariableOnObj(Tcl_Interp *interp, XOTclObject *object, CONST char *name
 
 static int
 XOTcl_DeleteCommandFromToken(Tcl_Interp *interp, Tcl_Command cmd) {
-  /*fprintf(stderr, "XOTcl_DeleteCommandFromToken %p\n",cmd);*/
   CallStackClearCmdReferences(interp, cmd);
   return Tcl_DeleteCommandFromToken(interp, cmd);
 }
@@ -2084,7 +2079,7 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
         /*
          * cmd is an aliased object, reduce the refcount
          */
-        /* fprintf(stderr, "NSCleanupNamespace cleanup aliased object %p\n", invokeObj); */
+        /*fprintf(stderr, "NSCleanupNamespace cleanup aliased object %p\n", invokeObj); */
         XOTclCleanupObject(invokeObj);
         XOTcl_DeleteCommandFromToken(interp, cmd);
       }
@@ -2095,12 +2090,12 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
         continue;
       }
 
-      /*fprintf(stderr, "NSCleanupNamespace calls DeleteCommandFromToken for %p flags %.6x invokeObj %p\n",
-              cmd, ((Command *)cmd)->flags, invokeObj);
-      fprintf(stderr, "    cmd = %s\n", Tcl_GetCommandName(interp,cmd));
-      fprintf(stderr, "    nsPtr = %p\n", ((Command *)cmd)->nsPtr);
-      fprintf(stderr, "    flags %.6x\n", ((Namespace *)((Command *)cmd)->nsPtr)->flags);*/
-
+      /* fprintf(stderr, "NSCleanupNamespace calls DeleteCommandFromToken for %p flags %.6x invokeObj %p obj %p\n",
+                cmd, ((Command *)cmd)->flags, invokeObj,object);
+        fprintf(stderr, "    cmd = %s\n", Tcl_GetCommandName(interp,cmd));
+        fprintf(stderr, "    nsPtr = %p\n", ((Command *)cmd)->nsPtr);
+        fprintf(stderr, "    flags %.6x\n", ((Namespace *)((Command *)cmd)->nsPtr)->flags);*/
+        
       XOTcl_DeleteCommandFromToken(interp, cmd);
   }
 }
@@ -2545,8 +2540,8 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *object) {
   if (object->flags & XOTCL_DURING_DELETE) {
     return;
   }
-  /*fprintf(stderr, "CallStackDoDestroy %p flags %.6x activation %d cmd %p\n", 
-    obj, obj->flags, obj->activationCount, obj->id);*/
+  /*fprintf(stderr, "CallStackDoDestroy %p flags %.6x activation %d cmd %p \n", 
+    object, object->flags, object->activationCount, object->id);*/
   object->flags |= XOTCL_DURING_DELETE;
   oid = object->id;
   /* oid might be freed already, we can't even use (((Command*)oid)->flags & CMD_IS_DELETED) */
@@ -2565,12 +2560,10 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *object) {
       object, object->refCount, object->teardown);*/
 
     PrimitiveDestroy((ClientData) object);
-
-    if (!(object->flags & XOTCL_CMD_NOT_FOUND)) {
+    if (!(object->flags & XOTCL_TCL_DELETE) && !(object->flags & XOTCL_CMD_NOT_FOUND)) {
       Tcl_Obj *savedObjResult = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(savedObjResult);
-
-      /*fprintf(stderr, "    before DeleteCommandFromToken %p %.6x\n", oid, ((Command*)oid)->flags);*/
+      /*fprintf(stderr, "    before DeleteCommandFromToken %p object flags %.6x\n", oid, object->flags);*/
       Tcl_DeleteCommandFromToken(interp, oid); /* this can change the result */
       /*fprintf(stderr, "    after DeleteCommandFromToken %p %.6x\n", oid, ((Command*)oid)->flags);*/
       Tcl_SetObjResult(interp, savedObjResult);
@@ -2617,7 +2610,7 @@ CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *object) {
       NSDeleteChildren(interp, object->nsPtr);
     }
   }
-  /* fprintf(stderr, "  CallStackDestroyObject %p final done\n",  object);*/
+  /*fprintf(stderr, "  CallStackDestroyObject %p DONE\n",  object);*/
 }
 
 /*
@@ -6003,7 +5996,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     unknown = 1;
   }
 
-  /*fprintf(stderr, "cmd %p unknown %d result %d\n", cmd, unknown, result);*/
+  /* fprintf(stderr, "cmd %p unknown %d result %d\n", cmd, unknown, result);*/
 
   if (result == TCL_OK) {
     /*fprintf(stderr, "after doCallProcCheck unknown == %d\n", unknown);*/
@@ -6063,6 +6056,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     FilterStackPop(object);
 
   XOTclCleanupObject(object);
+  /*fprintf(stderr, "ObjectDispatch call XOTclCleanupObject %p DONE\n", object);*/
   DECR_REF_COUNT(cmdName); /* must be after last dereferencing of obj */
   return result;
 }
@@ -7659,6 +7653,8 @@ tclDeletesObject(ClientData clientData) {
   XOTclObject *object = (XOTclObject*)clientData;
   Tcl_Interp *interp;
 
+  object->flags |= XOTCL_TCL_DELETE;
+
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "tclDeletesObject %p obj->id %p flags %.6x\n", object, object->id, object->flags);
 #endif
@@ -7668,6 +7664,7 @@ tclDeletesObject(ClientData clientData) {
   fprintf(stderr, "... %p %s\n", object, objectName(object));
 # endif
   CallStackDestroyObject(interp, object);
+  /*fprintf(stderr, "tclDeletesObject %p DONE\n", object);*/
 }
 
 /*
@@ -13225,7 +13222,6 @@ static int DoDealloc(Tcl_Interp *interp, XOTclObject *object) {
     CallStackDestroyObject(interp, object);
   }
 
-  /* fprintf(stderr, "DoDealloc obj=%p done\n", object);*/
   return TCL_OK;
 }
 

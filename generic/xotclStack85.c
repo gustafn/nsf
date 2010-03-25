@@ -406,10 +406,10 @@ CscInit(XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl, Tcl_
   if (cl) {
     Namespace *nsPtr = ((Command *)cmd)->nsPtr;
     cl->object.activationCount ++;
-    /*fprintf(stderr, "... %s cmd %s cmd ns %p (%s) obj ns %p parent %p\n", 
+    /*fprintf(stderr, "... %s cmd %s cmd ns %p (%s, refCount %d ++) obj ns %p parent %p\n", 
             className(cl), 
             Tcl_GetCommandName(object->teardown, cmd),
-            ((Command *)cmd)->nsPtr, ((Command *)cmd)->nsPtr->fullName,
+            nsPtr, nsPtr->fullName, nsPtr->refCount,
             cl->object.nsPtr,cl->object.nsPtr ? ((Namespace*)cl->object.nsPtr)->parentPtr : NULL);*/
     
     /* incremement the namespace ptr in case tcl tries to delete this namespace 
@@ -440,7 +440,7 @@ CscInit(XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl, Tcl_
  *----------------------------------------------------------------------
  * CscFinish --
  *
- *    Counterpart of CscInit(). Decreament activation counts
+ *    Counterpart of CscInit(). Decrement activation counts
  *    and delete objects/classes if necessary.
  *
  * Results:
@@ -510,6 +510,7 @@ CscFinish(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
       if ((nsPtr->refCount == 0) && (nsPtr->flags & NS_DEAD)) {
         /* the namspace refcound has reached 0, we have to free
            it. unfortunately, NamespaceFree() is not exported */
+        /* TODO: remove me finally */
         fprintf(stderr, "HAVE TO FREE %p\n",nsPtr);
         /*NamespaceFree(nsPtr);*/
         ckfree(nsPtr->fullName);
@@ -518,8 +519,8 @@ CscFinish(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
       }
     }
 
-    /*fprintf(stderr, "CscFinish done\n");*/
   }
+  /*fprintf(stderr, "CscFinish done\n");*/
 
 }
 
