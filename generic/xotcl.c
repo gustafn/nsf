@@ -3789,6 +3789,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
           MixinResetOrderForInstances(interp, ncl);
       }
   }
+  Tcl_DeleteHashTable(commandTable);
   MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
 
 }
@@ -11079,6 +11080,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
                 if (matchObject && rc && !withGuards) {
                   Tcl_SetObjResult(interp, rc ? matchObject->cmdName : XOTclGlobalObjects[XOTE_EMPTY]);
                 }
+                Tcl_DeleteHashTable(commandTable);
                 MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
 	      } else {
 	        rc = opt ? MixinInfo(interp, opt->instmixins, pattern, withGuards, matchObject) : TCL_OK;
@@ -11112,6 +11114,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
                 MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
                 Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
                 rc = getAllClassMixinsOf(interp, commandTable, cl, 0, 1, pattern, matchObject);
+                Tcl_DeleteHashTable(commandTable);
                 MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
               } else {
                 rc = AppendMatchingElementsFromCmdList(interp, opt->isClassMixinOf, 
@@ -11222,6 +11225,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
 	  MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
 	  Tcl_InitHashTable(commandTable, TCL_ONE_WORD_KEYS);
 	  rc = getAllObjectMixinsOf(interp, commandTable, cl, 0, 1, pattern, matchObject);
+          Tcl_DeleteHashTable(commandTable);
 	  MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
 	}
         return TCL_OK;
@@ -11333,8 +11337,8 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
           cl->order = NULL;
           subclasses = ComputeOrder(cl, cl->order, Sub);
           cl->order = saved;
-          if (subclasses) subclasses=subclasses->next;
-          rc = AppendMatchingElementsFromClasses(interp, subclasses, pattern, matchObject);
+          rc = AppendMatchingElementsFromClasses(interp, subclasses ? subclasses->next : NULL, 
+                                                 pattern, matchObject);
           XOTclFreeClasses(subclasses);
         } else {
           rc = AppendMatchingElementsFromClasses(interp, cl->sub, pattern, matchObject);
@@ -11581,6 +11585,7 @@ XOTclCInstForwardMethod(ClientData cd, Tcl_Interp *interp,
                     (ClientData)tcd, forwardCmdDeleteProc);
     return TCL_OK;
   } else {
+    forwardCmdDeleteProc((ClientData)tcd);
   forward_argc_error:
     return XOTclObjErrArgCnt(interp, cl->object.cmdName,
                              "instforward method ?target? ?-default name? ?-objscope? ?-methodprefix string? ?args?");
@@ -11606,6 +11611,7 @@ XOTclOForwardMethod(ClientData cd, Tcl_Interp *interp,
                     (ClientData)tcd, forwardCmdDeleteProc);
     return TCL_OK;
   } else {
+    forwardCmdDeleteProc((ClientData)tcd);
   forward_argc_error:
     return XOTclObjErrArgCnt(interp, obj->cmdName,
                              "forward method ?target? ?-default name? ?-objscope? ?-methodprefix string? ?args?");
