@@ -640,7 +640,7 @@ XOTclClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
     int returnCode;
 
-    if (getMatchObject(interp, pattern,  objv[2], &patternObj, &patternString) == -1) {
+    if (getMatchObject(interp, pattern, objc>2 ? objv[2] : NULL, &patternObj, &patternString) == -1) {
       if (pattern) {
         DECR_REF_COUNT(pattern);
       }
@@ -718,7 +718,7 @@ XOTclClassInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
     int returnCode;
 
-    if (getMatchObject(interp, pattern,  objv[3], &patternObj, &patternString) == -1) {
+    if (getMatchObject(interp, pattern, objc>3 ? objv[3] : NULL, &patternObj, &patternString) == -1) {
       if (pattern) {
         DECR_REF_COUNT(pattern);
       }
@@ -753,7 +753,7 @@ XOTclClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
     int returnCode;
 
-    if (getMatchObject(interp, pattern,  objv[3], &patternObj, &patternString) == -1) {
+    if (getMatchObject(interp, pattern, objc>3 ? objv[3] : NULL, &patternObj, &patternString) == -1) {
       if (pattern) {
         DECR_REF_COUNT(pattern);
       }
@@ -842,7 +842,7 @@ XOTclClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
     int returnCode;
 
-    if (getMatchObject(interp, pattern,  objv[2], &patternObj, &patternString) == -1) {
+    if (getMatchObject(interp, pattern, objc>2 ? objv[2] : NULL, &patternObj, &patternString) == -1) {
       if (pattern) {
         DECR_REF_COUNT(pattern);
       }
@@ -1080,7 +1080,7 @@ XOTclObjInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
     int returnCode;
 
-    if (getMatchObject(interp, pattern,  objv[3], &patternObj, &patternString) == -1) {
+    if (getMatchObject(interp, pattern, objc>3 ? objv[3] : NULL, &patternObj, &patternString) == -1) {
       if (pattern) {
         DECR_REF_COUNT(pattern);
       }

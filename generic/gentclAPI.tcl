@@ -153,7 +153,7 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
           lappend if "CONST char *${varName}String" "XOTclObject *${varName}Obj"
           set ifSet 1
           append pre [subst -nocommands {
-    if (getMatchObject(interp, ${varName},  objv[$i], &${varName}Obj, &${varName}String) == -1) {
+    if (getMatchObject(interp, ${varName}, objc>$i ? objv[$i] : NULL, &${varName}Obj, &${varName}String) == -1) {
       if (${varName}) {
         DECR_REF_COUNT(${varName});
       }

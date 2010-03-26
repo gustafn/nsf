@@ -82,8 +82,8 @@ typedef struct XOTclMemCounter {
 #  define MEM_COUNT_CLOSE_FRAME()
 #endif
 
-#define DSTRING_INIT(D) Tcl_DStringInit(D); MEM_COUNT_ALLOC("DString",D)
-#define DSTRING_FREE(D) Tcl_DStringFree(D); MEM_COUNT_FREE("DString",D)
+#define DSTRING_INIT(dsPtr) Tcl_DStringInit(dsPtr); MEM_COUNT_ALLOC("DString",dsPtr)
+#define DSTRING_FREE(dsPtr) Tcl_DStringFree(dsPtr); MEM_COUNT_FREE("DString",dsPtr)
 
 #if USE_ASSOC_DATA
 # define RUNTIME_STATE(interp) ((XOTclRuntimeState*)Tcl_GetAssocData((interp), "XOTclRuntimeState", NULL))
