@@ -184,7 +184,7 @@ static void ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *metho
 static XOTclObjectSystem *GetObjectSystem(XOTclObject *object);
 
 static void getAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *startClass);
-static void freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable);
+static void freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTable);
 
 static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
 static Tcl_Namespace *callingNameSpace(Tcl_Interp *interp);
@@ -1130,7 +1130,7 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, XOTcl
  */
 static int
 ObjectSystemsCleanup(Tcl_Interp *interp) {
-  Tcl_HashTable objTable, *commandTable = &objTable;
+  Tcl_HashTable objTable, *commandNameTable = &objTable;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
   XOTclObjectSystem *osPtr, *nPtr;
@@ -1148,21 +1148,21 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
    * different object systems.
    */
 
-  Tcl_InitHashTable(commandTable, TCL_STRING_KEYS);
-  MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
+  Tcl_InitHashTable(commandNameTable, TCL_STRING_KEYS);
+  MEM_COUNT_ALLOC("Tcl_InitHashTable", commandNameTable);
 
   /* collect all instances from all object systems */
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
     /*fprintf(stderr, "destroyObjectSystem deletes %s\n", className(osPtr->rootClass));*/
-    getAllInstances(interp, commandTable, osPtr->rootClass);
+    getAllInstances(interp, commandNameTable, osPtr->rootClass);
   }
 
   /***** SOFT DESTROY *****/
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
   /*fprintf(stderr, "===CALL destroy on OBJECTS\n");*/
 
-  for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-    char *key = Tcl_GetHashKey(commandTable, hPtr);
+  for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    char *key = Tcl_GetHashKey(commandNameTable, hPtr);
     XOTclObject *object = XOTclpGetObject(interp, key);
     /* fprintf(stderr, "key = %s %p %d\n",
        key, obj, obj && !XOTclObjectIsClass(object)); */
@@ -1174,8 +1174,8 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
 
   /*fprintf(stderr, "===CALL destroy on CLASSES\n");*/
 
-  for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-    char *key = Tcl_GetHashKey(commandTable, hPtr);
+  for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    char *key = Tcl_GetHashKey(commandNameTable, hPtr);
     XOTclClass *cl = XOTclpGetClass(interp, key);
     if (cl && !(cl->object.flags & XOTCL_DESTROY_CALLED)) {
       callDestroyMethod(interp, (XOTclObject *)cl, 0);
@@ -1186,15 +1186,15 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
   RUNTIME_STATE(interp)->doFilters = 0;
 
 #ifdef DO_CLEANUP
-  freeAllXOTclObjectsAndClasses(interp, commandTable);
+  freeAllXOTclObjectsAndClasses(interp, commandNameTable);
 
 # ifdef DO_FULL_CLEANUP
   deleteProcsAndVars(interp);
 # endif
 #endif
 
-  MEM_COUNT_FREE("Tcl_InitHashTable", commandTable);
-  Tcl_DeleteHashTable(commandTable);
+  MEM_COUNT_FREE("Tcl_InitHashTable", commandNameTable);
+  Tcl_DeleteHashTable(commandNameTable);
 
   /* now free all objects systems with their root classes */
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = nPtr) {
@@ -14063,8 +14063,9 @@ ObjectHasChildren(Tcl_Interp *interp, XOTclObject *object) {
     for (hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch); hPtr;
          hPtr = Tcl_NextHashEntry(&hSrch)) {
       Tcl_Command cmd = Tcl_GetHashValue(hPtr);
+      XOTclObject *childObject = XOTclGetObjectFromCmdPtr(cmd);
       
-      if (XOTclGetObjectFromCmdPtr(cmd)) {
+      if (childObject) {
         result = 1;
         break;
       }
@@ -14095,19 +14096,53 @@ finalObjectDeletion(Tcl_Interp *interp, XOTclObject *object) {
 }
 
 static void
-freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
-  Tcl_HashEntry *hPtr;
-  Tcl_HashSearch hSrch;
+freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTable) {
+  Tcl_HashEntry *hPtr, *hPtr2;
+  Tcl_HashSearch hSrch, hSrch2;
   XOTclObject *object;
+  int deleted = 0;
  
   /*fprintf(stderr, "freeAllXOTclObjectsAndClasses in %p\n", interp);*/
 
-  /***** PHYSICAL DESTROY *****/
   RUNTIME_STATE(interp)->exitHandlerDestroyRound = XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY;
+
+  /*
+   * First delete all child commands of all objects, which are not
+   * objects themselves. This will for example delete namespace
+   * imprted commands and objects and will resolve potential loops in
+   * the dependency graph. The result is a plain object/class tree.
+   */
+  for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+    char *key = Tcl_GetHashKey(commandNameTable, hPtr);
+    object = XOTclpGetObject(interp, key);
+
+    if (object && object->nsPtr) {
+      for (hPtr2 = Tcl_FirstHashEntry(Tcl_Namespace_cmdTable(object->nsPtr), &hSrch2); hPtr2;
+           hPtr2 = Tcl_NextHashEntry(&hSrch2)) {
+        Tcl_Command cmd = Tcl_GetHashValue(hPtr2);
+        if (cmd &&  Tcl_Command_objProc(cmd) != XOTclObjDispatch) {
+          Tcl_DeleteCommandFromToken(interp, cmd);
+          deleted ++;
+        }
+      }
+    }
+  }
+  /*fprintf(stderr, "deleted %d cmds\n", deleted);*/
+
+  /*
+   * Finally delete the object/class tree in a bottom up manner,
+   * deleteing all objects without dependencies first. Finally, only
+   * the root classes of the object system will remain, which are
+   * deleted separately.
+   */
+
   while (1) {
-    int deleted = 0;
-    for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-      char *key = Tcl_GetHashKey(commandTable, hPtr);
+    /*
+     * Delete all plain objects without dependencies
+     */
+    deleted = 0;
+    for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+      char *key = Tcl_GetHashKey(commandNameTable, hPtr);
 
       object = XOTclpGetObject(interp, key);
       if (object && !XOTclObjectIsClass(object) && !ObjectHasChildren(interp, object)) {
@@ -14125,9 +14160,13 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
       continue;
     }
 
-    for (hPtr = Tcl_FirstHashEntry(commandTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-      char *key = Tcl_GetHashKey(commandTable, hPtr);
-      XOTclClass  *cl = XOTclpGetClass(interp, key);
+    /*
+     * Delete all classes without dependencies
+     */
+    for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
+      char *key = Tcl_GetHashKey(commandNameTable, hPtr);
+      XOTclClass *cl = XOTclpGetClass(interp, key);
+      
       /*fprintf(stderr, "cl key = %s %p\n", key, cl);*/
       if (cl
           && !ObjectHasChildren(interp, (XOTclObject*)cl)
@@ -14135,7 +14174,7 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandTable) {
           && !ClassHasSubclasses(cl)
           && !IsBaseClass(cl)
           ) {
-        /* fprintf(stderr, "  ... delete class %s %p\n", key, cl); */
+        /*fprintf(stderr, "  ... delete class %s %p\n", key, cl); */
         freeUnsetTraceVariable(interp, &cl->object);
         if (cl->object.id) finalObjectDeletion(interp, &cl->object);
 

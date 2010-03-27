@@ -51,20 +51,7 @@ namespace eval ::xotcl::package {
 	my set verbose $value
     }
     $package_obj proc present args {
-	if {$::tcl_version<8.3} {
-	    my instvar loaded
-	    switch -exact -- [lindex $args 0] {
-		-exact  {set pkg [lindex $args 1]}
-		default {set pkg [lindex $args 0]}
-	    }
-	    if {[info exists loaded($pkg)]} {
-		return $loaded($pkg)
-	    } else {
-		error "not found"
-	    }
-	} else {
-	  namespace eval :: tcl_package present $args
-	}
+        namespace eval :: tcl_package present $args
     }
 
     $package_obj proc require args {
