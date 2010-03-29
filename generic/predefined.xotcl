@@ -592,7 +592,7 @@ namespace eval ::xotcl {
     return $parameterdefinitions
   }
   
-  ::xotcl2::Object protected method objectparameter {} {
+  ::xotcl2::Object protected method objectparameter {{lastparameter arg:initcmd,optional}} {
     #puts stderr "... objectparameter [::xotcl::current object]"
     set parameterdefinitions [::xotcl::parametersFromSlots [::xotcl::current object]]
     if {[::xotcl::objectproperty [::xotcl::current object] class]} {
@@ -601,7 +601,7 @@ namespace eval ::xotcl {
     lappend parameterdefinitions \
         -noinit:method,optional,noarg \
         -volatile:method,optional,noarg \
-        arg:initcmd,optional
+        {*}$lastparameter
     #puts stderr "*** parameter definition for [::xotcl::current object]: $parameterdefinitions"
     return $parameterdefinitions
   }
