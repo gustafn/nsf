@@ -379,5 +379,3 @@ rename ::foo ::foo2
 ? {C info methods -methodtype alias} FOO
 ? {c FOO} ::c->foo2
 ? {C info method definition FOO} "::C alias FOO ::foo"; # should be ::foo2 (!)
-
-

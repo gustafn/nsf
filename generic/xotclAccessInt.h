@@ -75,7 +75,5 @@ static XOTCLINLINE XOTclObject*
 XOTclGetObjectFromCmdPtr(Tcl_Command cmd) {
   return (XOTclObject*) XOTclGetClientDataFromCmdPtr(cmd);
 }
-static XOTCLINLINE XOTclObject*
-XOTclGetObjectFromCmdPtrNoAlias(Tcl_Command cmd) {
-  return Tcl_Command_objProc(cmd) == XOTclObjDispatch ? Tcl_Command_objClientData(cmd) : NULL;
-}
+
+

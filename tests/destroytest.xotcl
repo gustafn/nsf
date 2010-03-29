@@ -516,6 +516,59 @@ o3 destroy
 c1 destroy
 
 
+#
+# test cases where preexisting namespaces are re-used
+#
+
+Test case module {
+  # create a namespace with an object/class in it
+  namespace eval ::module { Object create foo }
+  
+  # reuse the namespace for a class/object
+  Class create ::module
+
+  ? {::xotcl::objectproperty ::module class} 1
+
+  # delete the object/class ... and namespace
+  ::module destroy
+
+  ? {::xotcl::objectproperty ::module class} 0
+}
+
+Test case namespace-import {
+
+  namespace eval ::module {
+    Class create Foo {
+      :create foo
+    }
+    namespace export Foo foo
+  }
+  Class create ::module {
+    :create mod1
+  }
+  ? {xotcl::objectproperty ::module::Foo class} 1
+  ? {xotcl::objectproperty ::module::foo class} 0
+  ? {xotcl::objectproperty ::module::foo object} 1
+  ? {xotcl::objectproperty ::module class} 1
+
+  Object create ::o { :requireNamespace }
+  namespace eval ::o {namespace import ::module::*}
+
+  ? {xotcl::objectproperty ::o::Foo class} 1
+  ? {xotcl::objectproperty ::o::foo object} 1
+
+  # do not destroy namespace imported objects/classes
+  ::o destroy
+
+  ? {xotcl::objectproperty ::o::Foo class} 0
+  ? {xotcl::objectproperty ::o::foo object} 0
+
+  ? {xotcl::objectproperty ::module::Foo class} 1
+  ? {xotcl::objectproperty ::module::foo object} 1
+
+  ::module destroy
+}
+
 puts stderr "==== EXIT ===="
 exit
 

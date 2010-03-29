@@ -1977,16 +1977,16 @@ static void PrimitiveODestroy(ClientData clientData);
 static void PrimitiveDestroy(ClientData clientData);
 
 static void
-NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
-  Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(ns);
+NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
+  Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(nsPtr);
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
 #ifdef OBJDELETION_TRACE
-  fprintf(stderr, "NSDeleteChildren %s\n", ns->fullName);
+  fprintf(stderr, "NSDeleteChildren %p %s\n", nsPtr, nsPtr->fullName);
 #endif
 
-  Tcl_ForgetImport(interp, ns, "*"); /* don't destroy namespace imported objects */
+  Tcl_ForgetImport(interp, nsPtr, "*"); /* don't destroy namespace imported objects */
 
   for (hPtr = Tcl_FirstHashEntry(cmdTable, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
@@ -1995,9 +1995,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
     if (!Tcl_Command_cmdEpoch(cmd)) {
       XOTclObject *object = XOTclGetObjectFromCmdPtr(cmd);
 
-        /*fprintf(stderr, "... check %s child key %s child object %p %p\n",
-                objectName(object),key,XOTclpGetObject(interp, key),
-                XOTclGetObjectFromCmdPtr(cmd));*/
+      /*fprintf(stderr, "... check %p %s\n",  object, object? objectName(object) : "(null)");*/
 
       if (object) {
           /*fprintf(stderr, " ... child %s %p -- %s\n", oname, object, object?objectName(object):"(null)");*/
@@ -2058,6 +2056,7 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
   Tcl_HashEntry *hPtr;
 
 #ifdef OBJDELETION_TRACE
+  fprintf(stderr, "NSCleanupNamespace %p\n", ns);
   fprintf(stderr, "NSCleanupNamespace %p %.6x varTable %p\n", ns, ((Namespace *)ns)->flags, varTable);
 #endif
   /*
@@ -2118,8 +2117,7 @@ XOTcl_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   int activationCount = 0;
   Tcl_CallFrame *f = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp);
 
-  /*fprintf(stderr, "  ... correcting ActivationCount for %s was %d ",
-    nsPtr->fullName, ((Namespace *)nsPtr)->activationCount);*/
+  /*fprintf(stderr, "XOTcl_DeleteNamespace %p ", nsPtr);*/
 
   while (f) {
     if (f->nsPtr == nsPtr)
@@ -2579,14 +2577,17 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *object) {
 static void
 CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *object) {
 
-  /*fprintf(stderr, "CallStackDestroyObject %p %s activationcount %d flags %.6x\n",
-    object, objectName(object), object->activationCount, object->flags); */
+#ifdef OBJDELETION_TRACE
+  fprintf(stderr, "CallStackDestroyObject %p %s activationcount %d flags %.6x\n",
+          object, objectName(object), object->activationCount, object->flags);
+#endif
 
   if ((object->flags & XOTCL_DESTROY_CALLED) == 0) {
     int activationCount = object->activationCount;
     /* if the destroy method was not called yet, do it now */
 #ifdef OBJDELETION_TRACE
-    fprintf(stderr, "  CallStackDestroyObject has to callDestroyMethod %p activationCount %d\n", object, activationCount);
+    fprintf(stderr, "  CallStackDestroyObject has to callDestroyMethod %p activationCount %d\n", 
+            object, activationCount);
 #endif
     callDestroyMethod(interp, object, 0);
 
@@ -7563,7 +7564,8 @@ XOTclUnsetTrace(ClientData clientData, Tcl_Interp *interp, CONST char *name, CON
  */
 static void
 CleanupDestroyObject(Tcl_Interp *interp, XOTclObject *object, int softrecreate) {
-  /*fprintf(stderr, "CleanupDestroyObject obj %p softrecreate %d\n", object, softrecreate);*/
+  /*fprintf(stderr, "CleanupDestroyObject obj %p softrecreate %d nsPtr %p\n", 
+    object, softrecreate, object->nsPtr);*/
 
   /* remove the instance, but not for ::Class/::Object */
   if ((object->flags & XOTCL_IS_ROOT_CLASS) == 0 &&
@@ -7620,13 +7622,13 @@ CleanupDestroyObject(Tcl_Interp *interp, XOTclObject *object, int softrecreate) 
  */
 static void
 CleanupInitObject(Tcl_Interp *interp, XOTclObject *object,
-                  XOTclClass *cl, Tcl_Namespace *namespacePtr, int softrecreate) {
+                  XOTclClass *cl, Tcl_Namespace *nsPtr, int softrecreate) {
 
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "+++ CleanupInitObject\n");
 #endif
   object->teardown = interp;
-  object->nsPtr = namespacePtr;
+  object->nsPtr = nsPtr;
   if (!softrecreate) {
     AddInstance(object, cl);
   }
@@ -7715,7 +7717,7 @@ PrimitiveODestroy(ClientData clientData) {
 
   object->teardown = NULL;
   if (object->nsPtr) {
-    /*fprintf(stderr, "primitive odestroy calls deleteNamespace for object %p nsPtr %p\n", object, object->nsPtr);*/
+    /*fprintf(stderr, "PrimitiveODestroy calls deleteNamespace for object %p nsPtr %p\n", object, object->nsPtr);*/
     XOTcl_DeleteNamespace(interp, object->nsPtr);
     object->nsPtr = NULL;
   }
@@ -7741,6 +7743,7 @@ MarkUndestroyed(XOTclObject *object) {
 static void
 PrimitiveOInit(void *mem, Tcl_Interp *interp, CONST char *name, XOTclClass *cl) {
   XOTclObject *object = (XOTclObject*)mem;
+  Tcl_Namespace *nsPtr;
 
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "+++ PrimitiveOInit\n");
@@ -7752,10 +7755,18 @@ PrimitiveOInit(void *mem, Tcl_Interp *interp, CONST char *name, XOTclClass *cl) 
   XOTclObjectRefCountIncr(object);
   MarkUndestroyed(object);
 
-  /*  Tcl_Namespace *nsPtr = NULL;
-      nsPtr = NSGetFreshNamespace(interp, (ClientData)object, name, 0);
-      CleanupInitObject(interp, object, cl, nsPtr, 0);*/
-  CleanupInitObject(interp, object, cl, NULL, 0);
+  /* 
+   * There might be already a namespace with name name; if this is the
+   * case, use this namepsace as object namespace. The preexisting
+   * namespace might contain XOTcl objects. If we would not use the
+   * namespace as child namespace, we would not recognize the objects
+   * as child objects, deletions of the object might lead to a crash.
+   */
+
+  nsPtr = Tcl_FindNamespace(interp, name, (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
+  /*fprintf(stderr, "PrimitiveOInit %p %s, ns %p\n", object, name, nsPtr); */
+
+  CleanupInitObject(interp, object, cl, nsPtr, 0);
 
   /*obj->flags = XOTCL_MIXIN_ORDER_VALID | XOTCL_FILTER_ORDER_VALID;*/
   object->mixinStack = NULL;
@@ -7885,7 +7896,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
   PRINTOBJ("CleanupDestroyClass", (XOTclObject *)cl);
   assert(softrecreate? recreate == 1 : 1);
 
-  /*fprintf(stderr, "CleanupDestroyClass softrecreate=%d, recreate=%d, %p\n",
+  /*fprintf(stderr, "CleanupDestroyClass %p softrecreate=%d, recreate=%d, %p\n", cl,
     softrecreate, recreate, clopt); */
 
   /* do this even with no clopt, since the class might be used as a
@@ -7931,8 +7942,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
     XOTclFreeObjectData(cl);
 #endif
   }
-
-  Tcl_ForgetImport(interp, cl->nsPtr, "*"); /* don't destroy namespace imported objects */
+  
   NSCleanupNamespace(interp, cl->nsPtr);
   NSDeleteChildren(interp, cl->nsPtr);
 
@@ -8008,7 +8018,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
  * do class initialization & namespace creation
  */
 static void
-CleanupInitClass(Tcl_Interp *interp, XOTclClass *cl, Tcl_Namespace *namespacePtr,
+CleanupInitClass(Tcl_Interp *interp, XOTclClass *cl, Tcl_Namespace *nsPtr,
                  int softrecreate, int recreate) {
   XOTclClass *defaultSuperclass;
 
@@ -8027,7 +8037,7 @@ CleanupInitClass(Tcl_Interp *interp, XOTclClass *cl, Tcl_Namespace *namespacePtr
   */
   XOTclObjectSetClass((XOTclObject*)cl);
 
-  cl->nsPtr = namespacePtr;
+  cl->nsPtr = nsPtr;
 
   if (!softrecreate) {
     /* subclasses are preserved during recreate, superclasses not (since
