@@ -140,7 +140,7 @@ xotclCmd current XOTclCurrentCmd {
 }
 xotclCmd self XOTclSelfCmd {
   {-argName "selfoption" -required 0 -type "proc|method|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
-}
+} 
 xotclCmd setvar XOTclSetVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "variable" -required 1 -type tclobj}

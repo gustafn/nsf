@@ -178,19 +178,11 @@ namespace eval xotcl2 {
 
   # Add setter methods. 
   #  
-  Object public method setter {methodName value:optional} {
-    if {[info exists value]} {
-      ::xotcl::setter [::xotcl::current object] -per-object $methodName $value
-    } else {
-      ::xotcl::setter [::xotcl::current object] -per-object $methodName
-    }
+  Object public method setter {methodName} {
+    ::xotcl::setter [::xotcl::current object] -per-object $methodName
   }
-  Class public method setter {methodName value:optional} {
-    if {[info exists value]} {
-      ::xotcl::setter [::xotcl::current object] $methodName $value
-    } else {
-      ::xotcl::setter [::xotcl::current object] $methodName
-    }
+  Class public method setter {methodName} {
+    ::xotcl::setter [::xotcl::current object] $methodName
   }
 
   ########################
