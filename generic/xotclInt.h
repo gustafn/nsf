@@ -657,6 +657,7 @@ typedef struct XOTclRuntimeState {
   int unknown;
   int doFilters;
   int doSoftrecreate;
+  int doKeepinitcmd;
   int exitHandlerDestroyRound;
   int returnCode;
   int overloadedMethods;

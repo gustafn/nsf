@@ -6361,7 +6361,8 @@ ParamOptionSetConverter(Tcl_Interp *interp, XOTclParam *paramPtr,
 static int
 ParamOptionParse(Tcl_Interp *interp, CONST char *option, int length, int disallowedOptions, XOTclParam *paramPtr) {
   int result = TCL_OK; 
-  /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%d) disallowed %.6x\n", paramPtr->name, option, length, disallowedOptions);*/
+  /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%d) disallowed %.6x\n",
+    paramPtr->name, option, length, disallowedOptions);*/
   if (strncmp(option, "required", MAX(3,length)) == 0) {
     paramPtr->flags |= XOTCL_ARG_REQUIRED;
   } else if (strncmp(option, "optional",  MAX(3,length)) == 0) {
@@ -6385,7 +6386,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, int length, int disallo
     }
     paramPtr->flags |= XOTCL_ARG_NOARG;
     paramPtr->nrArgs = 0;
-  } else if (length >= 5 && strncmp(option, "arg=", 4) == 0) {
+  } else if (length >= 4 && strncmp(option, "arg=", 4) == 0) {
     if ((paramPtr->flags & (XOTCL_ARG_METHOD|XOTCL_ARG_RELATION)) == 0
         && paramPtr->converter != convertViaCmd)
       return XOTclVarErrMsg(interp, 
@@ -6423,7 +6424,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, int length, int disallo
     INCR_REF_COUNT(paramPtr->slotObj);
   } else {
     int i, found = -1;
-    
+
     for (i=0; stringTypeOpts[i]; i++) {
       /* Do not allow abbreviations, so the additional strlen checks
 	 for a full match */
@@ -6484,7 +6485,7 @@ ParamParse(Tcl_Interp *interp, CONST char *procName, Tcl_Obj *arg, int disallowe
     paramPtr->flags |= XOTCL_ARG_REQUIRED; /* positional arguments are required unless we have a default */
   }
 
-  /*fprintf(stderr, "... parsing '%s', name '%s' \n", ObjStr(arg), argName);*/
+  /* fprintf(stderr, "... parsing '%s', name '%s' \n", ObjStr(arg), argName);*/
 
   /* find the first ':' */
   for (j=0; j<length; j++) {
@@ -6600,7 +6601,8 @@ ParamParse(Tcl_Interp *interp, CONST char *procName, Tcl_Obj *arg, int disallowe
         /* TODO: for the time being, we do not return an error here */
       }
     } else if (paramPtr->converter != convertViaCmd &&
-               strcmp(ObjStr(paramPtr->slotObj),XOTclGlobalStrings[XOTE_METHOD_PARAMETER_SLOT_OBJ]) != 0) {
+               strcmp(ObjStr(paramPtr->slotObj),
+		      XOTclGlobalStrings[XOTE_METHOD_PARAMETER_SLOT_OBJ]) != 0) {
       /* todo remove me */
       fprintf(stderr, "**** checker method %s defined on %s shadows built-in converter\n",
               converterNameString, objectName(paramObj));
@@ -10662,7 +10664,7 @@ static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int subcmd
 
 /*
 xotclCmd configure XOTclConfigureCmd {
-  {-argName "configureoption" -required 1 -type "filter|softrecreate|objectsystems"}
+  {-argName "configureoption" -required 1 -type "filter|softrecreate|objectsystems|keepinitcmd"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -10702,6 +10704,13 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
                       (RUNTIME_STATE(interp)->doSoftrecreate));
     if (valueObj)
       RUNTIME_STATE(interp)->doSoftrecreate = bool;
+    break;
+
+  case ConfigureoptionKeepinitcmdIdx:
+    Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
+                      (RUNTIME_STATE(interp)->doKeepinitcmd));
+    if (valueObj)
+      RUNTIME_STATE(interp)->doKeepinitcmd = bool;
     break;
   }
   return TCL_OK;
@@ -12582,6 +12591,11 @@ XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj
         parseContextRelease(&pc);
         goto configure_exit;
       }
+
+      if (paramPtr->flags & XOTCL_ARG_INITCMD && RUNTIME_STATE(interp)->doKeepinitcmd) {
+	Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
+      }
+
       /* done with init command handling */
       continue;
     }

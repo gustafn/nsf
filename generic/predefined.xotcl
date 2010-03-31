@@ -302,7 +302,9 @@ namespace eval ::xotcl {
     return ${slotParent}::$name
   }
 
-  ::xotcl::MetaSlot method createFromParameterSyntax {target -per-object:switch {-initblock ""} value default:optional} {
+  ::xotcl::MetaSlot method createFromParameterSyntax {target -per-object:switch 
+						      {-initblock ""} 
+						      value default:optional} {
     set opts [list]
     set colonPos [string first : $value]
     if {$colonPos == -1} {
@@ -548,7 +550,7 @@ namespace eval ::xotcl {
       if {${:methodname} ne ${:name}} {
         lappend objopts arg=${:methodname}
         lappend methodopts arg=${:methodname}
-        #puts stderr "..... setting arg for methodname: $slot has arg arg=${:methodname}"
+        #puts stderr "..... setting arg for methodname: [::xotcl::current object] has arg arg=${:methodname}"
       }
     }
     if {$type ne ""} {
@@ -584,7 +586,7 @@ namespace eval ::xotcl {
     return $parameterdefinitions
   }
   
-  ::xotcl2::Object protected method objectparameter {{lastparameter arg:initcmd,optional}} {
+  ::xotcl2::Object protected method objectparameter {{lastparameter __initcmd:initcmd,optional}} {
     #puts stderr "... objectparameter [::xotcl::current object]"
     set parameterdefinitions [::xotcl::parametersFromSlots [::xotcl::current object]]
     if {[::xotcl::objectproperty [::xotcl::current object] class]} {
@@ -745,7 +747,7 @@ namespace eval ::xotcl {
         #puts stderr "adding add method for [::xotcl::current object] with value:$(mparam)"
         :method add [list obj prop value:$(mparam),slot=[::xotcl::current object] {pos 0}] {next}
       } else {
-        #puts stderr "adding assign [list obj var value:$(mparam)] // for [::xotcl::current object] with $(mparam)"
+        #puts stderr "SV adding assign [list obj var value:$(mparam)] // for [::xotcl::current object] with $(mparam)"
         :method assign [list obj var value:$(mparam),slot=[::xotcl::current object]] {::xotcl::setvar $obj $var $value}
         #::xotcl::setter ${:domain} ${:name}:$(mparam),slot=[::xotcl::current object]
         #puts stderr "::xotcl::setter ${:domain} ${:name}:$(mparam),slot=[::xotcl::current object]"
