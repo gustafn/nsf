@@ -2475,7 +2475,8 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
   PRINTOBJ("CallStackDoDestroy", obj);
   oid = obj->id;
   obj->id = NULL;
-  if (obj->teardown && oid && !(obj->flags & XOTCL_TCL_DELETE)) {
+
+  if (obj->teardown && oid) {
     Tcl_DeleteCommandFromToken(interp, oid);
   }
 }
@@ -7554,7 +7555,7 @@ PrimitiveODestroy(ClientData cd) {
   XOTclObject *obj = (XOTclObject*)cd;
   Tcl_Interp *interp;
 
-  /* fprintf(stderr, "****** PrimitiveODestroy %p\n", obj);*/
+  /*fprintf(stderr, "****** PrimitiveODestroy %p %s\n", obj, ObjStr(obj->cmdName));*/
   assert(obj && !(obj->flags & XOTCL_DESTROYED));
 
   /*
@@ -7996,7 +7997,7 @@ PrimitiveCCreate(Tcl_Interp *interp, char *name, XOTclClass *class) {
   unsigned length;
   XOTclObject *obj = (XOTclObject*)cl;
 
-  /*fprintf(stderr, "CKALLOC Class %p %s\n", cl, name);*/
+  /*fprintf(stderr, "PrimitiveCCreate Class %p %s\n", cl, name);*/
 
   memset(cl, 0, sizeof(XOTclClass));
   MEM_COUNT_ALLOC("XOTclObject/XOTclClass", cl);
