@@ -1810,12 +1810,26 @@ NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *ns, char *name) {
   return -1;
 }
 
+static void CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *obj);
+static void PrimitiveCDestroy(ClientData cd);
+static void PrimitiveODestroy(ClientData cd);
+
 static void
-CallStackDestroyObject(Tcl_Interp *interp, XOTclObject *obj);
+tclDeletesObject(ClientData clientData) {
+  XOTclObject *object = (XOTclObject*)clientData;
+  /*fprintf(stderr, "tclDeletesObject %p\n",object);*/
+  object->flags |= XOTCL_TCL_DELETE;
+  PrimitiveODestroy(clientData);
+}
+
 static void
-PrimitiveCDestroy(ClientData cd);
-static void
-PrimitiveODestroy(ClientData cd);
+tclDeletesClass(ClientData clientData) {
+  XOTclObject *object = (XOTclObject*)clientData;
+  /*fprintf(stderr, "tclDeletesClass %p\n",object);*/
+  object->flags |= XOTCL_TCL_DELETE;
+  PrimitiveCDestroy(clientData);
+}
+
 
 static void
 NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *ns) {
@@ -2461,7 +2475,7 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *obj) {
   PRINTOBJ("CallStackDoDestroy", obj);
   oid = obj->id;
   obj->id = NULL;
-  if (obj->teardown && oid) {
+  if (obj->teardown && oid && !(obj->flags & XOTCL_TCL_DELETE)) {
     Tcl_DeleteCommandFromToken(interp, oid);
   }
 }
@@ -7331,6 +7345,9 @@ unsetInAllNamespaces(Tcl_Interp *interp, Namespace *nsPtr, CONST char *name) {
 static int
 freeUnsetTraceVariable(Tcl_Interp *interp, XOTclObject *obj) {
   int rc = TCL_OK;
+
+  obj->flags |= XOTCL_FREE_TRACE_VAR_CALLED;
+
   if (obj->opt && obj->opt->volatileVarName) {
     /*
       Somebody destroys a volatile object manually while
@@ -7341,22 +7358,26 @@ freeUnsetTraceVariable(Tcl_Interp *interp, XOTclObject *obj) {
       turn clears the volatileVarName flag.
     */
     /*fprintf(stderr,"### freeUnsetTraceVariable %s\n", obj->opt->volatileVarName);*/
-
+      
     rc = Tcl_UnsetVar2(interp, obj->opt->volatileVarName, NULL, 0);
     if (rc != TCL_OK) {
+      /* try hard to find variable */
       int rc = Tcl_UnsetVar2(interp, obj->opt->volatileVarName, NULL, TCL_GLOBAL_ONLY);
+
       if (rc != TCL_OK) {
         Namespace *nsPtr = (Namespace *) Tcl_GetCurrentNamespace(interp);
+
         if (unsetInAllNamespaces(interp, nsPtr, obj->opt->volatileVarName) == 0) {
           fprintf(stderr, "### don't know how to delete variable '%s' of volatile object\n",
                   obj->opt->volatileVarName);
         }
       }
     }
-    if (rc == TCL_OK) {
-      /*fprintf(stderr, "### success unset\n");*/
-    }
+    /*if (rc == TCL_OK) {
+      fprintf(stderr, "### success unset\n");
+      }*/
   }
+  
   return  rc;
 }
 
@@ -7368,25 +7389,34 @@ XOTclUnsetTrace(ClientData cd, Tcl_Interp *interp, CONST84 char *name, CONST84 c
   char *result = NULL;
   
   /*fprintf(stderr,"XOTclUnsetTrace %s flags %x %x\n", name, flags, 
-    flags & TCL_INTERP_DESTROYED);  */
+    flags & TCL_INTERP_DESTROYED); */
 
   if ((flags & TCL_INTERP_DESTROYED) == 0) {
     if (XOTclObjConvertObject(interp, obj, &o) == TCL_OK) {
-      Tcl_Obj *res = Tcl_GetObjResult(interp); /* save the result */
-      INCR_REF_COUNT(res);
+
+      /*fprintf(stderr,"XOTclUnsetTrace o %p flags %.6x\n", o, o->flags);*/
 
       /* clear variable, destroy is called from trace */
       if (o->opt && o->opt->volatileVarName) {
         o->opt->volatileVarName = NULL;
       }
 
-      if (callMethod((ClientData)o, interp, XOTclGlobalObjects[XOTE_DESTROY], 2, 0, 0) != TCL_OK) {
-        result = "Destroy for volatile object failed";
-      } else
-        result = "No XOTcl Object passed";
-      
-      Tcl_SetObjResult(interp, res);  /* restore the result */
-      DECR_REF_COUNT(res);
+      if ( o->flags & XOTCL_FREE_TRACE_VAR_CALLED ) {
+        /*fprintf(stderr,"XOTclUnsetTrace o %p remove trace\n", o);*/
+        Tcl_UntraceVar(interp, name, flags, (Tcl_VarTraceProc*)XOTclUnsetTrace, (ClientData)o);
+      } else {
+        Tcl_Obj *res = Tcl_GetObjResult(interp); /* save the result */
+        INCR_REF_COUNT(res);
+
+        if (callMethod((ClientData)o, interp, XOTclGlobalObjects[XOTE_DESTROY], 2, 0, 0) != TCL_OK) {
+          result = "Destroy for volatile object failed";
+        } else {
+          result = "No XOTcl Object passed";
+        }
+
+        Tcl_SetObjResult(interp, res);  /* restore the result */
+        DECR_REF_COUNT(res);
+      }
     }
     DECR_REF_COUNT(obj);
   } else {
@@ -7667,7 +7697,7 @@ PrimitiveOCreate(Tcl_Interp *interp, char *name, XOTclClass *cl) {
     return 0;
   }
   obj->id = Tcl_CreateObjCommand(interp, name, XOTclObjDispatch,
-                                 (ClientData)obj, PrimitiveODestroy);
+                                 (ClientData)obj, tclDeletesObject);
 
   PrimitiveOInit(obj, interp, name, cl);
 #if 0
@@ -7985,7 +8015,7 @@ PrimitiveCCreate(Tcl_Interp *interp, char *name, XOTclClass *class) {
     return 0;
   }
   obj->id = Tcl_CreateObjCommand(interp, name, XOTclObjDispatch,
-                                 (ClientData)cl, PrimitiveCDestroy);
+                                 (ClientData)cl, tclDeletesClass);
 
   PrimitiveOInit(obj, interp, name, class);
 
@@ -10475,12 +10505,15 @@ XOTclCInstDestroyMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CO
                           ObjStr(objv[1]), " that does not exist.", 
                           (char *) NULL);
 
-  /* fprintf(stderr,"instdestroy obj=%s, opt=%p\n", ObjStr(delobj->cmdName), delobj->opt);*/
+  /*fprintf(stderr,"instdestroy obj=%p %s, flags %.6x opt=%p\n", 
+    delobj, ObjStr(delobj->cmdName), delobj->flags, delobj->opt);*/
 
   rc = freeUnsetTraceVariable(interp, delobj);
   if (rc != TCL_OK) {
     return rc;
   }
+
+  /*fprintf(stderr,"instdestroy obj=%p\n", delobj);*/
 
   /*
    * latch, and call delete command if not already in progress

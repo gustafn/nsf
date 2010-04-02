@@ -446,6 +446,8 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_REFCOUNTED                     0x0100
 #define XOTCL_RECREATE                       0x0200
 #define XOTCL_NS_DESTROYED                   0x0400
+#define XOTCL_TCL_DELETE                     0x0200
+#define XOTCL_FREE_TRACE_VAR_CALLED          0x2000
 
 #define XOTclObjectSetClass(obj) \
 	(obj)->flags |= XOTCL_IS_CLASS
