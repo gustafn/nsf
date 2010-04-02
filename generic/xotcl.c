@@ -11229,7 +11229,7 @@ XOTclCInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj * CONST ob
 
     case 'm':
       if (!strcmp(cmd, "mixinof")) {
-        XOTclObject *matchObject;
+        XOTclObject *matchObject = NULL;
         Tcl_DString ds, *dsPtr = &ds;
         int rc, withClosure = 0;
 
