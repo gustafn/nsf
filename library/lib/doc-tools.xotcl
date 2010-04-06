@@ -1,0 +1,541 @@
+package provide xotcl::doc-tools 0.1
+package require XOTcl
+
+#
+# Study for documentation classes for XOTcl2.
+# 
+# Compared to the "old" @ docmentation effort, this is a rather
+# light-weight structure based on xotcl 2 language features. The
+# documentation classes build an (extensible) object structure which
+# is used as a basis for some renderers. In general, the classes are
+# defined in a way they can be used for
+#
+#  a) building documentation outside the source code artefacts, or
+#
+#  b) inside code artefacts (value added method definition commands
+#     providing extra arguments for the documentation). The
+#     documentation commands could reuse there names/arguments
+#     etc. directly from the method definition by issueing these
+#     commands inside the method definition methods.
+#
+# One could provide lint-like features to signal, whether the
+# documentation is in sync with actually defined methods (when these
+# are available).
+#
+
+namespace eval ::xodoc {}
+namespace eval ::xodoc-tools {
+  ::xotcl::use xotcl2
+
+  #
+  # A few helper commands:
+  #  - "@" is a conveniant way for creating new objects with less syntactic overhead
+  #  - "sorted" is used to sort instances by values of a specified attribute
+  #
+  proc @ {class name args} {$class new -name $name {*}$args}
+
+  proc sorted {instances sortedBy} {
+    set order [list]
+    foreach v $instances {lappend order [list $v [$v eval [list set :$sortedBy]]]}
+    set result [list]
+    foreach pair [lsort -index 1 $order] {lappend result [lindex $pair 0]}
+    return $result
+  }
+
+  Class create DocClass -superclass Class {
+    #
+    # DocClass is a meta class for named doc entities
+    #
+    :method createOrConfigure {id arguments} {
+      namespace eval $id {}
+      if {[::xotcl::objectproperty $id object]} {
+	$id configure {*}$arguments
+      } else {
+	:create $id {*}$arguments
+      }
+    }
+  }
+
+
+  Class create docEntity {
+    #
+    # docEntity is the base class for the documentation classes
+    #
+
+    # every docEntity must be created with a "doc" value and can have
+    # an optional initcmd 
+    :method objectparameter args {next {doc __initcmd:initcmd,optional}}
+
+    :attribute doc
+
+    #the following two cases (incremental multivalued) could be nicer
+    :attribute {variants:multivalued ""} {set :incremental 1}
+    :attribute {params:multivalued ""} {set :incremental 1}
+
+    # @method _doc
+    #
+    # The method _doc can be use to obtain the value of the documentation
+    # from another doc entity. This should avoid redundant documentation pieces.
+    :method _doc {doc use what value} {
+      if {$doc ne ""} {return $doc}
+      if {$use ne ""} {
+	foreach thing {xotclCmd xotclClass} {
+	  set docobj [$thing id $use]
+	  if {[::xotcl::objectproperty $docobj object]} break
+	}
+	if {[::xotcl::objectproperty $docobj object]} {
+	  if {![$docobj exists $what]} {error "no attribute $what in $docobj"}
+	  set names [list]
+	  foreach v [$docobj $what] {
+	    if {[$v name] eq $value} {return [$v doc]}
+	    lappend names [$v name]
+	  }
+	  error "can't use $use, no $what with name $value in $docobj (available: $names)"
+	} else {
+	  error "can't use $use, no documentation object $docobj"
+	}
+      }
+    }
+    
+    # @method param
+    #
+    # The method param is currently used for documenting parameters of
+    # tcl-commands and xotcl methods. Most probably, it should cover
+    # object parameters as well. The parameters are identified by a
+    # name and ar part of another documentation entitiy
+    #
+    :method param {param doc {-use ""}} {
+      set flags [list -param $param]
+      if {[llength $param]>1} {
+	lappend flags -default [lindex $param 1]
+	set param [lindex $param 0]
+      }
+      set name $param
+      if {[regexp {^(.*):(.*)$} $param _ name spec]} {
+	lappend flags -spec $spec
+      }
+      lappend flags -fullname param
+      @ xotclCmdParam $name -partof [self] {*}$flags [:_doc $doc $use params $name]
+    }
+
+    # @method variant
+    #
+    # variants are used in cases, where depending on a parameter, the
+    # semantics of a command (and therefore its documentation) is
+    # completely different. A typical case are subcommands in Tcl.
+    #
+    :method variant {name doc {-use ""}} {
+      @ xotclCmdVariant $name -partof [self] [:_doc $doc $use variants $name]
+    }
+
+    # @method text
+    #
+    # text is used to access the content of doc of an docEntity, and
+    # performs substitution on it.  The substitution is not essential,
+    # but looks for now convenient.
+    #
+    :method text {} {subst ${:doc}}
+  }
+
+  # @class docPart
+  #
+  # An docPart is a part of the documentation, defined by a
+  # separate object. Every docPart is associated to another
+  # documentation entity and is identified by a name.
+  #
+  Class create docPart -superclass docEntity {
+    #:method objectparameter args {next {doc -use}}
+    :attribute name:required
+    :attribute partof:required
+    :attribute use
+  }
+
+  #
+  # variant and param are docParts:
+  #
+  Class create xotclCmdVariant -superclass docPart {
+    :method init {} {${:partof} variants add [self] end}
+  }
+  Class create xotclCmdParam -superclass docPart {
+    :attribute param
+    :attribute fullname    
+    :attribute spec
+    :attribute default
+    :method init {} {${:partof} params add [self] end}
+  }
+
+
+  #
+  # Now, define some kinds of docEntities. The toplevel docEntities
+  # are named objects in the ::xoDoc namespace to ease access to it.
+  #
+  # We define here the following toplevel docEntities (e.g. xotclObject will follow):
+  #  - xotclCmd
+  #  - xotclClass
+  #
+  # The xotcl methods are defined as docParts.
+  #  - xotclMethod
+  #
+
+  DocClass create xotclCmd -superclass docEntity {
+    :attribute name
+    :attribute arguments
+    :attribute {returns ""}
+    :object method id {name} {return ::xodoc::cmd::[string trimleft $name :]}
+    :object method new args {
+      foreach {att value} $args {if {$att eq "-name"} {set name $value}}
+      :createOrConfigure [:id $name] $args
+    }
+  }
+
+  DocClass create xotclClass -superclass docEntity {
+    :attribute name
+    :attribute {methods:multivalued ""} {set :incremental 1}
+    :object method id {name} {return ::xodoc::object::[string trimleft $name :]}
+    :object method new args {
+      foreach {att value} $args {if {$att eq "-name"} {set name $value}}
+      :createOrConfigure [:id $name] $args
+    }
+  }
+
+  #
+  # xotclMethod is a named entity, which is part of some other
+  # docEntity (a class or an object). We might be able to use the
+  # "use" parameter for registered aliases to be able to refer to the 
+  # documentation of the original method.
+  #
+  DocClass create xotclMethod -superclass docPart {
+    :attribute {scope class}
+    :attribute {modifier public}
+    :attribute arguments
+    :attribute {returns ""}
+    :object method id {partof scope name} {
+      return ::xodoc::method::[string trimleft $partof :]::${scope}::${name}
+    }
+
+    :object method new args {
+      foreach {att value} $args {
+	if {$att eq "-partof"} {set partof $value}
+	if {$att eq "-name"}   {set name   $value}
+	if {$att eq "-scope"}  {set scope  $value}
+      }
+      if {![info exists scope]} {
+	if {[::xotcl::objectproperty $partof class]} {
+	  set scope class
+	} elseif {[::xotcl::objectproperty $partof object]} {
+	  set scope object
+	} else {
+	  set scope class
+	}
+      }
+      :createOrConfigure [:id $partof $scope $name] $args
+    }
+
+    :method init {} {[xotclClass id ${:partof}] methods add [self] end}
+
+    :method signature {} {
+      if {[info exists :arguments]} {
+	set arguments ${:arguments}
+      } else {
+	set arguments [list]
+	foreach p [:params] {lappend arguments [$p param]}
+      }
+      set result "obj ${:name} $arguments"
+    }
+  }
+}
+
+
+
+namespace eval ::xodoc-tools {
+  
+  #
+  # Provide a simple HTML renderer. For now, we make our life simple
+  # by defining for the different supported docEntities different methods.
+  #
+  # We could think about a java-doc style renderer...
+  #
+  
+  Class create HTMLrenderer {
+    # render command pieces in the text
+    :method cmd {text} {return <@TT>$text</@TT>}
+
+    #
+    # render xotcl commands
+    #
+    :method renderCmd {} {
+      puts "<LI>[:cmd ${:name}] <br>\n[:text]"
+      set variants [sorted [:variants] name]
+      if {$variants ne ""} {
+	puts "   <UL>"
+	foreach v $variants {puts "    <LI>[$v text]"}
+	puts "   </UL>"
+      }
+      set params [:params]
+      if {$params ne ""} {
+	puts "   <UL>"
+	foreach v $params {puts "    <LI>[$v cmd [$v name]] [$v text]"}
+	puts "   </UL>"
+      }
+      puts "</LI>\n"
+    }
+
+    #
+    # render xotcl classes
+    #
+    :method renderClass {} {
+      puts "<LI>[:cmd ${:name}] <br>\n[:text]"
+      set methods [sorted [:methods] name]
+      if {$methods ne ""} {
+	puts "<br>Methods of ${:name}:\n   <UL>"
+	foreach v $methods {if {[$v scope] eq "class"} {$v renderMethod}}
+	puts "   </UL>"
+	puts "<br>Object Methods of ${:name}:\n   <UL>"
+	foreach v $methods {if {[$v scope] eq "object"} {$v renderMethod}}
+	puts "   </UL>"
+      }
+      puts "</LI>\n"
+    }
+
+    #
+    # render xotcl methods
+    #
+    :method renderMethod {} {
+      puts "<LI>[:cmd [:signature]] <br>\n[:text]"
+      set params [:params]
+      if {$params ne ""} {
+	puts "   <UL>"
+	foreach v $params {puts "    <LI>[$v cmd [$v name]] [$v text]"}
+	puts "   </UL>"
+      }
+      if {${:returns} ne ""} {
+	puts "   Returns: ${:returns}"
+      }
+      puts "\n"
+    }
+
+  }
+
+}
+
+#
+# post processor for initcmds and method bodies
+#
+namespace eval ::xodoc-tools {
+
+  Object create postprocessor  {
+
+    :method process {thing} {
+      if {[::xotcl::objectproperty $thing class]} {
+        if {[$thing exists __initcmd]} {
+          :analyze_initcmd xotclClass $thing [$thing eval {set :__initcmd}]
+        }
+      } elseif {[::xotcl::objectproperty $thing object]} {
+        puts "can't postprocess objects currently"
+      } else {
+        puts "no idea how to postprocess $thing"
+      }
+    }
+
+    :method analyze_line {line} {
+      if {[regexp {^\s*$} $line]} {
+        return 1
+      } elseif {[regexp {^\s*#} $line]} {
+        return 2
+      } else {
+        return 3
+      }
+    }
+
+    :method remove_comment_markup {comment} {
+      regsub -all -line {^\s*#} $comment "" comment
+      return $comment
+    }
+
+    :method analyze_comment_block {comment} {
+      set result [list]
+      set text ""
+      foreach line [split $comment \n] {
+        if {[regexp {^ *@(class|attribute|param|returns|method|object-method) (.*)$} $line _ kind value]} {
+          if {$kind eq "param"} {
+            if {[regexp {^\s*(\S+)\s+(.*)$} $value _ name desc]} {
+              set value [list $name $desc]
+            } else {
+              puts stderr "invialid param specification $value"
+            }
+          }
+          lappend result $kind $value
+        } else {
+          append text $line
+        }
+      }
+      lappend result text $text
+      #puts result=$result
+      return $result
+    }
+
+    :method comment_blocks {{-mode all} source} {
+      set comment_blocks [list]
+      set lines [split $source \n]
+
+      # states
+      #   1 empty line
+      #   2 (pseudo) comment
+      #   3 code
+
+      set behaviour(all) {
+        1,1 {} 
+        1,2 {set comment $line\n} 
+        1,3 {} 
+        2,1 {lappend comment_blocks [:remove_comment_markup $comment]} 
+        2,2 {append comment $line\n} 
+        2,3 {lappend comment_blocks [:remove_comment_markup $comment]} 
+        3,1 {} 
+        3,2 {set comment $line\n} 
+        3,3 {}
+      }
+      set behaviour(first) {
+        1,1 {} 
+        1,2 {set comment $line\n} 
+        1,3 {set code 1} 
+        2,1 {if {!$code} {lappend comment_blocks [:remove_comment_markup $comment]}} 
+        2,2 {append comment $line\n} 
+        2,3 {if {!$code} {lappend comment_blocks [:remove_comment_markup $comment]}; set code 1} 
+        3,1 {} 
+        3,2 {set comment $line\n} 
+        3,3 {}
+      }
+      array set actions $behaviour($mode)
+      set state 1
+      set code 0
+      foreach line $lines {
+        set nextstate [:analyze_line $line]
+        eval $actions($state,$nextstate)
+        set state $nextstate
+      }
+     
+      return $comment_blocks
+    }
+
+    :method analyze_method_block {-methodName -partof -scope -arguments analyzed_block} {
+      array set cb $analyzed_block
+      
+      @ xotclMethod $methodName -partof $partof -scope $scope $cb(text)
+      set m [xotclMethod id $partof $scope $methodName]
+      set docparams [list]
+      foreach {att value} $analyzed_block {
+        # we do not handle "use" yet
+        if {$att eq "param"} {
+          $m param [lindex $value 0] [lindex $value 1]
+          lappend docparams [lindex $value 0]
+        } elseif {$att eq "returns"} {
+          $m returns $value
+        }
+      }
+      if {$arguments eq ""} {
+        set arguments $docparams
+      }
+      $m arguments $arguments
+    }
+
+    :method analyze_body {-partof -methodName -scope arguments body} {
+      set blocks [:comment_blocks -mode first $body]
+      if {[llength $blocks] > 0} {
+	:analyze_method_block -methodName $methodName -partof $partof -scope $scope \
+	    -arguments $arguments \
+	    [:analyze_comment_block [lindex $blocks 0]]
+      }
+    }
+    
+    :method analyze_initcmd {docKind name initcmd} {
+      set first_block 1
+      foreach block [:comment_blocks $initcmd] {
+        set analyzed_block [:analyze_comment_block $block]
+        array unset cb
+        array set cb $analyzed_block
+        if {$first_block} {
+          set first_block 0
+          if {[array size cb] == 1} {
+            # we got a comment for the doc kind
+            @ $docKind $name $cb(text)
+            continue
+          }
+        }
+        
+        if {[info exists cb(method)] || [info exists cb(object-method)]} {
+          set arguments ""
+
+          if {[info exists cb(method)]} {
+            set methodName $cb(method)
+            set scope class
+	    catch {set arguments [$name info method args $methodName]}
+          } else {
+            set methodName $cb(object-method)
+            set scope object
+	    catch {set arguments [$name object info method args $methodName]}
+          }
+	  
+          :analyze_method_block -methodName $methodName -partof $name -scope $scope \
+              -arguments $arguments $analyzed_block
+        }
+      }
+
+      foreach methodName [$name info methods -methodtype scripted] {
+	:analyze_body -partof $name -methodName $methodName -scope class \
+	    [$name info method args $methodName] \
+	    [$name info method body $methodName]
+      }
+
+      foreach methodName [$name object info methods -methodtype scripted] {
+	:analyze_body -partof $name -methodName $methodName -scope object \
+	    [$name object info method args $methodName] \
+	    [$name object info method body $methodName]
+      }
+      
+    }
+
+  # activate the recoding of initcmads
+  ::xotcl::configure keepinitcmd true
+  }
+}
+
+#
+# toplevel interface
+#   ::xodoc-tool::make all
+#   ::xodoc-tool::make doc
+#
+namespace eval ::xodoc-tools {
+
+  Object create make  {
+
+    :method all {{-verbose:switch} {-class ::xotcl2::Class}} {
+      foreach c [$class info instances -closure] {
+        if {$verbose} {puts "postprocess $c"}
+        ::xodoc-tools::postprocessor process $c
+      }
+    }
+
+    :method doc {{-renderer ::xodoc-tools::HTMLrenderer}} {
+
+      # register the HTML renderer for all docEntities.
+      
+      docEntity mixin add $renderer
+
+      puts "<h2>Primitive XOTcl framework commands</h2>\n<UL>"
+      foreach cmd [sorted [xotclCmd info instances] name] {
+        $cmd renderCmd
+      }
+      puts "</UL>\n\n"
+      
+      puts "<h2>XOTcl Classes</h2>\n<UL>"
+      foreach cmd [sorted [xotclClass info instances] name] {
+        $cmd renderClass
+      }
+      puts "</UL>\n\n"
+
+      docEntity mixin delete $renderer
+    }
+  }
+
+}
+puts stderr "Doc Tools loaded: [info command ::xotcl-tools]"

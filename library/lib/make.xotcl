@@ -20,7 +20,7 @@ Object create make {
         if {[string match "*package provide*" $c]} { lappend fls $f }
       }
     }
-    
+
     set so [glob -nocomplain *[info sharedlibextension]]
     # loading libxotcl into xotclsh crashes on some systems
     foreach lib [list libxotcl$::xotcl::version[info sharedlibextension] \
@@ -39,8 +39,8 @@ Object create make {
         file delete -force pkgIndex.tcl
       }
       #puts stderr "callinglevel <[self callinglevel]> $fls"
-      #puts stderr "[pwd]:\n\tcall eval pkg_mkIndex -direct . $fls"
-      if {[catch {pkg_mkIndex -direct . {*}$fls} errs]} {
+      #puts stderr "[pwd]:\n\tcall eval pkg_mkIndex -verbose -direct . $fls"
+      if {[catch {pkg_mkIndex -verbose -direct . {*}$fls} errs]} {
         puts stderr "!!! $errs"
       }
       #puts stderr "[pwd] done"
