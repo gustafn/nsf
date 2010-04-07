@@ -21,11 +21,11 @@ hooks {xotclInt}
 # to preserve backwards compatibility.
 
 declare 0 generic {
-    int Xotcl_Init(Tcl_Interp *interp)
+    int Next_Init(Tcl_Interp *interp)
 }
 # 1 is reserved for safe init
 #declare 1 generic {
-#    int Xotcl_SafeInit(Tcl_Interp *interp)
+#    int Next_SafeInit(Tcl_Interp *interp)
 #}
 declare 2 generic {
     struct XOTcl_Class *XOTclIsClass(Tcl_Interp *interp, ClientData cd)

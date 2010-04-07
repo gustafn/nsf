@@ -36,7 +36,7 @@ static XotclStubHooks xotclStubHooks = {
 XotclStubs xotclStubs = {
     TCL_STUB_MAGIC,
     &xotclStubHooks,
-    Xotcl_Init, /* 0 */
+    Next_Init, /* 0 */
     NULL, /* 1 */
     XOTclIsClass, /* 2 */
     NULL, /* 3 */

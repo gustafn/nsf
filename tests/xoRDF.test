@@ -1,5 +1,4 @@
-#!../../src/xotclsh
-# $Id: xoRDF.test,v 1.5 2007/08/14 16:38:27 neumann Exp $
+# -*- Tcl -*-
 #
 package require XOTcl; namespace import -force xotcl::*
 

@@ -150,13 +150,13 @@ Tcl_AppInit(
      */
 
 #if 0
-    if (Xotcl_Init(interp) == TCL_ERROR) {
+    if (Next_Init(interp) == TCL_ERROR) {
        return TCL_ERROR;
     }    
  
-    Tcl_StaticPackage(interp, "XOTcl", Xotcl_Init, 0);
+    Tcl_StaticPackage(interp, "next", Next_Init, 0);
 #else
-    if (Tcl_PkgRequire(interp, "XOTcl", XOTCLVERSION, 1) == NULL) {
+    if (Tcl_PkgRequire(interp, "next", XOTCLVERSION, 1) == NULL) {
       return TCL_ERROR;
     }
 #endif

@@ -1,5 +1,9 @@
-#$Id: makeDoc.xotcl,v 1.6 2006/09/27 08:12:40 neumann Exp $
-package require XOTcl; xotcl::use xotcl1
+#
+# XOTcl style documentation tools
+#
+package require XOTcl
+namespace import ::xotcl::*
+
 @ @File {
   description {
     Documentation tool for the XOTcl distribution.<br>

@@ -1,5 +1,5 @@
-#$Id: testx.xotcl,v 1.36 2007/10/12 19:53:32 neumann Exp $
-package require XOTcl; xotcl::use xotcl1
+# -*- Tcl -*-
+package require XOTcl; namespace import ::xotcl::*
 
 proc ::errorCheck {got expected msg} {
   if {$got != $expected} {
@@ -517,12 +517,12 @@ TestX filterAddRemove -proc run {{n 20}} {
   o m
   ::errorCheck [o set count] 2 "filter count" 
   o filter ""
-  set filterstate [::xotcl::configure filter off]
+  set filterstate [::next::core::configure filter off]
   o set count 0
   o m
   ::errorCheck [o set count]-$filterstate 0-1 "filter off + old state" 
   o filter ""
-  ::xotcl::configure filter on
+  ::next::core::configure filter on
 
   set ::r ""
   Object instproc f args {
@@ -3153,7 +3153,7 @@ smallScripts proc run {{n 20}} {
 
     xotcl::interp create in
     set ::r [in eval {
-	xotcl::use xotcl1
+        package req XOTcl; namespace import ::xotcl::*
 	Object o
     }]
     xotcl::interp delete in

@@ -1,4 +1,4 @@
-# $Id $
+# -*- Tcl -*-
 #if {[set ::tcl_platform(platform)] == "windows"} {lappend auto_path .}
 
 package require XOTcl; namespace import -force xotcl::*

@@ -1,5 +1,5 @@
 # testing mixinof
-package require XOTcl; xotcl::use xotcl1
+package require XOTcl; namespace import ::xotcl::*
 package require xotcl::test
 
 ###########################################
@@ -315,7 +315,7 @@ c1 destroy
 # redefinition and softrecreate
 ###########################################
 Test case pcm-redefine-soft
-::xotcl::configure softrecreate true
+::next::core::configure softrecreate true
 Class A
 Class B -instmixin A
 Class C -superclass B
@@ -349,7 +349,7 @@ c1 destroy
 # with softrecreate off
 ###########################################
 Test case precedence
-::xotcl::configure softrecreate false
+::next::core::configure softrecreate false
 Class O
 Class A -superclass O
 Class B -superclass A
@@ -381,7 +381,7 @@ foreach o {A O B a1 b1 o1} {$o destroy}
 # with softrecreate on
 ###########################################
 Test case alternate-precedence
-::xotcl::configure softrecreate false
+::next::core::configure softrecreate false
 Class O
 Class A -superclass O
 Class B -superclass A
@@ -414,7 +414,7 @@ foreach o {A O B a1 b1 o1} {$o destroy}
 # with softrecreate on
 ###########################################
 Test case recreate-precedence
-::xotcl::configure softrecreate true
+::next::core::configure softrecreate true
 Class O
 Class A -superclass O
 Class B -superclass A
@@ -446,7 +446,7 @@ foreach o {A O B a1 b1 o1} {$o destroy}
 # with softrecreate on
 ###########################################
 Test case recreate-alternate-precedence
-::xotcl::configure softrecreate true
+::next::core::configure softrecreate true
 Class O
 Class A -superclass O
 Class B -superclass A

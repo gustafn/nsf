@@ -24,9 +24,9 @@ C create c2
 ? {c1 bar-SET} {1}
 ? {c1 bar-foo} {foo}
 
-::xotcl::methodproperty C SET protected true
+::next::core::methodproperty C SET protected true
 ? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
-? {::xotcl::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
+? {::next::core::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
 ? {c1 foo} {foo}
 ? {c1 bar} {bar}
 ? {c1 bar-SET} {1}
@@ -34,9 +34,9 @@ C create c2
 ? {catch {c2 bar-SET} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
 ? {c2 bar-foo} {foo}
 
-::xotcl::methodproperty C foo protected true
+::next::core::methodproperty C foo protected true
 ? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
-? {::xotcl::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
+? {::next::core::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
 ? {c1 bar} {bar} "other method work"
 ? {catch {c1 foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 ? {c1 bar-SET} {1} "internal call of protected C implementend method"
@@ -45,15 +45,15 @@ C create c2
 ? {catch {c2 bar-foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 
 # unset protected
-? {::xotcl::methodproperty C SET protected} 1
-::xotcl::methodproperty C SET protected false
-? {::xotcl::methodproperty C SET protected} 0
-? {::xotcl::methodproperty C foo protected} 1
-::xotcl::methodproperty C foo protected false
-? {::xotcl::methodproperty C foo protected} 0
+? {::next::core::methodproperty C SET protected} 1
+::next::core::methodproperty C SET protected false
+? {::next::core::methodproperty C SET protected} 0
+? {::next::core::methodproperty C foo protected} 1
+::next::core::methodproperty C foo protected false
+? {::next::core::methodproperty C foo protected} 0
 
 ? {c1 SET x 3} 3
-? {::xotcl::dispatch c1 SET x 2} {2} 
+? {::next::core::dispatch c1 SET x 2} {2} 
 ? {c1 foo} {foo}
 ? {c1 bar} {bar}
 ? {c1 bar-SET} {1}
@@ -63,9 +63,9 @@ C create c2
 
 # define a protected method
 C protected method foo {} {return [self proc]}
-? {::xotcl::methodproperty C SET protected} 0
+? {::next::core::methodproperty C SET protected} 0
 ? {c1 SET x 3} 3
-? {::xotcl::dispatch c1 SET x 4} {4} 
+? {::next::core::dispatch c1 SET x 4} {4} 
 ? {catch {c1 foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 ? {c1 bar} {bar}
 ? {c1 bar-SET} {1}
@@ -73,18 +73,18 @@ C protected method foo {} {return [self proc]}
 ? {c2 bar-SET} 1
 ? {catch {c2 bar-foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 
-? {::xotcl::methodproperty C SET redefine-protected true} 1
+? {::next::core::methodproperty C SET redefine-protected true} 1
 ? {catch {C method SET {a b c} {...}}  errorMsg; set errorMsg} \
     {Method 'SET' of ::C can not be overwritten. Derive e.g. a sub-class!}
-? {::xotcl::methodproperty C foo redefine-protected true} 1
+? {::next::core::methodproperty C foo redefine-protected true} 1
 ? {catch {C method foo {a b c} {...}}  errorMsg; set errorMsg} \
     {Method 'foo' of ::C can not be overwritten. Derive e.g. a sub-class!}
 # check a predefined protection
-? {catch {::xotcl2::Class method dealloc {a b c} {...}}  errorMsg; set errorMsg} \
-    {Method 'dealloc' of ::xotcl2::Class can not be overwritten. Derive e.g. a sub-class!}
+? {catch {::next::Class method dealloc {a b c} {...}}  errorMsg; set errorMsg} \
+    {Method 'dealloc' of ::next::Class can not be overwritten. Derive e.g. a sub-class!}
 # try to redefined via alias
-? {catch {::xotcl::alias Class dealloc ::set}  errorMsg; set errorMsg} \
-    {Method 'dealloc' of ::xotcl2::Class can not be overwritten. Derive e.g. a sub-class!}
+? {catch {::next::core::alias Class dealloc ::set}  errorMsg; set errorMsg} \
+    {Method 'dealloc' of ::next::Class can not be overwritten. Derive e.g. a sub-class!}
 # try to redefine via forward
 ? {catch {C forward SET ::set}  errorMsg; set errorMsg} \
     {Method 'SET' of ::C can not be overwritten. Derive e.g. a sub-class!}
@@ -95,7 +95,7 @@ C protected method foo {} {return [self proc]}
 # overwrite-protect object specific method
 Object create o
 o method foo {} {return 13}
-::xotcl::methodproperty o foo redefine-protected true
+::next::core::methodproperty o foo redefine-protected true
 ? {catch {o method foo {} {return 14}} errorMsg; set errorMsg} \
     {Method 'foo' of ::o can not be overwritten. Derive e.g. a sub-class!}
 

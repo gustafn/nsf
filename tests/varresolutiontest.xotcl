@@ -5,12 +5,12 @@ package require xotcl::test
 
 Test parameter count 1
 
-::xotcl::alias ::xotcl2::Object objeval -objscope ::eval 
-::xotcl::alias ::xotcl2::Object array -objscope ::array
-::xotcl::alias ::xotcl2::Object lappend -objscope ::lappend
-::xotcl::alias ::xotcl2::Object incr -objscope ::incr
-::xotcl::alias ::xotcl2::Object set -objscope ::set
-::xotcl::alias ::xotcl2::Object unset -objscope ::unset
+::next::core::alias ::next::Object objeval -objscope ::eval 
+::next::core::alias ::next::Object array -objscope ::array
+::next::core::alias ::next::Object lappend -objscope ::lappend
+::next::core::alias ::next::Object incr -objscope ::incr
+::next::core::alias ::next::Object set -objscope ::set
+::next::core::alias ::next::Object unset -objscope ::unset
 
 
 ###########################################
@@ -46,9 +46,9 @@ Object create o2 {set :i 1}
 o objeval {
   # require an namespace within an objscoped frame; it is necessary to replace
   # vartables on the stack
-  my requireNamespace
+  :requireNamespace
   global g
-  ::xotcl::importvar o2 i
+  ::next::core::importvar o2 i
   set x 1
   set :y 2
   set ::z 3
@@ -78,9 +78,9 @@ unset ::g
 
 Object create o2 {set :i 1}
 Object create o {
-  my requireNamespace
+  :requireNamespace
   global g
-  ::xotcl::importvar o2 i
+  ::next::core::importvar o2 i
   set x 1
   set :y 2
   set ::z 3
@@ -121,7 +121,7 @@ o set x 1
 ? {::o set x} 3
 ? {namespace eval ::o {info exists x}} 1
 ? {::o unset x} ""
-? {::xotcl::existsvar o x} 0
+? {::next::core::existsvar o x} 0
 ? {o exists x} 0
 ? {info vars ::x} ""
 ? {namespace eval ::o {info exists x}} 0
@@ -352,13 +352,13 @@ set ::w 1
 array set ::tmpArray {key value}
 
 Class create ::C
-::xotcl::alias ::C Set -objscope ::set
-::xotcl::alias ::C Unset -objscope ::unset
+::next::core::alias ::C Set -objscope ::set
+::next::core::alias ::C Unset -objscope ::unset
 
 ::C create ::c
 namespace eval ::c {}
 ? {namespace exists ::c} 1
-? {::xotcl::is ::c object} 1
+? {::next::core::objectproperty ::c object} 1
 ? {::c info hasnamespace} 0
 
 ? {::c Set w 2; expr {[::c Set w] == $::w}} 0
@@ -380,9 +380,9 @@ unset ::tmpArray
 # with a required namespace and without
 ##################################################
 Test case eval-variants
-::xotcl::alias ::xotcl2::Object objeval -objscope ::eval 
-::xotcl::alias ::xotcl2::Object softeval -nonleaf ::eval 
-::xotcl::alias ::xotcl2::Object softeval2 ::eval 
+::next::core::alias ::next::Object objeval -objscope ::eval 
+::next::core::alias ::next::Object softeval -nonleaf ::eval 
+::next::core::alias ::next::Object softeval2 ::eval 
 
 set G 1
 
@@ -544,9 +544,9 @@ o destroy
 # Test with proc scopes
 ##################################################
 Test case proc-scopes
-::xotcl::alias ::xotcl2::Object objscoped-eval -objscope ::eval 
-::xotcl::alias ::xotcl2::Object nonleaf-eval -nonleaf ::eval 
-::xotcl::alias ::xotcl2::Object plain-eval ::eval 
+::next::core::alias ::next::Object objscoped-eval -objscope ::eval 
+::next::core::alias ::next::Object nonleaf-eval -nonleaf ::eval 
+::next::core::alias ::next::Object plain-eval ::eval 
 
 proc foo-via-initcmd {} {
   foreach v {x xxx} {unset -nocomplain ::$v}
@@ -642,10 +642,10 @@ namespace eval module {
   Class create M2
 
   C mixin M1
-  ? {::xotcl::relation C class-mixin} "::module::M1"
+  ? {::next::core::relation C class-mixin} "::module::M1"
 
   C mixin add M2
-  ? {::xotcl::relation C class-mixin} "::module::M2 ::module::M1"
+  ? {::next::core::relation C class-mixin} "::module::M2 ::module::M1"
 }
 
 

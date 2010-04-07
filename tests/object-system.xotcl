@@ -1,5 +1,5 @@
 package require XOTcl
-xotcl::use xotcl1
+namespace import xotcl::*
 #
 # Basic tests of the object system, should not require Class Test,
 # since even class Test might not work at that time.
@@ -81,16 +81,16 @@ C destroy
 # basic parameter tests
 
 Class C -parameter {{x 1} {y 2}}
-? {::xotcl::objectproperty C object} 1
-? {::xotcl::objectproperty C::slot object} 1
+? {::next::core::objectproperty C object} 1
+? {::next::core::objectproperty C::slot object} 1
 ? {C info children} ::C::slot
 
 
 C copy X
-? {::xotcl::objectproperty X object} 1
+? {::next::core::objectproperty X object} 1
 ? {X info vars} ""
 ? {C info vars} ""
-? {::xotcl::objectproperty X::slot object} 1
+? {::next::core::objectproperty X::slot object} 1
 
 #? {C::slot info vars} __parameter
 ? {C info parameter} {{x 1} {y 2}}
@@ -106,68 +106,68 @@ o proc foo {} {return goo}
 o proc bar {x} {return goo-$x}
 
 # dispatch without colon names
-::xotcl::dispatch o set x 1
+::next::core::dispatch o set x 1
 ? {o info vars} x "simple dispatch has set variable x"
 ? {o set x} 1 "simple dispatch has set variable x to 1"
-? {::xotcl::dispatch o foo} "goo" "simple dispatch with one arg works"
-? {::xotcl::dispatch o bar 1} "goo-1" "simple dispatch with two args works"
+? {::next::core::dispatch o foo} "goo" "simple dispatch with one arg works"
+? {::next::core::dispatch o bar 1} "goo-1" "simple dispatch with two args works"
 o destroy
 
 # dispatch without colon names
 Object o -set x 1
-::xotcl::dispatch ::o ::incr x
+::next::core::dispatch ::o ::incr x
 ? {o set x} 1 "cmd dispatch without -objscope did not modify the instance variable"
-::xotcl::dispatch ::o -objscope ::incr x
+::next::core::dispatch ::o -objscope ::incr x
 ? {o set x} 2 "cmd dispatch -objscope modifies the instance variable"
-? {catch {::xotcl::dispatch ::o -objscope ::xxx x}} 1 "cmd dispatch with unknown command"
+? {catch {::next::core::dispatch ::o -objscope ::xxx x}} 1 "cmd dispatch with unknown command"
 o destroy
 
 puts stderr ===MINI-OBJECTSYSTEM
 # test object system
 # create a minimal object system without internally dipatched methods
-::xotcl::createobjectsystem ::object ::class
+::next::core::createobjectsystem ::object ::class
 
-? {::xotcl::objectproperty ::object object} 1
-? {::xotcl::objectproperty ::object class} 1
-? {::xotcl::objectproperty ::object metaclass} 0
-? {::xotcl::relation ::object class} ::class
-? {::xotcl::relation ::object superclass} ""
+? {::next::core::objectproperty ::object object} 1
+? {::next::core::objectproperty ::object class} 1
+? {::next::core::objectproperty ::object metaclass} 0
+? {::next::core::relation ::object class} ::class
+? {::next::core::relation ::object superclass} ""
 
-? {::xotcl::objectproperty ::class object} 1
-? {::xotcl::objectproperty ::class class} 1
-? {::xotcl::objectproperty ::class metaclass} 1
-? {::xotcl::relation ::class class} ::class
-? {::xotcl::relation ::class superclass} ::object
+? {::next::core::objectproperty ::class object} 1
+? {::next::core::objectproperty ::class class} 1
+? {::next::core::objectproperty ::class metaclass} 1
+? {::next::core::relation ::class class} ::class
+? {::next::core::relation ::class superclass} ::object
 
 # define non-standard methos to create/destroy objects and classes
-::xotcl::alias ::class  + ::xotcl::cmd::Class::create
-::xotcl::alias ::object - ::xotcl::cmd::Object::destroy
+::next::core::alias ::class  + ::next::core::cmd::Class::create
+::next::core::alias ::object - ::next::core::cmd::Object::destroy
 
 # create a class named C
 ::class + C
 
-? {::xotcl::objectproperty ::C object} 1
-? {::xotcl::objectproperty ::C class} 1
-? {::xotcl::objectproperty ::C metaclass} 0
-? {::xotcl::relation ::C class} ::class
-? {::xotcl::relation ::C superclass} ::object
+? {::next::core::objectproperty ::C object} 1
+? {::next::core::objectproperty ::C class} 1
+? {::next::core::objectproperty ::C metaclass} 0
+? {::next::core::relation ::C class} ::class
+? {::next::core::relation ::C superclass} ::object
 
 # create an instance of C
 C + c1
 
-? {::xotcl::objectproperty ::c1 object} 1
-? {::xotcl::objectproperty ::c1 class} 0
-? {::xotcl::objectproperty ::c1 metaclass} 0
-? {::xotcl::relation ::c1 class} ::C
+? {::next::core::objectproperty ::c1 object} 1
+? {::next::core::objectproperty ::c1 class} 0
+? {::next::core::objectproperty ::c1 metaclass} 0
+? {::next::core::relation ::c1 class} ::C
 
 # destroy instance and class
 c1 -
 
-? {::xotcl::objectproperty ::c1 object} 0
-? {::xotcl::objectproperty ::C class} 1
+? {::next::core::objectproperty ::c1 object} 0
+? {::next::core::objectproperty ::C class} 1
 
 C -
 
-? {::xotcl::objectproperty ::C class} 0
+? {::next::core::objectproperty ::C class} 0
 
 puts stderr ===EXIT

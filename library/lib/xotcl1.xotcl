@@ -1,4 +1,5 @@
-package provide xotcl1 1.0
+package provide XOTcl 2.0
+package require next
 #######################################################
 # Classical ::xotcl-1.*
 #######################################################
@@ -9,7 +10,7 @@ namespace eval ::xotcl {
   # ::xotcl::Object and ::xotcl::Class and defines these as root class
   # of the object system and as root meta class.
   #
-  ::xotcl::createobjectsystem ::xotcl::Object ::xotcl::Class {
+  ::next::core::createobjectsystem ::xotcl::Object ::xotcl::Class {
     -class.alloc alloc 
     -class.create create
     -class.dealloc dealloc
@@ -26,48 +27,59 @@ namespace eval ::xotcl {
     -object.unknown unknown
   }
 
+  #
+  # create ::next and ::next core namespaces, otherwise mk_pkgindex will fail
+  #
+  namespace eval ::next {}
+  namespace eval ::next::core {}
+  #
+  # get frequenly used primitiva into the ::xotcl namespace
+  #
+  namespace import ::next::core::*
+  namespace import ::next::Attribute
+
   # provide the standard command set for ::xotcl::Object
-  foreach cmd [info command ::xotcl::cmd::Object::*] {
+  foreach cmd [info command ::next::core::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "filtersearch" "setter"]} continue
-    ::xotcl::alias Object $cmdName $cmd
+    ::next::core::alias Object $cmdName $cmd
   }
 
   # provide some Tcl-commands as methods for ::xotcl::Object
   foreach cmd {array append eval incr lappend set subst unset trace} {
-    ::xotcl::alias Object $cmd -objscope ::$cmd
+    ::next::core::alias Object $cmd -objscope ::$cmd
   }
 
   # provide the standard command set for ::xotcl::Class
-  foreach cmd [info command ::xotcl::cmd::Class::*] {
+  foreach cmd [info command ::next::core::cmd::Class::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "setter"]} continue
-    ::xotcl::alias Class $cmdName $cmd
+    ::next::core::alias Class $cmdName $cmd
   }
 
   # protect some methods against redefinition
-  ::xotcl::methodproperty Object destroy redefine-protected true
-  ::xotcl::methodproperty Class  alloc   redefine-protected true
-  ::xotcl::methodproperty Class  dealloc redefine-protected true
-  ::xotcl::methodproperty Class  create  redefine-protected true
+  ::next::core::methodproperty Object destroy redefine-protected true
+  ::next::core::methodproperty Class  alloc   redefine-protected true
+  ::next::core::methodproperty Class  dealloc redefine-protected true
+  ::next::core::methodproperty Class  create  redefine-protected true
 
   # define instproc and proc
-  ::xotcl::method Class instproc {
+  ::next::core::method Class instproc {
     name arguments body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::xotcl::method [self] $name $arguments $body {*}$conditions
+    ::next::core::method [self] $name $arguments $body {*}$conditions
   }
 
-  ::xotcl::method Object proc {
+  ::next::core::method Object proc {
     name arguments body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::xotcl::method [self] -per-object $name $arguments $body {*}$conditions
+    ::next::core::method [self] -per-object $name $arguments $body {*}$conditions
   }
 
   # define - like in XOTcl 1 - a minimal implementation of "method"
@@ -83,8 +95,8 @@ namespace eval ::xotcl {
   }
 
   # define forward methods
-  ::xotcl::forward Object forward ::xotcl::forward %self -per-object
-  ::xotcl::forward Class instforward ::xotcl::forward %self
+  ::next::core::forward Object forward ::next::core::forward %self -per-object
+  ::next::core::forward Class instforward ::next::core::forward %self
 
   Class instproc unknown {args} {
     #puts stderr "use '[self] create $args', not '[self] $args'"
@@ -106,16 +118,16 @@ namespace eval ::xotcl {
   # object-parameter definition, backwards compatible
   #
   ::xotcl::Object instproc objectparameter {} {
-    set parameterdefinitions [::xotcl::parametersFromSlots [self]]
+    set parameterdefinitions [::next::core::parametersFromSlots [self]]
     lappend parameterdefinitions args
     #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
     return $parameterdefinitions
   }
 
   #
-  # use parameter definition from xotcl2
+  # use parameter definition from next
   #
-  ::xotcl::alias ::xotcl::Class parameter ::xotcl::classes::xotcl2::Class::parameter
+  ::next::core::alias ::xotcl::Class parameter ::next::core::classes::next::Class::parameter
 
   # We provide a default value for superclass (when no superclass is
   # specified explicitely) and metaclass, in case they should differ
@@ -135,20 +147,20 @@ namespace eval ::xotcl {
     ${os}::Object alloc ${os}::Class::slot
     ${os}::Object alloc ${os}::Object::slot
     
-    ::xotcl::RelationSlot create ${os}::Class::slot::superclass
-    ::xotcl::alias           ${os}::Class::slot::superclass assign ::xotcl::relation
-    ::xotcl::RelationSlot create ${os}::Object::slot::class -multivalued false
-    ::xotcl::alias           ${os}::Object::slot::class assign ::xotcl::relation
+    ::next::RelationSlot create ${os}::Class::slot::superclass
+    ::next::core::alias         ${os}::Class::slot::superclass assign ::next::core::relation
+    ::next::RelationSlot create ${os}::Object::slot::class -multivalued false
+    ::next::core::alias         ${os}::Object::slot::class assign ::next::core::relation
 
-    ::xotcl::RelationSlot create ${os}::Object::slot::mixin \
+    ::next::RelationSlot create ${os}::Object::slot::mixin \
         -methodname object-mixin
-    ::xotcl::RelationSlot create ${os}::Object::slot::filter \
+    ::next::RelationSlot create ${os}::Object::slot::filter \
         -methodname object-filter \
         -elementtype ""
 
-    ::xotcl::RelationSlot create ${os}::Class::slot::instmixin \
+    ::next::RelationSlot create ${os}::Class::slot::instmixin \
         -methodname class-mixin
-    ::xotcl::RelationSlot create ${os}::Class::slot::instfilter \
+    ::next::RelationSlot create ${os}::Class::slot::instfilter \
         -methodname class-filter \
         -elementtype ""
   }
@@ -162,8 +174,8 @@ namespace eval ::xotcl {
   Object create ::xotcl::classInfo
 
   # note, we are using ::xotcl::infoError defined earlier
-  Object instforward info -onerror ::xotcl::infoError ::xotcl::objectInfo %1 {%@2 %self}
-  Class  instforward info -onerror ::xotcl::infoError ::xotcl::classInfo %1 {%@2 %self}
+  Object instforward info -onerror ::next::core::infoError ::xotcl::objectInfo %1 {%@2 %self}
+  Class  instforward info -onerror ::next::core::infoError ::xotcl::classInfo %1 {%@2 %self}
 
   objectInfo proc info {obj} {
     set methods [list]
@@ -238,8 +250,8 @@ namespace eval ::xotcl {
   proc ::xotcl::info_args {allocation o method} {
     set result [list]
     foreach \
-        argName [::xotcl::cmd::${allocation}Info::method $o args $method] \
-        flag    [::xotcl::cmd::${allocation}Info::method $o parameter $method] {
+        argName [::next::core::cmd::${allocation}Info::method $o args $method] \
+        flag    [::next::core::cmd::${allocation}Info::method $o parameter $method] {
           if {[string match -* $flag]} continue
           lappend result $argName
         }
@@ -249,7 +261,7 @@ namespace eval ::xotcl {
 
   proc ::xotcl::info_nonposargs {allocation o method} {
     set result [list]
-    foreach flag [::xotcl::cmd::${allocation}Info::method $o parameter $method] {
+    foreach flag [::next::core::cmd::${allocation}Info::method $o parameter $method] {
       if {![string match -* $flag]} continue
       lappend result $flag
     }
@@ -258,8 +270,8 @@ namespace eval ::xotcl {
   }
   proc ::xotcl::info_default {allocation o method arg varName} {
     foreach \
-        argName [::xotcl::cmd::${allocation}Info::method $o args $method] \
-        flag    [::xotcl::cmd::${allocation}Info::method $o parameter $method] {
+        argName [::next::core::cmd::${allocation}Info::method $o args $method] \
+        flag    [::next::core::cmd::${allocation}Info::method $o parameter $method] {
           if {$argName eq $arg} {
             upvar 3 $varName default
             if {[llength $flag] == 2} {
@@ -284,25 +296,25 @@ namespace eval ::xotcl {
     :proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
     # info options emulated by "info method ..."
-    :proc instbody    {o methodName} {::xotcl::cmd::ClassInfo::method $o body $methodName}
-    :proc instpre     {o methodName} {::xotcl::cmd::ClassInfo::method $o precondition  $methodName}
-    :proc instpost    {o methodName} {::xotcl::cmd::ClassInfo::method $o postcondition $methodName}
+    :proc instbody    {o methodName} {::next::core::cmd::ClassInfo::method $o body $methodName}
+    :proc instpre     {o methodName} {::next::core::cmd::ClassInfo::method $o precondition  $methodName}
+    :proc instpost    {o methodName} {::next::core::cmd::ClassInfo::method $o postcondition $methodName}
 
     # info options emulated by "info methods"
     :proc instcommands {o {pattern:optional ""}} {
-      ::xotcl::cmd::ClassInfo::methods $o {*}$pattern
+      ::next::core::cmd::ClassInfo::methods $o {*}$pattern
     }
     :proc instprocs   {o {pattern:optional ""}} {
-      ::xotcl::cmd::ClassInfo::methods $o -methodtype scripted {*}$pattern
+      ::next::core::cmd::ClassInfo::methods $o -methodtype scripted {*}$pattern
     }
     :proc parametercmd {o {pattern:optional ""}} {
-      ::xotcl::cmd::ClassInfo::methods $o -per-object -methodtype setter {*}$pattern
+      ::next::core::cmd::ClassInfo::methods $o -per-object -methodtype setter {*}$pattern
     }
     :proc instparametercmd {o {pattern:optional ""}} {
-      ::xotcl::cmd::ClassInfo::methods $o -methodtype setter {*}$pattern
+      ::next::core::cmd::ClassInfo::methods $o -methodtype setter {*}$pattern
     }
     # assertion handling
-    :proc instinvar   {o} {::xotcl::assertion $o class-invar}
+    :proc instinvar   {o} {::next::core::assertion $o class-invar}
   }
 
   objectInfo eval {
@@ -311,16 +323,16 @@ namespace eval ::xotcl {
     :proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
     # info options emulated by "info method ..."
-    :proc body        {o methodName} {::xotcl::cmd::ObjectInfo::method $o body $methodName}
-    :proc pre         {o methodName} {::xotcl::cmd::ObjectInfo::method $o pre $methodName}
-    :proc post        {o methodName} {::xotcl::cmd::ObjectInfo::method $o post $methodName}
+    :proc body        {o methodName} {::next::core::cmd::ObjectInfo::method $o body $methodName}
+    :proc pre         {o methodName} {::next::core::cmd::ObjectInfo::method $o pre $methodName}
+    :proc post        {o methodName} {::next::core::cmd::ObjectInfo::method $o post $methodName}
 
     # info options emulated by "info methods"
     :proc commands    {o {pattern:optional ""}} {
-      ::xotcl::cmd::ObjectInfo::methods $o {*}$pattern
+      ::next::core::cmd::ObjectInfo::methods $o {*}$pattern
     }
     :proc procs       {o {pattern:optional ""}} {
-      ::xotcl::cmd::ObjectInfo::methods $o -methodtype scripted {*}$pattern
+      ::next::core::cmd::ObjectInfo::methods $o -methodtype scripted {*}$pattern
     }
     :proc methods {
       o -nocmds:switch -noprocs:switch -incontext:switch pattern:optional
@@ -328,7 +340,7 @@ namespace eval ::xotcl {
       set methodtype all
       if {$nocmds} {set methodtype scripted}
       if {$noprocs} {if {$nocmds} {return ""}; set methodtype builtin}
-      set cmd [list ::xotcl::cmd::ObjectInfo::callable $o -methodtype $methodtype]
+      set cmd [list ::next::core::cmd::ObjectInfo::callable $o -methodtype $methodtype]
       if {$incontext} {lappend cmd -incontext}
       if {[::info exists pattern]} {lappend cmd $pattern}
       eval $cmd
@@ -338,88 +350,88 @@ namespace eval ::xotcl {
       set guardsFlag [expr {$guards ? "-guards" : ""}]
       set patternArg [expr {[info exists pattern] ? [list $pattern] : ""}]
       if {$order && !$guards} {
-        set def [::xotcl::cmd::ObjectInfo::filter $o -order {*}$guardsFlag {*}$patternArg]
+        set def [::next::core::cmd::ObjectInfo::filter $o -order {*}$guardsFlag {*}$patternArg]
         #puts stderr "TO CONVERT: $def"
         set def [filterorder_list_to_xotcl1 $def]
       } else {
-        set def [::xotcl::cmd::ObjectInfo::filter $o {*}$guardsFlag {*}$patternArg]
+        set def [::next::core::cmd::ObjectInfo::filter $o {*}$guardsFlag {*}$patternArg]
       }
       #puts stderr "  => $def"
       return $def
     }
     # assertion handling
     :proc check {o} {
-      ::xotcl::checkoption_internal_to_xotcl1 [::xotcl::assertion $o check]
+      ::xotcl::checkoption_internal_to_xotcl1 [::next::core::assertion $o check]
     }
-    :proc invar {o} {::xotcl::assertion $o object-invar}
+    :proc invar {o} {::next::core::assertion $o object-invar}
   }
 
-  foreach cmd [::info command ::xotcl::cmd::ObjectInfo::*] {
+  foreach cmd [::info command ::next::core::cmd::ObjectInfo::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "callable" "filter" "method" "methods"]} continue
-    ::xotcl::alias ::xotcl::objectInfo $cmdName $cmd
-    ::xotcl::alias ::xotcl::classInfo $cmdName $cmd
+    ::next::core::alias ::xotcl::objectInfo $cmdName $cmd
+    ::next::core::alias ::xotcl::classInfo $cmdName $cmd
   }
 
-  foreach cmd [::info command ::xotcl::cmd::ClassInfo::*] {
+  foreach cmd [::info command ::next::core::cmd::ClassInfo::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "forward" "method" "methods" \
                          "mixinof" "object-mixin-of" \
                          "filter" "filterguard" \
                          "mixin" "mixinguard"]} continue
-    ::xotcl::alias ::xotcl::classInfo $cmdName $cmd
+    ::next::core::alias ::xotcl::classInfo $cmdName $cmd
   }
 
-  ::xotcl::alias ::xotcl::objectInfo is ::xotcl::objectproperty
-  ::xotcl::alias ::xotcl::classInfo is ::xotcl::objectproperty
-  ::xotcl::alias ::xotcl::classInfo classparent ::xotcl::cmd::ObjectInfo::parent
-  ::xotcl::alias ::xotcl::classInfo classchildren ::xotcl::cmd::ObjectInfo::children
-  ::xotcl::alias ::xotcl::classInfo instmixin ::xotcl::cmd::ClassInfo::mixin
-  ::xotcl::alias ::xotcl::classInfo instmixinguard ::xotcl::cmd::ClassInfo::mixinguard
-  #::xotcl::alias ::xotcl::classInfo instmixinof ::xotcl::cmd::ClassInfo::class-mixin-of
-  ::xotcl::forward ::xotcl::classInfo instmixinof ::xotcl::cmd::ClassInfo::mixinof %1 -scope class
-  ::xotcl::alias ::xotcl::classInfo instfilter ::xotcl::cmd::ClassInfo::filter
-  ::xotcl::alias ::xotcl::classInfo instfilterguard ::xotcl::cmd::ClassInfo::filterguard
-  ::xotcl::alias ::xotcl::classInfo instforward ::xotcl::cmd::ClassInfo::forward
-  #::xotcl::alias ::xotcl::classInfo mixinof ::xotcl::cmd::ClassInfo::object-mixin-of
-  ::xotcl::forward ::xotcl::classInfo mixinof ::xotcl::cmd::ClassInfo::mixinof %1 -scope object
+  ::next::core::alias ::xotcl::objectInfo is ::next::core::objectproperty
+  ::next::core::alias ::xotcl::classInfo is ::next::core::objectproperty
+  ::next::core::alias ::xotcl::classInfo classparent ::next::core::cmd::ObjectInfo::parent
+  ::next::core::alias ::xotcl::classInfo classchildren ::next::core::cmd::ObjectInfo::children
+  ::next::core::alias ::xotcl::classInfo instmixin ::next::core::cmd::ClassInfo::mixin
+  ::next::core::alias ::xotcl::classInfo instmixinguard ::next::core::cmd::ClassInfo::mixinguard
+  #::next::core::alias ::xotcl::classInfo instmixinof ::next::core::cmd::ClassInfo::class-mixin-of
+  ::next::core::forward ::xotcl::classInfo instmixinof ::next::core::cmd::ClassInfo::mixinof %1 -scope class
+  ::next::core::alias ::xotcl::classInfo instfilter ::next::core::cmd::ClassInfo::filter
+  ::next::core::alias ::xotcl::classInfo instfilterguard ::next::core::cmd::ClassInfo::filterguard
+  ::next::core::alias ::xotcl::classInfo instforward ::next::core::cmd::ClassInfo::forward
+  #::next::core::alias ::xotcl::classInfo mixinof ::next::core::cmd::ClassInfo::object-mixin-of
+  ::next::core::forward ::xotcl::classInfo mixinof ::next::core::cmd::ClassInfo::mixinof %1 -scope object
 
   # assertion handling
-  ::xotcl::alias ::xotcl::classInfo invar objectInfo::invar
-  ::xotcl::alias ::xotcl::classInfo check objectInfo::check
+  ::next::core::alias ::xotcl::classInfo invar objectInfo::invar
+  ::next::core::alias ::xotcl::classInfo check objectInfo::check
 
   # define info methods from objectInfo on classInfo as well
-  ::xotcl::alias classInfo body     objectInfo::body
-  ::xotcl::alias classInfo commands objectInfo::commands
-  ::xotcl::alias classInfo filter   objectInfo::filter
-  ::xotcl::alias classInfo methods  objectInfo::methods
-  ::xotcl::alias classInfo procs    objectInfo::procs
-  ::xotcl::alias classInfo pre      objectInfo::pre
-  ::xotcl::alias classInfo post     objectInfo::post
+  ::next::core::alias classInfo body     objectInfo::body
+  ::next::core::alias classInfo commands objectInfo::commands
+  ::next::core::alias classInfo filter   objectInfo::filter
+  ::next::core::alias classInfo methods  objectInfo::methods
+  ::next::core::alias classInfo procs    objectInfo::procs
+  ::next::core::alias classInfo pre      objectInfo::pre
+  ::next::core::alias classInfo post     objectInfo::post
 
   # emulation of isobject, isclass ...
-  Object instproc isobject    {{object:substdefault "[self]"}} {::xotcl::is $object object}
-  Object instproc isclass     {{class:substdefault  "[self]"}} {::xotcl::is $class class}
-  Object instproc ismetaclass {{class:substdefault  "[self]"}} {::xotcl::is $class metaclass}
-  Object instproc ismixin     {class}  {::xotcl::is [self] object -hasmixin $class}
-  Object instproc istype      {class}  {::xotcl::is [self] type $class}
+  Object instproc isobject    {{object:substdefault "[self]"}} {::next::core::objectproperty $object object}
+  Object instproc isclass     {{class:substdefault  "[self]"}} {::next::core::objectproperty $class class}
+  Object instproc ismetaclass {{class:substdefault  "[self]"}} {::next::core::objectproperty $class metaclass}
+  Object instproc ismixin     {class}  {::next::core::is [self] object -hasmixin $class}
+  Object instproc istype      {class}  {::next::core::is [self] type $class}
 
-  ::xotcl::alias Object contains ::xotcl::classes::xotcl2::Object::contains
+  ::next::core::alias Object contains ::next::core::classes::next::Object::contains
   ::xotcl::Class instforward slots %self contains \
-      -object {%::xotcl::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
+      -object {%::next::core::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
   #
-  # define parametercmd and instparametercmd in terms of ::xotcl2 method setter
+  # define parametercmd and instparametercmd in terms of ::next method setter
   # define filterguard and instfilterguard in terms of filterguard
   # define mixinguard and instmixinguard in terms of mixinguard
   #
-  ::xotcl::alias Object parametercmd    ::xotcl::classes::xotcl2::Object::setter
-  ::xotcl::alias Class instparametercmd ::xotcl::classes::xotcl2::Class::setter
+  ::next::core::alias Object parametercmd    ::next::core::classes::next::Object::setter
+  ::next::core::alias Class instparametercmd ::next::core::classes::next::Class::setter
 
-  ::xotcl::alias Class filterguard      ::xotcl::cmd::Object::filterguard
-  ::xotcl::alias Class instfilterguard  ::xotcl::cmd::Class::filterguard
+  ::next::core::alias Class filterguard      ::next::core::cmd::Object::filterguard
+  ::next::core::alias Class instfilterguard  ::next::core::cmd::Class::filterguard
 
-  ::xotcl::alias Class mixinguard       ::xotcl::cmd::Object::mixinguard
-  ::xotcl::alias Class instmixinguard   ::xotcl::cmd::Class::mixinguard
+  ::next::core::alias Class mixinguard       ::next::core::cmd::Object::mixinguard
+  ::next::core::alias Class instmixinguard   ::next::core::cmd::Class::mixinguard
 
   # assertion handling
   proc checkoption_xotcl1_to_internal checkoptions {
@@ -477,10 +489,10 @@ namespace eval ::xotcl {
  
 
   Object instproc check {checkoptions} {
-    ::xotcl::assertion [self] check [::xotcl::checkoption_xotcl1_to_internal $checkoptions]
+    ::next::core::assertion [self] check [::xotcl::checkoption_xotcl1_to_internal $checkoptions]
   }
-  Object instforward invar     ::xotcl::assertion %self object-invar
-  Class  instforward instinvar ::xotcl::assertion %self class-invar
+  Object instforward invar     ::next::core::assertion %self object-invar
+  Class  instforward instinvar ::next::core::assertion %self class-invar
 
   Object instproc abstract {methtype methname arglist} {
     if {$methtype ne "proc" && $methtype ne "instproc" && $methtype ne "method"} {
@@ -496,20 +508,20 @@ namespace eval ::xotcl {
 
   # support for XOTcl 1.* specific convenience routines
   Object instproc hasclass cl {
-    if {[::xotcl::is [self] object -hasmixin $cl]} {return 1}
-    ::xotcl::is [self] type $cl
+    if {[::next::core::is [self] object -hasmixin $cl]} {return 1}
+    ::next::core::is [self] type $cl
   }
   Object instproc filtersearch {filter} {
-    set definition [::xotcl::dispatch [self] ::xotcl::cmd::Object::filtersearch $filter]
+    set definition [::next::core::dispatch [self] ::next::core::cmd::Object::filtersearch $filter]
     return [filterorder_to_xotcl1 $definition]
   }
   Object instproc procsearch {name} {
-    set definition [::xotcl::cmd::ObjectInfo::callable [self] -which $name]
+    set definition [::next::core::cmd::ObjectInfo::callable [self] -which $name]
     if {$definition ne ""} {
       foreach {obj modifier kind} $definition break
       if {$modifier ne "object"} {
         set kind $modifier
-        set perClass [::xotcl::is $obj class]
+        set perClass [::next::core::is $obj class]
       } else {
         set perClass 0
       }
@@ -530,16 +542,16 @@ namespace eval ::xotcl {
   }
 
   # keep old object interface for xotcl 1.*
-  Object proc unsetExitHandler {} {::xotcl::unsetExitHandler $newbody}
-  Object proc setExitHandler   {newbody} {::xotcl::setExitHandler $newbody}
-  Object proc getExitHandler   {} {:xotcl::getExitHandler}
+  Object proc unsetExitHandler {} {::next::core::unsetExitHandler $newbody}
+  Object proc setExitHandler   {newbody} {::next::core::setExitHandler $newbody}
+  Object proc getExitHandler   {} {::next::core::getExitHandler}
 
-  # resue some definitions from ::xotcl2
-  ::xotcl::alias ::xotcl::Object copy ::xotcl::classes::xotcl2::Object::copy
-  ::xotcl::alias ::xotcl::Object move ::xotcl::classes::xotcl2::Object::move
-  ::xotcl::alias ::xotcl::Object defaultmethod ::xotcl::classes::xotcl2::Object::defaultmethod
+  # resue some definitions from ::next
+  ::next::core::alias ::xotcl::Object copy ::next::core::classes::next::Object::copy
+  ::next::core::alias ::xotcl::Object move ::next::core::classes::next::Object::move
+  ::next::core::alias ::xotcl::Object defaultmethod ::next::core::classes::next::Object::defaultmethod
 
-  ::xotcl::alias ::xotcl::Class -per-object __unknown ::xotcl2::Class::__unknown
+  ::next::core::alias ::xotcl::Class -per-object __unknown ::next::Class::__unknown
 
   proc myproc {args} {linsert $args 0 [::xotcl::self]}
   proc myvar  {var}  {.requireNamespace; return [::xotcl::self]::$var}
@@ -663,7 +675,7 @@ namespace eval ::xotcl {
       puts stderr "*** using ${package}::* in [::xotcl::self]"
     }
   }
-  ::xotcl2::Class create ::xotcl::package -superclass ::xotcl::Class -parameter {
+  ::next::Class create ::xotcl::package -superclass ::xotcl::Class -parameter {
     provide
     {version 1.0}
     {autoexport {}}
@@ -770,6 +782,30 @@ namespace eval ::xotcl {
   }
   
   if {[info exists cmd]} {unset cmd}
+
+
+  # documentation stub object -> just ignore per default.
+  # if xoDoc is loaded, documentation will be activated
+  ::xotcl::Object create ::xotcl::@
+  ::xotcl::@ proc unknown args {}
+  
+  #
+  # set xotcl version variables
+  #
+  # check for variable, otherwise mk_pkgindex will fail
+  if {[info exists ::next::core::version]} {
+    set ::xotcl::version $::next::core::version
+    set ::xotcl::patchlevel $::next::core::patchlevel
+  }
+
+  set ::xotcl::confdir ~/.xotcl
+  set ::xotcl::logdir $::xotcl::confdir/log
+  namespace import ::next::core::tmpdir
+
   # finally, export contents defined for xotcl 1.*
-  namespace export Object Class myproc myvar
+  namespace export Object Class Attribute myproc myvar my self next @
+}
+
+foreach ns {::next::core ::next ::xotcl} {
+  puts stderr "$ns exports [namespace eval $ns {lsort [namespace export]}]"
 }

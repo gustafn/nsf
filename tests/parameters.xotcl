@@ -7,9 +7,9 @@ Test case dummy {
   set o [Object create o]
   puts o=$o
 
-  ? {::xotcl::is ::o object} 1
+  ? {::next::core::objectproperty ::o object} 1
 }
-? {::xotcl::is ::o object} 0 
+? {::next::core::objectproperty ::o object} 0 
 #exit
 
 #######################################################
@@ -24,49 +24,49 @@ Test case parametercheck {
   Class create M
   c1 mixin M
 
-  ? {::xotcl::parametercheck object o1} 1
-  ? {::xotcl::parametercheck integer 1} 1
+  ? {::next::core::parametercheck object o1} 1
+  ? {::next::core::parametercheck integer 1} 1
 
-  ? {::xotcl::objectproperty o1 object} 1
-  ? {::xotcl::objectproperty c1 type C} 1
+  ? {::next::core::objectproperty o1 object} 1
+  ? {::next::core::objectproperty c1 type C} 1
 
-  ? {::xotcl::is c1 object -type C} 1
-  ? {::xotcl::is c1 object -hasmixin M -type C} 1
-  ? {::xotcl::is c1 object -hasmixin M1 -type C} 0
-  ? {::xotcl::is c1 object -hasmixin M -type C0} 0
-  ? {::xotcl::is o1 object} 1
-  ? {::xotcl::is 1 integer} 1
-  ? {::xotcl::is c1 type C} 1
-  ? {::xotcl::is o type C} 0
-  ? {::xotcl::is o object -type C} 0
-  ? {::xotcl::is o object -hasmixin C} 0
+  ? {::next::core::is c1 object -type C} 1
+  ? {::next::core::is c1 object -hasmixin M -type C} 1
+  ? {::next::core::is c1 object -hasmixin M1 -type C} 0
+  ? {::next::core::is c1 object -hasmixin M -type C0} 0
+  ? {::next::core::is o1 object} 1
+  ? {::next::core::is 1 integer} 1
+  ? {::next::core::is c1 type C} 1
+  ? {::next::core::is o type C} 0
+  ? {::next::core::is o object -type C} 0
+  ? {::next::core::is o object -hasmixin C} 0
 #exit
-  ? {::xotcl::parametercheck class o1} {expected class but got "o1" for parameter value}
-  ? {::xotcl::parametercheck -nocomplain class o1} 0
-  ? {::xotcl::parametercheck class Test} 1
-  ? {::xotcl::parametercheck object,multivalued [list o1 Test]} 1
+  ? {::next::core::parametercheck class o1} {expected class but got "o1" for parameter value}
+  ? {::next::core::parametercheck -nocomplain class o1} 0
+  ? {::next::core::parametercheck class Test} 1
+  ? {::next::core::parametercheck object,multivalued [list o1 Test]} 1
 
-  ? {::xotcl::parametercheck integer,multivalued [list 1 2 3]} 1
-  ? {::xotcl::parametercheck integer,multivalued [list 1 2 3 a]} \
+  ? {::next::core::parametercheck integer,multivalued [list 1 2 3]} 1
+  ? {::next::core::parametercheck integer,multivalued [list 1 2 3 a]} \
       {invalid value in "1 2 3 a": expected integer but got "a" for parameter value}
-  ? {::xotcl::parametercheck object,type=::C c1} 1
-  ? {::xotcl::parametercheck object,type=::C o} \
+  ? {::next::core::parametercheck object,type=::C c1} 1
+  ? {::next::core::parametercheck object,type=::C o} \
       {expected object but got "o" for parameter value} \
       "object, but different type"
-  ? {::xotcl::parametercheck object,type=::C c} \
+  ? {::next::core::parametercheck object,type=::C c} \
       {expected object but got "c" for parameter value} \
       "no object"
-  ? {::xotcl::parametercheck object,type=::xotcl2::Object c1} 1 "general type"
+  ? {::next::core::parametercheck object,type=::next::Object c1} 1 "general type"
   
   # do not allow "currently unknown" user defined types in parametercheck
-  ? {::xotcl::parametercheck in1 aaa} {invalid value constraints "in1"}
+  ? {::next::core::parametercheck in1 aaa} {invalid value constraints "in1"}
   
-  ? {::xotcl::parametercheck lower c} 1 "lower case char"
-  ? {::xotcl::parametercheck lower abc} 1 "lower case chars"
-  ? {::xotcl::parametercheck lower Abc} {expected lower but got "Abc" for parameter value} 
+  ? {::next::core::parametercheck lower c} 1 "lower case char"
+  ? {::next::core::parametercheck lower abc} 1 "lower case chars"
+  ? {::next::core::parametercheck lower Abc} {expected lower but got "Abc" for parameter value} 
   ? {string is lower abc} 1 "tcl command 'string is lower'"
   
-  ? {::xotcl::parametercheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
+  ? {::next::core::parametercheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
 }
 
 #######################################################
@@ -81,7 +81,7 @@ Test case parametercheck {
     }
   }
   
-  ? {::xotcl::parametercheck sex,slot=::paramManager female} "1"
+  ? {::next::core::parametercheck sex,slot=::paramManager female} "1"
 }
 #######################################################
 # cononical feature table
@@ -140,10 +140,10 @@ Test case parametercheck {
 # ::xotcl::RelationSlot -superclass ::xotcl::Slot {
 #     {multivalued true}
 #     {type relation}
-#     {elementtype ::xotcl2::Class}
+#     {elementtype ::next::Class}
 # } -- sample instances: class superclass, mixin filter
 #
-# ::xotcl::Attribute -superclass ::xotcl::Slot {
+# ::next::Attribute -superclass ::xotcl::Slot {
 #     {value_check once}
 #     initcmd
 #     valuecmd
@@ -165,13 +165,13 @@ Test case objectparameter {
   C create c1
  
   ? {C eval {:objectparameter}} \
-      "-object-mixin:relation,slot=::xotcl2::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::xotcl2::Class::slot::mixin -superclass:relation,slot=::xotcl2::Class::slot::superclass -object-filter:relation,slot=::xotcl2::Class::slot::object-filter -filter:relation,arg=class-filter,slot=::xotcl2::Class::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -parameter:method,optional -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
+      "-object-mixin:relation,slot=::next::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::next::Class::slot::mixin -superclass:relation,slot=::next::Class::slot::superclass -object-filter:relation,slot=::next::Class::slot::object-filter -filter:relation,arg=class-filter,slot=::next::Class::slot::filter -class:relation,slot=::next::Object::slot::class -parameter:method,optional -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
 
 
 
 
   ? {c1 eval {:objectparameter}} \
-      "-a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
+      "-a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::next::Object::slot::mixin -filter:relation,slot=::next::Object::slot::filter -class:relation,slot=::next::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
 }
 
 #######################################################
@@ -184,13 +184,13 @@ Test case reclass {
 
   c1 class Object
   ? {c1 eval :objectparameter} \
-      "-mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
+      "-mixin:relation,arg=object-mixin,slot=::next::Object::slot::mixin -filter:relation,slot=::next::Object::slot::filter -class:relation,slot=::next::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
   
   Class create D -superclass C -parameter {d:required}
   D create d1 -d 100
   
   ? {d1 eval :objectparameter} \
-      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
+      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::next::Object::slot::mixin -filter:relation,slot=::next::Object::slot::filter -class:relation,slot=::next::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
 }
 
 #######################################################
@@ -206,28 +206,28 @@ Test case objparam-mixins {
   Class create M2 -parameter {b2}
   D mixin M
   ? {d1 eval :objectparameter} \
-      "-b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
+      "-b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::next::Object::slot::mixin -filter:relation,slot=::next::Object::slot::filter -class:relation,slot=::next::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
     "mixin added"
   M mixin M2
   ? {d1 eval :objectparameter} \
-      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
+      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::next::Object::slot::mixin -filter:relation,slot=::next::Object::slot::filter -class:relation,slot=::next::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
     "transitive mixin added"
   D mixin ""
   #we should have again the old interface
 
   ? {d1 eval :objectparameter} \
-      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
+      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::next::Object::slot::mixin -filter:relation,slot=::next::Object::slot::filter -class:relation,slot=::next::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
 
   C mixin M
   ? {d1 eval :objectparameter} \
-      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
+      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::next::Object::slot::mixin -filter:relation,slot=::next::Object::slot::filter -class:relation,slot=::next::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
     "mixin added"
   C mixin ""
   #we should have again the old interface
   
   
   ? {d1 eval :objectparameter} \
-      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::xotcl2::Object::slot::mixin -filter:relation,slot=::xotcl2::Object::slot::filter -class:relation,slot=::xotcl2::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" 
+      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::next::Object::slot::mixin -filter:relation,slot=::next::Object::slot::filter -class:relation,slot=::next::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" 
 }
 
 #######################################################
@@ -291,7 +291,7 @@ Test case passed-arguments {
       "don't allow relation option as method parameter"
   
   ? {D method foo {a:double} {return $a}} \
-      {::xotcl::classes::D::foo} \
+      {::next::core::classes::D::foo} \
       "allow 'string is XXXX' for argument checking"
   ? {d1 foo 1} 1 "check int as double"
   ? {d1 foo 1.1} 1.1 "check double as double"
@@ -391,7 +391,7 @@ Test case subst-default {
   Class create Bar -superclass D -parameter {
     {s "[self]"} 
     {literal "\\[self\\]"} 
-    {c "[my info class]"} 
+    {c "[:info class]"} 
     {d "literal $d"}
     {switch:switch}
   }
@@ -498,7 +498,7 @@ Test case user-types {
   D create d1
 
   # create a userdefined type
-  ::xotcl::methodParameterSlot method type=mytype {name value args} {
+  ::next::methodParameterSlot method type=mytype {name value args} {
     if {$value < 1 || $value > 3} {
       error "Value '$value' of parameter $name is not between 1 and 3"
     }
@@ -519,11 +519,11 @@ Test case user-types {
   }
   
   ? {d1 foo 10} \
-      "::xotcl::methodParameterSlot: unable to dispatch method 'type=unknowntype'" \
+      "::next::methodParameterSlot: unable to dispatch method 'type=unknowntype'" \
       "missing type checker"
   
   # create a userdefined type with a simple argument
-  ::xotcl::methodParameterSlot method type=in {name value arg} {
+  ::next::methodParameterSlot method type=in {name value arg} {
     if {$value ni [split $arg |]} {
       error "Value '$value' of parameter $name not in permissible values $arg"
     }
@@ -549,7 +549,7 @@ Test case user-types {
       "Value 'very good' of parameter b not in permissible values good|bad" \
       "invalid value (not included)"
   
-  ::xotcl::methodParameterSlot method type=range {name value arg} {
+  ::next::methodParameterSlot method type=range {name value arg} {
     foreach {min max} [split $arg -] break
     if {$value < $min || $value > $max} {
       error "Value '$value' of parameter $name not between $min and $max"
@@ -575,7 +575,7 @@ Test case user-types {
   #
   # handling of arg with spaces/arg as list
   #
-  ::xotcl::methodParameterSlot method type=list {name value arg} {
+  ::next::methodParameterSlot method type=list {name value arg} {
     #puts $value/$arg
     return $value
   }
@@ -611,7 +611,7 @@ Test case mp-object-types {
   ? {D info method parameter foo-hasmixin} "x:hasmixin,arg=::M"
   ? {D info method parameter foo-type} "x:object,type=::C"
   
-  ? {d1 foo-base ::xotcl2::Object} "::xotcl2::Object"
+  ? {d1 foo-base ::next::Object} "::next::Object"
   ? {d1 foo-base C} \
       {expected baseclass but got "C" for parameter x} \
       "not a base class"
@@ -624,9 +624,9 @@ Test case mp-object-types {
       {expected class but got "o" for parameter x} \
       "not a class"
   
-  ? {d1 foo-meta ::xotcl2::Class} "::xotcl2::Class"
-  ? {d1 foo-meta ::xotcl2::Object} \
-      {expected metaclass but got "::xotcl2::Object" for parameter x} \
+  ? {d1 foo-meta ::next::Class} "::next::Class"
+  ? {d1 foo-meta ::next::Object} \
+      {expected metaclass but got "::next::Object" for parameter x} \
       "not a base class"
 
   ? {d1 foo-hasmixin c1} "c1"
@@ -792,7 +792,7 @@ Test case op-object-types {
       "value is not an object"
 
   ParamTest slots {
-    ::xotcl::Attribute create os -type object -multivalued true
+    ::next::Attribute create os -type object -multivalued true
   }
   
   ? {p os o} \
@@ -812,7 +812,7 @@ Test case op-object-types {
 #######################################################
 Test case multivalued-app-converter {
 
-  ::xotcl::methodParameterSlot method type=sex {name value args} {
+  ::next::methodParameterSlot method type=sex {name value args} {
     #puts stderr "[self] slot specific converter"
     switch -glob $value {
       m* {return m}
@@ -836,11 +836,11 @@ Test case multivalued-app-converter {
     # values into emtpy strings.
   }
   
-  ? {::xotcl::parametercheck mType,slot=::tmpObj,multivalued {1 0}} \
+  ? {::next::core::parametercheck mType,slot=::tmpObj,multivalued {1 0}} \
       {invalid value in "1 0": expected false but got 1} \
       "fail on first value"
-  ? {::xotcl::parametercheck mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
-  ? {::xotcl::parametercheck mType,slot=::tmpObj,multivalued {0 1}} \
+  ? {::next::core::parametercheck mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
+  ? {::next::core::parametercheck mType,slot=::tmpObj,multivalued {0 1}} \
       {invalid value in "0 1": expected false but got 1} \
       "fail o last value"
 }
@@ -860,7 +860,7 @@ Test case shadowing-app-converter {
     }
   }
   
-  ? {::xotcl::parametercheck integer,slot=::mySlot 1} 1 
+  ? {::next::core::parametercheck integer,slot=::mySlot 1} 1 
   ? {o foo 3} 4
 }
 
@@ -895,17 +895,17 @@ Test case setters {
   Object create o
   Class create C
   
-  ? {::xotcl::setter o a} "::o::a"
-  ? {::xotcl::setter C c} "::xotcl::classes::C::c"
+  ? {::next::core::setter o a} "::o::a"
+  ? {::next::core::setter C c} "::next::core::classes::C::c"
   ? {o info method definition a} "::o setter a"
   ? {o info method parameter a} "a"
   ? {o info method args a} "a"
   ? {C info method definition c} "::C setter c"
   ? {o a 1} "1"
   
-  ? {::xotcl::setter o a:integer} "::o::a"
-  ? {::xotcl::setter o ints:integer,multivalued} "::o::ints"
-  ? {::xotcl::setter o o:object} "::o::o"
+  ? {::next::core::setter o a:integer} "::o::a"
+  ? {::next::core::setter o ints:integer,multivalued} "::o::ints"
+  ? {::next::core::setter o o:object} "::o::o"
   
   ? {o info method name ints} "::o::ints"
   ? {o info method definition ints} "::o setter ints:integer,multivalued"
@@ -923,8 +923,8 @@ Test case setters {
   ? {o ints {10 100 1000}} {10 100 1000}
   ? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter ints}
   ? {o o o} o
-  ? {::xotcl::setter o {d default}} {parameter "d" is not allowed to have default "default"}
-  ? {::xotcl::setter o -x} {method name "-x" must not start with a dash}
+  ? {::next::core::setter o {d default}} {parameter "d" is not allowed to have default "default"}
+  ? {::next::core::setter o -x} {method name "-x" must not start with a dash}
 }
 
 #######################################################

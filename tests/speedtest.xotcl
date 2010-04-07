@@ -1,7 +1,5 @@
 #memory trace on
-# $Id: speedtest.xotcl,v 1.10 2007/08/14 16:38:27 neumann Exp $
-package require XOTcl; xotcl::use xotcl1
-#lappend auto_path [file dirname [info script]]/..
+package require XOTcl; namespace import ::xotcl::*
 
 package require xotcl::test
 Test parameter count 1000
@@ -13,16 +11,10 @@ Test parameter count 1000
 }
 
 set ccount 20
-set ocount 1014
-set ocount [expr {$ccount + 206}]
-set ocount [expr {$ccount + 15}]
-set ocount [expr {$ccount + 6}]
-
-set startObjects [Object info instances]
-set x [llength [Object info instances]]
-set y [set _ [llength [Object info instances]]]
-set z [llength $startObjects]
-#puts stderr "x=$x, y=$y, z=$z, ocount=$ocount"
+#set ocount 1014
+#set ocount [expr {$ccount + 206}]
+#set ocount [expr {$ccount + 15}]
+set ocount [expr {$ccount + 7}]
 
 Class M1; Class M2
 Class C -parameter {{p 99} {q 98} r}
@@ -194,6 +186,7 @@ D d
 #Test new -cmd {set x [llength [c info children]]} -count 1 -expected 999
 Test new -cmd {llength [c info children]} -count 1 -expected $ccount
 Test new -cmd {set x [llength [c info children]]} -count 1 -expected $ccount
+puts stderr XXX-[llength [Object info instances]]-[lsort [Object info instances]]
 Test new -cmd {set x [llength [Object info instances]]} -count 1 -expected $ocount
 Test new -cmd {llength [Object info instances]} -count 1 -expected $ocount
 
@@ -260,14 +253,14 @@ Test new -cmd {c createVolatileRc} -expected 2
 # should be still the same number as above
 Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 
-Test new -cmd {Object new -volatile} -expected ::xotcl::__\#F9 -count 2000 \
-    -post {foreach o [Object info instances ::xotcl::__*] {$o destroy}} 
+Test new -cmd {Object new -volatile} -expected ::next::core::__\#F9 -count 2000 \
+    -post {foreach o [Object info instances ::next::core::__*] {$o destroy}} 
 
 # should be still the same number as above
 Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 
-Test new -cmd {Object new} -expected ::xotcl::__\#lQ  -count 2000 \
-    -post {foreach o [Object info instances ::xotcl::__*] {$o destroy}} 
+Test new -cmd {Object new} -expected ::next::core::__\#lQ  -count 2000 \
+    -post {foreach o [Object info instances ::next::core::__*] {$o destroy}} 
 
 # should be still the same number as above
 Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount

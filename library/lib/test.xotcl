@@ -4,27 +4,21 @@ package require XOTcl
 namespace eval ::xotcl::test {
   ::xotcl::use xotcl2
 
-  @ @File {description {
-    Simple regression test support.
-  }}
-
-  @ Class Test {
-    description {
-      Class Test is used to configure test instances, which can 
-      be configured by the following parameters:
-      <@ul>
-      <@li>cmd: the command to be executed</@li>
-      <@li>expected: the expected result</@li>
-      <@li>count: number of executions of cmd</@li>
-      <@li>pre: a command to be executed at the begin of the test (before cmd)</@li>
-      <@li>post: a command to be executed after the test (after all cmds)</@li>
-      <@li>namespace in which pre, post and cmd are evaluated; default ::</@li>
-      </@ul>
-      The defined tests can be executed by <@tt>Test run</@tt>
-    }
-  }
+  # @file Simple regression test support.
 
   Class create Test {
+    #
+    # Class Test is used to configure test instances, which can 
+    # be configured by the following parameters:
+    #
+    # @param cmd the command to be executed
+    # @param expected  the expected result
+    # @param count  number of executions of cmd
+    # @param pre a command to be executed at the begin of the test (before cmd)
+    # @param post a command to be executed after the test (after all cmds)
+    # @param namespace in which pre, post and cmd are evaluated; default "::"
+    #
+    # The defined tests can be executed by [:cmd "Test run"]
 
     :attribute {name ""}
     :attribute cmd 
@@ -59,7 +53,7 @@ namespace eval ::xotcl::test {
         foreach o [Object info instances -closure] {
           if {[info exists pre_exist($o)]} continue
           #puts "must destroy $o"
-          if {[::xotcl::is $o object]} {$o destroy}
+          if {[::next::core::objectproperty $o object]} {$o destroy}
         }
       }
     }
@@ -130,6 +124,7 @@ namespace eval ::xotcl::test {
       } else {
 	puts stderr "[set :name]:\tincorrect result for '${:msg}'"
 	puts stderr "\texpected: '${:expected}', got '$r' [info exists :errorReport]"
+	puts stderr "\tin test file [info script]"
 	if {[info exists :errorReport]} {eval [set :errorReport]}
 	exit -1
       }

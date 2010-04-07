@@ -5,7 +5,7 @@ package provide xotcl::comm::connection 1.0
 package require XOTcl
 
 namespace eval ::xotcl::comm::connection {
-    xotcl::use xotcl1
+    namespace import ::xotcl::*
 
     Class Connection -parameter {host port req socket handle}
 

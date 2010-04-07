@@ -17,7 +17,7 @@ package require xotcl::trace
 package require xotcl::comm::mime
 
 namespace eval ::xotcl::comm::httpd {
-  xotcl::use xotcl1
+  namespace import -force ::xotcl::*
 
   Class Httpd -parameter {
     {port 80} 

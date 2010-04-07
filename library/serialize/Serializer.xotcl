@@ -2,18 +2,16 @@
 package require XOTcl
 package provide xotcl::serializer 1.0
 
-# For the time being, we require xotcl1.
+# For the time being, we require classical XOTcl.
 
-# TODO: separate into two packages (i.e. make one xotcl1 specific
+# TODO: separate into two packages (i.e. make one XOTcl specific
 # serializer package, and (a) load this package on a load of this
 # package (when ::xotcl::Object is defined), and (b) load it from
-# "xotcl::use xotcl1", when the serializer is alreaded loaded.
-
-package require xotcl1
+# "xotcl1.tcl", when the serializer is alreaded loaded.
 
 namespace eval ::xotcl::serializer {
 
-  ::xotcl::use xotcl2
+  namespace import ::next::*
 
   @ @File {
     description {
@@ -298,7 +296,7 @@ namespace eval ::xotcl::serializer {
 
     :object method allChildren o {
       # return o and all its children fully qualified
-      set set [::xotcl::dispatch $o -objscope ::xotcl::self]
+      set set [::next::core::dispatch $o -objscope ::xotcl::self]
       foreach c [$o info children] {
         lappend set {*}[:allChildren $c]
       }
@@ -352,15 +350,15 @@ namespace eval ::xotcl::serializer {
     :object method all {-ignoreVarsRE -ignore} {
 
       # don't filter anything during serialization
-      set filterstate [::xotcl::configure filter off]
+      set filterstate [::next::core::configure filter off]
       set s [:new -childof [self] -volatile]
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
 
       set r [subst {
-        set ::xotcl::__filterstate \[::xotcl::configure filter off\]
+        set ::xotcl::__filterstate \[::next::core::configure filter off\]
         #::xotcl::Slot mixin add ::xotcl::Slot::Nocheck
-        ::xotcl::configure softrecreate [::xotcl::configure softrecreate]
+        ::next::core::configure softrecreate [::next::core::configure softrecreate]
         ::xotcl::setExitHandler [list [::xotcl::getExitHandler]]
       }]\n
       :resetPattern
@@ -385,10 +383,10 @@ namespace eval ::xotcl::serializer {
 
       append r {
         #::xotcl::Slot mixin delete ::xotcl::Slot::Nocheck
-        ::xotcl::configure filter $::xotcl::__filterstate
+        ::next::core::configure filter $::xotcl::__filterstate
         unset ::xotcl::__filterstate
       }
-      ::xotcl::configure filter $filterstate
+      ::next::core::configure filter $filterstate
       return $r
     }
 
@@ -440,19 +438,19 @@ namespace eval ::xotcl::serializer {
       set cmd ""
       foreach o [list ${:rootClass} ${:rootMetaClass}] {
         append cmd \
-            [:frameWorkCmd ::xotcl::relation $o object-mixin] \
-            [:frameWorkCmd ::xotcl::relation $o class-mixin] \
-            [:frameWorkCmd ::xotcl::assertion $o object-invar] \
-            [:frameWorkCmd ::xotcl::assertion $o class-invar]
+            [:frameWorkCmd ::next::core::relation $o object-mixin] \
+            [:frameWorkCmd ::next::core::relation $o class-mixin] \
+            [:frameWorkCmd ::next::core::assertion $o object-invar] \
+            [:frameWorkCmd ::next::core::assertion $o class-invar]
       }
       return $cmd
     }
     
     :method registerTrace {on} {
       if {$on} {
-        ::xotcl::alias ${:rootClass}  __trace__ -objscope ::trace
+        ::next::core::alias ${:rootClass}  __trace__ -objscope ::trace
       } else {
-        ::xotcl::method ${:rootClass} __trace__ {} {}
+        ::next::core::method ${:rootClass} __trace__ {} {}
       }
     }
 
@@ -514,7 +512,7 @@ namespace eval ::xotcl::serializer {
           if {[$o eval [list ::array exists :$v]]} {
             lappend setcmd [list array set :$v [$o eval [list array get :$v]]]
           } else {
-            lappend setcmd [list set :$v [::xotcl::setvar $o $v]]
+            lappend setcmd [list set :$v [::next::core::setvar $o $v]]
           }
         }
       }
@@ -593,7 +591,7 @@ namespace eval ::xotcl::serializer {
       if {![:Object-needsNothing $x $s]} {return 0}
       set scs [$x info superclass]
       if {[$s needsOneOf $scs]} {return 0}
-      if {[$s needsOneOf [::xotcl::relation $x class-mixin]]} {return 0}
+      if {[$s needsOneOf [::next::core::relation $x class-mixin]]} {return 0}
       foreach sc $scs {if {[$s needsOneOf [$sc info slots]]} {return 0}}
       return 1
     }
@@ -609,18 +607,18 @@ namespace eval ::xotcl::serializer {
   }
 
   ###########################################################################
-  # XOTcl 2 specific serializer
+  # next specific serializer
   ###########################################################################
 
   ObjectSystemSerializer create Serializer2 {
     
-    set :rootClass ::xotcl2::Object
-    set :rootMetaClass ::xotcl2::Class
-    array set :ignorePattern [list "::xotcl2::*" 1 "::xotcl::*" 1]
+    set :rootClass ::next::Object
+    set :rootMetaClass ::next::Class
+    array set :ignorePattern [list "::next::*" 1 "::xotcl::*" 1]
 
     :method serialize-all-start {s} {
-      if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::xotcl2::Object"} {
-        set intro "::xotcl::use xotcl2"
+      if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::next::Object"} {
+        set intro "package require next; namespace import -force ::next::*"
       } else {
         set intro ""
       }
@@ -628,7 +626,7 @@ namespace eval ::xotcl::serializer {
     }
 
     ###############################
-    # XOTcl 2 method serialization
+    # next method serialization
     ###############################
 
     :method methodExists {object kind name} {
@@ -646,22 +644,22 @@ namespace eval ::xotcl::serializer {
     }
 
     ###############################
-    # XOTcl 2 object serialization
+    # next object serialization
     ###############################
 
     :method Object-serialize {o s} {
       :collect-var-traces $o $s
       append cmd [list [$o info class] create \
-                      [::xotcl::dispatch $o -objscope ::xotcl::self]]
+                      [::next::core::dispatch $o -objscope ::xotcl::self]]
 
       append cmd " -noinit\n"
-      foreach i [lsort [::xotcl::cmd::ObjectInfo::methods $o]] {
+      foreach i [lsort [::next::core::cmd::ObjectInfo::methods $o]] {
         append cmd [:method-serialize $o $i "object"] "\n"
       }
       append cmd \
           [list $o eval [join [:collectVars $o] "\n   "]]\n \
-          [:frameWorkCmd ::xotcl::relation $o object-mixin] \
-          [:frameWorkCmd ::xotcl::assertion $o object-invar]
+          [:frameWorkCmd ::next::core::relation $o object-mixin] \
+          [:frameWorkCmd ::next::core::assertion $o object-invar]
 
       if {[::xotcl::is $o type ::xotcl::Slot]} {
         # Slots needs to be initialized to ensure
@@ -669,31 +667,31 @@ namespace eval ::xotcl::serializer {
         append cmd [list $o eval :init] \n
       }
 
-      $s addPostCmd [:frameWorkCmd ::xotcl::relation $o object-filter]
+      $s addPostCmd [:frameWorkCmd ::next::core::relation $o object-filter]
       return $cmd
     }
 
     ###############################
-    # XOTcl 2 class serialization
+    # next class serialization
     ###############################
     
     :method Class-serialize {o s} {
 
       set cmd [:Object-serialize $o $s]
-      foreach i [lsort [::xotcl::cmd::ClassInfo::methods $o]] {
+      foreach i [lsort [::next::core::cmd::ClassInfo::methods $o]] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
       append cmd \
-          [:frameWorkCmd ::xotcl::relation $o superclass -unless ${:rootClass}] \
-          [:frameWorkCmd ::xotcl::relation $o class-mixin] \
-          [:frameWorkCmd ::xotcl::assertion $o class-invar]
+          [:frameWorkCmd ::next::core::relation $o superclass -unless ${:rootClass}] \
+          [:frameWorkCmd ::next::core::relation $o class-mixin] \
+          [:frameWorkCmd ::next::core::assertion $o class-invar]
       
-      $s addPostCmd [:frameWorkCmd ::xotcl::relation $o class-filter]
+      $s addPostCmd [:frameWorkCmd ::next::core::relation $o class-filter]
       return $cmd\n
     }
 
     # register serialize a global method
-    ::xotcl2::Object method serialize {} {
+    ::next::Object method serialize {} {
       ::Serializer deepSerialize [self]
     }
     
@@ -702,7 +700,7 @@ namespace eval ::xotcl::serializer {
 
 
   ###########################################################################
-  # XOTcl 1 specific serializer
+  # XOTcl specific serializer
   ###########################################################################
 
   ObjectSystemSerializer create Serializer1 {
@@ -712,20 +710,20 @@ namespace eval ::xotcl::serializer {
     array set :ignorePattern [list "::xotcl::*" 1]
 
     :method serialize-all-start {s} {
-      set intro "package require xotcl1"
+      set intro "package require XOTcl"
       if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::xotcl::Object"} {
-        set intro "::xotcl::use xotcl1"
+        set intro "namespace import -force ::xotcl::*"
       }
       return "$intro\n::xotcl::Object instproc trace args {}\n[next]"
     }
 
     :method serialize-all-end {s} {
-      return "[next]\n::xotcl::alias ::xotcl::Object trace -objscope ::trace\n"
+      return "[next]\n::next::core::alias ::xotcl::Object trace -objscope ::trace\n"
     }
 
 
     ###############################
-    # XOTcl 1 method serialization
+    # XOTcl method serialization
     ###############################
 
     :method methodExists {object kind name} {
@@ -773,36 +771,36 @@ namespace eval ::xotcl::serializer {
     }
 
     ###############################
-    # XOTcl 1 object serialization
+    # XOTcl object serialization
     ###############################
 
     :method Object-serialize {o s} {
       :collect-var-traces $o $s
-      append cmd [list [$o info class] create [::xotcl::dispatch $o -objscope ::xotcl::self]]
+      append cmd [list [$o info class] create [::next::core::dispatch $o -objscope ::xotcl::self]]
       # slots needs to be initialized when optimized, since
       # parametercmds are not serialized
       append cmd " -noinit\n"
-      foreach i [::xotcl::cmd::ObjectInfo::methods $o -methodtype scripted] {
+      foreach i [::next::core::cmd::ObjectInfo::methods $o -methodtype scripted] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
-      foreach i [::xotcl::cmd::ObjectInfo::methods $o -methodtype forward] {
+      foreach i [::next::core::cmd::ObjectInfo::methods $o -methodtype forward] {
         append cmd [concat [list $o] forward $i [$o info forward -definition $i]] "\n"
       }
-      foreach i [::xotcl::cmd::ObjectInfo::methods $o -methodtype setter] {
+      foreach i [::next::core::cmd::ObjectInfo::methods $o -methodtype setter] {
         append cmd [list $o parametercmd $i] "\n"
       }
       append cmd \
           [list $o eval [join [:collectVars $o] "\n   "]] \n \
-          [:frameWorkCmd ::xotcl::relation $o object-mixin] \
-          [:frameWorkCmd ::xotcl::assertion $o object-invar]
+          [:frameWorkCmd ::next::core::relation $o object-mixin] \
+          [:frameWorkCmd ::next::core::assertion $o object-invar]
 
-      $s addPostCmd [:frameWorkCmd ::xotcl::relation $o object-filter]
+      $s addPostCmd [:frameWorkCmd ::next::core::relation $o object-filter]
 
       return $cmd
     }
 
     ###############################
-    # XOTcl 1 class serialization
+    # XOTcl class serialization
     ###############################
     
     :method Class-serialize {o s} {
@@ -816,25 +814,25 @@ namespace eval ::xotcl::serializer {
       foreach i [$o info instparametercmd] {
         append cmd [list $o instparametercmd $i] "\n"
       }
-      # provide limited support for exporting aliases for xotcl1 objects
-      foreach i [::xotcl::cmd::ClassInfo::methods $o -methodtype alias] {
-        set xotcl2Def [::xotcl::cmd::ClassInfo::method $o definition $i]
+      # provide limited support for exporting aliases for XOTcl objects
+      foreach i [::next::core::cmd::ClassInfo::methods $o -methodtype alias] {
+        set xotcl2Def [::next::core::cmd::ClassInfo::method $o definition $i]
         set objscope   [lindex $xotcl2Def end-2]
         set methodName [lindex $xotcl2Def end-1]
         set cmdName    [lindex $xotcl2Def end]
         if {$objscope ne "-objscope"} {set objscope ""}
-        append cmd [list ::xotcl::alias $o $methodName {*}$objscope $cmdName]\n
+        append cmd [list ::next::core::alias $o $methodName {*}$objscope $cmdName]\n
       }
       append cmd \
-          [:frameWorkCmd ::xotcl::relation $o superclass -unless ${:rootClass}] \
-          [:frameWorkCmd ::xotcl::relation $o class-mixin] \
-          [:frameWorkCmd ::xotcl::assertion $o class-invar]
+          [:frameWorkCmd ::next::core::relation $o superclass -unless ${:rootClass}] \
+          [:frameWorkCmd ::next::core::relation $o class-mixin] \
+          [:frameWorkCmd ::next::core::assertion $o class-invar]
 
-      $s addPostCmd [:frameWorkCmd ::xotcl::relation $o class-filter]
+      $s addPostCmd [:frameWorkCmd ::next::core::relation $o class-filter]
       return $cmd
     }
 
-    # register serialize a global method for xotcl1
+    # register serialize a global method for XOTcl
     ::xotcl::Object instproc serialize {} {
       ::Serializer deepSerialize [self]
     }

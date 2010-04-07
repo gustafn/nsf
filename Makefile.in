@@ -420,16 +420,16 @@ VPATH = $(srcdir):$(srcdir)/generic:$(srcdir)/unix:$(srcdir)/win
 	$(COMPILE) -c `@CYGPATH@ $<` -o $@
 
 #========================================================================
-# xotcl shells
+# next shells
 #========================================================================
 
 pkgIndex.tcl: $(PKG_LIB_FILE)
-	@echo package ifneeded XOTcl $(PACKAGE_VERSION) [list load [file join \$$dir . $(PKG_LIB_FILE)] XOTcl] > pkgIndex.tcl
+	@echo package ifneeded next $(PACKAGE_VERSION) [list load [file join \$$dir . $(PKG_LIB_FILE)] next] > pkgIndex.tcl
 
 install-pkgIndex:
-#	@echo package ifneeded XOTcl $(PACKAGE_VERSION) [list load [file join \$$dir .. "$(PKG_LIB_FILE)"] XOTcl] > "$(pkglibdir)/pkgIndex.tcl"
+#	@echo package ifneeded next $(PACKAGE_VERSION) [list load [file join \$$dir .. "$(PKG_LIB_FILE)"] next] > "$(pkglibdir)/pkgIndex.tcl"
 
-xotclsh: tclAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
+nextsh: tclAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
 	$(CC) -rdynamic -o $@ tclAppInit.o \
 		$(CFLAGS)  $(TCL_LIB_SPEC) \
 		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
@@ -441,8 +441,8 @@ xowish: tkAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
 		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
 
 install-shells:
-	@if test -f xotclsh; then \
-		$(INSTALL_PROGRAM) xotclsh $(DESTDIR)$(bindir); \
+	@if test -f nextsh; then \
+		$(INSTALL_PROGRAM) nextsh $(DESTDIR)$(bindir); \
 	fi
 	@if test -f xowish; then \
 		$(INSTALL_PROGRAM) xowish $(DESTDIR)$(bindir); \
@@ -636,26 +636,26 @@ $(DESTDIR)$(mandir)/mann:
 end:
 	@echo "" 
 	@echo "************************************************************"
-	@echo " Make completed. In order to test XOTcl, invoke:"
+	@echo " Make completed. In order to test 'next', invoke:"
 	@echo "   make test"
 	@echo ""
-	@echo " In order install XOTcl, invoke:"
+	@echo " In order install next, invoke:"
 	@echo "   make install"
 	@echo ""
-	@echo " In order to install XOTcl for AOLserver 4.x, invoke:"
+	@echo " In order to install next for AOLserver 4.x, invoke:"
 	@echo "   make install-aol"
 	@echo "" 
-	@echo " In order to invoke XOTcl interactively (before install), use:" 
+	@echo " In order to invoke next interactively (before install), use:" 
 	@echo "   export TCLLIBPATH=\"$(TCLLIBPATH)\"   or    " 
 	@echo "   setenv TCLLIBPATH \"$(TCLLIBPATH)\""
 	@echo " and"
 	@if test "x$(XOTCLSH)" = "x" ; then \
 	  echo "   @TCLSH_PROG@" ; \
-	  echo "   package require XOTcl; namespace import -force xotcl::*" ; \
+	  echo "   package require next; namespace import -force next::*" ; \
 	  echo " or" ; \
 	  echo "   put the 'package require' line into your ~/.tclshrc" ; \
 	else \
-	  echo "   ./xotclsh" ; \
+	  echo "   ./nextsh" ; \
 	fi
 	@echo "************************************************************"
 
@@ -672,7 +672,7 @@ rpm:
 
 bin-tar: 
 	(cd ..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
-                `find $(exec_prefix)/bin/xotclsh $(exec_prefix)/bin/xowish \
+                `find $(exec_prefix)/bin/$(XOTCLSH) $(exec_prefix)/bin/xowish \
                   $(prefix)/lib/xotcl* \
                   $(prefix)/lib/libxotcl* \
 		  $(prefix)/include/xotcl*.h \

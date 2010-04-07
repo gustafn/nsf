@@ -139,11 +139,11 @@ static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *orig
 static methodDefinition method_definitions[];
   
 static CONST char *method_command_namespace_names[] = {
-  "::xotcl::cmd::ObjectInfo",
-  "::xotcl::cmd::Object",
-  "::xotcl::cmd::ClassInfo",
-  "::xotcl::cmd::ParameterType",
-  "::xotcl::cmd::Class"
+  "::next::core::cmd::ObjectInfo",
+  "::next::core::cmd::Object",
+  "::next::core::cmd::ClassInfo",
+  "::next::core::cmd::ParameterType",
+  "::next::core::cmd::Class"
 };
 static int XOTclCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -1978,64 +1978,64 @@ XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 }
 
 static methodDefinition method_definitions[] = {
-{"::xotcl::cmd::Class::alloc", XOTclCAllocMethodStub, 1, {
+{"::next::core::cmd::Class::alloc", XOTclCAllocMethodStub, 1, {
   {"name", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::create", XOTclCCreateMethodStub, 2, {
+{"::next::core::cmd::Class::create", XOTclCCreateMethodStub, 2, {
   {"name", 1, 0, convertToString},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Class::dealloc", XOTclCDeallocMethodStub, 1, {
+{"::next::core::cmd::Class::dealloc", XOTclCDeallocMethodStub, 1, {
   {"object", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::filterguard", XOTclCFilterGuardMethodStub, 2, {
+{"::next::core::cmd::Class::filterguard", XOTclCFilterGuardMethodStub, 2, {
   {"filter", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::__invalidateobjectparameter", XOTclCInvalidateObjectParameterMethodStub, 0, {
+{"::next::core::cmd::Class::__invalidateobjectparameter", XOTclCInvalidateObjectParameterMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Class::mixinguard", XOTclCMixinGuardMethodStub, 2, {
+{"::next::core::cmd::Class::mixinguard", XOTclCMixinGuardMethodStub, 2, {
   {"mixin", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Class::new", XOTclCNewMethodStub, 2, {
+{"::next::core::cmd::Class::new", XOTclCNewMethodStub, 2, {
   {"-childof", 0, 1, convertToObject},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Class::recreate", XOTclCRecreateMethodStub, 2, {
+{"::next::core::cmd::Class::recreate", XOTclCRecreateMethodStub, 2, {
   {"name", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::ClassInfo::filter", XOTclClassInfoFilterMethodStub, 3, {
+{"::next::core::cmd::ClassInfo::filter", XOTclClassInfoFilterMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::filterguard", XOTclClassInfoFilterguardMethodStub, 2, {
+{"::next::core::cmd::ClassInfo::filterguard", XOTclClassInfoFilterguardMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"filter", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::forward", XOTclClassInfoForwardMethodStub, 3, {
+{"::next::core::cmd::ClassInfo::forward", XOTclClassInfoForwardMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-definition", 0, 0, convertToString},
   {"name", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::heritage", XOTclClassInfoHeritageMethodStub, 2, {
+{"::next::core::cmd::ClassInfo::heritage", XOTclClassInfoHeritageMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::instances", XOTclClassInfoInstancesMethodStub, 3, {
+{"::next::core::cmd::ClassInfo::instances", XOTclClassInfoInstancesMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::xotcl::cmd::ClassInfo::method", XOTclClassInfoMethodMethodStub, 3, {
+{"::next::core::cmd::ClassInfo::method", XOTclClassInfoMethodMethodStub, 3, {
   {"class", 0, 0, convertToClass},
   {"infomethodsubcmd", 0, 0, convertToInfomethodsubcmd},
   {"name", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::methods", XOTclClassInfoMethodsMethodStub, 6, {
+{"::next::core::cmd::ClassInfo::methods", XOTclClassInfoMethodsMethodStub, 6, {
   {"object", 0, 0, convertToClass},
   {"-methodtype", 0, 1, convertToMethodtype},
   {"-callprotection", 0, 1, convertToCallprotection},
@@ -2043,39 +2043,39 @@ static methodDefinition method_definitions[] = {
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::mixin", XOTclClassInfoMixinMethodStub, 4, {
+{"::next::core::cmd::ClassInfo::mixin", XOTclClassInfoMixinMethodStub, 4, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::xotcl::cmd::ClassInfo::mixinof", XOTclClassInfoMixinOfMethodStub, 4, {
+{"::next::core::cmd::ClassInfo::mixinof", XOTclClassInfoMixinOfMethodStub, 4, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"-scope", 0, 1, convertToScope},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::xotcl::cmd::ClassInfo::mixinguard", XOTclClassInfoMixinguardMethodStub, 2, {
+{"::next::core::cmd::ClassInfo::mixinguard", XOTclClassInfoMixinguardMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"mixin", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ClassInfo::parameter", XOTclClassInfoParameterMethodStub, 1, {
+{"::next::core::cmd::ClassInfo::parameter", XOTclClassInfoParameterMethodStub, 1, {
   {"class", 1, 0, convertToClass}}
 },
-{"::xotcl::cmd::ClassInfo::slots", XOTclClassInfoSlotsMethodStub, 1, {
+{"::next::core::cmd::ClassInfo::slots", XOTclClassInfoSlotsMethodStub, 1, {
   {"class", 1, 0, convertToClass}}
 },
-{"::xotcl::cmd::ClassInfo::subclass", XOTclClassInfoSubclassMethodStub, 3, {
+{"::next::core::cmd::ClassInfo::subclass", XOTclClassInfoSubclassMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::xotcl::cmd::ClassInfo::superclass", XOTclClassInfoSuperclassMethodStub, 3, {
+{"::next::core::cmd::ClassInfo::superclass", XOTclClassInfoSuperclassMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::ObjectInfo::callable", XOTclObjInfoCallableMethodStub, 8, {
+{"::next::core::cmd::ObjectInfo::callable", XOTclObjInfoCallableMethodStub, 8, {
   {"object", 0, 0, convertToObject},
   {"-which", 0, 0, convertToString},
   {"-methodtype", 0, 1, convertToMethodtype},
@@ -2085,37 +2085,37 @@ static methodDefinition method_definitions[] = {
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::children", XOTclObjInfoChildrenMethodStub, 2, {
+{"::next::core::cmd::ObjectInfo::children", XOTclObjInfoChildrenMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::class", XOTclObjInfoClassMethodStub, 1, {
+{"::next::core::cmd::ObjectInfo::class", XOTclObjInfoClassMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::xotcl::cmd::ObjectInfo::filter", XOTclObjInfoFilterMethodStub, 4, {
+{"::next::core::cmd::ObjectInfo::filter", XOTclObjInfoFilterMethodStub, 4, {
   {"object", 1, 0, convertToObject},
   {"-order", 0, 0, convertToString},
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::filterguard", XOTclObjInfoFilterguardMethodStub, 2, {
+{"::next::core::cmd::ObjectInfo::filterguard", XOTclObjInfoFilterguardMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"filter", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::forward", XOTclObjInfoForwardMethodStub, 3, {
+{"::next::core::cmd::ObjectInfo::forward", XOTclObjInfoForwardMethodStub, 3, {
   {"object", 1, 0, convertToObject},
   {"-definition", 0, 0, convertToString},
   {"name", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::hasnamespace", XOTclObjInfoHasnamespaceMethodStub, 1, {
+{"::next::core::cmd::ObjectInfo::hasnamespace", XOTclObjInfoHasnamespaceMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::xotcl::cmd::ObjectInfo::method", XOTclObjInfoMethodMethodStub, 3, {
+{"::next::core::cmd::ObjectInfo::method", XOTclObjInfoMethodMethodStub, 3, {
   {"object", 0, 0, convertToObject},
   {"infomethodsubcmd", 0, 0, convertToInfomethodsubcmd},
   {"name", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, 6, {
+{"::next::core::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, 6, {
   {"object", 0, 0, convertToObject},
   {"-methodtype", 0, 1, convertToMethodtype},
   {"-callprotection", 0, 1, convertToCallprotection},
@@ -2123,88 +2123,88 @@ static methodDefinition method_definitions[] = {
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::mixin", XOTclObjInfoMixinMethodStub, 4, {
+{"::next::core::cmd::ObjectInfo::mixin", XOTclObjInfoMixinMethodStub, 4, {
   {"object", 1, 0, convertToObject},
   {"-guards", 0, 0, convertToString},
   {"-order", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::xotcl::cmd::ObjectInfo::mixinguard", XOTclObjInfoMixinguardMethodStub, 2, {
+{"::next::core::cmd::ObjectInfo::mixinguard", XOTclObjInfoMixinguardMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"mixin", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::parent", XOTclObjInfoParentMethodStub, 1, {
+{"::next::core::cmd::ObjectInfo::parent", XOTclObjInfoParentMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::xotcl::cmd::ObjectInfo::precedence", XOTclObjInfoPrecedenceMethodStub, 3, {
+{"::next::core::cmd::ObjectInfo::precedence", XOTclObjInfoPrecedenceMethodStub, 3, {
   {"object", 1, 0, convertToObject},
   {"-intrinsic", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::slotobjects", XOTclObjInfoSlotObjectsMethodStub, 2, {
+{"::next::core::cmd::ObjectInfo::slotobjects", XOTclObjInfoSlotObjectsMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::ObjectInfo::vars", XOTclObjInfoVarsMethodStub, 2, {
+{"::next::core::cmd::ObjectInfo::vars", XOTclObjInfoVarsMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::xotcl::cmd::Object::autoname", XOTclOAutonameMethodStub, 3, {
+{"::next::core::cmd::Object::autoname", XOTclOAutonameMethodStub, 3, {
   {"-instance", 0, 0, convertToString},
   {"-reset", 0, 0, convertToString},
   {"name", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::cleanup", XOTclOCleanupMethodStub, 0, {
+{"::next::core::cmd::Object::cleanup", XOTclOCleanupMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Object::configure", XOTclOConfigureMethodStub, 1, {
+{"::next::core::cmd::Object::configure", XOTclOConfigureMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::destroy", XOTclODestroyMethodStub, 0, {
+{"::next::core::cmd::Object::destroy", XOTclODestroyMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Object::exists", XOTclOExistsMethodStub, 1, {
+{"::next::core::cmd::Object::exists", XOTclOExistsMethodStub, 1, {
   {"var", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::Object::filterguard", XOTclOFilterGuardMethodStub, 2, {
+{"::next::core::cmd::Object::filterguard", XOTclOFilterGuardMethodStub, 2, {
   {"filter", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::filtersearch", XOTclOFilterSearchMethodStub, 1, {
+{"::next::core::cmd::Object::filtersearch", XOTclOFilterSearchMethodStub, 1, {
   {"filter", 1, 0, convertToString}}
 },
-{"::xotcl::cmd::Object::instvar", XOTclOInstVarMethodStub, 1, {
+{"::next::core::cmd::Object::instvar", XOTclOInstVarMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::mixinguard", XOTclOMixinGuardMethodStub, 2, {
+{"::next::core::cmd::Object::mixinguard", XOTclOMixinGuardMethodStub, 2, {
   {"mixin", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::xotcl::cmd::Object::__next", XOTclONextMethodStub, 1, {
+{"::next::core::cmd::Object::__next", XOTclONextMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::noinit", XOTclONoinitMethodStub, 0, {
+{"::next::core::cmd::Object::noinit", XOTclONoinitMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Object::requireNamespace", XOTclORequireNamespaceMethodStub, 0, {
+{"::next::core::cmd::Object::requireNamespace", XOTclORequireNamespaceMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Object::residualargs", XOTclOResidualargsMethodStub, 1, {
+{"::next::core::cmd::Object::residualargs", XOTclOResidualargsMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::uplevel", XOTclOUplevelMethodStub, 1, {
+{"::next::core::cmd::Object::uplevel", XOTclOUplevelMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::upvar", XOTclOUpvarMethodStub, 1, {
+{"::next::core::cmd::Object::upvar", XOTclOUpvarMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::cmd::Object::volatile", XOTclOVolatileMethodStub, 0, {
+{"::next::core::cmd::Object::volatile", XOTclOVolatileMethodStub, 0, {
   }
 },
-{"::xotcl::cmd::Object::vwait", XOTclOVwaitMethodStub, 1, {
+{"::next::core::cmd::Object::vwait", XOTclOVwaitMethodStub, 1, {
   {"varname", 1, 0, convertToString}}
 },
-{"::xotcl::alias", XOTclAliasCmdStub, 6, {
+{"::next::core::alias", XOTclAliasCmdStub, 6, {
   {"object", 0, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"methodName", 0, 0, convertToString},
@@ -2212,45 +2212,45 @@ static methodDefinition method_definitions[] = {
   {"-objscope", 0, 0, convertToString},
   {"cmdName", 1, 0, convertToTclobj}}
 },
-{"::xotcl::assertion", XOTclAssertionCmdStub, 3, {
+{"::next::core::assertion", XOTclAssertionCmdStub, 3, {
   {"object", 0, 0, convertToObject},
   {"assertionsubcmd", 1, 0, convertToAssertionsubcmd},
   {"arg", 0, 0, convertToTclobj}}
 },
-{"::xotcl::colon", XOTclColonCmdStub, 1, {
+{"::next::core::colon", XOTclColonCmdStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::configure", XOTclConfigureCmdStub, 2, {
+{"::next::core::configure", XOTclConfigureCmdStub, 2, {
   {"configureoption", 1, 0, convertToConfigureoption},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::createobjectsystem", XOTclCreateObjectSystemCmdStub, 3, {
+{"::next::core::createobjectsystem", XOTclCreateObjectSystemCmdStub, 3, {
   {"rootClass", 1, 0, convertToTclobj},
   {"rootMetaClass", 1, 0, convertToTclobj},
   {"systemMethods", 0, 0, convertToTclobj}}
 },
-{"::xotcl::current", XOTclCurrentCmdStub, 1, {
+{"::next::core::current", XOTclCurrentCmdStub, 1, {
   {"currentoption", 0, 0, convertToCurrentoption}}
 },
-{"::xotcl::deprecated", XOTclDeprecatedCmdStub, 3, {
+{"::next::core::deprecated", XOTclDeprecatedCmdStub, 3, {
   {"what", 1, 0, convertToString},
   {"oldCmd", 1, 0, convertToString},
   {"newCmd", 0, 0, convertToString}}
 },
-{"::xotcl::dispatch", XOTclDispatchCmdStub, 4, {
+{"::next::core::dispatch", XOTclDispatchCmdStub, 4, {
   {"object", 1, 0, convertToObject},
   {"-objscope", 0, 0, convertToString},
   {"command", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::existsvar", XOTclExistsVarCmdStub, 2, {
+{"::next::core::existsvar", XOTclExistsVarCmdStub, 2, {
   {"object", 1, 0, convertToObject},
   {"var", 1, 0, convertToString}}
 },
-{"::xotcl::finalize", XOTclFinalizeObjCmdStub, 0, {
+{"::next::core::finalize", XOTclFinalizeObjCmdStub, 0, {
   }
 },
-{"::xotcl::forward", XOTclForwardCmdStub, 11, {
+{"::next::core::forward", XOTclForwardCmdStub, 11, {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"method", 1, 0, convertToTclobj},
@@ -2263,22 +2263,22 @@ static methodDefinition method_definitions[] = {
   {"target", 0, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::importvar", XOTclImportvarCmdStub, 2, {
+{"::next::core::importvar", XOTclImportvarCmdStub, 2, {
   {"object", 0, 0, convertToObject},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::interp", XOTclInterpObjCmdStub, 2, {
+{"::next::core::interp", XOTclInterpObjCmdStub, 2, {
   {"name", 0, 0, convertToString},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::is", XOTclIsCmdStub, 5, {
+{"::next::core::is", XOTclIsCmdStub, 5, {
   {"value", 1, 0, convertToTclobj},
   {"constraint", 1, 0, convertToTclobj},
   {"-hasmixin", 0, 1, convertToTclobj},
   {"-type", 0, 1, convertToTclobj},
   {"arg", 0, 0, convertToTclobj}}
 },
-{"::xotcl::method", XOTclMethodCmdStub, 9, {
+{"::next::core::method", XOTclMethodCmdStub, 9, {
   {"object", 1, 0, convertToObject},
   {"-inner-namespace", 0, 0, convertToString},
   {"-per-object", 0, 0, convertToString},
@@ -2289,53 +2289,53 @@ static methodDefinition method_definitions[] = {
   {"-precondition", 0, 1, convertToTclobj},
   {"-postcondition", 0, 1, convertToTclobj}}
 },
-{"::xotcl::methodproperty", XOTclMethodPropertyCmdStub, 5, {
+{"::next::core::methodproperty", XOTclMethodPropertyCmdStub, 5, {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"methodName", 1, 0, convertToTclobj},
   {"methodproperty", 1, 0, convertToMethodproperty},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::my", XOTclMyCmdStub, 3, {
+{"::next::core::my", XOTclMyCmdStub, 3, {
   {"-local", 0, 0, convertToString},
   {"method", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::xotcl::namespace_copycmds", XOTclNSCopyCmdsStub, 2, {
+{"::next::core::namespace_copycmds", XOTclNSCopyCmdsStub, 2, {
   {"fromNs", 1, 0, convertToTclobj},
   {"toNs", 1, 0, convertToTclobj}}
 },
-{"::xotcl::namespace_copyvars", XOTclNSCopyVarsStub, 2, {
+{"::next::core::namespace_copyvars", XOTclNSCopyVarsStub, 2, {
   {"fromNs", 1, 0, convertToTclobj},
   {"toNs", 1, 0, convertToTclobj}}
 },
-{"::xotcl::objectproperty", XOTclObjectpropertyCmdStub, 3, {
+{"::next::core::objectproperty", XOTclObjectpropertyCmdStub, 3, {
   {"object", 1, 0, convertToTclobj},
   {"objectkind", 0, 0, convertToObjectkind},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::parametercheck", XOTclParametercheckCmdStub, 3, {
+{"::next::core::parametercheck", XOTclParametercheckCmdStub, 3, {
   {"-nocomplain", 0, 0, convertToString},
   {"param", 0, 0, convertToTclobj},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::__qualify", XOTclQualifyObjCmdStub, 1, {
+{"::next::core::__qualify", XOTclQualifyObjCmdStub, 1, {
   {"name", 1, 0, convertToTclobj}}
 },
-{"::xotcl::relation", XOTclRelationCmdStub, 3, {
+{"::next::core::relation", XOTclRelationCmdStub, 3, {
   {"object", 0, 0, convertToObject},
   {"relationtype", 1, 0, convertToRelationtype},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::self", XOTclSelfCmdStub, 1, {
+{"::next::core::self", XOTclSelfCmdStub, 1, {
   {"selfoption", 0, 0, convertToSelfoption}}
 },
-{"::xotcl::setvar", XOTclSetVarCmdStub, 3, {
+{"::next::core::setvar", XOTclSetVarCmdStub, 3, {
   {"object", 1, 0, convertToObject},
   {"variable", 1, 0, convertToTclobj},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::xotcl::setter", XOTclSetterCmdStub, 3, {
+{"::next::core::setter", XOTclSetterCmdStub, 3, {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"parameter", 0, 0, convertToTclobj}}

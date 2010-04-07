@@ -12,7 +12,7 @@
 #
 #--------------------------------------------------------------------
 define(XOTclVersion, 2.0.0)
-AC_INIT([xotcl], [XOTclVersion])
+AC_INIT([next], [XOTclVersion])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -91,7 +91,7 @@ fi
 AC_SUBST(subdirs)
 
 if test "$with_tk" = no; then with_xowish="" ; fi
-if test "$with_xotclsh" = yes; then XOTCLSH="xotclsh" ; else XOTCLSH=""; fi
+if test "$with_xotclsh" = yes; then XOTCLSH="nextsh" ; else XOTCLSH=""; fi
 if test "$with_xowish" = yes;  then XOWISH="xowish"   ; else XOWISH=""; fi
 
 
@@ -116,7 +116,7 @@ AC_SUBST(XOTCL_MAJOR_VERSION)
 AC_SUBST(XOTCL_MINOR_VERSION)
 AC_SUBST(XOTCL_RELEASE_LEVEL)
 
-echo "Configuring XOTcl Version $PACKAGE_VERSION"
+echo "Configuring next Version $PACKAGE_VERSION"
 
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file

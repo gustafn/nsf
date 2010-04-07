@@ -25,10 +25,10 @@
  * Exported function declarations:
  */
 
-#ifndef Xotcl_Init_TCL_DECLARED
-#define Xotcl_Init_TCL_DECLARED
+#ifndef Next_Init_TCL_DECLARED
+#define Next_Init_TCL_DECLARED
 /* 0 */
-EXTERN int		Xotcl_Init (Tcl_Interp * interp);
+EXTERN int		Next_Init (Tcl_Interp * interp);
 #endif
 /* Slot 1 is reserved */
 #ifndef XOTclIsClass_TCL_DECLARED
@@ -241,7 +241,7 @@ typedef struct XotclStubs {
     int magic;
     struct XotclStubHooks *hooks;
 
-    int (*xotcl_Init) (Tcl_Interp * interp); /* 0 */
+    int (*next_Init) (Tcl_Interp * interp); /* 0 */
     void *reserved1;
     struct XOTcl_Class * (*xOTclIsClass) (Tcl_Interp * interp, ClientData cd); /* 2 */
     void *reserved3;
@@ -301,9 +301,9 @@ extern XotclStubs *xotclStubsPtr;
  * Inline function declarations:
  */
 
-#ifndef Xotcl_Init
-#define Xotcl_Init \
-	(xotclStubsPtr->xotcl_Init) /* 0 */
+#ifndef Next_Init
+#define Next_Init \
+	(xotclStubsPtr->next_Init) /* 0 */
 #endif
 /* Slot 1 is reserved */
 #ifndef XOTclIsClass

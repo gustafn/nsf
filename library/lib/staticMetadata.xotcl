@@ -3,7 +3,7 @@ package require xotcl::metadataAnalyzer
 package provide xotcl::staticMetadataAnalyzer 0.84
 
 namespace eval ::xotcl::staticMetadataAnalyzer {
-  ::xotcl::use xotcl1
+  namespace import ::xotcl::*
 
   @ @File {
     description {

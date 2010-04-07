@@ -5,12 +5,12 @@
 
 # namespaces for types of methods
 array set ns {
-  xotclCmd    "::xotcl"
-  objectMethod "::xotcl::cmd::Object"
-  classMethod  "::xotcl::cmd::Class"
-  checkMethod  "::xotcl::cmd::ParameterType"
-  infoClassMethod  "::xotcl::cmd::ClassInfo"
-  infoObjectMethod  "::xotcl::cmd::ObjectInfo"
+  xotclCmd    "::next::core"
+  objectMethod "::next::core::cmd::Object"
+  classMethod  "::next::core::cmd::Class"
+  checkMethod  "::next::core::cmd::ParameterType"
+  infoClassMethod  "::next::core::cmd::ClassInfo"
+  infoObjectMethod  "::next::core::cmd::ObjectInfo"
 }
 
 #
