@@ -1,6 +1,33 @@
+2010-04-01 <Gustaf.Neumann@wu-wien.ac.at>
+    * make sure, Tcl var traces are not called twice
+      for volatile objects
+    * fix for info: make sure, value is always initialized
+
+2010-03-27 <Gustaf.Neumann@wu-wien.ac.at>
+    * avoid cyclic dependencies with namespace imported command
+      during final cleanup
+
+2010-03-26 <Gustaf.Neumann@wu-wien.ac.at>
+    * fixed 64bit problem in expat code
+    * fixed memory leaks in info methods and forward (error case)
+
+2010-03-22 <Gustaf.Neumann@wu-wien.ac.at>
+    * clean up compilation when compile with assertions turned on
+    * make sure to use xotcl 1.* when regression testing xotcl 1.*
+
+2010-03-06 <Gustaf.Neumann@wu-wien.ac.at>
+    * use installed expat when specified
+      This option is needed fro debian packaging rules.
+      (Many thanks to Stefan Sobernig for this contribution)
+    * cleanup of redundant section in configure.in
+    * update to TEA 3.7
+
 2010-02-09 <Gustaf.Neumann@wu-wien.ac.at>
     * provide compatibility with 8.6b1
     * bumped version number to 1.6.6
+
+2010-12-29 <Gustaf.Neumann@wu-wien.ac.at>
+    * fix example in tutorial
 
 2009-11-13 <Gustaf.Neumann@wu-wien.ac.at>
     * Release of XOTcl 1.6.5
@@ -11,7 +38,7 @@
     * fix package resolution, if multiple XOTcl versions are installed
 
 2009-11-02 <Gustaf.Neumann@wu-wien.ac.at>
-    * fixed namespace visibilty problem reported by Mykhaylo Sorochan
+    * fixed namespace visibility problem reported by Mykhaylo Sorochan
 
 2009-10-24 <Gustaf.Neumann@wu-wien.ac.at>
     * fixed var resolver/memory leak problem reported by Victor Mayevski
