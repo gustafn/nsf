@@ -38,7 +38,7 @@ c1 method foo {} {puts foo}
 ? {c1 info method definition foo} "::c1 method foo {} {puts foo}"
 ? {c1 info callable -which foo} "::c1 method foo {} {puts foo}"
 
-? {C info method name m} "::next::core::classes::C::m"
+? {C info method name m} "::nx::core::classes::C::m"
 ? {C object info method name mpo} "::C::mpo"
 
 ? {C info method definition m} {::C method m x {return proc-[self proc]}}
@@ -65,7 +65,7 @@ c1 method foo {} {puts foo}
 ? {C object info method definition apo} "::C object alias apo ::puts"
 
 
-? {::next::Object info callable -application} ""
-? {::next::Class info callable -application} ""
+? {::nx::Object info callable -application} ""
+? {::nx::Class info callable -application} ""
 ? {lsort [C info callable -application]} "add1 apo fpo mpo spo"
 ? {lsort [c1 info callable -application]} "a addOne foo m m-with-assertions s"

@@ -81,16 +81,16 @@ C destroy
 # basic parameter tests
 
 Class C -parameter {{x 1} {y 2}}
-? {::next::core::objectproperty C object} 1
-? {::next::core::objectproperty C::slot object} 1
+? {::nx::core::objectproperty C object} 1
+? {::nx::core::objectproperty C::slot object} 1
 ? {C info children} ::C::slot
 
 
 C copy X
-? {::next::core::objectproperty X object} 1
+? {::nx::core::objectproperty X object} 1
 ? {X info vars} ""
 ? {C info vars} ""
-? {::next::core::objectproperty X::slot object} 1
+? {::nx::core::objectproperty X::slot object} 1
 
 #? {C::slot info vars} __parameter
 ? {C info parameter} {{x 1} {y 2}}
@@ -106,68 +106,68 @@ o proc foo {} {return goo}
 o proc bar {x} {return goo-$x}
 
 # dispatch without colon names
-::next::core::dispatch o set x 1
+::nx::core::dispatch o set x 1
 ? {o info vars} x "simple dispatch has set variable x"
 ? {o set x} 1 "simple dispatch has set variable x to 1"
-? {::next::core::dispatch o foo} "goo" "simple dispatch with one arg works"
-? {::next::core::dispatch o bar 1} "goo-1" "simple dispatch with two args works"
+? {::nx::core::dispatch o foo} "goo" "simple dispatch with one arg works"
+? {::nx::core::dispatch o bar 1} "goo-1" "simple dispatch with two args works"
 o destroy
 
 # dispatch without colon names
 Object o -set x 1
-::next::core::dispatch ::o ::incr x
+::nx::core::dispatch ::o ::incr x
 ? {o set x} 1 "cmd dispatch without -objscope did not modify the instance variable"
-::next::core::dispatch ::o -objscope ::incr x
+::nx::core::dispatch ::o -objscope ::incr x
 ? {o set x} 2 "cmd dispatch -objscope modifies the instance variable"
-? {catch {::next::core::dispatch ::o -objscope ::xxx x}} 1 "cmd dispatch with unknown command"
+? {catch {::nx::core::dispatch ::o -objscope ::xxx x}} 1 "cmd dispatch with unknown command"
 o destroy
 
 puts stderr ===MINI-OBJECTSYSTEM
 # test object system
 # create a minimal object system without internally dipatched methods
-::next::core::createobjectsystem ::object ::class
+::nx::core::createobjectsystem ::object ::class
 
-? {::next::core::objectproperty ::object object} 1
-? {::next::core::objectproperty ::object class} 1
-? {::next::core::objectproperty ::object metaclass} 0
-? {::next::core::relation ::object class} ::class
-? {::next::core::relation ::object superclass} ""
+? {::nx::core::objectproperty ::object object} 1
+? {::nx::core::objectproperty ::object class} 1
+? {::nx::core::objectproperty ::object metaclass} 0
+? {::nx::core::relation ::object class} ::class
+? {::nx::core::relation ::object superclass} ""
 
-? {::next::core::objectproperty ::class object} 1
-? {::next::core::objectproperty ::class class} 1
-? {::next::core::objectproperty ::class metaclass} 1
-? {::next::core::relation ::class class} ::class
-? {::next::core::relation ::class superclass} ::object
+? {::nx::core::objectproperty ::class object} 1
+? {::nx::core::objectproperty ::class class} 1
+? {::nx::core::objectproperty ::class metaclass} 1
+? {::nx::core::relation ::class class} ::class
+? {::nx::core::relation ::class superclass} ::object
 
 # define non-standard methos to create/destroy objects and classes
-::next::core::alias ::class  + ::next::core::cmd::Class::create
-::next::core::alias ::object - ::next::core::cmd::Object::destroy
+::nx::core::alias ::class  + ::nx::core::cmd::Class::create
+::nx::core::alias ::object - ::nx::core::cmd::Object::destroy
 
 # create a class named C
 ::class + C
 
-? {::next::core::objectproperty ::C object} 1
-? {::next::core::objectproperty ::C class} 1
-? {::next::core::objectproperty ::C metaclass} 0
-? {::next::core::relation ::C class} ::class
-? {::next::core::relation ::C superclass} ::object
+? {::nx::core::objectproperty ::C object} 1
+? {::nx::core::objectproperty ::C class} 1
+? {::nx::core::objectproperty ::C metaclass} 0
+? {::nx::core::relation ::C class} ::class
+? {::nx::core::relation ::C superclass} ::object
 
 # create an instance of C
 C + c1
 
-? {::next::core::objectproperty ::c1 object} 1
-? {::next::core::objectproperty ::c1 class} 0
-? {::next::core::objectproperty ::c1 metaclass} 0
-? {::next::core::relation ::c1 class} ::C
+? {::nx::core::objectproperty ::c1 object} 1
+? {::nx::core::objectproperty ::c1 class} 0
+? {::nx::core::objectproperty ::c1 metaclass} 0
+? {::nx::core::relation ::c1 class} ::C
 
 # destroy instance and class
 c1 -
 
-? {::next::core::objectproperty ::c1 object} 0
-? {::next::core::objectproperty ::C class} 1
+? {::nx::core::objectproperty ::c1 object} 0
+? {::nx::core::objectproperty ::C class} 1
 
 C -
 
-? {::next::core::objectproperty ::C class} 0
+? {::nx::core::objectproperty ::C class} 0
 
 puts stderr ===EXIT

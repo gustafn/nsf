@@ -347,7 +347,7 @@ VarHashTableCreate() {
 
 #if 0
 static int duringBootstrap(Tcl_Interp *interp) {
-  Tcl_Obj *bootstrap = Tcl_GetVar2Ex(interp, "::next::core::bootstrap", NULL, TCL_GLOBAL_ONLY);
+  Tcl_Obj *bootstrap = Tcl_GetVar2Ex(interp, "::nx::core::bootstrap", NULL, TCL_GLOBAL_ONLY);
   return (bootstrap != NULL);
 }
 #endif
@@ -486,14 +486,14 @@ NSTail(CONST char *string) {
 
 XOTCLINLINE static int
 isClassName(CONST char *string) {
-  return (strncmp((string), "::next::core::classes", 21) == 0);
+  return (strncmp((string), "::nx::core::classes", 19) == 0);
 }
 
-/* removes preceding ::next::core::classes from a string */
+/* removes preceding ::nx::core::classes from a string */
 XOTCLINLINE static CONST char *
 NSCutXOTclClasses(CONST char *string) {
-  assert(strncmp((string), "::next::core::classes", 21) == 0);
-  return string+21;
+  assert(strncmp((string), "::nx::core::classes", 19) == 0);
+  return string+19;
 }
 
 XOTCLINLINE static char *
@@ -6093,7 +6093,7 @@ static Tcl_Obj *addPrefixToBody(Tcl_Obj *body, int paramDefs, XOTclParsedParam *
   INCR_REF_COUNT(resultBody);
 
   if (paramDefs && paramPtr->possibleUnknowns > 0)
-    Tcl_AppendStringsToObj(resultBody, "::next::core::unsetUnknownArgs\n", (char *) NULL);
+    Tcl_AppendStringsToObj(resultBody, "::nx::core::unsetUnknownArgs\n", (char *) NULL);
 
   Tcl_AppendStringsToObj(resultBody, ObjStr(body), (char *) NULL);
   return resultBody;
@@ -7004,8 +7004,8 @@ ComputePrecedenceList(Tcl_Interp *interp, XOTclObject *object, CONST char *patte
 
 static CONST char *
 StripBodyPrefix(CONST char *body) {
-  if (strncmp(body, "::next::core::unsetUnknownArgs\n", 30) == 0)
-    body += 26;
+  if (strncmp(body, "::nx::core::unsetUnknownArgs\n", 29) == 0)
+    body += 29;
   return body;
 }
 
@@ -9902,7 +9902,7 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
 
 static int
 ListMethodName(Tcl_Interp *interp, XOTclObject *object, int withPer_object, CONST char *methodName) {
-  Tcl_Obj *resultObj = Tcl_NewStringObj(withPer_object ? "" : "::next::core::classes", -1);
+  Tcl_Obj *resultObj = Tcl_NewStringObj(withPer_object ? "" : "::nx::core::classes", -1);
   Tcl_AppendObjToObj(resultObj, object->cmdName);
   Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
   Tcl_SetObjResult(interp, resultObj);
@@ -10418,7 +10418,7 @@ static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName
                 AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                 Tcl_NewStringObj(cmd,-1), 
                 TCL_GLOBAL_ONLY);
-  /*fprintf(stderr, "aliasAdd ::next::core::alias(%s) '%s' returned %p\n",
+  /*fprintf(stderr, "aliasAdd ::nx::core::alias(%s) '%s' returned %p\n",
     AliasIndex(dsPtr, cmdName, methodName, withPer_object), cmd, 1);*/
   Tcl_DStringFree(dsPtr);
   return TCL_OK;
@@ -10429,7 +10429,7 @@ static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodN
   int result = Tcl_UnsetVar2(interp, XOTclGlobalStrings[XOTE_ALIAS_ARRAY], 
                              AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                              TCL_GLOBAL_ONLY);
-  /*fprintf(stderr, "aliasDelete ::next::core::alias(%s) returned %d (%d)\n",
+  /*fprintf(stderr, "aliasDelete ::nx::core::alias(%s) returned %d (%d)\n",
     AliasIndex(dsPtr, cmdName, methodName, withPer_object), result);*/
   Tcl_DStringFree(dsPtr);
   return result;
@@ -10491,7 +10491,7 @@ static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_ob
 
      4. XOTclSetterMethod: an XOTcl setter 
 
-     5. arbitrary Tcl commands (e.g. set, ..., ::next::core::relation, ...)
+     5. arbitrary Tcl commands (e.g. set, ..., ::nx::core::relation, ...)
 
      TODO GN: i think, we should use XOTclProcAliasMethod, whenever the clientData
      is not 0. These are the cases, where the clientData will be freed,
@@ -10605,7 +10605,7 @@ xotclCmd assertion XOTclAssertionCmd {
   {-argName "arg" -required 0 -type tclobj}
 }
 
-  Make "::next::core::assertion" a cmd rather than a method, otherwise we
+  Make "::nx::core::assertion" a cmd rather than a method, otherwise we
   cannot define e.g. a "method check options {...}" to reset the check
   options in case of a failed option, since assertion checking would
   be applied on the sketched method already.
@@ -10830,7 +10830,7 @@ XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope,
 
   /*
    * If the specified method is a fully qualified cmd name like
-   * e.g. ::next::core::cmd::Class::alloc, this method is called on the
+   * e.g. ::nx::core::cmd::Class::alloc, this method is called on the
    * specified <Class|Object>, no matter whether it was registered on
    * it.
    */
@@ -10953,7 +10953,7 @@ xotclCmd finalize XOTclFinalizeObjCmd {
 }
 */
 /*
- * ::next::core::finalize command
+ * ::nx::core::finalize command
  */
 static int
 XOTclFinalizeObjCmd(Tcl_Interp *interp) {
@@ -10967,7 +10967,7 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
   /*
    * evaluate user-defined exit handler
    */
-  result = Tcl_Eval(interp, "::next::core::__exitHandler");
+  result = Tcl_Eval(interp, "::nx::core::__exitHandler");
 
   if (result != TCL_OK) {
     fprintf(stderr, "User defined exit handler contains errors!\n"
@@ -11458,7 +11458,7 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
             procs = cl->opt ? AssertionFindProcs(cl->opt->assertions, name) : 0;
             
             DSTRING_INIT(dsPtr);
-            Tcl_DStringAppendElement(dsPtr, "::next::core::method");
+            Tcl_DStringAppendElement(dsPtr, "::nx::core::method");
             Tcl_DStringAppendElement(dsPtr, NSCutXOTclClasses(toNsPtr->fullName));
             Tcl_DStringAppendElement(dsPtr, name);
             Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
@@ -11485,7 +11485,7 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
             }
 
             DSTRING_INIT(dsPtr);
-            Tcl_DStringAppendElement(dsPtr, "::next::core::method");
+            Tcl_DStringAppendElement(dsPtr, "::nx::core::method");
             Tcl_DStringAppendElement(dsPtr, toNsPtr->fullName);
             Tcl_DStringAppendElement(dsPtr, "-per-object");
             Tcl_DStringAppendElement(dsPtr, name);
@@ -13277,7 +13277,7 @@ static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *with
     Tcl_DStringAppend(dsPtr, objectName(withChildof), -1);
     Tcl_DStringAppend(dsPtr, "::__#", 5);
   } else {
-    Tcl_DStringAppend(dsPtr, "::next::core::__#", 17);
+    Tcl_DStringAppend(dsPtr, "::nx::core::__#", 15);
   }
   prefixLength = dsPtr->length;
 
@@ -14363,7 +14363,7 @@ Next_Init(Tcl_Interp *interp) {
 
   /* create xotcl namespace */
   RUNTIME_STATE(interp)->XOTclNS =
-    Tcl_CreateNamespace(interp, "::next::core", (ClientData)NULL, (Tcl_NamespaceDeleteProc*)NULL);
+    Tcl_CreateNamespace(interp, "::nx::core", (ClientData)NULL, (Tcl_NamespaceDeleteProc*)NULL);
 
   MEM_COUNT_ALLOC("TclNamespace", RUNTIME_STATE(interp)->XOTclNS);
 
@@ -14381,7 +14381,7 @@ Next_Init(Tcl_Interp *interp) {
 
   /* XOTclClasses in separate Namespace / Objects */
   RUNTIME_STATE(interp)->XOTclClassesNS =
-    Tcl_CreateNamespace(interp, "::next::core::classes",	(ClientData)NULL,
+    Tcl_CreateNamespace(interp, "::nx::core::classes",	(ClientData)NULL,
                         (Tcl_NamespaceDeleteProc*)NULL);
   MEM_COUNT_ALLOC("TclNamespace", RUNTIME_STATE(interp)->XOTclClassesNS);
 
@@ -14401,7 +14401,7 @@ Next_Init(Tcl_Interp *interp) {
   }
 
   /* create namespaces for the different command types */
-  Tcl_CreateNamespace(interp, "::next::core::cmd", 0, (Tcl_NamespaceDeleteProc*)NULL);
+  Tcl_CreateNamespace(interp, "::nx::core::cmd", 0, (Tcl_NamespaceDeleteProc*)NULL);
   for (i=0; i < nr_elements(method_command_namespace_names); i++) {
     Tcl_CreateNamespace(interp, method_command_namespace_names[i], 0, (Tcl_NamespaceDeleteProc*)NULL);
   }
@@ -14424,13 +14424,13 @@ Next_Init(Tcl_Interp *interp) {
 #ifdef XOTCL_BYTECODE
   instructions[INST_NEXT].cmdPtr = (Command *)
 #endif
-    Tcl_CreateObjCommand(interp, "::next::core::next", XOTclNextObjCmd, 0, 0);
+    Tcl_CreateObjCommand(interp, "::nx::core::next", XOTclNextObjCmd, 0, 0);
 #ifdef XOTCL_BYTECODE
-  instructions[INST_SELF].cmdPtr = (Command *)Tcl_FindCommand(interp, "::next::core::self", 0, 0);
+  instructions[INST_SELF].cmdPtr = (Command *)Tcl_FindCommand(interp, "::nx::core::self", 0, 0);
 #endif
-  /*Tcl_CreateObjCommand(interp, "::next::core::K", XOTclKObjCmd, 0, 0);*/
+  /*Tcl_CreateObjCommand(interp, "::nx::core::K", XOTclKObjCmd, 0, 0);*/
 
-  Tcl_CreateObjCommand(interp, "::next::core::unsetUnknownArgs", XOTclUnsetUnknownArgsCmd, 0, 0);
+  Tcl_CreateObjCommand(interp, "::nx::core::unsetUnknownArgs", XOTclUnsetUnknownArgsCmd, 0, 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "self", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "next", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "my", 0);
@@ -14440,14 +14440,14 @@ Next_Init(Tcl_Interp *interp) {
   XOTclBytecodeInit();
 #endif
 
-  Tcl_SetVar(interp, "::next::core::version", XOTCLVERSION, TCL_GLOBAL_ONLY);
-  Tcl_SetVar(interp, "::next::core::patchlevel", XOTCLPATCHLEVEL, TCL_GLOBAL_ONLY);
+  Tcl_SetVar(interp, "::nx::core::version", XOTCLVERSION, TCL_GLOBAL_ONLY);
+  Tcl_SetVar(interp, "::nx::core::patchlevel", XOTCLPATCHLEVEL, TCL_GLOBAL_ONLY);
 
-  Tcl_AddInterpResolvers(interp,"next", 
+  Tcl_AddInterpResolvers(interp,"nxt", 
                          (Tcl_ResolveCmdProc*)InterpColonCmdResolver,
                          InterpColonVarResolver, 
                          (Tcl_ResolveCompiledVarProc*)InterpCompiledColonVarResolver);
-  RUNTIME_STATE(interp)->colonCmd = Tcl_FindCommand(interp, "::next::core::colon", 0, 0);
+  RUNTIME_STATE(interp)->colonCmd = Tcl_FindCommand(interp, "::nx::core::colon", 0, 0);
 
   /*
    * with some methods and library procs in tcl - they could go in a

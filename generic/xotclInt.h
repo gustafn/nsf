@@ -582,9 +582,9 @@ char *XOTclGlobalStrings[] = {
   "configure", 
   /* var names */
   "__autonames", "__default_metaclass", "__default_superclass", 
-  "::next::core::alias",
+  "::nx::core::alias",
   /* object/class names */
-  "::next::methodParameterSlot", 
+  "::nx::methodParameterSlot", 
   /* constants */
   "alias", "args", "cmd", "filter",  "forward", 
   "method", "object", "setter", 

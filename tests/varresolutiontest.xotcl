@@ -5,12 +5,12 @@ package require xotcl::test
 
 Test parameter count 1
 
-::next::core::alias ::next::Object objeval -objscope ::eval 
-::next::core::alias ::next::Object array -objscope ::array
-::next::core::alias ::next::Object lappend -objscope ::lappend
-::next::core::alias ::next::Object incr -objscope ::incr
-::next::core::alias ::next::Object set -objscope ::set
-::next::core::alias ::next::Object unset -objscope ::unset
+::nx::core::alias ::nx::Object objeval -objscope ::eval 
+::nx::core::alias ::nx::Object array -objscope ::array
+::nx::core::alias ::nx::Object lappend -objscope ::lappend
+::nx::core::alias ::nx::Object incr -objscope ::incr
+::nx::core::alias ::nx::Object set -objscope ::set
+::nx::core::alias ::nx::Object unset -objscope ::unset
 
 
 ###########################################
@@ -48,7 +48,7 @@ o objeval {
   # vartables on the stack
   :requireNamespace
   global g
-  ::next::core::importvar o2 i
+  ::nx::core::importvar o2 i
   set x 1
   set :y 2
   set ::z 3
@@ -80,7 +80,7 @@ Object create o2 {set :i 1}
 Object create o {
   :requireNamespace
   global g
-  ::next::core::importvar o2 i
+  ::nx::core::importvar o2 i
   set x 1
   set :y 2
   set ::z 3
@@ -121,7 +121,7 @@ o set x 1
 ? {::o set x} 3
 ? {namespace eval ::o {info exists x}} 1
 ? {::o unset x} ""
-? {::next::core::existsvar o x} 0
+? {::nx::core::existsvar o x} 0
 ? {o exists x} 0
 ? {info vars ::x} ""
 ? {namespace eval ::o {info exists x}} 0
@@ -352,13 +352,13 @@ set ::w 1
 array set ::tmpArray {key value}
 
 Class create ::C
-::next::core::alias ::C Set -objscope ::set
-::next::core::alias ::C Unset -objscope ::unset
+::nx::core::alias ::C Set -objscope ::set
+::nx::core::alias ::C Unset -objscope ::unset
 
 ::C create ::c
 namespace eval ::c {}
 ? {namespace exists ::c} 1
-? {::next::core::objectproperty ::c object} 1
+? {::nx::core::objectproperty ::c object} 1
 ? {::c info hasnamespace} 0
 
 ? {::c Set w 2; expr {[::c Set w] == $::w}} 0
@@ -380,9 +380,9 @@ unset ::tmpArray
 # with a required namespace and without
 ##################################################
 Test case eval-variants
-::next::core::alias ::next::Object objeval -objscope ::eval 
-::next::core::alias ::next::Object softeval -nonleaf ::eval 
-::next::core::alias ::next::Object softeval2 ::eval 
+::nx::core::alias ::nx::Object objeval -objscope ::eval 
+::nx::core::alias ::nx::Object softeval -nonleaf ::eval 
+::nx::core::alias ::nx::Object softeval2 ::eval 
 
 set G 1
 
@@ -544,9 +544,9 @@ o destroy
 # Test with proc scopes
 ##################################################
 Test case proc-scopes
-::next::core::alias ::next::Object objscoped-eval -objscope ::eval 
-::next::core::alias ::next::Object nonleaf-eval -nonleaf ::eval 
-::next::core::alias ::next::Object plain-eval ::eval 
+::nx::core::alias ::nx::Object objscoped-eval -objscope ::eval 
+::nx::core::alias ::nx::Object nonleaf-eval -nonleaf ::eval 
+::nx::core::alias ::nx::Object plain-eval ::eval 
 
 proc foo-via-initcmd {} {
   foreach v {x xxx} {unset -nocomplain ::$v}
@@ -642,10 +642,10 @@ namespace eval module {
   Class create M2
 
   C mixin M1
-  ? {::next::core::relation C class-mixin} "::module::M1"
+  ? {::nx::core::relation C class-mixin} "::module::M1"
 
   C mixin add M2
-  ? {::next::core::relation C class-mixin} "::module::M2 ::module::M1"
+  ? {::nx::core::relation C class-mixin} "::module::M2 ::module::M1"
 }
 
 

@@ -1,7 +1,7 @@
 package require next
 package require xotcl::test
 
-namespace import ::next::*
+namespace import ::nx::*
 
 Class create M {
   :method mfoo {} {puts [self proc]}
@@ -9,91 +9,91 @@ Class create M {
 Class create M2
 Class create C 
 
-? {C info callable -which mixin} "::next::Class forward mixin ::next::Class::slot::mixin {%1 {get assign}} %self class-mixin"
+? {C info callable -which mixin} "::nx::Class forward mixin ::nx::Class::slot::mixin {%1 {get assign}} %self class-mixin"
 C mixin M
-? {C info precedence} "::next::Class ::next::Object"
+? {C info precedence} "::nx::Class ::nx::Object"
 ? {C mixin} "::M"
 ? {C info mixin} "::M"
 C create c1
-? {c1 info precedence} "::M ::C ::next::Object"
+? {c1 info precedence} "::M ::C ::nx::Object"
 C mixin add M2
-? {c1 info precedence} "::M2 ::M ::C ::next::Object"
+? {c1 info precedence} "::M2 ::M ::C ::nx::Object"
 C mixin delete M2
-? {c1 info precedence} "::M ::C ::next::Object"
+? {c1 info precedence} "::M ::C ::nx::Object"
 C mixin delete M
 
 # per-object mixins
-? {c1 info precedence} "::C ::next::Object"
+? {c1 info precedence} "::C ::nx::Object"
 c1 mixin add M
-? {::next::core::relation c1 object-mixin} ::M
+? {::nx::core::relation c1 object-mixin} ::M
 ? {catch {c1 mixin UNKNOWN}} 1
-? {::next::core::relation c1 object-mixin} "::M"
+? {::nx::core::relation c1 object-mixin} "::M"
 
 # add again the same mixin
 c1 mixin add M
-? {c1 info precedence} "::M ::C ::next::Object"
+? {c1 info precedence} "::M ::C ::nx::Object"
 c1 mixin add M2
-? {c1 info precedence} "::M2 ::M ::C ::next::Object"
+? {c1 info precedence} "::M2 ::M ::C ::nx::Object"
 c1 mixin delete M
-? {c1 info precedence} "::M2 ::C ::next::Object"
+? {c1 info precedence} "::M2 ::C ::nx::Object"
 c1 mixin delete M2
-? {c1 info precedence} "::C ::next::Object"
+? {c1 info precedence} "::C ::nx::Object"
 
 #
 # adding, removing per-object mixins for classes through relation
 # "object-mixin"
 #
-::next::core::relation C object-mixin M
-? {C info precedence} "::M ::next::Class ::next::Object"
+::nx::core::relation C object-mixin M
+? {C info precedence} "::M ::nx::Class ::nx::Object"
 ? {C object info mixin} "::M"
-::next::core::relation C object-mixin ""
-? {C info precedence} "::next::Class ::next::Object"
+::nx::core::relation C object-mixin ""
+? {C info precedence} "::nx::Class ::nx::Object"
 
 #
 # adding, removing per-object mixins for classes through slot
 # "object-mixin"
 #
 C object-mixin M
-? {C info precedence} "::M ::next::Class ::next::Object"
+? {C info precedence} "::M ::nx::Class ::nx::Object"
 ? {C object info mixin} "::M"
 C object-mixin ""
-? {C info precedence} "::next::Class ::next::Object"
+? {C info precedence} "::nx::Class ::nx::Object"
 
 #
 # add and remove object mixin for classes via modifier "object" and
 # "mixin"
 #
 C object mixin M
-? {C info precedence} "::M ::next::Class ::next::Object"
+? {C info precedence} "::M ::nx::Class ::nx::Object"
 ? {C object info mixin} "::M"
 C object mixin ""
-? {C info precedence} "::next::Class ::next::Object"
+? {C info precedence} "::nx::Class ::nx::Object"
 
 #
 #  add and remove object mixin for classes via object mixin add
 #
 C object mixin add M
-? {C info precedence} "::M ::next::Class ::next::Object"
+? {C info precedence} "::M ::nx::Class ::nx::Object"
 ? {C object info mixin} "::M"
 C object mixin ""
-? {C info precedence} "::next::Class ::next::Object"
+? {C info precedence} "::nx::Class ::nx::Object"
 
 #
 # adding per-object mixins for classes via "object mixin add M"
 #
 C object mixin add M 
-? {C info precedence} "::M ::next::Class ::next::Object"
-? {::next::core::relation C object-mixin} ::M
+? {C info precedence} "::M ::nx::Class ::nx::Object"
+? {::nx::core::relation C object-mixin} ::M
 ? {catch {C object mixin add UNKNOWN}} 1
-? {::next::core::relation C object-mixin} "::M"
+? {::nx::core::relation C object-mixin} "::M"
 C object mixin ""
-? {C info precedence} "::next::Class ::next::Object"
+? {C info precedence} "::nx::Class ::nx::Object"
 
 #
 # adding per-object mixins for classes via "object mixin M"
 #
 C object mixin M 
-? {C info precedence} "::M ::next::Class ::next::Object"
+? {C info precedence} "::M ::nx::Class ::nx::Object"
 
 # forwarder with 0 arguments + flag
 ? {C object-mixin} "::M"

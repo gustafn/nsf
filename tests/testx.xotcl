@@ -517,12 +517,12 @@ TestX filterAddRemove -proc run {{n 20}} {
   o m
   ::errorCheck [o set count] 2 "filter count" 
   o filter ""
-  set filterstate [::next::core::configure filter off]
+  set filterstate [::nx::core::configure filter off]
   o set count 0
   o m
   ::errorCheck [o set count]-$filterstate 0-1 "filter off + old state" 
   o filter ""
-  ::next::core::configure filter on
+  ::nx::core::configure filter on
 
   set ::r ""
   Object instproc f args {

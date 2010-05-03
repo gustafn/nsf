@@ -53,7 +53,7 @@ namespace eval ::xotcl::test {
         foreach o [Object info instances -closure] {
           if {[info exists pre_exist($o)]} continue
           #puts "must destroy $o"
-          if {[::next::core::objectproperty $o object]} {$o destroy}
+          if {[::nx::core::objectproperty $o object]} {$o destroy}
         }
       }
     }
