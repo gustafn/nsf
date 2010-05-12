@@ -1,0 +1,218 @@
+package require next
+package require xotcl::test
+package require next::doc
+
+namespace import -force ::next::*
+namespace import -force ::next::doc::*
+
+
+Test parameter count 1
+
+Test case scanning {
+
+  set lines {
+    "# @package o"			1
+    "bla"				0
+    "# @object o"			1
+    "# 1 2 3"				1
+    "#"					1
+    "#    "				1
+    "   #   "				1
+    "\t#\t \t"				1
+    "#  345"				1
+    "# @tag1 part1"			1
+    "bla; # no comment"			0
+    ""					0
+    "\t\t"				0
+    "### # # # # @object o # ####"	1
+    "# # # # # 345"			1
+    "# # # @tag1 part1"			1
+    "bla; # # # # # no comment"		0
+    "    "				0
+
+  }
+  
+  foreach {::line ::result} $lines {
+    ? {foreach {is_comment text} [doc analyze_line $::line] break; set is_comment} $::result "doc analyze_line '$::line'"
+  }
+
+  set ::script {
+    # @package o
+    # 1 2 3
+    bla
+    bla
+    # @object o
+    # 1 2 3
+    #
+    #  345 
+    # @tag1 part1 
+    # @tag2 part2
+    bla; # no comment
+    bla
+    bla
+    bla
+    
+    
+    ### # # # # @object o # ####
+    # 1 2 3
+    #
+    # # # # # 345 
+    # # # @tag1 part1 
+    # @tag2 part2
+    bla; # # # # # no comment
+  }
+
+  set blocks {{{@package o} {1 2 3}} {{@object o} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}} {{@object o # ####} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}}}
+
+    ? {doc comment_blocks $::script} $blocks
+}
+
+Test case parsing {
+  set blocks {{{@package o} {1 2 4}} {{@object o} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}} {{@object o # ####} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}}}
+    
+    ::next::doc::entity process [lindex $blocks 0]
+}
+
+exit
+  # states
+  #   1 empty line
+  #   2 tagged comment line
+  #   3 untagged, non-empty comment line
+  #   4 untagged, empty comment line
+  #   5 code line
+
+  set lines {
+    "" 		1
+    "   " 	1
+    "\t\t\t"	1
+    "abc"	5
+    "   abc"	5
+    "\t\t\tabc"	5
+    "#"		4
+    "   #   "	4
+    "\t\t\t# "	4
+    "#@"	3
+    "#@ tag"	3
+    "# @ tag"	3
+    "# @\ttag"	3
+    "#@tag"	2
+    "# @tag"	2
+    "# @1tag"	2
+    "\t#\t@tag"	2
+    "# @@"	3
+    "# @@@"	3
+  }
+
+  #
+  # TODO: without qualifying variable names by "::", they are *not*
+  # created in the evaluation scope of ? (e.g., the global namespace
+  # "::"). where do they go? and, why?
+  #
+  foreach {::line ::result} $lines {
+    ? {doc analyze_line $::line} $::result "doc analyze_line '$::line'"
+  }
+
+  set ::blocks {
+    # @tag0 entity hier kommt mehr text mit einer zweiten zeile die
+    # sich dahinzieht
+    # 
+    # eine beschreibung, hier kommt mehr text mit einer zweiten zeile
+    # die sich dahinzieht
+    #
+  }
+
+  ? {doc comment_blocks $::blocks} "1,1 1,2 2,4 4,3 3,4 4,2 2,2 2,1"
+
+  set result {
+    context tag0
+    description {some description}
+    tag0 entity
+    parts {
+      tag1 part1
+      tag2 part2
+    }
+  }
+
+ set ::blocks {
+   # some description
+   #
+   # @tag1 part1 some description which takes
+   # more than a line
+   # @tag2 part2
+  } 3-3-3-2-2
+
+  set result {
+    context tag0
+    description {some description}
+    tag0 entity
+    parts {
+      tag1 part1
+      tag2 part2
+    }
+  }
+ 
+  
+}
+
+Test case parsing {
+set str {
+    # @class Foo
+    # 
+    # The class Foo defines the behaviour for all Foo objects
+    #
+    # @author gneumann@wu.ac.at
+    # @author ssoberni@wu.ac.at
+  }
+  Class create Foo {
+    # @attribute attr1 
+    #
+    # This attribute 1 is wonderful
+    :attribute attr1
+    :attribute attr2
+    :attribute attr3
+  }
+  
+#  doc process $str
+#  ? {::next::core::is [NextClass id ::Foo] object} 1
+
+  Class create Bar {
+    # The class Bar defines the behaviour for all Foo objects
+    #
+    # @author mstrembe@wu.ac.at
+
+    :attribute attr1
+
+    # @attribute attr2
+    #
+    # This attribute 2 is wonderful
+    :attribute attr2
+
+    # @attribute attr3
+    #
+    # This attribute 3 is wonderful
+    :attribute attr3
+  }
+
+}
+
+# # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # #
+
+Test case various {
+  Class create AMetaClass -superclass Class
+  AMetaClass create AClass {
+    :object method id {} {
+      return [::next::core::current class]-[:info class]
+    }
+  }
+  
+  ? {AClass id} -::AMetaClass
+  
+  Class create AMixin {
+    :method id {} {return "[::next::core::current class]-[:info class]-[next]";}
+  }
+  
+  AClass object mixin add AMixin
+  ? {AClass id} ::AMixin-::AMetaClass--::AMetaClass
+}

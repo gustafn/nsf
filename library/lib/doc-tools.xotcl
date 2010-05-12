@@ -1,8 +1,8 @@
-package provide xotcl::doc-tools 0.1
-package require XOTcl
+package provide next::doc 0.1
+package require next
 
 #
-# Study for documentation classes for XOTcl2.
+# Study for documentation classes for Next.
 # 
 # Compared to the "old" @ docmentation effort, this is a rather
 # light-weight structure based on xotcl 2 language features. The
@@ -23,9 +23,8 @@ package require XOTcl
 # are available).
 #
 
-namespace eval ::xodoc {}
-namespace eval ::xodoc-tools {
-  ::xotcl::use xotcl2
+namespace eval ::next::doc {
+  namespace import -force ::next::*
 
   #
   # A few helper commands:
@@ -42,13 +41,24 @@ namespace eval ::xodoc-tools {
     return $result
   }
 
-  Class create DocClass -superclass Class {
+  Class create EntityFactory -superclass Class {
     #
-    # DocClass is a meta class for named doc entities
+    # EntityFactory is a meta-class for named doc entities
     #
+
+    :attribute tag:required
+
+    namespace eval ::next::doc::entities {}
+    set :root_namespace ::next::doc::entities
+
+    :method init {} {
+      next
+      [:info class] eval set :tags([:tag]) [self]
+    }
+
     :method createOrConfigure {id arguments} {
       namespace eval $id {}
-      if {[::xotcl::objectproperty $id object]} {
+      if {[::next::core::objectproperty $id object]} {
 	$id configure {*}$arguments
       } else {
 	:create $id {*}$arguments
@@ -57,12 +67,12 @@ namespace eval ::xodoc-tools {
   }
 
 
-  Class create docEntity {
+  Class create Entity {
     #
-    # docEntity is the base class for the documentation classes
+    # Entity is the base class for the documentation classes
     #
 
-    # every docEntity must be created with a "doc" value and can have
+    # every Entity must be created with a "doc" value and can have
     # an optional initcmd 
     :method objectparameter args {next {doc __initcmd:initcmd,optional}}
 
@@ -79,11 +89,11 @@ namespace eval ::xodoc-tools {
     :method _doc {doc use what value} {
       if {$doc ne ""} {return $doc}
       if {$use ne ""} {
-	foreach thing {xotclCmd xotclClass} {
+	foreach thing {NextCommand NextClass} {
 	  set docobj [$thing id $use]
-	  if {[::xotcl::objectproperty $docobj object]} break
+	  if {[::next::core::objectproperty $docobj object]} break
 	}
-	if {[::xotcl::objectproperty $docobj object]} {
+	if {[::next::core::objectproperty $docobj object]} {
 	  if {![$docobj exists $what]} {error "no attribute $what in $docobj"}
 	  set names [list]
 	  foreach v [$docobj $what] {
@@ -95,6 +105,14 @@ namespace eval ::xodoc-tools {
 	  error "can't use $use, no documentation object $docobj"
 	}
       }
+    }
+
+    # @method process
+    #
+    # This is an abstract hook method to be refined by the subclasses
+    # of Entity
+    :method process {comment_block} {
+      error "Implement '[::next::core::current method]()' for the class '[:info class]'"
     }
     
     # @method param
@@ -115,7 +133,7 @@ namespace eval ::xodoc-tools {
 	lappend flags -spec $spec
       }
       lappend flags -fullname param
-      @ xotclCmdParam $name -partof [self] {*}$flags [:_doc $doc $use params $name]
+      @ NextCommand::Parameter $name -partof [self] {*}$flags [:_doc $doc $use params $name]
     }
 
     # @method variant
@@ -125,25 +143,72 @@ namespace eval ::xodoc-tools {
     # completely different. A typical case are subcommands in Tcl.
     #
     :method variant {name doc {-use ""}} {
-      @ xotclCmdVariant $name -partof [self] [:_doc $doc $use variants $name]
+      @ NextCommand::Variant $name -partof [self] [:_doc $doc $use variants $name]
     }
 
     # @method text
     #
-    # text is used to access the content of doc of an docEntity, and
+    # text is used to access the content of doc of an Entity, and
     # performs substitution on it.  The substitution is not essential,
     # but looks for now convenient.
     #
     :method text {} {subst ${:doc}}
   }
 
-  # @class docPart
   #
-  # An docPart is a part of the documentation, defined by a
-  # separate object. Every docPart is associated to another
+  # Now, define some kinds of docEntities. The toplevel docEntities
+  # are named objects in the ::next::doc::entities namespace to ease access to it.
+  #
+  # We define here the following toplevel docEntities (e.g. xotclObject will follow):
+  #  - NextCommand
+  #  - NextObject
+  #
+  # The xotcl methods are defined as Parts.
+  #  - NextMethod
+  #
+
+  EntityFactory create NextCommand \
+      -tag "command" \
+      -superclass Entity {
+	:attribute name
+	:attribute arguments
+	:attribute {returns ""}
+	:object method id {name} {return [[:info class] eval {set :root_namespace}]::cmd::[string trimleft $name :]}
+	:object method new args {
+	  foreach {att value} $args {if {$att eq "-name"} {set name $value}}
+	  :createOrConfigure [:id $name] $args
+	}
+      }
+  
+  EntityFactory create NextClass \
+      -tag "class" \
+      -superclass Entity {
+	:attribute name
+	:attribute {methods:multivalued ""} {set :incremental 1}
+	:object method id {name} {puts stderr ""; return [[:info class] eval {set :root_namespace}]::class::[string trimleft $name :]}
+	:object method new args {
+	  foreach {att value} $args {if {$att eq "-name"} {set name $value}}
+	  :createOrConfigure [:id $name] $args
+	}
+	
+	# @method process
+	# 
+	# This method implements the provided, yet abstract
+	# Entity.process() method.
+	#
+	# @see Entity#process()
+	:method process {comment_block} {
+	  puts stderr "+++ comment_block: $comment_block"
+	}
+      }
+  
+  # @class Part
+  #
+  # A Part is a part of a documentation entity, defined by a
+  # separate object. Every Part is associated to another
   # documentation entity and is identified by a name.
   #
-  Class create docPart -superclass docEntity {
+  Class create Part -superclass Entity {
     #:method objectparameter args {next {doc -use}}
     :attribute name:required
     :attribute partof:required
@@ -151,12 +216,12 @@ namespace eval ::xodoc-tools {
   }
 
   #
-  # variant and param are docParts:
+  # variant and param are Parts:
   #
-  Class create xotclCmdVariant -superclass docPart {
+  Class create NextCommand::Variant -superclass Part {
     :method init {} {${:partof} variants add [self] end}
   }
-  Class create xotclCmdParam -superclass docPart {
+  Class create NextCommand::Parameter -superclass Part {
     :attribute param
     :attribute fullname    
     :attribute spec
@@ -166,51 +231,20 @@ namespace eval ::xodoc-tools {
 
 
   #
-  # Now, define some kinds of docEntities. The toplevel docEntities
-  # are named objects in the ::xoDoc namespace to ease access to it.
-  #
-  # We define here the following toplevel docEntities (e.g. xotclObject will follow):
-  #  - xotclCmd
-  #  - xotclClass
-  #
-  # The xotcl methods are defined as docParts.
-  #  - xotclMethod
-  #
-
-  DocClass create xotclCmd -superclass docEntity {
-    :attribute name
-    :attribute arguments
-    :attribute {returns ""}
-    :object method id {name} {return ::xodoc::cmd::[string trimleft $name :]}
-    :object method new args {
-      foreach {att value} $args {if {$att eq "-name"} {set name $value}}
-      :createOrConfigure [:id $name] $args
-    }
-  }
-
-  DocClass create xotclClass -superclass docEntity {
-    :attribute name
-    :attribute {methods:multivalued ""} {set :incremental 1}
-    :object method id {name} {return ::xodoc::object::[string trimleft $name :]}
-    :object method new args {
-      foreach {att value} $args {if {$att eq "-name"} {set name $value}}
-      :createOrConfigure [:id $name] $args
-    }
-  }
-
-  #
   # xotclMethod is a named entity, which is part of some other
   # docEntity (a class or an object). We might be able to use the
   # "use" parameter for registered aliases to be able to refer to the 
   # documentation of the original method.
   #
-  DocClass create xotclMethod -superclass docPart {
+  EntityFactory create NextMethod \
+      -tag "method" \
+      -superclass Part {
     :attribute {scope class}
     :attribute {modifier public}
     :attribute arguments
     :attribute {returns ""}
     :object method id {partof scope name} {
-      return ::xodoc::method::[string trimleft $partof :]::${scope}::${name}
+      return [[:info class] eval {set :root_namespace}]::method::[string trimleft $partof :]::${scope}::${name}
     }
 
     :object method new args {
@@ -220,9 +254,9 @@ namespace eval ::xodoc-tools {
 	if {$att eq "-scope"}  {set scope  $value}
       }
       if {![info exists scope]} {
-	if {[::xotcl::objectproperty $partof class]} {
+	if {[::next::core::objectproperty $partof class]} {
 	  set scope class
-	} elseif {[::xotcl::objectproperty $partof object]} {
+	} elseif {[::next::core::objectproperty $partof object]} {
 	  set scope object
 	} else {
 	  set scope class
@@ -231,7 +265,7 @@ namespace eval ::xodoc-tools {
       :createOrConfigure [:id $partof $scope $name] $args
     }
 
-    :method init {} {[xotclClass id ${:partof}] methods add [self] end}
+    :method init {} {[NextClass id ${:partof}] methods add [self] end}
 
     :method signature {} {
       if {[info exists :arguments]} {
@@ -242,12 +276,14 @@ namespace eval ::xodoc-tools {
       }
       set result "obj ${:name} $arguments"
     }
-  }
+  }; # NextMethod
+
+  namespace export EntityFactory NextCommand NextClass NextMethod @
 }
 
 
 
-namespace eval ::xodoc-tools {
+namespace eval ::next::doc {
   
   #
   # Provide a simple HTML renderer. For now, we make our life simple
@@ -321,21 +357,74 @@ namespace eval ::xodoc-tools {
 #
 # post processor for initcmds and method bodies
 #
-namespace eval ::xodoc-tools {
+namespace eval ::next {
+  namespace import -force ::next::doc::*
+  Object create doc  {
 
-  Object create postprocessor  {
+    :method log {msg} {
+      puts stderr "[self]->[uplevel 1 [list ::next::core::current proc]]: $msg"
+    }
 
+    # @method process
+    #
+    # There is a major distinction: Is the entity the comment block is
+    # referring to given *extrinsically* (to the comment block) or
+    # *intrinsically* (as a starting tag).
+    # 
+    # a. extrinsic: 'thing' is a valid class or object name
+    # b. intrinsic: 'thing' is a arbitrary string block describing 
+    # a script.
+    # 
     :method process {thing} {
-      if {[::xotcl::objectproperty $thing class]} {
+      # TODO: tcl packages as an option?
+      # 1) in-situ processing: a class object
+      if {[::next::core::objectproperty $thing class]} {
         if {[$thing exists __initcmd]} {
-          :analyze_initcmd xotclClass $thing [$thing eval {set :__initcmd}]
+          :analyze_initcmd NextClass $thing [$thing eval {set :__initcmd}]
         }
-      } elseif {[::xotcl::objectproperty $thing object]} {
-        puts "can't postprocess objects currently"
+      } elseif {[::next::core::objectproperty $thing object]} {
+	# 2) in-situ processing: a non-class object
+	:log "can't postprocess objects currently"
+      } elseif {[file isfile $thing]} {
+	# 3) alien script file
+	if {[file isreadable $thing]} {
+	  set fh [open $thing r]
+	  if {[catch {set script [read $thing]} msg]} {
+	    :log "error reading the file '$thing', i.e.: '$msg'"
+	  }
+	} else {
+	  :log "file '$thing' not readable"
+	}
       } else {
-        puts "no idea how to postprocess $thing"
+	# 4) we assume a string block, e.g., to be fed into eval
+	:analyze $thing
       }
     }
+
+    :method analyze {script} {
+      set blocks [:comment_blocks $script]
+      :log "blocks: '$blocks'"
+      foreach block $blocks {
+	:log "block: '$block'"
+        set analyzed_block [:analyze_comment_block $block]
+        set cb [dict create {*}$analyzed_block]
+	:log ">>>> $cb"
+	#
+	# 1) resolve the entity by tag; e.g.: class -> NextClass
+	#
+	set entity [EntityFactory eval set :tags([dict get $cb entity])]
+	#
+	# 2) provide an object rep of the entity
+	#
+	set entity_instance [@ $entity [dict get $cb [$entity tag]] [dict get $cb text]]
+	#
+	# 3) process entity-specific parts, according to their tags
+	#
+	$entity_instance process $analyzed_block
+      }
+    }
+
+
 
     :method analyze_line {line} {
       if {[regexp {^\s*$} $line]} {
@@ -346,6 +435,71 @@ namespace eval ::xodoc-tools {
         return 3
       }
     }
+
+    :method analyze_line {line} {
+      #
+      # 1 ... empty line
+      #
+      if {[regexp {^\s*$} $line]} {
+        return 1
+      } elseif {[regexp {^\s*#\s*@[^[:space:]@]} $line]} {
+	#
+	# 2 ... tagged comment line
+	#
+	return 2
+      } elseif {[regexp {^\s*#\s*[^[:space:]]\s*} $line]} {
+	#
+	# 3 ... untagged, non-emtpy comment line
+	#
+
+        return 3
+      } elseif {[regexp {^\s*#} $line]} {
+	#
+	# 4 ... untagged, empty comment line
+	#
+        return 4
+      } else {
+	#
+	# 5 ... code line
+	#
+        return 5
+      }
+    }
+
+    :method analyze_line {line} {
+      if {[regexp -- {^\s*#+[#\s]*(.*)$} $line --> comment]} {
+	return [list 1 [string trim $comment]]
+      } else {
+	return [list 0 $line]
+      }
+    }
+	 
+
+    :method append_tag {line} {
+      set line [:remove_comment_markup $line]
+      set tag [string trimleft [lindex $line 0] @]
+      return [list $tag [lrange $line 1 end]]
+    }
+    
+    :method comment_blocks {script} {
+      set lines [split $script \n]
+      set comment_blocks [list]
+      set was_comment 0
+      set spec {
+	0,1	{set comment_block [list]; lappend comment_block $text}
+	1,0	{lappend comment_blocks $comment_block}
+	1,1	{lappend comment_block $text}
+	0,0	{}
+      }
+      array set do $spec 
+      foreach line $lines {
+        foreach {is_comment text} [:analyze_line $line] break;
+	eval $do($was_comment,$is_comment)
+	set was_comment $is_comment
+      }
+      return $comment_blocks
+    }
+
 
     :method remove_comment_markup {comment} {
       regsub -all -line {^\s*#} $comment "" comment
@@ -361,9 +515,10 @@ namespace eval ::xodoc-tools {
             if {[regexp {^\s*(\S+)\s+(.*)$} $value _ name desc]} {
               set value [list $name $desc]
             } else {
-              puts stderr "invialid param specification $value"
+              puts stderr "invalid param specification $value"
             }
           }
+	  lappend result entity $kind
           lappend result $kind $value
         } else {
           append text $line
@@ -374,54 +529,54 @@ namespace eval ::xodoc-tools {
       return $result
     }
 
-    :method comment_blocks {{-mode all} source} {
-      set comment_blocks [list]
-      set lines [split $source \n]
+    # :method comment_blocks {{-mode all} source} {
+    #   set comment_blocks [list]
+    #   set lines [split $source \n]
 
-      # states
-      #   1 empty line
-      #   2 (pseudo) comment
-      #   3 code
+    #   # states
+    #   #   1 empty line
+    #   #   2 (pseudo) comment: tag line (2a) vs. text line (2b)
+    #   #   3 code
 
-      set behaviour(all) {
-        1,1 {} 
-        1,2 {set comment $line\n} 
-        1,3 {} 
-        2,1 {lappend comment_blocks [:remove_comment_markup $comment]} 
-        2,2 {append comment $line\n} 
-        2,3 {lappend comment_blocks [:remove_comment_markup $comment]} 
-        3,1 {} 
-        3,2 {set comment $line\n} 
-        3,3 {}
-      }
-      set behaviour(first) {
-        1,1 {} 
-        1,2 {set comment $line\n} 
-        1,3 {set code 1} 
-        2,1 {if {!$code} {lappend comment_blocks [:remove_comment_markup $comment]}} 
-        2,2 {append comment $line\n} 
-        2,3 {if {!$code} {lappend comment_blocks [:remove_comment_markup $comment]}; set code 1} 
-        3,1 {} 
-        3,2 {set comment $line\n} 
-        3,3 {}
-      }
-      array set actions $behaviour($mode)
-      set state 1
-      set code 0
-      foreach line $lines {
-        set nextstate [:analyze_line $line]
-        eval $actions($state,$nextstate)
-        set state $nextstate
-      }
+    #   set behaviour(all) {
+    #     1,1 {} 
+    #     1,2 {set comment $line\n} 
+    #     1,3 {} 
+    #     2,1 {lappend comment_blocks [:remove_comment_markup $comment]} 
+    #     2,2 {append comment $line\n} 
+    #     2,3 {lappend comment_blocks [:remove_comment_markup $comment]} 
+    #     3,1 {} 
+    #     3,2 {set comment $line\n} 
+    #     3,3 {}
+    #   }
+    #   set behaviour(first) {
+    #     1,1 {} 
+    #     1,2 {set comment $line\n} 
+    #     1,3 {set code 1} 
+    #     2,1 {if {!$code} {lappend comment_blocks [:remove_comment_markup $comment]}} 
+    #     2,2 {append comment $line\n} 
+    #     2,3 {if {!$code} {lappend comment_blocks [:remove_comment_markup $comment]}; set code 1} 
+    #     3,1 {} 
+    #     3,2 {set comment $line\n} 
+    #     3,3 {}
+    #   }
+    #   array set actions $behaviour($mode)
+    #   set state 1
+    #   set code 0
+    #   foreach line $lines {
+    #     set nextstate [:analyze_line $line]
+    #     eval $actions($state,$nextstate)
+    #     set state $nextstate
+    #   }
      
-      return $comment_blocks
-    }
+    #   return $comment_blocks
+    # }
 
     :method analyze_method_block {-methodName -partof -scope -arguments analyzed_block} {
       array set cb $analyzed_block
       
-      @ xotclMethod $methodName -partof $partof -scope $scope $cb(text)
-      set m [xotclMethod id $partof $scope $methodName]
+      @ NextMethod $methodName -partof $partof -scope $scope $cb(text)
+      set m [NextMethod id $partof $scope $methodName]
       set docparams [list]
       foreach {att value} $analyzed_block {
         # we do not handle "use" yet
@@ -492,50 +647,246 @@ namespace eval ::xodoc-tools {
 	    [$name object info method body $methodName]
       }
       
-    }
+    }; # ::next::doc object
 
   # activate the recoding of initcmads
-  ::xotcl::configure keepinitcmd true
+  ::next::core::configure keepinitcmd true
   }
 }
 
 #
 # toplevel interface
-#   ::xodoc-tool::make all
-#   ::xodoc-tool::make doc
+#   ::next::doc::make all
+#   ::next::doc::make doc
 #
-namespace eval ::xodoc-tools {
+namespace eval ::next::doc {
 
   Object create make  {
 
-    :method all {{-verbose:switch} {-class ::xotcl2::Class}} {
+    :method all {{-verbose:switch} {-class ::next::Class}} {
       foreach c [$class info instances -closure] {
         if {$verbose} {puts "postprocess $c"}
-        ::xodoc-tools::postprocessor process $c
+        ::next::doc::postprocessor process $c
       }
     }
 
-    :method doc {{-renderer ::xodoc-tools::HTMLrenderer}} {
+    :method doc {{-renderer ::next::doc::HTMLrenderer}} {
 
       # register the HTML renderer for all docEntities.
       
-      docEntity mixin add $renderer
+      Entity mixin add $renderer
 
       puts "<h2>Primitive XOTcl framework commands</h2>\n<UL>"
-      foreach cmd [sorted [xotclCmd info instances] name] {
+      foreach cmd [sorted [NextCommand info instances] name] {
         $cmd renderCmd
       }
       puts "</UL>\n\n"
       
       puts "<h2>XOTcl Classes</h2>\n<UL>"
-      foreach cmd [sorted [xotclClass info instances] name] {
+      foreach cmd [sorted [NextClass info instances] name] {
         $cmd renderClass
       }
       puts "</UL>\n\n"
 
-      docEntity mixin delete $renderer
+      Entity mixin delete $renderer
     }
   }
 
+  #
+  # modal comment block parsing
+  #
+
+  #
+  # contexts are entities
+  #
+  Object create entity {
+    set :processed_part context
+    :method process {comment_block} {
+      set last_line ""
+      foreach line $comment_block {
+	set activity [${:processed_part} transition $line $last_line]
+	puts stderr activity=$activity
+	${:processed_part} signal $activity $line
+	set last_line [${:processed_part} current_comment_line]
+      }
+    }
+  }
+
+  #
+  # Infrastructure for state objects:
+  #
+  # 1. CommentState: a base class for sharing behaviour between atomic
+  # and non-orthogonal super-states; it is widely an intermediate,
+  # abstracted class, providing a refinement protocol for concrete
+  # state subclasses
+  #
+
+  Class create CommentState {
+    
+    :method on_enter {line} {
+      puts stderr [self]->[::next::core::current proc]
+    }
+    
+    :method on_exit {line} { 
+      puts stderr [self]->[::next::core::current proc]
+    }
+
+    :method signal {event line} {;}
+
+    #
+    # activity/event interface
+    #
+
+    :method event=process {line} {;}
+    :method event=close {line} {;}
+    :method event=next {line} {;}
+    :method event=exit {msg} {
+      error $msg
+    }
+  }
+
+  # 2. CommentLines represent atomic states in the parsing state
+  # machinery: tag, text, space
+
+  Class create CommentLine -superclass CommentState {
+    :attribute comment_part; # points to the super-state objects
+    :forward signal {% ${:comment_part} } %proc
+    :method match {line} {;}
+    :method is? {line} {
+      foreach cline [[:info class] info instances] {
+	if {[$cline match $line]} {
+	  return [namespace tail $cline]
+	}
+      }
+    }
+  }
+  
+
+  CommentLine create tag {
+    :method match {line} {
+      set tag [lindex $line 0]
+      return [expr {[string first @ $tag] == 0}]
+    }
+    :method event=process {line} {
+      # 1. is it a valid tag line?
+      set tag [lindex $line 0]
+      # 2. get the tag label, its value, and the remainder text
+      puts stderr tag=[string trimleft @ $tag],value=[lindex $line 1],text=[lrange $line 2 end]
+    }
+  }
+
+  CommentLine create text {
+    :method match {line} {
+      return [regexp -- {[^[:space:]@]+} $line]
+    }
+    :method event=process {line} {
+    
+      puts stderr text=$line
+    }
+
+  }
+
+  CommentLine create space {
+    :method match {line} {
+      return [expr {$line eq {}}]
+    }
+  }
+
+  
+  #
+  # 3. CommentParts represent orthogonal super-states over
+  # CommentLines: context, description, part
+  #
+  
+  Class create CommentPart -superclass CommentState {
+    :attribute current_comment_line:required
+    :attribute comment_line_transitions
+    :attribute next_comment_part; # implements a STATE-OWNED TRANSITION scheme
+
+    :method init {} {
+      ${:current_comment_line} comment_part [self]
+    }
+
+    :method transition {line {source_state ""}} {
+      array set transitions ${:comment_line_transitions}
+      if {$source_state eq ""} {
+	set actual_target_state ${:current_comment_line}
+      } else {
+	set actual_target_state [$source_state is? $line]
+      }
+      
+      puts stderr "+++ info exists transitions(${source_state}->${actual_target_state})"
+      if {![info exists transitions(${source_state}->${actual_target_state})]} {
+	error "Style violation in a [namespace tail [self]] section: A $source_state line is followed by a $actual_target_state line."
+      }
+
+      set :current_comment_line ${actual_target_state}
+      return $transitions(${source_state}->${actual_target_state})
+    }
+
+    :method on_enter {line} {
+      next
+      if {![info exists :current_comment_line]} {
+	set :current_comment_line [:transition $line]
+      }
+	${:current_comment_line} [::next::core::next proc]
+      }
+  
+    :method on_exit {} {
+      ${:current_comment_line} [::next::core::next proc]
+      next
+    }
+
+    :method signal {event line} {
+      :event=$event $line
+      ${:current_comment_line} event=$event $line
+    }
+
+    #
+    # handled events
+    #
+    :method event=next {} {;}
+    
+  }; # CommentPart
+  
+
+  #
+  # the OWNER-DRIVEN TRANSITIONS read as follows:
+  # <current_state>.<event> {<next_state> <activity>}
+  #
+  
+  CommentPart create context \
+      -next_comment_part description \
+      -comment_line_transitions {
+	->tag		process
+	tag->text	process
+	text->text	process
+	text->space	next
+	tag->space	next
+      } \
+      -current_comment_line tag
+
+  
+  CommentPart create description \
+      -next_comment_part part \
+      -comment_line_transitions {
+	->text		process
+	text->text	process
+	text->space	space next
+      } \
+      -current_comment_line text
+  
+  CommentPart create part \
+      -next_comment_part part \
+      -comment_line_transitions {
+	->tag		process
+	tag->text	process
+	text->text	process
+	text->tag	next
+	text->space	next
+	tag->tag	next
+      } \
+      -current_comment_line tag
 }
-puts stderr "Doc Tools loaded: [info command ::xotcl-tools]"
+
+puts stderr "Doc Tools loaded: [info command ::next::doc]"
