@@ -23,8 +23,8 @@ package require next
 # are available).
 #
 
-namespace eval ::next::doc {
-  namespace import -force ::next::*
+namespace eval ::nx::doc {
+  namespace import -force ::nx::*
 
   #
   # A few helper commands:
@@ -48,8 +48,8 @@ namespace eval ::next::doc {
 
     :attribute tag:required
 
-    namespace eval ::next::doc::entities {}
-    set :root_namespace ::next::doc::entities
+    namespace eval ::nx::doc::entities {}
+    set :root_namespace ::nx::doc::entities
 
     :method init {} {
       next
@@ -58,7 +58,7 @@ namespace eval ::next::doc {
 
     :method createOrConfigure {id arguments} {
       namespace eval $id {}
-      if {[::next::core::objectproperty $id object]} {
+      if {[::nx::core::objectproperty $id object]} {
 	$id configure {*}$arguments
       } else {
 	:create $id {*}$arguments
@@ -91,9 +91,9 @@ namespace eval ::next::doc {
       if {$use ne ""} {
 	foreach thing {NextCommand NextClass} {
 	  set docobj [$thing id $use]
-	  if {[::next::core::objectproperty $docobj object]} break
+	  if {[::nx::core::objectproperty $docobj object]} break
 	}
-	if {[::next::core::objectproperty $docobj object]} {
+	if {[::nx::core::objectproperty $docobj object]} {
 	  if {![$docobj exists $what]} {error "no attribute $what in $docobj"}
 	  set names [list]
 	  foreach v [$docobj $what] {
@@ -112,7 +112,7 @@ namespace eval ::next::doc {
     # This is an abstract hook method to be refined by the subclasses
     # of Entity
     :method process {comment_block} {
-      error "Implement '[::next::core::current method]()' for the class '[:info class]'"
+      error "Implement '[::nx::core::current method]()' for the class '[:info class]'"
     }
     
     # @method param
@@ -157,7 +157,7 @@ namespace eval ::next::doc {
 
   #
   # Now, define some kinds of docEntities. The toplevel docEntities
-  # are named objects in the ::next::doc::entities namespace to ease access to it.
+  # are named objects in the ::nx::doc::entities namespace to ease access to it.
   #
   # We define here the following toplevel docEntities (e.g. xotclObject will follow):
   #  - NextCommand
@@ -254,9 +254,9 @@ namespace eval ::next::doc {
 	if {$att eq "-scope"}  {set scope  $value}
       }
       if {![info exists scope]} {
-	if {[::next::core::objectproperty $partof class]} {
+	if {[::nx::core::objectproperty $partof class]} {
 	  set scope class
-	} elseif {[::next::core::objectproperty $partof object]} {
+	} elseif {[::nx::core::objectproperty $partof object]} {
 	  set scope object
 	} else {
 	  set scope class
@@ -283,7 +283,7 @@ namespace eval ::next::doc {
 
 
 
-namespace eval ::next::doc {
+namespace eval ::nx::doc {
   
   #
   # Provide a simple HTML renderer. For now, we make our life simple
@@ -357,12 +357,12 @@ namespace eval ::next::doc {
 #
 # post processor for initcmds and method bodies
 #
-namespace eval ::next {
-  namespace import -force ::next::doc::*
+namespace eval ::nx {
+  namespace import -force ::nx::doc::*
   Object create doc  {
 
     :method log {msg} {
-      puts stderr "[self]->[uplevel 1 [list ::next::core::current proc]]: $msg"
+      puts stderr "[self]->[uplevel 1 [list ::nx::core::current proc]]: $msg"
     }
 
     # @method process
@@ -378,11 +378,11 @@ namespace eval ::next {
     :method process {thing} {
       # TODO: tcl packages as an option?
       # 1) in-situ processing: a class object
-      if {[::next::core::objectproperty $thing class]} {
+      if {[::nx::core::objectproperty $thing class]} {
         if {[$thing exists __initcmd]} {
           :analyze_initcmd NextClass $thing [$thing eval {set :__initcmd}]
         }
-      } elseif {[::next::core::objectproperty $thing object]} {
+      } elseif {[::nx::core::objectproperty $thing object]} {
 	# 2) in-situ processing: a non-class object
 	:log "can't postprocess objects currently"
       } elseif {[file isfile $thing]} {
@@ -647,30 +647,30 @@ namespace eval ::next {
 	    [$name object info method body $methodName]
       }
       
-    }; # ::next::doc object
+    }; # ::nx::doc object
 
   # activate the recoding of initcmads
-  ::next::core::configure keepinitcmd true
+  ::nx::core::configure keepinitcmd true
   }
 }
 
 #
 # toplevel interface
-#   ::next::doc::make all
-#   ::next::doc::make doc
+#   ::nx::doc::make all
+#   ::nx::doc::make doc
 #
-namespace eval ::next::doc {
+namespace eval ::nx::doc {
 
   Object create make  {
 
-    :method all {{-verbose:switch} {-class ::next::Class}} {
+    :method all {{-verbose:switch} {-class ::nx::Class}} {
       foreach c [$class info instances -closure] {
         if {$verbose} {puts "postprocess $c"}
-        ::next::doc::postprocessor process $c
+        ::nx::doc::postprocessor process $c
       }
     }
 
-    :method doc {{-renderer ::next::doc::HTMLrenderer}} {
+    :method doc {{-renderer ::nx::doc::HTMLrenderer}} {
 
       # register the HTML renderer for all docEntities.
       
@@ -724,11 +724,11 @@ namespace eval ::next::doc {
   Class create CommentState {
     
     :method on_enter {line} {
-      puts stderr [self]->[::next::core::current proc]
+      puts stderr [self]->[::nx::core::current proc]
     }
     
     :method on_exit {line} { 
-      puts stderr [self]->[::next::core::current proc]
+      puts stderr [self]->[::nx::core::current proc]
     }
 
     :method signal {event line} {;}
@@ -829,11 +829,11 @@ namespace eval ::next::doc {
       if {![info exists :current_comment_line]} {
 	set :current_comment_line [:transition $line]
       }
-	${:current_comment_line} [::next::core::next proc]
+	${:current_comment_line} [::nx::core::next proc]
       }
   
     :method on_exit {} {
-      ${:current_comment_line} [::next::core::next proc]
+      ${:current_comment_line} [::nx::core::next proc]
       next
     }
 
@@ -889,4 +889,4 @@ namespace eval ::next::doc {
       -current_comment_line tag
 }
 
-puts stderr "Doc Tools loaded: [info command ::next::doc]"
+puts stderr "Doc Tools loaded: [info command ::nx::doc]"

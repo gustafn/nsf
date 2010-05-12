@@ -2,8 +2,8 @@ package require next
 package require xotcl::test
 package require next::doc
 
-namespace import -force ::next::*
-namespace import -force ::next::doc::*
+namespace import -force ::nx::*
+namespace import -force ::nx::doc::*
 
 
 Test parameter count 1
@@ -70,7 +70,7 @@ Test case scanning {
 Test case parsing {
   set blocks {{{@package o} {1 2 4}} {{@object o} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}} {{@object o # ####} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}}}
     
-    ::next::doc::entity process [lindex $blocks 0]
+    ::nx::doc::entity process [lindex $blocks 0]
 }
 
 exit
@@ -173,7 +173,7 @@ set str {
   }
   
 #  doc process $str
-#  ? {::next::core::is [NextClass id ::Foo] object} 1
+#  ? {::nx::core::is [NextClass id ::Foo] object} 1
 
   Class create Bar {
     # The class Bar defines the behaviour for all Foo objects
@@ -203,14 +203,14 @@ Test case various {
   Class create AMetaClass -superclass Class
   AMetaClass create AClass {
     :object method id {} {
-      return [::next::core::current class]-[:info class]
+      return [::nx::core::current class]-[:info class]
     }
   }
   
   ? {AClass id} -::AMetaClass
   
   Class create AMixin {
-    :method id {} {return "[::next::core::current class]-[:info class]-[next]";}
+    :method id {} {return "[::nx::core::current class]-[:info class]-[next]";}
   }
   
   AClass object mixin add AMixin
