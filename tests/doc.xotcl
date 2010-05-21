@@ -8,6 +8,59 @@ namespace import -force ::nx::doc::*
 
 Test parameter count 1
 
+#
+# some helper
+#
+
+proc lcompare {a b} {
+  foreach x $a y $b {
+    if {$a ne $b} {
+      return -1; break;
+    }
+  }
+  return 1
+}
+
+Class create ::nx::doc::CommentState::Log {
+  :method on_enter {line} {
+    puts -nonewline stderr "ENTER -> [namespace tail [:info class]]#[namespace tail [self]]"
+    next
+  }
+  :method on_exit {line} { 
+    next
+    puts -nonewline stderr "EXIT -> [namespace tail [:info class]]#[namespace tail [self]]"
+  }
+}
+
+Class create ::nx::doc::CommentLine::Log {
+  :method on_enter {line} {
+    puts -nonewline stderr "\t"; next; puts stderr " -> LINE = ${:processed_line}"
+  }
+  :method on_exit {line} {
+    puts -nonewline stderr "\t"; next; puts stderr " -> LINE = ${:processed_line}"
+  }
+}
+
+Class create ::nx::doc::CommentSection::Log {
+  :method on_enter {line} {
+    next; puts -nonewline stderr "\n"
+  }
+  :method on_exit {line} {
+    next; puts -nonewline stderr "\n";
+  }
+}
+
+set log false
+
+if {$log} {
+  ::nx::doc::CommentState mixin add ::nx::doc::CommentState::Log
+  ::nx::doc::CommentLine mixin add ::nx::doc::CommentLine::Log
+  ::nx::doc::CommentSection mixin add ::nx::doc::CommentSection::Log
+}
+
+# --
+
+
 Test case scanning {
 
   set lines {
@@ -36,7 +89,7 @@ Test case scanning {
     ? {foreach {is_comment text} [doc analyze_line $::line] break; set is_comment} $::result "doc analyze_line '$::line'"
   }
 
-  set ::script {
+  set script {
     # @package o
     # 1 2 3
     bla
@@ -64,155 +117,264 @@ Test case scanning {
 
   set blocks {{{@package o} {1 2 3}} {{@object o} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}} {{@object o # ####} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}}}
 
-    ? {doc comment_blocks $::script} $blocks
+    ? [list ::lcompare [doc comment_blocks $script] $blocks] 1
 }
 
 Test case parsing {
-  set blocks {{{@package o} {1 2 4}} {{@object o} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}} {{@object o # ####} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}}}
-    
-    ::nx::doc::entity process [lindex $blocks 0]
-}
+  #
+  # TODO: Add tests for doc-parsing state machine.
+  #
 
-exit
-  # states
-  #   1 empty line
-  #   2 tagged comment line
-  #   3 untagged, non-empty comment line
-  #   4 untagged, empty comment line
-  #   5 code line
-
-  set lines {
-    "" 		1
-    "   " 	1
-    "\t\t\t"	1
-    "abc"	5
-    "   abc"	5
-    "\t\t\tabc"	5
-    "#"		4
-    "   #   "	4
-    "\t\t\t# "	4
-    "#@"	3
-    "#@ tag"	3
-    "# @ tag"	3
-    "# @\ttag"	3
-    "#@tag"	2
-    "# @tag"	2
-    "# @1tag"	2
-    "\t#\t@tag"	2
-    "# @@"	3
-    "# @@@"	3
+  set block {
+    {@command cc}
   }
+  ? [list catch [list EntityFactory process $block] msg] 0
+  [NextCommand id cc] destroy
+
+  set block {
+    {}
+  }
+  ? [list catch [list EntityFactory process $block] msg] 1
 
   #
-  # TODO: without qualifying variable names by "::", they are *not*
-  # created in the evaluation scope of ? (e.g., the global namespace
-  # "::"). where do they go? and, why?
+  # For now, a valid comment block must start with a non-space line
+  # (i.e., a tag or text line, depending on the section: context
+  # vs. description)
   #
-  foreach {::line ::result} $lines {
-    ? {doc analyze_line $::line} $::result "doc analyze_line '$::line'"
-  }
-
-  set ::blocks {
-    # @tag0 entity hier kommt mehr text mit einer zweiten zeile die
-    # sich dahinzieht
-    # 
-    # eine beschreibung, hier kommt mehr text mit einer zweiten zeile
-    # die sich dahinzieht
-    #
-  }
-
-  ? {doc comment_blocks $::blocks} "1,1 1,2 2,4 4,3 3,4 4,2 2,2 2,1"
-
-  set result {
-    context tag0
-    description {some description}
-    tag0 entity
-    parts {
-      tag1 part1
-      tag2 part2
-    }
-  }
-
- set ::blocks {
-   # some description
-   #
-   # @tag1 part1 some description which takes
-   # more than a line
-   # @tag2 part2
-  } 3-3-3-2-2
-
-  set result {
-    context tag0
-    description {some description}
-    tag0 entity
-    parts {
-      tag1 part1
-      tag2 part2
-    }
-  }
- 
   
-}
+  set block {
+    {}
+    {@command cc}
+  }
+  ? [list catch [list EntityFactory process $block] msg] 1
 
-Test case parsing {
-set str {
+ set block {
+   {command cc}
+   {}
+  }
+  ? [list catch [list EntityFactory process $block] msg] 1
+
+  set block {
+    {@command cc}
+    {some description}
+  }
+  ? [list catch [list EntityFactory process $block] msg] 1
+  [NextCommand id cc] destroy
+
+ set block {
+    {@command cc} 
+    {}
+    {}
+    {}
+    {@see ::o}
+  }
+  ? [list catch [list EntityFactory process $block] msg] 0
+  [NextCommand id cc] destroy
+
+ set block {
+   {@command cc}
+   {}
+   {some description}
+   {some description2}
+   {}
+   {}
+  }
+  ? [list catch [list EntityFactory process $block] msg] 0
+  [NextCommand id cc] destroy
+
+  #
+  # TODO: Allow description blocks with intermediate space lines?
+  #
+  set block {
+    {@command cc}
+    {}
+    {some description}
+    {some description2}
+    {}
+    {an erroreneous description line, for now}
+  }
+  ? [list catch [list EntityFactory process $block] msg] 1
+  [NextCommand id cc] destroy
+
+  #
+  # TODO: Do not enforce space line between the context and imediate
+  # part block (when description is skipped)?
+  # 
+  # OR: For absolutely qualifying parts (e.g., outside of an initcmd block),
+  # do we need sequences of _two_ (or more) tag lines, e.g.
+  # 
+  # --
+  # @class Foo
+  # @attribute attr1
+  # --
+  #
+  # THEN, we can only discriminate between the context and an
+  # immediate part section by requiring a space line!
+  #
+  # Alternatively, we can use the @see like syntax for qualifying:
+  # @attribute ::Foo#attr1 (I have a preference for this option).
+  set block {
+    {@command cc}
+    {@see someOtherEntity}
+  }
+  ? [list catch [list EntityFactory process $block] msg] 1
+  [NextCommand id cc] destroy
+
+  #
+  # TODO: Disallow space lines between parts? Check back with Javadoc spec.
+  #
+  set block {
+    {@command cc}
+    {}
+    {@see SomeOtherEntity}
+    {add a line of description}
+    {}
+    {}
+    {@see SomeOtherEntity2}
+    {}
+  }
+  ? [list catch [list EntityFactory process $block] msg] 0
+  [NextCommand id cc] destroy
+
+  #
+  # TODO: Should we enforce a mandatory space line between description and part block?
+  #
+  set block {
+    {@command cc}
+    {}
+    {add a line of description}
+    {a second line of description}
+    {a third line of description}
+    {@see entity3}
+    {@see SomeOtherEntity2}
+  }
+  ? [list catch [list EntityFactory process $block] msg] 1
+  [NextCommand id cc] destroy
+
+  set block {
+    {@command cc}
+    {}
+    {add a line of description}
+    {a second line of description}
+    {a third line of description}
+    {}
+    {@see SomeOtherEntity2}
+    {}
+    {}
+    {an erroreneous description line, for now}
+  }
+  
+  ? [list catch [list EntityFactory process $block] msg] 1
+  [NextCommand id cc] destroy
+  
+  #
+  # testing the doc object construction
+  #
+  set block {
+    {@class o} 
+    {}
+    {some more text}
+    {and another line for the description}
+    {}
+    {@author stefan.sobernig@wu.ac.at}
+    {@author gneumann@wu.ac.at}
+  }
+  set entity [EntityFactory process $block]
+  ? [list ::nx::core::is $entity object] 1
+  ? [list $entity info is type ::nx::doc::NextClass] 1
+  ? [list $entity @author] gneumann@wu.ac.at; # TODO: incremental support must be fixed, should then return {stefan.sobernig@wu.ac.at gneumann@wu.ac.at}
+  ? [list $entity text] "some more text and another line for the description";
+
+  set block {
+    {@command c} 
+    {}
+    {some text on the command}
+    {}
+    {@see ::o}
+  }
+  set entity [EntityFactory process $block]
+  ? [list ::nx::core::is $entity object] 1
+  ? [list $entity info is type ::nx::doc::NextCommand] 1
+  ? [list $entity text] "some text on the command";
+  ? [list $entity @see] "::o";
+
+  #
+  # basic test for in-situ documentation (initcmd block)
+  # 
+  #
+
+  set script {
+    Class create Foo {
+      # The class Foo defines the behaviour for all Foo objects
+      #
+      # @author gneumann@wu.ac.at
+      # @author ssoberni@wu.ac.at
+      
+      # @attribute attr1 
+      #
+      # This attribute 1 is wonderful
+      #
+      # @see ::xotcl::Attribute
+      :attribute attr1
+      :attribute attr2
+      :attribute attr3
+    }
+  }
+
+  eval $script
+  doc process ::Foo
+  
+  ? {::nx::core::is [NextClass id ::Foo] object} 1
+  ? {[NextClass id ::Foo] @author} ssoberni@wu.ac.at
+
+  # TODO: how to realise scanning and parsing for mixed ex- and
+  # in-situ documentation? That is, how to differentiate between
+  # absolutely and relatively qualified comment blocks in line-based
+  # scanning phase (or later)?
+  set script {
     # @class Foo
     # 
     # The class Foo defines the behaviour for all Foo objects
     #
     # @author gneumann@wu.ac.at
     # @author ssoberni@wu.ac.at
-  }
-  Class create Foo {
-    # @attribute attr1 
-    #
-    # This attribute 1 is wonderful
-    :attribute attr1
-    :attribute attr2
-    :attribute attr3
+    Class create Foo {
+      # @attribute attr1 
+      #
+      # This attribute 1 is wonderful
+      #
+      # @see ::xotcl::Attribute
+      :attribute attr1
+      :attribute attr2
+      :attribute attr3
+    }
   }
   
-#  doc process $str
-#  ? {::nx::core::is [NextClass id ::Foo] object} 1
-
-  Class create Bar {
-    # The class Bar defines the behaviour for all Foo objects
-    #
-    # @author mstrembe@wu.ac.at
-
-    :attribute attr1
-
-    # @attribute attr2
-    #
-    # This attribute 2 is wonderful
-    :attribute attr2
-
-    # @attribute attr3
-    #
-    # This attribute 3 is wonderful
-    :attribute attr3
-  }
-
 }
 
 # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # #
 
-Test case various {
-  Class create AMetaClass -superclass Class
-  AMetaClass create AClass {
-    :object method id {} {
-      return [::nx::core::current class]-[:info class]
-    }
-  }
-  
-  ? {AClass id} -::AMetaClass
-  
-  Class create AMixin {
-    :method id {} {return "[::nx::core::current class]-[:info class]-[next]";}
-  }
-  
-  AClass object mixin add AMixin
-  ? {AClass id} ::AMixin-::AMetaClass--::AMetaClass
+# 1) Test case scoping rules -> in Object->eval()
+# Why does [info] intropsection not work as expected in eval()?
+
+Test case issues? {
+  Object create o 
+  ? {o eval {
+    set x ns1
+    set ns1 [namespace current]
+    #
+    # I would expect that there are x and ns1 as locally-scoped variables, but there aren't?!
+    # They can be referenced during evaluation, but are NOT resolved through introspection:
+    # Am I missing anything (probably I just forgot a nitty-gritty
+    # detail on the eval() implementation)?
+    expr {[info vars $x] eq $x};
+  }} 0
+}
+
+if {$log} {
+  ::nx::doc::CommentState mixin delete ::nx::doc::CommentState::Log
+  ::nx::doc::CommentLine mixin delete ::nx::doc::CommentLine::Log
+  ::nx::doc::CommentSection mixin delete ::nx::doc::CommentSection::Log
 }

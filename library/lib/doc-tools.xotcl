@@ -53,7 +53,7 @@ namespace eval ::nx::doc {
 
     :method init {} {
       next
-      [:info class] eval set :tags([:tag]) [self]
+      [:info class] object forward @${:tag} [self] new -name %1
     }
 
     :method createOrConfigure {id arguments} {
@@ -63,6 +63,7 @@ namespace eval ::nx::doc {
       } else {
 	:create $id {*}$arguments
       }
+      return $id
     }
   }
 
@@ -74,14 +75,14 @@ namespace eval ::nx::doc {
 
     # every Entity must be created with a "doc" value and can have
     # an optional initcmd 
-    :method objectparameter args {next {doc __initcmd:initcmd,optional}}
+    :method objectparameter args {next {doc:optional __initcmd:initcmd,optional}}
 
-    :attribute doc
+    :attribute doc:multivalued {set :incremental 1}
 
     #the following two cases (incremental multivalued) could be nicer
     :attribute {variants:multivalued ""} {set :incremental 1}
     :attribute {params:multivalued ""} {set :incremental 1}
-
+    :attribute {@see:multivalued ""} {set :incremental 1}
     # @method _doc
     #
     # The method _doc can be use to obtain the value of the documentation
@@ -112,7 +113,8 @@ namespace eval ::nx::doc {
     # This is an abstract hook method to be refined by the subclasses
     # of Entity
     :method process {comment_block} {
-      error "Implement '[::nx::core::current method]()' for the class '[:info class]'"
+      puts stderr "EntityFactory process -context [self] $comment_block"
+      EntityFactory process -context [self] $comment_block
     }
     
     # @method param
@@ -152,7 +154,7 @@ namespace eval ::nx::doc {
     # performs substitution on it.  The substitution is not essential,
     # but looks for now convenient.
     #
-    :method text {} {subst ${:doc}}
+    :method text {} {subst [join ${:doc} " "]}
   }
 
   #
@@ -184,21 +186,18 @@ namespace eval ::nx::doc {
       -tag "class" \
       -superclass Entity {
 	:attribute name
+	:attribute {@author:multivalued ""} {
+	  # TODO: incremental does not produced effects apart from
+	  # deactivating the optimizer, shouldn't set the attribute's
+	  # default methods to {get add}, to obtain the increment
+	  # effect?
+	  set :incremental 1
+	} 
 	:attribute {methods:multivalued ""} {set :incremental 1}
 	:object method id {name} {puts stderr ""; return [[:info class] eval {set :root_namespace}]::class::[string trimleft $name :]}
 	:object method new args {
 	  foreach {att value} $args {if {$att eq "-name"} {set name $value}}
 	  :createOrConfigure [:id $name] $args
-	}
-	
-	# @method process
-	# 
-	# This method implements the provided, yet abstract
-	# Entity.process() method.
-	#
-	# @see Entity#process()
-	:method process {comment_block} {
-	  puts stderr "+++ comment_block: $comment_block"
 	}
       }
   
@@ -529,49 +528,6 @@ namespace eval ::nx {
       return $result
     }
 
-    # :method comment_blocks {{-mode all} source} {
-    #   set comment_blocks [list]
-    #   set lines [split $source \n]
-
-    #   # states
-    #   #   1 empty line
-    #   #   2 (pseudo) comment: tag line (2a) vs. text line (2b)
-    #   #   3 code
-
-    #   set behaviour(all) {
-    #     1,1 {} 
-    #     1,2 {set comment $line\n} 
-    #     1,3 {} 
-    #     2,1 {lappend comment_blocks [:remove_comment_markup $comment]} 
-    #     2,2 {append comment $line\n} 
-    #     2,3 {lappend comment_blocks [:remove_comment_markup $comment]} 
-    #     3,1 {} 
-    #     3,2 {set comment $line\n} 
-    #     3,3 {}
-    #   }
-    #   set behaviour(first) {
-    #     1,1 {} 
-    #     1,2 {set comment $line\n} 
-    #     1,3 {set code 1} 
-    #     2,1 {if {!$code} {lappend comment_blocks [:remove_comment_markup $comment]}} 
-    #     2,2 {append comment $line\n} 
-    #     2,3 {if {!$code} {lappend comment_blocks [:remove_comment_markup $comment]}; set code 1} 
-    #     3,1 {} 
-    #     3,2 {set comment $line\n} 
-    #     3,3 {}
-    #   }
-    #   array set actions $behaviour($mode)
-    #   set state 1
-    #   set code 0
-    #   foreach line $lines {
-    #     set nextstate [:analyze_line $line]
-    #     eval $actions($state,$nextstate)
-    #     set state $nextstate
-    #   }
-     
-    #   return $comment_blocks
-    # }
-
     :method analyze_method_block {-methodName -partof -scope -arguments analyzed_block} {
       array set cb $analyzed_block
       
@@ -592,7 +548,7 @@ namespace eval ::nx {
       }
       $m arguments $arguments
     }
-
+	   
     :method analyze_body {-partof -methodName -scope arguments body} {
       set blocks [:comment_blocks -mode first $body]
       if {[llength $blocks] > 0} {
@@ -601,53 +557,67 @@ namespace eval ::nx {
 	    [:analyze_comment_block [lindex $blocks 0]]
       }
     }
-    
+	   
     :method analyze_initcmd {docKind name initcmd} {
       set first_block 1
       foreach block [:comment_blocks $initcmd] {
-        set analyzed_block [:analyze_comment_block $block]
-        array unset cb
-        array set cb $analyzed_block
-        if {$first_block} {
-          set first_block 0
-          if {[array size cb] == 1} {
-            # we got a comment for the doc kind
-            @ $docKind $name $cb(text)
-            continue
-          }
-        }
+	if {$first_block} {
+	  set id [@ $docKind $name]
+	  if {[catch {$id process $block} msg]} {
+	    puts stderr $msg
+	  }
+	}	  
+	set first_block 0
+      }
+             
+    }; # analyze_initcmd method
+	   
+    # :method analyze_initcmd {docKind name initcmd} {
+    #   set first_block 1
+    #   foreach block [:comment_blocks $initcmd] {
+    #     set analyzed_block [:analyze_comment_block $block]
+    #     array unset cb
+    #     array set cb $analyzed_block
+    #     if {$first_block} {
+    #       set first_block 0
+    #       if {[array size cb] == 1} {
+    #         # we got a comment for the doc kind
+    #         @ $docKind $name $cb(text)
+    #         continue
+    #       }
+    #     }
         
-        if {[info exists cb(method)] || [info exists cb(object-method)]} {
-          set arguments ""
+    #     if {[info exists cb(method)] || [info exists cb(object-method)]} {
+    #       set arguments ""
 
-          if {[info exists cb(method)]} {
-            set methodName $cb(method)
-            set scope class
-	    catch {set arguments [$name info method args $methodName]}
-          } else {
-            set methodName $cb(object-method)
-            set scope object
-	    catch {set arguments [$name object info method args $methodName]}
-          }
+    #       if {[info exists cb(method)]} {
+    #         set methodName $cb(method)
+    #         set scope class
+    # 	    catch {set arguments [$name info method args $methodName]}
+    #       } else {
+    #         set methodName $cb(object-method)
+    #         set scope object
+    # 	    catch {set arguments [$name object info method args $methodName]}
+    #       }
 	  
-          :analyze_method_block -methodName $methodName -partof $name -scope $scope \
-              -arguments $arguments $analyzed_block
-        }
-      }
+    #       :analyze_method_block -methodName $methodName -partof $name -scope $scope \
+    #           -arguments $arguments $analyzed_block
+    #     }
+    #   }
 
-      foreach methodName [$name info methods -methodtype scripted] {
-	:analyze_body -partof $name -methodName $methodName -scope class \
-	    [$name info method args $methodName] \
-	    [$name info method body $methodName]
-      }
+    #   foreach methodName [$name info methods -methodtype scripted] {
+    # 	:analyze_body -partof $name -methodName $methodName -scope class \
+    # 	    [$name info method args $methodName] \
+    # 	    [$name info method body $methodName]
+    #   }
 
-      foreach methodName [$name object info methods -methodtype scripted] {
-	:analyze_body -partof $name -methodName $methodName -scope object \
-	    [$name object info method args $methodName] \
-	    [$name object info method body $methodName]
-      }
+    #   foreach methodName [$name object info methods -methodtype scripted] {
+    # 	:analyze_body -partof $name -methodName $methodName -scope object \
+    # 	    [$name object info method args $methodName] \
+    # 	    [$name object info method body $methodName]
+    #   }
       
-    }; # ::nx::doc object
+    # }; # analyze_initcmd method
 
   # activate the recoding of initcmads
   ::nx::core::configure keepinitcmd true
@@ -699,16 +669,61 @@ namespace eval ::nx::doc {
   #
   # contexts are entities
   #
-  Object create entity {
-    set :processed_part context
-    :method process {comment_block} {
-      set last_line ""
-      foreach line $comment_block {
-	set activity [${:processed_part} transition $line $last_line]
-	puts stderr activity=$activity
-	${:processed_part} signal $activity $line
-	set last_line [${:processed_part} current_comment_line]
+  EntityFactory eval {
+    :object forward has_next expr {${:idx} < [llength ${:comment_block}]}
+    :object method dequeue {} {
+      set r [lindex ${:comment_block} ${:idx}]
+      incr :idx
+      return $r
+    }
+    :object forward rewind incr :idx -1
+    :object forward fastforward set :idx {% expr {[llength ${:comment_block}] - 1} }
+    :object method process {-context:optional block} {
+      set :comment_block $block
+      
+      # the defaults
+      set :processed_section context
+      set :current_entity [self]
+
+      if {[info exists context]} {
+	set :current_entity $context
+	set :processed_section description
       }
+
+      set :is_not_completed 1
+
+      ${:processed_section} eval [list set :context [self]]
+      set is_first_iteration 1
+      set :idx 0
+      set failure ""
+      while {${:is_not_completed}} {
+	set line [:dequeue]	
+	if {$is_first_iteration} {
+	  ${:processed_section} on_enter $line
+	  set is_first_iteration 0
+	}
+	if {[catch {${:processed_section} transition $line} failure]} {
+	  set :is_not_completed 0
+	  #
+	  # TODO: For now, the fast-forward mechanism jumps to the end
+	  # of the comment block; this avoids redundant on_exit
+	  # calls. is there a better way of achieving this?
+	  #
+	  :fastforward
+	} else {
+	  # NOTE: is_not_completed may be altered during transitions
+	  set :is_not_completed [:has_next]
+	}
+      }
+      if {!$is_first_iteration} {
+	${:processed_section} on_exit $line
+      }
+      
+      if {$failure ne ""} {
+	error $failure
+      }
+      
+      return ${:current_entity}
     }
   }
 
@@ -722,13 +737,11 @@ namespace eval ::nx::doc {
   #
 
   Class create CommentState {
-    
-    :method on_enter {line} {
-      puts stderr [self]->[::nx::core::current proc]
-    }
+    :attribute context; # points to the context object, i.e., an entity
+    :method on_enter {line} {;}
     
     :method on_exit {line} { 
-      puts stderr [self]->[::nx::core::current proc]
+      #puts -nonewline stderr "EXIT -> [namespace tail [:info class]]#[namespace tail [self]]"
     }
 
     :method signal {event line} {;}
@@ -743,17 +756,28 @@ namespace eval ::nx::doc {
     :method event=exit {msg} {
       error $msg
     }
+    :method event=rewind {line} {;}
   }
 
   # 2. CommentLines represent atomic states in the parsing state
   # machinery: tag, text, space
 
   Class create CommentLine -superclass CommentState {
-    :attribute comment_part; # points to the super-state objects
-    :forward signal {% ${:comment_part} } %proc
+    :attribute comment_section; # points to the super-state objects
+    :attribute processed_line; # stores the processed text line
+    :forward signal {% ${:comment_section} } %proc
+    :forward context {% ${:comment_section} } %proc
+    :forward current_entity {% :context } eval set :current_entity
+
+    :method on_enter {line} {;}
+    :method on_exit {line} {;}
+
+#    :method event=next {line} {
+#    }
+
     :method match {line} {;}
     :method is? {line} {
-      foreach cline [[:info class] info instances] {
+      foreach cline [lsort [[:info class] info instances]] {
 	if {[$cline match $line]} {
 	  return [namespace tail $cline]
 	}
@@ -768,20 +792,26 @@ namespace eval ::nx::doc {
       return [expr {[string first @ $tag] == 0}]
     }
     :method event=process {line} {
-      # 1. is it a valid tag line?
       set tag [lindex $line 0]
-      # 2. get the tag label, its value, and the remainder text
-      puts stderr tag=[string trimleft @ $tag],value=[lindex $line 1],text=[lrange $line 2 end]
+      set entity [[:current_entity] {*}$line]
+      #puts stderr ENTITY=$entity,line=$line
+      # TODO: Fix the forward-setting of the current_entity. a) place
+      # it when exiting from the super-state? b) or, refactor it into the
+      # shadowed event=process method()? c) further options?
+      if {[::nx::core::is $entity object]} { :current_entity $entity }
     }
+    
   }
 
   CommentLine create text {
     :method match {line} {
-      return [regexp -- {[^[:space:]@]+} $line]
+      return [regexp -- {\s*[^[:space:]@]+} $line]
     }
     :method event=process {line} {
-    
-      puts stderr text=$line
+      #
+      # TODO: revise when incremental support is operative
+      #
+      [:current_entity] doc add $line end
     }
 
   }
@@ -794,99 +824,148 @@ namespace eval ::nx::doc {
 
   
   #
-  # 3. CommentParts represent orthogonal super-states over
+  # 3. CommentSections represent orthogonal super-states over
   # CommentLines: context, description, part
   #
   
-  Class create CommentPart -superclass CommentState {
-    :attribute current_comment_line:required
+  Class create CommentSection -superclass CommentState {
+    :attribute entry_comment_line:required
+    :attribute current_comment_line
     :attribute comment_line_transitions
-    :attribute next_comment_part; # implements a STATE-OWNED TRANSITION scheme
+    :attribute next_comment_section; # implements a STATE-OWNED TRANSITION scheme
 
     :method init {} {
-      ${:current_comment_line} comment_part [self]
+      ${:entry_comment_line} comment_section [self]
     }
 
-    :method transition {line {source_state ""}} {
+    :method transition {line} {
       array set transitions ${:comment_line_transitions}
-      if {$source_state eq ""} {
-	set actual_target_state ${:current_comment_line}
+
+      if {![info exists :current_comment_line]} {
+	set src ""
+	set tgt [${:entry_comment_line} is? $line]
       } else {
-	set actual_target_state [$source_state is? $line]
+	set src ${:current_comment_line}
+	set tgt [$src is? $line]
+      }
+
+      #
+      # TODO: realise the initial state nodes as NULL OBJECTs, this
+      # helps avoid conditional branching all over the place!
+      #
+      if {$src ne ""} {
+	$src on_exit $line;
+      }
+      #puts stderr ${src}->${tgt}
+      # TODO: report invalid entry state explicitly
+      if {![info exists transitions(${src}->${tgt})]} {
+	error 	"Style violation in a [namespace tail [self]] section: 
+		A $src line is followed by a $tgt line."
       }
       
-      puts stderr "+++ info exists transitions(${source_state}->${actual_target_state})"
-      if {![info exists transitions(${source_state}->${actual_target_state})]} {
-	error "Style violation in a [namespace tail [self]] section: A $source_state line is followed by a $actual_target_state line."
+      set :current_comment_line $tgt
+      $tgt comment_section [self]
+      ${:current_comment_line} processed_line $line
+      ${:current_comment_line} on_enter $line
+      
+      foreach {event activities} $transitions(${src}->${tgt}) break;
+      :signal $event $line
+      foreach activity $activities {
+	:signal $activity $line
       }
-
-      set :current_comment_line ${actual_target_state}
-      return $transitions(${source_state}->${actual_target_state})
     }
 
-    :method on_enter {line} {
-      next
-      if {![info exists :current_comment_line]} {
-	set :current_comment_line [:transition $line]
-      }
-	${:current_comment_line} [::nx::core::next proc]
-      }
+    :method on_enter {line} {;}
   
-    :method on_exit {} {
-      ${:current_comment_line} [::nx::core::next proc]
-      next
+    :method on_exit {line} {
+      # TODO: move this behaviour into a more decent place
+      if {![${:context} has_next]} {
+	${:current_comment_line} on_exit $line
+      }
+      unset :current_comment_line
+      next;
     }
 
     :method signal {event line} {
-      :event=$event $line
       ${:current_comment_line} event=$event $line
+      :event=$event $line
     }
 
     #
     # handled events
     #
-    :method event=next {} {;}
-    
-  }; # CommentPart
+    :method event=next {line} {
+      set next_section [:next_comment_section]
+      ${:current_comment_line} on_exit $line
+      :on_exit $line
+      $next_section on_enter $line
+      $next_section eval [list set :context ${:context}]
+      ${:context} eval [list set :processed_section [:next_comment_section]]      
+    }
+
+    :method event=rewind {line} {
+      ${:context} rewind
+      next
+    }
+
+  }; # CommentSection
   
 
   #
   # the OWNER-DRIVEN TRANSITIONS read as follows:
-  # <current_state>.<event> {<next_state> <activity>}
+  # (current_state)->(next_state) {event {activity1 activty2 ...}}
   #
   
-  CommentPart create context \
-      -next_comment_part description \
-      -comment_line_transitions {
-	->tag		process
-	tag->text	process
-	text->text	process
-	text->space	next
-	tag->space	next
-      } \
-      -current_comment_line tag
 
-  
-  CommentPart create description \
-      -next_comment_part part \
+  #
+  # context
+  #
+  CommentSection create context \
+      -next_comment_section description \
       -comment_line_transitions {
-	->text		process
-	text->text	process
-	text->space	space next
-      } \
-      -current_comment_line text
-  
-  CommentPart create part \
-      -next_comment_part part \
+	->tag		{process ""}
+	tag->space	{process ""}
+	space->space	{process ""}
+	space->text	{close {rewind next}}
+	space->tag	{close {rewind next}}
+      } -entry_comment_line tag
+
+  # NOTE: add these transitions for supporting multiple text lines for
+  # the context element
+  #	tag->text	{process ""}
+  #	text->text	{process ""}
+  #	text->space	{process ""}
+
+  #
+  # description
+  #
+  CommentSection create description \
+      -next_comment_section part \
       -comment_line_transitions {
-	->tag		process
-	tag->text	process
-	text->text	process
-	text->tag	next
-	text->space	next
-	tag->tag	next
-      } \
-      -current_comment_line tag
+	->text		{process ""}
+	->tag		{close {rewind next}}
+	text->text	{process ""}
+	text->space	{process ""}
+	space->space	{process ""}
+	space->tag	{close {rewind next}}
+      } -entry_comment_line text
+  
+  #
+  # part
+  # 
+  CommentSection create part \
+      -next_comment_section part \
+      -comment_line_transitions {
+	->tag		{process ""}
+	tag->text	{process ""}
+	text->text	{process ""}
+	text->tag	{close {rewind next}}
+	text->space	{process ""}
+	space->space	{process ""}
+	tag->space	{process ""}
+	space->tag	{close {rewind next}}
+	tag->tag	{close {rewind next}}
+      } -entry_comment_line tag 
 }
 
 puts stderr "Doc Tools loaded: [info command ::nx::doc]"
