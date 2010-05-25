@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
 <html> <head>
-<title>Migration Guide from XOTcl 1 to XOTcl 2</title>
+<title>Migration Guide from XOTcl to the Next Scripting Language</title>
 <style>
 body	{
         font-family: Verdana, Arial, Helvetica, sans-serif;
@@ -54,55 +54,58 @@ table td {
 
 ... general text, maybe partly from slides/paper ....
 
-<h2>Supporting XOTcl 1 in XOTcl 2</h2>
 
-<p> In general, the XOTcl 2 environment supports multiple object
+TODO: I think, we should not use ::nx::core, but import "needed" commands into
+::nx.
+
+
+<h2>Supporting XOTcl 1 in Next</h2>
+
+<p> In general, the Next environment supports multiple object
 systems concurrently. Effectively, every object system has different
 base classes for creating both, objects and classes. Therefore, the
 object systems can have different different interfaces and names of
-builtin methods. Currently, XOTcl 2 supports primarily XOTcl 1 and
-XOTcl 2 (XOTcl 1 provides about twice as many predefined builtin
-methods).  </p>
+builtin methods. Currently, Next supports primarily XOTcl and the
+Next scripting language (XOTcl provides about twice as many predefined builtin
+methods compared to Next).  </p>
 
-<p> The support for multiple object systems can be used to load XOTcl
-1 and XOTcl 2 scripts into the same interpreter. This makes migration
-from XOTcl 1 to XOTcl 2 easier. The XOTcl environment provides the
-predefined command ::xotcl::use to make switching between these
-objects systems convenient. The following example script shows a single
-script defining classes of XOTcl 1 and 2:<p>
+<p> A single Tcl interpreter can host both, XOTcl and the Next
+scripting language at the same time. This makes migration
+from XOTcl to Next easier. The following example script shows to use
+in a single XOTcl and Next<p>
 
 <pre>
-   package require XOTcl
-
    namespace eval mypackage {
 
-      <i># Some definitions for XOTcl 1</i>
-      ::xotcl::use xotcl1
+      package require XOTcl
 
+      <i># Import XOTcl into the current namespace</i>
+      namespace import -force ::xotcl::*
+
+      <i># Define a class using XOTcl</i>
       Class C1
       C1 instproc foo {} {puts "hello world"}
 
-      <i># Some definitions for XOTcl 2</i>
-      ::xotcl::use xotcl2
+      <i># Import Next into the current namespace</i>
+      namespace import -force ::nx::*
 
+      <i># Define a class using Next</i>
       Class create C2 {
          :method foo {} {puts "hello world"}
       }
    }
 </pre>
 
-<p> "Switching" effectively means the load some libraries if needed
-and to import either the XOTcl 1 or XOTcl 2 base classes as
-<code>Object</code> and <code>Class</code> into the current namespace.
-If the import is not wanted, just use <code>package require</code> to
-load the necessary pieces.
-</p>
+<p> "Switching" between XOTcl and Next effectively means the load some
+libraries if needed and to import either the base classes
+(<code>Object</code> and <code>Class</code>) of XOTcl or Next
+into the current namespace. </p>
 
-<h1>XOTcl 1 Idioms in XOTcl 2</h1>
+<h1>XOTcl Idioms in the Next scripting language</h1>
 
 <h2>Defining Objects and Classes</h2>
 <table>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code>Class <i>ClassName</i></code></td>
     <td><code>Class create <i>ClassName</i></code></td>
@@ -113,17 +116,17 @@ load the necessary pieces.
   </tr>
   <tr>
     <td><code>::xotcl::Class <i>ClassName</i></code></td>
-    <td><code>::xotcl2::Class create <i>ClassName</i></code></td>
+    <td><code>::nx::Class create <i>ClassName</i></code></td>
   </tr>
   <tr>
     <td><code>::xotcl::Object <i>ObjectName</i></code></td>
-    <td><code>::xotcl2::Object create <i>ObjectName</i></code></td>
+    <td><code>::nx::Object create <i>ObjectName</i></code></td>
   </tr>
 </table>
 
 <h2>Defining Methods</h2>
 <table border=1>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code>Class <i>C</i><br>
       <i>C</i> instproc <i>foo args</i> {...}<br>
@@ -149,7 +152,7 @@ load the necessary pieces.
      }<br></code><hr>
       <code>Object create <i>o</i><br>
       <i>o</i> eval {set <i>:x 1</i>}</i><br>
-      <i># &nbsp;&nbsp; ::xotcl::setvar o x 1</i><br>
+      <i># &nbsp;&nbsp; ::nx::core::setvar o x 1</i><br>
       <i>o</i> method <i>foo args</i> {...}<br>
      </code></td>
   </tr>
@@ -157,17 +160,17 @@ load the necessary pieces.
 
 <h2>Resolvers</h2>
 
-XOTcl 2 defines Tcl resolvers for method and variable names to refer
+Next defines Tcl resolvers for method and variable names to refer
 to object specific behavior. Withing method bodies these resolver
 treat names staring with a dot "." specially. If one wants to refer to
 a name starting with a "." (e.g. the name of a Tcl function starts
 with a dot), the dot has to be duplicated, or one has to use the
 usual namespace prefix "::" to refer to a namespaced entity. Note that
-the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
+the Next resolvers are used in the XOTcl environment as well.
 
 <h2>Invoking Methods</h2>
 <table border=1>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code>Class <i>C</i><br>
       <i>C</i> instproc <i>foo args</i> {...}<br>
@@ -195,7 +198,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 
 <h2>Accessing Instance Variables from Method Bodies</h2>
 <table border=1>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code>Class <i>C</i><br>
       <i>C</i> instproc <i>foo args</i> {<br>
@@ -244,7 +247,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 
 <h2>Accessing Instance Variables of other Objects</h2>
 <table border=1>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code><i>obj</i> set <i>varname value</i></code></td>
     <td><code><i>obj</i> eval [list set <i>:varname value</i>]</code></td>
@@ -258,7 +261,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
     <td><code><i>obj</i> instvar <i>newVar</i><br>
       set <i>newVar value</i> </code>
     </td>
-    <td><code>::xotcl::importvar <i>obj newVar</i><br>
+    <td><code>::nx::core::importvar <i>obj newVar</i><br>
       set <i>newVar value</i></td>
  </tr>
   <tr>
@@ -274,7 +277,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 
 <h4>List methods defined by objects</h4>
 <table border=1>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code><i>obj</i> info commands <i>?pattern?</i></code></td>
     <td><code><i>obj</i> info methods <i>?pattern?</i></code></td>
@@ -370,7 +373,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 
 <h4>List callable methods</h4>
 <table border=1>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code><i>obj</i> info methods <i>?pattern?</i></code></td>
     <td><code><i>obj</i> info callable <i>?pattern?</i></code></td>
@@ -385,7 +388,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 <h4>List object/class where some method is defined</h4>
 
 <table border=1>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code><i>obj</i> procsearch <i>methodName</i></code></td>
     <td><code><i>obj</i> info callable -which <i>methodName</i></code></td>
@@ -395,7 +398,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 <h4>List definition of scripted methods defined by classes</h4>
 
 <table border=1>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code><i>cls</i> info instbody <i>methodName</i></code></td>
     <td><code><i>cls</i> info method body <i>methodName</i></code></td>
@@ -429,7 +432,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 <h4>List definition of scripted object specific methods</h4>
 
 <table>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code><i>obj</i> info body <i>methodName</i></code></td>
     <td><code><i>obj</i> info method body <i>methodName</i></code></td>
@@ -465,7 +468,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 
 <h4>List filter or mixins</h4>
 <table>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code><i>obj</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
     <td><code><i>obj</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
@@ -494,7 +497,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 
 <h4>List definition of methods defined by aliases, setters or forwarders</h4>
 <table>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><i>n.a.</i></td>
     <td><code><i>obj</i> info method definition <i>methodName</i></code></td>
@@ -507,7 +510,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 
 <h4>List fully qualified name of method</h4>
 <table>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><i>n.a.</i></td>
     <td><code><i>obj</i> info method name <i>methodName</i></code></td>
@@ -520,7 +523,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 
 <h4>List type of a method</h4>
 <table>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><i>n.a.</i></td>
     <td><code><i>obj</i> info method type <i>methodName</i></code></td>
@@ -533,7 +536,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 
 <h4>List the scope of mixin classes</h4>
 <table>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code><i>cls</i> info mixinof <i>?-closure? ?pattern?</i></code></td>
     <td><code><i>cls</i> info mixinof -scope object <i>?-closure? ?pattern?</i></code></td>
@@ -551,11 +554,13 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 <h4>Check properties of object and classes</h4>
 
 <table>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code><i>obj</i> istype <i>sometype</i></code></td>
     <td>
-      <code>::xotcl::is <i>obj</i> type <i>sometype</i></code><br>
+      TODO: ::nx::core::objectproperty and/or
+  ::nx::objectproperty and/or nx::is?<p>
+      <code>::nx::core::objectproperty <i>obj</i> type <i>sometype</i></code><br>
       <hr>
       <code><i>obj</i> info is type <i>sometype</i></code>
     </td>
@@ -563,7 +568,7 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
   <tr>
     <td><code><i>obj</i> ismixin <i>cls</i></code></td>
     <td>
-      <code>::xotcl::is <i>obj</i> mixin <i>cls</i></code><br>
+      <code>::nx::core::objectproperty <i>obj</i> mixin <i>cls</i></code><br>
       <hr>
       <code><i>obj</i> info is mixin <i>cls</i></code>
     </td>
@@ -571,28 +576,28 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
   <tr>
     <td><code><i>obj</i> isclass <i>?cls?</i></code></td>
     <td>
-      <code>::xotcl::is <i>obj|cls</i> class</code><br>
+      <code>::nx::core::objectproperty <i>obj|cls</i> class</code><br>
       <hr>
       <code><i>obj</i> info is class</code>
     </td>
   </tr>
   <tr>
     <td><code><i>obj</i> ismetaclass <i>cls</i></code></td>
-    <td><code>::xotcl::is <i>obj|cls</i> metaclass</code>
+    <td><code>::nx::core::objectproperty <i>obj|cls</i> metaclass</code>
       <hr>
       <code><i>obj</i> info is metaclass</code>
     </td>
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-   <td><code>::xotcl::is <i>cls</i> baseclass</code>
+   <td><code>::nx::core::objectproperty <i>cls</i> baseclass</code>
       <hr>
       <code><i>cls</i> info is baseclass</code>
     </td>
   </tr>  
  <tr>
     <td><code><i>obj</i> isobject <i>obj2</i></code></td>
-    <td><code>::xotcl::is <i>obj|obj2</i> object</code>
+    <td><code>::nx::core::objectproperty <i>obj|obj2</i> object</code>
       <hr>
       <code><i>obj</i> info is object</code>
     </td>
@@ -604,41 +609,41 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 <h2>Dispatch, Aliases, etc.</h2>
 <h2>Assertions</h2>
 <table border=1>
-  <tr><th>XOTcl 1</th><th>XOTcl 2</th></tr>
+  <tr><th>XOTcl</th><th>Next</th></tr>
   <tr>
     <td><code><i>obj</i> check <i>checkptions</i></code></td>
-    <td><code>::xotcl::assertion <i>obj</i> check <i>checkptions</i></code></td>
+    <td><code>::nx::core::assertion <i>obj</i> check <i>checkptions</i></code></td>
   </tr>
   <tr>
     <td><code><i>obj</i> info check</code></td>
-    <td><code>::xotcl::assertion <i>obj</i> check</code></td>
+    <td><code>::nx::core::assertion <i>obj</i> check</code></td>
   </tr>
   
   <tr>
     <td><code><i>obj</i> invar <i>conditions</i></code></td>
-    <td><code>::xotcl::assertion <i>obj</i> object-invar <i>conditions</i></code></td>
+    <td><code>::nx::core::assertion <i>obj</i> object-invar <i>conditions</i></code></td>
   </tr>
   <tr>
     <td><code><i>obj</i> info invar</code></td>
-    <td><code>::xotcl::assertion <i>obj</i> object-invar</code></td>
+    <td><code>::nx::core::assertion <i>obj</i> object-invar</code></td>
   </tr>
   
   <tr>
     <td><code><i>cls</i> instinvar <i>conditions</i></code></td>
-    <td><code>::xotcl::assertion <i>cls</i> class-invar <i>conditions</i></code></td>
+    <td><code>::nx::core::assertion <i>cls</i> class-invar <i>conditions</i></code></td>
   </tr>
   <tr>
     <td><code><i>cls</i> info instinvar</code></td>
-    <td><code>::xotcl::assertion <i>cls</i> class-invar</code></td>
+    <td><code>::nx::core::assertion <i>cls</i> class-invar</code></td>
   </tr>
 
     <tr>
     <td><code><i>cls</i> invar <i>conditions</i></code></td>
-    <td><code>::xotcl::assertion <i>cls</i> object-invar <i>conditions</i></code></td>
+    <td><code>::nx::core::assertion <i>cls</i> object-invar <i>conditions</i></code></td>
   </tr>
   <tr>
     <td><code><i>cls</i> info invar</code></td>
-    <td><code>::xotcl::assertion <i>cls</i> object-invar</code></td>
+    <td><code>::nx::core::assertion <i>cls</i> object-invar</code></td>
   </tr
   
 </table>
@@ -648,13 +653,13 @@ the XOTcl 2 resolver is used in the XOTcl 1 environment as well.
 <h2>Incompatibilities</h2>
 
 <h3>Namespace resolvers</h3>
-<p>The XOTcl 2 namespace resolvers are use as well when XOTcl 1 is used
-within XOTcl 2.
+<p>The Next namespace resolvers are use as well when XOTcl is used
+within Next.
 </p>
 
 <h3>Stronger Checking</h3>
-<p>XOTcl 2 performs stronger checking than XOTcl 1. The requiredness
-of slots in XOTcl 1 was just a comment, while XOTcl 2 enforces it.
+<p>Next performs stronger checking than XOTcl. The requiredness
+of slots in XOTcl was just a comment, while Next enforces it.
 </p>
 
 <h3>Different results</h3>
@@ -677,16 +682,16 @@ of slots in XOTcl 1 was just a comment, while XOTcl 2 enforces it.
 <h3>Exit handlers</h3>
 <p>
 The exit hander interface changed from a method of
-<code>::xotcl::Object</code> into procs in the <code>::xotcl</code>
-namespace. XOTcl 2 provides now:
+<code>::xotcl::Object</code> into procs in the <code>::nx::core</code>
+namespace. Next provides now:
 <pre>
-   ::xotcl::setExitHandler script
-   ::xotcl::getExitHandler
-   ::xotcl::unsetExitHandler
+   ::nx::core::setExitHandler script
+   ::nx::core::getExitHandler
+   ::nx::core::unsetExitHandler
 </pre>
 
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Tue Feb 23 13:41:35 CET 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Tue May 25 14:00:20 CEST 2010 <!-- hhmts end -->
 </body> </html>
