@@ -544,7 +544,7 @@ package require XOTcl
       Returns the body of the specified proc (object specific method).
  
       <@li><@TT>objName info class</@TT>: 
-      Returns the name of the class of the current object.
+      Returns the class of objName.
 
       <@li><@TT>objName info children ?pattern?</@TT>: Returns the
       list of aggregated objects with fully qualified names if
