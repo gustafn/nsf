@@ -225,12 +225,13 @@ package require XOTcl
       Turn on/off assertion checking. Options argument is the list
       of assertions, that should be checked on the object automatically. 
       Per default assertion checking is turned 
-      off. Examples:  
-    <@pre class='code'>
-    o check {};         <@it># turn off assertion checking on object o</@it>  
-    o check all;        <@it># turn on all assertion checks on object o</@it>   
-    o check {pre post}; <@it># only check pre/post assertions</@it></@pre>
-      <@a href="#Object-info">info check</@a> introspects check options.
+      off. <br>
+      Examples:<br>
+<@pre CLASS="code">
+    o check {};         <@i># turn off assertion checking on object o</@i>  
+    o check all;        <@i># turn on all assertion checks on object o</@i>   
+    o check {pre post}; <@i># only check pre/post assertions</@i>
+</@pre>
     }
     return "empty string"
 }
@@ -525,7 +526,7 @@ package require XOTcl
       Returns the body of the specified proc (object specific method).
  
       <@li><@TT>objName info class</@TT>: 
-      Returns the name of the class of the current object.
+      Returns the class of objName.
 
       <@li><@TT>objName info children ?pattern?</@TT>: Returns the
       list of aggregated objects with fully qualified names if
@@ -1553,7 +1554,7 @@ package require XOTcl
     </table>
 
     <p>Example of a class definition with three attribute slots:</p>
-<pre CLASS="code">
+<@pre CLASS="code">
   <@tt>Class</tt> Person <tt>-slots</tt> {
     <tt>Attribute</tt> name
     <tt>Attribute</tt> salary <tt>-default</tt> 0
