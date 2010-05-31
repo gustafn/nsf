@@ -41,19 +41,25 @@ namespace eval ::nx::doc {
     return $result
   }
 
-  Class create EntityFactory -superclass Class {
+  Class create EntityClass -superclass Class {
     #
-    # EntityFactory is a meta-class for named doc entities
+    # EntityClass is a meta-class for named doc entities
     #
-
-    :attribute tag:required
+    # TODO: currently, explicitly specifying "substdefault"
+    # e.g. tag:substdefault leads to issues in the toParameterSyntax
+    # machinery. Leave it unspecified and have the machinery fall back
+    # to substdefault by detecting the squared braches
+    :attribute {tag {[string tolower [namespace tail [self]]]}}
+    :attribute tagged_entity:optional,object,type=[self]
 
     namespace eval ::nx::doc::entities {}
     set :root_namespace ::nx::doc::entities
 
     :method init {} {
       next
-      [:info class] object forward @${:tag} [self] new -name %1
+      if {![info exists :tagged_entity]} {
+	[:info class] object forward ${:tag} [self] new -name %1
+      }
     }
 
     :method createOrConfigure {id arguments} {
@@ -67,6 +73,80 @@ namespace eval ::nx::doc {
     }
   }
 
+  # @object PartAttribute
+  #
+  # This special-purpose Attribute variant realises (1) a cumulative
+  # value management and (2) support for distinguishing between
+  # literal parts (e.g., @author, @see) and object parts (e.g.,
+  # @param).
+  #
+  # The cumulative value management adds the append() operation which
+  # translates into an add(...,end) operation. PartAttribute slots
+  # default to append() as their default setter operation. To draw a
+  # line between object and literal parts, PartAttribute slots either
+  # refer to a part_class (a subclass of Part) or they do not. If a
+  # part_class is given, the values will be transformed accordingly
+  # before being pushed into the internal storage.
+  
+  ::nx::MetaSlot create PartAttribute -superclass ::nx::Attribute {
+
+    # @attribute part_class
+    # 
+    # The attribute slot refers to a concrete subclass of Part which
+    # describes the parts being managed by the attribute slot.
+    :attribute part_class:optional,class
+
+    :method init args {
+      :defaultmethods [list get append]
+      :multivalued true
+      set :incremental true
+      # TODO: setting a default value leads to erratic behaviour;
+      # needs to be verified -> @author returns ""
+      # :default ""
+      next
+    }
+    
+    :method get_part {domain prop value} {
+      if {[info exists :part_class]} {
+	if {[::nx::core::is $value object] && \
+		[::nx::core::is $value type ${:part_class}]} {
+	  return $value
+	}
+	set part [${:part_class} new \
+		      [self] \
+		      $domain \
+		      -name [lindex $value 0] \
+		      -partof [$domain name] \
+		      -doc [lrange $value 1 end]
+		 ]
+	return $part
+	
+      } 
+      return $value
+    }
+    :method append {domain prop value} {
+      :add $domain $prop $value end
+    }
+    :method assign {domain prop value} {
+      set parts [list]
+      foreach v $value {
+	lappend parts [:get_part $domain $prop $v]
+      }
+      next $domain $prop $parts
+    }
+    :method add {domain prop value {pos 0}} {
+      set p [:get_part $domain $prop $value]
+      if {![$domain exists $prop] || $p ni [$domain $prop]} {
+	next $domain $prop $p $pos
+      }
+      return $p
+    }
+    :method delete {domain prop value} {
+      next $domain $prop [:get_part $prop $value]
+    }
+  }
+  
+
 
   Class create Entity {
     #
@@ -78,11 +158,10 @@ namespace eval ::nx::doc {
     :method objectparameter args {next {doc:optional __initcmd:initcmd,optional}}
 
     :attribute doc:multivalued {set :incremental 1}
+    :attribute name:required
 
-    #the following two cases (incremental multivalued) could be nicer
-    :attribute {variants:multivalued ""} {set :incremental 1}
-    :attribute {params:multivalued ""} {set :incremental 1}
-    :attribute {@see:multivalued ""} {set :incremental 1}
+    :attribute @see -slotclass ::nx::doc::PartAttribute
+
     # @method _doc
     #
     # The method _doc can be use to obtain the value of the documentation
@@ -90,7 +169,7 @@ namespace eval ::nx::doc {
     :method _doc {doc use what value} {
       if {$doc ne ""} {return $doc}
       if {$use ne ""} {
-	foreach thing {NextCommand NextClass} {
+	foreach thing {@command @object} {
 	  set docobj [$thing id $use]
 	  if {[::nx::core::objectproperty $docobj object]} break
 	}
@@ -112,40 +191,16 @@ namespace eval ::nx::doc {
     #
     # This is an abstract hook method to be refined by the subclasses
     # of Entity
-    :method process {comment_block} {
-      puts stderr "EntityFactory process -context [self] $comment_block"
-      EntityFactory process -context [self] $comment_block
-    }
-    
-    # @method param
-    #
-    # The method param is currently used for documenting parameters of
-    # tcl-commands and xotcl methods. Most probably, it should cover
-    # object parameters as well. The parameters are identified by a
-    # name and ar part of another documentation entitiy
-    #
-    :method param {param doc {-use ""}} {
-      set flags [list -param $param]
-      if {[llength $param]>1} {
-	lappend flags -default [lindex $param 1]
-	set param [lindex $param 0]
-      }
-      set name $param
-      if {[regexp {^(.*):(.*)$} $param _ name spec]} {
-	lappend flags -spec $spec
-      }
-      lappend flags -fullname param
-      @ NextCommand::Parameter $name -partof [self] {*}$flags [:_doc $doc $use params $name]
-    }
-
-    # @method variant
-    #
-    # variants are used in cases, where depending on a parameter, the
-    # semantics of a command (and therefore its documentation) is
-    # completely different. A typical case are subcommands in Tcl.
-    #
-    :method variant {name doc {-use ""}} {
-      @ NextCommand::Variant $name -partof [self] [:_doc $doc $use variants $name]
+    :method process {
+      {-initial_section:optional "context"} 
+      -entity:optional 
+      comment_block
+    } {
+      EntityClass process \
+	  -partof_entity [self] \
+	  -initial_section $initial_section \
+	  {*}[expr {[info exists entity]?"-entity $entity":""}] \
+	  $comment_block
     }
 
     # @method text
@@ -155,51 +210,94 @@ namespace eval ::nx::doc {
     # but looks for now convenient.
     #
     :method text {} {subst [join ${:doc} " "]}
+    
   }
 
   #
-  # Now, define some kinds of docEntities. The toplevel docEntities
-  # are named objects in the ::nx::doc::entities namespace to ease access to it.
+  # Now, define some kinds of documentation entities. The toplevel
+  # docEntities are named objects in the ::nx::doc::entities namespace
+  # to ease access to it.
   #
-  # We define here the following toplevel docEntities (e.g. xotclObject will follow):
-  #  - NextCommand
-  #  - NextObject
+  # For now, we define here the following toplevel docEntities:
+  #  - @command
+  #  - @object
   #
-  # The xotcl methods are defined as Parts.
-  #  - NextMethod
+  # These can contain multiple parts.
+  #  - @method
+  #  - @attribute
+  #  - ...
   #
 
-  EntityFactory create NextCommand \
-      -tag "command" \
-      -superclass Entity {
-	:attribute name
-	:attribute arguments
-	:attribute {returns ""}
-	:object method id {name} {return [[:info class] eval {set :root_namespace}]::cmd::[string trimleft $name :]}
-	:object method new args {
-	  foreach {att value} $args {if {$att eq "-name"} {set name $value}}
-	  :createOrConfigure [:id $name] $args
-	}
-      }
+  EntityClass create @command -superclass Entity {
+    :attribute arguments
+    :attribute {returns ""}
+    :object method id {name} {return [[:info class] eval {set :root_namespace}]::cmd::[string trimleft $name :]}
+    :object method new args {
+      foreach {att value} $args {if {$att eq "-name"} {set name $value}}
+      :createOrConfigure [:id $name] $args
+    }
+  }
   
-  EntityFactory create NextClass \
-      -tag "class" \
+  EntityClass create @object \
       -superclass Entity {
-	:attribute name
-	:attribute {@author:multivalued ""} {
-	  # TODO: incremental does not produced effects apart from
-	  # deactivating the optimizer, shouldn't set the attribute's
-	  # default methods to {get add}, to obtain the increment
-	  # effect?
-	  set :incremental 1
-	} 
-	:attribute {methods:multivalued ""} {set :incremental 1}
-	:object method id {name} {puts stderr ""; return [[:info class] eval {set :root_namespace}]::class::[string trimleft $name :]}
+	:attribute @author -slotclass ::nx::doc::PartAttribute 
+	:attribute @method -slotclass ::nx::doc::PartAttribute {
+	  set :part_class @method
+	}
+	:attribute @object-method -slotclass ::nx::doc::PartAttribute {
+	  set :part_class @method
+	}
+	:attribute @attribute -slotclass ::nx::doc::PartAttribute {
+	  set :part_class @attribute
+	}
+	:object method id {name} {
+	  return [[:info class] eval {
+	  # TODO: Why not simply use the @-prefixed object names here?
+	  set :root_namespace}]::object::[string trimleft $name :]
+	}
 	:object method new args {
 	  foreach {att value} $args {if {$att eq "-name"} {set name $value}}
 	  :createOrConfigure [:id $name] $args
 	}
+	
+	:method process {
+	  {-initial_section:optional "context"} 
+	  -entity:optional 
+	  comment_block
+	} {
+	  next;
+
+	  foreach methodName [${:name} info methods -methodtype scripted] {
+	    set blocks [doc comment_blocks [${:name} info method \
+						body $methodName]]
+	    foreach {line_offset block} $blocks {
+	      if {$line_offset > 1} break;	      
+	      set id [@method new "" "" \
+			  -name $methodName \
+			  -partof ${:name} \
+			  -scope class]
+	      $id process -initial_section description $block
+	    }
+	  }
+	  
+	  foreach methodName [${:name} object info methods\
+				  -methodtype scripted] {
+	    
+	    set blocks [doc comment_blocks [${:name} object info method \
+						body $methodName]]
+	    foreach {line_offset block} $blocks {
+	      if {$line_offset > 1} break;
+	      set id [@method new "" "" \
+			  -name $methodName \
+			  -partof ${:name} \
+			  -scope object]
+	      $id process -initial_section description $block
+	    }
+	  }
+
+	}
       }
+
   
   # @class Part
   #
@@ -209,75 +307,134 @@ namespace eval ::nx::doc {
   #
   Class create Part -superclass Entity {
     #:method objectparameter args {next {doc -use}}
-    :attribute name:required
     :attribute partof:required
     :attribute use
   }
 
   #
-  # variant and param are Parts:
-  #
-  Class create NextCommand::Variant -superclass Part {
-    :method init {} {${:partof} variants add [self] end}
-  }
-  Class create NextCommand::Parameter -superclass Part {
-    :attribute param
-    :attribute fullname    
-    :attribute spec
-    :attribute default
-    :method init {} {${:partof} params add [self] end}
-  }
-
-
-  #
-  # xotclMethod is a named entity, which is part of some other
+  # @method is a named entity, which is part of some other
   # docEntity (a class or an object). We might be able to use the
   # "use" parameter for registered aliases to be able to refer to the 
   # documentation of the original method.
   #
-  EntityFactory create NextMethod \
-      -tag "method" \
+  EntityClass create @method \
+      -tagged_entity "@object" \
       -superclass Part {
-    :attribute {scope class}
-    :attribute {modifier public}
-    :attribute arguments
-    :attribute {returns ""}
-    :object method id {partof scope name} {
-      return [[:info class] eval {set :root_namespace}]::method::[string trimleft $partof :]::${scope}::${name}
-    }
+	:attribute {scope class}
+	:attribute {modifier public}
+	:attribute @param -slotclass ::nx::doc::PartAttribute {
+	  set :part_class @command::Parameter
+	}
+	:attribute @return -slotclass ::nx::doc::PartAttribute {
+	  set :part_class @command::Parameter
+	}
+	:object method id {partof scope name} {
+	  return [[:info class] eval {set :root_namespace}]::method::[string trimleft $partof :]::${scope}::${name}
+	}
+	
+	:object method new {tag domain args} {
 
-    :object method new args {
-      foreach {att value} $args {
-	if {$att eq "-partof"} {set partof $value}
-	if {$att eq "-name"}   {set name   $value}
-	if {$att eq "-scope"}  {set scope  $value}
-      }
-      if {![info exists scope]} {
-	if {[::nx::core::objectproperty $partof class]} {
-	  set scope class
-	} elseif {[::nx::core::objectproperty $partof object]} {
-	  set scope object
-	} else {
-	  set scope class
+	  # TODO: originally, the scope value was not modified in the
+	  # args vector (provided, that the scope is derived somehow);
+	  # this left the entity object with a scope different to
+	  # its id! We fixed it here by feeding the args vector into an
+	  # array structure and by updating this array structure
+	  # accordingly. However, this is hacky and needs to be revised
+	  # all over the place, along with refactoring the new()
+	  # methods as such.
+
+	  array set "" $args
+
+	  if {![info exists (-scope)]} {
+	    regexp -- {@(object|class)-.*} $tag _ (-scope)
+	  }
+	  
+	  if {![info exists (-scope)]} {
+	    if {[::nx::core::objectproperty $(-partof) class]} {
+	      set (-scope) class
+	    } elseif {[::nx::core::objectproperty $(-partof) object]} {
+	      set (-scope) object
+	    } else {
+	      set (-scope) class
+	    }
+	  }
+	  :createOrConfigure [:id $(-partof) $(-scope) $(-name)] [array get ""]
+	}
+	
+	:method signature {} {
+	  if {[info exists :arguments]} {
+	    set arguments ${:arguments}
+	  } else {
+	    set arguments [list]
+	    foreach p [:params] {lappend arguments [$p param]}
+	  }
+	  set result "obj ${:name} $arguments"
+	}
+	:method process {	  
+	  {-initial_section:optional "context"} 
+	  comment_block
+	} {
+	  next \
+	      -initial_section $initial_section \
+	      -entity [self] $comment_block
+	}
+
+      }; # @method
+  
+  EntityClass create @attribute \
+      -tagged_entity @object \
+      -superclass Part {
+	:attribute {scope class}
+	:attribute {modifier public}
+	:object method id {partof scope name} {
+	  return [[:info class] eval {set :root_namespace}]::[string trimleft ${:tag} @]::[string trimleft $partof :]::${scope}::${name}
+	}
+	
+	:object method new {tag domain args} {
+	  foreach {att value} $args {
+	    if {$att eq "-partof"} {set partof $value}
+	    if {$att eq "-name"}   {set name   $value}
+	    if {$att eq "-scope"}  {set scope  $value}
+	  }
+	  if {![info exists scope]} {
+	    if {[::nx::core::objectproperty $partof class]} {
+	      set scope class
+	    } elseif {[::nx::core::objectproperty $partof object]} {
+	      set scope object
+	    } else {
+	      set scope class
+	    }
+	  }
+	  :createOrConfigure [:id $partof $scope $name] $args
+	}
+
+      }; # @attribute
+
+  Class create @command::Variant -superclass Part
+
+  EntityClass create @command::Parameter \
+      -tag "param" \
+      -tagged_entity "@method" \
+      -superclass Part {
+	:attribute param
+	:attribute fullname    
+	:attribute spec
+	:attribute default
+
+	:object method id {domain name} {
+	  return [[:info class] eval {set :root_namespace}]::${:tag}::[string trimleft [$domain partof]::[$domain scope]::[$domain name] :]::${name}
+	}
+	
+	:object method new {tag domain args} {
+	  foreach {att value} $args {
+	    if {$att eq "-partof"} {set partof $value}
+	    if {$att eq "-name"}   {set name   $value}
+	  }
+	  :createOrConfigure [:id $domain $name] $args
 	}
       }
-      :createOrConfigure [:id $partof $scope $name] $args
-    }
 
-    :method init {} {[NextClass id ${:partof}] methods add [self] end}
-
-    :method signature {} {
-      if {[info exists :arguments]} {
-	set arguments ${:arguments}
-      } else {
-	set arguments [list]
-	foreach p [:params] {lappend arguments [$p param]}
-      }
-      set result "obj ${:name} $arguments"
-    }
-  }; # NextMethod
-
-  namespace export EntityFactory NextCommand NextClass NextMethod @
+  namespace export EntityClass @command @object @method @attribute @
 }
 
 
@@ -316,7 +473,7 @@ namespace eval ::nx::doc {
     }
 
     #
-    # render xotcl classes
+    # render next classes
     #
     :method renderClass {} {
       puts "<LI>[:cmd ${:name}] <br>\n[:text]"
@@ -333,7 +490,7 @@ namespace eval ::nx::doc {
     }
 
     #
-    # render xotcl methods
+    # render next methods
     #
     :method renderMethod {} {
       puts "<LI>[:cmd [:signature]] <br>\n[:text]"
@@ -358,7 +515,7 @@ namespace eval ::nx::doc {
 #
 namespace eval ::nx {
   namespace import -force ::nx::doc::*
-  Object create doc  {
+  ::nx::Object create doc  {
 
     :method log {msg} {
       puts stderr "[self]->[uplevel 1 [list ::nx::core::current proc]]: $msg"
@@ -377,13 +534,10 @@ namespace eval ::nx {
     :method process {thing} {
       # TODO: tcl packages as an option?
       # 1) in-situ processing: a class object
-      if {[::nx::core::objectproperty $thing class]} {
+      if {[::nx::core::objectproperty $thing object]} {
         if {[$thing exists __initcmd]} {
-          :analyze_initcmd NextClass $thing [$thing eval {set :__initcmd}]
+          :analyze_initcmd @object $thing [$thing eval {set :__initcmd}]
         }
-      } elseif {[::nx::core::objectproperty $thing object]} {
-	# 2) in-situ processing: a non-class object
-	:log "can't postprocess objects currently"
       } elseif {[file isfile $thing]} {
 	# 3) alien script file
 	if {[file isreadable $thing]} {
@@ -396,88 +550,64 @@ namespace eval ::nx {
 	}
       } else {
 	# 4) we assume a string block, e.g., to be fed into eval
-	:analyze $thing
+	set i [interp create]
+	set cmd [subst {
+	  package req next::doc
+	  namespace import -force ::nx::doc::*
+	  doc analyze [list $thing]
+	}]
+	interp eval $i $cmd
+	#interp delete $i
+	return $i
       }
     }
 
     :method analyze {script} {
+      # NOTE: This method is to be executed in a child/ slave
+      # interpreter.
+      set pre_commands [:list_commands]
+      uplevel #0 [list eval $script]
+      set post_commands [:list_commands]
+      set additions [dict keys [dict remove [dict create {*}"[join $post_commands " _ "] _"] {*}$pre_commands]]
+
       set blocks [:comment_blocks $script]
-      :log "blocks: '$blocks'"
-      foreach block $blocks {
-	:log "block: '$block'"
-        set analyzed_block [:analyze_comment_block $block]
-        set cb [dict create {*}$analyzed_block]
-	:log ">>>> $cb"
-	#
-	# 1) resolve the entity by tag; e.g.: class -> NextClass
-	#
-	set entity [EntityFactory eval set :tags([dict get $cb entity])]
-	#
-	# 2) provide an object rep of the entity
-	#
-	set entity_instance [@ $entity [dict get $cb [$entity tag]] [dict get $cb text]]
-	#
-	# 3) process entity-specific parts, according to their tags
-	#
-	$entity_instance process $analyzed_block
+      #    :log "blocks: '$blocks'"
+      # 1) eval the script in a dedicated interp; provide for
+      # recording script-specific object additions.
+      set failed_blocks [list]
+      foreach {line_offset block} $blocks {
+	# 2) process the comment blocks, however, fail gracefully here
+	# (most blocks, especially in initcmd and method blocks, are
+	# not qualified, so they are set to fail. however, record the
+	# failing ones for the time being
+	if {[catch {::nx::doc::EntityClass process $block} msg]} {
+	  lappend failed_blocks $block
+	}
+      }
+      # 3) process the recorded object additions, i.e., the stored
+      # initcmds and method bodies.
+      foreach addition $additions {
+	# TODO: for now, we skip over pure Tcl commands and procs
+	if {![::nx::core::is $addition object]} continue;
+	:process $addition
       }
     }
 
-
-
-    :method analyze_line {line} {
-      if {[regexp {^\s*$} $line]} {
-        return 1
-      } elseif {[regexp {^\s*#} $line]} {
-        return 2
-      } else {
-        return 3
+    :method list_commands {{parent ::}} {
+      set cmds [info commands ${parent}::*]
+      foreach nsp [namespace children $parent] {
+	lappend cmds {*}[:list_commands ${nsp}]
       }
+      return $cmds
     }
 
     :method analyze_line {line} {
-      #
-      # 1 ... empty line
-      #
-      if {[regexp {^\s*$} $line]} {
-        return 1
-      } elseif {[regexp {^\s*#\s*@[^[:space:]@]} $line]} {
-	#
-	# 2 ... tagged comment line
-	#
-	return 2
-      } elseif {[regexp {^\s*#\s*[^[:space:]]\s*} $line]} {
-	#
-	# 3 ... untagged, non-emtpy comment line
-	#
-
-        return 3
-      } elseif {[regexp {^\s*#} $line]} {
-	#
-	# 4 ... untagged, empty comment line
-	#
-        return 4
-      } else {
-	#
-	# 5 ... code line
-	#
-        return 5
-      }
-    }
-
-    :method analyze_line {line} {
-      if {[regexp -- {^\s*#+[#\s]*(.*)$} $line --> comment]} {
+      set regex {^\s*#+[#\s]*(.*)$}
+      if {[regexp -- $regex $line --> comment]} {
 	return [list 1 [string trim $comment]]
       } else {
 	return [list 0 $line]
       }
-    }
-	 
-
-    :method append_tag {line} {
-      set line [:remove_comment_markup $line]
-      set tag [string trimleft [lindex $line 0] @]
-      return [list $tag [lrange $line 1 end]]
     }
     
     :method comment_blocks {script} {
@@ -485,144 +615,71 @@ namespace eval ::nx {
       set comment_blocks [list]
       set was_comment 0
       set spec {
-	0,1	{set comment_block [list]; lappend comment_block $text}
-	1,0	{lappend comment_blocks $comment_block}
+	0,1	{
+	  set line_offset $line_counter; 
+	  set comment_block [list]; 
+	  lappend comment_block $text}
+	1,0	{lappend comment_blocks $line_offset $comment_block}
 	1,1	{lappend comment_block $text}
 	0,0	{}
       }
       array set do $spec 
+      set line_counter -1
       foreach line $lines {
-        foreach {is_comment text} [:analyze_line $line] break;
+	incr line_counter
+	# foreach {is_comment text} [:analyze_line $line] break;
+	lassign [:analyze_line $line] is_comment text;
 	eval $do($was_comment,$is_comment)
 	set was_comment $is_comment
       }
       return $comment_blocks
     }
-
-
-    :method remove_comment_markup {comment} {
-      regsub -all -line {^\s*#} $comment "" comment
-      return $comment
-    }
-
-    :method analyze_comment_block {comment} {
-      set result [list]
-      set text ""
-      foreach line [split $comment \n] {
-        if {[regexp {^ *@(class|attribute|param|returns|method|object-method) (.*)$} $line _ kind value]} {
-          if {$kind eq "param"} {
-            if {[regexp {^\s*(\S+)\s+(.*)$} $value _ name desc]} {
-              set value [list $name $desc]
-            } else {
-              puts stderr "invalid param specification $value"
-            }
-          }
-	  lappend result entity $kind
-          lappend result $kind $value
-        } else {
-          append text $line
-        }
-      }
-      lappend result text $text
-      #puts result=$result
-      return $result
-    }
-
-    :method analyze_method_block {-methodName -partof -scope -arguments analyzed_block} {
-      array set cb $analyzed_block
-      
-      @ NextMethod $methodName -partof $partof -scope $scope $cb(text)
-      set m [NextMethod id $partof $scope $methodName]
-      set docparams [list]
-      foreach {att value} $analyzed_block {
-        # we do not handle "use" yet
-        if {$att eq "param"} {
-          $m param [lindex $value 0] [lindex $value 1]
-          lappend docparams [lindex $value 0]
-        } elseif {$att eq "returns"} {
-          $m returns $value
-        }
-      }
-      if {$arguments eq ""} {
-        set arguments $docparams
-      }
-      $m arguments $arguments
-    }
-	   
-    :method analyze_body {-partof -methodName -scope arguments body} {
-      set blocks [:comment_blocks -mode first $body]
-      if {[llength $blocks] > 0} {
-	:analyze_method_block -methodName $methodName -partof $partof -scope $scope \
-	    -arguments $arguments \
-	    [:analyze_comment_block [lindex $blocks 0]]
-      }
-    }
 	   
     :method analyze_initcmd {docKind name initcmd} {
       set first_block 1
-      foreach block [:comment_blocks $initcmd] {
+      set failed_blocks [list]
+      foreach {line_offset block} [:comment_blocks $initcmd] {
+	set arguments [list]
 	if {$first_block} {
 	  set id [@ $docKind $name]
-	  if {[catch {$id process $block} msg]} {
-	    puts stderr $msg
+	  #
+	  # Note: To distinguish between intial comments blocks
+	  # in initcmds and method bodies which refer to the
+	  # surrounding entity (e.g., the object or the method)
+	  # we use the line_offset recorded by the
+	  # comment_blocks() scanner. Later, we plan to use the
+	  # line_offset to compute line pointers for error
+	  # messages. Also, we can use the line offsets of each
+	  # comment block to identify faulty comment blocks.
+	  #
+	  # A acceptance level of <= 1 means that a script
+	  # block must contain the first line of this
+	  # special-purpose comment block either in the very
+	  # first or second script line.
+	  #
+	  if {$line_offset <= 1} {
+	    lappend arguments -initial_section description
+	    lappend arguments -entity $id
 	  }
-	}	  
-	set first_block 0
+	  set first_block 0
+	} else {
+	  set initial_section context
+	}
+	lappend arguments $block
+	if {[catch {$id process {*}$arguments} msg]} {
+	  lappend failed_blocks $line_offset
+	}
       }
-             
-    }; # analyze_initcmd method
-	   
-    # :method analyze_initcmd {docKind name initcmd} {
-    #   set first_block 1
-    #   foreach block [:comment_blocks $initcmd] {
-    #     set analyzed_block [:analyze_comment_block $block]
-    #     array unset cb
-    #     array set cb $analyzed_block
-    #     if {$first_block} {
-    #       set first_block 0
-    #       if {[array size cb] == 1} {
-    #         # we got a comment for the doc kind
-    #         @ $docKind $name $cb(text)
-    #         continue
-    #       }
-    #     }
-        
-    #     if {[info exists cb(method)] || [info exists cb(object-method)]} {
-    #       set arguments ""
-
-    #       if {[info exists cb(method)]} {
-    #         set methodName $cb(method)
-    #         set scope class
-    # 	    catch {set arguments [$name info method args $methodName]}
-    #       } else {
-    #         set methodName $cb(object-method)
-    #         set scope object
-    # 	    catch {set arguments [$name object info method args $methodName]}
-    #       }
-	  
-    #       :analyze_method_block -methodName $methodName -partof $name -scope $scope \
-    #           -arguments $arguments $analyzed_block
-    #     }
-    #   }
-
-    #   foreach methodName [$name info methods -methodtype scripted] {
-    # 	:analyze_body -partof $name -methodName $methodName -scope class \
-    # 	    [$name info method args $methodName] \
-    # 	    [$name info method body $methodName]
-    #   }
-
-    #   foreach methodName [$name object info methods -methodtype scripted] {
-    # 	:analyze_body -partof $name -methodName $methodName -scope object \
-    # 	    [$name object info method args $methodName] \
-    # 	    [$name object info method body $methodName]
-    #   }
       
-    # }; # analyze_initcmd method
-
-  # activate the recoding of initcmads
-  ::nx::core::configure keepinitcmd true
+    }; # analyze_initcmd method
+    
+    
+    # activate the recoding of initcmds
+    ::nx::core::configure keepinitcmd true
+    
   }
 }
+	  
 
 #
 # toplevel interface
@@ -632,44 +689,44 @@ namespace eval ::nx {
 namespace eval ::nx::doc {
 
   Object create make  {
-
+    
     :method all {{-verbose:switch} {-class ::nx::Class}} {
       foreach c [$class info instances -closure] {
-        if {$verbose} {puts "postprocess $c"}
-        ::nx::doc::postprocessor process $c
+	if {$verbose} {puts "postprocess $c"}
+	::nx::doc::postprocessor process $c
       }
     }
-
+    
     :method doc {{-renderer ::nx::doc::HTMLrenderer}} {
-
+      
       # register the HTML renderer for all docEntities.
       
       Entity mixin add $renderer
-
+      
       puts "<h2>Primitive XOTcl framework commands</h2>\n<UL>"
-      foreach cmd [sorted [NextCommand info instances] name] {
-        $cmd renderCmd
+      foreach cmd [sorted [@command info instances] name] {
+	$cmd renderCmd
       }
       puts "</UL>\n\n"
       
       puts "<h2>XOTcl Classes</h2>\n<UL>"
-      foreach cmd [sorted [NextClass info instances] name] {
-        $cmd renderClass
+      foreach cmd [sorted [@object info instances] name] {
+	$cmd renderClass
       }
       puts "</UL>\n\n"
-
+      
       Entity mixin delete $renderer
     }
-  }
-
+	}
+  
   #
   # modal comment block parsing
   #
-
+  
   #
   # contexts are entities
   #
-  EntityFactory eval {
+  EntityClass eval {
     :object forward has_next expr {${:idx} < [llength ${:comment_block}]}
     :object method dequeue {} {
       set r [lindex ${:comment_block} ${:idx}]
@@ -678,20 +735,28 @@ namespace eval ::nx::doc {
     }
     :object forward rewind incr :idx -1
     :object forward fastforward set :idx {% expr {[llength ${:comment_block}] - 1} }
-    :object method process {-context:optional block} {
+    :object method process {
+	{-partof_entity:optional,substdefault "[self]"}
+	{-initial_section:optional context}
+	-entity:optional
+	block
+      } {
       set :comment_block $block
       
-      # the defaults
-      set :processed_section context
-      set :current_entity [self]
-
-      if {[info exists context]} {
-	set :current_entity $context
-	set :processed_section description
+      # initialise the context object
+      set :processed_section $initial_section
+      set :partof_entity $partof_entity      
+      
+      if {[info exists :current_entity]} {
+	unset :current_entity
       }
-
+      
+      if {[info exists entity]} {
+	set :current_entity $entity
+      }
+      
       set :is_not_completed 1
-
+      
       ${:processed_section} eval [list set :context [self]]
       set is_first_iteration 1
       set :idx 0
@@ -703,6 +768,7 @@ namespace eval ::nx::doc {
 	  set is_first_iteration 0
 	}
 	if {[catch {${:processed_section} transition $line} failure]} {
+	  #puts stderr FAILURE=$failure
 	  set :is_not_completed 0
 	  #
 	  # TODO: For now, the fast-forward mechanism jumps to the end
@@ -720,13 +786,59 @@ namespace eval ::nx::doc {
       }
       
       if {$failure ne ""} {
-	error $failure
+	error "$failure: $::errorInfo"
       }
       
       return ${:current_entity}
     }
+    
+    :object method resolve_partof_entity {tag name} {
+      # a) unqualified: attr1
+      # b) qualified: Bar#attr1
+      if {[regexp -- {([^\s#]*)#([^\s#]*)} $name _ qualifier nq_name]} {
+	# TODO: Currently, I only foresee @object as possible
+	# qualifier; however, this should be fixed asap, as soon as
+	# the variety of entities has been decided upon!
+	set partof_entity [@object id $qualifier]
+	# TODO: Also, we expect the qualifier to resolve against an
+	# already existing entity object? Is this intended?
+	if {[::nx::core::is $partof_entity object]} {
+	  return [list $nq_name $partof_entity]
+	} else {
+	  return [list $nq_name ${:partof_entity}]
+	}
+      } else {      
+	return [list $name ${:partof_entity}]
+      }
+    }
+    
+    :object method dispatch args {
+      if {![info exists :current_entity]} {
+	# 1) the current (or context) entity has NOT been resolved
+	#
+	# for named entities, the provided identifier can be either
+	# qualified or unqualified:
+	# 
+	# a) unqualified: @attribute attr1
+	# b) qualified: @Bar#attribute attr1
+	#
+	# For qualified ones, we must resolve the qualifier to serve
+	# as the partof_entity; see resolve
+	set tag [lindex $args 0]
+	set name [lindex $args 1]
+	set args [lrange $args 2 end]
+	# foreach {nq_name partof_entity} \
+	    #     [:resolve_partof_entity $tag $name] break;
+	lassign [:resolve_partof_entity $tag $name] nq_name partof_entity;
+	set :current_entity [${partof_entity} $tag $nq_name {*}$args]
+      } else {
+	# 2) current (or context) entity has been resolved
+	# TODO: Should we explicitly disallow qualified names in parts?
+	${:current_entity} {*}$args
+      }
+    }
   }
-
+  
   #
   # Infrastructure for state objects:
   #
@@ -735,21 +847,17 @@ namespace eval ::nx::doc {
   # abstracted class, providing a refinement protocol for concrete
   # state subclasses
   #
-
+  
   Class create CommentState {
     :attribute context; # points to the context object, i.e., an entity
     :method on_enter {line} {;}
-    
-    :method on_exit {line} { 
-      #puts -nonewline stderr "EXIT -> [namespace tail [:info class]]#[namespace tail [self]]"
-    }
-
+      
     :method signal {event line} {;}
-
+    
     #
     # activity/event interface
     #
-
+    
     :method event=process {line} {;}
     :method event=close {line} {;}
     :method event=next {line} {;}
@@ -758,23 +866,20 @@ namespace eval ::nx::doc {
     }
     :method event=rewind {line} {;}
   }
-
+  
   # 2. CommentLines represent atomic states in the parsing state
   # machinery: tag, text, space
-
+  
   Class create CommentLine -superclass CommentState {
     :attribute comment_section; # points to the super-state objects
     :attribute processed_line; # stores the processed text line
     :forward signal {% ${:comment_section} } %proc
     :forward context {% ${:comment_section} } %proc
     :forward current_entity {% :context } eval set :current_entity
-
+    
     :method on_enter {line} {;}
     :method on_exit {line} {;}
-
-#    :method event=next {line} {
-#    }
-
+        
     :method match {line} {;}
     :method is? {line} {
       foreach cline [lsort [[:info class] info instances]] {
@@ -785,7 +890,7 @@ namespace eval ::nx::doc {
     }
   }
   
-
+  
   CommentLine create tag {
     :method match {line} {
       set tag [lindex $line 0]
@@ -793,16 +898,11 @@ namespace eval ::nx::doc {
     }
     :method event=process {line} {
       set tag [lindex $line 0]
-      set entity [[:current_entity] {*}$line]
-      #puts stderr ENTITY=$entity,line=$line
-      # TODO: Fix the forward-setting of the current_entity. a) place
-      # it when exiting from the super-state? b) or, refactor it into the
-      # shadowed event=process method()? c) further options?
-      if {[::nx::core::is $entity object]} { :current_entity $entity }
+      [:context] dispatch $tag [lrange $line 1 end]
     }
     
   }
-
+  
   CommentLine create text {
     :method match {line} {
       return [regexp -- {\s*[^[:space:]@]+} $line]
@@ -811,17 +911,17 @@ namespace eval ::nx::doc {
       #
       # TODO: revise when incremental support is operative
       #
-      [:current_entity] doc add $line end
+      [:context] dispatch doc add $line end
     }
-
+    
   }
-
+  
   CommentLine create space {
     :method match {line} {
       return [expr {$line eq {}}]
     }
   }
-
+  
   
   #
   # 3. CommentSections represent orthogonal super-states over
@@ -833,14 +933,14 @@ namespace eval ::nx::doc {
     :attribute current_comment_line
     :attribute comment_line_transitions
     :attribute next_comment_section; # implements a STATE-OWNED TRANSITION scheme
-
+    
     :method init {} {
       ${:entry_comment_line} comment_section [self]
     }
-
+    
     :method transition {line} {
       array set transitions ${:comment_line_transitions}
-
+      
       if {![info exists :current_comment_line]} {
 	set src ""
 	set tgt [${:entry_comment_line} is? $line]
@@ -848,7 +948,7 @@ namespace eval ::nx::doc {
 	set src ${:current_comment_line}
 	set tgt [$src is? $line]
       }
-
+      
       #
       # TODO: realise the initial state nodes as NULL OBJECTs, this
       # helps avoid conditional branching all over the place!
@@ -868,29 +968,35 @@ namespace eval ::nx::doc {
       ${:current_comment_line} processed_line $line
       ${:current_comment_line} on_enter $line
       
-      foreach {event activities} $transitions(${src}->${tgt}) break;
+      #foreach {event activities} $transitions(${src}->${tgt}) break;
+      lassign $transitions(${src}->${tgt}) event activities;
       :signal $event $line
       foreach activity $activities {
 	:signal $activity $line
       }
     }
-
+    
     :method on_enter {line} {;}
-  
+    
     :method on_exit {line} {
       # TODO: move this behaviour into a more decent place
       if {![${:context} has_next]} {
 	${:current_comment_line} on_exit $line
       }
-      unset :current_comment_line
+      # Note: Act passive here, because e.g. upon invalid entry
+      # state transition requests, there is no current_comment_line
+      # set here. Yet, we want to exit from the comment section!
+      if {[info exists :current_comment_line]} {
+	unset :current_comment_line
+      }
       next;
     }
-
+    
     :method signal {event line} {
       ${:current_comment_line} event=$event $line
       :event=$event $line
     }
-
+    
     #
     # handled events
     #
@@ -898,25 +1004,26 @@ namespace eval ::nx::doc {
       set next_section [:next_comment_section]
       ${:current_comment_line} on_exit $line
       :on_exit $line
-      $next_section on_enter $line
       $next_section eval [list set :context ${:context}]
+      $next_section on_enter $line
       ${:context} eval [list set :processed_section [:next_comment_section]]      
+      
     }
-
+    
     :method event=rewind {line} {
       ${:context} rewind
       next
     }
-
+    
   }; # CommentSection
   
-
+  
   #
   # the OWNER-DRIVEN TRANSITIONS read as follows:
   # (current_state)->(next_state) {event {activity1 activty2 ...}}
   #
   
-
+  
   #
   # context
   #
@@ -929,13 +1036,13 @@ namespace eval ::nx::doc {
 	space->text	{close {rewind next}}
 	space->tag	{close {rewind next}}
       } -entry_comment_line tag
-
+  
   # NOTE: add these transitions for supporting multiple text lines for
   # the context element
   #	tag->text	{process ""}
   #	text->text	{process ""}
   #	text->space	{process ""}
-
+  
   #
   # description
   #
@@ -948,7 +1055,14 @@ namespace eval ::nx::doc {
 	text->space	{process ""}
 	space->space	{process ""}
 	space->tag	{close {rewind next}}
-      } -entry_comment_line text
+      } -entry_comment_line text {
+	:method on_enter {line} {
+	  ${:context} dispatch eval {
+	    unset -nocomplain :doc
+	  }
+	  next;
+	}
+      }
   
   #
   # part

@@ -115,7 +115,7 @@ Test case scanning {
     bla; # # # # # no comment
   }
 
-  set blocks {{{@package o} {1 2 3}} {{@object o} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}} {{@object o # ####} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}}}
+  set blocks {1 {{@package o} {1 2 3}} 5 {{@object o} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}} 17 {{@object o # ####} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}}}
 
     ? [list ::lcompare [doc comment_blocks $script] $blocks] 1
 }
@@ -124,17 +124,16 @@ Test case parsing {
   #
   # TODO: Add tests for doc-parsing state machine.
   #
-
   set block {
     {@command cc}
   }
-  ? [list catch [list EntityFactory process $block] msg] 0
-  [NextCommand id cc] destroy
+  ? [list catch [list EntityClass process $block] msg] 0
+  [@command id cc] destroy
 
   set block {
     {}
   }
-  ? [list catch [list EntityFactory process $block] msg] 1
+  ? [list catch [list EntityClass process $block] msg] 1
 
   #
   # For now, a valid comment block must start with a non-space line
@@ -146,20 +145,20 @@ Test case parsing {
     {}
     {@command cc}
   }
-  ? [list catch [list EntityFactory process $block] msg] 1
+  ? [list catch [list EntityClass process $block] msg] 1
 
  set block {
    {command cc}
    {}
   }
-  ? [list catch [list EntityFactory process $block] msg] 1
+  ? [list catch [list EntityClass process $block] msg] 1
 
   set block {
     {@command cc}
     {some description}
   }
-  ? [list catch [list EntityFactory process $block] msg] 1
-  [NextCommand id cc] destroy
+  ? [list catch [list EntityClass process $block] msg] 1
+  [@command id cc] destroy
 
  set block {
     {@command cc} 
@@ -168,8 +167,9 @@ Test case parsing {
     {}
     {@see ::o}
   }
-  ? [list catch [list EntityFactory process $block] msg] 0
-  [NextCommand id cc] destroy
+  EntityClass process $block
+  ? [list catch [list EntityClass process $block] msg] 0
+  [@command id cc] destroy
 
  set block {
    {@command cc}
@@ -179,8 +179,8 @@ Test case parsing {
    {}
    {}
   }
-  ? [list catch [list EntityFactory process $block] msg] 0
-  [NextCommand id cc] destroy
+  ? [list catch [list EntityClass process $block] msg] 0
+  [@command id cc] destroy
 
   #
   # TODO: Allow description blocks with intermediate space lines?
@@ -193,8 +193,8 @@ Test case parsing {
     {}
     {an erroreneous description line, for now}
   }
-  ? [list catch [list EntityFactory process $block] msg] 1
-  [NextCommand id cc] destroy
+  ? [list catch [list EntityClass process $block] msg] 1
+  [@command id cc] destroy
 
   #
   # TODO: Do not enforce space line between the context and imediate
@@ -204,7 +204,7 @@ Test case parsing {
   # do we need sequences of _two_ (or more) tag lines, e.g.
   # 
   # --
-  # @class Foo
+  # @object Foo
   # @attribute attr1
   # --
   #
@@ -217,8 +217,8 @@ Test case parsing {
     {@command cc}
     {@see someOtherEntity}
   }
-  ? [list catch [list EntityFactory process $block] msg] 1
-  [NextCommand id cc] destroy
+  ? [list catch [list EntityClass process $block] msg] 1
+  [@command id cc] destroy
 
   #
   # TODO: Disallow space lines between parts? Check back with Javadoc spec.
@@ -233,8 +233,8 @@ Test case parsing {
     {@see SomeOtherEntity2}
     {}
   }
-  ? [list catch [list EntityFactory process $block] msg] 0
-  [NextCommand id cc] destroy
+  ? [list catch [list EntityClass process $block] msg] 0
+  [@command id cc] destroy
 
   #
   # TODO: Should we enforce a mandatory space line between description and part block?
@@ -248,8 +248,8 @@ Test case parsing {
     {@see entity3}
     {@see SomeOtherEntity2}
   }
-  ? [list catch [list EntityFactory process $block] msg] 1
-  [NextCommand id cc] destroy
+  ? [list catch [list EntityClass process $block] msg] 1
+  [@command id cc] destroy
 
   set block {
     {@command cc}
@@ -264,14 +264,14 @@ Test case parsing {
     {an erroreneous description line, for now}
   }
   
-  ? [list catch [list EntityFactory process $block] msg] 1
-  [NextCommand id cc] destroy
+  ? [list catch [list EntityClass process $block] msg] 1
+  [@command id cc] destroy
   
   #
   # testing the doc object construction
   #
   set block {
-    {@class o} 
+    {@object o} 
     {}
     {some more text}
     {and another line for the description}
@@ -279,10 +279,10 @@ Test case parsing {
     {@author stefan.sobernig@wu.ac.at}
     {@author gneumann@wu.ac.at}
   }
-  set entity [EntityFactory process $block]
+  set entity [EntityClass process $block]
   ? [list ::nx::core::is $entity object] 1
-  ? [list $entity info is type ::nx::doc::NextClass] 1
-  ? [list $entity @author] gneumann@wu.ac.at; # TODO: incremental support must be fixed, should then return {stefan.sobernig@wu.ac.at gneumann@wu.ac.at}
+  ? [list $entity info is type ::nx::doc::@object] 1
+  ? [list $entity @author] "stefan.sobernig@wu.ac.at gneumann@wu.ac.at";
   ? [list $entity text] "some more text and another line for the description";
 
   set block {
@@ -292,9 +292,9 @@ Test case parsing {
     {}
     {@see ::o}
   }
-  set entity [EntityFactory process $block]
+  set entity [EntityClass process $block]
   ? [list ::nx::core::is $entity object] 1
-  ? [list $entity info is type ::nx::doc::NextCommand] 1
+  ? [list $entity info is type ::nx::doc::@command] 1
   ? [list $entity text] "some text on the command";
   ? [list $entity @see] "::o";
 
@@ -314,41 +314,161 @@ Test case parsing {
       #
       # This attribute 1 is wonderful
       #
-      # @see ::xotcl::Attribute
+      # @see ::nx::Attribute
+      # @see ::nx::MetaSlot
       :attribute attr1
       :attribute attr2
       :attribute attr3
+
+      # @method foo
+      #
+      # This describes the foo method
+      #
+      # @param a Provides a first value
+      # @param b Provides a second value
+      :method foo {a b} {;}
     }
   }
 
   eval $script
   doc process ::Foo
+  set entity [@object id ::Foo]
+  ? [list ::nx::core::is $entity object] 1
+  ? [list $entity info is type ::nx::doc::@object] 1
+  ? [list $entity text] "The class Foo defines the behaviour for all Foo objects";
+  ? [list $entity @author] "gneumann@wu.ac.at ssoberni@wu.ac.at"
+
+
+  set entity [@attribute id ::Foo class attr1]
+  ? [list ::nx::core::is $entity object] 1
+  ? [list $entity info is type ::nx::doc::@attribute] 1
+  ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
+
+  set entity [@method id ::Foo class foo]
+  ? [list [@object id ::Foo] @method] $entity
+  ? [list ::nx::core::is $entity object] 1
+  ? [list $entity info is type ::nx::doc::@method] 1
+  ? [list $entity text] "This describes the foo method";
   
-  ? {::nx::core::is [NextClass id ::Foo] object} 1
-  ? {[NextClass id ::Foo] @author} ssoberni@wu.ac.at
+  foreach p [$entity @param] expected {
+    "Provides a first value"
+    "Provides a second value"
+  } {
+    ? [list expr [list [$p text] eq $expected]] 1;
+  }
+
 
   # TODO: how to realise scanning and parsing for mixed ex- and
   # in-situ documentation? That is, how to differentiate between
   # absolutely and relatively qualified comment blocks in line-based
   # scanning phase (or later)?
+
   set script {
-    # @class Foo
+    namespace import -force ::nx::*
+    # @object Bar
     # 
-    # The class Foo defines the behaviour for all Foo objects
+    # The class Bar defines the behaviour for all Bar objects
     #
     # @author gneumann@wu.ac.at
     # @author ssoberni@wu.ac.at
-    Class create Foo {
-      # @attribute attr1 
-      #
-      # This attribute 1 is wonderful
-      #
-      # @see ::xotcl::Attribute
+
+    # @attribute Bar#attr1 
+    #
+    # This attribute 1 is wonderful
+    #
+    # @see ::nx::Attribute
+    # @see ::nx::MetaSlot
+
+    # @method Bar#foo
+    #
+    # This describes the foo method
+    #
+    # @param a Provides a first value
+    # @param b Provides a second value
+
+    # @object-method Bar#foo
+    #
+    # This describes the per-object foo method
+    #
+    # @param a Provides a first value
+    # @param b Provides a second value
+
+    namespace eval ::ns1 {
+      ::nx::Object create ooo
+    }
+    Class create Bar {
+
       :attribute attr1
       :attribute attr2
       :attribute attr3
+
+      # @method foo
+      #
+      # This describes the foo method in the initcmd
+      #
+      # @param a Provides a first value
+      # @param b Provides a second value
+
+      :method foo {a b} {
+	# This describes the foo method in the method body
+	#
+	# @param a Provides a first value (refined)
+
+      }
+      
+      :object method foo {a b c} {
+	# This describes the per-object foo method in the method body
+	#
+	# @param b Provides a second value (refined)
+      	# @param c Provides a third value (first time)
+
+      }
+
     }
   }
+
+  set i [doc process $script]
+
+  set entity [@object id ::Bar]
+  ? [list $i eval [list ::nx::core::is $entity object]] 1
+  ? [list $i eval [list $entity info is type ::nx::doc::@object]] 1
+  ? [list $i eval [list $entity text]] "The class Bar defines the behaviour for all Bar objects";
+  ? [list $i eval [list $entity @author]] "gneumann@wu.ac.at ssoberni@wu.ac.at"
+
+
+  set entity [@attribute id ::Bar class attr1]
+  ? [list $i eval [list ::nx::core::is $entity object]] 1
+  ? [list $i eval [list $entity info is type ::nx::doc::@attribute]] 1
+  ? [list $i eval [list $entity @see]] "::nx::Attribute ::nx::MetaSlot";
+
+  set entity [@method id ::Bar class foo]
+  ? [list $i eval [list [@object id ::Bar] @method]] $entity
+  ? [list $i eval [list ::nx::core::is $entity object]] 1
+  ? [list $i eval [list $entity info is type ::nx::doc::@method]] 1
+  ? [list $i eval [list $entity text]] "This describes the foo method in the method body";
+
+  foreach p [$i eval [list $entity @param]] expected {
+    "Provides a first value (refined)"
+    "Provides a second value"
+  } {
+    ? [list expr [list [$i eval [list $p text]] eq $expected]] 1;
+  }
+
+  set entity [@method id ::Bar object foo]
+  ? [list $i eval [list [@object id ::Bar] @object-method]] $entity
+  ? [list $i eval [list ::nx::core::is $entity object]] 1
+  ? [list $i eval [list $entity info is type ::nx::doc::@method]] 1
+  ? [list $i eval [list $entity text]] "This describes the per-object foo method in the method body";
+
+  foreach p [$i eval [list $entity @param]] expected {
+    "Provides a first value"
+    "Provides a second value (refined)"
+    "Provides a third value (first time)"
+  } {
+    ? [list expr [list [$i eval [list $p text]] eq $expected]] 1;
+  }
+ 
+  interp delete $i
   
 }
 
@@ -371,6 +491,11 @@ Test case issues? {
     # detail on the eval() implementation)?
     expr {[info vars $x] eq $x};
   }} 0
+
+  o method bar {arg1:object,type=::some::unknown::Class} {;}
+  ? {o bar ::o} "expected object of type ::some::unknown::Class but got \"::o\" for parameter arg1"; # the error should rather reflect that ::some::unknown::Class is a non-existing class object!
+
+  
 }
 
 if {$log} {
