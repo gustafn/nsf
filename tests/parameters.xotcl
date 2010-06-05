@@ -96,7 +96,7 @@ Test case parametercheck {
 #   substdefault:  if no value given, subst on default (result is substituted value); 
 #                  susbt cmd can use variable resolvers,
 #                  works for scripted/c-methods and obj-parm, 
-#                  autmatically set by  "$slot toParameterSyntax" if default contains "[" ... "]".
+#                  autmatically set by "$slot toParameterSyntax" if default contains "[" ... "]".
 #
 #   initcmd:       evaluate body in an xotcl nonleaf frame, called via configure 
 #                  (example: last arg on create)
@@ -699,6 +699,37 @@ Test case substdefault {
   ? {s1 method foo {{a:substdefault [self]}} {return $a}} ::s1::foo
   ? {s1 foo} ::s1
 }
+
+#######################################################
+# testing substdefault for object parameters
+#######################################################
+Test case substdefault-objparam {
+
+  Class create Bar {
+
+    # simple, implicit substdefault
+    :attribute {s0 "[self]"}
+
+    # explicit substdefault
+    :attribute {s1:substdefault "[self]"}
+    
+    # unneeded double substdefault
+    :attribute {s2:substdefault,substdefault "[self]"}
+
+    # substdefault with incremental
+    :attribute {s3:substdefault "[self]"} {
+      # Bypassing the Optimizer helps after applying the patch (solving step 1)
+      set :incremental 1
+    }
+  }
+
+  Bar create ::b
+  ? {b s0} "::b"
+  ? {b s1} "::b"
+  ? {b s2} "::b"
+  ? {b s3} "::b"
+}
+
 #######################################################
 # testing object types in object parameters
 #######################################################
@@ -952,4 +983,5 @@ Test case slot-optimizer {
 }
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
+
 puts stderr =====END

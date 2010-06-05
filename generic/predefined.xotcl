@@ -543,7 +543,8 @@ namespace eval ::nx {
     if {[info exists :default]} {
       set arg ${:default}
       # deactivated for now: || [string first {$} $arg] > -1
-      if {[string match {*\[*\]*} $arg]} {
+      if {[string match {*\[*\]*} $arg] 
+          && $type ne "substdefault"} {
         lappend objopts substdefault
       }
     } elseif {[info exists :initcmd]} {
@@ -559,7 +560,9 @@ namespace eval ::nx {
     }
     if {$type ne ""} {
       set objopts [linsert $objopts 0 $type]
-      set methodopts [linsert $methodopts 0 $type]
+      # Never add "substdefault" to methodopts, since these are for
+      # provided values, not for defaults.
+      if {$type ne "substdefault"} {set methodopts [linsert $methodopts 0 $type]}
     }
     lappend objopts slot=[::nx::core::current object]
 

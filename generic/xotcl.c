@@ -12147,7 +12147,7 @@ static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_o
 
     setterClientData->paramsPtr = ParamsNew(1);
     result = ParamParse(interp, "setter", parameter, 
-                        XOTCL_DISALLOWED_ARG_METHOD_PARAMETER| XOTCL_ARG_HAS_DEFAULT,
+                        XOTCL_DISALLOWED_ARG_SETTER|XOTCL_ARG_HAS_DEFAULT,
                         setterClientData->paramsPtr, &possibleUnknowns, &plainParams);
 
     if (result != TCL_OK) {
