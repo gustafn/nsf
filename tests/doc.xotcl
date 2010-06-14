@@ -117,7 +117,7 @@ Test case scanning {
 
   set blocks {1 {{@package o} {1 2 3}} 5 {{@object o} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}} 17 {{@object o # ####} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}}}
 
-    ? [list ::lcompare [doc comment_blocks $script] $blocks] 1
+  ? [list ::lcompare [doc comment_blocks $script] $blocks] 1
 }
 
 Test case parsing {
@@ -127,13 +127,12 @@ Test case parsing {
   set block {
     {@command cc}
   }
-  ? [list catch [list EntityClass process $block] msg] 0
-  [@command id cc] destroy
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
 
   set block {
     {}
   }
-  ? [list catch [list EntityClass process $block] msg] 1
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
 
   #
   # For now, a valid comment block must start with a non-space line
@@ -145,31 +144,29 @@ Test case parsing {
     {}
     {@command cc}
   }
-  ? [list catch [list EntityClass process $block] msg] 1
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
 
  set block {
    {command cc}
    {}
   }
-  ? [list catch [list EntityClass process $block] msg] 1
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
 
   set block {
     {@command cc}
     {some description}
   }
-  ? [list catch [list EntityClass process $block] msg] 1
-  [@command id cc] destroy
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
 
  set block {
-    {@command cc} 
-    {}
-    {}
-    {}
-    {@see ::o}
-  }
+   {@command cc} 
+   {}
+   {}
+   {}
+   {@see ::o}
+ }
   EntityClass process $block
-  ? [list catch [list EntityClass process $block] msg] 0
-  [@command id cc] destroy
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
 
  set block {
    {@command cc}
@@ -179,12 +176,10 @@ Test case parsing {
    {}
    {}
   }
-  ? [list catch [list EntityClass process $block] msg] 0
-  [@command id cc] destroy
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
 
-  #
-  # TODO: Allow description blocks with intermediate space lines?
-  #
+  # Note: We do allow description blocks with intermediate space
+  # lines, for now.
   set block {
     {@command cc}
     {}
@@ -193,8 +188,7 @@ Test case parsing {
     {}
     {an erroreneous description line, for now}
   }
-  ? [list catch [list EntityClass process $block] msg] 1
-  [@command id cc] destroy
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
 
   #
   # TODO: Do not enforce space line between the context and imediate
@@ -217,8 +211,7 @@ Test case parsing {
     {@command cc}
     {@see someOtherEntity}
   }
-  ? [list catch [list EntityClass process $block] msg] 1
-  [@command id cc] destroy
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
 
   #
   # TODO: Disallow space lines between parts? Check back with Javadoc spec.
@@ -233,8 +226,7 @@ Test case parsing {
     {@see SomeOtherEntity2}
     {}
   }
-  ? [list catch [list EntityClass process $block] msg] 0
-  [@command id cc] destroy
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
 
   #
   # TODO: Should we enforce a mandatory space line between description and part block?
@@ -248,8 +240,7 @@ Test case parsing {
     {@see entity3}
     {@see SomeOtherEntity2}
   }
-  ? [list catch [list EntityClass process $block] msg] 1
-  [@command id cc] destroy
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
 
   set block {
     {@command cc}
@@ -264,9 +255,44 @@ Test case parsing {
     {an erroreneous description line, for now}
   }
   
-  ? [list catch [list EntityClass process $block] msg] 1
-  [@command id cc] destroy
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
   
+  set block {
+    {@command cc}
+    {}
+    {add a line of description}
+    {a second line of description}
+    {}
+    {a third line of description}
+    {}
+    {@see SomeOtherEntity2}
+  }
+  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
+
+  set block {
+    {@object cc}
+    {}
+    {add a line of description}
+    {a second line of description}
+    {}
+    {@see SomeOtherEntity2}
+    {@xyz SomeOtherEntity2}
+  }
+  ? [list InvalidTag thrown_by? [list EntityClass process $block]] 1
+
+  set block {
+    {@class cc}
+    {}
+    {add a line of description}
+    {a second line of description}
+    {}
+    {@see SomeOtherEntity2}
+    {@xyz SomeOtherEntity2}
+  }
+  ? [list InvalidTag thrown_by? [list EntityClass process $block]] 1
+
+
+
   #
   # testing the doc object construction
   #
@@ -453,7 +479,6 @@ Test case parsing {
   } {
     ? [list expr [list [$i eval [list $p text]] eq $expected]] 1;
   }
-
   set entity [@method id ::Bar object foo]
   ? [list $i eval [list [@object id ::Bar] @object-method]] $entity
   ? [list $i eval [list ::nx::core::is $entity object]] 1
@@ -469,8 +494,25 @@ Test case parsing {
   }
  
   interp delete $i
-  
+  puts stderr =================================================
+  #
+  # self documentation
+  #
+  if {[catch {set i [doc process next::doc]} msg]} {
+    if {[Exception behind? $msg]} {
+      puts stderr [$msg info class]->[$msg message]
+      exit
+    } else {
+      error $msg
+    }
+  }
+  ? [list $i eval [list ::nx::core::is [@package id next::doc] object]] 1
+  puts stderr [$i eval [list [@package id next::doc] text]]
+  puts stderr [$i eval [list [@package id next::doc] @require]]
+  interp delete $i
 }
+
+
 
 # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # #
