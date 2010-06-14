@@ -199,14 +199,14 @@ Test case parsing {
   # 
   # --
   # @object Foo
-  # @attribute attr1
+  # @param attr1
   # --
   #
   # THEN, we can only discriminate between the context and an
   # immediate part section by requiring a space line!
   #
   # Alternatively, we can use the @see like syntax for qualifying:
-  # @attribute ::Foo#attr1 (I have a preference for this option).
+  # @param ::Foo#attr1 (I have a preference for this option).
   set block {
     {@command cc}
     {@see someOtherEntity}
@@ -336,7 +336,7 @@ Test case parsing {
       # @author gneumann@wu.ac.at
       # @author ssoberni@wu.ac.at
       
-      # @attribute attr1 
+      # @param attr1 
       #
       # This attribute 1 is wonderful
       #
@@ -364,10 +364,12 @@ Test case parsing {
   ? [list $entity text] "The class Foo defines the behaviour for all Foo objects";
   ? [list $entity @author] "gneumann@wu.ac.at ssoberni@wu.ac.at"
 
-
-  set entity [@attribute id ::Foo class attr1]
+  # TODO: Fix the [@param id] programming scheme to allow (a) for
+  # entities to be passed and the (b) documented structures
+  #set entity [@param id ::Foo class attr1]
+  set entity [@param id $entity attr1]
   ? [list ::nx::core::is $entity object] 1
-  ? [list $entity info is type ::nx::doc::@attribute] 1
+  ? [list $entity info is type ::nx::doc::@param] 1
   ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Foo class foo]
@@ -380,6 +382,7 @@ Test case parsing {
     "Provides a first value"
     "Provides a second value"
   } {
+    puts stderr PARAM=$p
     ? [list expr [list [$p text] eq $expected]] 1;
   }
 
@@ -398,7 +401,7 @@ Test case parsing {
     # @author gneumann@wu.ac.at
     # @author ssoberni@wu.ac.at
 
-    # @attribute Bar#attr1 
+    # @param Bar#attr1 
     #
     # This attribute 1 is wonderful
     #
@@ -461,10 +464,12 @@ Test case parsing {
   ? [list $i eval [list $entity text]] "The class Bar defines the behaviour for all Bar objects";
   ? [list $i eval [list $entity @author]] "gneumann@wu.ac.at ssoberni@wu.ac.at"
 
-
-  set entity [@attribute id ::Bar class attr1]
+  # TODO: Fix the [@param id] programming scheme to allow (a) for
+  # entities to be passed and the (b) documented structures
+  #set entity [@param id ::Bar class attr1]
+  set entity [@param id $entity attr1]
   ? [list $i eval [list ::nx::core::is $entity object]] 1
-  ? [list $i eval [list $entity info is type ::nx::doc::@attribute]] 1
+  ? [list $i eval [list $entity info is type ::nx::doc::@param]] 1
   ? [list $i eval [list $entity @see]] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Bar class foo]

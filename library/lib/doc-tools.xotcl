@@ -83,7 +83,7 @@ namespace eval ::nx::doc {
     #
     # EntityClass is a meta-class for named doc entities
     #
-    :attribute {tag {[string tolower [namespace tail [self]]]}}
+    :attribute {tag {[string trimleft [string tolower [namespace tail [self]]] @]}}
     :attribute {root_namespace "::nx::doc::entities"}
 
     namespace eval ::nx::doc::entities {}
@@ -91,10 +91,6 @@ namespace eval ::nx::doc {
     :method id {name} {
       set subns [string trimleft [namespace tail [self]] @]
       return [:root_namespace]::${subns}::[string trimleft $name :]
-    }
-
-    :method new_from_attribute {tag domain args} {
-      :new {*}$args
     }
 
     :method new {-name:required args} {
@@ -110,6 +106,10 @@ namespace eval ::nx::doc {
       }
       return $id
     }
+
+    :method get_unqualified_name {qualified_name} {
+      return [string trim [string map [list [:root_namespace] ""] $qualified_name] ":"]
+    }
   }
 
   Class create PartClass -superclass EntityClass {
@@ -119,7 +119,17 @@ namespace eval ::nx::doc {
       set partof_name [string trimleft $partof_object :]
       return [join [list [:root_namespace] $subns $partof_name $scope $name] ::]
     }
-    :method new {-partof -part_attribute -name args} {
+    :method new {	       
+      -part_attribute 
+      {-partof:substdefault {[[MissingPartofEntity new \
+				   -message [subst {
+				     Parts of type '[namespace tail [self]]'
+				     require a partof entity to be set
+				   }]] throw]}}
+      -name 
+      args
+    } {
+
       :createOrConfigure [:id [$partof name] [$part_attribute scope] $name] {*}[self args]
     }
   }
@@ -141,7 +151,7 @@ namespace eval ::nx::doc {
   
   ::nx::MetaSlot create PartAttribute -superclass ::nx::Attribute {
 
-    # @attribute part_class
+    # @param part_class
     # 
     # The attribute slot refers to a concrete subclass of Part which
     # describes the parts being managed by the attribute slot.
@@ -156,25 +166,23 @@ namespace eval ::nx::doc {
       # needs to be verified -> @author returns ""
       # :default ""
       if {![info exists :scope]} {
+	set :scope class
 	regexp -- {@(.*)-.*} [namespace tail [self]] _ :scope
       }
       next
     }
     
-    :method get_part {domain prop value} {
+    :method require_part {domain prop value} {
       if {[info exists :part_class]} {
 	if {[::nx::core::is $value object] && \
 		[::nx::core::is $value type ${:part_class}]} {
 	  return $value
 	}
-	  set part [${:part_class} new \
-			       -name [lindex $value 0] \
-			       -partof $domain \
-			       -part_attribute [self] \
-			       -@doc [lrange $value 1 end]]
-	
-	return $part
-	
+	return  [${:part_class} new \
+		     -name [lindex $value 0] \
+		     -partof $domain \
+		     -part_attribute [self] \
+		     -@doc [lrange $value 1 end]]	
       }
       return $value
     }
@@ -184,19 +192,19 @@ namespace eval ::nx::doc {
     :method assign {domain prop value} {
       set parts [list]
       foreach v $value {
-	lappend parts [:get_part $domain $prop $v]
+	lappend parts [:require_part $domain $prop $v]
       }
       next $domain $prop $parts
     }
     :method add {domain prop value {pos 0}} {
-      set p [:get_part $domain $prop $value]
+      set p [:require_part $domain $prop $value]
       if {![$domain exists $prop] || $p ni [$domain $prop]} {
 	next $domain $prop $p $pos
       }
       return $p
     }
     :method delete {domain prop value} {
-      next $domain $prop [:get_part $prop $value]
+      next $domain $prop [:require_part $prop $value]
     }
   }
   
@@ -283,7 +291,7 @@ namespace eval ::nx::doc {
   #
   # These can contain multiple parts.
   #  - @method
-  #  - @attribute
+  #  - @param
   #  - ...
   #
 
@@ -305,14 +313,25 @@ namespace eval ::nx::doc {
 	:attribute @author -slotclass ::nx::doc::PartAttribute 
 	:attribute @method -slotclass ::nx::doc::PartAttribute {
 	  set :part_class @method
+	  :method require_part {domain prop value} {
+	    # TODO: verify whether these scoping checks are sufficient
+	    # and/or generalisable: For instance, is the scope
+	    # requested (from the part_attribute) applicable to the
+	    # partof object, which is the object behind [$domain name]?
+	    if {[info exists :scope] && \
+		    ![::nx::core::objectproperty [$domain name] ${:scope}]} {
+	      error "The object '[$domain name]' does not qualify as '[$part_attribute scope]'"
+	    }
+	    next
+	  }
 	}
 	:attribute @object-method -slotclass ::nx::doc::PartAttribute {
 	  set :part_class @method
 	}
-	:attribute @attribute -slotclass ::nx::doc::PartAttribute {
-	  set :part_class @attribute
+	:attribute @param -slotclass ::nx::doc::PartAttribute {
+	  set :part_class @param
 	}
-	
+       
 	:method process {
 	  {-initial_section:optional "context"} 
 	  -entity:optional 
@@ -374,33 +393,6 @@ namespace eval ::nx::doc {
 	:attribute @return -slotclass ::nx::doc::PartAttribute {
 	  set :part_class @param
 	}
-	
-	:object method new {
-		-part_attribute 
-		{-partof:substdefault {[[MissingPartofEntity new \
-					     -message [subst {
-			Parts of type '[namespace tail [self]]'
-			require a partof entity to be set
-					     }]] throw]}}
-		-name 
-		args
-	      } {
-	  set partof_entity [$partof name]
-	  # scoping checks: is the scope requested (from the
-	  # part_attribute) applicable to the partof object, which is
-	  # the object behind [$partof name]
-	  if {![$part_attribute exists scope]} {
-	    if {[::nx::core::objectproperty $partof_entity class]} {
-	      $part_attribute scope class
-	    } elseif {[::nx::core::objectproperty $partof_entity object]} {
-	      $part_attribute scope object
-	    } else {
-	      $part_attribute scope class
-	    }
-	  }
-	  next
-	}
-	
 	:method signature {} {
 	  if {[info exists :arguments]} {
 	    set arguments ${:arguments}
@@ -421,63 +413,19 @@ namespace eval ::nx::doc {
 
       }; # @method
   
-
-  # TODO: Refactor @attribute into a variant of @param, having an
-  # object scope; along with command and method scopes. Or, is it
-  # really scopes or is it sufficient to navigate along the partof
-  # relationship?
-  PartClass create @attribute \
-      -superclass Part {
-	
-	:object method new {
-		-part_attribute 
-		{-partof:substdefault {[[MissingPartofEntity new \
-					     -message [subst {
-			Parts of type '[namespace tail [self]]'
-			require a partof entity to be set
-					     }]] throw]}}
-		-name 
-		args
-	      } {
-	  set partof_entity [$partof name]
-	  # scoping checks: is the scope requested (from the
-	  # part_attribute) applicable to the partof object, which is
-	  # the object behind [$partof name]
-	  if {![$part_attribute exists scope]} {
-	    if {[::nx::core::objectproperty $partof_entity class]} {
-	      $part_attribute scope class
-	    } elseif {[::nx::core::objectproperty $partof_entity object]} {
-	      $part_attribute scope object
-	    } else {
-	      $part_attribute scope class
-	    }
-	  }
-	  next
-	}
-
-
-      }; # @attribute
-
   #
   # TODO: retrofit @command::Variant
   # 
-  Class create @command::Variant -superclass Part
+  Class create @variant -superclass Part
 
-  EntityClass create @param \
+  PartClass create @param \
       -superclass Part {
-	:attribute param
-	:attribute fullname    
 	:attribute spec
 	:attribute default
 
 	:object method id {partof name} {
-	  return [:root_namespace]::${:tag}::${partof}::${name}
-	}
-
-	:object method new_from_attribute {tag domain args} {
-	  array set "" $args
-	  set (-partof) $domain
-	  :new {*}[array get ""]
+	  set partof_fragment [:get_unqualified_name ${partof}]
+	  return [:root_namespace]::${:tag}::${partof_fragment}::${name}
 	}
 	
 	:object method new {
@@ -490,13 +438,12 @@ namespace eval ::nx::doc {
 		-name 
 		args
 	      } {
-	  set scope [namespace tail [namespace qualifiers $partof]]
-	  :createOrConfigure [:id "${scope}[${partof} name]" $name] {*}[self args]
+	  :createOrConfigure [:id $partof $name] {*}[self args]
 	}
       }
 
   namespace export EntityClass @command @object @method @param \
-      @attribute @package @ Exception StyleViolation InvalidTag \
+      @param @package @ Exception StyleViolation InvalidTag \
       MissingPartofEntity
 }
 
@@ -715,13 +662,20 @@ namespace eval ::nx {
       set lines [split $script \n]
       set comment_blocks [list]
       set was_comment 0
+      
       set spec {
 	0,1	{
 	  set line_offset $line_counter; 
 	  set comment_block [list]; 
-	  lappend comment_block $text}
+	  # Note, we use [split] here to avoid stumbling over
+	  # uncommented script blocks which contain pairs of curly
+	  # braces which appear scattered over several physical lines
+	  # of code. This avoids "unmatched open brace" failures when
+	  # feeding each physical line to a list command (later, in
+	  # the parsing machinery)
+	  lappend comment_block [split $text]}
 	1,0	{lappend comment_blocks $line_offset $comment_block}
-	1,1	{lappend comment_block $text}
+	1,1	{lappend comment_block [split $text]}
 	0,0	{}
       }
       array set do $spec 
@@ -889,6 +843,7 @@ namespace eval ::nx::doc {
       }
       
       if {$failure ne ""} {
+	#puts stderr ERRORINFO=$::errorInfo
 	error $failure
       }
       
@@ -923,8 +878,8 @@ namespace eval ::nx::doc {
 	# for named entities, the provided identifier can be either
 	# qualified or unqualified:
 	# 
-	# a) unqualified: @attribute attr1
-	# b) qualified: @attribute Bar#attr1
+	# a) unqualified: @param attr1
+	# b) qualified: @param Bar#attr1
 	#
 	# For qualified ones, we must resolve the qualifier to serve
 	# as the partof_entity; see resolve_partof_entity()
@@ -940,7 +895,7 @@ namespace eval ::nx::doc {
 	      '[namespace tail [$partof_entity info class]]'
 	    }]] throw
 	  }
-	  puts stderr "1. $partof_entity $tag $nq_name {*}$args"
+	  #	  puts stderr "1. $partof_entity $tag $nq_name {*}$args"
 	  set :current_entity [$partof_entity $tag $nq_name {*}$args]
 	  
 	} else {
@@ -950,7 +905,7 @@ namespace eval ::nx::doc {
 	      The entity type '$tag' is not available
 	    }]] throw 
 	  }
-	  puts stderr "$tag new -name $nq_name {*}$args"
+	 # puts stderr "$tag new -name $nq_name {*}$args"
 	  set :current_entity [$tag new -name $nq_name {*}$args]
 	}
       } else {
@@ -962,7 +917,7 @@ namespace eval ::nx::doc {
 	    '[namespace tail [${:current_entity} info class]]'
 	  }]] throw
 	}
-	puts stderr "${:current_entity} $tag {*}$args"
+	# puts stderr "${:current_entity} $tag {*}$args"
 	${:current_entity} $tag {*}$args
       }
     }
