@@ -272,7 +272,9 @@ namespace eval ::nx::doc {
     #
     :method text {} {
       # TODO: Provide \n replacements for empty lines
-      subst [join ${:@doc} " "]
+      if {[info exists :@doc]} {
+	subst [join ${:@doc} " "]
+      }
     }
     
   }
@@ -394,13 +396,16 @@ namespace eval ::nx::doc {
 	  set :part_class @param
 	}
 	:method signature {} {
+	  #
+	  # TODO: What was the original intention of introducing arguments?!
+	  #
 	  if {[info exists :arguments]} {
 	    set arguments ${:arguments}
 	  } else {
 	    set arguments [list]
-	    foreach p [:params] {lappend arguments [$p param]}
+	    foreach p [:@param] {lappend arguments [$p name]}
 	  }
-	  set result "obj ${:name} $arguments"
+	  set result "method ${:name} $arguments"
 	}
 	:method process {	  
 	  {-initial_section:optional "context"} 
@@ -450,6 +455,68 @@ namespace eval ::nx::doc {
 
 
 namespace eval ::nx::doc {
+
+  Class create TemplateData {
+    :method render {template {entity:substdefault "[self]"}} {
+      #
+      # Here, we assume the -nonleaf mode being
+      # active for [eval].
+      #
+      $entity eval [list subst $template]
+    }
+    
+    
+    #
+    # some instructions for a dwarfish, embedded templating language
+    #
+    :method let {var value} {
+      uplevel 1 [list ::set $var [expr {[info exists value]?$value:""}]]
+      return
+    }
+    :method for {var list body} { 
+      set rendered ""
+      ::foreach $var $list {
+	uplevel 1 [list ::set $var [set $var]]
+	append rendered [uplevel 1 [list subst $body]]
+      }
+      return $rendered
+    }
+    :method ?var {varname args} {
+      uplevel 1 [list :? -ops [list [::nx::core::current proc] -] \
+		     "\[info exists $varname\]" {*}$args]
+    } 
+    :method ? {
+      {-ops {? -}} 
+      expr 
+      then 
+      next:optional 
+      args
+    } {
+      if {[info exists next] && $next ni $ops} {
+	return -code error "Invalid control operator '$next', we expect one of $ops"
+      }
+      set condition [list expr $expr]
+      if {[uplevel 1 $condition]} {
+	return [uplevel 1 [list subst $then]]
+      } elseif {[info exists next]} {
+	if {$next eq "-"} {
+	  set args [lassign $args next_then]
+	  if {$next_then eq ""} {
+	    return -code error "A then script is missing for '-'"
+	  }
+	  if {$args ne ""} {
+	    return -code error "Too many arguments: $args"
+	  }
+	  return [uplevel 1 [list subst $next_then]]
+	}
+	return [:$next {*}$args]
+      }
+    }
+    
+    :method include {template} {
+      uplevel 1 [list subst $template]
+    }
+  }
   
   #
   # Provide a simple HTML renderer. For now, we make our life simple
@@ -458,25 +525,44 @@ namespace eval ::nx::doc {
   # We could think about a java-doc style renderer...
   #
   
-  Class create HTMLrenderer {
+  Class create Renderer {
+    :method render {} {
+      :render=[namespace tail [:info class]]
+    }
+  }
+
+  Class create HtmlRenderer -superclass Renderer {
     # render command pieces in the text
-    :method cmd {text} {return <@TT>$text</@TT>}
+    :method tt {text} {return <@TT>$text</@TT>}
+
+
+    :method render=@package {} {
+      puts "<LI>[:tt ${:name}] <br>\n[:text]"
+      set req [:@require]
+      if {$req ne ""} {
+	puts "   <UL>"
+	foreach r $req {puts "    <LI>$r</LI>"}
+	puts "   </UL>"
+      }
+      puts "</LI>\n"
+
+    }
 
     #
     # render xotcl commands
     #
-    :method renderCmd {} {
-      puts "<LI>[:cmd ${:name}] <br>\n[:text]"
-      set variants [sorted [:variants] name]
-      if {$variants ne ""} {
-	puts "   <UL>"
-	foreach v $variants {puts "    <LI>[$v text]"}
-	puts "   </UL>"
-      }
-      set params [:params]
+    :method render=@command {} {
+      puts "<LI>[:tt ${:name}] <br>\n[:text]"
+      # set variants [sorted [:variants] name]
+      # if {$variants ne ""} {
+      # 	puts "   <UL>"
+      # 	foreach v $variants {puts "    <LI>[$v text]"}
+      # 	puts "   </UL>"
+      # }
+      set params [:@param]
       if {$params ne ""} {
 	puts "   <UL>"
-	foreach v $params {puts "    <LI>[$v cmd [$v name]] [$v text]"}
+	foreach v $params {puts "    <LI>[$v tt [$v name]] [$v text]"}
 	puts "   </UL>"
       }
       puts "</LI>\n"
@@ -485,16 +571,23 @@ namespace eval ::nx::doc {
     #
     # render next classes
     #
-    :method renderClass {} {
-      puts "<LI>[:cmd ${:name}] <br>\n[:text]"
-      set methods [sorted [:methods] name]
-      if {$methods ne ""} {
-	puts "<br>Methods of ${:name}:\n   <UL>"
-	foreach v $methods {if {[$v scope] eq "class"} {$v renderMethod}}
-	puts "   </UL>"
-	puts "<br>Object Methods of ${:name}:\n   <UL>"
-	foreach v $methods {if {[$v scope] eq "object"} {$v renderMethod}}
-	puts "   </UL>"
+    :method render=@object {} {
+      puts "<LI>[:tt ${:name}] <br>\n[:text]"
+      if {[info exists :@method]} {
+	set methods [sorted [:@method] name]
+	if {$methods ne ""} {
+	  puts "<br>Methods of ${:name}:\n   <UL>"
+	  foreach m $methods {$v render}
+	  puts "   </UL>"
+	}
+      }
+      if {[info exists :@object-method]} {
+	set methods [sorted [:@object-method] name]
+	if {$methods ne ""} {
+	  puts "<br>Object methods of ${:name}:\n   <UL>"
+	  foreach m $methods {$v render}
+	  puts "   </UL>"
+	}
       }
       puts "</LI>\n"
     }
@@ -502,16 +595,16 @@ namespace eval ::nx::doc {
     #
     # render next methods
     #
-    :method renderMethod {} {
-      puts "<LI>[:cmd [:signature]] <br>\n[:text]"
-      set params [:params]
+    :method render=@method {} {
+      puts "<LI>[:tt [:signature]] <br>\n[:text]"
+      set params [:@param]
       if {$params ne ""} {
 	puts "   <UL>"
-	foreach v $params {puts "    <LI>[$v cmd [$v name]] [$v text]"}
+	foreach v $params {puts "    <LI>[$v tt [$v name]] [$v text]"}
 	puts "   </UL>"
       }
       if {${:returns} ne ""} {
-	puts "   Returns: ${:returns}"
+	puts "   Returns: ${:@return}"
       }
       puts "\n"
     }
@@ -755,21 +848,27 @@ namespace eval ::nx::doc {
       }
     }
     
-    :method doc {{-renderer ::nx::doc::HTMLrenderer}} {
+    :method doc {{-renderer ::nx::doc::HtmlRenderer}} {
       
       # register the HTML renderer for all docEntities.
       
       Entity mixin add $renderer
+
+      puts "<h2>Tcl packages</h2>\n<UL>"
+      foreach pkg [sorted [@package info instances] name] {
+	$pkg render
+      }
+
       
-      puts "<h2>Primitive XOTcl framework commands</h2>\n<UL>"
+      puts "<h2>Primitive Next framework commands</h2>\n<UL>"
       foreach cmd [sorted [@command info instances] name] {
-	$cmd renderCmd
+	$cmd render
       }
       puts "</UL>\n\n"
       
-      puts "<h2>XOTcl Classes</h2>\n<UL>"
+      puts "<h2>Next objects</h2>\n<UL>"
       foreach cmd [sorted [@object info instances] name] {
-	$cmd renderClass
+	$cmd render
       }
       puts "</UL>\n\n"
       
