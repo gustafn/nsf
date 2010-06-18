@@ -514,7 +514,14 @@ Test case parsing {
   ? [list $i eval [list ::nx::core::is [@package id next::doc] object]] 1
   puts stderr [$i eval [list [@package id next::doc] text]]
   puts stderr [$i eval [list [@package id next::doc] @require]]
-  $i eval [list ::nx::doc::make doc]
+  set path [file join /tmp nextdoc]
+  if {[file exists $path]} {
+    file delete -force $path
+  }
+  $i eval [list ::nx::doc::make doc \
+	       -renderer ::nx::doc::TemplateData \
+	       -outdir /tmp \
+	       -project {name nextdoc url http://www.next-scripting.org/}]
   interp delete $i
 }
 

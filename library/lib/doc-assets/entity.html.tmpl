@@ -1,0 +1,116 @@
+[:let packages [sorted [@package info instances] name]]
+[:let objects [sorted [@object info instances] name]]
+[:let commands [sorted [@command info instances] name]]
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns:yui="http://yuilibrary.com/rdf/1.0/yui.rdf#">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<title>API: ${:name} [:?var classname {$classname}] [:?var filename {$filename}] (A Next Library)</title>
+
+	<link rel="stylesheet" type="text/css" href="assets/reset-fonts-grids-min.css" />
+	<link rel="stylesheet" type="text/css" href="assets/api.css" />
+
+    <script type="text/javascript" src="assets/api-js"></script>
+    <script type="text/javascript" src="assets/ac-js"></script>
+</head>
+
+<body id="yahoo-com">
+
+<div id="doc3" class="yui-t2">
+	<div id="hd">
+        <h1><a href="[$project url]" title="[$project name]">[$project name]</a></h1>
+        <h3>${:name}&nbsp; <span class="subtitle">version</span></h3>
+        <a href="./index.html" title="[$project name]">[$project name]</a> 
+        [:? {[:info is type ::nx::doc::@package]} {
+	   &gt; <a href="./[:filename].html" title="${:name}">${:name}</a>
+	  } ? {[:info is type ::nx::doc::@object]} {
+	  &gt; [:?var :partof {<a href="./[${:partof} filename].html" title="[${:partof} name]">[${:partof} name]</a> &gt;}] ${:name}</a>
+	  }]
+        <form onsubmit="return false">
+            <div id="propertysearch">
+                Search: <input autocomplete="off" id="searchinput" />
+                <div id="searchresults">
+                    &nbsp;
+                </div>
+            </div>
+        </form>
+	</div><!-- hd -->
+
+	<div id="bd">
+		<div id="yui-main">
+			<div class="yui-b">
+			  [:? {[:info is type ::nx::doc::@package]} {
+			  [:include package.html.tmpl]
+			  } ? {[:info is type ::nx::doc::@object]} {
+			  [:include object.html.tmpl]
+			  } ? {[:info is type ::nx::doc::@command]} {
+			  [:include command.html.tmpl]
+			  } ? {[:info is type ::nx::doc::@project]} {
+			<div class="summary description">
+			  This is the API documentation for the 
+			  <a href="[:name]">[:name]</a> project.
+			  <p>Choose a package or object name from the list for more information.</p>
+			</div>
+			}]
+       			</div>
+			</div>
+			<div class="yui-b">
+			<div class="nav">
+			  [:?var packages {
+			<div id="moduleList" class="module">
+			  <h4>Packages</h4>
+			  <ul class="content">
+			  [:for package $packages {
+			  [:let css "" ]
+			  [:? {[:info is type ::nx::doc::@package] && [self] eq $package} {
+			  [:let css "selected" ]
+			  }]
+			  <li class="$css"><a href="[$package filename].html" title="[$package name]">[$package name]</a></li>
+			  }]
+			</ul>
+		      </div>
+		 }]
+
+		 [:?var objects {
+		      <div id="classList" class="module">
+			<h4>Objects</h4>
+			<ul class="content">
+			  [:for object $objects {
+			  [:let css "" ]
+			  [:? {[:info is type ::nx::doc::@object] && [self] eq $object} {
+			  [:let css "selected" ]
+			  }]
+			  <li class="$css"><a href="[$object filename].html" title="[$object name]">[$object name]</a></li>
+			  }]
+			</ul>
+		      </div>
+		      }]
+
+		      [:?var commands {
+		      <div id="methodsList" class="module">
+			<h4>Commands</h4>
+			<ul class="content">
+			  [:for command $commands {
+			  [:let css "" ]
+			  [:? {[:info is type ::nx::doc::@command] && [self] eq $command} {
+			  [:let css "selected"]
+			  }]
+			  <li class="$css"><a href="[$command filename].html" title="[$command name]">[$command name]</a></li>
+			  }]
+			</ul>
+		      </div>
+		      }]
+		      
+		    </div>
+	    </div>
+	</div>
+	<div id="ft">
+        <hr />
+        Copyright &copy; [clock format [clock seconds] -format "%Y"]
+	</div>
+</div>
+<script type="text/javascript">
+    ALL_YUI_PROPS = allprops;
+</script>
+</body>
+</html>

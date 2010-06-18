@@ -1,0 +1,56 @@
+<!-- Below, we assume that the template is evaluated in the context of --
+  -- @package instance -->
+<h3>Module: ${:name}
+  
+</h3>
+<div class="description summary">
+  [:text]
+</div>
+
+
+[:?var :@require {
+<div class="content">
+  Requires: ${:@require}
+</div>
+} ]
+
+<div class="yui-gc">
+  <div class="yui-u first">
+    
+    [:?var objects {
+        <p>This package contains [llength $objects] objects:</p>
+    <script>
+      //var YUI_CLASS_LIST = classList;
+    </script>
+    <div id="splash_classList">
+      <ul>
+	[:let idx 0]
+	[:for object $objects {
+	 <li><a href="[${object} filename].html" title="[${object} name]" id="class_$idx">[${object} name]</a></li>
+	[incr idx; return]
+	} ]
+      </ul>
+    </div>
+
+    } ] 
+    [:?var objects {
+        <p>This package contains [llength $commands] commands:</p>
+    <script>
+      //var YUI_CLASS_LIST = classList;
+    </script>
+    <div id="splash_classList">
+      <ul>
+	[:let idx 0]
+	[:for cmd $commands {
+	 <li><a href="[${cmd} filename].html" title="[$cmd name]" id="cmd_$idx">[$cmd name]</a></li>
+	[incr idx; return]
+	} ]
+      </ul>
+    </div>
+
+    } ] 
+  </div>
+  <div class="yui-u">
+    <!-- TODO: anything that goes here? -->
+  </div>
+</div>

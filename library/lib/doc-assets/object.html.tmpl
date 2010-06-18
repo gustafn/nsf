@@ -1,0 +1,111 @@
+<h2>
+  Object <b property="yui:name">${:name}</b>
+  <span class="extends">
+  </span>
+</h2>
+
+
+[:?var :@see {
+<div class="deprecated"><strong>See also:</strong>${:@see}</div>
+}]
+
+<div class="summary description" property="yui:description">
+  [:text]
+</div>
+
+<div rel="yui:properties" resource="#properties">
+[:?var :@param {
+  <div class="section field details">
+    <h3 id="properties">Attributes</h3>
+    <div class="content">
+      [:for attr ${:@param} {
+       <div class="$property.access#if $property.deprecated# deprecated#end if#" rel="yui:property" resource="#property_$property.name">
+        <h4><a name="property_[$attr name]" property="yui:name">[$attr name]</a>
+        </h4>
+        <div class="detail">
+          <div class="description" property="yui:description">
+	    [$attr text]
+          </div>
+        </div>
+	
+        
+        [:? {[$attr exists default]} {
+        <div class="default" property="yui:defaultValue">
+          Default Value: [$attr default]
+        </div>        
+	}]
+	
+	[:? {[$attr exists deprecated]} {
+        <div class="deprecated" property="yui:deprecated">
+          <strong>Deprecated:</strong> [$attr default]
+        </div>        
+	}]
+	
+        <hr />
+      </div>
+   
+      }]
+      </div>
+  </div>
+} ]
+</div>
+<div rel="yui:methods" resource="#methods">
+  [:?var :@method {
+  <div class="section method details">
+    <h3 id="methods">Methods</h3>
+    <div class="content">
+      [:for method ${:@method} {
+      <div class="" rel="yui:method" resource="#method_[$method name]">
+        <h4>
+          <a name="method_[$method name]">[$method name]</a></h4>
+        <div class="detail" >            
+          <div class="description" property="yui:description">
+            [$method text]
+          </div>
+	  
+          <div class="description">
+	    
+	    [:? {[$method exists @param]} {
+	    <dl rel="yui:parameters">
+              <dt>Method parameters:</dt>
+	      [:for param [$method @param] {
+	      <dd rel="yui:parameter">
+                <code><span property="yui:name">[$param name]</span>
+                  &lt;<span property="yui:type">[:? {[$param exists spec]} {[$param spec]}]</span>&gt;
+                </code>
+                <span property="yui:description">[$param text]</span>
+              </dd>
+	      }]
+            </dl>
+	    }]
+	    
+	    [:? {[$method exists :@return]} {
+	    [:let rparam [$method @return]]
+	    <dl>
+              <dt>Returns:
+                <code property="yui:return">
+		  [$rparam name]
+              </code></dt>
+              <dd property="yui:returnInfo">[$rparam text]</dd>
+            </dl>
+	    }]
+	    
+            
+	    [:? {[$method exists :@deprecated]} {
+            <div class="deprecated">
+              <strong>Deprecated</strong> [$method @deprecated]
+            </div>        
+	    }]
+	    
+          </div>
+	  
+        </div>
+        <hr />
+      </div>
+      
+      }] <!-- end-of-for -->
+    </div>
+  </div>
+  }]
+</div>
+  

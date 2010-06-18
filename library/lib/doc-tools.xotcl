@@ -27,15 +27,24 @@ package require next
 
 namespace eval ::nx::doc {
   namespace import -force ::nx::*
-
+  
+  # @command ::nx::doc::@
   #
-  # A few helper commands:
-  #  - "@" is a conveniant way for creating new objects with less
-  #  syntactic overhead
-  #  - "sorted" is used to sort instances by values of a specified attribute
+  # The helper proc "@" is a conveniant way for creating new
+  # documentation objects with less syntactic overhead.
   #
+  # @param class Request an instance of a particular entity class (e.g., @package)
+  # @param name What is the entity name (e.g., next::doc for a package)
+  # @param args A vector of arbitrary arguments, provided to the entity when being constructed
   proc @ {class name args} {$class new -name $name {*}$args}
 
+  # @command ::nx::doc::sorted
+  #
+  # This proc is used to sort instances by values of a specified
+  # attribute
+  #
+  # @param instances Points to a list of entity instances to sort
+  # @param sortedBy Indicates the attribte name whose values the sorting will be based on
   proc sorted {instances sortedBy} {
     set order [list]
     foreach v $instances {lappend order [list $v [$v eval [list set :$sortedBy]]]}
@@ -74,7 +83,9 @@ namespace eval ::nx::doc {
     }
   }
   
-  ExceptionClass create StyleViolation -superclass Exception
+  ExceptionClass create StyleViolation -superclass Exception {
+    #
+  }
   ExceptionClass create InvalidTag -superclass Exception
   ExceptionClass create MissingPartofEntity -superclass Exception 
 
@@ -134,12 +145,12 @@ namespace eval ::nx::doc {
     }
   }
   
-  # @object PartAttribute
+  # @object ::nx::doc::PartAttribute
   #
   # This special-purpose Attribute variant realises (1) a cumulative
   # value management and (2) support for distinguishing between
   # literal parts (e.g., @author, @see) and object parts (e.g.,
-  # @param).
+  # \@param).
   #
   # The cumulative value management adds the append() operation which
   # translates into an add(...,end) operation. PartAttribute slots
@@ -273,10 +284,26 @@ namespace eval ::nx::doc {
     :method text {} {
       # TODO: Provide \n replacements for empty lines
       if {[info exists :@doc]} {
-	subst [join ${:@doc} " "]
+	#
+	# Here, we apply a second [join] to compensate for the @doc items
+	# being lists themselves (that is, quotes etc. might be escaped)
+	#
+	subst [join [join ${:@doc} " "]]
       }
     }
+
+    :method filename {} {
+      return [[:info class] tag]_[string trimleft [string map {:: __} ${:name}] "_"]
+    }
+
     
+  }
+
+
+  EntityClass create @project -superclass Entity {
+    :attribute url
+    :attribute license
+    :attribute creationdate
   }
 
   #
@@ -367,7 +394,7 @@ namespace eval ::nx::doc {
       }
 
   
-  # @object Part
+  # @object ::nx::doc::Part
   #
   # A Part is a part of a documentation entity, defined by a
   # separate object. Every Part is associated to another
@@ -457,12 +484,21 @@ namespace eval ::nx::doc {
 namespace eval ::nx::doc {
 
   Class create TemplateData {
-    :method render {template {entity:substdefault "[self]"}} {
+    :method render {
+      {-initscript ""}
+      template 
+      {entity:substdefault "[self]"}
+    } {
       #
       # Here, we assume the -nonleaf mode being
       # active for [eval].
       #
-      $entity eval [list subst $template]
+      set tmplscript [list subst [[::nx::core::current class] read_tmpl $template]]
+      $entity eval [subst -nocommands {
+	$initscript
+	$tmplscript
+      }]
+      # $entity eval [list subst $template]
     }
     
     
@@ -514,8 +550,38 @@ namespace eval ::nx::doc {
     }
     
     :method include {template} {
-      uplevel 1 [list subst $template]
+      uplevel 1 [list subst [[::nx::core::current class] read_tmpl $template]]
     }
+    
+    #
+    #
+    #
+ 
+    :object method find_asset_path {{-subdir lib/doc-assets}} {
+      foreach dir $::auto_path {
+	set assets [file normalize [file join $dir $subdir]]
+	if {[file exists $assets]} {
+	  return $assets
+	}
+      }
+    }
+
+    :object method read_tmpl {path} {
+      if {[file pathtype $path] ne "absolute"} {
+	set assetdir [:find_asset_path]
+	set tmpl [file join $assetdir $path]
+      } else {
+	set tmpl [file normalize $path]
+      }
+      if {![file exists $tmpl] || ![file isfile $tmpl]} {
+	error "The template file '$path' was not found."
+      }
+      set fh [open $tmpl r]
+      set content [read $fh]
+      catch {close $fh}
+      return $content
+    }
+
   }
   
   #
@@ -705,7 +771,7 @@ namespace eval ::nx {
       uplevel #0 [list eval $script]
       set post_commands [:list_commands]
       set additions [dict keys [dict remove [dict create {*}"[join $post_commands " _ "] _"] {*}$pre_commands]]
-
+      puts stderr ADDITIONS=$additions
       set blocks [:comment_blocks $script]
       # :log "blocks: '$blocks'"
       # 1) eval the script in a dedicated interp; provide for
@@ -730,7 +796,7 @@ namespace eval ::nx {
       foreach addition $additions {
 	# TODO: for now, we skip over pure Tcl commands and procs
 	if {![::nx::core::is $addition object]} continue;
-	:process $addition
+	:process [namespace origin $addition]
       }
     }
 
@@ -848,7 +914,10 @@ namespace eval ::nx::doc {
       }
     }
     
-    :method doc {{-renderer ::nx::doc::HtmlRenderer}} {
+    :method doc {
+      {-renderer ::nx::doc::HtmlRenderer}
+      {-outdir /tmp/}
+    } {
       
       # register the HTML renderer for all docEntities.
       
@@ -874,7 +943,44 @@ namespace eval ::nx::doc {
       
       Entity mixin delete $renderer
     }
+   
+    :method write {content path} {
+      set fh [open $path w]
+      puts $fh $content
+      catch {close $fh}
+    }
+
+    :method doc {
+      {-renderer ::nx::doc::HtmlRenderer}
+      {-outdir /tmp/}
+      {-tmpl entity.html.tmpl}
+      {-project {url http://www.next-scripting.org/ name Next}}
+    } {
+      array set prj $project
+      set project [@project new -name $prj(name) -url $prj(url)]
+      Entity mixin add $renderer
+      set ext [lindex [split [file tail $tmpl] .] end-1]
+      set entities [concat [sorted [@package info instances] name] \
+			[sorted [@command info instances] name] \
+			[sorted [@object info instances] name]]
+      set init [subst -nocommands {
+	set project $project
+      }]
+
+      if {![catch {file mkdir [file join $outdir [$project name]]} msg]} {
+	file copy -force -- [$renderer find_asset_path] [file join $outdir [$project name]]/assets
+	set index [$project render -initscript $init $tmpl]
+	:write $index [file join $outdir [$project name] "index.$ext"]
+	foreach e $entities {
+	  set content [$e render -initscript $init $tmpl]
+	  :write $content [file join $outdir [$project name] "[$e filename].$ext"]
+	}
+      }
+            
+      Entity mixin delete $renderer
+    }
   }
+
   
   #
   # modal comment block parsing

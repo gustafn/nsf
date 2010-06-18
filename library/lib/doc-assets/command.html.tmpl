@@ -1,0 +1,44 @@
+<h2>
+  Command <b property="yui:name">${:name}</b>
+</h2>
+
+
+<div class="description summary" property="yui:description">
+  [:text]
+</div>
+
+<div class="description">
+ 
+[:?var :@param {
+  <dl rel="yui:parameters">
+    <dt>Parameters:</dt>
+    [:for param ${:@param} {
+     <dd rel="yui:parameter">
+      <code><span property="yui:name">[$param name]</span>
+        &lt;<span property="yui:type">[:? {[$param exists spec]} {[$param spec]}]</span>&gt;
+      </code>
+      <span property="yui:description">[$param text]</span>
+    </dd>
+    }]
+  </dl>
+}]
+
+[:?var :@return {
+   <dl>
+    <dt>Returns:
+      <code property="yui:return">
+        $method.return.type
+    </code></dt>
+    <dd property="yui:returnInfo">$method.return.description</dd>
+  </dl>
+}]
+  
+  
+</div>
+
+
+
+
+
+
+              
