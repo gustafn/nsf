@@ -559,7 +559,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **objectPtr) {
   /* in case, objPtr was not of type cmdName, try to convert */
   cmd = Tcl_GetCommandFromObj(interp, objPtr);
   /*fprintf(stderr, "GetObjectFromObj obj %s => cmd=%p (%d)\n", 
-    ObjStr(objPtr), cmd, cmd?Tcl_Command_refCount(cmd):-1);*/
+    ObjStr(objPtr), cmd, cmd ? Tcl_Command_refCount(cmd):-1);*/
   if (cmd) {
     XOTclObject *object = XOTclGetObjectFromCmdPtr(cmd);
 
@@ -572,7 +572,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclObject **objectPtr) {
   }
 
   /*fprintf(stderr, "GetObjectFromObj convertFromAny for %s type %p %s\n", ObjStr(objPtr),
-    objPtr->typePtr, objPtr->typePtr?objPtr->typePtr->name : "(none)");*/
+    objPtr->typePtr, objPtr->typePtr ? objPtr->typePtr->name : "(none)");*/
 
   /* In case, we have to revolve via the callingNameSpace (i.e. the
    * argument is not fully qualified), we retry here.
@@ -659,10 +659,10 @@ NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr) {
   int len;
   CONST char *objString;
 
-  /*fprintf(stderr, "NameInNamespaceObj %s (%p, %s) ", name, nsPtr, nsPtr?nsPtr->fullName:NULL);*/
+  /*fprintf(stderr, "NameInNamespaceObj %s (%p, %s) ", name, nsPtr, nsPtr ? nsPtr->fullName:NULL);*/
   if (!nsPtr)
     nsPtr = Tcl_GetCurrentNamespace(interp);
-  /* fprintf(stderr, " (resolved %p, %s) ", nsPtr, nsPtr?nsPtr->fullName:NULL);*/
+  /* fprintf(stderr, " (resolved %p, %s) ", nsPtr, nsPtr ? nsPtr->fullName:NULL);*/
   objPtr = Tcl_NewStringObj(nsPtr->fullName,-1);
   len = Tcl_GetCharLength(objPtr);
   objString = ObjStr(objPtr);
@@ -1995,10 +1995,10 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
     if (!Tcl_Command_cmdEpoch(cmd)) {
       XOTclObject *object = XOTclGetObjectFromCmdPtr(cmd);
 
-      /*fprintf(stderr, "... check %p %s\n",  object, object? objectName(object) : "(null)");*/
+      /*fprintf(stderr, "... check %p %s\n",  object, object ? objectName(object) : "(null)");*/
 
       if (object) {
-          /*fprintf(stderr, " ... child %s %p -- %s\n", oname, object, object?objectName(object):"(null)");*/
+          /*fprintf(stderr, " ... child %s %p -- %s\n", oname, object, object ? objectName(object):"(null)");*/
           /*fprintf(stderr, " ... obj=%s flags %.4x\n", objectName(object), object->flags);*/
 	
         /* in the exit handler physical destroy --> directly call destroy */
@@ -2106,7 +2106,8 @@ static void
 NSNamespaceDeleteProc(ClientData clientData) {
   /* dummy for ns identification by pointer comparison */
   XOTclObject *object = (XOTclObject*) clientData;
-  /*fprintf(stderr, "namespacedeleteproc obj=%p ns=%p\n", clientData,object? object->nsPtr:NULL);*/
+  /*fprintf(stderr, "namespacedeleteproc obj=%p ns=%p\n", 
+    clientData,object ? object->nsPtr : NULL);*/
   if (object) {
     object->nsPtr = NULL;
   }
@@ -7887,7 +7888,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
   XOTclClass *baseClass = NULL;
 
   PRINTOBJ("CleanupDestroyClass", (XOTclObject *)cl);
-  assert(softrecreate? recreate == 1 : 1);
+  assert(softrecreate ? recreate == 1 : 1);
 
   /* fprintf(stderr, "CleanupDestroyClass %p %s (ismeta=%d) softrecreate=%d, recreate=%d, %p\n", cl,className(cl),IsMetaClass(interp, cl, 1),
      softrecreate, recreate, clopt);*/
@@ -8024,7 +8025,7 @@ CleanupInitClass(Tcl_Interp *interp, XOTclClass *cl, Tcl_Namespace *nsPtr,
                  int softrecreate, int recreate) {
   XOTclClass *defaultSuperclass;
 
-  assert(softrecreate? recreate == 1 : 1);
+  assert(softrecreate ? recreate == 1 : 1);
 
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "+++ CleanupInitClass\n");
@@ -9338,7 +9339,7 @@ callingNameSpace(Tcl_Interp *interp) {
   }
 
   /*fprintf(stderr, " **** callingNameSpace: returns %p %s framePtr %p\n",
-    nsPtr, nsPtr?nsPtr->fullName:"(null)", framePtr);*/
+    nsPtr, nsPtr ? nsPtr->fullName:"(null)", framePtr);*/
   return nsPtr;
 }
 
@@ -13889,7 +13890,8 @@ static int XOTclClassInfoSubclassMethod(Tcl_Interp *interp, XOTclClass *class, i
     class->order = NULL;
     subclasses = ComputeOrder(class, class->order, Sub);
     class->order = saved;
-    rc = AppendMatchingElementsFromClasses(interp, subclasses?subclasses->nextPtr:NULL, patternString, patternObj);
+    rc = AppendMatchingElementsFromClasses(interp, subclasses ? subclasses->nextPtr:NULL, 
+					   patternString, patternObj);
     XOTclClassListFree(subclasses);
   } else {
     rc = AppendMatchingElementsFromClasses(interp, class->sub, patternString, patternObj);
