@@ -63,13 +63,31 @@ C c1
 ? {c1 ismetaclass} 0
 ? {c1 info class} ::C
 
-# destroy meta-class M, reclass meta-class instances to the base meta-class
+Class M2 -superclass M
+? {Object isobject M2} 1
+? {M2 isclass} 1
+? {M2 ismetaclass} 1
+? {M2 info superclass} ::M
+? {M2 info class} ::xotcl::Class
+
+M2 m2
+? {m2 info superclass} ::xotcl::Object
+? {m2 info class} ::M2
+
+# destroy meta-class M, reclass meta-class instances to the base
+# meta-class and set subclass of M to the root meta-class
 M destroy
 ? {Object isobject C} 1
 ? {C isclass} 1
 ? {C ismetaclass} 0
 ? {C info superclass} ::xotcl::Object
 ? {C info class} ::xotcl::Class
+
+? {M2 ismetaclass} 1
+? {M2 info superclass} ::xotcl::Class
+? {m2 info superclass} ::xotcl::Object
+? {m2 info class} ::M2
+
 
 # destroy class M, reclass class instances to the base class
 C destroy

@@ -7827,10 +7827,13 @@ DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclClass *mcl, int isMet
     } else {
       XOTclClass *result;
       XOTclClasses *sc;
-      /* check superclasses of metaclass */
+
       /*fprintf(stderr, "DefaultSuperClass for %s: search in superclasses starting with %p meta %d\n", 
         className(cl), cl->super, isMeta);*/
 
+      /* 
+       * check superclasses of metaclass 
+       */
       if (isMeta) {
 	/*fprintf(stderr, "  ... is %s already root meta %d\n",
                 className(mcl->object.cl), 
@@ -7881,17 +7884,19 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
   XOTclClassOpt *clopt = cl->opt;
-  XOTclClass *defaultClass = NULL;
+  XOTclClass *baseClass = NULL;
 
   PRINTOBJ("CleanupDestroyClass", (XOTclObject *)cl);
   assert(softrecreate? recreate == 1 : 1);
 
-  /*fprintf(stderr, "CleanupDestroyClass %p softrecreate=%d, recreate=%d, %p\n", cl,
-    softrecreate, recreate, clopt); */
+  /* fprintf(stderr, "CleanupDestroyClass %p %s (ismeta=%d) softrecreate=%d, recreate=%d, %p\n", cl,className(cl),IsMetaClass(interp, cl, 1),
+     softrecreate, recreate, clopt);*/
 
-  /* do this even with no clopt, since the class might be used as a
-     superclass of a per object mixin, so it has no clopt...
-  */
+  /* 
+   * Perform the next steps even with clopt == NULL, since the class
+   * might be used as a superclass of a per object mixin, so it might
+   * have no clopt...
+   */
   MixinInvalidateObjOrders(interp, cl);
   FilterInvalidateObjOrders(interp, cl);
 
@@ -7912,7 +7917,6 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
       /*
        *  Remove this class from all mixin lists and clear the isObjectMixinOf list
        */
-
       RemoveFromMixins(clopt->id, clopt->isObjectMixinOf);
       CmdListRemoveList(&clopt->isObjectMixinOf, GuardDel);
 
@@ -7920,11 +7924,13 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
        *  Remove this class from all class mixin lists and clear the
        *  isClassMixinOf list
        */
-
       RemoveFromClassmixins(clopt->id, clopt->isClassMixinOf);
       CmdListRemoveList(&clopt->isClassMixinOf, GuardDel);
     }
-    /* remove dependent filters of this class from all subclasses*/
+
+    /* 
+     * Remove dependent filters of this class from all subclasses
+     */
     FilterRemoveDependentFilterCmds(cl, cl);
     AssertionRemoveStore(clopt->assertions);
     clopt->assertions = NULL;
@@ -7939,25 +7945,28 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
   /*fprintf(stderr, "    CleanupDestroyClass softrecreate %d\n", softrecreate);*/
 
   if (!softrecreate) {
-    defaultClass = DefaultSuperClass(interp, cl, cl->object.cl, 0);
 
-    /* Reclass all instances of the current class the the appropriate
-       most general class ("baseClass"). The most general class of a
-       metaclass is the root meta class, the most general class of an
-       object is the root class. Instances of metaclasses can be only
-       reset to the root meta class (and not to to the root base class).
+    /* 
+     * Reclass all instances of the current class the the appropriate
+     * most general class ("baseClass"). The most general class of a
+     * metaclass is the root meta class, the most general class of an
+     * object is the root class. Instances of metaclasses can be only
+     * reset to the root meta class (and not to to the root base
+     * class).
+     */
 
-       We do not have to reclassing in case, cl is a root class
-    */
+    baseClass = DefaultSuperClass(interp, cl, cl->object.cl, 
+				  IsMetaClass(interp, cl, 1));
+    /* 
+     * We do not have to reclassing in case, cl is a root class
+     */
     if ((cl->object.flags & XOTCL_IS_ROOT_CLASS) == 0) {
-      XOTclClass *baseClass = IsMetaClass(interp, cl, 1) ?
-        DefaultSuperClass(interp, cl, cl->object.cl, 1)
-        : defaultClass;
 
       hPtr = &cl->instances ? Tcl_FirstHashEntry(&cl->instances, &hSrch) : 0;
       for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
         XOTclObject *inst = (XOTclObject*)Tcl_GetHashKey(&cl->instances, hPtr);
-        /*fprintf(stderr, "    inst %p %s flags %.6x id %p\n", inst, objectName(inst), inst->flags, inst->id);*/
+        /*fprintf(stderr, "    inst %p %s flags %.6x id %p baseClass %p %s\n", 
+	  inst, objectName(inst), inst->flags, inst->id,baseClass,className(baseClass));*/
         if (inst && inst != (XOTclObject*)cl && !(inst->flags & XOTCL_DURING_DELETE) /*inst->id*/) {
           if (inst != &(baseClass->object)) {
             (void)RemoveInstance(inst, cl->object.cl);
@@ -7975,10 +7984,11 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
     clopt = cl->opt = 0;
   }
 
-  /* On a recreate, it might be possible that the newly created class
-     has a different superclass. So we have to flush the precedence list
-     on a recreate as well.
-  */
+  /* 
+   * On a recreate, it might be possible that the newly created class
+   * has a different superclass. So we have to flush the precedence
+   * list on a recreate as well.
+   */
   FlushPrecedencesOnSubclasses(cl);
   while (cl->super) (void)RemoveSuper(cl, cl->super->cl);
 
@@ -7990,12 +8000,16 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
     while (cl->sub) {
       XOTclClass *subClass = cl->sub->cl;
       (void)RemoveSuper(subClass, cl);
-      /* if there are no more super classes add the Object
+      /* 
+       * If there are no more super classes add the Object
        * class as superclasses
        * -> don't do that for Object itself!
        */
-      if (subClass->super == 0 && (cl->object.flags & XOTCL_IS_ROOT_CLASS) == 0)
-        AddSuper(subClass, defaultClass);
+      if (subClass->super == 0 && (cl->object.flags & XOTCL_IS_ROOT_CLASS) == 0) {
+	/* fprintf(stderr,"subClass %p %s baseClass %p %s\n",
+	   cl,className(cl),baseClass,className(baseClass)); */
+	AddSuper(subClass, baseClass);
+      }
     }
     /*(void)RemoveSuper(cl, cl->super->cl);*/
   }
@@ -8017,7 +8031,7 @@ CleanupInitClass(Tcl_Interp *interp, XOTclClass *cl, Tcl_Namespace *nsPtr,
 #endif
 
   /*
-   * during init of Object and Class the theClass value is not set
+   * During init of Object and Class the theClass value is not set
    */
   /*
     if (RUNTIME_STATE(interp)->theClass != 0)
