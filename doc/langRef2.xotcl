@@ -1,4 +1,4 @@
-package req xotcl::doc-tools
+source [file dirname [info script]]/xodoc-tools.xotcl
 
 namespace eval ::xodoc-tools {
 
@@ -101,7 +101,7 @@ namespace eval ::xodoc-tools {
   }
 
   #
-  # alias
+  # i think, we do not have to distinguish between alias registered on Object and Class
   #
 
   @ xotclMethod alias -partof ::xotcl2::Object \
@@ -117,10 +117,6 @@ namespace eval ::xodoc-tools {
 	:returns "Fully qualified method name"
       }
 
-  #
-  # setter
-  #
-
   @ xotclMethod setter -partof ::xotcl2::Object \
       -arguments {methodName} {
 	Register a method as a setter for same-named instance variables
@@ -134,5 +130,16 @@ namespace eval ::xodoc-tools {
 }
 
 
-::xodoc-tools::make all
-::xodoc-tools::make doc
+namespace eval ::xodoc-tools {
+  puts "<h2>Primitive XOTcl framework commands</h2>\n<UL>"
+  foreach cmd [sorted [xotclCmd info instances] name] {
+    $cmd renderCmd
+  }
+  puts "</UL>\n\n"
+
+  puts "<h2>XOTcl Classes</h2>\n<UL>"
+  foreach cmd [sorted [xotclClass info instances] name] {
+    $cmd renderClass
+  }
+  puts "</UL>\n\n"
+}

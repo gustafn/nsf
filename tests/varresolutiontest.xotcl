@@ -55,6 +55,15 @@ o objeval {
   set [self]::X 4
   set g 1
 }
+? {::nx::core::importvar o2 j} \
+    "importvar cannot import variable 'j' into method scope; not called from a method frame"
+
+o method foo {} {::nx::core::importvar [self] :a}
+? {o foo} "variable name \":a\" must not contain namespace separator or colon prefix"
+
+o method foo {} {::nx::core::importvar [self] ::a}
+? {o foo} "variable name \"::a\" must not contain namespace separator or colon prefix"
+
 set ::o::Y 5
 ? {info vars ::x} ""
 

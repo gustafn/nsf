@@ -8465,12 +8465,13 @@ XOTclUnsetInstVar2(XOTcl_Object *object1, Tcl_Interp *interp,
 
 
 static int
-GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *object,
+GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, XOTclObject *object, 
                            Tcl_Obj *varName, Tcl_Obj *newName) {
   Var *varPtr = NULL, *otherPtr = NULL, *arrayPtr;
   int new = 0, flgs = TCL_LEAVE_ERR_MSG;
   Tcl_CallFrame *varFramePtr;
   Tcl_CallFrame frame, *framePtr = &frame;
+  char *varNameString;
 
   XOTcl_PushFrameObj(interp, object, framePtr);
   if (object->nsPtr) {
@@ -8482,8 +8483,8 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *object,
   XOTcl_PopFrameObj(interp, framePtr);
 
   if (otherPtr == NULL) {
-    return XOTclVarErrMsg(interp, "can't make instvar ", ObjStr(varName),
-                          ": can't find variable on ", objectName(object),
+    return XOTclVarErrMsg(interp, "can't import variable ", ObjStr(varName),
+                          " into method scope: can't find variable on ", objectName(object),
 			  (char *) NULL);
   }
 
@@ -8505,13 +8506,14 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *object,
 
     newName = varName;
   }
-#if 0
-  if (strstr(newName, "::")) {
-    return XOTclVarErrMsg(interp, "variable name \"", newName,
-                          "\" illegal: must not contain namespace separator",
+  varNameString = ObjStr(newName);
+
+  if (strstr(varNameString, "::") || *varNameString == ':') {
+    return XOTclVarErrMsg(interp, "variable name \"", varNameString,
+                          "\" must not contain namespace separator or colon prefix",
                           (char *) NULL);
   }
-#endif
+
   varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   /*
@@ -8519,7 +8521,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *object,
    * variable linked to the new namespace variable "varName".
    */
   if (varFramePtr && (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_PROC)) {
-    varPtr = (Var *)CompiledLocalsLookup((CallFrame *)varFramePtr, ObjStr(newName));
+    varPtr = (Var *)CompiledLocalsLookup((CallFrame *)varFramePtr, varNameString);
 
     if (varPtr == NULL) {	
       /* look in frame's local var hashtable */
@@ -8566,10 +8568,10 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *object,
         }
 
       } else if (!TclIsVarUndefined(varPtr)) {
-        return XOTclVarErrMsg(interp, "variable '", ObjStr(newName),
+        return XOTclVarErrMsg(interp, "variable '", varNameString,
                               "' exists already", (char *) NULL);
       } else if (TclIsVarTraced(varPtr)) {
-        return XOTclVarErrMsg(interp, "variable '", ObjStr(newName),
+        return XOTclVarErrMsg(interp, "variable '", varNameString,
                               "' has traces: can't use for instvar", (char *) NULL);
       }
     }
@@ -8585,6 +8587,10 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, XOTclObject *object,
             varPtr->flags,
             TclIsVarLink(varPtr), TclIsVarTraced(varPtr), TclIsVarUndefined(varPtr));
     */
+  } else {
+    return XOTclVarErrMsg(interp, cmdName, 
+			  " cannot import variable '", varNameString, 
+			  "' into method scope; not called from a method frame", (char *) NULL);
   }
   return TCL_OK;
 }
@@ -11065,10 +11071,10 @@ xotclCmd importvar XOTclImportvarCmd {
 }
 */
 static int
-XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]) {
+XOTclImportvar(Tcl_Interp *interp, XOTclObject *object, const char *cmdName, int objc, Tcl_Obj *CONST objv[]) {
   int i, result = TCL_OK;
 
-  for (i=0; i<objc; i++) {
+  for (i=0; i<objc && result == TCL_OK; i++) {
     Tcl_Obj  **ov;
     int oc;
 
@@ -11081,20 +11087,21 @@ XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CO
       case 2: {varname = ov[0];   alias = ov[1]; break;}
       }
       if (varname) {
-        result = GetInstVarIntoCurrentScope(interp, object, varname, alias);
+        result = GetInstVarIntoCurrentScope(interp, cmdName, object, varname, alias);
       } else {
         result = XOTclVarErrMsg(interp, "invalid variable specification '",
                                 ObjStr(objv[i]), "'", (char *) NULL);
       }
-      if (result != TCL_OK) {
-        break;	
-      }
-    } else {
-      break;
     }
   }
   return result;
 }
+
+static int
+XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]) {
+  return XOTclImportvar(interp, object, "importvar", objc, objv);
+}
+
 
 /*
 xotclCmd interp XOTclInterpObjCmd {
@@ -12766,7 +12773,7 @@ static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *object, int objc
 			  (char *) NULL);
   }
 
-  result = XOTclImportvarCmd(interp, object, objc, objv);
+  result = XOTclImportvar(interp, object, ObjStr(objv[0]), objc-1, objv+1);
   CallStackRestoreSavedFrames(interp, &ctx);
   return result;
 }
