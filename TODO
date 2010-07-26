@@ -1,0 +1,936 @@
+<- handle change in tcl 8.5.8: http://tcl.cvs.sourceforge.net/viewvc/tcl/tcl/generic/tclObj.c?sortby=date&r1=1.139.2.1&r2=1.139.2.2&pathrev=core-8-5-branch
+  in xotcl:
+   * when e.g. the parent namespace is deleted with a "namespace delete", the change
+     above causes, the no xotcl methods could be resolved (and called) anymore.
+  * therefore, e.g. a "C dealloc c1" did not work, since dealloc passes
+    c1 via tcl_obj, and the tcl_obj is as well converted to an xotcl object via
+    Tcl_GetCommandFromObj(), which fails as well.
+- to bypass this problem, xotcl has now a C-function DoDealloc(), which 
+   is called, when this situation is detected.
+- some more cases, where xotcl could reference already freed memory
+   were fixed (thanks to enable-symbols=mem)
+- as collateral damage, parts of the regression test don't work currently
+
+
+- added refounting in ObjectDispatch() to make sure, obj survives until
+   the end of the function
+
+- added existence test for slot extractor (needed for 8.5.8)
+- added refcounting CallStackDoDestroy() to ensure existance of
+   object until end of function
+- make sure to call PrimitiveDestroy() before DeleteCommandFromToken(),
+       otherwise e.g. unset traces on this object cannot be executed
+- regression test works again
+
+- get rid of rst->deallocCalled (not needed due to reference counting 
+   on xotcl objects)
+- reduce verbosity
+
+- reactivated XOTclErrInProc()
+
+- renamed "ClassName info instmixinof ?-closure? ?pattern?" into
+  "ClassName info class-mixin-of ?-closure? ?pattern?"
+- renamed "ClassName info mixinof ?-closure? ?pattern?" into
+  "ClassName info object-mixin-of ?-closure? ?pattern?"
+- added emulation "ClassName info instmixinof|mixinof" for xotcl1 
+
+- update to TEA 3.7 (from TEA 3.5)
+- use of INT2PTR to avoid warnings about different sizes on 64bit
+   architectures
+- defined HAVE_INTPTR_T as a macro to make definition of INT2PTR working
+
+- use INT2PTR and PTR2INT macros in generated stubs
+
+- handle HAVE_UINTPTR_T like HAVE_INTPTR_T
+- use ::xotcl::setinstvar instead of ::xotcl::setinstvar in serializer
+
+- change and rename cmd instvar 
+    ::xotcl::instvar -object someObject newVar
+   into
+     ::xotcl::importvar someObject newVar
+   Rationale of change: 
+      only needed in xotcl2 for importing variables
+      from different objects
+
+- changed assertions:
+   old (xotcl1) interface: 3 methods + 3 info methods
+      * <object> check Options
+      * <object> info check
+      * <object> invar Conditions
+      * <object> info invar
+      * <class> instinvar Conditions
+      * <class> info instinvar
+
+   new (xotcl2) interface: 1 cmd (similar to ::xotcl::relation)
+      ::xotcl::assertion check|object-invar|class-invar ?arg?
+- added emulation for xotcl1
+
+- deleted namespecific C macros:
+    isInfoString, isInstinvarString, isInvarString, isInstprocString, isProcString
+
+- made some more xotcl2 methods protected 
+  (no big need to call these from different objects):
+  unknown, uplevel, upvar
+
+- added ::xotcl::exists as cmd
+
+- added ::xotcl::method as cmd instead of methods object-method and
+  class-method
+
+- added ::xotcl::forward as cmd instead of method
+   now, all method-defining-methods (alias, method, forward, setter)
+   are defined as cmds (this should make life of serializer easier)
+
+- moved "-per-object" consequently immediately after obj in the
+  following commands
+     : ::xotcl::alias, ::xotcl::methodproperty, ::xotcl::setter
+  to achiev conformance with ::xotcl::forward and ::xotcl::method
+ 
+
+-per-obejct
+nach methodName: 
+vor methodName: alias forward method methodproperty setter
+
+
+- added experimental flag for alias "-noleaf" to force a stack frame
+   to be written (e.g. necessary for "next"). makes only sense for
+   aliases to c-implemented cmds
+
+- fix inconsistent behaviour of dotVarResolver
+    "o eval {set .x 1}" was setting var ".x" instead of "x"
+  The problem was due to a interaction between
+  the namespace varResolver() and the DotVarResolver()
+
+- fix for DotCmdResolver during compilation of a proc by Tcl.
+- extended regression text
+- found 2 potential bugs (not fixed yet)
+
+- fix eval method with requirenamespace
+
+- removed dependency on proc/instproc in copy/move.
+   code is now independet of class system
+
+- changed resultss of "filtersearch" and "self next" to new naming
+   Caveat: for xotcl1, there is no mapping for the names to the
+   old style in "self next" and "self filterreg"
+- backwards compatible mapping of filterseach in xotcl1
+
+- removed XOTclInstVar from the C-level API. 
+   todo: add all xotcl*cmds to C api, including importvar
+
+- removed all unreferenced entries from XOTE_*
+- regrouped XOTE_* for easier comprehension
+- used XOTE_* on more occations
+- used XOTclCallCommand() for calling Tcl 
+   "format" and "interp"
+
+- added option "arg=.." to parameter options; this argument
+   can be passed to converter; used currently for "type=relation"
+   to flag, that the relation type is different from the parameter 
+   name
+- extended "objectparameter" to handle such cases
+- removed relationtypes "mixin", "filter", "instfilter" and
+  "instmixin" since not needed due to converterArg
+
+- xotcl.c: removed all names starting with "inst"
+   (exception: instvar)
+
+- added option "-application" to "info callable" to 
+   omit methods from base classes
+- extended regression test
+- changed naming of methodtype "system" to "builtin"
+- added "info methods" to migration guide
+
+- added "info method" to migration guide
+
+- modernize test a little: all local definitions of proc "?" are gone.
+- added interface to test: "Test parameter count SOMEVALUE" to 
+   specify conveniently e.g. the number of tests the be executed
+- add XOTCL_CM_NO_UNKNOWN to dispatch of defaultmethod
+
+- added option "objectsystems" to ::xotcl::configure to
+   obtain the currently defined object systems
+- added option "baseclass" to ::xotcl::is to check, whether
+   a class is a baseclass of an object system 
+   (root class or root meta-class of object system)
+- changed result of "... info methods -methodtype scripted"
+   to return only truely scripted methods (no aliases)
+- some more cleanup in regression tests
+- first version of serializer for xotcl1 + xotcl2
+
+- serializer: move checking of the requested objects 
+   to be exported to the invocation of "Serializer all"
+- replace "namespace import ::xotcl::*" by "xotcl::use xotcl1"
+
+- make allocation sizes for dynamically allocated parameterContexts
+   consistent between alloc and realloc
+- added sanity check in getAllClassMixinsOf()
+   It seems as it would be possible with __defaultSupeclass to define
+   a class which has itself als a subclass. Just a quick
+   fix, we have investigate more on this.
+
+- improved naming of resolvers: use InterpDot*Resolver and
+  NsDot*Resolver for interp wide and namespace specific resolvers
+- added possibility to escape the call of commands starting
+   with a dot from method bodies by prefixing with a second dot.
+ 
+- make sure to have an xotcl frame pushed, when byte-code-compiler
+   is invoked. This is necessary for providing the context for 
+   dotCmd resolvers
+
+- use uplevel in slot add/delete to evalute in calling namespace
+   (for not fully qualified object names)
+- determine namespace in test method "?" to allow its execution
+   in an "namespace eval"
+- added regression tests
+
+
+- NsDotVarResolver: don't create variables on CMETHOD frames
+   when their names do not start with a "."
+
+- general overhaul of XOTcl_PushFrame()XOTcl_PopFrame():
+   new functions: 
+     * XOTcl_PushFrameCsc()/XOTcl_PopFrameCsc(): for CMETHOD fames
+     * XOTcl_PushFrameObj()/XOTcl_PopFrameObj(): for OBJECT frames
+       (objscope)
+
+- preallocate obj->vartable in XOTcl_PushFrameObj() to 
+   avoid situations where to non-existing vartable is created
+   on demand at different places (e.g. on stack and in 
+   var resolver)
+
+- caller of convertToRelationtype(): make sure that last argument
+   keeping the result is large enough to held pointer (in case of
+   sizeof(void) != sizeof(int)
+
+- Serializer: include ObjectSystemSerializer in "Serializer all"
+- Serializer: use class-mixin in dependency order
+- Serializer: add appropriate "::xotcl::use xotcl1|xotcl2"
+- Serializer: fix syntax in exportMethods
+- Serializer: provide limited support for exporting aliases for xotcl1 objects
+
+- add calltype to tcl85showStack
+
+- keep orignial objc/objc in call stack context such that
+   next/self args works with canonical args (allow e.g. 
+   different order of nonpos args in a next)
+- make naming in xotcl.c more consistent
+- ensure to return empty, when "info callable -which" fails
+- extend regression test
+
+- exithandler is different in xotcl2 -> comment, check openacs
+- ensure relation filter/instfilter etc. mit guards
+
+- extended migration guide
+- defined eval in predefined via "-nonleaf", used at various places
+- added "info mixinof ?-scope all|object|class? ?pattern?", dropped
+   "object-mixin-of" and "class-mixin-on" from registerd method
+- extended regression test 
+- xotcl1: make "-volatile" invoked via unknown behave correctly
+
+- provide minimal xotcl2 compatibility
+- added non positional parameter "type" to "get_parameter"
+- removed "required" from parameters, which is in XOTcl 1 just a comment
+- minor cleanup
+
+- experimental change of resolver name prefix char from dot to single colon
+
+- making methodDefinitions NULL terminated
+- passing optional arg to user-defined argument converter
+- refuse to redefine type converters for a single parameter
+- adding regression test for parameters
+
+    - added instance variable arg for interfacing with parameter
+      interface. "arg" acts like a clientdata for type converter
+    - added multiple parameter options handling to method "parameter"
+       to obtain similar functionality from object parameters
+       as from method parameters
+    - added conveniance method "??" to test to indicated test
+      that should fail with an error
+    - added severy type converters to achieve same
+       object type checking as in ::xotcl::is
+       (these are currently in the regression test, should move
+       finally into predefined.xotcl)
+    - extended regression test
+
+- new function ::xotcl::parameterFromSlot (used in argument checker as  well)
+- use ::xotcl::forward in Slot constructor (instead of dispatch)
+- checking methods on slots for single- and multivalues slots
+   (can be optimized)
+- extended regression test
+
+- don't run multiple queries in "??"
+- fixed last changes to regression test as usual
+
+- added "multivalued" to parameter options
+- made error message produced by XOTclObjErrType look like Tcl's error
+   messages
+- extended regression test
+- test utility: changed "?" to return error msg in case of error
+
+- checking multivalued types in "-parameters" by using argument
+  checker
+- some cleanup
+- extend regression test
+
+valuecheck.001:	  5.27 mms, ::xotcl::valuecheck object o1
+valuecheck.002: ::xotcl::valuecheck object 1 ok
+valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
+
+- new cmd "::xotcl::valuecheck <valueConstraints> <value>"
+  where "valueConstraints" is whatever is allowed in e.g. parameters 
+  (including user defined types)
+- new Tcl_ObjType "xotclParam"
+
+- parameterFromSlot returns now pair object-param & method-param
+- define dissallowed parameter options for object parameter, method
+  parameter and valuecheck command
+- make canonical table of parameter options (currently in
+  tests/parameter.xotcl)
+- extend regression test
+- systematic checking, what valueconstraints should be allowed/not
+   allowed in valuecheck
+
+- pass arg from objectparameter as first argument to objparms
+   (similiar to client data)
+
+- support for parameter spec of form "type=XXX" to denote that
+   the parameter must be an object of the specified type (class;
+   directly or indirectly)
+- new built-in converter: convertToObjectOfType()
+- keep parameterObj (source for conversion to XOTclParam) 
+   for making introspection less work. However, this is 
+   only used for XOTclParams generated via ParamParse().
+- extending regression test
+
+- name XOTclObjects always "object" instead of "obj" to avoid 
+   potential confusion with Tcl_Objs
+
+- remove unneeded push and pop operations in ListChildren() and
+   ObjectHasChildren() 
+
+- allow syntax "object,type=::SomeClass" and "class,type=::SomeMetaClass"
+   (currently identical, we should as well check for class/meta-class
+   in case of "class,type=SomeClass")
+
+- define everything concerning basic slot setup in a single 
+   "namespace eval ::xotcl {...}"
+- undefine ::xotcl::createBootstrapAttributeSlots after this block
+- fix default DefaultSuperClass() with isMeta==1 in cases, 
+   where we are already at the root meta class
+- use "-parameter" in xotcl1 instead of  createBootstrapAttributeSlots
+
+- cleanup of legacy stuff in slot management.
+   * merged InfoSlot and InterceptorSlot into RelationSlot
+   * get rid of legacy "mixin set ...." command
+- renamed "parameterSlot" into "methodParameterSlot" to avoid 
+   potential confusions
+
+- refactor Slot class hierarchie
+- new methods in ObjectParameterSlot "toParameterSyntax" and
+  "createFromParameterSyntax"
+- some more cleanup
+- removed legacy syntax for "-parmeters"
+
+- moved slot optimizer from ::xotcl::ObjectParameterSlot::Optimizer to
+  ::xotcl::Attribute::Optimizer
+
+- support for all string constraints provided by "string is ... $value"
+  in object and method parameters ("alum", "alpha", ..., "xdigit"). 
+  Technically, these types are tclobjs (using converter convertToTclobj)
+  having pParm->converterArg set to the constraints.
+- extended regression test
+
+- get rid of convertToObjectOfType(), make convertToClass() and 
+  converterToObject() more general, accepting type constraints
+
+- predefined.xotcl: move toParameterSyntax and objectparameter to 
+  a position, where basic slot definitions are provided
+- fixed default value setting in bootstrap code
+- provide more precise error message in converter,
+  when object type are used
+- extend regression test 
+
+- added error message when substdefault is specified without a default value
+- extend regression test 
+
+- added parameter option slot= to pass slotobj to a certain parameter
+- use slot option to keep relation between parameter and slot
+- object parameter dispatch type checker on slot objects
+- allow transformation via user-defined converter (can be use to 
+  standardize parameter values)
+  experimental implementation, refcounting has to be looked
+  in detail, maybe we need a different interface for the converters
+
+- provide checker-methods for
+   -> objectParameter
+   -> methodParameter
+- slotobject specific checker-methods
+
+- treat currently unknown converters in valuecheckcmd as error
+- fix the regression test from the last changes
+
+- added argument for converter to return the converted tcl_obj, which
+  should be passed on (currently only used for viaCmd); this way,
+  we could remove the kludge of querying the converter after the conversion
+  for special handling.
+
+- handle multivalued + values converted viaCmd converter the new
+  output list is only built when needed via ArgumentCheckHelper()
+
+- fix counter initialization in ::xotcl::importvar
+- register alternate "new" method in "contains" for xotcl2 and
+  (if available) for xotcl1 objects
+
+- provide error message for cases, where parameter options are not
+  allowed (or ignored)
+
+- move methodParameter checkers for "mixin", "baseclass" and "metaclass"
+  to predefined.
+- deactivated checkMethods in gentclAPI.decls and in xotcl.c
+
+- renamed "::xotcl::is ... mixin ..." to "::xotcl::is ... hasmixin ..."
+  (effects parametertypes as well)
+
+- made error messages for failed conversions more consistent
+  (note that tcl does not provide the parameter name in the error message,
+  but user-defined converters do)
+
+- fixed valuecheck in connection with modifying converters
+- extended regression test
+
+- fixed compilation for tcl 8.6b1
+
+- Allowed parameter specification for setters.
+  One can define now a setter with constraints like e.g.
+     ::xotcl::setter o a:integer
+  to define a setter named "a" for object "o" which
+  has to be integer.
+- Extended regression test
+- Followed naming conventions for several structures
+
+- setterCmd(): Do not allow methodNames start with "-"
+- setterCmd(): Do not allow defaults for setters
+- extend regression test
+
+- removed duplciate error message in "hasmixin" converter
+- fixed refcounting in converting user-types in case of errors
+- extended regression test
+
+- added a "-nocomplain" option to ::xotcl::valuecheck
+- changed semantic of ::xotcl::valuecheck: per default,
+  valuecheck raises an error or returns true. 
+  If "-nocomplain" is used, valuecheck returns
+  0 or 1 like implemented befor this change
+- extended regression test
+
+- added parameter "incremental" to ::xotcl::Attribute:
+  when set, one can use "object paramname add|delete $value" etc.
+- use setters with parameter constraints in slot optimizer
+- as a consequence, setting attributes via slot names is about
+  twice as fast as before, when parameter constraints are used.
+- extended regression test
+
+- fixed returned method name when setter was used on objects
+- reduce verbosity
+
+- implemented "info method definition|parameter|args $name" for 
+  settercmds (with parameter constraints)
+- extended regression test
+
+- fixed result resetting for user defined converters
+
+- ::xotcl::valuecheck: moved "-nocomplain" to first position
+  (similar to e.g. unset)
+
+- experimental: allow to shadow built-in types provided that
+  a) slot= is specified explicitely, and
+  b) the specified slot is not the default slot.
+  This should guarantee that we do not interfere with 
+  the predefined converters for the c-level interface.
+- incremented ref count on results of all-level converter
+- extended regression test
+
+- new methods for MetaSlot to factor out common code:
+   + slotName (to ease name-construction, care about 
+     slot container)
+   + createFromParameterSyntax: essentially move from 
+     ::xotcl::Attribute to the meta class
+- test environment: make sure to avoid confusions between
+  the "namespace" method and command
+
+- added a version of the "attribute" method to predefined
+
+- removed the following classes and methods
+     ::xotcl::Attribute->check_single_value
+     ::xotcl::Attribute->check_multiple_values 
+     ::xotcl::Attribute->mk_type_checker
+     class ::xotcl::Attribute::Nocheck
+
+- centralize fetching of tcl-obj-types in xotcl_init
+
+- support for method modifier "object", "protected" and "public"
+  for method "attribute". One can use now e.g.
+  
+     Class create C {
+       :attribute a
+       :public attribute b
+       :protected attribute c
+
+       :object attribute A
+       :public object attribute B
+       :protected object attribute C
+    }
+
+  "protected" and "public" refers to the registered accessor functions
+
+- experimental checking function ::xotcl::is2 implemented, which generalizes
+  between ::xotcl::is and ::xotcl::valuecheck (it is a valuecheck -nocomplain 
+  with an ::xotcl::is syntax and switched arguments)
+
+- Unified on c-level "info class-mixin-of" and "info object-mixin-of"
+  to "info mixinof ?-scope all|object|class? ?-closure? ?pattern?
+  The former "info class-mixin-of" 
+  is now "info mixinof -scope class"
+- adapted xotcl1 layer for this change
+- extended experimental ::xotcl::is2 to handle flags -type and -hasmixin
+    ::xotcl::is2 <obj> object ?-type <type>? ?-hasmixin <class>?
+
+- renamed old "xotcl::is" -> "xotcl::objectproperty"
+- renamed old "xotcl::is2" -> "xotcl::is"
+- we have now is tests for objects in ::xotcl::objectproperty
+    ::xotcl::objectproperty $obj object
+    ::xotcl::objectproperty $obj class
+    ::xotcl::objectproperty $obj baseclass
+    ::xotcl::objectproperty $obj metaclass
+    ::xotcl::objectproperty $obj type XXXX
+    ::xotcl::objectproperty $obj hasmixin XXXX
+
+- "::xotcl::is" is the higher level command, 
+  supporting string contstraints "e.g. upper", user defined type checkers
+  and as well object properties (every parameter type supported for object
+  and method paameter). Examples:
+    ::xotcl::is $obj object ?-type $type? ?-hasmixin $mixin?
+    ::xotcl::is $cl class ?-type $type? ?-hasmixin $mixin?
+    ::xotcl::is obj metaclass
+    ::xotcl::is $num integer
+    ::xotcl::is $string upper
+
+- implemented 2nd level reference counting for paramObjType
+
+- defined "info is" as alias of "::xotcl::objectproperty"
+
+- renamed ::xotcl::valuecheck -> ::xotcl::parametercheck
+- replaced in predefined occurances of ::xotcl::is by ::xotcl::objectproperty
+
+- fixed namespace handling on stack for objects with namespaces
+  (before, it was possible that a variable was created in 
+  an object's namespace without -objscope)
+- as a consequence, ListChildren() had to be adjused, since
+  it depended on the previous namespace handling on the stack
+- fixed object sesolving in NsDotVarResolver()
+  (before, it was possible that NsDotVarResolver could
+  create variables in the wrong namespace)
+- simplified NsDotVarResolver()
+- more cleanup in name resolver
+    * USE_DOT is gone
+    * XOTclDotDotCmd() removed
+    * improved performance of InterpCompiledDotVarResolver()
+    * made LookupVarFromTable() obsolete and removed it 
+    * renamed DotVarResolver() and friends to ColonVarResolver() etc.
+- extended regression test
+
+- call XOTclObject always "object" instead of "obj"
+
+- initcmd: use for initcmds CMETHOD frames instead of OBJECT stack frames
+- initcmd: skip parent-stack frame's objscope for initcmd
+- changed hash-based lookup of children into a cmd-based lookup
+- extended regression test
+
+- cleanup in stack handlers (naming, arguments)
+
+- XOTclCallStackFindLastInvocation(): return last scripted invocation
+- use xotcl1 in webserver test to make rull regression test working
+- make xotcl::use silent
+
+- added option "-nonleaf" for method alias 
+- added introspection (for "info method definition") for "alias ... -nonleaf ..."
+
+- removed obsolete ::xotcl::configure option "cacheinterface"
+
+- removed XOTclCreateClass() and XOTclDeleteClass();
+  both are identical with XOTclCreateObject() and XOTclDeleteObject()
+
+- renaming of instance variable specific primitiva for more
+  constistency with ::xotcl::importvar:
+
+    ::xotcl::exists -> ::xotcl::existsvar
+    ::xotcl::setinstvar -> ::xotcl::setvar
+
+- requireNameSpace: 
+   * fix potental crash in requireNameSpace in objscoped methods
+     by swapping all vartable references in objscopes on stack
+     to the vartable in the namespace, when it is created
+- extending regression test   
+
+- working towards KEEP_VARS_IN_CMETHOD_FRAME
+
+- enable compilation with assertion turned on (via NDEBUG)
+- fix potentially uninitialized flags for ArgumentCheck()
+- some further cleanup, tested with 32 bit under Mac OS X 10.6
+
+- removed obsolete generic/xotclAppInit.c
+- changed loading method in xotclsh from Xotcl_Init() to Tcl_PkgRequire()
+
+- updating tcl.m4 to the actual verison (TEA 3.7)
+- minor cleanup (varresolution test and comment)
+
+- defined "xotcl::current" as synonym for "::xotcl::self"
+- new options for ::xotcl::current
+   current object == current
+   current method == current proc
+   current callingmethod == current callingproc
+- "self proc" and friends are for backward compatibility for xotcl1, 
+  "current method" and friends are for xotcl2
+- namespace exported "::xotcl::current"
+
+- use "::xotcl::current" instead of "xotcl::self" in predefined 
+
+- use "CONST char *" in generated interface and below
+- further cleanup using "CONST char *"
+
+- remove dependency from xotcl1 in handling of forwarders in method "copy"
+- further cleanup using "CONST char *", improving on naming conventions
+
+- added an experimental "info frame" handler, which appends "object" and
+  "class" pairs
+
+- fixed wrong name for per-object filter in RelationSlot
+- fixed condition in filter-incovation to top-level frames
+- added frametype to information returned by "info frame"
+- change frametype in "info frame" form bitpattern to symbolic names
+- use a more recent version of unix/tclAppInit.c
+- fix syntax in predefined
+- let serializer call "init" of attributes, even if it is protected
+
+- fixing "-parameter" with empty content
+- more variable naming cleanup
+- fix line breaking in serializer for "exportedObjects"
+
+- call c-implemented methods directly, when this is safe
+  (implemented for XOTE_ALLOC, XOTE_CLEANUP, XOTE_CONFIGURE, 
+  XOTE_CREATE, XOTE_DEALLOC); this improves create/destroy
+  speed by up to 15%
+- allocate namespaces for objects less eager
+- make nameing more consistent 
+  (change newObj into newObject when variable is an xotcl object)
+
+- get rid of misleading RCS: lines
+- passing --prefix to subdirs
+- regenerated configure files
+
+- added stefan's expat library linking extension
+
+- define RecreateObject() for internal call via direct invocation
+- doCleanup is just called by recreate; merge it into 
+  XOTclCRecreateMethod. 
+  Is method cleanup necessary? is recreate not sufficient? 
+
+- make XOTcl_FrameDecls transparent (use variable declarations 
+  in place instead of the macro)
+- fix variable shadowing bug in error handling 
+  (could cause crashes when initcmd lead to errors)
+
+- call all truely essential methods directly if possible
+  (Object.destroy, Class.alloc, Class.dealloc, Class.create)
+  The basics of XOTcl can work now also in cases, 
+  when these are not defined as methods.
+
+- handling OBJECT-frames in CallStackPopAll() 
+  (for handling exit with active stack frames)
+
+- deactivate filters in finialize
+- new method InvokeMethodObj() to replace finally CanInvokeDirectly()
+
+- remove some more obsolete RCS Ids
+- call Tcl_Objs "Obj", not "Object"
+
+- replace all CanInvokeDirectly() by InvokeMethodObj()
+
+- block call-stack deletes during XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
+  however, this seems to create a small leak during exit 
+  (revant for threads); so currently, debug still turned on
+
+- fix last issue, with freeing objects, when exit happens from
+  higher stack frames
+
+- first part of allowing arbitrary named internally called methods.
+- move refcount fixing logic for exit from higher stackframes to new function: finalObjectDeletion()
+
+- created new functions:
+     ObjectSystemFree(), ObjectSystemAdd(), ObjectSystemsCheckSystemMethod(),
+     ObjectSystemsCleanup(), GetObjectSystem(), CallDirectly()
+  for better separation of systems. We keep track which essential system
+  methods are defined and which which methods are potentially overloaded.
+  
+- replaced hard-coded method calls for XOTE_DEFAULTMETHOD, XOTE_INIT,
+  XOTE_OBJECTPARAMETER with MethodObj()
+
+- renamed MethodObj() to XOTclMethodObj() (it is an exported symbol)
+- eliminated XOTE_MOVE
+- eliminated XOTE_RESIDUALARGS
+- eliminated XOTE_UNKNOWN
+- eliminated XOTE___UNKNOWN
+- renamed __unknown to requireobject
+
+- provide prefix for internally called methods to distinguish between 
+  methods called on objects or classes
+
+- handling of minimal object systems. For example, the
+  following three command create an object system around
+  ::object and ::class ...
+
+   ::xotcl::createobjectsystem ::object ::class
+   ::xotcl::alias ::class  + ::xotcl::cmd::Class::create
+   ::xotcl::alias ::object - ::xotcl::cmd::Object::destroy
+
+  ... where no internal message dispatch are used (e.g. no
+  constructor "init", and where just two methods ("+" and "-")
+  are used to create and destroy objects
+- extended regression test
+
+- get rid of reminder of tcl 8.4 compatiblity and remove range of
+  ifdefs, such as PRE85, FORWARD_COMPATIBLE, TCL85STACK, 
+  CANONICAL_ARGS, USE_COMPILED_VAR_RESOLVER
+
+- rename CallStackPush() to CscInit()
+- rename CallStackPop() to CscFinish()
+
+- remove "buffer" from compiled var structures
+- remove xotcl1 dependency from aol-tcl
+- removed conditional var table creation by assertion
+- make clean compile with assertions turned on
+
+- xotcl 1.6.6: make sure to load always xotcl 1 versions when needed
+- xotcl 1.6.6: make compilation clean when compiled with assertions on
+- xotcl 1.6.6: more cases for the regression test, where we want to load xotcl1 not 2
+- xotcl 1.6.6: one more cases for the packaging, where we want to load xotcl1 not 2
+
+- replace hash-lookup in namespace in ObjectHasChildren() by pointer lookup 
+  to reduce namespace dependency.
+- fix memcopy size
+
+- add check for optional match arguments in tcl stub generator
+- fix potential memory leaks
+  all "definitely losts" from valgrind (except 24 bytes from Tcl_PkgRequire) gone
+
+- fix a potential ordering problem with cyclic dependencies created by
+  namespace import commands
+
+- Handle cases, where objects/classes are created with the name
+  of preexiting namespaces. Cases, where pre-exisitng namespaces
+  contained classes/objects lead to problems, since xotcl did not
+  see the object/classes of the pre-exiting namespace as children
+  of the new object/class.
+
+- Allow to speficy last arg of objectparameter to replace scripted init
+  block. The redefinition of objectparameter allows us to specify whether
+  no/some/classical/altered/additional arguments should be allowed during
+  object creation
+
+
+- Naming
+
+     namespaces: 
+       ::next
+       ::next-core
+
+     file exension:
+       options:
+          .tcl
+          .xotcl
+          .next
+          .nxt
+
+    file names:
+       composite words with - instead of capitalization
+
+    package names
+      next::pkgname
+      next::doc-tools   # use - instead of _ or capitalization
+
+    Classes
+      use first name capitalized to distinguish from objects
+
+    Objects
+      typically, first charaction small
+
+- next::core as namespace name not perfect for adressing variables:
+  set ::xotcl::version ${::next-core::version}
+  set ::xotcl::patchlevel ${::next-core::patchlevel}
+
+do we need:
+  checkMethod  "::next::core::cmd::ParameterType"
+
+- namespace changes:
+  mostly due to marketing reasons, the naming of the top-level namespace 
+  changed from "xotcl2" to "next".
+  reasons: xotcl is hard to pronounce for beginners, sounds like "exotic" 
+  (but who wants to program in an exotic language) has a certain stigma
+  of strange namings (e.g. "instproc"), is seen as a precursor of tcloo,
+  the top-level namespace ::xotcl2:: is not very nice either, the separation
+  of framework and language is not clear.
+  
+  We have now: 
+    ::next (the new object system, former ::xotcl2)
+    ::next::core (framework, primitives)
+    ::xotcl (former xotcl1)
+
+- "::xotcl::use" no longer needed, use Tcl standard mechanisms instead
+  (e.g. "package req next"; "package req XOTcl", "namespace import ::next*")
+
+- [self next] returns 
+      instead of "proc" and "instproc" => "method"
+      instead of "parametercmd" and "instparametercmd" => "setter"
+      instead of "instforward" => "forward"
+      instead of "instcmd" => "cmd"
+   prefixed with the modifier "object" when needed
+- [self filterreg] returns
+      instead of "instforward" => "forward"
+   prefixed with the modifier "object" when needed
+
+-  We have now: 
+    ::nx (the new object system, former ::xotcl2)
+    ::nx::core (framework, primitives)
+    ::xotcl (former xotcl1)
+
+
+TODO: 
+- rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?
+  Stefan, meinung dazu? Notwending|Empfehlenswert|nicht? 
+  bei den TEA definitionen stand was von max. 8zeichen für source code namen.
+  andere optionen?
+
+- documentation
+   - documentationssytem
+   - langref (xotcl 2.0 + next-scripting)
+   - tutorial (split)
+   - migration guide
+
+- library + apps
+    - getrennte pfade für xotcl und next
+    - nicht gewartete/nicht getestete library aus distro entfernen?
+    - migration von einzelnen paketen nach next? von welchen?
+
+- new website
+    * graphisches design
+    * website-struktur
+    * org. tutorial (bzw teile davon) ala book 
+      or wiki (features als kategorien|tags|sections|directories)
+
+Ein paar punkte im folgenden könnten obsolet sein:
+
+"Kleinigkeiten"
+- aolserver 
+   * install
+   * namespace collector (for blueprint)
+
+- naviserver install
+
+  1) ./configure --with-tcl=/usr/local/src/tcl8.5.8/unix/ --with-xotclsh --enable-symbols
+     installiert nach /usr/local/aolserver/modules/tcl/xotcl.tcl
+
+  2) kein "modules" beim ns
+     sudo cp /usr/local/aolserver/modules/tcl/xotcl.tcl  /usr/local/ns/tcl/
+
+
+[neumann@mohegan xotcl-2.0.0]$ make
+can't find package xotcl::package
+    while executing
+"package require xotcl::package"
+    (file "./library/lib/makeDoc.xotcl" line 12)
+make: *** [doc/langRef-xotcl.html] Error 1
+[
+
+- canonical reps: 
+   "p:integer,multivalued" => "-name p -type integer -multivalued"
+   "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"
+- use parameter syntax in genTclAPI
+
+- info valuecheck?
+- turn off optionally value checking
+- get rid of "::xotcl::is"?
+
+# TODO (optimization): optimizer can improve parameter checking:
+#       (a) simple approach: make scripted setter methods on domain
+#       (b) maybe nicer: provide arguments to c-setter to 
+#           pass parameter definition
+
+- the two flags "-objscope" and "-nonleaf" are for adding frames,
+  and they are mutual exclusive. Make them a single flag?
+  check if both options are in every case sensible.
+- support -nonleaf for "dispatch" ?
+  inf the following, we need just a frame, but not necessarily an "-ojscope"
+  set x [::xotcl::dispatch $value -objscope ::xotcl::self]
+
+- naming 
+   ::xotcl::existsvar
+   ::xotcl::setvar
+   ::xotcl::importvar
+
+ TODO: naming "type" and "mixin" not perfect.
+#       maybe "type" => "hastype"
+#       maybe "mixin" => "hasmixin"
+#       => effects as well ::xotcl::is
+
+- "ClassName info mixinof ?-closure? -registered_on class|object ?pattern?" 
+
+- XOTCL_CMD_NOT_FOUND
+- add all xotcl*cmds to C api, including importvar
+- constants in type converter (in and out)
+
+- my exists varname
+* my info exists varname (als alias auf die exists methode?)
+
+
+
+- genau genommen sind folgende info-Methoden unnötig:
+  - obj info mixin
+  - obj info filter
+  - obj info class
+  * obj info is
+  - cl info mixin
+  - cl info filter
+  - cl info superclass
+
+#if 1
+  /* TODO: the following check operations is xotcl1 legacy and is not
+     generic. it should be replaced by another methodproperty.
+     Most of the is*String()
+     definition are then obsolete and should be deleted from
+     xotclInt.h as well.
+  */
+
+  if (isCheckString(methodName)) {
+    return TCL_OK;
+  }
+#endif
+
+
+
+=========== reminder for valgrind testing
+svn co svn://svn.valgrind.org/valgrind/tags/VALGRIND_3_5_0 valgrind
+
+curl http://bugsfiles.kde.org/attachment.cgi?id=36999 > 10.6.patch
+mv 10.6.patch ./valgrind
+
+cd valgrind
+patch -p0 < 10.6.patch
+
+./autogen.sh
+./configure ./configure --build=amd64-darwin
+make
+
+sudo make install
+====================
+
