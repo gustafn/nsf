@@ -8,9 +8,52 @@
 </div>
 
 <div class="description">
- 
+
+[:?var :@subcommand {
+<div rel="yui:properties" resource="#properties">
+  <div class="section field details">
+    <h3 id="properties">Subcommands</h3>
+    <div class="content">
+      [:for sub ${:@subcommand} {
+      <div rel="yui:property">
+        <h4><a name="property_[$sub name]" property="yui:name">[$sub name]</a>
+        </h4>
+        <div class="detail">
+          <div class="description" property="yui:description">
+	    [$sub text]
+          </div>
+	  [:? {[$sub exists :@param]} {
+	  <dl rel="yui:parameters">
+	    <dt>Parameters:</dt>
+	    [:for param [$sub @param] {
+	    <dd rel="yui:parameter">
+	      <code><span property="yui:name">[$param name]</span>
+		&lt;<span property="yui:type">[:? {[$param exists spec]} {[$param spec]}]</span>&gt;
+	      </code>
+	      <span property="yui:description">[$param text]</span>
+	    </dd>
+	    }]
+	  </dl>
+	  }]
+	  
+	  [:? {[$sub exists :@return]} {
+	  <dl>
+	    <dt>Returns:
+	      <code property="yui:return">
+	    </code></dt>
+	    <dd property="yui:returnInfo">[[$sub @return] text]</dd>
+	  </dl>
+	  }]
+        </div>	
+        <hr />
+      </div>
+      }]
+    </div>
+  </div>
+</div>
+} - {
 [:?var :@param {
-  <dl rel="yui:parameters">
+<dl rel="yui:parameters">
     <dt>Parameters:</dt>
     [:for param ${:@param} {
      <dd rel="yui:parameter">
@@ -27,10 +70,10 @@
    <dl>
     <dt>Returns:
       <code property="yui:return">
-        $method.return.type
     </code></dt>
-    <dd property="yui:returnInfo">$method.return.description</dd>
+    <dd property="yui:returnInfo">[${:@return} text]</dd>
   </dl>
+}]
 }]
   
   
