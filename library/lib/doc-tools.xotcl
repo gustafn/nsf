@@ -36,15 +36,55 @@ namespace eval ::nx::doc {
   # @param class Request an instance of a particular entity class (e.g., @package)
   # @param name What is the entity name (e.g., next::doc for a package)
   # @param args A vector of arbitrary arguments, provided to the entity when being constructed
+  # @return The identifier of the newly created entity object
+  
+  # @subcommand ::nx::doc::@#foo
+  #
+  # This is the first subcommand foo of "@"
+  # {{{
+  # set do 1;
+  # }}}
+  #
+  # @param -param1 do it
+  # @param param2 do it a second time
+  # @return Gives you a "foo" object
+
+  # @subcommand ::nx::doc::@#bar
+  #
+  # This is the second subcommand bar of "@"
+  #
+  # @param -param1 do it
+  # @param param2 do it a second time
+  # @return Gives you a "bar" object
+
   proc @ {class name args} {$class new -name $name {*}$args}
+ 
 
   # @command ::nx::doc::sorted
   #
   # This proc is used to sort instances by values of a specified
-  # attribute
+  # attribute. {{{ set 
+  # code 1; puts stderr $code; puts stderr [info script]; set l \{x\}
+  # }}} Und nun gehen wir in eine zweite Zeile ...
+  #
+  # ... um nach einem Zeilenbruch weiterzumachen
+  # {{{
+  #	\# Some comment
+  #	set instances [list [Object new] [Object new]]
+  #	::nx::doc::sorted $instances; set l {{{x}}}; # Some comment
+  # {{{ }}} 
+  #	set instances [list [Object new] [Object new]]
+  #	::nx::doc::sorted $instances
+  # }}}
+  # Here it goes wider ...
+    # {{{
+  #	set instances [list [Object new] [Object new]]
+  #	::nx::doc::sorted $instances
+  # }}}
   #
   # @param instances Points to a list of entity instances to sort
   # @param sortedBy Indicates the attribte name whose values the sorting will be based on
+  # @return A list of sorted documentation entity instances
   proc sorted {instances sortedBy} {
     set order [list]
     foreach v $instances {lappend order [list $v [$v eval [list set :$sortedBy]]]}
@@ -53,12 +93,33 @@ namespace eval ::nx::doc {
     return $result
   }
 
-  
+  # @method ::nx::doc::ExceptionClass#behind?
+  # 
+  # This helper method can be used to decide whether a message
+  # caught in error propagation qualifies as a valid exception
+  # object.
+  #
+  # @param error_msg Stands for the intercepted string which assumingly represents an exception object identifier
+  # @return 0 or 1
   Class create ExceptionClass -superclass Class {
+    # A meta-class which defines common behaviour for exceptions
+    # types, used to indicate particular events when processing
+    # comment blocks.
+ 
     :method behind? {error_msg} {
       return [expr {[::nx::core::is $error_msg object] && \
 			[::nx::core::is $error_msg type [self]]}]
     }
+    
+    # @method thrown_by?
+    # 
+    # This helper method realises a special-purpose catch variant to
+    # safely evaluate scripts which are expected to produce exception
+    # objects
+    #
+    # @return 1 iff an exception object is caught, 0 if the script did
+    # not blow or it returned an error message not pointing to an
+    # exception object
     :method thrown_by? {script} {
       if {[uplevel 1 [list ::catch $script msg]]} {
 	return [:behind? [uplevel 1 [list set msg]]]
@@ -69,9 +130,18 @@ namespace eval ::nx::doc {
   }
 
   ExceptionClass create Exception {
+    # The base class for exception objects
+    #
+    # @param message An explanatory message meant for the developer
     :attribute message:required
+    # @param stack_trace Contains the stack trace as saved at the time of throwing the exception object
     :attribute stack_trace 
-
+    
+    # @method throw
+    #
+    # The method makes sure that an Exception object is propagated
+    # through the Tcl ::error mechanism, starting from the call site's
+    # scope
     :method throw {} {
       if {![info exists :stack_trace] && [info exists ::errorInfo]} {
 	:stack_trace $::errorInfo
@@ -84,31 +154,72 @@ namespace eval ::nx::doc {
   }
   
   ExceptionClass create StyleViolation -superclass Exception {
-    #
+    # This exception indicates from within the parsing machinery that
+    # a comment block was malformed (according to the rules layed out
+    # by the statechart-like parsing specification.
   }
-  ExceptionClass create InvalidTag -superclass Exception
-  ExceptionClass create MissingPartofEntity -superclass Exception 
+  ExceptionClass create InvalidTag -superclass Exception {
+    # This exception is thrown upon situations that invalid tags are
+    # used at various levels of entity/part nesting. This usually
+    # hints at typos in tag labels or the misuse of tags in certain
+    # contexts.
+  }
+  ExceptionClass create MissingPartofEntity -superclass Exception {
+    # This exception occurs when parts are defined without providing
+    # an owning (i.e., partof) entity. This might be caused by
+    # failures in resolving this context.
+  }
 
 
   Class create EntityClass -superclass Class {
+    # A meta-class for named documenation entities. It sets some
+    # shared properties (e.g., generation rules for tag names based on
+    # entity class names, ...). Most importantly, it provides the
+    # basic name-generating mechanisms for documentation entities
+    # based on properties such as entity name, root namespace, etc.
     #
-    # EntityClass is a meta-class for named doc entities
-    #
+    # @param tag Defaults to the tag label to be used in comment tags. It may vary from the auto-generated default!
+    # @param root_namespace You may choose your own root-level namespace hosting the namespace hierarchy of entity objects
+
     :attribute {tag {[string trimleft [string tolower [namespace tail [self]]] @]}}
     :attribute {root_namespace "::nx::doc::entities"}
 
     namespace eval ::nx::doc::entities {}
-
+    
+    # @method id 
+    #
+    # A basic generator for the characteristic ideas, based on the
+    # root_namespace, the tag label, and the fully qualified name of
+    # the documented entity
+    #
+    # @param name The name of the documented entity
+    # @return An identifier string, e.g., {{{ ::nx::doc::entities::object::ns1::Foo }}}
+    # @see tag
+    # @see root_namespace
     :method id {name} {
       set subns [string trimleft [namespace tail [self]] @]
       return [:root_namespace]::${subns}::[string trimleft $name :]
     }
 
     :method new {-name:required args} {
+      # A refined frontend for object construction/resolution which
+      # provides for generating an explicit name, according to the
+      # rules specific to the entity type.
+      #
+      # @param name The of the documented entity
+      # @return The identifier of the newly generated or resolved entity object
       :createOrConfigure [:id $name] -name $name {*}$args
     }
-
+    
     :method createOrConfigure {id args} {
+      # This method handles verifies whether an entity object based on
+      # the given id exists. If so, it returns the resolved name. If
+      # not, it provides for generating an object with the precomputed
+      # id for the first time!
+      #
+      # @param id The identifier string generated beforehand
+      # @return The identifier of the newly generated or resolved entity object
+      # @see {{@method id}}
       namespace eval $id {}
       if {[::nx::core::objectproperty $id object]} {
 	$id configure {*}$args
@@ -118,6 +229,9 @@ namespace eval ::nx::doc {
       return $id
     }
 
+    # @method get_unqualified_name
+    #
+    # @param qualified_name The fully qualified name (i.e., including the root namespace)
     :method get_unqualified_name {qualified_name} {
       return [string trim [string map [list [:root_namespace] ""] $qualified_name] ":"]
     }
@@ -193,7 +307,7 @@ namespace eval ::nx::doc {
 		     -name [lindex $value 0] \
 		     -partof $domain \
 		     -part_attribute [self] \
-		     -@doc [lrange $value 1 end]]	
+		     -@doc [lrange $value 1 end]]
       }
       return $value
     }
@@ -226,6 +340,9 @@ namespace eval ::nx::doc {
     # Entity is the base class for the documentation classes
     #
 
+    # @param name
+    #
+    # gives you the name (i.e., the Nx object identifier) of the documented entity
     :attribute name:required
     # every Entity must be created with a "@doc" value and can have
     # an optional initcmd 
@@ -263,6 +380,9 @@ namespace eval ::nx::doc {
     #
     # This is an abstract hook method to be refined by the subclasses
     # of Entity
+    #
+    # @param {-initial_section:optional "context"} Describes the section to parse first
+    # @return :integer Indicates the success of process the comment block
     :method process {
       {-initial_section:optional "context"} 
       -entity:optional 
@@ -281,22 +401,22 @@ namespace eval ::nx::doc {
     # performs substitution on it.  The substitution is not essential,
     # but looks for now convenient.
     #
-    :method text {} {
-      # TODO: Provide \n replacements for empty lines
-      if {[info exists :@doc]} {
-	#
-	# Here, we apply a second [join] to compensate for the @doc items
-	# being lists themselves (that is, quotes etc. might be escaped)
-	#
-	subst [join [join ${:@doc} " "]]
+    :method text {-as_list:switch} {
+      if {[info exists :@doc] && ${:@doc} ne ""} {
+	set doc ${:@doc}
+	set non_empty_elements [lsearch -all -not -exact $doc ""]
+	set doc [lrange $doc [lindex $non_empty_elements 0] [lindex $non_empty_elements end]]
+	if {$as_list} {
+	  return $doc
+	} else {
+	  return [subst [join $doc " "]]
+	}
       }
     }
 
     :method filename {} {
       return [[:info class] tag]_[string trimleft [string map {:: __} ${:name}] "_"]
     }
-
-    
   }
 
 
@@ -333,12 +453,21 @@ namespace eval ::nx::doc {
       set :part_class @param
     }
     :attribute @return -slotclass ::nx::doc::PartAttribute {
+      :method require_part {domain prop value} {
+	set value [expr {![string match ":*" $value] ? "__out__: $value": "__out__$value"}]
+	next $domain $prop $value
+	#next $domain $prop "__out__ $value"
+      }
       set :part_class @param
+    }
+    :attribute @subcommand -slotclass ::nx::doc::PartAttribute {
+      set :part_class @subcommand
     }
   }
   
   EntityClass create @object \
       -superclass Entity {
+	:attribute @superclass -slotclass ::nx::doc::PartAttribute 
 	:attribute @author -slotclass ::nx::doc::PartAttribute 
 	:attribute @method -slotclass ::nx::doc::PartAttribute {
 	  set :part_class @method
@@ -360,7 +489,21 @@ namespace eval ::nx::doc {
 	:attribute @param -slotclass ::nx::doc::PartAttribute {
 	  set :part_class @param
 	}
-       
+
+	:method inherited {member} {
+	  if {[${:name} info is class]} {
+	    set inherited [dict create]
+	    foreach c [lreverse [${:name} info heritage]] {
+	      set entity [[::nx::core::current class] id $c]
+	      if {![::nx::core::is $entity object]} continue;
+	      if {[$entity exists :${member}]} {
+		dict set inherited $entity [$entity $member]
+	      }
+	    }
+	    return $inherited
+	  }
+	}
+	
 	:method process {
 	  {-initial_section:optional "context"} 
 	  -entity:optional 
@@ -407,8 +550,9 @@ namespace eval ::nx::doc {
     :attribute part_attribute
   }
 
+  # @object ::nx::doc::@method
   #
-  # @method is a named entity, which is part of some other
+  # "@method" is a named entity, which is part of some other
   # docEntity (a class or an object). We might be able to use the
   # "use" parameter for registered aliases to be able to refer to the 
   # documentation of the original method.
@@ -420,19 +564,33 @@ namespace eval ::nx::doc {
 	  set :part_class @param
 	}
 	:attribute @return -slotclass ::nx::doc::PartAttribute {
+	  
+	  #
+	  # TODO: @return spec fragments should be nameless,
+	  # conceptually. They represent "out" parameters with each
+	  # @method being allowed to have one only. For now, we fix
+	  # this by injecting a dummy name "__out__" which should not
+	  # be displayed. I shall fix this later and refactor it to a
+	  # shared place between @method and @command.
+	  #
+	  :method require_part {domain prop value} {
+	    set value [expr {![string match ":*" $value] ? "__out__: $value": "__out__$value"}]
+	    next $domain $prop $value
+	  }
 	  set :part_class @param
 	}
-	:method signature {} {
-	  #
-	  # TODO: What was the original intention of introducing arguments?!
-	  #
-	  if {[info exists :arguments]} {
-	    set arguments ${:arguments}
-	  } else {
-	    set arguments [list]
-	    foreach p [:@param] {lappend arguments [$p name]}
+	:method parameters {} {
+	  set params [list]
+	  if {[info exists :@param]} {
+	    foreach p [:@param] {
+	      set value [$p name]
+	      if {[$p exists default] || [$p name] eq "args" } {
+		set value "?[$p name]?"
+	      }
+	      lappend params $value
+	    }
 	  }
-	  set result "method ${:name} $arguments"
+	  return $params
 	}
 	:method process {	  
 	  {-initial_section:optional "context"} 
@@ -445,21 +603,40 @@ namespace eval ::nx::doc {
 
       }; # @method
   
-  #
-  # TODO: retrofit @command::Variant
-  # 
-  Class create @variant -superclass Part
+  PartClass create @subcommand -superclass {Part @command}
 
+  # @object ::nx::doc::@param
+  #
+  # The entity type "@param" represents the documentation unit
+  # for several parameter types, e.g., object, method, and
+  # command parameters.
+  #
+  # @superclass ::nx::doc::entities::object::nx::doc::Part
+  # @superclass ::nx::doc::entities::object::nx::doc::Part
   PartClass create @param \
       -superclass Part {
 	:attribute spec
 	:attribute default
-
+	
 	:object method id {partof name} {
+	  # The method contains the parameter-specific name production rules.
+	  #
+	  # @param partof Refers to the entity object which contains this part 
+	  # @param name Stores the name of the documented parameter
+
 	  set partof_fragment [:get_unqualified_name ${partof}]
 	  return [:root_namespace]::${:tag}::${partof_fragment}::${name}
 	}
 	
+	# @object-method new
+	#
+	# The per-object method refinement indirects entity creation
+	# to feed the necessary ingredients to the name generator
+	#
+	# @param -part_attribute 
+	# @param -partof
+	# @param -name
+	# @param args
 	:object method new {
 		-part_attribute 
 		{-partof:substdefault {[[MissingPartofEntity new \
@@ -470,13 +647,23 @@ namespace eval ::nx::doc {
 		-name 
 		args
 	      } {
-	  :createOrConfigure [:id $partof $name] {*}[self args]
+	  
+	  lassign $name name def
+	  set spec ""
+	  regexp {^(.*):(.*)$} $name _ name spec
+	  :createOrConfigure [:id $partof $name] \
+	      -spec $spec \
+	      -name $name \
+	      -partof $partof \
+	      {*}[expr {$def ne "" ? "-default $def" : ""}] \
+	      -part_attribute $part_attribute {*}$args
+	  
 	}
       }
 
   namespace export EntityClass @command @object @method @param \
       @param @package @ Exception StyleViolation InvalidTag \
-      MissingPartofEntity
+      MissingPartofEntity ExceptionClass
 }
 
 
@@ -484,15 +671,15 @@ namespace eval ::nx::doc {
 namespace eval ::nx::doc {
 
   Class create TemplateData {
+    # This mixin class realises a rudimentary templating language to
+    # be used in next::doc templates. It realises language expressions
+    # to verify the existence of variables and simple loop constructs
     :method render {
       {-initscript ""}
       template 
       {entity:substdefault "[self]"}
     } {
-      #
-      # Here, we assume the -nonleaf mode being
-      # active for [eval].
-      #
+      # Here, we assume the -nonleaf mode being active for {{{[eval]}}}.
       set tmplscript [list subst [[::nx::core::current class] read_tmpl $template]]
       $entity eval [subst -nocommands {
 	$initscript
@@ -552,12 +739,39 @@ namespace eval ::nx::doc {
     :method include {template} {
       uplevel 1 [list subst [[::nx::core::current class] read_tmpl $template]]
     }
+
+    #
+    # TODO: This should make turn into a hook, the output
+    # specificities should move in a refinement of TemplateData, e.g.,
+    # DefaultHtmlTemplateData or the like.
+    #
+    :method code {{-inline true} script} {
+      return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
+    }
+
+    :method text {} {
+      # Provide \n replacements for empty lines according to the
+      # rendering frontend (e.g., in HTML -> <br/>) ...
+      if {[info exists :@doc]} {
+	set doc [next -as_list]
+	foreach idx [lsearch -all -exact $doc ""] {
+	  lset doc $idx "<br/><br/>"
+	}
+	return [subst [join $doc " "]]
+      }
+    }
+
+
     
     #
     #
     #
  
     :object method find_asset_path {{-subdir lib/doc-assets}} {
+      # This helper tries to identify the file system path of the
+      # asset ressources.
+      #
+      # @param -subdir Denotes the name of the sub-directory to look for
       foreach dir $::auto_path {
 	set assets [file normalize [file join $dir $subdir]]
 	if {[file exists $assets]} {
@@ -700,7 +914,7 @@ namespace eval ::nx {
     # b. intrinsic: 'thing' is a arbitrary string block describing 
     # a script.
     # 
-    :method process {thing} {
+    :method process {thing args} {
       # 1) in-situ processing: a class object
       if {[::nx::core::objectproperty $thing object]} {
         if {[$thing exists __initcmd]} {
@@ -715,22 +929,25 @@ namespace eval ::nx {
 	  namespace import -force ::nx::*; 
 	  ::nx::Class create SourcingTracker {
 	    :method create args {
-	      [::nx::core::current class] eval {
-		if {[info exists :scripts]} {
-		  set :scripts [dict create]
-		}
-	      } 
-	      [::nx::core::current class] eval [list dict set :scripts [info script] _];
-	      next;
+	      set obj [next];
+	      #[::nx::core::current class] eval {
+	      # if {![info exists :scripts([info script])]} {
+	      #dict create :scripts
+	      #dict set :scripts [info script] objects 
+	      #	}
+	      #}
+	      #puts stderr "dict lappend :scripts([info script]) objects [self]"
+	      [::nx::core::current class] eval [list dict set :scripts [info script] objects \$obj _]
+	      return \$obj
 	    }
 	  } 
 	  ::nx::Object mixin add SourcingTracker
 	  package forget $thing; 
 	  package req $thing
 	  ::nx::Object mixin delete SourcingTracker
-	  set sourced_scripts [SourcingTracker eval {dict keys \${:scripts}}]
-	  foreach script \$sourced_scripts {
-	    doc process \$script
+	  puts stderr sourced_scripts=[SourcingTracker eval {dict keys \${:scripts}}]
+	  dict for {script entities} [SourcingTracker eval {set :scripts}] {
+	    doc process \$script \$entities
 	  }
 	  
 	}]
@@ -745,7 +962,7 @@ namespace eval ::nx {
 	    :log "error reading the file '$thing', i.e.: '$msg'"
 	  }
 	  close $fh
-	  doc analyze $script
+	  doc analyze $script {*}$args
 	} else {
 	  :log "file '$thing' not readable"
 	}
@@ -763,14 +980,18 @@ namespace eval ::nx {
       }
     }
 
-    :method analyze {script} {
+    :method analyze {script additions:optional} {
       # NOTE: This method is to be executed in a child/ slave
       # interpreter.
-      set pre_commands [:list_commands]
       uplevel #0 [list namespace import -force ::nx::doc::*]
+      set pre_commands [:list_commands]
       uplevel #0 [list eval $script]
       set post_commands [:list_commands]
-      set additions [dict keys [dict remove [dict create {*}"[join $post_commands " _ "] _"] {*}$pre_commands]]
+      if {![info exists additions]} {
+	set additions [dict keys [dict remove [dict create {*}"[join $post_commands " _ "] _"] {*}$pre_commands]]
+      } else {
+	set additions [dict keys [dict get $additions objects]]
+      }
       puts stderr ADDITIONS=$additions
       set blocks [:comment_blocks $script]
       # :log "blocks: '$blocks'"
@@ -783,7 +1004,7 @@ namespace eval ::nx {
 	# not qualified, so they are set to fail. however, record the
 	# failing ones for the time being
 	if {[catch {::nx::doc::EntityClass process $block} msg]} {
-	  if {![StyleViolation behind? $msg] && ![MissingPartofEntity behind? $msg]} {
+	  if {![InvalidTag behind? $msg] && ![StyleViolation behind? $msg] && ![MissingPartofEntity behind? $msg]} {
 	    if {[Exception behind? $msg]} {
 	      error [$msg info class]->[$msg message]
 	    }
@@ -800,7 +1021,7 @@ namespace eval ::nx {
       }
     }
 
-    :method list_commands {{parent ::}} {
+    :method list_commands {{parent ""}} {
       set cmds [info commands ${parent}::*]
       foreach nsp [namespace children $parent] {
 	lappend cmds {*}[:list_commands ${nsp}]
@@ -809,9 +1030,9 @@ namespace eval ::nx {
     }
 
     :method analyze_line {line} {
-      set regex {^\s*#+[#\s]*(.*)$}
+      set regex {^[\s#]*#+(.*)$}
       if {[regexp -- $regex $line --> comment]} {
-	return [list 1 [string trim $comment]]
+	return [list 1 [string trimright $comment]]
       } else {
 	return [list 0 $line]
       }
@@ -832,9 +1053,9 @@ namespace eval ::nx {
 	  # of code. This avoids "unmatched open brace" failures when
 	  # feeding each physical line to a list command (later, in
 	  # the parsing machinery)
-	  lappend comment_block [split $text]}
+	  lappend comment_block $text}
 	1,0	{lappend comment_blocks $line_offset $comment_block}
-	1,1	{lappend comment_block [split $text]}
+	1,1	{lappend comment_block $text}
 	0,0	{}
       }
       array set do $spec 
@@ -1007,6 +1228,7 @@ namespace eval ::nx::doc {
       set :comment_block $block
       
       # initialise the context object
+      #puts stderr "--- [self callingproc] -> :partof_entity $partof_entity :processed_section $initial_section block $block"
       set :processed_section $initial_section
       set :partof_entity $partof_entity      
       
@@ -1059,21 +1281,21 @@ namespace eval ::nx::doc {
       # a) unqualified: attr1
       # b) qualified: Bar#attr1
       if {[regexp -- {([^\s#]*)#([^\s#]*)} $name _ qualifier nq_name]} {
-	# TODO: Currently, I only foresee @object as possible
-	# qualifier; however, this should be fixed asap, as soon as
-	# the variety of entities has been decided upon!
-	set partof_entity [@object id $qualifier]
-	# TODO: Also, we expect the qualifier to resolve against an
-	# already existing entity object? Is this intended?
-	if {[::nx::core::is $partof_entity object]} {
-	  return [list $nq_name $partof_entity]
-	} else {
-	  return [list $nq_name ${:partof_entity}]
+	# TODO: Currently, I only foresee @object and @command as
+	# possible qualifiers; however, this should be fixed asap, as
+	# soon as the variety of entities has been decided upon!
+	foreach entity_type {@object @command} {
+	  set partof_entity [$entity_type id $qualifier]
+	  # TODO: Also, we expect the qualifier to resolve against an
+	  # already existing entity object? Is this intended?
+	  if {[::nx::core::is $partof_entity object]} {
+	    return [list $nq_name $partof_entity]
+	  }
 	}
+	return [list $nq_name ${:partof_entity}]
       } else {      
 	return [list $name ${:partof_entity}]
       }
-    
     }
     :object method dispatch {tag args} {
 
@@ -1104,13 +1326,22 @@ namespace eval ::nx::doc {
 	  set :current_entity [$partof_entity $tag $nq_name {*}$args]
 	  
 	} else {
+	  #
+	  # TODO: @object-method raises some issues (at least when
+	  # processed without a resolved context = its partof entity).
+	  # It is not an entity type, because it merely is a "scoped"
+	  # @method. It won't resolve then as a proper instance of
+	  # EntityClass, hence we observe an InvalidTag exception. For
+	  # now, we just ignore and bypass this issue by allowing
+	  # InvalidTag exceptions in analyze()
+	  #
 	  set qualified_tag [namespace qualifiers [self]]::$tag
 	  if {[EntityClass info instances -closure $qualified_tag] eq ""} {
 	    [InvalidTag new -message [subst {
 	      The entity type '$tag' is not available
 	    }]] throw 
 	  }
-	 # puts stderr "$tag new -name $nq_name {*}$args"
+	  puts stderr "$tag new -name $nq_name {*}$args"
 	  set :current_entity [$tag new -name $nq_name {*}$args]
 	}
       } else {
@@ -1184,10 +1415,10 @@ namespace eval ::nx::doc {
   
   CommentLine create tag {
     :method match {line} {
-      set tag [lindex $line 0]
-      return [expr {[string first @ $tag] == 0}]
+      return [regexp -- {^\s*@[^[:space:]@]+} $line]
     }
     :method event=process {line} {
+      set line [string trimleft $line]
       set tag [lindex $line 0]
       [:context] dispatch $tag [lrange $line 1 end]
     }
@@ -1195,11 +1426,69 @@ namespace eval ::nx::doc {
   }
   
   CommentLine create text {
+    set :is_code_block 0
+    array set :parse { 
+      0,1 {
+	# BEGIN of a code block. Insert the code start marker, a newline and the current line.
+	set l "\[:code \{\n"
+	append l $line \n
+	set line $l
+	set :is_code_block 1
+      } 
+      1,0 {
+	# END of a code block. Insert the code stop marker.
+	set l "\}\]\n"
+	append l $line
+	set line $l
+	set :is_code_block 0
+      } 
+      1,1 {
+	# WITHIN a code block. Add the line + a newline
+	append line \n
+      } 
+      0,0 {
+	# NOP
+	set line [string trimleft $line]
+      }
+    }
+    
     :method match {line} {
-      return [regexp -- {\s*[^[:space:]@]+} $line]
+      return [regexp -- {^\s*([^[:space:]@]+|@[[:space:]@]+)} $line]
+    }
+
+    :method event=process {line} {
+      set is_intended [expr {[string first "\t" $line] != -1}]
+      eval [set :parse(${:is_code_block},$is_intended)]
+      [:context] dispatch @doc add $line end
+    }
+
+    set :markup_map(sub) { 
+      "{{{" "\[:code \{" 
+      "}}}" "\}\]" 
+    }
+    set :markup_map(unescape) {
+      "\\{" "{"
+      "\\}" "}"
+      "\\#" "#"
     }
     :method event=process {line} {
+      if {[regsub -- {^\s*(\{\{\{)\s*$} $line "\[:code -inline false \{" line] || \
+	      (${:is_code_block} && [regsub -- {^\s*(\}\}\})\s*$} $line "\}\]" line])} {
+	set :is_code_block [expr {!${:is_code_block}}]
+	append line \n
+      } elseif {${:is_code_block}} {
+	set line [string map ${:markup_map(unescape)} $line]
+	append line \n
+      } else {
+	set line [string map ${:markup_map(sub)} $line]
+	set line [string map ${:markup_map(unescape)} $line]
+	set line [string trimleft $line]
+      }
       [:context] dispatch @doc add $line end
+    }
+
+    :method toggle_code_block {is_indented} {
+      set :is_code_block [expr {}]
     }
     
   }
@@ -1207,6 +1496,12 @@ namespace eval ::nx::doc {
   CommentLine create space {
     :method match {line} {
       return [expr {$line eq {}}]
+    }
+    :method event=process {line} {
+      if {[:comment_section] eq "::nx::doc::description"} {
+	[:context] dispatch @doc add "" end
+      }
+      next
     }
   }
   
@@ -1236,7 +1531,7 @@ namespace eval ::nx::doc {
 	set src ${:current_comment_line}
 	set tgt [$src is? $line]
       }
-      
+      #puts stderr "---- line $line src $src tgt $tgt"
       #
       # TODO: realise the initial state nodes as NULL OBJECTs, this
       # helps avoid conditional branching all over the place!

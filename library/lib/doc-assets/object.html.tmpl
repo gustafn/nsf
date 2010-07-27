@@ -1,9 +1,15 @@
 <h2>
-  Object <b property="yui:name">${:name}</b>
+  [:? {[${:name} info is class]} { Class } - { Object
+  }] <b property="yui:name">${:name}</b>
+  [:?var :@superclass {
   <span class="extends">
-  </span>
+  - subclass of
+  [:for super ${:@superclass} {
+    <a href="[${super} filename].html" title="[$super name]">[$super name]</a>
+  }]
+    </span>
+  }]
 </h2>
-
 
 [:?var :@see {
 <div class="deprecated"><strong>See also:</strong>${:@see}</div>
@@ -19,7 +25,7 @@
     <h3 id="properties">Attributes</h3>
     <div class="content">
       [:for attr ${:@param} {
-       <div class="$property.access#if $property.deprecated# deprecated#end if#" rel="yui:property" resource="#property_$property.name">
+       <div rel="yui:property">
         <h4><a name="property_[$attr name]" property="yui:name">[$attr name]</a>
         </h4>
         <div class="detail">
@@ -48,9 +54,37 @@
       </div>
   </div>
 } ]
+  [:let iattrs [:inherited @param]]
+  [:? {$iattrs ne ""} { 
+  <div rel="yui:inheritance">                    
+                        [:for superclass [dict keys $iattrs]  {
+			[:let attrs [dict get $iattrs $superclass]]
+                            <div class="section field inheritance"
+                        rel="yui:superclass"  resource="[$superclass filename].html">
+                                <h4>Attributes inherited
+                                from <a href="[$superclass filename].html" property="yui:name"
+                                title="[$superclass name]">[$superclass name]</a>:</h4>
+                                <div class="content" rel="yui:properties">
+                                    <code>
+                                        [:for a $attrs {
+                                            <span rel="yui:property"
+                                            resource="[$superclass filename].html#attribute_[$a name]">                                        
+                                            <a class=""
+                                            href="[$superclass filename].html#attribute_[$a name]" property="yui:name"
+                                            title="[$a name]">[$a name]</a>
+                                            </span>
+					    }]
+                                    </code>
+                                </div>
+                            </div>
+                        }]
+                        </div>
+
+}]
 </div>
+
 <div rel="yui:methods" resource="#methods">
-  [:?var :@method {
+[:?var :@method {
   <div class="section method details">
     <h3 id="methods">Methods</h3>
     <div class="content">
@@ -58,7 +92,11 @@
       <div class="" rel="yui:method" resource="#method_[$method name]">
         <h4>
           <a name="method_[$method name]">[$method name]</a></h4>
-        <div class="detail" >            
+        <div class="detail" >
+          <code>[:? {[$method exists @return]} {&lt;<span property="yui:type">[[$method @return] spec]</span>&gt;} ]
+	    <strong property="yui:name">[$method name]</strong>
+	    [$method parameters]
+	  </code>
           <div class="description" property="yui:description">
             [$method text]
           </div>
@@ -71,9 +109,14 @@
 	      [:for param [$method @param] {
 	      <dd rel="yui:parameter">
                 <code><span property="yui:name">[$param name]</span>
-                  &lt;<span property="yui:type">[:? {[$param exists spec]} {[$param spec]}]</span>&gt;
+                [:? {[$param exists spec] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
                 </code>
                 <span property="yui:description">[$param text]</span>
+		[:? {[$param exists default]} {
+                <div class="default" property="yui:defaultValue">
+                  Default Value: [$param default]
+                </div>        
+                }]
               </dd>
 	      }]
             </dl>
@@ -84,7 +127,6 @@
 	    <dl>
               <dt>Returns:
                 <code property="yui:return">
-		  [$rparam name]
               </code></dt>
               <dd property="yui:returnInfo">[$rparam text]</dd>
             </dl>
@@ -107,5 +149,95 @@
     </div>
   </div>
   }]
+  [:let imethods [:inherited @method]]
+  [:? {$imethods ne ""} { 
+  <div rel="yui:inheritance">                    
+                        [:for superclass [dict keys $imethods]  {
+			[:let ms [dict get $imethods $superclass]]
+                            <div class="section field inheritance"
+                        rel="yui:superclass"  resource="[$superclass filename].html">
+                                <h4>Methods inherited
+                                from <a href="[$superclass filename].html" property="yui:name"
+                                title="[$superclass name]">[$superclass name]</a>:</h4>
+                                <div class="content" rel="yui:methods">
+                                    <code>
+                                        [:for m $ms {
+                                            <span rel="yui:method"
+                                            resource="[$superclass filename].html#method_[$m name]">                                        
+                                            <a class=""
+                                            href="[$superclass filename].html#method_[$m name]" property="yui:name"
+                                            title="[$m name]">[$m name]</a>
+                                            </span>
+					    }]
+                                    </code>
+                                </div>
+                            </div>
+                        }]
+                        </div>
+
+}]
 </div>
+
   
+[:?var :@object-method {
+<div rel="yui:object-methods" resource="#object-methods">
+  <div class="section method details">
+    <h3 id="object-methods">Per-object methods</h3>
+    <div class="content">
+      [:for omethod ${:@object-method} {
+      <div class="" rel="yui:object-method" resource="#object-method_[$omethod name]">
+        <h4>
+          <a name="object-method_[$omethod name]">[$omethod name]</a></h4>
+        <div class="detail" >            
+	  <code>[:? {[$omethod exists @return]} {&lt;<span property="yui:type">[[$omethod @return] spec]</span>&gt;} ]
+	    <strong property="yui:name">[$omethod name]</strong>
+	    [$omethod parameters]
+	    </code>
+          <div class="description" property="yui:description">
+            [$omethod text]
+          </div>
+	  
+          <div class="description">
+	    
+	    [:? {[$omethod exists @param]} {
+	    <dl rel="yui:parameters">
+              <dt>Method parameters:</dt>
+	      [:for param [$omethod @param] {
+	      <dd rel="yui:parameter">
+                <code><span property="yui:name">[$param name]</span>
+                  [:? {[$param exists spec] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+                </code>
+                <span property="yui:description">[$param text]</span>
+              </dd>
+	      }]
+            </dl>
+	    }]
+	    
+	    [:? {[$omethod exists :@return]} {
+	    [:let rparam [$omethod @return]]
+	    <dl>
+              <dt>Returns:
+                <code property="yui:return">
+              </code></dt>
+              <dd property="yui:returnInfo">[$rparam text]</dd>
+            </dl>
+	    }]
+	    
+            
+	    [:? {[$omethod exists :@deprecated]} {
+            <div class="deprecated">
+              <strong>Deprecated</strong> [$method @deprecated]
+            </div>        
+	    }]
+	    
+          </div>
+	  
+        </div>
+        <hr />
+      </div>
+      
+      }] <!-- end-of-for -->
+    </div>
+  </div>
+</div>
+}]

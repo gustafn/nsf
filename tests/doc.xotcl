@@ -65,6 +65,7 @@ Test case scanning {
 
   set lines {
     "# @package o"			1
+    "#@package o"			1
     "bla"				0
     "# @object o"			1
     "# 1 2 3"				1
@@ -107,7 +108,7 @@ Test case scanning {
     
     
     ### # # # # @object o # ####
-    # 1 2 3
+    #    1 2 3
     #
     # # # # # 345 
     # # # @tag1 part1 
@@ -115,7 +116,7 @@ Test case scanning {
     bla; # # # # # no comment
   }
 
-  set blocks {1 {{@package o} {1 2 3}} 5 {{@object o} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}} 17 {{@object o # ####} {1 2 3} {} 345 {@tag1 part1} {@tag2 part2}}}
+  set blocks {1 {{ @package o} { 1 2 3}} 5 {{ @object o} { 1 2 3} {} {  345} { @tag1 part1} { @tag2 part2}} 17 {{ @object o # ####} {    1 2 3} {} { 345} { @tag1 part1} { @tag2 part2}}}
 
   ? [list ::lcompare [doc comment_blocks $script] $blocks] 1
 }
@@ -363,7 +364,6 @@ Test case parsing {
   ? [list $entity info is type ::nx::doc::@object] 1
   ? [list $entity text] "The class Foo defines the behaviour for all Foo objects";
   ? [list $entity @author] "gneumann@wu.ac.at ssoberni@wu.ac.at"
-
   # TODO: Fix the [@param id] programming scheme to allow (a) for
   # entities to be passed and the (b) documented structures
   #set entity [@param id ::Foo class attr1]
@@ -382,7 +382,6 @@ Test case parsing {
     "Provides a first value"
     "Provides a second value"
   } {
-    puts stderr PARAM=$p
     ? [list expr [list [$p text] eq $expected]] 1;
   }
 
