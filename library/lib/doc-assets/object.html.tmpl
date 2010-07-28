@@ -1,3 +1,9 @@
+<form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
+  <fieldset>
+    <legend>Filters</legend>
+    <span class="classopts"><input type="checkbox" name="show_private" id="show_private" /> <label for="show_private">Show Private</label></span>
+  </fieldset>
+</form>
 <h2>
   [:? {[${:name} info is class]} { Class } - { Object
   }] <b property="yui:name">${:name}</b>
@@ -89,11 +95,11 @@
     <h3 id="methods">Methods</h3>
     <div class="content">
       [:for method ${:@method} {
-      <div class="" rel="yui:method" resource="#method_[$method name]">
+      <div class="[$method @modifier]" rel="yui:method" resource="#method_[$method name]">
         <h4>
           <a name="method_[$method name]">[$method name]</a></h4>
         <div class="detail" >
-          <code>[:? {[$method exists @return]} {&lt;<span property="yui:type">[[$method @return] spec]</span>&gt;} ]
+          <code>[:? {[$method exists @return] && [[$method @return] spec] ne ""} {&lt;<span property="yui:type">[[$method @return] spec]</span>&gt;} ]
 	    <strong property="yui:name">[$method name]</strong>
 	    [$method parameters]
 	  </code>
@@ -185,7 +191,7 @@
     <h3 id="object-methods">Per-object methods</h3>
     <div class="content">
       [:for omethod ${:@object-method} {
-      <div class="" rel="yui:object-method" resource="#object-method_[$omethod name]">
+      <div class="[$omethod @modifier]" rel="yui:object-method" resource="#object-method_[$omethod name]">
         <h4>
           <a name="object-method_[$omethod name]">[$omethod name]</a></h4>
         <div class="detail" >            

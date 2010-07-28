@@ -33,7 +33,7 @@ namespace eval ::nx::doc {
   # The helper proc "@" is a conveniant way for creating new
   # documentation objects with less syntactic overhead.
   #
-  # @param class Request an instance of a particular entity class (e.g., @package)
+  # @param class Request an instance of a particular entity class (e.g., ...)
   # @param name What is the entity name (e.g., next::doc for a package)
   # @param args A vector of arbitrary arguments, provided to the entity when being constructed
   # @return The identifier of the newly created entity object
@@ -65,7 +65,7 @@ namespace eval ::nx::doc {
   # This proc is used to sort instances by values of a specified
   # attribute. {{{ set 
   # code 1; puts stderr $code; puts stderr [info script]; set l \{x\}
-  # }}} Und nun gehen wir in eine zweite Zeile ...
+  # }}} Und nun gehen wir in eine zweite Zeile ... und fügen einen Link ein (e.g., {{@object ::nx::doc::@object}})
   #
   # ... um nach einem Zeilenbruch weiterzumachen
   # {{{
@@ -82,9 +82,9 @@ namespace eval ::nx::doc {
   #	::nx::doc::sorted $instances
   # }}}
   #
-  # @param instances Points to a list of entity instances to sort
+  # @param instances Points to a list of entity instances to sort e.g. {{@object ::nx::doc::@object}}
   # @param sortedBy Indicates the attribte name whose values the sorting will be based on
-  # @return A list of sorted documentation entity instances
+  # @return A list of sorted documentation entity instances {{{instances of @object}}}
   proc sorted {instances sortedBy} {
     set order [list]
     foreach v $instances {lappend order [list $v [$v eval [list set :$sortedBy]]]}
@@ -544,6 +544,7 @@ namespace eval ::nx::doc {
   # documentation entity and is identified by a name.
   #
   Class create Part -superclass Entity {
+
     #:method objectparameter args {next {doc -use}}
     :attribute partof:required
     :attribute use
@@ -559,7 +560,7 @@ namespace eval ::nx::doc {
   #
   PartClass create @method \
       -superclass Part {
-	:attribute {modifier public}
+	:attribute {@modifier public} -slotclass ::nx::doc::PartAttribute
 	:attribute @param -slotclass ::nx::doc::PartAttribute {
 	  set :part_class @param
 	}
@@ -623,6 +624,7 @@ namespace eval ::nx::doc {
 	  #
 	  # @param partof Refers to the entity object which contains this part 
 	  # @param name Stores the name of the documented parameter
+	  # @modifier private
 
 	  set partof_fragment [:get_unqualified_name ${partof}]
 	  return [:root_namespace]::${:tag}::${partof_fragment}::${name}
@@ -745,8 +747,66 @@ namespace eval ::nx::doc {
     # specificities should move in a refinement of TemplateData, e.g.,
     # DefaultHtmlTemplateData or the like.
     #
+
+    :method fit {str max {placeholder "..."}} {
+      if {[llength [split $str ""]] < $max} {
+	return $str;
+      }
+      set redux [llength [split $placeholder ""]]
+      set margin [expr {($max-$redux)/2}]
+      return "[string range $str 0 [expr {$margin-1}]]$placeholder[string range $str end-[expr {$margin+1}] end]"
+    }
+
+    :method list_structural_features {} {
+      set entry {{"access": "$access", "host": "$host", "name": "$name", "url": "$url", "type": "$type"}}
+      set entries [list]
+      if {[:info is type ::nx::doc::@package]} {
+	set features [list @object @command]
+	foreach feature $features {
+	  set instances [sorted [$feature info instances] name]
+	  foreach inst $instances {
+	    set access ""
+	    set host [:name]
+	    set name [$inst name]
+	    set url  "[$inst filename].html"
+	    set type [$feature tag]
+	    lappend entries [subst $entry]
+	  }
+	}
+      } elseif {[:info is type ::nx::doc::@object]} {
+	# TODO: fix support for @object-method!
+	set features [list @method @param]
+	foreach feature $features {
+	  if {[:exists $feature]} {
+	    set instances [sorted [:$feature] name]
+	    foreach inst $instances {
+	      set access [expr {[:exists @modifier]?[:@modifier]:""}]
+	      set host [:name]
+	      set name [$inst name]
+	      set url  "[:filename].html#[$feature tag]_[$inst name]"
+	      set type [$feature tag]
+	      lappend entries [subst $entry]
+	    }
+	  }
+	}
+      }
+      return "\[[join $entries ,\n]\]"
+    }
+  
+  
+
     :method code {{-inline true} script} {
       return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
+    }
+
+    :method link {entity_type args} {
+      set id [$entity_type id {*}$args]
+      if {![::nx::core::is $id object]} return;
+      set pof ""
+      if {[$id info is type ::nx::core::Part]} {
+	set pof "[[$id partof] name]#"
+      }
+      return "<a href=\"[$id filename].html#[$entity_type tag]_[$id name]\">$pof[$id name]</a>"
     }
 
     :method text {} {
@@ -1270,7 +1330,7 @@ namespace eval ::nx::doc {
       }
       
       if {$failure ne ""} {
-	#puts stderr ERRORINFO=$::errorInfo
+	puts stderr ERRORINFO=$::errorInfo
 	error $failure
       }
       
@@ -1410,6 +1470,24 @@ namespace eval ::nx::doc {
 	}
       }
     }
+
+    set :markup_map(sub) { 
+      "{{{" "\[:code \{" 
+      "}}}" "\}\]"
+      "{{" "\[:link " 
+      "}}" "\]" 
+      
+    }
+    set :markup_map(unescape) {
+      "\\{" "{"
+      "\\}" "}"
+      "\\#" "#"
+    }
+
+    :method map {line set} {
+      set line [string map [[::nx::core::current class] eval [list set :markup_map($set)]] $line]
+    }
+
   }
   
   
@@ -1418,8 +1496,11 @@ namespace eval ::nx::doc {
       return [regexp -- {^\s*@[^[:space:]@]+} $line]
     }
     :method event=process {line} {
-      set line [string trimleft $line]
+      set line [:map $line sub]
+      set line [:map $line unescape]
+      set line [split [string trimleft $line]]
       set tag [lindex $line 0]
+      #puts stderr "---line->$line"
       [:context] dispatch $tag [lrange $line 1 end]
     }
     
@@ -1462,26 +1543,17 @@ namespace eval ::nx::doc {
       [:context] dispatch @doc add $line end
     }
 
-    set :markup_map(sub) { 
-      "{{{" "\[:code \{" 
-      "}}}" "\}\]" 
-    }
-    set :markup_map(unescape) {
-      "\\{" "{"
-      "\\}" "}"
-      "\\#" "#"
-    }
     :method event=process {line} {
       if {[regsub -- {^\s*(\{\{\{)\s*$} $line "\[:code -inline false \{" line] || \
 	      (${:is_code_block} && [regsub -- {^\s*(\}\}\})\s*$} $line "\}\]" line])} {
 	set :is_code_block [expr {!${:is_code_block}}]
 	append line \n
       } elseif {${:is_code_block}} {
-	set line [string map ${:markup_map(unescape)} $line]
+	set line [:map $line unescape]
 	append line \n
       } else {
-	set line [string map ${:markup_map(sub)} $line]
-	set line [string map ${:markup_map(unescape)} $line]
+	set line [:map $line sub]
+	set line [:map $line unescape]
 	set line [string trimleft $line]
       }
       [:context] dispatch @doc add $line end
