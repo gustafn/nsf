@@ -65,7 +65,7 @@
 			  [:? {[:info is type ::nx::doc::@package] && [self] eq $package} {
 			  [:let css "selected" ]
 			  }]
-			  <li class="$css"><a href="[$package filename].html" title="[$package name]">[$package name]</a></li>
+			  <li class="$css"><a href="[$package filename].html" title="[$package name]">[:fit [$package name] 30]</a></li>
 			  }]
 			</ul>
 		      </div>
@@ -80,7 +80,7 @@
 			  [:? {[:info is type ::nx::doc::@object] && [self] eq $object} {
 			  [:let css "selected" ]
 			  }]
-			  <li class="$css"><a href="[$object filename].html" title="[$object name]">[$object name]</a></li>
+			  <li class="$css"><a href="[$object filename].html" title="[$object name]">[:fit [$object name] 30]</a></li>
 			  }]
 			</ul>
 		      </div>
@@ -110,7 +110,7 @@
 	</div>
 </div>
 <script type="text/javascript">
-    ALL_YUI_PROPS = allprops;
+    ALL_YUI_PROPS = [:list_structural_features];
 </script>
 </body>
 </html>
