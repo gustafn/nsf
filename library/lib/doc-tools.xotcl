@@ -21,6 +21,7 @@
 # are available).
 #
 # @require next
+# @version 0.1
  
 package provide next::doc 0.1
 package require next
@@ -424,6 +425,7 @@ namespace eval ::nx::doc {
     :attribute url
     :attribute license
     :attribute creationdate
+    :attribute {version ""}
   }
 
   #
@@ -446,6 +448,7 @@ namespace eval ::nx::doc {
 
   EntityClass create @package -superclass Entity {
     :attribute @require -slotclass ::nx::doc::PartAttribute
+    :attribute @version -slotclass ::nx::doc::PartAttribute
   }
 
   EntityClass create @command -superclass Entity {
@@ -1235,7 +1238,7 @@ namespace eval ::nx::doc {
       {-project {url http://www.next-scripting.org/ name Next}}
     } {
       array set prj $project
-      set project [@project new -name $prj(name) -url $prj(url)]
+      set project [@project new -name $prj(name) -url $prj(url) -version $prj(version)]
       Entity mixin add $renderer
       set ext [lindex [split [file tail $tmpl] .] end-1]
       set entities [concat [sorted [@package info instances] name] \

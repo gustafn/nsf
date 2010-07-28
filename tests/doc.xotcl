@@ -520,7 +520,7 @@ Test case parsing {
   $i eval [list ::nx::doc::make doc \
 	       -renderer ::nx::doc::TemplateData \
 	       -outdir /tmp \
-	       -project {name nextdoc url http://www.next-scripting.org/}]
+	       -project {name nextdoc url http://www.next-scripting.org/ version 0.1d}]
   interp delete $i
 }
 
