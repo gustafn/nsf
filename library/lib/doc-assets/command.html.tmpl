@@ -19,24 +19,27 @@
         <h4><a name="property_[$sub name]" property="yui:name">[$sub name]</a>
         </h4>
         <div class="detail">
+	   <code>[:? {[$sub exists @return] && [[$sub @return] spec] ne ""} {&lt;<span property="yui:type">[[$sub @return] spec]</span>&gt;} ]
+	    ${:name}
+	     <strong property="yui:name">[$sub name]</strong>
+	    [$sub parameters]
+	    </code>
           <div class="description" property="yui:description">
 	    [$sub text]
-          </div>
-	  [:? {[$sub exists :@param]} {
-	  <dl rel="yui:parameters">
-	    <dt>Parameters:</dt>
+	    	  [:? {[$sub exists :@param]} {
+	    <dl rel="yui:parameters">
+	    <dt>Subcommand parameters:</dt>
 	    [:for param [$sub @param] {
 	    <dd rel="yui:parameter">
 	      <code><span property="yui:name">[$param name]</span>
-		&lt;<span property="yui:type">[:? {[$param exists spec]} {[$param spec]}]</span>&gt;
+		[:? {[$param exists spec] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
 	      </code>
 	      <span property="yui:description">[$param text]</span>
 	    </dd>
 	    }]
 	  </dl>
 	  }]
-	  
-	  [:? {[$sub exists :@return]} {
+	    [:? {[$sub exists :@return]} {
 	  <dl>
 	    <dt>Returns:
 	      <code property="yui:return">
@@ -44,6 +47,7 @@
 	    <dd property="yui:returnInfo">[[$sub @return] text]</dd>
 	  </dl>
 	  }]
+          </div>
         </div>	
         <hr />
       </div>

@@ -49,7 +49,7 @@ Event.onAvailable('yui-classopts-form', function() {
         return checked;
     };
 
-    var els = ['show_private'],
+    var els = ['show_protected'],
         reapplyHash = false;
 
     for (var i = 0; i < els.length; i++) {

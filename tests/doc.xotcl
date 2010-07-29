@@ -505,7 +505,6 @@ Test case parsing {
   if {[catch {set i [doc process next::doc]} msg]} {
     if {[Exception behind? $msg]} {
       puts stderr [$msg info class]->[$msg message]
-      exit
     } else {
       error $msg
     }
@@ -521,6 +520,28 @@ Test case parsing {
 	       -renderer ::nx::doc::TemplateData \
 	       -outdir /tmp \
 	       -project {name nextdoc url http://www.next-scripting.org/ version 0.1d}]
+  interp delete $i
+
+  #
+  # core documentation
+  #
+  set path [file join /tmp NextLanguageCore]
+  if {[file exists $path]} {
+    file delete -force $path
+  }
+
+  set i [interp create]
+  $i eval {
+    package req next::doc
+    namespace import ::nx::*
+    namespace import ::nx::doc::*
+    doc process -noeval true /Users/ssoberni/Documents/dev/xotcl/generic/gentclAPI.decls
+    doc process -noeval true /Users/ssoberni/Documents/dev/xotcl/generic/predefined.xotcl
+    ::nx::doc::make doc \
+	-renderer ::nx::doc::TemplateData \
+	-outdir /tmp \
+	-project {name NextLanguageCore url http://www.next-scripting.org/ version 1.0.0a}
+  }
   interp delete $i
 }
 
@@ -549,7 +570,71 @@ Test case issues? {
   o method bar {arg1:object,type=::some::unknown::Class} {;}
   ? {o bar ::o} "expected object of type ::some::unknown::Class but got \"::o\" for parameter arg1"; # the error should rather reflect that ::some::unknown::Class is a non-existing class object!
 
+  ? {o info is type ::xyz::Bar} 0; # similarly, [info is] 0 for non-existing class objects! It should rather report the non-existance of a valid class object, as otherwise, the introspective act is misleading
+
+  ? {o autoname -reset a} ""; # why does autoname with -reset flag does not return anything, e.g., "a1" here; "name", though required, does not make any sense there. why not return a result after resetting?
+
+  # TODO: is [autoname -instance] really needed?
+
+  # TODO: why is XOTclNextObjCmd/::nx::core::next not in gentclAPI.decls?
+
+  # TODO: where to locate the @ comments (in predefined.xotcl, in
+  # gentclAPI.decls)? how to deal with ::nx::core::* vs. ::nx::*
   
+  # TODO: which values are returned from Object->configure() and
+  # passed to init()? how to document residualargs()?
+
+  # TODO: Object->cleanup() said: "Resets an object or class into an
+  # initial state, as after construction." If by construction it means
+  # after create(), then cleanup() is missing a configure() call to
+  # set defaults, etc!
+
+  # TODO: exists and bestandteil von info() oder selbstständig?
+  # ausserdem: erlauben von :-präfix?!
+
+  # TODO: should we keep a instvar variant (i support this!)
+
+  # TODO: verify the use of filtersearch()? should it return a method
+  # handle and the filter name? how to deal with it when refactoring
+  # procsearch()?
+
+  # TODO: mixinguard doc is missing in old doc
+
+  # TODO: what is Object->__next() for?
+
+  # TODO: what to do with hasNamespace()? [Object info is namespace]?
+
+  # TODO: why is XOTclOUplevelMethodStub/XOTclOUplevelMethod defined
+  # with "args" while it logically uses the stipulated parameter
+  # signature (level ...). is this because of the first pos, optional
+  # parameter? ... same goes for upvar() ...
+
+  # TODO: is Object->uplevel still needed with an integrated cs management?
+
+  # TODO: how is upvar affected by the ":"-prefixing? -> AVOID_RESOLVERS ...
+  
+  # TODO: do all member-creating operations return valid, canonical handles!
+
+  # TODO: the objectsystems subcommand of ::nx::core::configure does
+  # not really fit in there because it does not allow for configuring
+  # anything. it is a mere introspection-only command. relocate (can
+  # we extend standard [info] somehow, i.e., [info objectsystems]
+
+  # TODO: extend [info level] & [info frame]!
+
+  # TODO: there is still --noArgs on [next], which does not correspond
+  # to single-dashed flags used elsewhere. Why?
+
+  # TODO: renaming of self to current?
+  
+  # TODO: is [self callingclass] == [[self callingobject] info class]?
+
+  # TODO: "# @subcommand next Returns the name of the method next on
+  # the precedence path as a string" shouldn't these kinds of
+  # introspective commands return method handles (in the sense of
+  # alias)? Retrieving the name from a handle is the more specific
+  # operation (less generic). ... same for "filterreg"
+
 }
 
 if {$log} {

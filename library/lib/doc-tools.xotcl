@@ -466,6 +466,19 @@ namespace eval ::nx::doc {
     :attribute @subcommand -slotclass ::nx::doc::PartAttribute {
       set :part_class @subcommand
     }
+    :method parameters {} {
+      set params [list]
+      if {[info exists :@param]} {
+	foreach p [:@param] {
+	  set value [$p name]
+	  if {[$p exists default] || [$p name] eq "args" } {
+	    set value "?[$p name]?"
+	  }
+	  lappend params $value
+	}
+      }
+      return $params
+    }
   }
   
   EntityClass create @object \
@@ -627,7 +640,7 @@ namespace eval ::nx::doc {
 	  #
 	  # @param partof Refers to the entity object which contains this part 
 	  # @param name Stores the name of the documented parameter
-	  # @modifier private
+	  # @modifier protected
 
 	  set partof_fragment [:get_unqualified_name ${partof}]
 	  return [:root_namespace]::${:tag}::${partof_fragment}::${name}
@@ -803,10 +816,13 @@ namespace eval ::nx::doc {
       set id [$entity_type id {*}$args]
       if {![::nx::core::is $id object]} return;
       set pof ""
-      if {[$id info is type ::nx::core::Part]} {
+      if {[$id info is type ::nx::doc::Part]} {
 	set pof "[[$id partof] name]#"
+	set filename [[$id partof] filename]
+      } else {
+	set filename [$id filename]
       }
-      return "<a href=\"[$id filename].html#[$entity_type tag]_[$id name]\">$pof[$id name]</a>"
+      return "<a href=\"$filename.html#[$entity_type tag]_[$id name]\">$pof[$id name]</a>"
     }
 
     :method text {} {
@@ -974,7 +990,7 @@ namespace eval ::nx {
     # b. intrinsic: 'thing' is a arbitrary string block describing 
     # a script.
     # 
-    :method process {thing args} {
+    :method process {{-noeval false} thing args} {
       # 1) in-situ processing: a class object
       if {[::nx::core::objectproperty $thing object]} {
         if {[$thing exists __initcmd]} {
@@ -1022,7 +1038,8 @@ namespace eval ::nx {
 	    :log "error reading the file '$thing', i.e.: '$msg'"
 	  }
 	  close $fh
-	  doc analyze $script {*}$args
+	  doc analyze -noeval $noeval $script {*}$args
+	  #doc process -noeval $noeval $script {*}$args
 	} else {
 	  :log "file '$thing' not readable"
 	}
@@ -1032,7 +1049,7 @@ namespace eval ::nx {
 	set cmd [subst {
 	  package req next::doc
 	  namespace import -force ::nx::doc::*
-	  doc analyze [list $thing]
+	  doc analyze -noeval $noeval [list $thing]
 	}]
 	interp eval $i $cmd
 	#interp delete $i
@@ -1040,19 +1057,21 @@ namespace eval ::nx {
       }
     }
 
-    :method analyze {script additions:optional} {
+    :method analyze {{-noeval false} script {additions ""}} {
       # NOTE: This method is to be executed in a child/ slave
       # interpreter.
-      uplevel #0 [list namespace import -force ::nx::doc::*]
-      set pre_commands [:list_commands]
-      uplevel #0 [list eval $script]
-      set post_commands [:list_commands]
-      if {![info exists additions]} {
-	set additions [dict keys [dict remove [dict create {*}"[join $post_commands " _ "] _"] {*}$pre_commands]]
-      } else {
-	set additions [dict keys [dict get $additions objects]]
+      if {!$noeval} {
+	uplevel #0 [list namespace import -force ::nx::doc::*]
+	set pre_commands [:list_commands]
+	uplevel #0 [list eval $script]
+	set post_commands [:list_commands]
+	if {$additions eq ""} {
+	  set additions [dict keys [dict remove [dict create {*}"[join $post_commands " _ "] _"] {*}$pre_commands]]
+	} else {
+	  set additions [dict keys [dict get $additions objects]]
+	}
+	#	puts stderr ADDITIONS=$additions
       }
-      puts stderr ADDITIONS=$additions
       set blocks [:comment_blocks $script]
       # :log "blocks: '$blocks'"
       # 1) eval the script in a dedicated interp; provide for
@@ -1330,7 +1349,7 @@ namespace eval ::nx::doc {
       }
       
       if {$failure ne ""} {
-	puts stderr ERRORINFO=$::errorInfo
+	#puts stderr ERRORINFO=$::errorInfo
 	error $failure
       }
       
@@ -1401,7 +1420,6 @@ namespace eval ::nx::doc {
 	      The entity type '$tag' is not available
 	    }]] throw 
 	  }
-	  puts stderr "$tag new -name $nq_name {*}$args"
 	  set :current_entity [$tag new -name $nq_name {*}$args]
 	}
       } else {

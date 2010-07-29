@@ -1,7 +1,7 @@
 <form action="#" name="yui-classopts-form" method="get" id="yui-classopts-form">
   <fieldset>
     <legend>Filters</legend>
-    <span class="classopts"><input type="checkbox" name="show_private" id="show_private" /> <label for="show_private">Show Private</label></span>
+    <span class="classopts"><input type="checkbox" name="show_protected" id="show_protected" /> <label for="show_protected">Show protected</label></span>
   </fieldset>
 </form>
 <h2>
@@ -28,7 +28,7 @@
 <div rel="yui:properties" resource="#properties">
 [:?var :@param {
   <div class="section field details">
-    <h3 id="properties">Attributes</h3>
+    <h3 id="properties">Slots</h3>
     <div class="content">
       [:for attr ${:@param} {
        <div rel="yui:property">
@@ -67,7 +67,7 @@
 			[:let attrs [dict get $iattrs $superclass]]
                             <div class="section field inheritance"
                         rel="yui:superclass"  resource="[$superclass filename].html">
-                                <h4>Attributes inherited
+                                <h4>Slots inherited
                                 from <a href="[$superclass filename].html" property="yui:name"
                                 title="[$superclass name]">[$superclass name]</a>:</h4>
                                 <div class="content" rel="yui:properties">
