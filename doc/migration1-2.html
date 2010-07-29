@@ -1,5 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
-<html> <head>
+<html>
+<head>
 <title>Migration Guide from XOTcl to the Next Scripting Language</title>
 <style>
 body	{
@@ -14,6 +15,10 @@ table i {
 table td code i {
      font-style: italic;
      color: green;
+}
+table td i.comment {
+     font-style: italic;
+     color: #888888;
 }
 pre i {
      font-style: italic;
@@ -55,29 +60,31 @@ table td {
 ... general text, maybe partly from slides/paper ....
 
 
-TODO: I think, we should not use ::nx::core, but import "needed" commands into
-::nx.
+TODO: Maybe we should not refer to ::nx::core here and import instead
+the "needed" commands into ::nx namespace.
 
+<h2>Using XOTcl 2.0 and the Next Scripting Language in the Next
+Scripting Framework</h2>
 
-<h2>Supporting XOTcl 1 in Next</h2>
-
-<p> In general, the Next environment supports multiple object
+<p> In general, the Next Scripting Framework supports multiple object
 systems concurrently. Effectively, every object system has different
-base classes for creating both, objects and classes. Therefore, the
-object systems can have different different interfaces and names of
-builtin methods. Currently, Next supports primarily XOTcl and the
-Next scripting language (XOTcl provides about twice as many predefined builtin
-methods compared to Next).  </p>
+base classes for creating objects and classes. Therefore, these object
+systems can have different different interfaces and names of builtin
+methods. Currently, the Next Scripting Framework supports primarily
+XOTcl 2.0 (highly compatible with XOTcl 1.*) and the Next Scripting
+Language (XOTcl provides about twice as many predefined builtin
+methods compared to the Next Scripting Language).  </p>
 
 <p> A single Tcl interpreter can host both, XOTcl and the Next
-scripting language at the same time. This makes migration
+Scripting Language at the same time. This makes migration
 from XOTcl to Next easier. The following example script shows to use
-in a single XOTcl and Next<p>
+in a single script XOTcl and Next:
+<p>
 
 <pre>
    namespace eval mypackage {
 
-      package require XOTcl
+      package require XOTcl 2.0
 
       <i># Import XOTcl into the current namespace</i>
       namespace import -force ::xotcl::*
@@ -97,15 +104,15 @@ in a single XOTcl and Next<p>
 </pre>
 
 <p> "Switching" between XOTcl and Next effectively means the load some
-libraries if needed and to import either the base classes
+packages (if needed) and to import either the base classes
 (<code>Object</code> and <code>Class</code>) of XOTcl or Next
 into the current namespace. </p>
 
-<h1>XOTcl Idioms in the Next scripting language</h1>
+<h1>XOTcl Idioms in the Next Scripting Language</h1>
 
 <h2>Defining Objects and Classes</h2>
 <table>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code>Class <i>ClassName</i></code></td>
     <td><code>Class create <i>ClassName</i></code></td>
@@ -126,16 +133,19 @@ into the current namespace. </p>
 
 <h2>Defining Methods</h2>
 <table border=1>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code>Class <i>C</i><br>
       <i>C</i> instproc <i>foo args</i> {...}<br>
       <i>C</i> proc <i>bar args</i> {...}<br>
       </code></td>
-    <td><code>Class create <i>C</i> {<br>
+    <td>
+      <i class='comment'># Define method and object method in the init-block of a class</i></br><br>
+      <code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:method <i>foo args</i> {...}<br>
       &nbsp;&nbsp;:object method <i>bar args</i> {...}<br>
       }<br></code><hr>
+      <i class='comment'># Define method and object method with separate calls</i></br><br>
       <code>Class create <i>C</i><br>
       <i>C</i> method <i>foo args</i> {...}<br>
       <i>C</i> object method <i>bar args</i> {...}<br>
@@ -146,37 +156,43 @@ into the current namespace. </p>
       <i>o</i> set <i>x 1</i><br>
       <i>o</i> proc <i>foo args</i> {...}<br>
       </code></td>
-    <td><code>Object create <i>o</i> {<br>
+    <td>
+      <i># Define object method and set instance variable<br>
+      # in the init-block of an object</i></br><br>
+      <code>Object create <i>o</i> {<br>
       &nbsp;&nbsp;set :<i>x 1</i><br>
       &nbsp;&nbsp;:method <i>foo args</i> {...}<br>
      }<br></code><hr>
+      <i class='comment'># Define object method and set instance variable<br>
+      # with separate commands</i></br><br>
       <code>Object create <i>o</i><br>
       <i>o</i> eval {set <i>:x 1</i>}</i><br>
-      <i># &nbsp;&nbsp; ::nx::core::setvar o x 1</i><br>
-      <i>o</i> method <i>foo args</i> {...}<br>
+     <i>o</i> method <i>foo args</i> {...}<br>
      </code></td>
   </tr>
 </table>
 
 <h2>Resolvers</h2>
 
-Next defines Tcl resolvers for method and variable names to refer
-to object specific behavior. Withing method bodies these resolver
-treat names staring with a dot "." specially. If one wants to refer to
-a name starting with a "." (e.g. the name of a Tcl function starts
-with a dot), the dot has to be duplicated, or one has to use the
-usual namespace prefix "::" to refer to a namespaced entity. Note that
-the Next resolvers are used in the XOTcl environment as well.
+The Next Scripting Framework defines Tcl resolvers for method and
+variable names to refer to object specific behavior. Withing method
+bodies these resolver treat variable and function names starting with
+a colon ":" specially. In short, a colon-prefixed variable name refers
+to an instance variable, and a colon-prefixed function name refers to
+a method. The sub-sections below provide detailed examples.
 
-<h2>Invoking Methods</h2>
+<p>Note that the Next resolvers are used in the XOTcl 2.* environment
+as well.
+
+<h3>Invoking Methods</h3>
 <table border=1>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code>Class <i>C</i><br>
       <i>C</i> instproc <i>foo args</i> {...}<br>
       <i>C</i> instproc <i>bar args</i> {<br>
-      &nbsp;&nbsp;my <i>foo 1 2 3</i> ;# invoke own method<br>
-      &nbsp;&nbsp;<i>o baz</i> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;# invoke others method<br>
+      &nbsp;&nbsp;my <i>foo 1 2 3</i> <i class='comment'> ;# invoke own method</i><br>
+      &nbsp;&nbsp;<i>o baz</i> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'>;# invoke others method</i><br>
       }<br>
       Object <i>o</i><br>
       <i>o</i> proc <i>baz</i> {} {...}<br>
@@ -184,8 +200,8 @@ the Next resolvers are used in the XOTcl environment as well.
      <td><code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:method <i>foo args</i> {...}<br>
       &nbsp;&nbsp;:method <i>bar args</i> {<br>
-      &nbsp;&nbsp;&nbsp;&nbsp; :<i>foo 1 2 3</i> ;# invoke own method<br>
-      &nbsp;&nbsp;&nbsp;&nbsp; <i>o baz</i> &nbsp;&nbsp;&nbsp;&nbsp;;# invoke others method<br>
+      &nbsp;&nbsp;&nbsp;&nbsp; :<i>foo 1 2 3</i> <i class='comment'>;# invoke own method</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp; <i>o baz</i> &nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'>;# invoke others method</i><br>
       &nbsp;&nbsp;}<br>
       }</br>
       Object create <i>o</i> {<br>
@@ -196,77 +212,107 @@ the Next resolvers are used in the XOTcl environment as well.
 </table>
 
 
-<h2>Accessing Instance Variables from Method Bodies</h2>
+<h3>Accessing Instance Variables from Method Bodies</h3>
 <table border=1>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code>Class <i>C</i><br>
       <i>C</i> instproc <i>foo args</i> {<br>
-      &nbsp;&nbsp;<i># method scoped variable a</i><br>
-      &nbsp;&nbsp;set a 1 <br>
-      &nbsp;&nbsp;<i># instance variable b</i><br>
+      &nbsp;&nbsp;<i class='comment'># method scoped variable a</i><br>
+      &nbsp;&nbsp;set <i>a 1</i> <br>
+      &nbsp;&nbsp;<i class='comment'># instance variable b</i><br>
       &nbsp;&nbsp;my instvar b<br>
-      &nbsp;&nbsp;set b 2<br>
-      &nbsp;&nbsp;<i># global variable/namespaced variable c</i><br>
-      &nbsp;&nbsp;set ::c 3<br>
+      &nbsp;&nbsp;set<i> b 2</i><br>
+      &nbsp;&nbsp;<i class='comment'># global variable/namespaced variable c</i><br>
+      &nbsp;&nbsp;set <i>::c 3</i><br>
     }<br>
       </code></td>
     <td><code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:method <i>foo args</i> {...}<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<i># method scoped variable a</i><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;set a 1 <br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<i># instance variable b</i><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;set :b 2<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<i># global variable/namespaced variable c</i><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;set ::c 3<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'># method scoped variable a</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;set <i>a 1</i> <br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'># instance variable b</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;set <i>:b 2</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'># global variable/namespaced variable c</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;set <i>::c 3</i><br>
       &nbsp;&nbsp;}<br>
       }<br>
      </code></td>
-  </tr>  
+  </tr>
   <tr>
     <td><code>my set <i>varname value</i></code></td>
-    <td><code>set :<i>varname value</i></code></td>
-  </tr>
-    <tr>
-    <td><code>set <i>newVar</i> [my set <i>otherVar</i>]</code></td>
-    <td><code>set <i>newVar</i> [set <i>:otherVar</i>]</code><br><hr>
-      <code>set <i>newVar</i> ${:otherVar}</i></code><br>
+    <td>
+      <i class='comment'># set own instance variable to a value via
+      resolver <br># (prefered and fastest way)</i></br><br>
+      <code>set <i>:newVar value</i></code>
     </td>
   </tr>
   <tr>
     <td><code>my instvar <i>newVar</i><br>
-      set <i>newVar value</i> </code>
+      set <i>newVar value</i>
+      </code></td>
+   <td>
+      <i class='comment'># set own instance variable via variable import</i><br><br>
+      <code>::nx::var import [self] <i>varname</i><br>
+      set <i>varname value</i>
     </td>
-    <td><code>set <i>:newVar value</i></td>
  </tr>
-  <tr>
+ 
+   <tr>
+    <td>
+    <code>set <i>newVar</i> [my set <i>otherVar</i>]</code></td>
+    <td>
+      <i class='comment'># read own instance variable</i><br><br>
+      <code>set <i>newVar</i> [set <i>:otherVar</i>]</code><br><hr>
+      <code>set <i>newVar</i> ${:otherVar}</i></code><br>
+    </td>
+  </tr>
+    <tr>
     <td><code>my exists <i>varname</i></code></td>
-    <td><code>info :<i>varname</i></code></td>
+    <td>
+      <i class='comment'># Test existence of own instance variable</i><br><br>
+      <code>info :<i>varname</i></code>
+      <hr>
+      <code>::nx::var exists [self] <i>varname</i></code>
+    </td>
   </tr>
 </table>
 
-<h2>Accessing Instance Variables of other Objects</h2>
+<h3>Accessing Instance Variables of other Objects</h3>
 <table border=1>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> set <i>varname value</i></code></td>
-    <td><code><i>obj</i> eval [list set <i>:varname value</i>]</code></td>
+    <td>
+      <i class='comment'># set instance variable of object obj to a value via
+      namespace <br># resolver (prefered way: define setter method on obj)</i></br><br>
+      <code><i>obj</i> eval [list set <i>:varname value</i>]</code></td>
   </tr>
     <tr>
     <td><code>set <i>newVar</i> [<i>obj</i> set <i>otherVar</i>]</code></td>
-    <td><code>set <i>newVar</i> [<i>obj</i> eval {set <i>:otherVar</i>}]</code><br>
+    <td>
+      <i class='comment'># read instance variable of object obj via resolver</i></br><br>
+      <code>set <i>newVar</i> [<i>obj</i> eval {set <i>:otherVar</i>}]</code><br>
     </td>
   </tr>
   <tr>
     <td><code><i>obj</i> instvar <i>newVar</i><br>
       set <i>newVar value</i> </code>
     </td>
-    <td><code>::nx::core::importvar <i>obj newVar</i><br>
+    <td>
+      <i class='comment'># read instance variable of object obj via import</i></br><br>
+      <code>::nx::var import <i>obj newVar</i><br>
       set <i>newVar value</i></td>
  </tr>
   <tr>
     <td><code><i>obj</i> exists <i>varname</i></code></td>
-    <td><code><i>obj</i> eval {info exists <i>:varname</i>}</code></td>
+    <td>
+      <i class='comment'># Test existence of instance variable of
+      object obj</i><br><br>
+      <code><i>obj</i> eval {info exists <i>:varname</i>}</code>
+      <hr>
+      <code>::nx::var exists <i>obj varname</i></code>
+    </td>
   </tr>
 </table>
 
@@ -277,7 +323,7 @@ the Next resolvers are used in the XOTcl environment as well.
 
 <h4>List methods defined by objects</h4>
 <table border=1>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> info commands <i>?pattern?</i></code></td>
     <td><code><i>obj</i> info methods <i>?pattern?</i></code></td>
@@ -373,7 +419,7 @@ the Next resolvers are used in the XOTcl environment as well.
 
 <h4>List callable methods</h4>
 <table border=1>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> info methods <i>?pattern?</i></code></td>
     <td><code><i>obj</i> info callable <i>?pattern?</i></code></td>
@@ -388,7 +434,7 @@ the Next resolvers are used in the XOTcl environment as well.
 <h4>List object/class where some method is defined</h4>
 
 <table border=1>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> procsearch <i>methodName</i></code></td>
     <td><code><i>obj</i> info callable -which <i>methodName</i></code></td>
@@ -398,7 +444,7 @@ the Next resolvers are used in the XOTcl environment as well.
 <h4>List definition of scripted methods defined by classes</h4>
 
 <table border=1>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>cls</i> info instbody <i>methodName</i></code></td>
     <td><code><i>cls</i> info method body <i>methodName</i></code></td>
@@ -432,7 +478,7 @@ the Next resolvers are used in the XOTcl environment as well.
 <h4>List definition of scripted object specific methods</h4>
 
 <table>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> info body <i>methodName</i></code></td>
     <td><code><i>obj</i> info method body <i>methodName</i></code></td>
@@ -468,7 +514,7 @@ the Next resolvers are used in the XOTcl environment as well.
 
 <h4>List filter or mixins</h4>
 <table>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
     <td><code><i>obj</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
@@ -497,7 +543,7 @@ the Next resolvers are used in the XOTcl environment as well.
 
 <h4>List definition of methods defined by aliases, setters or forwarders</h4>
 <table>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><i>n.a.</i></td>
     <td><code><i>obj</i> info method definition <i>methodName</i></code></td>
@@ -510,7 +556,7 @@ the Next resolvers are used in the XOTcl environment as well.
 
 <h4>List fully qualified name of method</h4>
 <table>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><i>n.a.</i></td>
     <td><code><i>obj</i> info method name <i>methodName</i></code></td>
@@ -523,7 +569,7 @@ the Next resolvers are used in the XOTcl environment as well.
 
 <h4>List type of a method</h4>
 <table>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><i>n.a.</i></td>
     <td><code><i>obj</i> info method type <i>methodName</i></code></td>
@@ -536,7 +582,7 @@ the Next resolvers are used in the XOTcl environment as well.
 
 <h4>List the scope of mixin classes</h4>
 <table>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>cls</i> info mixinof <i>?-closure? ?pattern?</i></code></td>
     <td><code><i>cls</i> info mixinof -scope object <i>?-closure? ?pattern?</i></code></td>
@@ -554,7 +600,7 @@ the Next resolvers are used in the XOTcl environment as well.
 <h4>Check properties of object and classes</h4>
 
 <table>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> istype <i>sometype</i></code></td>
     <td>
@@ -604,14 +650,14 @@ the Next resolvers are used in the XOTcl environment as well.
   </tr>
 </table>
 
-
 <h2>Predefined Methods</h2>
 <h2>Dispatch, Aliases, etc.</h2>
 <h2>Assertions</h2>
+
 <table border=1>
-  <tr><th>XOTcl</th><th>Next</th></tr>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
-    <td><code><i>obj</i> check <i>checkptions</i></code></td>
+    <td><code><i>obj</i> check <i>checkoptions</i></code></td>
     <td><code>::nx::core::assertion <i>obj</i> check <i>checkptions</i></code></td>
   </tr>
   <tr>
@@ -644,23 +690,25 @@ the Next resolvers are used in the XOTcl environment as well.
   <tr>
     <td><code><i>cls</i> info invar</code></td>
     <td><code>::nx::core::assertion <i>cls</i> object-invar</code></td>
-  </tr
+  </tr>
   
 </table>
 <h2>Method Protection</h2>
 
 
-<h2>Incompatibilities</h2>
+<h2>Incompatibilities between Next Scripting/XOTcl 2.0 and XOTcl 1.*</h2>
 
-<h3>Namespace resolvers</h3>
-<p>The Next namespace resolvers are use as well when XOTcl is used
-within Next.
+<h3>Resolvers</h3>
+<p>The tesolvers of the Next Scripting Framework are used as well
+within XOTcl 2.0. When names starting with single colons are used in
+XOTcl 1.* scripts, conflicts will arise.
 </p>
 
 <h3>Stronger Checking</h3>
-<p>Next performs stronger checking than XOTcl. The requiredness
-of slots in XOTcl was just a comment, while Next enforces it.
-</p>
+
+<p>The Next Scripting Framework performs stronger checking than XOTcl
+1.*. For example, the requiredness of slots in XOTcl was just a
+comment, while Next enforces it. </p>
 
 <h3>Different results</h3>
 <ul>
@@ -682,7 +730,7 @@ of slots in XOTcl was just a comment, while Next enforces it.
 <h3>Exit handlers</h3>
 <p>
 The exit hander interface changed from a method of
-<code>::xotcl::Object</code> into procs in the <code>::nx::core</code>
+<code>::xotcl::Object</code> into three Tcl procs in the <code>::nx::core</code>
 namespace. Next provides now:
 <pre>
    ::nx::core::setExitHandler script
@@ -693,5 +741,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Tue May 25 14:00:20 CEST 2010 <!-- hhmts end -->
-</body> </html>
+<!-- hhmts start --> Last modified: Thu Jul 29 13:40:13 CEST 2010 <!-- hhmts end -->
+</body>
+</html>
