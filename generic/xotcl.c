@@ -5048,6 +5048,16 @@ XOTclUnsetInstVar(XOTcl_Object *object, Tcl_Interp *interp, CONST char *name, in
 }
 
 static int
+CheckVarName(Tcl_Interp *interp, const char *varNameString) {
+  if (strstr(varNameString, "::") || *varNameString == ':') {
+    return XOTclVarErrMsg(interp, "variable name \"", varNameString,
+                          "\" must not contain namespace separator or colon prefix",
+                          (char *) NULL);
+  }
+  return TCL_OK;
+}
+
+static int
 varExists(Tcl_Interp *interp, XOTclObject *object, CONST char *varName, CONST char *index,
           int triggerTrace, int requireDefined) {
   Tcl_CallFrame frame, *framePtr = &frame;
@@ -8463,7 +8473,6 @@ XOTclUnsetInstVar2(XOTcl_Object *object1, Tcl_Interp *interp,
   return result;
 }
 
-
 static int
 GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, XOTclObject *object, 
                            Tcl_Obj *varName, Tcl_Obj *newName) {
@@ -8472,6 +8481,10 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, XOTclObject 
   Tcl_CallFrame *varFramePtr;
   Tcl_CallFrame frame, *framePtr = &frame;
   char *varNameString;
+
+  if (CheckVarName(interp, ObjStr(varName)) != TCL_OK) {
+    return TCL_ERROR;
+  }
 
   XOTcl_PushFrameObj(interp, object, framePtr);
   if (object->nsPtr) {
@@ -8508,11 +8521,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, XOTclObject 
   }
   varNameString = ObjStr(newName);
 
-  if (strstr(varNameString, "::") || *varNameString == ':') {
-    return XOTclVarErrMsg(interp, "variable name \"", varNameString,
-                          "\" must not contain namespace separator or colon prefix",
-                          (char *) NULL);
-  }
+
 
   varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
@@ -10963,8 +10972,11 @@ xotclCmd existsvar XOTclExistsVarCmd {
   {-argName "var" -required 1}
 }
 */
-static int XOTclExistsVarCmd(Tcl_Interp *interp, XOTclObject *object, CONST char *var) {
-  Tcl_SetIntObj(Tcl_GetObjResult(interp), varExists(interp, object, var, NULL, 1, 1));
+static int XOTclExistsVarCmd(Tcl_Interp *interp, XOTclObject *object, CONST char *varName) {
+  if (CheckVarName(interp, varName) != TCL_OK) {
+    return TCL_ERROR;
+  }
+  Tcl_SetIntObj(Tcl_GetObjResult(interp), varExists(interp, object, varName, NULL, 1, 1));
   return TCL_OK;
 }
 
@@ -12132,6 +12144,9 @@ xotclCmd setvar XOTclSetVarCmd {
 }
 */
 static int XOTclSetVarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *valueObj) {
+  if (CheckVarName(interp, ObjStr(variable)) != TCL_OK) {
+    return TCL_ERROR;
+  }
   return setInstVar(interp, object, variable, valueObj);
 }
 

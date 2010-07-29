@@ -1,6 +1,6 @@
 # testing var resolution for namespace-shadowed objects 
 
-package require XOTcl; xotcl::use xotcl2
+package require next; namespace import ::nx::*
 package require xotcl::test
 
 Test parameter count 1
@@ -115,6 +115,29 @@ o2 destroy
 unset ::z
 unset ::g
 foreach v {::x ::z ::g} {unset -nocomplain $v}
+
+###########################################
+# var exists tests
+###########################################
+Test case exists {
+    set y 1 
+
+    Object create o {set :x 1}
+    o method foo {} {info exists :x}
+    o method bar {} {info exists :y}
+    ? {o eval {info exists :x}} 1
+    ? {o eval {info exists :y}} 0
+    ? {o eval {info exists x}} 0
+    ? {o foo} 1
+    ? {o bar} 0
+    ? {::nx::var exists o x} 1
+    ? {::nx::var exists o y} 0
+    ? {::nx::var exists o :x} {variable name ":x" must not contain namespace separator or colon prefix}
+    ? {::nx::var exists o :y} {variable name ":y" must not contain namespace separator or colon prefix}
+    ? {::nx::var set o y 2} 2
+    ? {::nx::var exists o y} 1
+    ? {::nx::var set o :y 2} {variable name ":y" must not contain namespace separator or colon prefix}
+}
 
 ###########################################
 # mix & match namespace and object interfaces
