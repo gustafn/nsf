@@ -1,4 +1,3 @@
-
 namespace eval ::nx {
   #
   # By setting the variable bootstrap, we can check later, whether we
@@ -16,8 +15,8 @@ namespace eval ::nx {
     -class.create create
     -class.dealloc dealloc
     -class.recreate recreate 
-    -class.requireobject __unknown 
-    -object.configure configure 
+    -class.requireobject __unknown
+    -object.configure configure
     -object.defaultmethod defaultmethod 
     -object.destroy destroy 
     -object.init init 
@@ -34,6 +33,8 @@ namespace eval ::nx {
     namespace export next self \
         my is relation interp
   }
+
+  
   namespace import ::nx::core::next ::nx::core::self
 
   #
@@ -58,6 +59,7 @@ namespace eval ::nx {
   foreach cmd [list __next cleanup  noinit residualargs uplevel upvar] {
     ::nx::core::methodproperty Object $cmd protected 1
   }
+
   foreach cmd [list recreate] {
     ::nx::core::methodproperty Class $cmd protected 1
   }
@@ -70,6 +72,31 @@ namespace eval ::nx {
   ::nx::core::methodproperty Class  create  redefine-protected true
   
   # define method "method" for Class and Object
+
+  # @method ::nx::Class#method 
+  #
+  # Defines a per-class method, similarly to Tcl specifying
+  # {{{procs}}}. Optionally assertions may be specified by two
+  # additional arguments. Therefore, to specify only post-assertions
+  # an empty pre-assertion list must be given. All assertions are a
+  # list of ordinary Tcl {{{expr}}} statements.  When {{{method}}} is
+  # called with an empty argument list and an empty body, the
+  # specified method is deleted.
+  # {{{
+  #	Class create AClass {
+  #		:method foo args {;}
+  #	}
+  #
+  #	AClass create anInstance
+  #	anInstance foo; # invokes "foo"
+  # }}}
+  #
+  # @param name The method name
+  # @param arguments:list A list specifying non-positional and positional parameters
+  # @param body The script which forms the method body
+  # @param preAssertion Optional assertions that must hold before the proc executes
+  # @param postAssertion Optional assertions that must hold after the proc executes
+
   ::nx::core::method Class method {
     name arguments body -precondition -postcondition
   } {
@@ -79,6 +106,27 @@ namespace eval ::nx {
     ::nx::core::method [::nx::core::current object] $name $arguments $body {*}$conditions
   }
 
+  # @method ::nx::Object#method 
+  #
+  # Defines a per-object method, similarly to Tcl specifying
+  # {{{procs}}}.  Optionally assertions may be specified by two
+  # additional arguments. Therefore, to specify only post-assertions
+  # an empty pre-assertion list must be given. All assertions are a
+  # list of ordinary Tcl {{{expr}}} statements.  When {{{method}}} is
+  # called with an empty argument list and an empty body, the
+  # specified method is deleted.
+  # {{{
+  # 	Object create anObject {
+  #   		:method foo args {;}
+  # 	}
+  # 	anObject foo; # invokes "foo"
+  # }}}
+  #
+  # @param name The method name
+  # @param arguments:list A list specifying non-positional and positional parameters
+  # @param body The script which forms the method body
+  # @param preAssertion Optional assertions that must hold before the proc executes
+  # @param postAssertion Optional assertions that must hold after the proc executes
   ::nx::core::method Object method {
     name arguments body -precondition -postcondition
   } {
@@ -156,7 +204,92 @@ namespace eval ::nx {
   }
 
   # define forward methods
+
+  # @method ::nx::Object#forward
+  #
+  # Register a per-object method (similar to a {{{proc}}}) for
+  # forward-delegating calls to a callee (target Tcl command, other
+  # object). When the forwarder method is called, the actual arguments
+  # of the invocation are appended to the specified arguments. In
+  # callee an arguments certain substitutions can take place:
+  #
+  # {{{%proc}}} substituted by name of the forwarder method
+  #
+  # {{{%self}}} substitute by name of the object
+  #
+  # {{{%1}}} substitute by first argument of the invocation
+  #
+  # {{{ {%@POS value} }}} substitute the specified value in the
+  # argument list on position POS, where POS can be a positive or
+  # negative integer or end. Positive integers specify the position
+  # from the begin of the list, while negative integer specify the
+  # position from the end.
+  #
+  # {{{ {%argclindex LIST} }}} take the nth argument of the specified
+  # list as substitution value, where n is the number of arguments
+  # from the invocation.
+  #
+  # {{{%%}}} a single percent.
+  #
+  # {{{%Tcl-command}}} command to be executed; substituted by result.
+  # Additionally each argument can be prefixed by the positional prefix
+  # %@POS (note the delimiting space at the end) that can be used to
+  # specify an explicit position. POS can be a positive or negative
+  # integer or the word end. The positional arguments are evaluated from
+  # left to right and should be used in ascending order. 
+  #
+  # @param name The name of the delegating or forward method
+  # @param -objscope:optional Causes the target to be evaluated in the scope of the object.
+  # @param -methodprefix Prepends the specified prefix to the second argument of the invocation.
+  # @param -default Is used for default method names (only in connection with %1)
+  # @param -earlybinding Look up the function pointer of the called Tcl command at definition time of the forwarder instead of invocation time. This option should only be used for calling C-implemented Tcl commands, no scripted procs
+  # @param -verbose Print the substituted command to stderr before executing
+  # @param callee
+  # @param args
   ::nx::core::forward Object forward ::nx::core::forward %self -per-object
+
+  # @method ::nx::Class#forward
+  #
+  # Register a per-class method (similar to a {{{proc}}}) for
+  # forward-delegating calls to a callee (target Tcl command, other
+  # object). When the forwarder method is called on an instance of the
+  # class, the actual arguments of the invocation are appended to the
+  # specified arguments. In callee an arguments certain substitutions
+  # can take place:
+  #
+  # {{{%proc}}} substituted by name of the forwarder method
+  #
+  # {{{%self}}} substitute by name of the object
+  #
+  # {{{%1}}} substitute by first argument of the invocation
+  #
+  # {{{ {%@POS value} }}} substitute the specified value in the
+  # argument list on position POS, where POS can be a positive or
+  # negative integer or end. Positive integers specify the position
+  # from the begin of the list, while negative integer specify the
+  # position from the end.
+  #
+  # {{{ {%argclindex LIST} }}} take the nth argument of the specified
+  # list as substitution value, where n is the number of arguments
+  # from the invocation.
+  #
+  # {{{%%}}} a single percent.
+  #
+  # {{{%Tcl-command}}} command to be executed; substituted by result.
+  # Additionally each argument can be prefixed by the positional prefix
+  # %@POS (note the delimiting space at the end) that can be used to
+  # specify an explicit position. POS can be a positive or negative
+  # integer or the word end. The positional arguments are evaluated from
+  # left to right and should be used in ascending order. 
+  #
+  # @param name The name of the delegating or forward method
+  # @param -objscope:optional Causes the target to be evaluated in the scope of the object.
+  # @param -methodprefix Prepends the specified prefix to the second argument of the invocation.
+  # @param -default Is used for default method names (only in connection with %1)
+  # @param -earlybinding Look up the function pointer of the called Tcl command at definition time of the forwarder instead of invocation time. This option should only be used for calling C-implemented Tcl commands, no scripted procs
+  # @param -verbose Print the substituted command to stderr before executing
+  # @param callee
+  # @param args
   ::nx::core::forward Class  forward ::nx::core::forward %self
 
   # The method __unknown is called in cases, where we try to resolve
@@ -356,12 +489,27 @@ namespace eval ::nx {
     return [::nx::core::cmd::${info}::method $target name $name]
   }
 
+  # @object ::nx::Slot
+  #
+  # A slot is a meta-object that manages property changes of
+  # objects. A property is either an attribute or a role taken by an
+  # object in an inter-object relation (e.g., in system slots). The
+  # predefined system slots are {{{class}}}, {{{superclass}}},
+  # {{{mixin}}}, and {{{filter}}}. These slots appear as methods of
+  # {{@object ::nx::Object}} or {{@object ::nx::Class}}. The slots
+  # provide a common getter and setter interface. Every multivalued
+  # slot provides e.g. a method {{{add}}} to append a value to the
+  # list of values, and a method {{{delete}}} which removes it.
+  #
+  # @superclass ::nx::doc::entities::object::nx::Object
   ::nx::MetaSlot create ::nx::Slot
+
+  # @object ::nx::ObjectParameterSlot
+  #
+  # @superclass ::nx::doc::entities::object::nx::Slot
   ::nx::MetaSlot create ::nx::ObjectParameterSlot
   ::nx::core::relation ::nx::ObjectParameterSlot superclass ::nx::Slot
-
-  #
-  # create class and object for method parameter slots
+  
   ::nx::MetaSlot create ::nx::MethodParameterSlot
   ::nx::core::relation ::nx::MethodParameterSlot superclass ::nx::Slot
 
@@ -414,6 +562,27 @@ namespace eval ::nx {
   ############################################
   # Define slots for slots
   ############################################
+
+  # @param ::nx::Slot#name
+  #
+  # Name of the slot which can be used to access the slot from an object
+
+  # @param ::nx::Slot#multivalued
+  #
+  # Boolean value for specifying single or multiple values (lists)
+
+  # @param ::nx::Slot#required
+  #
+  # Denotes whether a value must be provided
+
+  # @param ::nx::Slot#default
+  #
+  # Allows you to define a default value (to be set upon object creation)
+
+  # @param ::nx::Slot#type
+  #
+  # You may specify a type constraint on the value range to managed by the slot
+
   createBootstrapAttributeSlots ::nx::Slot {
     {name}
     {multivalued false}
@@ -422,6 +591,34 @@ namespace eval ::nx {
     type
   }
 
+  # @param ::nx::ObjectParameterSlot#name
+  #
+  # Name of the slot which can be used to access the slot from an
+  # object. It defaults to unqualified name of an instance.
+
+  # @param ::nx::ObjectParameterSlot#methodname
+  #
+  # The name of the accessor methods to be registed on behalf of the
+  # slot object with its domains can vary from the slot name.
+
+  # @param ::nx::ObjectParameterSlot#domain
+  #
+  # The domain (object or class) of a slot on which it can be used
+
+  # @param ::nx::ObjectParameterSlot#defaultmethods
+  #
+  # A list of two elements for specifying which methods are called per
+  # default, when no slot method is explicitly specified in a call.
+
+  # @param ::nx::ObjectParameterSlot#manager
+  #
+  # The manager object of the slot (per default, the slot object takes
+  # this role, i.e. {{{[self]}}})
+
+  # @param ::nx::ObjectParameterSlot#per-object
+  #
+  # If set to {{{true}}}, the accessor methods are registered with the
+  # domain object scope only. It defaults to {{{false}}}.
   createBootstrapAttributeSlots ::nx::ObjectParameterSlot {
     {name "[namespace tail [::nx::core::current object]]"}
     {methodname}
@@ -593,6 +790,7 @@ namespace eval ::nx {
     return $parameterdefinitions
   }
   
+  # @method ::nx::Object#objectparameter
   ::nx::Object protected method objectparameter {{lastparameter __initcmd:initcmd,optional}} {
     #puts stderr "... objectparameter [::nx::core::current object]"
     set parameterdefinitions [::nx::core::parametersFromSlots [::nx::core::current object]]
@@ -682,16 +880,69 @@ namespace eval ::nx {
   proc ::nx::core::register_system_slots {os} {
     ${os}::Object alloc ${os}::Class::slot
     ${os}::Object alloc ${os}::Object::slot
-    
+
+    # @param ::nx::Class#superclass
+    #
+    # Specifies superclasses for a given class. As a setter,
+    # {{{superclass}}} changes the list of superclasses. When used as
+    # a getter, the method returns the current superclasses.
+    #
+    # @return :list If called as a getter (without arguments),
+    # {{{superclass}}} returns the current superclasses of the object
     ::nx::RelationSlot create ${os}::Class::slot::superclass
     ::nx::core::alias         ${os}::Class::slot::superclass assign ::nx::core::relation
+
+    # @param ::nx::Object#class
+    #
+    # Sets or retrieves the class of an object. When {{{class}}} is
+    # called without arguments, it returns the current class of the
+    # object.
+    #
+    # @return If called as a getter (without arguments), {{{class}}} returns the current class of the object
     ::nx::RelationSlot create ${os}::Object::slot::class -multivalued false
     ::nx::core::alias         ${os}::Object::slot::class assign ::nx::core::relation
-    
+
+    # @param ::nx::Object#mixin
+    #
+    # As a setter, {{{mixin}}} specifies a list of mixins to
+    # set. Every mixin must be an existing class. In getter mode, you
+    # can retrieve the list of mixins active for the given object.
+    #
+    # @return :list If called as a getter (without arguments), {{{mixin}}} returns the list of current mixin classes registered with the object
     ::nx::RelationSlot create ${os}::Object::slot::mixin -methodname object-mixin    
+
+    # @param ::nx::Object#filter
+    #
+    # In its setter mode, {{{filter}}} allows you to register methods
+    # as per-object filters. Every filter must be an existing method
+    # in the scope of the object. When acting as a getter, you can
+    # retrieve the list of filter methods active for the given object.
+    #
+    # @return :list If called as a getter (without arguments),
+    # {{{filter}}} returns the list of current filters
+    # registered with the object
     ::nx::RelationSlot create ${os}::Object::slot::filter -elementtype ""
     
+    # @param ::nx::Class#mixin
+    #
+    # As a setter, {{{mixin}}} specifies a list of mixins to set for
+    # the class. Every mixin must be an existing class. In getter
+    # mode, you can retrieve the list of mixins active for the given
+    # class.
+    #
+    # @return :list If called as a getter (without arguments), {{{mixin}}} returns the list of current mixin classes registered with the class
     ::nx::RelationSlot create ${os}::Class::slot::mixin -methodname class-mixin
+    
+    # @param ::nx::Class#filter
+    #
+    # In its setter mode, {{{filter}}} allows you to register methods
+    # as per-class filters. Every filter must be an existing method
+    # in the scope of the class. When acting as a getter, you can
+    # retrieve the list of filter methods active for the given class.
+    #
+    # @return :list If called as a getter (without arguments),
+    # {{{filter}}} returns the list of current filters
+    # registered with the class
     ::nx::RelationSlot create ${os}::Class::slot::filter -elementtype "" \
         -methodname class-filter
     
@@ -707,6 +958,29 @@ namespace eval ::nx {
   # Attribute slots
   ############################################
   ::nx::MetaSlot __invalidateobjectparameter
+  
+  # @object ::nx::Attribute
+  #
+  # Attribute slots are used to manage the access, mutation, and
+  # querying of instance variables. There is a helper method {{@method
+  # ::nx::Object class attribute}} to define the attributes of classes
+  # (and objects). Consider the example of a class definition with
+  # three attribute slots:
+  # {{{
+  # 	Class create Person {
+  #  		:attribute name
+  #  		:attribute {salary 0}
+  #  		:attribute {projects ""} {
+  #    			set :multivalued true
+  #  		}
+  #	}
+  # }}}
+  #
+  # @param incremental Allows for using the fine-grained modification (i.e., setting) of the managed variable {e.g., through an incremental {{{add}}})
+  # @param valuecmd A Tcl command to be executed whenever the managed object variable is read
+  # @param valuechangedcmd A Tcl command to be executed whenever the value of the managed object variable changes
+  # @param arg
+  # @superclass ::nx::doc::entities::object::nx::ObjectParameterSlot
   ::nx::MetaSlot create ::nx::Attribute -superclass ::nx::ObjectParameterSlot
   
   createBootstrapAttributeSlots ::nx::Attribute {

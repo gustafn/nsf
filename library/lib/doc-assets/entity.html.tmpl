@@ -19,7 +19,13 @@
 <div id="doc3" class="yui-t2">
 	<div id="hd">
         <h1><a href="[$project url]" title="[$project name]">[$project name]</a></h1>
-        <h3>${:name}&nbsp; <span class="subtitle">version</span></h3>
+        <h3>${:name}&nbsp; 
+	  [:? {[:info is type ::nx::doc::@package]} {
+	  <span class="subtitle">[:?var :@version {${:@version}} ]</span>
+	  } - {
+	  <span class="subtitle">[$project version]</span>
+	  }]
+	</h3>
         <a href="./index.html" title="[$project name]">[$project name]</a> 
         [:? {[:info is type ::nx::doc::@package]} {
 	   &gt; <a href="./[:filename].html" title="${:name}">${:name}</a>
