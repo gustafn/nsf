@@ -1093,6 +1093,20 @@ namespace eval ::nx {
 # some utilities
 #######################################################
 
+namespace eval ::nx {
+  #
+  # Provide an ensemble-like interface to the nx::core primitiva to
+  # access variables. Note that aliasing in the next scripting
+  # framework is faster than namespace-ensembles.
+  #
+  Object create ::nx::var {
+    :alias exists ::nx::core::existsvar 
+    :alias import ::nx::core::importvar
+    :alias set ::nx::core::setvar
+  }
+}
+
+
 namespace eval ::nx::core {
   #
   # determine platform aware temp directory
