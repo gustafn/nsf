@@ -12,7 +12,6 @@ Test parameter count 1
 ::nx::core::alias ::nx::Object set -objscope ::set
 ::nx::core::alias ::nx::Object unset -objscope ::unset
 
-
 ###########################################
 # Basic tests for var resolution under 
 # per-object namespaces ...

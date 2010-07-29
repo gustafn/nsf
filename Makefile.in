@@ -295,7 +295,7 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 	    rm -rf $(DESTDIR)$(pkglibdir)/apps/$$i ; \
 	    mkdir -p $(DESTDIR)$(pkglibdir)/apps/$$i; \
 	    chmod 755 $(DESTDIR)$(pkglibdir)/apps/$$i; \
-  	    for j in $(src_app_dir)/$$i/* ; do \
+	    for j in $(src_app_dir)/$$i/* ; do \
 		if test -d $$j; then \
 		    mkdir -p $(DESTDIR)$(pkglibdir)/$$j; \
 		    chmod 755 $(DESTDIR)$(pkglibdir)/$$j; \
@@ -305,7 +305,7 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 		else \
 		$(INSTALL) $$j $(DESTDIR)$(pkglibdir)/apps/$$i/; \
 		fi; \
-  	    done; \
+	    done; \
 	done;
 	@for i in $(appsrc) ; do \
 	    echo "    Installing $$i" ; \
@@ -347,7 +347,7 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/object-system.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/destroytest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/method-modifiers.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/varresolutiontest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/varresolutiontest.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/info-method.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/parameters.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/interceptor-slot.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)

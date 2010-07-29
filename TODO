@@ -804,6 +804,10 @@ do we need:
     ::nx::core (framework, primitives)
     ::xotcl (former xotcl1)
 
+- naming next scripting framework
+   ::nx::core::existsvar  <==> nx::var exists
+   ::nx::core::importvar  <==> nx::var import
+   ::nx::core::setvar     <==> nx::var set
 
 TODO: 
 - rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?
@@ -831,6 +835,12 @@ TODO:
 Ein paar punkte im folgenden könnten obsolet sein:
 
 "Kleinigkeiten"
+- remove 
+    [o exists varname]
+    [o info exists varname]
+  from next scripting language
+- rename tests from .xotcl to .tcl
+
 - aolserver 
    * install
    * namespace collector (for blueprint)
@@ -873,10 +883,6 @@ make: *** [doc/langRef-xotcl.html] Error 1
   inf the following, we need just a frame, but not necessarily an "-ojscope"
   set x [::xotcl::dispatch $value -objscope ::xotcl::self]
 
-- naming 
-   ::xotcl::existsvar
-   ::xotcl::setvar
-   ::xotcl::importvar
 
  TODO: naming "type" and "mixin" not perfect.
 #       maybe "type" => "hastype"
