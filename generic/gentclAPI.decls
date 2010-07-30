@@ -729,6 +729,16 @@ classMethod recreate XOTclCRecreateMethod {
 #
 # info object methods
 #
+infoObjectMethod callable XOTclObjInfoCallableMethod {
+  {-argName "object" -type object}
+  {-argName "-which"}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
+  {-argName "-application"}
+  {-argName "-nomixins"}
+  {-argName "-incontext"}
+  {-argName "pattern" -required 0}
+}
 infoObjectMethod children XOTclObjInfoChildrenMethod {
   {-argName "object" -required 1 -type object}
   {-argName "pattern" -required 0}
@@ -754,30 +764,11 @@ infoObjectMethod forward XOTclObjInfoForwardMethod {
 infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
   {-argName "object" -required 1 -type object}
 }
-
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -type object}
   {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type|precondition|postcondition"}
   {-argName "name"}
 }
-### TODO move finally to infoclassmethod
-infoClassMethod method XOTclClassInfoMethodMethod {
-  {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|body|definition|name|parameter|type|precondition|postcondition"}
-  {-argName "name"}
-}
-
-infoObjectMethod callable XOTclObjInfoCallableMethod {
-  {-argName "object" -type object}
-  {-argName "-which"}
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
-  {-argName "-application"}
-  {-argName "-nomixins"}
-  {-argName "-incontext"}
-  {-argName "pattern" -required 0}
-}
-
 infoObjectMethod methods XOTclObjInfoMethodsMethod {
   {-argName "object" -type object}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
@@ -786,16 +777,6 @@ infoObjectMethod methods XOTclObjInfoMethodsMethod {
   {-argName "-incontext"}
   {-argName "pattern"}
 }
-### TODO move finally to infoclassmethod
-infoClassMethod methods XOTclClassInfoMethodsMethod {
-  {-argName "object" -type class}
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-nomixins"}
-  {-argName "-incontext"}
-  {-argName "pattern"}
-}
-
 infoObjectMethod mixin XOTclObjInfoMixinMethod {
   {-argName "object" -required 1 -type object}
   {-argName "-guards"}
@@ -849,6 +830,19 @@ infoClassMethod forward XOTclClassInfoForwardMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-definition"}
   {-argName "name"}
+}
+infoClassMethod method XOTclClassInfoMethodMethod {
+  {-argName "class" -type class}
+  {-argName "infomethodsubcmd" -type "args|body|definition|name|parameter|type|precondition|postcondition"}
+  {-argName "name"}
+}
+infoClassMethod methods XOTclClassInfoMethodsMethod {
+  {-argName "object" -type class}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
+  {-argName "-nomixins"}
+  {-argName "-incontext"}
+  {-argName "pattern"}
 }
 infoClassMethod mixin XOTclClassInfoMixinMethod {
   {-argName "class"  -required 1 -type class}
