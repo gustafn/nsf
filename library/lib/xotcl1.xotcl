@@ -342,7 +342,7 @@ namespace eval ::xotcl {
       if {$noprocs} {if {$nocmds} {return ""}; set methodtype builtin}
       set cmd [list ::nx::core::cmd::ObjectInfo::callable $o -methodtype $methodtype]
       if {$incontext} {lappend cmd -incontext}
-      if {[::info exists pattern]} {lappend cmd $pattern}
+      if {[info exists pattern]} {lappend cmd $pattern}
       eval $cmd
     }
     # object filter mapping
@@ -694,7 +694,7 @@ namespace eval ::xotcl {
     }
     
     :public object method contains script {
-      if {[:exists provide]} {
+      if {[info exists :provide]} {
         package provide [set :provide] [set :version]
       } else {
         package provide [::xotcl::self] [set :version]

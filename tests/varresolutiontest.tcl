@@ -23,10 +23,10 @@ o requireNamespace
 ? {o info vars} ""
 ? {info exists ::globalVar} 1
 ? {set ::globalVar} 1
-? {o exists globalVar} 0
+? {o eval {info exists :globalVar}} 0
 ? {o array exists globalVar} 0
 o array set globalVar {1 2}
-? {o exists globalVar} 1
+? {o eval {info exists :globalVar}} 1
 ? {o info vars} globalVar
 ? {o array exists globalVar} 1
 ? {set ::globalVar} 1
@@ -69,11 +69,11 @@ set ::o::Y 5
 ? {info exists ::z} 1
 ? {set ::z} 3
 ? {lsort [o info vars]} {X Y g i x y}
-? {o exists x} 1
-? {o exists y} 1
-? {o exists z} 0
-? {o exists X} 1
-? {o exists Y} 1
+? {o eval {info exists :x}} 1
+? {o eval {info exists :y}} 1
+? {o eval {info exists :z}} 0
+? {o eval {info exists :X}} 1
+? {o eval {info exists :Y}} 1
 ? {o set y} 2
 ? {set ::g} 1 
 
@@ -101,11 +101,11 @@ set ::o::Y 5
 ? {info exists ::z} 1
 ? {set ::z} 3
 ? {lsort [o info vars]} {X Y y}
-? {o exists x} 0
-? {o exists y} 1
-? {o exists z} 0
-? {o exists X} 1
-? {o exists Y} 1
+? {o eval {info exists :x}} 0
+? {o eval {info exists :y}} 1
+? {o eval {info exists :z}} 0
+? {o eval {info exists :X}} 1
+? {o eval {info exists :Y}} 1
 ? {o set y} 2
 ? {set ::g} 1 
 
@@ -153,13 +153,13 @@ o set x 1
 ? {namespace eval ::o {info exists x}} 1
 ? {::o unset x} ""
 ? {::nx::core::existsvar o x} 0
-? {o exists x} 0
+? {o eval {info exists :x}} 0
 ? {info vars ::x} ""
 ? {namespace eval ::o {info exists x}} 0
 o lappend y 3
 ? {namespace eval ::o {llength y}} 1
 ? {namespace eval ::o {unset y}} ""
-? {::o exists y} 0
+? {o eval {info exists :y}} 0
 o destroy
 
 ###########################################
@@ -202,17 +202,17 @@ o::oo requireNamespace
 ? {catch {unset ::x}} 0
 
 ? {::o set ::o::x 1} 1
-? {o exists x} [::o set ::o::x]
+? {o eval {info exists :x}} [::o set ::o::x]
 ? {namespace eval ::o unset x} ""
-? {o exists x} 0
+? {o eval {info exists x}} 0
 
 # Note, relatively qualified var names (not prefixed with ::*) 
 # are always resolved relative to the per-object namespace
 ? {catch {::o set o::x 1} msg} 1
 ? {::o set oo::x 1} 1
-? {o::oo exists x} [::o set oo::x]
+? {o::oo eval {info exists :x}} [::o set oo::x]
 ? {o unset oo::x} ""
-? {o::oo exists x} 0
+? {o::oo eval {info exists :x}} 0
 
 o destroy
 
@@ -422,8 +422,8 @@ Object create o {
   set :x 1
   ? {info exists G} 1
 }
-? {o exists x} 1
-? {o exists xxx} 0
+? {o eval {info exists :x}} 1
+? {o eval {info exists :xxx}} 0
 
 ? {info exists ::xxx} 0
 unset -nocomplain ::xxx
@@ -435,8 +435,8 @@ o objeval {
   ? {info exists G} 1
 }
 
-? {o exists a} 1
-? {o exists aaa} 1
+? {o eval {info exists :a}} 1
+? {o eval {info exists :aaa}} 1
 
 ? {info exists ::aaa} 0
 unset -nocomplain ::aaa
@@ -449,8 +449,8 @@ o softeval {
   set :b 1
   ? {info exists G} 1
 }
-? {o exists b} 1
-? {o exists bbb} 0
+? {o eval {info exists :b}} 1
+? {o eval {info exists :bbb}} 0
 
 ? {info vars ::bbb} ""
 unset -nocomplain ::bbb
@@ -461,8 +461,8 @@ o softeval2 {
   set :z 1
   ? {info exists G} 1
 }
-? {o exists z} 0
-? {o exists zzz} 0
+? {o eval {info exists :z}} 0
+? {o eval {info exists :zzz}} 0
 
 ? {info vars ::zzz} ::zzz
 unset -nocomplain ::zzz
@@ -479,24 +479,24 @@ o objeval {
   set ccc 1
   set :c 1
 }
-? {o exists c} 1
-? {o exists ccc} 1
+? {o eval {info exists :c}} 1
+? {o eval {info exists :ccc}} 1
 
 # softeval behaves like the creation initcmd (just set dot vars)
 o softeval {
   set ddd 1
   set :d 1
 }
-? {o exists d} 1
-? {o exists ddd} 0
+? {o eval {info exists :d}} 1
+? {o eval {info exists :ddd}} 0
 
 # softeval2 never sets variables
 o softeval2 {
   set zzz 1
   set :z 1
 }
-? {o exists z} 0
-? {o exists zzz} 0
+? {o eval {info exists :z}} 0
+? {o eval {info exists :zzz}} 0
 ? {lsort [o info vars]} "c ccc d"
 o destroy
 
@@ -511,32 +511,32 @@ Object create o {
   set xxx 1
   set :x 1
 }
-? {o exists x} 1
-? {o exists xxx} 0
+? {o eval {info exists :x}} 1
+? {o eval {info exists :xxx}} 0
 
 # objeval does an objcope, all vars are instance variables
 o objeval {
   set aaa 1
   set :a 1
 }
-? {o exists a} 1
-? {o exists aaa} 1
+? {o eval {info exists :a}} 1
+? {o eval {info exists :aaa}} 1
 
 # softeval should behave like the creation initcmd (just set dot vars)
 o softeval {
   set bbb 1
   set :b 1
 }
-? {o exists b} 1
-? {o exists bbb} 0
+? {o eval {info exists :b}} 1
+? {o eval {info exists :bbb}} 0
 
 # softeval2 never sets instance variables
 o softeval2 {
   set zzz 1
   set :z 1
 }
-? {o exists z} 0
-? {o exists zzz} 0
+? {o eval {info exists :z}} 0
+? {o eval {info exists :zzz}} 0
 
 ? {lsort [o info vars]} "a aaa b x"
 o destroy
@@ -550,24 +550,24 @@ o objeval {
   set ccc 1
   set :c 1
 }
-? {o exists c} 1
-? {o exists ccc} 1
+? {o eval {info exists :c}} 1
+? {o eval {info exists :ccc}} 1
 
 # softeval2 should behave like the creation initcmd (just set dot vars)
 o softeval {
   set ddd 1
   set :d 1
 }
-? {o exists d} 1
-? {o exists ddd} 0
+? {o eval {info exists :d}} 1
+? {o eval {info exists :ddd}} 0
 
 # softeval2 never sets variables
 o softeval2 {
   set zzz 1
   set :z 1
 }
-? {o exists z} 0
-? {o exists zzz} 0
+? {o eval {info exists :z}} 0
+? {o eval {info exists :zzz}} 0
 ? {lsort [o info vars]} "c ccc d"
 o destroy
 
@@ -587,7 +587,7 @@ proc foo-via-initcmd {} {
     set :x 1
     set ::result G=[info exists G],p=[info exists p]
   }
-  return [o exists x]-[o exists xxx]-[info exists x]-[info exists xxx]-[info exists ::x]-[info exists ::xxx]-$::result
+    return [o eval {info exists :x}]-[o eval {info exists :xxx}]-[info exists x]-[info exists xxx]-[info exists ::x]-[info exists ::xxx]-$::result
 }
 
 proc foo {type} {
@@ -599,7 +599,7 @@ proc foo {type} {
     set :x 1
     set ::result G=[info exists G],p=[info exists p]
   }
-  return [o exists x]-[o exists xxx]-[info exists x]-[info exists xxx]-[info exists ::x]-[info exists ::xxx]-$::result
+  return [o eval {info exists :x}]-[o eval {info exists :xxx}]-[info exists x]-[info exists xxx]-[info exists ::x]-[info exists ::xxx]-$::result
 }
 
 proc foo-tcl {what} {
@@ -614,7 +614,7 @@ proc foo-tcl {what} {
     eval {eval $body}
     ns-eval {namespace eval [namespace current] $body}
   }
-  return [o exists x]-[o exists xxx]-[info exists x]-[info exists xxx]-[info exists ::x]-[info exists ::xxx]-$::result
+  return [o eval {info exists :x}]-[o eval {info exists :xxx}]-[info exists x]-[info exists xxx]-[info exists ::x]-[info exists ::xxx]-$::result
 }
 
 set G 1

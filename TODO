@@ -812,6 +812,10 @@ do we need:
 - copied infoObjectMethod and infoClassMethod decls as comments
   to xotcl.c, aligned order of method definitions
 
+- removed 
+    [o exists varname]
+  from next scripting language
+
 TODO: 
 - rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?
   Stefan, meinung dazu? Notwending|Empfehlenswert|nicht? 
@@ -838,10 +842,7 @@ TODO:
 Ein paar punkte im folgenden könnten obsolet sein:
 
 TODO "Kleinigkeiten"
-- remove 
-    [o exists varname]
-    [o info exists varname]
-  from next scripting language
+
 - rename tests from .xotcl to .tcl
 
 - info parameter in tcl?
