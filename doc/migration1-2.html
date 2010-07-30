@@ -151,13 +151,13 @@ into the current namespace. </p>
       <i>C</i> object method <i>bar args</i> {...}<br>
      </code></td>
   </tr>
-    <tr>
+  <tr>
     <td><code>Object <i>o</i><br>
       <i>o</i> set <i>x 1</i><br>
       <i>o</i> proc <i>foo args</i> {...}<br>
       </code></td>
     <td>
-      <i># Define object method and set instance variable<br>
+      <i class='comment'># Define object method and set instance variable<br>
       # in the init-block of an object</i></br><br>
       <code>Object create <i>o</i> {<br>
       &nbsp;&nbsp;set :<i>x 1</i><br>
@@ -169,7 +169,72 @@ into the current namespace. </p>
       <i>o</i> eval {set <i>:x 1</i>}</i><br>
      <i>o</i> method <i>foo args</i> {...}<br>
      </code></td>
+   </tr>
+   <tr>
+    <td><i class='comment'># method modifiers "object", "public" and
+      "protected"<br># are not available.</i><br><br>
+      <code>Class <i>C</i><br>
+      <i>C</i> instproc <i>foo args</i> {...}<br>
+      <i>C</i> proc <i>bar args</i> {...}<br>
+      </code>
+    </td>
+    <td>
+      <i class='comment'># Define scripted methods with various method modifiers</i></br><br>
+      <code>Class create <i>C</i> {<br>
+      &nbsp;&nbsp;:method <i>foo1 args</i> {...}<br>
+      &nbsp;&nbsp;:public method <i>foo2 args</i> {...}<br>
+      &nbsp;&nbsp;:protected method <i>foo3 args</i> {...}<br>
+      &nbsp;&nbsp;:object method <i>bar1 args</i> {...}<br>
+      &nbsp;&nbsp;:protected object method <i>bar2 args</i> {...}<br>
+      &nbsp;&nbsp;:public object method <i>bar3 args</i> {...}<br>
+      }<br>
+     </code></td>
   </tr>
+  <tr>
+    <td><i class='comment'># method modifiers "object", "public" and
+      "protected"<br># are not available.</i><br><br>
+      <code>Class <i>C</i><br>
+      <i>C</i> instforward <i>f1 ...</i> <br>
+      <i>C</i> proc <i>of1 ...</i><br>
+      </code>
+    </td>
+    <td>
+      <i class='comment'># Define forwarder with various method modifiers</i></br><br>
+      <code>Class create <i>C</i> {<br>
+      &nbsp;&nbsp;:forward <i>f1 ...</i><br>
+      &nbsp;&nbsp;:public forward <i>f2 ...</i><br>
+      &nbsp;&nbsp;:protected forward <i>f3 ...</i><br>
+      &nbsp;&nbsp;:object forward <i>of1 ...</i> <br>
+      &nbsp;&nbsp;:public object forward <i>of2 ...</i><br>
+      &nbsp;&nbsp;:protected object forward <i>of3 ...</i><br>      
+     }<br>
+     </code></td>
+  </tr>
+  <tr>
+    <td><i class='comment'># method modifiers "object", "public" and
+      "protected"<br># are not available.</i><br><br>
+      <code>Class <i>C</i><br>
+      <i>C</i> instparametercmd <i>s1 ...</i> <br>
+      <i>C</i> parametercmd <i>os1 ...</i><br>
+      </code>
+    </td>
+    <td>
+      <i class='comment'># Define setters with various method modifiers</i></br><br>
+      <code>Class create <i>C</i> {<br>
+      &nbsp;&nbsp;:setter <i>s1 ...</i> {...}<br>
+      &nbsp;&nbsp;:public setter <i>s2 ...</i><br>
+      &nbsp;&nbsp;:protected setter <i>s3 ...</i><br>
+      &nbsp;&nbsp;:object setter <i>os1 ...</i> {...}<br>
+      &nbsp;&nbsp;:public object setter <i>os2 ...</i><br>
+      &nbsp;&nbsp;:protected object setter <i>os3 ...</i><br>      
+     }<br>
+     </code>
+      <i class='comment'># TODO: same for "alias" und "attribute" --
+      mybe more generic, with placeholder for "method", "forward",
+      "setter", "alias" and "attribute"</i>
+
+    </td>
+  </tr>  
 </table>
 
 <h2>Resolvers</h2>
@@ -192,7 +257,8 @@ as well.
       <i>C</i> instproc <i>foo args</i> {...}<br>
       <i>C</i> instproc <i>bar args</i> {<br>
       &nbsp;&nbsp;my <i>foo 1 2 3</i> <i class='comment'> ;# invoke own method</i><br>
-      &nbsp;&nbsp;<i>o baz</i> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'>;# invoke others method</i><br>
+      &nbsp;&nbsp;<i>o baz</i> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<i
+      class='comment'>;# invoke other objects method</i><br>
       }<br>
       Object <i>o</i><br>
       <i>o</i> proc <i>baz</i> {} {...}<br>
@@ -201,7 +267,8 @@ as well.
       &nbsp;&nbsp;:method <i>foo args</i> {...}<br>
       &nbsp;&nbsp;:method <i>bar args</i> {<br>
       &nbsp;&nbsp;&nbsp;&nbsp; :<i>foo 1 2 3</i> <i class='comment'>;# invoke own method</i><br>
-      &nbsp;&nbsp;&nbsp;&nbsp; <i>o baz</i> &nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'>;# invoke others method</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp; <i>o baz</i> &nbsp;&nbsp;&nbsp;&nbsp;<i
+       class='comment'>;# invoke other objects method</i><br>
       &nbsp;&nbsp;}<br>
       }</br>
       Object create <i>o</i> {<br>
@@ -212,7 +279,7 @@ as well.
 </table>
 
 
-<h3>Accessing Instance Variables from Method Bodies</h3>
+<h3>Accessing Own Instance Variables from Method Bodies</h3>
 <table border=1>
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
@@ -741,6 +808,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Thu Jul 29 13:40:13 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Fri Jul 30 13:56:13 CEST 2010 <!-- hhmts end -->
 </body>
 </html>

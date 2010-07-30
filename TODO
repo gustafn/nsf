@@ -809,6 +809,9 @@ do we need:
    ::nx::core::importvar  <==> nx::var import
    ::nx::core::setvar     <==> nx::var set
 
+- copied infoObjectMethod and infoClassMethod decls as comments
+  to xotcl.c, aligned order of method definitions
+
 TODO: 
 - rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?
   Stefan, meinung dazu? Notwending|Empfehlenswert|nicht? 
@@ -834,12 +837,37 @@ TODO:
 
 Ein paar punkte im folgenden könnten obsolet sein:
 
-"Kleinigkeiten"
+TODO "Kleinigkeiten"
 - remove 
     [o exists varname]
     [o info exists varname]
   from next scripting language
 - rename tests from .xotcl to .tcl
+
+- info parameter in tcl?
+- use size_t where appropriate
+
+- copy objectMethod and classMethod  as comments
+  to xotcl.c, fix and check order
+
+- should we extract parameter decls from pseudo-comments from the c source
+  each time we change .decls, we have to change the c-code as well.
+  /* *TCL*
+  infoClassMethod superclass XOTclClassInfoSuperclassMethod {
+    {-argName "class"  -required 1 -type class}
+    {-argName "-closure"}
+    {-argName "pattern" -type tclobj}
+  }
+  */
+  we could preprocess xotcl.c and add code to the current .decls.
+
+  OTOH: 
+    * also doc would move into the c-code (maybe not bad)
+    * we could not detect automatically changes in the decls,
+      if these are generated from c, rebuild would have 
+      to run for every compilation.
+
+  Opinions?
 
 - aolserver 
    * install
