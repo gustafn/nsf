@@ -813,8 +813,10 @@ do we need:
   to xotcl.c, aligned order of method definitions
 
 - removed "[o exists varname]" from next scripting language
-
 - reanimated "info vars" to show locals in eval method
+- provide error messages for [objectproperty ... type ...]
+- replace 0 by NULL in calls to GetClassFromObj()
+- extended regression test
 
 TODO: 
 - rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?

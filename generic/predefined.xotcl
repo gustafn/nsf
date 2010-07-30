@@ -784,9 +784,10 @@ namespace eval ::nx {
     foreach slot [::nx::objectInfo slotobjects $obj] {
       # Skip some slots for xotcl; 
       # TODO: maybe different parameterFromSlots for xotcl?
-      if {[::nx::core::objectproperty $obj type ::xotcl::Object] && 
+      if {[::nx::core::objectproperty ::xotcl::Object class] 
+	  && [::nx::core::objectproperty $obj type ::xotcl::Object] && 
           ([$slot name] eq "mixin" || [$slot name] eq "filter")
-        } continue
+      } continue
       array set "" [$slot toParameterSyntax]
       lappend parameterdefinitions -$(oparam)
     }

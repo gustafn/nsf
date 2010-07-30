@@ -644,7 +644,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
       result = callMethod((ClientData) baseClass, interp, methodObj,
                           3, &nameObj, XOTCL_CM_NO_PROTECT);
       if (result == TCL_OK) {
-        result = GetClassFromObj(interp, objPtr, cl, 0);
+        result = GetClassFromObj(interp, objPtr, cl, NULL);
       }
     }
     DECR_REF_COUNT(nameObj);
@@ -6227,7 +6227,7 @@ static int objectOfType(Tcl_Interp *interp, XOTclObject *object, CONST char *wha
   if (pPtr->converterArg == NULL) 
     return TCL_OK;
 
-  if ((GetClassFromObj(interp, pPtr->converterArg, &cl, 0) == TCL_OK)
+  if ((GetClassFromObj(interp, pPtr->converterArg, &cl, NULL) == TCL_OK)
       && isSubType(object->cl, cl)) {
     return TCL_OK;
   }
@@ -6254,7 +6254,7 @@ static int convertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST
 static int convertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
 			  ClientData *clientData, Tcl_Obj **outObjPtr) {
   *outObjPtr = objPtr;
-  if (GetClassFromObj(interp, objPtr, (XOTclClass **)clientData, 0) == TCL_OK) {
+  if (GetClassFromObj(interp, objPtr, (XOTclClass **)clientData, NULL) == TCL_OK) {
     return objectOfType(interp, (XOTclObject *)*clientData, "class", objPtr, pPtr);
   }
   return XOTclObjErrType(interp, objPtr, "class", pPtr->name);
@@ -7830,7 +7830,7 @@ DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclClass *mcl, int isMet
 
     if (result == TCL_OK) {
       Tcl_Obj *nameObj = Tcl_GetObjResult(interp);
-      if (GetClassFromObj(interp, nameObj, &defaultClass, 0) != TCL_OK) {
+      if (GetClassFromObj(interp, nameObj, &defaultClass, NULL) != TCL_OK) {
 	XOTclErrMsg(interp, "default superclass is not a class", TCL_STATIC);
       }
       /*fprintf(stderr, "DefaultSuperClass for %s got from var %s\n", className(cl), ObjStr(nameObj));*/
@@ -11170,7 +11170,7 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraint
   if (isTypeString(constraintString)) {
     if (arg== NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "type <object> <type>");
     success = (GetObjectFromObj(interp, valueObj, &object) == TCL_OK)
-      && (GetClassFromObj(interp, arg, &typeClass, 0) == TCL_OK)
+      && (GetClassFromObj(interp, arg, &typeClass, NULL) == TCL_OK)
       && isSubType(object->cl, typeClass);
 
     Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
@@ -11182,14 +11182,14 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraint
     if (*constraintString == 'o') {
       success = (GetObjectFromObj(interp, valueObj, &object) == TCL_OK);
     } else {
-      success = (GetClassFromObj(interp, valueObj, (XOTclClass **)&object, 0) == TCL_OK);
+      success = (GetClassFromObj(interp, valueObj, (XOTclClass **)&object, NULL) == TCL_OK);
     }
     if (success && withType) {
-      success = (GetClassFromObj(interp, withType, &typeClass, 0) == TCL_OK)
+      success = (GetClassFromObj(interp, withType, &typeClass, NULL) == TCL_OK)
         && isSubType(object->cl, typeClass);
     }
     if (success && withHasmixin) {
-      success = (GetClassFromObj(interp, withHasmixin, &mixinClass, 0) == TCL_OK)
+      success = (GetClassFromObj(interp, withHasmixin, &mixinClass, NULL) == TCL_OK)
         && hasMixin(interp, object, mixinClass);
     }
     Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
@@ -11699,9 +11699,13 @@ static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectki
   switch (objectkind) {
   case ObjectkindTypeIdx:
     if (valueObj == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> type <type>");
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
-      && (GetClassFromObj(interp, valueObj, &cl, 0) == TCL_OK)
-      && isSubType(object->cl, cl);
+    if (GetObjectFromObj(interp, obj, &object) != TCL_OK) {
+      return XOTclObjErrType(interp, obj, "object", "object");
+    }
+    if (GetClassFromObj(interp, valueObj, &cl, NULL) != TCL_OK) {
+	return XOTclObjErrType(interp, valueObj, "class", "type");
+    }
+    success = isSubType(object->cl, cl);
     break;
 
   case ObjectkindObjectIdx:
@@ -11731,7 +11735,7 @@ static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectki
   case ObjectkindHasmixinIdx:
     if (valueObj == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> hasmixin <class>");
     success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
-      && (GetClassFromObj(interp, valueObj, &cl, 0) == TCL_OK)
+      && (GetClassFromObj(interp, valueObj, &cl, NULL) == TCL_OK)
       && hasMixin(interp, object, cl);
     break;
   }
@@ -11848,7 +11852,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
       return XOTclVarErrMsg(interp, "metaclass must be specified as third argument",
                             (char *) NULL);
     }
-    GetClassFromObj(interp, valueObj, &metaClass, 0);
+    GetClassFromObj(interp, valueObj, &metaClass, NULL);
     if (!metaClass) return XOTclObjErrType(interp, valueObj, "class", "");
 
     cl->object.flags |= XOTCL_IS_ROOT_CLASS;

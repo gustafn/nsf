@@ -188,4 +188,12 @@ C -
 
 ? {::nx::core::objectproperty ::C class} 0
 
+::nx::Class create ::C
+
+? {catch {::nx::core::objectproperty ::C type ::UNKNOWN}} 1
+? {catch {::C info is type ::xyz::Bar}} 1
+? {catch {::nx::core::objectproperty ::CCCC type ::nx::Object}} 1
+
+::C destroy
+
 puts stderr ===EXIT
