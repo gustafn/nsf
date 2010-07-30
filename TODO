@@ -812,9 +812,9 @@ do we need:
 - copied infoObjectMethod and infoClassMethod decls as comments
   to xotcl.c, aligned order of method definitions
 
-- removed 
-    [o exists varname]
-  from next scripting language
+- removed "[o exists varname]" from next scripting language
+
+- reanimated "info vars" to show locals in eval method
 
 TODO: 
 - rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?

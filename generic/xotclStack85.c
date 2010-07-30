@@ -92,6 +92,7 @@ static void XOTcl_PushFrameCsc(Tcl_Interp *interp, XOTclCallStackContent *cscPtr
   Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(varFramePtr), 
 		    1|FRAME_IS_XOTCL_CMETHOD);
   Tcl_CallFrame_clientData(framePtr) = (ClientData)cscPtr;
+  Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
 }
 
 static void XOTcl_PopFrameCsc(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {

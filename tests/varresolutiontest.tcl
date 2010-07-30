@@ -1,4 +1,4 @@
-# testing var resolution for namespace-shadowed objects 
+# testing var resolution
 
 package require next; namespace import ::nx::*
 package require xotcl::test
@@ -718,3 +718,19 @@ Test case alias-dot-resolver {
   ? {lsort [V info vars]} {Z}
   ? {lsort [v info vars]} {z}
 }
+
+#
+# test [info vars] in eval method
+#
+
+Test case info-vars-in-eval {
+
+  Object create o
+  ? {o eval {
+    set x 1
+    expr {[info vars "x"] eq "x"}
+  }} 1 
+}
+
+
+
