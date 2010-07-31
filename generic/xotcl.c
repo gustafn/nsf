@@ -12167,7 +12167,8 @@ static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_o
   XOTclClass *cl = (withPer_object || ! XOTclObjectIsClass(object)) ? NULL : (XOTclClass *)object;
   CONST char *methodName = ObjStr(parameter);
   SetterCmdClientData *setterClientData;
-  int j, length, result;
+  size_t j, length;
+  int result;
 
   if (*methodName == '-') {
     return XOTclVarErrMsg(interp,
