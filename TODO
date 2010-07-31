@@ -818,6 +818,9 @@ do we need:
 - replace 0 by NULL in calls to GetClassFromObj()
 - extended regression test
 
+- use size_t where appropriate
+- added notnull annotations
+
 TODO: 
 - rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?
   Stefan, meinung dazu? Notwending|Empfehlenswert|nicht? 
@@ -848,7 +851,6 @@ TODO "Kleinigkeiten"
 - rename tests from .xotcl to .tcl
 
 - info parameter in tcl?
-- use size_t where appropriate
 
 - copy objectMethod and classMethod  as comments
   to xotcl.c, fix and check order

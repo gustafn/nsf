@@ -392,7 +392,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
  */
 
 XOTCLINLINE static void
-CscInit(XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl, Tcl_Command cmd, int frameType) {
+CscInit(/*@notnull@*/ XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl, Tcl_Command cmd, int frameType) {
 
   assert(cscPtr);
 

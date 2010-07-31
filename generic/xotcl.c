@@ -976,7 +976,7 @@ SearchPLMethod(register XOTclClasses *pl, CONST char *methodName, Tcl_Command *c
 
 
 static XOTclClass*
-SearchCMethod(XOTclClass *cl, CONST char *nm, Tcl_Command *cmd) {
+SearchCMethod(/*@notnull@*/ XOTclClass *cl, CONST char *nm, Tcl_Command *cmd) {
   assert(cl);
   return SearchPLMethod(ComputeOrder(cl, cl->order, Super), nm, cmd);
 }
@@ -1379,7 +1379,7 @@ XOTclRequireObjectOpt(XOTclObject *object) {
 }
 
 extern XOTclClassOpt*
-XOTclRequireClassOpt(XOTclClass *cl) {
+XOTclRequireClassOpt(/*@notnull@*/ XOTclClass *cl) {
   assert(cl);
   if (!cl->opt) {
     cl->opt = NEW(XOTclClassOpt);
@@ -2165,10 +2165,10 @@ NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name,
  * check colons for illegal object/class names
  */
 XOTCLINLINE static int
-NSCheckColons(CONST char *name, unsigned l) {
+NSCheckColons(CONST char *name, size_t l) {
   register CONST char *n = name;
   if (*n == '\0') return 0; /* empty name */
-  if (l == 0) l=strlen(name);
+  if (l == 0) l = strlen(name);
   if (*(n+l-1) == ':')  return 0; /* name ends with : */
   if (*n == ':' && *(n+1) != ':') return 0; /* name begins with single : */
   for (; *n != '\0'; n++) {
@@ -2182,7 +2182,7 @@ NSCheckColons(CONST char *name, unsigned l) {
  * check for parent namespace existance (used before commands are created)
  */
 XOTCLINLINE static int
-NSCheckForParent(Tcl_Interp *interp, CONST char *name, unsigned l, XOTclClass *cl) {
+NSCheckForParent(Tcl_Interp *interp, CONST char *name, size_t l, XOTclClass *cl) {
   register CONST char *n = name+l;
   int rc = 1;
 
@@ -3590,13 +3590,14 @@ getAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *s
  */
 
 static int
-getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, XOTclClass *startCl,
+getAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, /*@notnull@*/ XOTclClass *startCl,
 		    int isMixin,
                     int appendResult, CONST char *pattern, XOTclObject *matchObject) {
   int rc = 0, new = 0;
   XOTclClass *cl;
   XOTclClasses *sc;
 
+  assert(startCl);
   
   /*fprintf(stderr, "startCl = %p %s, opt %p, isMixin %d\n",
     startCl, className(startCl), startCl->opt, isMixin);*/
@@ -6338,7 +6339,7 @@ static int convertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam 
 }
 
 static Tcl_Obj*
-ParamCheckObj(Tcl_Interp *interp, CONST char *start, int len) {
+ParamCheckObj(Tcl_Interp *interp, CONST char *start, size_t len) {
   Tcl_Obj *checker = Tcl_NewStringObj("type=", 5);
   Tcl_AppendLimitedToObj(checker, start, len, INT_MAX, NULL);
   return checker;
@@ -6455,7 +6456,8 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, size_t length, int disa
 static int
 ParamParse(Tcl_Interp *interp, CONST char *procName, Tcl_Obj *arg, int disallowedFlags,
            XOTclParam *paramPtr, int *possibleUnknowns, int *plainParams) {
-  int result, npac, length, j, nameLength, isNonposArgument;
+  int result, npac, isNonposArgument;
+  size_t nameLength, length, j;
   CONST char *argString, *argName;
   Tcl_Obj **npav;
 
@@ -6493,7 +6495,7 @@ ParamParse(Tcl_Interp *interp, CONST char *procName, Tcl_Obj *arg, int disallowe
 
   if (argString[j] == ':') {
     /* we found a ':' */
-    int l, start, end;
+    size_t l, start, end;
 
     /* get parameter name */
     NEW_STRING(paramPtr->name, argString, j);
@@ -7781,7 +7783,7 @@ static XOTclObject*
 PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTclClass *cl) {
   XOTclObject *object = (XOTclObject*)ckalloc(sizeof(XOTclObject));
   CONST char *nameString = ObjStr(nameObj);
-  unsigned length;
+  size_t length;
 
 #if defined(XOTCLOBJ_TRACE)
   fprintf(stderr, "CKALLOC Object %p %s\n", object, nameString);
@@ -8164,7 +8166,7 @@ static XOTclClass*
 PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTclClass *class) {
   XOTclClass *cl = (XOTclClass*)ckalloc(sizeof(XOTclClass));
   CONST char *nameString = ObjStr(nameObj);
-  unsigned length;
+  size_t length;
   XOTclObject *object = (XOTclObject*)cl;
 
   /*fprintf(stderr, "CKALLOC Class %p %s\n", cl, nameString);*/
@@ -8433,10 +8435,10 @@ XOTclCreate(Tcl_Interp *interp, XOTcl_Class *class, Tcl_Obj *nameObj, ClientData
             int objc, Tcl_Obj *CONST objv[]) {
   XOTclClass *cl = (XOTclClass *) class;
   int result;
+  ALLOC_ON_STACK(Tcl_Obj *, objc+2, ov);
 
   INCR_REF_COUNT(nameObj);
 
-  ALLOC_ON_STACK(Tcl_Obj *, objc+2, ov);
   ov[0] = NULL;
   ov[1] = nameObj;
   if (objc>0) {
