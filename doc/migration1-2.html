@@ -10,7 +10,7 @@ body	{
 	color: black;
 }
 table i {
-     font-size: 80%;
+     font-size: 85%;
 }
 table td code i {
      font-style: italic;
@@ -132,6 +132,10 @@ into the current namespace. </p>
 </table>
 
 <h2>Defining Methods</h2>
+
+<h3>Scripted Methods Defined in the Init-block of a Class/Object or with
+Separate Calls</h3>
+
 <table border=1>
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
@@ -140,7 +144,7 @@ into the current namespace. </p>
       <i>C</i> proc <i>bar args</i> {...}<br>
       </code></td>
     <td>
-      <i class='comment'># Define method and object method in the init-block of a class</i></br><br>
+      <i class='comment'># Define method and object method <br># in the init-block of a class</i></br><br>
       <code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:method <i>foo args</i> {...}<br>
       &nbsp;&nbsp;:object method <i>bar args</i> {...}<br>
@@ -170,71 +174,168 @@ into the current namespace. </p>
      <i>o</i> method <i>foo args</i> {...}<br>
      </code></td>
    </tr>
+ </table>
+ 
+ <h3>Define Different Kinds of Methods</h3>
+ <table border=1>
+   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
+
    <tr>
-    <td><i class='comment'># method modifiers "object", "public" and
-      "protected"<br># are not available.</i><br><br>
+   <td>
+     <i class='comment'># Methods for defining methods:<br>#<br>
+     #&nbsp;&nbsp;&nbsp;&nbsp; proc <br>
+     #&nbsp;&nbsp;&nbsp;&nbsp; instproc <br>
+     #&nbsp;&nbsp;&nbsp;&nbsp; forward <br>
+     #&nbsp;&nbsp;&nbsp;&nbsp; instforward <br>
+     #&nbsp;&nbsp;&nbsp;&nbsp; parametercmd <br>
+     #&nbsp;&nbsp;&nbsp;&nbsp; instparametercmd <br>
+     </i>
+   </td>
+    <td>
+     <i class='comment'># Methods for defining methods:<br>#<br>
+     #&nbsp;&nbsp;&nbsp;&nbsp; method <br>
+     #&nbsp;&nbsp;&nbsp;&nbsp; forward <br>
+     #&nbsp;&nbsp;&nbsp;&nbsp; setter <br>
+     #&nbsp;&nbsp;&nbsp;&nbsp; alias <br>
+     #&nbsp;&nbsp;&nbsp;&nbsp; attribute <br>
+      </i>
+    </td>
+  </tr>
+   
+   <tr>
+    <td>
       <code>Class <i>C</i><br>
       <i>C</i> instproc <i>foo args</i> {...}<br>
-      <i>C</i> proc <i>bar args</i> {...}<br>
+      <i>C</i> proc <i>bar args</i> {...}<br><br>
+      <code>Object <i>o</i><br>
+      <i>o</i> proc <i>baz args</i> {...}<br>
       </code>
     </td>
     <td>
-      <i class='comment'># Define scripted methods with various method modifiers</i></br><br>
+      <i class='comment'># Define scripted methods</i></br><br>
       <code>Class create <i>C</i> {<br>
-      &nbsp;&nbsp;:method <i>foo1 args</i> {...}<br>
-      &nbsp;&nbsp;:public method <i>foo2 args</i> {...}<br>
-      &nbsp;&nbsp;:protected method <i>foo3 args</i> {...}<br>
-      &nbsp;&nbsp;:object method <i>bar1 args</i> {...}<br>
-      &nbsp;&nbsp;:protected object method <i>bar2 args</i> {...}<br>
-      &nbsp;&nbsp;:public object method <i>bar3 args</i> {...}<br>
+      &nbsp;&nbsp;:method <i>foo args</i> {...}<br>
+      &nbsp;&nbsp;:object method <i>bar args</i> {...}<br>
+      }<br><br>
+      <code>Object create <i>o</i> {<br>
+      &nbsp;&nbsp;:method <i>baz args</i> {...}<br>
       }<br>
      </code></td>
   </tr>
-  <tr>
-    <td><i class='comment'># method modifiers "object", "public" and
-      "protected"<br># are not available.</i><br><br>
+
+   <tr>
+    <td>
       <code>Class <i>C</i><br>
-      <i>C</i> instforward <i>f1 ...</i> <br>
-      <i>C</i> proc <i>of1 ...</i><br>
+      <i>C</i> instforward <i>f1 ...</i><br>
+      <i>C</i> forward <i>f2 ...</i><br><br>
+      <code>Object <i>o</i><br>
+      <i>o</i> forward <i>f3 ...</i><br>
       </code>
     </td>
     <td>
-      <i class='comment'># Define forwarder with various method modifiers</i></br><br>
+      <i class='comment'># Define forwarder</i></br><br>
       <code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:forward <i>f1 ...</i><br>
-      &nbsp;&nbsp;:public forward <i>f2 ...</i><br>
-      &nbsp;&nbsp;:protected forward <i>f3 ...</i><br>
-      &nbsp;&nbsp;:object forward <i>of1 ...</i> <br>
-      &nbsp;&nbsp;:public object forward <i>of2 ...</i><br>
-      &nbsp;&nbsp;:protected object forward <i>of3 ...</i><br>      
-     }<br>
+      &nbsp;&nbsp;:object forward <i>f2 ...</i><br>
+      }<br><br>
+      <code>Object create <i>o</i> {<br>
+      &nbsp;&nbsp;:forward <i>f3 ...</i><br>
+      }<br>
      </code></td>
   </tr>
-  <tr>
-    <td><i class='comment'># method modifiers "object", "public" and
-      "protected"<br># are not available.</i><br><br>
+
+   <tr>
+    <td>
       <code>Class <i>C</i><br>
-      <i>C</i> instparametercmd <i>s1 ...</i> <br>
-      <i>C</i> parametercmd <i>os1 ...</i><br>
+      <i>C</i> instparametercmd <i>p1</i><br>
+      <i>C</i> parametercmd <i>p2</i><br><br>
+      <code>Object <i>o</i><br>
+      <i>o</i> parametercmd <i>p3</i><br>
       </code>
     </td>
     <td>
-      <i class='comment'># Define setters with various method modifiers</i></br><br>
+      <i class='comment'># Define setter and getter methods</i></br><br>
       <code>Class create <i>C</i> {<br>
-      &nbsp;&nbsp;:setter <i>s1 ...</i> {...}<br>
-      &nbsp;&nbsp;:public setter <i>s2 ...</i><br>
-      &nbsp;&nbsp;:protected setter <i>s3 ...</i><br>
-      &nbsp;&nbsp;:object setter <i>os1 ...</i> {...}<br>
-      &nbsp;&nbsp;:public object setter <i>os2 ...</i><br>
-      &nbsp;&nbsp;:protected object setter <i>os3 ...</i><br>      
-     }<br>
-     </code>
-      <i class='comment'># TODO: same for "alias" und "attribute" --
-      mybe more generic, with placeholder for "method", "forward",
-      "setter", "alias" and "attribute"</i>
+      &nbsp;&nbsp;:setter <i>p1 ?value_constraint?</i><br>
+      &nbsp;&nbsp;:object setter <i>p2 ?value_constraint?</i><br>
+      }<br><br>
+      <code>Object create <i>o</i> {<br>
+      &nbsp;&nbsp;:setter <i>p3 ?value_constraint?</i><br>
+      }<br>
+     </code></td>
+  </tr>
 
+   <tr>
+    <td>
+      <i class='comment'># Method "alias" not available</i></br><br>
     </td>
-  </tr>  
+    <td>
+      <i class='comment'># Define method aliases (to scripted or
+    non-scripted methods)</i></br><br>
+      <code>Class create <i>C</i> {<br>
+      &nbsp;&nbsp;:alias <i>a1 ...</i><br>
+      &nbsp;&nbsp;:object alias <i>a2 ...</i><br>
+      }<br><br>
+      <code>Object create <i>o</i> {<br>
+      &nbsp;&nbsp;:alias <i>a3 ...</i><br>
+      }<br>
+     </code></td>
+   </tr>
+
+   <tr>
+    <td>
+      <i class='comment'># Parameters only available at class level</i></br><br>
+      <code>Class <i>C</i> \<br>&nbsp;&nbsp; -parameter {<i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;x<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;{y 1}<br>
+      </i>}<br>
+      </code>
+    </td>
+    <td>
+      <i class='comment'># Define object attributes<br>#(parameters for initializing objects)</i></br><br>
+      <code>Class create <i>C</i> {<br>
+      &nbsp;&nbsp;:attribute <i>x</i><br>
+      &nbsp;&nbsp;:attribute <i>{y 1}</i><br>
+      &nbsp;&nbsp;:object attribute <i>oa1</i><br>
+      }<br><br>
+      <code>Object create <i>o</i> {<br>
+      &nbsp;&nbsp;:attribute <i>oa2</i><br>
+      }<br>
+     </code></td>
+  </tr>
+</table>
+
+<h3>Method Modifiers and Method Protection</h3>
+
+<table border=1>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
+ 
+   <tr>
+    <td><i class='comment'># Method modifiers<br>
+      #<br>
+      #&nbsp;&nbsp; "object",<br>
+      #&nbsp;&nbsp; "public", and <br>
+      #&nbsp;&nbsp; "protected"<br>
+      #<br>
+      # are not available.</i><br><br>
+   </td>
+    <td>
+      <i class='comment'># Method modifiers orthogonal over all kinds of methods<br>
+      #<br>
+      # Method-definition-methods: <br>
+      # &nbsp;&nbsp; method, forward, setter, alias, attribute
+     </i></br><br>
+      <code>Class create <i>C</i> {<br>
+      &nbsp;&nbsp;:<i>method-definiton-method ...</i><br>
+      &nbsp;&nbsp;:public <i>method-definiton-method ...</i><br>
+      &nbsp;&nbsp;:protected <i>method-definiton-method ...</i><br>
+      &nbsp;&nbsp;:object <i>method-definiton-method ...</i><br>
+      &nbsp;&nbsp;:protected object <i>method-definiton-method ...</i><br>
+      &nbsp;&nbsp;:public object <i>method-definiton-method ...</i><br>
+      }<br>
+     </code></td>
+  </tr>
+
 </table>
 
 <h2>Resolvers</h2>
@@ -794,7 +895,7 @@ comment, while Next enforces it. </p>
 
 
 
-<h3>Exit handlers</h3>
+<h3>Exit Handlers</h3>
 <p>
 The exit hander interface changed from a method of
 <code>::xotcl::Object</code> into three Tcl procs in the <code>::nx::core</code>
@@ -808,6 +909,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Fri Jul 30 13:56:13 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sun Aug  1 17:40:20 CEST 2010 <!-- hhmts end -->
 </body>
 </html>
