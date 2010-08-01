@@ -15,6 +15,7 @@ regsub -all "\n#\[^\n\]*\n" $content \n content   ;# remove comment lines
 regsub -all "\n#\[^\n\]*\n" $content \n content   ;# remove comment lines
 regsub -all "\n#\[^\n\]*\n" $content \n content   ;# remove comment lines
 regsub -all "\n#\[^\n\]*\n" $content \n content   ;# remove comment lines
+regsub -all "\n#\[^\n\]*\n" $content \n content   ;# remove comment lines
 regsub -all "\[\n\]+" $content \n content         ;# remove empty lines
 regsub -all "\n}" $content "}" content            ;# newlines btwn braces
 regsub -all "\n" $content "\\n\"\n\"" content

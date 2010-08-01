@@ -967,16 +967,12 @@ namespace eval ::nx {
   ::nx::MetaSlot __invalidateobjectparameter
   
   # @object ::nx::Attribute
-}
-namespace eval ::nx {
+  #
   # Attribute slots are used to manage the access, mutation, and
   # querying of instance variables. There is a helper method {{@method
   # ::nx::Object class attribute}} to define the attributes of classes
   # (and objects). Consider the example of a class definition with
   # three attribute slots:
-}
-namespace eval ::nx {
-
   # {{{
   # 	Class create Person {
   #  		:attribute name
