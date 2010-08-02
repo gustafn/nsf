@@ -854,6 +854,13 @@ TODO:
     * distributed packages in namespace ::nx::*
     * names of subpackages next::*
 
+    * should we stay with ::nx::: as namespace prefix?
+      The following looks inconsistent:
+
+        package require next
+        package require next::test
+        namespace import ::nx::*
+
 - documentation
    - documentationssytem
    - langref (xotcl 2.0 + next-scripting)
