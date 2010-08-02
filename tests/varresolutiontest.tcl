@@ -1,7 +1,7 @@
 # testing var resolution
 
 package require next; namespace import ::nx::*
-package require xotcl::test
+package require next::test
 
 Test parameter count 1
 

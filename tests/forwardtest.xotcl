@@ -1,6 +1,6 @@
 # -*- Tcl -*-
 package require XOTcl; namespace import ::xotcl::*
-package require xotcl::test
+package require next::test
 
 ###########################################
 # trivial object delegation

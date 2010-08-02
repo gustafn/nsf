@@ -1,4 +1,4 @@
-package provide xotcl::test 2.0
+package provide next::test 1.0
 package require next
 
 namespace eval ::nx::test {

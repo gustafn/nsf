@@ -5,7 +5,7 @@ package require XOTcl; namespace import -force xotcl::*
 set pkgdir  [file dir [info script]]/..
 lappend auto_path $pkgdir
 
-package require xotcl::test
+package require next::test
 
 set tclsh [info nameofexecutable]
 set dir [file dir [info script]]

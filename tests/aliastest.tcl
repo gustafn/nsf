@@ -1,5 +1,5 @@
 package require next; namespace import -force ::nx::*
-package require xotcl::test
+package require next::test
 
 Test parameter count 10
 Test case alias-preliminaries { 

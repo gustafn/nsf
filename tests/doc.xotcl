@@ -1,5 +1,5 @@
 package require next
-package require xotcl::test
+package require next::test
 package require next::doc
 
 namespace import -force ::nx::*

@@ -1,5 +1,5 @@
 package req next
-package require xotcl::test
+package require next::test
 
 nx::Object create o {
   :alias set ::set

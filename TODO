@@ -834,6 +834,9 @@ do we need:
 - rename xotcl1.xotcl to xotcl.tcl
 - some cleanup (version variables, etc.) in xotcl.tcl
 
+- renamed tests/method-modifiers.xotcl to tests/method-modifiers.tcl
+- changed "require xotcl::test" to "... next::test"
+
 TODO: 
 - nameing
     * .c-code:
@@ -875,7 +878,6 @@ TODO "Kleinigkeiten"
 - rename predefined.xotcl to .tcl
 - migrate further test from .xotcl to .tcl (based on next instead of xotcl)
 - check ::xotcl references in serializer
-- change "require xotcl::test" to "... nx::test"
 
 - copy decls for objectMethod and classMethod  as comments
   to xotcl.c, fix and check order
