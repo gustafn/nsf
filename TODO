@@ -831,6 +831,8 @@ do we need:
 - use namespace ::nx::test instead of ::xotcl::test
 - use namespace ::nx::serializer instead of ::xotcl::serializer
 
+- rename xotcl1.xotcl to xotcl.tcl
+- some cleanup (version variables, etc.) in xotcl.tcl
 
 TODO: 
 - nameing
@@ -870,7 +872,6 @@ Ein paar punkte im folgenden könnten obsolet sein:
 
 TODO "Kleinigkeiten"
 
-- rename xotcl1.xotcl to xotcl.tcl
 - rename predefined.xotcl to .tcl
 - migrate further test from .xotcl to .tcl (based on next instead of xotcl)
 - check ::xotcl references in serializer

@@ -1,11 +1,17 @@
 package provide XOTcl 2.0
 package require next
 #######################################################
-# Classical ::xotcl-1.*
+# Classical ::xotcl*
 #######################################################
 namespace eval ::xotcl {
   #
-  # Perform the basic setup of XOTcl 1.x. First, let us allocate the
+  # Set XOTcl version variables
+  #
+  set ::xotcl::version 2.0
+  set ::xotcl::patchlevel .0
+
+  #
+  # Perform the basic setup of XOTcl. First, let us allocate the
   # basic classes of XOTcl. This call creates the classes
   # ::xotcl::Object and ::xotcl::Class and defines these as root class
   # of the object system and as root meta class.
@@ -28,10 +34,11 @@ namespace eval ::xotcl {
   }
 
   #
-  # create ::next and ::next core namespaces, otherwise mk_pkgindex will fail
+  # create ::nx and ::nx::core namespaces, otherwise mk_pkgindex will fail
   #
-  namespace eval ::next {}
+  namespace eval ::nx {}
   namespace eval ::nx::core {}
+
   #
   # get frequenly used primitiva into the ::xotcl namespace
   #
@@ -421,7 +428,7 @@ namespace eval ::xotcl {
   ::xotcl::Class instforward slots %self contains \
       -object {%::nx::core::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
   #
-  # define parametercmd and instparametercmd in terms of ::next method setter
+  # define parametercmd and instparametercmd in terms of ::nx method setter
   # define filterguard and instfilterguard in terms of filterguard
   # define mixinguard and instmixinguard in terms of mixinguard
   #
@@ -507,7 +514,7 @@ namespace eval ::xotcl {
     "
   }
 
-  # support for XOTcl 1.* specific convenience routines
+  # support for XOTcl specific convenience routines
   Object instproc hasclass cl {
     if {[::nx::core::is [self] object -hasmixin $cl]} {return 1}
     ::nx::core::is [self] type $cl
@@ -542,12 +549,12 @@ namespace eval ::xotcl {
     return [:info instances -closure]
   }
 
-  # keep old object interface for xotcl 1.*
+  # keep old object interface for XOTcl
   Object proc unsetExitHandler {} {::nx::core::unsetExitHandler $newbody}
   Object proc setExitHandler   {newbody} {::nx::core::setExitHandler $newbody}
   Object proc getExitHandler   {} {::nx::core::getExitHandler}
 
-  # resue some definitions from ::next
+  # resue some definitions from next scripting
   ::nx::core::alias ::xotcl::Object copy ::nx::core::classes::nx::Object::copy
   ::nx::core::alias ::xotcl::Object move ::nx::core::classes::nx::Object::move
   ::nx::core::alias ::xotcl::Object defaultmethod ::nx::core::classes::nx::Object::defaultmethod
@@ -668,7 +675,7 @@ namespace eval ::xotcl {
   #
   # package support
   #
-  # puts this for the time being into xotcl 1.*
+  # puts this for the time being into XOTcl
   #
   ::xotcl::Class instproc uses list {
     foreach package $list {
@@ -785,28 +792,19 @@ namespace eval ::xotcl {
   if {[info exists cmd]} {unset cmd}
 
 
-  # documentation stub object -> just ignore per default.
+  # Documentation stub object -> just ignore per default.
   # if xoDoc is loaded, documentation will be activated
   ::xotcl::Object create ::xotcl::@
   ::xotcl::@ proc unknown args {}
   
-  #
-  # set xotcl version variables
-  #
-  # check for variable, otherwise mk_pkgindex will fail
-  if {[info exists ::nx::core::version]} {
-    set ::xotcl::version $::nx::core::version
-    set ::xotcl::patchlevel $::nx::core::patchlevel
-  }
-
   set ::xotcl::confdir ~/.xotcl
   set ::xotcl::logdir $::xotcl::confdir/log
   namespace import ::nx::core::tmpdir
 
-  # finally, export contents defined for xotcl 1.*
+  # finally, export contents defined for XOTcl
   namespace export Object Class Attribute myproc myvar my self next @
 }
 
-foreach ns {::nx::core ::next ::xotcl} {
+foreach ns {::nx::core ::nx ::xotcl} {
   puts stderr "$ns exports [namespace eval $ns {lsort [namespace export]}]"
 }
