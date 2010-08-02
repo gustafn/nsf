@@ -1,8 +1,8 @@
 package provide xotcl::test 2.0
-package require XOTcl
+package require next
 
-namespace eval ::xotcl::test {
-  ::xotcl::use xotcl2
+namespace eval ::nx::test {
+  namespace import ::nx::*
 
   # @file Simple regression test support.
 
@@ -149,4 +149,4 @@ proc ? {cmd expected {msg ""}} {
 }
 
 
-namespace import ::xotcl::test::*
+namespace import ::nx::test::*

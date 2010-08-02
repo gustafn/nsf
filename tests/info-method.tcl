@@ -1,13 +1,11 @@
-package req XOTcl
+package req next
 package require xotcl::test
 
-::xotcl::use xotcl2
-
-Object create o {
+nx::Object create o {
   :alias set ::set
 }
 
-Class create C {
+nx::Class create C {
   :method m {x} {return proc-[self proc]}
   :object method mpo {} {return instproc-[self proc]}
   :method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2
@@ -47,9 +45,9 @@ c1 method foo {} {puts foo}
 ? {C info method definition m-with-assertions} \
     {::C method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
 ? {C info method parameter m} {x}
-? {Class info method parameter method} \
+? {nx::Class info method parameter method} \
     {name arguments body -precondition -postcondition}
-? {Object info method parameter alias} \
+? {nx::Object info method parameter alias} \
     {-nonleaf:switch -objscope:switch methodName cmd}
 # raises currently an error
 ? {catch {C info method parameter a}} 1

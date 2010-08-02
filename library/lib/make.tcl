@@ -1,10 +1,10 @@
-# $Id: make.xotcl,v 1.4 2006/09/27 08:12:40 neumann Exp $ 
 ### inEachDir changes now to each directory
 ### install clears tgarget directory before installing
 ### Object file added (for better -n processing)
 lappend auto_path ..
 
-package require XOTcl 2; ::xotcl::use xotcl2
+package require next
+namespace import -force ::nx::*
 
 ###
 Object create make {
@@ -22,9 +22,10 @@ Object create make {
     }
 
     set so [glob -nocomplain *[info sharedlibextension]]
-    # loading libxotcl into xotclsh crashes on some systems
-    foreach lib [list libxotcl$::xotcl::version[info sharedlibextension] \
-                     xotcl$::xotcl::version.dll] {
+    set version $::nx::core::version
+    # loading libnext into nextsh might cause problems on some systems
+    foreach lib [list libnext$version[info sharedlibextension] \
+                     next$version.dll] {
       set p [lsearch -exact $so $lib]
       if {$p != -1} {
         set so [lreplace $so $p $p]

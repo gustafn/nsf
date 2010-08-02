@@ -1,6 +1,6 @@
-package require XOTcl
+package require next
 package require xotcl::test
-::xotcl::use xotcl2
+namespace import ::nx::*
 
 Test case dummy {
   puts current=[::namespace current]

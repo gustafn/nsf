@@ -99,6 +99,7 @@ C object mixin M
 ? {C object-mixin} "::M"
 
 puts stderr "==================== XOTcl 1"
+package require XOTcl
 namespace import -force ::xotcl::*
 
 Class create M1

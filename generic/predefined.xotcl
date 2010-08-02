@@ -1418,23 +1418,7 @@ namespace eval ::nx::core {
     return /tmp
   }  
 
-  proc use {version} {
-    set callingNs [uplevel {namespace current}]
-    switch -exact $version {
-      xotcl -
-      xotcl1 {
-	package require XOTcl
-	#puts stderr "current=[namespace current], ul=[uplevel {namespace current}]"
-	if {$callingNs ne "::xotcl"} {uplevel {namespace import -force ::xotcl::*}}
-      }
-      default {
-	if {$callingNs ne "::xotcl"} {uplevel {namespace import -force ::xotcl::*}}
-	if {$callingNs ne "::next"} {uplevel {namespace import -force ::nx::*}}
-      }
-    }
-  }
-
-  namespace export tmpdir use
+  namespace export tmpdir 
 }
 
 #######################################################################

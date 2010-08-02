@@ -9,7 +9,7 @@ package provide xotcl::serializer 1.0
 # package (when ::xotcl::Object is defined), and (b) load it from
 # "xotcl1.tcl", when the serializer is alreaded loaded.
 
-namespace eval ::xotcl::serializer {
+namespace eval ::nx::serializer {
 
   namespace import ::nx::*
 

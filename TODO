@@ -825,12 +825,29 @@ do we need:
   Now both definition of parameters and setting of __parameter are
   in Tcl.
 
+- get rid of ":::xotcl::use"
+- renamed tests based on next from .xotcl to .tcl
+- extended regression tests
+- use namespace ::nx::test instead of ::xotcl::test
+- use namespace ::nx::serializer instead of ::xotcl::serializer
+
 
 TODO: 
-- rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?
-  Stefan, meinung dazu? Notwending|Empfehlenswert|nicht? 
-  bei den TEA definitionen stand was von max. 8zeichen für source code namen.
-  andere optionen?
+- nameing
+    * .c-code:
+      . rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?
+        Stefan, meinung dazu? Notwending|Empfehlenswert|nicht? 
+        bei den TEA definitionen stand was von max. 8zeichen für source code namen.
+        andere optionen?
+      . prefix for exported symbols (XOTcl_ -> ?)
+      . prefix for symbols (XOTcl->?)
+      . prefix for symbols (XO->?)
+    * file extension for next scripting .tcl
+    * namespace prefix 
+       next scripting language: ::nx::*
+       next scripting framework: ::nx::core::*
+    * distributed packages in namespace ::nx::*
+    * names of subpackages next::*
 
 - documentation
    - documentationssytem
@@ -853,7 +870,11 @@ Ein paar punkte im folgenden könnten obsolet sein:
 
 TODO "Kleinigkeiten"
 
-- rename tests from .xotcl to .tcl
+- rename xotcl1.xotcl to xotcl.tcl
+- rename predefined.xotcl to .tcl
+- migrate further test from .xotcl to .tcl (based on next instead of xotcl)
+- check ::xotcl references in serializer
+- change "require xotcl::test" to "... nx::test"
 
 - copy decls for objectMethod and classMethod  as comments
   to xotcl.c, fix and check order

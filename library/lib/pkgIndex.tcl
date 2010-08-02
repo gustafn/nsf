@@ -16,7 +16,7 @@ package ifneeded xotcl::mixinStrategy 0.9 [list source [file join $dir mixinStra
 package ifneeded xotcl::package 0.91 [list source [file join $dir package.xotcl]]
 package ifneeded xotcl::script 0.9 [list source [file join $dir Script.xotcl]]
 package ifneeded xotcl::staticMetadataAnalyzer 0.84 [list source [file join $dir staticMetadata.xotcl]]
-package ifneeded xotcl::test 2.0 [list source [file join $dir test.xotcl]]
+package ifneeded xotcl::test 2.0 [list source [file join $dir test.tcl]]
 package ifneeded xotcl::trace 0.91 [list source [file join $dir trace.xotcl]]
 package ifneeded xotcl::upvar-compat 1.0 [list source [file join $dir upvarcompat.xotcl]]
 package ifneeded xotcl::wafecompat 0.9 [list source [file join $dir wafecompat.tcl]]

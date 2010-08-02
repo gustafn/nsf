@@ -2,7 +2,8 @@
 # It demonstrates the basic language constructs on the example of
 # a soccer club.
 
-package require XOTcl; ::xotcl::use xotcl2
+package require next
+namespace import ::nx::*
  
 # All the characters in this example are fictitious, and any
 # resemblance to actual persons, living or deceased, is coincidental.

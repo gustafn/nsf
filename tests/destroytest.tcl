@@ -1,4 +1,4 @@
-package require XOTcl; xotcl::use next
+package require next; namespace import ::nx::*
 package require xotcl::test
 
 Test parameter count 10
