@@ -860,9 +860,6 @@ infoClassMethod mixinof  XOTclClassInfoMixinOfMethod {
   {-argName "-scope" -required 0 -nrargs 1 -type "all|class|object"}
   {-argName "pattern" -type objpattern}
 }
-infoClassMethod parameter XOTclClassInfoParameterMethod {
-  {-argName "class"  -required 1 -type class}
-}
 infoClassMethod slots XOTclClassInfoSlotsMethod {
   {-argName "class"  -required 1 -type class}
 }

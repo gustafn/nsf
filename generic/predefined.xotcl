@@ -1127,6 +1127,14 @@ namespace eval ::nx {
     if {![::nx::core::objectproperty $slot object]} {::nx::Object create $slot}
     ::nx::core::setvar $slot __parameter $arglist
   }
+  ::nx::core::method ::nx::classInfo parameter {class} {
+    set slot ${class}::slot
+    if {![::nx::core::objectproperty $slot object]} {::nx::Object create $slot}
+    if {[::nx::core::existsvar $slot __parameter]} {
+      return [::nx::core::setvar $slot __parameter]
+    }
+    return ""
+  }
 
   ##################################################################
   # now the slots are defined; now we can defines the Objects or 

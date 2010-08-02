@@ -125,8 +125,8 @@ namespace eval ::xotcl {
   }
 
   #
-  # use parameter definition from next
-  #
+  # Use parameter definition from next 
+  # (same with classInfo parameter, see below)
   ::nx::core::alias ::xotcl::Class parameter ::nx::core::classes::nx::Class::parameter
 
   # We provide a default value for superclass (when no superclass is
@@ -395,6 +395,7 @@ namespace eval ::xotcl {
   ::nx::core::alias ::xotcl::classInfo instforward ::nx::core::cmd::ClassInfo::forward
   #::nx::core::alias ::xotcl::classInfo mixinof ::nx::core::cmd::ClassInfo::object-mixin-of
   ::nx::core::forward ::xotcl::classInfo mixinof ::nx::core::cmd::ClassInfo::mixinof %1 -scope object
+  ::nx::core::alias ::xotcl::classInfo parameter ::nx::classInfo::parameter
 
   # assertion handling
   ::nx::core::alias ::xotcl::classInfo invar objectInfo::invar

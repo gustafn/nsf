@@ -14033,36 +14033,6 @@ static int XOTclClassInfoMixinOfMethod(Tcl_Interp *interp, XOTclClass *class, in
 }
 
 /*
-infoClassMethod parameter XOTclClassInfoParameterMethod {
-  {-argName "class"  -required 1 -type class}
-}
-*/
-static int XOTclClassInfoParameterMethod(Tcl_Interp *interp, XOTclClass *class) {
-  Tcl_DString ds, *dsPtr = &ds;
-  XOTclObject *object;
-
-  /* TODO: shouldn't this be implemented in tcl? no need for c,
-     hardcoded __parameter should be in predefined rather than here 
-  */
-  DSTRING_INIT(dsPtr);
-  Tcl_DStringAppend(dsPtr, className(class), -1);
-  Tcl_DStringAppend(dsPtr, "::slot", 6);
-  object = XOTclpGetObject(interp, Tcl_DStringValue(dsPtr));
-  if (object) {
-    Tcl_Obj *varNameObj = Tcl_NewStringObj("__parameter",-1);
-    Tcl_Obj *parameters = XOTcl_ObjGetVar2((XOTcl_Object*)object,
-					   interp, varNameObj, NULL,
-					   TCL_LEAVE_ERR_MSG);
-    if (parameters) {
-      Tcl_SetObjResult(interp, parameters);
-    }
-    DECR_REF_COUNT(varNameObj);
-  }
-  DSTRING_FREE(dsPtr);
-  return TCL_OK;
-}
-
-/*
 infoClassMethod slots XOTclClassInfoSlotsMethod {
   {-argName "class"  -required 1 -type class}
 }

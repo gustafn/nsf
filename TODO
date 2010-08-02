@@ -821,6 +821,11 @@ do we need:
 - use size_t where appropriate
 - added notnull annotations
 
+- Implemented "Class info parameter" in Tcl, aliases for xotcl.
+  Now both definition of parameters and setting of __parameter are
+  in Tcl.
+
+
 TODO: 
 - rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?
   Stefan, meinung dazu? Notwending|Empfehlenswert|nicht? 
@@ -850,9 +855,7 @@ TODO "Kleinigkeiten"
 
 - rename tests from .xotcl to .tcl
 
-- info parameter in tcl?
-
-- copy objectMethod and classMethod  as comments
+- copy decls for objectMethod and classMethod  as comments
   to xotcl.c, fix and check order
 
 - should we extract parameter decls from pseudo-comments from the c source
