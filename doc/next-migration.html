@@ -20,10 +20,15 @@ table td i.comment {
      font-style: italic;
      color: #888888;
 }
+pre.code {
+  border: 1px solid grey;
+  padding: 20px 60px;
+}
 pre i {
      font-style: italic;
      color: green;
 }
+p.caption {text-align: center;}
 th {color: #888888;}
 td hr {
   color: #FFFFFF;
@@ -55,24 +60,102 @@ table td {
 </head>
 
 <body>
-<h1>Introduction</h1>
-
+<h1>Migration Guide for the the Next Scripting Language</h1>
+<p>
 ... general text, maybe partly from slides/paper ....
-
-
 TODO: Maybe we should not refer to ::nx::core here and import instead
 the "needed" commands into ::nx namespace.
+<p>In general, the Next Scripting Language differs from XOTcl in the following
+respects:
+
+<ul>
+  <li> The Next Scripting Language has a much smaller
+  interface (less predefined methods) than XOTcl.<p>
+  
+  <li> The Next Scripting Language favors a stronger form of
+  encapsulation than XOTcl. Calling the own methods or accessing the
+  own instance variables is typographically easier and computationally
+  faster than these operations on other objects. This behavior is
+  achieved via resolvers an makes the definition of methods necessary
+  in XOTcl obsolete. On the other hand, XOTcl is complete symmetrical
+  in this respect.
+
+  <p>The encapsulation of Next Scripting is weak; a programmer can still
+  access e.g. other variables via some idioms, but this makes these
+  accesses implicit and is more typing effort.  Through the weak
+  encapsulation a programmer should be encouraged to implement
+  methods to provide access to instance variables.<p>
+
+  <li> The Next Scripting Language provides means of method
+  protection.<p>
+
+  <li> The Next Scripting Language provides scripted init blocks for
+  objects and classes (XOTcl used the dash "-" mechanisms to set
+  variables and invoke methods upon object creation).<p>
+
+  <li> The Next Scripting Language provides much more orthogonal means
+  to define and name scripted and c-implemented methods.<p>
+
+  <li> The Next Scripting Language provides an orthogonal framework for
+  parametrization of methods and objects.<p>
+
+</ul>  
+
+<pre CLASS="code">
+<strong>Class create</strong> Stack {
+
+   <strong>:method init</strong> {} {
+     <strong>set</strong> :things ""
+   } 
+
+   <strong>:method</strong> push {thing} {
+      <strong>set</strong> :things [<strong>linsert</strong> ${:things} 0 $thing] 
+      <strong>return</strong> $thing
+   }
+  
+   <strong>:method</strong> pop {} {
+      <strong>set</strong> top [<strong>lindex</strong> ${:things} 0]
+      <strong>set</strong> :things [<strong>lrange</strong> ${:things} 1 end]
+      <strong>return</strong> $top
+   }
+}
+</pre>
+<p class='caption'><strong>Figure 1:</strong> Stack example in the Next Scripting Language</p>
+
+
+<pre CLASS="code">
+<strong>Class</strong> Stack
+
+Stack <strong>instproc init</strong> {} {
+   <strong>my instvar</strong> things
+   <strong>set</strong> things ""
+} 
+
+Stack <strong>instproc </strong> push {thing} {
+   <strong>my instvar</strong> things
+   <strong>set</strong> things [<strong>linsert</strong> $things 0 $thing] 
+   <strong>return</strong> $thing
+}
+  
+Stack <strong>instproc</strong> pop {} {
+   <strong>my instvar</strong> things
+   <strong>set</strong> top [<strong>lindex</strong> $things 0]
+   <strong>set</strong> things [<strong>lrange</strong> $things 1 end]
+   <strong>return</strong> $top
+}
+</pre>
+<p class='caption'><strong>Figure 2:</strong> Stack example in XOTcl</p>
 
 <h2>Using XOTcl 2.0 and the Next Scripting Language in the Next
-Scripting Framework</h2>
+Scripting Framework in a Single Interpreter</h2>
 
 <p> In general, the Next Scripting Framework supports multiple object
 systems concurrently. Effectively, every object system has different
 base classes for creating objects and classes. Therefore, these object
-systems can have different different interfaces and names of builtin
+systems can have different different interfaces and names of built-in
 methods. Currently, the Next Scripting Framework supports primarily
 XOTcl 2.0 (highly compatible with XOTcl 1.*) and the Next Scripting
-Language (XOTcl provides about twice as many predefined builtin
+Language (XOTcl provides about twice as many predefined built-in
 methods compared to the Next Scripting Language).  </p>
 
 <p> A single Tcl interpreter can host both, XOTcl and the Next
@@ -347,7 +430,7 @@ a colon ":" specially. In short, a colon-prefixed variable name refers
 to an instance variable, and a colon-prefixed function name refers to
 a method. The sub-sections below provide detailed examples.
 
-<p>Note that the Next resolvers are used in the XOTcl 2.* environment
+<p>Note that the Next resolvers can be used in the XOTcl 2.* environment
 as well.
 
 <h3>Invoking Methods</h3>
@@ -381,6 +464,23 @@ as well.
 
 
 <h3>Accessing Own Instance Variables from Method Bodies</h3>
+
+<p>In general, the Next Scripting Language favors the access to an
+objects's own instance variables over variable accesses of other
+objects. On the contrary, in XOTcl, the variable access to own and
+other variables are completely symmetric.
+
+<p>In Next Scripting, access to local variables are performed via
+primarily via name resolvers, but using the standard tcl commands
+(like e.g. <code>set</code>, <code>incr</code>, <code>append</code>,
+<code>info exists</code>, etc.). In XOTcl, it is common to provide
+same-named methods registered on <code>::xotcl::Object</code> for such
+purposes. This is one of the reasons, why the Next Scripting Language
+has a much smaller interface (less predefined methods). It is possible
+for an application program to register XOTcl-like methods in the Next
+Scripting Language via the primitives of the Next Scripting Framework.
+
+<p>
 <table border= '1'>
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
@@ -909,6 +1009,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Mon Aug  2 14:48:57 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Tue Aug  3 11:36:55 CEST 2010 <!-- hhmts end -->
 </body>
 </html>
