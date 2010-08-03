@@ -351,7 +351,7 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/varresolutiontest.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/info-method.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/parameters.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/interceptor-slot.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/interceptor-slot.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/aliastest.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/protected.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/testx.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
@@ -430,7 +430,7 @@ pkgIndex.tcl: $(PKG_LIB_FILE)
 install-pkgIndex:
 #	@echo package ifneeded next $(PACKAGE_VERSION) [list load [file join \$$dir .. "$(PKG_LIB_FILE)"] next] > "$(pkglibdir)/pkgIndex.tcl"
 
-nextsh: tclAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
+nxsh: tclAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
 	$(CC) -rdynamic -o $@ tclAppInit.o \
 		$(CFLAGS)  $(TCL_LIB_SPEC) \
 		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
@@ -442,8 +442,8 @@ xowish: tkAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
 		$(DMALLOC_LIB) $(CONDITIONAL_STUB_OBJECTS)
 
 install-shells:
-	@if test -f nextsh; then \
-		$(INSTALL_PROGRAM) nextsh $(DESTDIR)$(bindir); \
+	@if test -f nxsh; then \
+		$(INSTALL_PROGRAM) nxsh $(DESTDIR)$(bindir); \
 	fi
 	@if test -f xowish; then \
 		$(INSTALL_PROGRAM) xowish $(DESTDIR)$(bindir); \
@@ -637,26 +637,26 @@ $(DESTDIR)$(mandir)/mann:
 end:
 	@echo "" 
 	@echo "************************************************************"
-	@echo " Make completed. In order to test 'next', invoke:"
+	@echo " Make completed. In order to test next-scripting, invoke:"
 	@echo "   make test"
 	@echo ""
-	@echo " In order install next, invoke:"
+	@echo " In order install next-scripting, invoke:"
 	@echo "   make install"
 	@echo ""
-	@echo " In order to install next for AOLserver 4.x, invoke:"
+	@echo " In order to install next-scripting for AOLserver 4.x, invoke:"
 	@echo "   make install-aol"
 	@echo "" 
-	@echo " In order to invoke next interactively (before install), use:" 
+	@echo " In order to invoke next-scripting interactively (before install), use:" 
 	@echo "   export TCLLIBPATH=\"$(TCLLIBPATH)\"   or    " 
 	@echo "   setenv TCLLIBPATH \"$(TCLLIBPATH)\""
 	@echo " and"
 	@if test "x$(XOTCLSH)" = "x" ; then \
 	  echo "   @TCLSH_PROG@" ; \
-	  echo "   package require next; namespace import -force next::*" ; \
+	  echo "   package require nx; namespace import -force nx::*" ; \
 	  echo " or" ; \
 	  echo "   put the 'package require' line into your ~/.tclshrc" ; \
 	else \
-	  echo "   ./nextsh" ; \
+	  echo "   ./nxsh" ; \
 	fi
 	@echo "************************************************************"
 

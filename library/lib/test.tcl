@@ -1,5 +1,5 @@
-package provide next::test 1.0
-package require next
+package provide nx::test 1.0
+package require nx
 
 namespace eval ::nx::test {
   namespace import ::nx::*

@@ -6,7 +6,7 @@
 package require XOTcl; namespace import -force ::xotcl::*
 set pkgDir [file dirname [info script]]/..
 lappend auto_path $pkgDir
-package require next::test
+package require nx::test
 #package require xotcl::package; package verbose 1
 package require xotcl::comm::httpAccess
 #package require xotcl::trace

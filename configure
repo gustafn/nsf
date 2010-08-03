@@ -2059,7 +2059,7 @@ fi
 
 
 if test "$with_tk" = no; then with_xowish="" ; fi
-if test "$with_xotclsh" = yes; then XOTCLSH="nextsh" ; else XOTCLSH=""; fi
+if test "$with_xotclsh" = yes; then XOTCLSH="nxsh" ; else XOTCLSH=""; fi
 if test "$with_xowish" = yes;  then XOWISH="xowish"   ; else XOWISH=""; fi
 
 

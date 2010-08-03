@@ -14675,12 +14675,12 @@ Next_Init(Tcl_Interp *interp) {
   /* the AOL server uses a different package loading mechanism */
 # ifdef COMPILE_XOTCL_STUBS
 #  if defined(PRE86)
-  Tcl_PkgProvideEx(interp, "next", PACKAGE_VERSION, (ClientData)&xotclStubs);
+  Tcl_PkgProvideEx(interp, "nx", PACKAGE_VERSION, (ClientData)&xotclStubs);
 #  else
-  Tcl_PkgProvideEx(interp, "next", PACKAGE_VERSION, (ClientData)&xotclConstStubPtr);
+  Tcl_PkgProvideEx(interp, "nx", PACKAGE_VERSION, (ClientData)&xotclConstStubPtr);
 #  endif
 # else
-  Tcl_PkgProvide(interp, "next", PACKAGE_VERSION);
+  Tcl_PkgProvide(interp, "nx", PACKAGE_VERSION);
 # endif
 #endif
 

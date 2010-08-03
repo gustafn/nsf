@@ -1,5 +1,5 @@
 package provide XOTcl 2.0
-package require next
+package require nx
 #######################################################
 # Classical ::xotcl*
 #######################################################

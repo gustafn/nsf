@@ -837,6 +837,10 @@ do we need:
 - renamed tests/method-modifiers.xotcl to tests/method-modifiers.tcl
 - changed "require xotcl::test" to "... next::test"
 
+- changed "require next" to "... nx"
+- changed "require next::test" to "... nx::test"
+- changed "require next::doc" to "... nx::doc"
+
 TODO: 
 - nameing
     * .c-code:
@@ -852,13 +856,19 @@ TODO:
        next scripting language: ::nx::*
        next scripting framework: ::nx::core::*
     * distributed packages in namespace ::nx::*
-    * names of subpackages next::*
+    * names of subpackages nx::*
 
     * should we stay with ::nx::: as namespace prefix?
       The following looks inconsistent:
 
         package require next
         package require next::test
+        namespace import ::nx::*
+
+    * Now we have
+
+        package require nx
+        package require nx::test
         namespace import ::nx::*
 
 - documentation
@@ -882,6 +892,7 @@ Ein paar punkte im folgenden könnten obsolet sein:
 
 TODO "Kleinigkeiten"
 
+- missing in git: ./tests/var-access.tcl
 - rename predefined.xotcl to .tcl
 - migrate further test from .xotcl to .tcl (based on next instead of xotcl)
 - check ::xotcl references in serializer

@@ -618,7 +618,7 @@ namespace eval ::nx::serializer {
 
     :method serialize-all-start {s} {
       if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::nx::Object"} {
-        set intro "package require next; namespace import -force ::nx::*"
+        set intro "package require nx; namespace import -force ::nx::*"
       } else {
         set intro ""
       }

@@ -3,7 +3,7 @@
 ### Object file added (for better -n processing)
 lappend auto_path ..
 
-package require next
+package require nx
 namespace import -force ::nx::*
 
 ###
@@ -166,7 +166,7 @@ Class create Script {
   :create main
 }
 
-#puts stderr "+++ make.xotcl finished."
+#puts stderr "+++ make.tcl finished."
 #if {[set ::tcl_platform(platform)] eq "windows"} {
 #  exit
 #}

@@ -1,7 +1,7 @@
 # testing var resolution
 
-package require next; namespace import ::nx::*
-package require next::test
+package require nx; namespace import ::nx::*
+package require nx::test
 
 Test parameter count 1
 

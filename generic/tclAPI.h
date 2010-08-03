@@ -141,7 +141,6 @@ static methodDefinition method_definitions[];
 static CONST char *method_command_namespace_names[] = {
   "::nx::core::cmd::ObjectInfo",
   "::nx::core::cmd::Object",
-  "::nx::core",
   "::nx::core::cmd::ClassInfo",
   "::nx::core::cmd::ParameterType",
   "::nx::core::cmd::Class"

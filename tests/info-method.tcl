@@ -1,5 +1,5 @@
-package req next
-package require next::test
+package req nx
+package require nx::test
 
 nx::Object create o {
   :alias set ::set

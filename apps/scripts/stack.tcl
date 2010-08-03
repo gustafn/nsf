@@ -1,4 +1,4 @@
-package req next
+package requite nx
 
 nx::Class create stack {
   :method init {} {set :things {}}

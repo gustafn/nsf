@@ -1,7 +1,7 @@
 # -*- Tcl -*-
 #
 # This script is sourced by the C-code generator gentclAPI.tcl in the
-# same directory. It is also used by the next::doc toolkit to generate
+# same directory. It is also used by the nx::doc toolkit to generate
 # the authorative language reference documents.
 
 # @package next

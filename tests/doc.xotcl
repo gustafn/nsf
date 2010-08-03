@@ -1,6 +1,6 @@
-package require next
-package require next::test
-package require next::doc
+package require nx
+package require nx::test
+package require nx::doc
 
 namespace import -force ::nx::*
 namespace import -force ::nx::doc::*
@@ -502,16 +502,16 @@ Test case parsing {
   #
   # self documentation
   #
-  if {[catch {set i [doc process next::doc]} msg]} {
+  if {[catch {set i [doc process nx::doc]} msg]} {
     if {[Exception behind? $msg]} {
       puts stderr [$msg info class]->[$msg message]
     } else {
       error $msg
     }
   }
-  ? [list $i eval [list ::nx::core::is [@package id next::doc] object]] 1
-  puts stderr [$i eval [list [@package id next::doc] text]]
-  puts stderr [$i eval [list [@package id next::doc] @require]]
+  ? [list $i eval [list ::nx::core::is [@package id nx::doc] object]] 1
+  puts stderr [$i eval [list [@package id nx::doc] text]]
+  puts stderr [$i eval [list [@package id nx::doc] @require]]
   set path [file join /tmp nextdoc]
   if {[file exists $path]} {
     file delete -force $path
@@ -532,7 +532,7 @@ Test case parsing {
 
   set i [interp create]
   $i eval {
-    package req next::doc
+    package req nx::doc
     namespace import ::nx::*
     namespace import ::nx::doc::*
     doc process -noeval true /Users/ssoberni/Documents/dev/xotcl/generic/gentclAPI.decls

@@ -1,5 +1,5 @@
-package require next
-package require next::test
+package require nx
+package require nx::test
 namespace import ::nx::*
 
 Test parameter count 1

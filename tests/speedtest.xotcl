@@ -1,7 +1,7 @@
 #memory trace on
 package require XOTcl; namespace import ::xotcl::*
 
-package require next::test
+package require nx::test
 Test parameter count 1000
 
 @ @File {description {

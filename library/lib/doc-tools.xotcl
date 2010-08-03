@@ -1,6 +1,6 @@
-# @package next::doc
+# @package nx::doc
 # 
-# Study for documentation classes for Next.
+# Study for documentation classes for Next Scriptint
 # 
 # Compared to the "old" @ docmentation effort, this is a rather
 # light-weight structure based on xotcl 2 (next) language
@@ -20,11 +20,11 @@
 # documentation is in sync with actually defined methods (when these
 # are available).
 #
-# @require next
+# @require nx
 # @version 0.1
  
-package provide next::doc 0.1
-package require next
+package provide nx::doc 0.1
+package require nx
 
 namespace eval ::nx::doc {
   namespace import -force ::nx::*
@@ -35,7 +35,7 @@ namespace eval ::nx::doc {
   # documentation objects with less syntactic overhead.
   #
   # @param class Request an instance of a particular entity class (e.g., ...)
-  # @param name What is the entity name (e.g., next::doc for a package)
+  # @param name What is the entity name (e.g., nx::doc for a package)
   # @param args A vector of arbitrary arguments, provided to the entity when being constructed
   # @return The identifier of the newly created entity object
   
@@ -525,7 +525,7 @@ namespace eval ::nx::doc {
 	  -entity:optional 
 	  comment_block
 	} {
-	  next;
+	  next
 
 	  foreach methodName [${:name} info methods -methodtype scripted] {
 	    set blocks [doc comment_blocks [${:name} info method \
@@ -690,7 +690,7 @@ namespace eval ::nx::doc {
 
   Class create TemplateData {
     # This mixin class realises a rudimentary templating language to
-    # be used in next::doc templates. It realises language expressions
+    # be used in nx::doc templates. It realises language expressions
     # to verify the existence of variables and simple loop constructs
     :method render {
       {-initscript ""}
@@ -1001,7 +1001,7 @@ namespace eval ::nx {
 	# in the current interpreter.
 	set i [interp create]
 	set cmd [subst -nocommands {
-	  package req next::doc
+	  package req nx::doc
 	  namespace import -force ::nx::*; 
 	  ::nx::Class create SourcingTracker {
 	    :method create args {
@@ -1047,7 +1047,7 @@ namespace eval ::nx {
 	# 4) we assume a string block, e.g., to be fed into eval
 	set i [interp create]
 	set cmd [subst {
-	  package req next::doc
+	  package req nx::doc
 	  namespace import -force ::nx::doc::*
 	  doc analyze -noeval $noeval [list $thing]
 	}]
@@ -1665,7 +1665,7 @@ namespace eval ::nx::doc {
       if {[info exists :current_comment_line]} {
 	unset :current_comment_line
       }
-      next;
+      next
     }
     
     :method signal {event line} {

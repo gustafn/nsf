@@ -2,7 +2,7 @@
 
 package require XOTcl; namespace import ::xotcl::*
 lappend auto_path [file dirname [info script]]/..
-package require next::test
+package require nx::test
 
 @ @File {
   description {

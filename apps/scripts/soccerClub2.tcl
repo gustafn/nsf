@@ -2,7 +2,7 @@
 # It demonstrates the basic language constructs on the example of
 # a soccer club.
 
-package require next
+package require nx
 namespace import ::nx::*
  
 # All the characters in this example are fictitious, and any
