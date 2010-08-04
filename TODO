@@ -841,6 +841,12 @@ do we need:
 - changed "require next::test" to "... nx::test"
 - changed "require next::doc" to "... nx::doc"
 
+- added missing ./tests/var-access.tcl to git
+- added section about registering filters and mixin to migration guide
+- moved and transformed to next tests/mixinoftest.xotcl -> tests/mixinoftest.tcl
+- moved and transformed to next tests/object-system.xotcl -> tests/object-system.tcl
+
+
 TODO: 
 - nameing
     * .c-code:
@@ -892,7 +898,6 @@ Ein paar punkte im folgenden könnten obsolet sein:
 
 TODO "Kleinigkeiten"
 
-- missing in git: ./tests/var-access.tcl
 - rename predefined.xotcl to .tcl
 - migrate further test from .xotcl to .tcl (based on next instead of xotcl)
 - check ::xotcl references in serializer

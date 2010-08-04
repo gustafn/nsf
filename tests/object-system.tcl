@@ -1,5 +1,5 @@
-package require XOTcl
-namespace import xotcl::*
+package require nx
+namespace import nx::*
 #
 # Basic tests of the object system, should not require Class Test,
 # since even class Test might not work at that time.
@@ -16,89 +16,90 @@ proc ? {cmd expected {msg ""}} {
    }
 }
 
-? {Object isobject Object} 1
-? {Object isclass} 1
-? {Object ismetaclass} 0
+? {::nx::core::objectproperty Object object} 1
+? {::nx::core::objectproperty Object class} 1
+? {::nx::core::objectproperty Object metaclass} 0
 ? {Object info superclass} ""
-? {Object info class} ::xotcl::Class
+? {Object info class} ::nx::Class
 
-? {Object isobject Class} 1
-? {Class isclass} 1
-? {Class ismetaclass} 1
-? {Class info superclass} ::xotcl::Object
-? {Class info class} ::xotcl::Class
+? {::nx::core::objectproperty Class object} 1
+? {::nx::core::objectproperty Class class} 1
+? {::nx::core::objectproperty Class metaclass} 1
+? {Class info superclass} ::nx::Object
+? {Class info class} ::nx::Class
 
-Object o
-? {Object isobject o} 1
-? {o isclass} 0
-? {o ismetaclass} 0
-? {o info class} ::xotcl::Object
+
+Object create o
+? {::nx::core::objectproperty Object object} 1
+? {::nx::core::objectproperty o class} 0
+? {::nx::core::objectproperty o metaclass} 0
+? {o info class} ::nx::Object
 ? {Object info instances o} ::o
 ? {Object info instances ::o} ::o
 
-Class C0
-? {C0 isclass} 1
-? {C0 ismetaclass} 0
-? {C0 info superclass} ::xotcl::Object
-? {C0 info class} ::xotcl::Class
+Class create C0
+? {::nx::core::objectproperty C0 class} 1
+? {::nx::core::objectproperty C0 metaclass} 0
+? {C0 info superclass} ::nx::Object
+? {C0 info class} ::nx::Class
 #? {lsort [Class info vars]} "__default_metaclass __default_superclass"
 
-Class M -superclass ::xotcl::Class
-? {Object isobject M} 1
-? {M isclass} 1
-? {M ismetaclass} 1
-? {M info superclass} ::xotcl::Class
-? {M info class} ::xotcl::Class
+Class create M -superclass ::nx::Class
+? {::nx::core::objectproperty M object} 1
+? {::nx::core::objectproperty M class} 1
+? {::nx::core::objectproperty M metaclass} 1
+? {M info superclass} ::nx::Class
+? {M info class} ::nx::Class
 
-M C
-? {Object isobject C} 1
-? {C isclass} 1
-? {C ismetaclass} 0
-? {C info superclass} ::xotcl::Object
+M create C
+? {::nx::core::objectproperty C object} 1
+? {::nx::core::objectproperty C class} 1
+? {::nx::core::objectproperty C metaclass} 0
+? {C info superclass} ::nx::Object
 ? {C info class} ::M
 
-C c1
-? {Object isobject c1} 1
-? {c1 isclass} 0
-? {c1 ismetaclass} 0
+C create c1
+? {::nx::core::objectproperty c1 object} 1
+? {::nx::core::objectproperty c1 class} 0
+? {::nx::core::objectproperty c1 metaclass} 0
 ? {c1 info class} ::C
 
-Class M2 -superclass M
-? {Object isobject M2} 1
-? {M2 isclass} 1
-? {M2 ismetaclass} 1
+Class create M2 -superclass M
+? {::nx::core::objectproperty M2 object} 1
+? {::nx::core::objectproperty M2 class} 1
+? {::nx::core::objectproperty M2 metaclass} 1
 ? {M2 info superclass} ::M
-? {M2 info class} ::xotcl::Class
+? {M2 info class} ::nx::Class
 
-M2 m2
-? {m2 info superclass} ::xotcl::Object
+M2 create m2
+? {m2 info superclass} ::nx::Object
 ? {m2 info class} ::M2
 
 # destroy meta-class M, reclass meta-class instances to the base
 # meta-class and set subclass of M to the root meta-class
 M destroy
-? {Object isobject C} 1
-? {C isclass} 1
-? {C ismetaclass} 0
-? {C info superclass} ::xotcl::Object
-? {C info class} ::xotcl::Class
+? {::nx::core::objectproperty C object} 1
+? {::nx::core::objectproperty C class} 1
+? {::nx::core::objectproperty C metaclass} 0
+? {C info superclass} ::nx::Object
+? {C info class} ::nx::Class
 
-? {M2 ismetaclass} 1
-? {M2 info superclass} ::xotcl::Class
-? {m2 info superclass} ::xotcl::Object
+? {::nx::core::objectproperty M2 metaclass} 1
+? {M2 info superclass} ::nx::Class
+? {m2 info superclass} ::nx::Object
 ? {m2 info class} ::M2
 
 
 # destroy class M, reclass class instances to the base class
 C destroy
-? {Object isobject c1} 1
-? {c1 isclass} 0
-? {c1 ismetaclass} 0
-? {c1 info class} ::xotcl::Object
+? {::nx::core::objectproperty c1 objec} 1
+? {::nx::core::objectproperty c1 class} 0
+? {::nx::core::objectproperty c1 metaclass} 0
+? {c1 info class} ::nx::Object
 
 # basic parameter tests
 
-Class C -parameter {{x 1} {y 2}}
+Class create C -parameter {{x 1} {y 2}}
 ? {::nx::core::objectproperty C object} 1
 ? {::nx::core::objectproperty C::slot object} 1
 ? {C info children} ::C::slot
@@ -119,24 +120,24 @@ C copy X
 #
 # tests for the dispatch command
  
-Object o
-o proc foo {} {return goo}
-o proc bar {x} {return goo-$x}
+Object create o
+o method foo {} {return goo}
+o method bar {x} {return goo-$x}
 
 # dispatch without colon names
-::nx::core::dispatch o set x 1
+::nx::core::dispatch o eval set :x 1
 ? {o info vars} x "simple dispatch has set variable x"
-? {o set x} 1 "simple dispatch has set variable x to 1"
+? {::nx::var set o x} 1 "simple dispatch has set variable x to 1"
 ? {::nx::core::dispatch o foo} "goo" "simple dispatch with one arg works"
 ? {::nx::core::dispatch o bar 1} "goo-1" "simple dispatch with two args works"
 o destroy
 
-# dispatch without colon names
-Object o -set x 1
+# dispatch with colon names
+Object create o {set :x 1}
 ::nx::core::dispatch ::o ::incr x
-? {o set x} 1 "cmd dispatch without -objscope did not modify the instance variable"
+? {o eval {set :x}} 1 "cmd dispatch without -objscope did not modify the instance variable"
 ::nx::core::dispatch ::o -objscope ::incr x
-? {o set x} 2 "cmd dispatch -objscope modifies the instance variable"
+? {o eval {set :x}} 2 "cmd dispatch -objscope modifies the instance variable"
 ? {catch {::nx::core::dispatch ::o -objscope ::xxx x}} 1 "cmd dispatch with unknown command"
 o destroy
 
