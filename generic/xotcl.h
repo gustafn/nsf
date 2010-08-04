@@ -154,7 +154,7 @@ typedef struct XOTcl_Class {
  * Include the public function declarations that are accessible via
  * the stubs table.
  */
-#include "xotclDecls.h"
+#include "nxDecls.h"
 
 /*
  * Xotcl_InitStubs is used by extensions  that can be linked
@@ -168,10 +168,10 @@ typedef struct XOTcl_Class {
 extern "C"
 # endif
 CONST char *
-Xotcl_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, CONST char *version, int exact));
+Nx_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, CONST char *version, int exact));
 #else
 # define Xotcl_InitStubs(interp, version, exact) \
-      Tcl_PkgRequire(interp, "XOTcl", version, exact)
+      Tcl_PkgRequire(interp, "nx", version, exact)
 #endif
 
 #endif /* RC_INVOKED */

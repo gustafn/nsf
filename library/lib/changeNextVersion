@@ -1,36 +1,37 @@
+# -*- Tcl -*-
 #
-# this is a maintenance program for XOTcl that allows us to change the 
+# this is a maintenance program for Next Scripting that allows us to change the 
 # version information across the whole distribution automatically.
 # 
-# this program assumes that pwd is in xotcl-full-X.X* directory or subdir
+# this program assumes that pwd is in nx-full-X.X* directory or subdir
 #
-set XOTCL_MAJOR_VERSION 2
-set XOTCL_MINOR_VERSION 0
-set XOTCL_RELEASE_LEVEL .0
+set NX_MAJOR_VERSION 2
+set NX_MINOR_VERSION 0
+set NX_RELEASE_LEVEL .0
 
 # example settings: 
 # 1.0
-#set XOTCL_MAJOR_VERSION 1
-#set XOTCL_MINOR_VERSION 0
-#set XOTCL_RELEASE_LEVEL .3
+#set NX_MAJOR_VERSION 1
+#set NX_MINOR_VERSION 0
+#set NX_RELEASE_LEVEL .3
 #
 # 0.9.3
-#set XOTCL_MAJOR_VERSION 0
-#set XOTCL_MINOR_VERSION 9
-#set XOTCL_RELEASE_LEVEL .3
+#set NX_MAJOR_VERSION 0
+#set NX_MINOR_VERSION 9
+#set NX_RELEASE_LEVEL .3
 
-#set XOTCL_MAJOR_VERSION 0
-#set XOTCL_MINOR_VERSION 9
-#set XOTCL_RELEASE_LEVEL .3
-#set XOTCL_RELEASE_LEVEL .4
-#set XOTCL_RELEASE_LEVEL .5
+#set NX_MAJOR_VERSION 0
+#set NX_MINOR_VERSION 9
+#set NX_RELEASE_LEVEL .3
+#set NX_RELEASE_LEVEL .4
+#set NX_RELEASE_LEVEL .5
 
 
-set XOTCL_VERSION $XOTCL_MAJOR_VERSION.$XOTCL_MINOR_VERSION
-set FULL_VERSION $XOTCL_VERSION$XOTCL_RELEASE_LEVEL
+set NX_VERSION $NX_MAJOR_VERSION.$NX_MINOR_VERSION
+set FULL_VERSION $NX_VERSION$NX_RELEASE_LEVEL
 
-if {![regexp {((^.*/xotcl-)([0-9.][0-9.a-z_-]*))/?} [pwd] _ topdirname topdirprefix oldversion]} {
-  error "this program assumes that pwd is in xotcl-X.X* directory"
+if {![regexp {((^.*/nx-)([0-9.][0-9.a-z_-]*))/?} [pwd] _ topdirname topdirprefix oldversion]} {
+  error "this program assumes that pwd is in nx-X.X* directory"
 }
 
 puts "Prior version is: $oldversion"
@@ -50,14 +51,14 @@ foreach file [exec find . -name configure.in] {
   set newFile ""
   foreach line [split $c \n] {
     set newLine $line
-    if {[regexp {^XOTCL_MAJOR_VERSION=[0-9]} $line]} {
-      set line "XOTCL_MAJOR_VERSION=$XOTCL_MAJOR_VERSION"
-    } elseif {[regexp {^XOTCL_MINOR_VERSION=[0-9]} $line]} {
-      set line "XOTCL_MINOR_VERSION=$XOTCL_MINOR_VERSION"
-    } elseif {[regexp {^XOTCL_RELEASE_LEVEL=} $line]} {
-      set line "XOTCL_RELEASE_LEVEL=$XOTCL_RELEASE_LEVEL"
-    } elseif {[regexp {^define\(XOTclVersion, .*$} $line]} {
-      set line "define(XOTclVersion, $XOTCL_MAJOR_VERSION.$XOTCL_MINOR_VERSION$XOTCL_RELEASE_LEVEL)"
+    if {[regexp {^NX_MAJOR_VERSION=[0-9]} $line]} {
+      set line "NX_MAJOR_VERSION=$NX_MAJOR_VERSION"
+    } elseif {[regexp {^NX_MINOR_VERSION=[0-9]} $line]} {
+      set line "NX_MINOR_VERSION=$NX_MINOR_VERSION"
+    } elseif {[regexp {^NX_RELEASE_LEVEL=} $line]} {
+      set line "NX_RELEASE_LEVEL=$NX_RELEASE_LEVEL"
+    } elseif {[regexp {^define\(NxVersion, .*$} $line]} {
+      set line "define(NxVersion, $NX_MAJOR_VERSION.$NX_MINOR_VERSION$NX_RELEASE_LEVEL)"
     }
     append newFile $line\n
   }

@@ -1,5 +1,5 @@
 /*
- * xotclDecls.h --
+ * nxDecls.h --
  *
  *	Declarations of functions in the platform independent public XOTcl API.
  *
@@ -25,10 +25,10 @@
  * Exported function declarations:
  */
 
-#ifndef Next_Init_TCL_DECLARED
-#define Next_Init_TCL_DECLARED
+#ifndef Nx_Init_TCL_DECLARED
+#define Nx_Init_TCL_DECLARED
 /* 0 */
-EXTERN int		Next_Init (Tcl_Interp * interp);
+EXTERN int		Nx_Init (Tcl_Interp * interp);
 #endif
 /* Slot 1 is reserved */
 #ifndef XOTclIsClass_TCL_DECLARED
@@ -233,15 +233,15 @@ EXTERN int		XOTclCreate (Tcl_Interp * in, XOTcl_Class * class,
 				Tcl_Obj *CONST objv[]);
 #endif
 
-typedef struct XotclStubHooks {
-    struct XotclIntStubs *xotclIntStubs;
-} XotclStubHooks;
+typedef struct NxStubHooks {
+    struct NxIntStubs *nxIntStubs;
+} NxStubHooks;
 
-typedef struct XotclStubs {
+typedef struct NxStubs {
     int magic;
-    struct XotclStubHooks *hooks;
+    struct NxStubHooks *hooks;
 
-    int (*next_Init) (Tcl_Interp * interp); /* 0 */
+    int (*nx_Init) (Tcl_Interp * interp); /* 0 */
     void *reserved1;
     struct XOTcl_Class * (*xOTclIsClass) (Tcl_Interp * interp, ClientData cd); /* 2 */
     void *reserved3;
@@ -285,161 +285,161 @@ typedef struct XotclStubs {
     int (*xOTclAddObjectMethod) (Tcl_Interp * interp, struct XOTcl_Object * obj, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags); /* 41 */
     int (*xOTclAddClassMethod) (Tcl_Interp * interp, struct XOTcl_Class * cl, CONST char * nm, Tcl_ObjCmdProc * proc, ClientData cd, Tcl_CmdDeleteProc * dp, int flags); /* 42 */
     int (*xOTclCreate) (Tcl_Interp * in, XOTcl_Class * class, Tcl_Obj * name, ClientData data, int objc, Tcl_Obj *CONST objv[]); /* 43 */
-} XotclStubs;
+} NxStubs;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern XotclStubs *xotclStubsPtr;
+extern NxStubs *nxStubsPtr;
 #ifdef __cplusplus
 }
 #endif
 
-#if defined(USE_XOTCL_STUBS) && !defined(USE_XOTCL_STUB_PROCS)
+#if defined(USE_NX_STUBS) && !defined(USE_NX_STUB_PROCS)
 
 /*
  * Inline function declarations:
  */
 
-#ifndef Next_Init
-#define Next_Init \
-	(xotclStubsPtr->next_Init) /* 0 */
+#ifndef Nx_Init
+#define Nx_Init \
+	(nxStubsPtr->nx_Init) /* 0 */
 #endif
 /* Slot 1 is reserved */
 #ifndef XOTclIsClass
 #define XOTclIsClass \
-	(xotclStubsPtr->xOTclIsClass) /* 2 */
+	(nxStubsPtr->xOTclIsClass) /* 2 */
 #endif
 /* Slot 3 is reserved */
 #ifndef XOTclGetObject
 #define XOTclGetObject \
-	(xotclStubsPtr->xOTclGetObject) /* 4 */
+	(nxStubsPtr->xOTclGetObject) /* 4 */
 #endif
 #ifndef XOTclGetClass
 #define XOTclGetClass \
-	(xotclStubsPtr->xOTclGetClass) /* 5 */
+	(nxStubsPtr->xOTclGetClass) /* 5 */
 #endif
 #ifndef XOTclCreateObject
 #define XOTclCreateObject \
-	(xotclStubsPtr->xOTclCreateObject) /* 6 */
+	(nxStubsPtr->xOTclCreateObject) /* 6 */
 #endif
 /* Slot 7 is reserved */
 /* Slot 8 is reserved */
 #ifndef XOTclDeleteObject
 #define XOTclDeleteObject \
-	(xotclStubsPtr->xOTclDeleteObject) /* 9 */
+	(nxStubsPtr->xOTclDeleteObject) /* 9 */
 #endif
 /* Slot 10 is reserved */
 /* Slot 11 is reserved */
 /* Slot 12 is reserved */
 #ifndef XOTclRemoveObjectMethod
 #define XOTclRemoveObjectMethod \
-	(xotclStubsPtr->xOTclRemoveObjectMethod) /* 13 */
+	(nxStubsPtr->xOTclRemoveObjectMethod) /* 13 */
 #endif
 #ifndef XOTclRemoveClassMethod
 #define XOTclRemoveClassMethod \
-	(xotclStubsPtr->xOTclRemoveClassMethod) /* 14 */
+	(nxStubsPtr->xOTclRemoveClassMethod) /* 14 */
 #endif
 #ifndef XOTclOSetInstVar
 #define XOTclOSetInstVar \
-	(xotclStubsPtr->xOTclOSetInstVar) /* 15 */
+	(nxStubsPtr->xOTclOSetInstVar) /* 15 */
 #endif
 #ifndef XOTclOGetInstVar
 #define XOTclOGetInstVar \
-	(xotclStubsPtr->xOTclOGetInstVar) /* 16 */
+	(nxStubsPtr->xOTclOGetInstVar) /* 16 */
 #endif
 /* Slot 17 is reserved */
 /* Slot 18 is reserved */
 #ifndef XOTcl_ObjSetVar2
 #define XOTcl_ObjSetVar2 \
-	(xotclStubsPtr->xOTcl_ObjSetVar2) /* 19 */
+	(nxStubsPtr->xOTcl_ObjSetVar2) /* 19 */
 #endif
 #ifndef XOTcl_ObjGetVar2
 #define XOTcl_ObjGetVar2 \
-	(xotclStubsPtr->xOTcl_ObjGetVar2) /* 20 */
+	(nxStubsPtr->xOTcl_ObjGetVar2) /* 20 */
 #endif
 #ifndef XOTclUnsetInstVar2
 #define XOTclUnsetInstVar2 \
-	(xotclStubsPtr->xOTclUnsetInstVar2) /* 21 */
+	(nxStubsPtr->xOTclUnsetInstVar2) /* 21 */
 #endif
 /* Slot 22 is reserved */
 #ifndef XOTclErrMsg
 #define XOTclErrMsg \
-	(xotclStubsPtr->xOTclErrMsg) /* 23 */
+	(nxStubsPtr->xOTclErrMsg) /* 23 */
 #endif
 #ifndef XOTclVarErrMsg
 #define XOTclVarErrMsg \
-	(xotclStubsPtr->xOTclVarErrMsg) /* 24 */
+	(nxStubsPtr->xOTclVarErrMsg) /* 24 */
 #endif
 #ifndef XOTclErrInProc
 #define XOTclErrInProc \
-	(xotclStubsPtr->xOTclErrInProc) /* 25 */
+	(nxStubsPtr->xOTclErrInProc) /* 25 */
 #endif
 /* Slot 26 is reserved */
 #ifndef XOTclErrBadVal_
 #define XOTclErrBadVal_ \
-	(xotclStubsPtr->xOTclErrBadVal_) /* 27 */
+	(nxStubsPtr->xOTclErrBadVal_) /* 27 */
 #endif
 #ifndef XOTclObjErrType
 #define XOTclObjErrType \
-	(xotclStubsPtr->xOTclObjErrType) /* 28 */
+	(nxStubsPtr->xOTclObjErrType) /* 28 */
 #endif
 #ifndef XOTclStackDump
 #define XOTclStackDump \
-	(xotclStubsPtr->xOTclStackDump) /* 29 */
+	(nxStubsPtr->xOTclStackDump) /* 29 */
 #endif
 /* Slot 30 is reserved */
 /* Slot 31 is reserved */
 #ifndef XOTclSetObjClientData
 #define XOTclSetObjClientData \
-	(xotclStubsPtr->xOTclSetObjClientData) /* 32 */
+	(nxStubsPtr->xOTclSetObjClientData) /* 32 */
 #endif
 #ifndef XOTclGetObjClientData
 #define XOTclGetObjClientData \
-	(xotclStubsPtr->xOTclGetObjClientData) /* 33 */
+	(nxStubsPtr->xOTclGetObjClientData) /* 33 */
 #endif
 #ifndef XOTclSetClassClientData
 #define XOTclSetClassClientData \
-	(xotclStubsPtr->xOTclSetClassClientData) /* 34 */
+	(nxStubsPtr->xOTclSetClassClientData) /* 34 */
 #endif
 #ifndef XOTclGetClassClientData
 #define XOTclGetClassClientData \
-	(xotclStubsPtr->xOTclGetClassClientData) /* 35 */
+	(nxStubsPtr->xOTclGetClassClientData) /* 35 */
 #endif
 #ifndef XOTclRequireObjNamespace
 #define XOTclRequireObjNamespace \
-	(xotclStubsPtr->xOTclRequireObjNamespace) /* 36 */
+	(nxStubsPtr->xOTclRequireObjNamespace) /* 36 */
 #endif
 #ifndef XOTclErrBadVal
 #define XOTclErrBadVal \
-	(xotclStubsPtr->xOTclErrBadVal) /* 37 */
+	(nxStubsPtr->xOTclErrBadVal) /* 37 */
 #endif
 #ifndef XOTclNextObjCmd
 #define XOTclNextObjCmd \
-	(xotclStubsPtr->xOTclNextObjCmd) /* 38 */
+	(nxStubsPtr->xOTclNextObjCmd) /* 38 */
 #endif
 #ifndef XOTclCallMethodWithArgs
 #define XOTclCallMethodWithArgs \
-	(xotclStubsPtr->xOTclCallMethodWithArgs) /* 39 */
+	(nxStubsPtr->xOTclCallMethodWithArgs) /* 39 */
 #endif
 #ifndef XOTclObjErrArgCnt
 #define XOTclObjErrArgCnt \
-	(xotclStubsPtr->xOTclObjErrArgCnt) /* 40 */
+	(nxStubsPtr->xOTclObjErrArgCnt) /* 40 */
 #endif
 #ifndef XOTclAddObjectMethod
 #define XOTclAddObjectMethod \
-	(xotclStubsPtr->xOTclAddObjectMethod) /* 41 */
+	(nxStubsPtr->xOTclAddObjectMethod) /* 41 */
 #endif
 #ifndef XOTclAddClassMethod
 #define XOTclAddClassMethod \
-	(xotclStubsPtr->xOTclAddClassMethod) /* 42 */
+	(nxStubsPtr->xOTclAddClassMethod) /* 42 */
 #endif
 #ifndef XOTclCreate
 #define XOTclCreate \
-	(xotclStubsPtr->xOTclCreate) /* 43 */
+	(nxStubsPtr->xOTclCreate) /* 43 */
 #endif
 
-#endif /* defined(USE_XOTCL_STUBS) && !defined(USE_XOTCL_STUB_PROCS) */
+#endif /* defined(USE_NX_STUBS) && !defined(USE_NX_STUB_PROCS) */
 
 /* !END!: Do not edit above this line. */
 

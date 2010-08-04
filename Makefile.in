@@ -19,8 +19,8 @@
 # have been added in a customized configure script.
 #========================================================================
 
-#XOTCL_VERSION 	= @PACKAGE_VERSION@
-XOTCL_VERSION 	= @XOTCL_VERSION@
+#NX_VERSION 	= @PACKAGE_VERSION@
+NX_VERSION 	= @NX_VERSION@
 
 src_lib_dir		= ${srcdir}/library
 src_doc_dir		= ${srcdir}/doc
@@ -161,7 +161,7 @@ pkgdatadir	= @pkgdatadir@
 pkglibdir	= @pkglibdir@
 pkgincludedir	= @pkgincludedir@
 
-# XOTCLSH = @XOTCLSH@
+# NXSH = @NXSH@
 
 #========================================================================
 # TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
@@ -179,7 +179,7 @@ TCLSH_PROG	= @TCLSH_PROG@
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= @SHARED_BUILD@
 
-INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @XOTCL_BUILD_INCLUDE_SPEC@
+INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @NX_BUILD_INCLUDE_SPEC@
 EXTRA_CFLAGS	= @PKG_CFLAGS@
 
 # TCL_DEFS is not strictly need here, but if you remove it, then you
@@ -219,7 +219,7 @@ all: binaries libraries doc end
 # of the Makefile, in the "BINARIES" variable.
 #========================================================================
 
-binaries: $(BINARIES) @XOTCLSH@ @XOWISH@ pkgIndex.tcl
+binaries: $(BINARIES) @NXSH@ @XOWISH@ pkgIndex.tcl
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
@@ -322,7 +322,7 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 #========================================================================
 
 install-doc: doc $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man3 $(DESTDIR)$(mandir)/mann
-	@if test ! "x$(XOTCLSH)" = "x" ; then \
+	@if test ! "x$(NXSH)" = "x" ; then \
 	(cd $(src_man_dir)/ ; \
 	 for i in *.1; do \
 	    echo "Installing $$i"; \
@@ -425,10 +425,10 @@ VPATH = $(srcdir):$(srcdir)/generic:$(srcdir)/unix:$(srcdir)/win
 #========================================================================
 
 pkgIndex.tcl: $(PKG_LIB_FILE)
-	@echo package ifneeded nx $(PACKAGE_VERSION) [list load [file join \$$dir . $(PKG_LIB_FILE)] next] > pkgIndex.tcl
+	@echo package ifneeded nx $(PACKAGE_VERSION) [list load [file join \$$dir . $(PKG_LIB_FILE)] nx] > pkgIndex.tcl
 
 install-pkgIndex:
-#	@echo package ifneeded next $(PACKAGE_VERSION) [list load [file join \$$dir .. "$(PKG_LIB_FILE)"] next] > "$(pkglibdir)/pkgIndex.tcl"
+#	@echo package ifneeded nx $(PACKAGE_VERSION) [list load [file join \$$dir .. "$(PKG_LIB_FILE)"] nx] > "$(pkglibdir)/pkgIndex.tcl"
 
 nxsh: tclAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
 	$(CC) -rdynamic -o $@ tclAppInit.o \
@@ -487,7 +487,7 @@ aolstub.$(OBJEXT): $(src_generic_dir)/aolstub.c $(PKG_HEADERS)
 
 genstubs:
 	$(TCLSH) $(TCL_SRC_DIR)/tools/genStubs.tcl $(src_generic_dir) \
-		$(src_generic_dir)/xotcl.decls $(src_generic_dir)/xotclInt.decls
+		$(src_generic_dir)/nx.decls $(src_generic_dir)/nxInt.decls
 
 #
 # Target to check that all exported functions have an entry in the stubs
@@ -516,7 +516,7 @@ checkstubs:
 #========================================================================
 
 clean:  
-	-rm -rf $(BINARIES) $(CLEANFILES) @XOTCLSH@ @XOWISH@ pkgIndex.tcl ./receiver \
+	-rm -rf $(BINARIES) $(CLEANFILES) @NXSH@ @XOWISH@ pkgIndex.tcl ./receiver \
 		$(target_doc_dir)/*-xotcl.html
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
@@ -650,7 +650,7 @@ end:
 	@echo "   export TCLLIBPATH=\"$(TCLLIBPATH)\"   or    " 
 	@echo "   setenv TCLLIBPATH \"$(TCLLIBPATH)\""
 	@echo " and"
-	@if test "x$(XOTCLSH)" = "x" ; then \
+	@if test "x$(NXSH)" = "x" ; then \
 	  echo "   @TCLSH_PROG@" ; \
 	  echo "   package require nx; namespace import -force nx::*" ; \
 	  echo " or" ; \
@@ -673,7 +673,7 @@ rpm:
 
 bin-tar: 
 	(cd ..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
-                `find $(exec_prefix)/bin/$(XOTCLSH) $(exec_prefix)/bin/xowish \
+                `find $(exec_prefix)/bin/$(NXSH) $(exec_prefix)/bin/xowish \
                   $(prefix)/lib/xotcl* \
                   $(prefix)/lib/libxotcl* \
 		  $(prefix)/include/xotcl*.h \

@@ -1,9 +1,9 @@
-# xotcl.decls --
+# nx.decls --
 #
 #	This file contains the declarations for all supported public
-#	functions that are exported by the XOTcl library via the stubs table.
-#	This file is used to generate the xotclDecls.h, xotclPlatDecls.h,
-#	xotclStub.c, and xotclPlatStub.c files.
+#	functions that are exported by the Next scripting library via the stubs table.
+#	This file is used to generate the nxDecls.h, nxPlatDecls.h,
+#	nxStub.c, and nxPlatStub.c files.
 #	
 #
 # Copyright (c) 1998-1999 by Scriptics Corporation.
@@ -11,21 +11,21 @@
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 # 
 
-library xotcl
+library nx
 
-interface xotcl
-hooks {xotclInt}
+interface nx
+hooks {nxInt}
 
 # Declare each of the functions in the public Tcl interface.  Note that
 # the an index should never be reused for a different function in order
 # to preserve backwards compatibility.
 
 declare 0 generic {
-    int Next_Init(Tcl_Interp *interp)
+    int Nx_Init(Tcl_Interp *interp)
 }
 # 1 is reserved for safe init
 #declare 1 generic {
-#    int Next_SafeInit(Tcl_Interp *interp)
+#    int Nx_SafeInit(Tcl_Interp *interp)
 #}
 declare 2 generic {
     struct XOTcl_Class *XOTclIsClass(Tcl_Interp *interp, ClientData cd)

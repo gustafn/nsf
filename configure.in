@@ -11,8 +11,8 @@
 # for this package, and can be a relative path, such as:
 #
 #--------------------------------------------------------------------
-define(XOTclVersion, 2.0.0)
-AC_INIT([next], [XOTclVersion])
+define(NxVersion, 2.0.0)
+AC_INIT([nx], [NxVersion])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -39,10 +39,10 @@ AC_ARG_WITH(actiweb,
         [  --with-actiweb=yes|no,
            --without-actiweb disables actiweb components],
         [with_actiweb=$withval], [with_actiweb=no])
-AC_ARG_WITH(xotclsh,
-        [  --with-xotclsh=yes|no,
-	   --without-xotclsh disables built of xotclsh],
-        [with_xotclsh=$withval], [with_xotclsh=no])
+AC_ARG_WITH(nxsh,
+        [  --with-nxsh=yes|no,
+	   --without-nxsh disables built of nxsh],
+        [with_nxsh=$withval], [with_nxsh=no])
 AC_ARG_WITH(xowish,
         [  --with-xowish=yes|no,
 	   --without-xowish disables built of xowish],
@@ -64,7 +64,7 @@ subdirs=""
 
 if test "$with_all" = yes; then
    with_actiweb=yes
-   with_xotclsh=yes
+   with_nxsh=yes
    with_xowish=yes
    with_gdbm=yes
 fi
@@ -91,7 +91,7 @@ fi
 AC_SUBST(subdirs)
 
 if test "$with_tk" = no; then with_xowish="" ; fi
-if test "$with_xotclsh" = yes; then XOTCLSH="nxsh" ; else XOTCLSH=""; fi
+if test "$with_nxsh" = yes; then NXSH="nxsh" ; else NXSH=""; fi
 if test "$with_xowish" = yes;  then XOWISH="xowish"   ; else XOWISH=""; fi
 
 
@@ -103,18 +103,19 @@ if test "$with_xowish" = yes;  then XOWISH="xowish"   ; else XOWISH=""; fi
 # other systems.
 #--------------------------------------------------------------------
 
-# do not modify the following lines manually, they are generated with changeXOTclVersion
-XOTCL_MAJOR_VERSION=2
-XOTCL_MINOR_VERSION=0
-XOTCL_RELEASE_LEVEL=.0
+# do not modify the following lines manually, they are generated with 
+# the script changeXOTclVersion
+NX_MAJOR_VERSION=2
+NX_MINOR_VERSION=0
+NX_RELEASE_LEVEL=.0
 
-XOTCL_VERSION=${XOTCL_MAJOR_VERSION}.${XOTCL_MINOR_VERSION}
-NODOT_VERSION=${XOTCL_MAJOR_VERSION}${XOTCL_MINOR_VERSION}
+NX_VERSION=${NX_MAJOR_VERSION}.${NX_MINOR_VERSION}
+NODOT_VERSION=${NX_MAJOR_VERSION}${NX_MINOR_VERSION}
 
-AC_SUBST(XOTCL_VERSION)
-AC_SUBST(XOTCL_MAJOR_VERSION)
-AC_SUBST(XOTCL_MINOR_VERSION)
-AC_SUBST(XOTCL_RELEASE_LEVEL)
+AC_SUBST(NX_VERSION)
+AC_SUBST(NX_MAJOR_VERSION)
+AC_SUBST(NX_MINOR_VERSION)
+AC_SUBST(NX_RELEASE_LEVEL)
 
 echo "Configuring next Version $PACKAGE_VERSION"
 
@@ -189,13 +190,13 @@ fi
 
 
 TEA_ADD_SOURCES([xotcl.c xotclError.c xotclMetaData.c xotclObjectData.c xotclProfile.c \
-	xotclTrace.c xotclUtil.c xotclShadow.c xotclCompile.c aolstub.c xotclStubInit.c])
-TEA_ADD_HEADERS([generic/xotcl.h generic/xotclInt.h generic/xotclDecls.h generic/xotclIntDecls.h])
+	xotclTrace.c xotclUtil.c xotclShadow.c xotclCompile.c aolstub.c nxStubInit.c])
+TEA_ADD_HEADERS([generic/xotcl.h generic/xotclInt.h generic/nxDecls.h generic/nxIntDecls.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
-TEA_ADD_CFLAGS([-DXOTCLVERSION=\\\"$XOTCL_VERSION\\\" -DXOTCLPATCHLEVEL=\\\"$XOTCL_RELEASE_LEVEL\\\" \
+TEA_ADD_CFLAGS([-DNXVERSION=\\\"$NX_VERSION\\\" -DNXPATCHLEVEL=\\\"$NX_RELEASE_LEVEL\\\" \
 	$AOL_DEFINES $HAVE_TCL_COMPILE_H])
-TEA_ADD_STUB_SOURCES([xotclStubLib.c])
+TEA_ADD_STUB_SOURCES([nxStubLib.c])
 TEA_ADD_TCL_SOURCES([])
 
 
@@ -278,17 +279,17 @@ TEA_ENABLE_SHARED
 
 TEA_CONFIG_CFLAGS
 
-# Without the following two eval statements, XOTCL_SHARED_LIB_SUFFIX 
+# Without the following two eval statements, NX_SHARED_LIB_SUFFIX 
 # in xotclConfig.sh has $PACKAGE_VERSION unresolved. When another
 # app links against xotcl, the PACKAGE_VERSIONs are confused.
 #
 # Without the first eval, we get
-#   XOTCL_SHARED_LIB_SUFFIX=${PACKAGE_VERSION}\$\{DBGX\}${SHLIB_SUFFIX}
-#   XOTCL_UNSHARED_LIB_SUFFIX=${PACKAGE_VERSION}\$\{DBGX\}.a
+#   NX_SHARED_LIB_SUFFIX=${PACKAGE_VERSION}\$\{DBGX\}${SHLIB_SUFFIX}
+#   NX_UNSHARED_LIB_SUFFIX=${PACKAGE_VERSION}\$\{DBGX\}.a
 #
 # after the first eval, we get
-#   XOTCL_SHARED_LIB_SUFFIX=1.2.1${DBGX}.so
-#   XOTCL_UNSHARED_LIB_SUFFIX=1.2.1${DBGX}.a
+#   NX_SHARED_LIB_SUFFIX=1.2.1${DBGX}.so
+#   NX_UNSHARED_LIB_SUFFIX=1.2.1${DBGX}.a
 # after the second eval, all variables are resolved.
 
 
@@ -340,8 +341,8 @@ TEA_MAKE_LIB
 TEA_PROG_TCLSH
 
 # make this available, for such as xotclConfig.sh
-XOTCL_COMPATIBLE_TCLSH=${TCLSH_PROG}
-AC_SUBST(XOTCL_COMPATIBLE_TCLSH)
+NX_COMPATIBLE_TCLSH=${TCLSH_PROG}
+AC_SUBST(NX_COMPATIBLE_TCLSH)
 
 # resolve the variables
 eval "libdir=${libdir}"
@@ -365,52 +366,52 @@ AC_SUBST(pkgincludedir)
 
 if test "${TEA_PLATFORM}" != "windows" ; then
 
-XOTCL_BUILD_LIB_SPEC="-L`pwd` -lxotcl${PACKAGE_VERSION}"
-XOTCL_LIB_SPEC="-L${pkglibdir} -lxotcl${PACKAGE_VERSION}"
+NX_BUILD_LIB_SPEC="-L`pwd` -lnext${PACKAGE_VERSION}"
+NX_LIB_SPEC="-L${pkglibdir} -lnext${PACKAGE_VERSION}"
 
 # stub libs are not build for 8.0
 if test "${TCL_MAJOR_VERSION}" = "8" -a "${TCL_MINOR_VERSION}" = "0"; then
-	XOTCL_BUILD_STUB_LIB_PATH=""
-	XOTCL_STUB_LIB_PATH=""
-	XOTCL_BUILD_STUB_LIB_SPEC=""
-	XOTCL_STUB_LIB_SPEC=""
+	NX_BUILD_STUB_LIB_PATH=""
+	NX_STUB_LIB_PATH=""
+	NX_BUILD_STUB_LIB_SPEC=""
+	NX_STUB_LIB_SPEC=""
 else
-	XOTCL_BUILD_STUB_LIB_PATH="`pwd`/${PKG_STUB_LIB_FILE}"
-	XOTCL_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
-	XOTCL_BUILD_STUB_LIB_SPEC="-L`pwd` -lxotclstub${PACKAGE_VERSION}"
-	XOTCL_STUB_LIB_SPEC="-L${pkglibdir} -lxotclstub${PACKAGE_VERSION}"
-	AC_DEFINE(COMPILE_XOTCL_STUBS)
+	NX_BUILD_STUB_LIB_PATH="`pwd`/${PKG_STUB_LIB_FILE}"
+	NX_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
+	NX_BUILD_STUB_LIB_SPEC="-L`pwd` -lnextstub${PACKAGE_VERSION}"
+	NX_STUB_LIB_SPEC="-L${pkglibdir} -lnextstub${PACKAGE_VERSION}"
+	AC_DEFINE(COMPILE_NX_STUBS)
 fi 
 
 else
 
-XOTCL_BUILD_LIB_SPEC="`pwd`/${PKG_LIB_FILE}"
-XOTCL_LIB_SPEC="${pkglibdir}/${PKG_LIB_FILE}"
-XOTCL_BUILD_STUB_LIB_PATH="`pwd`/${PKG_STUB_LIB_FILE}"
-XOTCL_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
-XOTCL_BUILD_STUB_LIB_SPEC="`pwd`/${PKG_STUB_LIB_FILE}"
-XOTCL_STUB_LIB_SPEC="${pkglibdir}/${PKG_STUB_LIB_FILE}"
+NX_BUILD_LIB_SPEC="`pwd`/${PKG_LIB_FILE}"
+NX_LIB_SPEC="${pkglibdir}/${PKG_LIB_FILE}"
+NX_BUILD_STUB_LIB_PATH="`pwd`/${PKG_STUB_LIB_FILE}"
+NX_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
+NX_BUILD_STUB_LIB_SPEC="`pwd`/${PKG_STUB_LIB_FILE}"
+NX_STUB_LIB_SPEC="${pkglibdir}/${PKG_STUB_LIB_FILE}"
 
 fi
 
 AC_SUBST(SHARED_LIB_SUFFIX)
 AC_SUBST(UNSHARED_LIB_SUFFIX)
-AC_SUBST(XOTCL_BUILD_LIB_SPEC)
-AC_SUBST(XOTCL_LIB_SPEC)
-AC_SUBST(XOTCL_BUILD_STUB_LIB_SPEC)
-AC_SUBST(XOTCL_STUB_LIB_SPEC)
-AC_SUBST(XOTCL_BUILD_STUB_LIB_PATH)
-AC_SUBST(XOTCL_STUB_LIB_PATH)
-XOTCL_SRC_DIR=$srcdir
-AC_SUBST(XOTCL_SRC_DIR)
-AC_SUBST(XOTCLSH)
+AC_SUBST(NX_BUILD_LIB_SPEC)
+AC_SUBST(NX_LIB_SPEC)
+AC_SUBST(NX_BUILD_STUB_LIB_SPEC)
+AC_SUBST(NX_STUB_LIB_SPEC)
+AC_SUBST(NX_BUILD_STUB_LIB_PATH)
+AC_SUBST(NX_STUB_LIB_PATH)
+NX_SRC_DIR=$srcdir
+AC_SUBST(NX_SRC_DIR)
+AC_SUBST(NXSH)
 AC_SUBST(XOWISH)
 
 # include dir of xotcl during build process (i.e., does not assume installed)
-XOTCL_BUILD_INCLUDE_DIR="${XOTCL_SRC_DIR}/generic"
-XOTCL_BUILD_INCLUDE_SPEC="-I${XOTCL_BUILD_INCLUDE_DIR}"
-AC_SUBST(XOTCL_BUILD_INCLUDE_DIR)
-AC_SUBST(XOTCL_BUILD_INCLUDE_SPEC)
+NX_BUILD_INCLUDE_DIR="${NX_SRC_DIR}/generic"
+NX_BUILD_INCLUDE_SPEC="-I${NX_BUILD_INCLUDE_DIR}"
+AC_SUBST(NX_BUILD_INCLUDE_DIR)
+AC_SUBST(NX_BUILD_INCLUDE_SPEC)
 
 AC_SUBST(test_actiweb)
 AC_SUBST(libdirs_actiweb)

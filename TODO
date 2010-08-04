@@ -845,7 +845,7 @@ do we need:
 - added section about registering filters and mixin to migration guide
 - moved and transformed to next tests/mixinoftest.xotcl -> tests/mixinoftest.tcl
 - moved and transformed to next tests/object-system.xotcl -> tests/object-system.tcl
-
+- changed pkgIndex reference for .so file from next ot nx
 
 TODO: 
 - nameing
@@ -901,6 +901,13 @@ TODO "Kleinigkeiten"
 - rename predefined.xotcl to .tcl
 - migrate further test from .xotcl to .tcl (based on next instead of xotcl)
 - check ::xotcl references in serializer
+
+- Change Prefixes in X-code from xotcl->
+  Current plan
+    XO NX
+    Xo Nx
+    XOTcl_ Nx_
+    XOTcl Nx
 
 - copy decls for objectMethod and classMethod  as comments
   to xotcl.c, fix and check order

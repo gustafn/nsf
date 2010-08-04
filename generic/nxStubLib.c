@@ -1,5 +1,5 @@
 /*
- * xotclStubLib.c --
+ * nxStubLib.c --
  *
  *      Stub object that will be statically linked into extensions of XOTcl
  *
@@ -35,13 +35,13 @@
 #include "xotclInt.h"
 
 #if defined(PRE86)
-extern XotclStubs *xotclStubsPtr;
+extern NxStubs *nxStubsPtr;
 #else
-MODULE_SCOPE const XotclStubs *xotclStubsPtr;
-MODULE_SCOPE const XotclIntStubs *xotclIntStubsPtr;
+MODULE_SCOPE const NxStubs *nxStubsPtr;
+MODULE_SCOPE const NxIntStubs *nxIntStubsPtr;
 #endif
-CONST86 XotclStubs *xotclStubsPtr = NULL;
-CONST86 XotclIntStubs *xotclIntStubsPtr = NULL;
+CONST86 NxStubs *nxStubsPtr = NULL;
+CONST86 NxIntStubs *nxIntStubsPtr = NULL;
 
 
 /*
@@ -77,9 +77,9 @@ Xotcl_InitStubs (Tcl_Interp *interp, CONST char *version, int exact) {
                          "package not present or incomplete", NULL);
         return NULL;
     } else {
-      CONST86 XotclStubs * const stubsPtr = clientData;
-      CONST86 XotclIntStubs * const intStubsPtr = stubsPtr->hooks ?
-        stubsPtr->hooks->xotclIntStubs : NULL;
+      CONST86 NxStubs * const stubsPtr = clientData;
+      CONST86 NxIntStubs * const intStubsPtr = stubsPtr->hooks ?
+        stubsPtr->hooks->nxIntStubs : NULL;
 
       if (actualVersion == NULL) {
         return NULL;
@@ -94,8 +94,8 @@ Xotcl_InitStubs (Tcl_Interp *interp, CONST char *version, int exact) {
         return NULL;
       }
 
-      xotclStubsPtr = stubsPtr;
-      xotclIntStubsPtr = intStubsPtr;
+      nxStubsPtr = stubsPtr;
+      nxIntStubsPtr = intStubsPtr;
 
       return actualVersion;
     }

@@ -1,4 +1,4 @@
-# xotclInt.decls --
+# nxInt.decls --
 #
 #	This file contains the declarations for all unsupported
 #	functions that are exported by the Tcl library.  This file
@@ -10,11 +10,11 @@
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 # 
 
-library xotcl
+library nx
 
 # Define the unsupported generic interfaces.
 
-interface xotclInt
+interface nxInt
 
 
 #

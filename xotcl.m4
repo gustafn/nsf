@@ -24,7 +24,7 @@
 #		--with-xotcl=...
 #
 #	Defines the following vars:
-#		XOTCL_BIN_DIR	Full path to the directory containing
+#		NX_BIN_DIR	Full path to the directory containing
 #				the xotclConfig.sh file
 #------------------------------------------------------------------------
 
@@ -84,13 +84,13 @@ AC_DEFUN(SC_PATH_XOTCLCONFIG, [
 	])
 
 	if test x"${ac_cv_c_xotclconfig}" = x ; then
-	    XOTCL_BIN_DIR="# no XOTcl configs found"
+	    NX_BIN_DIR="# no XOTcl configs found"
 	    AC_MSG_WARN(Can't find XOTcl configuration definitions)
 	    exit 0
 	else
 	    no_xotcl=
-	    XOTCL_BIN_DIR=${ac_cv_c_xotclconfig}
-	    AC_MSG_RESULT(found $XOTCL_BIN_DIR/xotclConfig.sh)
+	    NX_BIN_DIR=${ac_cv_c_xotclconfig}
+	    AC_MSG_RESULT(found $NX_BIN_DIR/xotclConfig.sh)
 	fi
     fi
 ])
@@ -103,7 +103,7 @@ AC_DEFUN(SC_PATH_XOTCLCONFIG, [
 # Arguments:
 #	
 #	Requires the following vars to be set:
-#		XOTCL_BIN_DIR
+#		NX_BIN_DIR
 #
 # Results:
 #
@@ -112,11 +112,11 @@ AC_DEFUN(SC_PATH_XOTCLCONFIG, [
 #------------------------------------------------------------------------
 
 AC_DEFUN(SC_LOAD_XOTCLCONFIG, [
-    AC_MSG_CHECKING([for existence of $XOTCL_BIN_DIR/xotclConfig.sh])
+    AC_MSG_CHECKING([for existence of $NX_BIN_DIR/xotclConfig.sh])
 
-    if test -f "$XOTCL_BIN_DIR/xotclConfig.sh" ; then
+    if test -f "$NX_BIN_DIR/xotclConfig.sh" ; then
         AC_MSG_RESULT([loading])
-	. $XOTCL_BIN_DIR/xotclConfig.sh
+	. $NX_BIN_DIR/xotclConfig.sh
     else
         AC_MSG_RESULT([file not found])
     fi
@@ -125,16 +125,16 @@ AC_DEFUN(SC_LOAD_XOTCLCONFIG, [
     # The eval is required to do the TCL_DBGX substitution in the
     # TCL_LIB_FILE variable
     #
-    AC_SUBST(XOTCL_VERSION)
-    AC_SUBST(XOTCL_MAJOR_VERSION)
-    AC_SUBST(XOTCL_MINOR_VERSION)
-    AC_SUBST(XOTCL_RELEASE_LEVEL)
-    AC_SUBST(XOTCL_LIB_FILE)
-    AC_SUBST(XOTCL_BUILD_LIB_SPEC)
-    AC_SUBST(XOTCL_LIB_SPEC)
-    AC_SUBST(XOTCL_STUB_LIB_FILE)
-    AC_SUBST(XOTCL_BUILD_STUB_LIB_SPEC)
-    AC_SUBST(XOTCL_STUB_LIB_SPEC)
-    AC_SUBST(XOTCL_SRC_DIR)
+    AC_SUBST(NX_VERSION)
+    AC_SUBST(NX_MAJOR_VERSION)
+    AC_SUBST(NX_MINOR_VERSION)
+    AC_SUBST(NX_RELEASE_LEVEL)
+    AC_SUBST(NX_LIB_FILE)
+    AC_SUBST(NX_BUILD_LIB_SPEC)
+    AC_SUBST(NX_LIB_SPEC)
+    AC_SUBST(NX_STUB_LIB_FILE)
+    AC_SUBST(NX_BUILD_STUB_LIB_SPEC)
+    AC_SUBST(NX_STUB_LIB_SPEC)
+    AC_SUBST(NX_SRC_DIR)
 ])
 

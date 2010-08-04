@@ -1,5 +1,5 @@
 /* 
- * xotclStubInit.c --
+ * nxStubInit.c --
  *
  *	This file contains the initializers for the XOTcl stub vectors.
  *
@@ -24,19 +24,19 @@
 
 /* !BEGIN!: Do not edit below this line. */
 
-XotclIntStubs xotclIntStubs = {
+NxIntStubs nxIntStubs = {
     TCL_STUB_MAGIC,
     NULL,
 };
 
-static XotclStubHooks xotclStubHooks = {
-    &xotclIntStubs
+static NxStubHooks nxStubHooks = {
+    &nxIntStubs
 };
 
-XotclStubs xotclStubs = {
+NxStubs nxStubs = {
     TCL_STUB_MAGIC,
-    &xotclStubHooks,
-    Next_Init, /* 0 */
+    &nxStubHooks,
+    Nx_Init, /* 0 */
     NULL, /* 1 */
     XOTclIsClass, /* 2 */
     NULL, /* 3 */
@@ -84,5 +84,5 @@ XotclStubs xotclStubs = {
 
 /* !END!: Do not edit above this line. */
 
-MODULE_SCOPE const XotclStubs * const xotclConstStubPtr;
-const XotclStubs * const xotclConstStubPtr = &xotclStubs;
+MODULE_SCOPE const NxStubs * const nxConstStubPtr;
+const NxStubs * const nxConstStubPtr = &nxStubs;
