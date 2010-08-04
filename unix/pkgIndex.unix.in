@@ -1,4 +1,4 @@
-  package ifneeded XOTcl @PACKAGE_VERSION@ [list load \
-    [file join $dir @PKG_LIB_FILE@] XOTcl]
+  package ifneeded nx @PACKAGE_VERSION@ [list load \
+    [file join $dir @PKG_LIB_FILE@] nx]
 
 

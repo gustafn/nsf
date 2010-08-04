@@ -260,7 +260,7 @@ install-binaries: binaries install-lib-binaries install-bin-binaries install-pkg
 
 install-aol: install-binaries install-libraries
 	$(INSTALL) $(src_generic_dir)/aol-xotcl.tcl \
-		$(DESTDIR)/$(aol_prefix)/modules/tcl/xotcl.tcl
+		$(DESTDIR)/$(aol_prefix)/tcl/xotcl.tcl
 
 
 #========================================================================

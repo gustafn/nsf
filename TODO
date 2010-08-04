@@ -847,6 +847,8 @@ do we need:
 - moved and transformed to next tests/object-system.xotcl -> tests/object-system.tcl
 - changed pkgIndex reference for .so file from next ot nx
 
+- changed stubs from xotcl to nx
+
 TODO: 
 - nameing
     * .c-code:
@@ -854,9 +856,11 @@ TODO:
         Stefan, meinung dazu? Notwending|Empfehlenswert|nicht? 
         bei den TEA definitionen stand was von max. 8zeichen für source code namen.
         andere optionen?
-      . prefix for exported symbols (XOTcl_ -> ?)
-      . prefix for symbols (XOTcl->?)
-      . prefix for symbols (XO->?)
+      . prefix for exported symbols (XOTcl_ -> Nx_ ?)
+      . prefix for symbols (XOTcl->Nx ?)
+      . prefix for symbols (XO->NX ?)
+      . library nameing libnext* or libnx*
+
     * file extension for next scripting .tcl
     * namespace prefix 
        next scripting language: ::nx::*
@@ -901,13 +905,6 @@ TODO "Kleinigkeiten"
 - rename predefined.xotcl to .tcl
 - migrate further test from .xotcl to .tcl (based on next instead of xotcl)
 - check ::xotcl references in serializer
-
-- Change Prefixes in X-code from xotcl->
-  Current plan
-    XO NX
-    Xo Nx
-    XOTcl_ Nx_
-    XOTcl Nx
 
 - copy decls for objectMethod and classMethod  as comments
   to xotcl.c, fix and check order

@@ -6,7 +6,7 @@
 # the "lib" directory within the AOLserver tree.
 #
 
-package require XOTcl; xotcl::use xotcl1
+package require XOTcl; namespace import -force ::xotcl::*
 package require xotcl::serializer
 ns_log notice "XOTcl version $::xotcl::version$::xotcl::patchlevel loaded"
 
@@ -44,7 +44,7 @@ proc _ns_savenamespaces {} {
 	"namespace import -force ::xotcl::*" \n \
 	$objects \n $import]
     # just for debugging purposes
-    if {0} {
+    if {1} {
       set f [open [::xotcl::tmpdir]/__aolserver-blueprint.tcl w]
       puts $f $script
       close $f
