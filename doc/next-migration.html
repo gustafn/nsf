@@ -552,14 +552,14 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr>
     <td><code><i>obj</i> set <i>varname value</i></code></td>
     <td>
-      <i class='comment'># set instance variable of object obj to a value via
-      namespace <br># resolver (prefered way: define setter method on obj)</i></br><br>
+      <i class='comment'># Set instance variable of object obj to a value via<br>
+      # resolver (prefered way: define setter method on obj)</i></br><br>
       <code><i>obj</i> eval [list set <i>:varname value</i>]</code></td>
   </tr>
     <tr>
     <td><code>set <i>newVar</i> [<i>obj</i> set <i>otherVar</i>]</code></td>
     <td>
-      <i class='comment'># read instance variable of object obj via resolver</i></br><br>
+      <i class='comment'># Read instance variable of object obj via resolver</i></br><br>
       <code>set <i>newVar</i> [<i>obj</i> eval {set <i>:otherVar</i>}]</code><br>
     </td>
   </tr>
@@ -568,7 +568,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
       set <i>newVar value</i> </code>
     </td>
     <td>
-      <i class='comment'># read instance variable of object obj via import</i></br><br>
+      <i class='comment'># Read instance variable of object obj via import</i></br><br>
       <code>::nx::var import <i>obj newVar</i><br>
       set <i>newVar value</i></td>
  </tr>
@@ -587,6 +587,86 @@ Scripting Language via the primitives of the Next Scripting Framework.
 
 <h2>Object Parameters</h2>
 <h2>Method Parameters</h2>
+
+<h2>Interceptors</h2>
+
+<h3>Register Mixin Classes and Mixin Guards</h3>
+<table border= '1'>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
+  <tr>
+    <td><code><i>cls</i> instmixin <i>...</i></code><br>
+      <code><i>cls</i> instmixinguard <i>...</i></code>      
+    </td>
+    <td>
+      <i class='comment'># Register per-class mixin and guard for cls</i><br><br>
+      <code><i>cls</i> mixin <i>...</i></code><br>
+      <code><i>cls</i> mixinguard <i>...</i></code>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <code><i>cls</i> mixin <i>...</i></code><br>
+      <code><i>cls</i> mixinguard <i>...</i></code>
+    </td>
+    <td>
+      <i class='comment'># Register per-object mixin and guard for cls</i><br><br>
+      <code><i>cls</i> object mixin <i>...</i></code><br>
+      <code><i>cls</i> object mixinguard <i>...</i></code><br>
+    </td>
+  </tr>  
+  <tr>
+    <td>
+      <code><i>obj</i> mixin <i>...</i></code><br>
+      <code><i>obj</i> mixinguard <i>...</i></code>
+    </td>
+    <td>
+      <i class='comment'># Register per-object mixin and guard for obj</i><br><br>
+      <code><i>obj</i> mixin <i>...</i></code><br>
+      <code><i>obj</i> mixinguard <i>...</i></code>
+    </td>
+  </tr>  
+</table>
+
+
+<h3>Register Filters and Filter Guards</h3>
+<table border= '1'>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
+  <tr>
+    <td><code><i>cls</i> instfilter <i>...</i></code><br>
+      <code><i>cls</i> instfilterguard <i>...</i></code>      
+    </td>
+    <td>
+      <i class='comment'># Register per-class filter and guard for cls</i><br><br>
+      <code><i>cls</i> filter <i>...</i></code><br>
+      <code><i>cls</i> filterguard <i>...</i></code>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <code><i>cls</i> filter <i>...</i></code><br>
+      <code><i>cls</i> filterguard <i>...</i></code>
+    </td>
+    <td>
+      <i class='comment'># Register per-object filter and guard for cls</i><br><br>
+      <code><i>cls</i> object filter <i>...</i></code><br>
+      <code><i>cls</i> object filterguard <i>...</i></code><br>
+    </td>
+  </tr>  
+  <tr>
+    <td>
+      <code><i>obj</i> filter <i>...</i></code><br>
+      <code><i>obj</i> filterguard <i>...</i></code>
+    </td>
+    <td>
+      <i class='comment'># Register per-object filter and guard for obj</i><br><br>
+      <code><i>obj</i> filter <i>...</i></code><br>
+      <code><i>obj</i> filterguard <i>...</i></code>
+    </td>
+  </tr>  
+</table>
+
+
+
 <h2>Introspection</h2>
 
 <h4>List methods defined by objects</h4>
@@ -780,7 +860,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <code>object</code> as shown in examples above.
 </p>
 
-<h4>List filter or mixins</h4>
+<h4>List Filter or Mixins</h4>
 <table>
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
@@ -853,15 +933,30 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>cls</i> info mixinof <i>?-closure? ?pattern?</i></code></td>
-    <td><code><i>cls</i> info mixinof -scope object <i>?-closure? ?pattern?</i></code></td>
+    <td>
+      <i class='comment'># List objects, where cls is a per-object mixin</i></br><br>
+      <code><i>cls</i> info mixinof -scope object <i>?-closure?
+      ?pattern?</i></code>
+    </td>
   </tr>
   <tr>
     <td><code><i>cls</i> info instmixinof <i>?-closure? ?pattern?</i></code></td>
-    <td><code><i>cls</i> info mixinof -scope class <i>?-closure? ?pattern?</i></code></td>
+    <td>
+      <i class='comment'># List classes, where cls is a per-class mixin</i></br><br>
+      <code><i>cls</i> info mixinof -scope class <i>?-closure?
+      ?pattern?</i></code>
+    </td>
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-    <td><code><i>cls</i> info mixinof -scope all <i>?-closure? ?pattern?</i></code></td>
+    <td>
+      <i class='comment'># List objects and classes, where cls is<br>
+      # either a per-object or a per-class mixin</i></br><br>
+      <code><i>cls</i> info mixinof -scope all <i>?-closure?
+      ?pattern?</i></code>
+      <br><hr>
+      <code><i>cls</i> info mixinof <i>?-closure? ?pattern?</i></code>
+    </td>
   </tr>
 </table>
 
@@ -911,7 +1006,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
   </tr>  
  <tr>
     <td><code><i>obj</i> isobject <i>obj2</i></code></td>
-    <td><code>::nx::core::objectproperty <i>obj|obj2</i> object</code>
+    <td><code>::nx::core::objectproperty <i>obj</i> object</code>
       <hr>
       <code><i>obj</i> info is object</code>
     </td>
@@ -1009,6 +1104,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Tue Aug  3 11:36:55 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Wed Aug  4 11:06:52 CEST 2010 <!-- hhmts end -->
 </body>
 </html>
