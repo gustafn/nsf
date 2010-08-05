@@ -848,6 +848,14 @@ do we need:
 - changed pkgIndex reference for .so file from next ot nx
 
 - changed stubs from xotcl to nx
+- first part of openacs updates
+
+- changed "Serializer.xotcl" to "serializer.tcl" 
+  (package name from xotcl::serializer to nx::serializer)
+- added stub for xotcl::serializer for backward compatibility
+- changed serializer to new namespaces
+- renamed xotcl.tcl to xotcl2.tcl
+- added proc finalize to xotcl2.tcl
 
 TODO: 
 - nameing

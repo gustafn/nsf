@@ -792,6 +792,7 @@ namespace eval ::xotcl {
   if {[info exists cmd]} {unset cmd}
 
   proc ::xotcl::configure args {::nx::core::configure {*}$args}
+  proc ::xotcl::finalize {} {::nx::core::finalize}
 
   # Documentation stub object -> just ignore per default.
   # if xoDoc is loaded, documentation will be activated

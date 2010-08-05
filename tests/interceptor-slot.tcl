@@ -98,7 +98,7 @@ C object mixin M
 # forwarder with 0 arguments + flag
 ? {C object-mixin} "::M"
 
-puts stderr "==================== XOTcl 1"
+puts stderr "==================== XOTcl"
 package require XOTcl
 namespace import -force ::xotcl::*
 

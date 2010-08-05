@@ -135,7 +135,7 @@ C instproc XXXo {} {}
 # test serializer
 ###########################################
 Test case serializer
-package require xotcl::serializer
+package require nx::serializer
 obj proc test {} {puts "i am [self proc]"}
 set a [Serializer deepSerialize obj]
 #puts <<$a>>

@@ -7,7 +7,7 @@
 #
 
 package require XOTcl; namespace import -force ::xotcl::*
-package require xotcl::serializer
+package require nx::serializer
 ns_log notice "XOTcl version $::xotcl::version$::xotcl::patchlevel loaded"
 
 #
@@ -22,7 +22,7 @@ proc _ns_savenamespaces {} {
     set nslist ""
     _ns_getnamespaces namespaces
     foreach n $namespaces {
-        if {[string match "::xotcl*" $n] == 0
+        if {[string match "::nx*" $n] == 0
 	    && ([catch {::xotcl::objectproperty $n object} ret] || $ret == 0)} {
             lappend nslist $n
         }

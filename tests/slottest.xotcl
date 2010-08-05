@@ -23,7 +23,7 @@ Test parameter count 1000
 #
 # -gustaf neumann                          21.Jan. 2006
 
-package require xotcl::serializer
+package require nx::serializer
 
 #######################################################
 # testing __initcmds

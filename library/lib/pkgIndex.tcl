@@ -8,7 +8,7 @@
 # script is sourced, the variable $dir must contain the
 # full path name of this file's directory.
 
-package ifneeded XOTcl 2.0 [list source [file join $dir xotcl.tcl]]
+package ifneeded XOTcl 2.0 [list source [file join $dir xotcl2.tcl]]
 package ifneeded nx::doc 0.1 [list source [file join $dir doc-tools.xotcl]]
 package ifneeded nx::test 1.0 [list source [file join $dir test.tcl]]
 package ifneeded xotcl::htmllib 0.1 [list source [file join $dir htmllib.xotcl]]

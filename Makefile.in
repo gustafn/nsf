@@ -52,7 +52,7 @@ DOC_SOURCE = \
 	$(src_doc_dir)/langRef.xotcl \
 	$(src_lib_dir)/lib/*.xotcl \
 	$(src_lib_dir)/store/*.xotcl \
-	$(src_lib_dir)/serialize/Serializer.xotcl \
+	$(src_lib_dir)/serialize/serializer.tcl \
 	$(src_test_dir)/*.xotcl \
 	$(src_app_dir)/scripts/*.xotcl \
 	$(src_app_dir)/comm/[flsw]*.xotcl \
