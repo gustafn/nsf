@@ -5,8 +5,8 @@
   </fieldset>
 </form>
 <h2>
-  [:? {[${:name} info is class]} { Class } - { Object
-  }] <b property="yui:name">${:name}</b>
+  [:? {[${:name} info is class]} { Class } - { Object  }] 
+  <b property="yui:name">${:name}</b>
   [:?var :@superclass {
   <span class="extends">
   - subclass of
@@ -41,13 +41,13 @@
         </div>
 	
         
-        [:? {[$attr exists default]} {
+        [:? {[$attr eval {info exists :default}]} {
         <div class="default" property="yui:defaultValue">
           Default Value: [$attr default]
         </div>        
 	}]
 	
-	[:? {[$attr exists deprecated]} {
+	[:? {[$attr eval {info exists :deprecated}]} {
         <div class="deprecated" property="yui:deprecated">
           <strong>Deprecated:</strong> [$attr default]
         </div>        
@@ -99,7 +99,7 @@
         <h4>
           <a name="method_[$method name]">[$method name]</a></h4>
         <div class="detail" >
-          <code>[:? {[$method exists @return] && [[$method @return] spec] ne ""} {&lt;<span property="yui:type">[[$method @return] spec]</span>&gt;} ]
+          <code>[:? {[$method eval {info exists :@return}] && [[$method @return] spec] ne ""} {&lt;<span property="yui:type">[[$method @return] spec]</span>&gt;} ]
 	    <strong property="yui:name">[$method name]</strong>
 	    [$method parameters]
 	  </code>
@@ -109,16 +109,16 @@
 	  
           <div class="description">
 	    
-	    [:? {[$method exists @param]} {
+	    [:? {[$method eval {info exists :@param}]} {
 	    <dl rel="yui:parameters">
               <dt>Method parameters:</dt>
 	      [:for param [$method @param] {
 	      <dd rel="yui:parameter">
                 <code><span property="yui:name">[$param name]</span>
-                [:? {[$param exists spec] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+                [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
                 </code>
                 <span property="yui:description">[$param text]</span>
-		[:? {[$param exists default]} {
+		[:? {[$param eval {info exists :default}]} {
                 <div class="default" property="yui:defaultValue">
                   Default Value: [$param default]
                 </div>        
@@ -128,7 +128,7 @@
             </dl>
 	    }]
 	    
-	    [:? {[$method exists :@return]} {
+	    [:? {[$method eval {info exists :@return}]} {
 	    [:let rparam [$method @return]]
 	    <dl>
               <dt>Returns:
@@ -139,7 +139,7 @@
 	    }]
 	    
             
-	    [:? {[$method exists :@deprecated]} {
+	    [:? {[$method eval {info exists :@deprecated}]} {
             <div class="deprecated">
               <strong>Deprecated</strong> [$method @deprecated]
             </div>        
@@ -157,7 +157,7 @@
   }]
   [:let imethods [:inherited @method]]
   [:? {$imethods ne ""} { 
-  <div rel="yui:inheritance">                    
+  <div rel="yui:inheritance">
                         [:for superclass [dict keys $imethods]  {
 			[:let ms [dict get $imethods $superclass]]
                             <div class="section field inheritance"
@@ -182,6 +182,10 @@
                         </div>
 
 }]
+
+[:?var :@method {
+   Undocumented: <span style='color: red'>[:undocumented]</span>
+}]
 </div>
 
   
@@ -195,7 +199,7 @@
         <h4>
           <a name="object-method_[$omethod name]">[$omethod name]</a></h4>
         <div class="detail" >            
-	  <code>[:? {[$omethod exists @return]} {&lt;<span property="yui:type">[[$omethod @return] spec]</span>&gt;} ]
+	  <code>[:? {[$omethod eval {info exists :@return}]} {&lt;<span property="yui:type">[[$omethod @return] spec]</span>&gt;} ]
 	    <strong property="yui:name">[$omethod name]</strong>
 	    [$omethod parameters]
 	    </code>
@@ -205,13 +209,13 @@
 	  
           <div class="description">
 	    
-	    [:? {[$omethod exists @param]} {
+	    [:? {[$omethod eval {info exists :@param}]} {
 	    <dl rel="yui:parameters">
               <dt>Method parameters:</dt>
 	      [:for param [$omethod @param] {
 	      <dd rel="yui:parameter">
                 <code><span property="yui:name">[$param name]</span>
-                  [:? {[$param exists spec] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+                  [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
                 </code>
                 <span property="yui:description">[$param text]</span>
               </dd>
@@ -219,7 +223,7 @@
             </dl>
 	    }]
 	    
-	    [:? {[$omethod exists :@return]} {
+	    [:? {[$omethod eval {info exists :@return}]} {
 	    [:let rparam [$omethod @return]]
 	    <dl>
               <dt>Returns:
@@ -230,7 +234,7 @@
 	    }]
 	    
             
-	    [:? {[$omethod exists :@deprecated]} {
+	    [:? {[$omethod eval {info exists :@deprecated}]} {
             <div class="deprecated">
               <strong>Deprecated</strong> [$method @deprecated]
             </div>        

@@ -232,6 +232,7 @@ namespace eval ::nx {
   # {{{%%}}} a single percent.
   #
   # {{{%Tcl-command}}} command to be executed; substituted by result.
+  #
   # Additionally each argument can be prefixed by the positional prefix
   # %@POS (note the delimiting space at the end) that can be used to
   # specify an explicit position. POS can be a positive or negative
@@ -247,6 +248,7 @@ namespace eval ::nx {
   # @param callee
   # @param args
   ::nx::core::forward Object forward ::nx::core::forward %self -per-object
+  set ::nx::core::signature(::nx::Object-method-forward) {(methodName) obj forward name ?-default default? ?-earlybinding? ?-methodprefix name? ?-objscope? ?-onerror proc? ?-verbose? target ?args?}
 
   # @method ::nx::Class#forward
   #
@@ -276,6 +278,7 @@ namespace eval ::nx {
   # {{{%%}}} a single percent.
   #
   # {{{%Tcl-command}}} command to be executed; substituted by result.
+  #
   # Additionally each argument can be prefixed by the positional prefix
   # %@POS (note the delimiting space at the end) that can be used to
   # specify an explicit position. POS can be a positive or negative
@@ -290,7 +293,7 @@ namespace eval ::nx {
   # @param -verbose Print the substituted command to stderr before executing
   # @param callee
   # @param args
-  ::nx::core::forward Class  forward ::nx::core::forward %self
+  ::nx::core::forward Class forward ::nx::core::forward %self
 
   # The method __unknown is called in cases, where we try to resolve
   # an unkown class. one could define a custom resolver with this name
@@ -969,21 +972,25 @@ namespace eval ::nx {
   # @object ::nx::Attribute
   #
   # Attribute slots are used to manage the access, mutation, and
-  # querying of instance variables. There is a helper method {{@method
-  # ::nx::Object class attribute}} to define the attributes of classes
-  # (and objects). Consider the example of a class definition with
-  # three attribute slots:
+  # querying of instance variables. One defines Attribute slots 
+  # for objects and classes usually via the helper method 
+  # {{@method ::nx::Object class attribute}} 
+  # **** TODO STEFAN, kein Link? GEPLANT? MIT 2 GESCHWEIFTEN KLAMMER UM SALARY GIBT ES EINEN LAUFZEITFEHLER??? ********
+  # The following example defines a class with
+  # three attribute slots. The attribute {salary} has 
+  # a default of {0}, the attribute {projects} has the
+  # empty list as default and is defined as multivalued.
   # {{{
-  # 	Class create Person {
-  #  		:attribute name
-  #  		:attribute {salary 0}
-  #  		:attribute {projects ""} {
-  #    			set :multivalued true
-  #  		}
-  #	}
+  #   Class create Person {
+  #      :attribute name
+  #      :attribute {salary:integer 0}
+  #      :attribute {projects:multivalued ""} {
+  #         set :incremental true
+  #      }
+  #   }
   # }}}
   #
-  # @param incremental Allows for using the fine-grained modification (i.e., setting) of the managed variable {e.g., through an incremental {{{add}}})
+  # @param incremental A boolean value, only useful for multivalued slots. When set, one can add/delete incrementally values to the multivalued set (e.g., through an incremental {{{add}}})
   # @param valuecmd A Tcl command to be executed whenever the managed object variable is read
   # @param valuechangedcmd A Tcl command to be executed whenever the value of the managed object variable changes
   # @param arg

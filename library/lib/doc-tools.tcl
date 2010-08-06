@@ -324,7 +324,7 @@ namespace eval ::nx::doc {
     }
     :method add {domain prop value {pos 0}} {
       set p [:require_part $domain $prop $value]
-      if {![$domain exists $prop] || $p ni [$domain $prop]} {
+      if {![$domain eval [list info exists :$prop]] || $p ni [$domain $prop]} {
 	next $domain $prop $p $pos
       }
       return $p
@@ -364,7 +364,7 @@ namespace eval ::nx::doc {
 	  if {[::nx::core::objectproperty $docobj object]} break
 	}
 	if {[::nx::core::objectproperty $docobj object]} {
-	  if {![$docobj exists $what]} {error "no attribute $what in $docobj"}
+	  if {![$docobj eval [list info exists :$what]]} {error "no attribute $what in $docobj"}
 	  set names [list]
 	  foreach v [$docobj $what] {
 	    if {[$v name] eq $value} {return [$v @doc]}
@@ -471,7 +471,7 @@ namespace eval ::nx::doc {
       if {[info exists :@param]} {
 	foreach p [:@param] {
 	  set value [$p name]
-	  if {[$p exists default] || [$p name] eq "args" } {
+	    if {[$p eval {info exists :default}] || [$p name] eq "args" } {
 	    set value "?[$p name]?"
 	  }
 	  lappend params $value
@@ -492,8 +492,8 @@ namespace eval ::nx::doc {
 	    # and/or generalisable: For instance, is the scope
 	    # requested (from the part_attribute) applicable to the
 	    # partof object, which is the object behind [$domain name]?
-	    if {[info exists :scope] && \
-		    ![::nx::core::objectproperty [$domain name] ${:scope}]} {
+	    if {[info exists :scope] && 
+		![::nx::core::objectproperty [$domain name] ${:scope}]} {
 	      error "The object '[$domain name]' does not qualify as '[$part_attribute scope]'"
 	    }
 	    next
@@ -511,13 +511,26 @@ namespace eval ::nx::doc {
 	    set inherited [dict create]
 	    foreach c [lreverse [${:name} info heritage]] {
 	      set entity [[::nx::core::current class] id $c]
-	      if {![::nx::core::is $entity object]} continue;
-	      if {[$entity exists :${member}]} {
+	      if {![::nx::core::is $entity object]} continue
+	      if {[$entity eval [list info exists :${member}]]} {
 		dict set inherited $entity [$entity $member]
 	      }
 	    }
 	    return $inherited
 	  }
+	}
+
+	:method undocumented {} {
+	  # TODO: for object methods and class methods
+	  if {![::nx::core::objectproperty ${:name} object]} {return ""}
+	  foreach m [${:name} info methods] {set available_method($m) 1}
+	  set methods ${:@method}
+	  if {[info exists :@param]} {set methods [concat ${:@method} ${:@param}]}
+	  foreach m $methods {
+	    set mn [namespace tail $m]
+	    if {[info exists available_method($mn)]} {unset available_method($mn)}
+	  }
+	  return [lsort [array names available_method]]
 	}
 	
 	:method process {
@@ -601,15 +614,42 @@ namespace eval ::nx::doc {
 	  if {[info exists :@param]} {
 	    foreach p [:@param] {
 	      set value [$p name]
-	      if {[$p exists default] || [$p name] eq "args" } {
+	      if {[$p eval {info exists :default}] || [$p name] eq "args" } {
 		set value "?[$p name]?"
 	      }
 	      lappend params $value
 	    }
 	  }
-	  return $params
+	  if {1} {
+	    # TODO: make me conditional
+	    set object [${:partof} name] 
+	    if {[::nx::core::objectproperty $object object]} {
+	      if {[$object info methods ${:name}] ne ""} {
+		if {[$object info method type ${:name}] eq "forward"} {
+		  set comment "<span style='color: orange'>Defined as a forwarder, can't check</span>"
+		  set handle ::nx::core::signature($object-class-${:name})
+		  if {[info exists $handle]} {append comment <br>[set $handle]}
+		} else {
+		  set actualParams [$object info method parameter ${:name}]
+		  if {$actualParams eq $params} {
+		    set comment "<span style='color: green'>Perfect match</span>"
+		  } else {
+		    set comment "<span style='color: red'>actual parameter: $actualParams</span>"
+		  }
+		  append comment "<br>Syntax: [$object info method parametersyntax ${:name}]"
+		}
+	      } else {
+		set comment "<span style='color: red'>Method '${:name}' not defined on $object</span>"
+	      }
+	    } else {
+	      set comment "<span style='color: red'>cannot check object, probably not instantiated</span>"
+	    }
+	    #puts stderr "XXXX [self] ${:name} is part of ${:partof} // [${:partof} name]"
+	    return [concat $params <br>$comment]
+	    } 
+	    return $params
 	}
-	:method process {	  
+	:method process {
 	  {-initial_section:optional "context"} 
 	  comment_block
 	} {
@@ -792,10 +832,10 @@ namespace eval ::nx::doc {
 	# TODO: fix support for @object-method!
 	set features [list @method @param]
 	foreach feature $features {
-	  if {[:exists $feature]} {
+	  if {[info exists :$feature]} {
 	    set instances [sorted [:$feature] name]
 	    foreach inst $instances {
-	      set access [expr {[:exists @modifier]?[:@modifier]:""}]
+	      set access [expr {[info exists :@modifier]?[:@modifier]:""}]
 	      set host [:name]
 	      set name [$inst name]
 	      set url  "[:filename].html#[$feature tag]_[$inst name]"
@@ -843,7 +883,7 @@ namespace eval ::nx::doc {
     #
     #
  
-    :object method find_asset_path {{-subdir lib/doc-assets}} {
+    :object method find_asset_path {{-subdir library/lib/doc-assets}} {
       # This helper tries to identify the file system path of the
       # asset ressources.
       #
@@ -993,7 +1033,7 @@ namespace eval ::nx {
     :method process {{-noeval false} thing args} {
       # 1) in-situ processing: a class object
       if {[::nx::core::objectproperty $thing object]} {
-        if {[$thing exists __initcmd]} {
+	if {[$thing eval {info exists :__initcmd}]} {
           :analyze_initcmd @object $thing [$thing eval {set :__initcmd}]
         }
       } elseif {![catch {package present $thing} msg]} {
@@ -1016,9 +1056,9 @@ namespace eval ::nx {
 	      [::nx::core::current class] eval [list dict set :scripts [info script] objects \$obj _]
 	      return \$obj
 	    }
-	  } 
+	  }
 	  ::nx::Object mixin add SourcingTracker
-	  package forget $thing; 
+	  package forget $thing
 	  package req $thing
 	  ::nx::Object mixin delete SourcingTracker
 	  puts stderr sourced_scripts=[SourcingTracker eval {dict keys \${:scripts}}]
@@ -1039,6 +1079,7 @@ namespace eval ::nx {
 	  }
 	  close $fh
 	  doc analyze -noeval $noeval $script {*}$args
+	  puts stderr SCRIPT=$thing--[file readable $thing]-ANALYZED-[string length $script]bytes
 	  #doc process -noeval $noeval $script {*}$args
 	} else {
 	  :log "file '$thing' not readable"
@@ -1259,6 +1300,7 @@ namespace eval ::nx::doc {
       array set prj $project
       set project [@project new -name $prj(name) -url $prj(url) -version $prj(version)]
       Entity mixin add $renderer
+	# TODO: why the manual hack instead of "file extension"?
       set ext [lindex [split [file tail $tmpl] .] end-1]
       set entities [concat [sorted [@package info instances] name] \
 			[sorted [@command info instances] name] \
@@ -1268,12 +1310,15 @@ namespace eval ::nx::doc {
       }]
 
       if {![catch {file mkdir [file join $outdir [$project name]]} msg]} {
+	  puts stderr [list file copy -force -- [$renderer find_asset_path] [file join $outdir [$project name]]/assets]
 	file copy -force -- [$renderer find_asset_path] [file join $outdir [$project name]]/assets
 	set index [$project render -initscript $init $tmpl]
+	puts stderr "we have [llength $entities] documentation entities ($entities)"
 	:write $index [file join $outdir [$project name] "index.$ext"]
 	foreach e $entities {
 	  set content [$e render -initscript $init $tmpl]
 	  :write $content [file join $outdir [$project name] "[$e filename].$ext"]
+	  puts stderr "$e written to [file join $outdir [$project name] [$e filename].$ext]"
 	}
       }
             
@@ -1740,7 +1785,7 @@ namespace eval ::nx::doc {
 	  #
 	  # TODO: fix the re-set of the @doc attribute
 	  #
-	  if {[${:context} exists :current_entity]} {
+	  if {[${:context} eval {info exists :current_entity}]} {
 	    ${:context} eval {
 	      ${:current_entity} eval {
 		unset -nocomplain :@doc

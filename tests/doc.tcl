@@ -304,12 +304,12 @@ Test case parsing {
     {and another line for the description}
     {}
     {@author stefan.sobernig@wu.ac.at}
-    {@author gneumann@wu.ac.at}
+    {@author gustaf.neumann@wu-wien.ac.at}
   }
   set entity [EntityClass process $block]
   ? [list ::nx::core::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@object] 1
-  ? [list $entity @author] "stefan.sobernig@wu.ac.at gneumann@wu.ac.at";
+  ? [list $entity @author] "stefan.sobernig@wu.ac.at gustaf.neumann@wu-wien.ac.at";
   ? [list $entity text] "some more text and another line for the description";
 
   set block {
@@ -334,7 +334,7 @@ Test case parsing {
     Class create Foo {
       # The class Foo defines the behaviour for all Foo objects
       #
-      # @author gneumann@wu.ac.at
+      # @author gustaf.neumann@wu-wien.ac.at
       # @author ssoberni@wu.ac.at
       
       # @param attr1 
@@ -363,7 +363,7 @@ Test case parsing {
   ? [list ::nx::core::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@object] 1
   ? [list $entity text] "The class Foo defines the behaviour for all Foo objects";
-  ? [list $entity @author] "gneumann@wu.ac.at ssoberni@wu.ac.at"
+  ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
   # TODO: Fix the [@param id] programming scheme to allow (a) for
   # entities to be passed and the (b) documented structures
   #set entity [@param id ::Foo class attr1]
@@ -397,7 +397,7 @@ Test case parsing {
     # 
     # The class Bar defines the behaviour for all Bar objects
     #
-    # @author gneumann@wu.ac.at
+    # @author gustaf.neumann@wu-wien.ac.at
     # @author ssoberni@wu.ac.at
 
     # @param Bar#attr1 
@@ -461,7 +461,7 @@ Test case parsing {
   ? [list $i eval [list ::nx::core::is $entity object]] 1
   ? [list $i eval [list $entity info is type ::nx::doc::@object]] 1
   ? [list $i eval [list $entity text]] "The class Bar defines the behaviour for all Bar objects";
-  ? [list $i eval [list $entity @author]] "gneumann@wu.ac.at ssoberni@wu.ac.at"
+  ? [list $i eval [list $entity @author]] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
 
   # TODO: Fix the [@param id] programming scheme to allow (a) for
   # entities to be passed and the (b) documented structures
@@ -535,8 +535,8 @@ Test case parsing {
     package req nx::doc
     namespace import ::nx::*
     namespace import ::nx::doc::*
-    doc process -noeval true /Users/ssoberni/Documents/dev/xotcl/generic/gentclAPI.decls
-    doc process -noeval true /Users/ssoberni/Documents/dev/xotcl/generic/predefined.xotcl
+    doc process -noeval true generic/gentclAPI.decls
+    doc process -noeval true generic/predefined.tcl
     ::nx::doc::make doc \
 	-renderer ::nx::doc::TemplateData \
 	-outdir /tmp \
@@ -555,24 +555,6 @@ Test case parsing {
 # Why does [info] intropsection not work as expected in eval()?
 
 Test case issues? {
-  Object create o 
-  ? {o eval {
-    set x ns1
-    set ns1 [namespace current]
-    #
-    # I would expect that there are x and ns1 as locally-scoped variables, but there aren't?!
-    # They can be referenced during evaluation, but are NOT resolved through introspection:
-    # Am I missing anything (probably I just forgot a nitty-gritty
-    # detail on the eval() implementation)?
-    expr {[info vars $x] eq $x};
-  }} 0
-
-  o method bar {arg1:object,type=::some::unknown::Class} {;}
-  ? {o bar ::o} "expected object of type ::some::unknown::Class but got \"::o\" for parameter arg1"; # the error should rather reflect that ::some::unknown::Class is a non-existing class object!
-
-  ? {o info is type ::xyz::Bar} 0; # similarly, [info is] 0 for non-existing class objects! It should rather report the non-existance of a valid class object, as otherwise, the introspective act is misleading
-
-  ? {o autoname -reset a} ""; # why does autoname with -reset flag does not return anything, e.g., "a1" here; "name", though required, does not make any sense there. why not return a result after resetting?
 
   # TODO: is [autoname -instance] really needed?
 

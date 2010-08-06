@@ -857,6 +857,19 @@ do we need:
 - renamed xotcl.tcl to xotcl2.tcl
 - added proc finalize to xotcl2.tcl
 
+- renamed mk_predefined.xotcl -> mk_predefined.tcl
+- renamed predefined.xotcl -> predefined.tcl
+- additional subcommand "info method parametersyntax <methodname>"
+  returns parameters in a syntax similar to the tcl man pages
+- added ability to pass syntax for forwarded methods 
+  via set ::nx::core::signature(::nx::Object-method-forward) 
+  (experimental)
+- fixed documentation system to work with actual version 
+- added undocumented methods for quality control in documentation
+- added checks for documented, but unavailable methods in documentation
+- added comparison of documented parameters vs. actual parameters in documentation
+
+
 TODO: 
 - nameing
     * .c-code:
@@ -910,7 +923,15 @@ Ein paar punkte im folgenden könnten obsolet sein:
 
 TODO "Kleinigkeiten"
 
-- rename predefined.xotcl to .tcl
+- decide on syntax in documentation
+  (info method parameter | info method parametersyntax | mixture)
+- systematic way of specifying results of methods
+- systematic way of reporting results in documentation
+- reduce indenting for code examples in documentation (high indentation makes readability worse).
+- make quality checks (missing documentation, ...) optional (maybe?)
+- handle object methods as well in quality checks
+- info method pararmetersyntax not defined for classical tcl procs (needed?)
+
 - migrate further test from .xotcl to .tcl (based on next instead of xotcl)
 - check ::xotcl references in serializer
 

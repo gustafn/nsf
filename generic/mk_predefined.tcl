@@ -1,9 +1,9 @@
-#!./xotclsh 
+#!./nxsh 
 #
 # A small script file that creates a static array from a tcl-
 # script for inclusion in c programs      -gn
 #
-set f [open predefined.xotcl]
+set f [open predefined.tcl]
 set content [read $f]
 close $f
 

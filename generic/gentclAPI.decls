@@ -291,20 +291,20 @@ xotclCmd setter XOTclSetterCmd {
 # index. This numeric index is incremented upon each call to
 # {{{autoname}}}.
 # {{{
-# 	set obj [Object new]
-# 	$obj autoname a; # yields "a1"
-# 	$obj autoname -instance B; # yields "b1"
-# 	$obj autoname a; # yields "a2"
-# 	$obj autoname b; # yields "b1"
-# 	$obj autoname -reset a; # ""
-# 	$obj autoname -reset -instance B; # ""
-# 	$obj autoname -instance a; # yields "a1", and NOT "a3"!
-# 	$obj autoname -instance B; # yields "b1"
-# 	$obj autoname b; # yields "b2"
+#       set obj [Object new]
+#       $obj autoname a; # yields "a1"
+#       $obj autoname -instance B; # yields "b1"
+#       $obj autoname a; # yields "a2"
+#       $obj autoname b; # yields "b1"
+#       $obj autoname -reset a; # ""
+#       $obj autoname -reset -instance B; # ""
+#       $obj autoname -instance a; # yields "a1", and NOT "a3"!
+#       $obj autoname -instance B; # yields "b1"
+#       $obj autoname b; # yields "b2"
 # }}}
 # The seeding string may also contain {{{[format]}}} expressions (see ...):
 # {{{
-# 	$obj autoname a%06d; # gives you "a000001", ...
+#       $obj autoname a%06d; # gives you "a000001", ...
 # }}}
 #
 # @param -instance Have the generated name start with a lower letter (though the seed string has a major first letter)
@@ -355,8 +355,8 @@ objectMethod configure XOTclOConfigureMethod {
 # The method lays out the default object destruction process. By
 # calling {{{destroy}}} on an object, you request its destruction:
 # {{{
-#		Object create anObject
-# 		anObject destroy
+#               Object create anObject
+#               anObject destroy
 # }}}
 # Upon calling {{{destroy}}} on a given object, {{{destroy}}}
 # delegates the actual destruction to {{@method ::nx::Class class dealloc}} 
@@ -368,9 +368,9 @@ objectMethod configure XOTclOConfigureMethod {
 # }}}
 # Essentially, the behaviour could be scripted as:
 # {{{
-# 	Object method destroy {} {
-#		[:info class] dealloc [self]
-# 	}
+#       Object method destroy {} {
+#               [:info class] dealloc [self]
+#       }
 # }}}
 # Note, however, that {{{destroy}}} is protected against
 # application-level redefinition. You must refine it in a subclass
@@ -386,15 +386,15 @@ objectMethod destroy XOTclODestroyMethod {
 # defined on the object and assigned a value. You may use a variable
 # name with or without prefix, both will resolve to the object scope:
 # {{{
-# 	$obj eval {
-#   		set :foo 1
-#   		set bar 2
-# 	}
+#       $obj eval {
+#          set :foo 1
+#          set bar 2
+#       }
 #
-# 	$obj exists foo; # returns 1
-# 	$obj exists :foo; # returns 1
-# 	$obj exists bar; # returns 0
-# 	$obj exists :bar; # returns 0
+#       $obj exists foo; # returns 1
+#       $obj exists :foo; # returns 1
+#       $obj exists bar; # returns 0
+#       $obj exists :bar; # returns 0
 # }}}
 #
 # @param var The name of the variable to verify
@@ -403,9 +403,9 @@ objectMethod exists XOTclOExistsMethod {
   {-argName "var" -required 1}
 }
 
-# @method ::nx::Object#filter
+# @method ::nx::Object#filterguard
 #
-# Adds gateway conditions to guard a filter registration point. The
+# Adds conditions to guard invocations of a filter. The
 # filter will only execute, if the guards evaluate to true. Otherwise,
 # the filters are ignored the filter. If no guards are given, we
 # always execute the filter.
@@ -766,7 +766,7 @@ infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
 }
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 infoObjectMethod methods XOTclObjInfoMethodsMethod {
@@ -833,7 +833,7 @@ infoClassMethod forward XOTclClassInfoForwardMethod {
 }
 infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|body|definition|name|parameter|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|name|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 infoClassMethod methods XOTclClassInfoMethodsMethod {

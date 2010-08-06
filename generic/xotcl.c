@@ -5320,12 +5320,12 @@ ParamDefsFormatOption(Tcl_Interp *interp, Tcl_Obj *nameStringObj, CONST char* op
 static int convertToNothing(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, ClientData *clientData, Tcl_Obj **outObjPtr);
 
 static Tcl_Obj *
-ParamDefsFormat(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
+ParamDefsFormat(Tcl_Interp *interp, XOTclParam CONST *paramsPtr) {
   int first, colonWritten;
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL), *innerListObj, *nameStringObj;
   XOTclParam CONST *pPtr;
 
-  for (pPtr = paramDefs->paramsPtr; pPtr->name; pPtr++) {
+  for (pPtr = paramsPtr; pPtr->name; pPtr++) {
     if (pPtr -> paramObj) {
       innerListObj = pPtr->paramObj;
     } else {
@@ -5380,14 +5380,38 @@ ParamDefsFormat(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
 }
 
 static Tcl_Obj *
-ParamDefsList(Tcl_Interp *interp, XOTclParamDefs *paramDefs) {
+ParamDefsList(Tcl_Interp *interp, XOTclParam CONST *paramsPtr) {
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
   XOTclParam CONST *pPtr;
 
-  for (pPtr = paramDefs->paramsPtr; pPtr->name; pPtr++) {
+  for (pPtr = paramsPtr; pPtr->name; pPtr++) {
     Tcl_ListObjAppendElement(interp, listObj, pPtr->nameObj);
   }
   return listObj;
+}
+
+static Tcl_Obj*
+ParamDefsSyntax(Tcl_Interp *interp, XOTclParam CONST *paramPtr) {
+  Tcl_Obj *argStringObj = Tcl_NewStringObj("", 0);
+  XOTclParam CONST *pPtr;
+
+  for (pPtr = paramPtr; pPtr->name; pPtr++) {
+    if (pPtr != paramPtr) {
+      Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
+    }
+    if (pPtr->flags & XOTCL_ARG_REQUIRED) {
+      Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
+    } else {
+      Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
+      if (pPtr->nrArgs >0) {
+        Tcl_AppendLimitedToObj(argStringObj, " arg", 4, INT_MAX, NULL);
+      }
+      Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
+    }
+  }
+  /* caller has to decr */
+  return argStringObj;
 }
 
 static void ParsedParamFree(XOTclParsedParam *parsedParamPtr) {
@@ -9369,26 +9393,11 @@ callingNameSpace(Tcl_Interp *interp) {
 static int
 ArgumentError(Tcl_Interp *interp, CONST char *errorMsg, XOTclParam CONST *paramPtr,
               Tcl_Obj *cmdNameObj, Tcl_Obj *methodObj) {
-  Tcl_Obj *argStringObj = Tcl_NewStringObj("", 0);
-  XOTclParam CONST *pPtr;
+  Tcl_Obj *argStringObj = ParamDefsSyntax(interp, paramPtr);
 
-  for (pPtr = paramPtr; pPtr->name; pPtr++) {
-    if (pPtr != paramPtr) {
-      Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
-    }
-    if (pPtr->flags & XOTCL_ARG_REQUIRED) {
-      Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
-    } else {
-      Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
-      Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
-      if (pPtr->nrArgs >0) {
-        Tcl_AppendLimitedToObj(argStringObj, " arg", 4, INT_MAX, NULL);
-      }
-      Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
-    }
-  }
   XOTclObjWrongArgs(interp, errorMsg, cmdNameObj, methodObj, ObjStr(argStringObj));
   DECR_REF_COUNT(argStringObj);
+
   return TCL_ERROR;
 }
 
@@ -9805,6 +9814,19 @@ ListProcBody(Tcl_Interp *interp, Proc *procPtr, CONST char *methodName) {
   return XOTclErrBadVal(interp, "info body", "a tcl method name", methodName);
 }
 
+static Tcl_Obj*
+ListParamDefs(Tcl_Interp *interp, XOTclParam CONST *paramsPtr, int style) {
+  Tcl_Obj *listObj;
+
+  switch (style) {
+  case 0: listObj = ParamDefsFormat(interp, paramsPtr); break;
+  case 1: listObj = ParamDefsList(interp, paramsPtr); break;
+  case 2: listObj = ParamDefsSyntax(interp, paramsPtr); break;
+  }
+
+  return listObj;
+}
+
 static int
 ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int withVarnames) {
   Proc *procPtr = GetTclProcFromCommand(cmd);
@@ -9816,8 +9838,8 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
       /*
        * Obtain parameter info from paramDefs
        */
-      list = withVarnames ? ParamDefsList(interp, paramDefs) : ParamDefsFormat(interp, paramDefs);
-
+      list = ListParamDefs(interp, paramDefs->paramsPtr, withVarnames);
+      
     } else {
       /*
        * Obtain parameter info from compiled locals
@@ -9858,7 +9880,8 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
 
       if (((Command *)cmd)->objProc == mdPtr->proc) {
         XOTclParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters};
-        Tcl_Obj *list = withVarnames ? ParamDefsList(interp, &paramDefs) : ParamDefsFormat(interp, &paramDefs);
+	Tcl_Obj *list = ListParamDefs(interp, paramDefs.paramsPtr, withVarnames);
+
         Tcl_SetObjResult(interp, list);
         return TCL_OK;
       }
@@ -9872,7 +9895,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
         paramDefs.paramsPtr = cd->paramsPtr;
         paramDefs.nrParams = 1;
         paramDefs.slotObj = NULL;
-        list = withVarnames ? ParamDefsList(interp, &paramDefs) : ParamDefsFormat(interp, &paramDefs);
+	list = ListParamDefs(interp, paramDefs.paramsPtr, withVarnames);
         Tcl_SetObjResult(interp, list);
         return TCL_OK;
       } else {
@@ -9978,6 +10001,11 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *methodName, Tcl_
       {
         Tcl_Command importedCmd = GetOriginalCommand(cmd);
         return ListCmdParams(interp, importedCmd, methodName, 0);
+      }
+    case InfomethodsubcmdParametersyntaxIdx:
+      {
+        Tcl_Command importedCmd = GetOriginalCommand(cmd);
+        return ListCmdParams(interp, importedCmd, methodName, 2);
       }
     case InfomethodsubcmdPreconditionIdx:
       {
@@ -13659,7 +13687,7 @@ static int XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *objec
 /*
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 */
