@@ -234,7 +234,9 @@ namespace eval ::nx::doc {
     #
     # @param qualified_name The fully qualified name (i.e., including the root namespace)
     :method get_unqualified_name {qualified_name} {
-      return [string trim [string map [list [:root_namespace] ""] $qualified_name] ":"]
+      # TODO: danger, tcl-commands in comments
+      # similar to \[namespace tail], but the "tail" might be an object with a namespace
+      return [string trimleft [string map [list [:root_namespace] ""] $qualified_name] ":"]
     }
   }
 
@@ -351,6 +353,12 @@ namespace eval ::nx::doc {
 
     :attribute @doc:multivalued {set :incremental 1}
     :attribute @see -slotclass ::nx::doc::PartAttribute
+    :attribute @properties -slotclass ::nx::doc::PartAttribute
+
+    :method has_property {prop} {
+       if {![info exists :@properties]} {return 0}
+       expr {$prop in ${:@properties}}
+    }
 
     # @method _doc
     #
@@ -621,7 +629,7 @@ namespace eval ::nx::doc {
 	    }
 	  }
 	  if {1} {
-	    # TODO: make me conditional
+	    # TODO: make me conditional, MARKUP should be in templates
 	    set object [${:partof} name] 
 	    if {[::nx::core::objectproperty $object object]} {
 	      if {[$object info methods ${:name}] ne ""} {
@@ -636,7 +644,7 @@ namespace eval ::nx::doc {
 		  } else {
 		    set comment "<span style='color: red'>actual parameter: $actualParams</span>"
 		  }
-		  append comment "<br>Syntax: [$object info method parametersyntax ${:name}]"
+		  append comment "<br>Syntax: <i>obj</i> <strong>${:name}</strong> [$object info method parametersyntax ${:name}]"
 		}
 	      } else {
 		set comment "<span style='color: red'>Method '${:name}' not defined on $object</span>"
@@ -669,12 +677,11 @@ namespace eval ::nx::doc {
   # command parameters.
   #
   # @superclass ::nx::doc::entities::object::nx::doc::Part
-  # @superclass ::nx::doc::entities::object::nx::doc::Part
   PartClass create @param \
       -superclass Part {
 	:attribute spec
 	:attribute default
-	
+	  
 	:object method id {partof name} {
 	  # The method contains the parameter-specific name production rules.
 	  #

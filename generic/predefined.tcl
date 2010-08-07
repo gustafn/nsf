@@ -56,7 +56,7 @@ namespace eval ::nx {
   }
 
   # set a few aliases as protected
-  foreach cmd [list __next cleanup  noinit residualargs uplevel upvar] {
+  foreach cmd [list __next cleanup noinit residualargs uplevel upvar] {
     ::nx::core::methodproperty Object $cmd protected 1
   }
 

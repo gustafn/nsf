@@ -635,6 +635,8 @@ valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
 - doCleanup is just called by recreate; merge it into 
   XOTclCRecreateMethod. 
   Is method cleanup necessary? is recreate not sufficient? 
+  Delete "cleanup" from internally called methods in next, 
+  keep it for compatibility in XOTcl
 
 - make XOTcl_FrameDecls transparent (use variable declarations 
   in place instead of the macro)
@@ -869,6 +871,9 @@ do we need:
 - added checks for documented, but unavailable methods in documentation
 - added comparison of documented parameters vs. actual parameters in documentation
 
+- added @properties and has_property to the documentation classes.
+  Current primary purpose: define, which methods are internally-called 
+- added interanlly-called to the method object template
 
 TODO: 
 - nameing
@@ -930,6 +935,36 @@ TODO "Kleinigkeiten"
 - reduce indenting for code examples in documentation (high indentation makes readability worse).
 - make quality checks (missing documentation, ...) optional (maybe?)
 - handle object methods as well in quality checks
+- why does one have to specify @superclass rather than determining the
+  superclass via introspection?
+- danger, tcl-commands in comments (see :method get_unqualified_name)
+- kann man "[:? {[$attr eval {info exists :default}]}" durch "[:?var :@param ..." ausdrücken?
+  oder vielleicht besser die variablen mit leerstring initialisieren + infrastrukt anpassen?
+
+- die Dokumentation der objekt- und Klassenmethoden muss aus gentclapi weg
+  und in predefined.tcl und xotcl2.tcl hineinwandern. Es werden nicht alle
+  möglichen methoden in next und/oder xotcl2 registiert, ein paar namen sind
+  anders, etc.
+
+- die folgenden calls sind streng genommen auch internally-called (d.h. von c aus aufgerufen), 
+  aber aus unterscheidl. gründen noch nicht als solche gekennzeichnet:
+
+  * wird meist vom benutzer aufgerufen, allerdings auch intern (bspw "reate" von "new")
+    XO_c_create_idx, 
+    XO_o_destroy_idx, 
+    XO_o_move_idx, 
+
+  * not documented yet
+    XO_c_requireobject_idx, 
+    XO_o_defaultmethod_idx, 
+    XO_o_init_idx, 
+    XO_o_objectparameter_idx, 
+    XO_o_unknown_idx
+
+  * only XOTCL2:
+     XO_o_cleanup_idx, 
+     XO_o_residualargs_idx,
+
 - info method pararmetersyntax not defined for classical tcl procs (needed?)
 
 - migrate further test from .xotcl to .tcl (based on next instead of xotcl)

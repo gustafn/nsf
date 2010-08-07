@@ -319,6 +319,9 @@ objectMethod autoname XOTclOAutonameMethod {
 
 # @method ::nx::Object#cleanup
 #
+# TODO: this is a method not needed in Next, for backward compatibility
+# available in XOTcl 2.0
+#
 # Resets an object or class to its initial state, as after object
 # allocation (see {{@method ::nx::Class class alloc}}). This method
 # participates in recreating objects, i.e, it is called during the
@@ -327,6 +330,8 @@ objectMethod autoname XOTclOAutonameMethod {
 # ::nx::core::configure}}, object variables are deleted, per-object
 # namespaces are cleared, and the object's relationsships (e.g., mixin
 # relations) are reset.
+# 
+# @properties interally-called
 objectMethod cleanup XOTclOCleanupMethod {
 }
 
@@ -345,6 +350,7 @@ objectMethod cleanup XOTclOCleanupMethod {
 # The method {{{configure}}} can be called at arbitrary times to
 # "re-set" an object.
 #
+# @properties interally-called
 # @param args The variable argument vector stores the object parameters and their values
 objectMethod configure XOTclOConfigureMethod {
   {-argName "args" -type allargs}
@@ -484,6 +490,7 @@ objectMethod requireNamespace XOTclORequireNamespaceMethod {
 
 # @method ::nx::Object#residualargs
 #
+# @properties interally-called
 # @param args
 objectMethod residualargs XOTclOResidualargsMethod {
   {-argName "args" -type allargs}
@@ -568,6 +575,7 @@ objectMethod vwait XOTclOVwaitMethod {
 # bypassing the overall {{{create}}} mechanism by just allocating
 # uninitialized objects using {{{alloc}}}.
 #
+# @properties interally-called
 # @param name The object identifier assigned to the object storage to be allocated.
 # @return The name of the allocated, uninitialized object
 classMethod alloc XOTclCAllocMethod {
@@ -641,6 +649,7 @@ classMethod create XOTclCCreateMethod {
 # {{{::nx::Class}}}, you may consider refining it in a subclass or
 # mixin class for customizing the destruction process.
 #
+# @properties interally-called
 # @param object The name of the object to be scheduled for deletion.
 classMethod dealloc XOTclCDeallocMethod {
   {-argName "object" -required 1 -type tclobj}
@@ -707,6 +716,7 @@ classMethod __invalidateobjectparameter XOTclCInvalidateObjectParameterMethod {
 #	Class create Bar; # calls Bar->destroy() + Class->create(::Bar, ...)
 # }}}
 #
+# @properties interally-called
 # @param name The name (identifier) of the object under recreation
 # @param args Arbitrary vector of arguments
 # @return The name of the recreated object
