@@ -48,16 +48,17 @@ libsrc		= COPYRIGHT pkgIndex.tcl
 appdirs		= comm scripts utils @apps_actiweb@
 appsrc		= COPYRIGHT 
 
-DOC_SOURCE = \
-	$(src_doc_dir)/langRef.xotcl \
-	$(src_lib_dir)/lib/*.xotcl \
-	$(src_lib_dir)/store/*.xotcl \
+# XOTcl documentation
+XOTCL_DOC_SOURCE = \
+	$(src_lib_dir)/xotcl/doc/langRef.xotcl \
+	$(src_lib_dir)/xotcl/library/lib/*.xotcl \
+	$(src_lib_dir)/xotcl/library/store/*.xotcl \
 	$(src_lib_dir)/serialize/serializer.tcl \
-	$(src_test_dir)/*.xotcl \
-	$(src_app_dir)/scripts/*.xotcl \
-	$(src_app_dir)/comm/[flsw]*.xotcl \
-	$(src_app_dir)/actiweb/univ/UNIVERSAL.xotcl \
-	$(src_app_dir)/utils/xo-*[a-z0-9] 
+	$(src_lib_dir)/xotcl/tests/*.xotcl \
+	$(src_lib_dir)/xotcl/apps/scripts/*.xotcl \
+	$(src_lib_dir)/xotcl/apps/comm/[flsw]*.xotcl \
+	$(src_lib_dir)/xotcl/apps/actiweb/univ/UNIVERSAL.xotcl \
+	$(src_lib_dir)/xotcl/apps/utils/xo-*[a-z0-9] 
 
 #export TCLLIBPATH=. ${srcdir}
 mkinstalldirs= mkdir -p
@@ -238,9 +239,9 @@ fulldoc: doc pdf
 # use language reference as sample file to trigger generation of documentation files
 doc: $(target_doc_dir)/langRef-xotcl.html
 
-$(target_doc_dir)/langRef-xotcl.html: $(src_doc_dir)/langRef.xotcl $(DOC_SOURCE)
+$(target_doc_dir)/langRef-xotcl.html: $(src_lib_dir)/xotcl/doc/langRef.xotcl $(XOTCL_DOC_SOURCE)
 	@docs=""; \
-	for i in $(DOC_SOURCE); do docs="$$docs `@CYGPATH@ $$i`"; done; \
+	for i in $(XOTCL_DOC_SOURCE); do docs="$$docs `@CYGPATH@ $$i`"; done; \
 	$(TCLSH) $(src_lib_dir_native)/lib/makeDoc.xotcl \
 		$(target_doc_dir) $$docs
 
@@ -354,8 +355,8 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/interceptor-slot.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/aliastest.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/protected.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/testx.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/testx.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/speedtest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/forwardtest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/mixinoftest.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
@@ -363,18 +364,13 @@ test-core: $(TCLSH_PROG)
 
 
 test-http: $(TCLSH_PROG)
-	$(TCLSH) $(src_test_dir_native)/xocomm.test \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/xocomm.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-actiweb: $(TCLSH_PROG)
-	$(TCLSH) $(src_test_dir_native)/actiweb.test \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/persistence.test \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/UNIVERSAL.test \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/xoRDF.test \
-		-libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/actiweb.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/persistence.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/UNIVERSAL.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/xoRDF.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	@rm -rf receiver
 
 depend:

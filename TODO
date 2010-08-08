@@ -884,6 +884,68 @@ do we need:
   used to obtain the parmeter definitions from nx::core
 - get forward definition from the original command
 
+- created own directory structure xotcl under library
+  containing doc, tests, apps, lib etc. and moved
+  obvious content here.
+- adjusted regression test and old documentation 
+  system to work with new structure
+
+
+old structure
+  xotcl
+    apps 
+      actiweb
+      comm
+      persistence
+      scripts
+      utils
+      xml
+    config
+    doc
+    library
+      lib
+      comm
+      patterns
+      rdf
+      registry
+      serialize
+      store 
+      xml
+    man
+    tests
+    unix
+    win
+
+new structure
+  nx
+    config
+    doc
+    library
+      lib
+      serialize
+      xotcl
+         apps
+            actiweb
+            comm
+            persistence
+            scripts
+            utils
+            xml
+         doc
+         library
+           comm
+           lib
+           patterns
+           rdf
+           registry
+           store 
+           xml
+         tests
+    man
+    tests
+    unix
+    win
+
 
 TODO: 
 - nameing
@@ -924,7 +986,8 @@ TODO:
    - migration guide
 
 - library + apps
-    - getrennte pfade für xotcl und next
+    - new directory structure DONE
+    - work on binary packages of xotcl (store + xml)
     - nicht gewartete/nicht getestete library aus distro entfernen?
     - migration von einzelnen paketen nach next? von welchen?
 
@@ -967,7 +1030,7 @@ TODO "Kleinigkeiten"
 - doc-tools: was machen die argumenten von :? (bspw. ops?); ich nehme an, das ist work in progress.
   sinnvoll wäre: [:?var obj varname body], da viele (die meisten) operationen auf anderen objeken ausgeführt werden
 
-- die Dokumentation der objekt- und Klassenmethoden muss aus gentclapi weg
+- die Dokumentation der Objekt- und Klassenmethoden muss aus gentclapi weg
   und in predefined.tcl und xotcl2.tcl hineinwandern. Es werden nicht alle
   möglichen methoden in next und/oder xotcl2 registiert, ein paar namen sind
   anders, etc.
@@ -994,7 +1057,6 @@ TODO "Kleinigkeiten"
 - info method pararmetersyntax not defined for classical tcl procs (needed?)
 
 - migrate further test from .xotcl to .tcl (based on next instead of xotcl)
-- check ::xotcl references in serializer
 
 - copy decls for objectMethod and classMethod  as comments
   to xotcl.c, fix and check order
@@ -1030,15 +1092,6 @@ TODO "Kleinigkeiten"
   2) kein "modules" beim ns
      sudo cp /usr/local/aolserver/modules/tcl/xotcl.tcl  /usr/local/ns/tcl/
 
-
-[neumann@mohegan xotcl-2.0.0]$ make
-can't find package xotcl::package
-    while executing
-"package require xotcl::package"
-    (file "./library/lib/makeDoc.xotcl" line 12)
-make: *** [doc/langRef-xotcl.html] Error 1
-[
-
 - canonical reps: 
    "p:integer,multivalued" => "-name p -type integer -multivalued"
    "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"
@@ -1071,11 +1124,6 @@ make: *** [doc/langRef-xotcl.html] Error 1
 - XOTCL_CMD_NOT_FOUND
 - add all xotcl*cmds to C api, including importvar
 - constants in type converter (in and out)
-
-- my exists varname
-* my info exists varname (als alias auf die exists methode?)
-
-
 
 - genau genommen sind folgende info-Methoden unnötig:
   - obj info mixin
