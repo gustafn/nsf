@@ -357,7 +357,7 @@ namespace eval ::nx::doc {
 
     :method has_property {prop} {
        if {![info exists :@properties]} {return 0}
-       expr {$prop in ${:@properties}}
+	expr {$prop in ${:@properties}}
     }
 
     # @method _doc
@@ -629,23 +629,51 @@ namespace eval ::nx::doc {
 	    }
 	  }
 	  if {1} {
+	    # documentaion quality check: is documentation in sync with implementation?
 	    # TODO: make me conditional, MARKUP should be in templates
 	    set object [${:partof} name] 
 	    if {[::nx::core::objectproperty $object object]} {
 	      if {[$object info methods ${:name}] ne ""} {
+		set actualParams ""
 		if {[$object info method type ${:name}] eq "forward"} {
+		  set cmd ""
+		  foreach w [lrange [$object info method definition ${:name}] 2 end] {
+		    if {[string match ::* $w]} {
+		      set cmd $w
+		      break
+		    }
+		  }
+		    if {$cmd ne "" && [string match ::nx::core::* $cmd]} {
+		    # TODO: we assume here, the cmd is a primitive
+		    # command and we intend only to handle cases from
+		    # predefined or xotcl2. Make sure this is working
+		    # reasonable for other cases, such as forwards to 
+		    # other objects, as well
+		    if {![catch {set actualParams [::nx::Object info method parameter $cmd]}]} {
+		      # drop usual object
+		      set actualParams [lrange $actualParams 1 end]
+		      # drop per object ; TODO: always?
+                      if {[lindex $actualParams 0] eq "-per-object"} {
+			set actualParams [lrange $actualParams 1 end]
+			set syntax [lrange [::nx::Object info method parametersyntax $cmd] 2 end]
+		      } else {
+			set syntax [lrange [::nx::Object info method parametersyntax $cmd] 1 end]
+		      }
+		    }
+		  }
 		  set comment "<span style='color: orange'>Defined as a forwarder, can't check</span>"
-		  set handle ::nx::core::signature($object-class-${:name})
-		  if {[info exists $handle]} {append comment <br>[set $handle]}
+		  #set handle ::nx::core::signature($object-class-${:name})
+		  #if {[info exists $handle]} {append comment <br>[set $handle]}
 		} else {
 		  set actualParams [$object info method parameter ${:name}]
-		  if {$actualParams eq $params} {
-		    set comment "<span style='color: green'>Perfect match</span>"
-		  } else {
-		    set comment "<span style='color: red'>actual parameter: $actualParams</span>"
-		  }
-		  append comment "<br>Syntax: <i>obj</i> <strong>${:name}</strong> [$object info method parametersyntax ${:name}]"
+		  set syntax [$object info method parametersyntax ${:name}]
 		}
+		if {$actualParams eq $params} {
+		  set comment "<span style='color: green'>Perfect match</span>"
+		} else {
+		  set comment "<span style='color: red'>actual parameter: $actualParams</span>"
+		}
+		append comment "<br>Syntax: <i>obj</i> <strong>${:name}</strong> $syntax"
 	      } else {
 		set comment "<span style='color: red'>Method '${:name}' not defined on $object</span>"
 	      }
@@ -774,17 +802,16 @@ namespace eval ::nx::doc {
 		     "\[info exists $varname\]" {*}$args]
     } 
     :method ? {
-      {-ops {? -}} 
+      {-ops {? -}}
       expr 
-      then 
+      then
       next:optional 
       args
     } {
       if {[info exists next] && $next ni $ops} {
 	return -code error "Invalid control operator '$next', we expect one of $ops"
       }
-      set condition [list expr $expr]
-      if {[uplevel 1 $condition]} {
+      if {[uplevel 1 [list expr $expr]]} {
 	return [uplevel 1 [list subst $then]]
       } elseif {[info exists next]} {
 	if {$next eq "-"} {

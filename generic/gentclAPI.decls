@@ -319,8 +319,10 @@ objectMethod autoname XOTclOAutonameMethod {
 
 # @method ::nx::Object#cleanup
 #
-# TODO: this is a method not needed in Next, for backward compatibility
-# available in XOTcl 2.0
+# TODO: this is a method not used in the Next Scripting Langauge. This
+# mehtod is just called via recreate, so everything necessary can be
+# performed there as well. However, it is available for backward
+# compatibility available in XOTcl 2.0
 #
 # Resets an object or class to its initial state, as after object
 # allocation (see {{@method ::nx::Class class alloc}}). This method
@@ -358,21 +360,25 @@ objectMethod configure XOTclOConfigureMethod {
 
 # @method ::nx::Object#destroy
 #
-# The method lays out the default object destruction process. By
-# calling {{{destroy}}} on an object, you request its destruction:
+# The standard destructor for an object. The method {{@method ::nx::Object class destroy}}
+# triggers the physical destruction of the object. The method {{{destroy}}} can be refined
+# by subclasses or mixin classes to add additional (class specific) destruction behavior.
+# Note that in most cases, the class specific {{{destroy}}} methods should call 
+# {{@command ::nx::next}} to trigger physical destruction.
 # {{{
-#               Object create anObject
-#               anObject destroy
+#     nx::Class create Foo {
+#        :method destroy {} {
+#            puts "destroying [self]"
+#            next
+#        }
+#     }
+#     Foo create f1
+#     f1 destroy
 # }}}
-# Upon calling {{{destroy}}} on a given object, {{{destroy}}}
+# Technical details: The method {{@method ::nx::Object class destroy}}
 # delegates the actual destruction to {{@method ::nx::Class class dealloc}} 
-# which clears the memory object storage.
-# {{{
-# [anObject destroy]  .-----------------.      .----------------.
-#             .......>|Object->destroy()|.....>|Class->dealloc()|
-#                     `-----------------'      `----------------'
-# }}}
-# Essentially, the behaviour could be scripted as:
+# which clears the memory object storage. Essentially, the behaviour could be 
+# scripted as:
 # {{{
 #       Object method destroy {} {
 #               [:info class] dealloc [self]
@@ -380,9 +386,8 @@ objectMethod configure XOTclOConfigureMethod {
 # }}}
 # Note, however, that {{{destroy}}} is protected against
 # application-level redefinition. You must refine it in a subclass
-# or mixin class. By doing so, {{{destroy}}} may be used to hook
-# into the destruction process (e.g., to realise
-# application-specific cleanup tasks).
+# or mixin class. 
+#
 objectMethod destroy XOTclODestroyMethod {
 }
 

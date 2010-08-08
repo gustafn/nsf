@@ -873,7 +873,17 @@ do we need:
 
 - added @properties and has_property to the documentation classes.
   Current primary purpose: define, which methods are internally-called 
-- added interanlly-called to the method object template
+- added internally-called to the method object template
+
+- added redefine-protected to the object template
+- added methodtype to object template
+- some documentation updates
+- some indentation/spacing improvements on xotcl.c
+- let ".... info method .... METHOD" return values,
+  when METHOD contains namespace prefix. This can be 
+  used to obtain the parmeter definitions from nx::core
+- get forward definition from the original command
+
 
 TODO: 
 - nameing
@@ -924,22 +934,38 @@ TODO:
     * org. tutorial (bzw teile davon) ala book 
       or wiki (features als kategorien|tags|sections|directories)
 
-Ein paar punkte im folgenden könnten obsolet sein:
+Ein paar Punkte im folgenden könnten obsolet sein:
 
 TODO "Kleinigkeiten"
 
 - decide on syntax in documentation
   (info method parameter | info method parametersyntax | mixture)
+- decide on paths for documentation of next and xotcl 2, with
+  version numbers; what should be included in distro, what on web-site
+- decide on syntax subcomponent. Candiates are
+   * Object.method
+   * Object->method
+   * Object#method
 - systematic way of specifying results of methods
 - systematic way of reporting results in documentation
 - reduce indenting for code examples in documentation (high indentation makes readability worse).
+  i use usually jsut 2, 4 are ok as well; we should decide.
 - make quality checks (missing documentation, ...) optional (maybe?)
 - handle object methods as well in quality checks
 - why does one have to specify @superclass rather than determining the
   superclass via introspection?
+- handle line-breaking in long @definitions (e.g. @param; e.g. via indented next line)
 - danger, tcl-commands in comments (see :method get_unqualified_name)
+  expecially for code commented out.... 
+
 - kann man "[:? {[$attr eval {info exists :default}]}" durch "[:?var :@param ..." ausdrücken?
   oder vielleicht besser die variablen mit leerstring initialisieren + infrastrukt anpassen?
+- listing von methoden im left-bar, ähnlich http://developer.yahoo.com/yui/docs/YAHOO.util.Connect.html
+- "Objects" im left-bar irreführend, sollten eher "Classes" sein. Allerdings sollten
+  auch objekte dukumentierbar sein
+
+- doc-tools: was machen die argumenten von :? (bspw. ops?); ich nehme an, das ist work in progress.
+  sinnvoll wäre: [:?var obj varname body], da viele (die meisten) operationen auf anderen objeken ausgeführt werden
 
 - die Dokumentation der objekt- und Klassenmethoden muss aus gentclapi weg
   und in predefined.tcl und xotcl2.tcl hineinwandern. Es werden nicht alle

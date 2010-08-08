@@ -663,7 +663,7 @@ NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr) {
   if (!nsPtr)
     nsPtr = Tcl_GetCurrentNamespace(interp);
   /* fprintf(stderr, " (resolved %p, %s) ", nsPtr, nsPtr ? nsPtr->fullName:NULL);*/
-  objPtr = Tcl_NewStringObj(nsPtr->fullName,-1);
+  objPtr = Tcl_NewStringObj(nsPtr->fullName, -1);
   len = Tcl_GetCharLength(objPtr);
   objString = ObjStr(objPtr);
   if (len == 2 && objString[0] == ':' && objString[1] == ':') {
@@ -5950,18 +5950,18 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   /* check if an absolute method name was provided */
   if (*methodName == ':') {
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
-   if (cmd) {
-     CONST char *mn = Tcl_GetCommandName(interp, cmd);
-     if (isClassName(methodName)) {
-       CONST char *className = NSCutXOTclClasses(methodName);
-       Tcl_DString ds, *dsPtr = &ds;
-       DSTRING_INIT(dsPtr);
-       Tcl_DStringAppend(dsPtr, className, strlen(className)-strlen(mn)-2);
-       cl = (XOTclClass *)XOTclpGetObject(interp, Tcl_DStringValue(dsPtr));
-       DSTRING_FREE(dsPtr);
-     }
-   }
- }
+    if (cmd) {
+      CONST char *mn = Tcl_GetCommandName(interp, cmd);
+      if (isClassName(methodName)) {
+	CONST char *className = NSCutXOTclClasses(methodName);
+	Tcl_DString ds, *dsPtr = &ds;
+	DSTRING_INIT(dsPtr);
+	Tcl_DStringAppend(dsPtr, className, strlen(className)-strlen(mn)-2);
+	cl = (XOTclClass *)XOTclpGetObject(interp, Tcl_DStringValue(dsPtr));
+	DSTRING_FREE(dsPtr);
+      }
+    }
+  }
 
   /* if no filter/mixin is found => do ordinary method lookup */
   if (cmd == NULL) {
@@ -6758,9 +6758,9 @@ MakeProc(Tcl_Namespace *nsPtr, XOTclAssertionStore *aStore, Tcl_Interp *interp,
 
     for (pPtr = parsedParam.paramDefs->paramsPtr; pPtr->name; pPtr++) {
       if (*pPtr->name == '-') {
-	Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name+1,-1));
+	Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name+1, -1));
       } else {
-	Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name,-1));
+	Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name, -1));
       }
     }
     ov[2] = argList;
@@ -8890,7 +8890,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
             && insertRequired) {
           /* no match, but insert of flag is required */
           /*fprintf(stderr, "no match, but insert of %s required\n", firstElementString);*/
-          *out = Tcl_NewStringObj(firstElementString,-1);
+          *out = Tcl_NewStringObj(firstElementString, -1);
           *outputincr = 1;
           goto add_to_freelist;
         } else {
@@ -8917,7 +8917,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       }
       *out = listElements[nrArgs];
     } else if (c == '%') {
-      Tcl_Obj *newarg = Tcl_NewStringObj(forwardArgString,-1);
+      Tcl_Obj *newarg = Tcl_NewStringObj(forwardArgString, -1);
       *out = newarg;
       goto add_to_freelist;
     } else {
@@ -8934,7 +8934,7 @@ forwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     if (p == forwardArgString)
       *out = forwardArgObj;
     else {
-      Tcl_Obj *newarg = Tcl_NewStringObj(forwardArgString,-1);
+      Tcl_Obj *newarg = Tcl_NewStringObj(forwardArgString, -1);
       *out = newarg;
       goto add_to_freelist;
     }
@@ -9916,15 +9916,15 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
 static void
 AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientData *tcd) {
   if (tcd->prefix) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-methodprefix",-1));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-methodprefix", -1));
     Tcl_ListObjAppendElement(interp, listObj, tcd->prefix);
   }
   if (tcd->subcommands) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-default",-1));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-default", -1));
     Tcl_ListObjAppendElement(interp, listObj, tcd->subcommands);
   }
   if (tcd->objscope) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objscope",-1));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objscope", -1));
   }
   Tcl_ListObjAppendElement(interp, listObj, tcd->cmdName);
   if (tcd->args) {
@@ -9943,16 +9943,16 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
                          int withObjscope, int withPer_object) {
   Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
   if (withPer_object) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object",6));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
   }
-  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName,-1));
+  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName, -1));
   if (withObjscope) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objscope",9));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objscope", 9));
   }
   if (Tcl_Command_flags(cmd) & XOTCL_CMD_NONLEAF_METHOD) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-nonleaf",8));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-nonleaf", 8));
   }
-  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName,-1));
+  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName, -1));
 }
 
 static int
@@ -10045,7 +10045,7 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *methodName, Tcl_
       switch (subcmd) {
 
       case InfomethodsubcmdTypeIdx:
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("scripted",-1));
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("scripted", -1));
         break;
         
       case InfomethodsubcmdBodyIdx: 
@@ -10476,7 +10476,7 @@ static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName
   Tcl_DString ds, *dsPtr = &ds;
   Tcl_SetVar2Ex(interp, XOTclGlobalStrings[XOTE_ALIAS_ARRAY], 
                 AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
-                Tcl_NewStringObj(cmd,-1), 
+                Tcl_NewStringObj(cmd, -1), 
                 TCL_GLOBAL_ONLY);
   /*fprintf(stderr, "aliasAdd ::nx::core::alias(%s) '%s' returned %p\n",
     AliasIndex(dsPtr, cmdName, methodName, withPer_object), cmd, 1);*/
@@ -11450,8 +11450,8 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
     /*
      * construct full cmd names
      */
-    newFullCmdName = Tcl_NewStringObj(toNsPtr->fullName,-1);
-    oldFullCmdName = Tcl_NewStringObj(fromNsPtr->fullName,-1);
+    newFullCmdName = Tcl_NewStringObj(toNsPtr->fullName, -1);
+    oldFullCmdName = Tcl_NewStringObj(fromNsPtr->fullName, -1);
 
     INCR_REF_COUNT(newFullCmdName); INCR_REF_COUNT(oldFullCmdName);
     Tcl_AppendStringsToObj(newFullCmdName, "::", name, (char *) NULL);
@@ -13694,9 +13694,15 @@ infoObjectMethod method XOTclObjInfoMethodMethod {
 static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object, 
                                     int subcmd, CONST char *methodName) {
   Tcl_Namespace *nsPtr = object->nsPtr;
-  return ListMethod(interp, object, 
-                    methodName, nsPtr ? FindMethod(nsPtr, methodName) : NULL, 
-                    subcmd, 1);
+  Tcl_Command cmd;
+
+  if (*methodName == ':') {
+    Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
+    cmd = Tcl_GetCommandFromObj(interp, methodObj);
+  } else {
+    cmd = nsPtr ? FindMethod(nsPtr, methodName) : NULL;
+  }
+  return ListMethod(interp, object, methodName, cmd, subcmd, 1);
 }
 
 /*
@@ -13942,9 +13948,15 @@ infoClassMethod method XOTclClassInfoMethodMethod {
 static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class, 
                                       int subcmd, CONST char *methodName) {
   Tcl_Namespace *nsPtr = class->nsPtr;
-  return ListMethod(interp, &class->object, 
-                    methodName, nsPtr ? FindMethod(nsPtr, methodName) : NULL, 
-                    subcmd, 0);
+  Tcl_Command cmd;
+
+  if (*methodName == ':') {
+    Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
+    cmd = Tcl_GetCommandFromObj(interp, methodObj);
+  } else {
+    cmd = nsPtr ? FindMethod(nsPtr, methodName) : NULL;
+  }
+  return ListMethod(interp, &class->object, methodName, cmd, subcmd, 0);
 }
 
 /*
@@ -14627,7 +14639,7 @@ Nx_Init(Tcl_Interp *interp) {
   XOTclGlobalObjs = NEW_ARRAY(Tcl_Obj*, nr_elements(XOTclGlobalStrings));
 
   for (i = 0; i < nr_elements(XOTclGlobalStrings); i++) {
-    XOTclGlobalObjs[i] = Tcl_NewStringObj(XOTclGlobalStrings[i],-1);
+    XOTclGlobalObjs[i] = Tcl_NewStringObj(XOTclGlobalStrings[i], -1);
     INCR_REF_COUNT(XOTclGlobalObjs[i]);
   }
 

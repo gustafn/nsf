@@ -104,10 +104,13 @@
 	    [$method parameters]
 	  </code>
 	  [:? {[$method has_property interally-called]} {
-	     <br>Internally called method, can be redefined.<br>
+	     <br>Internally called method, can be redefined.
 	  }]
-
-          <div class="description" property="yui:description">
+          [:? {[[:name] info methods [$method name]] ne "" &&
+	     [::nx::core::methodproperty [:name] [$method name] redefine-protected]} {
+	     <br>Method is redefine-protected
+	  }]
+           <div class="description" property="yui:description">
             [$method text]
           </div>
 	  
@@ -148,9 +151,13 @@
               <strong>Deprecated</strong> [$method @deprecated]
             </div>        
 	    }]
+
+         [:? {[[:name] info methods [$method name]] ne ""} {
+	     <br>Method type: [[:name] info method type [$method name]]
+	  }]
 	    
           </div>
-	  
+ 
         </div>
         <hr />
       </div>
@@ -188,7 +195,7 @@
 }]
 
 [:?var :@method {
-   Undocumented: <span style='color: red'>[:undocumented]</span>
+   Undocumented Methods: <span style='color: red'>[:undocumented]</span>
 }]
 </div>
 
