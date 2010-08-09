@@ -340,8 +340,8 @@ shell: binaries libraries
 gdb:
 	$(TCLSH_ENV) gdb $(TCLSH_PROG) $(SCRIPT)
 
-test: binaries libraries test-core test-http @test_actiweb@
-test-nohttp: binaries libraries test-core
+test: binaries libraries test-core test-xotcl test-http @test_actiweb@
+test-nohttp: binaries libraries test-core test-xotcl
 
 #TESTFLAGS = -srcdir $(srcdir)
 test-core: $(TCLSH_PROG)
@@ -357,11 +357,12 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/protected.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/forwardtest.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/mixinoftest.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/slottest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+
+test-xotcl: $(TCLSH_PROG)
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_lib_dir)/xotcl/tests/speedtest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_lib_dir)/xotcl/tests/testx.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/slottest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-http: $(TCLSH_PROG)
 	$(TCLSH) $(src_lib_dir)/xotcl/tests/xocomm.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)

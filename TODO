@@ -948,6 +948,10 @@ new structure
 - moved some more xotcl specfic tests to library/xotcl
 - transformed forwardtest from xotcl to next
 
+- moved slottest to library/xotcl
+- added new Makefile target test-xotcl
+- finished test migration for now
+
 
 TODO: 
 - nameing
@@ -1057,8 +1061,6 @@ TODO "Kleinigkeiten"
      XO_o_residualargs_idx,
 
 - info method pararmetersyntax not defined for classical tcl procs (needed?)
-
-- migrate further test from .xotcl to .tcl (based on next instead of xotcl)
 
 - copy decls for objectMethod and classMethod  as comments
   to xotcl.c, fix and check order
