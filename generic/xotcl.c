@@ -12853,6 +12853,7 @@ static int XOTclOMixinGuardMethod(Tcl_Interp *interp, XOTclObject *object, CONST
                         mixin, " on ", objectName(object), (char *) NULL);
 }
 
+#if 0
 /* method for calling e.g.  $obj __next  */
 static int XOTclONextMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]) {
   XOTclCallStackContent *cscPtr = CallStackGetObjectFrame(interp, object);
@@ -12862,8 +12863,10 @@ static int XOTclONextMethod(Tcl_Interp *interp, XOTclObject *object, int objc, T
     return XOTclVarErrMsg(interp, "__next: can't find object",
 			  objectName(object), (char *) NULL);
   methodName = (char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr);
+  /* fprintf(stderr, "methodName %s\n", methodName);*/
   return XOTclNextMethod(object, interp, cscPtr->cl, methodName, objc-1, &objv[1], 0, NULL);
 }
+#endif
 
 static int XOTclONoinitMethod(Tcl_Interp *interp, XOTclObject *object) {
   object->flags |= XOTCL_INIT_CALLED;

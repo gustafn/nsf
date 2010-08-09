@@ -190,7 +190,6 @@ static int XOTclOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp
 static int XOTclOFilterSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclONextMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -270,7 +269,6 @@ static int XOTclOFilterGuardMethod(Tcl_Interp *interp, XOTclObject *obj, CONST c
 static int XOTclOFilterSearchMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *filter);
 static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOMixinGuardMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *mixin, Tcl_Obj *guard);
-static int XOTclONextMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclONoinitMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclORequireNamespaceMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
@@ -351,7 +349,6 @@ enum {
  XOTclOFilterSearchMethodIdx,
  XOTclOInstVarMethodIdx,
  XOTclOMixinGuardMethodIdx,
- XOTclONextMethodIdx,
  XOTclONoinitMethodIdx,
  XOTclORequireNamespaceMethodIdx,
  XOTclOResidualargsMethodIdx,
@@ -1329,16 +1326,6 @@ XOTclOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 }
 
 static int
-XOTclONextMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
-    
-
-    return XOTclONextMethod(interp, obj, objc, objv);
-
-}
-
-static int
 XOTclONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
@@ -2155,9 +2142,6 @@ static methodDefinition method_definitions[] = {
 {"::nx::core::cmd::Object::mixinguard", XOTclOMixinGuardMethodStub, 2, {
   {"mixin", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
-},
-{"::nx::core::cmd::Object::__next", XOTclONextMethodStub, 1, {
-  {"args", 0, 0, convertToNothing}}
 },
 {"::nx::core::cmd::Object::noinit", XOTclONoinitMethodStub, 0, {
   }

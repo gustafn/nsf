@@ -27,7 +27,7 @@ static char cmd[] =
 "foreach cmd [info command ::nx::core::cmd::Class::*] {\n"
 "set cmdName [namespace tail $cmd]\n"
 "::nx::core::alias Class $cmdName $cmd}\n"
-"foreach cmd [list __next cleanup noinit residualargs uplevel upvar] {\n"
+"foreach cmd [list cleanup noinit residualargs uplevel upvar] {\n"
 "::nx::core::methodproperty Object $cmd protected 1}\n"
 "foreach cmd [list recreate] {\n"
 "::nx::core::methodproperty Class $cmd protected 1}\n"

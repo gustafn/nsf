@@ -557,8 +557,10 @@ Test case parsing {
 Test case issues? {
 
   # TODO: is [autoname -instance] really needed?
+  #       is autoname needed in Next Scripting?
 
   # TODO: why is XOTclNextObjCmd/::nx::core::next not in gentclAPI.decls?
+  #       why should it be there? there are pros and cons, and very little benefit, or?
 
   # TODO: where to locate the @ comments (in predefined.xotcl, in
   # gentclAPI.decls)? how to deal with ::nx::core::* vs. ::nx::*
@@ -569,54 +571,152 @@ Test case issues? {
   # TODO: Object->cleanup() said: "Resets an object or class into an
   # initial state, as after construction." If by construction it means
   # after create(), then cleanup() is missing a configure() call to
-  # set defaults, etc!
+  # set defaults, etc! 
+  # ?? cleanup does not set defaults; depending on "softrecreate", it 
+  # deletes instances, childobjects, procs, instprocs, ....
 
   # TODO: exists and bestandteil von info() oder selbstständig?
   # ausserdem: erlauben von :-präfix?!
 
+  # we have discussed this already
+
   # TODO: should we keep a instvar variant (i support this!)
+
+  # what means "keep". next scripting should be mininmal, 
+  # "instvar" is not needed and error-prone. We have now
+  # "::nx::var import" and ::nx::core::importvar
+  # (of you want, similar to variable or global).
 
   # TODO: verify the use of filtersearch()? should it return a method
   # handle and the filter name? how to deal with it when refactoring
   # procsearch()?
 
+  # ?? what does it return? What is the issue?
+
   # TODO: mixinguard doc is missing in old doc
+
+  # mixinguard is described in the tutorial, it should have been documented
+  # in the langref as well
 
   # TODO: what is Object->__next() for?
 
+  # See the following script:
+  #
+
+# Object instproc defaultmethod {} {puts "[self proc]"; return [self]}
+# Class A
+# A instproc defaultmethod {} {puts "[self proc]"; [::xotcl::my info parent] __next}
+# Class D -instproc t {} {puts "my stuff"}
+# D create d1
+# puts [d1 t]
+# ### we create a subobject named t, which shadows effectively D->t
+# A create d1::t
+# puts ===
+# # when we call "d1 t", we effectively call "d1::t", which calls "default method".
+# # the defaultmethod should do a next on object d1.
+# puts [d1 t]
+# puts ===EXIT
+
+  # but seems - at least in this usecase broken. Deactivated
+  # in source for now.
+
   # TODO: what to do with hasNamespace()? [Object info is namespace]?
+
+  # what is wrong with ":info hashNamespace"?
 
   # TODO: why is XOTclOUplevelMethodStub/XOTclOUplevelMethod defined
   # with "args" while it logically uses the stipulated parameter
   # signature (level ...). is this because of the first pos, optional
   # parameter? ... same goes for upvar() ...
 
+  # the logic is a tribute to the argument logic in Tcl, which complex.
+  #   uplevel ?level? arg ?arg ...?
+  # It is a combination between an optional first argument and
+  # and an args logic. 
+  #
+  # Most likely, it could be partly solved with a logic for optional
+  # first arguments (if the number of actual arguments is 
+  # higher than the minimal number of arguments, one could fill optional
+  # paramter up..... but this calculation requires as well the interactions
+  # with nonpos arguments, which might be values for positional arguments
+  # as well.... not, sure, it is worth to invest much time here.
+
   # TODO: is Object->uplevel still needed with an integrated cs management?
 
+  # yes, this is completely unrelated with the kind of callstack implemtation.
+  # the methods upvar and uplevel are interceptor transparent, which means
+  # that an uplevel will work for a method the same way, when a mixin or filter
+  # are registered.
+
   # TODO: how is upvar affected by the ":"-prefixing? -> AVOID_RESOLVERS ...
+
+  # this is a tcl question, maybe version dependent.
   
   # TODO: do all member-creating operations return valid, canonical handles!
+
+  # what are member-creating operations? if you mean "method-creating methods"
+  # they should (in next scripting) (i.e. necessary for e.g. method modifiers).
 
   # TODO: the objectsystems subcommand of ::nx::core::configure does
   # not really fit in there because it does not allow for configuring
   # anything. it is a mere introspection-only command. relocate (can
   # we extend standard [info] somehow, i.e., [info objectsystems]
 
+  # what means "configuring anything"? 
+  # maybe you are refering to "configure objectsystems" which is parked there.
+  # there would be an option to change the internally called methods via
+  # configure as well, but i think, one is asking for troubles by allowing 
+  # this.
+  # extending info is possible via the shadowcommands, but the tct
+  # does not like it.
+  #
+  # ad configure: we could fold as well methodproperty and
+  # objectproperty into configure since these allow as well setting
+  # and querying....
+  #
+  #   configure method METHODHANDLE public
+  #   configure object OBJECT metaclass
+  #
+  # but there, the object property is just for quering.
+  # Another option is define and "info"
+  #
+  #   ::nx::core::info object OBJECT metaclass
+  #   ::nx::core::info objectsystems 
+  #
+  # but if we would fold these into tcl-info, conflicts with
+  # tcl will arise.
+
   # TODO: extend [info level] & [info frame]!
+  #
+  # Why and what exactly?
+  # If we would do it the tcloo-way, it would be very expensive.
+  # whe have "info frame" implemnted with a less expensive approach since March 1
 
   # TODO: there is still --noArgs on [next], which does not correspond
   # to single-dashed flags used elsewhere. Why?
+  #
+  # (a) backward compatibility and (b) dow you have suggestions?
 
   # TODO: renaming of self to current?
+  #
+  # what do you mean by "renaming"? 
+  # maybe we should not import "self" into next scripting.
   
   # TODO: is [self callingclass] == [[self callingobject] info class]?
+  #
+  # no
 
   # TODO: "# @subcommand next Returns the name of the method next on
   # the precedence path as a string" shouldn't these kinds of
   # introspective commands return method handles (in the sense of
   # alias)? Retrieving the name from a handle is the more specific
   # operation (less generic). ... same for "filterreg"
-
+  #
+  # this is most likely "self next" and "self filterreg".
+  # there are already changes to xotcl (see migration guide).
+  # since the handle works now as well for "info method", 
+  # this could be effectively done, but it requires 
+  # backward compatibility.
 }
 
 if {$log} {

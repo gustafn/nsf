@@ -454,9 +454,10 @@ objectMethod mixinguard XOTclOMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
-objectMethod __next XOTclONextMethod {
-  {-argName "args" -type allargs}
-}
+
+# objectMethod __next XOTclONextMethod {
+#  {-argName "args" -type allargs}
+#}
 
 # @method ::nx::Object#mixinguard
 #
