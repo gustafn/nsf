@@ -355,22 +355,22 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/interceptor-slot.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/aliastest.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/protected.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/testx.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/speedtest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/forwardtest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/forwardtest.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/mixinoftest.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/slottest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/speedtest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/testx.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 
 test-http: $(TCLSH_PROG)
 	$(TCLSH) $(src_lib_dir)/xotcl/tests/xocomm.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-actiweb: $(TCLSH_PROG)
-	$(TCLSH) $(src_test_dir_native)/actiweb.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/persistence.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/UNIVERSAL.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_test_dir_native)/xoRDF.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/actiweb.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/persistence.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/UNIVERSAL.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_lib_dir)/xotcl/tests/xoRDF.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	@rm -rf receiver
 
 depend:

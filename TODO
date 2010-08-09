@@ -890,7 +890,6 @@ do we need:
 - adjusted regression test and old documentation 
   system to work with new structure
 
-
 old structure
   xotcl
     apps 
@@ -945,6 +944,9 @@ new structure
     tests
     unix
     win
+
+- moved some more xotcl specfic tests to library/xotcl
+- transformed forwardtest from xotcl to next
 
 
 TODO: 
