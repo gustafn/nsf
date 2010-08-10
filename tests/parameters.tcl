@@ -377,8 +377,8 @@ Test case subst-default {
     :create d1
 
     :method bar {
-      {-s:substdefault "[self]"} 
-      {-literal "[self]"} 
+      {-s:substdefault "[current]"} 
+      {-literal "[current]"} 
       {-c:substdefault "[my c]"} 
       {-d:integer,substdefault "$d"}
     } {
@@ -386,11 +386,11 @@ Test case subst-default {
     }
   }
   
-  ? {d1 bar -c 1} {::d1-[self]-1-2} "substdefault in method parameter"
+  ? {d1 bar -c 1} {::d1-[current]-1-2} "substdefault in method parameter"
   
   Class create Bar -superclass D -parameter {
-    {s "[self]"} 
-    {literal "\\[self\\]"} 
+    {s "[current]"} 
+    {literal "\\[current\\]"} 
     {c "[:info class]"} 
     {d "literal $d"}
     {switch:switch}
@@ -399,12 +399,12 @@ Test case subst-default {
   #puts stderr [bar1 objectparameter]
   
   ? {subst {[bar1 s]-[bar1 literal]-[bar1 c]-[bar1 d]-[bar1 switch]}} \
-      {::bar1-[self]-::Bar-literal $d-0} \
+      {::bar1-[current]-::Bar-literal $d-0} \
       "substdefault and switch in object parameter 1"
   
   Bar create bar2 -switch
   ? {subst {[bar2 s]-[bar2 literal]-[bar2 c]-[bar2 d]-[bar2 switch]}} \
-      {::bar2-[self]-::Bar-literal $d-1} \
+      {::bar2-[current]-::Bar-literal $d-1} \
       "substdefault and switch in object parameter 2"
   
   # Observations:
@@ -423,8 +423,8 @@ Test case subst-default {
   #     deactivated for now; otherwise we would need "\\"
   
   D method bar {
-		{-s:substdefault "[self]"} 
-		{-literal "[self]"} 
+		{-s:substdefault "[current]"} 
+		{-literal "[current]"} 
 		{-c:substdefault "[my c]"} 
 		{-d:integer,substdefault "$d"}
 		{-switch:switch}
@@ -438,12 +438,12 @@ Test case subst-default {
   
   ? {D info method args bar} {s literal c d switch optflag x y z} "all args" 
   ? {D info method parameter bar} \
-      {{-s:substdefault "[self]"} {-literal "[self]"} {-c:substdefault "[my c]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
+      {{-s:substdefault "[current]"} {-literal "[current]"} {-c:substdefault "[my c]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
       "query method parameter" 
   
   D method foo {a b {-c 1} {-d} x {-end 100}} {
     set result [list]
-    foreach v [[self class] info method args [self proc]] {
+    foreach v [[current class] info method args [current proc]] {
       lappend result $v [info exists $v]
     }
     return $result
@@ -454,7 +454,7 @@ Test case subst-default {
   
   D method foo {a b c {end 100}} {
     set result [list]
-    foreach v [[self class] info method args [self proc]] {
+    foreach v [[current class] info method args [current proc]] {
       lappend result $v [info exists $v]
     }
     return $result
@@ -696,7 +696,7 @@ Test case substdefault {
   ? {s1 method foo {{a:substdefault $aaa}} {return $a}} ::s1::foo
   ? {s1 foo} {can't read "aaa": no such variable}
   
-  ? {s1 method foo {{a:substdefault [self]}} {return $a}} ::s1::foo
+  ? {s1 method foo {{a:substdefault [current]}} {return $a}} ::s1::foo
   ? {s1 foo} ::s1
 }
 
@@ -708,16 +708,16 @@ Test case substdefault-objparam {
   Class create Bar {
 
     # simple, implicit substdefault
-    :attribute {s0 "[self]"}
+    :attribute {s0 "[current]"}
 
     # explicit substdefault
-    :attribute {s1:substdefault "[self]"}
+    :attribute {s1:substdefault "[current]"}
     
     # unneeded double substdefault
-    :attribute {s2:substdefault,substdefault "[self]"}
+    :attribute {s2:substdefault,substdefault "[current]"}
 
     # substdefault with incremental
-    :attribute {s3:substdefault "[self]"} {
+    :attribute {s3:substdefault "[current]"} {
       # Bypassing the Optimizer helps after applying the patch (solving step 1)
       set :incremental 1
     }
@@ -844,7 +844,7 @@ Test case op-object-types {
 Test case multivalued-app-converter {
 
   ::nx::methodParameterSlot method type=sex {name value args} {
-    #puts stderr "[self] slot specific converter"
+    #puts stderr "[current] slot specific converter"
     switch -glob $value {
       m* {return m}
       f* {return f}
@@ -903,7 +903,7 @@ Test case slot-specfic-converter {
   Person slots {
     Attribute create sex -type "sex" {
       :method type=sex {name value} {
-	#puts stderr "[self] slot specific converter"
+	#puts stderr "[current] slot specific converter"
 	switch -glob $value {
 	  m* {return m}
 	  f* {return f}

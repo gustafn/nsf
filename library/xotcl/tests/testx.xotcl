@@ -1426,7 +1426,7 @@ TestX nextTest -proc run {{n 20}} {
 	  next
 	}
 	y n
-	::errorCheck $infoNext " ::y+::Y->m*<> ::y+::Y->n*<::X method n> ::y+::X->n*<> ::y+->n*<::Y method n> ::y+::Y->n*<::X method n> ::y+::X->n*<>" \
+	::errorCheck $infoNext " ::y+::Y->m*<> ::y+::Y->n*<::X instproc n> ::y+::X->n*<> ::y+->n*<::Y instproc n> ::y+::Y->n*<::X instproc n> ::y+::X->n*<>" \
 	  "simple self next test"
 	set infoNext ""
 	set result ""
@@ -1466,7 +1466,7 @@ TestX nextTest -proc run {{n 20}} {
 	X x -test 
 	::errorCheck $result "-::x-::x-" \
 	    "Next Test X -- Wrong result"
-	::errorCheck $infoNext " 2::b0+::B->m*<::A method m> 2::b+::B->m*<::A method m> 1::x+::X->init*<::xotcl::Object method init>" \
+	::errorCheck $infoNext " 2::b0+::B->m*<::A instproc m> 2::b+::B->m*<::A instproc m> 1::x+::X->init*<::xotcl::Object instproc init>" \
 	    "self next test 2"
 	X destroy
 	x destroy
@@ -1488,7 +1488,7 @@ TestX nextTest -proc run {{n 20}} {
 	}
 	set result ""
 	o mProc
-	::errorCheck $result "::o-::MIX-::o object method mProc::o--" \
+	::errorCheck $result "::o-::MIX-::o proc mProc::o--" \
 	    "Next Test Proc & Mixin"
 
 	o destroy; MIX destroy
@@ -2030,13 +2030,13 @@ TestX mixinTest -proc run {{n 10}} {
   
     Object instfilter ""
 
-#     ::errorCheck $::calling \
-# 	"{filter f: ::mixinTest {} run draw {::MenuDecorator instproc draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class instforward instfilter}}" \
-# 	"Mixin: Calling-Obj/Cl/Proc failed"
-    
     ::errorCheck $::calling \
-	"{filter f: ::mixinTest {} run draw {::MenuDecorator method draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator method draw}} {m2 draw: ::mixinTest {} run {::Image method draw}} {image draw: ::mixinTest {} run {::GrObject method draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator method draw}} {m2 draw: ::mixinTest {} run {::Image method draw}} {image draw: ::mixinTest {} run {::GrObject method draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class forward instfilter}}" \
-	"Mixin: Calling-Obj/Cl/Proc failed"	
+ 	"{filter f: ::mixinTest {} run draw {::MenuDecorator instproc draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator instproc draw}} {m2 draw: ::mixinTest {} run {::Image instproc draw}} {image draw: ::mixinTest {} run {::GrObject instproc draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class instforward instfilter}}" \
+ 	"Mixin: Calling-Obj/Cl/Proc failed"
+    
+    # ::errorCheck $::calling \
+    # 	"{filter f: ::mixinTest {} run draw {::MenuDecorator method draw}} {m1 draw: ::mixinTest {} run {::ScrollBarDecorator method draw}} {m2 draw: ::mixinTest {} run {::Image method draw}} {image draw: ::mixinTest {} run {::GrObject method draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run draw {::ScrollBarDecorator method draw}} {m2 draw: ::mixinTest {} run {::Image method draw}} {image draw: ::mixinTest {} run {::GrObject method draw}} {grObject draw: ::mixinTest {} run {}} {filter f: ::mixinTest {} run instfilter {::xotcl::Class forward instfilter}}" \
+    # 	"Mixin: Calling-Obj/Cl/Proc failed"	
   
     ::errorCheck $::mixinResult \
 	"{filter ::mainImage f ::xotcl::Object} {m1 ::mainImage draw ::MenuDecorator} {m2 ::mainImage draw ::ScrollBarDecorator} {image ::mainImage draw ::Image} {grObject ::mainImage draw ::GrObject} {filter ::zoom f ::xotcl::Object} {m2 ::zoom draw ::ScrollBarDecorator} {image ::zoom draw ::Image} {grObject ::zoom draw ::GrObject} {filter ::xotcl::Object f ::xotcl::Object}" \
@@ -2078,7 +2078,7 @@ TestX mixinTest -proc run {{n 10}} {
 # 	{self ::filteredObject {self proc} infoTraceFilter2 {self class} ::InfoTrace2 {self calledproc} set {self callingproc} callingProc {self callingobject} ::callingObject {self callingclass} ::CallingObjectsClass {self filterreg} {::FilterRegClass instfilter infoTraceFilter2} {self next} {::xotcl::Object instcmd set}} \
 # 	"call stack info" 
     ::errorCheck $::calling \
-	{self ::filteredObject {self proc} infoTraceFilter2 {self class} ::InfoTrace2 {self calledproc} set {self callingproc} callingProc {self callingobject} ::callingObject {self callingclass} ::CallingObjectsClass {self filterreg} {::FilterRegClass filter infoTraceFilter2} {self next} {::xotcl::Object cmd set}} \
+	{self ::filteredObject {self proc} infoTraceFilter2 {self class} ::InfoTrace2 {self calledproc} set {self callingproc} callingProc {self callingobject} ::callingObject {self callingclass} ::CallingObjectsClass {self filterreg} {::FilterRegClass filter infoTraceFilter2} {self next} {::xotcl::Object instcmd set}} \
 	"call stack info" 
     
 

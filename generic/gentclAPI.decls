@@ -260,9 +260,7 @@ xotclCmd current XOTclCurrentCmd {
 # @subcommand filterreg In a method serving as active filter, returns the name of the object (class) on which the method is registered as a filter.
 # @subcommand callinglevel Returns the "original" callstack level calling into the executing method. Intermediary {{{next}}} calls are ignored in this computation. The level is returned in a form so that it can be used as first argument in {{@method ::nx::Object class uplevel}} or {{@method ::nx::Object class upvar}}.
 # @subcommand activelevel Returns the actual callstack level calling into the executing method. The active might correspond the {{{callinglevel}}}, but this is not necessarily the case. The {{{activelevel}}} counts {{@command ::nx::next}} call. The level is returned in a form so that it can be used as first argument in {{@method ::nx::Object class uplevel}} or {{@method ::nx::Object class upvar}}.
-xotclCmd self XOTclSelfCmd {
-  {-argName "selfoption" -required 0 -type "proc|method|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
-} 
+
 xotclCmd setvar XOTclSetVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "variable" -required 1 -type tclobj}

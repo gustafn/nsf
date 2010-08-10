@@ -496,6 +496,21 @@ NSCutXOTclClasses(CONST char *string) {
   return string+19;
 }
 
+XOTCLINLINE static XOTclObject *
+GetObjectFromNsName(Tcl_Interp *interp, CONST char *string, int *fromClassNS) {
+  /*
+   * Get object or class from a fully qualified cmd name, such as
+   * e.g. ::nx::core::classes::X
+   */
+  if (isClassName(string)) {
+    *fromClassNS = 1;
+    return (XOTclObject *)XOTclpGetClass(interp, NSCutXOTclClasses(string));
+  } else {
+    *fromClassNS = 0;
+    return XOTclpGetObject(interp, string);
+  }
+}
+
 XOTCLINLINE static char *
 NSCmdFullName(Tcl_Command cmd) {
   Tcl_Namespace *nsPtr = Tcl_Command_nsPtr(cmd);
@@ -4523,55 +4538,34 @@ FilterRemoveDependentFilterCmds(XOTclClass *cl, XOTclClass *removeClass) {
   cl->order = saved;
 }
 
-/*
- * Build up a qualifier of the form <obj/cl> method <procName>.
- * If cl is NULL, we add the modifier "object".
- */
 static Tcl_Obj *
-getFullProcQualifier(Tcl_Interp *interp, CONST char *cmdName,
-                     XOTclObject *object, XOTclClass *cl, Tcl_Command cmd) {
-  Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-  Tcl_Obj *procObj = Tcl_NewStringObj(cmdName, -1);
-  Tcl_ObjCmdProc *objProc = Tcl_Command_objProc(cmd);
-  int isTcl = CmdIsProc(cmd);
-
-  if (cl) {
-    Tcl_ListObjAppendElement(interp, list, cl->object.cmdName);
-  } else {
-    Tcl_ListObjAppendElement(interp, list, object->cmdName);
-    Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjs[XOTE_OBJECT]);
-  }
-  if (isTcl) {
-    Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjs[XOTE_METHOD]);
-  } else if (objProc == XOTclForwardMethod) {
-    Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjs[XOTE_FORWARD]);
-  } else if (objProc == XOTclSetterMethod) {
-    Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjs[XOTE_SETTER]);
-  } else {
-    Tcl_ListObjAppendElement(interp, list, XOTclGlobalObjs[XOTE_CMD]);
-  }
-  Tcl_ListObjAppendElement(interp, list, procObj);
-  return list;
+MethodHandleObj(XOTclObject *object, int withPer_object, CONST char *methodName) {
+  Tcl_Obj *resultObj = Tcl_NewStringObj(withPer_object ? "" : "::nx::core::classes", -1);
+  assert(object);
+  Tcl_AppendObjToObj(resultObj, object->cmdName);
+  Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
+  return resultObj;
 }
 
 /*
  * info option for filters and classfilters
  * withGuards -> if not 0 => append guards
- * fullProcQualifiers -> if not 0 => full names with obj/class method
+ * withMethodHandles -> if not 0 => return method handles
  */
 static int
 FilterInfo(Tcl_Interp *interp, XOTclCmdList *f, CONST char *pattern,
-           int withGuards, int fullProcQualifiers) {
+           int withGuards, int withMethodHandles) {
   CONST char *simpleName;
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
 
-  /*fprintf(stderr, "FilterInfo %p %s %d %d\n", pattern, pattern, withGuards, fullProcQualifiers);*/
+  /*fprintf(stderr, "FilterInfo %p %s %d %d\n", pattern, pattern, 
+    withGuards, withMethodHandles);*/
 
-  /* guard lists should only have unqualified filter lists
-     when withGuards is activated, fullProcQualifiers has not
-     effect */
+  /* guard lists should only have unqualified filter lists when
+     withGuards is activated, withMethodHandles has no effect 
+  */
   if (withGuards) {
-    fullProcQualifiers = 0;
+    withMethodHandles = 0;
   }
 
   while (f) {
@@ -4586,19 +4580,11 @@ FilterInfo(Tcl_Interp *interp, XOTclCmdList *f, CONST char *pattern,
         Tcl_ListObjAppendElement(interp, innerList, g);
         Tcl_ListObjAppendElement(interp, list, innerList);
       } else {
-        if (fullProcQualifiers) {
-	  XOTclClass *filterClass;
-          XOTclObject *filterObject;
-          if (f->clorobj && !XOTclObjectIsClass(&f->clorobj->object)) {
-            filterObject = (XOTclObject *)f->clorobj;
-            filterClass = NULL;
-          } else {
-            filterObject = NULL;
-            filterClass = f->clorobj;
-          }
+        if (withMethodHandles) {
+	  XOTclClass *filterClass = f->clorobj;
           Tcl_ListObjAppendElement(interp, list,
-                                   getFullProcQualifier(interp, simpleName,
-                                                        filterObject, filterClass, f->cmdPtr));
+				   MethodHandleObj((XOTclObject *)filterClass, 
+						   !XOTclObjectIsClass(&filterClass->object), simpleName));
         } else {
           Tcl_ListObjAppendElement(interp, list, Tcl_NewStringObj(simpleName, -1));
         }
@@ -7430,15 +7416,15 @@ FindSelfNext(Tcl_Interp *interp) {
   Tcl_ResetResult(interp);
 
   methodName = (char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr);
-  if (!methodName)
+  if (!methodName) {
     return TCL_OK;
+  }
 
   result = NextSearchMethod(object, interp, cscPtr, &cl, &methodName, &cmd,
                    &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
-
   if (cmd) {
-    Tcl_SetObjResult(interp, getFullProcQualifier(interp, Tcl_GetCommandName(interp, cmd),
-                                                  object, cl, cmd));
+    Tcl_SetObjResult(interp, MethodHandleObj(cl ? (XOTclObject*)cl : object, 
+					     cl == NULL, methodName));
   }
   return result;
 }
@@ -9967,13 +9953,9 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
 
 static int
 ListMethodName(Tcl_Interp *interp, XOTclObject *object, int withPer_object, CONST char *methodName) {
-  Tcl_Obj *resultObj = Tcl_NewStringObj(withPer_object ? "" : "::nx::core::classes", -1);
-  Tcl_AppendObjToObj(resultObj, object->cmdName);
-  Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
-  Tcl_SetObjResult(interp, resultObj);
+  Tcl_SetObjResult(interp, MethodHandleObj(object, withPer_object, methodName));
   return TCL_OK;
 }
-
 
 static int
 ListMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *methodName, Tcl_Command cmd, 
@@ -9988,6 +9970,38 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *methodName, Tcl_
     Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
     int outputPerObject = 0;
     Tcl_Obj *resultObj;
+
+    if (*methodName == ':') {
+      /* 
+       * We have a fully qualified method name, maybe an object handle 
+       */
+      CONST char *procName = Tcl_GetCommandName(interp, cmd);
+      size_t objNameLength = strlen(methodName) - strlen(procName) - 2;
+      Tcl_DString ds, *dsPtr = &ds;
+
+      if (objNameLength > 0) {
+	XOTclObject *object1;
+	int fromClassNS;
+
+	Tcl_DStringInit(dsPtr);
+	Tcl_DStringAppend(dsPtr, methodName, objNameLength);
+	object1 = GetObjectFromNsName(interp, Tcl_DStringValue(dsPtr), &fromClassNS);
+	if (object1) {
+	  /* 
+	   * The command was from an object, return therefore this
+	   * object as reference.
+	   */
+	  /*fprintf(stderr, "We are flipping the object to %s, method %s to %s\n",
+	    objectName(object1), methodName, procName);*/
+	  object = object1;
+	  methodName = procName;
+	  if (!fromClassNS) {
+	    withPer_object = 1;
+	  }
+	}
+	Tcl_DStringFree(dsPtr);
+      }
+    }
 
     if (!XOTclObjectIsClass(object)) {
       withPer_object = 1;
@@ -11056,7 +11070,6 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
   Tcl_DeleteNamespace(RUNTIME_STATE(interp)->XOTclClassesNS);
   Tcl_DeleteNamespace(RUNTIME_STATE(interp)->XOTclNS);
 #endif
-  /*xxxx*/
 
   return TCL_OK;
 }
@@ -11423,25 +11436,24 @@ static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   Tcl_HashEntry *hPtr;
   XOTclObject *object;
   XOTclClass *cl;
+  int fromClassNS;
 
   fromNsPtr = ObjFindNamespace(interp, fromNs);
   if (!fromNsPtr)
     return TCL_OK;
 
   name = ObjStr(fromNs);
+
   /* check, if we work on an object or class namespace */
-  if (isClassName(name)) {
-    cl  = XOTclpGetClass(interp, NSCutXOTclClasses(name));
-    object = (XOTclObject *)cl;
-  } else {
-    cl  = NULL;
-    object = XOTclpGetObject(interp, name);
-  }
+  object = GetObjectFromNsName(interp, name, &fromClassNS);
 
   if (object == NULL) {
     return XOTclVarErrMsg(interp, "CopyCmds argument 1 (", ObjStr(fromNs), ") is not an object",
                           NULL);
   }
+
+  cl = fromClassNS ? (XOTclClass *)object : NULL;
+
   /*  object = XOTclpGetObject(interp, ObjStr(fromNs));*/
 
   toNsPtr = ObjFindNamespace(interp, toNs);
@@ -12035,13 +12047,10 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
 }
 
 /*
-xotclCmd self XOTclGetSelfObjCmd {
-  {-argName "selfoption" -required 0 -type "proc|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
+xotclCmd current XOTclCurrentCmd {
+  {-argName "currentoption" -required 0 -type "proc|method|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
 }
 */
-static int XOTclSelfCmd(Tcl_Interp *interp, int selfoption) {
-  return XOTclCurrentCmd(interp, selfoption);
-}
 static int XOTclCurrentCmd(Tcl_Interp *interp, int selfoption) {
   XOTclObject *object =  GetSelfObj(interp);
   XOTclCallStackContent *cscPtr;
@@ -12049,7 +12058,7 @@ static int XOTclCurrentCmd(Tcl_Interp *interp, int selfoption) {
 
   /*fprintf(stderr, "getSelfObj returns %p\n", object); tcl85showStack(interp);*/
 
-  if (selfoption == 0 || selfoption == SelfoptionObjectIdx) {
+  if (selfoption == 0 || selfoption == CurrentoptionObjectIdx) {
     if (object) {
       Tcl_SetObjResult(interp, object->cmdName);
       return TCL_OK;
@@ -12058,13 +12067,13 @@ static int XOTclCurrentCmd(Tcl_Interp *interp, int selfoption) {
     }
   }
 
-  if (!object && selfoption != SelfoptionCallinglevelIdx) {
+  if (!object && selfoption != CurrentoptionCallinglevelIdx) {
     return XOTclVarErrMsg(interp, "No current object", (char *) NULL);
   }
 
   switch (selfoption) {
-  case SelfoptionMethodIdx: /* fall through */
-  case SelfoptionProcIdx:
+  case CurrentoptionMethodIdx: /* fall through */
+  case CurrentoptionProcIdx:
     cscPtr = CallStackGetTopFrame(interp, NULL);
     if (cscPtr) {
       CONST char *procName = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
@@ -12074,16 +12083,16 @@ static int XOTclCurrentCmd(Tcl_Interp *interp, int selfoption) {
     }
     break;
 
-  case SelfoptionClassIdx: /* class subcommand */
+  case CurrentoptionClassIdx: /* class subcommand */
     cscPtr = CallStackGetTopFrame(interp, NULL);
     Tcl_SetObjResult(interp, cscPtr->cl ? cscPtr->cl->object.cmdName : XOTclGlobalObjs[XOTE_EMPTY]);
     break;
 
-  case SelfoptionActivelevelIdx:
+  case CurrentoptionActivelevelIdx:
     Tcl_SetObjResult(interp, computeLevelObj(interp, ACTIVE_LEVEL));
     break;
 
-  case SelfoptionArgsIdx: {
+  case CurrentoptionArgsIdx: {
     int nobjc;
     Tcl_Obj **nobjv;
     Tcl_CallFrame *topFramePtr;
@@ -12100,7 +12109,7 @@ static int XOTclCurrentCmd(Tcl_Interp *interp, int selfoption) {
     break;
   }
 
-  case SelfoptionActivemixinIdx: {
+  case CurrentoptionActivemixinIdx: {
     XOTclObject *object = NULL;
     if (RUNTIME_STATE(interp)->cmdPtr) {
       object = XOTclGetObjectFromCmdPtr(RUNTIME_STATE(interp)->cmdPtr);
@@ -12109,8 +12118,8 @@ static int XOTclCurrentCmd(Tcl_Interp *interp, int selfoption) {
     break;
   }
 
-  case SelfoptionCalledprocIdx:
-  case SelfoptionCalledmethodIdx: 
+  case CurrentoptionCalledprocIdx:
+  case CurrentoptionCalledmethodIdx: 
     cscPtr = CallStackFindActiveFilter(interp);
     if (cscPtr) {
       Tcl_SetObjResult(interp, cscPtr->filterStackEntry->calledProc);
@@ -12120,24 +12129,24 @@ static int XOTclCurrentCmd(Tcl_Interp *interp, int selfoption) {
     }
     break;
     
-  case SelfoptionCalledclassIdx:
+  case CurrentoptionCalledclassIdx:
     Tcl_SetResult(interp, className(FindCalledClass(interp, object)), TCL_VOLATILE);
     break;
 
-  case SelfoptionCallingmethodIdx:
-  case SelfoptionCallingprocIdx:
+  case CurrentoptionCallingmethodIdx:
+  case CurrentoptionCallingprocIdx:
     cscPtr = XOTclCallStackFindLastInvocation(interp, 1, NULL);
     Tcl_SetResult(interp, cscPtr ? (char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr) : "",
 		  TCL_VOLATILE);
     break;
 
-  case SelfoptionCallingclassIdx:
+  case CurrentoptionCallingclassIdx:
     cscPtr = XOTclCallStackFindLastInvocation(interp, 1, NULL);
     Tcl_SetObjResult(interp, cscPtr && cscPtr->cl ? cscPtr->cl->object.cmdName :
 		     XOTclGlobalObjs[XOTE_EMPTY]);
     break;
 
-  case SelfoptionCallinglevelIdx:
+  case CurrentoptionCallinglevelIdx:
     if (!object) {
       Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
     } else {
@@ -12145,12 +12154,12 @@ static int XOTclCurrentCmd(Tcl_Interp *interp, int selfoption) {
     }
     break;
 
-  case SelfoptionCallingobjectIdx:
+  case CurrentoptionCallingobjectIdx:
     cscPtr = XOTclCallStackFindLastInvocation(interp, 1, NULL);
     Tcl_SetObjResult(interp, cscPtr ? cscPtr->self->cmdName : XOTclGlobalObjs[XOTE_EMPTY]);
     break;
 
-  case SelfoptionFilterregIdx:
+  case CurrentoptionFilterregIdx:
     cscPtr = CallStackFindActiveFilter(interp);
     if (cscPtr) {
       Tcl_SetObjResult(interp, FilterFindReg(interp, object, cscPtr->cmdPtr));
@@ -12161,7 +12170,7 @@ static int XOTclCurrentCmd(Tcl_Interp *interp, int selfoption) {
     }
     break;
 
-  case SelfoptionIsnextcallIdx: {
+  case CurrentoptionIsnextcallIdx: {
     Tcl_CallFrame *framePtr;
     cscPtr = CallStackGetTopFrame(interp, &framePtr);
     framePtr = nextFrameOfType(Tcl_CallFrame_callerPtr(framePtr), FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD);
@@ -12172,7 +12181,7 @@ static int XOTclCurrentCmd(Tcl_Interp *interp, int selfoption) {
     break;
   }
 
-  case SelfoptionNextIdx:
+  case CurrentoptionNextIdx:
     result = FindSelfNext(interp);
     break;
   }
@@ -12786,9 +12795,9 @@ static int XOTclOFilterGuardMethod(Tcl_Interp *interp, XOTclObject *object, CONS
  *  if it is not found it returns an empty string
  */
 static int XOTclOFilterSearchMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *filter) {
+  CONST char *filterName;
   XOTclCmdList *cmdList;
   XOTclClass *fcl;
-  XOTclObject *fobj;
 
   Tcl_ResetResult(interp);
 
@@ -12798,7 +12807,7 @@ static int XOTclOFilterSearchMethod(Tcl_Interp *interp, XOTclObject *object, CON
     return TCL_OK;
 
   for (cmdList = object->filterOrder; cmdList;  cmdList = cmdList->nextPtr) {
-    CONST char *filterName = Tcl_GetCommandName(interp, cmdList->cmdPtr);
+    filterName = Tcl_GetCommandName(interp, cmdList->cmdPtr);
     if (filterName[0] == filter[0] && !strcmp(filterName, filter))
       break;
   }
@@ -12807,16 +12816,7 @@ static int XOTclOFilterSearchMethod(Tcl_Interp *interp, XOTclObject *object, CON
     return TCL_OK;
 
   fcl = cmdList->clorobj;
-  if (fcl && XOTclObjectIsClass(&fcl->object)) {
-    fobj = NULL;
-  } else {
-    fobj = (XOTclObject*)fcl;
-    fcl = NULL;
-  }
-
-  Tcl_SetObjResult(interp, getFullProcQualifier(interp, filter, fobj, fcl,
-                                                cmdList->cmdPtr));
-  return TCL_OK;
+  return ListMethodName(interp, (XOTclObject*)fcl, !XOTclObjectIsClass(&fcl->object), filterName);
 }
 
 static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]) {
@@ -14682,12 +14682,12 @@ Nx_Init(Tcl_Interp *interp) {
 #endif
     Tcl_CreateObjCommand(interp, "::nx::core::next", XOTclNextObjCmd, 0, 0);
 #ifdef XOTCL_BYTECODE
-  instructions[INST_SELF].cmdPtr = (Command *)Tcl_FindCommand(interp, "::nx::core::self", 0, 0);
+  instructions[INST_SELF].cmdPtr = (Command *)Tcl_FindCommand(interp, "::nx::core::current", 0, 0);
 #endif
   /*Tcl_CreateObjCommand(interp, "::nx::core::K", XOTclKObjCmd, 0, 0);*/
 
   Tcl_CreateObjCommand(interp, "::nx::core::unsetUnknownArgs", XOTclUnsetUnknownArgsCmd, 0, 0);
-  Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "self", 0);
+  Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "current", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "next", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "my", 0);
   Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "importvar", 0);

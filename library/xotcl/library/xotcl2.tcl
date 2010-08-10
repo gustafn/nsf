@@ -45,6 +45,16 @@ namespace eval ::xotcl {
   namespace import ::nx::core::*
   namespace import ::nx::Attribute
 
+  proc ::xotcl::self {{arg "object"}} {
+      switch $arg {
+	  next {
+	      set handle [uplevel ::nx::core::current $arg]
+	      method_handle_to_xotcl $handle
+	  }
+	  default {uplevel ::nx::core::current $arg}
+      }
+  }
+
   # provide the standard command set for ::xotcl::Object
   foreach cmd [info command ::nx::core::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
@@ -358,8 +368,7 @@ namespace eval ::xotcl {
       set patternArg [expr {[info exists pattern] ? [list $pattern] : ""}]
       if {$order && !$guards} {
         set def [::nx::core::cmd::ObjectInfo::filter $o -order {*}$guardsFlag {*}$patternArg]
-        #puts stderr "TO CONVERT: $def"
-        set def [filterorder_list_to_xotcl1 $def]
+        set def [method_handles_to_xotcl $def]
       } else {
         set def [::nx::core::cmd::ObjectInfo::filter $o {*}$guardsFlag {*}$patternArg]
       }
@@ -468,20 +477,23 @@ namespace eval ::xotcl {
     }
     return $options
   }
-  proc filterorder_list_to_xotcl1 definitions {
+  proc method_handles_to_xotcl definitions {
     set defs [list]
-    foreach def $definitions {lappend defs [filterorder_to_xotcl1 $def]}
+    foreach def $definitions {lappend defs [method_handle_to_xotcl $def]}
     return $defs
   }
-  proc filterorder_to_xotcl1 definition {
+  proc method_handle_to_xotcl methodHandle {
+    set definition [::nx::Object info method definition $methodHandle]
+    #puts "method_handle_to_xotcl raw definition '$methodHandle' // $definition"
     if {$definition ne ""} {
+      set obj [lindex $definition 0]
       set modifier [lindex $definition 1]
-      if {$modifier eq "object"} {
+	if {$modifier eq "object"} {
         set prefix ""
         set kind [lindex $definition 2]
         set name [lindex $definition 3]
       } else {
-        set prefix "inst"
+	set prefix [expr {[::nx::core::objectproperty $obj class] ? "inst" : ""}]
         set kind $modifier
         set name [lindex $definition 2]
       }
@@ -489,9 +501,13 @@ namespace eval ::xotcl {
         set kind proc
       } elseif {$kind eq "setter"} {
         set kind parametercmd
+      } elseif {$kind eq "alias"} {
+	set kind "cmd"
+	set name [lindex $definition end-1]
       }
       set definition [list [lindex $definition 0] ${prefix}$kind $name]
     }
+    #puts "method_handle_to_xotcl gets definition '$methodHandle' // $definition"
     return $definition
   }
  
@@ -521,7 +537,7 @@ namespace eval ::xotcl {
   }
   Object instproc filtersearch {filter} {
     set definition [::nx::core::dispatch [self] ::nx::core::cmd::Object::filtersearch $filter]
-    return [filterorder_to_xotcl1 $definition]
+    return [method_handle_to_xotcl $definition]
   }
   Object instproc procsearch {name} {
     set definition [::nx::core::cmd::ObjectInfo::callable [self] -which $name]

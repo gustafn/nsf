@@ -68,7 +68,7 @@
 			  <ul class="content">
 			  [:for package $packages {
 			  [:let css "" ]
-			  [:? {[:info is type ::nx::doc::@package] && [self] eq $package} {
+			  [:? {[:info is type ::nx::doc::@package] && [current] eq $package} {
 			  [:let css "selected" ]
 			  }]
 			  <li class="$css"><a href="[$package filename].html" title="[$package name]">[:fit [$package name] 30]</a></li>
@@ -83,7 +83,7 @@
 			<ul class="content">
 			  [:for object $objects {
 			  [:let css "" ]
-			  [:? {[:info is type ::nx::doc::@object] && [self] eq $object} {
+			  [:? {[:info is type ::nx::doc::@object] && [current] eq $object} {
 			  [:let css "selected" ]
 			  }]
 			  <li class="$css"><a href="[$object filename].html" title="[$object name]">[:fit [$object name] 30]</a></li>
@@ -98,7 +98,7 @@
 			<ul class="content">
 			  [:for command $commands {
 			  [:let css "" ]
-			  [:? {[:info is type ::nx::doc::@command] && [self] eq $command} {
+			  [:? {[:info is type ::nx::doc::@command] && [current] eq $command} {
 			  [:let css "selected"]
 			  }]
 			  <li class="$css"><a href="[$command filename].html" title="[$command name]">[$command name]</a></li>

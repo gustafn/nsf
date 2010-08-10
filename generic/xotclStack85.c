@@ -329,6 +329,9 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   }
 }
 
+
+#if 0
+/* just used by XOTclONextMethod() */
 static XOTclCallStackContent*
 CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *object) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
@@ -343,6 +346,7 @@ CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *object) {
   }
   return NULL;
 }
+#endif
 
 /*
  * Pop any callstack entry that is still alive (e.g.

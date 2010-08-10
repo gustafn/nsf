@@ -27,15 +27,13 @@ namespace eval ::nx {
   }
 
   #
-  # get frequenly used primitiva into the ::next namespace
+  # get frequenly used primitiva into the ::nx::core namespace
   #
   namespace eval ::nx::core {
-    namespace export next self \
-        my is relation interp
+    namespace export next current my is relation interp
   }
-
   
-  namespace import ::nx::core::next ::nx::core::self
+  namespace import ::nx::core::next ::nx::core::current
 
   #
   # provide the standard command set for ::nx::Object

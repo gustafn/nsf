@@ -48,7 +48,7 @@ namespace eval ::nx::test {
       set :case $name
       if {[info exists arg]} {
         foreach o [Object info instances -closure] {set pre_exist($o) 1}
-        namespace eval :: [list [self] eval $arg]
+        namespace eval :: [list [current] eval $arg]
         #:eval $arg
         foreach o [Object info instances -closure] {
           if {[info exists pre_exist($o)]} continue
@@ -60,11 +60,11 @@ namespace eval ::nx::test {
 
     :public object method parameter {name value:optional} {
       if {[info exists value]} {
-        #[[self] slot $name] default $value
-        [self] slot $name default $value
+        #[[current] slot $name] default $value
+	:slot $name default $value
         :__invalidateobjectparameter
       } else {
-        return [[self] slot $name default]
+	return [:slot $name default]
       }
     }
 

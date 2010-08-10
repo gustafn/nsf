@@ -65,7 +65,7 @@ Test case multiple-args {
 ###########################################
 Test case mixin-via-forward {
     Object create mixin {
-	:method unknown {m args} {return [concat [self] $m $args]}
+	:method unknown {m args} {return [concat [current] $m $args]}
     }
  
     Object create obj {
@@ -162,7 +162,7 @@ Test case introspection {
 package require nx::serializer
 Test case serializer {
     Object create obj {
-        :method test {} {puts "i am [self proc]"}
+        :method test {} {puts "i am [current proc]"}
     }
     set ::a [Serializer deepSerialize obj]
     #puts <<$::a>>
@@ -180,10 +180,10 @@ Test case optional-target {
     }
     ? {obj append x y z} 2yz
 
-    Object create n; Object create n::x {:method self {} {self}}
+    Object create n; Object create n::x {:method current {} {current}}
     Object create o
     o forward ::n::x
-    ? {o x self} ::n::x
+    ? {o x current} ::n::x
 }
 
 ###########################################
@@ -261,9 +261,9 @@ Test case positioning-args {
 Test case num-args {
     Object create obj {
 	:forward f %self [list %argclindex [list a b c]]
-	:method a args {return [list [self proc] $args]}
-	:method b args {return [list [self proc] $args]}
-	:method c args {return [list [self proc] $args]}
+	:method a args {return [list [current proc] $args]}
+	:method b args {return [list [current proc] $args]}
+	:method c args {return [list [current proc] $args]}
     }
     ? {obj f} [list a {}]
     ? {obj f 1 } [list b 1]
@@ -364,22 +364,22 @@ Test case callstack {
     Object forward expr -objscope
 
     Class create C {
-	:method xx {} {self}
+	:method xx {} {current}
 	:object method t {o expr} {
 	    return [$o expr $expr]
 	}
     }
     C create c1
 
-    ? {c1 expr {[self]}} 		::c1
-    ? {c1 expr {[self] == "::c1"}} 	1
+    ? {c1 expr {[current]}} 		::c1
+    ? {c1 expr {[current] == "::c1"}} 	1
     ? {c1 expr {[:xx]}} 		::c1
     ? {c1 expr {[:info class]}} 	::C
     ? {c1 expr {[:info is type C]}} 	1
     ? {c1 expr {[:info is type ::C]}} 	1
 
-    ? {C t ::c1 {[self]}} 		::c1
-    ? {C t ::c1 {[self] == "::c1"}} 1
+    ? {C t ::c1 {[current]}} 		::c1
+    ? {C t ::c1 {[current] == "::c1"}} 1
     ? {C t ::c1 {[:xx]}} 		::c1
     ? {C t ::c1 {[:info class]}} ::C
     ? {C t ::c1 {[:info is type C]}} 	1

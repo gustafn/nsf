@@ -109,7 +109,7 @@ namespace eval ::nx::doc {
  
     :method behind? {error_msg} {
       return [expr {[::nx::core::is $error_msg object] && \
-			[::nx::core::is $error_msg type [self]]}]
+			[::nx::core::is $error_msg type [current]]}]
     }
     
     # @method thrown_by?
@@ -150,7 +150,7 @@ namespace eval ::nx::doc {
       #
       # uplevel: throw at the call site
       #
-      uplevel 1 [list ::error [self]]
+      uplevel 1 [list ::error [current]]
     }
   }
   
@@ -182,7 +182,7 @@ namespace eval ::nx::doc {
     # @param tag Defaults to the tag label to be used in comment tags. It may vary from the auto-generated default!
     # @param root_namespace You may choose your own root-level namespace hosting the namespace hierarchy of entity objects
 
-    :attribute {tag {[string trimleft [string tolower [namespace tail [self]]] @]}}
+    :attribute {tag {[string trimleft [string tolower [namespace tail [current]]] @]}}
     :attribute {root_namespace "::nx::doc::entities"}
 
     namespace eval ::nx::doc::entities {}
@@ -198,7 +198,7 @@ namespace eval ::nx::doc {
     # @see tag
     # @see root_namespace
     :method id {name} {
-      set subns [string trimleft [namespace tail [self]] @]
+      set subns [string trimleft [namespace tail [current]] @]
       return [:root_namespace]::${subns}::[string trimleft $name :]
     }
 
@@ -243,7 +243,7 @@ namespace eval ::nx::doc {
   Class create PartClass -superclass EntityClass {
     :method id {partof_object scope name} {
       # ::Foo class foo
-      set subns [string trimleft [namespace tail [self]] @]
+      set subns [string trimleft [namespace tail [current]] @]
       set partof_name [string trimleft $partof_object :]
       return [join [list [:root_namespace] $subns $partof_name $scope $name] ::]
     }
@@ -251,14 +251,14 @@ namespace eval ::nx::doc {
       -part_attribute 
       {-partof:substdefault {[[MissingPartofEntity new \
 				   -message [subst {
-				     Parts of type '[namespace tail [self]]'
+				     Parts of type '[namespace tail [current]]'
 				     require a partof entity to be set
 				   }]] throw]}}
       -name 
       args
     } {
 
-      :createOrConfigure [:id [$partof name] [$part_attribute scope] $name] {*}[self args]
+      :createOrConfigure [:id [$partof name] [$part_attribute scope] $name] {*}[current args]
     }
   }
   
@@ -295,7 +295,7 @@ namespace eval ::nx::doc {
       # :default ""
       if {![info exists :scope]} {
 	set :scope class
-	regexp -- {@(.*)-.*} [namespace tail [self]] _ :scope
+	regexp -- {@(.*)-.*} [namespace tail [current]] _ :scope
       }
       next
     }
@@ -309,7 +309,7 @@ namespace eval ::nx::doc {
 	return  [${:part_class} new \
 		     -name [lindex $value 0] \
 		     -partof $domain \
-		     -part_attribute [self] \
+		     -part_attribute [current] \
 		     -@doc [lrange $value 1 end]]
       }
       return $value
@@ -398,7 +398,7 @@ namespace eval ::nx::doc {
       comment_block
     } {
       EntityClass process \
-	  -partof_entity [self] \
+	  -partof_entity [current] \
 	  -initial_section $initial_section \
 	  {*}[expr {[info exists entity]?"-entity $entity":""}] \
 	  $comment_block
@@ -680,7 +680,7 @@ namespace eval ::nx::doc {
 	    } else {
 	      set comment "<span style='color: red'>cannot check object, probably not instantiated</span>"
 	    }
-	    #puts stderr "XXXX [self] ${:name} is part of ${:partof} // [${:partof} name]"
+	    #puts stderr "XXXX [current] ${:name} is part of ${:partof} // [${:partof} name]"
 	    return [concat $params <br>$comment]
 	    } 
 	    return $params
@@ -691,7 +691,7 @@ namespace eval ::nx::doc {
 	} {
 	  next \
 	      -initial_section $initial_section \
-	      -entity [self] $comment_block
+	      -entity [current] $comment_block
 	}
 
       }; # @method
@@ -734,7 +734,7 @@ namespace eval ::nx::doc {
 		-part_attribute 
 		{-partof:substdefault {[[MissingPartofEntity new \
 					     -message [subst {
-			Parts of type '[namespace tail [self]]'
+			Parts of type '[namespace tail [current]]'
 			require a partof entity to be set
 					     }]] throw]}}
 		-name 
@@ -770,7 +770,7 @@ namespace eval ::nx::doc {
     :method render {
       {-initscript ""}
       template 
-      {entity:substdefault "[self]"}
+      {entity:substdefault "[current]"}
     } {
       # Here, we assume the -nonleaf mode being active for {{{[eval]}}}.
       set tmplscript [list subst [[::nx::core::current class] read_tmpl $template]]
@@ -1051,7 +1051,7 @@ namespace eval ::nx {
   ::nx::Object create doc  {
 
     :method log {msg} {
-      puts stderr "[self]->[uplevel 1 [list ::nx::core::current proc]]: $msg"
+      puts stderr "[current]->[uplevel 1 [list ::nx::core::current proc]]: $msg"
     }
 
     # @method process
@@ -1086,7 +1086,7 @@ namespace eval ::nx {
 	      #dict set :scripts [info script] objects 
 	      #	}
 	      #}
-	      #puts stderr "dict lappend :scripts([info script]) objects [self]"
+	      #puts stderr "dict lappend :scripts([info script]) objects [current]"
 	      [::nx::core::current class] eval [list dict set :scripts [info script] objects \$obj _]
 	      return \$obj
 	    }
@@ -1386,7 +1386,7 @@ namespace eval ::nx::doc {
       set :comment_block $block
       
       # initialise the context object
-      #puts stderr "--- [self callingproc] -> :partof_entity $partof_entity :processed_section $initial_section block $block"
+      #puts stderr "--- [current callingproc] -> :partof_entity $partof_entity :processed_section $initial_section block $block"
       set :processed_section $initial_section
       set :partof_entity $partof_entity      
       
@@ -1400,7 +1400,7 @@ namespace eval ::nx::doc {
       
       set :is_not_completed 1
       
-      ${:processed_section} eval [list set :context [self]]
+      ${:processed_section} eval [list set :context [current]]
       set is_first_iteration 1
       set :idx 0
       set failure ""
@@ -1493,7 +1493,7 @@ namespace eval ::nx::doc {
 	  # now, we just ignore and bypass this issue by allowing
 	  # InvalidTag exceptions in analyze()
 	  #
-	  set qualified_tag [namespace qualifiers [self]]::$tag
+	  set qualified_tag [namespace qualifiers [current]]::$tag
 	  if {[EntityClass info instances -closure $qualified_tag] eq ""} {
 	    [InvalidTag new -message [subst {
 	      The entity type '$tag' is not available
@@ -1687,7 +1687,7 @@ namespace eval ::nx::doc {
     :attribute next_comment_section; # implements a STATE-OWNED TRANSITION scheme
     
     :method init {} {
-      ${:entry_comment_line} comment_section [self]
+      ${:entry_comment_line} comment_section [current]
     }
     
     :method transition {line} {
@@ -1709,7 +1709,7 @@ namespace eval ::nx::doc {
 	$src on_exit $line;
       }
       if {![info exists transitions(${src}->${tgt})]} {
-	set msg "Style violation in a [namespace tail [self]] section:\n"
+	set msg "Style violation in a [namespace tail [current]] section:\n"
 	if {$src eq ""} {
 	  append msg "Invalid first line ('${tgt}')"
 	} else {
@@ -1719,7 +1719,7 @@ namespace eval ::nx::doc {
       }
       
       set :current_comment_line $tgt
-      $tgt comment_section [self]
+      $tgt comment_section [current]
       ${:current_comment_line} processed_line $line
       ${:current_comment_line} on_enter $line
       

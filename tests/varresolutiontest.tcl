@@ -51,7 +51,7 @@ o objeval {
   set x 1
   set :y 2
   set ::z 3
-  set [self]::X 4
+  set [current]::X 4
   set g 1
   set :a(:b) 1
   set :a(::c) 1
@@ -59,25 +59,25 @@ o objeval {
 ? {::nx::core::importvar o2 j} \
     "importvar cannot import variable 'j' into method scope; not called from a method frame"
 
-o method foo {} {::nx::core::importvar [self] :a}
+o method foo {} {::nx::core::importvar [current] :a}
 ? {o foo} "variable name \":a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nx::core::importvar [self] ::a}
+o method foo {} {::nx::core::importvar [current] ::a}
 ? {o foo} "variable name \"::a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nx::core::importvar [self] a(:b)}
+o method foo {} {::nx::core::importvar [current] a(:b)}
 ? {o foo} "can't make instance variable a(:b) on ::o: Variable cannot be an element in an array; use e.g. an alias."
 
-o method foo {} {::nx::core::importvar [self] {a(:b) ab}}
+o method foo {} {::nx::core::importvar [current] {a(:b) ab}}
 ? {o foo} ""
 
-o method foo {} {::nx::core::existsvar [self] ::a}
+o method foo {} {::nx::core::existsvar [current] ::a}
 ? {o foo} "variable name \"::a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nx::core::existsvar [self] a(:b)}
+o method foo {} {::nx::core::existsvar [current] a(:b)}
 ? {o foo} 1
 
-o method foo {} {::nx::core::existsvar [self] a(::c)}
+o method foo {} {::nx::core::existsvar [current] a(::c)}
 ? {o foo} 1
 
 set ::o::Y 5
@@ -109,7 +109,7 @@ Object create o {
   set x 1
   set :y 2
   set ::z 3
-  set [self]::X 4
+  set [current]::X 4
   set g 1
 }
 set ::o::Y 5
@@ -371,7 +371,7 @@ c1 foo
 ###############################################
 Class create C
 C method bar {args} {
-  #puts stderr "[self] bar called with [list $args]"
+  #puts stderr "[current] bar called with [list $args]"
   return $args
 }
 C forward test %self bar

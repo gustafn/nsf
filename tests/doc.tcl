@@ -699,8 +699,10 @@ Test case issues? {
 
   # TODO: renaming of self to current?
   #
-  # what do you mean by "renaming"? 
-  # maybe we should not import "self" into next scripting.
+  # what do you mean by "renaming"? both commands were available 
+  # since a while. Maybe we should not import "self" into next scripting.
+  # DONE (sel is not imported anymore, all occurnces in next tests are changed)
+  # Not sure, we should keep since, since it will be a problem in many scripts.
   
   # TODO: is [self callingclass] == [[self callingobject] info class]?
   #
@@ -712,7 +714,8 @@ Test case issues? {
   # alias)? Retrieving the name from a handle is the more specific
   # operation (less generic). ... same for "filterreg"
   #
-  # this is most likely "self next" and "self filterreg".
+  # this is most likely "self next" and "self filterreg",
+  # but as well for .e.g "info filter ... -order ..."
   # there are already changes to xotcl (see migration guide).
   # since the handle works now as well for "info method", 
   # this could be effectively done, but it requires 

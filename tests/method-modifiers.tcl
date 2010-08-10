@@ -5,9 +5,9 @@ Test parameter count 10
 
 Class create C {
   # methods
-  :method plain_method {} {return [self proc]}
-  :public method public_method {} {return [self proc]}
-  :protected method protected_method {} {return [self proc]}
+  :method plain_method {} {return [current proc]}
+  :public method public_method {} {return [current proc]}
+  :protected method protected_method {} {return [current proc]}
 
   # forwards
   :forward plain_forward %self plain_method
@@ -25,9 +25,9 @@ Class create C {
   :protected alias protected_alias [C info method name protected_method]
   
   # object
-  :object method plain_object_method {} {return [self proc]}
-  :public object method public_object_method {} {return [self proc]}
-  :protected object method protected_object_method {}  {return [self proc]}
+  :object method plain_object_method {} {return [current proc]}
+  :public object method public_object_method {} {return [current proc]}
+  :protected object method protected_object_method {}  {return [current proc]}
   :object forward plain_object_forward %self plain_object_method
   :public object forward public_object_forward %self public_object_method
   :protected object forward protected_object_forward %self protected_object_method
@@ -40,9 +40,9 @@ Class create C {
 }
 C create c1 {
   # methods
-  :method plain_object_method {} {return [self proc]}
-  :public method public_object_method {} {return [self proc]}
-  :protected method protected_object_method {} {return [self proc]}
+  :method plain_object_method {} {return [current proc]}
+  :public method public_object_method {} {return [current proc]}
+  :protected method protected_object_method {} {return [current proc]}
 
   # forwards
   :forward plain_object_forward %self plain_object_method
@@ -92,7 +92,7 @@ Test case class-level-setter {
   ? {::nx::core::dispatch c2 protected_setter 4} "4"
 }
 
-# class level alias ....TODO: wanted behavior of [self proc]? not "plain_alias"?
+# class level alias ....TODO: wanted behavior of [current proc]? not "plain_alias"?
 Test case class-level-alias {
   ? {c2 plain_alias} "plain_method"
   ? {c2 public_alias} "public_method"
@@ -126,7 +126,7 @@ Test case class-object-level-setter {
   ? {::nx::core::dispatch C protected_object_setter 4} "4"
 }
 
-# class-object level alias ....TODO: wanted behavior of [self proc]? not "plain_alias"?
+# class-object level alias ....TODO: wanted behavior of [current proc]? not "plain_alias"?
 Test case class-object-level-alias {
   ? {C plain_object_alias} "plain_object_method"
   ? {C public_object_alias} "public_object_method"
@@ -159,7 +159,7 @@ Test case object-level-setter
 ? {catch {c1 protected_object_setter 3}} 1
 ? {::nx::core::dispatch c1 protected_object_setter 4} "4"
 
-# object level alias ....TODO: wanted behavior of [self proc]? not "plain_alias"?
+# object level alias ....TODO: wanted behavior of [current proc]? not "plain_alias"?
 Test case object-level-alias {
   ? {c1 plain_object_alias} "plain_object_method"
   ? {c1 public_object_alias} "public_object_method"
@@ -213,14 +213,14 @@ Test case next-from-nonpos-args {
   
   Object create o {
     :method bar {-y:required -x:required} {
-      #puts stderr "+++ o x=$x, y=$y [self args] ... next [self next]"
-      return [list x $x y $y [self args]]
+      #puts stderr "+++ o x=$x, y=$y [current args] ... next [current next]"
+      return [list x $x y $y [current args]]
     }
   }
   Class create M {
     :method bar {-x:required -y:required} {
-      #puts stderr "+++ M x=$x, y=$y [self args] ... next [self next]"
-      return [list x $x y $y [self args] -- {*}[next]]
+      #puts stderr "+++ M x=$x, y=$y [current args] ... next [current next]"
+      return [list x $x y $y [current args] -- {*}[next]]
     }
   }
   

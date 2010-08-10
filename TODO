@@ -958,8 +958,38 @@ new structure
 - extended regression test
 - fixed serializer to handle subobjects of explicitely exported objects
 
+- xotcl.c: 
+  * new function GetObjectFromNsName() to obtail object or class
+    from a fully qualified namespace name used in method handles (such as e.g.
+    ::nx::core::classes::X)
+  * new function MethodHandleObj() to return a tcl_obj containing the methodhandle
+  * removed obsolete method getFullProcQualifier()
+  * info methods obtain now object and/or class from fully qualified method 
+    names (method handles) if possible
+  * return message handles in "current next", "current filterreg" and
+    "... info filter ... -order", which can be used in "info method .... "
+    for obtaining more details.
+  * change all occurrances of "self" in next regression tests to current.
+- xotcl2.tcl
+  * implemented "self" as a proc to provide extensibility and 
+    full backward compatibilty; this opens opportunity 
+    to replace now e.g. "self proc" by "current method", etc.
+  * provide full compatibility for "self next", "self filterreg" and 
+    "... info filter ... -order", returning old-style multiword method handles
+    (such as e.g. "::C instproc foo")
+- changed "next" to current in documentation framework and templates
+
+
 TODO: 
 - nameing
+    * self/current:
+       - overthink general replacement of "self" by "current".
+         a consequence is, that slots can't use "self" anymore, since slots
+         are always next objects
+       - replace  "self proc" by "current method", etc.
+       - we have "%self" as well, which is better than "%current"
+       - maybe provide alias "self" for "current object"
+
     * .c-code:
       . rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?
         Stefan, meinung dazu? Notwending|Empfehlenswert|nicht? 

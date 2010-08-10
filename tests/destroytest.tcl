@@ -12,7 +12,7 @@ Class create O -superclass Object {
   }
   :method destroy {} {
     incr ::ObjectDestroy
-    #[:info class] dealloc [self]
+    #[:info class] dealloc [current]
     next
   }
 }
@@ -23,13 +23,13 @@ Class create O -superclass Object {
 set case "simple destroy (1)"
 Test case simple-destroy-1
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
-  puts stderr "==== $::case [self]"
+  puts stderr "==== $::case [current]"
   :destroy
-  puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+  puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
   :set x 1
-  ? "[self] set x" 1 "$::case can still access [self]"
+  ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBBB"
   ? {::nx::core::objectproperty c1 object} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
@@ -48,13 +48,13 @@ puts stderr ======[::nx::core::objectproperty c1 object]
 set case "simple destroy (2), destroy blocks"
 Test case simple-destroy-2
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy block"}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy block"}
 C method foo {} {
-  puts stderr "==== $::case [self]"
+  puts stderr "==== $::case [current]"
   :destroy
-  puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+  puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
   :set x 1
-  ? "[self] set x" 1 "$::case can still access [self]"
+  ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBBB"
   ? {::nx::core::objectproperty c1 object} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
@@ -73,13 +73,13 @@ puts stderr ======[::nx::core::objectproperty c1 object]
 set case "recreate"
 Test case recreate
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
-  puts stderr "==== $::case [self]"
-  [:info class] create [self]
-  puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+  puts stderr "==== $::case [current]"
+  [:info class] create [current]
+  puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
   :set x 1
-  ? "[self] set x" 1 "$::case can still access [self]"
+  ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBBB"
   ? {::nx::core::objectproperty c1 object} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 0 "firstDestroy called"
@@ -99,13 +99,13 @@ set case "cmd rename empty (1)"
 Test case rename-empty-1
 Object create o
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
-  puts stderr "==== $::case [self]"
-  rename [self] ""
-  puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+  puts stderr "==== $::case [current]"
+  rename [current] ""
+  puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
   :set x 1
-  ? "[self] set x" 1 "$::case can still access [self]"
+  ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
   ? {::nx::core::objectproperty c1 object} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
@@ -126,13 +126,13 @@ puts stderr ======[::nx::core::objectproperty c1 object]
 set case "cmd rename empty (2)"
 Test case rename-empty-2
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy block"}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy block"}
 C method foo {} {
-  puts stderr "==== $::case [self]"
-  rename [self] ""
-  puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+  puts stderr "==== $::case [current]"
+  rename [current] ""
+  puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
   :set x 1
-  ? "[self] set x" 1 "$::case can still access [self]"
+  ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
   ? {::nx::core::objectproperty c1 object} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
@@ -150,17 +150,17 @@ puts stderr ======[c1 set x]
 # cmd rename other xotcl object to current, 
 # xotcl's rename invokes a move 
 #
-set case "cmd rename object to self"
-Test case rename-to-self
+set case "cmd rename object to current"
+Test case rename-to-current
 Object create o
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
-  puts stderr "==== $::case [self]"
-  rename o [self]
-  puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+  puts stderr "==== $::case [current]"
+  rename o [current]
+  puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
   :set x 1
-  ? "[self] set x" 1 "$::case can still access [self]"
+  ? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
   ? {::nx::core::objectproperty c1 object} 1 "$::case object still exists in proc"
   ? "set ::firstDestroy" 0 "firstDestroy called"
@@ -177,14 +177,14 @@ puts stderr ======[::nx::core::objectproperty c1 object]
 # cmd rename other proc to current object, 
 # xotcl's rename invokes a move 
 #
-set case "cmd rename proc to self"
-Test case rename-proc-to-self
+set case "cmd rename proc to current"
+Test case rename-proc-to-current
 proc o args {}
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
-  puts stderr "==== $::case [self]"
-  set x [catch {rename o [self]}]
+  puts stderr "==== $::case [current]"
+  set x [catch {rename o [current]}]
   ? "set _ $x" 1 "$::case tcl refuses to rename into an existing command"
 }
 C create c1
@@ -205,21 +205,21 @@ set case "delete parent namespace (1)"
 Test case delete-parent-namespace
 namespace eval ::test {
   Class create C -superclass O
-  C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+  C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
   C method foo {} {
-    puts stderr "==== $::case [self]"
+    puts stderr "==== $::case [current]"
     namespace delete ::test
-    puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+    puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
     :set x 1
     #
     # If the following line is commented in, the namespace is deleted
     # here. Is there a bug with nsPtr->activationCount
     #
-    #? "[self] set x" 1 "$::case can still access [self]"
+    #? "[current] set x" 1 "$::case can still access [current]"
     puts stderr "BBB"
-    puts stderr "???? [self] exists [::nx::core::objectproperty [self] object]"
-    ? "::nx::core::objectproperty [self] object" 0 ;# WHY?
-    puts stderr "???? [self] exists [::nx::core::objectproperty [self] object]"
+    puts stderr "???? [current] exists [::nx::core::objectproperty [current] object]"
+    ? "::nx::core::objectproperty [current] object" 0 ;# WHY?
+    puts stderr "???? [current] exists [::nx::core::objectproperty [current] object]"
     ? "set ::firstDestroy" 0 "firstDestroy called"
     ? "set ::ObjectDestroy" 0 "$::case destroy not yet called"
   }
@@ -245,21 +245,21 @@ Test case delete-parent-namespace-2
 namespace eval ::test {
   ? {namespace exists test::C} 0 "exists test::C"
   Class create C -superclass O
-  C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy block"}
+  C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy block"}
   C method foo {} {
-    puts stderr "==== $::case [self]"
+    puts stderr "==== $::case [current]"
     namespace delete ::test
-    puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+    puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
     :set x 1
     #
     # If the following line is commented in, the namespace is deleted
     # here. Is there a bug with nsPtr->activationCount
     #
-    #? "[self] set x" 1 "$::case can still access [self]"
+    #? "[current] set x" 1 "$::case can still access [current]"
     puts stderr "BBBB"
-    puts stderr "???? [self] exists [::nx::core::objectproperty [self] object]"
-    ? "::nx::core::objectproperty [self] object" 0 "$::case object still exists in proc";# WHY?
-    puts stderr "???? [self] exists [::nx::core::objectproperty [self] object]"
+    puts stderr "???? [current] exists [::nx::core::objectproperty [current] object]"
+    ? "::nx::core::objectproperty [current] object" 0 "$::case object still exists in proc";# WHY?
+    puts stderr "???? [current] exists [::nx::core::objectproperty [current] object]"
     ? "set ::firstDestroy" 0 "firstDestroy called"
     ? "set ::ObjectDestroy" 0  "ObjectDestroy called"; # NOT YET CALLED
   }
@@ -280,16 +280,16 @@ set case "delete parent object (1)"
 Test case delete-parent-object
 Object create o
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
-  puts stderr "==== $::case [self]"
+  puts stderr "==== $::case [current]"
   o destroy
   puts stderr "AAAA"
   # the following isobject call has a problem in Tcl_GetCommandFromObj(), 
   # which tries to access invalid memory
-  puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+  puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
   :set x 1
-  #? "[self] set x" 1 "$::case can still access [self]"
+  #? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBBB"
   ? {::nx::core::objectproperty ::o::c1 object} 0 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
@@ -313,13 +313,13 @@ set case "delete parent object (2)"
 Test case delete-parent-object-2
 Object create o
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy block"}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy block"}
 C method foo {} {
-  puts stderr "==== $::case [self]"
+  puts stderr "==== $::case [current]"
   o destroy
-  puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+  puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
   :set x 1
-  #? "[self] set x" 1 "$::case can still access [self]"
+  #? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
   ? {::nx::core::objectproperty ::o::c1 object} 0 "$::case object still exists in proc"
   ? "set ::firstDestroy" 1 "firstDestroy called"
@@ -341,13 +341,13 @@ set case "redefined current object as proc"
 Test case redefined-current-object-as-proc
 Object create o
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
-  puts stderr "==== $::case [self]"
-  proc [self] {args} {puts HELLO}
-  puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+  puts stderr "==== $::case [current]"
+  proc [current] {args} {puts HELLO}
+  puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
   :set x 1
-  #? "[self] set x" 1 "$::case can still access [self]"
+  #? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
   ? "set ::firstDestroy" 1 "firstDestroy called"
   ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
@@ -368,13 +368,13 @@ puts stderr ======[::nx::core::objectproperty c1 object]
 set case "delete active class"
 Test case delete-active-class
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
-  puts stderr "==== $::case [self]"
+  puts stderr "==== $::case [current]"
   C destroy
-  puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+  puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
   :set x 1
-  #? "[self] set x" 1 "$::case can still access [self]"
+  #? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
   #? [:info class] ::xotcl::Object "object reclassed"
   ? [:info class] ::C "object reclassed?"
@@ -398,13 +398,13 @@ puts stderr ======[::nx::core::objectproperty c1 object]
 set case "delete active object nested in class"
 Test case delete-active-object-nested-in-class
 Class create C -superclass O
-C method destroy {} {incr ::firstDestroy; puts stderr "  *** [self] destroy"; next}
+C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
 C method foo {} {
-  puts stderr "==== $::case [self]"
+  puts stderr "==== $::case [current]"
   C destroy
-  puts stderr "AAAA [self] exists [::nx::core::objectproperty [self] object]"
+  puts stderr "AAAA [current] exists [::nx::core::objectproperty [current] object]"
   :set x 1
-  #? "[self] set x" 1 "$::case can still access [self]"
+  #? "[current] set x" 1 "$::case can still access [current]"
   puts stderr "BBB"
   #? "set ::firstDestroy" 0 "firstDestroy called"
   ? "set ::firstDestroy" 1 "firstDestroy called"
