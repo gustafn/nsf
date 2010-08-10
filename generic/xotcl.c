@@ -5050,7 +5050,17 @@ XOTclUnsetInstVar(XOTcl_Object *object, Tcl_Interp *interp, CONST char *name, in
 
 static int
 CheckVarName(Tcl_Interp *interp, const char *varNameString) {
-  if (strstr(varNameString, "::") || *varNameString == ':') {
+  /* 
+   * Check, whether the provided name is save to be used in the
+   * resolver.  We do not want to get interferences with namespace
+   * resolver and such.  In an first attempt, we disallowed occurances
+   * of "::", but we have to deal as well with e.g. arrayName(::x::y)
+   * 
+   * TODO: more general and efficient solution to disallow e.g. a::b
+   * (check for :: until parens)
+   */
+  /*if (strstr(varNameString, "::") || *varNameString == ':') {*/
+  if (*varNameString == ':') {
     return XOTclVarErrMsg(interp, "variable name \"", varNameString,
                           "\" must not contain namespace separator or colon prefix",
                           (char *) NULL);
@@ -8537,10 +8547,10 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, XOTclObject 
      * see Tcl_VariableObjCmd ...
      */
     if (arrayPtr) {
-      return XOTclVarErrMsg(interp, "can't make instvar ", ObjStr(varName),
+      return XOTclVarErrMsg(interp, "can't make instance variable ", ObjStr(varName),
                             " on ", objectName(object),
-                            ": variable cannot be an element in an array;",
-                            " use an alias or objeval.", (char *) NULL);
+                            ": Variable cannot be an element in an array;",
+                            " use e.g. an alias.", (char *) NULL);
     }
 
     newName = varName;

@@ -951,8 +951,12 @@ new structure
 - moved slottest to library/xotcl
 - added new Makefile target test-xotcl
 - finished test migration for now
-
 - deactivated __next for now
+
+- iterated through doc.tcl-TODOs
+- changed CheckVarName to allow array names like e.g. a(::b)
+- extended regression test
+- fixed serializer to handle subobjects of explicitely exported objects
 
 TODO: 
 - nameing

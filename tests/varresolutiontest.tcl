@@ -53,6 +53,8 @@ o objeval {
   set ::z 3
   set [self]::X 4
   set g 1
+  set :a(:b) 1
+  set :a(::c) 1
 }
 ? {::nx::core::importvar o2 j} \
     "importvar cannot import variable 'j' into method scope; not called from a method frame"
@@ -63,12 +65,27 @@ o method foo {} {::nx::core::importvar [self] :a}
 o method foo {} {::nx::core::importvar [self] ::a}
 ? {o foo} "variable name \"::a\" must not contain namespace separator or colon prefix"
 
+o method foo {} {::nx::core::importvar [self] a(:b)}
+? {o foo} "can't make instance variable a(:b) on ::o: Variable cannot be an element in an array; use e.g. an alias."
+
+o method foo {} {::nx::core::importvar [self] {a(:b) ab}}
+? {o foo} ""
+
+o method foo {} {::nx::core::existsvar [self] ::a}
+? {o foo} "variable name \"::a\" must not contain namespace separator or colon prefix"
+
+o method foo {} {::nx::core::existsvar [self] a(:b)}
+? {o foo} 1
+
+o method foo {} {::nx::core::existsvar [self] a(::c)}
+? {o foo} 1
+
 set ::o::Y 5
 ? {info vars ::x} ""
 
 ? {info exists ::z} 1
 ? {set ::z} 3
-? {lsort [o info vars]} {X Y g i x y}
+? {lsort [o info vars]} {X Y a g i x y}
 ? {o eval {info exists :x}} 1
 ? {o eval {info exists :y}} 1
 ? {o eval {info exists :z}} 0

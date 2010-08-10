@@ -179,7 +179,7 @@ namespace eval ::nx::serializer {
       # we export the object tree.
       set oo $o
       while {1} {
-        if {[[self class] exists exportObjects($o)]} {
+        if {[::nx::core::existsvar [self class] exportObjects($o)]} {
           return 1
         }
         # we do this for object trees without object-less namespaces
@@ -196,7 +196,6 @@ namespace eval ::nx::serializer {
 
       # TODO generalize?
       set ns_excluded(::ns) 1
-
       foreach c $set {
 	set ns [namespace qualifiers $c]
         if {!$all &&
@@ -478,7 +477,7 @@ namespace eval ::nx::serializer {
       # notify serializer object $s
       set instances [list]
       foreach i [${:rootClass} info instances -closure] {
-        if {[:matchesIgnorePattern $i] && ![info exists :exportObjects($i)]} {
+	if {[:matchesIgnorePattern $i] && ![$s isExportedObject $i]} {
           continue
         }
         $s setObjectSystemSerializer $i [self]
