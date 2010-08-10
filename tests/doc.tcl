@@ -695,14 +695,18 @@ Test case issues? {
   # TODO: there is still --noArgs on [next], which does not correspond
   # to single-dashed flags used elsewhere. Why?
   #
-  # (a) backward compatibility and (b) dow you have suggestions?
+  # (a) backward compatibility and (b) do you have suggestions?
 
   # TODO: renaming of self to current?
   #
   # what do you mean by "renaming"? both commands were available 
   # since a while. Maybe we should not import "self" into next scripting.
-  # DONE (sel is not imported anymore, all occurnces in next tests are changed)
-  # Not sure, we should keep since, since it will be a problem in many scripts.
+  #
+  # DONE (self is not imported anymore, all occurrences in next tests are changed)
+  # Not sure, we should keep since, since it will be a problem in many scripts
+  # (e.g. in all slots, since slots are always next objects; maybe some advanced
+  # OpenACS users will be hit).
+  #
   
   # TODO: is [self callingclass] == [[self callingobject] info class]?
   #
@@ -715,11 +719,13 @@ Test case issues? {
   # operation (less generic). ... same for "filterreg"
   #
   # this is most likely "self next" and "self filterreg",
-  # but as well for .e.g "info filter ... -order ..."
+  # but applies as well for .e.g "info filter ... -order ..."
   # there are already changes to xotcl (see migration guide).
   # since the handle works now as well for "info method", 
   # this could be effectively done, but it requires 
   # backward compatibility.
+  #
+  # DONE
 }
 
 if {$log} {

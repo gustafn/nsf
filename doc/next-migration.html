@@ -272,6 +272,8 @@ Separate Calls</h3>
      #&nbsp;&nbsp;&nbsp;&nbsp; instforward <br>
      #&nbsp;&nbsp;&nbsp;&nbsp; parametercmd <br>
      #&nbsp;&nbsp;&nbsp;&nbsp; instparametercmd <br>
+     # <br>
+     # All these methods return empty.<br>     
      </i>
    </td>
     <td>
@@ -281,6 +283,8 @@ Separate Calls</h3>
      #&nbsp;&nbsp;&nbsp;&nbsp; setter <br>
      #&nbsp;&nbsp;&nbsp;&nbsp; alias <br>
      #&nbsp;&nbsp;&nbsp;&nbsp; attribute <br>
+     # <br>
+     # All these methods return method-handles.<br>
       </i>
     </td>
   </tr>
@@ -865,7 +869,10 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
-    <td><code><i>obj</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
+    <td><i class='comment'># ... info filter -order ... returns now
+      method-handles<br>
+      # instead of triples (applies to all three variants)</i><br><br>
+      <code><i>obj</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
   </tr>
   <tr>
     <td><code><i>cls</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
@@ -1013,6 +1020,71 @@ Scripting Language via the primitives of the Next Scripting Framework.
   </tr>
 </table>
 
+<h3>Callstack Introspection</h3>
+
+<table>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
+  <tr>
+    <td><code>self</code></td>
+    <td><code>current</code><br>
+      <hr>
+      <code>current object</code> 
+    </td>
+  </tr>
+  <tr>
+    <td><code>self class</code></td>
+    <td><code>current class</code></td>
+  </tr>
+  <tr>
+    <td><code>self proc</code></td>
+    <td><code>current method</code></td>
+  </tr>
+    <tr>
+    <td><code>self callingclass</code></td>
+    <td><code>current currentclass</code></td>
+  </tr>
+  <tr>
+    <td><code>self callingobject</code></td>
+    <td><code>current callingobject</code></td>
+  </tr>
+    <tr>
+    <td><code>self callingproc</code></td>
+    <td><code>current callingmethod</code></td>
+  </tr>
+  <tr>
+    <td><code>self calledclass</code></td>
+    <td><code>current calledclass</code></td>
+  </tr>
+  <tr>
+    <td><code>self calledproc</code></td>
+    <td><code>current calledmethod</code></td>
+  </tr>
+  <tr>
+    <td><code>self isnextcall</code></td>
+    <td><code>current isnextcall</code></td>
+  </tr>
+    <tr>
+    <td><code>self next</code></td>
+    <td><i class='comment'># returns now method-handle</i><br>
+      <code>current next</code></td>
+  </tr>
+  <tr>
+    <td><code>self filterreg</code></td>
+    <td><i class='comment'># returns now method-handle</i><br>
+      <code>current filterreg</code></td>
+  </tr>
+    <tr>
+
+    <td><code>self callinglevel</code></td>
+    <td><code>current callinglevel</code></td>
+  </tr>
+    <tr>
+    <td><code>self activelevel</code></td>
+    <td><code>current activelevel</code></td>
+  </tr> 
+</table>
+
+
 <h2>Predefined Methods</h2>
 <h2>Dispatch, Aliases, etc.</h2>
 <h2>Assertions</h2>
@@ -1062,10 +1134,20 @@ Scripting Language via the primitives of the Next Scripting Framework.
 <h2>Incompatibilities between Next Scripting/XOTcl 2.0 and XOTcl 1.*</h2>
 
 <h3>Resolvers</h3>
-<p>The tesolvers of the Next Scripting Framework are used as well
+<p>The resolvers of the Next Scripting Framework are used as well
 within XOTcl 2.0. When names starting with single colons are used in
 XOTcl 1.* scripts, conflicts will arise.
 </p>
+
+<h3>Slots</h3>
+<p>All slots are now always next-scripting objects.
+</p>
+
+<h3>Obsolete commands</h3>
+
+<p>Parameterclasses were rarely used and have been replaced by the more
+general object parameterization. Therefore, <code>cl info
+parameterclass</code> has been removed. 
 
 <h3>Stronger Checking</h3>
 
@@ -1075,17 +1157,7 @@ comment, while Next enforces it. </p>
 
 <h3>Different results</h3>
 <ul>
-<li><code>[self next]</code> returns <br>
-      instead of "proc" and "instproc" => "method"<br>
-      instead of "parametercmd" and "instparametercmd" => "setter"<br>
-      instead of "instforward" => "forward"<br>
-      instead of "instcmd" => "cmd".<br>
-  The modifier "object" is added when needed.
-  </li>
-<li><code>[self filterreg]</code> returns <br>
-      instead of "instforward" => "forward"<br>
-    The modifier "object" is added when needed.
-  </li>
+  <li>none?
 </ul>
 
 
@@ -1104,6 +1176,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Wed Aug  4 11:06:52 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Tue Aug 10 20:35:08 CEST 2010 <!-- hhmts end -->
 </body>
 </html>

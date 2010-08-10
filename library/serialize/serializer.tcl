@@ -154,7 +154,7 @@ namespace eval ::nx::serializer {
     
     :method init {} {
       # Never serialize the (volatile) serializer object
-      :ignore [self]
+      :ignore [::nx::core::current object]
     }
 
     :method warn msg {
@@ -179,7 +179,7 @@ namespace eval ::nx::serializer {
       # we export the object tree.
       set oo $o
       while {1} {
-        if {[::nx::core::existsvar [self class] exportObjects($o)]} {
+        if {[::nx::core::existsvar [::nx::core::current class] exportObjects($o)]} {
           return 1
         }
         # we do this for object trees without object-less namespaces
@@ -213,7 +213,7 @@ namespace eval ::nx::serializer {
         set :level($stratum) {}
         foreach c $set {
           set oss [set :serializer($c)]
-          if {[$oss needsNothing $c [self]]} {
+          if {[$oss needsNothing $c [::nx::core::current object]]} {
             lappend :level($stratum) $c
           }
         }
@@ -247,7 +247,7 @@ namespace eval ::nx::serializer {
           #.warn "serialize $i"
           #append result "# Stratum $l\n"
           set oss [set :serializer($i)]
-          append result [$oss serialize $i [self]] \n
+          append result [$oss serialize $i [::nx::core::current object]] \n
         }
       }
       foreach e $list {
@@ -292,7 +292,7 @@ namespace eval ::nx::serializer {
       # assumes $o to be fully qualified
       set instances [Serializer allChildren $o] 
       foreach oss [ObjectSystemSerializer info instances] {
-        $oss registerSerializer [self] $instances
+        $oss registerSerializer [::nx::core::current object] $instances
       }
       :serialize-objects $instances 1
     }
@@ -358,7 +358,7 @@ namespace eval ::nx::serializer {
 
       # don't filter anything during serialization
       set filterstate [::nx::core::configure filter off]
-      set s [:new -childof [self] -volatile]
+      set s [:new -childof [::nx::core::current object] -volatile]
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
 
@@ -398,13 +398,13 @@ namespace eval ::nx::serializer {
     }
 
     :object method methodSerialize {object method prefix} {
-      set s [:new -childof [self] -volatile]
+      set s [:new -childof [::nx::core::current object] -volatile]
       concat $object [$s method-serialize $object $method $prefix]
     }
 
     :object method deepSerialize {-ignoreVarsRE -ignore -map args} {
       :resetPattern
-      set s [:new -childof [self] -volatile]
+      set s [:new -childof [::nx::core::current object] -volatile]
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
       
@@ -416,7 +416,7 @@ namespace eval ::nx::serializer {
     }
 
     # include Serializer in the serialized code
-    :exportObjects [self]
+    :exportObjects [::nx::core::current object]
     
   }
 
@@ -429,8 +429,8 @@ namespace eval ::nx::serializer {
     
     :method init {} {
       # Include object system serializers and the meta-class in "Serializer all"
-      Serializer exportObjects [self class]
-      Serializer exportObjects [self]
+      Serializer exportObjects [::nx::core::current class]
+      Serializer exportObjects [::nx::core::current object]
     }
 
     #
@@ -468,7 +468,7 @@ namespace eval ::nx::serializer {
       # Communicate responsibility to serializer object $s
       foreach i $instances {
         if {![::nx::core::objectproperty $i type ${:rootClass}]} continue
-        $s setObjectSystemSerializer $i [self]
+        $s setObjectSystemSerializer $i [::nx::core::current object]
       }
     }
 
@@ -480,10 +480,10 @@ namespace eval ::nx::serializer {
 	if {[:matchesIgnorePattern $i] && ![$s isExportedObject $i]} {
           continue
         }
-        $s setObjectSystemSerializer $i [self]
+        $s setObjectSystemSerializer $i [::nx::core::current object]
         lappend instances $i
       }
-      #$s warn "[self] handled instances: $instances"
+      #$s warn "[::nx::core::current object] handled instances: $instances"
       return $instances
     }
 
@@ -555,7 +555,7 @@ namespace eval ::nx::serializer {
         if {![info exists methods($o)]} continue
         append r \n $methods($o)
       }
-      #puts stderr "[self] ... exportedMethods <$r\n>"
+      #puts stderr "[::nx::core::current object] ... exportedMethods <$r\n>"
       return "$r\n"
     }
 
@@ -661,7 +661,7 @@ namespace eval ::nx::serializer {
     :method Object-serialize {o s} {
       :collect-var-traces $o $s
       append cmd [list [$o info class] create \
-                      [::nx::core::dispatch $o -objscope ::xotcl::self]]
+                      [::nx::core::dispatch $o -objscope ::nx::core::current object]]
 
       append cmd " -noinit\n"
       foreach i [lsort [::nx::core::cmd::ObjectInfo::methods $o]] {
@@ -703,7 +703,7 @@ namespace eval ::nx::serializer {
 
     # register serialize a global method
     ::nx::Object method serialize {} {
-      ::Serializer deepSerialize [self]
+      ::Serializer deepSerialize [::nx::core::current object]
     }
     
   }
@@ -789,7 +789,7 @@ namespace eval ::nx::serializer {
 
     :method Object-serialize {o s} {
       :collect-var-traces $o $s
-      append cmd [list [$o info class] create [::nx::core::dispatch $o -objscope ::xotcl::self]]
+      append cmd [list [$o info class] create [::nx::core::dispatch $o -objscope ::nx::core::current object]]
       # slots needs to be initialized when optimized, since
       # parametercmds are not serialized
       append cmd " -noinit\n"
@@ -847,7 +847,7 @@ namespace eval ::nx::serializer {
 
     # register serialize a global method for XOTcl
     ::xotcl::Object instproc serialize {} {
-      ::Serializer deepSerialize [self]
+      ::Serializer deepSerialize [::nx::core::current object]
     }
 
     

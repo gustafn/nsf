@@ -979,6 +979,8 @@ new structure
     (such as e.g. "::C instproc foo")
 - changed "next" to current in documentation framework and templates
 
+- updated migration guide, added section for callstack introspection
+- updated serializer for new names
 
 TODO: 
 - nameing
