@@ -39,7 +39,7 @@ Object create make {
       if {[file exists pkgIndex.tcl]} {
         file delete -force pkgIndex.tcl
       }
-      #puts stderr "callinglevel <[self callinglevel]> $fls"
+      #puts stderr "callinglevel <[current callinglevel]> $fls"
       #puts stderr "[pwd]:\n\tcall eval pkg_mkIndex -verbose -direct . $fls"
       if {[catch {pkg_mkIndex -verbose -direct . {*}$fls} errs]} {
         puts stderr "!!! $errs"
@@ -103,8 +103,8 @@ Object create file {
 
   foreach subcmd [array names :destructive] {
     :method $subcmd args {
-      #puts stderr " [pwd] call: '::tcl_file [self proc] $args'"
-      ::tcl_file [self proc] {*}$args
+      #puts stderr " [pwd] call: '::tcl_file [current method] $args'"
+      ::tcl_file [current method] {*}$args
     }
   }
 }
@@ -120,13 +120,13 @@ foreach f [file info methods] {
   if {![file exists destructive($f)] || [file eval [list set :destructive($f)]]} {
     #puts stderr destruct=$f
     make::-n method $f args {
-	puts "--- [pwd]:\t[self proc] $args"
+	puts "--- [pwd]:\t[current method] $args"
     }
   } else {
     #puts stderr nondestruct=$f
     make::-n method $f args {
       set r [next]
-      #puts "??? [self proc] $args -> {$r}"
+      #puts "??? [current method] $args -> {$r}"
       return $r
     }
   }

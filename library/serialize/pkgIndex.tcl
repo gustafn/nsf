@@ -9,6 +9,3 @@
 # full path name of this file's directory.
 
 package ifneeded nx::serializer 1.0 [list source [file join $dir serializer.tcl]]
-package ifneeded xotcl::scriptCreation::recoveryPoint 0.8 [list source [file join $dir RecoveryPoint.xotcl]]
-package ifneeded xotcl::scriptCreation::scriptCreator 0.8 [list source [file join $dir ScriptCreator.xotcl]]
-package ifneeded xotcl::serializer 1.0 [list source [file join $dir Serializer.xotcl]]
