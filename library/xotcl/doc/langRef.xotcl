@@ -1,5 +1,5 @@
-# $Id: langRef.xotcl,v 1.14 2006/10/04 20:40:23 neumann Exp $
-package provide XOTcl-langRef 1.6.0
+# $Id: langRef.xotcl,v 1.18 2007/09/05 19:09:22 neumann Exp $
+package provide XOTcl-langRef 1.6.4
 package require XOTcl
 
 @ @File {
@@ -225,12 +225,13 @@ package require XOTcl
       Turn on/off assertion checking. Options argument is the list
       of assertions, that should be checked on the object automatically. 
       Per default assertion checking is turned 
-      off. Examples:  
-    <@pre class='code'>
-    o check {};         <@it># turn off assertion checking on object o</@it>  
-    o check all;        <@it># turn on all assertion checks on object o</@it>   
-    o check {pre post}; <@it># only check pre/post assertions</@it></@pre>
-      <@a href="#Object-info">info check</@a> introspects check options.
+      off. <br>
+      Examples:<br>
+<@pre CLASS="code">
+    o check {};         <@i># turn off assertion checking on object o</@i>  
+    o check all;        <@i># turn on all assertion checks on object o</@i>   
+    o check {pre post}; <@i># only check pre/post assertions</@i>
+</@pre>
     }
     return "empty string"
 }
@@ -251,7 +252,7 @@ package require XOTcl
 } {
   Description {
     Resets an object or class into an initial state, as after construction.
-    Called during recreation process by the method <a href='#Class-recreate'><tt>recreate</tt></a>.
+    Called during recreation process by the method 'recreate'
   }
   return "empty string"
 }
@@ -260,18 +261,11 @@ package require XOTcl
   ?args? "'-' method calls"
 } {
   Description {
-    Calls the '-' (dash) methods. This method evaluates its argument list 
-    and calls everything starting with '-' (followed by an alpha character) 
-    as a method. Every list element until the next '-' is interpreted as an 
-    argument of the called method. XOTcl supports argument lists with a variable
-    number of arguments. If an argument of a method called this way starts 
-    with a "-", the call can be placed safely
-    into a list (e.g. "Class c [list -strangearg -a-] -simplearg 2") to avoid 
-    the interpretation of "a-" as a method.
-    <p>The method <tt>configure</tt> is called automatically by 
-    the default <tt>create</tt> and <tt>recreate</tt> methods after 
-    the default values are set. </p>
-    <p>
+    Calls the '-' (dash) methods. I.e. evaluates arguments and calls 
+    everything starting with '-' (and not having a digit a 
+    second char) as a method. Every list element until the next '-'
+    is interpreted as a method argument. <tt>configure</tt> is called 
+    before the constructor <tt>init</tt> during initialization and recreation.
     In the following example, the variable set is called via 
     configure before <tt>init</tt>:
     <@pre class='code'>    Object o -set x 4</@pre>
@@ -356,10 +350,10 @@ package require XOTcl
     Description {
       Standard destructor.  
       Can be overloaded for customized destruction process. Actual destruction
-      is done by dealloc. "destroy" in principal does:
+      is done by instdestroy. "destroy" in principal does:
     <@pre class='code'>
     Object instproc destroy args {
-      [my info class] dealloc [self]
+      [my info class] instdestroy [self]
     }</@pre>
     }
     return "empty string"
@@ -505,18 +499,6 @@ package require XOTcl
     return "1 or 0"
 }
 
-@ Object instproc init {
-  args "argument list"
-} {
-  Description {
-    The method <@tt>init</tt> is called automatically by the default 
-    <a href='#Class-create'><@tt>create</@tt></a> method on initialized
-    objects (the default variables are set, the <a href='#Object-configure'>configure</a>
-    methods are already performed). This method is solely a user hook for 
-    applications to perform class specific initialzation after object creation.
-  }
-}
-
 
 @ Object instproc incr {
   varName "variable name"
@@ -605,9 +587,6 @@ package require XOTcl
       all matching mixins are returned. If <@TT>pattern</@TT> does not
       contain wildcards, either the fully qualified name is returned,
       or empty, if no match exists.
-
-      <@li><@TT>objName info mixinguard name</@TT>: Returns the guards 
-      for the mixin identified by name.
 
       <@li><@TT>objName info nonposargs methodName</@TT>: Returns
       non-positional arg list of methodName
@@ -981,7 +960,7 @@ package require XOTcl
 }
 @ Class instproc alloc {
   obj "new obj/class name"
-  ?args? "arguments passed during creation"
+  ?args? "arguments passed to the new class after creation"
 } {
   description {
 
@@ -995,7 +974,7 @@ package require XOTcl
     objects via <@tt>alloc<@/tt>.
 
   }
-  return "fully qualified name of created instance"
+  return "new class name"
 }
 
 @ Class instproc allinstances {
@@ -1013,18 +992,6 @@ package require XOTcl
   description {
     Create user-defined classes or objects. If the class is a meta-class,
     a class is created, otherwise an object.
-    The object creation protocol implemened by create works as follows:
-    <ul>
-    <li><tt>create</tt> firstly calls <a href='#Class-alloc'><@tt>alloc</@tt></a>
-    in order to create an uninitialized object or class.
-    <li>In the second step, the 
-    default values for parameters are searched on  superclasses and set in the created object.
-    <li>In the third step, the method <a href='#Object-configure'><@tt>configure</@tt></a>
-    is called with the passed 
-    argument list to configure the object/class. 
-    <li>Finally the constructor <a href='#Object-init'><@tt>init</@tt></a> is called on the object 
-    with all arguments up to the first '-' argument (as returned by <tt>configure</tt>). 
-    </ul>
 
     The method <@tt>create<@/tt> is responsible for allocating and
     initializing objects. The method can be overloaded e.g. in a
@@ -1052,9 +1019,17 @@ package require XOTcl
 
     </ol>
     <p>
+    Create firstly calls <@tt>alloc</@tt> in order to allocate memory for the
+    new object. Then default values for parameters are searched on
     superclasses (an set if found). 
+
+    Finally the constructor <@tt>init</@tt> is called on the object 
+    with all arguments up to the first '-' arg.<@p>
+
     The <@tt>create</@tt> method is often called implicitly through the 
-    method. E.g. the following two commands are equivalent
+    <@tt>unknown</@tt>
+    mechanism when a class (meta-class) is called with an unknown
+    method. E.g. the following two commands are equivalent 
 
     <@pre class='code'>
     Car herby -color red 
@@ -1068,9 +1043,8 @@ package require XOTcl
 
     <@pre class='code'>   Class Car -init -superclass Vehicle <@/pre>
 
-    See also: <a href='#Class-recreate'><@tt>recreate</@tt></a>
   }
-  return "fully qualified name of the created instance (result of alloc)"
+  return "name of the created instance (result of alloc)"
 }
 
 @ Class instproc info {
@@ -1126,7 +1100,7 @@ package require XOTcl
       all instfilterguards are integrated 
       (<@TT> ClassName info instfilter -guards</@TT>).
 
-      <@li><@TT>ClassName info instfilterguard name</@TT>: Returns the guards 
+      <@li><@TT>objName info instfilterguard name</@TT>: Returns the guards 
       for instfilter identified by name.
 
       <@li><@TT>objName info instforward ?-definition name? ?pattern?</@TT>: 
@@ -1158,9 +1132,6 @@ package require XOTcl
       returned. If <@TT>pattern</@TT> does not contain wildcards,
       either the fully qualified name is returned, or empty, if no
       match exists.
-
-      <@li><@TT>ClassName info isntmixinguard name</@TT>: Returns the guards 
-      for the instmixin identified by name.
 
       <@li><@TT>ClassName info instnonposargs methodName</@TT>: returns list of 
       non-positional args of methodName
@@ -1216,12 +1187,12 @@ package require XOTcl
     return "Value of introspected option as a string."
 }
 
-@ Class instproc dealloc {
+@ Class instproc instdestroy {
   obj "obj/class name"
   ?args? "arguments passed to the destructor"
 } {
   Description {
-    Destroys XOTcl object physically from the memory. 
+    Standard destructor. Destroys XOTcl object physically from the memory. 
     Can be overloaded for customized destruction process.
     <@p>
     In XOTcl objects are not directly destroyed, when a destroy is
@@ -1370,7 +1341,7 @@ package require XOTcl
 
 @ Class instproc instproc {
   name "instance method name"
-  "?non-pos-args?" "optional non-positional arguments"
+  ?non-pos-args?" "optional non-positional arguments"
   args "instance method arguments"
   body "instance method body"
   "?preAssertion?" "optional assertions that must hold before the proc executes"
@@ -1402,7 +1373,7 @@ package require XOTcl
     If <@tt>-childof obj</@tt> is specified, the new object is
     created as a child of the specified object. 
   }
-  return "fully qualified name of the created instance"
+  return "new object name"
 }
 
 @ Class instproc parameter {
@@ -1461,29 +1432,18 @@ package require XOTcl
   ?args? "arbitrary arguments"
 } {
   description {
-    Hook called upon recreation of an object in cases where the user wants to distinguish
-    between creation and recreation of objects. A recreation occurs, when an Object is created
-    with a name that exists already. 
-    A typical use-case is the redefinition
-    of classes in and IDE, where the relations between classes/classes and object/classes
-    should be preserved (this is different to a destroy of the object).
-
-    <p>The method <tt>recreate</tt> does not need to call <a href='#Class-alloc'><tt>alloc</tt></a>
-    but calls instead <a href='Object-cleanup'><tt>cleanup</tt></a> 
-    to reset to the object (or class) to its initial state (e.g. remove variables, child objects,
-    for classes remove instaces, etc.). Then it performs the standard initialization
-    for the object or class. 
-
-    <p>If recreate is overloaded and the default <tt>recreate</tt> method is called via <tt>next</tt>, 
-    the pre-part
-    (before <tt>next</tt>) contains its old state of the object, 
-    while during the part after <tt>next</tt> the
-    object is cleaned up.
-    <p>To ease recreation of classes, see <tt>::xotcl::configure softrecreate</tt>.
-
-    See also: <a href='#Class-create'><@tt>create</@tt></a>
+    Methods called upon recreation of an object. Recreate is called,
+    when an object/class is created, but a same-named object/class
+    exists already. "recreate" is not called, when an object is trying
+    to be recreated as a class or vice versa. In these cases,
+    recreating is realized via destroy+create. The Methods "recreate"
+    performs standard object initialization, per default. May be
+    overloaded/-written. It calls another method cleanup which handles
+    actual cleanup of the object during next. That means, if you
+    overload recreate, in the pre-part the object still contains its
+    old state, after next it is cleaned up.
   }
-  return "fully qualified name of instance"
+  return "obj name"
 }
 
 @ Class instproc superclass {
@@ -1594,7 +1554,7 @@ package require XOTcl
     </table>
 
     <p>Example of a class definition with three attribute slots:</p>
-<pre CLASS="code">
+<@pre CLASS="code">
   <@tt>Class</tt> Person <tt>-slots</tt> {
     <tt>Attribute</tt> name
     <tt>Attribute</tt> salary <tt>-default</tt> 0

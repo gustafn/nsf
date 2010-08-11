@@ -36,6 +36,7 @@ aol_prefix		= @aol_prefix@
 # Requires native paths
 PLATFORM_DIR	= `@CYGPATH@ $(srcdir)/@TEA_PLATFORM@`
 target_doc_dir		= ./doc
+xotcl_target_doc_dir	= ./library/xotcl/doc
 
 src_lib_dir_native	= `@CYGPATH@ ${src_lib_dir}`
 src_doc_dir_native	= `@CYGPATH@ ${src_doc_dir}`
@@ -237,13 +238,13 @@ libraries-pkgindex:
 
 fulldoc: doc pdf
 # use language reference as sample file to trigger generation of documentation files
-doc: $(target_doc_dir)/langRef-xotcl.html
+doc: $(xotcl_target_doc_dir)/langRef-xotcl.html
 
-$(target_doc_dir)/langRef-xotcl.html: $(src_lib_dir)/xotcl/doc/langRef.xotcl $(XOTCL_DOC_SOURCE)
+$(xotcl_target_doc_dir)/langRef-xotcl.html: $(src_lib_dir)/xotcl/doc/langRef.xotcl $(XOTCL_DOC_SOURCE)
 	@docs=""; \
 	for i in $(XOTCL_DOC_SOURCE); do docs="$$docs `@CYGPATH@ $$i`"; done; \
 	$(TCLSH) $(src_lib_dir)/xotcl/library/lib/makeDoc.xotcl \
-		$(target_doc_dir) $$docs
+		$(xotcl_target_doc_dir) $$docs
 
 pdf:
 	-(cd $(src_doc_dir); htmldoc --webpage --format pdf14 --title \
@@ -514,7 +515,7 @@ checkstubs:
 
 clean:  
 	-rm -rf $(BINARIES) $(CLEANFILES) @NXSH@ @XOWISH@ pkgIndex.tcl ./receiver \
-		$(target_doc_dir)/*-xotcl.html
+		$(xotcl_target_doc_dir)/*-xotcl.html
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \

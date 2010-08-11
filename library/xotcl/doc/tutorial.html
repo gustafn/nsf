@@ -1,5 +1,5 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<!-- $Id: tutorial.html,v 1.16 2006/10/04 20:40:23 neumann Exp $ -->
+<!-- $Id: tutorial.html,v 1.20 2007/09/05 19:09:22 neumann Exp $ -->
 <HTML>
 <HEAD>
 	<TITLE>XOTcl - Tutorial</TITLE>
@@ -372,7 +372,7 @@ stack <tt>proc</tt> pop {} {
 
 <H3><A NAME="refining-methods"></A>&#160;<BR>Refining the behavior of objects and classes</h3>
 
-<p>So far, the definition of stacks were pretty minimal. Suppose, we want to define safe stacks, that check e.g. for stack underruns (more pop than push operations are issued).  Checking safety can be done mostly independent from the implementation details of the stack (usage of internal data structures).
+<p>So far, the definition of stacks were pretty minimal. Suppose, we want to define safe stacks, that check e.g. for stack underruns (more pop the push operations are issued).  Checking safety can be done mostly independent from the implementation details of the stack (usage of internal data structures).
 With XOTcl, one can define stack-safety as a separate class using methods with the same names as the implementations before, and "mix" this behavior later into classes or objects. The implementation of <tt>Safety</tt> uses a counter to check for stack underruns.</p>
 
 <pre CLASS="code">
@@ -412,12 +412,18 @@ a
 Stack empty!
 </pre>
 
-Note that the definition of Saftey can be used not only for instances
-of the class <tt>Stack</tt>, but for arbitrary objects supporting the
-same interface.  We can as well use <tt>Saftey</tt> to create a new
-class <tt>SafeStack</tt>. In this case, all instances of
-<tt>SafeStack</tt> have the safety property defined above.
+Note that the definition of Saftey can be used not only for instances of the class <tt>Stack</tt>, but for arbitrary objects supporting the same interface.  Therefore we could as well make the stack object <tt>stack</tt> (that we created before) safe at any time by adding the safety at arbitrary times with the method <tt>mixin</tt>, and we can remove the safety as well at any time.
 
+<pre CLASS="code">
+<it># Add Safety to the object stack</it>
+% stack mixin Safety
+...
+% stack push a
+...
+<it># remove Safety</it>
+% stack mixin {}
+</pre>
+We can as well use <tt>Saftey</tt> to create a new class <tt>SafeStack</tt>. In this case, all instances of <tt>SafeStack</tt> have the safety property defined above.
 <pre CLASS="code">
 <it>#</it>
 <it># Create a safe stack class by using Stack and mixin </it>
@@ -584,7 +590,7 @@ Now let us build to example soccer team objects.
 </p>
 <pre CLASS="code">
   SoccerTeam chelsea -name "Chelsea FC" -location "Chelsea"
-  SoccerTeam bayernMunich -name "F.C. Bayern Mnchen" -location "Munich"
+  SoccerTeam bayernMunich -name "F.C. Bayern München" -location "Munich"
 </pre>
 <p>
 
@@ -1431,15 +1437,15 @@ special room:
   <tt>Class</tt> Kitchen <tt>-superclass</tt> Room
 </pre><P>
 Now all instances of <tt>Kitchen</tt> are able to access the
-methods provided by the <tt>Room</tt> and the <tt>Kitchen</tt> classes.
+operations stored in the <tt>Room</tt>  and in the <tt>Kitchen</tt> class.
 Note the transition the kitchen was going through: firstly it was a
 singular object, then it was an object with a user-defined class,
-and now it is a class. This is possible because we can provide 
-a per-object behavior, and because classes are a special kind of objects.
-Both properties of XOTcl's object system lead to a
-seamless connection of the run-time behavior of objects
-and the descriptive properties of the classes. It is possible
-to avoid the strict distinction between objects and classes, known from static typed
+and now it is a class. This is possible (and not senseless) because
+of the per-object specialization ability and the dual shape of a
+class, which is at the same time object and class. Both lead to a
+seamless connection of the run-time properties (the object features)
+and their descriptive properties (the class features). It is possible
+to avoid the strict distinction between them, known from static typed
 languages, like C++, Java, etc. 
 </p>
 <p>Moreover, since the syntaxes of constructs expressing the same
@@ -1876,7 +1882,7 @@ defines classes that count their instances:
     <tt>my</tt> <tt>incr</tt> counter
     <tt>next</tt>
   }
-  CountedClass <tt>instproc</tt> <tt>dealloc</tt> args {
+  CountedClass <tt>instproc</tt> <tt>instdestroy</tt> args {
     <tt>my</tt> <tt>incr</tt> counter -1
     <tt>next</tt>
   }
@@ -1936,14 +1942,14 @@ and
  <em>className</em> <tt>create</tt> [<tt>self</tt>]
 </pre>
 <P>
-are used for creating an instance. A similar method <tt>dealloc</tt>
+are used for creating an instance. A similar method <tt>instdestroy</tt>
 exists on Class that handles physical destruction of an object. The
 method <tt>destroy</tt> on Object which lets an object destroy itself in fact
 has the following behavior:
 </P>
 <pre CLASS="code">
   <tt>Object</tt> <tt>instproc</tt> <tt>destroy</tt> args {
-   [<tt>my</tt> <tt>info</tt> class] <tt>dealloc</tt> [<tt>self</tt>]
+   [<tt>my</tt> <tt>info</tt> class] <tt>instdestroy</tt> [<tt>self</tt>]
   }
 </pre>
 <P>
@@ -1986,7 +1992,7 @@ is called automatically from C and has the following default behavior:
 </ul>
 <P>
 Each step has a method call that can be changed, intercepted, etc.  Of
-course, <tt>cleanup</tt>, <tt>recreate</tt>, <tt>dealloc</tt>, 
+course, <tt>cleanup</tt>, <tt>recreate</tt>, <tt>instdestroy</tt>, 
 etc. can also be overloaded or intercepted.
 </P>
 <P>

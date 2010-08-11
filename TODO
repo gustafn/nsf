@@ -982,6 +982,11 @@ new structure
 - updated migration guide, added section for callstack introspection
 - updated serializer for new names
 
+- Introduced $xotcl_target_doc_dir for generated xotcl documentation.
+  Generate xotcl documentation in this directory.
+- moved more (hopefully all) xotcl doc components into library/xotcl/doc
+  
+
 TODO: 
 - nameing
     * self/current:
@@ -1071,8 +1076,9 @@ TODO "Kleinigkeiten"
 - "Objects" im left-bar irreführend, sollten eher "Classes" sein. Allerdings sollten
   auch objekte dukumentierbar sein
 
-- doc-tools: was machen die argumenten von :? (bspw. ops?); ich nehme an, das ist work in progress.
-  sinnvoll wäre: [:?var obj varname body], da viele (die meisten) operationen auf anderen objeken ausgeführt werden
+- doc-tools: was machen die argumente von :? (bspw. ops?); ich nehme an, das ist work in progress.
+  sinnvoll wäre: [:?var obj varname body], da viele (die meisten) operationen 
+  auf anderen objeken ausgeführt werden
 
 - die Dokumentation der Objekt- und Klassenmethoden muss aus gentclapi weg
   und in predefined.tcl und xotcl2.tcl hineinwandern. Es werden nicht alle
@@ -1098,7 +1104,13 @@ TODO "Kleinigkeiten"
      XO_o_cleanup_idx, 
      XO_o_residualargs_idx,
 
-- info method pararmetersyntax not defined for classical tcl procs (needed?)
+- Either transfer documentation for xotcl from @-notation to new doc system,
+  or (maybe better) provide a renderer for @-structures to new doc system
+  infrastructure (less work).
+
+- do we need templates (such as object.html.tmpl) in installed docs 
+  (currently nx*/doc/NextLanguageCore/assets/) it is confusing, since changes
+  should be made to the templates in nx*/library/lib/doc-assets/.
 
 - copy decls for objectMethod and classMethod  as comments
   to xotcl.c, fix and check order

@@ -4,6 +4,7 @@
 config.*
 .gdb_history
 *-xotcl.html
+xo-*.html
 xotclsh
 pkgIndex.tcl
 Makefile
