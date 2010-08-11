@@ -247,7 +247,7 @@ namespace eval ::nx {
   # @param callee
   # @param args
   ::nx::core::forward Object forward ::nx::core::forward %self -per-object
-  set ::nx::core::signature(::nx::Object-method-forward) {(methodName) obj forward name ?-default default? ?-earlybinding? ?-methodprefix name? ?-objscope? ?-onerror proc? ?-verbose? target ?args?}
+  #set ::nx::core::signature(::nx::Object-method-forward) {(methodName) obj forward name ?-default default? ?-earlybinding? ?-methodprefix name? ?-objscope? ?-onerror proc? ?-verbose? target ?args?}
 
   # @method ::nx::Class#forward
   #
@@ -421,7 +421,6 @@ namespace eval ::nx {
   # initialize exit handler
   ::nx::core::unsetExitHandler
  
-  namespace export Object Class next self
 }
 
 
@@ -1399,6 +1398,8 @@ namespace eval ::nx {
     :alias import ::nx::core::importvar
     :alias set ::nx::core::setvar
   }
+
+  interp alias {} ::nx::self {} ::nx::core::current object
 }
 
 
@@ -1432,7 +1433,10 @@ namespace eval ::nx::core {
 namespace eval ::nx {
 
   # export the contents for all xotcl versions
-  namespace export Attribute current
+  namespace export Object Class next self current
+
+  # TODO should not be necessary in the future
+  namespace export Attribute
 
   # if HOME is not set, and ~ is resolved, Tcl chokes on that
   if {![info exists ::env(HOME)]} {set ::env(HOME) /root}

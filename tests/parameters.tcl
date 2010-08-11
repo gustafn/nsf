@@ -443,7 +443,7 @@ Test case subst-default {
   
   D method foo {a b {-c 1} {-d} x {-end 100}} {
     set result [list]
-    foreach v [[current class] info method args [current proc]] {
+    foreach v [[current class] info method args [current method]] {
       lappend result $v [info exists $v]
     }
     return $result
@@ -454,7 +454,7 @@ Test case subst-default {
   
   D method foo {a b c {end 100}} {
     set result [list]
-    foreach v [[current class] info method args [current proc]] {
+    foreach v [[current class] info method args [current method]] {
       lappend result $v [info exists $v]
     }
     return $result
@@ -901,7 +901,7 @@ Test case shadowing-app-converter {
 Test case slot-specfic-converter {
   Class create Person
   Person slots {
-    Attribute create sex -type "sex" {
+    ::nx::Attribute create sex -type "sex" {
       :method type=sex {name value} {
 	#puts stderr "[current] slot specific converter"
 	switch -glob $value {

@@ -162,7 +162,7 @@ Test case introspection {
 package require nx::serializer
 Test case serializer {
     Object create obj {
-        :method test {} {puts "i am [current proc]"}
+        :method test {} {puts "i am [current method]"}
     }
     set ::a [Serializer deepSerialize obj]
     #puts <<$::a>>
@@ -261,9 +261,9 @@ Test case positioning-args {
 Test case num-args {
     Object create obj {
 	:forward f %self [list %argclindex [list a b c]]
-	:method a args {return [list [current proc] $args]}
-	:method b args {return [list [current proc] $args]}
-	:method c args {return [list [current proc] $args]}
+	:method a args {return [list [current method] $args]}
+	:method b args {return [list [current method] $args]}
+	:method c args {return [list [current method] $args]}
     }
     ? {obj f} [list a {}]
     ? {obj f 1 } [list b 1]

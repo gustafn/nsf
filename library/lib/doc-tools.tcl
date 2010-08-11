@@ -798,7 +798,7 @@ namespace eval ::nx::doc {
       return $rendered
     }
     :method ?var {varname args} {
-      uplevel 1 [list :? -ops [list [::nx::core::current proc] -] \
+      uplevel 1 [list :? -ops [list [::nx::core::current method] -] \
 		     "\[info exists $varname\]" {*}$args]
     } 
     :method ? {
@@ -1051,7 +1051,7 @@ namespace eval ::nx {
   ::nx::Object create doc  {
 
     :method log {msg} {
-      puts stderr "[current]->[uplevel 1 [list ::nx::core::current proc]]: $msg"
+      puts stderr "[current]->[uplevel 1 [list ::nx::core::current method]]: $msg"
     }
 
     # @method process

@@ -6,8 +6,8 @@ Test parameter count 1
 
 Class create C {
   :alias SET ::set
-  :method foo {} {return [current proc]}
-  :method bar {} {return [current proc]}
+  :method foo {} {return [current method]}
+  :method bar {} {return [current method]}
   :method bar-foo {} {
     c1 foo
   }
@@ -62,7 +62,7 @@ C create c2
 ? {c2 bar-foo} {foo}
 
 # define a protected method
-C protected method foo {} {return [current proc]}
+C protected method foo {} {return [current method]}
 ? {::nx::core::methodproperty C SET protected} 0
 ? {c1 SET x 3} 3
 ? {::nx::core::dispatch c1 SET x 4} {4} 

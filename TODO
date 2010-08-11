@@ -110,7 +110,7 @@ vor methodName: alias forward method methodproperty setter
 - removed dependency on proc/instproc in copy/move.
    code is now independet of class system
 
-- changed resultss of "filtersearch" and "self next" to new naming
+- changed results of "filtersearch" and "self next" to new naming
    Caveat: for xotcl1, there is no mapping for the names to the
    old style in "self next" and "self filterreg"
 - backwards compatible mapping of filterseach in xotcl1
@@ -986,6 +986,9 @@ new structure
   Generate xotcl documentation in this directory.
 - moved more (hopefully all) xotcl doc components into library/xotcl/doc
   
+- added interp alias "nx::self" to "nx::core::current method"
+- changed "current proc" into "current method" in scripts and tests
+
 
 TODO: 
 - nameing
@@ -995,7 +998,7 @@ TODO:
          are always next objects
        - replace  "self proc" by "current method", etc.
        - we have "%self" as well, which is better than "%current"
-       - maybe provide alias "self" for "current object"
+       - maybe provide alias "self" for "current object" - DONE for now
 
     * .c-code:
       . rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?
@@ -1114,6 +1117,14 @@ TODO "Kleinigkeiten"
 
 - copy decls for objectMethod and classMethod  as comments
   to xotcl.c, fix and check order
+
+- don't namespace export nx::Attribute (since it is not user-visible 
+  in most cases) but define instead
+
+    interp alias {} ::xotcl::Attribute {} ::nx::Attribute
+
+  However, if we do this, "::xotcl::Class create Role -superclass Attribute"  will fail
+  => check symmetry between "interp alias" and "namespace import" for Objects
 
 - should we extract parameter decls from pseudo-comments from the c source
   each time we change .decls, we have to change the c-code as well.

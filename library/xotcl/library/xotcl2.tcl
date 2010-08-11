@@ -819,6 +819,9 @@ namespace eval ::xotcl {
   set ::xotcl::logdir $::xotcl::confdir/log
   namespace import ::nx::core::tmpdir
 
+  # if we do this, "::xotcl::Class create Role -superclass Attribute"  will fail.
+  #interp alias {} ::xotcl::Attribute {} ::nx::Attribute
+
   # finally, export contents defined for XOTcl
   namespace export Object Class Attribute myproc myvar my self next @
 }

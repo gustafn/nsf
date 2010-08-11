@@ -62,7 +62,7 @@ Test case alias-chaining {
   S create s
   
   
-  T method foo args { return [current class]->[current proc] }
+  T method foo args { return [current class]->[current method] }
   ::nx::core::alias T FOO ::nx::core::classes::T::foo 
   
   ? {t foo} ::T->foo
@@ -73,7 +73,7 @@ Test case alias-chaining {
   ? {lsort [T info methods]} {} "alias is deleted"
   
   # puts stderr "double indirection"
-  T method foo args { return [current class]->[current proc] }
+  T method foo args { return [current class]->[current method] }
   ::nx::core::alias T FOO ::nx::core::classes::T::foo 
   ::nx::core::alias S BAR ::nx::core::classes::T::FOO
   
@@ -93,7 +93,7 @@ Test case alias-chaining {
   ? {T info methods} {}
   ? {S info methods} {}
   
-  T method foo args { return [current class]->[current proc] }
+  T method foo args { return [current class]->[current method] }
   ::nx::core::alias T FOO ::nx::core::classes::T::foo 
   ::nx::core::alias S BAR ::nx::core::classes::T::FOO
   
@@ -103,8 +103,8 @@ Test case alias-chaining {
   ? {S info methods} {}
   ? {T info methods} {}
   
-  T method foo args { return [current class]->[current proc] }
-  T object method bar args { return [current class]->[current proc] }
+  T method foo args { return [current class]->[current method] }
+  T object method bar args { return [current class]->[current method] }
   ::nx::core::alias T -per-object FOO ::nx::core::classes::T::foo 
   ::nx::core::alias T -per-object BAR ::T::FOO 
   ::nx::core::alias T -per-object ZAP ::T::BAR 
@@ -140,15 +140,15 @@ Test case alias-chaining {
 Test case alias-per-object {
 
   Class create T {
-    :object method bar args { return [current class]->[current proc] }
+    :object method bar args { return [current class]->[current method] }
     :create t
   }
-  proc ::foo args { return [current class]->[current proc] }
+  proc ::foo args { return [current class]->[current method] }
 
   #
   # per-object methods as per-object aliases
   #
-  T object method m1 args { return [current class]->[current proc] }
+  T object method m1 args { return [current class]->[current method] }
   ::nx::core::alias T -per-object M1 ::T::m1 
   ::nx::core::alias T -per-object M11 ::T::M1 
   ? {lsort [T object info methods]} {M1 M11 bar m1}
@@ -166,7 +166,7 @@ Test case alias-per-object {
   # a proc as alias
   #
   
-  proc foo args { return [current class]->[current proc] }
+  proc foo args { return [current class]->[current method] }
   ::nx::core::alias T FOO1 ::foo 
   ::nx::core::alias T -per-object FOO2 ::foo
   #
@@ -190,12 +190,12 @@ Test case alias-per-object {
 # namespaced procs + namespace deletion
 Test case alias-namespaced {
   Class create T {
-    :object method bar args { return [current class]->[current proc] }
+    :object method bar args { return [current class]->[current method] }
     :create t
   }
   
   namespace eval ::ns1 {
-    proc foo args { return [current class]->[current proc] }
+    proc foo args { return [current class]->[current method] }
     proc bar args { return [uplevel 2 {set _}] }
     proc bar2 args { upvar 2 _ __; return $__}
   }
@@ -217,12 +217,12 @@ Test case alias-namespaced {
   Class create U
   U create u
   ? {namespace exists ::U} 0
-  U object method zap args { return [current class]->[current proc] }
+  U object method zap args { return [current class]->[current method] }
   ::nx::core::alias ::U -per-object ZAP ::U::zap 
   U requireNamespace
   ? {namespace exists ::U} 1
   
-  U object method bar args { return [current class]->[current proc] }
+  U object method bar args { return [current class]->[current method] }
   ::nx::core::alias U -per-object BAR ::U::bar
   ? {lsort [U object info methods]} {BAR ZAP bar zap}
   ? {U BAR} ->bar
@@ -369,7 +369,7 @@ rename ::foo ""
 #
 
 C create c
-proc ::foo args { return [current]->[current proc]}
+proc ::foo args { return [current]->[current method]}
 ? {info exists ::nx::core::alias(::C,FOO,0)} 0
 ::nx::core::alias C FOO ::foo
 ? {info exists ::nx::core::alias(::C,FOO,0)} 1
