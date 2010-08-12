@@ -1,7 +1,7 @@
 # -*- Tcl -*-
 
 package require XOTcl; namespace import ::xotcl::*
-lappend auto_path [file dirname [info script]]/..
+lappend auto_path [file dirname [info script]]/../library
 package require nx::test
 
 @ @File {
@@ -21,7 +21,7 @@ array set opt $argv
 set xotclsh [info nameofexecutable]
 set dir [file dir [info script]]
 set serverScript $dir/../apps/comm/webserver.xotcl
-set startCmd "$xotclsh $serverScript -root $dir/../doc -pkgdir $dir/.."
+set startCmd "$xotclsh $serverScript -root $dir/../doc -pkgdir $dir/../library"
 puts $startCmd
 if {$opt(-startServer)} {
   set PIPE [open "| $startCmd"]

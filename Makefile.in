@@ -36,7 +36,6 @@ aol_prefix		= @aol_prefix@
 # Requires native paths
 PLATFORM_DIR	= `@CYGPATH@ $(srcdir)/@TEA_PLATFORM@`
 target_doc_dir		= ./doc
-xotcl_target_doc_dir	= ./library/xotcl/doc
 
 src_lib_dir_native	= `@CYGPATH@ ${src_lib_dir}`
 src_doc_dir_native	= `@CYGPATH@ ${src_doc_dir}`
@@ -44,22 +43,35 @@ src_test_dir_native 	= `@CYGPATH@ ${src_test_dir}`
 src_app_dir_native	= `@CYGPATH@ ${src_app_dir}`
 src_generic_dir_native	= `@CYGPATH@ ${src_generic_dir}`
 
-libdirs		= comm lib serialize @libdirs_actiweb@
+libdirs		= lib serialize
 libsrc		= COPYRIGHT pkgIndex.tcl 
-appdirs		= comm scripts utils @apps_actiweb@
+appdirs		= 
 appsrc		= COPYRIGHT 
 
-# XOTcl documentation
-XOTCL_DOC_SOURCE = \
-	$(src_lib_dir)/xotcl/doc/langRef.xotcl \
-	$(src_lib_dir)/xotcl/library/lib/*.xotcl \
-	$(src_lib_dir)/xotcl/library/store/*.xotcl \
+# XOTcl subpackage
+xotcl_srcdir	= ${srcdir}/library/xotcl
+xotcl_src_doc_dir = ${xotcl_srcdir}/doc
+xotcl_src_app_dir = ${xotcl_srcdir}/apps
+xotcl_src_lib_dir = ${xotcl_srcdir}/library
+xotcl_src_test_dir = ${xotcl_srcdir}/tests
+xotcl_target_doc_dir = ${xotcl_srcdir}/doc
+
+xotcl_libdirs	= comm lib serialize @libdirs_actiweb@
+xotcl_libsrc	= COPYRIGHT xotcl2.tcl pkgIndex.tcl
+xotcl_appdirs	= comm scripts utils @apps_actiweb@ 
+xotcl_appsrc	= COPYRIGHT 
+
+# Documentation source for xotcl-style documentation system
+XODOC_SOURCE = \
 	$(src_lib_dir)/serialize/serializer.tcl \
-	$(src_lib_dir)/xotcl/tests/*.xotcl \
-	$(src_lib_dir)/xotcl/apps/scripts/*.xotcl \
-	$(src_lib_dir)/xotcl/apps/comm/[flsw]*.xotcl \
-	$(src_lib_dir)/xotcl/apps/actiweb/univ/UNIVERSAL.xotcl \
-	$(src_lib_dir)/xotcl/apps/utils/xo-*[a-z0-9] 
+	$(xotcl_src_doc_dir)/langRef.xotcl \
+	$(xotcl_src_lib_dir)/lib/*.xotcl \
+	$(xotcl_src_lib_dir)/store/*.xotcl \
+	$(xotcl_src_test_dir)/*.xotcl \
+	$(xotcl_src_app_dir)/scripts/*.xotcl \
+	$(xotcl_src_app_dir)/comm/[flsw]*.xotcl \
+	$(xotcl_src_app_dir)/actiweb/univ/UNIVERSAL.xotcl \
+	$(xotcl_src_app_dir)/utils/xo-*[a-z0-9] 
 
 #export TCLLIBPATH=. ${srcdir}
 mkinstalldirs= mkdir -p
@@ -163,6 +175,8 @@ pkgdatadir	= @pkgdatadir@
 pkglibdir	= @pkglibdir@
 pkgincludedir	= @pkgincludedir@
 
+xotcl_pkglibdir	= @pkglibdir@/xotcl
+
 # NXSH = @NXSH@
 
 #========================================================================
@@ -240,10 +254,10 @@ fulldoc: doc pdf
 # use language reference as sample file to trigger generation of documentation files
 doc: $(xotcl_target_doc_dir)/langRef-xotcl.html
 
-$(xotcl_target_doc_dir)/langRef-xotcl.html: $(src_lib_dir)/xotcl/doc/langRef.xotcl $(XOTCL_DOC_SOURCE)
+$(xotcl_target_doc_dir)/langRef-xotcl.html: $(xotcl_src_doc_dir)/langRef.xotcl $(XODOC_SOURCE)
 	@docs=""; \
-	for i in $(XOTCL_DOC_SOURCE); do docs="$$docs `@CYGPATH@ $$i`"; done; \
-	$(TCLSH) $(src_lib_dir)/xotcl/library/lib/makeDoc.xotcl \
+	for i in $(XODOC_SOURCE); do docs="$$docs `@CYGPATH@ $$i`"; done; \
+	$(TCLSH) $(xotcl_src_lib_dir)/lib/makeDoc.xotcl \
 		$(xotcl_target_doc_dir) $$docs
 
 pdf:
@@ -252,7 +266,7 @@ pdf:
 	-(cd $(src_doc_dir); htmldoc --webpage --format pdf14  \
 		-f langRef-xotcl.pdf langRef-xotcl.html )
 
-install: install-binaries install-shells install-libraries install-doc
+install: install-binaries install-shells install-libraries install-doc install-xotcl-libraries
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
@@ -260,7 +274,7 @@ install: install-binaries install-shells install-libraries install-doc
 
 install-binaries: binaries install-lib-binaries install-bin-binaries install-pkgIndex
 
-install-aol: install-binaries install-libraries
+install-aol: install-binaries install-libraries install-xotcl-libraries
 	$(INSTALL) $(src_generic_dir)/aol-xotcl.tcl \
 		$(DESTDIR)/$(aol_prefix)/tcl/xotcl.tcl
 
@@ -291,32 +305,54 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 	done;
 	cat unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
 	$(INSTALL_DATA) xotclConfig.sh $(DESTDIR)$(libdir)/
-	@echo "Installing Applications to $(DESTDIR)$(pkglibdir)/apps/"
-	@for i in $(appdirs) ; do \
-	    echo "    Installing $$i/" ; \
-	    rm -rf $(DESTDIR)$(pkglibdir)/apps/$$i ; \
-	    mkdir -p $(DESTDIR)$(pkglibdir)/apps/$$i; \
-	    chmod 755 $(DESTDIR)$(pkglibdir)/apps/$$i; \
+
+install-xotcl-libraries: install-libraries $(DESTDIR)$(pkglibdir)
+	@echo "Installing XOTcl Libraries to $(DESTDIR)$(xotcl_pkglibdir)/"
+	@rm -rf $(DESTDIR)$(xotcl_pkglibdir)
+	@mkdir -p $(DESTDIR)$(xotcl_pkglibdir)
+	@chmod 755 $(DESTDIR)$(xotcl_pkglibdir)
+	@for i in $(xotcl_libdirs) ; do \
+	    echo "    Installing library $$i/" ; \
+	    rm -rf $(DESTDIR)$(xotcl_pkglibdir)/$$i ; \
+	    mkdir -p $(DESTDIR)$(xotcl_pkglibdir)/$$i; \
+	    chmod 755 $(DESTDIR)$(xotcl_pkglibdir)/$$i; \
+	    for j in $(xotcl_src_lib_dir)/$$i/*.*tcl ; do \
+		$(INSTALL_DATA) $$j $(DESTDIR)$(xotcl_pkglibdir)/$$i/; \
+	    done; \
+	done;
+	@for i in $(xotcl_libsrc) ; do \
+	    echo "    Installing $$i" ; \
+	    rm -rf $(DESTDIR)$(xotcl_pkglibdir)/$$i ; \
+	    $(INSTALL_DATA) $(xotcl_src_lib_dir)/$$i $(DESTDIR)$(xotcl_pkglibdir)/$$i ; \
+	done;
+
+install-xotcl-apps: install-xotcl-libraries
+	@echo "Installing Applications to $(DESTDIR)$(xotcl_pkglibdir)/apps/"
+	@for i in $(xotcl_appdirs) ; do \
+	    echo "    Installing apps $$i/" ; \
+	    rm -rf $(DESTDIR)$(xotcl_pkglibdir)/apps/$$i ; \
+	    mkdir -p $(DESTDIR)$(xotcl_pkglibdir)/apps/$$i; \
+	    chmod 755 $(DESTDIR)$(xotcl_pkglibdir)/apps/$$i; \
 	    for j in $(src_app_dir)/$$i/* ; do \
 		if test -d $$j; then \
-		    mkdir -p $(DESTDIR)$(pkglibdir)/$$j; \
-		    chmod 755 $(DESTDIR)$(pkglibdir)/$$j; \
+		    mkdir -p $(DESTDIR)$(xotcl_pkglibdir)/$$j; \
+		    chmod 755 $(DESTDIR)$(xotcl_pkglibdir)/$$j; \
 		    for k in $$j/* ; do \
-			$(INSTALL) $$k $(DESTDIR)$(pkglibdir)/$$j ; \
+			$(INSTALL) $$k $(DESTDIR)$(xotcl_pkglibdir)/$$j ; \
 		done; \
 		else \
-		$(INSTALL) $$j $(DESTDIR)$(pkglibdir)/apps/$$i/; \
+		$(INSTALL) $$j $(DESTDIR)$(xotcl_pkglibdir)/apps/$$i/; \
 		fi; \
 	    done; \
 	done;
-	@for i in $(appsrc) ; do \
+	@for i in $(xotcl_appsrc) ; do \
 	    echo "    Installing $$i" ; \
-	    rm -rf $(DESTDIR)$(pkglibdir)/apps/$$i ; \
-	    $(INSTALL_DATA) $(src_app_dir)/$$i $(DESTDIR)$(pkglibdir)/apps ; \
+	    rm -rf $(DESTDIR)$(xotcl_pkglibdir)/apps/$$i ; \
+	    $(INSTALL_DATA) $(src_app_dir)/$$i $(DESTDIR)$(xotcl_pkglibdir)/apps ; \
 	done;
-	@rm -rf $(DESTDIR)$(pkglibdir)/store/XOTclGdbm
-	@rm -rf $(DESTDIR)$(pkglibdir)/store/XOTclSdbm
-	@rm -rf $(DESTDIR)$(pkglibdir)/xml/TclExpat-1.1
+	@rm -rf $(DESTDIR)$(xotcl_pkglibdir)/store/XOTclGdbm
+	@rm -rf $(DESTDIR)$(xotcl_pkglibdir)/store/XOTclSdbm
+	@rm -rf $(DESTDIR)$(xotcl_pkglibdir)/xml/TclExpat-1.1
 
 #========================================================================
 # Install documentation.  Unix manpages should go in the $(DESTDIR)$(mandir)
@@ -360,19 +396,19 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/mixinoftest.tcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-xotcl: $(TCLSH_PROG)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/speedtest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/testx.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/slottest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/tests/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/tests/speedtest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/tests/testx.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/tests/slottest.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-http: $(TCLSH_PROG)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/xocomm.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/tests/xocomm.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-actiweb: $(TCLSH_PROG)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/actiweb.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/persistence.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/UNIVERSAL.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
-	$(TCLSH) $(src_lib_dir)/xotcl/tests/xoRDF.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/tests/actiweb.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/tests/persistence.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/tests/UNIVERSAL.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(xotcl_src_test_dir)/tests/xoRDF.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	@rm -rf receiver
 
 depend:
