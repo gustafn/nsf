@@ -108,8 +108,8 @@ namespace eval ::nx::doc {
     # comment blocks.
  
     :method behind? {error_msg} {
-      return [expr {[::nx::core::is $error_msg object] && \
-			[::nx::core::is $error_msg type [current]]}]
+      return [expr {[::nsf::is $error_msg object] && \
+			[::nsf::is $error_msg type [current]]}]
     }
     
     # @method thrown_by?
@@ -222,7 +222,7 @@ namespace eval ::nx::doc {
       # @return The identifier of the newly generated or resolved entity object
       # @see {{@method id}}
       namespace eval $id {}
-      if {[::nx::core::objectproperty $id object]} {
+      if {[::nsf::objectproperty $id object]} {
 	$id configure {*}$args
       } else {
 	:create $id {*}$args
@@ -302,8 +302,8 @@ namespace eval ::nx::doc {
     
     :method require_part {domain prop value} {
       if {[info exists :part_class]} {
-	if {[::nx::core::is $value object] && \
-		[::nx::core::is $value type ${:part_class}]} {
+	if {[::nsf::is $value object] && \
+		[::nsf::is $value type ${:part_class}]} {
 	  return $value
 	}
 	return  [${:part_class} new \
@@ -369,9 +369,9 @@ namespace eval ::nx::doc {
       if {$use ne ""} {
 	foreach thing {@command @object} {
 	  set docobj [$thing id $use]
-	  if {[::nx::core::objectproperty $docobj object]} break
+	  if {[::nsf::objectproperty $docobj object]} break
 	}
-	if {[::nx::core::objectproperty $docobj object]} {
+	if {[::nsf::objectproperty $docobj object]} {
 	  if {![$docobj eval [list info exists :$what]]} {error "no attribute $what in $docobj"}
 	  set names [list]
 	  foreach v [$docobj $what] {
@@ -501,7 +501,7 @@ namespace eval ::nx::doc {
 	    # requested (from the part_attribute) applicable to the
 	    # partof object, which is the object behind [$domain name]?
 	    if {[info exists :scope] && 
-		![::nx::core::objectproperty [$domain name] ${:scope}]} {
+		![::nsf::objectproperty [$domain name] ${:scope}]} {
 	      error "The object '[$domain name]' does not qualify as '[$part_attribute scope]'"
 	    }
 	    next
@@ -518,8 +518,8 @@ namespace eval ::nx::doc {
 	  if {[${:name} info is class]} {
 	    set inherited [dict create]
 	    foreach c [lreverse [${:name} info heritage]] {
-	      set entity [[::nx::core::current class] id $c]
-	      if {![::nx::core::is $entity object]} continue
+	      set entity [[::nsf::current class] id $c]
+	      if {![::nsf::is $entity object]} continue
 	      if {[$entity eval [list info exists :${member}]]} {
 		dict set inherited $entity [$entity $member]
 	      }
@@ -530,7 +530,7 @@ namespace eval ::nx::doc {
 
 	:method undocumented {} {
 	  # TODO: for object methods and class methods
-	  if {![::nx::core::objectproperty ${:name} object]} {return ""}
+	  if {![::nsf::objectproperty ${:name} object]} {return ""}
 	  foreach m [${:name} info methods] {set available_method($m) 1}
 	  set methods ${:@method}
 	  if {[info exists :@param]} {set methods [concat ${:@method} ${:@param}]}
@@ -632,7 +632,7 @@ namespace eval ::nx::doc {
 	    # documentaion quality check: is documentation in sync with implementation?
 	    # TODO: make me conditional, MARKUP should be in templates
 	    set object [${:partof} name] 
-	    if {[::nx::core::objectproperty $object object]} {
+	    if {[::nsf::objectproperty $object object]} {
 	      if {[$object info methods ${:name}] ne ""} {
 		set actualParams ""
 		if {[$object info method type ${:name}] eq "forward"} {
@@ -643,7 +643,7 @@ namespace eval ::nx::doc {
 		      break
 		    }
 		  }
-		    if {$cmd ne "" && [string match ::nx::core::* $cmd]} {
+		    if {$cmd ne "" && [string match ::nsf::* $cmd]} {
 		    # TODO: we assume here, the cmd is a primitive
 		    # command and we intend only to handle cases from
 		    # predefined or xotcl2. Make sure this is working
@@ -662,7 +662,7 @@ namespace eval ::nx::doc {
 		    }
 		  }
 		  set comment "<span style='color: orange'>Defined as a forwarder, can't check</span>"
-		  #set handle ::nx::core::signature($object-class-${:name})
+		  #set handle ::nsf::signature($object-class-${:name})
 		  #if {[info exists $handle]} {append comment <br>[set $handle]}
 		} else {
 		  set actualParams [$object info method parameter ${:name}]
@@ -773,7 +773,7 @@ namespace eval ::nx::doc {
       {entity:substdefault "[current]"}
     } {
       # Here, we assume the -nonleaf mode being active for {{{[eval]}}}.
-      set tmplscript [list subst [[::nx::core::current class] read_tmpl $template]]
+      set tmplscript [list subst [[::nsf::current class] read_tmpl $template]]
       $entity eval [subst -nocommands {
 	$initscript
 	$tmplscript
@@ -798,7 +798,7 @@ namespace eval ::nx::doc {
       return $rendered
     }
     :method ?var {varname args} {
-      uplevel 1 [list :? -ops [list [::nx::core::current method] -] \
+      uplevel 1 [list :? -ops [list [::nsf::current method] -] \
 		     "\[info exists $varname\]" {*}$args]
     } 
     :method ? {
@@ -829,7 +829,7 @@ namespace eval ::nx::doc {
     }
     
     :method include {template} {
-      uplevel 1 [list subst [[::nx::core::current class] read_tmpl $template]]
+      uplevel 1 [list subst [[::nsf::current class] read_tmpl $template]]
     }
 
     #
@@ -888,7 +888,7 @@ namespace eval ::nx::doc {
 
     :method link {entity_type args} {
       set id [$entity_type id {*}$args]
-      if {![::nx::core::is $id object]} return;
+      if {![::nsf::is $id object]} return;
       set pof ""
       if {[$id info is type ::nx::doc::Part]} {
 	set pof "[[$id partof] name]#"
@@ -1051,7 +1051,7 @@ namespace eval ::nx {
   ::nx::Object create doc  {
 
     :method log {msg} {
-      puts stderr "[current]->[uplevel 1 [list ::nx::core::current method]]: $msg"
+      puts stderr "[current]->[uplevel 1 [list ::nsf::current method]]: $msg"
     }
 
     # @method process
@@ -1066,7 +1066,7 @@ namespace eval ::nx {
     # 
     :method process {{-noeval false} thing args} {
       # 1) in-situ processing: a class object
-      if {[::nx::core::objectproperty $thing object]} {
+      if {[::nsf::objectproperty $thing object]} {
 	if {[$thing eval {info exists :__initcmd}]} {
           :analyze_initcmd @object $thing [$thing eval {set :__initcmd}]
         }
@@ -1080,14 +1080,14 @@ namespace eval ::nx {
 	  ::nx::Class create SourcingTracker {
 	    :method create args {
 	      set obj [next];
-	      #[::nx::core::current class] eval {
+	      #[::nsf::current class] eval {
 	      # if {![info exists :scripts([info script])]} {
 	      #dict create :scripts
 	      #dict set :scripts [info script] objects 
 	      #	}
 	      #}
 	      #puts stderr "dict lappend :scripts([info script]) objects [current]"
-	      [::nx::core::current class] eval [list dict set :scripts [info script] objects \$obj _]
+	      [::nsf::current class] eval [list dict set :scripts [info script] objects \$obj _]
 	      return \$obj
 	    }
 	  }
@@ -1170,7 +1170,7 @@ namespace eval ::nx {
       # initcmds and method bodies.
       foreach addition $additions {
 	# TODO: for now, we skip over pure Tcl commands and procs
-	if {![::nx::core::is $addition object]} continue;
+	if {![::nsf::is $addition object]} continue;
 	:process [namespace origin $addition]
       }
     }
@@ -1267,7 +1267,7 @@ namespace eval ::nx {
     
     
     # activate the recoding of initcmds
-    ::nx::core::configure keepinitcmd true
+    ::nsf::configure keepinitcmd true
     
   }
 }
@@ -1446,7 +1446,7 @@ namespace eval ::nx::doc {
 	  set partof_entity [$entity_type id $qualifier]
 	  # TODO: Also, we expect the qualifier to resolve against an
 	  # already existing entity object? Is this intended?
-	  if {[::nx::core::is $partof_entity object]} {
+	  if {[::nsf::is $partof_entity object]} {
 	    return [list $nq_name $partof_entity]
 	  }
 	}
@@ -1582,7 +1582,7 @@ namespace eval ::nx::doc {
     }
 
     :method map {line set} {
-      set line [string map [[::nx::core::current class] eval [list set :markup_map($set)]] $line]
+      set line [string map [[::nsf::current class] eval [list set :markup_map($set)]] $line]
     }
 
   }

@@ -24,9 +24,9 @@ C create c2
 ? {c1 bar-SET} {1}
 ? {c1 bar-foo} {foo}
 
-::nx::core::methodproperty C SET protected true
+::nsf::methodproperty C SET protected true
 ? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
-? {::nx::core::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
+? {::nsf::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
 ? {c1 foo} {foo}
 ? {c1 bar} {bar}
 ? {c1 bar-SET} {1}
@@ -34,9 +34,9 @@ C create c2
 ? {catch {c2 bar-SET} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
 ? {c2 bar-foo} {foo}
 
-::nx::core::methodproperty C foo protected true
+::nsf::methodproperty C foo protected true
 ? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
-? {::nx::core::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
+? {::nsf::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
 ? {c1 bar} {bar} "other method work"
 ? {catch {c1 foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 ? {c1 bar-SET} {1} "internal call of protected C implementend method"
@@ -45,15 +45,15 @@ C create c2
 ? {catch {c2 bar-foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 
 # unset protected
-? {::nx::core::methodproperty C SET protected} 1
-::nx::core::methodproperty C SET protected false
-? {::nx::core::methodproperty C SET protected} 0
-? {::nx::core::methodproperty C foo protected} 1
-::nx::core::methodproperty C foo protected false
-? {::nx::core::methodproperty C foo protected} 0
+? {::nsf::methodproperty C SET protected} 1
+::nsf::methodproperty C SET protected false
+? {::nsf::methodproperty C SET protected} 0
+? {::nsf::methodproperty C foo protected} 1
+::nsf::methodproperty C foo protected false
+? {::nsf::methodproperty C foo protected} 0
 
 ? {c1 SET x 3} 3
-? {::nx::core::dispatch c1 SET x 2} {2} 
+? {::nsf::dispatch c1 SET x 2} {2} 
 ? {c1 foo} {foo}
 ? {c1 bar} {bar}
 ? {c1 bar-SET} {1}
@@ -63,9 +63,9 @@ C create c2
 
 # define a protected method
 C protected method foo {} {return [current method]}
-? {::nx::core::methodproperty C SET protected} 0
+? {::nsf::methodproperty C SET protected} 0
 ? {c1 SET x 3} 3
-? {::nx::core::dispatch c1 SET x 4} {4} 
+? {::nsf::dispatch c1 SET x 4} {4} 
 ? {catch {c1 foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 ? {c1 bar} {bar}
 ? {c1 bar-SET} {1}
@@ -73,17 +73,17 @@ C protected method foo {} {return [current method]}
 ? {c2 bar-SET} 1
 ? {catch {c2 bar-foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 
-? {::nx::core::methodproperty C SET redefine-protected true} 1
+? {::nsf::methodproperty C SET redefine-protected true} 1
 ? {catch {C method SET {a b c} {...}}  errorMsg; set errorMsg} \
     {Method 'SET' of ::C can not be overwritten. Derive e.g. a sub-class!}
-? {::nx::core::methodproperty C foo redefine-protected true} 1
+? {::nsf::methodproperty C foo redefine-protected true} 1
 ? {catch {C method foo {a b c} {...}}  errorMsg; set errorMsg} \
     {Method 'foo' of ::C can not be overwritten. Derive e.g. a sub-class!}
 # check a predefined protection
 ? {catch {::nx::Class method dealloc {a b c} {...}}  errorMsg; set errorMsg} \
     {Method 'dealloc' of ::nx::Class can not be overwritten. Derive e.g. a sub-class!}
 # try to redefined via alias
-? {catch {::nx::core::alias Class dealloc ::set}  errorMsg; set errorMsg} \
+? {catch {::nsf::alias Class dealloc ::set}  errorMsg; set errorMsg} \
     {Method 'dealloc' of ::nx::Class can not be overwritten. Derive e.g. a sub-class!}
 # try to redefine via forward
 ? {catch {C forward SET ::set}  errorMsg; set errorMsg} \
@@ -95,7 +95,7 @@ C protected method foo {} {return [current method]}
 # overwrite-protect object specific method
 Object create o
 o method foo {} {return 13}
-::nx::core::methodproperty o foo redefine-protected true
+::nsf::methodproperty o foo redefine-protected true
 ? {catch {o method foo {} {return 14}} errorMsg; set errorMsg} \
     {Method 'foo' of ::o can not be overwritten. Derive e.g. a sub-class!}
 

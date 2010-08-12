@@ -989,6 +989,8 @@ new structure
 - added interp alias "nx::self" to "nx::core::current method"
 - changed "current proc" into "current method" in scripts and tests
 
+- file extension for next scripting .tcl DONE
+
 
 TODO: 
 - nameing
@@ -1010,7 +1012,6 @@ TODO:
       . prefix for symbols (XO->NX ?)
       . library nameing libnext* or libnx*
 
-    * file extension for next scripting .tcl
     * namespace prefix 
        next scripting language: ::nx::*
        next scripting framework: ::nx::core::*
@@ -1061,6 +1062,14 @@ TODO "Kleinigkeiten"
    * Object.method
    * Object->method
    * Object#method
+
+- handling namespaces in documentation 
+     # @object ::nx::Slot
+  vs. 
+     # @object Slot
+  (best allow both variants, write fully qualified name via introspection)
+- why only @object? there seems to be no @class. what to do with metaclasses?
+
 - systematic way of specifying results of methods
 - systematic way of reporting results in documentation
 - reduce indenting for code examples in documentation (high indentation makes readability worse).

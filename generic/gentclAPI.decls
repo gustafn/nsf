@@ -18,12 +18,12 @@
 
 # namespaces for types of methods
 array set ns {
-  xotclCmd    "::nx::core"
-  objectMethod "::nx::core::cmd::Object"
-  classMethod  "::nx::core::cmd::Class"
-  checkMethod  "::nx::core::cmd::ParameterType"
-  infoClassMethod  "::nx::core::cmd::ClassInfo"
-  infoObjectMethod  "::nx::core::cmd::ObjectInfo"
+  xotclCmd    "::nsf"
+  objectMethod "::nsf::cmd::Object"
+  classMethod  "::nsf::cmd::Class"
+  checkMethod  "::nsf::cmd::ParameterType"
+  infoClassMethod  "::nsf::cmd::ClassInfo"
+  infoObjectMethod  "::nsf::cmd::ObjectInfo"
 }
 
 #
@@ -43,13 +43,13 @@ xotclCmd assertion XOTclAssertionCmd {
   {-argName "arg" -required 0 -type tclobj}
 }
 
-# @command ::nx::core::configure
+# @command ::nsf::configure
 # 
 # A top-level configuration facility which allows you modify
 # properties of the "Next" object system for the scope of an entire
 # {{{interp}}}.
 
-# @subcommand ::nx::core::configure#filter
+# @subcommand ::nsf::configure#filter
 #
 # Allows turning on or off filters globally for the current
 # interpreter. By default, the filter state is turned off. This
@@ -60,7 +60,7 @@ xotclCmd assertion XOTclAssertionCmd {
 # @param toggle Accepts either "on" or "off"
 # @return The current filter activation state
 
-# @subcommand ::nx::core::configure#softrecreate
+# @subcommand ::nsf::configure#softrecreate
 # 
 # Allows controlling the scheme applied when recreating an object or a
 # class. By default, it is set to {{{off}}}. This means that the
@@ -84,19 +84,19 @@ xotclCmd assertion XOTclAssertionCmd {
 # @return The current toggle value
 
 
-# @subcommand ::nx::core::configure#objectsystems
+# @subcommand ::nsf::configure#objectsystems
 # 
 # A mere introspection subcommand. It gives you the top level of the
 # current object system, i.e., the ruling root class and root
 # meta-class. For "Next":
 #
 # {{{
-#	::nx::core::configure objectsystems; # returns "::nx::Object ::nx::Class"
+#	::nsf::configure objectsystems; # returns "::nx::Object ::nx::Class"
 # }}}
 #
 # @return The active pair of root class and root meta-class
 
-# @subcommand ::nx::core::configure#keepinitcmd
+# @subcommand ::nsf::configure#keepinitcmd
 #
 # Usually, initcmd scripts are discarded by the {{{interp}}} once
 # having been evaluated (in contrast to {{{proc}}} and {{{method}}}
@@ -327,7 +327,7 @@ objectMethod autoname XOTclOAutonameMethod {
 # participates in recreating objects, i.e, it is called during the
 # recreation process by {{@method ::nx::Class class recreate}}.
 # Depending on the recreation scheme applied (see {{@command
-# ::nx::core::configure}}, object variables are deleted, per-object
+# ::nsf::configure}}, object variables are deleted, per-object
 # namespaces are cleared, and the object's relationsships (e.g., mixin
 # relations) are reset.
 # 
@@ -669,7 +669,7 @@ classMethod dealloc XOTclCDeallocMethod {
 # }}}
 #
 # This will provide object identifiers of the form
-# e.g. {{{::nx::core::__#0}}}. In contrast to {{@method ::nx::Object class autoname}},
+# e.g. {{{::nsf::__#0}}}. In contrast to {{@method ::nx::Object class autoname}},
 # the uniqueness of auto-generated identifiers is guaranteed for the
 # scope of the {{{interp}}}.
 #

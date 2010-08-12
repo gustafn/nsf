@@ -128,11 +128,11 @@ static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *orig
 static methodDefinition method_definitions[];
   
 static CONST char *method_command_namespace_names[] = {
-  "::nx::core::cmd::ObjectInfo",
-  "::nx::core::cmd::Object",
-  "::nx::core::cmd::ClassInfo",
-  "::nx::core::cmd::ParameterType",
-  "::nx::core::cmd::Class"
+  "::nsf::cmd::ObjectInfo",
+  "::nsf::cmd::Object",
+  "::nsf::cmd::ClassInfo",
+  "::nsf::cmd::ParameterType",
+  "::nsf::cmd::Class"
 };
 static int XOTclCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -1912,64 +1912,64 @@ XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 }
 
 static methodDefinition method_definitions[] = {
-{"::nx::core::cmd::Class::alloc", XOTclCAllocMethodStub, 1, {
+{"::nsf::cmd::Class::alloc", XOTclCAllocMethodStub, 1, {
   {"name", 1, 0, convertToTclobj}}
 },
-{"::nx::core::cmd::Class::create", XOTclCCreateMethodStub, 2, {
+{"::nsf::cmd::Class::create", XOTclCCreateMethodStub, 2, {
   {"name", 1, 0, convertToString},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::cmd::Class::dealloc", XOTclCDeallocMethodStub, 1, {
+{"::nsf::cmd::Class::dealloc", XOTclCDeallocMethodStub, 1, {
   {"object", 1, 0, convertToTclobj}}
 },
-{"::nx::core::cmd::Class::filterguard", XOTclCFilterGuardMethodStub, 2, {
+{"::nsf::cmd::Class::filterguard", XOTclCFilterGuardMethodStub, 2, {
   {"filter", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::nx::core::cmd::Class::__invalidateobjectparameter", XOTclCInvalidateObjectParameterMethodStub, 0, {
+{"::nsf::cmd::Class::__invalidateobjectparameter", XOTclCInvalidateObjectParameterMethodStub, 0, {
   }
 },
-{"::nx::core::cmd::Class::mixinguard", XOTclCMixinGuardMethodStub, 2, {
+{"::nsf::cmd::Class::mixinguard", XOTclCMixinGuardMethodStub, 2, {
   {"mixin", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::nx::core::cmd::Class::new", XOTclCNewMethodStub, 2, {
+{"::nsf::cmd::Class::new", XOTclCNewMethodStub, 2, {
   {"-childof", 0, 1, convertToObject},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::cmd::Class::recreate", XOTclCRecreateMethodStub, 2, {
+{"::nsf::cmd::Class::recreate", XOTclCRecreateMethodStub, 2, {
   {"name", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::cmd::ClassInfo::filter", XOTclClassInfoFilterMethodStub, 3, {
+{"::nsf::cmd::ClassInfo::filter", XOTclClassInfoFilterMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ClassInfo::filterguard", XOTclClassInfoFilterguardMethodStub, 2, {
+{"::nsf::cmd::ClassInfo::filterguard", XOTclClassInfoFilterguardMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"filter", 1, 0, convertToString}}
 },
-{"::nx::core::cmd::ClassInfo::forward", XOTclClassInfoForwardMethodStub, 3, {
+{"::nsf::cmd::ClassInfo::forward", XOTclClassInfoForwardMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-definition", 0, 0, convertToString},
   {"name", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ClassInfo::heritage", XOTclClassInfoHeritageMethodStub, 2, {
+{"::nsf::cmd::ClassInfo::heritage", XOTclClassInfoHeritageMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ClassInfo::instances", XOTclClassInfoInstancesMethodStub, 3, {
+{"::nsf::cmd::ClassInfo::instances", XOTclClassInfoInstancesMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::nx::core::cmd::ClassInfo::method", XOTclClassInfoMethodMethodStub, 3, {
+{"::nsf::cmd::ClassInfo::method", XOTclClassInfoMethodMethodStub, 3, {
   {"class", 0, 0, convertToClass},
   {"infomethodsubcmd", 0, 0, convertToInfomethodsubcmd},
   {"name", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ClassInfo::methods", XOTclClassInfoMethodsMethodStub, 6, {
+{"::nsf::cmd::ClassInfo::methods", XOTclClassInfoMethodsMethodStub, 6, {
   {"object", 0, 0, convertToClass},
   {"-methodtype", 0, 1, convertToMethodtype},
   {"-callprotection", 0, 1, convertToCallprotection},
@@ -1977,36 +1977,36 @@ static methodDefinition method_definitions[] = {
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ClassInfo::mixin", XOTclClassInfoMixinMethodStub, 4, {
+{"::nsf::cmd::ClassInfo::mixin", XOTclClassInfoMixinMethodStub, 4, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::nx::core::cmd::ClassInfo::mixinof", XOTclClassInfoMixinOfMethodStub, 4, {
+{"::nsf::cmd::ClassInfo::mixinof", XOTclClassInfoMixinOfMethodStub, 4, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"-scope", 0, 1, convertToScope},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::nx::core::cmd::ClassInfo::mixinguard", XOTclClassInfoMixinguardMethodStub, 2, {
+{"::nsf::cmd::ClassInfo::mixinguard", XOTclClassInfoMixinguardMethodStub, 2, {
   {"class", 1, 0, convertToClass},
   {"mixin", 1, 0, convertToString}}
 },
-{"::nx::core::cmd::ClassInfo::slots", XOTclClassInfoSlotsMethodStub, 1, {
+{"::nsf::cmd::ClassInfo::slots", XOTclClassInfoSlotsMethodStub, 1, {
   {"class", 1, 0, convertToClass}}
 },
-{"::nx::core::cmd::ClassInfo::subclass", XOTclClassInfoSubclassMethodStub, 3, {
+{"::nsf::cmd::ClassInfo::subclass", XOTclClassInfoSubclassMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::nx::core::cmd::ClassInfo::superclass", XOTclClassInfoSuperclassMethodStub, 3, {
+{"::nsf::cmd::ClassInfo::superclass", XOTclClassInfoSuperclassMethodStub, 3, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToTclobj}}
 },
-{"::nx::core::cmd::ObjectInfo::callable", XOTclObjInfoCallableMethodStub, 8, {
+{"::nsf::cmd::ObjectInfo::callable", XOTclObjInfoCallableMethodStub, 8, {
   {"object", 0, 0, convertToObject},
   {"-which", 0, 0, convertToString},
   {"-methodtype", 0, 1, convertToMethodtype},
@@ -2016,37 +2016,37 @@ static methodDefinition method_definitions[] = {
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ObjectInfo::children", XOTclObjInfoChildrenMethodStub, 2, {
+{"::nsf::cmd::ObjectInfo::children", XOTclObjInfoChildrenMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ObjectInfo::class", XOTclObjInfoClassMethodStub, 1, {
+{"::nsf::cmd::ObjectInfo::class", XOTclObjInfoClassMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::nx::core::cmd::ObjectInfo::filter", XOTclObjInfoFilterMethodStub, 4, {
+{"::nsf::cmd::ObjectInfo::filter", XOTclObjInfoFilterMethodStub, 4, {
   {"object", 1, 0, convertToObject},
   {"-order", 0, 0, convertToString},
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ObjectInfo::filterguard", XOTclObjInfoFilterguardMethodStub, 2, {
+{"::nsf::cmd::ObjectInfo::filterguard", XOTclObjInfoFilterguardMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"filter", 1, 0, convertToString}}
 },
-{"::nx::core::cmd::ObjectInfo::forward", XOTclObjInfoForwardMethodStub, 3, {
+{"::nsf::cmd::ObjectInfo::forward", XOTclObjInfoForwardMethodStub, 3, {
   {"object", 1, 0, convertToObject},
   {"-definition", 0, 0, convertToString},
   {"name", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ObjectInfo::hasnamespace", XOTclObjInfoHasnamespaceMethodStub, 1, {
+{"::nsf::cmd::ObjectInfo::hasnamespace", XOTclObjInfoHasnamespaceMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::nx::core::cmd::ObjectInfo::method", XOTclObjInfoMethodMethodStub, 3, {
+{"::nsf::cmd::ObjectInfo::method", XOTclObjInfoMethodMethodStub, 3, {
   {"object", 0, 0, convertToObject},
   {"infomethodsubcmd", 0, 0, convertToInfomethodsubcmd},
   {"name", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, 6, {
+{"::nsf::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, 6, {
   {"object", 0, 0, convertToObject},
   {"-methodtype", 0, 1, convertToMethodtype},
   {"-callprotection", 0, 1, convertToCallprotection},
@@ -2054,85 +2054,85 @@ static methodDefinition method_definitions[] = {
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ObjectInfo::mixin", XOTclObjInfoMixinMethodStub, 4, {
+{"::nsf::cmd::ObjectInfo::mixin", XOTclObjInfoMixinMethodStub, 4, {
   {"object", 1, 0, convertToObject},
   {"-guards", 0, 0, convertToString},
   {"-order", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::nx::core::cmd::ObjectInfo::mixinguard", XOTclObjInfoMixinguardMethodStub, 2, {
+{"::nsf::cmd::ObjectInfo::mixinguard", XOTclObjInfoMixinguardMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"mixin", 1, 0, convertToString}}
 },
-{"::nx::core::cmd::ObjectInfo::parent", XOTclObjInfoParentMethodStub, 1, {
+{"::nsf::cmd::ObjectInfo::parent", XOTclObjInfoParentMethodStub, 1, {
   {"object", 1, 0, convertToObject}}
 },
-{"::nx::core::cmd::ObjectInfo::precedence", XOTclObjInfoPrecedenceMethodStub, 3, {
+{"::nsf::cmd::ObjectInfo::precedence", XOTclObjInfoPrecedenceMethodStub, 3, {
   {"object", 1, 0, convertToObject},
   {"-intrinsic", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ObjectInfo::slotobjects", XOTclObjInfoSlotObjectsMethodStub, 2, {
+{"::nsf::cmd::ObjectInfo::slotobjects", XOTclObjInfoSlotObjectsMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::ObjectInfo::vars", XOTclObjInfoVarsMethodStub, 2, {
+{"::nsf::cmd::ObjectInfo::vars", XOTclObjInfoVarsMethodStub, 2, {
   {"object", 1, 0, convertToObject},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nx::core::cmd::Object::autoname", XOTclOAutonameMethodStub, 3, {
+{"::nsf::cmd::Object::autoname", XOTclOAutonameMethodStub, 3, {
   {"-instance", 0, 0, convertToString},
   {"-reset", 0, 0, convertToString},
   {"name", 1, 0, convertToTclobj}}
 },
-{"::nx::core::cmd::Object::cleanup", XOTclOCleanupMethodStub, 0, {
+{"::nsf::cmd::Object::cleanup", XOTclOCleanupMethodStub, 0, {
   }
 },
-{"::nx::core::cmd::Object::configure", XOTclOConfigureMethodStub, 1, {
+{"::nsf::cmd::Object::configure", XOTclOConfigureMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::cmd::Object::destroy", XOTclODestroyMethodStub, 0, {
+{"::nsf::cmd::Object::destroy", XOTclODestroyMethodStub, 0, {
   }
 },
-{"::nx::core::cmd::Object::exists", XOTclOExistsMethodStub, 1, {
+{"::nsf::cmd::Object::exists", XOTclOExistsMethodStub, 1, {
   {"var", 1, 0, convertToString}}
 },
-{"::nx::core::cmd::Object::filterguard", XOTclOFilterGuardMethodStub, 2, {
+{"::nsf::cmd::Object::filterguard", XOTclOFilterGuardMethodStub, 2, {
   {"filter", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::nx::core::cmd::Object::filtersearch", XOTclOFilterSearchMethodStub, 1, {
+{"::nsf::cmd::Object::filtersearch", XOTclOFilterSearchMethodStub, 1, {
   {"filter", 1, 0, convertToString}}
 },
-{"::nx::core::cmd::Object::instvar", XOTclOInstVarMethodStub, 1, {
+{"::nsf::cmd::Object::instvar", XOTclOInstVarMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::cmd::Object::mixinguard", XOTclOMixinGuardMethodStub, 2, {
+{"::nsf::cmd::Object::mixinguard", XOTclOMixinGuardMethodStub, 2, {
   {"mixin", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::nx::core::cmd::Object::noinit", XOTclONoinitMethodStub, 0, {
+{"::nsf::cmd::Object::noinit", XOTclONoinitMethodStub, 0, {
   }
 },
-{"::nx::core::cmd::Object::requireNamespace", XOTclORequireNamespaceMethodStub, 0, {
+{"::nsf::cmd::Object::requireNamespace", XOTclORequireNamespaceMethodStub, 0, {
   }
 },
-{"::nx::core::cmd::Object::residualargs", XOTclOResidualargsMethodStub, 1, {
+{"::nsf::cmd::Object::residualargs", XOTclOResidualargsMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::cmd::Object::uplevel", XOTclOUplevelMethodStub, 1, {
+{"::nsf::cmd::Object::uplevel", XOTclOUplevelMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::cmd::Object::upvar", XOTclOUpvarMethodStub, 1, {
+{"::nsf::cmd::Object::upvar", XOTclOUpvarMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::cmd::Object::volatile", XOTclOVolatileMethodStub, 0, {
+{"::nsf::cmd::Object::volatile", XOTclOVolatileMethodStub, 0, {
   }
 },
-{"::nx::core::cmd::Object::vwait", XOTclOVwaitMethodStub, 1, {
+{"::nsf::cmd::Object::vwait", XOTclOVwaitMethodStub, 1, {
   {"varname", 1, 0, convertToString}}
 },
-{"::nx::core::alias", XOTclAliasCmdStub, 6, {
+{"::nsf::alias", XOTclAliasCmdStub, 6, {
   {"object", 0, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"methodName", 0, 0, convertToString},
@@ -2140,45 +2140,45 @@ static methodDefinition method_definitions[] = {
   {"-objscope", 0, 0, convertToString},
   {"cmdName", 1, 0, convertToTclobj}}
 },
-{"::nx::core::assertion", XOTclAssertionCmdStub, 3, {
+{"::nsf::assertion", XOTclAssertionCmdStub, 3, {
   {"object", 0, 0, convertToObject},
   {"assertionsubcmd", 1, 0, convertToAssertionsubcmd},
   {"arg", 0, 0, convertToTclobj}}
 },
-{"::nx::core::colon", XOTclColonCmdStub, 1, {
+{"::nsf::colon", XOTclColonCmdStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::configure", XOTclConfigureCmdStub, 2, {
+{"::nsf::configure", XOTclConfigureCmdStub, 2, {
   {"configureoption", 1, 0, convertToConfigureoption},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::nx::core::createobjectsystem", XOTclCreateObjectSystemCmdStub, 3, {
+{"::nsf::createobjectsystem", XOTclCreateObjectSystemCmdStub, 3, {
   {"rootClass", 1, 0, convertToTclobj},
   {"rootMetaClass", 1, 0, convertToTclobj},
   {"systemMethods", 0, 0, convertToTclobj}}
 },
-{"::nx::core::current", XOTclCurrentCmdStub, 1, {
+{"::nsf::current", XOTclCurrentCmdStub, 1, {
   {"currentoption", 0, 0, convertToCurrentoption}}
 },
-{"::nx::core::deprecated", XOTclDeprecatedCmdStub, 3, {
+{"::nsf::deprecated", XOTclDeprecatedCmdStub, 3, {
   {"what", 1, 0, convertToString},
   {"oldCmd", 1, 0, convertToString},
   {"newCmd", 0, 0, convertToString}}
 },
-{"::nx::core::dispatch", XOTclDispatchCmdStub, 4, {
+{"::nsf::dispatch", XOTclDispatchCmdStub, 4, {
   {"object", 1, 0, convertToObject},
   {"-objscope", 0, 0, convertToString},
   {"command", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::existsvar", XOTclExistsVarCmdStub, 2, {
+{"::nsf::existsvar", XOTclExistsVarCmdStub, 2, {
   {"object", 1, 0, convertToObject},
   {"var", 1, 0, convertToString}}
 },
-{"::nx::core::finalize", XOTclFinalizeObjCmdStub, 0, {
+{"::nsf::finalize", XOTclFinalizeObjCmdStub, 0, {
   }
 },
-{"::nx::core::forward", XOTclForwardCmdStub, 11, {
+{"::nsf::forward", XOTclForwardCmdStub, 11, {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"method", 1, 0, convertToTclobj},
@@ -2191,22 +2191,22 @@ static methodDefinition method_definitions[] = {
   {"target", 0, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::importvar", XOTclImportvarCmdStub, 2, {
+{"::nsf::importvar", XOTclImportvarCmdStub, 2, {
   {"object", 0, 0, convertToObject},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::interp", XOTclInterpObjCmdStub, 2, {
+{"::nsf::interp", XOTclInterpObjCmdStub, 2, {
   {"name", 0, 0, convertToString},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::is", XOTclIsCmdStub, 5, {
+{"::nsf::is", XOTclIsCmdStub, 5, {
   {"value", 1, 0, convertToTclobj},
   {"constraint", 1, 0, convertToTclobj},
   {"-hasmixin", 0, 1, convertToTclobj},
   {"-type", 0, 1, convertToTclobj},
   {"arg", 0, 0, convertToTclobj}}
 },
-{"::nx::core::method", XOTclMethodCmdStub, 9, {
+{"::nsf::method", XOTclMethodCmdStub, 9, {
   {"object", 1, 0, convertToObject},
   {"-inner-namespace", 0, 0, convertToString},
   {"-per-object", 0, 0, convertToString},
@@ -2217,50 +2217,50 @@ static methodDefinition method_definitions[] = {
   {"-precondition", 0, 1, convertToTclobj},
   {"-postcondition", 0, 1, convertToTclobj}}
 },
-{"::nx::core::methodproperty", XOTclMethodPropertyCmdStub, 5, {
+{"::nsf::methodproperty", XOTclMethodPropertyCmdStub, 5, {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"methodName", 1, 0, convertToTclobj},
   {"methodproperty", 1, 0, convertToMethodproperty},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::nx::core::my", XOTclMyCmdStub, 3, {
+{"::nsf::my", XOTclMyCmdStub, 3, {
   {"-local", 0, 0, convertToString},
   {"method", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nx::core::namespace_copycmds", XOTclNSCopyCmdsStub, 2, {
+{"::nsf::namespace_copycmds", XOTclNSCopyCmdsStub, 2, {
   {"fromNs", 1, 0, convertToTclobj},
   {"toNs", 1, 0, convertToTclobj}}
 },
-{"::nx::core::namespace_copyvars", XOTclNSCopyVarsStub, 2, {
+{"::nsf::namespace_copyvars", XOTclNSCopyVarsStub, 2, {
   {"fromNs", 1, 0, convertToTclobj},
   {"toNs", 1, 0, convertToTclobj}}
 },
-{"::nx::core::objectproperty", XOTclObjectpropertyCmdStub, 3, {
+{"::nsf::objectproperty", XOTclObjectpropertyCmdStub, 3, {
   {"object", 1, 0, convertToTclobj},
   {"objectkind", 0, 0, convertToObjectkind},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::nx::core::parametercheck", XOTclParametercheckCmdStub, 3, {
+{"::nsf::parametercheck", XOTclParametercheckCmdStub, 3, {
   {"-nocomplain", 0, 0, convertToString},
   {"param", 0, 0, convertToTclobj},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::nx::core::__qualify", XOTclQualifyObjCmdStub, 1, {
+{"::nsf::__qualify", XOTclQualifyObjCmdStub, 1, {
   {"name", 1, 0, convertToTclobj}}
 },
-{"::nx::core::relation", XOTclRelationCmdStub, 3, {
+{"::nsf::relation", XOTclRelationCmdStub, 3, {
   {"object", 0, 0, convertToObject},
   {"relationtype", 1, 0, convertToRelationtype},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::nx::core::setvar", XOTclSetVarCmdStub, 3, {
+{"::nsf::setvar", XOTclSetVarCmdStub, 3, {
   {"object", 1, 0, convertToObject},
   {"variable", 1, 0, convertToTclobj},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::nx::core::setter", XOTclSetterCmdStub, 3, {
+{"::nsf::setter", XOTclSetterCmdStub, 3, {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"parameter", 0, 0, convertToTclobj}}

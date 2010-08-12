@@ -154,7 +154,7 @@ namespace eval ::nx::serializer {
     
     :method init {} {
       # Never serialize the (volatile) serializer object
-      :ignore [::nx::core::current object]
+      :ignore [::nsf::current object]
     }
 
     :method warn msg {
@@ -179,11 +179,11 @@ namespace eval ::nx::serializer {
       # we export the object tree.
       set oo $o
       while {1} {
-        if {[::nx::core::existsvar [::nx::core::current class] exportObjects($o)]} {
+        if {[::nsf::existsvar [::nsf::current class] exportObjects($o)]} {
           return 1
         }
         # we do this for object trees without object-less namespaces
-        if {![::nx::core::objectproperty $o object]} {
+        if {![::nsf::objectproperty $o object]} {
           return 0
         }
         set o [$o info parent]
@@ -213,7 +213,7 @@ namespace eval ::nx::serializer {
         set :level($stratum) {}
         foreach c $set {
           set oss [set :serializer($c)]
-          if {[$oss needsNothing $c [::nx::core::current object]]} {
+          if {[$oss needsNothing $c [::nsf::current object]]} {
             lappend :level($stratum) $c
           }
         }
@@ -247,7 +247,7 @@ namespace eval ::nx::serializer {
           #.warn "serialize $i"
           #append result "# Stratum $l\n"
           set oss [set :serializer($i)]
-          append result [$oss serialize $i [::nx::core::current object]] \n
+          append result [$oss serialize $i [::nsf::current object]] \n
         }
       }
       foreach e $list {
@@ -275,7 +275,7 @@ namespace eval ::nx::serializer {
       catch {unset namespace(::ns)}
       foreach ns [array name namespace] {
         if {![namespace exists $ns]} continue
-        if {![::nx::core::objectproperty $ns object]} {
+        if {![::nsf::objectproperty $ns object]} {
           append pre_cmds "namespace eval $ns {}\n"
         } elseif {$ns ne [namespace origin $ns] } {
           append pre_cmds "namespace eval $ns {}\n"
@@ -292,7 +292,7 @@ namespace eval ::nx::serializer {
       # assumes $o to be fully qualified
       set instances [Serializer allChildren $o] 
       foreach oss [ObjectSystemSerializer info instances] {
-        $oss registerSerializer [::nx::core::current object] $instances
+        $oss registerSerializer [::nsf::current object] $instances
       }
       :serialize-objects $instances 1
     }
@@ -303,7 +303,7 @@ namespace eval ::nx::serializer {
 
     :object method allChildren o {
       # return o and all its children fully qualified
-      set set [::nx::core::dispatch $o -objscope ::nx::core::current]
+      set set [::nsf::dispatch $o -objscope ::nsf::current]
       foreach c [$o info children] {
         lappend set {*}[:allChildren $c]
       }
@@ -342,7 +342,7 @@ namespace eval ::nx::serializer {
 
     :object method checkExportedObject {} {
       foreach o [array names :exportObjects] {
-        if {![::nx::core::objectproperty $o object]} {
+        if {![::nsf::objectproperty $o object]} {
           puts stderr "Serializer exportObject: ignore non-existing object $o"
           unset :exportObjects($o)
         } else {
@@ -357,16 +357,16 @@ namespace eval ::nx::serializer {
     :object method all {-ignoreVarsRE -ignore} {
 
       # don't filter anything during serialization
-      set filterstate [::nx::core::configure filter off]
-      set s [:new -childof [::nx::core::current object] -volatile]
+      set filterstate [::nsf::configure filter off]
+      set s [:new -childof [::nsf::current object] -volatile]
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
 
       set r [subst {
-        set ::xotcl::__filterstate \[::nx::core::configure filter off\]
+        set ::xotcl::__filterstate \[::nsf::configure filter off\]
         #::nx::Slot mixin add ::nx::Slot::Nocheck
-        ::nx::core::configure softrecreate [::nx::core::configure softrecreate]
-        ::nx::core::setExitHandler [list [::nx::core::getExitHandler]]
+        ::nsf::configure softrecreate [::nsf::configure softrecreate]
+        ::nsf::setExitHandler [list [::nsf::getExitHandler]]
       }]\n
       :resetPattern
       set instances [list]
@@ -390,21 +390,21 @@ namespace eval ::nx::serializer {
 
       append r {
         #::nx::Slot mixin delete ::nx::Slot::Nocheck
-        ::nx::core::configure filter $::xotcl::__filterstate
+        ::nsf::configure filter $::xotcl::__filterstate
         unset ::xotcl::__filterstate
       }
-      ::nx::core::configure filter $filterstate
+      ::nsf::configure filter $filterstate
       return $r
     }
 
     :object method methodSerialize {object method prefix} {
-      set s [:new -childof [::nx::core::current object] -volatile]
+      set s [:new -childof [::nsf::current object] -volatile]
       concat $object [$s method-serialize $object $method $prefix]
     }
 
     :object method deepSerialize {-ignoreVarsRE -ignore -map args} {
       :resetPattern
-      set s [:new -childof [::nx::core::current object] -volatile]
+      set s [:new -childof [::nsf::current object] -volatile]
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
       
@@ -416,7 +416,7 @@ namespace eval ::nx::serializer {
     }
 
     # include Serializer in the serialized code
-    :exportObjects [::nx::core::current object]
+    :exportObjects [::nsf::current object]
     
   }
 
@@ -429,8 +429,8 @@ namespace eval ::nx::serializer {
     
     :method init {} {
       # Include object system serializers and the meta-class in "Serializer all"
-      Serializer exportObjects [::nx::core::current class]
-      Serializer exportObjects [::nx::core::current object]
+      Serializer exportObjects [::nsf::current class]
+      Serializer exportObjects [::nsf::current object]
     }
 
     #
@@ -445,19 +445,19 @@ namespace eval ::nx::serializer {
       set cmd ""
       foreach o [list ${:rootClass} ${:rootMetaClass}] {
         append cmd \
-            [:frameWorkCmd ::nx::core::relation $o object-mixin] \
-            [:frameWorkCmd ::nx::core::relation $o class-mixin] \
-            [:frameWorkCmd ::nx::core::assertion $o object-invar] \
-            [:frameWorkCmd ::nx::core::assertion $o class-invar]
+            [:frameWorkCmd ::nsf::relation $o object-mixin] \
+            [:frameWorkCmd ::nsf::relation $o class-mixin] \
+            [:frameWorkCmd ::nsf::assertion $o object-invar] \
+            [:frameWorkCmd ::nsf::assertion $o class-invar]
       }
       return $cmd
     }
     
     :method registerTrace {on} {
       if {$on} {
-        ::nx::core::alias ${:rootClass}  __trace__ -objscope ::trace
+        ::nsf::alias ${:rootClass}  __trace__ -objscope ::trace
       } else {
-        ::nx::core::method ${:rootClass} __trace__ {} {}
+        ::nsf::method ${:rootClass} __trace__ {} {}
       }
     }
 
@@ -467,8 +467,8 @@ namespace eval ::nx::serializer {
     :method registerSerializer {s instances} {
       # Communicate responsibility to serializer object $s
       foreach i $instances {
-        if {![::nx::core::objectproperty $i type ${:rootClass}]} continue
-        $s setObjectSystemSerializer $i [::nx::core::current object]
+        if {![::nsf::objectproperty $i type ${:rootClass}]} continue
+        $s setObjectSystemSerializer $i [::nsf::current object]
       }
     }
 
@@ -480,10 +480,10 @@ namespace eval ::nx::serializer {
 	if {[:matchesIgnorePattern $i] && ![$s isExportedObject $i]} {
           continue
         }
-        $s setObjectSystemSerializer $i [::nx::core::current object]
+        $s setObjectSystemSerializer $i [::nsf::current object]
         lappend instances $i
       }
-      #$s warn "[::nx::core::current object] handled instances: $instances"
+      #$s warn "[::nsf::current object] handled instances: $instances"
       return $instances
     }
 
@@ -494,14 +494,14 @@ namespace eval ::nx::serializer {
       #
       foreach k [Serializer exportedMethods] {
         foreach {o p m} $k break
-	if {![::nx::core::objectproperty $o object]} {
+	if {![::nsf::objectproperty $o object]} {
 	  puts stderr "Warning: $o is not an object"
-	} elseif {[::nx::core::objectproperty $o type ${:rootClass}]} {set :exportMethods($k) 1}
+	} elseif {[::nsf::objectproperty $o type ${:rootClass}]} {set :exportMethods($k) 1}
       }
       foreach o [Serializer exportedObjects] {
-	if {![::nx::core::objectproperty $o object]} {
+	if {![::nsf::objectproperty $o object]} {
 	  puts stderr "Warning: $o is not an object"
-	} elseif {[::nx::core::objectproperty $o type ${:rootClass}]} {set :exportObjects($o) 1}
+	} elseif {[::nsf::objectproperty $o type ${:rootClass}]} {set :exportObjects($o) 1}
       }
       foreach p [array names :ignorePattern] {Serializer addPattern $p}
     }
@@ -512,7 +512,7 @@ namespace eval ::nx::serializer {
     ###############################    
 
     :method classify {o} {
-      if {[::nx::core::objectproperty $o type ${:rootMetaClass}]} \
+      if {[::nsf::objectproperty $o type ${:rootMetaClass}]} \
           {return Class} {return Object}
     }
 
@@ -523,7 +523,7 @@ namespace eval ::nx::serializer {
           if {[$o eval [list ::array exists :$v]]} {
             lappend setcmd [list array set :$v [$o eval [list array get :$v]]]
           } else {
-            lappend setcmd [list set :$v [::nx::core::setvar $o $v]]
+            lappend setcmd [list set :$v [::nsf::setvar $o $v]]
           }
         }
       }
@@ -555,7 +555,7 @@ namespace eval ::nx::serializer {
         if {![info exists methods($o)]} continue
         append r \n $methods($o)
       }
-      #puts stderr "[::nx::core::current object] ... exportedMethods <$r\n>"
+      #puts stderr "[::nsf::current object] ... exportedMethods <$r\n>"
       return "$r\n"
     }
 
@@ -602,7 +602,7 @@ namespace eval ::nx::serializer {
       if {![:Object-needsNothing $x $s]} {return 0}
       set scs [$x info superclass]
       if {[$s needsOneOf $scs]} {return 0}
-      if {[$s needsOneOf [::nx::core::relation $x class-mixin]]} {return 0}
+      if {[$s needsOneOf [::nsf::relation $x class-mixin]]} {return 0}
       foreach sc $scs {if {[$s needsOneOf [$sc info slots]]} {return 0}}
       return 1
     }
@@ -650,7 +650,7 @@ namespace eval ::nx::serializer {
     }
 
     :method method-serialize {o m modifier} {
-      if {![::nx::core::objectproperty $o class]} {set modifier ""}
+      if {![::nsf::objectproperty $o class]} {set modifier ""}
       return [$o {*}$modifier info method definition $m]
     }
 
@@ -661,24 +661,24 @@ namespace eval ::nx::serializer {
     :method Object-serialize {o s} {
       :collect-var-traces $o $s
       append cmd [list [$o info class] create \
-                      [::nx::core::dispatch $o -objscope ::nx::core::current object]]
+                      [::nsf::dispatch $o -objscope ::nsf::current object]]
 
       append cmd " -noinit\n"
-      foreach i [lsort [::nx::core::cmd::ObjectInfo::methods $o]] {
+      foreach i [lsort [::nsf::cmd::ObjectInfo::methods $o]] {
         append cmd [:method-serialize $o $i "object"] "\n"
       }
       append cmd \
           [list $o eval [join [:collectVars $o] "\n   "]]\n \
-          [:frameWorkCmd ::nx::core::relation $o object-mixin] \
-          [:frameWorkCmd ::nx::core::assertion $o object-invar]
+          [:frameWorkCmd ::nsf::relation $o object-mixin] \
+          [:frameWorkCmd ::nsf::assertion $o object-invar]
 
-      if {[::nx::core::objectproperty $o type ::nx::Slot]} {
+      if {[::nsf::objectproperty $o type ::nx::Slot]} {
         # Slots needs to be initialized to ensure
         # __invalidateobjectparameter to be called
         append cmd [list $o eval :init] \n
       }
 
-      $s addPostCmd [:frameWorkCmd ::nx::core::relation $o object-filter]
+      $s addPostCmd [:frameWorkCmd ::nsf::relation $o object-filter]
       return $cmd
     }
 
@@ -689,21 +689,21 @@ namespace eval ::nx::serializer {
     :method Class-serialize {o s} {
 
       set cmd [:Object-serialize $o $s]
-      foreach i [lsort [::nx::core::cmd::ClassInfo::methods $o]] {
+      foreach i [lsort [::nsf::cmd::ClassInfo::methods $o]] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
       append cmd \
-          [:frameWorkCmd ::nx::core::relation $o superclass -unless ${:rootClass}] \
-          [:frameWorkCmd ::nx::core::relation $o class-mixin] \
-          [:frameWorkCmd ::nx::core::assertion $o class-invar]
+          [:frameWorkCmd ::nsf::relation $o superclass -unless ${:rootClass}] \
+          [:frameWorkCmd ::nsf::relation $o class-mixin] \
+          [:frameWorkCmd ::nsf::assertion $o class-invar]
       
-      $s addPostCmd [:frameWorkCmd ::nx::core::relation $o class-filter]
+      $s addPostCmd [:frameWorkCmd ::nsf::relation $o class-filter]
       return $cmd\n
     }
 
     # register serialize a global method
     ::nx::Object method serialize {} {
-      ::Serializer deepSerialize [::nx::core::current object]
+      ::Serializer deepSerialize [::nsf::current object]
     }
     
   }
@@ -719,7 +719,7 @@ namespace eval ::nx::serializer {
     set :rootClass ::xotcl::Object
     set :rootMetaClass ::xotcl::Class
     #array set :ignorePattern [list "::xotcl::*" 1]
-    array set :ignorePattern [list "::nx::core::*" 1 "::xotcl::*" 1]
+    array set :ignorePattern [list "::nsf::*" 1 "::xotcl::*" 1]
 
 
     :method serialize-all-start {s} {
@@ -731,7 +731,7 @@ namespace eval ::nx::serializer {
     }
 
     :method serialize-all-end {s} {
-      return "[next]\n::nx::core::alias ::xotcl::Object trace -objscope ::trace\n"
+      return "[next]\n::nsf::alias ::xotcl::Object trace -objscope ::trace\n"
     }
 
 
@@ -789,25 +789,25 @@ namespace eval ::nx::serializer {
 
     :method Object-serialize {o s} {
       :collect-var-traces $o $s
-      append cmd [list [$o info class] create [::nx::core::dispatch $o -objscope ::nx::core::current object]]
+      append cmd [list [$o info class] create [::nsf::dispatch $o -objscope ::nsf::current object]]
       # slots needs to be initialized when optimized, since
       # parametercmds are not serialized
       append cmd " -noinit\n"
-      foreach i [::nx::core::cmd::ObjectInfo::methods $o -methodtype scripted] {
+      foreach i [::nsf::cmd::ObjectInfo::methods $o -methodtype scripted] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
-      foreach i [::nx::core::cmd::ObjectInfo::methods $o -methodtype forward] {
+      foreach i [::nsf::cmd::ObjectInfo::methods $o -methodtype forward] {
         append cmd [concat [list $o] forward $i [$o info forward -definition $i]] "\n"
       }
-      foreach i [::nx::core::cmd::ObjectInfo::methods $o -methodtype setter] {
+      foreach i [::nsf::cmd::ObjectInfo::methods $o -methodtype setter] {
         append cmd [list $o parametercmd $i] "\n"
       }
       append cmd \
           [list $o eval [join [:collectVars $o] "\n   "]] \n \
-          [:frameWorkCmd ::nx::core::relation $o object-mixin] \
-          [:frameWorkCmd ::nx::core::assertion $o object-invar]
+          [:frameWorkCmd ::nsf::relation $o object-mixin] \
+          [:frameWorkCmd ::nsf::assertion $o object-invar]
 
-      $s addPostCmd [:frameWorkCmd ::nx::core::relation $o object-filter]
+      $s addPostCmd [:frameWorkCmd ::nsf::relation $o object-filter]
 
       return $cmd
     }
@@ -828,26 +828,26 @@ namespace eval ::nx::serializer {
         append cmd [list $o instparametercmd $i] "\n"
       }
       # provide limited support for exporting aliases for XOTcl objects
-      foreach i [::nx::core::cmd::ClassInfo::methods $o -methodtype alias] {
-        set xotcl2Def [::nx::core::cmd::ClassInfo::method $o definition $i]
+      foreach i [::nsf::cmd::ClassInfo::methods $o -methodtype alias] {
+        set xotcl2Def [::nsf::cmd::ClassInfo::method $o definition $i]
         set objscope   [lindex $xotcl2Def end-2]
         set methodName [lindex $xotcl2Def end-1]
         set cmdName    [lindex $xotcl2Def end]
         if {$objscope ne "-objscope"} {set objscope ""}
-        append cmd [list ::nx::core::alias $o $methodName {*}$objscope $cmdName]\n
+        append cmd [list ::nsf::alias $o $methodName {*}$objscope $cmdName]\n
       }
       append cmd \
-          [:frameWorkCmd ::nx::core::relation $o superclass -unless ${:rootClass}] \
-          [:frameWorkCmd ::nx::core::relation $o class-mixin] \
-          [:frameWorkCmd ::nx::core::assertion $o class-invar]
+          [:frameWorkCmd ::nsf::relation $o superclass -unless ${:rootClass}] \
+          [:frameWorkCmd ::nsf::relation $o class-mixin] \
+          [:frameWorkCmd ::nsf::assertion $o class-invar]
 
-      $s addPostCmd [:frameWorkCmd ::nx::core::relation $o class-filter]
+      $s addPostCmd [:frameWorkCmd ::nsf::relation $o class-filter]
       return $cmd
     }
 
     # register serialize a global method for XOTcl
     ::xotcl::Object instproc serialize {} {
-      ::Serializer deepSerialize [::nx::core::current object]
+      ::Serializer deepSerialize [::nsf::current object]
     }
 
     

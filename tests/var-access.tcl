@@ -3,16 +3,16 @@ package require nx::test
 
 namespace eval ::nx::var1 {
   namespace ensemble create -map {
-    exists ::nx::core::existsvar 
-    import ::nx::core::importvar 
-    set ::nx::core::setvar
+    exists ::nsf::existsvar 
+    import ::nsf::importvar 
+    set ::nsf::setvar
   }
 }
 
 ::nx::Object create ::nx::var2 {
-  :alias exists ::nx::core::existsvar 
-  :alias import ::nx::core::importvar
-  :alias set ::nx::core::setvar
+  :alias exists ::nsf::existsvar 
+  :alias import ::nsf::importvar
+  :alias set ::nsf::setvar
 }
 
 Test parameter count 10000
@@ -29,7 +29,7 @@ Test case dummy {
       o eval {incr :x}
     }
     :method foo2 {} {
-      ::nx::core::importvar o x
+      ::nsf::importvar o x
       incr x
     }
     :method foo3 {} {
@@ -42,9 +42,9 @@ Test case dummy {
     }
   }
   
-  ? {::nx::core::setvar o x} 1
-  ? {::nx::core::existsvar o x} 1
-  ? {::nx::core::existsvar o y} 0
+  ? {::nsf::setvar o x} 1
+  ? {::nsf::existsvar o x} 1
+  ? {::nsf::existsvar o y} 0
 
   ? {::nx::var1 set o x} 1
   ? {::nx::var1 exists o x} 1
@@ -57,16 +57,16 @@ Test case dummy {
   ? {p foo0} 2
 
   ? {p foo1} 2
-  ? {::nx::core::setvar o x} 10002
+  ? {::nsf::setvar o x} 10002
 
   ? {p foo2} 10003
-  ? {::nx::core::setvar o x} 20003
+  ? {::nsf::setvar o x} 20003
 
   ? {p foo3} 20004
-  ? {::nx::core::setvar o x} 30004
+  ? {::nsf::setvar o x} 30004
 
   ? {p foo4} 30005
-  ? {::nx::core::setvar o x} 40005
+  ? {::nsf::setvar o x} 40005
 }
 
 puts stderr =====END

@@ -62,7 +62,7 @@ C create c1 {
 C public setter s0
 C protected setter s1
 ? {c1 s0 0} 0
-? {::nx::core::dispatch c1 s1 1} 1
+? {::nsf::dispatch c1 s1 1} 1
 C object setter s3
 ? {C s3 3} 3
 
@@ -73,7 +73,7 @@ Test case scripted-class-level-methods {
   ? {c2 plain_method} "plain_method"
   ? {c2 public_method} "public_method"
   ? {catch {c2 protected_method}} 1
-  ? {::nx::core::dispatch c2 protected_method} "protected_method"
+  ? {::nsf::dispatch c2 protected_method} "protected_method"
 }
 
 # class level forwards
@@ -81,7 +81,7 @@ Test case class-level-forwards {
   ? {c2 plain_forward} "plain_method"
   ? {c2 public_forward} "public_method"
   ? {catch {c2 protected_forward}} 1
-  ? {::nx::core::dispatch c2 protected_forward} "protected_method"
+  ? {::nsf::dispatch c2 protected_forward} "protected_method"
 }
 
 # class level setter
@@ -89,7 +89,7 @@ Test case class-level-setter {
   ? {c2 plain_setter 1} "1"
   ? {c2 public_setter 2} "2"
   ? {catch {c2 protected_setter 3}} 1
-  ? {::nx::core::dispatch c2 protected_setter 4} "4"
+  ? {::nsf::dispatch c2 protected_setter 4} "4"
 }
 
 # class level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
@@ -97,7 +97,7 @@ Test case class-level-alias {
   ? {c2 plain_alias} "plain_method"
   ? {c2 public_alias} "public_method"
   ? {catch {c2 protected_alias}} 1
-  ? {::nx::core::dispatch c2 protected_alias} "protected_method"
+  ? {::nsf::dispatch c2 protected_alias} "protected_method"
 }
 
 ###########
@@ -107,7 +107,7 @@ Test case scripted-class-object-level {
   ? {C plain_object_method} "plain_object_method"
   ? {C public_object_method} "public_object_method"
   ? {catch {C protected_object_method}} 1
-  ? {::nx::core::dispatch C protected_object_method} "protected_object_method"
+  ? {::nsf::dispatch C protected_object_method} "protected_object_method"
 }
 
 # class-object level forwards
@@ -115,7 +115,7 @@ Test case class-object-level-forwards {
   ? {C plain_object_forward} "plain_object_method"
   ? {C public_object_forward} "public_object_method"
   ? {catch {C protected_object_forward}} 1
-  ? {::nx::core::dispatch C protected_object_forward} "protected_object_method"
+  ? {::nsf::dispatch C protected_object_forward} "protected_object_method"
 }
 
 # class-object level setter
@@ -123,7 +123,7 @@ Test case class-object-level-setter {
   ? {C plain_object_setter 1} "1"
   ? {C public_object_setter 2} "2"
   ? {catch {C protected_object_setter 3}} 1
-  ? {::nx::core::dispatch C protected_object_setter 4} "4"
+  ? {::nsf::dispatch C protected_object_setter 4} "4"
 }
 
 # class-object level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
@@ -131,7 +131,7 @@ Test case class-object-level-alias {
   ? {C plain_object_alias} "plain_object_method"
   ? {C public_object_alias} "public_object_method"
   ? {catch {C protected_object_alias}} 1
-  ? {::nx::core::dispatch C protected_object_alias} "protected_object_method"
+  ? {::nsf::dispatch C protected_object_alias} "protected_object_method"
 }
 
 ###########
@@ -141,7 +141,7 @@ Test case scripted-object-level-methods {
   ? {c1 plain_object_method} "plain_object_method"
   ? {c1 public_object_method} "public_object_method"
   ? {catch {c1 protected_object_method}} 1
-  ? {::nx::core::dispatch c1 protected_object_method} "protected_object_method"
+  ? {::nsf::dispatch c1 protected_object_method} "protected_object_method"
 }
 
 # object level forwards
@@ -149,7 +149,7 @@ Test case object-level-forwards {
   ? {c1 plain_object_forward} "plain_object_method"
   ? {c1 public_object_forward} "public_object_method"
   ? {catch {c1 protected_object_forward}} 1
-  ? {::nx::core::dispatch c1 protected_object_forward} "protected_object_method"
+  ? {::nsf::dispatch c1 protected_object_forward} "protected_object_method"
 }
 
 # object level setter
@@ -157,14 +157,14 @@ Test case object-level-setter
 ? {c1 plain_object_setter 1} "1"
 ? {c1 public_object_setter 2} "2"
 ? {catch {c1 protected_object_setter 3}} 1
-? {::nx::core::dispatch c1 protected_object_setter 4} "4"
+? {::nsf::dispatch c1 protected_object_setter 4} "4"
 
 # object level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
 Test case object-level-alias {
   ? {c1 plain_object_alias} "plain_object_method"
   ? {c1 public_object_alias} "public_object_method"
   ? {catch {c1 protected_object_alias}} 1
-  ? {::nx::core::dispatch c1 protected_object_alias} "protected_object_method"
+  ? {::nsf::dispatch c1 protected_object_alias} "protected_object_method"
 
   ? {lsort [c1 info methods]} \
       "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter"
@@ -236,7 +236,7 @@ Test case attribute-method {
   
   Class create C {
     set x [:attribute a]
-    ? [list set _ $x] "::nx::core::classes::C::a"
+    ? [list set _ $x] "::nsf::classes::C::a"
 
     # attribute with default
     :attribute {b b1}

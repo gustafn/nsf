@@ -253,14 +253,14 @@ Test new -cmd {c createVolatileRc} -expected 2
 # should be still the same number as above
 Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 
-Test new -cmd {Object new -volatile} -expected ::nx::core::__\#F9 -count 2000 \
-    -post {foreach o [Object info instances ::nx::core::__*] {$o destroy}} 
+Test new -cmd {Object new -volatile} -expected ::nsf::__\#F9 -count 2000 \
+    -post {foreach o [Object info instances ::nsf::__*] {$o destroy}} 
 
 # should be still the same number as above
 Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 
-Test new -cmd {Object new} -expected ::nx::core::__\#lQ  -count 2000 \
-    -post {foreach o [Object info instances ::nx::core::__*] {$o destroy}} 
+Test new -cmd {Object new} -expected ::nsf::__\#lQ  -count 2000 \
+    -post {foreach o [Object info instances ::nsf::__*] {$o destroy}} 
 
 # should be still the same number as above
 Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount

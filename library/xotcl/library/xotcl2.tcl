@@ -1,5 +1,6 @@
 package provide XOTcl 2.0
 package require nx
+
 #######################################################
 # Classical ::xotcl*
 #######################################################
@@ -16,7 +17,7 @@ namespace eval ::xotcl {
   # ::xotcl::Object and ::xotcl::Class and defines these as root class
   # of the object system and as root meta class.
   #
-  ::nx::core::createobjectsystem ::xotcl::Object ::xotcl::Class {
+  ::nsf::createobjectsystem ::xotcl::Object ::xotcl::Class {
     -class.alloc alloc 
     -class.create create
     -class.dealloc dealloc
@@ -34,69 +35,69 @@ namespace eval ::xotcl {
   }
 
   #
-  # create ::nx and ::nx::core namespaces, otherwise mk_pkgindex will fail
+  # create ::nx and ::nsf namespaces, otherwise mk_pkgindex will fail
   #
   namespace eval ::nx {}
-  namespace eval ::nx::core {}
+  namespace eval ::nsf {}
 
   #
   # get frequenly used primitiva into the ::xotcl namespace
   #
-  namespace import ::nx::core::*
+  namespace import ::nsf::*
   namespace import ::nx::Attribute
 
   proc ::xotcl::self {{arg "object"}} {
       switch $arg {
 	  next {
-	      set handle [uplevel ::nx::core::current $arg]
+	      set handle [uplevel ::nsf::current $arg]
 	      method_handle_to_xotcl $handle
 	  }
-	  default {uplevel ::nx::core::current $arg}
+	  default {uplevel ::nsf::current $arg}
       }
   }
 
   # provide the standard command set for ::xotcl::Object
-  foreach cmd [info command ::nx::core::cmd::Object::*] {
+  foreach cmd [info command ::nsf::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "filtersearch" "setter"]} continue
-    ::nx::core::alias Object $cmdName $cmd
+    ::nsf::alias Object $cmdName $cmd
   }
 
   # provide some Tcl-commands as methods for ::xotcl::Object
   foreach cmd {array append eval incr lappend set subst unset trace} {
-    ::nx::core::alias Object $cmd -objscope ::$cmd
+    ::nsf::alias Object $cmd -objscope ::$cmd
   }
 
   # provide the standard command set for ::xotcl::Class
-  foreach cmd [info command ::nx::core::cmd::Class::*] {
+  foreach cmd [info command ::nsf::cmd::Class::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "setter"]} continue
-    ::nx::core::alias Class $cmdName $cmd
+    ::nsf::alias Class $cmdName $cmd
   }
 
   # protect some methods against redefinition
-  ::nx::core::methodproperty Object destroy redefine-protected true
-  ::nx::core::methodproperty Class  alloc   redefine-protected true
-  ::nx::core::methodproperty Class  dealloc redefine-protected true
-  ::nx::core::methodproperty Class  create  redefine-protected true
+  ::nsf::methodproperty Object destroy redefine-protected true
+  ::nsf::methodproperty Class  alloc   redefine-protected true
+  ::nsf::methodproperty Class  dealloc redefine-protected true
+  ::nsf::methodproperty Class  create  redefine-protected true
 
   # define instproc and proc
-  ::nx::core::method Class instproc {
+  ::nsf::method Class instproc {
     name arguments body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::nx::core::method [self] $name $arguments $body {*}$conditions
+    ::nsf::method [self] $name $arguments $body {*}$conditions
   }
 
-  ::nx::core::method Object proc {
+  ::nsf::method Object proc {
     name arguments body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::nx::core::method [self] -per-object $name $arguments $body {*}$conditions
+    ::nsf::method [self] -per-object $name $arguments $body {*}$conditions
   }
 
   # define - like in XOTcl 1 - a minimal implementation of "method"
@@ -112,8 +113,8 @@ namespace eval ::xotcl {
   }
 
   # define forward methods
-  ::nx::core::forward Object forward ::nx::core::forward %self -per-object
-  ::nx::core::forward Class instforward ::nx::core::forward %self
+  ::nsf::forward Object forward ::nsf::forward %self -per-object
+  ::nsf::forward Class instforward ::nsf::forward %self
 
   Class instproc unknown {args} {
     #puts stderr "use '[self] create $args', not '[self] $args'"
@@ -135,7 +136,7 @@ namespace eval ::xotcl {
   # object-parameter definition, backwards compatible
   #
   ::xotcl::Object instproc objectparameter {} {
-    set parameterdefinitions [::nx::core::parametersFromSlots [self]]
+    set parameterdefinitions [::nsf::parametersFromSlots [self]]
     lappend parameterdefinitions args
     #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
     return $parameterdefinitions
@@ -144,7 +145,7 @@ namespace eval ::xotcl {
   #
   # Use parameter definition from next 
   # (same with classInfo parameter, see below)
-  ::nx::core::alias ::xotcl::Class parameter ::nx::core::classes::nx::Class::parameter
+  ::nsf::alias ::xotcl::Class parameter ::nsf::classes::nx::Class::parameter
 
   # We provide a default value for superclass (when no superclass is
   # specified explicitely) and metaclass, in case they should differ
@@ -165,9 +166,9 @@ namespace eval ::xotcl {
     ${os}::Object alloc ${os}::Object::slot
     
     ::nx::RelationSlot create ${os}::Class::slot::superclass
-    ::nx::core::alias         ${os}::Class::slot::superclass assign ::nx::core::relation
+    ::nsf::alias         ${os}::Class::slot::superclass assign ::nsf::relation
     ::nx::RelationSlot create ${os}::Object::slot::class -multivalued false
-    ::nx::core::alias         ${os}::Object::slot::class assign ::nx::core::relation
+    ::nsf::alias         ${os}::Object::slot::class assign ::nsf::relation
 
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
         -methodname object-mixin
@@ -191,8 +192,8 @@ namespace eval ::xotcl {
   Object create ::xotcl::classInfo
 
   # note, we are using ::xotcl::infoError defined earlier
-  Object instforward info -onerror ::nx::core::infoError ::xotcl::objectInfo %1 {%@2 %self}
-  Class  instforward info -onerror ::nx::core::infoError ::xotcl::classInfo %1 {%@2 %self}
+  Object instforward info -onerror ::nsf::infoError ::xotcl::objectInfo %1 {%@2 %self}
+  Class  instforward info -onerror ::nsf::infoError ::xotcl::classInfo %1 {%@2 %self}
 
   objectInfo proc info {obj} {
     set methods [list]
@@ -267,8 +268,8 @@ namespace eval ::xotcl {
   proc ::xotcl::info_args {allocation o method} {
     set result [list]
     foreach \
-        argName [::nx::core::cmd::${allocation}Info::method $o args $method] \
-        flag    [::nx::core::cmd::${allocation}Info::method $o parameter $method] {
+        argName [::nsf::cmd::${allocation}Info::method $o args $method] \
+        flag    [::nsf::cmd::${allocation}Info::method $o parameter $method] {
           if {[string match -* $flag]} continue
           lappend result $argName
         }
@@ -278,7 +279,7 @@ namespace eval ::xotcl {
 
   proc ::xotcl::info_nonposargs {allocation o method} {
     set result [list]
-    foreach flag [::nx::core::cmd::${allocation}Info::method $o parameter $method] {
+    foreach flag [::nsf::cmd::${allocation}Info::method $o parameter $method] {
       if {![string match -* $flag]} continue
       lappend result $flag
     }
@@ -287,8 +288,8 @@ namespace eval ::xotcl {
   }
   proc ::xotcl::info_default {allocation o method arg varName} {
     foreach \
-        argName [::nx::core::cmd::${allocation}Info::method $o args $method] \
-        flag    [::nx::core::cmd::${allocation}Info::method $o parameter $method] {
+        argName [::nsf::cmd::${allocation}Info::method $o args $method] \
+        flag    [::nsf::cmd::${allocation}Info::method $o parameter $method] {
           if {$argName eq $arg} {
             upvar 3 $varName default
             if {[llength $flag] == 2} {
@@ -313,25 +314,25 @@ namespace eval ::xotcl {
     :proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
     # info options emulated by "info method ..."
-    :proc instbody    {o methodName} {::nx::core::cmd::ClassInfo::method $o body $methodName}
-    :proc instpre     {o methodName} {::nx::core::cmd::ClassInfo::method $o precondition  $methodName}
-    :proc instpost    {o methodName} {::nx::core::cmd::ClassInfo::method $o postcondition $methodName}
+    :proc instbody    {o methodName} {::nsf::cmd::ClassInfo::method $o body $methodName}
+    :proc instpre     {o methodName} {::nsf::cmd::ClassInfo::method $o precondition  $methodName}
+    :proc instpost    {o methodName} {::nsf::cmd::ClassInfo::method $o postcondition $methodName}
 
     # info options emulated by "info methods"
     :proc instcommands {o {pattern:optional ""}} {
-      ::nx::core::cmd::ClassInfo::methods $o {*}$pattern
+      ::nsf::cmd::ClassInfo::methods $o {*}$pattern
     }
     :proc instprocs   {o {pattern:optional ""}} {
-      ::nx::core::cmd::ClassInfo::methods $o -methodtype scripted {*}$pattern
+      ::nsf::cmd::ClassInfo::methods $o -methodtype scripted {*}$pattern
     }
     :proc parametercmd {o {pattern:optional ""}} {
-      ::nx::core::cmd::ClassInfo::methods $o -per-object -methodtype setter {*}$pattern
+      ::nsf::cmd::ClassInfo::methods $o -per-object -methodtype setter {*}$pattern
     }
     :proc instparametercmd {o {pattern:optional ""}} {
-      ::nx::core::cmd::ClassInfo::methods $o -methodtype setter {*}$pattern
+      ::nsf::cmd::ClassInfo::methods $o -methodtype setter {*}$pattern
     }
     # assertion handling
-    :proc instinvar   {o} {::nx::core::assertion $o class-invar}
+    :proc instinvar   {o} {::nsf::assertion $o class-invar}
   }
 
   objectInfo eval {
@@ -340,16 +341,16 @@ namespace eval ::xotcl {
     :proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
 
     # info options emulated by "info method ..."
-    :proc body        {o methodName} {::nx::core::cmd::ObjectInfo::method $o body $methodName}
-    :proc pre         {o methodName} {::nx::core::cmd::ObjectInfo::method $o pre $methodName}
-    :proc post        {o methodName} {::nx::core::cmd::ObjectInfo::method $o post $methodName}
+    :proc body        {o methodName} {::nsf::cmd::ObjectInfo::method $o body $methodName}
+    :proc pre         {o methodName} {::nsf::cmd::ObjectInfo::method $o pre $methodName}
+    :proc post        {o methodName} {::nsf::cmd::ObjectInfo::method $o post $methodName}
 
     # info options emulated by "info methods"
     :proc commands    {o {pattern:optional ""}} {
-      ::nx::core::cmd::ObjectInfo::methods $o {*}$pattern
+      ::nsf::cmd::ObjectInfo::methods $o {*}$pattern
     }
     :proc procs       {o {pattern:optional ""}} {
-      ::nx::core::cmd::ObjectInfo::methods $o -methodtype scripted {*}$pattern
+      ::nsf::cmd::ObjectInfo::methods $o -methodtype scripted {*}$pattern
     }
     :proc methods {
       o -nocmds:switch -noprocs:switch -incontext:switch pattern:optional
@@ -357,7 +358,7 @@ namespace eval ::xotcl {
       set methodtype all
       if {$nocmds} {set methodtype scripted}
       if {$noprocs} {if {$nocmds} {return ""}; set methodtype builtin}
-      set cmd [list ::nx::core::cmd::ObjectInfo::callable $o -methodtype $methodtype]
+      set cmd [list ::nsf::cmd::ObjectInfo::callable $o -methodtype $methodtype]
       if {$incontext} {lappend cmd -incontext}
       if {[info exists pattern]} {lappend cmd $pattern}
       eval $cmd
@@ -367,88 +368,88 @@ namespace eval ::xotcl {
       set guardsFlag [expr {$guards ? "-guards" : ""}]
       set patternArg [expr {[info exists pattern] ? [list $pattern] : ""}]
       if {$order && !$guards} {
-        set def [::nx::core::cmd::ObjectInfo::filter $o -order {*}$guardsFlag {*}$patternArg]
+        set def [::nsf::cmd::ObjectInfo::filter $o -order {*}$guardsFlag {*}$patternArg]
         set def [method_handles_to_xotcl $def]
       } else {
-        set def [::nx::core::cmd::ObjectInfo::filter $o {*}$guardsFlag {*}$patternArg]
+        set def [::nsf::cmd::ObjectInfo::filter $o {*}$guardsFlag {*}$patternArg]
       }
       #puts stderr "  => $def"
       return $def
     }
     # assertion handling
     :proc check {o} {
-      ::xotcl::checkoption_internal_to_xotcl1 [::nx::core::assertion $o check]
+      ::xotcl::checkoption_internal_to_xotcl1 [::nsf::assertion $o check]
     }
-    :proc invar {o} {::nx::core::assertion $o object-invar}
+    :proc invar {o} {::nsf::assertion $o object-invar}
   }
 
-  foreach cmd [::info command ::nx::core::cmd::ObjectInfo::*] {
+  foreach cmd [::info command ::nsf::cmd::ObjectInfo::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "callable" "filter" "method" "methods"]} continue
-    ::nx::core::alias ::xotcl::objectInfo $cmdName $cmd
-    ::nx::core::alias ::xotcl::classInfo $cmdName $cmd
+    ::nsf::alias ::xotcl::objectInfo $cmdName $cmd
+    ::nsf::alias ::xotcl::classInfo $cmdName $cmd
   }
 
-  foreach cmd [::info command ::nx::core::cmd::ClassInfo::*] {
+  foreach cmd [::info command ::nsf::cmd::ClassInfo::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "forward" "method" "methods" \
                          "mixinof" "object-mixin-of" \
                          "filter" "filterguard" \
                          "mixin" "mixinguard"]} continue
-    ::nx::core::alias ::xotcl::classInfo $cmdName $cmd
+    ::nsf::alias ::xotcl::classInfo $cmdName $cmd
   }
 
-  ::nx::core::alias ::xotcl::objectInfo is ::nx::core::objectproperty
-  ::nx::core::alias ::xotcl::classInfo is ::nx::core::objectproperty
-  ::nx::core::alias ::xotcl::classInfo classparent ::nx::core::cmd::ObjectInfo::parent
-  ::nx::core::alias ::xotcl::classInfo classchildren ::nx::core::cmd::ObjectInfo::children
-  ::nx::core::alias ::xotcl::classInfo instmixin ::nx::core::cmd::ClassInfo::mixin
-  ::nx::core::alias ::xotcl::classInfo instmixinguard ::nx::core::cmd::ClassInfo::mixinguard
-  #::nx::core::alias ::xotcl::classInfo instmixinof ::nx::core::cmd::ClassInfo::class-mixin-of
-  ::nx::core::forward ::xotcl::classInfo instmixinof ::nx::core::cmd::ClassInfo::mixinof %1 -scope class
-  ::nx::core::alias ::xotcl::classInfo instfilter ::nx::core::cmd::ClassInfo::filter
-  ::nx::core::alias ::xotcl::classInfo instfilterguard ::nx::core::cmd::ClassInfo::filterguard
-  ::nx::core::alias ::xotcl::classInfo instforward ::nx::core::cmd::ClassInfo::forward
-  #::nx::core::alias ::xotcl::classInfo mixinof ::nx::core::cmd::ClassInfo::object-mixin-of
-  ::nx::core::forward ::xotcl::classInfo mixinof ::nx::core::cmd::ClassInfo::mixinof %1 -scope object
-  ::nx::core::alias ::xotcl::classInfo parameter ::nx::classInfo::parameter
+  ::nsf::alias ::xotcl::objectInfo is ::nsf::objectproperty
+  ::nsf::alias ::xotcl::classInfo is ::nsf::objectproperty
+  ::nsf::alias ::xotcl::classInfo classparent ::nsf::cmd::ObjectInfo::parent
+  ::nsf::alias ::xotcl::classInfo classchildren ::nsf::cmd::ObjectInfo::children
+  ::nsf::alias ::xotcl::classInfo instmixin ::nsf::cmd::ClassInfo::mixin
+  ::nsf::alias ::xotcl::classInfo instmixinguard ::nsf::cmd::ClassInfo::mixinguard
+  #::nsf::alias ::xotcl::classInfo instmixinof ::nsf::cmd::ClassInfo::class-mixin-of
+  ::nsf::forward ::xotcl::classInfo instmixinof ::nsf::cmd::ClassInfo::mixinof %1 -scope class
+  ::nsf::alias ::xotcl::classInfo instfilter ::nsf::cmd::ClassInfo::filter
+  ::nsf::alias ::xotcl::classInfo instfilterguard ::nsf::cmd::ClassInfo::filterguard
+  ::nsf::alias ::xotcl::classInfo instforward ::nsf::cmd::ClassInfo::forward
+  #::nsf::alias ::xotcl::classInfo mixinof ::nsf::cmd::ClassInfo::object-mixin-of
+  ::nsf::forward ::xotcl::classInfo mixinof ::nsf::cmd::ClassInfo::mixinof %1 -scope object
+  ::nsf::alias ::xotcl::classInfo parameter ::nx::classInfo::parameter
 
   # assertion handling
-  ::nx::core::alias ::xotcl::classInfo invar objectInfo::invar
-  ::nx::core::alias ::xotcl::classInfo check objectInfo::check
+  ::nsf::alias ::xotcl::classInfo invar objectInfo::invar
+  ::nsf::alias ::xotcl::classInfo check objectInfo::check
 
   # define info methods from objectInfo on classInfo as well
-  ::nx::core::alias classInfo body     objectInfo::body
-  ::nx::core::alias classInfo commands objectInfo::commands
-  ::nx::core::alias classInfo filter   objectInfo::filter
-  ::nx::core::alias classInfo methods  objectInfo::methods
-  ::nx::core::alias classInfo procs    objectInfo::procs
-  ::nx::core::alias classInfo pre      objectInfo::pre
-  ::nx::core::alias classInfo post     objectInfo::post
+  ::nsf::alias classInfo body     objectInfo::body
+  ::nsf::alias classInfo commands objectInfo::commands
+  ::nsf::alias classInfo filter   objectInfo::filter
+  ::nsf::alias classInfo methods  objectInfo::methods
+  ::nsf::alias classInfo procs    objectInfo::procs
+  ::nsf::alias classInfo pre      objectInfo::pre
+  ::nsf::alias classInfo post     objectInfo::post
 
   # emulation of isobject, isclass ...
-  Object instproc isobject    {{object:substdefault "[self]"}} {::nx::core::objectproperty $object object}
-  Object instproc isclass     {{class:substdefault  "[self]"}} {::nx::core::objectproperty $class class}
-  Object instproc ismetaclass {{class:substdefault  "[self]"}} {::nx::core::objectproperty $class metaclass}
-  Object instproc ismixin     {class}  {::nx::core::is [self] object -hasmixin $class}
-  Object instproc istype      {class}  {::nx::core::is [self] type $class}
+  Object instproc isobject    {{object:substdefault "[self]"}} {::nsf::objectproperty $object object}
+  Object instproc isclass     {{class:substdefault  "[self]"}} {::nsf::objectproperty $class class}
+  Object instproc ismetaclass {{class:substdefault  "[self]"}} {::nsf::objectproperty $class metaclass}
+  Object instproc ismixin     {class}  {::nsf::is [self] object -hasmixin $class}
+  Object instproc istype      {class}  {::nsf::is [self] type $class}
 
-  ::nx::core::alias Object contains ::nx::core::classes::nx::Object::contains
+  ::nsf::alias Object contains ::nsf::classes::nx::Object::contains
   ::xotcl::Class instforward slots %self contains \
-      -object {%::nx::core::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
+      -object {%::nsf::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
   #
   # define parametercmd and instparametercmd in terms of ::nx method setter
   # define filterguard and instfilterguard in terms of filterguard
   # define mixinguard and instmixinguard in terms of mixinguard
   #
-  ::nx::core::alias Object parametercmd    ::nx::core::classes::nx::Object::setter
-  ::nx::core::alias Class instparametercmd ::nx::core::classes::nx::Class::setter
+  ::nsf::alias Object parametercmd    ::nsf::classes::nx::Object::setter
+  ::nsf::alias Class instparametercmd ::nsf::classes::nx::Class::setter
 
-  ::nx::core::alias Class filterguard      ::nx::core::cmd::Object::filterguard
-  ::nx::core::alias Class instfilterguard  ::nx::core::cmd::Class::filterguard
+  ::nsf::alias Class filterguard      ::nsf::cmd::Object::filterguard
+  ::nsf::alias Class instfilterguard  ::nsf::cmd::Class::filterguard
 
-  ::nx::core::alias Class mixinguard       ::nx::core::cmd::Object::mixinguard
-  ::nx::core::alias Class instmixinguard   ::nx::core::cmd::Class::mixinguard
+  ::nsf::alias Class mixinguard       ::nsf::cmd::Object::mixinguard
+  ::nsf::alias Class instmixinguard   ::nsf::cmd::Class::mixinguard
 
   # assertion handling
   proc checkoption_xotcl1_to_internal checkoptions {
@@ -493,7 +494,7 @@ namespace eval ::xotcl {
         set kind [lindex $definition 2]
         set name [lindex $definition 3]
       } else {
-	set prefix [expr {[::nx::core::objectproperty $obj class] ? "inst" : ""}]
+	set prefix [expr {[::nsf::objectproperty $obj class] ? "inst" : ""}]
         set kind $modifier
         set name [lindex $definition 2]
       }
@@ -513,10 +514,10 @@ namespace eval ::xotcl {
  
 
   Object instproc check {checkoptions} {
-    ::nx::core::assertion [self] check [::xotcl::checkoption_xotcl1_to_internal $checkoptions]
+    ::nsf::assertion [self] check [::xotcl::checkoption_xotcl1_to_internal $checkoptions]
   }
-  Object instforward invar     ::nx::core::assertion %self object-invar
-  Class  instforward instinvar ::nx::core::assertion %self class-invar
+  Object instforward invar     ::nsf::assertion %self object-invar
+  Class  instforward instinvar ::nsf::assertion %self class-invar
 
   Object instproc abstract {methtype methname arglist} {
     if {$methtype ne "proc" && $methtype ne "instproc" && $methtype ne "method"} {
@@ -532,20 +533,20 @@ namespace eval ::xotcl {
 
   # support for XOTcl specific convenience routines
   Object instproc hasclass cl {
-    if {[::nx::core::is [self] object -hasmixin $cl]} {return 1}
-    ::nx::core::is [self] type $cl
+    if {[::nsf::is [self] object -hasmixin $cl]} {return 1}
+    ::nsf::is [self] type $cl
   }
   Object instproc filtersearch {filter} {
-    set definition [::nx::core::dispatch [self] ::nx::core::cmd::Object::filtersearch $filter]
+    set definition [::nsf::dispatch [self] ::nsf::cmd::Object::filtersearch $filter]
     return [method_handle_to_xotcl $definition]
   }
   Object instproc procsearch {name} {
-    set definition [::nx::core::cmd::ObjectInfo::callable [self] -which $name]
+    set definition [::nsf::cmd::ObjectInfo::callable [self] -which $name]
     if {$definition ne ""} {
       foreach {obj modifier kind} $definition break
       if {$modifier ne "object"} {
         set kind $modifier
-        set perClass [::nx::core::is $obj class]
+        set perClass [::nsf::is $obj class]
       } else {
         set perClass 0
       }
@@ -566,16 +567,16 @@ namespace eval ::xotcl {
   }
 
   # keep old object interface for XOTcl
-  Object proc unsetExitHandler {} {::nx::core::unsetExitHandler $newbody}
-  Object proc setExitHandler   {newbody} {::nx::core::setExitHandler $newbody}
-  Object proc getExitHandler   {} {::nx::core::getExitHandler}
+  Object proc unsetExitHandler {} {::nsf::unsetExitHandler $newbody}
+  Object proc setExitHandler   {newbody} {::nsf::setExitHandler $newbody}
+  Object proc getExitHandler   {} {::nsf::getExitHandler}
 
   # resue some definitions from next scripting
-  ::nx::core::alias ::xotcl::Object copy ::nx::core::classes::nx::Object::copy
-  ::nx::core::alias ::xotcl::Object move ::nx::core::classes::nx::Object::move
-  ::nx::core::alias ::xotcl::Object defaultmethod ::nx::core::classes::nx::Object::defaultmethod
+  ::nsf::alias ::xotcl::Object copy ::nsf::classes::nx::Object::copy
+  ::nsf::alias ::xotcl::Object move ::nsf::classes::nx::Object::move
+  ::nsf::alias ::xotcl::Object defaultmethod ::nsf::classes::nx::Object::defaultmethod
 
-  ::nx::core::alias ::xotcl::Class -per-object __unknown ::nx::Class::__unknown
+  ::nsf::alias ::xotcl::Class -per-object __unknown ::nx::Class::__unknown
 
   proc myproc {args} {linsert $args 0 [::xotcl::self]}
   proc myvar  {var}  {.requireNamespace; return [::xotcl::self]::$var}
@@ -807,8 +808,8 @@ namespace eval ::xotcl {
   
   if {[info exists cmd]} {unset cmd}
 
-  proc ::xotcl::configure args {::nx::core::configure {*}$args}
-  proc ::xotcl::finalize {} {::nx::core::finalize}
+  proc ::xotcl::configure args {::nsf::configure {*}$args}
+  proc ::xotcl::finalize {} {::nsf::finalize}
 
   # Documentation stub object -> just ignore per default.
   # if xoDoc is loaded, documentation will be activated
@@ -817,7 +818,7 @@ namespace eval ::xotcl {
   
   set ::xotcl::confdir ~/.xotcl
   set ::xotcl::logdir $::xotcl::confdir/log
-  namespace import ::nx::core::tmpdir
+  namespace import ::nsf::tmpdir
 
   # if we do this, "::xotcl::Class create Role -superclass Attribute"  will fail.
   #interp alias {} ::xotcl::Attribute {} ::nx::Attribute
@@ -826,6 +827,6 @@ namespace eval ::xotcl {
   namespace export Object Class Attribute myproc myvar my self next @
 }
 
-foreach ns {::nx::core ::nx ::xotcl} {
+foreach ns {::nsf ::nx ::xotcl} {
   puts stderr "$ns exports [namespace eval $ns {lsort [namespace export]}]"
 }

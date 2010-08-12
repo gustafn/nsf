@@ -36,7 +36,7 @@ c1 method foo {} {puts foo}
 ? {c1 info method definition foo} "::c1 method foo {} {puts foo}"
 ? {c1 info callable -which foo} "::c1 method foo {} {puts foo}"
 
-? {C info method name m} "::nx::core::classes::C::m"
+? {C info method name m} "::nsf::classes::C::m"
 ? {C object info method name mpo} "::C::mpo"
 
 ? {C info method definition m} {::C method m x {return proc-[self proc]}}

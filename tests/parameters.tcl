@@ -7,9 +7,9 @@ Test case dummy {
   set o [Object create o]
   puts o=$o
 
-  ? {::nx::core::objectproperty ::o object} 1
+  ? {::nsf::objectproperty ::o object} 1
 }
-? {::nx::core::objectproperty ::o object} 0 
+? {::nsf::objectproperty ::o object} 0 
 #exit
 
 #######################################################
@@ -24,49 +24,49 @@ Test case parametercheck {
   Class create M
   c1 mixin M
 
-  ? {::nx::core::parametercheck object o1} 1
-  ? {::nx::core::parametercheck integer 1} 1
+  ? {::nsf::parametercheck object o1} 1
+  ? {::nsf::parametercheck integer 1} 1
 
-  ? {::nx::core::objectproperty o1 object} 1
-  ? {::nx::core::objectproperty c1 type C} 1
+  ? {::nsf::objectproperty o1 object} 1
+  ? {::nsf::objectproperty c1 type C} 1
 
-  ? {::nx::core::is c1 object -type C} 1
-  ? {::nx::core::is c1 object -hasmixin M -type C} 1
-  ? {::nx::core::is c1 object -hasmixin M1 -type C} 0
-  ? {::nx::core::is c1 object -hasmixin M -type C0} 0
-  ? {::nx::core::is o1 object} 1
-  ? {::nx::core::is 1 integer} 1
-  ? {::nx::core::is c1 type C} 1
-  ? {::nx::core::is o type C} 0
-  ? {::nx::core::is o object -type C} 0
-  ? {::nx::core::is o object -hasmixin C} 0
+  ? {::nsf::is c1 object -type C} 1
+  ? {::nsf::is c1 object -hasmixin M -type C} 1
+  ? {::nsf::is c1 object -hasmixin M1 -type C} 0
+  ? {::nsf::is c1 object -hasmixin M -type C0} 0
+  ? {::nsf::is o1 object} 1
+  ? {::nsf::is 1 integer} 1
+  ? {::nsf::is c1 type C} 1
+  ? {::nsf::is o type C} 0
+  ? {::nsf::is o object -type C} 0
+  ? {::nsf::is o object -hasmixin C} 0
 #exit
-  ? {::nx::core::parametercheck class o1} {expected class but got "o1" for parameter value}
-  ? {::nx::core::parametercheck -nocomplain class o1} 0
-  ? {::nx::core::parametercheck class Test} 1
-  ? {::nx::core::parametercheck object,multivalued [list o1 Test]} 1
+  ? {::nsf::parametercheck class o1} {expected class but got "o1" for parameter value}
+  ? {::nsf::parametercheck -nocomplain class o1} 0
+  ? {::nsf::parametercheck class Test} 1
+  ? {::nsf::parametercheck object,multivalued [list o1 Test]} 1
 
-  ? {::nx::core::parametercheck integer,multivalued [list 1 2 3]} 1
-  ? {::nx::core::parametercheck integer,multivalued [list 1 2 3 a]} \
+  ? {::nsf::parametercheck integer,multivalued [list 1 2 3]} 1
+  ? {::nsf::parametercheck integer,multivalued [list 1 2 3 a]} \
       {invalid value in "1 2 3 a": expected integer but got "a" for parameter value}
-  ? {::nx::core::parametercheck object,type=::C c1} 1
-  ? {::nx::core::parametercheck object,type=::C o} \
+  ? {::nsf::parametercheck object,type=::C c1} 1
+  ? {::nsf::parametercheck object,type=::C o} \
       {expected object but got "o" for parameter value} \
       "object, but different type"
-  ? {::nx::core::parametercheck object,type=::C c} \
+  ? {::nsf::parametercheck object,type=::C c} \
       {expected object but got "c" for parameter value} \
       "no object"
-  ? {::nx::core::parametercheck object,type=::nx::Object c1} 1 "general type"
+  ? {::nsf::parametercheck object,type=::nx::Object c1} 1 "general type"
   
   # do not allow "currently unknown" user defined types in parametercheck
-  ? {::nx::core::parametercheck in1 aaa} {invalid value constraints "in1"}
+  ? {::nsf::parametercheck in1 aaa} {invalid value constraints "in1"}
   
-  ? {::nx::core::parametercheck lower c} 1 "lower case char"
-  ? {::nx::core::parametercheck lower abc} 1 "lower case chars"
-  ? {::nx::core::parametercheck lower Abc} {expected lower but got "Abc" for parameter value} 
+  ? {::nsf::parametercheck lower c} 1 "lower case char"
+  ? {::nsf::parametercheck lower abc} 1 "lower case chars"
+  ? {::nsf::parametercheck lower Abc} {expected lower but got "Abc" for parameter value} 
   ? {string is lower abc} 1 "tcl command 'string is lower'"
   
-  ? {::nx::core::parametercheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
+  ? {::nsf::parametercheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
 }
 
 #######################################################
@@ -81,7 +81,7 @@ Test case parametercheck {
     }
   }
   
-  ? {::nx::core::parametercheck sex,slot=::paramManager female} "1"
+  ? {::nsf::parametercheck sex,slot=::paramManager female} "1"
 }
 #######################################################
 # cononical feature table
@@ -291,7 +291,7 @@ Test case passed-arguments {
       "don't allow relation option as method parameter"
   
   ? {D method foo {a:double} {return $a}} \
-      {::nx::core::classes::D::foo} \
+      {::nsf::classes::D::foo} \
       "allow 'string is XXXX' for argument checking"
   ? {d1 foo 1} 1 "check int as double"
   ? {d1 foo 1.1} 1.1 "check double as double"
@@ -867,11 +867,11 @@ Test case multivalued-app-converter {
     # values into emtpy strings.
   }
   
-  ? {::nx::core::parametercheck mType,slot=::tmpObj,multivalued {1 0}} \
+  ? {::nsf::parametercheck mType,slot=::tmpObj,multivalued {1 0}} \
       {invalid value in "1 0": expected false but got 1} \
       "fail on first value"
-  ? {::nx::core::parametercheck mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
-  ? {::nx::core::parametercheck mType,slot=::tmpObj,multivalued {0 1}} \
+  ? {::nsf::parametercheck mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
+  ? {::nsf::parametercheck mType,slot=::tmpObj,multivalued {0 1}} \
       {invalid value in "0 1": expected false but got 1} \
       "fail o last value"
 }
@@ -891,7 +891,7 @@ Test case shadowing-app-converter {
     }
   }
   
-  ? {::nx::core::parametercheck integer,slot=::mySlot 1} 1 
+  ? {::nsf::parametercheck integer,slot=::mySlot 1} 1 
   ? {o foo 3} 4
 }
 
@@ -926,17 +926,17 @@ Test case setters {
   Object create o
   Class create C
   
-  ? {::nx::core::setter o a} "::o::a"
-  ? {::nx::core::setter C c} "::nx::core::classes::C::c"
+  ? {::nsf::setter o a} "::o::a"
+  ? {::nsf::setter C c} "::nsf::classes::C::c"
   ? {o info method definition a} "::o setter a"
   ? {o info method parameter a} "a"
   ? {o info method args a} "a"
   ? {C info method definition c} "::C setter c"
   ? {o a 1} "1"
   
-  ? {::nx::core::setter o a:integer} "::o::a"
-  ? {::nx::core::setter o ints:integer,multivalued} "::o::ints"
-  ? {::nx::core::setter o o:object} "::o::o"
+  ? {::nsf::setter o a:integer} "::o::a"
+  ? {::nsf::setter o ints:integer,multivalued} "::o::ints"
+  ? {::nsf::setter o o:object} "::o::o"
   
   ? {o info method name ints} "::o::ints"
   ? {o info method definition ints} "::o setter ints:integer,multivalued"
@@ -954,8 +954,8 @@ Test case setters {
   ? {o ints {10 100 1000}} {10 100 1000}
   ? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter ints}
   ? {o o o} o
-  ? {::nx::core::setter o {d default}} {parameter "d" is not allowed to have default "default"}
-  ? {::nx::core::setter o -x} {method name "-x" must not start with a dash}
+  ? {::nsf::setter o {d default}} {parameter "d" is not allowed to have default "default"}
+  ? {::nsf::setter o -x} {method name "-x" must not start with a dash}
 }
 
 #######################################################

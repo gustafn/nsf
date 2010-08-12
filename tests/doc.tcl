@@ -307,7 +307,7 @@ Test case parsing {
     {@author gustaf.neumann@wu-wien.ac.at}
   }
   set entity [EntityClass process $block]
-  ? [list ::nx::core::is $entity object] 1
+  ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@object] 1
   ? [list $entity @author] "stefan.sobernig@wu.ac.at gustaf.neumann@wu-wien.ac.at";
   ? [list $entity text] "some more text and another line for the description";
@@ -320,7 +320,7 @@ Test case parsing {
     {@see ::o}
   }
   set entity [EntityClass process $block]
-  ? [list ::nx::core::is $entity object] 1
+  ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@command] 1
   ? [list $entity text] "some text on the command";
   ? [list $entity @see] "::o";
@@ -360,7 +360,7 @@ Test case parsing {
   eval $script
   doc process ::Foo
   set entity [@object id ::Foo]
-  ? [list ::nx::core::is $entity object] 1
+  ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@object] 1
   ? [list $entity text] "The class Foo defines the behaviour for all Foo objects";
   ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
@@ -368,13 +368,13 @@ Test case parsing {
   # entities to be passed and the (b) documented structures
   #set entity [@param id ::Foo class attr1]
   set entity [@param id $entity attr1]
-  ? [list ::nx::core::is $entity object] 1
+  ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@param] 1
   ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Foo class foo]
   ? [list [@object id ::Foo] @method] $entity
-  ? [list ::nx::core::is $entity object] 1
+  ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@method] 1
   ? [list $entity text] "This describes the foo method";
   
@@ -458,7 +458,7 @@ Test case parsing {
   set i [doc process $script]
 
   set entity [@object id ::Bar]
-  ? [list $i eval [list ::nx::core::is $entity object]] 1
+  ? [list $i eval [list ::nsf::is $entity object]] 1
   ? [list $i eval [list $entity info is type ::nx::doc::@object]] 1
   ? [list $i eval [list $entity text]] "The class Bar defines the behaviour for all Bar objects";
   ? [list $i eval [list $entity @author]] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
@@ -467,13 +467,13 @@ Test case parsing {
   # entities to be passed and the (b) documented structures
   #set entity [@param id ::Bar class attr1]
   set entity [@param id $entity attr1]
-  ? [list $i eval [list ::nx::core::is $entity object]] 1
+  ? [list $i eval [list ::nsf::is $entity object]] 1
   ? [list $i eval [list $entity info is type ::nx::doc::@param]] 1
   ? [list $i eval [list $entity @see]] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Bar class foo]
   ? [list $i eval [list [@object id ::Bar] @method]] $entity
-  ? [list $i eval [list ::nx::core::is $entity object]] 1
+  ? [list $i eval [list ::nsf::is $entity object]] 1
   ? [list $i eval [list $entity info is type ::nx::doc::@method]] 1
   ? [list $i eval [list $entity text]] "This describes the foo method in the method body";
 
@@ -485,7 +485,7 @@ Test case parsing {
   }
   set entity [@method id ::Bar object foo]
   ? [list $i eval [list [@object id ::Bar] @object-method]] $entity
-  ? [list $i eval [list ::nx::core::is $entity object]] 1
+  ? [list $i eval [list ::nsf::is $entity object]] 1
   ? [list $i eval [list $entity info is type ::nx::doc::@method]] 1
   ? [list $i eval [list $entity text]] "This describes the per-object foo method in the method body";
 
@@ -509,7 +509,7 @@ Test case parsing {
       error $msg
     }
   }
-  ? [list $i eval [list ::nx::core::is [@package id nx::doc] object]] 1
+  ? [list $i eval [list ::nsf::is [@package id nx::doc] object]] 1
   puts stderr [$i eval [list [@package id nx::doc] text]]
   puts stderr [$i eval [list [@package id nx::doc] @require]]
   set path [file join /tmp nextdoc]
@@ -559,11 +559,11 @@ Test case issues? {
   # TODO: is [autoname -instance] really needed?
   #       is autoname needed in Next Scripting?
 
-  # TODO: why is XOTclNextObjCmd/::nx::core::next not in gentclAPI.decls?
+  # TODO: why is XOTclNextObjCmd/::nsf::next not in gentclAPI.decls?
   #       why should it be there? there are pros and cons, and very little benefit, or?
 
   # TODO: where to locate the @ comments (in predefined.xotcl, in
-  # gentclAPI.decls)? how to deal with ::nx::core::* vs. ::nx::*
+  # gentclAPI.decls)? how to deal with ::nsf::* vs. ::nx::*
   
   # TODO: which values are returned from Object->configure() and
   # passed to init()? how to document residualargs()?
@@ -584,7 +584,7 @@ Test case issues? {
 
   # what means "keep". next scripting should be mininmal, 
   # "instvar" is not needed and error-prone. We have now
-  # "::nx::var import" and ::nx::core::importvar
+  # "::nx::var import" and ::nsf::importvar
   # (of you want, similar to variable or global).
 
   # TODO: verify the use of filtersearch()? should it return a method
@@ -657,7 +657,7 @@ Test case issues? {
   # what are member-creating operations? if you mean "method-creating methods"
   # they should (in next scripting) (i.e. necessary for e.g. method modifiers).
 
-  # TODO: the objectsystems subcommand of ::nx::core::configure does
+  # TODO: the objectsystems subcommand of ::nsf::configure does
   # not really fit in there because it does not allow for configuring
   # anything. it is a mere introspection-only command. relocate (can
   # we extend standard [info] somehow, i.e., [info objectsystems]
@@ -680,8 +680,8 @@ Test case issues? {
   # but there, the object property is just for quering.
   # Another option is define and "info"
   #
-  #   ::nx::core::info object OBJECT metaclass
-  #   ::nx::core::info objectsystems 
+  #   ::nsf::info object OBJECT metaclass
+  #   ::nsf::info objectsystems 
   #
   # but if we would fold these into tcl-info, conflicts with
   # tcl will arise.

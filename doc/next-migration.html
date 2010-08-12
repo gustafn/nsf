@@ -63,7 +63,7 @@ table td {
 <h1>Migration Guide for the the Next Scripting Language</h1>
 <p>
 ... general text, maybe partly from slides/paper ....
-TODO: Maybe we should not refer to ::nx::core here and import instead
+TODO: Maybe we should not refer to ::nsf here and import instead
 the "needed" commands into ::nx namespace.
 <p>In general, the Next Scripting Language differs from XOTcl in the following
 respects:
@@ -974,9 +974,9 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr>
     <td><code><i>obj</i> istype <i>sometype</i></code></td>
     <td>
-      TODO: ::nx::core::objectproperty and/or
+      TODO: ::nsf::objectproperty and/or
   ::nx::objectproperty and/or nx::is?<p>
-      <code>::nx::core::objectproperty <i>obj</i> type <i>sometype</i></code><br>
+      <code>::nsf::objectproperty <i>obj</i> type <i>sometype</i></code><br>
       <hr>
       <code><i>obj</i> info is type <i>sometype</i></code>
     </td>
@@ -984,7 +984,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr>
     <td><code><i>obj</i> ismixin <i>cls</i></code></td>
     <td>
-      <code>::nx::core::objectproperty <i>obj</i> mixin <i>cls</i></code><br>
+      <code>::nsf::objectproperty <i>obj</i> mixin <i>cls</i></code><br>
       <hr>
       <code><i>obj</i> info is mixin <i>cls</i></code>
     </td>
@@ -992,28 +992,28 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr>
     <td><code><i>obj</i> isclass <i>?cls?</i></code></td>
     <td>
-      <code>::nx::core::objectproperty <i>obj|cls</i> class</code><br>
+      <code>::nsf::objectproperty <i>obj|cls</i> class</code><br>
       <hr>
       <code><i>obj</i> info is class</code>
     </td>
   </tr>
   <tr>
     <td><code><i>obj</i> ismetaclass <i>cls</i></code></td>
-    <td><code>::nx::core::objectproperty <i>obj|cls</i> metaclass</code>
+    <td><code>::nsf::objectproperty <i>obj|cls</i> metaclass</code>
       <hr>
       <code><i>obj</i> info is metaclass</code>
     </td>
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-   <td><code>::nx::core::objectproperty <i>cls</i> baseclass</code>
+   <td><code>::nsf::objectproperty <i>cls</i> baseclass</code>
       <hr>
       <code><i>cls</i> info is baseclass</code>
     </td>
   </tr>  
  <tr>
     <td><code><i>obj</i> isobject <i>obj2</i></code></td>
-    <td><code>::nx::core::objectproperty <i>obj</i> object</code>
+    <td><code>::nsf::objectproperty <i>obj</i> object</code>
       <hr>
       <code><i>obj</i> info is object</code>
     </td>
@@ -1093,38 +1093,38 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> check <i>checkoptions</i></code></td>
-    <td><code>::nx::core::assertion <i>obj</i> check <i>checkptions</i></code></td>
+    <td><code>::nsf::assertion <i>obj</i> check <i>checkptions</i></code></td>
   </tr>
   <tr>
     <td><code><i>obj</i> info check</code></td>
-    <td><code>::nx::core::assertion <i>obj</i> check</code></td>
+    <td><code>::nsf::assertion <i>obj</i> check</code></td>
   </tr>
   
   <tr>
     <td><code><i>obj</i> invar <i>conditions</i></code></td>
-    <td><code>::nx::core::assertion <i>obj</i> object-invar <i>conditions</i></code></td>
+    <td><code>::nsf::assertion <i>obj</i> object-invar <i>conditions</i></code></td>
   </tr>
   <tr>
     <td><code><i>obj</i> info invar</code></td>
-    <td><code>::nx::core::assertion <i>obj</i> object-invar</code></td>
+    <td><code>::nsf::assertion <i>obj</i> object-invar</code></td>
   </tr>
   
   <tr>
     <td><code><i>cls</i> instinvar <i>conditions</i></code></td>
-    <td><code>::nx::core::assertion <i>cls</i> class-invar <i>conditions</i></code></td>
+    <td><code>::nsf::assertion <i>cls</i> class-invar <i>conditions</i></code></td>
   </tr>
   <tr>
     <td><code><i>cls</i> info instinvar</code></td>
-    <td><code>::nx::core::assertion <i>cls</i> class-invar</code></td>
+    <td><code>::nsf::assertion <i>cls</i> class-invar</code></td>
   </tr>
 
     <tr>
     <td><code><i>cls</i> invar <i>conditions</i></code></td>
-    <td><code>::nx::core::assertion <i>cls</i> object-invar <i>conditions</i></code></td>
+    <td><code>::nsf::assertion <i>cls</i> object-invar <i>conditions</i></code></td>
   </tr>
   <tr>
     <td><code><i>cls</i> info invar</code></td>
-    <td><code>::nx::core::assertion <i>cls</i> object-invar</code></td>
+    <td><code>::nsf::assertion <i>cls</i> object-invar</code></td>
   </tr>
   
 </table>
@@ -1164,12 +1164,12 @@ comment, while Next enforces it. </p>
 <h3>Exit Handlers</h3>
 <p>
 The exit hander interface changed from a method of
-<code>::xotcl::Object</code> into three Tcl procs in the <code>::nx::core</code>
+<code>::xotcl::Object</code> into three Tcl procs in the <code>::nsf</code>
 namespace. Next provides now:
 <pre>
-   ::nx::core::setExitHandler script
-   ::nx::core::getExitHandler
-   ::nx::core::unsetExitHandler
+   ::nsf::setExitHandler script
+   ::nsf::getExitHandler
+   ::nsf::unsetExitHandler
 </pre>
 
 

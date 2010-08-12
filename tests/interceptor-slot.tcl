@@ -25,9 +25,9 @@ C mixin delete M
 # per-object mixins
 ? {c1 info precedence} "::C ::nx::Object"
 c1 mixin add M
-? {::nx::core::relation c1 object-mixin} ::M
+? {::nsf::relation c1 object-mixin} ::M
 ? {catch {c1 mixin UNKNOWN}} 1
-? {::nx::core::relation c1 object-mixin} "::M"
+? {::nsf::relation c1 object-mixin} "::M"
 
 # add again the same mixin
 c1 mixin add M
@@ -43,10 +43,10 @@ c1 mixin delete M2
 # adding, removing per-object mixins for classes through relation
 # "object-mixin"
 #
-::nx::core::relation C object-mixin M
+::nsf::relation C object-mixin M
 ? {C info precedence} "::M ::nx::Class ::nx::Object"
 ? {C object info mixin} "::M"
-::nx::core::relation C object-mixin ""
+::nsf::relation C object-mixin ""
 ? {C info precedence} "::nx::Class ::nx::Object"
 
 #
@@ -83,9 +83,9 @@ C object mixin ""
 #
 C object mixin add M 
 ? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {::nx::core::relation C object-mixin} ::M
+? {::nsf::relation C object-mixin} ::M
 ? {catch {C object mixin add UNKNOWN}} 1
-? {::nx::core::relation C object-mixin} "::M"
+? {::nsf::relation C object-mixin} "::M"
 C object mixin ""
 ? {C info precedence} "::nx::Class ::nx::Object"
 

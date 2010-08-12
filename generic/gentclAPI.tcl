@@ -296,8 +296,8 @@ static methodDefinition method_definitions[];
 
   set namespaces [list]
   foreach {key value} [array get ::ns] {
-     # no need to create the ::nx::core namespace
-     if {$value eq "::nx::core"} continue
+     # no need to create the ::nsf namespace
+     if {$value eq "::nsf"} continue
      lappend namespaces "\"$value\"" 
   }
   set namespaceString [join $namespaces ",\n  "]

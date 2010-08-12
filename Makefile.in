@@ -43,7 +43,7 @@ src_test_dir_native 	= `@CYGPATH@ ${src_test_dir}`
 src_app_dir_native	= `@CYGPATH@ ${src_app_dir}`
 src_generic_dir_native	= `@CYGPATH@ ${src_generic_dir}`
 
-libdirs		= lib serialize
+libdirs		= lib nx serialize
 libsrc		= COPYRIGHT pkgIndex.tcl 
 appdirs		= 
 appsrc		= COPYRIGHT 

@@ -22,7 +22,7 @@ Object create make {
     }
 
     set so [glob -nocomplain *[info sharedlibextension]]
-    set version $::nx::core::version
+    set version $::nsf::version
     # loading libnext into nextsh might cause problems on some systems
     foreach lib [list libnext$version[info sharedlibextension] \
                      next$version.dll] {

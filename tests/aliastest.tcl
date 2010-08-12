@@ -6,7 +6,7 @@ Test case alias-preliminaries {
   
   # The system methods of Object are either alias or forwarders
   ? {lsort [::nx::ObjectParameterSlot info methods -methodtype alias]} {assign get}
-  ? {::nx::ObjectParameterSlot info method definition get} "::nx::ObjectParameterSlot alias get ::nx::core::setvar"
+  ? {::nx::ObjectParameterSlot info method definition get} "::nx::ObjectParameterSlot alias get ::nsf::setvar"
 
   # define an alias and retrieve its definition
   set cmd "::nx::Object alias -objscope set ::set"
@@ -22,9 +22,9 @@ Test case alias-simple {
   }
 
   Class create Foo
-  ::nx::core::alias ::Foo foo ::nx::core::classes::Base::foo
+  ::nsf::alias ::Foo foo ::nsf::classes::Base::foo
   
-  ? {Foo info method definition foo} "::Foo alias foo ::nx::core::classes::Base::foo"
+  ? {Foo info method definition foo} "::Foo alias foo ::nsf::classes::Base::foo"
   
   Foo create f1
   ? {f1 foo} 1
@@ -42,7 +42,7 @@ Test case alias-simple {
   
 
   Base method foo {{-x 1}} {return $x}
-  ::nx::core::alias ::Foo foo ::nx::core::classes::Base::foo
+  ::nsf::alias ::Foo foo ::nsf::classes::Base::foo
   
   ? {Base info methods -methodtype scripted} {foo} "defined again"
   ? {Foo info methods -methodtype alias} {foo} "aliased again"
@@ -63,7 +63,7 @@ Test case alias-chaining {
   
   
   T method foo args { return [current class]->[current method] }
-  ::nx::core::alias T FOO ::nx::core::classes::T::foo 
+  ::nsf::alias T FOO ::nsf::classes::T::foo 
   
   ? {t foo} ::T->foo
   ? {t FOO} ::T->foo
@@ -74,11 +74,11 @@ Test case alias-chaining {
   
   # puts stderr "double indirection"
   T method foo args { return [current class]->[current method] }
-  ::nx::core::alias T FOO ::nx::core::classes::T::foo 
-  ::nx::core::alias S BAR ::nx::core::classes::T::FOO
+  ::nsf::alias T FOO ::nsf::classes::T::foo 
+  ::nsf::alias S BAR ::nsf::classes::T::FOO
   
   ? {T info methods -methodtype alias} "FOO"
-  ? {T info method definition FOO} "::T alias FOO ::nx::core::classes::T::foo"
+  ? {T info method definition FOO} "::T alias FOO ::nsf::classes::T::foo"
   ? {lsort [T info methods]} {FOO foo}
   ? {S info methods} {BAR}
   T method FOO {} {}
@@ -86,7 +86,7 @@ Test case alias-chaining {
   ? {S info methods} {BAR}
   ? {s BAR} ::S->foo
   ? {t foo} ::T->foo
-  ? {S info method definition BAR} "::S alias BAR ::nx::core::classes::T::FOO"
+  ? {S info method definition BAR} "::S alias BAR ::nsf::classes::T::FOO"
   
   
   T method foo {} {}
@@ -94,8 +94,8 @@ Test case alias-chaining {
   ? {S info methods} {}
   
   T method foo args { return [current class]->[current method] }
-  ::nx::core::alias T FOO ::nx::core::classes::T::foo 
-  ::nx::core::alias S BAR ::nx::core::classes::T::FOO
+  ::nsf::alias T FOO ::nsf::classes::T::foo 
+  ::nsf::alias S BAR ::nsf::classes::T::FOO
   
   ? {lsort [T info methods]} {FOO foo}
   ? {S info methods} {BAR}
@@ -105,9 +105,9 @@ Test case alias-chaining {
   
   T method foo args { return [current class]->[current method] }
   T object method bar args { return [current class]->[current method] }
-  ::nx::core::alias T -per-object FOO ::nx::core::classes::T::foo 
-  ::nx::core::alias T -per-object BAR ::T::FOO 
-  ::nx::core::alias T -per-object ZAP ::T::BAR 
+  ::nsf::alias T -per-object FOO ::nsf::classes::T::foo 
+  ::nsf::alias T -per-object BAR ::T::FOO 
+  ::nsf::alias T -per-object ZAP ::T::BAR 
   ? {T info methods} {foo}
   ? {lsort [T object info methods -methodtype alias]} {BAR FOO ZAP}
   ? {lsort [T object info methods]} {BAR FOO ZAP bar}
@@ -149,8 +149,8 @@ Test case alias-per-object {
   # per-object methods as per-object aliases
   #
   T object method m1 args { return [current class]->[current method] }
-  ::nx::core::alias T -per-object M1 ::T::m1 
-  ::nx::core::alias T -per-object M11 ::T::M1 
+  ::nsf::alias T -per-object M1 ::T::m1 
+  ::nsf::alias T -per-object M11 ::T::M1 
   ? {lsort [T object info methods]} {M1 M11 bar m1}
   ? {T m1} ->m1
   ? {T M1} ->m1
@@ -167,12 +167,12 @@ Test case alias-per-object {
   #
   
   proc foo args { return [current class]->[current method] }
-  ::nx::core::alias T FOO1 ::foo 
-  ::nx::core::alias T -per-object FOO2 ::foo
+  ::nsf::alias T FOO1 ::foo 
+  ::nsf::alias T -per-object FOO2 ::foo
   #
   # ! per-object alias referenced as per-class alias !
   #
-  ::nx::core::alias T BAR ::T::FOO2
+  ::nsf::alias T BAR ::T::FOO2
   ? {lsort [T object info methods]} {FOO2 bar}
   ? {lsort [T info methods]} {BAR FOO1}
   ? {T FOO2} ->foo
@@ -200,9 +200,9 @@ Test case alias-namespaced {
     proc bar2 args { upvar 2 _ __; return $__}
   }
   
-  ::nx::core::alias T FOO ::ns1::foo
-  ::nx::core::alias T BAR ::ns1::bar
-  ::nx::core::alias T BAR2 ::ns1::bar2
+  ::nsf::alias T FOO ::ns1::foo
+  ::nsf::alias T BAR ::ns1::bar
+  ::nsf::alias T BAR2 ::ns1::bar2
   ? {lsort [T info methods]} {BAR BAR2 FOO}
   set ::_ GOTYA
   ? {t FOO} ::T->foo
@@ -218,12 +218,12 @@ Test case alias-namespaced {
   U create u
   ? {namespace exists ::U} 0
   U object method zap args { return [current class]->[current method] }
-  ::nx::core::alias ::U -per-object ZAP ::U::zap 
+  ::nsf::alias ::U -per-object ZAP ::U::zap 
   U requireNamespace
   ? {namespace exists ::U} 1
   
   U object method bar args { return [current class]->[current method] }
-  ::nx::core::alias U -per-object BAR ::U::bar
+  ::nsf::alias U -per-object BAR ::U::bar
   ? {lsort [U object info methods]} {BAR ZAP bar zap}
   ? {U BAR} ->bar
   ? {U ZAP} ->zap
@@ -255,8 +255,8 @@ Test case alias-dot-resolver {
 
   proc ::foo args { return [:bar ${:z}]-[set :z]-[:bar [set :z]] }
 
-  ::nx::core::alias V FOO1 ::foo 
-  ::nx::core::alias V -per-object FOO2 ::foo
+  ::nsf::alias V FOO1 ::foo 
+  ::nsf::alias V -per-object FOO2 ::foo
 
   ? {lsort [V object info methods]} {FOO2 bar}
   ? {lsort [V info methods]} {FOO1 bar}
@@ -270,7 +270,7 @@ Test case alias-dot-resolver {
 }
 
 #
-# Tests for the ::nx::core::alias store, used for introspection for
+# Tests for the ::nsf::alias store, used for introspection for
 # aliases. The alias store (an associative variable) is mostly
 # necessary for for the direct aliases (e.g. aliases to C implemented
 # tcl commands), for which we have no stubs at the place where the
@@ -278,7 +278,7 @@ Test case alias-dot-resolver {
 #
 
 #
-# structure of the ::nx::core::alias store:
+# structure of the ::nsf::alias store:
 # <object>,<alias_name>,<per_object> -> <aliased_cmd>
 #
 
@@ -287,95 +287,95 @@ Class create C
 
 o method bar args {;}
 
-? {info vars ::nx::core::alias} ::nx::core::alias
-? {array exists ::nx::core::alias} 1 
+? {info vars ::nsf::alias} ::nsf::alias
+? {array exists ::nsf::alias} 1 
 
 proc ::foo args {;}
-::nx::core::alias ::o FOO ::foo
-::nx::core::alias ::C FOO ::foo
-? {info exists ::nx::core::alias(::o,FOO,1)} 1
-? {info exists ::nx::core::alias(::C,FOO,0)} 1
-? {array get ::nx::core::alias ::o,FOO,1} "::o,FOO,1 ::foo"
-? {array get ::nx::core::alias ::C,FOO,0} "::C,FOO,0 ::foo"
+::nsf::alias ::o FOO ::foo
+::nsf::alias ::C FOO ::foo
+? {info exists ::nsf::alias(::o,FOO,1)} 1
+? {info exists ::nsf::alias(::C,FOO,0)} 1
+? {array get ::nsf::alias ::o,FOO,1} "::o,FOO,1 ::foo"
+? {array get ::nsf::alias ::C,FOO,0} "::C,FOO,0 ::foo"
 ? {o info method definition FOO} "::o alias FOO ::foo"
 ? {C info method definition FOO} "::C alias FOO ::foo"
 
-::nx::core::alias o FOO ::o::bar
-? {info exists ::nx::core::alias(::o,FOO,1)} 1
-? {array get ::nx::core::alias ::o,FOO,1} "::o,FOO,1 ::o::bar"
+::nsf::alias o FOO ::o::bar
+? {info exists ::nsf::alias(::o,FOO,1)} 1
+? {array get ::nsf::alias ::o,FOO,1} "::o,FOO,1 ::o::bar"
 ? {o info method definition FOO} "::o alias FOO ::o::bar"
 
 # AliasDelete in XOTclRemoveObjectMethod
 o method FOO {} {}
-? {info exists ::nx::core::alias(::o,FOO,1)} 0
-? {array get ::nx::core::alias ::o,FOO,1} ""
+? {info exists ::nsf::alias(::o,FOO,1)} 0
+? {array get ::nsf::alias ::o,FOO,1} ""
 ? {o info method definition FOO} ""
 
 # AliasDelete in XOTclRemoveClassMethod
 C method FOO {} {}
-? {info exists ::nx::core::alias(::C,FOO,0)} 0
-? {array get ::nx::core::alias ::C,FOO,0} ""
+? {info exists ::nsf::alias(::C,FOO,0)} 0
+? {array get ::nsf::alias ::C,FOO,0} ""
 ? {C info method definition FOO} ""
 
-::nx::core::alias ::o BAR ::foo
-::nx::core::alias ::C BAR ::foo  
+::nsf::alias ::o BAR ::foo
+::nsf::alias ::C BAR ::foo  
 
 # AliasDelete in XOTclAddObjectMethod
-? {info exists ::nx::core::alias(::o,BAR,1)} 1
+? {info exists ::nsf::alias(::o,BAR,1)} 1
 ::o method BAR {} {;}
-? {info exists ::nx::core::alias(::o,BAR,1)} 0
+? {info exists ::nsf::alias(::o,BAR,1)} 0
 
 # AliasDelete in XOTclAddInstanceMethod
-? {info exists ::nx::core::alias(::C,BAR,0)} 1
+? {info exists ::nsf::alias(::C,BAR,0)} 1
 ::C method BAR {} {;}
-? {info exists ::nx::core::alias(::C,BAR,0)} 0
+? {info exists ::nsf::alias(::C,BAR,0)} 0
 
 # AliasDelete in aliasCmdDeleteProc
-::nx::core::alias o FOO ::foo
-? {info exists ::nx::core::alias(::o,FOO,1)} 1
+::nsf::alias o FOO ::foo
+? {info exists ::nsf::alias(::o,FOO,1)} 1
 rename ::foo ""
-? {info exists ::nx::core::alias(::o,FOO,1)} 0
+? {info exists ::nsf::alias(::o,FOO,1)} 0
 
-::nx::core::alias o FOO ::o::bar
-::nx::core::alias o BAR ::o::FOO
-? {info exists ::nx::core::alias(::o,FOO,1)} 1
-? {info exists ::nx::core::alias(::o,BAR,1)} 1
+::nsf::alias o FOO ::o::bar
+::nsf::alias o BAR ::o::FOO
+? {info exists ::nsf::alias(::o,FOO,1)} 1
+? {info exists ::nsf::alias(::o,BAR,1)} 1
 o method bar {} {}
-? {info exists ::nx::core::alias(::o,FOO,1)} 0
-? {info exists ::nx::core::alias(::o,BAR,1)} 0
+? {info exists ::nsf::alias(::o,FOO,1)} 0
+? {info exists ::nsf::alias(::o,BAR,1)} 0
 
 #
 # pulling the rug out from the proc-alias deletion mechanism
 #
 
 proc ::foo args {;}
-::nx::core::alias C FOO ::foo
-? {info exists ::nx::core::alias(::C,FOO,0)} 1
-unset ::nx::core::alias(::C,FOO,0)
-? {info exists ::nx::core::alias(::C,FOO,0)} 0
+::nsf::alias C FOO ::foo
+? {info exists ::nsf::alias(::C,FOO,0)} 1
+unset ::nsf::alias(::C,FOO,0)
+? {info exists ::nsf::alias(::C,FOO,0)} 0
 ? {C info method definition FOO} ""
 ? {C info methods -methodtype alias} FOO
 rename ::foo ""
 ? {C info methods -methodtype alias} ""
-? {info exists ::nx::core::alias(::C,FOO,0)} 0
+? {info exists ::nsf::alias(::C,FOO,0)} 0
 ? {C info method definition FOO} ""
 
 #
 # test renaming of Tcl proc (actually sensed by the alias, though not
 # reflected by the alias definition store)
 # a) is this acceptable?
-# b) sync ::nx::core::alias upon "info method definition" calls? is this feasible,
+# b) sync ::nsf::alias upon "info method definition" calls? is this feasible,
 # e.g. through rename traces?
 #
 
 C create c
 proc ::foo args { return [current]->[current method]}
-? {info exists ::nx::core::alias(::C,FOO,0)} 0
-::nx::core::alias C FOO ::foo
-? {info exists ::nx::core::alias(::C,FOO,0)} 1
+? {info exists ::nsf::alias(::C,FOO,0)} 0
+::nsf::alias C FOO ::foo
+? {info exists ::nsf::alias(::C,FOO,0)} 1
 ? {C info methods -methodtype alias} FOO
 rename ::foo ::foo2
-? {info exists ::nx::core::alias(::C,FOO,0)} 1
+? {info exists ::nsf::alias(::C,FOO,0)} 1
 ? {C info methods -methodtype alias} FOO
 ? {c FOO} ::c->foo2
 ? {C info method definition FOO} "::C alias FOO ::foo"; # should be ::foo2 (!)

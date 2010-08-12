@@ -5,12 +5,12 @@ package require nx::test
 
 Test parameter count 1
 
-::nx::core::alias ::nx::Object objeval -objscope ::eval 
-::nx::core::alias ::nx::Object array -objscope ::array
-::nx::core::alias ::nx::Object lappend -objscope ::lappend
-::nx::core::alias ::nx::Object incr -objscope ::incr
-::nx::core::alias ::nx::Object set -objscope ::set
-::nx::core::alias ::nx::Object unset -objscope ::unset
+::nsf::alias ::nx::Object objeval -objscope ::eval 
+::nsf::alias ::nx::Object array -objscope ::array
+::nsf::alias ::nx::Object lappend -objscope ::lappend
+::nsf::alias ::nx::Object incr -objscope ::incr
+::nsf::alias ::nx::Object set -objscope ::set
+::nsf::alias ::nx::Object unset -objscope ::unset
 
 ###########################################
 # Basic tests for var resolution under 
@@ -47,7 +47,7 @@ o objeval {
   # vartables on the stack
   :requireNamespace
   global g
-  ::nx::core::importvar o2 i
+  ::nsf::importvar o2 i
   set x 1
   set :y 2
   set ::z 3
@@ -56,28 +56,28 @@ o objeval {
   set :a(:b) 1
   set :a(::c) 1
 }
-? {::nx::core::importvar o2 j} \
+? {::nsf::importvar o2 j} \
     "importvar cannot import variable 'j' into method scope; not called from a method frame"
 
-o method foo {} {::nx::core::importvar [current] :a}
+o method foo {} {::nsf::importvar [current] :a}
 ? {o foo} "variable name \":a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nx::core::importvar [current] ::a}
+o method foo {} {::nsf::importvar [current] ::a}
 ? {o foo} "variable name \"::a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nx::core::importvar [current] a(:b)}
+o method foo {} {::nsf::importvar [current] a(:b)}
 ? {o foo} "can't make instance variable a(:b) on ::o: Variable cannot be an element in an array; use e.g. an alias."
 
-o method foo {} {::nx::core::importvar [current] {a(:b) ab}}
+o method foo {} {::nsf::importvar [current] {a(:b) ab}}
 ? {o foo} ""
 
-o method foo {} {::nx::core::existsvar [current] ::a}
+o method foo {} {::nsf::existsvar [current] ::a}
 ? {o foo} "variable name \"::a\" must not contain namespace separator or colon prefix"
 
-o method foo {} {::nx::core::existsvar [current] a(:b)}
+o method foo {} {::nsf::existsvar [current] a(:b)}
 ? {o foo} 1
 
-o method foo {} {::nx::core::existsvar [current] a(::c)}
+o method foo {} {::nsf::existsvar [current] a(::c)}
 ? {o foo} 1
 
 set ::o::Y 5
@@ -105,7 +105,7 @@ Object create o2 {set :i 1}
 Object create o {
   :requireNamespace
   global g
-  ::nx::core::importvar o2 i
+  ::nsf::importvar o2 i
   set x 1
   set :y 2
   set ::z 3
@@ -169,7 +169,7 @@ o set x 1
 ? {::o set x} 3
 ? {namespace eval ::o {info exists x}} 1
 ? {::o unset x} ""
-? {::nx::core::existsvar o x} 0
+? {::nsf::existsvar o x} 0
 ? {o eval {info exists :x}} 0
 ? {info vars ::x} ""
 ? {namespace eval ::o {info exists x}} 0
@@ -400,13 +400,13 @@ set ::w 1
 array set ::tmpArray {key value}
 
 Class create ::C
-::nx::core::alias ::C Set -objscope ::set
-::nx::core::alias ::C Unset -objscope ::unset
+::nsf::alias ::C Set -objscope ::set
+::nsf::alias ::C Unset -objscope ::unset
 
 ::C create ::c
 namespace eval ::c {}
 ? {namespace exists ::c} 1
-? {::nx::core::objectproperty ::c object} 1
+? {::nsf::objectproperty ::c object} 1
 ? {::c info hasnamespace} 0
 
 ? {::c Set w 2; expr {[::c Set w] == $::w}} 0
@@ -428,9 +428,9 @@ unset ::tmpArray
 # with a required namespace and without
 ##################################################
 Test case eval-variants
-::nx::core::alias ::nx::Object objeval -objscope ::eval 
-::nx::core::alias ::nx::Object softeval -nonleaf ::eval 
-::nx::core::alias ::nx::Object softeval2 ::eval 
+::nsf::alias ::nx::Object objeval -objscope ::eval 
+::nsf::alias ::nx::Object softeval -nonleaf ::eval 
+::nsf::alias ::nx::Object softeval2 ::eval 
 
 set G 1
 
@@ -592,9 +592,9 @@ o destroy
 # Test with proc scopes
 ##################################################
 Test case proc-scopes
-::nx::core::alias ::nx::Object objscoped-eval -objscope ::eval 
-::nx::core::alias ::nx::Object nonleaf-eval -nonleaf ::eval 
-::nx::core::alias ::nx::Object plain-eval ::eval 
+::nsf::alias ::nx::Object objscoped-eval -objscope ::eval 
+::nsf::alias ::nx::Object nonleaf-eval -nonleaf ::eval 
+::nsf::alias ::nx::Object plain-eval ::eval 
 
 proc foo-via-initcmd {} {
   foreach v {x xxx} {unset -nocomplain ::$v}
@@ -690,10 +690,10 @@ namespace eval module {
   Class create M2
 
   C mixin M1
-  ? {::nx::core::relation C class-mixin} "::module::M1"
+  ? {::nsf::relation C class-mixin} "::module::M1"
 
   C mixin add M2
-  ? {::nx::core::relation C class-mixin} "::module::M2 ::module::M1"
+  ? {::nsf::relation C class-mixin} "::module::M2 ::module::M1"
 }
 
 

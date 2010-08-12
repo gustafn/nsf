@@ -314,7 +314,7 @@ c1 destroy
 # redefinition and softrecreate
 ###########################################
 Test case pcm-redefine-soft
-::nx::core::configure softrecreate true
+::nsf::configure softrecreate true
 Class create A
 Class create B -mixin A
 Class create C -superclass B
@@ -348,7 +348,7 @@ c1 destroy
 # with softrecreate off
 ###########################################
 Test case precedence
-::nx::core::configure softrecreate false
+::nsf::configure softrecreate false
 Class create O
 Class create A -superclass O
 Class create B -superclass A
@@ -380,7 +380,7 @@ foreach o {A O B a1 b1 o1} {$o destroy}
 # with softrecreate on
 ###########################################
 Test case alternate-precedence
-::nx::core::configure softrecreate false
+::nsf::configure softrecreate false
 Class create O
 Class create A -superclass O
 Class create B -superclass A
@@ -413,7 +413,7 @@ foreach o {A O B a1 b1 o1} {$o destroy}
 # with softrecreate on
 ###########################################
 Test case recreate-precedence
-::nx::core::configure softrecreate true
+::nsf::configure softrecreate true
 Class create O
 Class create A -superclass O
 Class create B -superclass A
@@ -445,7 +445,7 @@ foreach o {A O B a1 b1 o1} {$o destroy}
 # with softrecreate on
 ###########################################
 Test case recreate-alternate-precedence
-::nx::core::configure softrecreate true
+::nsf::configure softrecreate true
 Class create O
 Class create A -superclass O
 Class create B -superclass A
