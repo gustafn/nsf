@@ -990,7 +990,11 @@ new structure
 - changed "current proc" into "current method" in scripts and tests
 
 - file extension for next scripting .tcl DONE
+- changed ::nx::core to ::nsf
 
+- made the "next scripting laguage" a own, loadable tcl package
+  (currently named nx, name is subject of change)
+- predefined.tcl is now pretty minimal.
 
 TODO: 
 - nameing
@@ -1014,19 +1018,11 @@ TODO:
 
     * namespace prefix 
        next scripting language: ::nx::*
-       next scripting framework: ::nx::core::*
+       next scripting framework: ::nsf::*
     * distributed packages in namespace ::nx::*
     * names of subpackages nx::*
 
-    * should we stay with ::nx::: as namespace prefix?
-      The following looks inconsistent:
-
-        package require next
-        package require next::test
-        namespace import ::nx::*
-
     * Now we have
-
         package require nx
         package require nx::test
         namespace import ::nx::*
@@ -1054,8 +1050,9 @@ Ein paar Punkte im folgenden könnten obsolet sein:
 TODO "Kleinigkeiten"
 
 - integrate ::nx::doc::make with Makefile.in
+  (provide shell calls and, targets and dependencies)
 - decide on syntax in documentation
-  (info method parameter | info method parametersyntax | mixture)
+  (info method parameter | info method parametersyntax | mixture, e.g. parmetersyntax with value-checkers)
 - decide on paths for documentation of next and xotcl 2, with
   version numbers; what should be included in distro, what on web-site
 - decide on syntax subcomponent. Candiates are
