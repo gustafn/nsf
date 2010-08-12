@@ -1,6 +1,7 @@
 static char cmd[] = 
 "namespace eval ::nsf {\n"
-"namespace export next current my is relation interp\n"
+"namespace export next current\n"
+"namespace export alias configure finalize interp is my relation\n"
 "proc ::nsf::infoError msg {\n"
 "regsub -all \" <object>\" $msg \"\" msg\n"
 "regsub -all \" <class>\" $msg \"\" msg\n"

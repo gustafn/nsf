@@ -43,7 +43,9 @@ namespace eval ::xotcl {
   #
   # get frequenly used primitiva into the ::xotcl namespace
   #
-  namespace import ::nsf::*
+  namespace import ::nsf::configure ::nsf::my ::nsf::next ::nsf::finalize ::nsf::interp
+  namespace import ::nsf::alias ::nsf::is ::nsf::relation
+
   namespace import ::nx::Attribute
 
   proc ::xotcl::self {{arg "object"}} {
@@ -700,6 +702,7 @@ namespace eval ::xotcl {
       puts stderr "*** using ${package}::* in [::xotcl::self]"
     }
   }
+
   ::nx::Class create ::xotcl::package -superclass ::xotcl::Class -parameter {
     provide
     {version 1.0}
@@ -807,9 +810,6 @@ namespace eval ::xotcl {
   }
   
   if {[info exists cmd]} {unset cmd}
-
-  proc ::xotcl::configure args {::nsf::configure {*}$args}
-  proc ::xotcl::finalize {} {::nsf::finalize}
 
   # Documentation stub object -> just ignore per default.
   # if xoDoc is loaded, documentation will be activated

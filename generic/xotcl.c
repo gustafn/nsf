@@ -14687,10 +14687,6 @@ Nx_Init(Tcl_Interp *interp) {
   /*Tcl_CreateObjCommand(interp, "::nsf::K", XOTclKObjCmd, 0, 0);*/
 
   Tcl_CreateObjCommand(interp, "::nsf::unsetUnknownArgs", XOTclUnsetUnknownArgsCmd, 0, 0);
-  Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "current", 0);
-  Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "next", 0);
-  Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "my", 0);
-  Tcl_Export(interp, RUNTIME_STATE(interp)->XOTclNS, "importvar", 0);
 
 #ifdef XOTCL_BYTECODE
   XOTclBytecodeInit();

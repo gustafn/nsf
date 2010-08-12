@@ -3,7 +3,10 @@ namespace eval ::nsf {
   #
   # get frequenly used primitiva into the ::nsf namespace
   #
-  namespace export next current my is relation interp
+  # Symbols reused in the next scripting language
+  namespace export next current 
+  # Symbols reused in XOTcl
+  namespace export alias configure finalize interp is my relation
 
   #
   # error handler for info

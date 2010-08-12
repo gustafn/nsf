@@ -997,6 +997,8 @@ new structure
 - predefined.tcl is now pretty minimal.
 
 - updated to TEA 3.8
+- moved all exports of nsf to predefined.tcl
+- made imports in xotcl2 and nx explicit
 
 TODO: 
 - nameing
