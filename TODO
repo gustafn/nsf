@@ -996,6 +996,8 @@ new structure
   (currently named nx, name is subject of change)
 - predefined.tcl is now pretty minimal.
 
+- updated to TEA 3.8
+
 TODO: 
 - nameing
     * self/current:
