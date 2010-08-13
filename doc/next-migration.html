@@ -590,6 +590,76 @@ Scripting Language via the primitives of the Next Scripting Framework.
 
 
 <h2>Object Parameters</h2>
+
+<table border= '1'>
+  <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
+  <tr>
+    <td><code>Class <i>Foo </i> -parameter <i>{a {b 1}}</i><br><br>
+      <i class='comment'># Create instance of the class Foo</i><br>
+      <i>Foo f1 -a 0</i><br><br>
+      <i class='comment'># Object f1 has a == 0 and b == 1</i><br>
+      <hr>
+      Class <i>Foo </i> -slots <i>{</i><br>
+      &nbsp;&nbsp;&nbsp;Attribute <i>a</i><br>
+      &nbsp;&nbsp;&nbsp;Attribute <i>b</i> -default 1<br>
+      }<br>
+      <br>
+      <i class='comment'># Create instance of the class Foo</i><br>
+      <i>Foo f1 -a 0</i><br><br>
+      <i class='comment'># Object f1 has a == 0 and b == 1</i><br>
+      
+      </code>
+   </td>
+   <td>
+      <i class='comment'># Define two attributes, second with default value</i><br><br>
+      <code>Class create <i>Foo</i> {<br>
+      &nbsp;&nbsp;&nbsp;:attribute <i>a</i><br>
+      &nbsp;&nbsp;&nbsp;:attribute <i>{b 1}</i><br>
+      }</br><br>
+      <i class='comment'># Create instance of the class Foo</i><br>
+      <i>Foo</i> create <i>f1 -a 0</i><br><br>
+      <i class='comment'># Object f1 has a == 0 and b == 1</i><br>      
+      </code>
+   </td>
+  </tr>
+</table>
+
+Next example
+
+Person slots {
+  Attribute create sex -type "sex" {
+    :method type=sex {name value} {
+      #puts stderr "[self] slot specific converter"
+      switch -glob $value {
+        m* {return m}
+        f* {return f}
+        default {error "expected sex but got $value"}
+      }
+    }
+  }
+}
+
+vs.
+
+  Class create Person {
+    :attribute sex {
+      :type "sex"
+      :method type=sex {name value} {
+	#puts stderr "[self] slot specific converter"
+	switch -glob $value {
+	  m* {return m}
+	  f* {return f}
+	  default {error "expected sex but got $value"}
+	}
+      }
+    }
+}
+
+Next :types
+
+Next :required
+
+
 <h2>Method Parameters</h2>
 
 <h2>Interceptors</h2>
@@ -1175,6 +1245,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Wed Aug 11 12:19:50 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Fri Aug 13 13:25:57 CEST 2010 <!-- hhmts end -->
 </body>
 </html>
