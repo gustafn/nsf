@@ -612,7 +612,13 @@ Scripting Language via the primitives of the Next Scripting Framework.
    </td>
    <td>
       <i class='comment'># Define two attributes, second with default value</i><br><br>
-      <code>Class create <i>Foo</i> {<br>
+      <code>
+     Class create <i>Foo </i> -parameter <i>{a {b 1}}</i><br><br>
+      <i class='comment'># Create instance of the class Foo</i><br>
+      <i>Foo</i> create <i> f1 -a 0</i><br><br>
+      <i class='comment'># Object f1 has a == 0 and b == 1</i><br>
+     <hr>
+     Class create <i>Foo</i> {<br>
       &nbsp;&nbsp;&nbsp;:attribute <i>a</i><br>
       &nbsp;&nbsp;&nbsp;:attribute <i>{b 1}</i><br>
       }</br><br>
@@ -1245,6 +1251,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Fri Aug 13 13:25:57 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Fri Aug 13 13:32:04 CEST 2010 <!-- hhmts end -->
 </body>
 </html>
