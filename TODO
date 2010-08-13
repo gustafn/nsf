@@ -1019,6 +1019,7 @@ new structure
 - removed definition of slots from nx, changed regression tests
   examples to to ::attribute instead of -slots 
   
+- replaced several occurrences of "eval" in nx.tcl and xotcl2.tcl
 
 
 TODO: 

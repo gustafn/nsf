@@ -610,7 +610,7 @@ namespace eval ::xotcl {
       ::lappend mp $st$wd${sp}($methodkind)$sp$wd
     }
     foreach cl [concat ::xotcl::Class [::xotcl::Class info heritage]] {
-      eval ::lappend meths [$cl info instcommands]
+      ::lappend meths {*}[$cl info instcommands]
     }
     set old [pwd]
     cd $dir
@@ -619,7 +619,7 @@ namespace eval ::xotcl {
     ::append idx "\"::xotcl::config::mkindex [list $meta] [list $dir] $args\"\n"
     set oc 0
     set mc 0
-    foreach file [eval glob -nocomplain -- $args] {
+    foreach file [glob -nocomplain -- {*}$args] {
       if {[catch {set f [open $file]} msg]} then {
         catch {close $f}
         cd $old
@@ -721,7 +721,7 @@ namespace eval ::xotcl {
 
     :public object method extend {name args} {
       :require $name
-      eval $name configure $args
+	$name configure {*}$args
     }
     
     :public object method contains script {
@@ -747,7 +747,7 @@ namespace eval ::xotcl {
     
     :public object method unknown args {
       #puts stderr "unknown: package $args"
-      eval [set :packagecmd] $args
+      [set :packagecmd] {*}$args
     }
     
     :public object method verbose value {
@@ -766,7 +766,7 @@ namespace eval ::xotcl {
           error "not found"
         }
       } else {
-        eval [set :packagecmd] present $args
+	[set :packagecmd] present {*}$args
       }
     }
     
@@ -788,7 +788,7 @@ namespace eval ::xotcl {
     :public object method require args {
       #puts "XOTCL package require $args, current=[namespace current]"
       set prevComponent ${:component}
-      if {[catch {set v [eval package present $args]} msg]} {
+      if {[catch {set v [package present {*}$args]} msg]} {
         #puts stderr "we have to load $msg"
         switch -exact -- [lindex $args 0] {
           -exact  {set pkg [lindex $args 1]}

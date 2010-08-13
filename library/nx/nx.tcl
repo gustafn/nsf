@@ -1175,7 +1175,7 @@ namespace eval ::nx {
 	 if {![::nsf::objectproperty $object object]} {
 	   $withclass create $object
 	 }
-	 eval ::nsf::next -childof $object $args
+	 ::nsf::next -childof $object {*}$args
        }
     }
   }
@@ -1297,11 +1297,12 @@ namespace eval ::nx {
 	}
 	:copyNSVarsAndCmds $origin $dest
 	foreach i [::nsf::cmd::ObjectInfo::forward $origin] {
-	  eval [concat ::nsf::forward $dest -per-object $i [::nsf::cmd::ObjectInfo::forward $origin -definition $i]]
+	  ::nsf::forward $dest -per-object $i {*}[::nsf::cmd::ObjectInfo::forward $origin -definition $i]
+
 	}
 	if {[::nsf::objectproperty $origin class]} {
 	  foreach i [::nsf::cmd::ClassInfo::forward $origin] {
-	    eval [concat ::nsf::forward $dest $i [::nsf::cmd::ClassInfo::forward $origin -definition $i]]
+	    ::nsf::forward $dest $i {*}[::nsf::cmd::ClassInfo::forward $origin -definition $i]
 	  }
 	}
 	set traces [list]
@@ -1386,13 +1387,11 @@ namespace eval ::nx {
   interp alias {} ::nx::self {} ::nsf::current object
 }
 
-
-
 #######################################################################
 # define, what should be exported 
 namespace eval ::nx {
 
-  # export the contents for all xotcl versions
+  # export the main commands of ::nx
   namespace export Object Class next self current
 
   # TODO should not be necessary in the future
