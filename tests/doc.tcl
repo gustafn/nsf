@@ -536,7 +536,7 @@ Test case parsing {
     namespace import ::nx::*
     namespace import ::nx::doc::*
     doc process -noeval true generic/gentclAPI.decls
-    doc process -noeval true generic/predefined.tcl
+    doc process -noeval true library/nx/nx.tcl
     ::nx::doc::make doc \
 	-renderer ::nx::doc::TemplateData \
 	-outdir /tmp \
