@@ -626,8 +626,42 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   /*fprintf(stderr, "GetClassFromObj %s base %p\n", objName, baseClass);*/
 
   cmd = Tcl_GetCommandFromObj(interp, objPtr);
+
   if (cmd) {
     cls = XOTclGetClassFromCmdPtr(cmd);
+    if (cls == NULL) {
+      /* 
+       * We have a cmd, but no class; namesspace-imported classes are
+       * already resolved, but we have to care, if a class is
+       * "imported" via "interp alias".
+       */
+      Tcl_Interp *alias_interp;
+      const char *alias_cmd_name;
+      Tcl_Obj *nameObj = objPtr;
+      Tcl_Obj **alias_ov;
+      int alias_oc = 0;
+
+      if (!isAbsolutePath(objName)) {
+	nameObj = NameInNamespaceObj(interp, objName, callingNameSpace(interp));
+	objName = ObjStr(nameObj);
+	/* adjust path for documented nx.tcl */
+      }
+
+      result = Tcl_GetAliasObj(interp, objName, 
+			       &alias_interp, &alias_cmd_name, &alias_oc, &alias_ov);
+      /* we only want aliases with 0 args */
+      if (result == TCL_OK && alias_oc == 0) {
+	cmd = NSFindCommand(interp, alias_cmd_name, NULL);
+	/*fprintf(stderr, "..... alias arg 0 '%s' cmd %p\n", alias_cmd_name, cmd);*/
+	if (cmd) {
+	  cls = XOTclGetClassFromCmdPtr(cmd);
+	}
+      }
+      /*fprintf(stderr, "..... final cmd %p, cls %p\n", cmd , cls);*/
+      if (nameObj != objPtr) {
+	DECR_REF_COUNT(nameObj);
+      }
+    }
     if (cls) {
       if (cl) *cl = cls;
       return TCL_OK;
@@ -646,7 +680,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
     }
   }
 
-  /*fprintf(stderr, "try unknown, result so far is %d\n", result);*/
+  /*fprintf(stderr, "try unknown for %s, result so far is %d\n", objName, result);*/
   if (baseClass) {
     Tcl_Obj *methodObj, *nameObj = isAbsolutePath(objName) ? objPtr :
       NameInNamespaceObj(interp, objName, callingNameSpace(interp));
@@ -655,7 +689,8 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
 
     methodObj = XOTclMethodObj(interp, &baseClass->object, XO_c_requireobject_idx);
     if (methodObj) {
-      /*fprintf(stderr, "+++ calling __unknown for %s name=%s\n", objectName(baseClass), ObjStr(nameObj));*/
+      /*fprintf(stderr, "+++ calling __unknown for %s name=%s\n", 
+	className(baseClass), ObjStr(nameObj));*/
       result = callMethod((ClientData) baseClass, interp, methodObj,
                           3, &nameObj, XOTCL_CM_NO_PROTECT);
       if (result == TCL_OK) {

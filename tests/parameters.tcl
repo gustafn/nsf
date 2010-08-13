@@ -822,8 +822,14 @@ Test case op-object-types {
       {expected object but got "xxx" for parameter o} \
       "value is not an object"
 
-  ParamTest slots {
-    ::nx::Attribute create os -type object -multivalued true
+  #ParamTest slots {
+  #  ::nx::Attribute create os -type object -multivalued true
+  #}
+  ParamTest eval {
+      :attribute os {
+	  :type object 
+	  :multivalued true
+      }
   }
   
   ? {p os o} \
@@ -899,11 +905,24 @@ Test case shadowing-app-converter {
 # slot specific converter
 #######################################################
 Test case slot-specfic-converter {
-  Class create Person
-  Person slots {
-    ::nx::Attribute create sex -type "sex" {
+  #  Class create Person
+  # Person slots {
+  #   ::nx::Attribute create sex -type "sex" {
+  #     :method type=sex {name value} {
+  # 	#puts stderr "[current] slot specific converter"
+  # 	switch -glob $value {
+  # 	  m* {return m}
+  # 	  f* {return f}
+  # 	  default {error "expected sex but got $value"}
+  # 	}
+  #     }
+  #   }
+  # }
+  Class create Person {
+    :attribute sex {
+      :type "sex"
       :method type=sex {name value} {
-	#puts stderr "[current] slot specific converter"
+	#puts stderr "[self] slot specific converter"
 	switch -glob $value {
 	  m* {return m}
 	  f* {return f}

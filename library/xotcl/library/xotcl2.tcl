@@ -46,7 +46,10 @@ namespace eval ::xotcl {
   namespace import ::nsf::configure ::nsf::my ::nsf::next ::nsf::finalize ::nsf::interp
   namespace import ::nsf::alias ::nsf::is ::nsf::relation
 
-  namespace import ::nx::Attribute
+  #namespace import ::nx::Attribute
+  # if we do this, "::xotcl::Class create Role -superclass Attribute"  will fail.
+  #interp alias {} ::xotcl::Attribute {} ::nx::Attribute
+  ::nx::Class create ::xotcl::Attribute -superclass ::nx::Attribute
 
   proc ::xotcl::self {{arg "object"}} {
       switch $arg {
@@ -819,9 +822,6 @@ namespace eval ::xotcl {
   set ::xotcl::confdir ~/.xotcl
   set ::xotcl::logdir $::xotcl::confdir/log
   namespace import ::nsf::tmpdir
-
-  # if we do this, "::xotcl::Class create Role -superclass Attribute"  will fail.
-  #interp alias {} ::xotcl::Attribute {} ::nx::Attribute
 
   # finally, export contents defined for XOTcl
   namespace export Object Class Attribute myproc myvar my self next @

@@ -1000,6 +1000,27 @@ new structure
 - moved all exports of nsf to predefined.tcl
 - made imports in xotcl2 and nx explicit
 
+- adjusted path in documentation system for nx/nx.tcl
+
+- Implemented "interp alias" support for classes.
+  In some cases. interp-aliased classes worked already
+  without additional code, but e.g. in "... -superclass C ..." 
+  it failed. Without this feature, one could not reuse a
+  class with a different namespace, unless it was explicitely
+  "namespace exported" in the source. The problem was the 
+  implementation of "::nx::Attribute", which should not be
+  exported in nx (most people do a "namespace import ::nx::*")
+  because there is no need to do so, but ::xotcl::Attribute 
+  should reuse it - without subclassing). .... However,
+  we still seem to have a problem, when the interp-aliased
+  Class is exported and imported to a different namespace.
+
+- TODO: info methods shows finally "slots" and "slot". Wanted? Actually no.
+- removed definition of slots from nx, changed regression tests
+  examples to to ::attribute instead of -slots 
+  
+
+
 TODO: 
 - nameing
     * self/current:
@@ -1128,13 +1149,8 @@ TODO "Kleinigkeiten"
 - copy decls for objectMethod and classMethod  as comments
   to xotcl.c, fix and check order
 
-- don't namespace export nx::Attribute (since it is not user-visible 
-  in most cases) but define instead
-
-    interp alias {} ::xotcl::Attribute {} ::nx::Attribute
-
-  However, if we do this, "::xotcl::Class create Role -superclass Attribute"  will fail
-  => check symmetry between "interp alias" and "namespace import" for Objects
+- should we continue to work on the problem of the interp-aliased class,
+  exported from one ns, imported into another one?
 
 - should we extract parameter decls from pseudo-comments from the c source
   each time we change .decls, we have to change the c-code as well.

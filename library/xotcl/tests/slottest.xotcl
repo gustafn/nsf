@@ -1,3 +1,4 @@
+# -*- Tcl -*-
 package require XOTcl; namespace import ::xotcl::*
 package require nx::test
 
@@ -251,7 +252,9 @@ o1 parametercmd y
 #   }
 # }
 
-::xotcl::Attribute mixin delete ::nx::Attribute::Optimizer
+# maybe work directly on ::xotcl::Attribute would be nicer, when
+# ::xotcl::Attribute would be true alias for ::nx::Attribute ...
+::nx::Attribute mixin delete ::nx::Attribute::Optimizer
 
 Class C1 -parameter {a {b 10} {c "Hello World"}}
 C1 c1 -a 1
@@ -277,7 +280,7 @@ C2 c2 -a 1
 ? {c2 a} 1 "new indirect parametercmd"
 ? {c2 a 1} 1 "new indirect parametercmd"
 
-::xotcl::Attribute mixin add ::nx::Attribute::Optimizer
+::nx::Attribute mixin add ::nx::Attribute::Optimizer
 
 Class C3 -slots {
   Attribute create a 

@@ -59,7 +59,6 @@ namespace eval ::nx {
   foreach cmd [list recreate] {
     ::nsf::methodproperty Class $cmd protected 1
   }
-  # TODO: info methods shows finally "slots" and "slot". Wanted?
 
   # protect some methods against redefinition
   ::nsf::methodproperty Object destroy redefine-protected true
@@ -1212,8 +1211,10 @@ namespace eval ::nx {
     }
   }
 
-  Class forward slots %self contains \
-      -object {%::nsf::dispatch [::nsf::current object] -objscope ::subst [::nsf::current object]::slot}
+  # TODO: This is the slots method.... remove it for now.
+  #
+  #Class forward slots %self contains \
+  #    -object {%::nsf::dispatch [::nsf::current object] -objscope ::subst [::nsf::current object]::slot}
 
   ##################################################################
   # copy/move implementation
@@ -1395,7 +1396,7 @@ namespace eval ::nx {
   namespace export Object Class next self current
 
   # TODO should not be necessary in the future
-  namespace export Attribute
+  #namespace export Attribute
 
   set ::nx::confdir ~/.nx
   set ::nx::logdir $::nx::confdir/log

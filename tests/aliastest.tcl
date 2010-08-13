@@ -379,3 +379,33 @@ rename ::foo ::foo2
 ? {C info methods -methodtype alias} FOO
 ? {c FOO} ::c->foo2
 ? {C info method definition FOO} "::C alias FOO ::foo"; # should be ::foo2 (!)
+
+
+#
+# Check resolving of namespace imported classes
+# and when a class is aliased via "interp alias"
+#
+Test case class-resolve {
+  namespace eval ::ns1 {
+    nx::Class create A {:method foo {} {::nx::current class}}
+    nx::Class create B {:method foo {} {::nx::current class}}
+    namespace export A
+  }
+  
+  namespace eval ::ns2 {
+    # namespace import Class A from namespace ns1
+    namespace import ::ns1::A
+    ? {A create a1} ::ns2::a1
+    ? {nx::Class create C -superclass A} ::ns2::C
+    ? {C create c1} ::ns2::c1
+    ? {c1 foo} ::ns1::A
+
+    # "import" Class B from namespace ns1 via interp-alias
+    interp alias {} ::ns2::B {} ::ns1::B
+    ? {B create b1} ::ns2::b1
+    ? {b1 foo} ::ns1::B
+    ? {nx::Class create D -superclass B} ::ns2::D
+    ? {D create d1} ::ns2::d1
+    ? {d1 foo} ::ns1::B
+  }
+}

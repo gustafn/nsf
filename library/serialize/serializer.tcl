@@ -288,7 +288,7 @@ namespace eval ::nx::serializer {
       return $pre_cmds$result${:post_cmds}$exports
     }
 
-    :method deepSerialize o {
+    :method deepSerialize {o} {
       # assumes $o to be fully qualified
       set instances [Serializer allChildren $o] 
       foreach oss [ObjectSystemSerializer info instances] {
