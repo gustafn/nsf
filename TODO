@@ -1192,6 +1192,7 @@ TODO "Kleinigkeiten"
 - info valuecheck?
 - turn off optionally value checking
 - get rid of "::xotcl::is"?
+- value checker (allowempty)
 
 # TODO (optimization): optimizer can improve parameter checking:
 #       (a) simple approach: make scripted setter methods on domain
