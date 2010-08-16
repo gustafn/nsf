@@ -490,22 +490,22 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr>
     <td><code>Class <i>C</i><br>
       <i>C</i> instproc <i>foo args</i> {<br>
-      &nbsp;&nbsp;<i class='comment'># method scoped variable a</i><br>
+      &nbsp;&nbsp;<i class='comment'># Method scoped variable a</i><br>
       &nbsp;&nbsp;set <i>a 1</i> <br>
-      &nbsp;&nbsp;<i class='comment'># instance variable b</i><br>
+      &nbsp;&nbsp;<i class='comment'># Instance variable b</i><br>
       &nbsp;&nbsp;my instvar b<br>
       &nbsp;&nbsp;set<i> b 2</i><br>
-      &nbsp;&nbsp;<i class='comment'># global variable/namespaced variable c</i><br>
+      &nbsp;&nbsp;<i class='comment'># Global variable/namespaced variable c</i><br>
       &nbsp;&nbsp;set <i>::c 3</i><br>
     }<br>
       </code></td>
     <td><code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:method <i>foo args</i> {...}<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'># method scoped variable a</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'># Method scoped variable a</i><br>
       &nbsp;&nbsp;&nbsp;&nbsp;set <i>a 1</i> <br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'># instance variable b</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'># Instance variable b</i><br>
       &nbsp;&nbsp;&nbsp;&nbsp;set <i>:b 2</i><br>
-      &nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'># global variable/namespaced variable c</i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;<i class='comment'># Global variable/namespaced variable c</i><br>
       &nbsp;&nbsp;&nbsp;&nbsp;set <i>::c 3</i><br>
       &nbsp;&nbsp;}<br>
       }<br>
@@ -518,7 +518,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
       }
       </code></td>
     <td>
-      <i class='comment'># set own instance variable to a value via
+      <i class='comment'># Set own instance variable to a value via
       resolver <br># (prefered and fastest way)</i></br><br>
       <code>
       <i>...</i> method <i>...</i> {<br>
@@ -535,7 +535,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
       }
       </code></td>
    <td>
-      <i class='comment'># set own instance variable via variable import</i><br><br>
+      <i class='comment'># Set own instance variable via variable import</i><br><br>
       <code>
      <i>...</i> method <i>...</i> {<br>
      &nbsp;&nbsp; ::nx::var import [self] <i>varname</i><br>
@@ -552,7 +552,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
       }
       </code></td>
     <td>
-      <i class='comment'># read own instance variable</i><br><br>
+      <i class='comment'># Read own instance variable</i><br><br>
       <code>
       <i>...</i> method <i>...</i> {<br>
       &nbsp;&nbsp; set <i>newVar</i> [set <i>:otherVar</i>]<br>
@@ -950,7 +950,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-    <td><code><i># list only application specific methods</i></code><br>
+    <td><code><i># List only application specific methods</i></code><br>
       <code><i>obj</i> info callable -application</code></td>
   </tr>
 </table>
@@ -1237,12 +1237,12 @@ Scripting Language via the primitives of the Next Scripting Framework.
   </tr>
     <tr>
     <td><code>self next</code></td>
-    <td><i class='comment'># returns now method-handle</i><br>
+    <td><i class='comment'># Returns now method-handle</i><br>
       <code>current next</code></td>
   </tr>
   <tr>
     <td><code>self filterreg</code></td>
-    <td><i class='comment'># returns now method-handle</i><br>
+    <td><i class='comment'># Returns now method-handle</i><br>
       <code>current filterreg</code></td>
   </tr>
     <tr>
@@ -1347,6 +1347,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Mon Aug 16 10:00:14 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Mon Aug 16 10:04:44 CEST 2010 <!-- hhmts end -->
 </body>
 </html>
