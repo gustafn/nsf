@@ -366,8 +366,9 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_ARG_NOARG 		     0x0004
 #define XOTCL_ARG_CURRENTLY_UNKNOWN	     0x0008
 #define XOTCL_ARG_SUBST_DEFAULT		     0x0010
-#define XOTCL_ARG_INITCMD		     0x0020
-#define XOTCL_ARG_METHOD		     0x0040
+#define XOTCL_ARG_ALLOW_EMPTY		     0x0020
+#define XOTCL_ARG_INITCMD		     0x0040
+#define XOTCL_ARG_METHOD		     0x0080
 #define XOTCL_ARG_RELATION		     0x0100
 #define XOTCL_ARG_SWITCH		     0x0200
 #define XOTCL_ARG_HAS_DEFAULT		     0x1000

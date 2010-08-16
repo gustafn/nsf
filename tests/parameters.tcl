@@ -901,23 +901,40 @@ Test case shadowing-app-converter {
   ? {o foo 3} 4
 }
 
+
+#######################################################
+# allow empty values
+#######################################################
+Test case allow-empty {
+
+  Object create o1
+  Object create o2
+  Object create o3
+
+  Object create o {
+    :method foo {x:integer,allowempty y:integer os:object,multivalued,allowempty} {
+      return $x
+    }
+  }
+  
+  ? {o foo 1 2 {o1 o2}} 1 "all values specified"
+  ? {o foo "" 2 {o1 o2}} "" "first is empty"
+  ? {o foo 1 "" {o1 o2}} {expected integer but got "" for parameter y} "second is empty"
+  ? {o foo 1 2 {}} 1 "empty list, does not require allowempty"
+  ? {o foo 1 2 {o1 "" o2}} 1 "list contains empty value"
+
+  ? {o info method parameter foo} "x:integer,allowempty y:integer os:object,multivalued,allowempty"
+
+  o method foo {x:integer,allowempty y:integer os:object,multivalued} {return $x}
+  ? {o foo 1 2 {o1 "" o2}} {invalid value in "o1 "" o2": expected object but got "" for parameter os} \
+      "list contains empty value"
+
+}
 #######################################################
 # slot specific converter
 #######################################################
 Test case slot-specfic-converter {
-  #  Class create Person
-  # Person slots {
-  #   ::nx::Attribute create sex -type "sex" {
-  #     :method type=sex {name value} {
-  # 	#puts stderr "[current] slot specific converter"
-  # 	switch -glob $value {
-  # 	  m* {return m}
-  # 	  f* {return f}
-  # 	  default {error "expected sex but got $value"}
-  # 	}
-  #     }
-  #   }
-  # }
+
   Class create Person {
     :attribute sex {
       :type "sex"
@@ -931,6 +948,7 @@ Test case slot-specfic-converter {
       }
     }
   }
+
   Person create p1 -sex male
   ? {p1 sex} m
   Person method foo {s:sex,slot=::Person::slot::sex} {return $s}

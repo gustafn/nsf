@@ -1021,6 +1021,8 @@ new structure
   
 - replaced several occurrences of "eval" in nx.tcl and xotcl2.tcl
 
+- implemented parameter option "allowempty"
+- extended regression test
 
 TODO: 
 - nameing
@@ -1052,6 +1054,15 @@ TODO:
         package require nx
         package require nx::test
         namespace import ::nx::*
+
+    * parameter option allowempty is a little longish; we should
+      choose probably a shorter name
+
+      Object create o {
+        :method foo {x:integer,allowempty y:integer os:object,multivalued,allowempty} {
+          return $x
+        }
+      }
 
 - documentation
    - documentationssytem
@@ -1192,7 +1203,6 @@ TODO "Kleinigkeiten"
 - info valuecheck?
 - turn off optionally value checking
 - get rid of "::xotcl::is"?
-- value checker (allowempty)
 
 # TODO (optimization): optimizer can improve parameter checking:
 #       (a) simple approach: make scripted setter methods on domain

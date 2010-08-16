@@ -5387,6 +5387,9 @@ ParamDefsFormat(Tcl_Interp *interp, XOTclParam CONST *paramsPtr) {
       if ((pPtr->flags & XOTCL_ARG_SUBST_DEFAULT)) {
         ParamDefsFormatOption(interp, nameStringObj, "substdefault", &colonWritten, &first);
       }
+      if ((pPtr->flags & XOTCL_ARG_ALLOW_EMPTY)) {
+        ParamDefsFormatOption(interp, nameStringObj, "allowempty", &colonWritten, &first);
+      }
       if ((pPtr->flags & XOTCL_ARG_INITCMD)) {
         ParamDefsFormatOption(interp, nameStringObj, "initcmd", &colonWritten, &first);
       } else if ((pPtr->flags & XOTCL_ARG_METHOD)) {
@@ -6424,6 +6427,8 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, size_t length, int disa
     paramPtr->flags &= ~XOTCL_ARG_REQUIRED;
   } else if (strncmp(option, "substdefault", 12) == 0) {
     paramPtr->flags |= XOTCL_ARG_SUBST_DEFAULT;
+  } else if (strncmp(option, "allowempty", 10) == 0) {
+    paramPtr->flags |= XOTCL_ARG_ALLOW_EMPTY;
   } else if (strncmp(option, "initcmd", 7) == 0) {
     paramPtr->flags |= XOTCL_ARG_INITCMD;
   } else if (strncmp(option, "method", 6) == 0) {
@@ -9450,7 +9455,14 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST
   
   for (i=0; i<objc; i++) {
     Tcl_Obj *elementObjPtr;
-    result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
+    const char *valueString = ObjStr(ov[i]);
+
+    if (pPtr->flags & XOTCL_ARG_ALLOW_EMPTY && *valueString == '\0') {
+      result = convertToString(interp, ov[i], pPtr, clientData, &elementObjPtr);
+    } else {
+      result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
+    }
+
     if (result == TCL_OK) {
       Tcl_ListObjAppendElement(interp, *outObjPtr, elementObjPtr);
     } else {
@@ -9477,20 +9489,32 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr
     int objc, i;
     Tcl_Obj **ov;
     
+    /*
+     * In the multivalued case, we have either to check a list of
+     * values or to build a new list of values (in case, the converter
+     * normalizes the values).
+     */
     result = Tcl_ListObjGetElements(interp, objPtr, &objc, &ov);
     if (result != TCL_OK) {
       return result;
     }
 
     /* 
-       Default assumption: outObjPtr is not modified, in cases where
-       necessary, we switch to the helper function 
-    */
+     * Default assumption: outObjPtr is not modified, in cases where
+     * necessary, we switch to the helper function
+     */
     *outObjPtr = objPtr;
 
     for (i=0; i<objc; i++) {
       Tcl_Obj *elementObjPtr;
-      result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
+      const char *valueString = ObjStr(ov[i]);
+
+      if (pPtr->flags & XOTCL_ARG_ALLOW_EMPTY && *valueString == '\0') {
+	result = convertToString(interp, ov[i], pPtr, clientData, &elementObjPtr);
+      } else {
+	result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
+      }
+
       if (result == TCL_OK) {
         if (ov[i] != elementObjPtr) {
           /* 
@@ -9514,7 +9538,12 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr
       }
     }
   } else {
-    result = (*pPtr->converter)(interp, objPtr, pPtr, clientData, outObjPtr);
+    const char *valueString = ObjStr(objPtr);
+    if (pPtr->flags & XOTCL_ARG_ALLOW_EMPTY && *valueString == '\0') {
+      result = convertToString(interp, objPtr, pPtr, clientData, outObjPtr);
+    } else {
+      result = (*pPtr->converter)(interp, objPtr, pPtr, clientData, outObjPtr);
+    }
   }
   return result;
 }
