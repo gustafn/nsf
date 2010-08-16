@@ -69,13 +69,14 @@ namespace eval ::nx::test {
     }
 
     :public object method new args {
+      set testfile [file rootname [file tail [info script]]]
       if {[info exists :case]} {
 	if {![info exists :ccount(${:case})]} {set :ccount(${:case}) 0}
-	set :name ${:case}.[format %.3d [incr :ccount(${:case})]]
+	set :name $testfile-${:case}.[format %.3d [incr :ccount(${:case})]]
       } else {
-	set :name t.[format %.3d [incr :count]]
+	set :name $testfile-t.[format %.3d [incr :count]]
       }
-      eval :create ${:name} -name ${:name} $args
+      :create ${:name} -name ${:name} {*}$args
     }
 
     :public object method run {} {
