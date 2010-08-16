@@ -1024,6 +1024,10 @@ new structure
 - implemented parameter option "allowempty"
 - extended regression test
 
+- commented out XOTCL_CMD_NOT_FOUND, since it seems to be obsolete by now
+- extended regression test to avoid CallDirectly on dealloc (the last place, 
+  where XOTCL_CMD_NOT_FOUND was used)
+
 TODO: 
 - nameing
     * self/current:

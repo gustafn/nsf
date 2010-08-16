@@ -354,7 +354,7 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_IS_ROOT_CLASS                  0x0100
 #define XOTCL_TCL_DELETE                     0x0200
 /* DESTROYED set, when object is physically destroyed with PrimitiveODestroy  */
-#define XOTCL_CMD_NOT_FOUND                  0x1000
+/*#define XOTCL_CMD_NOT_FOUND                  0x1000*/
 #define XOTCL_DURING_DELETE                  0x2000
 #define XOTCL_DELETED                        0x4000
 #define XOTCL_RECREATE                       0x8000

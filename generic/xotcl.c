@@ -2611,7 +2611,8 @@ CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *object) {
       object, object->refCount, object->teardown);*/
 
     PrimitiveDestroy((ClientData) object);
-    if (!(object->flags & XOTCL_TCL_DELETE) && !(object->flags & XOTCL_CMD_NOT_FOUND)) {
+;
+    if (!(object->flags & XOTCL_TCL_DELETE) /*&& !(object->flags & XOTCL_CMD_NOT_FOUND)*/) {
       Tcl_Obj *savedObjResult = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(savedObjResult);
       /*fprintf(stderr, "    before DeleteCommandFromToken %p object flags %.6x\n", oid, object->flags);*/
@@ -12811,14 +12812,17 @@ static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *object) {
     if (CallDirectly(interp, &object->cl->object, XO_c_dealloc_idx, &methodObj)) {
       result = DoDealloc(interp, object);
     } else {
+      /*fprintf(stderr, "call dealloc\n");*/
       result = XOTclCallMethodWithArgs((ClientData)object->cl, interp, methodObj, 
                                        object->cmdName, 1, NULL, 0);
       if (result != TCL_OK) {
-        object->flags |= XOTCL_CMD_NOT_FOUND;
-        /*fprintf(stderr, "*** dealloc failed for %p %s flags %.6x, retry\n", object, objectName(object), object->flags);*/
-        /* In case, the call of the dealloc method has failed above (e.g. NS_DYING), 
+        /* 
+	 * In case, the call of the dealloc method has failed above (e.g. NS_DYING), 
          * we have to call dealloc manually, otherwise we have a memory leak 
          */
+        /*object->flags |= XOTCL_CMD_NOT_FOUND;*/
+        /*fprintf(stderr, "*** dealloc failed for %p %s flags %.6x, retry\n", 
+	  object, objectName(object), object->flags);*/
         result = DoDealloc(interp, object);
       }
     }

@@ -5,6 +5,7 @@ Test parameter count 10
 
 ::nsf::alias ::nx::Object set -objscope ::set
 
+
 Class create O -superclass Object {
   :method init {} {
     set ::ObjectDestroy 0
@@ -568,6 +569,42 @@ Test case namespace-import {
 
   ::module destroy
 }
+
+puts stderr XXXXXXXXXXXXXX
+# to avoid CallDirectly, we could activate this line
+::nx::Class create M {:method dealloc args {next}}
+Test case delete-parent-namespace-dealloc
+namespace eval ::test {
+  Class create C -superclass O
+  C method destroy {} {incr ::firstDestroy; puts stderr "  *** [current] destroy"; next}
+  C method foo {} {
+    puts stderr "==== $::case [current]"
+    namespace delete ::test
+    puts stderr "AAAA [current] exists [::nsf::objectproperty [current] object]"
+    :set x 1
+    #
+    # If the following line is commented in, the namespace is deleted
+    # here. Is there a bug with nsPtr->activationCount
+    #
+    #? "[current] set x" 1 "$::case can still access [current]"
+    puts stderr "BBB"
+    puts stderr "???? [current] exists [::nsf::objectproperty [current] object]"
+    ? "::nsf::objectproperty [current] object" 0 ;# WHY?
+    puts stderr "???? [current] exists [::nsf::objectproperty [current] object]"
+    ? "set ::firstDestroy" 0 "firstDestroy called"
+    ? "set ::ObjectDestroy" 0 "$::case destroy not yet called"
+  }
+}
+test::C create test::c1
+test::c1 foo
+puts stderr ======[::nsf::objectproperty test::c1 object]
+? {::nsf::objectproperty test::c1 object} 0  "object still exists after proc"
+? "set ::firstDestroy" 1 "firstDestroy called"
+? "set ::ObjectDestroy" 1 "destroy was called when poping stack frame"
+? {::nsf::objectproperty ::test::C object} 0  "class still exists after proc"
+? {namespace exists ::test::C} 0  "namespace ::test::C still exists after proc"
+? {namespace exists ::test} 1  "parent ::test namespace still exists after proc"
+? {namespace exists ::xotcl::classes::test::C} 0  "namespace ::xotcl::classes::test::C still exists after proc"
 
 puts stderr "==== EXIT ===="
 exit
