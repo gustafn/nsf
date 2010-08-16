@@ -589,6 +589,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
 </table>
 
 <h3>Accessing Instance Variables of other Objects</h3>
+
 <table border= '1'>
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
@@ -606,13 +607,20 @@ Scripting Language via the primitives of the Next Scripting Framework.
     </td>
   </tr>
   <tr>
-    <td><code><i>obj</i> instvar <i>newVar</i><br>
-      set <i>newVar value</i> </code>
+    <td><code>
+      <i>...</i> instproc <i>...</i> {<br>
+      &nbsp;&nbsp; <i>obj</i> instvar <i>newVar</i><br>
+      &nbsp;&nbsp;  set <i>newVar value</i><br>
+      }</code>
     </td>
     <td>
       <i class='comment'># Read instance variable of object obj via import</i></br><br>
-      <code>::nx::var import <i>obj newVar</i><br>
-      set <i>newVar value</i></td>
+      <code>
+      <i>...</i> method <i>...</i> {<br>
+      &nbsp;&nbsp; ::nx::var import <i>obj newVar</i><br>
+      &nbsp;&nbsp;  set <i>newVar value</i><br>
+      }</code>
+    </td>
  </tr>
   <tr>
     <td><code><i>obj</i> exists <i>varname</i></code></td>
@@ -1347,6 +1355,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Mon Aug 16 10:04:44 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Mon Aug 16 10:10:20 CEST 2010 <!-- hhmts end -->
 </body>
 </html>
