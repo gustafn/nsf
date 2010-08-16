@@ -512,40 +512,78 @@ Scripting Language via the primitives of the Next Scripting Framework.
      </code></td>
   </tr>
   <tr>
-    <td><code>my set <i>varname value</i></code></td>
+    <td><code>
+      <i>...</i> instproc <i>...</i> {<br>
+      &nbsp;&nbsp; my set <i>varname value</i><br>
+      }
+      </code></td>
     <td>
       <i class='comment'># set own instance variable to a value via
       resolver <br># (prefered and fastest way)</i></br><br>
-      <code>set <i>:newVar value</i></code>
+      <code>
+      <i>...</i> method <i>...</i> {<br>
+     &nbsp;&nbsp; set <i>:newVar value</i><br>
+      }
+      </code>
     </td>
   </tr>
   <tr>
-    <td><code>my instvar <i>newVar</i><br>
-      set <i>newVar value</i>
+    <td><code>
+      <i>...</i> instproc <i>...</i> {<br>
+      &nbsp;&nbsp; my instvar <i>newVar</i><br>
+      &nbsp;&nbsp; set <i>newVar value</i><br>
+      }
       </code></td>
    <td>
       <i class='comment'># set own instance variable via variable import</i><br><br>
-      <code>::nx::var import [self] <i>varname</i><br>
-      set <i>varname value</i>
+      <code>
+     <i>...</i> method <i>...</i> {<br>
+     &nbsp;&nbsp; ::nx::var import [self] <i>varname</i><br>
+     &nbsp;&nbsp; set <i>varname value</i></br>
+     }</code>
     </td>
  </tr>
  
    <tr>
     <td>
-    <code>set <i>newVar</i> [my set <i>otherVar</i>]</code></td>
+    <code>
+      <i>...</i> instproc <i>...</i> {<br>
+      &nbsp;&nbsp; set <i>newVar</i> [my set <i>otherVar</i>]<br>
+      }
+      </code></td>
     <td>
       <i class='comment'># read own instance variable</i><br><br>
-      <code>set <i>newVar</i> [set <i>:otherVar</i>]</code><br><hr>
-      <code>set <i>newVar</i> ${:otherVar}</i></code><br>
+      <code>
+      <i>...</i> method <i>...</i> {<br>
+      &nbsp;&nbsp; set <i>newVar</i> [set <i>:otherVar</i>]<br>
+      }
+      </code><br><hr>
+      <code>
+      <i>...</i> method <i>...</i> {<br>
+      &nbsp;&nbsp; set <i>newVar</i> ${:otherVar}</i><br>
+      }
+      </code>
     </td>
   </tr>
-    <tr>
-    <td><code>my exists <i>varname</i></code></td>
+  
+  <tr>
+    <td><code>
+      <i>...</i> instproc <i>...</i> {<br>
+      &nbsp;&nbsp; my exists <i>varname</i><br>
+      }
+      </code></td>
     <td>
       <i class='comment'># Test existence of own instance variable</i><br><br>
-      <code>info :<i>varname</i></code>
+      <code>
+      <i>...</i> method <i>...</i> {<br>
+      &nbsp;&nbsp; info :<i>varname</i><br>
+      }
+      </code>
       <hr>
-      <code>::nx::var exists [self] <i>varname</i></code>
+      <code>
+      <i>...</i> method <i>...</i> {<br>
+      &nbsp;&nbsp; ::nx::var exists [self] <i>varname</i><br>
+      }</code>
     </td>
   </tr>
 </table>
@@ -1309,6 +1347,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Sun Aug 15 14:04:59 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Mon Aug 16 10:00:14 CEST 2010 <!-- hhmts end -->
 </body>
 </html>
