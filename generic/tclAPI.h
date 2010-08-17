@@ -79,13 +79,13 @@ enum CurrentoptionIdx {CurrentoptionNULL, CurrentoptionProcIdx, CurrentoptionMet
 static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"protected", "redefine-protected", "slotobj", NULL};
+  static CONST char *opts[] = {"protected", "redefine-protected", "returns", "slotobj", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodproperty", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
-enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyProtectedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertySlotobjIdx};
+enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyProtectedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx, MethodpropertySlotobjIdx};
   
 static int convertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {

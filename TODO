@@ -1028,6 +1028,12 @@ new structure
 - extended regression test to avoid CallDirectly on dealloc (the last place, 
   where XOTCL_CMD_NOT_FOUND was used)
 
+- implemented return value checker (for scripted and c-implemented methods)
+- additional methodproperty returns (for registering a return value checker)
+- support for incrementally adding stuff to paramDefs (such as slotobj or return value)
+- new c-function ParamDefsNew()
+- added regression test for return value checker
+
 TODO: 
 - nameing
     * self/current:

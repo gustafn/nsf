@@ -872,7 +872,6 @@ Test case multivalued-app-converter {
     # Note that this converter does NOT return a value; it converts all
     # values into emtpy strings.
   }
-  
   ? {::nsf::parametercheck mType,slot=::tmpObj,multivalued {1 0}} \
       {invalid value in "1 0": expected false but got 1} \
       "fail on first value"

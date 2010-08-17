@@ -431,6 +431,7 @@ typedef struct XOTclParamDefs {
   XOTclParam *paramsPtr;
   int nrParams;
   Tcl_Obj *slotObj;
+  Tcl_Obj *returns;
 } XOTclParamDefs;
 
 typedef struct XOTclParsedParam {

@@ -216,6 +216,8 @@ static int ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
                                   CONST char *methodName, int objc, Tcl_Obj *CONST objv[]);
 static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, int *flags,
                          ClientData *clientData, Tcl_Obj **outObjPtr);
+static int Parametercheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj, 
+			  const char *varNamePrefix, XOTclParam **paramPtrPtr);
 
 static CONST char* AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
 static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, CONST char *cmd);
@@ -5305,7 +5307,7 @@ static int
 ParamDefsStore(Tcl_Interp *interp, Tcl_Command cmd, XOTclParamDefs *paramDefs) {
   Command *cmdPtr = (Command *)cmd;
 
-  if (cmdPtr->deleteProc == TclProcDeleteProc) {
+  if (cmdPtr->deleteProc != XOTclProcDeleteProc) {
     XOTclProcContext *ctxPtr = NEW(XOTclProcContext);
 
     /*fprintf(stderr, "paramDefsStore replace deleteProc %p by %p\n",
@@ -5317,16 +5319,39 @@ ParamDefsStore(Tcl_Interp *interp, Tcl_Command cmd, XOTclParamDefs *paramDefs) {
     ctxPtr->paramDefs = paramDefs;
     cmdPtr->deleteData = (ClientData)ctxPtr;
     return TCL_OK;
+  } else {
+    /*fprintf(stderr, "paramDefsStore cmd %p has already XOTclProcDeleteProc deleteData %p\n", 
+      cmd, cmdPtr->deleteData);*/
+    if (cmdPtr->deleteData) {
+      XOTclProcContext *ctxPtr = cmdPtr->deleteData;
+      assert(ctxPtr->paramDefs == NULL);
+      ctxPtr->paramDefs = paramDefs;
+    }
   }
   return TCL_ERROR;
 }
 
+static XOTclParamDefs *
+ParamDefsNew() {
+  XOTclParamDefs *paramDefs;
+
+  paramDefs = NEW(XOTclParamDefs);
+  memset(paramDefs, 0, sizeof(XOTclParamDefs));
+  /*fprintf(stderr, "ParamDefsNew %p\n", paramDefs);*/
+
+  return paramDefs;
+}
+
+
 static void
 ParamDefsFree(XOTclParamDefs *paramDefs) {
-  /*fprintf(stderr, "ParamDefsFree %p\n", paramDefs);*/
+  /*fprintf(stderr, "ParamDefsFree %p returns %p\n", paramDefs, paramDefs->returns);*/
+
   if (paramDefs->paramsPtr) {
     ParamsFree(paramDefs->paramsPtr);
   }
+  if (paramDefs->slotobj) {DECR_REF_COUNT(paramDefs->slotobj);}
+  if (paramDefs->returns) {DECR_REF_COUNT(paramDefs->returns);}
   FREE(XOTclParamDefs, paramDefs);
 }
 
@@ -5481,6 +5506,16 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
           );
 # endif
 
+  { XOTclParamDefs *paramDefs = ParamDefsGet(cscPtr->cmdPtr);
+
+    if (result == TCL_OK && paramDefs && paramDefs->returns) {
+      Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
+      /*fprintf(stderr, "***** we have returns for method '%s' check %s, value %p\n", 
+	methodName, ObjStr(paramDefs->returns), valueObj);*/
+      result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", NULL);
+    }
+  }
+
   if (opt && object->teardown && (opt->checkoptions & CHECK_POST)) {
     /* even, when the passed result != TCL_OK, run assertion to report
      * the highest possible method from the callstack (e.g. "set" would not
@@ -5517,6 +5552,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
          XOTclCallStackContent *cscPtr) {
   int result, releasePc = 0;
   XOTclObjectOpt *opt = object->opt;
+  XOTclParamDefs *paramDefs;
 #if defined(NRE)
   parseContext *pcPtr = NULL;
 #else
@@ -5595,31 +5631,31 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 #endif
 
   /*
-     If the method to be invoked hasparamDefs, we have to call the
+     If the method to be invoked has paramDefs, we have to call the
      argument parser with the argument definitions obtained from the
      proc context from the cmdPtr.
   */
-  {
-    XOTclParamDefs *paramDefs = Tcl_Command_deleteProc(cmdPtr) == XOTclProcDeleteProc ?
-      ((XOTclProcContext *)Tcl_Command_deleteData(cmdPtr))->paramDefs : NULL;
+  paramDefs = ParamDefsGet(cmdPtr);
 
-    if (paramDefs) {
+  /*Tcl_Command_deleteProc(cmdPtr) == XOTclProcDeleteProc ?
+    ((XOTclProcContext *)Tcl_Command_deleteData(cmdPtr))->paramDefs : NULL;*/
+  
+  if (paramDefs && paramDefs->paramsPtr) {
 #if defined(NRE)
-      pcPtr = (parseContext *) TclStackAlloc(interp, sizeof(parseContext));
+    pcPtr = (parseContext *) TclStackAlloc(interp, sizeof(parseContext));
 # if defined(TCL_STACK_ALLOC_TRACE)
-      fprintf(stderr, "---- parseContext alloc %p\n", pcPtr);
+    fprintf(stderr, "---- parseContext alloc %p\n", pcPtr);
 # endif
 #endif
-      result = ProcessMethodArguments(pcPtr, interp, object, 1, paramDefs, methodName, objc, objv);
-      cscPtr->objc = objc;
-      cscPtr->objv = (Tcl_Obj **)objv;
-      if (result == TCL_OK) {
-        releasePc = 1;
-        result = PushProcCallFrame(cp, interp, pcPtr->objc, pcPtr->full_objv, cscPtr);
-      }
-    } else {
-      result = PushProcCallFrame(cp, interp, objc, objv, cscPtr);
+    result = ProcessMethodArguments(pcPtr, interp, object, 1, paramDefs, methodName, objc, objv);
+    cscPtr->objc = objc;
+    cscPtr->objv = (Tcl_Obj **)objv;
+    if (result == TCL_OK) {
+      releasePc = 1;
+      result = PushProcCallFrame(cp, interp, pcPtr->objc, pcPtr->full_objv, cscPtr);
     }
+  } else {
+    result = PushProcCallFrame(cp, interp, objc, objv, cscPtr);
   }
 
   /* we could consider to run here ARG_METHOD or ARG_INITCMD
@@ -5675,6 +5711,13 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   /* fprintf(stderr, " returnCode %d xotcl rc %d\n",
      Tcl_Interp_returnCode(interp), result);*/
 # endif
+
+  if (result == TCL_OK && paramDefs && paramDefs->returns) {
+    Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
+    /*fprintf(stderr, "***** we have returns for method '%s' check %s, value %p is shared %d\n", 
+      methodName, ObjStr(paramDefs->returns), valueObj, Tcl_IsShared(valueObj));*/
+    result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", NULL);
+  }
 
   opt = object->opt;
   if (opt && object->teardown &&
@@ -5751,6 +5794,16 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
     if ((co & CHECK_INVAR) &&
         ((result = AssertionCheckInvars(interp, object, methodName, co)) == TCL_ERROR)) {
       goto finish;
+    }
+  }
+
+  { XOTclParamDefs *paramDefs = ParamDefsGet(cmdPtr);
+
+    if (result == TCL_OK && paramDefs && paramDefs->returns) {
+      Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
+      /* fprintf(stderr, "***** CMD we have returns for method '%s' check %s, value %p\n", 
+	 methodName, ObjStr(paramDefs->returns), valueObj);*/
+      result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", NULL);
     }
   }
 
@@ -6751,10 +6804,7 @@ ParamDefsParse(Tcl_Interp *interp, CONST char *procName, Tcl_Obj *args,
       lastParamPtr->flags &= ~XOTCL_ARG_REQUIRED;
     }
 
-    paramDefs = NEW(XOTclParamDefs);
-    MEM_COUNT_ALLOC("paramDefs", paramDefs);
-
-    paramDefs->slotObj = NULL;
+    paramDefs = ParamDefsNew();
     paramDefs->paramsPtr = paramsPtr;
     paramDefs->nrParams = paramPtr-paramsPtr;
     /*fprintf(stderr, "method %s ifsize %d, possible unknowns = %d,\n",
@@ -9444,6 +9494,7 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST
   int objc, i, result;
   Tcl_Obj **ov;
   
+  /*fprintf(stderr, "ArgumentCheckHelper\n");*/
   assert(pPtr->flags & XOTCL_ARG_MULTIVALUED);
 
   result = Tcl_ListObjGetElements(interp, objPtr, &objc, &ov);
@@ -9463,6 +9514,9 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST
     } else {
       result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
     }
+
+    /*fprintf(stderr, "ArgumentCheckHelper convert %s result %d (%s)\n", 
+      valueString, result, ObjStr(elementObjPtr));*/
 
     if (result == TCL_OK) {
       Tcl_ListObjAppendElement(interp, *outObjPtr, elementObjPtr);
@@ -9523,8 +9577,8 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr
              switch to the version of this handler building an output
              list 
           */
-          /*fprintf(stderr, "switch to output list construction for value %s\n",
-            ObjStr(elementObjPtr));*/
+          fprintf(stderr, "switch to output list construction for value %s\n",
+		  ObjStr(elementObjPtr));
           *flags |= XOTCL_PC_MUST_DECR;
           result = ArgumentCheckHelper(interp, objPtr, pPtr, flags, clientData, outObjPtr);
           break;
@@ -11362,7 +11416,7 @@ xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "methodName" -required 1 -type tclobj}
-  {-argName "methodproperty" -required 1 -type "protected|redefine-protected|slotobj"}
+  {-argName "methodproperty" -required 1 -type "protected|redefine-protected|returns|slotobj"}
   {-argName "value" -type tclobj}
 }
 */
@@ -11371,6 +11425,9 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int w
   CONST char *methodName = ObjStr(methodObj);
   Tcl_Command cmd = NULL;
   
+  /*fprintf(stderr, "methodProperty for method '%s' prop %d value %s\n",
+    methodName, methodproperty, valueObj ? ObjStr(valueObj) : "NULL");*/
+
   if (*methodName == ':') {
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
     if (!cmd) {
@@ -11405,47 +11462,69 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int w
     }
   }
 
-  if (methodproperty == MethodpropertyProtectedIdx
-      || methodproperty == MethodpropertyRedefine_protectedIdx) {
-
-    int flag = methodproperty == MethodpropertyProtectedIdx ?
-      XOTCL_CMD_PROTECTED_METHOD :
-      XOTCL_CMD_REDEFINE_PROTECTED_METHOD;
-
-    if (valueObj) {
-      int bool, result;
-      result = Tcl_GetBooleanFromObj(interp, valueObj, &bool);
-      if (result != TCL_OK) {
-        return result;
+  switch (methodproperty) {
+  case MethodpropertyProtectedIdx: /* fall through */
+  case MethodpropertyRedefine_protectedIdx: 
+    {
+      int flag = methodproperty == MethodpropertyProtectedIdx ?
+	XOTCL_CMD_PROTECTED_METHOD :
+	XOTCL_CMD_REDEFINE_PROTECTED_METHOD;
+      
+      if (valueObj) {
+	int bool, result;
+	result = Tcl_GetBooleanFromObj(interp, valueObj, &bool);
+	if (result != TCL_OK) {
+	  return result;
+	}
+	if (bool) {
+	  Tcl_Command_flags(cmd) |= flag;
+	} else {
+	  Tcl_Command_flags(cmd) &= ~flag;
+	}
       }
-      if (bool) {
-        Tcl_Command_flags(cmd) |= flag;
+      Tcl_SetIntObj(Tcl_GetObjResult(interp), (Tcl_Command_flags(cmd) & flag) != 0);
+      break;
+    }
+  case MethodpropertySlotobjIdx: 
+  case MethodpropertyReturnsIdx: 
+    {
+      XOTclParamDefs *paramDefs;
+      Tcl_Obj **objPtr;
+
+      if (valueObj == NULL && methodproperty == MethodpropertySlotobjIdx) {
+	return XOTclVarErrMsg(interp, "Option 'slotobj' of method ", methodName,
+			      " requires argument '", (char *) NULL);
+      }
+
+      paramDefs = ParamDefsGet(cmd);
+      /*fprintf(stderr, "MethodProperty, ParamDefsGet cmd %p paramDefs %p returns %p\n", 
+	cmd, paramDefs, paramDefs?paramDefs->returns:NULL);*/
+
+      if (paramDefs == NULL) {
+	paramDefs = ParamDefsNew();
+	ParamDefsStore(interp, cmd, paramDefs);
+	/*fprintf(stderr, "new param defs %p for cmd %p %s\n", paramDefs, cmd, methodName);*/
+      }
+      objPtr = methodproperty == MethodpropertySlotobjIdx ? &paramDefs->slotObj : &paramDefs->returns;
+      if (valueObj == NULL) {
+	/* must be a returns query */
+	Tcl_SetObjResult(interp, *objPtr ? *objPtr : XOTclGlobalObjs[XOTE_EMPTY]);
       } else {
-        Tcl_Command_flags(cmd) &= ~flag;
+	const char *valueString = ObjStr(valueObj);
+	/* Set a new value; if there is already a value, free it */
+	if (*objPtr) {
+	  DECR_REF_COUNT(*objPtr);
+	}
+	if (*valueString == '\0') {
+	  /* set the value to NULL */
+	  *objPtr = NULL;
+	} else {
+	  *objPtr = valueObj;
+	  INCR_REF_COUNT(*objPtr);
+	}
       }
+      break;
     }
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), (Tcl_Command_flags(cmd) & flag) != 0);
-  } else { /* slotobj */
-    XOTclParamDefs *paramDefs;
-
-    if (valueObj == NULL) {
-      return XOTclVarErrMsg(interp, "Option 'slotobj' of method ", methodName,
-                            " requires argument '", (char *) NULL);
-    }
-
-    paramDefs = ParamDefsGet(cmd);
-    if (paramDefs == NULL) {
-      paramDefs = NEW(XOTclParamDefs);
-      memset(paramDefs, 0, sizeof(XOTclParamDefs));
-      ParamDefsStore(interp, cmd, paramDefs);
-    } else {
-      fprintf(stderr, "define slotobj for a method with nonpospargs\n slotobj = %s \n", ObjStr(valueObj));
-      if (paramDefs->slotObj) {
-	DECR_REF_COUNT(paramDefs->slotObj);
-      }
-    }
-    paramDefs->slotObj = valueObj;
-    INCR_REF_COUNT(paramDefs->slotObj);
   }
 
   return TCL_OK;
@@ -12383,12 +12462,13 @@ ParamFreeInternalRep(
 }
 
 static int
-ParamSetFromAny(
+ParamSetFromAny2(
     Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
+    const char *varNamePrefix,	/* shows up as varname in error message */
     register Tcl_Obj *objPtr)	/* The object to convert. */
 {
   XOTclParamWrapper *paramWrapperPtr = NEW(XOTclParamWrapper);
-  Tcl_Obj *fullParamObj = Tcl_NewStringObj("value:", 6);
+  Tcl_Obj *fullParamObj = Tcl_NewStringObj(varNamePrefix, -1);
   int result, possibleUnknowns = 0, plainParams = 0;
 
   paramWrapperPtr->paramPtr = ParamsNew(1);
@@ -12419,26 +12499,29 @@ ParamSetFromAny(
   return result;
 }
 
-/*
-xotclCmd parametercheck XOTclParametercheckCmd {
-  {-argName "param" -type tclobj}
-  {-argName "-nocomplain"}
-  {-argName "value" -required 0 -type tclobj}
-  } 
-*/
-static int XOTclParametercheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *objPtr, Tcl_Obj *valueObj) {
+static int
+ParamSetFromAny(
+    Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
+    register Tcl_Obj *objPtr)	/* The object to convert. */
+{
+  return ParamSetFromAny2(interp, "value:", objPtr);
+}
+
+static int Parametercheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj,  
+			  const char *varNamePrefix, XOTclParam **paramPtrPtr) {
   XOTclParamWrapper *paramWrapperPtr;
+  Tcl_Obj *outObjPtr = NULL;
   XOTclParam *paramPtr;
   ClientData checkedData;
-  Tcl_Obj *outObjPtr;
   int result, flags = 0;
 
-  /*fprintf(stderr, "XOTclParametercheckCmd %s %s\n",ObjStr(objPtr), ObjStr(valueObj));*/
+  /*fprintf(stderr, "XOTclParametercheckCmd %s value %p %s\n",
+    ObjStr(objPtr), valueObj, ObjStr(valueObj));*/
 
   if (objPtr->typePtr == &paramObjType) {
     paramWrapperPtr = (XOTclParamWrapper *) objPtr->internalRep.twoPtrValue.ptr1;
   } else {
-    result = ParamSetFromAny(interp, objPtr);
+    result = ParamSetFromAny2(interp, varNamePrefix, objPtr);
     if (result == TCL_OK) {
       paramWrapperPtr = (XOTclParamWrapper *) objPtr->internalRep.twoPtrValue.ptr1;
     } else {
@@ -12448,33 +12531,53 @@ static int XOTclParametercheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Ob
     }
   }
   paramPtr = paramWrapperPtr->paramPtr;
+  if (paramPtrPtr) *paramPtrPtr = paramPtr;
   result = ArgumentCheck(interp, valueObj, paramPtr, &flags, &checkedData, &outObjPtr);
 
-  if (paramPtr->converter == convertViaCmd && 
-      (withNocomplain || result == TCL_OK)) {
-    /* fprintf(stderr, "reset result %p %p\n", value, outObjPtr);*/
-    Tcl_ResetResult(interp);
-  } 
+  /*fprintf(stderr, "XOTclParametercheckCmd paramPtr %p final refcount of wrapper %d can free %d\n",
+    paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree);*/
 
-  if (flags & XOTCL_PC_MUST_DECR) {
-    DECR_REF_COUNT(outObjPtr);
-  }
-
-  if (withNocomplain) {
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), (result == TCL_OK));
-    result = TCL_OK;
-  } else if (result == TCL_OK) {
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
-  }
-
-  /*fprintf(stderr, "XOTclParametercheckCmd paramPtr %p final refcount of wrapper %d can free %d\n",paramPtr, 
-          paramWrapperPtr->refCount,  paramWrapperPtr->canFree);*/
   if (paramWrapperPtr->refCount == 0) {
     /* fprintf(stderr, "XOTclParametercheckCmd paramPtr %p manual free\n",paramPtr);*/
     ParamsFree(paramWrapperPtr->paramPtr);
     FREE(XOTclParamWrapper, paramWrapperPtr);
   } else {
     paramWrapperPtr->canFree = 1;
+  }
+
+  if (flags & XOTCL_PC_MUST_DECR) {
+    DECR_REF_COUNT(outObjPtr);
+  }
+
+  return result;
+}
+
+/*
+xotclCmd parametercheck XOTclParametercheckCmd {
+  {-argName "param" -type tclobj}
+  {-argName "-nocomplain"}
+  {-argName "value" -required 0 -type tclobj}
+  } 
+*/
+static int XOTclParametercheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *objPtr, Tcl_Obj *valueObj) {
+  XOTclParam *paramPtr = NULL;
+  int result;
+
+  result = Parametercheck(interp, objPtr, valueObj, "value:", &paramPtr);
+
+  /*fprintf(stderr, "after convert\n");*/
+
+  if (paramPtr && paramPtr->converter == convertViaCmd && 
+      (withNocomplain || result == TCL_OK)) {
+    fprintf(stderr, "reset result %p\n", valueObj);
+    Tcl_ResetResult(interp);
+  } 
+
+  if (withNocomplain) {
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), (result == TCL_OK));
+    result = TCL_OK;
+  } else if (result == TCL_OK) {
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
   }
 
   return result;
