@@ -1042,6 +1042,11 @@ new structure
 - replaced "requireNamespace" by "require namespace" in nx regression tests 
 - updated migration guide
 
+- removed method "autoname" from nx.tcl
+- added "method require autoname"
+- added "method require exists"
+
+
 TODO: 
 - nameing
     * self/current:

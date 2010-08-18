@@ -479,6 +479,7 @@ Test case subst-default {
       "1" \
       "query parameter for C-defined method 'forward'"
   
+  Object require method autoname
   ? {Object info method parameter autoname} \
       "-instance -reset name" \
       "query parameter for C-defined method 'autoname'"

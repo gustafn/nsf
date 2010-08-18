@@ -22,6 +22,8 @@ static char cmd[] =
 "set rel \"mixin\"}\n"
 "set oldSetting [::nsf::relation $object $rel]\n"
 "uplevel [list ::nsf::relation $object $rel [linsert $oldSetting end $args]]}\n"
+"::nsf::provide_method autoname {::nsf::alias autoname ::nsf::cmd::Object::autoname}\n"
+"::nsf::provide_method exists   {::nsf::alias  exists ::nsf::cmd::Object::exists}\n"
 "proc ::nsf::infoError msg {\n"
 "regsub -all \" <object>\" $msg \"\" msg\n"
 "regsub -all \" <class>\" $msg \"\" msg\n"

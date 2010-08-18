@@ -37,7 +37,7 @@ namespace eval ::nx {
   #
   foreach cmd [info command ::nsf::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "exists" "instvar" "requireNamespace"]} continue
+    if {$cmdName in [list "autoname" "exists" "instvar" "requireNamespace"]} continue
     ::nsf::alias Object $cmdName $cmd 
   }
   

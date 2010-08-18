@@ -50,6 +50,11 @@ namespace eval ::nsf {
     uplevel [list ::nsf::relation $object $rel [linsert $oldSetting end $args]]
   }
 
+  #
+  # provide some popular methods for "method require"
+  #
+  ::nsf::provide_method autoname {::nsf::alias autoname ::nsf::cmd::Object::autoname}
+  ::nsf::provide_method exists   {::nsf::alias  exists ::nsf::cmd::Object::exists}
 
   #
   # error handler for info
