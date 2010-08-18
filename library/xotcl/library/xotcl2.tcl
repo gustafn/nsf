@@ -64,7 +64,7 @@ namespace eval ::xotcl {
   # provide the standard command set for ::xotcl::Object
   foreach cmd [info command ::nsf::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "filtersearch" "setter"]} continue
+    if {$cmdName in [list "setter"]} continue
     ::nsf::alias Object $cmdName $cmd
   }
 
@@ -542,7 +542,7 @@ namespace eval ::xotcl {
     ::nsf::is [self] type $cl
   }
   Object instproc filtersearch {filter} {
-    set definition [::nsf::dispatch [self] ::nsf::cmd::Object::filtersearch $filter]
+    set definition [::nsf::cmd::ObjectInfo::method [self] filter $filter]
     return [method_handle_to_xotcl $definition]
   }
   Object instproc procsearch {name} {

@@ -2,13 +2,13 @@
 static int convertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"args", "body", "definition", "name", "parameter", "parametersyntax", "type", "precondition", "postcondition", NULL};
+  static CONST char *opts[] = {"args", "body", "definition", "filter", "name", "parameter", "parametersyntax", "type", "precondition", "postcondition", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infomethodsubcmd", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
-enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdNameIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx};
+enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdFilterIdx, InfomethodsubcmdNameIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx};
   
 static int convertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -176,7 +176,6 @@ static int XOTclOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, 
 static int XOTclODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOFilterSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -254,7 +253,6 @@ static int XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc,
 static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOExistsMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *var);
 static int XOTclOFilterGuardMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *filter, Tcl_Obj *guard);
-static int XOTclOFilterSearchMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *filter);
 static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOMixinGuardMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *mixin, Tcl_Obj *guard);
 static int XOTclONoinitMethod(Tcl_Interp *interp, XOTclObject *obj);
@@ -333,7 +331,6 @@ enum {
  XOTclODestroyMethodIdx,
  XOTclOExistsMethodIdx,
  XOTclOFilterGuardMethodIdx,
- XOTclOFilterSearchMethodIdx,
  XOTclOInstVarMethodIdx,
  XOTclOMixinGuardMethodIdx,
  XOTclONoinitMethodIdx,
@@ -1263,25 +1260,6 @@ XOTclOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
 }
 
 static int
-XOTclOFilterSearchMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclOFilterSearchMethodIdx].paramDefs, 
-                     method_definitions[XOTclOFilterSearchMethodIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    CONST char *filter = (CONST char *)pc.clientData[0];
-
-    parseContextRelease(&pc);
-    return XOTclOFilterSearchMethod(interp, obj, filter);
-
-  }
-}
-
-static int
 XOTclOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
@@ -2100,9 +2078,6 @@ static methodDefinition method_definitions[] = {
 {"::nsf::cmd::Object::filterguard", XOTclOFilterGuardMethodStub, 2, {
   {"filter", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
-},
-{"::nsf::cmd::Object::filtersearch", XOTclOFilterSearchMethodStub, 1, {
-  {"filter", 1, 0, convertToString}}
 },
 {"::nsf::cmd::Object::instvar", XOTclOInstVarMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}

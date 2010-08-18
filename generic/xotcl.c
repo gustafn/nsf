@@ -12569,7 +12569,6 @@ static int XOTclParametercheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Ob
 
   if (paramPtr && paramPtr->converter == convertViaCmd && 
       (withNocomplain || result == TCL_OK)) {
-    fprintf(stderr, "reset result %p\n", valueObj);
     Tcl_ResetResult(interp);
   } 
 
@@ -12965,7 +12964,7 @@ static int XOTclOFilterGuardMethod(Tcl_Interp *interp, XOTclObject *object, CONS
  *  Searches for filter on [self] and returns fully qualified name
  *  if it is not found it returns an empty string
  */
-static int XOTclOFilterSearchMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *filter) {
+static int FilterSearchMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *filter) {
   CONST char *filterName;
   XOTclCmdList *cmdList;
   XOTclClass *fcl;
@@ -13871,7 +13870,7 @@ static int XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *objec
 /*
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|definition|filter|name|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 */
@@ -13880,7 +13879,10 @@ static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object,
   Tcl_Namespace *nsPtr = object->nsPtr;
   Tcl_Command cmd;
 
-  if (*methodName == ':') {
+  if (subcmd == InfomethodsubcmdFilterIdx) {
+    return FilterSearchMethod(interp, object, methodName);
+
+  } else if (*methodName == ':') {
     Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
   } else {
@@ -14125,7 +14127,7 @@ static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *class,
 /*
 infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|body|definition|name|parameter|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|filter|name|parameter|type|precondition|postcondition"}
   {-argName "name"}
 }
 */
@@ -14134,7 +14136,9 @@ static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class,
   Tcl_Namespace *nsPtr = class->nsPtr;
   Tcl_Command cmd;
 
-  if (*methodName == ':') {
+  if (subcmd == InfomethodsubcmdFilterIdx) {
+    return FilterSearchMethod(interp, &class->object, methodName);
+  } else if (*methodName == ':') {
     Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
   } else {

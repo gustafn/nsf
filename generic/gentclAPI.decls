@@ -433,9 +433,9 @@ objectMethod filterguard XOTclOFilterGuardMethod {
 # @param filter Handle to identify and address a filter once registered
 # @param guard A list of guard expressions
 # @return A string which describes a fully qualified method handle
-objectMethod filtersearch XOTclOFilterSearchMethod {
-  {-argName "filter" -required 1}
-}
+#objectMethod filtersearch XOTclOFilterSearchMethod {
+#  {-argName "filter" -required 1}
+#}
 
 # @method ::nx::Object#instvar
 #
@@ -780,7 +780,7 @@ infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
 }
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "args|definition|name|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|definition|filter|name|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 infoObjectMethod methods XOTclObjInfoMethodsMethod {
@@ -847,7 +847,7 @@ infoClassMethod forward XOTclClassInfoForwardMethod {
 }
 infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|body|definition|name|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|filter|name|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 infoClassMethod methods XOTclClassInfoMethodsMethod {
