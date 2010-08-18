@@ -19,7 +19,7 @@ Test parameter count 1
 Test case globals
 set ::globalVar 1
 Object create o 
-o requireNamespace
+o require namespace
 ? {o info vars} ""
 ? {info exists ::globalVar} 1
 ? {set ::globalVar} 1
@@ -45,7 +45,7 @@ Object create o2 {set :i 1}
 o objeval {
   # require an namespace within an objscoped frame; it is necessary to replace
   # vartables on the stack
-  :requireNamespace
+  :require namespace
   global g
   ::nsf::importvar o2 i
   set x 1
@@ -103,7 +103,7 @@ unset ::g
 
 Object create o2 {set :i 1}
 Object create o {
-  :requireNamespace
+  :require namespace
   global g
   ::nsf::importvar o2 i
   set x 1
@@ -161,7 +161,7 @@ Test case exists {
 Test case namespaces
 
 Object create o 
-o requireNamespace
+o require namespace
 o set x 1
 ? {namespace eval ::o {set x}} 1
 ? {::o set x} 1
@@ -185,7 +185,7 @@ o destroy
 Test case namespaces-array
 
 Object create o 
-o requireNamespace
+o require namespace
 
 ? {o array exists a} 0
 ? {namespace eval ::o array exists a} 0
@@ -210,9 +210,9 @@ o destroy
 ###########################################
 Test case namespaced-var-names
 Object create o 
-o requireNamespace
+o require namespace
 Object create o::oo 
-o::oo requireNamespace
+o::oo require namespace
 
 ? {::o set ::x 1} 1
 ? {info exists ::x} [set ::x]
@@ -391,9 +391,9 @@ C create c3
 ###############################################
 # refined tests for the var resolver under
 # Tcl namespaces parallelling XOTcl objects 
-# (! not declared through requireNamespace !)
+# (! not declared through require namespace !)
 # e.g., "info hasnamespace" reports 0 rather
-# than 1 as under "requireNamespace"
+# than 1 as under "require namespace"
 ###############################################
 
 set ::w 1
@@ -489,7 +489,7 @@ o destroy
 
 # now with an object namespace 
 Object create o
-o requireNamespace
+o require namespace
 
 # objeval does an objcope, all vars are instance variables
 o objeval {
@@ -560,7 +560,7 @@ o destroy
 
 # now with namespace 
 Object create o
-o requireNamespace
+o require namespace
 
 # eval does an objcope, all vars are instance variables
 o objeval {

@@ -37,7 +37,7 @@ namespace eval ::nx {
   #
   foreach cmd [info command ::nsf::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "exists" "instvar"]} continue
+    if {$cmdName in [list "exists" "instvar" "requireNamespace"]} continue
     ::nsf::alias Object $cmdName $cmd 
   }
   
@@ -323,6 +323,25 @@ namespace eval ::nx {
   }
   Class public method setter {methodName} {
     ::nsf::setter [::nsf::current object] $methodName
+  }
+
+  # Add method "require"
+  #
+  Object method require {what args} {
+    switch -- $what {
+      object {
+	set what [lindex $args 0]
+	if {$what eq "method"} {
+	  ::nsf::require_method [::nx::self] [lindex $args 1] 1
+	}
+      }
+      method {
+	::nsf::require_method [::nx::self] [lindex $args 0] 0
+      }
+      namespace {
+	::nsf::dispatch [self] ::nsf::cmd::Object::requireNamespace
+      }
+    }
   }
 
   ########################
@@ -1196,7 +1215,8 @@ namespace eval ::nx {
   } {
     if {![info exists object]} {set object [::nsf::current object]}
     if {![::nsf::objectproperty $object object]} {$class create $object}
-    $object requireNamespace
+    # reused in XOTcl, no "require" there, so use nsf primitiva
+    ::nsf::dispatch $object ::nsf::cmd::Object::requireNamespace    
     if {$withnew} {
       set m [ScopedNew new -volatile \
 		 -container $object -withclass $class]
@@ -1290,7 +1310,8 @@ namespace eval ::nx {
 	  ::nsf::relation $obj object-filter [::nsf::relation $origin object-filter]
 	  ::nsf::relation $obj object-mixin [::nsf::relation $origin object-mixin]
 	  if {[$origin info hasnamespace]} {
-	    $obj requireNamespace
+            # reused in XOTcl, no "require" there, so use nsf primitiva
+	    ::nsf::dispatch $obj ::nsf::cmd::Object::requireNamespace
 	  }
 	} else {
 	  namespace eval $dest {}

@@ -552,7 +552,7 @@ Test case namespace-import {
   ? {::nsf::objectproperty ::module::foo object} 1
   ? {::nsf::objectproperty ::module class} 1
 
-  Object create ::o { :requireNamespace }
+  Object create ::o { :require namespace }
   namespace eval ::o {namespace import ::module::*}
 
   ? {::nsf::objectproperty ::o::Foo class} 1

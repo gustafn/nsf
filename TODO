@@ -1035,6 +1035,12 @@ new structure
 - added regression test for return value checker
 
 - upgraded to TEA 3.9
+- nsf: provided scripted support for "require/provide methods"
+- nx: new method ":require namespace" ":require method" "require object method"
+- added regression test method-require
+- removed requireNamespace from nx.tcl (still exists in xotcl)
+- replaced "requireNamespace" by "require namespace" in nx regression tests 
+- updated migration guide
 
 TODO: 
 - nameing

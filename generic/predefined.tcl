@@ -9,6 +9,49 @@ namespace eval ::nsf {
   namespace export alias configure finalize interp is my relation
 
   #
+  # support for method provide and method require
+  #
+  proc ::nsf::provide_method {require_name definition {script ""}} {
+    set ::nsf::methodIndex($require_name) [list definition $definition script $script]
+  }
+
+  proc ::nsf::require_method {object name {per_object 0}} {
+    set key ::nsf::methodIndex($name)
+    if {[info exists $key]} {
+      array set "" [set $key]
+      if {$(script) ne ""} {
+	eval $(script)
+      }
+      if {$per_object} {
+	set cmd [linsert $(definition) 1 -per-object]
+	eval [linsert $cmd 1 $object]
+      } else {
+        eval [linsert $(definition) 1 $object]
+      }
+    } else {
+      error "cannot require method $name for $object, method unknown"
+    }
+  }
+
+  #
+  # nsf::mixin
+  #
+  # provide a similar interface as for ::nsf::method, ::nsf::alias, ...
+  #
+  proc ::nsf::mixin {object args} {
+    if {[lindex $args 0] eq "-per-object"} {
+      set rel "object-mixin"
+      set args [lrange $args 1 end]
+    } else {
+      set rel "mixin"
+    }
+    set oldSetting [::nsf::relation $object $rel]
+    # use uplevel to avoid namespace surprises
+    uplevel [list ::nsf::relation $object $rel [linsert $oldSetting end $args]]
+  }
+
+
+  #
   # error handler for info
   #
   proc ::nsf::infoError msg {

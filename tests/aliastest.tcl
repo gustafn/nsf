@@ -219,7 +219,7 @@ Test case alias-namespaced {
   ? {namespace exists ::U} 0
   U object method zap args { return [current class]->[current method] }
   ::nsf::alias ::U -per-object ZAP ::U::zap 
-  U requireNamespace
+  U require namespace
   ? {namespace exists ::U} 1
   
   U object method bar args { return [current class]->[current method] }
