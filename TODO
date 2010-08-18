@@ -1034,6 +1034,8 @@ new structure
 - new c-function ParamDefsNew()
 - added regression test for return value checker
 
+- upgraded to TEA 3.9
+
 TODO: 
 - nameing
     * self/current:
