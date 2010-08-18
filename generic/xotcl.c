@@ -5350,7 +5350,7 @@ ParamDefsFree(XOTclParamDefs *paramDefs) {
   if (paramDefs->paramsPtr) {
     ParamsFree(paramDefs->paramsPtr);
   }
-  if (paramDefs->slotobj) {DECR_REF_COUNT(paramDefs->slotobj);}
+  if (paramDefs->slotObj) {DECR_REF_COUNT(paramDefs->slotObj);}
   if (paramDefs->returns) {DECR_REF_COUNT(paramDefs->returns);}
   FREE(XOTclParamDefs, paramDefs);
 }
