@@ -1068,6 +1068,15 @@ new structure
   mixins from meta-classes
 - extended regression test
 
+- checked saftey of Class.method, Class.alias, Class.setter, Class.forward 
+- made Class.filterguard, Class.mixinguard, Class.attribute 
+  robust against per-object mixins from meta-classes
+- fixed mixin/filter delete methods with guarded operations
+- extended regression test
+- all methods defined on both, Object and Class are now safe in respect
+  to per-object mixins with meta-classes
+
+
 TODO: 
 - nameing
     * self/current:

@@ -287,6 +287,7 @@ namespace eval ::nx {
   # @param -verbose Print the substituted command to stderr before executing
   # @param callee
   # @param args
+
   ::nsf::forward Class forward ::nsf::forward %self
 
   # The method __unknown is called in cases, where we try to resolve
@@ -332,14 +333,14 @@ namespace eval ::nx {
       object {
 	set what [lindex $args 0]
 	if {$what eq "method"} {
-	  ::nsf::require_method [::nx::self] [lindex $args 1] 1
+	  ::nsf::require_method [::nsf::current object] [lindex $args 1] 1
 	}
       }
       method {
-	::nsf::require_method [::nx::self] [lindex $args 0] 0
+	::nsf::require_method [::nsf::current object] [lindex $args 0] 0
       }
       namespace {
-	::nsf::dispatch [self] ::nsf::cmd::Object::requireNamespace
+	::nsf::dispatch [::nsf::current object] ::nsf::cmd::Object::requireNamespace
       }
     }
   }
@@ -395,12 +396,25 @@ namespace eval ::nx {
   Object forward info -onerror ::nsf::infoError ::nx::objectInfo %1 {%@2 %self}
   #Class forward  info -onerror ::nsf::infoError ::nx::classInfo %1 {%@2 %self}
   Class method info args {
-    # In case, the Class-info is applied on an object (via mixins)
-    if {![::nsf::objectproperty [self] class]} next else {
-      if {[catch {::nx::classInfo [lindex $args 0] [self] {*}[lrange $args 1 end]} result]} {
+    # In case Class.info is applied on an object (via mixins), do "next"
+    if {![::nsf::objectproperty [::nsf::current object] class]} next else {
+      if {[catch {::nx::classInfo [lindex $args 0] [::nsf::current object] {*}[lrange $args 1 end]} result]} {
 	::nsf::infoError $result
       }
       return $result
+    }
+  }
+
+  Class method filterguard {filter guard} {
+    # In case Class.filterguard is applied on an object (via mixins), do "next"
+    if {![::nsf::objectproperty [::nsf::current object] class]} next else {
+      ::nsf::dispatch [::nsf::current object] ::nsf::cmd::Class::filterguard $filter $guard
+    }
+  }
+  Class method mixinguard {mixin guard} {
+    # In case Class.mixinguard is applied on an object (via mixins), do "next"
+    if {![::nsf::objectproperty [::nsf::current object] class]} next else {
+      ::nsf::dispatch [::nsf::current object] ::nsf::cmd::Class::mixinguard $mixin $guard
     }
   }
 
@@ -865,15 +879,22 @@ namespace eval ::nx {
     if {$p > -1} {
       return [lreplace $old $p $p]
     } else {
-      error "$value is not a $prop of $obj (valid are: $old)"
+      # In the resulting list might be guards. If so, do another round
+      # of checking to test the first list element.
+      set new [list]
+      set found 0
+      foreach v $old {
+	if {[llength $v]>1 && $value eq [lindex $v 0]} {
+	  set found 1
+	  continue
+	}
+	lappend new $v
+      }
+      if {!$found} {error "$value is not a $prop of $obj (valid are: $old)"}
+      return $new
     }
   }
 
-  RelationSlot public method delete {-nocomplain:switch obj prop value} {
-    #puts stderr RelationSlot-delete-[::nsf::current args]
-    $obj $prop [:delete_value $obj $prop [$obj info $prop] $value]
-  }
-  
   RelationSlot public method get {obj prop} {
     ::nsf::relation $obj $prop
   }
@@ -1127,8 +1148,12 @@ namespace eval ::nx {
   # Define method "attribute" for convenience
   ############################################
   Class method attribute {spec {-slotclass ::nx::Attribute} {initblock ""}} {
-    $slotclass createFromParameterSyntax [::nsf::current object] -initblock $initblock {*}$spec
+    # In case Class.attribute is applied on an object (via mixins), do "next"
+    if {![::nsf::objectproperty [::nsf::current object] class]} next else {
+      $slotclass createFromParameterSyntax [::nsf::current object] -initblock $initblock {*}$spec
+    }
   }
+
   Object method attribute {spec {-slotclass ::nx::Attribute} {initblock ""}} {
     $slotclass createFromParameterSyntax [::nsf::current object] -per-object -initblock $initblock {*}$spec
   }

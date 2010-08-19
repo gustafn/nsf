@@ -84,6 +84,25 @@ Test case callable {
     ? {o bar} Class.bar
 
     ? {o method foo {} {return o.foo}} "::o::foo"
-    ? {o info methods} "foo"
+    ? {o alias is ::nsf::objectproperty} "::o::is"
+    ? {o setter x} "::o::x"
+    ? {lsort [o info methods]} "foo is x"
+
+    o method f args ::nx::next
+    ? {o filter f} ""
+    ? {o filterguard f { 1 }} ""
+    o filter ""
+
+    nx::Class create Fly
+    o mixin add Fly
+    ? {o info mixin} "::Fly ::nx::Class"
+    ? {o mixinguard ::Fly {1}} ""
+    o mixin delete ::Fly
+    ? {o info mixin} "::nx::Class"
+
+    ? {o attribute A} ::o::A
+    ? {o forward fwd ::set} ::o::fwd
+    ? {lsort [o info methods]} "A f foo fwd is slot x"
+
     ? {o mixin ""} ""
 }
