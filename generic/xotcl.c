@@ -11973,9 +11973,21 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
   XOTclClassOpt *clopt = NULL, *nclopt = NULL;
   int i;
 
-  /*fprintf(stderr, "XOTclRelationCmd %s rel=%d val='%s'\n",
-    objectName(object), relationtype, valueObj ? ObjStr(valueObj) : "NULL");*/
+  /* fprintf(stderr, "XOTclRelationCmd %s rel=%d val='%s'\n",
+     objectName(object), relationtype, valueObj ? ObjStr(valueObj) : "NULL");*/
 
+  if (relationtype == RelationtypeClass_mixinIdx || 
+      relationtype == RelationtypeClass_filterIdx) {
+    if (XOTclObjectIsClass(object)) {
+      cl = (XOTclClass *)object;
+    } else {
+      /* fall back to per-object case */
+      relationtype = (relationtype == RelationtypeClass_mixinIdx) ?
+	RelationtypeObject_mixinIdx :
+	RelationtypeObject_filterIdx ;
+    }
+  }
+    
   switch (relationtype) {
   case RelationtypeObject_filterIdx:
   case RelationtypeObject_mixinIdx:
@@ -11995,11 +12007,6 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
 
   case RelationtypeClass_mixinIdx:
   case RelationtypeClass_filterIdx:
-    if (XOTclObjectIsClass(object)) {
-      cl = (XOTclClass *)object;
-    } else {
-      return XOTclObjErrType(interp, object->cmdName, "class", "");
-    }
 
     if (valueObj == NULL) {
       clopt = cl->opt;
@@ -12018,7 +12025,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
 
   case RelationtypeSuperclassIdx:
     if (!XOTclObjectIsClass(object))
-      return XOTclObjErrType(interp, object->cmdName, "class", "");
+      return XOTclObjErrType(interp, object->cmdName, "class", "relationtype");
     cl = (XOTclClass *)object;
     if (valueObj == NULL) {
       return ListSuperclasses(interp, cl, NULL, 0);
@@ -12041,7 +12048,7 @@ static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object,
     XOTclClass *metaClass;
 
     if (!XOTclObjectIsClass(object))
-      return XOTclObjErrType(interp, object->cmdName, "class", "");
+      return XOTclObjErrType(interp, object->cmdName, "class", "relationtype");
     cl = (XOTclClass *)object;
 
     if (valueObj == NULL) {

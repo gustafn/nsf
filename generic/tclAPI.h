@@ -236,7 +236,7 @@ static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *class, in
 static int XOTclClassInfoHeritageMethod(Tcl_Interp *interp, XOTclClass *class, CONST char *pattern);
 static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, CONST char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class, int infomethodsubcmd, CONST char *name);
-static int XOTclClassInfoMethodsMethod(Tcl_Interp *interp, XOTclClass *object, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, CONST char *pattern);
+static int XOTclClassInfoMethodsMethod(Tcl_Interp *interp, XOTclClass *class, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, CONST char *pattern);
 static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, int withGuards, CONST char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoMixinOfMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, int withScope, CONST char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoMixinguardMethod(Tcl_Interp *interp, XOTclClass *class, CONST char *mixin);
@@ -675,7 +675,7 @@ XOTclClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    XOTclClass *object = (XOTclClass *)pc.clientData[0];
+    XOTclClass *class = (XOTclClass *)pc.clientData[0];
     int withMethodtype = (int )PTR2INT(pc.clientData[1]);
     int withCallprotection = (int )PTR2INT(pc.clientData[2]);
     int withNomixins = (int )PTR2INT(pc.clientData[3]);
@@ -683,7 +683,7 @@ XOTclClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     CONST char *pattern = (CONST char *)pc.clientData[5];
 
     parseContextRelease(&pc);
-    return XOTclClassInfoMethodsMethod(interp, object, withMethodtype, withCallprotection, withNomixins, withIncontext, pattern);
+    return XOTclClassInfoMethodsMethod(interp, class, withMethodtype, withCallprotection, withNomixins, withIncontext, pattern);
 
   }
 }
@@ -1959,7 +1959,7 @@ static methodDefinition method_definitions[] = {
   {"name", 0, 0, convertToString}}
 },
 {"::nsf::cmd::ClassInfo::methods", XOTclClassInfoMethodsMethodStub, 6, {
-  {"object", 0, 0, convertToClass},
+  {"class", 0, 0, convertToClass},
   {"-methodtype", 0, 1, convertToMethodtype},
   {"-callprotection", 0, 1, convertToCallprotection},
   {"-nomixins", 0, 0, convertToString},

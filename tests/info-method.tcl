@@ -82,4 +82,8 @@ Test case callable {
     ? {o info callable method bar} "::nsf::classes::nx::Class::bar"
     ? {o info callable methods bar} bar
     ? {o bar} Class.bar
+
+    ? {o method foo {} {return o.foo}} "::o::foo"
+    ? {o info methods} "foo"
+    ? {o mixin ""} ""
 }

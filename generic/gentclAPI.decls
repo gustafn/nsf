@@ -851,7 +851,7 @@ infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "name"}
 }
 infoClassMethod methods XOTclClassInfoMethodsMethod {
-  {-argName "object" -type class}
+  {-argName "class" -type class}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
   {-argName "-nomixins"}

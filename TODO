@@ -1064,6 +1064,10 @@ new structure
 - extended regression test
 - updated migration guide
 
+- made Class.info, Class.mixin, Class.filter robust against per-object 
+  mixins from meta-classes
+- extended regression test
+
 TODO: 
 - nameing
     * self/current:
