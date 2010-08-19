@@ -745,7 +745,7 @@ classMethod recreate XOTclCRecreateMethod {
 #
 infoObjectMethod callable XOTclObjInfoCallableMethod {
   {-argName "object" -type object}
-  {-argName "-which"}
+  {-argName "infocallablesubcmd" -nrargs 1 -type "filter|method|methods" -required 1}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
   {-argName "-application"}
@@ -780,7 +780,7 @@ infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
 }
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "args|definition|filter|name|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|definition|filter|handle|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 infoObjectMethod methods XOTclObjInfoMethodsMethod {
@@ -847,7 +847,7 @@ infoClassMethod forward XOTclClassInfoForwardMethod {
 }
 infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|body|definition|filter|name|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|filter|handle|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 infoClassMethod methods XOTclClassInfoMethodsMethod {

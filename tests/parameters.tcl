@@ -975,12 +975,12 @@ Test case setters {
   ? {::nsf::setter o ints:integer,multivalued} "::o::ints"
   ? {::nsf::setter o o:object} "::o::o"
   
-  ? {o info method name ints} "::o::ints"
+  ? {o info method handle ints} "::o::ints"
   ? {o info method definition ints} "::o setter ints:integer,multivalued"
   ? {o info method parameter ints} "ints:integer,multivalued"
   ? {o info method args ints} "ints"
   
-  ? {o info method name o} "::o::o"
+  ? {o info method handle o} "::o::o"
   ? {o info method definition o} "::o setter o:object"
   ? {o info method parameter o} "o:object"
   ? {o info method args o} "o"

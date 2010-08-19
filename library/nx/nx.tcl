@@ -298,7 +298,7 @@ namespace eval ::nx {
   Class protected object method __unknown {name} {}
 
   # Add alias methods. cmdName for XOTcl method can be added via
-  #   [... info method name <methodName>]
+  #   [... info method handle <methodName>]
   #
   # -nonleaf and -objscope make only sense for c-defined cmds,
   # -objscope implies -nonleaf
@@ -376,8 +376,8 @@ namespace eval ::nx {
     :alias is ::nsf::objectproperty
     :alias classparent ::nsf::cmd::ObjectInfo::parent
     :alias classchildren ::nsf::cmd::ObjectInfo::children
-    :alias info [::nsf::cmd::ObjectInfo::method objectInfo name info]
-    :alias unknown [::nsf::cmd::ObjectInfo::method objectInfo name info]
+    :alias info [::nsf::cmd::ObjectInfo::method objectInfo handle info]
+    :alias unknown [::nsf::cmd::ObjectInfo::method objectInfo handle info]
   }
 
   foreach cmd [info command ::nsf::cmd::ObjectInfo::*] {
@@ -480,7 +480,7 @@ namespace eval ::nx {
     }
 
     :create [:slotName $name $target] {*}$opts $initblock
-    return [::nsf::cmd::${info}::method $target name $name]
+    return [::nsf::cmd::${info}::method $target handle $name]
   }
 
 }
@@ -655,8 +655,8 @@ namespace eval ::nx {
   
   ObjectParameterSlot method unknown {method args} {
     set methods [list]
-    foreach m [:info callable] {
-      if {[Object info callable $m] ne ""} continue
+    foreach m [:info callable methods] {
+      if {[Object info callable methods $m] ne ""} continue
       if {[string match __* $m]} continue
       lappend methods $m
     }
@@ -1080,7 +1080,7 @@ namespace eval ::nx {
         set perObject ""
         set infokind Class
       }
-      if {[::nsf::cmd::${infokind}Info::method ${:domain} name ${:name}] ne ""} {
+      if {[::nsf::cmd::${infokind}Info::method ${:domain} handle ${:name}] ne ""} {
         #puts stderr "OPTIMIZER RESETTING ${:domain} slot ${:name}"
         ::nsf::forward ${:domain} {*}$perObject ${:name} \
             ${:manager} \
@@ -1090,12 +1090,15 @@ namespace eval ::nx {
       #puts stderr "OPTIMIZER incremental [info exists :incremental] def '[set :defaultmethods]'"
       if {[info exists :incremental] && ${:incremental}} return
       if {[set :defaultmethods] ne {get assign}} return
-      set assignInfo [:info callable -which assign]
-      #puts stderr "OPTIMIZER assign=$assignInfo//[lindex $assignInfo {end 0}]//[:info precedence]"
 
+      #puts stderr "OPTIMIZER handle [:info callable method assign]"
+      set assignInfo [:info method definition [:info callable method assign]]
+      #puts stderr "OPTIMIZER assign=$assignInfo//[lindex $assignInfo {end 0}]//[:info precedence]"
       if {$assignInfo ne "::nx::ObjectParameterSlot alias assign ::nsf::setvar" &&
           [lindex $assignInfo {end 0}] ne "::nsf::setvar" } return
-      if {[:info callable -which get] ne "::nx::ObjectParameterSlot alias get ::nsf::setvar"} return
+
+      set getInfo [:info method definition [:info callable method get]]
+      if {$getInfo ne "::nx::ObjectParameterSlot alias get ::nsf::setvar"} return
 
       array set "" [:toParameterSyntax ${:name}]
       if {$(mparam) ne ""} {

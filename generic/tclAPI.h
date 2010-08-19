@@ -2,13 +2,13 @@
 static int convertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"args", "body", "definition", "filter", "name", "parameter", "parametersyntax", "type", "precondition", "postcondition", NULL};
+  static CONST char *opts[] = {"args", "body", "definition", "filter", "handle", "parameter", "parametersyntax", "type", "precondition", "postcondition", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infomethodsubcmd", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
-enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdFilterIdx, InfomethodsubcmdNameIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx};
+enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdFilterIdx, InfomethodsubcmdHandleIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx};
   
 static int convertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -42,6 +42,17 @@ static int convertToScope(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST 
   return result;
 }
 enum ScopeIdx {ScopeNULL, ScopeAllIdx, ScopeClassIdx, ScopeObjectIdx};
+  
+static int convertToInfocallablesubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int index, result;
+  static CONST char *opts[] = {"filter", "method", "methods", NULL};
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infocallablesubcmd", 0, &index);
+  *clientData = (ClientData) INT2PTR(index + 1);
+  *outObjPtr = objPtr;
+  return result;
+}
+enum InfocallablesubcmdIdx {InfocallablesubcmdNULL, InfocallablesubcmdFilterIdx, InfocallablesubcmdMethodIdx, InfocallablesubcmdMethodsIdx};
   
 static int convertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -232,7 +243,7 @@ static int XOTclClassInfoMixinguardMethod(Tcl_Interp *interp, XOTclClass *class,
 static int XOTclClassInfoSlotsMethod(Tcl_Interp *interp, XOTclClass *class);
 static int XOTclClassInfoSubclassMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, CONST char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoSuperclassMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, Tcl_Obj *pattern);
-static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object, int withWhich, int withMethodtype, int withCallprotection, int withApplication, int withNomixins, int withIncontext, CONST char *pattern);
+static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object, int infocallablesubcmd, int withMethodtype, int withCallprotection, int withApplication, int withNomixins, int withIncontext, CONST char *pattern);
 static int XOTclObjInfoChildrenMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *pattern);
 static int XOTclObjInfoClassMethod(Tcl_Interp *interp, XOTclObject *object);
 static int XOTclObjInfoFilterMethod(Tcl_Interp *interp, XOTclObject *object, int withOrder, int withGuards, CONST char *pattern);
@@ -849,7 +860,7 @@ XOTclObjInfoCallableMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withWhich = (int )PTR2INT(pc.clientData[1]);
+    int infocallablesubcmd = (int )PTR2INT(pc.clientData[1]);
     int withMethodtype = (int )PTR2INT(pc.clientData[2]);
     int withCallprotection = (int )PTR2INT(pc.clientData[3]);
     int withApplication = (int )PTR2INT(pc.clientData[4]);
@@ -858,7 +869,7 @@ XOTclObjInfoCallableMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     CONST char *pattern = (CONST char *)pc.clientData[7];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoCallableMethod(interp, object, withWhich, withMethodtype, withCallprotection, withApplication, withNomixins, withIncontext, pattern);
+    return XOTclObjInfoCallableMethod(interp, object, infocallablesubcmd, withMethodtype, withCallprotection, withApplication, withNomixins, withIncontext, pattern);
 
   }
 }
@@ -1986,7 +1997,7 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::cmd::ObjectInfo::callable", XOTclObjInfoCallableMethodStub, 8, {
   {"object", 0, 0, convertToObject},
-  {"-which", 0, 0, convertToString},
+  {"infocallablesubcmd", 1, 1, convertToInfocallablesubcmd},
   {"-methodtype", 0, 1, convertToMethodtype},
   {"-callprotection", 0, 1, convertToCallprotection},
   {"-application", 0, 0, convertToString},

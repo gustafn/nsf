@@ -20,9 +20,9 @@ Class create C {
   :protected setter protected_setter 
 
   # alias
-  :alias plain_alias [C info method name plain_method]
-  :public alias public_alias [C info method name public_method]
-  :protected alias protected_alias [C info method name protected_method]
+  :alias plain_alias [C info method handle plain_method]
+  :public alias public_alias [C info method handle public_method]
+  :protected alias protected_alias [C info method handle protected_method]
   
   # object
   :object method plain_object_method {} {return [current method]}
@@ -34,9 +34,9 @@ Class create C {
   :object setter plain_object_setter 
   :public object setter public_object_setter 
   :protected object setter protected_object_setter 
-  :object alias plain_object_alias [:object info method name plain_object_method]
-  :public object alias public_object_alias [:object info method name public_object_method]
-  :protected object alias protected_object_alias [:object info method name protected_object_method]
+  :object alias plain_object_alias [:object info method handle plain_object_method]
+  :public object alias public_object_alias [:object info method handle public_object_method]
+  :protected object alias protected_object_alias [:object info method handle protected_object_method]
 }
 C create c1 {
   # methods
@@ -55,9 +55,9 @@ C create c1 {
   :protected setter protected_object_setter 
 
   # alias
-  :alias plain_object_alias [:info method name plain_object_method]
-  :public alias public_object_alias [:info method name public_object_method]
-  :protected alias protected_object_alias [:info method name protected_object_method]
+  :alias plain_object_alias [:info method handle plain_object_method]
+  :public alias public_object_alias [:info method handle public_object_method]
+  :protected alias protected_object_alias [:info method handle protected_object_method]
 }
 C public setter s0
 C protected setter s1

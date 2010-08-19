@@ -363,7 +363,7 @@ namespace eval ::xotcl {
       set methodtype all
       if {$nocmds} {set methodtype scripted}
       if {$noprocs} {if {$nocmds} {return ""}; set methodtype builtin}
-      set cmd [list ::nsf::cmd::ObjectInfo::callable $o -methodtype $methodtype]
+      set cmd [list ::nsf::cmd::ObjectInfo::callable $o methods -methodtype $methodtype]
       if {$incontext} {lappend cmd -incontext}
       if {[info exists pattern]} {lappend cmd $pattern}
       eval $cmd
@@ -513,7 +513,7 @@ namespace eval ::xotcl {
       }
       set definition [list [lindex $definition 0] ${prefix}$kind $name]
     }
-    #puts "method_handle_to_xotcl gets definition '$methodHandle' // $definition"
+    #puts "method_handle_to_xotcl gets handle '$methodHandle' // $definition"
     return $definition
   }
  
@@ -542,11 +542,13 @@ namespace eval ::xotcl {
     ::nsf::is [self] type $cl
   }
   Object instproc filtersearch {filter} {
-    set definition [::nsf::cmd::ObjectInfo::method [self] filter $filter]
-    return [method_handle_to_xotcl $definition]
+    set handle [::nsf::cmd::ObjectInfo::method [self] filter $filter]
+    return [method_handle_to_xotcl $handle]
   }
   Object instproc procsearch {name} {
-    set definition [::nsf::cmd::ObjectInfo::callable [self] -which $name]
+    set handle [::nsf::cmd::ObjectInfo::callable [self] method $name]
+    return [method_handle_to_xotcl $handle]
+
     if {$definition ne ""} {
       foreach {obj modifier kind} $definition break
       if {$modifier ne "object"} {

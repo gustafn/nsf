@@ -9,7 +9,7 @@ Class create M {
 Class create M2
 Class create C 
 
-? {C info callable -which mixin} "::nx::Class forward mixin ::nx::Class::slot::mixin {%1 {get assign}} %self class-mixin"
+? {C info callable method mixin} "::nsf::classes::nx::Class::mixin"
 C mixin M
 ? {C info precedence} "::nx::Class ::nx::Object"
 ? {C mixin} "::M"

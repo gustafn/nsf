@@ -322,7 +322,7 @@ a0 forward f4 puts hu
 ? {a0 procsearch f3} "::a0 proc f3"
 ? {a0 procsearch f4} "::a0 forward f4"
 ? {a0 procsearch set} "::xotcl::Object instcmd set"
-? {A slot foo info callable -which assign} "::nx::ObjectParameterSlot alias assign ::nsf::setvar"
+? {A slot foo info callable method assign} "::nsf::classes::nx::ObjectParameterSlot::assign"
 
 # redefine setter for foo of class A
 A slot foo method assign {domain var val} {

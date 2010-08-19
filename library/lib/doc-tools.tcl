@@ -1474,7 +1474,7 @@ namespace eval ::nx::doc {
 	lassign [:resolve_partof_entity $tag $name] nq_name partof_entity;
 
 	if {$partof_entity ne ""} {
-	  if {[$partof_entity info callable -application $tag] eq ""} {
+	  if {[$partof_entity info callable methods $tag] eq ""} {
 	    [InvalidTag new -message [subst {
 	      The tag '$tag' is not supported for the entity type
 	      '[namespace tail [$partof_entity info class]]'
@@ -1504,7 +1504,7 @@ namespace eval ::nx::doc {
       } else {
 	# 2) current (or context) entity has been resolved
 	# TODO: Should we explicitly disallow qualified names in parts?
-	if {[${:current_entity} info callable -application $tag] eq ""} {
+	if {[${:current_entity} info callable methods $tag] eq ""} {
 	  [InvalidTag new -message [subst {
 	    The tag '$tag' is not supported for the entity type
 	    '[namespace tail [${:current_entity} info class]]'

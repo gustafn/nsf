@@ -1048,8 +1048,17 @@ new structure
 
 - removed method "filtersearch" from nx.tcl
 - added "obj info method filter methodName" to nx
-- updated xotcl.2 to use new filtersearch imprementation
+- updated xotcl2 to use new filtersearch imprementation
 - updated migration guide
+
+
+- renamed "info method name ..." into "info method handle ...", 
+  since it returned already the handle
+- renamed ListMethodName() to ListMethodHandle()
+- changed output of "info callable -which ..." from definition to method handle
+- renamed "info callable -which ..." into "info callable method ..."
+- updated regression test to reflect the changes
+
 
 TODO: 
 - nameing
