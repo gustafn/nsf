@@ -1059,6 +1059,10 @@ new structure
 - renamed "info callable -which ..." into "info callable method ..."
 - updated regression test to reflect the changes
 
+- changed "info method filter ...." into "info callable filter ..."
+- fixed "o info callable method" in some cases with mixins
+- extended regression test
+- updated migration guide
 
 TODO: 
 - nameing

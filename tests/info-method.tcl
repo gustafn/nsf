@@ -67,3 +67,19 @@ c1 method foo {} {puts foo}
 ? {::nx::Class info callable methods -application} ""
 ? {lsort [C info callable methods -application]} "add1 apo fpo mpo spo"
 ? {lsort [c1 info callable methods -application]} "a addOne foo m m-with-assertions s"
+
+Test case callable {
+    # define the same method for Object and Class
+    ::nx::Object method bar {} {return Object.bar}
+    ::nx::Class method bar {} {return Class.bar}
+
+    ::nx::Object create o
+    ? {o info callable method bar} "::nsf::classes::nx::Object::bar"
+    ? {o info callable methods bar} bar
+    ? {o bar} Object.bar
+
+    o mixin ::nx::Class
+    ? {o info callable method bar} "::nsf::classes::nx::Class::bar"
+    ? {o info callable methods bar} bar
+    ? {o bar} Class.bar
+}

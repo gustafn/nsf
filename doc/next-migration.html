@@ -954,12 +954,35 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> info methods <i>?pattern?</i></code></td>
-    <td><code><i>obj</i> info callable <i>?pattern?</i></code></td>
+    <td><code><i>obj</i> info callable methods <i>... ?pattern?</i><br>
+      <i class='comment'># Returns list of method names</i>
+      </code></td>
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-    <td><code><i># List only application specific methods</i></code><br>
-      <code><i>obj</i> info callable -application</code></td>
+    <td><code><i class='comment'># List only application specific methods</i></code><br>
+      <code><i>obj</i> info callable methods -application <i>... ?pattern?</i><br>
+      <i class='comment'># Returns list of method names</i>
+      </code></td>
+  </tr>
+
+  <tr>
+    <td><code><i class='comment'># Options for 'info methods'<br>
+      #<br>
+      # -incontext<br>
+      # -nomixins <br>
+      </i>
+     </code></td>    
+    <td><code><i class='comment'># Options for 'info callable
+      methods'<br>
+      #<br>
+      # -application<br>
+      # -callprotection ...<br>
+      # -incontext<br>
+      # -methodtype ...<br>
+      # -nomixins <br>
+      </i>
+     </code></td>
   </tr>
 </table>
 
@@ -969,11 +992,13 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> procsearch <i>methodName</i></code></td>
-    <td><code><i>obj</i> info callable -which <i>methodName</i></code></td>
+    <td><code><i>obj</i> info callable method <i>methodName</i><br>
+      <i class='comment'># Returns method-handle</i></code></td>
   </tr>
   <tr>
     <td><code><i>obj</i> filtersearch <i>methodName</i></code></td>
-    <td><code><i>obj</i> info method filter <i>methodName</i></code></td>
+    <td><code><i>obj</i> info callable filter <i>methodName</i><br>
+      <i class='comment'># Returns method-handle</i></code></td>
   </tr>  
 </table>
 
@@ -1053,8 +1078,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
-    <td><i class='comment'># ... info filter -order ... returns now
-      method-handles<br>
+    <td><i class='comment'># ... info filter -order ... returns method-handles<br>
       # instead of triples (applies to all three variants)</i><br><br>
       <code><i>obj</i> info filter <i>?-order? ?-guards? ?pattern?</i></code></td>
   </tr>
@@ -1249,12 +1273,12 @@ Scripting Language via the primitives of the Next Scripting Framework.
   </tr>
     <tr>
     <td><code>self next</code></td>
-    <td><i class='comment'># Returns now method-handle</i><br>
+    <td><i class='comment'># Returns method-handle</i><br>
       <code>current next</code></td>
   </tr>
   <tr>
     <td><code>self filterreg</code></td>
-    <td><i class='comment'># Returns now method-handle</i><br>
+    <td><i class='comment'># Returns method-handle</i><br>
       <code>current filterreg</code></td>
   </tr>
     <tr>
@@ -1371,6 +1395,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Wed Aug 18 14:45:57 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Thu Aug 19 14:50:52 CEST 2010 <!-- hhmts end -->
 </body>
 </html>

@@ -780,7 +780,7 @@ infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
 }
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "args|definition|filter|handle|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 infoObjectMethod methods XOTclObjInfoMethodsMethod {
@@ -847,7 +847,7 @@ infoClassMethod forward XOTclClassInfoForwardMethod {
 }
 infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|body|definition|filter|handle|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 infoClassMethod methods XOTclClassInfoMethodsMethod {

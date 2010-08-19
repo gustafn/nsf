@@ -1046,8 +1046,8 @@ ObjectFindMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *name, XOTc
   if (object->flags & XOTCL_MIXIN_ORDER_DEFINED_AND_VALID) {
     XOTclCmdList *mixinList;
     for (mixinList = object->mixinOrder; mixinList; mixinList = mixinList->nextPtr) {
-      XOTclClass *mcl = XOTclpGetClass(interp, (char *)Tcl_GetCommandName(interp, mixinList->cmdPtr));
-      if (mcl && (*pcl = SearchCMethod(mcl, name, &cmd))) {
+      XOTclClass *mixin = XOTclGetClassFromCmdPtr(mixinList->cmdPtr);
+      if (mixin && (*pcl = SearchCMethod(mixin, name, &cmd))) {
         break;
       }
     }
@@ -13896,7 +13896,7 @@ static int XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *objec
 /*
 infoObjectMethod method XOTclObjInfoMethodMethod {
   {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "args|definition|filter|handle|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 */
@@ -13905,10 +13905,7 @@ static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object,
   Tcl_Namespace *nsPtr = object->nsPtr;
   Tcl_Command cmd;
 
-  if (subcmd == InfomethodsubcmdFilterIdx) {
-    return FilterSearchMethod(interp, object, methodName);
-
-  } else if (*methodName == ':') {
+  if (*methodName == ':') {
     Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
   } else {
@@ -14153,7 +14150,7 @@ static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *class,
 /*
 infoClassMethod method XOTclClassInfoMethodMethod {
   {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|body|definition|filter|name|parameter|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|type|precondition|postcondition"}
   {-argName "name"}
 }
 */
@@ -14162,9 +14159,7 @@ static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class,
   Tcl_Namespace *nsPtr = class->nsPtr;
   Tcl_Command cmd;
 
-  if (subcmd == InfomethodsubcmdFilterIdx) {
-    return FilterSearchMethod(interp, &class->object, methodName);
-  } else if (*methodName == ':') {
+  if (*methodName == ':') {
     Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
   } else {

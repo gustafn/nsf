@@ -542,31 +542,12 @@ namespace eval ::xotcl {
     ::nsf::is [self] type $cl
   }
   Object instproc filtersearch {filter} {
-    set handle [::nsf::cmd::ObjectInfo::method [self] filter $filter]
+    set handle [::nsf::cmd::ObjectInfo::callable [self] filter $filter]
     return [method_handle_to_xotcl $handle]
   }
   Object instproc procsearch {name} {
     set handle [::nsf::cmd::ObjectInfo::callable [self] method $name]
     return [method_handle_to_xotcl $handle]
-
-    if {$definition ne ""} {
-      foreach {obj modifier kind} $definition break
-      if {$modifier ne "object"} {
-        set kind $modifier
-        set perClass [::nsf::is $obj class]
-      } else {
-        set perClass 0
-      }
-      switch $kind {
-        alias   {if {$perClass} {set kind "instcmd"} else {set kind "cmd"}}
-        forward {if {$perClass} {set kind "instforward"}}
-        method  {if {$perClass} {set kind "instproc"} else {set kind "proc"}}
-        setter  {if {$perClass} {set kind "instparametercmd"} else {set kind "parametercmd"}}
-        default {error "not handeled: $definition"}
-      }
-      #puts stderr "return: [list $obj $kind $name]"
-      return [list $obj $kind $name]
-    }
   }
   Class instproc allinstances {} {
     # TODO: mark it deprecated
