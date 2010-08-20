@@ -1581,7 +1581,7 @@ namespace eval ::nx::doc {
       set line [:map $line unescape]
       set line [split [string trimleft $line]]
       set tag [lindex $line 0]
-      if {[:info callable -application $tag] eq ""} {
+      if {[:info callable methods -application $tag] eq ""} {
 	[InvalidTag new -message [subst {
 	  The tag '$tag' is not supported for the entity type
 	  '[namespace tail [:info class]]'
@@ -1670,7 +1670,7 @@ namespace eval ::nx::doc {
 	  set args [lassign $line tag name]
 	  lassign [:resolve_partof_entity $tag $name] nq_name partof_entity
 	  if {$partof_entity ne ""} {
-	    if {[$partof_entity info callable -application $tag] eq ""} {
+	    if {[$partof_entity info callable methods -application $tag] eq ""} {
 	      [InvalidTag new -message [subst {
 		The tag '$tag' is not supported for the entity type
 		'[namespace tail [$partof_entity info class]]'
