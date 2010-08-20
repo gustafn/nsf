@@ -62,7 +62,7 @@ namespace eval ::nx::test {
       if {[info exists value]} {
         #[[current] slot $name] default $value
 	:slot $name default $value
-        :__invalidateobjectparameter
+        ::nsf::invalidateobjectparameter [::nsf::current object]
       } else {
 	return [:slot $name default]
       }

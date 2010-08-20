@@ -159,6 +159,9 @@ xotclCmd interp XOTclInterpObjCmd {
   {-argName "name"}
   {-argName "args" -type allargs}
 }
+xotclCmd invalidateobjectparameter XOTclInvalidateObjectParameterCmd {
+  {-argName "class" -type class}
+}
 xotclCmd is XOTclIsCmd {
   {-argName "value" -required 1 -type tclobj}
   {-argName "constraint" -required 1 -type tclobj}
@@ -686,8 +689,6 @@ classMethod filterguard XOTclCFilterGuardMethod {
 classMethod mixinguard XOTclCMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
-}
-classMethod __invalidateobjectparameter XOTclCInvalidateObjectParameterMethod {
 }
 
 # @method ::nx::Class#recreate

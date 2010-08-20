@@ -590,8 +590,8 @@ namespace eval ::nx {
       }
     }
 
-    #puts stderr "Bootstrapslot for $class calls __invalidateobjectparameter"
-    $class __invalidateobjectparameter
+    #puts stderr "Bootstrapslot for $class calls invalidateobjectparameter"
+    ::nsf::invalidateobjectparameter $class
   }
 
   ############################################
@@ -703,7 +703,7 @@ namespace eval ::nx {
   
   ObjectParameterSlot public method destroy {} {
     if {${:domain} ne "" && [::nsf::objectproperty ${:domain} class]} {
-      ${:domain} __invalidateobjectparameter
+      ::nsf::invalidateobjectparameter ${:domain}
     }
     ::nsf::next
   }
@@ -717,7 +717,7 @@ namespace eval ::nx {
         set :methodname ${:name}
       }
       if {[::nsf::objectproperty ${:domain} class]} {
-        ${:domain} __invalidateobjectparameter
+	::nsf::invalidateobjectparameter ${:domain}
       } 
       if {${:per-object} && [info exists :default] } {
         ::nsf::setvar ${:domain} ${:name} ${:default}
@@ -742,7 +742,7 @@ namespace eval ::nx {
   # 
   # Invalidate previously defined object parameter.
 
-  MetaSlot __invalidateobjectparameter
+  ::nsf::invalidateobjectparameter MetaSlot
 
   # Provide the a slot based mechanism for building an object
   # configuration interface from slot definitions
@@ -1015,7 +1015,7 @@ namespace eval ::nx {
   ############################################
   # Attribute slots
   ############################################
-  MetaSlot __invalidateobjectparameter
+  ::nsf::invalidateobjectparameter MetaSlot
   
   # @object ::nx::Attribute
   #

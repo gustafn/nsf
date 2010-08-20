@@ -210,7 +210,7 @@ XOTCLINLINE static void CscFinish(Tcl_Interp *interp, XOTclCallStackContent *csc
 static XOTclCallStackContent *CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr);
 XOTCLINLINE static void CallStackDoDestroy(Tcl_Interp *interp, XOTclObject *object);
 
-static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass *cl);
+static int XOTclInvalidateObjectParameterCmd(Tcl_Interp *interp, XOTclClass *cl);
 static int ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
                                   XOTclObject *object, int pushFrame, XOTclParamDefs *paramDefs,
                                   CONST char *methodName, int objc, Tcl_Obj *CONST objv[]);
@@ -3938,7 +3938,7 @@ MixinInvalidateObjOrders(Tcl_Interp *interp, XOTclClass *cl) {
       MixinResetOrderForInstances(interp, ncl);
       /* this place seems to be sufficient to invalidate the computed object parameter definitions */
       /*fprintf(stderr, "MixinInvalidateObjOrders via class mixin %s calls ifd invalidate \n", className(ncl));*/
-      XOTclCInvalidateObjectParameterMethod(interp, ncl);
+      XOTclInvalidateObjectParameterCmd(interp, ncl);
     }
   }
   Tcl_DeleteHashTable(commandTable);
@@ -11322,6 +11322,19 @@ XOTclInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST
   return TCL_OK;
 }
 
+/*
+xotclCmd invalidateobjectparameter XOTclInvalidateObjectParameterCmd {
+  {-argName "class" -type class}
+}
+*/
+static int XOTclInvalidateObjectParameterCmd(Tcl_Interp *interp, XOTclClass *cl) {
+  if (cl->parsedParamPtr) {
+    /*fprintf(stderr, "   %s invalidate %p\n", className(cl), cl->parsedParamPtr);*/
+    ParsedParamFree(cl->parsedParamPtr);
+    cl->parsedParamPtr = NULL;
+  }
+  return TCL_OK;
+}
 
 /*
 xotclCmd is XOTclIsCmd {
@@ -12657,7 +12670,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, CONST char *methodName, XOTclOb
    * e) when slots are removed
    *
    * When slot defaults or types are changed, the slots have to
-   * perform a manual "$domain invalidateobjectparameter"
+   * perform a manual "::nsf::invalidateobjectparameter $domain"
    */
 
   /*
@@ -13628,15 +13641,6 @@ static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char
 
   return XOTclVarErrMsg(interp, "mixinguard: can't find mixin ",
                         mixin, " on ", className(cl), (char *) NULL);
-}
-
-static int XOTclCInvalidateObjectParameterMethod(Tcl_Interp *interp, XOTclClass *cl) {
-  if (cl->parsedParamPtr) {
-    /*fprintf(stderr, "   %s invalidate %p\n", className(cl), cl->parsedParamPtr);*/
-    ParsedParamFree(cl->parsedParamPtr);
-    cl->parsedParamPtr = NULL;
-  }
-  return TCL_OK;
 }
 
 static int RecreateObject(Tcl_Interp *interp, XOTclClass *class, XOTclObject *object,

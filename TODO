@@ -1089,6 +1089,9 @@ _ added option noforwarder to RelationSlots
 - the object "slot" does not appear now in the method listing per default
   for classes having slots
 
+- changed __invalidateobjectparameter from a method of class
+  to framework primitiv ::nsf::invalidateobjectparameter
+
 TODO: 
 - nameing
     * self/current:
