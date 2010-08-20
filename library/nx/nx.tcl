@@ -143,7 +143,23 @@ namespace eval ::nx {
         return [::nx::objectInfo [lindex $args 0] [::nsf::current object] {*}[lrange $args 1 end]]
       }
       if {$what in [list "filter" "mixin"]} {
-        return [:object-$what {*}$args]
+	# 
+	# It would be much easier, to do a 
+	#
+	#    return [:object-$what {*}$args]
+	#
+	# here. However, since we removed "object-mixin" and friends
+	# from the registered methods, we have to emulate the work of
+	# the forwarder.
+	#
+	switch [llength $args] {
+	  0 {return [::nsf::relation [::nsf::current object] object-$what]}
+	  1 {return [::nsf::relation [::nsf::current object] object-$what {*}$args]}
+	  default {return [::nx::Class::slot::object-$what [lindex $args 0] \
+			       [::nsf::current object] object-$what \
+			       {*}[lrange $args 1 end]]
+	  }
+	}
       }
       if {$what in [list "filterguard" "mixinguard"]} {
         return [::nsf::dispatch [::nsf::current object] ::nsf::cmd::Object::$what {*}$args]
@@ -387,7 +403,6 @@ namespace eval ::nx {
   }
   foreach cmd [info command ::nsf::cmd::ClassInfo::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "object-mixin-of" "class-mixin-of"]} continue
     ::nsf::alias ::nx::classInfo $cmdName $cmd
   }
   unset cmd
@@ -707,7 +722,10 @@ namespace eval ::nx {
       if {${:per-object} && [info exists :default] } {
         ::nsf::setvar ${:domain} ${:name} ${:default}
       }
-      set cl [expr {${:per-object} ? "Object" : "Class"}]
+      if {[info exists :noforwarder]} {
+	#puts stderr "Do not register forwarder ${:domain} ${:name}" 
+        return
+      }
       #puts stderr "Slot [::nsf::current object] init, forwarder on ${:domain}"
       ::nsf::forward ${:domain} ${:name} \
           ${:manager} \
@@ -841,6 +859,7 @@ namespace eval ::nx {
     {multivalued true}
     {type relation}
     {elementtype ::nx::Class}
+    {noforwarder}
   }
 
   ::nsf::relation RelationSlot superclass ObjectParameterSlot
@@ -985,8 +1004,8 @@ namespace eval ::nx {
 
     # Create two conveniance slots to allow configuration of 
     # object-slots for classes via object-mixin
-    ::nx::RelationSlot create ${os}::Class::slot::object-mixin 
-    ::nx::RelationSlot create ${os}::Class::slot::object-filter -elementtype ""
+    ::nx::RelationSlot create ${os}::Class::slot::object-mixin -noforwarder 1
+    ::nx::RelationSlot create ${os}::Class::slot::object-filter -elementtype "" -noforwarder 1
   }
 
   ::nsf::register_system_slots ::nx

@@ -1077,6 +1077,10 @@ new structure
   to per-object mixins with meta-classes
 
 - make slot optimizer more robust
+- removed methods object-mixin and object-filter from the interface.
+  (Caused some duplication of logic in the method "object")
+_ added option noforwarder to RelationSlots
+- some minor cleanup
 
 TODO: 
 - nameing

@@ -53,11 +53,11 @@ c1 mixin delete M2
 # adding, removing per-object mixins for classes through slot
 # "object-mixin"
 #
-C object-mixin M
-? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {C object info mixin} "::M"
-C object-mixin ""
-? {C info precedence} "::nx::Class ::nx::Object"
+# C object-mixin M
+# ? {C info precedence} "::M ::nx::Class ::nx::Object"
+# ? {C object info mixin} "::M"
+# C object-mixin ""
+# ? {C info precedence} "::nx::Class ::nx::Object"
 
 #
 # add and remove object mixin for classes via modifier "object" and
@@ -96,7 +96,7 @@ C object mixin M
 ? {C info precedence} "::M ::nx::Class ::nx::Object"
 
 # forwarder with 0 arguments + flag
-? {C object-mixin} "::M"
+? {C object mixin} "::M"
 
 puts stderr "==================== XOTcl"
 package require XOTcl
