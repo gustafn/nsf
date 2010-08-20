@@ -53,9 +53,7 @@ TestX nestingClasses -proc run {{n 20}} {
     ::errorCheck [x($i)::z info classparent] "::x($i)" \
       "info classparent"
 
-
-    ::errorCheck [x($i) info commands t]  "t" \
-      "-- MakeClass "
+    ::errorCheck [x($i) info commands t]  "t" "-- MakeClass "
     
     x($i) a
     x($i)::z a

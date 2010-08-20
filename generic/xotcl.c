@@ -10342,7 +10342,7 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
     } else if (resolvedProc == XOTclObjDispatch) {
       if ((methodType & XOTCL_METHODTYPE_OBJECT) == 0) return 0;
     } else if ((methodType & XOTCL_METHODTYPE_OTHER) == 0) {
-      /*fprintf(stderr,"OTHER %s not wanted %.4x\n", key, methodType);*/
+      /* fprintf(stderr,"OTHER %s not wanted %.4x\n", key, methodType);*/
       return 0;
     } 
     /* XOTclObjscopedMethod ??? */
@@ -13740,8 +13740,10 @@ static int XOTclCheckRequiredArgs(Tcl_Interp *interp, CONST char *name, Tcl_Obj 
 static int AggregatedMethodType(int methodType) {
   switch (methodType) {
   case MethodtypeNULL: /* default */
-  case MethodtypeAllIdx: 
     methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_BUILTIN;
+    break;
+  case MethodtypeAllIdx: 
+    methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_BUILTIN|XOTCL_METHODTYPE_OBJECT;
     break;
   case MethodtypeScriptedIdx:
     /*methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_ALIAS;*/

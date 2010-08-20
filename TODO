@@ -1082,6 +1082,13 @@ new structure
 _ added option noforwarder to RelationSlots
 - some minor cleanup
 
+- removed XOTCL_METHODTYPE_OBJECT from XOTCL_METHODTYPE_BUILTIN
+- default methodtype returns now everything, which is a true method
+  (except objects)
+- methodtype -all includes objects
+- the object "slot" does not appear now in the method listing per default
+  for classes having slots
+
 TODO: 
 - nameing
     * self/current:

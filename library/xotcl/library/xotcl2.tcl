@@ -352,7 +352,7 @@ namespace eval ::xotcl {
 
     # info options emulated by "info methods"
     :proc commands    {o {pattern:optional ""}} {
-      ::nsf::cmd::ObjectInfo::methods $o {*}$pattern
+      ::nsf::cmd::ObjectInfo::methods $o -methodtype all {*}$pattern
     }
     :proc procs       {o {pattern:optional ""}} {
       ::nsf::cmd::ObjectInfo::methods $o -methodtype scripted {*}$pattern
