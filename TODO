@@ -1076,6 +1076,7 @@ new structure
 - all methods defined on both, Object and Class are now safe in respect
   to per-object mixins with meta-classes
 
+- make slot optimizer more robust
 
 TODO: 
 - nameing

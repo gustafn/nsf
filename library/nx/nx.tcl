@@ -1068,19 +1068,20 @@ namespace eval ::nx {
     if {$(mparam) ne ""} {
       if {[info exists :multivalued] && ${:multivalued}} {
         #puts stderr "adding assign [list obj var value:$(mparam),multivalued] // for [::nsf::current object] with $(mparam)"
-        :method assign [list obj var value:$(mparam),multivalued,slot=[::nsf::current object]] {
-          ::nsf::setvar $obj $var $value
-        }
+
+	# set variable body to minimize problems with spacing, since
+	# the body is literally compared by the slot optimizer.
+	set body {::nsf::setvar $obj $var $value}
+        :method assign [list obj var value:$(mparam),multivalued,slot=[::nsf::current object]] $body
+
         #puts stderr "adding add method for [::nsf::current object] with value:$(mparam)"
         :method add [list obj prop value:$(mparam),slot=[::nsf::current object] {pos 0}] {
           ::nsf::next
         }
       } else {
         #puts stderr "SV adding assign [list obj var value:$(mparam)] // for [::nsf::current object] with $(mparam)"
-        :method assign [list obj var value:$(mparam),slot=[::nsf::current object]] {
-          ::nsf::setvar $obj $var $value
-        }
-
+	set body {::nsf::setvar $obj $var $value}
+        :method assign [list obj var value:$(mparam),slot=[::nsf::current object]] $body
       }
     }
     if {[info exists :valuechangedcmd]} {
@@ -1121,11 +1122,16 @@ namespace eval ::nx {
       if {[info exists :incremental] && ${:incremental}} return
       if {[set :defaultmethods] ne {get assign}} return
 
-      #puts stderr "OPTIMIZER handle [:info callable method assign]"
+      #
+      # Check, if the definition of "assign" and "get" are still the
+      # defaults. If this is not the case, we cannot replace them with
+      # the plain setters.
+      # 
       set assignInfo [:info method definition [:info callable method assign]]
-      #puts stderr "OPTIMIZER assign=$assignInfo//[lindex $assignInfo {end 0}]//[:info precedence]"
+      #puts stderr "OPTIMIZER assign=$assignInfo//[lindex $assignInfo end]//[:info precedence]"
       if {$assignInfo ne "::nx::ObjectParameterSlot alias assign ::nsf::setvar" &&
-          [lindex $assignInfo {end 0}] ne "::nsf::setvar" } return
+          [lindex $assignInfo end] ne {::nsf::setvar $obj $var $value} } return
+      #if {$assignInfo ne "::nx::ObjectParameterSlot alias assign ::nsf::setvar"} return
 
       set getInfo [:info method definition [:info callable method get]]
       if {$getInfo ne "::nx::ObjectParameterSlot alias get ::nsf::setvar"} return
