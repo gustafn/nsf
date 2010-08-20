@@ -102,7 +102,7 @@ Test case callable {
 
     ? {o attribute A} ::o::A
     ? {o forward fwd ::set} ::o::fwd
-    ? {lsort [o info methods]} "A f foo fwd is slot x"
+    ? {lsort [o info methods]} "A f foo fwd is x"
 
     ? {o mixin ""} ""
 }
