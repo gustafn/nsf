@@ -21,42 +21,42 @@ proc lcompare {a b} {
   return 1
 }
 
-Class create ::nx::doc::CommentState::Log {
-  :method on_enter {line} {
-    puts -nonewline stderr "ENTER -> [namespace tail [:info class]]#[namespace tail [self]]"
-    next
-  }
-  :method on_exit {line} { 
-    next
-    puts -nonewline stderr "EXIT -> [namespace tail [:info class]]#[namespace tail [self]]"
-  }
-}
+# Class create ::nx::doc::CommentState::Log {
+#   :method on_enter {line} {
+#     puts -nonewline stderr "ENTER -> [namespace tail [:info class]]#[namespace tail [self]]"
+#     next
+#   }
+#   :method on_exit {line} { 
+#     next
+#     puts -nonewline stderr "EXIT -> [namespace tail [:info class]]#[namespace tail [self]]"
+#   }
+# }
 
-Class create ::nx::doc::CommentLine::Log {
-  :method on_enter {line} {
-    puts -nonewline stderr "\t"; next; puts stderr " -> LINE = ${:processed_line}"
-  }
-  :method on_exit {line} {
-    puts -nonewline stderr "\t"; next; puts stderr " -> LINE = ${:processed_line}"
-  }
-}
+# Class create ::nx::doc::CommentLine::Log {
+#   :method on_enter {line} {
+#     puts -nonewline stderr "\t"; next; puts stderr " -> LINE = ${:processed_line}"
+#   }
+#   :method on_exit {line} {
+#     puts -nonewline stderr "\t"; next; puts stderr " -> LINE = ${:processed_line}"
+#   }
+# }
 
-Class create ::nx::doc::CommentSection::Log {
-  :method on_enter {line} {
-    next; puts -nonewline stderr "\n"
-  }
-  :method on_exit {line} {
-    next; puts -nonewline stderr "\n";
-  }
-}
+# Class create ::nx::doc::CommentSection::Log {
+#   :method on_enter {line} {
+#     next; puts -nonewline stderr "\n"
+#   }
+#   :method on_exit {line} {
+#     next; puts -nonewline stderr "\n";
+#   }
+# }
 
-set log false
+# set log false
 
-if {$log} {
-  ::nx::doc::CommentState mixin add ::nx::doc::CommentState::Log
-  ::nx::doc::CommentLine mixin add ::nx::doc::CommentLine::Log
-  ::nx::doc::CommentSection mixin add ::nx::doc::CommentSection::Log
-}
+# if {$log} {
+#   ::nx::doc::CommentState mixin add ::nx::doc::CommentState::Log
+#   ::nx::doc::CommentLine mixin add ::nx::doc::CommentLine::Log
+#   ::nx::doc::CommentSection mixin add ::nx::doc::CommentSection::Log
+# }
 
 # --
 
@@ -128,12 +128,14 @@ Test case parsing {
   set block {
     {@command cc}
   }
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
+
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   set block {
     {}
   }
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
+#  CommentBlockParser process $block
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   #
   # For now, a valid comment block must start with a non-space line
@@ -145,19 +147,19 @@ Test case parsing {
     {}
     {@command cc}
   }
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
  set block {
    {command cc}
    {}
   }
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   set block {
     {@command cc}
     {some description}
   }
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
  set block {
    {@command cc} 
@@ -166,8 +168,8 @@ Test case parsing {
    {}
    {@see ::o}
  }
-  EntityClass process $block
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
+  
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
  set block {
    {@command cc}
@@ -177,7 +179,7 @@ Test case parsing {
    {}
    {}
   }
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   # Note: We do allow description blocks with intermediate space
   # lines, for now.
@@ -189,10 +191,10 @@ Test case parsing {
     {}
     {an erroreneous description line, for now}
   }
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   #
-  # TODO: Do not enforce space line between the context and imediate
+  # TODO: Do not enforce space line between the context and immediate
   # part block (when description is skipped)?
   # 
   # OR: For absolutely qualifying parts (e.g., outside of an initcmd block),
@@ -212,7 +214,7 @@ Test case parsing {
     {@command cc}
     {@see someOtherEntity}
   }
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   #
   # TODO: Disallow space lines between parts? Check back with Javadoc spec.
@@ -227,7 +229,7 @@ Test case parsing {
     {@see SomeOtherEntity2}
     {}
   }
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   #
   # TODO: Should we enforce a mandatory space line between description and part block?
@@ -241,7 +243,7 @@ Test case parsing {
     {@see entity3}
     {@see SomeOtherEntity2}
   }
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   set block {
     {@command cc}
@@ -256,7 +258,7 @@ Test case parsing {
     {an erroreneous description line, for now}
   }
   
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 1
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
   
   set block {
     {@command cc}
@@ -268,7 +270,7 @@ Test case parsing {
     {}
     {@see SomeOtherEntity2}
   }
-  ? [list StyleViolation thrown_by? [list EntityClass process $block]] 0
+  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   set block {
     {@object cc}
@@ -279,7 +281,7 @@ Test case parsing {
     {@see SomeOtherEntity2}
     {@xyz SomeOtherEntity2}
   }
-  ? [list InvalidTag thrown_by? [list EntityClass process $block]] 1
+  ? [list InvalidTag thrown_by? [list CommentBlockParser process $block]] 1
 
   set block {
     {@class cc}
@@ -290,9 +292,7 @@ Test case parsing {
     {@see SomeOtherEntity2}
     {@xyz SomeOtherEntity2}
   }
-  ? [list InvalidTag thrown_by? [list EntityClass process $block]] 1
-
-
+  ? [list InvalidTag thrown_by? [list CommentBlockParser process $block]] 1
 
   #
   # testing the doc object construction
@@ -306,7 +306,7 @@ Test case parsing {
     {@author stefan.sobernig@wu.ac.at}
     {@author gustaf.neumann@wu-wien.ac.at}
   }
-  set entity [EntityClass process $block]
+  set entity [CommentBlockParser process $block]
   ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@object] 1
   ? [list $entity @author] "stefan.sobernig@wu.ac.at gustaf.neumann@wu-wien.ac.at";
@@ -319,7 +319,7 @@ Test case parsing {
     {}
     {@see ::o}
   }
-  set entity [EntityClass process $block]
+  set entity [CommentBlockParser process $block]
   ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@command] 1
   ? [list $entity text] "some text on the command";
@@ -502,25 +502,26 @@ Test case parsing {
   #
   # self documentation
   #
-  if {[catch {set i [doc process nx::doc]} msg]} {
-    if {[Exception behind? $msg]} {
-      puts stderr [$msg info class]->[$msg message]
-    } else {
-      error $msg
-    }
-  }
-  ? [list $i eval [list ::nsf::is [@package id nx::doc] object]] 1
-  puts stderr [$i eval [list [@package id nx::doc] text]]
-  puts stderr [$i eval [list [@package id nx::doc] @require]]
-  set path [file join /tmp nextdoc]
-  if {[file exists $path]} {
-    file delete -force $path
-  }
-  $i eval [list ::nx::doc::make doc \
-	       -renderer ::nx::doc::TemplateData \
-	       -outdir /tmp \
-	       -project {name nextdoc url http://www.next-scripting.org/ version 0.1d}]
-  interp delete $i
+  # if {[catch {set i [doc process nx::doc]} msg]} {
+  #   puts stderr ERRORINFO=$::errorInfo
+  #   if {[Exception behind? $msg]} {
+  #     puts stderr [$msg info class]->[$msg message]
+  #   } else {
+  #     error $msg
+  #   }
+  # }
+  # ? [list $i eval [list ::nsf::is [@package id nx::doc] object]] 1
+  # puts stderr [$i eval [list [@package id nx::doc] text]]
+  # puts stderr [$i eval [list [@package id nx::doc] @require]]
+  # set path [file join /tmp nextdoc]
+  # if {[file exists $path]} {
+  #   file delete -force $path
+  # }
+  # $i eval [list ::nx::doc::make doc \
+  # 	       -renderer ::nx::doc::TemplateData \
+  # 	       -outdir /tmp \
+  # 	       -project {name nextdoc url http://www.next-scripting.org/ version 0.1d}]
+  # interp delete $i
 
   #
   # core documentation
@@ -535,12 +536,14 @@ Test case parsing {
     package req nx::doc
     namespace import ::nx::*
     namespace import ::nx::doc::*
+    puts stderr TIME=[time {
     doc process -noeval true generic/gentclAPI.decls
     doc process -noeval true library/nx/nx.tcl
     ::nx::doc::make doc \
 	-renderer ::nx::doc::TemplateData \
 	-outdir /tmp \
 	-project {name NextLanguageCore url http://www.next-scripting.org/ version 1.0.0a}
+    } 1]
   }
   interp delete $i
 }
@@ -728,8 +731,8 @@ Test case issues? {
   # DONE
 }
 
-if {$log} {
-  ::nx::doc::CommentState mixin delete ::nx::doc::CommentState::Log
-  ::nx::doc::CommentLine mixin delete ::nx::doc::CommentLine::Log
-  ::nx::doc::CommentSection mixin delete ::nx::doc::CommentSection::Log
-}
+# if {$log} {
+#   ::nx::doc::CommentState mixin delete ::nx::doc::CommentState::Log
+#   ::nx::doc::CommentLine mixin delete ::nx::doc::CommentLine::Log
+#   ::nx::doc::CommentSection mixin delete ::nx::doc::CommentSection::Log
+# }

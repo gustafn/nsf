@@ -385,25 +385,6 @@ namespace eval ::nx::doc {
       }
     }
 
-    # @method process
-    #
-    # This is an abstract hook method to be refined by the subclasses
-    # of Entity
-    #
-    # @param {-initial_section:optional "context"} Describes the section to parse first
-    # @return :integer Indicates the success of process the comment block
-    :method process {
-      {-initial_section:optional "context"} 
-      -entity:optional 
-      comment_block
-    } {
-      EntityClass process \
-	  -partof_entity [current] \
-	  -initial_section $initial_section \
-	  {*}[expr {[info exists entity]?"-entity $entity":""}] \
-	  $comment_block
-    }
-
     # @method text
     #
     # text is used to access the content of doc of an Entity, and
@@ -539,37 +520,6 @@ namespace eval ::nx::doc {
 	    if {[info exists available_method($mn)]} {unset available_method($mn)}
 	  }
 	  return [lsort [array names available_method]]
-	}
-	
-	:method process {
-	  {-initial_section:optional "context"} 
-	  -entity:optional 
-	  comment_block
-	} {
-	  next
-
-	  foreach methodName [${:name} info methods -methodtype scripted] {
-	    set blocks [doc comment_blocks [${:name} info method \
-						body $methodName]]
-	    foreach {line_offset block} $blocks {
-	      if {$line_offset > 1} break;	      
-	      set id [:@method $methodName]
-	      $id process -initial_section description $block
-	    }
-	  }
-	  
-	  foreach methodName [${:name} object info methods\
-				  -methodtype scripted] {
-	    
-	    set blocks [doc comment_blocks [${:name} object info method \
-						body $methodName]]
-	    foreach {line_offset block} $blocks {
-	      if {$line_offset > 1} break;
-	      set id [:@object-method $methodName]
-	      $id process -initial_section description $block
-	    }
-	  }
-
 	}
       }
 
@@ -754,7 +704,7 @@ namespace eval ::nx::doc {
 	}
       }
 
-  namespace export EntityClass @command @object @method @param \
+  namespace export CommentBlockParser @command @object @method @param \
       @param @package @ Exception StyleViolation InvalidTag \
       MissingPartofEntity ExceptionClass
 }
@@ -1095,7 +1045,7 @@ namespace eval ::nx {
 	  package forget $thing
 	  package req $thing
 	  ::nx::Object mixin delete SourcingTracker
-	  puts stderr sourced_scripts=[SourcingTracker eval {dict keys \${:scripts}}]
+	  #puts stderr sourced_scripts=[SourcingTracker eval {dict keys \${:scripts}}]
 	  dict for {script entities} [SourcingTracker eval {set :scripts}] {
 	    doc process \$script \$entities
 	  }
@@ -1157,7 +1107,7 @@ namespace eval ::nx {
 	# (most blocks, especially in initcmd and method blocks, are
 	# not qualified, so they are set to fail. however, record the
 	# failing ones for the time being
-	if {[catch {::nx::doc::EntityClass process $block} msg]} {
+	if {[catch {::nx::doc::CommentBlockParser process $block} msg]} {
 	  if {![InvalidTag behind? $msg] && ![StyleViolation behind? $msg] && ![MissingPartofEntity behind? $msg]} {
 	    if {[Exception behind? $msg]} {
 	      error [$msg info class]->[$msg message]
@@ -1171,7 +1121,9 @@ namespace eval ::nx {
       foreach addition $additions {
 	# TODO: for now, we skip over pure Tcl commands and procs
 	if {![::nsf::is $addition object]} continue;
-	:process [namespace origin $addition]
+	#puts stderr "ADDITION :process [namespace origin $addition]"
+	#:process [namespace origin $addition]
+	::nx::doc::CommentBlockParser process=@object $addition
       }
     }
 
@@ -1258,7 +1210,10 @@ namespace eval ::nx {
 	# TODO: Filter for StyleViolations as >the only< valid case
 	# for a continuation. Report other issues immediately. What
 	# about InvalidTag?!
-	if {[catch {$id process {*}$arguments} msg]} {
+	# TODO: Passing $id as partof_entity appears unnecessary,
+	# clean up the logic in CommentBlockParser->process()!!!
+	#puts stderr "==== CommentBlockParser process -partof_entity $id {*}$arguments"
+	if {[catch {CommentBlockParser process -partof_entity $id {*}$arguments} msg]} {
 	  lappend failed_blocks $line_offset
 	}
       }
@@ -1359,288 +1314,288 @@ namespace eval ::nx::doc {
       Entity mixin delete $renderer
     }
   }
+  
+  #
+  # This is a mixin class which adds comment block parsing
+  # capabilities to documentation entities (Entity, ...), once
+  # identified.
+  #
+  # It acts as the event source external to the modal parser (i.e.,
+  # the parsed entity). Expressing a modal behavioural design itself
+  # (around the line queue of a comment block), it produces certain
+  # events which are then signalled to the parsed entity.
+  #
+  Class create CommentBlockParser {
 
-  
-  #
-  # modal comment block parsing
-  #
-  
-  #
-  # contexts are entities
-  #
-  EntityClass eval {
-    :object forward has_next expr {${:idx} < [llength ${:comment_block}]}
-    :object method dequeue {} {
+    :attribute processed_section  {
+      set :incremental 1
+      :method assign {domain prop value} {
+	set current_entity [$domain current_entity]
+	set scope [expr {[$current_entity info is class]?"object mixin":"mixin"}]
+	if {[$domain eval [list info exists :$prop]] && [:get $domain $prop] in [$current_entity {*}$scope]} {
+	  $current_entity {*}$scope delete [:get $domain $prop]
+	}
+	$current_entity {*}$scope add [next $domain $prop $value]
+      }
+    }
+    :attribute current_entity:object
+
+    :object method process {
+	{-partof_entity ""}
+	{-initial_section context}
+	-entity
+	block
+      } {
+      
+      if {![info exists entity]} {
+	set entity [Entity]
+      }
+      
+      set parser_obj [:new -current_entity $entity -volatile]
+      $parser_obj [current proc] \
+	  -partof_entity $partof_entity \
+	  -initial_section $initial_section \
+	  $block
+      return [$parser_obj current_entity]
+    }
+    
+    :forward has_next expr {${:idx} < [llength ${:comment_block}]}
+    :method dequeue {} {
       set r [lindex ${:comment_block} ${:idx}]
       incr :idx
       return $r
     }
-    :object forward rewind incr :idx -1
-    :object forward fastforward set :idx {% expr {[llength ${:comment_block}] - 1} }
-    :object method process {
-	{-partof_entity:optional ""}
-	{-initial_section:optional context}
-	-entity:optional
-	block
-      } {
+    :forward rewind incr :idx -1
+#    :forward fastforward set :idx {% expr {[llength ${:comment_block}] - 1} }
+    :forward fastforward set :idx {% llength ${:comment_block}}
+
+
+    #
+    # everything below assumes that the current class is an active mixin
+    # on an instance of an Entity subclass!
+    #
+
+    :method process {
+      {-partof_entity ""}
+      {-initial_section context}
+      block
+    } {
+
       set :comment_block $block
-      
-      # initialise the context object
-      #puts stderr "--- [current callingproc] -> :partof_entity $partof_entity :processed_section $initial_section block $block"
-      set :processed_section $initial_section
-      set :partof_entity $partof_entity      
-      
-      if {[info exists :current_entity]} {
-	unset :current_entity
-      }
-      
-      if {[info exists entity]} {
-	set :current_entity $entity
-      }
-      
-      set :is_not_completed 1
-      
-      ${:processed_section} eval [list set :context [current]]
-      set is_first_iteration 1
       set :idx 0
+
+      :processed_section [$initial_section]
+
+      # TODO: currently, default values are not initialised for
+      # attribute slots defined in mixin classes; so do it manually
+      # for the time being.
+      ${:current_entity} current_comment_line_type ""
+
+      ${:current_entity} block_parser [current]      
+      ${:current_entity} eval [list set :partof_entity $partof_entity]
+      
+      set is_first_iteration 1
       set failure ""
-      while {${:is_not_completed}} {
+      
+      #
+      # Note: Within the while-loop, two object variables constantly change (as "wanted" side-effects):
+      # processed_section: reflects the currently processed comment section; see event=next()
+      # current_entity: reflects the currently documentation entity
+      # (once resolved); see context->event=parse@tag()
+      #
+      while {[:has_next]} {
 	set line [:dequeue]	
 	if {$is_first_iteration} {
-	  ${:processed_section} on_enter $line
+	  ${:current_entity} on_enter $line
 	  set is_first_iteration 0
 	}
 
-	if {[catch {${:processed_section} transition $line} failure]} {
-	  set :is_not_completed 0
-	  #
-	  # TODO: For now, the fast-forward mechanism jumps to the end
-	  # of the comment block; this avoids redundant on_exit
-	  # calls. is there a better way of achieving this?
-	  #
+	if {[catch {
+	  set actions [${:current_entity} event=process $line]
+	} failure]} {
+	  #puts stderr ERRORINFO=$::errorInfo
 	  :fastforward
-	} else {
-	  set :is_not_completed [:has_next]
-	}
+	} 
       }
       if {!$is_first_iteration} {
-	${:processed_section} on_exit $line
+	${:current_entity} on_exit $line
       }
       
       if {$failure ne ""} {
-	#puts stderr ERRORINFO=$::errorInfo
 	error $failure
       }
-      
-      return ${:current_entity}
-    }
+            
+    }; # CommentBlockParser->process()
     
-    :object method resolve_partof_entity {tag name} {
-      # a) unqualified: attr1
-      # b) qualified: Bar#attr1
-      if {[regexp -- {([^\s#]*)#([^\s#]*)} $name _ qualifier nq_name]} {
-	# TODO: Currently, I only foresee @object and @command as
-	# possible qualifiers; however, this should be fixed asap, as
-	# soon as the variety of entities has been decided upon!
-	foreach entity_type {@object @command} {
-	  set partof_entity [$entity_type id $qualifier]
-	  # TODO: Also, we expect the qualifier to resolve against an
-	  # already existing entity object? Is this intended?
-	  if {[::nsf::is $partof_entity object]} {
-	    return [list $nq_name $partof_entity]
+    # TODO: how can I obtain some reuse here when later @class is
+    # distinguished from @object (dispatch along the inheritance
+    # hierarchy?)
+    :object method process=@object {name} {
+      set object_entity [@ @object $name]
+      if {![::nsf::is $name object]} return;
+
+      #
+      # process the initcmd !
+      #
+
+      if {[$name eval {info exists :__initcmd}]} {
+	doc analyze_initcmd @object $name [$name eval {set :__initcmd}]
+      }
+      
+      set scope ""
+      if {[$name info is class]} {
+	set scope object
+	foreach methodName [${name} info methods -methodtype scripted] {
+	  # TODO: should the comment_blocks parser relocated?
+	  set blocks [doc comment_blocks [${name} info method \
+					      body $methodName]]
+	  foreach {line_offset block} $blocks {
+	    if {$line_offset > 1} break;	      
+	    set id [$object_entity @method $methodName]
+	    :process \
+		-partof_entity $object_entity \
+		-initial_section description \
+		-entity $id \
+		$block
 	  }
 	}
-	return [list $nq_name ${:partof_entity}]
-      } else {      
-	return [list $name ${:partof_entity}]
+      }
+      
+      foreach methodName [${name} {*}$scope info methods\
+			      -methodtype scripted] {
+	
+	set blocks [doc comment_blocks [${name} {*}$scope info method \
+					    body $methodName]]
+	foreach {line_offset block} $blocks {
+	  if {$line_offset > 1} break;
+	  set id [$object_entity @object-method $methodName]
+	  :process \
+	      -partof_entity $object_entity \
+	      -initial_section description \
+	      -entity $id \
+	      $block
+	}
       }
     }
-    :object method dispatch {tag args} {
+    # :method process=@method args {method_entity} {
+      
+    # }
 
-      if {![info exists :current_entity]} {
-	# 1) the current (or context) entity has NOT been resolved
-	#
-	# for named entities, the provided identifier can be either
-	# qualified or unqualified:
-	# 
-	# a) unqualified: @param attr1
-	# b) qualified: @param Bar#attr1
-	#
-	# For qualified ones, we must resolve the qualifier to serve
-	# as the partof_entity; see resolve_partof_entity()
+  }
 
-	set name [lindex $args 0]
-	set args [lrange $args 1 end]
-	lassign [:resolve_partof_entity $tag $name] nq_name partof_entity;
+  Class create CommentBlockParsingState -superclass Class {
 
-	if {$partof_entity ne ""} {
-	  if {[$partof_entity info callable methods $tag] eq ""} {
-	    [InvalidTag new -message [subst {
-	      The tag '$tag' is not supported for the entity type
-	      '[namespace tail [$partof_entity info class]]'
-	    }]] throw
-	  }
-	  #	  puts stderr "1. $partof_entity $tag $nq_name {*}$args"
-	  set :current_entity [$partof_entity $tag $nq_name {*}$args]
-	  
+    :attribute next_comment_section
+    :attribute comment_line_transitions:required
+
+  }
+  
+  Class create CommentSection {
+
+    :attribute block_parser:object,type=::nx::doc::CommentBlockParser
+    :attribute {current_comment_line_type ""}
+
+    set :line_types {
+      tag {regexp -- {^\s*@[^[:space:]@]+} $line}
+      text {regexp -- {^\s*([^[:space:]@]+|@[[:space:]@]+)} $line}
+      space {expr {$line eq {}}}
+    }
+
+    :method get_transition {src_line_type tgt_line} {
+      set section [${:block_parser} processed_section]
+      array set transitions [$section comment_line_transitions]
+      # expected outcome
+      # 1. new state -> becomes current_comment_line
+      # 2. actions to be triggered from the transition
+      
+      foreach {line_type expression} [[current class] eval {set :line_types}] {
+	set line $tgt_line
+	if {[eval $expression]} {
+	  set tgt_line_type $line_type
+	  break
+	}
+      }
+
+      if {![info exists tgt_line_type]} {
+	error "Could not resolve the type of line '$line'"
+      }
+
+      if {![info exists transitions(${src_line_type}->${tgt_line_type})]} {
+	set msg "Style violation in a [namespace tail [:info class]] section:\n"
+	if {$src_line_type eq ""} {
+	  append msg "Invalid first line ('${tgt_line_type}')"
 	} else {
-	  #
-	  # TODO: @object-method raises some issues (at least when
-	  # processed without a resolved context = its partof entity).
-	  # It is not an entity type, because it merely is a "scoped"
-	  # @method. It won't resolve then as a proper instance of
-	  # EntityClass, hence we observe an InvalidTag exception. For
-	  # now, we just ignore and bypass this issue by allowing
-	  # InvalidTag exceptions in analyze()
-	  #
-	  set qualified_tag [namespace qualifiers [current]]::$tag
-	  if {[EntityClass info instances -closure $qualified_tag] eq ""} {
-	    [InvalidTag new -message [subst {
-	      The entity type '$tag' is not available
-	    }]] throw 
-	  }
-	  set :current_entity [$tag new -name $nq_name {*}$args]
+	  append msg "A ${src_line_type} line is followed by a ${tgt_line_type} line"
 	}
-      } else {
-	# 2) current (or context) entity has been resolved
-	# TODO: Should we explicitly disallow qualified names in parts?
-	if {[${:current_entity} info callable methods $tag] eq ""} {
-	  [InvalidTag new -message [subst {
-	    The tag '$tag' is not supported for the entity type
-	    '[namespace tail [${:current_entity} info class]]'
-	  }]] throw
-	}
-	# puts stderr "${:current_entity} $tag {*}$args"
-	${:current_entity} $tag {*}$args
+	[StyleViolation new -message $msg] throw
       }
-    }
-  }
-
-
-  
-  #
-  # Infrastructure for state objects:
-  #
-  # 1. CommentState: a base class for sharing behaviour between atomic
-  # and non-orthogonal super-states; it is widely an intermediate,
-  # abstracted class, providing a refinement protocol for concrete
-  # state subclasses
-  #
-  
-  Class create CommentState {
-    :attribute context; # points to the context object, i.e., an entity
-    :method on_enter {line} {;}
       
-    :method signal {event line} {;}
-    
-    #
-    # activity/event interface
-    #
-    
-    :method event=process {line} {;}
-    :method event=close {line} {;}
-    :method event=next {line} {;}
-    :method event=exit {msg} {
-      error $msg
+      return [list $tgt_line_type $transitions(${src_line_type}->${tgt_line_type})]
     }
-    :method event=rewind {line} {;}
-  }
-  
-  # 2. CommentLines represent atomic states in the parsing state
-  # machinery: tag, text, space
-  
-  Class create CommentLine -superclass CommentState {
-    :attribute comment_section; # points to the super-state objects
-    :attribute processed_line; # stores the processed text line
-    :forward signal {% ${:comment_section} } %proc
-    :forward context {% ${:comment_section} } %proc
-    :forward current_entity {% :context } eval set :current_entity
-    
-    :method on_enter {line} {;}
-    :method on_exit {line} {;}
-        
-    :method match {line} {;}
-    :method is? {line} {
-      foreach cline [lsort [[:info class] info instances]] {
-	if {[$cline match $line]} {
-	  return [namespace tail $cline]
-	}
+
+    # the actual events to be signalled to and sensed within the
+    # super-states and sub-states
+
+    :method event=process {line} {
+      lassign [:get_transition ${:current_comment_line_type} $line] \
+	  :current_comment_line_type actions
+      foreach action $actions {
+	:event=$action $line
       }
     }
+
+    :forward event=parse %self {% subst {parse@${:current_comment_line_type}}} 
+    :method event=next {line} {
+      set next_section [[${:block_parser} processed_section] next_comment_section]
+      :on_exit $line
+      
+      ${:block_parser} rewind
+      :current_comment_line_type ""
+    
+      ${:block_parser} processed_section [$next_section]
+      :on_enter $line
+    }
+
 
     set :markup_map(sub) { 
       "{{{" "\[:code \{" 
       "}}}" "\}\]"
       "{{" "\[:link " 
       "}}" "\]" 
-      
     }
+    
     set :markup_map(unescape) {
       "\\{" "{"
       "\\}" "}"
       "\\#" "#"
     }
-
+    
     :method map {line set} {
       set line [string map [[::nsf::current class] eval [list set :markup_map($set)]] $line]
     }
-
-  }
-  
-  
-  CommentLine create tag {
-    :method match {line} {
-      return [regexp -- {^\s*@[^[:space:]@]+} $line]
-    }
-    :method event=process {line} {
+    
+    # realise the sub-state (a variant of METHOD-FOR-STATES) and their
+    # specific event handling
+    :method parse@tag {line} {
       set line [:map $line sub]
       set line [:map $line unescape]
       set line [split [string trimleft $line]]
       set tag [lindex $line 0]
-      #puts stderr "---line->$line"
-      [:context] dispatch $tag [lrange $line 1 end]
-    }
-    
-  }
-  
-  CommentLine create text {
-    set :is_code_block 0
-    array set :parse { 
-      0,1 {
-	# BEGIN of a code block. Insert the code start marker, a newline and the current line.
-	set l "\[:code \{\n"
-	append l $line \n
-	set line $l
-	set :is_code_block 1
-      } 
-      1,0 {
-	# END of a code block. Insert the code stop marker.
-	set l "\}\]\n"
-	append l $line
-	set line $l
-	set :is_code_block 0
-      } 
-      1,1 {
-	# WITHIN a code block. Add the line + a newline
-	append line \n
-      } 
-      0,0 {
-	# NOP
-	set line [string trimleft $line]
+      if {[:info callable -application $tag] eq ""} {
+	[InvalidTag new -message [subst {
+	  The tag '$tag' is not supported for the entity type
+	  '[namespace tail [:info class]]'
+	}]] throw
       }
-    }
-    
-    :method match {line} {
-      return [regexp -- {^\s*([^[:space:]@]+|@[[:space:]@]+)} $line]
+      :$tag [lrange $line 1 end]
     }
 
-    :method event=process {line} {
-      set is_intended [expr {[string first "\t" $line] != -1}]
-      eval [set :parse(${:is_code_block},$is_intended)]
-      [:context] dispatch @doc add $line end
-    }
+    :method parse@text {line} {
 
-    :method event=process {line} {
+      if {![info exists :is_code_block]} {
+	set :is_code_block 0
+      }
+
       if {[regsub -- {^\s*(\{\{\{)\s*$} $line "\[:code -inline false \{" line] || \
 	      (${:is_code_block} && [regsub -- {^\s*(\}\}\})\s*$} $line "\}\]" line])} {
 	set :is_code_block [expr {!${:is_code_block}}]
@@ -1653,199 +1608,155 @@ namespace eval ::nx::doc {
 	set line [:map $line unescape]
 	set line [string trimleft $line]
       }
-      [:context] dispatch @doc add $line end
+      #puts stderr "ADDLINE :@doc add $line end"
+      :@doc add $line end
     }
-
-    :method toggle_code_block {is_indented} {
-      set :is_code_block [expr {}]
-    }
+    :method parse@space {line} {;}
     
-  }
-  
-  CommentLine create space {
-    :method match {line} {
-      return [expr {$line eq {}}]
-    }
-    :method event=process {line} {
-      if {[:comment_section] eq "::nx::doc::description"} {
-	[:context] dispatch @doc add "" end
-      }
-      next
-    }
-  }
-  
-  
-  #
-  # 3. CommentSections represent orthogonal super-states over
-  # CommentLines: context, description, part
-  #
-  
-  Class create CommentSection -superclass CommentState {
-    :attribute entry_comment_line:required
-    :attribute current_comment_line
-    :attribute comment_line_transitions
-    :attribute next_comment_section; # implements a STATE-OWNED TRANSITION scheme
-    
-    :method init {} {
-      ${:entry_comment_line} comment_section [current]
-    }
-    
-    :method transition {line} {
-      array set transitions ${:comment_line_transitions}
-      
-      if {![info exists :current_comment_line]} {
-	set src ""
-	set tgt [${:entry_comment_line} is? $line]
-      } else {
-	set src ${:current_comment_line}
-	set tgt [$src is? $line]
-      }
-      #puts stderr "---- line $line src $src tgt $tgt"
-      #
-      # TODO: realise the initial state nodes as NULL OBJECTs, this
-      # helps avoid conditional branching all over the place!
-      #
-      if {$src ne ""} {
-	$src on_exit $line;
-      }
-      if {![info exists transitions(${src}->${tgt})]} {
-	set msg "Style violation in a [namespace tail [current]] section:\n"
-	if {$src eq ""} {
-	  append msg "Invalid first line ('${tgt}')"
-	} else {
-	  append msg "A ${src} line is followed by a ${tgt} line"
-	}
-	[StyleViolation new -message $msg] throw
-      }
-      
-      set :current_comment_line $tgt
-      $tgt comment_section [current]
-      ${:current_comment_line} processed_line $line
-      ${:current_comment_line} on_enter $line
-      
-      #foreach {event activities} $transitions(${src}->${tgt}) break;
-      lassign $transitions(${src}->${tgt}) event activities;
-      :signal $event $line
-      foreach activity $activities {
-	:signal $activity $line
-      }
-    }
-    
+    #
+    # so far, we only need enter and exit handlers at the level of the
+    # superstates: context, description, part
+    #
     :method on_enter {line} {;}
-    
-    :method on_exit {line} {
-      # TODO: move this behaviour into a more decent place
-      if {![${:context} has_next]} {
-	${:current_comment_line} on_exit $line
-      }
-      # Note: Act passive here, because e.g. upon invalid entry
-      # state transition requests, there is no current_comment_line
-      # set here. Yet, we want to exit from the comment section!
-      if {[info exists :current_comment_line]} {
-	unset :current_comment_line
-      }
-      next
-    }
-    
-    :method signal {event line} {
-      ${:current_comment_line} event=$event $line
-      :event=$event $line
-    }
-    
-    #
-    # handled events
-    #
-    :method event=next {line} {
-      set next_section [:next_comment_section]
-      ${:current_comment_line} on_exit $line
-      :on_exit $line
-      $next_section eval [list set :context ${:context}]
-      $next_section on_enter $line
-      ${:context} eval [list set :processed_section [:next_comment_section]]      
-      
-    }
-    
-    :method event=rewind {line} {
-      ${:context} rewind
-      next
-    }
-    
-  }; # CommentSection
-  
-  
-  #
-  # the OWNER-DRIVEN TRANSITIONS read as follows:
-  # (current_state)->(next_state) {event {activity1 activty2 ...}}
-  #
-  
-  #
-  # TODO: refactor {close {rewind next}} into a single activity
-  #
-  
-  #
-  # context
-  #
-  CommentSection create context \
-      -next_comment_section description \
-      -comment_line_transitions {
-	->tag		{process ""}
-	tag->space	{process ""}
-	space->space	{process ""}
-	space->text	{close {rewind next}}
-	space->tag	{close {rewind next}}
-      } -entry_comment_line tag
-  
+    :method on_exit {line} {;}
+  }
+
   # NOTE: add these transitions for supporting multiple text lines for
   # the context element
-  #	tag->text	{process ""}
-  #	text->text	{process ""}
-  #	text->space	{process ""}
+  #	tag->text	parse
+  #	text->text	parse
+  #	text->space	""
   
-  #
-  # description
-  #
-  CommentSection create description \
-      -next_comment_section part \
+  
+  CommentBlockParsingState create context -superclass CommentSection \
+      -next_comment_section description \
       -comment_line_transitions {
-	->text		{process ""}
-	->tag		{close {rewind next}}
-	text->text	{process ""}
-	text->space	{process ""}
-	space->text	{process ""}
-	space->space	{process ""}
-	space->tag	{close {rewind next}}
-      } -entry_comment_line text {
-	:method on_enter {line} {
-	  #
-	  # TODO: fix the re-set of the @doc attribute
-	  #
-	  if {[${:context} eval {info exists :current_entity}]} {
-	    ${:context} eval {
-	      ${:current_entity} eval {
-		unset -nocomplain :@doc
+	->tag		parse
+	tag->space	""
+	space->space	""
+	space->text	next
+	space->tag	next
+      } {
+	
+	:method resolve_partof_entity {tag name} {
+	  # a) unqualified: attr1
+	  # b) qualified: Bar#attr1
+	  if {[regexp -- {([^\s#]*)#([^\s#]*)} $name _ qualifier nq_name]} {
+	    # TODO: Currently, I only foresee @object and @command as
+	    # possible qualifiers; however, this should be fixed asap, as
+	    # soon as the variety of entities has been decided upon!
+	    foreach entity_type {@object @command} {
+	      set partof_entity [$entity_type id $qualifier]
+	      # TODO: Also, we expect the qualifier to resolve against an
+	      # already existing entity object? Is this intended?
+	      if {[::nsf::is $partof_entity object]} {
+		return [list $nq_name $partof_entity]
 	      }
-	    } 
+	    }
+	    return [list $nq_name ${:partof_entity}]
+	  } else {      
+	    return [list $name ${:partof_entity}]
 	  }
-	  next;
 	}
+
+	# realise the parse events specific to the substates of description
+	:method parse@tag {line} {
+	  #
+	  # When hitting this parsing step, we have an unresolved
+	  # entity. The context section specifies the entity to create
+	  # or to resolve for further processing.
+	  #
+	  set line [split [string trimleft $line]]
+	  set args [lassign $line tag name]
+	  lassign [:resolve_partof_entity $tag $name] nq_name partof_entity
+	  if {$partof_entity ne ""} {
+	    if {[$partof_entity info callable -application $tag] eq ""} {
+	      [InvalidTag new -message [subst {
+		The tag '$tag' is not supported for the entity type
+		'[namespace tail [$partof_entity info class]]'
+	      }]] throw
+	    }
+	    #	  puts stderr "1. $partof_entity $tag $nq_name {*}$args"
+	    set current_entity [$partof_entity $tag $nq_name {*}$args]
+	    
+	  } else {
+	    #
+	    # TODO: @object-method raises some issues (at least when
+	    # processed without a resolved context = its partof entity).
+	    # It is not an entity type, because it merely is a "scoped"
+	    # @method. It won't resolve then as a proper instance of
+	    # EntityClass, hence we observe an InvalidTag exception. For
+	    # now, we just ignore and bypass this issue by allowing
+	    # InvalidTag exceptions in analyze()
+	    #
+	    set qualified_tag [namespace qualifiers [current]]::$tag
+	    if {[EntityClass info instances -closure $qualified_tag] eq ""} {
+	      [InvalidTag new -message [subst {
+		The entity type '$tag' is not available
+	      }]] throw 
+	    }
+	    set current_entity [$tag new -name $nq_name {*}$args]
+	  }
+	  #
+	  # make sure that the current_entity has parser capabilities
+	  # and the relevant state of the previous entity before the
+	  # context switch
+	  # TODO: refactor later
+	  ${:block_parser} current_entity $current_entity
+	  ${:block_parser} processed_section [current class]
+	  $current_entity current_comment_line_type ${:current_comment_line_type}
+	  $current_entity block_parser ${:block_parser}
+	}
+	
+	# :method parse@text {line} { next }
+	# :method parse@space {line} { next }
+	
       }
   
-  #
-  # part
-  # 
-  CommentSection create part \
+  CommentBlockParsingState create description -superclass CommentSection \
       -next_comment_section part \
       -comment_line_transitions {
-	->tag		{process ""}
-	tag->text	{process ""}
-	text->text	{process ""}
-	text->tag	{close {rewind next}}
-	text->space	{process ""}
-	space->space	{process ""}
-	tag->space	{process ""}
-	space->tag	{close {rewind next}}
-	tag->tag	{close {rewind next}}
-      } -entry_comment_line tag 
+	->text		parse
+	->tag		next
+	text->text	parse
+	text->space	""
+	space->text	parse
+	space->space	parse
+	space->tag	next
+    } {
+      
+      :method on_enter {line} {
+	unset -nocomplain :@doc
+	next
+      }
+
+      # tag lines are not allowed in description blocks!
+      # :method parse@tag {line} {;}
+      :method parse@space {line} {
+	:@doc add "" end
+	next
+      }
+      
+    }
+
+  CommentBlockParsingState create part -superclass CommentSection  \
+      -next_comment_section part \
+      -comment_line_transitions {
+	->tag		parse
+	tag->text	parse
+	text->text	parse
+	text->tag	next
+	text->space	""
+	space->space	""
+	tag->space	""
+	space->tag	next
+	tag->tag	next
+      } {
+	# realise the parse events specific to the substates of description
+	# :method parse@tag {line} {;}
+	# :method parse@text {line} {;}
+	# :method parse@space {line} {;}
+      }
 }
 
 puts stderr "Doc Tools loaded: [info command ::nx::doc::*]"
