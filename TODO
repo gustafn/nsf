@@ -1092,7 +1092,15 @@ _ added option noforwarder to RelationSlots
 - changed __invalidateobjectparameter from a method of class
   to framework primitiv ::nsf::invalidateobjectparameter
 
+- experimental method-property "class-only": this allows to
+  make object save against per-object mixins of meta-classes.
+  the flag is only used in the mixin-resolver
+- used for the time being in nx only for Class.info, 
+  but would apply as well for methods defined on both Object and Class.
+
 TODO: 
+
+- complete class-only, or remove it
 - nameing
     * self/current:
        - overthink general replacement of "self" by "current".
