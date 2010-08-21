@@ -329,7 +329,7 @@ typedef struct XOTclStringIncrStruct {
 #define XOTCL_CMD_REDEFINE_PROTECTED_METHOD	0x00020000
 /* XOTCL_CMD_NONLEAF_METHOD is used to flag, if a Method implemented via cmd calls "next" */
 #define XOTCL_CMD_NONLEAF_METHOD		0x00040000
-
+#define XOTCL_CMD_CLASS_SPECIFIC_METHOD		0x00080000
 /*
  * object flags ...
  */

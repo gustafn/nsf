@@ -4011,39 +4011,53 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *object, CONST char *methodName,
   */
   /*CmdListPrint(interp, "MixinSearch CL = \n", cmdList);*/
 
-  while (cmdList) {
+  /*xxxx*/
+
+  for (; cmdList; cmdList = cmdList->nextPtr) {
+
     if (Tcl_Command_cmdEpoch(cmdList->cmdPtr)) {
-      cmdList = cmdList->nextPtr;
-    } else {
-      cls = XOTclGetClassFromCmdPtr(cmdList->cmdPtr);
-      /*
-        fprintf(stderr, "+++ MixinSearch %s->%s in %p cmdPtr %p clientData %p\n",
-	objectName(object), methodName, cmdList,
-	cmdList->cmdPtr, cmdList->clientData);
-      */
-      if (cls) {
-        cmd = FindMethod(cls->nsPtr, methodName);
-        if (cmd && cmdList->clientData) {
-          if (!RUNTIME_STATE(interp)->guardCount) {
-            result = GuardCall(object, cls, (Tcl_Command) cmd, interp,
-                                (Tcl_Obj*)cmdList->clientData, NULL);
-          }
-        }
-        if (cmd && result == TCL_OK) {
-          /*
-           * on success: compute mixin call data
-           */
-          *cl = cls;
-          *currentCmdPtr = cmdList->cmdPtr;
-          break;
-	} else if (result == TCL_ERROR) {
-          break;
-        } else {
-          if (result == XOTCL_CHECK_FAILED) result = TCL_OK;
-          cmd = NULL;
-          cmdList = cmdList->nextPtr;
-        }
+      continue;
+    } 
+    cls = XOTclGetClassFromCmdPtr(cmdList->cmdPtr);
+    assert(cls);
+    /*
+      fprintf(stderr, "+++ MixinSearch %s->%s in %p cmdPtr %p clientData %p\n",
+      objectName(object), methodName, cmdList,
+      cmdList->cmdPtr, cmdList->clientData);
+    */
+    cmd = FindMethod(cls->nsPtr, methodName);
+    if (cmd == NULL) {
+      continue;
+    }
+
+    if (Tcl_Command_flags(cmd) & XOTCL_CMD_CLASS_SPECIFIC_METHOD) {
+      /*fprintf(stderr, "we found class specific method %s on class %s object %s, isclass %d\n",
+	methodName, className(cls), objectName(object), XOTclObjectIsClass(object));*/
+      if (!XOTclObjectIsClass(object)) {
+	/* the command is not for us; skip it */
+	cmd = NULL;
+	continue;
       }
+    }
+    
+    if (cmdList->clientData) {
+      if (!RUNTIME_STATE(interp)->guardCount) {
+	result = GuardCall(object, cls, (Tcl_Command) cmd, interp,
+			   (Tcl_Obj*)cmdList->clientData, NULL);
+      }
+    }
+    if (result == TCL_OK) {
+      /*
+       * on success: compute mixin call data
+       */
+      *cl = cls;
+      *currentCmdPtr = cmdList->cmdPtr;
+      break;
+    } else if (result == TCL_ERROR) {
+      break;
+    } else {
+      if (result == XOTCL_CHECK_FAILED) result = TCL_OK;
+      cmd = NULL;
     }
   }
 
@@ -11429,7 +11443,7 @@ xotclCmd methodproperty XOTclMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "methodName" -required 1 -type tclobj}
-  {-argName "methodproperty" -required 1 -type "protected|redefine-protected|returns|slotobj"}
+  {-argName "methodproperty" -required 1 -type "class-only|protected|redefine-protected|returns|slotobj"}
   {-argName "value" -type tclobj}
 }
 */
@@ -11476,12 +11490,15 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int w
   }
 
   switch (methodproperty) {
+  case MethodpropertyClass_onlyIdx: /* fall through */
   case MethodpropertyProtectedIdx: /* fall through */
   case MethodpropertyRedefine_protectedIdx: 
     {
       int flag = methodproperty == MethodpropertyProtectedIdx ?
 	XOTCL_CMD_PROTECTED_METHOD :
-	XOTCL_CMD_REDEFINE_PROTECTED_METHOD;
+	methodproperty == MethodpropertyRedefine_protectedIdx ?
+	XOTCL_CMD_REDEFINE_PROTECTED_METHOD 
+	:XOTCL_CMD_CLASS_SPECIFIC_METHOD;
       
       if (valueObj) {
 	int bool, result;

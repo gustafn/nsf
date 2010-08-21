@@ -409,16 +409,17 @@ namespace eval ::nx {
 
   # register method "info" on Object and Class
   Object forward info -onerror ::nsf::infoError ::nx::objectInfo %1 {%@2 %self}
-  #Class forward  info -onerror ::nsf::infoError ::nx::classInfo %1 {%@2 %self}
-  Class method info args {
-    # In case Class.info is applied on an object (via mixins), do "next"
-    if {![::nsf::objectproperty [::nsf::current object] class]} next else {
-      if {[catch {::nx::classInfo [lindex $args 0] [::nsf::current object] {*}[lrange $args 1 end]} result]} {
-	::nsf::infoError $result
-      }
-      return $result
-    }
-  }
+  Class forward  info -onerror ::nsf::infoError ::nx::classInfo %1 {%@2 %self}
+  ::nsf::methodproperty nx::Class info class-only true
+  #Class method info args {
+  #  # In case Class.info is applied on an object (via mixins), do "next"
+  #  if {![::nsf::objectproperty [::nsf::current object] class]} next else {
+  #    if {[catch {::nx::classInfo [lindex $args 0] [::nsf::current object] {*}[lrange $args 1 end]} result]} {
+#	::nsf::infoError $result
+#      }
+#      return $result
+#    }
+#  }
 
   Class method filterguard {filter guard} {
     # In case Class.filterguard is applied on an object (via mixins), do "next"
