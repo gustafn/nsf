@@ -1099,12 +1099,19 @@ _ added option noforwarder to RelationSlots
   but would apply as well for methods defined on both Object and Class.
 
 - use now class-only for all methods methods of meta-classes. 
-  Methods of meta-classes are inteded to be applied on classes,
+  Methods of meta-classes are intended to be applied on classes,
   one should not change this via per-object mixins.
 - respect class-only in "info callable methods|method"
 - extended regression test
 - provided relation name "object-filter" to slot filter.
 
+- replaced "obj|cls filterguard name cond" by "obj|cls filter guard name cond"
+- replaced "obj|cls info filterguard name" by "obj|cls info filter -guard name"
+- replaced "cls object info filterguard name" by "cls object info filter -guard name"
+- removed XOTclObjInfoFilterguardMethod() 
+- removed XOTclClassInfoFilterguardMethod() 
+- extended regression test
+- updated migration guide
 
 TODO: 
 

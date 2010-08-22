@@ -37,7 +37,7 @@ namespace eval ::nx {
   #
   foreach cmd [info command ::nsf::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "autoname" "exists" "instvar" "requireNamespace"]} continue
+    if {$cmdName in [list "autoname" "exists" "filterguard" "instvar" "requireNamespace"]} continue
     ::nsf::alias Object $cmdName $cmd 
   }
   
@@ -47,6 +47,7 @@ namespace eval ::nx {
   # provide the standard command set for Class
   foreach cmd [info command ::nsf::cmd::Class::*] {
     set cmdName [namespace tail $cmd]
+    if {$cmdName in [list "filterguard"]} continue
     ::nsf::alias Class $cmdName $cmd 
   }
 
@@ -155,7 +156,7 @@ namespace eval ::nx {
 	switch [llength $args] {
 	  0 {return [::nsf::relation [::nsf::current object] object-$what]}
 	  1 {return [::nsf::relation [::nsf::current object] object-$what {*}$args]}
-	  default {return [::nx::Class::slot::object-$what [lindex $args 0] \
+	  default {return [::nx::Object::slot::$what [lindex $args 0] \
 			       [::nsf::current object] object-$what \
 			       {*}[lrange $args 1 end]]
 	  }
@@ -969,6 +970,7 @@ namespace eval ::nx {
     ::nx::RelationSlot create ${os}::Object::slot::filter -elementtype "" \
 	-methodname object-filter
 
+
     # @param ::nx::Class#mixin
     #
     # As a setter, {{{mixin}}} specifies a list of mixins to set for
@@ -996,6 +998,25 @@ namespace eval ::nx {
     # object-slots for classes via object-mixin
     ::nx::RelationSlot create ${os}::Class::slot::object-mixin -noforwarder 1
     ::nx::RelationSlot create ${os}::Class::slot::object-filter -elementtype "" -noforwarder 1
+
+    #
+    # Define method "guard" for Object and Class
+    #
+    ${os}::Object::slot::filter method guard {obj prop filter guard:optional} {
+      if {[info exists guard]} {
+	::nsf::dispatch $obj ::nsf::cmd::Object::filterguard $filter $guard
+      } else {
+	$obj info filter -guard $filter 
+      }
+    }
+    ${os}::Class::slot::filter method guard {obj prop filter guard:optional} {
+      if {[info exists guard]} {
+	::nsf::dispatch $obj ::nsf::cmd::Class::filterguard $filter $guard
+      } else {
+	$obj info filter -guard $filter 
+      }
+    }
+    #::nsf::alias ::nx::Class::slot::object-filter guard ${os}::Object::slot::filter::guard
   }
 
   ::nsf::register_system_slots ::nx

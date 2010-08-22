@@ -93,8 +93,33 @@ Test case callable {
     ? {o info callable methods filter} "filter"
     ? {o info callable method filter} "::nsf::classes::nx::Object::filter"
     ? {o filter f} ""
-    ? {o filterguard f { 1 }} ""
+    ? {o filter guard f { 1 == 1 }} ""
+    ? {o info filter -guard f} " 1 == 1 "
+    ? {o filter guard f} " 1 == 1 "
     o filter ""
+
+    nx::Class create Foo
+    ? {Foo method f args ::nx::next} "::nsf::classes::Foo::f"
+    ? {Foo method f2 args ::nx::next} "::nsf::classes::Foo::f2"
+    ? {Foo filter {f f2}} ""
+    ? {Foo info filter} "f f2"
+    ? {Foo filter guard f {2 == 2}} ""
+    ? {Foo info filter -guard f} "2 == 2"
+    ? {Foo info filter -guards f} "{f -guard {2 == 2}}"
+    ? {Foo info filter -guards f2} "f2"
+    ? {Foo info filter -guards} "{f -guard {2 == 2}} f2"
+    ? {Foo filter {}} ""
+
+    ? {Foo object method f args ::nx::next} "::Foo::f"
+    ? {Foo object method f2 args ::nx::next} "::Foo::f2"
+    ? {Foo object filter {f f2}} ""
+    ? {Foo object info filter} "f f2"
+    ? {Foo object filter guard f {2 == 2}} ""
+    ? {Foo object info filter -guard f} "2 == 2"
+    ? {Foo object info filter -guards f} "{f -guard {2 == 2}}"
+    ? {Foo object info filter -guards f2} "f2"
+    ? {Foo object info filter -guards} "{f -guard {2 == 2}} f2"
+    ? {Foo object filter {}} ""
 
     nx::Class create Fly
     o mixin add Fly

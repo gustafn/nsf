@@ -4010,12 +4010,8 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *object, CONST char *methodName,
   cmdList = seekCurrent(object->mixinStack->currentCmdPtr, object->mixinOrder);
   RUNTIME_STATE(interp)->cmdPtr = cmdList ? cmdList->cmdPtr : NULL;
 
-  /*
-    fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList);
-  */
+  /* fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList); */
   /*CmdListPrint(interp, "MixinSearch CL = \n", cmdList);*/
-
-  /*xxxx*/
 
   for (; cmdList; cmdList = cmdList->nextPtr) {
 
@@ -13887,14 +13883,20 @@ static int XOTclObjInfoClassMethod(Tcl_Interp *interp, XOTclObject *object) {
 /*
 infoObjectMethod filter XOTclObjInfoFilterMethod {
   {-argName "object" -required 1 -type object}
-  {-argName "-order"}
+  {-argName "-guard"}
   {-argName "-guards"}
+  {-argName "-order"}
   {-argName "pattern"}
 }
 */
 static int XOTclObjInfoFilterMethod(Tcl_Interp *interp, XOTclObject *object,
-                                    int withOrder, int withGuards, CONST char *pattern) {
+                                    int withGuard, int withGuards, int withOrder, 
+				    CONST char *pattern) {
   XOTclObjectOpt *opt = object->opt;
+
+  if (withGuard) {
+    return opt ? GuardList(interp, object->opt->filters, pattern) : TCL_OK;
+  }
   if (withOrder) {
     if (!(object->flags & XOTCL_FILTER_ORDER_VALID))
       FilterComputeDefined(interp, object);
@@ -13902,15 +13904,7 @@ static int XOTclObjInfoFilterMethod(Tcl_Interp *interp, XOTclObject *object,
   }
   return opt ? FilterInfo(interp, opt->filters, pattern, withGuards, 0) : TCL_OK;
 }
-/*
-infoObjectMethod filterguard XOTclObjInfoFilterguardMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "filter" -required 1}
-}
-*/
-static int XOTclObjInfoFilterguardMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *filter) {
-  return object->opt ? GuardList(interp, object->opt->filters, filter) : TCL_OK;
-}
+
 /*
 infoObjectMethod forward XOTclObjInfoForwardMethod {
   {-argName "object" -required 1 -type object}
@@ -14158,22 +14152,19 @@ static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *startCl
 /*
 infoClassMethod filter XOTclClassInfoFilterMethod {
   {-argName "class"   -required 1 -type class}
+  {-argName "-guard"}
   {-argName "-guards"}
   {-argName "pattern"}
 }
 */
-static int XOTclClassInfoFilterMethod(Tcl_Interp *interp, XOTclClass *class, int withGuards, CONST char *pattern) {
-  return class->opt ? FilterInfo(interp, class->opt->classfilters, pattern, withGuards, 0) : TCL_OK;
-}
 
-/*
-infoClassMethod filterguard XOTclClassInfoFilterguardMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "filter" -required 1}
-}
-*/
-static int XOTclClassInfoFilterguardMethod(Tcl_Interp *interp, XOTclClass *class, CONST char *filter) {
-  return class->opt ? GuardList(interp, class->opt->classfilters, filter) : TCL_OK;
+static int XOTclClassInfoFilterMethod(Tcl_Interp *interp, XOTclClass *class, 
+				      int withGuard, int withGuards, 
+				      CONST char *pattern) {
+  if (withGuard) {
+    return class->opt ? GuardList(interp, class->opt->classfilters, pattern) : TCL_OK;
+  }
+  return class->opt ? FilterInfo(interp, class->opt->classfilters, pattern, withGuards, 0) : TCL_OK;
 }
 
 /*

@@ -419,7 +419,7 @@ objectMethod exists XOTclOExistsMethod {
 #
 # Adds conditions to guard invocations of a filter. The
 # filter will only execute, if the guards evaluate to true. Otherwise,
-# the filters are ignored the filter. If no guards are given, we
+# the guarded filter is ignored. If no guards are given,
 # always execute the filter.
 #
 # @param filter Handle to identify and address a filter once registered
@@ -763,13 +763,10 @@ infoObjectMethod class XOTclObjInfoClassMethod {
 }
 infoObjectMethod filter XOTclObjInfoFilterMethod {
   {-argName "object" -required 1 -type object}
-  {-argName "-order"}
+  {-argName "-guard"}
   {-argName "-guards"}
+  {-argName "-order"}
   {-argName "pattern"}
-}
-infoObjectMethod filterguard XOTclObjInfoFilterguardMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "filter" -required 1}
 }
 infoObjectMethod forward XOTclObjInfoForwardMethod {
   {-argName "object" -required 1 -type object}
@@ -834,12 +831,9 @@ infoClassMethod instances XOTclClassInfoInstancesMethod {
 }
 infoClassMethod filter XOTclClassInfoFilterMethod {
   {-argName "class"   -required 1 -type class}
+  {-argName "-guard"}
   {-argName "-guards"}
   {-argName "pattern"}
-}
-infoClassMethod filterguard XOTclClassInfoFilterguardMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "filter" -required 1}
 }
 infoClassMethod forward XOTclClassInfoForwardMethod {
   {-argName "class"  -required 1 -type class}

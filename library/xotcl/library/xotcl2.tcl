@@ -202,8 +202,7 @@ namespace eval ::xotcl {
 
   objectInfo proc info {obj} {
     set methods [list]
-    foreach m [::info commands ::xotcl::objectInfo::*] {
-      set name [namespace tail $m]
+    foreach name [::nsf::cmd::ObjectInfo::methods ::xotcl::objectInfo] {
       if {$name eq "unknown"} continue
       lappend methods $name
     }
@@ -215,8 +214,7 @@ namespace eval ::xotcl {
 
   classInfo proc info {cl} {
     set methods [list]
-    foreach m [::info commands ::xotcl::classInfo::*] {
-      set name [namespace tail $m]
+    foreach name [::nsf::cmd::ObjectInfo::methods ::xotcl::classInfo] {
       if {$name eq "unknown"} continue
       lappend methods $name
     }
@@ -336,6 +334,10 @@ namespace eval ::xotcl {
     :proc instparametercmd {o {pattern:optional ""}} {
       ::nsf::cmd::ClassInfo::methods $o -methodtype setter {*}$pattern
     }
+    # filter handling 
+    :proc filterguard {o filter} {::nsf::cmd::ObjectInfo::filter $o -guard $filter}
+    :proc instfilterguard {o filter} {::nsf::cmd::ClassInfo::filter $o -guard $filter}
+
     # assertion handling
     :proc instinvar   {o} {::nsf::assertion $o class-invar}
   }
@@ -368,7 +370,8 @@ namespace eval ::xotcl {
       if {[info exists pattern]} {lappend cmd $pattern}
       eval $cmd
     }
-    # object filter mapping
+
+    # filter handling
     :proc filter {o -order:switch -guards:switch pattern:optional} {
       set guardsFlag [expr {$guards ? "-guards" : ""}]
       set patternArg [expr {[info exists pattern] ? [list $pattern] : ""}]
@@ -381,6 +384,8 @@ namespace eval ::xotcl {
       #puts stderr "  => $def"
       return $def
     }
+    :proc filterguard {o filter} {::nsf::cmd::ObjectInfo::filter $o -guard $filter}
+
     # assertion handling
     :proc check {o} {
       ::xotcl::checkoption_internal_to_xotcl1 [::nsf::assertion $o check]
@@ -405,6 +410,7 @@ namespace eval ::xotcl {
   }
 
   ::nsf::alias ::xotcl::objectInfo is ::nsf::objectproperty
+
   ::nsf::alias ::xotcl::classInfo is ::nsf::objectproperty
   ::nsf::alias ::xotcl::classInfo classparent ::nsf::cmd::ObjectInfo::parent
   ::nsf::alias ::xotcl::classInfo classchildren ::nsf::cmd::ObjectInfo::children
@@ -413,7 +419,6 @@ namespace eval ::xotcl {
   #::nsf::alias ::xotcl::classInfo instmixinof ::nsf::cmd::ClassInfo::class-mixin-of
   ::nsf::forward ::xotcl::classInfo instmixinof ::nsf::cmd::ClassInfo::mixinof %1 -scope class
   ::nsf::alias ::xotcl::classInfo instfilter ::nsf::cmd::ClassInfo::filter
-  ::nsf::alias ::xotcl::classInfo instfilterguard ::nsf::cmd::ClassInfo::filterguard
   ::nsf::alias ::xotcl::classInfo instforward ::nsf::cmd::ClassInfo::forward
   #::nsf::alias ::xotcl::classInfo mixinof ::nsf::cmd::ClassInfo::object-mixin-of
   ::nsf::forward ::xotcl::classInfo mixinof ::nsf::cmd::ClassInfo::mixinof %1 -scope object
