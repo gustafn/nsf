@@ -410,29 +410,6 @@ namespace eval ::nx {
   # register method "info" on Object and Class
   Object forward info -onerror ::nsf::infoError ::nx::objectInfo %1 {%@2 %self}
   Class forward  info -onerror ::nsf::infoError ::nx::classInfo %1 {%@2 %self}
-  ::nsf::methodproperty nx::Class info class-only true
-  #Class method info args {
-  #  # In case Class.info is applied on an object (via mixins), do "next"
-  #  if {![::nsf::objectproperty [::nsf::current object] class]} next else {
-  #    if {[catch {::nx::classInfo [lindex $args 0] [::nsf::current object] {*}[lrange $args 1 end]} result]} {
-#	::nsf::infoError $result
-#      }
-#      return $result
-#    }
-#  }
-
-  Class method filterguard {filter guard} {
-    # In case Class.filterguard is applied on an object (via mixins), do "next"
-    if {![::nsf::objectproperty [::nsf::current object] class]} next else {
-      ::nsf::dispatch [::nsf::current object] ::nsf::cmd::Class::filterguard $filter $guard
-    }
-  }
-  Class method mixinguard {mixin guard} {
-    # In case Class.mixinguard is applied on an object (via mixins), do "next"
-    if {![::nsf::objectproperty [::nsf::current object] class]} next else {
-      ::nsf::dispatch [::nsf::current object] ::nsf::cmd::Class::mixinguard $mixin $guard
-    }
-  }
 
   #
   # definition of "abstract method foo ...."
@@ -940,9 +917,19 @@ namespace eval ::nx {
 
     # @param ::nx::Class#superclass
     #
-    # Specifies superclasses for a given class. As a setter,
-    # {{{superclass}}} changes the list of superclasses. When used as
-    # a getter, the method returns the current superclasses.
+    # Specifies superclasses for a given class. As a setter ***
+    # generell: setter kann hier mit der methode namens "setter"
+    # verwechselt werden; wir sollten hier die paramter syntax
+    # anfuehren, die allerdings in zwei varianten kommt:
+    #{{{
+    #  obj superclass ?value?
+    #  obj superclass add|assign|delete|get value
+    #}}}
+    # Das gilt allgemein, nicht nur für die relation-slots, sondern
+    # für alle incremental slots.
+    # **** {{{superclass}}} changes the list
+    # of superclasses. When used as a getter, the method returns the
+    # current superclasses.
     #
     # @return :list If called as a getter (without arguments),
     # {{{superclass}}} returns the current superclasses of the object
@@ -966,7 +953,8 @@ namespace eval ::nx {
     # can retrieve the list of mixins active for the given object.
     #
     # @return :list If called as a getter (without arguments), {{{mixin}}} returns the list of current mixin classes registered with the object
-    ::nx::RelationSlot create ${os}::Object::slot::mixin -methodname object-mixin    
+    ::nx::RelationSlot create ${os}::Object::slot::mixin \
+	-methodname object-mixin    
 
     # @param ::nx::Object#filter
     #
@@ -978,7 +966,8 @@ namespace eval ::nx {
     # @return :list If called as a getter (without arguments),
     # {{{filter}}} returns the list of current filters
     # registered with the object
-    ::nx::RelationSlot create ${os}::Object::slot::filter -elementtype ""
+    ::nx::RelationSlot create ${os}::Object::slot::filter -elementtype "" \
+	-methodname object-filter
 
     # @param ::nx::Class#mixin
     #
@@ -1174,10 +1163,7 @@ namespace eval ::nx {
   # Define method "attribute" for convenience
   ############################################
   Class method attribute {spec {-slotclass ::nx::Attribute} {initblock ""}} {
-    # In case Class.attribute is applied on an object (via mixins), do "next"
-    if {![::nsf::objectproperty [::nsf::current object] class]} next else {
-      $slotclass createFromParameterSyntax [::nsf::current object] -initblock $initblock {*}$spec
-    }
+    $slotclass createFromParameterSyntax [::nsf::current object] -initblock $initblock {*}$spec
   }
 
   Object method attribute {spec {-slotclass ::nx::Attribute} {initblock ""}} {
@@ -1451,6 +1437,18 @@ namespace eval ::nx {
       }
       :destroy
     }
+  }
+
+
+  #######################################################
+  # Methods of metaclasses are methods intended for 
+  # classes. Make sure, these methods are only applied 
+  # on classes.
+  #######################################################
+
+  #puts stderr Class-methods=[lsort [Class info methods]]
+  foreach m [Class info methods] {
+    ::nsf::methodproperty Class $m class-only true
   }
 
   #######################################################

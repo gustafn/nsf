@@ -1048,6 +1048,10 @@ ObjectFindMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *name, XOTc
     for (mixinList = object->mixinOrder; mixinList; mixinList = mixinList->nextPtr) {
       XOTclClass *mixin = XOTclGetClassFromCmdPtr(mixinList->cmdPtr);
       if (mixin && (*pcl = SearchCMethod(mixin, name, &cmd))) {
+	if (Tcl_Command_flags(cmd) & XOTCL_CMD_CLASS_ONLY_METHOD && !XOTclObjectIsClass(object)) {
+	  cmd = NULL;
+	  continue;
+	}
         break;
       }
     }
@@ -4030,7 +4034,7 @@ MixinSearchProc(Tcl_Interp *interp, XOTclObject *object, CONST char *methodName,
       continue;
     }
 
-    if (Tcl_Command_flags(cmd) & XOTCL_CMD_CLASS_SPECIFIC_METHOD) {
+    if (Tcl_Command_flags(cmd) & XOTCL_CMD_CLASS_ONLY_METHOD) {
       /*fprintf(stderr, "we found class specific method %s on class %s object %s, isclass %d\n",
 	methodName, className(cls), objectName(object), XOTclObjectIsClass(object));*/
       if (!XOTclObjectIsClass(object)) {
@@ -10383,6 +10387,10 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, CONST char *pattern,
       key = Tcl_GetHashKey(table, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
 
+      if (Tcl_Command_flags(cmd) & XOTCL_CMD_CLASS_ONLY_METHOD && !XOTclObjectIsClass(object)) {
+	return TCL_OK;
+      }
+
       if (ProtectionMatches(interp, withCallprotection, cmd) 
           && MethodTypeMatches(interp, methodType, cmd, object, key, withPer_object)) {
         if (dups) {
@@ -10404,6 +10412,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, CONST char *pattern,
       key = Tcl_GetHashKey(table, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
 
+      if (Tcl_Command_flags(cmd) & XOTCL_CMD_CLASS_ONLY_METHOD && !XOTclObjectIsClass(object)) continue;
       if (pattern && !Tcl_StringMatch(key, pattern)) continue;
       if (!ProtectionMatches(interp, withCallprotection, cmd)
           || !MethodTypeMatches(interp, methodType, cmd, object, key, withPer_object)
@@ -10545,6 +10554,8 @@ ListCallableMethods(Tcl_Interp *interp, XOTclObject *object, CONST char *pattern
       for (ml = object->mixinOrder; ml; ml = ml->nextPtr) {
 	int guardOk = TCL_OK;
         mixin = XOTclGetClassFromCmdPtr(ml->cmdPtr);
+	assert(mixin);
+
         if (inContext) {
           if (!RUNTIME_STATE(interp)->guardCount) {
             guardOk = GuardCall(object, 0, 0, interp, ml->clientData, NULL);
@@ -11498,7 +11509,7 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int w
 	XOTCL_CMD_PROTECTED_METHOD :
 	methodproperty == MethodpropertyRedefine_protectedIdx ?
 	XOTCL_CMD_REDEFINE_PROTECTED_METHOD 
-	:XOTCL_CMD_CLASS_SPECIFIC_METHOD;
+	:XOTCL_CMD_CLASS_ONLY_METHOD;
       
       if (valueObj) {
 	int bool, result;

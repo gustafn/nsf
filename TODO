@@ -1098,9 +1098,18 @@ _ added option noforwarder to RelationSlots
 - used for the time being in nx only for Class.info, 
   but would apply as well for methods defined on both Object and Class.
 
+- use now class-only for all methods methods of meta-classes. 
+  Methods of meta-classes are inteded to be applied on classes,
+  one should not change this via per-object mixins.
+- respect class-only in "info callable methods|method"
+- extended regression test
+- provided relation name "object-filter" to slot filter.
+
+
 TODO: 
 
-- complete class-only, or remove it
+- interfaces in documentation for slots (see for more details 
+  ::nx::Class#superclass in nx.tcl).
 - nameing
     * self/current:
        - overthink general replacement of "self" by "current".

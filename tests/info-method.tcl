@@ -89,6 +89,9 @@ Test case callable {
     ? {lsort [o info methods]} "foo is x"
 
     o method f args ::nx::next
+    ? {o info callable methods superclass} ""
+    ? {o info callable methods filter} "filter"
+    ? {o info callable method filter} "::nsf::classes::nx::Object::filter"
     ? {o filter f} ""
     ? {o filterguard f { 1 }} ""
     o filter ""

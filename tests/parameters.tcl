@@ -171,7 +171,7 @@ Test case objectparameter {
 
 
   ? {c1 eval {:objectparameter}} \
-      "-a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
+      "-a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
 }
 
 #######################################################
@@ -184,13 +184,13 @@ Test case reclass {
 
   c1 class Object
   ? {c1 eval :objectparameter} \
-      "-mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
+      "-mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
   
   Class create D -superclass C -parameter {d:required}
   D create d1 -d 100
   
   ? {d1 eval :objectparameter} \
-      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
+      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
 }
 
 #######################################################
@@ -206,28 +206,27 @@ Test case objparam-mixins {
   Class create M2 -parameter {b2}
   D mixin M
   ? {d1 eval :objectparameter} \
-      "-b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
+      "-b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
     "mixin added"
   M mixin M2
   ? {d1 eval :objectparameter} \
-      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
+      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
     "transitive mixin added"
   D mixin ""
   #we should have again the old interface
 
   ? {d1 eval :objectparameter} \
-      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
+      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
 
   C mixin M
   ? {d1 eval :objectparameter} \
-      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
+      "-b2:slot=::M2::slot::b2 -b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
     "mixin added"
   C mixin ""
   #we should have again the old interface
   
-  
   ? {d1 eval :objectparameter} \
-      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" 
+      "-d:required,slot=::D::slot::d -a:slot=::C::slot::a -b:boolean,slot=::C::slot::b {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" 
 }
 
 #######################################################
