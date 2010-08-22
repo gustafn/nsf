@@ -1121,6 +1121,7 @@ _ added option noforwarder to RelationSlots
 - extended regression test
 - updated migration guide
 
+- deactivated "abstract"
 TODO: 
 
 - interfaces in documentation for slots (see for more details 

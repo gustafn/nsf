@@ -413,23 +413,26 @@ namespace eval ::nx {
   Class forward  info -onerror ::nsf::infoError ::nx::classInfo %1 {%@2 %self}
 
   #
-  # definition of "abstract method foo ...."
+  # Definition of "abstract method foo ...."
   #
-  Object method abstract {methtype -per-object:switch methname arglist} {
-    if {$methtype ne "method"} {
-      error "invalid method type '$methtype', must be 'method'"
-    }
-    set body "
-      if {!\[::nsf::current isnextcall\]} {
-        error \"Abstract method $methname $arglist called\"
-      } else {::nsf::next}
-    "
-    if {${per-object}} {
-      :method -per-object $methname $arglist $body
-    }  else {
-      :method $methname $arglist $body
-    }
-  }
+  # Deactivated for now. If we like to revive this method, it should
+  # be integrated with the method modifiers and the method "object"
+  #
+  # Object method abstract {methtype -per-object:switch methname arglist} {
+  #   if {$methtype ne "method"} {
+  #     error "invalid method type '$methtype', must be 'method'"
+  #   }
+  #   set body "
+  #     if {!\[::nsf::current isnextcall\]} {
+  #       error \"Abstract method $methname $arglist called\"
+  #     } else {::nsf::next}
+  #   "
+  #   if {${per-object}} {
+  #     :method -per-object $methname $arglist $body
+  #   }  else {
+  #     :method $methname $arglist $body
+  #   }
+  # }
 
 
   ########################################
