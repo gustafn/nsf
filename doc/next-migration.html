@@ -779,34 +779,34 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>cls</i> instmixin <i>...</i></code><br>
-      <code><i>cls</i> instmixinguard <i>...</i></code>      
+      <code><i>cls</i> instmixinguard <i>mixin condition</i></code>      
     </td>
     <td>
       <i class='comment'># Register per-class mixin and guard for a class</i><br><br>
       <code><i>cls</i> mixin <i>...</i></code><br>
-      <code><i>cls</i> mixinguard <i>...</i></code>
+      <code><i>cls</i> mixin guard <i>mixin condition</i></code>
     </td>
   </tr>
   <tr>
     <td>
       <code><i>cls</i> mixin <i>...</i></code><br>
-      <code><i>cls</i> mixinguard <i>...</i></code>
+      <code><i>cls</i> mixin guard <i>mixin condition</i></code>
     </td>
     <td>
       <i class='comment'># Register per-object mixin and guard for a class</i><br><br>
       <code><i>cls</i> object mixin <i>...</i></code><br>
-      <code><i>cls</i> object mixinguard <i>...</i></code><br>
+      <code><i>cls</i> object mixin guard <i>mixin condition</i></code><br>
     </td>
   </tr>  
   <tr>
     <td>
       <code><i>obj</i> mixin <i>...</i></code><br>
-      <code><i>obj</i> mixinguard <i>...</i></code>
+      <code><i>obj</i> mixinguard <i>mixin condition</i></code>
     </td>
     <td>
       <i class='comment'># Register per-object mixin and guard for an object</i><br><br>
       <code><i>obj</i> mixin <i>...</i></code><br>
-      <code><i>obj</i> mixinguard <i>...</i></code>
+      <code><i>obj</i> mixin guard <i>mixin condition</i></code>
     </td>
   </tr>  
 </table>
@@ -817,12 +817,12 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>cls</i> instfilter <i>...</i></code><br>
-      <code><i>cls</i> instfilterguard <i>...</i></code>      
+      <code><i>cls</i> instfilterguard <i>filter condition</i></code>      
     </td>
     <td>
       <i class='comment'># Register per-class filter and guard for a class</i><br><br>
       <code><i>cls</i> filter <i>...</i></code><br>
-      <code><i>cls</i> filter guard <i>...</i></code>
+      <code><i>cls</i> filter guard <i>filter condition</i></code>
     </td>
   </tr>
   <tr>
@@ -839,13 +839,13 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr>
     <td>
       <code><i>obj</i> filter <i>...</i></code><br>
-      <code><i>obj</i> filterguard <i>...</i></code>
+      <code><i>obj</i> filterguard <i>filter condition</i></code>
     </td>
     <td>
       <i class='comment'># Register per-object filter and guard for an
       object</i><br><br>
       <code><i>obj</i> filter <i>...</i></code><br>
-      <code><i>obj</i> filter guard <i>...</i></code>
+      <code><i>obj</i> filter guard <i>filter condition</i></code>
     </td>
   </tr>  
 </table>
@@ -1081,7 +1081,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
     <td><code><i>obj</i> info filter <i>?-guards? ?-order? ?pattern?</i></code></td>
     <td><i class='comment'># ... info filter -order ... returns method-handles<br>
       # instead of triples (applies to all three variants)</i><br><br>
-      <code><i>obj</i> info filter <i>?-guard? ?-guards? ?-order? ?pattern?</i></code></td>
+      <code><i>obj</i> info filter <i>?-guards? ?-order? ?pattern?</i></code></td>
   </tr>
   <tr>
     <td><code><i>obj</i> info filterguard <i>name</i></code></td>
@@ -1091,7 +1091,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
   </tr>  
   <tr>
     <td><code><i>cls</i> info filter <i>?-guards? ?-order? ?pattern?</i></code></td>
-    <td><code><i>cls</i> object info filter <i>?-guard? ?-guards? ?-order? ?pattern?</i></code></td>
+    <td><code><i>cls</i> object info filter <i>?-guards? ?-order? ?pattern?</i></code></td>
   </tr>
 
   <tr>
@@ -1102,7 +1102,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
   
   <tr>
     <td><code><i>cls</i> info instfilter <i>?-guards? ?-order? ?pattern?</i></code></td>
-    <td><code><i>cls</i> info filter <i>?-guard? ?-guards? ?-order? ?pattern?</i></code></td>
+    <td><code><i>cls</i> info filter <i>?-guards? ?-order? ?pattern?</i></code></td>
   </tr>
   <tr>
     <td><code><i>cls</i> info instfilterguard <i>name</i></code></td>
@@ -1114,16 +1114,34 @@ Scripting Language via the primitives of the Next Scripting Framework.
     <td><code><i>obj</i> info mixin <i>?-guards? ?-order? ?pattern?</i></code></td>
     <td><code><i>obj</i> info mixin <i>?-guards? ?-order? ?pattern?</i></code></td>
   </tr>
-
+  
+  <tr>
+    <td><code><i>obj</i> info mixinguard <i>name</i></code></td>
+    <td><code><i>obj</i> info mixin -guard <i>name</i><br>
+      <hr><i>obj</i> mixin guard <i>name</i><br></code></td>
+  </tr>
   
   <tr>
     <td><code><i>cls</i> info mixin <i>?-guards? ?-order? ?pattern?</i></code></td>
     <td><code><i>cls</i> object info mixin <i>?-guards? ?-order? ?pattern?</i></code></td>
   </tr>
+
+  <tr>
+    <td><code><i>cls</i> info mixinguard <i>name</i></code></td>
+    <td><code><i>cls</i> object info mixin -guard <i>name</i><br>
+      <hr><i>cls</i> object mixin guard <i>name</i><br></code></td>
+  </tr>
+  
   <tr>
     <td><code><i>cls</i> info instmixin <i>?-guards? ?-order? ?pattern?</i></code></td>
     <td><code><i>cls</i> info mixin <i>?-guards? ?-order? ?pattern?</i></code></td>
-  </tr> 
+  </tr>
+  
+  <tr>
+    <td><code><i>cls</i> info instmixinguard <i>name</i></code></td>
+    <td><code><i>cls</i> info mixin -guard <i>name</i><br>
+      <hr><i>cls</i> mixin guard <i>name</i><br></code></td>
+  </tr>  
 </table>
 
 <h4>List definition of methods defined by aliases, setters or forwarders</h4>
@@ -1417,6 +1435,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Sun Aug 22 14:13:15 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sun Aug 22 19:32:43 CEST 2010 <!-- hhmts end -->
 </body>
 </html>

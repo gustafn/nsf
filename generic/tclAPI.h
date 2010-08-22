@@ -160,7 +160,6 @@ static int XOTclClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *int
 static int XOTclClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -173,7 +172,6 @@ static int XOTclObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp 
 static int XOTclObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoSlotObjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -233,9 +231,8 @@ static int XOTclClassInfoHeritageMethod(Tcl_Interp *interp, XOTclClass *class, C
 static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, CONST char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class, int infomethodsubcmd, CONST char *name);
 static int XOTclClassInfoMethodsMethod(Tcl_Interp *interp, XOTclClass *class, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, CONST char *pattern);
-static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, int withGuards, CONST char *patternString, XOTclObject *patternObj);
+static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, int withGuard, int withGuards, CONST char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoMixinOfMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, int withScope, CONST char *patternString, XOTclObject *patternObj);
-static int XOTclClassInfoMixinguardMethod(Tcl_Interp *interp, XOTclClass *class, CONST char *mixin);
 static int XOTclClassInfoSlotsMethod(Tcl_Interp *interp, XOTclClass *class);
 static int XOTclClassInfoSubclassMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, CONST char *patternString, XOTclObject *patternObj);
 static int XOTclClassInfoSuperclassMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, Tcl_Obj *pattern);
@@ -247,8 +244,7 @@ static int XOTclObjInfoForwardMethod(Tcl_Interp *interp, XOTclObject *object, in
 static int XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *object);
 static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object, int infomethodsubcmd, CONST char *name);
 static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, CONST char *pattern);
-static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int withGuards, int withOrder, CONST char *patternString, XOTclObject *patternObj);
-static int XOTclObjInfoMixinguardMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *mixin);
+static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, int withGuard, int withGuards, int withOrder, CONST char *patternString, XOTclObject *patternObj);
 static int XOTclObjInfoParentMethod(Tcl_Interp *interp, XOTclObject *object);
 static int XOTclObjInfoPrecedenceMethod(Tcl_Interp *interp, XOTclObject *object, int withIntrinsic, CONST char *pattern);
 static int XOTclObjInfoSlotObjectsMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *pattern);
@@ -311,7 +307,6 @@ enum {
  XOTclClassInfoMethodsMethodIdx,
  XOTclClassInfoMixinMethodIdx,
  XOTclClassInfoMixinOfMethodIdx,
- XOTclClassInfoMixinguardMethodIdx,
  XOTclClassInfoSlotsMethodIdx,
  XOTclClassInfoSubclassMethodIdx,
  XOTclClassInfoSuperclassMethodIdx,
@@ -324,7 +319,6 @@ enum {
  XOTclObjInfoMethodMethodIdx,
  XOTclObjInfoMethodsMethodIdx,
  XOTclObjInfoMixinMethodIdx,
- XOTclObjInfoMixinguardMethodIdx,
  XOTclObjInfoParentMethodIdx,
  XOTclObjInfoPrecedenceMethodIdx,
  XOTclObjInfoSlotObjectsMethodIdx,
@@ -657,13 +651,14 @@ XOTclClassInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
   } else {
     XOTclClass *class = (XOTclClass *)pc.clientData[0];
     int withClosure = (int )PTR2INT(pc.clientData[1]);
-    int withGuards = (int )PTR2INT(pc.clientData[2]);
+    int withGuard = (int )PTR2INT(pc.clientData[2]);
+    int withGuards = (int )PTR2INT(pc.clientData[3]);
     CONST char *patternString = NULL;
     XOTclObject *patternObj = NULL;
-    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[4];
     int returnCode;
 
-    if (getMatchObject(interp, pattern, objc>3 ? objv[3] : NULL, &patternObj, &patternString) == -1) {
+    if (getMatchObject(interp, pattern, objc>4 ? objv[4] : NULL, &patternObj, &patternString) == -1) {
       if (pattern) {
         DECR_REF_COUNT(pattern);
       }
@@ -671,7 +666,7 @@ XOTclClassInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     }
           
     parseContextRelease(&pc);
-    returnCode = XOTclClassInfoMixinMethod(interp, class, withClosure, withGuards, patternString, patternObj);
+    returnCode = XOTclClassInfoMixinMethod(interp, class, withClosure, withGuard, withGuards, patternString, patternObj);
 
     if (pattern) {
       DECR_REF_COUNT(pattern);
@@ -712,25 +707,6 @@ XOTclClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int o
       DECR_REF_COUNT(pattern);
     }
     return returnCode;
-  }
-}
-
-static int
-XOTclClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclClassInfoMixinguardMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoMixinguardMethodIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclClass *class = (XOTclClass *)pc.clientData[0];
-    CONST char *mixin = (CONST char *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclClassInfoMixinguardMethod(interp, class, mixin);
-
   }
 }
 
@@ -982,14 +958,15 @@ XOTclObjInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     return TCL_ERROR;
   } else {
     XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withGuards = (int )PTR2INT(pc.clientData[1]);
-    int withOrder = (int )PTR2INT(pc.clientData[2]);
+    int withGuard = (int )PTR2INT(pc.clientData[1]);
+    int withGuards = (int )PTR2INT(pc.clientData[2]);
+    int withOrder = (int )PTR2INT(pc.clientData[3]);
     CONST char *patternString = NULL;
     XOTclObject *patternObj = NULL;
-    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[3];
+    Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[4];
     int returnCode;
 
-    if (getMatchObject(interp, pattern, objc>3 ? objv[3] : NULL, &patternObj, &patternString) == -1) {
+    if (getMatchObject(interp, pattern, objc>4 ? objv[4] : NULL, &patternObj, &patternString) == -1) {
       if (pattern) {
         DECR_REF_COUNT(pattern);
       }
@@ -997,31 +974,12 @@ XOTclObjInfoMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     }
           
     parseContextRelease(&pc);
-    returnCode = XOTclObjInfoMixinMethod(interp, object, withGuards, withOrder, patternString, patternObj);
+    returnCode = XOTclObjInfoMixinMethod(interp, object, withGuard, withGuards, withOrder, patternString, patternObj);
 
     if (pattern) {
       DECR_REF_COUNT(pattern);
     }
     return returnCode;
-  }
-}
-
-static int
-XOTclObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclObjInfoMixinguardMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoMixinguardMethodIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    CONST char *mixin = (CONST char *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclObjInfoMixinguardMethod(interp, object, mixin);
-
   }
 }
 
@@ -1917,9 +1875,10 @@ static methodDefinition method_definitions[] = {
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nsf::cmd::ClassInfo::mixin", XOTclClassInfoMixinMethodStub, 4, {
+{"::nsf::cmd::ClassInfo::mixin", XOTclClassInfoMixinMethodStub, 5, {
   {"class", 1, 0, convertToClass},
   {"-closure", 0, 0, convertToString},
+  {"-guard", 0, 0, convertToString},
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
@@ -1928,10 +1887,6 @@ static methodDefinition method_definitions[] = {
   {"-closure", 0, 0, convertToString},
   {"-scope", 0, 1, convertToScope},
   {"pattern", 0, 0, convertToObjpattern}}
-},
-{"::nsf::cmd::ClassInfo::mixinguard", XOTclClassInfoMixinguardMethodStub, 2, {
-  {"class", 1, 0, convertToClass},
-  {"mixin", 1, 0, convertToString}}
 },
 {"::nsf::cmd::ClassInfo::slots", XOTclClassInfoSlotsMethodStub, 1, {
   {"class", 1, 0, convertToClass}}
@@ -1991,15 +1946,12 @@ static methodDefinition method_definitions[] = {
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nsf::cmd::ObjectInfo::mixin", XOTclObjInfoMixinMethodStub, 4, {
+{"::nsf::cmd::ObjectInfo::mixin", XOTclObjInfoMixinMethodStub, 5, {
   {"object", 1, 0, convertToObject},
+  {"-guard", 0, 0, convertToString},
   {"-guards", 0, 0, convertToString},
   {"-order", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
-},
-{"::nsf::cmd::ObjectInfo::mixinguard", XOTclObjInfoMixinguardMethodStub, 2, {
-  {"object", 1, 0, convertToObject},
-  {"mixin", 1, 0, convertToString}}
 },
 {"::nsf::cmd::ObjectInfo::parent", XOTclObjInfoParentMethodStub, 1, {
   {"object", 1, 0, convertToObject}}

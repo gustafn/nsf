@@ -95,7 +95,7 @@ Class create M1
 Class create M2
 Class create X
 Class create A -mixin {M1 M2 X}
-A mixinguard M1 "test"
+A mixin guard M1 "test"
 Class create B -superclass A
 ? {A info mixin M2} ::M2
 ? {A info mixin M*} "::M1 ::M2"

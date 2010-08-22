@@ -13970,15 +13970,19 @@ static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object,
 /*
 infoObjectMethod mixin XOTclObjInfoMixinMethod {
   {-argName "object" -required 1 -type object}
+  {-argName "-guard"}
   {-argName "-guards"}
   {-argName "-order"}
   {-argName "pattern" -type objpattern}
 }
 */
 static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object, 
-                                   int withGuards, int withOrder,
+                                   int withGuard, int withGuards, int withOrder,
                                    CONST char *patternString, XOTclObject *patternObj) {
 
+  if (withGuard) {
+    return object->opt ? GuardList(interp, object->opt->mixins, patternString) : TCL_OK;
+  }
   if (withOrder) {
     if (!(object->flags & XOTCL_MIXIN_ORDER_VALID))
       MixinComputeDefined(interp, object);
@@ -13986,16 +13990,6 @@ static int XOTclObjInfoMixinMethod(Tcl_Interp *interp, XOTclObject *object,
 		     withGuards, patternObj);
   }
   return object->opt ? MixinInfo(interp, object->opt->mixins, patternString, withGuards, patternObj) : TCL_OK;
-}
-
-/*
-infoObjectMethod mixinguard XOTclObjInfoMixinguardMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "mixin"  -required 1}
-}
-*/
-static int XOTclObjInfoMixinguardMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *mixin) {
-  return object->opt ? GuardList(interp, object->opt->mixins, mixin) : TCL_OK;
 }
 
 /*
@@ -14222,15 +14216,20 @@ static int XOTclClassInfoMethodsMethod(Tcl_Interp *interp, XOTclClass *class,
 infoClassMethod mixin XOTclClassInfoMixinMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
+  {-argName "-guard"}
   {-argName "-guards"}
   {-argName "pattern" -type objpattern}
 }
 */
-static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass *class, int withClosure, int withGuards,
+static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass *class, 
+				     int withClosure, int withGuard, int withGuards,
 			      CONST char *patternString, XOTclObject *patternObj) {
   XOTclClassOpt *opt = class->opt;
   int rc;
 
+  if (withGuard) {
+    return opt ? GuardList(interp, opt->classmixins, patternString) : TCL_OK;
+  }
   if (withClosure) {
     Tcl_HashTable objTable, *commandTable = &objTable;
     MEM_COUNT_ALLOC("Tcl_InitHashTable", commandTable);
@@ -14246,16 +14245,6 @@ static int XOTclClassInfoMixinMethod(Tcl_Interp *interp, XOTclClass *class, int 
   }
 
   return TCL_OK;
-}
-
-/*
-infoClassMethod mixinguard XOTclClassInfoMixinguardMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "mixin" -required 1}
-}
-*/
-static int XOTclClassInfoMixinguardMethod(Tcl_Interp *interp, XOTclClass *class, CONST char *mixin) {
-  return class->opt ? GuardList(interp, class->opt->classmixins, mixin) : TCL_OK;
 }
 
 /*

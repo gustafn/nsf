@@ -81,12 +81,18 @@ Test case callable {
     o mixin ::nx::Class
     ? {o info callable method bar} "::nsf::classes::nx::Class::bar"
     ? {o info callable methods bar} bar
+    ? {o info callable methods superclass} ""
+    ? {o info callable method superclass} ""
     ? {o bar} Class.bar
 
     ? {o method foo {} {return o.foo}} "::o::foo"
     ? {o alias is ::nsf::objectproperty} "::o::is"
     ? {o setter x} "::o::x"
     ? {lsort [o info methods]} "foo is x"
+
+    ? {o attribute A} ::o::A
+    ? {o forward fwd ::set} ::o::fwd
+    ? {lsort [o info methods]} "A foo fwd is x"
 
     o method f args ::nx::next
     ? {o info callable methods superclass} ""
@@ -120,17 +126,38 @@ Test case callable {
     ? {Foo object info filter -guards f2} "f2"
     ? {Foo object info filter -guards} "{f -guard {2 == 2}} f2"
     ? {Foo object filter {}} ""
+    Foo destroy 
 
     nx::Class create Fly
     o mixin add Fly
     ? {o info mixin} "::Fly ::nx::Class"
-    ? {o mixinguard ::Fly {1}} ""
+    ? {o mixin guard ::Fly {1}} ""
+    ? {o info mixin -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {o info mixin -guards Fly} "{::Fly -guard 1}"
     o mixin delete ::Fly
     ? {o info mixin} "::nx::Class"
 
-    ? {o attribute A} ::o::A
-    ? {o forward fwd ::set} ::o::fwd
-    ? {lsort [o info methods]} "A f foo fwd is x"
+    nx::Class create Foo
+    Foo mixin add ::nx::Class
+    Foo mixin add Fly
+    ? {Foo info mixin} "::Fly ::nx::Class"
+    ? {Foo mixin guard ::Fly {1}} ""
+    ? {Foo info mixin -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {Foo info mixin -guards Fly} "{::Fly -guard 1}"
+    Foo mixin delete ::Fly
+    ? {Foo info mixin} "::nx::Class"
 
+    Foo object mixin add ::nx::Class
+    Foo object mixin add Fly
+    ? {Foo object info mixin} "::Fly ::nx::Class"
+    ? {Foo object mixin guard ::Fly {1}} ""
+    ? {Foo object info mixin -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {Foo object info mixin -guards Fly} "{::Fly -guard 1}"
+    Foo object mixin delete ::Fly
+    ? {Foo object info mixin} "::nx::Class"
+
+    ? {Foo info callable methods superclass} "superclass"
+    ? {Foo info callable method superclass} "::nsf::classes::nx::Class::superclass"
+    
     ? {o mixin ""} ""
 }

@@ -37,7 +37,7 @@ namespace eval ::nx {
   #
   foreach cmd [info command ::nsf::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "autoname" "exists" "filterguard" "instvar" "requireNamespace"]} continue
+    if {$cmdName in [list "autoname" "exists" "filterguard" "instvar" "mixinguard" "requireNamespace"]} continue
     ::nsf::alias Object $cmdName $cmd 
   }
   
@@ -47,7 +47,7 @@ namespace eval ::nx {
   # provide the standard command set for Class
   foreach cmd [info command ::nsf::cmd::Class::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "filterguard"]} continue
+    if {$cmdName in [list "filterguard" "mixinguard"]} continue
     ::nsf::alias Class $cmdName $cmd 
   }
 
@@ -1000,7 +1000,7 @@ namespace eval ::nx {
     ::nx::RelationSlot create ${os}::Class::slot::object-filter -elementtype "" -noforwarder 1
 
     #
-    # Define method "guard" for Object and Class
+    # Define method "guard" for mixin- and filter-slots of Object and Class
     #
     ${os}::Object::slot::filter method guard {obj prop filter guard:optional} {
       if {[info exists guard]} {
@@ -1014,6 +1014,20 @@ namespace eval ::nx {
 	::nsf::dispatch $obj ::nsf::cmd::Class::filterguard $filter $guard
       } else {
 	$obj info filter -guard $filter 
+      }
+    }
+    ${os}::Object::slot::mixin method guard {obj prop filter guard:optional} {
+      if {[info exists guard]} {
+	::nsf::dispatch $obj ::nsf::cmd::Object::mixinguard $filter $guard
+      } else {
+	$obj info mixin -guard $filter 
+      }
+    }
+    ${os}::Class::slot::mixin method guard {obj prop filter guard:optional} {
+      if {[info exists guard]} {
+	::nsf::dispatch $obj ::nsf::cmd::Class::mixinguard $filter $guard
+      } else {
+	$obj info mixin -guard $filter 
       }
     }
     #::nsf::alias ::nx::Class::slot::object-filter guard ${os}::Object::slot::filter::guard

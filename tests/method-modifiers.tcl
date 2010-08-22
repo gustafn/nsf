@@ -178,20 +178,20 @@ Test case mixinguards {
   # define a Class C and mixin class M
   Class create C
   Class create M
-  # register the mixin on C as a class mixin and define a class
-  # mixinguard
+
+  # register the mixin on C as a class mixin and define a mixinguard
   C mixin M
-  C mixinguard M {1 == 1}
-  ? {C info mixinguard M} "1 == 1"
-  C mixinguard M {}
-  ? {C info mixinguard M} ""
+  C mixin guard M {1 == 1}
+  ? {C info mixin -guard M} "1 == 1"
+  C mixin guard M {}
+  ? {C info mixin -guard M} ""
 
   # now the same as object mixin and object mixin guard
   C object mixin M
-  C object mixinguard M {1 == 1}
-  ? {C object info mixinguard M} "1 == 1"
-  C object mixinguard M {}
-  ? {C object info mixinguard M} ""
+  C object mixin guard M {1 == 1}
+  ? {C object info mixin -guard M} "1 == 1"
+  C object mixin guard M {}
+  ? {C object info mixin -guard M} ""
 }
 
 Test case mixin-via-objectparam {

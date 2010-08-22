@@ -1113,6 +1113,14 @@ _ added option noforwarder to RelationSlots
 - extended regression test
 - updated migration guide
 
+- replaced "obj|cls mixinguard name cond" by "obj|cls mixin guard name cond"
+- replaced "obj|cls info mixinguard name" by "obj|cls info mixin -guard name"
+- replaced "cls object info mixinguard name" by "cls object info mixin -guard name"
+- removed XOTclObjInfoMixinguardMethod() 
+- removed XOTclClassInfoMixinguardMethod() 
+- extended regression test
+- updated migration guide
+
 TODO: 
 
 - interfaces in documentation for slots (see for more details 

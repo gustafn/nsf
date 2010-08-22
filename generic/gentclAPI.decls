@@ -791,13 +791,10 @@ infoObjectMethod methods XOTclObjInfoMethodsMethod {
 }
 infoObjectMethod mixin XOTclObjInfoMixinMethod {
   {-argName "object" -required 1 -type object}
+  {-argName "-guard"}
   {-argName "-guards"}
   {-argName "-order"}
   {-argName "pattern" -type objpattern}
-}
-infoObjectMethod mixinguard XOTclObjInfoMixinguardMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "mixin"  -required 1}
 }
 infoObjectMethod parent XOTclObjInfoParentMethod {
   {-argName "object" -required 1 -type object}
@@ -856,12 +853,9 @@ infoClassMethod methods XOTclClassInfoMethodsMethod {
 infoClassMethod mixin XOTclClassInfoMixinMethod {
   {-argName "class"  -required 1 -type class}
   {-argName "-closure"}
+  {-argName "-guard"}
   {-argName "-guards"}
   {-argName "pattern" -type objpattern}
-}
-infoClassMethod mixinguard XOTclClassInfoMixinguardMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "mixin" -required 1}
 }
 infoClassMethod mixinof  XOTclClassInfoMixinOfMethod {
   {-argName "class"  -required 1 -type class}

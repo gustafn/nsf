@@ -338,6 +338,9 @@ namespace eval ::xotcl {
     :proc filterguard {o filter} {::nsf::cmd::ObjectInfo::filter $o -guard $filter}
     :proc instfilterguard {o filter} {::nsf::cmd::ClassInfo::filter $o -guard $filter}
 
+    :proc mixinguard {o mixin} {::nsf::cmd::ObjectInfo::mixin $o -guard $mixin}
+    :proc instmixinguard {o mixin} {::nsf::cmd::ClassInfo::mixin $o -guard $mixin}
+
     # assertion handling
     :proc instinvar   {o} {::nsf::assertion $o class-invar}
   }
@@ -385,6 +388,7 @@ namespace eval ::xotcl {
       return $def
     }
     :proc filterguard {o filter} {::nsf::cmd::ObjectInfo::filter $o -guard $filter}
+    :proc mixinguard {o mixin} {::nsf::cmd::ObjectInfo::mixin $o -guard $mixin}
 
     # assertion handling
     :proc check {o} {
@@ -415,12 +419,10 @@ namespace eval ::xotcl {
   ::nsf::alias ::xotcl::classInfo classparent ::nsf::cmd::ObjectInfo::parent
   ::nsf::alias ::xotcl::classInfo classchildren ::nsf::cmd::ObjectInfo::children
   ::nsf::alias ::xotcl::classInfo instmixin ::nsf::cmd::ClassInfo::mixin
-  ::nsf::alias ::xotcl::classInfo instmixinguard ::nsf::cmd::ClassInfo::mixinguard
-  #::nsf::alias ::xotcl::classInfo instmixinof ::nsf::cmd::ClassInfo::class-mixin-of
+
   ::nsf::forward ::xotcl::classInfo instmixinof ::nsf::cmd::ClassInfo::mixinof %1 -scope class
   ::nsf::alias ::xotcl::classInfo instfilter ::nsf::cmd::ClassInfo::filter
   ::nsf::alias ::xotcl::classInfo instforward ::nsf::cmd::ClassInfo::forward
-  #::nsf::alias ::xotcl::classInfo mixinof ::nsf::cmd::ClassInfo::object-mixin-of
   ::nsf::forward ::xotcl::classInfo mixinof ::nsf::cmd::ClassInfo::mixinof %1 -scope object
   ::nsf::alias ::xotcl::classInfo parameter ::nx::classInfo::parameter
 
