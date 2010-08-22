@@ -1122,7 +1122,11 @@ _ added option noforwarder to RelationSlots
 - updated migration guide
 
 - deactivated "abstract"
+
 TODO: 
+
+- deeper analysis of "contains"
+- check feasability of "obj info filter guard name" etc.
 
 - interfaces in documentation for slots (see for more details 
   ::nx::Class#superclass in nx.tcl).
