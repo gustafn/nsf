@@ -1123,6 +1123,10 @@ _ added option noforwarder to RelationSlots
 
 - deactivated "abstract"
 
+- implemented experimental delegating version of "object as method"
+  that keeps the original self.
+
+
 TODO: 
 
 - deeper analysis of "contains"

@@ -166,6 +166,7 @@ static int XOTclObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int o
 static int XOTclSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc,Tcl_Obj *CONST objv[]);
 XOTCLINLINE static int ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
                                       Tcl_Obj *CONST objv[], int flags);
+static int DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 
 static int DoDealloc(Tcl_Interp *interp, XOTclObject *object);
 static int RecreateObject(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *object, int objc, Tcl_Obj *CONST objv[]);
@@ -5895,10 +5896,12 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
       /*
        * invoke an aliased object via method interface
        */
+      XOTclRuntimeState *rst = RUNTIME_STATE(interp);
       XOTclObject *invokeObj = (XOTclObject *)cp;
+
       if (invokeObj->flags & XOTCL_DELETED) {
         /*
-         * when we try to call a deleted object, the cmd (alias) is
+         * When we try to call a deleted object, the cmd (alias) is
          * automatically removed.
          */
         Tcl_DeleteCommandFromToken(interp, cmd);
@@ -5906,6 +5909,22 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
         return XOTclVarErrMsg(interp, "Trying to dispatch deleted object via method '",
                               methodName, "'", (char *) NULL);
       }
+
+      /* 
+       * The client data cp is still the obj of the called method,
+       * i.e. self changes. In order to prevent this, we save the
+       * actual object in the runtime state, flag ObjectDispatch via
+       * XOTCL_CM_DELGATE to use it.
+       */
+      /*xxxx*/
+      /*fprintf(stderr, "save self %p %s\n", object, objectName(object));*/ 
+      rst->delegatee = object;
+      if (objc < 2) {
+	result = DispatchDefaultMethod(cp, interp, objc, objv);
+      } else {
+	result = ObjectDispatch(cp, interp, objc, objv, XOTCL_CM_DELGATE);
+      }
+      return result;
     } else if (proc == XOTclForwardMethod ||
 	       proc == XOTclObjscopedMethod ||
 	       proc == XOTclSetterMethod
@@ -5957,6 +5976,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     cmdObj = object->cmdName;
     methodObj = objv[0];
   } else {
+    assert(objc>1);
     shift = 1;
     cmdObj = objv[0];
     methodObj = objv[1];
@@ -6111,8 +6131,31 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     }
 
     if (!unknown) {
-      /*fprintf(stderr, "ObjectDispatch calls MethodDispatch with obj = %s frameType %d method %s\n",
-        objectName(object), frameType, methodName);*/
+      XOTclObject *originator = NULL;
+      /* xxxx */
+      /*fprintf(stderr, "ObjectDispatch calls MethodDispatch with obj = %s frameType %d method %s flags %.6x\n",
+	objectName(object), frameType, methodName, flags);*/
+      if (flags & XOTCL_CM_DELGATE && rst->delegatee) {
+	/*
+	 * We want to execute the method on the delegatee, so we have
+	 * to flip the object.
+	 *
+	 * Note: there is a object->refCount ++; at the begin of this
+	 * function and a XOTclCleanupObject(object) at the end. So,
+	 * we have to keep track of the refcounts here. Either mangle
+	 * refcounts, or save originator.
+	 * 
+	 */
+	originator = object;
+	/*XOTclCleanupObject(object);*/
+	clientData = rst->delegatee;
+	object = rst->delegatee;
+	/*object->refCount ++; */
+	/*fprintf(stderr, "    ... clientData %p %s object %p %s methodName %s\n", 
+		clientData, objectName(((XOTclObject *)clientData)), object, objectName(object), 
+		methodName);*/
+      }
+      
       if ((result = MethodDispatch(clientData, interp, objc-shift, objv+shift, cmd, object, cl,
                                  methodName, frameType)) == TCL_ERROR) {
         /*fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, flags %.6x\n",
@@ -6121,6 +6164,11 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 				cl && cl->object.teardown ? cl->object.cmdName : NULL,
 				methodName);
       }
+      if (originator) {
+	clientData = originator;
+	object = originator;
+      }
+
       unknown = rst->unknown;
     }
   } else {
@@ -6192,6 +6240,24 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   return result;
 }
 
+
+static int
+DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  int result;
+  Tcl_Obj *methodObj = XOTclMethodObj(interp, (XOTclObject *)clientData, XO_o_defaultmethod_idx);
+
+  if (methodObj) {
+    Tcl_Obj *tov[2];
+    tov[0] = objv[0];
+    tov[1] = methodObj;
+    result = ObjectDispatch(clientData, interp, 2, tov, XOTCL_CM_NO_UNKNOWN);
+  } else {
+    result = TCL_OK;
+  }
+  return result;
+}
+
+
 int
 XOTclObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   int result;
@@ -6207,17 +6273,8 @@ XOTclObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     /* normal dispatch */
     result = ObjectDispatch(clientData, interp, objc, objv, 0);
   } else {
-    Tcl_Obj *methodObj = XOTclMethodObj(interp, (XOTclObject *)clientData, XO_o_defaultmethod_idx);
-    if (methodObj) {
-      Tcl_Obj *tov[2];
-      tov[0] = objv[0];
-      tov[1] = methodObj;
-      result = ObjectDispatch(clientData, interp, 2, tov, XOTCL_CM_NO_UNKNOWN);
-    } else {
-      result = TCL_OK;
-    }
+    result = DispatchDefaultMethod(clientData, interp, objc, objv);
   }
-
   return result;
 }
 

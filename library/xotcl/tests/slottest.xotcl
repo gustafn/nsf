@@ -322,10 +322,12 @@ a0 forward f4 puts hu
 ? {a0 procsearch f3} "::a0 proc f3"
 ? {a0 procsearch f4} "::a0 forward f4"
 ? {a0 procsearch set} "::xotcl::Object instcmd set"
-? {A slot foo info callable method assign} "::nsf::classes::nx::ObjectParameterSlot::assign"
+#? {A slot foo info callable method assign} "::nsf::classes::nx::ObjectParameterSlot::assign"
+? {A::slot::foo info callable method assign} "::nsf::classes::nx::ObjectParameterSlot::assign"
 
 # redefine setter for foo of class A
-A slot foo method assign {domain var val} {
+#A slot foo method assign {domain var val} ...
+A::slot::foo method assign {domain var val} {
   # Do something with [self] that isn't valid pre-init
   puts setter-[self proc]
   $domain set $var $val
@@ -457,11 +459,17 @@ Rectangle r0 -color pink -contains {
   }
 }
 
+#? {r0 color} pink
+#? {r0 r1 color} red
+#? {r0 r1 x1 x} 1
+#? {r0 r1 x2 y} 2
+#? {r0 r2 color} green
+
 ? {r0 color} pink
-? {r0 r1 color} red
-? {r0 r1 x1 x} 1
-? {r0 r1 x2 y} 2
-? {r0 r2 color} green
+? {r0::r1 color} red
+? {r0::r1::x1 x} 1
+? {r0::r1::x2 y} 2
+? {r0::r2 color} green
 #puts [r0 serialize]
 
 #######################################################

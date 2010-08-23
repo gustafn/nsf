@@ -106,8 +106,8 @@ namespace eval ::xotcl::comm::httpd {
     next
     my makeConnection $socket
     my log Connect "$ipaddr $port"
-    my connection translation {auto crlf}
-    my connection event readable [self] firstLine
+    [self]::connection translation {auto crlf}
+    [self]::connection event readable [self] firstLine
   }
   Httpd::Wrk instproc makeConnection {socket} {
     Connection create [self]::connection -socket $socket -req [self]
@@ -115,10 +115,10 @@ namespace eval ::xotcl::comm::httpd {
   Httpd::Wrk instproc close {} {		# logical close of a single request
     #my showCall
     my instvar version timeout meta
-    set eof [my connection eof]
+    set eof [[self]::connection eof]
     if {$version > 1.0 && !$eof} {
       #my showMsg "!EOF in http/$version"
-      my connection flush
+      [self]::connection flush
       set timeout [after [[my info parent] workerTimeout] [self] destroy]
       ### reset parameters, worker will be potentially reused
       if {[array exists meta]} {
@@ -134,8 +134,8 @@ namespace eval ::xotcl::comm::httpd {
       my set replyHeaderFields [list]
       my set formData {}
       #my showVars
-      my connection translation {auto crlf}
-      my connection event readable [self] firstLine
+      [self]::connection translation {auto crlf}
+      [self]::connection event readable [self] firstLine
     } elseif {$eof} {
       #my showMsg "Destroy in http/$version"
       # the client side has closed the connection
@@ -143,7 +143,7 @@ namespace eval ::xotcl::comm::httpd {
     } else {
       #my showMsg "!EOF in http/$version ???"
       # we close the conneciton actively (e.g. forced by an error)
-      my connection flush
+      [self]::connection flush
       #puts stderr "DESTROY----this line should never show up"
       my destroy
     }
@@ -151,14 +151,14 @@ namespace eval ::xotcl::comm::httpd {
   Httpd::Wrk instproc destroy {} {
     #my showCall
     if {[my isobject [self]::connection]} {
-      my connection close
+      [self]::connection close
     }
     next
   }
   Httpd::Wrk instproc freeConnection {} {
   }
   Httpd::Wrk instproc firstLine {} {	# Read the first line of the request
-    #my showCall
+      my showCall
     my instvar method resourceName hasFormData query fileName \
 	version timeout 
     if {[info exists timeout]} {
@@ -166,7 +166,7 @@ namespace eval ::xotcl::comm::httpd {
       unset timeout
     }
     my lappend replyHeaderFields Date [Httpd Date [clock seconds]]
-    set n [my connection gets firstLine]
+    set n [[self]::connection gets firstLine]
     if {$n > 0} {
       #::puts stderr "[self] firstline=<$firstLine>"
       # parse request line, ignore HTTP version for now
@@ -184,8 +184,8 @@ namespace eval ::xotcl::comm::httpd {
 	if {[my exists forceVersion1.0]} {
 	  set version 1.0
 	}
-	my connection makePersistent [expr {$version > 1.0}]
-	my connection event readable [self] header
+	[self]::connection makePersistent [expr {$version > 1.0}]
+	[self]::connection event readable [self] header
       } else {
 	set version 1.0
 	set resourceName ???
@@ -194,18 +194,18 @@ namespace eval ::xotcl::comm::httpd {
 	my replyCode 400
 	my replyErrorMsg
       }
-    } elseif {![my connection eof]} {
-      #my showMsg "+++ not completed EOF=[my connection eof]"
+    } elseif {![[self]::connection eof]} {
+      #my showMsg "+++ not completed EOF=[[self]::connection eof]"
     } else {
       set version 1.0
-      #my showMsg "+++ n=negative ($n) EOF=[my connection eof] version set to 1.0"
+      #my showMsg "+++ n=negative ($n) EOF=[[self]::connection eof] version set to 1.0"
       my close
     }
   }
   Httpd::Wrk instproc header {} {			# Read the header
     #my showCall
     my instvar method data
-    if {[my connection gets line] > 0} {
+    if {[[self]::connection gets line] > 0} {
       #puts stderr line=$line
       if {[regexp -nocase {^([^:]+): *(.+)$} $line _ key value]} {
 	my set meta([string tolower $key]) $value
@@ -215,17 +215,17 @@ namespace eval ::xotcl::comm::httpd {
       if {[my exists meta(content-length)] && [my set meta(content-length)]>0} {
 	#puts stderr "we have content-length [my set meta(content-length)]"
 	set data ""
-	my connection translation binary
-	my connection event readable [self] receive-body
+	[self]::connection translation binary
+	[self]::connection event readable [self] receive-body
       } elseif {[my exists meta(content-type)] &&
 		[regexp -nocase {multipart/form-data; *boundary=} \
 		     [my set meta(content-type)]]} {
 	#puts stderr "formdata"
 	set data ""
-	my connection event readable [self] receive-body
+	[self]::connection event readable [self] receive-body
       } else {
 	#puts stderr "no-content-length, triggering respond"
-	my connection event readable [self] ""
+	[self]::connection event readable [self] ""
 	[my info parent] instvar requiresBody
 	if {$requiresBody($method)} {
 	  my replyCode 411
@@ -239,18 +239,18 @@ namespace eval ::xotcl::comm::httpd {
   Httpd::Wrk instproc receive-body {} {	;# ... now we have to read the body
     #my showCall
     my instvar method data meta
-    set d [my connection read]
+    set d [[self]::connection read]
     if {$d ne ""} {
       append data $d
       #my showMsg "datal=[string length $data], cl=$meta(content-length)"
       if {[string length $data] >= $meta(content-length)} {
-	my connection event readable [self] ""
+	[self]::connection event readable [self] ""
 	if {$method eq "POST"} { my decode-POST-query  }
 	my check-redirect
       }
     } else {   ;# 0 byte, must be eof...
       my showMsg "received 0 bytes"
-      my connection event readable [self] ""
+      [self]::connection event readable [self] ""
       if {[string length $data] < $meta(content-length)} {
 	my replyCode 404
 	my replyErrorMsg
@@ -307,7 +307,7 @@ namespace eval ::xotcl::comm::httpd {
 	  Last-Modified [Httpd Date [file mtime $fileName]] \
 	  Content-Type [Mime guessContentType $fileName] \
 	  Content-Length [file size $fileName]
-      my connection puts ""
+      [self]::connection puts ""
       #my log Done "$fileName [Mime guessContentType $fileName]"
       my close
     } else {
@@ -319,13 +319,13 @@ namespace eval ::xotcl::comm::httpd {
     my replyCode 200 \
 	Allow "OPTIONS, GET, HEAD, POST" \
 	Public "OPTIONS, GET, HEAD, POST"
-    my connection puts ""
+    [self]::connection puts ""
     my close
   }
   Httpd::Wrk instproc respond-PUT {} {
     my instvar data method fileName
     my replyCode [expr {[file writable $fileName] ? 200 : 201}]
-    my connection puts ""
+    [self]::connection puts ""
     set out [open $fileName w]
     fconfigure $out -translation binary
     puts -nonewline $out $data
@@ -337,7 +337,7 @@ namespace eval ::xotcl::comm::httpd {
     my instvar fileName
     if {[file executable $fileName]} {
       my replyCode 200
-      my connection puts [exec $fileName]      ;# no parameter handling yet
+      [self]::connection puts [exec $fileName]      ;# no parameter handling yet
       my close
     } else {
       my replyCode 403
@@ -403,7 +403,7 @@ namespace eval ::xotcl::comm::httpd {
   Httpd::Wrk instproc replyErrorMsg {{msg ""} args} {
     my instvar replyCode
     [self class] instvar codes
-    foreach {tag value} $args {my connection puts "$tag: $value"}
+    foreach {tag value} $args {[self]::connection puts "$tag: $value"}
     my sendText "\n<HTML><title>Status Code: $replyCode</title>\n\
       <BODY>$msg<p>\n\
       Status Code $replyCode: <b>$codes($replyCode)</b><br>\n\
@@ -415,9 +415,9 @@ namespace eval ::xotcl::comm::httpd {
     my instvar version
     [self class] instvar codes
     my set replyCode $code
-    my connection puts "HTTP/$version $code $codes($code)"
-    foreach {tag value} [my set replyHeaderFields] {my connection puts "$tag: $value"}
-    foreach {tag value} $args {my connection puts "$tag: $value"}
+    [self]::connection puts "HTTP/$version $code $codes($code)"
+    foreach {tag value} [my set replyHeaderFields] {[self]::connection puts "$tag: $value"}
+    foreach {tag value} $args {[self]::connection puts "$tag: $value"}
     if {$code >= 400} {
       my log Error "$code $codes($code)\tmeta: [my array get meta]"
     }  else {
@@ -426,13 +426,13 @@ namespace eval ::xotcl::comm::httpd {
   }
   Httpd::Wrk instproc sendText {response {type text/html}} {
     #my showCall
-    my connection puts "Content-Type: $type"
+    [self]::connection puts "Content-Type: $type"
     # bei einer leeren Responses blockieren Klienten und melden Fehler
     if {$response eq ""} { set response " " }
-    my connection puts "Content-Length: [string length $response]\n"
+    [self]::connection puts "Content-Length: [string length $response]\n"
     if {[my set method] ne "HEAD"} {
-      my connection fconfigure -translation {auto binary}
-      my connection puts-nonewline $response
+      [self]::connection fconfigure -translation {auto binary}
+      [self]::connection puts-nonewline $response
     } else {
       my showMsg HEAD!
     }
@@ -497,11 +497,11 @@ namespace eval ::xotcl::comm::httpd {
 	  Last-Modified [Httpd Date $mtime] \
 	  Content-Type $type \
 	  Content-Length [file size $fn]
-      my connection puts ""
-      my connection fconfigure -translation binary ;#-buffersize 65536
+      [self]::connection puts ""
+      [self]::connection fconfigure -translation binary ;#-buffersize 65536
       set localFile [open $fn]
       fconfigure $localFile -translation binary -buffersize 65536
-      fcopy $localFile [my connection set socket] \
+      fcopy $localFile [[self]::connection set socket] \
 	  -command [list [self] fcopy-end $localFile]
     } else {
       my replyCode 404
@@ -510,7 +510,7 @@ namespace eval ::xotcl::comm::httpd {
   }
   Httpd::Wrk instproc fcopy-end {localFile args} {	# End of fcopy
     close $localFile
-    my connection fconfigure -blocking false ;# fconfigure changes blocking in 8.3.2!
+    [self]::connection fconfigure -blocking false ;# fconfigure changes blocking in 8.3.2!
     my close
   }
   Httpd::Wrk instproc log {reason arg} {			# trivial logging
@@ -567,7 +567,7 @@ namespace eval ::xotcl::comm::httpd {
     
     # -server bool --> Handshake as server if true, else handshake as
     # client.(default: false)
-    my connection importSSL -server 1 \
+    [self]::connection importSSL -server 1 \
 	-certfile  $certfile \
 	-keyfile  $keyfile \
 	-cafile    $cafile \

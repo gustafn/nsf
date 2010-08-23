@@ -248,6 +248,7 @@ typedef struct XOTclMemCounter {
 #define XOTCL_CM_NO_UNKNOWN 1
 #define XOTCL_CM_NO_SHIFT   2
 #define XOTCL_CM_NO_PROTECT 4
+#define XOTCL_CM_DELGATE    0x10
 
 /*
  *
@@ -666,6 +667,7 @@ typedef struct XOTclRuntimeState {
   int overloadedMethods;
   long newCounter;
   XOTclStringIncrStruct iss;
+  XOTclObject *delegatee;
   Proc fakeProc;
   Tcl_Namespace *fakeNS;
   NxStubs *nxStubs;

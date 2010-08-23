@@ -78,17 +78,14 @@
 #define NDEBUG 1
 */
 
-
 /* activate/deacticate memory tracing 
 #define XOTCL_MEM_TRACE 1
 #define XOTCL_MEM_COUNT 1
 */
 
-/*
-#define XOTCLOBJ_TRACE 1
-*/
-
 /* turn  tracing output on/off
+#define XOTCLOBJ_TRACE 1
+
 #define CALLSTACK_TRACE 1
 #define DISPATCH_TRACE 1
 #define NAMESPACE_TRACE 1

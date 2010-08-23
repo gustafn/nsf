@@ -355,7 +355,7 @@ Test case multivalued {
   ? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a" for parameter -ints}
   
   # make slot incremental
-  Foo slot ints eval {
+  Foo::slot::ints eval {
     set :incremental 1
     :optimize
   }
@@ -807,7 +807,7 @@ Test case op-object-types {
   ? {ParamTest create p -u c1} {expected upper but got "c1" for parameter -u}
   ? {ParamTest create p -us {A B c}} \
       {invalid value in "A B c": expected upper but got "c" for parameter -us}
-  ParamTest slot us eval {
+  ParamTest::slot::us eval {
     set :incremental 1
     :optimize
   }

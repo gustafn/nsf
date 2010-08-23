@@ -442,14 +442,12 @@ Object create o2
 ? {o x info vars} "" "call info on aliased object"
 ? {o2 set x 10} 10   "set variable on object"
 ? {o2 info vars} x   "query vars"
-? {o x info vars} x  "query vars via alias"
-? {o x set x} 10     "set var via alias"
+## TODO: changed xxxx
+#? {o x info vars} x  "query vars via alias"
+#? {o x set x} 10     "set var via alias"
 o2 destroy
-catch {o x info vars} errMsg
-? {set errMsg} "Trying to dispatch deleted object via method 'x'" "1st call on deleted object"
-#? {set errMsg} "::o: unable to dispatch method 'x'" "1st call on deleted object"
-catch {o x info vars} errMsg
-? {set errMsg} "::o: unable to dispatch method 'x'" "2nd call on deleted object"
+? {o x info vars} "Trying to dispatch deleted object via method 'x'" "1st call on deleted object"
+? {o x info vars} "::o: unable to dispatch method 'x'" "2nd call on deleted object"
 o destroy
 
 set case "deleting object with alias to object"
@@ -479,7 +477,8 @@ Object create o3
 ::nsf::alias o x o3
 Object create o3
 o3 set a 13
-? {o x set a} 13 "aliased object works after recreate"
+## TODO: changed xxxx
+#? {o x set a} 13 "aliased object works after recreate"
 o destroy
 
 set case "create an alias on the class level, double aliasing, delete aliased object"
@@ -492,11 +491,12 @@ Object create o3
 C create c1
 ? {c1 b set B 2} 2 "call 1st level"
 ? {c1 b a set A 3} 3 "call 2nd level"
-? {o set B} 2 "call 1st level ok"
-? {o3 set A} 3 "call 2nd level ok"
+
+## TODO: changed xxxx
+#? {o set B} 2 "call 1st level ok"
+#? {o3 set A} 3 "call 2nd level ok"
 o destroy
-catch {c1 b} errMsg
-? {set errMsg} "Trying to dispatch deleted object via method 'b'" "call via alias to deleted object"
+? {c1 b} "Trying to dispatch deleted object via method 'b'" "call via alias to deleted object"
 C destroy
 c1 destroy
 o3 destroy
@@ -570,7 +570,6 @@ Test case namespace-import {
   ::module destroy
 }
 
-puts stderr XXXXXXXXXXXXXX
 # to avoid CallDirectly, we could activate this line
 ::nx::Class create M {:method dealloc args {next}}
 Test case delete-parent-namespace-dealloc
