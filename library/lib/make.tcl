@@ -90,7 +90,7 @@ Object create make {
 ### tcl file-command
 rename file tcl_file
 Object create file {
-  :requireNamespace
+  :require namespace
 
   array set :destructive {
     atime 0       attributes 0  copy 1       delete 1      dirname 0
