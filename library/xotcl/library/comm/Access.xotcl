@@ -391,7 +391,7 @@ namespace eval ::xotcl::comm::httpAccess {
 	my set block
     }
     Access instproc kill {} {
-	my showCall
+	#my showCall
 	my set state -1; #interrupted
 	my finish
     }

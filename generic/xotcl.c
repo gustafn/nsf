@@ -5841,6 +5841,13 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 # define MethodDispatch __MethodDispatch__
 #endif
 
+static Tcl_Obj*
+SubcmdObj(Tcl_Interp *interp, CONST char *start, size_t len) {
+  Tcl_Obj *checker = Tcl_NewStringObj("sub=", 4);
+  Tcl_AppendLimitedToObj(checker, start, len, INT_MAX, NULL);
+  return checker;
+}
+
 /*
  * MethodDispatch() calls an XOTcl method. It calls either a
  * Tcl-implemented method (via ProcMethodDispatch()) or a C-implemented
@@ -5922,7 +5929,12 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
       if (objc < 2) {
 	result = DispatchDefaultMethod(cp, interp, objc, objv);
       } else {
-	result = ObjectDispatch(cp, interp, objc, objv, XOTCL_CM_DELGATE);
+        ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
+	memcpy(tov, objv, sizeof(Tcl_Obj *)*(objc));
+	tov[1] = SubcmdObj(interp, ObjStr(objv[1]), -1);
+	INCR_REF_COUNT(tov[1]);
+	result = ObjectDispatch(cp, interp, objc, tov, XOTCL_CM_DELGATE);
+	DECR_REF_COUNT(tov[1]);
       }
       return result;
     } else if (proc == XOTclForwardMethod ||
@@ -5954,7 +5966,6 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 
   return result;
 }
-
 
 XOTCLINLINE static int
 ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
@@ -6131,7 +6142,6 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     }
 
     if (!unknown) {
-      XOTclObject *originator = NULL;
       /* xxxx */
       /*fprintf(stderr, "ObjectDispatch calls MethodDispatch with obj = %s frameType %d method %s flags %.6x\n",
 	objectName(object), frameType, methodName, flags);*/
@@ -6146,27 +6156,19 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 	 * refcounts, or save originator.
 	 * 
 	 */
-	originator = object;
-	/*XOTclCleanupObject(object);*/
-	clientData = rst->delegatee;
-	object = rst->delegatee;
-	/*object->refCount ++; */
-	/*fprintf(stderr, "    ... clientData %p %s object %p %s methodName %s\n", 
-		clientData, objectName(((XOTclObject *)clientData)), object, objectName(object), 
-		methodName);*/
+	result = MethodDispatch(rst->delegatee, interp, objc-shift, objv+shift, 
+				cmd, rst->delegatee, cl,
+				methodName, frameType);
+      } else {
+	result = MethodDispatch(clientData, interp, objc-shift, objv+shift, cmd, object, cl,
+				methodName, frameType);
       }
-      
-      if ((result = MethodDispatch(clientData, interp, objc-shift, objv+shift, cmd, object, cl,
-                                 methodName, frameType)) == TCL_ERROR) {
+      if (result == TCL_ERROR) {
         /*fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, flags %.6x\n",
           cl, cl ? cl->object.id : 0, cl ? cl->object.flags : 0);*/
 	result = XOTclErrInProc(interp, cmdName,
 				cl && cl->object.teardown ? cl->object.cmdName : NULL,
 				methodName);
-      }
-      if (originator) {
-	clientData = originator;
-	object = originator;
       }
 
       unknown = rst->unknown;

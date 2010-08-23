@@ -30,6 +30,7 @@ namespace eval ::nx {
   #
   # get frequenly used primitiva from the next scripting framework 
   #
+  namespace eval ::nsf {}
   namespace import ::nsf::next ::nsf::current
 
   #

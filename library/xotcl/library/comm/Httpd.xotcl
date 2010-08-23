@@ -158,7 +158,7 @@ namespace eval ::xotcl::comm::httpd {
   Httpd::Wrk instproc freeConnection {} {
   }
   Httpd::Wrk instproc firstLine {} {	# Read the first line of the request
-      my showCall
+    #my showCall
     my instvar method resourceName hasFormData query fileName \
 	version timeout 
     if {[info exists timeout]} {

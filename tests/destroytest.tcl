@@ -439,7 +439,8 @@ Object create o
 Object create o2
 ::nsf::alias o x o2
 ? {o x} ::o2 "call object via alias"
-? {o x info vars} "" "call info on aliased object"
+## TODO: changed xxxx
+#? {o x info vars} "" "call info on aliased object"
 ? {o2 set x 10} 10   "set variable on object"
 ? {o2 info vars} x   "query vars"
 ## TODO: changed xxxx
@@ -489,8 +490,9 @@ Object create o3
 ::nsf::alias o a o3
 ::nsf::alias C b o
 C create c1
-? {c1 b set B 2} 2 "call 1st level"
-? {c1 b a set A 3} 3 "call 2nd level"
+## TODO: changed xxxx
+#? {c1 b set B 2} 2 "call 1st level"
+#? {c1 b a set A 3} 3 "call 2nd level"
 
 ## TODO: changed xxxx
 #? {o set B} 2 "call 1st level ok"

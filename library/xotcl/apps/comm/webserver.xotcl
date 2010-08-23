@@ -85,9 +85,9 @@ SpecializedWorker instproc respond {} {
   }
   set c [subst $content]
   my replyCode 200
-  my connection puts "Content-Type: text/html"
-  my connection puts "Content-Length: [string length $c]\n"
-  my connection puts-nonewline $c
+  [self]::connection puts "Content-Type: text/html"
+  [self]::connection puts "Content-Length: [string length $c]\n"
+  [self]::connection puts-nonewline $c
   my close
 }
 

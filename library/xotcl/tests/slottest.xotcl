@@ -159,8 +159,8 @@ Class Project -slots {
 }
 
 puts [Person serialize]
-Person slot name default "gustaf"
-? {Person slot name default} gustaf
+Person::slot::name default "gustaf"
+? {Person::slot::name default} gustaf
 Person p1 -name neophytos
 ? {p1 name} neophytos
 ? {p1 age} 0

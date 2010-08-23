@@ -1,3 +1,4 @@
+# -*- Tcl -*-
 #memory trace on
 package require XOTcl; namespace import ::xotcl::*
 
@@ -448,19 +449,19 @@ Test new -msg {call proc of subobject via dispatch} \
     -pre {C c2; C c2::o; c2::o proc f a {incr a}} \
     -cmd {c2::o f 10} -expected 11 -count 5000 \
     -post {c2 destroy}
-Test new -msg {call proc of object and subobject via dispatch} \
-    -pre {C c2; C c2::o; c2::o proc f a {incr a}} \
-    -cmd {c2 o f 10} -expected 11 -count 5000 \
-    -post {c2 destroy}
+#Test new -msg {call proc of object and subobject via dispatch} \
+#    -pre {C c2; C c2::o; c2::o proc f a {incr a}} \
+#    -cmd {c2 o f 10} -expected 11 -count 5000 \
+#    -post {c2 destroy}
 
 Test new -msg {dispatch subobject directy via [self]} \
     -pre {C c2; C c2::o; c2::o proc f a {incr a}; c2 proc t a {[self]::o f $a}} \
     -cmd {c2 t 12} -expected 13 -count 5000 \
     -post {c2 destroy}
-Test new -msg {dispatch subobject via my} \
-    -pre {C c2; C c2::o; c2::o proc f a {incr a}; c2 proc t a {my o f $a}} \
-    -cmd {c2 t 12} -expected 13 -count 5000 \
-    -post {c2 destroy}
+#Test new -msg {dispatch subobject via my} \
+#    -pre {C c2; C c2::o; c2::o proc f a {incr a}; c2 proc t a {my o f $a}} \
+#    -cmd {c2 t 12} -expected 13 -count 5000 \
+#    -post {c2 destroy}
 
 
 ###### insttclcmd tests
