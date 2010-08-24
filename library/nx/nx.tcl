@@ -436,13 +436,19 @@ namespace eval ::nx {
     # info info
     :public method info {obj} {
       set methods [list]
-      foreach name [::nsf::cmd::ObjectInfo::methods [::nsf::current object]] {
+      foreach name [::nsf::cmd::ObjectInfo::methods -methodtype all [::nsf::current object]] {
         if {$name eq "unknown"} continue
         lappend methods $name
       }
       return "valid options are: [join [lsort $methods] {, }]"
     }
 
+    :method filter {o submethod args} {
+      switch $submethod {
+	guard {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filterguard {*}$args}
+	methods {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filtermethods {*}$args}
+      }
+    }
     :method unknown {method obj args} {
       error "[::nsf::current object] unknown info option \"$method\"; [$obj info info]"
     }
@@ -452,13 +458,18 @@ namespace eval ::nx {
     :alias is ::nsf::objectproperty
     :alias classparent ::nsf::cmd::ObjectInfo::parent
     :alias classchildren ::nsf::cmd::ObjectInfo::children
-    :alias info [::nsf::cmd::ObjectInfo::method objectInfo handle info]
-    :alias unknown [::nsf::cmd::ObjectInfo::method objectInfo handle info]
+    :method filter {o submethod args} {
+      switch $submethod {
+	guard {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::filterguard {*}$args}
+	methods {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::filtermethods {*}$args}
+      }
+    }
   }
 
   foreach cmd [info command ::nsf::cmd::ObjectInfo::*] {
-    ::nsf::alias ::nx::objectInfo [namespace tail $cmd] $cmd
-    ::nsf::alias ::nx::classInfo [namespace tail $cmd] $cmd
+    set cmdName [namespace tail $cmd]
+    ::nsf::alias ::nx::objectInfo $cmdName $cmd
+    ::nsf::alias ::nx::classInfo $cmdName $cmd
   }
   foreach cmd [info command ::nsf::cmd::ClassInfo::*] {
     set cmdName [namespace tail $cmd]
@@ -1067,28 +1078,28 @@ namespace eval ::nx {
       if {[info exists guard]} {
 	::nsf::dispatch $obj ::nsf::cmd::Object::filterguard $filter $guard
       } else {
-	$obj info filter -guard $filter 
+	$obj info filter guard $filter 
       }
     }
     ${os}::Class::slot::filter method guard {obj prop filter guard:optional} {
       if {[info exists guard]} {
 	::nsf::dispatch $obj ::nsf::cmd::Class::filterguard $filter $guard
       } else {
-	$obj info filter -guard $filter 
+	$obj info filter guard $filter 
       }
     }
     ${os}::Object::slot::mixin method guard {obj prop filter guard:optional} {
       if {[info exists guard]} {
 	::nsf::dispatch $obj ::nsf::cmd::Object::mixinguard $filter $guard
       } else {
-	$obj info mixin -guard $filter 
+	$obj info mixin guard $filter 
       }
     }
     ${os}::Class::slot::mixin method guard {obj prop filter guard:optional} {
       if {[info exists guard]} {
 	::nsf::dispatch $obj ::nsf::cmd::Class::mixinguard $filter $guard
       } else {
-	$obj info mixin -guard $filter 
+	$obj info mixin guard $filter 
       }
     }
     #::nsf::alias ::nx::Class::slot::object-filter guard ${os}::Object::slot::filter::guard

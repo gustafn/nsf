@@ -20,7 +20,9 @@
 array set ns {
   xotclCmd    "::nsf"
   objectMethod "::nsf::cmd::Object"
+  objectInfoMethod "::nsf::cmd::ObjectInfo2"
   classMethod  "::nsf::cmd::Class"
+  classInfoMethod "::nsf::cmd::ClassInfo2"
   checkMethod  "::nsf::cmd::ParameterType"
   infoClassMethod  "::nsf::cmd::ClassInfo"
   infoObjectMethod  "::nsf::cmd::ObjectInfo"
@@ -558,13 +560,30 @@ objectMethod vwait XOTclOVwaitMethod {
   {-argName "varname" -required 1}
 }
 
-# # temporary 
-# #  TODO: remove me
-# objectMethod vars XOTclOVarsMethod {
-#   {-argName "pattern" -required 0}
-# }
+# # temporary xxx
+# #  TODO: remove me xxx
+# TODO mixinguard method
+# TODO instmixinguard method
+# TODO remove option -guard
+objectInfoMethod filtermethods XOTclObjInfoFiltermethodsMethod {
+  {-argName "-guards"}
+  {-argName "-order"}
+  {-argName "pattern"}
+}
+objectInfoMethod filterguard XOTclObjInfoFilterguardMethod {
+  {-argName "filter" -required 1}
+}
+objectInfoMethod vars XOTclOVarsMethod {
+  {-argName "pattern" -required 0}
+}
 
-
+classInfoMethod filtermethods XOTclClassInfoFiltermethodsMethod {
+  {-argName "-guards"}
+  {-argName "pattern"}
+}
+classInfoMethod filterguard XOTclClassInfoFilterguardMethod {
+  {-argName "filter" -required 1}
+}
 
 #
 # class methods
@@ -769,13 +788,7 @@ infoObjectMethod children XOTclObjInfoChildrenMethod {
 infoObjectMethod class XOTclObjInfoClassMethod {
   {-argName "object" -required 1 -type object}
 }
-infoObjectMethod filter XOTclObjInfoFilterMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "-guard"}
-  {-argName "-guards"}
-  {-argName "-order"}
-  {-argName "pattern"}
-}
+
 infoObjectMethod forward XOTclObjInfoForwardMethod {
   {-argName "object" -required 1 -type object}
   {-argName "-definition"}
@@ -833,12 +846,6 @@ infoClassMethod instances XOTclClassInfoInstancesMethod {
   {-argName "class"   -required 1 -type class}
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
-}
-infoClassMethod filter XOTclClassInfoFilterMethod {
-  {-argName "class"   -required 1 -type class}
-  {-argName "-guard"}
-  {-argName "-guards"}
-  {-argName "pattern"}
 }
 infoClassMethod forward XOTclClassInfoForwardMethod {
   {-argName "class"  -required 1 -type class}

@@ -1140,7 +1140,18 @@ _ added option noforwarder to RelationSlots
   to handle potential double-deletes
 - extended regression test for subcmds
 
+- started new interface bundles, objectInfoMethod and classInfoMethod
+  for using new infrastructure
+- added object info methods filterguard, filtermethods, vars to objectInfoMethod
+- added class info methods filterguard, filtermethods to classInfoMethod
+- built a temporary solution for dispatcher "filter", since forward mangles args
+- nx: we have now "obj info filter guard name" instead of "obj info filter -guard name"
+- nx: we have now "obj info filter methods ...." instead of "obj info filter ...."
+
+
 TODO: 
+- update doc for filter+guard|methods
+- same migration for mixin guards....
 
 - deeper analysis of "contains"
 - check feasability of "obj info filter guard name" etc.

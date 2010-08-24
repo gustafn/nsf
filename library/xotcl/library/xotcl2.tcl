@@ -335,8 +335,9 @@ namespace eval ::xotcl {
       ::nsf::cmd::ClassInfo::methods $o -methodtype setter {*}$pattern
     }
     # filter handling 
-    :proc filterguard {o filter} {::nsf::cmd::ObjectInfo::filter $o -guard $filter}
-    :proc instfilterguard {o filter} {::nsf::cmd::ClassInfo::filter $o -guard $filter}
+    :proc instfilter {o args} {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::filtermethods {*}$args}
+    :proc filterguard {o filter} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filterguard $filter}
+    :proc instfilterguard {o filter} {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::filterguard $filter}
 
     :proc mixinguard {o mixin} {::nsf::cmd::ObjectInfo::mixin $o -guard $mixin}
     :proc instmixinguard {o mixin} {::nsf::cmd::ClassInfo::mixin $o -guard $mixin}
@@ -379,15 +380,15 @@ namespace eval ::xotcl {
       set guardsFlag [expr {$guards ? "-guards" : ""}]
       set patternArg [expr {[info exists pattern] ? [list $pattern] : ""}]
       if {$order && !$guards} {
-        set def [::nsf::cmd::ObjectInfo::filter $o -order {*}$guardsFlag {*}$patternArg]
+        set def [::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filtermethods -order {*}$guardsFlag {*}$patternArg]
         set def [method_handles_to_xotcl $def]
       } else {
-        set def [::nsf::cmd::ObjectInfo::filter $o {*}$guardsFlag {*}$patternArg]
+        set def [::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filtermethods {*}$guardsFlag {*}$patternArg]
       }
       #puts stderr "  => $def"
       return $def
     }
-    :proc filterguard {o filter} {::nsf::cmd::ObjectInfo::filter $o -guard $filter}
+    :proc filterguard {o filter} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filterguard $filter}
     :proc mixinguard {o mixin} {::nsf::cmd::ObjectInfo::mixin $o -guard $mixin}
 
     # assertion handling
@@ -421,7 +422,6 @@ namespace eval ::xotcl {
   ::nsf::alias ::xotcl::classInfo instmixin ::nsf::cmd::ClassInfo::mixin
 
   ::nsf::forward ::xotcl::classInfo instmixinof ::nsf::cmd::ClassInfo::mixinof %1 -scope class
-  ::nsf::alias ::xotcl::classInfo instfilter ::nsf::cmd::ClassInfo::filter
   ::nsf::alias ::xotcl::classInfo instforward ::nsf::cmd::ClassInfo::forward
   ::nsf::forward ::xotcl::classInfo mixinof ::nsf::cmd::ClassInfo::mixinof %1 -scope object
   ::nsf::alias ::xotcl::classInfo parameter ::nx::classInfo::parameter

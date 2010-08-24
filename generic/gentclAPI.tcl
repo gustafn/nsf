@@ -239,7 +239,7 @@ proc genstubs {} {
     lappend enums $d(idx)
     set nrArgs [llength $d(parameterDefinitions)]
     set stubDecl "static int $d(stub)$::objCmdProc\n"
-    set ifd "{\"$::ns($d(methodType))::$d(methodName)\", $d(stub), $nrArgs, {\n  [genifd $d(parameterDefinitions)]}\n}"
+    set ifd "{\"$d(ns)::$d(methodName)\", $d(stub), $nrArgs, {\n  [genifd $d(parameterDefinitions)]}\n}"
     
     gencall $d(stub) $d(parameterDefinitions) $d(clientData) cDefs ifDef arglist pre post intro 
     append decls "static int [implArgList $d(implementation) {Tcl_Interp *} $ifDef];\n"
@@ -255,7 +255,7 @@ proc genstubs {} {
     #if {$nrArgs == 1} { puts stderr "$d(stub) => '$arglist'" }
     if {$nrArgs == 1 && $arglist eq "objc, objv"} {
       # TODO we would not need to generate a stub at all.... 
-      #set ifd "{\"$::ns($d(methodType))::$d(methodName)\", $d(implementation), $nrArgs, {\n  [genifd $d(parameterDefinitions)]}\n}"
+      #set ifd "{\"$d(ns)::$d(methodName)\", $d(implementation), $nrArgs, {\n  [genifd $d(parameterDefinitions)]}\n}"
       #set stubDecl "static int $d(implementation)$::objCmdProc\n"
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
     } elseif {$nrArgs == 1 && $arglist eq "obj, objc, objv"} {
@@ -311,12 +311,14 @@ static methodDefinition method_definitions[];
 puts "static methodDefinition method_definitions\[\] = \{\n$definitionString,\{NULL\}\n\};\n"
 }
 
-proc methodDefinition {methodName methodType implementation parameterDefinitions} {
+proc methodDefinition {methodName methodType implementation parameterDefinitions {ns ""}} {
   set d(methodName) $methodName
   set d(implementation) $implementation
   set d(stub) ${implementation}Stub
   set d(idx) ${implementation}Idx
   set d(methodType) $methodType
+  if {$ns eq ""} {set ns $::ns($methodType)}
+  set d(ns) $ns
   switch $methodType {
     classMethod  {set d(clientData) class}
     objectMethod {set d(clientData) object}
@@ -346,6 +348,12 @@ proc classMethod {methodName implementation parameterDefinitions} {
 }
 proc objectMethod {methodName implementation parameterDefinitions} {
   methodDefinition $methodName objectMethod $implementation $parameterDefinitions
+}
+proc objectInfoMethod {methodName implementation parameterDefinitions} {
+  methodDefinition $methodName objectMethod $implementation $parameterDefinitions $::ns(objectInfoMethod)
+}
+proc classInfoMethod {methodName implementation parameterDefinitions} {
+  methodDefinition $methodName classMethod $implementation $parameterDefinitions $::ns(classInfoMethod)
 }
 proc xotclCmd {methodName implementation parameterDefinitions} {
   methodDefinition $methodName xotclCmd $implementation $parameterDefinitions
