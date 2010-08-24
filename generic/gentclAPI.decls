@@ -558,6 +558,14 @@ objectMethod vwait XOTclOVwaitMethod {
   {-argName "varname" -required 1}
 }
 
+# temporary 
+#  TODO: remove me
+objectMethod vars XOTclOVarsMethod {
+  {-argName "pattern" -required 0}
+}
+
+
+
 #
 # class methods
 #

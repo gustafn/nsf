@@ -5929,12 +5929,31 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
       if (objc < 2) {
 	result = DispatchDefaultMethod(cp, interp, objc, objv);
       } else {
+#if 0
         ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
 	memcpy(tov, objv, sizeof(Tcl_Obj *)*(objc));
 	tov[1] = SubcmdObj(interp, ObjStr(objv[1]), -1);
 	INCR_REF_COUNT(tov[1]);
 	result = ObjectDispatch(cp, interp, objc, tov, XOTCL_CM_DELGATE);
 	DECR_REF_COUNT(tov[1]);
+#else
+	XOTclObject *self = (XOTclObject *)cp;
+	char *methodName;
+	if (self->nsPtr) {
+	  methodName = ObjStr(objv[1]);
+	  cmd = FindMethod(self->nsPtr, methodName);
+	  if (cmd) {
+	    result = MethodDispatch(object, interp, objc-1, objv+1, 
+				    cmd, object, NULL, methodName, frameType);
+	    goto obj_dispatch_ok;
+	  }
+	}
+	result = XOTclVarErrMsg(interp, objectName(self),
+                                ": unable to dispatch method '",
+                                methodName, "'", (char *) NULL);
+      obj_dispatch_ok:;
+	/*result = ObjectDispatch(cp, interp, objc, objv, XOTCL_CM_DELGATE);*/
+#endif
       }
       return result;
     } else if (proc == XOTclForwardMethod ||
@@ -13395,6 +13414,10 @@ static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *object, CONST char
   return TCL_OK;
 }
 
+/* todo temporary, remove me yyy */
+static int XOTclOVarsMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *pattern) {
+  return XOTclObjInfoVarsMethod(interp, object, pattern);
+}
 
 /***************************
  * End Object Methods

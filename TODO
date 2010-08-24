@@ -1130,12 +1130,22 @@ _ added option noforwarder to RelationSlots
 - use prefix sub= for methods invoked on "object as method"
 - change further instances of "my connection" to "[self]::connection" in xo*comm*
 
+- implemented "object-methods-only" as alternative for prefix for 
+  invoke "object as a method"
+- added option "-returns" to Object.method
+
 TODO: 
 
 - deeper analysis of "contains"
 - check feasability of "obj info filter guard name" etc.
 - unify SubcmdObj() and ParamCheckObj() handling?
 - provide new tests for "TODO: changed xxxx"
+- add incompatiblity to migration guide
+  Foo slot ints eval { set :incremental 1; :optimize}
+  should become:
+  Foo::slot::ints eval { set :incremental 1; :optimize}
+- add option "-returns" to Class.method or remove
+
 
 - interfaces in documentation for slots (see for more details 
   ::nx::Class#superclass in nx.tcl).

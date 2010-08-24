@@ -125,12 +125,16 @@ namespace eval ::nx {
   # @param preAssertion Optional assertions that must hold before the proc executes
   # @param postAssertion Optional assertions that must hold after the proc executes
   ::nsf::method Object method {
-    name arguments body -precondition -postcondition
+    name arguments body -precondition -postcondition -returns
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::nsf::method [::nsf::current object] -per-object $name $arguments $body {*}$conditions
+    set r [::nsf::method [::nsf::current object] -per-object $name $arguments $body {*}$conditions]
+    if {[info exists returns]} {
+	::nsf::methodproperty [::nsf::current object] $r returns $returns
+    }
+    return $r
   }
 
   # define method modifiers "object", "public" and "protected"
