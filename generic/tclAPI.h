@@ -189,7 +189,6 @@ static int XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *i
 static int XOTclOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -263,7 +262,6 @@ static int XOTclORequireNamespaceMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclOVarsMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *pattern);
 static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *varname);
 static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, CONST char *methodName, int withNonleaf, int withObjscope, Tcl_Obj *cmdName);
@@ -338,7 +336,6 @@ enum {
  XOTclOResidualargsMethodIdx,
  XOTclOUplevelMethodIdx,
  XOTclOUpvarMethodIdx,
- XOTclOVarsMethodIdx,
  XOTclOVolatileMethodIdx,
  XOTclOVwaitMethodIdx,
  XOTclAliasCmdIdx,
@@ -1269,25 +1266,6 @@ XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 }
 
 static int
-XOTclOVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclOVarsMethodIdx].paramDefs, 
-                     method_definitions[XOTclOVarsMethodIdx].nrParameters, 
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    CONST char *pattern = (CONST char *)pc.clientData[0];
-
-    parseContextRelease(&pc);
-    return XOTclOVarsMethod(interp, obj, pattern);
-
-  }
-}
-
-static int
 XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
@@ -2033,9 +2011,6 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::cmd::Object::upvar", XOTclOUpvarMethodStub, 1, {
   {"args", 0, 0, convertToNothing}}
-},
-{"::nsf::cmd::Object::vars", XOTclOVarsMethodStub, 1, {
-  {"pattern", 0, 0, convertToString}}
 },
 {"::nsf::cmd::Object::volatile", XOTclOVolatileMethodStub, 0, {
   }

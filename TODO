@@ -1134,17 +1134,29 @@ _ added option noforwarder to RelationSlots
   invoke "object as a method"
 - added option "-returns" to Object.method
 
+- added option "-returns" to Class.method
+- added subcmd to method/object method in nx
+- delete class methods in freeAllXOTclObjectsAndClasses() explicitly
+  to handle potential double-deletes
+- extended regression test for subcmds
+
 TODO: 
 
 - deeper analysis of "contains"
 - check feasability of "obj info filter guard name" etc.
 - unify SubcmdObj() and ParamCheckObj() handling?
-- provide new tests for "TODO: changed xxxx"
+
+- subcmd
+   * handle sucmd for other method factories
+   * handle introspection for subcmd nicely
+   * handle absence of -create  flag in resolve_method_path (for introspection)
+   * consider alternate method name/place for subcmds on classes
+   * provide new tests for "TODO: changed xxxx"
+
 - add incompatiblity to migration guide
   Foo slot ints eval { set :incremental 1; :optimize}
   should become:
   Foo::slot::ints eval { set :incremental 1; :optimize}
-- add option "-returns" to Class.method or remove
 
 
 - interfaces in documentation for slots (see for more details 

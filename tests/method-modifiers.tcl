@@ -277,3 +277,33 @@ Test case attribute-method {
   ? {o c} c1
   ? {o d} "::o: unable to dispatch method 'd'"
 }
+
+Test case subcmd {
+  
+  Class create Foo {
+
+     :method "Info filter guard" {filter} {return [current object]-[current method]}
+     :method "Info filter methods" {-guards pattern:optional} {return [current object]-[current method]}
+     :method "Info args" {} {return [current object]-[current method]}
+     :method "Info foo" {} {return [current object]-[current method]}
+
+     :object method "INFO filter guard" {a b} {return [current object]-[current method]}
+     :object method "INFO filter methods" {-guards pattern:optional} {return [current object]-[current method]}
+   }
+  
+  ? {Foo INFO filter guard 1 2} ::Foo-guard
+  ? {Foo INFO filter methods a*} ::Foo-methods
+  
+  Foo create f1 {
+    :method "list length" {} {return [current object]-[current method]}
+    :method "list reverse" {} {return [current object]-[current method]}
+  }
+
+  ? {f1 Info filter guard x} "::f1-guard"
+  ? {f1 Info filter methods} "::f1-methods"
+  ? {f1 Info args} "::f1-args"
+  ? {f1 Info foo} "::f1-foo"
+
+  ? {f1 list length} "::f1-length"
+  ? {f1 list reverse} "::f1-reverse"
+}

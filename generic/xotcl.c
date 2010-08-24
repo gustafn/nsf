@@ -525,6 +525,7 @@ XOTclCleanupObject(XOTclObject *object) {
   XOTclObjectRefCountDecr(object);
 
   if (object->refCount <= 0) {
+    /*fprintf(stderr, "XOTclCleanupObject %p refcount %d\n", object, object->refCount);*/
     assert(object->refCount == 0);
     assert(object->flags & XOTCL_DELETED);
 
@@ -5924,7 +5925,6 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
        * XOTCL_CM_DELGATE to use it.
        */
       /*xxxx*/
-      /*fprintf(stderr, "save self %p %s\n", object, objectName(object));*/ 
       rst->delegatee = object;
       if (objc < 2) {
 	result = DispatchDefaultMethod(cp, interp, objc, objv);
@@ -5939,6 +5939,10 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 #else
 	XOTclObject *self = (XOTclObject *)cp;
 	char *methodName;
+	/*fprintf(stderr, "save self %p %s object %p %s\n", 
+		self, objectName(self),
+		object, objectName(object));*/
+
 	if (self->nsPtr) {
 	  methodName = ObjStr(objv[1]);
 	  cmd = FindMethod(self->nsPtr, methodName);
@@ -10359,7 +10363,25 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *methodName, Tcl_
         break;
       }
       }
-
+#if 0
+    } else if (procPtr == XOTclObjDispatch) {
+      /* 
+	 Also some aliases come with procPtr == XOTclObjDispatch.  In
+	 order to dinstinguish between "object" and alias, we would
+	 have to do the lookup for the entryObj in advance and alter
+	 e.g. the procPtr.
+      */
+      switch (subcmd) {
+      case InfomethodsubcmdTypeIdx: 
+	Tcl_SetObjResult(interp, Tcl_NewStringObj("object", -1));
+	break;
+      case InfomethodsubcmdDefinitionIdx:
+        {
+	  Tcl_SetObjResult(interp, XOTclGlobalObjs[XOTE_EMPTY]);
+	  break;
+	}
+      }
+#endif
     } else {
       /* must be an alias */
       switch (subcmd) {
@@ -14650,7 +14672,11 @@ finalObjectDeletion(Tcl_Interp *interp, XOTclObject *object) {
      todo: remove debug line
   */
   if (object->refCount != 1) {
-    fprintf(stderr, "*** have to fix refcount for obj %p refcount %d\n",object, object->refCount);
+    fprintf(stderr, "*** have to fix refcount for obj %p refcount %d",object, object->refCount);
+    if (object->refCount > 1) {
+      fprintf(stderr, " (name %s)",objectName(object));
+    }
+    fprintf(stderr, "\n");
     object->refCount = 1;
   }
   assert(object->activationCount == 0);
@@ -14675,18 +14701,34 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTabl
   /*
    * First delete all child commands of all objects, which are not
    * objects themselves. This will for example delete namespace
-   * imprted commands and objects and will resolve potential loops in
+   * imported commands and objects and will resolve potential loops in
    * the dependency graph. The result is a plain object/class tree.
    */
   for (hPtr = Tcl_FirstHashEntry(commandNameTable, &hSrch); hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
     char *key = Tcl_GetHashKey(commandNameTable, hPtr);
     object = XOTclpGetObject(interp, key);
 
+    /* delete per-object methods */
     if (object && object->nsPtr) {
       for (hPtr2 = Tcl_FirstHashEntry(Tcl_Namespace_cmdTable(object->nsPtr), &hSrch2); hPtr2;
            hPtr2 = Tcl_NextHashEntry(&hSrch2)) {
         Tcl_Command cmd = Tcl_GetHashValue(hPtr2);
         if (cmd &&  Tcl_Command_objProc(cmd) != XOTclObjDispatch) {
+          Tcl_DeleteCommandFromToken(interp, cmd);
+          deleted ++;
+        }
+      }
+    }
+
+    /* 
+     * Delete class methods; these methods might have aliases (dependencies) to
+     * objects, which will resolved this way.
+     */
+    if (XOTclObjectIsClass(object)) {
+      for (hPtr2 = Tcl_FirstHashEntry(Tcl_Namespace_cmdTable(((XOTclClass *)object)->nsPtr), &hSrch2); hPtr2;
+           hPtr2 = Tcl_NextHashEntry(&hSrch2)) {
+        Tcl_Command cmd = Tcl_GetHashValue(hPtr2);
+        if (cmd) {
           Tcl_DeleteCommandFromToken(interp, cmd);
           deleted ++;
         }
@@ -14713,7 +14755,7 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTabl
       object = XOTclpGetObject(interp, key);
       if (object && !XOTclObjectIsClass(object) && !ObjectHasChildren(interp, object)) {
         /*fprintf(stderr, "  ... delete object %s %p, class=%s id %p\n", key, object,
-          className(object->cl), object->id);*/
+	  className(object->cl), object->id);*/
 
         freeUnsetTraceVariable(interp, object);
         if (object->id) finalObjectDeletion(interp, object);
@@ -14721,7 +14763,7 @@ freeAllXOTclObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTabl
         deleted++;
       }
     }
-    /*fprintf(stderr, "deleted %d Objects\n", deleted);*/
+    /* fprintf(stderr, "deleted %d Objects without dependencies\n", deleted);*/
     if (deleted > 0) {
       continue;
     }

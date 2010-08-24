@@ -68,6 +68,57 @@ namespace eval ::nx {
   ::nsf::methodproperty Class  dealloc redefine-protected true
   ::nsf::methodproperty Class  create  redefine-protected true
   
+  ::nsf::method Object -per-object resolve_method_path {
+    -create:switch 
+    -per-object:switch 
+    -verbose:switch 
+    object 
+    path
+  } {
+    # TODO: handle -create  (actually, its absence)
+    set methodName $path
+    if {[string first " " $path]} {
+      set methodName [lindex $path end]
+      foreach w [lrange $path 0 end-1] {
+	#puts stderr "check $object info methods $w => '[$object info methods -methodtype all $w]'"
+	set scope [expr {[nsf::objectproperty $object class] && !${per-object} ? "Class" : "Object"}] 
+	if {[::nsf::cmd::${scope}Info::methods $object -methodtype all $w] eq ""} {
+	  #
+	  # Create dispatch object an accessor method (if wanted)
+	  #
+	  set o [Object create ${object}::$w]
+	  if {$verbose} {puts stderr "... create object $o"}
+	  if {$scope eq "Class"} {
+	    # we are on a class, and have to create an alias to be
+	    # accessible for objects
+	    ::nsf::alias $object $w $o
+	    if {$verbose} {puts stderr "... create alias $object $w $o"}
+	  }
+	  #puts stderr "... $object info methods $w => '[$object info methods -methodtype all $w]'"
+	  set object $o
+	} else {
+	  #
+	  # The accessor method exists already, check, if it is
+	  # appropriate for extending.
+	  #
+	  set type [::nsf::cmd::${scope}Info::method $object type $w]
+	  set definition [::nsf::cmd::${scope}Info::method $object definition $w]
+	  if {$scope eq "Class"} {
+	    if {$type ne "alias"} {error "can't append to $type"}
+	    if {$definition eq ""} {error "definition must not be empty"}
+	    set object [lindex $definition end]
+	  } else {
+	    if {$type ne "alias"} {error "can't append to $type"}
+	    if {$definition ne ""} {error "unexpected definition '$definition'"}
+	    append object ::$w
+	  }
+	}
+      }
+      #puts stderr "... final object $object method $methodName"
+    }
+    return [list object $object methodName $methodName]
+  }
+
   # define method "method" for Class and Object
 
   # @method ::nx::Class#method 
@@ -100,7 +151,10 @@ namespace eval ::nx {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    ::nsf::method [::nsf::current object] $name $arguments $body {*}$conditions
+    array set "" [::nx::Object resolve_method_path -create -verbose [::nsf::current object] $name]
+    set r [::nsf::method $(object) $(methodName) $arguments $body {*}$conditions]
+    if {[info exists returns]} {nsf::methodproperty $(object) $r returns $returns}
+    return $r
   }
 
   # @method ::nx::Object#method 
@@ -130,10 +184,9 @@ namespace eval ::nx {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    set r [::nsf::method [::nsf::current object] -per-object $name $arguments $body {*}$conditions]
-    if {[info exists returns]} {
-	::nsf::methodproperty [::nsf::current object] $r returns $returns
-    }
+    array set "" [::nx::Object resolve_method_path -create -per-object -verbose [::nsf::current object] $name]
+    set r [::nsf::method $(object) -per-object $(methodName) $arguments $body {*}$conditions]
+    if {[info exists returns]} {nsf::methodproperty $(object) $r returns $returns}
     return $r
   }
 
