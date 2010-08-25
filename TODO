@@ -1156,8 +1156,11 @@ _ added option noforwarder to RelationSlots
 - updated migration guide
 
 - changed info to new interface (partly done for nx, migration for xotcl to be done)
+- fixed "info methods" and added "-methodtype all" for setting class-only
+- regression test works now until first XOTcl reference
 
 TODO: 
+- overthink decision about not showing "child objects" per default in "info methods"
 - continue migration nx in regression test
 - change info in XOTcl to new interface
 - copy info methods to source

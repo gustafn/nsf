@@ -1886,7 +1886,7 @@ namespace eval ::nx {
   #######################################################
 
   #puts stderr Class-methods=[lsort [Class info methods]]
-  foreach m [Class info methods] {
+  foreach m [Class info methods -methodtype all] {
     ::nsf::methodproperty Class $m class-only true
   }
 
