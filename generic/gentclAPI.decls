@@ -573,6 +573,14 @@ objectInfoMethod filtermethods XOTclObjInfoFiltermethodsMethod {
 objectInfoMethod filterguard XOTclObjInfoFilterguardMethod {
   {-argName "filter" -required 1}
 }
+objectInfoMethod mixinclasses XOTclObjInfoMixinclassesMethod {
+  {-argName "-guards"}
+  {-argName "-order"}
+  {-argName "pattern" -type objpattern}
+}
+objectInfoMethod mixinguard XOTclObjInfoMixinguardMethod {
+  {-argName "mixin"  -required 1}
+}
 objectInfoMethod vars XOTclOVarsMethod {
   {-argName "pattern" -required 0}
 }
@@ -583,6 +591,14 @@ classInfoMethod filtermethods XOTclClassInfoFiltermethodsMethod {
 }
 classInfoMethod filterguard XOTclClassInfoFilterguardMethod {
   {-argName "filter" -required 1}
+}
+classInfoMethod mixinclasses XOTclClassInfoMixinclassesMethod {
+  {-argName "-closure"}
+  {-argName "-guards"}
+  {-argName "pattern" -type objpattern}
+}
+classInfoMethod mixinguard XOTclClassInfoMixinguardMethod {
+  {-argName "mixin"  -required 1}
 }
 
 #
@@ -810,13 +826,6 @@ infoObjectMethod methods XOTclObjInfoMethodsMethod {
   {-argName "-incontext"}
   {-argName "pattern"}
 }
-infoObjectMethod mixin XOTclObjInfoMixinMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "-guard"}
-  {-argName "-guards"}
-  {-argName "-order"}
-  {-argName "pattern" -type objpattern}
-}
 infoObjectMethod parent XOTclObjInfoParentMethod {
   {-argName "object" -required 1 -type object}
 }
@@ -864,13 +873,6 @@ infoClassMethod methods XOTclClassInfoMethodsMethod {
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern"}
-}
-infoClassMethod mixin XOTclClassInfoMixinMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "-closure"}
-  {-argName "-guard"}
-  {-argName "-guards"}
-  {-argName "pattern" -type objpattern}
 }
 infoClassMethod mixinof  XOTclClassInfoMixinOfMethod {
   {-argName "class"  -required 1 -type class}

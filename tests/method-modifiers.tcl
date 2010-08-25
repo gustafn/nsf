@@ -182,16 +182,16 @@ Test case mixinguards {
   # register the mixin on C as a class mixin and define a mixinguard
   C mixin M
   C mixin guard M {1 == 1}
-  ? {C info mixin -guard M} "1 == 1"
+  ? {C info mixin guard M} "1 == 1"
   C mixin guard M {}
-  ? {C info mixin -guard M} ""
+  ? {C info mixin guard M} ""
 
   # now the same as object mixin and object mixin guard
   C object mixin M
   C object mixin guard M {1 == 1}
-  ? {C object info mixin -guard M} "1 == 1"
+  ? {C object info mixin guard M} "1 == 1"
   C object mixin guard M {}
-  ? {C object info mixin -guard M} ""
+  ? {C object info mixin guard M} ""
 }
 
 Test case mixin-via-objectparam {
@@ -202,8 +202,8 @@ Test case mixin-via-objectparam {
     :object mixin add M4
   }
   
-  ? {lsort [C object info mixin]} "::M2 ::M4"
-  ? {lsort [C info mixin]} "::M1 ::M3"
+  ? {lsort [C object info mixin classes]} "::M2 ::M4"
+  ? {lsort [C info mixin classes]} "::M1 ::M3"
   C destroy
   M1 destroy; M2 destroy; M3 destroy; M4 destroy;
 }

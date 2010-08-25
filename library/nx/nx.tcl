@@ -449,6 +449,12 @@ namespace eval ::nx {
 	methods {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filtermethods {*}$args}
       }
     }
+    :method mixin {o submethod args} {
+      switch $submethod {
+	guard {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinguard {*}$args}
+	classes {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinclasses {*}$args}
+      }
+    }
     :method unknown {method obj args} {
       error "[::nsf::current object] unknown info option \"$method\"; [$obj info info]"
     }
@@ -462,6 +468,12 @@ namespace eval ::nx {
       switch $submethod {
 	guard {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::filterguard {*}$args}
 	methods {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::filtermethods {*}$args}
+      }
+    }
+    :method mixin {o submethod args} {
+      switch $submethod {
+	guard {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::mixinguard {*}$args}
+	classes {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::mixinclasses {*}$args}
       }
     }
   }

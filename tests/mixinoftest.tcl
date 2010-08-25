@@ -8,7 +8,7 @@ package require nx::test
 Class create A
 Object create o -mixin A
 ? {o mixin} ::A
-? {o info mixin} ::A
+? {o info mixin classes} ::A
 ? {A info mixinof} ::o
 
 o destroy
@@ -49,17 +49,17 @@ C destroy
 Class create M {:method foo args {puts x;next}}
 Object create o -mixin M 
 
-? {o info mixin} ::M
+? {o info mixin classes} ::M
 ? {o info precedence} "::M ::nx::Object"
 ? {o info callable method foo} "::nsf::classes::M::foo"
 
 Class create M {:method foo args next}
-? {o info mixin} ::M
+? {o info mixin classes} ::M
 ? {o info precedence} "::M ::nx::Object"
 ? {o info callable method foo} "::nsf::classes::M::foo"
 
 M destroy
-? {o info mixin} ""
+? {o info mixin classes} ""
 ? {o info precedence} "::nx::Object"
 ? {o info callable method foo} ""
 
@@ -75,7 +75,7 @@ Class create C -superclass B
 C create c1
 
 ? {B mixin} ::A
-? {B info mixin} ::A
+? {B info mixin classes} ::A
 ? {A info mixinof} ::B
 ? {c1 info precedence} "::A ::C ::B ::nx::Object"
 
@@ -97,16 +97,16 @@ Class create X
 Class create A -mixin {M1 M2 X}
 A mixin guard M1 "test"
 Class create B -superclass A
-? {A info mixin M2} ::M2
-? {A info mixin M*} "::M1 ::M2"
-? {A info mixin -guards} "{::M1 -guard test} ::M2 ::X"
-? {B info mixin} ""
-? {B info mixin -closure} "::M1 ::M2 ::X"
-? {B info mixin -closure M2} ::M2
-? {B info mixin -closure M*} "::M1 ::M2"
-? {B info mixin -closure -guards} "{::M1 -guard test} ::M2 ::X"
-? {B info mixin -closure -guards M1} "{::M1 -guard test}"
-? {B info mixin -closure -guards M*} "{::M1 -guard test} ::M2"
+? {A info mixin classes M2} ::M2
+? {A info mixin classes M*} "::M1 ::M2"
+? {A info mixin classes -guards} "{::M1 -guard test} ::M2 ::X"
+? {B info mixin classes} ""
+? {B info mixin classes -closure} "::M1 ::M2 ::X"
+? {B info mixin classes -closure M2} ::M2
+? {B info mixin classes -closure M*} "::M1 ::M2"
+? {B info mixin classes -closure -guards} "{::M1 -guard test} ::M2 ::X"
+? {B info mixin classes -closure -guards M1} "{::M1 -guard test}"
+? {B info mixin classes -closure -guards M*} "{::M1 -guard test} ::M2"
 A destroy
 B destroy
 X destroy
@@ -127,7 +127,7 @@ B create b1
 C create c1
 
 ? {B mixin} ::A
-? {B info mixin} ::A
+? {B info mixin classes} ::A
 ? {A info mixinof -scope class} ::B
 ? {a1 info precedence} "::M ::A ::nx::Object"
 ? {b1 info precedence} "::M ::A ::B ::nx::Object"
@@ -222,7 +222,7 @@ B create b1
 C create c1
 
 ? {B mixin} ::A
-? {B info mixin} ::A
+? {B info mixin classes} ::A
 ? {A info mixinof -scope class} ::B
 ? {a1 info precedence} "::M ::A ::nx::Object"
 ? {b1 info precedence} "::M ::A ::B ::nx::Object"
@@ -256,7 +256,7 @@ B create b1
 C create c1
 
 ? {B mixin} ::A
-? {B info mixin} ::A
+? {B info mixin classes} ::A
 ? {A info mixinof -scope class} ::B
 ? {a1 info precedence} "::M ::A ::nx::Object"
 ? {b1 info precedence} "::M ::A ::B ::nx::Object"
@@ -285,7 +285,7 @@ Class create C -superclass B
 C create c1
 
 ? {B mixin} ::A
-? {B info mixin} ::A
+? {B info mixin classes} ::A
 ? {A info mixinof -scope class} ::B
 ? {c1 info precedence} "::A ::C ::B ::nx::Object"
 ? {B info heritage} "::nx::Object"
@@ -296,7 +296,7 @@ Class create B -mixin A
 ? {B info heritage} "::nx::Object"
 ? {C info heritage} "::nx::Object"
 ? {B mixin} ::A
-? {B info mixin} ::A
+? {B info mixin classes} ::A
 ? {A info mixinof} ::B
 ? {c1 info precedence} "::C ::nx::Object"
 
@@ -321,7 +321,7 @@ Class create C -superclass B
 C create c1
 
 ? {B mixin} ::A
-? {B info mixin} ::A
+? {B info mixin classes} ::A
 ? {A info mixinof -scope class} ::B
 ? {c1 info precedence} "::A ::C ::B ::nx::Object"
 ? {C info heritage} "::B ::nx::Object"
@@ -330,7 +330,7 @@ C create c1
 Class create B -mixin A
 ? {C info heritage} "::B ::nx::Object"
 ? {B info heritage} "::nx::Object"
-? {B info mixin} ::A
+? {B info mixin classes} ::A
 ? {A info mixinof -scope class} ::B
 ? {c1 info precedence} "::A ::C ::B ::nx::Object"
 
@@ -490,7 +490,7 @@ Test case nx-mixinof {
   C2 create c22
 
   ? {c1 mixin} ::A
-  ? {c1 info mixin} ::A
+  ? {c1 info mixin classes} ::A
   ? {lsort [A info mixinof]} "::C2 ::c1"
   ? {M info mixinof} ""
   C mixin M

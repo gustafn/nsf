@@ -1148,11 +1148,14 @@ _ added option noforwarder to RelationSlots
 - nx: we have now "obj info filter guard name" instead of "obj info filter -guard name"
 - nx: we have now "obj info filter methods ...." instead of "obj info filter ...."
 
+- added object info methods mixinguard, mixinclasses to objectInfoMethod
+- added class info methods mixinguard, mixinclasses to classInfoMethod
+- built a temporary solution for dispatcher "mixin", since forward mangles args
+- nx: we have now "obj info mixin guard name" instead of "obj info filter -guard name"
+- nx: we have now "obj info mixin classes ...." instead of "obj info filter ...."
+- updated migration guide
 
 TODO: 
-- update doc for filter+guard|methods
-- same migration for mixin guards....
-
 - deeper analysis of "contains"
 - check feasability of "obj info filter guard name" etc.
 - unify SubcmdObj() and ParamCheckObj() handling?
@@ -1163,6 +1166,10 @@ TODO:
    * handle absence of -create  flag in resolve_method_path (for introspection)
    * consider alternate method name/place for subcmds on classes
    * provide new tests for "TODO: changed xxxx"
+   * testx.xotcl
+        # TODO REANIMATE xxxx
+	#::errorCheck $::r "loggingFilter-open open x" {info guarded scope}
+        # (inst)mixinguard, (inst)filterguard
 
 - add incompatiblity to migration guide
   Foo slot ints eval { set :incremental 1; :optimize}

@@ -13,7 +13,7 @@ Class create C
 C mixin M
 ? {C info precedence} "::nx::Class ::nx::Object"
 ? {C mixin} "::M"
-? {C info mixin} "::M"
+? {C info mixin classes} "::M"
 C create c1
 ? {c1 info precedence} "::M ::C ::nx::Object"
 C mixin add M2
@@ -45,7 +45,7 @@ c1 mixin delete M2
 #
 ::nsf::relation C object-mixin M
 ? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {C object info mixin} "::M"
+? {C object info mixin classes} "::M"
 ::nsf::relation C object-mixin ""
 ? {C info precedence} "::nx::Class ::nx::Object"
 
@@ -55,7 +55,7 @@ c1 mixin delete M2
 #
 # C object-mixin M
 # ? {C info precedence} "::M ::nx::Class ::nx::Object"
-# ? {C object info mixin} "::M"
+# ? {C object info mixin classes} "::M"
 # C object-mixin ""
 # ? {C info precedence} "::nx::Class ::nx::Object"
 
@@ -65,7 +65,7 @@ c1 mixin delete M2
 #
 C object mixin M
 ? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {C object info mixin} "::M"
+? {C object info mixin classes} "::M"
 C object mixin ""
 ? {C info precedence} "::nx::Class ::nx::Object"
 
@@ -74,7 +74,7 @@ C object mixin ""
 #
 C object mixin add M
 ? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {C object info mixin} "::M"
+? {C object info mixin classes} "::M"
 C object mixin ""
 ? {C info precedence} "::nx::Class ::nx::Object"
 

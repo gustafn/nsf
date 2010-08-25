@@ -130,31 +130,31 @@ Test case callable {
 
     nx::Class create Fly
     o mixin add Fly
-    ? {o info mixin} "::Fly ::nx::Class"
+    ? {o info mixin classes} "::Fly ::nx::Class"
     ? {o mixin guard ::Fly {1}} ""
-    ? {o info mixin -guards} "{::Fly -guard 1} ::nx::Class"
-    ? {o info mixin -guards Fly} "{::Fly -guard 1}"
+    ? {o info mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {o info mixin classes -guards Fly} "{::Fly -guard 1}"
     o mixin delete ::Fly
-    ? {o info mixin} "::nx::Class"
+    ? {o info mixin classes} "::nx::Class"
 
     nx::Class create Foo
     Foo mixin add ::nx::Class
     Foo mixin add Fly
-    ? {Foo info mixin} "::Fly ::nx::Class"
+    ? {Foo info mixin classes} "::Fly ::nx::Class"
     ? {Foo mixin guard ::Fly {1}} ""
-    ? {Foo info mixin -guards} "{::Fly -guard 1} ::nx::Class"
-    ? {Foo info mixin -guards Fly} "{::Fly -guard 1}"
+    ? {Foo info mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {Foo info mixin classes -guards Fly} "{::Fly -guard 1}"
     Foo mixin delete ::Fly
-    ? {Foo info mixin} "::nx::Class"
+    ? {Foo info mixin classes} "::nx::Class"
 
     Foo object mixin add ::nx::Class
     Foo object mixin add Fly
-    ? {Foo object info mixin} "::Fly ::nx::Class"
+    ? {Foo object info mixin classes} "::Fly ::nx::Class"
     ? {Foo object mixin guard ::Fly {1}} ""
-    ? {Foo object info mixin -guards} "{::Fly -guard 1} ::nx::Class"
-    ? {Foo object info mixin -guards Fly} "{::Fly -guard 1}"
+    ? {Foo object info mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {Foo object info mixin classes -guards Fly} "{::Fly -guard 1}"
     Foo object mixin delete ::Fly
-    ? {Foo object info mixin} "::nx::Class"
+    ? {Foo object info mixin classes} "::nx::Class"
 
     ? {Foo info callable methods superclass} "superclass"
     ? {Foo info callable method superclass} "::nsf::classes::nx::Class::superclass"

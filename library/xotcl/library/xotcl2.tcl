@@ -339,8 +339,10 @@ namespace eval ::xotcl {
     :proc filterguard {o filter} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filterguard $filter}
     :proc instfilterguard {o filter} {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::filterguard $filter}
 
-    :proc mixinguard {o mixin} {::nsf::cmd::ObjectInfo::mixin $o -guard $mixin}
-    :proc instmixinguard {o mixin} {::nsf::cmd::ClassInfo::mixin $o -guard $mixin}
+    :proc mixin {o args} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinclasses {*}$args}
+    :proc mixinguard {o mixin} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinguard $mixin}
+    :proc instmixin {o args} {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::mixinclasses {*}$args}
+    :proc instmixinguard {o mixin} {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::mixinguard $mixin}
 
     # assertion handling
     :proc instinvar   {o} {::nsf::assertion $o class-invar}
@@ -388,8 +390,9 @@ namespace eval ::xotcl {
       #puts stderr "  => $def"
       return $def
     }
+    :proc mixin {o args} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinclasses {*}$args}
     :proc filterguard {o filter} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filterguard $filter}
-    :proc mixinguard {o mixin} {::nsf::cmd::ObjectInfo::mixin $o -guard $mixin}
+    :proc mixinguard {o mixin}   {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinguard $mixin}
 
     # assertion handling
     :proc check {o} {
@@ -419,7 +422,6 @@ namespace eval ::xotcl {
   ::nsf::alias ::xotcl::classInfo is ::nsf::objectproperty
   ::nsf::alias ::xotcl::classInfo classparent ::nsf::cmd::ObjectInfo::parent
   ::nsf::alias ::xotcl::classInfo classchildren ::nsf::cmd::ObjectInfo::children
-  ::nsf::alias ::xotcl::classInfo instmixin ::nsf::cmd::ClassInfo::mixin
 
   ::nsf::forward ::xotcl::classInfo instmixinof ::nsf::cmd::ClassInfo::mixinof %1 -scope class
   ::nsf::alias ::xotcl::classInfo instforward ::nsf::cmd::ClassInfo::forward
@@ -456,12 +458,6 @@ namespace eval ::xotcl {
   #
   ::nsf::alias Object parametercmd    ::nsf::classes::nx::Object::setter
   ::nsf::alias Class instparametercmd ::nsf::classes::nx::Class::setter
-
-  ::nsf::alias Class filterguard      ::nsf::cmd::Object::filterguard
-  ::nsf::alias Class instfilterguard  ::nsf::cmd::Class::filterguard
-
-  ::nsf::alias Class mixinguard       ::nsf::cmd::Object::mixinguard
-  ::nsf::alias Class instmixinguard   ::nsf::cmd::Class::mixinguard
 
   # assertion handling
   proc checkoption_xotcl1_to_internal checkoptions {
