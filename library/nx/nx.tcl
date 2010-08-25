@@ -76,33 +76,40 @@ namespace eval ::nx {
     path
   } {
     # TODO: handle -create  (actually, its absence)
+    #puts "resolve_method_path"
     set methodName $path
     if {[string first " " $path]} {
       set methodName [lindex $path end]
       foreach w [lrange $path 0 end-1] {
-	#puts stderr "check $object info methods $w => '[$object info methods -methodtype all $w]'"
+	#puts stderr "check $object info methods $path @ <$w>"
 	set scope [expr {[nsf::objectproperty $object class] && !${per-object} ? "Class" : "Object"}] 
-	if {[::nsf::cmd::${scope}Info::methods $object -methodtype all $w] eq ""} {
+	if {[::nsf::dispatch $object ::nsf::cmd::${scope}Info2::methods -methodtype all $w] eq ""} {
 	  #
 	  # Create dispatch object an accessor method (if wanted)
 	  #
-	  set o [Object create ${object}::$w]
-	  if {$verbose} {puts stderr "... create object $o"}
 	  if {$scope eq "Class"} {
-	    # we are on a class, and have to create an alias to be
+	    if {![::nsf::objectproperty ${object}::slot object]} {
+	      Object create ${object}::slot
+	      if {$verbose} {puts stderr "... create object ${object}::slot"}
+	    }
+	    set o [Object create ${object}::slot::__$w]
+	    if {$verbose} {puts stderr "... create object $o"}
+	    # We are on a class, and have to create an alias to be
 	    # accessible for objects
 	    ::nsf::alias $object $w $o
 	    if {$verbose} {puts stderr "... create alias $object $w $o"}
+	  } else {
+	    set o [Object create ${object}::$w]
+	    if {$verbose} {puts stderr "... create object $o"}
 	  }
-	  #puts stderr "... $object info methods $w => '[$object info methods -methodtype all $w]'"
 	  set object $o
 	} else {
 	  #
 	  # The accessor method exists already, check, if it is
 	  # appropriate for extending.
 	  #
-	  set type [::nsf::cmd::${scope}Info::method $object type $w]
-	  set definition [::nsf::cmd::${scope}Info::method $object definition $w]
+	  set type [::nsf::dispatch $object ::nsf::cmd::${scope}Info2::method type $w]
+	  set definition [::nsf::dispatch $object ::nsf::cmd::${scope}Info2::method definition $w]
 	  if {$scope eq "Class"} {
 	    if {$type ne "alias"} {error "can't append to $type"}
 	    if {$definition eq ""} {error "definition must not be empty"}
@@ -152,6 +159,7 @@ namespace eval ::nx {
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
     array set "" [::nx::Object resolve_method_path -create -verbose [::nsf::current object] $name]
+    #puts "class method $(object).$(methodName) [list $arguments] {...}"
     set r [::nsf::method $(object) $(methodName) $arguments $body {*}$conditions]
     if {[info exists returns]} {nsf::methodproperty $(object) $r returns $returns}
     return $r
@@ -185,6 +193,7 @@ namespace eval ::nx {
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
     array set "" [::nx::Object resolve_method_path -create -per-object -verbose [::nsf::current object] $name]
+    #puts "object method $(object).$(methodName) [list $arguments] {...}"
     set r [::nsf::method $(object) -per-object $(methodName) $arguments $body {*}$conditions]
     if {[info exists returns]} {nsf::methodproperty $(object) $r returns $returns}
     return $r
@@ -199,7 +208,7 @@ namespace eval ::nx {
         return [::nsf::dispatch [::nsf::current object] ::nsf::classes::nx::Object::$what {*}$args]
       }
       if {$what in [list "info"]} {
-        return [::nx::objectInfo [lindex $args 0] [::nsf::current object] {*}[lrange $args 1 end]]
+        return [::nsf::dispatch [::nsf::current object] ::nx::Object::slot::__info [lindex $args 0] {*}[lrange $args 1 end]]
       }
       if {$what in [list "filter" "mixin"]} {
 	# 
@@ -373,20 +382,24 @@ namespace eval ::nx {
   #
   Class protected object method __unknown {name} {}
 
-  # Add alias methods. cmdName for XOTcl method can be added via
+  # Add alias methods. cmdName for a method can be added via
   #   [... info method handle <methodName>]
   #
   # -nonleaf and -objscope make only sense for c-defined cmds,
   # -objscope implies -nonleaf
   #
   Object public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
-    ::nsf::alias [::nsf::current object] -per-object $methodName \
+    array set "" [::nx::Object resolve_method_path -per-object -create -verbose [::nsf::current object] $methodName]
+    #puts "object alias $(object).$(methodName) $cmd"
+    ::nsf::alias $(object) -per-object $(methodName) \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
         $cmd
   }
   Class public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
-    ::nsf::alias [::nsf::current object] $methodName \
+    array set "" [::nx::Object resolve_method_path -create -verbose [::nsf::current object] $methodName]
+    #puts "class alias $(object).$(methodName) $cmd"
+    ::nsf::alias $(object) $(methodName) \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
         {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
         $cmd
@@ -420,78 +433,119 @@ namespace eval ::nx {
     }
   }
 
+  # allocate system slot parents
+  Object alloc ::nx::Class::slot
+  Object alloc ::nx::Object::slot
+
   ########################
   # Info definition
   ########################
-  Object create ::nx::objectInfo
-  Object create ::nx::classInfo
+
+  # we have to use "eval", since objectParameters are not defined yet
+  Object eval {
+    :alias "info callable"       ::nsf::cmd::ObjectInfo2::callable
+    :alias "info children"       ::nsf::cmd::ObjectInfo2::children
+    :alias "info class"          ::nsf::cmd::ObjectInfo2::class
+    :alias "info filter guard"   ::nsf::cmd::ObjectInfo2::filterguard
+    :alias "info filter methods" ::nsf::cmd::ObjectInfo2::filtermethods
+    :alias "info forward"        ::nsf::cmd::ObjectInfo2::forward
+    :alias "info hasnamespace"   ::nsf::cmd::ObjectInfo2::hasnamespace
+    :method "info is" {kind value:optional} {::nsf::objectproperty [::nsf::current object] $kind {*}$value}
+    :alias "info methods"        ::nsf::cmd::ObjectInfo2::methods
+    :alias "info mixin guard"    ::nsf::cmd::ObjectInfo2::mixinguard
+    :alias "info mixin classes"  ::nsf::cmd::ObjectInfo2::mixinclasses
+    :alias "info parent"         ::nsf::cmd::ObjectInfo2::parent
+    :alias "info precedence"     ::nsf::cmd::ObjectInfo2::precedence
+    :alias "info slotobjects"    ::nsf::cmd::ObjectInfo2::slotobjects
+    :alias "info vars"           ::nsf::cmd::ObjectInfo2::vars
+  }
+
+  # Create the object here to prepare for copy of the above
+  # definitions.  Potentially, some names are overwritten by the
+  # class. Note, that the automatically created name has to be the
+  # same. 
+  
+  Object create ::nx::Class::slot::__info
+  Class alias info ::nx::Class::slot::__info
 
   #
-  # It would be nice to do here "objectInfo configure {alias ..}", but
-  # we have no working objectparameter yet due to bootstrapping
+  # copy all methods except the subobjects to ::nx::Class::slot::__info
   #
-  objectInfo eval {
-    :alias is ::nsf::objectproperty
-
-    # info info
-    :public method info {obj} {
-      set methods [list]
-      foreach name [::nsf::cmd::ObjectInfo::methods -methodtype all [::nsf::current object]] {
-        if {$name eq "unknown"} continue
-        lappend methods $name
-      }
-      return "valid options are: [join [lsort $methods] {, }]"
-    }
-
-    :method filter {o submethod args} {
-      switch $submethod {
-	guard {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filterguard {*}$args}
-	methods {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filtermethods {*}$args}
-      }
-    }
-    :method mixin {o submethod args} {
-      switch $submethod {
-	guard {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinguard {*}$args}
-	classes {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinclasses {*}$args}
-      }
-    }
-    :method unknown {method obj args} {
-      error "[::nsf::current object] unknown info option \"$method\"; [$obj info info]"
-    }
+  foreach m [nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::methods] {
+    set definition [nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::method definition $m]
+    #puts "$m $definition"
+    #puts "classInfo [lrange $definition 1 end]"
+    ::nx::Class::slot::__info {*}[lrange $definition 1 end]
   }
 
-  classInfo eval {
-    :alias is ::nsf::objectproperty
-    :alias classparent ::nsf::cmd::ObjectInfo::parent
-    :alias classchildren ::nsf::cmd::ObjectInfo::children
-    :method filter {o submethod args} {
-      switch $submethod {
-	guard {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::filterguard {*}$args}
-	methods {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::filtermethods {*}$args}
-      }
-    }
-    :method mixin {o submethod args} {
-      switch $submethod {
-	guard {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::mixinguard {*}$args}
-	classes {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::mixinclasses {*}$args}
-      }
-    }
+  Class eval {
+    # TODO: are the next two needed?
+    :alias "info classparent"    ::nsf::cmd::ObjectInfo2::parent
+    :alias "info classchildren"  ::nsf::cmd::ObjectInfo2::children
+    :alias "info filter guard"   ::nsf::cmd::ClassInfo2::filterguard
+    :alias "info filter methods" ::nsf::cmd::ClassInfo2::filtermethods
+    :alias "info forward"        ::nsf::cmd::ClassInfo2::forward
+    :alias "info heritage"       ::nsf::cmd::ClassInfo2::heritage
+    :alias "info instances"      ::nsf::cmd::ClassInfo2::instances
+    :alias "info methods"        ::nsf::cmd::ClassInfo2::methods
+    :alias "info mixin guard"    ::nsf::cmd::ClassInfo2::mixinguard
+    :alias "info mixin classes"  ::nsf::cmd::ClassInfo2::mixinclasses
+    :alias "info slots"          ::nsf::cmd::ClassInfo2::slots
+    :alias "info subclass"       ::nsf::cmd::ClassInfo2::subclass
+    :alias "info superclass"     ::nsf::cmd::ClassInfo2::superclass
   }
 
-  foreach cmd [info command ::nsf::cmd::ObjectInfo::*] {
-    set cmdName [namespace tail $cmd]
-    ::nsf::alias ::nx::objectInfo $cmdName $cmd
-    ::nsf::alias ::nx::classInfo $cmdName $cmd
+  #
+  # Define "info info" and unknown
+  #
+  proc infoOptions {obj} {
+    puts stderr "$obj INFO '[::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::methods -methodtype all]'"
+    set methods [list]
+    foreach name [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::methods -methodtype all] {
+      if {$name eq "unknown"} continue
+      lappend methods $name
+    }
+    return "valid options are: [join [lsort $methods] {, }]"
   }
-  foreach cmd [info command ::nsf::cmd::ClassInfo::*] {
-    set cmdName [namespace tail $cmd]
-    ::nsf::alias ::nx::classInfo $cmdName $cmd
+
+  Object method "info unknown" {method obj args} {
+    error "[::nsf::current object] unknown info option \"$method\"; [$obj info info]"
   }
-  unset cmd
+
+  Object method "info info" {} {infoOptions ::nx::Object::slot::__info}
+  Class  method "info info" {} {infoOptions ::nx::Class::slot::__info}
+
+  # finally register method "method" (otherwise, we cannot use "method" above)
+  Object alias "info method" ::nsf::cmd::ObjectInfo2::method
+  Class  alias "info method" ::nsf::cmd::ClassInfo2::method
 
   # register method "info" on Object and Class
-  Object forward info -onerror ::nsf::infoError ::nx::objectInfo %1 {%@2 %self}
-  Class forward  info -onerror ::nsf::infoError ::nx::classInfo %1 {%@2 %self}
+  #Object forward info -onerror ::nsf::infoError ::nx::objectInfo %1 {%@2 %self}
+  #Class forward  info -onerror ::nsf::infoError ::nx::classInfo %1 {%@2 %self}
+  #Object alias info ::nx::objectInfo
+  #Class alias info ::nx::classInfo
+
+  # TOOD REMOVE BLOCK
+  # puts "After Info"
+  # puts object-methods=[Object info methods]
+  # puts class-methods=[Class info methods]
+  # puts ""
+  # puts Object::info-methods=[lsort [nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::methods]]
+  # puts Class::info-methods_=[lsort [nsf::dispatch ::nx::Class::slot::__info ::nsf::cmd::ObjectInfo2::methods]]
+  # puts ""
+  # puts Object::info-callable=[nsf::dispatch ::nx::Object ::nsf::cmd::ObjectInfo2::callable method info]
+  # puts Class::info-callable_=[nsf::dispatch ::nx::Class ::nsf::cmd::ObjectInfo2::callable method info]
+  # puts ""
+  # puts Object::info-def=[nsf::dispatch ::nx::Object ::nsf::cmd::ClassInfo2::method definition info]
+  # puts Class::info-def_=[nsf::dispatch ::nx::Class ::nsf::cmd::ClassInfo2::method definition info]
+  # puts ""
+  # puts object-superclass=[Object info superclass]
+  # puts class-superclass=[Class info superclass]
+
+  # #  Object create o1
+  # #  puts obj-info-info=[o1 info info]
+  # #  puts class-info-info=[Object info info]
+  # puts ""
 
   #
   # Definition of "abstract method foo ...."
@@ -532,8 +586,8 @@ namespace eval ::nx {
   MetaSlot public method slotName {name baseObject} {
     # Create slot parent object if needed
     set slotParent ${baseObject}::slot
-    if {![::nsf::objectproperty ${slotParent} object]} {
-      ::nx::Object create ${slotParent}
+    if {![::nsf::objectproperty $slotParent object]} {
+      ::nx::Object create $slotParent
     }
     return ${slotParent}::$name
   }
@@ -575,13 +629,13 @@ namespace eval ::nx {
     }
     if {${per-object}} {
       lappend opts -per-object true
-      set info ObjectInfo
+      set info ObjectInfo2
     } else {
-      set info ClassInfo
+      set info ClassInfo2
     }
 
     :create [:slotName $name $target] {*}$opts $initblock
-    return [::nsf::cmd::${info}::method $target handle $name]
+    return [::nsf::dispatch $target ::nsf::cmd::${info}::method handle $name]
   }
 
 }
@@ -632,14 +686,14 @@ namespace eval ::nx {
     
     #
     # Perform a second round to set default values for already defined
-    # objects.
+    # slot objects.
     #
     foreach att $definitions {
       if {[llength $att]>1} {foreach {att default} $att break}
       if {[info exists default]} {
 
         # checking subclasses is not required during bootstrap
-        foreach i [::nsf::cmd::ClassInfo::instances $class] {
+        foreach i [::nsf::dispatch $class ::nsf::cmd::ClassInfo2::instances] {
           if {![::nsf::existsvar $i $att]} {
             if {[string match {*\[*\]*} $default]} {
               set value [::nsf::dispatch $i -objscope ::eval subst $default]
@@ -884,7 +938,9 @@ namespace eval ::nx {
 
   proc ::nsf::parametersFromSlots {obj} {
     set parameterdefinitions [list]
-    foreach slot [::nx::objectInfo slotobjects $obj] {
+    foreach slot [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::slotobjects] {
+      # TODO: the following line is just for the somehwat dummy "info slot"
+      if {![::nsf::objectproperty $slot type ::nx::Slot]} continue
       # Skip some slots for xotcl; 
       # TODO: maybe different parameterFromSlots for xotcl?
       if {[::nsf::objectproperty ::xotcl::Object class] 
@@ -997,8 +1053,6 @@ namespace eval ::nx {
   # system slots
   ############################################
   proc ::nsf::register_system_slots {os} {
-    ${os}::Object alloc ${os}::Class::slot
-    ${os}::Object alloc ${os}::Object::slot
 
     # @param ::nx::Class#superclass
     #
@@ -1120,7 +1174,7 @@ namespace eval ::nx {
   ::nsf::register_system_slots ::nx
   proc ::nsf::register_system_slots {} {}
 
-  
+
   ############################################
   # Attribute slots
   ############################################
@@ -1239,14 +1293,14 @@ namespace eval ::nx {
         set perObject ""
         set infokind Class
       }
-      if {[::nsf::cmd::${infokind}Info::method ${:domain} handle ${:name}] ne ""} {
+      if {[::nsf::dispatch ${:domain} ::nsf::cmd::${infokind}Info2::method handle ${:name}] ne ""} {
         #puts stderr "OPTIMIZER RESETTING ${:domain} slot ${:name}"
         ::nsf::forward ${:domain} {*}$perObject ${:name} \
             ${:manager} \
             [list %1 [${:manager} defaultmethods]] %self \
             ${:methodname}
       }
-      #puts stderr "OPTIMIZER incremental [info exists :incremental] def '[set :defaultmethods]'"
+      #puts "*** stderr "OPTIMIZER incremental [info exists :incremental] def '[set :defaultmethods]'"
       if {[info exists :incremental] && ${:incremental}} return
       if {[set :defaultmethods] ne {get assign}} return
 
@@ -1303,7 +1357,9 @@ namespace eval ::nx {
     if {![::nsf::objectproperty $slot object]} {Object create $slot}
     ::nsf::setvar $slot __parameter $arglist
   }
-  ::nsf::method classInfo parameter {class} {
+
+  Class method "info parameter" {} {
+    set class [::nsf::current object]
     set slot ${class}::slot
     if {![::nsf::objectproperty $slot object]} {Object create $slot}
     if {[::nsf::existsvar $slot __parameter]} {
@@ -1485,13 +1541,13 @@ namespace eval ::nx {
 	  namespace eval $dest {}
 	}
 	:copyNSVarsAndCmds $origin $dest
-	foreach i [::nsf::cmd::ObjectInfo::forward $origin] {
-	  ::nsf::forward $dest -per-object $i {*}[::nsf::cmd::ObjectInfo::forward $origin -definition $i]
+	foreach i [::nsf::dispatch $origin ::nsf::cmd::ObjectInfo2::forward] {
+	  ::nsf::forward $dest -per-object $i {*}[::nsf::dipatch $origin ::nsf::cmd::ObjectInfo2::forward -definition $i]
 
 	}
 	if {[::nsf::objectproperty $origin class]} {
-	  foreach i [::nsf::cmd::ClassInfo::forward $origin] {
-	    ::nsf::forward $dest $i {*}[::nsf::cmd::ClassInfo::forward $origin -definition $i]
+	  foreach i [nsf::dispatch $origin ::nsf::cmd::ClassInfo2::forward] {
+	    ::nsf::forward $dest $i {*}[::nsf::dipatch $origin ::nsf::cmd::ClassInfo2::forward -definition $i]
 	  }
 	}
 	set traces [list]

@@ -560,11 +560,23 @@ objectMethod vwait XOTclOVwaitMethod {
   {-argName "varname" -required 1}
 }
 
-# # temporary xxx
-# #  TODO: remove me xxx
-# TODO mixinguard method
-# TODO instmixinguard method
-# TODO remove option -guard
+#
+# info object methods
+#
+objectInfoMethod callable XOTclObjInfoCallableMethod {
+  {-argName "infocallablesubcmd" -nrargs 1 -type "filter|method|methods" -required 1}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
+  {-argName "-application"}
+  {-argName "-nomixins"}
+  {-argName "-incontext"}
+  {-argName "pattern" -required 0}
+}
+objectInfoMethod children XOTclObjInfoChildrenMethod {
+  {-argName "pattern" -required 0}
+}
+objectInfoMethod class XOTclObjInfoClassMethod {
+}
 objectInfoMethod filtermethods XOTclObjInfoFiltermethodsMethod {
   {-argName "-guards"}
   {-argName "-order"}
@@ -573,6 +585,24 @@ objectInfoMethod filtermethods XOTclObjInfoFiltermethodsMethod {
 objectInfoMethod filterguard XOTclObjInfoFilterguardMethod {
   {-argName "filter" -required 1}
 }
+objectInfoMethod forward XOTclObjInfoForwardMethod {
+  {-argName "-definition"}
+  {-argName "name"}
+}
+objectInfoMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
+}
+objectInfoMethod method XOTclObjInfoMethodMethod {
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "name"}
+}
+objectInfoMethod methods XOTclObjInfoMethodsMethod {
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
+  {-argName "-nomixins"}
+  {-argName "-incontext"}
+  {-argName "pattern"}
+}
+
 objectInfoMethod mixinclasses XOTclObjInfoMixinclassesMethod {
   {-argName "-guards"}
   {-argName "-order"}
@@ -581,16 +611,51 @@ objectInfoMethod mixinclasses XOTclObjInfoMixinclassesMethod {
 objectInfoMethod mixinguard XOTclObjInfoMixinguardMethod {
   {-argName "mixin"  -required 1}
 }
-objectInfoMethod vars XOTclOVarsMethod {
+objectInfoMethod parent XOTclObjInfoParentMethod {
+}
+objectInfoMethod precedence XOTclObjInfoPrecedenceMethod {
+  {-argName "-intrinsic"}
+  {-argName "pattern" -required 0}
+}
+objectInfoMethod slotobjects XOTclObjInfoSlotObjectsMethod {
+  {-argName "pattern" -required 0}
+}
+objectInfoMethod vars XOTclObjInfoVarsMethod {
   {-argName "pattern" -required 0}
 }
 
+#
+# info class methods
+#
 classInfoMethod filtermethods XOTclClassInfoFiltermethodsMethod {
   {-argName "-guards"}
   {-argName "pattern"}
 }
 classInfoMethod filterguard XOTclClassInfoFilterguardMethod {
   {-argName "filter" -required 1}
+}
+classInfoMethod forward XOTclClassInfoForwardMethod {
+  {-argName "-definition"}
+  {-argName "name"}
+}
+classInfoMethod heritage XOTclClassInfoHeritageMethod {
+  {-argName "pattern"}
+}
+classInfoMethod instances XOTclClassInfoInstancesMethod {
+  {-argName "-closure"}
+  {-argName "pattern" -type objpattern}
+}
+
+classInfoMethod method XOTclClassInfoMethodMethod {
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "name"}
+}
+classInfoMethod methods XOTclClassInfoMethodsMethod {
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
+  {-argName "-nomixins"}
+  {-argName "-incontext"}
+  {-argName "pattern"}
 }
 classInfoMethod mixinclasses XOTclClassInfoMixinclassesMethod {
   {-argName "-closure"}
@@ -599,6 +664,21 @@ classInfoMethod mixinclasses XOTclClassInfoMixinclassesMethod {
 }
 classInfoMethod mixinguard XOTclClassInfoMixinguardMethod {
   {-argName "mixin"  -required 1}
+}
+classInfoMethod mixinof  XOTclClassInfoMixinOfMethod {
+  {-argName "-closure"}
+  {-argName "-scope" -required 0 -nrargs 1 -type "all|class|object"}
+  {-argName "pattern" -type objpattern}
+}
+classInfoMethod slots XOTclClassInfoSlotsMethod {
+}
+classInfoMethod subclass XOTclClassInfoSubclassMethod {
+  {-argName "-closure"}
+  {-argName "pattern" -type objpattern}
+}
+classInfoMethod superclass XOTclClassInfoSuperclassMethod {
+  {-argName "-closure"}
+  {-argName "pattern" -type tclobj}
 }
 
 #
@@ -783,114 +863,3 @@ classMethod recreate XOTclCRecreateMethod {
 #   {-argName "name" -required 1}
 #   {-argName "value" -required 0 -type tclobj}
 # }
-
-#
-# info object methods
-#
-infoObjectMethod callable XOTclObjInfoCallableMethod {
-  {-argName "object" -type object}
-  {-argName "infocallablesubcmd" -nrargs 1 -type "filter|method|methods" -required 1}
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
-  {-argName "-application"}
-  {-argName "-nomixins"}
-  {-argName "-incontext"}
-  {-argName "pattern" -required 0}
-}
-infoObjectMethod children XOTclObjInfoChildrenMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "pattern" -required 0}
-}
-infoObjectMethod class XOTclObjInfoClassMethod {
-  {-argName "object" -required 1 -type object}
-}
-
-infoObjectMethod forward XOTclObjInfoForwardMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "-definition"}
-  {-argName "name"}
-}
-infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
-  {-argName "object" -required 1 -type object}
-}
-infoObjectMethod method XOTclObjInfoMethodMethod {
-  {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
-  {-argName "name"}
-}
-infoObjectMethod methods XOTclObjInfoMethodsMethod {
-  {-argName "object" -type object}
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-nomixins"}
-  {-argName "-incontext"}
-  {-argName "pattern"}
-}
-infoObjectMethod parent XOTclObjInfoParentMethod {
-  {-argName "object" -required 1 -type object}
-}
-infoObjectMethod precedence XOTclObjInfoPrecedenceMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "-intrinsic"}
-  {-argName "pattern" -required 0}
-}
-infoObjectMethod slotobjects XOTclObjInfoSlotObjectsMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "pattern" -required 0}
-}
-infoObjectMethod vars XOTclObjInfoVarsMethod {
-  {-argName "object" -required 1 -type object}
-  {-argName "pattern" -required 0}
-}
-
-
-#
-# info class methods
-#
-infoClassMethod heritage XOTclClassInfoHeritageMethod {
-  {-argName "class"   -required 1 -type class}
-  {-argName "pattern"}
-}
-infoClassMethod instances XOTclClassInfoInstancesMethod {
-  {-argName "class"   -required 1 -type class}
-  {-argName "-closure"}
-  {-argName "pattern" -type objpattern}
-}
-infoClassMethod forward XOTclClassInfoForwardMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "-definition"}
-  {-argName "name"}
-}
-infoClassMethod method XOTclClassInfoMethodMethod {
-  {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
-  {-argName "name"}
-}
-infoClassMethod methods XOTclClassInfoMethodsMethod {
-  {-argName "class" -type class}
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-nomixins"}
-  {-argName "-incontext"}
-  {-argName "pattern"}
-}
-infoClassMethod mixinof  XOTclClassInfoMixinOfMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "-closure"}
-  {-argName "-scope" -required 0 -nrargs 1 -type "all|class|object"}
-  {-argName "pattern" -type objpattern}
-}
-infoClassMethod slots XOTclClassInfoSlotsMethod {
-  {-argName "class"  -required 1 -type class}
-}
-infoClassMethod subclass XOTclClassInfoSubclassMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "-closure"}
-  {-argName "pattern" -type objpattern}
-}
-infoClassMethod superclass XOTclClassInfoSuperclassMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "-closure"}
-  {-argName "pattern" -type tclobj}
-}
-

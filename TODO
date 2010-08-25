@@ -1155,9 +1155,13 @@ _ added option noforwarder to RelationSlots
 - nx: we have now "obj info mixin classes ...." instead of "obj info filter ...."
 - updated migration guide
 
+- changed info to new interface (partly done for nx, migration for xotcl to be done)
+
 TODO: 
+- continue migration nx in regression test
+- change info in XOTcl to new interface
+- copy info methods to source
 - deeper analysis of "contains"
-- check feasability of "obj info filter guard name" etc.
 - unify SubcmdObj() and ParamCheckObj() handling?
 
 - subcmd

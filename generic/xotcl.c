@@ -5941,10 +5941,10 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	char *methodName = ObjStr(objv[1]);
 
 	/*fprintf(stderr, "save self %p %s (ns %p) object %p %s\n", 
-		self, objectName(self), self->nsPtr,
-		object, objectName(object));*/
+	  self, objectName(self), self->nsPtr, object, objectName(object));*/
 	if (self->nsPtr) {
 	  cmd = FindMethod(self->nsPtr, methodName);
+	  /*fprintf(stderr, "... method %p %s\n", cmd, methodName);*/
 	  if (cmd) {
 	    result = MethodDispatch(object, interp, objc-1, objv+1, 
 				    cmd, object, NULL, methodName, frameType);
