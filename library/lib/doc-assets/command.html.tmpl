@@ -13,10 +13,26 @@
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
     <h3 id="properties">Subcommands</h3>
+    <div class="section field member"
+         rel="yui:member"  resource="#">
+      <div class="content" rel="yui:properties">
+        <code>
+          [:for sub ${:@subcommand} {
+          <span rel="yui:property"
+                resource="#subcommand_[$sub name]">                                        
+            <a class=""
+               href="#subcommand_[$sub name]" property="yui:name"
+               title="[$sub name]">[$sub name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    </div>
+    <hr>
     <div class="content">
       [:for sub ${:@subcommand} {
       <div rel="yui:property">
-        <h4><a name="property_[$sub name]" property="yui:name">[$sub name]</a>
+        <h4><a name="subcommand_[$sub name]" property="yui:name">[$sub name]</a>
         </h4>
         <div class="detail">
 	   <code>[:? {[$sub eval {info exists :@return}] && [[$sub @return] spec] ne ""} {&lt;<span property="yui:type">[[$sub @return] spec]</span>&gt;} ]

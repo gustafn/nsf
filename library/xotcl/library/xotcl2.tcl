@@ -61,12 +61,145 @@ namespace eval ::xotcl {
       }
   }
 
+  # @object ::xotcl::Object
+  #
+  # Xotcl programs are constructed out of objects. This class
+  # describes common structural and behavioural features for all XOTcl
+  # objects. It is the root object-class in the XOTcl 2 object system.
+
   # provide the standard command set for ::xotcl::Object
   foreach cmd [info command ::nsf::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "setter"]} continue
     ::nsf::alias Object $cmdName $cmd
   }
+
+  #
+  # object methods
+  #
+
+  # @method ::xotcl::Object#autoname
+  #
+  # Provides a facility for auto-generating object identifiers. It is
+  # constructed from a seeding string which is appended a numeric
+  # index. This numeric index is incremented upon each call to
+  # {{{autoname}}}.
+  # {{{
+  #       set obj [Object new]
+  #       $obj autoname a; # yields "a1"
+  #       $obj autoname -instance B; # yields "b1"
+  #       $obj autoname a; # yields "a2"
+  #       $obj autoname b; # yields "b1"
+  #       $obj autoname -reset a; # ""
+  #       $obj autoname -reset -instance B; # ""
+  #       $obj autoname -instance a; # yields "a1", and NOT "a3"!
+  #       $obj autoname -instance B; # yields "b1"
+  #       $obj autoname b; # yields "b2"
+  # }}}
+  # The seeding string may also contain {{{[format]}}} expressions (see ...):
+  # {{{
+  #       $obj autoname a%06d; # gives you "a000001", ...
+  # }}}
+  #
+  # @param -instance Have the generated name start with a lower letter (though the seed string has a major first letter)
+  # @param -reset Reset the object-internal counter for a given seed string
+  # @param name The seeding string which is used as a base for name generation
+  # @return The generated name string
+  
+  # @method ::xotcl::Object#cleanup
+  #
+  # TODO: this is a method not used in the Next Scripting Langauge. This
+  # mehtod is just called via recreate, so everything necessary can be
+  # performed there as well. However, it is available for backward
+  # compatibility available in XOTcl 2.0
+  #
+  # Resets an object or class to its initial state, as after object
+  # allocation (see {{@method ::xotcl::Class class alloc}}). This method
+  # participates in recreating objects, i.e, it is called during the
+  # recreation process by {{@method ::xotcl::Class class recreate}}.
+  # Depending on the recreation scheme applied (see {{@command
+  # ::nsf::configure}}, object variables are deleted, per-object
+  # namespaces are cleared, and the object's relationsships (e.g., mixin
+  # relations) are reset.
+  # 
+  # @properties interally-called
+  
+  # @method ::xotcl::Object#destroy
+  #
+  # @use ::xotcl::Object#destroy
+
+  # @method ::xotcl::Object#exists 
+  #
+  # A helper method for checking whether the variable {{{var}}} is
+  # defined on the object and assigned a value. You may use a variable
+  # name with or without prefix, both will resolve to the object scope:
+  # {{{
+  #       $obj eval {
+  #          set :foo 1
+  #          set bar 2
+  #       }
+  #
+  #       $obj exists foo; # returns 1
+  #       $obj exists :foo; # returns 1
+  #       $obj exists bar; # returns 0
+  #       $obj exists :bar; # returns 0
+  # }}}
+  #
+  # @param var The name of the variable to verify
+  # @return :boolean 1 if the variable exists, 0 otherwise
+
+  # @method ::xotcl::Object#instvar
+  #
+  # @param args
+
+  # @method ::xotcl::Object#noinit
+  #
+  # Calling upon this method during object construction allows you to
+  # bypass the constructor method:
+  # {{{
+  #	Class create C
+  #  	C instproc init {} {puts stderr "A class-specific constructor shouts out ..."}
+  #	C c1 -noinit
+  # }}}
+  # This bypassing feature comes handy when streaming an object into a
+  # scripted form (e.g., by using the bundled Serializer). Upon
+  # deserializing the object, using the {{{noinit}}} flag helps you to
+  # preserve the serialized object state (rather then having the
+  # object re-initialized).
+
+  # @method ::xotcl::Object#requireNamespace
+  #
+  # This method allows you to request the creation of a namespace for
+  # the given object, a per-object namespace. The namespace is then used
+  # to store instance variables, methods and nested objects. Per-object
+  # namespaces are needed for using and binding object variables to
+  # non-object scopes in Tcl and Tk. For instance, you may use an
+  # per-object namespace to have object variables accessible Tk widgets
+  # and Tk callbacks. To verify whether a per-object namespace is
+  # available for an object, see ...
+  #
+  # Beware that there is a difference between per-object namespaces and
+  # Tcl namespaces which shadow an existing object (i.e., carry the same
+  # name):
+  # {{{
+  # 	Object create Foo
+  # 	Foo requireNamespace
+  # 	namespace exists Foo; # returns 1
+  # 	Foo info hasnamespace; # returns 1
+  #
+  # 	Object create Bar
+  # 	namespace eval ::Bar {}
+  # 	namespace exists Bar; # returns 1
+  # 	Bar info hasnamespace; # returns 0
+  # }}}
+
+  # @method ::xotcl::Object#vwait
+  #
+  # A method variant of the Tcl {{{vwait}}} command. You can use it to
+  # have the {{{interp}}} enter an event loop until the specified
+  # variable {{{varname}}} is set on the object.
+  #
+  # @param varname The name of the signalling object variable.
 
   # provide some Tcl-commands as methods for ::xotcl::Object
   foreach cmd {array append eval incr lappend set subst unset trace} {
@@ -459,6 +592,16 @@ namespace eval ::xotcl {
   ::nsf::alias Object parametercmd    ::nsf::classes::nx::Object::setter
   ::nsf::alias Class instparametercmd ::nsf::classes::nx::Class::setter
 
+  # @method ::xotcl::Class#mixinguard
+  #
+  # @param mixin
+  # @param guard
+
+  # @method ::nx::Class#instmixinguard
+  #
+  # @param mixin
+  # @param guard
+
   # assertion handling
   proc checkoption_xotcl1_to_internal checkoptions {
     set options [list]
@@ -544,6 +687,15 @@ namespace eval ::xotcl {
     if {[::nsf::is [self] object -hasmixin $cl]} {return 1}
     ::nsf::is [self] type $cl
   }
+
+  # @method ::nx::Object#filtersearch
+  #
+  # Search a fully qualified method name which is currently registered
+  # as a filter. 
+  #
+  # @param filter Handle to identify and address a filter once registered
+  # @param guard A list of guard expressions
+  # @return A list in proc qualifier format: 'objName|className proc|instproc methodName'.
   Object instproc filtersearch {filter} {
     set handle [::nsf::cmd::ObjectInfo::callable [self] filter $filter]
     return [method_handle_to_xotcl $handle]

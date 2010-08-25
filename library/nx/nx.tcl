@@ -1,3 +1,15 @@
+# @package nx
+#
+# The Next Scripting Language is a compact and expressive object-oriented language
+# extension for Tcl. The object system model is highly influenced by
+# CLOS. This package provides the basic object system for the Next
+# language. It defines the basic language entities {{@object ::nx::Object}} and
+# {{@object ::nx::Class}}, as well as essential language primitives
+# (e.g., {{@command ::nx::next}} and {{@command ::nx::self}}).
+#
+# @require Tcl
+# @version 1.0.0a
+
 package provide nx 2.0
 package require nsf
 
@@ -11,6 +23,143 @@ namespace eval ::nx {
   #
   # First create the ::nx object system. 
   #
+
+  # @object ::nx::Object
+  #
+  # Next Scripting Language (NSL)programs are constructed out of
+  # objects. This class describes common structural and behavioural
+  # features for all NSL objects. It is the root object-class in the
+  # NSL object system.
+
+  # @object ::nx::Class
+  #
+  # A class defines a family of object types which own a common set of
+  # attributes (see {{@object ::nx::Attribute}}) and methods. Classes
+  # are organised according to their similarities and differences in
+  # classification hierarchies. This object represents the root
+  # meta-class in the "Next" object system.
+  #
+  # @superclass ::nx::doc::entities::object::nx::Object
+  
+  # @method ::nx::Class#alloc
+  #
+  # Creates a bare object or class which is not
+  # fully initialized. {{{alloc}}} is used by {{@method ::nx::Class class create}} to
+  # request a memory object storage. In subsequent steps,
+  # {{{create}}} invokes {{{configure}}} and {{{init}}} to further
+  # set up the object. Only in rare situations, you may consider
+  # bypassing the overall {{{create}}} mechanism by just allocating
+  # uninitialized objects using {{{alloc}}}.
+  #
+  # @properties interally-called
+  # @param name The object identifier assigned to the object storage to be allocated.
+  # @return The name of the allocated, uninitialized object
+  
+  # @method ::nx::Class#create
+  #
+  # Provides for creating application-level classes and objects. If
+  # the method receiver is a meta-class, a class will be
+  # created. Otherwise, {{{create}}} yields an object. {{{create}}}
+  # is responsible a multi-phase object creation scheme. This
+  # creation scheme involves three major steps:
+  # {{{
+  # [Object create anObject]               (1)
+  #                       ---------------.   .--------------.
+  #       -------------->|Class->create()|-->|Class->alloc()|
+  #                      `---------------'   `--------------'
+  #                                |  |  (2) .-------------------.
+  #                                |  .----->|Object->configure()|
+  #                                |         `-------------------'
+  #                                |   (3)   .------.
+  #                                .........>|init()|
+  #                                          `------'
+  # }}}
+  # (1) A call to {{@method ::nx::Class class alloc}} to create a raw,
+  # uninitalized object.
+  #
+  # (2) The newly allocated object receives a method call upon
+  # {{@method ::nx::Object class configure}}. This will establish the
+  # object's initial state, by applying object parameter values
+  # provided at object creation time and default values defined at
+  # object definition time.
+  #
+  # (3) Finally, {{{create}}} emits a call to the initialization
+  # method {{{init}}} (i.e., the actual "constructor"), if
+  # available. An {{{init}}} method can be defined by a class on
+  # behalf of its objects, to lay out class-specific initialisation
+  # behaviour. Alternatively, each single object may define an
+  # {{{init}}} method on its own.
+  #
+  # By overloading the method in a meta-class, you can refine or
+  # replace this default object creation scheme (e.g., for applying
+  # application-specific naming schemes).
+  #
+  # For creating an object or a class, you must name {{{create}}}
+  # explicitly, i.e.:
+  # {{{
+  #		::nx::Object create anObject
+  #		::nx::Class create AClass
+  #		::nx::Class AnotherClass; # This fails: "Method 'AnotherClass' unknown for ::nx::Class."
+  # }}}
+  # 
+  # @param name The designated identifier on the class or the object to be created.
+  # @param args Arguments to be passed down to the object creation procedure used to initialize the object.
+  # @return The name of the created, fully initialized object.
+  
+  # @method ::nx::Class#dealloc
+  #
+  # Marks objects for physical deletion in memory. Beware the fact
+  # that calling {{{dealloc}}} does not necessarily cause the object
+  # to be deleted immediately. Depending on the lifecycle of the the
+  # object's environment (e.g., the {{{interp}}}, the containing
+  # namespace) and on call references down the callstack, the actual
+  # memory freeing operation may occur time-shifted (that is,
+  # later). While {{{dealloc}}} itself cannot be redefined for
+  # {{{::nx::Class}}}, you may consider refining it in a subclass or
+  # mixin class for customizing the destruction process.
+  #
+  # @properties interally-called
+  # @param object The name of the object to be scheduled for deletion.
+  
+  # @method ::nx::Class#recreate
+  #
+  # This method is called upon recreating an object. Recreation is the
+  # scheme for resolving object naming conflicts in the dynamic and
+  # scripted programming environment of "Next": An object or class is
+  # created while an object or class with an identical object identifier
+  # already exists. The method {{{recreate}}} performs standard object
+  # initialization, per default, after re-setting the state and
+  # relationships of the object under recreation. This re-set is
+  # achieved by invoking {{@method ::nx::Object class cleanup}}.
+  # {{{
+  #	Object create Bar
+  #	\# ...
+  #	Object create Bar; # calls Object->recreate(::Bar, ...) + ::Bar->cleanup()
+  # }}}
+  # By refining {{{recreate}}} in an application-level subclass or mixin
+  # class, you can intercept the recreation process. In the pre-part the
+  # refined {{{recreate}}} method, the recreated object has its old
+  # state, after calling {{@command ::nx::next}} it is cleaned up.
+  #
+  # If the name conflict occurs between an existing class and a newly
+  # created object (or vice versa), {{{recreate}}} is not
+  # performed. Rather, a sequence of {{@method ::nx::Object class destroy}}
+  # and {{@method ::nx::Class class create}} is triggered:
+  # {{{
+  #	Object create Bar
+  #	\# ...
+  #	Class create Bar; # calls Bar->destroy() + Class->create(::Bar, ...)
+  # }}}
+  #
+  # @properties interally-called
+  # @param name The name (identifier) of the object under recreation
+  # @param args Arbitrary vector of arguments
+  # @return The name of the recreated object
+ 
+  # @method ::nx::Object#residualargs
+  #
+  # @properties interally-called
+  # @param args
   ::nsf::createobjectsystem ::nx::Object ::nx::Class {
     -class.alloc alloc 
     -class.create create
@@ -31,6 +180,15 @@ namespace eval ::nx {
   # get frequenly used primitiva from the next scripting framework 
   #
   namespace eval ::nsf {}
+  
+  # @command ::nx::next
+  #
+  # @use ::nsf::command
+
+  # @command ::nx::current
+  #
+  # @use ::nsf::current
+
   namespace import ::nsf::next ::nsf::current
 
   #
@@ -42,8 +200,114 @@ namespace eval ::nx {
     ::nsf::alias Object $cmdName $cmd 
   }
   
+  # @method ::nx::Object#configure
+  #
+  # This method participates in the object creation process. It is
+  # automatically invoked after having produced a new object by
+  # {{@method ::nx::Class class create}}.
+  # Upon its invocation, the variable argument vector {{{args}}}
+  # contains a list of parameters and parameter values passed in
+  # from the call site of object creation. They are matched against
+  # an object parameter definition. This definition, and so the
+  # actual method parameter definition of this method, is assembled
+  # from configuration values of the classes along the precedence
+  # order (see also {{@method ::nx::Object class objectparameter}}).
+  # The method {{{configure}}} can be called at arbitrary times to
+  # "re-set" an object.
+  #
+  # @properties interally-called
+  # @param args The variable argument vector stores the object parameters and their values
+
+  # @method ::nx::Object#destroy
+  #
+  # The standard destructor for an object. The method {{@method ::nx::Object class destroy}}
+  # triggers the physical destruction of the object. The method {{{destroy}}} can be refined
+  # by subclasses or mixin classes to add additional (class specific) destruction behavior.
+  # Note that in most cases, the class specific {{{destroy}}} methods should call 
+  # {{@command ::nx::next}} to trigger physical destruction.
+  # {{{
+  #     nx::Class create Foo {
+  #        :method destroy {} {
+  #            puts "destroying [self]"
+  #            next
+  #        }
+  #     }
+  #     Foo create f1
+  #     f1 destroy
+  # }}}
+  # Technical details: The method {{@method ::nx::Object class destroy}}
+  # delegates the actual destruction to {{@method ::nx::Class class dealloc}} 
+  # which clears the memory object storage. Essentially, the behaviour could be 
+  # scripted as:
+  # {{{
+  #       Object method destroy {} {
+  #               [:info class] dealloc [self]
+  #       }
+  # }}}
+  # Note, however, that {{{destroy}}} is protected against
+  # application-level redefinition. You must refine it in a subclass
+  # or mixin class. 
+  #
+
+  # @method ::nx::Object#uplevel
+  #
+  # This helper allows you to evaluate a script in the context of
+  # another callstack level (i.e., callstack frame).
+  #
+  # @param level:optional The starting callstack level (defaults to the value of {{{[current callinglevel]}}})
+  # @param script:list The script to be evaluated in the targeted callstack level
+
+  # @method ::nx::Object#upvar
+  #
+  # This helper allows you to bind a local variable to a variable
+  # residing at a different callstack level (frame).
+  #
+  # @param level:optional The starting callstack level (defaults to the value of {{{[current callinglevel]}}})
+  # @param sourceVar A variable which should be linked to a ...
+  # @param targetVar ... which is a local variable in a method scope
+  # @see ...
+
+  # @method ::nx::Object#volatile
+  #
+  # By calling on this method, the object is bound in its lifetime to
+  # the one of call site (e.g., the given Tcl proc or method scope):
+  # {{{
+  # 	proc foo {} {
+  #   		info vars; # shows ""
+  #   		set x [Object create Bar -volatile]
+  #   		info vars; # shows "x Bar"
+  # 	}
+  # }}}
+  # Behind the scenes, {{{volatile}}} registers a C-level variable trace
+  # ({{{Tcl_TraceVar()}}}) on the hiddenly created local variable (e.g.,
+  # {{{Bar}}}), firing upon unset events and deleting the referenced
+  # object ({{{Bar}}}). That is, once the callframe context of {{{foo}}}
+  # is left, the local variable {{{Bar}}} is unset and so the bound
+  # object is destroyed.
+
   # provide ::eval as method for ::nx::Object
   ::nsf::alias Object eval -nonleaf ::eval
+
+  #
+  # class methods
+  #
+  
+  # @method ::nx::Class#new
+  #
+  # A convenience method to create auto-named objects and classes. It is
+  # a front-end to {{@method ::nx::Class class create}}. For instance:
+  # {{{
+  #	set obj [Object new]
+  #	set cls [Class new]
+  # }}}
+  #
+  # This will provide object identifiers of the form
+  # e.g. {{{::nsf::__#0}}}. In contrast to {{@method ::nx::Object class autoname}},
+  # the uniqueness of auto-generated identifiers is guaranteed for the
+  # scope of the {{{interp}}}.
+  #
+  # @param -childof If provided, the new object is created as a child of the specified object.
+  # @param args The variable arguments passed down to {{@method ::nx::Class class create}}.
 
   # provide the standard command set for Class
   foreach cmd [info command ::nsf::cmd::Class::*] {

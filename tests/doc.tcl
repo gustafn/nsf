@@ -126,7 +126,7 @@ Test case parsing {
   # TODO: Add tests for doc-parsing state machine.
   #
   set block {
-    {@command cc}
+    {@command ::cc}
   }
 
   ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
@@ -145,24 +145,24 @@ Test case parsing {
   
   set block {
     {}
-    {@command cc}
+    {@command ::cc}
   }
   ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
  set block {
-   {command cc}
+   {command ::cc}
    {}
   }
   ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   set block {
-    {@command cc}
+    {@command ::cc}
     {some description}
   }
   ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
  set block {
-   {@command cc} 
+   {@command ::cc} 
    {}
    {}
    {}
@@ -172,7 +172,7 @@ Test case parsing {
   ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
  set block {
-   {@command cc}
+   {@command ::cc}
    {}
    {some description}
    {some description2}
@@ -184,7 +184,7 @@ Test case parsing {
   # Note: We do allow description blocks with intermediate space
   # lines, for now.
   set block {
-    {@command cc}
+    {@command ::cc}
     {}
     {some description}
     {some description2}
@@ -211,7 +211,7 @@ Test case parsing {
   # Alternatively, we can use the @see like syntax for qualifying:
   # @param ::Foo#attr1 (I have a preference for this option).
   set block {
-    {@command cc}
+    {@command ::cc}
     {@see someOtherEntity}
   }
   ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
@@ -220,7 +220,7 @@ Test case parsing {
   # TODO: Disallow space lines between parts? Check back with Javadoc spec.
   #
   set block {
-    {@command cc}
+    {@command ::cc}
     {}
     {@see SomeOtherEntity}
     {add a line of description}
@@ -235,7 +235,7 @@ Test case parsing {
   # TODO: Should we enforce a mandatory space line between description and part block?
   #
   set block {
-    {@command cc}
+    {@command ::cc}
     {}
     {add a line of description}
     {a second line of description}
@@ -246,7 +246,7 @@ Test case parsing {
   ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   set block {
-    {@command cc}
+    {@command ::cc}
     {}
     {add a line of description}
     {a second line of description}
@@ -261,7 +261,7 @@ Test case parsing {
   ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
   
   set block {
-    {@command cc}
+    {@command ::cc}
     {}
     {add a line of description}
     {a second line of description}
@@ -273,7 +273,7 @@ Test case parsing {
   ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   set block {
-    {@object cc}
+    {@object ::cc}
     {}
     {add a line of description}
     {a second line of description}
@@ -284,7 +284,7 @@ Test case parsing {
   ? [list InvalidTag thrown_by? [list CommentBlockParser process $block]] 1
 
   set block {
-    {@class cc}
+    {@class ::cc}
     {}
     {add a line of description}
     {a second line of description}
@@ -298,7 +298,7 @@ Test case parsing {
   # testing the doc object construction
   #
   set block {
-    {@object o} 
+    {@object ::o} 
     {}
     {some more text}
     {and another line for the description}
@@ -313,13 +313,14 @@ Test case parsing {
   ? [list $entity text] "some more text and another line for the description";
 
   set block {
-    {@command c} 
+    {@command ::c} 
     {}
     {some text on the command}
     {}
     {@see ::o}
   }
   set entity [CommentBlockParser process $block]
+  puts stderr ENTITY=$entity
   ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@command] 1
   ? [list $entity text] "some text on the command";
@@ -359,9 +360,9 @@ Test case parsing {
 
   eval $script
   doc process ::Foo
-  set entity [@object id ::Foo]
+  set entity [@class id ::Foo]
   ? [list ::nsf::is $entity object] 1
-  ? [list $entity info is type ::nx::doc::@object] 1
+  ? [list $entity info is type ::nx::doc::@class] 1
   ? [list $entity text] "The class Foo defines the behaviour for all Foo objects";
   ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
   # TODO: Fix the [@param id] programming scheme to allow (a) for
@@ -373,7 +374,7 @@ Test case parsing {
   ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Foo class foo]
-  ? [list [@object id ::Foo] @method] $entity
+  ? [list [@class id ::Foo] @method] $entity
   ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@method] 1
   ? [list $entity text] "This describes the foo method";
@@ -393,28 +394,28 @@ Test case parsing {
 
   set script {
     namespace import -force ::nx::*
-    # @object Bar
+    # @class ::Bar
     # 
     # The class Bar defines the behaviour for all Bar objects
     #
     # @author gustaf.neumann@wu-wien.ac.at
     # @author ssoberni@wu.ac.at
 
-    # @param Bar#attr1 
+    # @param ::Bar#attr1 
     #
     # This attribute 1 is wonderful
     #
     # @see ::nx::Attribute
     # @see ::nx::MetaSlot
 
-    # @method Bar#foo
+    # @method ::Bar#foo
     #
     # This describes the foo method
     #
     # @param a Provides a first value
     # @param b Provides a second value
 
-    # @object-method Bar#foo
+    # @object-method ::Bar#foo
     #
     # This describes the per-object foo method
     #
@@ -457,9 +458,9 @@ Test case parsing {
 
   set i [doc process $script]
 
-  set entity [@object id ::Bar]
+  set entity [@class id ::Bar]
   ? [list $i eval [list ::nsf::is $entity object]] 1
-  ? [list $i eval [list $entity info is type ::nx::doc::@object]] 1
+  ? [list $i eval [list $entity info is type ::nx::doc::@class]] 1
   ? [list $i eval [list $entity text]] "The class Bar defines the behaviour for all Bar objects";
   ? [list $i eval [list $entity @author]] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
 
@@ -472,7 +473,7 @@ Test case parsing {
   ? [list $i eval [list $entity @see]] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Bar class foo]
-  ? [list $i eval [list [@object id ::Bar] @method]] $entity
+  ? [list $i eval [list [@class id ::Bar] @method]] $entity
   ? [list $i eval [list ::nsf::is $entity object]] 1
   ? [list $i eval [list $entity info is type ::nx::doc::@method]] 1
   ? [list $i eval [list $entity text]] "This describes the foo method in the method body";
@@ -484,7 +485,7 @@ Test case parsing {
     ? [list expr [list [$i eval [list $p text]] eq $expected]] 1;
   }
   set entity [@method id ::Bar object foo]
-  ? [list $i eval [list [@object id ::Bar] @object-method]] $entity
+  ? [list $i eval [list [@class id ::Bar] @object-method]] $entity
   ? [list $i eval [list ::nsf::is $entity object]] 1
   ? [list $i eval [list $entity info is type ::nx::doc::@method]] 1
   ? [list $i eval [list $entity text]] "This describes the per-object foo method in the method body";
@@ -526,7 +527,7 @@ Test case parsing {
   #
   # core documentation
   #
-  set path [file join /tmp NextLanguageCore]
+  set path [file join [::nsf::tmpdir] NextScriptingFramework]
   if {[file exists $path]} {
     file delete -force $path
   }
@@ -536,18 +537,49 @@ Test case parsing {
     package req nx::doc
     namespace import ::nx::*
     namespace import ::nx::doc::*
-    puts stderr TIME=[time {
-    doc process -noeval true generic/gentclAPI.decls
+    
+    # 1) NSF documentation project
+    
+    set project [::nx::doc::@project new \
+		     -name ::NextScriptingFramework \
+		     -url http://www.next-scripting.org/ \
+		     -version 1.0.0a \
+		     -namespace "::nsf"]
+
+    doc process -noeval true generic/predefined.tcl
+    
+    ::nx::doc::make doc \
+	-renderer ::nx::doc::TemplateData \
+	-outdir [::nsf::tmpdir] \
+	-project $project
+  }
+
+  interp delete $i
+  
+  set _ {
+    # 2) XOTcl2 documentation project
+    doc process -noeval true library/xotcl/xotcl.tcl
+    ::nx::doc::make doc \
+	-renderer ::nx::doc::TemplateData \
+	-outdir [::nsf::tmpdir] \
+	-project {name XOTcl2 url http://www.xotcl.org/ version 2.0.0a}
+    
+    # 3) NSL documentation project
     doc process -noeval true library/nx/nx.tcl
     ::nx::doc::make doc \
 	-renderer ::nx::doc::TemplateData \
-	-outdir /tmp \
-	-project {name NextLanguageCore url http://www.next-scripting.org/ version 1.0.0a}
-    } 1]
+	-outdir [::nsf::tmpdir] \
+	-project {name NextScriptingLanguage url http://www.next-scripting.org/ version 1.0.0a}
+    
+    # 4) Next Scripting Libraries
+    # doc process -noeval true ...
+    # ::nx::doc::make doc \
+    # 	-renderer ::nx::doc::TemplateData \
+    # 	-outdir [::nsf::tmpdir] \
+    # 	-project {name NextScriptingLibraries url http://www.next-scripting.org/ version 1.0.0a}
   }
-  interp delete $i
-}
 
+}
 
 
 # # # # # # # # # # # # # # # # # # # #
