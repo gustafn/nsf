@@ -560,9 +560,9 @@ package require XOTcl
       of the forwarder with all flags is returned in a way that
       can be used e.g. for registering the forwarder on another object.
 
-      <@li><@TT>objName info hasNamespace</@TT>: From XOTcl version 0.9 on, 
+      <@li><@TT>objName info hasnamespace</@TT>: From XOTcl version 0.9 on, 
       namespaces 
-      of objects are allocated on demand. hasNamespace returns 1, if the 
+      of objects are allocated on demand. hasnamespace returns 1, if the 
       object currently has a namespace, otherwise 0. The method
       <@TT>requireNamespace</@TT> can 
       be used to ensure that the object has a namespace.
@@ -839,7 +839,7 @@ package require XOTcl
       child objects (aggregated objects) or procs. The namespace
       will be used to keep instance variables, procs and child objects.
       To check, whether an object currently has a namespace, 
-      <@TT>info hasNamespace</@TT> can be used.
+      <@TT>info hasnamespace</@TT> can be used.
       
       Hint: In versions prior to XOTcl 0.9 all XOTcl objects 
       had their own namespaces; it was made on demand to save memory when
