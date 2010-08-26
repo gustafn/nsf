@@ -347,9 +347,9 @@ namespace eval ::nx {
       foreach w [lrange $path 0 end-1] {
 	#puts stderr "check $object info methods $path @ <$w>"
 	set scope [expr {[nsf::objectproperty $object class] && !${per-object} ? "Class" : "Object"}] 
-	if {[::nsf::dispatch $object ::nsf::cmd::${scope}Info2::methods -methodtype all $w] eq ""} {
+	if {[$object ::nsf::cmd::${scope}Info2::methods -methodtype all $w] eq ""} {
 	  #
-	  # Create dispatch object an accessor method (if wanted)
+	  # Create dispatch/ensemble object and accessor method (if wanted)
 	  #
 	  if {$scope eq "Class"} {
 	    if {![::nsf::objectproperty ${object}::slot object]} {
@@ -372,8 +372,8 @@ namespace eval ::nx {
 	  # The accessor method exists already, check, if it is
 	  # appropriate for extending.
 	  #
-	  set type [::nsf::dispatch $object ::nsf::cmd::${scope}Info2::method type $w]
-	  set definition [::nsf::dispatch $object ::nsf::cmd::${scope}Info2::method definition $w]
+	  set type [$object ::nsf::cmd::${scope}Info2::method type $w]
+	  set definition [$object ::nsf::cmd::${scope}Info2::method definition $w]
 	  if {$scope eq "Class"} {
 	    if {$type ne "alias"} {error "can't append to $type"}
 	    if {$definition eq ""} {error "definition must not be empty"}
@@ -469,7 +469,7 @@ namespace eval ::nx {
     # method-modifier for object specific methos
     :method object {what args} {
       if {$what in [list "alias" "attribute" "forward" "method" "setter"]} {
-        return [::nsf::dispatch [::nsf::current object] ::nsf::classes::nx::Object::$what {*}$args]
+        return [::nsf::my ::nsf::classes::nx::Object::$what {*}$args]
       }
       if {$what in [list "info"]} {
         return [::nsf::dispatch [::nsf::current object] ::nx::Object::slot::__info [lindex $args 0] {*}[lrange $args 1 end]]
@@ -494,7 +494,7 @@ namespace eval ::nx {
 	}
       }
       if {$what in [list "filterguard" "mixinguard"]} {
-        return [::nsf::dispatch [::nsf::current object] ::nsf::cmd::Object::$what {*}$args]
+        return [::nsf::my ::nsf::cmd::Object::$what {*}$args]
       }
     }
 
@@ -692,7 +692,7 @@ namespace eval ::nx {
 	::nsf::require_method [::nsf::current object] [lindex $args 0] 0
       }
       namespace {
-	::nsf::dispatch [::nsf::current object] ::nsf::cmd::Object::requireNamespace
+	::nsf::my ::nsf::cmd::Object::requireNamespace
       }
     }
   }
@@ -724,10 +724,11 @@ namespace eval ::nx {
     :alias "info vars"           ::nsf::cmd::ObjectInfo2::vars
   }
 
-  # Create the object here to prepare for copy of the above
-  # definitions.  Potentially, some names are overwritten by the
-  # class. Note, that the automatically created name has to be the
-  # same. 
+  # Create the ensemble object here to prepare for copy of the above
+  # definitions from Object.info to Class.info.  Potentially, some
+  # names are overwritten later by Class.info . Note, that the
+  # automatically created name of the sensemble object has to be the
+  # same as defined above.
   
   Object create ::nx::Class::slot::__info
   Class alias info ::nx::Class::slot::__info
@@ -735,10 +736,8 @@ namespace eval ::nx {
   #
   # copy all methods except the subobjects to ::nx::Class::slot::__info
   #
-  foreach m [nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::methods] {
-    set definition [nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::method definition $m]
-    #puts "$m $definition"
-    #puts "classInfo [lrange $definition 1 end]"
+  foreach m [::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::methods] {
+    set definition [::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::method definition $m]
     ::nx::Class::slot::__info {*}[lrange $definition 1 end]
   }
 
@@ -783,12 +782,6 @@ namespace eval ::nx {
   Object alias "info method" ::nsf::cmd::ObjectInfo2::method
   Class  alias "info method" ::nsf::cmd::ClassInfo2::method
 
-  # register method "info" on Object and Class
-  #Object forward info -onerror ::nsf::infoError ::nx::objectInfo %1 {%@2 %self}
-  #Class forward  info -onerror ::nsf::infoError ::nx::classInfo %1 {%@2 %self}
-  #Object alias info ::nx::objectInfo
-  #Class alias info ::nx::classInfo
-
   # TOOD REMOVE BLOCK
   # puts "After Info"
   # puts object-methods=[Object info methods]
@@ -805,7 +798,6 @@ namespace eval ::nx {
   # puts ""
   # puts object-superclass=[Object info superclass]
   # puts class-superclass=[Class info superclass]
-
   # #  Object create o1
   # #  puts obj-info-info=[o1 info info]
   # #  puts class-info-info=[Object info info]
