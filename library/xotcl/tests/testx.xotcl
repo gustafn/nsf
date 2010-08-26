@@ -348,25 +348,25 @@ TestX filterAddRemove -proc run {{n 20}} {
     set erg [f${i} a]
     ::errorCheck $::result "{in a-::SB($i)::fb} {in a-::Filtered${i}::testfilter}" \
         "Filter Test - remove"
-    
+
     f${i} proc procFilter args {
       return "[next]-[self class]::[self proc]" 
     }
     f${i} filter {fa f2 procFilter}
-    
+
     set ::result ""
     set erg [f${i} a]
     ::errorCheck $::result "{in a-::SB($i)::fb} {in a-::Filtered${i}::testfilter} {in a-::procFilter-::SB($i)::f2} {in a-::procFilter-::SA($i)::fa}" \
         "Obj Filter Test call three filter + instfilter"
-    
+
     ::errorCheck [f${i} info filter]-[SB($i) info instfilter]-[SC($i) info instfilter] \
         "fa f2 procFilter-::procFilter-fb-" \
         "filter infos"
-    
+
     ::errorCheck [f${i} filtersearch fa]-[f${i} filtersearch fb]-[f${i} filtersearch procFilter] \
         "::SA($i) instproc fa-::procFilter-::SB($i) instproc fb-::procFilter-::f${i} proc procFilter-::procFilter" \
         "filtersearch"
-    
+
     Filtered${i} instfilter {}
     SB($i) instfilter {}
 
@@ -2583,6 +2583,7 @@ TestX copymove -proc run {{n 10}} {
 
     X::Y::Z z
     X::Y::Z copy V
+
     V v
     ::errorCheck "[z q 1 2 3]--[X::Y::Z info class]--[X::Y::Z info classparent]" \
       "::z--::X::Y::Z--q------::xotcl::Class--::X::Y"\
@@ -3359,7 +3360,7 @@ TestX objectReferences -proc run {{n 20}} {
     ::errorCheck [o mixin XY4] ::XY4 " __unknown XY4"
   }
 
-  ::errorCheck [UnknownClass info info] {valid options are: args, body, check, children, class, classchildren, classparent, commands, default, filter, filterguard, forward, hasnamespace, heritage, info, instances, instargs, instbody, instcommands, instdefault, instfilter, instfilterguard, instforward, instinvar, instmixin, instmixinguard, instmixinof, instnonposargs, instparametercmd, instpost, instpre, instprocs, invar, is, methods, mixin, mixinguard, mixinof, nonposargs, parameter, parametercmd, parent, post, pre, precedence, procs, slotobjects, slots, subclass, superclass, vars} "UnknownClass info info"
+  ::errorCheck [UnknownClass info info] {valid options are: args, body, check, children, class, classchildren, classparent, commands, default, filter, filterguard, forward, hasnamespace, heritage, info, instances, instargs, instbody, instcommands, instdefault, instfilter, instfilterguard, instforward, instinvar, instmixin, instmixinguard, instmixinof, instnonposargs, instparametercmd, instpost, instpre, instprocs, invar, methods, mixin, mixinguard, mixinof, nonposargs, parameter, parametercmd, parent, post, pre, precedence, procs, slots, subclass, superclass, vars} "UnknownClass info info"
 
   # clear unknown handler to avoid strange results later
   Class proc __unknown "" ""
@@ -3400,7 +3401,7 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [e1 exists X] "1" "forward 3"
   ::errorCheck [e1 q] q "self proc"
 
-  ::errorCheck [lsort [E info commands]] {p slot} "class commands"
+  ::errorCheck [lsort [E info commands]] {p} "class commands"
   ::errorCheck [lsort [E info instcommands]] "q t x" "class instcommands"
   ::errorCheck [E info instbody t] "return ok" "class info instbody"
   
@@ -4090,7 +4091,7 @@ TestX create nonposargs -proc run {{n 20}} {
 	"Defaults for instproc"
 
   catch {C info instdefault m2 xxx e} msg
-  errorCheck $msg {procedure "info m2" doesn't have an argument "e"} \
+  errorCheck $msg {procedure "m2" doesn't have an argument "e"} \
 	"Defaults instproc error"
 
   C instproc m3 {

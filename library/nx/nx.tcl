@@ -353,7 +353,7 @@ namespace eval ::nx {
 	  #
 	  if {$scope eq "Class"} {
 	    if {![::nsf::objectproperty ${object}::slot object]} {
-	      Object create ${object}::slot
+	      ::nsf::methodproperty $object [Object create ${object}::slot] protected true
 	      if {$verbose} {puts stderr "... create object ${object}::slot"}
 	    }
 	    set o [Object create ${object}::slot::__$w]
@@ -469,7 +469,7 @@ namespace eval ::nx {
     # method-modifier for object specific methos
     :method object {what args} {
       if {$what in [list "alias" "attribute" "forward" "method" "setter"]} {
-        return [::nsf::my ::nsf::classes::nx::Object::$what {*}$args]
+        return [::nsf::dispatch [::nsf::current object] ::nsf::classes::nx::Object::$what {*}$args]
       }
       if {$what in [list "info"]} {
         return [::nsf::dispatch [::nsf::current object] ::nx::Object::slot::__info [lindex $args 0] {*}[lrange $args 1 end]]
@@ -494,7 +494,7 @@ namespace eval ::nx {
 	}
       }
       if {$what in [list "filterguard" "mixinguard"]} {
-        return [::nsf::my ::nsf::cmd::Object::$what {*}$args]
+        return [::nsf::dispatch [::nsf::current object] ::nsf::cmd::Object::$what {*}$args]
       }
     }
 
@@ -692,14 +692,27 @@ namespace eval ::nx {
 	::nsf::require_method [::nsf::current object] [lindex $args 0] 0
       }
       namespace {
-	::nsf::my ::nsf::cmd::Object::requireNamespace
+	::nsf::dispatch [::nsf::current object] ::nsf::cmd::Object::requireNamespace
       }
     }
   }
 
+  proc ::nx::slotObj {baseObject {name ""}} {
+    # Create slot parent object if needed
+    set slotParent ${baseObject}::slot
+    if {![::nsf::objectproperty $slotParent object]} {
+      ::nx::Object alloc $slotParent
+      ::nsf::methodproperty ${baseObject} -per-object slot protected true
+    }
+    if {$name eq ""} {
+      return ${slotParent}
+    }
+    return ${slotParent}::$name
+  }
+
   # allocate system slot parents
-  Object alloc ::nx::Class::slot
-  Object alloc ::nx::Object::slot
+  ::nx::slotObj ::nx::Class
+  ::nx::slotObj ::nx::Object
 
   ########################
   # Info definition
@@ -753,6 +766,7 @@ namespace eval ::nx {
     :alias "info methods"        ::nsf::cmd::ClassInfo2::methods
     :alias "info mixin guard"    ::nsf::cmd::ClassInfo2::mixinguard
     :alias "info mixin classes"  ::nsf::cmd::ClassInfo2::mixinclasses
+    :alias "info mixinof"        ::nsf::cmd::ClassInfo2::mixinof
     :alias "info slots"          ::nsf::cmd::ClassInfo2::slots
     :alias "info subclass"       ::nsf::cmd::ClassInfo2::subclass
     :alias "info superclass"     ::nsf::cmd::ClassInfo2::superclass
@@ -761,8 +775,8 @@ namespace eval ::nx {
   #
   # Define "info info" and unknown
   #
-  proc infoOptions {obj} {
-    puts stderr "$obj INFO '[::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::methods -methodtype all]'"
+  proc ::nx::infoOptions {obj} {
+    #puts stderr "INFO INFO $obj -> '[::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::methods -methodtype all]'"
     set methods [list]
     foreach name [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::methods -methodtype all] {
       if {$name eq "unknown"} continue
@@ -775,8 +789,8 @@ namespace eval ::nx {
     error "[::nsf::current object] unknown info option \"$method\"; [$obj info info]"
   }
 
-  Object method "info info" {} {infoOptions ::nx::Object::slot::__info}
-  Class  method "info info" {} {infoOptions ::nx::Class::slot::__info}
+  Object method "info info" {} {::nx::infoOptions ::nx::Object::slot::__info}
+  Class  method "info info" {} {::nx::infoOptions ::nx::Class::slot::__info}
 
   # finally register method "method" (otherwise, we cannot use "method" above)
   Object alias "info method" ::nsf::cmd::ObjectInfo2::method
@@ -839,15 +853,6 @@ namespace eval ::nx {
   Class create ::nx::MetaSlot
   ::nsf::relation MetaSlot superclass Class
 
-  MetaSlot public method slotName {name baseObject} {
-    # Create slot parent object if needed
-    set slotParent ${baseObject}::slot
-    if {![::nsf::objectproperty $slotParent object]} {
-      ::nx::Object create $slotParent
-    }
-    return ${slotParent}::$name
-  }
-
   MetaSlot method createFromParameterSyntax {
     target -per-object:switch 
     {-initblock ""} 
@@ -890,7 +895,7 @@ namespace eval ::nx {
       set info ClassInfo2
     }
 
-    :create [:slotName $name $target] {*}$opts $initblock
+    :create [::nx::slotObj $target $name] {*}$opts $initblock
     return [::nsf::dispatch $target ::nsf::cmd::${info}::method handle $name]
   }
 
@@ -931,7 +936,7 @@ namespace eval ::nx {
   proc createBootstrapAttributeSlots {class definitions} {
     foreach att $definitions {
       if {[llength $att]>1} {foreach {att default} $att break}
-      set slotObj [::nx::ObjectParameterSlot slotName $att $class] 
+      set slotObj [::nx::slotObj $class $att] 
       ::nx::ObjectParameterSlot create $slotObj
       if {[info exists default]} {
         ::nsf::setvar $slotObj default $default
@@ -1066,8 +1071,8 @@ namespace eval ::nx {
   
   ObjectParameterSlot method unknown {method args} {
     set methods [list]
-    foreach m [:info callable methods] {
-      if {[Object info callable methods $m] ne ""} continue
+    foreach m [::nsf::dispatch [::nsf::current object] ::nsf::cmd::ObjectInfo2::callable methods] {
+      if {[::nsf::dispatch Object ::nsf::cmd::ObjectInfo2::callable methods $m] ne ""} continue
       if {[string match __* $m]} continue
       lappend methods $m
     }
@@ -1608,16 +1613,12 @@ namespace eval ::nx {
     foreach arg $arglist {
       Attribute createFromParameterSyntax [::nsf::current object] {*}$arg
     }
-    # todo needed?
-    set slot [::nsf::current object]::slot
-    if {![::nsf::objectproperty $slot object]} {Object create $slot}
+    set slot [::nx::slotObj [::nsf::current object]]
     ::nsf::setvar $slot __parameter $arglist
   }
 
   Class method "info parameter" {} {
-    set class [::nsf::current object]
-    set slot ${class}::slot
-    if {![::nsf::objectproperty $slot object]} {Object create $slot}
+    set slot [::nx::slotObj [::nsf::current object]]
     if {[::nsf::existsvar $slot __parameter]} {
       return [::nsf::setvar $slot __parameter]
     }
@@ -1791,19 +1792,19 @@ namespace eval ::nx {
 	  ::nsf::relation $obj object-mixin [::nsf::relation $origin object-mixin]
 	  if {[$origin info hasnamespace]} {
             # reused in XOTcl, no "require" there, so use nsf primitiva
-	    ::nsf::dispatch $obj ::nsf::cmd::Object::requireNamespace
+	    $obj ::nsf::cmd::Object::requireNamespace
 	  }
 	} else {
 	  namespace eval $dest {}
 	}
 	:copyNSVarsAndCmds $origin $dest
-	foreach i [::nsf::dispatch $origin ::nsf::cmd::ObjectInfo2::forward] {
-	  ::nsf::forward $dest -per-object $i {*}[::nsf::dipatch $origin ::nsf::cmd::ObjectInfo2::forward -definition $i]
+	foreach i [$origin ::nsf::cmd::ObjectInfo2::forward] {
+	  ::nsf::forward $dest -per-object $i {*}[$origin ::nsf::cmd::ObjectInfo2::forward -definition $i]
 
 	}
 	if {[::nsf::objectproperty $origin class]} {
-	  foreach i [nsf::dispatch $origin ::nsf::cmd::ClassInfo2::forward] {
-	    ::nsf::forward $dest $i {*}[::nsf::dipatch $origin ::nsf::cmd::ClassInfo2::forward -definition $i]
+	  foreach i [$origin ::nsf::cmd::ClassInfo2::forward] {
+	    ::nsf::forward $dest $i {*}[$origin ::nsf::cmd::ClassInfo2::forward -definition $i]
 	  }
 	}
 	set traces [list]
@@ -1827,7 +1828,7 @@ namespace eval ::nx {
 	if {[::nsf::objectproperty $origin class]} {
 	  set dest [:getDest $origin]
 	  foreach oldslot [$origin info slots] {
-	    set newslot [Slot slotName [namespace tail $oldslot] $dest] 
+	    set newslot [::nx::slotObj $dest [namespace tail $oldslot]] 
 	    if {[$oldslot domain] eq $origin}   {$newslot domain $cl}
 	    if {[$oldslot manager] eq $oldslot} {$newslot manager $newslot}
 	  }
@@ -1915,3 +1916,4 @@ namespace eval ::nx {
   
   unset bootstrap
 }
+

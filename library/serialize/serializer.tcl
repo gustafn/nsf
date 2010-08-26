@@ -664,7 +664,7 @@ namespace eval ::nx::serializer {
                       [::nsf::dispatch $o -objscope ::nsf::current object]]
 
       append cmd " -noinit\n"
-      foreach i [lsort [::nsf::cmd::ObjectInfo::methods $o]] {
+      foreach i [lsort [$o ::nsf::cmd::ObjectInfo2::methods]] {
         append cmd [:method-serialize $o $i "object"] "\n"
       }
       append cmd \
@@ -689,7 +689,7 @@ namespace eval ::nx::serializer {
     :method Class-serialize {o s} {
 
       set cmd [:Object-serialize $o $s]
-      foreach i [lsort [::nsf::cmd::ClassInfo::methods $o]] {
+      foreach i [lsort [$o ::nsf::cmd::ClassInfo2::methods]] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
       append cmd \
@@ -772,6 +772,7 @@ namespace eval ::nx::serializer {
       set arglist [list]
       foreach v [$o info ${prefix}args $m] {
         if {[$o info ${prefix}default $m $v x]} {
+	  #puts "... [list $o info ${prefix}default $m $v x] returned 1, x?[info exists x] level=[info level]"
           lappend arglist [list $v $x] } {lappend arglist $v}
       }
       lappend r $o ${prefix}proc $m \
@@ -793,13 +794,13 @@ namespace eval ::nx::serializer {
       # slots needs to be initialized when optimized, since
       # parametercmds are not serialized
       append cmd " -noinit\n"
-      foreach i [::nsf::cmd::ObjectInfo::methods $o -methodtype scripted] {
+      foreach i [$o ::nsf::cmd::ObjectInfo2::methods -methodtype scripted] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
-      foreach i [::nsf::cmd::ObjectInfo::methods $o -methodtype forward] {
+      foreach i [$o ::nsf::cmd::ObjectInfo2::methods -methodtype forward] {
         append cmd [concat [list $o] forward $i [$o info forward -definition $i]] "\n"
       }
-      foreach i [::nsf::cmd::ObjectInfo::methods $o -methodtype setter] {
+      foreach i [$o ::nsf::cmd::ObjectInfo2::methods -methodtype setter] {
         append cmd [list $o parametercmd $i] "\n"
       }
       append cmd \
@@ -828,8 +829,8 @@ namespace eval ::nx::serializer {
         append cmd [list $o instparametercmd $i] "\n"
       }
       # provide limited support for exporting aliases for XOTcl objects
-      foreach i [::nsf::cmd::ClassInfo::methods $o -methodtype alias] {
-        set xotcl2Def [::nsf::cmd::ClassInfo::method $o definition $i]
+      foreach i [$o ::nsf::cmd::ClassInfo2::methods -methodtype alias] {
+        set xotcl2Def [$o ::nsf::cmd::ClassInfo2::method definition $i]
         set objscope   [lindex $xotcl2Def end-2]
         set methodName [lindex $xotcl2Def end-1]
         set cmdName    [lindex $xotcl2Def end]

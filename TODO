@@ -1159,13 +1159,20 @@ _ added option noforwarder to RelationSlots
 - fixed "info methods" and added "-methodtype all" for setting class-only
 - regression test works now until first XOTcl reference
 
+- Changed handling of "child objects": now, they are shown by default.
+- At the same time, the subobject "slot" was made protected to avoid
+  its listing per default in "info methods"
+- unified slot parent-object creation handling
+- changed XOTcl info to new interface
+
 TODO: 
+- check "my" vs. "nsf::dispatch" in xotcl2.tcl
 - overthink decision about not showing "child objects" per default in "info methods"
 - continue migration nx in regression test
-- change info in XOTcl to new interface
-- copy info methods to source
+
 - deeper analysis of "contains"
 - unify SubcmdObj() and ParamCheckObj() handling?
+- are "info class*" ops needed?
 
 - subcmd
    * handle sucmd for other method factories
@@ -1177,6 +1184,7 @@ TODO:
         # TODO REANIMATE xxxx
 	#::errorCheck $::r "loggingFilter-open open x" {info guarded scope}
         # (inst)mixinguard, (inst)filterguard
+- aliases on procs are a problem, when upvar is used (see info default/instdefault in xotcl2.tcl)
 
 - add incompatiblity to migration guide
   Foo slot ints eval { set :incremental 1; :optimize}

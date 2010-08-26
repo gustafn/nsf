@@ -157,9 +157,9 @@ namespace eval ::xotcl {
   # Calling upon this method during object construction allows you to
   # bypass the constructor method:
   # {{{
-  #	Class create C
-  #  	C instproc init {} {puts stderr "A class-specific constructor shouts out ..."}
-  #	C c1 -noinit
+  #    Class create C
+  #    C instproc init {} {puts stderr "A class-specific constructor shouts out ..."}
+  #    C c1 -noinit
   # }}}
   # This bypassing feature comes handy when streaming an object into a
   # scripted form (e.g., by using the bundled Serializer). Upon
@@ -182,15 +182,15 @@ namespace eval ::xotcl {
   # Tcl namespaces which shadow an existing object (i.e., carry the same
   # name):
   # {{{
-  # 	Object create Foo
-  # 	Foo requireNamespace
-  # 	namespace exists Foo; # returns 1
-  # 	Foo info hasnamespace; # returns 1
+  #    Object create Foo
+  #    Foo requireNamespace
+  #    namespace exists Foo; # returns 1
+  #    Foo info hasnamespace; # returns 1
   #
-  # 	Object create Bar
-  # 	namespace eval ::Bar {}
-  # 	namespace exists Bar; # returns 1
-  # 	Bar info hasnamespace; # returns 0
+  #    Object create Bar
+  #    namespace eval ::Bar {}
+  #    namespace exists Bar; # returns 1
+  #    Bar info hasnamespace; # returns 0
   # }}}
 
   # @method ::xotcl::Object#vwait
@@ -219,6 +219,20 @@ namespace eval ::xotcl {
   ::nsf::methodproperty Class  dealloc redefine-protected true
   ::nsf::methodproperty Class  create  redefine-protected true
 
+  #
+  # define parametercmd and instparametercmd in terms of ::nx method setter
+  # define filterguard and instfilterguard in terms of filterguard
+  # define mixinguard and instmixinguard in terms of mixinguard
+  #
+  ::nsf::alias Object parametercmd     ::nsf::classes::nx::Object::setter
+  ::nsf::alias Class  instparametercmd ::nsf::classes::nx::Class::setter
+
+  ::nsf::alias Object filterguard      ::nsf::cmd::Object::filterguard
+  ::nsf::alias Class  instfilterguard  ::nsf::cmd::Class::filterguard
+
+  ::nsf::alias Object mixinguard       ::nsf::cmd::Object::mixinguard
+  ::nsf::alias Class  instmixinguard   ::nsf::cmd::Class::mixinguard
+
   # define instproc and proc
   ::nsf::method Class instproc {
     name arguments body precondition:optional postcondition:optional
@@ -238,7 +252,7 @@ namespace eval ::xotcl {
     ::nsf::method [self] -per-object $name $arguments $body {*}$conditions
   }
 
-  # define - like in XOTcl 1 - a minimal implementation of "method"
+  # define a minimal implementation of "method"
   Object instproc method {name arguments body} {
     :proc $name $arguments $body                                  
   }
@@ -329,34 +343,12 @@ namespace eval ::xotcl {
   Object create ::xotcl::objectInfo
   Object create ::xotcl::classInfo
 
-  # note, we are using ::xotcl::infoError defined earlier
-  Object instforward info -onerror ::nsf::infoError ::xotcl::objectInfo %1 {%@2 %self}
-  Class  instforward info -onerror ::nsf::infoError ::xotcl::classInfo %1 {%@2 %self}
+  # note, we are using ::nsf::infoError, defined my nsf
+  #Object instforward info -onerror ::nsf::infoError ::xotcl::objectInfo %1 {%@2 %self}
+  #Class  instforward info -onerror ::nsf::infoError ::xotcl::classInfo %1 {%@2 %self}
 
-  objectInfo proc info {obj} {
-    set methods [list]
-    foreach name [::nsf::cmd::ObjectInfo::methods ::xotcl::objectInfo] {
-      if {$name eq "unknown"} continue
-      lappend methods $name
-    }
-    return "valid options are: [join [lsort $methods] {, }]"
-  }
-  objectInfo proc unknown {method args} {
-    error "[::xotcl::self] unknown info option \"$method\"; [:info info]"
-  }
-
-  classInfo proc info {cl} {
-    set methods [list]
-    foreach name [::nsf::cmd::ObjectInfo::methods ::xotcl::classInfo] {
-      if {$name eq "unknown"} continue
-      lappend methods $name
-    }
-    return "valid options are: [join [lsort $methods] {, }]"
-  }
-
-  classInfo proc unknown {method args} {
-    error "[::xotcl::self] unknown info option \"$method\"; [:info info]"
-  }
+  ::nsf::alias Object info ::xotcl::objectInfo
+  ::nsf::alias Class info ::xotcl::classInfo
 
   #
   # Backward compatibility info subcommands;
@@ -404,8 +396,8 @@ namespace eval ::xotcl {
   proc ::xotcl::info_args {allocation o method} {
     set result [list]
     foreach \
-        argName [::nsf::cmd::${allocation}Info::method $o args $method] \
-        flag    [::nsf::cmd::${allocation}Info::method $o parameter $method] {
+        argName [$o ::nsf::cmd::${allocation}Info2::method args $method] \
+        flag    [$o ::nsf::cmd::${allocation}Info2::method parameter $method] {
           if {[string match -* $flag]} continue
           lappend result $argName
         }
@@ -415,7 +407,7 @@ namespace eval ::xotcl {
 
   proc ::xotcl::info_nonposargs {allocation o method} {
     set result [list]
-    foreach flag [::nsf::cmd::${allocation}Info::method $o parameter $method] {
+    foreach flag [$o ::nsf::cmd::${allocation}Info2::method parameter $method] {
       if {![string match -* $flag]} continue
       lappend result $flag
     }
@@ -424,16 +416,17 @@ namespace eval ::xotcl {
   }
   proc ::xotcl::info_default {allocation o method arg varName} {
     foreach \
-        argName [::nsf::cmd::${allocation}Info::method $o args $method] \
-        flag    [::nsf::cmd::${allocation}Info::method $o parameter $method] {
+        argName [$o ::nsf::cmd::${allocation}Info2::method args $method] \
+        flag    [$o ::nsf::cmd::${allocation}Info2::method parameter $method] {
           if {$argName eq $arg} {
-            upvar 3 $varName default
+            upvar 2 $varName default
+	    #puts "--- info_default var '$varName' level=[info level]"
             if {[llength $flag] == 2} {
               set default [lindex $flag 1]
-              #puts stderr "--- get ${inst}default for $o $method $arg => $default"
+              #puts stderr "--- get $allocation default for $o $method $arg => $default"
               return 1
             }
-            #puts stderr "--- get ${inst}default for $o $method $arg fails"
+            #puts stderr "--- get $allocation default for $o $method $arg fails"
             set default ""
             return 0
           }
@@ -441,166 +434,173 @@ namespace eval ::xotcl {
     error "procedure \"$method\" doesn't have an argument \"$varName\""
   }
 
-  classInfo eval {
-    :proc instargs {o method} {::xotcl::info_args Class $o $method}
-    :proc args     {o method} {::xotcl::info_args Object $o $method}
-    :proc instnonposargs {o method} {::xotcl::info_nonposargs Class $o $method}
-    :proc nonposargs     {o method} {::xotcl::info_nonposargs Object $o $method}
-    :proc instdefault {o method arg var} {::xotcl::info_default Class $o $method $arg $var}
-    :proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
-
-    # info options emulated by "info method ..."
-    :proc instbody    {o methodName} {::nsf::cmd::ClassInfo::method $o body $methodName}
-    :proc instpre     {o methodName} {::nsf::cmd::ClassInfo::method $o precondition  $methodName}
-    :proc instpost    {o methodName} {::nsf::cmd::ClassInfo::method $o postcondition $methodName}
-
-    # info options emulated by "info methods"
-    :proc instcommands {o {pattern:optional ""}} {
-      ::nsf::cmd::ClassInfo::methods $o {*}$pattern
-    }
-    :proc instprocs   {o {pattern:optional ""}} {
-      ::nsf::cmd::ClassInfo::methods $o -methodtype scripted {*}$pattern
-    }
-    :proc parametercmd {o {pattern:optional ""}} {
-      ::nsf::cmd::ClassInfo::methods $o -per-object -methodtype setter {*}$pattern
-    }
-    :proc instparametercmd {o {pattern:optional ""}} {
-      ::nsf::cmd::ClassInfo::methods $o -methodtype setter {*}$pattern
-    }
-    # filter handling 
-    :proc instfilter {o args} {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::filtermethods {*}$args}
-    :proc filterguard {o filter} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filterguard $filter}
-    :proc instfilterguard {o filter} {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::filterguard $filter}
-
-    :proc mixin {o args} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinclasses {*}$args}
-    :proc mixinguard {o mixin} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinguard $mixin}
-    :proc instmixin {o args} {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::mixinclasses {*}$args}
-    :proc instmixinguard {o mixin} {::nsf::dispatch $o ::nsf::cmd::ClassInfo2::mixinguard $mixin}
-
-    # assertion handling
-    :proc instinvar   {o} {::nsf::assertion $o class-invar}
-  }
+  # define temporary method "alias"
+  Object instproc alias {name cmd} {::nsf::alias [self] $name $cmd}
 
   objectInfo eval {
-    :proc args        {o method} {::xotcl::info_args Object $o $method}
-    :proc nonposargs  {o method} {::xotcl::info_nonposargs Object $o $method}
-    :proc default     {o method arg var} {::xotcl::info_default Object $o $method $arg $var}
-
-    # info options emulated by "info method ..."
-    :proc body        {o methodName} {::nsf::cmd::ObjectInfo::method $o body $methodName}
-    :proc pre         {o methodName} {::nsf::cmd::ObjectInfo::method $o pre $methodName}
-    :proc post        {o methodName} {::nsf::cmd::ObjectInfo::method $o post $methodName}
-
-    # info options emulated by "info methods"
-    :proc commands    {o {pattern:optional ""}} {
-      ::nsf::cmd::ObjectInfo::methods $o -methodtype all {*}$pattern
+    :proc args {method}       {::xotcl::info_args Object [self] $method}
+    :proc body {methodName}   {my ::nsf::cmd::ObjectInfo2::method body $methodName}
+    :proc check {}            {::xotcl::checkoption_internal_to_xotcl1 [::nsf::assertion [self] check]}
+    :alias class              ::nsf::cmd::ObjectInfo2::class
+    :alias children           ::nsf::cmd::ObjectInfo2::children
+    :proc commands {{pattern ""}} {
+      my ::nsf::cmd::ObjectInfo2::methods -methodtype all {*}$pattern
     }
-    :proc procs       {o {pattern:optional ""}} {
-      ::nsf::cmd::ObjectInfo::methods $o -methodtype scripted {*}$pattern
+    :proc default {method arg varName} {
+      # pass varName to be able produce the right error message
+      set r [::xotcl::info_default Object [self] $method $arg $varName]
+      #puts "--- var '$varName' level=[info level]"
+      return $r
     }
-    :proc methods {
-      o -nocmds:switch -noprocs:switch -incontext:switch pattern:optional
-    } {
-      set methodtype all
-      if {$nocmds} {set methodtype scripted}
-      if {$noprocs} {if {$nocmds} {return ""}; set methodtype builtin}
-      set cmd [list ::nsf::cmd::ObjectInfo::callable $o methods -methodtype $methodtype]
-      if {$incontext} {lappend cmd -incontext}
-      if {[info exists pattern]} {lappend cmd $pattern}
-      eval $cmd
-    }
-
-    # filter handling
-    :proc filter {o -order:switch -guards:switch pattern:optional} {
+    :proc filter {-order:switch -guards:switch pattern:optional} {
       set guardsFlag [expr {$guards ? "-guards" : ""}]
       set patternArg [expr {[info exists pattern] ? [list $pattern] : ""}]
       if {$order && !$guards} {
-        set def [::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filtermethods -order {*}$guardsFlag {*}$patternArg]
+        set def [::nsf::dispatch [::nsf::current object] \
+		     ::nsf::cmd::ObjectInfo2::filtermethods -order \
+		     {*}$guardsFlag \
+		     {*}$patternArg]
         set def [method_handles_to_xotcl $def]
       } else {
-        set def [::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filtermethods {*}$guardsFlag {*}$patternArg]
+        set def [::nsf::dispatch [::nsf::current object] \
+		     ::nsf::cmd::ObjectInfo2::filtermethods \
+		     {*}$guardsFlag \
+		     {*}$patternArg]
       }
       #puts stderr "  => $def"
       return $def
     }
-    :proc mixin {o args} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinclasses {*}$args}
-    :proc filterguard {o filter} {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::filterguard $filter}
-    :proc mixinguard {o mixin}   {::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::mixinguard $mixin}
 
-    # assertion handling
-    :proc check {o} {
-      ::xotcl::checkoption_internal_to_xotcl1 [::nsf::assertion $o check]
+    :alias filterguard        ::nsf::cmd::ObjectInfo2::filterguard
+    :alias forward            ::nsf::cmd::ObjectInfo2::forward
+    :alias hasnamespace       ::nsf::cmd::ObjectInfo2::hasnamespace
+    :proc invar {}            {::nsf::assertion [self] object-invar}
+    #:proc is {kind value:optional} {::nsf::objectproperty [::nsf::current object] $kind {*}$value}
+
+    :proc methods {
+      -nocmds:switch -noprocs:switch -incontext:switch pattern:optional
+    } {
+      set methodtype all
+      if {$nocmds} {set methodtype scripted}
+      if {$noprocs} {if {$nocmds} {return ""}; set methodtype builtin}
+      set cmd [list ::nsf::cmd::ObjectInfo2::callable methods -methodtype $methodtype]
+      if {$incontext} {lappend cmd -incontext}
+      if {[info exists pattern]} {lappend cmd $pattern}
+      my {*}$cmd
     }
-    :proc invar {o} {::nsf::assertion $o object-invar}
+
+    :alias mixin              ::nsf::cmd::ObjectInfo2::mixinclasses
+    :alias mixinguard         ::nsf::cmd::ObjectInfo2::mixinguard
+    :proc nonposargs {method} {::xotcl::info_nonposargs Object [self] $method}
+    :proc parametercmd {name} {::nsf::classes::nx::Object::setter [self] $name}
+    :alias parent             ::nsf::cmd::ObjectInfo2::parent
+    :proc post {methodName}   {my ::nsf::cmd::ObjectInfo2::method post $methodName}
+    :proc pre  {methodName}   {my ::nsf::cmd::ObjectInfo2::method pre  $methodName}
+    :proc procs {{pattern ""}} {
+      my ::nsf::cmd::ObjectInfo2::methods -methodtype scripted {*}$pattern
+    }
+    :alias precedence         ::nsf::cmd::ObjectInfo2::precedence
+    :alias vars               ::nsf::cmd::ObjectInfo2::vars
   }
 
-  foreach cmd [::info command ::nsf::cmd::ObjectInfo::*] {
-    set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "callable" "filter" "method" "methods"]} continue
-    ::nsf::alias ::xotcl::objectInfo $cmdName $cmd
-    ::nsf::alias ::xotcl::classInfo $cmdName $cmd
+  #
+  # copy all methods from Object.info to Class.info
+  #
+  foreach m [objectInfo ::nsf::cmd::ObjectInfo2::methods] {
+    ::nsf::alias classInfo $m [objectInfo ::nsf::cmd::ObjectInfo2::method handle $m]
   }
 
-  foreach cmd [::info command ::nsf::cmd::ClassInfo::*] {
-    set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "forward" "method" "methods" \
-                         "mixinof" "object-mixin-of" \
-                         "filter" "filterguard" \
-                         "mixin" "mixinguard"]} continue
-    ::nsf::alias ::xotcl::classInfo $cmdName $cmd
+  classInfo eval {
+    :alias classchildren      ::nsf::cmd::ObjectInfo2::children
+    :alias classparent        ::nsf::cmd::ObjectInfo2::parent
+    :proc default {method arg varName} {
+      # TODO: interesting observation: we cannot use the alias to
+      # objectInfo here, but we have to rewrite the proc, since an
+      # alias introduces currently a new frame, which would require a
+      # "upvar 2 ..."
+      set r [::xotcl::info_default Object [self] $method $arg $varName]
+      #puts "--- var '$varName' level=[info level]"
+      return $r
+    }
+    :alias heritage           ::nsf::cmd::ClassInfo2::heritage
+    :alias instances          ::nsf::cmd::ClassInfo2::instances
+
+    :proc instargs {method}   {::xotcl::info_args Class [self] $method}
+    :proc instbody {methodName} {my ::nsf::cmd::ClassInfo2::method body $methodName}
+    :proc instcommands {{pattern ""}}  {my ::nsf::cmd::ClassInfo2::methods {*}$pattern}
+    :proc instdefault {method arg varName} {
+      set r [::xotcl::info_default Class [self] $method $arg $varName]
+      #puts "--- default for [self].$method $arg -> $r [info exists var]"
+      #puts "--- var '$var' level=[info level]"
+      #puts "--- level 0 [info level [info level]]"
+      #puts "--- level -1 [info level [expr [info level]-1]]"
+      #puts "--- level -2 [info level [expr [info level]-2]]"
+      return $r
+    }
+    :alias instfilter         ::nsf::cmd::ClassInfo2::filtermethods
+    :alias instfilterguard    ::nsf::cmd::ClassInfo2::filterguard
+    :alias instforward        ::nsf::cmd::ClassInfo2::forward
+
+    :proc instinvar {}        {::nsf::assertion [self] class-invar}
+    :alias instmixin          ::nsf::cmd::ClassInfo2::mixinclasses
+    :alias instmixinguard     ::nsf::cmd::ClassInfo2::mixinguard
+    :proc instmixinof {-closure {pattern ""}} {
+      my ::nsf::cmd::ClassInfo2::mixinof -scope class \
+	  {*}[expr {$closure ? "-closure" : ""}] \
+	  {*}$pattern
+    }
+    :proc instparametercmd {{pattern ""}} {
+      my ::nsf::cmd::ClassInfo2::methods -methodtype setter {*}$pattern
+    }
+    :proc instnonposargs {method} {::xotcl::info_nonposargs Class [self] $method}
+    :proc instpost {methodName}   {my ::nsf::cmd::ClassInfo2::method postcondition $methodName}
+    :proc instpre  {methodName}   {my ::nsf::cmd::ClassInfo2::method precondition  $methodName}
+
+    :proc instprocs {{pattern ""}} {
+      my ::nsf::cmd::ClassInfo2::methods -methodtype scripted {*}$pattern
+    }
+    :proc mixinof {-closure:switch {pattern ""}} {
+      my ::nsf::cmd::ClassInfo2::mixinof -scope object \
+	  {*}[expr {$closure ? "-closure" : ""}] \
+	  {*}$pattern
+    }
+    :alias parameter          ::nx::Class::slot::__info::parameter
+    :alias slots              ::nsf::cmd::ClassInfo2::slots
+    :alias subclass           ::nsf::cmd::ClassInfo2::subclass
+    :alias superclass         ::nsf::cmd::ClassInfo2::superclass
   }
 
-  ::nsf::alias ::xotcl::objectInfo is ::nsf::objectproperty
+  # define "info info"
+  objectInfo method info {} {::nx::infoOptions ::xotcl::objectInfo}
+  classInfo  method info {} {::nx::infoOptions ::xotcl::classInfo}
 
-  ::nsf::alias ::xotcl::classInfo is ::nsf::objectproperty
-  ::nsf::alias ::xotcl::classInfo classparent ::nsf::cmd::ObjectInfo::parent
-  ::nsf::alias ::xotcl::classInfo classchildren ::nsf::cmd::ObjectInfo::children
+  # define "info unknown"
+  objectInfo proc unknown {method args} {
+    error "[::xotcl::self] unknown info option \"$method\"; [:info info]"
+  }
+  classInfo proc unknown {method args} {
+    error "[::xotcl::self] unknown info option \"$method\"; [:info info]"
+  }
 
-  ::nsf::forward ::xotcl::classInfo instmixinof ::nsf::cmd::ClassInfo::mixinof %1 -scope class
-  ::nsf::alias ::xotcl::classInfo instforward ::nsf::cmd::ClassInfo::forward
-  ::nsf::forward ::xotcl::classInfo mixinof ::nsf::cmd::ClassInfo::mixinof %1 -scope object
-  ::nsf::alias ::xotcl::classInfo parameter ::nx::classInfo::parameter
+  #
+  # end if info
+  #
 
-  # assertion handling
-  ::nsf::alias ::xotcl::classInfo invar objectInfo::invar
-  ::nsf::alias ::xotcl::classInfo check objectInfo::check
+  # remove temporary method "alias"
+  Object instproc alias {} {}
 
-  # define info methods from objectInfo on classInfo as well
-  ::nsf::alias classInfo body     objectInfo::body
-  ::nsf::alias classInfo commands objectInfo::commands
-  ::nsf::alias classInfo filter   objectInfo::filter
-  ::nsf::alias classInfo methods  objectInfo::methods
-  ::nsf::alias classInfo procs    objectInfo::procs
-  ::nsf::alias classInfo pre      objectInfo::pre
-  ::nsf::alias classInfo post     objectInfo::post
-
-  # emulation of isobject, isclass ...
+ # emulation of isobject, isclass ...
   Object instproc isobject    {{object:substdefault "[self]"}} {::nsf::objectproperty $object object}
   Object instproc isclass     {{class:substdefault  "[self]"}} {::nsf::objectproperty $class class}
   Object instproc ismetaclass {{class:substdefault  "[self]"}} {::nsf::objectproperty $class metaclass}
   Object instproc ismixin     {class}  {::nsf::is [self] object -hasmixin $class}
   Object instproc istype      {class}  {::nsf::is [self] type $class}
 
+  # definitin of "contains", based on nx
+
   ::nsf::alias Object contains ::nsf::classes::nx::Object::contains
   ::xotcl::Class instforward slots %self contains \
       -object {%::nsf::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
-  #
-  # define parametercmd and instparametercmd in terms of ::nx method setter
-  # define filterguard and instfilterguard in terms of filterguard
-  # define mixinguard and instmixinguard in terms of mixinguard
-  #
-  ::nsf::alias Object parametercmd    ::nsf::classes::nx::Object::setter
-  ::nsf::alias Class instparametercmd ::nsf::classes::nx::Class::setter
-
-  # @method ::xotcl::Class#mixinguard
-  #
-  # @param mixin
-  # @param guard
-
-  # @method ::nx::Class#instmixinguard
-  #
-  # @param mixin
-  # @param guard
 
   # assertion handling
   proc checkoption_xotcl1_to_internal checkoptions {
@@ -687,21 +687,14 @@ namespace eval ::xotcl {
     if {[::nsf::is [self] object -hasmixin $cl]} {return 1}
     ::nsf::is [self] type $cl
   }
-
-  # @method ::nx::Object#filtersearch
-  #
-  # Search a fully qualified method name which is currently registered
-  # as a filter. 
-  #
-  # @param filter Handle to identify and address a filter once registered
-  # @param guard A list of guard expressions
-  # @return A list in proc qualifier format: 'objName|className proc|instproc methodName'.
   Object instproc filtersearch {filter} {
-    set handle [::nsf::cmd::ObjectInfo::callable [self] filter $filter]
+    set handle [::nsf::dispatch [::nsf::current object] \
+		    ::nsf::cmd::ObjectInfo2::callable filter $filter]
     return [method_handle_to_xotcl $handle]
   }
   Object instproc procsearch {name} {
-    set handle [::nsf::cmd::ObjectInfo::callable [self] method $name]
+    set handle [::nsf::dispatch [::nsf::current object] \
+		    ::nsf::cmd::ObjectInfo2::callable method $name]
     return [method_handle_to_xotcl $handle]
   }
   Class instproc allinstances {} {

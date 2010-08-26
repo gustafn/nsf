@@ -13871,8 +13871,9 @@ static int XOTclCheckRequiredArgs(Tcl_Interp *interp, CONST char *name, Tcl_Obj 
 static int AggregatedMethodType(int methodType) {
   switch (methodType) {
   case MethodtypeNULL: /* default */
-    methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_BUILTIN;
-    break;
+    /* TODO remove comment when settled.
+       methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_BUILTIN;
+    break;*/
   case MethodtypeAllIdx: 
     methodType = XOTCL_METHODTYPE_SCRIPTED|XOTCL_METHODTYPE_BUILTIN|XOTCL_METHODTYPE_OBJECT;
     break;
@@ -13881,7 +13882,7 @@ static int AggregatedMethodType(int methodType) {
     methodType = XOTCL_METHODTYPE_SCRIPTED;
     break;
   case MethodtypeBuiltinIdx:
-    methodType = XOTCL_METHODTYPE_BUILTIN;
+    methodType = XOTCL_METHODTYPE_BUILTIN|XOTCL_METHODTYPE_OBJECT;
     break;
   case MethodtypeForwarderIdx:
     methodType = XOTCL_METHODTYPE_FORWARDER;
