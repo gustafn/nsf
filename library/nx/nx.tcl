@@ -332,15 +332,15 @@ namespace eval ::nx {
   ::nsf::methodproperty Class  dealloc redefine-protected true
   ::nsf::methodproperty Class  create  redefine-protected true
   
-  ::nsf::method Object -per-object resolve_method_path {
+  ::nsf::method Object __resolve_method_path {
     -create:switch 
     -per-object:switch 
     -verbose:switch 
-    object 
     path
   } {
     # TODO: handle -create  (actually, its absence)
     #puts "resolve_method_path"
+    set object [::nsf::current object]
     set methodName $path
     if {[string first " " $path]} {
       set methodName [lindex $path end]
@@ -389,6 +389,7 @@ namespace eval ::nx {
     }
     return [list object $object methodName $methodName]
   }
+  ::nsf::methodproperty Object __resolve_method_path protected true
 
   # define method "method" for Class and Object
 
@@ -422,7 +423,7 @@ namespace eval ::nx {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    array set "" [::nx::Object resolve_method_path -create -verbose [::nsf::current object] $name]
+    array set "" [:__resolve_method_path -create -verbose $name]
     #puts "class method $(object).$(methodName) [list $arguments] {...}"
     set r [::nsf::method $(object) $(methodName) $arguments $body {*}$conditions]
     if {[info exists returns]} {nsf::methodproperty $(object) $r returns $returns}
@@ -456,7 +457,7 @@ namespace eval ::nx {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    array set "" [::nx::Object resolve_method_path -create -per-object -verbose [::nsf::current object] $name]
+    array set "" [:__resolve_method_path -create -per-object -verbose $name]
     #puts "object method $(object).$(methodName) [list $arguments] {...}"
     set r [::nsf::method $(object) -per-object $(methodName) $arguments $body {*}$conditions]
     if {[info exists returns]} {nsf::methodproperty $(object) $r returns $returns}
@@ -653,7 +654,7 @@ namespace eval ::nx {
   # -objscope implies -nonleaf
   #
   Object public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
-    array set "" [::nx::Object resolve_method_path -per-object -create -verbose [::nsf::current object] $methodName]
+    array set "" [:__resolve_method_path -per-object -create -verbose $methodName]
     #puts "object alias $(object).$(methodName) $cmd"
     ::nsf::alias $(object) -per-object $(methodName) \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
@@ -661,7 +662,7 @@ namespace eval ::nx {
         $cmd
   }
   Class public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
-    array set "" [::nx::Object resolve_method_path -create -verbose [::nsf::current object] $methodName]
+    array set "" [:__resolve_method_path -create -verbose $methodName]
     #puts "class alias $(object).$(methodName) $cmd"
     ::nsf::alias $(object) $(methodName) \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
