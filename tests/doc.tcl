@@ -527,9 +527,11 @@ Test case parsing {
   #
   # core documentation
   #
-  set path [file join [::nsf::tmpdir] NextScriptingFramework]
-  if {[file exists $path]} {
-    file delete -force $path
+  foreach path [list [file join [::nsf::tmpdir] NextScriptingFramework] \
+		    [file join [::nsf::tmpdir] NextScriptingLanguage]] {
+    if {[file exists $path]} {
+      file delete -force $path
+    }
   }
 
   set i [interp create]
@@ -547,7 +549,18 @@ Test case parsing {
 		     -namespace "::nsf"]
 
     doc process -noeval true generic/predefined.tcl
-    
+
+    ::nx::doc::make doc \
+	-renderer ::nx::doc::TemplateData \
+	-outdir [::nsf::tmpdir] \
+	-project $project
+
+    set project [::nx::doc::@project new \
+		     -name ::NextScriptingLanguage \
+		     -url http://www.next-scripting.org/ \
+		     -version 1.0.0a \
+		     -namespace "::nx"]
+    doc process -noeval true library/nx/nx.tcl
     ::nx::doc::make doc \
 	-renderer ::nx::doc::TemplateData \
 	-outdir [::nsf::tmpdir] \

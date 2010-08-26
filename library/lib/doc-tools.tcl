@@ -185,6 +185,10 @@ namespace eval ::nx::doc {
     :attribute {tag {[string trimleft [string tolower [namespace tail [current]]] @]}}
     :attribute {root_namespace "::nx::doc::entities"}
 
+    :attribute owned_part_attributes:object,type=::nx::doc::PartAttribute,multivalued {
+      set :incremental 1
+    }
+
     namespace eval ::nx::doc::entities {}
 
     :method get_fully_qualified_name {name} {
@@ -298,6 +302,7 @@ namespace eval ::nx::doc {
     :attribute part_class:optional,class
     :attribute scope
 
+    # :forward owning_entity_class {% [[:info parent] info parent] }
     :method init args {
       :defaultmethods [list get append]
       :multivalued true
@@ -310,6 +315,7 @@ namespace eval ::nx::doc {
 	regexp -- {@(.*)-.*} [namespace tail [current]] _ :scope
       }
       next
+      # :owning_entity_class owned_part_attributes add [current]
     }
     
     :method require_part {domain prop value} {
@@ -372,6 +378,21 @@ namespace eval ::nx::doc {
 	expr {$prop in ${:@properties}}
     }
 
+    :method owned_parts {} {
+      set slots [:info slotobjects]
+      set r [dict create]
+      # puts stderr SLOTS=$slots
+      foreach s $slots {
+	if {![$s info is type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}]} continue;
+	set accessor [$s name]
+	# puts stderr "PROCESSING ACCESSOR $accessor, [info exists :$accessor]"
+	if {[info exists :$accessor]} {
+	  dict set r $accessor [sorted [:$accessor] name]
+	}
+      }
+      return $r
+    }
+
     # @method _doc
     #
     # The method _doc can be use to obtain the value of the documentation
@@ -430,7 +451,7 @@ namespace eval ::nx::doc {
 	set container [[current class] container]
 	if {![string match "::*" $name]} {
 	  # puts -nonewline stderr "--- EXPANDING name $name"
-	  set name [$container namespace]::[string trimleft $name :]
+	  set name [$container namespace]::$name 
 	  # puts stderr " to name $name"
 	}
 	next $name
@@ -447,10 +468,14 @@ namespace eval ::nx::doc {
 	# level.  [next] will cause the container to change if another
 	# container entity is initialised in the following!
 	#
-	set container [[current class] container]
-	next
-	puts stderr "--- entity [current] starts living, register with $container"
-	$container register [current]
+	if {[[current class] eval {info exists :container}]} {
+	  set container [[current class] container]
+	  next
+	  puts stderr "--- entity [current] starts living, register with $container"
+	  $container register [current]
+	} else {
+	  next
+	}
       }
     }
     # Note: The default "" corresponds to the top-level namespace "::"!
@@ -466,20 +491,32 @@ namespace eval ::nx::doc {
       set :part_class @command
     }
 
+    # :attribute @class:object,type=::nx::doc::@class,multivalued {
+    #   set :incremental 1
+    # }
+
+    # :attribute @object:object,type=::nx::doc::@object,multivalued {
+    #   set :incremental 1
+    # }
+
+    # :attribute @command:object,type=::nx::doc::@command,multivalued {
+    #   set :incremental 1
+    # }
+
     :method init {} {
       next
       puts stderr "APPLYING Resolvable container [current]"
       EntityClass mixin add [current class]::Resolvable
       [current class]::Resolvable container [current]
       puts stderr "APPLYING Containable container [current]"
-      Entity mixin add [current class]::Containable
+      # Entity mixin add [current class]::Containable
       [current class]::Containable container [current]
     }
 
     :method register {containable:object,type=::nx::doc::Entity} {
       set tag [[$containable info class] tag]
-      puts stderr "REGISTERING: tag $tag containable $containable on [current]"
       if {[:info callable methods -application "@$tag"] ne ""} {
+	puts stderr "REGISTERING: tag $tag containable $containable on [current]"
 	:@$tag $containable
       }
     }
@@ -514,12 +551,12 @@ namespace eval ::nx::doc {
   #  - ...
   #
 
-  EntityClass create @package -superclass ContainerEntity {
+  EntityClass create @package -superclass ContainerEntity -mixin ContainerEntity::Containable {
     :attribute @require -slotclass ::nx::doc::PartAttribute
     :attribute @version -slotclass ::nx::doc::PartAttribute
   }
 
-  EntityClass create @command -superclass Entity {
+  EntityClass create @command -superclass Entity -mixin ContainerEntity::Containable {
     :attribute @param -slotclass ::nx::doc::PartAttribute {
       set :part_class @param
     }
@@ -550,7 +587,8 @@ namespace eval ::nx::doc {
   }
   
   EntityClass create @object \
-      -superclass Entity {
+      -superclass Entity \
+      -mixin ContainerEntity::Containable {
 	:attribute @author -slotclass ::nx::doc::PartAttribute 
 
 	:forward @method %self @object-method
@@ -577,45 +615,47 @@ namespace eval ::nx::doc {
 	}
       }
 
-  EntityClass create @class -superclass @object {
-    :attribute @superclass -slotclass ::nx::doc::PartAttribute
-
-    :forward @param %self @class-param
-    :attribute @class-param -slotclass ::nx::doc::PartAttribute {
-      set :part_class @param
-    }
-
-    :forward @method %self @class-method
-    :attribute @class-method -slotclass ::nx::doc::PartAttribute {
-      set :part_class @method
-      :method require_part {domain prop value} {
-	# TODO: verify whether these scoping checks are sufficient
-	# and/or generalisable: For instance, is the scope
-	# requested (from the part_attribute) applicable to the
-	# partof object, which is the object behind [$domain name]?
-	if {[info exists :scope] && 
-	    ![::nsf::objectproperty [$domain name] ${:scope}]} {
-	  error "The object '[$domain name]' does not qualify as '[$part_attribute scope]'"
+  EntityClass create @class \
+      -superclass @object \
+      -mixin ContainerEntity::Containable {
+	:attribute @superclass -slotclass ::nx::doc::PartAttribute
+	
+	:forward @param %self @class-param
+	:attribute @class-param -slotclass ::nx::doc::PartAttribute {
+	  set :part_class @param
 	}
-	next
-      }
-    }
-
-    :method inherited {member} {
-      if {[${:name} info is class]} {
-	set inherited [dict create]
-	foreach c [lreverse [${:name} info heritage]] {
-	  set entity [[::nsf::current class] id $c]
-	  if {![::nsf::is $entity object]} continue
-	  if {[$entity eval [list info exists :${member}]]} {
-	    dict set inherited $entity [$entity $member]
+	
+	:forward @method %self @class-method
+	:attribute @class-method -slotclass ::nx::doc::PartAttribute {
+	  set :part_class @method
+	  :method require_part {domain prop value} {
+	    # TODO: verify whether these scoping checks are sufficient
+	    # and/or generalisable: For instance, is the scope
+	    # requested (from the part_attribute) applicable to the
+	    # partof object, which is the object behind [$domain name]?
+	    if {[info exists :scope] && 
+		![::nsf::objectproperty [$domain name] ${:scope}]} {
+	      error "The object '[$domain name]' does not qualify as '[$part_attribute scope]'"
+	    }
+	    next
 	  }
 	}
-	return $inherited
+	
+	:method inherited {member} {
+	  if {[${:name} info is class]} {
+	    set inherited [dict create]
+	    foreach c [lreverse [${:name} info heritage]] {
+	      set entity [[::nsf::current class] id $c]
+	      if {![::nsf::is $entity object]} continue
+	      if {[$entity eval [list info exists :${member}]]} {
+		dict set inherited $entity [$entity $member]
+	      }
+	    }
+	    return $inherited
+	  }
+	}
       }
-    }
-  }
-
+  
   
   # @object ::nx::doc::Part
   #
@@ -624,7 +664,7 @@ namespace eval ::nx::doc {
   # documentation entity and is identified by a name.
   #
   Class create Part -superclass Entity {
-
+    
     #:method objectparameter args {next {doc -use}}
     :attribute partof:required
     :attribute use
@@ -1204,7 +1244,7 @@ namespace eval ::nx {
 	} else {
 	  set additions [dict keys [dict get $additions objects]]
 	}
-	#	puts stderr ADDITIONS=$additions
+	# puts stderr ADDITIONS=$additions
       }
       set blocks [:comment_blocks $script]
       # :log "blocks: '$blocks'"
@@ -1241,7 +1281,7 @@ namespace eval ::nx {
 	# scripts. The process=@object ressembles some ::nx::doc
 	# methods, so relocated and call the parser from within.
 	set entity [@ $kind $addition]
-	::nx::doc::CommentBlockParser process=$kind $entity
+	:process=$kind $entity
       }
     }
 
@@ -1338,6 +1378,47 @@ namespace eval ::nx {
       
     }; # analyze_initcmd method
     
+    # TODO: how can I obtain some reuse here when later @class is
+    # distinguished from @object (dispatch along the inheritance
+    # hierarchy?)
+    :method process=@class {entity} {
+      set name [$entity name]
+      foreach methodName [${name} info methods -methodtype scripted] {
+	# TODO: should the comment_blocks parser relocated?
+	set blocks [:comment_blocks [${name} info method \
+					    body $methodName]]
+	foreach {line_offset block} $blocks {
+	  if {$line_offset > 1} break;	      
+	  set id [$entity @class-method $methodName]
+	  CommentBlockParser process \
+	      -partof_entity $entity \
+	      -initial_section description \
+	      -entity $id \
+	      $block
+	}
+	:process=@object $entity object
+      }
+    }
+    
+    :method process=@object {entity {scope ""}} {
+      set name [$entity name]
+      
+      foreach methodName [${name} {*}$scope info methods\
+			      -methodtype scripted] {
+	
+	set blocks [:comment_blocks [${name} {*}$scope info method \
+					    body $methodName]]
+	foreach {line_offset block} $blocks {
+	  if {$line_offset > 1} break;
+	  set id [$entity @object-method $methodName]
+	  CommentBlockParser :process \
+	      -partof_entity $name \
+	      -initial_section description \
+	      -entity $id \
+	      $block
+	}
+      }
+    }
     
     # activate the recoding of initcmds
     ::nsf::configure keepinitcmd true
@@ -1411,11 +1492,21 @@ namespace eval ::nx::doc {
       # rather: *.html.tmpl -> *.html. [file extension] just returns
       # the trailing extension.
       set ext [lindex [split [file tail $tmpl] .] end-1]
-      set entities [concat [sorted [@package info instances] name] \
-			[sorted [@command info instances] name] \
-			[sorted [@object info instances] name]]
+      set top_level_entities [$project owned_parts]
+      if {[dict exists $top_level_entities @package]} {
+	foreach p [dict get $top_level_entities @package] {
+	  foreach {entity_type pkg_entities} [$p owned_parts] {
+	    dict lappend top_level_entities $entity_type {*}$pkg_entities
+	  }
+	}
+      }
+      puts stderr TOP_LEVEL_ENTITIES=$top_level_entities
+      # set entities [concat [sorted [@package info instances] name] \
+      # 			[sorted [@command info instances] name] \
+      # 			[sorted [@object info instances] name]]
       set init [subst -nocommands {
 	set project $project
+	array set "" [list $top_level_entities]
       }]
       set project_path [file join $outdir [string trimleft [$project name] :]]
       if {![catch {file mkdir $project_path} msg]} {
@@ -1427,7 +1518,10 @@ namespace eval ::nx::doc {
 	set index [$project render -initscript $init $tmpl]
 	# puts stderr "we have [llength $entities] documentation entities ($entities)"
 	:write $index [file join $project_path "index.$ext"]
-	foreach e $entities {
+	set values [join [dict values $top_level_entities]]
+	puts stderr "VALUES=$values"
+	foreach e $values {
+	  puts stderr "PROCESSING=$e render -initscript $init $tmpl"
 	  set content [$e render -initscript $init $tmpl]
 	  :write $content [file join $project_path "[$e filename].$ext"]
 	  puts stderr "$e written to [file join $project_path [$e filename].$ext]"
@@ -1550,58 +1644,6 @@ namespace eval ::nx::doc {
       }
             
     }; # CommentBlockParser->process()
-    
-    # TODO: how can I obtain some reuse here when later @class is
-    # distinguished from @object (dispatch along the inheritance
-    # hierarchy?)
-    :object method process=@class {entity} {
-      set name [$entity name]
-      foreach methodName [${name} info methods -methodtype scripted] {
-	# TODO: should the comment_blocks parser relocated?
-	set blocks [doc comment_blocks [${name} info method \
-					    body $methodName]]
-	foreach {line_offset block} $blocks {
-	  if {$line_offset > 1} break;	      
-	  set id [$entity @class-method $methodName]
-	  :process \
-	      -partof_entity $entity \
-	      -initial_section description \
-	      -entity $id \
-	      $block
-	}
-	:process=@object $entity object
-      }
-    }
-    
-    :object method process=@object {entity {scope ""}} {
-      set name [$entity name]
-      #
-      # process the initcmd !
-      #
-      
-      # if {[$name eval {info exists :__initcmd}]} {
-      # 	doc analyze_initcmd @object $name [$name eval {set :__initcmd}]
-      # }
-      
-      foreach methodName [${name} {*}$scope info methods\
-			      -methodtype scripted] {
-	
-	set blocks [doc comment_blocks [${name} {*}$scope info method \
-					    body $methodName]]
-	foreach {line_offset block} $blocks {
-	  if {$line_offset > 1} break;
-	  set id [$entity @object-method $methodName]
-	  :process \
-	      -partof_entity $name \
-	      -initial_section description \
-	      -entity $id \
-	      $block
-	}
-      }
-    }
-    # :method process=@method args {method_entity} {
-    
-    # }
     
   }
   
