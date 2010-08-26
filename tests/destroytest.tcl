@@ -5,7 +5,6 @@ Test parameter count 10
 
 ::nsf::alias ::nx::Object set -objscope ::set
 
-
 Class create O -superclass Object {
   :method init {} {
     set ::ObjectDestroy 0
@@ -425,31 +424,31 @@ C::c1 foo
 ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 
 #
-set case "nesting destroy"
-Test case nesting-destroy
-Object create x
-Object create x::y
-x destroy
-? {::nsf::objectproperty x object} 0 "parent object gone"
-? {::nsf::objectproperty x::y object} 0 "child object gone"
+Test case nesting-destroy {
+  Object create x
+  Object create x::y
+  x destroy
+  ? {::nsf::objectproperty x object} 0 "parent object gone"
+  ? {::nsf::objectproperty x::y object} 0 "child object gone"
+}
 
-set case "deleting aliased object"
-Test case deleting-aliased-object
-Object create o
-Object create o2
-::nsf::alias o x o2
-? {o x} ::o2 "call object via alias"
-## TODO: changed xxxx
-#? {o x info vars} "" "call info on aliased object"
-? {o2 set x 10} 10   "set variable on object"
-? {o2 info vars} x   "query vars"
-## TODO: changed xxxx
-#? {o x info vars} x  "query vars via alias"
-#? {o x set x} 10     "set var via alias"
-o2 destroy
-? {o x info vars} "Trying to dispatch deleted object via method 'x'" "1st call on deleted object"
-? {o x info vars} "::o: unable to dispatch method 'x'" "2nd call on deleted object"
-o destroy
+Test case deleting-aliased-object {
+  Object create o
+  Object create o2
+  ::nsf::alias o x o2
+  ? {o x} ::o2 "call object via alias"
+  ## the forwarded object needs a per-object methods
+  o2 method info args next
+  o2 method set args next
+  ? {o x info vars} "" "call info on aliased object"
+  ? {o set x 10} 10   "set variable on object"
+  ? {o info vars} x   "query vars"
+  ? {o x info vars} x  "query vars via alias"
+  ? {o x set x} 10     "set var via alias"
+  o2 destroy
+  ? {o x info vars} "Trying to dispatch deleted object via method 'x'" "1st call on deleted object"
+  ? {o x info vars} "::o: unable to dispatch method 'x'" "2nd call on deleted object"
+}
 
 set case "deleting object with alias to object"
 Test case deleting-object-with-alias-to-object
@@ -471,53 +470,55 @@ o::x destroy
 ? {::nsf::objectproperty o3 object} 0 "aliased object destroyed"
 o destroy
 
-set case "create an alias, and recreate obj"
-Test case create-alias-and-recreate-obj
-Object create o
-Object create o3
-::nsf::alias o x o3
-Object create o3
-o3 set a 13
-## TODO: changed xxxx
-#? {o x set a} 13 "aliased object works after recreate"
-o destroy
+#
+# create an alias, and recreate obj
+#
+Test case create-alias-and-recreate-obj {
+  Object create o
+  Object create o3
+  o alias x o3
+  Object create o3
+  o3 method set args next
+  o set a 13
+  ? {o x set a} 13 "aliased object works after recreate"
+}
 
-set case "create an alias on the class level, double aliasing, delete aliased object"
-Test case create-alias-on-class-delete-aliased-obj
-Class create C
-Object create o
-Object create o3
-::nsf::alias o a o3
-::nsf::alias C b o
-C create c1
-## TODO: changed xxxx
-#? {c1 b set B 2} 2 "call 1st level"
-#? {c1 b a set A 3} 3 "call 2nd level"
+#
+# create an alias on the class level, double aliasing, delete aliased
+# object
+#
+Test case create-alias-on-class-delete-aliased-obj {
+  Class create C
+  Object create o
+  Object create o3
+  o alias a o3
+  C alias b o
+  o3 method set args next
+  o method set args next
+  C create c1
+  ? {c1 b set B 2} 2 "call 1st level"
+  ? {c1 b a set A 3} 3 "call 2nd level"
+  
+  ? {c1 set B} 2 "call 1st level ok"
+  ? {c1 set A} 3 "call 2nd level ok"
+  o destroy
+  ? {c1 b} "Trying to dispatch deleted object via method 'b'" "call via alias to deleted object"
+}
 
-## TODO: changed xxxx
-#? {o set B} 2 "call 1st level ok"
-#? {o3 set A} 3 "call 2nd level ok"
-o destroy
-? {c1 b} "Trying to dispatch deleted object via method 'b'" "call via alias to deleted object"
-C destroy
-c1 destroy
-o3 destroy
-
-set case "create an alias on the class level, double aliasing, destroy class"
-Test case create-alias-on-class-destroy-class
-Class create C
-Object create o
-Object create o3
-::nsf::alias o a o3
-::nsf::alias C b o
-C create c1
-C destroy
-? {::nsf::objectproperty o object} 1 "object o still here"
-? {::nsf::objectproperty o3 object} 1 "object o3 still here"
-o destroy
-o3 destroy
-c1 destroy
-
+#
+# create an alias on the class level, double aliasing, destroy class
+#
+Test case create-alias-on-class-destroy-class {
+  Class create C
+  Object create o
+  Object create o3
+  o alias a o3
+  C alias b o
+  C create c1
+  C destroy
+  ? {::nsf::objectproperty o object} 1 "object o still here"
+  ? {::nsf::objectproperty o3 object} 1 "object o3 still here"
+}
 
 #
 # test cases where preexisting namespaces are re-used
