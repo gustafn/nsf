@@ -756,9 +756,8 @@ namespace eval ::nx {
   }
 
   Class eval {
-    # TODO: are the next two needed?
-    :alias "info classparent"    ::nsf::cmd::ObjectInfo2::parent
-    :alias "info classchildren"  ::nsf::cmd::ObjectInfo2::children
+    #:alias "info classparent"    ::nsf::cmd::ObjectInfo2::parent
+    #:alias "info classchildren"  ::nsf::cmd::ObjectInfo2::children
     :alias "info filter guard"   ::nsf::cmd::ClassInfo2::filterguard
     :alias "info filter methods" ::nsf::cmd::ClassInfo2::filtermethods
     :alias "info forward"        ::nsf::cmd::ClassInfo2::forward

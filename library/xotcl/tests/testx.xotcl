@@ -49,9 +49,13 @@ TestX nestingClasses -proc run {{n 20}} {
     Class x($i)::z::t
     Class x($i)::t
     ::errorCheck [x($i) info classchildren] "::x($i)::t ::x($i)::y ::x($i)::z" \
-      "info classchildren"
+	"info classchildren"
+   ::errorCheck [x($i) info children] "::x($i)::t ::x($i)::y ::x($i)::z" \
+	"info children"
     ::errorCheck [x($i)::z info classparent] "::x($i)" \
-      "info classparent"
+	"info classparent"
+    ::errorCheck [x($i)::z info parent] "::x($i)" \
+	"info parent"
 
     ::errorCheck [x($i) info commands t]  "t" "-- MakeClass "
     
@@ -66,15 +70,19 @@ TestX nestingClasses -proc run {{n 20}} {
     x($i)::z move x($i)::rz
 
     ::errorCheck [x($i) info commands rz] "rz" \
-      "renaming node (node itself)"
+	"renaming node (node itself)"
 
     ::errorCheck [x($i)::rz info commands rt] "rt" \
-      "renaming node (leaf in node)"
+	"renaming node (leaf in node)"
 
     ::errorCheck [x($i)::rz info classchildren] "::x($i)::rz::rt" \
-      "info classchildren (2)"
+	"info classchildren (2)"
+    ::errorCheck [x($i)::rz info children] "::x($i)::rz::rt" \
+	"info children (2)"
     ::errorCheck [x($i)::rz::rt info classparent] "::x($i)::rz" \
-      "info classparent (2)"
+	"info classparent (2)"
+    ::errorCheck [x($i)::rz::rt info parent] "::x($i)::rz" \
+	"info parent (2)"
 
     x($i) move rx 
     ::errorCheck [rx info commands rz] "rz" \
@@ -2582,10 +2590,15 @@ TestX copymove -proc run {{n 10}} {
 
     V v
     ::errorCheck "[z q 1 2 3]--[X::Y::Z info class]--[X::Y::Z info classparent]" \
-      "::z--::X::Y::Z--q------::xotcl::Class--::X::Y"\
-      "class copy z"
+	"::z--::X::Y::Z--q------::xotcl::Class--::X::Y"\
+	"classparent class copy z"
+    ::errorCheck "[z q 1 2 3]--[X::Y::Z info class]--[X::Y::Z info parent]" \
+	"::z--::X::Y::Z--q------::xotcl::Class--::X::Y"\
+	"parent class copy z"
     ::errorCheck "[v q 1 2 3]--[V info class]--[V info classparent]" "::v--::V--q------::xotcl::Class--::"\
-      "class copy v"
+	"classparent class copy v"
+    ::errorCheck "[v q 1 2 3]--[V info class]--[V info parent]" "::v--::V--q------::xotcl::Class--::"\
+	"parent class copy v"
     ::errorCheck "[::cutSpaces [V info parameter]--[v set param1]--[v set param2]]" \
       " {param1 1} {param2 2} --1--2" \
       "parameter test"
@@ -2667,10 +2680,12 @@ TestX copymove -proc run {{n 10}} {
     V v
 
     ::errorCheck "[v q 1 2 3]--[V info class]--[V info classparent]" "::v--::V--q------::xotcl::Class--::"\
-      "class move v"
+	"classparent class move v"
+    ::errorCheck "[v q 1 2 3]--[V info class]--[V info parent]" "::v--::V--q------::xotcl::Class--::"\
+	"parent class move v"
     ::errorCheck "[::cutSpaces [V info parameter]--[v set param1]--[v set param2]]" \
-      " {param1 1} {param2 2} --1--2" \
-      "parameter move test"
+	" {param1 1} {param2 2} --1--2" \
+	"parameter move test"
     ::errorCheck "[::cutSpaces [V info instinvar]--[V info instpre assProc]--[V info instpost assProc]]"\
       "{7 > 6} { #a comment }--{5 > 4} { #pre }--{5 > 4} { #post }"\
       "Move Class Assertions"
@@ -2962,7 +2977,8 @@ TestX recreation -proc run {{n 10}} {
   META X::Y
   errorCheck [set ::cleanupResult] "" "Class Cleanup Create Failed"
   META X
-  errorCheck [X info classchildren] "" "Class Cleanup Class Children Destroy Failed"
+  errorCheck [X info classchildren] "" "classchildren Class Cleanup Class Children Destroy Failed"
+  errorCheck [X info children] "" "children Class Cleanup Class Children Destroy Failed"
   META X::Y
   errorCheck [set ::cleanupResult] \
    " ::META+->recreate ::X+::META->cleanup ::X::Y+::META->destroy ::META+->dealloc" \
@@ -2977,7 +2993,9 @@ TestX recreation -proc run {{n 10}} {
   errorCheck [set ::cleanupResult] "" "Class Cleanup Redefine Create Failed"
   META X
   errorCheck [X info classchildren] ::X::Y \
-     "Class Cleanup Redefine Class Children Survive Failed"
+     "classchildren Class Cleanup Redefine Class Children Survive Failed"
+  errorCheck [X info children] ::X::Y \
+     "children Class Cleanup Redefine Class Children Survive Failed"
   META X::Y
   errorCheck [set ::cleanupResult] \
    " ::META+->recreate ::X+::META->cleanup ::META+->recreate ::X::Y+::META->cleanup" \
