@@ -836,8 +836,7 @@ TestX filterGuards -proc run {{n 20}} {
 
 	r open
         r x
-        # TODO REANIMATE xxxx
-	#::errorCheck $::r "loggingFilter-open open x" {info guarded scope}
+	::errorCheck $::r "loggingFilter-open open x" {info guarded scope}
     }
 }
 
@@ -959,8 +958,7 @@ TestX mixinGuards -proc run {{n 20}} {
     lappend info [a info mixinguard Fly] 
     lappend ::r [a info mixin -order -guards]
 
-  # TODO REANIMATE xxxx
-  #::errorCheck [set ::r] [list \
+  ::errorCheck [set ::r] [list \
 	{::a ::Animal (20 years): yippee, fly like an eagle!} \
 	{{::Fly -guard {[my age] > 3}}} {{::Fly -guard {[my age] > 3}}} \
 	{::a ::Animal (2 years): how should i fly?} \
@@ -992,8 +990,7 @@ TestX mixinGuards -proc run {{n 20}} {
     lappend ::r [A info instmixin -guards]
     lappend ::r [a info mixin -order -guards]
 
-  # TODO REANIMATE xxxx
-  #::errorCheck [set ::r] [list \
+  ::errorCheck [set ::r] [list \
 	{::a ::A (20 years): yippee, fly like an eagle!} \
 	{{::Fly -guard {[my age] > 3}}} {{::Fly -guard {[my age] > 3}}} \
 	{::a ::A (2 years): how should i fly?} \
@@ -1003,8 +1000,7 @@ TestX mixinGuards -proc run {{n 20}} {
 	::Fly ::Fly] \
 	{instmixinguard method}
 
-  # TODO REANIMATE xxxx
-  #::errorCheck [set info] [list {[my age] > 4} {} {[my age] > 3}  \
+  ::errorCheck [set info] [list {[my age] > 4} {} {[my age] > 3}  \
 				 {[my age] > 4} {} ] {info (inst)mixinguard}
 
   Class create C

@@ -1165,6 +1165,8 @@ _ added option noforwarder to RelationSlots
 - unified slot parent-object creation handling
 - changed XOTcl info to new interface
 
+- reanimated 5 tests in xotcl/tests/testx.xotcl
+
 TODO: 
 - check "my" vs. "nsf::dispatch" in xotcl2.tcl
 - overthink decision about not showing "child objects" per default in "info methods"
@@ -1180,10 +1182,7 @@ TODO:
    * handle absence of -create  flag in resolve_method_path (for introspection)
    * consider alternate method name/place for subcmds on classes
    * provide new tests for "TODO: changed xxxx"
-   * testx.xotcl
-        # TODO REANIMATE xxxx
-	#::errorCheck $::r "loggingFilter-open open x" {info guarded scope}
-        # (inst)mixinguard, (inst)filterguard
+
 - aliases on procs are a problem, when upvar is used (see info default/instdefault in xotcl2.tcl)
 
 - add incompatiblity to migration guide
