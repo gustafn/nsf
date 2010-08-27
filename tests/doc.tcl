@@ -134,7 +134,7 @@ Test case parsing {
   set block {
     {}
   }
-#  CommentBlockParser process $block
+  CommentBlockParser process $block
   ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   #
@@ -325,6 +325,23 @@ Test case parsing {
   ? [list $entity info is type ::nx::doc::@command] 1
   ? [list $entity text] "some text on the command";
   ? [list $entity @see] "::o";
+
+  set block {
+    {@class ::C} 
+    {}
+    {some text on the class entity}
+    {}
+    {@class-param attr1 Here, we check whether we can get a valid description block}
+    {for text spanning multiple lines}
+  }
+  set entity [CommentBlockParser process $block]
+  ? [list ::nsf::is $entity object] 1
+  ? [list $entity info is type ::nx::doc::@class] 1
+  ? [list $entity text] "some text on the command";
+  ? [list llength [$entity @param]] 1
+  ? [list [$entity @param] info is type ::nx::doc::@param]
+  ? [list [$entity @param] @doc] ""
+exit
 
   #
   # basic test for in-situ documentation (initcmd block)
