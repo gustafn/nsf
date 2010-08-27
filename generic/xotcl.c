@@ -10018,7 +10018,6 @@ static int
 ListProcBody(Tcl_Interp *interp, Proc *procPtr, CONST char *methodName) {
   if (procPtr) {
     CONST char *body = ObjStr(procPtr->bodyPtr);
-    fprintf(stderr,"BODY %s \n",body);
     Tcl_SetObjResult(interp, Tcl_NewStringObj(StripBodyPrefix(body), -1));
     return TCL_OK;
   }
