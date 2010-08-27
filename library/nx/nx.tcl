@@ -728,7 +728,8 @@ namespace eval ::nx {
     :alias "info filter methods" ::nsf::cmd::ObjectInfo2::filtermethods
     :alias "info forward"        ::nsf::cmd::ObjectInfo2::forward
     :alias "info hasnamespace"   ::nsf::cmd::ObjectInfo2::hasnamespace
-    :method "info is" {kind value:optional} {::nsf::objectproperty [::nsf::current object] $kind {*}$value}
+    :method "info is" {kind value:optional} {::nsf::objectproperty [::nsf::current object] $kind {*}[expr {[info exists value]?$value:""}]}
+#    :method "info is" {kind value:optional} {::nsf::objectproperty [::nsf::current object] $kind {*}$value}
     :alias "info methods"        ::nsf::cmd::ObjectInfo2::methods
     :alias "info mixin guard"    ::nsf::cmd::ObjectInfo2::mixinguard
     :alias "info mixin classes"  ::nsf::cmd::ObjectInfo2::mixinclasses
@@ -752,6 +753,8 @@ namespace eval ::nx {
   #
   foreach m [::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::methods] {
     set definition [::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::method definition $m]
+    puts stderr DEF=$definition
+    puts stderr "::nx::Class::slot::__info {*}[lrange $definition 1 end]"
     ::nx::Class::slot::__info {*}[lrange $definition 1 end]
   }
 

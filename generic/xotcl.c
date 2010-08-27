@@ -7224,7 +7224,7 @@ ComputePrecedenceList(Tcl_Interp *interp, XOTclObject *object, CONST char *patte
 static CONST char *
 StripBodyPrefix(CONST char *body) {
   if (strncmp(body, "::nsf::unsetUnknownArgs\n", 24) == 0)
-    body += 29;
+    body += 24;
   return body;
 }
 
@@ -10018,6 +10018,7 @@ static int
 ListProcBody(Tcl_Interp *interp, Proc *procPtr, CONST char *methodName) {
   if (procPtr) {
     CONST char *body = ObjStr(procPtr->bodyPtr);
+    fprintf(stderr,"BODY %s \n",body);
     Tcl_SetObjResult(interp, Tcl_NewStringObj(StripBodyPrefix(body), -1));
     return TCL_OK;
   }
