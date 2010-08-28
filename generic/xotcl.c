@@ -10382,17 +10382,27 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *methodName, Tcl_
       }
 #endif
     } else {
-      /* must be an alias */
-      switch (subcmd) {
-      case InfomethodsubcmdTypeIdx: 
-        Tcl_SetObjResult(interp, XOTclGlobalObjs[XOTE_ALIAS]);
-        break;
-      case InfomethodsubcmdDefinitionIdx:
-        {
-          Tcl_Obj *entryObj = AliasGet(interp, object->cmdName, methodName, withPer_object);
-	  /*fprintf(stderr, "aliasGet %s -> %s (%d) returned %p\n",
-	    objectName(object), methodName, withPer_object, entryObj);*/
-          if (entryObj) {
+      /* 
+       * The cmd must be an alias or object.
+       * 
+       * Note that some aliases come with procPtr == XOTclObjDispatch.
+       * In order to dinstinguish between "object" and alias, we have
+       * to do the lookup for the entryObj to determine wether it is
+       * really an alias.
+       */
+
+      Tcl_Obj *entryObj = AliasGet(interp, object->cmdName, methodName, withPer_object);
+      /*fprintf(stderr, "aliasGet %s -> %s (%d) returned %p\n",
+	objectName(object), methodName, withPer_object, entryObj);*/
+
+      if (entryObj) {
+	/* is an alias */
+	switch (subcmd) {
+	case InfomethodsubcmdTypeIdx: 
+	  Tcl_SetObjResult(interp, XOTclGlobalObjs[XOTE_ALIAS]);
+	  break;
+	case InfomethodsubcmdDefinitionIdx:
+	  {
             int nrElements;
             Tcl_Obj **listElements;
             resultObj = Tcl_NewListObj(0, NULL);
@@ -10405,6 +10415,43 @@ ListMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *methodName, Tcl_
             break;
           }
         }
+      } else {
+	/* check, to be on the safe side */
+	if (procPtr == XOTclObjDispatch) {
+	  /* is an object */
+	  switch (subcmd) {
+	  case InfomethodsubcmdTypeIdx: 
+	    Tcl_SetObjResult(interp, Tcl_NewStringObj("object", -1));
+	    break;
+	  case InfomethodsubcmdDefinitionIdx:
+	    {
+	      /* yyyy */
+	      XOTclObject *subObject = XOTclGetObjectFromCmdPtr(cmd);
+	      assert(subObject);
+	      resultObj = Tcl_NewListObj(0, NULL);
+	      /* we can make 
+		    <class> create <parent::child>
+		 or something similar to the other definition cmds
+                     <parent> createChild <child> <class>
+	      */
+	      AppendMethodRegistration(interp, resultObj, "create",
+				       &(subObject->cl)->object,
+				       ObjStr(subObject->cmdName), cmd, 0, 0);
+	      /*
+	      AppendMethodRegistration(interp, resultObj, "subobject",
+				       object, methodName, cmd, 0, 0);
+	      Tcl_ListObjAppendElement(interp, resultObj, subObject->cmdName);*/
+
+	      Tcl_SetObjResult(interp, resultObj);
+	      break;
+	    }
+	  }
+	} else {
+	  /* should never happen */
+	  fprintf(stderr, "should never happen, maybe someone deleted the alias %s for object %s\n",
+		  methodName, objectName(object));
+	  Tcl_ResetResult(interp);
+	}
       }
     }
   }

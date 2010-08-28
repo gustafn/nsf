@@ -437,6 +437,7 @@ Test case deleting-aliased-object {
   Object create o2
   ::nsf::alias o x o2
   ? {o x} ::o2 "call object via alias"
+  ? {o info method type x} alias
   ## the forwarded object needs a per-object methods
   o2 method info args next
   o2 method set args next

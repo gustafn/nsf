@@ -2212,7 +2212,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::parametercheck", XOTclParametercheckCmdStub, 3, {
   {"-nocomplain", 0, 0, convertToString},
   {"param", 0, 0, convertToTclobj},
-  {"value", 0, 0, convertToTclobj}}
+  {"value", 1, 0, convertToTclobj}}
 },
 {"::nsf::__qualify", XOTclQualifyObjCmdStub, 1, {
   {"name", 1, 0, convertToTclobj}}

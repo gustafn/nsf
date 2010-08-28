@@ -69,6 +69,19 @@ Test case base {
   ? {lsort [c1 info callable methods -application]} "a addOne foo m m-with-assertions s"
 }
 
+Test case subobj {
+  ::nx::Object create o {
+    ::nx::Object create [::nx::self]::sub {
+      :method foo {} {;}
+    }
+    :alias subal ::o::sub
+  }
+  ? {o info methods} "sub subal"
+  ? {o info method type sub} "object"
+  ? {o info method definition sub} "::nx::Object create ::o::sub"
+  ? {o info method type subal} "alias"
+}
+
 Test case callable {
     # define the same method for Object and Class
     ::nx::Object method bar {} {return Object.bar}

@@ -379,8 +379,8 @@ namespace eval ::nx {
 	    if {$definition eq ""} {error "definition must not be empty"}
 	    set object [lindex $definition end]
 	  } else {
-	    if {$type ne "alias"} {error "can't append to $type"}
-	    if {$definition ne ""} {error "unexpected definition '$definition'"}
+	    if {$type ne "object"} {error "can't append to $type"}
+	    if {[llength $definition] != 3} {error "unexpected definition '$definition'"}
 	    append object ::$w
 	  }
 	}
@@ -751,6 +751,7 @@ namespace eval ::nx {
   # copy all methods except the subobjects to ::nx::Class::slot::__info
   #
   foreach m [::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::methods] {
+    if {[::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::method type $m] eq "object"} continue
     set definition [::nx::Object::slot::__info ::nsf::cmd::ObjectInfo2::method definition $m]
     ::nx::Class::slot::__info {*}[lrange $definition 1 end]
   }
