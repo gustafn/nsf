@@ -134,7 +134,7 @@ xotclCmd objectproperty XOTclObjectpropertyCmd {
 xotclCmd parametercheck XOTclParametercheckCmd {
   {-argName "-nocomplain"}
   {-argName "param" -type tclobj}
-  {-argName "value" -required 0 -type tclobj}
+  {-argName "value" -required 1 -type tclobj}
 }
 xotclCmd __qualify XOTclQualifyObjCmd {
   {-argName "name" -required 1 -type tclobj}
