@@ -7224,7 +7224,7 @@ ComputePrecedenceList(Tcl_Interp *interp, XOTclObject *object, CONST char *patte
 static CONST char *
 StripBodyPrefix(CONST char *body) {
   if (strncmp(body, "::nsf::unsetUnknownArgs\n", 24) == 0)
-    body += 29;
+    body += 24;
   return body;
 }
 
