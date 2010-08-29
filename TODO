@@ -1175,7 +1175,12 @@ _ added option noforwarder to RelationSlots
   when method is an object.
 - extend regression test
 
+- backported fix for xotcl 1.6.6 reported by kristoffer lawsow,
+  which helps just partly here
+- extended regression test
+
 TODO: 
+- fix test "ob bar" (filter test) in tests/interceptor-slot.tcl (currently commented out)
 - check "my" vs. "nsf::dispatch" in xotcl2.tcl
 - overthink decision about not showing "child objects" per default in "info methods"
 
