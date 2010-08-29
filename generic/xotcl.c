@@ -6193,7 +6193,14 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 				methodName);
       }
 
-      unknown = rst->unknown;
+      if (rst->unknown && (frameType & XOTCL_CSC_TYPE_ACTIVE_FILTER)) {
+	/*fprintf(stderr, "use saved unknown %d frameType %.6x\n", 
+	  RUNTIME_STATE(interp)->unknown, frameType);*/
+	unknown = 1;
+      } else {
+	unknown = 0;
+      }
+
     }
   } else {
     unknown = 1;

@@ -97,6 +97,35 @@ C object mixin M
 
 # forwarder with 0 arguments + flag
 ? {C object mixin} "::M"
+Test parameter count 3
+Test case "filter-and-creation" {
+  Class create Foo {
+    :method myfilter {args} {
+      set i [::incr ::count]
+      set s [self]
+      set m [current calledmethod]
+      #puts stderr "$i: $s.$m"
+      #puts stderr "$i: procsearch before [$s procsearch info]"
+      set r [next]
+      #puts stderr "$i: $s.$m got ($r)"
+      #puts stderr "$i: $s.$m procsearch after [$s info callable method info]"
+      return $r
+    }
+    
+    #:method unknown {args} {
+    #  puts stderr "use '[self] create $args', not '[self] $args'"
+    #  uplevel [list [self] create {*}$args]
+    #}
+  }
+  ? {Foo create ob} ::ob
+  ? {ob bar} {::ob: unable to dispatch method 'bar'}
+
+  Foo filter myfilter
+  ? {Foo create ob} ::ob
+  # TODO: the following test does not work yet.
+  #? {ob bar} {::ob: unable to dispatch method 'bar'}
+}
+
 
 puts stderr "==================== XOTcl"
 package require XOTcl
@@ -113,15 +142,11 @@ C1 create c11
 ? {c11 info precedence} "::C1 ::xotcl::Object"
 C1 mixin add M11
 ? {C1 info precedence} "::M11 ::M1 ::xotcl::Class ::xotcl::Object"
-puts stderr ===obj-create+add
 Object o -mixin M1
-puts stderr ====[o info class]-[o procsearch mixin]-[Object info instforward -definition mixin]
 ? {o info precedence} "::M1 ::xotcl::Object"
-puts stderr ===class-create+add
 Class O 
 O mixin M1
 ? {O info precedence} "::M1 ::xotcl::Class ::xotcl::Object"
-puts stderr ===class-create+add-via-parameter
 Class O -mixin M1
-puts stderr ====[O info class]
 ? {O info precedence} "::M1 ::xotcl::Class ::xotcl::Object"
+
