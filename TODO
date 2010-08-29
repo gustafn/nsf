@@ -1178,6 +1178,7 @@ _ added option noforwarder to RelationSlots
 - backported fix for xotcl 1.6.6 reported by kristoffer lawsow,
   which helps just partly here
 - extended regression test
+- added ::nx::EnsembleObject
 
 TODO: 
 - fix test "ob bar" (filter test) in tests/interceptor-slot.tcl (currently commented out)

@@ -356,14 +356,14 @@ namespace eval ::nx {
 	      ::nsf::methodproperty $object [Object create ${object}::slot] protected true
 	      if {$verbose} {puts stderr "... create object ${object}::slot"}
 	    }
-	    set o [Object create ${object}::slot::__$w]
+	    set o [nx::EnsembleObject create ${object}::slot::__$w]
 	    if {$verbose} {puts stderr "... create object $o"}
 	    # We are on a class, and have to create an alias to be
 	    # accessible for objects
 	    ::nsf::alias $object $w $o
 	    if {$verbose} {puts stderr "... create alias $object $w $o"}
 	  } else {
-	    set o [Object create ${object}::$w]
+	    set o [EnsembleObject create ${object}::$w]
 	    if {$verbose} {puts stderr "... create object $o"}
 	  }
 	  set object $o
@@ -715,6 +715,8 @@ namespace eval ::nx {
   ::nx::slotObj ::nx::Class
   ::nx::slotObj ::nx::Object
 
+  Class create ::nx::EnsembleObject
+
   ########################
   # Info definition
   ########################
@@ -744,7 +746,7 @@ namespace eval ::nx {
   # automatically created name of the sensemble object has to be the
   # same as defined above.
   
-  Object create ::nx::Class::slot::__info
+  EnsembleObject create ::nx::Class::slot::__info
   Class alias info ::nx::Class::slot::__info
 
   #
