@@ -5681,7 +5681,15 @@ DoDispatch(ClientData cd, Tcl_Interp *interp, int objc,
                                   methodName, frameType)) == TCL_ERROR) {
       result = XOTclErrInProc(interp, cmdName, cl ? cl->object.cmdName : NULL, methodName);
     }
-    unknown = RUNTIME_STATE(interp)->unknown;
+    
+    if (RUNTIME_STATE(interp)->unknown && (frameType & XOTCL_CSC_TYPE_ACTIVE_FILTER)) {
+      /*fprintf(stderr, "use saved unknown %d frameType %.6x\n", 
+	RUNTIME_STATE(interp)->unknown, frameType);*/
+      unknown = 1;
+    } else {
+      unknown = 0;
+    }
+   
   } else {
     unknown = 1;
   }
@@ -5699,11 +5707,11 @@ DoDispatch(ClientData cd, Tcl_Interp *interp, int objc,
          */
         XOTclObject *obj = (XOTclObject*)cd;
         ALLOC_ON_STACK(Tcl_Obj*, objc+1, tov);
-        /*
-          fprintf(stderr,"calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s\n",
-          ObjStr(obj->cmdName), ObjStr(objv[1]), flags,  XOTCL_CM_NO_UNKNOWN,
-          XOTclObjectIsClass(obj), obj, ObjStr(obj->cmdName));
-        */
+        
+	/*fprintf(stderr,"... calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s\n",
+		  ObjStr(obj->cmdName), ObjStr(objv[1]), flags,  XOTCL_CM_NO_UNKNOWN,
+		  XOTclObjectIsClass(obj), obj, ObjStr(obj->cmdName));*/
+        
         tov[0] = obj->cmdName;
         tov[1] = XOTclGlobalObjects[XOTE_UNKNOWN];
         if (objc>1)
