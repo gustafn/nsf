@@ -1175,7 +1175,10 @@ _ added option noforwarder to RelationSlots
   when method is an object.
 - extend regression test
 
-- backported fix for xotcl 1.6.6 reported by kristoffer lawsow,
+- eliminated "info classparent" and "info classchildren"
+- added tests to xotcl/tests/testx.xotcl to assure equivalence
+
+- backported fix for xotcl 1.6.6 reported by kristoffer lawson,
   which helps just partly here
 - extended regression test
 - added class ::nx::EnsembleObject
@@ -1185,6 +1188,7 @@ _ added option noforwarder to RelationSlots
 - added tests/subcmd.tcl
 - added methods "defaultmethod" and "unknown" to ::nx::EnsembleObject
   (together with a set of helper methods to provide user-friendly information)
+- scripted "info slotobjects" to return only objects of class ::nx::Slot
 
 TODO: 
 - fix test "ob bar" (filter test) in tests/interceptor-slot.tcl (currently commented out)
@@ -1194,13 +1198,16 @@ TODO:
 
 - deeper analysis of "contains"
 - unify SubcmdObj() and ParamCheckObj() handling?
-- are "info class*" ops needed?
 
 - subcmd
    * handle sucmd for other method factories
    * handle introspection for subcmd nicely
    * handle absence of -create  flag in resolve_method_path (for introspection)
    * consider alternate method name/place for subcmds on classes
+     - currently, "info slotobjects" returns only instances of ::nx::Slot 
+       (the logic is scripted, otherwise, we would have to hardcode the name
+       nx::Slot).
+     - provide a different place in the namesspaces could simplify this
 
 - aliases on procs are a problem, when upvar is used (see info default/instdefault in xotcl2.tcl)
 

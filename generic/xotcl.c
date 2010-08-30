@@ -14219,9 +14219,12 @@ infoObjectMethod slotobjects XOTclObjInfoSlotObjectsMethod {
 static int XOTclObjInfoSlotObjectsMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *pattern) {
   XOTclObjects *pl, *slotObjects;
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
+  /*XOTclClass *slotClass = XOTclpGetClass(interp, "::nx::Slot");*/
 
   slotObjects = computeSlotObjects(interp, object, pattern /* not used */, 1);
+  
   for (pl=slotObjects; pl; pl = pl->nextPtr) {
+    /*if (slotClass &&  !isSubType(pl->obj->cl, slotClass)) continue;*/
     Tcl_ListObjAppendElement(interp, list, pl->obj->cmdName);
   }
 

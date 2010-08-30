@@ -847,7 +847,15 @@ namespace eval ::nx {
     :alias "info mixin classes"  ::nsf::cmd::ObjectInfo2::mixinclasses
     :alias "info parent"         ::nsf::cmd::ObjectInfo2::parent
     :alias "info precedence"     ::nsf::cmd::ObjectInfo2::precedence
-    :alias "info slotobjects"    ::nsf::cmd::ObjectInfo2::slotobjects
+    :method "info slotobjects" {} {
+      set result [list]
+      foreach slot [::nsf::dispatch [::nsf::current object] ::nsf::cmd::ObjectInfo2::slotobjects] {
+	puts stderr "check $slot [::nsf::objectproperty $slot type ::nx::Slot]"
+	if {![::nsf::objectproperty $slot type ::nx::Slot]} continue
+	lappend result $slot
+      }
+      return $result
+    }
     :alias "info vars"           ::nsf::cmd::ObjectInfo2::vars
   }
 
