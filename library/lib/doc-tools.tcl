@@ -1549,6 +1549,7 @@ namespace eval ::nx::doc {
       :method assign {domain prop value} {
 	set current_entity [$domain current_entity]
 	set scope [expr {[$current_entity info is class]?"object mixin":"mixin"}]
+	puts stderr "Switching: [$current_entity {*}$scope] --> target $value"
 	if {[$domain eval [list info exists :$prop]] && [:get $domain $prop] in [$current_entity {*}$scope]} {
 	  $current_entity {*}$scope delete [:get $domain $prop]
 	}
@@ -1629,7 +1630,8 @@ namespace eval ::nx::doc {
 	}
 
 	if {[catch {
-	  set actions [${:current_entity} event=process $line]
+	  puts stderr "PROCESS ${:current_entity} event=process $line"
+	  ${:current_entity} event=process $line
 	} failure]} {
 	  puts stderr ERRORINFO=$::errorInfo
 	  :fastforward
@@ -1637,6 +1639,11 @@ namespace eval ::nx::doc {
       }
       if {!$is_first_iteration} {
 	${:current_entity} on_exit $line
+      }
+
+      if {[${:processed_section} info mixinof -scope object ${:current_entity}] ne ""} {
+	set scope [expr {[${:current_entity} info is class]?"object":""}]
+	${:current_entity} {*}$scope mixin delete ${:processed_section}
       }
       
       if {$failure ne ""} {
@@ -1711,6 +1718,7 @@ namespace eval ::nx::doc {
     :forward event=parse %self {% subst {parse@${:current_comment_line_type}}} 
     :method event=next {line} {
       set next_section [[${:block_parser} processed_section] next_comment_section]
+      puts stderr "NEXT [${:block_parser} processed_section] [$next_section], [[current] info mixin]"
       :on_exit $line
       
       ${:block_parser} rewind
@@ -1751,6 +1759,7 @@ namespace eval ::nx::doc {
 	  '[namespace tail [:info class]]'
 	}]] throw
       }
+      puts stderr ":$tag [lrange $line 1 end]"
       :$tag [lrange $line 1 end]
     }
 
@@ -1840,7 +1849,7 @@ namespace eval ::nx::doc {
 		'[namespace tail [$partof_entity info class]]'
 	      }]] throw
 	    }
-	    #	  puts stderr "1. $partof_entity $tag $nq_name {*}$args"
+	    puts stderr "1. $partof_entity $tag $nq_name {*}$args"
 	    set current_entity [$partof_entity $tag $nq_name {*}$args]
 	    
 	  } else {
@@ -1917,8 +1926,19 @@ namespace eval ::nx::doc {
 	tag->tag	next
       } {
 	# realise the parse events specific to the substates of description
-	# :method parse@tag {line} {;}
-	# :method parse@text {line} {;}
+	:method on_enter {line} {
+	  puts stderr "ENTERING part $line, current section [${:block_parser} processed_section]"
+	  unset -nocomplain :current_part
+	  next
+	}
+	:method parse@tag {line} {
+	  puts stderr "PART parse@tag [current]"
+	  set :current_part [next]
+	}
+	:method parse@text {line} {
+	  puts stderr "PART parse@text [current]"
+	  ${:current_part} @doc add $line end
+	}
 	# :method parse@space {line} {;}
       }
 }
