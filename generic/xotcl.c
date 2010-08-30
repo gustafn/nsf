@@ -364,7 +364,7 @@ callMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
   XOTclObject *object = (XOTclObject*) clientData;
   int result;
   ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
-  /*fprintf(stderr, "%%%% callmethod called with method %p\n", method),*/
+  /*fprintf(stderr, "%%%% callmethod called with method %p\n", methodObj),*/
 
   tov[0] = object->cmdName;
   tov[1] = methodObj;
@@ -374,7 +374,7 @@ callMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
 
   /*fprintf(stderr, "%%%% callMethod cmdname=%s, method=%s, objc=%d\n",
     ObjStr(tov[0]), ObjStr(tov[1]), objc);
-    {int i; fprintf(stderr, "\t CALL: %s ", ObjStr(method));for(i=0; i<objc-2; i++) {
+    {int i; fprintf(stderr, "\t CALL: %s ", ObjStr(methodObj));for(i=0; i<objc-2; i++) {
     fprintf(stderr, "%s ", ObjStr(objv[i]));} fprintf(stderr, "\n");}*/
 
   result = ObjectDispatch(clientData, interp, objc, tov, flags);
@@ -695,6 +695,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
     if (methodObj) {
       /*fprintf(stderr, "+++ calling __unknown for %s name=%s\n", 
 	className(baseClass), ObjStr(nameObj));*/
+
       result = callMethod((ClientData) baseClass, interp, methodObj,
                           3, &nameObj, XOTCL_CM_NO_PROTECT);
       if (result == TCL_OK) {
