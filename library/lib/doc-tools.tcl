@@ -383,7 +383,8 @@ namespace eval ::nx::doc {
       set r [dict create]
       # puts stderr SLOTS=$slots
       foreach s $slots {
-	if {![$s info is type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}]} continue;
+	# [$s info is type ::nx::doc::PartAttribute]
+	if {![::nsf::objectproperty $s type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}]} continue;
 	set accessor [$s name]
 	# puts stderr "PROCESSING ACCESSOR $accessor, [info exists :$accessor]"
 	if {[info exists :$accessor]} {
@@ -424,17 +425,20 @@ namespace eval ::nx::doc {
     # performs substitution on it.  The substitution is not essential,
     # but looks for now convenient.
     #
-    :method text {-as_list:switch} {
+
+    :method as_list {} {
       if {[info exists :@doc] && ${:@doc} ne ""} {
-	set doc ${:@doc}
-	set non_empty_elements [lsearch -all -not -exact $doc ""]
-	set doc [lrange $doc [lindex $non_empty_elements 0] [lindex $non_empty_elements end]]
-	if {$as_list} {
-	  return $doc
-	} else {
-	  return [subst [join $doc " "]]
-	}
+	set non_empty_elements [lsearch -all -not -exact ${:@doc} ""]
+	return [lrange ${:@doc} [lindex $non_empty_elements 0] [lindex $non_empty_elements end]]
       }
+    }
+
+    :method as_text {} {
+      set doc [list]
+      foreach l [:as_list] {
+	lappend doc [string trimleft $l]
+      }
+      return [subst [join $doc " "]]
     }
 
     :method filename {} {
@@ -846,7 +850,40 @@ namespace eval ::nx::doc {
 
 namespace eval ::nx::doc {
 
-  Class create TemplateData {
+  Class create TemplateDataClass -superclass Class {
+    :method find_asset_path {{-subdir library/lib/doc-assets}} {
+      # This helper tries to identify the file system path of the
+      # asset ressources.
+      #
+      # @param -subdir Denotes the name of the sub-directory to look for
+      foreach dir $::auto_path {
+	set assets [file normalize [file join $dir $subdir]]
+	if {[file exists $assets]} {
+	  return $assets
+	}
+      }
+    }
+    
+    :method read_tmpl {path} {
+      if {[file pathtype $path] ne "absolute"} {
+	set assetdir [:find_asset_path]
+	set tmpl [file join $assetdir $path]
+      } else {
+	set tmpl [file normalize $path]
+      }
+      if {![file exists $tmpl] || ![file isfile $tmpl]} {
+	error "The template file '$path' was not found."
+      }
+      set fh [open $tmpl r]
+      set content [read $fh]
+      catch {close $fh}
+      return $content
+    }
+  
+  }
+
+
+  TemplateDataClass create BaseTemplateData {  
     # This mixin class realises a rudimentary templating language to
     # be used in nx::doc templates. It realises language expressions
     # to verify the existence of variables and simple loop constructs
@@ -915,136 +952,157 @@ namespace eval ::nx::doc {
       uplevel 1 [list subst [[::nsf::current class] read_tmpl $template]]
     }
 
-    #
-    # TODO: This should turn into a hook, the output
-    # specificities should move in a refinement of TemplateData, e.g.,
-    # DefaultHtmlTemplateData or the like.
-    #
-    :method fit {str max {placeholder "..."}} {
-      if {[llength [split $str ""]] < $max} {
-	return $str;
-      }
-      set redux [llength [split $placeholder ""]]
-      set margin [expr {($max-$redux)/2}]
-      return "[string range $str 0 [expr {$margin-1}]]$placeholder[string range $str end-[expr {$margin+1}] end]"
+    :method code args {
+      error "Subclass responsibility: You must provide a method definition of '[current method]' in a proper subclass"
     }
 
-    :method list_structural_features {} {
-      set entry {{"access": "$access", "host": "$host", "name": "$name", "url": "$url", "type": "$type"}}
-      set entries [list]
-      if {[:info is type ::nx::doc::@package]} {
-	set features [list @object @command]
-	foreach feature $features {
-	  set instances [sorted [$feature info instances] name]
-	  foreach inst $instances {
-	    set access ""
-	    set host [:name]
-	    set name [$inst name]
-	    set url  "[$inst filename].html"
-	    set type [$feature tag]
-	    lappend entries [subst $entry]
-	  }
-	}
-      } elseif {[:info is type ::nx::doc::@object]} {
-	# TODO: fix support for @object-method!
-	set features [list @method @param]
-	foreach feature $features {
-	  if {[info exists :$feature]} {
-	    set instances [sorted [:$feature] name]
-	    foreach inst $instances {
-	      set access [expr {[info exists :@modifier]?[:@modifier]:""}]
-	      set host [:name]
-	      set name [$inst name]
-	      set url  "[:filename].html#[$feature tag]_[$inst name]"
-	      set type [$feature tag]
-	      lappend entries [subst $entry]
-	    }
-	  }
-	}
-      } elseif {[:info is type ::nx::doc::@command]} {
-	set features @subcommand
-	foreach feature $features {
-	  if {[info exists :$feature]} {
-	    set instances [sorted [set :$feature] name]
-	    foreach inst $instances {
-	      set access ""
-	      set host ${:name}
-	      set name [$inst name]
-	      set url  "[:filename].html#[$feature tag]_[$inst name]"
-	      set type [$feature tag]
-	      lappend entries [subst $entry]
-	    }
-	  }
-	}
-      }
-      return "\[[join $entries ,\n]\]"
-    }
-  
-    :method code {{-inline true} script} {
-      return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
+    :method link args {
+      error "Subclass responsibility: You must provide a method definition of '[current method]' in a proper subclass"
     }
 
-    :method link {entity_type args} {
-      set id [$entity_type id {*}$args]
-      if {![::nsf::is $id object]} return;
-      set pof ""
-      if {[$id info is type ::nx::doc::Part]} {
-	set pof "[[$id partof] name]#"
-	set filename [[$id partof] filename]
-      } else {
-	set filename [$id filename]
-      }
-      return "<a href=\"$filename.html#[$entity_type tag]_[$id name]\">$pof[$id name]</a>"
+    set :markup_map(sub) { 
+      "{{{" "\[:code \{" 
+      "}}}" "\}\]"
+      "{{" "\[:link " 
+      "}}" "\]" 
     }
-
-    :method text {} {
-      # Provide \n replacements for empty lines according to the
-      # rendering frontend (e.g., in HTML -> <br/>) ...
-      if {[info exists :@doc]} {
-	set doc [next -as_list]
-	foreach idx [lsearch -all -exact $doc ""] {
-	  lset doc $idx "<br/><br/>"
-	}
-	return [subst [join $doc " "]]
-      }
-    }
-
-
     
-    #
-    #
-    #
- 
-    :object method find_asset_path {{-subdir library/lib/doc-assets}} {
-      # This helper tries to identify the file system path of the
-      # asset ressources.
-      #
-      # @param -subdir Denotes the name of the sub-directory to look for
-      foreach dir $::auto_path {
-	set assets [file normalize [file join $dir $subdir]]
-	if {[file exists $assets]} {
-	  return $assets
-	}
-      }
+    set :markup_map(unescape) {
+      "\\{" "{"
+      "\\}" "}"
+      "\\#" "#"
+    }
+    
+    :method map {line set} {
+      set line [string map [[::nsf::current class] eval [list set :markup_map($set)]] $line]
     }
 
-    :object method read_tmpl {path} {
-      if {[file pathtype $path] ne "absolute"} {
-	set assetdir [:find_asset_path]
-	set tmpl [file join $assetdir $path]
-      } else {
-	set tmpl [file normalize $path]
-      }
-      if {![file exists $tmpl] || ![file isfile $tmpl]} {
-	error "The template file '$path' was not found."
-      }
-      set fh [open $tmpl r]
-      set content [read $fh]
-      catch {close $fh}
-      return $content
+    :method as_list {} {
+	set preprocessed [list]
+	set is_code_block 0
+	foreach line [next] {
+	  if {[regsub -- {^\s*(\{\{\{)\s*$} $line "\[:code -inline false \{" line] || \
+		  (${is_code_block} && [regsub -- {^\s*(\}\}\})\s*$} $line "\}\]" line])} {
+	    set is_code_block [expr {!$is_code_block}]
+	    append line \n
+	  } elseif {${is_code_block}} {
+	    # set line [:map $line unescape]
+	    append line \n
+	  } else {
+	    # set line [:map $line sub]
+	    # set line [:map $line unescape]
+	    set line [string trimleft $line]
+	    if {$line eq {}} {
+	      set line "\n\n"
+	    }
+	  } 
+	  lappend preprocessed $line
+	}
+      return $preprocessed
+    }
+
+    :method as_text {} {
+      set preprocessed [join [:as_list] " "]
+      set preprocessed [:map $preprocessed sub]
+      set preprocessed [:map $preprocessed unescape]
+      return [subst $preprocessed]
     }
 
   }
+
+    #
+    # A default TemplateData implementation, targeting the derived YUI
+    # Doc templates.
+    # 
+
+    TemplateDataClass create NxDocTemplateData -superclass BaseTemplateData {      
+      :method fit {str max {placeholder "..."}} {
+	if {[llength [split $str ""]] < $max} {
+	  return $str;
+	}
+	set redux [llength [split $placeholder ""]]
+	set margin [expr {($max-$redux)/2}]
+	return "[string range $str 0 [expr {$margin-1}]]$placeholder[string range $str end-[expr {$margin+1}] end]"
+      }
+      
+      :method list_structural_features {} {
+	set entry {{"access": "$access", "host": "$host", "name": "$name", "url": "$url", "type": "$type"}}
+	set entries [list]
+	if {[:info is type ::nx::doc::@package]} {
+	  set features [list @object @command]
+	  foreach feature $features {
+	    set instances [sorted [$feature info instances] name]
+	    foreach inst $instances {
+	      set access ""
+	      set host [:name]
+	      set name [$inst name]
+	      set url  "[$inst filename].html"
+	      set type [$feature tag]
+	      lappend entries [subst $entry]
+	    }
+	  }
+	} elseif {[:info is type ::nx::doc::@object]} {
+	  # TODO: fix support for @object-method!
+	  set features [list @method @param]
+	  foreach feature $features {
+	    if {[info exists :$feature]} {
+	      set instances [sorted [:$feature] name]
+	      foreach inst $instances {
+		set access [expr {[info exists :@modifier]?[:@modifier]:""}]
+		set host [:name]
+		set name [$inst name]
+		set url  "[:filename].html#[$feature tag]_[$inst name]"
+		set type [$feature tag]
+		lappend entries [subst $entry]
+	      }
+	    }
+	  }
+	} elseif {[:info is type ::nx::doc::@command]} {
+	  set features @subcommand
+	  foreach feature $features {
+	    if {[info exists :$feature]} {
+	      set instances [sorted [set :$feature] name]
+	      foreach inst $instances {
+		set access ""
+		set host ${:name}
+		set name [$inst name]
+		set url  "[:filename].html#[$feature tag]_[$inst name]"
+		set type [$feature tag]
+		lappend entries [subst $entry]
+	      }
+	    }
+	  }
+	}
+	return "\[[join $entries ,\n]\]"
+      }
+      
+      #
+      # TODO: This should turn into a hook, the output
+      # specificities should move in a refinement of TemplateData, e.g.,
+      # DefaultHtmlTemplateData or the like.
+      #
+      
+      :method code {{-inline true} script} {
+	return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
+      }
+      
+      :method link {entity_type args} {
+	set id [$entity_type id {*}$args]
+	if {![::nsf::is $id object]} return;
+	set pof ""
+	if {[$id info is type ::nx::doc::Part]} {
+	  set pof "[[$id partof] name]#"
+	  set filename [[$id partof] filename]
+	} else {
+	  set filename [$id filename]
+	}
+	return "<a href=\"$filename.html#[$entity_type tag]_[$id name]\">$pof[$id name]</a>"
+      }
+      
+      :method as_text {} {
+	return [string map {"\n\n" "<br/><br/>"} [next]]
+      }
+    }
   
   #
   # Provide a simple HTML renderer. For now, we make our life simple
@@ -1718,7 +1776,6 @@ namespace eval ::nx::doc {
     :forward event=parse %self {% subst {parse@${:current_comment_line_type}}} 
     :method event=next {line} {
       set next_section [[${:block_parser} processed_section] next_comment_section]
-      puts stderr "NEXT [${:block_parser} processed_section] [$next_section], [[current] info mixin]"
       :on_exit $line
       
       ${:block_parser} rewind
@@ -1728,29 +1785,10 @@ namespace eval ::nx::doc {
       :on_enter $line
     }
 
-
-    set :markup_map(sub) { 
-      "{{{" "\[:code \{" 
-      "}}}" "\}\]"
-      "{{" "\[:link " 
-      "}}" "\]" 
-    }
-    
-    set :markup_map(unescape) {
-      "\\{" "{"
-      "\\}" "}"
-      "\\#" "#"
-    }
-    
-    :method map {line set} {
-      set line [string map [[::nsf::current class] eval [list set :markup_map($set)]] $line]
-    }
-    
+   
     # realise the sub-state (a variant of METHOD-FOR-STATES) and their
     # specific event handling
     :method parse@tag {line} {
-      set line [:map $line sub]
-      set line [:map $line unescape]
       set line [split [string trimleft $line]]
       set tag [lindex $line 0]
       if {[:info callable methods -application $tag] eq ""} {
@@ -1764,23 +1802,6 @@ namespace eval ::nx::doc {
     }
 
     :method parse@text {line} {
-
-      if {![info exists :is_code_block]} {
-	set :is_code_block 0
-      }
-
-      if {[regsub -- {^\s*(\{\{\{)\s*$} $line "\[:code -inline false \{" line] || \
-	      (${:is_code_block} && [regsub -- {^\s*(\}\}\})\s*$} $line "\}\]" line])} {
-	set :is_code_block [expr {!${:is_code_block}}]
-	append line \n
-      } elseif {${:is_code_block}} {
-	set line [:map $line unescape]
-	append line \n
-      } else {
-	set line [:map $line sub]
-	set line [:map $line unescape]
-	set line [string trimleft $line]
-      }
       #puts stderr "ADDLINE :@doc add $line end"
       :@doc add $line end
     }

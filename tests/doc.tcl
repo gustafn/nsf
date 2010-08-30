@@ -312,7 +312,7 @@ Test case parsing {
   ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@object] 1
   ? [list $entity @author] "stefan.sobernig@wu.ac.at gustaf.neumann@wu-wien.ac.at";
-  ? [list $entity text] "some more text and another line for the description";
+  ? [list $entity as_text] "some more text and another line for the description";
 
   set block {
     {@command ::c} 
@@ -325,7 +325,7 @@ Test case parsing {
   puts stderr ENTITY=$entity
   ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@command] 1
-  ? [list $entity text] "some text on the command";
+  ? [list $entity as_text] "some text on the command";
   ? [list $entity @see] "::o";
 
   set block {
@@ -339,10 +339,10 @@ Test case parsing {
   set entity [CommentBlockParser process $block]
   ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@class] 1
-  ? [list $entity text] "some text on the class entity";
+  ? [list $entity as_text] "some text on the class entity";
   ? [list llength [$entity @param]] 1
   ? [list [$entity @param] info is type ::nx::doc::@param] 1
-  ? [list [$entity @param] text] "Here, we check whether we can get a valid description block for text spanning multiple lines"
+  ? [list [$entity @param] as_text] "Here, we check whether we can get a valid description block for text spanning multiple lines"
 
   #
   # basic test for in-situ documentation (initcmd block)
@@ -381,7 +381,7 @@ Test case parsing {
   set entity [@class id ::Foo]
   ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@class] 1
-  ? [list $entity text] "The class Foo defines the behaviour for all Foo objects";
+  ? [list $entity as_text] "The class Foo defines the behaviour for all Foo objects";
   ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
   # TODO: Fix the [@param id] programming scheme to allow (a) for
   # entities to be passed and the (b) documented structures
@@ -395,13 +395,13 @@ Test case parsing {
   ? [list [@class id ::Foo] @method] $entity
   ? [list ::nsf::is $entity object] 1
   ? [list $entity info is type ::nx::doc::@method] 1
-  ? [list $entity text] "This describes the foo method";
+  ? [list $entity as_text] "This describes the foo method";
   
   foreach p [$entity @param] expected {
     "Provides a first value"
     "Provides a second value"
   } {
-    ? [list expr [list [$p text] eq $expected]] 1;
+    ? [list expr [list [$p as_text] eq $expected]] 1;
   }
 
 
@@ -479,7 +479,7 @@ Test case parsing {
   set entity [@class id ::Bar]
   ? [list $i eval [list ::nsf::is $entity object]] 1
   ? [list $i eval [list $entity info is type ::nx::doc::@class]] 1
-  ? [list $i eval [list $entity text]] "The class Bar defines the behaviour for all Bar objects";
+  ? [list $i eval [list $entity as_text]] "The class Bar defines the behaviour for all Bar objects";
   ? [list $i eval [list $entity @author]] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
 
   # TODO: Fix the [@param id] programming scheme to allow (a) for
@@ -494,26 +494,26 @@ Test case parsing {
   ? [list $i eval [list [@class id ::Bar] @method]] $entity
   ? [list $i eval [list ::nsf::is $entity object]] 1
   ? [list $i eval [list $entity info is type ::nx::doc::@method]] 1
-  ? [list $i eval [list $entity text]] "This describes the foo method in the method body";
+  ? [list $i eval [list $entity as_text]] "This describes the foo method in the method body";
 
   foreach p [$i eval [list $entity @param]] expected {
     "Provides a first value (refined)"
     "Provides a second value"
   } {
-    ? [list expr [list [$i eval [list $p text]] eq $expected]] 1;
+    ? [list expr [list [$i eval [list $p as_text]] eq $expected]] 1;
   }
   set entity [@method id ::Bar object foo]
   ? [list $i eval [list [@class id ::Bar] @object-method]] $entity
   ? [list $i eval [list ::nsf::is $entity object]] 1
   ? [list $i eval [list $entity info is type ::nx::doc::@method]] 1
-  ? [list $i eval [list $entity text]] "This describes the per-object foo method in the method body";
+  ? [list $i eval [list $entity as_text]] "This describes the per-object foo method in the method body";
 
   foreach p [$i eval [list $entity @param]] expected {
     "Provides a first value"
     "Provides a second value (refined)"
     "Provides a third value (first time)"
   } {
-    ? [list expr [list [$i eval [list $p text]] eq $expected]] 1;
+    ? [list expr [list [$i eval [list $p as_text]] eq $expected]] 1;
   }
  
   interp delete $i
@@ -569,7 +569,7 @@ Test case parsing {
     doc process -noeval true generic/predefined.tcl
 
     ::nx::doc::make doc \
-	-renderer ::nx::doc::TemplateData \
+	-renderer ::nx::doc::NxDocTemplateData \
 	-outdir [::nsf::tmpdir] \
 	-project $project
 
@@ -580,7 +580,7 @@ Test case parsing {
 		     -namespace "::nx"]
     doc process -noeval true library/nx/nx.tcl
     ::nx::doc::make doc \
-	-renderer ::nx::doc::TemplateData \
+	-renderer ::nx::doc::NxDocTemplateData \
 	-outdir [::nsf::tmpdir] \
 	-project $project
   }
@@ -591,21 +591,21 @@ Test case parsing {
     # 2) XOTcl2 documentation project
     doc process -noeval true library/xotcl/xotcl.tcl
     ::nx::doc::make doc \
-	-renderer ::nx::doc::TemplateData \
+	-renderer ::nx::doc::NxDocTemplateData \
 	-outdir [::nsf::tmpdir] \
 	-project {name XOTcl2 url http://www.xotcl.org/ version 2.0.0a}
     
     # 3) NSL documentation project
     doc process -noeval true library/nx/nx.tcl
     ::nx::doc::make doc \
-	-renderer ::nx::doc::TemplateData \
+	-renderer ::nx::doc::NxDocTemplateData \
 	-outdir [::nsf::tmpdir] \
 	-project {name NextScriptingLanguage url http://www.next-scripting.org/ version 1.0.0a}
     
     # 4) Next Scripting Libraries
     # doc process -noeval true ...
     # ::nx::doc::make doc \
-    # 	-renderer ::nx::doc::TemplateData \
+    # 	-renderer ::nx::doc::NxDocTemplateData \
     # 	-outdir [::nsf::tmpdir] \
     # 	-project {name NextScriptingLibraries url http://www.next-scripting.org/ version 1.0.0a}
   }

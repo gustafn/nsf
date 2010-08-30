@@ -103,7 +103,8 @@ namespace eval ::nx {
   # }}}
   # 
   # @param name The designated identifier on the class or the object to be created.
-  # @param args Arguments to be passed down to the object creation procedure used to initialize the object.
+  # @param args arguments to be passed down to the object creation
+  # procedure used to initialize the object.
   # @return The name of the created, fully initialized object.
   
   # @method ::nx::Class#dealloc

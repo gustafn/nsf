@@ -22,7 +22,7 @@
 }]
 
 <div class="summary description" property="yui:description">
-  [:text]
+  [:as_text]
 </div>
 
 <div rel="yui:properties" resource="#properties">
@@ -37,7 +37,7 @@
         </h4>
         <div class="detail">
           <div class="description" property="yui:description">
-	    [$attr text]
+	    [$attr as_text]
           </div>
         </div>
 	
@@ -103,7 +103,7 @@
         </h4>
         <div class="detail">
           <div class="description" property="yui:description">
-	    [$attr text]
+	    [$attr as_text]
           </div>
         </div>
 	
@@ -151,7 +151,7 @@
 	     <br>Method is redefine-protected
 	  }]
            <div class="description" property="yui:description">
-            [$method text]
+            [$method as_text]
           </div>
 	  
           <div class="description">
@@ -164,7 +164,7 @@
                 <code><span property="yui:name">[$param name]</span>
                 [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
                 </code>
-                <span property="yui:description">[$param text]</span>
+                <span property="yui:description">[$param as_text]</span>
 		[:? {[$param eval {info exists :default}]} {
                 <div class="default" property="yui:defaultValue">
                   Default Value: [$param default]
@@ -181,7 +181,7 @@
               <dt>Returns:
                 <code property="yui:return">
               </code></dt>
-              <dd property="yui:returnInfo">[$rparam text]</dd>
+              <dd property="yui:returnInfo">[$rparam as_text]</dd>
             </dl>
 	    }]
 	    
@@ -256,7 +256,7 @@
 	    [$omethod parameters]
 	    </code>
           <div class="description" property="yui:description">
-            [$omethod text]
+            [$omethod as_text]
           </div>
 	  
           <div class="description">
@@ -269,7 +269,7 @@
                 <code><span property="yui:name">[$param name]</span>
                   [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
                 </code>
-                <span property="yui:description">[$param text]</span>
+                <span property="yui:description">[$param as_text]</span>
               </dd>
 	      }]
             </dl>
@@ -281,7 +281,7 @@
               <dt>Returns:
                 <code property="yui:return">
               </code></dt>
-              <dd property="yui:returnInfo">[$rparam text]</dd>
+              <dd property="yui:returnInfo">[$rparam as_text]</dd>
             </dl>
 	    }]
 	    
