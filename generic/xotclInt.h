@@ -248,6 +248,7 @@ typedef struct XOTclMemCounter {
 #define XOTCL_CM_NO_UNKNOWN 1
 #define XOTCL_CM_NO_SHIFT   2
 #define XOTCL_CM_NO_PROTECT 4
+#define XOTCL_CM_NO_OBJECT_METHOD 4
 #define XOTCL_CM_DELGATE    0x10
 
 /*

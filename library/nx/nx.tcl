@@ -717,6 +717,117 @@ namespace eval ::nx {
 
   Class create ::nx::EnsembleObject
 
+  ::nx::EnsembleObject eval {
+    #
+    # The EnsembleObjects are called typically with a "self" bound to
+    # the object, on which they are registered as methods. This way,
+    # only method registered on the object are resolved (ensemble
+    # methods). Only for the methods "unknown" and "defaultmethod",
+    # self is actually the ensemble object. These methods are
+    # maintenance methods. We have to be careful ...
+    #
+    # a) not to interfere between "maintenance methods" and "ensemble
+    #    methods" within the maintenance methods. This is achieved
+    #    via explicit dispatch commands in the maintenance methods.
+    #
+    # b) not to overload "maintenance methods" with "ensemble
+    #    methods".  This is achieved via the object-method-only policy
+    #    (we cannot call "subcmd <subcmdName>" when "subcmdName" is a
+    #    method on EnsembleObject) and via a skip object-methods flag
+    #    in nsf when calling e.g. "unknwown" (such that a subcmd
+    #    "unknown" does not interfere with the method "unknown").
+    #
+    :method subcmdName {} {
+      #
+      # Compute the name of a subcmd and the object, on which it is
+      # registed, give an Ensemble object.
+      #
+      set self [::nsf::current object]
+      set parent [::nsf::dispatch $self ::nsf::cmd::ObjectInfo2::parent]
+      set grandparent [::nsf::dispatch $parent ::nsf::cmd::ObjectInfo2::parent]
+      set tail [namespace tail $parent]
+      if {$tail eq "slot" && [::nsf::objectproperty $grandparent class]} {
+	set aliases [::nsf::dispatch $grandparent ::nsf::cmd::ClassInfo2::methods -methodtype alias]
+	foreach alias $aliases {
+	  set def [::nsf::dispatch $grandparent ::nsf::cmd::ClassInfo2::method definition $alias]
+	  if {[lindex $def end] eq $self} {
+	    return [list name [lindex $def 2] regobj <obj>]
+	  }
+	}
+      } 
+      return [list name [namespace tail $self] regobj $parent]
+    }
+  
+    :method methodPath {} {
+      #
+      # Compute the composite path of a given ensemble object,
+      # containing its parent ensemble objects.
+      #
+      set o [::nsf::current object]
+      array set "" [$o ::nsf::classes::nx::EnsembleObject::subcmdName]
+      set path $(name)
+      while {1} {
+	set o [::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::parent]
+	if {![::nsf::objectproperty $o type ::nx::EnsembleObject]} break
+	array set "" [$o ::nsf::classes::nx::EnsembleObject::subcmdName]
+	set path "$(name) $path"
+      }
+      return [list regobj $(regobj) path $path]
+    }
+    
+    :method subMethods {} {
+      #
+      # Compute pairs of method names and ensemble (sub)objects
+      # contained in the current object.
+      #
+      set result [list]
+      set self [::nsf::current object]
+      set methods [lsort [::nsf::dispatch $self ::nsf::cmd::ObjectInfo2::methods]]
+      array set "" [$self ::nsf::classes::nx::EnsembleObject::subcmdName]
+      foreach m $methods {
+	set type [::nsf::dispatch $self ::nsf::cmd::ObjectInfo2::method type $m]
+	if {$type eq "object"} {
+	  foreach {obj submethod} \
+	      [::nsf::dispatch ${self}::$m ::nsf::classes::nx::EnsembleObject::subMethods] {
+		lappend result $obj $submethod
+	      }
+	} else {
+	  lappend result $self $m
+	}
+      }
+      return $result
+    }
+    
+    #
+    # The methods "unknown" and "defaultmethod" are called internally
+    #
+    :method unknown {m args} {
+      set self [::nsf::current object]
+      #puts stderr "UNKNOWN [self] $args"
+      array set "" [$self ::nsf::classes::nx::EnsembleObject::methodPath]
+      set subcmds [lsort [::nsf::dispatch $self ::nsf::cmd::ObjectInfo2::methods]]
+      error "unable to dispatch method $(regobj) $(path) $m;\
+	valid subcommands of [namespace tail $self]: $subcmds"
+    }
+    
+    :method defaultmethod {} {
+      #puts uplevel-method=[uplevel {nx::current method}]-[uplevel nx::self]
+      set self [current object]
+      set methods [lsort [::nsf::dispatch $self ::nsf::cmd::ObjectInfo2::methods]]
+      array set "" [$self ::nsf::classes::nx::EnsembleObject::subcmdName]
+      set pairs [$self ::nsf::classes::nx::EnsembleObject::subMethods] 
+      foreach {obj m} $pairs {
+	array set "" [$obj ::nsf::classes::nx::EnsembleObject::methodPath]
+	set cmd [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::method parametersyntax $m]
+	puts stderr "$(regobj) $(path) $m $cmd"
+      }
+      return $methods
+    }
+
+    # end of EnsembleObject
+  }
+  
+
   ########################
   # Info definition
   ########################

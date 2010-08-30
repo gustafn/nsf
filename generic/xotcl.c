@@ -684,7 +684,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
     }
   }
 
-  /*fprintf(stderr, "try unknown for %s, result so far is %d\n", objName, result);*/
+  /*fprintf(stderr, "try __unknown for %s, result so far is %d\n", objName, result);*/
   if (baseClass) {
     Tcl_Obj *methodObj, *nameObj = isAbsolutePath(objName) ? objPtr :
       NameInNamespaceObj(interp, objName, callingNameSpace(interp));
@@ -5849,6 +5849,47 @@ SubcmdObj(Tcl_Interp *interp, CONST char *start, size_t len) {
   return checker;
 }
 
+static int
+DispatchUnknownMethod(ClientData clientData, 
+		      Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+		      Tcl_Obj *methodObj, int flags) {
+  int result;
+  XOTclObject *object = (XOTclObject*)clientData;
+
+  Tcl_Obj *unknownObj = XOTclMethodObj(interp, object, XO_o_unknown_idx);
+
+  if (unknownObj && methodObj != unknownObj && (flags & XOTCL_CM_NO_UNKNOWN) == 0) {
+    /*
+     * back off and try unknown;
+     */
+    ALLOC_ON_STACK(Tcl_Obj*, objc+2, tov);
+
+    /*fprintf(stderr, "calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s objc %d\n",
+	    objectName(object), ObjStr(methodObj), flags, XOTCL_CM_NO_UNKNOWN,
+	    XOTclObjectIsClass(object), object, objectName(object), objc);*/
+
+    tov[0] = object->cmdName;
+    tov[1] = unknownObj;
+    if (objc>0) {
+      memcpy(tov+2, objv, sizeof(Tcl_Obj *)*(objc));
+    }
+    /*
+      fprintf(stderr, "?? %s unknown %s\n", objectName(object), ObjStr(tov[2]));
+    */
+    flags &= ~XOTCL_CM_NO_SHIFT;
+    result = ObjectDispatch(clientData, interp, objc+2, tov, flags | XOTCL_CM_NO_UNKNOWN);
+    FREE_ON_STACK(Tcl_Obj*, tov);
+	
+  } else { /* no unknown called */
+    fprintf(stderr, "--- No unknown method Name %s objv[%d] %s\n", 
+	    ObjStr(methodObj), 1, ObjStr(objv[1]));
+    result = XOTclVarErrMsg(interp, objectName(object),
+			    ": xxx unable to dispatch method '",
+			    ObjStr(objv[1]), "'", (char *) NULL);
+  }
+  return result;
+}
+
 /*
  * MethodDispatch() calls an XOTcl method. It calls either a
  * Tcl-implemented method (via ProcMethodDispatch()) or a C-implemented
@@ -5951,9 +5992,14 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	    goto obj_dispatch_ok;
 	  }
 	}
+
+	result = DispatchUnknownMethod(self, interp, 
+				       objc-1, objv+1, objv[1], XOTCL_CM_NO_OBJECT_METHOD);
+	/*
 	result = XOTclVarErrMsg(interp, objectName(self),
-                                ": unable to dispatch method '",
+                                ": aaa unable to dispatch method '",
                                 methodName, "'", (char *) NULL);
+	*/
       obj_dispatch_ok:;
 	/*result = ObjectDispatch(cp, interp, objc, objv, XOTCL_CM_DELGATE);*/
 #endif
@@ -5988,6 +6034,23 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 
   return result;
 }
+
+static int
+DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  int result;
+  Tcl_Obj *methodObj = XOTclMethodObj(interp, (XOTclObject *)clientData, XO_o_defaultmethod_idx);
+
+  if (methodObj) {
+    Tcl_Obj *tov[2];
+    tov[0] = objv[0];
+    tov[1] = methodObj;
+    result = ObjectDispatch(clientData, interp, 2, tov, XOTCL_CM_NO_UNKNOWN);
+  } else {
+    result = TCL_OK;
+  }
+  return result;
+}
+
 
 XOTCLINLINE static int
 ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
@@ -6122,7 +6185,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   if (cmd == NULL) {
 
     /* do we have a object-specific proc? */
-    if (object->nsPtr) {
+    if (object->nsPtr && (flags & XOTCL_CM_NO_OBJECT_METHOD) == 0) {
       cmd = FindMethod(object->nsPtr, methodName);
       /* fprintf(stderr, "lookup for proc in obj %p method %s nsPtr %p => %p\n",
          object, methodName, object->nsPtr, cmd);*/
@@ -6211,43 +6274,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   if (result == TCL_OK) {
     /*fprintf(stderr, "after doCallProcCheck unknown == %d\n", unknown);*/
     if (unknown) {
-      Tcl_Obj *unknownObj = XOTclMethodObj(interp, object, XO_o_unknown_idx);
-
-      if (unknownObj == NULL || (flags & XOTCL_CM_NO_UNKNOWN)) {
-	result = XOTclVarErrMsg(interp, objectName(object),
-                                ": unable to dispatch method '",
-                                methodName, "'", (char *) NULL);
-        goto exit_dispatch;
-      } else if (methodObj != unknownObj) {
-	/*
-	 * back off and try unknown;
-	 */
-        XOTclObject *object = (XOTclObject*)clientData;
-        ALLOC_ON_STACK(Tcl_Obj*, objc+2, tov);
-
-	/*fprintf(stderr, "calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s objc %d shift %d\n",
-		objectName(object), methodName, flags, XOTCL_CM_NO_UNKNOWN,
-		XOTclObjectIsClass(object), object, objectName(object), objc, shift);*/
-
-        tov[0] = object->cmdName;
-        tov[1] = unknownObj;
-        if (objc-shift>0) {
-          memcpy(tov+2, objv+shift, sizeof(Tcl_Obj *)*(objc-shift));
-	}
-        /*
-          fprintf(stderr, "?? %s unknown %s\n", objectName(object), ObjStr(tov[2]));
-        */
-	flags &= ~XOTCL_CM_NO_SHIFT;
-        result = ObjectDispatch(clientData, interp, objc+2-shift, tov, flags | XOTCL_CM_NO_UNKNOWN);
-        FREE_ON_STACK(Tcl_Obj*, tov);
-	
-      } else { /* unknown failed */
-        result = XOTclVarErrMsg(interp, objectName(object),
-                                ": unable to dispatch method '",
-                                ObjStr(objv[shift+1]), "'", (char *) NULL);
-        goto exit_dispatch; 
-      }
-
+      result = DispatchUnknownMethod(clientData, interp, 
+				     objc-shift, objv+shift, methodObj, flags);
     }
   }
   /* be sure to reset unknown flag */
@@ -6268,23 +6296,6 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   XOTclCleanupObject(object);
   /*fprintf(stderr, "ObjectDispatch call XOTclCleanupObject %p DONE\n", object);*/
   DECR_REF_COUNT(cmdName); /* must be after last dereferencing of obj */
-  return result;
-}
-
-
-static int
-DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  int result;
-  Tcl_Obj *methodObj = XOTclMethodObj(interp, (XOTclObject *)clientData, XO_o_defaultmethod_idx);
-
-  if (methodObj) {
-    Tcl_Obj *tov[2];
-    tov[0] = objv[0];
-    tov[1] = methodObj;
-    result = ObjectDispatch(clientData, interp, 2, tov, XOTCL_CM_NO_UNKNOWN);
-  } else {
-    result = TCL_OK;
-  }
   return result;
 }
 
