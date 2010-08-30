@@ -1178,10 +1178,17 @@ _ added option noforwarder to RelationSlots
 - backported fix for xotcl 1.6.6 reported by kristoffer lawsow,
   which helps just partly here
 - extended regression test
-- added ::nx::EnsembleObject
+- added class ::nx::EnsembleObject
+
+- factored out DispatchUnknownMethod()
+- added flag XOTCL_CM_NO_OBJECT_METHOD to ObjectDispatch() and friends
+- added tests/subcmd.tcl
+- added methods "defaultmethod" and "unknown" to ::nx::EnsembleObject
+  (together with a set of helper methods to provide user-friendly information)
 
 TODO: 
 - fix test "ob bar" (filter test) in tests/interceptor-slot.tcl (currently commented out)
+- fix test with UnknownClass in xotcl/tests/testx.xotcl (collateral damage from refactoring)
 - check "my" vs. "nsf::dispatch" in xotcl2.tcl
 - overthink decision about not showing "child objects" per default in "info methods"
 
