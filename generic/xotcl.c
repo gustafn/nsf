@@ -201,8 +201,9 @@ static int GuardCall(XOTclObject *object, XOTclClass *cl, Tcl_Command cmd, Tcl_I
 static void GuardDel(XOTclCmdList *filterCL);
 
 static int IsMetaClass(Tcl_Interp *interp, XOTclClass *cl, int withMixins);
+static int IsSubType(XOTclClass *subcl, XOTclClass *cl);
 static int HasMixin(Tcl_Interp *interp, XOTclObject *object, XOTclClass *cl);
-static int isSubType(XOTclClass *subcl, XOTclClass *cl);
+
 static XOTclClass *DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclClass *mcl, int isMeta);
 
 XOTCLINLINE static void CscInit(XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl, 
@@ -6462,7 +6463,7 @@ static int objectOfType(Tcl_Interp *interp, XOTclObject *object, CONST char *wha
     return TCL_OK;
 
   if ((GetClassFromObj(interp, pPtr->converterArg, &cl, NULL) == TCL_OK)
-      && isSubType(object->cl, cl)) {
+      && IsSubType(object->cl, cl)) {
     return TCL_OK;
   }
 
@@ -8609,7 +8610,7 @@ IsMetaClass(Tcl_Interp *interp, XOTclClass *cl, int withMixins) {
 }
 
 static int
-isSubType(XOTclClass *subcl, XOTclClass *cl) {
+IsSubType(XOTclClass *subcl, XOTclClass *cl) {
   XOTclClasses *t;
   int success = 1;
   assert(cl && subcl);
@@ -11548,7 +11549,7 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraint
     if (arg== NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "type <object> <type>");
     success = (GetObjectFromObj(interp, valueObj, &object) == TCL_OK)
       && (GetClassFromObj(interp, arg, &typeClass, NULL) == TCL_OK)
-      && isSubType(object->cl, typeClass);
+      && IsSubType(object->cl, typeClass);
 
     Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
 
@@ -11563,7 +11564,7 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraint
     }
     if (success && withType) {
       success = (GetClassFromObj(interp, withType, &typeClass, NULL) == TCL_OK)
-        && isSubType(object->cl, typeClass);
+        && IsSubType(object->cl, typeClass);
     }
     Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
 
@@ -12085,11 +12086,10 @@ XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 /*
 xotclCmd objectproperty XOTclObjectpropertyCmd {
   {-argName "object" -required 1 -type tclobj}
-  {-argName "objectkind" -type "type|object|class|baseclass|metaclass"}
-  {-argName "value" -required 0 -type tclobj}
+  {-argName "objectkind" -type "object|class|baseclass|metaclass"}
 }
 */
-static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectkind, Tcl_Obj *valueObj) {
+static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectkind) {
   int success = TCL_ERROR;
   XOTclObject *object;
   XOTclClass *cl;
@@ -12097,36 +12097,21 @@ static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectki
   /* fprintf(stderr, "XOTclObjectpropertyCmd\n");*/
 
   switch (objectkind) {
-  case ObjectkindTypeIdx:
-    if (valueObj == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> type <type>");
-    if (GetObjectFromObj(interp, obj, &object) != TCL_OK) {
-      return XOTclObjErrType(interp, obj, "object", "object");
-    }
-    if (GetClassFromObj(interp, valueObj, &cl, NULL) != TCL_OK) {
-	return XOTclObjErrType(interp, valueObj, "class", "type");
-    }
-    success = isSubType(object->cl, cl);
-    break;
-
   case ObjectkindObjectIdx:
-    if (valueObj != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> object");
     success = (GetObjectFromObj(interp, obj, &object) == TCL_OK);
     break;
 
   case ObjectkindClassIdx:
-    if (valueObj != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<class> class");
     success = (GetObjectFromObj(interp, obj, &object) == TCL_OK) && XOTclObjectIsClass(object);
     break;
 
   case ObjectkindMetaclassIdx:
-    if (valueObj != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<class> metaclass");
     success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
       && XOTclObjectIsClass(object)
       && IsMetaClass(interp, (XOTclClass*)object, 1);
     break;
 
   case ObjectkindBaseclassIdx:
-    if (valueObj != NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> baseclass");
     success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
       && XOTclObjectIsClass(object)
       && IsBaseClass((XOTclClass*)object);
@@ -14109,7 +14094,7 @@ objectInfoMethod hastype XOTclObjInfoHasTypeMethod {
 */
 static int
 XOTclObjInfoHasTypeMethod(Tcl_Interp *interp, XOTclObject *object, XOTclClass *typeClass) {
-  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), isSubType(object->cl, typeClass));
+  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), IsSubType(object->cl, typeClass));
   return TCL_OK;
 }
 
@@ -14221,7 +14206,7 @@ static int XOTclObjInfoSlotObjectsMethod(Tcl_Interp *interp, XOTclObject *object
   slotObjects = computeSlotObjects(interp, object, pattern /* not used */, 1);
   
   for (pl=slotObjects; pl; pl = pl->nextPtr) {
-    /*if (slotClass &&  !isSubType(pl->obj->cl, slotClass)) continue;*/
+    /*if (slotClass &&  !IsSubType(pl->obj->cl, slotClass)) continue;*/
     Tcl_ListObjAppendElement(interp, list, pl->obj->cmdName);
   }
 

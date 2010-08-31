@@ -467,7 +467,7 @@ namespace eval ::nx::serializer {
     :method registerSerializer {s instances} {
       # Communicate responsibility to serializer object $s
       foreach i $instances {
-        if {![::nsf::objectproperty $i type ${:rootClass}]} continue
+        if {![::nsf::dispatch $i ::nsf::cmd::ObjectInfo2::hastype ${:rootClass}]} continue
         $s setObjectSystemSerializer $i [::nsf::current object]
       }
     }
@@ -496,12 +496,16 @@ namespace eval ::nx::serializer {
         foreach {o p m} $k break
 	if {![::nsf::objectproperty $o object]} {
 	  puts stderr "Warning: $o is not an object"
-	} elseif {[::nsf::objectproperty $o type ${:rootClass}]} {set :exportMethods($k) 1}
+	} elseif {[::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::hastype ${:rootClass}]} {
+	  set :exportMethods($k) 1
+	}
       }
       foreach o [Serializer exportedObjects] {
 	if {![::nsf::objectproperty $o object]} {
 	  puts stderr "Warning: $o is not an object"
-	} elseif {[::nsf::objectproperty $o type ${:rootClass}]} {set :exportObjects($o) 1}
+	} elseif {[nsf::dispatch $o ::nsf::cmd::ObjectInfo2::hastype ${:rootClass}]} {
+	  set :exportObjects($o) 1
+	}
       }
       foreach p [array names :ignorePattern] {Serializer addPattern $p}
     }
@@ -512,7 +516,7 @@ namespace eval ::nx::serializer {
     ###############################    
 
     :method classify {o} {
-      if {[::nsf::objectproperty $o type ${:rootMetaClass}]} \
+      if {[::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::hastype ${:rootMetaClass}]} \
           {return Class} {return Object}
     }
 
@@ -672,7 +676,7 @@ namespace eval ::nx::serializer {
           [:frameWorkCmd ::nsf::relation $o object-mixin] \
           [:frameWorkCmd ::nsf::assertion $o object-invar]
 
-      if {[::nsf::objectproperty $o type ::nx::Slot]} {
+      if {[$o info has type ::nx::Slot]} {
         # Slots needs to be initialized to ensure
         # __invalidateobjectparameter to be called
         append cmd [list $o eval :init] \n

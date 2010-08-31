@@ -1214,6 +1214,11 @@ _ added option noforwarder to RelationSlots
 - adoped emulation layer in xotcl2 accordingly 
 - added two tests for "info has mixin" in regression test
 
+- removed "objectproperty .... type"
+- renamed isSubType() to IsSubType()
+- adoped emulation layer in xotcl2 accordingly 
+- added two tests for "info has type" in regression test
+
 TODO: 
 - rename ObjectInfo2 & ClassInfo2
 - check "my" vs. "nsf::dispatch" in xotcl2.tcl

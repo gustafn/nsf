@@ -372,18 +372,18 @@ Test case callstack {
     C create c1
 
     ? {c1 expr {[current]}} 		::c1
-    ? {c1 expr {[current] == "::c1"}} 	1
+    ? {c1 expr {[current] eq "::c1"}} 	1
     ? {c1 expr {[:xx]}} 		::c1
     ? {c1 expr {[:info class]}} 	::C
-    ? {c1 expr {[:info is type C]}} 	1
-    ? {c1 expr {[:info is type ::C]}} 	1
+    ? {c1 expr {[:info has type C]}} 	1
+    ? {c1 expr {[:info has type ::C]}} 	1
 
     ? {C t ::c1 {[current]}} 		::c1
-    ? {C t ::c1 {[current] == "::c1"}} 1
+    ? {C t ::c1 {[current] eq "::c1"}}  1
     ? {C t ::c1 {[:xx]}} 		::c1
     ? {C t ::c1 {[:info class]}} ::C
-    ? {C t ::c1 {[:info is type C]}} 	1
-    ? {C t ::c1 {[:info is type ::C]}} 	1
+    ? {C t ::c1 {[:info has type C]}} 	1
+    ? {C t ::c1 {[:info has type ::C]}}	1
 
     Object method expr {} {}
 

@@ -846,7 +846,7 @@ namespace eval ::nx {
     :alias "info has mixin"      ::nsf::cmd::ObjectInfo2::hasmixin
     :alias "info has namespace"  ::nsf::cmd::ObjectInfo2::hasnamespace
     :alias "info has type"       ::nsf::cmd::ObjectInfo2::hastype
-    :method "info is" {kind {value ""}} {::nsf::objectproperty [::nsf::current object] $kind {*}$value}
+    :method "info is" {kind}     {::nsf::objectproperty [::nsf::current object] $kind}
     :alias "info methods"        ::nsf::cmd::ObjectInfo2::methods
     :alias "info mixin guard"    ::nsf::cmd::ObjectInfo2::mixinguard
     :alias "info mixin classes"  ::nsf::cmd::ObjectInfo2::mixinclasses
@@ -855,8 +855,7 @@ namespace eval ::nx {
     :method "info slotobjects" {} {
       set result [list]
       foreach slot [::nsf::dispatch [::nsf::current object] ::nsf::cmd::ObjectInfo2::slotobjects] {
-	puts stderr "check $slot [::nsf::objectproperty $slot type ::nx::Slot]"
-	if {![::nsf::objectproperty $slot type ::nx::Slot]} continue
+	if {![::nsf::dispatch $slot ::nsf::cmd::ObjectInfo2::hastype ::nx::Slot]} continue
 	lappend result $slot
       }
       return $result
@@ -1330,14 +1329,14 @@ namespace eval ::nx {
   proc ::nsf::parametersFromSlots {obj} {
     set parameterdefinitions [list]
     foreach slot [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::slotobjects] {
-      # TODO: the following line is just for the somehwat dummy "info slot"
-      if {![::nsf::objectproperty $slot type ::nx::Slot]} continue
+      # TODO: the following line is just for the somehwat dummy "...::slot::__info"
+      if {![::nsf::dispatch $slot ::nsf::cmd::ObjectInfo2::hastype ::nx::Slot]} continue
       # Skip some slots for xotcl; 
       # TODO: maybe different parameterFromSlots for xotcl?
       if {[::nsf::objectproperty ::xotcl::Object class] 
-	  && [::nsf::objectproperty $obj type ::xotcl::Object] && 
+	  && [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::hastype ::xotcl::Object] && 
           ([$slot name] eq "mixin" || [$slot name] eq "filter")
-      } continue
+	} continue
       array set "" [$slot toParameterSyntax]
       lappend parameterdefinitions -$(oparam)
     }
