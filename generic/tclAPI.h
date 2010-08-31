@@ -188,6 +188,8 @@ static int XOTclObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp
 static int XOTclObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclObjInfoHasMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -265,6 +267,8 @@ static int XOTclObjInfoClassMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclObjInfoFilterguardMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *filter);
 static int XOTclObjInfoFiltermethodsMethod(Tcl_Interp *interp, XOTclObject *obj, int withGuards, int withOrder, CONST char *pattern);
 static int XOTclObjInfoForwardMethod(Tcl_Interp *interp, XOTclObject *obj, int withDefinition, CONST char *name);
+static int XOTclObjInfoHasMixinMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *class);
+static int XOTclObjInfoHasTypeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *class);
 static int XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *obj);
 static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *obj, int infomethodsubcmd, CONST char *name);
 static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *obj, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, CONST char *pattern);
@@ -343,6 +347,8 @@ enum {
  XOTclObjInfoFilterguardMethodIdx,
  XOTclObjInfoFiltermethodsMethodIdx,
  XOTclObjInfoForwardMethodIdx,
+ XOTclObjInfoHasMixinMethodIdx,
+ XOTclObjInfoHasTypeMethodIdx,
  XOTclObjInfoHasnamespaceMethodIdx,
  XOTclObjInfoMethodMethodIdx,
  XOTclObjInfoMethodsMethodIdx,
@@ -1196,6 +1202,44 @@ XOTclObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
 
     parseContextRelease(&pc);
     return XOTclObjInfoForwardMethod(interp, obj, withDefinition, name);
+
+  }
+}
+
+static int
+XOTclObjInfoHasMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+  XOTclObject *obj =  (XOTclObject *)clientData;
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
+                     method_definitions[XOTclObjInfoHasMixinMethodIdx].paramDefs, 
+                     method_definitions[XOTclObjInfoHasMixinMethodIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *class = (XOTclClass *)pc.clientData[0];
+
+    parseContextRelease(&pc);
+    return XOTclObjInfoHasMixinMethod(interp, obj, class);
+
+  }
+}
+
+static int
+XOTclObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+  XOTclObject *obj =  (XOTclObject *)clientData;
+  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
+                     method_definitions[XOTclObjInfoHasTypeMethodIdx].paramDefs, 
+                     method_definitions[XOTclObjInfoHasTypeMethodIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    XOTclClass *class = (XOTclClass *)pc.clientData[0];
+
+    parseContextRelease(&pc);
+    return XOTclObjInfoHasTypeMethod(interp, obj, class);
 
   }
 }
@@ -2060,6 +2104,12 @@ static methodDefinition method_definitions[] = {
 {"::nsf::cmd::ObjectInfo2::forward", XOTclObjInfoForwardMethodStub, 2, {
   {"-definition", 0, 0, convertToString},
   {"name", 0, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo2::hasmixin", XOTclObjInfoHasMixinMethodStub, 1, {
+  {"class", 0, 0, convertToClass}}
+},
+{"::nsf::cmd::ObjectInfo2::hastype", XOTclObjInfoHasTypeMethodStub, 1, {
+  {"class", 0, 0, convertToClass}}
 },
 {"::nsf::cmd::ObjectInfo2::hasnamespace", XOTclObjInfoHasnamespaceMethodStub, 0, {
   }

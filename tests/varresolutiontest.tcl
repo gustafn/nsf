@@ -392,7 +392,7 @@ C create c3
 # refined tests for the var resolver under
 # Tcl namespaces parallelling XOTcl objects 
 # (! not declared through require namespace !)
-# e.g., "info hasnamespace" reports 0 rather
+# e.g., "info has namespace" reports 0 rather
 # than 1 as under "require namespace"
 ###############################################
 
@@ -407,7 +407,7 @@ Class create ::C
 namespace eval ::c {}
 ? {namespace exists ::c} 1
 ? {::nsf::objectproperty ::c object} 1
-? {::c info hasnamespace} 0
+? {::c info has namespace} 0
 
 ? {::c Set w 2; expr {[::c Set w] == $::w}} 0
 ? {::c Unset w; info exists ::w} 1

@@ -25,9 +25,17 @@ Test case parametercheck {
   c1 mixin M
 
   ? {::nsf::parametercheck object o1} 1
+  ? {::nsf::parametercheck -nocomplain object o1} 1
+  ? {::nsf::parametercheck -nocomplain object o1000} 0
   ? {::nsf::parametercheck integer 1} 1
+  ? {::nsf::parametercheck object,type=::C c1} 1
+  ? {::nsf::parametercheck hasmixin,arg=::M c1} 1
+  
+  #D method foo-hasmixin {x:hasmixin,arg=::M} {return $x}
+  #D method foo-type     {x:object,type=::C} {return $x}
 
   ? {::nsf::objectproperty o1 object} 1
+  ? {::nsf::objectproperty o1000 object} 0
   ? {::nsf::objectproperty c1 type C} 1
 
   ? {::nsf::is c1 object -type C} 1
@@ -35,6 +43,7 @@ Test case parametercheck {
   ? {::nsf::is c1 object -hasmixin M1 -type C} 0
   ? {::nsf::is c1 object -hasmixin M -type C0} 0
   ? {::nsf::is o1 object} 1
+  ? {::nsf::is o100 object} 0
   ? {::nsf::is 1 integer} 1
   ? {::nsf::is c1 type C} 1
   ? {::nsf::is o type C} 0

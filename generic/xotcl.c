@@ -201,7 +201,7 @@ static int GuardCall(XOTclObject *object, XOTclClass *cl, Tcl_Command cmd, Tcl_I
 static void GuardDel(XOTclCmdList *filterCL);
 
 static int IsMetaClass(Tcl_Interp *interp, XOTclClass *cl, int withMixins);
-static int hasMixin(Tcl_Interp *interp, XOTclObject *object, XOTclClass *cl);
+static int HasMixin(Tcl_Interp *interp, XOTclObject *object, XOTclClass *cl);
 static int isSubType(XOTclClass *subcl, XOTclClass *cl);
 static XOTclClass *DefaultSuperClass(Tcl_Interp *interp, XOTclClass *cl, XOTclClass *mcl, int isMeta);
 
@@ -8627,7 +8627,7 @@ isSubType(XOTclClass *subcl, XOTclClass *cl) {
 }
 
 static int
-hasMixin(Tcl_Interp *interp, XOTclObject *object, XOTclClass *cl) {
+HasMixin(Tcl_Interp *interp, XOTclObject *object, XOTclClass *cl) {
 
   if (!(object->flags & XOTCL_MIXIN_ORDER_VALID))
     MixinComputeDefined(interp, object);
@@ -8643,7 +8643,6 @@ hasMixin(Tcl_Interp *interp, XOTclObject *object, XOTclClass *cl) {
   }
   return 0;
 }
-
 
 extern int
 XOTclCreateObject(Tcl_Interp *interp, Tcl_Obj *nameObj, XOTcl_Class *class) {
@@ -11569,7 +11568,7 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraint
     }
     if (success && withHasmixin) {
       success = (GetClassFromObj(interp, withHasmixin, &mixinClass, NULL) == TCL_OK)
-        && hasMixin(interp, object, mixinClass);
+        && HasMixin(interp, object, mixinClass);
     }
     Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
 
@@ -12142,7 +12141,7 @@ static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectki
     if (valueObj == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> hasmixin <class>");
     success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
       && (GetClassFromObj(interp, valueObj, &cl, NULL) == TCL_OK)
-      && hasMixin(interp, object, cl);
+      && HasMixin(interp, object, cl);
     break;
   }
 
@@ -14111,12 +14110,33 @@ static int XOTclObjInfoForwardMethod(Tcl_Interp *interp, XOTclObject *object, in
 }
 
 /*
-infoObjectMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
-  {-argName "object" -required 1 -type object}
+objectInfoMethod hasmixin XOTclObjInfoHasMixinMethod {
+  {-argName "class" -type class}
+}
+*/
+static int
+XOTclObjInfoHasMixinMethod(Tcl_Interp *interp, XOTclObject *object, XOTclClass *mixinClass) {
+  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), HasMixin(interp, object, mixinClass));
+  return TCL_OK;
+}
+
+/*
+objectInfoMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
 }
 */
 static int XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *object) {
   Tcl_SetBooleanObj(Tcl_GetObjResult(interp), object->nsPtr != NULL);
+  return TCL_OK;
+}
+
+/*
+objectInfoMethod hastype XOTclObjInfoHasTypeMethod {
+  {-argName "class" -type class}
+}
+*/
+static int
+XOTclObjInfoHasTypeMethod(Tcl_Interp *interp, XOTclObject *object, XOTclClass *typeClass) {
+  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), isSubType(object->cl, typeClass));
   return TCL_OK;
 }
 

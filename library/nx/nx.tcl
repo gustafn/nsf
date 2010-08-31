@@ -843,7 +843,9 @@ namespace eval ::nx {
     :alias "info filter guard"   ::nsf::cmd::ObjectInfo2::filterguard
     :alias "info filter methods" ::nsf::cmd::ObjectInfo2::filtermethods
     :alias "info forward"        ::nsf::cmd::ObjectInfo2::forward
-    :alias "info hasnamespace"   ::nsf::cmd::ObjectInfo2::hasnamespace
+    :alias "info has mixin"      ::nsf::cmd::ObjectInfo2::hasmixin
+    :alias "info has namespace"  ::nsf::cmd::ObjectInfo2::hasnamespace
+    :alias "info has type"       ::nsf::cmd::ObjectInfo2::hastype
     :method "info is" {kind {value ""}} {::nsf::objectproperty [::nsf::current object] $kind {*}$value}
     :alias "info methods"        ::nsf::cmd::ObjectInfo2::methods
     :alias "info mixin guard"    ::nsf::cmd::ObjectInfo2::mixinguard
@@ -863,8 +865,8 @@ namespace eval ::nx {
   }
 
   # Create the ensemble object here to prepare for copy of the above
-  # definitions from Object.info to Class.info.  Potentially, some
-  # names are overwritten later by Class.info . Note, that the
+  # definitions from Object.info to Class.info. Potentially, some
+  # names are overwritten later by Class.info. Note, that the
   # automatically created name of the sensemble object has to be the
   # same as defined above.
   
@@ -884,6 +886,9 @@ namespace eval ::nx {
     #:alias "info classparent"    ::nsf::cmd::ObjectInfo2::parent
     #:alias "info classchildren"  ::nsf::cmd::ObjectInfo2::children
     :alias "info filter guard"   ::nsf::cmd::ClassInfo2::filterguard
+    :alias "info has mixin"      ::nsf::cmd::ObjectInfo2::hasmixin
+    :alias "info has namespace"  ::nsf::cmd::ObjectInfo2::hasnamespace
+    :alias "info has type"       ::nsf::cmd::ObjectInfo2::hastype
     :alias "info filter methods" ::nsf::cmd::ClassInfo2::filtermethods
     :alias "info forward"        ::nsf::cmd::ClassInfo2::forward
     :alias "info heritage"       ::nsf::cmd::ClassInfo2::heritage
@@ -1857,7 +1862,7 @@ namespace eval ::nx {
       #puts stderr "COPY makeTargetList $t target= ${:targetList}"
       # if it is an object without namespace, it is a leaf
       if {[::nsf::objectproperty $t object]} {
-	if {[$t info hasnamespace]} {
+	if {[::nsf::dispatch $t ::nsf::cmd::ObjectInfo2::hasnamespace]} {
 	  # make target list from all children
 	  set children [$t info children]
         } else {
@@ -1915,9 +1920,9 @@ namespace eval ::nx {
 	  ::nsf::assertion $obj object-invar [::nsf::assertion $origin object-invar]
 	  ::nsf::relation $obj object-filter [::nsf::relation $origin object-filter]
 	  ::nsf::relation $obj object-mixin [::nsf::relation $origin object-mixin]
-	  if {[$origin info hasnamespace]} {
             # reused in XOTcl, no "require" there, so use nsf primitiva
-	    $obj ::nsf::cmd::Object::requireNamespace
+	  if {[::nsf::dispatch $origin ::nsf::cmd::ObjectInfo2::hasnamespace]} {
+	    ::nsf::dispatch $obj ::nsf::cmd::Object::requireNamespace
 	  }
 	} else {
 	  namespace eval $dest {}

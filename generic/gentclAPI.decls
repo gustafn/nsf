@@ -251,7 +251,13 @@ objectInfoMethod forward XOTclObjInfoForwardMethod {
   {-argName "-definition"}
   {-argName "name"}
 }
+objectInfoMethod hasmixin XOTclObjInfoHasMixinMethod {
+  {-argName "class" -type class}
+}
 objectInfoMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
+}
+objectInfoMethod hastype XOTclObjInfoHasTypeMethod {
+  {-argName "class" -type class}
 }
 objectInfoMethod method XOTclObjInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}

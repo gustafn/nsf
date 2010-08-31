@@ -1201,8 +1201,14 @@ _ added option noforwarder to RelationSlots
 - documented incompatiblity of object-invocation via method
   interface (due to ensemble objects) in migration guide
 
-TODO: 
+- implemented XOTclObjInfoHasMixinMethod() and XOTclObjInfoHasTypeMethod()
+- renamed "$obj info hasnamespace" to "$obj info has namespace"
+- added "$obj info has mixin $class"
+- added "$obj info has type $class"
+- extended regression test for parametercheck/objectproperty/is
 
+TODO: 
+- rename ObjectInfo2 & ClassInfo2
 - check "my" vs. "nsf::dispatch" in xotcl2.tcl
 - overthink decision about not showing "child objects" per default in "info methods"
 
