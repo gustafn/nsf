@@ -1226,9 +1226,12 @@ _ added option noforwarder to RelationSlots
 - introduced ::nsf::isobject
 - replaced in all scripts "::nsf::objectproperty ... object" by isobject
 
+- removed "infoObjectMethod" and "infoClassMethod" 
+- replaced ::nsf::cmd::ClassInfo2 by ::nsf::cmd::ClassInfo
+- replaced ::nsf::cmd::ObjectInfo2 by ::nsf::cmd::ObjectInfo
+
 TODO: 
 - reflect changes in /is/objectproperty/info has/info is/ in migration guide
-- rename ObjectInfo2 & ClassInfo2
 - check equivalence of the following two commands
   in respect to fully-qualified names
          ::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::hastype $class

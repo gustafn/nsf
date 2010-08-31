@@ -334,12 +334,6 @@ proc methodDefinition {methodName methodType implementation parameterDefinitions
   set ::definitions($d(methodType)-$d(implementation)-$d(methodName)) [array get d]
 }
 
-proc infoClassMethod {methodName implementation parameterDefinitions} {
-  methodDefinition $methodName infoClassMethod $implementation $parameterDefinitions
-}
-proc infoObjectMethod {methodName implementation parameterDefinitions} {
-  methodDefinition $methodName infoObjectMethod $implementation $parameterDefinitions
-}
 proc checkMethod {methodName implementation parameterDefinitions} {
   methodDefinition type=$methodName checkMethod $implementation $parameterDefinitions
 }

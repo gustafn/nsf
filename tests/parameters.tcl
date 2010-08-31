@@ -43,8 +43,8 @@ Test case parametercheck {
   ? {c1 info has type C} 1
   ? {c1 info has type C1} {expected class but got "C1" for parameter class}
   #? {::nsf::is c1 object -type C} 1
-  ? {c1 ::nsf::cmd::ObjectInfo2::hastype C} 1
-  ? {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo2::hastype C} 1
+  ? {c1 ::nsf::cmd::ObjectInfo::hastype C} 1
+  ? {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype C} 1
 
   #? {::nsf::is c1 object -hasmixin M -type C} 1
   #? {::nsf::is c1 object -hasmixin M1 -type C} 0

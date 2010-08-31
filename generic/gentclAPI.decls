@@ -8,12 +8,10 @@
 array set ns {
   xotclCmd    "::nsf"
   objectMethod "::nsf::cmd::Object"
-  objectInfoMethod "::nsf::cmd::ObjectInfo2"
+  objectInfoMethod "::nsf::cmd::ObjectInfo"
   classMethod  "::nsf::cmd::Class"
-  classInfoMethod "::nsf::cmd::ClassInfo2"
+  classInfoMethod "::nsf::cmd::ClassInfo"
   checkMethod  "::nsf::cmd::ParameterType"
-  infoClassMethod  "::nsf::cmd::ClassInfo"
-  infoObjectMethod  "::nsf::cmd::ObjectInfo"
 }
 
 #
