@@ -90,8 +90,6 @@ xotclCmd invalidateobjectparameter XOTclInvalidateObjectParameterCmd {
 xotclCmd is XOTclIsCmd {
   {-argName "value" -required 1 -type tclobj}
   {-argName "constraint" -required 1 -type tclobj}
-  {-argName "-type" -required 0 -nrargs 1 -type tclobj}
-  {-argName "arg" -required 0 -type tclobj}
 }
 xotclCmd method XOTclMethodCmd {
   {-argName "object" -required 1 -type object}

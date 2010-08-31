@@ -292,7 +292,7 @@ static int XOTclForwardCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_
 static int XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclInvalidateObjectParameterCmd(Tcl_Interp *interp, XOTclClass *class);
-static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *value, Tcl_Obj *constraint, Tcl_Obj *withType, Tcl_Obj *arg);
+static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *value, Tcl_Obj *constraint);
 static int XOTclMethodCmd(Tcl_Interp *interp, XOTclObject *object, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
 static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
@@ -1716,11 +1716,9 @@ XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
   } else {
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[0];
     Tcl_Obj *constraint = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *withType = (Tcl_Obj *)pc.clientData[2];
-    Tcl_Obj *arg = (Tcl_Obj *)pc.clientData[3];
 
     parseContextRelease(&pc);
-    return XOTclIsCmd(interp, value, constraint, withType, arg);
+    return XOTclIsCmd(interp, value, constraint);
 
   }
 }
@@ -2214,11 +2212,9 @@ static methodDefinition method_definitions[] = {
 {"::nsf::invalidateobjectparameter", XOTclInvalidateObjectParameterCmdStub, 1, {
   {"class", 0, 0, convertToClass}}
 },
-{"::nsf::is", XOTclIsCmdStub, 4, {
+{"::nsf::is", XOTclIsCmdStub, 2, {
   {"value", 1, 0, convertToTclobj},
-  {"constraint", 1, 0, convertToTclobj},
-  {"-type", 0, 1, convertToTclobj},
-  {"arg", 0, 0, convertToTclobj}}
+  {"constraint", 1, 0, convertToTclobj}}
 },
 {"::nsf::method", XOTclMethodCmdStub, 9, {
   {"object", 1, 0, convertToObject},

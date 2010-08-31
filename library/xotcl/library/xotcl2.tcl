@@ -593,8 +593,13 @@ namespace eval ::xotcl {
   Object instproc isobject    {{object:substdefault "[self]"}} {::nsf::objectproperty $object object}
   Object instproc isclass     {{class:substdefault  "[self]"}} {::nsf::objectproperty $class class}
   Object instproc ismetaclass {{class:substdefault  "[self]"}} {::nsf::objectproperty $class metaclass}
-  Object instproc ismixin     {class}  {expr {[::nsf::objectproperty $class class] && [my ::nsf::cmd::ObjectInfo2::hasmixin $class]}}
-  Object instproc istype      {class}  {::nsf::is [self] type $class}
+  Object instproc ismixin     {class}  {
+    expr {[::nsf::objectproperty $class class] && 
+	  [my ::nsf::cmd::ObjectInfo2::hasmixin $class]}}
+  Object instproc istype      {class}  {
+    expr {[::nsf::objectproperty $class class] && 
+	  [::nsf::dispatch [self] ::nsf::cmd::ObjectInfo2::hastype $class]}
+  }
 
   # definitin of "contains", based on nx
 
@@ -686,7 +691,7 @@ namespace eval ::xotcl {
   Object instproc hasclass cl {
     if {![::nsf::objectproperty $cl class]} {return 0}
     if {[my ::nsf::cmd::ObjectInfo2::hasmixin $cl]} {return 1}
-    ::nsf::is [self] type $cl
+    ::nsf::dispatch [self] ::nsf::cmd::ObjectInfo2::hastype $cl
   }
   Object instproc filtersearch {filter} {
     set handle [::nsf::dispatch [::nsf::current object] \

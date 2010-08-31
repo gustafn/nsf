@@ -11534,54 +11534,10 @@ static int XOTclInvalidateObjectParameterCmd(Tcl_Interp *interp, XOTclClass *cl)
 xotclCmd is XOTclIsCmd {
   {-argName "value" -required 1 -type tclobj}
   {-argName "constraint" -required 1 -type tclobj}
-  {-argName "-type" -required 0 -nrargs 1 -type tclobj}
-  {-argName "arg" -required 0 -type tclobj}
 }
 */
-static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraintObj, 
-		      Tcl_Obj *withType, Tcl_Obj *arg) {
-  int result = TCL_OK, success;
-  CONST char *constraintString = ObjStr(constraintObj);
-  XOTclObject *object;
-  XOTclClass *typeClass, *mixinClass;
-
-  if (isTypeString(constraintString)) {
-    if (arg== NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "type <object> <type>");
-    success = (GetObjectFromObj(interp, valueObj, &object) == TCL_OK)
-      && (GetClassFromObj(interp, arg, &typeClass, NULL) == TCL_OK)
-      && IsSubType(object->cl, typeClass);
-
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
-
-  } else if (withType) {
-    if ((!isObjectString(constraintString) && !isClassString(constraintString)) || arg != NULL) {
-      return XOTclObjErrArgCnt(interp, NULL, NULL, "object|class <object> ?-type cl?");
-    }
-    if (*constraintString == 'o') {
-      success = (GetObjectFromObj(interp, valueObj, &object) == TCL_OK);
-    } else {
-      success = (GetClassFromObj(interp, valueObj, (XOTclClass **)&object, NULL) == TCL_OK);
-    }
-    if (success && withType) {
-      success = (GetClassFromObj(interp, withType, &typeClass, NULL) == TCL_OK)
-        && IsSubType(object->cl, typeClass);
-    }
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
-
-  } else if (arg != NULL) {
-    Tcl_Obj *paramObj =   Tcl_DuplicateObj(valueObj);
-
-    INCR_REF_COUNT(paramObj);
-    Tcl_AppendLimitedToObj(paramObj, ",arg=", 5, INT_MAX, NULL);
-    Tcl_AppendObjToObj(paramObj, arg);
-    
-    result = XOTclParametercheckCmd(interp, 1, paramObj, valueObj);
-    DECR_REF_COUNT(paramObj);
-  } else {
-    result = XOTclParametercheckCmd(interp, 1, constraintObj, valueObj);
-  }
-
-  return result;
+static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraintObj) {
+  return XOTclParametercheckCmd(interp, 1, constraintObj, valueObj);
 }
 
 /*

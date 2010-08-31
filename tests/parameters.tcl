@@ -29,26 +29,35 @@ Test case parametercheck {
   ? {::nsf::parametercheck -nocomplain object o1000} 0
   ? {::nsf::parametercheck integer 1} 1
   ? {::nsf::parametercheck object,type=::C c1} 1
+  ? {::nsf::parametercheck object,type=::C o} {expected object but got "o" for parameter value}
+  ? {::nsf::parametercheck -nocomplain object,type=::C o} 0
+
   ? {c1 info has mixin ::M} 1  
   ? {c1 info has mixin ::M1} {expected class but got "::M1" for parameter class}
   #? {::nsf::parametercheck hasmixin,arg=::M c1} 1
   
   ? {::nsf::objectproperty o1 object} 1
   ? {::nsf::objectproperty o1000 object} 0
+  
   #? {::nsf::objectproperty c1 type C} 1
   ? {c1 info has type C} 1
   ? {c1 info has type C1} {expected class but got "C1" for parameter class}
+  #? {::nsf::is c1 object -type C} 1
+  ? {c1 ::nsf::cmd::ObjectInfo2::hastype C} 1
+  ? {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo2::hastype C} 1
 
-  ? {::nsf::is c1 object -type C} 1
   #? {::nsf::is c1 object -hasmixin M -type C} 1
   #? {::nsf::is c1 object -hasmixin M1 -type C} 0
   #? {::nsf::is c1 object -hasmixin M -type C0} 0
   ? {::nsf::is o1 object} 1
   ? {::nsf::is o100 object} 0
   ? {::nsf::is 1 integer} 1
-  ? {::nsf::is c1 type C} 1
-  ? {::nsf::is o type C} 0
-  ? {::nsf::is o object -type C} 0
+  ? {::nsf::is c1 object,type=::C} 1
+  ? {::nsf::is o object,type=::C} 0
+
+  #? {::nsf::is c1 type C} 1
+  #? {::nsf::is o type C} 0
+  #? {::nsf::is o object -type C} 0
   #? {::nsf::is o object -hasmixin C} 0
 #exit
   ? {::nsf::parametercheck class o1} {expected class but got "o1" for parameter value}
