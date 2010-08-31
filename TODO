@@ -1206,6 +1206,7 @@ _ added option noforwarder to RelationSlots
 - added "$obj info has mixin $class"
 - added "$obj info has type $class"
 - extended regression test for parametercheck/objectproperty/is
+- updated interface definitions for info methods, sort them alphabetically
 
 TODO: 
 - rename ObjectInfo2 & ClassInfo2

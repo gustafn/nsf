@@ -13980,8 +13980,7 @@ static int AggregatedMethodType(int methodType) {
  * Begin Object Info Methods
  ***************************/
 /*
-infoObjectMethod callable XOTclObjInfoCallableMethod {
-  {-argName "object" -type object}
+objectInfoMethod callable XOTclObjInfoCallableMethod {
   {-argName "infocallablesubcmd" -nrargs 1 -type "filter|method|methods" -required 1}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
@@ -13989,6 +13988,7 @@ infoObjectMethod callable XOTclObjInfoCallableMethod {
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern" -required 0}
+}
 */
 static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object, 
 				      int subcmd,
@@ -14038,8 +14038,7 @@ static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *object,
 }
 
 /*
-infoObjectMethod children XOTclObjInfoChildrenMethod {
-  {-argName "object" -required 1 -type object}
+objectInfoMethod children XOTclObjInfoChildrenMethod {
   {-argName "pattern" -required 0}
 }
 */
@@ -14048,13 +14047,21 @@ static int XOTclObjInfoChildrenMethod(Tcl_Interp *interp, XOTclObject *object, C
 }
 
 /*
-infoObjectMethod class XOTclObjInfoClassMethod {
-  {-argName "object" -required 1 -type object}
+objectInfoMethod class XOTclObjInfoClassMethod {
 }
 */
 static int XOTclObjInfoClassMethod(Tcl_Interp *interp, XOTclObject *object) {
   Tcl_SetObjResult(interp, object->cl->object.cmdName);
   return TCL_OK;
+}
+
+/*
+objectInfoMethod filterguard XOTclObjInfoFilterguardMethod {
+  {-argName "filter" -required 1}
+}
+*/
+static int XOTclObjInfoFilterguardMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *filter) {
+  return object->opt ? GuardList(interp, object->opt->filters, filter) : TCL_OK;
 }
 
 /*
@@ -14078,27 +14085,7 @@ static int XOTclObjInfoFiltermethodsMethod(Tcl_Interp *interp, XOTclObject *obje
 }
 
 /*
-objectInfoMethod filterguard XOTclObjInfoFilterguardMethod {
-  {-argName "filter" -required 1}
-}
-*/
-static int XOTclObjInfoFilterguardMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *filter) {
-  return object->opt ? GuardList(interp, object->opt->filters, filter) : TCL_OK;
-}
-
-/* TODO MOVE ME */
-/*
-classInfoMethod filterguard XOTclClassInfoFilterguardMethod {
-  {-argName "filter" -required 1}
-  }
-*/
-static int XOTclClassInfoFilterguardMethod(Tcl_Interp *interp, XOTclClass *class, CONST char *filter) {
-  return class->opt ? GuardList(interp, class->opt->classfilters, filter) : TCL_OK;
-}
-
-/*
-infoObjectMethod forward XOTclObjInfoForwardMethod {
-  {-argName "object" -required 1 -type object}
+objectInfoMethod forward XOTclObjInfoForwardMethod {
   {-argName "-definition"}
   {-argName "name"}
 }
@@ -14141,9 +14128,8 @@ XOTclObjInfoHasTypeMethod(Tcl_Interp *interp, XOTclObject *object, XOTclClass *t
 }
 
 /*
-infoObjectMethod method XOTclObjInfoMethodMethod {
-  {-argName "object" -type object}
-  {-argName "infomethodsubcmd" -type "args|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
+objectInfoMethod method XOTclObjInfoMethodMethod {
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 */
@@ -14162,14 +14148,13 @@ static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *object,
 }
 
 /*
-infoObjectMethod methods XOTclObjInfoMethodsMethod {
-  {-argName "object" -type object}
+objectInfoMethod methods XOTclObjInfoMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern"}
-  }
+}
 */
 static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *object, 
 				     int withMethodtype, int withCallproctection,
@@ -14209,8 +14194,7 @@ static int XOTclObjInfoMixinguardMethod(Tcl_Interp *interp, XOTclObject *object,
 }
 
 /*
-infoObjectMethod parent XOTclObjInfoParentMethod {
-  {-argName "object" -required 1 -type object}
+objectInfoMethod parent XOTclObjInfoParentMethod {
 }
 */
 static int XOTclObjInfoParentMethod(Tcl_Interp *interp, XOTclObject *object) {
@@ -14221,8 +14205,7 @@ static int XOTclObjInfoParentMethod(Tcl_Interp *interp, XOTclObject *object) {
 }
 
 /*
-infoObjectMethod precedence XOTclObjInfoPrecedenceMethod {
-  {-argName "object" -required 1 -type object}
+objectInfoMethod precedence XOTclObjInfoPrecedenceMethod {
   {-argName "-intrinsic"}
   {-argName "pattern" -required 0}
 }
@@ -14240,8 +14223,7 @@ static int XOTclObjInfoPrecedenceMethod(Tcl_Interp *interp, XOTclObject *object,
 }
 
 /*
-infoObjectMethod slotobjects XOTclObjInfoSlotObjectsMethod {
-  {-argName "object" -required 1 -type object}
+objectInfoMethod slotobjects XOTclObjInfoSlotObjectsMethod {
   {-argName "pattern" -required 0}
 }
 */
@@ -14263,8 +14245,7 @@ static int XOTclObjInfoSlotObjectsMethod(Tcl_Interp *interp, XOTclObject *object
 }
 
 /*
-infoObjectMethod vars XOTclObjInfoVarsMethod {
-  {-argName "object" -required 1 -type object}
+objectInfoMethod vars XOTclObjInfoVarsMethod {
   {-argName "pattern" -required 0}
 }
 */
@@ -14297,9 +14278,40 @@ static int XOTclObjInfoVarsMethod(Tcl_Interp *interp, XOTclObject *object, CONST
 /***************************
  * Begin Class Info methods
  ***************************/
+
 /*
-infoClassMethod heritage XOTclClassInfoHeritageMethod {
-  {-argName "class"   -required 1 -type class}
+classInfoMethod filterguard XOTclClassInfoFilterguardMethod {
+  {-argName "filter" -required 1}
+  }
+*/
+static int XOTclClassInfoFilterguardMethod(Tcl_Interp *interp, XOTclClass *class, CONST char *filter) {
+  return class->opt ? GuardList(interp, class->opt->classfilters, filter) : TCL_OK;
+}
+
+/*
+classInfoMethod filtermethods XOTclClassInfoFiltermethodsMethod {
+  {-argName "-guards"}
+  {-argName "pattern"}
+}
+*/
+static int XOTclClassInfoFiltermethodsMethod(Tcl_Interp *interp, XOTclClass *class, 
+				      int withGuards, CONST char *pattern) {
+  return class->opt ? FilterInfo(interp, class->opt->classfilters, pattern, withGuards, 0) : TCL_OK;
+}
+
+/*
+classInfoMethod forward XOTclClassInfoForwardMethod {
+  {-argName "-definition"}
+  {-argName "name"}
+}
+*/
+static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *class,
+				int withDefinition, CONST char *pattern) {
+  return ListForward(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, withDefinition);
+}
+
+/*
+classInfoMethod heritage XOTclClassInfoHeritageMethod {
   {-argName "pattern"}
 }
 */
@@ -14350,8 +14362,7 @@ static int XOTclClassInfoInstancesMethod1(Tcl_Interp *interp, XOTclClass *startC
 }
 
 /*
-infoClassMethod instances XOTclClassInfoInstancesMethod {
-  {-argName "class"   -required 1 -type class}
+classInfoMethod instances XOTclClassInfoInstancesMethod {
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
@@ -14363,32 +14374,8 @@ static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *startCl
 }
 
 /*
-classInfoMethod filtermethods XOTclClassInfoFiltermethodsMethod {
-  {-argName "-guards"}
-  {-argName "pattern"}
-}
-*/
-static int XOTclClassInfoFiltermethodsMethod(Tcl_Interp *interp, XOTclClass *class, 
-				      int withGuards, CONST char *pattern) {
-  return class->opt ? FilterInfo(interp, class->opt->classfilters, pattern, withGuards, 0) : TCL_OK;
-}
-
-/*
-infoClassMethod forward XOTclClassInfoForwardMethod {
-  {-argName "class"  -required 1 -type class}
-  {-argName "-definition"}
-  {-argName "name"}
-}
-*/
-static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *class,
-				int withDefinition, CONST char *pattern) {
-  return ListForward(interp, Tcl_Namespace_cmdTable(class->nsPtr), pattern, withDefinition);
-}
-
-/*
-infoClassMethod method XOTclClassInfoMethodMethod {
-  {-argName "class" -type class}
-  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|type|precondition|postcondition"}
+classInfoMethod method XOTclClassInfoMethodMethod {
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
 */
@@ -14407,8 +14394,7 @@ static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *class,
 }
 
 /*
-infoClassMethod methods XOTclClassInfoMethodsMethod {
-  {-argName "object" -type class}
+classInfoMethod methods XOTclClassInfoMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
   {-argName "-nomixins"}
@@ -14464,8 +14450,7 @@ static int XOTclClassInfoMixinguardMethod(Tcl_Interp *interp, XOTclClass *class,
 }
 
 /*
-infoClassMethod mixinof  XOTclClassInfoMixinOfMethod {
-  {-argName "class"  -required 1 -type class}
+classInfoMethod mixinof  XOTclClassInfoMixinOfMethod {
   {-argName "-closure"}
   {-argName "-scope" -required 0 -nrargs 1 -type "all|class|object"}
   {-argName "pattern" -type objpattern}
@@ -14519,8 +14504,7 @@ static int XOTclClassInfoMixinOfMethod(Tcl_Interp *interp, XOTclClass *class, in
 }
 
 /*
-infoClassMethod slots XOTclClassInfoSlotsMethod {
-  {-argName "class"  -required 1 -type class}
+classInfoMethod slots XOTclClassInfoSlotsMethod {
 }
 */
 static int XOTclClassInfoSlotsMethod(Tcl_Interp *interp, XOTclClass *class) {
@@ -14542,8 +14526,7 @@ static int XOTclClassInfoSlotsMethod(Tcl_Interp *interp, XOTclClass *class) {
 }
 
 /*
-infoClassMethod subclass XOTclClassInfoSubclassMethod {
-  {-argName "class"  -required 1 -type class}
+classInfoMethod subclass XOTclClassInfoSubclassMethod {
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
@@ -14571,8 +14554,7 @@ static int XOTclClassInfoSubclassMethod(Tcl_Interp *interp, XOTclClass *class, i
 }
 
 /*
-infoClassMethod superclass XOTclClassInfoSuperclassMethod {
-  {-argName "class"  -required 1 -type class}
+classInfoMethod superclass XOTclClassInfoSuperclassMethod {
   {-argName "-closure"}
   {-argName "pattern" -type tclobj}
 }

@@ -239,13 +239,13 @@ objectInfoMethod children XOTclObjInfoChildrenMethod {
 }
 objectInfoMethod class XOTclObjInfoClassMethod {
 }
+objectInfoMethod filterguard XOTclObjInfoFilterguardMethod {
+  {-argName "filter" -required 1}
+}
 objectInfoMethod filtermethods XOTclObjInfoFiltermethodsMethod {
   {-argName "-guards"}
   {-argName "-order"}
   {-argName "pattern"}
-}
-objectInfoMethod filterguard XOTclObjInfoFilterguardMethod {
-  {-argName "filter" -required 1}
 }
 objectInfoMethod forward XOTclObjInfoForwardMethod {
   {-argName "-definition"}
@@ -295,12 +295,12 @@ objectInfoMethod vars XOTclObjInfoVarsMethod {
 #
 # info class methods
 #
+classInfoMethod filterguard XOTclClassInfoFilterguardMethod {
+  {-argName "filter" -required 1}
+}
 classInfoMethod filtermethods XOTclClassInfoFiltermethodsMethod {
   {-argName "-guards"}
   {-argName "pattern"}
-}
-classInfoMethod filterguard XOTclClassInfoFilterguardMethod {
-  {-argName "filter" -required 1}
 }
 classInfoMethod forward XOTclClassInfoForwardMethod {
   {-argName "-definition"}
