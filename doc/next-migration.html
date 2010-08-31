@@ -1394,14 +1394,32 @@ Scripting Language via the primitives of the Next Scripting Framework.
 <h2>Incompatibilities between XOTcl 2.0 and XOTcl 1.*</h2>
 
 <h3>Resolvers</h3>
-<p>The resolvers of the Next Scripting Framework are used as well
-within XOTcl 2.0. When names starting with single colons are used in
-XOTcl 1.* scripts, conflicts will arise.
-</p>
+
+<p>The resolvers (variable resolvers, function resolvers) of the Next
+Scripting Framework are used as well within XOTcl 2.0. When names
+starting with single colons are used in XOTcl 1.* scripts, conflicts
+will arise.  </p>
+
+<h3>Calling objects like methods</h3>
+
+<p>Since the next framework uses a different handling of objects
+registered as methods (so called ensemble objects), sub-objects can't
+be called in the same way as before. In XOTcl 1.*, it was possible to
+call e.g. a method <code>foo</code> of the slot object
+<code>Foo::slot::ints</code> via
+<ul><li><code>Foo::slot::ints foo ...</code> or via
+  <li><code>Foo slot ints foo ...</code>
+</ul>
+Now, only the first form
+has the same semantic as before. In the second form (call of objects
+via method) has now the ensemble object semantics, <code>self</code>
+of <code>foo</code> is now the calling object <code>Foo</code>.
+
 
 <h3>Slots</h3>
-<p>All slots are now always next-scripting objects.
-</p>
+
+<p>All slot objects (also those in XOTcl) are now always
+next-scripting objects of baseclass ::nx::Slot </p>
 
 <h3>Obsolete commands</h3>
 
@@ -1414,12 +1432,6 @@ parameterclass</code> has been removed.
 <p>The Next Scripting Framework performs stronger checking than XOTcl
 1.*. For example, the requiredness of slots in XOTcl was just a
 comment, while Next enforces it. </p>
-
-<h3>Different results</h3>
-<ul>
-  <li>none?
-</ul>
-
 
 <h3>Exit Handlers</h3>
 <p>
@@ -1435,6 +1447,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Wed Aug 25 10:05:42 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Tue Aug 31 10:41:17 CEST 2010 <!-- hhmts end -->
 </body>
 </html>
