@@ -5881,11 +5881,12 @@ DispatchUnknownMethod(ClientData clientData,
     result = ObjectDispatch(clientData, interp, objc+2, tov, flags | XOTCL_CM_NO_UNKNOWN);
     FREE_ON_STACK(Tcl_Obj*, tov);
 	
-  } else { /* no unknown called */
-    fprintf(stderr, "--- No unknown method Name %s objv[%d] %s\n", 
-	    ObjStr(methodObj), 1, ObjStr(objv[1]));
+  } else { /* no unknown called, builtin unknown handler */
+    
+    /*fprintf(stderr, "--- No unknown method Name %s objv[%d] %s\n", 
+      ObjStr(methodObj), 1, ObjStr(objv[1]));*/
     result = XOTclVarErrMsg(interp, objectName(object),
-			    ": xxx unable to dispatch method '",
+			    ": unable to dispatch method '",
 			    ObjStr(objv[1]), "'", (char *) NULL);
   }
   return result;
@@ -6249,6 +6250,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 	result = MethodDispatch(clientData, interp, objc-shift, objv+shift, cmd, object, cl,
 				methodName, frameType);
       }
+
+      /*fprintf(stderr, "MethodDispatch %s returns %d unknown %d\n",
+	methodName, result, rst->unknown);*/
+
       if (result == TCL_ERROR) {
         /*fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, flags %.6x\n",
           cl, cl ? cl->object.id : 0, cl ? cl->object.flags : 0);*/
@@ -6280,8 +6285,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     }
   }
   /* be sure to reset unknown flag */
-  if (unknown)
+  if (unknown && (frameType & XOTCL_CSC_TYPE_ACTIVE_FILTER) == 0) {
+    /*fprintf(stderr, "**** rst->unknown set to 0 flags %.6x frameType %.6x\n",flags,frameType);*/
     rst->unknown = 0;
+  }
 
  exit_dispatch:
 #ifdef DISPATCH_TRACE
@@ -7567,6 +7574,7 @@ XOTclNextMethod(XOTclObject *object, Tcl_Interp *interp, XOTclClass *givenCl,
     }
     cscPtr->callType |= XOTCL_CSC_CALL_IS_NEXT;
     RUNTIME_STATE(interp)->unknown = 0;
+    /*fprintf(stderr, "setting unknown to 0\n");*/
     result = MethodDispatch((ClientData)object, interp, nobjc, nobjv, cmd,
                             object, *cl, *methodName, frameType);
     cscPtr->callType &= ~XOTCL_CSC_CALL_IS_NEXT;

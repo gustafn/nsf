@@ -528,12 +528,14 @@ namespace eval ::nx {
       return $r
     }
 
-    # unknown handler for Object
-    :protected method unknown {m args} {
-      if {![::nsf::current isnext]} {
-        error "[::nsf::current object]: unable to dispatch method '$m'"
-      }
-    }
+    # Default unknown-handler for Object
+    #
+    # Actually, we do not need thios unknwon handler, but we could
+    # define it as follows:
+    #
+    # :protected method unknown {m args} {
+    #   error "[::nsf::current object]: unable to dispatch method '$m'"
+    # }
     
     # "init" must exist on Object. per default it is empty.
     :protected method init args {}

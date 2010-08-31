@@ -97,6 +97,33 @@ C object mixin M
 
 # forwarder with 0 arguments + flag
 ? {C object mixin} "::M"
+
+
+Test case mixin-add {
+
+  Class create M1 {
+    :method mfoo {} {puts [current method]}
+  }
+  Class create M11
+  Class create C1 
+
+  ? {C1 info callable method mixin} "::nsf::classes::nx::Class::mixin"
+  C1 object mixin M1
+  ? {C1 info precedence} "::M1 ::nx::Class ::nx::Object"
+  C1 create c11
+  ? {c11 info precedence} "::C1 ::nx::Object"
+  C1 object mixin add M11
+  ? {C1 info precedence} "::M11 ::M1 ::nx::Class ::nx::Object"
+  Object create o -mixin M1
+  ? {o info precedence} "::M1 ::nx::Object"
+
+  Class create O 
+  O object mixin M1
+  ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
+  Class create O -object-mixin M1
+  ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
+}
+
 Test parameter count 3
 Test case "filter-and-creation" {
   Class create Foo {
@@ -117,36 +144,29 @@ Test case "filter-and-creation" {
     #  uplevel [list [self] create {*}$args]
     #}
   }
+
+  # define nx unknown handler in case it does not exist
+  ::nx::Object protected method unknown {m args} {
+    error "[::nsf::current object]: unable to dispatch method '$m'"
+  }
+
   ? {Foo create ob} ::ob
   ? {ob bar} {::ob: unable to dispatch method 'bar'}
 
   Foo filter myfilter
+  # create through filter
   ? {Foo create ob} ::ob
-  # TODO: the following test does not work yet.
-  #? {ob bar} {::ob: unable to dispatch method 'bar'}
+  # unknown through filter
+  ? {ob bar1} {::ob: unable to dispatch method 'bar1'}
+
+  # deactivate nx unknown handler in case it exists
+  ::nx::Object method unknown {} {}
+
+  # create through filter
+  ? {Foo create ob2} ::ob2
+  # unknown through filter
+  ? {ob2 bar2} {::ob2: unable to dispatch method 'bar2'}
 }
 
 
-puts stderr "==================== XOTcl"
-package require XOTcl
-namespace import -force ::xotcl::*
-
-Class create M1
-Class create M11
-M1 instproc mfoo {} {puts [self proc]}
-Class create C1 
-? {C1 procsearch mixin} "::xotcl::Object instforward mixin"
-C1 mixin M1
-? {C1 info precedence} "::M1 ::xotcl::Class ::xotcl::Object"
-C1 create c11
-? {c11 info precedence} "::C1 ::xotcl::Object"
-C1 mixin add M11
-? {C1 info precedence} "::M11 ::M1 ::xotcl::Class ::xotcl::Object"
-Object o -mixin M1
-? {o info precedence} "::M1 ::xotcl::Object"
-Class O 
-O mixin M1
-? {O info precedence} "::M1 ::xotcl::Class ::xotcl::Object"
-Class O -mixin M1
-? {O info precedence} "::M1 ::xotcl::Class ::xotcl::Object"
 
