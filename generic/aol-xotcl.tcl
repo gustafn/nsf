@@ -23,7 +23,7 @@ proc _ns_savenamespaces {} {
     _ns_getnamespaces namespaces
     foreach n $namespaces {
         if {[string match "::nx*" $n] == 0
-	    && ([catch {::xotcl::objectproperty $n object} ret] || $ret == 0)} {
+	    && ([catch {::nsf::isobject $n} ret] || $ret == 0)} {
             lappend nslist $n
         }
     }

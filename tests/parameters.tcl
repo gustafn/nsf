@@ -7,9 +7,9 @@ Test case dummy {
   set o [Object create o]
   puts o=$o
 
-  ? {::nsf::objectproperty ::o object} 1
+  ? {::nsf::isobject ::o} 1
 }
-? {::nsf::objectproperty ::o object} 0 
+? {::nsf::isobject ::o} 0 
 #exit
 
 #######################################################
@@ -36,8 +36,8 @@ Test case parametercheck {
   ? {c1 info has mixin ::M1} {expected class but got "::M1" for parameter class}
   #? {::nsf::parametercheck hasmixin,arg=::M c1} 1
   
-  ? {::nsf::objectproperty o1 object} 1
-  ? {::nsf::objectproperty o1000 object} 0
+  ? {::nsf::isobject o1} 1
+  ? {::nsf::isobject o1000} 0
   
   #? {::nsf::objectproperty c1 type C} 1
   ? {c1 info has type C} 1

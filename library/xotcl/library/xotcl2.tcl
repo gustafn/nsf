@@ -475,7 +475,7 @@ namespace eval ::xotcl {
     :alias forward            ::nsf::cmd::ObjectInfo2::forward
     :alias hasnamespace       ::nsf::cmd::ObjectInfo2::hasnamespace
     :proc invar {}            {::nsf::assertion [self] object-invar}
-    #:proc is {kind value:optional} {::nsf::objectproperty [::nsf::current object] $kind {*}$value}
+    #:proc is {kind} {::nsf::objectproperty [::nsf::current object] $kind}
 
     :proc methods {
       -nocmds:switch -noprocs:switch -incontext:switch pattern:optional
@@ -590,7 +590,7 @@ namespace eval ::xotcl {
   Object instproc alias {} {}
 
  # emulation of isobject, isclass ...
-  Object instproc isobject    {{object:substdefault "[self]"}} {::nsf::objectproperty $object object}
+  Object instproc isobject    {{object:substdefault "[self]"}} {::nsf::isobject $object}
   Object instproc isclass     {{class:substdefault  "[self]"}} {::nsf::objectproperty $class class}
   Object instproc ismetaclass {{class:substdefault  "[self]"}} {::nsf::objectproperty $class metaclass}
   Object instproc ismixin     {class}  {

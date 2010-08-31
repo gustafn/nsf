@@ -353,7 +353,7 @@ namespace eval ::nx {
 	  # Create dispatch/ensemble object and accessor method (if wanted)
 	  #
 	  if {$scope eq "Class"} {
-	    if {![::nsf::objectproperty ${object}::slot object]} {
+	    if {![::nsf::isobject ${object}::slot]} {
 	      ::nsf::methodproperty $object [Object create ${object}::slot] protected true
 	      if {$verbose} {puts stderr "... create object ${object}::slot"}
 	    }
@@ -704,7 +704,7 @@ namespace eval ::nx {
   proc ::nx::slotObj {baseObject {name ""}} {
     # Create slot parent object if needed
     set slotParent ${baseObject}::slot
-    if {![::nsf::objectproperty $slotParent object]} {
+    if {![::nsf::isobject $slotParent]} {
       ::nx::Object alloc $slotParent
       ::nsf::methodproperty ${baseObject} -per-object slot protected true
     }
@@ -1394,7 +1394,7 @@ namespace eval ::nx {
       # value contains no globbing meta characters, but elementtype is given
       if {[string first :: $value] == -1} {
 	# get fully qualified name
-        if {![::nsf::objectproperty $value object]} {
+        if {![::nsf::isobject $value]} {
           error "$value does not appear to be an object"
         }
         set value [::nsf::dispatch $value -objscope ::nsf::current object]
@@ -1794,7 +1794,7 @@ namespace eval ::nx {
     :protected method init {} {
        :public method new {-childof args} {
 	 ::nsf::importvar [::nsf::current class] {container object} withclass
-	 if {![::nsf::objectproperty $object object]} {
+	 if {![::nsf::isobject $object]} {
 	   $withclass create $object
 	 }
 	 ::nsf::next -childof $object {*}$args
@@ -1817,7 +1817,7 @@ namespace eval ::nx {
     cmds
   } {
     if {![info exists object]} {set object [::nsf::current object]}
-    if {![::nsf::objectproperty $object object]} {$class create $object}
+    if {![::nsf::isobject $object]} {$class create $object}
     # reused in XOTcl, no "require" there, so use nsf primitiva
     ::nsf::dispatch $object ::nsf::cmd::Object::requireNamespace    
     if {$withnew} {
@@ -1853,7 +1853,7 @@ namespace eval ::nx {
       lappend :targetList $t
       #puts stderr "COPY makeTargetList $t target= ${:targetList}"
       # if it is an object without namespace, it is a leaf
-      if {[::nsf::objectproperty $t object]} {
+      if {[::nsf::isobject $t]} {
 	if {[::nsf::dispatch $t ::nsf::cmd::ObjectInfo2::hasnamespace]} {
 	  # make target list from all children
 	  set children [$t info children]
@@ -1865,7 +1865,7 @@ namespace eval ::nx {
       # now append all namespaces that are in the obj, but that
       # are not objects
       foreach c [namespace children $t] {
-        if {![::nsf::objectproperty $c object]} {
+        if {![::nsf::isobject $c]} {
           lappend children [namespace children $t]
         }
       }
@@ -1892,7 +1892,7 @@ namespace eval ::nx {
       #puts stderr "COPY will copy targetList = [set :targetList]"
       foreach origin [set :targetList] {
         set dest [:getDest $origin]
-        if {[::nsf::objectproperty $origin object]} {
+        if {[::nsf::isobject $origin]} {
           # copy class information
           if {[::nsf::objectproperty $origin class]} {
             set cl [[$origin info class] create $dest -noinit]

@@ -237,7 +237,7 @@ namespace eval ::nx::doc {
       # @return The identifier of the newly generated or resolved entity object
       # @see {{@method id}}
       namespace eval $id {}
-      if {[::nsf::objectproperty $id object]} {
+      if {[::nsf::isobject $id]} {
 	$id configure {*}$args
       } else {
 	:create $id {*}$args
@@ -403,9 +403,9 @@ namespace eval ::nx::doc {
       if {$use ne ""} {
 	foreach thing {@command @object} {
 	  set docobj [$thing id $use]
-	  if {[::nsf::objectproperty $docobj object]} break
+	  if {[::nsf::isobject $docobj]} break
 	}
-	if {[::nsf::objectproperty $docobj object]} {
+	if {[::nsf::isobject $docobj]} {
 	  if {![$docobj eval [list info exists :$what]]} {error "no attribute $what in $docobj"}
 	  set names [list]
 	  foreach v [$docobj $what] {
@@ -607,7 +607,7 @@ namespace eval ::nx::doc {
 
 	:method undocumented {} {
 	  # TODO: for object methods and class methods
-	  if {![::nsf::objectproperty ${:name} object]} {return ""}
+	  if {![::nsf::isobject ${:name}]} {return ""}
 	  foreach m [${:name} info methods] {set available_method($m) 1}
 	  set methods ${:@method}
 	  if {[info exists :@param]} {set methods [concat ${:@method} ${:@param}]}
@@ -719,7 +719,7 @@ namespace eval ::nx::doc {
 	    # documentaion quality check: is documentation in sync with implementation?
 	    # TODO: make me conditional, MARKUP should be in templates
 	    set object [${:partof} name] 
-	    if {[::nsf::objectproperty $object object]} {
+	    if {[::nsf::isobject $object]} {
 	      if {[$object info methods ${:name}] ne ""} {
 		set actualParams ""
 		if {[$object info method type ${:name}] eq "forward"} {
@@ -1222,7 +1222,7 @@ namespace eval ::nx {
     # 
     :method process {{-noeval false} thing args} {
       # 1) in-situ processing: a class object
-      if {[::nsf::objectproperty $thing object]} {
+      if {[::nsf::isobject $thing]} {
 	if {[$thing eval {info exists :__initcmd}]} {
 	  
           :analyze_initcmd [expr {[::nsf::objectproperty $thing class]?"@class":"@object"}] $thing [$thing eval {set :__initcmd}]

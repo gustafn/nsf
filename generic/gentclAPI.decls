@@ -91,6 +91,9 @@ xotclCmd is XOTclIsCmd {
   {-argName "value" -required 1 -type tclobj}
   {-argName "constraint" -required 1 -type tclobj}
 }
+xotclCmd isobject XOTclIsObjectCmd {
+  {-argName "object" -required 1 -type tclobj}
+}
 xotclCmd method XOTclMethodCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}

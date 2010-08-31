@@ -214,6 +214,7 @@ static int XOTclImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int 
 static int XOTclInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -293,6 +294,7 @@ static int XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int nobjc,
 static int XOTclInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
 static int XOTclInvalidateObjectParameterCmd(Tcl_Interp *interp, XOTclClass *class);
 static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *value, Tcl_Obj *constraint);
+static int XOTclIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *object);
 static int XOTclMethodCmd(Tcl_Interp *interp, XOTclObject *object, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
 static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
@@ -373,6 +375,7 @@ enum {
  XOTclInterpObjCmdIdx,
  XOTclInvalidateObjectParameterCmdIdx,
  XOTclIsCmdIdx,
+ XOTclIsObjectCmdIdx,
  XOTclMethodCmdIdx,
  XOTclMethodPropertyCmdIdx,
  XOTclMyCmdIdx,
@@ -1724,6 +1727,24 @@ XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 }
 
 static int
+XOTclIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[XOTclIsObjectCmdIdx].paramDefs, 
+                     method_definitions[XOTclIsObjectCmdIdx].nrParameters, 
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
+
+    parseContextRelease(&pc);
+    return XOTclIsObjectCmd(interp, object);
+
+  }
+}
+
+static int
 XOTclMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
 
@@ -2215,6 +2236,9 @@ static methodDefinition method_definitions[] = {
 {"::nsf::is", XOTclIsCmdStub, 2, {
   {"value", 1, 0, convertToTclobj},
   {"constraint", 1, 0, convertToTclobj}}
+},
+{"::nsf::isobject", XOTclIsObjectCmdStub, 1, {
+  {"object", 1, 0, convertToTclobj}}
 },
 {"::nsf::method", XOTclMethodCmdStub, 9, {
   {"object", 1, 0, convertToObject},

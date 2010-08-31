@@ -183,7 +183,7 @@ namespace eval ::nx::serializer {
           return 1
         }
         # we do this for object trees without object-less namespaces
-        if {![::nsf::objectproperty $o object]} {
+        if {![::nsf::isobject $o]} {
           return 0
         }
         set o [$o info parent]
@@ -275,7 +275,7 @@ namespace eval ::nx::serializer {
       catch {unset namespace(::ns)}
       foreach ns [array name namespace] {
         if {![namespace exists $ns]} continue
-        if {![::nsf::objectproperty $ns object]} {
+        if {![::nsf::isobject $ns]} {
           append pre_cmds "namespace eval $ns {}\n"
         } elseif {$ns ne [namespace origin $ns] } {
           append pre_cmds "namespace eval $ns {}\n"
@@ -342,7 +342,7 @@ namespace eval ::nx::serializer {
 
     :object method checkExportedObject {} {
       foreach o [array names :exportObjects] {
-        if {![::nsf::objectproperty $o object]} {
+        if {![::nsf::isobject $o]} {
           puts stderr "Serializer exportObject: ignore non-existing object $o"
           unset :exportObjects($o)
         } else {
@@ -494,14 +494,14 @@ namespace eval ::nx::serializer {
       #
       foreach k [Serializer exportedMethods] {
         foreach {o p m} $k break
-	if {![::nsf::objectproperty $o object]} {
+	if {![::nsf::isobject $o]} {
 	  puts stderr "Warning: $o is not an object"
 	} elseif {[::nsf::dispatch $o ::nsf::cmd::ObjectInfo2::hastype ${:rootClass}]} {
 	  set :exportMethods($k) 1
 	}
       }
       foreach o [Serializer exportedObjects] {
-	if {![::nsf::objectproperty $o object]} {
+	if {![::nsf::isobject $o]} {
 	  puts stderr "Warning: $o is not an object"
 	} elseif {[nsf::dispatch $o ::nsf::cmd::ObjectInfo2::hastype ${:rootClass}]} {
 	  set :exportObjects($o) 1

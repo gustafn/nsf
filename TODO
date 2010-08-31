@@ -1223,8 +1223,17 @@ _ added option noforwarder to RelationSlots
 - adoped emulation layer in xotcl2 accordingly 
 - extended regression test
 
+- introduced ::nsf::isobject
+- replaced in all scripts "::nsf::objectproperty ... object" by isobject
+
 TODO: 
+- reflect changes in /is/objectproperty/info has/info is/ in migration guide
 - rename ObjectInfo2 & ClassInfo2
+- check equivalence of the following two commands
+  in respect to fully-qualified names
+         ::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::hastype $class
+         ::nsf::parametercheck object,type=$class $obj
+
 - check "my" vs. "nsf::dispatch" in xotcl2.tcl
 - overthink decision about not showing "child objects" per default in "info methods"
 

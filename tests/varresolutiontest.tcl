@@ -406,7 +406,7 @@ Class create ::C
 ::C create ::c
 namespace eval ::c {}
 ? {namespace exists ::c} 1
-? {::nsf::objectproperty ::c object} 1
+? {::nsf::isobject ::c} 1
 ? {::c info has namespace} 0
 
 ? {::c Set w 2; expr {[::c Set w] == $::w}} 0

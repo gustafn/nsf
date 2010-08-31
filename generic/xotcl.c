@@ -11541,6 +11541,18 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraint
 }
 
 /*
+xotclCmd isobject XOTclIsObjectCmd {
+  {-argName "object" -required 1 -type tclobj}
+}
+*/
+static int XOTclIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *valueObj) {
+  XOTclObject *object;
+  Tcl_SetBooleanObj(Tcl_GetObjResult(interp), GetObjectFromObj(interp, valueObj, &object) == TCL_OK);
+  return TCL_OK;
+}
+
+
+/*
 xotclCmd method XOTclMethodCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
@@ -12048,7 +12060,6 @@ xotclCmd objectproperty XOTclObjectpropertyCmd {
 static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectkind) {
   int success = TCL_ERROR;
   XOTclObject *object;
-  XOTclClass *cl;
 
   /* fprintf(stderr, "XOTclObjectpropertyCmd\n");*/
 

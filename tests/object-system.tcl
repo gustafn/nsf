@@ -16,13 +16,13 @@ proc ? {cmd expected {msg ""}} {
    }
 }
 
-? {::nsf::objectproperty Object object} 1
+? {::nsf::isobject Object} 1
 ? {::nsf::objectproperty Object class} 1
 ? {::nsf::objectproperty Object metaclass} 0
 ? {Object info superclass} ""
 ? {Object info class} ::nx::Class
 
-? {::nsf::objectproperty Class object} 1
+? {::nsf::isobject Class} 1
 ? {::nsf::objectproperty Class class} 1
 ? {::nsf::objectproperty Class metaclass} 1
 ? {Class info superclass} ::nx::Object
@@ -30,7 +30,7 @@ proc ? {cmd expected {msg ""}} {
 
 
 Object create o
-? {::nsf::objectproperty Object object} 1
+? {::nsf::isobject Object} 1
 ? {::nsf::objectproperty o class} 0
 ? {::nsf::objectproperty o metaclass} 0
 ? {o info class} ::nx::Object
@@ -45,27 +45,27 @@ Class create C0
 #? {lsort [Class info vars]} "__default_metaclass __default_superclass"
 
 Class create M -superclass ::nx::Class
-? {::nsf::objectproperty M object} 1
+? {::nsf::isobject M} 1
 ? {::nsf::objectproperty M class} 1
 ? {::nsf::objectproperty M metaclass} 1
 ? {M info superclass} ::nx::Class
 ? {M info class} ::nx::Class
 
 M create C
-? {::nsf::objectproperty C object} 1
+? {::nsf::isobject C} 1
 ? {::nsf::objectproperty C class} 1
 ? {::nsf::objectproperty C metaclass} 0
 ? {C info superclass} ::nx::Object
 ? {C info class} ::M
 
 C create c1
-? {::nsf::objectproperty c1 object} 1
+? {::nsf::isobject c1} 1
 ? {::nsf::objectproperty c1 class} 0
 ? {::nsf::objectproperty c1 metaclass} 0
 ? {c1 info class} ::C
 
 Class create M2 -superclass M
-? {::nsf::objectproperty M2 object} 1
+? {::nsf::isobject M2} 1
 ? {::nsf::objectproperty M2 class} 1
 ? {::nsf::objectproperty M2 metaclass} 1
 ? {M2 info superclass} ::M
@@ -78,7 +78,7 @@ M2 create m2
 # destroy meta-class M, reclass meta-class instances to the base
 # meta-class and set subclass of M to the root meta-class
 M destroy
-? {::nsf::objectproperty C object} 1
+? {::nsf::isobject C} 1
 ? {::nsf::objectproperty C class} 1
 ? {::nsf::objectproperty C metaclass} 0
 ? {C info superclass} ::nx::Object
@@ -100,16 +100,16 @@ C destroy
 # basic parameter tests
 
 Class create C -parameter {{x 1} {y 2}}
-? {::nsf::objectproperty C object} 1
-? {::nsf::objectproperty C::slot object} 1
+? {::nsf::isobject C} 1
+? {::nsf::isobject C::slot} 1
 ? {C info children} ::C::slot
 
 
 C copy X
-? {::nsf::objectproperty X object} 1
+? {::nsf::isobject X} 1
 ? {X info vars} ""
 ? {C info vars} ""
-? {::nsf::objectproperty X::slot object} 1
+? {::nsf::isobject X::slot} 1
 
 #? {C::slot info vars} __parameter
 ? {C info parameter} {{x 1} {y 2}}
@@ -146,13 +146,13 @@ puts stderr ===MINI-OBJECTSYSTEM
 # create a minimal object system without internally dipatched methods
 ::nsf::createobjectsystem ::object ::class
 
-? {::nsf::objectproperty ::object object} 1
+? {::nsf::isobject ::object} 1
 ? {::nsf::objectproperty ::object class} 1
 ? {::nsf::objectproperty ::object metaclass} 0
 ? {::nsf::relation ::object class} ::class
 ? {::nsf::relation ::object superclass} ""
 
-? {::nsf::objectproperty ::class object} 1
+? {::nsf::isobject ::class} 1
 ? {::nsf::objectproperty ::class class} 1
 ? {::nsf::objectproperty ::class metaclass} 1
 ? {::nsf::relation ::class class} ::class
@@ -165,7 +165,7 @@ puts stderr ===MINI-OBJECTSYSTEM
 # create a class named C
 ::class + C
 
-? {::nsf::objectproperty ::C object} 1
+? {::nsf::isobject ::C} 1
 ? {::nsf::objectproperty ::C class} 1
 ? {::nsf::objectproperty ::C metaclass} 0
 ? {::nsf::relation ::C class} ::class
@@ -174,7 +174,7 @@ puts stderr ===MINI-OBJECTSYSTEM
 # create an instance of C
 C + c1
 
-? {::nsf::objectproperty ::c1 object} 1
+? {::nsf::isobject ::c1} 1
 ? {::nsf::objectproperty ::c1 class} 0
 ? {::nsf::objectproperty ::c1 metaclass} 0
 ? {::nsf::relation ::c1 class} ::C
@@ -182,7 +182,7 @@ C + c1
 # destroy instance and class
 c1 -
 
-? {::nsf::objectproperty ::c1 object} 0
+? {::nsf::isobject ::c1} 0
 ? {::nsf::objectproperty ::C class} 1
 
 C -
