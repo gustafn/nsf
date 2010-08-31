@@ -11533,13 +11533,12 @@ static int XOTclInvalidateObjectParameterCmd(Tcl_Interp *interp, XOTclClass *cl)
 xotclCmd is XOTclIsCmd {
   {-argName "value" -required 1 -type tclobj}
   {-argName "constraint" -required 1 -type tclobj}
-  {-argName "-hasmixin" -required 0 -nrargs 1 -type tclobj}
   {-argName "-type" -required 0 -nrargs 1 -type tclobj}
   {-argName "arg" -required 0 -type tclobj}
 }
 */
 static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraintObj, 
-                       Tcl_Obj *withHasmixin, Tcl_Obj *withType, Tcl_Obj *arg) {
+		      Tcl_Obj *withType, Tcl_Obj *arg) {
   int result = TCL_OK, success;
   CONST char *constraintString = ObjStr(constraintObj);
   XOTclObject *object;
@@ -11553,9 +11552,9 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraint
 
     Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
 
-  } else if (withHasmixin || withType) {
+  } else if (withType) {
     if ((!isObjectString(constraintString) && !isClassString(constraintString)) || arg != NULL) {
-      return XOTclObjErrArgCnt(interp, NULL, NULL, "object|class <object> ?-hasmixin cl? ?-type cl?");
+      return XOTclObjErrArgCnt(interp, NULL, NULL, "object|class <object> ?-type cl?");
     }
     if (*constraintString == 'o') {
       success = (GetObjectFromObj(interp, valueObj, &object) == TCL_OK);
@@ -11565,10 +11564,6 @@ static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraint
     if (success && withType) {
       success = (GetClassFromObj(interp, withType, &typeClass, NULL) == TCL_OK)
         && isSubType(object->cl, typeClass);
-    }
-    if (success && withHasmixin) {
-      success = (GetClassFromObj(interp, withHasmixin, &mixinClass, NULL) == TCL_OK)
-        && HasMixin(interp, object, mixinClass);
     }
     Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
 
@@ -12090,7 +12085,7 @@ XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 /*
 xotclCmd objectproperty XOTclObjectpropertyCmd {
   {-argName "object" -required 1 -type tclobj}
-  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|hasmixin"}
+  {-argName "objectkind" -type "type|object|class|baseclass|metaclass"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -12136,16 +12131,7 @@ static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectki
       && XOTclObjectIsClass(object)
       && IsBaseClass((XOTclClass*)object);
     break;
-
-  case ObjectkindHasmixinIdx:
-    if (valueObj == NULL) return XOTclObjErrArgCnt(interp, NULL, NULL, "<object> hasmixin <class>");
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
-      && (GetClassFromObj(interp, valueObj, &cl, NULL) == TCL_OK)
-      && HasMixin(interp, object, cl);
-    break;
   }
-
-
   Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
   return TCL_OK;
 }

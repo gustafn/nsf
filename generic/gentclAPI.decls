@@ -90,7 +90,6 @@ xotclCmd invalidateobjectparameter XOTclInvalidateObjectParameterCmd {
 xotclCmd is XOTclIsCmd {
   {-argName "value" -required 1 -type tclobj}
   {-argName "constraint" -required 1 -type tclobj}
-  {-argName "-hasmixin" -required 0 -nrargs 1 -type tclobj}
   {-argName "-type" -required 0 -nrargs 1 -type tclobj}
   {-argName "arg" -required 0 -type tclobj}
 }
@@ -128,7 +127,7 @@ xotclCmd namespace_copyvars XOTclNSCopyVars {
 }
 xotclCmd objectproperty XOTclObjectpropertyCmd {
   {-argName "object" -required 1 -type tclobj}
-  {-argName "objectkind" -type "type|object|class|baseclass|metaclass|hasmixin"}
+  {-argName "objectkind" -type "type|object|class|baseclass|metaclass"}
   {-argName "value" -required 0 -type tclobj}
 }
 xotclCmd parametercheck XOTclParametercheckCmd {

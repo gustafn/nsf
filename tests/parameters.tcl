@@ -29,26 +29,25 @@ Test case parametercheck {
   ? {::nsf::parametercheck -nocomplain object o1000} 0
   ? {::nsf::parametercheck integer 1} 1
   ? {::nsf::parametercheck object,type=::C c1} 1
-  ? {::nsf::parametercheck hasmixin,arg=::M c1} 1
+  ? {c1 info has mixin ::M} 1  
+  ? {c1 info has mixin ::M1} {expected class but got "::M1" for parameter class}
+  #? {::nsf::parametercheck hasmixin,arg=::M c1} 1
   
-  #D method foo-hasmixin {x:hasmixin,arg=::M} {return $x}
-  #D method foo-type     {x:object,type=::C} {return $x}
-
   ? {::nsf::objectproperty o1 object} 1
   ? {::nsf::objectproperty o1000 object} 0
   ? {::nsf::objectproperty c1 type C} 1
 
   ? {::nsf::is c1 object -type C} 1
-  ? {::nsf::is c1 object -hasmixin M -type C} 1
-  ? {::nsf::is c1 object -hasmixin M1 -type C} 0
-  ? {::nsf::is c1 object -hasmixin M -type C0} 0
+  #? {::nsf::is c1 object -hasmixin M -type C} 1
+  #? {::nsf::is c1 object -hasmixin M1 -type C} 0
+  #? {::nsf::is c1 object -hasmixin M -type C0} 0
   ? {::nsf::is o1 object} 1
   ? {::nsf::is o100 object} 0
   ? {::nsf::is 1 integer} 1
   ? {::nsf::is c1 type C} 1
   ? {::nsf::is o type C} 0
   ? {::nsf::is o object -type C} 0
-  ? {::nsf::is o object -hasmixin C} 0
+  #? {::nsf::is o object -hasmixin C} 0
 #exit
   ? {::nsf::parametercheck class o1} {expected class but got "o1" for parameter value}
   ? {::nsf::parametercheck -nocomplain class o1} 0
@@ -613,11 +612,11 @@ Test case mp-object-types {
   D method foo-class    {x:class} {return $x}
   D method foo-object   {x:object} {return $x}
   D method foo-meta     {x:metaclass} {return $x}
-  D method foo-hasmixin {x:hasmixin,arg=::M} {return $x}
+  #D method foo-hasmixin {x:hasmixin,arg=::M} {return $x}
   D method foo-type     {x:object,type=::C} {return $x}
   
   ? {D info method parameter foo-base} "x:baseclass"
-  ? {D info method parameter foo-hasmixin} "x:hasmixin,arg=::M"
+  #? {D info method parameter foo-hasmixin} "x:hasmixin,arg=::M"
   ? {D info method parameter foo-type} "x:object,type=::C"
   
   ? {d1 foo-base ::nx::Object} "::nx::Object"
@@ -638,8 +637,8 @@ Test case mp-object-types {
       {expected metaclass but got "::nx::Object" for parameter x} \
       "not a base class"
 
-  ? {d1 foo-hasmixin c1} "c1"
-  ? {d1 foo-hasmixin o} \
+  #? {d1 foo-hasmixin c1} "c1"
+  #? {d1 foo-hasmixin o} \
       {expected object with mixin ::M but got "o" for parameter x} \
       "does not have mixin M"
   
@@ -761,7 +760,6 @@ Test case op-object-types {
     d:object,type=::C
     d1:object,type=C
     m:metaclass
-    mix:hasmixin,arg=M
     b:baseclass
     u:upper
     us:upper,multivalued
@@ -780,7 +778,7 @@ Test case op-object-types {
   ? {::parameterFromSlot ParamTest c1} "c1:class,type=::MC,slot=::ParamTest::slot::c1"
   ? {::parameterFromSlot ParamTest d} "d:object,type=::C,slot=::ParamTest::slot::d"
   ? {::parameterFromSlot ParamTest d1} "d1:object,type=::C,slot=::ParamTest::slot::d1"
-  ? {::parameterFromSlot ParamTest mix} "mix:hasmixin,arg=M,slot=::ParamTest::slot::mix"
+  #? {::parameterFromSlot ParamTest mix} "mix:hasmixin,arg=M,slot=::ParamTest::slot::mix"
   ? {::parameterFromSlot ParamTest x} "x:object,multivalued,slot=::ParamTest::slot::x o"
   ? {::parameterFromSlot ParamTest u} "u:upper,slot=::ParamTest::slot::u"
   ? {::parameterFromSlot ParamTest us} "us:upper,multivalued,slot=::ParamTest::slot::us"
@@ -807,8 +805,8 @@ Test case op-object-types {
       {expected object of type ::C but got "o" for parameter -d} \
       "o not of type ::C"
   
-  ? {ParamTest create p -mix c1} ::p
-  ? {ParamTest create p -mix o} \
+  #? {ParamTest create p -mix c1} ::p
+  #? {ParamTest create p -mix o} \
       {expected object with mixin M but got "o" for parameter mix} \
       "does not have mixin M"
   

@@ -1767,13 +1767,6 @@ namespace eval ::nx {
   # create user-level converter/checker based on ::nsf primitves
   ##################################################################
 
-  Slot method type=hasmixin {name value arg} {
-    if {![::nsf::objectproperty $value hasmixin $arg]} {
-      error "expected object with mixin $arg but got \"$value\" for parameter $name"
-    }
-    return $value
-  }
-
   Slot method type=baseclass {name value} {
     if {![::nsf::objectproperty $value baseclass]} {
       error "expected baseclass but got \"$value\" for parameter $name"

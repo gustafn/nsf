@@ -1206,7 +1206,13 @@ _ added option noforwarder to RelationSlots
 - added "$obj info has mixin $class"
 - added "$obj info has type $class"
 - extended regression test for parametercheck/objectproperty/is
-- updated interface definitions for info methods, sort them alphabetically
+- updated interface definitions for info methods, sort these alphabetically
+
+- removed "objectproperty .... hasmixin"
+- removed "nsd::is ... -hasmixin ...."
+- removed type-converter "type=hasmixin"
+- adoped emulation layer in xotcl2 accordingly 
+- added two tests for "info has mixin" in regression test
 
 TODO: 
 - rename ObjectInfo2 & ClassInfo2
