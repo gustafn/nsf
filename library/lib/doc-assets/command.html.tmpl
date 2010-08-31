@@ -4,7 +4,7 @@
 
 
 <div class="description summary" property="yui:description">
-  [:text]
+  [:as_text]
 </div>
 
 <div class="description">
@@ -41,7 +41,7 @@
 	    [$sub parameters]
 	    </code>
           <div class="description" property="yui:description">
-	    [$sub text]
+	    [$sub as_text]
 	    	  [:? {[$sub eval {info exists :@param}]} {
 	    <dl rel="yui:parameters">
 	    <dt>Subcommand parameters:</dt>
@@ -50,7 +50,7 @@
 	      <code><span property="yui:name">[$param name]</span>
 		[:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
 	      </code>
-	      <span property="yui:description">[$param text]</span>
+	      <span property="yui:description">[$param as_text]</span>
 	    </dd>
 	    }]
 	  </dl>
@@ -60,7 +60,7 @@
 	    <dt>Returns:
 	      <code property="yui:return">
 	    </code></dt>
-	    <dd property="yui:returnInfo">[[$sub @return] text]</dd>
+	    <dd property="yui:returnInfo">[[$sub @return] as_text]</dd>
 	  </dl>
 	  }]
           </div>
@@ -80,7 +80,7 @@
       <code><span property="yui:name">[$param name]</span>
         &lt;<span property="yui:type">[:? {[$param eval {info exists :spec}]} {[$param spec]}]</span>&gt;
       </code>
-      <span property="yui:description">[$param text]</span>
+      <span property="yui:description">[$param as_text]</span>
     </dd>
     }]
   </dl>
@@ -91,7 +91,7 @@
     <dt>Returns:
       <code property="yui:return">
     </code></dt>
-    <dd property="yui:returnInfo">[${:@return} text]</dd>
+    <dd property="yui:returnInfo">[${:@return} as_text]</dd>
   </dl>
 }]
 }]

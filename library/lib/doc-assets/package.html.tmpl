@@ -1,10 +1,10 @@
 <!-- Below, we assume that the template is evaluated in the context of --
-  -- @package instance -->
+  -- a @package instance -->
 <h3>Package: ${:name}
   
 </h3>
 <div class="description summary">
-  [:text]
+  [:as_text]
 </div>
 
 
@@ -17,31 +17,48 @@
 <div class="yui-gc">
   <div class="yui-u first">
     
-    [:?var objects {
-        <p>This package contains [llength $objects] objects:</p>
+    [:?var :@class {
+        <p>This package contains [llength ${:@class}] classes:</p>
     <script>
       //var YUI_CLASS_LIST = classList;
     </script>
     <div id="splash_classList">
       <ul>
 	[:let idx 0]
-	[:for object $objects {
-	 <li><a href="[${object} filename].html" title="[${object} name]" id="class_$idx">[${object} name]</a></li>
+	[:for class ${:@class} {
+	 <li><a href="[${class} filename].html" title="[${class} name]" id="class_$idx">[${class} name]</a></li>
 	[incr idx; return]
 	} ]
       </ul>
     </div>
-
     } ] 
-    [:?var objects {
-        <p>This package contains [llength $commands] commands:</p>
+
+    [:?var :@object {
+        <p>This package contains [llength ${:@object}] objects:</p>
     <script>
       //var YUI_CLASS_LIST = classList;
     </script>
     <div id="splash_classList">
       <ul>
 	[:let idx 0]
-	[:for cmd $commands {
+	[:for obj ${:@object} {
+	 <li><a href="[${obj} filename].html" title="[${obj} name]" id="class_$idx">[${obj} name]</a></li>
+	[incr idx; return]
+	} ]
+      </ul>
+    </div>
+    } ] 
+
+
+    [:?var :@command {
+        <p>This package contains [llength ${:@command}] commands:</p>
+    <script>
+      //var YUI_CLASS_LIST = classList;
+    </script>
+    <div id="splash_classList">
+      <ul>
+	[:let idx 0]
+	[:for cmd ${:@command} {
 	 <li><a href="[${cmd} filename].html" title="[$cmd name]" id="cmd_$idx">[$cmd name]</a></li>
 	[incr idx; return]
 	} ]

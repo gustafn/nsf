@@ -5,7 +5,7 @@
   </fieldset>
 </form>
 <h2>
-  [:? {[${:name} info is class]} { Class } - { Object  }] 
+  Class
   <b property="yui:name">${:name}</b>
   [:?var :@superclass {
   <span class="extends">
@@ -22,21 +22,22 @@
 }]
 
 <div class="summary description" property="yui:description">
-  [:text]
+  [:as_text]
 </div>
 
 <div rel="yui:properties" resource="#properties">
-[:?var :@param {
   <div class="section field details">
-    <h3 id="properties">Slots</h3>
+    <h3 id="properties">Class parameters</h3>
     <div class="content">
-      [:for attr ${:@param} {
+[:?var :@class-param {
+
+      [:for attr ${:@class-param} {
        <div rel="yui:property">
         <h4><a name="property_[$attr name]" property="yui:name">[$attr name]</a>
         </h4>
         <div class="detail">
           <div class="description" property="yui:description">
-	    [$attr text]
+	    [$attr as_text]
           </div>
         </div>
 	
@@ -57,17 +58,18 @@
       </div>
    
       }]
-      </div>
+}]
+    </div>
   </div>
-} ]
-  [:let iattrs [:inherited @param]]
+
+  [:let iattrs [:inherited @class-param]]
   [:? {$iattrs ne ""} { 
   <div rel="yui:inheritance">                    
                         [:for superclass [dict keys $iattrs]  {
 			[:let attrs [dict get $iattrs $superclass]]
                             <div class="section field inheritance"
                         rel="yui:superclass"  resource="[$superclass filename].html">
-                                <h4>Slots inherited
+                                <h4>Object parameters inherited
                                 from <a href="[$superclass filename].html" property="yui:name"
                                 title="[$superclass name]">[$superclass name]</a>:</h4>
                                 <div class="content" rel="yui:properties">
@@ -89,12 +91,50 @@
 }]
 </div>
 
-<div rel="yui:methods" resource="#methods">
-[:?var :@method {
-  <div class="section method details">
-    <h3 id="methods">Methods</h3>
+<div rel="yui:properties" resource="#properties">
+  <div class="section field details">
+    <h3 id="properties">Object parameters</h3>
     <div class="content">
-      [:for method ${:@method} {
+[:?var :@object-param {
+
+      [:for attr ${:@object-param} {
+       <div rel="yui:property">
+        <h4><a name="property_[$attr name]" property="yui:name">[$attr name]</a>
+        </h4>
+        <div class="detail">
+          <div class="description" property="yui:description">
+	    [$attr as_text]
+          </div>
+        </div>
+	
+        
+        [:? {[$attr eval {info exists :default}]} {
+        <div class="default" property="yui:defaultValue">
+          Default Value: [$attr default]
+        </div>        
+	}]
+	
+	[:? {[$attr eval {info exists :deprecated}]} {
+        <div class="deprecated" property="yui:deprecated">
+          <strong>Deprecated:</strong> [$attr]
+        </div>        
+	}]
+	
+        <hr />
+      </div>
+   
+      }]
+}]
+    </div>
+  </div>
+</div>
+
+<div rel="yui:methods" resource="#methods">
+  <div class="section method details">
+    <h3 id="methods">Class methods</h3>
+    <div class="content">
+[:?var :@class-method {
+      [:for method ${:@class-method} {
       <div class="[$method @modifier]" rel="yui:method" resource="#method_[$method name]">
         <h4>
           <a name="method_[$method name]">[$method name]</a></h4>
@@ -111,7 +151,7 @@
 	     <br>Method is redefine-protected
 	  }]
            <div class="description" property="yui:description">
-            [$method text]
+            [$method as_text]
           </div>
 	  
           <div class="description">
@@ -124,7 +164,7 @@
                 <code><span property="yui:name">[$param name]</span>
                 [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
                 </code>
-                <span property="yui:description">[$param text]</span>
+                <span property="yui:description">[$param as_text]</span>
 		[:? {[$param eval {info exists :default}]} {
                 <div class="default" property="yui:defaultValue">
                   Default Value: [$param default]
@@ -141,7 +181,7 @@
               <dt>Returns:
                 <code property="yui:return">
               </code></dt>
-              <dd property="yui:returnInfo">[$rparam text]</dd>
+              <dd property="yui:returnInfo">[$rparam as_text]</dd>
             </dl>
 	    }]
 	    
@@ -163,10 +203,11 @@
       </div>
       
       }] <!-- end-of-for -->
+  }]
     </div>
   </div>
-  }]
-  [:let imethods [:inherited @method]]
+
+  [:let imethods [:inherited @class-method]]
   [:? {$imethods ne ""} { 
   <div rel="yui:inheritance">
                         [:for superclass [dict keys $imethods]  {
@@ -203,7 +244,7 @@
 [:?var :@object-method {
 <div rel="yui:object-methods" resource="#object-methods">
   <div class="section method details">
-    <h3 id="object-methods">Per-object methods</h3>
+    <h3 id="object-methods">Object methods</h3>
     <div class="content">
       [:for omethod ${:@object-method} {
       <div class="[$omethod @modifier]" rel="yui:object-method" resource="#object-method_[$omethod name]">
@@ -215,7 +256,7 @@
 	    [$omethod parameters]
 	    </code>
           <div class="description" property="yui:description">
-            [$omethod text]
+            [$omethod as_text]
           </div>
 	  
           <div class="description">
@@ -228,7 +269,7 @@
                 <code><span property="yui:name">[$param name]</span>
                   [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
                 </code>
-                <span property="yui:description">[$param text]</span>
+                <span property="yui:description">[$param as_text]</span>
               </dd>
 	      }]
             </dl>
@@ -240,7 +281,7 @@
               <dt>Returns:
                 <code property="yui:return">
               </code></dt>
-              <dd property="yui:returnInfo">[$rparam text]</dd>
+              <dd property="yui:returnInfo">[$rparam as_text]</dd>
             </dl>
 	    }]
 	    

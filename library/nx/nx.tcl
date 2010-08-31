@@ -3,8 +3,8 @@
 # The Next Scripting Language is a compact and expressive object-oriented language
 # extension for Tcl. The object system model is highly influenced by
 # CLOS. This package provides the basic object system for the Next
-# language. It defines the basic language entities {{@object ::nx::Object}} and
-# {{@object ::nx::Class}}, as well as essential language primitives
+# language. It defines the basic language entities {{@class ::nx::Object}} and
+# {{@class ::nx::Class}}, as well as essential language primitives
 # (e.g., {{@command ::nx::next}} and {{@command ::nx::self}}).
 #
 # @require Tcl
@@ -24,22 +24,22 @@ namespace eval ::nx {
   # First create the ::nx object system. 
   #
 
-  # @object ::nx::Object
+  # @class ::nx::Object
   #
   # Next Scripting Language (NSL)programs are constructed out of
   # objects. This class describes common structural and behavioural
   # features for all NSL objects. It is the root object-class in the
   # NSL object system.
 
-  # @object ::nx::Class
+  # @class ::nx::Class
   #
   # A class defines a family of object types which own a common set of
-  # attributes (see {{@object ::nx::Attribute}}) and methods. Classes
+  # attributes (see {{@class ::nx::Attribute}}) and methods. Classes
   # are organised according to their similarities and differences in
   # classification hierarchies. This object represents the root
   # meta-class in the "Next" object system.
   #
-  # @superclass ::nx::doc::entities::object::nx::Object
+  # @superclass ::nx::doc::entities::class::nx::Object
   
   # @method ::nx::Class#alloc
   #
@@ -103,7 +103,8 @@ namespace eval ::nx {
   # }}}
   # 
   # @param name The designated identifier on the class or the object to be created.
-  # @param args Arguments to be passed down to the object creation procedure used to initialize the object.
+  # @param args arguments to be passed down to the object creation
+  # procedure used to initialize the object.
   # @return The name of the created, fully initialized object.
   
   # @method ::nx::Class#dealloc
@@ -1026,24 +1027,24 @@ namespace eval ::nx {
 }
 namespace eval ::nx {
 
-  # @object ::nx::Slot
+  # @class ::nx::Slot
   #
   # A slot is a meta-object that manages property changes of
   # objects. A property is either an attribute or a role taken by an
   # object in an inter-object relation (e.g., in system slots). The
   # predefined system slots are {{{class}}}, {{{superclass}}},
   # {{{mixin}}}, and {{{filter}}}. These slots appear as methods of
-  # {{@object ::nx::Object}} or {{@object ::nx::Class}}. The slots
+  # {{@class ::nx::Object}} or {{@class ::nx::Class}}. The slots
   # provide a common getter and setter interface. Every multivalued
   # slot provides e.g. a method {{{add}}} to append a value to the
   # list of values, and a method {{{delete}}} which removes it.
   #
-  # @superclass ::nx::doc::entities::object::nx::Object
+  # @superclass ::nx::doc::entities::class::nx::Object
   MetaSlot create ::nx::Slot
 
-  # @object ::nx::ObjectParameterSlot
+  # @class ::nx::ObjectParameterSlot
   #
-  # @superclass ::nx::doc::entities::object::nx::Slot
+  # @superclass ::nx::doc::entities::class::nx::Slot
 
   MetaSlot create ::nx::ObjectParameterSlot
   ::nsf::relation ObjectParameterSlot superclass Slot
@@ -1565,7 +1566,7 @@ namespace eval ::nx {
   ############################################
   ::nsf::invalidateobjectparameter MetaSlot
   
-  # @object ::nx::Attribute
+  # @class ::nx::Attribute
   #
   # Attribute slots are used to manage the access, mutation, and
   # querying of instance variables. One defines Attribute slots 
@@ -1590,7 +1591,7 @@ namespace eval ::nx {
   # @param valuecmd A Tcl command to be executed whenever the managed object variable is read
   # @param valuechangedcmd A Tcl command to be executed whenever the value of the managed object variable changes
   # @param arg
-  # @superclass ::nx::doc::entities::object::nx::ObjectParameterSlot
+  # @superclass ::nx::doc::entities::class::nx::ObjectParameterSlot
 
   MetaSlot create ::nx::Attribute -superclass ObjectParameterSlot
 

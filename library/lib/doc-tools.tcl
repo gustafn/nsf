@@ -185,6 +185,10 @@ namespace eval ::nx::doc {
     :attribute {tag {[string trimleft [string tolower [namespace tail [current]]] @]}}
     :attribute {root_namespace "::nx::doc::entities"}
 
+    :attribute owned_part_attributes:object,type=::nx::doc::PartAttribute,multivalued {
+      set :incremental 1
+    }
+
     namespace eval ::nx::doc::entities {}
 
     :method get_fully_qualified_name {name} {
@@ -298,6 +302,7 @@ namespace eval ::nx::doc {
     :attribute part_class:optional,class
     :attribute scope
 
+    # :forward owning_entity_class {% [[:info parent] info parent] }
     :method init args {
       :defaultmethods [list get append]
       :multivalued true
@@ -310,6 +315,7 @@ namespace eval ::nx::doc {
 	regexp -- {@(.*)-.*} [namespace tail [current]] _ :scope
       }
       next
+      # :owning_entity_class owned_part_attributes add [current]
     }
     
     :method require_part {domain prop value} {
@@ -372,6 +378,22 @@ namespace eval ::nx::doc {
 	expr {$prop in ${:@properties}}
     }
 
+    :method owned_parts {} {
+      set slots [:info slotobjects]
+      set r [dict create]
+      # puts stderr SLOTS=$slots
+      foreach s $slots {
+	# [$s info is type ::nx::doc::PartAttribute]
+	if {![::nsf::objectproperty $s type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}]} continue;
+	set accessor [$s name]
+	# puts stderr "PROCESSING ACCESSOR $accessor, [info exists :$accessor]"
+	if {[info exists :$accessor]} {
+	  dict set r $accessor [sorted [:$accessor] name]
+	}
+      }
+      return $r
+    }
+
     # @method _doc
     #
     # The method _doc can be use to obtain the value of the documentation
@@ -403,17 +425,20 @@ namespace eval ::nx::doc {
     # performs substitution on it.  The substitution is not essential,
     # but looks for now convenient.
     #
-    :method text {-as_list:switch} {
+
+    :method as_list {} {
       if {[info exists :@doc] && ${:@doc} ne ""} {
-	set doc ${:@doc}
-	set non_empty_elements [lsearch -all -not -exact $doc ""]
-	set doc [lrange $doc [lindex $non_empty_elements 0] [lindex $non_empty_elements end]]
-	if {$as_list} {
-	  return $doc
-	} else {
-	  return [subst [join $doc " "]]
-	}
+	set non_empty_elements [lsearch -all -not -exact ${:@doc} ""]
+	return [lrange ${:@doc} [lindex $non_empty_elements 0] [lindex $non_empty_elements end]]
       }
+    }
+
+    :method as_text {} {
+      set doc [list]
+      foreach l [:as_list] {
+	lappend doc [string trimleft $l]
+      }
+      return [subst [join $doc " "]]
     }
 
     :method filename {} {
@@ -430,7 +455,7 @@ namespace eval ::nx::doc {
 	set container [[current class] container]
 	if {![string match "::*" $name]} {
 	  # puts -nonewline stderr "--- EXPANDING name $name"
-	  set name [$container namespace]::[string trimleft $name :]
+	  set name [$container namespace]::$name 
 	  # puts stderr " to name $name"
 	}
 	next $name
@@ -447,10 +472,14 @@ namespace eval ::nx::doc {
 	# level.  [next] will cause the container to change if another
 	# container entity is initialised in the following!
 	#
-	set container [[current class] container]
-	next
-	puts stderr "--- entity [current] starts living, register with $container"
-	$container register [current]
+	if {[[current class] eval {info exists :container}]} {
+	  set container [[current class] container]
+	  next
+	  puts stderr "--- entity [current] starts living, register with $container"
+	  $container register [current]
+	} else {
+	  next
+	}
       }
     }
     # Note: The default "" corresponds to the top-level namespace "::"!
@@ -466,20 +495,32 @@ namespace eval ::nx::doc {
       set :part_class @command
     }
 
+    # :attribute @class:object,type=::nx::doc::@class,multivalued {
+    #   set :incremental 1
+    # }
+
+    # :attribute @object:object,type=::nx::doc::@object,multivalued {
+    #   set :incremental 1
+    # }
+
+    # :attribute @command:object,type=::nx::doc::@command,multivalued {
+    #   set :incremental 1
+    # }
+
     :method init {} {
       next
       puts stderr "APPLYING Resolvable container [current]"
       EntityClass mixin add [current class]::Resolvable
       [current class]::Resolvable container [current]
       puts stderr "APPLYING Containable container [current]"
-      Entity mixin add [current class]::Containable
+      # Entity mixin add [current class]::Containable
       [current class]::Containable container [current]
     }
 
     :method register {containable:object,type=::nx::doc::Entity} {
       set tag [[$containable info class] tag]
-      puts stderr "REGISTERING: tag $tag containable $containable on [current]"
       if {[:info callable methods -application "@$tag"] ne ""} {
+	puts stderr "REGISTERING: tag $tag containable $containable on [current]"
 	:@$tag $containable
       }
     }
@@ -514,12 +555,12 @@ namespace eval ::nx::doc {
   #  - ...
   #
 
-  EntityClass create @package -superclass ContainerEntity {
+  EntityClass create @package -superclass ContainerEntity -mixin ContainerEntity::Containable {
     :attribute @require -slotclass ::nx::doc::PartAttribute
     :attribute @version -slotclass ::nx::doc::PartAttribute
   }
 
-  EntityClass create @command -superclass Entity {
+  EntityClass create @command -superclass Entity -mixin ContainerEntity::Containable {
     :attribute @param -slotclass ::nx::doc::PartAttribute {
       set :part_class @param
     }
@@ -550,7 +591,8 @@ namespace eval ::nx::doc {
   }
   
   EntityClass create @object \
-      -superclass Entity {
+      -superclass Entity \
+      -mixin ContainerEntity::Containable {
 	:attribute @author -slotclass ::nx::doc::PartAttribute 
 
 	:forward @method %self @object-method
@@ -577,45 +619,47 @@ namespace eval ::nx::doc {
 	}
       }
 
-  EntityClass create @class -superclass @object {
-    :attribute @superclass -slotclass ::nx::doc::PartAttribute
-
-    :forward @param %self @class-param
-    :attribute @class-param -slotclass ::nx::doc::PartAttribute {
-      set :part_class @param
-    }
-
-    :forward @method %self @class-method
-    :attribute @class-method -slotclass ::nx::doc::PartAttribute {
-      set :part_class @method
-      :method require_part {domain prop value} {
-	# TODO: verify whether these scoping checks are sufficient
-	# and/or generalisable: For instance, is the scope
-	# requested (from the part_attribute) applicable to the
-	# partof object, which is the object behind [$domain name]?
-	if {[info exists :scope] && 
-	    ![::nsf::objectproperty [$domain name] ${:scope}]} {
-	  error "The object '[$domain name]' does not qualify as '[$part_attribute scope]'"
+  EntityClass create @class \
+      -superclass @object \
+      -mixin ContainerEntity::Containable {
+	:attribute @superclass -slotclass ::nx::doc::PartAttribute
+	
+	:forward @param %self @class-param
+	:attribute @class-param -slotclass ::nx::doc::PartAttribute {
+	  set :part_class @param
 	}
-	next
-      }
-    }
-
-    :method inherited {member} {
-      if {[${:name} info is class]} {
-	set inherited [dict create]
-	foreach c [lreverse [${:name} info heritage]] {
-	  set entity [[::nsf::current class] id $c]
-	  if {![::nsf::is $entity object]} continue
-	  if {[$entity eval [list info exists :${member}]]} {
-	    dict set inherited $entity [$entity $member]
+	
+	:forward @method %self @class-method
+	:attribute @class-method -slotclass ::nx::doc::PartAttribute {
+	  set :part_class @method
+	  :method require_part {domain prop value} {
+	    # TODO: verify whether these scoping checks are sufficient
+	    # and/or generalisable: For instance, is the scope
+	    # requested (from the part_attribute) applicable to the
+	    # partof object, which is the object behind [$domain name]?
+	    if {[info exists :scope] && 
+		![::nsf::objectproperty [$domain name] ${:scope}]} {
+	      error "The object '[$domain name]' does not qualify as '[$part_attribute scope]'"
+	    }
+	    next
 	  }
 	}
-	return $inherited
+	
+	:method inherited {member} {
+	  if {[${:name} info is class]} {
+	    set inherited [dict create]
+	    foreach c [lreverse [${:name} info heritage]] {
+	      set entity [[::nsf::current class] id $c]
+	      if {![::nsf::is $entity object]} continue
+	      if {[$entity eval [list info exists :${member}]]} {
+		dict set inherited $entity [$entity $member]
+	      }
+	    }
+	    return $inherited
+	  }
+	}
       }
-    }
-  }
-
+  
   
   # @object ::nx::doc::Part
   #
@@ -624,7 +668,7 @@ namespace eval ::nx::doc {
   # documentation entity and is identified by a name.
   #
   Class create Part -superclass Entity {
-
+    
     #:method objectparameter args {next {doc -use}}
     :attribute partof:required
     :attribute use
@@ -806,7 +850,40 @@ namespace eval ::nx::doc {
 
 namespace eval ::nx::doc {
 
-  Class create TemplateData {
+  Class create TemplateDataClass -superclass Class {
+    :method find_asset_path {{-subdir library/lib/doc-assets}} {
+      # This helper tries to identify the file system path of the
+      # asset ressources.
+      #
+      # @param -subdir Denotes the name of the sub-directory to look for
+      foreach dir $::auto_path {
+	set assets [file normalize [file join $dir $subdir]]
+	if {[file exists $assets]} {
+	  return $assets
+	}
+      }
+    }
+    
+    :method read_tmpl {path} {
+      if {[file pathtype $path] ne "absolute"} {
+	set assetdir [:find_asset_path]
+	set tmpl [file join $assetdir $path]
+      } else {
+	set tmpl [file normalize $path]
+      }
+      if {![file exists $tmpl] || ![file isfile $tmpl]} {
+	error "The template file '$path' was not found."
+      }
+      set fh [open $tmpl r]
+      set content [read $fh]
+      catch {close $fh}
+      return $content
+    }
+  
+  }
+
+
+  TemplateDataClass create BaseTemplateData {  
     # This mixin class realises a rudimentary templating language to
     # be used in nx::doc templates. It realises language expressions
     # to verify the existence of variables and simple loop constructs
@@ -875,136 +952,157 @@ namespace eval ::nx::doc {
       uplevel 1 [list subst [[::nsf::current class] read_tmpl $template]]
     }
 
-    #
-    # TODO: This should turn into a hook, the output
-    # specificities should move in a refinement of TemplateData, e.g.,
-    # DefaultHtmlTemplateData or the like.
-    #
-    :method fit {str max {placeholder "..."}} {
-      if {[llength [split $str ""]] < $max} {
-	return $str;
-      }
-      set redux [llength [split $placeholder ""]]
-      set margin [expr {($max-$redux)/2}]
-      return "[string range $str 0 [expr {$margin-1}]]$placeholder[string range $str end-[expr {$margin+1}] end]"
+    :method code args {
+      error "Subclass responsibility: You must provide a method definition of '[current method]' in a proper subclass"
     }
 
-    :method list_structural_features {} {
-      set entry {{"access": "$access", "host": "$host", "name": "$name", "url": "$url", "type": "$type"}}
-      set entries [list]
-      if {[:info is type ::nx::doc::@package]} {
-	set features [list @object @command]
-	foreach feature $features {
-	  set instances [sorted [$feature info instances] name]
-	  foreach inst $instances {
-	    set access ""
-	    set host [:name]
-	    set name [$inst name]
-	    set url  "[$inst filename].html"
-	    set type [$feature tag]
-	    lappend entries [subst $entry]
-	  }
-	}
-      } elseif {[:info is type ::nx::doc::@object]} {
-	# TODO: fix support for @object-method!
-	set features [list @method @param]
-	foreach feature $features {
-	  if {[info exists :$feature]} {
-	    set instances [sorted [:$feature] name]
-	    foreach inst $instances {
-	      set access [expr {[info exists :@modifier]?[:@modifier]:""}]
-	      set host [:name]
-	      set name [$inst name]
-	      set url  "[:filename].html#[$feature tag]_[$inst name]"
-	      set type [$feature tag]
-	      lappend entries [subst $entry]
-	    }
-	  }
-	}
-      } elseif {[:info is type ::nx::doc::@command]} {
-	set features @subcommand
-	foreach feature $features {
-	  if {[info exists :$feature]} {
-	    set instances [sorted [set :$feature] name]
-	    foreach inst $instances {
-	      set access ""
-	      set host ${:name}
-	      set name [$inst name]
-	      set url  "[:filename].html#[$feature tag]_[$inst name]"
-	      set type [$feature tag]
-	      lappend entries [subst $entry]
-	    }
-	  }
-	}
-      }
-      return "\[[join $entries ,\n]\]"
-    }
-  
-    :method code {{-inline true} script} {
-      return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
+    :method link args {
+      error "Subclass responsibility: You must provide a method definition of '[current method]' in a proper subclass"
     }
 
-    :method link {entity_type args} {
-      set id [$entity_type id {*}$args]
-      if {![::nsf::is $id object]} return;
-      set pof ""
-      if {[$id info is type ::nx::doc::Part]} {
-	set pof "[[$id partof] name]#"
-	set filename [[$id partof] filename]
-      } else {
-	set filename [$id filename]
-      }
-      return "<a href=\"$filename.html#[$entity_type tag]_[$id name]\">$pof[$id name]</a>"
+    set :markup_map(sub) { 
+      "{{{" "\[:code \{" 
+      "}}}" "\}\]"
+      "{{" "\[:link " 
+      "}}" "\]" 
     }
-
-    :method text {} {
-      # Provide \n replacements for empty lines according to the
-      # rendering frontend (e.g., in HTML -> <br/>) ...
-      if {[info exists :@doc]} {
-	set doc [next -as_list]
-	foreach idx [lsearch -all -exact $doc ""] {
-	  lset doc $idx "<br/><br/>"
-	}
-	return [subst [join $doc " "]]
-      }
-    }
-
-
     
-    #
-    #
-    #
- 
-    :object method find_asset_path {{-subdir library/lib/doc-assets}} {
-      # This helper tries to identify the file system path of the
-      # asset ressources.
-      #
-      # @param -subdir Denotes the name of the sub-directory to look for
-      foreach dir $::auto_path {
-	set assets [file normalize [file join $dir $subdir]]
-	if {[file exists $assets]} {
-	  return $assets
-	}
-      }
+    set :markup_map(unescape) {
+      "\\{" "{"
+      "\\}" "}"
+      "\\#" "#"
+    }
+    
+    :method map {line set} {
+      set line [string map [[::nsf::current class] eval [list set :markup_map($set)]] $line]
     }
 
-    :object method read_tmpl {path} {
-      if {[file pathtype $path] ne "absolute"} {
-	set assetdir [:find_asset_path]
-	set tmpl [file join $assetdir $path]
-      } else {
-	set tmpl [file normalize $path]
-      }
-      if {![file exists $tmpl] || ![file isfile $tmpl]} {
-	error "The template file '$path' was not found."
-      }
-      set fh [open $tmpl r]
-      set content [read $fh]
-      catch {close $fh}
-      return $content
+    :method as_list {} {
+	set preprocessed [list]
+	set is_code_block 0
+	foreach line [next] {
+	  if {[regsub -- {^\s*(\{\{\{)\s*$} $line "\[:code -inline false \{" line] || \
+		  (${is_code_block} && [regsub -- {^\s*(\}\}\})\s*$} $line "\}\]" line])} {
+	    set is_code_block [expr {!$is_code_block}]
+	    append line \n
+	  } elseif {${is_code_block}} {
+	    # set line [:map $line unescape]
+	    append line \n
+	  } else {
+	    # set line [:map $line sub]
+	    # set line [:map $line unescape]
+	    set line [string trimleft $line]
+	    if {$line eq {}} {
+	      set line "\n\n"
+	    }
+	  } 
+	  lappend preprocessed $line
+	}
+      return $preprocessed
+    }
+
+    :method as_text {} {
+      set preprocessed [join [:as_list] " "]
+      set preprocessed [:map $preprocessed sub]
+      set preprocessed [:map $preprocessed unescape]
+      return [subst $preprocessed]
     }
 
   }
+
+    #
+    # A default TemplateData implementation, targeting the derived YUI
+    # Doc templates.
+    # 
+
+    TemplateDataClass create NxDocTemplateData -superclass BaseTemplateData {      
+      :method fit {str max {placeholder "..."}} {
+	if {[llength [split $str ""]] < $max} {
+	  return $str;
+	}
+	set redux [llength [split $placeholder ""]]
+	set margin [expr {($max-$redux)/2}]
+	return "[string range $str 0 [expr {$margin-1}]]$placeholder[string range $str end-[expr {$margin+1}] end]"
+      }
+      
+      :method list_structural_features {} {
+	set entry {{"access": "$access", "host": "$host", "name": "$name", "url": "$url", "type": "$type"}}
+	set entries [list]
+	if {[:info is type ::nx::doc::@package]} {
+	  set features [list @object @command]
+	  foreach feature $features {
+	    set instances [sorted [$feature info instances] name]
+	    foreach inst $instances {
+	      set access ""
+	      set host [:name]
+	      set name [$inst name]
+	      set url  "[$inst filename].html"
+	      set type [$feature tag]
+	      lappend entries [subst $entry]
+	    }
+	  }
+	} elseif {[:info is type ::nx::doc::@object]} {
+	  # TODO: fix support for @object-method!
+	  set features [list @method @param]
+	  foreach feature $features {
+	    if {[info exists :$feature]} {
+	      set instances [sorted [:$feature] name]
+	      foreach inst $instances {
+		set access [expr {[info exists :@modifier]?[:@modifier]:""}]
+		set host [:name]
+		set name [$inst name]
+		set url  "[:filename].html#[$feature tag]_[$inst name]"
+		set type [$feature tag]
+		lappend entries [subst $entry]
+	      }
+	    }
+	  }
+	} elseif {[:info is type ::nx::doc::@command]} {
+	  set features @subcommand
+	  foreach feature $features {
+	    if {[info exists :$feature]} {
+	      set instances [sorted [set :$feature] name]
+	      foreach inst $instances {
+		set access ""
+		set host ${:name}
+		set name [$inst name]
+		set url  "[:filename].html#[$feature tag]_[$inst name]"
+		set type [$feature tag]
+		lappend entries [subst $entry]
+	      }
+	    }
+	  }
+	}
+	return "\[[join $entries ,\n]\]"
+      }
+      
+      #
+      # TODO: This should turn into a hook, the output
+      # specificities should move in a refinement of TemplateData, e.g.,
+      # DefaultHtmlTemplateData or the like.
+      #
+      
+      :method code {{-inline true} script} {
+	return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
+      }
+      
+      :method link {entity_type args} {
+	set id [$entity_type id {*}$args]
+	if {![::nsf::is $id object]} return;
+	set pof ""
+	if {[$id info is type ::nx::doc::Part]} {
+	  set pof "[[$id partof] name]#"
+	  set filename [[$id partof] filename]
+	} else {
+	  set filename [$id filename]
+	}
+	return "<a href=\"$filename.html#[$entity_type tag]_[$id name]\">$pof[$id name]</a>"
+      }
+      
+      :method as_text {} {
+	return [string map {"\n\n" "<br/><br/>"} [next]]
+      }
+    }
   
   #
   # Provide a simple HTML renderer. For now, we make our life simple
@@ -1204,7 +1302,7 @@ namespace eval ::nx {
 	} else {
 	  set additions [dict keys [dict get $additions objects]]
 	}
-	#	puts stderr ADDITIONS=$additions
+	# puts stderr ADDITIONS=$additions
       }
       set blocks [:comment_blocks $script]
       # :log "blocks: '$blocks'"
@@ -1241,7 +1339,7 @@ namespace eval ::nx {
 	# scripts. The process=@object ressembles some ::nx::doc
 	# methods, so relocated and call the parser from within.
 	set entity [@ $kind $addition]
-	::nx::doc::CommentBlockParser process=$kind $entity
+	:process=$kind $entity
       }
     }
 
@@ -1338,6 +1436,47 @@ namespace eval ::nx {
       
     }; # analyze_initcmd method
     
+    # TODO: how can I obtain some reuse here when later @class is
+    # distinguished from @object (dispatch along the inheritance
+    # hierarchy?)
+    :method process=@class {entity} {
+      set name [$entity name]
+      foreach methodName [${name} info methods -methodtype scripted] {
+	# TODO: should the comment_blocks parser relocated?
+	set blocks [:comment_blocks [${name} info method \
+					    body $methodName]]
+	foreach {line_offset block} $blocks {
+	  if {$line_offset > 1} break;	      
+	  set id [$entity @class-method $methodName]
+	  CommentBlockParser process \
+	      -partof_entity $entity \
+	      -initial_section description \
+	      -entity $id \
+	      $block
+	}
+	:process=@object $entity object
+      }
+    }
+    
+    :method process=@object {entity {scope ""}} {
+      set name [$entity name]
+      
+      foreach methodName [${name} {*}$scope info methods\
+			      -methodtype scripted] {
+	
+	set blocks [:comment_blocks [${name} {*}$scope info method \
+					    body $methodName]]
+	foreach {line_offset block} $blocks {
+	  if {$line_offset > 1} break;
+	  set id [$entity @object-method $methodName]
+	  CommentBlockParser :process \
+	      -partof_entity $name \
+	      -initial_section description \
+	      -entity $id \
+	      $block
+	}
+      }
+    }
     
     # activate the recoding of initcmds
     ::nsf::configure keepinitcmd true
@@ -1411,11 +1550,21 @@ namespace eval ::nx::doc {
       # rather: *.html.tmpl -> *.html. [file extension] just returns
       # the trailing extension.
       set ext [lindex [split [file tail $tmpl] .] end-1]
-      set entities [concat [sorted [@package info instances] name] \
-			[sorted [@command info instances] name] \
-			[sorted [@object info instances] name]]
+      set top_level_entities [$project owned_parts]
+      if {[dict exists $top_level_entities @package]} {
+	foreach p [dict get $top_level_entities @package] {
+	  foreach {entity_type pkg_entities} [$p owned_parts] {
+	    dict lappend top_level_entities $entity_type {*}$pkg_entities
+	  }
+	}
+      }
+      puts stderr TOP_LEVEL_ENTITIES=$top_level_entities
+      # set entities [concat [sorted [@package info instances] name] \
+      # 			[sorted [@command info instances] name] \
+      # 			[sorted [@object info instances] name]]
       set init [subst -nocommands {
 	set project $project
+	array set "" [list $top_level_entities]
       }]
       set project_path [file join $outdir [string trimleft [$project name] :]]
       if {![catch {file mkdir $project_path} msg]} {
@@ -1427,7 +1576,10 @@ namespace eval ::nx::doc {
 	set index [$project render -initscript $init $tmpl]
 	# puts stderr "we have [llength $entities] documentation entities ($entities)"
 	:write $index [file join $project_path "index.$ext"]
-	foreach e $entities {
+	set values [join [dict values $top_level_entities]]
+	puts stderr "VALUES=$values"
+	foreach e $values {
+	  puts stderr "PROCESSING=$e render -initscript $init $tmpl"
 	  set content [$e render -initscript $init $tmpl]
 	  :write $content [file join $project_path "[$e filename].$ext"]
 	  puts stderr "$e written to [file join $project_path [$e filename].$ext]"
@@ -1455,6 +1607,7 @@ namespace eval ::nx::doc {
       :method assign {domain prop value} {
 	set current_entity [$domain current_entity]
 	set scope [expr {[$current_entity info is class]?"object mixin":"mixin"}]
+	puts stderr "Switching: [$current_entity {*}$scope] --> target $value"
 	if {[$domain eval [list info exists :$prop]] && [:get $domain $prop] in [$current_entity {*}$scope]} {
 	  $current_entity {*}$scope delete [:get $domain $prop]
 	}
@@ -1535,7 +1688,8 @@ namespace eval ::nx::doc {
 	}
 
 	if {[catch {
-	  set actions [${:current_entity} event=process $line]
+	  puts stderr "PROCESS ${:current_entity} event=process $line"
+	  ${:current_entity} event=process $line
 	} failure]} {
 	  puts stderr ERRORINFO=$::errorInfo
 	  :fastforward
@@ -1544,64 +1698,17 @@ namespace eval ::nx::doc {
       if {!$is_first_iteration} {
 	${:current_entity} on_exit $line
       }
+
+      if {[${:processed_section} info mixinof -scope object ${:current_entity}] ne ""} {
+	set scope [expr {[${:current_entity} info is class]?"object":""}]
+	${:current_entity} {*}$scope mixin delete ${:processed_section}
+      }
       
       if {$failure ne ""} {
 	error $failure
       }
             
     }; # CommentBlockParser->process()
-    
-    # TODO: how can I obtain some reuse here when later @class is
-    # distinguished from @object (dispatch along the inheritance
-    # hierarchy?)
-    :object method process=@class {entity} {
-      set name [$entity name]
-      foreach methodName [${name} info methods -methodtype scripted] {
-	# TODO: should the comment_blocks parser relocated?
-	set blocks [doc comment_blocks [${name} info method \
-					    body $methodName]]
-	foreach {line_offset block} $blocks {
-	  if {$line_offset > 1} break;	      
-	  set id [$entity @class-method $methodName]
-	  :process \
-	      -partof_entity $entity \
-	      -initial_section description \
-	      -entity $id \
-	      $block
-	}
-	:process=@object $entity object
-      }
-    }
-    
-    :object method process=@object {entity {scope ""}} {
-      set name [$entity name]
-      #
-      # process the initcmd !
-      #
-      
-      # if {[$name eval {info exists :__initcmd}]} {
-      # 	doc analyze_initcmd @object $name [$name eval {set :__initcmd}]
-      # }
-      
-      foreach methodName [${name} {*}$scope info methods\
-			      -methodtype scripted] {
-	
-	set blocks [doc comment_blocks [${name} {*}$scope info method \
-					    body $methodName]]
-	foreach {line_offset block} $blocks {
-	  if {$line_offset > 1} break;
-	  set id [$entity @object-method $methodName]
-	  :process \
-	      -partof_entity $name \
-	      -initial_section description \
-	      -entity $id \
-	      $block
-	}
-      }
-    }
-    # :method process=@method args {method_entity} {
-    
-    # }
     
   }
   
@@ -1678,29 +1785,10 @@ namespace eval ::nx::doc {
       :on_enter $line
     }
 
-
-    set :markup_map(sub) { 
-      "{{{" "\[:code \{" 
-      "}}}" "\}\]"
-      "{{" "\[:link " 
-      "}}" "\]" 
-    }
-    
-    set :markup_map(unescape) {
-      "\\{" "{"
-      "\\}" "}"
-      "\\#" "#"
-    }
-    
-    :method map {line set} {
-      set line [string map [[::nsf::current class] eval [list set :markup_map($set)]] $line]
-    }
-    
+   
     # realise the sub-state (a variant of METHOD-FOR-STATES) and their
     # specific event handling
     :method parse@tag {line} {
-      set line [:map $line sub]
-      set line [:map $line unescape]
       set line [split [string trimleft $line]]
       set tag [lindex $line 0]
       if {[:info callable methods -application $tag] eq ""} {
@@ -1709,27 +1797,11 @@ namespace eval ::nx::doc {
 	  '[namespace tail [:info class]]'
 	}]] throw
       }
+      puts stderr ":$tag [lrange $line 1 end]"
       :$tag [lrange $line 1 end]
     }
 
     :method parse@text {line} {
-
-      if {![info exists :is_code_block]} {
-	set :is_code_block 0
-      }
-
-      if {[regsub -- {^\s*(\{\{\{)\s*$} $line "\[:code -inline false \{" line] || \
-	      (${:is_code_block} && [regsub -- {^\s*(\}\}\})\s*$} $line "\}\]" line])} {
-	set :is_code_block [expr {!${:is_code_block}}]
-	append line \n
-      } elseif {${:is_code_block}} {
-	set line [:map $line unescape]
-	append line \n
-      } else {
-	set line [:map $line sub]
-	set line [:map $line unescape]
-	set line [string trimleft $line]
-      }
       #puts stderr "ADDLINE :@doc add $line end"
       :@doc add $line end
     }
@@ -1798,7 +1870,7 @@ namespace eval ::nx::doc {
 		'[namespace tail [$partof_entity info class]]'
 	      }]] throw
 	    }
-	    #	  puts stderr "1. $partof_entity $tag $nq_name {*}$args"
+	    puts stderr "1. $partof_entity $tag $nq_name {*}$args"
 	    set current_entity [$partof_entity $tag $nq_name {*}$args]
 	    
 	  } else {
@@ -1875,8 +1947,19 @@ namespace eval ::nx::doc {
 	tag->tag	next
       } {
 	# realise the parse events specific to the substates of description
-	# :method parse@tag {line} {;}
-	# :method parse@text {line} {;}
+	:method on_enter {line} {
+	  puts stderr "ENTERING part $line, current section [${:block_parser} processed_section]"
+	  unset -nocomplain :current_part
+	  next
+	}
+	:method parse@tag {line} {
+	  puts stderr "PART parse@tag [current]"
+	  set :current_part [next]
+	}
+	:method parse@text {line} {
+	  puts stderr "PART parse@text [current]"
+	  ${:current_part} @doc add $line end
+	}
 	# :method parse@space {line} {;}
       }
 }
