@@ -8,6 +8,30 @@ namespace import -force ::nx::doc::*
 
 Test parameter count 1
 
+# Class create ::C
+
+# set taglines {
+#   {@class.param {::C attr1}}
+#   {@class.object-param {::C attr2}}
+#   {@class.method {::C foo}}
+#   {@class.object-method.param {::C bar p2}}
+# }
+
+# foreach tl $taglines {
+#   lassign $tl axes values
+#   set operand ""
+#   foreach axis [split [string trimleft $axes @] .] value $values {
+#     puts stderr "axis $axis value $value"
+#     if {$operand eq ""} {
+#       set operand [@$axis new -name $value]
+#     } else {
+#       set operand [$operand @$axis $value]
+#     }
+#   } 
+#   puts stderr RESULT=$operand
+# }
+
+
 #
 # some helper
 #
@@ -129,13 +153,19 @@ Test case parsing {
     {@command ::cc}
   }
 
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? COMPLETED] 1
+ #  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   set block {
     {}
   }
 
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? COMPLETED] 0
+  ? [list $cbp status ? STYLEVIOLATION] 1
+  puts stderr [$cbp message]
+	       #  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   #
   # For now, a valid comment block must start with a non-space line
@@ -147,21 +177,32 @@ Test case parsing {
     {}
     {@command ::cc}
   }
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
+  
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 1
 
- set block {
-   {command ::cc}
-   {}
+  #  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
+
+  set block {
+    {command ::cc}
+    {}
   }
 
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
+    set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 1
+
+  
+#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   set block {
     {@command ::cc}
     {some description}
   }
-
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
+ 
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 1
+ 
+#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
  set block {
    {@command ::cc} 
@@ -171,7 +212,12 @@ Test case parsing {
    {@see ::o}
  }
   
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 0
+  ? [list $cbp status ? COMPLETED] 1
+
+
+  #? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
  set block {
    {@command ::cc}
@@ -181,7 +227,11 @@ Test case parsing {
    {}
    {}
   }
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
+
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 0
+
+#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   # Note: We do allow description blocks with intermediate space
   # lines, for now.
@@ -193,7 +243,9 @@ Test case parsing {
     {}
     {an erroreneous description line, for now}
   }
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
+  
+    set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 0
 
   #
   # TODO: Do not enforce space line between the context and immediate
@@ -216,7 +268,12 @@ Test case parsing {
     {@command ::cc}
     {@see someOtherEntity}
   }
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
+
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 1
+  
+
+#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   #
   # TODO: Disallow space lines between parts? Check back with Javadoc spec.
@@ -231,7 +288,11 @@ Test case parsing {
     {@see SomeOtherEntity2}
     {}
   }
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
+
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 1
+
+ # ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   #
   # TODO: Should we enforce a mandatory space line between description and part block?
@@ -245,7 +306,11 @@ Test case parsing {
     {@see entity3}
     {@see SomeOtherEntity2}
   }
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
+
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 1
+
+#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   set block {
     {@command ::cc}
@@ -259,8 +324,10 @@ Test case parsing {
     {}
     {an erroreneous description line, for now}
   }
-  
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
+
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 1 
+#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
   
   set block {
     {@command ::cc}
@@ -272,7 +339,11 @@ Test case parsing {
     {}
     {@see SomeOtherEntity2}
   }
-  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
+
+    set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 0
+
+#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   set block {
     {@object ::cc}
@@ -283,7 +354,11 @@ Test case parsing {
     {@see SomeOtherEntity2}
     {@xyz SomeOtherEntity2}
   }
-  ? [list InvalidTag thrown_by? [list CommentBlockParser process $block]] 1
+
+    set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? INVALIDTAG] 1
+
+  #  ? [list InvalidTag thrown_by? [list CommentBlockParser process $block]] 1
 
   set block {
     {@class ::cc}
@@ -294,7 +369,11 @@ Test case parsing {
     {@see SomeOtherEntity2}
     {@xyz SomeOtherEntity2}
   }
-  ? [list InvalidTag thrown_by? [list CommentBlockParser process $block]] 1
+
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? INVALIDTAG] 1
+
+  # ? [list InvalidTag thrown_by? [list CommentBlockParser process $block]] 1
 
   #
   # testing the doc object construction
@@ -308,12 +387,15 @@ Test case parsing {
     {@author stefan.sobernig@wu.ac.at}
     {@author gustaf.neumann@wu-wien.ac.at}
   }
-  set entity [CommentBlockParser process $block]
+
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? COMPLETED] 1
+  set entity [$cbp current_entity]
   ? [list ::nsf::is $entity object] 1
-  ? [list $entity info is type ::nx::doc::@object] 1
+  ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity @author] "stefan.sobernig@wu.ac.at gustaf.neumann@wu-wien.ac.at";
   ? [list $entity as_text] "some more text and another line for the description";
-
+  
   set block {
     {@command ::c} 
     {}
@@ -321,10 +403,13 @@ Test case parsing {
     {}
     {@see ::o}
   }
-  set entity [CommentBlockParser process $block]
-  puts stderr ENTITY=$entity
+
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? COMPLETED] 1
+  set entity [$cbp current_entity]
+
   ? [list ::nsf::is $entity object] 1
-  ? [list $entity info is type ::nx::doc::@command] 1
+  ? [list $entity info has type ::nx::doc::@command] 1
   ? [list $entity as_text] "some text on the command";
   ? [list $entity @see] "::o";
 
@@ -336,19 +421,22 @@ Test case parsing {
     {@class-param attr1 Here, we check whether we can get a valid description block}
     {for text spanning multiple lines}
   }
-  set entity [CommentBlockParser process $block]
+
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? COMPLETED] 1
+  set entity [$cbp current_entity]
+
   ? [list ::nsf::is $entity object] 1
-  ? [list $entity info is type ::nx::doc::@class] 1
+  ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "some text on the class entity";
   ? [list llength [$entity @param]] 1
-  ? [list [$entity @param] info is type ::nx::doc::@param] 1
+  ? [list [$entity @param] info has type ::nx::doc::@param] 1
   ? [list [$entity @param] as_text] "Here, we check whether we can get a valid description block for text spanning multiple lines"
 
   #
   # basic test for in-situ documentation (initcmd block)
   # 
   #
-
   set script {
     Class create Foo {
       # The class Foo defines the behaviour for all Foo objects
@@ -380,7 +468,7 @@ Test case parsing {
   doc process ::Foo
   set entity [@class id ::Foo]
   ? [list ::nsf::is $entity object] 1
-  ? [list $entity info is type ::nx::doc::@class] 1
+  ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "The class Foo defines the behaviour for all Foo objects";
   ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
   # TODO: Fix the [@param id] programming scheme to allow (a) for
@@ -388,13 +476,13 @@ Test case parsing {
   #set entity [@param id ::Foo class attr1]
   set entity [@param id $entity attr1]
   ? [list ::nsf::is $entity object] 1
-  ? [list $entity info is type ::nx::doc::@param] 1
+  ? [list $entity info has type ::nx::doc::@param] 1
   ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Foo class foo]
   ? [list [@class id ::Foo] @method] $entity
   ? [list ::nsf::is $entity object] 1
-  ? [list $entity info is type ::nx::doc::@method] 1
+  ? [list $entity info has type ::nx::doc::@method] 1
   ? [list $entity as_text] "This describes the foo method";
   
   foreach p [$entity @param] expected {
@@ -403,7 +491,6 @@ Test case parsing {
   } {
     ? [list expr [list [$p as_text] eq $expected]] 1;
   }
-
 
   # TODO: how to realise scanning and parsing for mixed ex- and
   # in-situ documentation? That is, how to differentiate between
@@ -419,21 +506,22 @@ Test case parsing {
     # @author gustaf.neumann@wu-wien.ac.at
     # @author ssoberni@wu.ac.at
 
-    # @param ::Bar#attr1 
+    # @class.param {::Bar attr1}
     #
     # This attribute 1 is wonderful
     #
     # @see ::nx::Attribute
     # @see ::nx::MetaSlot
 
-    # @method ::Bar#foo
+    # @class.class-method {::Bar foo}
+    #
     #
     # This describes the foo method
     #
     # @param a Provides a first value
     # @param b Provides a second value
 
-    # @object-method ::Bar#foo
+    # @class.object-method {::Bar foo}
     #
     # This describes the per-object foo method
     #
@@ -478,7 +566,7 @@ Test case parsing {
 
   set entity [@class id ::Bar]
   ? [list $i eval [list ::nsf::is $entity object]] 1
-  ? [list $i eval [list $entity info is type ::nx::doc::@class]] 1
+  ? [list $i eval [list $entity info has type ::nx::doc::@class]] 1
   ? [list $i eval [list $entity as_text]] "The class Bar defines the behaviour for all Bar objects";
   ? [list $i eval [list $entity @author]] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
 
@@ -487,13 +575,13 @@ Test case parsing {
   #set entity [@param id ::Bar class attr1]
   set entity [@param id $entity attr1]
   ? [list $i eval [list ::nsf::is $entity object]] 1
-  ? [list $i eval [list $entity info is type ::nx::doc::@param]] 1
+  ? [list $i eval [list $entity info has type ::nx::doc::@param]] 1
   ? [list $i eval [list $entity @see]] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Bar class foo]
   ? [list $i eval [list [@class id ::Bar] @method]] $entity
   ? [list $i eval [list ::nsf::is $entity object]] 1
-  ? [list $i eval [list $entity info is type ::nx::doc::@method]] 1
+  ? [list $i eval [list $entity info has type ::nx::doc::@method]] 1
   ? [list $i eval [list $entity as_text]] "This describes the foo method in the method body";
 
   foreach p [$i eval [list $entity @param]] expected {
@@ -505,7 +593,7 @@ Test case parsing {
   set entity [@method id ::Bar object foo]
   ? [list $i eval [list [@class id ::Bar] @object-method]] $entity
   ? [list $i eval [list ::nsf::is $entity object]] 1
-  ? [list $i eval [list $entity info is type ::nx::doc::@method]] 1
+  ? [list $i eval [list $entity info has type ::nx::doc::@method]] 1
   ? [list $i eval [list $entity as_text]] "This describes the per-object foo method in the method body";
 
   foreach p [$i eval [list $entity @param]] expected {
@@ -559,7 +647,6 @@ Test case parsing {
     namespace import ::nx::doc::*
     
     # 1) NSF documentation project
-    
     set project [::nx::doc::@project new \
 		     -name ::NextScriptingFramework \
 		     -url http://www.next-scripting.org/ \
@@ -573,6 +660,7 @@ Test case parsing {
 	-outdir [::nsf::tmpdir] \
 	-project $project
 
+    puts stderr TIMING=[time {
     set project [::nx::doc::@project new \
 		     -name ::NextScriptingLanguage \
 		     -url http://www.next-scripting.org/ \
@@ -583,6 +671,7 @@ Test case parsing {
 	-renderer ::nx::doc::NxDocTemplateData \
 	-outdir [::nsf::tmpdir] \
 	-project $project
+    } 1]
   }
 
   interp delete $i

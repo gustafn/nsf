@@ -94,84 +94,6 @@ namespace eval ::nx::doc {
     return $result
   }
 
-  # @method ::nx::doc::ExceptionClass#behind?
-  # 
-  # This helper method can be used to decide whether a message
-  # caught in error propagation qualifies as a valid exception
-  # object.
-  #
-  # @param error_msg Stands for the intercepted string which assumingly represents an exception object identifier
-  # @return 0 or 1
-  Class create ExceptionClass -superclass Class {
-    # A meta-class which defines common behaviour for exceptions
-    # types, used to indicate particular events when processing
-    # comment blocks.
- 
-    :method behind? {error_msg} {
-      return [expr {[::nsf::is $error_msg object] && \
-			[::nsf::is $error_msg type [current]]}]
-    }
-    
-    # @method thrown_by?
-    # 
-    # This helper method realises a special-purpose catch variant to
-    # safely evaluate scripts which are expected to produce exception
-    # objects
-    #
-    # @return 1 iff an exception object is caught, 0 if the script did
-    # not blow or it returned an error message not pointing to an
-    # exception object
-    :method thrown_by? {script} {
-      if {[uplevel 1 [list ::catch $script msg]]} {
-	return [:behind? [uplevel 1 [list set msg]]]
-      }
-      return 0
-    }
-
-  }
-
-  ExceptionClass create Exception {
-    # The base class for exception objects
-    #
-    # @param message An explanatory message meant for the developer
-    :attribute message:required
-    # @param stack_trace Contains the stack trace as saved at the time of throwing the exception object
-    :attribute stack_trace 
-    
-    # @method throw
-    #
-    # The method makes sure that an Exception object is propagated
-    # through the Tcl ::error mechanism, starting from the call site's
-    # scope
-    :method throw {} {
-      if {![info exists :stack_trace] && [info exists ::errorInfo]} {
-	:stack_trace $::errorInfo
-      }
-      #
-      # uplevel: throw at the call site
-      #
-      uplevel 1 [list ::error [current]]
-    }
-  }
-  
-  ExceptionClass create StyleViolation -superclass Exception {
-    # This exception indicates from within the parsing machinery that
-    # a comment block was malformed (according to the rules layed out
-    # by the statechart-like parsing specification.
-  }
-  ExceptionClass create InvalidTag -superclass Exception {
-    # This exception is thrown upon situations that invalid tags are
-    # used at various levels of entity/part nesting. This usually
-    # hints at typos in tag labels or the misuse of tags in certain
-    # contexts.
-  }
-  ExceptionClass create MissingPartofEntity -superclass Exception {
-    # This exception occurs when parts are defined without providing
-    # an owning (i.e., partof) entity. This might be caused by
-    # failures in resolving this context.
-  }
-
-
   Class create EntityClass -superclass Class {
     # A meta-class for named documenation entities. It sets some
     # shared properties (e.g., generation rules for tag names based on
@@ -211,7 +133,7 @@ namespace eval ::nx::doc {
     :method id {name} {
       set subns [string trimleft [namespace tail [current]] @]
       #return [:root_namespace]::${subns}::[string trimleft $name :]
-      puts stderr "[current callingproc] -> [:root_namespace]::${subns}[:get_fully_qualified_name $name]"
+      # puts stderr "[current callingproc] -> [:root_namespace]::${subns}[:get_fully_qualified_name $name]"
       return "[:root_namespace]::${subns}[:get_fully_qualified_name $name]"
     }
 
@@ -227,7 +149,7 @@ namespace eval ::nx::doc {
     }
     
     :method createOrConfigure {id args} {
-      puts stderr "createOrConfigure id $id"
+      # puts stderr "createOrConfigure id $id"
       # This method handles verifies whether an entity object based on
       # the given id exists. If so, it returns the resolved name. If
       # not, it provides for generating an object with the precomputed
@@ -263,17 +185,13 @@ namespace eval ::nx::doc {
       #      puts stderr "ID -> [join [list [:root_namespace] $subns $partof_name $scope $name] ::]"
       return [join [list [:root_namespace] $subns $partof_name $scope $name] ::]
     }
+
     :method new {	       
       -part_attribute 
-      {-partof:substdefault {[[MissingPartofEntity new \
-				   -message [subst {
-				     Parts of type '[namespace tail [current]]'
-				     require a partof entity to be set
-				   }]] throw]}}
+      -partof:required
       -name 
       args
     } {
-      puts stderr "+++ PART [current args]"
       :createOrConfigure [:id [:get_fully_qualified_name [$partof name]] [$part_attribute scope] $name] {*}[current args]
     }
   }
@@ -321,7 +239,7 @@ namespace eval ::nx::doc {
     :method require_part {domain prop value} {
       if {[info exists :part_class]} {
 	if {[::nsf::is $value object] && \
-		[::nsf::is $value type ${:part_class}]} {
+		[$value info has type ${:part_class}]} {
 	  return $value
 	}
 	return  [${:part_class} new \
@@ -384,7 +302,7 @@ namespace eval ::nx::doc {
       # puts stderr SLOTS=$slots
       foreach s $slots {
 	# [$s info is type ::nx::doc::PartAttribute]
-	if {![::nsf::objectproperty $s type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}]} continue;
+	if {![$s info has type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}]} continue;
 	set accessor [$s name]
 	# puts stderr "PROCESSING ACCESSOR $accessor, [info exists :$accessor]"
 	if {[info exists :$accessor]} {
@@ -475,7 +393,6 @@ namespace eval ::nx::doc {
 	if {[[current class] eval {info exists :container}]} {
 	  set container [[current class] container]
 	  next
-	  puts stderr "--- entity [current] starts living, register with $container"
 	  $container register [current]
 	} else {
 	  next
@@ -509,10 +426,8 @@ namespace eval ::nx::doc {
 
     :method init {} {
       next
-      puts stderr "APPLYING Resolvable container [current]"
       EntityClass mixin add [current class]::Resolvable
       [current class]::Resolvable container [current]
-      puts stderr "APPLYING Containable container [current]"
       # Entity mixin add [current class]::Containable
       [current class]::Containable container [current]
     }
@@ -520,7 +435,6 @@ namespace eval ::nx::doc {
     :method register {containable:object,type=::nx::doc::Entity} {
       set tag [[$containable info class] tag]
       if {[:info callable methods -application "@$tag"] ne ""} {
-	puts stderr "REGISTERING: tag $tag containable $containable on [current]"
 	:@$tag $containable
       }
     }
@@ -639,7 +553,7 @@ namespace eval ::nx::doc {
 	    # partof object, which is the object behind [$domain name]?
 	    if {[info exists :scope] && 
 		![::nsf::objectproperty [$domain name] ${:scope}]} {
-	      error "The object '[$domain name]' does not qualify as '[$part_attribute scope]'"
+	      error "The entity '[$domain name]' does not qualify as '${:scope}'"
 	    }
 	    next
 	  }
@@ -767,7 +681,6 @@ namespace eval ::nx::doc {
 	    } else {
 	      set comment "<span style='color: red'>cannot check object, probably not instantiated</span>"
 	    }
-	    #puts stderr "XXXX [current] ${:name} is part of ${:partof} // [${:partof} name]"
 	    return [concat $params <br>$comment]
 	    } 
 	    return $params
@@ -819,11 +732,7 @@ namespace eval ::nx::doc {
 	# @param args
 	:object method new {
 		-part_attribute 
-		{-partof:substdefault {[[MissingPartofEntity new \
-					     -message [subst {
-			Parts of type '[namespace tail [current]]'
-			require a partof entity to be set
-					     }]] throw]}}
+		-partof:required
 		-name 
 		args
 	      } {
@@ -842,8 +751,7 @@ namespace eval ::nx::doc {
       }
 
   namespace export CommentBlockParser @command @object @class @package @project @method \
-      @param @ Exception StyleViolation InvalidTag \
-      MissingPartofEntity ExceptionClass
+      @param @
 }
 
 
@@ -1028,7 +936,7 @@ namespace eval ::nx::doc {
       :method list_structural_features {} {
 	set entry {{"access": "$access", "host": "$host", "name": "$name", "url": "$url", "type": "$type"}}
 	set entries [list]
-	if {[:info is type ::nx::doc::@package]} {
+	if {[:info has type ::nx::doc::@package]} {
 	  set features [list @object @command]
 	  foreach feature $features {
 	    set instances [sorted [$feature info instances] name]
@@ -1041,7 +949,7 @@ namespace eval ::nx::doc {
 	      lappend entries [subst $entry]
 	    }
 	  }
-	} elseif {[:info is type ::nx::doc::@object]} {
+	} elseif {[:info has type ::nx::doc::@object]} {
 	  # TODO: fix support for @object-method!
 	  set features [list @method @param]
 	  foreach feature $features {
@@ -1057,7 +965,7 @@ namespace eval ::nx::doc {
 	      }
 	    }
 	  }
-	} elseif {[:info is type ::nx::doc::@command]} {
+	} elseif {[:info has type ::nx::doc::@command]} {
 	  set features @subcommand
 	  foreach feature $features {
 	    if {[info exists :$feature]} {
@@ -1090,7 +998,7 @@ namespace eval ::nx::doc {
 	set id [$entity_type id {*}$args]
 	if {![::nsf::is $id object]} return;
 	set pof ""
-	if {[$id info is type ::nx::doc::Part]} {
+	if {[$id info has type ::nx::doc::Part]} {
 	  set pof "[[$id partof] name]#"
 	  set filename [[$id partof] filename]
 	} else {
@@ -1100,7 +1008,10 @@ namespace eval ::nx::doc {
       }
       
       :method as_text {} {
-	return [string map {"\n\n" "<br/><br/>"} [next]]
+	set pre [next]
+	set post [string map {"\n\n" "<br/><br/>"} $pre]
+	return $post
+	#return [string map {"\n\n" "<br/><br/>"} [next]]
       }
     }
   
@@ -1314,14 +1225,17 @@ namespace eval ::nx {
 	# (most blocks, especially in initcmd and method blocks, are
 	# not qualified, so they are set to fail. however, record the
 	# failing ones for the time being
-	if {[catch {::nx::doc::CommentBlockParser process $block} msg]} {
-	  if {![InvalidTag behind? $msg] && ![StyleViolation behind? $msg] && ![MissingPartofEntity behind? $msg]} {
-	    if {[Exception behind? $msg]} {
-	      error [$msg info class]->[$msg message]
-	    }
-	    error $msg
-	  }
-	}
+	set cbp [::nx::doc::CommentBlockParser process $block]
+	# TODO: How to handle contingent (recoverable) conditions here?
+	# if {[catch {::nx::doc::CommentBlockParser process $block} msg]} {
+	#   if {![InvalidTag behind? $msg] && ![StyleViolation behind? $msg] && ![MissingPartofEntity behind? $msg]} {
+	#     if {[Exception behind? $msg]} {
+	#       ::return -code error -errorinfo $::errorInfo "[$msg info class]->[$msg message]"
+	#       # error [$msg info class]->[$msg message]
+	#     }
+	#     ::return -code error -errorinfo $::errorInfo $msg
+	#   }
+	# }
       }
       # 3) process the recorded object additions, i.e., the stored
       # initcmds and method bodies.
@@ -1429,9 +1343,11 @@ namespace eval ::nx {
 	# TODO: Passing $id as partof_entity appears unnecessary,
 	# clean up the logic in CommentBlockParser->process()!!!
 	#puts stderr "==== CommentBlockParser process -partof_entity $id {*}$arguments"
-	if {[catch {CommentBlockParser process -partof_entity $id {*}$arguments} msg]} {
-	  lappend failed_blocks $line_offset
-	}
+	set cbp [CommentBlockParser process -partof_entity $id {*}$arguments]
+	
+#	if {[catch {CommentBlockParser process -partof_entity $id {*}$arguments} msg]} {
+#	  lappend failed_blocks $line_offset
+#	}
       }
       
     }; # analyze_initcmd method
@@ -1579,7 +1495,7 @@ namespace eval ::nx::doc {
 	set values [join [dict values $top_level_entities]]
 	puts stderr "VALUES=$values"
 	foreach e $values {
-	  puts stderr "PROCESSING=$e render -initscript $init $tmpl"
+	  #puts stderr "PROCESSING=$e render -initscript $init $tmpl"
 	  set content [$e render -initscript $init $tmpl]
 	  :write $content [file join $project_path "[$e filename].$ext"]
 	  puts stderr "$e written to [file join $project_path [$e filename].$ext]"
@@ -1601,6 +1517,32 @@ namespace eval ::nx::doc {
   # events which are then signalled to the parsed entity.
   #
   Class create CommentBlockParser {
+    :attribute {message ""}
+    :attribute {status:in "COMPLETED"} {
+      set :incremental 1
+      
+      set :statuscodes {
+	COMPLETED
+	INVALIDTAG
+	MISSINGPARTOF
+	STYLEVIOLATION
+      }
+      
+      :method type=in {name value} {
+	if {$value ni ${:statuscodes}} {
+	  error "Invalid statuscode '$code'."
+	}
+	return $value
+      }
+      
+      :method ? [list obj var value:in,slot=[current object]] {
+	return [expr {[:get $obj $var] eq $value}]
+      }
+
+      :method is {obj var value} {
+	return [expr {$value in ${:statuscodes}}]
+      }
+    }
 
     :attribute processed_section  {
       set :incremental 1
@@ -1608,31 +1550,31 @@ namespace eval ::nx::doc {
 	set current_entity [$domain current_entity]
 	set scope [expr {[$current_entity info is class]?"object mixin":"mixin"}]
 	puts stderr "Switching: [$current_entity {*}$scope] --> target $value"
-	if {[$domain eval [list info exists :$prop]] && [:get $domain $prop] in [$current_entity {*}$scope]} {
-	  $current_entity {*}$scope delete [:get $domain $prop]
+	  if {[$domain eval [list info exists :$prop]] && [:get $domain $prop] in [$current_entity {*}$scope]} {
+	    $current_entity {*}$scope delete [:get $domain $prop]
+	  }
+	  $current_entity {*}$scope add [next $domain $prop $value]
 	}
-	$current_entity {*}$scope add [next $domain $prop $value]
       }
-    }
-    :attribute current_entity:object
-
-    :object method process {
-	{-partof_entity ""}
-	{-initial_section context}
-	-entity
-	block
-      } {
+      :attribute current_entity:object
       
-      if {![info exists entity]} {
+      :object method process {
+			      {-partof_entity ""}
+			      {-initial_section context}
+			      -entity
+			      block
+			    } {
+	
+	if {![info exists entity]} {
 	set entity [Entity]
       }
       
-      set parser_obj [:new -current_entity $entity -volatile]
+      set parser_obj [:new -current_entity $entity]
       $parser_obj [current proc] \
 	  -partof_entity $partof_entity \
 	  -initial_section $initial_section \
 	  $block
-      return [$parser_obj current_entity]
+      return $parser_obj
     }
     
     :forward has_next expr {${:idx} < [llength ${:comment_block}]}
@@ -1642,10 +1584,15 @@ namespace eval ::nx::doc {
       return $r
     }
     :forward rewind incr :idx -1
-#    :forward fastforward set :idx {% expr {[llength ${:comment_block}] - 1} }
+#   :forward fastforward set :idx {% expr {[llength ${:comment_block}] - 1} }
     :forward fastforward set :idx {% llength ${:comment_block}}
 
-
+    :method cancel {statuscode {msg ""}} {
+      :fastforward
+      :status $statuscode
+      :message $msg
+      uplevel 1 [list ::return -code error $statuscode]
+    }
     #
     # everything below assumes that the current class is an active mixin
     # on an instance of an Entity subclass!
@@ -1671,7 +1618,7 @@ namespace eval ::nx::doc {
       ${:current_entity} eval [list set :partof_entity $partof_entity]
       
       set is_first_iteration 1
-      set failure ""
+#      set failure ""
       
       #
       # Note: Within the while-loop, two object variables constantly
@@ -1688,11 +1635,12 @@ namespace eval ::nx::doc {
 	}
 
 	if {[catch {
-	  puts stderr "PROCESS ${:current_entity} event=process $line"
+	 # puts stderr "PROCESS ${:current_entity} event=process $line"
 	  ${:current_entity} event=process $line
 	} failure]} {
-	  puts stderr ERRORINFO=$::errorInfo
-	  :fastforward
+	  if {![:status is $failure]} {
+	    ::return -code error -errorinfo $::errorInfo
+	  }
 	} 
       }
       if {!$is_first_iteration} {
@@ -1704,9 +1652,10 @@ namespace eval ::nx::doc {
 	${:current_entity} {*}$scope mixin delete ${:processed_section}
       }
       
-      if {$failure ne ""} {
-	error $failure
-      }
+      # if {$failure ne ""} {
+      # 	# puts stderr ERRORINFO=$::errorInfo
+      # 	return -code error -errorinfo $::errorInfo $failure
+      # }
             
     }; # CommentBlockParser->process()
     
@@ -1756,9 +1705,9 @@ namespace eval ::nx::doc {
 	} else {
 	  append msg "A ${src_line_type} line is followed by a ${tgt_line_type} line"
 	}
-	[StyleViolation new -message $msg] throw
+	${:block_parser} cancel STYLEVIOLATION $msg
+	# [StyleViolation new -message $msg] throw
       }
-      
       return [list $tgt_line_type $transitions(${src_line_type}->${tgt_line_type})]
     }
 
@@ -1792,10 +1741,11 @@ namespace eval ::nx::doc {
       set line [split [string trimleft $line]]
       set tag [lindex $line 0]
       if {[:info callable methods -application $tag] eq ""} {
-	[InvalidTag new -message [subst {
-	  The tag '$tag' is not supported for the entity type
-	  '[namespace tail [:info class]]'
-	}]] throw
+	# [InvalidTag new -message [subst {
+	#   The tag '$tag' is not supported for the entity type
+	#   '[namespace tail [:info class]]'
+	# }]] throw
+	${:block_parser} cancel INVALIDTAG "The tag '$tag' is not supported for the entity type '[namespace tail [:info class]]"
       }
       puts stderr ":$tag [lrange $line 1 end]"
       :$tag [lrange $line 1 end]
@@ -1865,12 +1815,14 @@ namespace eval ::nx::doc {
 	  lassign [:resolve_partof_entity $tag $name] nq_name partof_entity
 	  if {$partof_entity ne ""} {
 	    if {[$partof_entity info callable methods -application $tag] eq ""} {
-	      [InvalidTag new -message [subst {
-		The tag '$tag' is not supported for the entity type
-		'[namespace tail [$partof_entity info class]]'
-	      }]] throw
+	      ${:block_parser} cancel INVALIDTAG "The tag '$tag' is not supported for the entity type
+		'[namespace tail [$partof_entity info class]]'"
+	      # [InvalidTag new -message [subst {
+	      # 	The tag '$tag' is not supported for the entity type
+	      # 	'[namespace tail [$partof_entity info class]]'
+	      # }]] throw	      
 	    }
-	    puts stderr "1. $partof_entity $tag $nq_name {*}$args"
+	    #	    puts stderr "1. $partof_entity $tag $nq_name {*}$args"
 	    set current_entity [$partof_entity $tag $nq_name {*}$args]
 	    
 	  } else {
@@ -1884,11 +1836,12 @@ namespace eval ::nx::doc {
 	    # InvalidTag exceptions in analyze()
 	    #
 	    set qualified_tag [namespace qualifiers [current]]::$tag
-	    if {[EntityClass info instances -closure $qualified_tag] eq ""} {
-	      [InvalidTag new -message [subst {
-		The entity type '$tag' is not available
-	      }]] throw 
-	    }
+	    ${:block_parser} cancel INVALIDTAG "The entity type '$tag' is not available"
+	    # if {[EntityClass info instances -closure $qualified_tag] eq ""} {
+	    #   [InvalidTag new -message [subst {
+	    # 	The entity type '$tag' is not available
+	    #   }]] throw 
+	    # }
 	    set current_entity [$tag new -name $nq_name {*}$args]
 	  }
 	  #
@@ -1901,6 +1854,48 @@ namespace eval ::nx::doc {
 	  $current_entity current_comment_line_type ${:current_comment_line_type}
 	  $current_entity block_parser ${:block_parser}
 	}
+
+	:method parse@tag {line} {
+	  lassign $line axes names args
+	  
+	  set operand ${:partof_entity}
+	  set axes [split [string trimleft $axes @] .]
+	  if {[llength $axes] != [llength $names]} {
+	    ${:block_parser} cancel STYLEVIOLATION "Invalid tag line specification in '$line'."
+	    # [StyleViolation new -message [subst {
+	    #   Invalid tag line specification in '$line'.
+	    # }]] throw
+	  }
+	  foreach axis $axes value $names {
+	    puts stderr "axis $axis value $value"
+	    if {$operand eq ""} {
+	      if {[EntityClass info instances @$axis] eq ""} {
+		${:block_parser} cancel INVALIDTAG "The entity type '@$axis' is not available."
+		# [InvalidTag new -message [subst {
+		#   The entity type '@$axis' is not available
+		# }]] throw 
+	      }
+	      puts stderr "FIRST LEVEL: @$axis new -name $value"
+	      set operand [@$axis new -name $value]
+	    } else {
+	      if {[$operand info callable methods -application @$axis] eq ""} {
+		${:block_parser} cancel INVALIDTAG "The tag '$axis' is not supported for the entity type '[namespace tail [$operand info class]]'"
+		# [InvalidTag new -message [subst {
+		#   The tag '$axis' is not supported for the entity type
+		#   '[namespace tail [$operand info class]]'
+		# }]] throw
+	      }
+	      set operand [$operand @$axis $value]
+	    }
+	  }
+	  $operand @doc $args
+
+	  ${:block_parser} current_entity $operand
+	  ${:block_parser} processed_section [current class]
+	  $operand current_comment_line_type ${:current_comment_line_type}
+	  $operand block_parser ${:block_parser}
+	}
+
 	
 	# :method parse@text {line} { next }
 	# :method parse@space {line} { next }
@@ -1913,7 +1908,7 @@ namespace eval ::nx::doc {
 	->text		parse
 	->tag		next
 	text->text	parse
-	text->space	""
+	text->space	parse
 	space->text	parse
 	space->space	parse
 	space->tag	next
@@ -1954,11 +1949,19 @@ namespace eval ::nx::doc {
 	}
 	:method parse@tag {line} {
 	  puts stderr "PART parse@tag [current]"
-	  set :current_part [next]
+	  set r [next]
+	  if {[::nsf::objectproperty $r object] && [$r info has type ::nx::doc::Entity]} {
+	    set :current_part $r
+	  }
+	  return $r
 	}
 	:method parse@text {line} {
 	  puts stderr "PART parse@text [current]"
-	  ${:current_part} @doc add $line end
+	  if {[info exists :current_part]} {
+	    ${:current_part} @doc add $line end
+	  } else {
+	    :event=next $line
+	  }
 	}
 	# :method parse@space {line} {;}
       }

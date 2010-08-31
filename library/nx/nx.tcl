@@ -41,7 +41,7 @@ namespace eval ::nx {
   #
   # @superclass ::nx::doc::entities::class::nx::Object
   
-  # @method ::nx::Class#alloc
+  # @class.method {::nx::Class alloc}
   #
   # Creates a bare object or class which is not
   # fully initialized. {{{alloc}}} is used by {{@method ::nx::Class class create}} to
@@ -55,7 +55,7 @@ namespace eval ::nx {
   # @param name The object identifier assigned to the object storage to be allocated.
   # @return The name of the allocated, uninitialized object
   
-  # @method ::nx::Class#create
+  # @class.method {::nx::Class create}
   #
   # Provides for creating application-level classes and objects. If
   # the method receiver is a meta-class, a class will be
@@ -107,7 +107,7 @@ namespace eval ::nx {
   # procedure used to initialize the object.
   # @return The name of the created, fully initialized object.
   
-  # @method ::nx::Class#dealloc
+  # @class.method {::nx::Class dealloc}
   #
   # Marks objects for physical deletion in memory. Beware the fact
   # that calling {{{dealloc}}} does not necessarily cause the object
@@ -157,7 +157,7 @@ namespace eval ::nx {
   # @param args Arbitrary vector of arguments
   # @return The name of the recreated object
  
-  # @method ::nx::Object#residualargs
+  # @class.method {::nx::Object residualargs}
   #
   # @properties interally-called
   # @param args
@@ -201,7 +201,7 @@ namespace eval ::nx {
     ::nsf::alias Object $cmdName $cmd 
   }
   
-  # @method ::nx::Object#configure
+  # @class.method {::nx::Object configure}
   #
   # This method participates in the object creation process. It is
   # automatically invoked after having produced a new object by
@@ -219,7 +219,7 @@ namespace eval ::nx {
   # @properties interally-called
   # @param args The variable argument vector stores the object parameters and their values
 
-  # @method ::nx::Object#destroy
+  # @class.method {::nx::Object destroy}
   #
   # The standard destructor for an object. The method {{@method ::nx::Object class destroy}}
   # triggers the physical destruction of the object. The method {{{destroy}}} can be refined
@@ -250,7 +250,7 @@ namespace eval ::nx {
   # or mixin class. 
   #
 
-  # @method ::nx::Object#uplevel
+  # @class.method {::nx::Object uplevel}
   #
   # This helper allows you to evaluate a script in the context of
   # another callstack level (i.e., callstack frame).
@@ -258,7 +258,7 @@ namespace eval ::nx {
   # @param level:optional The starting callstack level (defaults to the value of {{{[current callinglevel]}}})
   # @param script:list The script to be evaluated in the targeted callstack level
 
-  # @method ::nx::Object#upvar
+  # @class.method {::nx::Object upvar}
   #
   # This helper allows you to bind a local variable to a variable
   # residing at a different callstack level (frame).
@@ -268,7 +268,7 @@ namespace eval ::nx {
   # @param targetVar ... which is a local variable in a method scope
   # @see ...
 
-  # @method ::nx::Object#volatile
+  # @class.method {::nx::Object volatile}
   #
   # By calling on this method, the object is bound in its lifetime to
   # the one of call site (e.g., the given Tcl proc or method scope):
@@ -293,7 +293,7 @@ namespace eval ::nx {
   # class methods
   #
   
-  # @method ::nx::Class#new
+  # @class.method {::nx::Class new}
   #
   # A convenience method to create auto-named objects and classes. It is
   # a front-end to {{@method ::nx::Class class create}}. For instance:
@@ -394,7 +394,7 @@ namespace eval ::nx {
 
   # define method "method" for Class and Object
 
-  # @method ::nx::Class#method 
+  # @class.method {::nx::Class method}
   #
   # Defines a per-class method, similarly to Tcl specifying
   # {{{procs}}}. Optionally assertions may be specified by two
@@ -431,7 +431,7 @@ namespace eval ::nx {
     return $r
   }
 
-  # @method ::nx::Object#method 
+  # @class.method {::nx::Object method} 
   #
   # Defines a per-object method, similarly to Tcl specifying
   # {{{procs}}}.  Optionally assertions may be specified by two
@@ -551,7 +551,7 @@ namespace eval ::nx {
 
   # define forward methods
 
-  # @method ::nx::Object#forward
+  # @class.method {::nx::Object forward}
   #
   # Register a per-object method (similar to a {{{proc}}}) for
   # forward-delegating calls to a callee (target Tcl command, other
@@ -596,7 +596,7 @@ namespace eval ::nx {
   ::nsf::forward Object forward ::nsf::forward %self -per-object
   #set ::nsf::signature(::nx::Object-method-forward) {(methodName) obj forward name ?-default default? ?-earlybinding? ?-methodprefix name? ?-objscope? ?-onerror proc? ?-verbose? target ?args?}
 
-  # @method ::nx::Class#forward
+  # @class.method {::nx::Class forward}
   #
   # Register a per-class method (similar to a {{{proc}}}) for
   # forward-delegating calls to a callee (target Tcl command, other
@@ -632,11 +632,18 @@ namespace eval ::nx {
   # left to right and should be used in ascending order. 
   #
   # @param name The name of the delegating or forward method
-  # @param -objscope:optional Causes the target to be evaluated in the scope of the object.
-  # @param -methodprefix Prepends the specified prefix to the second argument of the invocation.
-  # @param -default Is used for default method names (only in connection with %1)
-  # @param -earlybinding Look up the function pointer of the called Tcl command at definition time of the forwarder instead of invocation time. This option should only be used for calling C-implemented Tcl commands, no scripted procs
-  # @param -verbose Print the substituted command to stderr before executing
+  # @param -objscope:optional Causes the target to be evaluated in the
+  # scope of the object.
+  # @param -methodprefix Prepends the specified prefix to the second
+  # argument of the invocation.
+  # @param -default Is used for default method names (only in
+  # connection with %1)
+  # @param -earlybinding Look up the function pointer of the called
+  # Tcl command at definition time of the forwarder instead of
+  # invocation time. This option should only be used for calling
+  # C-implemented Tcl commands, no scripted procs
+  # @param -verbose Print the substituted command to stderr before
+  # executing
   # @param callee
   # @param args
 
@@ -1105,23 +1112,23 @@ namespace eval ::nx {
   # Define slots for slots
   ############################################
 
-  # @param ::nx::Slot#name
+  # @class.param {::nx::Slot name}
   #
   # Name of the slot which can be used to access the slot from an object
 
-  # @param ::nx::Slot#multivalued
+  # @class.param {::nx::Slot multivalued}
   #
   # Boolean value for specifying single or multiple values (lists)
 
-  # @param ::nx::Slot#required
+  # @class.param {::nx::Slot required}
   #
   # Denotes whether a value must be provided
 
-  # @param ::nx::Slot#default
+  # @class.param {::nx::Slot default}
   #
   # Allows you to define a default value (to be set upon object creation)
 
-  # @param ::nx::Slot#type
+  # @class.param {::nx::Slot type}
   #
   # You may specify a type constraint on the value range to managed by the slot
 
@@ -1133,31 +1140,31 @@ namespace eval ::nx {
     type
   }
 
-  # @param ::nx::ObjectParameterSlot#name
+  # @class.param {::nx::ObjectParameterSlot name}
   #
   # Name of the slot which can be used to access the slot from an
   # object. It defaults to unqualified name of an instance.
 
-  # @param ::nx::ObjectParameterSlot#methodname
+  # @class.param {::nx::ObjectParameterSlot methodname}
   #
   # The name of the accessor methods to be registed on behalf of the
   # slot object with its domains can vary from the slot name.
 
-  # @param ::nx::ObjectParameterSlot#domain
+  # @class.param {::nx::ObjectParameterSlot domain}
   #
   # The domain (object or class) of a slot on which it can be used
 
-  # @param ::nx::ObjectParameterSlot#defaultmethods
+  # @class.param {::nx::ObjectParameterSlot defaultmethods}
   #
   # A list of two elements for specifying which methods are called per
   # default, when no slot method is explicitly specified in a call.
 
-  # @param ::nx::ObjectParameterSlot#manager
+  # @class.param {::nx::ObjectParameterSlot manager}
   #
   # The manager object of the slot (per default, the slot object takes
   # this role, i.e. {{{[self]}}})
 
-  # @param ::nx::ObjectParameterSlot#per-object
+  # @class.param {::nx::ObjectParameterSlot per-object}
   #
   # If set to {{{true}}}, the accessor methods are registered with the
   # domain object scope only. It defaults to {{{false}}}.
@@ -1444,7 +1451,7 @@ namespace eval ::nx {
   ############################################
   proc ::nsf::register_system_slots {os} {
 
-    # @param ::nx::Class#superclass
+    # @class.param {::nx::Class superclass}
     #
     # Specifies superclasses for a given class. As a setter ***
     # generell: setter kann hier mit der methode namens "setter"
@@ -1465,7 +1472,7 @@ namespace eval ::nx {
     ::nx::RelationSlot create ${os}::Class::slot::superclass
     ::nsf::alias              ${os}::Class::slot::superclass assign ::nsf::relation
 
-    # @param ::nx::Object#class
+    # @class.param {::nx::Object class}
     #
     # Sets or retrieves the class of an object. When {{{class}}} is
     # called without arguments, it returns the current class of the
@@ -1475,7 +1482,7 @@ namespace eval ::nx {
     ::nx::RelationSlot create ${os}::Object::slot::class -multivalued false
     ::nsf::alias              ${os}::Object::slot::class assign ::nsf::relation
 
-    # @param ::nx::Object#mixin
+    # @class.param {::nx::Object mixin}
     #
     # As a setter, {{{mixin}}} specifies a list of mixins to
     # set. Every mixin must be an existing class. In getter mode, you
@@ -1485,7 +1492,7 @@ namespace eval ::nx {
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
 	-methodname object-mixin    
 
-    # @param ::nx::Object#filter
+    # @class.param {::nx::Object filter}
     #
     # In its setter mode, {{{filter}}} allows you to register methods
     # as per-object filters. Every filter must be an existing method
@@ -1499,7 +1506,7 @@ namespace eval ::nx {
 	-methodname object-filter
 
 
-    # @param ::nx::Class#mixin
+    # @class.param {::nx::Class mixin}
     #
     # As a setter, {{{mixin}}} specifies a list of mixins to set for
     # the class. Every mixin must be an existing class. In getter
@@ -1509,7 +1516,7 @@ namespace eval ::nx {
     # @return :list If called as a getter (without arguments), {{{mixin}}} returns the list of current mixin classes registered with the class
     ::nx::RelationSlot create ${os}::Class::slot::mixin -methodname class-mixin
     
-    # @param ::nx::Class#filter
+    # @class.param {::nx::Class filter}
     #
     # In its setter mode, {{{filter}}} allows you to register methods
     # as per-class filters. Every filter must be an existing method
@@ -1591,9 +1598,13 @@ namespace eval ::nx {
   #   }
   # }}}
   #
-  # @param incremental A boolean value, only useful for multivalued slots. When set, one can add/delete incrementally values to the multivalued set (e.g., through an incremental {{{add}}})
-  # @param valuecmd A Tcl command to be executed whenever the managed object variable is read
-  # @param valuechangedcmd A Tcl command to be executed whenever the value of the managed object variable changes
+  # @param incremental A boolean value, only useful for multivalued
+  # slots. When set, one can add/delete incrementally values to the
+  # multivalued set (e.g., through an incremental {{{add}}})
+  # @param valuecmd A Tcl command to be executed whenever the managed
+  # object variable is read
+  # @param valuechangedcmd A Tcl command to be executed whenever the
+  # value of the managed object variable changes
   # @param arg
   # @superclass ::nx::doc::entities::class::nx::ObjectParameterSlot
 

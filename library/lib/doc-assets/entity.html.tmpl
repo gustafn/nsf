@@ -17,16 +17,16 @@
 	<div id="hd">
         <h1><a href="[$project url]" title="[$project name]">[$project name]</a></h1>
         <h3>${:name}&nbsp; 
-	  [:? {[:info is type ::nx::doc::@package]} {
+	  [:? {[:info has type ::nx::doc::@package]} {
 	  <span class="subtitle">[:?var :@version {${:@version}} ]</span>
 	  } - {
 	  <span class="subtitle">[$project version]</span>
 	  }]
 	</h3>
         <a href="./index.html" title="[$project name]">[$project name]</a> 
-        [:? {[:info is type ::nx::doc::@package]} {
+        [:? {[:info has type ::nx::doc::@package]} {
 	   &gt; <a href="./[:filename].html" title="${:name}">${:name}</a>
-	  } ? {[:info is type ::nx::doc::@class]} {
+	  } ? {[:info has type ::nx::doc::@class]} {
 	  &gt; [:?var :partof {<a href="./[${:partof} filename].html" title="[${:partof} name]">[${:partof} name]</a> &gt;}] ${:name}</a>
 	  }]
         <form onsubmit="return false">
@@ -42,13 +42,13 @@
 	<div id="bd">
 		<div id="yui-main">
 			<div class="yui-b">
-			  [:? {[:info is type ::nx::doc::@package]} {
+			  [:? {[:info has type ::nx::doc::@package]} {
 			  [:include package.html.tmpl]
-			  } ? {[:info is type ::nx::doc::@class]} {
+			  } ? {[:info has type ::nx::doc::@class]} {
 			  [:include class.html.tmpl]
-			  } ? {[:info is type ::nx::doc::@command]} {
+			  } ? {[:info has type ::nx::doc::@command]} {
 			  [:include command.html.tmpl]
-			  } ? {[:info is type ::nx::doc::@project]} {
+			  } ? {[:info has type ::nx::doc::@project]} {
 			<div class="summary description">
 			  This is the API documentation for the 
 			  <a href="[:name]">[:name]</a> project.
@@ -65,7 +65,7 @@
 			  <ul class="content">
 			  [:for package $(@package) {
 			  [:let css "" ]
-			  [:? {[:info is type ::nx::doc::@package] && [current] eq $package} {
+			  [:? {[:info has type ::nx::doc::@package] && [current] eq $package} {
 			  [:let css "selected" ]
 			  }]
 			  <li class="$css"><a href="[$package filename].html" title="[$package name]">[:fit [$package name] 30]</a></li>
@@ -80,7 +80,7 @@
 			<ul class="content">
 			  [:for class $(@class) {
 			  [:let css "" ]
-			  [:? {[:info is type ::nx::doc::@class] && [current] eq $class} {
+			  [:? {[:info has type ::nx::doc::@class] && [current] eq $class} {
 			  [:let css "selected" ]
 			  }]
 			  <li class="$css"><a href="[$class filename].html" title="[$class name]">[:fit [$class name] 30]</a></li>
@@ -95,7 +95,7 @@
 			<ul class="content">
 			  [:for command $(@command) {
 			  [:let css "" ]
-			  [:? {[:info is type ::nx::doc::@command] && [current] eq $command} {
+			  [:? {[:info has type ::nx::doc::@command] && [current] eq $command} {
 			  [:let css "selected"]
 			  }]
 			  <li class="$css"><a href="[$command filename].html" title="[$command name]">[$command name]</a></li>
