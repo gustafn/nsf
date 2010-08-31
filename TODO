@@ -1195,6 +1195,8 @@ _ added option noforwarder to RelationSlots
 - reavtivated corresponding regression test
 - extended regression tests (call unknown method 
   with filter with and without unknown handlers)
+- make sure to test next to non-existing shadowed 
+  method in connections with filters and unknwon handlers
 
 TODO: 
 

@@ -138,11 +138,8 @@ Test case "filter-and-creation" {
       #puts stderr "$i: $s.$m procsearch after [$s info callable method info]"
       return $r
     }
-    
-    #:method unknown {args} {
-    #  puts stderr "use '[self] create $args', not '[self] $args'"
-    #  uplevel [list [self] create {*}$args]
-    #}
+    # method for testing next to non-existing shadowed method
+    :method baz {} {next}
   }
 
   # define nx unknown handler in case it does not exist
@@ -152,12 +149,14 @@ Test case "filter-and-creation" {
 
   ? {Foo create ob} ::ob
   ? {ob bar} {::ob: unable to dispatch method 'bar'}
+  ? {ob baz} {}
 
   Foo filter myfilter
   # create through filter
   ? {Foo create ob} ::ob
   # unknown through filter
   ? {ob bar1} {::ob: unable to dispatch method 'bar1'}
+  ? {ob baz} {}
 
   # deactivate nx unknown handler in case it exists
   ::nx::Object method unknown {} {}
@@ -166,6 +165,8 @@ Test case "filter-and-creation" {
   ? {Foo create ob2} ::ob2
   # unknown through filter
   ? {ob2 bar2} {::ob2: unable to dispatch method 'bar2'}
+  ? {ob2 baz} {}
+
 }
 
 
