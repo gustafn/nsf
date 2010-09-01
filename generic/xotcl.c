@@ -12682,10 +12682,16 @@ static int XOTclParametercheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Ob
 
   result = Parametercheck(interp, objPtr, valueObj, "value:", &paramPtr);
 
-  /*fprintf(stderr, "after convert\n");*/
+  if (paramPtr == NULL) {
+    /* 
+     * We could not convert the arguments. Even with noComplain, we
+     * report the invalid converter spec as exception
+     */
+    return TCL_ERROR;
+  }
 
-  if (paramPtr && paramPtr->converter == convertViaCmd && 
-      (withNocomplain || result == TCL_OK)) {
+  if (paramPtr->converter == convertViaCmd 
+      && (withNocomplain || result == TCL_OK)) {
     Tcl_ResetResult(interp);
   } 
 

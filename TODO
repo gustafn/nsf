@@ -1237,6 +1237,9 @@ _ added option noforwarder to RelationSlots
 - removed objectproperty, replaced it by ::nsf::is
 - move functionalizy of objectproperty to make "obj info is ..." more efficient
 
+- report "invalid parameter" in nsf::is and parametercheck, even when
+  no-complain is used.
+
 TODO: 
 - reflect changes in /is/objectproperty/info has/info is/ in migration guide
 - implement built-in-converter for "baseclass" and "metaclass"?

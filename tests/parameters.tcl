@@ -36,6 +36,8 @@ Test case parametercheck {
   ? {::nsf::is baseclass C} 0
   ? {C info is baseclass} 0
 
+  ? {::nsf::is class ::nx::Object} 1
+  ? {::nsf::is ::nx::Object class} {invalid value constraints "::nx::Object"}
 
   ? {::nsf::parametercheck object o1} 1
   ? {::nsf::parametercheck -nocomplain object o1} 1
@@ -48,7 +50,6 @@ Test case parametercheck {
   ? {c1 info has mixin ::M} 1  
   ? {c1 info has mixin ::M1} {expected class but got "::M1" for parameter class}
   #? {::nsf::parametercheck hasmixin,arg=::M c1} 1
-
   
   #? {::nsf::is type c1 C} 1
   ? {c1 info has type C} 1
