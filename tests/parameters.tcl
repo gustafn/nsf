@@ -39,7 +39,7 @@ Test case parametercheck {
   ? {::nsf::isobject o1} 1
   ? {::nsf::isobject o1000} 0
   
-  #? {::nsf::objectproperty c1 type C} 1
+  #? {::nsf::objectproperty type c1 C} 1
   ? {c1 info has type C} 1
   ? {c1 info has type C1} {expected class but got "C1" for parameter class}
   #? {::nsf::is c1 object -type C} 1

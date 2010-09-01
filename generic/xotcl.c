@@ -12053,11 +12053,11 @@ XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 
 /*
 xotclCmd objectproperty XOTclObjectpropertyCmd {
-  {-argName "object" -required 1 -type tclobj}
   {-argName "objectkind" -type "object|class|baseclass|metaclass"}
+  {-argName "object" -required 1 -type tclobj}
 }
 */
-static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *obj, int objectkind) {
+static int XOTclObjectpropertyCmd(Tcl_Interp *interp, int objectkind, Tcl_Obj *obj) {
   int success = TCL_ERROR;
   XOTclObject *object;
 

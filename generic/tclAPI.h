@@ -298,7 +298,7 @@ static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int w
 static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
-static int XOTclObjectpropertyCmd(Tcl_Interp *interp, Tcl_Obj *object, int objectkind);
+static int XOTclObjectpropertyCmd(Tcl_Interp *interp, int objectkind, Tcl_Obj *object);
 static int XOTclParametercheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *param, Tcl_Obj *value);
 static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
@@ -1857,11 +1857,11 @@ XOTclObjectpropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, 
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
-    int objectkind = (int )PTR2INT(pc.clientData[1]);
+    int objectkind = (int )PTR2INT(pc.clientData[0]);
+    Tcl_Obj *object = (Tcl_Obj *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclObjectpropertyCmd(interp, object, objectkind);
+    return XOTclObjectpropertyCmd(interp, objectkind, object);
 
   }
 }
@@ -2270,8 +2270,8 @@ static methodDefinition method_definitions[] = {
   {"toNs", 1, 0, convertToTclobj}}
 },
 {"::nsf::objectproperty", XOTclObjectpropertyCmdStub, 2, {
-  {"object", 1, 0, convertToTclobj},
-  {"objectkind", 0, 0, convertToObjectkind}}
+  {"objectkind", 0, 0, convertToObjectkind},
+  {"object", 1, 0, convertToTclobj}}
 },
 {"::nsf::parametercheck", XOTclParametercheckCmdStub, 3, {
   {"-nocomplain", 0, 0, convertToString},

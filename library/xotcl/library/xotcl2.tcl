@@ -475,7 +475,7 @@ namespace eval ::xotcl {
     :alias forward            ::nsf::cmd::ObjectInfo::forward
     :alias hasnamespace       ::nsf::cmd::ObjectInfo::hasnamespace
     :proc invar {}            {::nsf::assertion [self] object-invar}
-    #:proc is {kind} {::nsf::objectproperty [::nsf::current object] $kind}
+    #:proc is {kind} {::nsf::objectproperty object [::nsf::current] $kind}
 
     :proc methods {
       -nocmds:switch -noprocs:switch -incontext:switch pattern:optional
@@ -591,13 +591,13 @@ namespace eval ::xotcl {
 
  # emulation of isobject, isclass ...
   Object instproc isobject    {{object:substdefault "[self]"}} {::nsf::isobject $object}
-  Object instproc isclass     {{class:substdefault  "[self]"}} {::nsf::objectproperty $class class}
-  Object instproc ismetaclass {{class:substdefault  "[self]"}} {::nsf::objectproperty $class metaclass}
+  Object instproc isclass     {{class:substdefault  "[self]"}} {::nsf::objectproperty class $class}
+  Object instproc ismetaclass {{class:substdefault  "[self]"}} {::nsf::objectproperty metaclass $class}
   Object instproc ismixin     {class}  {
-    expr {[::nsf::objectproperty $class class] && 
+    expr {[::nsf::objectproperty class $class] && 
 	  [my ::nsf::cmd::ObjectInfo::hasmixin $class]}}
   Object instproc istype      {class}  {
-    expr {[::nsf::objectproperty $class class] && 
+    expr {[::nsf::objectproperty class $class] && 
 	  [::nsf::dispatch [self] ::nsf::cmd::ObjectInfo::hastype $class]}
   }
 
@@ -650,7 +650,7 @@ namespace eval ::xotcl {
         set kind [lindex $definition 2]
         set name [lindex $definition 3]
       } else {
-	set prefix [expr {[::nsf::objectproperty $obj class] ? "inst" : ""}]
+	set prefix [expr {[::nsf::objectproperty class $obj] ? "inst" : ""}]
         set kind $modifier
         set name [lindex $definition 2]
       }
@@ -689,7 +689,7 @@ namespace eval ::xotcl {
 
   # support for XOTcl specific convenience routines
   Object instproc hasclass cl {
-    if {![::nsf::objectproperty $cl class]} {return 0}
+    if {![::nsf::objectproperty class $cl]} {return 0}
     if {[my ::nsf::cmd::ObjectInfo::hasmixin $cl]} {return 1}
     ::nsf::dispatch [self] ::nsf::cmd::ObjectInfo::hastype $cl
   }

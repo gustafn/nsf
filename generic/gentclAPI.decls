@@ -125,8 +125,8 @@ xotclCmd namespace_copyvars XOTclNSCopyVars {
   {-argName "toNs" -required 1 -type tclobj}
 }
 xotclCmd objectproperty XOTclObjectpropertyCmd {
-  {-argName "object" -required 1 -type tclobj}
   {-argName "objectkind" -type "object|class|baseclass|metaclass"}
+  {-argName "object" -required 1 -type tclobj}
 }
 xotclCmd parametercheck XOTclParametercheckCmd {
   {-argName "-nocomplain"}

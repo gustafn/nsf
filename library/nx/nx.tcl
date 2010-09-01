@@ -347,7 +347,7 @@ namespace eval ::nx {
       set methodName [lindex $path end]
       foreach w [lrange $path 0 end-1] {
 	#puts stderr "check $object info methods $path @ <$w>"
-	set scope [expr {[nsf::objectproperty $object class] && !${per-object} ? "Class" : "Object"}] 
+	set scope [expr {[nsf::objectproperty class $object] && !${per-object} ? "Class" : "Object"}] 
 	if {[$object ::nsf::cmd::${scope}Info::methods -methodtype all $w] eq ""} {
 	  #
 	  # Create dispatch/ensemble object and accessor method (if wanted)
@@ -531,7 +531,7 @@ namespace eval ::nx {
 
     # Default unknown-handler for Object
     #
-    # Actually, we do not need thios unknwon handler, but we could
+    # Actually, we do not need this unknown handler, but we could
     # define it as follows:
     #
     # :protected method unknown {m args} {
@@ -756,7 +756,7 @@ namespace eval ::nx {
       set parent [::nsf::dispatch $self ::nsf::cmd::ObjectInfo::parent]
       set grandparent [::nsf::dispatch $parent ::nsf::cmd::ObjectInfo::parent]
       set tail [namespace tail $parent]
-      if {$tail eq "slot" && [::nsf::objectproperty $grandparent class]} {
+      if {$tail eq "slot" && [::nsf::objectproperty class $grandparent]} {
 	set aliases [::nsf::dispatch $grandparent ::nsf::cmd::ClassInfo::methods -methodtype alias]
 	foreach alias $aliases {
 	  set def [::nsf::dispatch $grandparent ::nsf::cmd::ClassInfo::method definition $alias]
@@ -778,7 +778,7 @@ namespace eval ::nx {
       set path $(name)
       while {1} {
 	set o [::nsf::dispatch $o ::nsf::cmd::ObjectInfo::parent]
-	if {![::nsf::objectproperty $o type ::nx::EnsembleObject]} break
+	if {![::nsf::objectproperty type $o ::nx::EnsembleObject]} break
 	array set "" [$o ::nsf::classes::nx::EnsembleObject::subcmdName]
 	set path "$(name) $path"
       }
@@ -1216,7 +1216,7 @@ namespace eval ::nx {
   }
   
   ObjectParameterSlot public method destroy {} {
-    if {${:domain} ne "" && [::nsf::objectproperty ${:domain} class]} {
+    if {${:domain} ne "" && [::nsf::objectproperty class ${:domain}]} {
       ::nsf::invalidateobjectparameter ${:domain}
     }
     ::nsf::next
@@ -1230,7 +1230,7 @@ namespace eval ::nx {
       if {![info exists :methodname]} {
         set :methodname ${:name}
       }
-      if {[::nsf::objectproperty ${:domain} class]} {
+      if {[::nsf::objectproperty class ${:domain}]} {
 	::nsf::invalidateobjectparameter ${:domain}
       } 
       if {${:per-object} && [info exists :default] } {
@@ -1273,7 +1273,7 @@ namespace eval ::nx {
     }
     if {[info exists :type]} {
       if {[string match ::* ${:type}]} {
-	set type [expr {[::nsf::objectproperty ${:type} metaclass] ? "class" : "object"}]
+	set type [expr {[::nsf::objectproperty metaclass ${:type}] ? "class" : "object"}]
         lappend objopts type=${:type}
         lappend methodopts type=${:type}
       } else {
@@ -1340,7 +1340,7 @@ namespace eval ::nx {
       if {![::nsf::dispatch $slot ::nsf::cmd::ObjectInfo::hastype ::nx::Slot]} continue
       # Skip some slots for xotcl; 
       # TODO: maybe different parameterFromSlots for xotcl?
-      if {[::nsf::objectproperty ::xotcl::Object class] 
+      if {[::nsf::objectproperty class ::xotcl::Object] 
 	  && [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::hastype ::xotcl::Object] && 
           ([$slot name] eq "mixin" || [$slot name] eq "filter")
 	} continue
@@ -1354,7 +1354,7 @@ namespace eval ::nx {
   Object protected method objectparameter {{lastparameter __initcmd:initcmd,optional}} {
     #puts stderr "... objectparameter [::nsf::current object]"
     set parameterdefinitions [::nsf::parametersFromSlots [::nsf::current object]]
-    if {[::nsf::objectproperty [::nsf::current object] class]} {
+    if {[::nsf::objectproperty class [::nsf::current object]]} {
       lappend parameterdefinitions -parameter:method,optional
     }
     lappend parameterdefinitions \
@@ -1406,7 +1406,7 @@ namespace eval ::nx {
         }
         set value [::nsf::dispatch $value -objscope ::nsf::current object]
       }
-      if {![::nsf::objectproperty ${:elementtype} class]} {
+      if {![::nsf::objectproperty class ${:elementtype}]} {
         error "$value does not appear to be of type ${:elementtype}"
       }
     }
@@ -1778,14 +1778,14 @@ namespace eval ::nx {
   ##################################################################
 
   Slot method type=baseclass {name value} {
-    if {![::nsf::objectproperty $value baseclass]} {
+    if {![::nsf::objectproperty baseclass $value]} {
       error "expected baseclass but got \"$value\" for parameter $name"
     }
     return $value
   }
 
   Slot method type=metaclass {name value} {
-    if {![::nsf::objectproperty $value metaclass]} {
+    if {![::nsf::objectproperty metaclass $value]} {
       error "expected metaclass but got \"$value\" for parameter $name"
     }
     return $value
@@ -1836,10 +1836,10 @@ namespace eval ::nx {
 		 -container $object -withclass $class]
       Class mixin add $m end
       # TODO: the following is not pretty; however, contains might build xotcl1 and next objects.
-      if {[::nsf::objectproperty ::xotcl::Class class]} {::xotcl::Class instmixin add $m end}
+      if {[::nsf::objectproperty class ::xotcl::Class]} {::xotcl::Class instmixin add $m end}
       namespace eval $object $cmds
       Class mixin delete $m
-      if {[::nsf::objectproperty ::xotcl::Class class]} {::xotcl::Class instmixin delete $m}
+      if {[::nsf::objectproperty class ::xotcl::Class]} {::xotcl::Class instmixin delete $m}
     } else {
       namespace eval $object $cmds
     }
@@ -1905,7 +1905,7 @@ namespace eval ::nx {
         set dest [:getDest $origin]
         if {[::nsf::isobject $origin]} {
           # copy class information
-          if {[::nsf::objectproperty $origin class]} {
+          if {[::nsf::objectproperty class $origin]} {
             set cl [[$origin info class] create $dest -noinit]
             # class object
             set obj $cl
@@ -1935,7 +1935,7 @@ namespace eval ::nx {
 	  ::nsf::forward $dest -per-object $i {*}[$origin ::nsf::cmd::ObjectInfo::forward -definition $i]
 
 	}
-	if {[::nsf::objectproperty $origin class]} {
+	if {[::nsf::objectproperty class $origin]} {
 	  foreach i [$origin ::nsf::cmd::ClassInfo::forward] {
 	    ::nsf::forward $dest $i {*}[$origin ::nsf::cmd::ClassInfo::forward -definition $i]
 	  }
@@ -1958,7 +1958,7 @@ namespace eval ::nx {
       }
       # alter 'domain' and 'manager' in slot objects for classes
       foreach origin [set :targetList] {
-	if {[::nsf::objectproperty $origin class]} {
+	if {[::nsf::objectproperty class $origin]} {
 	  set dest [:getDest $origin]
 	  foreach oldslot [$origin info slots] {
 	    set newslot [::nx::slotObj $dest [namespace tail $oldslot]] 
@@ -1991,7 +1991,7 @@ namespace eval ::nx {
         :copy $newName
       }
       ### let all subclasses get the copied class as superclass
-      if {[::nsf::objectproperty [::nsf::current object] class] && $newName ne ""} {
+      if {[::nsf::objectproperty class [::nsf::current object]] && $newName ne ""} {
         foreach subclass [:info subclass] {
           set scl [$subclass info superclass]
           if {[set index [lsearch -exact $scl [::nsf::current object]]] != -1} {

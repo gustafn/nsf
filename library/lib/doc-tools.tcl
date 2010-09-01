@@ -552,7 +552,7 @@ namespace eval ::nx::doc {
 	    # requested (from the part_attribute) applicable to the
 	    # partof object, which is the object behind [$domain name]?
 	    if {[info exists :scope] && 
-		![::nsf::objectproperty [$domain name] ${:scope}]} {
+		![::nsf::objectproperty name [$domain] ${:scope}]} {
 	      error "The entity '[$domain name]' does not qualify as '${:scope}'"
 	    }
 	    next
@@ -1136,7 +1136,7 @@ namespace eval ::nx {
       if {[::nsf::isobject $thing]} {
 	if {[$thing eval {info exists :__initcmd}]} {
 	  
-          :analyze_initcmd [expr {[::nsf::objectproperty $thing class]?"@class":"@object"}] $thing [$thing eval {set :__initcmd}]
+          :analyze_initcmd [expr {[::nsf::objectproperty class $thing]?"@class":"@object"}] $thing [$thing eval {set :__initcmd}]
         }
       } elseif {![catch {package present $thing} msg]} {
 	# For tcl packages, we assume that the package is sourceable
@@ -1950,7 +1950,7 @@ namespace eval ::nx::doc {
 	:method parse@tag {line} {
 	  puts stderr "PART parse@tag [current]"
 	  set r [next]
-	  if {[::nsf::objectproperty $r object] && [$r info has type ::nx::doc::Entity]} {
+	  if {[::nsf::objectproperty object $r] && [$r info has type ::nx::doc::Entity]} {
 	    set :current_part $r
 	  }
 	  return $r

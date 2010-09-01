@@ -654,7 +654,7 @@ namespace eval ::nx::serializer {
     }
 
     :method method-serialize {o m modifier} {
-      if {![::nsf::objectproperty $o class]} {set modifier ""}
+      if {![::nsf::objectproperty class $o]} {set modifier ""}
       return [$o {*}$modifier info method definition $m]
     }
 
