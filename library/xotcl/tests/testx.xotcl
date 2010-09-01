@@ -2622,9 +2622,9 @@ TestX copymove -proc run {{n 10}} {
     # class hierarchy copy
     Class O
     X copy O::X
-    ::errorCheck "[::xotcl::is O::X object]" 1 "O::X is an object"
-    ::errorCheck "[::xotcl::is O::X::Y object]" 1 "O::X::Y is an object"
-    ::errorCheck "[::xotcl::is O::X::Y::Z object]" 1 "O::X::Y::Z is an object"
+    ::errorCheck "[::xotcl::is object O::X]" 1 "O::X is an object"
+    ::errorCheck "[::xotcl::is object O::X::Y]" 1 "O::X::Y is an object"
+    ::errorCheck "[::xotcl::is object O::X::Y::Z]" 1 "O::X::Y::Z is an object"
 
     O::X x1; O::X::Y y1; O::X::Y::Z z1
 
@@ -3467,8 +3467,8 @@ TestX objectReferences -proc run {{n 20}} {
   ::errorCheck [M isclass] 0 "is isclass 0"
   ::errorCheck [Class info instances M] "" "is not an instance of Class"
   ::errorCheck [Object isclass m1] 1 "m1 is still a class"
-  ::errorCheck [::xotcl::is m1 object] 1 "m1 is still an object"
-  ::errorCheck [::xotcl::is m1 class] 1 "m1 is still a class"
+  ::errorCheck [::xotcl::is object m1] 1 "m1 is still an object"
+  ::errorCheck [::xotcl::is class m1] 1 "m1 is still a class"
   ::errorCheck [::xotcl::relation m1 class] ::xotcl::Class "m1 now a baseclass"
  ::errorCheck [m1 info class] ::xotcl::Class "m1 is now an instance of Class"
 

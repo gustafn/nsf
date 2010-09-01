@@ -381,8 +381,8 @@ C method foo {} {
   ? "set ::firstDestroy" 0 "firstDestroy called"
   ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
   ? {::nsf::isobject c1} 1 "object still exists in proc"
-  #? {::nsf::objectproperty class ::C} 0 "class still exists in proc"
-  ? {::nsf::objectproperty class ::C} 1 "class still exists in proc"
+  #? {::nsf::is class ::C} 0 "class still exists in proc"
+  ? {::nsf::is class ::C} 1 "class still exists in proc"
 }
 C create c1
 c1 foo
@@ -413,13 +413,13 @@ C method foo {} {
   ? [:info class] ::C "object reclassed"
   #? [:info class] ::xotcl::Object "object reclassed"
   ? {::nsf::isobject ::C::c1} 1 "object still exists in proc"
-  ? {::nsf::objectproperty class ::C} 1 "class still exists in proc"
+  ? {::nsf::is class ::C} 1 "class still exists in proc"
 }
 C create ::C::c1
 C::c1 foo
 #puts stderr ======[::nsf::isobject ::C::c1]
 ? {::nsf::isobject ::C::c1} 0 "object still exists after proc"
-? {::nsf::objectproperty class ::C} 0 "class still exists after proc"
+? {::nsf::is class ::C} 0 "class still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
 
@@ -532,12 +532,12 @@ Test case module {
   # reuse the namespace for a class/object
   Class create ::module
 
-  ? {::nsf::objectproperty class ::module} 1
+  ? {::nsf::is class ::module} 1
 
   # delete the object/class ... and namespace
   ::module destroy
 
-  ? {::nsf::objectproperty class ::module} 0
+  ? {::nsf::is class ::module} 0
 }
 
 Test case namespace-import {
@@ -551,24 +551,24 @@ Test case namespace-import {
   Class create ::module {
     :create mod1
   }
-  ? {::nsf::objectproperty class ::module::Foo} 1
-  ? {::nsf::objectproperty class ::module::foo} 0
+  ? {::nsf::is class ::module::Foo} 1
+  ? {::nsf::is class ::module::foo} 0
   ? {::nsf::isobject ::module::foo} 1
-  ? {::nsf::objectproperty class ::module} 1
+  ? {::nsf::is class ::module} 1
 
   Object create ::o { :require namespace }
   namespace eval ::o {namespace import ::module::*}
 
-  ? {::nsf::objectproperty class ::o::Foo} 1
+  ? {::nsf::is class ::o::Foo} 1
   ? {::nsf::isobject ::o::foo} 1
 
   # do not destroy namespace imported objects/classes
   ::o destroy
 
-  ? {::nsf::objectproperty class ::o::Foo} 0
+  ? {::nsf::is class ::o::Foo} 0
   ? {::nsf::isobject ::o::foo} 0
 
-  ? {::nsf::objectproperty class ::module::Foo} 1
+  ? {::nsf::is class ::module::Foo} 1
   ? {::nsf::isobject ::module::foo} 1
 
   ::module destroy

@@ -238,7 +238,7 @@ namespace eval ::nx::doc {
     
     :method require_part {domain prop value} {
       if {[info exists :part_class]} {
-	if {[::nsf::is $value object] && \
+	if {[::nsf::is object $value] && \
 		[$value info has type ${:part_class}]} {
 	  return $value
 	}
@@ -552,7 +552,7 @@ namespace eval ::nx::doc {
 	    # requested (from the part_attribute) applicable to the
 	    # partof object, which is the object behind [$domain name]?
 	    if {[info exists :scope] && 
-		![::nsf::objectproperty ${:scope} [$domain name]]} {
+		![::nsf::is ${:scope} [$domain name]]} {
 	      error "The entity '[$domain name]' does not qualify as '${:scope}'"
 	    }
 	    next
@@ -564,7 +564,7 @@ namespace eval ::nx::doc {
 	    set inherited [dict create]
 	    foreach c [lreverse [${:name} info heritage]] {
 	      set entity [[::nsf::current class] id $c]
-	      if {![::nsf::is $entity object]} continue
+	      if {![::nsf::is object $entity]} continue
 	      if {[$entity eval [list info exists :${member}]]} {
 		dict set inherited $entity [$entity $member]
 	      }
@@ -996,7 +996,7 @@ namespace eval ::nx::doc {
       
       :method link {entity_type args} {
 	set id [$entity_type id {*}$args]
-	if {![::nsf::is $id object]} return;
+	if {![::nsf::is object $id]} return;
 	set pof ""
 	if {[$id info has type ::nx::doc::Part]} {
 	  set pof "[[$id partof] name]#"
@@ -1136,7 +1136,7 @@ namespace eval ::nx {
       if {[::nsf::isobject $thing]} {
 	if {[$thing eval {info exists :__initcmd}]} {
 	  
-          :analyze_initcmd [expr {[::nsf::objectproperty class $thing]?"@class":"@object"}] $thing [$thing eval {set :__initcmd}]
+          :analyze_initcmd [expr {[::nsf::is class $thing]?"@class":"@object"}] $thing [$thing eval {set :__initcmd}]
         }
       } elseif {![catch {package present $thing} msg]} {
 	# For tcl packages, we assume that the package is sourceable
@@ -1241,8 +1241,8 @@ namespace eval ::nx {
       # initcmds and method bodies.
       foreach addition $additions {
 	# TODO: for now, we skip over pure Tcl commands and procs
-	if {![::nsf::is $addition object]} continue;
-	set kind [expr {[::nsf::is $addition class]?"@class":"@object"}]
+	if {![::nsf::is object $addition]} continue;
+	set kind [expr {[::nsf::is class $addition]?"@class":"@object"}]
 	#puts stderr "ADDITION :process [namespace origin $addition]"
 	if {[$addition eval {info exists :__initcmd}]} {
 	  :analyze_initcmd $kind $addition [$addition eval {set :__initcmd}]
@@ -1793,7 +1793,7 @@ namespace eval ::nx::doc {
 	      set partof_entity [$entity_type id $qualifier]
 	      # TODO: Also, we expect the qualifier to resolve against an
 	      # already existing entity object? Is this intended?
-	      if {[::nsf::is $partof_entity object]} {
+	      if {[::nsf::is object $partof_entity]} {
 		return [list $nq_name $partof_entity]
 	      }
 	    }

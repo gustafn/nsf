@@ -100,7 +100,7 @@ Test case callable {
     ? {o bar} Class.bar
 
     ? {o method foo {} {return o.foo}} "::o::foo"
-    ? {o alias is ::nsf::objectproperty} "::o::is"
+    ? {o alias is ::nsf::is} "::o::is"
     ? {o setter x} "::o::x"
     ? {lsort [o info methods]} "foo is x"
 

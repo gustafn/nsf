@@ -391,7 +391,7 @@ Test case parsing {
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? COMPLETED] 1
   set entity [$cbp current_entity]
-  ? [list ::nsf::is $entity object] 1
+  ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity @author] "stefan.sobernig@wu.ac.at gustaf.neumann@wu-wien.ac.at";
   ? [list $entity as_text] "some more text and another line for the description";
@@ -408,7 +408,7 @@ Test case parsing {
   ? [list $cbp status ? COMPLETED] 1
   set entity [$cbp current_entity]
 
-  ? [list ::nsf::is $entity object] 1
+  ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@command] 1
   ? [list $entity as_text] "some text on the command";
   ? [list $entity @see] "::o";
@@ -426,7 +426,7 @@ Test case parsing {
   ? [list $cbp status ? COMPLETED] 1
   set entity [$cbp current_entity]
 
-  ? [list ::nsf::is $entity object] 1
+  ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "some text on the class entity";
   ? [list llength [$entity @param]] 1
@@ -467,7 +467,7 @@ Test case parsing {
   eval $script
   doc process ::Foo
   set entity [@class id ::Foo]
-  ? [list ::nsf::is $entity object] 1
+  ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "The class Foo defines the behaviour for all Foo objects";
   ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
@@ -475,13 +475,13 @@ Test case parsing {
   # entities to be passed and the (b) documented structures
   #set entity [@param id ::Foo class attr1]
   set entity [@param id $entity attr1]
-  ? [list ::nsf::is $entity object] 1
+  ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@param] 1
   ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Foo class foo]
   ? [list [@class id ::Foo] @method] $entity
-  ? [list ::nsf::is $entity object] 1
+  ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@method] 1
   ? [list $entity as_text] "This describes the foo method";
   
@@ -565,7 +565,7 @@ Test case parsing {
   set i [doc process $script]
 
   set entity [@class id ::Bar]
-  ? [list $i eval [list ::nsf::is $entity object]] 1
+  ? [list $i eval [list ::nsf::is object $entity]] 1
   ? [list $i eval [list $entity info has type ::nx::doc::@class]] 1
   ? [list $i eval [list $entity as_text]] "The class Bar defines the behaviour for all Bar objects";
   ? [list $i eval [list $entity @author]] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
@@ -574,13 +574,13 @@ Test case parsing {
   # entities to be passed and the (b) documented structures
   #set entity [@param id ::Bar class attr1]
   set entity [@param id $entity attr1]
-  ? [list $i eval [list ::nsf::is $entity object]] 1
+  ? [list $i eval [list ::nsf::is object $entity]] 1
   ? [list $i eval [list $entity info has type ::nx::doc::@param]] 1
   ? [list $i eval [list $entity @see]] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Bar class foo]
   ? [list $i eval [list [@class id ::Bar] @method]] $entity
-  ? [list $i eval [list ::nsf::is $entity object]] 1
+  ? [list $i eval [list ::nsf::is object $entity]] 1
   ? [list $i eval [list $entity info has type ::nx::doc::@method]] 1
   ? [list $i eval [list $entity as_text]] "This describes the foo method in the method body";
 
@@ -592,7 +592,7 @@ Test case parsing {
   }
   set entity [@method id ::Bar object foo]
   ? [list $i eval [list [@class id ::Bar] @object-method]] $entity
-  ? [list $i eval [list ::nsf::is $entity object]] 1
+  ? [list $i eval [list ::nsf::is object $entity]] 1
   ? [list $i eval [list $entity info has type ::nx::doc::@method]] 1
   ? [list $i eval [list $entity as_text]] "This describes the per-object foo method in the method body";
 
@@ -617,7 +617,7 @@ Test case parsing {
   #     error $msg
   #   }
   # }
-  # ? [list $i eval [list ::nsf::is [@package id nx::doc] object]] 1
+  # ? [list $i eval [list ::nsf::is object [@package id nx::doc]]] 1
   # puts stderr [$i eval [list [@package id nx::doc] text]]
   # puts stderr [$i eval [list [@package id nx::doc] @require]]
   # set path [file join /tmp nextdoc]

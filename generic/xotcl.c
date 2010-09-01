@@ -11532,11 +11532,11 @@ static int XOTclInvalidateObjectParameterCmd(Tcl_Interp *interp, XOTclClass *cl)
 
 /*
 xotclCmd is XOTclIsCmd {
-  {-argName "value" -required 1 -type tclobj}
   {-argName "constraint" -required 1 -type tclobj}
+  {-argName "value" -required 1 -type tclobj}
 }
 */
-static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *valueObj, Tcl_Obj *constraintObj) {
+static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *constraintObj, Tcl_Obj *valueObj) {
   return XOTclParametercheckCmd(interp, 1, constraintObj, valueObj);
 }
 
@@ -12048,44 +12048,6 @@ XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
     DECR_REF_COUNT(destFullNameObj);
     Tcl_PopCallFrame(interp);
   }
-  return TCL_OK;
-}
-
-/*
-xotclCmd objectproperty XOTclObjectpropertyCmd {
-  {-argName "objectkind" -type "object|class|baseclass|metaclass"}
-  {-argName "object" -required 1 -type tclobj}
-}
-*/
-static int XOTclObjectpropertyCmd(Tcl_Interp *interp, int objectkind, Tcl_Obj *obj) {
-  int success = TCL_ERROR;
-  /*Tcl_Obj *obj = object->cmdName;*/
-  XOTclObject *object;
-
-  /* fprintf(stderr, "XOTclObjectpropertyCmd\n");*/
-
-  switch (objectkind) {
-  case ObjectkindObjectIdx:
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK);
-    break;
-
-  case ObjectkindClassIdx:
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK) && XOTclObjectIsClass(object);
-    break;
-
-  case ObjectkindMetaclassIdx:
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
-      && XOTclObjectIsClass(object)
-      && IsMetaClass(interp, (XOTclClass*)object, 1);
-    break;
-
-  case ObjectkindBaseclassIdx:
-    success = (GetObjectFromObj(interp, obj, &object) == TCL_OK)
-      && XOTclObjectIsClass(object)
-      && IsBaseClass((XOTclClass*)object);
-    break;
-  }
-  Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
   return TCL_OK;
 }
 
@@ -14065,6 +14027,39 @@ XOTclObjInfoHasTypeMethod(Tcl_Interp *interp, XOTclObject *object, XOTclClass *t
   Tcl_SetBooleanObj(Tcl_GetObjResult(interp), IsSubType(object->cl, typeClass));
   return TCL_OK;
 }
+
+/*
+objectInfoMethod istype XOTclObjInfoIsTypeMethod {
+  {-argName "objectkind" -type "object|class|baseclass|metaclass"}
+}
+*/
+static int XOTclObjInfoIsTypeMethod(Tcl_Interp *interp, XOTclObject *object, int objectkind) {
+  int success = 0;
+
+  switch (objectkind) {
+  case ObjectkindObjectIdx:
+    success = 1;
+    break;
+
+  case ObjectkindClassIdx:
+    success = (XOTclObjectIsClass(object) > 0);
+    break;
+
+  case ObjectkindMetaclassIdx:
+    success = XOTclObjectIsClass(object)
+      && IsMetaClass(interp, (XOTclClass*)object, 1);
+    break;
+
+  case ObjectkindBaseclassIdx:
+    success = XOTclObjectIsClass(object)
+      && IsBaseClass((XOTclClass*)object);
+    break;
+  }
+  Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
+  return TCL_OK;
+}
+
+
 
 /*
 objectInfoMethod method XOTclObjInfoMethodMethod {

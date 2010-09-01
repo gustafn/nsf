@@ -86,8 +86,8 @@ xotclCmd invalidateobjectparameter XOTclInvalidateObjectParameterCmd {
   {-argName "class" -type class}
 }
 xotclCmd is XOTclIsCmd {
-  {-argName "value" -required 1 -type tclobj}
   {-argName "constraint" -required 1 -type tclobj}
+  {-argName "value" -required 1 -type tclobj}
 }
 xotclCmd isobject XOTclIsObjectCmd {
   {-argName "object" -required 1 -type tclobj}
@@ -123,10 +123,6 @@ xotclCmd namespace_copycmds XOTclNSCopyCmds {
 xotclCmd namespace_copyvars XOTclNSCopyVars {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
-}
-xotclCmd objectproperty XOTclObjectpropertyCmd {
-  {-argName "objectkind" -type "object|class|baseclass|metaclass"}
-  {-argName "object" -required 1 -type tclobj}
 }
 xotclCmd parametercheck XOTclParametercheckCmd {
   {-argName "-nocomplain"}
@@ -255,6 +251,9 @@ objectInfoMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
 }
 objectInfoMethod hastype XOTclObjInfoHasTypeMethod {
   {-argName "class" -type class}
+}
+objectInfoMethod istype XOTclObjInfoIsTypeMethod {
+  {-argName "objectkind" -type "object|class|baseclass|metaclass"}
 }
 objectInfoMethod method XOTclObjInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}

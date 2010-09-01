@@ -1230,8 +1230,12 @@ _ added option noforwarder to RelationSlots
 - replaced ::nsf::cmd::ClassInfo2 by ::nsf::cmd::ClassInfo
 - replaced ::nsf::cmd::ObjectInfo2 by ::nsf::cmd::ObjectInfo
 
-- replaced argument order on objectproperty to make it conformant with Tcl conventions
+- changed argument order on objectproperty to make it conformant with Tcl conventions
 - updated migration guide
+
+- changed argument order on nsf::is to make it conformant with Tcl conventions
+- removed objectproperty, replaced it by ::nsf::is
+- move functionalizy of objectproperty to make "obj info is ..." more efficient
 
 TODO: 
 - reflect changes in /is/objectproperty/info has/info is/ in migration guide
