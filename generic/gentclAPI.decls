@@ -252,8 +252,8 @@ objectInfoMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
 objectInfoMethod hastype XOTclObjInfoHasTypeMethod {
   {-argName "class" -type class}
 }
-objectInfoMethod istype XOTclObjInfoIsTypeMethod {
-  {-argName "objectkind" -type "object|class|baseclass|metaclass"}
+objectInfoMethod is XOTclObjInfoIsMethod {
+  {-argName "objectkind" -type "class|baseclass|metaclass"}
 }
 objectInfoMethod method XOTclObjInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}

@@ -301,7 +301,6 @@ namespace eval ::nx::doc {
       set r [dict create]
       # puts stderr SLOTS=$slots
       foreach s $slots {
-	# [$s info is type ::nx::doc::PartAttribute]
 	if {![$s info has type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}]} continue;
 	set accessor [$s name]
 	# puts stderr "PROCESSING ACCESSOR $accessor, [info exists :$accessor]"

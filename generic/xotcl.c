@@ -14035,18 +14035,14 @@ XOTclObjInfoHasTypeMethod(Tcl_Interp *interp, XOTclObject *object, XOTclClass *t
 }
 
 /*
-objectInfoMethod istype XOTclObjInfoIsTypeMethod {
-  {-argName "objectkind" -type "object|class|baseclass|metaclass"}
+objectInfoMethod is XOTclObjInfoIsMethod {
+  {-argName "objectkind" -type "class|baseclass|metaclass"}
 }
 */
-static int XOTclObjInfoIsTypeMethod(Tcl_Interp *interp, XOTclObject *object, int objectkind) {
+static int XOTclObjInfoIsMethod(Tcl_Interp *interp, XOTclObject *object, int objectkind) {
   int success = 0;
 
   switch (objectkind) {
-  case ObjectkindObjectIdx:
-    success = 1;
-    break;
-
   case ObjectkindClassIdx:
     success = (XOTclObjectIsClass(object) > 0);
     break;
@@ -14064,8 +14060,6 @@ static int XOTclObjInfoIsTypeMethod(Tcl_Interp *interp, XOTclObject *object, int
   Tcl_SetIntObj(Tcl_GetObjResult(interp), success);
   return TCL_OK;
 }
-
-
 
 /*
 objectInfoMethod method XOTclObjInfoMethodMethod {

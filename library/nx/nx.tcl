@@ -853,7 +853,7 @@ namespace eval ::nx {
     :alias "info has mixin"      ::nsf::cmd::ObjectInfo::hasmixin
     :alias "info has namespace"  ::nsf::cmd::ObjectInfo::hasnamespace
     :alias "info has type"       ::nsf::cmd::ObjectInfo::hastype
-    :alias "info is"             ::nsf::cmd::ObjectInfo::istype
+    :alias "info is"             ::nsf::cmd::ObjectInfo::is
     :alias "info methods"        ::nsf::cmd::ObjectInfo::methods
     :alias "info mixin guard"    ::nsf::cmd::ObjectInfo::mixinguard
     :alias "info mixin classes"  ::nsf::cmd::ObjectInfo::mixinclasses
@@ -1779,14 +1779,14 @@ namespace eval ::nx {
 
   Slot method type=baseclass {name value} {
     # note, that we cannot use "nsf::is baseclass ..." here, since nsf::is call this converter
-    if {![::nsf::isobject $value] || ![::nsf::dispatch $value ::nsf::cmd::ObjectInfo::istype baseclass]} {
+    if {![::nsf::isobject $value] || ![::nsf::dispatch $value ::nsf::cmd::ObjectInfo::is baseclass]} {
       error "expected baseclass but got \"$value\" for parameter $name"
     }
     return $value
   }
 
   Slot method type=metaclass {name value} {
-    if {![::nsf::isobject $value] || ![::nsf::dispatch $value ::nsf::cmd::ObjectInfo::istype metaclass]} {
+    if {![::nsf::isobject $value] || ![::nsf::dispatch $value ::nsf::cmd::ObjectInfo::is metaclass]} {
       error "expected metaclass but got \"$value\" for parameter $name"
     }
     return $value

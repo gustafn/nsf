@@ -68,7 +68,7 @@ SoccerTeam method transferPlayer {playername destinationTeam} {
     # But we only remove matching playernames of type "Player". We do
     # not want to remove another club member type who has the same
     # name.
-    if {[$player info is type Player] && [$player name] eq $playername} {
+    if {[$player info has type Player] && [$player name] eq $playername} {
       # We simply 'move' the player object to the destination team.
       # Again we use a unique autoname in the new scope
       $player move ${destinationTeam}::[$destinationTeam autoname player%02d]
@@ -85,7 +85,7 @@ SoccerTeam method printMembers {} {
 SoccerTeam method printPlayers {} {
   puts "Players of ${.name}:"
   foreach m [.info children] {
-    if {[$m info is type Player]} {puts "  [$m name]"}
+    if {[$m info has type Player]} {puts "  [$m name]"}
   }
 }
       

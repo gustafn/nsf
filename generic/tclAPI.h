@@ -57,13 +57,13 @@ enum InfocallablesubcmdIdx {InfocallablesubcmdNULL, InfocallablesubcmdFilterIdx,
 static int convertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"object", "class", "baseclass", "metaclass", NULL};
+  static CONST char *opts[] = {"class", "baseclass", "metaclass", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectkind", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
-enum ObjectkindIdx {ObjectkindNULL, ObjectkindObjectIdx, ObjectkindClassIdx, ObjectkindBaseclassIdx, ObjectkindMetaclassIdx};
+enum ObjectkindIdx {ObjectkindNULL, ObjectkindClassIdx, ObjectkindBaseclassIdx, ObjectkindMetaclassIdx};
   
 static int convertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
@@ -189,7 +189,7 @@ static int XOTclObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *inte
 static int XOTclObjInfoHasMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoIsTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int XOTclObjInfoIsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int XOTclObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -269,7 +269,7 @@ static int XOTclObjInfoForwardMethod(Tcl_Interp *interp, XOTclObject *obj, int w
 static int XOTclObjInfoHasMixinMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *class);
 static int XOTclObjInfoHasTypeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *class);
 static int XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclObjInfoIsTypeMethod(Tcl_Interp *interp, XOTclObject *obj, int objectkind);
+static int XOTclObjInfoIsMethod(Tcl_Interp *interp, XOTclObject *obj, int objectkind);
 static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *obj, int infomethodsubcmd, CONST char *name);
 static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *obj, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, CONST char *pattern);
 static int XOTclObjInfoMixinclassesMethod(Tcl_Interp *interp, XOTclObject *obj, int withGuards, int withOrder, CONST char *patternString, XOTclObject *patternObj);
@@ -350,7 +350,7 @@ enum {
  XOTclObjInfoHasMixinMethodIdx,
  XOTclObjInfoHasTypeMethodIdx,
  XOTclObjInfoHasnamespaceMethodIdx,
- XOTclObjInfoIsTypeMethodIdx,
+ XOTclObjInfoIsMethodIdx,
  XOTclObjInfoMethodMethodIdx,
  XOTclObjInfoMethodsMethodIdx,
  XOTclObjInfoMixinclassesMethodIdx,
@@ -1265,20 +1265,20 @@ XOTclObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, in
 }
 
 static int
-XOTclObjInfoIsTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+XOTclObjInfoIsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
   XOTclObject *obj =  (XOTclObject *)clientData;
   if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoIsTypeMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoIsTypeMethodIdx].nrParameters, 
+                     method_definitions[XOTclObjInfoIsMethodIdx].paramDefs, 
+                     method_definitions[XOTclObjInfoIsMethodIdx].nrParameters, 
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     int objectkind = (int )PTR2INT(pc.clientData[0]);
 
     parseContextRelease(&pc);
-    return XOTclObjInfoIsTypeMethod(interp, obj, objectkind);
+    return XOTclObjInfoIsMethod(interp, obj, objectkind);
 
   }
 }
@@ -2129,7 +2129,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::cmd::ObjectInfo::hasnamespace", XOTclObjInfoHasnamespaceMethodStub, 0, {
   }
 },
-{"::nsf::cmd::ObjectInfo::istype", XOTclObjInfoIsTypeMethodStub, 1, {
+{"::nsf::cmd::ObjectInfo::is", XOTclObjInfoIsMethodStub, 1, {
   {"objectkind", 0, 0, convertToObjectkind}}
 },
 {"::nsf::cmd::ObjectInfo::method", XOTclObjInfoMethodMethodStub, 2, {
