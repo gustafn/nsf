@@ -192,9 +192,9 @@ C -
 
 ::nx::Class create ::C
 
-? {catch {::nsf::objectproperty type ::C ::UNKNOWN}} 1
-? {catch {::C info is type ::xyz::Bar}} 1
-? {catch {::nsf::objectproperty type ::CCCC ::nx::Object}} 1
+? {catch {::C info has type ::UNKNOWN}} 1
+? {catch {::C info has type ::xyz::Bar}} 1
+#? {catch {::nsf::objectproperty type ::CCCC ::nx::Object}} 1
 
 ::C destroy
 
