@@ -188,7 +188,7 @@ c1 -
 
 C -
 
-? {::nsf::objectproperty class ::C} 0
+? {::nsf::isobject ::C} 0
 
 ::nx::Class create ::C
 

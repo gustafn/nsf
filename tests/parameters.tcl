@@ -24,6 +24,14 @@ Test case parametercheck {
   Class create M
   c1 mixin M
 
+  
+  ? {::nsf::isobject o1} 1
+  ? {::nsf::isobject o1000} 0
+  
+  ? {::nsf::objectproperty class C} 1
+  ? {::nsf::is C class} 1
+  ? {C info is class} 1
+
   ? {::nsf::parametercheck object o1} 1
   ? {::nsf::parametercheck -nocomplain object o1} 1
   ? {::nsf::parametercheck -nocomplain object o1000} 0
@@ -35,9 +43,7 @@ Test case parametercheck {
   ? {c1 info has mixin ::M} 1  
   ? {c1 info has mixin ::M1} {expected class but got "::M1" for parameter class}
   #? {::nsf::parametercheck hasmixin,arg=::M c1} 1
-  
-  ? {::nsf::isobject o1} 1
-  ? {::nsf::isobject o1000} 0
+
   
   #? {::nsf::objectproperty type c1 C} 1
   ? {c1 info has type C} 1

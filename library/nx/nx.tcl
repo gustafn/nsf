@@ -853,7 +853,7 @@ namespace eval ::nx {
     :alias "info has mixin"      ::nsf::cmd::ObjectInfo::hasmixin
     :alias "info has namespace"  ::nsf::cmd::ObjectInfo::hasnamespace
     :alias "info has type"       ::nsf::cmd::ObjectInfo::hastype
-    :method "info is" {kind}     {::nsf::objectproperty [::nsf::current object] $kind}
+    :method "info is" {kind}     {::nsf::objectproperty $kind [::nsf::current object]}
     :alias "info methods"        ::nsf::cmd::ObjectInfo::methods
     :alias "info mixin guard"    ::nsf::cmd::ObjectInfo::mixinguard
     :alias "info mixin classes"  ::nsf::cmd::ObjectInfo::mixinclasses
@@ -1340,7 +1340,7 @@ namespace eval ::nx {
       if {![::nsf::dispatch $slot ::nsf::cmd::ObjectInfo::hastype ::nx::Slot]} continue
       # Skip some slots for xotcl; 
       # TODO: maybe different parameterFromSlots for xotcl?
-      if {[::nsf::objectproperty class ::xotcl::Object] 
+      if {[::nsf::is ::xotcl::Object class] 
 	  && [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::hastype ::xotcl::Object] && 
           ([$slot name] eq "mixin" || [$slot name] eq "filter")
 	} continue
@@ -1835,11 +1835,12 @@ namespace eval ::nx {
       set m [ScopedNew new -volatile \
 		 -container $object -withclass $class]
       Class mixin add $m end
-      # TODO: the following is not pretty; however, contains might build xotcl1 and next objects.
-      if {[::nsf::objectproperty class ::xotcl::Class]} {::xotcl::Class instmixin add $m end}
+      # TODO: the following is not pretty; however, contains might
+      # build xotcl and next objects.
+      if {[::nsf::is ::xotcl::Class class]} {::xotcl::Class instmixin add $m end}
       namespace eval $object $cmds
       Class mixin delete $m
-      if {[::nsf::objectproperty class ::xotcl::Class]} {::xotcl::Class instmixin delete $m}
+      if {[::nsf::is ::xotcl::Class class]} {::xotcl::Class instmixin delete $m}
     } else {
       namespace eval $object $cmds
     }

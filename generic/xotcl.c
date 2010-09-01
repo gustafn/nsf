@@ -12059,6 +12059,7 @@ xotclCmd objectproperty XOTclObjectpropertyCmd {
 */
 static int XOTclObjectpropertyCmd(Tcl_Interp *interp, int objectkind, Tcl_Obj *obj) {
   int success = TCL_ERROR;
+  /*Tcl_Obj *obj = object->cmdName;*/
   XOTclObject *object;
 
   /* fprintf(stderr, "XOTclObjectpropertyCmd\n");*/
