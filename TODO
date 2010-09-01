@@ -1240,6 +1240,8 @@ _ added option noforwarder to RelationSlots
 - report "invalid parameter" in nsf::is and parametercheck, even when
   no-complain is used.
 
+- fixed reference counting problem with user-defined converters
+
 TODO: 
 - reflect changes in /is/objectproperty/info has/info is/ in migration guide
 - implement built-in-converter for "baseclass" and "metaclass"?

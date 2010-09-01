@@ -5171,8 +5171,13 @@ MakeProcError(
 					 * messages and trace information. */
 {
   int overflow, limit = 60, nameLen;
-  const char *procName = Tcl_GetStringFromObj(procNameObj, &nameLen);
+  const char *procName;
 
+  /*fprintf(stderr, "MakeProcError zzzz %p type %p refCount %d\n", 
+    procNameObj, procNameObj->typePtr, procNameObj->refCount);*/
+
+  procName = Tcl_GetStringFromObj(procNameObj, &nameLen);
+  /*fprintf(stderr, ".... procName = %s\n", procName);*/
   overflow = (nameLen > limit);
   Tcl_AppendObjToErrorInfo(interp, Tcl_ObjPrintf(
 						 "\n    (procedure \"%.*s%s\" line %d)",
@@ -6522,8 +6527,13 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
     ov[4] = pPtr->converterArg;
     oc++;
   }
-
+  
+  INCR_REF_COUNT(ov[1]);
+  INCR_REF_COUNT(ov[2]);
   result = Tcl_EvalObjv(interp, oc, ov, 0);
+  DECR_REF_COUNT(ov[1]);
+  DECR_REF_COUNT(ov[2]);
+
   if (result == TCL_OK) {
     /*fprintf(stderr, "convertViaCmd converts %s to '%s' paramPtr %p\n", 
       ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)),pPtr);*/
