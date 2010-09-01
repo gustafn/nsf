@@ -1239,6 +1239,8 @@ _ added option noforwarder to RelationSlots
 
 TODO: 
 - reflect changes in /is/objectproperty/info has/info is/ in migration guide
+- implement built-in-converter for "baseclass" and "metaclass"?
+
 - check equivalence of the following two commands
   in respect to fully-qualified names
          ::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::hastype $class

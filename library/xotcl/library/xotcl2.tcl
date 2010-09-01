@@ -689,7 +689,7 @@ namespace eval ::xotcl {
   # support for XOTcl specific convenience routines
   Object instproc hasclass cl {
     if {![::nsf::is class $cl]} {return 0}
-    if {[my ::nsf::cmd::ObjectInfo::hasmixin $cl]} {return 1}
+    if {[::nsf::dispatch [self] ::nsf::cmd::ObjectInfo::hasmixin $cl]} {return 1}
     ::nsf::dispatch [self] ::nsf::cmd::ObjectInfo::hastype $cl
   }
   Object instproc filtersearch {filter} {

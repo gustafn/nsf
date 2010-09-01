@@ -29,8 +29,13 @@ Test case parametercheck {
   ? {::nsf::isobject o1000} 0
   
   ? {::nsf::is class C} 1
-  ? {::nsf::is class C} 1
   ? {C info is class} 1
+
+  ? {::nsf::is baseclass ::nx::Object} 1
+  ? {::nx::Object info is baseclass} 1
+  ? {::nsf::is baseclass C} 0
+  ? {C info is baseclass} 0
+
 
   ? {::nsf::parametercheck object o1} 1
   ? {::nsf::parametercheck -nocomplain object o1} 1
