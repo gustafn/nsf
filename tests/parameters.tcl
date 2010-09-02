@@ -50,27 +50,44 @@ Test case parametercheck {
   ? {c1 info has mixin ::M} 1  
   ? {c1 info has mixin ::M1} {expected class but got "::M1" for parameter class}
   
-  #? {::nsf::is type c1 C} 1
   ? {c1 info has type C} 1
   ? {c1 info has type C1} {expected class but got "C1" for parameter class}
-  #? {::nsf::is object c1 -type C} 1
+
   ? {c1 ::nsf::cmd::ObjectInfo::hastype C} 1
   ? {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype C} 1
 
-  #? {::nsf::is object c1 -hasmixin M -type C} 1
-  #? {::nsf::is object c1 -hasmixin M1 -type C} 0
-  #? {::nsf::is object c1 -hasmixin M -type C0} 0
   ? {::nsf::is object o1} 1
   ? {::nsf::is object o100} 0
   ? {::nsf::is integer 1} 1
   ? {::nsf::is object,type=::C c1} 1
   ? {::nsf::is object,type=::C o} 0
 
+  # test built-in converter via ::nsf::is
+  ? {::nsf::is boolean 1} 1
+  ? {::nsf::is boolean on} 1
+  ? {::nsf::is boolean true} 1
+  ? {::nsf::is boolean t} 1
+  ? {::nsf::is boolean f} 1
+  ? {::nsf::is boolean a} 0
+
+  ? {::nsf::is integer 0x0} 1
+  ? {::nsf::is integer 0xy} 0
+
+  # built in converter, but not allowed
+  ? {::nsf::is switch 1} {invalid value constraints "switch"}
+  ? {::nsf::is superclass M} {invalid value constraints "superclass"}
+
+  # tcl checker
+  ? {::nsf::is upper ABC} 1
+  ? {::nsf::is upper Abc} 0
+  ? {::nsf::is lower Abc} 0
+  ? {::nsf::is lower abc} 1
+
   #? {::nsf::is type c1 C} 1
   #? {::nsf::is type o C} 0
   #? {::nsf::is object o -type C} 0
   #? {::nsf::is object o -hasmixin C} 0
-#exit
+
   ? {::nsf::is -complain class o1} {expected class but got "o1" for parameter value}
   ? {::nsf::is class o1} 0
   ? {::nsf::is -complain class Test} 1
@@ -97,6 +114,35 @@ Test case parametercheck {
   ? {string is lower abc} 1 "tcl command 'string is lower'"
   
   ? {::nsf::is -complain {i:integer 1} 2} {invalid value constraints "i:integer 1"}
+}
+
+Test parameter count 10
+Test case multiple-method-checkers {
+  Object create o {
+    :method foo {} {
+      ::nsf::is metaclass ::XYZ
+      ::nsf::is metaclass ::nx::Object
+    }
+    
+    :method bar {} {
+      ::nsf::is metaclass ::XYZ
+      ::nsf::is metaclass ::XYZ
+    }
+    
+    :method bar2 {} {
+      ::nsf::is metaclass ::nx::Object
+      ::nsf::is metaclass ::nx::Object
+    }
+  }
+
+  ? {o foo} 0
+  ? {o bar} 0
+
+  ? {::nsf::is metaclass ::XYZ} 0
+  ? {::nsf::is metaclass ::nx::Object} 0
+
+  ? {o foo} 0
+  ? {o bar2} 0
 }
 
 #######################################################
