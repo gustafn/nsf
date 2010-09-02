@@ -1074,6 +1074,8 @@ Test case setters {
   ? {::nsf::setter o -x} {method name "-x" must not start with a dash}
 }
 
+
+
 #######################################################
 # test for slot-optimizer
 #######################################################
@@ -1097,7 +1099,17 @@ Test case slot-optimizer {
   #slot-optimizer.002:	  1.50 mms, c1 b 1
   #slot-optimizer.003:	  1.60 mms, c1 c 1
 }
+
+Test parameter count 10
+Test case slot-nosetter {
+  Class create C -parameter {a b:integer,nosetter {c:nosetter ""}}
+  
+  ? {C create c1 -a 1 -b 2} ::c1
+  ? {c1 info vars} "a b c"
+  ? {c1 a 100} 100
+  ? {c1 b 101} {::c1: unable to dispatch method 'b'}
+  ? {c1 c 102} {::c1: unable to dispatch method 'c'}
+}
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
 
-puts stderr =====END

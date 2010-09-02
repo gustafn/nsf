@@ -1253,6 +1253,12 @@ _ added option noforwarder to RelationSlots
 - added handling of parameter options "allowemtpy" and "convert" 
   in createFromParameterSyntax
 
+- renamed slot attribute "noforwarder" to "nosetter"
+- method parameter can now use option "nosetter" to allow
+  object parameterization witout providing a setter method
+  (example: "Class create C -parameter {x:integer,nosetter}")
+- extended regression test to include "nosetter"
+
 TODO: 
 - reflect changes in /is/objectproperty/info has/info is/ in migration guide
 - implement built-in-converter for "baseclass" and "metaclass"?

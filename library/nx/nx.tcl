@@ -1002,7 +1002,7 @@ namespace eval ::nx {
       set properties [string range $value [expr {$colonPos+1}] end]
       set name [string range $value 0 [expr {$colonPos -1}]]
       foreach property [split $properties ,] {
-        if {$property in [list "required" "multivalued" "allowempty" "convert"]} {
+        if {$property in [list "required" "multivalued" "allowempty" "convert" "nosetter"]} {
           lappend opts -$property 1
         } elseif {[string match type=* $property]} {
           set type [string range $property 5 end]
@@ -1174,6 +1174,7 @@ namespace eval ::nx {
     {defaultmethods {get assign}}
     {manager "[::nsf::current object]"}
     {per-object false}
+    {nosetter}
   }
 
   # maybe add the following slots at some later time here
@@ -1234,7 +1235,7 @@ namespace eval ::nx {
       if {${:per-object} && [info exists :default] } {
         ::nsf::setvar ${:domain} ${:name} ${:default}
       }
-      if {[info exists :noforwarder]} {
+      if {[info exists :nosetter]} {
 	#puts stderr "Do not register forwarder ${:domain} ${:name}" 
         return
       }
@@ -1379,7 +1380,6 @@ namespace eval ::nx {
     {multivalued true}
     {type relation}
     {elementtype ::nx::Class}
-    {noforwarder}
   }
 
   ::nsf::relation RelationSlot superclass ObjectParameterSlot
@@ -1535,8 +1535,8 @@ namespace eval ::nx {
 
     # Create two conveniance slots to allow configuration of 
     # object-slots for classes via object-mixin
-    ::nx::RelationSlot create ${os}::Class::slot::object-mixin -noforwarder 1
-    ::nx::RelationSlot create ${os}::Class::slot::object-filter -elementtype "" -noforwarder 1
+    ::nx::RelationSlot create ${os}::Class::slot::object-mixin -nosetter 1
+    ::nx::RelationSlot create ${os}::Class::slot::object-filter -elementtype "" -nosetter 1
 
     #
     # Define method "guard" for mixin- and filter-slots of Object and Class
@@ -1707,8 +1707,9 @@ namespace eval ::nx {
             [list %1 [${:manager} defaultmethods]] %self \
             ${:methodname}
       }
-      #puts "*** stderr "OPTIMIZER incremental [info exists :incremental] def '[set :defaultmethods]'"
+      #puts "*** stderr OPTIMIZER incremental [info exists :incremental] def '[set :defaultmethods]' nosetter [info exists :nosetter]"
       if {[info exists :incremental] && ${:incremental}} return
+      if {[info exists :nosetter]} return
       if {[set :defaultmethods] ne {get assign}} return
 
       #
