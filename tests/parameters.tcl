@@ -24,7 +24,6 @@ Test case parametercheck {
   Class create M
   c1 mixin M
 
-  
   ? {::nsf::isobject o1} 1
   ? {::nsf::isobject o1000} 0
   
@@ -39,17 +38,17 @@ Test case parametercheck {
   ? {::nsf::is class ::nx::Object} 1
   ? {::nsf::is ::nx::Object class} {invalid value constraints "::nx::Object"}
 
-  ? {::nsf::parametercheck object o1} 1
-  ? {::nsf::parametercheck -nocomplain object o1} 1
-  ? {::nsf::parametercheck -nocomplain object o1000} 0
-  ? {::nsf::parametercheck integer 1} 1
-  ? {::nsf::parametercheck object,type=::C c1} 1
-  ? {::nsf::parametercheck object,type=::C o} {expected object but got "o" for parameter value}
-  ? {::nsf::parametercheck -nocomplain object,type=::C o} 0
+  ? {::nsf::is object o1} 1
+  ? {::nsf::is object o1} 1
+  ? {::nsf::is object o1000} 0
+  ? {::nsf::is -complain object o1000} {expected object but got "o1000" for parameter value}
+  ? {::nsf::is integer 1} 1
+  ? {::nsf::is object,type=::C c1} 1
+  ? {::nsf::is -complain object,type=::C o} {expected object but got "o" for parameter value}
+  ? {::nsf::is object,type=::C o} 0
 
   ? {c1 info has mixin ::M} 1  
   ? {c1 info has mixin ::M1} {expected class but got "::M1" for parameter class}
-  #? {::nsf::parametercheck hasmixin,arg=::M c1} 1
   
   #? {::nsf::is type c1 C} 1
   ? {c1 info has type C} 1
@@ -72,32 +71,32 @@ Test case parametercheck {
   #? {::nsf::is object o -type C} 0
   #? {::nsf::is object o -hasmixin C} 0
 #exit
-  ? {::nsf::parametercheck class o1} {expected class but got "o1" for parameter value}
-  ? {::nsf::parametercheck -nocomplain class o1} 0
-  ? {::nsf::parametercheck class Test} 1
-  ? {::nsf::parametercheck object,multivalued [list o1 Test]} 1
+  ? {::nsf::is -complain class o1} {expected class but got "o1" for parameter value}
+  ? {::nsf::is class o1} 0
+  ? {::nsf::is -complain class Test} 1
+  ? {::nsf::is -complain object,multivalued [list o1 Test]} 1
 
-  ? {::nsf::parametercheck integer,multivalued [list 1 2 3]} 1
-  ? {::nsf::parametercheck integer,multivalued [list 1 2 3 a]} \
+  ? {::nsf::is -complain integer,multivalued [list 1 2 3]} 1
+  ? {::nsf::is -complain integer,multivalued [list 1 2 3 a]} \
       {invalid value in "1 2 3 a": expected integer but got "a" for parameter value}
-  ? {::nsf::parametercheck object,type=::C c1} 1
-  ? {::nsf::parametercheck object,type=::C o} \
+  ? {::nsf::is -complain object,type=::C c1} 1
+  ? {::nsf::is -complain object,type=::C o} \
       {expected object but got "o" for parameter value} \
       "object, but different type"
-  ? {::nsf::parametercheck object,type=::C c} \
+  ? {::nsf::is -complain object,type=::C c} \
       {expected object but got "c" for parameter value} \
       "no object"
-  ? {::nsf::parametercheck object,type=::nx::Object c1} 1 "general type"
+  ? {::nsf::is -complain object,type=::nx::Object c1} 1 "general type"
   
   # do not allow "currently unknown" user defined types in parametercheck
-  ? {::nsf::parametercheck in1 aaa} {invalid value constraints "in1"}
+  ? {::nsf::is -complain in1 aaa} {invalid value constraints "in1"}
   
-  ? {::nsf::parametercheck lower c} 1 "lower case char"
-  ? {::nsf::parametercheck lower abc} 1 "lower case chars"
-  ? {::nsf::parametercheck lower Abc} {expected lower but got "Abc" for parameter value} 
+  ? {::nsf::is -complain lower c} 1 "lower case char"
+  ? {::nsf::is -complain lower abc} 1 "lower case chars"
+  ? {::nsf::is -complain lower Abc} {expected lower but got "Abc" for parameter value} 
   ? {string is lower abc} 1 "tcl command 'string is lower'"
   
-  ? {::nsf::parametercheck {i:integer 1} 2} {invalid value constraints "i:integer 1"}
+  ? {::nsf::is -complain {i:integer 1} 2} {invalid value constraints "i:integer 1"}
 }
 
 #######################################################
@@ -112,7 +111,7 @@ Test case parametercheck {
     }
   }
   
-  ? {::nsf::parametercheck sex,slot=::paramManager female} "1"
+  ? {::nsf::is -complain sex,slot=::paramManager female} "1"
 }
 #######################################################
 # cononical feature table
@@ -902,11 +901,11 @@ Test case multivalued-app-converter {
     # Note that this converter does NOT return a value; it converts all
     # values into emtpy strings.
   }
-  ? {::nsf::parametercheck mType,slot=::tmpObj,multivalued {1 0}} \
+  ? {::nsf::is -complain mType,slot=::tmpObj,multivalued {1 0}} \
       {invalid value in "1 0": expected false but got 1} \
       "fail on first value"
-  ? {::nsf::parametercheck mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
-  ? {::nsf::parametercheck mType,slot=::tmpObj,multivalued {0 1}} \
+  ? {::nsf::is -complain mType,slot=::tmpObj,multivalued {0 0 0}} 1 "all pass"
+  ? {::nsf::is -complain mType,slot=::tmpObj,multivalued {0 1}} \
       {invalid value in "0 1": expected false but got 1} \
       "fail o last value"
 }
@@ -926,7 +925,7 @@ Test case shadowing-app-converter {
     }
   }
   
-  ? {::nsf::parametercheck integer,slot=::mySlot 1} 1 
+  ? {::nsf::is -complain integer,slot=::mySlot 1} 1 
   ? {o foo 3} 4
 }
 

@@ -1242,6 +1242,9 @@ _ added option noforwarder to RelationSlots
 
 - fixed reference counting problem with user-defined converters
 
+- added flag -complain to ::nsf::is
+- removed ::nsf::parametercheck
+
 TODO: 
 - reflect changes in /is/objectproperty/info has/info is/ in migration guide
 - implement built-in-converter for "baseclass" and "metaclass"?

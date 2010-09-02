@@ -11542,12 +11542,38 @@ static int XOTclInvalidateObjectParameterCmd(Tcl_Interp *interp, XOTclClass *cl)
 
 /*
 xotclCmd is XOTclIsCmd {
+  {-argName "-complain"}
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
 }
 */
-static int XOTclIsCmd(Tcl_Interp *interp, Tcl_Obj *constraintObj, Tcl_Obj *valueObj) {
-  return XOTclParametercheckCmd(interp, 1, constraintObj, valueObj);
+static int XOTclIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraintObj, Tcl_Obj *valueObj) {
+  XOTclParam *paramPtr = NULL;
+  int result;
+
+  result = Parametercheck(interp, constraintObj, valueObj, "value:", &paramPtr);
+
+  if (paramPtr == NULL) {
+    /* 
+     * We could not convert the arguments. Even with noComplain, we
+     * report the invalid converter spec as exception
+     */
+    return TCL_ERROR;
+  }
+
+  if (paramPtr->converter == convertViaCmd 
+      && (withComplain == 0 || result == TCL_OK)) {
+    Tcl_ResetResult(interp);
+  } 
+
+  if (withComplain == 0) {
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), (result == TCL_OK));
+    result = TCL_OK;
+  } else if (result == TCL_OK) {
+    Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
+  }
+
+  return result;
 }
 
 /*
@@ -12642,7 +12668,7 @@ static int Parametercheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj
   ClientData checkedData;
   int result, flags = 0;
 
-  /*fprintf(stderr, "XOTclParametercheckCmd %s value %p %s\n",
+  /*fprintf(stderr, "ParamSetFromAny %s value %p %s\n",
     ObjStr(objPtr), valueObj, ObjStr(valueObj));*/
 
   if (objPtr->typePtr == &paramObjType) {
@@ -12661,11 +12687,11 @@ static int Parametercheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj
   if (paramPtrPtr) *paramPtrPtr = paramPtr;
   result = ArgumentCheck(interp, valueObj, paramPtr, &flags, &checkedData, &outObjPtr);
 
-  /*fprintf(stderr, "XOTclParametercheckCmd paramPtr %p final refcount of wrapper %d can free %d\n",
+  /*fprintf(stderr, "ParamSetFromAny paramPtr %p final refcount of wrapper %d can free %d\n",
     paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree);*/
 
   if (paramWrapperPtr->refCount == 0) {
-    /* fprintf(stderr, "XOTclParametercheckCmd paramPtr %p manual free\n",paramPtr);*/
+    /* fprintf(stderr, "ParamSetFromAny paramPtr %p manual free\n",paramPtr);*/
     ParamsFree(paramWrapperPtr->paramPtr);
     FREE(XOTclParamWrapper, paramWrapperPtr);
   } else {
@@ -12674,42 +12700,6 @@ static int Parametercheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj
 
   if (flags & XOTCL_PC_MUST_DECR) {
     DECR_REF_COUNT(outObjPtr);
-  }
-
-  return result;
-}
-
-/*
-xotclCmd parametercheck XOTclParametercheckCmd {
-  {-argName "param" -type tclobj}
-  {-argName "-nocomplain"}
-  {-argName "value" -required 0 -type tclobj}
-  } 
-*/
-static int XOTclParametercheckCmd(Tcl_Interp *interp, int withNocomplain, Tcl_Obj *objPtr, Tcl_Obj *valueObj) {
-  XOTclParam *paramPtr = NULL;
-  int result;
-
-  result = Parametercheck(interp, objPtr, valueObj, "value:", &paramPtr);
-
-  if (paramPtr == NULL) {
-    /* 
-     * We could not convert the arguments. Even with noComplain, we
-     * report the invalid converter spec as exception
-     */
-    return TCL_ERROR;
-  }
-
-  if (paramPtr->converter == convertViaCmd 
-      && (withNocomplain || result == TCL_OK)) {
-    Tcl_ResetResult(interp);
-  } 
-
-  if (withNocomplain) {
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), (result == TCL_OK));
-    result = TCL_OK;
-  } else if (result == TCL_OK) {
-    Tcl_SetIntObj(Tcl_GetObjResult(interp), 1);
   }
 
   return result;
@@ -13423,11 +13413,6 @@ static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *object, CONST char
 			  "':  would wait forever", (char *) NULL);
   }
   return TCL_OK;
-}
-
-/* todo temporary, remove me yyy */
-static int XOTclOVarsMethod(Tcl_Interp *interp, XOTclObject *object, CONST char *pattern) {
-  return XOTclObjInfoVarsMethod(interp, object, pattern);
 }
 
 /***************************

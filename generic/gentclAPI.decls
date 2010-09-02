@@ -86,6 +86,7 @@ xotclCmd invalidateobjectparameter XOTclInvalidateObjectParameterCmd {
   {-argName "class" -type class}
 }
 xotclCmd is XOTclIsCmd {
+  {-argName "-complain"}
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
 }
@@ -123,11 +124,6 @@ xotclCmd namespace_copycmds XOTclNSCopyCmds {
 xotclCmd namespace_copyvars XOTclNSCopyVars {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
-}
-xotclCmd parametercheck XOTclParametercheckCmd {
-  {-argName "-nocomplain"}
-  {-argName "param" -type tclobj}
-  {-argName "value" -required 1 -type tclobj}
 }
 xotclCmd __qualify XOTclQualifyObjCmd {
   {-argName "name" -required 1 -type tclobj}
