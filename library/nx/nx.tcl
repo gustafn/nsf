@@ -1002,10 +1002,8 @@ namespace eval ::nx {
       set properties [string range $value [expr {$colonPos+1}] end]
       set name [string range $value 0 [expr {$colonPos -1}]]
       foreach property [split $properties ,] {
-        if {$property eq "required"} {
-          lappend opts -required 1
-        } elseif {$property eq "multivalued"} {
-          lappend opts -multivalued 1
+        if {$property in [list "required" "multivalued" "allowempty" "convert"]} {
+          lappend opts -$property 1
         } elseif {[string match type=* $property]} {
           set type [string range $property 5 end]
           if {![string match ::* $type]} {set type ::$type}

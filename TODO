@@ -1235,7 +1235,7 @@ _ added option noforwarder to RelationSlots
 
 - changed argument order on nsf::is to make it conformant with Tcl conventions
 - removed objectproperty, replaced it by ::nsf::is
-- move functionalizy of objectproperty to make "obj info is ..." more efficient
+- move functionality of objectproperty to make "obj info is ..." more efficient
 
 - report "invalid parameter" in nsf::is and parametercheck, even when
   no-complain is used.
@@ -1250,6 +1250,8 @@ _ added option noforwarder to RelationSlots
   (takes the result of the methods as conversion result)
 - added parameters for slots "allowemtpy" and "convert"
 - extended regression test
+- added handling of parameter options "allowemtpy" and "convert" 
+  in createFromParameterSyntax
 
 TODO: 
 - reflect changes in /is/objectproperty/info has/info is/ in migration guide
