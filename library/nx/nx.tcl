@@ -1294,6 +1294,12 @@ namespace eval ::nx {
       lappend objopts $prefix=${:arg}
       lappend methodopts $prefix=${:arg}
     }
+    foreach att {convert allowempty} {
+      if {[info exists :$att]} {
+	lappend objopts $att
+	lappend methodopts $att
+      }
+    }
     if {[info exists :default]} {
       set arg ${:default}
       # deactivated for now: || [string first {$} $arg] > -1
@@ -1617,6 +1623,8 @@ namespace eval ::nx {
     valuecmd
     valuechangedcmd
     arg
+    allowempty
+    convert
   }
 
   Attribute method __default_from_cmd {obj cmd var sub op} {

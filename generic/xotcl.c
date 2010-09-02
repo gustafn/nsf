@@ -5439,6 +5439,9 @@ ParamDefsFormat(Tcl_Interp *interp, XOTclParam CONST *paramsPtr) {
       if ((pPtr->flags & XOTCL_ARG_ALLOW_EMPTY)) {
         ParamDefsFormatOption(interp, nameStringObj, "allowempty", &colonWritten, &first);
       }
+      if ((pPtr->flags & XOTCL_ARG_IS_CONVERTER)) {
+        ParamDefsFormatOption(interp, nameStringObj, "convert", &colonWritten, &first);
+      }
       if ((pPtr->flags & XOTCL_ARG_INITCMD)) {
         ParamDefsFormatOption(interp, nameStringObj, "initcmd", &colonWritten, &first);
       } else if ((pPtr->flags & XOTCL_ARG_METHOD)) {
@@ -6534,19 +6537,22 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
   DECR_REF_COUNT(ov[1]);
   DECR_REF_COUNT(ov[2]);
 
+  *outObjPtr = objPtr;
+    
   if (result == TCL_OK) {
     /*fprintf(stderr, "convertViaCmd converts %s to '%s' paramPtr %p\n", 
       ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)),pPtr);*/
-    *outObjPtr = Tcl_GetObjResult(interp);
+    if (pPtr->flags & XOTCL_ARG_IS_CONVERTER) {
+      /*
+       * If we want to convert, the resulting obj is the result of the
+       * converter. incr refCount is necessary e.g. for e.g.
+       *     return [expr {$value + 1}]
+       */
+      *outObjPtr = Tcl_GetObjResult(interp);
+      INCR_REF_COUNT(*outObjPtr);   
+    }
     *clientData = (ClientData) *outObjPtr;
-
-    /* incr refCount is necessary e.g. for 
-       return [expr {$value + 1}]
-    */
-    INCR_REF_COUNT(*outObjPtr);   
-  } else {
-    *outObjPtr = objPtr;
-  }
+  } 
   return result;
 }
 
@@ -6615,6 +6621,8 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, size_t length, int disa
     paramPtr->flags |= XOTCL_ARG_SUBST_DEFAULT;
   } else if (strncmp(option, "allowempty", 10) == 0) {
     paramPtr->flags |= XOTCL_ARG_ALLOW_EMPTY;
+  } else if (strncmp(option, "convert", 7) == 0) {
+    paramPtr->flags |= XOTCL_ARG_IS_CONVERTER;
   } else if (strncmp(option, "initcmd", 7) == 0) {
     paramPtr->flags |= XOTCL_ARG_INITCMD;
   } else if (strncmp(option, "method", 6) == 0) {
@@ -6859,10 +6867,14 @@ ParamParse(Tcl_Interp *interp, CONST char *procName, Tcl_Obj *arg, int disallowe
         result = ParamOptionSetConverter(interp, paramPtr, converterNameString, convertViaCmd);
       }
     }
+    if ((paramPtr->flags & XOTCL_ARG_IS_CONVERTER) && paramPtr->converter != convertViaCmd) {
+      return XOTclVarErrMsg(interp, 
+                            "option 'convert' only allowed for application-defined converters",
+                            (char *) NULL);
+    }
     if (converterNameObj != paramPtr->converterName) {
       DECR_REF_COUNT(converterNameObj);
     }
-    
   }
 
   /*

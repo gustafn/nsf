@@ -77,6 +77,9 @@ Test case parametercheck {
   ? {::nsf::is switch 1} {invalid value constraints "switch"}
   ? {::nsf::is superclass M} {invalid value constraints "superclass"}
 
+  # don't allow convert
+  ? {::nsf::is integer,convert 1} {invalid value constraints "integer,convert"}
+
   # tcl checker
   ? {::nsf::is upper ABC} 1
   ? {::nsf::is upper Abc} 0
@@ -933,11 +936,12 @@ Test case multivalued-app-converter {
     }
   }
   Class create C {
-    :method foo {s:sex,multivalued} {return $s}
+    :method foo {s:sex,multivalued,convert} {return $s}
+    :method bar {s:sex,multivalued} {return $s}
   }
   C create c1
   ? {c1 foo {male female mann frau}} "m f m f"
-  
+  ? {c1 bar {male female mann frau}} "male female mann frau"
 
   Object create tmpObj
   tmpObj method type=mType {name value arg:optional} {
@@ -966,7 +970,7 @@ Test case shadowing-app-converter {
     }
   }
   Object create o {
-    :method foo {x:integer,slot=::mySlot} {
+    :method foo {x:integer,slot=::mySlot,convert} {
       return $x
     }
   }
@@ -1012,6 +1016,7 @@ Test case slot-specfic-converter {
   Class create Person {
     :attribute sex {
       :type "sex"
+      :convert true
       :method type=sex {name value} {
 	#puts stderr "[self] slot specific converter"
 	switch -glob $value {
@@ -1025,7 +1030,7 @@ Test case slot-specfic-converter {
 
   Person create p1 -sex male
   ? {p1 sex} m
-  Person method foo {s:sex,slot=::Person::slot::sex} {return $s}
+  Person method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
   ? {p1 foo male} m
   ? {p1 sex male} m
 }

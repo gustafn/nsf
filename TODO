@@ -1245,6 +1245,12 @@ _ added option noforwarder to RelationSlots
 - added flag -complain to ::nsf::is
 - removed ::nsf::parametercheck
 
+- new parameter option "convert" to signal that an application
+  specific parameter checker should convert the value 
+  (takes the result of the methods as conversion result)
+- added parameters for slots "allowemtpy" and "convert"
+- extended regression test
+
 TODO: 
 - reflect changes in /is/objectproperty/info has/info is/ in migration guide
 - implement built-in-converter for "baseclass" and "metaclass"?

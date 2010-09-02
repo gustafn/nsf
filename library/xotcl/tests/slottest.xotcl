@@ -408,7 +408,7 @@ p2 append salary 9
 ? {p2 salary} 1009
 
 Person slots {
-  Attribute create sex -type "sex" {
+  Attribute create sex -type "sex" -convert true {
     :method type=sex {name value} {
       #puts stderr "[self] slot specific converter"
       switch -glob $value {
@@ -421,7 +421,7 @@ Person slots {
 }
 Person p3 -sex male
 ? {p3 sex} m
-Person method foo {s:sex,slot=::Person::slot::sex} {return $s}
+Person method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
 ? {p3 foo male} "m"
 ? {p3 sex male} m
 
