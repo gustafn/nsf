@@ -778,7 +778,7 @@ namespace eval ::nx {
       set path $(name)
       while {1} {
 	set o [::nsf::dispatch $o ::nsf::cmd::ObjectInfo::parent]
-	if {![$o has type ::nx::EnsembleObject]} break
+	if {![::nsf::dispatch $o ::nsf::cmd::ObjectInfo::hastype ::nx::EnsembleObject]} break
 	array set "" [$o ::nsf::classes::nx::EnsembleObject::subcmdName]
 	set path "$(name) $path"
       }
