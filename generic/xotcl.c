@@ -219,7 +219,7 @@ static int ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
 static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, int *flags,
                          ClientData *clientData, Tcl_Obj **outObjPtr);
 static int Parametercheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj, 
-			  const char *varNamePrefix, XOTclParam **paramPtrPtr);
+			  const char *varNamePrefix, int doCheck, XOTclParam **paramPtrPtr);
 
 static CONST char* AliasIndex(Tcl_DString *dsPtr, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
 static int AliasAdd(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object, CONST char *cmd);
@@ -5538,7 +5538,9 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
       Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
       /*fprintf(stderr, "***** we have returns for method '%s' check %s, value %p\n", 
 	methodName, ObjStr(paramDefs->returns), valueObj);*/
-      result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", NULL);
+      result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", 
+			      RUNTIME_STATE(interp)->doCheckresult,
+			      NULL);
     }
   }
 
@@ -5742,7 +5744,9 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
     /*fprintf(stderr, "***** we have returns for method '%s' check %s, value %p is shared %d\n", 
       methodName, ObjStr(paramDefs->returns), valueObj, Tcl_IsShared(valueObj));*/
-    result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", NULL);
+    result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", 
+			    RUNTIME_STATE(interp)->doCheckresult,
+			    NULL);
   }
 
   opt = object->opt;
@@ -5829,7 +5833,9 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
       Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
       /* fprintf(stderr, "***** CMD we have returns for method '%s' check %s, value %p\n", 
 	 methodName, ObjStr(paramDefs->returns), valueObj);*/
-      result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", NULL);
+      result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", 
+			      RUNTIME_STATE(interp)->doCheckresult,
+			      NULL);
     }
   }
 
@@ -6516,7 +6522,23 @@ static int convertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CO
 static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST *pPtr, 
 			 ClientData *clientData, Tcl_Obj **outObjPtr) {
   Tcl_Obj *ov[5];
+  Tcl_Obj *savedResult;
   int result, oc;
+
+  /* 
+   * In general, when the converter is used e.g. for result checking,
+   * we do not want to alter the result just when the converter sets a
+   * result. So, for non-converter, we save the old result and restore
+   * it before the return in case of success. Strictly speaking,
+   * result-overwritng just harms for result-converters, but saving is
+   * always semantic correct.
+   */
+  if ((pPtr->flags & XOTCL_ARG_IS_CONVERTER) == 0) { 
+    savedResult = Tcl_GetObjResult(interp); /* save the result */
+    INCR_REF_COUNT(savedResult);
+  } else {
+    savedResult = NULL;
+  }
   
   ov[0] = pPtr->slotObj ? pPtr->slotObj : XOTclGlobalObjs[XOTE_METHOD_PARAMETER_SLOT_OBJ];
   ov[1] = pPtr->converterName;
@@ -6530,18 +6552,21 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
     ov[4] = pPtr->converterArg;
     oc++;
   }
-  
+
+
   INCR_REF_COUNT(ov[1]);
   INCR_REF_COUNT(ov[2]);
   result = Tcl_EvalObjv(interp, oc, ov, 0);
   DECR_REF_COUNT(ov[1]);
   DECR_REF_COUNT(ov[2]);
 
+  /* per default, the input arg is the output arg */
   *outObjPtr = objPtr;
-    
+
   if (result == TCL_OK) {
-    /*fprintf(stderr, "convertViaCmd converts %s to '%s' paramPtr %p\n", 
-      ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)),pPtr);*/
+    /*fprintf(stderr, "convertViaCmd could convert %s to '%s' paramPtr %p, is_converter %d\n", 
+	    ObjStr(objPtr), ObjStr(Tcl_GetObjResult(interp)),pPtr, 
+	    pPtr->flags & XOTCL_ARG_IS_CONVERTER);*/
     if (pPtr->flags & XOTCL_ARG_IS_CONVERTER) {
       /*
        * If we want to convert, the resulting obj is the result of the
@@ -6549,10 +6574,20 @@ static int convertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  XOTclParam CONST 
        *     return [expr {$value + 1}]
        */
       *outObjPtr = Tcl_GetObjResult(interp);
-      INCR_REF_COUNT(*outObjPtr);   
+      INCR_REF_COUNT(*outObjPtr);
     }
     *clientData = (ClientData) *outObjPtr;
-  } 
+
+    if (savedResult) {
+      /*fprintf(stderr, "restore savedResult %p\n", savedResult);*/
+      Tcl_SetObjResult(interp, savedResult);  /* restore the result */
+    }
+  }
+
+  if (savedResult) {
+    DECR_REF_COUNT(savedResult);
+  }
+  
   return result;
 }
 
@@ -11069,7 +11104,7 @@ static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int subcmd
 
 /*
 xotclCmd configure XOTclConfigureCmd {
-  {-argName "configureoption" -required 1 -type "filter|softrecreate|objectsystems|keepinitcmd"}
+  {-argName "configureoption" -required 1 -type "filter|softrecreate|objectsystems|keepinitcmd|checkresult"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -11117,6 +11152,14 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
     if (valueObj)
       RUNTIME_STATE(interp)->doKeepinitcmd = bool;
     break;
+
+  case ConfigureoptionCheckresultIdx:
+    Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
+                      (RUNTIME_STATE(interp)->doCheckresult));
+    if (valueObj)
+      RUNTIME_STATE(interp)->doCheckresult = bool;
+    break;
+
   }
   return TCL_OK;
 }
@@ -11563,7 +11606,7 @@ static int XOTclIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraintO
   XOTclParam *paramPtr = NULL;
   int result;
 
-  result = Parametercheck(interp, constraintObj, valueObj, "value:", &paramPtr);
+  result = Parametercheck(interp, constraintObj, valueObj, "value:", 1, &paramPtr);
 
   if (paramPtr == NULL) {
     /* 
@@ -12673,7 +12716,7 @@ ParamSetFromAny(
 }
 
 static int Parametercheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj,  
-			  const char *varNamePrefix, XOTclParam **paramPtrPtr) {
+			  const char *varNamePrefix, int doCheck, XOTclParam **paramPtrPtr) {
   XOTclParamWrapper *paramWrapperPtr;
   Tcl_Obj *outObjPtr = NULL;
   XOTclParam *paramPtr;
@@ -12697,6 +12740,18 @@ static int Parametercheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj
   }
   paramPtr = paramWrapperPtr->paramPtr;
   if (paramPtrPtr) *paramPtrPtr = paramPtr;
+
+  if (paramPtr->flags & XOTCL_ARG_IS_CONVERTER) {
+    /* always call checker if it is a converter */
+    doCheck = 1;
+  }
+
+  if (!doCheck) {
+    outObjPtr = valueObj;
+    checkedData = ObjStr(valueObj);
+    return TCL_OK;
+  }
+
   result = ArgumentCheck(interp, valueObj, paramPtr, &flags, &checkedData, &outObjPtr);
 
   /*fprintf(stderr, "ParamSetFromAny paramPtr %p final refcount of wrapper %d can free %d\n",
@@ -14992,6 +15047,7 @@ Nx_Init(Tcl_Interp *interp) {
 #endif
 
   RUNTIME_STATE(interp)->doFilters = 1;
+  RUNTIME_STATE(interp)->doCheckresult = 1;
 
   /* create xotcl namespace */
   RUNTIME_STATE(interp)->XOTclNS =

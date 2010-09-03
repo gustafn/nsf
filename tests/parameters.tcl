@@ -77,8 +77,9 @@ Test case parametercheck {
   ? {::nsf::is switch 1} {invalid value constraints "switch"}
   ? {::nsf::is superclass M} {invalid value constraints "superclass"}
 
-  # don't allow convert
-  ? {::nsf::is integer,convert 1} {invalid value constraints "integer,convert"}
+  # don't allow convert; 
+  # well we have to allow it, since "-returns" uses the same mechanism
+  #? {::nsf::is integer,convert 1} {invalid value constraints "integer,convert"}
 
   # tcl checker
   ? {::nsf::is upper ABC} 1

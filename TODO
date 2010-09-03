@@ -1259,6 +1259,11 @@ _ added option noforwarder to RelationSlots
   (example: "Class create C -parameter {x:integer,nosetter}")
 - extended regression test to include "nosetter"
 
+- new flag for configure: "nx::configure checkresult on|off"
+- turn off result-checking for non-converters, when checking is off
+  (per default, it is on)
+- extended regression test for optional result checking
+
 TODO: 
 - reflect changes in /is/objectproperty/info has/info is/ in migration guide
 - implement built-in-converter for "baseclass" and "metaclass"?
