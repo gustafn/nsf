@@ -92,6 +92,10 @@ Test case parametercheck {
   #? {::nsf::is object o -type C} 0
   #? {::nsf::is object o -hasmixin C} 0
 
+  # scripted checker
+  ? {::nsf::is metaclass ::nx::Class} 1
+  ? {::nsf::is metaclass ::nx::Object} 0
+
   ? {::nsf::is -complain class o1} {expected class but got "o1" for parameter value}
   ? {::nsf::is class o1} 0
   ? {::nsf::is -complain class Test} 1
@@ -1111,6 +1115,75 @@ Test case slot-nosetter {
   ? {c1 b 101} {::c1: unable to dispatch method 'b'}
   ? {c1 c 102} {::c1: unable to dispatch method 'c'}
 }
+
+Test parameter count 10000
+Test case check-arguments {
+
+  Class create Foo {
+    :method noarg {} {return ""} 
+    :method onearg {x} {return $x} 
+    :method intarg {x:integer} {return $x} 
+    :method intsarg {x:integer,multivalued} {return $x} 
+    :method boolarg {x:boolean} {return $x} 
+    :method classarg {x:class} {return $x} 
+    :method upperarg {x:upper} {return $x} 
+    :method metaclassarg {x:metaclass} {return $x} 
+    :create f1
+  }
+  
+  ? {f1 noarg} ""
+  ? {f1 onearg 1} 1
+  # built-in checker
+  ? {f1 intarg 1} 1
+  ? {f1 intarg a} {expected integer but got "a" for parameter x}
+  ? {f1 intsarg {10 11 12}} {10 11 12}
+  ? {f1 intsarg {10 11 1a2}} {invalid value in "10 11 1a2": expected integer but got "1a2" for parameter x}
+  ? {f1 boolarg 1} 1
+  ? {f1 boolarg a} {expected boolean value but got "a" for parameter x}
+  ? {f1 classarg ::Foo} ::Foo
+  ? {f1 classarg f1} {expected class but got "f1" for parameter x}
+  # tcl checker
+  ? {f1 upperarg ABC} ABC
+  ? {f1 upperarg abc} {expected upper but got "abc" for parameter x}
+  # scripted  checker
+  ? {f1 metaclassarg ::nx::Class} ::nx::Class
+  ? {f1 metaclassarg ::Foo} {expected metaclass but got "::Foo" for parameter x}
+}
+
+::nsf::configure checkarguments off
+Test case check-arguments-nocheck {
+
+  Class create Foo {
+    :method noarg {} {return ""} 
+    :method onearg {x} {return $x} 
+    :method intarg {x:integer} {return $x} 
+    :method intsarg {x:integer,multivalued} {return $x} 
+    :method boolarg {x:boolean} {return $x} 
+    :method classarg {x:class} {return $x} 
+    :method upperarg {x:upper} {return $x} 
+    :method metaclassarg {x:metaclass} {return $x} 
+    :create f1
+  }
+  
+  ? {f1 noarg} ""
+  ? {f1 onearg 1} 1
+  # built-in checker
+  ? {f1 intarg 1} 1
+  ? {f1 intarg a} a
+  ? {f1 intsarg {10 11 12}} {10 11 12}
+  ? {f1 intsarg {10 11 1a2}} {10 11 1a2}
+  ? {f1 boolarg 1} 1
+  ? {f1 boolarg a} a
+  ? {f1 classarg ::Foo} ::Foo
+  ? {f1 classarg f1} f1
+  # tcl checker
+  ? {f1 upperarg ABC} ABC
+  ? {f1 upperarg abc} abc
+  # scripted  checker
+  ? {f1 metaclassarg ::nx::Class} ::nx::Class
+  ? {f1 metaclassarg ::Foo} ::Foo
+}
+
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
 

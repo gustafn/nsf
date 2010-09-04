@@ -43,7 +43,7 @@ namespace eval ::nx::test {
       # from global evals. So, this approach is not suitable for all test
       # (but for most).
       #
-      # Current limitations: just for xotcl2, no method/mixin cleanup/var cleanup
+      # Current limitations: just for nx::Objects, no method/mixin cleanup/var cleanup
       #
       set :case $name
       if {[info exists arg]} {
@@ -73,9 +73,9 @@ namespace eval ::nx::test {
       set testfile [file rootname [file tail [info script]]]
       if {[info exists :case]} {
 	if {![info exists :ccount(${:case})]} {set :ccount(${:case}) 0}
-	set :name $testfile-${:case}.[format %.3d [incr :ccount(${:case})]]
+	set :name $testfile/${:case}.[format %.3d [incr :ccount(${:case})]]
       } else {
-	set :name $testfile-t.[format %.3d [incr :count]]
+	set :name $testfile/t.[format %.3d [incr :count]]
       }
       :create ${:name} -name ${:name} {*}$args
     }

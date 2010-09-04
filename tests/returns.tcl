@@ -9,7 +9,7 @@ package require nx::test
 #
 ::nsf::configure checkresult true
 
-Test parameter count 10
+Test parameter count 10000
 Test case int-returns { 
     nx::Class create C {
 	# scripted method without paramdefs
@@ -34,7 +34,7 @@ Test case int-returns {
     ? {c1 bar-nok 1 2} {expected integer but got "a" for parameter return-value}
 
     ? {c1 incr x} 1
-    ? {c1 incr x} 12
+    ? {c1 incr x} 10002
 
     ? {c1 lappend l e1} {expected integer but got "e1" for parameter return-value}
 
@@ -43,8 +43,14 @@ Test case int-returns {
 
     # reset it to emtpy
     ? {::nsf::methodproperty C lappend returns ""} ""
+    ? {::nsf::methodproperty C bar-ok1 returns ""} ""
+    ? {::nsf::methodproperty C bar-ok2 returns ""} ""
+    ? {::nsf::methodproperty C bar-nok returns ""} ""
 
-    # no checking on lappend
+    # no checking 
+    ? {c1 bar-ok1 1 2} 1
+    ? {c1 bar-ok2 1 2} 1
+    ? {c1 bar-nok 1 2} a
     ? {c1 lappend l e2} "e1 e2"
 
     # query returns "", if there is no returns checking
@@ -53,6 +59,7 @@ Test case int-returns {
 
 }
 
+Test parameter count 10
 Test case app-specific-returns { 
 
     ::nx::methodParameterSlot method type=range {name value arg} {
@@ -88,6 +95,7 @@ Test case app-specific-returns {
     ? {c1 lappend l e1} {Value 'e1' of parameter return-value not between 1 and 30}
 }
 
+Test parameter count 1000
 Test case converting-returns { 
 
     ::nx::methodParameterSlot method type=sex {name value args} {
@@ -141,9 +149,9 @@ Test case converting-returns {
 #
 # turn off result checking
 #
-::nsf::configure checkresult false
+::nsf::configure checkresults false
 
-Test parameter count 10
+Test parameter count 10000
 Test case int-returns-nocheck { 
     nx::Class create C {
 	# scripted method without paramdefs
@@ -168,7 +176,7 @@ Test case int-returns-nocheck {
     ? {c1 bar-nok 1 2} a
 
     ? {c1 incr x} 1
-    ? {c1 incr x} 12
+    ? {c1 incr x} 10002
 
     ? {c1 lappend l e1} e1
 
@@ -188,6 +196,7 @@ Test case int-returns-nocheck {
 
 }
 
+Test parameter count 10
 Test case app-specific-returns-nocheck { 
 
     ::nx::methodParameterSlot method type=range {name value arg} {
@@ -223,6 +232,7 @@ Test case app-specific-returns-nocheck {
     ? {c1 lappend l e1} e1
 }
 
+Test parameter count 1000
 Test case converting-returns-nocheck { 
 
     ::nx::methodParameterSlot method type=sex {name value args} {

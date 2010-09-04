@@ -197,7 +197,7 @@ ${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
 $intro
   if (ArgumentParse(interp, objc, objv, $obj, objv[0], 
                      method_definitions[$idx].paramDefs, 
-                     method_definitions[$idx].nrParameters, 
+                     method_definitions[$idx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -285,7 +285,8 @@ typedef struct {
 
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
                          XOTclObject *obj, Tcl_Obj *procName,
-                         XOTclParam CONST *paramPtr, int nrParameters, parseContext *pc);
+                         XOTclParam CONST *paramPtr, int nrParameters, int doCheck,
+			 parseContext *pc);
 
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  XOTclObject **matchObject, CONST char **pattern);

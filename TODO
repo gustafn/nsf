@@ -1262,7 +1262,12 @@ _ added option noforwarder to RelationSlots
 - new flag for configure: "nx::configure checkresult on|off"
 - turn off result-checking for non-converters, when checking is off
   (per default, it is on)
-- extended regression test for optional result checking
+- extended regressi
+
+- new flag for configure: "nx::configure checkarguments on|off"
+- turn off argument-checking for non-converters, when checking is off
+  (per default, it is on)
+- extended regression test for optional argument checking
 
 TODO: 
 - reflect changes in /is/objectproperty/info has/info is/ in migration guide

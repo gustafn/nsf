@@ -216,8 +216,8 @@ static int XOTclInvalidateObjectParameterCmd(Tcl_Interp *interp, XOTclClass *cl)
 static int ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
                                   XOTclObject *object, int pushFrame, XOTclParamDefs *paramDefs,
                                   CONST char *methodName, int objc, Tcl_Obj *CONST objv[]);
-static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, int *flags,
-                         ClientData *clientData, Tcl_Obj **outObjPtr);
+static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, int doCheck,
+			 int *flags, ClientData *clientData, Tcl_Obj **outObjPtr);
 static int Parametercheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj, 
 			  const char *varNamePrefix, int doCheck, XOTclParam **paramPtrPtr);
 
@@ -5173,11 +5173,10 @@ MakeProcError(
   int overflow, limit = 60, nameLen;
   const char *procName;
 
-  /*fprintf(stderr, "MakeProcError zzzz %p type %p refCount %d\n", 
+  /*fprintf(stderr, "MakeProcError %p type %p refCount %d\n", 
     procNameObj, procNameObj->typePtr, procNameObj->refCount);*/
 
   procName = Tcl_GetStringFromObj(procNameObj, &nameLen);
-  /*fprintf(stderr, ".... procName = %s\n", procName);*/
   overflow = (nameLen > limit);
   Tcl_AppendObjToErrorInfo(interp, Tcl_ObjPrintf(
 						 "\n    (procedure \"%.*s%s\" line %d)",
@@ -5520,6 +5519,7 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
   CONST char *methodName = data[2];
   XOTclObject *object = cscPtr->self;
   XOTclObjectOpt *opt = object->opt;
+  XOTclParamDefs *paramDefs;
   int rc;
 
   /*fprintf(stderr, "---- FinalizeProcMethod result %d, csc %p, pcPtr %p, obj %p\n",
@@ -5532,16 +5532,15 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
           );
 # endif
 
-  { XOTclParamDefs *paramDefs = ParamDefsGet(cscPtr->cmdPtr);
+  paramDefs = ParamDefsGet(cscPtr->cmdPtr);
 
-    if (result == TCL_OK && paramDefs && paramDefs->returns) {
-      Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
-      /*fprintf(stderr, "***** we have returns for method '%s' check %s, value %p\n", 
-	methodName, ObjStr(paramDefs->returns), valueObj);*/
-      result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", 
-			      RUNTIME_STATE(interp)->doCheckresult,
-			      NULL);
-    }
+  if (result == TCL_OK && paramDefs && paramDefs->returns) {
+    Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
+    /*fprintf(stderr, "***** we have returns for method '%s' check %s, value %p\n", 
+      methodName, ObjStr(paramDefs->returns), valueObj);*/
+    result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", 
+			    RUNTIME_STATE(interp)->doCheckResults,
+			    NULL);
   }
 
   if (opt && object->teardown && (opt->checkoptions & CHECK_POST)) {
@@ -5745,7 +5744,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     /*fprintf(stderr, "***** we have returns for method '%s' check %s, value %p is shared %d\n", 
       methodName, ObjStr(paramDefs->returns), valueObj, Tcl_IsShared(valueObj));*/
     result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", 
-			    RUNTIME_STATE(interp)->doCheckresult,
+			    RUNTIME_STATE(interp)->doCheckResults,
 			    NULL);
   }
 
@@ -5834,7 +5833,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
       /* fprintf(stderr, "***** CMD we have returns for method '%s' check %s, value %p\n", 
 	 methodName, ObjStr(paramDefs->returns), valueObj);*/
       result = Parametercheck(interp, paramDefs->returns, valueObj, "return-value:", 
-			      RUNTIME_STATE(interp)->doCheckresult,
+			      RUNTIME_STATE(interp)->doCheckResults,
 			      NULL);
     }
   }
@@ -5858,12 +5857,14 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 # define MethodDispatch __MethodDispatch__
 #endif
 
+#if 0
 static Tcl_Obj*
 SubcmdObj(Tcl_Interp *interp, CONST char *start, size_t len) {
   Tcl_Obj *checker = Tcl_NewStringObj("sub=", 4);
   Tcl_AppendLimitedToObj(checker, start, len, INT_MAX, NULL);
   return checker;
 }
+#endif
 
 static int
 DispatchUnknownMethod(ClientData clientData, 
@@ -8993,7 +8994,9 @@ XOTclSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     int result, flags = 0;
     ClientData checkedData;
 
-    result = ArgumentCheck(interp, objv[1], cd->paramsPtr, &flags, &checkedData, &outObjPtr);
+    result = ArgumentCheck(interp, objv[1], cd->paramsPtr, 
+			   RUNTIME_STATE(interp)->doCheckArguments,
+			   &flags, &checkedData, &outObjPtr);
 
     if (result == TCL_OK) {
       result = setInstVar(interp, object, objv[0], outObjPtr);
@@ -9715,9 +9718,17 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST
 }
 
 static int
-ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, int *flags,
-	      ClientData *clientData, Tcl_Obj **outObjPtr) {
+ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr, int doCheck,
+	      int *flags, ClientData *clientData, Tcl_Obj **outObjPtr) {
   int result;
+
+  if (doCheck == 0 && (pPtr->flags & (XOTCL_ARG_IS_CONVERTER|XOTCL_ARG_INITCMD)) == 0) {
+    /*fprintf(stderr, "*** omit  argument check for arg %s flags %.6x\n",pPtr->name, pPtr->flags);*/
+    *outObjPtr = objPtr;
+    *clientData = ObjStr(objPtr);
+    *flags = 0;
+    return TCL_OK;
+  }
 
   if (pPtr->flags & XOTCL_ARG_MULTIVALUED) {
     int objc, i;
@@ -9756,8 +9767,8 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct XOTclParam CONST *pPtr
              switch to the version of this handler building an output
              list 
           */
-          fprintf(stderr, "switch to output list construction for value %s\n",
-		  ObjStr(elementObjPtr));
+          /*fprintf(stderr, "switch to output list construction for value %s\n",
+	    ObjStr(elementObjPtr));*/
           *flags |= XOTCL_PC_MUST_DECR;
           result = ArgumentCheckHelper(interp, objPtr, pPtr, flags, clientData, outObjPtr);
           break;
@@ -9837,7 +9848,9 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
         /* Check the default value, unless we have an INITCMD or METHOD */
         if ((pPtr->flags & (XOTCL_ARG_INITCMD|XOTCL_ARG_METHOD)) == 0) {
           int mustDecrList = 0;
-          if (ArgumentCheck(interp, newValue, pPtr, &mustDecrList, &checkedData, &pcPtr->objv[i]) != TCL_OK) {
+          if (ArgumentCheck(interp, newValue, pPtr, 
+			    RUNTIME_STATE(interp)->doCheckArguments,
+			    &mustDecrList, &checkedData, &pcPtr->objv[i]) != TCL_OK) {
             return TCL_ERROR;
           }
           
@@ -9881,7 +9894,7 @@ ArgumentDefaults(parseContext *pcPtr, Tcl_Interp *interp,
 static int
 ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               XOTclObject *object, Tcl_Obj *procNameObj,
-              XOTclParam CONST *paramPtr, int nrParams,
+              XOTclParam CONST *paramPtr, int nrParams, int doCheck,
               parseContext *pcPtr) {
   int i, o, flagCount, nrReq = 0, nrOpt = 0, dashdash = 0, nrDashdash = 0;
   XOTclParam CONST *pPtr;
@@ -9938,8 +9951,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                           i, nppPtr->name, ObjStr(objv[p]), nppPtr->nrArgs,
                           nppPtr->flags & XOTCL_ARG_REQUIRED ? "req":"not req", nppPtr->converter);
 #endif
-                  if (ArgumentCheck(interp, objv[p], nppPtr, &pcPtr->flags[j],
-				    &pcPtr->clientData[j], &pcPtr->objv[j]) != TCL_OK) {
+                  if (ArgumentCheck(interp, objv[p], nppPtr, doCheck,
+				    &pcPtr->flags[j], &pcPtr->clientData[j], &pcPtr->objv[j]) != TCL_OK) {
                     return TCL_ERROR;
                   }
 
@@ -9996,7 +10009,9 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       /*fprintf(stderr, "... arg %s req %d converter %p try to set on %d: '%s' convertViaCmd %p\n",
               pPtr->name, pPtr->flags & XOTCL_ARG_REQUIRED, pPtr->converter, i, ObjStr(objv[o]), 
               convertViaCmd);*/
-      if (ArgumentCheck(interp, objv[o], pPtr, &pcPtr->flags[i], &pcPtr->clientData[i], &pcPtr->objv[i]) != TCL_OK) {
+
+      if (ArgumentCheck(interp, objv[o], pPtr, doCheck,
+			&pcPtr->flags[i], &pcPtr->clientData[i], &pcPtr->objv[i]) != TCL_OK) {
         return TCL_ERROR;
       }
       if (pcPtr->flags[i] & XOTCL_PC_MUST_DECR) 
@@ -11153,13 +11168,19 @@ static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *v
       RUNTIME_STATE(interp)->doKeepinitcmd = bool;
     break;
 
-  case ConfigureoptionCheckresultIdx:
+  case ConfigureoptionCheckresultsIdx:
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
-                      (RUNTIME_STATE(interp)->doCheckresult));
+                      (RUNTIME_STATE(interp)->doCheckResults));
     if (valueObj)
-      RUNTIME_STATE(interp)->doCheckresult = bool;
+      RUNTIME_STATE(interp)->doCheckResults = bool;
     break;
 
+  case ConfigureoptionCheckargumentsIdx:
+    Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
+                      (RUNTIME_STATE(interp)->doCheckArguments));
+    if (valueObj)
+      RUNTIME_STATE(interp)->doCheckArguments = bool;
+    break;
   }
   return TCL_OK;
 }
@@ -12741,18 +12762,13 @@ static int Parametercheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj
   paramPtr = paramWrapperPtr->paramPtr;
   if (paramPtrPtr) *paramPtrPtr = paramPtr;
 
-  if (paramPtr->flags & XOTCL_ARG_IS_CONVERTER) {
-    /* always call checker if it is a converter */
-    doCheck = 1;
-  }
-
-  if (!doCheck) {
+  /*  if (!doCheck) {
     outObjPtr = valueObj;
     checkedData = ObjStr(valueObj);
     return TCL_OK;
-  }
+    }*/
 
-  result = ArgumentCheck(interp, valueObj, paramPtr, &flags, &checkedData, &outObjPtr);
+  result = ArgumentCheck(interp, valueObj, paramPtr, doCheck, &flags, &checkedData, &outObjPtr);
 
   /*fprintf(stderr, "ParamSetFromAny paramPtr %p final refcount of wrapper %d can free %d\n",
     paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree);*/
@@ -14580,7 +14596,9 @@ ProcessMethodArguments(parseContext *pcPtr, Tcl_Interp *interp,
   }
 
   result = ArgumentParse(interp, objc, objv, object, objv[0],
-                         paramDefs->paramsPtr, paramDefs->nrParams, pcPtr);
+                         paramDefs->paramsPtr, paramDefs->nrParams, 
+			 RUNTIME_STATE(interp)->doCheckArguments,
+			 pcPtr);
   if (object && pushFrame) {
     XOTcl_PopFrameObj(interp, framePtr);
   }
@@ -15047,7 +15065,8 @@ Nx_Init(Tcl_Interp *interp) {
 #endif
 
   RUNTIME_STATE(interp)->doFilters = 1;
-  RUNTIME_STATE(interp)->doCheckresult = 1;
+  RUNTIME_STATE(interp)->doCheckResults = 1;
+  RUNTIME_STATE(interp)->doCheckArguments = 1;
 
   /* create xotcl namespace */
   RUNTIME_STATE(interp)->XOTclNS =
