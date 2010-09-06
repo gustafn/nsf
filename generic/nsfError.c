@@ -63,7 +63,8 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
 }
 
 int
-NsfObjWrongArgs(Tcl_Interp *interp, char *msg, Tcl_Obj *cmdName, Tcl_Obj *methodName, char *arglist) {
+NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName, 
+		Tcl_Obj *methodName, char *arglist) {
   int need_space = 0;
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp, msg, " should be \"", (char *) NULL);

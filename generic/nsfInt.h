@@ -685,11 +685,9 @@ typedef struct NsfRuntimeState {
 
 #ifdef NSF_OBJECTDATA
 extern void
-NsfSetObjectData(struct NsfObject *obj, struct NsfClass *cl,
-		  ClientData data);
+NsfSetObjectData(struct NsfObject *obj, struct NsfClass *cl, ClientData data);
 extern int
-NsfGetObjectData(struct NsfObject *obj, struct NsfClass *cl,
-		  ClientData *data);
+NsfGetObjectData(struct NsfObject *obj, struct NsfClass *cl, ClientData *data);
 extern int
 NsfUnsetObjectData(struct NsfObject *obj, struct NsfClass *cl);
 extern void
@@ -761,6 +759,9 @@ int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
 int
 NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
 		 int objc, Tcl_Obj *CONST objv[]);
+extern int
+NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName, 
+		Tcl_Obj *methodName, char *arglist);
 
 /* functions from nsfUtil.c */
 char *Nsf_ltoa(char *buf, long i, int *len);
