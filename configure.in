@@ -11,8 +11,8 @@
 # for this package, and can be a relative path, such as:
 #
 #--------------------------------------------------------------------
-define(NxVersion, 2.0.0)
-AC_INIT([nx], [NxVersion])
+define(NsfVersion, 2.0.0)
+AC_INIT([nsf], [NsfVersion])
 
 #--------------------------------------------------------------------
 # Call TEA_INIT as the first TEA_ macro to set up initial vars.
@@ -105,17 +105,17 @@ if test "$with_xowish" = yes;  then XOWISH="xowish"   ; else XOWISH=""; fi
 
 # do not modify the following lines manually, they are generated with 
 # the script changeXOTclVersion
-NX_MAJOR_VERSION=2
-NX_MINOR_VERSION=0
-NX_RELEASE_LEVEL=.0
+NSF_MAJOR_VERSION=2
+NSF_MINOR_VERSION=0
+NSF_RELEASE_LEVEL=.0
 
-NX_VERSION=${NX_MAJOR_VERSION}.${NX_MINOR_VERSION}
-NODOT_VERSION=${NX_MAJOR_VERSION}${NX_MINOR_VERSION}
+NSF_VERSION=${NSF_MAJOR_VERSION}.${NSF_MINOR_VERSION}
+NODOT_VERSION=${NSF_MAJOR_VERSION}${NSF_MINOR_VERSION}
 
-AC_SUBST(NX_VERSION)
-AC_SUBST(NX_MAJOR_VERSION)
-AC_SUBST(NX_MINOR_VERSION)
-AC_SUBST(NX_RELEASE_LEVEL)
+AC_SUBST(NSF_VERSION)
+AC_SUBST(NSF_MAJOR_VERSION)
+AC_SUBST(NSF_MINOR_VERSION)
+AC_SUBST(NSF_RELEASE_LEVEL)
 
 echo "Configuring next Version $PACKAGE_VERSION"
 
@@ -190,13 +190,13 @@ fi
 
 
 TEA_ADD_SOURCES([xotcl.c xotclError.c xotclMetaData.c xotclObjectData.c xotclProfile.c \
-	xotclTrace.c xotclUtil.c xotclShadow.c xotclCompile.c aolstub.c nxStubInit.c])
-TEA_ADD_HEADERS([generic/xotcl.h generic/xotclInt.h generic/nxDecls.h generic/nxIntDecls.h])
+	xotclTrace.c xotclUtil.c xotclShadow.c xotclCompile.c aolstub.c nsfStubInit.c])
+TEA_ADD_HEADERS([generic/xotcl.h generic/xotclInt.h generic/nsfDecls.h generic/nsfIntDecls.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
-TEA_ADD_CFLAGS([-DNXVERSION=\\\"$NX_VERSION\\\" -DNXPATCHLEVEL=\\\"$NX_RELEASE_LEVEL\\\" \
+TEA_ADD_CFLAGS([-DNSF_VERSION=\\\"$NSF_VERSION\\\" -DNSF_PATCHLEVEL=\\\"$NSF_RELEASE_LEVEL\\\" \
 	$AOL_DEFINES $HAVE_TCL_COMPILE_H])
-TEA_ADD_STUB_SOURCES([nxStubLib.c])
+TEA_ADD_STUB_SOURCES([nsfStubLib.c])
 TEA_ADD_TCL_SOURCES([])
 
 
@@ -278,17 +278,17 @@ TEA_ENABLE_SHARED
 
 TEA_CONFIG_CFLAGS
 
-# Without the following two eval statements, NX_SHARED_LIB_SUFFIX 
+# Without the following two eval statements, NSF_SHARED_LIB_SUFFIX 
 # in xotclConfig.sh has $PACKAGE_VERSION unresolved. When another
 # app links against xotcl, the PACKAGE_VERSIONs are confused.
 #
 # Without the first eval, we get
-#   NX_SHARED_LIB_SUFFIX=${PACKAGE_VERSION}\$\{DBGX\}${SHLIB_SUFFIX}
-#   NX_UNSHARED_LIB_SUFFIX=${PACKAGE_VERSION}\$\{DBGX\}.a
+#   NSF_SHARED_LIB_SUFFIX=${PACKAGE_VERSION}\$\{DBGX\}${SHLIB_SUFFIX}
+#   NSF_UNSHARED_LIB_SUFFIX=${PACKAGE_VERSION}\$\{DBGX\}.a
 #
 # after the first eval, we get
-#   NX_SHARED_LIB_SUFFIX=1.2.1${DBGX}.so
-#   NX_UNSHARED_LIB_SUFFIX=1.2.1${DBGX}.a
+#   NSF_SHARED_LIB_SUFFIX=1.2.1${DBGX}.so
+#   NSF_UNSHARED_LIB_SUFFIX=1.2.1${DBGX}.a
 # after the second eval, all variables are resolved.
 
 
@@ -340,8 +340,8 @@ TEA_MAKE_LIB
 TEA_PROG_TCLSH
 
 # make this available, for such as xotclConfig.sh
-NX_COMPATIBLE_TCLSH=${TCLSH_PROG}
-AC_SUBST(NX_COMPATIBLE_TCLSH)
+NSF_COMPATIBLE_TCLSH=${TCLSH_PROG}
+AC_SUBST(NSF_COMPATIBLE_TCLSH)
 
 # resolve the variables
 eval "libdir=${libdir}"
@@ -365,52 +365,52 @@ AC_SUBST(pkgincludedir)
 
 if test "${TEA_PLATFORM}" != "windows" ; then
 
-NX_BUILD_LIB_SPEC="-L`pwd` -lnext${PACKAGE_VERSION}"
-NX_LIB_SPEC="-L${pkglibdir} -lnext${PACKAGE_VERSION}"
+NSF_BUILD_LIB_SPEC="-L`pwd` -lnsf${PACKAGE_VERSION}"
+NSF_LIB_SPEC="-L${pkglibdir} -lnsf${PACKAGE_VERSION}"
 
 # stub libs are not build for 8.0
 if test "${TCL_MAJOR_VERSION}" = "8" -a "${TCL_MINOR_VERSION}" = "0"; then
-	NX_BUILD_STUB_LIB_PATH=""
-	NX_STUB_LIB_PATH=""
-	NX_BUILD_STUB_LIB_SPEC=""
-	NX_STUB_LIB_SPEC=""
+	NSF_BUILD_STUB_LIB_PATH=""
+	NSF_STUB_LIB_PATH=""
+	NSF_BUILD_STUB_LIB_SPEC=""
+	NSF_STUB_LIB_SPEC=""
 else
-	NX_BUILD_STUB_LIB_PATH="`pwd`/${PKG_STUB_LIB_FILE}"
-	NX_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
-	NX_BUILD_STUB_LIB_SPEC="-L`pwd` -lnextstub${PACKAGE_VERSION}"
-	NX_STUB_LIB_SPEC="-L${pkglibdir} -lnextstub${PACKAGE_VERSION}"
-	AC_DEFINE(COMPILE_NX_STUBS)
+	NSF_BUILD_STUB_LIB_PATH="`pwd`/${PKG_STUB_LIB_FILE}"
+	NSF_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
+	NSF_BUILD_STUB_LIB_SPEC="-L`pwd` -lnsfstub${PACKAGE_VERSION}"
+	NSF_STUB_LIB_SPEC="-L${pkglibdir} -lnsfstub${PACKAGE_VERSION}"
+	AC_DEFINE(COMPILE_NSF_STUBS)
 fi 
 
 else
 
-NX_BUILD_LIB_SPEC="`pwd`/${PKG_LIB_FILE}"
-NX_LIB_SPEC="${pkglibdir}/${PKG_LIB_FILE}"
-NX_BUILD_STUB_LIB_PATH="`pwd`/${PKG_STUB_LIB_FILE}"
-NX_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
-NX_BUILD_STUB_LIB_SPEC="`pwd`/${PKG_STUB_LIB_FILE}"
-NX_STUB_LIB_SPEC="${pkglibdir}/${PKG_STUB_LIB_FILE}"
+NSF_BUILD_LIB_SPEC="`pwd`/${PKG_LIB_FILE}"
+NSF_LIB_SPEC="${pkglibdir}/${PKG_LIB_FILE}"
+NSF_BUILD_STUB_LIB_PATH="`pwd`/${PKG_STUB_LIB_FILE}"
+NSF_STUB_LIB_PATH="${pkglibdir}/${PKG_STUB_LIB_FILE}"
+NSF_BUILD_STUB_LIB_SPEC="`pwd`/${PKG_STUB_LIB_FILE}"
+NSF_STUB_LIB_SPEC="${pkglibdir}/${PKG_STUB_LIB_FILE}"
 
 fi
 
 AC_SUBST(SHARED_LIB_SUFFIX)
 AC_SUBST(UNSHARED_LIB_SUFFIX)
-AC_SUBST(NX_BUILD_LIB_SPEC)
-AC_SUBST(NX_LIB_SPEC)
-AC_SUBST(NX_BUILD_STUB_LIB_SPEC)
-AC_SUBST(NX_STUB_LIB_SPEC)
-AC_SUBST(NX_BUILD_STUB_LIB_PATH)
-AC_SUBST(NX_STUB_LIB_PATH)
-NX_SRC_DIR=$srcdir
-AC_SUBST(NX_SRC_DIR)
+AC_SUBST(NSF_BUILD_LIB_SPEC)
+AC_SUBST(NSF_LIB_SPEC)
+AC_SUBST(NSF_BUILD_STUB_LIB_SPEC)
+AC_SUBST(NSF_STUB_LIB_SPEC)
+AC_SUBST(NSF_BUILD_STUB_LIB_PATH)
+AC_SUBST(NSF_STUB_LIB_PATH)
+NSF_SRC_DIR=$srcdir
+AC_SUBST(NSF_SRC_DIR)
 AC_SUBST(NXSH)
 AC_SUBST(XOWISH)
 
 # include dir of xotcl during build process (i.e., does not assume installed)
-NX_BUILD_INCLUDE_DIR="${NX_SRC_DIR}/generic"
-NX_BUILD_INCLUDE_SPEC="-I${NX_BUILD_INCLUDE_DIR}"
-AC_SUBST(NX_BUILD_INCLUDE_DIR)
-AC_SUBST(NX_BUILD_INCLUDE_SPEC)
+NSF_BUILD_INCLUDE_DIR="${NSF_SRC_DIR}/generic"
+NSF_BUILD_INCLUDE_SPEC="-I${NSF_BUILD_INCLUDE_DIR}"
+AC_SUBST(NSF_BUILD_INCLUDE_DIR)
+AC_SUBST(NSF_BUILD_INCLUDE_SPEC)
 
 AC_SUBST(test_actiweb)
 AC_SUBST(libdirs_actiweb)

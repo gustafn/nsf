@@ -11,21 +11,21 @@
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 # 
 
-library nx
+library nsf
 
-interface nx
-hooks {nxInt}
+interface nsf
+hooks {nsfInt}
 
 # Declare each of the functions in the public Tcl interface.  Note that
 # the an index should never be reused for a different function in order
 # to preserve backwards compatibility.
 
 declare 0 generic {
-    int Nx_Init(Tcl_Interp *interp)
+    int Nsf_Init(Tcl_Interp *interp)
 }
 # 1 is reserved for safe init
 #declare 1 generic {
-#    int Nx_SafeInit(Tcl_Interp *interp)
+#    int Nsf_SafeInit(Tcl_Interp *interp)
 #}
 declare 2 generic {
     struct XOTcl_Class *XOTclIsClass(Tcl_Interp *interp, ClientData cd)

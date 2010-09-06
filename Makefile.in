@@ -192,7 +192,7 @@ TCLSH_PROG	= @TCLSH_PROG@
 TCLSH		= $(TCLSH_ENV) $(TCLSH_PROG)
 SHARED_BUILD	= @SHARED_BUILD@
 
-INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @NX_BUILD_INCLUDE_SPEC@
+INCLUDES	= @PKG_INCLUDES@ @TCL_INCLUDES@ @NSF_BUILD_INCLUDE_SPEC@
 EXTRA_CFLAGS	= @PKG_CFLAGS@
 
 # TCL_DEFS is not strictly need here, but if you remove it, then you
@@ -459,10 +459,10 @@ VPATH = $(srcdir):$(srcdir)/generic:$(srcdir)/unix:$(srcdir)/win
 #========================================================================
 
 pkgIndex.tcl: $(PKG_LIB_FILE)
-	@echo package ifneeded nsf $(PACKAGE_VERSION) [list load [file join \$$dir . $(PKG_LIB_FILE)] nx] > pkgIndex.tcl
+	@echo package ifneeded nsf $(PACKAGE_VERSION) [list load [file join \$$dir . $(PKG_LIB_FILE)] nsf] > pkgIndex.tcl
 
 install-pkgIndex:
-#	@echo package ifneeded nx $(PACKAGE_VERSION) [list load [file join \$$dir .. "$(PKG_LIB_FILE)"] nx] > "$(pkglibdir)/pkgIndex.tcl"
+#	@echo package ifneeded nsf $(PACKAGE_VERSION) [list load [file join \$$dir .. "$(PKG_LIB_FILE)"] nsf] > "$(pkglibdir)/pkgIndex.tcl"
 
 nxsh: tclAppInit.o $(PKG_OBJECTS) $(CONDITIONAL_STUB_OBJECTS)
 	$(CC) -rdynamic -o $@ tclAppInit.o \
@@ -521,7 +521,7 @@ aolstub.$(OBJEXT): $(src_generic_dir)/aolstub.c $(PKG_HEADERS)
 
 genstubs:
 	$(TCLSH) $(TCL_SRC_DIR)/tools/genStubs.tcl $(src_generic_dir) \
-		$(src_generic_dir)/nx.decls $(src_generic_dir)/nxInt.decls
+		$(src_generic_dir)/nsf.decls $(src_generic_dir)/nsfInt.decls
 
 #
 # Target to check that all exported functions have an entry in the stubs

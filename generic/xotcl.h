@@ -151,7 +151,7 @@ typedef struct XOTcl_Class {
  * Include the public function declarations that are accessible via
  * the stubs table.
  */
-#include "nxDecls.h"
+#include "nsfDecls.h"
 
 /*
  * Xotcl_InitStubs is used by extensions  that can be linked

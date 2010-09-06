@@ -11585,14 +11585,14 @@ XOTclInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST
 
   if (isCreateString(name)) {
     /*
-     * The command was an interp create, so perform an Nx_Init() on
+     * The command was an interp create, so perform an Nsf_Init() on
      * the new interpreter
      */
     slave = Tcl_GetSlave(interp, ObjStr(objv[2]));
     if (!slave) {
       return XOTclVarErrMsg(interp, "Creation of slave interpreter failed", (char *) NULL);
     }
-    if (Nx_Init(slave) == TCL_ERROR) {
+    if (Nsf_Init(slave) == TCL_ERROR) {
       return TCL_ERROR;
     }
 #ifdef XOTCL_MEM_COUNT
@@ -15018,7 +15018,7 @@ RegisterExitHandlers(ClientData clientData) {
  */
 
 extern int
-Nx_Init(Tcl_Interp *interp) {
+Nsf_Init(Tcl_Interp *interp) {
   ClientData runtimeState;
   int result, i;
 #ifdef XOTCL_BYTECODE
@@ -15143,8 +15143,8 @@ Nx_Init(Tcl_Interp *interp) {
   XOTclBytecodeInit();
 #endif
 
-  Tcl_SetVar(interp, "::nsf::version", NXVERSION, TCL_GLOBAL_ONLY);
-  Tcl_SetVar(interp, "::nsf::patchlevel", NXPATCHLEVEL, TCL_GLOBAL_ONLY);
+  Tcl_SetVar(interp, "::nsf::version", NSF_VERSION, TCL_GLOBAL_ONLY);
+  Tcl_SetVar(interp, "::nsf::patchlevel", NSF_PATCHLEVEL, TCL_GLOBAL_ONLY);
 
   Tcl_AddInterpResolvers(interp,"nxt", 
                          (Tcl_ResolveCmdProc*)InterpColonCmdResolver,
@@ -15201,6 +15201,6 @@ Nx_Init(Tcl_Interp *interp) {
 extern int
 Next_SafeInit(Tcl_Interp *interp) {
   /*** dummy for now **/
-  return Nx_Init(interp);
+  return Nsf_Init(interp);
 }
 

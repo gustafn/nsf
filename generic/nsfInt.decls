@@ -1,4 +1,4 @@
-# nxInt.decls --
+# nsfInt.decls --
 #
 #	This file contains the declarations for all unsupported
 #	functions that are exported by the Tcl library.  This file
@@ -10,11 +10,11 @@
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 # 
 
-library nx
+library nsf
 
 # Define the unsupported generic interfaces.
 
-interface nxInt
+interface nsfInt
 
 
 #

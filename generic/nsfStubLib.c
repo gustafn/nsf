@@ -1,5 +1,5 @@
 /*
- * nxStubLib.c --
+ * nsfStubLib.c --
  *
  *      Stub object that will be statically linked into extensions of XOTcl
  *
@@ -24,7 +24,7 @@
 #undef USE_TCL_STUB_PROCS
 
 /*
- * This ensures that the Xotcl_InitStubs has a prototype in
+ * This ensures that the Nsf_InitStubs has a prototype in
  * xotcl.h and is not the macro that turns it into Tcl_PkgRequire
  */
 
@@ -35,13 +35,13 @@
 #include "xotclInt.h"
 
 #if defined(PRE86)
-extern NxStubs *nxStubsPtr;
+extern NsfStubs *nsfStubsPtr;
 #else
-MODULE_SCOPE const NxStubs *nxStubsPtr;
-MODULE_SCOPE const NxIntStubs *nxIntStubsPtr;
+MODULE_SCOPE const NsfStubs *nsfStubsPtr;
+MODULE_SCOPE const NsfIntStubs *nsfIntStubsPtr;
 #endif
-CONST86 NxStubs *nxStubsPtr = NULL;
-CONST86 NxIntStubs *nxIntStubsPtr = NULL;
+CONST86 NsfStubs *nsfStubsPtr = NULL;
+CONST86 NsfIntStubs *nsfIntStubsPtr = NULL;
 
 
 /*
@@ -77,9 +77,9 @@ Xotcl_InitStubs (Tcl_Interp *interp, CONST char *version, int exact) {
                          "package not present or incomplete", NULL);
         return NULL;
     } else {
-      CONST86 NxStubs * const stubsPtr = clientData;
-      CONST86 NxIntStubs * const intStubsPtr = stubsPtr->hooks ?
-        stubsPtr->hooks->nxIntStubs : NULL;
+      CONST86 NsfStubs * const stubsPtr = clientData;
+      CONST86 NsfIntStubs * const intStubsPtr = stubsPtr->hooks ?
+        stubsPtr->hooks->nsfIntStubs : NULL;
 
       if (actualVersion == NULL) {
         return NULL;
@@ -94,8 +94,8 @@ Xotcl_InitStubs (Tcl_Interp *interp, CONST char *version, int exact) {
         return NULL;
       }
 
-      nxStubsPtr = stubsPtr;
-      nxIntStubsPtr = intStubsPtr;
+      nsfStubsPtr = stubsPtr;
+      nsfIntStubsPtr = intStubsPtr;
 
       return actualVersion;
     }

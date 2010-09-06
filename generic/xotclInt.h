@@ -674,7 +674,7 @@ typedef struct XOTclRuntimeState {
   XOTclObject *delegatee;
   Proc fakeProc;
   Tcl_Namespace *fakeNS;
-  NxStubs *nxStubs;
+  NsfStubs *nsfStubs;
   Tcl_CallFrame *varFramePtr;
   Tcl_Command cmdPtr; /* used for ACTIVE_MIXIN */
   Tcl_Command colonCmd;
@@ -709,7 +709,7 @@ XOTclFreeObjectData(XOTclClass *cl);
  *
  */
 
-#include "nxIntDecls.h"
+#include "nsfIntDecls.h"
 
 /*
  * Profiling functions

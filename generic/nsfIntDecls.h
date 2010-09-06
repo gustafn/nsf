@@ -29,28 +29,28 @@
  */
 
 
-typedef struct NxIntStubs {
+typedef struct NsfIntStubs {
     int magic;
-    struct NxIntStubHooks *hooks;
+    struct NsfIntStubHooks *hooks;
 
-} NxIntStubs;
+} NsfIntStubs;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern NxIntStubs *nxIntStubsPtr;
+extern NsfIntStubs *nsfIntStubsPtr;
 #ifdef __cplusplus
 }
 #endif
 
-#if defined(USE_NX_STUBS) && !defined(USE_NX_STUB_PROCS)
+#if defined(USE_NSF_STUBS) && !defined(USE_NSF_STUB_PROCS)
 
 /*
  * Inline function declarations:
  */
 
 
-#endif /* defined(USE_NX_STUBS) && !defined(USE_NX_STUB_PROCS) */
+#endif /* defined(USE_NSF_STUBS) && !defined(USE_NSF_STUB_PROCS) */
 
 /* !END!: Do not edit above this line. */
 

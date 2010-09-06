@@ -154,9 +154,9 @@ Tcl_AppInit(
        return TCL_ERROR;
     }    
  
-    Tcl_StaticPackage(interp, "nx", Next_Init, 0);
+    Tcl_StaticPackage(interp, "nx", Nsf_Init, 0);
 #else
-    if (Tcl_PkgRequire(interp, "nx", NXVERSION, 1) == NULL) {
+    if (Tcl_PkgRequire(interp, "nx", NSF_VERSION, 1) == NULL) {
       return TCL_ERROR;
     }
 #endif

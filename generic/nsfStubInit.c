@@ -24,19 +24,19 @@
 
 /* !BEGIN!: Do not edit below this line. */
 
-NxIntStubs nxIntStubs = {
+NsfIntStubs nsfIntStubs = {
     TCL_STUB_MAGIC,
     NULL,
 };
 
-static NxStubHooks nxStubHooks = {
-    &nxIntStubs
+static NsfStubHooks nsfStubHooks = {
+    &nsfIntStubs
 };
 
-NxStubs nxStubs = {
+NsfStubs nsfStubs = {
     TCL_STUB_MAGIC,
-    &nxStubHooks,
-    Nx_Init, /* 0 */
+    &nsfStubHooks,
+    Nsf_Init, /* 0 */
     NULL, /* 1 */
     XOTclIsClass, /* 2 */
     NULL, /* 3 */
@@ -84,5 +84,5 @@ NxStubs nxStubs = {
 
 /* !END!: Do not edit above this line. */
 
-MODULE_SCOPE const NxStubs * const nxConstStubPtr;
-const NxStubs * const nxConstStubPtr = &nxStubs;
+MODULE_SCOPE const NsfStubs * const nsfConstStubPtr;
+const NsfStubs * const nsfConstStubPtr = &nsfStubs;
