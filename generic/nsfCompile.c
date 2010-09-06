@@ -1,6 +1,6 @@
-#include "xotclInt.h"
+#include "nsfInt.h"
 
-#ifdef XOTCL_BYTECODE
+#ifdef NSF_BYTECODE
 #include <tclCompile.h>
 
 static CompileProc 

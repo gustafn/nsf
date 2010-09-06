@@ -301,7 +301,7 @@ install-libraries: libraries $(DESTDIR)$(includedir) $(DESTDIR)$(pkglibdir)
 	    $(INSTALL_DATA) $(src_lib_dir)/$$i $(DESTDIR)$(pkglibdir)/$$i ; \
 	done;
 	cat unix/pkgIndex.unix >> $(DESTDIR)$(pkglibdir)/pkgIndex.tcl
-	$(INSTALL_DATA) xotclConfig.sh $(DESTDIR)$(libdir)/
+	$(INSTALL_DATA) nsfConfig.sh $(DESTDIR)$(libdir)/
 
 install-xotcl-libraries: install-libraries $(DESTDIR)$(pkglibdir)
 	@echo "Installing XOTcl Libraries to $(DESTDIR)$(xotcl_pkglibdir)/"
@@ -503,16 +503,16 @@ $(src_generic_dir)/predefined.h: $(src_generic_dir)/mk_predefined.tcl $(src_gene
 $(src_generic_dir)/tclAPI.h: $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)/gentclAPI.decls
 	$(TCLSH) $(src_generic_dir)/gentclAPI.tcl > $(src_generic_dir)/tclAPI.h
 
-xotclStubInit.$(OBJEXT): $(PKG_HEADERS)
-xotclStubLib.$(OBJEXT): $(src_generic_dir)/xotclStubLib.c $(PKG_HEADERS)
-xotcl.$(OBJEXT): $(src_generic_dir)/xotcl.c $(src_generic_dir)/predefined.h $(src_generic_dir)/xotclAccessInt.h $(src_generic_dir)/tclAPI.h $(PKG_HEADERS) $(src_generic_dir)/xotclStack85.c
-xotclError.$(OBJEXT): $(src_generic_dir)/xotclError.c $(PKG_HEADERS)
-xotclMetaData.$(OBJEXT): $(src_generic_dir)/xotclMetaData.c $(PKG_HEADERS)
-xotclObjectData.$(OBJEXT): $(src_generic_dir)/xotclObjectData.c $(PKG_HEADERS)
-xotclProfile.$(OBJEXT): $(src_generic_dir)/xotclProfile.c $(PKG_HEADERS)
-xotclTrace.$(OBJEXT): $(src_generic_dir)/xotclTrace.c $(PKG_HEADERS)
-xotclUtil.$(OBJEXT): $(src_generic_dir)/xotclUtil.c $(PKG_HEADERS)
-xotclShadow.$(OBJEXT): $(src_generic_dir)/xotclShadow.c $(PKG_HEADERS)
+nsfStubInit.$(OBJEXT): $(PKG_HEADERS)
+nsfStubLib.$(OBJEXT): $(src_generic_dir)/nsfStubLib.c $(PKG_HEADERS)
+nsf.$(OBJEXT): $(src_generic_dir)/nsf.c $(src_generic_dir)/predefined.h $(src_generic_dir)/nsfAccessInt.h $(src_generic_dir)/tclAPI.h $(PKG_HEADERS) $(src_generic_dir)/nsfStack.c
+nsfError.$(OBJEXT): $(src_generic_dir)/nsfError.c $(PKG_HEADERS)
+nsfMetaData.$(OBJEXT): $(src_generic_dir)/nsfMetaData.c $(PKG_HEADERS)
+nsfObjectData.$(OBJEXT): $(src_generic_dir)/nsfObjectData.c $(PKG_HEADERS)
+nsfProfile.$(OBJEXT): $(src_generic_dir)/nsfProfile.c $(PKG_HEADERS)
+nsfTrace.$(OBJEXT): $(src_generic_dir)/nsfTrace.c $(PKG_HEADERS)
+nsfUtil.$(OBJEXT): $(src_generic_dir)/nsfUtil.c $(PKG_HEADERS)
+nsfShadow.$(OBJEXT): $(src_generic_dir)/nsfShadow.c $(PKG_HEADERS)
 aolstub.$(OBJEXT): $(src_generic_dir)/aolstub.c $(PKG_HEADERS)
 
 #
@@ -708,10 +708,10 @@ rpm:
 bin-tar: 
 	(cd ..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
                 `find $(exec_prefix)/bin/$(NXSH) $(exec_prefix)/bin/xowish \
-                  $(prefix)/lib/xotcl* \
-                  $(prefix)/lib/libxotcl* \
-		  $(prefix)/include/xotcl*.h \
-                  $(DESTDIR)$(pkglibdir) $(prefix)/man/man1/xo* \
+                  $(prefix)/lib/nsf* \
+                  $(prefix)/lib/libnsf* \
+		  $(prefix)/include/nsf*.h \
+                  $(DESTDIR)$(pkglibdir) $(prefix)/man/man1/nsf* \
                 -type f -o -type l | fgrep -v CVS | fgrep -v SCCS | fgrep -v .junk| fgrep -v .db | fgrep -v "~" | fgrep -v "#" | fgrep -v /receiver/` \
 	)
 

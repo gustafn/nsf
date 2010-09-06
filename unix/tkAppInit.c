@@ -18,7 +18,7 @@
 
 #include "tk.h"
 #include "locale.h"
-#include <xotcl.h>
+#include <nsf.h>
 
 /*
  *----------------------------------------------------------------------

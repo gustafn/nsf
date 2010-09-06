@@ -8,7 +8,7 @@
 #include <tcl.h>
 #include "sdbm.h"
 #include <fcntl.h>
-#include <xotcl.h>
+#include <nsf.h>
 
 #if (TCL_MAJOR_VERSION==8 && TCL_MINOR_VERSION<1)
 # define TclObjStr(obj) Tcl_GetStringFromObj(obj, ((int*)NULL))
@@ -357,8 +357,8 @@ Xotclsdbm_Init(Tcl_Interp * in) {
     if (Tcl_InitStubs(in, "8.1", 0) == NULL) {
         return TCL_ERROR;
     }
-# ifdef USE_XOTCL_STUBS
-    if (Xotcl_InitStubs(in, "1.1", 0) == NULL) {
+# ifdef USE_NSF_STUBS
+    if (Nsf_InitStubs(in, "1.1", 0) == NULL) {
         return TCL_ERROR;
     }
 # endif

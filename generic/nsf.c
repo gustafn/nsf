@@ -42,8 +42,8 @@
  * */
 
 #define XOTCL_C 1
-#include "xotclInt.h"
-#include "xotclAccessInt.h"
+#include "nsfInt.h"
+#include "nsfAccessInt.h"
 
 #ifdef COMPILE_XOTCL_STUBS
 # if defined(PRE86)
@@ -409,7 +409,7 @@ XOTclCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *meth
   return result;
 }
 
-#include "xotclStack85.c"
+#include "nsfStack.c"
 
 /* extern callable GetSelfObj */
 XOTcl_Object*
@@ -3059,7 +3059,7 @@ AssertionCheckList(Tcl_Interp *interp, XOTclObject *object,
      generic. it should be replaced by another methodproperty.
      Most of the is*String()
      definition are then obsolete and should be deleted from
-     xotclInt.h as well.
+     nsfInt.h as well.
   */
 
   if (isCheckString(methodName)) {
@@ -5842,7 +5842,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   return result;
 }
 
-#if defined(PROFILE)
+#if defined(NSF_PROFILE)
 static int
 MethodDispatch(ClientData clientData, Tcl_Interp *interp,
              int objc, Tcl_Obj *CONST objv[], Tcl_Command cmd, XOTclObject *object, XOTclClass *cl,
@@ -7889,10 +7889,6 @@ CleanupDestroyObject(Tcl_Interp *interp, XOTclObject *object, int softrecreate) 
     AssertionRemoveStore(opt->assertions);
     opt->assertions = NULL;
 
-#ifdef XOTCL_METADATA
-    XOTclMetaDataDestroy(object);
-#endif
-
     if (!softrecreate) {
       /*
        *  Remove this object from all per object mixin lists and clear the mixin list
@@ -8239,7 +8235,7 @@ CleanupDestroyClass(Tcl_Interp *interp, XOTclClass *cl, int softrecreate, int re
     FilterRemoveDependentFilterCmds(cl, cl);
     AssertionRemoveStore(clopt->assertions);
     clopt->assertions = NULL;
-#ifdef XOTCL_OBJECTDATA
+#ifdef NSF_OBJECTDATA
     XOTclFreeObjectData(cl);
 #endif
   }
@@ -11236,7 +11232,7 @@ XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, 
   thecls = PrimitiveCCreate(interp, Class, NULL);
   /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
 
-#if defined(PROFILE)
+#if defined(NSF_PROFILE)
   XOTclProfileInit(interp);
 #endif
 
@@ -11447,7 +11443,7 @@ XOTclFinalizeObjCmd(Tcl_Interp *interp) {
 
   /*fprintf(stderr, "+++ call tcl-defined exit handler\n");  */
 
-#if defined(PROFILE)
+#if defined(NSF_PROFILE)
   XOTclProfilePrintData(interp);
 #endif
   /*
@@ -15021,7 +15017,7 @@ extern int
 Nsf_Init(Tcl_Interp *interp) {
   ClientData runtimeState;
   int result, i;
-#ifdef XOTCL_BYTECODE
+#ifdef NSF_BYTECODE
   XOTclCompEnv *interpstructions = XOTclGetCompEnv();
 #endif
   static XOTclMutex initMutex = 0;
@@ -15128,18 +15124,18 @@ Nsf_Init(Tcl_Interp *interp) {
   /*
    * new tcl cmds
    */
-#ifdef XOTCL_BYTECODE
+#ifdef NSF_BYTECODE
   instructions[INST_NEXT].cmdPtr = (Command *)
 #endif
     Tcl_CreateObjCommand(interp, "::nsf::next", XOTclNextObjCmd, 0, 0);
-#ifdef XOTCL_BYTECODE
+#ifdef NSF_BYTECODE
   instructions[INST_SELF].cmdPtr = (Command *)Tcl_FindCommand(interp, "::nsf::current", 0, 0);
 #endif
   /*Tcl_CreateObjCommand(interp, "::nsf::K", XOTclKObjCmd, 0, 0);*/
 
   Tcl_CreateObjCommand(interp, "::nsf::unsetUnknownArgs", XOTclUnsetUnknownArgsCmd, 0, 0);
 
-#ifdef XOTCL_BYTECODE
+#ifdef NSF_BYTECODE
   XOTclBytecodeInit();
 #endif
 

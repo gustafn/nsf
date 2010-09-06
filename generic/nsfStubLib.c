@@ -25,14 +25,14 @@
 
 /*
  * This ensures that the Nsf_InitStubs has a prototype in
- * xotcl.h and is not the macro that turns it into Tcl_PkgRequire
+ * nsf.h and is not the macro that turns it into Tcl_PkgRequire
  */
 
-#ifndef USE_XOTCL_STUBS
-# define USE_XOTCL_STUBS
+#ifndef USE_NSF_STUBS
+# define USE_NSF_STUBS
 #endif
 
-#include "xotclInt.h"
+#include "nsfInt.h"
 
 #if defined(PRE86)
 extern NsfStubs *nsfStubsPtr;
@@ -47,13 +47,13 @@ CONST86 NsfIntStubs *nsfIntStubsPtr = NULL;
 /*
  *----------------------------------------------------------------------
  *
- * Xotcl_InitStubs --
+ * Nsf_InitStubs --
  *
  *      Tries to initialise the stub table pointers and ensures that
- *      the correct version of XOTcl is loaded.
+ *      the correct version of nsf is loaded.
  *
  * Results:
- *      The actual version of XOTcl that satisfies the request, or
+ *      The actual version of nsf that satisfies the request, or
  *      NULL to indicate that an error occurred.
  *
  * Side effects:
@@ -63,12 +63,12 @@ CONST86 NsfIntStubs *nsfIntStubsPtr = NULL;
  */
 
 CONST char *
-Xotcl_InitStubs (Tcl_Interp *interp, CONST char *version, int exact) {
+Nsf_InitStubs (Tcl_Interp *interp, CONST char *version, int exact) {
     CONST char *actualVersion;
     const char *packageName = "XOTcl";
     ClientData clientData = NULL;
 
-    actualVersion = Tcl_PkgRequireEx(interp, "XOTcl", version, exact,
+    actualVersion = Tcl_PkgRequireEx(interp, "nsf", version, exact,
         &clientData);
 
     if (clientData == NULL) {

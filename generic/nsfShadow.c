@@ -11,8 +11,8 @@
  *  
  */
 
-#include "xotclInt.h"
-#include "xotclAccessInt.h"
+#include "nsfInt.h"
+#include "nsfAccessInt.h"
 
 static int
 XOTclReplaceCommandCleanup(Tcl_Interp *interp, XOTclGlobalNames name) {

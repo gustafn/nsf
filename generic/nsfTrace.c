@@ -11,8 +11,8 @@
  *  
  */
 
-#include "xotclInt.h"
-#include "xotclAccessInt.h"
+#include "nsfInt.h"
+#include "nsfAccessInt.h"
 
 void
 XOTclStackDump(Tcl_Interp *interp) {

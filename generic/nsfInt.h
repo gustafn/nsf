@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
- *  xotclInt.h --
+ *  nsfInt.h --
  *
  *  Mostly internally used API Functions
  */
@@ -17,7 +17,7 @@
 #endif
 
 #include <tclInt.h>
-#include "xotcl.h"
+#include "nsf.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -27,7 +27,7 @@
 # include <tclCompile.h>
 #endif
 
-#if defined(PROFILE)
+#if defined(NSF_PROFILE)
 #  include <sys/time.h>
 #endif
 
@@ -39,10 +39,6 @@
 # undef TCL_STORAGE_CLASS
 # define TCL_STORAGE_CLASS DLLEXPORT
 #endif
-
-/*
-#define XOTCL_METADATA
-*/
 
 /*
  * Makros
@@ -446,9 +442,6 @@ typedef struct XOTclObjectOpt {
   XOTclAssertionStore *assertions;
   XOTclCmdList *filters;
   XOTclCmdList *mixins;
-#ifdef XOTCL_METADATA
-  Tcl_HashTable metaData;
-#endif
   ClientData clientData;
   CONST char *volatileVarName;
   short checkoptions;
@@ -482,7 +475,7 @@ typedef struct XOTclClassOpt {
   XOTclCmdList *isObjectMixinOf;
   XOTclCmdList *isClassMixinOf;
   XOTclAssertionStore *assertions;
-#ifdef XOTCL_OBJECTDATA
+#ifdef NSF_OBJECTDATA
   Tcl_HashTable *objectdata;
 #endif
   Tcl_Command id;
@@ -640,7 +633,7 @@ typedef struct XOTclCallStackContent {
 #define XOTCL_CSC_CALL_IS_NEXT 1
 #define XOTCL_CSC_CALL_IS_GUARD 2
 
-#if defined(PROFILE)
+#if defined(NSF_PROFILE)
 typedef struct XOTclProfile {
   long int overallTime;
   Tcl_HashTable objectData;
@@ -678,7 +671,7 @@ typedef struct XOTclRuntimeState {
   Tcl_CallFrame *varFramePtr;
   Tcl_Command cmdPtr; /* used for ACTIVE_MIXIN */
   Tcl_Command colonCmd;
-#if defined(PROFILE)
+#if defined(NSF_PROFILE)
   XOTclProfile profile;
 #endif
   short guardCount;
@@ -690,7 +683,7 @@ typedef struct XOTclRuntimeState {
 #define XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY 2
 
 
-#ifdef XOTCL_OBJECTDATA
+#ifdef NSF_OBJECTDATA
 extern void
 XOTclSetObjectData(struct XOTclObject *obj, struct XOTclClass *cl,
 		  ClientData data);
@@ -715,7 +708,7 @@ XOTclFreeObjectData(XOTclClass *cl);
  * Profiling functions
  */
 
-#if defined(PROFILE)
+#if defined(NSF_PROFILE)
 extern void
 XOTclProfileFillTable(Tcl_HashTable *table, Tcl_DString *key,
 		 double totalMicroSec);
@@ -740,24 +733,11 @@ void XOTclMemCountAlloc(char *id, void *);
 void XOTclMemCountFree(char *id, void *);
 void XOTclMemCountDump();
 #endif /* XOTCL_MEM_COUNT */
-/*
- * old, deprecated meta-data command
- */
-#if defined(XOTCL_METADATA)
-extern void
-XOTclMetaDataDestroy(XOTclObject *obj);
-extern void
-XOTclMetaDataInit(XOTclObject *obj);
-extern int
-XOTclOMetaDataMethod (ClientData cd, Tcl_Interp *interp,
-		      int objc, Tcl_Obj *objv[]);
-#endif /* XOTCL_METADATA */
-
 
 /*
  * bytecode support
  */
-#ifdef XOTCL_BYTECODE
+#ifdef NSF_BYTECODE
 typedef struct XOTclCompEnv {
   int bytecode;
   Command *cmdPtr;

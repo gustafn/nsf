@@ -189,9 +189,9 @@ fi
 #-----------------------------------------------------------------------
 
 
-TEA_ADD_SOURCES([xotcl.c xotclError.c xotclMetaData.c xotclObjectData.c xotclProfile.c \
-	xotclTrace.c xotclUtil.c xotclShadow.c xotclCompile.c aolstub.c nsfStubInit.c])
-TEA_ADD_HEADERS([generic/xotcl.h generic/xotclInt.h generic/nsfDecls.h generic/nsfIntDecls.h])
+TEA_ADD_SOURCES([nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
+	nsfTrace.c nsfUtil.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c])
+TEA_ADD_HEADERS([generic/nsf.h generic/nsfInt.h generic/nsfDecls.h generic/nsfIntDecls.h])
 TEA_ADD_INCLUDES([])
 TEA_ADD_LIBS([])
 TEA_ADD_CFLAGS([-DNSF_VERSION=\\\"$NSF_VERSION\\\" -DNSF_PATCHLEVEL=\\\"$NSF_RELEASE_LEVEL\\\" \
@@ -279,7 +279,7 @@ TEA_ENABLE_SHARED
 TEA_CONFIG_CFLAGS
 
 # Without the following two eval statements, NSF_SHARED_LIB_SUFFIX 
-# in xotclConfig.sh has $PACKAGE_VERSION unresolved. When another
+# in nsfConfig.sh has $PACKAGE_VERSION unresolved. When another
 # app links against xotcl, the PACKAGE_VERSIONs are confused.
 #
 # Without the first eval, we get
@@ -339,7 +339,7 @@ TEA_MAKE_LIB
 
 TEA_PROG_TCLSH
 
-# make this available, for such as xotclConfig.sh
+# make this available, for such as nsfConfig.sh
 NSF_COMPATIBLE_TCLSH=${TCLSH_PROG}
 AC_SUBST(NSF_COMPATIBLE_TCLSH)
 
@@ -424,7 +424,7 @@ dnl
 dnl Change the value of -this- macro if you want to add or remove
 dnl such files.
 
-AC_DEFUN(CONFIG_OUTPUT_FILES, [[Makefile xotclConfig.sh library/xotcl/apps/utils/xotclsh library/xotcl/apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix]])
+AC_DEFUN(CONFIG_OUTPUT_FILES, [[Makefile nsfConfig.sh library/xotcl/apps/utils/xotclsh library/xotcl/apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix]])
 
 #--------------------------------------------------------------------
 # the value of this variable is set to the files which are to be

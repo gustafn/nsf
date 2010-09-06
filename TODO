@@ -1274,6 +1274,13 @@ _ added option noforwarder to RelationSlots
 - checked "my" vs. "nsf::dispatch" in nx.tcl and xotcl2.tcl
 - "child objects" are showed per default in "info methods"
 
+- big renaming orgy (BRO):
+  - changed filenames starting to "xotcl" into filename starting with "nsf"
+  - adoped Makefile insfrastructure accordingly
+- removed compile flag XOTCL_METADATA and generic/xotclMetaData.c
+- changed compile flag PROFILE into NSF_PROFILE
+
+
 TODO: 
 
 - check equivalence of the following two commands

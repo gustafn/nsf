@@ -11,7 +11,7 @@
  *  
  */
 
-#include "xotclInt.h"
+#include "nsfInt.h"
 
 char *
 XOTcl_ltoa(char *buf, long i, int *len)  /* fast version of sprintf(buf,"%ld",l); */ {

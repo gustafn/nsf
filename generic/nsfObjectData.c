@@ -1,20 +1,20 @@
 /* -*- Mode: c++ -*-
- *  xotclObjectData.c 
+ *  nsfObjectData.c 
  *  
  *  Extended Object Tcl (XOTcl)
  *
  *  Copyright (C) 1999-2008 Gustaf Neumann, Uwe Zdun
  *
  *
- *  xotclObjectData.c --
+ *  nsfObjectData.c --
  *  
- *  XOTcl Object Data, needs XOTCL_OBJECTDATA to be compiled in
+ *  XOTcl Object Data, needs NSF_OBJECTDATA to be compiled in
  *  
  */
 
-#include "xotclInt.h"
+#include "nsfInt.h"
 
-#ifdef XOTCL_OBJECTDATA
+#ifdef NSF_OBJECTDATA
 extern void
 XOTclFreeObjectData(XOTclClass* cl) {
   if (cl->opt && cl->opt->objectdata) {

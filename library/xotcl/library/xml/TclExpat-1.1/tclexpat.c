@@ -19,7 +19,7 @@
  */
 
 #include <tcl.h>
-#include <xotcl.h>
+#include <nsf.h>
 #include <string.h>
 #include "xmlparse.h"
 
@@ -175,8 +175,8 @@ Xotclexpat_Init (interp)
     if (Tcl_InitStubs(interp, "8.1", 0) == NULL) {
         return TCL_ERROR;
     }
-#ifdef USE_XOTCL_STUBS
-    if (Xotcl_InitStubs(interp, "1.1", 0) == NULL) {
+#ifdef USE_NSF_STUBS
+    if (Nsf_InitStubs(interp, "1.1", 0) == NULL) {
         return TCL_ERROR;
     }
 #endif

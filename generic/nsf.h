@@ -31,7 +31,7 @@
 #ifdef BUILD_xotcl
 # define TCL_STORAGE_CLASS DLLEXPORT
 #else
-# ifdef USE_XOTCL_STUBS
+# ifdef USE_NSF_STUBS
 #  define TCL_STORAGE_CLASS
 # else
 #  define TCL_STORAGE_CLASS DLLIMPORT
@@ -66,12 +66,12 @@
  */
 
 /* activate bytecode support 
-#define XOTCL_BYTECODE
+#define NSF_BYTECODE
 */
 
 /* activate/deacticate profiling information at the end
    of running the program
-#define PROFILE
+#define NSF_PROFILE
 */
 
 /* activate/deacticate assert 
@@ -154,20 +154,20 @@ typedef struct XOTcl_Class {
 #include "nsfDecls.h"
 
 /*
- * Xotcl_InitStubs is used by extensions  that can be linked
+ * Nsf_InitStubs is used by extensions  that can be linked
  * against the xotcl stubs library.  If we are not using stubs
  * then this reduces to package require.
  */
 
-#ifdef USE_XOTCL_STUBS
+#ifdef USE_NSF_STUBS
 
 # ifdef __cplusplus
 extern "C"
 # endif
 CONST char *
-Nx_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, CONST char *version, int exact));
+Nsf_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, CONST char *version, int exact));
 #else
-# define Xotcl_InitStubs(interp, version, exact) \
+# define Nsf_InitStubs(interp, version, exact) \
       Tcl_PkgRequire(interp, "nx", version, exact)
 #endif
 

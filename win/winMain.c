@@ -18,9 +18,9 @@
 #include <malloc.h>
 #include <locale.h>
 #if defined(VISUAL_CC)
-#  include "xotcl.h"
+#  include "nsf.h"
 #else
-#  include <xotcl.h>
+#  include <nsf.h>
 #endif
 
 #include "tkInt.h"

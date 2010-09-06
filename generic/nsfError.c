@@ -11,7 +11,7 @@
  *  
  */
 
-#include "xotclInt.h"
+#include "nsfInt.h"
 
 int
 XOTclErrMsg(Tcl_Interp *interp, char *msg, Tcl_FreeProc* type) {

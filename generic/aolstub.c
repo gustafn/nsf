@@ -12,7 +12,7 @@
 #ifdef AOL_SERVER
 
 
-#include "xotcl.h"
+#include "nsf.h"
 #include <ns.h>
 
 int Ns_ModuleVersion = 1;

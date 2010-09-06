@@ -5,7 +5,7 @@
 #include <winver.h>
 
 #define RESOURCE_INCLUDED
-#include <xotcl.h>
+#include <nsf.h>
 
 
 //

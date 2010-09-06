@@ -5,17 +5,17 @@
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
  *
- *  xotclProfile.c --
+ *  nsfProfile.c --
  *  
  *  Profiling information printout for XOTcl
  *
- *  For profiling infos PROFILE (xotcl.h) flag must be activated
+ *  For profiling infos NSF_PROFILE (nsf.h) flag must be activated
  *  
  */
 
-#include "xotclInt.h"
+#include "nsfInt.h"
 
-#if defined(PROFILE)
+#if defined(NSF_PROFILE)
 void
 XOTclProfileFillTable(Tcl_HashTable* table, Tcl_DString* key,
 		 double totalMicroSec) {

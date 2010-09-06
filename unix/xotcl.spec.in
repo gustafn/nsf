@@ -50,7 +50,7 @@ ln -s xotcl@PACKAGE_VERSION@/libxotcl@PACKAGE_VERSION@.so $RPM_BUILD_ROOT/usr/li
 %_prefix/lib/xotclgdbm*
 %_prefix/lib/xotclsdbm*
 %_prefix/lib/xotclConfig.sh
-%_includedir/xotcl.h
-%_includedir/xotclInt.h
+%_includedir/nsf.h
+%_includedir/nsfInt.h
 %_includedir/xotclDecls.h
-%_includedir/xotclIntDecls.h
+%_includedir/nsfIntDecls.h

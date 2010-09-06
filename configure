@@ -7060,8 +7060,8 @@ fi
 
 
 
-    vars="xotcl.c xotclError.c xotclMetaData.c xotclObjectData.c xotclProfile.c \
-	xotclTrace.c xotclUtil.c xotclShadow.c xotclCompile.c aolstub.c nsfStubInit.c"
+    vars="nsf.c nsfError.c nsfObjectData.c nsfProfile.c \
+	nsfTrace.c nsfUtil.c nsfShadow.c nsfCompile.c aolstub.c nsfStubInit.c"
     for i in $vars; do
 	case $i in
 	    \$*)
@@ -7098,7 +7098,7 @@ echo "$as_me: error: could not find source file '$i'" >&2;}
 
 
 
-    vars="generic/xotcl.h generic/xotclInt.h generic/nsfDecls.h generic/nsfIntDecls.h"
+    vars="generic/nsf.h generic/nsfInt.h generic/nsfDecls.h generic/nsfIntDecls.h"
     for i in $vars; do
 	# check for existence, be strict because it is installed
 	if test ! -f "${srcdir}/$i" ; then
@@ -10633,7 +10633,7 @@ echo "${ECHO_T}no" >&6; }
 
 
 # Without the following two eval statements, NSF_SHARED_LIB_SUFFIX
-# in xotclConfig.sh has $PACKAGE_VERSION unresolved. When another
+# in nsfConfig.sh has $PACKAGE_VERSION unresolved. When another
 # app links against xotcl, the PACKAGE_VERSIONs are confused.
 #
 # Without the first eval, we get
@@ -10848,7 +10848,7 @@ echo "${ECHO_T}${TCLSH_PROG}" >&6; }
 
 
 
-# make this available, for such as xotclConfig.sh
+# make this available, for such as nsfConfig.sh
 NSF_COMPATIBLE_TCLSH=${TCLSH_PROG}
 
 
@@ -10940,9 +10940,9 @@ NSF_BUILD_INCLUDE_SPEC="-I${NSF_BUILD_INCLUDE_DIR}"
 # target, defined in Makefile.in
 #--------------------------------------------------------------------
 
-CONFIG_CLEAN_FILES="Makefile xotclConfig.sh library/xotcl/apps/utils/xotclsh library/xotcl/apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix autom4te.cache/"
+CONFIG_CLEAN_FILES="Makefile nsfConfig.sh library/xotcl/apps/utils/xotclsh library/xotcl/apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix autom4te.cache/"
 
-ac_config_files="$ac_config_files Makefile xotclConfig.sh library/xotcl/apps/utils/xotclsh library/xotcl/apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix"
+ac_config_files="$ac_config_files Makefile nsfConfig.sh library/xotcl/apps/utils/xotclsh library/xotcl/apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix"
 
 
 #--------------------------------------------------------------------
@@ -11525,7 +11525,7 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "xotclConfig.sh") CONFIG_FILES="$CONFIG_FILES xotclConfig.sh" ;;
+    "nsfConfig.sh") CONFIG_FILES="$CONFIG_FILES nsfConfig.sh" ;;
     "library/xotcl/apps/utils/xotclsh") CONFIG_FILES="$CONFIG_FILES library/xotcl/apps/utils/xotclsh" ;;
     "library/xotcl/apps/utils/xowish") CONFIG_FILES="$CONFIG_FILES library/xotcl/apps/utils/xowish" ;;
     "unix/xotcl.spec") CONFIG_FILES="$CONFIG_FILES unix/xotcl.spec" ;;
