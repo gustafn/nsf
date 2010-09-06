@@ -16,7 +16,7 @@
 
 #ifdef NSF_OBJECTDATA
 extern void
-XOTclFreeObjectData(XOTclClass* cl) {
+NsfFreeObjectData(NsfClass* cl) {
   if (cl->opt && cl->opt->objectdata) {
     Tcl_DeleteHashTable(cl->opt->objectdata);
     ckfree((char*)cl->opt->objectdata);
@@ -24,11 +24,11 @@ XOTclFreeObjectData(XOTclClass* cl) {
   }
 }
 extern void
-XOTclSetObjectData(XOTclObject* obj, XOTclClass* cl, ClientData data) {
+NsfSetObjectData(NsfObject* obj, NsfClass* cl, ClientData data) {
   Tcl_HashEntry *hPtr;
   int nw;
 
-  XOTclRequireClassOpt(cl);
+  NsfRequireClassOpt(cl);
 
   if (!cl->opt->objectdata) {
     cl->opt->objectdata = (Tcl_HashTable*)ckalloc(sizeof(Tcl_HashTable));
@@ -39,7 +39,7 @@ XOTclSetObjectData(XOTclObject* obj, XOTclClass* cl, ClientData data) {
 }
 
 extern int
-XOTclGetObjectData(XOTclObject* obj, XOTclClass* cl, ClientData* data) {
+NsfGetObjectData(NsfObject* obj, NsfClass* cl, ClientData* data) {
   Tcl_HashEntry *hPtr;
   if (!cl->opt || !cl->opt->objectdata) 
     return 0;
@@ -49,7 +49,7 @@ XOTclGetObjectData(XOTclObject* obj, XOTclClass* cl, ClientData* data) {
 }
 
 extern int
-XOTclUnsetObjectData(XOTclObject* obj, XOTclClass* cl) {
+NsfUnsetObjectData(NsfObject* obj, NsfClass* cl) {
   Tcl_HashEntry *hPtr;
 
   if (!cl->opt || !cl->opt->objectdata) 

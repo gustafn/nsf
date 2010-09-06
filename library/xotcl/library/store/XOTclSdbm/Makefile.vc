@@ -1,6 +1,6 @@
 ######################################################################
 #
-# XOTclSdbm Makefile for Visual C++
+# NsfSdbm Makefile for Visual C++
 #
 ######################################################################
 
@@ -11,8 +11,8 @@
 BINROOT		= .
 ROOT		= ..
 NAMEPREFIX	= lib
-NAME		= xotclsdbm
-XOTCL_DIR	= ..\..\..
+NAME		= nsfsdbm
+NSF_DIR	= ..\..\..
 GENERICDIR	= .
 WINDIR		= .
 
@@ -30,10 +30,10 @@ TMP_DIR		= $(BINROOT)\$(TMPNAME)
 OUT_DIR		= $(TMP_DIR)
 
 !if $(STATIC_BUILD)
-OUTNAME		= $(NAMEPREFIX)$(NAME)$(XOTCL_VERSION)$(DBGX)
+OUTNAME		= $(NAMEPREFIX)$(NAME)$(NSF_VERSION)$(DBGX)
 TARGET		= "$(OUT_DIR)\$(OUTNAME).lib"
 !else
-OUTNAME		= $(NAMEPREFIX)$(NAME)$(XOTCL_VERSION)$(DBGX)
+OUTNAME		= $(NAMEPREFIX)$(NAME)$(NSF_VERSION)$(DBGX)
 IMPLIB		= "$(OUT_DIR)\$(OUTNAME).lib"
 TARGET		= "$(OUT_DIR)\$(OUTNAME).dll"
 !endif
@@ -42,18 +42,18 @@ TCLSTUBLIB	= "$(TCLROOT)\win\Release\tclstub$(TCL_VERSION).lib"
 TCLIMPLIB	= "$(TCLROOT)\win\$(OUT_DIR)\tcl$(TCL_VERSION)$(DBGX).lib"
 TCLSH		= "$(TCLROOT)\win\$(OUT_DIR)\tclsh$(TCL_VERSION)$(DBGX).exe"
 
-XOTCLSTUBLIB	= "$(XOTCL_DIR)\win\Release\libxotclstub$(XOTCL_VERSION).lib"
-XOTCLIMPLIB	= "$(XOTCL_DIR)\win\$(OUT_DIR)\libxotcl$(XOTCL_VERSION)$(DBGX).lib"
+XOTCLSTUBLIB	= "$(NSF_DIR)\win\Release\libnsfstub$(NSF_VERSION).lib"
+XOTCLIMPLIB	= "$(NSF_DIR)\win\$(OUT_DIR)\libnsf$(NSF_VERSION)$(DBGX).lib"
 
 LIB_INSTALL_DIR		= $(INSTALLDIR)\lib
 BIN_INSTALL_DIR		= $(INSTALLDIR)\bin
-SCRIPT_INSTALL_DIR	= $(INSTALLDIR)\lib\xotcl$(XOTCL_VERSION)
+SCRIPT_INSTALL_DIR	= $(INSTALLDIR)\lib\nsf$(NSF_VERSION)
 INCLUDE_INSTALL_DIR	= $(INSTALLDIR)\include
 
 OBJS = $(TMP_DIR)\hash.obj \
 	$(TMP_DIR)\pair.obj \
 	$(TMP_DIR)\sdbm.obj \
-	$(TMP_DIR)\xotclsdbm.obj \
+	$(TMP_DIR)\nsfsdbm.obj \
 !if $(STATIC_BUILD) == 0
 	$(TMP_DIR)\dllEntryPoint.obj
 !endif
@@ -77,7 +77,7 @@ LFLAGS = $(lcommon) -subsystem:windows -dll
 LLIBS	= $(TCLIMPLIB) $(XOTCLIMPLIB)
 !else
 ### should be:
-### LLIBS	= $(TCLSTUBLIB) $(XOTCLSTUBLIB) when xotcl stub lib is mature
+### LLIBS	= $(TCLSTUBLIB) $(XOTCLSTUBLIB) when nsf stub lib is mature
 ### LLIBS	= $(TCLSTUBLIB) $(XOTCLIMPLIB)
 LLIBS	= $(TCLSTUBLIB) $(XOTCLSTUBLIB)
 !endif
@@ -117,7 +117,7 @@ crt	= -MT$(DBGX)
 crt	= -MD$(DBGX)
 !endif
 
-INCLUDES	= -I"$(TCLROOT)\generic" -I"$(XOTCL_DIR)\generic"
+INCLUDES	= -I"$(TCLROOT)\generic" -I"$(NSF_DIR)\generic"
 
 DEFINES	= -DBUILD_$(NAME) -DTCL_THREADS=1 \
 			-DXOLIBPKG=$(INST_XOLIBPKG) \
@@ -156,13 +156,13 @@ $(TARGET) : $(OBJS)
 !if $(STATIC_BUILD)
 	$(lib32) -nologo -machine:$(MACHINE) -out:$@ @<<
 !else
-	$(link32) $(LFLAGS) -base:@$(XOTCL_DIR)\win\dllBase.txt,$@ -out:$@ $(LLIBS) @<<
+	$(link32) $(LFLAGS) -base:@$(NSF_DIR)\win\dllBase.txt,$@ -out:$@ $(LLIBS) @<<
 !endif
 		$(OBJS)
 <<
 
 ./pkgIndex.tcl : $(TARGET)
-	echo package ifneeded xotcl::store::sdbm $(XOTCL_VERSION) [list load [file join $$dir $(TMPNAME)/$(OUTNAME).dll]] > \
+	echo package ifneeded nsf::store::sdbm $(NSF_VERSION) [list load [file join $$dir $(TMPNAME)/$(OUTNAME).dll]] > \
 		".\pkgIndex.tcl"
 
 install : all
@@ -196,7 +196,7 @@ $<
 <<
 
 #{$(RCDIR)}.rc{$(TMP_DIR)}.res :
-#	$(rc32) -fo $@ -DDEBUG=$(DEBUG) $(XOTCL_VERSION_DEFINES) $(XOTCL_INCLUDES) $(TCL_INCLUDES) $(XOTCL_DEFINES) $<
+#	$(rc32) -fo $@ -DDEBUG=$(DEBUG) $(NSF_VERSION_DEFINES) $(NSF_INCLUDES) $(TCL_INCLUDES) $(NSF_DEFINES) $<
 
 ######################################################################
 # Clean up

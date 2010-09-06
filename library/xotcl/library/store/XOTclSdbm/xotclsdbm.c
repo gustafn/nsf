@@ -1,5 +1,5 @@
 /*
- * xotclsdbm.c
+ * nsfsdbm.c
  *
  * based on Tclndbm 0.5 by John Ellson (ellson@lucent.com)
  */
@@ -26,19 +26,19 @@ typedef struct db_s {
 } db_t ;
 
 static int
-XOTclSdbmOpenMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
+NsfSdbmOpenMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
   int mode;
   db_t *db;
-  XOTcl_Object* obj = (XOTcl_Object *) cd;
+  Nsf_Object* obj = (Nsf_Object *) cd;
 /*
   int i;
-  fprintf(stderr, "Method=XOTclSdbmOpenMethod\n");
+  fprintf(stderr, "Method=NsfSdbmOpenMethod\n");
   for (i=0; i< objc; i++)
     fprintf(stderr, "   objv[%d]=%s\n",i,TclObjStr(objv[i]));
 */
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
+  if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 2)
-    return XOTclObjErrArgCnt(in, obj->cmdName, "open filename");
+    return NsfObjErrArgCnt(in, obj->cmdName, "open filename");
 
     /*
      * check mode string if given
@@ -69,8 +69,8 @@ XOTclSdbmOpenMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv
 #endif
 
   /* name not in hashtab - create new db */
-  if (XOTclGetObjClientData(obj))
-    return XOTclVarErrMsg(in, "Called open on '", TclObjStr(obj->cmdName),
+  if (NsfGetObjClientData(obj))
+    return NsfVarErrMsg(in, "Called open on '", TclObjStr(obj->cmdName),
 			  "', but open database was not closed before.", 0);
 
   db = (db_t*) ckalloc (sizeof(db_t));
@@ -98,54 +98,54 @@ XOTclSdbmOpenMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv
     ckfree ((char*) db);
     db = (db_t*) NULL ;
 
-    return XOTclVarErrMsg(in, "Open on '", TclObjStr(obj->cmdName),
+    return NsfVarErrMsg(in, "Open on '", TclObjStr(obj->cmdName),
 			  "' failed with '", TclObjStr(objv[1]),"'.", 0);
   } else {
     /*
      * success
      */
-    XOTclSetObjClientData(obj, (ClientData) db);
+    NsfSetObjClientData(obj, (ClientData) db);
     return TCL_OK;
   }
 }
 
 static int
-XOTclSdbmCloseMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
+NsfSdbmCloseMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
   db_t *db;
-  XOTcl_Object* obj = (XOTcl_Object *) cd;
+  Nsf_Object* obj = (Nsf_Object *) cd;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
+  if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
-    return XOTclObjErrArgCnt(in, obj->cmdName, "close");
+    return NsfObjErrArgCnt(in, obj->cmdName, "close");
 
-  db = (db_t*) XOTclGetObjClientData(obj);
+  db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-    return XOTclVarErrMsg(in, "Called close on '", TclObjStr(obj->cmdName),
+    return NsfVarErrMsg(in, "Called close on '", TclObjStr(obj->cmdName),
 			  "', but database was not opened yet.", 0);
   sdbm_close (db->db);
 
   /*ckfree((char*)db->name);*/
   ckfree ((char*)db);
-  XOTclSetObjClientData(obj, 0);
+  NsfSetObjClientData(obj, 0);
 
   return TCL_OK;
 }
 
 static int
-XOTclSdbmNamesMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
-  XOTcl_Object* obj = (XOTcl_Object *) cd;
+NsfSdbmNamesMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
+  Nsf_Object* obj = (Nsf_Object *) cd;
   Tcl_Obj *list;
   db_t *db;
   Tcl_DString result;
   datum key;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
+  if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
-    return XOTclObjErrArgCnt(in, obj->cmdName, "names");
+    return NsfObjErrArgCnt(in, obj->cmdName, "names");
 
-  db = (db_t*) XOTclGetObjClientData(obj);
+  db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-    return XOTclVarErrMsg(in, "Called names on '", TclObjStr(obj->cmdName),
+    return NsfVarErrMsg(in, "Called names on '", TclObjStr(obj->cmdName),
 			  "', but database was not opened yet.", 0);
   Tcl_DStringInit(&result);
 
@@ -169,18 +169,18 @@ XOTclSdbmNamesMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST obj
 }
 
 static int
-XOTclSdbmSetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
-  XOTcl_Object* obj = (XOTcl_Object *) cd;
+NsfSdbmSetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
+  Nsf_Object* obj = (Nsf_Object *) cd;
   db_t *db;
   datum key, content;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
+  if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc <2 || objc > 3)
-    return XOTclObjErrArgCnt(in, obj->cmdName, "set key ?value?");
+    return NsfObjErrArgCnt(in, obj->cmdName, "set key ?value?");
 
-  db = (db_t*) XOTclGetObjClientData(obj);
+  db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-    return XOTclVarErrMsg(in, "Called set on '", TclObjStr(obj->cmdName),
+    return NsfVarErrMsg(in, "Called set on '", TclObjStr(obj->cmdName),
 			  "', but database was not opened yet.", 0);
 
   key.dptr = TclObjStr(objv[1]);
@@ -195,13 +195,13 @@ XOTclSdbmSetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
 	  Tcl_SetObjResult(in, r);
       } else {
 	  /* key not found */
-	  return XOTclVarErrMsg(in, "no such variable '", key.dptr,
+	  return NsfVarErrMsg(in, "no such variable '", key.dptr,
 				"'", 0);
       }
   } else {
       /* set value */
       if (db->mode == O_RDONLY) {
-	  return XOTclVarErrMsg(in, "Trying to set '", TclObjStr(obj->cmdName),
+	  return NsfVarErrMsg(in, "Trying to set '", TclObjStr(obj->cmdName),
 				"', but database is in read mode.", 0);
       }
       content.dptr = TclObjStr(objv[2]);
@@ -210,7 +210,7 @@ XOTclSdbmSetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
 	  /*fprintf(stderr,"setting %s to '%s'\n",key.dptr,content.dptr);*/
 	  Tcl_SetObjResult(in, objv[2]);
       } else {
-	  return XOTclVarErrMsg(in, "set of variable '", TclObjStr(obj->cmdName),
+	  return NsfVarErrMsg(in, "set of variable '", TclObjStr(obj->cmdName),
 				"' failed.", 0);
       }
   }
@@ -218,18 +218,18 @@ XOTclSdbmSetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
 }
 
 static int
-XOTclSdbmExistsMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
-  XOTcl_Object* obj = (XOTcl_Object *) cd;
+NsfSdbmExistsMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
+  Nsf_Object* obj = (Nsf_Object *) cd;
   db_t *db;
   datum key, content;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
+  if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 2)
-    return XOTclObjErrArgCnt(in, obj->cmdName, "exists variable");
+    return NsfObjErrArgCnt(in, obj->cmdName, "exists variable");
 
-  db = (db_t*) XOTclGetObjClientData(obj);
+  db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-      return XOTclVarErrMsg(in, "Called exists on '", TclObjStr(obj->cmdName),
+      return NsfVarErrMsg(in, "Called exists on '", TclObjStr(obj->cmdName),
 			    "', but database was not opened yet.", 0);
 
   key.dptr = TclObjStr(objv[1]);
@@ -244,23 +244,23 @@ XOTclSdbmExistsMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST ob
 
 
 static int
-XOTclSdbmUnsetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
-  XOTcl_Object* obj = (XOTcl_Object *) cd;
+NsfSdbmUnsetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
+  Nsf_Object* obj = (Nsf_Object *) cd;
   db_t *db;
   datum key;
   int ret;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
+  if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 2)
-    return XOTclObjErrArgCnt(in, obj->cmdName, "unset key");
+    return NsfObjErrArgCnt(in, obj->cmdName, "unset key");
 
-  db = (db_t*) XOTclGetObjClientData(obj);
+  db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-    return XOTclVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
+    return NsfVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
 			  "', but database was not opened yet.", 0);
   /* check for read mode */
   if (db->mode == O_RDONLY) {
-    return XOTclVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
+    return NsfVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
 			  "', but database is in read mode.", 0);
   }
 
@@ -272,7 +272,7 @@ XOTclSdbmUnsetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST obj
   if (ret == 0) {
     return TCL_OK;
   } else {
-    return XOTclVarErrMsg(in, "Tried to unset '", TclObjStr(objv[1]),
+    return NsfVarErrMsg(in, "Tried to unset '", TclObjStr(objv[1]),
 			  "' but key does not exist.", 0);
   }
 }
@@ -282,18 +282,18 @@ XOTclSdbmUnsetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST obj
  */
 
 static int
-XOTclSdbmFirstKeyMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
-  XOTcl_Object* obj = (XOTcl_Object *) cd;
+NsfSdbmFirstKeyMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
+  Nsf_Object* obj = (Nsf_Object *) cd;
   db_t *db;
   datum key;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
+  if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
-    return XOTclObjErrArgCnt(in, obj->cmdName, "firstkey");
+    return NsfObjErrArgCnt(in, obj->cmdName, "firstkey");
 
-  db = (db_t*) XOTclGetObjClientData(obj);
+  db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-    return XOTclVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
+    return NsfVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
 			  "', but database was not opened yet.", 0);
 
 
@@ -310,18 +310,18 @@ XOTclSdbmFirstKeyMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST 
 }
 
 static int
-XOTclSdbmNextKeyMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
-  XOTcl_Object* obj = (XOTcl_Object *) cd;
+NsfSdbmNextKeyMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]) {
+  Nsf_Object* obj = (Nsf_Object *) cd;
   db_t *db;
   datum  newkey;
 
-  if (!obj) return XOTclObjErrType(in, obj->cmdName, "Object", "");
+  if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
-    return XOTclObjErrArgCnt(in, obj->cmdName, "nextkey");
+    return NsfObjErrArgCnt(in, obj->cmdName, "nextkey");
 
-  db = (db_t*) XOTclGetObjClientData(obj);
+  db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-    return XOTclVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
+    return NsfVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
 			  "', but database was not opened yet.", 0);
 
   newkey = sdbm_nextkey(db->db);
@@ -350,7 +350,7 @@ DLLEXPORT extern int Xotclsdbm_Init(Tcl_Interp * in);
 
 extern int
 Xotclsdbm_Init(Tcl_Interp * in) {
-  XOTcl_Class* cl;
+  Nsf_Class* cl;
   int result;
 
 #ifdef USE_TCL_STUBS
@@ -367,40 +367,40 @@ Xotclsdbm_Init(Tcl_Interp * in) {
         return TCL_ERROR;
     }
 #endif
-    Tcl_PkgProvide(in, "xotcl::store::sdbm", PACKAGE_VERSION);
+    Tcl_PkgProvide(in, "nsf::store::sdbm", PACKAGE_VERSION);
 
-#ifdef PACKAGE_REQUIRE_XOTCL_FROM_SLAVE_INTERP_WORKS_NOW
+#ifdef PACKAGE_REQUIRE_NSF_FROM_SLAVE_INTERP_WORKS_NOW
     if (Tcl_PkgRequire(in, "XOTcl", XOTCLVERSION, 0) == NULL) {
         return TCL_ERROR;
     }
 #endif
-    if (Tcl_PkgRequire(in, "xotcl::store", 0, 0) == NULL) {
+    if (Tcl_PkgRequire(in, "nsf::store", 0, 0) == NULL) {
         return TCL_ERROR;
     }
-    result = Tcl_VarEval (in, "::xotcl::Class create Storage=Sdbm -superclass Storage",
+    result = Tcl_VarEval (in, "::nsf::Class create Storage=Sdbm -superclass Storage",
 			  (char *) NULL);
     if (result != TCL_OK)
       return result;
     /*{
       Tcl_Obj *res = Tcl_GetObjResult(in);
       fprintf(stderr,"res='%s'\n", TclObjStr(res));
-      cl = XOTclGetClass(in, "Storage=Sdbm");
+      cl = NsfGetClass(in, "Storage=Sdbm");
       fprintf(stderr,"cl=%p\n",cl);
       }*/
 
-    cl = XOTclGetClass(in, "Storage=Sdbm");
+    cl = NsfGetClass(in, "Storage=Sdbm");
     if (!cl) {
       return TCL_ERROR;
     }
 
-    XOTclAddClassMethod(in, cl, "open", XOTclSdbmOpenMethod, 0, 0);
-    XOTclAddClassMethod(in, cl, "close", XOTclSdbmCloseMethod, 0, 0);
-    XOTclAddClassMethod(in, cl, "set", XOTclSdbmSetMethod, 0, 0);
-    XOTclAddClassMethod(in, cl, "exists", XOTclSdbmExistsMethod, 0, 0);
-    XOTclAddClassMethod(in, cl, "names", XOTclSdbmNamesMethod, 0, 0);
-    XOTclAddClassMethod(in, cl, "unset", XOTclSdbmUnsetMethod, 0, 0);
-    XOTclAddClassMethod(in, cl, "firstkey", XOTclSdbmFirstKeyMethod, 0, 0);
-    XOTclAddClassMethod(in, cl, "nextkey", XOTclSdbmNextKeyMethod, 0, 0);
+    NsfAddClassMethod(in, cl, "open", NsfSdbmOpenMethod, 0, 0);
+    NsfAddClassMethod(in, cl, "close", NsfSdbmCloseMethod, 0, 0);
+    NsfAddClassMethod(in, cl, "set", NsfSdbmSetMethod, 0, 0);
+    NsfAddClassMethod(in, cl, "exists", NsfSdbmExistsMethod, 0, 0);
+    NsfAddClassMethod(in, cl, "names", NsfSdbmNamesMethod, 0, 0);
+    NsfAddClassMethod(in, cl, "unset", NsfSdbmUnsetMethod, 0, 0);
+    NsfAddClassMethod(in, cl, "firstkey", NsfSdbmFirstKeyMethod, 0, 0);
+    NsfAddClassMethod(in, cl, "nextkey", NsfSdbmNextKeyMethod, 0, 0);
 
     Tcl_SetIntObj(Tcl_GetObjResult(in), 1);
     return TCL_OK;

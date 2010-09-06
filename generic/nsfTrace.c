@@ -5,7 +5,7 @@
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
  *
- *  xotclTrace.c --
+ *  nsfTrace.c --
  *  
  *  Tracing facilities for XOTcl
  *  
@@ -15,17 +15,17 @@
 #include "nsfAccessInt.h"
 
 void
-XOTclStackDump(Tcl_Interp *interp) {
+NsfStackDump(Tcl_Interp *interp) {
   Interp *iPtr = (Interp *)interp;
   CallFrame *f = iPtr->framePtr, *v = iPtr->varFramePtr;
   Tcl_Obj *varCmdObj;
 
-  XOTclNewObj(varCmdObj);
+  NsfNewObj(varCmdObj);
   fprintf (stderr, "     TCL STACK:\n");
   if (f == 0) fprintf(stderr, "- ");
   while (f) {
     Tcl_Obj *cmdObj;
-    XOTclNewObj(cmdObj);
+    NsfNewObj(cmdObj);
     fprintf(stderr, "\tFrame=%p ", f);
     if (f && f->isProcCallFrame && f->procPtr && f->procPtr->cmdPtr) {
       fprintf(stderr,"caller %p ",Tcl_CallFrame_callerPtr(f));
@@ -60,7 +60,7 @@ XOTclStackDump(Tcl_Interp *interp) {
 }
 
 void 
-XOTclPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
+NsfPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
   int j; 
   fprintf(stderr, "%s", string);
   for (j = 0; j < objc; j++) {
@@ -70,25 +70,25 @@ XOTclPrintObjv(char *string, int objc, Tcl_Obj *CONST objv[]) {
   fprintf(stderr, "\n");
 }
 
-#ifdef XOTCL_MEM_COUNT
+#ifdef NSF_MEM_COUNT
 void 
-XOTclMemCountAlloc(char *id, void *p) {
+NsfMemCountAlloc(char *id, void *p) {
   int new;
-  XOTclMemCounter *entry;
-  Tcl_HashTable *table = &xotclMemCount;
+  NsfMemCounter *entry;
+  Tcl_HashTable *table = &nsfMemCount;
   Tcl_HashEntry *hPtr;
   hPtr = Tcl_CreateHashEntry(table, id, &new);
-#ifdef XOTCL_MEM_TRACE
+#ifdef NSF_MEM_TRACE
   fprintf(stderr, "+++ alloc %s %p\n",id,p);
 #endif
   /*fprintf(stderr,"+++alloc '%s'\n",id);*/
   if (new) {
-    entry = (XOTclMemCounter*)ckalloc(sizeof(XOTclMemCounter));
+    entry = (NsfMemCounter*)ckalloc(sizeof(NsfMemCounter));
     entry->count = 1;
     entry->peak = 1;
     Tcl_SetHashValue(hPtr, entry);
   } else {
-    entry = (XOTclMemCounter*) Tcl_GetHashValue(hPtr);
+    entry = (NsfMemCounter*) Tcl_GetHashValue(hPtr);
     entry->count++;
     if (entry->count > entry->peak)
       entry->peak = entry->count;
@@ -96,11 +96,11 @@ XOTclMemCountAlloc(char *id, void *p) {
 }
 
 void
-XOTclMemCountFree(char *id, void *p) {
-  XOTclMemCounter *entry;
-  Tcl_HashTable *table = &xotclMemCount;
+NsfMemCountFree(char *id, void *p) {
+  NsfMemCounter *entry;
+  Tcl_HashTable *table = &nsfMemCount;
   Tcl_HashEntry *hPtr;
-#ifdef XOTCL_MEM_TRACE
+#ifdef NSF_MEM_TRACE
   fprintf(stderr, "+++ free %s %p\n",id,p);
 #endif
 
@@ -109,19 +109,19 @@ XOTclMemCountFree(char *id, void *p) {
     fprintf(stderr, "******** MEM COUNT ALERT: Trying to free <%s>, but was not allocated\n", id);
     return;
   }
-  entry = (XOTclMemCounter *)Tcl_GetHashValue(hPtr);
+  entry = (NsfMemCounter *)Tcl_GetHashValue(hPtr);
   entry->count--;
 }
 
 void
-XOTclMemCountDump() {
-  Tcl_HashTable *table = &xotclMemCount;
+NsfMemCountDump() {
+  Tcl_HashTable *table = &nsfMemCount;
   Tcl_HashSearch search;
   Tcl_HashEntry *hPtr;
   int count = 0;
 
-  xotclMemCountInterpCounter--;
-  if (xotclMemCountInterpCounter != 0) {
+  nsfMemCountInterpCounter--;
+  if (nsfMemCountInterpCounter != 0) {
     return;
   }
 
@@ -130,7 +130,7 @@ XOTclMemCountDump() {
   for (hPtr = Tcl_FirstHashEntry(table, &search);  hPtr != NULL;
        hPtr = Tcl_NextHashEntry(&search)) {
     char *id = Tcl_GetHashKey(table, hPtr);
-    XOTclMemCounter *entry = (XOTclMemCounter*)  Tcl_GetHashValue(hPtr);
+    NsfMemCounter *entry = (NsfMemCounter*)  Tcl_GetHashValue(hPtr);
     count += entry->count;
     fprintf(stderr, "* %4d %6d %s\n", entry->count, entry->peak, id);
     ckfree ((char*) entry);

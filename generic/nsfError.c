@@ -5,7 +5,7 @@
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
  *
- *  xotclError.c --
+ *  nsfError.c --
  *  
  *  error return functions for XOTcl
  *  
@@ -14,13 +14,13 @@
 #include "nsfInt.h"
 
 int
-XOTclErrMsg(Tcl_Interp *interp, char *msg, Tcl_FreeProc* type) {
+NsfErrMsg(Tcl_Interp *interp, char *msg, Tcl_FreeProc* type) {
     Tcl_SetResult(interp, msg, type);
     return TCL_ERROR;
 }
 
 int
-XOTclVarErrMsg TCL_VARARGS_DEF (Tcl_Interp *, arg1) {
+NsfVarErrMsg TCL_VARARGS_DEF (Tcl_Interp *, arg1) {
     va_list argList;
     char *string;
     Tcl_Interp *interp;
@@ -40,7 +40,7 @@ XOTclVarErrMsg TCL_VARARGS_DEF (Tcl_Interp *, arg1) {
 
 
 int
-XOTclErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
+NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
                Tcl_Obj *clName, CONST char *procName) {
   Tcl_DString errMsg;
   char *cName, *space;
@@ -63,7 +63,7 @@ XOTclErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
 }
 
 int
-XOTclObjWrongArgs(Tcl_Interp *interp, char *msg, Tcl_Obj *cmdName, Tcl_Obj *methodName, char *arglist) {
+NsfObjWrongArgs(Tcl_Interp *interp, char *msg, Tcl_Obj *cmdName, Tcl_Obj *methodName, char *arglist) {
   int need_space = 0;
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp, msg, " should be \"", (char *) NULL);
@@ -85,12 +85,12 @@ XOTclObjWrongArgs(Tcl_Interp *interp, char *msg, Tcl_Obj *cmdName, Tcl_Obj *meth
 }
 
 int
-XOTclObjErrArgCnt(Tcl_Interp *interp, Tcl_Obj *cmdName,  Tcl_Obj *methodName, char *arglist) {
-  return XOTclObjWrongArgs(interp, "wrong # args:", cmdName, methodName, arglist);
+NsfObjErrArgCnt(Tcl_Interp *interp, Tcl_Obj *cmdName,  Tcl_Obj *methodName, char *arglist) {
+  return NsfObjWrongArgs(interp, "wrong # args:", cmdName, methodName, arglist);
 }
 
 int
-XOTclErrBadVal(Tcl_Interp *interp, char *context, char *expected, CONST char *value) {
+NsfErrBadVal(Tcl_Interp *interp, char *context, char *expected, CONST char *value) {
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp, context, ": expected ", expected, " but got '", 
 		   value, "'", (char *) NULL);
@@ -98,8 +98,8 @@ XOTclErrBadVal(Tcl_Interp *interp, char *context, char *expected, CONST char *va
 }
 
 int
-XOTclErrBadVal_(Tcl_Interp *interp, char *expected, char *value) {
-  fprintf(stderr, "Deprecated call, recompile your program with xotcl 1.5 or newer\n");
+NsfErrBadVal_(Tcl_Interp *interp, char *expected, char *value) {
+  fprintf(stderr, "Deprecated call, recompile your program with nsf 1.5 or newer\n");
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp, ": expected ", expected, " but got '", 
 		   value, "'", (char *) NULL);
@@ -107,7 +107,7 @@ XOTclErrBadVal_(Tcl_Interp *interp, char *expected, char *value) {
 }
 
 extern int
-XOTclObjErrType(Tcl_Interp *interp, Tcl_Obj *value, char *type, char *parameterName) {
+NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *value, char *type, char *parameterName) {
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp,"expected ", type, " but got \"",  ObjStr(value), "\"", 
                    parameterName ? " for parameter " : "",

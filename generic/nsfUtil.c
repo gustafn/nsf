@@ -5,7 +5,7 @@
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
  *
- *  xotclUtil.c --
+ *  nsfUtil.c --
  *  
  *  Utility functions
  *  
@@ -14,7 +14,7 @@
 #include "nsfInt.h"
 
 char *
-XOTcl_ltoa(char *buf, long i, int *len)  /* fast version of sprintf(buf,"%ld",l); */ {
+Nsf_ltoa(char *buf, long i, int *len)  /* fast version of sprintf(buf,"%ld",l); */ {
   int nr_written, negative;
   char tmp[LONG_AS_STRING], *pointer = &tmp[1], *string, *p;
   *tmp = 0;
@@ -51,7 +51,7 @@ static unsigned char chartable[255] = {0};
 
 
 char *
-XOTclStringIncr(XOTclStringIncrStruct *iss) {
+NsfStringIncr(NsfStringIncrStruct *iss) {
   char newch, *currentChar;
 
   currentChar = iss->buffer + iss->bufSize - 2;
@@ -96,7 +96,7 @@ XOTclStringIncr(XOTclStringIncrStruct *iss) {
 
 
 void
-XOTclStringIncrInit(XOTclStringIncrStruct *iss) {
+NsfStringIncrInit(NsfStringIncrStruct *iss) {
   char *p;
   int i = 0;
   const size_t bufSize = blockIncrement>2 ? blockIncrement : 2;
@@ -112,13 +112,13 @@ XOTclStringIncrInit(XOTclStringIncrStruct *iss) {
   iss->length   = 1;
   /*
     for (i=1; i<50; i++) {
-      XOTclStringIncr(iss);
+      NsfStringIncr(iss);
       fprintf(stderr, "string '%s' (%d)\n",  iss->start, iss->length);
     }
   */
 }
 
 void
-XOTclStringIncrFree(XOTclStringIncrStruct *iss) {
+NsfStringIncrFree(NsfStringIncrStruct *iss) {
   ckfree(iss->buffer);
 }

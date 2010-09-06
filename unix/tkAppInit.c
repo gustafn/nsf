@@ -82,7 +82,7 @@ Tcl_AppInit(interp)
     Tcl_StaticPackage(interp, "XOTcl", Xotcl_Init, 0);
 
     if (Tcl_Import(interp, Tcl_GetGlobalNamespace(interp),
-            "::xotcl::*", /* allowOverwrite */ 1) != TCL_OK) {
+            "::nsf::*", /* allowOverwrite */ 1) != TCL_OK) {
         return TCL_ERROR;
     }
     Tcl_SetVar(interp, "tcl_rcFileName", "~/.wishrc", TCL_GLOBAL_ONLY);

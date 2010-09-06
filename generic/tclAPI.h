@@ -1,5 +1,5 @@
 
-static int convertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+static int convertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"args", "body", "definition", "handle", "parameter", "parametersyntax", "type", "precondition", "postcondition", NULL};
@@ -10,7 +10,7 @@ static int convertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclP
 }
 enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdHandleIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx};
   
-static int convertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+static int convertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"all", "scripted", "builtin", "alias", "forwarder", "object", "setter", NULL};
@@ -21,7 +21,7 @@ static int convertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam C
 }
 enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeBuiltinIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx};
   
-static int convertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+static int convertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"all", "protected", "public", NULL};
@@ -32,7 +32,7 @@ static int convertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPar
 }
 enum CallprotectionIdx {CallprotectionNULL, CallprotectionAllIdx, CallprotectionProtectedIdx, CallprotectionPublicIdx};
   
-static int convertToScope(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+static int convertToScope(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"all", "class", "object", NULL};
@@ -43,29 +43,7 @@ static int convertToScope(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST 
 }
 enum ScopeIdx {ScopeNULL, ScopeAllIdx, ScopeClassIdx, ScopeObjectIdx};
   
-static int convertToInfocallablesubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
-  static CONST char *opts[] = {"filter", "method", "methods", NULL};
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infocallablesubcmd", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
-  *outObjPtr = objPtr;
-  return result;
-}
-enum InfocallablesubcmdIdx {InfocallablesubcmdNULL, InfocallablesubcmdFilterIdx, InfocallablesubcmdMethodIdx, InfocallablesubcmdMethodsIdx};
-  
-static int convertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
-  static CONST char *opts[] = {"class", "baseclass", "metaclass", NULL};
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectkind", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
-  *outObjPtr = objPtr;
-  return result;
-}
-enum ObjectkindIdx {ObjectkindNULL, ObjectkindClassIdx, ObjectkindBaseclassIdx, ObjectkindMetaclassIdx};
-  
-static int convertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+static int convertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"check", "object-invar", "class-invar", NULL};
@@ -76,7 +54,7 @@ static int convertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPa
 }
 enum AssertionsubcmdIdx {AssertionsubcmdNULL, AssertionsubcmdCheckIdx, AssertionsubcmdObject_invarIdx, AssertionsubcmdClass_invarIdx};
   
-static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"filter", "softrecreate", "objectsystems", "keepinitcmd", "checkresults", "checkarguments", NULL};
@@ -87,7 +65,7 @@ static int convertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPa
 }
 enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepinitcmdIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx};
   
-static int convertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+static int convertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"proc", "method", "object", "class", "activelevel", "args", "activemixin", "calledproc", "calledmethod", "calledclass", "callingproc", "callingmethod", "callingclass", "callinglevel", "callingobject", "filterreg", "isnextcall", "next", NULL};
@@ -98,7 +76,7 @@ static int convertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPara
 }
 enum CurrentoptionIdx {CurrentoptionNULL, CurrentoptionProcIdx, CurrentoptionMethodIdx, CurrentoptionObjectIdx, CurrentoptionClassIdx, CurrentoptionActivelevelIdx, CurrentoptionArgsIdx, CurrentoptionActivemixinIdx, CurrentoptionCalledprocIdx, CurrentoptionCalledmethodIdx, CurrentoptionCalledclassIdx, CurrentoptionCallingprocIdx, CurrentoptionCallingmethodIdx, CurrentoptionCallingclassIdx, CurrentoptionCallinglevelIdx, CurrentoptionCallingobjectIdx, CurrentoptionFilterregIdx, CurrentoptionIsnextcallIdx, CurrentoptionNextIdx};
   
-static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"class-only", "protected", "redefine-protected", "returns", "slotobj", NULL};
@@ -109,7 +87,7 @@ static int convertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclPar
 }
 enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyProtectedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx, MethodpropertySlotobjIdx};
   
-static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"object-mixin", "class-mixin", "object-filter", "class-filter", "class", "superclass", "rootclass", NULL};
@@ -120,21 +98,43 @@ static int convertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam
 }
 enum RelationtypeIdx {RelationtypeNULL, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx};
   
+static int convertToInfocallablesubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int index, result;
+  static CONST char *opts[] = {"filter", "method", "methods", NULL};
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infocallablesubcmd", 0, &index);
+  *clientData = (ClientData) INT2PTR(index + 1);
+  *outObjPtr = objPtr;
+  return result;
+}
+enum InfocallablesubcmdIdx {InfocallablesubcmdNULL, InfocallablesubcmdFilterIdx, InfocallablesubcmdMethodIdx, InfocallablesubcmdMethodsIdx};
+  
+static int convertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int index, result;
+  static CONST char *opts[] = {"class", "baseclass", "metaclass", NULL};
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectkind", 0, &index);
+  *clientData = (ClientData) INT2PTR(index + 1);
+  *outObjPtr = objPtr;
+  return result;
+}
+enum ObjectkindIdx {ObjectkindNULL, ObjectkindClassIdx, ObjectkindBaseclassIdx, ObjectkindMetaclassIdx};
+  
 
 typedef struct {
   CONST char *methodName;
   Tcl_ObjCmdProc *proc;
   int nrParameters;
-  XOTclParam paramDefs[12];
+  NsfParam paramDefs[12];
 } methodDefinition;
 
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
-                         XOTclObject *obj, Tcl_Obj *procName,
-                         XOTclParam CONST *paramPtr, int nrParameters, int doCheck,
+                         NsfObject *obj, Tcl_Obj *procName,
+                         NsfParam CONST *paramPtr, int nrParameters, int doCheck,
 			 parseContext *pc);
 
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
-			  XOTclObject **matchObject, CONST char **pattern);
+			  NsfObject **matchObject, CONST char **pattern);
 
 /* just to define the symbol */
 static methodDefinition method_definitions[];
@@ -146,311 +146,311 @@ static CONST char *method_command_namespace_names[] = {
   "::nsf::cmd::ClassInfo",
   "::nsf::cmd::Class"
 };
-static int XOTclCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoCallableMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoHasMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoIsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoSlotObjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclNSCopyCmdsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfNSCopyCmdsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoCallableMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoHasMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoIsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoSlotObjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
-static int XOTclCAllocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name);
-static int XOTclCCreateMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclCDeallocMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *object);
-static int XOTclCFilterGuardMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *filter, Tcl_Obj *guard);
-static int XOTclCMixinGuardMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *mixin, Tcl_Obj *guard);
-static int XOTclCNewMethod(Tcl_Interp *interp, XOTclClass *cl, XOTclObject *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int XOTclCRecreateMethod(Tcl_Interp *interp, XOTclClass *cl, Tcl_Obj *name, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclClassInfoFilterguardMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *filter);
-static int XOTclClassInfoFiltermethodsMethod(Tcl_Interp *interp, XOTclClass *cl, int withGuards, CONST char *pattern);
-static int XOTclClassInfoForwardMethod(Tcl_Interp *interp, XOTclClass *cl, int withDefinition, CONST char *name);
-static int XOTclClassInfoHeritageMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *pattern);
-static int XOTclClassInfoInstancesMethod(Tcl_Interp *interp, XOTclClass *cl, int withClosure, CONST char *patternString, XOTclObject *patternObj);
-static int XOTclClassInfoMethodMethod(Tcl_Interp *interp, XOTclClass *cl, int infomethodsubcmd, CONST char *name);
-static int XOTclClassInfoMethodsMethod(Tcl_Interp *interp, XOTclClass *cl, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, CONST char *pattern);
-static int XOTclClassInfoMixinOfMethod(Tcl_Interp *interp, XOTclClass *cl, int withClosure, int withScope, CONST char *patternString, XOTclObject *patternObj);
-static int XOTclClassInfoMixinclassesMethod(Tcl_Interp *interp, XOTclClass *cl, int withClosure, int withGuards, CONST char *patternString, XOTclObject *patternObj);
-static int XOTclClassInfoMixinguardMethod(Tcl_Interp *interp, XOTclClass *cl, CONST char *mixin);
-static int XOTclClassInfoSlotsMethod(Tcl_Interp *interp, XOTclClass *cl);
-static int XOTclClassInfoSubclassMethod(Tcl_Interp *interp, XOTclClass *cl, int withClosure, CONST char *patternString, XOTclObject *patternObj);
-static int XOTclClassInfoSuperclassMethod(Tcl_Interp *interp, XOTclClass *cl, int withClosure, Tcl_Obj *pattern);
-static int XOTclOAutonameMethod(Tcl_Interp *interp, XOTclObject *obj, int withInstance, int withReset, Tcl_Obj *name);
-static int XOTclOCleanupMethod(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclOConfigureMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclODestroyMethod(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclOExistsMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *var);
-static int XOTclOFilterGuardMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *filter, Tcl_Obj *guard);
-static int XOTclOInstVarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclOMixinGuardMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *mixin, Tcl_Obj *guard);
-static int XOTclONoinitMethod(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclORequireNamespaceMethod(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclOResidualargsMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclOUplevelMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclOUpvarMethod(Tcl_Interp *interp, XOTclObject *obj, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclOVolatileMethod(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclOVwaitMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *varname);
-static int XOTclObjInfoCallableMethod(Tcl_Interp *interp, XOTclObject *obj, int infocallablesubcmd, int withMethodtype, int withCallprotection, int withApplication, int withNomixins, int withIncontext, CONST char *pattern);
-static int XOTclObjInfoChildrenMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *pattern);
-static int XOTclObjInfoClassMethod(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclObjInfoFilterguardMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *filter);
-static int XOTclObjInfoFiltermethodsMethod(Tcl_Interp *interp, XOTclObject *obj, int withGuards, int withOrder, CONST char *pattern);
-static int XOTclObjInfoForwardMethod(Tcl_Interp *interp, XOTclObject *obj, int withDefinition, CONST char *name);
-static int XOTclObjInfoHasMixinMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *class);
-static int XOTclObjInfoHasTypeMethod(Tcl_Interp *interp, XOTclObject *obj, XOTclClass *class);
-static int XOTclObjInfoHasnamespaceMethod(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclObjInfoIsMethod(Tcl_Interp *interp, XOTclObject *obj, int objectkind);
-static int XOTclObjInfoMethodMethod(Tcl_Interp *interp, XOTclObject *obj, int infomethodsubcmd, CONST char *name);
-static int XOTclObjInfoMethodsMethod(Tcl_Interp *interp, XOTclObject *obj, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, CONST char *pattern);
-static int XOTclObjInfoMixinclassesMethod(Tcl_Interp *interp, XOTclObject *obj, int withGuards, int withOrder, CONST char *patternString, XOTclObject *patternObj);
-static int XOTclObjInfoMixinguardMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *mixin);
-static int XOTclObjInfoParentMethod(Tcl_Interp *interp, XOTclObject *obj);
-static int XOTclObjInfoPrecedenceMethod(Tcl_Interp *interp, XOTclObject *obj, int withIntrinsic, CONST char *pattern);
-static int XOTclObjInfoSlotObjectsMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *pattern);
-static int XOTclObjInfoVarsMethod(Tcl_Interp *interp, XOTclObject *obj, CONST char *pattern);
-static int XOTclAliasCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, CONST char *methodName, int withNonleaf, int withObjscope, Tcl_Obj *cmdName);
-static int XOTclAssertionCmd(Tcl_Interp *interp, XOTclObject *object, int assertionsubcmd, Tcl_Obj *arg);
-static int XOTclColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
-static int XOTclCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass, Tcl_Obj *systemMethods);
-static int XOTclCurrentCmd(Tcl_Interp *interp, int currentoption);
-static int XOTclDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
-static int XOTclDispatchCmd(Tcl_Interp *interp, XOTclObject *object, int withObjscope, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int XOTclExistsVarCmd(Tcl_Interp *interp, XOTclObject *object, CONST char *var);
-static int XOTclFinalizeObjCmd(Tcl_Interp *interp);
-static int XOTclForwardCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int XOTclImportvarCmd(Tcl_Interp *interp, XOTclObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int XOTclInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
-static int XOTclInvalidateObjectParameterCmd(Tcl_Interp *interp, XOTclClass *class);
-static int XOTclIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraint, Tcl_Obj *value);
-static int XOTclIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *object);
-static int XOTclMethodCmd(Tcl_Interp *interp, XOTclObject *object, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
-static int XOTclMethodPropertyCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
-static int XOTclMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int XOTclNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
-static int XOTclNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
-static int XOTclQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
-static int XOTclRelationCmd(Tcl_Interp *interp, XOTclObject *object, int relationtype, Tcl_Obj *value);
-static int XOTclSetVarCmd(Tcl_Interp *interp, XOTclObject *object, Tcl_Obj *variable, Tcl_Obj *value);
-static int XOTclSetterCmd(Tcl_Interp *interp, XOTclObject *object, int withPer_object, Tcl_Obj *parameter);
+static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *name);
+static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
+static int NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *object);
+static int NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *filter, Tcl_Obj *guard);
+static int NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin, Tcl_Obj *guard);
+static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, NsfObject *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *name, int objc, Tcl_Obj *CONST objv[]);
+static int NsfClassInfoFilterguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *filter);
+static int NsfClassInfoFiltermethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withGuards, CONST char *pattern);
+static int NsfClassInfoForwardMethod(Tcl_Interp *interp, NsfClass *cl, int withDefinition, CONST char *name);
+static int NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern);
+static int NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObj);
+static int NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *cl, int infomethodsubcmd, CONST char *name);
+static int NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, CONST char *pattern);
+static int NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withScope, CONST char *patternString, NsfObject *patternObj);
+static int NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, int withGuards, CONST char *patternString, NsfObject *patternObj);
+static int NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin);
+static int NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *cl);
+static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObj);
+static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, Tcl_Obj *pattern);
+static int NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, CONST char *methodName, int withNonleaf, int withObjscope, Tcl_Obj *cmdName);
+static int NsfAssertionCmd(Tcl_Interp *interp, NsfObject *object, int assertionsubcmd, Tcl_Obj *arg);
+static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+static int NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
+static int NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass, Tcl_Obj *systemMethods);
+static int NsfCurrentCmd(Tcl_Interp *interp, int currentoption);
+static int NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
+static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withObjscope, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfExistsVarCmd(Tcl_Interp *interp, NsfObject *object, CONST char *var);
+static int NsfFinalizeObjCmd(Tcl_Interp *interp);
+static int NsfForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfImportvarCmd(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
+static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *class);
+static int NsfIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraint, Tcl_Obj *value);
+static int NsfIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *object);
+static int NsfMethodCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
+static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
+static int NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
+static int NsfNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
+static int NsfQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
+static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int relationtype, Tcl_Obj *value);
+static int NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *variable, Tcl_Obj *value);
+static int NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *parameter);
+static int NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *obj, int withInstance, int withReset, Tcl_Obj *name);
+static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *obj);
+static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
+static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *obj);
+static int NsfOExistsMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *var);
+static int NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter, Tcl_Obj *guard);
+static int NsfOInstVarMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
+static int NsfOMixinGuardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin, Tcl_Obj *guard);
+static int NsfONoinitMethod(Tcl_Interp *interp, NsfObject *obj);
+static int NsfORequireNamespaceMethod(Tcl_Interp *interp, NsfObject *obj);
+static int NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
+static int NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
+static int NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
+static int NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *obj);
+static int NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *varname);
+static int NsfObjInfoCallableMethod(Tcl_Interp *interp, NsfObject *obj, int infocallablesubcmd, int withMethodtype, int withCallprotection, int withApplication, int withNomixins, int withIncontext, CONST char *pattern);
+static int NsfObjInfoChildrenMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *pattern);
+static int NsfObjInfoClassMethod(Tcl_Interp *interp, NsfObject *obj);
+static int NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter);
+static int NsfObjInfoFiltermethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withOrder, CONST char *pattern);
+static int NsfObjInfoForwardMethod(Tcl_Interp *interp, NsfObject *obj, int withDefinition, CONST char *name);
+static int NsfObjInfoHasMixinMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *class);
+static int NsfObjInfoHasTypeMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *class);
+static int NsfObjInfoHasnamespaceMethod(Tcl_Interp *interp, NsfObject *obj);
+static int NsfObjInfoIsMethod(Tcl_Interp *interp, NsfObject *obj, int objectkind);
+static int NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *obj, int infomethodsubcmd, CONST char *name);
+static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, CONST char *pattern);
+static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withOrder, CONST char *patternString, NsfObject *patternObj);
+static int NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin);
+static int NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *obj);
+static int NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *obj, int withIntrinsic, CONST char *pattern);
+static int NsfObjInfoSlotObjectsMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *pattern);
+static int NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *pattern);
 
 enum {
- XOTclCAllocMethodIdx,
- XOTclCCreateMethodIdx,
- XOTclCDeallocMethodIdx,
- XOTclCFilterGuardMethodIdx,
- XOTclCMixinGuardMethodIdx,
- XOTclCNewMethodIdx,
- XOTclCRecreateMethodIdx,
- XOTclClassInfoFilterguardMethodIdx,
- XOTclClassInfoFiltermethodsMethodIdx,
- XOTclClassInfoForwardMethodIdx,
- XOTclClassInfoHeritageMethodIdx,
- XOTclClassInfoInstancesMethodIdx,
- XOTclClassInfoMethodMethodIdx,
- XOTclClassInfoMethodsMethodIdx,
- XOTclClassInfoMixinOfMethodIdx,
- XOTclClassInfoMixinclassesMethodIdx,
- XOTclClassInfoMixinguardMethodIdx,
- XOTclClassInfoSlotsMethodIdx,
- XOTclClassInfoSubclassMethodIdx,
- XOTclClassInfoSuperclassMethodIdx,
- XOTclOAutonameMethodIdx,
- XOTclOCleanupMethodIdx,
- XOTclOConfigureMethodIdx,
- XOTclODestroyMethodIdx,
- XOTclOExistsMethodIdx,
- XOTclOFilterGuardMethodIdx,
- XOTclOInstVarMethodIdx,
- XOTclOMixinGuardMethodIdx,
- XOTclONoinitMethodIdx,
- XOTclORequireNamespaceMethodIdx,
- XOTclOResidualargsMethodIdx,
- XOTclOUplevelMethodIdx,
- XOTclOUpvarMethodIdx,
- XOTclOVolatileMethodIdx,
- XOTclOVwaitMethodIdx,
- XOTclObjInfoCallableMethodIdx,
- XOTclObjInfoChildrenMethodIdx,
- XOTclObjInfoClassMethodIdx,
- XOTclObjInfoFilterguardMethodIdx,
- XOTclObjInfoFiltermethodsMethodIdx,
- XOTclObjInfoForwardMethodIdx,
- XOTclObjInfoHasMixinMethodIdx,
- XOTclObjInfoHasTypeMethodIdx,
- XOTclObjInfoHasnamespaceMethodIdx,
- XOTclObjInfoIsMethodIdx,
- XOTclObjInfoMethodMethodIdx,
- XOTclObjInfoMethodsMethodIdx,
- XOTclObjInfoMixinclassesMethodIdx,
- XOTclObjInfoMixinguardMethodIdx,
- XOTclObjInfoParentMethodIdx,
- XOTclObjInfoPrecedenceMethodIdx,
- XOTclObjInfoSlotObjectsMethodIdx,
- XOTclObjInfoVarsMethodIdx,
- XOTclAliasCmdIdx,
- XOTclAssertionCmdIdx,
- XOTclColonCmdIdx,
- XOTclConfigureCmdIdx,
- XOTclCreateObjectSystemCmdIdx,
- XOTclCurrentCmdIdx,
- XOTclDeprecatedCmdIdx,
- XOTclDispatchCmdIdx,
- XOTclExistsVarCmdIdx,
- XOTclFinalizeObjCmdIdx,
- XOTclForwardCmdIdx,
- XOTclImportvarCmdIdx,
- XOTclInterpObjCmdIdx,
- XOTclInvalidateObjectParameterCmdIdx,
- XOTclIsCmdIdx,
- XOTclIsObjectCmdIdx,
- XOTclMethodCmdIdx,
- XOTclMethodPropertyCmdIdx,
- XOTclMyCmdIdx,
- XOTclNSCopyCmdsIdx,
- XOTclNSCopyVarsIdx,
- XOTclQualifyObjCmdIdx,
- XOTclRelationCmdIdx,
- XOTclSetVarCmdIdx,
- XOTclSetterCmdIdx
-} XOTclMethods;
+ NsfCAllocMethodIdx,
+ NsfCCreateMethodIdx,
+ NsfCDeallocMethodIdx,
+ NsfCFilterGuardMethodIdx,
+ NsfCMixinGuardMethodIdx,
+ NsfCNewMethodIdx,
+ NsfCRecreateMethodIdx,
+ NsfClassInfoFilterguardMethodIdx,
+ NsfClassInfoFiltermethodsMethodIdx,
+ NsfClassInfoForwardMethodIdx,
+ NsfClassInfoHeritageMethodIdx,
+ NsfClassInfoInstancesMethodIdx,
+ NsfClassInfoMethodMethodIdx,
+ NsfClassInfoMethodsMethodIdx,
+ NsfClassInfoMixinOfMethodIdx,
+ NsfClassInfoMixinclassesMethodIdx,
+ NsfClassInfoMixinguardMethodIdx,
+ NsfClassInfoSlotsMethodIdx,
+ NsfClassInfoSubclassMethodIdx,
+ NsfClassInfoSuperclassMethodIdx,
+ NsfAliasCmdIdx,
+ NsfAssertionCmdIdx,
+ NsfColonCmdIdx,
+ NsfConfigureCmdIdx,
+ NsfCreateObjectSystemCmdIdx,
+ NsfCurrentCmdIdx,
+ NsfDeprecatedCmdIdx,
+ NsfDispatchCmdIdx,
+ NsfExistsVarCmdIdx,
+ NsfFinalizeObjCmdIdx,
+ NsfForwardCmdIdx,
+ NsfImportvarCmdIdx,
+ NsfInterpObjCmdIdx,
+ NsfInvalidateObjectParameterCmdIdx,
+ NsfIsCmdIdx,
+ NsfIsObjectCmdIdx,
+ NsfMethodCmdIdx,
+ NsfMethodPropertyCmdIdx,
+ NsfMyCmdIdx,
+ NsfNSCopyCmdsIdx,
+ NsfNSCopyVarsIdx,
+ NsfQualifyObjCmdIdx,
+ NsfRelationCmdIdx,
+ NsfSetVarCmdIdx,
+ NsfSetterCmdIdx,
+ NsfOAutonameMethodIdx,
+ NsfOCleanupMethodIdx,
+ NsfOConfigureMethodIdx,
+ NsfODestroyMethodIdx,
+ NsfOExistsMethodIdx,
+ NsfOFilterGuardMethodIdx,
+ NsfOInstVarMethodIdx,
+ NsfOMixinGuardMethodIdx,
+ NsfONoinitMethodIdx,
+ NsfORequireNamespaceMethodIdx,
+ NsfOResidualargsMethodIdx,
+ NsfOUplevelMethodIdx,
+ NsfOUpvarMethodIdx,
+ NsfOVolatileMethodIdx,
+ NsfOVwaitMethodIdx,
+ NsfObjInfoCallableMethodIdx,
+ NsfObjInfoChildrenMethodIdx,
+ NsfObjInfoClassMethodIdx,
+ NsfObjInfoFilterguardMethodIdx,
+ NsfObjInfoFiltermethodsMethodIdx,
+ NsfObjInfoForwardMethodIdx,
+ NsfObjInfoHasMixinMethodIdx,
+ NsfObjInfoHasTypeMethodIdx,
+ NsfObjInfoHasnamespaceMethodIdx,
+ NsfObjInfoIsMethodIdx,
+ NsfObjInfoMethodMethodIdx,
+ NsfObjInfoMethodsMethodIdx,
+ NsfObjInfoMixinclassesMethodIdx,
+ NsfObjInfoMixinguardMethodIdx,
+ NsfObjInfoParentMethodIdx,
+ NsfObjInfoPrecedenceMethodIdx,
+ NsfObjInfoSlotObjectsMethodIdx,
+ NsfObjInfoVarsMethodIdx
+} NsfMethods;
 
 
 static int
-XOTclCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclCAllocMethodIdx].paramDefs, 
-                     method_definitions[XOTclCAllocMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfCAllocMethodIdx].paramDefs, 
+                     method_definitions[NsfCAllocMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclCAllocMethod(interp, cl, name);
+    return NsfCAllocMethod(interp, cl, name);
 
   }
 }
 
 static int
-XOTclCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclCCreateMethodIdx].paramDefs, 
-                     method_definitions[XOTclCCreateMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfCCreateMethodIdx].paramDefs, 
+                     method_definitions[NsfCCreateMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     CONST char *name = (CONST char *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclCCreateMethod(interp, cl, name, objc, objv);
+    return NsfCCreateMethod(interp, cl, name, objc, objv);
 
   }
 }
 
 static int
-XOTclCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclCDeallocMethodIdx].paramDefs, 
-                     method_definitions[XOTclCDeallocMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfCDeallocMethodIdx].paramDefs, 
+                     method_definitions[NsfCDeallocMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclCDeallocMethod(interp, cl, object);
+    return NsfCDeallocMethod(interp, cl, object);
 
   }
 }
 
 static int
-XOTclCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclCFilterGuardMethodIdx].paramDefs, 
-                     method_definitions[XOTclCFilterGuardMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfCFilterGuardMethodIdx].paramDefs, 
+                     method_definitions[NsfCFilterGuardMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -458,19 +458,19 @@ XOTclCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclCFilterGuardMethod(interp, cl, filter, guard);
+    return NsfCFilterGuardMethod(interp, cl, filter, guard);
 
   }
 }
 
 static int
-XOTclCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclCMixinGuardMethodIdx].paramDefs, 
-                     method_definitions[XOTclCMixinGuardMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfCMixinGuardMethodIdx].paramDefs, 
+                     method_definitions[NsfCMixinGuardMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -478,76 +478,76 @@ XOTclCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclCMixinGuardMethod(interp, cl, mixin, guard);
+    return NsfCMixinGuardMethod(interp, cl, mixin, guard);
 
   }
 }
 
 static int
-XOTclCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclCNewMethodIdx].paramDefs, 
-                     method_definitions[XOTclCNewMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfCNewMethodIdx].paramDefs, 
+                     method_definitions[NsfCNewMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    XOTclObject *withChildof = (XOTclObject *)pc.clientData[0];
+    NsfObject *withChildof = (NsfObject *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclCNewMethod(interp, cl, withChildof, objc-pc.lastobjc, objv+pc.lastobjc);
+    return NsfCNewMethod(interp, cl, withChildof, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
 }
 
 static int
-XOTclCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclCRecreateMethodIdx].paramDefs, 
-                     method_definitions[XOTclCRecreateMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfCRecreateMethodIdx].paramDefs, 
+                     method_definitions[NsfCRecreateMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclCRecreateMethod(interp, cl, name, objc, objv);
+    return NsfCRecreateMethod(interp, cl, name, objc, objv);
 
   }
 }
 
 static int
-XOTclClassInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoFilterguardMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoFilterguardMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoFilterguardMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoFilterguardMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     CONST char *filter = (CONST char *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclClassInfoFilterguardMethod(interp, cl, filter);
+    return NsfClassInfoFilterguardMethod(interp, cl, filter);
 
   }
 }
 
 static int
-XOTclClassInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoFiltermethodsMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoFiltermethodsMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoFiltermethodsMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoFiltermethodsMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -555,19 +555,19 @@ XOTclClassInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp,
     CONST char *pattern = (CONST char *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclClassInfoFiltermethodsMethod(interp, cl, withGuards, pattern);
+    return NsfClassInfoFiltermethodsMethod(interp, cl, withGuards, pattern);
 
   }
 }
 
 static int
-XOTclClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoForwardMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoForwardMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoForwardMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoForwardMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -575,44 +575,44 @@ XOTclClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     CONST char *name = (CONST char *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclClassInfoForwardMethod(interp, cl, withDefinition, name);
+    return NsfClassInfoForwardMethod(interp, cl, withDefinition, name);
 
   }
 }
 
 static int
-XOTclClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoHeritageMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoHeritageMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoHeritageMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoHeritageMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     CONST char *pattern = (CONST char *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclClassInfoHeritageMethod(interp, cl, pattern);
+    return NsfClassInfoHeritageMethod(interp, cl, pattern);
 
   }
 }
 
 static int
-XOTclClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoInstancesMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoInstancesMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoInstancesMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoInstancesMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
     CONST char *patternString = NULL;
-    XOTclObject *patternObj = NULL;
+    NsfObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
     int returnCode;
 
@@ -624,7 +624,7 @@ XOTclClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int
     }
           
     parseContextRelease(&pc);
-    returnCode = XOTclClassInfoInstancesMethod(interp, cl, withClosure, patternString, patternObj);
+    returnCode = NsfClassInfoInstancesMethod(interp, cl, withClosure, patternString, patternObj);
 
     if (pattern) {
       DECR_REF_COUNT(pattern);
@@ -634,13 +634,13 @@ XOTclClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int
 }
 
 static int
-XOTclClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoMethodMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoMethodMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoMethodMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoMethodMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -648,19 +648,19 @@ XOTclClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     CONST char *name = (CONST char *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclClassInfoMethodMethod(interp, cl, infomethodsubcmd, name);
+    return NsfClassInfoMethodMethod(interp, cl, infomethodsubcmd, name);
 
   }
 }
 
 static int
-XOTclClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoMethodsMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoMethodsMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoMethodsMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoMethodsMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -671,26 +671,26 @@ XOTclClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     CONST char *pattern = (CONST char *)pc.clientData[4];
 
     parseContextRelease(&pc);
-    return XOTclClassInfoMethodsMethod(interp, cl, withMethodtype, withCallprotection, withNomixins, withIncontext, pattern);
+    return NsfClassInfoMethodsMethod(interp, cl, withMethodtype, withCallprotection, withNomixins, withIncontext, pattern);
 
   }
 }
 
 static int
-XOTclClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoMixinOfMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoMixinOfMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoMixinOfMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoMixinOfMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
     int withScope = (int )PTR2INT(pc.clientData[1]);
     CONST char *patternString = NULL;
-    XOTclObject *patternObj = NULL;
+    NsfObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
     int returnCode;
 
@@ -702,7 +702,7 @@ XOTclClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int o
     }
           
     parseContextRelease(&pc);
-    returnCode = XOTclClassInfoMixinOfMethod(interp, cl, withClosure, withScope, patternString, patternObj);
+    returnCode = NsfClassInfoMixinOfMethod(interp, cl, withClosure, withScope, patternString, patternObj);
 
     if (pattern) {
       DECR_REF_COUNT(pattern);
@@ -712,20 +712,20 @@ XOTclClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int o
 }
 
 static int
-XOTclClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoMixinclassesMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoMixinclassesMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoMixinclassesMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoMixinclassesMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
     int withGuards = (int )PTR2INT(pc.clientData[1]);
     CONST char *patternString = NULL;
-    XOTclObject *patternObj = NULL;
+    NsfObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
     int returnCode;
 
@@ -737,7 +737,7 @@ XOTclClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, 
     }
           
     parseContextRelease(&pc);
-    returnCode = XOTclClassInfoMixinclassesMethod(interp, cl, withClosure, withGuards, patternString, patternObj);
+    returnCode = NsfClassInfoMixinclassesMethod(interp, cl, withClosure, withGuards, patternString, patternObj);
 
     if (pattern) {
       DECR_REF_COUNT(pattern);
@@ -747,57 +747,57 @@ XOTclClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, 
 }
 
 static int
-XOTclClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoMixinguardMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoMixinguardMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoMixinguardMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoMixinguardMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     CONST char *mixin = (CONST char *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclClassInfoMixinguardMethod(interp, cl, mixin);
+    return NsfClassInfoMixinguardMethod(interp, cl, mixin);
 
   }
 }
 
 static int
-XOTclClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoSlotsMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoSlotsMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoSlotsMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoSlotsMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
 
     parseContextRelease(&pc);
-    return XOTclClassInfoSlotsMethod(interp, cl);
+    return NsfClassInfoSlotsMethod(interp, cl);
 
   }
 }
 
 static int
-XOTclClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoSubclassMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoSubclassMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoSubclassMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoSubclassMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     int withClosure = (int )PTR2INT(pc.clientData[0]);
     CONST char *patternString = NULL;
-    XOTclObject *patternObj = NULL;
+    NsfObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
     int returnCode;
 
@@ -809,7 +809,7 @@ XOTclClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     }
           
     parseContextRelease(&pc);
-    returnCode = XOTclClassInfoSubclassMethod(interp, cl, withClosure, patternString, patternObj);
+    returnCode = NsfClassInfoSubclassMethod(interp, cl, withClosure, patternString, patternObj);
 
     if (pattern) {
       DECR_REF_COUNT(pattern);
@@ -819,13 +819,13 @@ XOTclClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 }
 
 static int
-XOTclClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclClass *cl =  XOTclObjectToClass(clientData);
-  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (XOTclObject *) cl, objv[0], 
-                     method_definitions[XOTclClassInfoSuperclassMethodIdx].paramDefs, 
-                     method_definitions[XOTclClassInfoSuperclassMethodIdx].nrParameters, 1,
+  NsfClass *cl =  NsfObjectToClass(clientData);
+  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
+  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
+                     method_definitions[NsfClassInfoSuperclassMethodIdx].paramDefs, 
+                     method_definitions[NsfClassInfoSuperclassMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -833,19 +833,507 @@ XOTclClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, in
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclClassInfoSuperclassMethod(interp, cl, withClosure, pattern);
+    return NsfClassInfoSuperclassMethod(interp, cl, withClosure, pattern);
 
   }
 }
 
 static int
-XOTclOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfAliasCmdIdx].paramDefs, 
+                     method_definitions[NsfAliasCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int withPer_object = (int )PTR2INT(pc.clientData[1]);
+    CONST char *methodName = (CONST char *)pc.clientData[2];
+    int withNonleaf = (int )PTR2INT(pc.clientData[3]);
+    int withObjscope = (int )PTR2INT(pc.clientData[4]);
+    Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[5];
+
+    parseContextRelease(&pc);
+    return NsfAliasCmd(interp, object, withPer_object, methodName, withNonleaf, withObjscope, cmdName);
+
+  }
+}
+
+static int
+NsfAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfAssertionCmdIdx].paramDefs, 
+                     method_definitions[NsfAssertionCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int assertionsubcmd = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *arg = (Tcl_Obj *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return NsfAssertionCmd(interp, object, assertionsubcmd, arg);
+
+  }
+}
+
+static int
+NsfColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+
+    
+
+    return NsfColonCmd(interp, objc, objv);
+
+}
+
+static int
+NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfConfigureCmdIdx].paramDefs, 
+                     method_definitions[NsfConfigureCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int configureoption = (int )PTR2INT(pc.clientData[0]);
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[1];
+
+    parseContextRelease(&pc);
+    return NsfConfigureCmd(interp, configureoption, value);
+
+  }
+}
+
+static int
+NsfCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfCreateObjectSystemCmdIdx].paramDefs, 
+                     method_definitions[NsfCreateObjectSystemCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *rootClass = (Tcl_Obj *)pc.clientData[0];
+    Tcl_Obj *rootMetaClass = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *systemMethods = (Tcl_Obj *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return NsfCreateObjectSystemCmd(interp, rootClass, rootMetaClass, systemMethods);
+
+  }
+}
+
+static int
+NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfCurrentCmdIdx].paramDefs, 
+                     method_definitions[NsfCurrentCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int currentoption = (int )PTR2INT(pc.clientData[0]);
+
+    parseContextRelease(&pc);
+    return NsfCurrentCmd(interp, currentoption);
+
+  }
+}
+
+static int
+NsfDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfDeprecatedCmdIdx].paramDefs, 
+                     method_definitions[NsfDeprecatedCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    CONST char *what = (CONST char *)pc.clientData[0];
+    CONST char *oldCmd = (CONST char *)pc.clientData[1];
+    CONST char *newCmd = (CONST char *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return NsfDeprecatedCmd(interp, what, oldCmd, newCmd);
+
+  }
+}
+
+static int
+NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfDispatchCmdIdx].paramDefs, 
+                     method_definitions[NsfDispatchCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int withObjscope = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return NsfDispatchCmd(interp, object, withObjscope, command, objc-pc.lastobjc, objv+pc.lastobjc);
+
+  }
+}
+
+static int
+NsfExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfExistsVarCmdIdx].paramDefs, 
+                     method_definitions[NsfExistsVarCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    CONST char *var = (CONST char *)pc.clientData[1];
+
+    parseContextRelease(&pc);
+    return NsfExistsVarCmd(interp, object, var);
+
+  }
+}
+
+static int
+NsfFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfFinalizeObjCmdIdx].paramDefs, 
+                     method_definitions[NsfFinalizeObjCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    
+
+    parseContextRelease(&pc);
+    return NsfFinalizeObjCmd(interp);
+
+  }
+}
+
+static int
+NsfForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfForwardCmdIdx].paramDefs, 
+                     method_definitions[NsfForwardCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int withPer_object = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *method = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *withDefault = (Tcl_Obj *)pc.clientData[3];
+    int withEarlybinding = (int )PTR2INT(pc.clientData[4]);
+    Tcl_Obj *withMethodprefix = (Tcl_Obj *)pc.clientData[5];
+    int withObjscope = (int )PTR2INT(pc.clientData[6]);
+    Tcl_Obj *withOnerror = (Tcl_Obj *)pc.clientData[7];
+    int withVerbose = (int )PTR2INT(pc.clientData[8]);
+    Tcl_Obj *target = (Tcl_Obj *)pc.clientData[9];
+
+    parseContextRelease(&pc);
+    return NsfForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withMethodprefix, withObjscope, withOnerror, withVerbose, target, objc-pc.lastobjc, objv+pc.lastobjc);
+
+  }
+}
+
+static int
+NsfImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfImportvarCmdIdx].paramDefs, 
+                     method_definitions[NsfImportvarCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+
+    parseContextRelease(&pc);
+    return NsfImportvarCmd(interp, object, objc-pc.lastobjc, objv+pc.lastobjc);
+
+  }
+}
+
+static int
+NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfInterpObjCmdIdx].paramDefs, 
+                     method_definitions[NsfInterpObjCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    CONST char *name = (CONST char *)pc.clientData[0];
+
+    parseContextRelease(&pc);
+    return NsfInterpObjCmd(interp, name, objc, objv);
+
+  }
+}
+
+static int
+NsfInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfInvalidateObjectParameterCmdIdx].paramDefs, 
+                     method_definitions[NsfInvalidateObjectParameterCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfClass *class = (NsfClass *)pc.clientData[0];
+
+    parseContextRelease(&pc);
+    return NsfInvalidateObjectParameterCmd(interp, class);
+
+  }
+}
+
+static int
+NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfIsCmdIdx].paramDefs, 
+                     method_definitions[NsfIsCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int withComplain = (int )PTR2INT(pc.clientData[0]);
+    Tcl_Obj *constraint = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return NsfIsCmd(interp, withComplain, constraint, value);
+
+  }
+}
+
+static int
+NsfIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfIsObjectCmdIdx].paramDefs, 
+                     method_definitions[NsfIsObjectCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
+
+    parseContextRelease(&pc);
+    return NsfIsObjectCmd(interp, object);
+
+  }
+}
+
+static int
+NsfMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMethodCmdIdx].paramDefs, 
+                     method_definitions[NsfMethodCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int withInner_namespace = (int )PTR2INT(pc.clientData[1]);
+    int withPer_object = (int )PTR2INT(pc.clientData[2]);
+    int withPublic = (int )PTR2INT(pc.clientData[3]);
+    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[4];
+    Tcl_Obj *args = (Tcl_Obj *)pc.clientData[5];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[6];
+    Tcl_Obj *withPrecondition = (Tcl_Obj *)pc.clientData[7];
+    Tcl_Obj *withPostcondition = (Tcl_Obj *)pc.clientData[8];
+
+    parseContextRelease(&pc);
+    return NsfMethodCmd(interp, object, withInner_namespace, withPer_object, withPublic, name, args, body, withPrecondition, withPostcondition);
+
+  }
+}
+
+static int
+NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMethodPropertyCmdIdx].paramDefs, 
+                     method_definitions[NsfMethodPropertyCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int withPer_object = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[2];
+    int methodproperty = (int )PTR2INT(pc.clientData[3]);
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
+
+    parseContextRelease(&pc);
+    return NsfMethodPropertyCmd(interp, object, withPer_object, methodName, methodproperty, value);
+
+  }
+}
+
+static int
+NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfMyCmdIdx].paramDefs, 
+                     method_definitions[NsfMyCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int withLocal = (int )PTR2INT(pc.clientData[0]);
+    Tcl_Obj *method = (Tcl_Obj *)pc.clientData[1];
+
+    parseContextRelease(&pc);
+    return NsfMyCmd(interp, withLocal, method, objc-pc.lastobjc, objv+pc.lastobjc);
+
+  }
+}
+
+static int
+NsfNSCopyCmdsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfNSCopyCmdsIdx].paramDefs, 
+                     method_definitions[NsfNSCopyCmdsIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *fromNs = (Tcl_Obj *)pc.clientData[0];
+    Tcl_Obj *toNs = (Tcl_Obj *)pc.clientData[1];
+
+    parseContextRelease(&pc);
+    return NsfNSCopyCmds(interp, fromNs, toNs);
+
+  }
+}
+
+static int
+NsfNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfNSCopyVarsIdx].paramDefs, 
+                     method_definitions[NsfNSCopyVarsIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *fromNs = (Tcl_Obj *)pc.clientData[0];
+    Tcl_Obj *toNs = (Tcl_Obj *)pc.clientData[1];
+
+    parseContextRelease(&pc);
+    return NsfNSCopyVars(interp, fromNs, toNs);
+
+  }
+}
+
+static int
+NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfQualifyObjCmdIdx].paramDefs, 
+                     method_definitions[NsfQualifyObjCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
+
+    parseContextRelease(&pc);
+    return NsfQualifyObjCmd(interp, name);
+
+  }
+}
+
+static int
+NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfRelationCmdIdx].paramDefs, 
+                     method_definitions[NsfRelationCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int relationtype = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return NsfRelationCmd(interp, object, relationtype, value);
+
+  }
+}
+
+static int
+NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfSetVarCmdIdx].paramDefs, 
+                     method_definitions[NsfSetVarCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    Tcl_Obj *variable = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return NsfSetVarCmd(interp, object, variable, value);
+
+  }
+}
+
+static int
+NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfSetterCmdIdx].paramDefs, 
+                     method_definitions[NsfSetterCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfObject *object = (NsfObject *)pc.clientData[0];
+    int withPer_object = (int )PTR2INT(pc.clientData[1]);
+    Tcl_Obj *parameter = (Tcl_Obj *)pc.clientData[2];
+
+    parseContextRelease(&pc);
+    return NsfSetterCmd(interp, object, withPer_object, parameter);
+
+  }
+}
+
+static int
+NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  parseContext pc;
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclOAutonameMethodIdx].paramDefs, 
-                     method_definitions[XOTclOAutonameMethodIdx].nrParameters, 1,
+                     method_definitions[NsfOAutonameMethodIdx].paramDefs, 
+                     method_definitions[NsfOAutonameMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -854,86 +1342,86 @@ XOTclOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[2];
 
     parseContextRelease(&pc);
-    return XOTclOAutonameMethod(interp, obj, withInstance, withReset, name);
+    return NsfOAutonameMethod(interp, obj, withInstance, withReset, name);
 
   }
 }
 
 static int
-XOTclOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclOCleanupMethodIdx].paramDefs, 
-                     method_definitions[XOTclOCleanupMethodIdx].nrParameters, 1,
+                     method_definitions[NsfOCleanupMethodIdx].paramDefs, 
+                     method_definitions[NsfOCleanupMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
 
     parseContextRelease(&pc);
-    return XOTclOCleanupMethod(interp, obj);
+    return NsfOCleanupMethod(interp, obj);
 
   }
 }
 
 static int
-XOTclOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-    return XOTclOConfigureMethod(interp, obj, objc, objv);
+    return NsfOConfigureMethod(interp, obj, objc, objv);
 
 }
 
 static int
-XOTclODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclODestroyMethodIdx].paramDefs, 
-                     method_definitions[XOTclODestroyMethodIdx].nrParameters, 1,
+                     method_definitions[NsfODestroyMethodIdx].paramDefs, 
+                     method_definitions[NsfODestroyMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
 
     parseContextRelease(&pc);
-    return XOTclODestroyMethod(interp, obj);
+    return NsfODestroyMethod(interp, obj);
 
   }
 }
 
 static int
-XOTclOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclOExistsMethodIdx].paramDefs, 
-                     method_definitions[XOTclOExistsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfOExistsMethodIdx].paramDefs, 
+                     method_definitions[NsfOExistsMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     CONST char *var = (CONST char *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclOExistsMethod(interp, obj, var);
+    return NsfOExistsMethod(interp, obj, var);
 
   }
 }
 
 static int
-XOTclOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclOFilterGuardMethodIdx].paramDefs, 
-                     method_definitions[XOTclOFilterGuardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfOFilterGuardMethodIdx].paramDefs, 
+                     method_definitions[NsfOFilterGuardMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -941,29 +1429,29 @@ XOTclOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclOFilterGuardMethod(interp, obj, filter, guard);
+    return NsfOFilterGuardMethod(interp, obj, filter, guard);
 
   }
 }
 
 static int
-XOTclOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+NsfOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-    return XOTclOInstVarMethod(interp, obj, objc, objv);
+    return NsfOInstVarMethod(interp, obj, objc, objv);
 
 }
 
 static int
-XOTclOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclOMixinGuardMethodIdx].paramDefs, 
-                     method_definitions[XOTclOMixinGuardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfOMixinGuardMethodIdx].paramDefs, 
+                     method_definitions[NsfOMixinGuardMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -971,125 +1459,125 @@ XOTclOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclOMixinGuardMethod(interp, obj, mixin, guard);
+    return NsfOMixinGuardMethod(interp, obj, mixin, guard);
 
   }
 }
 
 static int
-XOTclONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclONoinitMethodIdx].paramDefs, 
-                     method_definitions[XOTclONoinitMethodIdx].nrParameters, 1,
+                     method_definitions[NsfONoinitMethodIdx].paramDefs, 
+                     method_definitions[NsfONoinitMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
 
     parseContextRelease(&pc);
-    return XOTclONoinitMethod(interp, obj);
+    return NsfONoinitMethod(interp, obj);
 
   }
 }
 
 static int
-XOTclORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclORequireNamespaceMethodIdx].paramDefs, 
-                     method_definitions[XOTclORequireNamespaceMethodIdx].nrParameters, 1,
+                     method_definitions[NsfORequireNamespaceMethodIdx].paramDefs, 
+                     method_definitions[NsfORequireNamespaceMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
 
     parseContextRelease(&pc);
-    return XOTclORequireNamespaceMethod(interp, obj);
+    return NsfORequireNamespaceMethod(interp, obj);
 
   }
 }
 
 static int
-XOTclOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+NsfOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-    return XOTclOResidualargsMethod(interp, obj, objc, objv);
+    return NsfOResidualargsMethod(interp, obj, objc, objv);
 
 }
 
 static int
-XOTclOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+NsfOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-    return XOTclOUplevelMethod(interp, obj, objc, objv);
+    return NsfOUplevelMethod(interp, obj, objc, objv);
 
 }
 
 static int
-XOTclOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+NsfOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-    return XOTclOUpvarMethod(interp, obj, objc, objv);
+    return NsfOUpvarMethod(interp, obj, objc, objv);
 
 }
 
 static int
-XOTclOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclOVolatileMethodIdx].paramDefs, 
-                     method_definitions[XOTclOVolatileMethodIdx].nrParameters, 1,
+                     method_definitions[NsfOVolatileMethodIdx].paramDefs, 
+                     method_definitions[NsfOVolatileMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
 
     parseContextRelease(&pc);
-    return XOTclOVolatileMethod(interp, obj);
+    return NsfOVolatileMethod(interp, obj);
 
   }
 }
 
 static int
-XOTclOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclOVwaitMethodIdx].paramDefs, 
-                     method_definitions[XOTclOVwaitMethodIdx].nrParameters, 1,
+                     method_definitions[NsfOVwaitMethodIdx].paramDefs, 
+                     method_definitions[NsfOVwaitMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     CONST char *varname = (CONST char *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclOVwaitMethod(interp, obj, varname);
+    return NsfOVwaitMethod(interp, obj, varname);
 
   }
 }
 
 static int
-XOTclObjInfoCallableMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoCallableMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoCallableMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoCallableMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoCallableMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoCallableMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1102,76 +1590,76 @@ XOTclObjInfoCallableMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     CONST char *pattern = (CONST char *)pc.clientData[6];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoCallableMethod(interp, obj, infocallablesubcmd, withMethodtype, withCallprotection, withApplication, withNomixins, withIncontext, pattern);
+    return NsfObjInfoCallableMethod(interp, obj, infocallablesubcmd, withMethodtype, withCallprotection, withApplication, withNomixins, withIncontext, pattern);
 
   }
 }
 
 static int
-XOTclObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoChildrenMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoChildrenMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoChildrenMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoChildrenMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     CONST char *pattern = (CONST char *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoChildrenMethod(interp, obj, pattern);
+    return NsfObjInfoChildrenMethod(interp, obj, pattern);
 
   }
 }
 
 static int
-XOTclObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoClassMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoClassMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoClassMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoClassMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
 
     parseContextRelease(&pc);
-    return XOTclObjInfoClassMethod(interp, obj);
+    return NsfObjInfoClassMethod(interp, obj);
 
   }
 }
 
 static int
-XOTclObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoFilterguardMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoFilterguardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoFilterguardMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoFilterguardMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     CONST char *filter = (CONST char *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoFilterguardMethod(interp, obj, filter);
+    return NsfObjInfoFilterguardMethod(interp, obj, filter);
 
   }
 }
 
 static int
-XOTclObjInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoFiltermethodsMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoFiltermethodsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoFiltermethodsMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoFiltermethodsMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1180,19 +1668,19 @@ XOTclObjInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, i
     CONST char *pattern = (CONST char *)pc.clientData[2];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoFiltermethodsMethod(interp, obj, withGuards, withOrder, pattern);
+    return NsfObjInfoFiltermethodsMethod(interp, obj, withGuards, withOrder, pattern);
 
   }
 }
 
 static int
-XOTclObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoForwardMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoForwardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoForwardMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoForwardMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1200,95 +1688,95 @@ XOTclObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     CONST char *name = (CONST char *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoForwardMethod(interp, obj, withDefinition, name);
+    return NsfObjInfoForwardMethod(interp, obj, withDefinition, name);
 
   }
 }
 
 static int
-XOTclObjInfoHasMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoHasMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoHasMixinMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoHasMixinMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoHasMixinMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoHasMixinMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    XOTclClass *class = (XOTclClass *)pc.clientData[0];
+    NsfClass *class = (NsfClass *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoHasMixinMethod(interp, obj, class);
+    return NsfObjInfoHasMixinMethod(interp, obj, class);
 
   }
 }
 
 static int
-XOTclObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoHasTypeMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoHasTypeMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoHasTypeMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoHasTypeMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    XOTclClass *class = (XOTclClass *)pc.clientData[0];
+    NsfClass *class = (NsfClass *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoHasTypeMethod(interp, obj, class);
+    return NsfObjInfoHasTypeMethod(interp, obj, class);
 
   }
 }
 
 static int
-XOTclObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoHasnamespaceMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoHasnamespaceMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoHasnamespaceMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoHasnamespaceMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
 
     parseContextRelease(&pc);
-    return XOTclObjInfoHasnamespaceMethod(interp, obj);
+    return NsfObjInfoHasnamespaceMethod(interp, obj);
 
   }
 }
 
 static int
-XOTclObjInfoIsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoIsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoIsMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoIsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoIsMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoIsMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     int objectkind = (int )PTR2INT(pc.clientData[0]);
 
     parseContextRelease(&pc);
-    return XOTclObjInfoIsMethod(interp, obj, objectkind);
+    return NsfObjInfoIsMethod(interp, obj, objectkind);
 
   }
 }
 
 static int
-XOTclObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoMethodMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoMethodMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoMethodMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoMethodMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1296,19 +1784,19 @@ XOTclObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
     CONST char *name = (CONST char *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoMethodMethod(interp, obj, infomethodsubcmd, name);
+    return NsfObjInfoMethodMethod(interp, obj, infomethodsubcmd, name);
 
   }
 }
 
 static int
-XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoMethodsMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoMethodsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoMethodsMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoMethodsMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1319,26 +1807,26 @@ XOTclObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     CONST char *pattern = (CONST char *)pc.clientData[4];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoMethodsMethod(interp, obj, withMethodtype, withCallprotection, withNomixins, withIncontext, pattern);
+    return NsfObjInfoMethodsMethod(interp, obj, withMethodtype, withCallprotection, withNomixins, withIncontext, pattern);
 
   }
 }
 
 static int
-XOTclObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoMixinclassesMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoMixinclassesMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoMixinclassesMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoMixinclassesMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     int withGuards = (int )PTR2INT(pc.clientData[0]);
     int withOrder = (int )PTR2INT(pc.clientData[1]);
     CONST char *patternString = NULL;
-    XOTclObject *patternObj = NULL;
+    NsfObject *patternObj = NULL;
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[2];
     int returnCode;
 
@@ -1350,7 +1838,7 @@ XOTclObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, in
     }
           
     parseContextRelease(&pc);
-    returnCode = XOTclObjInfoMixinclassesMethod(interp, obj, withGuards, withOrder, patternString, patternObj);
+    returnCode = NsfObjInfoMixinclassesMethod(interp, obj, withGuards, withOrder, patternString, patternObj);
 
     if (pattern) {
       DECR_REF_COUNT(pattern);
@@ -1360,51 +1848,51 @@ XOTclObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, in
 }
 
 static int
-XOTclObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoMixinguardMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoMixinguardMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoMixinguardMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoMixinguardMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     CONST char *mixin = (CONST char *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoMixinguardMethod(interp, obj, mixin);
+    return NsfObjInfoMixinguardMethod(interp, obj, mixin);
 
   }
 }
 
 static int
-XOTclObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoParentMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoParentMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoParentMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoParentMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     
 
     parseContextRelease(&pc);
-    return XOTclObjInfoParentMethod(interp, obj);
+    return NsfObjInfoParentMethod(interp, obj);
 
   }
 }
 
 static int
-XOTclObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoPrecedenceMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoPrecedenceMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoPrecedenceMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoPrecedenceMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
@@ -1412,738 +1900,130 @@ XOTclObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     CONST char *pattern = (CONST char *)pc.clientData[1];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoPrecedenceMethod(interp, obj, withIntrinsic, pattern);
+    return NsfObjInfoPrecedenceMethod(interp, obj, withIntrinsic, pattern);
 
   }
 }
 
 static int
-XOTclObjInfoSlotObjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoSlotObjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoSlotObjectsMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoSlotObjectsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoSlotObjectsMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoSlotObjectsMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     CONST char *pattern = (CONST char *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoSlotObjectsMethod(interp, obj, pattern);
+    return NsfObjInfoSlotObjectsMethod(interp, obj, pattern);
 
   }
 }
 
 static int
-XOTclObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   parseContext pc;
-  XOTclObject *obj =  (XOTclObject *)clientData;
-  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[XOTclObjInfoVarsMethodIdx].paramDefs, 
-                     method_definitions[XOTclObjInfoVarsMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoVarsMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoVarsMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
     CONST char *pattern = (CONST char *)pc.clientData[0];
 
     parseContextRelease(&pc);
-    return XOTclObjInfoVarsMethod(interp, obj, pattern);
-
-  }
-}
-
-static int
-XOTclAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclAliasCmdIdx].paramDefs, 
-                     method_definitions[XOTclAliasCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withPer_object = (int )PTR2INT(pc.clientData[1]);
-    CONST char *methodName = (CONST char *)pc.clientData[2];
-    int withNonleaf = (int )PTR2INT(pc.clientData[3]);
-    int withObjscope = (int )PTR2INT(pc.clientData[4]);
-    Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[5];
-
-    parseContextRelease(&pc);
-    return XOTclAliasCmd(interp, object, withPer_object, methodName, withNonleaf, withObjscope, cmdName);
-
-  }
-}
-
-static int
-XOTclAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclAssertionCmdIdx].paramDefs, 
-                     method_definitions[XOTclAssertionCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int assertionsubcmd = (int )PTR2INT(pc.clientData[1]);
-    Tcl_Obj *arg = (Tcl_Obj *)pc.clientData[2];
-
-    parseContextRelease(&pc);
-    return XOTclAssertionCmd(interp, object, assertionsubcmd, arg);
-
-  }
-}
-
-static int
-XOTclColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-
-    
-
-    return XOTclColonCmd(interp, objc, objv);
-
-}
-
-static int
-XOTclConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclConfigureCmdIdx].paramDefs, 
-                     method_definitions[XOTclConfigureCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    int configureoption = (int )PTR2INT(pc.clientData[0]);
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclConfigureCmd(interp, configureoption, value);
-
-  }
-}
-
-static int
-XOTclCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclCreateObjectSystemCmdIdx].paramDefs, 
-                     method_definitions[XOTclCreateObjectSystemCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *rootClass = (Tcl_Obj *)pc.clientData[0];
-    Tcl_Obj *rootMetaClass = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *systemMethods = (Tcl_Obj *)pc.clientData[2];
-
-    parseContextRelease(&pc);
-    return XOTclCreateObjectSystemCmd(interp, rootClass, rootMetaClass, systemMethods);
-
-  }
-}
-
-static int
-XOTclCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclCurrentCmdIdx].paramDefs, 
-                     method_definitions[XOTclCurrentCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    int currentoption = (int )PTR2INT(pc.clientData[0]);
-
-    parseContextRelease(&pc);
-    return XOTclCurrentCmd(interp, currentoption);
-
-  }
-}
-
-static int
-XOTclDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclDeprecatedCmdIdx].paramDefs, 
-                     method_definitions[XOTclDeprecatedCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    CONST char *what = (CONST char *)pc.clientData[0];
-    CONST char *oldCmd = (CONST char *)pc.clientData[1];
-    CONST char *newCmd = (CONST char *)pc.clientData[2];
-
-    parseContextRelease(&pc);
-    return XOTclDeprecatedCmd(interp, what, oldCmd, newCmd);
-
-  }
-}
-
-static int
-XOTclDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclDispatchCmdIdx].paramDefs, 
-                     method_definitions[XOTclDispatchCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withObjscope = (int )PTR2INT(pc.clientData[1]);
-    Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
-
-    parseContextRelease(&pc);
-    return XOTclDispatchCmd(interp, object, withObjscope, command, objc-pc.lastobjc, objv+pc.lastobjc);
-
-  }
-}
-
-static int
-XOTclExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclExistsVarCmdIdx].paramDefs, 
-                     method_definitions[XOTclExistsVarCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    CONST char *var = (CONST char *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclExistsVarCmd(interp, object, var);
-
-  }
-}
-
-static int
-XOTclFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclFinalizeObjCmdIdx].paramDefs, 
-                     method_definitions[XOTclFinalizeObjCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    
-
-    parseContextRelease(&pc);
-    return XOTclFinalizeObjCmd(interp);
-
-  }
-}
-
-static int
-XOTclForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclForwardCmdIdx].paramDefs, 
-                     method_definitions[XOTclForwardCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withPer_object = (int )PTR2INT(pc.clientData[1]);
-    Tcl_Obj *method = (Tcl_Obj *)pc.clientData[2];
-    Tcl_Obj *withDefault = (Tcl_Obj *)pc.clientData[3];
-    int withEarlybinding = (int )PTR2INT(pc.clientData[4]);
-    Tcl_Obj *withMethodprefix = (Tcl_Obj *)pc.clientData[5];
-    int withObjscope = (int )PTR2INT(pc.clientData[6]);
-    Tcl_Obj *withOnerror = (Tcl_Obj *)pc.clientData[7];
-    int withVerbose = (int )PTR2INT(pc.clientData[8]);
-    Tcl_Obj *target = (Tcl_Obj *)pc.clientData[9];
-
-    parseContextRelease(&pc);
-    return XOTclForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withMethodprefix, withObjscope, withOnerror, withVerbose, target, objc-pc.lastobjc, objv+pc.lastobjc);
-
-  }
-}
-
-static int
-XOTclImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclImportvarCmdIdx].paramDefs, 
-                     method_definitions[XOTclImportvarCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-
-    parseContextRelease(&pc);
-    return XOTclImportvarCmd(interp, object, objc-pc.lastobjc, objv+pc.lastobjc);
-
-  }
-}
-
-static int
-XOTclInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclInterpObjCmdIdx].paramDefs, 
-                     method_definitions[XOTclInterpObjCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    CONST char *name = (CONST char *)pc.clientData[0];
-
-    parseContextRelease(&pc);
-    return XOTclInterpObjCmd(interp, name, objc, objv);
-
-  }
-}
-
-static int
-XOTclInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclInvalidateObjectParameterCmdIdx].paramDefs, 
-                     method_definitions[XOTclInvalidateObjectParameterCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclClass *class = (XOTclClass *)pc.clientData[0];
-
-    parseContextRelease(&pc);
-    return XOTclInvalidateObjectParameterCmd(interp, class);
-
-  }
-}
-
-static int
-XOTclIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclIsCmdIdx].paramDefs, 
-                     method_definitions[XOTclIsCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    int withComplain = (int )PTR2INT(pc.clientData[0]);
-    Tcl_Obj *constraint = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
-
-    parseContextRelease(&pc);
-    return XOTclIsCmd(interp, withComplain, constraint, value);
-
-  }
-}
-
-static int
-XOTclIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclIsObjectCmdIdx].paramDefs, 
-                     method_definitions[XOTclIsObjectCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
-
-    parseContextRelease(&pc);
-    return XOTclIsObjectCmd(interp, object);
-
-  }
-}
-
-static int
-XOTclMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclMethodCmdIdx].paramDefs, 
-                     method_definitions[XOTclMethodCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withInner_namespace = (int )PTR2INT(pc.clientData[1]);
-    int withPer_object = (int )PTR2INT(pc.clientData[2]);
-    int withPublic = (int )PTR2INT(pc.clientData[3]);
-    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[4];
-    Tcl_Obj *args = (Tcl_Obj *)pc.clientData[5];
-    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[6];
-    Tcl_Obj *withPrecondition = (Tcl_Obj *)pc.clientData[7];
-    Tcl_Obj *withPostcondition = (Tcl_Obj *)pc.clientData[8];
-
-    parseContextRelease(&pc);
-    return XOTclMethodCmd(interp, object, withInner_namespace, withPer_object, withPublic, name, args, body, withPrecondition, withPostcondition);
-
-  }
-}
-
-static int
-XOTclMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclMethodPropertyCmdIdx].paramDefs, 
-                     method_definitions[XOTclMethodPropertyCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withPer_object = (int )PTR2INT(pc.clientData[1]);
-    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[2];
-    int methodproperty = (int )PTR2INT(pc.clientData[3]);
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
-
-    parseContextRelease(&pc);
-    return XOTclMethodPropertyCmd(interp, object, withPer_object, methodName, methodproperty, value);
-
-  }
-}
-
-static int
-XOTclMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclMyCmdIdx].paramDefs, 
-                     method_definitions[XOTclMyCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    int withLocal = (int )PTR2INT(pc.clientData[0]);
-    Tcl_Obj *method = (Tcl_Obj *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclMyCmd(interp, withLocal, method, objc-pc.lastobjc, objv+pc.lastobjc);
-
-  }
-}
-
-static int
-XOTclNSCopyCmdsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclNSCopyCmdsIdx].paramDefs, 
-                     method_definitions[XOTclNSCopyCmdsIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *fromNs = (Tcl_Obj *)pc.clientData[0];
-    Tcl_Obj *toNs = (Tcl_Obj *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclNSCopyCmds(interp, fromNs, toNs);
-
-  }
-}
-
-static int
-XOTclNSCopyVarsStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclNSCopyVarsIdx].paramDefs, 
-                     method_definitions[XOTclNSCopyVarsIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *fromNs = (Tcl_Obj *)pc.clientData[0];
-    Tcl_Obj *toNs = (Tcl_Obj *)pc.clientData[1];
-
-    parseContextRelease(&pc);
-    return XOTclNSCopyVars(interp, fromNs, toNs);
-
-  }
-}
-
-static int
-XOTclQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclQualifyObjCmdIdx].paramDefs, 
-                     method_definitions[XOTclQualifyObjCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
-
-    parseContextRelease(&pc);
-    return XOTclQualifyObjCmd(interp, name);
-
-  }
-}
-
-static int
-XOTclRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclRelationCmdIdx].paramDefs, 
-                     method_definitions[XOTclRelationCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int relationtype = (int )PTR2INT(pc.clientData[1]);
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
-
-    parseContextRelease(&pc);
-    return XOTclRelationCmd(interp, object, relationtype, value);
-
-  }
-}
-
-static int
-XOTclSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclSetVarCmdIdx].paramDefs, 
-                     method_definitions[XOTclSetVarCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    Tcl_Obj *variable = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
-
-    parseContextRelease(&pc);
-    return XOTclSetVarCmd(interp, object, variable, value);
-
-  }
-}
-
-static int
-XOTclSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[XOTclSetterCmdIdx].paramDefs, 
-                     method_definitions[XOTclSetterCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    XOTclObject *object = (XOTclObject *)pc.clientData[0];
-    int withPer_object = (int )PTR2INT(pc.clientData[1]);
-    Tcl_Obj *parameter = (Tcl_Obj *)pc.clientData[2];
-
-    parseContextRelease(&pc);
-    return XOTclSetterCmd(interp, object, withPer_object, parameter);
+    return NsfObjInfoVarsMethod(interp, obj, pattern);
 
   }
 }
 
 static methodDefinition method_definitions[] = {
-{"::nsf::cmd::Class::alloc", XOTclCAllocMethodStub, 1, {
+{"::nsf::cmd::Class::alloc", NsfCAllocMethodStub, 1, {
   {"name", 1, 0, convertToTclobj}}
 },
-{"::nsf::cmd::Class::create", XOTclCCreateMethodStub, 2, {
+{"::nsf::cmd::Class::create", NsfCCreateMethodStub, 2, {
   {"name", 1, 0, convertToString},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nsf::cmd::Class::dealloc", XOTclCDeallocMethodStub, 1, {
+{"::nsf::cmd::Class::dealloc", NsfCDeallocMethodStub, 1, {
   {"object", 1, 0, convertToTclobj}}
 },
-{"::nsf::cmd::Class::filterguard", XOTclCFilterGuardMethodStub, 2, {
+{"::nsf::cmd::Class::filterguard", NsfCFilterGuardMethodStub, 2, {
   {"filter", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::nsf::cmd::Class::mixinguard", XOTclCMixinGuardMethodStub, 2, {
+{"::nsf::cmd::Class::mixinguard", NsfCMixinGuardMethodStub, 2, {
   {"mixin", 1, 0, convertToString},
   {"guard", 1, 0, convertToTclobj}}
 },
-{"::nsf::cmd::Class::new", XOTclCNewMethodStub, 2, {
+{"::nsf::cmd::Class::new", NsfCNewMethodStub, 2, {
   {"-childof", 0, 1, convertToObject},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nsf::cmd::Class::recreate", XOTclCRecreateMethodStub, 2, {
+{"::nsf::cmd::Class::recreate", NsfCRecreateMethodStub, 2, {
   {"name", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nsf::cmd::ClassInfo::filterguard", XOTclClassInfoFilterguardMethodStub, 1, {
+{"::nsf::cmd::ClassInfo::filterguard", NsfClassInfoFilterguardMethodStub, 1, {
   {"filter", 1, 0, convertToString}}
 },
-{"::nsf::cmd::ClassInfo::filtermethods", XOTclClassInfoFiltermethodsMethodStub, 2, {
+{"::nsf::cmd::ClassInfo::filtermethods", NsfClassInfoFiltermethodsMethodStub, 2, {
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nsf::cmd::ClassInfo::forward", XOTclClassInfoForwardMethodStub, 2, {
+{"::nsf::cmd::ClassInfo::forward", NsfClassInfoForwardMethodStub, 2, {
   {"-definition", 0, 0, convertToString},
   {"name", 0, 0, convertToString}}
 },
-{"::nsf::cmd::ClassInfo::heritage", XOTclClassInfoHeritageMethodStub, 1, {
+{"::nsf::cmd::ClassInfo::heritage", NsfClassInfoHeritageMethodStub, 1, {
   {"pattern", 0, 0, convertToString}}
 },
-{"::nsf::cmd::ClassInfo::instances", XOTclClassInfoInstancesMethodStub, 2, {
+{"::nsf::cmd::ClassInfo::instances", NsfClassInfoInstancesMethodStub, 2, {
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::nsf::cmd::ClassInfo::method", XOTclClassInfoMethodMethodStub, 2, {
+{"::nsf::cmd::ClassInfo::method", NsfClassInfoMethodMethodStub, 2, {
   {"infomethodsubcmd", 0, 0, convertToInfomethodsubcmd},
   {"name", 0, 0, convertToString}}
 },
-{"::nsf::cmd::ClassInfo::methods", XOTclClassInfoMethodsMethodStub, 5, {
+{"::nsf::cmd::ClassInfo::methods", NsfClassInfoMethodsMethodStub, 5, {
   {"-methodtype", 0, 1, convertToMethodtype},
   {"-callprotection", 0, 1, convertToCallprotection},
   {"-nomixins", 0, 0, convertToString},
   {"-incontext", 0, 0, convertToString},
   {"pattern", 0, 0, convertToString}}
 },
-{"::nsf::cmd::ClassInfo::mixinof", XOTclClassInfoMixinOfMethodStub, 3, {
+{"::nsf::cmd::ClassInfo::mixinof", NsfClassInfoMixinOfMethodStub, 3, {
   {"-closure", 0, 0, convertToString},
   {"-scope", 0, 1, convertToScope},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::nsf::cmd::ClassInfo::mixinclasses", XOTclClassInfoMixinclassesMethodStub, 3, {
+{"::nsf::cmd::ClassInfo::mixinclasses", NsfClassInfoMixinclassesMethodStub, 3, {
   {"-closure", 0, 0, convertToString},
   {"-guards", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::nsf::cmd::ClassInfo::mixinguard", XOTclClassInfoMixinguardMethodStub, 1, {
+{"::nsf::cmd::ClassInfo::mixinguard", NsfClassInfoMixinguardMethodStub, 1, {
   {"mixin", 1, 0, convertToString}}
 },
-{"::nsf::cmd::ClassInfo::slots", XOTclClassInfoSlotsMethodStub, 0, {
+{"::nsf::cmd::ClassInfo::slots", NsfClassInfoSlotsMethodStub, 0, {
   }
 },
-{"::nsf::cmd::ClassInfo::subclass", XOTclClassInfoSubclassMethodStub, 2, {
+{"::nsf::cmd::ClassInfo::subclass", NsfClassInfoSubclassMethodStub, 2, {
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToObjpattern}}
 },
-{"::nsf::cmd::ClassInfo::superclass", XOTclClassInfoSuperclassMethodStub, 2, {
+{"::nsf::cmd::ClassInfo::superclass", NsfClassInfoSuperclassMethodStub, 2, {
   {"-closure", 0, 0, convertToString},
   {"pattern", 0, 0, convertToTclobj}}
 },
-{"::nsf::cmd::Object::autoname", XOTclOAutonameMethodStub, 3, {
-  {"-instance", 0, 0, convertToString},
-  {"-reset", 0, 0, convertToString},
-  {"name", 1, 0, convertToTclobj}}
-},
-{"::nsf::cmd::Object::cleanup", XOTclOCleanupMethodStub, 0, {
-  }
-},
-{"::nsf::cmd::Object::configure", XOTclOConfigureMethodStub, 1, {
-  {"args", 0, 0, convertToNothing}}
-},
-{"::nsf::cmd::Object::destroy", XOTclODestroyMethodStub, 0, {
-  }
-},
-{"::nsf::cmd::Object::exists", XOTclOExistsMethodStub, 1, {
-  {"var", 1, 0, convertToString}}
-},
-{"::nsf::cmd::Object::filterguard", XOTclOFilterGuardMethodStub, 2, {
-  {"filter", 1, 0, convertToString},
-  {"guard", 1, 0, convertToTclobj}}
-},
-{"::nsf::cmd::Object::instvar", XOTclOInstVarMethodStub, 1, {
-  {"args", 0, 0, convertToNothing}}
-},
-{"::nsf::cmd::Object::mixinguard", XOTclOMixinGuardMethodStub, 2, {
-  {"mixin", 1, 0, convertToString},
-  {"guard", 1, 0, convertToTclobj}}
-},
-{"::nsf::cmd::Object::noinit", XOTclONoinitMethodStub, 0, {
-  }
-},
-{"::nsf::cmd::Object::requireNamespace", XOTclORequireNamespaceMethodStub, 0, {
-  }
-},
-{"::nsf::cmd::Object::residualargs", XOTclOResidualargsMethodStub, 1, {
-  {"args", 0, 0, convertToNothing}}
-},
-{"::nsf::cmd::Object::uplevel", XOTclOUplevelMethodStub, 1, {
-  {"args", 0, 0, convertToNothing}}
-},
-{"::nsf::cmd::Object::upvar", XOTclOUpvarMethodStub, 1, {
-  {"args", 0, 0, convertToNothing}}
-},
-{"::nsf::cmd::Object::volatile", XOTclOVolatileMethodStub, 0, {
-  }
-},
-{"::nsf::cmd::Object::vwait", XOTclOVwaitMethodStub, 1, {
-  {"varname", 1, 0, convertToString}}
-},
-{"::nsf::cmd::ObjectInfo::callable", XOTclObjInfoCallableMethodStub, 7, {
-  {"infocallablesubcmd", 1, 1, convertToInfocallablesubcmd},
-  {"-methodtype", 0, 1, convertToMethodtype},
-  {"-callprotection", 0, 1, convertToCallprotection},
-  {"-application", 0, 0, convertToString},
-  {"-nomixins", 0, 0, convertToString},
-  {"-incontext", 0, 0, convertToString},
-  {"pattern", 0, 0, convertToString}}
-},
-{"::nsf::cmd::ObjectInfo::children", XOTclObjInfoChildrenMethodStub, 1, {
-  {"pattern", 0, 0, convertToString}}
-},
-{"::nsf::cmd::ObjectInfo::class", XOTclObjInfoClassMethodStub, 0, {
-  }
-},
-{"::nsf::cmd::ObjectInfo::filterguard", XOTclObjInfoFilterguardMethodStub, 1, {
-  {"filter", 1, 0, convertToString}}
-},
-{"::nsf::cmd::ObjectInfo::filtermethods", XOTclObjInfoFiltermethodsMethodStub, 3, {
-  {"-guards", 0, 0, convertToString},
-  {"-order", 0, 0, convertToString},
-  {"pattern", 0, 0, convertToString}}
-},
-{"::nsf::cmd::ObjectInfo::forward", XOTclObjInfoForwardMethodStub, 2, {
-  {"-definition", 0, 0, convertToString},
-  {"name", 0, 0, convertToString}}
-},
-{"::nsf::cmd::ObjectInfo::hasmixin", XOTclObjInfoHasMixinMethodStub, 1, {
-  {"class", 0, 0, convertToClass}}
-},
-{"::nsf::cmd::ObjectInfo::hastype", XOTclObjInfoHasTypeMethodStub, 1, {
-  {"class", 0, 0, convertToClass}}
-},
-{"::nsf::cmd::ObjectInfo::hasnamespace", XOTclObjInfoHasnamespaceMethodStub, 0, {
-  }
-},
-{"::nsf::cmd::ObjectInfo::is", XOTclObjInfoIsMethodStub, 1, {
-  {"objectkind", 0, 0, convertToObjectkind}}
-},
-{"::nsf::cmd::ObjectInfo::method", XOTclObjInfoMethodMethodStub, 2, {
-  {"infomethodsubcmd", 0, 0, convertToInfomethodsubcmd},
-  {"name", 0, 0, convertToString}}
-},
-{"::nsf::cmd::ObjectInfo::methods", XOTclObjInfoMethodsMethodStub, 5, {
-  {"-methodtype", 0, 1, convertToMethodtype},
-  {"-callprotection", 0, 1, convertToCallprotection},
-  {"-nomixins", 0, 0, convertToString},
-  {"-incontext", 0, 0, convertToString},
-  {"pattern", 0, 0, convertToString}}
-},
-{"::nsf::cmd::ObjectInfo::mixinclasses", XOTclObjInfoMixinclassesMethodStub, 3, {
-  {"-guards", 0, 0, convertToString},
-  {"-order", 0, 0, convertToString},
-  {"pattern", 0, 0, convertToObjpattern}}
-},
-{"::nsf::cmd::ObjectInfo::mixinguard", XOTclObjInfoMixinguardMethodStub, 1, {
-  {"mixin", 1, 0, convertToString}}
-},
-{"::nsf::cmd::ObjectInfo::parent", XOTclObjInfoParentMethodStub, 0, {
-  }
-},
-{"::nsf::cmd::ObjectInfo::precedence", XOTclObjInfoPrecedenceMethodStub, 2, {
-  {"-intrinsic", 0, 0, convertToString},
-  {"pattern", 0, 0, convertToString}}
-},
-{"::nsf::cmd::ObjectInfo::slotobjects", XOTclObjInfoSlotObjectsMethodStub, 1, {
-  {"pattern", 0, 0, convertToString}}
-},
-{"::nsf::cmd::ObjectInfo::vars", XOTclObjInfoVarsMethodStub, 1, {
-  {"pattern", 0, 0, convertToString}}
-},
-{"::nsf::alias", XOTclAliasCmdStub, 6, {
+{"::nsf::alias", NsfAliasCmdStub, 6, {
   {"object", 0, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"methodName", 0, 0, convertToString},
@@ -2151,45 +2031,45 @@ static methodDefinition method_definitions[] = {
   {"-objscope", 0, 0, convertToString},
   {"cmdName", 1, 0, convertToTclobj}}
 },
-{"::nsf::assertion", XOTclAssertionCmdStub, 3, {
+{"::nsf::assertion", NsfAssertionCmdStub, 3, {
   {"object", 0, 0, convertToObject},
   {"assertionsubcmd", 1, 0, convertToAssertionsubcmd},
   {"arg", 0, 0, convertToTclobj}}
 },
-{"::nsf::colon", XOTclColonCmdStub, 1, {
+{"::nsf::colon", NsfColonCmdStub, 1, {
   {"args", 0, 0, convertToNothing}}
 },
-{"::nsf::configure", XOTclConfigureCmdStub, 2, {
+{"::nsf::configure", NsfConfigureCmdStub, 2, {
   {"configureoption", 1, 0, convertToConfigureoption},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::nsf::createobjectsystem", XOTclCreateObjectSystemCmdStub, 3, {
+{"::nsf::createobjectsystem", NsfCreateObjectSystemCmdStub, 3, {
   {"rootClass", 1, 0, convertToTclobj},
   {"rootMetaClass", 1, 0, convertToTclobj},
   {"systemMethods", 0, 0, convertToTclobj}}
 },
-{"::nsf::current", XOTclCurrentCmdStub, 1, {
+{"::nsf::current", NsfCurrentCmdStub, 1, {
   {"currentoption", 0, 0, convertToCurrentoption}}
 },
-{"::nsf::deprecated", XOTclDeprecatedCmdStub, 3, {
+{"::nsf::deprecated", NsfDeprecatedCmdStub, 3, {
   {"what", 1, 0, convertToString},
   {"oldCmd", 1, 0, convertToString},
   {"newCmd", 0, 0, convertToString}}
 },
-{"::nsf::dispatch", XOTclDispatchCmdStub, 4, {
+{"::nsf::dispatch", NsfDispatchCmdStub, 4, {
   {"object", 1, 0, convertToObject},
   {"-objscope", 0, 0, convertToString},
   {"command", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nsf::existsvar", XOTclExistsVarCmdStub, 2, {
+{"::nsf::existsvar", NsfExistsVarCmdStub, 2, {
   {"object", 1, 0, convertToObject},
   {"var", 1, 0, convertToString}}
 },
-{"::nsf::finalize", XOTclFinalizeObjCmdStub, 0, {
+{"::nsf::finalize", NsfFinalizeObjCmdStub, 0, {
   }
 },
-{"::nsf::forward", XOTclForwardCmdStub, 11, {
+{"::nsf::forward", NsfForwardCmdStub, 11, {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"method", 1, 0, convertToTclobj},
@@ -2202,26 +2082,26 @@ static methodDefinition method_definitions[] = {
   {"target", 0, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nsf::importvar", XOTclImportvarCmdStub, 2, {
+{"::nsf::importvar", NsfImportvarCmdStub, 2, {
   {"object", 0, 0, convertToObject},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nsf::interp", XOTclInterpObjCmdStub, 2, {
+{"::nsf::interp", NsfInterpObjCmdStub, 2, {
   {"name", 0, 0, convertToString},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nsf::invalidateobjectparameter", XOTclInvalidateObjectParameterCmdStub, 1, {
+{"::nsf::invalidateobjectparameter", NsfInvalidateObjectParameterCmdStub, 1, {
   {"class", 0, 0, convertToClass}}
 },
-{"::nsf::is", XOTclIsCmdStub, 3, {
+{"::nsf::is", NsfIsCmdStub, 3, {
   {"-complain", 0, 0, convertToString},
   {"constraint", 1, 0, convertToTclobj},
   {"value", 1, 0, convertToTclobj}}
 },
-{"::nsf::isobject", XOTclIsObjectCmdStub, 1, {
+{"::nsf::isobject", NsfIsObjectCmdStub, 1, {
   {"object", 1, 0, convertToTclobj}}
 },
-{"::nsf::method", XOTclMethodCmdStub, 9, {
+{"::nsf::method", NsfMethodCmdStub, 9, {
   {"object", 1, 0, convertToObject},
   {"-inner-namespace", 0, 0, convertToString},
   {"-per-object", 0, 0, convertToString},
@@ -2232,43 +2112,163 @@ static methodDefinition method_definitions[] = {
   {"-precondition", 0, 1, convertToTclobj},
   {"-postcondition", 0, 1, convertToTclobj}}
 },
-{"::nsf::methodproperty", XOTclMethodPropertyCmdStub, 5, {
+{"::nsf::methodproperty", NsfMethodPropertyCmdStub, 5, {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"methodName", 1, 0, convertToTclobj},
   {"methodproperty", 1, 0, convertToMethodproperty},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::nsf::my", XOTclMyCmdStub, 3, {
+{"::nsf::my", NsfMyCmdStub, 3, {
   {"-local", 0, 0, convertToString},
   {"method", 1, 0, convertToTclobj},
   {"args", 0, 0, convertToNothing}}
 },
-{"::nsf::namespace_copycmds", XOTclNSCopyCmdsStub, 2, {
+{"::nsf::namespace_copycmds", NsfNSCopyCmdsStub, 2, {
   {"fromNs", 1, 0, convertToTclobj},
   {"toNs", 1, 0, convertToTclobj}}
 },
-{"::nsf::namespace_copyvars", XOTclNSCopyVarsStub, 2, {
+{"::nsf::namespace_copyvars", NsfNSCopyVarsStub, 2, {
   {"fromNs", 1, 0, convertToTclobj},
   {"toNs", 1, 0, convertToTclobj}}
 },
-{"::nsf::__qualify", XOTclQualifyObjCmdStub, 1, {
+{"::nsf::__qualify", NsfQualifyObjCmdStub, 1, {
   {"name", 1, 0, convertToTclobj}}
 },
-{"::nsf::relation", XOTclRelationCmdStub, 3, {
+{"::nsf::relation", NsfRelationCmdStub, 3, {
   {"object", 0, 0, convertToObject},
   {"relationtype", 1, 0, convertToRelationtype},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::nsf::setvar", XOTclSetVarCmdStub, 3, {
+{"::nsf::setvar", NsfSetVarCmdStub, 3, {
   {"object", 1, 0, convertToObject},
   {"variable", 1, 0, convertToTclobj},
   {"value", 0, 0, convertToTclobj}}
 },
-{"::nsf::setter", XOTclSetterCmdStub, 3, {
+{"::nsf::setter", NsfSetterCmdStub, 3, {
   {"object", 1, 0, convertToObject},
   {"-per-object", 0, 0, convertToString},
   {"parameter", 0, 0, convertToTclobj}}
+},
+{"::nsf::cmd::Object::autoname", NsfOAutonameMethodStub, 3, {
+  {"-instance", 0, 0, convertToString},
+  {"-reset", 0, 0, convertToString},
+  {"name", 1, 0, convertToTclobj}}
+},
+{"::nsf::cmd::Object::cleanup", NsfOCleanupMethodStub, 0, {
+  }
+},
+{"::nsf::cmd::Object::configure", NsfOConfigureMethodStub, 1, {
+  {"args", 0, 0, convertToNothing}}
+},
+{"::nsf::cmd::Object::destroy", NsfODestroyMethodStub, 0, {
+  }
+},
+{"::nsf::cmd::Object::exists", NsfOExistsMethodStub, 1, {
+  {"var", 1, 0, convertToString}}
+},
+{"::nsf::cmd::Object::filterguard", NsfOFilterGuardMethodStub, 2, {
+  {"filter", 1, 0, convertToString},
+  {"guard", 1, 0, convertToTclobj}}
+},
+{"::nsf::cmd::Object::instvar", NsfOInstVarMethodStub, 1, {
+  {"args", 0, 0, convertToNothing}}
+},
+{"::nsf::cmd::Object::mixinguard", NsfOMixinGuardMethodStub, 2, {
+  {"mixin", 1, 0, convertToString},
+  {"guard", 1, 0, convertToTclobj}}
+},
+{"::nsf::cmd::Object::noinit", NsfONoinitMethodStub, 0, {
+  }
+},
+{"::nsf::cmd::Object::requireNamespace", NsfORequireNamespaceMethodStub, 0, {
+  }
+},
+{"::nsf::cmd::Object::residualargs", NsfOResidualargsMethodStub, 1, {
+  {"args", 0, 0, convertToNothing}}
+},
+{"::nsf::cmd::Object::uplevel", NsfOUplevelMethodStub, 1, {
+  {"args", 0, 0, convertToNothing}}
+},
+{"::nsf::cmd::Object::upvar", NsfOUpvarMethodStub, 1, {
+  {"args", 0, 0, convertToNothing}}
+},
+{"::nsf::cmd::Object::volatile", NsfOVolatileMethodStub, 0, {
+  }
+},
+{"::nsf::cmd::Object::vwait", NsfOVwaitMethodStub, 1, {
+  {"varname", 1, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo::callable", NsfObjInfoCallableMethodStub, 7, {
+  {"infocallablesubcmd", 1, 1, convertToInfocallablesubcmd},
+  {"-methodtype", 0, 1, convertToMethodtype},
+  {"-callprotection", 0, 1, convertToCallprotection},
+  {"-application", 0, 0, convertToString},
+  {"-nomixins", 0, 0, convertToString},
+  {"-incontext", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo::children", NsfObjInfoChildrenMethodStub, 1, {
+  {"pattern", 0, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo::class", NsfObjInfoClassMethodStub, 0, {
+  }
+},
+{"::nsf::cmd::ObjectInfo::filterguard", NsfObjInfoFilterguardMethodStub, 1, {
+  {"filter", 1, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo::filtermethods", NsfObjInfoFiltermethodsMethodStub, 3, {
+  {"-guards", 0, 0, convertToString},
+  {"-order", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo::forward", NsfObjInfoForwardMethodStub, 2, {
+  {"-definition", 0, 0, convertToString},
+  {"name", 0, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo::hasmixin", NsfObjInfoHasMixinMethodStub, 1, {
+  {"class", 0, 0, convertToClass}}
+},
+{"::nsf::cmd::ObjectInfo::hastype", NsfObjInfoHasTypeMethodStub, 1, {
+  {"class", 0, 0, convertToClass}}
+},
+{"::nsf::cmd::ObjectInfo::hasnamespace", NsfObjInfoHasnamespaceMethodStub, 0, {
+  }
+},
+{"::nsf::cmd::ObjectInfo::is", NsfObjInfoIsMethodStub, 1, {
+  {"objectkind", 0, 0, convertToObjectkind}}
+},
+{"::nsf::cmd::ObjectInfo::method", NsfObjInfoMethodMethodStub, 2, {
+  {"infomethodsubcmd", 0, 0, convertToInfomethodsubcmd},
+  {"name", 0, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo::methods", NsfObjInfoMethodsMethodStub, 5, {
+  {"-methodtype", 0, 1, convertToMethodtype},
+  {"-callprotection", 0, 1, convertToCallprotection},
+  {"-nomixins", 0, 0, convertToString},
+  {"-incontext", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo::mixinclasses", NsfObjInfoMixinclassesMethodStub, 3, {
+  {"-guards", 0, 0, convertToString},
+  {"-order", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToObjpattern}}
+},
+{"::nsf::cmd::ObjectInfo::mixinguard", NsfObjInfoMixinguardMethodStub, 1, {
+  {"mixin", 1, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo::parent", NsfObjInfoParentMethodStub, 0, {
+  }
+},
+{"::nsf::cmd::ObjectInfo::precedence", NsfObjInfoPrecedenceMethodStub, 2, {
+  {"-intrinsic", 0, 0, convertToString},
+  {"pattern", 0, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo::slotobjects", NsfObjInfoSlotObjectsMethodStub, 1, {
+  {"pattern", 0, 0, convertToString}}
+},
+{"::nsf::cmd::ObjectInfo::vars", NsfObjInfoVarsMethodStub, 1, {
+  {"pattern", 0, 0, convertToString}}
 },{NULL}
 };
 

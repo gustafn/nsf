@@ -22,13 +22,13 @@
  *  express or implied warranty.
  * */
 
-#ifndef _xotcl_h_
-#define _xotcl_h_
+#ifndef _nsf_h_
+#define _nsf_h_
 
 #include "tcl.h"
 
 #undef TCL_STORAGE_CLASS
-#ifdef BUILD_xotcl
+#ifdef BUILD_nsf
 # define TCL_STORAGE_CLASS DLLEXPORT
 #else
 # ifdef USE_NSF_STUBS
@@ -79,12 +79,12 @@
 */
 
 /* activate/deacticate memory tracing 
-#define XOTCL_MEM_TRACE 1
-#define XOTCL_MEM_COUNT 1
+#define NSF_MEM_TRACE 1
+#define NSF_MEM_COUNT 1
 */
 
 /* turn  tracing output on/off
-#define XOTCLOBJ_TRACE 1
+#define NSFOBJ_TRACE 1
 
 #define CALLSTACK_TRACE 1
 #define DISPATCH_TRACE 1
@@ -104,7 +104,7 @@
 # define PARSE_TRACE 1
 #endif
 
-#ifdef XOTCL_MEM_COUNT
+#ifdef NSF_MEM_COUNT
 # define DO_FULL_CLEANUP 1
 #endif
 
@@ -132,19 +132,19 @@
 #ifndef RC_INVOKED
 
 /*
- * The structures XOTcl_Object and XOTcl_Class define mostly opaque 
- * data structures for the internal use strucures XOTclObject and 
- * XOTclClass (both defined in XOTclInt.h). Modification of elements 
+ * The structures Nsf_Object and Nsf_Class define mostly opaque 
+ * data structures for the internal use strucures NsfObject and 
+ * NsfClass (both defined in NsfInt.h). Modification of elements 
  * visible elements must be mirrored in both incarnations.
  */
 
-typedef struct XOTcl_Object {
+typedef struct Nsf_Object {
   Tcl_Obj *cmdName;
-} XOTcl_Object;
+} Nsf_Object;
 
-typedef struct XOTcl_Class {
-  struct XOTcl_Object object;
-} XOTcl_Class;
+typedef struct Nsf_Class {
+  struct Nsf_Object object;
+} Nsf_Class;
 
 
 /*
@@ -155,7 +155,7 @@ typedef struct XOTcl_Class {
 
 /*
  * Nsf_InitStubs is used by extensions  that can be linked
- * against the xotcl stubs library.  If we are not using stubs
+ * against the nsf stubs library.  If we are not using stubs
  * then this reduces to package require.
  */
 
@@ -176,4 +176,4 @@ Nsf_InitStubs _ANSI_ARGS_((Tcl_Interp *interp, CONST char *version, int exact));
 #undef TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS DLLIMPORT
 
-#endif /* _xotcl_h_ */
+#endif /* _nsf_h_ */

@@ -14,16 +14,16 @@ static InstructionDesc instructionTable[] = {
   {"dispatch",		  2,   1,   {OPERAND_UINT1}},
 };
 
-static XOTclCompEnv instructions[] = {
-  {0, 0, initProcNsCompile, XOTclInitProcNSCmd},
-  {0, 0, nextCompile, XOTclNextObjCmd},
-  {0, 0, selfCompile, XOTclGetSelfObjCmd},
-  {0, 0, selfDispatchCompile, /*XOTclSelfDispatchCmd*/XOTclDirectSelfDispatch},
+static NsfCompEnv instructions[] = {
+  {0, 0, initProcNsCompile, NsfInitProcNSCmd},
+  {0, 0, nextCompile, NsfNextObjCmd},
+  {0, 0, selfCompile, NsfGetSelfObjCmd},
+  {0, 0, selfDispatchCompile, /*NsfSelfDispatchCmd*/NsfDirectSelfDispatch},
   0
 };
 
-XOTclCompEnv *
-XOTclGetCompEnv() {
+NsfCompEnv *
+NsfGetCompEnv() {
   return &instructions[0];
 }
 
@@ -35,7 +35,7 @@ initProcNsCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
   if (parsePtr->numWords != 1) {
 	Tcl_ResetResult(interp);
 	Tcl_AppendToObj(Tcl_GetObjResult(interp),
-	        "wrong # args: should be '::xotcl::initProcNS'", -1);
+	        "wrong # args: should be '::nsf::initProcNS'", -1);
 	envPtr->maxStackDepth = 0;
 	return TCL_ERROR;
     }
@@ -126,7 +126,7 @@ selfDispatchCompile(Tcl_Interp *interp, Tcl_Parse *parsePtr,
 
 
 void
-XOTclBytecodeInit() {
+NsfBytecodeInit() {
   int i;
   for(i=0; i<LAST_INSTRUCTION; i++) {
     if ((instructions[i].bytecode = 

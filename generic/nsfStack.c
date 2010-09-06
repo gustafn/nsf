@@ -1,6 +1,6 @@
 
 static TclVarHashTable *VarHashTableCreate();
-static void XOTclCleanupObject(XOTclObject *object);
+static void NsfCleanupObject(NsfObject *object);
 
 void tcl85showStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
@@ -17,9 +17,9 @@ void tcl85showStack(Tcl_Interp *interp) {
   framePtr = (Tcl_CallFrame *)Tcl_Interp_framePtr(interp);
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     int frameFlags = Tcl_CallFrame_isProcCallFrame(framePtr);
-    XOTclCallStackContent *cscPtr = 
-      (frameFlags & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) ?
-      ((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr)) : NULL;
+    NsfCallStackContent *cscPtr = 
+      (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) ?
+      ((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr)) : NULL;
 
     fprintf(stderr, "... var frame %p flags %.6x cd %p lvl %d ns %p %s ov %s %d",
             framePtr, frameFlags,
@@ -36,8 +36,8 @@ void tcl85showStack(Tcl_Interp *interp) {
               cscPtr ? objectName(cscPtr->self) : "");
     } else {
       fprintf(stderr, " no csc");
-      if (frameFlags & FRAME_IS_XOTCL_OBJECT) {
-        XOTclObject *object = (XOTclObject *)Tcl_CallFrame_clientData(framePtr);
+      if (frameFlags & FRAME_IS_NSF_OBJECT) {
+        NsfObject *object = (NsfObject *)Tcl_CallFrame_clientData(framePtr);
         fprintf(stderr, " obj %p %s", object, objectName(object));
       }
       fprintf(stderr, "\n");
@@ -52,16 +52,16 @@ void tcl85showStack(Tcl_Interp *interp) {
  * a object->nsPtr can be created (e.g. during a read trace)
  */
 
-static void XOTcl_PushFrameObj(Tcl_Interp *interp, XOTclObject *object, Tcl_CallFrame *framePtr) {
-  /*fprintf(stderr,"PUSH OBJECT_FRAME (XOTcl_PushFrame) frame %p\n",framePtr);*/
+static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, Tcl_CallFrame *framePtr) {
+  /*fprintf(stderr,"PUSH OBJECT_FRAME (Nsf_PushFrame) frame %p\n",framePtr);*/
   if (object->nsPtr) {
-    /*fprintf(stderr,"XOTcl_PushFrame frame %p with object->nsPtr %p\n", framePtr, object->nsPtr);*/
+    /*fprintf(stderr,"Nsf_PushFrame frame %p with object->nsPtr %p\n", framePtr, object->nsPtr);*/
     Tcl_PushCallFrame(interp, framePtr, object->nsPtr, 
-                      0|FRAME_IS_XOTCL_OBJECT); 
+                      0|FRAME_IS_NSF_OBJECT); 
   } else {
-    /*fprintf(stderr,"XOTcl_PushFrame frame %p (with fakeProc)\n",framePtr);*/
+    /*fprintf(stderr,"Nsf_PushFrame frame %p (with fakeProc)\n",framePtr);*/
     Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)), 
-                      1|FRAME_IS_XOTCL_OBJECT);
+                      1|FRAME_IS_NSF_OBJECT);
     
     Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
     if (object->varTable == NULL) {
@@ -75,28 +75,28 @@ static void XOTcl_PushFrameObj(Tcl_Interp *interp, XOTclObject *object, Tcl_Call
   Tcl_CallFrame_clientData(framePtr) = (ClientData)object;
 }
 
-static void XOTcl_PopFrameObj(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  /*fprintf(stderr,"POP  OBJECT_FRAME (XOTcl_PopFrame) frame %p, vartable %p set to NULL, already %d\n", 
+static void Nsf_PopFrameObj(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+  /*fprintf(stderr,"POP  OBJECT_FRAME (Nsf_PopFrame) frame %p, vartable %p set to NULL, already %d\n", 
     framePtr, Tcl_CallFrame_varTablePtr(framePtr),  Tcl_CallFrame_varTablePtr(framePtr) == NULL);*/
   Tcl_CallFrame_varTablePtr(framePtr) = NULL;
   Tcl_PopCallFrame(interp);
 }
 
-static void XOTcl_PushFrameCsc(Tcl_Interp *interp, XOTclCallStackContent *cscPtr, Tcl_CallFrame *framePtr) {
+static void Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_CallFrame *framePtr) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
 
-  /*fprintf(stderr,"PUSH CMETHOD_FRAME (XOTcl_PushFrame) frame %p object->nsPtr %p interp ns %p\n",
+  /*fprintf(stderr,"PUSH CMETHOD_FRAME (Nsf_PushFrame) frame %p object->nsPtr %p interp ns %p\n",
           framePtr,object->nsPtr, 
           Tcl_CallFrame_nsPtr(varFramePtr));*/
 
   Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(varFramePtr), 
-		    1|FRAME_IS_XOTCL_CMETHOD);
+		    1|FRAME_IS_NSF_CMETHOD);
   Tcl_CallFrame_clientData(framePtr) = (ClientData)cscPtr;
   Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
 }
 
-static void XOTcl_PopFrameCsc(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  /*fprintf(stderr,"POP CMETHOD_FRAME (XOTcl_PopFrame) frame %p, varTable = %p\n",
+static void Nsf_PopFrameCsc(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+  /*fprintf(stderr,"POP CMETHOD_FRAME (Nsf_PopFrame) frame %p, varTable = %p\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr));*/
   Tcl_PopCallFrame(interp);
 }
@@ -110,12 +110,12 @@ activeProcFrame(Tcl_CallFrame *framePtr) {
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     register int flag = Tcl_CallFrame_isProcCallFrame(framePtr);
 
-    if (flag & FRAME_IS_XOTCL_METHOD) {
+    if (flag & FRAME_IS_NSF_METHOD) {
       /* never return an inactive method frame */
-      if (!(((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType 
-            & XOTCL_CSC_TYPE_INACTIVE)) break;
+      if (!(((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType 
+            & NSF_CSC_TYPE_INACTIVE)) break;
     } else {
-      if (flag & (FRAME_IS_XOTCL_CMETHOD|FRAME_IS_XOTCL_OBJECT)) continue;
+      if (flag & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_OBJECT)) continue;
       if (flag == 0 || flag & FRAME_IS_PROC) break;
     }
   }
@@ -131,7 +131,7 @@ nextFrameOfType(Tcl_CallFrame *framePtr, int flags) {
   return framePtr;
 }
 
-XOTCLINLINE static XOTclObject*
+NSF_INLINE static NsfObject*
 GetSelfObj(Tcl_Interp *interp) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
@@ -145,25 +145,25 @@ GetSelfObj(Tcl_Interp *interp) {
             Tcl_CallFrame_clientData(varFramePtr),
             Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
 #endif
-    if (flag & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+    if (flag & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+      NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
 #if defined(TCL85STACK_TRACE)
       fprintf(stderr, "... self returns %p %.6x %s\n", cscPtr->self, 
               cscPtr->self->flags, objectName(cscPtr->self));
 #endif
       return cscPtr->self;
-    } else if (flag & FRAME_IS_XOTCL_OBJECT) {
+    } else if (flag & FRAME_IS_NSF_OBJECT) {
 #if defined(TCL85STACK_TRACE)
       fprintf(stderr, "... self returns %s\n",
-              objectName(((XOTclObject*)Tcl_CallFrame_clientData(varFramePtr))));
+              objectName(((NsfObject*)Tcl_CallFrame_clientData(varFramePtr))));
 #endif
-      return (XOTclObject *)Tcl_CallFrame_clientData(varFramePtr);
+      return (NsfObject *)Tcl_CallFrame_clientData(varFramePtr);
     }
   }
   return NULL;
 }
 
-static XOTclCallStackContent*
+static NsfCallStackContent*
 CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
@@ -174,30 +174,30 @@ CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
               Tcl_CallFrame_clientData(varFramePtr),
               Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
 # endif
-      if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+      if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
         if (framePtrPtr) *framePtrPtr = varFramePtr;
-        return (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+        return (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       }
   }
   if (framePtrPtr) *framePtrPtr = NULL;
   return NULL;
 }
 
-XOTCLINLINE static XOTclCallStackContent*
+NSF_INLINE static NsfCallStackContent*
 CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   return CallStackGetFrame(interp, framePtrPtr);
 }
 
 /* find last invocation of a scripted method */
-static XOTclCallStackContent *
-XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
+static NsfCallStackContent *
+NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
   int lvl = Tcl_CallFrame_level(varFramePtr);
   
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD) {
-      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if ((cscPtr->callType & XOTCL_CSC_CALL_IS_NEXT) || (cscPtr->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_NSF_METHOD) {
+      NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if ((cscPtr->callType & NSF_CSC_CALL_IS_NEXT) || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
         continue;
       }
       if (offset) {
@@ -214,8 +214,8 @@ XOTclCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame *
   return NULL;
 }
 
-static XOTclCallStackContent *
-XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
+static NsfCallStackContent *
+NsfCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   /* skip #offset frames */
@@ -223,9 +223,9 @@ XOTclCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fr
 
   /* search for first active frame and set tcl frame pointers */
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_XOTCL_METHOD/*(FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)*/) {
-      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if (!(cscPtr->frameType & XOTCL_CSC_TYPE_INACTIVE)) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_NSF_METHOD/*(FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)*/) {
+      NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (!(cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
         /* we found the highest active frame */
         if (framePtrPtr) *framePtrPtr = varFramePtr;
         return cscPtr;
@@ -243,7 +243,7 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
     *inFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp),
     *framePtr;
 
-  /*XOTclCallStackFindActiveFrame(interp, 0, &activeFramePtr);*/
+  /*NsfCallStackFindActiveFrame(interp, 0, &activeFramePtr);*/
 # if defined(TCL85STACK_TRACE)
   tcl85showStack(interp);
 # endif
@@ -263,14 +263,14 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
 }
 
 
-static XOTclCallStackContent *
+static NsfCallStackContent *
 CallStackFindActiveFilter(Tcl_Interp *interp) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if (cscPtr->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+      NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+      if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) {
         return cscPtr;
       }
     }
@@ -282,15 +282,15 @@ CallStackFindActiveFilter(Tcl_Interp *interp) {
 /*
  * check, if there is an active filters on "obj" using cmd
  */
-XOTCLINLINE static int
-FilterActiveOnObj(Tcl_Interp *interp, XOTclObject *object, Tcl_Command cmd) {
+NSF_INLINE static int
+FilterActiveOnObj(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+      NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (cmd == cscPtr->cmdPtr && object == cscPtr->self &&
-          cscPtr->frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+          cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) {
         return 1;
       }
     }
@@ -306,7 +306,7 @@ CallStackReplaceVarTableReferences(Tcl_Interp *interp, TclVarHashTable *oldVarTa
        framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     int frameFlags = Tcl_CallFrame_isProcCallFrame(framePtr);
           
-    if (!(frameFlags & FRAME_IS_XOTCL_OBJECT)) continue;
+    if (!(frameFlags & FRAME_IS_NSF_OBJECT)) continue;
     if (!(Tcl_CallFrame_varTablePtr(framePtr) == oldVarTablePtr)) continue;
     
     /*fprintf(stderr, "+++ makeObjNamespace replacing vartable %p with %p in frame %p\n", 
@@ -320,8 +320,8 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+      NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (cscPtr->cmdPtr == cmd) {
         cscPtr->cmdPtr = NULL;
       }
@@ -331,14 +331,14 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
 
 
 #if 0
-/* just used by XOTclONextMethod() */
-static XOTclCallStackContent*
-CallStackGetObjectFrame(Tcl_Interp *interp, XOTclObject *object) {
+/* just used by NsfONextMethod() */
+static NsfCallStackContent*
+CallStackGetObjectFrame(Tcl_Interp *interp, NsfObject *object) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *cscPtr = (XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+      NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (cscPtr->self == object) {
         return cscPtr;
       }
@@ -366,11 +366,11 @@ static void CallStackPopAll(Tcl_Interp *interp) {
     frameFlags = Tcl_CallFrame_isProcCallFrame(framePtr);
     /*fprintf(stderr, "--- popping %p frameflags %.6x\n", framePtr, frameFlags);*/
 
-    if (frameFlags & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
+    if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       /* free the call stack content; we need this just for decr activation count */
-      XOTclCallStackContent *cscPtr = ((XOTclCallStackContent *)Tcl_CallFrame_clientData(framePtr));
+      NsfCallStackContent *cscPtr = ((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr));
       CscFinish(interp, cscPtr);
-    } else if (frameFlags & FRAME_IS_XOTCL_OBJECT) {
+    } else if (frameFlags & FRAME_IS_NSF_OBJECT) {
       Tcl_CallFrame_varTablePtr(framePtr) = NULL;
     }
 
@@ -395,8 +395,8 @@ static void CallStackPopAll(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  */
 
-XOTCLINLINE static void
-CscInit(/*@notnull@*/ XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclClass *cl, Tcl_Command cmd, int frameType) {
+NSF_INLINE static void
+CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl, Tcl_Command cmd, int frameType) {
 
   assert(cscPtr);
 
@@ -428,7 +428,7 @@ CscInit(/*@notnull@*/ XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclC
   cscPtr->cmdPtr        = cmd;
   cscPtr->frameType     = frameType;
   cscPtr->callType      = 0;
-  cscPtr->filterStackEntry = frameType == XOTCL_CSC_TYPE_ACTIVE_FILTER ? object->filterStack : NULL;
+  cscPtr->filterStackEntry = frameType == NSF_CSC_TYPE_ACTIVE_FILTER ? object->filterStack : NULL;
   cscPtr->objv          = NULL;
 
 #if defined(TCL85STACK_TRACE)
@@ -456,11 +456,11 @@ CscInit(/*@notnull@*/ XOTclCallStackContent *cscPtr, XOTclObject *object, XOTclC
  *
  *----------------------------------------------------------------------
  */
-XOTCLINLINE static void
-CscFinish(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
-  XOTclObject *object = cscPtr->self;
+NSF_INLINE static void
+CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
+  NsfObject *object = cscPtr->self;
   int allowDestroy = RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
-    XOTCL_EXITHANDLER_ON_SOFT_DESTROY;
+    NSF_EXITHANDLER_ON_SOFT_DESTROY;
 
 #if defined(TCL85STACK_TRACE)
   fprintf(stderr, "POP  csc=%p, obj %s method %s\n", cscPtr, objectName(object),
@@ -474,7 +474,7 @@ CscFinish(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
   /*fprintf(stderr, "decr activationCount for %s to %d cscPtr->cl %p\n", objectName(cscPtr->self), 
     cscPtr->self->activationCount, cscPtr->cl);*/
 
-  if (object->activationCount < 1 && object->flags & XOTCL_DESTROY_CALLED && allowDestroy) {
+  if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED && allowDestroy) {
     CallStackDoDestroy(interp, object);
   } 
 #if defined(OBJDELETION_TRACE)
@@ -496,9 +496,9 @@ CscFinish(Tcl_Interp *interp, XOTclCallStackContent *cscPtr) {
             cscPtr->cmdPtr, ((Command *)cscPtr->cmdPtr)->nsPtr); */
 
     /*fprintf(stderr, "CscFinish check ac %d flags %.6x\n",
-      object->activationCount, object->flags & XOTCL_DESTROY_CALLED);*/
+      object->activationCount, object->flags & NSF_DESTROY_CALLED);*/
 
-    if (object->activationCount < 1 && object->flags & XOTCL_DESTROY_CALLED && allowDestroy) {
+    if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED && allowDestroy) {
       CallStackDoDestroy(interp, object);
     } 
 #if defined(OBJDELETION_TRACE)

@@ -28,65 +28,65 @@ interface nsfInt
 
 #}
 # declare 2 generic {
-#     int XOTclErrInProc (Tcl_Interp *in, Tcl_Obj* objName,
+#     int NsfErrInProc (Tcl_Interp *in, Tcl_Obj* objName,
 # 		Tcl_Obj* clName, char* procName)
 # }
 # declare 3 generic {
-#     int XOTclObjErrArgCnt(Tcl_Interp *in, Tcl_Obj *cmdname, char *arglist)
+#     int NsfObjErrArgCnt(Tcl_Interp *in, Tcl_Obj *cmdname, char *arglist)
 # }
 # declare 4 generic {
-#     int XOTclErrBadVal(Tcl_Interp *in, char *expected, char *value)
+#     int NsfErrBadVal(Tcl_Interp *in, char *expected, char *value)
 # }
 # declare 5 generic {
-#     int XOTclObjErrType(Tcl_Interp *in, Tcl_Obj *nm, char* wt)
+#     int NsfObjErrType(Tcl_Interp *in, Tcl_Obj *nm, char* wt)
 # }
 # declare 6 generic {
-#     void XOTclStackTrace (Tcl_Interp* in)
+#     void NsfStackTrace (Tcl_Interp* in)
 # }
 # declare 7 generic {
-#     void XOTclCallStackTrace (Tcl_Interp* in)
+#     void NsfCallStackTrace (Tcl_Interp* in)
 # }
 #declare 8 generic {
-#    void XOTclFilterTrace (Tcl_Interp* in)
+#    void NsfFilterTrace (Tcl_Interp* in)
 #}
 #declare 9 generic {
-#    int XOTclIsType(XOTclObject* obj, XOTclClass* type)
+#    int NsfIsType(NsfObject* obj, NsfClass* type)
 #}
 #declare 10 generic {
-#    void XOTclRemoveClasses(XOTclClasses* sl)
+#    void NsfRemoveClasses(NsfClasses* sl)
 #}
 # declare 11 generic {
-#     XOTclClasses** XOTclAddClass(XOTclClasses** cList, XOTclClass* cl, ClientData cd)
+#     NsfClasses** NsfAddClass(NsfClasses** cList, NsfClass* cl, ClientData cd)
 # }
 # declare 12 generic {
 
 # }
 # declare 13 generic {
-#     XOTclClasses* XOTclComputeDependents(register XOTclClass* cl)
+#     NsfClasses* NsfComputeDependents(register NsfClass* cl)
 # }
 # declare 14 generic {
-#     void XOTclDeprecatedMsg(char* oldCmd, char* newCmd)
+#     void NsfDeprecatedMsg(char* oldCmd, char* newCmd)
 # }
 # declare 15 generic {
-#     void XOTclSetObjClientData(XOTclObject* obj, ClientData data)
+#     void NsfSetObjClientData(NsfObject* obj, ClientData data)
 # }
 # declare 16 generic {
-#     ClientData XOTclGetObjClientData(XOTclObject* obj)
+#     ClientData NsfGetObjClientData(NsfObject* obj)
 # }
 # declare 17 generic {
-#     void XOTclSetClassClientData(XOTclClass* cl, ClientData data)
+#     void NsfSetClassClientData(NsfClass* cl, ClientData data)
 # }
 # declare 18 generic {
-#     ClientData XOTclGetClassClientData(XOTclClass* cl)
+#     ClientData NsfGetClassClientData(NsfClass* cl)
 # }
 # declare 19 generic {
-#     void XOTclRequireObjectOpt(XOTclObject* obj)
+#     void NsfRequireObjectOpt(NsfObject* obj)
 # }
 # declare 20 generic {
-#     void XOTclRequireClassOpt(XOTclClass* cl)
+#     void NsfRequireClassOpt(NsfClass* cl)
 # }
 # declare 21 generic {
-#     void XOTclRequireObjNamespace(Tcl_Interp* in, XOTclObject* obj)
+#     void NsfRequireObjNamespace(Tcl_Interp* in, NsfObject* obj)
 # }
 # declare 22 generic {
     

@@ -1,7 +1,7 @@
 /* 
    This file provides the stubs needed for the AOL_SERVER,
    Please note, that you have to have to apply a small patch
-   to the AOL server as well (available from www.xotcl.org)
+   to the AOL server as well (available from www.nsf.org)
    in order to get it working.
 
    Authore:
@@ -58,7 +58,7 @@ NsXotcl_Init (Tcl_Interp *interp, void *context)
       * predefined is through
       */
      Tcl_Import(interp, Tcl_GetGlobalNamespace(interp), 
-		"xotcl::*", 0);
+		"nsf::*", 0);
    }
    firsttime = 0;
  }
@@ -100,7 +100,7 @@ NsXotcl_Init (Tcl_Interp *interp, void *context)
  *    on thread-exit time, so don't create any XOTcl resources there.
  *    Create them in the startup thread and they will automatically be copied 
  *    for you. 
- *    Look in <serverroot>/modules/tcl/xotcl for a simple example. 
+ *    Look in <serverroot>/modules/tcl/nsf for a simple example. 
  *
  * Results:
  *    Standard Tcl result.
@@ -126,7 +126,7 @@ NsXotcl_Init1 (Tcl_Interp *interp, void *notUsed)
    * Import the XOTcl namespace only for the shell after 
    * predefined is through
    */
-  Tcl_Import(interp, Tcl_GetGlobalNamespace(interp), "xotcl::*", 1);
+  Tcl_Import(interp, Tcl_GetGlobalNamespace(interp), "nsf::*", 1);
 
   return result;
 }

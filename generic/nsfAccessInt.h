@@ -45,15 +45,15 @@
  * Conversion from CmdPtr to Class / Object
  */
 
-static XOTCLINLINE ClientData
-XOTclGetClientDataFromCmdPtr(Tcl_Command cmd) {
+static NSF_INLINE ClientData
+NsfGetClientDataFromCmdPtr(Tcl_Command cmd) {
   assert(cmd);
-  /*fprintf(stderr, "objProc=%p %p\n",Tcl_Command_objProc(cmd),XOTclObjDispatch);*/
-  if (Tcl_Command_objProc(cmd) == XOTclObjDispatch /* && !Tcl_Command_cmdEpoch(cmd)*/)
+  /*fprintf(stderr, "objProc=%p %p\n",Tcl_Command_objProc(cmd),NsfObjDispatch);*/
+  if (Tcl_Command_objProc(cmd) == NsfObjDispatch /* && !Tcl_Command_cmdEpoch(cmd)*/)
     return Tcl_Command_objClientData(cmd);
   else {
     cmd = TclGetOriginalCommand(cmd);
-    if (cmd && Tcl_Command_objProc(cmd) == XOTclObjDispatch) {
+    if (cmd && Tcl_Command_objProc(cmd) == NsfObjDispatch) {
       /*fprintf(stderr, "???? got cmd right in 2nd round\n");*/
       return Tcl_Command_objClientData(cmd);
     }
@@ -61,19 +61,19 @@ XOTclGetClientDataFromCmdPtr(Tcl_Command cmd) {
   }
 }
 
-static XOTCLINLINE XOTclClass*
-XOTclGetClassFromCmdPtr(Tcl_Command cmd) {
-  ClientData cd = XOTclGetClientDataFromCmdPtr(cmd);
+static NSF_INLINE NsfClass*
+NsfGetClassFromCmdPtr(Tcl_Command cmd) {
+  ClientData cd = NsfGetClientDataFromCmdPtr(cmd);
   /*fprintf(stderr, "cd=%p\n",cd);*/
   if (cd) 
-    return XOTclObjectToClass(cd);
+    return NsfObjectToClass(cd);
   else
     return 0;
 }
 
-static XOTCLINLINE XOTclObject*
-XOTclGetObjectFromCmdPtr(Tcl_Command cmd) {
-  return (XOTclObject*) XOTclGetClientDataFromCmdPtr(cmd);
+static NSF_INLINE NsfObject*
+NsfGetObjectFromCmdPtr(Tcl_Command cmd) {
+  return (NsfObject*) NsfGetClientDataFromCmdPtr(cmd);
 }
 
 

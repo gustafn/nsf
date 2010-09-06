@@ -6,7 +6,7 @@
 
 # namespaces for types of methods
 array set ns {
-  xotclCmd    "::nsf"
+  nsfCmd    "::nsf"
   objectMethod "::nsf::cmd::Object"
   objectInfoMethod "::nsf::cmd::ObjectInfo"
   classMethod  "::nsf::cmd::Class"
@@ -17,7 +17,7 @@ array set ns {
 #
 # XOTcl commands
 #
-xotclCmd alias XOTclAliasCmd {
+nsfCmd alias NsfAliasCmd {
   {-argName "object" -type object}
   {-argName "-per-object"}
   {-argName "methodName"}
@@ -25,43 +25,43 @@ xotclCmd alias XOTclAliasCmd {
   {-argName "-objscope"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
-xotclCmd assertion XOTclAssertionCmd {
+nsfCmd assertion NsfAssertionCmd {
   {-argName "object" -type object}
   {-argName "assertionsubcmd" -required 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
 }
 
-xotclCmd configure XOTclConfigureCmd {
+nsfCmd configure NsfConfigureCmd {
   {-argName "configureoption" -required 1 -type "filter|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
 }
-xotclCmd createobjectsystem XOTclCreateObjectSystemCmd {
+nsfCmd createobjectsystem NsfCreateObjectSystemCmd {
   {-argName "rootClass" -required 1 -type tclobj}
   {-argName "rootMetaClass" -required 1 -type tclobj}
   {-argName "systemMethods" -required 0 -type tclobj}
 }
-xotclCmd deprecated XOTclDeprecatedCmd {
+nsfCmd deprecated NsfDeprecatedCmd {
   {-argName "what" -required 1}
   {-argName "oldCmd" -required 1}
   {-argName "newCmd" -required 0}
 }
-xotclCmd dispatch XOTclDispatchCmd {
+nsfCmd dispatch NsfDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-objscope"}
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
 }
-xotclCmd colon XOTclColonCmd {
+nsfCmd colon NsfColonCmd {
   {-argName "args" -type allargs}
 }
-xotclCmd existsvar XOTclExistsVarCmd {
+nsfCmd existsvar NsfExistsVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "var" -required 1}
 }
-xotclCmd finalize XOTclFinalizeObjCmd {
+nsfCmd finalize NsfFinalizeObjCmd {
 }
 
-xotclCmd forward XOTclForwardCmd {
+nsfCmd forward NsfForwardCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "method" -required 1 -type tclobj}
@@ -74,26 +74,26 @@ xotclCmd forward XOTclForwardCmd {
   {-argName "target" -type tclobj}
   {-argName "args" -type args}
 }
-xotclCmd importvar XOTclImportvarCmd {
+nsfCmd importvar NsfImportvarCmd {
   {-argName "object" -type object}
   {-argName "args" -type args}
 }
-xotclCmd interp XOTclInterpObjCmd {
+nsfCmd interp NsfInterpObjCmd {
   {-argName "name"}
   {-argName "args" -type allargs}
 }
-xotclCmd invalidateobjectparameter XOTclInvalidateObjectParameterCmd {
+nsfCmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
   {-argName "class" -type class}
 }
-xotclCmd is XOTclIsCmd {
+nsfCmd is NsfIsCmd {
   {-argName "-complain"}
   {-argName "constraint" -required 1 -type tclobj}
   {-argName "value" -required 1 -type tclobj}
 }
-xotclCmd isobject XOTclIsObjectCmd {
+nsfCmd isobject NsfIsObjectCmd {
   {-argName "object" -required 1 -type tclobj}
 }
-xotclCmd method XOTclMethodCmd {
+nsfCmd method NsfMethodCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}
@@ -104,117 +104,117 @@ xotclCmd method XOTclMethodCmd {
   {-argName "-precondition"  -nrargs 1 -type tclobj}
   {-argName "-postcondition" -nrargs 1 -type tclobj}
 }
-xotclCmd methodproperty XOTclMethodPropertyCmd {
+nsfCmd methodproperty NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "methodproperty" -required 1 -type "class-only|protected|redefine-protected|returns|slotobj"}
   {-argName "value" -type tclobj}
 }
-xotclCmd my XOTclMyCmd {
+nsfCmd my NsfMyCmd {
   {-argName "-local"}
   {-argName "method" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
 
-xotclCmd namespace_copycmds XOTclNSCopyCmds {
+nsfCmd namespace_copycmds NsfNSCopyCmds {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
 }
-xotclCmd namespace_copyvars XOTclNSCopyVars {
+nsfCmd namespace_copyvars NsfNSCopyVars {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
 }
-xotclCmd __qualify XOTclQualifyObjCmd {
+nsfCmd __qualify NsfQualifyObjCmd {
   {-argName "name" -required 1 -type tclobj}
 }
-xotclCmd relation XOTclRelationCmd {
+nsfCmd relation NsfRelationCmd {
   {-argName "object" -type object}
   {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }
-xotclCmd current XOTclCurrentCmd {
+nsfCmd current NsfCurrentCmd {
   {-argName "currentoption" -required 0 -type "proc|method|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
 }
 
-xotclCmd setvar XOTclSetVarCmd {
+nsfCmd setvar NsfSetVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "variable" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
-xotclCmd setter XOTclSetterCmd {
+nsfCmd setter NsfSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "parameter" -type tclobj}
 }
 
-objectMethod autoname XOTclOAutonameMethod {
+objectMethod autoname NsfOAutonameMethod {
   {-argName "-instance"}
   {-argName "-reset"}
   {-argName "name" -required 1 -type tclobj}
 }
 
-objectMethod cleanup XOTclOCleanupMethod {
+objectMethod cleanup NsfOCleanupMethod {
 }
 
-objectMethod configure XOTclOConfigureMethod {
+objectMethod configure NsfOConfigureMethod {
   {-argName "args" -type allargs}
 }
 
-objectMethod destroy XOTclODestroyMethod {
+objectMethod destroy NsfODestroyMethod {
 }
 
-objectMethod exists XOTclOExistsMethod {
+objectMethod exists NsfOExistsMethod {
   {-argName "var" -required 1}
 }
 
-objectMethod filterguard XOTclOFilterGuardMethod {
+objectMethod filterguard NsfOFilterGuardMethod {
   {-argName "filter" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
 
-objectMethod instvar XOTclOInstVarMethod {
+objectMethod instvar NsfOInstVarMethod {
   {-argName "args" -type allargs}
 }
 
-objectMethod mixinguard XOTclOMixinGuardMethod {
+objectMethod mixinguard NsfOMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
 
-# objectMethod __next XOTclONextMethod {
+# objectMethod __next NsfONextMethod {
 #  {-argName "args" -type allargs}
 #}
 
-objectMethod noinit XOTclONoinitMethod {
+objectMethod noinit NsfONoinitMethod {
 }
 
-objectMethod requireNamespace XOTclORequireNamespaceMethod {
+objectMethod requireNamespace NsfORequireNamespaceMethod {
 }
 
-objectMethod residualargs XOTclOResidualargsMethod {
+objectMethod residualargs NsfOResidualargsMethod {
   {-argName "args" -type allargs}
 }
 
-objectMethod uplevel XOTclOUplevelMethod {
+objectMethod uplevel NsfOUplevelMethod {
   {-argName "args" -type allargs}
 }
 
-objectMethod upvar XOTclOUpvarMethod {
+objectMethod upvar NsfOUpvarMethod {
   {-argName "args" -type allargs}
 }
 
-objectMethod volatile XOTclOVolatileMethod {
+objectMethod volatile NsfOVolatileMethod {
 }
 
-objectMethod vwait XOTclOVwaitMethod {
+objectMethod vwait NsfOVwaitMethod {
   {-argName "varname" -required 1}
 }
 
 #
 # info object methods
 #
-objectInfoMethod callable XOTclObjInfoCallableMethod {
+objectInfoMethod callable NsfObjInfoCallableMethod {
   {-argName "infocallablesubcmd" -nrargs 1 -type "filter|method|methods" -required 1}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
@@ -223,39 +223,39 @@ objectInfoMethod callable XOTclObjInfoCallableMethod {
   {-argName "-incontext"}
   {-argName "pattern" -required 0}
 }
-objectInfoMethod children XOTclObjInfoChildrenMethod {
+objectInfoMethod children NsfObjInfoChildrenMethod {
   {-argName "pattern" -required 0}
 }
-objectInfoMethod class XOTclObjInfoClassMethod {
+objectInfoMethod class NsfObjInfoClassMethod {
 }
-objectInfoMethod filterguard XOTclObjInfoFilterguardMethod {
+objectInfoMethod filterguard NsfObjInfoFilterguardMethod {
   {-argName "filter" -required 1}
 }
-objectInfoMethod filtermethods XOTclObjInfoFiltermethodsMethod {
+objectInfoMethod filtermethods NsfObjInfoFiltermethodsMethod {
   {-argName "-guards"}
   {-argName "-order"}
   {-argName "pattern"}
 }
-objectInfoMethod forward XOTclObjInfoForwardMethod {
+objectInfoMethod forward NsfObjInfoForwardMethod {
   {-argName "-definition"}
   {-argName "name"}
 }
-objectInfoMethod hasmixin XOTclObjInfoHasMixinMethod {
+objectInfoMethod hasmixin NsfObjInfoHasMixinMethod {
   {-argName "class" -type class}
 }
-objectInfoMethod hasnamespace XOTclObjInfoHasnamespaceMethod {
+objectInfoMethod hasnamespace NsfObjInfoHasnamespaceMethod {
 }
-objectInfoMethod hastype XOTclObjInfoHasTypeMethod {
+objectInfoMethod hastype NsfObjInfoHasTypeMethod {
   {-argName "class" -type class}
 }
-objectInfoMethod is XOTclObjInfoIsMethod {
+objectInfoMethod is NsfObjInfoIsMethod {
   {-argName "objectkind" -type "class|baseclass|metaclass"}
 }
-objectInfoMethod method XOTclObjInfoMethodMethod {
+objectInfoMethod method NsfObjInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
-objectInfoMethod methods XOTclObjInfoMethodsMethod {
+objectInfoMethod methods NsfObjInfoMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
   {-argName "-nomixins"}
@@ -263,80 +263,80 @@ objectInfoMethod methods XOTclObjInfoMethodsMethod {
   {-argName "pattern"}
 }
 
-objectInfoMethod mixinclasses XOTclObjInfoMixinclassesMethod {
+objectInfoMethod mixinclasses NsfObjInfoMixinclassesMethod {
   {-argName "-guards"}
   {-argName "-order"}
   {-argName "pattern" -type objpattern}
 }
-objectInfoMethod mixinguard XOTclObjInfoMixinguardMethod {
+objectInfoMethod mixinguard NsfObjInfoMixinguardMethod {
   {-argName "mixin"  -required 1}
 }
-objectInfoMethod parent XOTclObjInfoParentMethod {
+objectInfoMethod parent NsfObjInfoParentMethod {
 }
-objectInfoMethod precedence XOTclObjInfoPrecedenceMethod {
+objectInfoMethod precedence NsfObjInfoPrecedenceMethod {
   {-argName "-intrinsic"}
   {-argName "pattern" -required 0}
 }
-objectInfoMethod slotobjects XOTclObjInfoSlotObjectsMethod {
+objectInfoMethod slotobjects NsfObjInfoSlotObjectsMethod {
   {-argName "pattern" -required 0}
 }
-objectInfoMethod vars XOTclObjInfoVarsMethod {
+objectInfoMethod vars NsfObjInfoVarsMethod {
   {-argName "pattern" -required 0}
 }
 
 #
 # info class methods
 #
-classInfoMethod filterguard XOTclClassInfoFilterguardMethod {
+classInfoMethod filterguard NsfClassInfoFilterguardMethod {
   {-argName "filter" -required 1}
 }
-classInfoMethod filtermethods XOTclClassInfoFiltermethodsMethod {
+classInfoMethod filtermethods NsfClassInfoFiltermethodsMethod {
   {-argName "-guards"}
   {-argName "pattern"}
 }
-classInfoMethod forward XOTclClassInfoForwardMethod {
+classInfoMethod forward NsfClassInfoForwardMethod {
   {-argName "-definition"}
   {-argName "name"}
 }
-classInfoMethod heritage XOTclClassInfoHeritageMethod {
+classInfoMethod heritage NsfClassInfoHeritageMethod {
   {-argName "pattern"}
 }
-classInfoMethod instances XOTclClassInfoInstancesMethod {
+classInfoMethod instances NsfClassInfoInstancesMethod {
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
 
-classInfoMethod method XOTclClassInfoMethodMethod {
+classInfoMethod method NsfClassInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
   {-argName "name"}
 }
-classInfoMethod methods XOTclClassInfoMethodsMethod {
+classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern"}
 }
-classInfoMethod mixinclasses XOTclClassInfoMixinclassesMethod {
+classInfoMethod mixinclasses NsfClassInfoMixinclassesMethod {
   {-argName "-closure"}
   {-argName "-guards"}
   {-argName "pattern" -type objpattern}
 }
-classInfoMethod mixinguard XOTclClassInfoMixinguardMethod {
+classInfoMethod mixinguard NsfClassInfoMixinguardMethod {
   {-argName "mixin"  -required 1}
 }
-classInfoMethod mixinof  XOTclClassInfoMixinOfMethod {
+classInfoMethod mixinof  NsfClassInfoMixinOfMethod {
   {-argName "-closure"}
   {-argName "-scope" -required 0 -nrargs 1 -type "all|class|object"}
   {-argName "pattern" -type objpattern}
 }
-classInfoMethod slots XOTclClassInfoSlotsMethod {
+classInfoMethod slots NsfClassInfoSlotsMethod {
 }
-classInfoMethod subclass XOTclClassInfoSubclassMethod {
+classInfoMethod subclass NsfClassInfoSubclassMethod {
   {-argName "-closure"}
   {-argName "pattern" -type objpattern}
 }
-classInfoMethod superclass XOTclClassInfoSuperclassMethod {
+classInfoMethod superclass NsfClassInfoSuperclassMethod {
   {-argName "-closure"}
   {-argName "pattern" -type tclobj}
 }
@@ -345,44 +345,44 @@ classInfoMethod superclass XOTclClassInfoSuperclassMethod {
 # class methods
 #
 
-classMethod alloc XOTclCAllocMethod {
+classMethod alloc NsfCAllocMethod {
   {-argName "name" -required 1 -type tclobj}
 }
 
-classMethod create XOTclCCreateMethod {
+classMethod create NsfCCreateMethod {
   {-argName "name" -required 1}
   {-argName "args" -type allargs}
 }
 
-classMethod dealloc XOTclCDeallocMethod {
+classMethod dealloc NsfCDeallocMethod {
   {-argName "object" -required 1 -type tclobj}
 }
 
-classMethod new XOTclCNewMethod {
+classMethod new NsfCNewMethod {
   {-argName "-childof" -type object -nrargs 1}
   {-argName "args" -required 0 -type args}
 }
-classMethod filterguard XOTclCFilterGuardMethod {
+classMethod filterguard NsfCFilterGuardMethod {
   {-argName "filter" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
-classMethod mixinguard XOTclCMixinGuardMethod {
+classMethod mixinguard NsfCMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
 
-classMethod recreate XOTclCRecreateMethod {
+classMethod recreate NsfCRecreateMethod {
   {-argName "name" -required 1 -type tclobj}
   {-argName "args" -type allargs}
 }
 #
 # check methods
 #
-# checkMethod required XOTclCheckRequiredArgs {
+# checkMethod required NsfCheckRequiredArgs {
 #   {-argName "name" -required 1}
 #   {-argName "value" -required 0 -type tclobj}
 # }
-# checkMethod boolean XOTclCheckBooleanArgs {
+# checkMethod boolean NsfCheckBooleanArgs {
 #   {-argName "name" -required 1}
 #   {-argName "value" -required 0 -type tclobj}
 # }

@@ -8,8 +8,8 @@
  *  Mostly internally used API Functions
  */
 
-#ifndef _xotcl_int_h_
-#define _xotcl_int_h_
+#ifndef _nsf_int_h_
+#define _nsf_int_h_
 
 #if defined(HAVE_STDINT_H)
 # define HAVE_INTPTR_T 
@@ -35,7 +35,7 @@
 #  include "dmalloc.h"
 #endif
 
-#ifdef BUILD_xotcl
+#ifdef BUILD_nsf
 # undef TCL_STORAGE_CLASS
 # define TCL_STORAGE_CLASS DLLEXPORT
 #endif
@@ -49,26 +49,26 @@
   (*(proc))((cd), (interp), (objc), (objv))
 #endif
 
-#ifdef XOTCL_MEM_COUNT
-Tcl_HashTable xotclMemCount;
-extern int xotclMemCountInterpCounter;
-typedef struct XOTclMemCounter {
+#ifdef NSF_MEM_COUNT
+Tcl_HashTable nsfMemCount;
+extern int nsfMemCountInterpCounter;
+typedef struct NsfMemCounter {
   int peak;
   int count;
-} XOTclMemCounter;
-#  define MEM_COUNT_ALLOC(id,p) XOTclMemCountAlloc(id,p)
-#  define MEM_COUNT_FREE(id,p) XOTclMemCountFree(id,p)
+} NsfMemCounter;
+#  define MEM_COUNT_ALLOC(id,p) NsfMemCountAlloc(id,p)
+#  define MEM_COUNT_FREE(id,p) NsfMemCountFree(id,p)
 #  define MEM_COUNT_INIT() \
-      if (xotclMemCountInterpCounter == 0) { \
-        Tcl_InitHashTable(&xotclMemCount, TCL_STRING_KEYS); \
-        xotclMemCountInterpCounter = 1; \
+      if (nsfMemCountInterpCounter == 0) { \
+        Tcl_InitHashTable(&nsfMemCount, TCL_STRING_KEYS); \
+        nsfMemCountInterpCounter = 1; \
       }
-#  define MEM_COUNT_DUMP() XOTclMemCountDump(interp)
+#  define MEM_COUNT_DUMP() NsfMemCountDump(interp)
 #  define MEM_COUNT_OPEN_FRAME()
 /*if (obj->varTable) noTableBefore = 0*/
 #  define MEM_COUNT_CLOSE_FRAME()
 /*      if (obj->varTable && noTableBefore) \
-	XOTclMemCountAlloc("obj->varTable",NULL)*/
+	NsfMemCountAlloc("obj->varTable",NULL)*/
 #else
 #  define MEM_COUNT_ALLOC(id,p)
 #  define MEM_COUNT_FREE(id,p)
@@ -82,9 +82,9 @@ typedef struct XOTclMemCounter {
 #define DSTRING_FREE(dsPtr) Tcl_DStringFree(dsPtr); MEM_COUNT_FREE("DString",dsPtr)
 
 #if USE_ASSOC_DATA
-# define RUNTIME_STATE(interp) ((XOTclRuntimeState*)Tcl_GetAssocData((interp), "XOTclRuntimeState", NULL))
+# define RUNTIME_STATE(interp) ((NsfRuntimeState*)Tcl_GetAssocData((interp), "NsfRuntimeState", NULL))
 #else
-# define RUNTIME_STATE(interp) ((XOTclRuntimeState*)((Interp*)(interp))->globalNsPtr->clientData)
+# define RUNTIME_STATE(interp) ((NsfRuntimeState*)((Interp*)(interp))->globalNsPtr->clientData)
 #endif
 
 
@@ -180,8 +180,8 @@ typedef struct XOTclMemCounter {
 #endif
 
 #ifdef  __WIN32__
-# define XOTCLINLINE
-# define XOTclNewObj(A) A=Tcl_NewObj()
+# define NSF_INLINE
+# define NsfNewObj(A) A=Tcl_NewObj()
 # define DECR_REF_COUNT(A) \
 	MEM_COUNT_FREE("INCR_REF_COUNT",A); Tcl_DecrRefCount(A)
 #else
@@ -190,30 +190,30 @@ typedef struct XOTclMemCounter {
  * but __hpux should also be checked - switched to only allow in gcc - JH
  */
 # if defined(__GNUC__)
-#  define XOTCLINLINE inline
+#  define NSF_INLINE inline
 # else
-#  define XOTCLINLINE
+#  define NSF_INLINE
 # endif
 # ifdef USE_TCL_STUBS
-#  define XOTclNewObj(A) A=Tcl_NewObj()
+#  define NsfNewObj(A) A=Tcl_NewObj()
 #  define DECR_REF_COUNT(A) \
 	MEM_COUNT_FREE("INCR_REF_COUNT",A); assert((A)->refCount > -1); \
         Tcl_DecrRefCount(A)
 # else
-#  define XOTclNewObj(A) TclNewObj(A)
+#  define NsfNewObj(A) TclNewObj(A)
 #  define DECR_REF_COUNT(A) \
 	MEM_COUNT_FREE("INCR_REF_COUNT",A); TclDecrRefCount(A)
 # endif
 #endif
 
 #if defined(TCL_THREADS)
-# define XOTclMutex Tcl_Mutex
-# define XOTclMutexLock(a) Tcl_MutexLock(a)
-# define XOTclMutexUnlock(a) Tcl_MutexUnlock(a)
+# define NsfMutex Tcl_Mutex
+# define NsfMutexLock(a) Tcl_MutexLock(a)
+# define NsfMutexUnlock(a) Tcl_MutexUnlock(a)
 #else
-# define XOTclMutex int
-# define XOTclMutexLock(a)   (*(a))++
-# define XOTclMutexUnlock(a) (*(a))--
+# define NsfMutex int
+# define NsfMutexLock(a)   (*(a))++
+# define NsfMutexUnlock(a) (*(a))--
 #endif
 
 #define ObjStr(obj) (obj)->bytes ? (obj)->bytes : Tcl_GetString(obj)
@@ -225,7 +225,7 @@ typedef struct XOTclMemCounter {
   fprintf(stderr, "  %s %p %s oid=%p teardown=%p destroyCalled=%d\n", \
           ctx,obj,(obj)->teardown?ObjStr((obj)->cmdName):"(deleted)", \
           (obj)->id, (obj)->teardown,                                 \
-          ((obj)->flags & XOTCL_DESTROY_CALLED))
+          ((obj)->flags & NSF_DESTROY_CALLED))
 #else
 # define PRINTOBJ(ctx,obj)
 #endif
@@ -238,14 +238,14 @@ typedef struct XOTclMemCounter {
 
 /* TCL_CONTINUE is defined as 4, from 5 on we can
    use app-specific return codes */
-#define XOTCL_CHECK_FAILED 6
+#define NSF_CHECK_FAILED 6
 
 /* flags for call method */
-#define XOTCL_CM_NO_UNKNOWN 1
-#define XOTCL_CM_NO_SHIFT   2
-#define XOTCL_CM_NO_PROTECT 4
-#define XOTCL_CM_NO_OBJECT_METHOD 8
-#define XOTCL_CM_DELGATE    0x10
+#define NSF_CM_NO_UNKNOWN 1
+#define NSF_CM_NO_SHIFT   2
+#define NSF_CM_NO_PROTECT 4
+#define NSF_CM_NO_OBJECT_METHOD 8
+#define NSF_CM_DELGATE    0x10
 
 /*
  *
@@ -256,30 +256,30 @@ typedef struct XOTclMemCounter {
 /*
  * Filter structures
  */
-typedef struct XOTclFilterStack {
+typedef struct NsfFilterStack {
   Tcl_Command currentCmdPtr;
   Tcl_Obj *calledProc;
-  struct XOTclFilterStack *nextPtr;
-} XOTclFilterStack;
+  struct NsfFilterStack *nextPtr;
+} NsfFilterStack;
 
-typedef struct XOTclTclObjList {
+typedef struct NsfTclObjList {
   Tcl_Obj *content;
-  struct XOTclTclObjList *nextPtr;
-} XOTclTclObjList;
+  struct NsfTclObjList *nextPtr;
+} NsfTclObjList;
 
 /*
  * Assertion structures
  */
 
-typedef struct XOTclProcAssertion {
-  XOTclTclObjList *pre;
-  XOTclTclObjList *post;
-} XOTclProcAssertion;
+typedef struct NsfProcAssertion {
+  NsfTclObjList *pre;
+  NsfTclObjList *post;
+} NsfProcAssertion;
 
-typedef struct XOTclAssertionStore {
-  XOTclTclObjList *invariants;
+typedef struct NsfAssertionStore {
+  NsfTclObjList *invariants;
   Tcl_HashTable procs;
-} XOTclAssertionStore;
+} NsfAssertionStore;
 
 typedef enum { /* powers of 2; add to ALL, if default; */
   CHECK_NONE  = 0, CHECK_CLINVAR = 1, CHECK_OBJINVAR = 2,
@@ -288,135 +288,135 @@ typedef enum { /* powers of 2; add to ALL, if default; */
   CHECK_ALL   = CHECK_INVAR   + CHECK_PRE + CHECK_POST
 } CheckOptions;
 
-void XOTclAssertionRename(Tcl_Interp *interp, Tcl_Command cmd,
-			  XOTclAssertionStore *as,
+void NsfAssertionRename(Tcl_Interp *interp, Tcl_Command cmd,
+			  NsfAssertionStore *as,
 			  char *oldSimpleCmdName, char *newName);
 /*
  * mixins
  */
-typedef struct XOTclMixinStack {
+typedef struct NsfMixinStack {
   Tcl_Command currentCmdPtr;
-  struct XOTclMixinStack *nextPtr;
-} XOTclMixinStack;
+  struct NsfMixinStack *nextPtr;
+} NsfMixinStack;
 
 /*
  * Generic command pointer list
  */
-typedef struct XOTclCmdList {
+typedef struct NsfCmdList {
   Tcl_Command cmdPtr;
   ClientData clientData;
-  struct XOTclClass *clorobj;
-  struct XOTclCmdList *nextPtr;
-} XOTclCmdList;
+  struct NsfClass *clorobj;
+  struct NsfCmdList *nextPtr;
+} NsfCmdList;
 
-typedef void (XOTclFreeCmdListClientData) _ANSI_ARGS_((XOTclCmdList*));
+typedef void (NsfFreeCmdListClientData) _ANSI_ARGS_((NsfCmdList*));
 
 /* for incr string */
-typedef struct XOTclStringIncrStruct {
+typedef struct NsfStringIncrStruct {
   char *buffer;
   char *start;
   size_t bufSize;
   int length;
-} XOTclStringIncrStruct;
+} NsfStringIncrStruct;
 
 /* 
  * cmd flags
  */
 
-#define XOTCL_CMD_PROTECTED_METHOD 		0x00010000
-#define XOTCL_CMD_REDEFINE_PROTECTED_METHOD	0x00020000
-/* XOTCL_CMD_NONLEAF_METHOD is used to flag, if a Method implemented via cmd calls "next" */
-#define XOTCL_CMD_NONLEAF_METHOD		0x00040000
-#define XOTCL_CMD_CLASS_ONLY_METHOD		0x00080000
+#define NSF_CMD_PROTECTED_METHOD 		0x00010000
+#define NSF_CMD_REDEFINE_PROTECTED_METHOD	0x00020000
+/* NSF_CMD_NONLEAF_METHOD is used to flag, if a Method implemented via cmd calls "next" */
+#define NSF_CMD_NONLEAF_METHOD		0x00040000
+#define NSF_CMD_CLASS_ONLY_METHOD		0x00080000
 /*
  * object flags ...
  */
 
 /* DESTROY_CALLED indicates that destroy was called on obj */
-#define XOTCL_DESTROY_CALLED                 0x0001
+#define NSF_DESTROY_CALLED                 0x0001
 /* INIT_CALLED indicates that init was called on obj */
-#define XOTCL_INIT_CALLED                    0x0002
+#define NSF_INIT_CALLED                    0x0002
 /* MIXIN_ORDER_VALID set when mixin order is valid */
-#define XOTCL_MIXIN_ORDER_VALID              0x0004
+#define NSF_MIXIN_ORDER_VALID              0x0004
 /* MIXIN_ORDER_DEFINED set, when mixins are defined for obj */
-#define XOTCL_MIXIN_ORDER_DEFINED            0x0008
-#define XOTCL_MIXIN_ORDER_DEFINED_AND_VALID  0x000c
+#define NSF_MIXIN_ORDER_DEFINED            0x0008
+#define NSF_MIXIN_ORDER_DEFINED_AND_VALID  0x000c
 /* FILTER_ORDER_VALID set, when filter order is valid */
-#define XOTCL_FILTER_ORDER_VALID             0x0010
+#define NSF_FILTER_ORDER_VALID             0x0010
 /* FILTER_ORDER_DEFINED set, when filters are defined for obj */
-#define XOTCL_FILTER_ORDER_DEFINED           0x0020
-#define XOTCL_FILTER_ORDER_DEFINED_AND_VALID 0x0030
+#define NSF_FILTER_ORDER_DEFINED           0x0020
+#define NSF_FILTER_ORDER_DEFINED_AND_VALID 0x0030
 /* CLASS properties for objects */
-#define XOTCL_IS_CLASS                       0x0040
-#define XOTCL_IS_ROOT_META_CLASS             0x0080
-#define XOTCL_IS_ROOT_CLASS                  0x0100
-#define XOTCL_TCL_DELETE                     0x0200
+#define NSF_IS_CLASS                       0x0040
+#define NSF_IS_ROOT_META_CLASS             0x0080
+#define NSF_IS_ROOT_CLASS                  0x0100
+#define NSF_TCL_DELETE                     0x0200
 /* DESTROYED set, when object is physically destroyed with PrimitiveODestroy  */
-/*#define XOTCL_CMD_NOT_FOUND                  0x1000*/
-#define XOTCL_DURING_DELETE                  0x2000
-#define XOTCL_DELETED                        0x4000
-#define XOTCL_RECREATE                       0x8000
+/*#define NSF_CMD_NOT_FOUND                  0x1000*/
+#define NSF_DURING_DELETE                  0x2000
+#define NSF_DELETED                        0x4000
+#define NSF_RECREATE                       0x8000
 
-/* flags for XOTclParams */
+/* flags for NsfParams */
 
-#define XOTCL_ARG_REQUIRED		     0x0001
-#define XOTCL_ARG_MULTIVALUED		     0x0002
-#define XOTCL_ARG_NOARG 		     0x0004
-#define XOTCL_ARG_CURRENTLY_UNKNOWN	     0x0008
-#define XOTCL_ARG_SUBST_DEFAULT		     0x0010
-#define XOTCL_ARG_ALLOW_EMPTY		     0x0020
-#define XOTCL_ARG_INITCMD		     0x0040
-#define XOTCL_ARG_METHOD		     0x0080
-#define XOTCL_ARG_RELATION		     0x0100
-#define XOTCL_ARG_SWITCH		     0x0200
-#define XOTCL_ARG_HAS_DEFAULT		     0x1000
-#define XOTCL_ARG_IS_CONVERTER		     0x2000
+#define NSF_ARG_REQUIRED		     0x0001
+#define NSF_ARG_MULTIVALUED		     0x0002
+#define NSF_ARG_NOARG 		     0x0004
+#define NSF_ARG_CURRENTLY_UNKNOWN	     0x0008
+#define NSF_ARG_SUBST_DEFAULT		     0x0010
+#define NSF_ARG_ALLOW_EMPTY		     0x0020
+#define NSF_ARG_INITCMD		     0x0040
+#define NSF_ARG_METHOD		     0x0080
+#define NSF_ARG_RELATION		     0x0100
+#define NSF_ARG_SWITCH		     0x0200
+#define NSF_ARG_HAS_DEFAULT		     0x1000
+#define NSF_ARG_IS_CONVERTER		     0x2000
 
 /* disallowed options */
-#define XOTCL_DISALLOWED_ARG_METHOD_PARAMETER	     (XOTCL_ARG_METHOD|XOTCL_ARG_INITCMD|XOTCL_ARG_RELATION)
-#define XOTCL_DISALLOWED_ARG_SETTER	     	     (XOTCL_ARG_SUBST_DEFAULT|XOTCL_DISALLOWED_ARG_METHOD_PARAMETER)
-#define XOTCL_DISALLOWED_ARG_OBJECT_PARAMETER	     0
-#define XOTCL_DISALLOWED_ARG_VALUEECHECK	     (XOTCL_ARG_SUBST_DEFAULT|XOTCL_ARG_METHOD|XOTCL_ARG_INITCMD|XOTCL_ARG_RELATION|XOTCL_ARG_SWITCH|XOTCL_ARG_CURRENTLY_UNKNOWN)
+#define NSF_DISALLOWED_ARG_METHOD_PARAMETER	     (NSF_ARG_METHOD|NSF_ARG_INITCMD|NSF_ARG_RELATION)
+#define NSF_DISALLOWED_ARG_SETTER	     	     (NSF_ARG_SUBST_DEFAULT|NSF_DISALLOWED_ARG_METHOD_PARAMETER)
+#define NSF_DISALLOWED_ARG_OBJECT_PARAMETER	     0
+#define NSF_DISALLOWED_ARG_VALUEECHECK	     (NSF_ARG_SUBST_DEFAULT|NSF_ARG_METHOD|NSF_ARG_INITCMD|NSF_ARG_RELATION|NSF_ARG_SWITCH|NSF_ARG_CURRENTLY_UNKNOWN)
 
 
 /* method types */
-#define XOTCL_METHODTYPE_ALIAS     0x0001
-#define XOTCL_METHODTYPE_SCRIPTED  0x0002
-#define XOTCL_METHODTYPE_SETTER    0x0004
-#define XOTCL_METHODTYPE_FORWARDER 0x0008
-#define XOTCL_METHODTYPE_OBJECT    0x0010
-#define XOTCL_METHODTYPE_OTHER     0x0100
-#define XOTCL_METHODTYPE_BUILTIN   XOTCL_METHODTYPE_ALIAS|XOTCL_METHODTYPE_SETTER|XOTCL_METHODTYPE_FORWARDER|XOTCL_METHODTYPE_OTHER
+#define NSF_METHODTYPE_ALIAS     0x0001
+#define NSF_METHODTYPE_SCRIPTED  0x0002
+#define NSF_METHODTYPE_SETTER    0x0004
+#define NSF_METHODTYPE_FORWARDER 0x0008
+#define NSF_METHODTYPE_OBJECT    0x0010
+#define NSF_METHODTYPE_OTHER     0x0100
+#define NSF_METHODTYPE_BUILTIN   NSF_METHODTYPE_ALIAS|NSF_METHODTYPE_SETTER|NSF_METHODTYPE_FORWARDER|NSF_METHODTYPE_OTHER
 
 
 /* flags for parseContext */
-#define XOTCL_PC_MUST_DECR		     0x0001
+#define NSF_PC_MUST_DECR		     0x0001
 
-#define XOTclObjectSetClass(obj) \
-	(obj)->flags |= XOTCL_IS_CLASS
-#define XOTclObjectClearClass(obj) \
-	(obj)->flags &= ~XOTCL_IS_CLASS
-#define XOTclObjectIsClass(obj) \
-	((obj)->flags & XOTCL_IS_CLASS)
-#define XOTclObjectToClass(obj) \
-	(XOTclClass*)((((XOTclObject*)obj)->flags & XOTCL_IS_CLASS)?obj:0)
+#define NsfObjectSetClass(obj) \
+	(obj)->flags |= NSF_IS_CLASS
+#define NsfObjectClearClass(obj) \
+	(obj)->flags &= ~NSF_IS_CLASS
+#define NsfObjectIsClass(obj) \
+	((obj)->flags & NSF_IS_CLASS)
+#define NsfObjectToClass(obj) \
+	(NsfClass*)((((NsfObject*)obj)->flags & NSF_IS_CLASS)?obj:0)
 
 
 /*
  * object and class internals
  */
-struct XOTclParam;
-typedef int (XOTclTypeConverter)(Tcl_Interp *interp, 
+struct NsfParam;
+typedef int (NsfTypeConverter)(Tcl_Interp *interp, 
 				 Tcl_Obj *obj,
-                                 struct XOTclParam CONST *pPtr, 
+                                 struct NsfParam CONST *pPtr, 
 				 ClientData *clientData, 
 				 Tcl_Obj **outObjPtr);
 
-typedef struct XOTclParam {
+typedef struct NsfParam {
   char *name;
   int flags;
   int nrArgs;
-  XOTclTypeConverter *converter;
+  NsfTypeConverter *converter;
   Tcl_Obj *converterArg;
   Tcl_Obj *defaultValue;
   CONST char *type;
@@ -424,82 +424,82 @@ typedef struct XOTclParam {
   Tcl_Obj *converterName;
   Tcl_Obj *paramObj;
   Tcl_Obj *slotObj;
-} XOTclParam;
+} NsfParam;
 
-typedef struct XOTclParamDefs {
-  XOTclParam *paramsPtr;
+typedef struct NsfParamDefs {
+  NsfParam *paramsPtr;
   int nrParams;
   Tcl_Obj *slotObj;
   Tcl_Obj *returns;
-} XOTclParamDefs;
+} NsfParamDefs;
 
-typedef struct XOTclParsedParam {
-  XOTclParamDefs *paramDefs;
+typedef struct NsfParsedParam {
+  NsfParamDefs *paramDefs;
   int possibleUnknowns;
-} XOTclParsedParam;
+} NsfParsedParam;
 
-typedef struct XOTclObjectOpt {
-  XOTclAssertionStore *assertions;
-  XOTclCmdList *filters;
-  XOTclCmdList *mixins;
+typedef struct NsfObjectOpt {
+  NsfAssertionStore *assertions;
+  NsfCmdList *filters;
+  NsfCmdList *mixins;
   ClientData clientData;
   CONST char *volatileVarName;
   short checkoptions;
-} XOTclObjectOpt;
+} NsfObjectOpt;
 
-typedef struct XOTclObject {
+typedef struct NsfObject {
   Tcl_Obj *cmdName;
   Tcl_Command id;
   Tcl_Interp *teardown;
-  struct XOTclClass *cl;
+  struct NsfClass *cl;
   TclVarHashTable *varTable;
   Tcl_Namespace *nsPtr;
-  XOTclObjectOpt *opt;
-  struct XOTclCmdList *filterOrder;
-  struct XOTclCmdList *mixinOrder;
-  XOTclFilterStack *filterStack;
-  XOTclMixinStack *mixinStack;
+  NsfObjectOpt *opt;
+  struct NsfCmdList *filterOrder;
+  struct NsfCmdList *mixinOrder;
+  NsfFilterStack *filterStack;
+  NsfMixinStack *mixinStack;
   int refCount;
   short flags;
   short activationCount;
-} XOTclObject;
+} NsfObject;
 
-typedef struct XOTclObjects {
-  struct XOTclObject *obj;
-  struct XOTclObjects *nextPtr;
-} XOTclObjects;
+typedef struct NsfObjects {
+  struct NsfObject *obj;
+  struct NsfObjects *nextPtr;
+} NsfObjects;
 
-typedef struct XOTclClassOpt {
-  XOTclCmdList *classfilters;
-  XOTclCmdList *classmixins;
-  XOTclCmdList *isObjectMixinOf;
-  XOTclCmdList *isClassMixinOf;
-  XOTclAssertionStore *assertions;
+typedef struct NsfClassOpt {
+  NsfCmdList *classfilters;
+  NsfCmdList *classmixins;
+  NsfCmdList *isObjectMixinOf;
+  NsfCmdList *isClassMixinOf;
+  NsfAssertionStore *assertions;
 #ifdef NSF_OBJECTDATA
   Tcl_HashTable *objectdata;
 #endif
   Tcl_Command id;
   ClientData clientData;
-} XOTclClassOpt;
+} NsfClassOpt;
 
-typedef struct XOTclClass {
-  struct XOTclObject object;
-  struct XOTclClasses *super;
-  struct XOTclClasses *sub;
-  struct XOTclObjectSystem *osPtr;
-  struct XOTclClasses *order;
+typedef struct NsfClass {
+  struct NsfObject object;
+  struct NsfClasses *super;
+  struct NsfClasses *sub;
+  struct NsfObjectSystem *osPtr;
+  struct NsfClasses *order;
   Tcl_HashTable instances;
   Tcl_Namespace *nsPtr;
-  XOTclParsedParam *parsedParamPtr;
-  XOTclClassOpt *opt;
+  NsfParsedParam *parsedParamPtr;
+  NsfClassOpt *opt;
   short color;
-} XOTclClass;
+} NsfClass;
 
-typedef struct XOTclClasses {
-  struct XOTclClass *cl;
+typedef struct NsfClasses {
+  struct NsfClass *cl;
   ClientData clientData;
-  struct XOTclClasses *nextPtr;
-} XOTclClasses;
+  struct NsfClasses *nextPtr;
+} NsfClasses;
 
 typedef enum SystemMethodsIdx {
   XO_c_alloc_idx, 
@@ -518,10 +518,10 @@ typedef enum SystemMethodsIdx {
   XO_o_unknown_idx
 } SystemMethodsIdx;
 
-#if !defined(XOTCL_C)
-extern CONST char *XOTcl_SytemMethodOpts[];
+#if !defined(NSF_C)
+extern CONST char *Nsf_SytemMethodOpts[];
 #else 
-CONST char *XOTcl_SytemMethodOpts[] = {
+CONST char *Nsf_SytemMethodOpts[] = {
   "-class.alloc", 
   "-class.create", 
   "-class.dealloc",
@@ -540,14 +540,14 @@ CONST char *XOTcl_SytemMethodOpts[] = {
 };
 #endif
 
-typedef struct XOTclObjectSystem {
-  XOTclClass *rootClass;
-  XOTclClass *rootMetaClass;
+typedef struct NsfObjectSystem {
+  NsfClass *rootClass;
+  NsfClass *rootMetaClass;
   int overloadedMethods;
   int definedMethods;
   Tcl_Obj *methods[XO_o_unknown_idx+1];
-  struct XOTclObjectSystem *nextPtr;
-} XOTclObjectSystem;
+  struct NsfObjectSystem *nextPtr;
+} NsfObjectSystem;
 
 
 
@@ -555,7 +555,7 @@ typedef struct XOTclObjectSystem {
 /* XOTcl global names and strings */
 /* these are names and contents for global (corresponding) Tcl_Objs
    and Strings - otherwise these "constants" would have to be built
-   every time they are used; now they are built once in XOTcl_Init */
+   every time they are used; now they are built once in Nsf_Init */
 typedef enum {
   XOTE_EMPTY, XOTE_ONE,
   /* methods called internally */
@@ -571,11 +571,11 @@ typedef enum {
   XOTE_GUARD_OPTION, XOTE___UNKNOWN__, 
   /* Patly redefined Tcl commands; leave them together at the end */
   XOTE_EXPR, XOTE_FORMAT, XOTE_INFO, XOTE_INFO_FRAME, XOTE_INTERP, XOTE_IS, XOTE_RENAME, XOTE_SUBST
-} XOTclGlobalNames;
-#if !defined(XOTCL_C)
-extern char *XOTclGlobalStrings[];
+} NsfGlobalNames;
+#if !defined(NSF_C)
+extern char *NsfGlobalStrings[];
 #else
-char *XOTclGlobalStrings[] = {
+char *NsfGlobalStrings[] = {
   "", "1", 
   /* methods called internally */
   "configure", 
@@ -593,64 +593,64 @@ char *XOTclGlobalStrings[] = {
 };
 #endif
 
-#define XOTclGlobalObjs RUNTIME_STATE(interp)->methodObjNames
+#define NsfGlobalObjs RUNTIME_STATE(interp)->methodObjNames
 
 /* XOTcl ShadowTclCommands */
-typedef struct XOTclShadowTclCommandInfo {
+typedef struct NsfShadowTclCommandInfo {
   TclObjCmdProcType proc;
   ClientData clientData;
-} XOTclShadowTclCommandInfo;
-typedef enum {SHADOW_LOAD=1, SHADOW_UNLOAD=0, SHADOW_REFETCH=2} XOTclShadowOperations;
+} NsfShadowTclCommandInfo;
+typedef enum {SHADOW_LOAD=1, SHADOW_UNLOAD=0, SHADOW_REFETCH=2} NsfShadowOperations;
 
-int XOTclCallCommand(Tcl_Interp *interp, XOTclGlobalNames name,
+int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
 		     int objc, Tcl_Obj *CONST objv[]);
-int XOTclShadowTclCommands(Tcl_Interp *interp, XOTclShadowOperations load);
-Tcl_Obj * XOTclMethodObj(Tcl_Interp *interp, XOTclObject *object, int methodIdx);
+int NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load);
+Tcl_Obj * NsfMethodObj(Tcl_Interp *interp, NsfObject *object, int methodIdx);
 
 
 /*
  * XOTcl CallStack
  */
-typedef struct XOTclCallStackContent {
-  XOTclObject *self;
-  XOTclClass *cl;
+typedef struct NsfCallStackContent {
+  NsfObject *self;
+  NsfClass *cl;
   Tcl_Command cmdPtr;
-  XOTclFilterStack *filterStackEntry;
+  NsfFilterStack *filterStackEntry;
   Tcl_Obj ** objv;
   int objc;
   unsigned short frameType;
   unsigned short callType;
-} XOTclCallStackContent;
+} NsfCallStackContent;
 
-#define XOTCL_CSC_TYPE_PLAIN 0
-#define XOTCL_CSC_TYPE_ACTIVE_MIXIN 1
-#define XOTCL_CSC_TYPE_ACTIVE_FILTER 2
-#define XOTCL_CSC_TYPE_INACTIVE 4
-#define XOTCL_CSC_TYPE_INACTIVE_MIXIN 5
-#define XOTCL_CSC_TYPE_INACTIVE_FILTER 6
-#define XOTCL_CSC_TYPE_GUARD 16
+#define NSF_CSC_TYPE_PLAIN 0
+#define NSF_CSC_TYPE_ACTIVE_MIXIN 1
+#define NSF_CSC_TYPE_ACTIVE_FILTER 2
+#define NSF_CSC_TYPE_INACTIVE 4
+#define NSF_CSC_TYPE_INACTIVE_MIXIN 5
+#define NSF_CSC_TYPE_INACTIVE_FILTER 6
+#define NSF_CSC_TYPE_GUARD 16
 
-#define XOTCL_CSC_CALL_IS_NEXT 1
-#define XOTCL_CSC_CALL_IS_GUARD 2
+#define NSF_CSC_CALL_IS_NEXT 1
+#define NSF_CSC_CALL_IS_GUARD 2
 
 #if defined(NSF_PROFILE)
-typedef struct XOTclProfile {
+typedef struct NsfProfile {
   long int overallTime;
   Tcl_HashTable objectData;
   Tcl_HashTable methodData;
-} XOTclProfile;
+} NsfProfile;
 #endif
 
-typedef struct XOTclRuntimeState {
-  Tcl_Namespace *XOTclClassesNS;
-  Tcl_Namespace *XOTclNS;
+typedef struct NsfRuntimeState {
+  Tcl_Namespace *NsfClassesNS;
+  Tcl_Namespace *NsfNS;
   /*
-   * definitions of the main xotcl objects
+   * definitions of the main nsf objects
    */
-  struct XOTclObjectSystem *objectSystems;
+  struct NsfObjectSystem *objectSystems;
   Tcl_ObjCmdProc *objInterpProc;
   Tcl_Obj **methodObjNames;
-  struct XOTclShadowTclCommandInfo *tclCommands;
+  struct NsfShadowTclCommandInfo *tclCommands;
   int errorCount;
   /* these flags could move into a bitarray, but are used only once per interp*/
   int unknown;
@@ -663,8 +663,8 @@ typedef struct XOTclRuntimeState {
   int returnCode;
   int overloadedMethods;
   long newCounter;
-  XOTclStringIncrStruct iss;
-  XOTclObject *delegatee;
+  NsfStringIncrStruct iss;
+  NsfObject *delegatee;
   Proc fakeProc;
   Tcl_Namespace *fakeNS;
   NsfStubs *nsfStubs;
@@ -672,28 +672,28 @@ typedef struct XOTclRuntimeState {
   Tcl_Command cmdPtr; /* used for ACTIVE_MIXIN */
   Tcl_Command colonCmd;
 #if defined(NSF_PROFILE)
-  XOTclProfile profile;
+  NsfProfile profile;
 #endif
   short guardCount;
   ClientData clientData;
-} XOTclRuntimeState;
+} NsfRuntimeState;
 
-#define XOTCL_EXITHANDLER_OFF 0
-#define XOTCL_EXITHANDLER_ON_SOFT_DESTROY 1
-#define XOTCL_EXITHANDLER_ON_PHYSICAL_DESTROY 2
+#define NSF_EXITHANDLER_OFF 0
+#define NSF_EXITHANDLER_ON_SOFT_DESTROY 1
+#define NSF_EXITHANDLER_ON_PHYSICAL_DESTROY 2
 
 
 #ifdef NSF_OBJECTDATA
 extern void
-XOTclSetObjectData(struct XOTclObject *obj, struct XOTclClass *cl,
+NsfSetObjectData(struct NsfObject *obj, struct NsfClass *cl,
 		  ClientData data);
 extern int
-XOTclGetObjectData(struct XOTclObject *obj, struct XOTclClass *cl,
+NsfGetObjectData(struct NsfObject *obj, struct NsfClass *cl,
 		  ClientData *data);
 extern int
-XOTclUnsetObjectData(struct XOTclObject *obj, struct XOTclClass *cl);
+NsfUnsetObjectData(struct NsfObject *obj, struct NsfClass *cl);
 extern void
-XOTclFreeObjectData(XOTclClass *cl);
+NsfFreeObjectData(NsfClass *cl);
 #endif
 
 /*
@@ -710,79 +710,79 @@ XOTclFreeObjectData(XOTclClass *cl);
 
 #if defined(NSF_PROFILE)
 extern void
-XOTclProfileFillTable(Tcl_HashTable *table, Tcl_DString *key,
+NsfProfileFillTable(Tcl_HashTable *table, Tcl_DString *key,
 		 double totalMicroSec);
 extern void
-XOTclProfileEvaluateData(Tcl_Interp *interp, long int startSec, long int startUsec,
-		    XOTclObject *obj, XOTclClass *cl, char *methodName);
+NsfProfileEvaluateData(Tcl_Interp *interp, long int startSec, long int startUsec,
+		    NsfObject *obj, NsfClass *cl, char *methodName);
 extern void
-XOTclProfilePrintTable(Tcl_HashTable *table);
+NsfProfilePrintTable(Tcl_HashTable *table);
 
 extern void
-XOTclProfilePrintData(Tcl_Interp *interp);
+NsfProfilePrintData(Tcl_Interp *interp);
 
 extern void
-XOTclProfileInit(Tcl_Interp *interp);
+NsfProfileInit(Tcl_Interp *interp);
 #endif
 
 /*
  * MEM Counting
  */
-#ifdef XOTCL_MEM_COUNT
-void XOTclMemCountAlloc(char *id, void *);
-void XOTclMemCountFree(char *id, void *);
-void XOTclMemCountDump();
-#endif /* XOTCL_MEM_COUNT */
+#ifdef NSF_MEM_COUNT
+void NsfMemCountAlloc(char *id, void *);
+void NsfMemCountFree(char *id, void *);
+void NsfMemCountDump();
+#endif /* NSF_MEM_COUNT */
 
 /*
  * bytecode support
  */
 #ifdef NSF_BYTECODE
-typedef struct XOTclCompEnv {
+typedef struct NsfCompEnv {
   int bytecode;
   Command *cmdPtr;
   CompileProc *compileProc;
   Tcl_ObjCmdProc *callProc;
-} XOTclCompEnv;
+} NsfCompEnv;
 
 typedef enum {INST_INITPROC, INST_NEXT, INST_SELF, INST_SELF_DISPATCH,
-	      LAST_INSTRUCTION} XOTclByteCodeInstructions;
+	      LAST_INSTRUCTION} NsfByteCodeInstructions;
 
 
-extern XOTclCompEnv *XOTclGetCompEnv();
+extern NsfCompEnv *NsfGetCompEnv();
 
-Tcl_ObjCmdProc XOTclInitProcNSCmd, XOTclSelfDispatchCmd,
-  XOTclNextObjCmd, XOTclGetSelfObjCmd;
+Tcl_ObjCmdProc NsfInitProcNSCmd, NsfSelfDispatchCmd,
+  NsfNextObjCmd, NsfGetSelfObjCmd;
 
-int XOTclDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
+int NsfDirectSelfDispatch(ClientData cd, Tcl_Interp *interp,
 		     int objc, Tcl_Obj *CONST objv[]);
 #endif
 
 int
-XOTclObjDispatch(ClientData cd, Tcl_Interp *interp,
+NsfObjDispatch(ClientData cd, Tcl_Interp *interp,
 		 int objc, Tcl_Obj *CONST objv[]);
 
-/* functions from xotclUtil.c */
-char *XOTcl_ltoa(char *buf, long i, int *len);
-char *XOTclStringIncr(XOTclStringIncrStruct *iss);
-void XOTclStringIncrInit(XOTclStringIncrStruct *iss);
-void XOTclStringIncrFree(XOTclStringIncrStruct *iss);
+/* functions from nsfUtil.c */
+char *Nsf_ltoa(char *buf, long i, int *len);
+char *NsfStringIncr(NsfStringIncrStruct *iss);
+void NsfStringIncrInit(NsfStringIncrStruct *iss);
+void NsfStringIncrFree(NsfStringIncrStruct *iss);
 
 
 /*
    Tcl uses 01 and 02, TclOO uses 04 and 08, so leave some space free
    for further extensions of tcl and tcloo...
 */
-#define FRAME_IS_XOTCL_OBJECT  0x10000
-#define FRAME_IS_XOTCL_METHOD  0x20000
-#define FRAME_IS_XOTCL_CMETHOD 0x40000
+#define FRAME_IS_NSF_OBJECT  0x10000
+#define FRAME_IS_NSF_METHOD  0x20000
+#define FRAME_IS_NSF_CMETHOD 0x40000
 
 #if !defined(NDEBUG)
-/*# define XOTCLINLINE*/
+/*# define NSF_INLINE*/
 #endif
 
 /*** common win sermon ***/
 #undef TCL_STORAGE_CLASS
 #define TCL_STORAGE_CLASS DLLIMPORT
 
-#endif /* _xotcl_int_h_ */
+#endif /* _nsf_int_h_ */

@@ -38,48 +38,48 @@ NsfStubs nsfStubs = {
     &nsfStubHooks,
     Nsf_Init, /* 0 */
     NULL, /* 1 */
-    XOTclIsClass, /* 2 */
+    NsfIsClass, /* 2 */
     NULL, /* 3 */
-    XOTclGetObject, /* 4 */
-    XOTclGetClass, /* 5 */
-    XOTclCreateObject, /* 6 */
+    NsfGetObject, /* 4 */
+    NsfGetClass, /* 5 */
+    NsfCreateObject, /* 6 */
     NULL, /* 7 */
     NULL, /* 8 */
-    XOTclDeleteObject, /* 9 */
+    NsfDeleteObject, /* 9 */
     NULL, /* 10 */
     NULL, /* 11 */
     NULL, /* 12 */
-    XOTclRemoveObjectMethod, /* 13 */
-    XOTclRemoveClassMethod, /* 14 */
-    XOTclOSetInstVar, /* 15 */
-    XOTclOGetInstVar, /* 16 */
+    NsfRemoveObjectMethod, /* 13 */
+    NsfRemoveClassMethod, /* 14 */
+    NsfOSetInstVar, /* 15 */
+    NsfOGetInstVar, /* 16 */
     NULL, /* 17 */
     NULL, /* 18 */
-    XOTcl_ObjSetVar2, /* 19 */
-    XOTcl_ObjGetVar2, /* 20 */
-    XOTclUnsetInstVar2, /* 21 */
+    Nsf_ObjSetVar2, /* 19 */
+    Nsf_ObjGetVar2, /* 20 */
+    NsfUnsetInstVar2, /* 21 */
     NULL, /* 22 */
-    XOTclErrMsg, /* 23 */
-    XOTclVarErrMsg, /* 24 */
-    XOTclErrInProc, /* 25 */
+    NsfErrMsg, /* 23 */
+    NsfVarErrMsg, /* 24 */
+    NsfErrInProc, /* 25 */
     NULL, /* 26 */
-    XOTclErrBadVal_, /* 27 */
-    XOTclObjErrType, /* 28 */
-    XOTclStackDump, /* 29 */
+    NsfErrBadVal_, /* 27 */
+    NsfObjErrType, /* 28 */
+    NsfStackDump, /* 29 */
     NULL, /* 30 */
     NULL, /* 31 */
-    XOTclSetObjClientData, /* 32 */
-    XOTclGetObjClientData, /* 33 */
-    XOTclSetClassClientData, /* 34 */
-    XOTclGetClassClientData, /* 35 */
-    XOTclRequireObjNamespace, /* 36 */
-    XOTclErrBadVal, /* 37 */
-    XOTclNextObjCmd, /* 38 */
-    XOTclCallMethodWithArgs, /* 39 */
-    XOTclObjErrArgCnt, /* 40 */
-    XOTclAddObjectMethod, /* 41 */
-    XOTclAddClassMethod, /* 42 */
-    XOTclCreate, /* 43 */
+    NsfSetObjClientData, /* 32 */
+    NsfGetObjClientData, /* 33 */
+    NsfSetClassClientData, /* 34 */
+    NsfGetClassClientData, /* 35 */
+    NsfRequireObjNamespace, /* 36 */
+    NsfErrBadVal, /* 37 */
+    NsfNextObjCmd, /* 38 */
+    NsfCallMethodWithArgs, /* 39 */
+    NsfObjErrArgCnt, /* 40 */
+    NsfAddObjectMethod, /* 41 */
+    NsfAddClassMethod, /* 42 */
+    NsfCreate, /* 43 */
 };
 
 /* !END!: Do not edit above this line. */

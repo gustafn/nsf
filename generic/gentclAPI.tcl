@@ -25,7 +25,7 @@ proc createconverter {type argname} {
   set enums [list ${name}NULL]
   foreach d $domain {lappend enums $name[string totitle [string map [list - _] $d]]Idx}
   subst {
-static int convertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, XOTclParam CONST *pPtr, 
+static int convertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   $opts
@@ -86,17 +86,17 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
   switch $clientData {
     class {
       set a  [list cl]
-      set if [list "XOTclClass *cl"]
+      set if [list "NsfClass *cl"]
       append intro \
-          "  XOTclClass *cl =  XOTclObjectToClass(clientData);" \n \
-          {  if (!cl) return XOTclObjErrType(interp, objv[0], "Class", "");}
+          "  NsfClass *cl =  NsfObjectToClass(clientData);" \n \
+          {  if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");}
     }
     object {
       set a  [list obj]
-      set if [list "XOTclObject *obj"]
+      set if [list "NsfObject *obj"]
       append intro \
-          "  XOTclObject *obj =  (XOTclObject *)clientData;" \n \
-          {  if (!obj) return XOTclObjErrType(interp, objv[0], "Object", "");}
+          "  NsfObject *obj =  (NsfObject *)clientData;" \n \
+          {  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");}
     }
     ""    {
       set a [list]
@@ -116,8 +116,8 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
       if {$(-nrargs) == 1} {
         switch -glob $(-type) {
           ""           {set type "CONST char *"}
-          "class"      {set type "XOTclClass *"}
-          "object"     {set type "XOTclObject *"}
+          "class"      {set type "NsfClass *"}
+          "object"     {set type "NsfObject *"}
           "tclobj"     {set type "Tcl_Obj *"}
           "*|*"        {set type "int "}
           default      {error "type '$(-type)' not allowed for parameter"}
@@ -129,8 +129,8 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
       switch -glob $(-type) {
         ""           {set type "CONST char *"}
         "boolean"    {set type "int "}
-        "class"      {set type "XOTclClass *"}
-        "object"     {set type "XOTclObject *"}
+        "class"      {set type "NsfClass *"}
+        "object"     {set type "NsfObject *"}
         "tclobj"     {set type "Tcl_Obj *"}
         "args"       {
           set type "int "
@@ -148,9 +148,9 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
         }
         "objpattern" {
           set type "Tcl_Obj *"
-          lappend c "CONST char *${varName}String = NULL;" "XOTclObject *${varName}Obj = NULL;"
+          lappend c "CONST char *${varName}String = NULL;" "NsfObject *${varName}Obj = NULL;"
           set calledArg "${varName}String, ${varName}Obj"
-          lappend if "CONST char *${varName}String" "XOTclObject *${varName}Obj"
+          lappend if "CONST char *${varName}String" "NsfObject *${varName}Obj"
           set ifSet 1
           append pre [subst -nocommands {
     if (getMatchObject(interp, ${varName}, objc>$i ? objv[$i] : NULL, &${varName}Obj, &${varName}String) == -1) {
@@ -265,7 +265,7 @@ proc genstubs {} {
     } else {
       switch $d(methodType) {
         objectMethod {set obj "obj"}
-        classMethod {set obj "(XOTclObject *) cl"}
+        classMethod {set obj "(NsfObject *) cl"}
         default {set obj "NULL"}
       }
       append fns [genStub $d(stub) $intro $obj $d(idx) $cDefs $pre $call $post]
@@ -280,16 +280,16 @@ typedef struct {
   CONST char *methodName;
   Tcl_ObjCmdProc *proc;
   int nrParameters;
-  XOTclParam paramDefs[12];
+  NsfParam paramDefs[12];
 } methodDefinition;
 
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
-                         XOTclObject *obj, Tcl_Obj *procName,
-                         XOTclParam CONST *paramPtr, int nrParameters, int doCheck,
+                         NsfObject *obj, Tcl_Obj *procName,
+                         NsfParam CONST *paramPtr, int nrParameters, int doCheck,
 			 parseContext *pc);
 
 static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
-			  XOTclObject **matchObject, CONST char **pattern);
+			  NsfObject **matchObject, CONST char **pattern);
 
 /* just to define the symbol */
 static methodDefinition method_definitions[];
@@ -306,7 +306,7 @@ static methodDefinition method_definitions[];
   puts $stubDecls
   puts $decls
   set enumString [join $enums ",\n "]
-  puts "enum {\n $enumString\n} XOTclMethods;\n"
+  puts "enum {\n $enumString\n} NsfMethods;\n"
   puts $fns
   set definitionString [join $ifds ",\n"]
 puts "static methodDefinition method_definitions\[\] = \{\n$definitionString,\{NULL\}\n\};\n"
@@ -350,8 +350,8 @@ proc objectInfoMethod {methodName implementation parameterDefinitions} {
 proc classInfoMethod {methodName implementation parameterDefinitions} {
   methodDefinition $methodName classMethod $implementation $parameterDefinitions $::ns(classInfoMethod)
 }
-proc xotclCmd {methodName implementation parameterDefinitions} {
-  methodDefinition $methodName xotclCmd $implementation $parameterDefinitions
+proc nsfCmd {methodName implementation parameterDefinitions} {
+  methodDefinition $methodName nsfCmd $implementation $parameterDefinitions
 }
 
 source [file dirname [info script]]/gentclAPI.decls

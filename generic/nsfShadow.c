@@ -5,7 +5,7 @@
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
  *
- *  xotclShadow.c --
+ *  nsfShadow.c --
  *  
  *  Shadowing (overloading) and accessing global tcl obj commands
  *  
@@ -15,13 +15,13 @@
 #include "nsfAccessInt.h"
 
 static int
-XOTclReplaceCommandCleanup(Tcl_Interp *interp, XOTclGlobalNames name) {
+NsfReplaceCommandCleanup(Tcl_Interp *interp, NsfGlobalNames name) {
   Tcl_Command cmd;
   int result = TCL_OK;
-  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
+  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
 
-  /*fprintf(stderr," cleanup for %s  ti=%p in %p\n", XOTclGlobalStrings[name], ti, interp);*/
-  cmd = Tcl_GetCommandFromObj(interp, XOTclGlobalObjs[name]);
+  /*fprintf(stderr," cleanup for %s  ti=%p in %p\n", NsfGlobalStrings[name], ti, interp);*/
+  cmd = Tcl_GetCommandFromObj(interp, NsfGlobalObjs[name]);
   if (cmd != NULL) {
     Tcl_Command_objProc(cmd) = ti->proc;
     ti->proc = NULL;
@@ -33,15 +33,15 @@ XOTclReplaceCommandCleanup(Tcl_Interp *interp, XOTclGlobalNames name) {
 }
 
 static void
-XOTclReplaceCommandCheck(Tcl_Interp *interp, XOTclGlobalNames name, Tcl_ObjCmdProc *proc) {
+NsfReplaceCommandCheck(Tcl_Interp *interp, NsfGlobalNames name, Tcl_ObjCmdProc *proc) {
   Tcl_Command cmd;
-  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
-  cmd = Tcl_GetCommandFromObj(interp, XOTclGlobalObjs[name]);
+  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
+  cmd = Tcl_GetCommandFromObj(interp, NsfGlobalObjs[name]);
   
   if (cmd != NULL && ti->proc && Tcl_Command_objProc(cmd) != proc) {
     /*
     fprintf(stderr, "we have to do something about %s %p %p\n",
-	    XOTclGlobalStrings[name], Tcl_Command_objProc(cmd), proc);
+	    NsfGlobalStrings[name], Tcl_Command_objProc(cmd), proc);
     */
     ti->proc = Tcl_Command_objProc(cmd);
     ti->clientData = Tcl_Command_objClientData(cmd);
@@ -50,31 +50,31 @@ XOTclReplaceCommandCheck(Tcl_Interp *interp, XOTclGlobalNames name, Tcl_ObjCmdPr
 }
 
 static int
-XOTclReplaceCommand(Tcl_Interp *interp, XOTclGlobalNames name,
-		    Tcl_ObjCmdProc *xotclReplacementProc, int pass) {
+NsfReplaceCommand(Tcl_Interp *interp, NsfGlobalNames name,
+		    Tcl_ObjCmdProc *nsfReplacementProc, int pass) {
   Tcl_Command cmd;
-  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
+  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
   int result = TCL_OK;
 
-  /*fprintf(stderr,"XOTclReplaceCommand %d\n",name);*/
-  cmd = Tcl_GetCommandFromObj(interp, XOTclGlobalObjs[name]);
+  /*fprintf(stderr,"NsfReplaceCommand %d\n",name);*/
+  cmd = Tcl_GetCommandFromObj(interp, NsfGlobalObjs[name]);
   
   if (cmd == NULL) {
     result = TCL_ERROR;
   } else {
     Tcl_ObjCmdProc *objProc = Tcl_Command_objProc(cmd);
-    if (xotclReplacementProc != objProc) {
+    if (nsfReplacementProc != objProc) {
       if (pass == 0) { /* setting values on first pass (must be locked here) */
 	ti->proc = objProc;
 	ti->clientData = Tcl_Command_objClientData(cmd);
       } else if (ti->proc != objProc) {
-	/*fprintf(stderr, "we have to refetch command for %s\n",XOTclGlobalStrings[name]);*/
+	/*fprintf(stderr, "we have to refetch command for %s\n",NsfGlobalStrings[name]);*/
 	ti->proc = objProc;
 	ti->clientData = Tcl_Command_objClientData(cmd);
       }
-      if (xotclReplacementProc) {
-	Tcl_Command_objProc(cmd) = xotclReplacementProc;
-	/*Tcl_CreateObjCommand(interp, XOTclGlobalStrings[name], xotclReplacementProc, 0, 0);*/
+      if (nsfReplacementProc) {
+	Tcl_Command_objProc(cmd) = nsfReplacementProc;
+	/*Tcl_CreateObjCommand(interp, NsfGlobalStrings[name], nsfReplacementProc, 0, 0);*/
       }
     }
   }
@@ -82,36 +82,36 @@ XOTclReplaceCommand(Tcl_Interp *interp, XOTclGlobalNames name,
 }
 
 static int
-XOTcl_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+Nsf_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   /* this call the Tcl_RenameObjCmd, but it ensures before that
      the renamed obj, functions, etc. are not part of XOTcl */
   Tcl_Command cmd;
 
   /* wrong # args => normal Tcl ErrMsg*/
   if (objc != 3) {
-    return XOTclCallCommand(interp, XOTE_RENAME, objc, objv);
+    return NsfCallCommand(interp, XOTE_RENAME, objc, objv);
   }
 
   /* if an obj/cl should be renamed => call the XOTcl move method */
   cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL,0);
   if (cmd) {
-    XOTclObject *object = XOTclGetObjectFromCmdPtr(cmd);
-    Tcl_Obj *methodObj = object ? XOTclMethodObj(interp, object, XO_o_move_idx) : NULL;
+    NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
+    Tcl_Obj *methodObj = object ? NsfMethodObj(interp, object, XO_o_move_idx) : NULL;
     if (object && methodObj) {
-      return XOTclCallMethodWithArgs((ClientData)object, interp,
+      return NsfCallMethodWithArgs((ClientData)object, interp,
                                      methodObj, objv[2], 1, 0, 0);
     }
   }
 
   /* Actually rename the cmd using Tcl's rename*/
-  return XOTclCallCommand(interp, XOTE_RENAME, objc, objv);
+  return NsfCallCommand(interp, XOTE_RENAME, objc, objv);
 }
 
 static int
-XOTcl_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   int result;
 
-  result = XOTclCallCommand(interp, XOTE_INFO_FRAME, objc, objv);
+  result = NsfCallCommand(interp, XOTE_INFO_FRAME, objc, objv);
 
   if (result == TCL_OK && objc == 2) {
     int level, topLevel, frameFlags;
@@ -137,22 +137,22 @@ XOTcl_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
     /*fprintf(stderr, " ... frame %p varFramePtr %p frameFlags %.6x\n", framePtr, varFramePtr, frameFlags);
       tcl85showStack(interp);*/
-    if (frameFlags & (FRAME_IS_XOTCL_METHOD|FRAME_IS_XOTCL_CMETHOD)) {
-      XOTclCallStackContent *cscPtr = 
-        ((XOTclCallStackContent *)Tcl_CallFrame_clientData(varFramePtr));
+    if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+      NsfCallStackContent *cscPtr = 
+        ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr));
       Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object",6));
       Tcl_ListObjAppendElement(interp, resultObj, cscPtr->self->cmdName);
       Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("class",5));
       Tcl_ListObjAppendElement(interp, resultObj, 
-                               cscPtr->cl ? cscPtr->cl->object.cmdName : XOTclGlobalObjs[XOTE_EMPTY]);
+                               cscPtr->cl ? cscPtr->cl->object.cmdName : NsfGlobalObjs[XOTE_EMPTY]);
       Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("frametype",9));
-      if (cscPtr->frameType == XOTCL_CSC_TYPE_PLAIN) {
+      if (cscPtr->frameType == NSF_CSC_TYPE_PLAIN) {
         frameType = "intrinsic";
-      } else if (cscPtr->frameType & XOTCL_CSC_TYPE_ACTIVE_MIXIN) {
+      } else if (cscPtr->frameType & NSF_CSC_TYPE_ACTIVE_MIXIN) {
         frameType = "mixin";
-      } else if (cscPtr->frameType & XOTCL_CSC_TYPE_ACTIVE_FILTER) {
+      } else if (cscPtr->frameType & NSF_CSC_TYPE_ACTIVE_FILTER) {
         frameType = "filter";
-      } else if (cscPtr->frameType & XOTCL_CSC_TYPE_GUARD) {
+      } else if (cscPtr->frameType & NSF_CSC_TYPE_GUARD) {
         frameType = "guard";
       } else {
         frameType = "unknown";
@@ -169,13 +169,13 @@ XOTcl_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
  * not available through the stub interface and overload some global commands
  */
 int
-XOTclShadowTclCommands(Tcl_Interp *interp, XOTclShadowOperations load) {
+NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
   int rc = TCL_OK;
   if (load == SHADOW_LOAD) {
     int initialized = (RUNTIME_STATE(interp)->tclCommands != NULL);
     assert(initialized == 0);
     RUNTIME_STATE(interp)->tclCommands = 
-      NEW_ARRAY(XOTclShadowTclCommandInfo, XOTE_SUBST - XOTE_EXPR + 1);
+      NEW_ARRAY(NsfShadowTclCommandInfo, XOTE_SUBST - XOTE_EXPR + 1);
 
     /*fprintf(stderr, "+++ load tcl commands %d %d\n", load, initialized);*/
 
@@ -183,23 +183,23 @@ XOTclShadowTclCommands(Tcl_Interp *interp, XOTclShadowOperations load) {
     /* no commands are overloaded, these are only used for calling 
        e.g. Tcl_ExprObjCmd(), Tcl_IncrObjCmd() and Tcl_SubstObjCmd(), 
        which are not available in though the stub table */
-    rc |= XOTclReplaceCommand(interp, XOTE_EXPR,       NULL, initialized);
-    rc |= XOTclReplaceCommand(interp, XOTE_SUBST,      NULL, initialized);
+    rc |= NsfReplaceCommand(interp, XOTE_EXPR,       NULL, initialized);
+    rc |= NsfReplaceCommand(interp, XOTE_SUBST,      NULL, initialized);
 #endif
-    rc |= XOTclReplaceCommand(interp, XOTE_FORMAT,     NULL, initialized);
-    rc |= XOTclReplaceCommand(interp, XOTE_INTERP,     NULL, initialized);
-    rc |= XOTclReplaceCommand(interp, XOTE_IS,         NULL, initialized);
+    rc |= NsfReplaceCommand(interp, XOTE_FORMAT,     NULL, initialized);
+    rc |= NsfReplaceCommand(interp, XOTE_INTERP,     NULL, initialized);
+    rc |= NsfReplaceCommand(interp, XOTE_IS,         NULL, initialized);
 
     /* for the following commands, we have to add our own semantics */
-    rc |= XOTclReplaceCommand(interp, XOTE_INFO_FRAME, XOTcl_InfoFrameObjCmd, initialized);
-    rc |= XOTclReplaceCommand(interp, XOTE_RENAME,     XOTcl_RenameObjCmd, initialized);
+    rc |= NsfReplaceCommand(interp, XOTE_INFO_FRAME, Nsf_InfoFrameObjCmd, initialized);
+    rc |= NsfReplaceCommand(interp, XOTE_RENAME,     Nsf_RenameObjCmd, initialized);
     
   } else if (load == SHADOW_REFETCH) {
-    XOTclReplaceCommandCheck(interp, XOTE_RENAME,   XOTcl_RenameObjCmd);
+    NsfReplaceCommandCheck(interp, XOTE_RENAME,   Nsf_RenameObjCmd);
   } else {
-    XOTclReplaceCommandCleanup(interp, XOTE_RENAME);
-    XOTclReplaceCommandCleanup(interp, XOTE_INFO_FRAME);
-    FREE(XOTclShadowTclCommandInfo*, RUNTIME_STATE(interp)->tclCommands);
+    NsfReplaceCommandCleanup(interp, XOTE_RENAME);
+    NsfReplaceCommandCleanup(interp, XOTE_INFO_FRAME);
+    FREE(NsfShadowTclCommandInfo*, RUNTIME_STATE(interp)->tclCommands);
     RUNTIME_STATE(interp)->tclCommands = NULL;
   }
   return rc;
@@ -209,20 +209,20 @@ XOTclShadowTclCommands(Tcl_Interp *interp, XOTclShadowOperations load) {
  * call a Tcl command with given objv's ... replace objv[0]
  * with the given command name
  */
-int XOTclCallCommand(Tcl_Interp *interp, XOTclGlobalNames name,
+int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
 	    int objc, Tcl_Obj *CONST objv[]) {
   int result;
-  XOTclShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
+  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
   ALLOC_ON_STACK(Tcl_Obj*,objc, ov);
   /*
    {int i;
     fprintf(stderr,"calling %s (%p %p) in %p, objc=%d ",
-	    XOTclGlobalStrings[name],ti,ti->proc, interp, objc);
+	    NsfGlobalStrings[name],ti,ti->proc, interp, objc);
             for(i=0;i<objc;i++){fprintf(stderr, "'%s' ", ObjStr(objv[i]));}
     fprintf(stderr,"\n");
   } 
   */
-  ov[0] = XOTclGlobalObjs[name];
+  ov[0] = NsfGlobalObjs[name];
   if (objc > 1)
     memcpy(ov+1, objv+1, sizeof(Tcl_Obj *)*(objc-1));
   result = Tcl_NRCallObjProc(interp, ti->proc, ti->clientData, objc, objv);

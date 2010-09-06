@@ -158,12 +158,12 @@ Tcl_GetString (obj)
    simply export */
 #ifdef VISUAL_CC
 DLLEXPORT extern int Xotclexpat_Init(Tcl_Interp * interp);
-# define CONST_XOTCL_EXPAT
+# define CONST_NSF_EXPAT
 #else
 # if defined(PRE84)
-#  define CONST_XOTCL_EXPAT
+#  define CONST_NSF_EXPAT
 # else
-#  define CONST_XOTCL_EXPAT CONST84
+#  define CONST_NSF_EXPAT CONST84
 # endif
 #endif
 
@@ -187,7 +187,7 @@ Xotclexpat_Init (interp)
 #endif
 
 
-  Tcl_PkgProvide(interp, "xotcl::xml::expat", PACKAGE_VERSION);
+  Tcl_PkgProvide(interp, "nsf::xml::expat", PACKAGE_VERSION);
 
   Tcl_CreateObjCommand(interp, "expat", TclExpatObjCmd, NULL, NULL);
 
@@ -386,7 +386,7 @@ TclExpatInstanceCmd (clientData, interp, objc, objv)
   char *data;
   int len;
   int index, result = TCL_OK;
-  static char CONST_XOTCL_EXPAT *options[] = {
+  static char CONST_NSF_EXPAT *options[] = {
     "configure", "cget", "parse", "reset", NULL
   };
   enum options {
@@ -542,7 +542,7 @@ TclExpatConfigure (interp, expat, objc, objv)
      int objc;
      Tcl_Obj *CONST objv[];
 {
-  static CONST_XOTCL_EXPAT char *switchTable[] = {
+  static CONST_NSF_EXPAT char *switchTable[] = {
     "-final",
     "-baseurl",
     "-elementstartcommand",

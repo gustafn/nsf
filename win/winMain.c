@@ -175,11 +175,11 @@ Tcl_AppInit(interp)
     }
 
     /*
-     *  This is xotclsh, so import all xotcl commands by
+     *  This is nsfsh, so import all nsf commands by
      *  default into the global namespace.  
      */
     if (Tcl_Import(interp, Tcl_GetGlobalNamespace(interp),
-            "::xotcl::*", /* allowOverwrite */ 1) != TCL_OK) {
+            "::nsf::*", /* allowOverwrite */ 1) != TCL_OK) {
         return TCL_ERROR;
     }
 

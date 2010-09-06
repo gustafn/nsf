@@ -1280,6 +1280,19 @@ _ added option noforwarder to RelationSlots
 - removed compile flag XOTCL_METADATA and generic/xotclMetaData.c
 - changed compile flag PROFILE into NSF_PROFILE
 
+- BRO continues:
+  - changed all XOTCL_ into NSF_
+  - changed all XOTCLINLINE into NSF_INLINE
+  - changed all XOTCLOBJ_TRACE into NSFOBJ_TRACE
+  - changed all XOTcl_ into Nsf_
+  - changed all XOTcl([A-Z]) into Nsf\1
+  - changed all xotcl into nsf
+
+  - changed changeClass into ChangeClass
+  - changed XOTclpGetObject into GetObjectFromString
+  - changed XOTclpGetClass into GetClassFromString
+  - changed callDestroyMethod into DispatchDestroyMethod
+
 
 TODO: 
 
