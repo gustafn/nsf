@@ -1271,17 +1271,15 @@ _ added option noforwarder to RelationSlots
 
 - reflected changes in /is/objectproperty/info has/info is/ in migration guide
 - changed stub naming from "[Nn][Xx]*" to nsf (for next scripting framework) 
+- checked "my" vs. "nsf::dispatch" in nx.tcl and xotcl2.tcl
+- "child objects" are showed per default in "info methods"
 
 TODO: 
-- implement built-in-converter for "baseclass" and "metaclass"?
 
 - check equivalence of the following two commands
   in respect to fully-qualified names
          ::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::hastype $class
          ::nsf::parametercheck object,type=$class $obj
-
-- check "my" vs. "nsf::dispatch" in xotcl2.tcl
-- overthink decision about not showing "child objects" per default in "info methods"
 
 - subcmd
    * handle sucmd for other method factories
@@ -1294,7 +1292,6 @@ TODO:
      - provide a different place in the namesspaces could simplify this
 
 - aliases on procs are a problem, when upvar is used (see info default/instdefault in xotcl2.tcl)
-
 
 - interfaces in documentation for slots (see for more details 
   ::nx::Class#superclass in nx.tcl).
@@ -1488,14 +1485,12 @@ TODO "Kleinigkeiten"
    "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"
 - use parameter syntax in genTclAPI
 
-- info valuecheck?
-- turn off optionally value checking
-- get rid of "::xotcl::is"?
-
 # TODO (optimization): optimizer can improve parameter checking:
 #       (a) simple approach: make scripted setter methods on domain
 #       (b) maybe nicer: provide arguments to c-setter to 
 #           pass parameter definition
+
+- implement built-in-converter for "baseclass" and "metaclass"?
 
 - the two flags "-objscope" and "-nonleaf" are for adding frames,
   and they are mutual exclusive. Make them a single flag?

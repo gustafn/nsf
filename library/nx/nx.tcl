@@ -348,7 +348,7 @@ namespace eval ::nx {
       foreach w [lrange $path 0 end-1] {
 	#puts stderr "check $object info methods $path @ <$w>"
 	set scope [expr {[nsf::is class $object] && !${per-object} ? "Class" : "Object"}] 
-	if {[$object ::nsf::cmd::${scope}Info::methods -methodtype all $w] eq ""} {
+	if {[::nsf::dispatch $object ::nsf::cmd::${scope}Info::methods $w] eq ""} {
 	  #
 	  # Create dispatch/ensemble object and accessor method (if wanted)
 	  #
@@ -373,8 +373,8 @@ namespace eval ::nx {
 	  # The accessor method exists already, check, if it is
 	  # appropriate for extending.
 	  #
-	  set type [$object ::nsf::cmd::${scope}Info::method type $w]
-	  set definition [$object ::nsf::cmd::${scope}Info::method definition $w]
+	  set type [::nsf::dispatch $object ::nsf::cmd::${scope}Info::method type $w]
+	  set definition [::nsf::dispatch $object ::nsf::cmd::${scope}Info::method definition $w]
 	  if {$scope eq "Class"} {
 	    if {$type ne "alias"} {error "can't append to $type"}
 	    if {$definition eq ""} {error "definition must not be empty"}
@@ -882,9 +882,9 @@ namespace eval ::nx {
   #
   # copy all methods except the subobjects to ::nx::Class::slot::__info
   #
-  foreach m [::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::methods] {
-    if {[::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::method type $m] eq "object"} continue
-    set definition [::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::method definition $m]
+  foreach m [::nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::methods] {
+    if {[::nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::method type $m] eq "object"} continue
+    set definition [::nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::method definition $m]
     ::nx::Class::slot::__info {*}[lrange $definition 1 end]
   }
 
@@ -914,7 +914,7 @@ namespace eval ::nx {
   proc ::nx::infoOptions {obj} {
     #puts stderr "INFO INFO $obj -> '[::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::methods -methodtype all]'"
     set methods [list]
-    foreach name [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::methods -methodtype all] {
+    foreach name [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::methods] {
       if {$name eq "unknown"} continue
       lappend methods $name
     }
@@ -2021,7 +2021,7 @@ namespace eval ::nx {
   #######################################################
 
   #puts stderr Class-methods=[lsort [Class info methods]]
-  foreach m [Class info methods -methodtype all] {
+  foreach m [Class info methods] {
     ::nsf::methodproperty Class $m class-only true
   }
 
