@@ -135,73 +135,7 @@
     <div class="content">
 [:?var :@class-method {
       [:for method ${:@class-method} {
-      <div class="[$method @modifier]" rel="yui:method" resource="#method_[$method name]">
-        <h4>
-          <a name="method_[$method name]">[$method name]</a></h4>
-        <div class="detail" >
-          <code>[:? {[$method eval {info exists :@return}] && [[$method @return] spec] ne ""} {&lt;<span property="yui:type">[[$method @return] spec]</span>&gt;} ]
-	    <strong property="yui:name">[$method name]</strong>
-	    [$method parameters]
-	  </code>
-	  [:? {[$method has_property interally-called]} {
-	     <br>Internally called method, can be redefined.
-	  }]
-          [:? {[[:name] info methods [$method name]] ne "" &&
-	     [::nsf::methodproperty [:name] [$method name] redefine-protected]} {
-	     <br>Method is redefine-protected
-	  }]
-           <div class="description" property="yui:description">
-            [$method as_text]
-          </div>
-	  
-          <div class="description">
-	    
-	    [:? {[$method eval {info exists :@param}]} {
-	    <dl rel="yui:parameters">
-              <dt>Method parameters:</dt>
-	      [:for param [$method @param] {
-	      <dd rel="yui:parameter">
-                <code><span property="yui:name">[$param name]</span>
-                [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
-                </code>
-                <span property="yui:description">[$param as_text]</span>
-		[:? {[$param eval {info exists :default}]} {
-                <div class="default" property="yui:defaultValue">
-                  Default Value: [$param default]
-                </div>        
-                }]
-              </dd>
-	      }]
-            </dl>
-	    }]
-	    
-	    [:? {[$method eval {info exists :@return}]} {
-	    [:let rparam [$method @return]]
-	    <dl>
-              <dt>Returns:
-                <code property="yui:return">
-              </code></dt>
-              <dd property="yui:returnInfo">[$rparam as_text]</dd>
-            </dl>
-	    }]
-	    
-            
-	    [:? {[$method eval {info exists :@deprecated}]} {
-            <div class="deprecated">
-              <strong>Deprecated</strong> [$method @deprecated]
-            </div>        
-	    }]
-
-         [:? {[[:name] info methods [$method name]] ne ""} {
-	     <br>Method type: [[:name] info method type [$method name]]
-	  }]
-	    
-          </div>
- 
-        </div>
-        <hr />
-      </div>
-      
+      [$method render method.html.tmpl]
       }] <!-- end-of-for -->
   }]
     </div>

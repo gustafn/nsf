@@ -1,0 +1,37 @@
+[:let name [:get_combined name]]
+      <div rel="yui:property">
+        <h4><a name="submethod_[join ${name} _]" property="yui:name">$name</a>
+        </h4>
+        <div class="detail">
+	   <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
+	    [$supermethod name]
+	     <strong property="yui:name">$name</strong>
+	    [:parameters]
+	    </code>
+          <div class="description" property="yui:description">
+	    [:as_text]
+	    [:? {[info exists :@param]} {
+	    <dl rel="yui:parameters">
+	    <dt>Submethod parameters:</dt>
+	    [:for param ${:@param} {
+	    <dd rel="yui:parameter">
+	      <code><span property="yui:name">[$param name]</span>
+		[:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+	      </code>
+	      <span property="yui:description">[$param as_text]</span>
+	    </dd>
+	    }]
+	  </dl>
+	  }]
+	    [:? {[info exists :@return]} {
+	  <dl>
+	    <dt>Returns:
+	      <code property="yui:return">
+	    </code></dt>
+	    <dd property="yui:returnInfo">[${:@return} as_text]</dd>
+	  </dl>
+	  }]
+          </div>
+        </div>	
+        <hr />
+      </div>

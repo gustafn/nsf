@@ -127,44 +127,44 @@ namespace eval ::nsf {
   # It comes with a variety of subcommands to query different bits of
   # callstack information. See below.
   #
-  # @subcommand class Returns the name of the class holding the
+  # @sub-command class Returns the name of the class holding the
   # currently executing per-class method, if and only if called from
   # within a per-class method. Note, that this method-owning class may
   # be different to the class of the current object. If called from
   # within a per-object method, it returns an empty string.
   #
-  # @subcommand proc Returns the name of the currently executing method.
+  # @sub-command proc Returns the name of the currently executing method.
   #
-  # @subcommand callingclass Returns the name of the class which is
+  # @sub-command callingclass Returns the name of the class which is
   # calling into the executing method.
   #
-  # @subcommand callingobject Returns the name of the object which is
+  # @sub-command callingobject Returns the name of the object which is
   # calling into the executing method.
   #
-  # @subcommand calledclass Returns the name of the class that holds
+  # @sub-command calledclass Returns the name of the class that holds
   # the originally (and now shadowed) target method (applicable in
   # mixin classes and filters).
   #
-  # @subcommand calledproc Returns the name of the target method
+  # @sub-command calledproc Returns the name of the target method
   # (applicable in a filter only).
   #
-  # @subcommand isnextcall Returns 1 if the executing method was
+  # @sub-command isnextcall Returns 1 if the executing method was
   # invoked via {{@command ::nx::next}}, 0 otherwise.
   #
-  # @subcommand next Returns the name of the method next on the
+  # @sub-command next Returns the name of the method next on the
   # precedence path as a string.
   #
-  # @subcommand filterreg In a method serving as active filter,
+  # @sub-command filterreg In a method serving as active filter,
   # returns the name of the object (class) on which the method is
   # registered as a filter.
   #
-  # @subcommand callinglevel Returns the "original" callstack level
+  # @sub-command callinglevel Returns the "original" callstack level
   # calling into the executing method. Intermediary {{{next}}} calls
   # are ignored in this computation. The level is returned in a form
   # so that it can be used as first argument in {{@method ::nx::Object
   # class uplevel}} or {{@method ::nx::Object class upvar}}.
   #
-  # @subcommand activelevel Returns the actual callstack level calling
+  # @sub-command activelevel Returns the actual callstack level calling
   # into the executing method. The active might correspond the
   # {{{callinglevel}}}, but this is not necessarily the case. The
   # {{{activelevel}}} counts {{@command ::nx::next}} call. The level
@@ -181,7 +181,7 @@ namespace eval ::nsf {
   # properties of the "Next" object system for the scope of an entire
   # {{{interp}}}.
   
-  # @command.subcommand {configure filter}
+  # @command.sub-command {configure filter}
   #
   # Allows turning on or off filters globally for the current
   # interpreter. By default, the filter state is turned off. This
@@ -192,7 +192,7 @@ namespace eval ::nsf {
   # @param toggle Accepts either "on" or "off"
   # @return The current filter activation state
   
-  # @command.subcommand {configure softrecreate}
+  # @command.sub-command {configure softrecreate}
   # 
   # Allows controlling the scheme applied when recreating an object or a
   # class. By default, it is set to {{{off}}}. This means that the
@@ -216,7 +216,7 @@ namespace eval ::nsf {
   # @return The current toggle value
   
   
-  # @command.subcommand {configure objectsystems}
+  # @command.sub-command {configure objectsystems}
   # 
   # A mere introspection subcommand. It gives you the top level of the
   # current object system, i.e., the ruling root class and root
@@ -228,7 +228,7 @@ namespace eval ::nsf {
   #
   # @return The active pair of root class and root meta-class
   
-  # @command.subcommand {configure keepinitcmd}
+  # @command.sub-command {configure keepinitcmd}
   #
   # Usually, initcmd scripts are discarded by the {{{interp}}} once
   # having been evaluated (in contrast to {{{proc}}} and {{{method}}}

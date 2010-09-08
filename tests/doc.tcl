@@ -8,30 +8,6 @@ namespace import -force ::nx::doc::*
 
 Test parameter count 1
 
-# Class create ::C
-
-# set taglines {
-#   {@class.param {::C attr1}}
-#   {@class.object-param {::C attr2}}
-#   {@class.method {::C foo}}
-#   {@class.object-method.param {::C bar p2}}
-# }
-
-# foreach tl $taglines {
-#   lassign $tl axes values
-#   set operand ""
-#   foreach axis [split [string trimleft $axes @] .] value $values {
-#     puts stderr "axis $axis value $value"
-#     if {$operand eq ""} {
-#       set operand [@$axis new -name $value]
-#     } else {
-#       set operand [$operand @$axis $value]
-#     }
-#   } 
-#   puts stderr RESULT=$operand
-# }
-
-
 #
 # some helper
 #
@@ -45,45 +21,7 @@ proc lcompare {a b} {
   return 1
 }
 
-# Class create ::nx::doc::CommentState::Log {
-#   :method on_enter {line} {
-#     puts -nonewline stderr "ENTER -> [namespace tail [:info class]]#[namespace tail [self]]"
-#     next
-#   }
-#   :method on_exit {line} { 
-#     next
-#     puts -nonewline stderr "EXIT -> [namespace tail [:info class]]#[namespace tail [self]]"
-#   }
-# }
-
-# Class create ::nx::doc::CommentLine::Log {
-#   :method on_enter {line} {
-#     puts -nonewline stderr "\t"; next; puts stderr " -> LINE = ${:processed_line}"
-#   }
-#   :method on_exit {line} {
-#     puts -nonewline stderr "\t"; next; puts stderr " -> LINE = ${:processed_line}"
-#   }
-# }
-
-# Class create ::nx::doc::CommentSection::Log {
-#   :method on_enter {line} {
-#     next; puts -nonewline stderr "\n"
-#   }
-#   :method on_exit {line} {
-#     next; puts -nonewline stderr "\n";
-#   }
-# }
-
-# set log false
-
-# if {$log} {
-#   ::nx::doc::CommentState mixin add ::nx::doc::CommentState::Log
-#   ::nx::doc::CommentLine mixin add ::nx::doc::CommentLine::Log
-#   ::nx::doc::CommentSection mixin add ::nx::doc::CommentSection::Log
-# }
-
 # --
-
 
 Test case scanning {
 
@@ -155,7 +93,6 @@ Test case parsing {
 
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? COMPLETED] 1
- #  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   set block {
     {}
@@ -164,9 +101,7 @@ Test case parsing {
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? COMPLETED] 0
   ? [list $cbp status ? STYLEVIOLATION] 1
-  puts stderr [$cbp message]
-	       #  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
-
+  
   #
   # For now, a valid comment block must start with a non-space line
   # (i.e., a tag or text line, depending on the section: context
@@ -181,18 +116,13 @@ Test case parsing {
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
 
-  #  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
-
   set block {
     {command ::cc}
     {}
   }
 
-    set cbp [CommentBlockParser process $block]
+  set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
-
-  
-#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
 
   set block {
     {@command ::cc}
@@ -202,8 +132,6 @@ Test case parsing {
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
  
-#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
-
  set block {
    {@command ::cc} 
    {}
@@ -216,9 +144,6 @@ Test case parsing {
   ? [list $cbp status ? STYLEVIOLATION] 0
   ? [list $cbp status ? COMPLETED] 1
 
-
-  #? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
-
  set block {
    {@command ::cc}
    {}
@@ -230,8 +155,6 @@ Test case parsing {
 
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 0
-
-#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
 
   # Note: We do allow description blocks with intermediate space
   # lines, for now.
@@ -273,8 +196,6 @@ Test case parsing {
   ? [list $cbp status ? STYLEVIOLATION] 1
   
 
-#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
-
   #
   # TODO: Disallow space lines between parts? Check back with Javadoc spec.
   #
@@ -292,8 +213,6 @@ Test case parsing {
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
 
- # ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
-
   #
   # TODO: Should we enforce a mandatory space line between description and part block?
   #
@@ -310,8 +229,6 @@ Test case parsing {
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
 
-#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
-
   set block {
     {@command ::cc}
     {}
@@ -327,7 +244,6 @@ Test case parsing {
 
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1 
-#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 1
   
   set block {
     {@command ::cc}
@@ -343,8 +259,6 @@ Test case parsing {
     set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 0
 
-#  ? [list StyleViolation thrown_by? [list CommentBlockParser process $block]] 0
-
   set block {
     {@object ::cc}
     {}
@@ -358,8 +272,6 @@ Test case parsing {
     set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? INVALIDTAG] 1
 
-  #  ? [list InvalidTag thrown_by? [list CommentBlockParser process $block]] 1
-
   set block {
     {@class ::cc}
     {}
@@ -372,8 +284,6 @@ Test case parsing {
 
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? INVALIDTAG] 1
-
-  # ? [list InvalidTag thrown_by? [list CommentBlockParser process $block]] 1
 
   #
   # testing the doc object construction
@@ -418,7 +328,7 @@ Test case parsing {
     {}
     {some text on the class entity}
     {}
-    {@class-param attr1 Here, we check whether we can get a valid description block}
+    {@class-param attr1 Here! we check whether we can get a valid description block}
     {for text spanning multiple lines}
   }
 
@@ -431,7 +341,7 @@ Test case parsing {
   ? [list $entity as_text] "some text on the class entity";
   ? [list llength [$entity @param]] 1
   ? [list [$entity @param] info has type ::nx::doc::@param] 1
-  ? [list [$entity @param] as_text] "Here, we check whether we can get a valid description block for text spanning multiple lines"
+  ? [list [$entity @param] as_text] "Here! we check whether we can get a valid description block for text spanning multiple lines"
 
   #
   # basic test for in-situ documentation (initcmd block)
@@ -444,7 +354,7 @@ Test case parsing {
       # @author gustaf.neumann@wu-wien.ac.at
       # @author ssoberni@wu.ac.at
       
-      # @param attr1 
+      # @.param attr1 
       #
       # This attribute 1 is wonderful
       #
@@ -454,7 +364,7 @@ Test case parsing {
       :attribute attr2
       :attribute attr3
 
-      # @method foo
+      # @.method foo
       #
       # This describes the foo method
       #
@@ -473,8 +383,7 @@ Test case parsing {
   ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
   # TODO: Fix the [@param id] programming scheme to allow (a) for
   # entities to be passed and the (b) documented structures
-  #set entity [@param id ::Foo class attr1]
-  set entity [@param id $entity attr1]
+  set entity [@param id [@class id ::Foo] class attr1]
   ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@param] 1
   ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
@@ -572,8 +481,7 @@ Test case parsing {
 
   # TODO: Fix the [@param id] programming scheme to allow (a) for
   # entities to be passed and the (b) documented structures
-  #set entity [@param id ::Bar class attr1]
-  set entity [@param id $entity attr1]
+  set entity [@param id [@class id ::Bar] class attr1]
   ? [list $i eval [list ::nsf::is object $entity]] 1
   ? [list $i eval [list $entity info has type ::nx::doc::@param]] 1
   ? [list $i eval [list $entity @see]] "::nx::Attribute ::nx::MetaSlot";
@@ -590,6 +498,8 @@ Test case parsing {
   } {
     ? [list expr [list [$i eval [list $p as_text]] eq $expected]] 1;
   }
+
+
   set entity [@method id ::Bar object foo]
   ? [list $i eval [list [@class id ::Bar] @object-method]] $entity
   ? [list $i eval [list ::nsf::is object $entity]] 1
@@ -603,8 +513,425 @@ Test case parsing {
   } {
     ? [list expr [list [$i eval [list $p as_text]] eq $expected]] 1;
   }
+
  
   interp delete $i
+
+
+  #
+  # Some tests on structured/navigatable tag notations
+  #
+
+  # adding support for parsing levels
+  
+  # -- @class.object.object {::D o1 o2}
+  set block {
+    {@..object o2 We have a tag notation sensitive to the parsing level}
+  }
+  
+  set entity [[@ @class ::D] @object o1]
+  set cbp [CommentBlockParser process -parsing_level 1 -partof_entity $entity $block]
+  ? [list $cbp status ? LEVELMISMATCH] 1
+  set cbp [CommentBlockParser process -parsing_level 2 -partof_entity $entity $block]
+  ? [list $cbp status ? COMPLETED] 1
+  set entity [$cbp current_entity]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@object] 1
+  ? [list $entity as_text] "We have a tag notation sensitive to the parsing level"
+
+  set block {
+    {@..object {o2 o3} We still look for balanced specs}
+  }
+
+  set entity [[@ @class ::D] @object o1]
+  set cbp [CommentBlockParser process -parsing_level 2 -partof_entity $entity $block]
+  ? [list $cbp status ? STYLEVIOLATION] 1
+
+  # This fails because we do not allow uninitialised/non-existing
+  # entity objects (@object o) along the resolution path ...
+  set block {
+    {@class.object.param {::C o attr1} We have an invalid specification}
+  }
+  
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 1
+#  ? [list $cbp message] "The tag 'object' is not supported for the entity type '@class'"
+
+  set block {
+    {@class.method.param attr1 We have an imbalanced specification (the names are underspecified!)}
+  }
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 1
+  ? [list $cbp message] "Imbalanced tag line specification in '@class.method.param attr1 We have an imbalanced specification (the names are underspecified!)'."
+
+  # For now, we do not verify and use a fixed scope of permissive tag
+  # names. So, punctuation errors or typos are most probably reported
+  # as imbalanced specs. In the mid-term run, this should rather
+  # become an INVALIDTAG condition.
+  set block {
+    {@cla.ss.method.param {::C foo p1} We mistyped a tag fragment}
+  }
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? STYLEVIOLATION] 1
+  ? [list $cbp message] "Imbalanced tag line specification in '@cla.ss.method.param {::C foo p1} We mistyped a tag fragment'."
+
+  set block {
+    {@cla,ss.method.param {::C foo p1} We mistyped a tag fragment}
+  }
+  set cbp [CommentBlockParser process $block]
+  ? [list $cbp status ? INVALIDTAG] 1
+  ? [list $cbp message] "The entity type '@cla,ss' is not available."
+
+  set script {
+    # @class ::C
+    #
+    # The global description of ::C
+    #
+    # @param attr1 Here we can only provide a description block for object parameters
+    
+    # @class.param {::C attr1} Here, we could also write '@class.class-param \{::C attr1\}', @param is a mere forwarder! In the context section, only one-liners are allowed!
+
+    # @class.object.param {::C foo p1} A short description is ...
+    #
+    # .. is overruled by a long one ...
+
+    # If addressing to a nested object, one strategy would be to use
+    # @object and provide the object identifier (which reflects the
+    # nesting, e.g. ::C::foo). However, we cannot distinguish between
+    # namespace qualifiers denoting an object, class or owning
+    # namespace!
+    #
+    # ISSUE: If specifying an axis ".object", we would have to define
+    # a part attribute @object on @class and @object. However, @object
+    # would be ambiguous now: It could be called in a freestanding
+    # (absolute) manner AND in a contextualised manner (in an initcmd
+    # script). In the latter case, it would fail because we would have
+    # to provide a FQ'ed name (which defeats the purpose of a nested =
+    # contextualised notation).
+    # 
+    # SO: for now, we introduce a part attribute child-object (and
+    # child-class?) to discrimate between the two situations ...
+    #
+    # TODO: How to register this so created @object entity as nested
+    # object with the doc entity represented the parent object?
+    
+    Class create C {
+      # This is the initcmd-level description of ::C which overwrites the
+      # global description (see above)
+      
+      # @.param attr1
+      #
+      # This is equivalent to writing "@class-param attr1"
+      :attribute attr1 {
+	# This description does not apply to the object parameter
+	# "attr1" owned by the ::C class, rather it is a description
+	# of the attribute slot object! How should we deal with this
+	# situation? Should this level overwrite the top-level and
+	# initcmd-level descriptions?
+      }
+      
+      # @.object-param attr2 Carries a short desc only
+      :object attribute attr2
+      
+      # @.method foo
+      #
+      # @param p1
+      set fooHandle [:method foo {p1} {
+	# Here goes some method-body-level description
+	#
+	# @param p1 The most specific level!
+	return [current method]-$p1-[current]
+      }]
+           
+      # @.object-method.param {bar p1}
+      #
+      # This extended form allows to describe a method parameter with all
+      # its structural features!
+      set barHandle [:object method bar {p1} {
+	return [current method]-$p1-[current]
+      }]
+
+      # @.object foo 'foo' needs to be defined before referencing any of its parts!
+
+      # @.object.param {foo p1}
+      #
+      # The first element in the name list is resolved into a fully
+      # qualified (absolute) entity, based on the object owning the
+      # initcmd!
+      Object create [current]::foo {
+	# Adding a line for the first time (not processed in the initcmd phase!)
+	
+	# @..param p1
+	# 
+	# This is equivalent to stating "@object-param p1"
+	:attribute p1
+      }
+      
+      # @.class Foo X
+      #
+      # By providing a fully-qualified identifier ("::Foo") you leave the
+      # context of the initcmd-owning object, i.e. you would NOT refer to 
+      # a nested class object named "Foo" anymore!
+      
+      # @.class.param {Foo p1}
+      #
+      # This is equivalent to stating "@child-class.class-param {Foo p1}"
+      
+      # @.class.object-param {Foo p2} Y
+      Class create [current]::Foo {
+
+	# @..param p1
+	# 
+	#
+	# This is equivalent to stating "@class-param p1"; or
+	# '@class.object.param {::C Foo p1}' from the top-level.
+	:attribute p1
+	
+	# @..object-param p2
+	:object attribute p2
+      }
+      
+      
+      # @.object-method.sub-method {sub foo}
+      #
+      # ISSUE: Should submethods be navigatable through "method" (i.e.,
+      # "@method.method.method ...") or "submethod" (i.e.,
+      # "@method.submethod.submethod ...")? ISSUE: Should it be sub* with
+      # "-" (to correspond to "@object-method", "@class-method")? Also, we
+      # could allow both (@sub-method is the attribute name, @method is a
+      # forwarder in the context of an owning @method object!)
+      # 
+      # @param p1 Some words on p1
+      :object alias "sub foo" $fooHandle
+      
+      # @.method sub
+      #
+      # The desc of the ensemble object 'sub'
+      #
+      # @sub-method bar Only description available here ...
+
+      # ISSUE: Should the helper object "sub" be documentable in its own
+      # right?  This would be feasible with the dotted notation from
+      # within and outside the initcmd script block, e.g. "@object sub" or
+      # "@class.object {::C sub}"
+      #
+      # ISSUE: Is it correct to say the sub appears as per-object method
+      # and so do its submethods? Or is it misleading to document it that
+      # way? Having an "@object-submethod" would not make much sense to
+      # me?!
+      :alias "sub bar" $barHandle 
+
+      # @.object-method sub A brief desc
+
+      # @.object-method {"sub foo2"}
+      #
+      # could allow both (@sub-method is the attribute name, @method is a
+      # forwarder in the context of an owning @method object!)
+      # 
+      # @param p1 Some words on p1
+      # @see anotherentity
+      # @author ss@thinkersfoot.net
+      :object alias "sub foo2" $fooHandle
+    }
+  }
+
+  #
+  # 1) process the top-level comments (PARSING LEVEL 0)
+  #
+
+  doc analyze -noeval true $script
+
+  # --testing-- "@class ::C"
+  set entity [@class id ::C]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@class] 1
+  ? [list $entity as_text] "The global description of ::C";
+  # --testing-- "@class.param {::C attr1}"
+  set entity [@param id $entity class attr1]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@param] 1
+  ? [list $entity as_text] "Here, we could also write '@class.class-param {::C attr1}', @param is a mere forwarder! In the context section, only one-liners are allowed!"
+
+  # --testing-- "@class.object.param {::C foo p1} A short description is ..."
+  # set entity [@param id $entity class attr1]
+  # set entity [@object id -partof_name ::C -scope child foo]
+  # ? [list ::nsf::isobject $entity] 1
+  # ? [list $entity info has type ::nx::doc::@object] 1
+  # ? [list $entity as_text] ""
+  # set entity [@param id $entity object p1]
+  # ? [list ::nsf::isobject $entity] 1
+  # ? [list $entity info has type ::nx::doc::@param] 1
+  # ? [list $entity as_text] ".. is overruled by a long one ..."
+
+  set entity [@object id ::C::foo]
+  ? [list ::nsf::isobject $entity] 0
+  set entity [@param id $entity object p1]
+  ? [list ::nsf::isobject $entity] 0
+  #  ? [list $entity info has type ::nx::doc::@param] 1
+  #  ? [list $entity as_text] ".. is overruled by a long one ..."
+
+  # --testing-- @object-param attr2 (its non-existance)
+  set entity [@param id [@class id ::C] object attr2]
+  ? [list ::nsf::isobject $entity] 0
+  # --testing-- @child-class Foo (its non-existance)
+  set entity [@class id ::C::Foo]
+  ? [list ::nsf::isobject $entity] 0
+  # --testing -- @method foo (its non-existance)
+  set entity [@method id ::C class foo]
+  ? [list ::nsf::isobject $entity] 0
+  # --testing-- @object-method.param {bar p1} (its non-existance)
+  set entity [@param id [@method id ::C object bar] "" p1]
+  ? [list ::nsf::isobject $entity] 0
+  # --testing-- @child-object.param {foo p1} (its non-existance)
+  set cl [@class id ::C::Foo]
+  ? [list ::nsf::isobject $entity] 0
+  set entity [@param id $cl class p1]
+  ? [list ::nsf::isobject $entity] 0
+  set entity [@param id $cl object p2]
+  ? [list ::nsf::isobject $entity] 0
+
+  #
+  # 2) process the initcmd comments (PARSING LEVEL 1)
+  #
+  
+  eval $script
+
+  doc analyze_initcmd @class ::C [::C eval {set :__initcmd}]
+
+  # a) existing, but modified ...
+
+  set entity [@class id ::C]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@class] 1
+  ? [list $entity as_text] "This is the initcmd-level description of ::C which overwrites the global description (see above)"
+    
+  set entity [@param id $entity class attr1]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@param] 1
+  ? [list $entity as_text] {This is equivalent to writing "@class-param attr1"}
+
+
+  set entity [@object id ::C::foo]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@object] 1
+  ? [list $entity as_text] "'foo' needs to be defined before referencing any of its parts!"; # still empty!
+  set entity [@param id $entity object p1]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@param] 1
+  ? [list $entity as_text] "The first element in the name list is resolved into a fully qualified (absolute) entity, based on the object owning the initcmd!"
+
+  # b) newly added ...
+
+  # --testing-- @object-param attr2
+  set entity [@param id [@class id ::C] object attr2]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@param] 1
+  ? [list $entity as_text] "Carries a short desc only";
+
+  # --testing-- @child-class Foo
+  # TODO: provide a check against fully-qualified names in part specifications
+  set entity [@class id ::C::Foo]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@class] 1
+  ? [list $entity as_text] {By providing a fully-qualified identifier ("::Foo") you leave the context of the initcmd-owning object, i.e. you would NOT refer to a nested class object named "Foo" anymore!}
+
+  set entity [@param id [@class id ::C] class p1]
+  ? [list ::nsf::isobject $entity] 0; # should be 0 at this stage!
+
+  # --testing -- @method foo
+  set entity [@method id ::C class foo]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity as_text] ""
+  # --testing-- @object-method.param {bar p1} (its non-existance) It
+  # still cannot exist as a documented entity, as the object method
+  # has not been initialised before!
+  set entity [@param id [@method id ::C object bar] "" p1]
+  ? [list ::nsf::isobject $entity] 0
+  # --testing-- @child-class.param {foo p1} (its non-existance)
+  # --testing-- @child-class.object-param {foo p2} (its non-existance)
+  set cl [@class id ::C::Foo]
+  ? [list ::nsf::isobject $cl] 1
+  set entity [@param id $cl class p1]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity as_text] {This is equivalent to stating "@child-class.class-param {Foo p1}"}
+  set entity [@param id $cl object p2]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity as_text] "Y"
+
+  set entity [@method id ::C class sub]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity as_text] "The desc of the ensemble object 'sub'"
+
+  set entity [@method id ::C class sub::bar]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity as_text] "Only description available here ..."
+
+  set entity [@method id ::C object sub]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity as_text] "A brief desc"
+
+  set entity [@method id ::C object sub::foo2]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@method] 1
+  ? [list $entity as_text] "could allow both (@sub-method is the attribute name, @method is a forwarder in the context of an owning @method object!)"
+  ? [list $entity @see] "anotherentity"
+  # TODO: @author not supported for @method (fine so?)
+  # ? [list $entity @author] "ss@thinkersfoot"
+  set entity [@param id $entity "" p1]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity as_text] "Some words on p1"
+
+  #
+  # 3a) process the attribute initcmds and method bodies (PARSING LEVEL 2)!
+  #  
+
+  doc process=@class [@class id ::C]
+  
+  # methods ...
+
+  set entity [@method id ::C class foo]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity as_text] "Here goes some method-body-level description"
+  set entity [@param id [@method id ::C class foo] "" p1]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity as_text] "The most specific level!"
+
+  # attributes ...
+
+  # attr1 
+  set entity [@param id [@class id ::C] class attr1]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@param] 1
+  ? [list $entity as_text] {This description does not apply to the object parameter "attr1" owned by the ::C class, rather it is a description of the attribute slot object! How should we deal with this situation? Should this level overwrite the top-level and initcmd-level descriptions?}
+
+  #
+  # 3b) nested objects/ classes (PARSING LEVEL 2)!
+  #  
+
+  doc analyze_initcmd -parsing_level 2 @object ::C::foo [::C::foo eval {set :__initcmd}]
+  doc process=@object [@object id ::C::foo]
+
+  set entity [@object id ::C::foo]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@object] 1
+  ? [list $entity as_text] "Adding a line for the first time (not processed in the initcmd phase!)"; # still empty!
+  set entity [@param id $entity object p1]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity info has type ::nx::doc::@param] 1
+  ? [list $entity as_text] {This is equivalent to stating "@object-param p1"}
+
+  doc analyze_initcmd -parsing_level 2 @class ::C::Foo [::C::Foo eval {set :__initcmd}]
+  doc process=@class [@class id ::C::Foo]
+
+  set cl [@class id ::C::Foo]
+  ? [list ::nsf::isobject $cl] 1
+  set entity [@param id $cl class p1]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity as_text] {This is equivalent to stating "@class-param p1"; or '@class.object.param {::C Foo p1}' from the top-level.}
+  set entity [@param id $cl object p2]
+  ? [list ::nsf::isobject $entity] 1
+  ? [list $entity as_text] ""
+  
   puts stderr =================================================
   #
   # self documentation
@@ -651,26 +978,28 @@ Test case parsing {
 		     -name ::NextScriptingFramework \
 		     -url http://www.next-scripting.org/ \
 		     -version 1.0.0a \
-		     -namespace "::nsf"]
+		     -@namespace "::nsf"]
 
     doc process -noeval true generic/predefined.tcl
 
     ::nx::doc::make doc \
-	-renderer ::nx::doc::NxDocTemplateData \
-	-outdir [::nsf::tmpdir] \
-	-project $project
+    	-renderer ::nx::doc::NxDocTemplateData \
+    	-outdir [::nsf::tmpdir] \
+    	-project $project
 
     puts stderr TIMING=[time {
     set project [::nx::doc::@project new \
-		     -name ::NextScriptingLanguage \
-		     -url http://www.next-scripting.org/ \
-		     -version 1.0.0a \
-		     -namespace "::nx"]
+    		     -name ::NextScriptingLanguage \
+    		     -url http://www.next-scripting.org/ \
+    		     -version 1.0.0a \
+    		     -@namespace "::nx"]
+      # ISSUE: If calling '-namespace "::nx"' instead of '-@namespace
+      # "::nx"', we get an irritating failure. VERIFY!
     doc process -noeval true library/nx/nx.tcl
     ::nx::doc::make doc \
-	-renderer ::nx::doc::NxDocTemplateData \
-	-outdir [::nsf::tmpdir] \
-	-project $project
+    	-renderer ::nx::doc::NxDocTemplateData \
+    	-outdir [::nsf::tmpdir] \
+    	-project $project
     } 1]
   }
 
@@ -707,15 +1036,8 @@ Test case parsing {
 # # # # # # # # # # # # # # # # # # # #
 
 # 1) Test case scoping rules -> in Object->eval()
-# Why does [info] intropsection not work as expected in eval()?
 
 Test case issues? {
-
-  # TODO: is [autoname -instance] really needed?
-  #       is autoname needed in Next Scripting?
-
-  # TODO: why is XOTclNextObjCmd/::nsf::next not in gentclAPI.decls?
-  #       why should it be there? there are pros and cons, and very little benefit, or?
 
   # TODO: where to locate the @ comments (in predefined.xotcl, in
   # gentclAPI.decls)? how to deal with ::nsf::* vs. ::nx::*
@@ -728,30 +1050,7 @@ Test case issues? {
   # after create(), then cleanup() is missing a configure() call to
   # set defaults, etc! 
   # ?? cleanup does not set defaults; depending on "softrecreate", it 
-  # deletes instances, childobjects, procs, instprocs, ....
-
-  # TODO: exists and bestandteil von info() oder selbstständig?
-  # ausserdem: erlauben von :-präfix?!
-
-  # we have discussed this already
-
-  # TODO: should we keep a instvar variant (i support this!)
-
-  # what means "keep". next scripting should be mininmal, 
-  # "instvar" is not needed and error-prone. We have now
-  # "::nx::var import" and ::nsf::importvar
-  # (of you want, similar to variable or global).
-
-  # TODO: verify the use of filtersearch()? should it return a method
-  # handle and the filter name? how to deal with it when refactoring
-  # procsearch()?
-
-  # ?? what does it return? What is the issue?
-
-  # TODO: mixinguard doc is missing in old doc
-
-  # mixinguard is described in the tutorial, it should have been documented
-  # in the langref as well
+  # deletes instances, childobjects, procs, instprocs, ...
 
   # TODO: what is Object->__next() for?
 
@@ -775,10 +1074,6 @@ Test case issues? {
   # but seems - at least in this usecase broken. Deactivated
   # in source for now.
 
-  # TODO: what to do with hasNamespace()? [Object info is namespace]?
-
-  # what is wrong with ":info hashNamespace"?
-
   # TODO: why is XOTclOUplevelMethodStub/XOTclOUplevelMethod defined
   # with "args" while it logically uses the stipulated parameter
   # signature (level ...). is this because of the first pos, optional
@@ -796,21 +1091,11 @@ Test case issues? {
   # with nonpos arguments, which might be values for positional arguments
   # as well.... not, sure, it is worth to invest much time here.
 
-  # TODO: is Object->uplevel still needed with an integrated cs management?
-
-  # yes, this is completely unrelated with the kind of callstack implemtation.
-  # the methods upvar and uplevel are interceptor transparent, which means
-  # that an uplevel will work for a method the same way, when a mixin or filter
-  # are registered.
-
   # TODO: how is upvar affected by the ":"-prefixing? -> AVOID_RESOLVERS ...
 
   # this is a tcl question, maybe version dependent.
   
-  # TODO: do all member-creating operations return valid, canonical handles!
 
-  # what are member-creating operations? if you mean "method-creating methods"
-  # they should (in next scripting) (i.e. necessary for e.g. method modifiers).
 
   # TODO: the objectsystems subcommand of ::nsf::configure does
   # not really fit in there because it does not allow for configuring
@@ -841,46 +1126,7 @@ Test case issues? {
   # but if we would fold these into tcl-info, conflicts with
   # tcl will arise.
 
-  # TODO: extend [info level] & [info frame]!
-  #
-  # Why and what exactly?
-  # If we would do it the tcloo-way, it would be very expensive.
-  # whe have "info frame" implemnted with a less expensive approach since March 1
 
-  # TODO: there is still --noArgs on [next], which does not correspond
-  # to single-dashed flags used elsewhere. Why?
-  #
-  # (a) backward compatibility and (b) do you have suggestions?
-
-  # TODO: renaming of self to current?
-  #
-  # what do you mean by "renaming"? both commands were available 
-  # since a while. Maybe we should not import "self" into next scripting.
-  #
-  # DONE (self is not imported anymore, all occurrences in next tests are changed)
-  # Not sure, we should keep since, since it will be a problem in many scripts
-  # (e.g. in all slots, since slots are always next objects; maybe some advanced
-  # OpenACS users will be hit).
-  #
-  
-  # TODO: is [self callingclass] == [[self callingobject] info class]?
-  #
-  # no
-
-  # TODO: "# @subcommand next Returns the name of the method next on
-  # the precedence path as a string" shouldn't these kinds of
-  # introspective commands return method handles (in the sense of
-  # alias)? Retrieving the name from a handle is the more specific
-  # operation (less generic). ... same for "filterreg"
-  #
-  # this is most likely "self next" and "self filterreg",
-  # but applies as well for .e.g "info filter ... -order ..."
-  # there are already changes to xotcl (see migration guide).
-  # since the handle works now as well for "info method", 
-  # this could be effectively done, but it requires 
-  # backward compatibility.
-  #
-  # DONE
 }
 
 # if {$log} {

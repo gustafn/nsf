@@ -1,0 +1,71 @@
+<div class="${:@modifier}" rel="yui:method" resource="#method_${:name}">
+  <h4>
+          <a name="method_${:name}">${:name}</a></h4>
+        <div class="detail" >
+          <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[[${:@return} spec] spec]</span>&gt;} ]
+	    <strong property="yui:name">${:name}</strong>
+	    [:parameters]
+	  </code>
+	  [:? {[:has_property interally-called]} {
+	     <br>Internally called method, can be redefined.
+	  }]
+          [:? {[[[:partof] name] info methods ${:name}] ne "" &&
+	     [::nsf::methodproperty [[:partof] name] ${:name} redefine-protected]} {
+	     <br>Method is redefine-protected
+	  }]
+           <div class="description" property="yui:description">
+            [:as_text]
+          </div>
+	  
+          <div class="description">
+	    [:?var :@method {
+	    <hr/>
+	    [:for sm [:get_sub_methods] {
+	    [$sm render -initscript [list set supermethod [current]] submethod.html.tmpl]
+	    }]
+	    } - {
+	    [:? {[info exists :@param]} {
+	    <dl rel="yui:parameters">
+              <dt>Method parameters:</dt>
+	      [:for param ${:@param} {
+	      <dd rel="yui:parameter">
+                <code><span property="yui:name">[$param name]</span>
+                [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+                </code>
+                <span property="yui:description">[$param as_text]</span>
+		[:? {[$param eval {info exists :default}]} {
+                <div class="default" property="yui:defaultValue">
+                  Default Value: [$param default]
+                </div>        
+                }]
+              </dd>
+	      }]
+            </dl>
+	    }]
+	    
+	    [:? {[info exists :@return]} {
+	    [:let rparam ${:@return}]
+	    <dl>
+              <dt>Returns:
+                <code property="yui:return">
+              </code></dt>
+              <dd property="yui:returnInfo">[$rparam as_text]</dd>
+            </dl>
+	    }]
+	    }]
+            
+	    [:? {[info exists :@deprecated]} {
+            <div class="deprecated">
+              <strong>Deprecated</strong> ${:@deprecated}
+            </div>        
+	    }]
+
+         [:? {[[[:partof] name] info methods ${:name}] ne ""} {
+	     <br>Method type: [[[:partof] name] info method type ${:name}]
+	  }]
+	    
+          </div>
+ 
+        </div>
+        <hr />
+      </div>

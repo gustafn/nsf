@@ -9,7 +9,7 @@
 
 <div class="description">
 
-[:?var :@subcommand {
+[:?var :@command {
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
     <h3 id="properties">Subcommands</h3>
@@ -17,7 +17,7 @@
          rel="yui:member"  resource="#">
       <div class="content" rel="yui:properties">
         <code>
-          [:for sub ${:@subcommand} {
+          [:for sub ${:@command} {
           <span rel="yui:property"
                 resource="#subcommand_[$sub name]">                                        
             <a class=""
@@ -30,7 +30,7 @@
     </div>
     <hr>
     <div class="content">
-      [:for sub ${:@subcommand} {
+      [:for sub ${:@command} {
       <div rel="yui:property">
         <h4><a name="subcommand_[$sub name]" property="yui:name">[$sub name]</a>
         </h4>
