@@ -15,7 +15,7 @@ array set ns {
 }
 
 #
-# XOTcl commands
+# Next Scripting commands
 #
 nsfCmd alias NsfAliasCmd {
   {-argName "object" -type object}

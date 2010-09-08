@@ -1,5 +1,5 @@
 /* -*- Mode: c++ -*-
- *  Extended Object Tcl (XOTcl)
+ *  Next Scripting Framework
  *
  *  Copyright (C) 1999-2010 Gustaf Neumann, Uwe Zdun
  *
@@ -249,7 +249,7 @@ typedef struct NsfMemCounter {
 
 /*
  *
- * XOTcl Structures
+ * Next Scripting Structures
  *
  */
 
@@ -389,7 +389,7 @@ typedef struct NsfStringIncrStruct {
 #define NSF_METHODTYPE_BUILTIN   NSF_METHODTYPE_ALIAS|NSF_METHODTYPE_SETTER|NSF_METHODTYPE_FORWARDER|NSF_METHODTYPE_OTHER
 
 
-/* flags for parseContext */
+/* flags for ParseContext */
 #define NSF_PC_MUST_DECR		     0x0001
 
 #define NsfObjectSetClass(obj) \
@@ -502,20 +502,20 @@ typedef struct NsfClasses {
 } NsfClasses;
 
 typedef enum SystemMethodsIdx {
-  XO_c_alloc_idx, 
-  XO_c_create_idx, 
-  XO_c_dealloc_idx,
-  XO_c_recreate_idx, 
-  XO_c_requireobject_idx, 
-  XO_o_cleanup_idx, 
-  XO_o_configure_idx, 
-  XO_o_defaultmethod_idx, 
-  XO_o_destroy_idx, 
-  XO_o_init_idx, 
-  XO_o_move_idx, 
-  XO_o_objectparameter_idx, 
-  XO_o_residualargs_idx,
-  XO_o_unknown_idx
+  NSF_c_alloc_idx, 
+  NSF_c_create_idx, 
+  NSF_c_dealloc_idx,
+  NSF_c_recreate_idx, 
+  NSF_c_requireobject_idx, 
+  NSF_o_cleanup_idx, 
+  NSF_o_configure_idx, 
+  NSF_o_defaultmethod_idx, 
+  NSF_o_destroy_idx, 
+  NSF_o_init_idx, 
+  NSF_o_move_idx, 
+  NSF_o_objectparameter_idx, 
+  NSF_o_residualargs_idx,
+  NSF_o_unknown_idx
 } SystemMethodsIdx;
 
 #if !defined(NSF_C)
@@ -545,32 +545,32 @@ typedef struct NsfObjectSystem {
   NsfClass *rootMetaClass;
   int overloadedMethods;
   int definedMethods;
-  Tcl_Obj *methods[XO_o_unknown_idx+1];
+  Tcl_Obj *methods[NSF_o_unknown_idx+1];
   struct NsfObjectSystem *nextPtr;
 } NsfObjectSystem;
 
 
 
 
-/* XOTcl global names and strings */
+/* Next Scripting global names and strings */
 /* these are names and contents for global (corresponding) Tcl_Objs
    and Strings - otherwise these "constants" would have to be built
    every time they are used; now they are built once in Nsf_Init */
 typedef enum {
-  XOTE_EMPTY, XOTE_ONE,
+  NSF_EMPTY, NSF_ONE,
   /* methods called internally */
-  XOTE_CONFIGURE, 
+  NSF_CONFIGURE, 
   /* var names */
-  XOTE_AUTONAMES, XOTE_DEFAULTMETACLASS, XOTE_DEFAULTSUPERCLASS, 
-  XOTE_ALIAS_ARRAY,
+  NSF_AUTONAMES, NSF_DEFAULTMETACLASS, NSF_DEFAULTSUPERCLASS, 
+  NSF_ALIAS_ARRAY,
   /* object/class names */
-  XOTE_METHOD_PARAMETER_SLOT_OBJ, 
+  NSF_METHOD_PARAMETER_SLOT_OBJ, 
   /* constants */
-  XOTE_ALIAS, XOTE_ARGS, XOTE_CMD, XOTE_FILTER, XOTE_FORWARD, 
-  XOTE_METHOD, XOTE_OBJECT, XOTE_SETTER, 
-  XOTE_GUARD_OPTION, XOTE___UNKNOWN__, 
+  NSF_ALIAS, NSF_ARGS, NSF_CMD, NSF_FILTER, NSF_FORWARD, 
+  NSF_METHOD, NSF_OBJECT, NSF_SETTER, 
+  NSF_GUARD_OPTION, NSF___UNKNOWN__, 
   /* Patly redefined Tcl commands; leave them together at the end */
-  XOTE_EXPR, XOTE_FORMAT, XOTE_INFO, XOTE_INFO_FRAME, XOTE_INTERP, XOTE_IS, XOTE_RENAME, XOTE_SUBST
+  NSF_EXPR, NSF_FORMAT, NSF_INFO, NSF_INFO_FRAME, NSF_INTERP, NSF_IS, NSF_RENAME, NSF_SUBST
 } NsfGlobalNames;
 #if !defined(NSF_C)
 extern char *NsfGlobalStrings[];
@@ -595,7 +595,7 @@ char *NsfGlobalStrings[] = {
 
 #define NsfGlobalObjs RUNTIME_STATE(interp)->methodObjNames
 
-/* XOTcl ShadowTclCommands */
+/* Next Scripting ShadowTclCommands */
 typedef struct NsfShadowTclCommandInfo {
   TclObjCmdProcType proc;
   ClientData clientData;
@@ -609,7 +609,7 @@ Tcl_Obj * NsfMethodObj(Tcl_Interp *interp, NsfObject *object, int methodIdx);
 
 
 /*
- * XOTcl CallStack
+ * Next Scripting CallStack
  */
 typedef struct NsfCallStackContent {
   NsfObject *self;

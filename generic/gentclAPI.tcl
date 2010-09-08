@@ -25,7 +25,7 @@ proc createconverter {type argname} {
   set enums [list ${name}NULL]
   foreach d $domain {lappend enums $name[string totitle [string map [list - _] $d]]Idx}
   subst {
-static int convertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
+static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   $opts
@@ -70,7 +70,7 @@ proc genifd {parameterDefinitions} {
 #     } else {
 #       set default ""
 #     }
-    lappend l "{\"$argName\", $(-required), $(-nrargs), convertTo$converter}"
+    lappend l "{\"$argName\", $(-required), $(-nrargs), ConvertTo$converter}"
   }
   join $l ",\n  "
 }
@@ -153,7 +153,7 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
           lappend if "CONST char *${varName}String" "NsfObject *${varName}Obj"
           set ifSet 1
           append pre [subst -nocommands {
-    if (getMatchObject(interp, ${varName}, objc>$i ? objv[$i] : NULL, &${varName}Obj, &${varName}String) == -1) {
+    if (GetMatchObject(interp, ${varName}, objc>$i ? objv[$i] : NULL, &${varName}Obj, &${varName}String) == -1) {
       if (${varName}) {
         DECR_REF_COUNT(${varName});
       }
@@ -193,7 +193,7 @@ proc genStub {stub intro obj idx cDefs pre call post} {
   return [subst -nocommands {
 static int
 ${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  parseContext pc;
+  ParseContext pc;
 $intro
   if (ArgumentParse(interp, objc, objv, $obj, objv[0], 
                      method_definitions[$idx].paramDefs, 
@@ -203,7 +203,7 @@ $intro
   } else {
     $cDefs
 $pre
-    parseContextRelease(&pc);
+    ParseContextRelease(&pc);
     $call
 $post
   }
@@ -286,9 +286,9 @@ typedef struct {
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
                          NsfObject *obj, Tcl_Obj *procName,
                          NsfParam CONST *paramPtr, int nrParameters, int doCheck,
-			 parseContext *pc);
+			 ParseContext *pc);
 
-static int getMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
+static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
 			  NsfObject **matchObject, CONST char **pattern);
 
 /* just to define the symbol */
@@ -309,7 +309,7 @@ static methodDefinition method_definitions[];
   puts "enum {\n $enumString\n} NsfMethods;\n"
   puts $fns
   set definitionString [join $ifds ",\n"]
-puts "static methodDefinition method_definitions\[\] = \{\n$definitionString,\{NULL\}\n\};\n"
+  puts "static methodDefinition method_definitions\[\] = \{\n$definitionString,\{NULL\}\n\};\n"
 }
 
 proc methodDefinition {methodName methodType implementation parameterDefinitions {ns ""}} {

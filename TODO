@@ -1293,6 +1293,11 @@ _ added option noforwarder to RelationSlots
   - changed XOTclpGetClass into GetClassFromString
   - changed callDestroyMethod into DispatchDestroyMethod
 
+- BRO continues:
+  - overworked function prototype definitions in nsf.c
+  - renamed some static definitions on the way to follow
+    Tcl conventions (start with a capital character)
+
 
 TODO: 
 

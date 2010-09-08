@@ -18,7 +18,7 @@ static int
 NsfReplaceCommandCleanup(Tcl_Interp *interp, NsfGlobalNames name) {
   Tcl_Command cmd;
   int result = TCL_OK;
-  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
+  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
 
   /*fprintf(stderr," cleanup for %s  ti=%p in %p\n", NsfGlobalStrings[name], ti, interp);*/
   cmd = Tcl_GetCommandFromObj(interp, NsfGlobalObjs[name]);
@@ -35,7 +35,7 @@ NsfReplaceCommandCleanup(Tcl_Interp *interp, NsfGlobalNames name) {
 static void
 NsfReplaceCommandCheck(Tcl_Interp *interp, NsfGlobalNames name, Tcl_ObjCmdProc *proc) {
   Tcl_Command cmd;
-  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
+  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
   cmd = Tcl_GetCommandFromObj(interp, NsfGlobalObjs[name]);
   
   if (cmd != NULL && ti->proc && Tcl_Command_objProc(cmd) != proc) {
@@ -53,7 +53,7 @@ static int
 NsfReplaceCommand(Tcl_Interp *interp, NsfGlobalNames name,
 		    Tcl_ObjCmdProc *nsfReplacementProc, int pass) {
   Tcl_Command cmd;
-  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
+  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
   int result = TCL_OK;
 
   /*fprintf(stderr,"NsfReplaceCommand %d\n",name);*/
@@ -89,14 +89,14 @@ Nsf_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
   /* wrong # args => normal Tcl ErrMsg*/
   if (objc != 3) {
-    return NsfCallCommand(interp, XOTE_RENAME, objc, objv);
+    return NsfCallCommand(interp, NSF_RENAME, objc, objv);
   }
 
   /* if an obj/cl should be renamed => call the XOTcl move method */
   cmd = Tcl_FindCommand(interp, ObjStr(objv[1]), (Tcl_Namespace *)NULL,0);
   if (cmd) {
     NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
-    Tcl_Obj *methodObj = object ? NsfMethodObj(interp, object, XO_o_move_idx) : NULL;
+    Tcl_Obj *methodObj = object ? NsfMethodObj(interp, object, NSF_o_move_idx) : NULL;
     if (object && methodObj) {
       return NsfCallMethodWithArgs((ClientData)object, interp,
                                      methodObj, objv[2], 1, 0, 0);
@@ -104,14 +104,14 @@ Nsf_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   }
 
   /* Actually rename the cmd using Tcl's rename*/
-  return NsfCallCommand(interp, XOTE_RENAME, objc, objv);
+  return NsfCallCommand(interp, NSF_RENAME, objc, objv);
 }
 
 static int
 Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   int result;
 
-  result = NsfCallCommand(interp, XOTE_INFO_FRAME, objc, objv);
+  result = NsfCallCommand(interp, NSF_INFO_FRAME, objc, objv);
 
   if (result == TCL_OK && objc == 2) {
     int level, topLevel, frameFlags;
@@ -144,7 +144,7 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
       Tcl_ListObjAppendElement(interp, resultObj, cscPtr->self->cmdName);
       Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("class",5));
       Tcl_ListObjAppendElement(interp, resultObj, 
-                               cscPtr->cl ? cscPtr->cl->object.cmdName : NsfGlobalObjs[XOTE_EMPTY]);
+                               cscPtr->cl ? cscPtr->cl->object.cmdName : NsfGlobalObjs[NSF_EMPTY]);
       Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("frametype",9));
       if (cscPtr->frameType == NSF_CSC_TYPE_PLAIN) {
         frameType = "intrinsic";
@@ -175,7 +175,7 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
     int initialized = (RUNTIME_STATE(interp)->tclCommands != NULL);
     assert(initialized == 0);
     RUNTIME_STATE(interp)->tclCommands = 
-      NEW_ARRAY(NsfShadowTclCommandInfo, XOTE_SUBST - XOTE_EXPR + 1);
+      NEW_ARRAY(NsfShadowTclCommandInfo, NSF_SUBST - NSF_EXPR + 1);
 
     /*fprintf(stderr, "+++ load tcl commands %d %d\n", load, initialized);*/
 
@@ -183,22 +183,22 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
     /* no commands are overloaded, these are only used for calling 
        e.g. Tcl_ExprObjCmd(), Tcl_IncrObjCmd() and Tcl_SubstObjCmd(), 
        which are not available in though the stub table */
-    rc |= NsfReplaceCommand(interp, XOTE_EXPR,       NULL, initialized);
-    rc |= NsfReplaceCommand(interp, XOTE_SUBST,      NULL, initialized);
+    rc |= NsfReplaceCommand(interp, NSF_EXPR,       NULL, initialized);
+    rc |= NsfReplaceCommand(interp, NSF_SUBST,      NULL, initialized);
 #endif
-    rc |= NsfReplaceCommand(interp, XOTE_FORMAT,     NULL, initialized);
-    rc |= NsfReplaceCommand(interp, XOTE_INTERP,     NULL, initialized);
-    rc |= NsfReplaceCommand(interp, XOTE_IS,         NULL, initialized);
+    rc |= NsfReplaceCommand(interp, NSF_FORMAT,     NULL, initialized);
+    rc |= NsfReplaceCommand(interp, NSF_INTERP,     NULL, initialized);
+    rc |= NsfReplaceCommand(interp, NSF_IS,         NULL, initialized);
 
     /* for the following commands, we have to add our own semantics */
-    rc |= NsfReplaceCommand(interp, XOTE_INFO_FRAME, Nsf_InfoFrameObjCmd, initialized);
-    rc |= NsfReplaceCommand(interp, XOTE_RENAME,     Nsf_RenameObjCmd, initialized);
+    rc |= NsfReplaceCommand(interp, NSF_INFO_FRAME, Nsf_InfoFrameObjCmd, initialized);
+    rc |= NsfReplaceCommand(interp, NSF_RENAME,     Nsf_RenameObjCmd, initialized);
     
   } else if (load == SHADOW_REFETCH) {
-    NsfReplaceCommandCheck(interp, XOTE_RENAME,   Nsf_RenameObjCmd);
+    NsfReplaceCommandCheck(interp, NSF_RENAME,   Nsf_RenameObjCmd);
   } else {
-    NsfReplaceCommandCleanup(interp, XOTE_RENAME);
-    NsfReplaceCommandCleanup(interp, XOTE_INFO_FRAME);
+    NsfReplaceCommandCleanup(interp, NSF_RENAME);
+    NsfReplaceCommandCleanup(interp, NSF_INFO_FRAME);
     FREE(NsfShadowTclCommandInfo*, RUNTIME_STATE(interp)->tclCommands);
     RUNTIME_STATE(interp)->tclCommands = NULL;
   }
@@ -212,7 +212,7 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
 int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
 	    int objc, Tcl_Obj *CONST objv[]) {
   int result;
-  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-XOTE_EXPR];
+  NsfShadowTclCommandInfo *ti = &RUNTIME_STATE(interp)->tclCommands[name-NSF_EXPR];
   ALLOC_ON_STACK(Tcl_Obj*,objc, ov);
   /*
    {int i;
