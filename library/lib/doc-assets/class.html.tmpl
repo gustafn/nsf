@@ -29,9 +29,9 @@
   <div class="section field details">
     <h3 id="properties">Class parameters</h3>
     <div class="content">
-[:?var :@class-param {
+[:?var :@class-attribute {
 
-      [:for attr ${:@class-param} {
+      [:for attr ${:@class-attribute} {
        <div rel="yui:property">
         <h4><a name="property_[$attr name]" property="yui:name">[$attr name]</a>
         </h4>
@@ -62,7 +62,7 @@
     </div>
   </div>
 
-  [:let iattrs [:inherited @class-param]]
+  [:let iattrs [:inherited @class-attribute]]
   [:? {$iattrs ne ""} { 
   <div rel="yui:inheritance">                    
                         [:for superclass [dict keys $iattrs]  {
@@ -95,9 +95,9 @@
   <div class="section field details">
     <h3 id="properties">Object parameters</h3>
     <div class="content">
-[:?var :@object-param {
+[:?var :@object-attribute {
 
-      [:for attr ${:@object-param} {
+      [:for attr ${:@object-attribute} {
        <div rel="yui:property">
         <h4><a name="property_[$attr name]" property="yui:name">[$attr name]</a>
         </h4>
@@ -195,10 +195,10 @@
 	  
           <div class="description">
 	    
-	    [:? {[$omethod eval {info exists :@param}]} {
+	    [:? {[$omethod eval {info exists :@parameter}]} {
 	    <dl rel="yui:parameters">
               <dt>Method parameters:</dt>
-	      [:for param [$omethod @param] {
+	      [:for param [$omethod @parameter] {
 	      <dd rel="yui:parameter">
                 <code><span property="yui:name">[$param name]</span>
                   [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]

@@ -1,0 +1,295 @@
+# @command assertion
+#
+# @parameter object:object
+# @parameter assertionsubcmd:required
+# @parameter arg
+
+# @command existsvar
+#
+# @parameter object:object
+# @parameter var
+
+# @command methodproperty
+# 
+# @parameter object:object
+# @parameter -per-object:switch
+# @parameter methodName
+# @parameter methodproperty Accepts one of: {{{protected}}},
+# {{{redefine-protected}}}, {{{returns}}}, {{{slotobj}}}
+# @parameter value
+
+# @command setter
+#
+# @parameter object:object
+# @parameter -per-object:switch
+# @parameter parameter
+
+# @command createobjectsystem
+#
+# @parameter rootClass
+# @parameter rootMetaClass
+# @parameter systemMethods:optional
+
+# @command dispatch
+#
+# @parameter object:object
+# @parameter -objscope
+# @parameter command
+# @parameter args
+
+# @command deprecated
+#
+# @parameter what
+# @parameter oldCmd
+# @parameter newCmd:optional
+
+# @command objectproperty
+#
+# @parameter object:object
+# @parameter objectkind Accepts one of: {{{type}}}, {{{object}}},
+# {{{class}}}, {{{baseclass}}}, {{{metaclass}}}, {{{hasmixin}}}
+# @parameter value:optional
+
+# @command importvar
+#
+# @parameter object:object
+# @parameter args
+
+# @command parametercheck
+#
+# @parameter -nocomplain
+# @parameter param
+# @parameter value:optional
+
+# @command forward
+#
+# @parameter object:object
+# @parameter -per-object:switch
+# @parameter method
+# @parameter -default
+# @parameter -earlybinding:switch
+# @parameter -methodprefix
+# @parameter -objscope:switch
+# @parameter -onerror
+# @parameter -verbose:switch
+# @parameter target
+# @parameter args
+
+# @command setvar
+#
+# @parameter object:object
+# @parameter variable
+# @parameter value
+
+# @command method
+#
+# @parameter object:object
+# @parameter -inner-namespace
+# @parameter -per-object
+# @parameter -public
+# @parameter name
+# @parameter args
+# @parameter body
+# @parameter -percondition
+# @parameter -postcondition
+
+# @command next
+#
+# Invokes the shadowed (i.e, same-named) method which is next along
+# the precedence path and returns the results of this invocation. If
+# {{{next}}} is called without arguments, the arguments of the current
+# method (i.e., the arguments as present at the current callframe) are
+# passed through to the shadowed method. If next is invoked with the
+# flag --noArgs, the shadowed method is called without the active
+# callframe arguments. If other arguments are specified for {{{next}}}
+# explicitly, these will be passed instead.
+# 
+# @parameter --noArgs:optional Deactivates the forward-passing of the current callframe's arguments
+# @parameter args Explicitly declared arguments to pass to shadowed methods
+
+
+# @command current
+#
+# An introspective command which allows you to explore the "Next"
+# callstack from within the scope of a method (or procif bound to an
+# object via {{{alias}}}). {{{current}}} computes callstack related
+# information. If executed without specifying a subcommand,
+# i.e. {{{[current]}}}, returns the name of the object, which is
+# currently in execution. If called from outside a proc, it returns
+# the error message "No current object". 
+# 
+# It comes with a variety of subcommands to query different bits of
+# callstack information. See below.
+#
+# @sub-command class Returns the name of the class holding the
+# currently executing per-class method, if and only if called from
+# within a per-class method. Note, that this method-owning class may
+# be different to the class of the current object. If called from
+# within a per-object method, it returns an empty string.
+#
+# @sub-command proc Returns the name of the currently executing method.
+#
+# @sub-command callingclass Returns the name of the class which is
+# calling into the executing method.
+#
+# @sub-command callingobject Returns the name of the object which is
+# calling into the executing method.
+#
+# @sub-command calledclass Returns the name of the class that holds
+# the originally (and now shadowed) target method (applicable in
+# mixin classes and filters).
+#
+# @sub-command calledproc Returns the name of the target method
+# (applicable in a filter only).
+#
+# @sub-command isnextcall Returns 1 if the executing method was
+# invoked via {{@command ::nx::next}}, 0 otherwise.
+#
+# @sub-command next Returns the name of the method next on the
+# precedence path as a string.
+#
+# @sub-command filterreg In a method serving as active filter,
+# returns the name of the object (class) on which the method is
+# registered as a filter.
+#
+# @sub-command callinglevel Returns the "original" callstack level
+# calling into the executing method. Intermediary {{{next}}} calls
+# are ignored in this computation. The level is returned in a form
+# so that it can be used as first argument in {{@method ::nx::Object
+# class uplevel}} or {{@method ::nx::Object class upvar}}.
+#
+# @sub-command activelevel Returns the actual callstack level calling
+# into the executing method. The active might correspond the
+# {{{callinglevel}}}, but this is not necessarily the case. The
+# {{{activelevel}}} counts {{@command ::nx::next}} call. The level
+# is returned in a form so that it can be used as first argument in
+# {{@method ::nx::Object class uplevel}} or {{@method ::nx::Object
+# class upvar}}.
+
+# @command configure
+# 
+# A top-level configuration facility which allows you modify
+# properties of the "Next" object system for the scope of an entire
+# {{{interp}}}.
+
+# @command.sub-command {configure filter}
+#
+# Allows turning on or off filters globally for the current
+# interpreter. By default, the filter state is turned off. This
+# function returns the old filter state. This filterless {{{interp}}}
+# state is needed for the serializer which should introspect and stream the
+# objects and classes without being affected by active filter.
+#
+# @parameter toggle Accepts either "on" or "off"
+# @return The current filter activation state
+
+# @command.sub-command {configure softrecreate}
+# 
+# Allows controlling the scheme applied when recreating an object or a
+# class. By default, it is set to {{{off}}}. This means that the
+# object/class is destroyed and all relations
+# (e.g. subclass/superclass) to other objects/classes are revoked as
+# well. If softrecreate is set to {{{on}}}, the object is re-set, but not
+# destroyed, the relations are
+# kept. 
+# 
+# A "soft" recreation is important for e.g. reloading a file with
+# class definitions (e.g. when used in OpenACS with file watching and
+# reloading). With softrecreate set, it is not necessary to recreate
+# dependent subclasses etc. Consider the example of a class hierarchy
+# {{{A <- B <- C}}}. Without {{{softrecreate}}} set, a reload of
+# {{{B}}} means first a destroy of B, leading to {{{A <- C}}}, and
+# instances of {{{B}}} are re-classed to {{@object
+# ::nx::Object}}. When softrecreate is set, the class hierarchy
+# remains untouched.
+#
+# @parameter toggle Accepts either "on" or "off"
+# @return The current toggle value
+
+
+# @command.sub-command {configure objectsystems}
+# 
+# A mere introspection subcommand. It gives you the top level of the
+# current object system, i.e., the ruling root class and root
+# meta-class. For "Next":
+#
+# {{{
+#	configure objectsystems; # returns "::nx::Object ::nx::Class"
+# }}}
+#
+# @return The active pair of root class and root meta-class
+
+# @command.sub-command {configure keepinitcmd}
+#
+# Usually, initcmd scripts are discarded by the {{{interp}}} once
+# having been evaluated (in contrast to {{{proc}}} and {{{method}}}
+# bodies). If you need them preserved for later introspection and
+# processing (as in the "Next" documentation system), set this option
+# to {{{true}}}. Then, the initcmd scripts are retained as a
+# particular object variable ({{{__initcmd}}}) of classes and
+# objects. It defaults to {{{false}}}.
+#
+# @parameter value:boolean Either {{{true}}} or {{{false}}}
+# @return The current setting
+
+# @command alias
+#
+# @parameter object:object The target object which becomes the owner of
+# the aliased command (method, object or command).
+#
+# @parameter -per-object:switch If the target object is a class, one can
+# specify the binding scope (i.e., per-object or per-class) of the
+# aliased command
+#
+# @parameter methodName The name of the alias. 
+# @parameter -nonleaf:switch ...
+# @parameter -objscope:switch ...
+# @parameter cmdName The alias source as a command handle (as returned by ...)
+
+# @command finalize
+
+# @command interp 
+#
+# @parameter name
+# @parameter args
+
+# @command is 
+#
+# @parameter value
+# @parameter constraint
+# @parameter -hasmixin
+# @parameter -type
+# @parameter arg
+
+# @command my
+#
+# @parameter -local
+# @parameter method
+# @parameter args
+
+# @command relation
+#
+# @parameter object
+# @parameter relationtype
+# @parameter value
+
+# @command provide_method
+#
+# @parameter require_name
+# @parameter definition
+# @parameter script:optional
+
+# @command require_method
+# 
+# @parameter object
+# @parameter name
+# @parameter per_object
+
+# @command mixin
+# 
+# @parameter object
+# @parameter args
+
+# @command tmpdir
+#
+# @return The platform-specific path name to the system-wide temporary directory

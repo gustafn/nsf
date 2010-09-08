@@ -1,19 +1,3 @@
-# TODO: decide how to deal with @package and @project names (don't
-# need namespace delimiters!)
-
-# @package ::nx
-#
-# The Next Scripting Language is a compact and expressive object-oriented language
-# extension for Tcl. The object system model is highly influenced by
-# CLOS. This package provides the basic object system for the Next
-# language. It defines the basic language entities {{@class ::nx::Object}} and
-# {{@class ::nx::Class}}, as well as essential language primitives
-# (e.g., {{@command ::nx::next}} and {{@command ::nx::self}}).
-#
-# @require Tcl
-# @version 1.0.0a
-# @namespace ::nx
-
 package provide nx 2.0
 package require nsf
 
@@ -28,143 +12,6 @@ namespace eval ::nx {
   # First create the ::nx object system. 
   #
 
-  # @class Object
-  #
-  # Next Scripting Language (NSL)programs are constructed out of
-  # objects. This class describes common structural and behavioural
-  # features for all NSL objects. It is the root object-class in the
-  # NSL object system.
-
-  # @class Class
-  #
-  # A class defines a family of object types which own a common set of
-  # attributes (see {{@class ::nx::Attribute}}) and methods. Classes
-  # are organised according to their similarities and differences in
-  # classification hierarchies. This object represents the root
-  # meta-class in the "Next" object system.
-  #
-  # @superclass ::nx::doc::entities::class::nx::Object
-  
-  # @class.method {Class alloc}
-  #
-  # Creates a bare object or class which is not
-  # fully initialized. {{{alloc}}} is used by {{@method ::nx::Class class create}} to
-  # request a memory object storage. In subsequent steps,
-  # {{{create}}} invokes {{{configure}}} and {{{init}}} to further
-  # set up the object. Only in rare situations, you may consider
-  # bypassing the overall {{{create}}} mechanism by just allocating
-  # uninitialized objects using {{{alloc}}}.
-  #
-  # @properties interally-called
-  # @param name The object identifier assigned to the object storage to be allocated.
-  # @return The name of the allocated, uninitialized object
-  
-  # @class.method {Class create}
-  #
-  # Provides for creating application-level classes and objects. If
-  # the method receiver is a meta-class, a class will be
-  # created. Otherwise, {{{create}}} yields an object. {{{create}}}
-  # is responsible a multi-phase object creation scheme. This
-  # creation scheme involves three major steps:
-  # {{{
-  # [Object create anObject]               (1)
-  #                       ---------------.   .--------------.
-  #       -------------->|Class->create()|-->|Class->alloc()|
-  #                      `---------------'   `--------------'
-  #                                |  |  (2) .-------------------.
-  #                                |  .----->|Object->configure()|
-  #                                |         `-------------------'
-  #                                |   (3)   .------.
-  #                                .........>|init()|
-  #                                          `------'
-  # }}}
-  # (1) A call to {{@method ::nx::Class class alloc}} to create a raw,
-  # uninitalized object.
-  #
-  # (2) The newly allocated object receives a method call upon
-  # {{@method ::nx::Object class configure}}. This will establish the
-  # object's initial state, by applying object parameter values
-  # provided at object creation time and default values defined at
-  # object definition time.
-  #
-  # (3) Finally, {{{create}}} emits a call to the initialization
-  # method {{{init}}} (i.e., the actual "constructor"), if
-  # available. An {{{init}}} method can be defined by a class on
-  # behalf of its objects, to lay out class-specific initialisation
-  # behaviour. Alternatively, each single object may define an
-  # {{{init}}} method on its own.
-  #
-  # By overloading the method in a meta-class, you can refine or
-  # replace this default object creation scheme (e.g., for applying
-  # application-specific naming schemes).
-  #
-  # For creating an object or a class, you must name {{{create}}}
-  # explicitly, i.e.:
-  # {{{
-  #		::nx::Object create anObject
-  #		::nx::Class create AClass
-  #		::nx::Class AnotherClass; # This fails: "Method 'AnotherClass' unknown for ::nx::Class."
-  # }}}
-  # 
-  # @param name The designated identifier on the class or the object to be created.
-  # @param args arguments to be passed down to the object creation
-  # procedure used to initialize the object.
-  # @return The name of the created, fully initialized object.
-  
-  # @class.method {Class dealloc}
-  #
-  # Marks objects for physical deletion in memory. Beware the fact
-  # that calling {{{dealloc}}} does not necessarily cause the object
-  # to be deleted immediately. Depending on the lifecycle of the the
-  # object's environment (e.g., the {{{interp}}}, the containing
-  # namespace) and on call references down the callstack, the actual
-  # memory freeing operation may occur time-shifted (that is,
-  # later). While {{{dealloc}}} itself cannot be redefined for
-  # {{{::nx::Class}}}, you may consider refining it in a subclass or
-  # mixin class for customizing the destruction process.
-  #
-  # @properties interally-called
-  # @param object The name of the object to be scheduled for deletion.
-  
-  # @class.method {Class recreate}
-  #
-  # This method is called upon recreating an object. Recreation is the
-  # scheme for resolving object naming conflicts in the dynamic and
-  # scripted programming environment of "Next": An object or class is
-  # created while an object or class with an identical object identifier
-  # already exists. The method {{{recreate}}} performs standard object
-  # initialization, per default, after re-setting the state and
-  # relationships of the object under recreation. This re-set is
-  # achieved by invoking {{@method ::nx::Object class cleanup}}.
-  # {{{
-  #	Object create Bar
-  #	\# ...
-  #	Object create Bar; # calls Object->recreate(::Bar, ...) + ::Bar->cleanup()
-  # }}}
-  # By refining {{{recreate}}} in an application-level subclass or mixin
-  # class, you can intercept the recreation process. In the pre-part the
-  # refined {{{recreate}}} method, the recreated object has its old
-  # state, after calling {{@command ::nx::next}} it is cleaned up.
-  #
-  # If the name conflict occurs between an existing class and a newly
-  # created object (or vice versa), {{{recreate}}} is not
-  # performed. Rather, a sequence of {{@method ::nx::Object class destroy}}
-  # and {{@method ::nx::Class class create}} is triggered:
-  # {{{
-  #	Object create Bar
-  #	\# ...
-  #	Class create Bar; # calls Bar->destroy() + Class->create(::Bar, ...)
-  # }}}
-  #
-  # @properties interally-called
-  # @param name The name (identifier) of the object under recreation
-  # @param args Arbitrary vector of arguments
-  # @return The name of the recreated object
- 
-  # @class.method {Object residualargs}
-  #
-  # @properties interally-called
-  # @param args
   ::nsf::createobjectsystem ::nx::Object ::nx::Class {
     -class.alloc alloc 
     -class.create create
@@ -186,14 +33,6 @@ namespace eval ::nx {
   #
   namespace eval ::nsf {}
   
-  # @command next
-  #
-  # @use ::nsf::command
-
-  # @command current
-  #
-  # @use ::nsf::current
-
   namespace import ::nsf::next ::nsf::current
 
   #
@@ -205,91 +44,6 @@ namespace eval ::nx {
     ::nsf::alias Object $cmdName $cmd 
   }
   
-  # @class.method {Object configure}
-  #
-  # This method participates in the object creation process. It is
-  # automatically invoked after having produced a new object by
-  # {{@method ::nx::Class class create}}.
-  # Upon its invocation, the variable argument vector {{{args}}}
-  # contains a list of parameters and parameter values passed in
-  # from the call site of object creation. They are matched against
-  # an object parameter definition. This definition, and so the
-  # actual method parameter definition of this method, is assembled
-  # from configuration values of the classes along the precedence
-  # order (see also {{@method ::nx::Object class objectparameter}}).
-  # The method {{{configure}}} can be called at arbitrary times to
-  # "re-set" an object.
-  #
-  # @properties interally-called
-  # @param args The variable argument vector stores the object parameters and their values
-
-  # @class.method {Object destroy}
-  #
-  # The standard destructor for an object. The method {{@method ::nx::Object class destroy}}
-  # triggers the physical destruction of the object. The method {{{destroy}}} can be refined
-  # by subclasses or mixin classes to add additional (class specific) destruction behavior.
-  # Note that in most cases, the class specific {{{destroy}}} methods should call 
-  # {{@command ::nx::next}} to trigger physical destruction.
-  # {{{
-  #     nx::Class create Foo {
-  #        :method destroy {} {
-  #            puts "destroying [self]"
-  #            next
-  #        }
-  #     }
-  #     Foo create f1
-  #     f1 destroy
-  # }}}
-  # Technical details: The method {{@method ::nx::Object class destroy}}
-  # delegates the actual destruction to {{@method ::nx::Class class dealloc}} 
-  # which clears the memory object storage. Essentially, the behaviour could be 
-  # scripted as:
-  # {{{
-  #       Object method destroy {} {
-  #               [:info class] dealloc [self]
-  #       }
-  # }}}
-  # Note, however, that {{{destroy}}} is protected against
-  # application-level redefinition. You must refine it in a subclass
-  # or mixin class. 
-  #
-
-  # @class.method {Object uplevel}
-  #
-  # This helper allows you to evaluate a script in the context of
-  # another callstack level (i.e., callstack frame).
-  #
-  # @param level:optional The starting callstack level (defaults to the value of {{{[current callinglevel]}}})
-  # @param script:list The script to be evaluated in the targeted callstack level
-
-  # @class.method {Object upvar}
-  #
-  # This helper allows you to bind a local variable to a variable
-  # residing at a different callstack level (frame).
-  #
-  # @param level:optional The starting callstack level (defaults to the value of {{{[current callinglevel]}}})
-  # @param sourceVar A variable which should be linked to a ...
-  # @param targetVar ... which is a local variable in a method scope
-  # @see ...
-
-  # @class.method {Object volatile}
-  #
-  # By calling on this method, the object is bound in its lifetime to
-  # the one of call site (e.g., the given Tcl proc or method scope):
-  # {{{
-  # 	proc foo {} {
-  #   		info vars; # shows ""
-  #   		set x [Object create Bar -volatile]
-  #   		info vars; # shows "x Bar"
-  # 	}
-  # }}}
-  # Behind the scenes, {{{volatile}}} registers a C-level variable trace
-  # ({{{Tcl_TraceVar()}}}) on the hiddenly created local variable (e.g.,
-  # {{{Bar}}}), firing upon unset events and deleting the referenced
-  # object ({{{Bar}}}). That is, once the callframe context of {{{foo}}}
-  # is left, the local variable {{{Bar}}} is unset and so the bound
-  # object is destroyed.
-
   # provide ::eval as method for ::nx::Object
   ::nsf::alias Object eval -nonleaf ::eval
 
@@ -297,23 +51,6 @@ namespace eval ::nx {
   # class methods
   #
   
-  # @class.method {Class new}
-  #
-  # A convenience method to create auto-named objects and classes. It is
-  # a front-end to {{@method ::nx::Class class create}}. For instance:
-  # {{{
-  #	set obj [Object new]
-  #	set cls [Class new]
-  # }}}
-  #
-  # This will provide object identifiers of the form
-  # e.g. {{{::nsf::__#0}}}. In contrast to {{@method ::nx::Object class autoname}},
-  # the uniqueness of auto-generated identifiers is guaranteed for the
-  # scope of the {{{interp}}}.
-  #
-  # @param -childof If provided, the new object is created as a child of the specified object.
-  # @param args The variable arguments passed down to {{@method ::nx::Class class create}}.
-
   # provide the standard command set for Class
   foreach cmd [info command ::nsf::cmd::Class::*] {
     set cmdName [namespace tail $cmd]
@@ -398,30 +135,6 @@ namespace eval ::nx {
 
   # define method "method" for Class and Object
 
-  # @class.method {Class method}
-  #
-  # Defines a per-class method, similarly to Tcl specifying
-  # {{{procs}}}. Optionally assertions may be specified by two
-  # additional arguments. Therefore, to specify only post-assertions
-  # an empty pre-assertion list must be given. All assertions are a
-  # list of ordinary Tcl {{{expr}}} statements.  When {{{method}}} is
-  # called with an empty argument list and an empty body, the
-  # specified method is deleted.
-  # {{{
-  #	Class create AClass {
-  #		:method foo args {;}
-  #	}
-  #
-  #	AClass create anInstance
-  #	anInstance foo; # invokes "foo"
-  # }}}
-  #
-  # @param name The method name
-  # @param arguments:list A list specifying non-positional and positional parameters
-  # @param body The script which forms the method body
-  # @param preAssertion Optional assertions that must hold before the proc executes
-  # @param postAssertion Optional assertions that must hold after the proc executes
-
   ::nsf::method Class method {
     name arguments body -precondition -postcondition
   } {
@@ -435,27 +148,6 @@ namespace eval ::nx {
     return $r
   }
 
-  # @class.method {Object method} 
-  #
-  # Defines a per-object method, similarly to Tcl specifying
-  # {{{procs}}}.  Optionally assertions may be specified by two
-  # additional arguments. Therefore, to specify only post-assertions
-  # an empty pre-assertion list must be given. All assertions are a
-  # list of ordinary Tcl {{{expr}}} statements.  When {{{method}}} is
-  # called with an empty argument list and an empty body, the
-  # specified method is deleted.
-  # {{{
-  # 	Object create anObject {
-  #   		:method foo args {;}
-  # 	}
-  # 	anObject foo; # invokes "foo"
-  # }}}
-  #
-  # @param name The method name
-  # @param arguments:list A list specifying non-positional and positional parameters
-  # @param body The script which forms the method body
-  # @param preAssertion Optional assertions that must hold before the proc executes
-  # @param postAssertion Optional assertions that must hold after the proc executes
   ::nsf::method Object method {
     name arguments body -precondition -postcondition -returns
   } {
@@ -555,101 +247,8 @@ namespace eval ::nx {
 
   # define forward methods
 
-  # @class.method {Object forward}
-  #
-  # Register a per-object method (similar to a {{{proc}}}) for
-  # forward-delegating calls to a callee (target Tcl command, other
-  # object). When the forwarder method is called, the actual arguments
-  # of the invocation are appended to the specified arguments. In
-  # callee an arguments certain substitutions can take place:
-  #
-  # {{{%proc}}} substituted by name of the forwarder method
-  #
-  # {{{%self}}} substitute by name of the object
-  #
-  # {{{%1}}} substitute by first argument of the invocation
-  #
-  # {{{ {%@POS value} }}} substitute the specified value in the
-  # argument list on position POS, where POS can be a positive or
-  # negative integer or end. Positive integers specify the position
-  # from the begin of the list, while negative integer specify the
-  # position from the end.
-  #
-  # {{{ {%argclindex LIST} }}} take the nth argument of the specified
-  # list as substitution value, where n is the number of arguments
-  # from the invocation.
-  #
-  # {{{%%}}} a single percent.
-  #
-  # {{{%Tcl-command}}} command to be executed; substituted by result.
-  #
-  # Additionally each argument can be prefixed by the positional prefix
-  # %@POS (note the delimiting space at the end) that can be used to
-  # specify an explicit position. POS can be a positive or negative
-  # integer or the word end. The positional arguments are evaluated from
-  # left to right and should be used in ascending order. 
-  #
-  # @param name The name of the delegating or forward method
-  # @param -objscope:optional Causes the target to be evaluated in the scope of the object.
-  # @param -methodprefix Prepends the specified prefix to the second argument of the invocation.
-  # @param -default Is used for default method names (only in connection with %1)
-  # @param -earlybinding Look up the function pointer of the called Tcl command at definition time of the forwarder instead of invocation time. This option should only be used for calling C-implemented Tcl commands, no scripted procs
-  # @param -verbose Print the substituted command to stderr before executing
-  # @param callee
-  # @param args
   ::nsf::forward Object forward ::nsf::forward %self -per-object
   #set ::nsf::signature(::nx::Object-method-forward) {(methodName) obj forward name ?-default default? ?-earlybinding? ?-methodprefix name? ?-objscope? ?-onerror proc? ?-verbose? target ?args?}
-
-  # @class.method {Class forward}
-  #
-  # Register a per-class method (similar to a {{{proc}}}) for
-  # forward-delegating calls to a callee (target Tcl command, other
-  # object). When the forwarder method is called on an instance of the
-  # class, the actual arguments of the invocation are appended to the
-  # specified arguments. In callee an arguments certain substitutions
-  # can take place:
-  #
-  # {{{%proc}}} substituted by name of the forwarder method
-  #
-  # {{{%self}}} substitute by name of the object
-  #
-  # {{{%1}}} substitute by first argument of the invocation
-  #
-  # {{{ {%@POS value} }}} substitute the specified value in the
-  # argument list on position POS, where POS can be a positive or
-  # negative integer or end. Positive integers specify the position
-  # from the begin of the list, while negative integer specify the
-  # position from the end.
-  #
-  # {{{ {%argclindex LIST} }}} take the nth argument of the specified
-  # list as substitution value, where n is the number of arguments
-  # from the invocation.
-  #
-  # {{{%%}}} a single percent.
-  #
-  # {{{%Tcl-command}}} command to be executed; substituted by result.
-  #
-  # Additionally each argument can be prefixed by the positional prefix
-  # %@POS (note the delimiting space at the end) that can be used to
-  # specify an explicit position. POS can be a positive or negative
-  # integer or the word end. The positional arguments are evaluated from
-  # left to right and should be used in ascending order. 
-  #
-  # @param name The name of the delegating or forward method
-  # @param -objscope:optional Causes the target to be evaluated in the
-  # scope of the object.
-  # @param -methodprefix Prepends the specified prefix to the second
-  # argument of the invocation.
-  # @param -default Is used for default method names (only in
-  # connection with %1)
-  # @param -earlybinding Look up the function pointer of the called
-  # Tcl command at definition time of the forwarder instead of
-  # invocation time. This option should only be used for calling
-  # C-implemented Tcl commands, no scripted procs
-  # @param -verbose Print the substituted command to stderr before
-  # executing
-  # @param callee
-  # @param args
 
   ::nsf::forward Class forward ::nsf::forward %self
 
@@ -848,111 +447,6 @@ namespace eval ::nx {
 
   # we have to use "eval", since objectParameters are not defined yet
   
-  # @class.method {Object info}
-  #
-  # Provides introspection on objects. A variety of introspection
-  # options exists. {{{info}}} is implemented as en ensemble
-  # object. Hence, the introspection options turn into proper
-  # sub-methods.
-  #
-  # @sub-method callable
-  # @sub-method has
-  # @sub-method filter
-  # @sub-method is Binds all introspection facilities offered by
-  # {{{::nsf::is}}} to the object, i.e., the object is automatically
-  # folded in as the first argument passed to {{{::nsf::is}}}
-  # @sub-method mixin
-
-  # @class.method {Object "info callable method"}
-  #
-  # Verifies whether there is a method under a given name available
-  # for invocation upon the object. In case, the introspective call
-  # returns the corresponding method handle. If there is no so named
-  # method available, an empty string is returned.
-
-  # @class.method {Object "info callable filter"}
-  #
-  # Search for a method which is currently registered as a filter (in
-  # the invocation scope of the given object). If found, the
-  # corresponding method handle is returned.
-
-  # @class.method {Object "info children"}
-  #
-  # Computes the list of aggregated (or nested) objects. The resulting
-  # list reports the fully qualified object names. If a name pattern
-  # was specified, all matching child objects are returned. Otherwise,
-  # all children are reported.
-  
-
-  # @class.method {Object "info class"}
-  #
-  # Gives the name of the class of the current object.
-
-  # @class.method {Object "info filter guard"} 
-  #
-  # Returns the guards for filter identified by a filter name
-
-  # @class.method {Object "info filter methods"} 
-  # 
-  # Returns a list of methods registered as filters.
-
-  # @class.method {Object "info forward"} 
-  #
-  # Provides you with the list of forwarders defined for the given
-  # object.
-
-  # @class.method {Object "info has mixin"}
-  #
-  # Verifies in a boolean test whether the object has the given class
-  # registered as a mixin class.
-
-  # @class.method {Object "info has namespace"}  Some words on info has type
-  #
-  # Tells you whether the object has a companion, per-object Tcl
-  # namespace. Note that the results do not necessarily correspond to
-  # those yielded by {{{[namespace exists /obj/]}}}.
-
-  # @class.method {Object "info has type"}
-  #
-  # Tests whether the class passed as the argument is a type of the
-  # object, i.e., whether the object is an instance of the given class
-  # or of one of the class's superclasses.
-
-  # @class.method {Object "info methods"}
-  #
-  # Allows you to query the methods (of various kinds) defined on the
-  # object. 
- 
-  # @class.method {Object "info mixin guard"}
-  #
-  # Retrieves the guards applied to the mixin class idenitified by the
-  # mixin class name
-
-  # @class.method {Object "info mixin classes"}
-  #
-  # The list of per-object mixin classes currently registered for the
-  # object is returned.
-
-  # @class.method {Object "info parent"}
-  #
-  # Resolves the fully qualified name of the parent object (or "::" if
-  # there is no parent object).
-  
-  # @class.method {Object "info precedence"}
-  #
-  # Presents to you the list of classes the object is inheriting
-  # attributes and methods, ordered according to their precedence.
-
-  # @class.method {Object "info slotobjects"}
-  #
-  # Assembles the list of slot objects which apply the given
-  # object. They are resolved by following the class precedence list
-  # upward and coercing the lists of slots provided by these classes.
-
-  # @class.method {Object "info vars"}
-  #
-  # Yields a list of variable names created and defined on the object.
-
   Object eval {
     :alias "info callable"       ::nsf::cmd::ObjectInfo::callable
     :alias "info children"       ::nsf::cmd::ObjectInfo::children
@@ -1146,24 +640,7 @@ namespace eval ::nx {
 }
 namespace eval ::nx {
 
-  # @class Slot
-  #
-  # A slot is a meta-object that manages property changes of
-  # objects. A property is either an attribute or a role taken by an
-  # object in an inter-object relation (e.g., in system slots). The
-  # predefined system slots are {{{class}}}, {{{superclass}}},
-  # {{{mixin}}}, and {{{filter}}}. These slots appear as methods of
-  # {{@class ::nx::Object}} or {{@class ::nx::Class}}. The slots
-  # provide a common getter and setter interface. Every multivalued
-  # slot provides e.g. a method {{{add}}} to append a value to the
-  # list of values, and a method {{{delete}}} which removes it.
-  #
-  # @superclass ::nx::doc::entities::class::nx::Object
   MetaSlot create ::nx::Slot
-
-  # @class ObjectParameterSlot
-  #
-  # @superclass ::nx::doc::entities::class::nx::Slot
 
   MetaSlot create ::nx::ObjectParameterSlot
   ::nsf::relation ObjectParameterSlot superclass Slot
@@ -1220,26 +697,6 @@ namespace eval ::nx {
   # Define slots for slots
   ############################################
 
-  # @class.param {Slot name}
-  #
-  # Name of the slot which can be used to access the slot from an object
-
-  # @class.param {Slot multivalued}
-  #
-  # Boolean value for specifying single or multiple values (lists)
-
-  # @class.param {Slot required}
-  #
-  # Denotes whether a value must be provided
-
-  # @class.param {Slot default}
-  #
-  # Allows you to define a default value (to be set upon object creation)
-
-  # @class.param {Slot type}
-  #
-  # You may specify a type constraint on the value range to managed by the slot
-
   createBootstrapAttributeSlots ::nx::Slot {
     {name}
     {multivalued false}
@@ -1247,35 +704,6 @@ namespace eval ::nx {
     default
     type
   }
-
-  # @class.param {ObjectParameterSlot name}
-  #
-  # Name of the slot which can be used to access the slot from an
-  # object. It defaults to unqualified name of an instance.
-
-  # @class.param {ObjectParameterSlot methodname}
-  #
-  # The name of the accessor methods to be registed on behalf of the
-  # slot object with its domains can vary from the slot name.
-
-  # @class.param {ObjectParameterSlot domain}
-  #
-  # The domain (object or class) of a slot on which it can be used
-
-  # @class.param {ObjectParameterSlot defaultmethods}
-  #
-  # A list of two elements for specifying which methods are called per
-  # default, when no slot method is explicitly specified in a call.
-
-  # @class.param {ObjectParameterSlot manager}
-  #
-  # The manager object of the slot (per default, the slot object takes
-  # this role, i.e. {{{[self]}}})
-
-  # @class.param {ObjectParameterSlot per-object}
-  #
-  # If set to {{{true}}}, the accessor methods are registered with the
-  # domain object scope only. It defaults to {{{false}}}.
 
   createBootstrapAttributeSlots ::nx::ObjectParameterSlot {
     {name "[namespace tail [::nsf::current object]]"}
@@ -1465,7 +893,6 @@ namespace eval ::nx {
     return $parameterdefinitions
   }
 
-  # @method ::nx::Object#objectparameter
   Object protected method objectparameter {{lastparameter __initcmd:initcmd,optional}} {
     #puts stderr "... objectparameter [::nsf::current object]"
     set parameterdefinitions [::nsf::parametersFromSlots [::nsf::current object]]
@@ -1565,81 +992,21 @@ namespace eval ::nx {
   ############################################
   proc ::nsf::register_system_slots {os} {
 
-    # @class.param {Class superclass}
-    #
-    # Specifies superclasses for a given class. As a setter ***
-    # generell: setter kann hier mit der methode namens "setter"
-    # verwechselt werden; wir sollten hier die paramter syntax
-    # anfuehren, die allerdings in zwei varianten kommt:
-    #{{{
-    #  obj superclass ?value?
-    #  obj superclass add|assign|delete|get value
-    #}}}
-    # Das gilt allgemein, nicht nur für die relation-slots, sondern
-    # für alle incremental slots.
-    # **** {{{superclass}}} changes the list
-    # of superclasses. When used as a getter, the method returns the
-    # current superclasses.
-    #
-    # @return :list If called as a getter (without arguments),
-    # {{{superclass}}} returns the current superclasses of the object
     ::nx::RelationSlot create ${os}::Class::slot::superclass
     ::nsf::alias              ${os}::Class::slot::superclass assign ::nsf::relation
 
-    # @class.param {Object class}
-    #
-    # Sets or retrieves the class of an object. When {{{class}}} is
-    # called without arguments, it returns the current class of the
-    # object.
-    #
-    # @return If called as a getter (without arguments), {{{class}}} returns the current class of the object
     ::nx::RelationSlot create ${os}::Object::slot::class -multivalued false
     ::nsf::alias              ${os}::Object::slot::class assign ::nsf::relation
 
-    # @class.param {Object mixin}
-    #
-    # As a setter, {{{mixin}}} specifies a list of mixins to
-    # set. Every mixin must be an existing class. In getter mode, you
-    # can retrieve the list of mixins active for the given object.
-    #
-    # @return :list If called as a getter (without arguments), {{{mixin}}} returns the list of current mixin classes registered with the object
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
 	-methodname object-mixin    
 
-    # @class.param {Object filter}
-    #
-    # In its setter mode, {{{filter}}} allows you to register methods
-    # as per-object filters. Every filter must be an existing method
-    # in the scope of the object. When acting as a getter, you can
-    # retrieve the list of filter methods active for the given object.
-    #
-    # @return :list If called as a getter (without arguments),
-    # {{{filter}}} returns the list of current filters
-    # registered with the object
     ::nx::RelationSlot create ${os}::Object::slot::filter -elementtype "" \
 	-methodname object-filter
 
 
-    # @class.param {Class mixin}
-    #
-    # As a setter, {{{mixin}}} specifies a list of mixins to set for
-    # the class. Every mixin must be an existing class. In getter
-    # mode, you can retrieve the list of mixins active for the given
-    # class.
-    #
-    # @return :list If called as a getter (without arguments), {{{mixin}}} returns the list of current mixin classes registered with the class
     ::nx::RelationSlot create ${os}::Class::slot::mixin -methodname class-mixin
     
-    # @class.param {Class filter}
-    #
-    # In its setter mode, {{{filter}}} allows you to register methods
-    # as per-class filters. Every filter must be an existing method
-    # in the scope of the class. When acting as a getter, you can
-    # retrieve the list of filter methods active for the given class.
-    #
-    # @return :list If called as a getter (without arguments),
-    # {{{filter}}} returns the list of current filters
-    # registered with the class
     ::nx::RelationSlot create ${os}::Class::slot::filter -elementtype "" \
         -methodname class-filter
 
@@ -1691,37 +1058,6 @@ namespace eval ::nx {
   ############################################
   ::nsf::invalidateobjectparameter MetaSlot
   
-  # @class Attribute
-  #
-  # Attribute slots are used to manage the access, mutation, and
-  # querying of instance variables. One defines Attribute slots 
-  # for objects and classes usually via the helper method 
-  # {{@method ::nx::Object class attribute}} 
-  # **** TODO STEFAN, kein Link? GEPLANT? MIT 2 GESCHWEIFTEN KLAMMER UM SALARY GIBT ES EINEN LAUFZEITFEHLER??? ********
-  # The following example defines a class with
-  # three attribute slots. The attribute {salary} has 
-  # a default of {0}, the attribute {projects} has the
-  # empty list as default and is defined as multivalued.
-  # {{{
-  #   Class create Person {
-  #      :attribute name
-  #      :attribute {salary:integer 0}
-  #      :attribute {projects:multivalued ""} {
-  #         set :incremental true
-  #      }
-  #   }
-  # }}}
-  #
-  # @param incremental A boolean value, only useful for multivalued
-  # slots. When set, one can add/delete incrementally values to the
-  # multivalued set (e.g., through an incremental {{{add}}})
-  # @param valuecmd A Tcl command to be executed whenever the managed
-  # object variable is read
-  # @param valuechangedcmd A Tcl command to be executed whenever the
-  # value of the managed object variable changes
-  # @param arg
-  # @superclass ::nx::doc::entities::class::nx::ObjectParameterSlot
-
   MetaSlot create ::nx::Attribute -superclass ObjectParameterSlot
 
   createBootstrapAttributeSlots ::nx::Attribute {

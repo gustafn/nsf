@@ -24,10 +24,10 @@
 	    [$sm render -initscript [list set supermethod [current]] submethod.html.tmpl]
 	    }]
 	    } - {
-	    [:? {[info exists :@param]} {
+	    [:? {[info exists :@parameter]} {
 	    <dl rel="yui:parameters">
               <dt>Method parameters:</dt>
-	      [:for param ${:@param} {
+	      [:for param ${:@parameter} {
 	      <dd rel="yui:parameter">
                 <code><span property="yui:name">[$param name]</span>
                 [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]

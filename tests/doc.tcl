@@ -328,7 +328,7 @@ Test case parsing {
     {}
     {some text on the class entity}
     {}
-    {@class-param attr1 Here! we check whether we can get a valid description block}
+    {@class-attribute attr1 Here! we check whether we can get a valid description block}
     {for text spanning multiple lines}
   }
 
@@ -339,9 +339,9 @@ Test case parsing {
   ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "some text on the class entity";
-  ? [list llength [$entity @param]] 1
-  ? [list [$entity @param] info has type ::nx::doc::@param] 1
-  ? [list [$entity @param] as_text] "Here! we check whether we can get a valid description block for text spanning multiple lines"
+  ? [list llength [$entity @attribute]] 1
+  ? [list [$entity @attribute] info has type ::nx::doc::@param] 1
+  ? [list [$entity @attribute] as_text] "Here! we check whether we can get a valid description block for text spanning multiple lines"
 
   #
   # basic test for in-situ documentation (initcmd block)
@@ -354,7 +354,7 @@ Test case parsing {
       # @author gustaf.neumann@wu-wien.ac.at
       # @author ssoberni@wu.ac.at
       
-      # @.param attr1 
+      # @.attribute attr1 
       #
       # This attribute 1 is wonderful
       #
@@ -368,8 +368,8 @@ Test case parsing {
       #
       # This describes the foo method
       #
-      # @param a Provides a first value
-      # @param b Provides a second value
+      # @parameter a Provides a first value
+      # @parameter b Provides a second value
       :method foo {a b} {;}
     }
   }
@@ -383,9 +383,9 @@ Test case parsing {
   ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
   # TODO: Fix the [@param id] programming scheme to allow (a) for
   # entities to be passed and the (b) documented structures
-  set entity [@param id [@class id ::Foo] class attr1]
+  set entity [@attribute id [@class id ::Foo] class attr1]
   ? [list ::nsf::is object $entity] 1
-  ? [list $entity info has type ::nx::doc::@param] 1
+  ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Foo class foo]
@@ -394,7 +394,7 @@ Test case parsing {
   ? [list $entity info has type ::nx::doc::@method] 1
   ? [list $entity as_text] "This describes the foo method";
   
-  foreach p [$entity @param] expected {
+  foreach p [$entity @parameter] expected {
     "Provides a first value"
     "Provides a second value"
   } {
@@ -415,7 +415,7 @@ Test case parsing {
     # @author gustaf.neumann@wu-wien.ac.at
     # @author ssoberni@wu.ac.at
 
-    # @class.param {::Bar attr1}
+    # @class.attribute {::Bar attr1}
     #
     # This attribute 1 is wonderful
     #
@@ -427,15 +427,15 @@ Test case parsing {
     #
     # This describes the foo method
     #
-    # @param a Provides a first value
-    # @param b Provides a second value
+    # @parameter a Provides a first value
+    # @parameter b Provides a second value
 
     # @class.object-method {::Bar foo}
     #
     # This describes the per-object foo method
     #
-    # @param a Provides a first value
-    # @param b Provides a second value
+    # @parameter a Provides a first value
+    # @parameter b Provides a second value
 
     namespace eval ::ns1 {
       ::nx::Object create ooo
@@ -450,21 +450,21 @@ Test case parsing {
       #
       # This describes the foo method in the initcmd
       #
-      # @param a Provides a first value
-      # @param b Provides a second value
+      # @parameter a Provides a first value
+      # @parameter b Provides a second value
 
       :method foo {a b} {
 	# This describes the foo method in the method body
 	#
-	# @param a Provides a first value (refined)
+	# @parameter a Provides a first value (refined)
 
       }
       
       :object method foo {a b c} {
 	# This describes the per-object foo method in the method body
 	#
-	# @param b Provides a second value (refined)
-      	# @param c Provides a third value (first time)
+	# @parameter b Provides a second value (refined)
+      	# @parameter c Provides a third value (first time)
 
       }
 
@@ -481,9 +481,9 @@ Test case parsing {
 
   # TODO: Fix the [@param id] programming scheme to allow (a) for
   # entities to be passed and the (b) documented structures
-  set entity [@param id [@class id ::Bar] class attr1]
+  set entity [@attribute id [@class id ::Bar] class attr1]
   ? [list $i eval [list ::nsf::is object $entity]] 1
-  ? [list $i eval [list $entity info has type ::nx::doc::@param]] 1
+  ? [list $i eval [list $entity info has type ::nx::doc::@attribute]] 1
   ? [list $i eval [list $entity @see]] "::nx::Attribute ::nx::MetaSlot";
 
   set entity [@method id ::Bar class foo]
@@ -492,7 +492,7 @@ Test case parsing {
   ? [list $i eval [list $entity info has type ::nx::doc::@method]] 1
   ? [list $i eval [list $entity as_text]] "This describes the foo method in the method body";
 
-  foreach p [$i eval [list $entity @param]] expected {
+  foreach p [$i eval [list $entity @parameter]] expected {
     "Provides a first value (refined)"
     "Provides a second value"
   } {
@@ -506,7 +506,7 @@ Test case parsing {
   ? [list $i eval [list $entity info has type ::nx::doc::@method]] 1
   ? [list $i eval [list $entity as_text]] "This describes the per-object foo method in the method body";
 
-  foreach p [$i eval [list $entity @param]] expected {
+  foreach p [$i eval [list $entity @parameter]] expected {
     "Provides a first value"
     "Provides a second value (refined)"
     "Provides a third value (first time)"
@@ -550,7 +550,7 @@ Test case parsing {
   # This fails because we do not allow uninitialised/non-existing
   # entity objects (@object o) along the resolution path ...
   set block {
-    {@class.object.param {::C o attr1} We have an invalid specification}
+    {@class.object.attribute {::C o attr1} We have an invalid specification}
   }
   
   set cbp [CommentBlockParser process $block]
@@ -558,25 +558,25 @@ Test case parsing {
 #  ? [list $cbp message] "The tag 'object' is not supported for the entity type '@class'"
 
   set block {
-    {@class.method.param attr1 We have an imbalanced specification (the names are underspecified!)}
+    {@class.method.attribute attr1 We have an imbalanced specification (the names are underspecified!)}
   }
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
-  ? [list $cbp message] "Imbalanced tag line specification in '@class.method.param attr1 We have an imbalanced specification (the names are underspecified!)'."
+  ? [list $cbp message] "Imbalanced tag line specification in '@class.method.attribute attr1 We have an imbalanced specification (the names are underspecified!)'."
 
   # For now, we do not verify and use a fixed scope of permissive tag
   # names. So, punctuation errors or typos are most probably reported
   # as imbalanced specs. In the mid-term run, this should rather
   # become an INVALIDTAG condition.
   set block {
-    {@cla.ss.method.param {::C foo p1} We mistyped a tag fragment}
+    {@cla.ss.method.parameter {::C foo p1} We mistyped a tag fragment}
   }
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
-  ? [list $cbp message] "Imbalanced tag line specification in '@cla.ss.method.param {::C foo p1} We mistyped a tag fragment'."
+  ? [list $cbp message] "Imbalanced tag line specification in '@cla.ss.method.parameter {::C foo p1} We mistyped a tag fragment'."
 
   set block {
-    {@cla,ss.method.param {::C foo p1} We mistyped a tag fragment}
+    {@cla,ss.method.parameter {::C foo p1} We mistyped a tag fragment}
   }
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? INVALIDTAG] 1
@@ -587,11 +587,11 @@ Test case parsing {
     #
     # The global description of ::C
     #
-    # @param attr1 Here we can only provide a description block for object parameters
+    # @attribute attr1 Here we can only provide a description block for object parameters
     
-    # @class.param {::C attr1} Here, we could also write '@class.class-param \{::C attr1\}', @param is a mere forwarder! In the context section, only one-liners are allowed!
+    # @class.attribute {::C attr1} Here, we could also write '@class.class-attribute \{::C attr1\}', @attribute is a mere forwarder! In the context section, only one-liners are allowed!
 
-    # @class.object.param {::C foo p1} A short description is ...
+    # @class.object.attribute {::C foo p1} A short description is ...
     #
     # .. is overruled by a long one ...
 
@@ -619,9 +619,9 @@ Test case parsing {
       # This is the initcmd-level description of ::C which overwrites the
       # global description (see above)
       
-      # @.param attr1
+      # @.attribute attr1
       #
-      # This is equivalent to writing "@class-param attr1"
+      # This is equivalent to writing "@class-attribute attr1"
       :attribute attr1 {
 	# This description does not apply to the object parameter
 	# "attr1" owned by the ::C class, rather it is a description
@@ -630,20 +630,20 @@ Test case parsing {
 	# initcmd-level descriptions?
       }
       
-      # @.object-param attr2 Carries a short desc only
+      # @.object-attribute attr2 Carries a short desc only
       :object attribute attr2
       
       # @.method foo
       #
-      # @param p1
+      # @parameter p1
       set fooHandle [:method foo {p1} {
 	# Here goes some method-body-level description
 	#
-	# @param p1 The most specific level!
+	# @parameter p1 The most specific level!
 	return [current method]-$p1-[current]
       }]
            
-      # @.object-method.param {bar p1}
+      # @.object-method.parameter {bar p1}
       #
       # This extended form allows to describe a method parameter with all
       # its structural features!
@@ -653,7 +653,7 @@ Test case parsing {
 
       # @.object foo 'foo' needs to be defined before referencing any of its parts!
 
-      # @.object.param {foo p1}
+      # @.object.attribute {foo p1}
       #
       # The first element in the name list is resolved into a fully
       # qualified (absolute) entity, based on the object owning the
@@ -661,9 +661,9 @@ Test case parsing {
       Object create [current]::foo {
 	# Adding a line for the first time (not processed in the initcmd phase!)
 	
-	# @..param p1
+	# @..attribute p1
 	# 
-	# This is equivalent to stating "@object-param p1"
+	# This is equivalent to stating "@object-attribute p1"
 	:attribute p1
       }
       
@@ -673,21 +673,21 @@ Test case parsing {
       # context of the initcmd-owning object, i.e. you would NOT refer to 
       # a nested class object named "Foo" anymore!
       
-      # @.class.param {Foo p1}
+      # @.class.attribute {Foo p1}
       #
-      # This is equivalent to stating "@child-class.class-param {Foo p1}"
+      # This is equivalent to stating "@child-class.class-attribute {Foo p1}"
       
-      # @.class.object-param {Foo p2} Y
+      # @.class.object-attribute {Foo p2} Y
       Class create [current]::Foo {
 
-	# @..param p1
+	# @..attribute p1
 	# 
 	#
-	# This is equivalent to stating "@class-param p1"; or
-	# '@class.object.param {::C Foo p1}' from the top-level.
+	# This is equivalent to stating "@class-attribute p1"; or
+	# '@class.object.attribute {::C Foo p1}' from the top-level.
 	:attribute p1
 	
-	# @..object-param p2
+	# @..object-attribute p2
 	:object attribute p2
       }
       
@@ -701,7 +701,7 @@ Test case parsing {
       # could allow both (@sub-method is the attribute name, @method is a
       # forwarder in the context of an owning @method object!)
       # 
-      # @param p1 Some words on p1
+      # @parameter p1 Some words on p1
       :object alias "sub foo" $fooHandle
       
       # @.method sub
@@ -728,7 +728,7 @@ Test case parsing {
       # could allow both (@sub-method is the attribute name, @method is a
       # forwarder in the context of an owning @method object!)
       # 
-      # @param p1 Some words on p1
+      # @parameter p1 Some words on p1
       # @see anotherentity
       # @author ss@thinkersfoot.net
       :object alias "sub foo2" $fooHandle
@@ -746,32 +746,32 @@ Test case parsing {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "The global description of ::C";
-  # --testing-- "@class.param {::C attr1}"
-  set entity [@param id $entity class attr1]
+  # --testing-- "@class.attribute {::C attr1}"
+  set entity [@attribute id $entity class attr1]
   ? [list ::nsf::isobject $entity] 1
-  ? [list $entity info has type ::nx::doc::@param] 1
-  ? [list $entity as_text] "Here, we could also write '@class.class-param {::C attr1}', @param is a mere forwarder! In the context section, only one-liners are allowed!"
+  ? [list $entity info has type ::nx::doc::@attribute] 1
+  ? [list $entity as_text] "Here, we could also write '@class.class-attribute {::C attr1}', @attribute is a mere forwarder! In the context section, only one-liners are allowed!"
 
-  # --testing-- "@class.object.param {::C foo p1} A short description is ..."
-  # set entity [@param id $entity class attr1]
+  # --testing-- "@class.object.attribute {::C foo p1} A short description is ..."
+  # set entity [@attribute id $entity class attr1]
   # set entity [@object id -partof_name ::C -scope child foo]
   # ? [list ::nsf::isobject $entity] 1
   # ? [list $entity info has type ::nx::doc::@object] 1
   # ? [list $entity as_text] ""
-  # set entity [@param id $entity object p1]
+  # set entity [@attribute id $entity object p1]
   # ? [list ::nsf::isobject $entity] 1
-  # ? [list $entity info has type ::nx::doc::@param] 1
+  # ? [list $entity info has type ::nx::doc::@attribute] 1
   # ? [list $entity as_text] ".. is overruled by a long one ..."
 
   set entity [@object id ::C::foo]
   ? [list ::nsf::isobject $entity] 0
-  set entity [@param id $entity object p1]
+  set entity [@attribute id $entity object p1]
   ? [list ::nsf::isobject $entity] 0
-  #  ? [list $entity info has type ::nx::doc::@param] 1
+  #  ? [list $entity info has type ::nx::doc::@attribute] 1
   #  ? [list $entity as_text] ".. is overruled by a long one ..."
 
-  # --testing-- @object-param attr2 (its non-existance)
-  set entity [@param id [@class id ::C] object attr2]
+  # --testing-- @object-attribute attr2 (its non-existance)
+  set entity [@attribute id [@class id ::C] object attr2]
   ? [list ::nsf::isobject $entity] 0
   # --testing-- @child-class Foo (its non-existance)
   set entity [@class id ::C::Foo]
@@ -779,15 +779,15 @@ Test case parsing {
   # --testing -- @method foo (its non-existance)
   set entity [@method id ::C class foo]
   ? [list ::nsf::isobject $entity] 0
-  # --testing-- @object-method.param {bar p1} (its non-existance)
-  set entity [@param id [@method id ::C object bar] "" p1]
+  # --testing-- @object-method.parameter {bar p1} (its non-existance)
+  set entity [@parameter id [@method id ::C object bar] "" p1]
   ? [list ::nsf::isobject $entity] 0
-  # --testing-- @child-object.param {foo p1} (its non-existance)
+  # --testing-- @child-object.attribute {foo p1} (its non-existance)
   set cl [@class id ::C::Foo]
   ? [list ::nsf::isobject $entity] 0
-  set entity [@param id $cl class p1]
+  set entity [@attribute id $cl class p1]
   ? [list ::nsf::isobject $entity] 0
-  set entity [@param id $cl object p2]
+  set entity [@attribute id $cl object p2]
   ? [list ::nsf::isobject $entity] 0
 
   #
@@ -805,27 +805,27 @@ Test case parsing {
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "This is the initcmd-level description of ::C which overwrites the global description (see above)"
     
-  set entity [@param id $entity class attr1]
+  set entity [@attribute id $entity class attr1]
   ? [list ::nsf::isobject $entity] 1
-  ? [list $entity info has type ::nx::doc::@param] 1
-  ? [list $entity as_text] {This is equivalent to writing "@class-param attr1"}
+  ? [list $entity info has type ::nx::doc::@attribute] 1
+  ? [list $entity as_text] {This is equivalent to writing "@class-attribute attr1"}
 
 
   set entity [@object id ::C::foo]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "'foo' needs to be defined before referencing any of its parts!"; # still empty!
-  set entity [@param id $entity object p1]
+  set entity [@attribute id $entity object p1]
   ? [list ::nsf::isobject $entity] 1
-  ? [list $entity info has type ::nx::doc::@param] 1
+  ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "The first element in the name list is resolved into a fully qualified (absolute) entity, based on the object owning the initcmd!"
 
   # b) newly added ...
 
-  # --testing-- @object-param attr2
-  set entity [@param id [@class id ::C] object attr2]
+  # --testing-- @object-attribute attr2
+  set entity [@attribute id [@class id ::C] object attr2]
   ? [list ::nsf::isobject $entity] 1
-  ? [list $entity info has type ::nx::doc::@param] 1
+  ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "Carries a short desc only";
 
   # --testing-- @child-class Foo
@@ -835,26 +835,26 @@ Test case parsing {
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] {By providing a fully-qualified identifier ("::Foo") you leave the context of the initcmd-owning object, i.e. you would NOT refer to a nested class object named "Foo" anymore!}
 
-  set entity [@param id [@class id ::C] class p1]
+  set entity [@attribute id [@class id ::C] class p1]
   ? [list ::nsf::isobject $entity] 0; # should be 0 at this stage!
 
   # --testing -- @method foo
   set entity [@method id ::C class foo]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] ""
-  # --testing-- @object-method.param {bar p1} (its non-existance) It
+  # --testing-- @object-method.parameter {bar p1} (its non-existance) It
   # still cannot exist as a documented entity, as the object method
   # has not been initialised before!
-  set entity [@param id [@method id ::C object bar] "" p1]
+  set entity [@parameter id [@method id ::C object bar] "" p1]
   ? [list ::nsf::isobject $entity] 0
-  # --testing-- @child-class.param {foo p1} (its non-existance)
-  # --testing-- @child-class.object-param {foo p2} (its non-existance)
+  # --testing-- @child-class.attribute {foo p1} (its non-existance)
+  # --testing-- @child-class.object-attribute {foo p2} (its non-existance)
   set cl [@class id ::C::Foo]
   ? [list ::nsf::isobject $cl] 1
-  set entity [@param id $cl class p1]
+  set entity [@attribute id $cl class p1]
   ? [list ::nsf::isobject $entity] 1
-  ? [list $entity as_text] {This is equivalent to stating "@child-class.class-param {Foo p1}"}
-  set entity [@param id $cl object p2]
+  ? [list $entity as_text] {This is equivalent to stating "@child-class.class-attribute {Foo p1}"}
+  set entity [@attribute id $cl object p2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "Y"
 
@@ -877,7 +877,7 @@ Test case parsing {
   ? [list $entity @see] "anotherentity"
   # TODO: @author not supported for @method (fine so?)
   # ? [list $entity @author] "ss@thinkersfoot"
-  set entity [@param id $entity "" p1]
+  set entity [@parameter id $entity "" p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "Some words on p1"
 
@@ -892,16 +892,16 @@ Test case parsing {
   set entity [@method id ::C class foo]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "Here goes some method-body-level description"
-  set entity [@param id [@method id ::C class foo] "" p1]
+  set entity [@parameter id [@method id ::C class foo] "" p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "The most specific level!"
 
   # attributes ...
 
   # attr1 
-  set entity [@param id [@class id ::C] class attr1]
+  set entity [@attribute id [@class id ::C] class attr1]
   ? [list ::nsf::isobject $entity] 1
-  ? [list $entity info has type ::nx::doc::@param] 1
+  ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] {This description does not apply to the object parameter "attr1" owned by the ::C class, rather it is a description of the attribute slot object! How should we deal with this situation? Should this level overwrite the top-level and initcmd-level descriptions?}
 
   #
@@ -915,23 +915,23 @@ Test case parsing {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "Adding a line for the first time (not processed in the initcmd phase!)"; # still empty!
-  set entity [@param id $entity object p1]
+  set entity [@attribute id $entity object p1]
   ? [list ::nsf::isobject $entity] 1
-  ? [list $entity info has type ::nx::doc::@param] 1
-  ? [list $entity as_text] {This is equivalent to stating "@object-param p1"}
+  ? [list $entity info has type ::nx::doc::@attribute] 1
+  ? [list $entity as_text] {This is equivalent to stating "@object-attribute p1"}
 
   doc analyze_initcmd -parsing_level 2 @class ::C::Foo [::C::Foo eval {set :__initcmd}]
   doc process=@class [@class id ::C::Foo]
 
   set cl [@class id ::C::Foo]
   ? [list ::nsf::isobject $cl] 1
-  set entity [@param id $cl class p1]
+  set entity [@attribute id $cl class p1]
   ? [list ::nsf::isobject $entity] 1
-  ? [list $entity as_text] {This is equivalent to stating "@class-param p1"; or '@class.object.param {::C Foo p1}' from the top-level.}
-  set entity [@param id $cl object p2]
+  ? [list $entity as_text] {This is equivalent to stating "@class-attribute p1"; or '@class.object.attribute {::C Foo p1}' from the top-level.}
+  set entity [@attribute id $cl object p2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] ""
-  
+
   puts stderr =================================================
   #
   # self documentation
@@ -1126,6 +1126,11 @@ Test case issues? {
   # but if we would fold these into tcl-info, conflicts with
   # tcl will arise.
 
+  # ISSUE: Object->info->parameter() still needed to retrieve
+  # objectparameters?
+
+  # TODO: decide how to deal with @package and @project names (don't
+  # need namespace delimiters!)
 
 }
 

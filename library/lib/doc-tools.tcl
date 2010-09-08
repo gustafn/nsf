@@ -549,7 +549,7 @@ namespace eval ::nx::doc {
   }
 
   QualifierTag create @command -superclass StructuredEntity {
-    :attribute @param -slotclass ::nx::doc::PartAttribute {
+    :attribute @parameter -slotclass ::nx::doc::PartAttribute {
       set :part_class @param
     }
     :attribute @return -slotclass ::nx::doc::PartAttribute {
@@ -567,8 +567,8 @@ namespace eval ::nx::doc {
     }
     :method parameters {} {
       set params [list]
-      if {[info exists :@param]} {
-	foreach p [:@param] {
+      if {[info exists :@parameter]} {
+	foreach p [:@parameter] {
 	  set value [$p name]
 	    if {[$p eval {info exists :default}] || [$p name] eq "args" } {
 	    set value "?[$p name]?"
@@ -617,8 +617,9 @@ namespace eval ::nx::doc {
 	  set :part_class @method
 	}
 
-	:forward @param %self @object-param
-	:attribute @object-param -slotclass ::nx::doc::PartAttribute {
+	:forward @attribute %self @object-attribute
+	#:forward @param %self @object-param
+	:attribute @object-attribute -slotclass ::nx::doc::PartAttribute {
 	  set :part_class @param
 	}
 
@@ -640,8 +641,8 @@ namespace eval ::nx::doc {
       -superclass @object {
 	:attribute @superclass -slotclass ::nx::doc::PartAttribute
 	
-	:forward @param %self @class-param
-	:attribute @class-param -slotclass ::nx::doc::PartAttribute {
+	:forward @attribute %self @class-attribute
+	:attribute @class-attribute -slotclass ::nx::doc::PartAttribute {
 	  set :part_class @param
 	}
 	
@@ -693,7 +694,7 @@ namespace eval ::nx::doc {
   PartTag create @method \
       -superclass StructuredEntity {
 	:attribute {@modifier public} -slotclass ::nx::doc::PartAttribute
-	:attribute @param -slotclass ::nx::doc::PartAttribute {
+	:attribute @parameter -slotclass ::nx::doc::PartAttribute {
 	  set :part_class @param
 	}
 	:attribute @return -slotclass ::nx::doc::PartAttribute {
@@ -753,8 +754,8 @@ namespace eval ::nx::doc {
 
 	:method parameters {} {
 	  set params [list]
-	  if {[info exists :@param]} {
-	    foreach p [:@param] {
+	  if {[info exists :@parameter]} {
+	    foreach p [:@parameter] {
 	      set value [$p name]
 	      if {[$p eval {info exists :default}] || [$p name] eq "args" } {
 		set value "?[$p name]?"
@@ -912,8 +913,15 @@ namespace eval ::nx::doc {
 	}
       }
 
+  #
+  # Provide two interp-wide aliases for @param. This is mere syntactic
+  # sugar!
+  #
+  interp alias {} ::nx::doc::@attribute {} ::nx::doc::@param
+  interp alias {} ::nx::doc::@parameter {} ::nx::doc::@param
+
   namespace export CommentBlockParser @command @object @class @package @project @method \
-      @param @
+      @attribute @parameter @
 }
 
 
@@ -1339,19 +1347,34 @@ namespace eval ::nx {
 	return $i
       } elseif {[file isfile $thing]} {
 	# 3) alien script file
+	set script ""
 	if {[file readable $thing]} {
+	  # a) process the target file
 	  set fh [open $thing r]
-	  if {[catch {set script [read $fh]} msg]} {
+	  if {[catch {append script [read $fh]} msg]} {
 	    catch {close $fh}
 	    :log "error reading the file '$thing', i.e.: '$msg'"
 	  }
-	  close $fh
-	  doc analyze -noeval $noeval $script {*}$args
-	  puts stderr SCRIPT=$thing--[file readable $thing]-ANALYZED-[string length $script]bytes
-	  #doc process -noeval $noeval $script {*}$args
-	} else {
-	  :log "file '$thing' not readable"
+	  catch {close $fh}
 	}
+	# b) verify the existence of an *.nxd companion file
+	set rootname [file rootname $thing]
+	set companion $rootname.nxd
+	if {[file isfile $companion] && [file readable $companion]} {
+	  set fh [open $companion r]
+	  if {[catch {append script "\n\n" [read $fh]} msg]} {
+	    catch {close $fh}
+	    :log "error reading the file '$thing', i.e.: '$msg'"
+	  }
+	  catch {close $fh}
+	}
+	
+	if {$script eq ""} {
+	  :log "script empty, probaly file '$thing' is not readable"
+	}
+
+	doc analyze -noeval $noeval $script {*}$args
+	puts stderr FILE=$thing--[file readable $thing]-COMPANION=$companion--[file readable $companion]-ANALYZED-[string length $script]bytes
       } else {
 	# 4) we assume a string block, e.g., to be fed into eval
 	set i [interp create]
@@ -1365,7 +1388,7 @@ namespace eval ::nx {
 	return $i
       }
     }
-
+    
     :method analyze {{-noeval false} script {additions ""}} {
       # NOTE: This method is to be executed in a child/ slave
       # interpreter.
@@ -1532,7 +1555,7 @@ namespace eval ::nx {
 	  foreach {line_offset block} $blocks {
 	    if {$line_offset > 1} break;	      
 	    set scope [expr {[$slot per-object]?"object":"class"}]
-	    set id [$entity @${scope}-param [$slot name]]
+	    set id [$entity @${scope}-attribute [$slot name]]
 	    CommentBlockParser process \
 		-parsing_level 2 \
 		-partof_entity $entity \
