@@ -1306,6 +1306,9 @@ _ added option noforwarder to RelationSlots
   (to report e.g. per-object attributes)
 - extended regression test
 
+- [::nx::Object info method parameter info] returns now empty instead of error.
+- extended regression test
+
 TODO: 
 
 - check equivalence of the following two commands
@@ -1523,6 +1526,7 @@ TODO "Kleinigkeiten"
 #           pass parameter definition
 
 - implement built-in-converter for "baseclass" and "metaclass"?
+- make ::nsf::dispatch faster for fully qualified names
 
 - the two flags "-objscope" and "-nonleaf" are for adding frames,
   and they are mutual exclusive. Make them a single flag?

@@ -10314,9 +10314,12 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
     } else if (((Command *)cmd)->objProc == NsfForwardMethod) {
       return NsfVarErrMsg(interp, "info params: could not obtain parameter definition for forwarder '",
                             methodName, "'", (char *) NULL);
-    } else {
+    } else if (((Command *)cmd)->objProc != NsfObjDispatch) {
       return NsfVarErrMsg(interp, "info params: could not obtain parameter definition for method '",
                             methodName, "'", (char *) NULL);
+    } else {
+      /* procPtr == NsfObjDispatch, be quiet */
+      return TCL_OK; 
     }
   }
   return NsfErrBadVal(interp, "info params", "a method name", methodName);
