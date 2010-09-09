@@ -498,21 +498,22 @@ namespace eval ::nx {
   }
 
   Class eval {
-    :alias "info callable filter"  ::nsf::cmd::ObjectInfo::callablefilter
-    :alias "info callable method"  ::nsf::cmd::ObjectInfo::callablemethod
-    :alias "info callable methods" ::nsf::cmd::ObjectInfo::callablemethods
-    :method "info callable slots" {} {
-       ::nsf::dispatch [::nsf::current object] \
-	   ::nsf::cmd::ObjectInfo::callableslots -type ::nx::Slot
-    }
-    #:alias "info callable"       ::nx::Object::slot::__info::callable
-
+    #:alias "info callable filter"  ::nsf::cmd::ObjectInfo::callablefilter
+    #:alias "info callable method"  ::nsf::cmd::ObjectInfo::callablemethod
+    #:alias "info callable methods" ::nsf::cmd::ObjectInfo::callablemethods
+    #:method "info callable slots" {} {
+    #   ::nsf::dispatch [::nsf::current object] \
+#	   ::nsf::cmd::ObjectInfo::callableslots -type ::nx::Slot
+    #}
+    :alias "info callable"       ::nx::Object::slot::__info::callable
     :alias "info filter guard"   ::nsf::cmd::ClassInfo::filterguard
-    :alias "info has mixin"      ::nsf::cmd::ObjectInfo::hasmixin
-    :alias "info has namespace"  ::nsf::cmd::ObjectInfo::hasnamespace
-    :alias "info has type"       ::nsf::cmd::ObjectInfo::hastype
     :alias "info filter methods" ::nsf::cmd::ClassInfo::filtermethods
     :alias "info forward"        ::nsf::cmd::ClassInfo::forward
+    # todo: maybe share "has"?
+    #:alias "info has mixin"      ::nsf::cmd::ObjectInfo::hasmixin
+    #:alias "info has namespace"  ::nsf::cmd::ObjectInfo::hasnamespace
+    #:alias "info has type"       ::nsf::cmd::ObjectInfo::hastype
+    :alias "info has"            ::nx::Object::slot::__info::has
     :alias "info heritage"       ::nsf::cmd::ClassInfo::heritage
     :alias "info instances"      ::nsf::cmd::ClassInfo::instances
     :alias "info methods"        ::nsf::cmd::ClassInfo::methods

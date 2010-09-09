@@ -2576,8 +2576,9 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
   if (object->flags & NSF_DURING_DELETE) {
     return;
   }
-  /*fprintf(stderr, "CallStackDoDestroy %p flags %.6x activation %d cmd %p \n", 
-    object, object->flags, object->activationCount, object->id);*/
+  /*fprintf(stderr, "CallStackDoDestroy %p flags %.6x activation %d rc %d cmd %p \n", 
+    object, object->flags, object->activationCount, object->refCount, object->id);*/
+
   object->flags |= NSF_DURING_DELETE;
   oid = object->id;
   /* oid might be freed already, we can't even use (((Command*)oid)->flags & CMD_IS_DELETED) */
@@ -2596,7 +2597,7 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
       object, object->refCount, object->teardown);*/
 
     PrimitiveDestroy((ClientData) object);
-;
+
     if (!(object->flags & NSF_TCL_DELETE) /*&& !(object->flags & NSF_CMD_NOT_FOUND)*/) {
       Tcl_Obj *savedObjResult = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(savedObjResult);
@@ -14971,8 +14972,8 @@ ObjectHasChildren(Tcl_Interp *interp, NsfObject *object) {
 static void
 FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
   /* If a call to exit happens from a higher stack frame, the
-     obejct refcount might not be decremented corectly. If we are
-     in the phyical destroy round, we can set the counter to an
+     object refcount might not be decremented correctly. If we are
+     in the physical destroy round, we can set the counter to an
      appropriate value to ensure deletion.
      
      todo: remove debug line
@@ -15019,9 +15020,28 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTable)
       for (hPtr2 = Tcl_FirstHashEntry(Tcl_Namespace_cmdTable(object->nsPtr), &hSrch2); hPtr2;
            hPtr2 = Tcl_NextHashEntry(&hSrch2)) {
         Tcl_Command cmd = Tcl_GetHashValue(hPtr2);
-        if (cmd &&  Tcl_Command_objProc(cmd) != NsfObjDispatch) {
-          Tcl_DeleteCommandFromToken(interp, cmd);
-          deleted ++;
+        if (cmd) {
+	  if (Tcl_Command_objProc(cmd) == NsfObjDispatch) {
+	    NsfObject *referencedObject = NsfGetObjectFromCmdPtr(cmd);
+	    if (referencedObject->refCount < 2) {
+	      /* never delete the final "real" object, just references (aliases) zzzzz */
+	      continue;
+	    }
+	    fprintf(stderr, "referencedObject '%s' refCount %d cmd %p id %p\n",
+		    objectName(referencedObject),referencedObject->refCount,
+		    cmd, referencedObject->id);
+	    if (cmd != referencedObject->id) {
+	      /*
+	       * cmd is an aliased object, reduce the refcount
+	       */
+	      NsfCleanupObject(referencedObject);
+	      Nsf_DeleteCommandFromToken(interp, cmd);
+	      fprintf(stderr, "remove alias\n");
+	    }
+	    continue;
+	  }
+	  Tcl_DeleteCommandFromToken(interp, cmd);
+	  deleted ++;
         }
       }
     }
@@ -15040,6 +15060,7 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTable)
         }
       }
     }
+
   }
   /*fprintf(stderr, "deleted %d cmds\n", deleted);*/
 

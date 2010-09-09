@@ -1314,6 +1314,11 @@ _ added option noforwarder to RelationSlots
 - added "info callable slots" with functionality of "info slotobjects"
 - removed "info slotobjects"
 
+- handle aliases to (sub)ensemble objects during final 
+  cleanup  to improve sharing of logic.
+- share definition of "info callable" and "info has" ensemble 
+  between object info and class info 
+
 TODO: 
 
 - check equivalence of the following two commands
