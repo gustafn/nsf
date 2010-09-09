@@ -214,14 +214,22 @@ objectMethod vwait NsfOVwaitMethod {
 #
 # info object methods
 #
-objectInfoMethod callable NsfObjInfoCallableMethod {
-  {-argName "infocallablesubcmd" -nrargs 1 -type "filter|method|methods" -required 1}
+objectInfoMethod callablefilter NsfObjInfoCallableFilterMethod {
+  {-argName "filter"}
+}
+objectInfoMethod callablemethod NsfObjInfoCallableMethodMethod {
+  {-argName "name"}
+}
+objectInfoMethod callablemethods NsfObjInfoCallableMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
   {-argName "-application"}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern" -required 0}
+}
+objectInfoMethod callableslots NsfObjInfoCallableSlotsMethod {
+  {-argName "-type" -required 0 -nrargs 1 -type class}
 }
 objectInfoMethod children NsfObjInfoChildrenMethod {
   {-argName "-type" -required 0 -nrargs 1 -type class}
@@ -277,9 +285,6 @@ objectInfoMethod parent NsfObjInfoParentMethod {
 objectInfoMethod precedence NsfObjInfoPrecedenceMethod {
   {-argName "-intrinsic"}
   {-argName "pattern" -required 0}
-}
-objectInfoMethod slotobjects NsfObjInfoSlotObjectsMethod {
-  {-argName "-type" -required 0 -nrargs 1 -type class}
 }
 objectInfoMethod vars NsfObjInfoVarsMethod {
   {-argName "pattern" -required 0}

@@ -13293,35 +13293,6 @@ NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *filter,
                         filter, " on ", objectName(object), (char *) NULL);
 }
 
-/*
- *  Searches for filter on [self] and returns fully qualified name
- *  if it is not found it returns an empty string
- */
-static int
-FilterSearchMethod(Tcl_Interp *interp, NsfObject *object, CONST char *filter) {
-  CONST char *filterName;
-  NsfCmdList *cmdList;
-  NsfClass *fcl;
-
-  Tcl_ResetResult(interp);
-
-  if (!(object->flags & NSF_FILTER_ORDER_VALID))
-    FilterComputeDefined(interp, object);
-  if (!(object->flags & NSF_FILTER_ORDER_DEFINED))
-    return TCL_OK;
-
-  for (cmdList = object->filterOrder; cmdList;  cmdList = cmdList->nextPtr) {
-    filterName = Tcl_GetCommandName(interp, cmdList->cmdPtr);
-    if (filterName[0] == filter[0] && !strcmp(filterName, filter))
-      break;
-  }
-
-  if (!cmdList)
-    return TCL_OK;
-
-  fcl = cmdList->clorobj;
-  return ListMethodHandle(interp, (NsfObject*)fcl, !NsfObjectIsClass(&fcl->object), filterName);
-}
 
 static int
 NsfOInstVarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
@@ -14112,8 +14083,60 @@ AggregatedMethodType(int methodType) {
  * Begin Object Info Methods
  ***************************/
 /*
-objectInfoMethod callable NsfObjInfoCallableMethod {
-  {-argName "infocallablesubcmd" -nrargs 1 -type "filter|method|methods" -required 1}
+objectInfoMethod callablefilter NsfObjInfoCallableFilterMethod {
+  {-argName "filter"}
+}
+*/
+static int
+NsfObjInfoCallableFilterMethod(Tcl_Interp *interp, NsfObject *object, CONST char *filter) {
+  CONST char *filterName;
+  NsfCmdList *cmdList;
+  NsfClass *fcl;
+
+  /*
+   *  Searches for filter on [self] and returns fully qualified name
+   *  if it is not found it returns an empty string
+   */
+  Tcl_ResetResult(interp);
+
+  if (!(object->flags & NSF_FILTER_ORDER_VALID))
+    FilterComputeDefined(interp, object);
+  if (!(object->flags & NSF_FILTER_ORDER_DEFINED))
+    return TCL_OK;
+
+  for (cmdList = object->filterOrder; cmdList;  cmdList = cmdList->nextPtr) {
+    filterName = Tcl_GetCommandName(interp, cmdList->cmdPtr);
+    if (filterName[0] == filter[0] && !strcmp(filterName, filter))
+      break;
+  }
+
+  if (!cmdList)
+    return TCL_OK;
+
+  fcl = cmdList->clorobj;
+  return ListMethodHandle(interp, (NsfObject*)fcl, !NsfObjectIsClass(&fcl->object), filterName);
+}
+
+/*
+objectInfoMethod callablemethod NsfObjInfoCallableMethodMethod {
+  {-argName "pattern" -required 0}
+}
+*/
+static int
+NsfObjInfoCallableMethodMethod(Tcl_Interp *interp, NsfObject *object, CONST char *name) {
+  NsfClass *pcl = NULL;
+  Tcl_Command cmd = ObjectFindMethod(interp, object, name, &pcl);
+
+  if (cmd) {
+    NsfObject *pobj = pcl ? &pcl->object : object;
+    int perObject = (pcl == NULL);
+    ListMethod(interp, pobj, name, cmd, InfomethodsubcmdHandleIdx, perObject);
+  }
+  return TCL_OK;
+}
+
+/*
+objectInfoMethod callablemethods NsfObjInfoCallableMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
   {-argName "-application"}
@@ -14123,51 +14146,95 @@ objectInfoMethod callable NsfObjInfoCallableMethod {
 }
 */
 static int
-NsfObjInfoCallableMethod(Tcl_Interp *interp, NsfObject *object, 
-			 int subcmd, int withMethodtype, int withCallprotection,
-			 int withApplication,
-			 int withNomixins, int withIncontext, CONST char *pattern) {
-  
-  if (subcmd != InfocallablesubcmdMethodsIdx) {
-    if (withMethodtype || withCallprotection || withApplication || withNomixins || withIncontext) {
-      return NsfVarErrMsg(interp, "options -methodtype, -callprotection, -application, ",
-			    "-nomixins, -incontext are only valued for subcommand 'methods'",
-			    (char *) NULL);
-    }
-    if (pattern == NULL) {
-      return NsfVarErrMsg(interp, "methodname must be provided as last argument",
-			    (char *) NULL);
-    }
-  }
-  switch (subcmd) {
-  case InfocallablesubcmdMethodIdx: 
-    {
-      NsfClass *pcl = NULL;
-      Tcl_Command cmd = ObjectFindMethod(interp, object, pattern, &pcl);
+NsfObjInfoCallableMethodsMethod(Tcl_Interp *interp, NsfObject *object, 
+				int withMethodtype, int withCallprotection,
+				int withApplication,
+				int withNomixins, int withIncontext, CONST char *pattern) {
+  /* todo: own method needed? */
+  NsfClasses *pl;
+  int withPer_object = 1;
+  Tcl_HashTable *cmdTable, dupsTable, *dups = &dupsTable;
+  int methodType = AggregatedMethodType(withMethodtype);
 
-      if (cmd) {
-	NsfObject *pobj = pcl ? &pcl->object : object;
-	int perObject = (pcl == NULL);
-	ListMethod(interp, pobj, pattern, cmd, InfomethodsubcmdHandleIdx, perObject);
+  /* 
+   * TODO: we could make this faster for patterns without metachars 
+   * by letting ListMethodKeys() to signal us when an entry was found.
+   * we wait, until the we decided about "info methods defined" 
+   * vs. "info method search" vs. "info defined" etc.
+   */
+  if (withCallprotection == CallprotectionNULL) {
+    withCallprotection = CallprotectionPublicIdx;
+  }
+
+  if (withApplication && object->flags & IsBaseClass((NsfClass*)object)) {
+    return TCL_OK;
+  }
+
+  Tcl_InitHashTable(dups, TCL_STRING_KEYS);
+  if (object->nsPtr) {
+    cmdTable = Tcl_Namespace_cmdTable(object->nsPtr);
+    ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
+                   dups, object, withPer_object);
+  }
+
+  if (!withNomixins) {
+    if (!(object->flags & NSF_MIXIN_ORDER_VALID))
+      MixinComputeDefined(interp, object);
+    if (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
+      NsfCmdList *ml;
+      NsfClass *mixin;
+      for (ml = object->mixinOrder; ml; ml = ml->nextPtr) {
+	int guardOk = TCL_OK;
+        mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
+	assert(mixin);
+
+        if (withIncontext) {
+          if (!RUNTIME_STATE(interp)->guardCount) {
+            guardOk = GuardCall(object, 0, 0, interp, ml->clientData, NULL);
+          }
+        }
+        if (mixin && guardOk == TCL_OK) {
+          Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(mixin->nsPtr);
+          ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
+                         dups, object, withPer_object);
+        }
       }
-      return TCL_OK;
     }
-  case InfocallablesubcmdMethodsIdx: 
-    {
-      return ListCallableMethods(interp, object, pattern,
-				 AggregatedMethodType(withMethodtype), withCallprotection,
-				 withApplication, withNomixins, withIncontext);
-    }
-  case InfocallablesubcmdFilterIdx: 
-    {
-      return FilterSearchMethod(interp, object, pattern);
-    }
-  default:
-    fprintf(stderr, "should never happen, subcmd %d pattern '%s'\n", subcmd, pattern);
-
-    assert(0); /* should never happen */
   }
+
+  /* append method keys from inheritance order */
+  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
+    Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(pl->cl->nsPtr);
+    if (withApplication && IsBaseClass(pl->cl)) {
+      break;
+    }
+    ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
+                   dups, object, withPer_object);
+  }
+  Tcl_DeleteHashTable(dups);
+  return TCL_OK;
 }
+
+/*
+objectInfoMethod callableslots NsfObjInfoCallableSlotsMethod {
+  {-argName "-type" -required 0 -nrargs 1 -type class}
+}
+*/
+static int
+NsfObjInfoCallableSlotsMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *type) {
+  NsfObjects *pl, *slotObjects;
+  Tcl_Obj *list = Tcl_NewListObj(0, NULL);
+
+  slotObjects = ComputeSlotObjects(interp, object, type, 1);
+  for (pl=slotObjects; pl; pl = pl->nextPtr) {
+    Tcl_ListObjAppendElement(interp, list, pl->obj->cmdName);
+  }
+  
+  NsfObjectListFree(slotObjects);
+  Tcl_SetObjResult(interp, list);
+  return TCL_OK;
+}
+
 
 /*
 objectInfoMethod children NsfObjInfoChildrenMethod {
@@ -14392,29 +14459,6 @@ NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *object,
     Tcl_AppendElement(interp, className(pl->cl));
   }
   NsfClassListFree(precedenceList);
-  return TCL_OK;
-}
-
-/*
-objectInfoMethod slotobjects NsfObjInfoSlotObjectsMethod {
-  {-argName "-type" -required 0 -nrargs 1 -type class}
-}
-*/
-static int
-NsfObjInfoSlotObjectsMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *type) {
-  NsfObjects *pl, *slotObjects;
-  Tcl_Obj *list = Tcl_NewListObj(0, NULL);
-  /*NsfClass *slotClass = GetClassFromString(interp, "::nx::Slot");*/
-
-  slotObjects = ComputeSlotObjects(interp, object, type, 1);
-  
-  for (pl=slotObjects; pl; pl = pl->nextPtr) {
-    /*if (slotClass &&  !IsSubType(pl->obj->cl, slotClass)) continue;*/
-    Tcl_ListObjAppendElement(interp, list, pl->obj->cmdName);
-  }
-
-  NsfObjectListFree(slotObjects);
-  Tcl_SetObjResult(interp, list);
   return TCL_OK;
 }
 

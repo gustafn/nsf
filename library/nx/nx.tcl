@@ -448,25 +448,28 @@ namespace eval ::nx {
   # we have to use "eval", since objectParameters are not defined yet
   
   Object eval {
-    :alias "info callable"       ::nsf::cmd::ObjectInfo::callable
-    :alias "info children"       ::nsf::cmd::ObjectInfo::children
-    :alias "info class"          ::nsf::cmd::ObjectInfo::class
-    :alias "info filter guard"   ::nsf::cmd::ObjectInfo::filterguard
-    :alias "info filter methods" ::nsf::cmd::ObjectInfo::filtermethods
-    :alias "info forward"        ::nsf::cmd::ObjectInfo::forward
-    :alias "info has mixin"      ::nsf::cmd::ObjectInfo::hasmixin
-    :alias "info has namespace"  ::nsf::cmd::ObjectInfo::hasnamespace
-    :alias "info has type"       ::nsf::cmd::ObjectInfo::hastype
-    :alias "info is"             ::nsf::cmd::ObjectInfo::is
-    :alias "info methods"        ::nsf::cmd::ObjectInfo::methods
-    :alias "info mixin guard"    ::nsf::cmd::ObjectInfo::mixinguard
-    :alias "info mixin classes"  ::nsf::cmd::ObjectInfo::mixinclasses
-    :alias "info parent"         ::nsf::cmd::ObjectInfo::parent
-    :alias "info precedence"     ::nsf::cmd::ObjectInfo::precedence
-    :method "info slotobjects" {} {
-	::nsf::dispatch [::nsf::current object] \
-	    ::nsf::cmd::ObjectInfo::slotobjects -type ::nx::Slot
+    #:alias "info callable"        ::nsf::cmd::ObjectInfo::callable
+    :alias "info callable filter"  ::nsf::cmd::ObjectInfo::callablefilter
+    :alias "info callable method"  ::nsf::cmd::ObjectInfo::callablemethod
+    :alias "info callable methods" ::nsf::cmd::ObjectInfo::callablemethods
+    :method "info callable slots" {} {
+      ::nsf::dispatch [::nsf::current object] \
+	  ::nsf::cmd::ObjectInfo::callableslots -type ::nx::Slot
     }
+    :alias "info children"         ::nsf::cmd::ObjectInfo::children
+    :alias "info class"            ::nsf::cmd::ObjectInfo::class
+    :alias "info filter guard"     ::nsf::cmd::ObjectInfo::filterguard
+    :alias "info filter methods"   ::nsf::cmd::ObjectInfo::filtermethods
+    :alias "info forward"          ::nsf::cmd::ObjectInfo::forward
+    :alias "info has mixin"        ::nsf::cmd::ObjectInfo::hasmixin
+    :alias "info has namespace"    ::nsf::cmd::ObjectInfo::hasnamespace
+    :alias "info has type"         ::nsf::cmd::ObjectInfo::hastype
+    :alias "info is"               ::nsf::cmd::ObjectInfo::is
+    :alias "info methods"          ::nsf::cmd::ObjectInfo::methods
+    :alias "info mixin guard"      ::nsf::cmd::ObjectInfo::mixinguard
+    :alias "info mixin classes"    ::nsf::cmd::ObjectInfo::mixinclasses
+    :alias "info parent"           ::nsf::cmd::ObjectInfo::parent
+    :alias "info precedence"       ::nsf::cmd::ObjectInfo::precedence
     :method "info slots" {} {
       set slotContainer [::nsf::current object]::slot
       if {[::nsf::isobject $slotContainer]} {
@@ -495,8 +498,15 @@ namespace eval ::nx {
   }
 
   Class eval {
-    #:alias "info classparent"    ::nsf::cmd::ObjectInfo::parent
-    #:alias "info classchildren"  ::nsf::cmd::ObjectInfo::children
+    :alias "info callable filter"  ::nsf::cmd::ObjectInfo::callablefilter
+    :alias "info callable method"  ::nsf::cmd::ObjectInfo::callablemethod
+    :alias "info callable methods" ::nsf::cmd::ObjectInfo::callablemethods
+    :method "info callable slots" {} {
+       ::nsf::dispatch [::nsf::current object] \
+	   ::nsf::cmd::ObjectInfo::callableslots -type ::nx::Slot
+    }
+    #:alias "info callable"       ::nx::Object::slot::__info::callable
+
     :alias "info filter guard"   ::nsf::cmd::ClassInfo::filterguard
     :alias "info has mixin"      ::nsf::cmd::ObjectInfo::hasmixin
     :alias "info has namespace"  ::nsf::cmd::ObjectInfo::hasnamespace
@@ -545,8 +555,8 @@ namespace eval ::nx {
   # puts Object::info-methods=[lsort [nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::methods]]
   # puts Class::info-methods_=[lsort [nsf::dispatch ::nx::Class::slot::__info ::nsf::cmd::ObjectInfo::methods]]
   # puts ""
-  # puts Object::info-callable=[nsf::dispatch ::nx::Object ::nsf::cmd::ObjectInfo::callable method info]
-  # puts Class::info-callable_=[nsf::dispatch ::nx::Class ::nsf::cmd::ObjectInfo::callable method info]
+  # puts Object::info-callable=[nsf::dispatch ::nx::Object ::nsf::cmd::ObjectInfo::callablemethod info]
+  # puts Class::info-callable_=[nsf::dispatch ::nx::Class ::nsf::cmd::ObjectInfo::callablemethod info]
   # puts ""
   # puts Object::info-def=[nsf::dispatch ::nx::Object ::nsf::cmd::ClassInfo::method definition info]
   # puts Class::info-def_=[nsf::dispatch ::nx::Class ::nsf::cmd::ClassInfo::method definition info]
@@ -745,8 +755,8 @@ namespace eval ::nx {
   
   ObjectParameterSlot method unknown {method args} {
     set methods [list]
-    foreach m [::nsf::dispatch [::nsf::current object] ::nsf::cmd::ObjectInfo::callable methods] {
-      if {[::nsf::dispatch Object ::nsf::cmd::ObjectInfo::callable methods $m] ne ""} continue
+    foreach m [::nsf::dispatch [::nsf::current object] ::nsf::cmd::ObjectInfo::callablemethods] {
+      if {[::nsf::dispatch Object ::nsf::cmd::ObjectInfo::callablemethods $m] ne ""} continue
       if {[string match __* $m]} continue
       lappend methods $m
     }
@@ -879,7 +889,7 @@ namespace eval ::nx {
 
   proc ::nsf::parametersFromSlots {obj} {
     set parameterdefinitions [list]
-    foreach slot [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::slotobjects -type ::nx::Slot] {
+    foreach slot [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::callableslots -type ::nx::Slot] {
       # Skip some slots for xotcl; 
       # TODO: maybe different parameterFromSlots for xotcl?
       if {[::nsf::is class ::xotcl::Object] 

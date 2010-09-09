@@ -98,17 +98,6 @@ static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam C
 }
 enum RelationtypeIdx {RelationtypeNULL, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx};
   
-static int ConvertToInfocallablesubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  int index, result;
-  static CONST char *opts[] = {"filter", "method", "methods", NULL};
-  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infocallablesubcmd", 0, &index);
-  *clientData = (ClientData) INT2PTR(index + 1);
-  *outObjPtr = objPtr;
-  return result;
-}
-enum InfocallablesubcmdIdx {InfocallablesubcmdNULL, InfocallablesubcmdFilterIdx, InfocallablesubcmdMethodIdx, InfocallablesubcmdMethodsIdx};
-  
 static int ConvertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -205,7 +194,10 @@ static int NsfOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 static int NsfOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfObjInfoCallableMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoCallableFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoCallableMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoCallableMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfObjInfoCallableSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -221,7 +213,6 @@ static int NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *i
 static int NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfObjInfoSlotObjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
 static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *name);
@@ -283,7 +274,10 @@ static int NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_O
 static int NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *varname);
-static int NsfObjInfoCallableMethod(Tcl_Interp *interp, NsfObject *obj, int infocallablesubcmd, int withMethodtype, int withCallprotection, int withApplication, int withNomixins, int withIncontext, CONST char *pattern);
+static int NsfObjInfoCallableFilterMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter);
+static int NsfObjInfoCallableMethodMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *name);
+static int NsfObjInfoCallableMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withMethodtype, int withCallprotection, int withApplication, int withNomixins, int withIncontext, CONST char *pattern);
+static int NsfObjInfoCallableSlotsMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType);
 static int NsfObjInfoChildrenMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType, CONST char *pattern);
 static int NsfObjInfoClassMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter);
@@ -299,7 +293,6 @@ static int NsfObjInfoMixinclassesMethod(Tcl_Interp *interp, NsfObject *obj, int 
 static int NsfObjInfoMixinguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin);
 static int NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *obj, int withIntrinsic, CONST char *pattern);
-static int NsfObjInfoSlotObjectsMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType);
 static int NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *pattern);
 
 enum {
@@ -362,7 +355,10 @@ enum {
  NsfOUpvarMethodIdx,
  NsfOVolatileMethodIdx,
  NsfOVwaitMethodIdx,
- NsfObjInfoCallableMethodIdx,
+ NsfObjInfoCallableFilterMethodIdx,
+ NsfObjInfoCallableMethodMethodIdx,
+ NsfObjInfoCallableMethodsMethodIdx,
+ NsfObjInfoCallableSlotsMethodIdx,
  NsfObjInfoChildrenMethodIdx,
  NsfObjInfoClassMethodIdx,
  NsfObjInfoFilterguardMethodIdx,
@@ -378,7 +374,6 @@ enum {
  NsfObjInfoMixinguardMethodIdx,
  NsfObjInfoParentMethodIdx,
  NsfObjInfoPrecedenceMethodIdx,
- NsfObjInfoSlotObjectsMethodIdx,
  NsfObjInfoVarsMethodIdx
 } NsfMethods;
 
@@ -1549,26 +1544,82 @@ NsfOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 }
 
 static int
-NsfObjInfoCallableMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfObjInfoCallableFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
   if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfObjInfoCallableMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoCallableMethodIdx].nrParameters, 1,
+                     method_definitions[NsfObjInfoCallableFilterMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoCallableFilterMethodIdx].nrParameters, 1,
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    int infocallablesubcmd = (int )PTR2INT(pc.clientData[0]);
-    int withMethodtype = (int )PTR2INT(pc.clientData[1]);
-    int withCallprotection = (int )PTR2INT(pc.clientData[2]);
-    int withApplication = (int )PTR2INT(pc.clientData[3]);
-    int withNomixins = (int )PTR2INT(pc.clientData[4]);
-    int withIncontext = (int )PTR2INT(pc.clientData[5]);
-    CONST char *pattern = (CONST char *)pc.clientData[6];
+    CONST char *filter = (CONST char *)pc.clientData[0];
 
     ParseContextRelease(&pc);
-    return NsfObjInfoCallableMethod(interp, obj, infocallablesubcmd, withMethodtype, withCallprotection, withApplication, withNomixins, withIncontext, pattern);
+    return NsfObjInfoCallableFilterMethod(interp, obj, filter);
+
+  }
+}
+
+static int
+NsfObjInfoCallableMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
+  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
+                     method_definitions[NsfObjInfoCallableMethodMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoCallableMethodMethodIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    CONST char *name = (CONST char *)pc.clientData[0];
+
+    ParseContextRelease(&pc);
+    return NsfObjInfoCallableMethodMethod(interp, obj, name);
+
+  }
+}
+
+static int
+NsfObjInfoCallableMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
+  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
+                     method_definitions[NsfObjInfoCallableMethodsMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoCallableMethodsMethodIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    int withMethodtype = (int )PTR2INT(pc.clientData[0]);
+    int withCallprotection = (int )PTR2INT(pc.clientData[1]);
+    int withApplication = (int )PTR2INT(pc.clientData[2]);
+    int withNomixins = (int )PTR2INT(pc.clientData[3]);
+    int withIncontext = (int )PTR2INT(pc.clientData[4]);
+    CONST char *pattern = (CONST char *)pc.clientData[5];
+
+    ParseContextRelease(&pc);
+    return NsfObjInfoCallableMethodsMethod(interp, obj, withMethodtype, withCallprotection, withApplication, withNomixins, withIncontext, pattern);
+
+  }
+}
+
+static int
+NsfObjInfoCallableSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+  NsfObject *obj =  (NsfObject *)clientData;
+  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
+  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
+                     method_definitions[NsfObjInfoCallableSlotsMethodIdx].paramDefs, 
+                     method_definitions[NsfObjInfoCallableSlotsMethodIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    NsfClass *withType = (NsfClass *)pc.clientData[0];
+
+    ParseContextRelease(&pc);
+    return NsfObjInfoCallableSlotsMethod(interp, obj, withType);
 
   }
 }
@@ -1885,25 +1936,6 @@ NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
 }
 
 static int
-NsfObjInfoSlotObjectsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-  NsfObject *obj =  (NsfObject *)clientData;
-  if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfObjInfoSlotObjectsMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoSlotObjectsMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    NsfClass *withType = (NsfClass *)pc.clientData[0];
-
-    ParseContextRelease(&pc);
-    return NsfObjInfoSlotObjectsMethod(interp, obj, withType);
-
-  }
-}
-
-static int
 NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
@@ -2175,14 +2207,22 @@ static methodDefinition method_definitions[] = {
 {"::nsf::cmd::Object::vwait", NsfOVwaitMethodStub, 1, {
   {"varname", 1, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::callable", NsfObjInfoCallableMethodStub, 7, {
-  {"infocallablesubcmd", 1, 1, ConvertToInfocallablesubcmd},
+{"::nsf::cmd::ObjectInfo::callablefilter", NsfObjInfoCallableFilterMethodStub, 1, {
+  {"filter", 0, 0, ConvertToString}}
+},
+{"::nsf::cmd::ObjectInfo::callablemethod", NsfObjInfoCallableMethodMethodStub, 1, {
+  {"name", 0, 0, ConvertToString}}
+},
+{"::nsf::cmd::ObjectInfo::callablemethods", NsfObjInfoCallableMethodsMethodStub, 6, {
   {"-methodtype", 0, 1, ConvertToMethodtype},
   {"-callprotection", 0, 1, ConvertToCallprotection},
   {"-application", 0, 0, ConvertToString},
   {"-nomixins", 0, 0, ConvertToString},
   {"-incontext", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToString}}
+},
+{"::nsf::cmd::ObjectInfo::callableslots", NsfObjInfoCallableSlotsMethodStub, 1, {
+  {"-type", 0, 1, ConvertToClass}}
 },
 {"::nsf::cmd::ObjectInfo::children", NsfObjInfoChildrenMethodStub, 2, {
   {"-type", 0, 1, ConvertToClass},
@@ -2240,9 +2280,6 @@ static methodDefinition method_definitions[] = {
 {"::nsf::cmd::ObjectInfo::precedence", NsfObjInfoPrecedenceMethodStub, 2, {
   {"-intrinsic", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToString}}
-},
-{"::nsf::cmd::ObjectInfo::slotobjects", NsfObjInfoSlotObjectsMethodStub, 1, {
-  {"-type", 0, 1, ConvertToClass}}
 },
 {"::nsf::cmd::ObjectInfo::vars", NsfObjInfoVarsMethodStub, 1, {
   {"pattern", 0, 0, ConvertToString}}

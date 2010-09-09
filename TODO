@@ -1309,6 +1309,11 @@ _ added option noforwarder to RelationSlots
 - [::nx::Object info method parameter info] returns now empty instead of error.
 - extended regression test
 
+- splitted "info callable" into an ensemble 
+  (submethods have quite different signatures)
+- added "info callable slots" with functionality of "info slotobjects"
+- removed "info slotobjects"
+
 TODO: 
 
 - check equivalence of the following two commands
