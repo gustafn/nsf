@@ -224,6 +224,7 @@ objectInfoMethod callable NsfObjInfoCallableMethod {
   {-argName "pattern" -required 0}
 }
 objectInfoMethod children NsfObjInfoChildrenMethod {
+  {-argName "-type" -required 0 -nrargs 1 -type class}
   {-argName "pattern" -required 0}
 }
 objectInfoMethod class NsfObjInfoClassMethod {
@@ -278,7 +279,7 @@ objectInfoMethod precedence NsfObjInfoPrecedenceMethod {
   {-argName "pattern" -required 0}
 }
 objectInfoMethod slotobjects NsfObjInfoSlotObjectsMethod {
-  {-argName "pattern" -required 0}
+  {-argName "-type" -required 0 -nrargs 1 -type class}
 }
 objectInfoMethod vars NsfObjInfoVarsMethod {
   {-argName "pattern" -required 0}
@@ -329,8 +330,6 @@ classInfoMethod mixinof  NsfClassInfoMixinOfMethod {
   {-argName "-closure"}
   {-argName "-scope" -required 0 -nrargs 1 -type "all|class|object"}
   {-argName "pattern" -type objpattern}
-}
-classInfoMethod slots NsfClassInfoSlotsMethod {
 }
 classInfoMethod subclass NsfClassInfoSubclassMethod {
   {-argName "-closure"}

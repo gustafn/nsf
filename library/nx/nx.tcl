@@ -464,12 +464,14 @@ namespace eval ::nx {
     :alias "info parent"         ::nsf::cmd::ObjectInfo::parent
     :alias "info precedence"     ::nsf::cmd::ObjectInfo::precedence
     :method "info slotobjects" {} {
-      set result [list]
-      foreach slot [::nsf::dispatch [::nsf::current object] ::nsf::cmd::ObjectInfo::slotobjects] {
-	if {![::nsf::dispatch $slot ::nsf::cmd::ObjectInfo::hastype ::nx::Slot]} continue
-	lappend result $slot
+	::nsf::dispatch [::nsf::current object] \
+	    ::nsf::cmd::ObjectInfo::slotobjects -type ::nx::Slot
+    }
+    :method "info slots" {} {
+      set slotContainer [::nsf::current object]::slot
+      if {[::nsf::isobject $slotContainer]} {
+	::nsf::dispatch $slotContainer ::nsf::cmd::ObjectInfo::children -type ::nx::Slot
       }
-      return $result
     }
     :alias "info vars"           ::nsf::cmd::ObjectInfo::vars
   }
@@ -507,7 +509,6 @@ namespace eval ::nx {
     :alias "info mixin guard"    ::nsf::cmd::ClassInfo::mixinguard
     :alias "info mixin classes"  ::nsf::cmd::ClassInfo::mixinclasses
     :alias "info mixinof"        ::nsf::cmd::ClassInfo::mixinof
-    :alias "info slots"          ::nsf::cmd::ClassInfo::slots
     :alias "info subclass"       ::nsf::cmd::ClassInfo::subclass
     :alias "info superclass"     ::nsf::cmd::ClassInfo::superclass
   }
@@ -878,9 +879,7 @@ namespace eval ::nx {
 
   proc ::nsf::parametersFromSlots {obj} {
     set parameterdefinitions [list]
-    foreach slot [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::slotobjects] {
-      # TODO: the following line is just for the somehwat dummy "...::slot::__info"
-      if {![::nsf::dispatch $slot ::nsf::cmd::ObjectInfo::hastype ::nx::Slot]} continue
+    foreach slot [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::slotobjects -type ::nx::Slot] {
       # Skip some slots for xotcl; 
       # TODO: maybe different parameterFromSlots for xotcl?
       if {[::nsf::is class ::xotcl::Object] 
@@ -990,7 +989,7 @@ namespace eval ::nx {
   ############################################
   # system slots
   ############################################
-  proc ::nsf::register_system_slots {os} {
+  proc register_system_slots {os} {
 
     ::nx::RelationSlot create ${os}::Class::slot::superclass
     ::nsf::alias              ${os}::Class::slot::superclass assign ::nsf::relation
@@ -1049,8 +1048,8 @@ namespace eval ::nx {
     #::nsf::alias ::nx::Class::slot::object-filter guard ${os}::Object::slot::filter::guard
   }
 
-  ::nsf::register_system_slots ::nx
-  proc ::nsf::register_system_slots {} {}
+  register_system_slots ::nx
+  proc ::nx::register_system_slots {} {}
 
 
   ############################################

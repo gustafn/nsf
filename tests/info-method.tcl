@@ -175,3 +175,22 @@ Test case callable {
     
     ? {o mixin ""} ""
 }
+
+Test case slots {
+
+  nx::Class create C {
+    :attribute a
+    :attribute {b 1}
+  }
+  
+  nx::Class create D -superclass C {
+    :attribute {b 2}
+    :attribute c
+    :object attribute a2
+    :method "sub foo" args {;}
+  }
+  
+  D create d1
+  ? {D info slotobjects} "::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::superclass ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Object::slot::class"
+  ? {D info slots} "::D::slot::b ::D::slot::a2 ::D::slot::c"
+}

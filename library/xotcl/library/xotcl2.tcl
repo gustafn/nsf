@@ -564,7 +564,7 @@ namespace eval ::xotcl {
 	  {*}$pattern
     }
     :alias parameter          ::nx::Class::slot::__info::parameter
-    :alias slots              ::nsf::cmd::ClassInfo::slots
+    :alias slots              ::nx::Object::slot::__info::slots
     :alias subclass           ::nsf::cmd::ClassInfo::subclass
     :alias superclass         ::nsf::cmd::ClassInfo::superclass
   }

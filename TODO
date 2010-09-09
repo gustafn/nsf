@@ -1298,6 +1298,13 @@ _ added option noforwarder to RelationSlots
   - renamed some static definitions on the way to follow
     Tcl conventions (start with a capital character)
 
+- added flag "-type" to NsfObjInfoChildrenMethod
+- added flag "-type" to NsfObjInfoSlotObjectsMethod
+- removed dummy argument "pattern" from NsfObjInfoSlotObjectsMethod
+- removed NsfClassInfoSlotsMethod (implemented via "children ... -type ...")
+- moved "info slots" from nx::Class to nx::Object 
+  (to report e.g. per-object attributes)
+- extended regression test
 
 TODO: 
 

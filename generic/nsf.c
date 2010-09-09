@@ -7402,7 +7402,7 @@ StripBodyPrefix(CONST char *body) {
 
 
 static NsfObjects *
-ComputeSlotObjects(Tcl_Interp *interp, NsfObject *object, CONST char *pattern, int withRootClass) {
+ComputeSlotObjects(Tcl_Interp *interp, NsfObject *object, NsfClass *type, int withRootClass) {
   NsfObjects *slotObjects = NULL, **npl = &slotObjects;
   NsfClasses *pl, *fullPrecendenceList;
   NsfObject *childObject, *tmpObject;
@@ -7439,6 +7439,7 @@ ComputeSlotObjects(Tcl_Interp *interp, NsfObject *object, CONST char *pattern, i
 	cmd = (Tcl_Command) Tcl_GetHashValue(hPtr);
 	childObject = NsfGetObjectFromCmdPtr(cmd);
 	/*fprintf(stderr, "we have true child obj %s\n", objectName(childObject));*/
+	if (type && !IsSubType(childObject->cl, type)) continue;
 	npl = NsfObjectListAdd(npl, childObject);
       }
     }
@@ -10763,7 +10764,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, CONST char *pattern,
 }
 
 static int
-ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern, int classesOnly) {
+ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern, int classesOnly, NsfClass *type) {
   NsfObject *childObject;
   Tcl_HashTable *cmdTable;
 
@@ -10774,6 +10775,7 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern, int cla
 
     if ((childObject = GetObjectFromString(interp, pattern)) &&
         (!classesOnly || NsfObjectIsClass(childObject)) &&
+	(!type || IsSubType(childObject->cl, type)) &&
         (Tcl_Command_nsPtr(childObject->id) == object->nsPtr)  /* true children */
         ) {
       Tcl_SetObjResult(interp, childObject->cmdName);
@@ -10798,6 +10800,7 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern, int cla
 
         if ((childObject = NsfGetObjectFromCmdPtr(cmd)) &&
             (!classesOnly || NsfObjectIsClass(childObject)) &&
+	    (!type || IsSubType(childObject->cl, type)) &&
             (Tcl_Command_nsPtr(childObject->id) == object->nsPtr)  /* true children */
             ) {
           Tcl_ListObjAppendElement(interp, list, childObject->cmdName);
@@ -14165,12 +14168,13 @@ NsfObjInfoCallableMethod(Tcl_Interp *interp, NsfObject *object,
 
 /*
 objectInfoMethod children NsfObjInfoChildrenMethod {
+  {-argName "-type" -required 0 -nrargs 1 -type class}
   {-argName "pattern" -required 0}
 }
 */
 static int
-NsfObjInfoChildrenMethod(Tcl_Interp *interp, NsfObject *object, CONST char *pattern) {
-  return ListChildren(interp, object, pattern, 0);
+NsfObjInfoChildrenMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *type, CONST char *pattern) {
+  return ListChildren(interp, object, pattern, 0, type);
 }
 
 /*
@@ -14390,16 +14394,16 @@ NsfObjInfoPrecedenceMethod(Tcl_Interp *interp, NsfObject *object,
 
 /*
 objectInfoMethod slotobjects NsfObjInfoSlotObjectsMethod {
-  {-argName "pattern" -required 0}
+  {-argName "-type" -required 0 -nrargs 1 -type class}
 }
 */
 static int
-NsfObjInfoSlotObjectsMethod(Tcl_Interp *interp, NsfObject *object, CONST char *pattern) {
+NsfObjInfoSlotObjectsMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *type) {
   NsfObjects *pl, *slotObjects;
   Tcl_Obj *list = Tcl_NewListObj(0, NULL);
   /*NsfClass *slotClass = GetClassFromString(interp, "::nx::Slot");*/
 
-  slotObjects = ComputeSlotObjects(interp, object, pattern /* not used */, 1);
+  slotObjects = ComputeSlotObjects(interp, object, type, 1);
   
   for (pl=slotObjects; pl; pl = pl->nextPtr) {
     /*if (slotClass &&  !IsSubType(pl->obj->cl, slotClass)) continue;*/
@@ -14680,29 +14684,6 @@ NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, 
     Tcl_SetObjResult(interp, rc ? patternObj->cmdName : NsfGlobalObjs[NSF_EMPTY]);
   }
   return TCL_OK;
-}
-
-/*
-classInfoMethod slots NsfClassInfoSlotsMethod {
-}
-*/
-static int
-NsfClassInfoSlotsMethod(Tcl_Interp *interp, NsfClass *class) {
-  Tcl_DString ds, *dsPtr = &ds;
-  NsfObject *object;
-  int result;
-
-  DSTRING_INIT(dsPtr);
-  Tcl_DStringAppend(dsPtr, className(class), -1);
-  Tcl_DStringAppend(dsPtr, "::slot", 6);
-  object = GetObjectFromString(interp, Tcl_DStringValue(dsPtr));
-  if (object) {
-    result = ListChildren(interp, object, NULL, 0);
-  } else {
-    result = TCL_OK;
-  }
-  DSTRING_FREE(dsPtr);
-  return result;
 }
 
 /*
