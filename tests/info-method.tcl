@@ -211,20 +211,20 @@ Test case info-submethod {
     :method "bar baz y" {x:int y:upper} {return y}
   }
 
-  # query defintion on of subcommand
+  # query definition on subcommand
   ? {o info method definition "foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
 
-  # query defintion on of subcommand on handle
+  # query definition on subcommand with handle
   ? {o info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
 
-  # query defintion on ensemble object
+  # query definition on handle of ensemble object
   ? {o info method definition "::o::foo::b"} {::o::foo method b {x:int y:upper} {return b}}
 
-  # query definition of subcommand of class
+  # query definition on subcommand of class
   ? {::nx::Object info method definition "info lookup methods"} \
       {::nx::Object alias {info lookup methods} ::nsf::cmd::ObjectInfo::lookupmethods}
 
-  # query definition of subcommand of class on handle
+  # query definition on subcommand of class with handle
   ? {o info method definition "::nsf::classes::nx::Object::info lookup methods"} \
       {::nx::Object alias {info lookup methods} ::nsf::cmd::ObjectInfo::lookupmethods}
 
