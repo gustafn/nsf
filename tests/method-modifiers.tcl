@@ -242,10 +242,10 @@ Test case attribute-method {
     :attribute {b b1}
     :public attribute {c c1}
     :protected attribute {d d1}
-
+#puts stderr ======
     set X [:object attribute A]
     ? [list set _ $X] "::C::A"
-
+#exit
     # object attribute with default
     :object attribute {B B2}
     :public object attribute {C C2}

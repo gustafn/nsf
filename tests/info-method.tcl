@@ -195,3 +195,69 @@ Test case slots {
   ? {D info slots} "::D::slot::b ::D::slot::a2 ::D::slot::c"
   ? {::nx::Object info method parameter info} ""
 }
+
+
+Test case info-submethod {
+
+  nx::Object create o {
+    :method "foo a" {} {return a}
+    :method "foo b" {x:int y:upper} {return b}
+  }
+  
+  nx::Class create C {
+    :method "bar a" {} {return a}
+    :method "bar b" {x:int y:upper} {return b}
+    :method "bar baz x" {x:int y:upper} {return x}
+    :method "bar baz y" {x:int y:upper} {return y}
+  }
+
+  # query defintion on of subcommand
+  ? {o info method definition "foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
+
+  # query defintion on of subcommand on handle
+  ? {o info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
+
+  # query defintion on ensemble object
+  ? {o info method definition "::o::foo::b"} {::o::foo method b {x:int y:upper} {return b}}
+
+  # query definition of subcommand of class
+  ? {::nx::Object info method definition "info lookup methods"} \
+      {::nx::Object alias {info lookup methods} ::nsf::cmd::ObjectInfo::lookupmethods}
+
+  # query definition of subcommand of class on handle
+  ? {o info method definition "::nsf::classes::nx::Object::info lookup methods"} \
+      {::nx::Object alias {info lookup methods} ::nsf::cmd::ObjectInfo::lookupmethods}
+
+  # query definition on ensemble object of class
+  ? {o info method definition "::nx::Object::slot::__info::lookup::methods"} \
+      {::nx::Object::slot::__info::lookup alias methods ::nsf::cmd::ObjectInfo::lookupmethods}
+
+
+  ? {C info method handle "bar"} {::nsf::classes::C::bar}
+  ? {C info method handle "bar a"} {::nsf::classes::C::bar a}
+  ? {C info method handle "bar baz y"} {::nsf::classes::C::bar baz y}
+
+  ? {C info method definition "bar baz y"} \
+      {::C method {bar baz y} {x:int y:upper} {return y}}
+  ? {C info method definition "::nsf::classes::C::bar baz y"} \
+      {::C method {bar baz y} {x:int y:upper} {return y}}
+
+  ? {nx::Object info method parameter "info lookup methods"} \
+      "-methodtype -callprotection -application -nomixins -incontext pattern:optional"
+  ? {o info method parameter "foo b"} "x:int y:upper"
+
+  ? {nx::Object info method parameter ::nx::Object::slot::__info::lookup::methods} \
+      "-methodtype -callprotection -application -nomixins -incontext pattern:optional"
+  ? {o info method parameter "::o::foo::b"} "x:int y:upper"
+
+ 
+  ? {nx::Object info method handle "info"} "::nsf::classes::nx::Object::info"
+
+  ? {nx::Object info method handle "info lookup methods"} \
+      "::nsf::classes::nx::Object::info lookup methods"
+
+  ? {nx::Object info method handle "::nsf::classes::nx::Object::info lookup methods"} \
+      "::nsf::classes::nx::Object::info lookup methods"
+
+  ? {o info method handle "foo b"} "::o::foo b"
+}

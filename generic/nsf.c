@@ -510,7 +510,7 @@ NSTail(CONST char *string) {
 }
 
 NSF_INLINE static int
-IsClassName(CONST char *string) {
+IsClassNsName(CONST char *string) {
   return (strncmp((string), "::nsf::classes", 14) == 0);
 }
 
@@ -527,7 +527,7 @@ GetObjectFromNsName(Tcl_Interp *interp, CONST char *string, int *fromClassNS) {
    * Get object or class from a fully qualified cmd name, such as
    * e.g. ::nsf::classes::X
    */
-  if (IsClassName(string)) {
+  if (IsClassNsName(string)) {
     *fromClassNS = 1;
     return (NsfObject *)GetClassFromString(interp, NSCutNsfClasses(string));
   } else {
@@ -1114,20 +1114,64 @@ ObjectFindMethod(Tcl_Interp *interp, NsfObject *object, CONST char *name, NsfCla
  *----------------------------------------------------------------------
  */
 static NsfObject *
-GetEnsembeObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name) {
-  NsfObject *object;
+GetEnsembeObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name, 
+			 Tcl_Command *cmdPtr, int *fromClassNS) {
   Tcl_Command cmd;
   char *nameString = ObjStr(name);
   
   if (*nameString == ':') {
     cmd = Tcl_GetCommandFromObj(interp, name);
+    *fromClassNS = IsClassNsName(nameString);
   } else {
     cmd = FindMethod(nsPtr, nameString);
   }
   
-  object = cmd ? NsfGetObjectFromCmdPtr(cmd) : NULL;
-  /*fprintf(stderr, "GetEnsembeObjectFromName returns %p\n", object);*/
-  return object;
+  if (cmd) {
+    *cmdPtr = cmd;
+    return NsfGetObjectFromCmdPtr(cmd);
+  }
+  return NULL;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * GetRegObject --
+ *
+ *    Try to get the object, on which the method was registered from a
+ *    folly qaulified method handle
+ *
+ * Results:
+ *    NsfObject * or NULL on failure
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
+ */
+NsfObject *
+GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
+	     CONST char **methodName1, int *fromClassNS) {
+  NsfObject *regObject = NULL;
+
+  if (cmd && *methodName == ':') {
+    CONST char *procName = Tcl_GetCommandName(interp, cmd);
+    size_t objNameLength = strlen(methodName) - strlen(procName) - 2;
+    Tcl_DString ds, *dsPtr = &ds;
+
+    if (objNameLength > 0) {
+      Tcl_DStringInit(dsPtr);
+      Tcl_DStringAppend(dsPtr, methodName, objNameLength);
+      regObject = GetObjectFromNsName(interp, Tcl_DStringValue(dsPtr), fromClassNS);
+      /*fprintf(stderr, "GetRegObject %s -> %p\n", Tcl_DStringValue(dsPtr), regObject);*/
+      if (regObject) {
+	*methodName1 = procName;
+      }
+      Tcl_DStringFree(dsPtr);
+    }
+  }
+
+  /*fprintf(stderr, "GetRegObject cmd %p methodName '%s' => %p\n", cmd, methodName, regObject);*/
+  return regObject;
 }
 
 /*
@@ -1150,39 +1194,91 @@ GetEnsembeObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name
  */
 
 static Tcl_Command 
-ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj) {
+ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
+		  Tcl_DString *methodNameDs,
+		  NsfObject **regObject, 
+		  NsfObject **defObject, 
+		  CONST char **methodName1, int *fromClassNS) {
   Tcl_Command cmd;
+  NsfObject *referencedObject;
   char* methodName = ObjStr(methodObj);
-
+  
   if (nsPtr && strchr(methodName, ' ') > 0) {
     Tcl_Obj *methodHandleObj;
-    NsfObject *referencedObject;
     Tcl_Obj **ov;
-    int oc=0, result, i;
+    int oc, result, i;
 
     /*fprintf(stderr, "name '%s' contains space \n", methodName);*/
+
     if ((result = Tcl_ListObjGetElements(interp, methodObj, &oc, &ov) != TCL_OK)
-	|| ((referencedObject = GetEnsembeObjectFromName(interp, nsPtr, ov[0])) == NULL)
+	|| ((referencedObject = GetEnsembeObjectFromName(interp, nsPtr, ov[0], 
+							 &cmd, fromClassNS)) == NULL)
 	) {
+      *methodName1 = NULL;
+      *regObject = NULL;
+      *defObject = NULL;
       return NULL;
     }
-    /*fprintf(stderr, "... referenced object '%s' \n", objectName(referencedObject));*/
-    methodHandleObj = Tcl_DuplicateObj(referencedObject->cmdName);
+    
+    /*
+     * We have an ensemble object. First, figure out, on which
+     * object/class the ensemble object was registered. We determine
+     * the regObject on the first element of the list. If we can't,
+     * then the current object is the regObject.
+     */
+    *regObject = GetRegObject(interp, cmd, ObjStr(ov[0]), methodName1, fromClassNS);
 
+    /*fprintf(stderr, "... referenced object '%s' reg %p\n", 
+      objectName(referencedObject), *regObject);*/
+
+    /*
+     * Build a fresh methodHandleObj to held method name and names of
+     * subcmds.
+     */
+    methodHandleObj = Tcl_DuplicateObj(referencedObject->cmdName);
+    Tcl_DStringAppend(methodNameDs, Tcl_GetCommandName(interp, cmd), -1);
+
+    /*
+     * Iterate over the objects and append to the handle and methodObj
+     */
     for (i = 1; i<oc; i++) {
+      cmd = Tcl_GetCommandFromObj(interp, methodHandleObj);
       Tcl_AppendLimitedToObj(methodHandleObj, "::", 2, INT_MAX, NULL);
       Tcl_AppendLimitedToObj(methodHandleObj, ObjStr(ov[i]), -1, INT_MAX, NULL);
+      Tcl_DStringAppendElement(methodNameDs, ObjStr(ov[i]));
     }
     
-    /*fprintf(stderr, "... handle '%s' \n", ObjStr(methodHandleObj));*/
+    /*
+     * cmd contains now the parent-obj, on which the method was
+     * defined. Get from this cmd the defObj.
+     */ 
+    *defObject = NsfGetObjectFromCmdPtr(cmd);
+    
+    /* fprintf(stderr, "... handle '%s' last cmd %p defObject %p\n", 
+       ObjStr(methodHandleObj), cmd, *defObject);*/
+    
+    /* 
+     * Obtain the command from the method handle and report back the
+     * final methodName,
+     */
     cmd = Tcl_GetCommandFromObj(interp, methodHandleObj);
+    *methodName1 = Tcl_DStringValue(methodNameDs);
 
-    /* zzz */    
+    /*fprintf(stderr, "... methodname1 '%s' \n", *methodName1);*/
     DECR_REF_COUNT(methodHandleObj);
+
   } else if (*methodName == ':') {
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
+    referencedObject = GetRegObject(interp, cmd, methodName, methodName1, fromClassNS);
+    if (referencedObject) {
+      *regObject = referencedObject;
+      *defObject = referencedObject;
+    }
   } else {
+    *methodName1 = methodName;
     cmd = nsPtr ? FindMethod(nsPtr, methodName) : NULL;
+    *regObject = NULL;
+    *defObject = NULL;
   }
 
   return cmd;
@@ -4671,6 +4767,7 @@ FilterRemoveDependentFilterCmds(NsfClass *cl, NsfClass *removeClass) {
 static Tcl_Obj *
 MethodHandleObj(NsfObject *object, int withPer_object, CONST char *methodName) {
   Tcl_Obj *resultObj;
+
   if (*methodName == ':') {
     /*
      * if we have a methodname starting with ":" and we made it so far,
@@ -6367,7 +6464,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
     if (cmd) {
       CONST char *mn = Tcl_GetCommandName(interp, cmd);
-      if (IsClassName(methodName)) {
+      if (IsClassNsName(methodName)) {
 	CONST char *className = NSCutNsfClasses(methodName);
 	Tcl_DString ds, *dsPtr = &ds;
 	DSTRING_INIT(dsPtr);
@@ -10477,11 +10574,14 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
 }
 
 static int
-ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Command cmd, 
+ListMethod(Tcl_Interp *interp, 
+	   NsfObject *regObject, 
+	   NsfObject *defObject, 
+	   CONST char *methodName, Tcl_Command cmd, 
            int subcmd, int withPer_object) {
 
   /*fprintf(stderr, "ListMethodtype %s %s %p subcmd %d per-object %d\n",
-    objectName(object), methodName, cmd, subcmd, withPer_object);*/
+    objectName(regObject), methodName, cmd, subcmd, withPer_object);*/
 
   if (!cmd) {
     Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
@@ -10490,39 +10590,9 @@ ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Co
     int outputPerObject = 0;
     Tcl_Obj *resultObj;
 
-    if (*methodName == ':') {
-      /* 
-       * We have a fully qualified method name, maybe an object handle 
-       */
-      CONST char *procName = Tcl_GetCommandName(interp, cmd);
-      size_t objNameLength = strlen(methodName) - strlen(procName) - 2;
-      Tcl_DString ds, *dsPtr = &ds;
-
-      if (objNameLength > 0) {
-	NsfObject *object1;
-	int fromClassNS;
-
-	Tcl_DStringInit(dsPtr);
-	Tcl_DStringAppend(dsPtr, methodName, objNameLength);
-	object1 = GetObjectFromNsName(interp, Tcl_DStringValue(dsPtr), &fromClassNS);
-	if (object1) {
-	  /* 
-	   * The command was from an object, return therefore this
-	   * object as reference.
-	   */
-	  /*fprintf(stderr, "We are flipping the object to %s, method %s to %s !fromClassNS %d\n",
-	    objectName(object1), methodName, procName, !fromClassNS);*/
-	  object = object1;
-	  methodName = procName;
-	  withPer_object = fromClassNS ? 0 : 1;
-	}
-	Tcl_DStringFree(dsPtr);
-      }
-    }
-
-    if (!NsfObjectIsClass(object)) {
+    if (!NsfObjectIsClass(regObject)) {
       withPer_object = 1;
-      /* don't output "object" modifier, if object is not a class */
+      /* don't output "object" modifier, if regObject is not a class */
       outputPerObject = 0;
     } else {
       outputPerObject = withPer_object;
@@ -10531,7 +10601,7 @@ ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Co
     switch (subcmd) {
     case InfomethodsubcmdHandleIdx: 
       {
-        return ListMethodHandle(interp, object, withPer_object, methodName);
+        return ListMethodHandle(interp, regObject, withPer_object, methodName);
       }
     case InfomethodsubcmdArgsIdx:
       {
@@ -10552,9 +10622,9 @@ ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Co
       {
         NsfProcAssertion *procs;
         if (withPer_object) {
-          procs = object->opt ? AssertionFindProcs(object->opt->assertions, methodName) : NULL;
+          procs = regObject->opt ? AssertionFindProcs(regObject->opt->assertions, methodName) : NULL;
         } else {
-          NsfClass *class = (NsfClass *)object;
+          NsfClass *class = (NsfClass *)regObject;
           procs = class->opt ? AssertionFindProcs(class->opt->assertions, methodName) : NULL;
         }
         if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->pre));
@@ -10564,9 +10634,9 @@ ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Co
       {
         NsfProcAssertion *procs;
         if (withPer_object) {
-          procs = object->opt ? AssertionFindProcs(object->opt->assertions, methodName) : NULL;
+          procs = regObject->opt ? AssertionFindProcs(regObject->opt->assertions, methodName) : NULL;
         } else {
-          NsfClass *class = (NsfClass *)object;
+          NsfClass *class = (NsfClass *)regObject;
           procs = class->opt ? AssertionFindProcs(class->opt->assertions, methodName) : NULL;
         }
         if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->post));
@@ -10600,16 +10670,16 @@ ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Co
           resultObj = Tcl_NewListObj(0, NULL);
           /* todo: don't hard-code registering command name "method" / NSF_METHOD */
           AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_METHOD], 
-                                   object, methodName, cmd, 0, outputPerObject);
+                                   regObject, methodName, cmd, 0, outputPerObject);
           ListCmdParams(interp, cmd, methodName, 0);
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
           ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
 
           if (withPer_object) {
-            assertions = object->opt ? object->opt->assertions : NULL;
+            assertions = regObject->opt ? regObject->opt->assertions : NULL;
           } else {
-            NsfClass *class = (NsfClass *)object;
+            NsfClass *class = (NsfClass *)regObject;
             assertions = class->opt ? class->opt->assertions : NULL;
           }
           if (assertions) {
@@ -10640,7 +10710,7 @@ ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Co
             resultObj = Tcl_NewListObj(0, NULL);
             /* todo: don't hard-code registering command name "forward" / NSF_FORWARD*/
             AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_FORWARD], 
-                                     object, methodName, cmd, 0, outputPerObject);
+                                     regObject, methodName, cmd, 0, outputPerObject);
             AppendForwardDefinition(interp, resultObj, clientData);
             Tcl_SetObjResult(interp, resultObj);
             break;
@@ -10660,7 +10730,7 @@ ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Co
         resultObj = Tcl_NewListObj(0, NULL);
         /* todo: don't hard-code registering command name "setter" / NSF_SETTER */
 
-        AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_SETTER], object, 
+        AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_SETTER], regObject, 
                                  cd->paramsPtr ? ObjStr(cd->paramsPtr->paramObj) : methodName, 
                                  cmd, 0, outputPerObject);
         Tcl_SetObjResult(interp, resultObj);        
@@ -10677,9 +10747,18 @@ ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Co
        * really an alias.
        */
 
-      Tcl_Obj *entryObj = AliasGet(interp, object->cmdName, methodName, withPer_object);
-      /*fprintf(stderr, "aliasGet %s -> %s (%d) returned %p\n",
-	objectName(object), methodName, withPer_object, entryObj);*/
+      Tcl_Obj *entryObj;
+
+      entryObj = AliasGet(interp, defObject->cmdName, 
+			  Tcl_GetCommandName(interp, cmd), 
+			  regObject != defObject ? 1 : withPer_object);
+      /*
+      fprintf(stderr, "aliasGet %s -> %s/%s (%d) returned %p\n",
+	      objectName(defObject), methodName, Tcl_GetCommandName(interp, cmd), 
+	      withPer_object, entryObj);
+      fprintf(stderr, "... regObject %p %s\n",regObject,objectName(regObject));
+      fprintf(stderr, "... defObject %p %s\n",defObject,objectName(defObject));
+      */
 
       if (entryObj) {
 	/* is an alias */
@@ -10695,7 +10774,7 @@ ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Co
             Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
             /* todo: don't hard-code registering command name "alias" / NSF_ALIAS */
             AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_ALIAS], 
-                                     object, methodName, cmd, nrElements!=1, outputPerObject);
+                                     regObject, methodName, cmd, nrElements!=1, outputPerObject);
             Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
             Tcl_SetObjResult(interp, resultObj);
             break;
@@ -10734,7 +10813,9 @@ ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Co
 	} else {
 	  /* should never happen */
 	  fprintf(stderr, "should never happen, maybe someone deleted the alias %s for object %s\n",
-		  methodName, objectName(object));
+		  methodName, objectName(regObject));
+	  fprintf(stderr, "procPtr %p NsfObjDispatch %p name %s \n",
+		  procPtr, NsfObjDispatch, Tcl_GetCommandName(interp, cmd));
 	  Tcl_ResetResult(interp);
 	}
       }
@@ -11034,7 +11115,7 @@ AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withP
   Tcl_Obj *obj = Tcl_GetVar2Ex(interp, NsfGlobalStrings[NSF_ALIAS_ARRAY], 
                                AliasIndex(dsPtr, cmdName, methodName, withPer_object), 
                                TCL_GLOBAL_ONLY);
-  /*fprintf(stderr, "aliasGet returns %p\n", object);*/
+  /*fprintf(stderr, "aliasGet methodName '%s' returns %p\n", methodName, obj);*/
   Tcl_DStringFree(dsPtr);
   return obj;
 }
@@ -14318,7 +14399,7 @@ NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *object, CONST char *
     NsfObject *pobj = pcl ? &pcl->object : object;
     int perObject = (pcl == NULL);
 
-    ListMethod(interp, pobj, name, cmd, InfomethodsubcmdHandleIdx, perObject);
+    ListMethod(interp, pobj, pobj, name, cmd, InfomethodsubcmdHandleIdx, perObject);
   }
   return TCL_OK;
 }
@@ -14432,11 +14513,23 @@ objectInfoMethod method NsfObjInfoMethodMethod {
 
 static int
 NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object, 
-		       int subcmd, Tcl_Obj *methodName) {
+		       int subcmd, Tcl_Obj *methodNameObj) {
+  NsfObject *regObject, *defObject;
+  CONST char *methodName1 = NULL;
+  int fromClassNS = 0, result;
+  Tcl_DString ds, *dsPtr = &ds;
+  Tcl_Command cmd;
 
-  return ListMethod(interp, object, ObjStr(methodName), 
-		    ResolveMethodName(interp, object->nsPtr, methodName), 
-		    subcmd, 1);
+  Tcl_DStringInit(dsPtr);
+  cmd = ResolveMethodName(interp, object->nsPtr, methodNameObj, 
+			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+  result = ListMethod(interp, 
+		      regObject ? regObject : object, 
+		      defObject ? defObject : object, 
+		      methodName1, cmd, subcmd, fromClassNS ? 0 : 1);
+  Tcl_DStringFree(dsPtr);
+
+  return result;
 }
 
 /*
@@ -14664,11 +14757,25 @@ classInfoMethod method NsfClassInfoMethodMethod {
 
 static int
 NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class, 
-			 int subcmd, Tcl_Obj *methodName) {
+			 int subcmd, Tcl_Obj *methodNameObj) {
+  NsfObject *regObject, *defObject;
+  CONST char *methodName1 = NULL;
+  int fromClassNs = 0, result;
+  Tcl_DString ds, *dsPtr = &ds;
+  Tcl_Command cmd;
 
-  return ListMethod(interp, &class->object, ObjStr(methodName), 
-		    ResolveMethodName(interp, class->nsPtr, methodName), 
-		    subcmd, 0);
+  Tcl_DStringInit(dsPtr);
+  cmd = ResolveMethodName(interp, class->nsPtr, methodNameObj, 
+			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNs);
+  /* TODO: what, if we call on a class "info method" with a methodhandle of an object? */
+  result = ListMethod(interp, 
+		      regObject ? regObject : &class->object, 
+		      defObject ? defObject : &class->object, 
+		      methodName1, 
+		      cmd, subcmd, 0);
+  Tcl_DStringFree(dsPtr);
+
+  return result;
 }
 
 /*

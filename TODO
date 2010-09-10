@@ -1327,9 +1327,16 @@ _ added option noforwarder to RelationSlots
   (and accordingly c definitions, migration guide)
 
 - pass tclobj instead of string to NsfObjInfoMethodMethod and NsfObjInfoMethodsMethod
-- first part of ensemble name resolver
+- first part of ensemble name resolver. We can resolve now e.g.
+     [nx::Object info method parameter "info lookup methods"]
+- second part of ensemble name resolver, distinguish between 
+  registration object and definition object
+- new functions: GetRegObject()
+- extended regression test
 
 TODO: 
+- /* TODO: what, if we call on a class "info method" with a methodhandle of an object? */
+- check potential crashes with invalid input
 
 - check equivalence of the following two commands
   in respect to fully-qualified names
