@@ -6,12 +6,12 @@
 
 # namespaces for types of methods
 array set ns {
-  nsfCmd    "::nsf"
-  objectMethod "::nsf::cmd::Object"
+  nsfCmd           "::nsf"
+  objectMethod     "::nsf::cmd::Object"
   objectInfoMethod "::nsf::cmd::ObjectInfo"
-  classMethod  "::nsf::cmd::Class"
-  classInfoMethod "::nsf::cmd::ClassInfo"
-  checkMethod  "::nsf::cmd::ParameterType"
+  classMethod      "::nsf::cmd::Class"
+  classInfoMethod  "::nsf::cmd::ClassInfo"
+  checkMethod      "::nsf::cmd::ParameterType"
 }
 
 #
@@ -262,7 +262,7 @@ objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
 }
 objectInfoMethod method NsfObjInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
-  {-argName "name"}
+  {-argName "name" -type tclobj}
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
@@ -314,7 +314,7 @@ classInfoMethod instances NsfClassInfoInstancesMethod {
 
 classInfoMethod method NsfClassInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
-  {-argName "name"}
+  {-argName "name" -type tclobj}
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}

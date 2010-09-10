@@ -1099,6 +1099,98 @@ ObjectFindMethod(Tcl_Interp *interp, NsfObject *object, CONST char *name, NsfCla
 
 /*
  *----------------------------------------------------------------------
+ * GetEnsembeObjectFromName --
+ *
+ *    Get an ensemble object from a method name.  If the method name
+ *    is fully qualified, just use a Tcl lookup, otherwise get it from
+ *    the provided namespace,
+ *
+ * Results:
+ *    ensemble object or NULL
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
+ */
+static NsfObject *
+GetEnsembeObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name) {
+  NsfObject *object;
+  Tcl_Command cmd;
+  char *nameString = ObjStr(name);
+  
+  if (*nameString == ':') {
+    cmd = Tcl_GetCommandFromObj(interp, name);
+  } else {
+    cmd = FindMethod(nsPtr, nameString);
+  }
+  
+  object = cmd ? NsfGetObjectFromCmdPtr(cmd) : NULL;
+  /*fprintf(stderr, "GetEnsembeObjectFromName returns %p\n", object);*/
+  return object;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * ResolveMethodName --
+ *
+ *    Resolve a method name relative to a provided namespace.
+ *    The method name can be 
+ *      a) a fully qualified name
+ *      b) a list of method name and subcommands
+ *      c) a simple name
+ *
+ * Results:
+ *    Tcl_Command or NULL on failure
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
+ */
+
+static Tcl_Command 
+ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj) {
+  Tcl_Command cmd;
+  char* methodName = ObjStr(methodObj);
+
+  if (nsPtr && strchr(methodName, ' ') > 0) {
+    Tcl_Obj *methodHandleObj;
+    NsfObject *referencedObject;
+    Tcl_Obj **ov;
+    int oc=0, result, i;
+
+    /*fprintf(stderr, "name '%s' contains space \n", methodName);*/
+    if ((result = Tcl_ListObjGetElements(interp, methodObj, &oc, &ov) != TCL_OK)
+	|| ((referencedObject = GetEnsembeObjectFromName(interp, nsPtr, ov[0])) == NULL)
+	) {
+      return NULL;
+    }
+    /*fprintf(stderr, "... referenced object '%s' \n", objectName(referencedObject));*/
+    methodHandleObj = Tcl_DuplicateObj(referencedObject->cmdName);
+
+    for (i = 1; i<oc; i++) {
+      Tcl_AppendLimitedToObj(methodHandleObj, "::", 2, INT_MAX, NULL);
+      Tcl_AppendLimitedToObj(methodHandleObj, ObjStr(ov[i]), -1, INT_MAX, NULL);
+    }
+    
+    /*fprintf(stderr, "... handle '%s' \n", ObjStr(methodHandleObj));*/
+    cmd = Tcl_GetCommandFromObj(interp, methodHandleObj);
+
+    /* zzz */    
+    DECR_REF_COUNT(methodHandleObj);
+  } else if (*methodName == ':') {
+    cmd = Tcl_GetCommandFromObj(interp, methodObj);
+  } else {
+    cmd = nsPtr ? FindMethod(nsPtr, methodName) : NULL;
+  }
+
+  return cmd;
+}
+
+
+/*
+ *----------------------------------------------------------------------
  * ObjectSystemFree --
  *
  *    Free a single object system structure including its root classes.
@@ -4561,12 +4653,36 @@ FilterRemoveDependentFilterCmds(NsfClass *cl, NsfClass *removeClass) {
   cl->order = saved;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * MethodHandleObj --
+ *
+ *    Builds a methodHandle from a method name.  In case the method
+ *    name is fully qualified, it is simply returned.
+ *
+ * Results:
+ *    fresh Tcl_Obj
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
+ */
 static Tcl_Obj *
 MethodHandleObj(NsfObject *object, int withPer_object, CONST char *methodName) {
-  Tcl_Obj *resultObj = Tcl_NewStringObj(withPer_object ? "" : "::nsf::classes", -1);
-  assert(object);
-  Tcl_AppendObjToObj(resultObj, object->cmdName);
-  Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
+  Tcl_Obj *resultObj;
+  if (*methodName == ':') {
+    /*
+     * if we have a methodname starting with ":" and we made it so far,
+     * we assume it is correct
+     */
+    resultObj = Tcl_NewStringObj(methodName, -1);
+  } else {
+    resultObj = Tcl_NewStringObj(withPer_object ? "" : "::nsf::classes", -1);
+    assert(object);
+    Tcl_AppendObjToObj(resultObj, object->cmdName);
+    Tcl_AppendStringsToObj(resultObj, "::", methodName, (char *) NULL);
+  }
   return resultObj;
 }
 
@@ -14201,6 +14317,7 @@ NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *object, CONST char *
   if (cmd) {
     NsfObject *pobj = pcl ? &pcl->object : object;
     int perObject = (pcl == NULL);
+
     ListMethod(interp, pobj, name, cmd, InfomethodsubcmdHandleIdx, perObject);
   }
   return TCL_OK;
@@ -14312,19 +14429,14 @@ objectInfoMethod method NsfObjInfoMethodMethod {
   {-argName "name"}
 }
 */
+
 static int
 NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object, 
-                                    int subcmd, CONST char *methodName) {
-  Tcl_Namespace *nsPtr = object->nsPtr;
-  Tcl_Command cmd;
+		       int subcmd, Tcl_Obj *methodName) {
 
-  if (*methodName == ':') {
-    Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
-    cmd = Tcl_GetCommandFromObj(interp, methodObj);
-  } else {
-    cmd = nsPtr ? FindMethod(nsPtr, methodName) : NULL;
-  }
-  return ListMethod(interp, object, methodName, cmd, subcmd, 1);
+  return ListMethod(interp, object, ObjStr(methodName), 
+		    ResolveMethodName(interp, object->nsPtr, methodName), 
+		    subcmd, 1);
 }
 
 /*
@@ -14549,19 +14661,14 @@ classInfoMethod method NsfClassInfoMethodMethod {
   {-argName "name"}
 }
 */
+
 static int
 NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class, 
-			 int subcmd, CONST char *methodName) {
-  Tcl_Namespace *nsPtr = class->nsPtr;
-  Tcl_Command cmd;
+			 int subcmd, Tcl_Obj *methodName) {
 
-  if (*methodName == ':') {
-    Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
-    cmd = Tcl_GetCommandFromObj(interp, methodObj);
-  } else {
-    cmd = nsPtr ? FindMethod(nsPtr, methodName) : NULL;
-  }
-  return ListMethod(interp, &class->object, methodName, cmd, subcmd, 0);
+  return ListMethod(interp, &class->object, ObjStr(methodName), 
+		    ResolveMethodName(interp, class->nsPtr, methodName), 
+		    subcmd, 0);
 }
 
 /*

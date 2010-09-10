@@ -1324,7 +1324,10 @@ _ added option noforwarder to RelationSlots
 - removed some obsolete functions
 
 - changed "info available" into "info lookup"
-  (and accordingly c definitions)
+  (and accordingly c definitions, migration guide)
+
+- pass tclobj instead of string to NsfObjInfoMethodMethod and NsfObjInfoMethodsMethod
+- first part of ensemble name resolver
 
 TODO: 
 
