@@ -239,6 +239,7 @@ static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
 /* prototypes for alias management */
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
 static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
+static int AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd);
 
 /* misc prototypes */
 static int NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
@@ -1274,7 +1275,7 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
   FreeAllNsfObjectsAndClasses(interp, commandNameTable);
 
 # ifdef DO_FULL_CLEANUP
-  SeleteProcsAndVars(interp);
+  DeleteProcsAndVars(interp);
 # endif
 #endif
 
@@ -1358,7 +1359,7 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
       if (!(object->flags & NSF_FILTER_ORDER_VALID)) {
         FilterComputeDefined(interp, object);
       }
-      /*fprintf(stderr, "CallDirectly object %s idx %s obejct flags %.6x %.6x \n", 
+      /*fprintf(stderr, "CallDirectly object %s idx %s object flags %.6x %.6x \n", 
         objectName(object), sytemMethodOpts[methodIdx]+1,
         (object->flags & NSF_FILTER_ORDER_DEFINED_AND_VALID),
         NSF_FILTER_ORDER_DEFINED_AND_VALID
@@ -2108,24 +2109,15 @@ NSCleanupNamespace(Tcl_Interp *interp, Tcl_Namespace *ns) {
        hPtr = Tcl_NextHashEntry(&hSrch)) {
       Tcl_Command cmd = (Tcl_Command) Tcl_GetHashValue(hPtr);
       Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
-      NsfObject *invokeObj = proc == NsfObjDispatch ? (NsfObject *)Tcl_Command_objClientData(cmd) : NULL;
 
-      /* objects should not be deleted here to preseve children deletion order */
-      if (invokeObj && cmd != invokeObj->id) {
-        /*
-         * cmd is an aliased object, reduce the refcount
-         */
-        /*fprintf(stderr, "NSCleanupNamespace cleanup aliased object %p\n", invokeObj); */
-        NsfCleanupObject(invokeObj);
-        Nsf_DeleteCommandFromToken(interp, cmd);
+      if (proc == NsfObjDispatch) {
+	/* 
+	 * Sub-objects should not be deleted here to preseve children
+	 * deletion order. Just delete aliases.
+	 */
+	AliasDeleteObjectReference(interp, cmd);
+	continue;
       }
-      if (invokeObj) {
-        /* 
-         * cmd is a child object 
-         */
-        continue;
-      }
-
       /* fprintf(stderr, "NSCleanupNamespace calls DeleteCommandFromToken for %p flags %.6x invokeObj %p obj %p\n",
                 cmd, ((Command *)cmd)->flags, invokeObj,object);
         fprintf(stderr, "    cmd = %s\n", Tcl_GetCommandName(interp,cmd));
@@ -10559,25 +10551,6 @@ ListMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodName, Tcl_Co
         break;
       }
       }
-#if 0
-    } else if (procPtr == NsfObjDispatch) {
-      /* 
-	 Also some aliases come with procPtr == NsfObjDispatch.  In
-	 order to dinstinguish between "object" and alias, we would
-	 have to do the lookup for the entryObj in advance and alter
-	 e.g. the procPtr.
-      */
-      switch (subcmd) {
-      case InfomethodsubcmdTypeIdx: 
-	Tcl_SetObjResult(interp, Tcl_NewStringObj("object", -1));
-	break;
-      case InfomethodsubcmdDefinitionIdx:
-        {
-	  Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
-	  break;
-	}
-      }
-#endif
     } else {
       /* 
        * The cmd must be an alias or object.
@@ -10857,73 +10830,6 @@ ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
 }
 
 static int
-ListCallableMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
-                    int methodType, int withCallprotection,
-                    int withApplication, int noMixins, int inContext) {
-  NsfClasses *pl;
-  int withPer_object = 1;
-  Tcl_HashTable *cmdTable, dupsTable, *dups = &dupsTable;
-
-  /* 
-   * TODO: we could make this faster for patterns without metachars 
-   * by letting ListMethodKeys() to signal us when an entry was found.
-   * we wait, until the we decided about "info methods defined" 
-   * vs. "info method search" vs. "info defined" etc.
-   */
-  if (withCallprotection == CallprotectionNULL) {
-    withCallprotection = CallprotectionPublicIdx;
-  }
-
-  if (withApplication && object->flags & IsBaseClass((NsfClass*)object)) {
-    return TCL_OK;
-  }
-
-  Tcl_InitHashTable(dups, TCL_STRING_KEYS);
-  if (object->nsPtr) {
-    cmdTable = Tcl_Namespace_cmdTable(object->nsPtr);
-    ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
-                   dups, object, withPer_object);
-  }
-
-  if (!noMixins) {
-    if (!(object->flags & NSF_MIXIN_ORDER_VALID))
-      MixinComputeDefined(interp, object);
-    if (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
-      NsfCmdList *ml;
-      NsfClass *mixin;
-      for (ml = object->mixinOrder; ml; ml = ml->nextPtr) {
-	int guardOk = TCL_OK;
-        mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
-	assert(mixin);
-
-        if (inContext) {
-          if (!RUNTIME_STATE(interp)->guardCount) {
-            guardOk = GuardCall(object, 0, 0, interp, ml->clientData, NULL);
-          }
-        }
-        if (mixin && guardOk == TCL_OK) {
-          Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(mixin->nsPtr);
-          ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
-                         dups, object, withPer_object);
-        }
-      }
-    }
-  }
-
-  /* append method keys from inheritance order */
-  for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
-    Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(pl->cl->nsPtr);
-    if (withApplication && IsBaseClass(pl->cl)) {
-      break;
-    }
-    ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
-                   dups, object, withPer_object);
-  }
-  Tcl_DeleteHashTable(dups);
-  return TCL_OK;
-}
-
-static int
 ListSuperclasses(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *pattern, int withClosure) {
   NsfObject *matchObject = NULL;
   Tcl_Obj *patternObj = NULL, *outObjPtr;
@@ -11015,6 +10921,44 @@ AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withP
   /*fprintf(stderr, "aliasGet returns %p\n", object);*/
   Tcl_DStringFree(dsPtr);
   return obj;
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ * AliasDeleteObjectReference --
+ *
+ *    Delete an alias to an referenced object. Such aliases are
+ *    created by registering an alias to an object. This funciton
+ *    distinguishes between a sub-object and an alias to an object,
+ *    deletes the alias but never the referenced object.
+ *
+ * Results:
+ *    1 when alias is deleted.
+ *
+ * Side effects:
+ *    Deletes cmd sometimes
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
+  NsfObject *referencedObject = NsfGetObjectFromCmdPtr(cmd);
+
+  if (referencedObject 
+      && referencedObject->refCount >= 2 
+      && cmd != referencedObject->id) {
+    /*
+     * The cmd is an aliased object, reduce the refcount of the
+     * object, delete the cmd.
+     */
+    /*fprintf(stderr, "remove alias %s to %s\n",
+      Tcl_GetCommandName(interp, cmd), objectName(referencedObject));*/
+    NsfCleanupObject(referencedObject);
+    Nsf_DeleteCommandFromToken(interp, cmd);
+    return 1;
+  }
+  return 0;
 }
 
 
@@ -13726,7 +13670,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
   /* don't allow to
      - recreate an object as a class, 
      - recreate a class as an object, and to
-     - recreate an object in a different obejct system
+     - recreate an object in a different object system
 
      In these clases, we use destroy + create instead of recrate.
   */
@@ -14898,7 +14842,7 @@ CheckAllInstances(Tcl_Interp *interp, NsfClass *cl, int lvl) {
 #ifdef DO_FULL_CLEANUP
 /* delete global variables and procs */
 static void
-SeleteProcsAndVars(Tcl_Interp *interp) {
+DeleteProcsAndVars(Tcl_Interp *interp) {
   Tcl_Namespace *nsPtr = Tcl_GetGlobalNamespace(interp);
   Tcl_HashTable *varTable = nsPtr ? Tcl_Namespace_varTable(ns) : NULL;
   Tcl_HashTable *cmdTable = nsPtr ? Tcl_Namespace_cmdTable(ns) : NULL;
@@ -15022,22 +14966,7 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTable)
         Tcl_Command cmd = Tcl_GetHashValue(hPtr2);
         if (cmd) {
 	  if (Tcl_Command_objProc(cmd) == NsfObjDispatch) {
-	    NsfObject *referencedObject = NsfGetObjectFromCmdPtr(cmd);
-	    if (referencedObject->refCount < 2) {
-	      /* never delete the final "real" object, just references (aliases) zzzzz */
-	      continue;
-	    }
-	    fprintf(stderr, "referencedObject '%s' refCount %d cmd %p id %p\n",
-		    objectName(referencedObject),referencedObject->refCount,
-		    cmd, referencedObject->id);
-	    if (cmd != referencedObject->id) {
-	      /*
-	       * cmd is an aliased object, reduce the refcount
-	       */
-	      NsfCleanupObject(referencedObject);
-	      Nsf_DeleteCommandFromToken(interp, cmd);
-	      fprintf(stderr, "remove alias\n");
-	    }
+	    AliasDeleteObjectReference(interp, cmd);
 	    continue;
 	  }
 	  Tcl_DeleteCommandFromToken(interp, cmd);
@@ -15055,8 +14984,10 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTable)
            hPtr2 = Tcl_NextHashEntry(&hSrch2)) {
         Tcl_Command cmd = Tcl_GetHashValue(hPtr2);
         if (cmd) {
-          Tcl_DeleteCommandFromToken(interp, cmd);
-          deleted ++;
+	  if (Tcl_Command_objProc(cmd) == NsfObjDispatch) {
+	    AliasDeleteObjectReference(interp, cmd);
+	    continue;
+	  }
         }
       }
     }

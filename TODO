@@ -1319,6 +1319,10 @@ _ added option noforwarder to RelationSlots
 - share definition of "info callable" and "info has" ensemble 
   between object info and class info 
 
+- new function AliasDeleteObjectReference() to delete
+  aliases to objects
+- removed some obsolete functions
+
 TODO: 
 
 - check equivalence of the following two commands
