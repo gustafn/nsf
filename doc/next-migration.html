@@ -956,14 +956,14 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> info methods <i>?pattern?</i></code></td>
-    <td><code><i>obj</i> info callable methods <i>... ?pattern?</i><br>
+    <td><code><i>obj</i> info lookup methods <i>... ?pattern?</i><br>
       <i class='comment'># Returns list of method names</i>
       </code></td>
   </tr>
   <tr>
     <td><i>n.a.</i></td>
     <td><code><i class='comment'># List only application specific methods</i></code><br>
-      <code><i>obj</i> info callable methods -application <i>... ?pattern?</i><br>
+      <code><i>obj</i> info lookup methods -application <i>... ?pattern?</i><br>
       <i class='comment'># Returns list of method names</i>
       </code></td>
   </tr>
@@ -975,7 +975,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
       # -nomixins <br>
       </i>
      </code></td>    
-    <td><code><i class='comment'># Options for 'info callable
+    <td><code><i class='comment'># Options for 'info lookup
       methods'<br>
       #<br>
       # -application<br>
@@ -986,6 +986,14 @@ Scripting Language via the primitives of the Next Scripting Framework.
       </i>
      </code></td>
   </tr>
+
+  <tr>
+    <td><i>n.a.</i></td>
+    <td><code><i class='comment'># List slot objects defined for obj</i></code><br>
+      <code><i>obj</i> info lookup slots<br>
+      <i class='comment'># Returns list of slot objects</i>
+      </code></td>
+  </tr>
 </table>
 
 <h4>List object/class where some method is defined</h4>
@@ -994,12 +1002,12 @@ Scripting Language via the primitives of the Next Scripting Framework.
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
   <tr>
     <td><code><i>obj</i> procsearch <i>methodName</i></code></td>
-    <td><code><i>obj</i> info callable method <i>methodName</i><br>
+    <td><code><i>obj</i> info lookup method <i>methodName</i><br>
       <i class='comment'># Returns method-handle</i></code></td>
   </tr>
   <tr>
     <td><code><i>obj</i> filtersearch <i>methodName</i></code></td>
-    <td><code><i>obj</i> info callable filter <i>methodName</i><br>
+    <td><code><i>obj</i> info lookup filter <i>methodName</i><br>
       <i class='comment'># Returns method-handle</i></code></td>
   </tr>  
 </table>
@@ -1436,6 +1444,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Thu Sep  9 08:48:22 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Fri Sep 10 10:36:34 CEST 2010 <!-- hhmts end -->
 </body>
 </html>

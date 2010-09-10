@@ -9,7 +9,7 @@ Class create M {
 Class create M2
 Class create C 
 
-? {C info callable method mixin} "::nsf::classes::nx::Class::mixin"
+? {C info lookup method mixin} "::nsf::classes::nx::Class::mixin"
 C mixin M
 ? {C info precedence} "::nx::Class ::nx::Object"
 ? {C mixin} "::M"
@@ -107,7 +107,7 @@ Test case mixin-add {
   Class create M11
   Class create C1 
 
-  ? {C1 info callable method mixin} "::nsf::classes::nx::Class::mixin"
+  ? {C1 info lookup method mixin} "::nsf::classes::nx::Class::mixin"
   C1 object mixin M1
   ? {C1 info precedence} "::M1 ::nx::Class ::nx::Object"
   C1 create c11
@@ -135,7 +135,7 @@ Test case "filter-and-creation" {
       #puts stderr "$i: procsearch before [$s procsearch info]"
       set r [next]
       #puts stderr "$i: $s.$m got ($r)"
-      #puts stderr "$i: $s.$m procsearch after [$s info callable method info]"
+      #puts stderr "$i: $s.$m procsearch after [$s info lookup method info]"
       return $r
     }
     # method for testing next to non-existing shadowed method

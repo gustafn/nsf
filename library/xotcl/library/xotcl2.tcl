@@ -482,7 +482,7 @@ namespace eval ::xotcl {
       set methodtype all
       if {$nocmds} {set methodtype scripted}
       if {$noprocs} {if {$nocmds} {return ""}; set methodtype builtin}
-      set cmd [list ::nsf::cmd::ObjectInfo::callablemethods -methodtype $methodtype]
+      set cmd [list ::nsf::cmd::ObjectInfo::lookupmethods -methodtype $methodtype]
       if {$incontext} {lappend cmd -incontext}
       if {[info exists pattern]} {lappend cmd $pattern}
       my {*}$cmd
@@ -694,12 +694,12 @@ namespace eval ::xotcl {
   }
   Object instproc filtersearch {filter} {
     set handle [::nsf::dispatch [::nsf::current object] \
-		    ::nsf::cmd::ObjectInfo::callablefilter $filter]
+		    ::nsf::cmd::ObjectInfo::lookupfilter $filter]
     return [method_handle_to_xotcl $handle]
   }
   Object instproc procsearch {name} {
     set handle [::nsf::dispatch [::nsf::current object] \
-		    ::nsf::cmd::ObjectInfo::callablemethod $name]
+		    ::nsf::cmd::ObjectInfo::lookupmethod $name]
     return [method_handle_to_xotcl $handle]
   }
   Class instproc allinstances {} {

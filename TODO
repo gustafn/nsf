@@ -1323,6 +1323,9 @@ _ added option noforwarder to RelationSlots
   aliases to objects
 - removed some obsolete functions
 
+- changed "info available" into "info lookup"
+  (and accordingly c definitions)
+
 TODO: 
 
 - check equivalence of the following two commands

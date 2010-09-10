@@ -51,17 +51,17 @@ Object create o -mixin M
 
 ? {o info mixin classes} ::M
 ? {o info precedence} "::M ::nx::Object"
-? {o info callable method foo} "::nsf::classes::M::foo"
+? {o info lookup method foo} "::nsf::classes::M::foo"
 
 Class create M {:method foo args next}
 ? {o info mixin classes} ::M
 ? {o info precedence} "::M ::nx::Object"
-? {o info callable method foo} "::nsf::classes::M::foo"
+? {o info lookup method foo} "::nsf::classes::M::foo"
 
 M destroy
 ? {o info mixin classes} ""
 ? {o info precedence} "::nx::Object"
-? {o info callable method foo} ""
+? {o info lookup method foo} ""
 
 o destroy
 

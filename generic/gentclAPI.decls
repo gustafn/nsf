@@ -214,23 +214,6 @@ objectMethod vwait NsfOVwaitMethod {
 #
 # info object methods
 #
-objectInfoMethod callablefilter NsfObjInfoCallableFilterMethod {
-  {-argName "filter"}
-}
-objectInfoMethod callablemethod NsfObjInfoCallableMethodMethod {
-  {-argName "name"}
-}
-objectInfoMethod callablemethods NsfObjInfoCallableMethodsMethod {
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
-  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
-  {-argName "-application"}
-  {-argName "-nomixins"}
-  {-argName "-incontext"}
-  {-argName "pattern" -required 0}
-}
-objectInfoMethod callableslots NsfObjInfoCallableSlotsMethod {
-  {-argName "-type" -required 0 -nrargs 1 -type class}
-}
 objectInfoMethod children NsfObjInfoChildrenMethod {
   {-argName "-type" -required 0 -nrargs 1 -type class}
   {-argName "pattern" -required 0}
@@ -259,6 +242,23 @@ objectInfoMethod hastype NsfObjInfoHasTypeMethod {
 }
 objectInfoMethod is NsfObjInfoIsMethod {
   {-argName "objectkind" -type "class|baseclass|metaclass"}
+}
+objectInfoMethod lookupfilter NsfObjInfoLookupFilterMethod {
+  {-argName "filter"}
+}
+objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
+  {-argName "name"}
+}
+objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
+  {-argName "-application"}
+  {-argName "-nomixins"}
+  {-argName "-incontext"}
+  {-argName "pattern" -required 0}
+}
+objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
+  {-argName "-type" -required 0 -nrargs 1 -type class}
 }
 objectInfoMethod method NsfObjInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}

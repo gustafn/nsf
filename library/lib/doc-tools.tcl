@@ -508,7 +508,7 @@ namespace eval ::nx::doc {
 
     :method register {containable:object,type=::nx::doc::Entity} {
       set tag [[$containable info class] tag]
-      if {[:info callable methods -application "@$tag"] ne ""} {
+      if {[:info lookup methods -application "@$tag"] ne ""} {
 	:@$tag $containable
       }
     }
@@ -1971,7 +1971,7 @@ namespace eval ::nx::doc {
     :method parse@tag {line} {
       set line [split [string trimleft $line]]
       set tag [lindex $line 0]
-      if {[:info callable methods -application $tag] eq ""} {
+      if {[:info lookup methods -application $tag] eq ""} {
 	set msg "The tag '$tag' is not supported for the entity type '[namespace tail [:info class]]"
 	${:block_parser} cancel INVALIDTAG $msg
       }
@@ -2042,7 +2042,7 @@ namespace eval ::nx::doc {
 	  set args [lassign $line tag name]
 	  lassign [:resolve_partof_entity $tag $name] nq_name partof_entity
 	  if {$partof_entity ne ""} {
-	    if {[$partof_entity info callable methods -application $tag] eq ""} {
+	    if {[$partof_entity info lookup methods -application $tag] eq ""} {
 	      ${:block_parser} cancel INVALIDTAG "The tag '$tag' is not supported for the entity type
 		'[namespace tail [$partof_entity info class]]'"
 	      # [InvalidTag new -message [subst {
@@ -2132,7 +2132,7 @@ namespace eval ::nx::doc {
 	      # set operand [@$axis new -name $value ]
 	      set operand [@$axis id $value]
 	    } else {
-	      if {[$operand info callable methods -application @$axis] eq ""} {
+	      if {[$operand info lookup methods -application @$axis] eq ""} {
 		${:block_parser} cancel INVALIDTAG "The tag '$axis' is not supported for the entity type '[namespace tail [$operand info class]]'"
 	      }
 #	      puts stderr "$operand @$axis id $value"
@@ -2149,7 +2149,7 @@ namespace eval ::nx::doc {
 	      }
 	    set operand [@$leaf(axis) new -name $leaf(name) $args]
 	  } else {
-	    if {[$operand info callable methods -application @$leaf(axis)] eq ""} {
+	    if {[$operand info lookup methods -application @$leaf(axis)] eq ""} {
 	      ${:block_parser} cancel INVALIDTAG "The tag '$leaf(axis)' is not supported for the entity type '[namespace tail [$operand info class]]'"
 	      }
 	    set operand [$operand @$leaf(axis) [list $leaf(name) {*}$args]]

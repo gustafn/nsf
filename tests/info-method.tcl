@@ -26,16 +26,16 @@ Test case base {
   ? {lsort [C info methods -callprotection all]} "a addOne m m-with-assertions s"
   #? {lsort [C info methods]} "a addOne s"
   foreach m [lsort [C info methods -callprotection all]] {
-    ? [subst -nocommands {lsort [c1 info callable methods $m]}] $m
+    ? [subst -nocommands {lsort [c1 info lookup methods $m]}] $m
   }
   ? {C info method definition a} "::C alias a ::set"
-  ? {c1 info callable method a} "::nsf::classes::C::a"
-  ? {c1 info callable method addOne} "::nsf::classes::C::addOne"
-  ? {c1 info callable method m} "::nsf::classes::C::m"
-  ? {c1 info callable method s} "::nsf::classes::C::s"
+  ? {c1 info lookup method a} "::nsf::classes::C::a"
+  ? {c1 info lookup method addOne} "::nsf::classes::C::addOne"
+  ? {c1 info lookup method m} "::nsf::classes::C::m"
+  ? {c1 info lookup method s} "::nsf::classes::C::s"
   c1 method foo {} {puts foo}
   ? {c1 info method definition foo} "::c1 method foo {} {puts foo}"
-  ? {c1 info callable method foo} "::c1::foo"
+  ? {c1 info lookup method foo} "::c1::foo"
   
   ? {C info method handle m} "::nsf::classes::C::m"
   ? {C object info method handle mpo} "::C::mpo"
@@ -63,10 +63,10 @@ Test case base {
   ? {C info method definition a} "::C alias a ::set"
   ? {C object info method definition apo} "::C object alias apo ::puts"
   
-  ? {::nx::Object info callable methods -application} ""
-  ? {::nx::Class info callable methods -application} ""
-  ? {lsort [C info callable methods -application]} "add1 apo fpo mpo spo"
-  ? {lsort [c1 info callable methods -application]} "a addOne foo m m-with-assertions s"
+  ? {::nx::Object info lookup methods -application} ""
+  ? {::nx::Class info lookup methods -application} ""
+  ? {lsort [C info lookup methods -application]} "add1 apo fpo mpo spo"
+  ? {lsort [c1 info lookup methods -application]} "a addOne foo m m-with-assertions s"
 }
 
 Test case subobj {
@@ -88,15 +88,15 @@ Test case callable {
     ::nx::Class method bar {} {return Class.bar}
 
     ::nx::Object create o
-    ? {o info callable method bar} "::nsf::classes::nx::Object::bar"
-    ? {o info callable methods bar} bar
+    ? {o info lookup method bar} "::nsf::classes::nx::Object::bar"
+    ? {o info lookup methods bar} bar
     ? {o bar} Object.bar
 
     o mixin ::nx::Class
-    ? {o info callable method bar} "::nsf::classes::nx::Class::bar"
-    ? {o info callable methods bar} bar
-    ? {o info callable methods superclass} ""
-    ? {o info callable method superclass} ""
+    ? {o info lookup method bar} "::nsf::classes::nx::Class::bar"
+    ? {o info lookup methods bar} bar
+    ? {o info lookup methods superclass} ""
+    ? {o info lookup method superclass} ""
     ? {o bar} Class.bar
 
     ? {o method foo {} {return o.foo}} "::o::foo"
@@ -109,9 +109,9 @@ Test case callable {
     ? {lsort [o info methods]} "A foo fwd is x"
 
     o method f args ::nx::next
-    ? {o info callable methods superclass} ""
-    ? {o info callable methods filter} "filter"
-    ? {o info callable method filter} "::nsf::classes::nx::Object::filter"
+    ? {o info lookup methods superclass} ""
+    ? {o info lookup methods filter} "filter"
+    ? {o info lookup method filter} "::nsf::classes::nx::Object::filter"
     ? {o filter f} ""
     ? {o filter guard f { 1 == 1 }} ""
     ? {o info filter guard f} " 1 == 1 "
@@ -170,8 +170,8 @@ Test case callable {
     Foo object mixin delete ::Fly
     ? {Foo object info mixin classes} "::nx::Class"
 
-    ? {Foo info callable methods superclass} "superclass"
-    ? {Foo info callable method superclass} "::nsf::classes::nx::Class::superclass"
+    ? {Foo info lookup methods superclass} "superclass"
+    ? {Foo info lookup method superclass} "::nsf::classes::nx::Class::superclass"
     
     ? {o mixin ""} ""
 }
@@ -191,7 +191,7 @@ Test case slots {
   }
   
   D create d1
-  ? {D info callable slots} "::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::superclass ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Object::slot::class"
+  ? {D info lookup slots} "::nx::Class::slot::object-mixin ::nx::Class::slot::mixin ::nx::Class::slot::superclass ::nx::Class::slot::object-filter ::nx::Class::slot::filter ::nx::Object::slot::class"
   ? {D info slots} "::D::slot::b ::D::slot::a2 ::D::slot::c"
   ? {::nx::Object info method parameter info} ""
 }

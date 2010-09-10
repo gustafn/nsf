@@ -230,8 +230,8 @@ Test case alias-namespaced {
   namespace delete ::U
   ? {namespace exists ::U} 0
   ? {lsort [U object info methods]} {}
-  ? {U info callable methods BAR} ""
-  ? {U info callable methods ZAP} ""
+  ? {U info lookup methods BAR} ""
+  ? {U info lookup methods ZAP} ""
   
   ::U destroy
 }

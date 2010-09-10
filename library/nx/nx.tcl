@@ -448,13 +448,13 @@ namespace eval ::nx {
   # we have to use "eval", since objectParameters are not defined yet
   
   Object eval {
-    #:alias "info callable"        ::nsf::cmd::ObjectInfo::callable
-    :alias "info callable filter"  ::nsf::cmd::ObjectInfo::callablefilter
-    :alias "info callable method"  ::nsf::cmd::ObjectInfo::callablemethod
-    :alias "info callable methods" ::nsf::cmd::ObjectInfo::callablemethods
-    :method "info callable slots" {} {
+    #:alias "info lookup"        ::nsf::cmd::ObjectInfo::lookup
+    :alias "info lookup filter"  ::nsf::cmd::ObjectInfo::lookupfilter
+    :alias "info lookup method"  ::nsf::cmd::ObjectInfo::lookupmethod
+    :alias "info lookup methods" ::nsf::cmd::ObjectInfo::lookupmethods
+    :method "info lookup slots" {} {
       ::nsf::dispatch [::nsf::current object] \
-	  ::nsf::cmd::ObjectInfo::callableslots -type ::nx::Slot
+	  ::nsf::cmd::ObjectInfo::lookupslots -type ::nx::Slot
     }
     :alias "info children"         ::nsf::cmd::ObjectInfo::children
     :alias "info class"            ::nsf::cmd::ObjectInfo::class
@@ -498,21 +498,10 @@ namespace eval ::nx {
   }
 
   Class eval {
-    #:alias "info callable filter"  ::nsf::cmd::ObjectInfo::callablefilter
-    #:alias "info callable method"  ::nsf::cmd::ObjectInfo::callablemethod
-    #:alias "info callable methods" ::nsf::cmd::ObjectInfo::callablemethods
-    #:method "info callable slots" {} {
-    #   ::nsf::dispatch [::nsf::current object] \
-#	   ::nsf::cmd::ObjectInfo::callableslots -type ::nx::Slot
-    #}
-    :alias "info callable"       ::nx::Object::slot::__info::callable
+    :alias "info lookup"      ::nx::Object::slot::__info::lookup
     :alias "info filter guard"   ::nsf::cmd::ClassInfo::filterguard
     :alias "info filter methods" ::nsf::cmd::ClassInfo::filtermethods
     :alias "info forward"        ::nsf::cmd::ClassInfo::forward
-    # todo: maybe share "has"?
-    #:alias "info has mixin"      ::nsf::cmd::ObjectInfo::hasmixin
-    #:alias "info has namespace"  ::nsf::cmd::ObjectInfo::hasnamespace
-    #:alias "info has type"       ::nsf::cmd::ObjectInfo::hastype
     :alias "info has"            ::nx::Object::slot::__info::has
     :alias "info heritage"       ::nsf::cmd::ClassInfo::heritage
     :alias "info instances"      ::nsf::cmd::ClassInfo::instances
@@ -556,8 +545,8 @@ namespace eval ::nx {
   # puts Object::info-methods=[lsort [nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::methods]]
   # puts Class::info-methods_=[lsort [nsf::dispatch ::nx::Class::slot::__info ::nsf::cmd::ObjectInfo::methods]]
   # puts ""
-  # puts Object::info-callable=[nsf::dispatch ::nx::Object ::nsf::cmd::ObjectInfo::callablemethod info]
-  # puts Class::info-callable_=[nsf::dispatch ::nx::Class ::nsf::cmd::ObjectInfo::callablemethod info]
+  # puts Object::info-lookup=[nsf::dispatch ::nx::Object ::nsf::cmd::ObjectInfo::lookupmethod info]
+  # puts Class::info-lookup_=[nsf::dispatch ::nx::Class ::nsf::cmd::ObjectInfo::lookupmethod info]
   # puts ""
   # puts Object::info-def=[nsf::dispatch ::nx::Object ::nsf::cmd::ClassInfo::method definition info]
   # puts Class::info-def_=[nsf::dispatch ::nx::Class ::nsf::cmd::ClassInfo::method definition info]
@@ -756,8 +745,8 @@ namespace eval ::nx {
   
   ObjectParameterSlot method unknown {method args} {
     set methods [list]
-    foreach m [::nsf::dispatch [::nsf::current object] ::nsf::cmd::ObjectInfo::callablemethods] {
-      if {[::nsf::dispatch Object ::nsf::cmd::ObjectInfo::callablemethods $m] ne ""} continue
+    foreach m [::nsf::dispatch [::nsf::current object] ::nsf::cmd::ObjectInfo::lookupmethods] {
+      if {[::nsf::dispatch Object ::nsf::cmd::ObjectInfo::lookupmethods $m] ne ""} continue
       if {[string match __* $m]} continue
       lappend methods $m
     }
@@ -890,7 +879,7 @@ namespace eval ::nx {
 
   proc ::nsf::parametersFromSlots {obj} {
     set parameterdefinitions [list]
-    foreach slot [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::callableslots -type ::nx::Slot] {
+    foreach slot [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::lookupslots -type ::nx::Slot] {
       # Skip some slots for xotcl; 
       # TODO: maybe different parameterFromSlots for xotcl?
       if {[::nsf::is class ::xotcl::Object] 
@@ -1173,13 +1162,13 @@ namespace eval ::nx {
       # defaults. If this is not the case, we cannot replace them with
       # the plain setters.
       # 
-      set assignInfo [:info method definition [:info callable method assign]]
+      set assignInfo [:info method definition [:info lookup method assign]]
       #puts stderr "OPTIMIZER assign=$assignInfo//[lindex $assignInfo end]//[:info precedence]"
       if {$assignInfo ne "::nx::ObjectParameterSlot alias assign ::nsf::setvar" &&
           [lindex $assignInfo end] ne {::nsf::setvar $obj $var $value} } return
       #if {$assignInfo ne "::nx::ObjectParameterSlot alias assign ::nsf::setvar"} return
 
-      set getInfo [:info method definition [:info callable method get]]
+      set getInfo [:info method definition [:info lookup method get]]
       if {$getInfo ne "::nx::ObjectParameterSlot alias get ::nsf::setvar"} return
 
       array set "" [:toParameterSyntax ${:name}]
