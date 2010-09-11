@@ -203,6 +203,7 @@ Test case info-submethod {
     :method "foo a" {} {return a}
     :method "foo b" {x:int y:upper} {return b}
   }
+  nx::Object create o2
   
   nx::Class create C {
     :method "bar a" {} {return a}
@@ -217,8 +218,14 @@ Test case info-submethod {
   # query definition on subcommand with handle
   ? {o info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
 
-  # query definition on handle of ensemble object
-  ? {o info method definition "::o::foo::b"} {::o::foo method b {x:int y:upper} {return b}}
+  # query definition on subcommand with handle
+  ? {o info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
+
+  # query definition on subcommand with handle  called on different object
+  ? {o2 info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
+
+  # query definition on handle of ensemble object called on different object
+  ? {o2 info method definition "::o::foo::b"} {::o::foo method b {x:int y:upper} {return b}}
 
   # query definition on subcommand of class
   ? {::nx::Object info method definition "info lookup methods"} \
@@ -228,7 +235,7 @@ Test case info-submethod {
   ? {o info method definition "::nsf::classes::nx::Object::info lookup methods"} \
       {::nx::Object alias {info lookup methods} ::nsf::cmd::ObjectInfo::lookupmethods}
 
-  # query definition on ensemble object of class
+  # query definition on handle of ensemble object of class
   ? {o info method definition "::nx::Object::slot::__info::lookup::methods"} \
       {::nx::Object::slot::__info::lookup alias methods ::nsf::cmd::ObjectInfo::lookupmethods}
 

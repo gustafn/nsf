@@ -1334,6 +1334,9 @@ _ added option noforwarder to RelationSlots
 - new functions: GetRegObject()
 - extended regression test
 
+- fixed handles with subcommands used on objects without namespaces
+- new functions: GetRegObject()
+
 TODO: 
 - /* TODO: what, if we call on a class "info method" with a methodhandle of an object? */
 - check potential crashes with invalid input

@@ -1123,7 +1123,7 @@ GetEnsembeObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name
     cmd = Tcl_GetCommandFromObj(interp, name);
     *fromClassNS = IsClassNsName(nameString);
   } else {
-    cmd = FindMethod(nsPtr, nameString);
+    cmd = nsPtr ? FindMethod(nsPtr, nameString) : NULL;
   }
   
   if (cmd) {
@@ -1203,7 +1203,7 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
   NsfObject *referencedObject;
   char* methodName = ObjStr(methodObj);
   
-  if (nsPtr && strchr(methodName, ' ') > 0) {
+  if (strchr(methodName, ' ') > 0) {
     Tcl_Obj *methodHandleObj;
     Tcl_Obj **ov;
     int oc, result, i;
@@ -14523,6 +14523,7 @@ NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
   Tcl_DStringInit(dsPtr);
   cmd = ResolveMethodName(interp, object->nsPtr, methodNameObj, 
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+  /*fprintf(stderr, "object %p regObject %p defObject %p\n",object,regObject,defObject);*/
   result = ListMethod(interp, 
 		      regObject ? regObject : object, 
 		      defObject ? defObject : object, 
