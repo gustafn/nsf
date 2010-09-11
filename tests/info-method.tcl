@@ -210,6 +210,8 @@ Test case info-submethod {
     :method "bar b" {x:int y:upper} {return b}
     :method "bar baz x" {x:int y:upper} {return x}
     :method "bar baz y" {x:int y:upper} {return y}
+    :object method "foo x" {z:int} {return z}
+    :object method "foo y" {z:int} {return z}
   }
 
   # query definition on subcommand
@@ -221,10 +223,16 @@ Test case info-submethod {
   # query definition on subcommand with handle
   ? {o info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
 
-  # query definition on subcommand with handle  called on different object
+  # query definition on subcommand with handle called on different object
   ? {o2 info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
 
   # query definition on handle of ensemble object called on different object
+  ? {o2 info method definition "::o::foo::b"} {::o::foo method b {x:int y:upper} {return b}}
+
+  # query definition on subcommand with handle called on class
+  ? {o2 info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
+
+  # query definition on handle of ensemble object called on class
   ? {o2 info method definition "::o::foo::b"} {::o::foo method b {x:int y:upper} {return b}}
 
   # query definition on subcommand of class
@@ -239,11 +247,21 @@ Test case info-submethod {
   ? {o info method definition "::nx::Object::slot::__info::lookup::methods"} \
       {::nx::Object::slot::__info::lookup alias methods ::nsf::cmd::ObjectInfo::lookupmethods}
 
-
   ? {C info method handle "bar"} {::nsf::classes::C::bar}
   ? {C info method handle "bar a"} {::nsf::classes::C::bar a}
   ? {C info method handle "bar baz y"} {::nsf::classes::C::bar baz y}
 
+  ? {C info method definition "bar b"} {::C method {bar b} {x:int y:upper} {return b}}
+  ? {C info method definition "::nsf::classes::C::bar b"}  {::C method {bar b} {x:int y:upper} {return b}}
+  ? {o2 info method definition "::nsf::classes::C::bar b"} {::C method {bar b} {x:int y:upper} {return b}}
+
+  ? {C object info method handle "foo"}   {::C::foo}
+  ? {C object info method handle "foo x"} {::C::foo x}
+
+  ? {C object info method definition "::C::foo x"} {::C object method {foo x} z:int {return z}}
+  ? {C info method definition "::C::foo x"}        {::C object method {foo x} z:int {return z}}
+  ? {o2 info method definition "::C::foo x"}       {::C object method {foo x} z:int {return z}}
+  
   ? {C info method definition "bar baz y"} \
       {::C method {bar baz y} {x:int y:upper} {return y}}
   ? {C info method definition "::nsf::classes::C::bar baz y"} \

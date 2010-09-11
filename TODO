@@ -1336,9 +1336,10 @@ _ added option noforwarder to RelationSlots
 
 - fixed handles with subcommands used on objects without namespaces
 - new functions: GetRegObject()
+- fixed handles with subcommands for class methods when called on classes or objects
+- extended regression test
 
 TODO: 
-- /* TODO: what, if we call on a class "info method" with a methodhandle of an object? */
 - check potential crashes with invalid input
 
 - check equivalence of the following two commands

@@ -14523,7 +14523,8 @@ NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
   Tcl_DStringInit(dsPtr);
   cmd = ResolveMethodName(interp, object->nsPtr, methodNameObj, 
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-  /*fprintf(stderr, "object %p regObject %p defObject %p\n",object,regObject,defObject);*/
+  /*fprintf(stderr, "object %p regObject %p defObject %p fromClass %d\n",
+    object,regObject,defObject,fromClassNS);*/
   result = ListMethod(interp, 
 		      regObject ? regObject : object, 
 		      defObject ? defObject : object, 
@@ -14761,19 +14762,20 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
 			 int subcmd, Tcl_Obj *methodNameObj) {
   NsfObject *regObject, *defObject;
   CONST char *methodName1 = NULL;
-  int fromClassNs = 0, result;
+  int fromClassNS = 1, result;
   Tcl_DString ds, *dsPtr = &ds;
   Tcl_Command cmd;
 
   Tcl_DStringInit(dsPtr);
   cmd = ResolveMethodName(interp, class->nsPtr, methodNameObj, 
-			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNs);
-  /* TODO: what, if we call on a class "info method" with a methodhandle of an object? */
+			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+  /*fprintf(stderr, "object %p regObject %p defObject %p fromClass %d\n",
+	  &class->object,regObject,defObject,fromClassNS);*/
   result = ListMethod(interp, 
 		      regObject ? regObject : &class->object, 
 		      defObject ? defObject : &class->object, 
 		      methodName1, 
-		      cmd, subcmd, 0);
+		      cmd, subcmd, fromClassNS ? 0 : 1);
   Tcl_DStringFree(dsPtr);
 
   return result;
