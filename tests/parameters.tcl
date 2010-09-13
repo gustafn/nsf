@@ -1187,3 +1187,67 @@ Test case check-arguments-nocheck {
 ## TODO regression test for type checking, parameter options (initcmd,
 ## substdefault, combinations with defaults, ...), etc.
 
+Test parameter count 100
+
+Test case checktype {
+  nx::Object create o {
+    :method f01 {} {::nsf::dispatch o ::nsf::cmd::ObjectInfo::hastype ::nx::Object}
+    :method f02 {} {::nsf::dispatch o ::nsf::cmd::ObjectInfo::hastype   nx::Object}
+    :method f03 {} {::nsf::dispatch o ::nsf::cmd::ObjectInfo::hastype       Object}
+
+    :method f11 {} {::nsf::is object,type=::nx::Object o}
+    :method f12 {} {::nsf::is object,type=nx::Object o}
+    :method f13 {} {::nsf::is object,type=Object o}
+  }
+
+  ? {o f01} 1
+  ? {o f02} 1
+  ? {o f03} 1
+
+  ? {o f11} 1
+  ? {o f12} 1
+  ? {o f13} 1
+}
+
+namespace eval foo {
+  nx::Class create C {
+    :create c1
+    :method f21 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype Object}
+    :method f22 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype C}
+    :method f31 {} {::nsf::is object,type=Object c1}
+    :method f32 {} {::nsf::is object,type=C c1}
+  }
+  
+  nx::Object create o {
+    :method f01 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype ::nx::Object}
+    :method f02 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype   nx::Object}
+    :method f03 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype       Object}
+    :method f04 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype foo::C}
+    :method f05 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype C}
+
+    :method f11 {} {::nsf::is object,type=::nx::Object c1}
+    :method f12 {} {::nsf::is object,type=nx::Object c1}
+    :method f13 {} {::nsf::is object,type=Object c1}
+    :method f14 {} {::nsf::is object,type=foo::C c1}
+    :method f15 {} {::nsf::is object,type=C c1}
+  }
+
+  ? {o f01} 1
+  ? {o f02} 1
+  ? {o f03} 1
+  ? {o f04} 1
+  ? {o f05} 1
+
+  ? {o f11} 1
+  ? {o f12} 1
+  ? {o f13} 1
+  ? {o f14} 1
+  ? {o f15} 1
+
+  ? {c1 f21} 1
+  ? {c1 f22} 1
+  ? {c1 f31} 1
+  ? {c1 f32} 1
+}
+
+

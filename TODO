@@ -1351,12 +1351,13 @@ _ added option noforwarder to RelationSlots
 - removed overhead on ::nsf::dispatch when called with absolute paths
 - absolute paths have to start with ":".
 
-TODO: 
-- check equivalence of the following two commands
+- checked equivalence of the following two commands
   in respect to fully-qualified names
          ::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::hastype $class
          ::nsf::parametercheck object,type=$class $obj
+  extended regression test (paramters.tcl)
 
+TODO: 
 - subcmd
    * handle sucmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
