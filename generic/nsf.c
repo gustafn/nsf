@@ -11673,9 +11673,8 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withObjscope,
                  Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int result;
   CONST char *methodName = ObjStr(command);
-  register CONST char *n = methodName + strlen(methodName);
 
-  /* fprintf(stderr, "Dispatch obj=%s, o=%p cmd m='%s'\n", objectName(object), object, methodName);*/
+  /*fprintf(stderr, "Dispatch obj=%s, cmd m='%s'\n", objectName(object), methodName);*/
 
   /*
    * If the specified method is a fully qualified cmd name like
@@ -11684,65 +11683,45 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withObjscope,
    * it.
    */
 
-  /*search for last '::'*/
-  while ((*n != ':' || *(n-1) != ':') && n-1 > methodName) {n--; }
-  if (*n == ':' && n > methodName && *(n-1) == ':') {n--;}
-
-  if ((n-methodName)>1 || *methodName == ':') {
-    Tcl_DString parentNSName, *dsp = &parentNSName;
-    Tcl_Namespace *nsPtr;
+  if (*methodName == ':') {
     Tcl_Command cmd, importedCmd;
-    CONST char *parentName, *tail = n+2;
-    DSTRING_INIT(dsp);
+    Tcl_CallFrame frame, *framePtr = &frame;
 
     /*
      * We have an absolute name. We assume, the name is the name of a
-     * tcl command, that will be dispatched. If "withObjscope is
+     * Tcl command, that will be dispatched. If "withObjscope" is
      * specified, a callstack frame is pushed to make instvars
      * accessible for the command.
      */
 
-    /*fprintf(stderr, "colon name %s\n", tail);*/
-    if (n-methodName != 0) {
-      Tcl_DStringAppend(dsp, methodName, (n-methodName));
-      parentName = Tcl_DStringValue(dsp);
-      nsPtr = Tcl_FindNamespace(interp, parentName, (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
-      DSTRING_FREE(dsp);
-    } else {
-      nsPtr = Tcl_FindNamespace(interp, "::", (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
-    }
-    if (!nsPtr) {
-      return NsfVarErrMsg(interp, "cannot lookup parent namespace '",
-			    methodName, "'", (char *) NULL);
-    }
-    cmd = FindMethod(nsPtr, tail);
+    cmd = Tcl_GetCommandFromObj(interp, command);
+    /* fprintf(stderr, "colon name %s cmd %p\n", methodName, cmd);*/
+    
     if (cmd && (importedCmd = TclGetOriginalCommand(cmd))) {
       cmd = importedCmd;
     }
-    /*fprintf(stderr, "    .... findmethod '%s' in %s returns %p\n", tail, nsPtr->fullName, cmd);*/
 
     if (cmd == NULL) {
       return NsfVarErrMsg(interp, "cannot lookup command '",
-			    tail, "'", (char *) NULL);
+			    methodName, "'", (char *) NULL);
     }
-    {  Tcl_CallFrame frame, *framePtr = &frame;
-      
-      if (withObjscope) {
-        Nsf_PushFrameObj(interp, object, framePtr);
-      }
-      /*
-       * Since we know, that we are always called with a full argument
-       * vector, we can include the cmd name in the objv by using
-       * nobjv-1; this way, we avoid a memcpy()
-       */
 
-      result = MethodDispatch((ClientData)object, interp,
-                            nobjc+1, nobjv-1, cmd, object,
-                            NULL /*NsfClass *cl*/, tail,
-                            NSF_CSC_TYPE_PLAIN);
-      if (withObjscope) {
-        Nsf_PopFrameObj(interp, framePtr);
-      }
+    if (withObjscope) {
+      Nsf_PushFrameObj(interp, object, framePtr);
+    }
+    /*
+     * Since we know, that we are always called with a full argument
+     * vector, we can include the cmd name in the objv by using
+     * nobjv-1; this way, we avoid a memcpy()
+     */
+    
+    result = MethodDispatch((ClientData)object, interp,
+			    nobjc+1, nobjv-1, cmd, object,
+			    NULL /*NsfClass *cl*/, 
+			    Tcl_GetCommandName(interp,cmd),
+			    NSF_CSC_TYPE_PLAIN);
+    if (withObjscope) {
+      Nsf_PopFrameObj(interp, framePtr);
     }
   } else {
     /*

@@ -1348,6 +1348,9 @@ _ added option noforwarder to RelationSlots
 - improve comments in nsf.c
 - follow closer naming of Tcl style guide
  
+- removed overhead on ::nsf::dispatch when called with absolute paths
+- absolute paths have to start with ":".
+
 TODO: 
 - check equivalence of the following two commands
   in respect to fully-qualified names
@@ -1553,13 +1556,7 @@ TODO "Kleinigkeiten"
    "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"
 - use parameter syntax in genTclAPI
 
-# TODO (optimization): optimizer can improve parameter checking:
-#       (a) simple approach: make scripted setter methods on domain
-#       (b) maybe nicer: provide arguments to c-setter to 
-#           pass parameter definition
-
 - implement built-in-converter for "baseclass" and "metaclass"?
-- make ::nsf::dispatch faster for fully qualified names
 
 - the two flags "-objscope" and "-nonleaf" are for adding frames,
   and they are mutual exclusive. Make them a single flag?
@@ -1567,12 +1564,6 @@ TODO "Kleinigkeiten"
 - support -nonleaf for "dispatch" ?
   inf the following, we need just a frame, but not necessarily an "-ojscope"
   set x [::xotcl::dispatch $value -objscope ::xotcl::self]
-
-
- TODO: naming "type" and "mixin" not perfect.
-#       maybe "type" => "hastype"
-#       maybe "mixin" => "hasmixin"
-#       => effects as well ::xotcl::is
 
 - "ClassName info mixinof ?-closure? -registered_on class|object ?pattern?" 
 
@@ -1624,3 +1615,8 @@ For future releases:
    * consider alternate method name/place for subcmds (and/or slots) on classes
      - currently, there are potentail conflicts between slots and ensemble objects
      - provide a different place in the namesspaces could simplify this
+   
+   * argument passing of C functions is currently based on an
+     interpreter of the argument lists. It should be possible to turn
+     the interpreter into a compiler to speed up argument passing. But
+     maybe, this would bloat the code-size.

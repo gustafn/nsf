@@ -161,7 +161,9 @@ namespace eval ::nx {
     return $r
   }
 
-  # define method modifiers "object", "public" and "protected"
+  #
+  # define method modifiers "class-object", and class level "unknown"
+  #
   Class eval {
 
     # method-modifier for object specific methos
@@ -201,7 +203,7 @@ namespace eval ::nx {
       error "Method '$m' unknown for [::nsf::current object].\
 	Consider '[::nsf::current object] create $m $args' instead of '[::nsf::current object] $m $args'"
     }
-    # protected is not jet defined
+    # protected is not yet defined
     ::nsf::methodproperty [::nsf::current object] unknown protected 1
   }
 
@@ -562,7 +564,7 @@ namespace eval ::nx {
   # Definition of "abstract method foo ...."
   #
   # Deactivated for now. If we like to revive this method, it should
-  # be integrated with the method modifiers and the method "object"
+  # be integrated with the method modifiers and the method "class-object"
   #
   # Object method abstract {methtype -per-object:switch methname arglist} {
   #   if {$methtype ne "method"} {
