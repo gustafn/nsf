@@ -244,7 +244,9 @@ static int AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd);
 /* misc prototypes */
 static int NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
 static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj);
-
+static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
+			      int withPer_object, int methodType, int withCallproctection,
+			      int noMixins, int inContext);
 
 /*
  * argv parsing 
@@ -3301,7 +3303,7 @@ AssertionCheckInvars(Tcl_Interp *interp, NsfObject *object,
     NsfClasses *clPtr;
     clPtr = ComputeOrder(object->cl, object->cl->order, Super);
     while (clPtr && result != TCL_ERROR) {
-      NsfAssertionStore *aStore = (clPtr->cl->opt) ? clPtr->cl->opt->assertions : 0;
+      NsfAssertionStore *aStore = (clPtr->cl->opt) ? clPtr->cl->opt->assertions : NULL;
       if (aStore) {
         result = AssertionCheckList(interp, object, aStore->invariants, methodName);
       }
@@ -3319,9 +3321,9 @@ AssertionCheck(Tcl_Interp *interp, NsfObject *object, NsfClass *cl,
   NsfAssertionStore *aStore;
 
   if (cl)
-    aStore = cl->opt ? cl->opt->assertions : 0;
+    aStore = cl->opt ? cl->opt->assertions : NULL;
   else
-    aStore = object->opt ? object->opt->assertions : 0;
+    aStore = object->opt ? object->opt->assertions : NULL;
 
   assert(object->opt);
 
@@ -4694,7 +4696,7 @@ FilterInvalidateObjOrders(Tcl_Interp *interp, NsfClass *cl) {
   for ( ; clPtr; clPtr = clPtr->nextPtr) {
     Tcl_HashSearch hSrch;
     Tcl_HashEntry *hPtr = &clPtr->cl->instances ?
-      Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : 0;
+      Tcl_FirstHashEntry(&clPtr->cl->instances, &hSrch) : NULL;
 
     /* recalculate the commands of all class-filter registrations */
     if (clPtr->cl->opt) {
@@ -5312,7 +5314,7 @@ VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *varName, CONST char
     varName,
     varPtr,
     requireDefined, triggerTrace,
-    varPtr ? TclIsVarUndefined(varPtr) : 0);
+    varPtr ? TclIsVarUndefined(varPtr) : NULL);
   */
   result = (varPtr && (!requireDefined || !TclIsVarUndefined(varPtr)));
 
@@ -6545,7 +6547,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
       if (result == TCL_ERROR) {
         /*fprintf(stderr, "Call ErrInProc cl = %p, cmd %p, flags %.6x\n",
-          cl, cl ? cl->object.id : 0, cl ? cl->object.flags : 0);*/
+          cl, cl ? cl->object.id : NULL, cl ? cl->object.flags : 0);*/
 	result = NsfErrInProc(interp, cmdName,
 				cl && cl->object.teardown ? cl->object.cmdName : NULL,
 				methodName);
@@ -8557,7 +8559,7 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
      */
     if ((cl->object.flags & NSF_IS_ROOT_CLASS) == 0) {
 
-      hPtr = &cl->instances ? Tcl_FirstHashEntry(&cl->instances, &hSrch) : 0;
+      hPtr = &cl->instances ? Tcl_FirstHashEntry(&cl->instances, &hSrch) : NULL;
       for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
         NsfObject *inst = (NsfObject*)Tcl_GetHashKey(&cl->instances, hPtr);
         /*fprintf(stderr, "    inst %p %s flags %.6x id %p baseClass %p %s\n", 
@@ -9248,7 +9250,7 @@ NsfSetObjClientData(Nsf_Object *object1, ClientData data) {
 extern ClientData
 NsfGetObjClientData(Nsf_Object *object1) {
   NsfObject *object = (NsfObject*) object1;
-  return (object && object->opt) ? object->opt->clientData : 0;
+  return (object && object->opt) ? object->opt->clientData : NULL;
 }
 extern void
 NsfSetClassClientData(Nsf_Class *cli, ClientData data) {
@@ -9259,7 +9261,7 @@ NsfSetClassClientData(Nsf_Class *cli, ClientData data) {
 extern ClientData
 NsfGetClassClientData(Nsf_Class *cli) {
   NsfClass *cl = (NsfClass*) cli;
-  return (cl && cl->opt) ? cl->opt->clientData : 0;
+  return (cl && cl->opt) ? cl->opt->clientData : NULL;
 }
 
 static int
@@ -10384,7 +10386,7 @@ ListVarKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr, CONST char *pattern) {
   } else {
     Tcl_Obj *list = Tcl_NewListObj(0, NULL);
     Tcl_HashSearch hSrch;
-    hPtr = tablePtr ? Tcl_FirstHashEntry(tablePtr, &hSrch) : 0;
+    hPtr = tablePtr ? Tcl_FirstHashEntry(tablePtr, &hSrch) : NULL;
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       Var  *val = VarHashGetValue(hPtr);
       Tcl_Obj *key  = VarHashGetKey(val);
@@ -10642,7 +10644,19 @@ ListMethod(Tcl_Interp *interp,
         if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->post));
         return TCL_OK;
       }
-
+    case InfomethodsubcmdSubcommandsIdx:
+      {
+	if (procPtr == NsfObjDispatch) {
+	  NsfObject *subObject = NsfGetObjectFromCmdPtr(cmd);
+	  if (subObject) {
+	    return ListDefinedMethods(interp, subObject, NULL, 1 /* per-object */, 
+				      NSF_METHODTYPE_ALL, 0, 1, 0);
+	  }
+	}
+	/* all other cases return emtpy */
+	Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
+        return TCL_OK;
+      }
     }
 
     /* 
@@ -10914,7 +10928,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, CONST char *pattern,
     return TCL_OK;
 
   } else {
-    hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : 0;
+    hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : NULL;
 
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       key = Tcl_GetHashKey(table, hPtr);
@@ -12227,7 +12241,7 @@ NsfNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
           if (cl) {
             /* Next Scripting class-methods */
             NsfProcAssertion *procs;
-            procs = cl->opt ? AssertionFindProcs(cl->opt->assertions, name) : 0;
+            procs = cl->opt ? AssertionFindProcs(cl->opt->assertions, name) : NULL;
             
             DSTRING_INIT(dsPtr);
             Tcl_DStringAppendElement(dsPtr, "::nsf::method");
@@ -12248,7 +12262,7 @@ NsfNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
             NsfProcAssertion *procs;
 
             if (object) {
-              procs = object->opt ? AssertionFindProcs(object->opt->assertions, name) : 0;
+              procs = object->opt ? AssertionFindProcs(object->opt->assertions, name) : NULL;
             } else {
               DECR_REF_COUNT(newFullCmdName);
               DECR_REF_COUNT(oldFullCmdName);
@@ -13861,7 +13875,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
           specifiedName, nameString, newObject,
           className(cl), IsMetaClass(interp, cl, 1),
           newObject ? ObjStr(newObject->cl->object.cmdName) : "NULL",
-          newObject ? IsMetaClass(interp, newObject->cl, 1) : 0
+          newObject ? IsMetaClass(interp, newObject->cl, 1) : NULL
           );*/
 
   /* don't allow to
@@ -14193,7 +14207,7 @@ AggregatedMethodType(int methodType) {
   switch (methodType) {
   case MethodtypeNULL: /* default */
   case MethodtypeAllIdx: 
-    methodType = NSF_METHODTYPE_SCRIPTED|NSF_METHODTYPE_BUILTIN|NSF_METHODTYPE_OBJECT;
+    methodType = NSF_METHODTYPE_ALL;
     break;
   case MethodtypeScriptedIdx:
     /*methodType = NSF_METHODTYPE_SCRIPTED|NSF_METHODTYPE_ALIAS;*/
@@ -14506,7 +14520,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *typ
 
 /*
 objectInfoMethod method NsfObjInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
   {-argName "name"}
 }
 */
@@ -14752,7 +14766,7 @@ NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *startCl,
 
 /*
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
   {-argName "name"}
 }
 */

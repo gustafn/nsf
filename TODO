@@ -1340,8 +1340,12 @@ _ added option noforwarder to RelationSlots
 - extended regression test
 
 - changed "cls object method ..." and friends into
-  "cls class-object method ..." and friends into
+  "cls class-object method ..."
 
+- added "info method subcommands ..." to return list of subcommands (of the ensemble)
+- extended regression test
+- use always NULL instead of 0 when assigning to a pointer variable
+ 
 TODO: 
 - check equivalence of the following two commands
   in respect to fully-qualified names

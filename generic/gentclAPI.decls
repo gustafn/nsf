@@ -261,7 +261,7 @@ objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
   {-argName "-type" -required 0 -nrargs 1 -type class}
 }
 objectInfoMethod method NsfObjInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
   {-argName "name" -type tclobj}
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
@@ -313,7 +313,7 @@ classInfoMethod instances NsfClassInfoInstancesMethod {
 }
 
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
   {-argName "name" -type tclobj}
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {

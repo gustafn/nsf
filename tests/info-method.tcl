@@ -247,6 +247,18 @@ Test case info-submethod {
   ? {o info method definition "::nx::Object::slot::__info::lookup::methods"} \
       {::nx::Object::slot::__info::lookup alias methods ::nsf::cmd::ObjectInfo::lookupmethods}
 
+  ? {lsort [o info method subcommands dummy]} ""
+  ? {lsort [o info method subcommands foo]} "a b"
+  ? {lsort [o info method subcommands "foo a"]} ""
+
+  ? {lsort [C info method subcommands "bar"]} "a b baz"
+  ? {lsort [C info method subcommands "bar a"]} ""
+  ? {lsort [C info method subcommands "bar baz"]} "x y"
+  ? {lsort [C info method subcommands "bar baz y"]} ""
+
+  ? {lsort [C class-object info method subcommands "foo"]} "x y"
+  ? {lsort [C class-object info method subcommands "foo x"]} ""
+
   ? {C info method handle "bar"} {::nsf::classes::C::bar}
   ? {C info method handle "bar a"} {::nsf::classes::C::bar a}
   ? {C info method handle "bar baz y"} {::nsf::classes::C::bar baz y}
