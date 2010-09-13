@@ -419,7 +419,9 @@ namespace eval ::xotcl {
         argName [$o ::nsf::cmd::${allocation}Info::method args $method] \
         flag    [$o ::nsf::cmd::${allocation}Info::method parameter $method] {
           if {$argName eq $arg} {
-            upvar 2 $varName default
+	    # upvar 2 $varName default
+	    # use "my" here to avoid surprises with aliases or interceptors
+	    my upvar $varName default
 	    #puts "--- info_default var '$varName' level=[info level]"
             if {[llength $flag] == 2} {
               set default [lindex $flag 1]
@@ -513,10 +515,6 @@ namespace eval ::xotcl {
     :alias classchildren      ::nsf::cmd::ObjectInfo::children
     :alias classparent        ::nsf::cmd::ObjectInfo::parent
     :proc default {method arg varName} {
-      # TODO: interesting observation: we cannot use the alias to
-      # objectInfo here, but we have to rewrite the proc, since an
-      # alias introduces currently a new frame, which would require a
-      # "upvar 2 ..."
       set r [::xotcl::info_default Object [self] $method $arg $varName]
       #puts "--- var '$varName' level=[info level]"
       return $r
@@ -529,11 +527,6 @@ namespace eval ::xotcl {
     :proc instcommands {{pattern ""}}  {my ::nsf::cmd::ClassInfo::methods {*}$pattern}
     :proc instdefault {method arg varName} {
       set r [::xotcl::info_default Class [self] $method $arg $varName]
-      #puts "--- default for [self].$method $arg -> $r [info exists var]"
-      #puts "--- var '$var' level=[info level]"
-      #puts "--- level 0 [info level [info level]]"
-      #puts "--- level -1 [info level [expr [info level]-1]]"
-      #puts "--- level -2 [info level [expr [info level]-2]]"
       return $r
     }
     :alias instfilter         ::nsf::cmd::ClassInfo::filtermethods

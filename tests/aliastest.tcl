@@ -409,3 +409,58 @@ Test case class-resolve {
     ? {d1 foo} ::ns1::B
   }
 }
+
+Test parameter count 10
+Test case proc-alias {
+
+  nx::Class create C {
+    :method foo {} {upvar x y; info exists y}
+    :method bar {} {set x 1; :foo}
+
+    :alias bar_ [:info method handle bar]
+    :alias foo_ [:info method handle foo]
+    :method bar2 {} {set x 1; :foo_}
+
+    :create c1
+  }
+  
+  nx::Class create D {
+    :method foo {} {:upvar x y; info exists y}
+    :method bar {} {set x 1; :foo}
+
+    :alias foo_ [:info method handle foo]
+    :alias bar_ [:info method handle bar]
+    :method bar2 {} {set x 1; :foo_}
+
+    :create d1
+  }
+
+  nx::Class create M {
+    :method foo args next
+    :method bar args next
+    :method foo_ args next
+    :method bar_ args next
+    :method bar_ args next
+  }
+  
+  ? {c1 bar} 1
+  ? {c1 bar_} 1
+  ? {c1 bar2} 0 ;# upvar reaches into to alias-redirector
+
+  ? {d1 bar} 1
+  ? {d1 bar_} 1
+  ? {d1 bar2} 1
+
+  c1 mixin add M
+
+  ? {c1 bar} 0   ;# upvar reaches into to mixin method
+  ? {c1 bar_} 0  ;# upvar reaches into to mixin method
+  ? {c1 bar2} 0  ;# upvar reaches into to mixin method
+
+  d1 mixin add M
+
+  ? {d1 bar} 1
+  ? {d1 bar_} 1
+  ? {d1 bar2} 1
+
+}

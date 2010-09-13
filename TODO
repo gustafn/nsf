@@ -1362,13 +1362,13 @@ _ added option noforwarder to RelationSlots
 - updated migration guide
 - fixed several common typos
 
+- documented behavior of upvar/uplevel with aliases on scripted procs
+  through regression test
+
 TODO: 
 - subcmd
    * handle sucmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
-
-
-- aliases on procs are a problem, when upvar is used (see info default/instdefault in xotcl2.tcl)
 
 - interfaces in documentation for slots (see for more details 
   ::nx::Class#superclass in nx.tcl).
