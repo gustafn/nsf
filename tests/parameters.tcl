@@ -19,7 +19,7 @@ Test parameter count 10000
 Test case parametercheck {
 
   Object create o1
-  Class create C -parameter {a {b:boolean} {c 1}}
+  Class create C -attributes {a {b:boolean} {c 1}}
   C create c1 
   Class create M
   c1 mixin M
@@ -235,7 +235,7 @@ Test case parametercheck {
 #     arg
 # } -- typical object parameters
 #
-# MethodParameterSlot -parameter {type required multivalued noarg arg}
+# MethodParameterSlot -attributes {type required multivalued noarg arg}
 # -- typical method parameters
 
 
@@ -245,11 +245,11 @@ Test case parametercheck {
 Test parameter count 10
 Test case objectparameter {
 
-  Class create C -parameter {a {b:boolean} {c 1}}
+  Class create C -attributes {a {b:boolean} {c 1}}
   C create c1
  
   ? {C eval {:objectparameter}} \
-      "-object-mixin:relation,slot=::nx::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::nx::Class::slot::mixin -superclass:relation,slot=::nx::Class::slot::superclass -object-filter:relation,slot=::nx::Class::slot::object-filter -filter:relation,arg=class-filter,slot=::nx::Class::slot::filter -class:relation,slot=::nx::Object::slot::class -parameter:method,optional -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
+      "-object-mixin:relation,slot=::nx::Class::slot::object-mixin -mixin:relation,arg=class-mixin,slot=::nx::Class::slot::mixin -superclass:relation,slot=::nx::Class::slot::superclass -object-filter:relation,slot=::nx::Class::slot::object-filter -filter:relation,arg=class-filter,slot=::nx::Class::slot::filter -class:relation,slot=::nx::Object::slot::class -attributes:method,optional -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
 
 
 
@@ -263,14 +263,14 @@ Test case objectparameter {
 #######################################################
 Test case reclass {
 
-  Class create C -parameter {a {b:boolean} {c 1}}
+  Class create C -attributes {a {b:boolean} {c 1}}
   C create c1
 
   c1 class Object
   ? {c1 eval :objectparameter} \
       "-mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional"
   
-  Class create D -superclass C -parameter {d:required}
+  Class create D -superclass C -attributes {d:required}
   D create d1 -d 100
   
   ? {d1 eval :objectparameter} \
@@ -282,12 +282,12 @@ Test case reclass {
 #######################################################
 Test case objparam-mixins {
 
-  Class create C -parameter {a {b:boolean} {c 1}}
-  Class create D -superclass C -parameter {d:required}
+  Class create C -attributes {a {b:boolean} {c 1}}
+  Class create D -superclass C -attributes {d:required}
   D create d1 -d 100
 
-  Class create M -parameter {m1 m2 b}
-  Class create M2 -parameter {b2}
+  Class create M -attributes {m1 m2 b}
+  Class create M2 -attributes {b2}
   D mixin M
   ? {d1 eval :objectparameter} \
       "-b:slot=::M::slot::b -m1:slot=::M::slot::m1 -m2:slot=::M::slot::m2 -d:required,slot=::D::slot::d -a:slot=::C::slot::a {-c:slot=::C::slot::c 1} -mixin:relation,arg=object-mixin,slot=::nx::Object::slot::mixin -filter:relation,arg=object-filter,slot=::nx::Object::slot::filter -class:relation,slot=::nx::Object::slot::class -noinit:method,optional,noarg -volatile:method,optional,noarg __initcmd:initcmd,optional" \
@@ -319,8 +319,8 @@ Test case objparam-mixins {
 
 Test case passed-arguments {
 
-  Class create C -parameter {a {b:boolean} {c 1}}
-  Class create D -superclass C -parameter {d:required}
+  Class create C -attributes {a {b:boolean} {c 1}}
+  Class create D -superclass C -attributes {d:required}
 
   ? {catch {D create d1 -d 123}} 0 "create d1 with required argument given"
   ? {catch {D create d1}} 1 "create d1 without required argument given"
@@ -432,7 +432,7 @@ Test case multivalued {
       {invalid value in "o d1 x": expected object but got "x" for parameter m} \
       "multiple values"
   
-  Class create Foo -parameter {
+  Class create Foo -attributes {
     {ints:integer,multivalued}
   }
   ? {Foo create foo -ints {1 2}} "::foo"
@@ -471,7 +471,7 @@ Test case subst-default {
   
   ? {d1 bar -c 1} {::d1-[current]-1-2} "substdefault in method parameter"
   
-  Class create Bar -superclass D -parameter {
+  Class create Bar -superclass D -attributes {
     {s "[current]"} 
     {literal "\\[current\\]"} 
     {c "[:info class]"} 
@@ -491,18 +491,18 @@ Test case subst-default {
       "substdefault and switch in object parameter 2"
   
   # Observations:
-  #  1) syntax for "-parameter" and method parameter is quite different.
+  #  1) syntax for "-attributes" and method parameter is quite different.
   #     it would be nice to be able to specify the objparameters in
   #     the same syntax as the method parameters. 
   #
-  # 1a) Especially specifying "-" in front of a -parameter or not might
+  # 1a) Especially specifying "-" in front of a -attributes or not might
   #     be confusing.
   #
   # 1b) Positional args for obj parameter and arguments for init
   #     might be confusing as well. Should we forget about 
   #     passing arguments to init?
   #
-  #  2) substdefault for '$' in -parameter defaults does not make much sense.
+  #  2) substdefault for '$' in -attributes defaults does not make much sense.
   #     deactivated for now; otherwise we would need "\\"
   
   D method bar {
@@ -578,7 +578,7 @@ Test case subst-default {
 #######################################################
 Test case user-types {
 
-  Class create D -parameter d
+  Class create D -attributes d
   D create d1
 
   # create a userdefined type
@@ -677,7 +677,7 @@ Test case user-types {
 Test case mp-object-types {
 
   Class create C
-  Class create D -superclass C -parameter d
+  Class create D -superclass C -attributes d
 
   Class create M
   D create d1 -d 1
@@ -735,7 +735,7 @@ Test case mp-object-types {
 #######################################################
 Test case substdefault {
 
-  Class create S -parameter {{x 1} {y b} {z {1 2 3}}}
+  Class create S -attributes {{x 1} {y b} {z {1 2 3}}}
   S create s1 {
     :method foo {{y:substdefault ${:x}}} {
       return $y
@@ -820,7 +820,7 @@ Test case substdefault-objparam {
 Test case op-object-types {
 
   Class create C
-  Class create D -superclass C -parameter d
+  Class create D -superclass C -attributes d
 
   Class create MC -superclass Class
   MC create MC1
@@ -829,7 +829,7 @@ Test case op-object-types {
   C create c1 -mixin M
   Object create o
   
-  Class create ParamTest -parameter {
+  Class create ParamTest -attributes {
     o:object
     c:class
     c1:class,type=::MC
@@ -1087,7 +1087,7 @@ Test case setters {
 Test parameter count 1000
 Test case slot-optimizer {
 
-  Class create C -parameter {a b:integer c:integer,multivalued}
+  Class create C -attributes {a b:integer c:integer,multivalued}
   
   C create c1 
   ? {c1 a 1} 1
@@ -1107,7 +1107,7 @@ Test case slot-optimizer {
 
 Test parameter count 10
 Test case slot-nosetter {
-  Class create C -parameter {a b:integer,nosetter {c:nosetter ""}}
+  Class create C -attributes {a b:integer,nosetter {c:nosetter ""}}
   
   ? {C create c1 -a 1 -b 2} ::c1
   ? {c1 info vars} "a b c"

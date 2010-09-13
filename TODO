@@ -87,7 +87,7 @@
   to achiev conformance with ::xotcl::forward and ::xotcl::method
  
 
--per-obejct
+-per-object
 nach methodName: 
 vor methodName: alias forward method methodproperty setter
 
@@ -582,7 +582,7 @@ valuecheck.003:	  3.06 mms, ::xotcl::is o1 object
 - removed obsolete generic/xotclAppInit.c
 - changed loading method in xotclsh from Xotcl_Init() to Tcl_PkgRequire()
 
-- updating tcl.m4 to the actual verison (TEA 3.7)
+- updating tcl.m4 to the actual version (TEA 3.7)
 - minor cleanup (varresolution test and comment)
 
 - defined "xotcl::current" as synonym for "::xotcl::self"
@@ -1355,7 +1355,12 @@ _ added option noforwarder to RelationSlots
   in respect to fully-qualified names
          ::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::hastype $class
          ::nsf::parametercheck object,type=$class $obj
-  extended regression test (paramters.tcl)
+  extended regression test (parameters.tcl)
+
+- renamed "parameter" into "attributes" in nx
+- renamed "info parameter" into "info attributes" in nx
+- updated migration guide
+- fixed several common typos
 
 TODO: 
 - subcmd

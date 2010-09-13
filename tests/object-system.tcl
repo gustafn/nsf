@@ -98,9 +98,9 @@ C destroy
 ? {::nsf::is metaclass c1} 0
 ? {c1 info class} ::nx::Object
 
-# basic parameter tests
+# basic attributes tests
 
-Class create C -parameter {{x 1} {y 2}}
+Class create C -attributes {{x 1} {y 2}}
 ? {::nsf::isobject C} 1
 ? {::nsf::isobject C::slot} 1
 ? {C info children} ::C::slot
@@ -113,10 +113,10 @@ C copy X
 ? {::nsf::isobject X::slot} 1
 
 #? {C::slot info vars} __parameter
-? {C info parameter} {{x 1} {y 2}}
+? {C info attributes} {{x 1} {y 2}}
 
 #? {X::slot info vars} __parameter
-? {X info parameter} {{x 1} {y 2}}
+? {X info attributes} {{x 1} {y 2}}
 
 #
 # tests for the dispatch command

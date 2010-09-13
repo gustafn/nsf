@@ -898,7 +898,7 @@ namespace eval ::nx {
     #puts stderr "... objectparameter [::nsf::current object]"
     set parameterdefinitions [::nsf::parametersFromSlots [::nsf::current object]]
     if {[::nsf::is class [::nsf::current object]]} {
-      lappend parameterdefinitions -parameter:method,optional
+      lappend parameterdefinitions -attributes:method,optional
     }
     lappend parameterdefinitions \
         -noinit:method,optional,noarg \
@@ -1202,7 +1202,7 @@ namespace eval ::nx {
   # Define method "parameter" for backward 
   # compatibility and convenience
   ############################################
-  Class public method parameter arglist {
+  Class public method attributes arglist {
   
     foreach arg $arglist {
       Attribute createFromParameterSyntax [::nsf::current object] {*}$arg
@@ -1211,7 +1211,7 @@ namespace eval ::nx {
     ::nsf::setvar $slot __parameter $arglist
   }
 
-  Class method "info parameter" {} {
+  Class method "info attributes" {} {
     set slot [::nx::slotObj [::nsf::current object]]
     if {[::nsf::existsvar $slot __parameter]} {
       return [::nsf::setvar $slot __parameter]

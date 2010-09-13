@@ -389,6 +389,11 @@ Separate Calls</h3>
       <code>Object create <i>o</i> {<br>
       &nbsp;&nbsp;:attribute <i>oa2</i><br>
       }<br>
+      <hr>
+      Class create <i>C</i> \<br>&nbsp;&nbsp; -attributes {<i><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;x<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;{y 1}<br>
+      </i>}<br>
      </code></td>
   </tr>
 </table>
@@ -636,7 +641,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
 </table>
 
 
-<h2>Object Parameters</h2>
+<h2>Object Parameters/Attributes</h2>
 
 <table border= '1'>
   <tr><th>XOTcl</th><th>Next Scripting Language</th></tr>
@@ -658,7 +663,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
       </code>
    </td>
    <td><code>
-     Class create <i>Foo </i> -parameter <i>{a {b 1}}</i><br><br>
+     Class create <i>Foo </i> -attributes <i>{a {b 1}}</i><br><br>
       <i class='comment'># Create instance of the class Foo</i><br>
       <i>Foo</i> create <i> f1 -a 0</i><br><br>
       <i class='comment'># Object f1 has a == 0 and b == 1</i><br>
@@ -716,7 +721,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
      # ascii, boolean, control, digit, double, false, graph, <br>
      # integer, lower, print, punct, space, true, upper, <br>
      # wordchar, xdigit</i><br><br>
-   Class create <i>Foo </i> -parameter {<br>
+   Class create <i>Foo </i> -attributes {<br>
      &nbsp;&nbsp; <i>a</i>:boolean<br>
      &nbsp;&nbsp; {<i>b</i>:integer<i> 1</i>}<br>
      }</i><br>
@@ -734,7 +739,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
     </td>
    <td><code>
      <i class='comment'># Required parameter </i><br>
-   Class create <i>Foo </i> -parameter {<br>
+   Class create <i>Foo </i> -attributes {<br>
      &nbsp;&nbsp; <i>a</i>:boolean,required<br>
      &nbsp;&nbsp; {<i>b</i>:integer<i> 1</i>}<br>
      }</i><br>
@@ -752,7 +757,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
     </td>
    <td><code>
      <i class='comment'># Required parameter </i><br>
-   Class create <i>Foo </i> -parameter {<br>
+   Class create <i>Foo </i> -attributes {<br>
      &nbsp;&nbsp; ...<br>
      &nbsp;&nbsp; <i>ints</i>:integer,multivalued<br>
      &nbsp;&nbsp; {<i>objs</i>:object,multivalued ""}<br>
@@ -1444,6 +1449,6 @@ namespace. Next provides now:
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Fri Sep 10 10:36:34 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Mon Sep 13 16:07:33 CEST 2010 <!-- hhmts end -->
 </body>
 </html>

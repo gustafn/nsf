@@ -285,7 +285,7 @@ namespace eval ::xotcl {
   Object instproc self {} {::xotcl::self}
 
   #
-  # object-parameter definition, backwards compatible
+  # objectparameter definition, backwards compatible
   #
   ::xotcl::Object instproc objectparameter {} {
     set parameterdefinitions [::nsf::parametersFromSlots [self]]
@@ -297,7 +297,7 @@ namespace eval ::xotcl {
   #
   # Use parameter definition from next 
   # (same with classInfo parameter, see below)
-  ::nsf::alias ::xotcl::Class parameter ::nsf::classes::nx::Class::parameter
+  ::nsf::alias ::xotcl::Class parameter ::nsf::classes::nx::Class::attributes
 
   # We provide a default value for superclass (when no superclass is
   # specified explicitely) and metaclass, in case they should differ
@@ -563,7 +563,7 @@ namespace eval ::xotcl {
 	  {*}[expr {$closure ? "-closure" : ""}] \
 	  {*}$pattern
     }
-    :alias parameter          ::nx::Class::slot::__info::parameter
+    :alias parameter          ::nx::Class::slot::__info::attributes
     :alias slots              ::nx::Object::slot::__info::slots
     :alias subclass           ::nsf::cmd::ClassInfo::subclass
     :alias superclass         ::nsf::cmd::ClassInfo::superclass
@@ -842,7 +842,7 @@ namespace eval ::xotcl {
     }
   }
 
-  ::nx::Class create ::xotcl::package -superclass ::xotcl::Class -parameter {
+  ::nx::Class create ::xotcl::package -superclass ::xotcl::Class -attributes {
     provide
     {version 1.0}
     {autoexport {}}

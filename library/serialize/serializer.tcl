@@ -140,7 +140,7 @@ namespace eval ::nx::serializer {
   # Serializer Class, independent from Object System
   ###########################################################################
 
-  Class create Serializer -parameter {ignoreVarsRE} {
+  Class create Serializer -attributes {ignoreVarsRE} {
     
     :method ignore args {
       # Ignore the objects passed via args.

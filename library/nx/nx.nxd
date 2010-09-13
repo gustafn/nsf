@@ -1,3 +1,4 @@
+# -*- Tcl -*-
 # @package ::nx
 #
 # The Next Scripting Language is a compact and expressive object-oriented language
@@ -592,7 +593,7 @@
 #
 # Specifies superclasses for a given class. As a setter ***
 # generell: setter kann hier mit der methode namens "setter"
-# verwechselt werden; wir sollten hier die paramter syntax
+# verwechselt werden; wir sollten hier die parameter syntax
 # anfuehren, die allerdings in zwei varianten kommt:
 #{{{
 #  obj superclass ?value?

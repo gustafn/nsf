@@ -276,7 +276,7 @@ o destroy
 # tests for the compiled var resolver on Class
 ###############################################
 Test case var-resolver-class
-Class create C -parameter {{x 1}}
+Class create C -attributes {{x 1}}
 C create c1
 C method foo {x} {set :y 2; return ${:x},${:y}}
 C method bar {} {return ${:x},${:y}}
@@ -300,7 +300,7 @@ C destroy
 # tests for the compiled var resolver with eval
 ###############################################
 Test case compiled-var-resolver
-Class create C -parameter {{x 1}}
+Class create C -attributes {{x 1}}
 C create c1
 C method foo {x} {
   set :y 2; 

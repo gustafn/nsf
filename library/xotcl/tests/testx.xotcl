@@ -1758,7 +1758,7 @@ TestX mixinTest -proc run {{n 10}} {
     ::errorCheck [a0 procsearch f5] "::A instparametercmd f5" procsearch-4
     ::errorCheck [a0 procsearch f6] "::a0 parametercmd f6" procsearch-6
     ::errorCheck [a0 procsearch set] "::xotcl::Object instcmd set" procsearch-6
-    ::errorCheck [catch {a0 parametercmd f6 puts}] 1 "paramtercmd with wrong args returns error"
+    ::errorCheck [catch {a0 parametercmd f6 puts}] 1 "parametercmd with wrong args returns error"
 
     set mixinResult ""
     i4 moveAgent 5 6

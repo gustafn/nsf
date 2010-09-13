@@ -1087,7 +1087,7 @@ Test case issues? {
   # Most likely, it could be partly solved with a logic for optional
   # first arguments (if the number of actual arguments is 
   # higher than the minimal number of arguments, one could fill optional
-  # paramter up..... but this calculation requires as well the interactions
+  # parameter up..... but this calculation requires as well the interactions
   # with nonpos arguments, which might be values for positional arguments
   # as well.... not, sure, it is worth to invest much time here.
 
