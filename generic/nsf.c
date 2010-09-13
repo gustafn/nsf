@@ -3610,7 +3610,18 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass 
 }
 
 /*
- * call AppendElement for matching values
+ *----------------------------------------------------------------------
+ * AppendMatchingElement --
+ *
+ *    Call AppendElement for values matching the specified pattern
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Appends element to the result object
+ *
+ *----------------------------------------------------------------------
  */
 static void
 AppendMatchingElement(Tcl_Interp *interp, Tcl_Obj *nameObj, CONST char *pattern) {
@@ -3621,7 +3632,19 @@ AppendMatchingElement(Tcl_Interp *interp, Tcl_Obj *nameObj, CONST char *pattern)
 }
 
 /*
- * apply AppendMatchingElement to CmdList
+ *----------------------------------------------------------------------
+ * AppendMatchingElementsFromCmdList --
+ *
+ *    Apply AppendMatchingElement() to all elements of the passed
+ *    Cmdlist
+ *
+ * Results:
+ *    1 iff a matching object was provided and it was found; 0 otherwise
+ *
+ * Side effects:
+ *    Appends elements to the result
+ *
+ *----------------------------------------------------------------------
  */
 static int
 AppendMatchingElementsFromCmdList(Tcl_Interp *interp, NsfCmdList *cmdl,
@@ -3641,7 +3664,19 @@ AppendMatchingElementsFromCmdList(Tcl_Interp *interp, NsfCmdList *cmdl,
 }
 
 /*
- * apply AppendMatchingElement to
+ *----------------------------------------------------------------------
+ * AppendMatchingElementsFromClasses --
+ *
+ *    Apply AppendMatchingElement() to all elements of the passed
+ *    class list
+ *
+ * Results:
+ *    1 iff a matching object was provided and it was found; 0 otherwise
+ *
+ * Side effects:
+ *    Appends elements to the result
+ *
+ *----------------------------------------------------------------------
  */
 static int
 AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls,
@@ -3665,38 +3700,58 @@ AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls,
   return rc;
 }
 
-
 /*
- * get all instances of a class recursively into an initialized
- * String key hashtable
+ *----------------------------------------------------------------------
+ * GetAllInstances --
+ *
+ *    Get all instances of a class recursively into an initialized
+ *    String key hashtable
+ *
+ * Results:
+ *    void
+ *
+ * Side effects:
+ *    Passed hash table contains instances
+ *
+ *----------------------------------------------------------------------
  */
 static void
-GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTable, NsfClass *startCl) {
-  Tcl_HashTable *table = &startCl->instances;
+GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *startCl) {
+  Tcl_HashTable *tablePtr = &startCl->instances;
   NsfClasses *sc;
   Tcl_HashSearch search;
   Tcl_HashEntry *hPtr;
 
-  for (hPtr = Tcl_FirstHashEntry(table, &search);  hPtr;
+  for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr;
        hPtr = Tcl_NextHashEntry(&search)) {
-    NsfObject *inst = (NsfObject *)Tcl_GetHashKey(table, hPtr);
+    NsfObject *inst = (NsfObject *)Tcl_GetHashKey(tablePtr, hPtr);
     int new;
 
-    Tcl_CreateHashEntry(destTable, objectName(inst), &new);
+    Tcl_CreateHashEntry(destTablePtr, objectName(inst), &new);
     /*
       fprintf (stderr, " -- %s (%s)\n", objectName(inst), ObjStr(startCl->object.cmdName));
     */
   }
   for (sc = startCl->sub; sc; sc = sc->nextPtr) {
-    GetAllInstances(interp, destTable, sc->cl);
+    GetAllInstances(interp, destTablePtr, sc->cl);
   }
 }
 
 /*
- * helper function for GetAllClassMixinsOf to add classes to the
- * result set, flagging test for matchObject as result
+ *----------------------------------------------------------------------
+ * AddToResultSet --
+ *
+ *    Helper function to add classes to the result set (implemented as
+ *    a hash table), flagging test for matchObject as result
+ *
+ * Results:
+ *    1 iff a matching object was provided and it was found; 0 otherwise
+ *
+ * Side effects:
+ *    Appends optionally element to the result object
+ *
+ *----------------------------------------------------------------------
  */
-
 static int
 AddToResultSet(Tcl_Interp *interp, Tcl_HashTable *destTable, NsfObject *object, int *new,
 	       int appendResult, CONST char *pattern, NsfObject *matchObject) {
@@ -3713,13 +3768,25 @@ AddToResultSet(Tcl_Interp *interp, Tcl_HashTable *destTable, NsfObject *object, 
 }
 
 /*
- * helper function for GetAllClassMixins to add classes with guards
- * to the result set, flagging test for matchObject as result
+ *----------------------------------------------------------------------
+ * AddToResultSet --
+ *
+ *    Helper function to add classes with guards to the result set
+ *    (implemented as a hash table), flagging test for matchObject as
+ *    result.
+ *
+ * Results:
+ *    1 iff a matching object was provided and it was found; 0 otherwise
+ *
+ * Side effects:
+ *    Appends optionally element to the result object
+ *
+ *----------------------------------------------------------------------
  */
-
 static int
-AddToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTable, NsfClass *cl, ClientData clientData, int *new,
-			 int appendResult, CONST char *pattern, NsfObject *matchObject) {
+AddToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTable, NsfClass *cl, 
+			 ClientData clientData, int *new, int appendResult, 
+			 CONST char *pattern, NsfObject *matchObject) {
   Tcl_CreateHashEntry(destTable, (char *)cl, new);
   if (*new) {
     if (appendResult) {
@@ -3741,10 +3808,23 @@ AddToResultSetWithGuards(Tcl_Interp *interp, Tcl_HashTable *destTable, NsfClass 
 }
 
 /*
- * recursively get all per object mixins from an class and its subclasses/isClassMixinOf
- * into an initialized object ptr hashtable (TCL_ONE_WORD_KEYS)
+ *----------------------------------------------------------------------
+ * GetAllObjectMixinsOf --
+ *
+ *    Computes a set of classes, into which this class was mixed in
+ *    via per object mixin. The function gets recursively all per
+ *    object mixins from an class and its subclasses/isClassMixinOf
+ *    and adds it into an initialized object ptr hashtable
+ *    (TCL_ONE_WORD_KEYS)
+ *
+ * Results:
+ *    Tcl return code
+ *
+ * Side effects:
+ *    The set of classes is returned in the provided hash table
+ *
+ *----------------------------------------------------------------------
  */
-
 static int
 GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, NsfClass *startCl,
 		     int isMixin,
@@ -3805,11 +3885,24 @@ GetAllObjectMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, NsfClass *sta
   return rc;
 }
 
-/*
- * recursively get all isClassMixinOf of a class into an initialized
- * object ptr hashtable (TCL_ONE_WORD_KEYS)
- */
 
+/*
+ *----------------------------------------------------------------------
+ * GetAllClassMixinsOf --
+ *
+ *    Computes a set of classes, into which this class was mixed in
+ *    via as a class mixin. The function gets recursively all per
+ *    class mixins from an class and its subclasses and adds it 
+ *    into an initialized object ptr hashtable (TCL_ONE_WORD_KEYS)
+ *
+ * Results:
+ *    Tcl return code
+ *
+ * Side effects:
+ *    The set of classes is returned in the provided hash table
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, /*@notnull@*/ NsfClass *startCl,
 		    int isMixin,
@@ -3875,8 +3968,20 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTable, /*@notnull@*/ 
 }
 
 /*
- * recursively get all classmixins of a class into an initialized
- * object ptr hashtable (TCL_ONE_WORD_KEYS)
+ *----------------------------------------------------------------------
+ * GetAllClassMixins --
+ *
+ *    Computes a set class-mixins of a given class and handles
+ *    transitive cases. The classes are added it into an initialized
+ *    object ptr hashtable (TCL_ONE_WORD_KEYS)
+ *
+ * Results:
+ *    Tcl return code
+ *
+ * Side effects:
+ *    The set of classes is returned in the provided hash table
+ *
+ *----------------------------------------------------------------------
  */
 
 static int
@@ -10891,7 +10996,7 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
 }
 
 static int
-ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, CONST char *pattern, 
+ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr, CONST char *pattern, 
                int methodType, int withCallprotection,
                Tcl_HashTable *dups, NsfObject *object, int withPer_object) {
   Tcl_HashSearch hSrch;
@@ -10904,9 +11009,9 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, CONST char *pattern,
     /* We have a pattern that can be used for direct lookup; 
      * no need to iterate 
      */
-    hPtr = table ? Tcl_CreateHashEntry(table, pattern, NULL) : NULL;
+    hPtr = tablePtr ? Tcl_CreateHashEntry(tablePtr, pattern, NULL) : NULL;
     if (hPtr) {
-      key = Tcl_GetHashKey(table, hPtr);
+      key = Tcl_GetHashKey(tablePtr, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
 
       if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD && !NsfObjectIsClass(object)) {
@@ -10928,10 +11033,10 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *table, CONST char *pattern,
     return TCL_OK;
 
   } else {
-    hPtr = table ? Tcl_FirstHashEntry(table, &hSrch) : NULL;
+    hPtr = tablePtr ? Tcl_FirstHashEntry(tablePtr, &hSrch) : NULL;
 
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-      key = Tcl_GetHashKey(table, hPtr);
+      key = Tcl_GetHashKey(tablePtr, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
 
       if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD && !NsfObjectIsClass(object)) continue;
@@ -11002,9 +11107,9 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern, int cla
 }
 
 static int
-ListForward(Tcl_Interp *interp, Tcl_HashTable *table, CONST char *pattern, int withDefinition) {
+ListForward(Tcl_Interp *interp, Tcl_HashTable *tablePtr, CONST char *pattern, int withDefinition) {
   if (withDefinition) {
-    Tcl_HashEntry *hPtr = table && pattern ? Tcl_CreateHashEntry(table, pattern, NULL) : NULL;
+    Tcl_HashEntry *hPtr = tablePtr && pattern ? Tcl_CreateHashEntry(tablePtr, pattern, NULL) : NULL;
     /* notice: we don't use pattern for wildcard matching here;
        pattern can only contain wildcards when used without
        "-definition" */
@@ -11021,7 +11126,7 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *table, CONST char *pattern, int w
     }
     return NsfVarErrMsg(interp, "'", pattern, "' is not a forwarder", (char *) NULL);
   }
-  return ListMethodKeys(interp, table, pattern, NSF_METHODTYPE_FORWARDER, CallprotectionAllIdx, NULL, NULL, 0);
+  return ListMethodKeys(interp, tablePtr, pattern, NSF_METHODTYPE_FORWARDER, CallprotectionAllIdx, NULL, NULL, 0);
 }
 
 static int
@@ -14722,7 +14827,7 @@ NsfClassInfoHeritageMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *pattern
 static int
 NsfClassInfoInstancesMethod1(Tcl_Interp *interp, NsfClass *startCl,
 			     int withClosure, CONST char *pattern, NsfObject *matchObject) {
-  Tcl_HashTable *table = &startCl->instances;
+  Tcl_HashTable *tablePtr = &startCl->instances;
   NsfClasses *sc;
   Tcl_HashSearch search;
   Tcl_HashEntry *hPtr;
@@ -14731,9 +14836,9 @@ NsfClassInfoInstancesMethod1(Tcl_Interp *interp, NsfClass *startCl,
   /*fprintf(stderr, "NsfClassInfoInstancesMethod: clo %d pattern %s match %p\n",
     withClosure, pattern, matchObject);*/
 
-  for (hPtr = Tcl_FirstHashEntry(table, &search);  hPtr;
+  for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr;
        hPtr = Tcl_NextHashEntry(&search)) {
-    NsfObject *inst = (NsfObject*) Tcl_GetHashKey(table, hPtr);
+    NsfObject *inst = (NsfObject*) Tcl_GetHashKey(tablePtr, hPtr);
     /*fprintf(stderr, "match '%s' %p %p '%s'\n",
       matchObject ? objectName(matchObject) : "NULL", matchObject, inst, objectName(inst));*/
     if (matchObject && inst == matchObject) {

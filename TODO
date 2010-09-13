@@ -1345,6 +1345,8 @@ _ added option noforwarder to RelationSlots
 - added "info method subcommands ..." to return list of subcommands (of the ensemble)
 - extended regression test
 - use always NULL instead of 0 when assigning to a pointer variable
+- improve comments in nsf.c
+- follow closer naming of Tcl style guide
  
 TODO: 
 - check equivalence of the following two commands
@@ -1354,11 +1356,8 @@ TODO:
 
 - subcmd
    * handle sucmd for other method factories
-   * handle introspection for subcmd nicely
    * handle absence of -create  flag in resolve_method_path (for introspection)
-   * consider alternate method name/place for subcmds on classes
-     - currently, there are potentail conflicts between slots and ensemble objects
-     - provide a different place in the namesspaces could simplify this
+
 
 - aliases on procs are a problem, when upvar is used (see info default/instdefault in xotcl2.tcl)
 
@@ -1621,3 +1620,7 @@ make
 sudo make install
 ====================
 
+For future releases:
+   * consider alternate method name/place for subcmds (and/or slots) on classes
+     - currently, there are potentail conflicts between slots and ensemble objects
+     - provide a different place in the namesspaces could simplify this
