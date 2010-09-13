@@ -36,12 +36,12 @@ Test case method-require {
 	:require method tcl::set
 	
 	# object methods:
-	:require object method lappend
+	:require class-object method lappend
 	
 	# a scripted method
-	:require object method foo
+	:require class-object method foo
 	
-	:require object method x
+	:require class-object method x
 	
 	# looks as well ok:
 	:require namespace

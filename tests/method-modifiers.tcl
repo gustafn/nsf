@@ -25,18 +25,18 @@ Class create C {
   :protected alias protected_alias [C info method handle protected_method]
   
   # object
-  :object method plain_object_method {} {return [current method]}
-  :public object method public_object_method {} {return [current method]}
-  :protected object method protected_object_method {}  {return [current method]}
-  :object forward plain_object_forward %self plain_object_method
-  :public object forward public_object_forward %self public_object_method
-  :protected object forward protected_object_forward %self protected_object_method
-  :object setter plain_object_setter 
-  :public object setter public_object_setter 
-  :protected object setter protected_object_setter 
-  :object alias plain_object_alias [:object info method handle plain_object_method]
-  :public object alias public_object_alias [:object info method handle public_object_method]
-  :protected object alias protected_object_alias [:object info method handle protected_object_method]
+  :class-object method plain_object_method {} {return [current method]}
+  :public class-object method public_object_method {} {return [current method]}
+  :protected class-object method protected_object_method {}  {return [current method]}
+  :class-object forward plain_object_forward %self plain_object_method
+  :public class-object forward public_object_forward %self public_object_method
+  :protected class-object forward protected_object_forward %self protected_object_method
+  :class-object setter plain_object_setter 
+  :public class-object setter public_object_setter 
+  :protected class-object setter protected_object_setter 
+  :class-object alias plain_object_alias [:class-object info method handle plain_object_method]
+  :public class-object alias public_object_alias [:class-object info method handle public_object_method]
+  :protected class-object alias protected_object_alias [:class-object info method handle protected_object_method]
 }
 C create c1 {
   # methods
@@ -63,7 +63,7 @@ C public setter s0
 C protected setter s1
 ? {c1 s0 0} 0
 ? {::nsf::dispatch c1 s1 1} 1
-C object setter s3
+C class-object setter s3
 ? {C s3 3} 3
 
 # create a fresh object (different from c1)
@@ -168,7 +168,7 @@ Test case object-level-alias {
 
   ? {lsort [c1 info methods]} \
       "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter"
-  ? {lsort [C object info methods]} \
+  ? {lsort [C class-object info methods]} \
       "plain_object_alias plain_object_forward plain_object_method plain_object_setter public_object_alias public_object_forward public_object_method public_object_setter s3"
 }
 
@@ -186,12 +186,12 @@ Test case mixinguards {
   C mixin guard M {}
   ? {C info mixin guard M} ""
 
-  # now the same as object mixin and object mixin guard
-  C object mixin M
-  C object mixin guard M {1 == 1}
-  ? {C object info mixin guard M} "1 == 1"
-  C object mixin guard M {}
-  ? {C object info mixin guard M} ""
+  # now the same as class-object mixin and class-object mixin guard
+  C class-object mixin M
+  C class-object mixin guard M {1 == 1}
+  ? {C class-object info mixin guard M} "1 == 1"
+  C class-object mixin guard M {}
+  ? {C class-object info mixin guard M} ""
 }
 
 Test case mixin-via-objectparam {
@@ -199,10 +199,10 @@ Test case mixin-via-objectparam {
   Class create M1; Class create M2; Class create M3; Class create M4
   Class create C -mixin M1 -object-mixin M2 {
     :mixin add M3
-    :object mixin add M4
+    :class-object mixin add M4
   }
   
-  ? {lsort [C object info mixin classes]} "::M2 ::M4"
+  ? {lsort [C class-object info mixin classes]} "::M2 ::M4"
   ? {lsort [C info mixin classes]} "::M1 ::M3"
   C destroy
   M1 destroy; M2 destroy; M3 destroy; M4 destroy;
@@ -243,13 +243,13 @@ Test case attribute-method {
     :public attribute {c c1}
     :protected attribute {d d1}
 #puts stderr ======
-    set X [:object attribute A]
+    set X [:class-object attribute A]
     ? [list set _ $X] "::C::A"
 #exit
-    # object attribute with default
-    :object attribute {B B2}
-    :public object attribute {C C2}
-    :protected object attribute {D D2}
+    # class-object attribute with default
+    :class-object attribute {B B2}
+    :public class-object attribute {C C2}
+    :protected class-object attribute {D D2}
   }
   
   C create c1 -a 1
@@ -287,8 +287,8 @@ Test case subcmd {
      :method "Info args" {} {return [current object]-[current method]}
      :method "Info foo" {} {return [current object]-[current method]}
 
-     :object method "INFO filter guard" {a b} {return [current object]-[current method]}
-     :object method "INFO filter methods" {-guards pattern:optional} {return [current object]-[current method]}
+     :class-object method "INFO filter guard" {a b} {return [current object]-[current method]}
+     :class-object method "INFO filter methods" {-guards pattern:optional} {return [current object]-[current method]}
    }
   
   ? {Foo INFO filter guard 1 2} ::Foo-guard

@@ -709,7 +709,7 @@ Class create V {
   set :Z 1
   set ZZZ 1
   :method bar {z} { return $z }
-  :object method bar {z} { return $z }
+  :class-object method bar {z} { return $z }
   :create v {
     set zzz 2
     set :z 2
@@ -726,7 +726,7 @@ Test case alias-dot-resolver {
     set :Z 1
     set ZZZ 1
     :method bar {z} { return $z }
-    :object method bar {z} { return $z }
+    :class-object method bar {z} { return $z }
     :create v {
       set :z 2
       set zzz 2

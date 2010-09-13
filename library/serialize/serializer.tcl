@@ -301,7 +301,7 @@ namespace eval ::nx::serializer {
     # class object specfic methods
     ###############################
 
-    :object method allChildren o {
+    :class-object method allChildren o {
       # return o and all its children fully qualified
       set set [::nsf::dispatch $o -objscope ::nsf::current]
       foreach c [$o info children] {
@@ -310,21 +310,21 @@ namespace eval ::nx::serializer {
       return $set
     }
 
-    :object method exportMethods list {
+    :class-object method exportMethods list {
       foreach {o p m} $list {set :exportMethods([list $o $p $m]) 1}
     }
 
-    :object method exportObjects list {
+    :class-object method exportObjects list {
       foreach o $list {set :exportObjects($o) 1}
     }
 
-    :object method exportedMethods {} {array names :exportMethods}
-    :object method exportedObjects {} {array names :exportObjects}
+    :class-object method exportedMethods {} {array names :exportMethods}
+    :class-object method exportedObjects {} {array names :exportObjects}
 
-    :object method resetPattern {} {array unset :ignorePattern}
-    :object method addPattern {p} {set :ignorePattern($p) 1}
+    :class-object method resetPattern {} {array unset :ignorePattern}
+    :class-object method addPattern {p} {set :ignorePattern($p) 1}
     
-    :object method checkExportedMethods {} {
+    :class-object method checkExportedMethods {} {
       foreach k [array names :exportMethods] {
         foreach {o p m} $k break
         set ok 0
@@ -340,7 +340,7 @@ namespace eval ::nx::serializer {
       }
     }
 
-    :object method checkExportedObject {} {
+    :class-object method checkExportedObject {} {
       foreach o [array names :exportObjects] {
         if {![::nsf::isobject $o]} {
           puts stderr "Serializer exportObject: ignore non-existing object $o"
@@ -354,7 +354,7 @@ namespace eval ::nx::serializer {
       }
     }
 
-    :object method all {-ignoreVarsRE -ignore} {
+    :class-object method all {-ignoreVarsRE -ignore} {
 
       # don't filter anything during serialization
       set filterstate [::nsf::configure filter off]
@@ -397,12 +397,12 @@ namespace eval ::nx::serializer {
       return $r
     }
 
-    :object method methodSerialize {object method prefix} {
+    :class-object method methodSerialize {object method prefix} {
       set s [:new -childof [::nsf::current object] -volatile]
       concat $object [$s method-serialize $object $method $prefix]
     }
 
-    :object method deepSerialize {-ignoreVarsRE -ignore -map args} {
+    :class-object method deepSerialize {-ignoreVarsRE -ignore -map args} {
       :resetPattern
       set s [:new -childof [::nsf::current object] -volatile]
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}

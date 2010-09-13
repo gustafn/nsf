@@ -8,18 +8,18 @@ Test case base {
 
   nx::Class create C {
     :method m {x} {return proc-[self proc]}
-    :object method mpo {} {return instproc-[self proc]}
+    :class-object method mpo {} {return instproc-[self proc]}
     :method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2
     
     :forward addOne expr 1 +
-    :object forward add1 expr 1 +
-    :object forward fpo ::o
+    :class-object forward add1 expr 1 +
+    :class-object forward fpo ::o
     
     :setter s 
-    :object setter spo
+    :class-object setter spo
     
     :alias a ::set
-    :object alias apo ::puts
+    :class-object alias apo ::puts
   }
   C create c1
   
@@ -38,11 +38,11 @@ Test case base {
   ? {c1 info lookup method foo} "::c1::foo"
   
   ? {C info method handle m} "::nsf::classes::C::m"
-  ? {C object info method handle mpo} "::C::mpo"
+  ? {C class-object info method handle mpo} "::C::mpo"
   
   ? {C info method definition m} {::C method m x {return proc-[self proc]}}
   ? {C info method def m} {::C method m x {return proc-[self proc]}}
-  ? {C object info method definition mpo} {::C object method mpo {} {return instproc-[self proc]}}
+  ? {C class-object info method definition mpo} {::C class-object method mpo {} {return instproc-[self proc]}}
   ? {C info method definition m-with-assertions} \
       {::C method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
   ? {C info method parameter m} {x}
@@ -54,14 +54,14 @@ Test case base {
   ? {catch {C info method parameter a}} 1
   
   ? {C info method definition addOne} "::C forward addOne expr 1 +"
-  ? {C object info method definition add1} "::C object forward add1 expr 1 +"
-  ? {C object info method definition fpo} "::C object forward fpo ::o"
+  ? {C class-object info method definition add1} "::C class-object forward add1 expr 1 +"
+  ? {C class-object info method definition fpo} "::C class-object forward fpo ::o"
   
   ? {C info method definition s} "::C setter s"
-  ? {C object info method definition spo} "::C object setter spo"
+  ? {C class-object info method definition spo} "::C class-object setter spo"
   
   ? {C info method definition a} "::C alias a ::set"
-  ? {C object info method definition apo} "::C object alias apo ::puts"
+  ? {C class-object info method definition apo} "::C class-object alias apo ::puts"
   
   ? {::nx::Object info lookup methods -application} ""
   ? {::nx::Class info lookup methods -application} ""
@@ -130,16 +130,16 @@ Test case callable {
     ? {Foo info filter methods -guards} "{f -guard {2 == 2}} f2"
     ? {Foo filter {}} ""
 
-    ? {Foo object method f args ::nx::next} "::Foo::f"
-    ? {Foo object method f2 args ::nx::next} "::Foo::f2"
-    ? {Foo object filter {f f2}} ""
-    ? {Foo object info filter methods} "f f2"
-    ? {Foo object filter guard f {2 == 2}} ""
-    ? {Foo object info filter guard f} "2 == 2"
-    ? {Foo object info filter methods -guards f} "{f -guard {2 == 2}}"
-    ? {Foo object info filter methods -guards f2} "f2"
-    ? {Foo object info filter methods -guards} "{f -guard {2 == 2}} f2"
-    ? {Foo object filter {}} ""
+    ? {Foo class-object method f args ::nx::next} "::Foo::f"
+    ? {Foo class-object method f2 args ::nx::next} "::Foo::f2"
+    ? {Foo class-object filter {f f2}} ""
+    ? {Foo class-object info filter methods} "f f2"
+    ? {Foo class-object filter guard f {2 == 2}} ""
+    ? {Foo class-object info filter guard f} "2 == 2"
+    ? {Foo class-object info filter methods -guards f} "{f -guard {2 == 2}}"
+    ? {Foo class-object info filter methods -guards f2} "f2"
+    ? {Foo class-object info filter methods -guards} "{f -guard {2 == 2}} f2"
+    ? {Foo class-object filter {}} ""
     Foo destroy 
 
     nx::Class create Fly
@@ -161,14 +161,14 @@ Test case callable {
     Foo mixin delete ::Fly
     ? {Foo info mixin classes} "::nx::Class"
 
-    Foo object mixin add ::nx::Class
-    Foo object mixin add Fly
-    ? {Foo object info mixin classes} "::Fly ::nx::Class"
-    ? {Foo object mixin guard ::Fly {1}} ""
-    ? {Foo object info mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
-    ? {Foo object info mixin classes -guards Fly} "{::Fly -guard 1}"
-    Foo object mixin delete ::Fly
-    ? {Foo object info mixin classes} "::nx::Class"
+    Foo class-object mixin add ::nx::Class
+    Foo class-object mixin add Fly
+    ? {Foo class-object info mixin classes} "::Fly ::nx::Class"
+    ? {Foo class-object mixin guard ::Fly {1}} ""
+    ? {Foo class-object info mixin classes -guards} "{::Fly -guard 1} ::nx::Class"
+    ? {Foo class-object info mixin classes -guards Fly} "{::Fly -guard 1}"
+    Foo class-object mixin delete ::Fly
+    ? {Foo class-object info mixin classes} "::nx::Class"
 
     ? {Foo info lookup methods superclass} "superclass"
     ? {Foo info lookup method superclass} "::nsf::classes::nx::Class::superclass"
@@ -186,7 +186,7 @@ Test case slots {
   nx::Class create D -superclass C {
     :attribute {b 2}
     :attribute c
-    :object attribute a2
+    :class-object attribute a2
     :method "sub foo" args {;}
   }
   
@@ -210,8 +210,8 @@ Test case info-submethod {
     :method "bar b" {x:int y:upper} {return b}
     :method "bar baz x" {x:int y:upper} {return x}
     :method "bar baz y" {x:int y:upper} {return y}
-    :object method "foo x" {z:int} {return z}
-    :object method "foo y" {z:int} {return z}
+    :class-object method "foo x" {z:int} {return z}
+    :class-object method "foo y" {z:int} {return z}
   }
 
   # query definition on subcommand
@@ -255,12 +255,12 @@ Test case info-submethod {
   ? {C info method definition "::nsf::classes::C::bar b"}  {::C method {bar b} {x:int y:upper} {return b}}
   ? {o2 info method definition "::nsf::classes::C::bar b"} {::C method {bar b} {x:int y:upper} {return b}}
 
-  ? {C object info method handle "foo"}   {::C::foo}
-  ? {C object info method handle "foo x"} {::C::foo x}
+  ? {C class-object info method handle "foo"}   {::C::foo}
+  ? {C class-object info method handle "foo x"} {::C::foo x}
 
-  ? {C object info method definition "::C::foo x"} {::C object method {foo x} z:int {return z}}
-  ? {C info method definition "::C::foo x"}        {::C object method {foo x} z:int {return z}}
-  ? {o2 info method definition "::C::foo x"}       {::C object method {foo x} z:int {return z}}
+  ? {C class-object info method definition "::C::foo x"} {::C class-object method {foo x} z:int {return z}}
+  ? {C info method definition "::C::foo x"}        {::C class-object method {foo x} z:int {return z}}
+  ? {o2 info method definition "::C::foo x"}       {::C class-object method {foo x} z:int {return z}}
   
   ? {C info method definition "bar baz y"} \
       {::C method {bar baz y} {x:int y:upper} {return y}}

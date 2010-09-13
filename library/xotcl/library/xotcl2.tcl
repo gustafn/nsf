@@ -849,18 +849,18 @@ namespace eval ::xotcl {
     {export {}}
   } {
     
-    :public object method create {name args} {
+    :public class-object method create {name args} {
       set nq [namespace qualifiers $name]
       if {$nq ne "" && ![namespace exists $nq]} {Object create $nq}
       next
     }
 
-    :public object method extend {name args} {
+    :public class-object method extend {name args} {
       :require $name
 	$name configure {*}$args
     }
     
-    :public object method contains script {
+    :public class-object method contains script {
       if {[info exists :provide]} {
         package provide [set :provide] [set :version]
       } else {
@@ -881,16 +881,16 @@ namespace eval ::xotcl {
       }
     }
     
-    :public object method unknown args {
+    :public class-object method unknown args {
       #puts stderr "unknown: package $args"
       [set :packagecmd] {*}$args
     }
     
-    :public object method verbose value {
+    :public class-object method verbose value {
       set :verbose $value
     }
     
-    :public object method present args {
+    :public class-object method present args {
       if {$::tcl_version<8.3} {
         switch -exact -- [lindex $args 0] {
           -exact  {set pkg [lindex $args 1]}
@@ -906,7 +906,7 @@ namespace eval ::xotcl {
       }
     }
     
-    :public object method import {{-into ::} pkg} {
+    :public class-object method import {{-into ::} pkg} {
       :require $pkg
       namespace eval $into [subst -nocommands {
         #puts stderr "*** package import ${pkg}::* into [namespace current]"
@@ -921,7 +921,7 @@ namespace eval ::xotcl {
       }
     }
     
-    :public object method require args {
+    :public class-object method require args {
       #puts "XOTCL package require $args, current=[namespace current]"
       set prevComponent ${:component}
       if {[catch {set v [package present {*}$args]} msg]} {

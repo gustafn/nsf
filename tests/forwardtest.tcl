@@ -285,8 +285,8 @@ Test case earlybinding {
 
     Class create NS	
     Class create NS::Main {
-	:object method m1 {} { :m2 }
-	:object method m2 {} {
+	:class-object method m1 {} { :m2 }
+	:class-object method m2 {} {
 	    ? {namespace eval :: {Object create toplevelObj1}} ::toplevelObj1
   
 	    ? [list set _ [namespace current]] ::NS
@@ -365,7 +365,7 @@ Test case callstack {
 
     Class create C {
 	:method xx {} {current}
-	:object method t {o expr} {
+	:class-object method t {o expr} {
 	    return [$o expr $expr]
 	}
     }

@@ -165,7 +165,7 @@ namespace eval ::nx {
   Class eval {
 
     # method-modifier for object specific methos
-    :method object {what args} {
+    :method class-object {what args} {
       if {$what in [list "alias" "attribute" "forward" "method" "setter"]} {
         return [::nsf::dispatch [::nsf::current object] ::nsf::classes::nx::Object::$what {*}$args]
       }
@@ -258,7 +258,7 @@ namespace eval ::nx {
   # tries to resolve the class again. This meachnism is used e.g. by
   # the ::ttrace mechanism for partial loading by Zoran.
   #
-  Class protected object method __unknown {name} {}
+  Class protected class-object method __unknown {name} {}
 
   # Add alias methods. cmdName for a method can be added via
   #   [... info method handle <methodName>]
@@ -296,7 +296,7 @@ namespace eval ::nx {
   #
   Object method require {what args} {
     switch -- $what {
-      object {
+      class-object {
 	set what [lindex $args 0]
 	if {$what eq "method"} {
 	  ::nsf::require_method [::nsf::current object] [lindex $args 1] 1

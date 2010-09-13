@@ -104,43 +104,43 @@ Test case alias-chaining {
   ? {T info methods} {}
   
   T method foo args { return [current class]->[current method] }
-  T object method bar args { return [current class]->[current method] }
+  T class-object method bar args { return [current class]->[current method] }
   ::nsf::alias T -per-object FOO ::nsf::classes::T::foo 
   ::nsf::alias T -per-object BAR ::T::FOO 
   ::nsf::alias T -per-object ZAP ::T::BAR 
   ? {T info methods} {foo}
-  ? {lsort [T object info methods -methodtype alias]} {BAR FOO ZAP}
-  ? {lsort [T object info methods]} {BAR FOO ZAP bar}
+  ? {lsort [T class-object info methods -methodtype alias]} {BAR FOO ZAP}
+  ? {lsort [T class-object info methods]} {BAR FOO ZAP bar}
   ? {t foo} ::T->foo
-  ? {T object info method definition ZAP} {::T object alias ZAP ::T::BAR}
+  ? {T class-object info method definition ZAP} {::T class-object alias ZAP ::T::BAR}
   
   ? {T FOO} ->foo
   ? {T BAR} ->foo
   ? {T ZAP} ->foo
   ? {T bar} ->bar
-  T object method FOO {} {}
+  T class-object method FOO {} {}
   ? {T info methods} {foo}
-  ? {lsort [T object info methods]} {BAR ZAP bar}
+  ? {lsort [T class-object info methods]} {BAR ZAP bar}
   ? {T BAR} ->foo
   ? {T ZAP} ->foo
   rename ::T::BAR ""
   ? {T info methods} {foo}
-  ? {lsort [T object info methods]} {ZAP bar}
+  ? {lsort [T class-object info methods]} {ZAP bar}
   #? {T BAR} ""; #  now calling the proc defined above, alias chain seems intact
   ? {T ZAP} ->foo; # is ok, still pointing to 'foo'
-  #T object method BAR {} {}
+  #T class-object method BAR {} {}
   ? {T info methods} {foo}
-  ? {lsort [T object info methods]} {ZAP bar}
+  ? {lsort [T class-object info methods]} {ZAP bar}
   ? {T ZAP} ->foo
   T method foo {} {}
   ? {T info methods} {}
-  ? {lsort [T object info methods]} {bar}
+  ? {lsort [T class-object info methods]} {bar}
 }
 
 Test case alias-per-object {
 
   Class create T {
-    :object method bar args { return [current class]->[current method] }
+    :class-object method bar args { return [current class]->[current method] }
     :create t
   }
   proc ::foo args { return [current class]->[current method] }
@@ -148,19 +148,19 @@ Test case alias-per-object {
   #
   # per-object methods as per-object aliases
   #
-  T object method m1 args { return [current class]->[current method] }
+  T class-object method m1 args { return [current class]->[current method] }
   ::nsf::alias T -per-object M1 ::T::m1 
   ::nsf::alias T -per-object M11 ::T::M1 
-  ? {lsort [T object info methods]} {M1 M11 bar m1}
+  ? {lsort [T class-object info methods]} {M1 M11 bar m1}
   ? {T m1} ->m1
   ? {T M1} ->m1
   ? {T M11} ->m1
-  T object method M1 {} {}
-  ? {lsort [T object info methods]} {M11 bar m1}
+  T class-object method M1 {} {}
+  ? {lsort [T class-object info methods]} {M11 bar m1}
   ? {T m1} ->m1
   ? {T M11} ->m1
-  T object method m1 {} {}
-  ? {lsort [T object info methods]} {bar}
+  T class-object method m1 {} {}
+  ? {lsort [T class-object info methods]} {bar}
   
   #
   # a proc as alias
@@ -173,7 +173,7 @@ Test case alias-per-object {
   # ! per-object alias referenced as per-class alias !
   #
   ::nsf::alias T BAR ::T::FOO2
-  ? {lsort [T object info methods]} {FOO2 bar}
+  ? {lsort [T class-object info methods]} {FOO2 bar}
   ? {lsort [T info methods]} {BAR FOO1}
   ? {T FOO2} ->foo
   ? {t FOO1} ::T->foo
@@ -182,7 +182,7 @@ Test case alias-per-object {
   # delete proc
   #
   rename ::foo ""
-  ? {lsort [T object info methods]} {bar}
+  ? {lsort [T class-object info methods]} {bar}
   ? {lsort [T info methods]} {}
 }
 
@@ -190,7 +190,7 @@ Test case alias-per-object {
 # namespaced procs + namespace deletion
 Test case alias-namespaced {
   Class create T {
-    :object method bar args { return [current class]->[current method] }
+    :class-object method bar args { return [current class]->[current method] }
     :create t
   }
   
@@ -217,19 +217,19 @@ Test case alias-namespaced {
   Class create U
   U create u
   ? {namespace exists ::U} 0
-  U object method zap args { return [current class]->[current method] }
+  U class-object method zap args { return [current class]->[current method] }
   ::nsf::alias ::U -per-object ZAP ::U::zap 
   U require namespace
   ? {namespace exists ::U} 1
   
-  U object method bar args { return [current class]->[current method] }
+  U class-object method bar args { return [current class]->[current method] }
   ::nsf::alias U -per-object BAR ::U::bar
-  ? {lsort [U object info methods]} {BAR ZAP bar zap}
+  ? {lsort [U class-object info methods]} {BAR ZAP bar zap}
   ? {U BAR} ->bar
   ? {U ZAP} ->zap
   namespace delete ::U
   ? {namespace exists ::U} 0
-  ? {lsort [U object info methods]} {}
+  ? {lsort [U class-object info methods]} {}
   ? {U info lookup methods BAR} ""
   ? {U info lookup methods ZAP} ""
   
@@ -243,7 +243,7 @@ Test case alias-dot-resolver {
   Class create V {
     set :z 1
     :method bar {z} { return $z }
-    :object method bar {z} { return $z }
+    :class-object method bar {z} { return $z }
     :create v {
       set :z 2
     }
@@ -258,7 +258,7 @@ Test case alias-dot-resolver {
   ::nsf::alias V FOO1 ::foo 
   ::nsf::alias V -per-object FOO2 ::foo
 
-  ? {lsort [V object info methods]} {FOO2 bar}
+  ? {lsort [V class-object info methods]} {FOO2 bar}
   ? {lsort [V info methods]} {FOO1 bar}
 
   ? {V FOO2} 1-1-1
@@ -266,7 +266,7 @@ Test case alias-dot-resolver {
   V method FOO1 {} {}
   ? {lsort [V info methods]} {bar}
   rename ::foo ""
-  ? {lsort [V object info methods]} {bar}
+  ? {lsort [V class-object info methods]} {bar}
 }
 
 #

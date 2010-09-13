@@ -10561,7 +10561,7 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
                          int withObjscope, int withPer_object) {
   Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
   if (withPer_object) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class-object", 12));
   }
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName, -1));
   if (withObjscope) {

@@ -460,7 +460,7 @@ Test case parsing {
 
       }
       
-      :object method foo {a b c} {
+      :class-object method foo {a b c} {
 	# This describes the per-object foo method in the method body
 	#
 	# @parameter b Provides a second value (refined)
@@ -631,7 +631,7 @@ Test case parsing {
       }
       
       # @.object-attribute attr2 Carries a short desc only
-      :object attribute attr2
+      :class-object attribute attr2
       
       # @.method foo
       #
@@ -647,7 +647,7 @@ Test case parsing {
       #
       # This extended form allows to describe a method parameter with all
       # its structural features!
-      set barHandle [:object method bar {p1} {
+      set barHandle [:class-object method bar {p1} {
 	return [current method]-$p1-[current]
       }]
 
@@ -688,7 +688,7 @@ Test case parsing {
 	:attribute p1
 	
 	# @..object-attribute p2
-	:object attribute p2
+	:class-object attribute p2
       }
       
       
@@ -702,7 +702,7 @@ Test case parsing {
       # forwarder in the context of an owning @method object!)
       # 
       # @parameter p1 Some words on p1
-      :object alias "sub foo" $fooHandle
+      :class-object alias "sub foo" $fooHandle
       
       # @.method sub
       #
@@ -731,7 +731,7 @@ Test case parsing {
       # @parameter p1 Some words on p1
       # @see anotherentity
       # @author ss@thinkersfoot.net
-      :object alias "sub foo2" $fooHandle
+      :class-object alias "sub foo2" $fooHandle
     }
   }
 
@@ -843,7 +843,7 @@ Test case parsing {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] ""
   # --testing-- @object-method.parameter {bar p1} (its non-existance) It
-  # still cannot exist as a documented entity, as the object method
+  # still cannot exist as a documented entity, as the class-object method
   # has not been initialised before!
   set entity [@parameter id [@method id ::C object bar] "" p1]
   ? [list ::nsf::isobject $entity] 0

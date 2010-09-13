@@ -228,15 +228,15 @@ Separate Calls</h3>
       <i>C</i> proc <i>bar args</i> {...}<br>
       </code></td>
     <td>
-      <i class='comment'># Define method and object method <br># in the init-block of a class</i></br><br>
+      <i class='comment'># Define method and class-object method <br># in the init-block of a class</i></br><br>
       <code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:method <i>foo args</i> {...}<br>
-      &nbsp;&nbsp;:object method <i>bar args</i> {...}<br>
+      &nbsp;&nbsp;:class-object method <i>bar args</i> {...}<br>
       }<br></code><hr>
-      <i class='comment'># Define method and object method with separate calls</i></br><br>
+      <i class='comment'># Define method and class-object method with separate calls</i></br><br>
       <code>Class create <i>C</i><br>
       <i>C</i> method <i>foo args</i> {...}<br>
-      <i>C</i> object method <i>bar args</i> {...}<br>
+      <i>C</i> class-object method <i>bar args</i> {...}<br>
      </code></td>
   </tr>
   <tr>
@@ -245,13 +245,13 @@ Separate Calls</h3>
       <i>o</i> proc <i>foo args</i> {...}<br>
       </code></td>
     <td>
-      <i class='comment'># Define object method and set instance variable<br>
+      <i class='comment'># Define class-object method and set instance variable<br>
       # in the init-block of an object</i></br><br>
       <code>Object create <i>o</i> {<br>
       &nbsp;&nbsp;set :<i>x 1</i><br>
       &nbsp;&nbsp;:method <i>foo args</i> {...}<br>
      }<br></code><hr>
-      <i class='comment'># Define object method and set instance variable<br>
+      <i class='comment'># Define class-object method and set instance variable<br>
       # with separate commands</i></br><br>
       <code>Object create <i>o</i><br>
       <i>o</i> eval {set <i>:x 1</i>}</i><br>
@@ -303,7 +303,7 @@ Separate Calls</h3>
       <i class='comment'># Define scripted methods</i></br><br>
       <code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:method <i>foo args</i> {...}<br>
-      &nbsp;&nbsp;:object method <i>bar args</i> {...}<br>
+      &nbsp;&nbsp;:class-object method <i>bar args</i> {...}<br>
       }<br><br>
       <code>Object create <i>o</i> {<br>
       &nbsp;&nbsp;:method <i>baz args</i> {...}<br>
@@ -324,7 +324,7 @@ Separate Calls</h3>
       <i class='comment'># Define forwarder</i></br><br>
       <code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:forward <i>f1 ...</i><br>
-      &nbsp;&nbsp;:object forward <i>f2 ...</i><br>
+      &nbsp;&nbsp;:class-object forward <i>f2 ...</i><br>
       }<br><br>
       <code>Object create <i>o</i> {<br>
       &nbsp;&nbsp;:forward <i>f3 ...</i><br>
@@ -345,7 +345,7 @@ Separate Calls</h3>
       <i class='comment'># Define setter and getter methods</i></br><br>
       <code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:setter <i>p1 ?value_constraint?</i><br>
-      &nbsp;&nbsp;:object setter <i>p2 ?value_constraint?</i><br>
+      &nbsp;&nbsp;:class-object setter <i>p2 ?value_constraint?</i><br>
       }<br><br>
       <code>Object create <i>o</i> {<br>
       &nbsp;&nbsp;:setter <i>p3 ?value_constraint?</i><br>
@@ -362,7 +362,7 @@ Separate Calls</h3>
        ># (to scripted or non-scripted methods)</i></br><br>
       <code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:alias <i>a1 ...</i><br>
-      &nbsp;&nbsp;:object alias <i>a2 ...</i><br>
+      &nbsp;&nbsp;:class-object alias <i>a2 ...</i><br>
       }<br><br>
       <code>Object create <i>o</i> {<br>
       &nbsp;&nbsp;:alias <i>a3 ...</i><br>
@@ -384,7 +384,7 @@ Separate Calls</h3>
       <code>Class create <i>C</i> {<br>
       &nbsp;&nbsp;:attribute <i>x</i><br>
       &nbsp;&nbsp;:attribute <i>{y 1}</i><br>
-      &nbsp;&nbsp;:object attribute <i>oa1</i><br>
+      &nbsp;&nbsp;:class-object attribute <i>oa1</i><br>
       }<br><br>
       <code>Object create <i>o</i> {<br>
       &nbsp;&nbsp;:attribute <i>oa2</i><br>
@@ -417,7 +417,7 @@ Separate Calls</h3>
       &nbsp;&nbsp;:<i>method-definiton-method ...</i><br>
       &nbsp;&nbsp;:public <i>method-definiton-method ...</i><br>
       &nbsp;&nbsp;:protected <i>method-definiton-method ...</i><br>
-      &nbsp;&nbsp;:object <i>method-definiton-method ...</i><br>
+      &nbsp;&nbsp;:class-object <i>method-definiton-method ...</i><br>
       &nbsp;&nbsp;:protected object <i>method-definiton-method ...</i><br>
       &nbsp;&nbsp;:public object <i>method-definiton-method ...</i><br>
       }<br>
@@ -795,8 +795,8 @@ Scripting Language via the primitives of the Next Scripting Framework.
     </td>
     <td>
       <i class='comment'># Register per-object mixin and guard for a class</i><br><br>
-      <code><i>cls</i> object mixin <i>...</i></code><br>
-      <code><i>cls</i> object mixin guard <i>mixin condition</i></code><br>
+      <code><i>cls</i> class-object mixin <i>...</i></code><br>
+      <code><i>cls</i> class-object mixin guard <i>mixin condition</i></code><br>
     </td>
   </tr>  
   <tr>
@@ -833,8 +833,8 @@ Scripting Language via the primitives of the Next Scripting Framework.
     </td>
     <td>
       <i class='comment'># Register per-object filter and guard for a class</i><br><br>
-      <code><i>cls</i> object filter <i>...</i></code><br>
-      <code><i>cls</i> object filter guard <i>filter condition</i></code><br>
+      <code><i>cls</i> class-object filter <i>...</i></code><br>
+      <code><i>cls</i> class-object filter guard <i>filter condition</i></code><br>
     </td>
   </tr>  
   <tr>
@@ -923,31 +923,31 @@ Scripting Language via the primitives of the Next Scripting Framework.
 <table>
   <tr>
     <td><code><i>cls</i> info commands <i>?pattern?</i></code></td>
-    <td><code><i>cls</i> object info methods <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> class-object info methods <i>?pattern?</i></code></td>
   </tr>
   <tr>
     <td><code><i>cls</i> info parametercmd <i>?pattern?</i></code></td>
-    <td><code><i>cls</i> object info methods -methodtype setter <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> class-object info methods -methodtype setter <i>?pattern?</i></code></td>
   </tr>
   <tr>
     <td><code><i>cls</i> info procs <i>?pattern?</i></code></td>
-    <td><code><i>cls</i> object info methods -methodtype scripted <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> class-object info methods -methodtype scripted <i>?pattern?</i></code></td>
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-    <td><code><i>cls</i> object info methods -methodtype alias <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> class-object info methods -methodtype alias <i>?pattern?</i></code></td>
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-    <td><code><i>cls</i> object info methods -methodtype forwarder <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> class-object info methods -methodtype forwarder <i>?pattern?</i></code></td>
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-    <td><code><i>cls</i> object info methods -methodtype object <i>?pattern?</i></code></td>
+    <td><code><i>cls</i> class-object info methods -methodtype object <i>?pattern?</i></code></td>
   </tr>
   <tr>
     <td><i>n.a.</i></td>
-    <td><code><i>cls</i> object info methods -callprotection <i>public|protected ...</i></code></td>
+    <td><code><i>cls</i> class-object info methods -callprotection <i>public|protected ...</i></code></td>
   </tr> 
 </table>
 
@@ -1100,13 +1100,13 @@ Scripting Language via the primitives of the Next Scripting Framework.
   </tr>  
   <tr>
     <td><code><i>cls</i> info filter <i>?-guards? ?-order? ?pattern?</i></code></td>
-    <td><code><i>cls</i> object info filter methods <i>?-guards? ?-order? ?pattern?</i></code></td>
+    <td><code><i>cls</i> class-object info filter methods <i>?-guards? ?-order? ?pattern?</i></code></td>
   </tr>
 
   <tr>
     <td><code><i>cls</i> info filterguard <i>name</i></code></td>
-    <td><code><i>cls</i> object info filter guard <i>name</i><!-- <br>
-      <hr><i>cls</i> object filter guard <i>name</i><br></code>--></td>
+    <td><code><i>cls</i> class-object info filter guard <i>name</i><!-- <br>
+      <hr><i>cls</i> class-object filter guard <i>name</i><br></code>--></td>
   </tr>  
   
   <tr>
@@ -1132,13 +1132,13 @@ Scripting Language via the primitives of the Next Scripting Framework.
   
   <tr>
     <td><code><i>cls</i> info mixin <i>?-guards? ?-order? ?pattern?</i></code></td>
-    <td><code><i>cls</i> object info mixin classes <i>?-guards? ?-order? ?pattern?</i></code></td>
+    <td><code><i>cls</i> class-object info mixin classes <i>?-guards? ?-order? ?pattern?</i></code></td>
   </tr>
 
   <tr>
     <td><code><i>cls</i> info mixinguard <i>name</i></code></td>
-    <td><code><i>cls</i> object info mixin guard <i>name</i><!--<br>
-      <hr><i>cls</i> object mixin guard <i>name</i><br>--></code></td>
+    <td><code><i>cls</i> class-object info mixin guard <i>name</i><!--<br>
+      <hr><i>cls</i> class-object mixin guard <i>name</i><br>--></code></td>
   </tr>
   
   <tr>

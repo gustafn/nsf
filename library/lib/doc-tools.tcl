@@ -437,7 +437,7 @@ namespace eval ::nx::doc {
   Class create ContainerEntity -superclass StructuredEntity {
     
     Class create [current]::Resolvable {
-      :object attribute container:object,type=[:info parent]
+      :class-object attribute container:object,type=[:info parent]
       :method get_fully_qualified_name {name} {
 	set container [[current class] container]
 	if {![string match "::*" $name]} {
@@ -452,7 +452,7 @@ namespace eval ::nx::doc {
     Class create [current]::Containable {
       # TODO: check the interaction of required, per-object attribute and ::nsf::assertion
       #:object attribute container:object,type=[:info parent],required
-      :object attribute container:object,type=[:info parent]
+      :class-object attribute container:object,type=[:info parent]
       :method create args {
 	#
 	# Note: preserve the container currently set at this callstack
@@ -502,7 +502,7 @@ namespace eval ::nx::doc {
       QualifierTag mixin add [current class]::Resolvable
       [current class]::Resolvable container [current]
       QualifierTag mixin add [current class]::Containable
-      @package object mixin add [current class]::Containable
+      @package class-object mixin add [current class]::Containable
       [current class]::Containable container [current]
     }
 
@@ -714,7 +714,7 @@ namespace eval ::nx::doc {
 	  set :part_class @param
 	}
 
-	:object method new {	       
+	:class-object method new {	       
 	  -part_attribute:required
 	  -partof:object,type=::nx::doc::Entity
 	  -name 
@@ -869,11 +869,11 @@ namespace eval ::nx::doc {
 	:attribute default
 	  
 
-	:object method id {partof_name scope name} {
+	:class-object method id {partof_name scope name} {
 	  next [:get_unqualified_name ${partof_name}] $scope $name
 	}
 	
-	# :object method id {partof_name name} {
+	# :class-object method id {partof_name name} {
 	#   # The method contains the parameter-specific name production rules.
 	#   #
 	#   # @param partof Refers to the entity object which contains this part 
@@ -893,7 +893,7 @@ namespace eval ::nx::doc {
 	# @param -partof
 	# @param -name
 	# @param args
-	:object method new {
+	:class-object method new {
 		-part_attribute 
 		-partof:required
 		-name 
@@ -1779,7 +1779,7 @@ namespace eval ::nx::doc {
       }
       :attribute current_entity:object
       
-      :object method process {
+      :class-object method process {
 			      {-partof_entity ""}
 			      {-initial_section context}
 			      {-parsing_level 0}

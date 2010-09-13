@@ -1337,7 +1337,7 @@ empty body, the specified method is deleted, as the following example shows:
 <P STYLE="margin-bottom: 0in">Resembling to objects, information on
 classes may be gained through the <tt>info</tt> instance method of the
 meta-class <tt>Class</tt>. Note that this instance method does not
-only support the class info options, but also the object info options,
+only support the class info options, but also the class-object info options,
 since the accessing command refers to the class-object, which itself
 is an object and, therefore, offers its informations.  The following
 table summarizes the additional info options available on classes.
@@ -2550,7 +2550,7 @@ executed once, even if it is registered multiple times.
 <H3><A NAME="filter_info"></A>Introspection on Filters
 </H3>
 In order to gain information about the currently registered filters on
-a certain object/class, the object info option <tt>filters </tt> and
+a certain object/class, the class-object info option <tt>filters </tt> and
 the  class info option <tt>instfilters </tt> may be
 queried. It returns a list of the currently registered filters:
 </P>
@@ -2729,7 +2729,7 @@ Furthermore it is possible that the number of additions is unlimited,
 since the additions may produce other additions as side-effects. This
 demonstrates clearly that the sub-class mechanism provides only a
 poor mechanism for mix-in of orthogonal functionality. Therefore we
-provide an extension in the form of object mixin classes, which are
+provide an extension in the form of class-object mixin classes, which are
 added in front of the search precedence of classes. 
 </P>
 <H3><A NAME="mixin-usage"></A>Per-Object Mixins 
@@ -2811,7 +2811,7 @@ allows us to introspect the per-object mixins. It has the syntax:
 </pre>
 <P STYLE="margin-bottom: 0in">
 It returns the list of all mix-ins of the object, if <tt>pattern</tt>
-is not specified, otherwise it returns the matching per object mixin classes.
+is not specified, otherwise it returns the matching per class-object mixin classes.
 </P>
 	
 The inverse operation of <tt>info mixin</tt> is <tt>mixinof</tt> finds

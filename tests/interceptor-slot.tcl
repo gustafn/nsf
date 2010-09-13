@@ -45,7 +45,7 @@ c1 mixin delete M2
 #
 ::nsf::relation C object-mixin M
 ? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {C object info mixin classes} "::M"
+? {C class-object info mixin classes} "::M"
 ::nsf::relation C object-mixin ""
 ? {C info precedence} "::nx::Class ::nx::Object"
 
@@ -55,48 +55,48 @@ c1 mixin delete M2
 #
 # C object-mixin M
 # ? {C info precedence} "::M ::nx::Class ::nx::Object"
-# ? {C object info mixin classes} "::M"
+# ? {C class-object info mixin classes} "::M"
 # C object-mixin ""
 # ? {C info precedence} "::nx::Class ::nx::Object"
 
 #
-# add and remove object mixin for classes via modifier "object" and
+# add and remove class-object mixin for classes via modifier "object" and
 # "mixin"
 #
-C object mixin M
+C class-object mixin M
 ? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {C object info mixin classes} "::M"
-C object mixin ""
+? {C class-object info mixin classes} "::M"
+C class-object mixin ""
 ? {C info precedence} "::nx::Class ::nx::Object"
 
 #
-#  add and remove object mixin for classes via object mixin add
+#  add and remove class-object mixin for classes via class-object mixin add
 #
-C object mixin add M
+C class-object mixin add M
 ? {C info precedence} "::M ::nx::Class ::nx::Object"
-? {C object info mixin classes} "::M"
-C object mixin ""
+? {C class-object info mixin classes} "::M"
+C class-object mixin ""
 ? {C info precedence} "::nx::Class ::nx::Object"
 
 #
 # adding per-object mixins for classes via "object mixin add M"
 #
-C object mixin add M 
+C class-object mixin add M 
 ? {C info precedence} "::M ::nx::Class ::nx::Object"
 ? {::nsf::relation C object-mixin} ::M
-? {catch {C object mixin add UNKNOWN}} 1
+? {catch {C class-object mixin add UNKNOWN}} 1
 ? {::nsf::relation C object-mixin} "::M"
-C object mixin ""
+C class-object mixin ""
 ? {C info precedence} "::nx::Class ::nx::Object"
 
 #
 # adding per-object mixins for classes via "object mixin M"
 #
-C object mixin M 
+C class-object mixin M 
 ? {C info precedence} "::M ::nx::Class ::nx::Object"
 
 # forwarder with 0 arguments + flag
-? {C object mixin} "::M"
+? {C class-object mixin} "::M"
 
 
 Test case mixin-add {
@@ -108,17 +108,17 @@ Test case mixin-add {
   Class create C1 
 
   ? {C1 info lookup method mixin} "::nsf::classes::nx::Class::mixin"
-  C1 object mixin M1
+  C1 class-object mixin M1
   ? {C1 info precedence} "::M1 ::nx::Class ::nx::Object"
   C1 create c11
   ? {c11 info precedence} "::C1 ::nx::Object"
-  C1 object mixin add M11
+  C1 class-object mixin add M11
   ? {C1 info precedence} "::M11 ::M1 ::nx::Class ::nx::Object"
   Object create o -mixin M1
   ? {o info precedence} "::M1 ::nx::Object"
 
   Class create O 
-  O object mixin M1
+  O class-object mixin M1
   ? {O info precedence} "::M1 ::nx::Class ::nx::Object"
   Class create O -object-mixin M1
   ? {O info precedence} "::M1 ::nx::Class ::nx::Object"

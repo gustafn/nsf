@@ -1339,9 +1339,10 @@ _ added option noforwarder to RelationSlots
 - fixed handles with subcommands for class methods when called on classes or objects
 - extended regression test
 
-TODO: 
-- check potential crashes with invalid input
+- changed "cls object method ..." and friends into
+  "cls class-object method ..." and friends into
 
+TODO: 
 - check equivalence of the following two commands
   in respect to fully-qualified names
          ::nsf::dispatch $obj ::nsf::cmd::ObjectInfo2::hastype $class
@@ -1352,9 +1353,7 @@ TODO:
    * handle introspection for subcmd nicely
    * handle absence of -create  flag in resolve_method_path (for introspection)
    * consider alternate method name/place for subcmds on classes
-     - currently, "info slotobjects" returns only instances of ::nx::Slot 
-       (the logic is scripted, otherwise, we would have to hardcode the name
-       nx::Slot).
+     - currently, there are potentail conflicts between slots and ensemble objects
      - provide a different place in the namesspaces could simplify this
 
 - aliases on procs are a problem, when upvar is used (see info default/instdefault in xotcl2.tcl)
