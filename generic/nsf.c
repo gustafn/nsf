@@ -6352,15 +6352,15 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 
   } else if (cp || Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) {
     /* 
-       The cmd has client data or is an aliased method
-    */
+     * The cmd has client data or is an aliased method
+     */
     cscPtr = &csc;
 
     /*fprintf(stderr, "we could stuff obj %p %s\n", object, objectName(object));*/
 
     if (proc == NsfObjDispatch) {
       /*
-       * invoke an aliased object via method interface
+       * invoke an aliased object (ensemble object) via method interface
        */
       NsfRuntimeState *rst = RUNTIME_STATE(interp);
       NsfObject *invokeObj = (NsfObject *)cp;
@@ -6401,10 +6401,12 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	  self, objectName(self), self->nsPtr, object, objectName(object));*/
 	if (self->nsPtr) {
 	  cmd = FindMethod(self->nsPtr, methodName);
-	  /*fprintf(stderr, "... method %p %s\n", cmd, methodName);*/
+	  /* fprintf(stderr, "... method %p %s csc %p\n", cmd, methodName, cscPtr); */
 	  if (cmd) {
+	    cscPtr->callType |= NSF_CSC_CALL_IS_ENSEMBLE; /*zzzz*/
 	    result = MethodDispatch(object, interp, objc-1, objv+1, 
-				    cmd, object, NULL, methodName, frameType);
+				    cmd, object, NULL, methodName, 
+				    frameType|NSF_CSC_TYPE_ENSEMBLE);
 	    goto obj_dispatch_ok;
 	  }
 	}
@@ -7933,16 +7935,29 @@ NsfNextMethod(NsfObject *object, Tcl_Interp *interp, NsfClass *givenCl,
     cscPtr = CallStackGetTopFrame(interp, &framePtr);
   } else {
     /*
-     * cscPtr was given (i.e. it is not yet on the stack. So we cannot
-     *  get objc from the associated stack frame
+     * cscPtr was given (i.e. it is not yet on the stack). So we cannot
+     * get objc from the associated stack frame
      */
     framePtr = NULL;
     assert(useCallstackObjs == 0);
     /* fprintf(stderr, "NsfNextMethod csc given, use %d, framePtr %p\n", useCallstackObjs, framePtr); */
   }
 
-  /*fprintf(stderr, "NsfNextMethod givenMethod = %s, csc = %p, useCallstackObj %d, objc %d cfp %p\n",
-    givenMethodName, cscPtr, useCallstackObjs, objc, framePtr);*/
+#if 0
+  fprintf(stderr, "NsfNextMethod givenMethod = %s, csc = %p, useCallstackObj %d, objc %d cfp %p\n",
+	  givenMethodName, cscPtr, useCallstackObjs, objc, framePtr);
+  fprintf(stderr, ".... cmd %p is Object %d csc %p flags %.6x frametype %.6x\n",
+	  cscPtr->cmdPtr, 
+	  Tcl_Command_objProc(cscPtr->cmdPtr) == NsfObjDispatch, 
+	  cscPtr,
+	  cscPtr->callType,cscPtr->frameType); /* zzzz */
+  if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
+    tcl85showStack(interp);
+    fprintf(stderr, ".... objc %d useCallstackObjs %d framePtr %p csc->ov[0] %s\n", 
+	    objc, useCallstackObjs, framePtr, 
+	    cscPtr->objv ? ObjStr(cscPtr->objv[0]) : NULL);
+  }
+#endif
 
   /* if no args are given => use args from stack */
   if (objc < 2 && useCallstackObjs && framePtr) {
@@ -11337,7 +11352,7 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (objProc == NsfObjDispatch) {
     /*
-     * if we register an alias for an object, we have to take care to
+     * When we register an alias for an object, we have to take care to
      * handle cases, where the aliased object is destroyed and the
      * alias points to nowhere. We realize this via using the object
      * refcount.
@@ -12196,7 +12211,7 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
                             (char *) NULL);
     }
     result = MethodDispatch((ClientData)self, interp, nobjc+2, nobjv, cmd, self, cl,
-                          methodName, 0);
+			    methodName, 0);
   } else {
     result = CallMethod((ClientData)self, interp, methodObj, nobjc+2, nobjv, 0);
   }

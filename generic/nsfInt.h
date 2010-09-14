@@ -628,10 +628,12 @@ typedef struct NsfCallStackContent {
 #define NSF_CSC_TYPE_INACTIVE 4
 #define NSF_CSC_TYPE_INACTIVE_MIXIN 5
 #define NSF_CSC_TYPE_INACTIVE_FILTER 6
-#define NSF_CSC_TYPE_GUARD 16
+#define NSF_CSC_TYPE_GUARD 0x10
+#define NSF_CSC_TYPE_ENSEMBLE 0x20
 
 #define NSF_CSC_CALL_IS_NEXT 1
 #define NSF_CSC_CALL_IS_GUARD 2
+#define NSF_CSC_CALL_IS_ENSEMBLE 4   /*TODO: needed?*/
 
 #if defined(NSF_PROFILE)
 typedef struct NsfProfile {
