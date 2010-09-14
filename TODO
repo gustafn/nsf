@@ -1369,33 +1369,34 @@ TODO:
 - subcmd
    * handle sucmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
+   * next handling
+
+- next noargs
+
+- method protection:
+  defined methods (optionally?) per default protected to
+  enforce the definition of proper interfaces.
+   * for the regression tests, most methods are supposed
+     to be public.
+   * one could provide a command to swith the state to 
+     define method default as public.
+     (if neither protected nor public is used)
+   * flag could be per-interpreter (::nsf::configure) or 
+     per-class-system or per-class
+   * should be an nx-thing, so only the last two options remain
+   * how to get the least surprise?
+   * otherwise, we could/should drop the word "public".
 
 - interfaces in documentation for slots (see for more details 
   ::nx::Class#superclass in nx.tcl).
-- nameing
-    * self/current:
-       - overthink general replacement of "self" by "current".
-         a consequence is, that slots can't use "self" anymore, since slots
-         are always next objects
-       - replace  "self proc" by "current method", etc.
-       - we have "%self" as well, which is better than "%current"
-       - maybe provide alias "self" for "current object" - DONE for now
 
-    * .c-code:
-      . rename source files from xotcl{Int}.{ch}->next*.* | next-scripting*.* ?
-        Stefan, meinung dazu? Notwending|Empfehlenswert|nicht? 
-        bei den TEA definitionen stand was von max. 8zeichen für source code namen.
-        andere optionen?
-      . prefix for exported symbols (XOTcl_ -> Nx_ ?)
-      . prefix for symbols (XOTcl->Nx ?)
-      . prefix for symbols (XO->NX ?)
-      . library nameing libnext* or libnx*
+- nameing
 
     * namespace prefix 
        next scripting language: ::nx::*
        next scripting framework: ::nsf::*
-    * distributed packages in namespace ::nx::*
-    * names of subpackages nx::*
+    * distributed packages in namespace ::nx::*, some are still in ::xotcl::*
+    * names of subpackages nx::*, some packages are still xotcl::*
 
     * Now we have
         package require nx
@@ -1557,11 +1558,6 @@ TODO "Kleinigkeiten"
   2) kein "modules" beim ns
      sudo cp /usr/local/aolserver/modules/tcl/xotcl.tcl  /usr/local/ns/tcl/
 
-- canonical reps: 
-   "p:integer,multivalued" => "-name p -type integer -multivalued"
-   "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"
-- use parameter syntax in genTclAPI
-
 - implement built-in-converter for "baseclass" and "metaclass"?
 
 - the two flags "-objscope" and "-nonleaf" are for adding frames,
@@ -1626,3 +1622,9 @@ For future releases:
      interpreter of the argument lists. It should be possible to turn
      the interpreter into a compiler to speed up argument passing. But
      maybe, this would bloat the code-size.
+
+   * canonical reps: 
+    "p:integer,multivalued" => "-name p -type integer -multivalued"
+    "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"
+
+   * use parameter syntax in genTclAPI
