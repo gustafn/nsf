@@ -29,7 +29,8 @@ void tcl85showStack(Tcl_Interp *interp) {
             Tcl_CallFrame_objc(framePtr) ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
             Tcl_CallFrame_objc(framePtr) ? Tcl_CallFrame_objc(framePtr) : -1);
     if (cscPtr) {
-      fprintf(stderr, " frameType %d callType %d (%p %s)\n",
+      fprintf(stderr, " csc %p frameType %d callType %d (%p %s)\n",
+	      cscPtr,
               cscPtr ? cscPtr->frameType : -1,
               cscPtr ? cscPtr->callType : -1,
               cscPtr ? cscPtr->self : NULL, 
