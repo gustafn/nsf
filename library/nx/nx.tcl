@@ -1497,9 +1497,6 @@ namespace eval ::nx {
   # export the main commands of ::nx
   namespace export Object Class next self current
 
-  # TODO should not be necessary in the future
-  #namespace export Attribute
-
   set ::nx::confdir ~/.nx
   set ::nx::logdir $::nx::confdir/log
   
