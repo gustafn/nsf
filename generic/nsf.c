@@ -6403,10 +6403,17 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	  cmd = FindMethod(self->nsPtr, methodName);
 	  /* fprintf(stderr, "... method %p %s csc %p\n", cmd, methodName, cscPtr); */
 	  if (cmd) {
+	    Tcl_CallFrame frame, *framePtr = &frame;
+	    CscInit(cscPtr, object, cl, cmd, frameType);
+	    cscPtr->objc = objc;
+	    cscPtr->objv = (Tcl_Obj **)objv;
+	    Nsf_PushFrameCsc(interp, cscPtr, framePtr);
 	    cscPtr->callType |= NSF_CSC_CALL_IS_ENSEMBLE; /*zzzz*/
 	    result = MethodDispatch(object, interp, objc-1, objv+1, 
 				    cmd, object, NULL, methodName, 
 				    frameType|NSF_CSC_TYPE_ENSEMBLE);
+	    Nsf_PopFrameCsc(interp, framePtr);
+	    CscFinish(interp, cscPtr);
 	    goto obj_dispatch_ok;
 	  }
 	}
@@ -7943,24 +7950,37 @@ NsfNextMethod(NsfObject *object, Tcl_Interp *interp, NsfClass *givenCl,
     /* fprintf(stderr, "NsfNextMethod csc given, use %d, framePtr %p\n", useCallstackObjs, framePtr); */
   }
 
-#if 0
-  fprintf(stderr, "NsfNextMethod givenMethod = %s, csc = %p, useCallstackObj %d, objc %d cfp %p\n",
+
+#if 1
+  /*fprintf(stderr, "NsfNextMethod givenMethod = %s, csc = %p, useCallstackObj %d, objc %d cfp %p\n",
 	  givenMethodName, cscPtr, useCallstackObjs, objc, framePtr);
   fprintf(stderr, ".... cmd %p is Object %d csc %p flags %.6x frametype %.6x\n",
 	  cscPtr->cmdPtr, 
 	  Tcl_Command_objProc(cscPtr->cmdPtr) == NsfObjDispatch, 
 	  cscPtr,
-	  cscPtr->callType,cscPtr->frameType); /* zzzz */
+	  cscPtr->callType,cscPtr->frameType);*/ /* zzzz */
   if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
-    tcl85showStack(interp);
+    /*tcl85showStack(interp);*/
+    /*
     fprintf(stderr, ".... objc %d useCallstackObjs %d framePtr %p csc->ov[0] %s\n", 
 	    objc, useCallstackObjs, framePtr, 
 	    cscPtr->objv ? ObjStr(cscPtr->objv[0]) : NULL);
+    */
+    Tcl_CallFrame *framePtr2 = Tcl_CallFrame_callerPtr(framePtr);
+    for (;Tcl_CallFrame_isProcCallFrame(framePtr2) & FRAME_IS_NSF_CMETHOD; 
+	 framePtr2 = Tcl_CallFrame_callerPtr(framePtr2)) {
+      NsfCallStackContent *cscPtr2 = (NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr2);
+      /*fprintf(stderr, ".... parent framePtr %p csc->ov[0] %s\n", 
+	framePtr2, cscPtr2->objv ? ObjStr(cscPtr2->objv[0]) : NULL);*/
+      *methodName = ObjStr(cscPtr2->objv[0]);
+      cscPtr = cscPtr2;
+    }
   }
 #endif
 
   /* if no args are given => use args from stack */
   if (objc < 2 && useCallstackObjs && framePtr) {
+
     if (cscPtr->objv) {
       nobjv = cscPtr->objv;
       nobjc = cscPtr->objc;
