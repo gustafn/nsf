@@ -1250,4 +1250,48 @@ namespace eval foo {
   ? {c1 f32} 1
 }
 
+Test case ensemble-next {
 
+  nx::Class create FOO {
+    :method foo args {lappend :v "FOO.foo//[nx::current method] ([nx::current args])"}
+    :method "a" {args} {puts FOO-[nx::current method]\n}
+    :method "b" {x} {puts FOO-[nx::current method]\n}
+    :method "x" {x} {puts FOO-[nx::current method]\n}
+    :method "y" {x} {puts FOO-[nx::current method]\n}
+  }
+  nx::Class create M0 {
+    :method "a" {args} {puts M0-[nx::current method];nx::next}
+    :method "x" {x} {puts M0-[nx::current method];nx::next}
+    :method "b y" {x} {puts M0-[nx::current method];nx::next}
+    :method "foo b x" {x} {lappend :v "M0.foo b x//[nx::current method] ([nx::current args])";nx::next}
+    :method "foo b y" {x} {lappend :v "M0.foo b y//[nx::current method] ([nx::current args])";nx::next}
+    :method "foo a" {x} {lappend :v "M0.foo a//[nx::current method] ([nx::current args])";nx::next}
+  }
+
+  nx::Class create M1 {
+    :method "foo a" {x} {
+      set :v [list "M1.foo a //[nx::current method] ([nx::current args])"]
+      nx::next
+    }
+    :method "foo b x" {x} {
+      set :v  [list "M1.foo b x //[nx::current method] ([nx::current args])"]
+      nx::next
+    }
+    :method "foo b y" {x} {
+      set :v  [list "M1.foo b y //[nx::current method] ([nx::current args])"]
+      nx::next
+    }
+  }
+  
+  FOO mixin {M1 M0}
+  FOO create f1
+  
+  #f1 foo
+  puts stderr ====
+  ? {f1 foo a 1} "{M1.foo a //a (1)} {M0.foo a//a (1)} {FOO.foo//foo (a 1)}"
+  puts stderr ====
+  ? {f1 foo b x 1} "{M1.foo b x //x (1)} {M0.foo b x//x (1)} {FOO.foo//foo (b x 1)}"
+  puts stderr ====
+  ? {f1 foo b y 1} "{M1.foo b y //y (1)} {M0.foo b y//y (1)} {FOO.foo//foo (b y 1)}"
+  puts stderr ==== 
+}
