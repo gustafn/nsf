@@ -6404,6 +6404,12 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	  /* fprintf(stderr, "... method %p %s csc %p\n", cmd, methodName, cscPtr); */
 	  if (cmd) {
 	    Tcl_CallFrame frame, *framePtr = &frame;
+	    /*
+	     * In order to allow next to be called on the
+	     * ensemble-method, a call-frame entry is needed. The
+	     * associated calltype is flagged as an ensemble to be
+	     * able to distinguish frames during next.
+	     */ 
 	    CscInit(cscPtr, object, cl, cmd, frameType);
 	    cscPtr->objc = objc;
 	    cscPtr->objv = (Tcl_Obj **)objv;
@@ -7933,9 +7939,9 @@ NsfNextMethod(NsfObject *object, Tcl_Interp *interp, NsfClass *givenCl,
   int result, frameType = NSF_CSC_TYPE_PLAIN,
     isMixinEntry = 0, isFilterEntry = 0,
     endOfFilterChain = 0, decrObjv0 = 0;
+  CONST char **methodName = &givenMethodName;
   int nobjc; Tcl_Obj **nobjv;
   NsfClass **cl = &givenCl;
-  CONST char **methodName = &givenMethodName;
   Tcl_CallFrame *framePtr;
 
   if (!cscPtr) {
@@ -7947,36 +7953,39 @@ NsfNextMethod(NsfObject *object, Tcl_Interp *interp, NsfClass *givenCl,
      */
     framePtr = NULL;
     assert(useCallstackObjs == 0);
-    /* fprintf(stderr, "NsfNextMethod csc given, use %d, framePtr %p\n", useCallstackObjs, framePtr); */
+    /* fprintf(stderr, "NsfNextMethod csc given, use %d, framePtr %p\n", 
+       useCallstackObjs, framePtr); */
   }
 
-
-#if 1
-  /*fprintf(stderr, "NsfNextMethod givenMethod = %s, csc = %p, useCallstackObj %d, objc %d cfp %p\n",
-	  givenMethodName, cscPtr, useCallstackObjs, objc, framePtr);
-  fprintf(stderr, ".... cmd %p is Object %d csc %p flags %.6x frametype %.6x\n",
-	  cscPtr->cmdPtr, 
-	  Tcl_Command_objProc(cscPtr->cmdPtr) == NsfObjDispatch, 
-	  cscPtr,
-	  cscPtr->callType,cscPtr->frameType);*/ /* zzzz */
+  /* zzzz */
   if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
     /*tcl85showStack(interp);*/
-    /*
-    fprintf(stderr, ".... objc %d useCallstackObjs %d framePtr %p csc->ov[0] %s\n", 
-	    objc, useCallstackObjs, framePtr, 
-	    cscPtr->objv ? ObjStr(cscPtr->objv[0]) : NULL);
-    */
     Tcl_CallFrame *framePtr2 = Tcl_CallFrame_callerPtr(framePtr);
+    assert(framePtr2);
+    /* 
+     * Search back on the stack for the invocation of this ensemble
+     * object. The invocations might be nested. All
+     * ensemble-invocations are CMETHODs, their associated cscPtr has
+     * a callType of CALL_IS_ENSEMBLE.
+     */
     for (;Tcl_CallFrame_isProcCallFrame(framePtr2) & FRAME_IS_NSF_CMETHOD; 
 	 framePtr2 = Tcl_CallFrame_callerPtr(framePtr2)) {
       NsfCallStackContent *cscPtr2 = (NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr2);
-      /*fprintf(stderr, ".... parent framePtr %p csc->ov[0] %s\n", 
-	framePtr2, cscPtr2->objv ? ObjStr(cscPtr2->objv[0]) : NULL);*/
+      assert(cscPtr2);
+      /*fprintf(stderr, ".... parent framePtr %p frameType %.6x callType %.6x csc->ov[0] %s\n", 
+	      framePtr2, cscPtr2->frameType, cscPtr2->callType, 
+	      cscPtr2->objv ? ObjStr(cscPtr2->objv[0]) : NULL);*/
+      /*
+       * The test for CALL_IS_ENSEMBLE is just a saftey belt
+       */ 
+      if ((cscPtr2->callType & NSF_CSC_CALL_IS_ENSEMBLE) == 0) break;
+      /* 
+       * Remember the method name and the cscPtr 
+       */
       *methodName = ObjStr(cscPtr2->objv[0]);
       cscPtr = cscPtr2;
     }
   }
-#endif
 
   /* if no args are given => use args from stack */
   if (objc < 2 && useCallstackObjs && framePtr) {
@@ -7991,11 +8000,13 @@ NsfNextMethod(NsfObject *object, Tcl_Interp *interp, NsfClass *givenCl,
   } else {
     nobjc = objc;
     nobjv = (Tcl_Obj **)objv;
-    /* We do not want to have "next" as the procname, since this can
-       lead to unwanted results e.g. in a forwarder using %proc. So, we
-       replace the first word with the value from the callstack to be
-       compatible with the case where next is called without args.
-    */
+    /* 
+     * We do not want to have "next" as the method name, since this
+     * can lead to unwanted results e.g. in a forwarder using
+     * %proc. So, we replace the first word with the value from the
+     * callstack to be compatible with the case where next is called
+     * without args.
+     */
     if (useCallstackObjs && framePtr) {
       nobjv[0] = Tcl_CallFrame_objv(framePtr)[0];
       INCR_REF_COUNT(nobjv[0]); /* we seem to need this here */

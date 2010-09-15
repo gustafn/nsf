@@ -15,7 +15,7 @@ Test case dummy {
 #######################################################
 # parametercheck
 #######################################################
-Test parameter count 10000
+Test parameter count 1000
 Test case parametercheck {
 
   Object create o1
@@ -1116,7 +1116,7 @@ Test case slot-nosetter {
   ? {c1 c 102} {::c1: unable to dispatch method 'c'}
 }
 
-Test parameter count 10000
+Test parameter count 1000
 Test case check-arguments {
 
   Class create Foo {
@@ -1209,6 +1209,9 @@ Test case checktype {
   ? {o f13} 1
 }
 
+#
+# testing namespace resolution in type checkers
+#
 namespace eval foo {
   nx::Class create C {
     :create c1
@@ -1250,22 +1253,48 @@ namespace eval foo {
   ? {c1 f32} 1
 }
 
+#
+# testing ensemble objects with next
+#
+Test parameter count 1
 Test case ensemble-next {
 
   nx::Class create FOO {
+    # reduced ensemble
     :method foo args {lappend :v "FOO.foo//[nx::current method] ([nx::current args])"}
-    :method "a" {args} {puts FOO-[nx::current method]\n}
-    :method "b" {x} {puts FOO-[nx::current method]\n}
-    :method "x" {x} {puts FOO-[nx::current method]\n}
-    :method "y" {x} {puts FOO-[nx::current method]\n}
+
+    # expanded ensemble
+    :method "l1 l2 l3a" {x} {
+      lappend :v "FOO.l1 l2 l3a//[nx::current method] ([nx::current args])"
+    }
+    :method "l1 l2 l3b" {x} {
+      lappend :v "FOO.l1 l2 l3b//[nx::current method] ([nx::current args])"
+    }
+    # uplevel
+    :method "bar x" {varname} {upvar $varname v; return [info exists v]}
+    :method "baz" {} {
+      set hugo 1
+      return [:bar x hugo]
+    }
   }
   nx::Class create M0 {
-    :method "a" {args} {puts M0-[nx::current method];nx::next}
-    :method "x" {x} {puts M0-[nx::current method];nx::next}
-    :method "b y" {x} {puts M0-[nx::current method];nx::next}
-    :method "foo b x" {x} {lappend :v "M0.foo b x//[nx::current method] ([nx::current args])";nx::next}
-    :method "foo b y" {x} {lappend :v "M0.foo b y//[nx::current method] ([nx::current args])";nx::next}
-    :method "foo a" {x} {lappend :v "M0.foo a//[nx::current method] ([nx::current args])";nx::next}
+    :method "foo b x" {x} {
+      lappend :v "M0.foo b x//[nx::current method] ([nx::current args])"
+      nx::next
+    }
+    :method "foo b y" {x} {
+      lappend :v "M0.foo b y//[nx::current method] ([nx::current args])"
+      nx::next
+    }
+    :method "foo a" {x} {
+      lappend :v "M0.foo a//[nx::current method] ([nx::current args])"
+      nx::next
+    }
+
+    :method "l1 l2" {args} {
+      lappend :v "l1 l2//[nx::current method] ([nx::current args])"
+      nx::next
+    }
   }
 
   nx::Class create M1 {
@@ -1281,17 +1310,52 @@ Test case ensemble-next {
       set :v  [list "M1.foo b y //[nx::current method] ([nx::current args])"]
       nx::next
     }
+
+    :method "l1 l2 l3a" {x} {
+      set :v  [list "M1.l1 l2 l3a//[nx::current method] ([nx::current args])"]
+      nx::next
+    }
+    :method "l1 l2 l3b" {x} {
+      set :v  [list "M1.l1 l2 l3b//[nx::current method] ([nx::current args])"]
+      nx::next
+    }
   }
   
   FOO mixin {M1 M0}
   FOO create f1
   
-  #f1 foo
-  puts stderr ====
+  #
+  # The last list element shows handling of less deep ensembles
+  # (longer arg list is passed)
+  #
   ? {f1 foo a 1} "{M1.foo a //a (1)} {M0.foo a//a (1)} {FOO.foo//foo (a 1)}"
-  puts stderr ====
   ? {f1 foo b x 1} "{M1.foo b x //x (1)} {M0.foo b x//x (1)} {FOO.foo//foo (b x 1)}"
-  puts stderr ====
   ? {f1 foo b y 1} "{M1.foo b y //y (1)} {M0.foo b y//y (1)} {FOO.foo//foo (b y 1)}"
-  puts stderr ==== 
+  #
+  # The middle list element shows shrinking (less deep ensembles), the
+  # last element shows expansion via mixin (deeper ensemble is reached
+  # via next)
+  #
+  ? {f1 l1 l2 l3a 100} "{M1.l1 l2 l3a//l3a (100)} {l1 l2//l2 (l3a 100)} {FOO.l1 l2 l3a//l3a (100)}"
+}
+
+
+Test case ensemble-upvar {
+
+  nx::Class create FOO {
+    :method "bar0 x" {varname} {upvar $varname v; return [info exists v]}
+    :method "baz0" {} {
+      set hugo 1
+      return [:bar0 x hugo]
+    }
+    :method "bar1 x" {varname} {:upvar $varname v; return [info exists v]}
+    :method "baz1" {} {
+      set hugo 1
+      return [:bar1 x hugo]
+    }
+    :create f1
+  }
+ 
+  ? {f1 baz0} 0
+  ? {f1 baz1} 1
 }

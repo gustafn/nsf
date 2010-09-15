@@ -1365,11 +1365,14 @@ _ added option noforwarder to RelationSlots
 - documented behavior of upvar/uplevel with aliases on scripted procs
   through regression test
 
+- implemented next within ensemble methods
+- added regression tests for next within ensembles
+- added regression tests for upvar with ensembles
+
 TODO: 
 - subcmd
    * handle sucmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
-   * next handling
 
 - next noargs
 

@@ -435,20 +435,20 @@ Test case nesting-destroy {
 Test case deleting-aliased-object {
   Object create o
   Object create o2
-  ::nsf::alias o x o2
-  ? {o x} ::o2 "call object via alias"
-  ? {o info method type x} alias
-  ## the forwarded object needs a per-object methods
-  o2 method info args next
-  o2 method set args next
-  ? {o x info vars} "" "call info on aliased object"
+  ::nsf::alias o a o2
+  ? {o a} ::o2 "call object via alias"
+  ? {o info method type a} alias
+  ## the ensemble-object needs per-object methods
+  o2 method info args {:info {*}$args}
+  o2 method set args {:set {*}$args}
+  ? {o a info vars} "" "call info on aliased object"
   ? {o set x 10} 10   "set variable on object"
   ? {o info vars} x   "query vars"
-  ? {o x info vars} x  "query vars via alias"
-  ? {o x set x} 10     "set var via alias"
+  ? {o a info vars} x  "query vars via alias"
+  ? {o a set x} 10     "set var via alias"
   o2 destroy
-  ? {o x info vars} "Trying to dispatch deleted object via method 'x'" "1st call on deleted object"
-  ? {o x info vars} "::o: unable to dispatch method 'x'" "2nd call on deleted object"
+  ? {o a info vars} "Trying to dispatch deleted object via method 'a'" "1st call on deleted object"
+  ? {o a info vars} "::o: unable to dispatch method 'a'" "2nd call on deleted object"
 }
 
 set case "deleting object with alias to object"
@@ -479,7 +479,7 @@ Test case create-alias-and-recreate-obj {
   Object create o3
   o alias x o3
   Object create o3
-  o3 method set args next
+  o3 method set args {:set {*}$args}
   o set a 13
   ? {o x set a} 13 "aliased object works after recreate"
 }
@@ -494,8 +494,10 @@ Test case create-alias-on-class-delete-aliased-obj {
   Object create o3
   o alias a o3
   C alias b o
-  o3 method set args next
-  o method set args next
+
+  o3 method set args {:set {*}$args}
+  o method set args {:set {*}$args}
+
   C create c1
   ? {c1 b set B 2} 2 "call 1st level"
   ? {c1 b a set A 3} 3 "call 2nd level"
