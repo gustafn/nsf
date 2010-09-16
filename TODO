@@ -1377,13 +1377,14 @@ _ added option noforwarder to RelationSlots
 - added regression tests for partial ensembles
 
 - renamed "... info ... subcommands ..." into "... submethods ..."
+- rennamed tests/subcmd.tcl info tests/submethods.tcl
+- moved relevant tests from tests/parameters into tests/submethods.tcl
 
 TODO: 
 - subcmd
    * handle sucmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
-   * rename "info ... subcommands" to "submethods"
-     move tests from parameters into submethods
+   * move tests from parameters into submethods
 names in nsfStack
 
 - next noargs
