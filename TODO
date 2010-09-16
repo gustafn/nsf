@@ -1369,10 +1369,20 @@ _ added option noforwarder to RelationSlots
 - added regression tests for next within ensembles
 - added regression tests for upvar with ensembles
 
+- refactored next and argument passing (new methods
+  NextGetArguments(), NextSearchAndInvoke() and 
+  CallStackFindEnsembleCsc())
+- doing an internal next in cases where a method 
+  ensemble does not contain the called submethod
+- added regression tests for partial ensembles
+
 TODO: 
 - subcmd
    * handle sucmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
+   * rename "info ... subcommands" to "submethods"
+     move tests from parameters into submethods
+names in nsfStack
 
 - next noargs
 

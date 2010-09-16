@@ -280,6 +280,43 @@ CallStackFindActiveFilter(Tcl_Interp *interp) {
   return NULL;
 }
 
+
+/*
+ *----------------------------------------------------------------------
+ * CallStackFindEnsembleCsc --
+ *
+ *    Return the callstack content and the optionally the stack frame
+ *    of the last ensemble invocation.
+ *
+ * Results:
+ *    callstack content
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static NsfCallStackContent *
+CallStackFindEnsembleCsc(Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtrPtr) {
+  register Tcl_CallFrame *varFramePtr;
+  NsfCallStackContent *cscPtr = NULL;
+
+  assert(framePtr);
+  for (varFramePtr = Tcl_CallFrame_callerPtr(framePtr);
+       Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_NSF_CMETHOD; 
+       varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+    cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+    assert(cscPtr);
+    /*
+     * The test for CALL_IS_ENSEMBLE is just a saftey belt
+     */ 
+    if ((cscPtr->callType & NSF_CSC_CALL_IS_ENSEMBLE) == 0) break;
+  }
+  *framePtrPtr = varFramePtr;
+  
+  return cscPtr;
+}
+
 /*
  * check, if there is an active filters on "obj" using cmd
  */

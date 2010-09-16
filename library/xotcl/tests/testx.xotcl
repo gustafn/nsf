@@ -390,6 +390,7 @@ TestX filterAddRemove -proc run {{n 20}} {
     ::errorCheck $erg "in a" \
         "obj filter remove"
   }
+
   for {set i 0} {$i < $n} {incr i} {
     SA($i) destroy
     SB($i) destroy
@@ -402,7 +403,7 @@ TestX filterAddRemove -proc run {{n 20}} {
   #
   # instvar test
   #
-  
+
   Object o
   o set x 1
   Object o1
@@ -432,6 +433,7 @@ TestX filterAddRemove -proc run {{n 20}} {
         "x: 11 y: ie 0 me 0 iv 'y' oe 0 oiv '' // y: ie 1 me 0 iv 'y' oe 1 oiv 'y'" \
         "instvar test 2 failed"
   }
+
   o2 t
 
   o destroy
@@ -445,7 +447,7 @@ TestX filterAddRemove -proc run {{n 20}} {
   a set p 13
   Class A
   A set m 14
-  
+
   Object instproc f args {
     global filterResult
     a instvar o p
@@ -462,8 +464,10 @@ TestX filterAddRemove -proc run {{n 20}} {
   Object instfilter f
 
   x
+
   ::errorCheck $::a::e xxx \
     "filterAddRemove: instvar test -- proc set failed"
+  puts stderr a10a
   a set e yyy
 
   ::errorCheck $::a::e yyy \
@@ -471,7 +475,7 @@ TestX filterAddRemove -proc run {{n 20}} {
   
   ::errorCheck $filterResult " ::A instvar f 12 13 14 ::a set run 12 13 14" \
     "filterAddRemove: instvar test -- instvar filter failed"
-  
+
   Object instfilter ""   
 
   Object instproc f args {

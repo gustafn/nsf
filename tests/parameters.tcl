@@ -1339,6 +1339,30 @@ Test case ensemble-next {
   ? {f1 l1 l2 l3a 100} "{M1.l1 l2 l3a//l3a (100)} {l1 l2//l2 (l3a 100)} {FOO.l1 l2 l3a//l3a (100)}"
 }
 
+Test case ensemble-partial-next {
+  nx::Class create M {
+    :method "info has namespace" {} {
+      next
+      return sometimes
+    }
+    :method "info has something else" {} {
+      return something
+    }
+    :method "info has something better" {} {
+      next
+      return better
+    }
+  }
+  nx::Object mixin add M
+  nx::Object create o1
+  ? {o1 info has namespace} sometimes
+  ? {o1 info has type Object} 1
+  ? {o1 info has type M} 0
+  ? {o1 info has typo M} \
+      {unable to dispatch method <obj> info has typo; valid subcommands of has: namespace something}
+  ? {o1 info has something else} something
+  ? {o1 info has something better} better
+}
 
 Test case ensemble-upvar {
 

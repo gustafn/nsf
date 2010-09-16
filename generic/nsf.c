@@ -163,9 +163,7 @@ static Tcl_ObjType CONST86 *byteCodeType = NULL, *tclCmdNameType = NULL, *listTy
  */
 
 /* prototypes for method defintions */
-static int NsfNextMethod(NsfObject *object, Tcl_Interp *interp, NsfClass *givenCl,
-                           CONST char *givenMethodName, int objc, Tcl_Obj *CONST objv[],
-                           int useCSObjs, NsfCallStackContent *cscPtr);
+static int NsfNextMethod(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfForwardMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc,Tcl_Obj *CONST objv[]);
@@ -247,7 +245,12 @@ static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, T
 static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
 			      int withPer_object, int methodType, int withCallproctection,
 			      int noMixins, int inContext);
-
+static int NextSearchAndInvoke(Tcl_Interp *interp,
+			       CONST char *methodName, int objc, Tcl_Obj *CONST objv[],
+			       NsfCallStackContent *cscPtr);
+static int NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
+			    NsfCallStackContent **cscPtrPtr, CONST char **methodNamePtr,
+			    int *outObjc, Tcl_Obj ***outObjv, int *decrObjv0);
 /*
  * argv parsing 
  */
@@ -5547,6 +5550,7 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp, int objc,	
   result = TclPushStackFrame(interp, (Tcl_CallFrame **)&framePtr,
 			     (Tcl_Namespace *)  procPtr->cmdPtr->nsPtr,
 			     (FRAME_IS_PROC|FRAME_IS_NSF_METHOD));
+
   if (result != TCL_OK) {
     return result;
   }
@@ -5908,17 +5912,17 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 
         if (result != TCL_ERROR) {
           /*
-           * The guard failed (but no error); call "next", use the
-           * actual objv's, not the callstack objv, since we may not
-           * be in a method resulting in invalid callstackobjs.
+           * The guard failed (but no error), and we call "next".
+           * Since we may not be in a method with already provided
+           * arguments, we call next with the actual arguments and
+           * perform no argument substitution.
            *
            * The call stack content is not jet pushed to the Tcl
-           * stack, so we pass it here explicitly.
+           * stack, be we pass it already to search-and-invoke.
            */
 
           /*fprintf(stderr, "... calling nextmethod cscPtr %p\n", cscPtr);*/
-          result = NsfNextMethod(object, interp, cl, methodName,
-                               objc, objv, /*useCallStackObjs*/ 0, cscPtr);
+	  result = NextSearchAndInvoke(interp, methodName, objc, objv, cscPtr);
           /*fprintf(stderr, "... after nextmethod result %d\n", result);*/
         }
 #if defined(NRE)
@@ -6358,7 +6362,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 
     /*fprintf(stderr, "we could stuff obj %p %s\n", object, objectName(object));*/
 
-    if (proc == NsfObjDispatch) {
+    if (proc == NsfObjDispatch) { 
       /*
        * invoke an aliased object (ensemble object) via method interface
        */
@@ -6386,16 +6390,15 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
       if (objc < 2) {
 	result = DispatchDefaultMethod(cp, interp, objc, objv);
       } else {
-#if 0
-        ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
-	memcpy(tov, objv, sizeof(Tcl_Obj *)*(objc));
-	tov[1] = SubcmdObj(interp, ObjStr(objv[1]), -1);
-	INCR_REF_COUNT(tov[1]);
-	result = ObjectDispatch(cp, interp, objc, tov, NSF_CM_DELGATE);
-	DECR_REF_COUNT(tov[1]);
-#else
+	Tcl_CallFrame frame, *framePtr = &frame;
 	NsfObject *self = (NsfObject *)cp;
 	char *methodName = ObjStr(objv[1]);
+
+	CscInit(cscPtr, object, cl, cmd, frameType);
+	cscPtr->objc = objc;
+	cscPtr->objv = (Tcl_Obj **)objv;
+	cscPtr->callType |= NSF_CSC_CALL_IS_ENSEMBLE; /*zzzz*/
+	Nsf_PushFrameCsc(interp, cscPtr, framePtr);
 
 	/*fprintf(stderr, "save self %p %s (ns %p) object %p %s\n", 
 	  self, objectName(self), self->nsPtr, object, objectName(object));*/
@@ -6403,39 +6406,44 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	  cmd = FindMethod(self->nsPtr, methodName);
 	  /* fprintf(stderr, "... method %p %s csc %p\n", cmd, methodName, cscPtr); */
 	  if (cmd) {
-	    Tcl_CallFrame frame, *framePtr = &frame;
 	    /*
 	     * In order to allow next to be called on the
 	     * ensemble-method, a call-frame entry is needed. The
 	     * associated calltype is flagged as an ensemble to be
 	     * able to distinguish frames during next.
-	     */ 
-	    CscInit(cscPtr, object, cl, cmd, frameType);
-	    cscPtr->objc = objc;
-	    cscPtr->objv = (Tcl_Obj **)objv;
-	    Nsf_PushFrameCsc(interp, cscPtr, framePtr);
-	    cscPtr->callType |= NSF_CSC_CALL_IS_ENSEMBLE; /*zzzz*/
+	     */
+
+	    /*fprintf(stderr, ".... ensemble dispatch on %s.%s csc %p\n",
+	      objectName(object),methodName, cscPtr);*/
 	    result = MethodDispatch(object, interp, objc-1, objv+1, 
 				    cmd, object, NULL, methodName, 
 				    frameType|NSF_CSC_TYPE_ENSEMBLE);
-	    Nsf_PopFrameCsc(interp, framePtr);
-	    CscFinish(interp, cscPtr);
 	    goto obj_dispatch_ok;
 	  }
 	}
 
-	result = DispatchUnknownMethod(self, interp, 
-				       objc-1, objv+1, objv[1], NSF_CM_NO_OBJECT_METHOD);
-	/*
-	result = NsfVarErrMsg(interp, objectName(self),
-                                ": aaa unable to dispatch method '",
-                                methodName, "'", (char *) NULL);
-	*/
-      obj_dispatch_ok:;
-	/*result = ObjectDispatch(cp, interp, objc, objv, NSF_CM_DELGATE);*/
-#endif
+	/* 
+	 * The method to be called was not part of this ensemble. Call
+	 * next to try to call such methods along the next path.
+	 */
+	fprintf(stderr, "call next instead of unknown %s.%s \n",
+		objectName(cscPtr->self),methodName);
+
+	result = NsfNextMethod(interp, 0, NULL);
+
+	fprintf(stderr, "==> next %s csc %p returned %d unknown %d\n", 
+		methodName, cscPtr, result, rst->unknown); 
+	if (rst->unknown) {
+	  result = DispatchUnknownMethod(self, interp, objc-1, objv+1, 
+					 objv[1], NSF_CM_NO_OBJECT_METHOD);
+	}
+      obj_dispatch_ok:
+	Nsf_PopFrameCsc(interp, framePtr);
+	CscFinish(interp, cscPtr);
+
       }
       return result;
+
     } else if (proc == NsfForwardMethod ||
 	       proc == NsfObjscopedMethod ||
 	       proc == NsfSetterMethod
@@ -7814,7 +7822,7 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
  */
 NSF_INLINE static int
 NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *cscPtr,
-                 NsfClass **cl, CONST char **methodName, Tcl_Command *cmd,
+                 NsfClass **clPtr, CONST char **methodNamePtr, Tcl_Command *cmd,
                  int *isMixinEntry, int *isFilterEntry,
                  int *endOfFilterChain, Tcl_Command *currentCmd) {
   int endOfChain = 0, objflags;
@@ -7832,22 +7840,24 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
   if ((objflags & NSF_FILTER_ORDER_VALID) &&
       object->filterStack &&
       object->filterStack->currentCmdPtr) {
-    *cmd = FilterSearchProc(interp, object, currentCmd, cl);
-    /*fprintf(stderr, "EndOfChain? proc=%p, cmd=%p\n",*proc,*cmd);*/
+    *cmd = FilterSearchProc(interp, object, currentCmd, clPtr);
+    /* fprintf(stderr, "EndOfChain? cmd=%p\n",*cmd);*/
     /*  NsfCallStackDump(interp); NsfStackDump(interp);*/
 
-    if (*cmd == 0) {
+    if (*cmd == NULL) {
       if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) {
-        /* reset the information to the values of method, cl
-           to the values they had before calling the filters */
-        *methodName = ObjStr(object->filterStack->calledProc);
+        /* 
+	 * Reset the information to the values of method, clPtr
+	 * to the values they had before calling the filters.
+	 */
+        *methodNamePtr = ObjStr(object->filterStack->calledProc);
         endOfChain = 1;
         *endOfFilterChain = 1;
-        *cl = 0;
+        *clPtr = NULL;
         /*fprintf(stderr, "EndOfChain resetting cl\n");*/
       }
     } else {
-      *methodName = (char *) Tcl_GetCommandName(interp, *cmd);
+      *methodNamePtr = (char *) Tcl_GetCommandName(interp, *cmd);
       *endOfFilterChain = 0;
       *isFilterEntry = 1;
       return TCL_OK;
@@ -7864,15 +7874,15 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
     obj->flags & NSF_MIXIN_ORDER_VALID, obj->mixinStack);*/
 
   if ((objflags & NSF_MIXIN_ORDER_VALID) &&  object->mixinStack) {
-    int result = MixinSearchProc(interp, object, *methodName, cl, currentCmd, cmd);
+    int result = MixinSearchProc(interp, object, *methodNamePtr, clPtr, currentCmd, cmd);
     if (result != TCL_OK) {
       return result;
     }
     /*fprintf(stderr, "nextsearch: mixinsearch cmd %p, currentCmd %p\n",*cmd, *currentCmd);*/
-    if (*cmd == 0) {
+    if (*cmd == NULL) {
       if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_MIXIN) {
         endOfChain = 1;
-        *cl = 0;
+        *clPtr = NULL;
       }
     } else {
       *isMixinEntry = 1;
@@ -7884,14 +7894,14 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
    * otherwise: normal method dispatch
    *
    * if we are already in the precedence ordering, then advance
-   * past our last point; otherwise (if cl==0) begin from the start
+   * past our last point; otherwise (if clPtr==0) begin from the start
    */
 
   /* if a mixin or filter chain has ended -> we have to search
      the obj-specific methods as well */
 
   if (object->nsPtr && endOfChain) {
-    *cmd = FindMethod(object->nsPtr, *methodName);
+    *cmd = FindMethod(object->nsPtr, *methodNamePtr);
   } else {
     *cmd = NULL;
   }
@@ -7899,97 +7909,88 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
 
   if (!*cmd) {
     NsfClasses *pl;
-#if 0
-    /* a more explicit version, but slower */
-    pl = ComputeOrder(object->cl, object->cl->order, Super);
-    /* if we have a class, skip to the next class in the precedence order */
-    if (*cl) {
-      for (; pl; pl = pl->nextPtr) {
-        if (pl->cl == *cl) {
-          pl = pl->nextPtr;
-          break;
-        }
+
+    for (pl = ComputeOrder(object->cl, object->cl->order, Super); *clPtr && pl; pl = pl->nextPtr) {
+      if (pl->cl == *clPtr) {
+        *clPtr = NULL;
       }
     }
-#else
-    for (pl = ComputeOrder(object->cl, object->cl->order, Super); *cl && pl; pl = pl->nextPtr) {
-      if (pl->cl == *cl) {
-        *cl = NULL;
-      }
-    }
-#endif
 
     /*
      * search for a further class method
      */
-    *cl = SearchPLMethod(pl, *methodName, cmd);
-    /*fprintf(stderr, "no cmd, cl = %p %s\n",*cl, className((*cl)));*/
+    *clPtr = SearchPLMethod(pl, *methodNamePtr, cmd);
+    /*fprintf(stderr, "zzz new clPtr %p %s cmd %p\n",*clPtr, className((*clPtr)), cmd);*/
   } else {
-    *cl = 0;
+    *clPtr = NULL;
   }
 
   return TCL_OK;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NextGetArguments --
+ *
+ *    Obtain arguments for a method invoked via next either from the
+ *    argument vector or from the stack (call stack content or Tcl
+ *    stack). In case of ensemble calls the stack entries of the
+ *    ensemble invocation are used. The function returns the arguments
+ *    4 to 8.
+ *
+ * Results:
+ *    Tcl return code
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
+ */
 static int
-NsfNextMethod(NsfObject *object, Tcl_Interp *interp, NsfClass *givenCl,
-                CONST char *givenMethodName, int objc, Tcl_Obj *CONST objv[],
-                int useCallstackObjs, NsfCallStackContent *cscPtr) {
-  Tcl_Command cmd, currentCmd = NULL;
-  int result, frameType = NSF_CSC_TYPE_PLAIN,
-    isMixinEntry = 0, isFilterEntry = 0,
-    endOfFilterChain = 0, decrObjv0 = 0;
-  CONST char **methodName = &givenMethodName;
-  int nobjc; Tcl_Obj **nobjv;
-  NsfClass **cl = &givenCl;
+NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
+		 NsfCallStackContent **cscPtrPtr, CONST char **methodNamePtr,
+		 int *outObjc, Tcl_Obj ***outObjv, int *decrObjv0) {
+  int nobjc;
+  Tcl_Obj **nobjv;
   Tcl_CallFrame *framePtr;
+  NsfCallStackContent *cscPtr = CallStackGetTopFrame(interp, &framePtr);
 
-  if (!cscPtr) {
-    cscPtr = CallStackGetTopFrame(interp, &framePtr);
-  } else {
-    /*
-     * cscPtr was given (i.e. it is not yet on the stack). So we cannot
-     * get objc from the associated stack frame
-     */
-    framePtr = NULL;
-    assert(useCallstackObjs == 0);
-    /* fprintf(stderr, "NsfNextMethod csc given, use %d, framePtr %p\n", 
-       useCallstackObjs, framePtr); */
-  }
+  /* always make sure, we only decrement when necessary */
+  *decrObjv0 = 0;
 
-  /* zzzz */
+  if (!cscPtr)
+    return NsfVarErrMsg(interp, "next: can't find self", (char *) NULL);
+
+  if (!cscPtr->cmdPtr)
+    return NsfErrMsg(interp, "next: no executing proc", TCL_STATIC);
+
+  /*fprintf(stderr, "NEXT %s.%s (%d) type_ensemble %.6x\n",
+	  objectName(object), givenMethodName, objc, 
+	  (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE));*/
+
   if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
-    /*tcl85showStack(interp);*/
-    Tcl_CallFrame *framePtr2 = Tcl_CallFrame_callerPtr(framePtr);
-    assert(framePtr2);
-    /* 
-     * Search back on the stack for the invocation of this ensemble
-     * object. The invocations might be nested. All
-     * ensemble-invocations are CMETHODs, their associated cscPtr has
-     * a callType of CALL_IS_ENSEMBLE.
+    /*
+     * We are in an ensemble method. The next works here not on the
+     * actual methodName + frame, but on the ensemble above it. We
+     * locate the appropriate callstack content and continue next on
+     * that.
      */
-    for (;Tcl_CallFrame_isProcCallFrame(framePtr2) & FRAME_IS_NSF_CMETHOD; 
-	 framePtr2 = Tcl_CallFrame_callerPtr(framePtr2)) {
-      NsfCallStackContent *cscPtr2 = (NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr2);
-      assert(cscPtr2);
-      /*fprintf(stderr, ".... parent framePtr %p frameType %.6x callType %.6x csc->ov[0] %s\n", 
-	      framePtr2, cscPtr2->frameType, cscPtr2->callType, 
-	      cscPtr2->objv ? ObjStr(cscPtr2->objv[0]) : NULL);*/
-      /*
-       * The test for CALL_IS_ENSEMBLE is just a saftey belt
-       */ 
-      if ((cscPtr2->callType & NSF_CSC_CALL_IS_ENSEMBLE) == 0) break;
-      /* 
-       * Remember the method name and the cscPtr 
-       */
-      *methodName = ObjStr(cscPtr2->objv[0]);
-      cscPtr = cscPtr2;
-    }
+    cscPtr = CallStackFindEnsembleCsc(framePtr, &framePtr);
+    assert(cscPtr);
+
+    *methodNamePtr = ObjStr(cscPtr->objv[0]);
+  } else {
+    *methodNamePtr = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
   }
 
-  /* if no args are given => use args from stack */
-  if (objc < 2 && useCallstackObjs && framePtr) {
-
+  /*fprintf(stderr, "... next on %s.%s, objc %d useCallStackObjs %d framePtr %p\n",
+	  objectName(object),
+	  *methodNamePtr, objc, useCallstackObjs,framePtr);*/
+  
+  if (objc < 2) {
+    /* 
+     * no arguments were provided
+     */
     if (cscPtr->objv) {
       nobjv = cscPtr->objv;
       nobjc = cscPtr->objc;
@@ -7998,41 +7999,90 @@ NsfNextMethod(NsfObject *object, Tcl_Interp *interp, NsfClass *givenCl,
       nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(framePtr);
     }
   } else {
+    /* 
+     * We have arguments. However, we do not want to have "next" as
+     * the procname (objv[0]), since this can lead to report
+     * e.g. "next" in a forwarder using %proc. So, we replace (if
+     * possible) the first word with the value from the callstack.
+     */
     nobjc = objc;
     nobjv = (Tcl_Obj **)objv;
-    /* 
-     * We do not want to have "next" as the method name, since this
-     * can lead to unwanted results e.g. in a forwarder using
-     * %proc. So, we replace the first word with the value from the
-     * callstack to be compatible with the case where next is called
-     * without args.
-     */
-    if (useCallstackObjs && framePtr) {
+
+    if (cscPtr->objv) {
+      nobjv[0] = cscPtr->objv[0];
+    } else if (Tcl_CallFrame_objv(framePtr)) {
       nobjv[0] = Tcl_CallFrame_objv(framePtr)[0];
-      INCR_REF_COUNT(nobjv[0]); /* we seem to need this here */
-      decrObjv0 = 1;
+    }
+    INCR_REF_COUNT(nobjv[0]); /* we seem to need this here */
+    *decrObjv0 = 1;
+  }
+
+  /* cut the flag, that no stdargs should be used, if it is there */
+  if (nobjc > 1) {
+    CONST char *arg1String = ObjStr(nobjv[1]);
+    if (*arg1String == '-' && !strcmp(arg1String, "--noArgs")) {
+      nobjc = 1;
     }
   }
+  *cscPtrPtr = cscPtr;
+  *outObjc = nobjc;
+  *outObjv = nobjv;
+
+  return TCL_OK;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NextSearchAndInvoke --
+ *
+ *    The function is called with a final argument vector and searches
+ *    for an possible shadowed method. In case is successful, it
+ *    updates the continuation context (filter flags etc) amd invokes
+ *    the found method.
+ *
+ * Results:
+ *    Tcl return code
+ *
+ * Side effects:
+ *    The invoked method might produce side effects
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName, 
+		    int objc, Tcl_Obj *CONST objv[],
+		    NsfCallStackContent *cscPtr) {
+  Tcl_Command cmd, currentCmd = NULL;
+  int result, frameType = NSF_CSC_TYPE_PLAIN,
+    isMixinEntry = 0, isFilterEntry = 0,
+    endOfFilterChain = 0;
+  NsfRuntimeState *rst = RUNTIME_STATE(interp);
+  NsfObject *object = cscPtr->self;
+  NsfClass *cl;
 
   /*
    * Search the next method & compute its method data
    */
-  result = NextSearchMethod(object, interp, cscPtr, cl, methodName, &cmd,
+  cl = cscPtr->cl;
+  result = NextSearchMethod(object, interp, cscPtr, &cl, &methodName, &cmd,
                             &isMixinEntry, &isFilterEntry, &endOfFilterChain, &currentCmd);
+  /*fprintf(stderr, "NEXT search on %s.%s givencl %p cl %p returned %p / %p, %d\n",
+    objectName(object), *methodNamePtr, givenCl, *clPtr, cmd, currentCmd, result);*/
+
   if (result != TCL_OK) {
     return result;
   }
 
   /*
-    fprintf(stderr, "NextSearchMethod -- RETURN: method=%s eoffc=%d,",
-    *methodName, endOfFilterChain);
+    Fprintf(stderr, "NextSearchMethod -- RETURN: method=%s eoffc=%d,",
+    *methodNamePtr, endOfFilterChain);
 
-    if (obj)
+    if (object)
     fprintf(stderr, " obj=%s,", objectName(object));
     if ((*cl))
     fprintf(stderr, " cl=%s,", (*cl)->nsPtr->fullName);
-    fprintf(stderr, " mixin=%d, filter=%d, proc=%p\n",
-    isMixinEntry, isFilterEntry, proc);
+    fprintf(stderr, " mixin=%d, filter=%d, cmd=%p\n",
+    isMixinEntry, isFilterEntry, cmd);
   */
 #if 0
   Tcl_ResetResult(interp); /* needed for bytecode support */
@@ -8071,49 +8121,84 @@ NsfNextMethod(NsfObject *object, Tcl_Interp *interp, NsfClass *givenCl,
     /*
      * now actually call the "next" method
      */
-
-    /* cut the flag, that no stdargs should be used, if it is there */
-    if (nobjc > 1) {
-      CONST char *nobjv1 = ObjStr(nobjv[1]);
-      if (nobjv1[0] == '-' && !strcmp(nobjv1, "--noArgs"))
-        nobjc = 1;
-    }
     cscPtr->callType |= NSF_CSC_CALL_IS_NEXT;
-    RUNTIME_STATE(interp)->unknown = 0;
-    /*fprintf(stderr, "setting unknown to 0\n");*/
-    result = MethodDispatch((ClientData)object, interp, nobjc, nobjv, cmd,
-                            object, *cl, *methodName, frameType);
+    rst->unknown = 0;
+    result = MethodDispatch((ClientData)object, interp, objc, objv, cmd,
+                            object, cl, methodName, frameType);
     cscPtr->callType &= ~NSF_CSC_CALL_IS_NEXT;
 
     if (cscPtr->frameType == NSF_CSC_TYPE_INACTIVE_FILTER)
       cscPtr->frameType = NSF_CSC_TYPE_ACTIVE_FILTER;
     else if (cscPtr->frameType == NSF_CSC_TYPE_INACTIVE_MIXIN)
       cscPtr->frameType = NSF_CSC_TYPE_ACTIVE_MIXIN;
-  } else if (result == TCL_OK && endOfFilterChain) {
-    /*fprintf(stderr, "setting unknown to 1\n");*/
-    RUNTIME_STATE(interp)->unknown = 1;
+  } else if (result == TCL_OK) {
+    /*
+     * We could not find a cmd, but there was no error on the call.
+     * When we are at the end of a filter-chain, or within a next from
+     * an ensemble, set the unknown flag to allow higher levels to
+     * handle this case.
+     */
+   
+    /*fprintf(stderr, "--- no cmd, csc %p frameType %.6x callType %.6x endOfFilterChain %d\n",
+      cscPtr, cscPtr->frameType, cscPtr->callType, endOfFilterChain);*/
+    
+     rst->unknown = endOfFilterChain || (cscPtr->callType & NSF_CSC_CALL_IS_ENSEMBLE);
+     /*fprintf(stderr, "******** setting unknown to %d\n",  rst->unknown );*/
+  }
+
+  return result;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NsfNextMethod --
+ *
+ *    The function combines NextGetArguments() and
+ *    NextSearchAndInvoke().  It is called either be the Tcl command
+ *    "next" or internally after an unsuccessful ensemble invocation.
+ *
+ * Results:
+ *    Tcl return code
+ *
+ * Side effects:
+ *    The invoked method might produce side effects
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+NsfNextMethod(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  NsfCallStackContent *cscPtr;
+  int result, decrObjv0;
+  Tcl_Obj **nobjv;
+  int nobjc;
+  CONST char *methodName;
+
+  result = NextGetArguments(interp, objc, objv, &cscPtr, &methodName, &nobjc, &nobjv, &decrObjv0);
+  if (result == TCL_OK) {
+    result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr);
   }
 
   if (decrObjv0) {
     INCR_REF_COUNT(nobjv[0]);
-  }
+  }  
 
   return result;
 }
 
 int
 NsfNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  NsfCallStackContent *cscPtr = CallStackGetTopFrame(interp, NULL);
+  int result;
 
-  if (!cscPtr)
-    return NsfVarErrMsg(interp, "next: can't find self", (char *) NULL);
+  result = NsfNextMethod(interp, objc, objv);
 
-  if (!cscPtr->cmdPtr)
-    return NsfErrMsg(interp, "next: no executing proc", TCL_STATIC);
-
-  return NsfNextMethod(cscPtr->self, interp, cscPtr->cl,
-                         (char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr),
-                         objc, objv, 1, NULL);
+  if (result == TCL_ERROR && RUNTIME_STATE(interp)->unknown) {
+    fprintf(stderr, "don't report unknown error\n");
+    /*
+     * Don't report "unknown" errors via next.
+     */
+    result = TCL_OK;
+  } 
+  return result;
 }
 
 
@@ -8124,7 +8209,7 @@ NsfNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 static int
 FindSelfNext(Tcl_Interp *interp) {
   NsfCallStackContent *cscPtr = CallStackGetTopFrame(interp, NULL);
-  Tcl_Command cmd, currentCmd = 0;
+  Tcl_Command cmd, currentCmd = NULL;
   int result, isMixinEntry = 0,
     isFilterEntry = 0,
     endOfFilterChain = 0;
@@ -13625,22 +13710,6 @@ NsfOMixinGuardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *mixin, T
   return NsfVarErrMsg(interp, "Mixinguard: can't find mixin ",
                         mixin, " on ", objectName(object), (char *) NULL);
 }
-
-#if 0
-/* method for calling e.g.  $obj __next  */
-static int
-NsfONextMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
-  NsfCallStackContent *cscPtr = CallStackGetObjectFrame(interp, object);
-  CONST char *methodName;
-
-  if (!cscPtr)
-    return NsfVarErrMsg(interp, "__next: can't find object",
-			  objectName(object), (char *) NULL);
-  methodName = (char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr);
-  /* fprintf(stderr, "methodName %s\n", methodName);*/
-  return NsfNextMethod(object, interp, cscPtr->cl, methodName, objc-1, &objv[1], 0, NULL);
-}
-#endif
 
 static int
 NsfONoinitMethod(Tcl_Interp *interp, NsfObject *object) {
