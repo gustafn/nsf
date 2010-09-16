@@ -2156,7 +2156,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *n
 
 #if defined(CMD_RESOLVER_TRACE)
   fprintf(stderr, "    ... not found %s\n", cmdName);
-  tcl85showStack(interp);
+  Tcl85showStack(interp);
 #endif
   return TCL_CONTINUE;
 }
@@ -6546,7 +6546,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
     /*fprintf(stderr, "... check ok, cscPtr = %p\n", cscPtr);
     if (!cscPtr) {
-      tcl85showStack(interp);
+      Tcl85showStack(interp);
       }*/
     if (!cscPtr || (object != cscPtr->self ||
                     cscPtr->frameType != NSF_CSC_TYPE_ACTIVE_FILTER)) {
@@ -6646,7 +6646,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 	unknown = 1;
         fprintf(stderr, "+++ %s is protected, therefore maybe unknown %p %s lastself=%p o=%p cd %p flags = %.6x\n",
                 methodName, cmdObj, ObjStr(cmdObj), lastSelf, o, clientData, flags);
-        /*tcl85showStack(interp);*/
+        /*Tcl85showStack(interp);*/
       }
     }
 
@@ -10167,7 +10167,7 @@ CallingNameSpace(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
   Tcl_Namespace *nsPtr;
 
-  /*tcl85showStack(interp);*/
+  /*Tcl85showStack(interp);*/
 
   /*
   * Find last incovation outside the Next Scripting system namespaces. For
@@ -10176,7 +10176,7 @@ CallingNameSpace(Tcl_Interp *interp) {
   * would use this namespace, we would resolve non-fully-qualified
   * names against the root namespace).
   */
-  for (framePtr = activeProcFrame((Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp));
+  for (framePtr = CallStackGetActiveProcFrame((Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp));
        framePtr;
        framePtr = Tcl_CallFrame_callerVarPtr(framePtr)) {
     nsPtr = Tcl_CallFrame_nsPtr(framePtr);
@@ -12918,7 +12918,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
   NsfCallStackContent *cscPtr;
   int result = TCL_OK;
 
-  /*fprintf(stderr, "getSelfObj returns %p\n", object); tcl85showStack(interp);*/
+  /*fprintf(stderr, "getSelfObj returns %p\n", object); Tcl85showStack(interp);*/
 
   if (selfoption == 0 || selfoption == CurrentoptionObjectIdx) {
     if (object) {
@@ -13035,7 +13035,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
   case CurrentoptionIsnextcallIdx: {
     Tcl_CallFrame *framePtr;
     cscPtr = CallStackGetTopFrame(interp, &framePtr);
-    framePtr = nextFrameOfType(Tcl_CallFrame_callerPtr(framePtr), FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD);
+    framePtr = CallStackNextFrameOfType(Tcl_CallFrame_callerPtr(framePtr), FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD);
     cscPtr = framePtr ? Tcl_CallFrame_clientData(framePtr) : NULL;
 
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
@@ -13904,7 +13904,7 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
 
     /*fprintf(stderr, "### setting trace for %s on frame %p\n", fullName, 
       Tcl_Interp_varFramePtr(interp));
-      tcl85showStack(interp);*/
+      Tcl85showStack(interp);*/
     result = Tcl_TraceVar(interp, vn, TCL_TRACE_UNSETS,
 			  (Tcl_VarTraceProc*)NsfUnsetTrace,
                           (ClientData)objPtr);

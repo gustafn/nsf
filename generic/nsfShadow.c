@@ -136,7 +136,7 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     }
     frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
     /*fprintf(stderr, " ... frame %p varFramePtr %p frameFlags %.6x\n", framePtr, varFramePtr, frameFlags);
-      tcl85showStack(interp);*/
+      Tcl85showStack(interp);*/
     if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr = 
         ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr));

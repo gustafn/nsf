@@ -2,10 +2,10 @@
 static TclVarHashTable *VarHashTableCreate();
 static void NsfCleanupObject(NsfObject *object);
 
-void tcl85showStack(Tcl_Interp *interp) {
+void Tcl85showStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
 
-  fprintf(stderr, "tcl85showStack framePtr %p varFramePtr %p\n",
+  fprintf(stderr, "Tcl85showStack framePtr %p varFramePtr %p\n",
           Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));
   /* framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
     for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
@@ -107,7 +107,7 @@ static void Nsf_PopFrameCsc(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
  */
 
 static Tcl_CallFrame *
-activeProcFrame(Tcl_CallFrame *framePtr) {
+CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     register int flag = Tcl_CallFrame_isProcCallFrame(framePtr);
 
@@ -124,7 +124,7 @@ activeProcFrame(Tcl_CallFrame *framePtr) {
 }
 
 static Tcl_CallFrame *
-nextFrameOfType(Tcl_CallFrame *framePtr, int flags) {
+CallStackNextFrameOfType(Tcl_CallFrame *framePtr, int flags) {
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(framePtr) & flags)
       return framePtr;
@@ -246,10 +246,10 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
 
   /*NsfCallStackFindActiveFrame(interp, 0, &activeFramePtr);*/
 # if defined(TCL85STACK_TRACE)
-  tcl85showStack(interp);
+  Tcl85showStack(interp);
 # endif
   /* Get the first active non object frame */
-  framePtr = activeProcFrame(inFramePtr);
+  framePtr = CallStackGetActiveProcFrame(inFramePtr);
 
   /*fprintf(stderr,"... use frameptr %p \n", framePtr);*/
 
@@ -392,7 +392,7 @@ CallStackGetObjectFrame(Tcl_Interp *interp, NsfObject *object) {
  * callframe
  */
 static void CallStackPopAll(Tcl_Interp *interp) {
-  /*tcl85showStack(interp);*/
+  /*Tcl85showStack(interp);*/
 
   while (1) {
     Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
