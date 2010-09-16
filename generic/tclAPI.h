@@ -2,13 +2,13 @@
 static int ConvertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"args", "body", "definition", "handle", "parameter", "parametersyntax", "type", "precondition", "postcondition", "subcommands", NULL};
+  static CONST char *opts[] = {"args", "body", "definition", "handle", "parameter", "parametersyntax", "type", "precondition", "postcondition", "submethods", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infomethodsubcmd", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
   return result;
 }
-enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdHandleIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx, InfomethodsubcmdSubcommandsIdx};
+enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdHandleIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx, InfomethodsubcmdSubmethodsIdx};
   
 static int ConvertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {

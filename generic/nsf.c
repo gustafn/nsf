@@ -10880,7 +10880,7 @@ ListMethod(Tcl_Interp *interp,
         if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->post));
         return TCL_OK;
       }
-    case InfomethodsubcmdSubcommandsIdx:
+    case InfomethodsubcmdSubmethodsIdx:
       {
 	if (procPtr == NsfObjDispatch) {
 	  NsfObject *subObject = NsfGetObjectFromCmdPtr(cmd);

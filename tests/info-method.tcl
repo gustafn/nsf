@@ -214,32 +214,32 @@ Test case info-submethod {
     :class-object method "foo y" {z:int} {return z}
   }
 
-  # query definition on subcommand
+  # query definition on submethod
   ? {o info method definition "foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
 
-  # query definition on subcommand with handle
+  # query definition on submethod with handle
   ? {o info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
 
-  # query definition on subcommand with handle
+  # query definition on submethod with handle
   ? {o info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
 
-  # query definition on subcommand with handle called on different object
+  # query definition on submethod with handle called on different object
   ? {o2 info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
 
   # query definition on handle of ensemble object called on different object
   ? {o2 info method definition "::o::foo::b"} {::o::foo method b {x:int y:upper} {return b}}
 
-  # query definition on subcommand with handle called on class
+  # query definition on submethod with handle called on class
   ? {o2 info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
 
   # query definition on handle of ensemble object called on class
   ? {o2 info method definition "::o::foo::b"} {::o::foo method b {x:int y:upper} {return b}}
 
-  # query definition on subcommand of class
+  # query definition on submethod of class
   ? {::nx::Object info method definition "info lookup methods"} \
       {::nx::Object alias {info lookup methods} ::nsf::cmd::ObjectInfo::lookupmethods}
 
-  # query definition on subcommand of class with handle
+  # query definition on submethod of class with handle
   ? {o info method definition "::nsf::classes::nx::Object::info lookup methods"} \
       {::nx::Object alias {info lookup methods} ::nsf::cmd::ObjectInfo::lookupmethods}
 
@@ -247,17 +247,17 @@ Test case info-submethod {
   ? {o info method definition "::nx::Object::slot::__info::lookup::methods"} \
       {::nx::Object::slot::__info::lookup alias methods ::nsf::cmd::ObjectInfo::lookupmethods}
 
-  ? {lsort [o info method subcommands dummy]} ""
-  ? {lsort [o info method subcommands foo]} "a b"
-  ? {lsort [o info method subcommands "foo a"]} ""
+  ? {lsort [o info method submethods dummy]} ""
+  ? {lsort [o info method submethods foo]} "a b"
+  ? {lsort [o info method submethods "foo a"]} ""
 
-  ? {lsort [C info method subcommands "bar"]} "a b baz"
-  ? {lsort [C info method subcommands "bar a"]} ""
-  ? {lsort [C info method subcommands "bar baz"]} "x y"
-  ? {lsort [C info method subcommands "bar baz y"]} ""
+  ? {lsort [C info method submethods "bar"]} "a b baz"
+  ? {lsort [C info method submethods "bar a"]} ""
+  ? {lsort [C info method submethods "bar baz"]} "x y"
+  ? {lsort [C info method submethods "bar baz y"]} ""
 
-  ? {lsort [C class-object info method subcommands "foo"]} "x y"
-  ? {lsort [C class-object info method subcommands "foo x"]} ""
+  ? {lsort [C class-object info method submethods "foo"]} "x y"
+  ? {lsort [C class-object info method submethods "foo x"]} ""
 
   ? {C info method handle "bar"} {::nsf::classes::C::bar}
   ? {C info method handle "bar a"} {::nsf::classes::C::bar a}

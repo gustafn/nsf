@@ -30,7 +30,6 @@ nsfCmd assertion NsfAssertionCmd {
   {-argName "assertionsubcmd" -required 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
 }
-
 nsfCmd configure NsfConfigureCmd {
   {-argName "configureoption" -required 1 -type "filter|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
@@ -261,7 +260,7 @@ objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
   {-argName "-type" -required 0 -nrargs 1 -type class}
 }
 objectInfoMethod method NsfObjInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"}
   {-argName "name" -type tclobj}
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
@@ -313,7 +312,7 @@ classInfoMethod instances NsfClassInfoInstancesMethod {
 }
 
 classInfoMethod method NsfClassInfoMethodMethod {
-  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
+  {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"}
   {-argName "name" -type tclobj}
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {

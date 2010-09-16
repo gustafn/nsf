@@ -1376,6 +1376,8 @@ _ added option noforwarder to RelationSlots
   ensemble does not contain the called submethod
 - added regression tests for partial ensembles
 
+- renamed "... info ... subcommands ..." into "... submethods ..."
+
 TODO: 
 - subcmd
    * handle sucmd for other method factories
