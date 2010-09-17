@@ -1396,6 +1396,8 @@ _ added option noforwarder to RelationSlots
 - handle next in ensemble with arguments
 - extended regression test
 
+- removed obsolete code
+
 TODO: 
 - subcmd
    * handle sucmd for other method factories

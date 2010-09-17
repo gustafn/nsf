@@ -6377,12 +6377,8 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
       }
 
       /* 
-       * The client data cp is still the obj of the called method,
-       * i.e. self changes. In order to prevent this, we save the
-       * actual object in the runtime state, flag ObjectDispatch via
-       * NSF_CM_DELGATE to use it.
+       * The client data cp is still the obj of the called method
        */
-      rst->delegatee = object;
       if (objc < 2) {
 	result = DispatchDefaultMethod(cp, interp, objc, objv);
       } else {
@@ -6662,24 +6658,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     }
 
     if (!unknown) {
-      if (flags & NSF_CM_DELGATE && rst->delegatee) {
-	/*
-	 * We want to execute the method on the delegatee, so we have
-	 * to flip the object.
-	 *
-	 * Note: there is a object->refCount ++; at the begin of this
-	 * function and a NsfCleanupObject(object) at the end. So,
-	 * we have to keep track of the refcounts here. Either mangle
-	 * refcounts, or save originator.
-	 * 
-	 */
-	result = MethodDispatch(rst->delegatee, interp, objc-shift, objv+shift, 
-				cmd, rst->delegatee, cl,
-				methodName, frameType);
-      } else {
-	result = MethodDispatch(clientData, interp, objc-shift, objv+shift, cmd, object, cl,
-				methodName, frameType);
-      }
+      result = MethodDispatch(clientData, interp, objc-shift, objv+shift, cmd, object, cl,
+			      methodName, frameType);
 
       /*fprintf(stderr, "MethodDispatch %s returns %d unknown %d\n",
 	methodName, result, rst->unknown);*/

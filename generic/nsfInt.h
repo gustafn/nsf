@@ -666,7 +666,6 @@ typedef struct NsfRuntimeState {
   int overloadedMethods;
   long newCounter;
   NsfStringIncrStruct iss;
-  NsfObject *delegatee;
   Proc fakeProc;
   Tcl_Namespace *fakeNS;
   NsfStubs *nsfStubs;
