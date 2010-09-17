@@ -1403,8 +1403,6 @@ TODO:
    * handle sucmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
 
-- collaps stack frames?
-
 - method protection:
   defined methods (optionally?) per default protected to
   enforce the definition of proper interfaces.
@@ -1660,3 +1658,6 @@ For future releases:
     "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"
 
    * use parameter syntax in genTclAPI
+
+   * it could be possible to reduce stack frames in ensembles. Just a
+     top ensemble frame could be sufficient.
