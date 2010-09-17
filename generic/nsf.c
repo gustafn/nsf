@@ -6424,7 +6424,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	  Tcl_CallFrame *framePtr1;
 	  NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
 
-	  if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
+	  if ((cscPtr1->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
 	    /*
 	     * We are in an ensemble method. The next works here not on the
 	     * actual methodName + frame, but on the ensemble above it. We
