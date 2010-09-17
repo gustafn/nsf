@@ -1393,12 +1393,15 @@ _ added option noforwarder to RelationSlots
   elsewhere)
 - renamed __qualify to qualify (it is a non-exported cmd)
 
+- handle next in ensemble with arguments
+- extended regression test
+
 TODO: 
 - subcmd
    * handle sucmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
 
-- next noargs
+- collaps stack frames?
 
 - method protection:
   defined methods (optionally?) per default protected to

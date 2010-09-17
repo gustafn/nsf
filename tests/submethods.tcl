@@ -186,15 +186,28 @@ Test case ensemble-partial-next {
   }
   nx::Object mixin add M
   nx::Object create o1
+
+  # call a submethod defined by a mixin, which does a next
   ? {o1 info has namespace} sometimes
+
+  # call a submethod, which is not defined by the mixin
   ? {o1 info has type Object} 1
   ? {o1 info has type M} 0
+
+  # call a submethod, which is nowhere defined
   ? {o1 info has typo M} \
       {unable to dispatch method <obj> info has typo; valid subcommands of has: namespace something}
+  # call a submethod, which is only defined in the mixin
   ? {o1 info has something else} something
+
+  # call a submethod, which is only defined in the mixin, and which
+  # does a next (which should not complain)
   ? {o1 info has something better} better
 }
 
+#
+# Check behavior of upvars in ensemble methods
+#
 Test case ensemble-upvar {
 
   nx::Class create FOO {
@@ -213,4 +226,40 @@ Test case ensemble-upvar {
  
   ? {f1 baz0} 0
   ? {f1 baz1} 1
+}
+
+#
+# Check behavior of next with arguments within an ensemble
+#
+Test case ensemble-next-with-args {
+  nx::Object create o {
+    :method foo {x}          {return $x}
+    :method "e1 sm" {x}      {return $x}
+    :method "e2 sm1 sm2" {x} {return $x}
+    :method "e2 e2 e2" {x}   {return $x}
+    :method "e1 e1 e1" args  {return $args}
+  }
+  nx::Class create M {
+    :method foo {}          {next 1}
+    :method "e1 sm" {}      {next 2}
+    :method "e2 sm1 sm2" {} {next 3}
+    :method "e2 e2 e2" {}   {next 4}
+    :method "e1 e1 e1" args {next {e1 e1 e1}}
+  }
+  o mixin add M
+
+  # case without ensemble
+  ? {o foo} 1
+
+  # ensemble depth 1, 1 arg
+  ? {o e1 sm} 2
+
+  # ensemble depth 2, 1 arg
+  ? {o e2 sm1 sm2} 3
+
+  # ensemble depth 2, 1 arg, same tcl-objs
+  ? {o e2 e2 e2} 4
+
+  # ensemble depth 2, multiple args, same tcl-objs
+  ? {o e1 e1 e1} {e1 e1 e1}
 }

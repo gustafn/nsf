@@ -247,9 +247,6 @@ static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char 
 static int NextSearchAndInvoke(Tcl_Interp *interp,
 			       CONST char *methodName, int objc, Tcl_Obj *CONST objv[],
 			       NsfCallStackContent *cscPtr);
-static int NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
-			    NsfCallStackContent **cscPtrPtr, CONST char **methodNamePtr,
-			    int *outObjc, Tcl_Obj ***outObjv, int *decrObjv0);
 /*
  * argv parsing 
  */
@@ -7963,14 +7960,14 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
 static int
 NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
 		 NsfCallStackContent **cscPtrPtr, CONST char **methodNamePtr,
-		 int *outObjc, Tcl_Obj ***outObjv, int *decrObjv0) {
-  int nobjc;
+		 int *outObjc, Tcl_Obj ***outObjv, int *freeArgumentVector) {
   Tcl_Obj **nobjv;
+  int nobjc, oc, inEnsemble;
   Tcl_CallFrame *framePtr;
   NsfCallStackContent *cscPtr = CallStackGetTopFrame(interp, &framePtr);
 
   /* always make sure, we only decrement when necessary */
-  *decrObjv0 = 0;
+  *freeArgumentVector = 0;
 
   if (!cscPtr)
     return NsfVarErrMsg(interp, "next: can't find self", (char *) NULL);
@@ -7978,9 +7975,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   if (!cscPtr->cmdPtr)
     return NsfErrMsg(interp, "next: no executing proc", TCL_STATIC);
 
-  /*fprintf(stderr, "NEXT %s.%s (%d) type_ensemble %.6x\n",
-	  objectName(object), givenMethodName, objc, 
-	  (cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE));*/
+  oc = Tcl_CallFrame_objc(framePtr);
 
   if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
     /*
@@ -7991,33 +7986,49 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
      */
     cscPtr = CallStackFindEnsembleCsc(framePtr, &framePtr);
     assert(cscPtr);
-
+    inEnsemble = 1;
     *methodNamePtr = ObjStr(cscPtr->objv[0]);
   } else {
+    inEnsemble = 0;
     *methodNamePtr = Tcl_GetCommandName(interp, cscPtr->cmdPtr);
   }
-
-  /*fprintf(stderr, "... next on %s.%s, objc %d useCallStackObjs %d framePtr %p\n",
-	  objectName(object),
-	  *methodNamePtr, objc, useCallstackObjs,framePtr);*/
   
   if (objc > -1) {
+    int methodNameLength;
     /* 
-     * We have arguments. We hve to construct an argument vector with 
-     * the first argument as the method name.
+     * Arguments were provided. We have to construct an argument
+     * vector with the first argument(s) as the method name. In an
+     * ensemble, we have to insert the objs of the full ensemble name.
      */
-    nobjc = objc+1;
-    nobjv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*)*(objc+1));
+    if (inEnsemble) {
+      methodNameLength = 1 + cscPtr->objc - oc;
+      nobjc = objc + methodNameLength;
+      nobjv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * nobjc);
+      /*
+       * copy the ensemble name
+       */
+      memcpy(nobjv, cscPtr->objv, sizeof(Tcl_Obj *) * methodNameLength);
 
-    memcpy(nobjv+1, objv, sizeof(Tcl_Obj *) * (objc));
-
-    if (cscPtr->objv) {
-      nobjv[0] = cscPtr->objv[0];
-    } else if (Tcl_CallFrame_objv(framePtr)) {
-      nobjv[0] = Tcl_CallFrame_objv(framePtr)[0];
+     } else {
+      methodNameLength = 1;
+      nobjc = objc + methodNameLength;
+      nobjv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj *) * nobjc);
+      /*
+       * copy the method name
+       */
+      if (cscPtr->objv) {
+	nobjv[0] = cscPtr->objv[0];
+      } else if (Tcl_CallFrame_objv(framePtr)) {
+	nobjv[0] = Tcl_CallFrame_objv(framePtr)[0];
+      }
     }
+    /*
+     * copy the remaining argument vector
+     */
+    memcpy(nobjv + methodNameLength, objv, sizeof(Tcl_Obj *) * objc);
+    
     INCR_REF_COUNT(nobjv[0]); /* we seem to need this here */
-    *decrObjv0 = 1;
+    *freeArgumentVector = 1;
   } else {
     /* 
      * no arguments were provided
@@ -8180,7 +8191,7 @@ nsfCmd next NsfNextCmd {
 */
 static int
 NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
-  int result, decrObjv0 = 0, oc, nobjc;
+  int result, freeArgumentVector, oc, nobjc;
   NsfCallStackContent *cscPtr;
   CONST char *methodName;
   Tcl_Obj **nobjv, **ov;
@@ -8194,12 +8205,13 @@ NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
     oc = -1;
   }
 
-  result = NextGetArguments(interp, oc, ov, &cscPtr, &methodName, &nobjc, &nobjv, &decrObjv0);
+  result = NextGetArguments(interp, oc, ov, &cscPtr, &methodName, 
+			    &nobjc, &nobjv, &freeArgumentVector);
   if (result == TCL_OK) {
     result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr);
   }
 
-  if (decrObjv0) {
+  if (freeArgumentVector) {
     INCR_REF_COUNT(nobjv[0]);
     ckfree((char *)nobjv);
   }  
@@ -8238,7 +8250,7 @@ NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
  */
 int
 NsfNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  int result, decrObjv0, nobjc;
+  int result, freeArgumentVector, nobjc;
   NsfCallStackContent *cscPtr;
   CONST char *methodName;
   Tcl_Obj **nobjv;
@@ -8254,12 +8266,13 @@ NsfNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     }
   }
 
-  result = NextGetArguments(interp, objc-1, &objv[1], &cscPtr, &methodName, &nobjc, &nobjv, &decrObjv0);
+  result = NextGetArguments(interp, objc-1, &objv[1], &cscPtr, &methodName, 
+			    &nobjc, &nobjv, &freeArgumentVector);
   if (result == TCL_OK) {
     result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr);
   }
 
-  if (decrObjv0) {
+  if (freeArgumentVector) {
     INCR_REF_COUNT(nobjv[0]);
     ckfree((char *)nobjv);
   }  
