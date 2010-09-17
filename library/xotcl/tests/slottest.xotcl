@@ -112,7 +112,7 @@ Class O2 -superclass O
 #? {O2 superclass O} "superclass 1"
 ? {O superclass} "::xotcl::Object"
 
-::nx::ObjectParameterSlot method slot {object name property} {
+::nx::ObjectParameterSlot public method slot {object name property} {
   switch $property {
     self {return [self]}
     domain {return [my domain]}
@@ -327,7 +327,7 @@ a0 forward f4 puts hu
 
 # redefine setter for foo of class A
 #A slot foo method assign {domain var val} ...
-A::slot::foo method assign {domain var val} {
+A::slot::foo public method assign {domain var val} {
   # Do something with [self] that isn't valid pre-init
   puts setter-[self proc]
   $domain set $var $val
@@ -409,7 +409,7 @@ p2 append salary 9
 
 Person slots {
   Attribute create sex -type "sex" -convert true {
-    :method type=sex {name value} {
+    :public method type=sex {name value} {
       #puts stderr "[self] slot specific converter"
       switch -glob $value {
         m* {return m}
@@ -479,7 +479,7 @@ Test case assign-via-slots
 
 Class create A -slots {
   Attribute create foo -default 1 {
-    :method assign { domain var value} {
+    :public method assign { domain var value} {
       if {$value < 0 || $value > 99} {
         error "$value is not in the range of 0 .. 99"
       }

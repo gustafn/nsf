@@ -73,7 +73,7 @@ namespace eval ::nx {
   ::nsf::methodproperty Class  alloc   redefine-protected true
   ::nsf::methodproperty Class  dealloc redefine-protected true
   ::nsf::methodproperty Class  create  redefine-protected true
-  
+
   ::nsf::method Object __resolve_method_path {
     -create:switch 
     -per-object:switch 
@@ -88,7 +88,7 @@ namespace eval ::nx {
       set methodName [lindex $path end]
       foreach w [lrange $path 0 end-1] {
 	#puts stderr "check $object info methods $path @ <$w>"
-	set scope [expr {[nsf::is class $object] && !${per-object} ? "Class" : "Object"}] 
+	set scope [expr {[::nsf::is class $object] && !${per-object} ? "Class" : "Object"}] 
 	if {[::nsf::dispatch $object ::nsf::cmd::${scope}Info::methods $w] eq ""} {
 	  #
 	  # Create dispatch/ensemble object and accessor method (if wanted)
@@ -133,6 +133,10 @@ namespace eval ::nx {
   }
   ::nsf::methodproperty Object __resolve_method_path protected true
 
+  ::nsf::method Object __default_method_protection args {return false}
+  ::nsf::methodproperty Object __default_method_protection protected true
+
+
   # define method "method" for Class and Object
 
   ::nsf::method Class method {
@@ -144,7 +148,11 @@ namespace eval ::nx {
     array set "" [:__resolve_method_path -create -verbose $name]
     #puts "class method $(object).$(methodName) [list $arguments] {...}"
     set r [::nsf::method $(object) $(methodName) $arguments $body {*}$conditions]
-    if {[info exists returns]} {nsf::methodproperty $(object) $r returns $returns}
+    if {$r ne ""} {
+      # the method was not deleted
+      ::nsf::methodproperty $(object) $r protected [::nsf::dispatch $(object) __default_method_protection]
+      if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
+    }
     return $r
   }
 
@@ -157,7 +165,11 @@ namespace eval ::nx {
     array set "" [:__resolve_method_path -create -per-object -verbose $name]
     #puts "object method $(object).$(methodName) [list $arguments] {...}"
     set r [::nsf::method $(object) -per-object $(methodName) $arguments $body {*}$conditions]
-    if {[info exists returns]} {nsf::methodproperty $(object) $r returns $returns}
+    if {$r ne ""} {
+      # the method was not deleted
+      ::nsf::methodproperty $(object) $r protected [::nsf::dispatch $(object) __default_method_protection]
+      if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
+    }
     return $r
   }
 
@@ -204,7 +216,7 @@ namespace eval ::nx {
 	Consider '[::nsf::current object] create $m $args' instead of '[::nsf::current object] $m $args'"
     }
     # protected is not yet defined
-    ::nsf::methodproperty [::nsf::current object] unknown protected 1
+    ::nsf::methodproperty [::nsf::current object] unknown protected true
   }
 
   Object eval {
@@ -226,6 +238,9 @@ namespace eval ::nx {
       ::nsf::methodproperty [::nsf::current object] $r [::nsf::current method] true
       return $r
     }
+  }
+
+  Object eval {
 
     # Default unknown-handler for Object
     #
@@ -539,27 +554,6 @@ namespace eval ::nx {
   Object alias "info method" ::nsf::cmd::ObjectInfo::method
   Class  alias "info method" ::nsf::cmd::ClassInfo::method
 
-  # TOOD REMOVE BLOCK
-  # puts "After Info"
-  # puts object-methods=[Object info methods]
-  # puts class-methods=[Class info methods]
-  # puts ""
-  # puts Object::info-methods=[lsort [nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::methods]]
-  # puts Class::info-methods_=[lsort [nsf::dispatch ::nx::Class::slot::__info ::nsf::cmd::ObjectInfo::methods]]
-  # puts ""
-  # puts Object::info-lookup=[nsf::dispatch ::nx::Object ::nsf::cmd::ObjectInfo::lookupmethod info]
-  # puts Class::info-lookup_=[nsf::dispatch ::nx::Class ::nsf::cmd::ObjectInfo::lookupmethod info]
-  # puts ""
-  # puts Object::info-def=[nsf::dispatch ::nx::Object ::nsf::cmd::ClassInfo::method definition info]
-  # puts Class::info-def_=[nsf::dispatch ::nx::Class ::nsf::cmd::ClassInfo::method definition info]
-  # puts ""
-  # puts object-superclass=[Object info superclass]
-  # puts class-superclass=[Class info superclass]
-  # #  Object create o1
-  # #  puts obj-info-info=[o1 info info]
-  # #  puts class-info-info=[Object info info]
-  # puts ""
-
   #
   # Definition of "abstract method foo ...."
   #
@@ -596,7 +590,7 @@ namespace eval ::nx {
   Class create ::nx::MetaSlot
   ::nsf::relation MetaSlot superclass Class
 
-  MetaSlot method createFromParameterSyntax {
+  MetaSlot public method createFromParameterSyntax {
     target -per-object:switch 
     {-initblock ""} 
     value default:optional
@@ -801,7 +795,7 @@ namespace eval ::nx {
   # Provide the a slot based mechanism for building an object
   # configuration interface from slot definitions
 
-  ObjectParameterSlot method toParameterSyntax {{name:substdefault ${:name}}} {
+  ObjectParameterSlot public method toParameterSyntax {{name:substdefault ${:name}}} {
     set objparamdefinition $name
     set methodparamdefinition ""
     set objopts [list]
@@ -1108,16 +1102,17 @@ namespace eval ::nx {
 	# set variable body to minimize problems with spacing, since
 	# the body is literally compared by the slot optimizer.
 	set body {::nsf::setvar $obj $var $value}
-        :method assign [list obj var value:$(mparam),multivalued,slot=[::nsf::current object]] $body
+        :public method assign [list obj var value:$(mparam),multivalued,slot=[::nsf::current object]] \
+	    $body
 
         #puts stderr "adding add method for [::nsf::current object] with value:$(mparam)"
-        :method add [list obj prop value:$(mparam),slot=[::nsf::current object] {pos 0}] {
+        :public method add [list obj prop value:$(mparam),slot=[::nsf::current object] {pos 0}] {
           ::nsf::next
         }
       } else {
         #puts stderr "SV adding assign [list obj var value:$(mparam)] // for [::nsf::current object] with $(mparam)"
 	set body {::nsf::setvar $obj $var $value}
-        :method assign [list obj var value:$(mparam),slot=[::nsf::current object]] $body
+        :public method assign [list obj var value:$(mparam),slot=[::nsf::current object]] $body
       }
     }
     if {[info exists :valuechangedcmd]} {
@@ -1132,9 +1127,9 @@ namespace eval ::nx {
   # mixin class for optimizing slots
   Class create ::nx::Attribute::Optimizer {
 
-    :method method args  {::nsf::next; :optimize}
-    :method forward args {::nsf::next; :optimize}
-    :protected method init args {::nsf::next; :optimize}
+    :method method args  {set r [::nsf::next]; :optimize; return $r}
+    :method forward args {set r [::nsf::next]; :optimize; return $r}
+    :protected method init args {set r [::nsf::next]; :optimize; return $r}
 
     :public method optimize {} {
       #puts stderr OPTIMIZER-[info exists :incremental]
@@ -1475,6 +1470,27 @@ namespace eval ::nx {
   #######################################################
   # some utilities
   #######################################################
+
+  # 
+  # Provide mechanisms to configure nx
+  #
+  ::nx::Object create ::nx::configure {
+    #
+    # Set the default method protection for nx methods. This
+    # protection level is used per default for all method definitions
+    # without explicit protection specified.
+    #
+    :method defaultMethodProtection {value:boolean,optional} {
+      if {[info exists value]} {
+	::nsf::method Object __default_method_protection args [list return $value]
+      }
+      return [::nsf::dispatch [::nx::current object] __default_method_protection]
+    }
+  }
+  #
+  # Make the default protected methods
+  #
+  ::nx::configure defaultMethodProtection true
 
   #
   # Provide an ensemble-like interface to the ::nsf primitiva to

@@ -127,7 +127,7 @@ Test case mixin-add {
 Test parameter count 3
 Test case "filter-and-creation" {
   Class create Foo {
-    :method myfilter {args} {
+    :public method myfilter {args} {
       set i [::incr ::count]
       set s [self]
       set m [current calledmethod]
@@ -139,7 +139,7 @@ Test case "filter-and-creation" {
       return $r
     }
     # method for testing next to non-existing shadowed method
-    :method baz {} {next}
+    :public method baz {} {next}
   }
 
   # define nx unknown handler in case it does not exist

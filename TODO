@@ -1398,6 +1398,14 @@ _ added option noforwarder to RelationSlots
 
 - removed obsolete code
 
+- made methods (for now just scripted methods) by default protected.
+- provide methode __default_method_protection to obtain the default
+  method protection when neither protected or public is used.
+- per default methods are now protected
+- provide ::nx::configure defaultMethodProtection true|false
+  as conveniant interface
+- update regression test and serializer to handle default protection
+
 TODO: 
 - subcmd
    * handle sucmd for other method factories

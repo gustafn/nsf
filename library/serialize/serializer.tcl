@@ -165,11 +165,11 @@ namespace eval ::nx::serializer {
       }
     }
 
-    :method addPostCmd {cmd} {
+    :public method addPostCmd {cmd} {
       if {$cmd ne ""} {append :post_cmds $cmd "\n"}
     }
     
-    :method setObjectSystemSerializer {o serializer} {
+    :public method setObjectSystemSerializer {o serializer} {
       #puts stderr "set :serializer($o) $serializer"
       set :serializer($o) $serializer
     }
@@ -225,7 +225,7 @@ namespace eval ::nx::serializer {
       }
     }
 
-    :method needsOneOf list {
+    :public method needsOneOf list {
       foreach e $list {if {[info exists :s($e)]} {return 1}}
       return 0
     }
@@ -288,7 +288,7 @@ namespace eval ::nx::serializer {
       return $pre_cmds$result${:post_cmds}$exports
     }
 
-    :method deepSerialize {o} {
+    :public method deepSerialize {o} {
       # assumes $o to be fully qualified
       set instances [Serializer allChildren $o] 
       foreach oss [ObjectSystemSerializer info instances] {
@@ -301,7 +301,7 @@ namespace eval ::nx::serializer {
     # class object specfic methods
     ###############################
 
-    :class-object method allChildren o {
+    :public class-object method allChildren o {
       # return o and all its children fully qualified
       set set [::nsf::dispatch $o -objscope ::nsf::current]
       foreach c [$o info children] {
@@ -314,7 +314,7 @@ namespace eval ::nx::serializer {
       foreach {o p m} $list {set :exportMethods([list $o $p $m]) 1}
     }
 
-    :class-object method exportObjects list {
+    :public class-object method exportObjects list {
       foreach o $list {set :exportObjects($o) 1}
     }
 
@@ -402,7 +402,7 @@ namespace eval ::nx::serializer {
       concat $object [$s method-serialize $object $method $prefix]
     }
 
-    :class-object method deepSerialize {-ignoreVarsRE -ignore -map args} {
+    :public class-object method deepSerialize {-ignoreVarsRE -ignore -map args} {
       :resetPattern
       set s [:new -childof [::nsf::current object] -volatile]
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
@@ -453,7 +453,7 @@ namespace eval ::nx::serializer {
       return $cmd
     }
     
-    :method registerTrace {on} {
+    :public method registerTrace {on} {
       if {$on} {
         ::nsf::alias ${:rootClass}  __trace__ -objscope ::trace
       } else {
@@ -464,7 +464,7 @@ namespace eval ::nx::serializer {
     #
     # Handle association between objects and responsible serializers
     #
-    :method registerSerializer {s instances} {
+    :public method registerSerializer {s instances} {
       # Communicate responsibility to serializer object $s
       foreach i $instances {
         if {![::nsf::dispatch $i ::nsf::cmd::ObjectInfo::hastype ${:rootClass}]} continue
@@ -567,7 +567,7 @@ namespace eval ::nx::serializer {
     # general object serialization
     ###############################
 
-    :method serialize {objectOrClass s} {
+    :public method serialize {objectOrClass s} {
       :[:classify $objectOrClass]-serialize $objectOrClass $s
     }
 
@@ -598,7 +598,7 @@ namespace eval ::nx::serializer {
     # general dependency handling 
     ###############################
 
-    :method needsNothing {x s} {
+    :public method needsNothing {x s} {
       return [:[:classify $x]-needsNothing $x $s]
     }
 

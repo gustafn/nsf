@@ -1,4 +1,5 @@
 package require nx; namespace import -force ::nx::*
+::nx::configure defaultMethodProtection false
 package require nx::test
 
 Test parameter count 10

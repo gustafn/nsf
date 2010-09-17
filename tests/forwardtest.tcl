@@ -8,7 +8,7 @@ package require nx::test
 Test case delegation {
     Object create dog 
     Object create tail {
-	:method wag args { return $args }
+	:public method wag args { return $args }
     }
     dog forward wag tail %proc
     
@@ -48,7 +48,7 @@ Test case adding {
 ###########################################
 Test case multiple-args {
     Object create target {
-	:method foo args {return $args}
+	:public method foo args {return $args}
     }
     Object create obj {
 	:forward foo target %proc %self a1 a2
@@ -87,13 +87,13 @@ Test case mixin-via-forward {
 ###########################################
 Test case info-via-forward {
     Object create Info {
-	:method @mixin {o} {
+        :public method @mixin {o} {
 	    $o info mixin
 	}
-	:method @class {o} { ;# without prefix, doing here a [Info class] wod be wrong
+	:public method @class {o} { ;# without prefix, doing here a [Info class] wod be wrong
 	    $o info class
 	}
-	:method @help {o} { ;# define a new subcommand for info
+	:public method @help {o} { ;# define a new subcommand for info
 	    foreach c [:info methods] {lappend result [string range $c 1 end]}
 	    return $result
 	}
@@ -180,7 +180,7 @@ Test case optional-target {
     }
     ? {obj append x y z} 2yz
 
-    Object create n; Object create n::x {:method current {} {current}}
+    Object create n; Object create n::x {:public method current {} {current}}
     Object create o
     o forward ::n::x
     ? {o x current} ::n::x
@@ -281,12 +281,12 @@ Test case earlybinding {
     ? {obj s 100} 100
     ? {obj s} 100
 
-    Object method f args { next }          
+    Object public method f args { next }          
 
     Class create NS	
     Class create NS::Main {
-	:class-object method m1 {} { :m2 }
-	:class-object method m2 {} {
+	:public class-object method m1 {} { :m2 }
+	:public class-object method m2 {} {
 	    ? {namespace eval :: {Object create toplevelObj1}} ::toplevelObj1
   
 	    ? [list set _ [namespace current]] ::NS
@@ -310,8 +310,8 @@ Test case earlybinding {
 	    }   
 	}
 
-	:method i1 {} { :i2 }
-	:method i2 {} {
+	:public method i1 {} { :i2 }
+	:public method i2 {} {
 	    ? {namespace eval :: {Object create toplevelObj2}} ::toplevelObj2
   
 	    ? [list set _ [namespace current]] ::NS
@@ -365,7 +365,7 @@ Test case callstack {
 
     Class create C {
 	:method xx {} {current}
-	:class-object method t {o expr} {
+	:public class-object method t {o expr} {
 	    return [$o expr $expr]
 	}
     }

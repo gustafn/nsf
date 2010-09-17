@@ -1,4 +1,5 @@
 package req nx
+::nx::configure defaultMethodProtection false
 package require nx::test
 
 Test case base {

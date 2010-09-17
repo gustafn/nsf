@@ -1,4 +1,5 @@
-package require nx; # namespace import -force ::nx::*
+package require nx
+::nx::configure defaultMethodProtection false
 package require nx::test
 
 #

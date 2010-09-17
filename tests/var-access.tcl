@@ -1,4 +1,5 @@
 package require nx
+::nx::configure defaultMethodProtection false
 package require nx::test
 
 namespace eval ::nx::var1 {

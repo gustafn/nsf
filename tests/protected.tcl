@@ -5,13 +5,13 @@ namespace import ::nx::*
 Test parameter count 1
 
 Class create C {
-  :alias SET ::set
-  :method foo {} {return [current method]}
-  :method bar {} {return [current method]}
-  :method bar-foo {} {
+  :public alias SET ::set
+  :public method foo {} {return [current method]}
+  :public method bar {} {return [current method]}
+  :public method bar-foo {} {
     c1 foo
   }
-  :method bar-SET {} {
+  :public method bar-SET {} {
     c1 SET x 1
   }
 }
