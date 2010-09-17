@@ -1406,6 +1406,43 @@ _ added option noforwarder to RelationSlots
   as conveniant interface
 - update regression test and serializer to handle default protection
 
+- decide on paths for documentation of next and xotcl 2, with
+  version numbers; what should be included in distro, what on web-site
+- decide on syntax subcomponent. Candiates are
+   * Object.method
+   * Object->method
+   * Object#method
+
+- handling namespaces in documentation 
+     # @object ::nx::Slot
+  vs. 
+     # @object Slot
+  (best allow both variants, write fully qualified name via introspection)
+- why only @object? there seems to be no @class. what to do with metaclasses?
+
+- systematic way of specifying results of methods
+- systematic way of reporting results in documentation
+
+- handle line-breaking in long @definitions (e.g. @param; e.g. via indented next line)
+- danger, tcl-commands in comments (see :method get_unqualified_name)
+  expecially for code commented out.... 
+
+- kann man "[:? {[$attr eval {info exists :default}]}" durch "[:?var :@param ..." ausdrücken?
+  oder vielleicht besser die variablen mit leerstring initialisieren + infrastrukt anpassen?
+- listing von methoden im left-bar, ähnlich http://developer.yahoo.com/yui/docs/YAHOO.util.Connect.html
+- "Objects" im left-bar irreführend, sollten eher "Classes" sein. Allerdings sollten
+  auch objekte dukumentierbar sein
+
+- doc-tools: was machen die argumente von :? (bspw. ops?); ich nehme an, das ist work in progress.
+  sinnvoll wäre: [:?var obj varname body], da viele (die meisten) operationen 
+  auf anderen objeken ausgeführt werden
+
+- die Dokumentation der Objekt- und Klassenmethoden muss aus gentclapi weg
+  und in predefined.tcl und xotcl2.tcl hineinwandern. Es werden nicht alle
+  möglichen methoden in next und/oder xotcl2 registiert, ein paar namen sind
+  anders, etc.
+
+
 TODO: 
 - subcmd
    * handle sucmd for other method factories
@@ -1480,57 +1517,30 @@ TODO "Kleinigkeiten"
   * do we need conterpart for xowish?
      - possibility: binary vs. scripted
      - scripted xowish / nxwish should be possible
+# SS: Gescriptete Varianten wäre einfacher, ja. Wenn etwas dagegen
+  spricht, würde ich nicht mehr tclAppInit.c direkt verwenden, sondern
+  die beiden makros: TCL_LOCAL_APPINIT und TCL_LOCAL_MAIN_HOOK (setzt
+  kl. änderung in der build umgebung voraus)
+
 
 - C-interface
     * generic/nsf.decls und generic/nsfInt.decls ausmisten 
       (leere einträge weg, binärkompatibility mit xotcl nicht notwendig,
       da library anders heisst)
     * C-interface überarbeiten
+# SS: das wäre auch etwas für die post-alpha phase, oder?
 
 - integrate ::nx::doc::make with Makefile.in
   (provide shell calls and, targets and dependencies)
 - decide on syntax in documentation
   (info method parameter | info method parametersyntax | mixture, e.g. parmetersyntax with value-checkers)
-- decide on paths for documentation of next and xotcl 2, with
-  version numbers; what should be included in distro, what on web-site
-- decide on syntax subcomponent. Candiates are
-   * Object.method
-   * Object->method
-   * Object#method
 
-- handling namespaces in documentation 
-     # @object ::nx::Slot
-  vs. 
-     # @object Slot
-  (best allow both variants, write fully qualified name via introspection)
-- why only @object? there seems to be no @class. what to do with metaclasses?
-
-- systematic way of specifying results of methods
-- systematic way of reporting results in documentation
 - reduce indenting for code examples in documentation (high indentation makes readability worse).
   i use usually jsut 2, 4 are ok as well; we should decide.
 - make quality checks (missing documentation, ...) optional (maybe?)
 - handle object methods as well in quality checks
 - why does one have to specify @superclass rather than determining the
   superclass via introspection?
-- handle line-breaking in long @definitions (e.g. @param; e.g. via indented next line)
-- danger, tcl-commands in comments (see :method get_unqualified_name)
-  expecially for code commented out.... 
-
-- kann man "[:? {[$attr eval {info exists :default}]}" durch "[:?var :@param ..." ausdrücken?
-  oder vielleicht besser die variablen mit leerstring initialisieren + infrastrukt anpassen?
-- listing von methoden im left-bar, ähnlich http://developer.yahoo.com/yui/docs/YAHOO.util.Connect.html
-- "Objects" im left-bar irreführend, sollten eher "Classes" sein. Allerdings sollten
-  auch objekte dukumentierbar sein
-
-- doc-tools: was machen die argumente von :? (bspw. ops?); ich nehme an, das ist work in progress.
-  sinnvoll wäre: [:?var obj varname body], da viele (die meisten) operationen 
-  auf anderen objeken ausgeführt werden
-
-- die Dokumentation der Objekt- und Klassenmethoden muss aus gentclapi weg
-  und in predefined.tcl und xotcl2.tcl hineinwandern. Es werden nicht alle
-  möglichen methoden in next und/oder xotcl2 registiert, ein paar namen sind
-  anders, etc.
 
 - die folgenden calls sind streng genommen auch internally-called (d.h. von c aus aufgerufen), 
   aber aus unterscheidl. gründen noch nicht als solche gekennzeichnet:
@@ -1554,10 +1564,6 @@ TODO "Kleinigkeiten"
 - Either transfer documentation for xotcl from @-notation to new doc system,
   or (maybe better) provide a renderer for @-structures to new doc system
   infrastructure (less work).
-
-- do we need templates (such as object.html.tmpl) in installed docs 
-  (currently nx*/doc/NextLanguageCore/assets/) it is confusing, since changes
-  should be made to the templates in nx*/library/lib/doc-assets/.
 
 - copy decls for objectMethod and classMethod  as comments
   to xotcl.c, fix and check order
@@ -1602,7 +1608,7 @@ TODO "Kleinigkeiten"
   and they are mutual exclusive. Make them a single flag?
   check if both options are in every case sensible.
 - support -nonleaf for "dispatch" ?
-  inf the following, we need just a frame, but not necessarily an "-ojscope"
+  in the following, we need just a frame, but not necessarily an "-ojscope"
   set x [::xotcl::dispatch $value -objscope ::xotcl::self]
 
 - "ClassName info mixinof ?-closure? -registered_on class|object ?pattern?" 
@@ -1619,6 +1625,13 @@ TODO "Kleinigkeiten"
   - cl info mixin
   - cl info filter
   - cl info superclass
+# SS: Sie spielen vermutlich auf die Redundanz der getter seite der
+  relation slots an. Mmmh. Die info-Sicht bietet in einigen der Fälle
+  ?pattern? an, das wäre als Unterschied zu nennen (das ließe sich
+  aber auch in die relation slots integrieren, etwa [obj mixin search
+  <pattern>]. Zudem ist es ein Fallback, wenn mixin|filter|class
+  überladen wären (ein sicherer hafen), aber ob das als argument
+  genügt, die info-varianten zu behalten?!
 
 #if 1
   /* TODO: the following check operations is xotcl1 legacy and is not
