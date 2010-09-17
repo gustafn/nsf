@@ -40,11 +40,11 @@ Object create make {
         file delete -force pkgIndex.tcl
       }
       #puts stderr "callinglevel <[current callinglevel]> $fls"
-      #puts stderr "[pwd]:\n\tcall eval pkg_mkIndex -verbose -direct . $fls"
-      if {[catch {pkg_mkIndex -verbose -direct . {*}$fls} errs]} {
-        puts stderr "!!! $errs"
+      puts stderr "[pwd]:\n\tcall eval pkg_mkIndex -verbose -direct . $fls"
+      if {[catch {pkg_mkIndex -verbose -direct -load nsf . {*}$fls} errs]} {
+        puts stderr "*** $errs"
       }
-      #puts stderr "[pwd] done"
+      puts stderr "[pwd] done"
     }
     
     foreach addFile [glob -nocomplain *.add] {
@@ -59,7 +59,7 @@ Object create make {
     #puts stderr "+++ mkIndex name=$name, pwd=[pwd] DONE"
   }
 
-  :method inEachDir {path cmd} {
+  :public method inEachDir {path cmd} {
     #puts stderr "[pwd] inEachDir $path  [file isdirectory $path]"
     if { [file isdirectory $path] 
          && ![string match *CVS $path]
@@ -102,7 +102,7 @@ Object create file {
   }
 
   foreach subcmd [array names :destructive] {
-    :method $subcmd args {
+    :public method $subcmd args {
       #puts stderr " [pwd] call: '::tcl_file [current method] $args'"
       ::tcl_file [current method] {*}$args
     }
@@ -137,7 +137,7 @@ if {![info exists argv] || $argv eq ""} {set argv -all}
 if {$argv eq "-n"} {set argv "-n -all"}
 
 Class create Script {
-  :class-object method create args {
+  :public class-object method create args {
     lappend args {*}$::argv
     set s [next]
     set method [list]
@@ -155,13 +155,13 @@ Class create Script {
     puts stderr "$::argv0: Unknown option ´-$args´ provided"
   }
 
-  :method n {} {file mixin make::-n}
+  :public method n {} {file mixin make::-n}
 
-  :method all {} {make inEachDir . mkIndex}
+  :public method all {} {make inEachDir . mkIndex}
 
-  :method dir {dirName} {cd $dirName}
+  :public method dir {dirName} {cd $dirName}
 
-  :method target {path} {make eval [list set :target $path]}
+  :public method target {path} {make eval [list set :target $path]}
 
   :create main
 }
