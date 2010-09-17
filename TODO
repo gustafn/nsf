@@ -1382,6 +1382,10 @@ _ added option noforwarder to RelationSlots
 
 - renamed functions in nsfStack.c to follow Tcl naming guidelines
 
+- call internal NextSearchAndInvoke (without NextGetArguments) 
+  from the implicit next in ensemble methods
+- made NsfNextMethod() obsolete to ease different noarg handling policies
+
 TODO: 
 - subcmd
    * handle sucmd for other method factories

@@ -6428,9 +6428,28 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	 */
 	fprintf(stderr, "call next instead of unknown %s.%s \n",
 		objectName(cscPtr->self),methodName);
-
+#if 0
 	result = NsfNextMethod(interp, 0, NULL);
+#else
+	/* zzz */
+	{
+	  Tcl_CallFrame *framePtr1;
+	  NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
 
+	  if ((cscPtr->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
+	    /*
+	     * We are in an ensemble method. The next works here not on the
+	     * actual methodName + frame, but on the ensemble above it. We
+	     * locate the appropriate callstack content and continue next on
+	     * that.
+	     */
+	    cscPtr1 = CallStackFindEnsembleCsc(framePtr1, &framePtr1);
+	    assert(cscPtr1);
+	  }
+	  result = NextSearchAndInvoke(interp, ObjStr(cscPtr1->objv[0]), 
+				       cscPtr1->objc, cscPtr1->objv, cscPtr1);
+	}
+#endif
 	fprintf(stderr, "==> next %s csc %p returned %d unknown %d\n", 
 		methodName, cscPtr, result, rst->unknown); 
 	if (rst->unknown) {
@@ -8188,9 +8207,24 @@ NsfNextMethod(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 int
 NsfNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   int result;
+#if 1
+  NsfCallStackContent *cscPtr;
+  int decrObjv0, nobjc;
+  Tcl_Obj **nobjv;
+  CONST char *methodName;
 
+  result = NextGetArguments(interp, objc, objv, &cscPtr, &methodName, &nobjc, &nobjv, &decrObjv0);
+  if (result == TCL_OK) {
+    result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr);
+  }
+
+  if (decrObjv0) {
+    INCR_REF_COUNT(nobjv[0]);
+  }  
+
+#else
   result = NsfNextMethod(interp, objc, objv);
-
+#endif
   if (result == TCL_ERROR && RUNTIME_STATE(interp)->unknown) {
     fprintf(stderr, "don't report unknown error\n");
     /*

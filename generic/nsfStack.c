@@ -312,7 +312,9 @@ CallStackFindEnsembleCsc(Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtrPtr) {
      */ 
     if ((cscPtr->callType & NSF_CSC_CALL_IS_ENSEMBLE) == 0) break;
   }
-  *framePtrPtr = varFramePtr;
+  if (framePtrPtr) {
+    *framePtrPtr = varFramePtr;
+  }
   
   return cscPtr;
 }
