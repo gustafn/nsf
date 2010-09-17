@@ -1442,25 +1442,14 @@ _ added option noforwarder to RelationSlots
   möglichen methoden in next und/oder xotcl2 registiert, ein paar namen sind
   anders, etc.
 
+- fixed a crash for tcl 8.6b1 in return value checking.
+  now it complains about missing cmdPtr; it is not clear, why this
+  is missing at the first place in 8.6b1 while working in 8.5
 
 TODO: 
 - subcmd
    * handle sucmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
-
-- method protection:
-  defined methods (optionally?) per default protected to
-  enforce the definition of proper interfaces.
-   * for the regression tests, most methods are supposed
-     to be public.
-   * one could provide a command to swith the state to 
-     define method default as public.
-     (if neither protected nor public is used)
-   * flag could be per-interpreter (::nsf::configure) or 
-     per-class-system or per-class
-   * should be an nx-thing, so only the last two options remain
-   * how to get the least surprise?
-   * otherwise, we could/should drop the word "public".
 
 - interfaces in documentation for slots (see for more details 
   ::nx::Class#superclass in nx.tcl).

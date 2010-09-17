@@ -5607,6 +5607,7 @@ ParamsFree(NsfParam *paramsPtr) {
 
 static NsfParamDefs *
 ParamDefsGet(Tcl_Command cmdPtr) {
+  assert(cmdPtr);
   if (Tcl_Command_deleteProc(cmdPtr) == NsfProcDeleteProc) {
     return ((NsfProcContext *)Tcl_Command_deleteData(cmdPtr))->paramDefs;
   }
@@ -5809,8 +5810,8 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
   NsfParamDefs *paramDefs;
   int rc;
 
-  /*fprintf(stderr, "---- FinalizeProcMethod result %d, csc %p, pcPtr %p, obj %p\n",
-    result, cscPtr, pcPtr, object);*/
+  /*fprintf(stderr, "---- FinalizeProcMethod result %d, csc %p, pcPtr %p, obj %p %s.%s\n",
+    result, cscPtr, pcPtr, object, objectName(object), methodName);*/
 # if defined(TCL85STACK_TRACE)
   fprintf(stderr, "POP  FRAME (implicit)  csc %p obj %s obj refcount %d %d\n",
           cscPtr, objectName(object),
@@ -5819,15 +5820,20 @@ FinalizeProcMethod(ClientData data[], Tcl_Interp *interp, int result) {
           );
 # endif
 
-  paramDefs = ParamDefsGet(cscPtr->cmdPtr);
+  if (cscPtr->cmdPtr) {
+    paramDefs = ParamDefsGet(cscPtr->cmdPtr);
 
-  if (result == TCL_OK && paramDefs && paramDefs->returns) {
-    Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
-    /*fprintf(stderr, "***** we have returns for method '%s' check %s, value %p\n", 
-      methodName, ObjStr(paramDefs->returns), valueObj);*/
-    result = ParameterCheck(interp, paramDefs->returns, valueObj, "return-value:", 
-			    RUNTIME_STATE(interp)->doCheckResults,
-			    NULL);
+    if (result == TCL_OK && paramDefs && paramDefs->returns) {
+      Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
+      /*fprintf(stderr, "***** we have returns for method '%s' check %s, value %p\n", 
+	methodName, ObjStr(paramDefs->returns), valueObj);*/
+      result = ParameterCheck(interp, paramDefs->returns, valueObj, "return-value:", 
+			      RUNTIME_STATE(interp)->doCheckResults,
+			      NULL);
+    }
+  } else {
+    fprintf(stderr, "We have no cmdPtr in cscPtr %p %s.%s\n",  cscPtr, objectName(object), methodName);
+    fprintf(stderr, "... cannot check return values!\n");
   }
 
   if (opt && object->teardown && (opt->checkoptions & CHECK_POST)) {
@@ -6438,8 +6444,8 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 				       cscPtr1->objc, cscPtr1->objv, cscPtr1);
 	}
 
-	fprintf(stderr, "==> next %s csc %p returned %d unknown %d\n", 
-		methodName, cscPtr, result, rst->unknown); 
+	/*fprintf(stderr, "==> next %s csc %p returned %d unknown %d\n", 
+	  methodName, cscPtr, result, rst->unknown); */
 	if (rst->unknown) {
 	  result = DispatchUnknownMethod(self, interp, objc-1, objv+1, 
 					 objv[1], NSF_CM_NO_OBJECT_METHOD);

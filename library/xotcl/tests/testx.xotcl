@@ -467,7 +467,6 @@ TestX filterAddRemove -proc run {{n 20}} {
 
   ::errorCheck $::a::e xxx \
     "filterAddRemove: instvar test -- proc set failed"
-  puts stderr a10a
   a set e yyy
 
   ::errorCheck $::a::e yyy \
@@ -678,7 +677,6 @@ TestX filterGuards -proc run {{n 20}} {
       }
       set filterResult ""
       B b
-
       ::errorCheck $filterResult "" \
 	    "Filter guard: Filter never to be applied + filter inheritance on this filter"
       # filter w/o guard -> has to be applied
@@ -729,6 +727,7 @@ TestX filterGuards -proc run {{n 20}} {
 	::errorCheck $filterResult $r2 \
 	  "Filter guard: creation with less restrictive guards (b)"
       }
+
       set filterResult ""
       b1 set x 45
       ::errorCheck $filterResult "-::b1-f2-::A-set" \
@@ -757,7 +756,6 @@ TestX filterGuards -proc run {{n 20}} {
       b1 info class
       ::errorCheck $filterResult "-::b1-f2-::A-info" \
 	"Filter guard: info filtered by object filter guard"
-
 
       # checking infos
       ::errorCheck [b1 info filterguard f2]-[B info instfilterguard f2]-[A info instfilterguard f2] \
