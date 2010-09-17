@@ -163,7 +163,6 @@ static Tcl_ObjType CONST86 *byteCodeType = NULL, *tclCmdNameType = NULL, *listTy
  */
 
 /* prototypes for method defintions */
-static int NsfNextMethod(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfForwardMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc,Tcl_Obj *CONST objv[]);
@@ -6428,10 +6427,6 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	 */
 	fprintf(stderr, "call next instead of unknown %s.%s \n",
 		objectName(cscPtr->self),methodName);
-#if 0
-	result = NsfNextMethod(interp, 0, NULL);
-#else
-	/* zzz */
 	{
 	  Tcl_CallFrame *framePtr1;
 	  NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
@@ -6449,7 +6444,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	  result = NextSearchAndInvoke(interp, ObjStr(cscPtr1->objv[0]), 
 				       cscPtr1->objc, cscPtr1->objv, cscPtr1);
 	}
-#endif
+
 	fprintf(stderr, "==> next %s csc %p returned %d unknown %d\n", 
 		methodName, cscPtr, result, rst->unknown); 
 	if (rst->unknown) {
@@ -8006,7 +8001,24 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	  objectName(object),
 	  *methodNamePtr, objc, useCallstackObjs,framePtr);*/
   
-  if (objc < 2) {
+  if (objc > -1) {
+    /* 
+     * We have arguments. We hve to construct an argument vector with 
+     * the first argument as the method name.
+     */
+    nobjc = objc+1;
+    nobjv = (Tcl_Obj **)ckalloc(sizeof(Tcl_Obj*)*(objc+1));
+
+    memcpy(nobjv+1, objv, sizeof(Tcl_Obj *) * (objc));
+
+    if (cscPtr->objv) {
+      nobjv[0] = cscPtr->objv[0];
+    } else if (Tcl_CallFrame_objv(framePtr)) {
+      nobjv[0] = Tcl_CallFrame_objv(framePtr)[0];
+    }
+    INCR_REF_COUNT(nobjv[0]); /* we seem to need this here */
+    *decrObjv0 = 1;
+  } else {
     /* 
      * no arguments were provided
      */
@@ -8017,32 +8029,8 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       nobjc = Tcl_CallFrame_objc(framePtr);
       nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(framePtr);
     }
-  } else {
-    /* 
-     * We have arguments. However, we do not want to have "next" as
-     * the procname (objv[0]), since this can lead to report
-     * e.g. "next" in a forwarder using %proc. So, we replace (if
-     * possible) the first word with the value from the callstack.
-     */
-    nobjc = objc;
-    nobjv = (Tcl_Obj **)objv;
-
-    if (cscPtr->objv) {
-      nobjv[0] = cscPtr->objv[0];
-    } else if (Tcl_CallFrame_objv(framePtr)) {
-      nobjv[0] = Tcl_CallFrame_objv(framePtr)[0];
-    }
-    INCR_REF_COUNT(nobjv[0]); /* we seem to need this here */
-    *decrObjv0 = 1;
   }
 
-  /* cut the flag, that no stdargs should be used, if it is there */
-  if (nobjc > 1) {
-    CONST char *arg1String = ObjStr(nobjv[1]);
-    if (*arg1String == '-' && !strcmp(arg1String, "--noArgs")) {
-      nobjc = 1;
-    }
-  }
   *cscPtrPtr = cscPtr;
   *outObjc = nobjc;
   *outObjv = nobjv;
@@ -8170,11 +8158,12 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
 
 /*
  *----------------------------------------------------------------------
- * NsfNextMethod --
+ * NsfNextCmd --
  *
- *    The function combines NextGetArguments() and
- *    NextSearchAndInvoke().  It is called either be the Tcl command
- *    "next" or internally after an unsuccessful ensemble invocation.
+ *    nsf::next calls the next shadowed method. It might get a single
+ *    argument which is used as argument vector for that method. If no
+ *    argument is provided, the argument vector of the last invocation
+ *    is used.
  *
  * Results:
  *    Tcl return code
@@ -8184,47 +8173,97 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
  *
  *----------------------------------------------------------------------
  */
+/*
+nsfCmd next NsfNextCmd {
+  {-argName "arguments" -required 0 -type tclobj}
+}
+*/
 static int
-NsfNextMethod(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
+  int result, decrObjv0 = 0, oc, nobjc;
   NsfCallStackContent *cscPtr;
-  int result, decrObjv0;
-  Tcl_Obj **nobjv;
-  int nobjc;
   CONST char *methodName;
+  Tcl_Obj **nobjv, **ov;
 
-  result = NextGetArguments(interp, objc, objv, &cscPtr, &methodName, &nobjc, &nobjv, &decrObjv0);
+  if (arguments) {
+    /* Arguments were provided. */
+    result = Tcl_ListObjGetElements(interp, arguments, &oc, &ov);
+    if (result != TCL_OK) {return result;}
+  } else {
+    /* No arguments were provided. */
+    oc = -1;
+  }
+
+  result = NextGetArguments(interp, oc, ov, &cscPtr, &methodName, &nobjc, &nobjv, &decrObjv0);
   if (result == TCL_OK) {
     result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr);
   }
 
   if (decrObjv0) {
     INCR_REF_COUNT(nobjv[0]);
+    ckfree((char *)nobjv);
   }  
 
+  if (result == TCL_ERROR && RUNTIME_STATE(interp)->unknown) {
+    fprintf(stderr, "don't report unknown error\n");
+    /*
+     * Don't report "unknown" errors via next.
+     */
+    result = TCL_OK;
+  } 
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfNextObjCmd --
+ *
+ *    nsf::xotclnext is for backwards compatibility to the next
+ *    implementation in XOTcl.  It receives an argument vector which
+ *    is used for the invocation. if no argument vector is provided,
+ *    the argument vector of the last invocation is used. If the
+ *    argument vector starts with "--noArgs", then no arguments are
+ *    passed to the shadowed method.
+ *
+ *    TODO: On the longer range, this function should go into an external
+ *    library (e.g. XOTcl compatibility library)
+ *
+ * Results:
+ *    Tcl return code
+ *
+ * Side effects:
+ *    The invoked method might produce side effects
+ *
+ *----------------------------------------------------------------------
+ */
 int
 NsfNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  int result;
-#if 1
+  int result, decrObjv0, nobjc;
   NsfCallStackContent *cscPtr;
-  int decrObjv0, nobjc;
-  Tcl_Obj **nobjv;
   CONST char *methodName;
+  Tcl_Obj **nobjv;
 
-  result = NextGetArguments(interp, objc, objv, &cscPtr, &methodName, &nobjc, &nobjv, &decrObjv0);
+  if (objc < 2) {
+    /* No arguments were provided */
+    objc = 0;
+  } else {
+    /* in case --noargs is used, remove the flag and provide an empty argument list */
+    CONST char *arg1String = ObjStr(objv[1]);
+    if (*arg1String == '-' && !strcmp(arg1String, "--noArgs")) {
+      objc = 1;
+    }
+  }
+
+  result = NextGetArguments(interp, objc-1, &objv[1], &cscPtr, &methodName, &nobjc, &nobjv, &decrObjv0);
   if (result == TCL_OK) {
     result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr);
   }
 
   if (decrObjv0) {
     INCR_REF_COUNT(nobjv[0]);
+    ckfree((char *)nobjv);
   }  
 
-#else
-  result = NsfNextMethod(interp, objc, objv);
-#endif
   if (result == TCL_ERROR && RUNTIME_STATE(interp)->unknown) {
     fprintf(stderr, "don't report unknown error\n");
     /*
@@ -12369,13 +12408,13 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
 }
 
 /*
-nsfCmd namespace_copycmds NsfNSCopyCmds {
+nsfCmd namespace_copycmds NsfNSCopyCmdsCmd {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
 }
 */
 static int
-NsfNSCopyCmds(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
+NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   Tcl_Command cmd;
   Tcl_Obj *newFullCmdName, *oldFullCmdName;
   CONST char *newName, *oldName, *name;
@@ -12577,7 +12616,7 @@ nsfCmd namespace_copyvars NsfNSCopyVars {
 }
 */
 static int
-NsfNSCopyVars(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
+NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   Tcl_Namespace *fromNsPtr, *toNsPtr;
   Var *varPtr = NULL;
   Tcl_HashSearch hSrch;
@@ -15745,7 +15784,7 @@ Nsf_Init(Tcl_Interp *interp) {
 #ifdef NSF_BYTECODE
   instructions[INST_NEXT].cmdPtr = (Command *)
 #endif
-    Tcl_CreateObjCommand(interp, "::nsf::next", NsfNextObjCmd, 0, 0);
+    Tcl_CreateObjCommand(interp, "::nsf::xotclnext", NsfNextObjCmd, 0, 0);
 #ifdef NSF_BYTECODE
   instructions[INST_SELF].cmdPtr = (Command *)Tcl_FindCommand(interp, "::nsf::current", 0, 0);
 #endif

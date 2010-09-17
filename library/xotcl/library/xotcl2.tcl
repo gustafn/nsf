@@ -43,8 +43,9 @@ namespace eval ::xotcl {
   #
   # get frequenly used primitiva into the ::xotcl namespace
   #
-  namespace import ::nsf::configure ::nsf::my ::nsf::next ::nsf::finalize ::nsf::interp
+  namespace import ::nsf::configure ::nsf::my ::nsf::finalize ::nsf::interp
   namespace import ::nsf::alias ::nsf::is ::nsf::relation
+  interp alias {} ::xotcl::next {} ::nsf::xotclnext
 
   #namespace import ::nx::Attribute
   # if we do this, "::xotcl::Class create Role -superclass Attribute"  will fail.

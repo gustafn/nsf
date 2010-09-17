@@ -151,7 +151,7 @@ Test case converting-returns {
 #
 ::nsf::configure checkresults false
 
-Test parameter count 10000
+Test parameter count 1000
 Test case int-returns-nocheck { 
     nx::Class create C {
 	# scripted method without paramdefs
@@ -176,7 +176,7 @@ Test case int-returns-nocheck {
     ? {c1 bar-nok 1 2} a
 
     ? {c1 incr x} 1
-    ? {c1 incr x} 10002
+    ? {c1 incr x} 1002
 
     ? {c1 lappend l e1} e1
 

@@ -115,16 +115,18 @@ nsfCmd my NsfMyCmd {
   {-argName "method" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
-
-nsfCmd namespace_copycmds NsfNSCopyCmds {
+nsfCmd next NsfNextCmd {
+  {-argName "arguments" -required 0 -type tclobj}
+}
+nsfCmd nscopycmds NsfNSCopyCmdsCmd {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
 }
-nsfCmd namespace_copyvars NsfNSCopyVars {
+nsfCmd nscopyvars NsfNSCopyVarsCmd {
   {-argName "fromNs" -required 1 -type tclobj}
   {-argName "toNs" -required 1 -type tclobj}
 }
-nsfCmd __qualify NsfQualifyObjCmd {
+nsfCmd qualify NsfQualifyObjCmd {
   {-argName "name" -required 1 -type tclobj}
 }
 nsfCmd relation NsfRelationCmd {

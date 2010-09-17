@@ -1386,6 +1386,13 @@ _ added option noforwarder to RelationSlots
   from the implicit next in ensemble methods
 - made NsfNextMethod() obsolete to ease different noarg handling policies
 
+- new nsf::next cmd. receives 0 or 1 argument, which might be a list
+  of arguments. This avoids ambiguity of ::xotcl::next with "--noArgs".
+- renamed namespace_copycmds and namespace_copyvars to 
+  nscopycmds and nscopyvars (we don't use "_" in nsf::*-names as delimiters
+  elsewhere)
+- renamed __qualify to qualify (it is a non-exported cmd)
+
 TODO: 
 - subcmd
    * handle sucmd for other method factories

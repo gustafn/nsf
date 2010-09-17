@@ -1263,7 +1263,7 @@ namespace eval ::nx {
 	 if {![::nsf::isobject $object]} {
 	   $withclass create $object
 	 }
-	 ::nsf::next -childof $object {*}$args
+	 ::nsf::next [list -childof $object {*}$args]
        }
     }
   }
@@ -1345,8 +1345,8 @@ namespace eval ::nx {
     }
 
     :method copyNSVarsAndCmds {orig dest} {
-      ::nsf::namespace_copyvars $orig $dest
-      ::nsf::namespace_copycmds $orig $dest
+      ::nsf::nscopyvars $orig $dest
+      ::nsf::nscopycmds $orig $dest
     }
 
     # construct destination obj name from old qualified ns name
