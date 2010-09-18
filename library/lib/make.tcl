@@ -40,8 +40,13 @@ Object create make {
         file delete -force pkgIndex.tcl
       }
       #puts stderr "callinglevel <[current callinglevel]> $fls"
-      puts stderr "[pwd]:\n\tcall eval pkg_mkIndex -verbose -direct . $fls"
-      if {[catch {pkg_mkIndex -verbose -direct -load nsf . {*}$fls} errs]} {
+
+      set loads "-load nsf"
+      if {$fls ne "nx.tcl"} {
+	append loads " -load nx"
+      }
+      puts stderr "[pwd]:\n\tcall eval pkg_mkIndex -verbose -direct $loads . $fls"
+      if {[catch {pkg_mkIndex -verbose -direct {*}$loads . {*}$fls} errs]} {
         puts stderr "*** $errs"
       }
       puts stderr "[pwd] done"
