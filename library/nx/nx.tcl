@@ -465,7 +465,6 @@ namespace eval ::nx {
   # we have to use "eval", since objectParameters are not defined yet
   
   Object eval {
-    #:alias "info lookup"        ::nsf::cmd::ObjectInfo::lookup
     :alias "info lookup filter"  ::nsf::cmd::ObjectInfo::lookupfilter
     :alias "info lookup method"  ::nsf::cmd::ObjectInfo::lookupmethod
     :alias "info lookup methods" ::nsf::cmd::ObjectInfo::lookupmethods
@@ -515,7 +514,7 @@ namespace eval ::nx {
   }
 
   Class eval {
-    :alias "info lookup"      ::nx::Object::slot::__info::lookup
+    :alias "info lookup"         ::nx::Object::slot::__info::lookup
     :alias "info filter guard"   ::nsf::cmd::ClassInfo::filterguard
     :alias "info filter methods" ::nsf::cmd::ClassInfo::filtermethods
     :alias "info forward"        ::nsf::cmd::ClassInfo::forward
