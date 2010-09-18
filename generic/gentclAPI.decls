@@ -17,6 +17,8 @@ array set ns {
 #
 # Next Scripting commands
 #
+nsfCmd yieldcheck NsfYiedCheckCmd {
+}
 nsfCmd alias NsfAliasCmd {
   {-argName "object" -type object}
   {-argName "-per-object"}

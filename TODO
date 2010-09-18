@@ -1446,10 +1446,23 @@ _ added option noforwarder to RelationSlots
   now it complains about missing cmdPtr; it is not clear, why this
   is missing at the first place in 8.6b1 while working in 8.5
 
+- improved library/lib/make.tcl once more
+- fixed handling of TclNRRunCallbacks, such that coroutines can be easily
+  used (more testing required)
+- added temporary routine ::nsf::yieldcheck for coro debugging
+- renamed Tcl85showStack() to TclShowStack()
+
+
 TODO: 
+- coro cleanup, when really working
+- coro regression test
+
 - subcmd
    * handle sucmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
+
+- fix missing cmdPtr in 8.6b1
+  "We have no cmdPtr in cscPtr 0x10100e610 ::a.x"
 
 - interfaces in documentation for slots (see for more details 
   ::nx::Class#superclass in nx.tcl).

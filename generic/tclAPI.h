@@ -180,6 +180,7 @@ static int NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int o
 static int NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfYiedCheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -261,6 +262,7 @@ static int NsfQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int relationtype, Tcl_Obj *value);
 static int NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 static int NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *parameter);
+static int NsfYiedCheckCmd(Tcl_Interp *interp);
 static int NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *obj, int withInstance, int withReset, Tcl_Obj *name);
 static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
@@ -343,6 +345,7 @@ enum {
  NsfRelationCmdIdx,
  NsfSetVarCmdIdx,
  NsfSetterCmdIdx,
+ NsfYiedCheckCmdIdx,
  NsfOAutonameMethodIdx,
  NsfOCleanupMethodIdx,
  NsfOConfigureMethodIdx,
@@ -1321,6 +1324,24 @@ NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 }
 
 static int
+NsfYiedCheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfYiedCheckCmdIdx].paramDefs, 
+                     method_definitions[NsfYiedCheckCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    
+
+    ParseContextRelease(&pc);
+    return NsfYiedCheckCmd(interp);
+
+  }
+}
+
+static int
 NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
@@ -2181,6 +2202,9 @@ static methodDefinition method_definitions[] = {
   {"object", 1, 0, ConvertToObject},
   {"-per-object", 0, 0, ConvertToString},
   {"parameter", 0, 0, ConvertToTclobj}}
+},
+{"::nsf::yieldcheck", NsfYiedCheckCmdStub, 0, {
+  }
 },
 {"::nsf::cmd::Object::autoname", NsfOAutonameMethodStub, 3, {
   {"-instance", 0, 0, ConvertToString},

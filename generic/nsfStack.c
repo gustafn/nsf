@@ -2,10 +2,10 @@
 static TclVarHashTable *VarHashTableCreate();
 static void NsfCleanupObject(NsfObject *object);
 
-void Tcl85showStack(Tcl_Interp *interp) {
+void TclShowStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
 
-  fprintf(stderr, "Tcl85showStack framePtr %p varFramePtr %p\n",
+  fprintf(stderr, "TclShowStack framePtr %p varFramePtr %p\n",
           Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));
   /* framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
     for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
@@ -246,7 +246,7 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
 
   /*NsfCallStackFindActiveFrame(interp, 0, &activeFramePtr);*/
 # if defined(TCL85STACK_TRACE)
-  Tcl85showStack(interp);
+  TclShowStack(interp);
 # endif
   /* Get the first active non object frame */
   framePtr = CallStackGetActiveProcFrame(inFramePtr);
@@ -394,7 +394,7 @@ CallStackGetObjectFrame(Tcl_Interp *interp, NsfObject *object) {
  * callframe
  */
 static void CallStackPopAll(Tcl_Interp *interp) {
-  /*Tcl85showStack(interp);*/
+  /*TclShowStack(interp);*/
 
   while (1) {
     Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);

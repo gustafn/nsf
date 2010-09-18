@@ -396,7 +396,22 @@ CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
     {int i; fprintf(stderr, "\t CALL: %s ", ObjStr(methodObj));for(i=0; i<objc-2; i++) {
     fprintf(stderr, "%s ", ObjStr(objv[i]));} fprintf(stderr, "\n");}*/
 
-  result = ObjectDispatch(clientData, interp, objc, tov, flags);
+  {
+#if defined(NRE)
+    TEOV_callback *rootPtr = TOP_CB(interp);
+#endif
+    
+    result = ObjectDispatch(clientData, interp, objc, tov, flags);
+
+#if defined(NRE)
+    /*
+    fprintf(stderr, ".... manual run callbacks rootPtr = %p, result %d methodName %s\n", 
+	    rootPtr, result, ObjStr(methodObj));
+    */
+    /* TODO: we should need this only for scriped stuff; maybe it can harm otherwise for coros */
+    result = TclNRRunCallbacks(interp, result, rootPtr, 0);
+#endif
+  }
 
   FREE_ON_STACK(Tcl_Obj*, tov);
   return result;
@@ -2152,7 +2167,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *n
 
 #if defined(CMD_RESOLVER_TRACE)
   fprintf(stderr, "    ... not found %s\n", cmdName);
-  Tcl85showStack(interp);
+  TclShowStack(interp);
 #endif
   return TCL_CONTINUE;
 }
@@ -6006,13 +6021,15 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     }
 #else
     {
-      TEOV_callback *rootPtr = TOP_CB(interp);
+      /* TODO: cleanup, when really working */
+      //TEOV_callback *rootPtr = TOP_CB(interp);
       /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n", objectName(object), ObjStr(objv[0]));*/
       Tcl_NRAddCallback(interp, FinalizeProcMethod,
                         releasePc ? pcPtr : NULL, cscPtr, methodName, NULL);
       result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
       /*fprintf(stderr, ".... run callbacks rootPtr = %p, result %d methodName %s\n", rootPtr, result, methodName);*/
-      result = TclNRRunCallbacks(interp, result, rootPtr, 0);
+      //fprintf(stderr, "NO TclNRRunCallbacks rootPtr = %p, result %d methodName %s\n", rootPtr, result, methodName);
+      //result = TclNRRunCallbacks(interp, result, rootPtr, 0);
       /*fprintf(stderr, ".... run callbacks DONE result %d methodName %s\n", result, methodName);*/
     }
 #endif
@@ -6559,7 +6576,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
     /*fprintf(stderr, "... check ok, cscPtr = %p\n", cscPtr);
     if (!cscPtr) {
-      Tcl85showStack(interp);
+      TclShowStack(interp);
       }*/
     if (!cscPtr || (object != cscPtr->self ||
                     cscPtr->frameType != NSF_CSC_TYPE_ACTIVE_FILTER)) {
@@ -6659,7 +6676,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 	unknown = 1;
         fprintf(stderr, "+++ %s is protected, therefore maybe unknown %p %s lastself=%p o=%p cd %p flags = %.6x\n",
                 methodName, cmdObj, ObjStr(cmdObj), lastSelf, o, clientData, flags);
-        /*Tcl85showStack(interp);*/
+        /*TclShowStack(interp);*/
       }
     }
 
@@ -10239,7 +10256,7 @@ CallingNameSpace(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
   Tcl_Namespace *nsPtr;
 
-  /*Tcl85showStack(interp);*/
+  /*TclShowStack(interp);*/
 
   /*
   * Find last incovation outside the Next Scripting system namespaces. For
@@ -11484,6 +11501,22 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
 /*******************************************
  * Begin generated Next Scripting commands
  *******************************************/
+/*
+nsfCmd yieldcheck NsfYiedCheckCmd {
+}
+*/
+static int
+NsfYiedCheckCmd(Tcl_Interp *interp) {
+#if defined(NRE)
+  Interp *iPtr = (Interp *)interp;
+  CoroutineData *corPtr = iPtr->execEnvPtr->corPtr;
+
+  TclShowStack(interp);
+  fprintf(stderr, "stackLevel: %p %d\n", corPtr->stackLevel, *corPtr->stackLevel);
+#endif
+  return TCL_OK;
+}
+
 /*
 nsfCmd alias NsfAliasCmd {
   {-argName "object" -type object}
@@ -12990,7 +13023,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
   NsfCallStackContent *cscPtr;
   int result = TCL_OK;
 
-  /*fprintf(stderr, "getSelfObj returns %p\n", object); Tcl85showStack(interp);*/
+  /*fprintf(stderr, "getSelfObj returns %p\n", object); TclShowStack(interp);*/
 
   if (selfoption == 0 || selfoption == CurrentoptionObjectIdx) {
     if (object) {
@@ -13439,20 +13472,22 @@ GetObjectParameterDefinition(Tcl_Interp *interp, CONST char *methodName, NsfObje
      * There is no parameter definition available, get a new one in
      * the the string representation.
      */
-    /*fprintf(stderr, "calling %s objectparameter\n", objectName(object));*/
     Tcl_Obj *methodObj = NsfMethodObj(interp, object, NSF_o_objectparameter_idx);
 
     if (methodObj) {
+      /* fprintf(stderr, "=== calling %s objectparameter\n", objectName(object));*/
       result = CallMethod((ClientData) object, interp, methodObj, 
 			  2, 0, NSF_CM_NO_PROTECT);
       
       if (result == TCL_OK) {
 	rawConfArgs = Tcl_GetObjResult(interp);
-	/*fprintf(stderr, ".... rawConfArgs for %s => %s\n", objectName(object), ObjStr(rawConfArgs));*/
+	/*fprintf(stderr, ".... rawConfArgs for %s => '%s'\n", 
+	  objectName(object), ObjStr(rawConfArgs));*/
 	INCR_REF_COUNT(rawConfArgs);
 	
 	/* Parse the string representation to obtain the internal representation */
-	result = ParamDefsParse(interp, methodName, rawConfArgs, NSF_DISALLOWED_ARG_OBJECT_PARAMETER, parsedParamPtr);
+	result = ParamDefsParse(interp, methodName, rawConfArgs, 
+				NSF_DISALLOWED_ARG_OBJECT_PARAMETER, parsedParamPtr);
 	if (result == TCL_OK) {
 	  NsfParsedParam *ppDefPtr = NEW(NsfParsedParam);
 	  ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
@@ -13467,6 +13502,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, CONST char *methodName, NsfObje
       result = TCL_OK;
     }
   }
+
   return result;
 }
 
@@ -13976,7 +14012,7 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
 
     /*fprintf(stderr, "### setting trace for %s on frame %p\n", fullName, 
       Tcl_Interp_varFramePtr(interp));
-      Tcl85showStack(interp);*/
+      TclShowStack(interp);*/
     result = Tcl_TraceVar(interp, vn, TCL_TRACE_UNSETS,
 			  (Tcl_VarTraceProc*)NsfUnsetTrace,
                           (ClientData)objPtr);
