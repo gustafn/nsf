@@ -68,6 +68,32 @@ Test case base {
   ? {::nx::Class info lookup methods -application} ""
   ? {lsort [C info lookup methods -application]} "add1 apo fpo mpo spo"
   ? {lsort [c1 info lookup methods -application]} "a addOne foo m m-with-assertions s"
+
+  ::nx::configure defaultMethodProtection true
+  #
+  # the subsequent tests assume defaultMethodProtection == true
+  #
+  ? {::nx::configure defaultMethodProtection} true
+  
+  ::nx::Class create MC -superclass ::nx::Class {
+    :protected method bar1 args {;}
+    :method bar2 args {;}
+    :public method foo args {;}
+    :public class-object method foo args {;}
+  }
+
+  ? {lsort [MC info methods -methodtype scripted -callprotection public]} "foo"
+  ? {lsort [MC info methods -methodtype scripted -callprotection protected]} "bar1 bar2"
+  ? {lsort [MC info methods -methodtype scripted -callprotection all]} "bar1 bar2 foo"
+  
+
+  ::nsf::methodproperty ::MC foo protected true
+  ::nsf::methodproperty ::MC bar2 protected false
+  
+  ? {lsort [MC info methods -methodtype scripted -callprotection public]} "bar2"
+  ? {lsort [MC info methods -methodtype scripted -callprotection protected]} "bar1 foo"
+  ? {lsort [MC info methods -methodtype scripted -callprotection all]} "bar1 bar2 foo"
+  ::nx::configure defaultMethodProtection false
 }
 
 Test case subobj {
