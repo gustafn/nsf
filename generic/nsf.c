@@ -11641,14 +11641,14 @@ ListMethod(Tcl_Interp *interp,
 
 static int
 ProtectionMatches(Tcl_Interp *interp, int withCallprotection, Tcl_Command cmd) {
-  int result, isProtected = (Tcl_Command_flags(cmd) & NSF_CMD_PROTECTED_METHOD) != 0;
+  int result, isProtected = Tcl_Command_flags(cmd) & NSF_CMD_PROTECTED_METHOD;
   if (withCallprotection == CallprotectionNULL) {
     withCallprotection = CallprotectionPublicIdx;
   }
   switch (withCallprotection) {
   case CallprotectionAllIdx: result = 1; break;
   case CallprotectionPublicIdx: result = (isProtected == 0); break;
-  case CallprotectionProtectedIdx: result = (isProtected == 1); break;
+  case CallprotectionProtectedIdx: result = (isProtected != 0); break;
   default: result = 1;
   }
   return result;
