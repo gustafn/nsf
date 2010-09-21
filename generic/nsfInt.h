@@ -240,13 +240,6 @@ typedef struct NsfMemCounter {
    use app-specific return codes */
 #define NSF_CHECK_FAILED 6
 
-/* flags for call method */
-#define NSF_CM_NO_UNKNOWN 1
-#define NSF_CM_NO_SHIFT   2
-#define NSF_CM_NO_PROTECT 4
-#define NSF_CM_NO_OBJECT_METHOD 8
-#define NSF_CM_DELGATE    0x10
-
 /*
  *
  * Next Scripting Structures
@@ -350,8 +343,8 @@ typedef struct NsfStringIncrStruct {
 #define NSF_IS_CLASS                       0x0040
 #define NSF_IS_ROOT_META_CLASS             0x0080
 #define NSF_IS_ROOT_CLASS                  0x0100
+
 #define NSF_TCL_DELETE                     0x0200
-/* DESTROYED set, when object is physically destroyed with PrimitiveODestroy  */
 /*#define NSF_CMD_NOT_FOUND                  0x1000*/
 #define NSF_DURING_DELETE                  0x2000
 #define NSF_DELETED                        0x4000
@@ -622,18 +615,29 @@ typedef struct NsfCallStackContent {
   unsigned short callType;
 } NsfCallStackContent;
 
-#define NSF_CSC_TYPE_PLAIN 0
-#define NSF_CSC_TYPE_ACTIVE_MIXIN 1
-#define NSF_CSC_TYPE_ACTIVE_FILTER 2
-#define NSF_CSC_TYPE_INACTIVE 4
-#define NSF_CSC_TYPE_INACTIVE_MIXIN 5
-#define NSF_CSC_TYPE_INACTIVE_FILTER 6
-#define NSF_CSC_TYPE_GUARD 0x10
-#define NSF_CSC_TYPE_ENSEMBLE 0x20
+#define NSF_CSC_TYPE_PLAIN            0
+#define NSF_CSC_TYPE_ACTIVE_MIXIN     1
+#define NSF_CSC_TYPE_ACTIVE_FILTER    2
+#define NSF_CSC_TYPE_INACTIVE         4
+#define NSF_CSC_TYPE_INACTIVE_MIXIN   5
+#define NSF_CSC_TYPE_INACTIVE_FILTER  6
+#define NSF_CSC_TYPE_GUARD         0x10
+#define NSF_CSC_TYPE_ENSEMBLE      0x20
 
-#define NSF_CSC_CALL_IS_NEXT 1
-#define NSF_CSC_CALL_IS_GUARD 2
-#define NSF_CSC_CALL_IS_ENSEMBLE 4   /*TODO: needed?*/
+#define NSF_CSC_CALL_IS_NEXT           1
+#define NSF_CSC_CALL_IS_GUARD          2
+#define NSF_CSC_CALL_IS_ENSEMBLE       4   /*TODO: needed?*/
+#define NSF_CSC_CALL_IS_NRE            8   /*TODO: needed?*/
+#define NSF_CSC_MIXIN_STACK_PUSHED  0x100   /*TODO: needed?*/
+#define NSF_CSC_FILTER_STACK_PUSHED 0x200   /*TODO: needed?*/
+
+/* flags for call method */
+#define NSF_CM_NO_UNKNOWN 1
+#define NSF_CM_NO_SHIFT   2
+#define NSF_CM_NO_PROTECT 4
+#define NSF_CM_NO_OBJECT_METHOD 8
+#define NSF_CM_DELGATE    0x10
+#define NSF_CM_IMMEDIATE  0x20
 
 #if defined(NSF_PROFILE)
 typedef struct NsfProfile {

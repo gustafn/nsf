@@ -1,6 +1,5 @@
 
-static TclVarHashTable *VarHashTableCreate();
-static void NsfCleanupObject(NsfObject *object);
+//static TclVarHashTable *VarHashTableCreate();
 
 void TclShowStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
@@ -54,7 +53,7 @@ void TclShowStack(Tcl_Interp *interp) {
  */
 
 static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, Tcl_CallFrame *framePtr) {
-  /*fprintf(stderr,"PUSH OBJECT_FRAME (Nsf_PushFrame) frame %p\n",framePtr);*/
+  /*fprintf(stderr,"PUSH OBJECT_FRAME (Nsf_PushFrameObj) frame %p\n",framePtr);*/
   if (object->nsPtr) {
     /*fprintf(stderr,"Nsf_PushFrame frame %p with object->nsPtr %p\n", framePtr, object->nsPtr);*/
     Tcl_PushCallFrame(interp, framePtr, object->nsPtr, 
@@ -77,18 +76,16 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, Tcl_CallFram
 }
 
 static void Nsf_PopFrameObj(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  /*fprintf(stderr,"POP  OBJECT_FRAME (Nsf_PopFrame) frame %p, vartable %p set to NULL, already %d\n", 
-    framePtr, Tcl_CallFrame_varTablePtr(framePtr),  Tcl_CallFrame_varTablePtr(framePtr) == NULL);*/
+  /*fprintf(stderr,"POP  OBJECT_FRAME (Nsf_PopFrameObj) frame %p, vartable %p set to NULL, already %d\n", 
+    framePtr, Tcl_CallFrame_varTablePtr(framePtr), Tcl_CallFrame_varTablePtr(framePtr) == NULL);*/
   Tcl_CallFrame_varTablePtr(framePtr) = NULL;
   Tcl_PopCallFrame(interp);
 }
 
 static void Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_CallFrame *framePtr) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
-
-  /*fprintf(stderr,"PUSH CMETHOD_FRAME (Nsf_PushFrame) frame %p object->nsPtr %p interp ns %p\n",
-          framePtr,object->nsPtr, 
-          Tcl_CallFrame_nsPtr(varFramePtr));*/
+  /*fprintf(stderr,"PUSH CMETHOD_FRAME (Nsf_PushFrameCsc) frame %p cscPtr %p methodName %s\n",
+    framePtr, cscPtr, Tcl_GetCommandName(interp,cscPtr->cmdPtr));*/
 
   Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(varFramePtr), 
 		    1|FRAME_IS_NSF_CMETHOD);
@@ -97,7 +94,7 @@ static void Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tc
 }
 
 static void Nsf_PopFrameCsc(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  /*fprintf(stderr,"POP CMETHOD_FRAME (Nsf_PopFrame) frame %p, varTable = %p\n",
+  /*fprintf(stderr,"POP CMETHOD_FRAME (Nsf_PopFrameCsc) frame %p, varTable = %p\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr));*/
   Tcl_PopCallFrame(interp);
 }
@@ -258,11 +255,20 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
     ctx->framesSaved = 0;
   } else {
     ctx->varFramePtr = inFramePtr;
+    /*fprintf(stderr, "CallStackUseActiveFrames stores %p\n",framePtr);*/
     Tcl_Interp_varFramePtr(interp) = (CallFrame *)framePtr;
     ctx->framesSaved = 1;
   }
 }
 
+static void
+CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ctx) {
+  if (ctx->framesSaved) {
+    /*fprintf(stderr, "CallStackRestoreSavedFrames drops %p restores %p\n",
+      Tcl_Interp_varFramePtr(interp), ctx->varFramePtr);*/
+    Tcl_Interp_varFramePtr(interp) = (CallFrame *)ctx->varFramePtr;
+  }
+}
 
 static NsfCallStackContent *
 CallStackFindActiveFilter(Tcl_Interp *interp) {
@@ -444,7 +450,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
    * track object activations
    */ 
   object->activationCount ++;
-
+  //fprintf(stderr, "activationCount ++ (%s) --> %d\n",objectName(object),  object->activationCount);
   /*
    * track class activations
    */ 
@@ -467,7 +473,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
   cscPtr->cl            = cl;
   cscPtr->cmdPtr        = cmd;
   cscPtr->frameType     = frameType;
-  cscPtr->callType      = 0;
+  //cscPtr->callType      = 0; /* initialized in CscAlloc()
   cscPtr->filterStackEntry = frameType == NSF_CSC_TYPE_ACTIVE_FILTER ? object->filterStack : NULL;
   cscPtr->objv          = NULL;
 
@@ -510,6 +516,8 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
      tracking activations of objects
   */
   object->activationCount --;
+
+  //fprintf(stderr, "activationCount -- (%s) --> %d\n",objectName(object),  object->activationCount);
   
   /*fprintf(stderr, "decr activationCount for %s to %d cscPtr->cl %p\n", objectName(cscPtr->self), 
     cscPtr->self->activationCount, cscPtr->cl);*/
@@ -553,7 +561,7 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
         nsPtr->fullName, nsPtr->activationCount, nsPtr->flags, nsPtr->refCount);*/
     
       if ((nsPtr->refCount == 0) && (nsPtr->flags & NS_DEAD)) {
-        /* the namspace refcound has reached 0, we have to free
+        /* the namespace refcount has reached 0, we have to free
            it. unfortunately, NamespaceFree() is not exported */
         /* TODO: remove me finally */
         fprintf(stderr, "HAVE TO FREE %p\n",nsPtr);

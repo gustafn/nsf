@@ -209,7 +209,6 @@ namespace eval ::nx {
         return [::nsf::dispatch [::nsf::current object] ::nsf::cmd::Object::$what {*}$args]
       }
     }
-
     # define unknown handler for class
     :method unknown {m args} {
       error "Method '$m' unknown for [::nsf::current object].\
@@ -218,6 +217,7 @@ namespace eval ::nx {
     # protected is not yet defined
     ::nsf::methodproperty [::nsf::current object] unknown protected true
   }
+
 
   Object eval {
 
@@ -275,6 +275,7 @@ namespace eval ::nx {
   # tries to resolve the class again. This meachnism is used e.g. by
   # the ::ttrace mechanism for partial loading by Zoran.
   #
+
   Class protected class-object method __unknown {name} {}
 
   # Add alias methods. cmdName for a method can be added via
@@ -291,6 +292,7 @@ namespace eval ::nx {
         {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
         $cmd
   }
+
   Class public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
     array set "" [:__resolve_method_path -create -verbose $methodName]
     #puts "class alias $(object).$(methodName) $cmd"
@@ -1517,4 +1519,5 @@ namespace eval ::nx {
   
   unset bootstrap
 }
+puts stderr =======NX-done
 

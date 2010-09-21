@@ -438,12 +438,13 @@ Test case multivalued {
   }
   ? {Foo create foo -ints {1 2}} "::foo"
   ? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a" for parameter -ints}
-  
+
   # make slot incremental
   Foo::slot::ints eval {
     set :incremental 1
     :optimize
   }
+
   Foo create foo -ints {1 2}
   ? {foo ints add 0} "0 1 2"
   ? {foo ints add a} {expected integer but got "a" for parameter value}

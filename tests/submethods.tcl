@@ -36,7 +36,7 @@ Test case submethods {
   ? {o string tolower 2} tolower
   ? {o string toupper 2} \
       {unable to dispatch method ::o string toupper; valid subcommands of string: info length tolower}
-  
+
   ? {o foo a x} "x"
   ? {o foo a y} "y"
   ? {o foo a z} {unable to dispatch method ::o foo a z; valid subcommands of a: defaultmethod subcmdName unknown x y}

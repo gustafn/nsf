@@ -144,6 +144,7 @@ Test case "filter-and-creation" {
 
   # define nx unknown handler in case it does not exist
   ::nx::Object protected method unknown {m args} {
+    puts stderr XXXXX
     error "[::nsf::current object]: unable to dispatch method '$m'"
   }
 
@@ -155,7 +156,9 @@ Test case "filter-and-creation" {
   # create through filter
   ? {Foo create ob} ::ob
   # unknown through filter
+puts stderr ======a
   ? {ob bar1} {::ob: unable to dispatch method 'bar1'}
+puts stderr ======b
   ? {ob baz} {}
 
   # deactivate nx unknown handler in case it exists
@@ -164,10 +167,14 @@ Test case "filter-and-creation" {
   # create through filter
   ? {Foo create ob2} ::ob2
   # unknown through filter
+puts stderr ======c
   ? {ob2 bar2} {::ob2: unable to dispatch method 'bar2'}
+puts stderr ======d
   ? {ob2 baz} {}
 
 }
+puts stderr ======EXIT
+
 
 
 

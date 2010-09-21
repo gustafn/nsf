@@ -1452,10 +1452,15 @@ _ added option noforwarder to RelationSlots
 - added temporary routine ::nsf::yieldcheck for coro debugging
 - renamed Tcl85showStack() to TclShowStack()
 
+- Big internal changes for handling nre-enabled procs in more
+  situations.  Handles now all nx regression tests, but fails in
+  testx.xotcl (just nre-enabled)
+
 
 TODO: 
-- coro cleanup, when really working
-- coro regression test
+
+- major coro cleanup, when working
+- extend coro regression test
 
 - subcmd
    * handle sucmd for other method factories
