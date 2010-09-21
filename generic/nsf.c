@@ -11165,7 +11165,7 @@ ListMethod(Tcl_Interp *interp,
 
 static int
 ProtectionMatches(Tcl_Interp *interp, int withCallprotection, Tcl_Command cmd) {
-  int result, isProtected = Tcl_Command_flags(cmd) & NSF_CMD_PROTECTED_METHOD;
+  int result, isProtected = (Tcl_Command_flags(cmd) & NSF_CMD_PROTECTED_METHOD) != 0;
   if (withCallprotection == CallprotectionNULL) {
     withCallprotection = CallprotectionPublicIdx;
   }
