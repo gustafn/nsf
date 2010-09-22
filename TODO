@@ -1463,8 +1463,18 @@ _ added option noforwarder to RelationSlots
 - some cleanup concerning TCL_STACK_ALLOC_TRACE
 - make ::nsf::next and ::xotcl::next NRE-enabled
 
+- make coloncmd are NRE-enabled
+- make every internal method invokation (NsfCallMethodWithArgs() 
+  and CallMethod()) NRE-configurable
+- use "Nsf" prefix for global vars to avoid potential conflicts
+- minimal support for sane-NRE patch
+- failed so far to make my NRE-enabled
+- new compile-flag for tracing: NRE_CALLBACK_TRACE
+- extended regression test (added test for 8.6 apply)
+- renamed tests/coroutines.tcl to tests/tcl86.tcl
+
 TODO: 
-- check coloncmd and my for NRE-enabling
+- check my for NRE-enabling
 - major coro cleanup, when working
 - extend coro regression test
 

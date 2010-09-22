@@ -25,10 +25,10 @@ void TclShowStack(Tcl_Interp *interp) {
             Tcl_CallFrame_clientData(framePtr),
             Tcl_CallFrame_level(framePtr),
             Tcl_CallFrame_nsPtr(framePtr), Tcl_CallFrame_nsPtr(framePtr)->fullName,
-            Tcl_CallFrame_objc(framePtr) ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
+            Tcl_CallFrame_objc(framePtr) && 0 ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
             Tcl_CallFrame_objc(framePtr) ? Tcl_CallFrame_objc(framePtr) : -1);
     if (cscPtr) {
-      fprintf(stderr, " csc %p frameType %d callType %d (%p %s)\n",
+      fprintf(stderr, " csc %p frameType %.4x callType %.4x (%p %s)\n",
 	      cscPtr,
               cscPtr ? cscPtr->frameType : -1,
               cscPtr ? cscPtr->callType : -1,

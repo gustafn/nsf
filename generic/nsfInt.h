@@ -319,7 +319,7 @@ typedef struct NsfStringIncrStruct {
 #define NSF_CMD_PROTECTED_METHOD 		0x00010000
 #define NSF_CMD_REDEFINE_PROTECTED_METHOD	0x00020000
 /* NSF_CMD_NONLEAF_METHOD is used to flag, if a Method implemented via cmd calls "next" */
-#define NSF_CMD_NONLEAF_METHOD		0x00040000
+#define NSF_CMD_NONLEAF_METHOD			0x00040000
 #define NSF_CMD_CLASS_ONLY_METHOD		0x00080000
 /*
  * object flags ...
@@ -352,18 +352,18 @@ typedef struct NsfStringIncrStruct {
 
 /* flags for NsfParams */
 
-#define NSF_ARG_REQUIRED		     0x0001
-#define NSF_ARG_MULTIVALUED		     0x0002
-#define NSF_ARG_NOARG 		     0x0004
-#define NSF_ARG_CURRENTLY_UNKNOWN	     0x0008
-#define NSF_ARG_SUBST_DEFAULT		     0x0010
-#define NSF_ARG_ALLOW_EMPTY		     0x0020
-#define NSF_ARG_INITCMD		     0x0040
-#define NSF_ARG_METHOD		     0x0080
-#define NSF_ARG_RELATION		     0x0100
-#define NSF_ARG_SWITCH		     0x0200
-#define NSF_ARG_HAS_DEFAULT		     0x1000
-#define NSF_ARG_IS_CONVERTER		     0x2000
+#define NSF_ARG_REQUIRED		0x0001
+#define NSF_ARG_MULTIVALUED		0x0002
+#define NSF_ARG_NOARG 		     	0x0004
+#define NSF_ARG_CURRENTLY_UNKNOWN	0x0008
+#define NSF_ARG_SUBST_DEFAULT		0x0010
+#define NSF_ARG_ALLOW_EMPTY		0x0020
+#define NSF_ARG_INITCMD		     	0x0040
+#define NSF_ARG_METHOD		     	0x0080
+#define NSF_ARG_RELATION		0x0100
+#define NSF_ARG_SWITCH		     	0x0200
+#define NSF_ARG_HAS_DEFAULT		0x1000
+#define NSF_ARG_IS_CONVERTER		0x2000
 
 /* disallowed options */
 #define NSF_DISALLOWED_ARG_METHOD_PARAMETER	     (NSF_ARG_METHOD|NSF_ARG_INITCMD|NSF_ARG_RELATION)
@@ -638,6 +638,20 @@ typedef struct NsfCallStackContent {
 #define NSF_CM_NO_OBJECT_METHOD 8
 #define NSF_CM_DELGATE    0x10  /* TODO: needed? */
 #define NSF_CM_IMMEDIATE  0x20
+
+#if defined(NRE)
+# define NsfImmediateFromCallerFlags(flags) \
+  (((flags) & (NSF_CSC_CALL_IS_NRE|NSF_CM_IMMEDIATE)) == NSF_CSC_CALL_IS_NRE ? 0 : NSF_CM_IMMEDIATE)
+
+//#define NRE_SANE_PATCH 1
+
+#if defined(NRE_SANE_PATCH)
+# define NsfNRRunCallbacks(interp, result, rootPtr) TclNRRunCallbacks(interp, result, rootPtr)
+#else
+# define NsfNRRunCallbacks(interp, result, rootPtr) TclNRRunCallbacks(interp, result, rootPtr, 0)
+#endif
+
+#endif
 
 #if defined(NSF_PROFILE)
 typedef struct NsfProfile {
