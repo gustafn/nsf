@@ -249,7 +249,7 @@ static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char 
 			      int noMixins, int inContext);
 static int NextSearchAndInvoke(Tcl_Interp *interp,
 			       CONST char *methodName, int objc, Tcl_Obj *CONST objv[],
-			       NsfCallStackContent *cscPtr);
+			       NsfCallStackContent *cscPtr, int freeArgumentVector);
 /*
  * argv parsing 
  */
@@ -5984,7 +5984,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
            */
 
           /*fprintf(stderr, "... calling nextmethod cscPtr %p\n", cscPtr);*/
-	  result = NextSearchAndInvoke(interp, methodName, objc, objv, cscPtr);
+	  result = NextSearchAndInvoke(interp, methodName, objc, objv, cscPtr, 0);
           /*fprintf(stderr, "... after nextmethod result %d\n", result);*/
         }
 #if defined(NRE)
@@ -6059,21 +6059,12 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
       ParseContextRelease(&pc);
     }
 #else
-    {
-      /* TODO: cleanup, when really working */
-      //TEOV_callback *rootPtr = TOP_CB(interp);
-      /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n", objectName(object), ObjStr(objv[0]));*/
-      Tcl_NRAddCallback(interp, ProcMethodDispatchFinalize,
-                        releasePc ? pcPtr : NULL, cscPtr, methodName, NULL);
-
-      cscPtr->callType |= NSF_CSC_CALL_IS_NRE;
-
-      result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
-      /*fprintf(stderr, ".... run callbacks rootPtr = %p, result %d methodName %s\n", rootPtr, result, methodName);*/
-      //fprintf(stderr, "NO TclNRRunCallbacks rootPtr = %p, result %d methodName %s\n", rootPtr, result, methodName);
-      //result = TclNRRunCallbacks(interp, result, rootPtr, 0);
-      /*fprintf(stderr, ".... run callbacks DONE result %d methodName %s\n", result, methodName);*/
-    }
+    /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n", 
+      objectName(object), ObjStr(objv[0]));*/
+    Tcl_NRAddCallback(interp, ProcMethodDispatchFinalize,
+		      releasePc ? pcPtr : NULL, cscPtr, methodName, NULL);
+    cscPtr->callType |= NSF_CSC_CALL_IS_NRE;
+    result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
 #endif
   }
 # if defined(TCL85STACK_TRACE)
@@ -6416,7 +6407,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 #if defined(NRE)
       TEOV_callback *rootPtr = TOP_CB(interp);
 
-      cscPtr->callType |= flags & (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED);
+      cscPtr->callType |= flags & (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED|NSF_CM_IMMEDIATE);
 #endif
       // object, cl, cmd could be gotten from cscPtr
       result = ProcMethodDispatch(cp, interp, objc, objv, methodName, 
@@ -6534,7 +6525,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	  fprintf(stderr, "call NextSearchAndInvoke with ov %p could use %p // cscPtr %p flags %.6x\n", 
 		  cscPtr1->objv, objv, cscPtr1, cscPtr1->callType);
 	  result = NextSearchAndInvoke(interp, ObjStr(cscPtr1->objv[0]), 
-				       cscPtr1->objc, cscPtr1->objv, cscPtr1);
+				       cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
 	}
 
 	fprintf(stderr, "==> next %s csc %p returned %d unknown %d\n", 
@@ -6803,7 +6794,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	    assert(cscPtr1);
 	  }
 	  result = NextSearchAndInvoke(interp, ObjStr(cscPtr1->objv[0]), 
-				       cscPtr1->objc, cscPtr1->objv, cscPtr1);
+				       cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
 	}
 
 	fprintf(stderr, "==> next %s csc %p returned %d unknown %d\n", 
@@ -8521,6 +8512,40 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   return TCL_OK;
 }
 
+NSF_INLINE static int
+NextInvokeFinalize(ClientData data[], Tcl_Interp *interp, int result) {
+  Tcl_Obj **nobjv = data[0];
+  NsfCallStackContent *cscPtr = data[1];
+  
+  //fprintf(stderr, "***** NextCmdFinalize cscPtr %p flags %.6x is next %d\n", 
+  //cscPtr, cscPtr->callType, cscPtr->callType & NSF_CSC_CALL_IS_NEXT);
+
+  if (cscPtr->callType & NSF_CSC_CALL_IS_NEXT) {
+    //fprintf(stderr, "..... it was a successful next\n");
+    cscPtr->callType &= ~NSF_CSC_CALL_IS_NEXT;
+
+    if (cscPtr->frameType == NSF_CSC_TYPE_INACTIVE_FILTER)
+      cscPtr->frameType = NSF_CSC_TYPE_ACTIVE_FILTER;
+    else if (cscPtr->frameType == NSF_CSC_TYPE_INACTIVE_MIXIN)
+      cscPtr->frameType = NSF_CSC_TYPE_ACTIVE_MIXIN;
+  }
+
+  if (nobjv) {
+    //fprintf(stderr, "..... free argument vector\n");
+    INCR_REF_COUNT(nobjv[0]);
+    ckfree((char *)nobjv);
+  }
+
+  if (result == TCL_ERROR && RUNTIME_STATE(interp)->unknown) {
+    fprintf(stderr, "don't report unknown error\n");
+    /*
+     * Don't report "unknown" errors via next.
+     */
+    result = TCL_OK;
+  } 
+  return result;
+}
+
 /*
  *----------------------------------------------------------------------
  * NextSearchAndInvoke --
@@ -8540,8 +8565,9 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
  */
 static int
 NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName, 
-		    int objc, Tcl_Obj *CONST objv[],
-		    NsfCallStackContent *cscPtr) {
+		    int objc, Tcl_Obj *CONST objv[], 
+		    NsfCallStackContent *cscPtr, 
+		    int freeArgumentVector) {
   Tcl_Command cmd, currentCmd = NULL;
   int result, frameType = NSF_CSC_TYPE_PLAIN,
     isMixinEntry = 0, isFilterEntry = 0,
@@ -8560,20 +8586,9 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
   //	  objectName(object), methodName, cl, cmd, endOfFilterChain, result);
 
   if (result != TCL_OK) {
-    return result;
+    goto next_search_and_invoke_cleanup;
   }
 
-  /*
-    Fprintf(stderr, "NextSearchMethod -- RETURN: method=%s eoffc=%d,",
-    *methodNamePtr, endOfFilterChain);
-
-    if (object)
-    fprintf(stderr, " obj=%s,", objectName(object));
-    if ((*cl))
-    fprintf(stderr, " cl=%s,", (*cl)->nsPtr->fullName);
-    fprintf(stderr, " mixin=%d, filter=%d, cmd=%p\n",
-    isMixinEntry, isFilterEntry, cmd);
-  */
 #if 0
   Tcl_ResetResult(interp); /* needed for bytecode support */
 #endif
@@ -8611,20 +8626,44 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
     /*
      * now actually call the "next" method
      */
+    // fprintf(stderr, "calling <next> method %s\n",methodName);
+
     cscPtr->callType |= NSF_CSC_CALL_IS_NEXT;
     rst->unknown = 0;
-    // fprintf(stderr, "calling <next> method %s\n",methodName);
-    // TODO: always NSF_CM_IMMEDIATE seems to strong
-    // TODO: maybe pass calling IMMEDIATE property
+#if defined(NRE)
+    { int flags;
+      /*
+       * Allow call only without immediate flag, when caller has NRE without immediate
+       */ 
+      flags = (cscPtr->callType & (NSF_CSC_CALL_IS_NRE|NSF_CM_IMMEDIATE)) == NSF_CSC_CALL_IS_NRE ?
+	0 : NSF_CM_IMMEDIATE;
+      
+      /*fprintf(stderr, "MethodDispatch in next flags %.6x NRE %d immediate %d next-flags %.6x\n", 
+	cscPtr->callType, 
+	(cscPtr->callType & NSF_CSC_CALL_IS_NRE) != 0,
+	(cscPtr->callType & NSF_CM_IMMEDIATE) != 0,
+	flags
+	);*/
+      
+      if (flags == 0) {
+	/*
+	 * The call is NRE-enabled. We register the callback and return
+	 * here immediately.  All other exists form this functions have
+	 * to call NextInvokeFinalize manually on return.
+	 */
+	Tcl_NRAddCallback(interp, NextInvokeFinalize, 
+			  freeArgumentVector ? (ClientData)objv : NULL, cscPtr, NULL, NULL);
+	return MethodDispatch((ClientData)object, interp, objc, objv, cmd,
+			      object, cl, methodName, frameType, flags, 3);
+      } else {
+	result = MethodDispatch((ClientData)object, interp, objc, objv, cmd,
+				object, cl, methodName, frameType, flags, 3);
+      }
+    }
+#else
     result = MethodDispatch((ClientData)object, interp, objc, objv, cmd,
-                            object, cl, methodName, frameType, NSF_CM_IMMEDIATE, 3);
-    //fprintf(stderr, "calling <next> method %s DONE\n",methodName);
-    cscPtr->callType &= ~NSF_CSC_CALL_IS_NEXT;
-
-    if (cscPtr->frameType == NSF_CSC_TYPE_INACTIVE_FILTER)
-      cscPtr->frameType = NSF_CSC_TYPE_ACTIVE_FILTER;
-    else if (cscPtr->frameType == NSF_CSC_TYPE_INACTIVE_MIXIN)
-      cscPtr->frameType = NSF_CSC_TYPE_ACTIVE_MIXIN;
+			    object, cl, methodName, frameType, 0, 3);
+#endif
   } else if (result == TCL_OK) {
     /*
      * We could not find a cmd, but there was no error on the call.
@@ -8640,7 +8679,16 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
      /*fprintf(stderr, "******** setting unknown to %d\n",  rst->unknown );*/
   }
 
-  return result;
+ next_search_and_invoke_cleanup:
+  /*
+   * We come here, whenever the NRE callback is NOT registered
+   */ 
+  {ClientData data[2] = {
+      freeArgumentVector ? (ClientData)objv : NULL,
+      cscPtr
+    };
+    return NextInvokeFinalize(data, interp, result);
+  }
 }
 
 /*
@@ -8667,42 +8715,23 @@ nsfCmd next NsfNextCmd {
 */
 static int
 NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
-  int result, freeArgumentVector, oc, nobjc;
+  int freeArgumentVector, oc, nobjc;
   NsfCallStackContent *cscPtr;
   CONST char *methodName;
   Tcl_Obj **nobjv, **ov;
 
   if (arguments) {
     /* Arguments were provided. */
-    result = Tcl_ListObjGetElements(interp, arguments, &oc, &ov);
+    int result = Tcl_ListObjGetElements(interp, arguments, &oc, &ov);
     if (result != TCL_OK) {return result;}
   } else {
     /* No arguments were provided. */
     oc = -1;
   }
 
-  result = NextGetArguments(interp, oc, ov, &cscPtr, &methodName, 
-			    &nobjc, &nobjv, &freeArgumentVector);
-  if (result == TCL_OK) {
-    //fprintf(stderr, "NsfNextCmd NextSearchAndInvoke with ov %p // cscPtr %p flags %.6x\n", 
-    //	    nobjv, cscPtr, cscPtr->callType);
-    //fprintf(stderr, "NsfNextCmd oc %d ov[0] %p\n", nobjc, nobjv[0]);
-    result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr);
-  }
-
-  if (freeArgumentVector) {
-    INCR_REF_COUNT(nobjv[0]);
-    ckfree((char *)nobjv);
-  }  
-
-  if (result == TCL_ERROR && RUNTIME_STATE(interp)->unknown) {
-    fprintf(stderr, "don't report unknown error\n");
-    /*
-     * Don't report "unknown" errors via next.
-     */
-    result = TCL_OK;
-  } 
-  return result;
+  NextGetArguments(interp, oc, ov, &cscPtr, &methodName, 
+		   &nobjc, &nobjv, &freeArgumentVector);
+  return NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
 }
 
 /*
@@ -8729,7 +8758,7 @@ NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
  */
 int
 NsfNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  int result, freeArgumentVector, nobjc;
+  int freeArgumentVector, nobjc;
   NsfCallStackContent *cscPtr;
   CONST char *methodName;
   Tcl_Obj **nobjv;
@@ -8745,25 +8774,9 @@ NsfNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     }
   }
 
-  result = NextGetArguments(interp, objc-1, &objv[1], &cscPtr, &methodName, 
-			    &nobjc, &nobjv, &freeArgumentVector);
-  if (result == TCL_OK) {
-    result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr);
-  }
-
-  if (freeArgumentVector) {
-    INCR_REF_COUNT(nobjv[0]);
-    ckfree((char *)nobjv);
-  }  
-
-  if (result == TCL_ERROR && RUNTIME_STATE(interp)->unknown) {
-    fprintf(stderr, "don't report unknown error\n");
-    /*
-     * Don't report "unknown" errors via next.
-     */
-    result = TCL_OK;
-  } 
-  return result;
+  NextGetArguments(interp, objc-1, &objv[1], &cscPtr, &methodName, 
+		   &nobjc, &nobjv, &freeArgumentVector);
+  return NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
 }
 
 

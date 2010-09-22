@@ -1461,9 +1461,10 @@ _ added option noforwarder to RelationSlots
   options for less conservative behaviour
 
 - some cleanup concerning TCL_STACK_ALLOC_TRACE
+- make ::nsf::next and ::xotcl::next NRE-enabled
 
 TODO: 
-- IMMEDIATE in next needed?
+- check coloncmd and my for NRE-enabling
 - major coro cleanup, when working
 - extend coro regression test
 

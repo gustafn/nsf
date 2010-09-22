@@ -627,16 +627,16 @@ typedef struct NsfCallStackContent {
 #define NSF_CSC_CALL_IS_NEXT           1
 #define NSF_CSC_CALL_IS_GUARD          2
 #define NSF_CSC_CALL_IS_ENSEMBLE       4   /*TODO: needed?*/
-#define NSF_CSC_CALL_IS_NRE            8   /*TODO: needed?*/
-#define NSF_CSC_MIXIN_STACK_PUSHED  0x100   /*TODO: needed?*/
-#define NSF_CSC_FILTER_STACK_PUSHED 0x200   /*TODO: needed?*/
+#define NSF_CSC_CALL_IS_NRE         0x100   /*TODO: needed?*/
+#define NSF_CSC_MIXIN_STACK_PUSHED  0x200   /*TODO: needed?*/
+#define NSF_CSC_FILTER_STACK_PUSHED 0x400   /*TODO: needed?*/
 
 /* flags for call method */
 #define NSF_CM_NO_UNKNOWN 1
 #define NSF_CM_NO_SHIFT   2
 #define NSF_CM_NO_PROTECT 4
 #define NSF_CM_NO_OBJECT_METHOD 8
-#define NSF_CM_DELGATE    0x10
+#define NSF_CM_DELGATE    0x10  /* TODO: needed? */
 #define NSF_CM_IMMEDIATE  0x20
 
 #if defined(NSF_PROFILE)
