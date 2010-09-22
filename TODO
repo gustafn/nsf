@@ -1456,9 +1456,12 @@ _ added option noforwarder to RelationSlots
   situations.  Handles now all nx regression tests, but fails in
   testx.xotcl (just nre-enabled)
 
+- passing part of dispatch flags in cscPtr->callType
+- runs now full regression test NRE enabled, but still much debugging and
+  options for less conservative behaviour
 
 TODO: 
-
+- IMMEDIATE in next needed?
 - major coro cleanup, when working
 - extend coro regression test
 

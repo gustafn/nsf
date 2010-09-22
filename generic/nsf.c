@@ -3428,7 +3428,6 @@ AssertionSetInvariants(Tcl_Interp *interp, NsfAssertionStore **assertions, Tcl_O
 static int
 MixinStackPush(NsfObject *object) {
   register NsfMixinStack *h = NEW(NsfMixinStack);
-  // TODO: are all mixin push and pop ops really needed?
   //fprintf(stderr, "MixinStackPush %s\n", objectName(object));
   h->currentCmdPtr = NULL;
   h->nextPtr = object->mixinStack;
@@ -4290,7 +4289,7 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object, CONST char *methodName,
   cmdList = SeekCurrent(object->mixinStack->currentCmdPtr, object->mixinOrder);
   RUNTIME_STATE(interp)->cmdPtr = cmdList ? cmdList->cmdPtr : NULL;
 
-  //fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList);
+  /*fprintf(stderr, "MixinSearch searching for '%s' %p\n", methodName, cmdList);*/
   /*CmdListPrint(interp, "MixinSearch CL = \n", cmdList);*/
 
   for (; cmdList; cmdList = cmdList->nextPtr) {
@@ -4333,7 +4332,7 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object, CONST char *methodName,
        */
       *clPtr = cl;
       *currentCmdPtr = cmdList->cmdPtr;
-      /* fprintf(stderr, "mixinsearch returns %p (cl %s)\n",cmd, className(cl)); */
+      /*fprintf(stderr, "mixinsearch returns %p (cl %s)\n",cmd, className(cl));*/
       break;
     } else if (result == TCL_ERROR) {
       break;
@@ -5839,7 +5838,8 @@ ParsedParamFree(NsfParsedParam *parsedParamPtr) {
  * method dispatch
  */
 // prototype
-NSF_INLINE static void ObjectDispatchFinalize(NsfObject *object, int flags);
+//TODO remove string, methodName
+NSF_INLINE static void ObjectDispatchFinalize(NsfObject *object, int flags, char *string, char *methodName);
 
 #if defined(NRE)
 static int
@@ -5918,11 +5918,12 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 # if defined(TCL_STACK_ALLOC_TRACE)
   fprintf(stderr, "---- ProcMethodDispatchFinalize calls pop, csc free %p method %s\n", cscPtr, methodName);
 # endif
+
   CscFinish(interp, cscPtr);
   TclStackFree(interp, cscPtr);
 
   // any dependencies on cscPtr?
-  ObjectDispatchFinalize(object, flags);
+  ObjectDispatchFinalize(object, flags, "NRE", methodName);
 
   return result;
 }
@@ -6078,7 +6079,9 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
       /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n", objectName(object), ObjStr(objv[0]));*/
       Tcl_NRAddCallback(interp, ProcMethodDispatchFinalize,
                         releasePc ? pcPtr : NULL, cscPtr, methodName, NULL);
+
       cscPtr->callType |= NSF_CSC_CALL_IS_NRE;
+
       result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
       /*fprintf(stderr, ".... run callbacks rootPtr = %p, result %d methodName %s\n", rootPtr, result, methodName);*/
       //fprintf(stderr, "NO TclNRRunCallbacks rootPtr = %p, result %d methodName %s\n", rootPtr, result, methodName);
@@ -6426,8 +6429,10 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
     {
 #if defined(NRE)
       TEOV_callback *rootPtr = TOP_CB(interp);
+
+      cscPtr->callType |= flags & (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED);
 #endif
-      // object, cl, cmd goub be gotten from cscPtr
+      // object, cl, cmd could be gotten from cscPtr
       result = ProcMethodDispatch(cp, interp, objc, objv, methodName, 
 				  cscPtr->self, cscPtr->cl, cmd, cscPtr);
 
@@ -6866,9 +6871,14 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 
 
 NSF_INLINE static void
-ObjectDispatchFinalize(NsfObject *object, int flags) {
+ObjectDispatchFinalize(NsfObject *object, int flags, char *string, char *methodName) {
 
-  /* fprintf(stderr, "ObjectDispatchFinalize %p flags %.6x\n", object, flags);*/
+  if (!object->id) {
+    fprintf(stderr, "ObjectDispatchFinalize %p flags %.6x id %p %s\n", 
+	    object, object->flags, object->id, string);
+    return;
+  }
+  //fprintf(stderr, "ObjectDispatchFinalize %s.%s flags %.6x %s\n",  objectName(object), methodName, flags, string);
 
 #ifdef DISPATCH_TRACE
   PrintExit(interp, "DISPATCH", objc, objv, result);
@@ -6879,10 +6889,15 @@ ObjectDispatchFinalize(NsfObject *object, int flags) {
 	  mixinStackPushed == ((flags & NSF_CSC_MIXIN_STACK_PUSHED) != 0));*/
 
   if ((flags & NSF_CSC_MIXIN_STACK_PUSHED) && object->mixinStack) {
+    //fprintf(stderr, "MixinStackPop %s.%s %p %s\n", 
+    //	    objectName(object),methodName, object->mixinStack, string);
     MixinStackPop(object);
   }
-  if ((flags & NSF_CSC_FILTER_STACK_PUSHED) && object->filterStack)
+  if ((flags & NSF_CSC_FILTER_STACK_PUSHED) && object->filterStack) {
+    //fprintf(stderr, "FilterStackPop %s.%s %p %s\n", 
+    //	    objectName(object),methodName, object->filterStack, string);
     FilterStackPop(object);
+  }
 }
 
 NSF_INLINE static int
@@ -7011,12 +7026,19 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       fprintf(stderr, "already NSF_CSC_MIXIN_STACK_PUSHED\n");
     }
     mixinStackPushed = MixinStackPush(object);
+
+    //fprintf(stderr, "MixinStackPush %s.%s %p\n", 
+    //	    objectName(object), methodName, object->mixinStack);
+
     flags |= NSF_CSC_MIXIN_STACK_PUSHED;
 
     if (frameType != NSF_CSC_TYPE_ACTIVE_FILTER) {
-
+      // maybe todo: we just need to allocated an entry in mixinstackpush, when cmd is found
       result = MixinSearchProc(interp, object, methodName, &cl,
                                &object->mixinStack->currentCmdPtr, &cmd);
+      //fprintf(stderr, "MixinSearchProc %s.%s returned %d cmd %p currentCmd %p\n",
+      // objectName(object), methodName, result, cmd, object->mixinStack->currentCmdPtr);
+
       if (result != TCL_OK) {
         goto exit_dispatch;
       }
@@ -7178,10 +7200,10 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     }*/
 #if defined(NRE)
   if (!isNRE) {
-    ObjectDispatchFinalize(object, flags);
+    ObjectDispatchFinalize(object, flags, "immediate", methodName);
   }
 #else
-  ObjectDispatchFinalize(object, flags);
+  ObjectDispatchFinalize(object, flags, "immediate", methodName);
 #endif
 
   /*fprintf(stderr, "ObjectDispatch %s.%s returns %d\n", 
@@ -8609,7 +8631,8 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
     cscPtr->callType |= NSF_CSC_CALL_IS_NEXT;
     rst->unknown = 0;
     // fprintf(stderr, "calling <next> method %s\n",methodName);
-    // TODO: Maybe NSF_CM_IMMEDIATE
+    // TODO: always NSF_CM_IMMEDIATE seems to strong
+    // TODO: maybe pass calling IMMEDIATE property
     result = MethodDispatch((ClientData)object, interp, objc, objv, cmd,
                             object, cl, methodName, frameType, NSF_CM_IMMEDIATE, 3);
     //fprintf(stderr, "calling <next> method %s DONE\n",methodName);
