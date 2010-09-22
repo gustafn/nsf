@@ -11,7 +11,6 @@ namespace eval ::nx {
   #
   # First create the ::nx object system. 
   #
-
   ::nsf::createobjectsystem ::nx::Object ::nx::Class {
     -class.alloc alloc 
     -class.create create
