@@ -8512,6 +8512,23 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   return TCL_OK;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NextInvokeFinalize --
+ *
+ *    This finalize method is either called via NRE callback or
+ *    directly. It resets after a successul lookup and invation the
+ *    continuation context (filter flags etc) and cleans up optionally
+ *    the argument vector (inverse operation of NextGetArguments).
+ *
+ * Results:
+ *    Tcl return code
+ *
+ * Side effects:
+ *    freeing memory
+ *
+ *----------------------------------------------------------------------
+ */
 NSF_INLINE static int
 NextInvokeFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   Tcl_Obj **nobjv = data[0];
@@ -8552,8 +8569,8 @@ NextInvokeFinalize(ClientData data[], Tcl_Interp *interp, int result) {
  *
  *    The function is called with a final argument vector and searches
  *    for an possible shadowed method. In case is successful, it
- *    updates the continuation context (filter flags etc) amd invokes
- *    the found method.
+ *    updates the continuation context (filter flags etc), invokes
+ *    the found method, and performs cleanup.
  *
  * Results:
  *    Tcl return code
