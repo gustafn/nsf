@@ -738,6 +738,25 @@ void NsfMemCountDump();
 #endif /* NSF_MEM_COUNT */
 
 /*
+ * TCL_STACK_ALLOC_TRACE
+ */
+#if defined(TCL_STACK_ALLOC_TRACE)
+# define NsfTclStackFree(interp,ptr,msg) \
+  fprintf(stderr, "---- TclStackFree %p %s\n", ptr, msg);\
+  TclStackFree(interp,ptr)
+
+static char *
+NsfTclStackAlloc(Tcl_Interp *interp, size_t size, char *msg) {
+  char *ptr = TclStackAlloc(interp, size);
+  fprintf(stderr, "---- TclStackAlloc %p %s\n", ptr, msg);
+  return ptr;
+}
+#else
+# define NsfTclStackFree(interp,ptr,msg) TclStackFree(interp,ptr)
+# define NsfTclStackAlloc(interp,size,msg) TclStackAlloc(interp,size)
+#endif
+
+/*
  * bytecode support
  */
 #ifdef NSF_BYTECODE

@@ -1460,6 +1460,8 @@ _ added option noforwarder to RelationSlots
 - runs now full regression test NRE enabled, but still much debugging and
   options for less conservative behaviour
 
+- some cleanup concerning TCL_STACK_ALLOC_TRACE
+
 TODO: 
 - IMMEDIATE in next needed?
 - major coro cleanup, when working

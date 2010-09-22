@@ -5839,7 +5839,8 @@ ParsedParamFree(NsfParsedParam *parsedParamPtr) {
  */
 // prototype
 //TODO remove string, methodName
-NSF_INLINE static void ObjectDispatchFinalize(NsfObject *object, int flags, char *string, char *methodName);
+NSF_INLINE static void ObjectDispatchFinalize(NsfObject *object, int flags, 
+					      char *string, CONST char *methodName);
 
 #if defined(NRE)
 static int
@@ -5908,22 +5909,14 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
 #endif
 
   if (pcPtr) {
-# if defined(TCL_STACK_ALLOC_TRACE)
-    fprintf(stderr, "---- ProcMethodDispatchFinalize calls releasePc, stackFree %p\n", pcPtr);
-# endif
     ParseContextRelease(pcPtr);
-    TclStackFree(interp, pcPtr);
+    NsfTclStackFree(interp, pcPtr, "release parse context");
   }
 
-# if defined(TCL_STACK_ALLOC_TRACE)
-  fprintf(stderr, "---- ProcMethodDispatchFinalize calls pop, csc free %p method %s\n", cscPtr, methodName);
-# endif
+  ObjectDispatchFinalize(object, flags, "NRE", methodName);
 
   CscFinish(interp, cscPtr);
-  TclStackFree(interp, cscPtr);
-
-  // any dependencies on cscPtr?
-  ObjectDispatchFinalize(object, flags, "NRE", methodName);
+  NsfTclStackFree(interp, cscPtr, "csc");
 
   return result;
 }
@@ -5995,11 +5988,8 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
           /*fprintf(stderr, "... after nextmethod result %d\n", result);*/
         }
 #if defined(NRE)
-# if defined(TCL_STACK_ALLOC_TRACE)
-        fprintf(stderr, "---- GuardFailed calls pop, cscPtr free %p method %s\n", cscPtr, methodName);
-# endif
         CscFinish(interp, cscPtr);
-        TclStackFree(interp, cscPtr);
+	NsfTclStackFree(interp, cscPtr, "csc (guard failed)");
         /* todo check mixin guards for same case? */
 #endif
         return result;
@@ -6029,10 +6019,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   
   if (paramDefs && paramDefs->paramsPtr) {
 #if defined(NRE)
-    pcPtr = (ParseContext *) TclStackAlloc(interp, sizeof(ParseContext));
-# if defined(TCL_STACK_ALLOC_TRACE)
-    fprintf(stderr, "---- ParseContext alloc %p\n", pcPtr);
-# endif
+    pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
 #endif
     result = ProcessMethodArguments(pcPtr, interp, object, 1, paramDefs, methodName, objc, objv);
     cscPtr->objc = objc;
@@ -6053,12 +6040,11 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 
   if (result != TCL_OK) {
 #if defined(NRE)
-    if (pcPtr) TclStackFree(interp, pcPtr);
-# if defined(TCL_STACK_ALLOC_TRACE)
-    fprintf(stderr, "---- ProcPrep fails and calls pop, cscPtr free %p method %s\n", cscPtr, methodName);
-# endif
+    if (pcPtr) {
+      NsfTclStackFree(interp, pcPtr, "parse context (proc prep failed)");
+    }
     CscFinish(interp, cscPtr);
-    TclStackFree(interp, cscPtr);
+    NsfTclStackFree(interp, cscPtr, "csc (proc prep failed)");
 #endif
   }
 
@@ -6602,10 +6588,7 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_ObjCmdProc *proc) 
 
 #if defined(NRE)
   if (proc == TclObjInterpProc) {
-    cscPtr = (NsfCallStackContent *) TclStackAlloc(interp, sizeof(NsfCallStackContent));
-# if defined(TCL_STACK_ALLOC_TRACE)
-    fprintf(stderr, "---- csc alloc %p method %s\n", cscPtr, methodName);
-# endif
+    cscPtr = (NsfCallStackContent *) NsfTclStackAlloc(interp, sizeof(NsfCallStackContent), "csc");
     cscPtr->callType = NSF_CSC_CALL_IS_NRE;
   } else {
     cscPtr->callType = 0;
@@ -6871,7 +6854,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 
 
 NSF_INLINE static void
-ObjectDispatchFinalize(NsfObject *object, int flags, char *string, char *methodName) {
+ObjectDispatchFinalize(NsfObject *object, int flags, char *string, CONST char *methodName) {
 
   if (!object->id) {
     fprintf(stderr, "ObjectDispatchFinalize %p flags %.6x id %p %s\n", 
