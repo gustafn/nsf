@@ -155,10 +155,9 @@ Test case "filter-and-creation" {
   Foo filter myfilter
   # create through filter
   ? {Foo create ob} ::ob
+
   # unknown through filter
-puts stderr ======a
   ? {ob bar1} {::ob: unable to dispatch method 'bar1'}
-puts stderr ======b
   ? {ob baz} {}
 
   # deactivate nx unknown handler in case it exists
@@ -166,10 +165,9 @@ puts stderr ======b
 
   # create through filter
   ? {Foo create ob2} ::ob2
+
   # unknown through filter
-puts stderr ======c
   ? {ob2 bar2} {::ob2: unable to dispatch method 'bar2'}
-puts stderr ======d
   ? {ob2 baz} {}
 
 }

@@ -483,7 +483,7 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
 
 NSF_INLINE static void
 CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
-	Tcl_Command cmd, int frameType, char *msg) {
+	Tcl_Command cmd, int frameType, int flags, char *msg) {
 
   assert(cscPtr);
 
@@ -533,6 +533,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
     }
     
   }
+  cscPtr->callType     |= flags & NSF_CSC_COPY_FLAGS;
   cscPtr->self          = object;
   cscPtr->cl            = cl;
   cscPtr->cmdPtr        = cmd;

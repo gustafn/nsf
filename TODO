@@ -1481,7 +1481,11 @@ _ added option noforwarder to RelationSlots
 - named debugging cmds __db_*
 - new cmd __db_run_assertions to perform checking of the internal state
 
+- simplification and unification of unknown handling and method finalization
+- some cleanup
+
 TODO: 
+- remove TCL85STACK_TRACE and TCL85STACK_TRACE
 - check my for NRE-enabling
 - major coro cleanup, when working
 - extend coro regression test

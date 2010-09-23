@@ -106,7 +106,6 @@ Class create C -attributes {{x 1} {y 2}}
 ? {C info children} ::C::slot
 
 C copy X
-puts stderr ===after
 ? {::nsf::isobject X} 1
 ? {X info vars} ""
 ? {C info vars} ""

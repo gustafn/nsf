@@ -38,7 +38,7 @@ C method foo {} {
 }
 C create c1
 c1 foo
-puts stderr ======[::nsf::isobject c1]
+
 ? {::nsf::isobject c1} 0 "$::case object deleted"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 
@@ -63,7 +63,7 @@ C method foo {} {
 }
 C create c1
 c1 foo
-puts stderr ======[::nsf::isobject c1]
+
 ? {::nsf::isobject c1} 1 "$::case object deleted"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
@@ -88,7 +88,7 @@ C method foo {} {
 }
 C create c1
 c1 foo
-puts stderr ======[::nsf::isobject c1]
+
 ? {::nsf::isobject c1} 1 "$::case object deleted"
 ? "set ::firstDestroy" 0 "firstDestroy called"
 
@@ -114,7 +114,7 @@ C method foo {} {
 }
 C create c1
 c1 foo
-puts stderr ======[::nsf::isobject c1]
+
 ? {::nsf::isobject c1} 0 "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
@@ -141,8 +141,8 @@ C method foo {} {
 }
 C create c1
 c1 foo
-puts stderr ======[::nsf::isobject c1]
-puts stderr ======[c1 set x]
+
+#puts stderr ======[c1 set x]
 ? {::nsf::isobject c1} 1 "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
@@ -169,7 +169,7 @@ C method foo {} {
 }
 C create c1
 c1 foo
-puts stderr ======[::nsf::isobject c1]
+
 ? {::nsf::isobject c1} 1 "$::case object still exists after proc"
 ? "set ::firstDestroy" 0 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
@@ -227,7 +227,7 @@ namespace eval ::test {
 }
 test::C create test::c1
 test::c1 foo
-puts stderr ======[::nsf::isobject test::c1]
+
 ? {::nsf::isobject test::c1} 0  "object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "destroy was called when poping stack frame"
@@ -267,7 +267,7 @@ namespace eval ::test {
 }
 test::C create test::c1
 test::c1 foo
-puts stderr ======[::nsf::isobject test::c1]
+
 ? {::nsf::isobject test::c1} 0  "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"  ;# toplevel destroy was blocked
@@ -299,7 +299,6 @@ C method foo {} {
 C create o::c1
 o::c1 foo
 
-puts stderr ======[::nsf::isobject ::o::c1]
 ? {::nsf::isobject ::o::c1} 0 "$::case object o::c1 still exists after proc"
 ? {::nsf::isobject o} 0 "$::case object o still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
@@ -328,7 +327,7 @@ C method foo {} {
 }
 C create o::c1
 o::c1 foo
-puts stderr ======[::nsf::isobject ::o::c1]
+
 ? {::nsf::isobject ::o::c1} 0 "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 0 "ObjectDestroy called"
@@ -356,7 +355,7 @@ C method foo {} {
 }
 C create c1
 c1 foo
-puts stderr ======[::nsf::isobject c1]
+
 ? {::nsf::isobject c1} 0 "$::case object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "ObjectDestroy called"
@@ -387,7 +386,7 @@ C method foo {} {
 }
 C create c1
 c1 foo
-puts stderr ======[::nsf::isobject c1]
+
 ? {::nsf::isobject c1} 1 "object still exists after proc"
 ? [c1 info class] ::nx::Object "after proc: object reclassed?"
 ? "set ::firstDestroy" 0 "firstDestroy called"
@@ -603,7 +602,6 @@ namespace eval ::test {
 }
 test::C create test::c1
 test::c1 foo
-puts stderr ======[::nsf::isobject test::c1]
 ? {::nsf::isobject test::c1} 0  "object still exists after proc"
 ? "set ::firstDestroy" 1 "firstDestroy called"
 ? "set ::ObjectDestroy" 1 "destroy was called when poping stack frame"

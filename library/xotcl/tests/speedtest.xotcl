@@ -187,7 +187,7 @@ D d
 #Test new -cmd {set x [llength [c info children]]} -count 1 -expected 999
 Test new -cmd {llength [c info children]} -count 1 -expected $ccount
 Test new -cmd {set x [llength [c info children]]} -count 1 -expected $ccount
-puts stderr XXX-[llength [Object info instances]]-[lsort [Object info instances]]
+
 Test new -cmd {set x [llength [Object info instances]]} -count 1 -expected $ocount
 Test new -cmd {llength [Object info instances]} -count 1 -expected $ocount
 

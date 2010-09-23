@@ -781,9 +781,6 @@ TestX filterGuards -proc run {{n 20}} {
 
       A instfilter {f1 fx}
       A a
-      puts stderr ====created
-      nsf::__db_run_assertions
-      puts stderr ====
       a proc x args {next}
       a filter x
 
