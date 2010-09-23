@@ -615,21 +615,24 @@ typedef struct NsfCallStackContent {
   unsigned short callType;
 } NsfCallStackContent;
 
-#define NSF_CSC_TYPE_PLAIN            0
-#define NSF_CSC_TYPE_ACTIVE_MIXIN     1
-#define NSF_CSC_TYPE_ACTIVE_FILTER    2
-#define NSF_CSC_TYPE_INACTIVE         4
-#define NSF_CSC_TYPE_INACTIVE_MIXIN   5
-#define NSF_CSC_TYPE_INACTIVE_FILTER  6
-#define NSF_CSC_TYPE_GUARD         0x10
-#define NSF_CSC_TYPE_ENSEMBLE      0x20
+#define NSF_CSC_TYPE_PLAIN             0
+#define NSF_CSC_TYPE_ACTIVE_MIXIN      1
+#define NSF_CSC_TYPE_ACTIVE_FILTER     2
+#define NSF_CSC_TYPE_INACTIVE          4
+#define NSF_CSC_TYPE_INACTIVE_MIXIN    5
+#define NSF_CSC_TYPE_INACTIVE_FILTER   6
+#define NSF_CSC_TYPE_GUARD          0x10
+#define NSF_CSC_TYPE_ENSEMBLE       0x20
 
-#define NSF_CSC_CALL_IS_NEXT           1
-#define NSF_CSC_CALL_IS_GUARD          2
-#define NSF_CSC_CALL_IS_ENSEMBLE       4   /*TODO: needed?*/
-#define NSF_CSC_CALL_IS_NRE         0x100   /*TODO: needed?*/
-#define NSF_CSC_MIXIN_STACK_PUSHED  0x200   /*TODO: needed?*/
-#define NSF_CSC_FILTER_STACK_PUSHED 0x400   /*TODO: needed?*/
+#define NSF_CSC_CALL_IS_NEXT            1
+#define NSF_CSC_CALL_IS_GUARD           2
+#define NSF_CSC_CALL_IS_ENSEMBLE        4   /*TODO: needed?*/
+#define NSF_CSC_IMMEDIATE           0x020
+#define NSF_CSC_CALL_IS_NRE         0x100  
+#define NSF_CSC_MIXIN_STACK_PUSHED  0x200  
+#define NSF_CSC_FILTER_STACK_PUSHED 0x400
+#define NSF_CSC_UNKNOWN             0x800
+#define NSF_CSC_COPY_FLAGS          (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED|NSF_CSC_IMMEDIATE|NSF_CSC_UNKNOWN)
 
 /* flags for call method */
 #define NSF_CM_NO_UNKNOWN 1
@@ -637,11 +640,10 @@ typedef struct NsfCallStackContent {
 #define NSF_CM_NO_PROTECT 4
 #define NSF_CM_NO_OBJECT_METHOD 8
 #define NSF_CM_DELGATE    0x10  /* TODO: needed? */
-#define NSF_CM_IMMEDIATE  0x20
 
 #if defined(NRE)
 # define NsfImmediateFromCallerFlags(flags) \
-  (((flags) & (NSF_CSC_CALL_IS_NRE|NSF_CM_IMMEDIATE)) == NSF_CSC_CALL_IS_NRE ? 0 : NSF_CM_IMMEDIATE)
+  (((flags) & (NSF_CSC_CALL_IS_NRE|NSF_CSC_IMMEDIATE)) == NSF_CSC_CALL_IS_NRE ? 0 : NSF_CSC_IMMEDIATE)
 
 //#define NRE_SANE_PATCH 1
 

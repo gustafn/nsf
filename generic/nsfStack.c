@@ -400,7 +400,7 @@ CallStackGetObjectFrame(Tcl_Interp *interp, NsfObject *object) {
  * callframe
  */
 static void CallStackPopAll(Tcl_Interp *interp) {
-  /*TclShowStack(interp);*/
+  TclShowStack(interp);
 
   while (1) {
     Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
@@ -415,7 +415,12 @@ static void CallStackPopAll(Tcl_Interp *interp) {
     if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       /* free the call stack content; we need this just for decr activation count */
       NsfCallStackContent *cscPtr = ((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr));
-      CscFinish(interp, cscPtr);
+
+#if defined(NRE)
+      /* Mask out IS_NRE, since Tcl_PopCallFrame takes care about TclStackFree */
+      cscPtr->callType &= ~NSF_CSC_CALL_IS_NRE;
+#endif
+      CscFinish(interp, cscPtr, "popall");
     } else if (frameFlags & FRAME_IS_NSF_OBJECT) {
       Tcl_CallFrame_varTablePtr(framePtr) = NULL;
     }
@@ -423,6 +428,39 @@ static void CallStackPopAll(Tcl_Interp *interp) {
     /* pop the Tcl frame */
     Tcl_PopCallFrame(interp);
   }
+}
+
+/*
+ *----------------------------------------------------------------------
+ * CscAlloc --
+ *
+ *    Allocate the csc structure either from the stack or via
+ *    StackAlloc (the latter is recorded in the callType). The Alloc
+ *    operation requires a CscFinish operation later.
+ *
+ * Results:
+ *    A valid, semiinitialized cscPtr.
+ *
+ * Side effects:
+ *    Memory allocation
+ *
+ *----------------------------------------------------------------------
+ */
+static NsfCallStackContent *
+CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_ObjCmdProc *proc) {
+
+#if defined(NRE)
+  if (proc == TclObjInterpProc) {
+    cscPtr = (NsfCallStackContent *) NsfTclStackAlloc(interp, sizeof(NsfCallStackContent), "csc");
+    cscPtr->callType = NSF_CSC_CALL_IS_NRE;
+  } else {
+    cscPtr->callType = 0;
+  }
+#else
+  cscPtr->callType = 0;
+#endif
+
+  return cscPtr;
 }
 
 /*
@@ -442,9 +480,20 @@ static void CallStackPopAll(Tcl_Interp *interp) {
  */
 
 NSF_INLINE static void
-CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl, Tcl_Command cmd, int frameType) {
+CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
+	Tcl_Command cmd, int frameType) {
 
   assert(cscPtr);
+
+  /*
+   * Some csc's are never stacked. We flag this case by setting self
+   * to NULL. This cscPtr should never appear on the stack.
+   */
+  if (cmd && Tcl_Command_objClientData(cmd) == NULL && !(Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD)) {
+    /*fprintf(stderr, "+++ no CscInit needed\n");*/
+    //cscPtr->self = NULL;
+    //return;
+  }
 
   /*
    * track object activations
@@ -503,14 +552,18 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
  *----------------------------------------------------------------------
  */
 NSF_INLINE static void
-CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
+CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr, char *msg) {
   NsfObject *object = cscPtr->self;
   int allowDestroy = RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
     NSF_EXITHANDLER_ON_SOFT_DESTROY;
 
+  /*fprintf(stderr, "CscFinish %p (%s)\n",cscPtr, msg);*/
+
+  assert(object);
+
 #if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "POP  csc=%p, obj %s method %s\n", cscPtr, objectName(object),
-          Tcl_GetCommandName(interp, cscPtr->cmdPtr));
+  fprintf(stderr, "POP  csc=%p, obj %s method %s (%s)\n", cscPtr, objectName(object),
+          Tcl_GetCommandName(interp, cscPtr->cmdPtr), msg);
 #endif
   /* 
      tracking activations of objects
@@ -524,7 +577,7 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
 
   if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED && allowDestroy) {
     CallStackDoDestroy(interp, object);
-  } 
+  }
 #if defined(OBJDELETION_TRACE)
   else if (!allowDestroy) {
     fprintf(stderr,"checkFree %p %s\n",object, objectName(object));
@@ -573,8 +626,13 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
     }
 
   }
-  /*fprintf(stderr, "CscFinish done\n");*/
 
+#if defined(NRE)
+  if ((cscPtr->callType & NSF_CSC_CALL_IS_NRE)) {
+    NsfTclStackFree(interp, cscPtr, msg);
+  }
+#endif
+  /*fprintf(stderr, "CscFinish done\n");*/
 }
 
 

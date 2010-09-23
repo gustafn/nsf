@@ -184,6 +184,9 @@ static int DispatchUnknownMethod(ClientData clientData, Tcl_Interp *interp,
 
 NSF_INLINE static int ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
                                       Tcl_Obj *CONST objv[], int flags);
+//TODO remove string, methodName
+NSF_INLINE static void ObjectDispatchFinalize(NsfObject *object, int flags, 
+					      char *string, CONST char *methodName);
 
 /* prototypes for object life-cycle management */
 static int DoDealloc(Tcl_Interp *interp, NsfObject *object);
@@ -223,7 +226,7 @@ static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *m
 /* prototypes for call stack specific calls */
 NSF_INLINE static void CscInit(NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl, 
                                 Tcl_Command cmd, int frameType);
-NSF_INLINE static void CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr);
+NSF_INLINE static void CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr, char *string);
 static NsfCallStackContent *CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr);
 NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object);
 
@@ -729,7 +732,7 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
 	className(baseClass), ObjStr(nameObj));*/
 
       result = CallMethod((ClientData) baseClass, interp, methodObj,
-                          3, &nameObj, NSF_CM_NO_PROTECT|NSF_CM_IMMEDIATE);
+                          3, &nameObj, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
       if (result == TCL_OK) {
         result = GetClassFromObj(interp, objPtr, cl, NULL);
       }
@@ -5828,22 +5831,29 @@ ParsedParamFree(NsfParsedParam *parsedParamPtr) {
 /*
  * method dispatch
  */
-// prototype
-//TODO remove string, methodName
-NSF_INLINE static void ObjectDispatchFinalize(NsfObject *object, int flags, 
-					      char *string, CONST char *methodName);
-
-#if defined(NRE)
 static int
 ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   ParseContext *pcPtr = data[0];
   NsfCallStackContent *cscPtr = data[1];
   CONST char *methodName = data[2];
   NsfObject *object = cscPtr->self;
-  int flags = cscPtr->callType; // TODO move down?
   NsfObjectOpt *opt = object->opt;
   NsfParamDefs *paramDefs;
-  int rc;
+  int rc, isNRE;
+
+#if defined(NRE)
+  isNRE = (cscPtr->callType & NSF_CSC_CALL_IS_NRE);
+#else
+  isNRE = 0;
+#endif
+
+  //fprintf(stderr, "ProcMethodDispatchFinalize flags %.6x isNRE %d\n",cscPtr->callType, isNRE);
+
+#  ifdef DISPATCH_TRACE
+  PrintExit(interp, "ProcMethodDispatch", objc, objv, result);
+  /* fprintf(stderr, " returnCode %d nsf rc %d\n",
+     Tcl_Interp_returnCode(interp), result);*/
+#  endif
 
   /*fprintf(stderr, "ProcMethodDispatchFinalize result %d, csc %p, pcPtr %p, obj %p %s.%s\n",
     result, cscPtr, pcPtr, object, objectName(object), methodName);*/
@@ -5884,34 +5894,38 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   }
 
 #if 0
-  // TODO move declation up
-  NsfRuntimeState *rst = RUNTIME_STATE(interp);
-  fprintf(stderr, "ProcMethodDispatchFinalize unknown %d\n", rst->unknown);
-  if (rst->unknown) {
-    fprintf(stderr, "call UNKNOWN? ProcMethodDispatchFinalize cscPtr->objv %p\n", cscPtr->objv);
-    if (cscPtr->objv == NULL) {
-      TclShowStack(interp);
-    } else {
-      int r1 = DispatchUnknownMethod(object, interp, cscPtr->objc, cscPtr->objv, 
-				     cscPtr->objv[0], NSF_CM_IMMEDIATE);
+  {
+    // TODO this results from the first attempts making filters NRE-enabled
+    NsfRuntimeState *rst = RUNTIME_STATE(interp);
+    fprintf(stderr, "ProcMethodDispatchFinalize unknown %d\n", rst->unknown);
+    if (rst->unknown) {
+      fprintf(stderr, "call UNKNOWN? ProcMethodDispatchFinalize cscPtr->objv %p\n", cscPtr->objv);
+      if (cscPtr->objv == NULL) {
+	TclShowStack(interp);
+      } else {
+	int r1 = DispatchUnknownMethod(object, interp, cscPtr->objc, cscPtr->objv, 
+				       cscPtr->objv[0], NSF_CSC_IMMEDIATE);
+      }
+      fprintf(stderr, "after UNKNOWN\n");
     }
-    fprintf(stderr, "after UNKNOWN\n");
   }
 #endif
 
-  if (pcPtr) {
-    ParseContextRelease(pcPtr);
-    NsfTclStackFree(interp, pcPtr, "release parse context");
+  if (isNRE) {
+    if (pcPtr) {
+      ParseContextRelease(pcPtr);
+      NsfTclStackFree(interp, pcPtr, "release parse context");
+    }
+#if defined(NRE)
+    ObjectDispatchFinalize(object, cscPtr->callType, "NRE", methodName);
+#endif
+
+    CscFinish(interp, cscPtr, "scripted finalize");
   }
-
-  ObjectDispatchFinalize(object, flags, "NRE", methodName);
-
-  CscFinish(interp, cscPtr);
-  NsfTclStackFree(interp, cscPtr, "csc");
 
   return result;
 }
-#endif
+
 
 /* invoke a scripted method (with assertion checking) */
 static int
@@ -5971,26 +5985,29 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
            * perform no argument substitution.
            *
            * The call stack content is not jet pushed to the Tcl
-           * stack, be we pass it already to search-and-invoke.
+           * stack, we pass it already to search-and-invoke.
            */
 
           /*fprintf(stderr, "... calling nextmethod cscPtr %p\n", cscPtr);*/
 	  result = NextSearchAndInvoke(interp, methodName, objc, objv, cscPtr, 0);
           /*fprintf(stderr, "... after nextmethod result %d\n", result);*/
         }
+
+	/*
+	 * Next might have succeeded or not, but we are done. In the
+	 * NRE-case, we need a CscFinish for all return codes.
+	 */ 
 #if defined(NRE)
-        CscFinish(interp, cscPtr);
-	NsfTclStackFree(interp, cscPtr, "csc (guard failed)");
-        /* todo check mixin guards for same case? */
+	CscFinish(interp, cscPtr, "guard failed");
 #endif
-        return result;
+	return result;
       }
     }
   }
 
   if (opt && (opt->checkoptions & CHECK_PRE) &&
       (result = AssertionCheck(interp, object, cl, methodName, CHECK_PRE)) == TCL_ERROR) {
-    goto finish;
+    goto prep_done;
   }
 
 #ifdef DISPATCH_TRACE
@@ -5999,9 +6016,9 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 #endif
 
   /*
-     If the method to be invoked has paramDefs, we have to call the
-     argument parser with the argument definitions obtained from the
-     proc context from the cmdPtr.
+   *  If the method to be invoked has paramDefs, we have to call the
+   *  argument parser with the argument definitions obtained from the
+   *  proc context from the cmdPtr.
   */
   paramDefs = ParamDefsGet(cmdPtr);
 
@@ -6019,80 +6036,52 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     if (result == TCL_OK) {
       releasePc = 1;
       result = PushProcCallFrame(cp, interp, pcPtr->objc, pcPtr->full_objv, cscPtr);
+    } else {
+#if defined(NRE)
+      NsfTclStackFree(interp, pcPtr, "parse context (proc prep failed)");
+      pcPtr = NULL;
+#endif
     }
   } else {
     result = PushProcCallFrame(cp, interp, objc, objv, cscPtr);
-  }
-
-  /* we could consider to run here ARG_METHOD or ARG_INITCMD
-  if (result == TCL_OK) {
-
-  } */
-
-  if (result != TCL_OK) {
-#if defined(NRE)
-    if (pcPtr) {
-      NsfTclStackFree(interp, pcPtr, "parse context (proc prep failed)");
-    }
-    CscFinish(interp, cscPtr);
-    NsfTclStackFree(interp, cscPtr, "csc (proc prep failed)");
-#endif
   }
 
   /*
    * The stack frame is pushed, we could do something here before
    * running the byte code of the body.
    */
+
+  /* we could consider to run here ARG_METHOD or ARG_INITCMD
   if (result == TCL_OK) {
-#if !defined(NRE)
-    result = TclObjInterpProcCore(interp, objv[0], 1, &MakeProcError);
-    if (releasePc) {
-      ParseContextRelease(&pc);
-    }
-#else
+
+  } 
+  */
+
+ prep_done:
+  
+  if (result == TCL_OK) {
+#if defined(NRE)
     /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n", 
       objectName(object), ObjStr(objv[0]));*/
     Tcl_NRAddCallback(interp, ProcMethodDispatchFinalize,
 		      releasePc ? pcPtr : NULL, cscPtr, (ClientData)methodName, NULL);
     cscPtr->callType |= NSF_CSC_CALL_IS_NRE;
     result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
+#else
+    ClientData data[3] = {
+	releasePc ? pcPtr : NULL,
+	cscPtr,
+	(ClientData)methodName
+    };
+    result = TclObjInterpProcCore(interp, objv[0], 1, &MakeProcError);
+    result = ProcMethodDispatchFinalize(data, interp, result);
+#endif
+  } else /* result != OK */ { 
+#if defined(NRE)
+    CscFinish(interp, cscPtr, "nre, prep failed");
 #endif
   }
-# if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "POP  OBJECT_FRAME (implicit) frame %p cscPtr %p obj %s obj refcount %d %d\n", NULL, cscPtr,
-          objectName(object),
-          object->id ? Tcl_Command_refCount(object->id) : -100,
-          object->refCount
-          );
-# endif
 
-#if defined(PRE86)
-# ifdef DISPATCH_TRACE
-  PrintExit(interp, "ProcMethodDispatch", objc, objv, result);
-  /* fprintf(stderr, " returnCode %d nsf rc %d\n",
-     Tcl_Interp_returnCode(interp), result);*/
-# endif
-
-  if (result == TCL_OK && paramDefs && paramDefs->returns) {
-    Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
-    /*fprintf(stderr, "***** we have returns for method '%s' check %s, value %p is shared %d\n", 
-      methodName, ObjStr(paramDefs->returns), valueObj, Tcl_IsShared(valueObj));*/
-    result = ParameterCheck(interp, paramDefs->returns, valueObj, "return-value:", 
-			    RUNTIME_STATE(interp)->doCheckResults,
-			    NULL);
-  }
-
-  opt = object->opt;
-  if (opt && object->teardown &&
-      (opt->checkoptions & CHECK_POST)) {
-    int rc = AssertionCheck(interp, object, cscPtr->cl, methodName, CHECK_POST);
-    /* don't clobber error codes */
-    if (result == TCL_OK) {
-      result = rc;
-    }
-  }
-#endif
- finish:
   return result;
 }
 
@@ -6228,8 +6217,8 @@ DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
     tov[0] = objv[0];
     tov[1] = methodObj;
     fprintf(stderr, "DispatchDefaultMethod\n");
-    // maybe we can relax NSF_CM_IMMEDIATE if we handle it in ensemble...
-    result = ObjectDispatch(clientData, interp, 2, tov, NSF_CM_NO_UNKNOWN|NSF_CM_IMMEDIATE);
+    // maybe we can relax NSF_CSC_IMMEDIATE if we handle it in ensemble...
+    result = ObjectDispatch(clientData, interp, 2, tov, NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE);
   } else {
     result = TCL_OK;
   }
@@ -6281,7 +6270,7 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
   if (CallDirectly(interp, object, NSF_o_destroy_idx, &methodObj)) {
     result = NsfODestroyMethod(interp, object);
   } else {
-    result = CallMethod(object, interp, methodObj, 2, 0, NSF_CM_IMMEDIATE|flags);
+    result = CallMethod(object, interp, methodObj, 2, 0, NSF_CSC_IMMEDIATE|flags);
   }
 
   if (result != TCL_OK) {
@@ -6359,10 +6348,6 @@ DispatchUnknownMethod(ClientData clientData,
   return result;
 }
 
-#if 1
-// zzzzz mmmm
-// new method dispatch
-
 // TODO remove last arg of methoddispatch
 static int
 MethodDispatch(ClientData clientData, Tcl_Interp *interp,
@@ -6384,10 +6369,10 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
   int result;
 
-  assert (object->teardown);
   /*fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d\n", methodName, cmd, cp, objc);*/
 
   if (proc == TclObjInterpProc) {
+    assert (object->teardown);
     /* 
      * The cmd is a scripted method 
      */
@@ -6397,14 +6382,14 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 #if defined(NRE)
       TEOV_callback *rootPtr = TOP_CB(interp);
 
-      cscPtr->callType |= flags & (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED|NSF_CM_IMMEDIATE);
+      cscPtr->callType |= flags & NSF_CSC_COPY_FLAGS;
 #endif
       // object, cl, cmd could be gotten from cscPtr
       result = ProcMethodDispatch(cp, interp, objc, objv, methodName, 
 				  cscPtr->self, cscPtr->cl, cmd, cscPtr);
 
 #if defined(NRE)
-      if ((flags & NSF_CM_IMMEDIATE)) {
+      if ((flags & NSF_CSC_IMMEDIATE)) {
 # if defined(NRE_CALLBACK_TRACE)
 	fprintf(stderr, ".... manual run callbacks rootPtr = %p, result %d methodName %s.%s\n", 
 		rootPtr, result, cscPtr->cl?className(cscPtr->cl):"NULL", methodName);
@@ -6424,6 +6409,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
     return result;
 
   } else if (cp || Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) {
+    assert (object->teardown);
     /* 
      * The cmd has client data or is an aliased method
      */
@@ -6455,8 +6441,6 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	NsfObject *self = (NsfObject *)cp;
 	char *methodName = ObjStr(objv[1]);
 
-	// doppelt?
-	//CscInit(cscPtr, object, cscPtr->cl, cscPtr->cmdPtr, cscPtr->frameType);
 	cscPtr->objc = objc;
 	cscPtr->objv = (Tcl_Obj **)objv;
 	cscPtr->callType |= NSF_CSC_CALL_IS_ENSEMBLE; /*zzzz*/
@@ -6474,7 +6458,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	     * associated calltype is flagged as an ensemble to be
 	     * able to distinguish frames during next.
 	     *
-	     * The invocation requires NSF_CM_IMMEDIATE to ensure,
+	     * The invocation requires NSF_CSC_IMMEDIATE to ensure,
 	     * that scripted methods are executed before the ensemble
 	     * ends. If they would be exeecuted lated, their parent
 	     * frame (CMETHOD) would have disappeared from the stack
@@ -6486,7 +6470,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	    result = MethodDispatch(object, interp, objc-1, objv+1, 
 				    cmd, object, NULL, methodName, 
 				    cscPtr->frameType|NSF_CSC_TYPE_ENSEMBLE, 
-				    cscPtr->callType|NSF_CM_IMMEDIATE, 1);
+				    cscPtr->callType|NSF_CSC_IMMEDIATE, 1);
 	    goto obj_dispatch_ok;
 	  }
 	}
@@ -6521,13 +6505,11 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 		methodName, cscPtr, result, rst->unknown); 
 	if (rst->unknown) {
 	  result = DispatchUnknownMethod(self, interp, objc-1, objv+1, 
-					 objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CM_IMMEDIATE);
+					 objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
 	  // TODO: check need for immediate in Unknown Default Destroy Method
 	}
       obj_dispatch_ok:
 	Nsf_PopFrameCsc(interp, framePtr);
-	// doppelt?
-	//CscFinish(interp, cscPtr);
 
       }
       return result;
@@ -6543,7 +6525,6 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
       cp = clientData;
       assert((CmdIsProc(cmd) == 0));
     }
-    //CscInit(cscPtr, object, cl, cmd, frameType);
 
   } else {
     /* 
@@ -6576,32 +6557,17 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   return result;
 }
 
-static NsfCallStackContent *
-CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_ObjCmdProc *proc) {
 
-#if defined(NRE)
-  if (proc == TclObjInterpProc) {
-    cscPtr = (NsfCallStackContent *) NsfTclStackAlloc(interp, sizeof(NsfCallStackContent), "csc");
-    cscPtr->callType = NSF_CSC_CALL_IS_NRE;
-  } else {
-    cscPtr->callType = 0;
-  }
-#else
-  cscPtr->callType = 0;
-#endif
-
-  return cscPtr;
-}
 
 static void
 CscCleanup(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
 
 #if defined(NRE)
   if ((cscPtr->callType & NSF_CSC_CALL_IS_NRE) == 0) {
-    CscFinish(interp, cscPtr);
+    CscFinish(interp, cscPtr, "csc cleanup");
   }
 #else
-  CscFinish(interp, cscPtr);
+  CscFinish(interp, cscPtr, "csc cleanup");
 #endif
 }
 
@@ -6616,6 +6582,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   //register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
 
   assert (object->teardown);
+  assert (cmd);
 
   //fprintf(stderr, "MethodDispatch method '%s.%s' objc %d flags %.6x call %d\n", 
   //	  objectName(object),methodName, objc, flags, call);
@@ -6635,216 +6602,6 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 
   return result;
 }
-
-#else
-// old method dispatch
-//###### ORIGINAL
-/*
- * MethodDispatch() calls an Next Scripting method. It calls either a
- * Tcl-implemented method (via ProcMethodDispatch()) or a C-implemented
- * method (via CmdMethodDispatch()) and sets up stack and client data
- * accordingly.
- */
-
-static int
-MethodDispatch(ClientData clientData, Tcl_Interp *interp,
-	       int objc, Tcl_Obj *CONST objv[],
-	       Tcl_Command cmd, NsfObject *object, NsfClass *cl,
-	       CONST char *methodName, int frameType, int flags, int call) {
-  ClientData cp = Tcl_Command_objClientData(cmd);
-  NsfCallStackContent csc, *cscPtr;
-  register Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
-
-  int result;
-
-  assert (object->teardown);
-  //fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d\n", methodName, cmd, cp, objc);
-  fprintf(stderr, "MethodDispatch method '%s.%s' objc %d call %d\n", objectName(object),methodName, objc, call);
-
-  if (proc == TclObjInterpProc) {
-    /* 
-     * The cmd is a scripted method 
-     */
-
-    //TODO simplify ifdefs
-
-#if defined(NRE)
-    cscPtr = (NsfCallStackContent *) TclStackAlloc(interp, sizeof(NsfCallStackContent));
-# if defined(TCL_STACK_ALLOC_TRACE)
-    fprintf(stderr, "---- csc alloc %p method %s\n", cscPtr, methodName);
-# endif
-#else
-    cscPtr = &csc;
-#endif
-    CscInit(cscPtr, object, cl, cmd, frameType);
-
-    {
-#if defined(NRE)
-      TEOV_callback *rootPtr = TOP_CB(interp);
-#endif
-      result = ProcMethodDispatch(cp, interp, objc, objv, methodName, object, cl, cmd, cscPtr);
-
-#if defined(NRE)
-      if ((flags & NSF_CM_IMMEDIATE)) {
-	fprintf(stderr, ".... manual run callbacks rootPtr = %p, result %d methodName %s\n", 
-		rootPtr, result, methodName);
-	
-	/* TODO: we should need this only for scriped stuff; maybe it can harm otherwise for coros */
-	result = NsfNRRunCallbacks(interp, result, rootPtr);
-      } else {
-	fprintf(stderr, ".... don't run callbacks rootPtr = %p, result %d methodName %s\n", 
-		rootPtr, result, methodName);
-      }
-      
-      /* CscFinish() is performed by the callbacks or in error case base ProcMethodDispatch */
-      /*fprintf(stderr, "no pop/CscFinish for %s\n", methodName);*/
-#else
-      CscFinish(interp, cscPtr);
-#endif
-    }
-
-    return result;
-
-  } else if (cp || Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) {
-    /* 
-     * The cmd has client data or is an aliased method
-     */
-    cscPtr = &csc;
-
-    /*fprintf(stderr, "we could stuff obj %p %s\n", object, objectName(object));*/
-
-    if (proc == NsfObjDispatch) { 
-      /*
-       * invoke an aliased object (ensemble object) via method interface
-       */
-      NsfRuntimeState *rst = RUNTIME_STATE(interp);
-      NsfObject *invokeObj = (NsfObject *)cp;
-
-      if (invokeObj->flags & NSF_DELETED) {
-        /*
-         * When we try to call a deleted object, the cmd (alias) is
-         * automatically removed.
-         */
-        Tcl_DeleteCommandFromToken(interp, cmd);
-        NsfCleanupObject(invokeObj, "alias-delete2");
-        return NsfVarErrMsg(interp, "Trying to dispatch deleted object via method '",
-                              methodName, "'", (char *) NULL);
-      }
-
-      /* 
-       * The client data cp is still the obj of the called method
-       */
-      if (objc < 2) {
-	result = DispatchDefaultMethod(cp, interp, objc, objv);
-      } else {
-	Tcl_CallFrame frame, *framePtr = &frame;
-	NsfObject *self = (NsfObject *)cp;
-	char *methodName = ObjStr(objv[1]);
-
-	CscInit(cscPtr, object, cl, cmd, frameType);
-	cscPtr->objc = objc;
-	cscPtr->objv = (Tcl_Obj **)objv;
-	cscPtr->callType |= NSF_CSC_CALL_IS_ENSEMBLE; /*zzzz*/
-	Nsf_PushFrameCsc(interp, cscPtr, framePtr);
-
-	/*fprintf(stderr, "save self %p %s (ns %p) object %p %s\n", 
-	  self, objectName(self), self->nsPtr, object, objectName(object));*/
-	if (self->nsPtr) {
-	  cmd = FindMethod(self->nsPtr, methodName);
-	  /* fprintf(stderr, "... method %p %s csc %p\n", cmd, methodName, cscPtr); */
-	  if (cmd) {
-	    /*
-	     * In order to allow next to be called on the
-	     * ensemble-method, a call-frame entry is needed. The
-	     * associated calltype is flagged as an ensemble to be
-	     * able to distinguish frames during next.
-	     *
-	     * The invocation requires NSF_CM_IMMEDIATE to ensure,
-	     * that scripted methods are executed before the ensemble
-	     * ends. If they would be exeecuted lated, their parent
-	     * frame (CMETHOD) would have disappeared from the stack
-	     * already.
-	     */
-
-	    /*fprintf(stderr, ".... ensemble dispatch on %s.%s csc %p\n",
-	      objectName(object),methodName, cscPtr);*/
-	    result = MethodDispatch(object, interp, objc-1, objv+1, 
-				    cmd, object, NULL, methodName, 
-				    frameType|NSF_CSC_TYPE_ENSEMBLE, flags|NSF_CM_IMMEDIATE, 2);
-	    goto obj_dispatch_ok;
-	  }
-	}
-
-	/* 
-	 * The method to be called was not part of this ensemble. Call
-	 * next to try to call such methods along the next path.
-	 */
-	fprintf(stderr, "call next instead of unknown %s.%s \n",
-		objectName(cscPtr->self),methodName);
-	{
-	  Tcl_CallFrame *framePtr1;
-	  NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
-
-	  if ((cscPtr1->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
-	    /*
-	     * We are in an ensemble method. The next works here not on the
-	     * actual methodName + frame, but on the ensemble above it. We
-	     * locate the appropriate callstack content and continue next on
-	     * that.
-	     */
-	    cscPtr1 = CallStackFindEnsembleCsc(framePtr1, &framePtr1);
-	    assert(cscPtr1);
-	  }
-	  result = NextSearchAndInvoke(interp, ObjStr(cscPtr1->objv[0]), 
-				       cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
-	}
-
-	fprintf(stderr, "==> next %s csc %p returned %d unknown %d\n", 
-		methodName, cscPtr, result, rst->unknown); 
-	if (rst->unknown) {
-	  result = DispatchUnknownMethod(self, interp, objc-1, objv+1, 
-					 objv[1], NSF_CM_NO_OBJECT_METHOD);
-	}
-      obj_dispatch_ok:
-	Nsf_PopFrameCsc(interp, framePtr);
-	CscFinish(interp, cscPtr);
-
-      }
-      return result;
-
-    } else if (proc == NsfForwardMethod ||
-	       proc == NsfObjscopedMethod ||
-	       proc == NsfSetterMethod
-               ) {
-      TclCmdClientData *tcd = (TclCmdClientData *)cp;
-      tcd->object = object;
-      assert((CmdIsProc(cmd) == 0));
-    } else if (cp == (ClientData)NSF_CMD_NONLEAF_METHOD) {
-      cp = clientData;
-      assert((CmdIsProc(cmd) == 0));
-    }
-    CscInit(cscPtr, object, cl, cmd, frameType);
-
-  } else {
-    /* 
-     * The cmd has no client data
-     */
-    /*fprintf(stderr, "cmdMethodDispatch %s %s, nothing stacked\n",objectName(object), methodName);*/
-    return CmdMethodDispatch(clientData, interp, objc, objv, methodName, object, cmd, NULL);
-  }
-  
-  result = CmdMethodDispatch(cp, interp, objc, objv, methodName, object, cmd, cscPtr);
-  /* 
-   * Make sure, that csc is still in the scope; therefore, csc is
-   * currently on the top scope of this function
-   */
-  CscFinish(interp, cscPtr);
-
-  return result;
-}
-// old method dispatch
-#endif
-
 
 NSF_INLINE static void
 ObjectDispatchFinalize(NsfObject *object, int flags, char *string, CONST char *methodName) {
@@ -6881,7 +6638,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
            Tcl_Obj *CONST objv[], int flags) {
   register NsfObject *object = (NsfObject*)clientData;
   int result = TCL_OK, mixinStackPushed = 0,
-    filterStackPushed = 0, unknown = 0, isNRE = 0, objflags, shift,
+    filterStackPushed = 0, unknown = 0, objflags, shift,
     frameType = NSF_CSC_TYPE_PLAIN;
   CONST char *methodName;
   NsfClass *cl = NULL;
@@ -6889,6 +6646,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   NsfRuntimeState *rst = RUNTIME_STATE(interp);
   Tcl_Obj *cmdName = object->cmdName, *methodObj, *cmdObj;
   NsfCallStackContent csc, *cscPtr = NULL;
+#if defined(NRE)
+  int isNRE = 0;
+#endif
 
   if (flags & NSF_CM_NO_SHIFT) {
     shift = 0;
@@ -6955,16 +6715,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       TclShowStack(interp);
       }*/
     // assert(cscPtr1);
-    if (!cscPtr1 || (object != cscPtr1->self 
-		    //|| ((cscPtr1->frameType & NSF_CSC_TYPE_ACTIVE_FILTER) == 0)
-		    //|| (cscPtr1->frameType & NSF_CSC_TYPE_INACTIVE)
-		    || (cscPtr1->frameType != NSF_CSC_TYPE_ACTIVE_FILTER)
-		    )) {
-      // just assert
-      //if (cscPtr1 && (object == cscPtr1->self)) {
-      //fprintf(stderr, "frameType %.6x\n", cscPtr1->frameType);
-      //assert((cscPtr1->frameType != NSF_CSC_TYPE_ACTIVE_FILTER));
-      //}
+    if (!cscPtr1 || 
+	(object != cscPtr1->self || (cscPtr1->frameType != NSF_CSC_TYPE_ACTIVE_FILTER))) {
 
       filterStackPushed = FilterStackPush(interp, object, methodObj);
       if ((flags & NSF_CSC_FILTER_STACK_PUSHED)) {
@@ -6996,15 +6748,11 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
 
   if ((objflags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) == NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
-    // remove next block?
-    if ((flags & NSF_CSC_MIXIN_STACK_PUSHED)) {
-      fprintf(stderr, "already NSF_CSC_MIXIN_STACK_PUSHED\n");
-    }
-    mixinStackPushed = MixinStackPush(object);
 
     //fprintf(stderr, "MixinStackPush %s.%s %p\n", 
     //	    objectName(object), methodName, object->mixinStack);
 
+    mixinStackPushed = MixinStackPush(object);
     flags |= NSF_CSC_MIXIN_STACK_PUSHED;
 
     if (frameType != NSF_CSC_TYPE_ACTIVE_FILTER) {
@@ -7083,28 +6831,24 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 	/*fprintf(stderr, "+++ protected method %s is not invoked\n", methodName);*/
         /* allow unknown-handler to handle this case */
 	unknown = 1;
-        fprintf(stderr, "+++ %s is protected, therefore maybe unknown %p %s lastself=%p o=%p cd %p flags = %.6x\n",
-                methodName, cmdObj, ObjStr(cmdObj), lastSelf, o, clientData, flags);
+        fprintf(stderr, "+++ %s is protected, therefore unknown %p %s lastself=%p o=%p flags = %.6x\n",
+                methodName, cmdObj, ObjStr(cmdObj), lastSelf, o, flags);
         /*TclShowStack(interp);*/
+	cmd = NULL;
       }
     }
 
     if (!unknown) {
-      //result = MethodDispatch(clientData, interp, objc-shift, objv+shift, cmd, object, cl,
-      //			      methodName, frameType, flags);
-
       cscPtr = CscAlloc(interp, &csc, Tcl_Command_objProc(cmd));
       CscInit(cscPtr, object, cl, cmd, frameType);
       
       // TODO testing, just for the time being
       if ((frameType & NSF_CSC_TYPE_ACTIVE_FILTER)) {
 	// run filters not NRE enabled
-	flags |= NSF_CM_IMMEDIATE;
+	flags |= NSF_CSC_IMMEDIATE;
 	// testing with NRE-enabled filters, to invoke UNKNOWN from ProcMethodDispatchFinalize()
 	//cscPtr->objc = objc-shift;
 	//cscPtr->objv = objv+shift;
-      } else if ((frameType & NSF_CSC_TYPE_ACTIVE_MIXIN)) {
-	//flags |= NSF_CM_IMMEDIATE;
       }
 
       result = MethodDispatchCsc(clientData, interp, objc-shift, objv+shift,
@@ -7152,7 +6896,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       /*fprintf(stderr, "ObjectDispatch calling unknown flags %.6x\n", flags);*/
 
       result = DispatchUnknownMethod(clientData, interp, 
-				     objc-shift, objv+shift, methodObj, flags&NSF_CM_IMMEDIATE);
+				     objc-shift, objv+shift, methodObj, flags&NSF_CSC_IMMEDIATE);
       /*fprintf(stderr, "ObjectDispatch UNKNOWN returns %d\n", result);*/
     }
   }
@@ -7204,7 +6948,7 @@ NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 #endif
 
   if (objc > 1) {
-    /* normal dispatch; we cannot use NSF_CM_IMMEDIATE here, otherwise coroutines won't work */
+    /* normal dispatch; we cannot use NSF_CSC_IMMEDIATE here, otherwise coroutines won't work */
     result = ObjectDispatch(clientData, interp, objc, objv, 0);
   } else {
     result = DispatchDefaultMethod(clientData, interp, objc, objv);
@@ -8659,7 +8403,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
       /*fprintf(stderr, "MethodDispatch in next flags %.6x NRE %d immediate %d next-flags %.6x\n", 
 	cscPtr->callType, 
 	(cscPtr->callType & NSF_CSC_CALL_IS_NRE) != 0,
-	(cscPtr->callType & NSF_CM_IMMEDIATE) != 0,
+	(cscPtr->callType & NSF_CSC_IMMEDIATE) != 0,
 	flags
 	);*/
       
@@ -9710,7 +9454,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     result = NsfOConfigureMethod(interp, object, objc-1, tov);
     FREE_ON_STACK(Tcl_Obj*, tov);
   } else {
-    result = CallMethod((ClientData) object, interp, methodObj, objc, objv+2, NSF_CM_IMMEDIATE);
+    result = CallMethod((ClientData) object, interp, methodObj, objc, objv+2, NSF_CSC_IMMEDIATE);
   }
 
   if (result != TCL_OK) {
@@ -9735,7 +9479,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     methodObj = NsfMethodObj(interp, object, NSF_o_init_idx);
     if (methodObj) {
       result = CallMethod((ClientData) object, interp, methodObj,
-			  nobjc+2, nobjv, NSF_CM_NO_PROTECT|NSF_CM_IMMEDIATE);
+			  nobjc+2, nobjv, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
     }
     object->flags |= NSF_INIT_CALLED;
     DECR_REF_COUNT(resultObj);
@@ -9852,7 +9596,7 @@ NsfCreateObject(Tcl_Interp *interp, Tcl_Obj *nameObj, Nsf_Class *class) {
     result = NsfCCreateMethod(interp, cl, ObjStr(nameObj), 1, &nameObj);
   } else {
     result = NsfCallMethodWithArgs((ClientData)cl, interp, methodObj, 
-                                     nameObj, 1, 0, NSF_CM_IMMEDIATE);  
+                                     nameObj, 1, 0, NSF_CSC_IMMEDIATE);  
   }
   DECR_REF_COUNT(nameObj);
   return result;
@@ -10380,11 +10124,10 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     /*fprintf(stderr, "CallForwarder NsfObjDispatch object %s, objc=%d\n", 
       ObjStr(tcd->cmdName), objc);*/
     if (objc > 1) {
-      result = ObjectDispatch(clientData, interp, objc, objv, NSF_CM_IMMEDIATE);
+      result = ObjectDispatch(clientData, interp, objc, objv, NSF_CSC_IMMEDIATE);
     } else {
       result = DispatchDefaultMethod(clientData, interp, objc, objv);
     }
-    //result = NsfObjDispatch(clientData, interp, objc, objv);
   } else {
     /*fprintf(stderr, "CallForwarder: no nsf object %s\n", ObjStr(tcd->cmdName));*/
     result = Tcl_EvalObjv(interp, objc, objv, 0);
@@ -10730,7 +10473,7 @@ CallConfigureMethod(Tcl_Interp *interp, NsfObject *object, CONST char *methodNam
   Tcl_ResetResult(interp);
   INCR_REF_COUNT(methodObj);
   result = CallMethod((ClientData)object, interp, methodObj, argc, argv, 
-		      NSF_CM_NO_UNKNOWN|NSF_CM_IMMEDIATE);
+		      NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE);
   DECR_REF_COUNT(methodObj);
 
   /*fprintf(stderr, "method  '%s' called args: %d o=%p, result=%d %d\n",
@@ -12493,7 +12236,7 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withObjscope,
       objv = NULL;
     }
     result = NsfCallMethodWithArgs((ClientData)object, interp, command, arg,
-				     nobjc, objv, NSF_CM_NO_UNKNOWN|NSF_CM_IMMEDIATE);
+				     nobjc, objv, NSF_CM_NO_UNKNOWN|NSF_CSC_IMMEDIATE);
   }
 
   return result;
@@ -12508,11 +12251,11 @@ static int
 NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
   NsfObject *self = GetSelfObj(interp);
   if (!self) {
-    return NsfVarErrMsg(interp, "Cannot resolve 'self', probably called outside the context of an Next Scripting Object",
-                          (char *) NULL);
+    return NsfVarErrMsg(interp, "Cannot resolve 'self', "
+			"probably called outside the context of an Next Scripting Object",
+			(char *) NULL);
   }
-  //fprintf(stderr, "Colon dispatch %s on %s\n", ObjStr(nobjv[0]), objectName(self));
-
+  /* fprintf(stderr, "Colon dispatch %s.%s\n", objectName(self),ObjStr(nobjv[0]));*/
   return ObjectDispatch(self, interp, nobjc, nobjv, NSF_CM_NO_SHIFT);
 }
 
@@ -12957,7 +12700,7 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
     int flags;
     NsfCallStackContent *cscPtr = CallStackGetFrame(interp, NULL);
     if (!cscPtr || self != cscPtr->self) {
-      flags = NSF_CM_IMMEDIATE;
+      flags = NSF_CSC_IMMEDIATE;
     } else {
       flags = NsfImmediateFromCallerFlags(cscPtr->callType);
       fprintf(stderr, "XXX MY %s.%s frame has flags %.6x -> next-flags %.6x\n", 
@@ -12965,7 +12708,7 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
     }
     result = CallMethod((ClientData)self, interp, methodObj, nobjc+2, nobjv, flags);
 #else
-    result = CallMethod((ClientData)self, interp, methodObj, nobjc+2, nobjv, NSF_CM_IMMEDIATE);
+    result = CallMethod((ClientData)self, interp, methodObj, nobjc+2, nobjv, NSF_CSC_IMMEDIATE);
 #endif
   }
   return result;
@@ -14011,7 +13754,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, CONST char *methodName, NsfObje
     if (methodObj) {
       /* fprintf(stderr, "=== calling %s objectparameter\n", objectName(object));*/
       result = CallMethod((ClientData) object, interp, methodObj, 
-			  2, 0, NSF_CM_NO_PROTECT|NSF_CM_IMMEDIATE);
+			  2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
       
       if (result == TCL_OK) {
 	rawConfArgs = Tcl_GetObjResult(interp);
@@ -14160,14 +13903,14 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
           oc ++;
         }
         result = NsfCallMethodWithArgs((ClientData) object, interp, paramPtr->nameObj, 
-                                         ov[0], oc, &ov[1], NSF_CM_IMMEDIATE);
+                                         ov[0], oc, &ov[1], NSF_CSC_IMMEDIATE);
       }
       /* 
          Pop previously stacked frame for eval context and set the
          varFramePtr to the previous value.
       */
       Nsf_PopFrameCsc(interp, framePtr2); 
-      CscFinish(interp, cscPtr);
+      CscFinish(interp, cscPtr, "converter object frame");
       Tcl_Interp_varFramePtr(interp) = varFramePtr;
 
       /*fprintf(stderr, "NsfOConfigureMethod_ attribute %s evaluated %s => (%d)\n",
@@ -14213,7 +13956,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       result = NsfOResidualargsMethod(interp, object, remainingArgsc+1, pc.full_objv + i);
     } else {
       result = CallMethod((ClientData) object, interp,
-                          methodObj, remainingArgsc+2, pc.full_objv + i-1, NSF_CM_IMMEDIATE);
+                          methodObj, remainingArgsc+2, pc.full_objv + i-1, NSF_CSC_IMMEDIATE);
     }
     if (result != TCL_OK) {
       ParseContextRelease(&pc);
@@ -14260,7 +14003,7 @@ NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
     } else {
       /*fprintf(stderr, "call dealloc\n");*/
       result = NsfCallMethodWithArgs((ClientData)object->cl, interp, methodObj, 
-                                       object->cmdName, 1, NULL, NSF_CM_IMMEDIATE);
+                                       object->cmdName, 1, NULL, NSF_CSC_IMMEDIATE);
       if (result != TCL_OK) {
         /* 
 	 * In case, the call of the dealloc method has failed above (e.g. NS_DYING), 
@@ -14743,7 +14486,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
       result = RecreateObject(interp, cl, newObject, objc, nobjv);
     } else {
       result = CallMethod((ClientData) cl, interp, methodObj, 
-                          objc+1, nobjv+1, NSF_CM_NO_PROTECT|NSF_CM_IMMEDIATE);
+                          objc+1, nobjv+1, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
     }
 
     if (result != TCL_OK)
@@ -14764,7 +14507,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
       result = NsfCAllocMethod(interp, cl, nameObj);
     } else {
       result = CallMethod((ClientData) cl, interp, methodObj, 
-                          3, &nameObj, NSF_CM_IMMEDIATE);
+                          3, &nameObj, NSF_CSC_IMMEDIATE);
     }
     if (result != TCL_OK)
       goto create_method_exit;
@@ -14883,7 +14626,7 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, NsfObject *withChildof,
     if (callDirectly) {
       result = NsfCCreateMethod(interp, cl, ObjStr(fullnameObj), objc+2, ov+1);
     } else {
-      result = ObjectDispatch((ClientData)cl, interp, objc+3, ov, NSF_CM_IMMEDIATE);
+      result = ObjectDispatch((ClientData)cl, interp, objc+3, ov, NSF_CSC_IMMEDIATE);
     }
 
     FREE_ON_STACK(Tcl_Obj *, ov);
@@ -14971,7 +14714,7 @@ RecreateObject(Tcl_Interp *interp, NsfClass *class, NsfObject *object,
       result = NsfOCleanupMethod(interp, object);
     } else {
       result = CallMethod((ClientData) object, interp, methodObj, 
-                          2, 0, NSF_CM_NO_PROTECT|NSF_CM_IMMEDIATE);
+                          2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
     }
   }
 
@@ -16003,8 +15746,6 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
     object->refCount = 1;
   }
 
-
-  //fprintf(stderr, "FinalObjectDeletion obj %s activationcount %d\n", objectName(object), object->activationCount);
   assert(object->activationCount == 0);
   /*fprintf(stderr, "FinalObjectDeletion obj %p activationcount %d\n", object, object->activationCount);*/
   if (object->id) {
