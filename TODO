@@ -1476,6 +1476,11 @@ _ added option noforwarder to RelationSlots
 - some refactoring for making code structure more sane for NRE
   (but not done yet)
 
+- save snapshot; refactoring in order to ease NRE
+  development with unified method and dipatch exit.
+- named debugging cmds __db_*
+- new cmd __db_run_assertions to perform checking of the internal state
+
 TODO: 
 - check my for NRE-enabling
 - major coro cleanup, when working

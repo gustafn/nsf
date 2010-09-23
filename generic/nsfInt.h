@@ -615,24 +615,26 @@ typedef struct NsfCallStackContent {
   unsigned short callType;
 } NsfCallStackContent;
 
-#define NSF_CSC_TYPE_PLAIN             0
-#define NSF_CSC_TYPE_ACTIVE_MIXIN      1
-#define NSF_CSC_TYPE_ACTIVE_FILTER     2
-#define NSF_CSC_TYPE_INACTIVE          4
-#define NSF_CSC_TYPE_INACTIVE_MIXIN    5
-#define NSF_CSC_TYPE_INACTIVE_FILTER   6
-#define NSF_CSC_TYPE_GUARD          0x10
-#define NSF_CSC_TYPE_ENSEMBLE       0x20
+#define NSF_CSC_TYPE_PLAIN              0
+#define NSF_CSC_TYPE_ACTIVE_MIXIN       1
+#define NSF_CSC_TYPE_ACTIVE_FILTER      2
+#define NSF_CSC_TYPE_INACTIVE           4
+#define NSF_CSC_TYPE_INACTIVE_MIXIN     5
+#define NSF_CSC_TYPE_INACTIVE_FILTER    6
+#define NSF_CSC_TYPE_GUARD           0x10
+#define NSF_CSC_TYPE_ENSEMBLE        0x20
 
-#define NSF_CSC_CALL_IS_NEXT            1
-#define NSF_CSC_CALL_IS_GUARD           2
-#define NSF_CSC_CALL_IS_ENSEMBLE        4   /*TODO: needed?*/
-#define NSF_CSC_IMMEDIATE           0x020
-#define NSF_CSC_CALL_IS_NRE         0x100  
-#define NSF_CSC_MIXIN_STACK_PUSHED  0x200  
-#define NSF_CSC_FILTER_STACK_PUSHED 0x400
-#define NSF_CSC_UNKNOWN             0x800
-#define NSF_CSC_COPY_FLAGS          (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED|NSF_CSC_IMMEDIATE|NSF_CSC_UNKNOWN)
+#define NSF_CSC_CALL_IS_NEXT             1
+#define NSF_CSC_CALL_IS_GUARD            2
+#define NSF_CSC_CALL_IS_ENSEMBLE         4   /*TODO: needed?*/
+#define NSF_CSC_IMMEDIATE           0x0020
+#define NSF_CSC_CALL_IS_NRE         0x0100  
+#define NSF_CSC_MIXIN_STACK_PUSHED  0x0200  
+#define NSF_CSC_FILTER_STACK_PUSHED 0x0400
+#define NSF_CSC_UNKNOWN             0x0800   /* TODO needed in copy flags ? */
+#define NSF_CSC_ACTIVE_FILTER       0x1000   // should not be longer needed
+#define NSF_CSC_OBJECT_ACTIVATED    0x2000
+#define NSF_CSC_COPY_FLAGS          (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED|NSF_CSC_IMMEDIATE|NSF_CSC_UNKNOWN|NSF_CSC_ACTIVE_FILTER)
 
 /* flags for call method */
 #define NSF_CM_NO_UNKNOWN 1

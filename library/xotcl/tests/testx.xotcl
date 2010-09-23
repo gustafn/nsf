@@ -2,6 +2,7 @@
 package require XOTcl; namespace import ::xotcl::*
 
 proc ::errorCheck {got expected msg} {
+  nsf::__db_run_assertions
   if {$got != $expected} {
     if {[catch self self]} {
       set self "NO CURRENT OBJECT"
@@ -773,14 +774,23 @@ TestX filterGuards -proc run {{n 20}} {
       B instfilter {{f1  -guard {[self] eq "::b"}} {f2  -guard 0} f1}
       b filter {{f1  -guard {[self] eq "::b"}} {f2  -guard 0}}
 
-      ::errorCheck [B info instfilter]-[B info instfilter -guards]-[b info filter]-[b info filter -guards] \
-	  {f1 f2-f1 {f2 -guard 0}-f1 f2-{f1 -guard {[self] eq "::b"}} {f2 -guard 0}}\
-	{[self] -- Filter guard: -guards option}
+      ::errorCheck [B info instfilter] {f1 f2} "info filter order a"
+      ::errorCheck [B info instfilter -guards] {f1 {f2 -guard 0}} "info filter order b"
+      ::errorCheck [b info filter] {f1 f2} "info filter order c"
+      ::errorCheck [b info filter -guards] {{f1 -guard {[self] eq "::b"}} {f2 -guard 0}} "info filter order d"
 
       A instfilter {f1 fx}
       A a
+      puts stderr ====created
+      nsf::__db_run_assertions
+      puts stderr ====
       a proc x args {next}
       a filter x
+
+      ::errorCheck [b info filter -order] \
+	  "{::B instproc f1} {::B instproc f2} {::A instproc f1} {::A instproc fx}" "info filter-order- 2a"
+      ::errorCheck [a info filter -order] \
+	  "{::a proc x} {::A instproc f1} {::A instproc fx}" "info filter-order- 2b"
 
       ::errorCheck [b info filter -order]-[a info filter -order] "{::B instproc f1} {::B instproc f2} {::A instproc f1} {::A instproc fx}-{::a proc x} {::A instproc f1} {::A instproc fx}" \
 	{[self] -- Filter guard: -order option}
@@ -2846,17 +2856,18 @@ TestX copymove -proc run {{n 10}} {
 }
 
 TestX recreation -proc run {{n 10}} {
- for {set i 0} {$i < $n} {incr i} {
-  set ::recreateResult ""
-  Class R
-  R instproc recreate args {
-    global recreateResult
-    append recreateResult "*recreate [self] $args* "
-    set r [next]
-    append recreateResult "*recreate [self] <[lindex $args 0]> $r * "
-    return $r
-  }
-  Object instmixin R
+
+  for {set i 0} {$i < $n} {incr i} {
+    set ::recreateResult ""
+    Class R
+    R instproc recreate args {
+      global recreateResult
+      append recreateResult "*recreate [self] $args* "
+      set r [next]
+      append recreateResult "*recreate [self] <[lindex $args 0]> $r * "
+      return $r
+    }
+    Object instmixin R
 
   catch {
     C destroy
@@ -2934,6 +2945,8 @@ TestX recreation -proc run {{n 10}} {
   catch {X destroy}
   catch {META destroy}
 
+  nsf::__db_run_assertions
+
   Class A
   A proc dealloc args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
   A proc recreate args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}
@@ -2950,7 +2963,7 @@ TestX recreation -proc run {{n 10}} {
   errorCheck [set ::cleanupResult] \
    " ::A+->recreate ::a+::A->cleanup ::a::b+::A->destroy ::A+->dealloc" \
    "Cleanup a/a::b Failed (n)"
-  a destroy;
+  a destroy
   set ::cleanupResult ""
   A instproc cleanup args {append ::cleanupResult " [self]+[self class]->[self proc]"}
 
@@ -2968,6 +2981,7 @@ TestX recreation -proc run {{n 10}} {
   a destroy
   set ::cleanupResult ""
 
+  nsf::__db_run_assertions
 
   Class META -superclass Class
   META proc dealloc args {append ::cleanupResult " [self]+[self class]->[self proc]"; next}

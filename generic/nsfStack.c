@@ -447,9 +447,10 @@ static void CallStackPopAll(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  */
 static NsfCallStackContent *
-CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_ObjCmdProc *proc) {
-
+CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
 #if defined(NRE)
+  Tcl_ObjCmdProc *proc = cmd ? Tcl_Command_objProc(cmd) : NULL;
+
   if (proc == TclObjInterpProc) {
     cscPtr = (NsfCallStackContent *) NsfTclStackAlloc(interp, sizeof(NsfCallStackContent), "csc");
     cscPtr->callType = NSF_CSC_CALL_IS_NRE;
@@ -460,6 +461,7 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_ObjCmdProc *proc) 
   cscPtr->callType = 0;
 #endif
 
+  /*fprintf(stderr, "CscAlloc allocated %p\n",cscPtr);*/
   return cscPtr;
 }
 
@@ -481,51 +483,63 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_ObjCmdProc *proc) 
 
 NSF_INLINE static void
 CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
-	Tcl_Command cmd, int frameType) {
+	Tcl_Command cmd, int frameType, char *msg) {
 
   assert(cscPtr);
 
-  /*
-   * Some csc's are never stacked. We flag this case by setting self
-   * to NULL. This cscPtr should never appear on the stack.
-   */
-  if (cmd && Tcl_Command_objClientData(cmd) == NULL && !(Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD)) {
-    /*fprintf(stderr, "+++ no CscInit needed\n");*/
-    //cscPtr->self = NULL;
-    //return;
-  }
+  if (cmd) {
+    /* 
+     *  When cmd is provided, the call is not an unknown, the method
+     *  will be executed and the object will be stacked. In these
+     *  cases, we maintain an activation count. The fact that the
+     *  activation cound was incremented for this frame is noted via
+     *  NSF_CSC_OBJECT_ACTIVATED; callType is initialized in
+     *  CscAlloc()
+     */
 
-  /*
-   * track object activations
-   */ 
-  object->activationCount ++;
-  //fprintf(stderr, "activationCount ++ (%s) --> %d\n",objectName(object),  object->activationCount);
-  /*
-   * track class activations
-   */ 
-  if (cl) {
-    Namespace *nsPtr = ((Command *)cmd)->nsPtr;
-    cl->object.activationCount ++;
-    /*fprintf(stderr, "... %s cmd %s cmd ns %p (%s, refCount %d ++) obj ns %p parent %p\n", 
-            className(cl), 
-            Tcl_GetCommandName(object->teardown, cmd),
-            nsPtr, nsPtr->fullName, nsPtr->refCount,
-            cl->object.nsPtr,cl->object.nsPtr ? ((Namespace*)cl->object.nsPtr)->parentPtr : NULL);*/
+    cscPtr->callType |= NSF_CSC_OBJECT_ACTIVATED;
+
+    // TODO
+    /*
+     * Some csc's are never stacked. We flag this case by setting self
+     * to NULL. This cscPtr should never appear on the stack.
+     */
+    if (Tcl_Command_objClientData(cmd) == NULL && !(Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD)) {
+      /*fprintf(stderr, "+++ no CscInit needed\n");*/
+      //cscPtr->self = NULL;
+      //return;
+    }
     
-    /* incremement the namespace ptr in case tcl tries to delete this namespace 
-       during the invocation */
-    nsPtr->refCount ++;
+    /*
+     * track object activations
+     */ 
+    object->activationCount ++;
+    //fprintf(stderr, "activationCount ++ (%s) --> %d\n",objectName(object),  object->activationCount);
+    /*
+     * track class activations
+     */ 
+    if (cl && cmd) {
+      Namespace *nsPtr = ((Command *)cmd)->nsPtr;
+      cl->object.activationCount ++;
+      /*fprintf(stderr, "... %s cmd %s cmd ns %p (%s, refCount %d ++) obj ns %p parent %p\n", 
+	className(cl), 
+	Tcl_GetCommandName(object->teardown, cmd),
+	nsPtr, nsPtr->fullName, nsPtr->refCount,
+	cl->object.nsPtr,cl->object.nsPtr ? ((Namespace*)cl->object.nsPtr)->parentPtr : NULL);*/
+      
+      /* incremement the namespace ptr in case tcl tries to delete this namespace 
+	 during the invocation */
+      nsPtr->refCount ++;
+    }
+    
   }
-
-  /* fprintf(stderr, "incr activationCount for %s to %d\n", objectName(object), object->activationCount); */
   cscPtr->self          = object;
   cscPtr->cl            = cl;
   cscPtr->cmdPtr        = cmd;
   cscPtr->frameType     = frameType;
-  //cscPtr->callType      = 0; /* initialized in CscAlloc()
-  cscPtr->filterStackEntry = frameType == NSF_CSC_TYPE_ACTIVE_FILTER ? object->filterStack : NULL;
+  cscPtr->filterStackEntry = (frameType == NSF_CSC_TYPE_ACTIVE_FILTER) ? object->filterStack : NULL;
   cscPtr->objv          = NULL;
-
+  
 #if defined(TCL85STACK_TRACE)
   fprintf(stderr, "PUSH csc %p type %d obj %s, self=%p cmd=%p (%s) id=%p (%s) obj refcount %d name refcount %d\n",
           cscPtr, frameType, objectName(object), object,
@@ -534,6 +548,8 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
           object->id ? Tcl_Command_refCount(object->id) : -100, object->cmdName->refCount
           );
 #endif
+  /*fprintf(stderr, "CscInit %p (%s) object %p %s flags %.6x cmdPtr %p\n",cscPtr, msg,
+    object, objectName(object), cscPtr->callType, cscPtr->cmdPtr);*/
 }
 
 /*
@@ -553,78 +569,91 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
  */
 NSF_INLINE static void
 CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr, char *msg) {
-  NsfObject *object = cscPtr->self;
   int allowDestroy = RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
     NSF_EXITHANDLER_ON_SOFT_DESTROY;
+  NsfObject *object;
+  int flags;
 
-  /*fprintf(stderr, "CscFinish %p (%s)\n",cscPtr, msg);*/
+  assert(cscPtr);
+  assert(cscPtr->self);
 
-  assert(object);
+  object = cscPtr->self;
+  flags = cscPtr->callType;
+
+  /*fprintf(stderr, "CscFinish %p (%s) object %p %s flags %.6x cmdPtr %p\n",cscPtr, msg, 
+    object, objectName(object), flags, cscPtr->cmdPtr);*/
 
 #if defined(TCL85STACK_TRACE)
   fprintf(stderr, "POP  csc=%p, obj %s method %s (%s)\n", cscPtr, objectName(object),
           Tcl_GetCommandName(interp, cscPtr->cmdPtr), msg);
 #endif
   /* 
-     tracking activations of objects
-  */
-  object->activationCount --;
-
-  //fprintf(stderr, "activationCount -- (%s) --> %d\n",objectName(object),  object->activationCount);
-  
-  /*fprintf(stderr, "decr activationCount for %s to %d cscPtr->cl %p\n", objectName(cscPtr->self), 
-    cscPtr->self->activationCount, cscPtr->cl);*/
-
-  if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED && allowDestroy) {
-    CallStackDoDestroy(interp, object);
-  }
-#if defined(OBJDELETION_TRACE)
-  else if (!allowDestroy) {
-    fprintf(stderr,"checkFree %p %s\n",object, objectName(object));
-  }
-#endif
-
-  /* 
-     tracking activations of classes 
-  */
-  if (cscPtr->cl) {
-    Namespace *nsPtr = cscPtr->cmdPtr ? ((Command *)(cscPtr->cmdPtr))->nsPtr : NULL;
-
-    object = &cscPtr->cl->object;
+   *  We cannot rely on the existence of cscPtr->cmdPtr (like in
+   *  initialize), since the cmd might have been deleted during the
+   *  activation.
+   */
+  if ((flags & NSF_CSC_OBJECT_ACTIVATED)) {
+    /* 
+       tracking activations of objects
+    */
     object->activationCount --;
-    /*  fprintf(stderr, "CscFinish cl=%p %s (%d) flags %.6x cl ns=%p cmd %p cmd ns %p\n",
-            object, objectName(object), object->activationCount, object->flags, cscPtr->cl->nsPtr, 
-            cscPtr->cmdPtr, ((Command *)cscPtr->cmdPtr)->nsPtr); */
-
-    /*fprintf(stderr, "CscFinish check ac %d flags %.6x\n",
-      object->activationCount, object->flags & NSF_DESTROY_CALLED);*/
-
+    
+    /*fprintf(stderr, "... activationCount -- (%s) --> %d\n",objectName(object),  object->activationCount);*/
+    
+    /*fprintf(stderr, "decr activationCount for %s to %d cscPtr->cl %p\n", objectName(cscPtr->self), 
+      cscPtr->self->activationCount, cscPtr->cl);*/
+    assert(object->activationCount > -1);
     if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED && allowDestroy) {
       CallStackDoDestroy(interp, object);
-    } 
+    }
 #if defined(OBJDELETION_TRACE)
     else if (!allowDestroy) {
       fprintf(stderr,"checkFree %p %s\n",object, objectName(object));
     }
 #endif
-
-    if (nsPtr) {
-      nsPtr->refCount--;
-      /*fprintf(stderr, "CscFinish parent %s activationCount %d flags %.4x refCount %d\n", 
-        nsPtr->fullName, nsPtr->activationCount, nsPtr->flags, nsPtr->refCount);*/
     
-      if ((nsPtr->refCount == 0) && (nsPtr->flags & NS_DEAD)) {
-        /* the namespace refcount has reached 0, we have to free
-           it. unfortunately, NamespaceFree() is not exported */
-        /* TODO: remove me finally */
-        fprintf(stderr, "HAVE TO FREE %p\n",nsPtr);
-        /*NamespaceFree(nsPtr);*/
-        ckfree(nsPtr->fullName);
-        ckfree(nsPtr->name);
-        ckfree((char*)nsPtr);
+    /* 
+       tracking activations of classes 
+    */
+    if (cscPtr->cl) {
+      Namespace *nsPtr = cscPtr->cmdPtr ? ((Command *)(cscPtr->cmdPtr))->nsPtr : NULL;
+      
+      object = &cscPtr->cl->object;
+      object->activationCount --;
+      /*fprintf(stderr, "CscFinish cl=%p %s (%d) flags %.6x cl ns=%p cmd %p cmd ns %p\n",
+	      object, objectName(object), object->activationCount, object->flags, cscPtr->cl->nsPtr, 
+	      cscPtr->cmdPtr, ((Command *)cscPtr->cmdPtr)->nsPtr); */
+      
+      /*fprintf(stderr, "CscFinish check ac %d flags %.6x\n",
+	object->activationCount, object->flags & NSF_DESTROY_CALLED);*/
+      
+      if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED && allowDestroy) {
+	CallStackDoDestroy(interp, object);
+      } 
+#if defined(OBJDELETION_TRACE)
+      else if (!allowDestroy) {
+	fprintf(stderr,"checkFree %p %s\n",object, objectName(object));
       }
+#endif
+      // TODO do we have a leak now?
+      if (0 && nsPtr) {
+	nsPtr->refCount--;
+	/*fprintf(stderr, "CscFinish parent %s activationCount %d flags %.4x refCount %d\n", 
+	  nsPtr->fullName, nsPtr->activationCount, nsPtr->flags, nsPtr->refCount);*/
+	
+	if ((nsPtr->refCount == 0) && (nsPtr->flags & NS_DEAD)) {
+	  /* the namespace refcount has reached 0, we have to free
+	     it. unfortunately, NamespaceFree() is not exported */
+	  /* TODO: remove me finally */
+	  fprintf(stderr, "HAVE TO FREE %p\n",nsPtr);
+	  /*NamespaceFree(nsPtr);*/
+	  ckfree(nsPtr->fullName);
+	  ckfree(nsPtr->name);
+	  ckfree((char*)nsPtr);
+	}
+      }
+      
     }
-
   }
 
 #if defined(NRE)

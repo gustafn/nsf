@@ -17,7 +17,9 @@ array set ns {
 #
 # Next Scripting commands
 #
-nsfCmd yieldcheck NsfYiedCheckCmd {
+nsfCmd __db__yield NsfDebugYiedCmd {
+}
+nsfCmd __db_run_assertions NsfDebugRunAssertionsCmd {
 }
 nsfCmd alias NsfAliasCmd {
   {-argName "object" -type object}

@@ -84,6 +84,7 @@
 */
 
 //#define TCL_STACK_ALLOC_TRACE 1
+//#define NRE_CALLBACK_TRACE 1
 
 /* turn  tracing output on/off
 #define NSFOBJ_TRACE 1

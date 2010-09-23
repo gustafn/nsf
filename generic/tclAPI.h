@@ -160,6 +160,8 @@ static int NsfColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, 
 static int NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfDebugYiedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -180,7 +182,6 @@ static int NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int o
 static int NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfYiedCheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -242,6 +243,8 @@ static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
 static int NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass, Tcl_Obj *systemMethods);
 static int NsfCurrentCmd(Tcl_Interp *interp, int currentoption);
+static int NsfDebugRunAssertionsCmd(Tcl_Interp *interp);
+static int NsfDebugYiedCmd(Tcl_Interp *interp);
 static int NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
 static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withObjscope, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfExistsVarCmd(Tcl_Interp *interp, NsfObject *object, CONST char *var);
@@ -262,7 +265,6 @@ static int NsfQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *name);
 static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int relationtype, Tcl_Obj *value);
 static int NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *variable, Tcl_Obj *value);
 static int NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *parameter);
-static int NsfYiedCheckCmd(Tcl_Interp *interp);
 static int NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *obj, int withInstance, int withReset, Tcl_Obj *name);
 static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
@@ -325,6 +327,8 @@ enum {
  NsfConfigureCmdIdx,
  NsfCreateObjectSystemCmdIdx,
  NsfCurrentCmdIdx,
+ NsfDebugRunAssertionsCmdIdx,
+ NsfDebugYiedCmdIdx,
  NsfDeprecatedCmdIdx,
  NsfDispatchCmdIdx,
  NsfExistsVarCmdIdx,
@@ -345,7 +349,6 @@ enum {
  NsfRelationCmdIdx,
  NsfSetVarCmdIdx,
  NsfSetterCmdIdx,
- NsfYiedCheckCmdIdx,
  NsfOAutonameMethodIdx,
  NsfOCleanupMethodIdx,
  NsfOConfigureMethodIdx,
@@ -927,6 +930,42 @@ NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 }
 
 static int
+NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfDebugRunAssertionsCmdIdx].paramDefs, 
+                     method_definitions[NsfDebugRunAssertionsCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    
+
+    ParseContextRelease(&pc);
+    return NsfDebugRunAssertionsCmd(interp);
+
+  }
+}
+
+static int
+NsfDebugYiedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfDebugYiedCmdIdx].paramDefs, 
+                     method_definitions[NsfDebugYiedCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    
+
+    ParseContextRelease(&pc);
+    return NsfDebugYiedCmd(interp);
+
+  }
+}
+
+static int
 NsfDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
 
@@ -1319,24 +1358,6 @@ NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
     ParseContextRelease(&pc);
     return NsfSetterCmd(interp, object, withPer_object, parameter);
-
-  }
-}
-
-static int
-NsfYiedCheckCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfYiedCheckCmdIdx].paramDefs, 
-                     method_definitions[NsfYiedCheckCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    
-
-    ParseContextRelease(&pc);
-    return NsfYiedCheckCmd(interp);
 
   }
 }
@@ -2101,6 +2122,12 @@ static methodDefinition method_definitions[] = {
 {"::nsf::current", NsfCurrentCmdStub, 1, {
   {"currentoption", 0, 0, ConvertToCurrentoption}}
 },
+{"::nsf::__db_run_assertions", NsfDebugRunAssertionsCmdStub, 0, {
+  }
+},
+{"::nsf::__db__yield", NsfDebugYiedCmdStub, 0, {
+  }
+},
 {"::nsf::deprecated", NsfDeprecatedCmdStub, 3, {
   {"what", 1, 0, ConvertToString},
   {"oldCmd", 1, 0, ConvertToString},
@@ -2202,9 +2229,6 @@ static methodDefinition method_definitions[] = {
   {"object", 1, 0, ConvertToObject},
   {"-per-object", 0, 0, ConvertToString},
   {"parameter", 0, 0, ConvertToTclobj}}
-},
-{"::nsf::yieldcheck", NsfYiedCheckCmdStub, 0, {
-  }
 },
 {"::nsf::cmd::Object::autoname", NsfOAutonameMethodStub, 3, {
   {"-instance", 0, 0, ConvertToString},
