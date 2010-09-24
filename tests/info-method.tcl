@@ -64,10 +64,22 @@ Test case base {
   ? {C info method definition a} "::C alias a ::set"
   ? {C class-object info method definition apo} "::C class-object alias apo ::puts"
   
-  ? {::nx::Object info lookup methods -application} ""
-  ? {::nx::Class info lookup methods -application} ""
-  ? {lsort [C info lookup methods -application]} "add1 apo fpo mpo spo"
-  ? {lsort [c1 info lookup methods -application]} "a addOne foo m m-with-assertions s"
+  ? {::nx::Object info lookup methods -source application} ""
+  ? {::nx::Class info lookup methods -source application} ""
+
+  set object_methods "__default_method_protection alias attribute class configure contains copy destroy eval filter forward info method mixin move protected public require setter volatile vwait"
+  set class_methods "__default_method_protection alias alloc attribute attributes class class-object configure contains copy create dealloc destroy eval filter forward info method mixin move new protected public require setter superclass volatile vwait"
+
+  ? {lsort [::nx::Object info lookup methods -source baseclasses]} $class_methods
+  ? {lsort [::nx::Class info lookup methods -source baseclasses]} $class_methods
+  ? {lsort [::nx::Object info lookup methods -source all]} $class_methods
+  ? {lsort [::nx::Class info lookup methods -source all]} $class_methods
+  ? {lsort [::nx::Object info lookup methods]} $class_methods
+  ? {lsort [::nx::Class info lookup methods]} $class_methods
+  ? {lsort [C info lookup methods -source application]} "add1 apo fpo mpo spo"
+  ? {lsort [c1 info lookup methods -source application]} "a addOne foo m m-with-assertions s"
+  ? {lsort [C info lookup methods -source baseclasses]} $class_methods
+  ? {lsort [c1 info lookup methods -source baseclasses]} $object_methods
 
   ::nx::configure defaultMethodProtection true
   #
@@ -307,16 +319,14 @@ Test case info-submethod {
       {::C method {bar baz y} {x:int y:upper} {return y}}
 
   ? {nx::Object info method parameter "info lookup methods"} \
-      "-methodtype -callprotection -application -nomixins -incontext pattern:optional"
+      "-methodtype -callprotection -source -nomixins -incontext pattern:optional"
   ? {o info method parameter "foo b"} "x:int y:upper"
 
   ? {nx::Object info method parameter ::nx::Object::slot::__info::lookup::methods} \
-      "-methodtype -callprotection -application -nomixins -incontext pattern:optional"
+      "-methodtype -callprotection -source -nomixins -incontext pattern:optional"
   ? {o info method parameter "::o::foo::b"} "x:int y:upper"
 
- 
   ? {nx::Object info method handle "info"} "::nsf::classes::nx::Object::info"
-
   ? {nx::Object info method handle "info lookup methods"} \
       "::nsf::classes::nx::Object::info lookup methods"
 
