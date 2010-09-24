@@ -31,7 +31,7 @@ void TclShowStack(Tcl_Interp *interp) {
       fprintf(stderr, " csc %p frameType %.4x callType %.4x (%p %s)\n",
 	      cscPtr,
               cscPtr ? cscPtr->frameType : -1,
-              cscPtr ? cscPtr->callType : -1,
+              cscPtr ? cscPtr->flags : -1,
               cscPtr ? cscPtr->self : NULL, 
               cscPtr ? objectName(cscPtr->self) : "");
     } else {
@@ -195,7 +195,7 @@ NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **f
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
     if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_NSF_METHOD) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if ((cscPtr->callType & NSF_CSC_CALL_IS_NEXT) || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
+      if ((cscPtr->flags & NSF_CSC_CALL_IS_NEXT) || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
         continue;
       }
       if (offset) {
@@ -316,7 +316,7 @@ CallStackFindEnsembleCsc(Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtrPtr) {
     /*
      * The test for CALL_IS_ENSEMBLE is just a saftey belt
      */ 
-    if ((cscPtr->callType & NSF_CSC_CALL_IS_ENSEMBLE) == 0) break;
+    if ((cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE) == 0) break;
   }
   if (framePtrPtr) {
     *framePtrPtr = varFramePtr;
@@ -418,7 +418,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
 
 #if defined(NRE)
       /* Mask out IS_NRE, since Tcl_PopCallFrame takes care about TclStackFree */
-      cscPtr->callType &= ~NSF_CSC_CALL_IS_NRE;
+      cscPtr->flags &= ~NSF_CSC_CALL_IS_NRE;
 #endif
       CscFinish(interp, cscPtr, "popall");
     } else if (frameFlags & FRAME_IS_NSF_OBJECT) {
@@ -453,12 +453,12 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
 
   if (proc == TclObjInterpProc) {
     cscPtr = (NsfCallStackContent *) NsfTclStackAlloc(interp, sizeof(NsfCallStackContent), "csc");
-    cscPtr->callType = NSF_CSC_CALL_IS_NRE;
+    cscPtr->flags = NSF_CSC_CALL_IS_NRE;
   } else {
-    cscPtr->callType = 0;
+    cscPtr->flags = 0;
   }
 #else
-  cscPtr->callType = 0;
+  cscPtr->flags = 0;
 #endif
 
   /*fprintf(stderr, "CscAlloc allocated %p\n",cscPtr);*/
@@ -497,7 +497,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
      *  CscAlloc()
      */
 
-    cscPtr->callType |= NSF_CSC_OBJECT_ACTIVATED;
+    cscPtr->flags |= NSF_CSC_OBJECT_ACTIVATED;
 
     // TODO
     /*
@@ -533,7 +533,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
     }
     
   }
-  cscPtr->callType     |= flags & NSF_CSC_COPY_FLAGS;
+  cscPtr->flags     |= flags & NSF_CSC_COPY_FLAGS;
   cscPtr->self          = object;
   cscPtr->cl            = cl;
   cscPtr->cmdPtr        = cmd;
@@ -550,7 +550,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
           );
 #endif
   /*fprintf(stderr, "CscInit %p (%s) object %p %s flags %.6x cmdPtr %p\n",cscPtr, msg,
-    object, objectName(object), cscPtr->callType, cscPtr->cmdPtr);*/
+    object, objectName(object), cscPtr->flags, cscPtr->cmdPtr);*/
 }
 
 /*
@@ -579,7 +579,7 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr, char *msg) {
   assert(cscPtr->self);
 
   object = cscPtr->self;
-  flags = cscPtr->callType;
+  flags = cscPtr->flags;
 
   /*fprintf(stderr, "CscFinish %p (%s) object %p %s flags %.6x cmdPtr %p\n",cscPtr, msg, 
     object, objectName(object), flags, cscPtr->cmdPtr);*/
@@ -658,7 +658,7 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr, char *msg) {
   }
 
 #if defined(NRE)
-  if ((cscPtr->callType & NSF_CSC_CALL_IS_NRE)) {
+  if ((cscPtr->flags & NSF_CSC_CALL_IS_NRE)) {
     NsfTclStackFree(interp, cscPtr, msg);
   }
 #endif

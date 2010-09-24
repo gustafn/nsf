@@ -1491,9 +1491,15 @@ _ added option noforwarder to RelationSlots
 - changed internal method name requireNamespace to "require_namespace"
 - changed debug command __db_yield (unporable between various 8.6b* version)
   into __db_show_stack
+- some more cleanup
+- provide flag for DispatchDefaultMethod() to control immediate execution.
+- nre-enable DispatchDefaultMethod() for simple cases
+
+- removed TCL85STACK_TRACE
+- renamed cscPtr->callType to cscPtr->flags, since this is now more appropriate
+- some more minor cleanup
 
 TODO: 
-- remove TCL85STACK_TRACE and TCL85STACK_TRACE
 - check my for NRE-enabling
 - major coro cleanup, when working
 - extend coro regression test

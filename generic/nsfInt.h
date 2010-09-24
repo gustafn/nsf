@@ -612,7 +612,7 @@ typedef struct NsfCallStackContent {
   Tcl_Obj *CONST* objv;
   int objc;
   unsigned short frameType;
-  unsigned short callType;
+  unsigned short flags;
 } NsfCallStackContent;
 
 #define NSF_CSC_TYPE_PLAIN              0
@@ -631,7 +631,7 @@ typedef struct NsfCallStackContent {
 #define NSF_CSC_CALL_IS_NRE         0x0100  
 #define NSF_CSC_MIXIN_STACK_PUSHED  0x0200  
 #define NSF_CSC_FILTER_STACK_PUSHED 0x0400
-#define NSF_CSC_UNKNOWN             0x0800   /* TODO needed in copy flags ? */
+#define NSF_CSC_UNKNOWN             0x0800
 #define NSF_CSC_OBJECT_ACTIVATED    0x2000
 #define NSF_CSC_COPY_FLAGS          (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED|NSF_CSC_IMMEDIATE)
 
