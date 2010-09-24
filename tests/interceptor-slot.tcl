@@ -142,13 +142,19 @@ Test case "filter-and-creation" {
     :public method baz {} {next}
   }
 
-  # define nx unknown handler in case it does not exist
+  ? {Foo create ob} ::ob
+
+  # make sure, no unknown handler exists
+  ? {::ob info lookup method unknown} ""
+
+  ? {ob bar} {::ob: unable to dispatch method 'bar'}
+  ? {ob baz} {}
+
+  # define a global unknown handler
   ::nx::Object protected method unknown {m args} {
-    puts stderr XXXXX
     error "[::nsf::current object]: unable to dispatch method '$m'"
   }
 
-  ? {Foo create ob} ::ob
   ? {ob bar} {::ob: unable to dispatch method 'bar'}
   ? {ob baz} {}
 
