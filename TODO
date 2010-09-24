@@ -1489,6 +1489,8 @@ _ added option noforwarder to RelationSlots
 - added tcl-cool as an additional sample-object-system for nsf
 
 - changed internal method name requireNamespace to "require_namespace"
+- changed debug command __db_yield (unporable between various 8.6b* version)
+  into __db_show_stack
 
 TODO: 
 - remove TCL85STACK_TRACE and TCL85STACK_TRACE

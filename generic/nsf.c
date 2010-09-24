@@ -11705,18 +11705,12 @@ AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd) {
  * Begin generated Next Scripting commands
  *******************************************/
 /*
-nsfCmd __db__yield NsfDebugYiedCmd {
+nsfCmd __db_show_stack NsfShowStackCmd {
 }
 */
 static int
-NsfDebugYiedCmd(Tcl_Interp *interp) {
-#if defined(NRE)
-  //Interp *iPtr = (Interp *)interp;
-  //CoroutineData *corPtr = iPtr->execEnvPtr->corPtr;
-
+NsfShowStackCmd(Tcl_Interp *interp) {
   TclShowStack(interp);
-  //fprintf(stderr, "stackLevel: %p %d\n", corPtr->stackLevel, *corPtr->stackLevel);
-#endif
   return TCL_OK;
 }
 

@@ -17,7 +17,7 @@ array set ns {
 #
 # Next Scripting commands
 #
-nsfCmd __db_yield NsfDebugYiedCmd {
+nsfCmd __db_show_stack NsfShowStackCmd {
 }
 nsfCmd __db_run_assertions NsfDebugRunAssertionsCmd {
 }
