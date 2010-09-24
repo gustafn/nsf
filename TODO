@@ -1484,6 +1484,10 @@ _ added option noforwarder to RelationSlots
 - simplification and unification of unknown handling and method finalization
 - some cleanup
 
+- make "createobjectsystem" more robust (allow to provided not fully
+  qualified names).
+- added tcl-cool as an additional sample-object-system for nsf
+
 TODO: 
 - remove TCL85STACK_TRACE and TCL85STACK_TRACE
 - check my for NRE-enabling
