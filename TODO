@@ -1488,6 +1488,8 @@ _ added option noforwarder to RelationSlots
   qualified names).
 - added tcl-cool as an additional sample-object-system for nsf
 
+- changed internal method name requireNamespace to "require_namespace"
+
 TODO: 
 - remove TCL85STACK_TRACE and TCL85STACK_TRACE
 - check my for NRE-enabling

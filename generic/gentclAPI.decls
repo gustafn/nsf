@@ -17,7 +17,7 @@ array set ns {
 #
 # Next Scripting commands
 #
-nsfCmd __db__yield NsfDebugYiedCmd {
+nsfCmd __db_yield NsfDebugYiedCmd {
 }
 nsfCmd __db_run_assertions NsfDebugRunAssertionsCmd {
 }
@@ -194,7 +194,7 @@ objectMethod mixinguard NsfOMixinGuardMethod {
 objectMethod noinit NsfONoinitMethod {
 }
 
-objectMethod requireNamespace NsfORequireNamespaceMethod {
+objectMethod require_namespace NsfORequireNamespaceMethod {
 }
 
 objectMethod residualargs NsfOResidualargsMethod {

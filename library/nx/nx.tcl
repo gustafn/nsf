@@ -39,7 +39,7 @@ namespace eval ::nx {
   #
   foreach cmd [info command ::nsf::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "autoname" "exists" "filterguard" "instvar" "mixinguard" "requireNamespace"]} continue
+    if {$cmdName in [list "autoname" "exists" "filterguard" "instvar" "mixinguard" "require_namespace"]} continue
     ::nsf::alias Object $cmdName $cmd 
   }
   
@@ -324,7 +324,7 @@ namespace eval ::nx {
 	::nsf::require_method [::nsf::current object] [lindex $args 0] 0
       }
       namespace {
-	::nsf::dispatch [::nsf::current object] ::nsf::cmd::Object::requireNamespace
+	::nsf::dispatch [::nsf::current object] ::nsf::cmd::Object::require_namespace
       }
     }
   }
@@ -1280,7 +1280,7 @@ namespace eval ::nx {
     if {![info exists object]} {set object [::nsf::current object]}
     if {![::nsf::isobject $object]} {$class create $object}
     # reused in XOTcl, no "require" there, so use nsf primitiva
-    ::nsf::dispatch $object ::nsf::cmd::Object::requireNamespace    
+    ::nsf::dispatch $object ::nsf::cmd::Object::require_namespace    
     if {$withnew} {
       set m [ScopedNew new -volatile \
 		 -container $object -withclass $class]
@@ -1376,7 +1376,7 @@ namespace eval ::nx {
 	  ::nsf::relation $obj object-mixin [::nsf::relation $origin object-mixin]
             # reused in XOTcl, no "require" there, so use nsf primitiva
 	  if {[::nsf::dispatch $origin ::nsf::cmd::ObjectInfo::hasnamespace]} {
-	    ::nsf::dispatch $obj ::nsf::cmd::Object::requireNamespace
+	    ::nsf::dispatch $obj ::nsf::cmd::Object::require_namespace
 	  }
 	} else {
 	  namespace eval $dest {}

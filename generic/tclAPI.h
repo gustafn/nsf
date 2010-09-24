@@ -2125,7 +2125,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::__db_run_assertions", NsfDebugRunAssertionsCmdStub, 0, {
   }
 },
-{"::nsf::__db__yield", NsfDebugYiedCmdStub, 0, {
+{"::nsf::__db_yield", NsfDebugYiedCmdStub, 0, {
   }
 },
 {"::nsf::deprecated", NsfDeprecatedCmdStub, 3, {
@@ -2261,7 +2261,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::cmd::Object::noinit", NsfONoinitMethodStub, 0, {
   }
 },
-{"::nsf::cmd::Object::requireNamespace", NsfORequireNamespaceMethodStub, 0, {
+{"::nsf::cmd::Object::require_namespace", NsfORequireNamespaceMethodStub, 0, {
   }
 },
 {"::nsf::cmd::Object::residualargs", NsfOResidualargsMethodStub, 1, {

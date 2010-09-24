@@ -71,7 +71,7 @@ namespace eval ::xotcl {
   # provide the standard command set for ::xotcl::Object
   foreach cmd [info command ::nsf::cmd::Object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "setter"]} continue
+    if {$cmdName in [list "setter" "require_namespace"]} continue
     ::nsf::alias Object $cmdName $cmd
   }
 
@@ -233,6 +233,8 @@ namespace eval ::xotcl {
 
   ::nsf::alias Object mixinguard       ::nsf::cmd::Object::mixinguard
   ::nsf::alias Class  instmixinguard   ::nsf::cmd::Class::mixinguard
+
+  ::nsf::alias Object requireNamespace ::nsf::cmd::Object::require_namespace
 
   # define instproc and proc
   ::nsf::method Class instproc {
@@ -714,7 +716,7 @@ namespace eval ::xotcl {
   ::nsf::alias ::xotcl::Class -per-object __unknown ::nx::Class::__unknown
 
   proc myproc {args} {linsert $args 0 [::xotcl::self]}
-  proc myvar  {var}  {.requireNamespace; return [::xotcl::self]::$var}
+  proc myvar  {var}  {:requireNamespace; return [::xotcl::self]::$var}
 
   Object create ::xotcl::config
   config proc load {obj file} {
