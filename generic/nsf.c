@@ -12093,10 +12093,18 @@ NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
      the basic metaclass Class, and store them in the RUNTIME STATE if
      successful 
   */
-  theobj = PrimitiveCCreate(interp, Object, NULL);
-  thecls = PrimitiveCCreate(interp, Class, NULL);
-  /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
+  {Tcl_Obj *object, *class;
+    char *objectName = ObjStr(Object);
+    char *className = ObjStr(Class);
+    object = isAbsolutePath(objectName) ? Object : 
+      NameInNamespaceObj(interp, objectName, CallingNameSpace(interp));
+    class = isAbsolutePath(className) ? Class :
+      NameInNamespaceObj(interp, className, CallingNameSpace(interp));
 
+    theobj = PrimitiveCCreate(interp, object, NULL);
+    thecls = PrimitiveCCreate(interp, class, NULL);
+  /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
+  }
 #if defined(NSF_PROFILE)
   NsfProfileInit(interp);
 #endif
