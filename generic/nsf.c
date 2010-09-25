@@ -428,7 +428,7 @@ NsfCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *method
   if (objc>3)
     memcpy(tov+3, objv, sizeof(Tcl_Obj *)*(objc-3));
 
-  /*fprintf(stderr, "%%%% CallMethodWithArg cmdname=%s, method=%s, objc=%d\n",
+  /*fprintf(stderr, "%%%% CallMethodWithArgs cmdname=%s, method=%s, objc=%d\n",
     ObjStr(tov[0]), ObjStr(tov[1]), objc);*/
   result = ObjectDispatch(clientData, interp, objc, tov, flags);
 
@@ -16057,12 +16057,26 @@ Nsf_Init(Tcl_Interp *interp) {
                          (Tcl_ResolveCompiledVarProc*)InterpCompiledColonVarResolver);
   RUNTIME_STATE(interp)->colonCmd = Tcl_FindCommand(interp, "::nsf::colon", 0, 0);
 
-  /*
-   * with some methods and library procs in tcl - they could go in a
-   * nsf.tcl file, but they're embedded here with Tcl_GlobalEval
-   * to avoid the need to carry around a separate file at runtime.
-   */
+  /* 
+   * SS: Tcl occassionally resolves a proc's cmd structure (e.g., in
+   *  [info frame /number/] or TclInfoFrame()) without
+   *  verification. However, NSF non-proc frames, in particular
+   *  initcmd blocks, point to the fakeProc structure which does not
+   *  come with an initialised Command pointer. For now, we default to
+   *  an internal command. However, we need to revisit this decision
+   *  as non-proc frames (e.g., initcmds) report a "proc" entry
+   *  indicating "::nsf::colon" (which is sufficiently misleading and
+   *  reveals internals not to be revealed ...).
+  */
+  RUNTIME_STATE(interp)->fakeProc.cmdPtr = (Command *)RUNTIME_STATE(interp)->colonCmd;
+
   {
+    /*
+     * the file "predefined.h. contains some methods and library procs
+     * implemented in Tcl - they could go in a nsf.tcl file, but
+     * they're embedded here with Tcl_GlobalEval to avoid the need to
+     * carry around a separate file at runtime.
+     */
 
 #include "predefined.h"
 
