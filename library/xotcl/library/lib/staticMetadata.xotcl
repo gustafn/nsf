@@ -1,3 +1,4 @@
+# -*- Tcl -*-
 package require XOTcl
 package require xotcl::metadataAnalyzer
 package provide xotcl::staticMetadataAnalyzer 0.84
@@ -49,10 +50,10 @@ namespace eval ::xotcl::staticMetadataAnalyzer {
 	namespace eval $namespace $command
       } elseif {[regexp "^ *package " $command]} {
 	#puts stderr "$command==========================="
-	namespace eval $namespace [list my handlePackage $command]
+	namespace eval $namespace [list [self] handlePackage $command]
       } elseif {[regexp "^ *namespace *eval *(\[^\{\]*) *\{(.*)\}\[^\}\]*$" $command _ namespace nsc]} {
 	#puts stderr "$command==========================="
-	namespace eval $namespace [list my evaluateCommands $nsc]
+	namespace eval $namespace [list [self] evaluateCommands $nsc]
       } 
     }
   }

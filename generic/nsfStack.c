@@ -129,32 +129,31 @@ CallStackNextFrameOfType(Tcl_CallFrame *framePtr, int flags) {
   return framePtr;
 }
 
+#define SKIP_LEVELS
+
 NSF_INLINE static NsfObject*
 GetSelfObj(Tcl_Interp *interp) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   /*fprintf(stderr, "GetSelfObj interp has frame %p and varframe %p\n",
     Tcl_Interp_framePtr(interp),Tcl_Interp_varFramePtr(interp));*/
-  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    register int flag = Tcl_CallFrame_isProcCallFrame(varFramePtr);
-#if defined(TCL85STACK_TRACE)
-    fprintf(stderr, "GetSelfObj check frame %p flags %.6x cd %p objv[0] %s\n",
-            varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr),
-            Tcl_CallFrame_clientData(varFramePtr),
-            Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
+
+  for (; varFramePtr; varFramePtr = 
+
+#if defined(SKIP_LEVELS)
+	 Tcl_CallFrame_callerPtr(varFramePtr)
+#else
+	 NULL
 #endif
+       ) {
+    register int flag = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+
     if (flag & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-#if defined(TCL85STACK_TRACE)
-      fprintf(stderr, "... self returns %p %.6x %s\n", cscPtr->self, 
-              cscPtr->self->flags, objectName(cscPtr->self));
-#endif
       return cscPtr->self;
+
     } else if (flag & FRAME_IS_NSF_OBJECT) {
-#if defined(TCL85STACK_TRACE)
-      fprintf(stderr, "... self returns %s\n",
-              objectName(((NsfObject*)Tcl_CallFrame_clientData(varFramePtr))));
-#endif
+
       return (NsfObject *)Tcl_CallFrame_clientData(varFramePtr);
     }
   }
@@ -166,12 +165,7 @@ CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-# if defined(TCL85STACK_TRACE)
-      fprintf(stderr, "... check frame %p flags %.6x cd %p objv[0] %s\n",
-              varFramePtr, Tcl_CallFrame_isProcCallFrame(varFramePtr),
-              Tcl_CallFrame_clientData(varFramePtr),
-              Tcl_CallFrame_objc(varFramePtr) ? ObjStr(Tcl_CallFrame_objv(varFramePtr)[0]) : "(null)");
-# endif
+
       if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
         if (framePtrPtr) *framePtrPtr = varFramePtr;
         return (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
@@ -242,9 +236,7 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
     *framePtr;
 
   /*NsfCallStackFindActiveFrame(interp, 0, &activeFramePtr);*/
-# if defined(TCL85STACK_TRACE)
-  TclShowStack(interp);
-# endif
+
   /* Get the first active non object frame */
   framePtr = CallStackGetActiveProcFrame(inFramePtr);
 
@@ -541,14 +533,6 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
   cscPtr->filterStackEntry = (frameType == NSF_CSC_TYPE_ACTIVE_FILTER) ? object->filterStack : NULL;
   cscPtr->objv          = NULL;
   
-#if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "PUSH csc %p type %d obj %s, self=%p cmd=%p (%s) id=%p (%s) obj refcount %d name refcount %d\n",
-          cscPtr, frameType, objectName(object), object,
-          cmd, (char *) Tcl_GetCommandName(object->teardown, cmd),
-          object->id, object->id ? Tcl_GetCommandName(object->teardown, object->id) : "(deleted)",
-          object->id ? Tcl_Command_refCount(object->id) : -100, object->cmdName->refCount
-          );
-#endif
   /*fprintf(stderr, "CscInit %p (%s) object %p %s flags %.6x cmdPtr %p\n",cscPtr, msg,
     object, objectName(object), cscPtr->flags, cscPtr->cmdPtr);*/
 }
@@ -584,10 +568,6 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr, char *msg) {
   /*fprintf(stderr, "CscFinish %p (%s) object %p %s flags %.6x cmdPtr %p\n",cscPtr, msg, 
     object, objectName(object), flags, cscPtr->cmdPtr);*/
 
-#if defined(TCL85STACK_TRACE)
-  fprintf(stderr, "POP  csc=%p, obj %s method %s (%s)\n", cscPtr, objectName(object),
-          Tcl_GetCommandName(interp, cscPtr->cmdPtr), msg);
-#endif
   /* 
    *  We cannot rely on the existence of cscPtr->cmdPtr (like in
    *  initialize), since the cmd might have been deleted during the

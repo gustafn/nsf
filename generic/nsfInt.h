@@ -645,7 +645,7 @@ typedef struct NsfCallStackContent {
 # define NsfImmediateFromCallerFlags(flags) \
   (((flags) & (NSF_CSC_CALL_IS_NRE|NSF_CSC_IMMEDIATE)) == NSF_CSC_CALL_IS_NRE ? 0 : NSF_CSC_IMMEDIATE)
 
-// #define NRE_SANE_PATCH 1
+//#define NRE_SANE_PATCH 1
 
 #if defined(NRE_SANE_PATCH)
 # define NsfNRRunCallbacks(interp, result, rootPtr) TclNRRunCallbacks(interp, result, rootPtr)

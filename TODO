@@ -1505,6 +1505,12 @@ _ added option noforwarder to RelationSlots
 - updated migration guide
 - extended regression test
 
+- provide debugging output when varFramePtr in GetSelfObj() is NULL
+- filter misleading "proc" entry for "info frame" for nsf-stack entries
+- add "method" for "info frame" for nsf-stack entries
+- defnied SKIP_LEVELS to omit optionally skipping of 
+  tcl-stack entries in GetSelfObj()
+
 TODO: 
 - check my for NRE-enabling
 - major coro cleanup, when working

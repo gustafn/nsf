@@ -99,7 +99,7 @@ Nsf_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     Tcl_Obj *methodObj = object ? NsfMethodObj(interp, object, NSF_o_move_idx) : NULL;
     if (object && methodObj) {
       return NsfCallMethodWithArgs((ClientData)object, interp,
-                                     methodObj, objv[2], 1, 0, 0);
+                                     methodObj, objv[2], 1, 0, NSF_CSC_IMMEDIATE);
     }
   }
 
@@ -120,7 +120,7 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
     Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
 
-    /* level must be ok, otherwise we weould not have a TCL_OK */
+    /* level must be ok, otherwise we would not have a TCL_OK */
     Tcl_GetIntFromObj(interp, objv[1], &level);
 
     /* todo: coroutine level messing is missing */
@@ -129,23 +129,45 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     if (level > 0) {
       level -= topLevel;
     }
-    /*fprintf(stderr, "topLevel %d level %d\n",topLevel, level);*/
+
     while (++level <= 0) {
       framePtr = framePtr->nextPtr;
       varFramePtr = varFramePtr->callerPtr;
     }
-    frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+    if (varFramePtr == 0) {
+      fprintf(stderr, "*********** varFramePtr is NULL\n");
+    }
+    frameFlags = varFramePtr ? Tcl_CallFrame_isProcCallFrame(varFramePtr) : 0;
     /*fprintf(stderr, " ... frame %p varFramePtr %p frameFlags %.6x\n", framePtr, varFramePtr, frameFlags);
       Tcl85showStack(interp);*/
     if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr = 
         ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr));
-      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object",6));
-      Tcl_ListObjAppendElement(interp, resultObj, cscPtr->self->cmdName);
-      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("class",5));
-      Tcl_ListObjAppendElement(interp, resultObj, 
-                               cscPtr->cl ? cscPtr->cl->object.cmdName : NsfGlobalObjs[NSF_EMPTY]);
-      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("frametype",9));
+      Tcl_Obj *listObj, **ov;
+      int oc, i;
+
+      listObj = Tcl_NewListObj(0, NULL);
+      /* remove "proc" element from list, if provided */
+      Tcl_ListObjGetElements(interp, resultObj, &oc, &ov);
+      for (i=0; i<oc; i += 2) {
+	if (!strcmp(ObjStr(ov[i]), "proc")) {
+	  continue;
+	}
+	Tcl_ListObjAppendElement(interp, listObj, ov[i]);
+	Tcl_ListObjAppendElement(interp, listObj, ov[i+1]);
+      }
+
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object",6));
+      Tcl_ListObjAppendElement(interp, listObj, cscPtr->self->cmdName);
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class",5));
+      Tcl_ListObjAppendElement(interp, listObj, cscPtr->cl 
+			       ? cscPtr->cl->object.cmdName 
+			       : NsfGlobalObjs[NSF_EMPTY]);
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("method",6));
+      Tcl_ListObjAppendElement(interp, listObj, cscPtr->cmdPtr 
+			       ? Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1)
+			       : NsfGlobalObjs[NSF_EMPTY]);
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("frametype",9));
       if (cscPtr->frameType == NSF_CSC_TYPE_PLAIN) {
         frameType = "intrinsic";
       } else if (cscPtr->frameType & NSF_CSC_TYPE_ACTIVE_MIXIN) {
@@ -157,7 +179,8 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
       } else {
         frameType = "unknown";
       }
-      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj(frameType,-1));
+      Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(frameType,-1));
+      Tcl_SetObjResult(interp, listObj);
     }
   }
 

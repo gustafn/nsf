@@ -424,7 +424,7 @@ namespace eval ::xotcl {
           if {$argName eq $arg} {
 	    # upvar 2 $varName default
 	    # use "my" here to avoid surprises with aliases or interceptors
-	    my upvar $varName default
+	    $o upvar $varName default
 	    #puts "--- info_default var '$varName' level=[info level]"
             if {[llength $flag] == 2} {
               set default [lindex $flag 1]

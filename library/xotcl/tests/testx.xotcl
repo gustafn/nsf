@@ -3665,7 +3665,8 @@ uplevelCmds proc run {{n 20}} {
 			  up1=[uplevel 1 self] \
 			  up2=[uplevel 2 self] \
 			  up3=[uplevel 3 self] ]
-    uplevelCmds::upproc
+    #uplevelCmds::upproc
+    uplevelCmds upproc
     return $::result
   }
   Object o2 -proc m {} {
@@ -3678,7 +3679,7 @@ uplevelCmds proc run {{n 20}} {
     o3 m
   }
   ::errorCheck [o4 m] \
-      "{self=::o1 up1=::o2 up2=::o3 up3=::o4} {self=::o1 up1=::o1 up2=::o2 up3=::o3}" \
+      "{self=::o1 up1=::o2 up2=::o3 up3=::o4} {self=::uplevelCmds up1=::o1 up2=::o2 up3=::o3}" \
       "uplevel self"
   o4 m
 
