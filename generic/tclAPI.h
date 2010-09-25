@@ -109,6 +109,17 @@ static int ConvertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CON
 }
 enum ObjectkindIdx {ObjectkindNULL, ObjectkindClassIdx, ObjectkindBaseclassIdx, ObjectkindMetaclassIdx};
   
+static int ConvertToSource(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int index, result;
+  static CONST char *opts[] = {"all", "application", "baseclasses", NULL};
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-source", 0, &index);
+  *clientData = (ClientData) INT2PTR(index + 1);
+  *outObjPtr = objPtr;
+  return result;
+}
+enum SourceIdx {SourceNULL, SourceAllIdx, SourceApplicationIdx, SourceBaseclassesIdx};
+  
 
 typedef struct {
   CONST char *methodName;
@@ -291,7 +302,7 @@ static int NsfObjInfoHasnamespaceMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoIsMethod(Tcl_Interp *interp, NsfObject *obj, int objectkind);
 static int NsfObjInfoLookupFilterMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter);
 static int NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *name);
-static int NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withMethodtype, int withCallprotection, int withApplication, int withNomixins, int withIncontext, CONST char *pattern);
+static int NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withMethodtype, int withCallprotection, int withSource, int withNomixins, int withIncontext, CONST char *pattern);
 static int NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType);
 static int NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *obj, int infomethodsubcmd, Tcl_Obj *name);
 static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withMethodtype, int withCallprotection, int withNomixins, int withIncontext, CONST char *pattern);
@@ -1832,13 +1843,13 @@ NsfObjInfoLookupMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
   } else {
     int withMethodtype = (int )PTR2INT(pc.clientData[0]);
     int withCallprotection = (int )PTR2INT(pc.clientData[1]);
-    int withApplication = (int )PTR2INT(pc.clientData[2]);
+    int withSource = (int )PTR2INT(pc.clientData[2]);
     int withNomixins = (int )PTR2INT(pc.clientData[3]);
     int withIncontext = (int )PTR2INT(pc.clientData[4]);
     CONST char *pattern = (CONST char *)pc.clientData[5];
 
     ParseContextRelease(&pc);
-    return NsfObjInfoLookupMethodsMethod(interp, obj, withMethodtype, withCallprotection, withApplication, withNomixins, withIncontext, pattern);
+    return NsfObjInfoLookupMethodsMethod(interp, obj, withMethodtype, withCallprotection, withSource, withNomixins, withIncontext, pattern);
 
   }
 }
@@ -2319,7 +2330,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::cmd::ObjectInfo::lookupmethods", NsfObjInfoLookupMethodsMethodStub, 6, {
   {"-methodtype", 0, 1, ConvertToMethodtype},
   {"-callprotection", 0, 1, ConvertToCallprotection},
-  {"-application", 0, 0, ConvertToString},
+  {"-source", 0, 1, ConvertToSource},
   {"-nomixins", 0, 0, ConvertToString},
   {"-incontext", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToString}}

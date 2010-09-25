@@ -1499,6 +1499,12 @@ _ added option noforwarder to RelationSlots
 - renamed cscPtr->callType to cscPtr->flags, since this is now more appropriate
 - some more minor cleanup
 
+- changed "info method lookup -application" into
+  "info method lookup -source application"
+- introduced   "info method lookup -source application|baseclasses|all"
+- updated migration guide
+- extended regression test
+
 TODO: 
 - check my for NRE-enabling
 - major coro cleanup, when working

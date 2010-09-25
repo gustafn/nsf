@@ -257,7 +257,7 @@ objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
-  {-argName "-application"}
+  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern" -required 0}

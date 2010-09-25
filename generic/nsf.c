@@ -11313,6 +11313,26 @@ ProtectionMatches(Tcl_Interp *interp, int withCallprotection, Tcl_Command cmd) {
   return result;
 }
 
+static int MethodSourceMatches(Tcl_Interp *interp, int withSource, NsfClass *cl) {
+  int isBaseClass;
+  if (withSource == SourceAllIdx) {
+    return 1;
+  }
+  if (cl == NULL) {
+    /* If the method is object specific, it can't be from a baseclass
+     * and must be application specfic.
+     */
+    return (withSource == SourceApplicationIdx);
+  }
+  isBaseClass = IsBaseClass(cl);
+  if (withSource == SourceBaseclassesIdx && isBaseClass) {
+    return 1;
+  } else if (withSource == SourceApplicationIdx && !isBaseClass) {
+    return 1;
+  }
+  return 0;
+}
+
 static int
 MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd, 
                   NsfObject *object, CONST char *key, int withPer_object) {
@@ -14939,11 +14959,14 @@ NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *object, CONST char *
   return TCL_OK;
 }
 
+
+
+
 /*
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
-  {-argName "-application"}
+  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern" -required 0}
@@ -14951,10 +14974,9 @@ objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
 */
 static int
 NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object, 
-				int withMethodtype, int withCallprotection,
-				int withApplication,
-				int withNomixins, int withIncontext, CONST char *pattern) {
-  /* todo: own method needed? */
+			      int withMethodtype, int withCallprotection,
+			      int withSource, int withNomixins, int withIncontext, 
+			      CONST char *pattern) {
   NsfClasses *pl;
   int withPer_object = 1;
   Tcl_HashTable *cmdTable, dupsTable, *dups = &dupsTable;
@@ -14969,16 +14991,17 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
   if (withCallprotection == CallprotectionNULL) {
     withCallprotection = CallprotectionPublicIdx;
   }
-
-  if (withApplication && object->flags & IsBaseClass((NsfClass*)object)) {
-    return TCL_OK;
+  if (withSource == SourceNULL) {
+    withSource = SourceAllIdx;
   }
 
   Tcl_InitHashTable(dups, TCL_STRING_KEYS);
   if (object->nsPtr) {
     cmdTable = Tcl_Namespace_cmdTable(object->nsPtr);
-    ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
-                   dups, object, withPer_object);
+    if (MethodSourceMatches(interp, withSource, NULL)) {
+      ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
+		     dups, object, withPer_object);
+    }
   }
 
   if (!withNomixins) {
@@ -14991,7 +15014,6 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
 	int guardOk = TCL_OK;
         mixin = NsfGetClassFromCmdPtr(ml->cmdPtr);
 	assert(mixin);
-
         if (withIncontext) {
           if (!RUNTIME_STATE(interp)->guardCount) {
             guardOk = GuardCall(object, 0, 0, interp, ml->clientData, NULL);
@@ -14999,6 +15021,7 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
         }
         if (mixin && guardOk == TCL_OK) {
           Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(mixin->nsPtr);
+	  if (!MethodSourceMatches(interp, withSource, mixin)) continue;
           ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
                          dups, object, withPer_object);
         }
@@ -15009,9 +15032,7 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
   /* append method keys from inheritance order */
   for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
     Tcl_HashTable *cmdTable = Tcl_Namespace_cmdTable(pl->cl->nsPtr);
-    if (withApplication && IsBaseClass(pl->cl)) {
-      break;
-    }
+    if (!MethodSourceMatches(interp, withSource, pl->cl)) continue;
     ListMethodKeys(interp, cmdTable, pattern, methodType, withCallprotection, 
                    dups, object, withPer_object);
   }

@@ -318,7 +318,8 @@ frido chase tweedy
 # >Yippy, I'll get that wicked tweedy!!
 
 
-puts "\nApplication specific methods of fido: [fido methods -application]"
+puts "\nApplication specific methods of fido: [fido methods -source application]"
+puts "System specific methods of fido: [fido methods -source baseclasses]"
 puts "All methods of fido: [fido methods]\n"
 foreach cmd {{fido wag} {fido rise}} {  puts "$cmd [time {eval $cmd} 10000]" }
 
