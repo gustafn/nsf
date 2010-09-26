@@ -467,7 +467,7 @@ namespace eval ::nx::serializer {
     :public method registerSerializer {s instances} {
       # Communicate responsibility to serializer object $s
       foreach i $instances {
-        if {![::nsf::dispatch $i ::nsf::cmd::ObjectInfo::hastype ${:rootClass}]} continue
+        if {![::nsf::dispatch $i ::nsf::methods::object::info::hastype ${:rootClass}]} continue
         $s setObjectSystemSerializer $i [::nsf::current object]
       }
     }
@@ -496,14 +496,14 @@ namespace eval ::nx::serializer {
         foreach {o p m} $k break
 	if {![::nsf::isobject $o]} {
 	  puts stderr "Warning: $o is not an object"
-	} elseif {[::nsf::dispatch $o ::nsf::cmd::ObjectInfo::hastype ${:rootClass}]} {
+	} elseif {[::nsf::dispatch $o ::nsf::methods::object::info::hastype ${:rootClass}]} {
 	  set :exportMethods($k) 1
 	}
       }
       foreach o [Serializer exportedObjects] {
 	if {![::nsf::isobject $o]} {
 	  puts stderr "Warning: $o is not an object"
-	} elseif {[nsf::dispatch $o ::nsf::cmd::ObjectInfo::hastype ${:rootClass}]} {
+	} elseif {[nsf::dispatch $o ::nsf::methods::object::info::hastype ${:rootClass}]} {
 	  set :exportObjects($o) 1
 	}
       }
@@ -516,7 +516,7 @@ namespace eval ::nx::serializer {
     ###############################    
 
     :method classify {o} {
-      if {[::nsf::dispatch $o ::nsf::cmd::ObjectInfo::hastype ${:rootMetaClass}]} \
+      if {[::nsf::dispatch $o ::nsf::methods::object::info::hastype ${:rootMetaClass}]} \
           {return Class} {return Object}
     }
 
@@ -668,7 +668,7 @@ namespace eval ::nx::serializer {
                       [::nsf::dispatch $o -objscope ::nsf::current object]]
 
       append cmd " -noinit\n"
-      foreach i [lsort [$o ::nsf::cmd::ObjectInfo::methods]] {
+      foreach i [lsort [$o ::nsf::methods::object::info::methods]] {
         append cmd [:method-serialize $o $i "object"] "\n"
       }
       append cmd \
@@ -693,7 +693,7 @@ namespace eval ::nx::serializer {
     :method Class-serialize {o s} {
 
       set cmd [:Object-serialize $o $s]
-      foreach i [lsort [$o ::nsf::cmd::ClassInfo::methods]] {
+      foreach i [lsort [$o ::nsf::methods::class::info::methods]] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
       append cmd \
@@ -798,13 +798,13 @@ namespace eval ::nx::serializer {
       # slots needs to be initialized when optimized, since
       # parametercmds are not serialized
       append cmd " -noinit\n"
-      foreach i [$o ::nsf::cmd::ObjectInfo::methods -methodtype scripted] {
+      foreach i [$o ::nsf::methods::object::info::methods -methodtype scripted] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
-      foreach i [$o ::nsf::cmd::ObjectInfo::methods -methodtype forward] {
+      foreach i [$o ::nsf::methods::object::info::methods -methodtype forward] {
         append cmd [concat [list $o] forward $i [$o info forward -definition $i]] "\n"
       }
-      foreach i [$o ::nsf::cmd::ObjectInfo::methods -methodtype setter] {
+      foreach i [$o ::nsf::methods::object::info::methods -methodtype setter] {
         append cmd [list $o parametercmd $i] "\n"
       }
       append cmd \
@@ -833,8 +833,8 @@ namespace eval ::nx::serializer {
         append cmd [list $o instparametercmd $i] "\n"
       }
       # provide limited support for exporting aliases for XOTcl objects
-      foreach i [$o ::nsf::cmd::ClassInfo::methods -methodtype alias] {
-        set xotcl2Def [$o ::nsf::cmd::ClassInfo::method definition $i]
+      foreach i [$o ::nsf::methods::class::info::methods -methodtype alias] {
+        set xotcl2Def [$o ::nsf::methods::class::info::method definition $i]
         set objscope   [lindex $xotcl2Def end-2]
         set methodName [lindex $xotcl2Def end-1]
         set cmdName    [lindex $xotcl2Def end]

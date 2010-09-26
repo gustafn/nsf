@@ -54,8 +54,8 @@ Test case parametercheck {
   ? {c1 info has type C} 1
   ? {c1 info has type C1} {expected class but got "C1" for parameter class}
 
-  ? {c1 ::nsf::cmd::ObjectInfo::hastype C} 1
-  ? {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype C} 1
+  ? {c1 ::nsf::methods::object::info::hastype C} 1
+  ? {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C} 1
 
   ? {::nsf::is object o1} 1
   ? {::nsf::is object o100} 0
@@ -1193,9 +1193,9 @@ Test parameter count 100
 
 Test case checktype {
   nx::Object create o {
-    :method f01 {} {::nsf::dispatch o ::nsf::cmd::ObjectInfo::hastype ::nx::Object}
-    :method f02 {} {::nsf::dispatch o ::nsf::cmd::ObjectInfo::hastype   nx::Object}
-    :method f03 {} {::nsf::dispatch o ::nsf::cmd::ObjectInfo::hastype       Object}
+    :method f01 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype ::nx::Object}
+    :method f02 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype   nx::Object}
+    :method f03 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype       Object}
 
     :method f11 {} {::nsf::is object,type=::nx::Object o}
     :method f12 {} {::nsf::is object,type=nx::Object o}
@@ -1217,18 +1217,18 @@ Test case checktype {
 namespace eval foo {
   nx::Class create C {
     :create c1
-    :method f21 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype Object}
-    :method f22 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype C}
+    :method f21 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype Object}
+    :method f22 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
     :method f31 {} {::nsf::is object,type=Object c1}
     :method f32 {} {::nsf::is object,type=C c1}
   }
   
   nx::Object create o {
-    :method f01 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype ::nx::Object}
-    :method f02 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype   nx::Object}
-    :method f03 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype       Object}
-    :method f04 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype foo::C}
-    :method f05 {} {::nsf::dispatch c1 ::nsf::cmd::ObjectInfo::hastype C}
+    :method f01 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype ::nx::Object}
+    :method f02 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype   nx::Object}
+    :method f03 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype       Object}
+    :method f04 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype foo::C}
+    :method f05 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
 
     :method f11 {} {::nsf::is object,type=::nx::Object c1}
     :method f12 {} {::nsf::is object,type=nx::Object c1}

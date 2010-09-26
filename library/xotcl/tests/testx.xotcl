@@ -1,5 +1,5 @@
 # -*- Tcl -*-
-package require XOTcl; namespace import ::xotcl::*
+package require XOTcl; namespace import -force ::xotcl::*
 
 proc ::errorCheck {got expected msg} {
   nsf::__db_run_assertions

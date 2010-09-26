@@ -106,7 +106,7 @@ namespace eval tcl-cool {
   #
   ::nsf::alias   object variable ::nsf::cmd::Object::instvar
   ::nsf::forward object forward  ::nsf::forward %self -per-object
-  ::nsf::alias   object methods  ::nsf::cmd::ObjectInfo::lookupmethods
+  ::nsf::alias   object methods  ::nsf::methods::object::info::lookupmethods
 
   #
   # The method "create" defines, what happens, when a class or object 

@@ -1511,9 +1511,15 @@ _ added option noforwarder to RelationSlots
 - defnied SKIP_LEVELS to omit optionally skipping of 
   tcl-stack entries in GetSelfObj()
 
+- added scripted replacement for binary nxsh
+- new define SKIP_LAMBDA to make apply tests working without SKIP_LEVELS
+
+- renamed ::nsf::cmd::ObjectInfo into ::nsf::methods::object::info
+- renamed ::nsf::cmd::ClassInfo into ::nsf::methods::class::info
+
 TODO: 
 - extend coro regression test
-- remove traces of xowish
+- remove traces of xowish. remove tclAppInt?
 
 - subcmd
    * handle sucmd for other method factories

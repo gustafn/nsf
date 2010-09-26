@@ -140,10 +140,10 @@ static int GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *orig
 static methodDefinition method_definitions[];
   
 static CONST char *method_command_namespace_names[] = {
-  "::nsf::cmd::ObjectInfo",
+  "::nsf::methods::object::info",
   "::nsf::cmd::Object",
   "::nsf::cmd::ParameterType",
-  "::nsf::cmd::ClassInfo",
+  "::nsf::methods::class::info",
   "::nsf::cmd::Class"
 };
 static int NsfCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -2055,53 +2055,53 @@ static methodDefinition method_definitions[] = {
   {"name", 1, 0, ConvertToTclobj},
   {"args", 0, 0, ConvertToNothing}}
 },
-{"::nsf::cmd::ClassInfo::filterguard", NsfClassInfoFilterguardMethodStub, 1, {
+{"::nsf::methods::class::info::filterguard", NsfClassInfoFilterguardMethodStub, 1, {
   {"filter", 1, 0, ConvertToString}}
 },
-{"::nsf::cmd::ClassInfo::filtermethods", NsfClassInfoFiltermethodsMethodStub, 2, {
+{"::nsf::methods::class::info::filtermethods", NsfClassInfoFiltermethodsMethodStub, 2, {
   {"-guards", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ClassInfo::forward", NsfClassInfoForwardMethodStub, 2, {
+{"::nsf::methods::class::info::forward", NsfClassInfoForwardMethodStub, 2, {
   {"-definition", 0, 0, ConvertToString},
   {"name", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ClassInfo::heritage", NsfClassInfoHeritageMethodStub, 1, {
+{"::nsf::methods::class::info::heritage", NsfClassInfoHeritageMethodStub, 1, {
   {"pattern", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ClassInfo::instances", NsfClassInfoInstancesMethodStub, 2, {
+{"::nsf::methods::class::info::instances", NsfClassInfoInstancesMethodStub, 2, {
   {"-closure", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToObjpattern}}
 },
-{"::nsf::cmd::ClassInfo::method", NsfClassInfoMethodMethodStub, 2, {
+{"::nsf::methods::class::info::method", NsfClassInfoMethodMethodStub, 2, {
   {"infomethodsubcmd", 0, 0, ConvertToInfomethodsubcmd},
   {"name", 0, 0, ConvertToTclobj}}
 },
-{"::nsf::cmd::ClassInfo::methods", NsfClassInfoMethodsMethodStub, 5, {
+{"::nsf::methods::class::info::methods", NsfClassInfoMethodsMethodStub, 5, {
   {"-methodtype", 0, 1, ConvertToMethodtype},
   {"-callprotection", 0, 1, ConvertToCallprotection},
   {"-nomixins", 0, 0, ConvertToString},
   {"-incontext", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ClassInfo::mixinof", NsfClassInfoMixinOfMethodStub, 3, {
+{"::nsf::methods::class::info::mixinof", NsfClassInfoMixinOfMethodStub, 3, {
   {"-closure", 0, 0, ConvertToString},
   {"-scope", 0, 1, ConvertToScope},
   {"pattern", 0, 0, ConvertToObjpattern}}
 },
-{"::nsf::cmd::ClassInfo::mixinclasses", NsfClassInfoMixinclassesMethodStub, 3, {
+{"::nsf::methods::class::info::mixinclasses", NsfClassInfoMixinclassesMethodStub, 3, {
   {"-closure", 0, 0, ConvertToString},
   {"-guards", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToObjpattern}}
 },
-{"::nsf::cmd::ClassInfo::mixinguard", NsfClassInfoMixinguardMethodStub, 1, {
+{"::nsf::methods::class::info::mixinguard", NsfClassInfoMixinguardMethodStub, 1, {
   {"mixin", 1, 0, ConvertToString}}
 },
-{"::nsf::cmd::ClassInfo::subclass", NsfClassInfoSubclassMethodStub, 2, {
+{"::nsf::methods::class::info::subclass", NsfClassInfoSubclassMethodStub, 2, {
   {"-closure", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToObjpattern}}
 },
-{"::nsf::cmd::ClassInfo::superclass", NsfClassInfoSuperclassMethodStub, 2, {
+{"::nsf::methods::class::info::superclass", NsfClassInfoSuperclassMethodStub, 2, {
   {"-closure", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToTclobj}}
 },
@@ -2290,44 +2290,44 @@ static methodDefinition method_definitions[] = {
 {"::nsf::cmd::Object::vwait", NsfOVwaitMethodStub, 1, {
   {"varname", 1, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::children", NsfObjInfoChildrenMethodStub, 2, {
+{"::nsf::methods::object::info::children", NsfObjInfoChildrenMethodStub, 2, {
   {"-type", 0, 1, ConvertToClass},
   {"pattern", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::class", NsfObjInfoClassMethodStub, 0, {
+{"::nsf::methods::object::info::class", NsfObjInfoClassMethodStub, 0, {
   }
 },
-{"::nsf::cmd::ObjectInfo::filterguard", NsfObjInfoFilterguardMethodStub, 1, {
+{"::nsf::methods::object::info::filterguard", NsfObjInfoFilterguardMethodStub, 1, {
   {"filter", 1, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::filtermethods", NsfObjInfoFiltermethodsMethodStub, 3, {
+{"::nsf::methods::object::info::filtermethods", NsfObjInfoFiltermethodsMethodStub, 3, {
   {"-guards", 0, 0, ConvertToString},
   {"-order", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::forward", NsfObjInfoForwardMethodStub, 2, {
+{"::nsf::methods::object::info::forward", NsfObjInfoForwardMethodStub, 2, {
   {"-definition", 0, 0, ConvertToString},
   {"name", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::hasmixin", NsfObjInfoHasMixinMethodStub, 1, {
+{"::nsf::methods::object::info::hasmixin", NsfObjInfoHasMixinMethodStub, 1, {
   {"class", 0, 0, ConvertToClass}}
 },
-{"::nsf::cmd::ObjectInfo::hastype", NsfObjInfoHasTypeMethodStub, 1, {
+{"::nsf::methods::object::info::hastype", NsfObjInfoHasTypeMethodStub, 1, {
   {"class", 0, 0, ConvertToClass}}
 },
-{"::nsf::cmd::ObjectInfo::hasnamespace", NsfObjInfoHasnamespaceMethodStub, 0, {
+{"::nsf::methods::object::info::hasnamespace", NsfObjInfoHasnamespaceMethodStub, 0, {
   }
 },
-{"::nsf::cmd::ObjectInfo::is", NsfObjInfoIsMethodStub, 1, {
+{"::nsf::methods::object::info::is", NsfObjInfoIsMethodStub, 1, {
   {"objectkind", 0, 0, ConvertToObjectkind}}
 },
-{"::nsf::cmd::ObjectInfo::lookupfilter", NsfObjInfoLookupFilterMethodStub, 1, {
+{"::nsf::methods::object::info::lookupfilter", NsfObjInfoLookupFilterMethodStub, 1, {
   {"filter", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::lookupmethod", NsfObjInfoLookupMethodMethodStub, 1, {
+{"::nsf::methods::object::info::lookupmethod", NsfObjInfoLookupMethodMethodStub, 1, {
   {"name", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::lookupmethods", NsfObjInfoLookupMethodsMethodStub, 6, {
+{"::nsf::methods::object::info::lookupmethods", NsfObjInfoLookupMethodsMethodStub, 6, {
   {"-methodtype", 0, 1, ConvertToMethodtype},
   {"-callprotection", 0, 1, ConvertToCallprotection},
   {"-source", 0, 1, ConvertToSource},
@@ -2335,36 +2335,36 @@ static methodDefinition method_definitions[] = {
   {"-incontext", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::lookupslots", NsfObjInfoLookupSlotsMethodStub, 1, {
+{"::nsf::methods::object::info::lookupslots", NsfObjInfoLookupSlotsMethodStub, 1, {
   {"-type", 0, 1, ConvertToClass}}
 },
-{"::nsf::cmd::ObjectInfo::method", NsfObjInfoMethodMethodStub, 2, {
+{"::nsf::methods::object::info::method", NsfObjInfoMethodMethodStub, 2, {
   {"infomethodsubcmd", 0, 0, ConvertToInfomethodsubcmd},
   {"name", 0, 0, ConvertToTclobj}}
 },
-{"::nsf::cmd::ObjectInfo::methods", NsfObjInfoMethodsMethodStub, 5, {
+{"::nsf::methods::object::info::methods", NsfObjInfoMethodsMethodStub, 5, {
   {"-methodtype", 0, 1, ConvertToMethodtype},
   {"-callprotection", 0, 1, ConvertToCallprotection},
   {"-nomixins", 0, 0, ConvertToString},
   {"-incontext", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::mixinclasses", NsfObjInfoMixinclassesMethodStub, 3, {
+{"::nsf::methods::object::info::mixinclasses", NsfObjInfoMixinclassesMethodStub, 3, {
   {"-guards", 0, 0, ConvertToString},
   {"-order", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToObjpattern}}
 },
-{"::nsf::cmd::ObjectInfo::mixinguard", NsfObjInfoMixinguardMethodStub, 1, {
+{"::nsf::methods::object::info::mixinguard", NsfObjInfoMixinguardMethodStub, 1, {
   {"mixin", 1, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::parent", NsfObjInfoParentMethodStub, 0, {
+{"::nsf::methods::object::info::parent", NsfObjInfoParentMethodStub, 0, {
   }
 },
-{"::nsf::cmd::ObjectInfo::precedence", NsfObjInfoPrecedenceMethodStub, 2, {
+{"::nsf::methods::object::info::precedence", NsfObjInfoPrecedenceMethodStub, 2, {
   {"-intrinsic", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToString}}
 },
-{"::nsf::cmd::ObjectInfo::vars", NsfObjInfoVarsMethodStub, 1, {
+{"::nsf::methods::object::info::vars", NsfObjInfoVarsMethodStub, 1, {
   {"pattern", 0, 0, ConvertToString}}
 },{NULL}
 };

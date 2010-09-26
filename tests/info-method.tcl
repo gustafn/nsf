@@ -276,15 +276,15 @@ Test case info-submethod {
 
   # query definition on submethod of class
   ? {::nx::Object info method definition "info lookup methods"} \
-      {::nx::Object alias {info lookup methods} ::nsf::cmd::ObjectInfo::lookupmethods}
+      {::nx::Object alias {info lookup methods} ::nsf::methods::object::info::lookupmethods}
 
   # query definition on submethod of class with handle
   ? {o info method definition "::nsf::classes::nx::Object::info lookup methods"} \
-      {::nx::Object alias {info lookup methods} ::nsf::cmd::ObjectInfo::lookupmethods}
+      {::nx::Object alias {info lookup methods} ::nsf::methods::object::info::lookupmethods}
 
   # query definition on handle of ensemble object of class
   ? {o info method definition "::nx::Object::slot::__info::lookup::methods"} \
-      {::nx::Object::slot::__info::lookup alias methods ::nsf::cmd::ObjectInfo::lookupmethods}
+      {::nx::Object::slot::__info::lookup alias methods ::nsf::methods::object::info::lookupmethods}
 
   ? {lsort [o info method submethods dummy]} ""
   ? {lsort [o info method submethods foo]} "a b"

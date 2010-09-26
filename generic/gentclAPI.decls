@@ -8,9 +8,9 @@
 array set ns {
   nsfCmd           "::nsf"
   objectMethod     "::nsf::cmd::Object"
-  objectInfoMethod "::nsf::cmd::ObjectInfo"
+  objectInfoMethod "::nsf::methods::object::info"
   classMethod      "::nsf::cmd::Class"
-  classInfoMethod  "::nsf::cmd::ClassInfo"
+  classInfoMethod  "::nsf::methods::class::info"
   checkMethod      "::nsf::cmd::ParameterType"
 }
 

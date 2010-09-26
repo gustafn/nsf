@@ -87,12 +87,12 @@ namespace eval ::nx {
       set methodName [lindex $path end]
       foreach w [lrange $path 0 end-1] {
 	#puts stderr "check $object info methods $path @ <$w>"
-	set scope [expr {[::nsf::is class $object] && !${per-object} ? "Class" : "Object"}] 
-	if {[::nsf::dispatch $object ::nsf::cmd::${scope}Info::methods $w] eq ""} {
+	set scope [expr {[::nsf::is class $object] && !${per-object} ? "class" : "object"}] 
+	if {[::nsf::dispatch $object ::nsf::methods::${scope}::info::methods $w] eq ""} {
 	  #
 	  # Create dispatch/ensemble object and accessor method (if wanted)
 	  #
-	  if {$scope eq "Class"} {
+	  if {$scope eq "class"} {
 	    if {![::nsf::isobject ${object}::slot]} {
 	      ::nsf::methodproperty $object [Object create ${object}::slot] protected true
 	      if {$verbose} {puts stderr "... create object ${object}::slot"}
@@ -113,9 +113,9 @@ namespace eval ::nx {
 	  # The accessor method exists already, check, if it is
 	  # appropriate for extending.
 	  #
-	  set type [::nsf::dispatch $object ::nsf::cmd::${scope}Info::method type $w]
-	  set definition [::nsf::dispatch $object ::nsf::cmd::${scope}Info::method definition $w]
-	  if {$scope eq "Class"} {
+	  set type [::nsf::dispatch $object ::nsf::methods::${scope}::info::method type $w]
+	  set definition [::nsf::dispatch $object ::nsf::methods::${scope}::info::method definition $w]
+	  if {$scope eq "class"} {
 	    if {$type ne "alias"} {error "can't append to $type"}
 	    if {$definition eq ""} {error "definition must not be empty"}
 	    set object [lindex $definition end]
@@ -374,13 +374,13 @@ namespace eval ::nx {
       # registed, give an Ensemble object.
       #
       set self [::nsf::current object]
-      set parent [::nsf::dispatch $self ::nsf::cmd::ObjectInfo::parent]
-      set grandparent [::nsf::dispatch $parent ::nsf::cmd::ObjectInfo::parent]
+      set parent [::nsf::dispatch $self ::nsf::methods::object::info::parent]
+      set grandparent [::nsf::dispatch $parent ::nsf::methods::object::info::parent]
       set tail [namespace tail $parent]
       if {$tail eq "slot" && [::nsf::is class $grandparent]} {
-	set aliases [::nsf::dispatch $grandparent ::nsf::cmd::ClassInfo::methods -methodtype alias]
+	set aliases [::nsf::dispatch $grandparent ::nsf::methods::class::info::methods -methodtype alias]
 	foreach alias $aliases {
-	  set def [::nsf::dispatch $grandparent ::nsf::cmd::ClassInfo::method definition $alias]
+	  set def [::nsf::dispatch $grandparent ::nsf::methods::class::info::method definition $alias]
 	  if {[lindex $def end] eq $self} {
 	    return [list name [lindex $def 2] regobj <obj>]
 	  }
@@ -398,8 +398,8 @@ namespace eval ::nx {
       array set "" [$o ::nsf::classes::nx::EnsembleObject::subcmdName]
       set path $(name)
       while {1} {
-	set o [::nsf::dispatch $o ::nsf::cmd::ObjectInfo::parent]
-	if {![::nsf::dispatch $o ::nsf::cmd::ObjectInfo::hastype ::nx::EnsembleObject]} break
+	set o [::nsf::dispatch $o ::nsf::methods::object::info::parent]
+	if {![::nsf::dispatch $o ::nsf::methods::object::info::hastype ::nx::EnsembleObject]} break
 	array set "" [$o ::nsf::classes::nx::EnsembleObject::subcmdName]
 	set path "$(name) $path"
       }
@@ -413,10 +413,10 @@ namespace eval ::nx {
       #
       set result [list]
       set self [::nsf::current object]
-      set methods [lsort [::nsf::dispatch $self ::nsf::cmd::ObjectInfo::methods]]
+      set methods [lsort [::nsf::dispatch $self ::nsf::methods::object::info::methods]]
       array set "" [$self ::nsf::classes::nx::EnsembleObject::subcmdName]
       foreach m $methods {
-	set type [::nsf::dispatch $self ::nsf::cmd::ObjectInfo::method type $m]
+	set type [::nsf::dispatch $self ::nsf::methods::object::info::method type $m]
 	if {$type eq "object"} {
 	  foreach {obj submethod} \
 	      [::nsf::dispatch ${self}::$m ::nsf::classes::nx::EnsembleObject::subMethods] {
@@ -436,7 +436,7 @@ namespace eval ::nx {
       set self [::nsf::current object]
       #puts stderr "UNKNOWN [self] $args"
       array set "" [$self ::nsf::classes::nx::EnsembleObject::methodPath]
-      set subcmds [lsort [::nsf::dispatch $self ::nsf::cmd::ObjectInfo::methods]]
+      set subcmds [lsort [::nsf::dispatch $self ::nsf::methods::object::info::methods]]
       error "unable to dispatch method $(regobj) $(path) $m;\
 	valid subcommands of [namespace tail $self]: $subcmds"
     }
@@ -444,12 +444,12 @@ namespace eval ::nx {
     :method defaultmethod {} {
       #puts uplevel-method=[uplevel {nx::current method}]-[uplevel nx::self]
       set self [current object]
-      set methods [lsort [::nsf::dispatch $self ::nsf::cmd::ObjectInfo::methods]]
+      set methods [lsort [::nsf::dispatch $self ::nsf::methods::object::info::methods]]
       array set "" [$self ::nsf::classes::nx::EnsembleObject::subcmdName]
       set pairs [$self ::nsf::classes::nx::EnsembleObject::subMethods] 
       foreach {obj m} $pairs {
 	array set "" [$obj ::nsf::classes::nx::EnsembleObject::methodPath]
-	set cmd [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::method parametersyntax $m]
+	set cmd [::nsf::dispatch $obj ::nsf::methods::object::info::method parametersyntax $m]
 	puts stderr "$(regobj) $(path) $m $cmd"
       }
       return $methods
@@ -466,34 +466,34 @@ namespace eval ::nx {
   # we have to use "eval", since objectParameters are not defined yet
   
   Object eval {
-    :alias "info lookup filter"  ::nsf::cmd::ObjectInfo::lookupfilter
-    :alias "info lookup method"  ::nsf::cmd::ObjectInfo::lookupmethod
-    :alias "info lookup methods" ::nsf::cmd::ObjectInfo::lookupmethods
+    :alias "info lookup filter"  ::nsf::methods::object::info::lookupfilter
+    :alias "info lookup method"  ::nsf::methods::object::info::lookupmethod
+    :alias "info lookup methods" ::nsf::methods::object::info::lookupmethods
     :method "info lookup slots" {} {
       ::nsf::dispatch [::nsf::current object] \
-	  ::nsf::cmd::ObjectInfo::lookupslots -type ::nx::Slot
+	  ::nsf::methods::object::info::lookupslots -type ::nx::Slot
     }
-    :alias "info children"         ::nsf::cmd::ObjectInfo::children
-    :alias "info class"            ::nsf::cmd::ObjectInfo::class
-    :alias "info filter guard"     ::nsf::cmd::ObjectInfo::filterguard
-    :alias "info filter methods"   ::nsf::cmd::ObjectInfo::filtermethods
-    :alias "info forward"          ::nsf::cmd::ObjectInfo::forward
-    :alias "info has mixin"        ::nsf::cmd::ObjectInfo::hasmixin
-    :alias "info has namespace"    ::nsf::cmd::ObjectInfo::hasnamespace
-    :alias "info has type"         ::nsf::cmd::ObjectInfo::hastype
-    :alias "info is"               ::nsf::cmd::ObjectInfo::is
-    :alias "info methods"          ::nsf::cmd::ObjectInfo::methods
-    :alias "info mixin guard"      ::nsf::cmd::ObjectInfo::mixinguard
-    :alias "info mixin classes"    ::nsf::cmd::ObjectInfo::mixinclasses
-    :alias "info parent"           ::nsf::cmd::ObjectInfo::parent
-    :alias "info precedence"       ::nsf::cmd::ObjectInfo::precedence
+    :alias "info children"         ::nsf::methods::object::info::children
+    :alias "info class"            ::nsf::methods::object::info::class
+    :alias "info filter guard"     ::nsf::methods::object::info::filterguard
+    :alias "info filter methods"   ::nsf::methods::object::info::filtermethods
+    :alias "info forward"          ::nsf::methods::object::info::forward
+    :alias "info has mixin"        ::nsf::methods::object::info::hasmixin
+    :alias "info has namespace"    ::nsf::methods::object::info::hasnamespace
+    :alias "info has type"         ::nsf::methods::object::info::hastype
+    :alias "info is"               ::nsf::methods::object::info::is
+    :alias "info methods"          ::nsf::methods::object::info::methods
+    :alias "info mixin guard"      ::nsf::methods::object::info::mixinguard
+    :alias "info mixin classes"    ::nsf::methods::object::info::mixinclasses
+    :alias "info parent"           ::nsf::methods::object::info::parent
+    :alias "info precedence"       ::nsf::methods::object::info::precedence
     :method "info slots" {} {
       set slotContainer [::nsf::current object]::slot
       if {[::nsf::isobject $slotContainer]} {
-	::nsf::dispatch $slotContainer ::nsf::cmd::ObjectInfo::children -type ::nx::Slot
+	::nsf::dispatch $slotContainer ::nsf::methods::object::info::children -type ::nx::Slot
       }
     }
-    :alias "info vars"           ::nsf::cmd::ObjectInfo::vars
+    :alias "info vars"           ::nsf::methods::object::info::vars
   }
 
   # Create the ensemble object here to prepare for copy of the above
@@ -508,35 +508,35 @@ namespace eval ::nx {
   #
   # copy all methods except the subobjects to ::nx::Class::slot::__info
   #
-  foreach m [::nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::methods] {
-    if {[::nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::method type $m] eq "object"} continue
-    set definition [::nsf::dispatch ::nx::Object::slot::__info ::nsf::cmd::ObjectInfo::method definition $m]
+  foreach m [::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::methods] {
+    if {[::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method type $m] eq "object"} continue
+    set definition [::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method definition $m]
     ::nx::Class::slot::__info {*}[lrange $definition 1 end]
   }
 
   Class eval {
     :alias "info lookup"         ::nx::Object::slot::__info::lookup
-    :alias "info filter guard"   ::nsf::cmd::ClassInfo::filterguard
-    :alias "info filter methods" ::nsf::cmd::ClassInfo::filtermethods
-    :alias "info forward"        ::nsf::cmd::ClassInfo::forward
+    :alias "info filter guard"   ::nsf::methods::class::info::filterguard
+    :alias "info filter methods" ::nsf::methods::class::info::filtermethods
+    :alias "info forward"        ::nsf::methods::class::info::forward
     :alias "info has"            ::nx::Object::slot::__info::has
-    :alias "info heritage"       ::nsf::cmd::ClassInfo::heritage
-    :alias "info instances"      ::nsf::cmd::ClassInfo::instances
-    :alias "info methods"        ::nsf::cmd::ClassInfo::methods
-    :alias "info mixin guard"    ::nsf::cmd::ClassInfo::mixinguard
-    :alias "info mixin classes"  ::nsf::cmd::ClassInfo::mixinclasses
-    :alias "info mixinof"        ::nsf::cmd::ClassInfo::mixinof
-    :alias "info subclass"       ::nsf::cmd::ClassInfo::subclass
-    :alias "info superclass"     ::nsf::cmd::ClassInfo::superclass
+    :alias "info heritage"       ::nsf::methods::class::info::heritage
+    :alias "info instances"      ::nsf::methods::class::info::instances
+    :alias "info methods"        ::nsf::methods::class::info::methods
+    :alias "info mixin guard"    ::nsf::methods::class::info::mixinguard
+    :alias "info mixin classes"  ::nsf::methods::class::info::mixinclasses
+    :alias "info mixinof"        ::nsf::methods::class::info::mixinof
+    :alias "info subclass"       ::nsf::methods::class::info::subclass
+    :alias "info superclass"     ::nsf::methods::class::info::superclass
   }
 
   #
   # Define "info info" and unknown
   #
   proc ::nx::infoOptions {obj} {
-    #puts stderr "INFO INFO $obj -> '[::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::methods -methodtype all]'"
+    #puts stderr "INFO INFO $obj -> '[::nsf::dispatch $obj ::nsf::methods::object::info::methods -methodtype all]'"
     set methods [list]
-    foreach name [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::methods] {
+    foreach name [::nsf::dispatch $obj ::nsf::methods::object::info::methods] {
       if {$name eq "unknown"} continue
       lappend methods $name
     }
@@ -551,8 +551,8 @@ namespace eval ::nx {
   Class  method "info info" {} {::nx::infoOptions ::nx::Class::slot::__info}
 
   # finally register method "method" (otherwise, we cannot use "method" above)
-  Object alias "info method" ::nsf::cmd::ObjectInfo::method
-  Class  alias "info method" ::nsf::cmd::ClassInfo::method
+  Object alias "info method" ::nsf::methods::object::info::method
+  Class  alias "info method" ::nsf::methods::class::info::method
 
   #
   # Definition of "abstract method foo ...."
@@ -625,13 +625,13 @@ namespace eval ::nx {
     }
     if {${per-object}} {
       lappend opts -per-object true
-      set info ObjectInfo
+      set scope object
     } else {
-      set info ClassInfo
+      set scope class
     }
 
     :create [::nx::slotObj $target $name] {*}$opts $initblock
-    return [::nsf::dispatch $target ::nsf::cmd::${info}::method handle $name]
+    return [::nsf::dispatch $target ::nsf::methods::${scope}::info::method handle $name]
   }
 
 }
@@ -672,7 +672,7 @@ namespace eval ::nx {
       if {[info exists default]} {
 
         # checking subclasses is not required during bootstrap
-        foreach i [::nsf::dispatch $class ::nsf::cmd::ClassInfo::instances] {
+        foreach i [::nsf::dispatch $class ::nsf::methods::class::info::instances] {
           if {![::nsf::existsvar $i $att]} {
             if {[string match {*\[*\]*} $default]} {
               set value [::nsf::dispatch $i -objscope ::eval subst $default]
@@ -741,8 +741,8 @@ namespace eval ::nx {
   
   ObjectParameterSlot method unknown {method args} {
     set methods [list]
-    foreach m [::nsf::dispatch [::nsf::current object] ::nsf::cmd::ObjectInfo::lookupmethods] {
-      if {[::nsf::dispatch Object ::nsf::cmd::ObjectInfo::lookupmethods $m] ne ""} continue
+    foreach m [::nsf::dispatch [::nsf::current object] ::nsf::methods::object::info::lookupmethods] {
+      if {[::nsf::dispatch Object ::nsf::methods::object::info::lookupmethods $m] ne ""} continue
       if {[string match __* $m]} continue
       lappend methods $m
     }
@@ -875,11 +875,11 @@ namespace eval ::nx {
 
   proc ::nsf::parametersFromSlots {obj} {
     set parameterdefinitions [list]
-    foreach slot [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::lookupslots -type ::nx::Slot] {
+    foreach slot [::nsf::dispatch $obj ::nsf::methods::object::info::lookupslots -type ::nx::Slot] {
       # Skip some slots for xotcl; 
       # TODO: maybe different parameterFromSlots for xotcl?
       if {[::nsf::is class ::xotcl::Object] 
-	  && [::nsf::dispatch $obj ::nsf::cmd::ObjectInfo::hastype ::xotcl::Object] && 
+	  && [::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::xotcl::Object] && 
           ([$slot name] eq "mixin" || [$slot name] eq "filter")
 	} continue
       array set "" [$slot toParameterSyntax]
@@ -1137,12 +1137,12 @@ namespace eval ::nx {
       set object [expr {${:per-object} ? {object} : {}}]
       if {${:per-object}} {
         set perObject -per-object
-        set infokind Object
+        set infokind object
       } else {
         set perObject ""
-        set infokind Class
+        set infokind class
       }
-      if {[::nsf::dispatch ${:domain} ::nsf::cmd::${infokind}Info::method handle ${:name}] ne ""} {
+      if {[::nsf::dispatch ${:domain} ::nsf::methods::${infokind}::info::method handle ${:name}] ne ""} {
         #puts stderr "OPTIMIZER RESETTING ${:domain} slot ${:name}"
         ::nsf::forward ${:domain} {*}$perObject ${:name} \
             ${:manager} \
@@ -1228,14 +1228,14 @@ namespace eval ::nx {
 
   Slot method type=baseclass {name value} {
     # note, that we cannot use "nsf::is baseclass ..." here, since nsf::is call this converter
-    if {![::nsf::isobject $value] || ![::nsf::dispatch $value ::nsf::cmd::ObjectInfo::is baseclass]} {
+    if {![::nsf::isobject $value] || ![::nsf::dispatch $value ::nsf::methods::object::info::is baseclass]} {
       error "expected baseclass but got \"$value\" for parameter $name"
     }
     return $value
   }
 
   Slot method type=metaclass {name value} {
-    if {![::nsf::isobject $value] || ![::nsf::dispatch $value ::nsf::cmd::ObjectInfo::is metaclass]} {
+    if {![::nsf::isobject $value] || ![::nsf::dispatch $value ::nsf::methods::object::info::is metaclass]} {
       error "expected metaclass but got \"$value\" for parameter $name"
     }
     return $value
@@ -1316,7 +1316,7 @@ namespace eval ::nx {
       #puts stderr "COPY makeTargetList $t target= ${:targetList}"
       # if it is an object without namespace, it is a leaf
       if {[::nsf::isobject $t]} {
-	if {[::nsf::dispatch $t ::nsf::cmd::ObjectInfo::hasnamespace]} {
+	if {[::nsf::dispatch $t ::nsf::methods::object::info::hasnamespace]} {
 	  # make target list from all children
 	  set children [$t info children]
         } else {
@@ -1375,20 +1375,20 @@ namespace eval ::nx {
 	  ::nsf::relation $obj object-filter [::nsf::relation $origin object-filter]
 	  ::nsf::relation $obj object-mixin [::nsf::relation $origin object-mixin]
             # reused in XOTcl, no "require" there, so use nsf primitiva
-	  if {[::nsf::dispatch $origin ::nsf::cmd::ObjectInfo::hasnamespace]} {
+	  if {[::nsf::dispatch $origin ::nsf::methods::object::info::hasnamespace]} {
 	    ::nsf::dispatch $obj ::nsf::cmd::Object::require_namespace
 	  }
 	} else {
 	  namespace eval $dest {}
 	}
 	:copyNSVarsAndCmds $origin $dest
-	foreach i [$origin ::nsf::cmd::ObjectInfo::forward] {
-	  ::nsf::forward $dest -per-object $i {*}[$origin ::nsf::cmd::ObjectInfo::forward -definition $i]
+	foreach i [$origin ::nsf::methods::object::info::forward] {
+	  ::nsf::forward $dest -per-object $i {*}[$origin ::nsf::methods::object::info::forward -definition $i]
 
 	}
 	if {[::nsf::is class $origin]} {
-	  foreach i [$origin ::nsf::cmd::ClassInfo::forward] {
-	    ::nsf::forward $dest $i {*}[$origin ::nsf::cmd::ClassInfo::forward -definition $i]
+	  foreach i [$origin ::nsf::methods::class::info::forward] {
+	    ::nsf::forward $dest $i {*}[$origin ::nsf::methods::class::info::forward -definition $i]
 	  }
 	}
 	set traces [list]
