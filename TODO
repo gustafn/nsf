@@ -1512,9 +1512,8 @@ _ added option noforwarder to RelationSlots
   tcl-stack entries in GetSelfObj()
 
 TODO: 
-- check my for NRE-enabling
-- major coro cleanup, when working
 - extend coro regression test
+- remove traces of xowish
 
 - subcmd
    * handle sucmd for other method factories

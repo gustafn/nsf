@@ -424,7 +424,7 @@ dnl
 dnl Change the value of -this- macro if you want to add or remove
 dnl such files.
 
-AC_DEFUN(CONFIG_OUTPUT_FILES, [[Makefile nsfConfig.sh library/xotcl/apps/utils/xotclsh library/xotcl/apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix]])
+AC_DEFUN(CONFIG_OUTPUT_FILES, [[Makefile nsfConfig.sh library/xotcl/apps/utils/xotclsh library/xotcl/apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix nxsh]])
 
 #--------------------------------------------------------------------
 # the value of this variable is set to the files which are to be
@@ -449,6 +449,7 @@ AC_CONFIG_FILES(CONFIG_OUTPUT_FILES)
 
 AC_OUTPUT
 
+chmod +x nxsh
 echo "==================== building genstubs (needed for Tcl 8.6)"
 make genstubs
 echo "==================== genstubs built"
@@ -466,47 +467,6 @@ do
 	fi
     (cd $subdir; echo $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-xotcl=${here}; eval $SHELL ${confdir}/configure ${ac_configure_args} --prefix=${prefix} --with-xotcl=${here})
 done
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

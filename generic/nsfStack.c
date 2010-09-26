@@ -129,7 +129,14 @@ CallStackNextFrameOfType(Tcl_CallFrame *framePtr, int flags) {
   return framePtr;
 }
 
-#define SKIP_LEVELS
+//#define SKIP_LEVELS 1
+#define SKIP_LAMBDA 1
+
+#if defined(SKIP_LAMBDA)
+# if !defined(SKIP_LEVELS)
+#  define SKIP_LEVELS 1
+# endif
+#endif
 
 NSF_INLINE static NsfObject*
 GetSelfObj(Tcl_Interp *interp) {
@@ -146,16 +153,22 @@ GetSelfObj(Tcl_Interp *interp) {
 	 NULL
 #endif
        ) {
-    register int flag = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+    register int flags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
 
-    if (flag & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+    if (flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       return cscPtr->self;
 
-    } else if (flag & FRAME_IS_NSF_OBJECT) {
+    } else if (flags & FRAME_IS_NSF_OBJECT) {
 
       return (NsfObject *)Tcl_CallFrame_clientData(varFramePtr);
     }
+#if defined(SKIP_LAMBDA)
+    if (flags & FRAME_IS_LAMBDA) {
+      continue;
+    }
+    break;
+#endif
   }
   return NULL;
 }
