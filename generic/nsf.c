@@ -12252,7 +12252,7 @@ NsfFinalizeObjCmd(Tcl_Interp *interp) {
   /*
    * evaluate user-defined exit handler
    */
-  result = Tcl_Eval(interp, "::nsf::__exitHandler");
+  result = Tcl_Eval(interp, "::nsf::__exithandler");
 
   if (result != TCL_OK) {
     fprintf(stderr, "User defined exit handler contains errors!\n"

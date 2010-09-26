@@ -76,12 +76,12 @@ namespace eval ::nsf {
   # exit handlers
   #
   proc ::nsf::exithandler {args} {
-    lassign $args up value
-    switch {$op} {
+    lassign $args op value
+    switch $op {
       set {::proc ::nsf::__exithandler {} $value}
       get {::info body ::nsf::__exithandler}
-      unset {::proc ::nsf::__exithandler {} {;}}
-      default {puts "syntax: ::nsf::exithandler set|get|unset ?arg?"}
+      unset {proc ::nsf::__exithandler args {;}}
+      default {error "syntax: ::nsf::exithandler set|get|unset ?arg?"}
     }
   }
   # initialize exit handler
