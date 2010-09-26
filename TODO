@@ -1517,6 +1517,9 @@ _ added option noforwarder to RelationSlots
 - renamed ::nsf::cmd::ObjectInfo into ::nsf::methods::object::info
 - renamed ::nsf::cmd::ClassInfo into ::nsf::methods::class::info
 
+- renamed ::nsf::cmd::Object into ::nsf::methods::object
+- renamed ::nsf::cmd::Class into ::nsf::methods::class
+
 TODO: 
 - extend coro regression test
 - remove traces of xowish. remove tclAppInt?

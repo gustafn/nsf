@@ -58,8 +58,8 @@ namespace eval ::nsf {
   #
   # provide some popular methods for "method require"
   #
-  ::nsf::provide_method autoname {::nsf::alias autoname ::nsf::cmd::Object::autoname}
-  ::nsf::provide_method exists   {::nsf::alias  exists ::nsf::cmd::Object::exists}
+  ::nsf::provide_method autoname {::nsf::alias autoname ::nsf::methods::object::autoname}
+  ::nsf::provide_method exists   {::nsf::alias  exists ::nsf::methods::object::exists}
 
   #
   # error handler for info
@@ -75,15 +75,17 @@ namespace eval ::nsf {
   #
   # exit handlers
   #
-  proc ::nsf::unsetExitHandler {} {
-    proc ::nsf::__exitHandler {} {
-      # clients should append exit handlers to this proc body
+  proc ::nsf::exithandler {args} {
+    lassign $args up value
+    switch {$op} {
+      set {::proc ::nsf::__exithandler {} $value}
+      get {::info body ::nsf::__exithandler}
+      unset {::proc ::nsf::__exithandler {} {;}}
+      default {puts "syntax: ::nsf::exithandler set|get|unset ?arg?"}
     }
   }
-  proc ::nsf::setExitHandler {newbody} {::proc ::nsf::__exitHandler {} $newbody}
-  proc ::nsf::getExitHandler {} {::info body ::nsf::__exitHandler}
   # initialize exit handler
-  ::nsf::unsetExitHandler
+  ::nsf::exithandler unset
 
   #
   # determine platform aware temp directory

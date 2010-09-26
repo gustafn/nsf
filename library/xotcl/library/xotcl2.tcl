@@ -69,7 +69,7 @@ namespace eval ::xotcl {
   # objects. It is the root object-class in the XOTcl 2 object system.
 
   # provide the standard command set for ::xotcl::Object
-  foreach cmd [info command ::nsf::cmd::Object::*] {
+  foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "setter" "require_namespace"]} continue
     ::nsf::alias Object $cmdName $cmd
@@ -208,7 +208,7 @@ namespace eval ::xotcl {
   }
 
   # provide the standard command set for ::xotcl::Class
-  foreach cmd [info command ::nsf::cmd::Class::*] {
+  foreach cmd [info command ::nsf::methods::class::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "setter"]} continue
     ::nsf::alias Class $cmdName $cmd
@@ -228,13 +228,13 @@ namespace eval ::xotcl {
   ::nsf::alias Object parametercmd     ::nsf::classes::nx::Object::setter
   ::nsf::alias Class  instparametercmd ::nsf::classes::nx::Class::setter
 
-  ::nsf::alias Object filterguard      ::nsf::cmd::Object::filterguard
-  ::nsf::alias Class  instfilterguard  ::nsf::cmd::Class::filterguard
+  ::nsf::alias Object filterguard      ::nsf::methods::object::filterguard
+  ::nsf::alias Class  instfilterguard  ::nsf::methods::class::filterguard
 
-  ::nsf::alias Object mixinguard       ::nsf::cmd::Object::mixinguard
-  ::nsf::alias Class  instmixinguard   ::nsf::cmd::Class::mixinguard
+  ::nsf::alias Object mixinguard       ::nsf::methods::object::mixinguard
+  ::nsf::alias Class  instmixinguard   ::nsf::methods::class::mixinguard
 
-  ::nsf::alias Object requireNamespace ::nsf::cmd::Object::require_namespace
+  ::nsf::alias Object requireNamespace ::nsf::methods::object::require_namespace
 
   # define instproc and proc
   ::nsf::method Class instproc {

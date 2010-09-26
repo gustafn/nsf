@@ -7,9 +7,9 @@
 # namespaces for types of methods
 array set ns {
   nsfCmd           "::nsf"
-  objectMethod     "::nsf::cmd::Object"
+  objectMethod     "::nsf::methods::object"
   objectInfoMethod "::nsf::methods::object::info"
-  classMethod      "::nsf::cmd::Class"
+  classMethod      "::nsf::methods::class"
   classInfoMethod  "::nsf::methods::class::info"
   checkMethod      "::nsf::cmd::ParameterType"
 }

@@ -141,10 +141,10 @@ static methodDefinition method_definitions[];
   
 static CONST char *method_command_namespace_names[] = {
   "::nsf::methods::object::info",
-  "::nsf::cmd::Object",
+  "::nsf::methods::object",
   "::nsf::cmd::ParameterType",
   "::nsf::methods::class::info",
-  "::nsf::cmd::Class"
+  "::nsf::methods::class"
 };
 static int NsfCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -2029,29 +2029,29 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 }
 
 static methodDefinition method_definitions[] = {
-{"::nsf::cmd::Class::alloc", NsfCAllocMethodStub, 1, {
+{"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
   {"name", 1, 0, ConvertToTclobj}}
 },
-{"::nsf::cmd::Class::create", NsfCCreateMethodStub, 2, {
+{"::nsf::methods::class::create", NsfCCreateMethodStub, 2, {
   {"name", 1, 0, ConvertToString},
   {"args", 0, 0, ConvertToNothing}}
 },
-{"::nsf::cmd::Class::dealloc", NsfCDeallocMethodStub, 1, {
+{"::nsf::methods::class::dealloc", NsfCDeallocMethodStub, 1, {
   {"object", 1, 0, ConvertToTclobj}}
 },
-{"::nsf::cmd::Class::filterguard", NsfCFilterGuardMethodStub, 2, {
+{"::nsf::methods::class::filterguard", NsfCFilterGuardMethodStub, 2, {
   {"filter", 1, 0, ConvertToString},
   {"guard", 1, 0, ConvertToTclobj}}
 },
-{"::nsf::cmd::Class::mixinguard", NsfCMixinGuardMethodStub, 2, {
+{"::nsf::methods::class::mixinguard", NsfCMixinGuardMethodStub, 2, {
   {"mixin", 1, 0, ConvertToString},
   {"guard", 1, 0, ConvertToTclobj}}
 },
-{"::nsf::cmd::Class::new", NsfCNewMethodStub, 2, {
+{"::nsf::methods::class::new", NsfCNewMethodStub, 2, {
   {"-childof", 0, 1, ConvertToObject},
   {"args", 0, 0, ConvertToNothing}}
 },
-{"::nsf::cmd::Class::recreate", NsfCRecreateMethodStub, 2, {
+{"::nsf::methods::class::recreate", NsfCRecreateMethodStub, 2, {
   {"name", 1, 0, ConvertToTclobj},
   {"args", 0, 0, ConvertToNothing}}
 },
@@ -2241,53 +2241,53 @@ static methodDefinition method_definitions[] = {
 {"::nsf::__db_show_stack", NsfShowStackCmdStub, 0, {
   }
 },
-{"::nsf::cmd::Object::autoname", NsfOAutonameMethodStub, 3, {
+{"::nsf::methods::object::autoname", NsfOAutonameMethodStub, 3, {
   {"-instance", 0, 0, ConvertToString},
   {"-reset", 0, 0, ConvertToString},
   {"name", 1, 0, ConvertToTclobj}}
 },
-{"::nsf::cmd::Object::cleanup", NsfOCleanupMethodStub, 0, {
+{"::nsf::methods::object::cleanup", NsfOCleanupMethodStub, 0, {
   }
 },
-{"::nsf::cmd::Object::configure", NsfOConfigureMethodStub, 1, {
+{"::nsf::methods::object::configure", NsfOConfigureMethodStub, 1, {
   {"args", 0, 0, ConvertToNothing}}
 },
-{"::nsf::cmd::Object::destroy", NsfODestroyMethodStub, 0, {
+{"::nsf::methods::object::destroy", NsfODestroyMethodStub, 0, {
   }
 },
-{"::nsf::cmd::Object::exists", NsfOExistsMethodStub, 1, {
+{"::nsf::methods::object::exists", NsfOExistsMethodStub, 1, {
   {"var", 1, 0, ConvertToString}}
 },
-{"::nsf::cmd::Object::filterguard", NsfOFilterGuardMethodStub, 2, {
+{"::nsf::methods::object::filterguard", NsfOFilterGuardMethodStub, 2, {
   {"filter", 1, 0, ConvertToString},
   {"guard", 1, 0, ConvertToTclobj}}
 },
-{"::nsf::cmd::Object::instvar", NsfOInstVarMethodStub, 1, {
+{"::nsf::methods::object::instvar", NsfOInstVarMethodStub, 1, {
   {"args", 0, 0, ConvertToNothing}}
 },
-{"::nsf::cmd::Object::mixinguard", NsfOMixinGuardMethodStub, 2, {
+{"::nsf::methods::object::mixinguard", NsfOMixinGuardMethodStub, 2, {
   {"mixin", 1, 0, ConvertToString},
   {"guard", 1, 0, ConvertToTclobj}}
 },
-{"::nsf::cmd::Object::noinit", NsfONoinitMethodStub, 0, {
+{"::nsf::methods::object::noinit", NsfONoinitMethodStub, 0, {
   }
 },
-{"::nsf::cmd::Object::require_namespace", NsfORequireNamespaceMethodStub, 0, {
+{"::nsf::methods::object::require_namespace", NsfORequireNamespaceMethodStub, 0, {
   }
 },
-{"::nsf::cmd::Object::residualargs", NsfOResidualargsMethodStub, 1, {
+{"::nsf::methods::object::residualargs", NsfOResidualargsMethodStub, 1, {
   {"args", 0, 0, ConvertToNothing}}
 },
-{"::nsf::cmd::Object::uplevel", NsfOUplevelMethodStub, 1, {
+{"::nsf::methods::object::uplevel", NsfOUplevelMethodStub, 1, {
   {"args", 0, 0, ConvertToNothing}}
 },
-{"::nsf::cmd::Object::upvar", NsfOUpvarMethodStub, 1, {
+{"::nsf::methods::object::upvar", NsfOUpvarMethodStub, 1, {
   {"args", 0, 0, ConvertToNothing}}
 },
-{"::nsf::cmd::Object::volatile", NsfOVolatileMethodStub, 0, {
+{"::nsf::methods::object::volatile", NsfOVolatileMethodStub, 0, {
   }
 },
-{"::nsf::cmd::Object::vwait", NsfOVwaitMethodStub, 1, {
+{"::nsf::methods::object::vwait", NsfOVwaitMethodStub, 1, {
   {"varname", 1, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::children", NsfObjInfoChildrenMethodStub, 2, {

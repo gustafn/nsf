@@ -1438,17 +1438,14 @@ comment, while Next enforces it. </p>
 <h3>Exit Handlers</h3>
 <p>
 The exit hander interface changed from a method of
-<code>::xotcl::Object</code> into three Tcl procs in the <code>::nsf</code>
-namespace. Next provides now:
+<code>::xotcl::Object</code> into the tcl command <code>::nsf::exithandler</code>:
 <pre>
-   ::nsf::setExitHandler script
-   ::nsf::getExitHandler
-   ::nsf::unsetExitHandler
+   ::nsf::exithandler set|get|unset ?arg?
 </pre>
 
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Fri Sep 24 17:34:10 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Sun Sep 26 14:16:38 CEST 2010 <!-- hhmts end -->
 </body>
 </html>

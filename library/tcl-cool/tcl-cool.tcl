@@ -104,7 +104,7 @@ namespace eval tcl-cool {
   #   - "forward" is a method for delegating calls to different objects
   #   - "methods" is an introspection method for showing the methods of an object
   #
-  ::nsf::alias   object variable ::nsf::cmd::Object::instvar
+  ::nsf::alias   object variable ::nsf::methods::object::instvar
   ::nsf::forward object forward  ::nsf::forward %self -per-object
   ::nsf::alias   object methods  ::nsf::methods::object::info::lookupmethods
 
@@ -113,7 +113,7 @@ namespace eval tcl-cool {
   # is created. First the object is allocated, then the constructor is called.
   #
   class method create {name args} {
-    set obj [::nsf::dispatch [self] ::nsf::cmd::Class::alloc $name]
+    set obj [::nsf::dispatch [self] ::nsf::methods::class::alloc $name]
     $obj init {*}$args
     return $obj
   }

@@ -37,7 +37,7 @@ namespace eval ::nx {
   #
   # provide the standard command set for ::nx::Object
   #
-  foreach cmd [info command ::nsf::cmd::Object::*] {
+  foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "autoname" "exists" "filterguard" "instvar" "mixinguard" "require_namespace"]} continue
     ::nsf::alias Object $cmdName $cmd 
@@ -51,7 +51,7 @@ namespace eval ::nx {
   #
   
   # provide the standard command set for Class
-  foreach cmd [info command ::nsf::cmd::Class::*] {
+  foreach cmd [info command ::nsf::methods::class::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "filterguard" "mixinguard"]} continue
     ::nsf::alias Class $cmdName $cmd 
@@ -205,7 +205,7 @@ namespace eval ::nx {
 	}
       }
       if {$what in [list "filterguard" "mixinguard"]} {
-        return [::nsf::dispatch [::nsf::current object] ::nsf::cmd::Object::$what {*}$args]
+        return [::nsf::dispatch [::nsf::current object] ::nsf::methods::object::$what {*}$args]
       }
     }
     # define unknown handler for class
@@ -324,7 +324,7 @@ namespace eval ::nx {
 	::nsf::require_method [::nsf::current object] [lindex $args 0] 0
       }
       namespace {
-	::nsf::dispatch [::nsf::current object] ::nsf::cmd::Object::require_namespace
+	::nsf::dispatch [::nsf::current object] ::nsf::methods::object::require_namespace
       }
     }
   }
@@ -1015,28 +1015,28 @@ namespace eval ::nx {
     #
     ${os}::Object::slot::filter method guard {obj prop filter guard:optional} {
       if {[info exists guard]} {
-	::nsf::dispatch $obj ::nsf::cmd::Object::filterguard $filter $guard
+	::nsf::dispatch $obj ::nsf::methods::object::filterguard $filter $guard
       } else {
 	$obj info filter guard $filter 
       }
     }
     ${os}::Class::slot::filter method guard {obj prop filter guard:optional} {
       if {[info exists guard]} {
-	::nsf::dispatch $obj ::nsf::cmd::Class::filterguard $filter $guard
+	::nsf::dispatch $obj ::nsf::methods::class::filterguard $filter $guard
       } else {
 	$obj info filter guard $filter 
       }
     }
     ${os}::Object::slot::mixin method guard {obj prop filter guard:optional} {
       if {[info exists guard]} {
-	::nsf::dispatch $obj ::nsf::cmd::Object::mixinguard $filter $guard
+	::nsf::dispatch $obj ::nsf::methods::object::mixinguard $filter $guard
       } else {
 	$obj info mixin guard $filter 
       }
     }
     ${os}::Class::slot::mixin method guard {obj prop filter guard:optional} {
       if {[info exists guard]} {
-	::nsf::dispatch $obj ::nsf::cmd::Class::mixinguard $filter $guard
+	::nsf::dispatch $obj ::nsf::methods::class::mixinguard $filter $guard
       } else {
 	$obj info mixin guard $filter 
       }
@@ -1280,7 +1280,7 @@ namespace eval ::nx {
     if {![info exists object]} {set object [::nsf::current object]}
     if {![::nsf::isobject $object]} {$class create $object}
     # reused in XOTcl, no "require" there, so use nsf primitiva
-    ::nsf::dispatch $object ::nsf::cmd::Object::require_namespace    
+    ::nsf::dispatch $object ::nsf::methods::object::require_namespace    
     if {$withnew} {
       set m [ScopedNew new -volatile \
 		 -container $object -withclass $class]
@@ -1376,7 +1376,7 @@ namespace eval ::nx {
 	  ::nsf::relation $obj object-mixin [::nsf::relation $origin object-mixin]
             # reused in XOTcl, no "require" there, so use nsf primitiva
 	  if {[::nsf::dispatch $origin ::nsf::methods::object::info::hasnamespace]} {
-	    ::nsf::dispatch $obj ::nsf::cmd::Object::require_namespace
+	    ::nsf::dispatch $obj ::nsf::methods::object::require_namespace
 	  }
 	} else {
 	  namespace eval $dest {}

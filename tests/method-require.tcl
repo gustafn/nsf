@@ -16,7 +16,7 @@ Test case method-require {
   nsf::provide_method lappend  {::nsf::alias  lappend -objscope ::lappend}
   nsf::provide_method set      {::nsf::alias  set -objscope ::set}
   nsf::provide_method tcl::set {::nsf::alias  set -objscope ::set}
-  nsf::provide_method exists   {::nsf::alias  exists ::nsf::cmd::Object::exists}
+  nsf::provide_method exists   {::nsf::alias  exists ::nsf::methods::object::exists}
   nsf::provide_method foo      {::nsf::method foo {x y} {return x=$x,y=$y}}
   nsf::provide_method x        {::nsf::mixin ::MIX} {
     # here could be as well a package require, etc.
