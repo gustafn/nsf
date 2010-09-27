@@ -1557,14 +1557,10 @@ _ added option noforwarder to RelationSlots
 
 TODO: 
 - extend coro regression test
-- remove traces of xowish. remove tclAppInt?
 
 - subcmd
    * handle sucmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
-
-- fix missing cmdPtr in 8.6b1
-  "We have no cmdPtr in cscPtr 0x10100e610 ::a.x"
 
 - interfaces in documentation for slots (see for more details 
   ::nx::Class#superclass in nx.tcl).
@@ -1612,20 +1608,6 @@ TODO:
 Ein paar Punkte im folgenden könnten obsolet sein:
 
 TODO "Kleinigkeiten"
-- shells:
-  * do we need nxsh?
-     - currently a c program, makeing a package require nx
-     - purely scripted?
-  * do we need conterpart for xotclsh?
-     - scripted should be possible
-  * do we need conterpart for xowish?
-     - possibility: binary vs. scripted
-     - scripted xowish / nxwish should be possible
-# SS: Gescriptete Varianten wäre einfacher, ja. Wenn etwas dagegen
-  spricht, würde ich nicht mehr tclAppInit.c direkt verwenden, sondern
-  die beiden makros: TCL_LOCAL_APPINIT und TCL_LOCAL_MAIN_HOOK (setzt
-  kl. änderung in der build umgebung voraus)
-
 
 - C-interface
     * generic/nsf.decls und generic/nsfInt.decls ausmisten 
