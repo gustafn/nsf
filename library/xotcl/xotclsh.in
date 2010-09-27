@@ -8,8 +8,8 @@ puts  @NSF_COMPATIBLE_TCLSH@
 # multiple installed shells during development. For installed
 # versions, it should be sufficient to remove the first line.
 #
-package require nx
-namespace import ::nx::*
+package require XOTcl
+namespace import -force ::xotcl::*
 
 if {$argc == 0} {
   set prefix ""

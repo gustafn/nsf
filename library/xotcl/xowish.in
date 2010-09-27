@@ -2,19 +2,22 @@
 #!/bin/env tclsh
 puts  @NSF_COMPATIBLE_TCLSH@
 #
-# Tiny scripted replacement of a binary nxsh. This script can be used
-# as interactive shell for testing or like a regular shell with the !#
-# markup in the first line of a script. It is designed to work with
-# multiple installed shells during development. For installed
-# versions, it should be sufficient to remove the first line.
+# Tiny scripted replacement of a binary nxwish (former xowish). This
+# script can be used as interactive shell for testing or like a
+# regular shell with the !# markup in the first line of a script. It
+# is designed to work with multiple installed shells during
+# development. For installed versions, it should be sufficient to
+# remove the first line.
 #
-package require nx
-namespace import ::nx::*
+package require Tk
+package require XOTcl
+namespace import -force ::xotcl::*
 
 if {$argc == 0} {
   set prefix ""
   set line ""
   while {1} {
+    update
     if {$line eq ""} {
        puts -nonewline "% "
        flush stdout
