@@ -1,9 +1,9 @@
-#!./nxsh 
+#!/bin/env tclsh
 #
 # A small script file that creates a static array from a tcl-
 # script for inclusion in c programs      -gn
 #
-set f [open predefined.tcl]
+set f [open [lindex $argv 0]]
 set content [read $f]
 close $f
 

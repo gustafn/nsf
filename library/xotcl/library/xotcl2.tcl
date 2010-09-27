@@ -71,7 +71,7 @@ namespace eval ::xotcl {
   # provide the standard command set for ::xotcl::Object
   foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "setter" "require_namespace"]} continue
+    if {$cmdName in [list "setter" "requirenamespace"]} continue
     ::nsf::alias Object $cmdName $cmd
   }
 
@@ -234,7 +234,7 @@ namespace eval ::xotcl {
   ::nsf::alias Object mixinguard       ::nsf::methods::object::mixinguard
   ::nsf::alias Class  instmixinguard   ::nsf::methods::class::mixinguard
 
-  ::nsf::alias Object requireNamespace ::nsf::methods::object::require_namespace
+  ::nsf::alias Object requireNamespace ::nsf::methods::object::requirenamespace
 
   # define instproc and proc
   ::nsf::method Class instproc {
@@ -288,10 +288,11 @@ namespace eval ::xotcl {
   Object instproc self {} {::xotcl::self}
 
   #
-  # objectparameter definition, backwards compatible
+  # objectparameter definition, backwards upward compatible. We use
+  # here the definition of parametersfromslots from nx.tcl
   #
   ::xotcl::Object instproc objectparameter {} {
-    set parameterdefinitions [::nsf::parametersFromSlots [self]]
+    set parameterdefinitions [::nsf::parametersfromslots [self]]
     lappend parameterdefinitions args
     #puts stderr "*** parameter definition for [self]: $parameterdefinitions"
     return $parameterdefinitions
@@ -312,7 +313,7 @@ namespace eval ::xotcl {
   }
 
   ############################################
-  # system slots
+  # Register system slots
   ############################################
   proc register_system_slots {os} {
     # We need explicit ::xotcl prefixes, since they are always skipped
@@ -346,9 +347,19 @@ namespace eval ::xotcl {
   Object create ::xotcl::objectInfo
   Object create ::xotcl::classInfo
 
-  # note, we are using ::nsf::infoError, defined my nsf
+  # note, we are using ::xotcl::infoError, defined below
   #Object instforward info -onerror ::nsf::infoError ::xotcl::objectInfo %1 {%@2 %self}
   #Class  instforward info -onerror ::nsf::infoError ::xotcl::classInfo %1 {%@2 %self}
+  #
+  # error handler for info
+  #
+  #proc ::nsf::infoerror msg {
+  #  #puts stderr "INFO ERROR: <$msg>\n$::errorInfo"
+  #  regsub -all " <object>" $msg "" msg
+  #  regsub -all " <class>" $msg "" msg
+  #  regsub {\"} $msg "\"info " msg
+  #  error $msg ""
+  #}
 
   ::nsf::alias Object info ::xotcl::objectInfo
   ::nsf::alias Class info ::xotcl::classInfo

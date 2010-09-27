@@ -6857,7 +6857,7 @@ AddPrefixToBody(Tcl_Obj *body, int paramDefs, NsfParsedParam *paramPtr) {
   INCR_REF_COUNT(resultBody);
 
   if (paramDefs && paramPtr->possibleUnknowns > 0)
-    Tcl_AppendStringsToObj(resultBody, "::nsf::unsetUnknownArgs\n", (char *) NULL);
+    Tcl_AppendStringsToObj(resultBody, "::nsf::__unset_unknown_args\n", (char *) NULL);
 
   Tcl_AppendStringsToObj(resultBody, ObjStr(body), (char *) NULL);
   return resultBody;
@@ -7829,8 +7829,8 @@ ComputePrecedenceList(Tcl_Interp *interp, NsfObject *object, CONST char *pattern
 
 static CONST char *
 StripBodyPrefix(CONST char *body) {
-  if (strncmp(body, "::nsf::unsetUnknownArgs\n", 24) == 0)
-    body += 24;
+  if (strncmp(body, "::nsf::__unset_unknown_args\n", 28) == 0)
+    body += 28;
   return body;
 }
 
@@ -10531,10 +10531,10 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct NsfParam CONST *pPtr, 
       if (result == TCL_OK) {
         if (ov[i] != elementObjPtr) {
           /* 
-             The elementObjPtr differs from the input tcl_obj, we
-             switch to the version of this handler building an output
-             list 
-          */
+	   * The elementObjPtr differs from the input Tcl_Obj, we
+           *  switch to the version of this handler building an output
+           *  list.
+	   */
           /*fprintf(stderr, "switch to output list construction for value %s\n",
 	    ObjStr(elementObjPtr));*/
           *flags |= NSF_PC_MUST_DECR;
@@ -10623,17 +10623,21 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
           }
           
 	  if (pcPtr->objv[i] != newValue) {
-	    /* The output tcl_obj differs from the input, so the tcl_obj
-	       was converted; in case we have set prevously must_decr
-	       on newValue, we decr the refcount on newValue here and
-	       clear the flag */
+	    /* 
+	     * The output Tcl_Obj differs from the input, so the
+	     * Tcl_Obj was converted; in case we have set prevously
+	     * must_decr on newValue, we decr the refcount on newValue
+	     * here and clear the flag.
+	     */
 	    if (mustDecrNewValue) {
 	      DECR_REF_COUNT(newValue);
 	      pcPtr->flags[i] &= ~NSF_PC_MUST_DECR;
 	    }
-            /* the new output value itself might require a decr, so
-               set the flag here if required; this is just necessary
-               for multivalued converted output */
+            /* 
+	     * The new output value itself might require a decr, so
+             * set the flag here if required; this is just necessary
+             * for multivalued converted output.
+	     */
             if (mustDecrList) {
 	      pcPtr->flags[i] |= NSF_PC_MUST_DECR;
               pcPtr->mustDecr = 1;
@@ -10648,9 +10652,10 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
                               pPtr->nameObj ? ObjStr(pPtr->nameObj) : pPtr->name,
                               "' is missing", (char *) NULL);
       } else {
-        /* Use as dummy default value an arbitrary symbol, which must not be
-         * returned to the Tcl level level; this value is
-         * unset later by unsetUnknownArgs
+        /* 
+	 * Use as dummy default value an arbitrary symbol, which must
+         * not be returned to the Tcl level level; this value is unset
+         * later by NsfUnsetUnknownArgsCmd().
          */
         pcPtr->objv[i] = NsfGlobalObjs[NSF___UNKNOWN__];
       }
@@ -10739,8 +10744,10 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
             }
           }
           if (!found) {
-            /* we did not find the specified flag, the thing starting
-               with a '-' must be an argument */
+            /* 
+	     * We did not find the specified flag, the thing starting
+	     * with a '-' must be an argument 
+	     */
             break;
           }
         }
@@ -15566,7 +15573,23 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
  * needs probably modifications for earlier versions of Tcl. However,
  * since CANONICAL_ARGS requires Tcl 8.5 this is not an issue.
  */
-int
+/*
+ *----------------------------------------------------------------------
+ * NsfUnsetUnknownArgsCmd --
+ *
+ *    Unset variables set from arguments with the default dummy
+ *    default value. The dummy default values are set by
+ *    ArgumentDefaults()
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    unsets some variables
+ *
+ *----------------------------------------------------------------------
+ */
+static int
 NsfUnsetUnknownArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                                    Tcl_Obj *CONST objv[]) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
@@ -16063,7 +16086,7 @@ Nsf_Init(Tcl_Interp *interp) {
 #endif
   /*Tcl_CreateObjCommand(interp, "::nsf::K", NsfKObjCmd, 0, 0);*/
 
-  Tcl_CreateObjCommand(interp, "::nsf::unsetUnknownArgs", NsfUnsetUnknownArgsCmd, 0, 0);
+  Tcl_CreateObjCommand(interp, "::nsf::__unset_unknown_args", NsfUnsetUnknownArgsCmd, 0, 0);
 
 #ifdef NSF_BYTECODE
   NsfBytecodeInit();

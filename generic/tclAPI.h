@@ -2272,7 +2272,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::methods::object::noinit", NsfONoinitMethodStub, 0, {
   }
 },
-{"::nsf::methods::object::require_namespace", NsfORequireNamespaceMethodStub, 0, {
+{"::nsf::methods::object::requirenamespace", NsfORequireNamespaceMethodStub, 0, {
   }
 },
 {"::nsf::methods::object::residualargs", NsfOResidualargsMethodStub, 1, {

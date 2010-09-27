@@ -1520,6 +1520,19 @@ _ added option noforwarder to RelationSlots
 - renamed ::nsf::cmd::Object into ::nsf::methods::object
 - renamed ::nsf::cmd::Class into ::nsf::methods::class
 
+- removed capitalization from exit handler interface
+- reduced interface of exithandler to 
+ ::nsf::exithandler set|get|unset ?arg?
+
+- renamed/removed remaining ::nsf::commands with capitalized names:
+  parametersFromSlots ==> parametersFromSlots
+  unsetUnknownArgs ==> __unset_unknown_args
+  infoError removed
+- renamed predefined.tcl into nsf.tcl
+- remaining cmds in nsf (except __*) containing
+  "_": ::nsf::provide_method, ::nsf::require_method
+
+
 TODO: 
 - extend coro regression test
 - remove traces of xowish. remove tclAppInt?

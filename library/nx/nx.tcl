@@ -39,7 +39,7 @@ namespace eval ::nx {
   #
   foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "autoname" "exists" "filterguard" "instvar" "mixinguard" "require_namespace"]} continue
+    if {$cmdName in [list "autoname" "exists" "filterguard" "instvar" "mixinguard" "requirenamespace"]} continue
     ::nsf::alias Object $cmdName $cmd 
   }
   
@@ -324,7 +324,7 @@ namespace eval ::nx {
 	::nsf::require_method [::nsf::current object] [lindex $args 0] 0
       }
       namespace {
-	::nsf::dispatch [::nsf::current object] ::nsf::methods::object::require_namespace
+	::nsf::dispatch [::nsf::current object] ::nsf::methods::object::requirenamespace
       }
     }
   }
@@ -873,11 +873,11 @@ namespace eval ::nx {
     return [list oparam $objparamdefinition mparam $methodparamdefinition]
   }
 
-  proc ::nsf::parametersFromSlots {obj} {
+  proc ::nsf::parametersfromslots {obj} {
     set parameterdefinitions [list]
     foreach slot [::nsf::dispatch $obj ::nsf::methods::object::info::lookupslots -type ::nx::Slot] {
       # Skip some slots for xotcl; 
-      # TODO: maybe different parameterFromSlots for xotcl?
+      # TODO: maybe different parametersfromslots for xotcl?
       if {[::nsf::is class ::xotcl::Object] 
 	  && [::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::xotcl::Object] && 
           ([$slot name] eq "mixin" || [$slot name] eq "filter")
@@ -890,7 +890,7 @@ namespace eval ::nx {
 
   Object protected method objectparameter {{lastparameter __initcmd:initcmd,optional}} {
     #puts stderr "... objectparameter [::nsf::current object]"
-    set parameterdefinitions [::nsf::parametersFromSlots [::nsf::current object]]
+    set parameterdefinitions [::nsf::parametersfromslots [::nsf::current object]]
     if {[::nsf::is class [::nsf::current object]]} {
       lappend parameterdefinitions -attributes:method,optional
     }
@@ -983,7 +983,7 @@ namespace eval ::nx {
   }
  
   ############################################
-  # system slots
+  # Register system slots
   ############################################
   proc register_system_slots {os} {
 
@@ -1280,7 +1280,7 @@ namespace eval ::nx {
     if {![info exists object]} {set object [::nsf::current object]}
     if {![::nsf::isobject $object]} {$class create $object}
     # reused in XOTcl, no "require" there, so use nsf primitiva
-    ::nsf::dispatch $object ::nsf::methods::object::require_namespace    
+    ::nsf::dispatch $object ::nsf::methods::object::requirenamespace    
     if {$withnew} {
       set m [ScopedNew new -volatile \
 		 -container $object -withclass $class]
@@ -1376,7 +1376,7 @@ namespace eval ::nx {
 	  ::nsf::relation $obj object-mixin [::nsf::relation $origin object-mixin]
             # reused in XOTcl, no "require" there, so use nsf primitiva
 	  if {[::nsf::dispatch $origin ::nsf::methods::object::info::hasnamespace]} {
-	    ::nsf::dispatch $obj ::nsf::methods::object::require_namespace
+	    ::nsf::dispatch $obj ::nsf::methods::object::requirenamespace
 	  }
 	} else {
 	  namespace eval $dest {}

@@ -498,8 +498,8 @@ install-shells:
 # 	$(COMPILE) -c `@CYGPATH@ $(srcdir)/src/win/exampleA.c` -o $@
 #========================================================================
 
-$(src_generic_dir)/predefined.h: $(src_generic_dir)/mk_predefined.tcl $(src_generic_dir)/predefined.tcl
-	(cd $(src_generic_dir); $(TCLSH) mk_predefined.tcl > predefined.h)
+$(src_generic_dir)/predefined.h: $(src_generic_dir)/mk_predefined.tcl $(src_generic_dir)/nsf.tcl
+	(cd $(src_generic_dir); $(TCLSH) mk_predefined.tcl nsf.tcl > predefined.h)
 
 $(src_generic_dir)/tclAPI.h: $(src_generic_dir)/gentclAPI.tcl $(src_generic_dir)/gentclAPI.decls
 	$(TCLSH) $(src_generic_dir)/gentclAPI.tcl > $(src_generic_dir)/tclAPI.h

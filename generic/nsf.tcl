@@ -62,17 +62,6 @@ namespace eval ::nsf {
   ::nsf::provide_method exists   {::nsf::alias  exists ::nsf::methods::object::exists}
 
   #
-  # error handler for info
-  #
-  proc ::nsf::infoError msg {
-    #puts stderr "INFO ERROR: <$msg>\n$::errorInfo"
-    regsub -all " <object>" $msg "" msg
-    regsub -all " <class>" $msg "" msg
-    regsub {\"} $msg "\"info " msg
-    error $msg ""
-  }
- 
-  #
   # exit handlers
   #
   proc ::nsf::exithandler {args} {

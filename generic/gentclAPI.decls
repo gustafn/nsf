@@ -194,7 +194,7 @@ objectMethod mixinguard NsfOMixinGuardMethod {
 objectMethod noinit NsfONoinitMethod {
 }
 
-objectMethod require_namespace NsfORequireNamespaceMethod {
+objectMethod requirenamespace NsfORequireNamespaceMethod {
 }
 
 objectMethod residualargs NsfOResidualargsMethod {
