@@ -1532,6 +1532,11 @@ _ added option noforwarder to RelationSlots
 - remaining cmds in nsf (except __*) containing
   "_": ::nsf::provide_method, ::nsf::require_method
 
+- removed DISPATCH_TRACE
+- moved return-value checking into ObjectDispatchFinalize()
+- perform invariants checking after cmd execution, not additionally before
+- commented dispatch machinery
+
 
 TODO: 
 - extend coro regression test

@@ -177,6 +177,13 @@ static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object);
 static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
 static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object);
 static int NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
+// TODO remove last arg of methoddispatch
+static int MethodDispatch(ClientData clientData, Tcl_Interp *interp,
+			  int objc, Tcl_Obj *CONST objv[],
+			  Tcl_Command cmd, NsfObject *object, NsfClass *cl,
+			  CONST char *methodName, int frameType, int flags, int call);
+static int DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp, 
+				 int objc, Tcl_Obj *CONST objv[], int flags);
 static int DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags);
 static int DispatchUnknownMethod(ClientData clientData, Tcl_Interp *interp, 
 				 int objc, Tcl_Obj *CONST objv[],
@@ -443,33 +450,6 @@ Nsf_Object*
 NsfGetSelfObj(Tcl_Interp *interp) {
   return (Nsf_Object*)GetSelfObj(interp);
 }
-
-#ifdef DISPATCH_TRACE
-static void
-PrintObjv(int objc, Tcl_Obj *CONST objv[]) {
-  int i, j;
-  fprintf(stderr, "(%d)", objc);
-  if (objc <= 3) j = objc; else j = 3;
-  for (i=0;i<j;i++) fprintf(stderr, " %s", ObjStr(objv[i]));
-  if (objc > 3) fprintf(stderr, " ...");
-  fprintf(stderr, " (objc=%d)", objc);
-}
-
-static void
-PrintCall(Tcl_Interp *interp, CONST char *string, int objc, Tcl_Obj *CONST objv[]) {
-  fprintf(stderr, "     (%d) >%s: ", Tcl_Interp_numLevels(interp), string);
-  PrintObjv(objc, objv);
-  fprintf(stderr, "\n");
-}
-static void
-PrintExit(Tcl_Interp *interp, CONST char *string,
-                      int objc, Tcl_Obj *CONST objv[], int result) {
-  fprintf(stderr, "     (%d) <%s: ", Tcl_Interp_numLevels(interp), string);
-  /*PrintObjv(objc, objv);*/
-  fprintf(stderr, " result=%d '%s'\n", result, ObjStr(Tcl_GetObjResult(interp)));
-}
-#endif
-
 
 /*
  *  NsfObject Reference Accounting
@@ -5818,6 +5798,24 @@ ParsedParamFree(NsfParsedParam *parsedParamPtr) {
 /*
  * method dispatch
  */
+/*
+ *----------------------------------------------------------------------
+ * ProcMethodDispatchFinalize --
+ *
+ *    Finalization function for ProcMethodDispatch which executes
+ *    scripted methods. Essentially it handles post-assertions and
+ *    frees per-invocation memory. The function was developed for NRE
+ *    enabled Tcl versions but is used in the same way for non-NRE
+ *    enabled versions.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    indirect effects by calling Tcl code
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   ParseContext *pcPtr = data[0];
@@ -5825,39 +5823,15 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   CONST char *methodName = data[2];
   NsfObject *object = cscPtr->self;
   NsfObjectOpt *opt = object->opt;
-  NsfParamDefs *paramDefs;
   int rc;
 
-  /*fprintf(stderr, "ProcMethodDispatchFinalize flags %.6x isNRE %d\n",cscPtr->flags, 
-    (cscPtr->flags & NSF_CSC_CALL_IS_NRE));*/
-
-#  ifdef DISPATCH_TRACE
-  PrintExit(interp, "ProcMethodDispatch", objc, objv, result);
-  /* fprintf(stderr, " returnCode %d nsf rc %d\n",
-     Tcl_Interp_returnCode(interp), result);*/
-#  endif
-
-  /*fprintf(stderr, "ProcMethodDispatchFinalize result %d, csc %p, pcPtr %p, obj %p %s.%s\n",
-    result, cscPtr, pcPtr, object, objectName(object), methodName);*/
-
-  if (cscPtr->cmdPtr) {
-    paramDefs = ParamDefsGet(cscPtr->cmdPtr);
-
-    if (result == TCL_OK && paramDefs && paramDefs->returns) {
-      Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
-      /*fprintf(stderr, "***** we have returns for method '%s' check %s, value %p\n", 
-	methodName, ObjStr(paramDefs->returns), valueObj);*/
-      result = ParameterCheck(interp, paramDefs->returns, valueObj, "return-value:", 
-			      RUNTIME_STATE(interp)->doCheckResults,
-			      NULL);
-    }
-  } else {
-    fprintf(stderr, "We have no cmdPtr in cscPtr %p %s.%s",  cscPtr, objectName(object), methodName);
-    fprintf(stderr, "... cannot check return values!\n");
-  }
+  /*fprintf(stderr, "ProcMethodDispatchFinalize %s.%s flags %.6x isNRE %d\n",
+    objectName(object), methodName
+    cscPtr->flags, (cscPtr->flags & NSF_CSC_CALL_IS_NRE));*/
 
   if (opt && object->teardown && (opt->checkoptions & CHECK_POST)) {
-    /* even, when the passed result != TCL_OK, run assertion to report
+    /* 
+     * Even, when the returned result != TCL_OK, run assertion to report
      * the highest possible method from the callstack (e.g. "set" would not
      * be very meaningful; however, do not flush a TCL_ERROR.
      */
@@ -5882,8 +5856,20 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   return result;
 }
 
-
-/* invoke a scripted method (with assertion checking) */
+/*
+ *----------------------------------------------------------------------
+ * ProcMethodDispatch --
+ *
+ *    Invoke a scripted method (with assertion checking and filters).
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Indirect effects by calling Tcl code
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
          CONST char *methodName, NsfObject *object, NsfClass *cl, Tcl_Command cmdPtr,
@@ -5961,11 +5947,6 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     goto prep_done;
   }
 
-#ifdef DISPATCH_TRACE
-  PrintCall(interp, "ProcMethodDispatch", objc, objv);
-  fprintf(stderr, "\tproc=%s\n", Tcl_GetCommandName(interp, cmdPtr));
-#endif
-
   /*
    *  If the method to be invoked has paramDefs, we have to call the
    *  argument parser with the argument definitions obtained from the
@@ -6036,14 +6017,29 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   return result;
 }
 
-/* Invoke a method implemented as a cmd (with assertion checking) */
+/* 
+ *----------------------------------------------------------------------
+ * CmdMethodDispatch --
+ *
+ *    Invoke a method implemented as a cmd.  Essentially it stacks
+ *    optionally a frame, calls the method, pops the frame and runs
+ *    invariants.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Indirect effects by calling cmd
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         CONST char *methodName, NsfObject *object, Tcl_Command cmdPtr,
         NsfCallStackContent *cscPtr) {
+  Tcl_CallFrame frame, *framePtr = &frame;
   CheckOptions co;
   int result;
-  Tcl_CallFrame frame, *framePtr = &frame;
 
   assert(object);
   assert(object->teardown);
@@ -6051,70 +6047,39 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
   assert(!cscPtr || (cscPtr->flags & NSF_CSC_CALL_IS_NRE) == 0);
 #endif
 
-  /* fprintf(stderr, ".. calling cmd %s cscPtr %p\n", methodName, cscPtr);*/
-
-  if (object->opt) {
-    co = object->opt->checkoptions;
-    if ((co & CHECK_INVAR) &&
-        ((result = AssertionCheckInvars(interp, object, methodName, co)) == TCL_ERROR)) {
-      goto finish;
-    }
-  }
-
   if (cscPtr) {
-    /* We have a call stack content, but the following dispatch will
+    /* 
+     * We have a call stack content, but the following dispatch will
      * by itself not stack it; in order to get e.g. self working, we
-     * have to stack at least an FRAME_IS_NSF_OBJECT.
-     * TODO: maybe push should happen already before assertion checking,
-     * but we have to check what happens in the finish target etc.
+     * have to stack at least an FRAME_IS_NSF_OBJECT.  
      */
     /*fprintf(stderr, "Nsf_PushFrameCsc %s %s\n",objectName(object), methodName);*/
     Nsf_PushFrameCsc(interp, cscPtr, framePtr);
   }
 
-#ifdef DISPATCH_TRACE
-  PrintCall(interp, "CmdMethodDispatch cmd", objc, objv);
-  fprintf(stderr, "\tcmd=%s\n", Tcl_GetCommandName(interp, cmdPtr));
-#endif
-
   /*fprintf(stderr, "CmdDispatch obj %p %p %s\n", obj, methodName, methodName);*/
   result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmdPtr), cp, objc, objv);
-
-#ifdef DISPATCH_TRACE
-  PrintExit(interp, "CmdMethodDispatch cmd", objc, objv, result);
-#endif
 
   if (cscPtr) {
     Nsf_PopFrameCsc(interp, framePtr);
   }
 
-  /* Reference counting in the calling ObjectDispatch() makes sure
-     that obj->opt is still accessible even after "dealloc" */
+  /* 
+   * Reference counting in the calling ObjectDispatch() makes sure
+   * that obj->opt is still accessible even after "dealloc"
+   */
   if (object->opt) {
     co = object->opt->checkoptions;
-    if ((co & CHECK_INVAR) &&
-        ((result = AssertionCheckInvars(interp, object, methodName, co)) == TCL_ERROR)) {
-      goto finish;
+    if ((co & CHECK_INVAR)) {
+      result = AssertionCheckInvars(interp, object, methodName, co);
     }
   }
 
-  { NsfParamDefs *paramDefs = ParamDefsGet(cmdPtr);
-
-    if (result == TCL_OK && paramDefs && paramDefs->returns) {
-      Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
-      /* fprintf(stderr, "***** CMD we have returns for method '%s' check %s, value %p\n", 
-	 methodName, ObjStr(paramDefs->returns), valueObj);*/
-      result = ParameterCheck(interp, paramDefs->returns, valueObj, "return-value:", 
-			      RUNTIME_STATE(interp)->doCheckResults,
-			      NULL);
-    }
-  }
-
- finish:
   return result;
 }
 
 #if defined(NSF_PROFILE)
+/* TODO: should be adjusted to MethodDispatchCsc() */
 static int
 MethodDispatch(ClientData clientData, Tcl_Interp *interp,
              int objc, Tcl_Obj *CONST objv[], Tcl_Command cmd, NsfObject *object, NsfClass *cl,
@@ -6129,177 +6094,22 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 # define MethodDispatch __MethodDispatch__
 #endif
 
-#if 0
-static Tcl_Obj *
-SubcmdObj(Tcl_Interp *interp, CONST char *start, size_t len) {
-  Tcl_Obj *checker = Tcl_NewStringObj("sub=", 4);
-  Tcl_AppendLimitedToObj(checker, start, len, INT_MAX, NULL);
-  return checker;
-}
-#endif
-
-/*
+/* 
  *----------------------------------------------------------------------
- * DispatchDefaultMethod --
+ * MethodDispatchCsc --
  *
- *    Dispatch the default method (when object is called without arguments)
- *    in case the object system has it defined.
+ *    Dispatch a method (scripted or cmd) with an already allocated
+ *    call stack content. The method calls either ProcMethodDispatch()
+ *    (for scripted methods) or CmdMethodDispatch() (otherwise).
  *
  * Results:
- *    result code.
+ *    Tcl result code.
  *
  * Side effects:
- *    indirect affects by calling Tcl code
+ *    Indirect effects by calling methods
  *
  *----------------------------------------------------------------------
  */
-static int
-DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp, 
-		      int objc, Tcl_Obj *CONST objv[], int flags) {
-  int result;
-  Tcl_Obj *methodObj = NsfMethodObj(interp, (NsfObject *)clientData, NSF_o_defaultmethod_idx);
-
-  if (methodObj) {
-    Tcl_Obj *tov[2];
-    tov[0] = objv[0];
-    tov[1] = methodObj;
-
-    result = ObjectDispatch(clientData, interp, 2, tov, flags|NSF_CM_NO_UNKNOWN);
-  } else {
-    result = TCL_OK;
-  }
-  return result;
-}
-
-/*
- *----------------------------------------------------------------------
- * DispatchDestroyMethod --
- *
- *    Dispatch the method "destroy" in case the object system has it
- *    defined. During the final cleanup of the object system, the
- *    destroy is called separately from deallocation. Normally,
- *    Object.destroy() calls dealloc, which is responsible for the
- *    physical deallocation.
- *
- * Results:
- *    result code
- *
- * Side effects:
- *    indirect affects by calling Tcl code
- *
- *----------------------------------------------------------------------
- */
-
-static int
-DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
-  int result;
-  Tcl_Obj *methodObj;
-
-  /* 
-   * Don't call destroy after exit handler started physical
-   * destruction, or when it was called already before
-   */
-  if (RUNTIME_STATE(interp)->exitHandlerDestroyRound ==
-      NSF_EXITHANDLER_ON_PHYSICAL_DESTROY
-      || (object->flags & NSF_DESTROY_CALLED)
-      )
-    return TCL_OK;
-
-  /*fprintf(stderr, "    DispatchDestroyMethod obj %p flags %.6x active %d\n", 
-    object, object->flags,  object->activationCount); */
-
-  PRINTOBJ("DispatchDestroyMethod", object);
-
-  /* flag, that destroy was called and invoke the method */
-  object->flags |= NSF_DESTROY_CALLED;
-
-  if (CallDirectly(interp, object, NSF_o_destroy_idx, &methodObj)) {
-    result = NsfODestroyMethod(interp, object);
-  } else {
-    result = CallMethod(object, interp, methodObj, 2, 0, NSF_CSC_IMMEDIATE|flags);
-  }
-
-  if (result != TCL_OK) {
-    static char cmd[] =
-      "puts stderr \"[self]: Error in method destroy\n\
-	 $::errorCode $::errorInfo\"";
-    Tcl_EvalEx(interp, cmd, -1, 0);
-    if (++RUNTIME_STATE(interp)->errorCount > 20)
-      Tcl_Panic("too many destroy errors occured. Endless loop?", NULL);
-  } else {
-    if (RUNTIME_STATE(interp)->errorCount > 0)
-      RUNTIME_STATE(interp)->errorCount--;
-  }
-
-#ifdef OBJDELETION_TRACE
-  fprintf(stderr, "DispatchDestroyMethod for %p exit\n", object);
-#endif
-  return result;
-}
-
-/*
- *----------------------------------------------------------------------
- * DispatchUnknownMethod --
- *
- *    Dispatch the method "unknown" in case the object system has it
- *    defined and the application program contains an unknown handler.
- *
- * Results:
- *    result code
- *
- * Side effects:
- *    indirect affects by calling Tcl code
- *
- *----------------------------------------------------------------------
- */
-
-static int
-DispatchUnknownMethod(ClientData clientData, 
-		      Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-		      Tcl_Obj *methodObj, int flags) {
-  int result;
-  NsfObject *object = (NsfObject*)clientData;
-
-  Tcl_Obj *unknownObj = NsfMethodObj(interp, object, NSF_o_unknown_idx);
-
-  if (unknownObj && methodObj != unknownObj && (flags & NSF_CM_NO_UNKNOWN) == 0) {
-    /*
-     * back off and try unknown;
-     */
-    ALLOC_ON_STACK(Tcl_Obj*, objc+2, tov);
-
-    /*fprintf(stderr, "calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s objc %d\n",
-	    objectName(object), ObjStr(methodObj), flags, NSF_CM_NO_UNKNOWN,
-	    NsfObjectIsClass(object), object, objectName(object), objc);*/
-
-    tov[0] = object->cmdName;
-    tov[1] = unknownObj;
-    if (objc>0) {
-      memcpy(tov+2, objv, sizeof(Tcl_Obj *)*(objc));
-    }
-
-    flags &= ~NSF_CM_NO_SHIFT;
-    result = ObjectDispatch(clientData, interp, objc+2, tov, flags|NSF_CM_NO_UNKNOWN);
-    FREE_ON_STACK(Tcl_Obj*, tov);
-	
-  } else { /* no unknown called, this is the built-in unknown handler */
-    
-    /*fprintf(stderr, "--- No unknown method Name %s objv[%d] %s\n", 
-      ObjStr(methodObj), 1, ObjStr(objv[1]));*/
-    result = NsfVarErrMsg(interp, objectName(object),
-			    ": unable to dispatch method '",
-			    ObjStr(objv[1]), "'", (char *) NULL);
-  }
-  return result;
-}
-
-// TODO remove last arg of methoddispatch
-static int
-MethodDispatch(ClientData clientData, Tcl_Interp *interp,
-	       int objc, Tcl_Obj *CONST objv[],
-	       Tcl_Command cmd, NsfObject *object, NsfClass *cl,
-	       CONST char *methodName, int frameType, int flags, int call);
-
 static int 
 MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 		  int objc, Tcl_Obj *CONST objv[],
@@ -6461,7 +6271,9 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 
   } else {
     /* 
-     * The cmd has no client data
+     * The cmd has no client data. In these situations, no stack frame
+     * is needed. Dispatch the method without the cscPtr, such
+     * CmdMethodDispatch () does not stack a frame.
      */
 
     /*fprintf(stderr, "cmdMethodDispatch %s.%s, nothing stacked, objflags %.6x\n",
@@ -6470,25 +6282,24 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
     return CmdMethodDispatch(clientData, interp, objc, objv, methodName, object, cmd, NULL);
   }
   
-  result = CmdMethodDispatch(cp, interp, objc, objv, methodName, object, cmd, cscPtr);
-
-  return result;
+  return CmdMethodDispatch(cp, interp, objc, objv, methodName, object, cmd, cscPtr);
 }
 
-
-
-static void
-CscCleanup(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
-
-#if defined(NRE)
-  if ((cscPtr->flags & NSF_CSC_CALL_IS_NRE) == 0) {
-    CscFinish(interp, cscPtr, "csc cleanup");
-  }
-#else
-  CscFinish(interp, cscPtr, "csc cleanup");
-#endif
-}
-
+/* 
+ *----------------------------------------------------------------------
+ * MethodDispatch --
+ *
+ *    Conveniance wrapper for MethodDispatchCsc(). It allocates a call
+ *    stack content and invokes MethodDispatchCsc.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Indirect effects by calling methods
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 MethodDispatch(ClientData clientData, Tcl_Interp *interp,
 	       int objc, Tcl_Obj *CONST objv[],
@@ -6515,11 +6326,35 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   result = MethodDispatchCsc(clientData, interp, objc, objv,
 			     cscPtr, methodName);
 
-  CscCleanup(interp, cscPtr);
+#if defined(NRE)
+  if ((cscPtr->flags & NSF_CSC_CALL_IS_NRE) == 0) {
+    CscFinish(interp, cscPtr, "csc cleanup");
+  }
+#else
+  CscFinish(interp, cscPtr, "csc cleanup");
+#endif
 
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ObjectDispatchFinalize --
+ *
+ *    Finalization function for ObjectDispatch() which performs method
+ *    lookup and call all kind of methods. The function runs after
+ *    ObjectDispatch() and calls the unknown handler if necessary and
+ *    resets the filter and mixin stacks.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Maybe side effects by the cmd called by ParameterCheck() 
+ *    or DispatchUnknownMethod()
+ *
+ *----------------------------------------------------------------------
+ */
 // TODO: not all args needed
 NSF_INLINE static int
 ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr, 
@@ -6540,9 +6375,26 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
 	  result, cscPtr->frameType, RUNTIME_STATE(interp)->unknown,
 	  msg);*/
 
-#ifdef DISPATCH_TRACE
-  PrintExit(interp, "DISPATCH", objc, objv, result);
-#endif
+  /*
+   * When the active command is deleted, the cmdPtr in the call stack
+   * content structure is set to NULL. We are not able to check
+   * parameter in such situations.
+   */ 
+  if (cscPtr->cmdPtr) {
+    NsfParamDefs *paramDefs = ParamDefsGet(cscPtr->cmdPtr);
+    
+    if (result == TCL_OK && paramDefs && paramDefs->returns) {
+      Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
+
+      result = ParameterCheck(interp, paramDefs->returns, valueObj, "return-value:", 
+			      RUNTIME_STATE(interp)->doCheckResults,
+			      NULL);
+    }
+  } else {
+    /*fprintf(stderr, "We have no cmdPtr in cscPtr %p %s.%s",  cscPtr, objectName(object), methodName);
+      fprintf(stderr, "... cannot check return values!\n");*/
+  }
+
 
   /*
    * On success (no error occured) check for unknown cases.
@@ -6580,6 +6432,24 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ObjectDispatch --
+ *
+ *    This function performs the method lookup and call all kind of
+ *    methods. It checks, whether a filter or mixin has to be
+ *    applied. in these cases, the effective method lookup is
+ *    performed by next.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Maybe side effects by the cmd called by ParameterCheck() 
+ *    or DispatchUnknownMethod()
+ *
+ *----------------------------------------------------------------------
+ */
 NSF_INLINE static int
 ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
            Tcl_Obj *CONST objv[], int flags) {
@@ -6614,10 +6484,6 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
   /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s\n",
     objectName(object), objc, ObjStr(cmdObj), methodName);*/
-
-#ifdef DISPATCH_TRACE
-  PrintCall(interp, "DISPATCH", objc, objv);
-#endif
 
   objflags = object->flags; /* avoid stalling */
 
@@ -6725,7 +6591,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     }
   }
 
-  /* if no filter/mixin is found => do ordinary method lookup */
+  /* 
+   * If no filter/mixin is found => do ordinary method lookup
+   */
   if (cmd == NULL) {
     /* do we have a object-specific proc? */
     if (object->nsPtr && (flags & NSF_CM_NO_OBJECT_METHOD) == 0) {
@@ -6818,14 +6686,185 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   /*fprintf(stderr, "ObjectDispatch %s.%s returns %d\n", 
     objectName(object), methodName, result);*/
 
-  NsfCleanupObject(object, "ObjectDispatchFinalize");
+  NsfCleanupObject(object, "ObjectDispatch");
   /*fprintf(stderr, "ObjectDispatch call NsfCleanupObject %p DONE\n", object);*/
   DECR_REF_COUNT(cmdName); /* must be after last dereferencing of obj */
   
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * DispatchDefaultMethod --
+ *
+ *    Dispatch the default method (when object is called without arguments)
+ *    in case the object system has it defined.
+ *
+ * Results:
+ *    result code.
+ *
+ * Side effects:
+ *    indirect effects by calling Tcl code
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp, 
+		      int objc, Tcl_Obj *CONST objv[], int flags) {
+  int result;
+  Tcl_Obj *methodObj = NsfMethodObj(interp, (NsfObject *)clientData, NSF_o_defaultmethod_idx);
 
+  if (methodObj) {
+    Tcl_Obj *tov[2];
+    tov[0] = objv[0];
+    tov[1] = methodObj;
+
+    result = ObjectDispatch(clientData, interp, 2, tov, flags|NSF_CM_NO_UNKNOWN);
+  } else {
+    result = TCL_OK;
+  }
+  return result;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * DispatchDestroyMethod --
+ *
+ *    Dispatch the method "destroy" in case the object system has it
+ *    defined. During the final cleanup of the object system, the
+ *    destroy is called separately from deallocation. Normally,
+ *    Object.destroy() calls dealloc, which is responsible for the
+ *    physical deallocation.
+ *
+ * Results:
+ *    result code
+ *
+ * Side effects:
+ *    indirect effects by calling Tcl code
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
+  int result;
+  Tcl_Obj *methodObj;
+
+  /* 
+   * Don't call destroy after exit handler started physical
+   * destruction, or when it was called already before
+   */
+  if (RUNTIME_STATE(interp)->exitHandlerDestroyRound ==
+      NSF_EXITHANDLER_ON_PHYSICAL_DESTROY
+      || (object->flags & NSF_DESTROY_CALLED)
+      )
+    return TCL_OK;
+
+  /*fprintf(stderr, "    DispatchDestroyMethod obj %p flags %.6x active %d\n", 
+    object, object->flags,  object->activationCount); */
+
+  PRINTOBJ("DispatchDestroyMethod", object);
+
+  /* flag, that destroy was called and invoke the method */
+  object->flags |= NSF_DESTROY_CALLED;
+
+  if (CallDirectly(interp, object, NSF_o_destroy_idx, &methodObj)) {
+    result = NsfODestroyMethod(interp, object);
+  } else {
+    result = CallMethod(object, interp, methodObj, 2, 0, NSF_CSC_IMMEDIATE|flags);
+  }
+
+  if (result != TCL_OK) {
+    static char cmd[] =
+      "puts stderr \"[self]: Error in method destroy\n\
+	 $::errorCode $::errorInfo\"";
+    Tcl_EvalEx(interp, cmd, -1, 0);
+    if (++RUNTIME_STATE(interp)->errorCount > 20)
+      Tcl_Panic("too many destroy errors occured. Endless loop?", NULL);
+  } else {
+    if (RUNTIME_STATE(interp)->errorCount > 0)
+      RUNTIME_STATE(interp)->errorCount--;
+  }
+
+#ifdef OBJDELETION_TRACE
+  fprintf(stderr, "DispatchDestroyMethod for %p exit\n", object);
+#endif
+  return result;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * DispatchUnknownMethod --
+ *
+ *    Dispatch the method "unknown" in case the object system has it
+ *    defined and the application program contains an unknown handler.
+ *
+ * Results:
+ *    result code
+ *
+ * Side effects:
+ *    indirect effects by calling Tcl code
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+DispatchUnknownMethod(ClientData clientData, 
+		      Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
+		      Tcl_Obj *methodObj, int flags) {
+  int result;
+  NsfObject *object = (NsfObject*)clientData;
+
+  Tcl_Obj *unknownObj = NsfMethodObj(interp, object, NSF_o_unknown_idx);
+
+  if (unknownObj && methodObj != unknownObj && (flags & NSF_CM_NO_UNKNOWN) == 0) {
+    /*
+     * back off and try unknown;
+     */
+    ALLOC_ON_STACK(Tcl_Obj*, objc+2, tov);
+
+    /*fprintf(stderr, "calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s objc %d\n",
+	    objectName(object), ObjStr(methodObj), flags, NSF_CM_NO_UNKNOWN,
+	    NsfObjectIsClass(object), object, objectName(object), objc);*/
+
+    tov[0] = object->cmdName;
+    tov[1] = unknownObj;
+    if (objc>0) {
+      memcpy(tov+2, objv, sizeof(Tcl_Obj *)*(objc));
+    }
+
+    flags &= ~NSF_CM_NO_SHIFT;
+    result = ObjectDispatch(clientData, interp, objc+2, tov, flags|NSF_CM_NO_UNKNOWN);
+    FREE_ON_STACK(Tcl_Obj*, tov);
+	
+  } else { /* no unknown called, this is the built-in unknown handler */
+    
+    /*fprintf(stderr, "--- No unknown method Name %s objv[%d] %s\n", 
+      ObjStr(methodObj), 1, ObjStr(objv[1]));*/
+    result = NsfVarErrMsg(interp, objectName(object),
+			    ": unable to dispatch method '",
+			    ObjStr(objv[1]), "'", (char *) NULL);
+  }
+  return result;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NsfObjDispatch --
+ *
+ *    This function is called on every object dispatch (when an object
+ *    is invoked). It calls either the passed method, or dispatches
+ *    some default method.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Maybe side effects by the cmd called by ParameterCheck() 
+ *    or DispatchUnknownMethod()
+ *
+ *----------------------------------------------------------------------
+ */
 int
 NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   int result;
@@ -6838,7 +6877,10 @@ NsfObjDispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 #endif
 
   if (objc > 1) {
-    /* normal dispatch; we cannot use NSF_CSC_IMMEDIATE here, otherwise coroutines won't work */
+    /* 
+     * Normal dispatch; we must not use NSF_CSC_IMMEDIATE here,
+     * otherwise coroutines won't work.
+     */
     result = ObjectDispatch(clientData, interp, objc, objv, 0);
   } else {
     result = DispatchDefaultMethod(clientData, interp, objc, objv, 0);

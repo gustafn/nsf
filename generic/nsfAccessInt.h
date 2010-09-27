@@ -4,9 +4,6 @@
 #define Tcl_Interp_cmdFramePtr(interp)     (((Interp *)interp)->cmdFramePtr)
 #define Tcl_Interp_globalNsPtr(interp)     ((Tcl_Namespace *)((Interp *)interp)->globalNsPtr)
 #define Tcl_Interp_flags(interp)           ((Interp *)interp)->flags
-#if DISPATCH_TRACE
-#define Tcl_Interp_returnCode(interp)      ((Interp *)interp)->returnCode
-#endif
 #define Tcl_Interp_threadId(interp)        ((Interp *)interp)->threadId
 
 #define Tcl_CallFrame_callerPtr(cf)       ((Tcl_CallFrame*)((CallFrame *)cf)->callerPtr)
