@@ -1548,10 +1548,12 @@ _ added option noforwarder to RelationSlots
    library/xotcl/library/store/XOTclGdbm/, 
    library/xotcl/library/store/XOTclSdbm/, 
    library/xotcl/library/xml/TclExpat-1.1/
-
+- removed traces of xotcl.m4
 - removed build flags with-nxsh, with-xowish
   (since these are scripted now)
 - removed flag --with-tk (not needed anymore)
+
+- removed NXSH and XOWISH from Makefile.in
 
 TODO: 
 - extend coro regression test

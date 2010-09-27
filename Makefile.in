@@ -174,7 +174,7 @@ pkgincludedir	= @pkgincludedir@
 
 xotcl_pkglibdir	= @pkglibdir@/xotcl
 
-# NXSH = @NXSH@
+installed_shells = $(DESTDIR)$(bindir)/nxsh $(DESTDIR)$(bindir)/nxwish $(DESTDIR)$(bindir)/xotclsh $(DESTDIR)$(bindir)/xowish
 
 #========================================================================
 # TCLLIBPATH seeds the auto_path in Tcl's init.tcl so we can test our
@@ -365,7 +365,6 @@ install-xotcl-apps: install-xotcl-libraries
 #========================================================================
 
 install-doc: doc $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man3 $(DESTDIR)$(mandir)/mann
-	@if test ! "x$(NXSH)" = "x" ; then \
 	(cd $(src_man_dir)/ ; \
 	 for i in *.1; do \
 	    echo "Installing $$i"; \
@@ -373,8 +372,7 @@ install-doc: doc $(DESTDIR)$(mandir)/man1 $(DESTDIR)$(mandir)/man3 $(DESTDIR)$(m
 	    sed -e '/man\.macros/r man.macros' -e '/man\.macros/d' \
 		    $$i > $(DESTDIR)$(mandir)/man1/$$i; \
 	    chmod 444 $(DESTDIR)$(mandir)/man1/$$i; \
-	    done) ; \
-	fi
+	    done)
 
 shell: binaries libraries
 	@$(TCLSH) $(SCRIPT)
@@ -559,7 +557,7 @@ checkstubs:
 #========================================================================
 
 clean:  
-	-rm -rf $(BINARIES) $(CLEANFILES) @NXSH@ @XOWISH@ pkgIndex.tcl ./receiver \
+	-rm -rf $(BINARIES) $(CLEANFILES) $(installed_shells) pkgIndex.tcl ./receiver \
 		$(xotcl_target_doc_dir)/*-xotcl.html
 	find ${srcdir} -type f -name \*~ -exec rm \{} \;
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
@@ -710,7 +708,9 @@ rpm:
 
 bin-tar: 
 	(cd ..; tar zcvf xotcl-$(PACKAGE_VERSION)-bin-linux-i686-glibc.tar.gz \
-                `find $(exec_prefix)/bin/$(NXSH) $(exec_prefix)/bin/xowish \
+                `find \
+                  $(prefix)/bin/nx*sh \
+                  $(prefix)/bin/xotcl*sh \
                   $(prefix)/lib/nsf* \
                   $(prefix)/lib/libnsf* \
 		  $(prefix)/include/nsf*.h \
