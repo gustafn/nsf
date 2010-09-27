@@ -232,7 +232,7 @@ all: binaries libraries doc end
 # of the Makefile, in the "BINARIES" variable.
 #========================================================================
 
-binaries: $(BINARIES) @NXSH@ @XOWISH@ pkgIndex.tcl
+binaries: $(BINARIES) pkgIndex.tcl
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
