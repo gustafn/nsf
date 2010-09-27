@@ -124,19 +124,17 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     Tcl_GetIntFromObj(interp, objv[1], &level);
 
     /* todo: coroutine level messing is missing */
-    topLevel = framePtr == NULL ? 0 :  framePtr->level;
+    topLevel = (framePtr == NULL) ? 0 :  framePtr->level;
 
     if (level > 0) {
       level -= topLevel;
     }
 
-    while (++level <= 0) {
+    while (++level <= 0 && varFramePtr) {
       framePtr = framePtr->nextPtr;
       varFramePtr = varFramePtr->callerPtr;
     }
-    if (varFramePtr == 0) {
-      fprintf(stderr, "*********** varFramePtr is NULL\n");
-    }
+
     frameFlags = varFramePtr ? Tcl_CallFrame_isProcCallFrame(varFramePtr) : 0;
     /*fprintf(stderr, " ... frame %p varFramePtr %p frameFlags %.6x\n", framePtr, varFramePtr, frameFlags);
       Tcl85showStack(interp);*/

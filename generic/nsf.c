@@ -165,10 +165,11 @@ static Tcl_ObjType CONST86
  * Function prototypes
  */
 
-/* prototypes for method defintions */
-static int NsfForwardMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
-static int NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
-static int NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc,Tcl_Obj *CONST objv[]);
+/* Prototypes for method definitions */
+static Tcl_ObjCmdProc NsfForwardMethod;
+static Tcl_ObjCmdProc NsfObjscopedMethod;
+static Tcl_ObjCmdProc NsfSetterMethod;
+static Tcl_ObjCmdProc NsfProcAliasMethod;
 
 /* prototypes for methods called directly when CallDirectly() returns NULL */
 static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj);
@@ -6264,6 +6265,11 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
       TclCmdClientData *tcd = (TclCmdClientData *)cp;
       tcd->object = object;
       assert((CmdIsProc(cmd) == 0));
+    } else if (proc == NsfProcAliasMethod) {
+      TclCmdClientData *tcd = (TclCmdClientData *)cp;
+      tcd->object = object;
+      assert((CmdIsProc(cmd) == 0));
+      cscPtr->flags |= NSF_CSC_CALL_IS_TRANSPARENT;
     } else if (cp == (ClientData)NSF_CMD_NONLEAF_METHOD) {
       cp = clientData;
       assert((CmdIsProc(cmd) == 0));
@@ -10252,8 +10258,10 @@ NsfProcAliasMethod(ClientData clientData,
                      Tcl_Interp *interp, int objc, 
                      Tcl_Obj *CONST objv[]) {
   AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
-  NsfObject *self = GetSelfObj(interp);
+  NsfObject *self = tcd->object;
   CONST char *methodName = ObjStr(objv[0]);
+
+  assert(tcd->object==GetSelfObj(interp));
 
   if (self == NULL) {
     return NsfVarErrMsg(interp, "no object active for alias '",

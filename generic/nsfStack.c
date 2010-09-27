@@ -200,9 +200,10 @@ NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **f
   int lvl = Tcl_CallFrame_level(varFramePtr);
   
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_NSF_METHOD) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if ((cscPtr->flags & NSF_CSC_CALL_IS_NEXT) || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
+      if ((cscPtr->flags & (NSF_CSC_CALL_IS_NEXT|NSF_CSC_CALL_IS_ENSEMBLE|NSF_CSC_CALL_IS_TRANSPARENT))
+	  || (cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
         continue;
       }
       if (offset) {

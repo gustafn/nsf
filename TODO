@@ -1555,6 +1555,12 @@ _ added option noforwarder to RelationSlots
 
 - removed NXSH and XOWISH from Makefile.in
 
+- used Tcl_ObjCmdProc in prototypes
+- allow CMETHOD to be target of calling-object/calling-level
+- added NSF_CSC_CALL_IS_TRANSPARENT to handle proc aliases transparently
+- access self  in NsfProcAliasMethod() from tcl->object;
+
+
 TODO: 
 - extend coro regression test
 
