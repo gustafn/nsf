@@ -41,11 +41,11 @@ AC_ARG_WITH(gdbm,
            --without-gdbm disables build of Tcl Gdbm],
         [with_gdbm=$withval], [with_gdbm=no])
 
-AC_ARG_WITH(xotcl,
-        [  --with-xotcl=DIR_CONTAINING_XOTCLCONFIG_SH
-            absolute path to xotclConfig.sh, 
-           --without-xotcl disables, but this is pointless],
-        [with_xotcl=$withval], [AC_MSG_ERROR([--with-xotcl is required])])
+AC_ARG_WITH(nsf,
+        [  --with-nsf=DIR_CONTAINING_NSFCONFIG_SH
+            absolute path to nsfConfig.sh, 
+           --without-nsf disables, but this is pointless],
+        [with_nsf=$withval], [AC_MSG_ERROR([--with-nsf is required])])
 
 #--------------------------------------------------------------------
 # Load the tclConfig.sh file
@@ -108,7 +108,7 @@ if test "${gdbm_h_ok}" = "0" ; then
         Could not locate gdbm.h on your machine to build XOTclGdbm.
         You can download a precompiled lib 'libgdbm'
         and the header file 'gdbm.h' from http://www.gnu.org/software/gdbm/
-        and compile again. Alternatively, you can compile XOTcl without gdbm.
+        and compile again. Alternatively, you can compile nsf without gdbm.
         ])
 fi
                                                                               
@@ -122,15 +122,15 @@ fi
 #echo "Gdbm lib spec = '${GDBM_LIB_SPEC}'"
 
 #--------------------------------------------------------------------
-# Load the xotclConfig.sh file
+# Load the nsfConfig.sh file
 #--------------------------------------------------------------------
 
-AC_MSG_NOTICE([Reading file ${with_xotcl}/xotclConfig.sh])
-source ${with_xotcl}/xotclConfig.sh
+AC_MSG_NOTICE([Reading file ${with_nsf}/nsfConfig.sh])
+source ${with_nsf}/nsfConfig.sh
 
 TEA_ADD_SOURCES([xotclgdbm.c])
 TEA_ADD_HEADERS([])
-TEA_ADD_INCLUDES([-I${with_xotcl}/generic ${NSF_BUILD_INCLUDE_SPEC} ${GDBM_INC_SPEC}])
+TEA_ADD_INCLUDES([-I${with_nsf}/generic ${NSF_BUILD_INCLUDE_SPEC} ${GDBM_INC_SPEC}])
 TEA_ADD_LIBS([$NSF_BUILD_STUB_LIB_SPEC $NSF_BUILD_LIB_SPEC $GDBM_LIB_SPEC -lgdbm])
 TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([])

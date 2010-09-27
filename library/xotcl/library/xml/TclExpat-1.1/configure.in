@@ -36,11 +36,11 @@ AC_CONFIG_AUX_DIR(../../../config)
 # specify some extra flags
 #--------------------------------------------------------------------
 
-AC_ARG_WITH(xotcl,
-        [  --with-xotcl=DIR_CONTAINING_XOTCLCONFIG_SH
-            absolute path to xotclConfig.sh, 
-           --without-xotcl disables, but this is pointless],
-        [with_xotcl=$withval], [AC_MSG_ERROR([--with-xotcl is required])])
+AC_ARG_WITH(nsf,
+        [  --with-nsf=DIR_CONTAINING_NSFCONFIG_SH
+            absolute path to nsfConfig.sh, 
+           --without-nsf disables, but this is pointless],
+        [with_nsf=$withval], [AC_MSG_ERROR([--with-nsf is required])])
 
 AC_ARG_WITH(expat,
         [  --with-expat=sys assumes a system-wide expat installation, 
@@ -107,11 +107,11 @@ TEA_PREFIX
 TEA_SETUP_COMPILER
 
 #--------------------------------------------------------------------
-# Load the xotclConfig.sh file
+# Load the nsfConfig.sh file
 #--------------------------------------------------------------------
 
-AC_MSG_NOTICE([Reading file ${with_xotcl}/xotclConfig.sh])
-source ${with_xotcl}/xotclConfig.sh
+AC_MSG_NOTICE([Reading file ${with_nsf}/nsfConfig.sh])
+source ${with_nsf}/nsfConfig.sh
 
 #-----------------------------------------------------------------------
 # __CHANGE__
@@ -149,7 +149,7 @@ else
 fi
 
 TEA_ADD_HEADERS([])
-TEA_ADD_INCLUDES([-I${with_xotcl}/generic ${NSF_BUILD_INCLUDE_SPEC}])
+TEA_ADD_INCLUDES([-I${with_nsf}/generic ${NSF_BUILD_INCLUDE_SPEC}])
 TEA_ADD_LIBS([$NSF_BUILD_STUB_LIB_SPEC])
 TEA_ADD_CFLAGS([])
 TEA_ADD_STUB_SOURCES([])

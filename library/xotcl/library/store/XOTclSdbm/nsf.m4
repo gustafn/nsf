@@ -1,4 +1,4 @@
-# xotcl.m4 --
+# nsf.m4 --
 #
 #	This file provides a set of autoconf macros to help TEA-enable
 #	a Tcl extension.
@@ -21,7 +21,7 @@
 # Results:
 #
 #	Adds the following arguments to configure:
-#		--with-xotcl=...
+#		--with-nsf=...
 #
 #	Defines the following vars:
 #		NX_BIN_DIR	Full path to the directory containing
@@ -34,14 +34,14 @@ AC_DEFUN(SC_PATH_NSFCONFIG, [
     # First, look for one uninstalled.
     # the alternative search directory is invoked by --with-tcl
     #
-    if test x"${no_xotcl}" = x ; then
-	# we reset no_xotcl in case something fails here
-	no_xotcl=true
-	AC_ARG_WITH(xotcl, [  --with-xotcl              directory containing xotcl configuration (nsfConfig.sh)], with_nsfconfig=${withval})
-	AC_MSG_CHECKING([for XOTcl configuration])
+    if test x"${no_nsf}" = x ; then
+	# we reset no_nsf in case something fails here
+	no_nsf=true
+	AC_ARG_WITH(nsf, [  --with-nsf              directory containing nsf configuration (nsfConfig.sh)], with_nsfconfig=${withval})
+	AC_MSG_CHECKING([for nsf configuration])
 	AC_CACHE_VAL(ac_cv_c_nsfconfig,[
 
-	    # First check to see if --with-xotcl was specified.
+	    # First check to see if --with-nsf was specified.
 	    if test x"${with_nsfconfig}" != x ; then
 		if test -f "${with_nsfconfig}/nsfConfig.sh" ; then
 		    ac_cv_c_nsfconfig=`(cd ${with_nsfconfig}; pwd)`
@@ -53,16 +53,16 @@ AC_DEFUN(SC_PATH_NSFCONFIG, [
 	    # then check for a private Tcl installation
 	    if test x"${ac_cv_c_nsfconfig}" = x ; then
 		for i in \
-			${srcdir}/../xotcl \
-			`ls -dr ${srcdir}/../xotcl-* 2>/dev/null` \
-			${srcdir}/../../xotcl \
-			`ls -dr ${srcdir}/../../xotcl-* 2>/dev/null` \
-			${srcdir}/../../../xotcl \
-			`ls -dr ${srcdir}/../../../xotcl-* 2>/dev/null` \
-			${srcdir}/../../../../xotcl \
-			`ls -dr ${srcdir}/../../../../xotcl-* 2>/dev/null` \
-			${srcdir}/../../../../../xotcl \
-			`ls -dr ${srcdir}/../../../../../xotcl-* 2>/dev/null` ; do
+			${srcdir}/../nsf \
+			`ls -dr ${srcdir}/../nsf-* 2>/dev/null` \
+			${srcdir}/../../nsf \
+			`ls -dr ${srcdir}/../../nsf-* 2>/dev/null` \
+			${srcdir}/../../../nsf \
+			`ls -dr ${srcdir}/../../../nsf-* 2>/dev/null` \
+			${srcdir}/../../../../nsf \
+			`ls -dr ${srcdir}/../../../../nsf-* 2>/dev/null` \
+			${srcdir}/../../../../../nsf \
+			`ls -dr ${srcdir}/../../../../../nsf-* 2>/dev/null` ; do
 		    if test -f "$i/nsfConfig.sh" ; then
 			ac_cv_c_nsfconfig=`(cd $i; pwd)`
 			break
@@ -84,11 +84,11 @@ AC_DEFUN(SC_PATH_NSFCONFIG, [
 	])
 
 	if test x"${ac_cv_c_nsfconfig}" = x ; then
-	    NX_BIN_DIR="# no XOTcl configs found"
-	    AC_MSG_WARN(Can't find XOTcl configuration definitions)
+	    NX_BIN_DIR="# no nsf configs found"
+	    AC_MSG_WARN(Can't find nsf configuration definitions)
 	    exit 0
 	else
-	    no_xotcl=
+	    no_nsf=
 	    NX_BIN_DIR=${ac_cv_c_nsfconfig}
 	    AC_MSG_RESULT(found $NX_BIN_DIR/nsfConfig.sh)
 	fi

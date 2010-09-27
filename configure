@@ -681,17 +681,6 @@ TCL_DEFS
 TCL_EXTRA_CFLAGS
 TCL_LD_FLAGS
 TCL_SHLIB_LD_LIBS
-TK_VERSION
-TK_BIN_DIR
-TK_SRC_DIR
-TK_LIB_FILE
-TK_LIB_FLAG
-TK_LIB_SPEC
-TK_STUB_LIB_FILE
-TK_STUB_LIB_FLAG
-TK_STUB_LIB_SPEC
-TK_LIBS
-TK_XINCLUDES
 CC
 CFLAGS
 LDFLAGS
@@ -1356,10 +1345,6 @@ Optional Packages:
            --without-aolserver3 disables build of AOLserver 3 module
   --with-actiweb=yes|no,
            --without-actiweb disables actiweb components
-  --with-nxsh=yes|no,
-	   --without-nxsh disables built of nxsh
-  --with-xowish=yes|no,
-	   --without-xowish disables built of xowish
   --with-all=yes|no,
 	   --without-all disables built of all
   --with-tclinclude       directory containing the public Tcl  header files.
@@ -1368,7 +1353,6 @@ Optional Packages:
            --without-expat falls back to the bundled expat installation
   --with-tcl              directory containing tcl configuration
                           (tclConfig.sh)
-  --with-tk               directory containing tk configuration (tkConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files
   --with-celib=DIR        use Windows/CE support library from DIR
 
@@ -1988,22 +1972,6 @@ else
 fi
 
 
-# Check whether --with-nxsh was given.
-if test "${with_nxsh+set}" = set; then
-  withval=$with_nxsh; with_nxsh=$withval
-else
-  with_nxsh=no
-fi
-
-
-# Check whether --with-xowish was given.
-if test "${with_xowish+set}" = set; then
-  withval=$with_xowish; with_xowish=$withval
-else
-  with_xowish=no
-fi
-
-
 # Check whether --with-all was given.
 if test "${with_all+set}" = set; then
   withval=$with_all; with_all=$withval
@@ -2030,8 +1998,6 @@ subdirs=""
 
 if test "$with_all" = yes; then
    with_actiweb=yes
-   with_nxsh=yes
-   with_xowish=yes
    with_gdbm=yes
 fi
 
@@ -2057,9 +2023,6 @@ fi
 
 
 
-if test "$with_tk" = no; then with_xowish="" ; fi
-if test "$with_nxsh" = yes; then NXSH="nxsh" ; else NXSH=""; fi
-if test "$with_xowish" = yes;  then XOWISH="xowish"   ; else XOWISH=""; fi
 
 
 #--------------------------------------------------------------------
@@ -2355,249 +2318,6 @@ _ACEOF
 # check for TK
 #--------------------------------------------------------------------
 
-if test "$with_xowish" = yes; then
-
-    #
-    # Ok, lets find the tk configuration
-    # First, look for one uninstalled.
-    # the alternative search directory is invoked by --with-tk
-    #
-
-    if test x"${no_tk}" = x ; then
-	# we reset no_tk in case something fails here
-	no_tk=true
-
-# Check whether --with-tk was given.
-if test "${with_tk+set}" = set; then
-  withval=$with_tk; with_tkconfig="${withval}"
-fi
-
-	{ echo "$as_me:$LINENO: checking for Tk configuration" >&5
-echo $ECHO_N "checking for Tk configuration... $ECHO_C" >&6; }
-	if test "${ac_cv_c_tkconfig+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-
-
-	    # First check to see if --with-tkconfig was specified.
-	    if test x"${with_tkconfig}" != x ; then
-		case "${with_tkconfig}" in
-		    */tkConfig.sh )
-			if test -f "${with_tkconfig}"; then
-			    { echo "$as_me:$LINENO: WARNING: --with-tk argument should refer to directory containing tkConfig.sh, not to tkConfig.sh itself" >&5
-echo "$as_me: WARNING: --with-tk argument should refer to directory containing tkConfig.sh, not to tkConfig.sh itself" >&2;}
-			    with_tkconfig="`echo "${with_tkconfig}" | sed 's!/tkConfig\.sh$!!'`"
-			fi ;;
-		esac
-		if test -f "${with_tkconfig}/tkConfig.sh" ; then
-		    ac_cv_c_tkconfig="`(cd "${with_tkconfig}"; pwd)`"
-		else
-		    { { echo "$as_me:$LINENO: error: ${with_tkconfig} directory doesn't contain tkConfig.sh" >&5
-echo "$as_me: error: ${with_tkconfig} directory doesn't contain tkConfig.sh" >&2;}
-   { (exit 1); exit 1; }; }
-		fi
-	    fi
-
-	    # then check for a private Tk library
-	    if test x"${ac_cv_c_tkconfig}" = x ; then
-		for i in \
-			../tk \
-			`ls -dr ../tk[8-9].[0-9].[0-9]* 2>/dev/null` \
-			`ls -dr ../tk[8-9].[0-9] 2>/dev/null` \
-			`ls -dr ../tk[8-9].[0-9]* 2>/dev/null` \
-			../../tk \
-			`ls -dr ../../tk[8-9].[0-9].[0-9]* 2>/dev/null` \
-			`ls -dr ../../tk[8-9].[0-9] 2>/dev/null` \
-			`ls -dr ../../tk[8-9].[0-9]* 2>/dev/null` \
-			../../../tk \
-			`ls -dr ../../../tk[8-9].[0-9].[0-9]* 2>/dev/null` \
-			`ls -dr ../../../tk[8-9].[0-9] 2>/dev/null` \
-			`ls -dr ../../../tk[8-9].[0-9]* 2>/dev/null` ; do
-		    if test "${TEA_PLATFORM}" = "windows" \
-			    -a -f "$i/win/tkConfig.sh" ; then
-			ac_cv_c_tkconfig="`(cd $i/win; pwd)`"
-			break
-		    fi
-		    if test -f "$i/unix/tkConfig.sh" ; then
-			ac_cv_c_tkconfig="`(cd $i/unix; pwd)`"
-			break
-		    fi
-		done
-	    fi
-
-	    # on Darwin, check in Framework installation locations
-	    if test "`uname -s`" = "Darwin" -a x"${ac_cv_c_tkconfig}" = x ; then
-		for i in `ls -d ~/Library/Frameworks 2>/dev/null` \
-			`ls -d /Library/Frameworks 2>/dev/null` \
-			`ls -d /Network/Library/Frameworks 2>/dev/null` \
-			`ls -d /System/Library/Frameworks 2>/dev/null` \
-			; do
-		    if test -f "$i/Tk.framework/tkConfig.sh" ; then
-			ac_cv_c_tkconfig="`(cd $i/Tk.framework; pwd)`"
-			break
-		    fi
-		done
-	    fi
-
-	    # check in a few common install locations
-	    if test x"${ac_cv_c_tkconfig}" = x ; then
-		for i in `ls -d ${libdir} 2>/dev/null` \
-			`ls -d ${exec_prefix}/lib 2>/dev/null` \
-			`ls -d ${prefix}/lib 2>/dev/null` \
-			`ls -d /usr/local/lib 2>/dev/null` \
-			`ls -d /usr/contrib/lib 2>/dev/null` \
-			`ls -d /usr/lib 2>/dev/null` \
-			`ls -d /usr/lib64 2>/dev/null` \
-			; do
-		    if test -f "$i/tkConfig.sh" ; then
-			ac_cv_c_tkconfig="`(cd $i; pwd)`"
-			break
-		    fi
-		done
-	    fi
-
-	    # TEA specific: on Windows, check in common installation locations
-	    if test "${TEA_PLATFORM}" = "windows" \
-		-a x"${ac_cv_c_tkconfig}" = x ; then
-		for i in `ls -d C:/Tcl/lib 2>/dev/null` \
-			`ls -d C:/Progra~1/Tcl/lib 2>/dev/null` \
-			; do
-		    if test -f "$i/tkConfig.sh" ; then
-			ac_cv_c_tkconfig="`(cd $i; pwd)`"
-			break
-		    fi
-		done
-	    fi
-
-	    # check in a few other private locations
-	    if test x"${ac_cv_c_tkconfig}" = x ; then
-		for i in \
-			${srcdir}/../tk \
-			`ls -dr ${srcdir}/../tk[8-9].[0-9].[0-9]* 2>/dev/null` \
-			`ls -dr ${srcdir}/../tk[8-9].[0-9] 2>/dev/null` \
-			`ls -dr ${srcdir}/../tk[8-9].[0-9]* 2>/dev/null` ; do
-		    if test "${TEA_PLATFORM}" = "windows" \
-			    -a -f "$i/win/tkConfig.sh" ; then
-			ac_cv_c_tkconfig="`(cd $i/win; pwd)`"
-			break
-		    fi
-		    if test -f "$i/unix/tkConfig.sh" ; then
-			ac_cv_c_tkconfig="`(cd $i/unix; pwd)`"
-			break
-		    fi
-		done
-	    fi
-
-fi
-
-
-	if test x"${ac_cv_c_tkconfig}" = x ; then
-	    TK_BIN_DIR="# no Tk configs found"
-	    { { echo "$as_me:$LINENO: error: Can't find Tk configuration definitions" >&5
-echo "$as_me: error: Can't find Tk configuration definitions" >&2;}
-   { (exit 1); exit 1; }; }
-	else
-	    no_tk=
-	    TK_BIN_DIR="${ac_cv_c_tkconfig}"
-	    { echo "$as_me:$LINENO: result: found ${TK_BIN_DIR}/tkConfig.sh" >&5
-echo "${ECHO_T}found ${TK_BIN_DIR}/tkConfig.sh" >&6; }
-	fi
-    fi
-
-
-    { echo "$as_me:$LINENO: checking for existence of ${TK_BIN_DIR}/tkConfig.sh" >&5
-echo $ECHO_N "checking for existence of ${TK_BIN_DIR}/tkConfig.sh... $ECHO_C" >&6; }
-
-    if test -f "${TK_BIN_DIR}/tkConfig.sh" ; then
-        { echo "$as_me:$LINENO: result: loading" >&5
-echo "${ECHO_T}loading" >&6; }
-	. "${TK_BIN_DIR}/tkConfig.sh"
-    else
-        { echo "$as_me:$LINENO: result: could not find ${TK_BIN_DIR}/tkConfig.sh" >&5
-echo "${ECHO_T}could not find ${TK_BIN_DIR}/tkConfig.sh" >&6; }
-    fi
-
-    # eval is required to do the TK_DBGX substitution
-    eval "TK_LIB_FILE=\"${TK_LIB_FILE}\""
-    eval "TK_STUB_LIB_FILE=\"${TK_STUB_LIB_FILE}\""
-
-    # If the TK_BIN_DIR is the build directory (not the install directory),
-    # then set the common variable name to the value of the build variables.
-    # For example, the variable TK_LIB_SPEC will be set to the value
-    # of TK_BUILD_LIB_SPEC. An extension should make use of TK_LIB_SPEC
-    # instead of TK_BUILD_LIB_SPEC since it will work with both an
-    # installed and uninstalled version of Tcl.
-    if test -f "${TK_BIN_DIR}/Makefile" ; then
-        TK_LIB_SPEC="${TK_BUILD_LIB_SPEC}"
-        TK_STUB_LIB_SPEC="${TK_BUILD_STUB_LIB_SPEC}"
-        TK_STUB_LIB_PATH="${TK_BUILD_STUB_LIB_PATH}"
-    elif test "`uname -s`" = "Darwin"; then
-	# If Tk was built as a framework, attempt to use the libraries
-	# from the framework at the given location so that linking works
-	# against Tk.framework installed in an arbitrary location.
-	case ${TK_DEFS} in
-	    *TK_FRAMEWORK*)
-		if test -f "${TK_BIN_DIR}/${TK_LIB_FILE}"; then
-		    for i in "`cd "${TK_BIN_DIR}"; pwd`" \
-			     "`cd "${TK_BIN_DIR}"/../..; pwd`"; do
-			if test "`basename "$i"`" = "${TK_LIB_FILE}.framework"; then
-			    TK_LIB_SPEC="-F`dirname "$i" | sed -e 's/ /\\\\ /g'` -framework ${TK_LIB_FILE}"
-			    break
-			fi
-		    done
-		fi
-		if test -f "${TK_BIN_DIR}/${TK_STUB_LIB_FILE}"; then
-		    TK_STUB_LIB_SPEC="-L` echo "${TK_BIN_DIR}"  | sed -e 's/ /\\\\ /g'` ${TK_STUB_LIB_FLAG}"
-		    TK_STUB_LIB_PATH="${TK_BIN_DIR}/${TK_STUB_LIB_FILE}"
-		fi
-		;;
-	esac
-    fi
-
-    # eval is required to do the TK_DBGX substitution
-    eval "TK_LIB_FLAG=\"${TK_LIB_FLAG}\""
-    eval "TK_LIB_SPEC=\"${TK_LIB_SPEC}\""
-    eval "TK_STUB_LIB_FLAG=\"${TK_STUB_LIB_FLAG}\""
-    eval "TK_STUB_LIB_SPEC=\"${TK_STUB_LIB_SPEC}\""
-
-    # TEA specific: Ensure windowingsystem is defined
-    if test "${TEA_PLATFORM}" = "unix" ; then
-	case ${TK_DEFS} in
-	    *MAC_OSX_TK*)
-
-cat >>confdefs.h <<\_ACEOF
-#define MAC_OSX_TK 1
-_ACEOF
-
-		TEA_WINDOWINGSYSTEM="aqua"
-		;;
-	    *)
-		TEA_WINDOWINGSYSTEM="x11"
-		;;
-	esac
-    elif test "${TEA_PLATFORM}" = "windows" ; then
-	TEA_WINDOWINGSYSTEM="win32"
-    fi
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # TEA specific:
-
-
-
-#	TEA_PUBLIC_TK_HEADERS
-#	TEA_PATH_X
-fi
 
 #--------------------------------------------------------------------
 # Handle the --prefix=... option by defaulting to what Tcl gave.
@@ -11661,17 +11381,6 @@ TCL_DEFS!$TCL_DEFS$ac_delim
 TCL_EXTRA_CFLAGS!$TCL_EXTRA_CFLAGS$ac_delim
 TCL_LD_FLAGS!$TCL_LD_FLAGS$ac_delim
 TCL_SHLIB_LD_LIBS!$TCL_SHLIB_LD_LIBS$ac_delim
-TK_VERSION!$TK_VERSION$ac_delim
-TK_BIN_DIR!$TK_BIN_DIR$ac_delim
-TK_SRC_DIR!$TK_SRC_DIR$ac_delim
-TK_LIB_FILE!$TK_LIB_FILE$ac_delim
-TK_LIB_FLAG!$TK_LIB_FLAG$ac_delim
-TK_LIB_SPEC!$TK_LIB_SPEC$ac_delim
-TK_STUB_LIB_FILE!$TK_STUB_LIB_FILE$ac_delim
-TK_STUB_LIB_FLAG!$TK_STUB_LIB_FLAG$ac_delim
-TK_STUB_LIB_SPEC!$TK_STUB_LIB_SPEC$ac_delim
-TK_LIBS!$TK_LIBS$ac_delim
-TK_XINCLUDES!$TK_XINCLUDES$ac_delim
 CC!$CC$ac_delim
 CFLAGS!$CFLAGS$ac_delim
 LDFLAGS!$LDFLAGS$ac_delim
@@ -11689,6 +11398,17 @@ EGREP!$EGREP$ac_delim
 MATH_LIBS!$MATH_LIBS$ac_delim
 aol_prefix!$aol_prefix$ac_delim
 PKG_SOURCES!$PKG_SOURCES$ac_delim
+PKG_OBJECTS!$PKG_OBJECTS$ac_delim
+TCL_INCLUDES!$TCL_INCLUDES$ac_delim
+TCL_TOP_DIR_NATIVE!$TCL_TOP_DIR_NATIVE$ac_delim
+TCL_THREADS!$TCL_THREADS$ac_delim
+SHARED_BUILD!$SHARED_BUILD$ac_delim
+AR!$AR$ac_delim
+CELIB_DIR!$CELIB_DIR$ac_delim
+CFLAGS_DEBUG!$CFLAGS_DEBUG$ac_delim
+CFLAGS_OPTIMIZE!$CFLAGS_OPTIMIZE$ac_delim
+CFLAGS_WARNING!$CFLAGS_WARNING$ac_delim
+STLIB_LD!$STLIB_LD$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -11730,17 +11450,6 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
-PKG_OBJECTS!$PKG_OBJECTS$ac_delim
-TCL_INCLUDES!$TCL_INCLUDES$ac_delim
-TCL_TOP_DIR_NATIVE!$TCL_TOP_DIR_NATIVE$ac_delim
-TCL_THREADS!$TCL_THREADS$ac_delim
-SHARED_BUILD!$SHARED_BUILD$ac_delim
-AR!$AR$ac_delim
-CELIB_DIR!$CELIB_DIR$ac_delim
-CFLAGS_DEBUG!$CFLAGS_DEBUG$ac_delim
-CFLAGS_OPTIMIZE!$CFLAGS_OPTIMIZE$ac_delim
-CFLAGS_WARNING!$CFLAGS_WARNING$ac_delim
-STLIB_LD!$STLIB_LD$ac_delim
 SHLIB_LD!$SHLIB_LD$ac_delim
 SHLIB_LD_LIBS!$SHLIB_LD_LIBS$ac_delim
 SHLIB_CFLAGS!$SHLIB_CFLAGS$ac_delim
@@ -11781,7 +11490,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 49; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 38; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

@@ -39,14 +39,6 @@ AC_ARG_WITH(actiweb,
         [  --with-actiweb=yes|no,
            --without-actiweb disables actiweb components],
         [with_actiweb=$withval], [with_actiweb=no])
-AC_ARG_WITH(nxsh,
-        [  --with-nxsh=yes|no,
-	   --without-nxsh disables built of nxsh],
-        [with_nxsh=$withval], [with_nxsh=no])
-AC_ARG_WITH(xowish,
-        [  --with-xowish=yes|no,
-	   --without-xowish disables built of xowish],
-        [with_xowish=$withval], [with_xowish=no])
 AC_ARG_WITH(all,
         [  --with-all=yes|no,
 	   --without-all disables built of all],
@@ -64,8 +56,6 @@ subdirs=""
 
 if test "$with_all" = yes; then
    with_actiweb=yes
-   with_nxsh=yes
-   with_xowish=yes
    with_gdbm=yes
 fi
    
@@ -90,9 +80,6 @@ fi
 
 AC_SUBST(subdirs)
 
-if test "$with_tk" = no; then with_xowish="" ; fi
-if test "$with_nxsh" = yes; then NXSH="nxsh" ; else NXSH=""; fi
-if test "$with_xowish" = yes;  then XOWISH="xowish"   ; else XOWISH=""; fi
 
 
 #--------------------------------------------------------------------
@@ -130,12 +117,6 @@ TEA_LOAD_TCLCONFIG
 # check for TK
 #--------------------------------------------------------------------
 
-if test "$with_xowish" = yes; then
-	TEA_PATH_TKCONFIG
-	TEA_LOAD_TKCONFIG
-#	TEA_PUBLIC_TK_HEADERS
-#	TEA_PATH_X
-fi
 
 #--------------------------------------------------------------------
 # Handle the --prefix=... option by defaulting to what Tcl gave.

@@ -1543,6 +1543,16 @@ _ added option noforwarder to RelationSlots
 - added error handling to all scripted shells
 - removed old xotclsh.in and xowish.in (from apps/utils)
 
+- altered xotcl.m4 to nsf.m4 in 
+   ., 
+   library/xotcl/library/store/XOTclGdbm/, 
+   library/xotcl/library/store/XOTclSdbm/, 
+   library/xotcl/library/xml/TclExpat-1.1/
+
+- removed build flags with-nxsh, with-xowish
+  (since these are scripted now)
+- removed flag --with-tk (not needed anymore)
+
 TODO: 
 - extend coro regression test
 - remove traces of xowish. remove tclAppInt?
