@@ -10940,9 +10940,9 @@ NSF_BUILD_INCLUDE_SPEC="-I${NSF_BUILD_INCLUDE_DIR}"
 # target, defined in Makefile.in
 #--------------------------------------------------------------------
 
-CONFIG_CLEAN_FILES="Makefile nsfConfig.sh library/xotcl/apps/utils/xotclsh library/xotcl/apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix nxsh autom4te.cache/"
+CONFIG_CLEAN_FILES="Makefile nsfConfig.sh library/xotcl/xotclsh library/xotcl/xowish unix/xotcl.spec unix/pkgIndex.unix nxsh nxwish autom4te.cache/"
 
-ac_config_files="$ac_config_files Makefile nsfConfig.sh library/xotcl/apps/utils/xotclsh library/xotcl/apps/utils/xowish unix/xotcl.spec unix/pkgIndex.unix nxsh"
+ac_config_files="$ac_config_files Makefile nsfConfig.sh library/xotcl/xotclsh library/xotcl/xowish unix/xotcl.spec unix/pkgIndex.unix nxsh nxwish"
 
 
 #--------------------------------------------------------------------
@@ -11526,11 +11526,12 @@ do
   case $ac_config_target in
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "nsfConfig.sh") CONFIG_FILES="$CONFIG_FILES nsfConfig.sh" ;;
-    "library/xotcl/apps/utils/xotclsh") CONFIG_FILES="$CONFIG_FILES library/xotcl/apps/utils/xotclsh" ;;
-    "library/xotcl/apps/utils/xowish") CONFIG_FILES="$CONFIG_FILES library/xotcl/apps/utils/xowish" ;;
+    "library/xotcl/xotclsh") CONFIG_FILES="$CONFIG_FILES library/xotcl/xotclsh" ;;
+    "library/xotcl/xowish") CONFIG_FILES="$CONFIG_FILES library/xotcl/xowish" ;;
     "unix/xotcl.spec") CONFIG_FILES="$CONFIG_FILES unix/xotcl.spec" ;;
     "unix/pkgIndex.unix") CONFIG_FILES="$CONFIG_FILES unix/pkgIndex.unix" ;;
     "nxsh") CONFIG_FILES="$CONFIG_FILES nxsh" ;;
+    "nxwish") CONFIG_FILES="$CONFIG_FILES nxwish" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -12113,7 +12114,7 @@ if test "$no_create" != yes; then
 fi
 
 
-chmod +x nxsh
+chmod +x nxsh nxwish library/xotcl/xotclsh library/xotcl/xowish
 echo "==================== building genstubs (needed for Tcl 8.6)"
 make genstubs
 echo "==================== genstubs built"

@@ -263,7 +263,7 @@ pdf:
 	-(cd $(src_doc_dir); htmldoc --webpage --format pdf14  \
 		-f langRef-xotcl.pdf langRef-xotcl.html )
 
-install: install-binaries install-shells install-libraries install-doc install-xotcl-libraries
+install: install-binaries install-shells install-libraries install-doc install-xotcl-shells install-xotcl-libraries
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
@@ -322,6 +322,14 @@ install-xotcl-libraries: install-libraries $(DESTDIR)$(pkglibdir)
 	    rm -rf $(DESTDIR)$(xotcl_pkglibdir)/$$i ; \
 	    $(INSTALL_DATA) $(xotcl_src_lib_dir)/$$i $(DESTDIR)$(xotcl_pkglibdir)/$$i ; \
 	done;
+
+install-xotcl-shells:
+	@if test -f $(xotcl_srcdir)/xotclsh; then \
+		$(INSTALL_PROGRAM) $(xotcl_srcdir)/xotclsh $(DESTDIR)$(bindir); \
+	fi
+	@if test -f $(xotcl_srcdir)/xowish; then \
+		$(INSTALL_PROGRAM) $(xotcl_srcdir)/xowish $(DESTDIR)$(bindir); \
+	fi
 
 install-xotcl-apps: install-xotcl-libraries
 	@echo "Installing Applications to $(DESTDIR)$(xotcl_pkglibdir)/apps/"
@@ -480,8 +488,8 @@ install-shells:
 	@if test -f nxsh; then \
 		$(INSTALL_PROGRAM) nxsh $(DESTDIR)$(bindir); \
 	fi
-	@if test -f xowish; then \
-		$(INSTALL_PROGRAM) xowish $(DESTDIR)$(bindir); \
+	@if test -f nxwish; then \
+		$(INSTALL_PROGRAM) nxwish $(DESTDIR)$(bindir); \
 	fi
 
 #========================================================================
@@ -685,14 +693,8 @@ end:
 	@echo "   export TCLLIBPATH=\"$(TCLLIBPATH)\"   or    " 
 	@echo "   setenv TCLLIBPATH \"$(TCLLIBPATH)\""
 	@echo " and"
-	@if test "x$(NXSH)" = "x" ; then \
-	  echo "   @TCLSH_PROG@" ; \
-	  echo "   package require nx; namespace import -force nx::*" ; \
-	  echo " or" ; \
-	  echo "   put the 'package require' line into your ~/.tclshrc" ; \
-	else \
-	  echo "   ./nxsh" ; \
-	fi
+	@echo "   @TCLSH_PROG@"
+	@echo "   package require nx; namespace import -force nx::*"
 	@echo "************************************************************"
 
 RPMSOURCES=/usr/src/redhat/SOURCES

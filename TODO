@@ -1537,6 +1537,11 @@ _ added option noforwarder to RelationSlots
 - perform invariants checking after cmd execution, not additionally before
 - commented dispatch machinery
 
+- added nxwish.in (scripted replacement for former xowish)
+- added xotclsh.in (scripted replacement for former xotclsh)
+- added xowish.in (scripted replacement for former xowish)
+- added error handling to all scripted shells
+- removed old xotclsh.in and xowish.in (from apps/utils)
 
 TODO: 
 - extend coro regression test
