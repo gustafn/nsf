@@ -22,11 +22,12 @@ proc _ns_savenamespaces {} {
     set nslist ""
     _ns_getnamespaces namespaces
     foreach n $namespaces {
-        if {[string match "::nx*" $n] == 0
+        if {[string match "::nsf*" $n] == 0
 	    && ([catch {::nsf::isobject $n} ret] || $ret == 0)} {
             lappend nslist $n
         }
     }
+  ns_log notice "XOTcl _ns_savenamespaces $nslist"
     foreach n $nslist {
         foreach {ns_script ns_import} [_ns_getscript $n] {
             append script [list namespace eval $n $ns_script] \n
@@ -40,6 +41,8 @@ proc _ns_savenamespaces {} {
         (error: $objects; $::errorInfo)."
         set objects ""
     }
+  ns_log notice "XOTcl save blueprint [string length $objects]"
+
     ns_ictl save [append script \n \
 	"namespace import -force ::xotcl::*" \n \
 	$objects \n $import]
