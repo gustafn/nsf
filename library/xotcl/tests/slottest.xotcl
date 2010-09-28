@@ -513,6 +513,14 @@ set x [Object new -set x 1 -contains {
 ? {llength [[lindex [lsort [$x info children]] 1] info children]} 3
 ? {llength [[lindex [lsort [$x info children]] 2] info children]} 0
 
+
+
+Class Fred -slots { Attribute create a -initcmd { set _ 4 } }
+? {Fred x} ::x
+? {x a 4} 4
+x move y
+? {y a} 4
+
 exit
 
 #puts [Person array get __defaults]

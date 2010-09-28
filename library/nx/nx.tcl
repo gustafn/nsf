@@ -1398,8 +1398,13 @@ namespace eval ::nx {
 	    foreach cmd $cmds {
 	      foreach {op def} $cmd break
 	      #$origin trace remove variable $var $op $def
-	      if {[lindex $def 0] eq $origin} {
+	      set domain [lindex $def 0]
+	      if {$domain eq $origin} {
 		set def [concat $dest [lrange $def 1 end]]
+	      }
+	      if {[::nsf::isobject $domain] && [$domain info has type ::nx::Slot]} {
+		# slot traces are handled already by the slot mechanism
+		continue
 	      }
 	      $dest trace add variable $var $op $def
 	    }
