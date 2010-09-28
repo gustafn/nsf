@@ -6,7 +6,7 @@ package provide nx::serializer 1.0
 # TODO: separate into two packages (i.e. make one XOTcl specific
 # serializer package, and (a) load this package on a load of this
 # package (when ::xotcl::Object is defined), and (b) load it from
-# "xotcl1.tcl", when the serializer is alreaded loaded.
+# "xotcl*.tcl", when the serializer is alreaded loaded (e.g. via nx).
 
 namespace eval ::nx::serializer {
   namespace eval ::xotcl {} ;# just to make mk_pkgIndex happy
@@ -157,7 +157,7 @@ namespace eval ::nx::serializer {
       :ignore [::nsf::current object]
     }
 
-    :method warn msg {
+    :public method warn msg {
       if {[info command ns_log] ne ""} {
         ns_log Notice $msg
       } else {
@@ -174,7 +174,7 @@ namespace eval ::nx::serializer {
       set :serializer($o) $serializer
     }
 
-    :method isExportedObject {o} {
+    :public method isExportedObject {o} {
       # Check, whether o is exported. For exported objects.
       # we export the object tree.
       set oo $o
@@ -186,7 +186,7 @@ namespace eval ::nx::serializer {
         if {![::nsf::isobject $o]} {
           return 0
         }
-        set o [$o info parent]
+        set o [::nsf::dispatch $o ::nsf::methods::object::info::parent]
       }
     }
     
@@ -230,7 +230,7 @@ namespace eval ::nx::serializer {
       return 0
     }
     
-    :method serialize-objects {list all} {
+    :public method serialize-objects {list all} {
       set :post_cmds ""
 
       # register for introspection purposes "trace" under a different
@@ -310,7 +310,7 @@ namespace eval ::nx::serializer {
       return $set
     }
 
-    :class-object method exportMethods list {
+    :public class-object method exportMethods list {
       foreach {o p m} $list {set :exportMethods([list $o $p $m]) 1}
     }
 
@@ -318,11 +318,11 @@ namespace eval ::nx::serializer {
       foreach o $list {set :exportObjects($o) 1}
     }
 
-    :class-object method exportedMethods {} {array names :exportMethods}
-    :class-object method exportedObjects {} {array names :exportObjects}
+    :public class-object method exportedMethods {} {array names :exportMethods}
+    :public class-object method exportedObjects {} {array names :exportObjects}
 
-    :class-object method resetPattern {} {array unset :ignorePattern}
-    :class-object method addPattern {p} {set :ignorePattern($p) 1}
+    :public class-object method resetPattern {} {array unset :ignorePattern}
+    :public class-object method addPattern {p} {set :ignorePattern($p) 1}
     
     :class-object method checkExportedMethods {} {
       foreach k [array names :exportMethods] {
@@ -354,7 +354,7 @@ namespace eval ::nx::serializer {
       }
     }
 
-    :class-object method all {-ignoreVarsRE -ignore} {
+    :public class-object method all {-ignoreVarsRE -ignore} {
 
       # don't filter anything during serialization
       set filterstate [::nsf::configure filter off]
@@ -366,7 +366,7 @@ namespace eval ::nx::serializer {
         set ::xotcl::__filterstate \[::nsf::configure filter off\]
         #::nx::Slot mixin add ::nx::Slot::Nocheck
         ::nsf::configure softrecreate [::nsf::configure softrecreate]
-        ::nsf::setExitHandler [list [::nsf::getExitHandler]]
+        ::nsf::exithandler set [list [::nsf::exithandler get]]
       }]\n
       :resetPattern
       set instances [list]
@@ -436,12 +436,12 @@ namespace eval ::nx::serializer {
     #
     # Methods to be executed at the begin and end of serialize all
     #
-    :method serialize-all-start {s} {
+    :public method serialize-all-start {s} {
       :getExported
       return [:serializeExportedMethods $s]
     }
 
-    :method serialize-all-end {s} {
+    :public method serialize-all-end {s} {
       set cmd ""
       foreach o [list ${:rootClass} ${:rootMetaClass}] {
         append cmd \
@@ -472,7 +472,7 @@ namespace eval ::nx::serializer {
       }
     }
 
-    :method instances {s} {
+    :public method instances {s} {
       # Compute all instances, for which we are responsible and
       # notify serializer object $s
       set instances [list]
@@ -487,7 +487,7 @@ namespace eval ::nx::serializer {
       return $instances
     }
 
-    :method getExported {} {
+    :public method getExported {} {
       #
       # get exported objects and methods from main Serializer for
       # which this object specific serializer is responsible
@@ -629,14 +629,13 @@ namespace eval ::nx::serializer {
     
     set :rootClass ::nx::Object
     set :rootMetaClass ::nx::Class
-    array set :ignorePattern [list "::nx::*" 1 "::xotcl::*" 1]
+    array set :ignorePattern [list "::nsf::*" 1 "::nx::*" 1 "::xotcl::*" 1]
 
-    :method serialize-all-start {s} {
+    :public method serialize-all-start {s} {
+      set intro "package require nx"
       if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::nx::Object"} {
-        set intro "package require nx; namespace import -force ::nx::*"
-      } else {
-        set intro ""
-      }
+        append intro "\n" "namespace import -force ::nx::*"
+      } 
       return "$intro\n[next]"
     }
 
@@ -669,7 +668,7 @@ namespace eval ::nx::serializer {
 
       append cmd " -noinit\n"
       foreach i [lsort [$o ::nsf::methods::object::info::methods]] {
-        append cmd [:method-serialize $o $i "object"] "\n"
+        append cmd [:method-serialize $o $i "class-object"] "\n"
       }
       append cmd \
           [list $o eval [join [:collectVars $o] "\n   "]]\n \
@@ -723,10 +722,10 @@ namespace eval ::nx::serializer {
     set :rootClass ::xotcl::Object
     set :rootMetaClass ::xotcl::Class
     #array set :ignorePattern [list "::xotcl::*" 1]
-    array set :ignorePattern [list "::nsf::*" 1 "::xotcl::*" 1]
+    array set :ignorePattern [list "::nsf::*" 1 "::nx::*" 1 "::xotcl::*" 1]
 
 
-    :method serialize-all-start {s} {
+    :public method serialize-all-start {s} {
       set intro "package require XOTcl 2.0"
       if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::xotcl::Object"} {
         append intro "\nnamespace import -force ::xotcl::*"
@@ -734,7 +733,7 @@ namespace eval ::nx::serializer {
       return "$intro\n::xotcl::Object instproc trace args {}\n[next]"
     }
 
-    :method serialize-all-end {s} {
+    :public method serialize-all-end {s} {
       return "[next]\n::nsf::alias ::xotcl::Object trace -objscope ::trace\n"
     }
 
