@@ -1565,7 +1565,7 @@ TODO:
 - extend coro regression test
 
 - subcmd
-   * handle sucmd for other method factories
+   * handle subcmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
 
 - interfaces in documentation for slots (see for more details 

@@ -4,11 +4,14 @@ package require nx::test
 # just 8.6 or similar
 if {[info command yield] eq ""} return
 
-Test case coro-generator {
-  # ===================================
-  # nx coro
-  # ===================================
+#
+# Test coroutine / yield
+#
+Test case number-generator {
+
   nx::Object create numbers {
+
+    # set instance variable used in coroutine
     set :delta 2
 
     :public method ++ {} {  
@@ -20,12 +23,17 @@ Test case coro-generator {
       }
     }
   }
-  
+
+  # create coroutine
   coroutine nextNumber numbers ++
   set ::j 0
+
+  # use coroutine
   for {set i 0} {$i < 10} {incr i} {
     incr ::j [nextNumber]
   }
+
+  # remove coroutine
   rename nextNumber {}
 
   ? {set ::j} 90
