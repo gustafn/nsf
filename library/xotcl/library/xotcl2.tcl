@@ -600,11 +600,12 @@ namespace eval ::xotcl {
   Object instproc isclass     {{class:substdefault  "[self]"}} {::nsf::is class $class}
   Object instproc ismetaclass {{class:substdefault  "[self]"}} {::nsf::is metaclass $class}
   Object instproc ismixin     {class}  {
-    expr {[::nsf::is class $class] && 
-	  [my ::nsf::methods::object::info::hasmixin $class]}}
+    return [expr {[::nsf::is class $class] && 
+		  [my ::nsf::methods::object::info::hasmixin $class]}]
+  }
   Object instproc istype      {class}  {
-    expr {[::nsf::is class $class] && 
-	  [::nsf::dispatch [self] ::nsf::methods::object::info::hastype $class]}
+    return [expr {[::nsf::is class $class] && 
+		  [::nsf::dispatch [self] ::nsf::methods::object::info::hastype $class]}]
   }
 
   # definitin of "contains", based on nx
