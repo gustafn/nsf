@@ -688,6 +688,12 @@ o1 myset x 101
 t {o1 myset x} 101 "get instvar value via set alias"
 t {o1 myset x 123} 123 "set instvar value via set alias"
 
+Class Fred -slots { Attribute create a -initcmd { set _ 4 } }
+? {Fred x} ::x
+? {x a 4} 4
+x move y
+? {y a} 4
+
 exit
 
 # t {p1 age} 0 "slot read"
