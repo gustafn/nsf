@@ -355,6 +355,11 @@ namespace eval ::nx::serializer {
     }
 
     :public class-object method all {-ignoreVarsRE -ignore} {
+      #
+      # Remove objects which should not be included in the
+      # blueprint. TODO: this is not the best place to do this, since
+      # this the function is defined by OpenACS
+      catch ::xo::at_cleanup
 
       # don't filter anything during serialization
       set filterstate [::nsf::configure filter off]
@@ -483,7 +488,7 @@ namespace eval ::nx::serializer {
         $s setObjectSystemSerializer $i [::nsf::current object]
         lappend instances $i
       }
-      #$s warn "[::nsf::current object] handled instances: $instances"
+      #$s warn "[::nsf::current object] handles instances: $instances"
       return $instances
     }
 
@@ -622,10 +627,10 @@ namespace eval ::nx::serializer {
   }
 
   ###########################################################################
-  # next specific serializer
+  # nx specific serializer
   ###########################################################################
 
-  ObjectSystemSerializer create Serializer2 {
+  ObjectSystemSerializer create nx {
     
     set :rootClass ::nx::Object
     set :rootMetaClass ::nx::Class
@@ -640,11 +645,11 @@ namespace eval ::nx::serializer {
     }
 
     ###############################
-    # next method serialization
+    # nx method serialization
     ###############################
 
     :method methodExists {object kind name} {
-      expr {[$object info method type $name] != ""}
+      expr {[$object info method type $name] ne ""}
     }
 
     :method serializeExportedMethod {object kind name} {
@@ -654,11 +659,15 @@ namespace eval ::nx::serializer {
 
     :method method-serialize {o m modifier} {
       if {![::nsf::is class $o]} {set modifier ""}
+      if {[$o {*}$modifier info method type $m] eq "object"} {
+	# object serialization is fully handled by the serializer
+	return "# [$o {*}$modifier info method definition $m]"
+      }
       return [$o {*}$modifier info method definition $m]
     }
 
     ###############################
-    # next object serialization
+    # nx object serialization
     ###############################
 
     :method Object-serialize {o s} {
@@ -667,7 +676,7 @@ namespace eval ::nx::serializer {
                       [::nsf::dispatch $o -objscope ::nsf::current object]]
 
       append cmd " -noinit\n"
-      foreach i [lsort [$o ::nsf::methods::object::info::methods]] {
+      foreach i [lsort [$o ::nsf::methods::object::info::methods -callprotection all]] {
         append cmd [:method-serialize $o $i "class-object"] "\n"
       }
       append cmd \
@@ -686,13 +695,13 @@ namespace eval ::nx::serializer {
     }
 
     ###############################
-    # next class serialization
+    # nx class serialization
     ###############################
     
     :method Class-serialize {o s} {
 
       set cmd [:Object-serialize $o $s]
-      foreach i [lsort [$o ::nsf::methods::class::info::methods]] {
+      foreach i [lsort [$o ::nsf::methods::class::info::methods -callprotection all]] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
       append cmd \
@@ -717,7 +726,7 @@ namespace eval ::nx::serializer {
   # XOTcl specific serializer
   ###########################################################################
 
-  ObjectSystemSerializer create Serializer1 {
+  ObjectSystemSerializer create xotcl {
     
     set :rootClass ::xotcl::Object
     set :rootMetaClass ::xotcl::Class
@@ -794,16 +803,14 @@ namespace eval ::nx::serializer {
     :method Object-serialize {o s} {
       :collect-var-traces $o $s
       append cmd [list [$o info class] create [::nsf::dispatch $o -objscope ::nsf::current object]]
-      # slots needs to be initialized when optimized, since
-      # parametercmds are not serialized
       append cmd " -noinit\n"
-      foreach i [$o ::nsf::methods::object::info::methods -methodtype scripted] {
+      foreach i [$o ::nsf::methods::object::info::methods -methodtype scripted -callprotection all] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
-      foreach i [$o ::nsf::methods::object::info::methods -methodtype forward] {
+      foreach i [$o ::nsf::methods::object::info::methods -methodtype forward -callprotection all] {
         append cmd [concat [list $o] forward $i [$o info forward -definition $i]] "\n"
       }
-      foreach i [$o ::nsf::methods::object::info::methods -methodtype setter] {
+      foreach i [$o ::nsf::methods::object::info::methods -methodtype setter -callprotection all] {
         append cmd [list $o parametercmd $i] "\n"
       }
       append cmd \
@@ -812,7 +819,6 @@ namespace eval ::nx::serializer {
           [:frameWorkCmd ::nsf::assertion $o object-invar]
 
       $s addPostCmd [:frameWorkCmd ::nsf::relation $o object-filter]
-
       return $cmd
     }
 
@@ -832,7 +838,7 @@ namespace eval ::nx::serializer {
         append cmd [list $o instparametercmd $i] "\n"
       }
       # provide limited support for exporting aliases for XOTcl objects
-      foreach i [$o ::nsf::methods::class::info::methods -methodtype alias] {
+      foreach i [$o ::nsf::methods::class::info::methods -methodtype alias -callprotection all] {
         set xotcl2Def [$o ::nsf::methods::class::info::method definition $i]
         set objscope   [lindex $xotcl2Def end-2]
         set methodName [lindex $xotcl2Def end-1]
