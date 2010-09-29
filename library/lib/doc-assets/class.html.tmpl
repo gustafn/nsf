@@ -27,13 +27,13 @@
 
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
-    <h3 id="properties">Class parameters</h3>
+    <h3 id="properties">Per-class parameters</h3>
     <div class="content">
 [:?var :@class-attribute {
 
       [:for attr ${:@class-attribute} {
        <div rel="yui:property">
-        <h4><a name="property_[$attr name]" property="yui:name">[$attr name]</a>
+        <h4><a name="[$attr href -local]" property="yui:name">[$attr name]</a>
         </h4>
         <div class="detail">
           <div class="description" property="yui:description">
@@ -42,9 +42,9 @@
         </div>
 	
         
-        [:? {[$attr eval {info exists :default}]} {
+        [:?objvar $attr default {
         <div class="default" property="yui:defaultValue">
-          Default Value: [$attr default]
+          Default Value: $default
         </div>        
 	}]
 	
@@ -62,14 +62,14 @@
     </div>
   </div>
 
-  [:let iattrs [:inherited @class-attribute]]
+  [:!let iattrs [:inherited @class-attribute]]
   [:? {$iattrs ne ""} { 
   <div rel="yui:inheritance">                    
                         [:for superclass [dict keys $iattrs]  {
-			[:let attrs [dict get $iattrs $superclass]]
+			[:!let attrs [dict get $iattrs $superclass]]
                             <div class="section field inheritance"
                         rel="yui:superclass"  resource="[$superclass filename].html">
-                                <h4>Object parameters inherited
+                                <h4>Per-class parameters inherited
                                 from <a href="[$superclass filename].html" property="yui:name"
                                 title="[$superclass name]">[$superclass name]</a>:</h4>
                                 <div class="content" rel="yui:properties">
@@ -78,7 +78,7 @@
                                             <span rel="yui:property"
                                             resource="[$superclass filename].html#attribute_[$a name]">                                        
                                             <a class=""
-                                            href="[$superclass filename].html#attribute_[$a name]" property="yui:name"
+                                            href="[$a href]" property="yui:name"
                                             title="[$a name]">[$a name]</a>
                                             </span>
 					    }]
@@ -93,7 +93,7 @@
 
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
-    <h3 id="properties">Object parameters</h3>
+    <h3 id="properties">Per-object parameters</h3>
     <div class="content">
 [:?var :@object-attribute {
 
@@ -131,7 +131,7 @@
 
 <div rel="yui:methods" resource="#methods">
   <div class="section method details">
-    <h3 id="methods">Class methods</h3>
+    <h3 id="methods">Per-class methods</h3>
     <div class="content">
 [:?var :@class-method {
       [:for method ${:@class-method} {
@@ -141,14 +141,14 @@
     </div>
   </div>
 
-  [:let imethods [:inherited @class-method]]
+  [:!let imethods [:inherited @class-method]]
   [:? {$imethods ne ""} { 
   <div rel="yui:inheritance">
                         [:for superclass [dict keys $imethods]  {
-			[:let ms [dict get $imethods $superclass]]
+			[:!let ms [dict get $imethods $superclass]]
                             <div class="section field inheritance"
                         rel="yui:superclass"  resource="[$superclass filename].html">
-                                <h4>Methods inherited
+                                <h4>Per-class methods inherited
                                 from <a href="[$superclass filename].html" property="yui:name"
                                 title="[$superclass name]">[$superclass name]</a>:</h4>
                                 <div class="content" rel="yui:methods">
@@ -157,7 +157,7 @@
                                             <span rel="yui:method"
                                             resource="[$superclass filename].html#method_[$m name]">                                        
                                             <a class=""
-                                            href="[$superclass filename].html#method_[$m name]" property="yui:name"
+                                            href="[$m href]" property="yui:name"
                                             title="[$m name]">[$m name]</a>
                                             </span>
 					    }]
@@ -178,7 +178,7 @@
 [:?var :@object-method {
 <div rel="yui:object-methods" resource="#object-methods">
   <div class="section method details">
-    <h3 id="object-methods">Object methods</h3>
+    <h3 id="object-methods">Per-object methods</h3>
     <div class="content">
       [:for omethod ${:@object-method} {
       <div class="[$omethod @modifier]" rel="yui:object-method" resource="#object-method_[$omethod name]">
@@ -210,7 +210,7 @@
 	    }]
 	    
 	    [:? {[$omethod eval {info exists :@return}]} {
-	    [:let rparam [$omethod @return]]
+	    [:!let rparam [$omethod @return]]
 	    <dl>
               <dt>Returns:
                 <code property="yui:return">

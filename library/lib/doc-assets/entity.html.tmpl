@@ -58,54 +58,8 @@
        			</div>
 			</div>
 			<div class="yui-b">
-			<div class="nav">
-			  [:? {[info exists (@package)]} {
-			<div id="moduleList" class="module">
-			  <h4>Packages</h4>
-			  <ul class="content">
-			  [:for package $(@package) {
-			  [:let css "" ]
-			  [:? {[:info has type ::nx::doc::@package] && [current] eq $package} {
-			  [:let css "selected" ]
-			  }]
-			  <li class="$css"><a href="[$package filename].html" title="[$package name]">[:fit [$package name] 30]</a></li>
-			  }]
-			</ul>
-		      </div>
-		 }]
-
-		 [:? {[info exists (@class)]} {
-		      <div id="classList" class="module">
-			<h4>Classes</h4>
-			<ul class="content">
-			  [:for class $(@class) {
-			  [:let css "" ]
-			  [:? {[:info has type ::nx::doc::@class] && [current] eq $class} {
-			  [:let css "selected" ]
-			  }]
-			  <li class="$css"><a href="[$class filename].html" title="[$class name]">[:fit [$class name] 30]</a></li>
-			  }]
-			</ul>
-		      </div>
-		      }]
-
-		      [:? {[info exists (@command)]} {
-		      <div id="methodsList" class="module">
-			<h4>Commands</h4>
-			<ul class="content">
-			  [:for command $(@command) {
-			  [:let css "" ]
-			  [:? {[:info has type ::nx::doc::@command] && [current] eq $command} {
-			  [:let css "selected"]
-			  }]
-			  <li class="$css"><a href="[$command filename].html" title="[$command name]">[$command name]</a></li>
-			  }]
-			</ul>
-		      </div>
-		      }]
-		      
-		    </div>
-	    </div>
+			  [:include leftbar.html.tmpl]
+			</div>
 	</div>
 	<div id="ft">
         <hr />

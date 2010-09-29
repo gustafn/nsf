@@ -17,11 +17,11 @@
          rel="yui:member"  resource="#">
       <div class="content" rel="yui:properties">
         <code>
-          [:for sub ${:@command} {
+          [:for sub [:!get -sortedby name @command] {
           <span rel="yui:property"
-                resource="#subcommand_[$sub name]">                                        
+                resource="#command_[$sub name]">                                        
             <a class=""
-               href="#subcommand_[$sub name]" property="yui:name"
+               href="#command_[$sub name]" property="yui:name"
                title="[$sub name]">[$sub name]</a>
           </span>
 	  }]
@@ -30,9 +30,9 @@
     </div>
     <hr>
     <div class="content">
-      [:for sub ${:@command} {
+      [:for sub [:!get -sortedby name @command] {
       <div rel="yui:property">
-        <h4><a name="subcommand_[$sub name]" property="yui:name">[$sub name]</a>
+        <h4><a name="command_[$sub name]" property="yui:name">[$sub name]</a>
         </h4>
         <div class="detail">
 	   <code>[:? {[$sub eval {info exists :@return}] && [[$sub @return] spec] ne ""} {&lt;<span property="yui:type">[[$sub @return] spec]</span>&gt;} ]
@@ -42,10 +42,10 @@
 	    </code>
           <div class="description" property="yui:description">
 	    [$sub as_text]
-	    	  [:? {[$sub eval {info exists :@param}]} {
+	    [:?objvar $sub @param {
 	    <dl rel="yui:parameters">
 	    <dt>Subcommand parameters:</dt>
-	    [:for param [$sub @param] {
+	    [:for param  $@param {
 	    <dd rel="yui:parameter">
 	      <code><span property="yui:name">[$param name]</span>
 		[:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
@@ -55,7 +55,7 @@
 	    }]
 	  </dl>
 	  }]
-	    [:? {[$sub eval {info exists :@return}]} {
+	    [:?objvar $sub @return {
 	  <dl>
 	    <dt>Returns:
 	      <code property="yui:return">
@@ -75,7 +75,7 @@
 [:?var :@param {
 <dl rel="yui:parameters">
     <dt>Parameters:</dt>
-    [:for param ${:@param} {
+    [:for param [:!get @param] {
      <dd rel="yui:parameter">
       <code><span property="yui:name">[$param name]</span>
         &lt;<span property="yui:type">[:? {[$param eval {info exists :spec}]} {[$param spec]}]</span>&gt;

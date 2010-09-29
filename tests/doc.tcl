@@ -430,7 +430,7 @@ Test case parsing {
     # @parameter a Provides a first value
     # @parameter b Provides a second value
 
-    # @class.object-method {::Bar foo}
+    # @class.class-object-method {::Bar foo}
     #
     # This describes the per-object foo method
     #
@@ -446,7 +446,7 @@ Test case parsing {
       :attribute attr2
       :attribute attr3
 
-      # @method foo
+      # @.method foo
       #
       # This describes the foo method in the initcmd
       #
@@ -500,8 +500,8 @@ Test case parsing {
   }
 
 
-  set entity [@method id ::Bar object foo]
-  ? [list $i eval [list [@class id ::Bar] @object-method]] $entity
+  set entity [@method id ::Bar class-object foo]
+  ? [list $i eval [list [@class id ::Bar] @class-object-method]] $entity
   ? [list $i eval [list ::nsf::is object $entity]] 1
   ? [list $i eval [list $entity info has type ::nx::doc::@method]] 1
   ? [list $i eval [list $entity as_text]] "This describes the per-object foo method in the method body";
@@ -554,7 +554,7 @@ Test case parsing {
   }
   
   set cbp [CommentBlockParser process $block]
-  ? [list $cbp status ? STYLEVIOLATION] 1
+  ? [list $cbp status ? INVALIDTAG] 1
 #  ? [list $cbp message] "The tag 'object' is not supported for the entity type '@class'"
 
   set block {
@@ -562,7 +562,7 @@ Test case parsing {
   }
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
-  ? [list $cbp message] "Imbalanced tag line specification in '@class.method.attribute attr1 We have an imbalanced specification (the names are underspecified!)'."
+  ? [list $cbp message] "Imbalanced tag line spec: 'class method attribute' vs. 'attr1'"
 
   # For now, we do not verify and use a fixed scope of permissive tag
   # names. So, punctuation errors or typos are most probably reported
@@ -573,7 +573,7 @@ Test case parsing {
   }
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
-  ? [list $cbp message] "Imbalanced tag line specification in '@cla.ss.method.parameter {::C foo p1} We mistyped a tag fragment'."
+  ? [list $cbp message] "Imbalanced tag line spec: 'cla ss method parameter' vs. '::C foo p1'"
 
   set block {
     {@cla,ss.method.parameter {::C foo p1} We mistyped a tag fragment}
@@ -630,7 +630,7 @@ Test case parsing {
 	# initcmd-level descriptions?
       }
       
-      # @.object-attribute attr2 Carries a short desc only
+      # @.class-object-attribute attr2 Carries a short desc only
       :class-object attribute attr2
       
       # @.method foo
@@ -643,7 +643,7 @@ Test case parsing {
 	return [current method]-$p1-[current]
       }]
            
-      # @.object-method.parameter {bar p1}
+      # @.class-object-method.parameter {bar p1}
       #
       # This extended form allows to describe a method parameter with all
       # its structural features!
@@ -663,7 +663,7 @@ Test case parsing {
 	
 	# @..attribute p1
 	# 
-	# This is equivalent to stating "@object-attribute p1"
+	# This is equivalent to stating "@class-object-attribute p1"
 	:attribute p1
       }
       
@@ -677,7 +677,7 @@ Test case parsing {
       #
       # This is equivalent to stating "@child-class.class-attribute {Foo p1}"
       
-      # @.class.object-attribute {Foo p2} Y
+      # @.class.class-object-attribute {Foo p2} Y
       Class create [current]::Foo {
 
 	# @..attribute p1
@@ -687,17 +687,17 @@ Test case parsing {
 	# '@class.object.attribute {::C Foo p1}' from the top-level.
 	:attribute p1
 	
-	# @..object-attribute p2
+	# @..class-object-attribute p2
 	:class-object attribute p2
       }
       
       
-      # @.object-method.sub-method {sub foo}
+      # @.class-object-method.sub-method {sub foo}
       #
       # ISSUE: Should submethods be navigatable through "method" (i.e.,
       # "@method.method.method ...") or "submethod" (i.e.,
       # "@method.submethod.submethod ...")? ISSUE: Should it be sub* with
-      # "-" (to correspond to "@object-method", "@class-method")? Also, we
+      # "-" (to correspond to "@class-object-method", "@class-method")? Also, we
       # could allow both (@sub-method is the attribute name, @method is a
       # forwarder in the context of an owning @method object!)
       # 
@@ -717,13 +717,13 @@ Test case parsing {
       #
       # ISSUE: Is it correct to say the sub appears as per-object method
       # and so do its submethods? Or is it misleading to document it that
-      # way? Having an "@object-submethod" would not make much sense to
+      # way? Having an "@class-object-submethod" would not make much sense to
       # me?!
       :alias "sub bar" $barHandle 
 
-      # @.object-method sub A brief desc
+      # @.class-object-method sub A brief desc
 
-      # @.object-method {"sub foo2"}
+      # @.class-object-method {"sub foo2"}
       #
       # could allow both (@sub-method is the attribute name, @method is a
       # forwarder in the context of an owning @method object!)
@@ -765,13 +765,13 @@ Test case parsing {
 
   set entity [@object id ::C::foo]
   ? [list ::nsf::isobject $entity] 0
-  set entity [@attribute id $entity object p1]
+  set entity [@attribute id $entity class-object p1]
   ? [list ::nsf::isobject $entity] 0
   #  ? [list $entity info has type ::nx::doc::@attribute] 1
   #  ? [list $entity as_text] ".. is overruled by a long one ..."
 
-  # --testing-- @object-attribute attr2 (its non-existance)
-  set entity [@attribute id [@class id ::C] object attr2]
+  # --testing-- @class-object-attribute attr2 (its non-existance)
+  set entity [@attribute id [@class id ::C] class-object attr2]
   ? [list ::nsf::isobject $entity] 0
   # --testing-- @child-class Foo (its non-existance)
   set entity [@class id ::C::Foo]
@@ -779,15 +779,15 @@ Test case parsing {
   # --testing -- @method foo (its non-existance)
   set entity [@method id ::C class foo]
   ? [list ::nsf::isobject $entity] 0
-  # --testing-- @object-method.parameter {bar p1} (its non-existance)
-  set entity [@parameter id [@method id ::C object bar] "" p1]
+  # --testing-- @class-object-method.parameter {bar p1} (its non-existance)
+  set entity [@parameter id [@method id ::C class-object bar] "" p1]
   ? [list ::nsf::isobject $entity] 0
   # --testing-- @child-object.attribute {foo p1} (its non-existance)
   set cl [@class id ::C::Foo]
   ? [list ::nsf::isobject $entity] 0
   set entity [@attribute id $cl class p1]
   ? [list ::nsf::isobject $entity] 0
-  set entity [@attribute id $cl object p2]
+  set entity [@attribute id $cl class-object p2]
   ? [list ::nsf::isobject $entity] 0
 
   #
@@ -815,15 +815,15 @@ Test case parsing {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "'foo' needs to be defined before referencing any of its parts!"; # still empty!
-  set entity [@attribute id $entity object p1]
+  set entity [@attribute id $entity class-object p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "The first element in the name list is resolved into a fully qualified (absolute) entity, based on the object owning the initcmd!"
 
   # b) newly added ...
 
-  # --testing-- @object-attribute attr2
-  set entity [@attribute id [@class id ::C] object attr2]
+  # --testing-- @class-object-attribute attr2
+  set entity [@attribute id [@class id ::C] class-object attr2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "Carries a short desc only";
@@ -842,10 +842,10 @@ Test case parsing {
   set entity [@method id ::C class foo]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] ""
-  # --testing-- @object-method.parameter {bar p1} (its non-existance) It
+  # --testing-- @class-object-method.parameter {bar p1} (its non-existance) It
   # still cannot exist as a documented entity, as the class-object method
   # has not been initialised before!
-  set entity [@parameter id [@method id ::C object bar] "" p1]
+  set entity [@parameter id [@method id ::C class-object bar] "" p1]
   ? [list ::nsf::isobject $entity] 0
   # --testing-- @child-class.attribute {foo p1} (its non-existance)
   # --testing-- @child-class.object-attribute {foo p2} (its non-existance)
@@ -854,7 +854,7 @@ Test case parsing {
   set entity [@attribute id $cl class p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] {This is equivalent to stating "@child-class.class-attribute {Foo p1}"}
-  set entity [@attribute id $cl object p2]
+  set entity [@attribute id $cl class-object p2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "Y"
 
@@ -866,11 +866,11 @@ Test case parsing {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "Only description available here ..."
 
-  set entity [@method id ::C object sub]
+  set entity [@method id ::C class-object sub]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "A brief desc"
 
-  set entity [@method id ::C object sub::foo2]
+  set entity [@method id ::C class-object sub::foo2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@method] 1
   ? [list $entity as_text] "could allow both (@sub-method is the attribute name, @method is a forwarder in the context of an owning @method object!)"
@@ -915,10 +915,10 @@ Test case parsing {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "Adding a line for the first time (not processed in the initcmd phase!)"; # still empty!
-  set entity [@attribute id $entity object p1]
+  set entity [@attribute id $entity class-object p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
-  ? [list $entity as_text] {This is equivalent to stating "@object-attribute p1"}
+  ? [list $entity as_text] {This is equivalent to stating "@class-object-attribute p1"}
 
   doc analyze_initcmd -parsing_level 2 @class ::C::Foo [::C::Foo eval {set :__initcmd}]
   doc process=@class [@class id ::C::Foo]
@@ -928,7 +928,7 @@ Test case parsing {
   set entity [@attribute id $cl class p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] {This is equivalent to stating "@class-attribute p1"; or '@class.object.attribute {::C Foo p1}' from the top-level.}
-  set entity [@attribute id $cl object p2]
+  set entity [@attribute id $cl class-object p2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] ""
 
@@ -980,12 +980,14 @@ Test case parsing {
 		     -version 1.0.0a \
 		     -@namespace "::nsf"]
 
-    doc process -noeval true generic/predefined.tcl
+    doc process -noeval true generic/nsf.tcl
 
     ::nx::doc::make doc \
     	-renderer ::nx::doc::NxDocTemplateData \
     	-outdir [::nsf::tmpdir] \
     	-project $project
+
+    #puts stderr NSF=[info commands ::nx::doc::entities::command::nsf::*]
 
     puts stderr TIMING=[time {
     set project [::nx::doc::@project new \

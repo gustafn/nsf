@@ -1,6 +1,6 @@
 <div class="${:@modifier}" rel="yui:method" resource="#method_${:name}">
   <h4>
-          <a name="method_${:name}">${:name}</a></h4>
+          <a name="[:href -local]">${:name}</a></h4>
         <div class="detail" >
           <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[[${:@return} spec] spec]</span>&gt;} ]
 	    <strong property="yui:name">${:name}</strong>
@@ -24,10 +24,10 @@
 	    [$sm render -initscript [list set supermethod [current]] submethod.html.tmpl]
 	    }]
 	    } - {
-	    [:? {[info exists :@parameter]} {
+	    [:? {[info exists :@param]} {
 	    <dl rel="yui:parameters">
               <dt>Method parameters:</dt>
-	      [:for param ${:@parameter} {
+	      [:for param ${:@param} {
 	      <dd rel="yui:parameter">
                 <code><span property="yui:name">[$param name]</span>
                 [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
@@ -44,7 +44,7 @@
 	    }]
 	    
 	    [:? {[info exists :@return]} {
-	    [:let rparam ${:@return}]
+	    [:!let rparam ${:@return}]
 	    <dl>
               <dt>Returns:
                 <code property="yui:return">
