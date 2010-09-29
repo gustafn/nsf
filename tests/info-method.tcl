@@ -29,23 +29,23 @@ Test case base {
   foreach m [lsort [C info methods -callprotection all]] {
     ? [subst -nocommands {lsort [c1 info lookup methods $m]}] $m
   }
-  ? {C info method definition a} "::C alias a ::set"
+  ? {C info method definition a} "::C public alias a ::set"
   ? {c1 info lookup method a} "::nsf::classes::C::a"
   ? {c1 info lookup method addOne} "::nsf::classes::C::addOne"
   ? {c1 info lookup method m} "::nsf::classes::C::m"
   ? {c1 info lookup method s} "::nsf::classes::C::s"
   c1 method foo {} {puts foo}
-  ? {c1 info method definition foo} "::c1 method foo {} {puts foo}"
+  ? {c1 info method definition foo} "::c1 public method foo {} {puts foo}"
   ? {c1 info lookup method foo} "::c1::foo"
   
   ? {C info method handle m} "::nsf::classes::C::m"
   ? {C class-object info method handle mpo} "::C::mpo"
   
-  ? {C info method definition m} {::C method m x {return proc-[self proc]}}
-  ? {C info method def m} {::C method m x {return proc-[self proc]}}
-  ? {C class-object info method definition mpo} {::C class-object method mpo {} {return instproc-[self proc]}}
+  ? {C info method definition m} {::C public method m x {return proc-[self proc]}}
+  ? {C info method def m} {::C public method m x {return proc-[self proc]}}
+  ? {C class-object info method definition mpo} {::C public class-object method mpo {} {return instproc-[self proc]}}
   ? {C info method definition m-with-assertions} \
-      {::C method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
+      {::C public method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
   ? {C info method parameter m} {x}
   ? {nx::Class info method parameter method} \
       {name arguments body -precondition -postcondition}
@@ -54,15 +54,15 @@ Test case base {
   # raises currently an error
   ? {catch {C info method parameter a}} 1
   
-  ? {C info method definition addOne} "::C forward addOne expr 1 +"
-  ? {C class-object info method definition add1} "::C class-object forward add1 expr 1 +"
-  ? {C class-object info method definition fpo} "::C class-object forward fpo ::o"
+  ? {C info method definition addOne} "::C public forward addOne expr 1 +"
+  ? {C class-object info method definition add1} "::C public class-object forward add1 expr 1 +"
+  ? {C class-object info method definition fpo} "::C public class-object forward fpo ::o"
   
-  ? {C info method definition s} "::C setter s"
-  ? {C class-object info method definition spo} "::C class-object setter spo"
+  ? {C info method definition s} "::C public setter s"
+  ? {C class-object info method definition spo} "::C public class-object setter spo"
   
-  ? {C info method definition a} "::C alias a ::set"
-  ? {C class-object info method definition apo} "::C class-object alias apo ::puts"
+  ? {C info method definition a} "::C public alias a ::set"
+  ? {C class-object info method definition apo} "::C public class-object alias apo ::puts"
   
   ? {::nx::Object info lookup methods -source application} ""
   ? {::nx::Class info lookup methods -source application} ""
@@ -254,37 +254,37 @@ Test case info-submethod {
   }
 
   # query definition on submethod
-  ? {o info method definition "foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
+  ? {o info method definition "foo b"}  {::o public method {foo b} {x:int y:upper} {return b}}
 
   # query definition on submethod with handle
-  ? {o info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
+  ? {o info method definition "::o::foo b"}  {::o public method {foo b} {x:int y:upper} {return b}}
 
   # query definition on submethod with handle
-  ? {o info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
+  ? {o info method definition "::o::foo b"}  {::o public method {foo b} {x:int y:upper} {return b}}
 
   # query definition on submethod with handle called on different object
-  ? {o2 info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
+  ? {o2 info method definition "::o::foo b"}  {::o public method {foo b} {x:int y:upper} {return b}}
 
   # query definition on handle of ensemble object called on different object
-  ? {o2 info method definition "::o::foo::b"} {::o::foo method b {x:int y:upper} {return b}}
+  ? {o2 info method definition "::o::foo::b"} {::o::foo public method b {x:int y:upper} {return b}}
 
   # query definition on submethod with handle called on class
-  ? {o2 info method definition "::o::foo b"}  {::o method {foo b} {x:int y:upper} {return b}}
+  ? {o2 info method definition "::o::foo b"}  {::o public method {foo b} {x:int y:upper} {return b}}
 
   # query definition on handle of ensemble object called on class
-  ? {o2 info method definition "::o::foo::b"} {::o::foo method b {x:int y:upper} {return b}}
+  ? {o2 info method definition "::o::foo::b"} {::o::foo public method b {x:int y:upper} {return b}}
 
   # query definition on submethod of class
   ? {::nx::Object info method definition "info lookup methods"} \
-      {::nx::Object alias {info lookup methods} ::nsf::methods::object::info::lookupmethods}
+      {::nx::Object public alias {info lookup methods} ::nsf::methods::object::info::lookupmethods}
 
   # query definition on submethod of class with handle
   ? {o info method definition "::nsf::classes::nx::Object::info lookup methods"} \
-      {::nx::Object alias {info lookup methods} ::nsf::methods::object::info::lookupmethods}
+      {::nx::Object public alias {info lookup methods} ::nsf::methods::object::info::lookupmethods}
 
   # query definition on handle of ensemble object of class
   ? {o info method definition "::nx::Object::slot::__info::lookup::methods"} \
-      {::nx::Object::slot::__info::lookup alias methods ::nsf::methods::object::info::lookupmethods}
+      {::nx::Object::slot::__info::lookup public alias methods ::nsf::methods::object::info::lookupmethods}
 
   ? {lsort [o info method submethods dummy]} ""
   ? {lsort [o info method submethods foo]} "a b"
@@ -302,21 +302,21 @@ Test case info-submethod {
   ? {C info method handle "bar a"} {::nsf::classes::C::bar a}
   ? {C info method handle "bar baz y"} {::nsf::classes::C::bar baz y}
 
-  ? {C info method definition "bar b"} {::C method {bar b} {x:int y:upper} {return b}}
-  ? {C info method definition "::nsf::classes::C::bar b"}  {::C method {bar b} {x:int y:upper} {return b}}
-  ? {o2 info method definition "::nsf::classes::C::bar b"} {::C method {bar b} {x:int y:upper} {return b}}
+  ? {C info method definition "bar b"} {::C public method {bar b} {x:int y:upper} {return b}}
+  ? {C info method definition "::nsf::classes::C::bar b"}  {::C public method {bar b} {x:int y:upper} {return b}}
+  ? {o2 info method definition "::nsf::classes::C::bar b"} {::C public method {bar b} {x:int y:upper} {return b}}
 
   ? {C class-object info method handle "foo"}   {::C::foo}
   ? {C class-object info method handle "foo x"} {::C::foo x}
 
-  ? {C class-object info method definition "::C::foo x"} {::C class-object method {foo x} z:int {return z}}
-  ? {C info method definition "::C::foo x"}        {::C class-object method {foo x} z:int {return z}}
-  ? {o2 info method definition "::C::foo x"}       {::C class-object method {foo x} z:int {return z}}
+  ? {C class-object info method definition "::C::foo x"} {::C public class-object method {foo x} z:int {return z}}
+  ? {C info method definition "::C::foo x"}        {::C public class-object method {foo x} z:int {return z}}
+  ? {o2 info method definition "::C::foo x"}       {::C public class-object method {foo x} z:int {return z}}
   
   ? {C info method definition "bar baz y"} \
-      {::C method {bar baz y} {x:int y:upper} {return y}}
+      {::C public method {bar baz y} {x:int y:upper} {return y}}
   ? {C info method definition "::nsf::classes::C::bar baz y"} \
-      {::C method {bar baz y} {x:int y:upper} {return y}}
+      {::C public method {bar baz y} {x:int y:upper} {return y}}
 
   ? {nx::Object info method parameter "info lookup methods"} \
       "-methodtype -callprotection -source -nomixins -incontext pattern:optional"

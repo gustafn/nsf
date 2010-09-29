@@ -651,15 +651,15 @@ namespace eval ::xotcl {
     #puts "method_handle_to_xotcl raw definition '$methodHandle' // $definition"
     if {$definition ne ""} {
       set obj [lindex $definition 0]
-      set modifier [lindex $definition 1]
+      set modifier [lindex $definition 2]
 	if {$modifier eq "object"} {
         set prefix ""
-        set kind [lindex $definition 2]
-        set name [lindex $definition 3]
+        set kind [lindex $definition 3]
+        set name [lindex $definition 4]
       } else {
 	set prefix [expr {[::nsf::is class $obj] ? "inst" : ""}]
         set kind $modifier
-        set name [lindex $definition 2]
+        set name [lindex $definition 3]
       }
       if {$kind eq "method"} {
         set kind proc
@@ -716,9 +716,9 @@ namespace eval ::xotcl {
   }
 
   # keep old object interface for XOTcl
-  Object proc unsetExitHandler {} {::nsf::unsetExitHandler $newbody}
-  Object proc setExitHandler   {newbody} {::nsf::setExitHandler $newbody}
-  Object proc getExitHandler   {} {::nsf::getExitHandler}
+  Object proc unsetExitHandler {} {::nsf::exithandler unset}
+  Object proc setExitHandler   {newbody} {::nsf::exithandler set $newbody}
+  Object proc getExitHandler   {} {::nsf::exithandler get}
 
   # resue some definitions from next scripting
   ::nsf::alias ::xotcl::Object copy ::nsf::classes::nx::Object::copy

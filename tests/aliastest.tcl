@@ -7,10 +7,11 @@ Test case alias-preliminaries {
   
   # The system methods of Object are either alias or forwarders
   ? {lsort [::nx::ObjectParameterSlot info methods -methodtype alias]} {assign get}
-  ? {::nx::ObjectParameterSlot info method definition get} "::nx::ObjectParameterSlot alias get ::nsf::setvar"
+  ? {::nx::ObjectParameterSlot info method definition get} \
+      "::nx::ObjectParameterSlot public alias get ::nsf::setvar"
 
   # define an alias and retrieve its definition
-  set cmd "::nx::Object alias -objscope set ::set"
+  set cmd "::nx::Object public alias -objscope set ::set"
   eval $cmd
   ? {Object info method definition set} $cmd
   
@@ -25,7 +26,7 @@ Test case alias-simple {
   Class create Foo
   ::nsf::alias ::Foo foo ::nsf::classes::Base::foo
   
-  ? {Foo info method definition foo} "::Foo alias foo ::nsf::classes::Base::foo"
+  ? {Foo info method definition foo} "::Foo public alias foo ::nsf::classes::Base::foo"
   
   Foo create f1
   ? {f1 foo} 1
@@ -79,7 +80,7 @@ Test case alias-chaining {
   ::nsf::alias S BAR ::nsf::classes::T::FOO
   
   ? {T info methods -methodtype alias} "FOO"
-  ? {T info method definition FOO} "::T alias FOO ::nsf::classes::T::foo"
+  ? {T info method definition FOO} "::T public alias FOO ::nsf::classes::T::foo"
   ? {lsort [T info methods]} {FOO foo}
   ? {S info methods} {BAR}
   T method FOO {} {}
@@ -87,7 +88,7 @@ Test case alias-chaining {
   ? {S info methods} {BAR}
   ? {s BAR} ::S->foo
   ? {t foo} ::T->foo
-  ? {S info method definition BAR} "::S alias BAR ::nsf::classes::T::FOO"
+  ? {S info method definition BAR} "::S public alias BAR ::nsf::classes::T::FOO"
   
   
   T method foo {} {}
@@ -113,7 +114,7 @@ Test case alias-chaining {
   ? {lsort [T class-object info methods -methodtype alias]} {BAR FOO ZAP}
   ? {lsort [T class-object info methods]} {BAR FOO ZAP bar}
   ? {t foo} ::T->foo
-  ? {T class-object info method definition ZAP} {::T class-object alias ZAP ::T::BAR}
+  ? {T class-object info method definition ZAP} {::T public class-object alias ZAP ::T::BAR}
   
   ? {T FOO} ->foo
   ? {T BAR} ->foo
@@ -298,13 +299,13 @@ proc ::foo args {;}
 ? {info exists ::nsf::alias(::C,FOO,0)} 1
 ? {array get ::nsf::alias ::o,FOO,1} "::o,FOO,1 ::foo"
 ? {array get ::nsf::alias ::C,FOO,0} "::C,FOO,0 ::foo"
-? {o info method definition FOO} "::o alias FOO ::foo"
-? {C info method definition FOO} "::C alias FOO ::foo"
+? {o info method definition FOO} "::o public alias FOO ::foo"
+? {C info method definition FOO} "::C public alias FOO ::foo"
 
 ::nsf::alias o FOO ::o::bar
 ? {info exists ::nsf::alias(::o,FOO,1)} 1
 ? {array get ::nsf::alias ::o,FOO,1} "::o,FOO,1 ::o::bar"
-? {o info method definition FOO} "::o alias FOO ::o::bar"
+? {o info method definition FOO} "::o public alias FOO ::o::bar"
 
 # AliasDelete in XOTclRemoveObjectMethod
 o method FOO {} {}
@@ -379,7 +380,7 @@ rename ::foo ::foo2
 ? {info exists ::nsf::alias(::C,FOO,0)} 1
 ? {C info methods -methodtype alias} FOO
 ? {c FOO} ::c->foo2
-? {C info method definition FOO} "::C alias FOO ::foo"; # should be ::foo2 (!)
+? {C info method definition FOO} "::C public alias FOO ::foo"; # should be ::foo2 (!)
 
 
 #

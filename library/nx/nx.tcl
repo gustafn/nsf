@@ -382,7 +382,7 @@ namespace eval ::nx {
 	foreach alias $aliases {
 	  set def [::nsf::dispatch $grandparent ::nsf::methods::class::info::method definition $alias]
 	  if {[lindex $def end] eq $self} {
-	    return [list name [lindex $def 2] regobj <obj>]
+	    return [list name [lindex $def 3] regobj <obj>]
 	  }
 	}
       } 
@@ -1161,12 +1161,12 @@ namespace eval ::nx {
       # 
       set assignInfo [:info method definition [:info lookup method assign]]
       #puts stderr "OPTIMIZER assign=$assignInfo//[lindex $assignInfo end]//[:info precedence]"
-      if {$assignInfo ne "::nx::ObjectParameterSlot alias assign ::nsf::setvar" &&
+      if {$assignInfo ne "::nx::ObjectParameterSlot public alias assign ::nsf::setvar" &&
           [lindex $assignInfo end] ne {::nsf::setvar $obj $var $value} } return
-      #if {$assignInfo ne "::nx::ObjectParameterSlot alias assign ::nsf::setvar"} return
+      #if {$assignInfo ne "::nx::ObjectParameterSlot public alias assign ::nsf::setvar"} return
 
       set getInfo [:info method definition [:info lookup method get]]
-      if {$getInfo ne "::nx::ObjectParameterSlot alias get ::nsf::setvar"} return
+      if {$getInfo ne "::nx::ObjectParameterSlot public alias get ::nsf::setvar"} return
 
       array set "" [:toParameterSyntax ${:name}]
       if {$(mparam) ne ""} {

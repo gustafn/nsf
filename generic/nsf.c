@@ -4862,7 +4862,7 @@ FilterRemoveDependentFilterCmds(NsfClass *cl, NsfClass *removeClass) {
 static Tcl_Obj *
 MethodHandleObj(NsfObject *object, int withPer_object, CONST char *methodName) {
   Tcl_Obj *resultObj;
-
+  
   if (*methodName == ':') {
     /*
      * if we have a methodname starting with ":" and we made it so far,
@@ -11077,8 +11077,14 @@ AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientDa
 static void
 AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *registerCmdName,
                          NsfObject *object, CONST char *methodName, Tcl_Command cmd, 
-                         int withObjscope, int withPer_object) {
+                         int withObjscope, int withPer_object, int withProtection) {
   Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
+  if (withProtection) {
+    Tcl_ListObjAppendElement(interp, listObj, 
+			     Tcl_Command_flags(cmd) & NSF_CMD_PROTECTED_METHOD 
+			     ? Tcl_NewStringObj("protected", 9)
+			     : Tcl_NewStringObj("public", 6));
+  }
   if (withPer_object) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class-object", 12));
   }
@@ -11099,7 +11105,7 @@ ListMethod(Tcl_Interp *interp,
 	   CONST char *methodName, Tcl_Command cmd, 
            int subcmd, int withPer_object) {
 
-  /*fprintf(stderr, "ListMethodtype %s %s %p subcmd %d per-object %d\n",
+  /*fprintf(stderr, "ListMethod %s %s cmd %p subcmd %d per-object %d\n",
     objectName(regObject), methodName, cmd, subcmd, withPer_object);*/
 
   if (!cmd) {
@@ -11201,7 +11207,7 @@ ListMethod(Tcl_Interp *interp,
           resultObj = Tcl_NewListObj(0, NULL);
           /* todo: don't hard-code registering command name "method" / NSF_METHOD */
           AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_METHOD], 
-                                   regObject, methodName, cmd, 0, outputPerObject);
+                                   regObject, methodName, cmd, 0, outputPerObject, 1);
           ListCmdParams(interp, cmd, methodName, 0);
           Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
           ListProcBody(interp, GetTclProcFromCommand(cmd), methodName);
@@ -11241,7 +11247,7 @@ ListMethod(Tcl_Interp *interp,
             resultObj = Tcl_NewListObj(0, NULL);
             /* todo: don't hard-code registering command name "forward" / NSF_FORWARD*/
             AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_FORWARD], 
-                                     regObject, methodName, cmd, 0, outputPerObject);
+                                     regObject, methodName, cmd, 0, outputPerObject, 1);
             AppendForwardDefinition(interp, resultObj, clientData);
             Tcl_SetObjResult(interp, resultObj);
             break;
@@ -11263,7 +11269,7 @@ ListMethod(Tcl_Interp *interp,
 
         AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_SETTER], regObject, 
                                  cd->paramsPtr ? ObjStr(cd->paramsPtr->paramObj) : methodName, 
-                                 cmd, 0, outputPerObject);
+                                 cmd, 0, outputPerObject, 1);
         Tcl_SetObjResult(interp, resultObj);        
         break;
       }
@@ -11305,7 +11311,7 @@ ListMethod(Tcl_Interp *interp,
             Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
             /* todo: don't hard-code registering command name "alias" / NSF_ALIAS */
             AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_ALIAS], 
-                                     regObject, methodName, cmd, nrElements!=1, outputPerObject);
+                                     regObject, methodName, cmd, nrElements!=1, outputPerObject, 1);
             Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
             Tcl_SetObjResult(interp, resultObj);
             break;
@@ -11331,7 +11337,7 @@ ListMethod(Tcl_Interp *interp,
 	      */
 	      AppendMethodRegistration(interp, resultObj, "create",
 				       &(subObject->cl)->object,
-				       ObjStr(subObject->cmdName), cmd, 0, 0);
+				       ObjStr(subObject->cmdName), cmd, 0, 0, 0);
 	      /*
 	      AppendMethodRegistration(interp, resultObj, "subobject",
 				       object, methodName, cmd, 0, 0);
@@ -15136,8 +15142,9 @@ NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
   Tcl_DStringInit(dsPtr);
   cmd = ResolveMethodName(interp, object->nsPtr, methodNameObj, 
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-  /*fprintf(stderr, "object %p regObject %p defObject %p fromClass %d\n",
-    object,regObject,defObject,fromClassNS);*/
+  /*fprintf(stderr, 
+	  "NsfObjInfoMethodMethod method %s object %p regObject %p defObject %p fromClass %d\n",
+	  ObjStr(methodNameObj), object,regObject,defObject,fromClassNS);*/
   result = ListMethod(interp, 
 		      regObject ? regObject : object, 
 		      defObject ? defObject : object, 
@@ -15382,8 +15389,8 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
   Tcl_DStringInit(dsPtr);
   cmd = ResolveMethodName(interp, class->nsPtr, methodNameObj, 
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-  /*fprintf(stderr, "object %p regObject %p defObject %p fromClass %d\n",
-	  &class->object,regObject,defObject,fromClassNS);*/
+  /*fprintf(stderr, "NsfClassInfoMethodMethod object %p regObject %p defObject %p fromClass %d\n",
+    &class->object,regObject,defObject,fromClassNS);*/
   result = ListMethod(interp, 
 		      regObject ? regObject : &class->object, 
 		      defObject ? defObject : &class->object, 

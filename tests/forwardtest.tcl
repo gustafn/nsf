@@ -139,7 +139,7 @@ Test case introspection {
     ? {C info forward} [list Info]
 
     # get the definition of a instforwarder
-    ? {C info method definition Info} [list ::C forward Info -methodprefix @ Info %1 %self]
+    ? {C info method definition Info} [list ::C public forward Info -methodprefix @ Info %1 %self]
 
     # check introspection for objects
     Object create obj {

@@ -1051,10 +1051,10 @@ Test case setters {
   
   ? {::nsf::setter o a} "::o::a"
   ? {::nsf::setter C c} "::nsf::classes::C::c"
-  ? {o info method definition a} "::o setter a"
+  ? {o info method definition a} "::o public setter a"
   ? {o info method parameter a} "a"
   ? {o info method args a} "a"
-  ? {C info method definition c} "::C setter c"
+  ? {C info method definition c} "::C public setter c"
   ? {o a 1} "1"
   
   ? {::nsf::setter o a:integer} "::o::a"
@@ -1062,12 +1062,12 @@ Test case setters {
   ? {::nsf::setter o o:object} "::o::o"
   
   ? {o info method handle ints} "::o::ints"
-  ? {o info method definition ints} "::o setter ints:integer,multivalued"
+  ? {o info method definition ints} "::o public setter ints:integer,multivalued"
   ? {o info method parameter ints} "ints:integer,multivalued"
   ? {o info method args ints} "ints"
   
   ? {o info method handle o} "::o::o"
-  ? {o info method definition o} "::o setter o:object"
+  ? {o info method definition o} "::o public setter o:object"
   ? {o info method parameter o} "o:object"
   ? {o info method args o} "o"
 
