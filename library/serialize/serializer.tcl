@@ -157,11 +157,11 @@ namespace eval ::nx::serializer {
       :ignore [::nsf::current object]
     }
 
-    :public method warn msg {
+    :method warn msg {
       if {[info command ns_log] ne ""} {
-        ns_log Notice $msg
+        ns_log Warning $msg
       } else {
-        puts stderr "!!! $msg"
+        puts stderr "Warning: $msg"
       }
     }
 
@@ -343,7 +343,7 @@ namespace eval ::nx::serializer {
     :class-object method checkExportedObject {} {
       foreach o [array names :exportObjects] {
         if {![::nsf::isobject $o]} {
-          puts stderr "Serializer exportObject: ignore non-existing object $o"
+          :warn "Serializer exportObject: ignore non-existing object $o"
           unset :exportObjects($o)
         } else {
           # add all child objects
@@ -438,6 +438,9 @@ namespace eval ::nx::serializer {
       Serializer exportObjects [::nsf::current object]
     }
 
+    # reuse warn here as well
+    :alias warn [Serializer info method handle warn]
+
     #
     # Methods to be executed at the begin and end of serialize all
     #
@@ -488,7 +491,7 @@ namespace eval ::nx::serializer {
         $s setObjectSystemSerializer $i [::nsf::current object]
         lappend instances $i
       }
-      #$s warn "[::nsf::current object] handles instances: $instances"
+      #:warn "[::nsf::current object] handles instances: $instances"
       return $instances
     }
 
@@ -500,14 +503,14 @@ namespace eval ::nx::serializer {
       foreach k [Serializer exportedMethods] {
         foreach {o p m} $k break
 	if {![::nsf::isobject $o]} {
-	  puts stderr "Warning: $o is not an object"
+	  :warn "$o is not an object"
 	} elseif {[::nsf::dispatch $o ::nsf::methods::object::info::hastype ${:rootClass}]} {
 	  set :exportMethods($k) 1
 	}
       }
       foreach o [Serializer exportedObjects] {
 	if {![::nsf::isobject $o]} {
-	  puts stderr "Warning: $o is not an object"
+	  :warn "$o is not an object"
 	} elseif {[nsf::dispatch $o ::nsf::methods::object::info::hastype ${:rootClass}]} {
 	  set :exportObjects($o) 1
 	}
@@ -551,7 +554,7 @@ namespace eval ::nx::serializer {
       foreach k [array names :exportMethods] {
         foreach {o p m} $k break
         if {![:methodExists $o $p $m]} {
-          $s warn "Method does not exist: $o $p $m"
+          :warn "Method does not exist: $o $p $m"
           continue
         }
         append methods($o) [:serializeExportedMethod $o $p $m]\n
@@ -607,12 +610,39 @@ namespace eval ::nx::serializer {
       return [:[:classify $x]-needsNothing $x $s]
     }
 
+    :method alias-dependency {x where} {
+      set handle :alias_dependency($x,$where)
+      if {[info exists $handle]} {
+	return [set $handle]
+      }
+      set needed [list]
+      foreach alias [$x ::nsf::methods::${where}::info::methods -methodtype alias -callprotection all] {
+	set definition [$x ::nsf::methods::${where}::info::method definition $alias]
+	set source [$x ::nsf::methods::class::info::method definition [lindex $definition end]]
+	if {$source ne ""} {
+	  set obj [lindex $source 0]
+	  if {$obj eq $x} {
+	    :warn "Dependency for alias $alias from $x to $x not handled (no guarantee on method order)"
+	  } else {
+	    lappend needed [lindex $source 0]
+	  }
+	}
+      }
+      #if {[llength $needed]>0} {
+      #	puts stderr "aliases: $x needs $needed"
+      #	puts stderr "set alias-deps for $x - $handle - $needed"
+      #}
+      set $handle $needed
+      return $needed
+    }
+
     :method Class-needsNothing {x s} {
       if {![:Object-needsNothing $x $s]} {return 0}
       set scs [$x info superclass]
       if {[$s needsOneOf $scs]} {return 0}
       if {[$s needsOneOf [::nsf::relation $x class-mixin]]} {return 0}
       foreach sc $scs {if {[$s needsOneOf [$sc info slots]]} {return 0}}
+      if {[$s needsOneOf [:alias-dependency $x class]]} {return 0}
       return 1
     }
 
@@ -621,6 +651,7 @@ namespace eval ::nx::serializer {
       if {$p ne "::"  && [$s needsOneOf $p]} {return 0}
       if {[$s needsOneOf [$x info class]]}  {return 0}
       if {[$s needsOneOf [[$x info class] info slots]]}  {return 0}
+      if {[$s needsOneOf [:alias-dependency $x object]]} {return 0}
       return 1
     }
     
