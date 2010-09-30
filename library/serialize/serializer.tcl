@@ -679,8 +679,10 @@ namespace eval ::nx::serializer {
       foreach i [lsort [$o ::nsf::methods::object::info::methods -callprotection all]] {
         append cmd [:method-serialize $o $i "class-object"] "\n"
       }
+      set vars [:collectVars $o]
+      if {[llength $vars]>0} {append cmd [list $o eval [join $vars "\n   "]]\n}
+
       append cmd \
-          [list $o eval [join [:collectVars $o] "\n   "]]\n \
           [:frameWorkCmd ::nsf::relation $o object-mixin] \
           [:frameWorkCmd ::nsf::assertion $o object-invar]
 
@@ -714,7 +716,7 @@ namespace eval ::nx::serializer {
     }
 
     # register serialize a global method
-    ::nx::Object method serialize {} {
+    ::nx::Object public method serialize {} {
       ::Serializer deepSerialize [::nsf::current object]
     }
     
@@ -859,7 +861,6 @@ namespace eval ::nx::serializer {
     ::xotcl::Object instproc serialize {} {
       ::Serializer deepSerialize [::nsf::current object]
     }
-
     
     # include this method in the serialized code
     #Serializer exportMethods {
