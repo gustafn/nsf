@@ -60,6 +60,7 @@ Test case apply {
       return $result
     }
 
+    :method foo {x} {return $x-$x}
   }
 
   # Two examples from the apply man page
@@ -75,5 +76,9 @@ Test case apply {
   # Test case accessing object specific variable
   ? {o map {x {expr {$x * ${:delta}}}} {-4 -3 -2 -1 0 1 2 3 4}} \
       "-400 -300 -200 -100 0 100 200 300 400"
+
+  # Test case calling own method via apply
+  ? {o map {x {:foo $x}} {hello world}} \
+      "hello-hello world-world"
 }
 
