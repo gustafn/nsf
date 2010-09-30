@@ -110,16 +110,20 @@
 
 # @command current
 #
-# An introspective command which allows you to explore the "Next"
-# callstack from within the scope of a method (or procif bound to an
-# object via {{{alias}}}). {{{current}}} computes callstack related
-# information. If executed without specifying a subcommand,
-# i.e. {{{[current]}}}, returns the name of the object, which is
-# currently in execution. If called from outside a proc, it returns
-# the error message "No current object". 
+# An introspective command which allows you to explore the callstack
+# from within the scope of a method (or a proc bound to an object via
+# {{{alias}}}). If executed without specifying a subcommand,
+# i.e. {{{[current]}}}, it defaults to {{@command.command "current
+# object"}}. While {{{current}}} operates on the Tcl callstack, it is
+# aware of object-specific callstack and frame information. To some
+# extent, this object introspection protocol can be approximated at
+# the script level by instrumenting {{{[info frame]}}}.
+#
+# If invoked outside of an object's scope (e.g., an ordinary proc, the
+# global namespace), it fails and reports {{{No current object}}}.
 # 
-# It comes with a variety of subcommands to query different bits of
-# callstack information. See below.
+# It comes with a variety of sub-commands to query the object-specific
+# callstack information available. See below.
 #
 # @sub-command class Returns the name of the class holding the
 # currently executing per-class method, if and only if called from
@@ -127,7 +131,7 @@
 # be different to the class of the current object. If called from
 # within a per-object method, it returns an empty string.
 #
-# @sub-command proc Returns the name of the currently executing method.
+# @sub-command method Returns the name of the currently executing method.
 #
 # @sub-command callingclass Returns the name of the class which is
 # calling into the executing method.
@@ -139,11 +143,11 @@
 # the originally (and now shadowed) target method (applicable in
 # mixin classes and filters).
 #
-# @sub-command calledproc Returns the name of the target method
+# @sub-command calledmethod Returns the name of the target method
 # (applicable in a filter only).
 #
 # @sub-command isnextcall Returns 1 if the executing method was
-# invoked via {{@command ::nx::next}}, 0 otherwise.
+# invoked via {{@command next}}, 0 otherwise.
 #
 # @sub-command next Returns the name of the method next on the
 # precedence path as a string.
@@ -152,19 +156,27 @@
 # returns the name of the object (class) on which the method is
 # registered as a filter.
 #
-# @sub-command callinglevel Returns the "original" callstack level
-# calling into the executing method. Intermediary {{{next}}} calls
-# are ignored in this computation. The level is returned in a form
-# so that it can be used as first argument in {{@method ::nx::Object
-# class uplevel}} or {{@method ::nx::Object class upvar}}.
+# @command callinglevel Resolves the callstack level which represents
+# the originating invocation into the currently executing method. Levels
+# of indirection (e.g., filters) and method combination along the
+# class linearisation path ({{{next}}}) are ignored. The callstack is
+# returned as an absolute level number (# followed by a digit). The
+# level number returned can be directly used as the first argument to
+# {{{uplevel}}} or {{{upvar}}} calls. See also {{@command.command
+# "current activelevel"}}
 #
 # @sub-command activelevel Returns the actual callstack level calling
 # into the executing method. The active might correspond the
 # {{{callinglevel}}}, but this is not necessarily the case. The
-# {{{activelevel}}} counts {{@command ::nx::next}} call. The level
+# {{{activelevel}}} counts {{@command next}} call. The level
 # is returned in a form so that it can be used as first argument in
-# {{@method ::nx::Object class uplevel}} or {{@method ::nx::Object
-# class upvar}}.
+# {{{uplevel}}} or {{{upvar}}}.
+
+# @command.command {current object} 
+# 
+# The default sub-command returns the name of the object currently
+# active on the callstack.
+
 
 # @command configure
 # 
@@ -199,7 +211,7 @@
 # dependent subclasses etc. Consider the example of a class hierarchy
 # {{{A <- B <- C}}}. Without {{{softrecreate}}} set, a reload of
 # {{{B}}} means first a destroy of B, leading to {{{A <- C}}}, and
-# instances of {{{B}}} are re-classed to {{@object
+# instances of {{{B}}} are re-classed to {{@class
 # ::nx::Object}}. When softrecreate is set, the class hierarchy
 # remains untouched.
 #

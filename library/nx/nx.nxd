@@ -6,7 +6,7 @@
 # CLOS. This package provides the basic object system for the Next
 # language. It defines the basic language entities {{@class ::nx::Object}} and
 # {{@class ::nx::Class}}, as well as essential language primitives
-# (e.g., {{@command ::nx::next}} and {{@command ::nx::self}}).
+# (e.g., {{@command ::nx::next}} and {{@command ::nx::current}}).
 #
 # @require Tcl
 # @version 1.0.0a
@@ -32,7 +32,7 @@
 # @class.method {Class alloc}
 #
 # Creates a bare object or class which is not
-# fully initialized. {{{alloc}}} is used by {{@method ::nx::Class class create}} to
+# fully initialized. {{{alloc}}} is used by {{@class.method "::nx::Class create"}} to
 # request a memory object storage. In subsequent steps,
 # {{{create}}} invokes {{{configure}}} and {{{init}}} to further
 # set up the object. Only in rare situations, you may consider
@@ -62,11 +62,11 @@
 #                                .........>|init()|
 #                                          `------'
 # }}}
-# (1) A call to {{@method ::nx::Class class alloc}} to create a raw,
+# (1) A call to {{@class.method "::nx::Class alloc"}} to create a raw,
 # uninitalized object.
 #
 # (2) The newly allocated object receives a method call upon
-# {{@method ::nx::Object class configure}}. This will establish the
+# {{@class.method "::nx::Object configure"}}. This will establish the
 # object's initial state, by applying object parameter values
 # provided at object creation time and default values defined at
 # object definition time.
@@ -118,12 +118,11 @@
 # created while an object or class with an identical object identifier
 # already exists. The method {{{recreate}}} performs standard object
 # initialization, per default, after re-setting the state and
-# relationships of the object under recreation. This re-set is
-# achieved by invoking {{@method ::nx::Object class cleanup}}.
+# relationships of the object under recreation.
 # {{{
 #	Object create Bar
 #	\# ...
-#	Object create Bar; # calls Object->recreate(::Bar, ...) + ::Bar->cleanup()
+#	Object create Bar; # calls Object->recreate(::Bar, ...)
 # }}}
 # By refining {{{recreate}}} in an application-level subclass or mixin
 # class, you can intercept the recreation process. In the pre-part the
@@ -132,8 +131,8 @@
 #
 # If the name conflict occurs between an existing class and a newly
 # created object (or vice versa), {{{recreate}}} is not
-# performed. Rather, a sequence of {{@method ::nx::Object class
-# destroy}} and {{@method ::nx::Class class create}} is triggered:
+# performed. Rather, a sequence of {{@class.method "::nx::Object
+# destroy"}} and {{@class.method "::nx::Class create"}} is triggered:
 # {{{
 #	Object create Bar
 #	\# ...
@@ -152,7 +151,7 @@
 
 # @command next
 #
-# @use ::nsf::command
+# @use ::nsf::next
 
 # @command current
 #
@@ -162,23 +161,27 @@
 #
 # This method participates in the object creation process. It is
 # automatically invoked after having produced a new object by
-# {{@method ::nx::Class class create}}.  Upon its invocation, the
+# {{@class.method "::nx::Class create"}}.  Upon its invocation, the
 # variable argument vector {{{args}}} contains a list of parameters
 # and parameter values passed in from the call site of object
 # creation. They are matched against an object parameter
 # definition. This definition, and so the actual method parameter
 # definition of this method, is assembled from configuration values of
-# the classes along the precedence order (see also {{@method
-# ::nx::Object class objectparameter}}).  The method {{{configure}}}
+# the classes along the precedence order (see also {{@class.method
+# "::nx::Object objectparameter"}}).  The method {{{configure}}}
 # can be called at arbitrary times to "re-set" an object.
 #
 # @properties interally-called
 # @parameter args The variable argument vector stores the object parameters and their values
 
+#
+# 
+# 
+
 # @class.method {Object destroy}
 #
-# The standard destructor for an object. The method {{@method
-# ::nx::Object class destroy}} triggers the physical destruction of
+# The standard destructor for an object. The method {{@class.method
+# "::nx::Object destroy"}} triggers the physical destruction of
 # the object. The method {{{destroy}}} can be refined by subclasses or
 # mixin classes to add additional (class specific) destruction
 # behavior.  Note that in most cases, the class specific {{{destroy}}}
@@ -194,9 +197,9 @@
 #     Foo create f1
 #     f1 destroy
 # }}}
-# Technical details: The method {{@method ::nx::Object class destroy}}
-# delegates the actual destruction to {{@method ::nx::Class class
-# dealloc}} which clears the memory object storage. Essentially, the
+# Technical details: The method {{@class.method "::nx::Object destroy"}}
+# delegates the actual destruction to {{@class.method "::nx::Class
+# dealloc"}} which clears the memory object storage. Essentially, the
 # behaviour could be scripted as:
 # {{{
 #       Object method destroy {} {
@@ -206,7 +209,7 @@
 # Note, however, that {{{destroy}}} is protected against
 # application-level redefinition. You must refine it in a subclass
 # or mixin class. 
-#
+
 
 # @class.method {Object uplevel}
 #
@@ -230,6 +233,12 @@
 # @parameter targetVar ... which is a local variable in a method scope
 # @see ...
 
+# @class.method {Object attribute}
+#
+# This is a helper method which provides a convenient facade to
+# definite attribute slots (with standard settings) on the object or
+# class.
+
 # @class.method {Object volatile}
 #
 # By calling on this method, the object is bound in its lifetime to
@@ -251,21 +260,20 @@
 # @class.method {Class new}
 #
 # A convenience method to create auto-named objects and classes. It is
-# a front-end to {{@method ::nx::Class class create}}. For instance:
+# a front-end to {{@class.method "::nx::Class create"}}. For instance:
 # {{{
 #	set obj [Object new]
 #	set cls [Class new]
 # }}}
 #
 # This will provide object identifiers of the form
-# e.g. {{{::nsf::__#0}}}. In contrast to {{@method ::nx::Object class autoname}},
-# the uniqueness of auto-generated identifiers is guaranteed for the
-# scope of the {{{interp}}}.
+# e.g. {{{::nsf::__#0}}}. The uniqueness of auto-generated identifiers
+# is guaranteed for the scope of the current {{{interp}}}.
 #
 # @parameter -childof If provided, the new object is created as a child of
 # the specified object.
-# @parameter args The variable arguments passed down to {{@method
-# ::nx::Class class create}}.
+# @parameter args The variable arguments passed down to {{@class.method
+# "::nx::Class create"}}.
 
 # @class.method {Class method}
 #
@@ -587,7 +595,7 @@
 # If set to {{{true}}}, the accessor methods are registered with the
 # domain object scope only. It defaults to {{{false}}}.
 
-# @class.method Object objectparameter
+# @class.method {Object objectparameter}
 
 # @class.attribute {Class superclass}
 #
@@ -612,16 +620,18 @@
 #
 # Sets or retrieves the class of an object. When {{{class}}} is
 # called without arguments, it returns the current class of the
-# object.
+# object. An introspective alternative is {{@class.method {Object
+# "info class"}}}
 #
 # @return If called as a getter (without arguments), {{{class}}}
 # returns the current class of the object
 
 # @class.attribute {Object mixin}
 #
-# As a setter, {{{mixin}}} specifies a list of mixins to
-# set. Every mixin must be an existing class. In getter mode, you
-# can retrieve the list of mixins active for the given object.
+# As a setter, {{{mixin}}} specifies a list of mixins to set. Every
+# mixin must be an existing class. In getter mode, you can retrieve
+# the list of mixins active for the given object. As for introspecting
+# mixin classes, consider {{@class.method {Object "info mixin classes"}}}
 #
 # @return :list If called as a getter (without arguments),
 # {{{mixin}}} returns the list of current mixin classes registered
@@ -629,10 +639,11 @@
 
 # @class.attribute {Object filter}
 #
-# In its setter mode, {{{filter}}} allows you to register methods
-# as per-object filters. Every filter must be an existing method
-# in the scope of the object. When acting as a getter, you can
-# retrieve the list of filter methods active for the given object.
+# In its setter mode, {{{filter}}} allows you to register methods as
+# per-object filters. Every filter must be an existing method in the
+# scope of the object. When acting as a getter, you can retrieve the
+# list of filter methods active for the given object. See also
+# {{@class.method {Object "info filter methods"}}}.
 #
 # @return :list If called as a getter (without arguments),
 # {{{filter}}} returns the list of current filters
@@ -663,8 +674,8 @@
 #
 # Attribute slots are used to manage the access, mutation, and
 # querying of instance variables. One defines Attribute slots for
-# objects and classes usually via the helper method {{@method
-# ::nx::Object class attribute}} **** TODO STEFAN, kein Link? GEPLANT?
+# objects and classes usually via the helper method {{@class.method
+# "::nx::Object attribute"}} **** TODO STEFAN, kein Link? GEPLANT?
 # MIT 2 GESCHWEIFTEN KLAMMER UM SALARY GIBT ES EINEN LAUFZEITFEHLER???
 # ******** The following example defines a class with three attribute
 # slots. The attribute {salary} has a default of {0}, the attribute
