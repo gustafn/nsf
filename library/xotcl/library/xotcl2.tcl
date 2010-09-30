@@ -514,6 +514,7 @@ namespace eval ::xotcl {
     :proc procs {{pattern ""}} {
       my ::nsf::methods::object::info::methods -methodtype scripted {*}$pattern
     }
+    :alias slots              ::nx::Object::slot::__info::slots
     :alias precedence         ::nsf::methods::object::info::precedence
     :alias vars               ::nsf::methods::object::info::vars
   }
@@ -571,7 +572,6 @@ namespace eval ::xotcl {
 	  {*}$pattern
     }
     :alias parameter          ::nx::Class::slot::__info::attributes
-    :alias slots              ::nx::Object::slot::__info::slots
     :alias subclass           ::nsf::methods::class::info::subclass
     :alias superclass         ::nsf::methods::class::info::superclass
   }
