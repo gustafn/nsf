@@ -1581,7 +1581,7 @@ _ added option noforwarder to RelationSlots
   * provide error message, when default/defaultcmd/valuecmd are used 
     non-exclusively
   * make sure to init per-object slots after copy operations
-  * make nx::Attribute.destroy more definsive
+  * make nx::Attribute.destroy more defensive
   * extend test cases
 
 - nsf: added flag NSF_DESTROY_CALLED_SUCCESS in addition 
