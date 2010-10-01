@@ -345,6 +345,7 @@ typedef struct NsfStringIncrStruct {
 #define NSF_IS_ROOT_CLASS                  0x0100
 
 #define NSF_TCL_DELETE                     0x0200
+#define NSF_DESTROY_CALLED_SUCCESS         0x0400
 /*#define NSF_CMD_NOT_FOUND                  0x1000*/
 #define NSF_DURING_DELETE                  0x2000
 #define NSF_DELETED                        0x4000

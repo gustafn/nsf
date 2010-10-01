@@ -1489,6 +1489,7 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
  */
 static NsfObjectSystem * 
 GetObjectSystem(NsfObject *object) {
+  assert(object);
   if (NsfObjectIsClass(object)) {
     return ((NsfClass *)object)->osPtr;
   }
@@ -1524,9 +1525,10 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
      c) filters are not active on the object
   */
   NsfObjectSystem *osPtr = GetObjectSystem(object);
-  Tcl_Obj *methodObj = osPtr->methods[methodIdx];
   int callDirectly = 1;
+  Tcl_Obj *methodObj;
 
+  methodObj = osPtr->methods[methodIdx];
   if (methodObj) {
 
     if ((osPtr->overloadedMethods & 1<<methodIdx) != 0) {
@@ -1535,8 +1537,8 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
       callDirectly = 0;
     } else if ((osPtr->definedMethods & 1<<methodIdx) == 0) {
       /* not defined, we must call directly */
-      fprintf(stderr, "CallDirectly object %s idx %s not defined\n", 
-              objectName(object), Nsf_SytemMethodOpts[methodIdx]+1);
+      fprintf(stderr, "Warning: CallDirectly object %s idx %s not defined\n", 
+	      objectName(object), Nsf_SytemMethodOpts[methodIdx]+1);
     } else {
       if (!(object->flags & NSF_FILTER_ORDER_VALID)) {
         FilterComputeDefined(interp, object);
@@ -1555,8 +1557,8 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
   }
 
 #if 0
-  fprintf(stderr, "CallDirectly object %s idx %s returns %s => %d\n", 
-          objectName(object), sytemMethodOpts[methodIdx]+1, 
+  fprintf(stderr, "CallDirectly object %s idx %d returns %s => %d\n", 
+          objectName(object), methodIdx, 
           methodObj ? ObjStr(methodObj) : "(null)", callDirectly);
 #endif
   /* return the methodObj in every case */
@@ -2224,11 +2226,15 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
           PrimitiveDestroy((ClientData) object);
         } else {
           if (object->teardown && !(object->flags & NSF_DESTROY_CALLED)) {
-            /*fprintf(stderr, " ... call destroy obj=%s flags %.4x\n", objectName(object), object->flags);*/
-
-            if (DispatchDestroyMethod(interp, object, 0) != TCL_OK) {
-              /* destroy method failed, but we have to remove the command
-                 anyway. */
+	    int result = DispatchDestroyMethod(interp, object, 0);
+            if (result != TCL_OK) {
+	      /*fprintf(stderr, "DispatchDestroy %p in NSDeleteChildren failed id %p teardown %p\n", 
+		object, object->id, object->teardown);*/
+              /* 
+	       * The destroy method failed. However, we have to remove
+	       * the command anyway, since its parent is currend being
+	       * deleted.
+	       */
               if (object->teardown) {
                 CallStackDestroyObject(interp, object);
               }
@@ -2733,6 +2739,7 @@ NSF_INLINE static void
 CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
   Tcl_Command oid;
 
+  /* fprintf(stderr, "CallStackDoDestroy %p flags %.6x\n", object, object->flags);*/
   PRINTOBJ("CallStackDoDestroy", object);
 
   /* Don't do anything, if a recursive DURING_DELETE is for some
@@ -6768,23 +6775,31 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
 
   /*fprintf(stderr, "    DispatchDestroyMethod obj %p flags %.6x active %d\n", 
     object, object->flags,  object->activationCount); */
-
+  
   PRINTOBJ("DispatchDestroyMethod", object);
 
   /* flag, that destroy was called and invoke the method */
   object->flags |= NSF_DESTROY_CALLED;
-
+  
   if (CallDirectly(interp, object, NSF_o_destroy_idx, &methodObj)) {
     result = NsfODestroyMethod(interp, object);
   } else {
     result = CallMethod(object, interp, methodObj, 2, 0, NSF_CSC_IMMEDIATE|flags);
   }
-
+  // REMOVE ME
   if (result != TCL_OK) {
-    static char cmd[] =
-      "puts stderr \"[self]: Error in method destroy\n\
-	 $::errorCode $::errorInfo\"";
-    Tcl_EvalEx(interp, cmd, -1, 0);
+    fprintf(stderr, "destroy of %p returned %d\n", object, result);
+  }
+  if (result != TCL_OK) {
+    /*
+     * The object might be already gone here, since we have no stack frame. 
+     * Therefore, we can't even use nsf::current object safely.
+     */
+    static char cmdString[] =
+      "puts stderr \"Error in method destroy\n\
+      $::errorCode $::errorInfo\"";
+    Tcl_EvalEx(interp, cmdString, -1, 0);
+
     if (++RUNTIME_STATE(interp)->errorCount > 20)
       Tcl_Panic("too many destroy errors occured. Endless loop?", NULL);
   } else {
@@ -8754,8 +8769,8 @@ TclDeletesObject(ClientData clientData) {
   Tcl_Interp *interp;
 
   object->flags |= NSF_TCL_DELETE;
-  /*fprintf(stderr, "cmd dealloc %p TclDeletesObject (2d)\n", object->id,  Tcl_Command_refCount(object->id));
-   */
+  /*fprintf(stderr, "cmd dealloc %p TclDeletesObject (%d)\n", 
+    object->id,  Tcl_Command_refCount(object->id));*/
 
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "TclDeletesObject %p obj->id %p flags %.6x\n", object, object->id, object->flags);
@@ -8765,6 +8780,7 @@ TclDeletesObject(ClientData clientData) {
 # ifdef OBJDELETION_TRACE
   fprintf(stderr, "... %p %s\n", object, objectName(object));
 # endif
+
   CallStackDestroyObject(interp, object);
   /*fprintf(stderr, "TclDeletesObject %p DONE\n", object);*/
 }
@@ -14009,7 +14025,9 @@ NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
 
   if ((object->flags & NSF_DESTROY_CALLED) == 0) {
     object->flags |= NSF_DESTROY_CALLED;
+    /*fprintf(stderr, "NsfODestroyMethod %p sets DESTROY_CALLED %.6x\n",object,object->flags);*/
   }
+  object->flags |= NSF_DESTROY_CALLED_SUCCESS;
 
   if ((object->flags & NSF_DURING_DELETE) == 0) {
     int result;
@@ -14508,9 +14526,9 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
       result = CallMethod((ClientData) cl, interp, methodObj, 
                           objc+1, nobjv+1, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
     }
-
-    if (result != TCL_OK)
+    if (result != TCL_OK) {
       goto create_method_exit;
+    }
 
     Tcl_SetObjResult(interp, newObject->cmdName);
     nameObj = newObject->cmdName;
@@ -14529,9 +14547,9 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
       result = CallMethod((ClientData) cl, interp, methodObj, 
                           3, &nameObj, NSF_CSC_IMMEDIATE);
     }
-    if (result != TCL_OK)
+    if (result != TCL_OK) {
       goto create_method_exit;
-
+    }
     nameObj = Tcl_GetObjResult(interp);
 
     if (GetObjectFromObj(interp, nameObj, &newObject) != TCL_OK) {
@@ -14547,6 +14565,8 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
     /* in case, the object is destroyed during initialization, we incr refcount */
     INCR_REF_COUNT(nameObj);
     result = DoObjInitialization(interp, newObject, objc, objv);
+    /*fprintf(stderr, "DoObjInitialization %p %s (id %p) returned %d\n", 
+      newObject, ObjStr(nameObj), newObject->id,  result);*/
     DECR_REF_COUNT(nameObj);
   }
  create_method_exit:
@@ -14745,6 +14765,9 @@ RecreateObject(Tcl_Interp *interp, NsfClass *class, NsfObject *object,
     result = DoObjInitialization(interp, object, objc, objv);
     if (result == TCL_OK) {
       Tcl_SetObjResult(interp, object->cmdName);
+    } else {
+      // TODO remove me
+      fprintf(stderr, "recreate DoObjInitialization returned %d\n", result);
     }
   }
   return result;
@@ -15835,7 +15858,7 @@ FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTable)
      * Delete class methods; these methods might have aliases (dependencies) to
      * objects, which will resolved this way.
      */
-    if (NsfObjectIsClass(object)) {
+    if (object && NsfObjectIsClass(object)) {
       for (hPtr2 = Tcl_FirstHashEntry(Tcl_Namespace_cmdTable(((NsfClass *)object)->nsPtr), &hSrch2); hPtr2;
            hPtr2 = Tcl_NextHashEntry(&hSrch2)) {
         Tcl_Command cmd = Tcl_GetHashValue(hPtr2);

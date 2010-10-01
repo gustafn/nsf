@@ -593,12 +593,22 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr, char *msg) {
     */
     object->activationCount --;
     
-    /*fprintf(stderr, "... activationCount -- (%s) --> %d\n",objectName(object),  object->activationCount);*/
+    /*fprintf(stderr, "... activationCount -- (%s) --> %d\n",objectName(object),  
+      object->activationCount);*/
     
-    /*fprintf(stderr, "decr activationCount for %s to %d cscPtr->cl %p\n", objectName(cscPtr->self), 
-      cscPtr->self->activationCount, cscPtr->cl);*/
+    /*fprintf(stderr, "decr activationCount for %s to %d object->flags %.6x dc %.6x succ %.6x\n", 
+	    objectName(cscPtr->self), cscPtr->self->activationCount, object->flags,
+	    object->flags & NSF_DESTROY_CALLED,
+	    object->flags & NSF_DESTROY_CALLED_SUCCESS
+	    );*/
     assert(object->activationCount > -1);
-    if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED && allowDestroy) {
+
+    // TODO remove block
+    if (((object->flags & NSF_DESTROY_CALLED_SUCCESS)>0) !=
+	((object->flags & NSF_DESTROY_CALLED)>0)) {
+      fprintf(stderr, "*** flags differ for obj %p\n", object);
+    }
+    if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED_SUCCESS && allowDestroy) {
       CallStackDoDestroy(interp, object);
     }
 #if defined(OBJDELETION_TRACE)
@@ -615,14 +625,18 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr, char *msg) {
       
       object = &cscPtr->cl->object;
       object->activationCount --;
-      /*fprintf(stderr, "CscFinish cl=%p %s (%d) flags %.6x cl ns=%p cmd %p cmd ns %p\n",
-	      object, objectName(object), object->activationCount, object->flags, cscPtr->cl->nsPtr, 
-	      cscPtr->cmdPtr, ((Command *)cscPtr->cmdPtr)->nsPtr); */
       
-      /*fprintf(stderr, "CscFinish check ac %d flags %.6x\n",
-	object->activationCount, object->flags & NSF_DESTROY_CALLED);*/
-      
-      if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED && allowDestroy) {
+      /*fprintf(stderr, "CscFinish check ac %d flags destroy %.6x success %.6x\n",
+	      object->activationCount, 
+	      object->flags & NSF_DESTROY_CALLED,
+	      object->flags & NSF_DESTROY_CALLED_SUCCESS);*/
+
+      // TODO remove block
+      if (((object->flags & NSF_DESTROY_CALLED_SUCCESS)>0) !=
+	  ((object->flags & NSF_DESTROY_CALLED)>0)) {
+	fprintf(stderr, "*** flags differ for class %p\n", object);
+      }      
+      if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED_SUCCESS && allowDestroy) {
 	CallStackDoDestroy(interp, object);
       } 
 #if defined(OBJDELETION_TRACE)
