@@ -11190,7 +11190,7 @@ ListMethod(Tcl_Interp *interp,
 	  NsfObject *subObject = NsfGetObjectFromCmdPtr(cmd);
 	  if (subObject) {
 	    return ListDefinedMethods(interp, subObject, NULL, 1 /* per-object */, 
-				      NSF_METHODTYPE_ALL, 0, 1, 0);
+				      NSF_METHODTYPE_ALL, CallprotectionAllIdx, 1, 0);
 	  }
 	}
 	/* all other cases return emtpy */
