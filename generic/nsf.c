@@ -1155,7 +1155,6 @@ GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
       Tcl_DStringInit(dsPtr);
       Tcl_DStringAppend(dsPtr, methodName, objNameLength);
       regObject = GetObjectFromNsName(interp, Tcl_DStringValue(dsPtr), fromClassNS);
-      /*fprintf(stderr, "GetRegObject %s -> %p\n", Tcl_DStringValue(dsPtr), regObject);*/
       if (regObject) {
 	*methodName1 = procName;
       }
@@ -1263,9 +1262,11 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
   } else if (*methodName == ':') {
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
     referencedObject = GetRegObject(interp, cmd, methodName, methodName1, fromClassNS);
-    if (referencedObject) {
-      *regObject = referencedObject;
-      *defObject = referencedObject;
+    *regObject = referencedObject;
+    *defObject = referencedObject;
+    if (referencedObject == NULL) {
+      /* the cmd was not registered on an object or class */
+      cmd = NULL;
     }
   } else {
     *methodName1 = methodName;
@@ -15412,8 +15413,9 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
   Tcl_DStringInit(dsPtr);
   cmd = ResolveMethodName(interp, class->nsPtr, methodNameObj, 
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
-  /*fprintf(stderr, "NsfClassInfoMethodMethod object %p regObject %p defObject %p fromClass %d\n",
-    &class->object,regObject,defObject,fromClassNS);*/
+  /*fprintf(stderr, 
+	  "NsfClassInfoMethodMethod object %p regObject %p defObject %p fromClass %d cmd %p\n",
+    &class->object,regObject,defObject,fromClassNS, cmd);*/
   result = ListMethod(interp, 
 		      regObject ? regObject : &class->object, 
 		      defObject ? defObject : &class->object, 

@@ -1588,6 +1588,8 @@ _ added option noforwarder to RelationSlots
   to NSF_DESTROY_CALLED to distinguish between attempted
   and successful destroy method invocations (important for
   cleanup)
+- fix potential crash in 
+  ::nx::Object info method definition ::nsf::methods::object::instvar
 
 TODO: 
 - handing of xo::at_cleanup in serializer 
@@ -1603,12 +1605,6 @@ TODO:
 
 - use term "callprotection" in documentation for public|protected
  (to be consistent with info command)
-
-get definition of ::nsf::methods::object::instvar
-should never happen, maybe someone deleted the alias (null) for object ::xo::Attribute
-procPtr 0x102ecd1c1 NsfObjDispatch 0x102ebe556 name instvar 
-alias instvar // ::xo::Attribute public alias instvar ::nsf::methods::object::instvar // 
-
 
 - extend coro regression test
 
