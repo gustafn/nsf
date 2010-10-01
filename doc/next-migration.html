@@ -109,12 +109,12 @@ respects:
      <strong>set</strong> :things ""
    } 
 
-   <strong>:method</strong> push {thing} {
+   <strong>:public method</strong> push {thing} {
       <strong>set</strong> :things [<strong>linsert</strong> ${:things} 0 $thing] 
       <strong>return</strong> $thing
    }
   
-   <strong>:method</strong> pop {} {
+   <strong>:public method</strong> pop {} {
       <strong>set</strong> top [<strong>lindex</strong> ${:things} 0]
       <strong>set</strong> :things [<strong>lrange</strong> ${:things} 1 end]
       <strong>return</strong> $top
@@ -182,7 +182,7 @@ in a single script XOTcl and Next:
 
       <i># Define a class using Next</i>
       Class create C2 {
-         :method foo {} {puts "hello world"}
+         :public method foo {} {puts "hello world"}
       }
    }
 </pre>
@@ -1421,7 +1421,10 @@ of <code>foo</code> is now the calling object <code>Foo</code>.
 <h3>Slots</h3>
 
 <p>All slot objects (also those in XOTcl) are now always
-next-scripting objects of baseclass ::nx::Slot </p>
+next-scripting objects of baseclass <code>::nx::Slot</code>.
+The name of the experimental default-setter <code>initcmd</code> was
+changed to <code>defaultcmd</code>.
+</p>
 
 <h3>Obsolete commands</h3>
 
@@ -1446,6 +1449,6 @@ The exit hander interface changed from a method of
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Sun Sep 26 14:16:38 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Fri Oct  1 11:58:31 CEST 2010 <!-- hhmts end -->
 </body>
 </html>

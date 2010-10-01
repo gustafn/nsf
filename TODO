@@ -1017,7 +1017,7 @@ new structure
 
 - TODO: info methods shows finally "slots" and "slot". Wanted? Actually no.
 - removed definition of slots from nx, changed regression tests
-  examples to to ::attribute instead of -slots 
+  examples from slots to ::attribute
   
 - replaced several occurrences of "eval" in nx.tcl and xotcl2.tcl
 
@@ -1560,13 +1560,64 @@ _ added option noforwarder to RelationSlots
 - added NSF_CSC_CALL_IS_TRANSPARENT to handle proc aliases transparently
 - access self  in NsfProcAliasMethod() from tcl->object;
 
+- added public|protected to output of "info method definition"
+  (needed to make serializer more sane, neccessary on the longer range)
+
+- reduce size of output of serializer
+- make nx::Object.serialize public
+- XOTcl 2: allow info slots for objects as well
+
+- serializer: 
+  * added support for ordering on aliases referencing other objects/classes
+  * provide shared version of the method warn via alias
+    and removed direct output to stderr
+
+- slots:
+  * change name "initcmd" of "experimental slot features" to
+    "defaultcmd" to avoid naming conflict the the initcmd executed
+    at the initilization of a slot object (effects XOTcl as well)
+  * make defaultcmd/valuecmd/valuechangedcmd working for nx 
+    (absence of trace method)
+  * provide error message, when default/defaultcmd/valuecmd are used 
+    non-exclusively
+  * make sure to init per-object slots after copy operations
+  * make nx::Attribute.destroy more definsive
+  * extend test cases
+
+- nsf: added flag NSF_DESTROY_CALLED_SUCCESS in addition 
+  to NSF_DESTROY_CALLED to distinguish between attempted
+  and successful destroy method invocations (important for
+  cleanup)
 
 TODO: 
+- handing of xo::at_cleanup in serializer 
+  (either generailization or move to OpenACS/aolserver init/naviserver init)
+- cleanup of xotcl-aol
+- method-modifiers/attribute-method.002:  incorrect result for 'set _ {}'
+        expected: '::C::A', got ''
+        in test file ./tests/method-modifiers.tcl
+  ... => 
+  FinalObjectDeletion obj 0x100915610 activationcount 2
+  Assertion failed: (object->activationCount == 0), function FinalObjectDeletion, 
+  	    file ./generic/nsf.c, line 15788.
+
+- use term "callprotection" in documentation for public|protected
+ (to be consistent with info command)
+
+get definition of ::nsf::methods::object::instvar
+should never happen, maybe someone deleted the alias (null) for object ::xo::Attribute
+procPtr 0x102ecd1c1 NsfObjDispatch 0x102ebe556 name instvar 
+alias instvar // ::xo::Attribute public alias instvar ::nsf::methods::object::instvar // 
+
+
 - extend coro regression test
 
 - subcmd
    * handle subcmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
+   * provide full support in serializer
+- serializer:
+   keep track of defaultMethodProtection
 
 - interfaces in documentation for slots (see for more details 
   ::nx::Class#superclass in nx.tcl).

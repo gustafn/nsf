@@ -230,7 +230,7 @@ Test case parametercheck {
 #
 # ::nx::Attribute -superclass ::xotcl::Slot {
 #     {value_check once}
-#     initcmd
+#     defaultcmd
 #     valuecmd
 #     valuechangedcmd
 #     arg
@@ -1150,6 +1150,48 @@ Test case check-arguments {
   # scripted  checker
   ? {f1 metaclassarg ::nx::Class} ::nx::Class
   ? {f1 metaclassarg ::Foo} {expected metaclass but got "::Foo" for parameter x}
+}
+
+Test case slot-traces {
+  ::nx::Object create o {
+    :attribute a {set :defaultcmd { puts ...init; set _ 4 } }
+    :attribute b {set :valuecmd { puts ...get-value; set _ 44 } }
+    :attribute c {set :valuechangedcmd { puts ...changed; ::nsf::setvar $obj $var 999 }}
+  }
+
+  ? {o a} 4
+  ? {o b} 44
+  ? {o c 5} 999
+  
+  o copy o2
+
+  ? {o a} 4
+  ? {o b} 44
+  ? {o c 5} 999
+
+  ::nx::Class create C {
+    :attribute a {set :defaultcmd { puts ...init; set _ 4 } }
+    :attribute b {set :valuecmd { puts ...get-value; set _ 44 } }
+    :attribute c {set :valuechangedcmd { ::nsf::setvar $obj $var 999 }}
+    :create c1
+  }
+
+  ? {c1 a} 4
+  ? {c1 b} 44
+  ? {c1 c 5} 999
+
+  c1 copy c2
+
+  ? {c2 a} 4
+  ? {c2 b} 44
+  ? {c2 c 5} 999
+
+  C copy D
+  D create d1
+
+  ? {d1 a} 4
+  ? {d1 b} 44
+  ? {d1 c 5} 999
 }
 
 ::nsf::configure checkarguments off

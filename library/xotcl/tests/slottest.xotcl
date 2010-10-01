@@ -10,15 +10,15 @@ Test parameter count 1000
 #   - slots for objects and classes (slot parameter 'per-object' true|false, 
 #     when to used on a class object)
 #   - works for mixins/filters/class/superclass (e.g ... superclass add ::M)
-#   - initcmd and valuecmd 
-#     initcmd: is executed when the instance variable is read the first time
+#   - defaultcmd and valuecmd 
+#     defaultcmd: is executed when the instance variable is read the first time
 #     valuecmd: is executed whenever the instance variable is read
 #     (implemented via trace; alternate approach for similar behavior
 #     is to define per-object procs for get/assign, see e.g. slots for
 #     class and superclass; slots require methods to be invoked, 
 #     not var references;
 #     otoh, trace are somewhat more fragile and harder to debug)
-#     default, initcmd and valuecmd are to be used mutually exclusively
+#     default, defaultcmd and valuecmd are to be used mutually exclusively
 #   - valuechangedcmd: executed after the change of an instance variable,
 #     can be used e.g. for validation
 #
@@ -27,19 +27,14 @@ Test parameter count 1000
 package require nx::serializer
 
 #######################################################
-# testing __initcmds
 set ::hu 0
 proc T1 {var sub op} {c1 set $var t1}
 proc T2 {var sub op} {c1 set $var t2}
-#Class C -array set __initcmds {
-#  x {set x 1} 
-#  y {incr ::hu} 
-#  z {my trace add variable z read T1}}
 
 Class C -slots {
-  Attribute create x -initcmd {set x 1} 
-  Attribute create y -initcmd {incr ::hu} 
-  Attribute create z -initcmd {my trace add variable z read T1}
+  Attribute create x -defaultcmd {set x 1} 
+  Attribute create y -defaultcmd {incr ::hu} 
+  Attribute create z -defaultcmd {my trace add variable z read T1}
 }
 
 C create c1
@@ -52,8 +47,8 @@ C create c1
 ? {set ::hu} 1
 
 Class D -slots {
-  Attribute create x -initcmd {set x 2} 
-  Attribute create z -initcmd {my trace add variable z read T2}
+  Attribute create x -defaultcmd {set x 2} 
+  Attribute create z -defaultcmd {my trace add variable z read T2}
 } -superclass C
 D create c1
 ? {c1 set x} 2
@@ -427,12 +422,12 @@ Person method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
 
 
 #######################################################
-# initcmd via slots
+# defaultcmd via slots
 #######################################################
-Test case initcmd
+Test case defaultcmd
 set ::hu 0
 Class C -slots {
-  Attribute create x -initcmd {incr ::hu; set x 101}
+  Attribute create x -defaultcmd {incr ::hu; set x 101}
 }
 C c1
 ? {c1 info vars} ""
@@ -513,9 +508,11 @@ set x [Object new -set x 1 -contains {
 ? {llength [[lindex [lsort [$x info children]] 1] info children]} 3
 ? {llength [[lindex [lsort [$x info children]] 2] info children]} 0
 
+#
+# test case (bug) posted by Neil Hampton
+#
 
-
-Class Fred -slots { Attribute create a -initcmd { set _ 4 } }
+Class Fred -slots { Attribute create a -defaultcmd { set _ 4 } }
 ? {Fred x} ::x
 ? {x a 4} 4
 x move y
@@ -601,7 +598,7 @@ P create p2 -age 345 -s 567
 
 
 Slot create Project::fullbudget \
-    -initcmd {$obj set __x 100} \
+    -defaultcmd {$obj set __x 100} \
     -valuechangedcmd {
       puts "budget is now [$obj set fullbudget]" 
       $obj set __x [$obj set fullbudget] 

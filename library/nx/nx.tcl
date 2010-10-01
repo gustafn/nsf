@@ -713,7 +713,7 @@ namespace eval ::nx {
   }
 
   # maybe add the following slots at some later time here
-  #   initcmd
+  #   defaultcmd
   #   valuecmd
   #   valuechangedcmd
   
@@ -750,7 +750,8 @@ namespace eval ::nx {
   }
   
   ObjectParameterSlot public method destroy {} {
-    if {${:domain} ne "" && [::nsf::is class ${:domain}]} {
+    #puts stderr DESTROY-[info exists :domain]
+    if {[info exists :domain] && ${:domain} ne "" && [::nsf::is class ${:domain}]} {
       ::nsf::invalidateobjectparameter ${:domain}
     }
     ::nsf::next
@@ -1060,6 +1061,7 @@ namespace eval ::nx {
     incremental
     initcmd
     valuecmd
+    defaultcmd
     valuechangedcmd
     arg
     allowempty
@@ -1068,7 +1070,8 @@ namespace eval ::nx {
 
   Attribute method __default_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
-    $obj trace remove variable $var $op [list [::nsf::current object] [::nsf::current method] $obj $cmd]
+    ::nsf::dispatch $obj -objscope \
+	::trace remove variable $var $op [list [::nsf::current object] [::nsf::current method] $obj $cmd]
     ::nsf::setvar $obj $var [$obj eval $cmd]
   }
   Attribute method __value_from_cmd {obj cmd var sub op} {
@@ -1081,25 +1084,33 @@ namespace eval ::nx {
     eval $cmd
   }
   Attribute protected method init {} {
-    ::nsf::next ;# do first ordinary slot initialization
-    # there might be already default values registered on the class
+    # Do first ordinary slot initialization
+    ::nsf::next 
     set __initcmd ""
+    set trace {::nsf::dispatch [::nsf::current object] -objscope ::trace}
+    # There might be already default values registered on the
+    # class. If so, defaultcmd is ignored.
     if {[info exists :default]} {
-    } elseif [info exists :initcmd] {
-      append __initcmd ":trace add variable [list ${:name}] read \
-	\[list [::nsf::current object] __default_from_cmd \[::nsf::current object\] [list [set :initcmd]]\]\n"
+      if {[info exists :defaultcmd]} {error "defaultcmd can't be used together with default value"}
+      if {[info exists :valuecmd]} {error "valuecmd can't be used together with default value"}
+    } elseif [info exists :defaultcmd] {
+      if {[info exists :valuecmd]} {error "valuecmd can't be used together with defaultcmd"}
+      append __initcmd "$trace add variable [list ${:name}] read \
+	\[list [::nsf::current object] __default_from_cmd \[::nsf::current object\] [list [set :defaultcmd]]\]\n"
     } elseif [info exists :valuecmd] {
-      append __initcmd ":trace add variable [list ${:name}] read \
+      append __initcmd "$trace add variable [list ${:name}] read \
 	\[list [::nsf::current object] __value_from_cmd \[::nsf::current object\] [list [set :valuecmd]]\]"
     }
+    if {[info exists :valuechangedcmd]} {
+      append __initcmd "$trace add variable [list ${:name}] write \
+	\[list [::nsf::current object] __value_changed_cmd \[::nsf::current object\] [list [set :valuechangedcmd]]\]"
+    }
+    
     array set "" [:toParameterSyntax ${:name}]
-
     #puts stderr "Attribute.init valueParam for [::nsf::current object] is $(mparam)"
     if {$(mparam) ne ""} {
       if {[info exists :multivalued] && ${:multivalued}} {
-        #puts stderr "adding assign [list obj var value:$(mparam),multivalued] // for [::nsf::current object] with $(mparam)"
-
-	# set variable body to minimize problems with spacing, since
+	# set variable "body" to minimize problems with spacing, since
 	# the body is literally compared by the slot optimizer.
 	set body {::nsf::setvar $obj $var $value}
         :public method assign [list obj var value:$(mparam),multivalued,slot=[::nsf::current object]] \
@@ -1110,16 +1121,14 @@ namespace eval ::nx {
           ::nsf::next
         }
       } else {
-        #puts stderr "SV adding assign [list obj var value:$(mparam)] // for [::nsf::current object] with $(mparam)"
 	set body {::nsf::setvar $obj $var $value}
         :public method assign [list obj var value:$(mparam),slot=[::nsf::current object]] $body
       }
     }
-    if {[info exists :valuechangedcmd]} {
-      append __initcmd ":trace add variable [list ${:name}] write \
-	\[list [::nsf::current object] __value_changed_cmd \[::nsf::current object\] [list [set :valuechangedcmd]]\]"
-    }
     if {$__initcmd ne ""} {
+      if {${:per-object}} {
+	${:domain} eval $__initcmd
+      }
       set :initcmd $__initcmd
     }
   }
@@ -1134,7 +1143,6 @@ namespace eval ::nx {
     :public method optimize {} {
       #puts stderr OPTIMIZER-[info exists :incremental]
       if {![info exists :methodname]} {return}
-      set object [expr {${:per-object} ? {object} : {}}]
       if {${:per-object}} {
         set perObject -per-object
         set infokind object
@@ -1412,15 +1420,14 @@ namespace eval ::nx {
 	}
 	#puts stderr "====="
       }
-      # alter 'domain' and 'manager' in slot objects for classes
+      # alter 'domain' and 'manager' in slot objects
       foreach origin [set :targetList] {
-	if {[::nsf::is class $origin]} {
-	  set dest [:getDest $origin]
-	  foreach oldslot [$origin info slots] {
-	    set newslot [::nx::slotObj $dest [namespace tail $oldslot]] 
-	    if {[$oldslot domain] eq $origin}   {$newslot domain $cl}
-	    if {[$oldslot manager] eq $oldslot} {$newslot manager $newslot}
-	  }
+	set dest [:getDest $origin]
+	foreach oldslot [$origin info slots] {
+	  set newslot [::nx::slotObj $dest [namespace tail $oldslot]]
+	  if {[$oldslot domain] eq $origin}   {$newslot domain $dest}
+	  if {[$oldslot manager] eq $oldslot} {$newslot manager $newslot}
+	  $newslot eval :init
 	}
       }
     }
