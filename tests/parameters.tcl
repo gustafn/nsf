@@ -1154,9 +1154,9 @@ Test case check-arguments {
 
 Test case slot-traces {
   ::nx::Object create o {
-    :attribute a {set :defaultcmd { puts ...init; set _ 4 } }
-    :attribute b {set :valuecmd { puts ...get-value; set _ 44 } }
-    :attribute c {set :valuechangedcmd { puts ...changed; ::nsf::setvar $obj $var 999 }}
+    :attribute a {set :defaultcmd { set _ 4 } }
+    :attribute b {set :valuecmd { set _ 44 } }
+    :attribute c {set :valuechangedcmd { ::nsf::setvar $obj $var 999 }}
   }
 
   ? {o a} 4
@@ -1170,8 +1170,8 @@ Test case slot-traces {
   ? {o c 5} 999
 
   ::nx::Class create C {
-    :attribute a {set :defaultcmd { puts ...init; set _ 4 } }
-    :attribute b {set :valuecmd { puts ...get-value; set _ 44 } }
+    :attribute a {set :defaultcmd { set _ 4 } }
+    :attribute b {set :valuecmd { set _ 44 } }
     :attribute c {set :valuechangedcmd { ::nsf::setvar $obj $var 999 }}
     :create c1
   }
