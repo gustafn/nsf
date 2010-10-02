@@ -272,6 +272,7 @@ objectInfoMethod method NsfObjInfoMethodMethod {
 objectInfoMethod methods NsfObjInfoMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
+  {-argName "-expand"}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern"}
@@ -324,6 +325,7 @@ classInfoMethod method NsfClassInfoMethodMethod {
 classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
+  {-argName "-expand"}
   {-argName "-nomixins"}
   {-argName "-incontext"}
   {-argName "pattern"}

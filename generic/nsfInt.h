@@ -230,8 +230,8 @@ typedef struct NsfMemCounter {
 # define PRINTOBJ(ctx,obj)
 #endif
 
-#define className(cl) (cl ? ObjStr(cl->object.cmdName) : "")
-#define objectName(obj) (ObjStr(obj->cmdName))
+#define className(cl) (((cl) ? ObjStr(cl->object.cmdName) : "NULL"))
+#define objectName(obj) (((obj) ? ObjStr(obj->cmdName) : "NULL"))
 
 
 #define LONG_AS_STRING 32

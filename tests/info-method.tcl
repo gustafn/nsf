@@ -215,6 +215,9 @@ Test case callable {
     ? {o mixin ""} ""
 }
 
+#
+# test info slots / info lookup slots
+#
 Test case slots {
 
   nx::Class create C {
@@ -235,7 +238,9 @@ Test case slots {
   ? {::nx::Object info method parameter info} ""
 }
 
-
+#
+# test info submethod and method handles for submethods
+#
 Test case info-submethod {
 
   nx::Object create o {
@@ -334,4 +339,23 @@ Test case info-submethod {
       "::nsf::classes::nx::Object::info lookup methods"
 
   ? {o info method handle "foo b"} "::o::foo b"
+}
+
+#
+# test "info methods -expand"
+#
+Test case info-methods-expand {
+  ::nx::Object create o1
+  ? {::nx::Object info methods "info"} "info"
+  ? {::nx::Object info methods -expand "info"} ""
+  ? {lsort [::nx::Object info methods -expand "info lookup *"]} \
+      "{info lookup filter} {info lookup method} {info lookup methods} {info lookup slots}"
+  ? {lsort [::nx::Object info methods -expand "info *method*"]} \
+      "{info filter methods} {info lookup method} {info lookup methods} {info method} {info methods}"
+  ? {lsort [::nx::Object info methods "slots"]} ""
+  ? {lsort [::nx::Object info methods "*slots*"]} ""
+  ? {lsort [::nx::Object info methods -expand "*slots*"]} \
+      "{info lookup slots} {info slots}"
+  ? {lsort [::nx::Object info methods -expand "*filter*"]} \
+      "filter {info filter guard} {info filter methods} {info lookup filter}"
 }

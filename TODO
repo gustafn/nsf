@@ -1595,7 +1595,20 @@ _ added option noforwarder to RelationSlots
   from protection
 - serializer: experimental code to serialize submethods 
 
+- new option "-expand" for "obj|class info methods" to 
+  return compound names (i.e. it lists the full ensemble names)
+  Example:
+     ::nx::Object info methods -expand "*filter*"
+  returns
+     filter {info filter guard} {info filter methods} {info lookup filter}
+- allow ensemble names in nsf::methodproperty
+- fix compound name lookups when aliases link to shared ensemble objects
+- make objectName() NULL-safe
+- fix option "-source application" when applied directly on base-classes
+- extend regression test
+
 TODO: 
+- check feasbility of "info lookup methods -expand"
 - handing of xo::at_cleanup in serializer 
   (either generailization or move to OpenACS/aolserver init/naviserver init)
 - cleanup of xotcl-aol
