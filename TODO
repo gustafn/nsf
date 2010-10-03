@@ -1636,7 +1636,6 @@ TODO:
 - subcmd
    * handle subcmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
-   * provide full support in serializer
 - serializer:
    keep track of defaultMethodProtection
 
