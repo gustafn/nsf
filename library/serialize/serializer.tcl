@@ -708,7 +708,6 @@ namespace eval ::nx::serializer {
 
       :collect-var-traces $o $s
       set objectName [::nsf::dispatch $o -objscope ::nsf::current object]
-      puts stderr "isSlotContainer $objectName // $o"
       set isSlotContainer [::nx::isSlotContainer $objectName]
       if {$isSlotContainer} {
 	append cmd [list ::nx::slotObj [$o ::nsf::methods::object::info::parent]]\n
