@@ -1607,6 +1607,14 @@ _ added option noforwarder to RelationSlots
 - fix option "-source application" when applied directly on base-classes
 - extend regression test
 
+- nsf.c: use name "varTablePtr" instead of "varTable" when referring to the table
+- new option "slotcontainer" for "methodproperty" to flag slotcontainer to make
+  them easier to process in the serializer
+. don't report slot container in "info methods -expand"
+- new function "::nx::isSlotContainer" to centralize checking for slotcontainers
+  (used by serilaizer)
+- support export of method ensembles in serializer
+
 TODO: 
 - check feasbility of "info lookup methods -expand"
 - handing of xo::at_cleanup in serializer 

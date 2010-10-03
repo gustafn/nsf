@@ -339,17 +339,19 @@ typedef struct NsfStringIncrStruct {
 /* FILTER_ORDER_DEFINED set, when filters are defined for obj */
 #define NSF_FILTER_ORDER_DEFINED           0x0020
 #define NSF_FILTER_ORDER_DEFINED_AND_VALID 0x0030
-/* CLASS properties for objects */
+/* class and object properties for objects */
 #define NSF_IS_CLASS                       0x0040
 #define NSF_IS_ROOT_META_CLASS             0x0080
 #define NSF_IS_ROOT_CLASS                  0x0100
-
-#define NSF_TCL_DELETE                     0x0200
-#define NSF_DESTROY_CALLED_SUCCESS         0x0400
+#define NSF_IS_SLOT_CONTAINER              0x0200
+/* deletion state */
+#define NSF_TCL_DELETE                     0x0400
+#define NSF_DESTROY_CALLED_SUCCESS         0x0800
 /*#define NSF_CMD_NOT_FOUND                  0x1000*/
 #define NSF_DURING_DELETE                  0x2000
 #define NSF_DELETED                        0x4000
 #define NSF_RECREATE                       0x8000
+
 
 /* flags for NsfParams */
 
@@ -446,7 +448,7 @@ typedef struct NsfObject {
   Tcl_Command id;
   Tcl_Interp *teardown;
   struct NsfClass *cl;
-  TclVarHashTable *varTable;
+  TclVarHashTable *varTablePtr;
   Tcl_Namespace *nsPtr;
   NsfObjectOpt *opt;
   struct NsfCmdList *filterOrder;

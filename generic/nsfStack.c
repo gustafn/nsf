@@ -64,13 +64,13 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, Tcl_CallFram
                       1|FRAME_IS_NSF_OBJECT);
     
     Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
-    if (object->varTable == NULL) {
-      object->varTable = VarHashTableCreate();
-      /*fprintf(stderr, "+++ create varTable %p in PushFrameObj obj %p framePtr %p\n",  
-        object->varTable, object, framePtr);*/
+    if (object->varTablePtr == NULL) {
+      object->varTablePtr = VarHashTableCreate();
+      /*fprintf(stderr, "+++ create varTablePtr %p in PushFrameObj obj %p framePtr %p\n",  
+        object->varTablePtr, object, framePtr);*/
     }
-    Tcl_CallFrame_varTablePtr(framePtr) = object->varTable;
-    /*fprintf(stderr,"+++ setting varTable %p in varFrame %p\n",object->varTable,framePtr);*/
+    Tcl_CallFrame_varTablePtr(framePtr) = object->varTablePtr;
+    /*fprintf(stderr,"+++ setting varTablePtr %p in varFrame %p\n",object->varTablePtr,framePtr);*/
   }
   Tcl_CallFrame_clientData(framePtr) = (ClientData)object;
 }
@@ -94,7 +94,7 @@ static void Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tc
 }
 
 static void Nsf_PopFrameCsc(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
-  /*fprintf(stderr,"POP CMETHOD_FRAME (Nsf_PopFrameCsc) frame %p, varTable = %p\n",
+  /*fprintf(stderr,"POP CMETHOD_FRAME (Nsf_PopFrameCsc) frame %p, varTablePtr = %p\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr));*/
   Tcl_PopCallFrame(interp);
 }

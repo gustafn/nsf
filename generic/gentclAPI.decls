@@ -111,7 +111,7 @@ nsfCmd methodproperty NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "methodName" -required 1 -type tclobj}
-  {-argName "methodproperty" -required 1 -type "class-only|protected|redefine-protected|returns|slotobj"}
+  {-argName "methodproperty" -required 1 -type "class-only|protected|redefine-protected|returns|slotcontainer|slotobj"}
   {-argName "value" -type tclobj}
 }
 nsfCmd my NsfMyCmd {

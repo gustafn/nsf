@@ -93,11 +93,7 @@ namespace eval ::nx {
 	  # Create dispatch/ensemble object and accessor method (if wanted)
 	  #
 	  if {$scope eq "class"} {
-	    if {![::nsf::isobject ${object}::slot]} {
-	      ::nsf::methodproperty $object [Object create ${object}::slot] protected true
-	      if {$verbose} {puts stderr "... create object ${object}::slot"}
-	    }
-	    set o [nx::EnsembleObject create ${object}::slot::__$w]
+	    set o [nx::EnsembleObject create [::nx::slotObj ${object} __$w]]
 	    if {$verbose} {puts stderr "... create object $o"}
 	    # We are on a class, and have to create an alias to be
 	    # accessible for objects
@@ -183,7 +179,8 @@ namespace eval ::nx {
         return [::nsf::dispatch [::nsf::current object] ::nsf::classes::nx::Object::$what {*}$args]
       }
       if {$what in [list "info"]} {
-        return [::nsf::dispatch [::nsf::current object] ::nx::Object::slot::__info [lindex $args 0] {*}[lrange $args 1 end]]
+        return [::nsf::dispatch [::nsf::current object] ::nx::Object::slot::__info \
+		    [lindex $args 0] {*}[lrange $args 1 end]]
       }
       if {$what in [list "filter" "mixin"]} {
 	# 
@@ -329,17 +326,34 @@ namespace eval ::nx {
     }
   }
 
+  #
+  # isSlotContainer tests, whether the provided object is a slot
+  # container based on the methodproperty slotcontainer, used
+  # internally by nsf.
+  #
+  proc ::nx::isSlotContainer {object} {
+    if {[::nsf::isobject $object] && [namespace tail $object] eq "slot"} {
+      set parent [$object ::nsf::methods::object::info::parent]
+      return [expr {[::nsf::isobject $parent] 
+		    && [::nsf::methodproperty $parent -per-object slot slotcontainer]}]
+    }
+    return 0
+  }
+
   proc ::nx::slotObj {baseObject {name ""}} {
-    # Create slot parent object if needed
-    set slotParent ${baseObject}::slot
-    if {![::nsf::isobject $slotParent]} {
-      ::nx::Object alloc $slotParent
+    # Create slot container object if needed
+    set slotContainer ${baseObject}::slot
+    if {![::nsf::isobject $slotContainer]} {
+      ::nx::Object alloc $slotContainer
       ::nsf::methodproperty ${baseObject} -per-object slot protected true
+      ::nsf::methodproperty ${baseObject} -per-object slot redefine-protected true
+      ::nsf::methodproperty ${baseObject} -per-object slot slotcontainer true
+      $slotContainer ::nsf::methods::object::requirenamespace
     }
     if {$name eq ""} {
-      return ${slotParent}
+      return ${slotContainer}
     }
-    return ${slotParent}::$name
+    return ${slotContainer}::$name
   }
 
   # allocate system slot parents

@@ -610,43 +610,13 @@ namespace eval ::nx::serializer {
       return [:[:classify $x]-needsNothing $x $s]
     }
 
-    :method submethods {x where name} {
-      set methods [list]
-      set submethods [$x ::nsf::methods::${where}::info::method submethods $name]
-      #puts stderr "subm of $x $where $name => $submethods"
-      if {[llength $submethods] == 0} {
-	# no submethods, therefore we have a leaf method
-	lappend methods $name
-      } else {
-	foreach m $submethods {
-	  lappend methods {*}[:submethods $x $where "$name $m"]
-	}
-      }
-      return $methods
-    }
-    
-    :method ensembleMethods {x where} {
-      # todo: don't check for name "slot"
-      if {[$x ::nsf::methods::object::info::hastype ::nx::EnsembleObject] || [namespace tail $x] eq "slot"} {
-	# don't return the ensemble objects as ensembleMethods
-	return [list]
-      }
-      set methods [list]
-      foreach m [$x ::nsf::methods::${where}::info::methods -methodtype object -callprotection all] {
-	if {$m eq "slot"} continue
-	lappend methods {*}[:submethods $x $where $m]
-      }
-      #puts stderr "ensembleMethods for $x $where $methods"
-      return $methods
-    }
-
     :method alias-dependency {x where} {
       set handle :alias_dependency($x,$where)
       if {[info exists $handle]} {
 	return [set $handle]
       }
       set needed [list]
-      foreach alias [$x ::nsf::methods::${where}::info::methods -methodtype alias -callprotection all] {
+      foreach alias [$x ::nsf::methods::${where}::info::methods -methodtype alias -callprotection all -expand] {
 	set definition [$x ::nsf::methods::${where}::info::method definition $alias]
 	set source [$x ::nsf::methods::class::info::method definition [lindex $definition end]]
 	if {$source ne ""} {
@@ -737,17 +707,18 @@ namespace eval ::nx::serializer {
       }
 
       :collect-var-traces $o $s
-      append cmd [list [$o info class] create \
-                      [::nsf::dispatch $o -objscope ::nsf::current object]]
-
-      append cmd " -noinit\n"
-      foreach i [lsort [$o ::nsf::methods::object::info::methods -callprotection all]] {
-        append cmd [:method-serialize $o $i "class-object"] "\n"
-      }
-      foreach i [:ensembleMethods $o object] {
-        append cmd [:method-serialize $o $i "class-object"] "\n"
+      set objectName [::nsf::dispatch $o -objscope ::nsf::current object]
+      puts stderr "isSlotContainer $objectName // $o"
+      set isSlotContainer [::nx::isSlotContainer $objectName]
+      if {$isSlotContainer} {
+	append cmd [list ::nx::slotObj [$o ::nsf::methods::object::info::parent]]\n
+      } else {
+	append cmd [list [$o info class] create $objectName -noinit]\n
+	foreach i [lsort [$o ::nsf::methods::object::info::methods -callprotection all -expand]] {
+	  append cmd [:method-serialize $o $i "class-object"] "\n"
 	}
-      
+      }
+     
       set vars [:collectVars $o]
       if {[llength $vars]>0} {append cmd [list $o eval [join $vars "\n   "]]\n}
 
@@ -772,13 +743,9 @@ namespace eval ::nx::serializer {
     :method Class-serialize {o s} {
 
       set cmd [:Object-serialize $o $s]
-      foreach i [lsort [$o ::nsf::methods::class::info::methods -callprotection all]] {
+      foreach i [lsort [$o ::nsf::methods::class::info::methods -callprotection all -expand]] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
-      foreach i [:ensembleMethods $o class] {
-        append cmd [:method-serialize $o $i ""] "\n"
-      }
-
       append cmd \
           [:frameWorkCmd ::nsf::relation $o superclass -unless ${:rootClass}] \
           [:frameWorkCmd ::nsf::relation $o class-mixin] \

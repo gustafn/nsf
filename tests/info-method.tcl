@@ -345,7 +345,9 @@ Test case info-submethod {
 # test "info methods -expand"
 #
 Test case info-methods-expand {
-  ::nx::Object create o1
+  #
+  # test case on base class
+  #
   ? {::nx::Object info methods "info"} "info"
   ? {::nx::Object info methods -expand "info"} ""
   ? {lsort [::nx::Object info methods -expand "info lookup *"]} \
@@ -358,4 +360,20 @@ Test case info-methods-expand {
       "{info lookup slots} {info slots}"
   ? {lsort [::nx::Object info methods -expand "*filter*"]} \
       "filter {info filter guard} {info filter methods} {info lookup filter}"
+
+  ::nx::Object create o1
+  ::nx::Class create C {
+    :public method "string length" {s} {puts length}
+    :public method "string reverse" {s} {puts reverse}
+    :public method foo {} {puts foo}
+    :protected method "a b c" {} {puts "a b c"}
+    :protected method "a b d" {} {puts "a b d"}
+    :public method "a c" {d c} {puts "a c"}
+  }
+  
+  ? {lsort [C info methods -expand -callprotection all]} \
+      "{a b c} {a b d} {a c} foo {string length} {string reverse}"
+  ? {lsort [C info methods -expand]} \
+      "{a c} foo {string length} {string reverse}"
+  
 }

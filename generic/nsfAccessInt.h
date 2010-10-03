@@ -19,9 +19,9 @@
 #define Tcl_CallFrame_clientData(cf)      ((CallFrame *)cf)->clientData
 #define Tcl_CallFrame_nsPtr(cf)           ((Tcl_Namespace *)((CallFrame *)cf)->nsPtr)
 
-#define Tcl_Namespace_cmdTable(nsPtr)    &((Namespace *)nsPtr)->cmdTable
-#define Tcl_Namespace_varTable(nsPtr)    &((Namespace *)nsPtr)->varTable
-#define Tcl_Namespace_childTable(nsPtr)  &((Namespace *)nsPtr)->childTable
+#define Tcl_Namespace_cmdTablePtr(nsPtr) &((Namespace *)nsPtr)->cmdTable
+#define Tcl_Namespace_varTablePtr(nsPtr) &((Namespace *)nsPtr)->varTable
+#define Tcl_Namespace_childTablePtr(nsPtr) &((Namespace *)nsPtr)->childTable
 #define Tcl_Namespace_activationCount(nsPtr) ((Namespace *)nsPtr)->activationCount
 #define Tcl_Namespace_deleteProc(nsPtr)  ((Namespace *)nsPtr)->deleteProc
 
