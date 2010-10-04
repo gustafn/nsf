@@ -150,7 +150,8 @@ typedef struct {
   NsfObject *object;
 } ParseContext;
 
-static NsfTypeConverter ConvertToNothing;
+static NsfTypeConverter ConvertToNothing, ConvertViaCmd;
+
 
 /*
  * Tcl_Obj Types for Next Scripting Objects
@@ -6023,7 +6024,28 @@ ParamDefsSyntax(Tcl_Interp *interp, NsfParam CONST *paramPtr) {
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
       Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
       if (pPtr->nrArgs >0) {
-        Tcl_AppendLimitedToObj(argStringObj, " arg", 4, INT_MAX, NULL);
+	if (pPtr->type) {
+	  Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
+
+	  if (pPtr->converter == ConvertViaCmd) {
+	    Tcl_AppendLimitedToObj(argStringObj, pPtr->type + 5, -1, INT_MAX, NULL); 	    	  
+	  } else if (strcmp(pPtr->type, "stringtype") == 0) {
+	    if (pPtr->converterArg) {
+	      Tcl_AppendLimitedToObj(argStringObj, ObjStr(pPtr->converterArg), -1, INT_MAX, NULL); 
+	    } else {
+	      Tcl_AppendLimitedToObj(argStringObj, "arg", 3, INT_MAX, NULL);
+	    }
+	  } else {
+	    Tcl_AppendLimitedToObj(argStringObj, pPtr->type, -1, INT_MAX, NULL); 
+	  }
+
+	} else {
+	  Tcl_AppendLimitedToObj(argStringObj, " arg", 4, INT_MAX, NULL);
+	}
+	if (pPtr->flags & NSF_ARG_MULTIVALUED) {
+	  Tcl_AppendLimitedToObj(argStringObj, " list", 5, INT_MAX, NULL);	    
+	}
+	//fprintf(stderr, "type of %s = %s\n",pPtr->name,pPtr->type);
       }
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
     }

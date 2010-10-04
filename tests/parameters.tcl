@@ -1297,3 +1297,26 @@ namespace eval foo {
   ? {c1 f32} 1
 }
 
+Test case check-arguments {
+
+  Class create Foo {
+    :method noarg {} {return ""} 
+    :method onearg {-x} {return $x} 
+    :method intarg {-x:integer} {return $x} 
+    :method intsarg {-x:integer,multivalued} {return $x} 
+    :method boolarg {-x:boolean} {return $x} 
+    :method classarg {-x:class} {return $x} 
+    :method upperarg {-x:upper} {return $x} 
+    :method metaclassarg {-x:metaclass} {return $x} 
+  }
+
+  ? {Foo info method parametersyntax noarg} ""
+  ? {Foo info method parametersyntax onearg} "?-x arg?"
+  ? {Foo info method parametersyntax intarg} "?-x integer?"
+  ? {Foo info method parametersyntax intsarg} "?-x integer list?"
+  ? {Foo info method parametersyntax boolarg} "?-x boolean?"
+  ? {Foo info method parametersyntax classarg} "?-x class?"
+  ? {Foo info method parametersyntax upperarg} "?-x upper?"
+  ? {Foo info method parametersyntax metaclassarg} "?-x metaclass?"
+  
+}

@@ -1625,11 +1625,16 @@ _ added option noforwarder to RelationSlots
   (i.e.  from all classes along the precedence order. It was necessary
   to pass calling object as first argument)
 
+- "info method parametersyntax" returns now for all nonpos args the
+  type instead of "arg" when possible (eg ..... ?-x object? ....)
+- extended regression test
+
 TODO: 
 
-- handing of xo::at_cleanup in serializer 
-  (either generailization or move to OpenACS/aolserver init/naviserver init)
+
+
 - cleanup of xotcl-aol
+
 - method-modifiers/attribute-method.002:  incorrect result for 'set _ {}'
         expected: '::C::A', got ''
         in test file ./tests/method-modifiers.tcl
@@ -1647,7 +1652,9 @@ TODO:
    * handle subcmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
 - serializer:
-   keep track of defaultMethodProtection
+   * keep track of defaultMethodProtection
+   * handing of xo::at_cleanup in serializer 
+     (either generailization or move to OpenACS/aolserver init/naviserver init)
 
 - interfaces in documentation for slots (see for more details 
   ::nx::Class#superclass in nx.tcl).
@@ -1706,7 +1713,7 @@ TODO "Kleinigkeiten"
 - integrate ::nx::doc::make with Makefile.in
   (provide shell calls and, targets and dependencies)
 - decide on syntax in documentation
-  (info method parameter | info method parametersyntax | mixture, e.g. parmetersyntax with value-checkers)
+  (info method parameter | info method parametersyntax)
 
 - reduce indenting for code examples in documentation (high indentation makes readability worse).
   i use usually jsut 2, 4 are ok as well; we should decide.
