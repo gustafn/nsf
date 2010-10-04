@@ -385,7 +385,7 @@ namespace eval ::nx {
     :method subcmdName {} {
       #
       # Compute the name of a subcmd and the object, on which it is
-      # registed, give an Ensemble object.
+      # registed, given an Ensemble object.
       #
       set self [::nsf::current object]
       set parent [::nsf::dispatch $self ::nsf::methods::object::info::parent]

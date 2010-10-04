@@ -252,14 +252,15 @@ objectInfoMethod lookupfilter NsfObjInfoLookupFilterMethod {
   {-argName "filter"}
 }
 objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
-  {-argName "name"}
+  {-argName "name" -type tclobj}
 }
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
-  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
-  {-argName "-nomixins"}
+  {-argName "-expand"}
   {-argName "-incontext"}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-nomixins"}
+  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
   {-argName "pattern" -required 0}
 }
 objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {

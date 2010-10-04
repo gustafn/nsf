@@ -301,8 +301,8 @@ static int NsfObjInfoHasTypeMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass 
 static int NsfObjInfoHasnamespaceMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoIsMethod(Tcl_Interp *interp, NsfObject *obj, int objectkind);
 static int NsfObjInfoLookupFilterMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter);
-static int NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *name);
-static int NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withMethodtype, int withCallprotection, int withSource, int withNomixins, int withIncontext, CONST char *pattern);
+static int NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *name);
+static int NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withCallprotection, int withExpand, int withIncontext, int withMethodtype, int withNomixins, int withSource, CONST char *pattern);
 static int NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType);
 static int NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *obj, int infomethodsubcmd, Tcl_Obj *name);
 static int NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withMethodtype, int withCallprotection, int withExpand, int withNomixins, int withIncontext, CONST char *pattern);
@@ -1823,7 +1823,7 @@ NsfObjInfoLookupMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int 
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    CONST char *name = (CONST char *)pc.clientData[0];
+    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
 
     ParseContextRelease(&pc);
     return NsfObjInfoLookupMethodMethod(interp, obj, name);
@@ -1842,15 +1842,16 @@ NsfObjInfoLookupMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    int withMethodtype = (int )PTR2INT(pc.clientData[0]);
-    int withCallprotection = (int )PTR2INT(pc.clientData[1]);
-    int withSource = (int )PTR2INT(pc.clientData[2]);
-    int withNomixins = (int )PTR2INT(pc.clientData[3]);
-    int withIncontext = (int )PTR2INT(pc.clientData[4]);
-    CONST char *pattern = (CONST char *)pc.clientData[5];
+    int withCallprotection = (int )PTR2INT(pc.clientData[0]);
+    int withExpand = (int )PTR2INT(pc.clientData[1]);
+    int withIncontext = (int )PTR2INT(pc.clientData[2]);
+    int withMethodtype = (int )PTR2INT(pc.clientData[3]);
+    int withNomixins = (int )PTR2INT(pc.clientData[4]);
+    int withSource = (int )PTR2INT(pc.clientData[5]);
+    CONST char *pattern = (CONST char *)pc.clientData[6];
 
     ParseContextRelease(&pc);
-    return NsfObjInfoLookupMethodsMethod(interp, obj, withMethodtype, withCallprotection, withSource, withNomixins, withIncontext, pattern);
+    return NsfObjInfoLookupMethodsMethod(interp, obj, withCallprotection, withExpand, withIncontext, withMethodtype, withNomixins, withSource, pattern);
 
   }
 }
@@ -2328,14 +2329,15 @@ static methodDefinition method_definitions[] = {
   {"filter", 0, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::lookupmethod", NsfObjInfoLookupMethodMethodStub, 1, {
-  {"name", 0, 0, ConvertToString}}
+  {"name", 0, 0, ConvertToTclobj}}
 },
-{"::nsf::methods::object::info::lookupmethods", NsfObjInfoLookupMethodsMethodStub, 6, {
-  {"-methodtype", 0, 1, ConvertToMethodtype},
+{"::nsf::methods::object::info::lookupmethods", NsfObjInfoLookupMethodsMethodStub, 7, {
   {"-callprotection", 0, 1, ConvertToCallprotection},
-  {"-source", 0, 1, ConvertToSource},
-  {"-nomixins", 0, 0, ConvertToString},
+  {"-expand", 0, 0, ConvertToString},
   {"-incontext", 0, 0, ConvertToString},
+  {"-methodtype", 0, 1, ConvertToMethodtype},
+  {"-nomixins", 0, 0, ConvertToString},
+  {"-source", 0, 1, ConvertToSource},
   {"pattern", 0, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::lookupslots", NsfObjInfoLookupSlotsMethodStub, 1, {

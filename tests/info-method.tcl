@@ -324,11 +324,11 @@ Test case info-submethod {
       {::C public method {bar baz y} {x:int y:upper} {return y}}
 
   ? {nx::Object info method parameter "info lookup methods"} \
-      "-methodtype -callprotection -source -nomixins -incontext pattern:optional"
+      "-callprotection -expand -incontext -methodtype -nomixins -source pattern:optional"
   ? {o info method parameter "foo b"} "x:int y:upper"
 
   ? {nx::Object info method parameter ::nx::Object::slot::__info::lookup::methods} \
-      "-methodtype -callprotection -source -nomixins -incontext pattern:optional"
+      "-callprotection -expand -incontext -methodtype -nomixins -source pattern:optional"
   ? {o info method parameter "::o::foo::b"} "x:int y:upper"
 
   ? {nx::Object info method handle "info"} "::nsf::classes::nx::Object::info"
@@ -361,7 +361,6 @@ Test case info-methods-expand {
   ? {lsort [::nx::Object info methods -expand "*filter*"]} \
       "filter {info filter guard} {info filter methods} {info lookup filter}"
 
-  ::nx::Object create o1
   ::nx::Class create C {
     :public method "string length" {s} {puts length}
     :public method "string reverse" {s} {puts reverse}
@@ -369,11 +368,34 @@ Test case info-methods-expand {
     :protected method "a b c" {} {puts "a b c"}
     :protected method "a b d" {} {puts "a b d"}
     :public method "a c" {d c} {puts "a c"}
+    :create c1
   }
-  
+  nx::Class create D {
+    :superclass C
+    :public method "string length" {s} {puts length}
+    :public method "string compress" {s} {puts compress}
+    :create d1
+  }
   ? {lsort [C info methods -expand -callprotection all]} \
       "{a b c} {a b d} {a c} foo {string length} {string reverse}"
   ? {lsort [C info methods -expand]} \
       "{a c} foo {string length} {string reverse}"
-  
+
+  #
+  # lookup ensemble methods
+  #
+  ? {lsort [c1 info lookup methods -expand "string *"]} \
+      "{string length} {string reverse}"
+  #
+  # lookup ensemble methods combined from multiple classes
+  #
+  ? {lsort [d1 info lookup methods -expand "string *"]} \
+      "{string compress} {string length} {string reverse}"
+
+  #
+  # search for ensemble method
+  #
+  ? {lsort [d1 info lookup method "string length"]} "::nsf::classes::D::string length"
+  ? {lsort [d1 info lookup method "string reverse"]} "::nsf::classes::C::string reverse"
+
 }

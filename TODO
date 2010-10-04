@@ -1615,8 +1615,14 @@ _ added option noforwarder to RelationSlots
   (used by serilaizer)
 - support export of method ensembles in serializer
 
+- "info lookup methods": order of non-pos parameters alphabetically
+- added option "-expand" to "info lookup methods ". It collects
+  ensemble methods along the precedence path
+- added support for ensemble methods in "info lookup method"
+- extended regression test
+
 TODO: 
-- check feasbility of "info lookup methods -expand"
+
 - handing of xo::at_cleanup in serializer 
   (either generailization or move to OpenACS/aolserver init/naviserver init)
 - cleanup of xotcl-aol

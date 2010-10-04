@@ -207,16 +207,18 @@ static void PrimitiveODestroy(ClientData clientData);
 static void PrimitiveDestroy(ClientData clientData);
 static void NsfCleanupObject(NsfObject *object, char *string);
 
-/* prototypes for object lookup */
+/* prototypes for object and command lookup */
 static NsfObject *GetObjectFromString(Tcl_Interp *interp, CONST char *name);
 static NsfClass *GetClassFromString(Tcl_Interp *interp, CONST char *name);
 static void GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *startClass);
+NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName);
 
 /* prototypes for namespace specific calls*/
 static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
 static Tcl_Namespace *CallingNameSpace(Tcl_Interp *interp);
 NSF_INLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
-static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name, int create);
+static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, 
+					  CONST char *name, int create);
 
 /* prototypes for filters and mixins */
 static void FilterComputeDefined(Tcl_Interp *interp, NsfObject *object);
@@ -997,97 +999,7 @@ NsfIsClass(Tcl_Interp *interp, ClientData clientData) {
 /*
  * methods lookup
  */
-static int
-CmdIsProc(Tcl_Command cmd) {
-  /* In 8.6: TclIsProc((Command*)cmd) is not equiv to the definition below */
-  return (Tcl_Command_objProc(cmd) == TclObjInterpProc);
-}
 
-static Proc *
-GetTclProcFromCommand(Tcl_Command cmd) {
-  if (cmd) {
-    Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
-    if (proc == TclObjInterpProc)
-      return (Proc*) Tcl_Command_objClientData(cmd);
-  }
-  return NULL;
-}
-
-NSF_INLINE static Tcl_Command
-FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
-  register Tcl_HashEntry *entryPtr;
-  if ((entryPtr = Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(nsPtr), methodName, NULL))) {
-    return (Tcl_Command) Tcl_GetHashValue(entryPtr);
-  }
-  return NULL;
-}
-
-static Proc *
-FindProcMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
-  return GetTclProcFromCommand(FindMethod(nsPtr, methodName));
-}
-
-static NsfClass *
-SearchPLMethod(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cmd) {
-  /* Search the precedence list (class hierarchy) */
-#if 1
-  for (; pl;  pl = pl->nextPtr) {
-    register Tcl_HashEntry *entryPtr = Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
-    if (entryPtr) {
-      *cmd = (Tcl_Command) Tcl_GetHashValue(entryPtr);
-      return pl->cl;
-    }
-  }
-#else
-  for (; pl;  pl = pl->nextPtr) {
-    if ((*cmd = FindMethod(pl->cl->nsPtr, methodName))) {
-      return pl->cl;
-    }
-  }
-#endif
-  return NULL;
-}
-
-
-static NsfClass *
-SearchCMethod(/*@notnull@*/ NsfClass *cl, CONST char *nm, Tcl_Command *cmd) {
-  assert(cl);
-  return SearchPLMethod(ComputeOrder(cl, cl->order, Super), nm, cmd);
-}
-
-/*
- * Find a method for a given object in the precedence path
- */
-static Tcl_Command
-ObjectFindMethod(Tcl_Interp *interp, NsfObject *object, CONST char *name, NsfClass **pcl) {
-  Tcl_Command cmd = NULL;
-
-  if (!(object->flags & NSF_MIXIN_ORDER_VALID))
-    MixinComputeDefined(interp, object);
-
-  if (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
-    NsfCmdList *mixinList;
-    for (mixinList = object->mixinOrder; mixinList; mixinList = mixinList->nextPtr) {
-      NsfClass *mixin = NsfGetClassFromCmdPtr(mixinList->cmdPtr);
-      if (mixin && (*pcl = SearchCMethod(mixin, name, &cmd))) {
-	if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD && !NsfObjectIsClass(object)) {
-	  cmd = NULL;
-	  continue;
-	}
-        break;
-      }
-    }
-  }
-
-  if (!cmd && object->nsPtr) {
-    cmd = FindMethod(object->nsPtr, name);
-  }
-
-  if (!cmd && object->cl)
-    *pcl = SearchCMethod(object->cl, name, &cmd);
-
-  return cmd;
-}
 
 /*
  *----------------------------------------------------------------------
@@ -1183,7 +1095,6 @@ GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
  *
  *----------------------------------------------------------------------
  */
-
 static Tcl_Command 
 ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
 		  Tcl_DString *methodNameDs,
@@ -1295,6 +1206,293 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
     cmd = nsPtr ? FindMethod(nsPtr, methodName) : NULL;
     *regObject = NULL;
     *defObject = NULL;
+  }
+
+  return cmd;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * CmdIsProc --
+ *
+ *    Check, whether the cmd is interpreted
+ *
+ * Results:
+ *    Boolean
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+CmdIsProc(Tcl_Command cmd) {
+  /* In 8.6: TclIsProc((Command*)cmd) is not equiv to the definition below */
+  return (Tcl_Command_objProc(cmd) == TclObjInterpProc);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * GetTclProcFromCommand --
+ *
+ *    Check if cmd is interpreted, and if so, return the proc
+ *    definition.
+ *
+ * Results:
+ *    The found proc of cmd or NULL.
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+static Proc *
+GetTclProcFromCommand(Tcl_Command cmd) {
+  Tcl_ObjCmdProc *proc;
+
+  assert(cmd);
+  proc = Tcl_Command_objProc(cmd);
+  if (proc == TclObjInterpProc) {
+    return (Proc*) Tcl_Command_objClientData(cmd);
+  }
+  return NULL;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * FindMethod --
+ *
+ *    Lookup the cmd for methodName in a namespace.
+ *
+ * Results:
+ *    The found cmd of the method or NULL.
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+
+NSF_INLINE static Tcl_Command
+FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
+  register Tcl_HashEntry *entryPtr;
+  if ((entryPtr = Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(nsPtr), methodName, NULL))) {
+    return (Tcl_Command) Tcl_GetHashValue(entryPtr);
+  }
+  return NULL;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * FindProcMethod --
+ *
+ *    Lookup the proc for methodName in a namespace.
+ *
+ * Results:
+ *    The found proc of the method or NULL.
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+
+static Proc *
+FindProcMethod(Tcl_Namespace *nsPtr, CONST char *methodName) {
+  Tcl_Command cmd = FindMethod(nsPtr, methodName);
+  return cmd ? GetTclProcFromCommand(cmd) : NULL;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * SearchPLMethod --
+ *
+ *    Search a method along a provided class list.
+ *    The methodName must be simple (must not contain
+ *    space). 
+ *
+ * Results:
+ *    The found class defining the method or NULL.
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+static NsfClass *
+SearchPLMethod(register NsfClasses *pl, CONST char *methodName, Tcl_Command *cmdPtr) {
+  /* Search the precedence list (class hierarchy) */
+#if 1
+  for (; pl;  pl = pl->nextPtr) {
+    register Tcl_HashEntry *entryPtr = 
+      Tcl_CreateHashEntry(Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr), methodName, NULL);
+    if (entryPtr) {
+      *cmdPtr = (Tcl_Command) Tcl_GetHashValue(entryPtr);
+      return pl->cl;
+    }
+  }
+#else
+  for (; pl;  pl = pl->nextPtr) {
+    if ((*cmdPtr = FindMethod(pl->cl->nsPtr, methodName))) {
+      return pl->cl;
+    }
+  }
+#endif
+  return NULL;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * SearchCMethod --
+ *
+ *    Search a method along the superclass hierarchy of the provided
+ *    class. The methodObj must be simple (must not contain
+ *    space). The method has the interface for internal calls during
+ *    interpretation, while SearchSimpleCMethod() has the interface
+ *    with more overhead for introspection.
+ *
+ * Results:
+ *    The found class defining the method or NULL.
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+static NsfClass *
+SearchCMethod(/*@notnull@*/ NsfClass *cl, CONST char *methodName, Tcl_Command *cmdPtr) {
+  assert(cl);
+  return SearchPLMethod(ComputeOrder(cl, cl->order, Super), methodName, cmdPtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * SearchSimpleCMethod --
+ *
+ *    Search a method along the superclass hierarchy of the provided
+ *    class. The methodObj must be simple (must not contain
+ *    space). The method has the same interface as
+ *    SearchComplexCMethod().
+ *
+ * Results:
+ *    The found class defining the method or NULL.
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+static NsfClass *
+SearchSimpleCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl, 
+		    Tcl_Obj *methodObj, Tcl_Command *cmdPtr) {
+  assert(cl);
+  return SearchPLMethod(ComputeOrder(cl, cl->order, Super), ObjStr(methodObj), cmdPtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * SearchComplexCMethod --
+ *
+ *    Search a method along the superclass hierarchy of the provided
+ *    class. The methodObj can refer to an ensemble object (can
+ *    contain space). The method has the same interface as
+ *    SearchSimpleCMethod().
+ *
+ * Results:
+ *    The found class defining the method or NULL.
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+static NsfClass *
+SearchComplexCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl, 
+		     Tcl_Obj *methodObj, Tcl_Command *cmdPtr) {
+  NsfClasses *pl;
+  CONST char *methodName1 = NULL;
+  Tcl_DString ds, *dsPtr = &ds;
+  int fromClassNS = 1;
+
+  assert(cl);
+
+  for (pl = ComputeOrder(cl, cl->order, Super); pl;  pl = pl->nextPtr) {
+    NsfObject *regObject, *defObject;
+    Tcl_Command cmd;
+
+    Tcl_DStringInit(dsPtr);
+    cmd = ResolveMethodName(interp, pl->cl->nsPtr, methodObj, 
+			    dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+    Tcl_DStringFree(dsPtr);
+
+    if (cmd) {
+      *cmdPtr = cmd;
+      return pl->cl;
+    }
+  }
+
+  return NULL;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * ObjectFindMethod --
+ *
+ *    Find a method for a given object in the precedence path. The
+ *    provided methodObj might be an ensemble object. This function
+ *    tries to optimize access by calling different implementations
+ *    for simple and ensemble method names.
+ *
+ * Results:
+ *    Tcl command.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static Tcl_Command
+ObjectFindMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *methodObj, NsfClass **pcl) {
+  Tcl_Command cmd = NULL;
+  Tcl_DString ds, *dsPtr = &ds;
+  int containsSpace = strchr(ObjStr(methodObj), ' ') > 0;
+  NsfClass *(*lookupFunction)(Tcl_Interp *interp, NsfClass *cl, 
+			      Tcl_Obj *methodObj, Tcl_Command *cmdPtr) =
+    containsSpace ? SearchComplexCMethod : SearchSimpleCMethod;
+
+  if (!(object->flags & NSF_MIXIN_ORDER_VALID)) {
+    MixinComputeDefined(interp, object);
+  }
+
+  if (object->flags & NSF_MIXIN_ORDER_DEFINED_AND_VALID) {
+    NsfCmdList *mixinList;
+    for (mixinList = object->mixinOrder; mixinList; mixinList = mixinList->nextPtr) {
+      NsfClass *mixin = NsfGetClassFromCmdPtr(mixinList->cmdPtr);
+      if (mixin && (*pcl = (*lookupFunction)(interp, mixin, methodObj, &cmd))) {
+	if (Tcl_Command_flags(cmd) & NSF_CMD_CLASS_ONLY_METHOD && !NsfObjectIsClass(object)) {
+	  cmd = NULL;
+	  continue;
+	}
+        break;
+      }
+    }
+  }
+
+  if (!cmd && object->nsPtr) {
+    int fromClassNS = 0;
+    NsfObject *regObject, *defObject;
+    CONST char *methodName1 = NULL;
+
+    Tcl_DStringInit(dsPtr);
+    cmd = ResolveMethodName(interp, object->nsPtr, methodObj, 
+			    dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
+    Tcl_DStringFree(dsPtr);
+  }
+
+  if (!cmd && object->cl) {
+    *pcl = (*lookupFunction)(interp, object->cl, methodObj, &cmd);
   }
 
   return cmd;
@@ -6294,8 +6492,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 				       cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
 	}
 	
-	/*fprintf(stderr, "==> next %s csc %p returned %d unknown %d\n", 
-	  methodName, cscPtr, result, rst->unknown); */
+	fprintf(stderr, "==> next %s.%s (obj %s) csc %p returned %d unknown %d\n", 
+		objectName(self),methodName, objectName(object), cscPtr, result, rst->unknown); 
 	if (rst->unknown) {
 	  result = DispatchUnknownMethod(self, interp, objc-1, objv+1, 
 					 objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
@@ -7501,7 +7699,7 @@ ParamParse(Tcl_Interp *interp, CONST char *procName, Tcl_Obj *arg, int disallowe
     }
     converterNameString = ObjStr(converterNameObj);
 
-    cmd = ObjectFindMethod(interp, paramObj, converterNameString, &pcl);
+    cmd = ObjectFindMethod(interp, paramObj, converterNameObj, &pcl);
     if (cmd == NULL) {
       if (paramPtr->converter == ConvertViaCmd) {
         fprintf(stderr, "**** could not find checker method %s defined on %s\n",
@@ -12680,9 +12878,6 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   Tcl_Command cmd = NULL;
   NsfClass *cl = withPer_object == 0 && NsfObjectIsClass(object) ? (NsfClass *)object : NULL;
   int flag, fromClassNS = cl != NULL;
-
-  /*fprintf(stderr, "methodProperty for method '%s' prop %d value %s\n",
-    methodName, methodproperty, valueObj ? ObjStr(valueObj) : "NULL");*/
   
   Tcl_DStringInit(dsPtr);
   cmd = ResolveMethodName(interp, cl ? cl->nsPtr : object->nsPtr, methodObj, 
@@ -15125,36 +15320,39 @@ objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
 }
 */
 static int
-NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *object, CONST char *name) {
+NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *methodObj) {
   NsfClass *pcl = NULL;
-  Tcl_Command cmd = ObjectFindMethod(interp, object, name, &pcl);
+  Tcl_Command cmd = ObjectFindMethod(interp, object, methodObj, &pcl);
 
   if (cmd) {
     NsfObject *pobj = pcl ? &pcl->object : object;
     int perObject = (pcl == NULL);
 
-    ListMethod(interp, pobj, pobj, name, cmd, InfomethodsubcmdHandleIdx, perObject);
+    ListMethod(interp, pobj, pobj, ObjStr(methodObj), cmd, InfomethodsubcmdHandleIdx, perObject);
   }
   return TCL_OK;
 }
 
 
-
-
 /*
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
-  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
-  {-argName "-nomixins"}
+  {-argName "-expand"}
   {-argName "-incontext"}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-nomixins"}
+  {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
   {-argName "pattern" -required 0}
 }
 */
 static int
 NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object, 
-			      int withMethodtype, int withCallprotection,
-			      int withSource, int withNomixins, int withIncontext, 
+			      int withCallprotection,
+			      int withExpand,
+			      int withIncontext, 
+			      int withMethodtype, 
+			      int withNomixins, 
+			      int withSource, 
 			      CONST char *pattern) {
   NsfClasses *pl;
   int withPer_object = 1;
@@ -15178,7 +15376,8 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
   if (object->nsPtr) {
     cmdTablePtr = Tcl_Namespace_cmdTablePtr(object->nsPtr);
     if (MethodSourceMatches(interp, withSource, NULL, object)) {
-      ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType, withCallprotection, 0,
+      ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType, 
+		     withCallprotection, withExpand,
 		     dups, object, withPer_object);
     }
   }
@@ -15201,7 +15400,8 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
         if (mixin && guardOk == TCL_OK) {
           Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(mixin->nsPtr);
 	  if (!MethodSourceMatches(interp, withSource, mixin, NULL)) continue;
-          ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType, withCallprotection, 0,
+          ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType, 
+			 withCallprotection, withExpand,
                          dups, object, withPer_object);
         }
       }
@@ -15212,7 +15412,8 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
   for (pl = ComputeOrder(object->cl, object->cl->order, Super); pl; pl = pl->nextPtr) {
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr);
     if (!MethodSourceMatches(interp, withSource, pl->cl, NULL)) continue;
-    ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType, withCallprotection, 0,
+    ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType, 
+		   withCallprotection, withExpand,
                    dups, object, withPer_object);
   }
   Tcl_DeleteHashTable(dups);
