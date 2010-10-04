@@ -1621,6 +1621,10 @@ _ added option noforwarder to RelationSlots
 - added support for ensemble methods in "info lookup method"
 - extended regression test
 
+- provide full set of ensemble methods from EnsembleObject.unknown
+  (i.e.  from all classes along the precedence order. It was necessary
+  to pass calling object as first argument)
+
 TODO: 
 
 - handing of xo::at_cleanup in serializer 
@@ -1851,3 +1855,6 @@ For future releases:
 
    * it could be possible to reduce stack frames in ensembles. Just a
      top ensemble frame could be sufficient.
+
+  * the full names for ensemble methods could be stored in the cmd tables
+    to make lookup faster.

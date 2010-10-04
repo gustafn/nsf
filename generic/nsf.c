@@ -187,7 +187,7 @@ static int DispatchDefaultMethod(ClientData clientData, Tcl_Interp *interp,
 				 int objc, Tcl_Obj *CONST objv[], int flags);
 static int DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags);
 static int DispatchUnknownMethod(ClientData clientData, Tcl_Interp *interp, 
-				 int objc, Tcl_Obj *CONST objv[],
+				 int objc, Tcl_Obj *CONST objv[], NsfObject *delegator,
 				 Tcl_Obj *methodObj, int flags);
 
 NSF_INLINE static int ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
@@ -2334,7 +2334,8 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
  *----------------------------------------------------------------------
  */
 static int
-InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, int flags, Tcl_Command *cmdPtr) {
+InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr, 
+		       int flags, Tcl_Command *cmdPtr) {
   CallFrame *varFramePtr;
   int frameFlags;
 
@@ -6471,8 +6472,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	 * The method to be called was not part of this ensemble. Call
 	 * next to try to call such methods along the next path.
 	 */
-	fprintf(stderr, "call next instead of unknown %s.%s \n",
-		objectName(cscPtr->self),methodName);
+	/*fprintf(stderr, "call next instead of unknown %s.%s \n",
+	  objectName(cscPtr->self),methodName);*/
 	{
 	  Tcl_CallFrame *framePtr1;
 	  NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
@@ -6492,10 +6493,18 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 				       cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
 	}
 	
-	fprintf(stderr, "==> next %s.%s (obj %s) csc %p returned %d unknown %d\n", 
-		objectName(self),methodName, objectName(object), cscPtr, result, rst->unknown); 
+	/*fprintf(stderr, "==> next %s.%s (obj %s) csc %p returned %d unknown %d\n", 
+	  objectName(self),methodName, objectName(object), cscPtr, result, rst->unknown); */
 	if (rst->unknown) {
-	  result = DispatchUnknownMethod(self, interp, objc-1, objv+1, 
+	  /* 
+	   * The appropriate unknown class is registered on the
+	   * EnsembleObject class, from where it is currently not
+	   * possible to determine the true calling object. Therefore,
+	   * we pass the object as first argument of the unknown
+	   * handler.
+	   */
+
+	  result = DispatchUnknownMethod(self, interp, objc, objv, object,
 					 objv[1], NSF_CM_NO_OBJECT_METHOD|NSF_CSC_IMMEDIATE);
 	}
       obj_dispatch_ok:
@@ -6657,7 +6666,7 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
 	|| ((cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER) && rst->unknown)
 	) {
       result = DispatchUnknownMethod(object, interp, 
-				     cscPtr->objc, cscPtr->objv, cscPtr->objv[0], 
+				     cscPtr->objc, cscPtr->objv, NULL, cscPtr->objv[0], 
 				     NSF_CSC_IMMEDIATE
 				     /*flags&NSF_CSC_IMMEDIATE*/);
       /*
@@ -7071,17 +7080,22 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
 static int
 DispatchUnknownMethod(ClientData clientData, 
 		      Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
-		      Tcl_Obj *methodObj, int flags) {
-  int result;
+		      NsfObject *delegator, Tcl_Obj *methodObj, int flags) {
+  int result, offset;
   NsfObject *object = (NsfObject*)clientData;
 
   Tcl_Obj *unknownObj = NsfMethodObj(interp, object, NSF_o_unknown_idx);
+
+  /*fprintf(stderr, "compare unknownObj %p with methodObj %p '%s' %p %p %s\n",
+	  unknownObj, methodObj, ObjStr(methodObj), delegator, 
+	  delegator?objv[1]:NULL, 
+	  delegator?ObjStr(objv[1]) : NULL );*/
 
   if (unknownObj && methodObj != unknownObj && (flags & NSF_CM_NO_UNKNOWN) == 0) {
     /*
      * back off and try unknown;
      */
-    ALLOC_ON_STACK(Tcl_Obj*, objc+2, tov);
+    ALLOC_ON_STACK(Tcl_Obj*, objc+3, tov);
 
     /*fprintf(stderr, "calling unknown for %s %s, flgs=%02x,%02x isClass=%d %p %s objc %d\n",
 	    objectName(object), ObjStr(methodObj), flags, NSF_CM_NO_UNKNOWN,
@@ -7089,14 +7103,19 @@ DispatchUnknownMethod(ClientData clientData,
 
     tov[0] = object->cmdName;
     tov[1] = unknownObj;
+    offset = 2;
+    if (delegator) {
+      tov[2] = delegator->cmdName;
+      offset ++;
+    }
     if (objc>0) {
-      memcpy(tov+2, objv, sizeof(Tcl_Obj *)*(objc));
+      memcpy(tov + offset, objv, sizeof(Tcl_Obj *)*(objc));
     }
 
     flags &= ~NSF_CM_NO_SHIFT;
-    result = ObjectDispatch(clientData, interp, objc+2, tov, flags|NSF_CM_NO_UNKNOWN);
+    result = ObjectDispatch(clientData, interp, objc+offset, tov, flags|NSF_CM_NO_UNKNOWN);
+
     FREE_ON_STACK(Tcl_Obj*, tov);
-	
   } else { /* no unknown called, this is the built-in unknown handler */
     
     /*fprintf(stderr, "--- No unknown method Name %s objv[%d] %s\n", 
@@ -7105,6 +7124,7 @@ DispatchUnknownMethod(ClientData clientData,
 			    ": unable to dispatch method '",
 			    ObjStr(objv[1]), "'", (char *) NULL);
   }
+
   return result;
 }
 
@@ -8466,8 +8486,9 @@ NextInvokeFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   Tcl_Obj **nobjv = data[0];
   NsfCallStackContent *cscPtr = data[1];
   
-  /* fprintf(stderr, "***** NextInvokeFinalize cscPtr %p flags %.6x is next %d\n", 
-     cscPtr, cscPtr->flags, cscPtr->flags & NSF_CSC_CALL_IS_NEXT);*/
+  /*fprintf(stderr, "***** NextInvokeFinalize cscPtr %p flags %.6x is next %d result %d unk %d\n", 
+	  cscPtr, cscPtr->flags, cscPtr->flags & NSF_CSC_CALL_IS_NEXT, result, 
+	  RUNTIME_STATE(interp)->unknown);*/
 
   if (cscPtr->flags & NSF_CSC_CALL_IS_NEXT) {
     /* fprintf(stderr, "..... it was a successful next\n"); */
@@ -8491,6 +8512,7 @@ NextInvokeFinalize(ClientData data[], Tcl_Interp *interp, int result) {
      */
     result = TCL_OK;
   } 
+
   return result;
 }
 
@@ -8621,9 +8643,8 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
    
     /*fprintf(stderr, "--- no cmd, csc %p frameType %.6x callType %.6x endOfFilterChain %d\n",
       cscPtr, cscPtr->frameType, cscPtr->flags, endOfFilterChain);*/
-    
-     rst->unknown = endOfFilterChain || (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE);
-     /*fprintf(stderr, "******** setting unknown to %d\n",  rst->unknown );*/
+    rst->unknown = endOfFilterChain || (cscPtr->flags & NSF_CSC_CALL_IS_ENSEMBLE);
+    /*fprintf(stderr, "******** setting unknown to %d\n",  rst->unknown );*/
   }
 
  next_search_and_invoke_cleanup:

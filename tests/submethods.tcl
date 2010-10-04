@@ -35,12 +35,15 @@ Test case submethods {
   ? {o string length 1} length
   ? {o string tolower 2} tolower
   ? {o string toupper 2} \
-      {unable to dispatch method ::o string toupper; valid subcommands of string: info length tolower}
+      {Unable to dispatch sub-method "toupper" of ::o string; valid are:
+string info, string length, string tolower}
 
   ? {o foo a x} "x"
   ? {o foo a y} "y"
-  ? {o foo a z} {unable to dispatch method ::o foo a z; valid subcommands of a: defaultmethod subcmdName unknown x y}
-  
+  ? {o foo a z} \
+      {Unable to dispatch sub-method "z" of ::o foo a; valid are:
+foo a defaultmethod, foo a subcmdName, foo a unknown, foo a x, foo a y}
+
   ? {o info method type string} object
   # the following is a problem, when string has subcmd "info"
   #? {o::string info class} ::nx::EnsembleObject
@@ -48,12 +51,17 @@ Test case submethods {
   ? {o string length aaa} "length"
   ? {o string info class} "info"
   ? {o string hugo} \
-      {unable to dispatch method ::o string hugo; valid subcommands of string: info length tolower}
+      {Unable to dispatch sub-method "hugo" of ::o string; valid are:
+string info, string length, string tolower}
   
   Foo create f1
   ? {f1 baz a m1 10} m1
-  ? {f1 baz a m3 10} {unable to dispatch method <obj> baz a m3; valid subcommands of a: m1 m2}
-}
+  ? {f1 baz a m3 10} \
+      {Unable to dispatch sub-method "m3" of ::f1 baz a; valid are:
+baz a m1, baz a m2}
+
+#unable to dispatch method <obj> baz a m3; valid subcommands of a: m1 m2}
+#
 
 Test parameter count 1 
 Test case defaultmethod {
@@ -174,14 +182,16 @@ Test case ensemble-next {
 Test case ensemble-partial-next {
   nx::Class create M {
     :method "info has namespace" {} {
-      next
+      nx::next
       return sometimes
     }
     :method "info has something else" {} {
       return something
     }
     :method "info has something better" {} {
-      next
+      puts stderr "... better calls NEXT"
+      nx::next
+      puts stderr "... better calls NEXT DONE"
       return better
     }
   }
@@ -197,7 +207,9 @@ Test case ensemble-partial-next {
 
   # call a submethod, which is nowhere defined
   ? {o1 info has typo M} \
-      {unable to dispatch method <obj> info has typo; valid subcommands of has: namespace something}
+      {Unable to dispatch sub-method "typo" of ::o1 info has; valid are:
+info has mixin, info has namespace, info has something better, info has something else, info has type}
+
   # call a submethod, which is only defined in the mixin
   ? {o1 info has something else} something
 
