@@ -1659,6 +1659,12 @@ _ added option noforwarder to RelationSlots
   which does not have clear semantics for a method path.
 - scripted definition of nx::Object.forward and nx::Class.forward
 
+- cleanup of __resolve_method_path
+- change TclShowStack into NsfShowStack() to avoid possible interference
+  with the Tcl* namespace
+- made the following function static to avoid pollution of the
+  global link namespace: CompiledColonVarFree(), GetRegObject(), ParamGetType()
+
 TODO: 
 
 - cleanup of xotcl-aol
@@ -1676,8 +1682,6 @@ TODO:
 
 - extend coro regression test
 
-- subcmd
-   * handle absence of -create  flag in resolve_method_path (for introspection)
 - serializer:
    * keep track of defaultMethodProtection
    * handing of xo::at_cleanup in serializer 

@@ -1052,7 +1052,7 @@ GetEnsembeObjectFromName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *name
  *
  *----------------------------------------------------------------------
  */
-NsfObject *
+static NsfObject *
 GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
 	     CONST char **methodName1, int *fromClassNS) {
   NsfObject *regObject = NULL;
@@ -2150,7 +2150,7 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
  *
  *----------------------------------------------------------------------
  */
-void
+static void
 CompiledColonVarFree(Tcl_ResolvedVarInfo *vinfoPtr) {
   nsfResolvedVarInfo *resVarInfo = (nsfResolvedVarInfo *)vinfoPtr;
   DECR_REF_COUNT(resVarInfo->nameObj);
@@ -2376,7 +2376,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *n
 
 #if defined(CMD_RESOLVER_TRACE)
   fprintf(stderr, "    ... not found %s\n", cmdName);
-  TclShowStack(interp);
+  NsfShowStack(interp);
 #endif
   return TCL_CONTINUE;
 }
@@ -6010,7 +6010,7 @@ ParamDefsList(Tcl_Interp *interp, NsfParam CONST *paramsPtr) {
   return listObj;
 }
 
-CONST char *
+static CONST char *
 ParamGetType(NsfParam CONST *paramPtr) {
   CONST char *result = "value";
 
@@ -6919,7 +6919,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       /* allow unknown-handler to handle this case */
       fprintf(stderr, "+++ %s is protected, therefore unknown %p %s lastself=%p o=%p flags = %.6x\n",
 	      methodName, cmdObj, ObjStr(cmdObj), lastSelf, o, flags);
-      /*TclShowStack(interp);*/
+      /*NsfShowStack(interp);*/
       cmd = NULL;
     }
   }
@@ -10747,7 +10747,7 @@ CallingNameSpace(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
   Tcl_Namespace *nsPtr;
 
-  /*TclShowStack(interp);*/
+  /*NsfShowStack(interp);*/
 
   /*
   * Find last incovation outside the Next Scripting system namespaces. For
@@ -12088,7 +12088,7 @@ nsfCmd __db_show_stack NsfShowStackCmd {
 */
 static int
 NsfShowStackCmd(Tcl_Interp *interp) {
-  TclShowStack(interp);
+  NsfShowStack(interp);
   return TCL_OK;
 }
 
@@ -13684,7 +13684,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
   Tcl_CallFrame *framePtr;
   int result = TCL_OK;
 
-  /*fprintf(stderr, "getSelfObj returns %p\n", object); TclShowStack(interp);*/
+  /*fprintf(stderr, "getSelfObj returns %p\n", object); NsfShowStack(interp);*/
 
   if (selfoption == 0 || selfoption == CurrentoptionObjectIdx) {
     if (object) {
@@ -14683,7 +14683,7 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
 
     /*fprintf(stderr, "### setting trace for %s on frame %p\n", fullName,
       Tcl_Interp_varFramePtr(interp));
-      TclShowStack(interp);*/
+      NsfShowStack(interp);*/
     result = Tcl_TraceVar(interp, vn, TCL_TRACE_UNSETS,
 			  (Tcl_VarTraceProc*)NsfUnsetTrace,
                           (ClientData)objPtr);

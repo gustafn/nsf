@@ -73,14 +73,15 @@ namespace eval ::nx {
   ::nsf::methodproperty Class  dealloc redefine-protected true
   ::nsf::methodproperty Class  create  redefine-protected true
 
+  #
+  # The method __resolve_method_path resolves a space separated path
+  # and creates from it the necessary ensemble bobject when needed.
+  #
   ::nsf::method Object __resolve_method_path {
-    -create:switch 
     -per-object:switch 
     -verbose:switch 
     path
   } {
-    # TODO: handle -create  (actually, its absence)
-    #puts "resolve_method_path"
     set object [::nsf::current object]
     set methodName $path
     if {[string first " " $path]} {
@@ -126,6 +127,7 @@ namespace eval ::nx {
     }
     return [list object $object methodName $methodName]
   }
+
   ::nsf::methodproperty Object __resolve_method_path protected true
 
   ::nsf::method Object __default_method_protection args {return false}
@@ -140,7 +142,7 @@ namespace eval ::nx {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    array set "" [:__resolve_method_path -create -verbose $name]
+    array set "" [:__resolve_method_path $name]
     #puts "class method $(object).$(methodName) [list $arguments] {...}"
     set r [::nsf::method $(object) $(methodName) $arguments $body {*}$conditions]
     if {$r ne ""} {
@@ -157,7 +159,7 @@ namespace eval ::nx {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
-    array set "" [:__resolve_method_path -create -per-object -verbose $name]
+    array set "" [:__resolve_method_path -per-object $name]
     #puts "object method $(object).$(methodName) [list $arguments] {...}"
     set r [::nsf::method $(object) -per-object $(methodName) $arguments $body {*}$conditions]
     if {$r ne ""} {
@@ -274,7 +276,7 @@ namespace eval ::nx {
      -default -methodprefix -objscope:switch -onerror -verbose:switch
      target:optional args
    } {
-    array set "" [:__resolve_method_path -create -verbose $method]
+    array set "" [:__resolve_method_path -per-object $method]
     return [::nsf::forward $(object) -per-object $(methodName) \
 		{*}[lrange [::nsf::current args] 1 end]]
   }
@@ -283,7 +285,7 @@ namespace eval ::nx {
      -default -methodprefix -objscope:switch -onerror -verbose:switch
      target:optional args
    } {
-    array set "" [:__resolve_method_path -create -verbose $method]
+    array set "" [:__resolve_method_path $method]
     return [::nsf::forward $(object) $(methodName) \
 		{*}[lrange [::nsf::current args] 1 end]]
   }
@@ -305,7 +307,7 @@ namespace eval ::nx {
   # -objscope implies -nonleaf
   #
   Object public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
-    array set "" [:__resolve_method_path -per-object -create -verbose $methodName]
+    array set "" [:__resolve_method_path -per-object $methodName]
     #puts "object alias $(object).$(methodName) $cmd"
     ::nsf::alias $(object) -per-object $(methodName) \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
@@ -314,7 +316,7 @@ namespace eval ::nx {
   }
 
   Class public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
-    array set "" [:__resolve_method_path -create -verbose $methodName]
+    array set "" [:__resolve_method_path $methodName]
     #puts "class alias $(object).$(methodName) $cmd"
     ::nsf::alias $(object) $(methodName) \
         {*}[expr {${objscope} ? "-objscope" : ""}] \
@@ -1501,7 +1503,5 @@ namespace eval ::nx {
   
   unset bootstrap
 }
-  puts stderr "**** [nx::Object info method parameter ::nsf::forward] ***"
-
 puts stderr =======NX-done
 

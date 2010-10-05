@@ -1,6 +1,6 @@
 /*
  *----------------------------------------------------------------------
- * TclShowStack --
+ * NsfShowStack --
  *
  *    Print the contents of the callstack to stderr. This function is
  *    for debugging purposes only.
@@ -13,10 +13,10 @@
  *
  *----------------------------------------------------------------------
  */
-void TclShowStack(Tcl_Interp *interp) {
+void NsfShowStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
 
-  fprintf(stderr, "TclShowStack framePtr %p varFramePtr %p\n",
+  fprintf(stderr, "NsfShowStack framePtr %p varFramePtr %p\n",
           Tcl_Interp_framePtr(interp), Tcl_Interp_varFramePtr(interp));
   /* framePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
     for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
@@ -674,7 +674,7 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
  */
 
 static void CallStackPopAll(Tcl_Interp *interp) {
-  TclShowStack(interp);
+  NsfShowStack(interp);
 
   while (1) {
     Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
