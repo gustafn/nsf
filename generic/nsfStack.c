@@ -1,4 +1,18 @@
-
+/*
+ *----------------------------------------------------------------------
+ * TclShowStack --
+ *
+ *    Print the contents of the callstack to stderr. This function is
+ *    for debugging purposes only.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Output on stderr.
+ *
+ *----------------------------------------------------------------------
+ */
 void TclShowStack(Tcl_Interp *interp) {
   Tcl_CallFrame *framePtr;
 
@@ -50,25 +64,37 @@ void TclShowStack(Tcl_Interp *interp) {
  * a object->nsPtr can be created (e.g. during a read trace)
  */
 
+/*
+ *----------------------------------------------------------------------
+ * Nsf_PushFrameObj, Nsf_PopFrameObj --
+ *
+ *    Push or pop a frame with a callstack content as a OBJECT
+ *    frame.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
 static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, Tcl_CallFrame *framePtr) {
   /*fprintf(stderr,"PUSH OBJECT_FRAME (Nsf_PushFrameObj) frame %p\n",framePtr);*/
   if (object->nsPtr) {
-    /*fprintf(stderr,"Nsf_PushFrame frame %p with object->nsPtr %p\n", framePtr, object->nsPtr);*/
     Tcl_PushCallFrame(interp, framePtr, object->nsPtr,
                       0|FRAME_IS_NSF_OBJECT);
   } else {
-    /*fprintf(stderr,"Nsf_PushFrame frame %p (with fakeProc)\n",framePtr);*/
+    /* The object has no nsPtr, so we diguise as a proc, using fakeProc */
     Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)),
                       1|FRAME_IS_NSF_OBJECT);
 
     Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
     if (object->varTablePtr == NULL) {
       object->varTablePtr = VarHashTableCreate();
-      /*fprintf(stderr, "+++ create varTablePtr %p in PushFrameObj obj %p framePtr %p\n",
-        object->varTablePtr, object, framePtr);*/
     }
     Tcl_CallFrame_varTablePtr(framePtr) = object->varTablePtr;
-    /*fprintf(stderr,"+++ setting varTablePtr %p in varFrame %p\n",object->varTablePtr,framePtr);*/
   }
   Tcl_CallFrame_clientData(framePtr) = (ClientData)object;
 }
@@ -80,7 +106,24 @@ static void Nsf_PopFrameObj(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
   Tcl_PopCallFrame(interp);
 }
 
-static void Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_CallFrame *framePtr) {
+/*
+ *----------------------------------------------------------------------
+ * Nsf_PushFrameCsc, Nsf_PopFrameCsc --
+ *
+ *    Push or pop a frame with a callstack content as a CMETHOD
+ *    frame.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static void 
+Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_CallFrame *framePtr) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
   /*fprintf(stderr,"PUSH CMETHOD_FRAME (Nsf_PushFrameCsc) frame %p cscPtr %p methodName %s\n",
     framePtr, cscPtr, Tcl_GetCommandName(interp,cscPtr->cmdPtr));*/
@@ -91,7 +134,8 @@ static void Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tc
   Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
 }
 
-static void Nsf_PopFrameCsc(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+static void 
+Nsf_PopFrameCsc(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
   /*fprintf(stderr,"POP CMETHOD_FRAME (Nsf_PopFrameCsc) frame %p, varTablePtr = %p\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr));*/
   Tcl_PopCallFrame(interp);
@@ -99,6 +143,21 @@ static void Nsf_PopFrameCsc(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
 
 /*
  * stack query operations
+ */
+
+/*
+ *----------------------------------------------------------------------
+ * CallStackGetActiveProcFrame --
+ *
+ *    Return the Tcl call frame of the last scripted method.
+ *
+ * Results:
+ *    Tcl_CallFrame
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
  */
 
 static Tcl_CallFrame *
@@ -118,6 +177,22 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
   return framePtr;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CallStackNextFrameOfType --
+ *
+ *    Return the next frame with a specified type from the call stack.
+ *    The type is specified by a bit mask passed as flags.
+ *
+ * Results:
+ *    Tcl_CallFrame
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
 static Tcl_CallFrame *
 CallStackNextFrameOfType(Tcl_CallFrame *framePtr, int flags) {
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
@@ -126,6 +201,21 @@ CallStackNextFrameOfType(Tcl_CallFrame *framePtr, int flags) {
   }
   return framePtr;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * GetSelfObj --
+ *
+ *    Return the currently active object from a method or object frame.
+ *
+ * Results:
+ *    NsfObject * or NULL.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 #define SKIP_LEVELS 1
 //#define SKIP_LAMBDA 1
@@ -171,8 +261,23 @@ GetSelfObj(Tcl_Interp *interp) {
   return NULL;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CallStackGetTopFrame --
+ *
+ *    Return the topmost invocation of a (scripted or nonleaf) method
+ *
+ * Results:
+ *    Call stack content or NULL.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
 static NsfCallStackContent*
-CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
+CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
@@ -186,12 +291,21 @@ CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
   return NULL;
 }
 
-NSF_INLINE static NsfCallStackContent*
-CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
-  return CallStackGetFrame(interp, framePtrPtr);
-}
-
-/* find last invocation of a scripted method */
+/*
+ *----------------------------------------------------------------------
+ * NsfCallStackFindActiveFrame --
+ *
+ *    Find last invocation of a (scripted or nonleaf) method with a
+ *    specified offset.
+ *
+ * Results:
+ *    Call stack content or NULL.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static NsfCallStackContent *
 NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
@@ -218,6 +332,21 @@ NsfCallStackFindLastInvocation(Tcl_Interp *interp, int offset, Tcl_CallFrame **f
   return NULL;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfCallStackFindActiveFrame --
+ *
+ *    Search for the first active frame on the callstack.
+ *
+ * Results:
+ *    Call stack content or NULL.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+
 static NsfCallStackContent *
 NsfCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **framePtrPtr) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
@@ -240,6 +369,24 @@ NsfCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fram
   if (framePtrPtr) *framePtrPtr = NULL;
   return NULL;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * CallStackUseActiveFrames --
+ *
+ *    Activate the varFrame of the first active non-object frame and
+ *    save the previously active frames in the call frame context.
+ *    These stored frames are typically reactivated by
+ *    CallStackRestoreSavedFrames().
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    The varFramePtr of the interp is potentially updated
+ *
+ *----------------------------------------------------------------------
+ */
 
 static void
 CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
@@ -265,6 +412,23 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CallStackRestoreSavedFrames --
+ *
+ *    Restore the previously saved frames from the speficied call
+ *    frame context. These frames are typically saved by
+ *    CallStackUseActiveFrames().
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    The varFramePtr of the interp is potentially updated
+ *
+ *----------------------------------------------------------------------
+ */
+
 static void
 CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ctx) {
   if (ctx->framesSaved) {
@@ -274,6 +438,20 @@ CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ctx) {
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CallStackFindActiveFilter --
+ *
+ *    Return the callstack content of the currently active filter
+ *
+ * Results:
+ *    Callstack content or NULL, if no filter is active
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static NsfCallStackContent *
 CallStackFindActiveFilter(Tcl_Interp *interp) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
@@ -330,7 +508,75 @@ CallStackFindEnsembleCsc(Tcl_CallFrame *framePtr, Tcl_CallFrame **framePtrPtr) {
 }
 
 /*
- * check, if there is an active filters on "obj" using cmd
+ *----------------------------------------------------------------------
+ * CallStackMethodPath --
+ *
+ *    Return the method path of the current ensemble.
+ *
+ * Results:
+ *    Tcl_Obj containing the method path
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static Tcl_Obj*
+CallStackMethodPath(Tcl_Interp *interp, Tcl_CallFrame *framePtr, Tcl_Obj *methodPathObj) {
+  int elements;
+  Tcl_Obj *resultObj;
+
+  assert(framePtr);
+  /* 
+   *  Append all ensemble names to the specified list obj 
+   */
+  for (framePtr = Tcl_CallFrame_callerPtr(framePtr), elements = 1;
+       Tcl_CallFrame_isProcCallFrame(framePtr) & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_METHOD);
+       framePtr = Tcl_CallFrame_callerPtr(framePtr), elements ++) {
+    NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr);
+    assert(cscPtr);
+    Tcl_ListObjAppendElement(interp, methodPathObj, 
+			     Tcl_NewStringObj(Tcl_GetCommandName(interp, cscPtr->cmdPtr), -1));
+    if ((cscPtr->flags & NSF_CSC_TYPE_ENSEMBLE) == 0) break;
+  }
+  /* 
+   *  The resulting list has reveresed order. If there are multiple
+   *  arguments, reverse the list to obtain the right order.
+   */
+
+  if (elements > 1) {
+    int oc, i;
+    Tcl_Obj **ov;
+    
+    Tcl_ListObjGetElements(interp, methodPathObj, &oc, &ov);
+    resultObj = Tcl_NewListObj(0, NULL);
+
+    for (i = elements-1; i >= 0; i--) {
+      Tcl_ListObjAppendElement(interp, resultObj, ov[i]);
+    }
+    DECR_REF_COUNT(methodPathObj);
+
+  } else {
+    resultObj = methodPathObj;
+  }
+
+  return resultObj;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * CallStackMethodPath --
+ *
+ *    Check, if there is an active filter on "obj" using the specified
+ *    cmd.
+ *
+ * Results:
+ *    0 or 1
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
  */
 NSF_INLINE static int
 FilterActiveOnObj(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
@@ -348,6 +594,22 @@ FilterActiveOnObj(Tcl_Interp *interp, NsfObject *object, Tcl_Command cmd) {
   return 0;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CallStackReplaceVarTableReferences --
+ *
+ *    Replace all references to the old var table (arg 1) by
+ *    references to a new var table (arg 2) on the callstack.
+ *    This function is e.g. used by require namespace.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Updated stack.
+ *
+ *----------------------------------------------------------------------
+ */
 static void
 CallStackReplaceVarTableReferences(Tcl_Interp *interp, TclVarHashTable *oldVarTablePtr, TclVarHashTable *newVarTablePtr) {
   Tcl_CallFrame *framePtr;
@@ -365,6 +627,21 @@ CallStackReplaceVarTableReferences(Tcl_Interp *interp, TclVarHashTable *oldVarTa
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CallStackClearCmdReferences --
+ *
+ *    Clear all references to the specified cmd in the callstack
+ *    contents.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Updated stack.
+ *
+ *----------------------------------------------------------------------
+ */
 static void
 CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
@@ -379,30 +656,23 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
   }
 }
 
-
-#if 0
-/* just used by NsfONextMethod() */
-static NsfCallStackContent*
-CallStackGetObjectFrame(Tcl_Interp *interp, NsfObject *object) {
-  register Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-
-  for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
-      NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
-      if (cscPtr->self == object) {
-        return cscPtr;
-      }
-    }
-  }
-  return NULL;
-}
-#endif
-
 /*
- * Pop any callstack entry that is still alive (e.g.
- * if "exit" is called and we were jumping out of the
- * callframe
+ *----------------------------------------------------------------------
+ * CallStackPopAll --
+ *
+ *    Unwind the stack and pop all callstack entries that are still
+ *    alive (e.g.  if "exit" is called and we were jumping out of the
+ *    callframe).
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Updated stack.
+ *
+ *----------------------------------------------------------------------
  */
+
 static void CallStackPopAll(Tcl_Interp *interp) {
   TclShowStack(interp);
 
@@ -484,7 +754,6 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
  *
  *----------------------------------------------------------------------
  */
-
 NSF_INLINE static void
 CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
 	Tcl_Command cmd, int frameType, int flags, char *msg) {

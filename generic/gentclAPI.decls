@@ -139,7 +139,7 @@ nsfCmd relation NsfRelationCmd {
   {-argName "value" -required 0 -type tclobj}
 }
 nsfCmd current NsfCurrentCmd {
-  {-argName "currentoption" -required 0 -type "proc|method|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
+  {-argName "currentoption" -required 0 -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
 }
 
 nsfCmd setvar NsfSetVarCmd {

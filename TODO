@@ -1630,11 +1630,16 @@ _ added option noforwarder to RelationSlots
 - extended regression test
 
 - factored out ParamGetType() to obtain from a paramPtr a type string
-- 
+- parametersyntax: 
+   * changed "... -x arg ..." into ".... -x value ..."
+   * changed multiple values notation from "list" to "..."
+
+- nsf::current: new option "methodpath", returns the full name of an ensemble 
+  method starting from the ensemble root.
+- documented functions in nfsStack.c
+- removed obsolete CallStackGetFrame(), replaced by CallStackGetTopFrame()
 
 TODO: 
-
-
 
 - cleanup of xotcl-aol
 

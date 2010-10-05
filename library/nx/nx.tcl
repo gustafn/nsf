@@ -447,16 +447,14 @@ namespace eval ::nx {
     # The methods "unknown" and "defaultmethod" are called internally
     #
     :method unknown {obj m args} {
-       set self [::nsf::current object]
-      #puts stderr "+++ UNKNOWN $self obj $obj '$m' $args"
-      array set "" [$self ::nsf::classes::nx::EnsembleObject::methodPath]
-
-      if {[catch {set valid [lsort [$obj ::nsf::methods::object::info::lookupmethods -expand "$(path) *"]]} errorMsg]} {
+      set path [current methodpath]
+      #puts stderr "+++ UNKNOWN $self obj $obj '$m' $args // path '[current methodpath]'"
+      if {[catch {set valid [$obj ::nsf::methods::object::info::lookupmethods -expand "$path *"]} errorMsg]} {
 	set valid ""
-	puts stderr "+++ UNKNOWN has error $errorMsg"
+	puts stderr "+++ UNKNOWN raises error $errorMsg"
       }
-      set ref "\"[lindex $args 0]\" of $obj $(path)"
-      error "Unable to dispatch sub-method $ref; valid are:\n[join $valid {, }]"
+      set ref "\"[lindex $args 0]\" of $obj $path"
+      error "Unable to dispatch sub-method $ref; valid are:\n[join [lsort $valid] {, }]"
     }
     
     :method defaultmethod {} {

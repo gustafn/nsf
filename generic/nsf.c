@@ -238,7 +238,6 @@ static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *m
 NSF_INLINE static void CscInit(NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
 			       Tcl_Command cmd, int frameType, int flags, char *msg);
 NSF_INLINE static void CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr, char *string);
-static NsfCallStackContent *CallStackGetFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr);
 NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object);
 
 /* prototypes for  parameter and argument management */
@@ -2077,7 +2076,7 @@ HashVarFree(Tcl_Var var) {
 static Tcl_Var
 CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   nsfResolvedVarInfo *resVarInfo = (nsfResolvedVarInfo *)vinfoPtr;
-  NsfCallStackContent *cscPtr = CallStackGetFrame(interp, NULL);
+  NsfCallStackContent *cscPtr = CallStackGetTopFrame(interp, NULL);
   NsfObject *object = cscPtr ? cscPtr->self : NULL;
   TclVarHashTable *varTablePtr;
   Tcl_Var var = resVarInfo->var;
@@ -13067,7 +13066,7 @@ NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodObj, int nobjc, Tcl_O
 #if 0
     /* TODO attempt to make "my" NRE-enabled, failed so far (crash in mixinInheritanceTest) */
     int flags;
-    NsfCallStackContent *cscPtr = CallStackGetFrame(interp, NULL);
+    NsfCallStackContent *cscPtr = CallStackGetTopFrame(interp, NULL);
     if (!cscPtr || self != cscPtr->self) {
       flags = NSF_CSC_IMMEDIATE;
     } else {
@@ -13658,13 +13657,14 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
 /*
 nsfCmd current NsfCurrentCmd {
-  {-argName "currentoption" -required 0 -type "proc|method|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
+  {-argName "currentoption" -required 0 -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
 }
 */
 static int
 NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
   NsfObject *object =  GetSelfObj(interp);
   NsfCallStackContent *cscPtr;
+  Tcl_CallFrame *framePtr;
   int result = TCL_OK;
 
   /*fprintf(stderr, "getSelfObj returns %p\n", object); TclShowStack(interp);*/
@@ -13694,6 +13694,12 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     }
     break;
 
+  case CurrentoptionMethodpathIdx:
+    cscPtr = CallStackGetTopFrame(interp, &framePtr);
+    Tcl_SetObjResult(interp, 
+		     CallStackMethodPath(interp, framePtr, Tcl_NewListObj(0, NULL)));
+    break;
+
   case CurrentoptionClassIdx: /* class subcommand */
     cscPtr = CallStackGetTopFrame(interp, NULL);
     Tcl_SetObjResult(interp, cscPtr->cl ? cscPtr->cl->object.cmdName : NsfGlobalObjs[NSF_EMPTY]);
@@ -13706,15 +13712,14 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
   case CurrentoptionArgsIdx: {
     int nobjc;
     Tcl_Obj **nobjv;
-    Tcl_CallFrame *topFramePtr;
 
-    cscPtr = CallStackGetTopFrame(interp, &topFramePtr);
+    cscPtr = CallStackGetTopFrame(interp, &framePtr);
     if (cscPtr->objv) {
       nobjc = cscPtr->objc;
       nobjv = (Tcl_Obj **)cscPtr->objv;
     } else {
-      nobjc = Tcl_CallFrame_objc(topFramePtr);
-      nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(topFramePtr);
+      nobjc = Tcl_CallFrame_objc(framePtr);
+      nobjv = (Tcl_Obj **)Tcl_CallFrame_objv(framePtr);
     }
     Tcl_SetObjResult(interp, Tcl_NewListObj(nobjc-1, nobjv+1));
     break;
@@ -13782,9 +13787,9 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     break;
 
   case CurrentoptionIsnextcallIdx: {
-    Tcl_CallFrame *framePtr;
     cscPtr = CallStackGetTopFrame(interp, &framePtr);
-    framePtr = CallStackNextFrameOfType(Tcl_CallFrame_callerPtr(framePtr), FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD);
+    framePtr = CallStackNextFrameOfType(Tcl_CallFrame_callerPtr(framePtr), 
+					FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD);
     cscPtr = framePtr ? Tcl_CallFrame_clientData(framePtr) : NULL;
 
     Tcl_SetBooleanObj(Tcl_GetObjResult(interp),
