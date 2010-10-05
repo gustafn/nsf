@@ -35,14 +35,12 @@ Test case submethods {
   ? {o string length 1} length
   ? {o string tolower 2} tolower
   ? {o string toupper 2} \
-      {Unable to dispatch sub-method "toupper" of ::o string; valid are:
-string info, string length, string tolower}
+      {Unable to dispatch sub-method "toupper" of ::o string; valid are: string info, string length, string tolower}
 
   ? {o foo a x} "x"
   ? {o foo a y} "y"
   ? {o foo a z} \
-      {Unable to dispatch sub-method "z" of ::o foo a; valid are:
-foo a defaultmethod, foo a subcmdName, foo a unknown, foo a x, foo a y}
+      {Unable to dispatch sub-method "z" of ::o foo a; valid are: foo a defaultmethod, foo a subcmdName, foo a unknown, foo a x, foo a y}
 
   ? {o info method type string} object
   # the following is a problem, when string has subcmd "info"
@@ -51,14 +49,12 @@ foo a defaultmethod, foo a subcmdName, foo a unknown, foo a x, foo a y}
   ? {o string length aaa} "length"
   ? {o string info class} "info"
   ? {o string hugo} \
-      {Unable to dispatch sub-method "hugo" of ::o string; valid are:
-string info, string length, string tolower}
+      {Unable to dispatch sub-method "hugo" of ::o string; valid are: string info, string length, string tolower}
   
   Foo create f1
   ? {f1 baz a m1 10} m1
   ? {f1 baz a m3 10} \
-      {Unable to dispatch sub-method "m3" of ::f1 baz a; valid are:
-baz a m1, baz a m2}
+      {Unable to dispatch sub-method "m3" of ::f1 baz a; valid are: baz a m1, baz a m2}
 
 #unable to dispatch method <obj> baz a m3; valid subcommands of a: m1 m2}
 #
@@ -85,12 +81,12 @@ Test case defaultmethod {
     :create f1
   }
 
-  ? {o string} "info length tolower"
-  ? {o foo} "a b"
+  ? {o string} "Valid submethods of ::o string: info length tolower"
+  ? {o foo} "Valid submethods of ::o foo: a b"
   
-  ? {f1 bar} "m1 m2"
-  ? {f1 baz} "a b"
-  ? {f1 baz a} "m1 m2"
+  ? {f1 bar} "Valid submethods of ::f1 bar: m1 m2"
+  ? {f1 baz} "Valid submethods of ::f1 baz: a b"
+  ? {f1 baz a} "Valid submethods of ::f1 baz a: m1 m2"
 }
 
 #
@@ -189,9 +185,7 @@ Test case ensemble-partial-next {
       return something
     }
     :method "info has something better" {} {
-      puts stderr "... better calls NEXT"
       nx::next
-      puts stderr "... better calls NEXT DONE"
       return better
     }
   }
@@ -207,8 +201,7 @@ Test case ensemble-partial-next {
 
   # call a submethod, which is nowhere defined
   ? {o1 info has typo M} \
-      {Unable to dispatch sub-method "typo" of ::o1 info has; valid are:
-info has mixin, info has namespace, info has something better, info has something else, info has type}
+      {Unable to dispatch sub-method "typo" of ::o1 info has; valid are: info has mixin, info has namespace, info has something better, info has something else, info has type}
 
   # call a submethod, which is only defined in the mixin
   ? {o1 info has something else} something
@@ -216,6 +209,18 @@ info has mixin, info has namespace, info has something better, info has somethin
   # call a submethod, which is only defined in the mixin, and which
   # does a next (which should not complain)
   ? {o1 info has something better} better
+
+  # yet another missing case
+  ? {o1 info has something wrong} \
+      {Unable to dispatch sub-method "wrong" of ::o1 info has something; valid are: info has something better, info has something else}
+
+  # call defaultcmds on ensembles
+  ? {lsort [o1 info has something]} "Valid submethods of ::o1 info has something: better else"
+
+  # defaultcmd has to return also subcmds of other shadowed ensembles
+  ? {lsort [o1 info has]} "Valid submethods of ::o1 info has: mixin namespace something type"
+  ? {lsort [o1 info]} "Valid submethods of ::o1 info: children class filter forward has info is lookup method methods mixin parent precedence slots unknown vars"
+
 }
 
 #

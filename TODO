@@ -1639,6 +1639,11 @@ _ added option noforwarder to RelationSlots
 - documented functions in nfsStack.c
 - removed obsolete CallStackGetFrame(), replaced by CallStackGetTopFrame()
 
+- push stack frame before calling the defaultcmd of an ensemble object to 
+  make implementation more simple.
+- simplified EnsembleObject.defaultcmd and EnsembleObject.unknown significantly,
+  scripted support methods are removed.
+
 TODO: 
 
 - cleanup of xotcl-aol

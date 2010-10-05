@@ -6452,7 +6452,10 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
        * The client data cp is still the obj of the called method
        */
       if (objc < 2) {
+	Tcl_CallFrame frame, *framePtr = &frame;
+	Nsf_PushFrameCsc(interp, cscPtr, framePtr);
 	result = DispatchDefaultMethod(cp, interp, objc, objv, NSF_CSC_IMMEDIATE);
+	Nsf_PopFrameCsc(interp, framePtr);
       } else {
 	Tcl_CallFrame frame, *framePtr = &frame;
 	NsfObject *self = (NsfObject *)cp;

@@ -369,7 +369,7 @@ namespace eval ::nx {
     # only method registered on the object are resolved (ensemble
     # methods). Only for the methods "unknown" and "defaultmethod",
     # self is actually the ensemble object. These methods are
-    # maintenance methods. We have to be careful ...
+    # maintenance methods. We have to be careful here ...
     #
     # a) not to interfere between "maintenance methods" and "ensemble
     #    methods" within the maintenance methods. This is achieved
@@ -382,93 +382,24 @@ namespace eval ::nx {
     #    in nsf when calling e.g. "unknwown" (such that a subcmd
     #    "unknown" does not interfere with the method "unknown").
     #
-    :method subcmdName {} {
-      #
-      # Compute the name of a subcmd and the object, on which it is
-      # registed, given an Ensemble object.
-      #
-      set self [::nsf::current object]
-      set parent [::nsf::dispatch $self ::nsf::methods::object::info::parent]
-      set grandparent [::nsf::dispatch $parent ::nsf::methods::object::info::parent]
-      set tail [namespace tail $parent]
-      if {$tail eq "slot" && [::nsf::is class $grandparent]} {
-	set aliases [::nsf::dispatch $grandparent ::nsf::methods::class::info::methods -methodtype alias]
-	foreach alias $aliases {
-	  set def [::nsf::dispatch $grandparent ::nsf::methods::class::info::method definition $alias]
-	  if {[lindex $def end] eq $self} {
-	    return [list name [lindex $def 3] regobj <obj>]
-	  }
-	}
-      } 
-      return [list name [namespace tail $self] regobj $parent]
-    }
-  
-    :method methodPath {} {
-      #
-      # Compute the composite path of a given ensemble object,
-      # containing its parent ensemble objects.
-      #
-      set o [::nsf::current object]
-      array set "" [$o ::nsf::classes::nx::EnsembleObject::subcmdName]
-      set path $(name)
-      while {1} {
-	set o [::nsf::dispatch $o ::nsf::methods::object::info::parent]
-	if {![::nsf::dispatch $o ::nsf::methods::object::info::hastype ::nx::EnsembleObject]} break
-	array set "" [$o ::nsf::classes::nx::EnsembleObject::subcmdName]
-	set path "$(name) $path"
-      }
-      return [list regobj $(regobj) path $path]
-    }
-    
-    :method subMethods {} {
-      #
-      # Compute pairs of method names and ensemble (sub)objects
-      # contained in the current object.
-      #
-      set result [list]
-      set self [::nsf::current object]
-      set methods [lsort [::nsf::dispatch $self ::nsf::methods::object::info::methods]]
-      array set "" [$self ::nsf::classes::nx::EnsembleObject::subcmdName]
-      foreach m $methods {
-	set type [::nsf::dispatch $self ::nsf::methods::object::info::method type $m]
-	if {$type eq "object"} {
-	  foreach {obj submethod} \
-	      [::nsf::dispatch ${self}::$m ::nsf::classes::nx::EnsembleObject::subMethods] {
-		lappend result $obj $submethod
-	      }
-	} else {
-	  lappend result $self $m
-	}
-      }
-      return $result
-    }
-    
-    #
-    # The methods "unknown" and "defaultmethod" are called internally
-    #
     :method unknown {obj m args} {
       set path [current methodpath]
-      #puts stderr "+++ UNKNOWN $self obj $obj '$m' $args // path '[current methodpath]'"
+      #puts stderr "+++ UNKNOWN obj $obj '$m' $args // path '[current methodpath]'"
       if {[catch {set valid [$obj ::nsf::methods::object::info::lookupmethods -expand "$path *"]} errorMsg]} {
 	set valid ""
 	puts stderr "+++ UNKNOWN raises error $errorMsg"
       }
       set ref "\"[lindex $args 0]\" of $obj $path"
-      error "Unable to dispatch sub-method $ref; valid are:\n[join [lsort $valid] {, }]"
+      error "Unable to dispatch sub-method $ref; valid are: [join [lsort $valid] {, }]"
     }
     
     :method defaultmethod {} {
-      #puts uplevel-method=[uplevel {nx::current method}]-[uplevel nx::self]
-      set self [current object]
-      set methods [lsort [::nsf::dispatch $self ::nsf::methods::object::info::methods]]
-      array set "" [$self ::nsf::classes::nx::EnsembleObject::subcmdName]
-      set pairs [$self ::nsf::classes::nx::EnsembleObject::subMethods] 
-      foreach {obj m} $pairs {
-	array set "" [$obj ::nsf::classes::nx::EnsembleObject::methodPath]
-	set cmd [::nsf::dispatch $obj ::nsf::methods::object::info::method parametersyntax $m]
-	puts stderr "$(regobj) $(path) $m $cmd"
-      }
-      return $methods
+      set obj [uplevel {current object}]
+      set path [current methodpath]
+      set l [string length $path]
+      set submethods [$obj ::nsf::methods::object::info::lookupmethods -expand "$path *"]
+      foreach sm $submethods {set results([lindex [string range $sm $l+1 end] 0]) 1}
+      error "Valid submethods of $obj $path: [lsort [array names results]]"
     }
 
     # end of EnsembleObject
