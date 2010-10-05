@@ -411,7 +411,7 @@ namespace eval ::nx {
     :protected method unknown {obj m args} {
       set path [current methodpath]
       #puts stderr "+++ UNKNOWN obj $obj '$m' $args // path '[current methodpath]'"
-      if {[catch {set valid [$obj ::nsf::methods::object::info::lookupmethods -expand "$path *"]} errorMsg]} {
+      if {[catch {set valid [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]} errorMsg]} {
 	set valid ""
 	puts stderr "+++ UNKNOWN raises error $errorMsg"
       }
@@ -423,7 +423,7 @@ namespace eval ::nx {
       set obj [uplevel {current object}]
       set path [current methodpath]
       set l [string length $path]
-      set submethods [$obj ::nsf::methods::object::info::lookupmethods -expand "$path *"]
+      set submethods [$obj ::nsf::methods::object::info::lookupmethods -path "$path *"]
       foreach sm $submethods {set results([lindex [string range $sm $l+1 end] 0]) 1}
       error "Valid submethods of $obj $path: [lsort [array names results]]"
     }

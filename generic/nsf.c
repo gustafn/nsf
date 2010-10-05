@@ -15405,10 +15405,10 @@ NsfObjInfoLookupMethodMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *met
 /*
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
-  {-argName "-expand"}
   {-argName "-incontext"}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-nomixins"}
+  {-argName "-path"}
   {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
   {-argName "pattern" -required 0}
 }
@@ -15416,10 +15416,10 @@ objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
 static int
 NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
 			      int withCallprotection,
-			      int withExpand,
 			      int withIncontext,
 			      int withMethodtype,
 			      int withNomixins,
+			      int withPath,
 			      int withSource,
 			      CONST char *pattern) {
   NsfClasses *pl;
@@ -15445,7 +15445,7 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
     cmdTablePtr = Tcl_Namespace_cmdTablePtr(object->nsPtr);
     if (MethodSourceMatches(interp, withSource, NULL, object)) {
       ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType,
-		     withCallprotection, withExpand,
+		     withCallprotection, withPath,
 		     dups, object, withPer_object);
     }
   }
@@ -15469,7 +15469,7 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
           Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(mixin->nsPtr);
 	  if (!MethodSourceMatches(interp, withSource, mixin, NULL)) continue;
           ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType,
-			 withCallprotection, withExpand,
+			 withCallprotection, withPath,
                          dups, object, withPer_object);
         }
       }
@@ -15481,7 +15481,7 @@ NsfObjInfoLookupMethodsMethod(Tcl_Interp *interp, NsfObject *object,
     Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(pl->cl->nsPtr);
     if (!MethodSourceMatches(interp, withSource, pl->cl, NULL)) continue;
     ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType,
-		   withCallprotection, withExpand,
+		   withCallprotection, withPath,
                    dups, object, withPer_object);
   }
   Tcl_DeleteHashTable(dups);
@@ -15541,21 +15541,25 @@ NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
 
 /*
 objectInfoMethod methods NsfObjInfoMethodsMethod {
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-expand"}
-  {-argName "-nomixins"}
   {-argName "-incontext"}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-nomixins"}
+  {-argName "-path"}
   {-argName "pattern"}
 }
 */
 static int
 NsfObjInfoMethodsMethod(Tcl_Interp *interp, NsfObject *object,
-			int withMethodtype, int withCallproctection, int withExpand,
-			int withNomixins, int withIncontext, CONST char *pattern) {
+			int withCallproctection, 
+			int withIncontext, 
+			int withMethodtype, 
+			int withNomixins, 
+			int withPath,
+			CONST char *pattern) {
   return ListDefinedMethods(interp, object, pattern, 1 /* per-object */,
                             AggregatedMethodType(withMethodtype), withCallproctection,
-                            withExpand, withNomixins, withIncontext);
+                            withPath, withNomixins, withIncontext);
 }
 
 /*
@@ -15792,22 +15796,25 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
 
 /*
 classInfoMethod methods NsfClassInfoMethodsMethod {
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-expand"}
-  {-argName "-nomixins"}
   {-argName "-incontext"}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-nomixins"}
+  {-argName "-path"}
   {-argName "pattern"}
 }
 */
 static int
 NsfClassInfoMethodsMethod(Tcl_Interp *interp, NsfClass *class,
-			  int withMethodtype, int withCallproctection,
-			  int withExpand, int withNomixins, int withIncontext,
+			  int withCallproctection, 
+			  int withIncontext, 
+			  int withMethodtype, 
+			  int withNomixins, 
+			  int withPath,
 			  CONST char *pattern) {
   return ListDefinedMethods(interp, &class->object, pattern, 0 /* per-object */,
                             AggregatedMethodType(withMethodtype), withCallproctection,
-			    withExpand, withNomixins, withIncontext);
+			    withPath, withNomixins, withIncontext);
 }
 
 /*

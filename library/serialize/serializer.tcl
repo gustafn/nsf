@@ -616,7 +616,7 @@ namespace eval ::nx::serializer {
 	return [set $handle]
       }
       set needed [list]
-      foreach alias [$x ::nsf::methods::${where}::info::methods -methodtype alias -callprotection all -expand] {
+      foreach alias [$x ::nsf::methods::${where}::info::methods -methodtype alias -callprotection all -path] {
 	set definition [$x ::nsf::methods::${where}::info::method definition $alias]
 	set source [$x ::nsf::methods::class::info::method definition [lindex $definition end]]
 	if {$source ne ""} {
@@ -713,7 +713,7 @@ namespace eval ::nx::serializer {
 	append cmd [list ::nx::slotObj [$o ::nsf::methods::object::info::parent]]\n
       } else {
 	append cmd [list [$o info class] create $objectName -noinit]\n
-	foreach i [lsort [$o ::nsf::methods::object::info::methods -callprotection all -expand]] {
+	foreach i [lsort [$o ::nsf::methods::object::info::methods -callprotection all -path]] {
 	  append cmd [:method-serialize $o $i "class-object"] "\n"
 	}
       }
@@ -742,7 +742,7 @@ namespace eval ::nx::serializer {
     :method Class-serialize {o s} {
 
       set cmd [:Object-serialize $o $s]
-      foreach i [lsort [$o ::nsf::methods::class::info::methods -callprotection all -expand]] {
+      foreach i [lsort [$o ::nsf::methods::class::info::methods -callprotection all -path]] {
         append cmd [:method-serialize $o $i ""] "\n"
       }
       append cmd \

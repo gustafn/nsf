@@ -256,10 +256,10 @@ objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
 }
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
-  {-argName "-expand"}
   {-argName "-incontext"}
   {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-nomixins"}
+  {-argName "-path"}
   {-argName "-source" -nrargs 1 -type "all|application|baseclasses"}
   {-argName "pattern" -required 0}
 }
@@ -271,11 +271,11 @@ objectInfoMethod method NsfObjInfoMethodMethod {
   {-argName "name" -type tclobj}
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-expand"}
-  {-argName "-nomixins"}
   {-argName "-incontext"}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-nomixins"}
+  {-argName "-path"}
   {-argName "pattern"}
 }
 
@@ -324,11 +324,11 @@ classInfoMethod method NsfClassInfoMethodMethod {
   {-argName "name" -type tclobj}
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {
-  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
-  {-argName "-expand"}
-  {-argName "-nomixins"}
   {-argName "-incontext"}
+  {-argName "-methodtype" -nrargs 1 -type "all|scripted|builtin|alias|forwarder|object|setter"}
+  {-argName "-nomixins"}
+  {-argName "-path"}
   {-argName "pattern"}
 }
 classInfoMethod mixinclasses NsfClassInfoMixinclassesMethod {

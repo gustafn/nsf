@@ -324,11 +324,11 @@ Test case info-submethod {
       {::C public method {bar baz y} {x:int y:upper} {return y}}
 
   ? {nx::Object info method parameter "info lookup methods"} \
-      "-callprotection -expand -incontext -methodtype -nomixins -source pattern:optional"
+      "-callprotection -incontext -methodtype -nomixins -path -source pattern:optional"
   ? {o info method parameter "foo b"} "x:int y:upper"
 
   ? {nx::Object info method parameter ::nx::Object::slot::__info::lookup::methods} \
-      "-callprotection -expand -incontext -methodtype -nomixins -source pattern:optional"
+      "-callprotection -incontext -methodtype -nomixins -path -source pattern:optional"
   ? {o info method parameter "::o::foo::b"} "x:int y:upper"
 
   ? {nx::Object info method handle "info"} "::nsf::classes::nx::Object::info"
@@ -342,23 +342,23 @@ Test case info-submethod {
 }
 
 #
-# test "info methods -expand"
+# test "info methods -path"
 #
-Test case info-methods-expand {
+Test case info-methods-path {
   #
   # test case on base class
   #
   ? {::nx::Object info methods "info"} "info"
-  ? {::nx::Object info methods -expand "info"} ""
-  ? {lsort [::nx::Object info methods -expand "info lookup *"]} \
+  ? {::nx::Object info methods -path "info"} ""
+  ? {lsort [::nx::Object info methods -path "info lookup *"]} \
       "{info lookup filter} {info lookup method} {info lookup methods} {info lookup slots}"
-  ? {lsort [::nx::Object info methods -expand "info *method*"]} \
+  ? {lsort [::nx::Object info methods -path "info *method*"]} \
       "{info filter methods} {info lookup method} {info lookup methods} {info method} {info methods}"
   ? {lsort [::nx::Object info methods "slots"]} ""
   ? {lsort [::nx::Object info methods "*slots*"]} ""
-  ? {lsort [::nx::Object info methods -expand "*slots*"]} \
+  ? {lsort [::nx::Object info methods -path "*slots*"]} \
       "{info lookup slots} {info slots}"
-  ? {lsort [::nx::Object info methods -expand "*filter*"]} \
+  ? {lsort [::nx::Object info methods -path "*filter*"]} \
       "filter {info filter guard} {info filter methods} {info lookup filter}"
 
   ::nx::Class create C {
@@ -376,20 +376,20 @@ Test case info-methods-expand {
     :public method "string compress" {s} {puts compress}
     :create d1
   }
-  ? {lsort [C info methods -expand -callprotection all]} \
+  ? {lsort [C info methods -path -callprotection all]} \
       "{a b c} {a b d} {a c} foo {string length} {string reverse}"
-  ? {lsort [C info methods -expand]} \
+  ? {lsort [C info methods -path]} \
       "{a c} foo {string length} {string reverse}"
 
   #
   # lookup ensemble methods
   #
-  ? {lsort [c1 info lookup methods -expand "string *"]} \
+  ? {lsort [c1 info lookup methods -path "string *"]} \
       "{string length} {string reverse}"
   #
   # lookup ensemble methods combined from multiple classes
   #
-  ? {lsort [d1 info lookup methods -expand "string *"]} \
+  ? {lsort [d1 info lookup methods -path "string *"]} \
       "{string compress} {string length} {string reverse}"
 
   #

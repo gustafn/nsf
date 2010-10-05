@@ -1665,6 +1665,9 @@ _ added option noforwarder to RelationSlots
 - made the following function static to avoid pollution of the
   global link namespace: CompiledColonVarFree(), GetRegObject(), ParamGetType()
 
+- changed option -expand in "info methods" and "info lookup methods" into 
+  "-path" to associate with the method path
+
 TODO: 
 
 - cleanup of xotcl-aol
