@@ -1,6 +1,6 @@
 package req nx
 namespace import ::nx::*
-::nx::configure defaultMethodProtection false
+::nx::configure defaultMethodCallProtection false
 package require nx::test
 
 Test case submethods {

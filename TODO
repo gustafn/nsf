@@ -1667,6 +1667,12 @@ _ added option noforwarder to RelationSlots
 
 - changed option -expand in "info methods" and "info lookup methods" into 
   "-path" to associate with the method path
+- changed method property name from "protected" to "call-protected"
+- changed nx::defaultMethodProtection to nx::defaultMethodCallProtection
+- nx::defaultAttributeProtection is used for 
+  scripted methods, forwarders and aliases
+- added nx::defaultAttributeProtection, 
+  used for setter and attributes
 
 TODO: 
 

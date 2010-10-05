@@ -2,7 +2,7 @@
 # testing var resolution
 #
 package require nx; namespace import ::nx::*
-::nx::configure defaultMethodProtection false
+::nx::configure defaultMethodCallProtection false
 package require nx::test
 
 Test parameter count 1

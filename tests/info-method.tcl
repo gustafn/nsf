@@ -1,5 +1,5 @@
 package req nx
-::nx::configure defaultMethodProtection false
+::nx::configure defaultMethodCallProtection false
 package require nx::test
 
 Test case base {
@@ -81,11 +81,11 @@ Test case base {
   ? {lsort [C info lookup methods -source baseclasses]} $class_methods
   ? {lsort [c1 info lookup methods -source baseclasses]} $object_methods
 
-  ::nx::configure defaultMethodProtection true
+  ::nx::configure defaultMethodCallProtection true
   #
-  # the subsequent tests assume defaultMethodProtection == true
+  # the subsequent tests assume defaultMethodCallProtection == true
   #
-  ? {::nx::configure defaultMethodProtection} true
+  ? {::nx::configure defaultMethodCallProtection} true
   
   ::nx::Class create MC -superclass ::nx::Class {
     :protected method bar1 args {;}
@@ -99,13 +99,13 @@ Test case base {
   ? {lsort [MC info methods -methodtype scripted -callprotection all]} "bar1 bar2 foo"
   
 
-  ::nsf::methodproperty ::MC foo protected true
-  ::nsf::methodproperty ::MC bar2 protected false
+  ::nsf::methodproperty ::MC foo call-protected true
+  ::nsf::methodproperty ::MC bar2 call-protected false
   
   ? {lsort [MC info methods -methodtype scripted -callprotection public]} "bar2"
   ? {lsort [MC info methods -methodtype scripted -callprotection protected]} "bar1 foo"
   ? {lsort [MC info methods -methodtype scripted -callprotection all]} "bar1 bar2 foo"
-  ::nx::configure defaultMethodProtection false
+  ::nx::configure defaultMethodCallProtection false
 }
 
 Test case subobj {

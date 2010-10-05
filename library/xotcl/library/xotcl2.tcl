@@ -221,12 +221,12 @@ namespace eval ::xotcl {
   ::nsf::methodproperty Class  create  redefine-protected true
 
   #
-  # define parametercmd and instparametercmd in terms of ::nx method setter
+  # define parametercmd and instparametercmd in terms of ::nsf::setter
   # define filterguard and instfilterguard in terms of filterguard
   # define mixinguard and instmixinguard in terms of mixinguard
   #
-  ::nsf::alias Object parametercmd     ::nsf::classes::nx::Object::setter
-  ::nsf::alias Class  instparametercmd ::nsf::classes::nx::Class::setter
+  ::nsf::forward Object parametercmd ::nsf::setter %self -per-object
+  ::nsf::forward Class instparametercmd ::nsf::setter %self
 
   ::nsf::alias Object filterguard      ::nsf::methods::object::filterguard
   ::nsf::alias Class  instfilterguard  ::nsf::methods::class::filterguard

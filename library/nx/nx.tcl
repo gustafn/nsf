@@ -60,11 +60,11 @@ namespace eval ::nx {
   # set a few aliases as protected
   # "__next", if defined, should be added as well
   foreach cmd [list cleanup noinit residualargs uplevel upvar] {
-    ::nsf::methodproperty Object $cmd protected 1
+    ::nsf::methodproperty Object $cmd call-protected 1
   }
 
   foreach cmd [list recreate] {
-    ::nsf::methodproperty Class $cmd protected 1
+    ::nsf::methodproperty Class $cmd call-protected 1
   }
 
   # protect some methods against redefinition
@@ -128,10 +128,13 @@ namespace eval ::nx {
     return [list object $object methodName $methodName]
   }
 
-  ::nsf::methodproperty Object __resolve_method_path protected true
+  ::nsf::methodproperty Object __resolve_method_path call-protected true
 
-  ::nsf::method Object __default_method_protection args {return false}
-  ::nsf::methodproperty Object __default_method_protection protected true
+  ::nsf::method Object __default_method_call_protection args {return false}
+  ::nsf::method Object __default_attribute_call_protection args {return false}
+
+  ::nsf::methodproperty Object __default_method_call_protection call-protected true
+  ::nsf::methodproperty Object __default_attribute_call_protection call-protected true
 
 
   # define method "method" for Class and Object
@@ -147,7 +150,7 @@ namespace eval ::nx {
     set r [::nsf::method $(object) $(methodName) $arguments $body {*}$conditions]
     if {$r ne ""} {
       # the method was not deleted
-      ::nsf::methodproperty $(object) $r protected [::nsf::dispatch $(object) __default_method_protection]
+      ::nsf::methodproperty $(object) $r call-protected [::nsf::dispatch $(object) __default_method_call_protection]
       if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
     }
     return $r
@@ -164,7 +167,7 @@ namespace eval ::nx {
     set r [::nsf::method $(object) -per-object $(methodName) $arguments $body {*}$conditions]
     if {$r ne ""} {
       # the method was not deleted
-      ::nsf::methodproperty $(object) $r protected [::nsf::dispatch $(object) __default_method_protection]
+      ::nsf::methodproperty $(object) $r call-protected [::nsf::dispatch $(object) __default_method_call_protection]
       if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
     }
     return $r
@@ -213,7 +216,7 @@ namespace eval ::nx {
 	Consider '[::nsf::current object] create $m $args' instead of '[::nsf::current object] $m $args'"
     }
     # protected is not yet defined
-    ::nsf::methodproperty [::nsf::current object] unknown protected true
+    ::nsf::methodproperty [::nsf::current object] unknown call-protected true
   }
 
 
@@ -224,7 +227,7 @@ namespace eval ::nx {
       set p [lsearch -regexp $args {^(method|alias|attribute|forward|setter)$}]
       if {$p == -1} {error "$args is not a method defining method"}
       set r [{*}:$args]
-      ::nsf::methodproperty [::nsf::current object] $r protected false
+      ::nsf::methodproperty [::nsf::current object] $r call-protected false
       return $r
     }
 
@@ -233,7 +236,7 @@ namespace eval ::nx {
       set p [lsearch -regexp $args {^(method|alias|attribute|forward|setter)$}]
       if {$p == -1} {error "$args is not a method defining command"}
       set r [{*}:$args]
-      ::nsf::methodproperty [::nsf::current object] $r [::nsf::current method] true
+      ::nsf::methodproperty [::nsf::current object] $r call-protected true
       return $r
     }
   }
@@ -277,8 +280,11 @@ namespace eval ::nx {
      target:optional args
    } {
     array set "" [:__resolve_method_path -per-object $method]
-    return [::nsf::forward $(object) -per-object $(methodName) \
-		{*}[lrange [::nsf::current args] 1 end]]
+    set r [::nsf::forward $(object) -per-object $(methodName) \
+	       {*}[lrange [::nsf::current args] 1 end]]
+    ::nsf::methodproperty $(object) -per-object $r call-protected \
+	[::nsf::dispatch $(object) __default_method_call_protection]
+    return $r
   }
   Class public method forward {    
      method 
@@ -286,8 +292,11 @@ namespace eval ::nx {
      target:optional args
    } {
     array set "" [:__resolve_method_path $method]
-    return [::nsf::forward $(object) $(methodName) \
+    set r [::nsf::forward $(object) $(methodName) \
 		{*}[lrange [::nsf::current args] 1 end]]
+    ::nsf::methodproperty $(object) $r call-protected \
+	[::nsf::dispatch $(object) __default_method_call_protection]
+    return $r
   }
 
   #
@@ -309,28 +318,42 @@ namespace eval ::nx {
   Object public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
     array set "" [:__resolve_method_path -per-object $methodName]
     #puts "object alias $(object).$(methodName) $cmd"
-    ::nsf::alias $(object) -per-object $(methodName) \
-        {*}[expr {${objscope} ? "-objscope" : ""}] \
-        {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
-        $cmd
+    set r [::nsf::alias $(object) -per-object $(methodName) \
+	       {*}[expr {${objscope} ? "-objscope" : ""}] \
+	       {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
+	       $cmd]
+    ::nsf::methodproperty $(object) -per-object $r call-protected \
+	[::nsf::dispatch $(object) __default_method_call_protection]
+    return $r
   }
 
   Class public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
     array set "" [:__resolve_method_path $methodName]
     #puts "class alias $(object).$(methodName) $cmd"
-    ::nsf::alias $(object) $(methodName) \
-        {*}[expr {${objscope} ? "-objscope" : ""}] \
-        {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
-        $cmd
+    set r [::nsf::alias $(object) $(methodName) \
+	       {*}[expr {${objscope} ? "-objscope" : ""}] \
+	       {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
+	       $cmd]
+    ::nsf::methodproperty $(object) $r call-protected \
+	[::nsf::dispatch $(object) __default_method_call_protection]
+    return $r
   }
 
   # Add setter methods. 
   #  
   Object public method setter {parameter} {
-    ::nsf::setter [::nsf::current object] -per-object $parameter
+    set o [::nsf::current object]
+    set r [::nsf::setter $o -per-object $parameter]
+    ::nsf::methodproperty $o -per-object $r call-protected \
+	[::nsf::dispatch $o __default_attribute_call_protection]
+    return $r
   }
   Class public method setter {parameter} {
-    ::nsf::setter [::nsf::current object] $parameter
+    set o [::nsf::current object]
+    set r [::nsf::setter $o $parameter]
+    ::nsf::methodproperty $o $r call-protected \
+	[::nsf::dispatch $o __default_attribute_call_protection]
+    return $r
   }
 
   # Add method "require"
@@ -371,7 +394,7 @@ namespace eval ::nx {
     set slotContainer ${baseObject}::slot
     if {![::nsf::isobject $slotContainer]} {
       ::nx::Object alloc $slotContainer
-      ::nsf::methodproperty ${baseObject} -per-object slot protected true
+      ::nsf::methodproperty ${baseObject} -per-object slot call-protected true
       ::nsf::methodproperty ${baseObject} -per-object slot redefine-protected true
       ::nsf::methodproperty ${baseObject} -per-object slot slotcontainer true
       $slotContainer ::nsf::methods::object::requirenamespace
@@ -1109,8 +1132,8 @@ namespace eval ::nx {
   # mixin class for optimizing slots
   Class create ::nx::Attribute::Optimizer {
 
-    :method method args  {set r [::nsf::next]; :optimize; return $r}
-    :method forward args {set r [::nsf::next]; :optimize; return $r}
+    :public method method args  {set r [::nsf::next]; :optimize; return $r}
+    :public method forward args {set r [::nsf::next]; :optimize; return $r}
     :protected method init args {set r [::nsf::next]; :optimize; return $r}
 
     :public method optimize {} {
@@ -1167,11 +1190,19 @@ namespace eval ::nx {
   # Define method "attribute" for convenience
   ############################################
   Class method attribute {spec {-slotclass ::nx::Attribute} {initblock ""}} {
-    $slotclass createFromParameterSyntax [::nsf::current object] -initblock $initblock {*}$spec
+    set r [$slotclass createFromParameterSyntax [::nsf::current object] -initblock $initblock {*}$spec]
+    set o [::nsf::current object]
+    ::nsf::methodproperty $o $r call-protected \
+	[::nsf::dispatch $o __default_attribute_call_protection]
+    return $r
   }
 
   Object method attribute {spec {-slotclass ::nx::Attribute} {initblock ""}} {
-    $slotclass createFromParameterSyntax [::nsf::current object] -per-object -initblock $initblock {*}$spec
+    set r [$slotclass createFromParameterSyntax [::nsf::current object] -per-object -initblock $initblock {*}$spec]
+    set o [::nsf::current object]
+    ::nsf::methodproperty $o -per-object $r call-protected \
+	[::nsf::dispatch $o __default_attribute_call_protection]
+    return $r    
   }
 
   ############################################
@@ -1462,20 +1493,35 @@ namespace eval ::nx {
     #
     # Set the default method protection for nx methods. This
     # protection level is used per default for all method definitions
-    # without explicit protection specified.
+    # of scripted methods, aliases and forwarders without explicit
+    # protection specified.
     #
-    :method defaultMethodProtection {value:boolean,optional} {
+    :method defaultMethodCallProtection {value:boolean,optional} {
       if {[info exists value]} {
-	::nsf::method Object __default_method_protection args [list return $value]
-	::nsf::methodproperty Object  __default_method_protection protected true
+	::nsf::method Object __default_method_call_protection args [list return $value]
+	::nsf::methodproperty Object  __default_method_call_protection call-protected true
       }
-      return [::nsf::dispatch [::nx::current object] __default_method_protection]
+      return [::nsf::dispatch [::nx::current object] __default_method_call_protection]
+    }
+
+    #
+    # Set the default method protection for nx methods. This
+    # protection level is used per default for definitions of
+    # attributes and setters
+    #
+    :method defaultAttributeCallProtection {value:boolean,optional} {
+      if {[info exists value]} {
+	::nsf::method Object __default_attribute_call_protection args [list return $value]
+	::nsf::methodproperty Object  __default_attribute_call_protection call-protected true
+      }
+      return [::nsf::dispatch [::nx::current object] __default_attribute_call_protection]
     }
   }
   #
   # Make the default protected methods
   #
-  ::nx::configure defaultMethodProtection true
+  ::nx::configure defaultMethodCallProtection true
+  ::nx::configure defaultAttributeCallProtection false
 
   #
   # Provide an ensemble-like interface to the ::nsf primitiva to
@@ -1483,9 +1529,9 @@ namespace eval ::nx {
   # framework is faster than namespace-ensembles.
   #
   Object create ::nx::var {
-    :alias exists ::nsf::existsvar 
-    :alias import ::nsf::importvar
-    :alias set ::nsf::setvar
+    :public alias exists ::nsf::existsvar 
+    :public alias import ::nsf::importvar
+    :public alias set ::nsf::setvar
   }
 
   interp alias {} ::nx::self {} ::nsf::current object

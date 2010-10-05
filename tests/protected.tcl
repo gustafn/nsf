@@ -24,7 +24,7 @@ C create c2
 ? {c1 bar-SET} {1}
 ? {c1 bar-foo} {foo}
 
-::nsf::methodproperty C SET protected true
+::nsf::methodproperty C SET call-protected true
 ? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
 ? {::nsf::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
 ? {c1 foo} {foo}
@@ -34,7 +34,7 @@ C create c2
 ? {catch {c2 bar-SET} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
 ? {c2 bar-foo} {foo}
 
-::nsf::methodproperty C foo protected true
+::nsf::methodproperty C foo call-protected true
 ? {catch {c1 SET x 1} errorMsg; set errorMsg} {::c1: unable to dispatch method 'SET'}
 ? {::nsf::dispatch c1 SET x 2} {2} "dispatch of protected methods works"
 ? {c1 bar} {bar} "other method work"
@@ -45,12 +45,12 @@ C create c2
 ? {catch {c2 bar-foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}
 
 # unset protected
-? {::nsf::methodproperty C SET protected} 1
-::nsf::methodproperty C SET protected false
-? {::nsf::methodproperty C SET protected} 0
-? {::nsf::methodproperty C foo protected} 1
-::nsf::methodproperty C foo protected false
-? {::nsf::methodproperty C foo protected} 0
+? {::nsf::methodproperty C SET call-protected} 1
+   ::nsf::methodproperty C SET call-protected false
+? {::nsf::methodproperty C SET call-protected} 0
+? {::nsf::methodproperty C foo call-protected} 1
+   ::nsf::methodproperty C foo call-protected false
+? {::nsf::methodproperty C foo call-protected} 0
 
 ? {c1 SET x 3} 3
 ? {::nsf::dispatch c1 SET x 2} {2} 
@@ -63,7 +63,7 @@ C create c2
 
 # define a protected method
 C protected method foo {} {return [current method]}
-? {::nsf::methodproperty C SET protected} 0
+? {::nsf::methodproperty C SET call-protected} 0
 ? {c1 SET x 3} 3
 ? {::nsf::dispatch c1 SET x 4} {4} 
 ? {catch {c1 foo} errorMsg; set errorMsg} {::c1: unable to dispatch method 'foo'}

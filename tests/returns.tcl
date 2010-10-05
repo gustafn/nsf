@@ -1,5 +1,5 @@
 package require nx
-::nx::configure defaultMethodProtection false
+::nx::configure defaultMethodCallProtection false
 package require nx::test
 
 #

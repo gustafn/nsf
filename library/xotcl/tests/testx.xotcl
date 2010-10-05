@@ -3157,7 +3157,7 @@ smallScripts proc run {{n 20}} {
 
     ::errorCheck [lsort [b info methods -nocmds]] "abstract check extractConfigureArg f filtersearch hasclass init isclass ismetaclass ismixin isobject istype method myProc myProc2 myProcMix1 myProcMix2 objectparameter objproc proc procsearch self setFilter signature unknown" "b info methods -nocmds"
 
-    ::errorCheck [lsort [b info methods -noprocs]] "append array autoname class cleanup configure destroy eval exists filter filterguard forward incr info instvar invar lappend mixin mixinguard noinit requireNamespace residualargs set subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
+    ::errorCheck [lsort [b info methods -noprocs]] "append array autoname class cleanup configure destroy eval exists filter filterguard forward incr info instvar invar lappend mixin mixinguard noinit parametercmd requireNamespace residualargs set subst trace unset uplevel upvar volatile vwait" "b info methods -noprocs"
     ::errorCheck [lsort [b info methods -nocmds -nomixins]] "abstract check extractConfigureArg f filtersearch hasclass init isclass ismetaclass ismixin isobject istype method myProc myProc2 objectparameter objproc proc procsearch self setFilter signature unknown" "b info methods -nocmds -nomixins"
 
     ::errorCheck [b info methods -nocmds -noprocs] "" "b info methods -nocmds -noprocs"

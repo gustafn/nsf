@@ -1,6 +1,6 @@
 package require nx
 package require nx::test
-::nx::configure defaultMethodProtection false
+::nx::configure defaultMethodCallProtection false
 namespace import ::nx::*
 
 Test case dummy {

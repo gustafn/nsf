@@ -12958,12 +12958,12 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   switch (methodproperty) {
   case MethodpropertyClass_onlyIdx: /* fall through */
-  case MethodpropertyProtectedIdx:  /* fall through */
+  case MethodpropertyCall_protectedIdx:  /* fall through */
   case MethodpropertyRedefine_protectedIdx:  /* fall through */
     {
       switch (methodproperty) {
       case MethodpropertyClass_onlyIdx: flag = NSF_CMD_CLASS_ONLY_METHOD; break;
-      case MethodpropertyProtectedIdx:  flag = NSF_CMD_PROTECTED_METHOD; break;
+      case MethodpropertyCall_protectedIdx:  flag = NSF_CMD_PROTECTED_METHOD; break;
       case MethodpropertyRedefine_protectedIdx: flag = NSF_CMD_REDEFINE_PROTECTED_METHOD; break;
       }
 
