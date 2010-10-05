@@ -177,16 +177,22 @@ Test case ensemble-next {
 
 Test case ensemble-partial-next {
   nx::Class create M {
-    :method "info has namespace" {} {
+    :public method "info has namespace" {} {
       nx::next
       return sometimes
     }
-    :method "info has something else" {} {
+    :public method "info has something else" {} {
       return something
     }
-    :method "info has something better" {} {
+    :public method "info has something path" {} {
+      return [concat [::nsf::current methodpath] [::nsf::current method]]
+    }
+    :public method "info has something better" {} {
       nx::next
       return better
+    }
+    :public method foo {} {
+      return [concat [::nsf::current methodpath] [::nsf::current method]]
     }
   }
   nx::Object mixin add M
@@ -201,7 +207,7 @@ Test case ensemble-partial-next {
 
   # call a submethod, which is nowhere defined
   ? {o1 info has typo M} \
-      {Unable to dispatch sub-method "typo" of ::o1 info has; valid are: info has mixin, info has namespace, info has something better, info has something else, info has type}
+      {Unable to dispatch sub-method "typo" of ::o1 info has; valid are: info has mixin, info has namespace, info has something better, info has something else, info has something path, info has type}
 
   # call a submethod, which is only defined in the mixin
   ? {o1 info has something else} something
@@ -212,15 +218,20 @@ Test case ensemble-partial-next {
 
   # yet another missing case
   ? {o1 info has something wrong} \
-      {Unable to dispatch sub-method "wrong" of ::o1 info has something; valid are: info has something better, info has something else}
+      {Unable to dispatch sub-method "wrong" of ::o1 info has something; valid are: info has something better, info has something else, info has something path}
 
   # call defaultcmds on ensembles
-  ? {lsort [o1 info has something]} "Valid submethods of ::o1 info has something: better else"
+  ? {lsort [o1 info has something]} "Valid submethods of ::o1 info has something: better else path"
 
   # defaultcmd has to return also subcmds of other shadowed ensembles
   ? {lsort [o1 info has]} "Valid submethods of ::o1 info has: mixin namespace something type"
   ? {lsort [o1 info]} "Valid submethods of ::o1 info: children class filter forward has info is lookup method methods mixin parent precedence slots unknown vars"
 
+  # returning methodpath in ensemble
+  ? {o1 info has something path} "info has something path"
+
+  # returning methodpath outside ensemble
+  ? {o1 foo} "foo"
 }
 
 #
