@@ -560,9 +560,9 @@ Test case subst-default {
       "name arguments body -precondition -postcondition" \
       "query instparams for scripted method 'method'"
   
-  ? {catch {Object info method parameter forward}} \
-      "1" \
-      "query parameter for C-defined method 'forward'"
+  ? {Object info method parameter ::nsf::forward} \
+      "object -per-object method -default -earlybinding -methodprefix -objscope -onerror -verbose target:optional args" \
+      "query parameter for C-defined cmd 'nsf::forward'"
   
   Object require method autoname
   ? {Object info method parameter autoname} \

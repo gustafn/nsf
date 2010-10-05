@@ -258,13 +258,37 @@ namespace eval ::nx {
     :protected method objectparameter {} {;}
   }
 
-  # define forward methods
+  #
+  # Define forward methods
+  #
+  # We could do this simply as
+  #
+  #   ::nsf::forward Object forward ::nsf::forward %self -per-object
+  #   ::nsf::forward Class forward ::nsf::forward %self
+  #
+  # but then, we would loose the option to use compound names
+  #
 
-  ::nsf::forward Object forward ::nsf::forward %self -per-object
-  #set ::nsf::signature(::nx::Object-method-forward) {(methodName) obj forward name ?-default default? ?-earlybinding? ?-methodprefix name? ?-objscope? ?-onerror proc? ?-verbose? target ?args?}
+  Object public method forward {
+     method 
+     -default -methodprefix -objscope:switch -onerror -verbose:switch
+     target:optional args
+   } {
+    array set "" [:__resolve_method_path -create -verbose $method]
+    return [::nsf::forward $(object) -per-object $(methodName) \
+		{*}[lrange [::nsf::current args] 1 end]]
+  }
+  Class public method forward {    
+     method 
+     -default -methodprefix -objscope:switch -onerror -verbose:switch
+     target:optional args
+   } {
+    array set "" [:__resolve_method_path -create -verbose $method]
+    return [::nsf::forward $(object) $(methodName) \
+		{*}[lrange [::nsf::current args] 1 end]]
+  }
 
-  ::nsf::forward Class forward ::nsf::forward %self
-
+  #
   # The method __unknown is called in cases, where we try to resolve
   # an unkown class. one could define a custom resolver with this name
   # to load the class on the fly. After the call to __unknown, XOTcl
@@ -1477,5 +1501,7 @@ namespace eval ::nx {
   
   unset bootstrap
 }
+  puts stderr "**** [nx::Object info method parameter ::nsf::forward] ***"
+
 puts stderr =======NX-done
 

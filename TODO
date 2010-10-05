@@ -1653,6 +1653,12 @@ _ added option noforwarder to RelationSlots
 - removed "info forward" from nx::Object and nx::Class
   (can be replaced by "info methods" and "info method")
 
+- Methodpaths can be used now in the definition of "method", 
+  "alias" and "forward." We do not support it for "setter" 
+  and "attribute", since these require a parameter spec, 
+  which does not have clear semantics for a method path.
+- scripted definition of nx::Object.forward and nx::Class.forward
+
 TODO: 
 
 - cleanup of xotcl-aol
@@ -1671,7 +1677,6 @@ TODO:
 - extend coro regression test
 
 - subcmd
-   * handle subcmd for other method factories
    * handle absence of -create  flag in resolve_method_path (for introspection)
 - serializer:
    * keep track of defaultMethodProtection

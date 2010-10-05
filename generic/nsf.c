@@ -1198,8 +1198,10 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
     *regObject = referencedObject;
     *defObject = referencedObject;
     if (referencedObject == NULL) {
-      /* the cmd was not registered on an object or class */
-      cmd = NULL;
+      /* 
+       * The cmd was not registered on an object or class, but we
+       * still report back the cmd (might be e.g. a primitive cmd.
+       */
     }
   } else {
     *methodName1 = methodName;
@@ -11853,7 +11855,8 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 }
 
 static int
-ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern, int classesOnly, NsfClass *type) {
+ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern, 
+	     int classesOnly, NsfClass *type) {
   NsfObject *childObject;
   Tcl_HashTable *cmdTablePtr;
 
@@ -15776,7 +15779,7 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
   /*fprintf(stderr,
 	  "NsfClassInfoMethodMethod object %p regObject %p defObject %p fromClass %d cmd %p\n",
-    &class->object,regObject,defObject,fromClassNS, cmd);*/
+	  &class->object,regObject,defObject,fromClassNS, cmd);*/
   result = ListMethod(interp,
 		      regObject ? regObject : &class->object,
 		      defObject ? defObject : &class->object,
