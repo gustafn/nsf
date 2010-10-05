@@ -1649,6 +1649,10 @@ _ added option noforwarder to RelationSlots
 - defined unknown methods as call-protected
 - make __default_method_protection protected
 
+- added syntax "?arg ...?" in parametsyntax output for "args"
+- removed "info forward" from nx::Object and nx::Class
+  (can be replaced by "info methods" and "info method")
+
 TODO: 
 
 - cleanup of xotcl-aol

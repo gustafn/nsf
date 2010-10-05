@@ -293,7 +293,7 @@ static int NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *varname);
 static int NsfObjInfoChildrenMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType, CONST char *pattern);
 static int NsfObjInfoClassMethod(Tcl_Interp *interp, NsfObject *obj);
-static int NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter);
+static int NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *name);
 static int NsfObjInfoFiltermethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withOrder, CONST char *pattern);
 static int NsfObjInfoForwardMethod(Tcl_Interp *interp, NsfObject *obj, int withDefinition, CONST char *name);
 static int NsfObjInfoHasMixinMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *class);
@@ -1668,10 +1668,10 @@ NsfObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    CONST char *filter = (CONST char *)pc.clientData[0];
+    CONST char *name = (CONST char *)pc.clientData[0];
 
     ParseContextRelease(&pc);
-    return NsfObjInfoFilterguardMethod(interp, obj, filter);
+    return NsfObjInfoFilterguardMethod(interp, obj, name);
 
   }
 }
@@ -2302,7 +2302,7 @@ static methodDefinition method_definitions[] = {
   }
 },
 {"::nsf::methods::object::info::filterguard", NsfObjInfoFilterguardMethodStub, 1, {
-  {"filter", 1, 0, ConvertToString}}
+  {"name", 1, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::filtermethods", NsfObjInfoFiltermethodsMethodStub, 3, {
   {"-guards", 0, 0, ConvertToString},

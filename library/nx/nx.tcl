@@ -300,11 +300,11 @@ namespace eval ::nx {
 
   # Add setter methods. 
   #  
-  Object public method setter {methodName} {
-    ::nsf::setter [::nsf::current object] -per-object $methodName
+  Object public method setter {parameter} {
+    ::nsf::setter [::nsf::current object] -per-object $parameter
   }
-  Class public method setter {methodName} {
-    ::nsf::setter [::nsf::current object] $methodName
+  Class public method setter {parameter} {
+    ::nsf::setter [::nsf::current object] $parameter
   }
 
   # Add method "require"
@@ -424,7 +424,7 @@ namespace eval ::nx {
     :alias "info class"            ::nsf::methods::object::info::class
     :alias "info filter guard"     ::nsf::methods::object::info::filterguard
     :alias "info filter methods"   ::nsf::methods::object::info::filtermethods
-    :alias "info forward"          ::nsf::methods::object::info::forward
+    #:alias "info forward"          ::nsf::methods::object::info::forward
     :alias "info has mixin"        ::nsf::methods::object::info::hasmixin
     :alias "info has namespace"    ::nsf::methods::object::info::hasnamespace
     :alias "info has type"         ::nsf::methods::object::info::hastype
@@ -465,7 +465,7 @@ namespace eval ::nx {
     :alias "info lookup"         ::nx::Object::slot::__info::lookup
     :alias "info filter guard"   ::nsf::methods::class::info::filterguard
     :alias "info filter methods" ::nsf::methods::class::info::filtermethods
-    :alias "info forward"        ::nsf::methods::class::info::forward
+    #:alias "info forward"        ::nsf::methods::class::info::forward
     :alias "info has"            ::nx::Object::slot::__info::has
     :alias "info heritage"       ::nsf::methods::class::info::heritage
     :alias "info instances"      ::nsf::methods::class::info::instances

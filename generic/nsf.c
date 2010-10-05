@@ -6037,7 +6037,9 @@ ParamDefsSyntax(Tcl_Interp *interp, NsfParam CONST *paramPtr) {
     if (pPtr != paramPtr) {
       Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
     }
-    if (pPtr->flags & NSF_ARG_REQUIRED) {
+    if (pPtr->converter == ConvertToNothing && strcmp(pPtr->name, "args") == 0) {
+      Tcl_AppendLimitedToObj(argStringObj, "?arg ...?", 9, INT_MAX, NULL);
+    } else if (pPtr->flags & NSF_ARG_REQUIRED) {
       Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
     } else {
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
@@ -11290,12 +11292,19 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
           continue;
         }
 
-        innerlist = Tcl_NewListObj(0, NULL);
-        Tcl_ListObjAppendElement(interp, innerlist, Tcl_NewStringObj(args->name, -1));
-        if (!withVarnames && args->defValuePtr) {
-          Tcl_ListObjAppendElement(interp, innerlist, args->defValuePtr);
-        }
-        Tcl_ListObjAppendElement(interp, list, innerlist);
+	if (withVarnames == 2 && strcmp(args->name, "args") == 0) {
+	  if (args != procPtr->firstLocalPtr) {
+	    Tcl_AppendToObj(list, " ", 1);
+	  }
+	  Tcl_AppendToObj(list, "?arg ...?", 9);
+	} else {
+	  innerlist = Tcl_NewListObj(0, NULL);
+	  Tcl_ListObjAppendElement(interp, innerlist, Tcl_NewStringObj(args->name, -1));
+	  if (!withVarnames && args->defValuePtr) {
+	    Tcl_ListObjAppendElement(interp, innerlist, args->defValuePtr);
+	  }
+	  Tcl_ListObjAppendElement(interp, list, innerlist);
+	}
       }
     }
 
@@ -11312,7 +11321,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
     for (; mdPtr->methodName; mdPtr ++) {
 
       /*fprintf(stderr, "... comparing %p with %p => %s\n", ((Command *)cmd)->objProc, mdPtr->proc,
-        mdPtr->methodName);*/
+	mdPtr->methodName);*/
 
       if (((Command *)cmd)->objProc == mdPtr->proc) {
         NsfParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters};

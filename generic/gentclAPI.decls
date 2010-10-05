@@ -226,7 +226,7 @@ objectInfoMethod children NsfObjInfoChildrenMethod {
 objectInfoMethod class NsfObjInfoClassMethod {
 }
 objectInfoMethod filterguard NsfObjInfoFilterguardMethod {
-  {-argName "filter" -required 1}
+  {-argName "name" -required 1}
 }
 objectInfoMethod filtermethods NsfObjInfoFiltermethodsMethod {
   {-argName "-guards"}
