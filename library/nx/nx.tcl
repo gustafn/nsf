@@ -382,7 +382,7 @@ namespace eval ::nx {
     #    in nsf when calling e.g. "unknwown" (such that a subcmd
     #    "unknown" does not interfere with the method "unknown").
     #
-    :method unknown {obj m args} {
+    :protected method unknown {obj m args} {
       set path [current methodpath]
       #puts stderr "+++ UNKNOWN obj $obj '$m' $args // path '[current methodpath]'"
       if {[catch {set valid [$obj ::nsf::methods::object::info::lookupmethods -expand "$path *"]} errorMsg]} {
@@ -393,7 +393,7 @@ namespace eval ::nx {
       error "Unable to dispatch sub-method $ref; valid are: [join [lsort $valid] {, }]"
     }
     
-    :method defaultmethod {} {
+    :protected method defaultmethod {} {
       set obj [uplevel {current object}]
       set path [current methodpath]
       set l [string length $path]
@@ -490,7 +490,7 @@ namespace eval ::nx {
     return "valid options are: [join [lsort $methods] {, }]"
   }
 
-  Object method "info unknown" {method obj args} {
+  Object protected method "info unknown" {method obj args} {
     error "[::nsf::current object] unknown info option \"$method\"; [$obj info info]"
   }
 
@@ -1229,7 +1229,7 @@ namespace eval ::nx {
   Object public method contains {
     {-withnew:boolean true}
     -object
-    {-class ::nx::Object}
+    {-class:class ::nx::Object}
     cmds
   } {
     if {![info exists object]} {set object [::nsf::current object]}
@@ -1441,6 +1441,7 @@ namespace eval ::nx {
     :method defaultMethodProtection {value:boolean,optional} {
       if {[info exists value]} {
 	::nsf::method Object __default_method_protection args [list return $value]
+	::nsf::methodproperty Object  __default_method_protection protected true
       }
       return [::nsf::dispatch [::nx::current object] __default_method_protection]
     }

@@ -10180,7 +10180,9 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 
     if (c == 's' && !strcmp(ForwardArgString, "self")) {
       *out = tcd->object->cmdName;
-    } else if (c == 'p' && !strcmp(ForwardArgString, "proc")) {
+    } else if ((c == 'p' && !strcmp(ForwardArgString, "proc"))
+	       || (c == 'm' && !strcmp(ForwardArgString, "method"))
+	       ) {
       CONST char *methodName = ObjStr(objv[0]);
       /* if we dispatch a method via ".", we do not want to see the
 	 "." in the %proc, e.g. for the interceptor slots (such as

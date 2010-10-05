@@ -1643,6 +1643,11 @@ _ added option noforwarder to RelationSlots
   make implementation more simple.
 - simplified EnsembleObject.defaultcmd and EnsembleObject.unknown significantly,
   scripted support methods are removed.
+- extended regression test for "current methodpath"
+
+- allow %method in forwarder.
+- defined unknown methods as call-protected
+- make __default_method_protection protected
 
 TODO: 
 

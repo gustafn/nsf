@@ -67,8 +67,8 @@ Test case base {
   ? {::nx::Object info lookup methods -source application} ""
   ? {::nx::Class info lookup methods -source application} ""
 
-  set object_methods "__default_method_protection alias attribute class configure contains copy destroy eval filter forward info method mixin move protected public require setter volatile vwait"
-  set class_methods "__default_method_protection alias alloc attribute attributes class class-object configure contains copy create dealloc destroy eval filter forward info method mixin move new protected public require setter superclass volatile vwait"
+  set object_methods "alias attribute class configure contains copy destroy eval filter forward info method mixin move protected public require setter volatile vwait"
+  set class_methods "alias alloc attribute attributes class class-object configure contains copy create dealloc destroy eval filter forward info method mixin move new protected public require setter superclass volatile vwait"
 
   ? {lsort [::nx::Object info lookup methods -source baseclasses]} $class_methods
   ? {lsort [::nx::Class info lookup methods -source baseclasses]} $class_methods
