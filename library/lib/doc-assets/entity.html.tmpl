@@ -38,7 +38,8 @@
             </div>
         </form>
 	</div><!-- hd -->
-
+	[:!let self_owned_parts [[:origin] owned_parts]]
+	[:!let owned_parts [dict merge $project_entities $self_owned_parts]]
 	<div id="bd">
 		<div id="yui-main">
 			<div class="yui-b">
@@ -54,6 +55,7 @@
 			  <a href="[:name]">[:name]</a> project.
 			  <p>Choose a package, object or command name from the list for more information.</p>
 			</div>
+			[:include glossary.html.tmpl]
 			}]
        			</div>
 			</div>

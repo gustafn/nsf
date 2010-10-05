@@ -204,7 +204,7 @@ body.show_protected .protected {
 .highlight .gt { color: #0040D0 } /* Generic.Traceback */
 .highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
 .highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
-.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+#.highlight .kp { color: #007020 } /* Keyword.Pseudo */
 .highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
 .highlight .kt { color: #007020; font-weight: bold } /* Keyword.Type */
 .highlight .m { color: #40a070 } /* Literal.Number */
@@ -242,4 +242,26 @@ body.show_protected .protected {
 .highlight .vg { color: #bb60d5 } /* Name.Variable.Global */
 .highlight .vi { color: #bb60d5 } /* Name.Variable.Instance */
 .highlight .il { color: #40a070 } /* Literal.Number.Integer.Long */
+
+/* additions */
+
+#glossary dt {
+    font-weight:bold;
+}
+
+#glossary dt, dd {
+    line-height:1.8em;
+}
+
+a:link.gloss,
+a:visited.gloss,
+a:hover.gloss,
+a:active.gloss {
+  color: #000000; /* should be the same color as text */
+  text-decoration: none;
+  border-bottom-width: 1px;
+  border-bottom-style: dotted;
+  border-bottom-color: #000000; /* for IE 5, same color as above */
+  font-style: normal; /* for use with dfn */
+}
 

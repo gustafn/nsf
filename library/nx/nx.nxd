@@ -21,7 +21,7 @@
 
 # @class Class
 #
-# A class defines a family of object types which own a common set of
+# A {{@glossary class}} defines a family of object types which own a common set of
 # attributes (see {{@class ::nx::Attribute}}) and methods. Classes
 # are organised according to their similarities and differences in
 # classification hierarchies. This object represents the root
@@ -700,3 +700,35 @@
 # value of the managed object variable changes
 # @parameter arg
 # @superclass ::nx::doc::entities::class::nx::ObjectParameterSlot
+
+# @glossary class
+#
+# A class represents a family of object sharing a minimal common
+# structure and behaviour.
+#
+# @pretty_name Class
+# @pretty_plural Classes
+
+# @glossary method_handle
+#
+# A method handle represents
+# 
+# @pretty_name Method handle
+# @pretty_plural Method handles
+
+
+# @glossary cim
+#
+# In Tcl/XOTcl/NSF, methods can either be scripted or implemented as a
+# C language extension ... 
+#
+# @acronym CIM
+# @pretty_name C-implemented method
+# @pretty_plural C-implemented methods
+
+# {{@gls class}}
+# {{@Gls class}}
+# {{@glspl class}}
+# {{@Glspl class}}
+# {{@acr cim}} -> CIM
+# {{@acrpl cim}} -> CIMs

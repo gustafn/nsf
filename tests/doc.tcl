@@ -983,9 +983,9 @@ Test case parsing {
     doc process -noeval true generic/nsf.tcl
 
     ::nx::doc::make doc \
-    	-renderer ::nx::doc::NxDocTemplateData \
-    	-outdir [::nsf::tmpdir] \
-    	-project $project
+    	-renderer ::nx::doc::NxDocRenderer \
+    	-project $project \
+    	-outdir [::nsf::tmpdir]
 
     #puts stderr NSF=[info commands ::nx::doc::entities::command::nsf::*]
 
@@ -999,9 +999,9 @@ Test case parsing {
       # "::nx"', we get an irritating failure. VERIFY!
     doc process -noeval true library/nx/nx.tcl
     ::nx::doc::make doc \
-    	-renderer ::nx::doc::NxDocTemplateData \
-    	-outdir [::nsf::tmpdir] \
-    	-project $project
+    	-renderer ::nx::doc::NxDocRenderer \
+    	-project $project \
+    	-outdir [::nsf::tmpdir]
     } 1]
   }
 
