@@ -94,6 +94,45 @@ namespace eval ::nx::doc {
     return $result
   }
 
+  proc find_asset_path {{subdir library/lib/doc-assets}} {
+      # This helper tries to identify the file system path of the
+      # asset ressources.
+      #
+      # @param -subdir Denotes the name of the sub-directory to look for
+      foreach dir $::auto_path {
+	set assets [file normalize [file join $dir $subdir]]
+	if {[file exists $assets]} {
+	  return $assets
+	}
+      }
+    }
+
+
+  Class create MixinLayer -superclass Class {
+    :attribute {prefix ""}
+    :public method apply {} {
+      foreach mixin [:info children -type [current class]::Mixin] {
+	set base "${:prefix}::[namespace tail $mixin]"
+	puts "TRYING mixin $mixin base $base"
+	if {[::nsf::isobject $base]} {
+	  set scope [expr {[$mixin scope] eq "object" && [$base info is class]?"class-object":""}]
+	  puts stderr "APPLYING $base {*}$scope mixin add $mixin"
+	  $base {*}$scope mixin add $mixin
+	}
+    }
+    }
+    
+    Class create [current]::Mixin -superclass Class {
+      :attribute {scope class}
+      :method init args {
+	:public method foo {} {
+	  puts stderr "[current class]->[current method]";
+	  next
+	}
+      }
+    }
+  }
+
   Class create Tag -superclass Class {
     # A meta-class for named documenation entities. It sets some
     # shared properties (e.g., generation rules for tag names based on
@@ -553,6 +592,12 @@ namespace eval ::nx::doc {
       }
       return [subst [join $doc " "]]
     }
+  }
+
+  Tag create @glossary -superclass Entity {
+    :attribute @pretty_name
+    :attribute @pretty_plural
+    :attribute @acronym
   }
 
 
@@ -1086,28 +1131,29 @@ namespace eval ::nx::doc {
 
 namespace eval ::nx::doc {
 
-  Class create TemplateDataClass -superclass Class {
-    :public method find_asset_path {{-subdir library/lib/doc-assets}} {
-      # This helper tries to identify the file system path of the
-      # asset ressources.
-      #
-      # @param -subdir Denotes the name of the sub-directory to look for
-      foreach dir $::auto_path {
-	set assets [file normalize [file join $dir $subdir]]
-	if {[file exists $assets]} {
-	  return $assets
-	}
-      }
+  Class create Renderer {
+    :public method run {} {
+      :render=[namespace tail [:info class]]
     }
-    
+  }
+
+  Class create TemplateData {  
+
+    :public method write_data {content path} {
+      set fh [open $path w]
+      puts $fh $content
+      catch {close $fh}
+    }
+
+
     :public method read_tmpl {path} {
       if {[file pathtype $path] ne "absolute"} {
-	set assetdir [:find_asset_path]
+	set assetdir [find_asset_path]
 	set tmpl [file join $assetdir $path]
       } else {
 	set tmpl [file normalize $path]
       }
-
+      
       if {![[current class] eval [list info exists :templates($tmpl)]]} {
 	if {![file exists $tmpl] || ![file isfile $tmpl]} {
 	  error "The template file '$path' was not found."
@@ -1119,11 +1165,7 @@ namespace eval ::nx::doc {
       
       return [[current class] eval [list set :templates($tmpl)]]
     }
-  
-  }
 
-
-  TemplateDataClass create BaseTemplateData {  
     # This mixin class realises a rudimentary templating language to
     # be used in nx::doc templates. It realises language expressions
     # to verify the existence of variables and simple loop constructs
@@ -1133,7 +1175,7 @@ namespace eval ::nx::doc {
       {entity:substdefault "[current]"}
     } {
       # Here, we assume the -nonleaf mode being active for {{{[eval]}}}.
-      set tmplscript [list subst [[::nsf::current class] read_tmpl $template]]
+      set tmplscript [list subst [:read_tmpl $template]]
       $entity eval [subst -nocommands {
 	$initscript
 	$tmplscript
@@ -1209,7 +1251,7 @@ namespace eval ::nx::doc {
     }
     
     :method include {template} {
-      uplevel 1 [list subst [[::nsf::current class] read_tmpl $template]]
+      uplevel 1 [list subst [:read_tmpl $template]]
     }
 
     :method code args {
@@ -1275,7 +1317,66 @@ namespace eval ::nx::doc {
     # Doc templates.
     # 
 
-    TemplateDataClass create NxDocTemplateData -superclass BaseTemplateData {      
+  MixinLayer create NxDocRenderer -superclass Renderer -prefix ::nx::doc {
+    :public method run {{-tmpl entity.html.tmpl} {-outdir /tmp}} {
+
+      #
+      # Note: For now, this method is called upon a @project
+      # instance. This may change during continued refactoring.
+      #
+
+      # 1) apply the mixin layer
+      [current class] apply
+
+      # 2) proceed by rendering the project's parts (package, class,
+      # object, and command entities)
+      set ext [lindex [split [file tail $tmpl] .] end-1]
+      set top_level_entities [:owned_parts]
+      dict for {feature instances} $top_level_entities {
+	if {[$feature name] eq "@package"} {
+	  foreach {entity_type pkg_entities} [$feature owned_parts] {
+	    dict lappend top_level_entities $entity_type {*}$pkg_entities
+	  }
+	}
+      }
+
+      set init [subst {
+	set project [current object]
+	set project_entities \[list $top_level_entities\]
+      }]
+      set project_path [file join $outdir [string trimleft ${:name} :]]
+      if {![catch {file mkdir $project_path} msg]} {
+	#	  puts stderr [list file copy -force -- [$renderer find_asset_path] $project_path/assets]
+	set assets [lsearch -all -inline -glob -not [glob -directory [find_asset_path] *] *.tmpl]
+	set target $project_path/assets
+	file mkdir $target
+	file copy -force -- {*}$assets $target
+	
+	set values [join [dict values $top_level_entities]]
+	#	puts stderr "VALUES=$values"
+	foreach e $values {
+	  #puts stderr "PROCESSING=$e render -initscript $init $tmpl"
+	  set content [$e render -initscript $init $tmpl]
+	  :write_data $content [file join $project_path "[$e filename].$ext"]
+	  puts stderr "$e written to [file join $project_path [$e filename].$ext]"
+	}
+
+	set index [:render -initscript $init $tmpl]
+	# puts stderr "we have [llength $entities] documentation entities ($entities)"
+	:write_data $index [file join $project_path "index.$ext"]
+
+
+      }
+            
+      # 3) TODO: revoke the application of the mixin layer (for the sake of
+      # some sort of bounded quantification) 
+    }
+
+    #
+    # The actual refinements delivered by the mixin layer
+    #
+
+    MixinLayer::Mixin create [current]::Entity -superclass TemplateData {
       :method fit {str max {placeholder "..."}} {
 	if {[llength [split $str ""]] < $max} {
 	  return $str;
@@ -1284,7 +1385,7 @@ namespace eval ::nx::doc {
 	set margin [expr {($max-$redux)/2}]
 	return "[string range $str 0 [expr {$margin-1}]]$placeholder[string range $str end-[expr {$margin+1}] end]"
       }
-
+      
       :method list_structural_features {} {
 	set entry {{"access": "$access", "host": "$host", "name": "$name", "url": "$url", "type": "$type"}}
 	set entries [list]
@@ -1307,13 +1408,6 @@ namespace eval ::nx::doc {
 	}
 	return "\[[join $entries ,\n]\]"
       }
-
-      # :method get_navigable_features {} {
-      # 	set features [[:origin] owned_parts]
-      # 	dict for {feature instances} $features {
-	  
-      # 	}
-      # }
        
       :method code {{-inline true} script} {
 	return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
@@ -1322,22 +1416,28 @@ namespace eval ::nx::doc {
       :method link {tag names} {
 	#puts stderr "RESOLVING tag $tag names $names"
 	set tagpath [split [string trimleft $tag @] .]
-	lassign [Tag normalise $tagpath $names] err res
+	lassign [::nx::doc::Tag normalise $tagpath $names] err res
 	if {$err} {
 	  #puts stderr RES=$res
 	  return "<a href=\"#\">?</a>";
 	}
-	lassign [Tag find -all -strict {*}$res] err path
+	lassign [::nx::doc::Tag find -all -strict {*}$res] err path
 	if {$err || $path eq ""} {
 	  #puts stderr "FAILED res $path (err-$err-id-[expr {$path eq ""}])"
 	  return "<a href=\"#\">?</a>";
 	}
-    
+
 	set path [dict create {*}$path]
-	#puts stderr PATH=$path
-	set pathnames [dict values $path]
 	set entities [dict keys $path]
 	set id [lindex $entities end]
+	return [$id render_link $tag [current] $path]
+      }
+
+      :public method render_link {tag source path} {
+	#puts stderr PATH=$path
+	set id [current]
+	set pathnames [dict values $path]
+	set entities [dict keys $path]
 	set top_entity [lindex $entities 0]
 	# puts stderr RESOLPATH([$id info class])=$path
 	set pof ""
@@ -1346,12 +1446,6 @@ namespace eval ::nx::doc {
 	  set pathnames [lrange $pathnames 1 end]
 	  set entities [lrange $entities 1 end]
 	}
-
-	# set filename [$top_entity filename]
-	# puts stderr ENTITIES=$entities-pof-$pof-filename-$filename---[join $pathnames _]
-	
-	# return "<a href=\"$filename.html#${tag}_[join $pathnames _]\">$pof[join $pathnames .]</a>"
-
 	return "<a href=\"[$id href $top_entity]\">$pof[join $pathnames .]</a>"
       }
       
@@ -1361,8 +1455,6 @@ namespace eval ::nx::doc {
       }
 
       :public method href {-local:switch top_entity:optional} {
-	# ::nx::doc::entities::command::nsf::configure ::nsf::configure ::nx::doc::entities::command::nsf::configure::filter filter
-	# ::nx::doc::entities::command::nsf::configure ::nsf::configure
 	set path [dict create {*}[:get_upward_path -attribute {set :name}]]
 	set originator_top_entity [lindex [dict keys $path] 0]
 	if {![info exists top_entity] || [dict size $path] == 1} {
@@ -1376,7 +1468,6 @@ namespace eval ::nx::doc {
 	} 
 	set fragments [join $fragment_path _]
 	if {$local} { 
-	  # method_[join [concat [$supermethod name] $name] _]
 	  return $fragments
 	} else {
 	  set href "[$top_entity filename].html#$fragments"
@@ -1392,7 +1483,34 @@ namespace eval ::nx::doc {
 	  return [[:info class] tag]_[string trimleft [string map {:: __} ${:name}] "_"]
 	}
       }
+    }; # NxDocTemplating::Entity
+
+    MixinLayer::Mixin create [current]::@glossary -superclass [current]::Entity {
+     
+
+      :public method render_link {tag source path} {
+	if {![info exists :refs]} {
+	  set :refs [dict create]
+	}
+	dict incr :refs $source
+	# TODO: provide the project context here and render the
+	# glossary location accordingly, rather than hard-code "index.html".
+	return "<a href=\"index.html#${:name}\" title=\"${:@pretty_name}\" class=\"gloss\">[string tolower ${:@pretty_name}]</a>"
+      }
+
+      #
+      # TODO: this should go into the appropriate template
+      #
+      :public method render_refs {} {
+	if {[info exists :refs]} {
+	  dict for {entity count} ${:refs} {
+	  }
+	}
+      }
+      
     }
+    
+  }; # NxDocTemplating
   
   #
   # Provide a simple HTML renderer. For now, we make our life simple
@@ -1401,12 +1519,6 @@ namespace eval ::nx::doc {
   # We could think about a java-doc style renderer...
   #
   
-  Class create Renderer {
-    :public method render {} {
-      :render=[namespace tail [:info class]]
-    }
-  }
-
   Class create HtmlRenderer -superclass Renderer {
     # render command pieces in the text
     :method tt {text} {return <@TT>$text</@TT>}
@@ -1840,37 +1952,7 @@ namespace eval ::nx::doc {
 	::nx::doc::postprocessor process $c
       }
     }
-    
-    :public method doc {
-      {-renderer ::nx::doc::HtmlRenderer}
-      {-outdir /tmp/}
-    } {
-      
-      # register the HTML renderer for all docEntities.
-      
-      Entity mixin add $renderer
-
-      puts "<h2>Tcl packages</h2>\n<UL>"
-      foreach pkg [sorted [@package info instances] name] {
-	$pkg render
-      }
-
-      
-      puts "<h2>Primitive Next framework commands</h2>\n<UL>"
-      foreach cmd [sorted [@command info instances] name] {
-	$cmd render
-      }
-      puts "</UL>\n\n"
-      
-      puts "<h2>Next objects</h2>\n<UL>"
-      foreach cmd [sorted [@object info instances] name] {
-	$cmd render
-      }
-      puts "</UL>\n\n"
-      
-      Entity mixin delete $renderer
-    }
-   
+       
     :method write {content path} {
       set fh [open $path w]
       puts $fh $content
@@ -1879,62 +1961,12 @@ namespace eval ::nx::doc {
 
     :public method doc {
       {-renderer ::nx::doc::HtmlRenderer}
-      {-outdir /tmp/}
-      {-tmpl entity.html.tmpl}
-      {-project:object,type=::nx::doc::@project}
+      -project:object,type=::nx::doc::@project
+      args
     } {
-      Entity mixin add $renderer
-      # GN: why the manual hack instead of "file extension"?  
-      # SS: Because I use the name of the template file to denote the
-      # file extension of the output file which is not *.tmpl, but
-      # rather: *.html.tmpl -> *.html. [file extension] just returns
-      # the trailing extension.
-      set ext [lindex [split [file tail $tmpl] .] end-1]
-      set top_level_entities [$project owned_parts]
-      dict for {feature instances} $top_level_entities {
-	if {[$feature name] eq "@package"} {
-	  foreach {entity_type pkg_entities} [$feature owned_parts] {
-	    dict lappend top_level_entities $entity_type {*}$pkg_entities
-	  }
-	}
-      }
-      # if {[dict exists $top_level_entities @package]} {
-      # 	foreach p [dict get $top_level_entities @package] {
-      # 	  foreach {entity_type pkg_entities} [$p owned_parts] {
-      # 	    dict lappend top_level_entities $entity_type {*}$pkg_entities
-      # 	  }
-      # 	}
-      # }
-#      puts stderr TOP_LEVEL_ENTITIES=$top_level_entities
-      # set entities [concat [sorted [@package info instances] name] \
-      # 			[sorted [@command info instances] name] \
-      # 			[sorted [@object info instances] name]]
-      set init [subst -nocommands {
-	set project $project
-	#array set "" [list $top_level_entities]
-	set project_entities [list $top_level_entities]
-      }]
-      set project_path [file join $outdir [string trimleft [$project name] :]]
-      if {![catch {file mkdir $project_path} msg]} {
-	#	  puts stderr [list file copy -force -- [$renderer find_asset_path] $project_path/assets]
-	set assets [lsearch -all -inline -glob -not [glob -directory [$renderer find_asset_path] *] *.tmpl]
-	set target $project_path/assets
-	file mkdir $target
-	file copy -force -- {*}$assets $target
-	set index [$project render -initscript $init $tmpl]
-	# puts stderr "we have [llength $entities] documentation entities ($entities)"
-	:write $index [file join $project_path "index.$ext"]
-	set values [join [dict values $top_level_entities]]
-#	puts stderr "VALUES=$values"
-	foreach e $values {
-	  #puts stderr "PROCESSING=$e render -initscript $init $tmpl"
-	  set content [$e render -initscript $init $tmpl]
-	  :write $content [file join $project_path "[$e filename].$ext"]
-	  puts stderr "$e written to [file join $project_path [$e filename].$ext]"
-	}
-      }
-            
-      Entity mixin delete $renderer
+      $project mixin add $renderer
+      $project run {*}$args
+      $project mixin delete $renderer
     }
   }
   
@@ -2316,7 +2348,7 @@ namespace eval ::nx::doc {
 	  # 2) stash away a number of empty axes according to the parsing level 
 	  set axes [lrange $axes $pl end]
 	  
-	  lassign [Tag normalise $axes $names] err res
+	  lassign [::nx::doc::Tag normalise $axes $names] err res
 	  if {$err} {
 	     ${:block_parser} cancel STYLEVIOLATION $res
 	  }
@@ -2328,7 +2360,7 @@ namespace eval ::nx::doc {
 	  set leaf(name) [lindex $names end]
 	  set names [lrange $names 0 end-1]
 	  
-	  lassign [Tag find -strict $tagpath $names $entity] err res
+	  lassign [::nx::doc::Tag find -strict $tagpath $names $entity] err res
 	  if {$err} {
 	    ${:block_parser} cancel INVALIDTAG $res
 	  }

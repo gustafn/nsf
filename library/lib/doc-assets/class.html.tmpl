@@ -25,13 +25,29 @@
   [:as_text]
 </div>
 
+[:?var :@class-attribute {
+[:!let class_attrs [:!get -sortedby name @class-attribute]]
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
     <h3 id="properties">Per-class parameters</h3>
+    <div class="section field member"
+         rel="yui:member"  resource="#">
+      <div class="content" rel="yui:properties">
+        <code>
+          [:for attr $class_attrs {
+          <span rel="yui:property"
+                resource="#[$attr href -local]">                                        
+            <a class=""
+               href="#[$attr href -local]" property="yui:name"
+               title="[$attr name]">[$attr name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    </div>
+    <hr>
     <div class="content">
-[:?var :@class-attribute {
-
-      [:for attr ${:@class-attribute} {
+      [:for attr $class_attrs {
        <div rel="yui:property">
         <h4><a name="[$attr href -local]" property="yui:name">[$attr name]</a>
         </h4>
@@ -91,11 +107,11 @@
 }]
 </div>
 
+[:?var :@object-attribute {
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
     <h3 id="properties">Per-object parameters</h3>
     <div class="content">
-[:?var :@object-attribute {
 
       [:for attr ${:@object-attribute} {
        <div rel="yui:property">
@@ -124,22 +140,39 @@
       </div>
    
       }]
-}]
     </div>
   </div>
 </div>
+}]
 
+[:?var :@class-method {
+[:!let class_methods [:!get -sortedby name @class-method]]
 <div rel="yui:methods" resource="#methods">
   <div class="section method details">
     <h3 id="methods">Per-class methods</h3>
+    <div class="section field member"
+         rel="yui:member"  resource="#">
+      <div class="content" rel="yui:properties">
+        <code>
+          [:for m $class_methods {
+          <span rel="yui:property"
+                resource="#[$m href -local]">                                        
+            <a class=""
+               href="#[$m href -local]" property="yui:name"
+               title="[$m name]">[$m name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    </div>
+    <hr>
     <div class="content">
-[:?var :@class-method {
-      [:for method ${:@class-method} {
+      [:for method $class_methods {
       [$method render method.html.tmpl]
       }] <!-- end-of-for -->
-  }]
     </div>
   </div>
+  }] <!-- end-of-?var -->
 
   [:!let imethods [:inherited @class-method]]
   [:? {$imethods ne ""} { 
