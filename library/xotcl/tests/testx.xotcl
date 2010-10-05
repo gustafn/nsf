@@ -3996,11 +3996,11 @@ TestX create nonposargs -proc run {{n 20}} {
   catch {
     o y 4 56 5
   } m
-  errorCheck $m {too many arguments: should be "y ?-x arg? ?-a arg? a b"} "wrong \# check 1"
+  errorCheck $m {too many arguments: should be "y ?-x value? ?-a value? a b"} "wrong \# check 1"
   catch {
     o y
   } m
-  errorCheck $m {not enough arguments: should be "y ?-x arg? ?-a arg? a b"} "wrong \# check 2"
+  errorCheck $m {not enough arguments: should be "y ?-x value? ?-a value? a b"} "wrong \# check 2"
   catch {
     o y -x 1
   } m

@@ -1629,6 +1629,9 @@ _ added option noforwarder to RelationSlots
   type instead of "arg" when possible (eg ..... ?-x object? ....)
 - extended regression test
 
+- factored out ParamGetType() to obtain from a paramPtr a type string
+- 
+
 TODO: 
 
 

@@ -6009,6 +6009,26 @@ ParamDefsList(Tcl_Interp *interp, NsfParam CONST *paramsPtr) {
   return listObj;
 }
 
+CONST char *
+ParamGetType(NsfParam CONST *paramPtr) {
+  CONST char *result = "value";
+
+  assert(paramPtr);
+  if (paramPtr->type) {
+    if (paramPtr->converter == ConvertViaCmd) {
+      result = paramPtr->type + 5;
+    } else if (strcmp(paramPtr->type, "stringtype") == 0) {
+      if (paramPtr->converterArg) {
+	result = ObjStr(paramPtr->converterArg);
+      }
+    } else {
+      result = paramPtr->type;
+    }
+  }
+  
+  return result;
+}
+
 static Tcl_Obj *
 ParamDefsSyntax(Tcl_Interp *interp, NsfParam CONST *paramPtr) {
   Tcl_Obj *argStringObj = Tcl_NewStringObj("", 0);
@@ -6024,28 +6044,11 @@ ParamDefsSyntax(Tcl_Interp *interp, NsfParam CONST *paramPtr) {
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
       Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
       if (pPtr->nrArgs >0) {
-	if (pPtr->type) {
-	  Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
-
-	  if (pPtr->converter == ConvertViaCmd) {
-	    Tcl_AppendLimitedToObj(argStringObj, pPtr->type + 5, -1, INT_MAX, NULL); 	    	
-	  } else if (strcmp(pPtr->type, "stringtype") == 0) {
-	    if (pPtr->converterArg) {
-	      Tcl_AppendLimitedToObj(argStringObj, ObjStr(pPtr->converterArg), -1, INT_MAX, NULL);
-	    } else {
-	      Tcl_AppendLimitedToObj(argStringObj, "arg", 3, INT_MAX, NULL);
-	    }
-	  } else {
-	    Tcl_AppendLimitedToObj(argStringObj, pPtr->type, -1, INT_MAX, NULL);
-	  }
-
-	} else {
-	  Tcl_AppendLimitedToObj(argStringObj, " arg", 4, INT_MAX, NULL);
-	}
+	Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
+	Tcl_AppendLimitedToObj(argStringObj, ParamGetType(pPtr), -1, INT_MAX, NULL);
 	if (pPtr->flags & NSF_ARG_MULTIVALUED) {
-	  Tcl_AppendLimitedToObj(argStringObj, " list", 5, INT_MAX, NULL);	
+	  Tcl_AppendLimitedToObj(argStringObj, " ...", 4, INT_MAX, NULL);	
 	}
-	//fprintf(stderr, "type of %s = %s\n",pPtr->name,pPtr->type);
       }
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
     }
@@ -8336,7 +8339,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
    * Otherwise: normal method dispatch
    *
    * If we are already in the precedence ordering, then advance
-   * past our last point; otherwise (if clPtr==0) begin from the start.
+   * past our last point; otherwise (if clPtr==NULL) begin from the start.
    *
    * When a mixin or filter chain reached its end, we have to search
    * the obj-specific methods as well.

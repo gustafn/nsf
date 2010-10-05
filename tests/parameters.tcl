@@ -1311,9 +1311,9 @@ Test case check-arguments {
   }
 
   ? {Foo info method parametersyntax noarg} ""
-  ? {Foo info method parametersyntax onearg} "?-x arg?"
+  ? {Foo info method parametersyntax onearg} "?-x value?"
   ? {Foo info method parametersyntax intarg} "?-x integer?"
-  ? {Foo info method parametersyntax intsarg} "?-x integer list?"
+  ? {Foo info method parametersyntax intsarg} "?-x integer ...?"
   ? {Foo info method parametersyntax boolarg} "?-x boolean?"
   ? {Foo info method parametersyntax classarg} "?-x class?"
   ? {Foo info method parametersyntax upperarg} "?-x upper?"
