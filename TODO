@@ -1683,9 +1683,12 @@ _ added option noforwarder to RelationSlots
     after:  parameters/parametercheck.007:    2.32 mms, ::nsf::is baseclass C
 - remove scripted definition of "baseclass" and "metaclass"
 
+- keep track of defaultMethodCallProtection and defaultAttributeCallProtection 
+  in serailizer
+
 TODO: 
 
-- cleanup of xotcl-aol
+- test xotcl-aol + aolserver 4.*
 
 - method-modifiers/attribute-method.002:  incorrect result for 'set _ {}'
         expected: '::C::A', got ''
@@ -1701,7 +1704,6 @@ TODO:
 - extend coro regression test
 
 - serializer:
-   * keep track of defaultMethodProtection
    * handing of xo::at_cleanup in serializer 
      (either generailization or move to OpenACS/aolserver init/naviserver init)
 

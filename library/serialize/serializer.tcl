@@ -668,7 +668,11 @@ namespace eval ::nx::serializer {
     array set :ignorePattern [list "::nsf::*" 1 "::nx::*" 1 "::xotcl::*" 1]
 
     :public method serialize-all-start {s} {
-      set intro "package require nx"
+      set intro [subst {
+	package require nx
+	::nx::configure defaultMethodCallProtection [::nx::configure defaultMethodCallProtection]
+	::nx::configure defaultAttributeCallProtection [::nx::configure defaultAttributeCallProtection]
+      }]
       if {[info command ::Object] ne "" && [namespace origin ::Object] eq "::nx::Object"} {
         append intro "\n" "namespace import -force ::nx::*"
       } 
