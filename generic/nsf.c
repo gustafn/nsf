@@ -11292,6 +11292,7 @@ ListParamDefs(Tcl_Interp *interp, NsfParam CONST *paramsPtr, int style) {
   case 0: listObj = ParamDefsFormat(interp, paramsPtr); break;
   case 1: listObj = ParamDefsList(interp, paramsPtr); break;
   case 2: listObj = ParamDefsSyntax(interp, paramsPtr); break;
+  default: listObj = NULL;
   }
 
   return listObj;
@@ -12995,6 +12996,7 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       case MethodpropertyClass_onlyIdx: flag = NSF_CMD_CLASS_ONLY_METHOD; break;
       case MethodpropertyCall_protectedIdx:  flag = NSF_CMD_PROTECTED_METHOD; break;
       case MethodpropertyRedefine_protectedIdx: flag = NSF_CMD_REDEFINE_PROTECTED_METHOD; break;
+      default: flag = 0;
       }
 
       if (valueObj) {
@@ -15899,8 +15901,7 @@ static int
 NsfClassInfoMixinOfMethod(Tcl_Interp *interp, NsfClass *class, int withClosure, int withScope,
 			  CONST char *patternString, NsfObject *patternObj) {
   NsfClassOpt *opt = class->opt;
-  int perClass, perObject;
-  int rc;
+  int perClass, perObject, rc = TCL_OK;
 
   if (withScope == ScopeNULL || withScope == ScopeAllIdx) {
     perClass = 1;
