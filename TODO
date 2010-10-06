@@ -1674,6 +1674,8 @@ _ added option noforwarder to RelationSlots
 - added nx::defaultAttributeCallProtection, 
   used for setter and attributes
 
+- call scripted converters without checking protection
+
 TODO: 
 
 - cleanup of xotcl-aol

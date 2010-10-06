@@ -7389,8 +7389,8 @@ ConvertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
 static int
 ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
 	      ClientData *clientData, Tcl_Obj **outObjPtr) {
-  Tcl_Obj *ov[5];
-  Tcl_Obj *savedResult;
+  Tcl_Obj *ov[5], *savedResult;
+  NsfObject *object;
   int result, oc;
 
   /*
@@ -7423,7 +7423,11 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
 
   INCR_REF_COUNT(ov[1]);
   INCR_REF_COUNT(ov[2]);
-  result = Tcl_EvalObjv(interp, oc, ov, 0);
+
+  /* result = Tcl_EvalObjv(interp, oc, ov, 0); */
+  GetObjectFromObj(interp, ov[0], &object);
+  result = ObjectDispatch(object, interp, oc, ov, NSF_CSC_IMMEDIATE|NSF_CM_NO_PROTECT);
+
   DECR_REF_COUNT(ov[1]);
   DECR_REF_COUNT(ov[2]);
 

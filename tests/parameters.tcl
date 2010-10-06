@@ -1,17 +1,15 @@
 package require nx
 package require nx::test
-::nx::configure defaultMethodCallProtection false
+#::nx::configure defaultMethodCallProtection false
 namespace import ::nx::*
 
 Test case dummy {
-  puts current=[::namespace current]
+  ? {::namespace current} ::
   set o [Object create o]
-  puts o=$o
 
   ? {::nsf::isobject ::o} 1
 }
 ? {::nsf::isobject ::o} 0 
-#exit
 
 #######################################################
 # parametercheck
@@ -128,17 +126,17 @@ Test case parametercheck {
 Test parameter count 10
 Test case multiple-method-checkers {
   Object create o {
-    :method foo {} {
+    :public method foo {} {
       ::nsf::is metaclass ::XYZ
       ::nsf::is metaclass ::nx::Object
     }
     
-    :method bar {} {
+    :public method bar {} {
       ::nsf::is metaclass ::XYZ
       ::nsf::is metaclass ::XYZ
     }
     
-    :method bar2 {} {
+    :public method bar2 {} {
       ::nsf::is metaclass ::nx::Object
       ::nsf::is metaclass ::nx::Object
     }
@@ -334,7 +332,7 @@ Test case passed-arguments {
       "create d2 without required argument given"
 
   D create d1 -d 1
-  D method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:class}} {
+  D public method foo {-b:boolean -r:required,int {-x:int aaa} {-object:object} {-class:class}} {
     #if {[info exists x]} {puts stderr x=$x}
   }
   
@@ -370,11 +368,11 @@ Test case passed-arguments {
       {expected class but got "D11" for parameter -class} \
       "pass non-existing class"
   
-  ? {D method foo {a:relation} {}} \
+  ? {D public method foo {a:relation} {}} \
       {Parameter option 'relation' not allowed} \
       "don't allow relation option as method parameter"
   
-  ? {D method foo {a:double} {return $a}} \
+  ? {D public method foo {a:double} {return $a}} \
       {::nsf::classes::D::foo} \
       "allow 'string is XXXX' for argument checking"
   ? {d1 foo 1} 1 "check int as double"
@@ -391,14 +389,14 @@ Test case non-reg-args {
   Class create D 
   D create d1
   
-  D method foo {a b:optional c:optional} {
+  D public method foo {a b:optional c:optional} {
     return "[info exists a]-[info exists b]-[info exists c]"
   }
   ? {d1 foo 1 2} "1-1-0" "omit optional argument"
   ? {d1 foo 1} "1-0-0" "omit optional arguments"
   
   # non required positional arguments and args
-  D method foo {a b:optional c:optional args} {
+  D public method foo {a b:optional c:optional args} {
     return "[info exists a]-[info exists b]-[info exists c]-[info exists args]"
   }
   ? {d1 foo 1 2} "1-1-0-1" "omit optional argument"
@@ -414,7 +412,7 @@ Test case multivalued {
   D create d1
   Object create o
 
-  D method foo {m:integer,multivalued} {
+  D public method foo {m:integer,multivalued} {
     return $m
   }
   ? {d1 foo ""} "" "emtpy list"
@@ -424,7 +422,7 @@ Test case multivalued {
       {invalid value in "1 a 2": expected integer but got "a" for parameter m} \
       "multiple values with wrong value"
   
-  D method foo {m:object,multivalued} {
+  D public method foo {m:object,multivalued} {
     return $m
   }
   ? {d1 foo ""} "" "emtpy list"
@@ -461,7 +459,7 @@ Test case subst-default {
 
     :create d1
 
-    :method bar {
+    :public method bar {
       {-s:substdefault "[current]"} 
       {-literal "[current]"} 
       {-c:substdefault "[my c]"} 
@@ -526,7 +524,7 @@ Test case subst-default {
       {{-s:substdefault "[current]"} {-literal "[current]"} {-c:substdefault "[my c]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
       "query method parameter" 
   
-  D method foo {a b {-c 1} {-d} x {-end 100}} {
+  D public method foo {a b {-c 1} {-d} x {-end 100}} {
     set result [list]
     foreach v [[current class] info method args [current method]] {
       lappend result $v [info exists $v]
@@ -537,7 +535,7 @@ Test case subst-default {
       "a 1 b 1 c 1 d 0 x 1 end 1" \
       "parse multiple groups of nonpos args"
   
-  D method foo {a b c {end 100}} {
+  D public method foo {a b c {end 100}} {
     set result [list]
     foreach v [[current class] info method args [current method]] {
       lappend result $v [info exists $v]
@@ -591,7 +589,7 @@ Test case user-types {
   }
 
 
-  D method foo {a:mytype} {
+  D public method foo {a:mytype} {
     puts stderr a=$a
   }
   d1 foo 1
@@ -600,8 +598,8 @@ Test case user-types {
       "Value '10' of parameter a is not between 1 and 3" \
       "value not between 1 and 3"
   
-  D method foo {a:unknowntype} {
-    puts stderr a=$a
+  D public method foo {a:unknowntype} {
+    return $a
   }
   
   ? {d1 foo 10} \
@@ -616,7 +614,7 @@ Test case user-types {
     return $value
   }
   
-  D method foo {a:in,arg=a|b|c} {
+  D public method foo {a:in,arg=a|b|c} {
     return a=$a
   }
   
@@ -625,7 +623,7 @@ Test case user-types {
       "Value '10' of parameter a not in permissible values a|b|c" \
       "invalid value"
   
-  D method foo {a:in,arg=a|b|c b:in,arg=good|bad {-c:in,arg=a|b a}} {
+  D public method foo {a:in,arg=a|b|c b:in,arg=good|bad {-c:in,arg=a|b a}} {
     return a=$a,b=$b,c=$c
   }
   
@@ -643,7 +641,7 @@ Test case user-types {
     return $value
   }
   
-  D method foo {a:range,arg=1-3 {-b:range,arg=2-6 3} c:range,arg=5-10} {
+  D public method foo {a:range,arg=1-3 {-b:range,arg=2-6 3} c:range,arg=5-10} {
     return a=$a,b=$b,c=$c
   }
   
@@ -654,20 +652,20 @@ Test case user-types {
       "invalid value"
   
   # define type twice
-  ? {D method foo {a:int,range,arg=1-3} {return a=$a}} \
+  ? {D public method foo {a:int,range,arg=1-3} {return a=$a}} \
       "Refuse to redefine parameter converter to use type=range" \
       "invalid value"
   
   #
   # handling of arg with spaces/arg as list
   #
-  ::nx::methodParameterSlot method type=list {name value arg} {
+  ::nx::methodParameterSlot public method type=list {name value arg} {
     #puts $value/$arg
     return $value
   }
   
   # handling spaces in "arg" is not not particular nice
-  D method foo {{"-a:list,arg=2 6" 3} {"b:list,arg=5 10"}} {
+  D public method foo {{"-a:list,arg=2 6" 3} {"b:list,arg=5 10"}} {
     return a=$a,b=$b
   }
   ? {d1 foo -a 2 10} "a=2,b=10"
@@ -686,15 +684,13 @@ Test case mp-object-types {
   C create c1 -mixin M
   Object create o
   
-  D method foo-base     {x:baseclass} {return $x}
-  D method foo-class    {x:class} {return $x}
-  D method foo-object   {x:object} {return $x}
-  D method foo-meta     {x:metaclass} {return $x}
-  #D method foo-hasmixin {x:hasmixin,arg=::M} {return $x}
-  D method foo-type     {x:object,type=::C} {return $x}
+  D public method foo-base     {x:baseclass} {return $x}
+  D public method foo-class    {x:class} {return $x}
+  D public method foo-object   {x:object} {return $x}
+  D public method foo-meta     {x:metaclass} {return $x}
+  D public method foo-type     {x:object,type=::C} {return $x}
   
   ? {D info method parameter foo-base} "x:baseclass"
-  #? {D info method parameter foo-hasmixin} "x:hasmixin,arg=::M"
   ? {D info method parameter foo-type} "x:object,type=::C"
   
   ? {d1 foo-base ::nx::Object} "::nx::Object"
@@ -715,11 +711,6 @@ Test case mp-object-types {
       {expected metaclass but got "::nx::Object" for parameter x} \
       "not a base class"
 
-  #? {d1 foo-hasmixin c1} "c1"
-  #? {d1 foo-hasmixin o} \
-      {expected object with mixin ::M but got "o" for parameter x} \
-      "does not have mixin M"
-  
   ? {d1 foo-object o} "o"
   ? {d1 foo-object xxx} \
       {expected object but got "xxx" for parameter x} \
@@ -739,16 +730,16 @@ Test case substdefault {
 
   Class create S -attributes {{x 1} {y b} {z {1 2 3}}}
   S create s1 {
-    :method foo {{y:substdefault ${:x}}} {
+    :public method foo {{y:substdefault ${:x}}} {
       return $y
     }
-    :method bar {{y:integer,substdefault ${:x}}} {
+    :public method bar {{y:integer,substdefault ${:x}}} {
       return $y
     }
-    :method baz {{x:integer,substdefault ${:y}}} {
+    :public method baz {{x:integer,substdefault ${:y}}} {
       return $x
     }
-    :method boz {{x:integer,multivalued,substdefault ${:z}}} {
+    :public method boz {{x:integer,multivalued,substdefault ${:z}}} {
       return $x
     }
   }
@@ -774,15 +765,15 @@ Test case substdefault {
   ? {s1 boz {100 200}} {100 200}
   
   set ::aaa 100
-  ? {s1 method foo {{a:substdefault $::aaa}} {return $a}} ::s1::foo
+  ? {s1 public method foo {{a:substdefault $::aaa}} {return $a}} ::s1::foo
   ? {s1 foo} 100
   unset ::aaa
   ? {s1 foo} {can't read "::aaa": no such variable}
   
-  ? {s1 method foo {{a:substdefault $aaa}} {return $a}} ::s1::foo
+  ? {s1 public method foo {{a:substdefault $aaa}} {return $a}} ::s1::foo
   ? {s1 foo} {can't read "aaa": no such variable}
   
-  ? {s1 method foo {{a:substdefault [current]}} {return $a}} ::s1::foo
+  ? {s1 public method foo {{a:substdefault [current]}} {return $a}} ::s1::foo
   ? {s1 foo} ::s1
 }
 
@@ -934,7 +925,7 @@ Test case op-object-types {
 #######################################################
 Test case multivalued-app-converter {
 
-  ::nx::methodParameterSlot method type=sex {name value args} {
+  ::nx::methodParameterSlot public method type=sex {name value args} {
     #puts stderr "[current] slot specific converter"
     switch -glob $value {
       m* {return m}
@@ -943,8 +934,8 @@ Test case multivalued-app-converter {
     }
   }
   Class create C {
-    :method foo {s:sex,multivalued,convert} {return $s}
-    :method bar {s:sex,multivalued} {return $s}
+    :public method foo {s:sex,multivalued,convert} {return $s}
+    :public method bar {s:sex,multivalued} {return $s}
   }
   C create c1
   ? {c1 foo {male female mann frau}} "m f m f"
@@ -972,12 +963,12 @@ Test case multivalued-app-converter {
 Test case shadowing-app-converter {
 
   Object create mySlot {
-    :method type=integer {name value arg:optional} {
+    :public method type=integer {name value arg:optional} {
       return [expr {$value + 1}]
     }
   }
   Object create o {
-    :method foo {x:integer,slot=::mySlot,convert} {
+    :public method foo {x:integer,slot=::mySlot,convert} {
       return $x
     }
   }
@@ -997,7 +988,7 @@ Test case allow-empty {
   Object create o3
 
   Object create o {
-    :method foo {x:integer,allowempty y:integer os:object,multivalued,allowempty} {
+    :public method foo {x:integer,allowempty y:integer os:object,multivalued,allowempty} {
       return $x
     }
   }
@@ -1010,7 +1001,7 @@ Test case allow-empty {
 
   ? {o info method parameter foo} "x:integer,allowempty y:integer os:object,multivalued,allowempty"
 
-  o method foo {x:integer,allowempty y:integer os:object,multivalued} {return $x}
+  o public method foo {x:integer,allowempty y:integer os:object,multivalued} {return $x}
   ? {o foo 1 2 {o1 "" o2}} {invalid value in "o1 "" o2": expected object but got "" for parameter os} \
       "list contains empty value"
 
@@ -1037,7 +1028,7 @@ Test case slot-specfic-converter {
 
   Person create p1 -sex male
   ? {p1 sex} m
-  Person method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
+  Person public method foo {s:sex,slot=::Person::slot::sex,convert} {return $s}
   ? {p1 foo male} m
   ? {p1 sex male} m
 }
@@ -1122,14 +1113,14 @@ Test parameter count 1000
 Test case check-arguments {
 
   Class create Foo {
-    :method noarg {} {return ""} 
-    :method onearg {x} {return $x} 
-    :method intarg {x:integer} {return $x} 
-    :method intsarg {x:integer,multivalued} {return $x} 
-    :method boolarg {x:boolean} {return $x} 
-    :method classarg {x:class} {return $x} 
-    :method upperarg {x:upper} {return $x} 
-    :method metaclassarg {x:metaclass} {return $x} 
+    :public method noarg {} {return ""} 
+    :public method onearg {x} {return $x} 
+    :public method intarg {x:integer} {return $x} 
+    :public method intsarg {x:integer,multivalued} {return $x} 
+    :public method boolarg {x:boolean} {return $x} 
+    :public method classarg {x:class} {return $x} 
+    :public method upperarg {x:upper} {return $x} 
+    :public method metaclassarg {x:metaclass} {return $x} 
     :create f1
   }
   
@@ -1198,14 +1189,14 @@ Test case slot-traces {
 Test case check-arguments-nocheck {
 
   Class create Foo {
-    :method noarg {} {return ""} 
-    :method onearg {x} {return $x} 
-    :method intarg {x:integer} {return $x} 
-    :method intsarg {x:integer,multivalued} {return $x} 
-    :method boolarg {x:boolean} {return $x} 
-    :method classarg {x:class} {return $x} 
-    :method upperarg {x:upper} {return $x} 
-    :method metaclassarg {x:metaclass} {return $x} 
+    :public method noarg {} {return ""} 
+    :public method onearg {x} {return $x} 
+    :public method intarg {x:integer} {return $x} 
+    :public method intsarg {x:integer,multivalued} {return $x} 
+    :public method boolarg {x:boolean} {return $x} 
+    :public method classarg {x:class} {return $x} 
+    :public method upperarg {x:upper} {return $x} 
+    :public method metaclassarg {x:metaclass} {return $x} 
     :create f1
   }
   
@@ -1235,13 +1226,13 @@ Test parameter count 100
 
 Test case checktype {
   nx::Object create o {
-    :method f01 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype ::nx::Object}
-    :method f02 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype   nx::Object}
-    :method f03 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype       Object}
+    :public method f01 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype ::nx::Object}
+    :public method f02 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype   nx::Object}
+    :public method f03 {} {::nsf::dispatch o ::nsf::methods::object::info::hastype       Object}
 
-    :method f11 {} {::nsf::is object,type=::nx::Object o}
-    :method f12 {} {::nsf::is object,type=nx::Object o}
-    :method f13 {} {::nsf::is object,type=Object o}
+    :public method f11 {} {::nsf::is object,type=::nx::Object o}
+    :public method f12 {} {::nsf::is object,type=nx::Object o}
+    :public method f13 {} {::nsf::is object,type=Object o}
   }
 
   ? {o f01} 1
@@ -1259,24 +1250,24 @@ Test case checktype {
 namespace eval foo {
   nx::Class create C {
     :create c1
-    :method f21 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype Object}
-    :method f22 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
-    :method f31 {} {::nsf::is object,type=Object c1}
-    :method f32 {} {::nsf::is object,type=C c1}
+    :public method f21 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype Object}
+    :public method f22 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
+    :public method f31 {} {::nsf::is object,type=Object c1}
+    :public method f32 {} {::nsf::is object,type=C c1}
   }
   
   nx::Object create o {
-    :method f01 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype ::nx::Object}
-    :method f02 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype   nx::Object}
-    :method f03 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype       Object}
-    :method f04 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype foo::C}
-    :method f05 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
+    :public method f01 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype ::nx::Object}
+    :public method f02 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype   nx::Object}
+    :public method f03 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype       Object}
+    :public method f04 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype foo::C}
+    :public method f05 {} {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C}
 
-    :method f11 {} {::nsf::is object,type=::nx::Object c1}
-    :method f12 {} {::nsf::is object,type=nx::Object c1}
-    :method f13 {} {::nsf::is object,type=Object c1}
-    :method f14 {} {::nsf::is object,type=foo::C c1}
-    :method f15 {} {::nsf::is object,type=C c1}
+    :public method f11 {} {::nsf::is object,type=::nx::Object c1}
+    :public method f12 {} {::nsf::is object,type=nx::Object c1}
+    :public method f13 {} {::nsf::is object,type=Object c1}
+    :public method f14 {} {::nsf::is object,type=foo::C c1}
+    :public method f15 {} {::nsf::is object,type=C c1}
   }
 
   ? {o f01} 1
