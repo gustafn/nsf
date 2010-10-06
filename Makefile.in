@@ -29,7 +29,6 @@ src_app_dir		= ${srcdir}/apps
 src_generic_dir		= ${srcdir}/generic
 src_man_dir		= ${srcdir}/man
 TCL_LIB_SPEC		= @TCL_LIB_SPEC@
-TK_LIB_SPEC		= @TK_LIB_SPEC@
 subdirs			= @subdirs@
 aol_prefix		= @aol_prefix@
 
