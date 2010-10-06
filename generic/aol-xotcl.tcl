@@ -1,9 +1,8 @@
 #
-# Load XOTcl library and some related packages.
-# We expect to find them somewhere in standard
-# Tcl package search path (the auto_path var)
-# The simplest location is to put them under 
-# the "lib" directory within the AOLserver tree.
+# Load Next Scripting Framework, XOTcl and some related packages.  We
+# expect to find them somewhere in standard Tcl package search path
+# (the auto_path var) The simplest location is to put them under the
+# "lib" directory within the AOLserver tree.
 #
 
 package require XOTcl; namespace import -force ::xotcl::*
@@ -22,12 +21,11 @@ proc _ns_savenamespaces {} {
     set nslist ""
     _ns_getnamespaces namespaces
     foreach n $namespaces {
-        if {[string match "::nsf*" $n] == 0
-	    && ([catch {::nsf::isobject $n} ret] || $ret == 0)} {
-            lappend nslist $n
-        }
+      if {$n ne "::nsf" && ![string match "::nsf::*" $n]
+	  && ![::nsf::isobject $n]} {
+      }
     }
-  ns_log notice "XOTcl _ns_savenamespaces $nslist"
+
     foreach n $nslist {
         foreach {ns_script ns_import} [_ns_getscript $n] {
             append script [list namespace eval $n $ns_script] \n
@@ -41,7 +39,6 @@ proc _ns_savenamespaces {} {
         (error: $objects; $::errorInfo)."
         set objects ""
     }
-  ns_log notice "XOTcl save blueprint [string length $objects]"
 
     ns_ictl save [append script \n \
 	"namespace import -force ::xotcl::*" \n \
