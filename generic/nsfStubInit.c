@@ -39,47 +39,35 @@ NsfStubs nsfStubs = {
     Nsf_Init, /* 0 */
     NULL, /* 1 */
     NsfIsClass, /* 2 */
-    NULL, /* 3 */
-    NsfGetObject, /* 4 */
-    NsfGetClass, /* 5 */
-    NsfCreateObject, /* 6 */
-    NULL, /* 7 */
-    NULL, /* 8 */
-    NsfDeleteObject, /* 9 */
-    NULL, /* 10 */
-    NULL, /* 11 */
-    NULL, /* 12 */
-    NsfRemoveObjectMethod, /* 13 */
-    NsfRemoveClassMethod, /* 14 */
-    NsfOSetInstVar, /* 15 */
-    NsfOGetInstVar, /* 16 */
-    NULL, /* 17 */
-    NULL, /* 18 */
-    Nsf_ObjSetVar2, /* 19 */
-    Nsf_ObjGetVar2, /* 20 */
-    NsfUnsetInstVar2, /* 21 */
-    NULL, /* 22 */
-    NsfErrMsg, /* 23 */
-    NsfVarErrMsg, /* 24 */
-    NsfErrInProc, /* 25 */
-    NULL, /* 26 */
-    NsfErrBadVal_, /* 27 */
-    NsfObjErrType, /* 28 */
-    NsfStackDump, /* 29 */
-    NULL, /* 30 */
-    NULL, /* 31 */
-    NsfSetObjClientData, /* 32 */
-    NsfGetObjClientData, /* 33 */
-    NsfSetClassClientData, /* 34 */
-    NsfGetClassClientData, /* 35 */
-    NsfRequireObjNamespace, /* 36 */
-    NsfErrBadVal, /* 37 */
-    NsfNextObjCmd, /* 38 */
-    NsfCallMethodWithArgs, /* 39 */
-    NsfObjErrArgCnt, /* 40 */
-    NsfAddObjectMethod, /* 41 */
-    NsfAddClassMethod, /* 42 */
-    NsfCreate, /* 43 */
+    NsfGetObject, /* 3 */
+    NsfGetClass, /* 4 */
+    NsfCreateObject, /* 5 */
+    NsfDeleteObject, /* 6 */
+    NsfRemoveObjectMethod, /* 7 */
+    NsfRemoveClassMethod, /* 8 */
+    NsfOSetInstVar, /* 9 */
+    NsfOGetInstVar, /* 10 */
+    Nsf_ObjSetVar2, /* 11 */
+    Nsf_ObjGetVar2, /* 12 */
+    NsfUnsetInstVar2, /* 13 */
+    NsfErrMsg, /* 14 */
+    NsfVarErrMsg, /* 15 */
+    NsfErrInProc, /* 16 */
+    NsfErrBadVal_, /* 17 */
+    NsfObjErrType, /* 18 */
+    NsfStackDump, /* 19 */
+    NsfSetObjClientData, /* 20 */
+    NsfGetObjClientData, /* 21 */
+    NsfSetClassClientData, /* 22 */
+    NsfGetClassClientData, /* 23 */
+    NsfRequireObjNamespace, /* 24 */
+    NsfErrBadVal, /* 25 */
+    NsfNextObjCmd, /* 26 */
+    NsfCallMethodWithArgs, /* 27 */
+    NsfObjErrArgCnt, /* 28 */
+    NsfAddObjectMethod, /* 29 */
+    NsfAddClassMethod, /* 30 */
+    NsfCreate, /* 31 */
 };
 
 /* !END!: Do not edit above this line. */

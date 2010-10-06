@@ -347,7 +347,6 @@ typedef struct NsfStringIncrStruct {
 /* deletion state */
 #define NSF_TCL_DELETE                     0x0400
 #define NSF_DESTROY_CALLED_SUCCESS         0x0800
-/*#define NSF_CMD_NOT_FOUND                  0x1000*/
 #define NSF_DURING_DELETE                  0x2000
 #define NSF_DELETED                        0x4000
 #define NSF_RECREATE                       0x8000

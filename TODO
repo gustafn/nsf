@@ -1687,15 +1687,65 @@ _ added option noforwarder to RelationSlots
   in serializer
 - cleanup aol-xotcl.tcl and document usage in aolserver and naviserver
 
+- iteration over TODO file
+- removed obsolete entries from generic/nsf.decls und generic/nsfInt.decls
+- removed NSF_CMD_NOT_FOUND
+
 TODO: 
 
-- test xotcl-aol + aolserver 4.*
+- aolserver/nagiserver:
+  - test xotcl-aol + aolserver 4.*
+  - naviserver install
+
+     1) ./configure --with-tcl=/usr/local/src/tcl8.5.8/unix/ --with-xotclsh --enable-symbols
+        installiert nach /usr/local/aolserver/modules/tcl/xotcl.tcl
+
+     2) kein "modules" like aolserver for ns
+          sudo cp /usr/local/aolserver/modules/tcl/xotcl.tcl  /usr/local/ns/tcl/
+        currently, we install into //usr/local/ns/tcl/xotcl.tcl
+
 - show enumerated values in info parametersyntax
+
 - "-returns" 
   * leave syntax as is for method?
   * add flag to alias and forward?
+  * handle "returns" in serializer
 
-- method-modifiers/attribute-method.002:  incorrect result for 'set _ {}'
+- the two flags "-objscope" and "-nonleaf" are for adding frames,
+  and they are mutual exclusive. Make them a single flag?
+  check if both options are in every case sensible.
+
+  possible realizations:
+     -varscope instance|proc
+     -scope object|method
+
+   * instance: within this method, all non-prefixed var names 
+     refer to instance variables; the method can use most 
+     probably not "next"
+     (actually, only needed for XOTcl)
+
+   * proc: within this method, we can use colon-prefixed 
+     variables; the method can use "next"
+
+   "object" könnte mit dem -per-object (dem registierungpunkt)
+   leicht verwechselt werden. es ginge auch
+       -varscope instance|method
+   allerdings, meint method eigentlich "scripted method".
+   Eine weitere option wäre:
+       -varscope instance|resolver
+
+   effected are: 
+     alias, forward, dispatch
+
+   für "alias" betrifft das in gleicher form auch die cmds,
+   bei "dispatch" und "forward" gibt es dzt. kein "-nonleaf"
+
+- in the following, we need just a frame, but not necessarily an "-objscope"
+  set x [::xotcl::dispatch $value -objscope ::xotcl::self]
+
+
+- some error cases can lead to an invalid activation count
+  method-modifiers/attribute-method.002:  incorrect result for 'set _ {}'
         expected: '::C::A', got ''
         in test file ./tests/method-modifiers.tcl
   ... => 
@@ -1704,6 +1754,28 @@ TODO:
   	    file ./generic/nsf.c, line 15788.
 
 - extend coro regression test
+
+- handle bug with ::variable with colon-prefixed name
+
+- work on replacing SKIP_LEVELS by SKIP_LAMBDE for openacs (works with 
+  regression test, has problems with OrderedComposite::ChildManager.init)
+  Note concerning treating CMETHOD_FRAME like METHOD_FRAMES: we did
+  this change for NsfCallStackFindLastInvocation(), but nsfStack.c has
+  still several occurences, where they are treated differently.
+
+- add "::nsf::configure verbose on|off" ... or "warning"? or "debug level"?
+
+- C-interface
+    * rework C-interface
+    * maybe for post-alpha, but we have be first clear
+      on scope and intention. A possibility would be
+      to provide all entries from gentclAPI, but we would
+      loose most likely static property and the newly
+      achieved ease of changing is effectively frozen 
+      by the stubs interface, which has to be stable.
+
+- copy decls for objectMethod and classMethod as comments
+  to xotcl.c, fix and check order
 
 - nameing
 
@@ -1733,10 +1805,36 @@ TODO:
    - tutorial (split)
    - migration guide
 
-   - interfaces in documentation for slots (see for more details 
-     ::nx::Class#superclass in nx.tcl)
+   text
    - use term "callprotection" in documentation for public|protected
      (to be consistent with "... info methods ...")
+   - reduce indenting for code examples in documentation 
+    (high indentation makes readability worse).
+    i use usually just 2, 4 are ok as well; we should decide.
+   - use tcl parametersyntax for short description of commands/methods
+
+   - deal with interally-called methods (can be overloaded by the application)
+      * user-called and interanlly called (e.g. from "create" or "new")
+        XO_c_create_idx, XO_o_destroy_idx, XO_o_move_idx, 
+     * not documented yet:
+        XO_c_requireobject_idx, XO_o_defaultmethod_idx, XO_o_init_idx, 
+        XO_o_objectparameter_idx, XO_o_unknown_idx
+     * only XOTCL2:
+        XO_o_cleanup_idx, XO_o_residualargs_idx,
+
+   doctools
+   - interfaces in documentation for slots (see for more details 
+     ::nx::Class#superclass in nx.tcl)
+   - integrate ::nx::doc::make with Makefile.in
+     (provide shell calls and, targets and dependencies)
+   - make quality checks (missing documentation, ...) optional?
+     how to deal with non-resolvable quality checks?
+   - handle object methods as well in quality checks
+   - why does one have to specify @superclass rather than determining the
+     superclass via introspection?
+   - provide a renderer for XOTcl @-notation to produce object structure
+     for the new doctool (makes the old documentation usabel, eg. for XOTcl2)
+
 
 - library + apps
     - new directory structure DONE
@@ -1754,123 +1852,9 @@ Ein paar Punkte im folgenden könnten obsolet sein:
 
 TODO "Kleinigkeiten"
 
-- C-interface
-    * generic/nsf.decls und generic/nsfInt.decls ausmisten 
-      (leere einträge weg, binärkompatibility mit xotcl nicht notwendig,
-      da library anders heisst)
-    * C-interface überarbeiten
-# SS: das wäre auch etwas für die post-alpha phase, oder?
-
-- integrate ::nx::doc::make with Makefile.in
-  (provide shell calls and, targets and dependencies)
-- decide on syntax in documentation
-  (info method parameter | info method parametersyntax)
-
-- reduce indenting for code examples in documentation (high indentation makes readability worse).
-  i use usually jsut 2, 4 are ok as well; we should decide.
-- make quality checks (missing documentation, ...) optional (maybe?)
-- handle object methods as well in quality checks
-- why does one have to specify @superclass rather than determining the
-  superclass via introspection?
-
-- die folgenden calls sind streng genommen auch internally-called (d.h. von c aus aufgerufen), 
-  aber aus unterscheidl. gründen noch nicht als solche gekennzeichnet:
-
-  * wird meist vom benutzer aufgerufen, allerdings auch intern (bspw "reate" von "new")
-    XO_c_create_idx, 
-    XO_o_destroy_idx, 
-    XO_o_move_idx, 
-
-  * not documented yet
-    XO_c_requireobject_idx, 
-    XO_o_defaultmethod_idx, 
-    XO_o_init_idx, 
-    XO_o_objectparameter_idx, 
-    XO_o_unknown_idx
-
-  * only XOTCL2:
-     XO_o_cleanup_idx, 
-     XO_o_residualargs_idx,
-
-- Either transfer documentation for xotcl from @-notation to new doc system,
-  or (maybe better) provide a renderer for @-structures to new doc system
-  infrastructure (less work).
-
-- copy decls for objectMethod and classMethod  as comments
-  to xotcl.c, fix and check order
-
 - should we continue to work on the problem of the interp-aliased class,
   exported from one ns, imported into another one?
 
-- should we extract parameter decls from pseudo-comments from the c source
-  each time we change .decls, we have to change the c-code as well.
-  /* *TCL*
-  infoClassMethod superclass XOTclClassInfoSuperclassMethod {
-    {-argName "class"  -required 1 -type class}
-    {-argName "-closure"}
-    {-argName "pattern" -type tclobj}
-  }
-  */
-  we could preprocess xotcl.c and add code to the current .decls.
-
-  OTOH: 
-    * also doc would move into the c-code (maybe not bad)
-    * we could not detect automatically changes in the decls,
-      if these are generated from c, rebuild would have 
-      to run for every compilation.
-
-  Opinions?
-
-- aolserver 
-   * install
-   * namespace collector (for blueprint)
-
-- naviserver install
-
-  1) ./configure --with-tcl=/usr/local/src/tcl8.5.8/unix/ --with-xotclsh --enable-symbols
-     installiert nach /usr/local/aolserver/modules/tcl/xotcl.tcl
-
-  2) kein "modules" like aolserver for ns
-        sudo cp /usr/local/aolserver/modules/tcl/xotcl.tcl  /usr/local/ns/tcl/
-     currently, we install into //usr/local/ns/tcl/xotcl.tcl
-
-- the two flags "-objscope" and "-nonleaf" are for adding frames,
-  and they are mutual exclusive. Make them a single flag?
-  check if both options are in every case sensible.
-
-  possible realizations:
-     -varscope instance|proc
-     -scope object|method
-
-   * instance: within this method, all non-prefixed var names 
-     refer to instance variables; the method can use most 
-     probably not "next"
-     (actually, only needed for XOTcl)
-
-   * proc: within this method, we can use colon-prefixed 
-     variables; the method can use "next"
-
-   "object" könnte mit dem -per-object (dem registierungpunkt)
-   leicht verwechselt werden. es ginge auch
-       -varscope instance|method
-   allerdings, meint method eigentlich "scripted method".
-   Eine weitere option wäre:
-       -varscope instance|resolver
-
-  effected are: 
-     alias
-     forward
-     dispatch
-
-  für "alias" betrifft das in gleicher form auch die cmds,
-  bei "dispatch" und "forward" gibt es dzt. kein "-nonleaf"
-
-- support -nonleaf for "dispatch" ?
-  in the following, we need just a frame, but not necessarily an "-objscope"
-  set x [::xotcl::dispatch $value -objscope ::xotcl::self]
-
-- XOTCL_CMD_NOT_FOUND
-- add all xotcl*cmds to C api, including importvar
 - constants in type converter (in and out)
 
 - genau genommen sind folgende info-Methoden unnötig:

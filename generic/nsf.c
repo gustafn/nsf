@@ -3001,7 +3001,7 @@ CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object) {
 
     PrimitiveDestroy((ClientData) object);
 
-    if (!(object->flags & NSF_TCL_DELETE) /*&& !(object->flags & NSF_CMD_NOT_FOUND)*/) {
+    if (!(object->flags & NSF_TCL_DELETE)) {
       Tcl_Obj *savedObjResult = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(savedObjResult);
       /*fprintf(stderr, "    before DeleteCommandFromToken %p object flags %.6x\n", oid, object->flags);*/
@@ -14435,7 +14435,6 @@ NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
 	 * In case, the call of the dealloc method has failed above (e.g. NS_DYING),
          * we have to call dealloc manually, otherwise we have a memory leak
          */
-        /*object->flags |= NSF_CMD_NOT_FOUND;*/
         /*fprintf(stderr, "*** dealloc failed for %p %s flags %.6x, retry\n",
 	  object, objectName(object), object->flags);*/
         result = DoDealloc(interp, object);
