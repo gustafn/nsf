@@ -1,6 +1,9 @@
 #
-# Load Next Scripting Framework, XOTcl and some related packages.  We
-# expect to find them somewhere in standard Tcl package search path
+# Load Next Scripting Framework, XOTcl and some related packages for
+# AOLserver 4.*.  The file is not needed for e.g. naviserver, where
+# the logic resides in ns/tcl/nstrace.tcl
+#
+# We expect to find the packages in standard Tcl package search path
 # (the auto_path var) The simplest location is to put them under the
 # "lib" directory within the AOLserver tree.
 #
