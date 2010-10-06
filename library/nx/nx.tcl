@@ -1235,25 +1235,6 @@ namespace eval ::nx {
   proc createBootstrapAttributeSlots {} {}
 
   ##################################################################
-  # create user-level converter/checker based on ::nsf primitves
-  ##################################################################
-
-  Slot method type=baseclass {name value} {
-    # note, that we cannot use "nsf::is baseclass ..." here, since nsf::is call this converter
-    if {![::nsf::isobject $value] || ![::nsf::dispatch $value ::nsf::methods::object::info::is baseclass]} {
-      error "expected baseclass but got \"$value\" for parameter $name"
-    }
-    return $value
-  }
-
-  Slot method type=metaclass {name value} {
-    if {![::nsf::isobject $value] || ![::nsf::dispatch $value ::nsf::methods::object::info::is metaclass]} {
-      error "expected metaclass but got \"$value\" for parameter $name"
-    }
-    return $value
-  }
-
-  ##################################################################
   # Create a mixin class to overload method "new" such it does not
   # allocate new objects in ::nx::*, but in the specified object
   # (without syntactic overhead).

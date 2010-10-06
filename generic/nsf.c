@@ -150,7 +150,7 @@ typedef struct {
   NsfObject *object;
 } ParseContext;
 
-static NsfTypeConverter ConvertToNothing, ConvertViaCmd;
+static NsfTypeConverter ConvertToNothing, ConvertViaCmd, ConvertToClass;
 
 
 /*
@@ -230,6 +230,7 @@ static int GuardCall(NsfObject *object, NsfClass *cl, Tcl_Command cmd, Tcl_Inter
 static void GuardDel(NsfCmdList *filterCL);
 
 /* properties of objects and classes */
+static int IsBaseClass(NsfClass *cl);
 static int IsMetaClass(Tcl_Interp *interp, NsfClass *cl, int withMixins);
 static int IsSubType(NsfClass *subcl, NsfClass *cl);
 static NsfClass *DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta);
@@ -6018,6 +6019,13 @@ ParamGetType(NsfParam CONST *paramPtr) {
   if (paramPtr->type) {
     if (paramPtr->converter == ConvertViaCmd) {
       result = paramPtr->type + 5;
+    } else if (paramPtr->converter == ConvertToClass && 
+	       (paramPtr->flags & (NSF_ARG_BASECLASS|NSF_ARG_METACLASS)) ) {
+      if (paramPtr->flags & NSF_ARG_BASECLASS) {
+	result = "baseclass";
+      } else {
+	result = "metaclass";
+      }
     } else if (strcmp(paramPtr->type, "stringtype") == 0) {
       if (paramPtr->converterArg) {
 	result = ObjStr(paramPtr->converterArg);
@@ -7337,6 +7345,15 @@ IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj 
   NsfClass *cl;
   Tcl_DString ds, *dsPtr = &ds;
 
+  if ((pPtr->flags & NSF_ARG_BASECLASS) && !IsBaseClass((NsfClass *)object)) {
+    what = "baseclass";
+    goto type_error;
+  }
+  if ((pPtr->flags & NSF_ARG_METACLASS) && !IsMetaClass(interp, (NsfClass *)object, 1)) {
+    what = "metaclass";
+    goto type_error;
+  }
+
   if (pPtr->converterArg == NULL)
     return TCL_OK;
 
@@ -7345,10 +7362,13 @@ IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj 
     return TCL_OK;
   }
 
+ type_error:
   DSTRING_INIT(dsPtr);
   Tcl_DStringAppend(dsPtr, what, -1);
-  Tcl_DStringAppend(dsPtr, " of type ", -1);
-  Tcl_DStringAppend(dsPtr, ObjStr(pPtr->converterArg), -1);
+  if (pPtr->converterArg) {
+    Tcl_DStringAppend(dsPtr, " of type ", -1);
+    Tcl_DStringAppend(dsPtr, ObjStr(pPtr->converterArg), -1);
+  }
   NsfObjErrType(interp, objPtr, Tcl_DStringValue(dsPtr), pPtr->name);
   DSTRING_FREE(dsPtr);
 
@@ -7570,6 +7590,12 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, size_t length, int disa
     result = ParamOptionSetConverter(interp, paramPtr, "object", ConvertToObject);
   } else if (strncmp(option, "class", 5) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "class", ConvertToClass);
+  } else if (strncmp(option, "metaclass", 9) == 0) {
+    result = ParamOptionSetConverter(interp, paramPtr, "class", ConvertToClass);
+    paramPtr->flags |= NSF_ARG_METACLASS;
+  } else if (strncmp(option, "baseclass", 9) == 0) {
+    result = ParamOptionSetConverter(interp, paramPtr, "class", ConvertToClass);
+    paramPtr->flags |= NSF_ARG_BASECLASS;
   } else if (strncmp(option, "relation", 8) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "relation", ConvertToRelation);
     paramPtr->flags |= NSF_ARG_RELATION;

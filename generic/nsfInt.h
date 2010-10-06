@@ -365,6 +365,8 @@ typedef struct NsfStringIncrStruct {
 #define NSF_ARG_METHOD		     	0x0080
 #define NSF_ARG_RELATION		0x0100
 #define NSF_ARG_SWITCH		     	0x0200
+#define NSF_ARG_BASECLASS	     	0x0400
+#define NSF_ARG_METACLASS	     	0x0800
 #define NSF_ARG_HAS_DEFAULT		0x1000
 #define NSF_ARG_IS_CONVERTER		0x2000
 

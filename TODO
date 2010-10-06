@@ -1675,6 +1675,13 @@ _ added option noforwarder to RelationSlots
   used for setter and attributes
 
 - call scripted converters without checking protection
+- removed defaultMethodCallProtection from tests/parameters.tcl
+
+- Implemented built-in-converter for "baseclass" and "metaclass".
+  Change in performance for this call. >8 times faster
+    before: parameters/parametercheck.007:   19.49 mms, ::nsf::is baseclass C
+    after:  parameters/parametercheck.007:    2.32 mms, ::nsf::is baseclass C
+- remove scripted definition of "baseclass" and "metaclass"
 
 TODO: 
 
@@ -1823,8 +1830,6 @@ TODO "Kleinigkeiten"
 
   2) kein "modules" beim ns
      sudo cp /usr/local/aolserver/modules/tcl/xotcl.tcl  /usr/local/ns/tcl/
-
-- implement built-in-converter for "baseclass" and "metaclass"?
 
 - the two flags "-objscope" and "-nonleaf" are for adding frames,
   and they are mutual exclusive. Make them a single flag?
