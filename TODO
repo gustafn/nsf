@@ -1684,11 +1684,16 @@ _ added option noforwarder to RelationSlots
 - remove scripted definition of "baseclass" and "metaclass"
 
 - keep track of defaultMethodCallProtection and defaultAttributeCallProtection 
-  in serailizer
+  in serializer
+- cleanup aol-xotcl.tcl and document usage in aolserver and naviserver
 
 TODO: 
 
 - test xotcl-aol + aolserver 4.*
+- show enumerated values in info parametersyntax
+- "-returns" 
+  * leave syntax as is for method?
+  * add flag to alias and forward?
 
 - method-modifiers/attribute-method.002:  incorrect result for 'set _ {}'
         expected: '::C::A', got ''
@@ -1698,17 +1703,7 @@ TODO:
   Assertion failed: (object->activationCount == 0), function FinalObjectDeletion, 
   	    file ./generic/nsf.c, line 15788.
 
-- use term "callprotection" in documentation for public|protected
- (to be consistent with info command)
-
 - extend coro regression test
-
-- serializer:
-   * handing of xo::at_cleanup in serializer 
-     (either generailization or move to OpenACS/aolserver init/naviserver init)
-
-- interfaces in documentation for slots (see for more details 
-  ::nx::Class#superclass in nx.tcl).
 
 - nameing
 
@@ -1737,6 +1732,11 @@ TODO:
    - langref (xotcl 2.0 + next-scripting)
    - tutorial (split)
    - migration guide
+
+   - interfaces in documentation for slots (see for more details 
+     ::nx::Class#superclass in nx.tcl)
+   - use term "callprotection" in documentation for public|protected
+     (to be consistent with "... info methods ...")
 
 - library + apps
     - new directory structure DONE
@@ -1830,17 +1830,44 @@ TODO "Kleinigkeiten"
   1) ./configure --with-tcl=/usr/local/src/tcl8.5.8/unix/ --with-xotclsh --enable-symbols
      installiert nach /usr/local/aolserver/modules/tcl/xotcl.tcl
 
-  2) kein "modules" beim ns
-     sudo cp /usr/local/aolserver/modules/tcl/xotcl.tcl  /usr/local/ns/tcl/
+  2) kein "modules" like aolserver for ns
+        sudo cp /usr/local/aolserver/modules/tcl/xotcl.tcl  /usr/local/ns/tcl/
+     currently, we install into //usr/local/ns/tcl/xotcl.tcl
 
 - the two flags "-objscope" and "-nonleaf" are for adding frames,
   and they are mutual exclusive. Make them a single flag?
   check if both options are in every case sensible.
-- support -nonleaf for "dispatch" ?
-  in the following, we need just a frame, but not necessarily an "-ojscope"
-  set x [::xotcl::dispatch $value -objscope ::xotcl::self]
 
-- "ClassName info mixinof ?-closure? -registered_on class|object ?pattern?" 
+  possible realizations:
+     -varscope instance|proc
+     -scope object|method
+
+   * instance: within this method, all non-prefixed var names 
+     refer to instance variables; the method can use most 
+     probably not "next"
+     (actually, only needed for XOTcl)
+
+   * proc: within this method, we can use colon-prefixed 
+     variables; the method can use "next"
+
+   "object" könnte mit dem -per-object (dem registierungpunkt)
+   leicht verwechselt werden. es ginge auch
+       -varscope instance|method
+   allerdings, meint method eigentlich "scripted method".
+   Eine weitere option wäre:
+       -varscope instance|resolver
+
+  effected are: 
+     alias
+     forward
+     dispatch
+
+  für "alias" betrifft das in gleicher form auch die cmds,
+  bei "dispatch" und "forward" gibt es dzt. kein "-nonleaf"
+
+- support -nonleaf for "dispatch" ?
+  in the following, we need just a frame, but not necessarily an "-objscope"
+  set x [::xotcl::dispatch $value -objscope ::xotcl::self]
 
 - XOTCL_CMD_NOT_FOUND
 - add all xotcl*cmds to C api, including importvar
@@ -1914,3 +1941,6 @@ For future releases:
 
   * the full names for ensemble methods could be stored in the cmd tables
     to make lookup faster.
+
+  * serializer: handing of xo::at_cleanup in serializer 
+     (either generailization or move to OpenACS/aolserver init/naviserver init)
