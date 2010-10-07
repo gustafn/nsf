@@ -1696,7 +1696,11 @@ _ added option noforwarder to RelationSlots
 
 - added functionality to show enumerated values in 
   "info parametersyntax"
+- extended regression test
 
+- added expermimental code to avoid "variable :x" crash based
+  on shadowCommands, but this does not work, when varible is
+  bytecompiled. deactivated for now.
 
 TODO: 
 
@@ -1723,6 +1727,7 @@ TODO:
   possible realizations:
      -varscope instance|proc
      -scope object|method
+     -varscope instance|resolver
 
    * instance: within this method, all non-prefixed var names 
      refer to instance variables; the method can use most 

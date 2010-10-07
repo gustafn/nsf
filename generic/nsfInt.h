@@ -567,8 +567,9 @@ typedef enum {
   NSF_ALIAS, NSF_ARGS, NSF_CMD, NSF_FILTER, NSF_FORWARD, 
   NSF_METHOD, NSF_OBJECT, NSF_SETTER, 
   NSF_GUARD_OPTION, NSF___UNKNOWN__, 
-  /* Patly redefined Tcl commands; leave them together at the end */
-  NSF_EXPR, NSF_FORMAT, NSF_INFO, NSF_INFO_FRAME, NSF_INTERP, NSF_IS, NSF_RENAME, NSF_SUBST
+  /* Partly redefined Tcl commands; leave them together at the end */
+  NSF_EXPR, NSF_FORMAT, NSF_INFO, NSF_INFO_FRAME, NSF_INTERP, NSF_IS, 
+  NSF_RENAME, NSF_SUBST, NSF_VARIABLE
 } NsfGlobalNames;
 #if !defined(NSF_C)
 extern char *NsfGlobalStrings[];
@@ -587,7 +588,8 @@ char *NsfGlobalStrings[] = {
   "method", "object", "setter", 
   "-guard", "__unknown__",
   /* tcl commands */
-  "expr", "format", "info", "::tcl::info::frame", "interp", "::tcl::string::is", "rename", "subst",
+  "expr", "format", "info", "::tcl::info::frame", "interp", "::tcl::string::is", 
+  "rename", "subst", "variable"
 };
 #endif
 
