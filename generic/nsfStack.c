@@ -100,9 +100,16 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, Tcl_CallFram
 }
 
 static void Nsf_PopFrameObj(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+
   /*fprintf(stderr,"POP  OBJECT_FRAME (Nsf_PopFrameObj) frame %p, vartable %p set to NULL, already %d\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr), Tcl_CallFrame_varTablePtr(framePtr) == NULL);*/
-  Tcl_CallFrame_varTablePtr(framePtr) = NULL;
+
+  /* gcc 4.4.4 strict-aliasing rule does not like
+     Tcl_CallFrame_varTablePtr(framePtr) = NULL; 
+   */
+  CallFrame *callFrame = (CallFrame *)framePtr;
+  callFrame->varTablePtr = NULL; 
+
   Tcl_PopCallFrame(interp);
 }
 

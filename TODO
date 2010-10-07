@@ -1691,6 +1691,8 @@ _ added option noforwarder to RelationSlots
 - removed obsolete entries from generic/nsf.decls und generic/nsfInt.decls
 - removed NSF_CMD_NOT_FOUND
 
+- fix one aliasing warning for gcc 4.4.4
+
 TODO: 
 
 - aolserver/nagiserver:
