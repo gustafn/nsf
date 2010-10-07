@@ -2482,7 +2482,7 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
  */
 static Var *
 NSRequireVariableOnObj(Tcl_Interp *interp, NsfObject *object, CONST char *name, int flgs) {
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
   Var *varPtr, *arrayPtr;
 
   Nsf_PushFrameObj(interp, object, framePtr);
@@ -2864,7 +2864,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
   char *valueString, *c;
   Tcl_Obj *valueObj, *result = NULL, *savedResult = NULL;
   int flgs = TCL_LEAVE_ERR_MSG;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
 
   Nsf_PushFrameObj(interp, object, framePtr);
   if (object->nsPtr)
@@ -3463,7 +3463,7 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
     }
 
     if (!comment) {
-      Tcl_CallFrame frame, *framePtr = &frame;
+      CallFrame frame, *framePtr = &frame;
       Nsf_PushFrameObj(interp, object, framePtr);
 
       /* don't check assertion during assertion check */
@@ -4797,7 +4797,7 @@ GuardCall(NsfObject *object, NsfClass *cl, Tcl_Command cmd,
 
   if (guardObj) {
     Tcl_Obj *res = Tcl_GetObjResult(interp); /* save the result */
-    Tcl_CallFrame frame, *framePtr = &frame;
+    CallFrame frame, *framePtr = &frame;
 
     INCR_REF_COUNT(res);
 
@@ -5540,7 +5540,7 @@ extern Tcl_Obj *
 Nsf_ObjSetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
                  Tcl_Obj *valueObj, int flgs) {
   Tcl_Obj *result;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
 
   Nsf_PushFrameObj(interp, (NsfObject*)object, framePtr);
   if (((NsfObject*)object)->nsPtr)
@@ -5555,7 +5555,7 @@ extern Tcl_Obj *
 Nsf_SetVar2Ex(Nsf_Object *object, Tcl_Interp *interp, CONST char *name1, CONST char *name2,
                 Tcl_Obj *valueObj, int flgs) {
   Tcl_Obj *result;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
 
   Nsf_PushFrameObj(interp, (NsfObject*)object, framePtr);
   if (((NsfObject*)object)->nsPtr)
@@ -5577,7 +5577,7 @@ extern Tcl_Obj *
 Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
                  int flgs) {
   Tcl_Obj *result;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
 
   Nsf_PushFrameObj(interp, (NsfObject*)object, framePtr);
   if (((NsfObject*)object)->nsPtr)
@@ -5593,7 +5593,7 @@ extern Tcl_Obj *
 Nsf_GetVar2Ex(Nsf_Object *object, Tcl_Interp *interp, CONST char *name1, CONST char *name2,
                 int flgs) {
   Tcl_Obj *result;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
 
   Nsf_PushFrameObj(interp, (NsfObject*)object, framePtr);
   if (((NsfObject*)object)->nsPtr)
@@ -5653,7 +5653,7 @@ CheckVarName(Tcl_Interp *interp, const char *varNameString) {
 static int
 VarExists(Tcl_Interp *interp, NsfObject *object, CONST char *varName, CONST char *index,
           int triggerTrace, int requireDefined) {
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
   Var *varPtr, *arrayPtr;
   int result;
   int flags = 0;
@@ -6321,7 +6321,7 @@ static int
 CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         CONST char *methodName, NsfObject *object, Tcl_Command cmdPtr,
         NsfCallStackContent *cscPtr) {
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
   CheckOptions co;
   int result;
 
@@ -6464,12 +6464,12 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
        * The client data cp is still the obj of the called method
        */
       if (objc < 2) {
-	Tcl_CallFrame frame, *framePtr = &frame;
+	CallFrame frame, *framePtr = &frame;
 	Nsf_PushFrameCsc(interp, cscPtr, framePtr);
 	result = DispatchDefaultMethod(cp, interp, objc, objv, NSF_CSC_IMMEDIATE);
 	Nsf_PopFrameCsc(interp, framePtr);
       } else {
-	Tcl_CallFrame frame, *framePtr = &frame;
+	CallFrame frame, *framePtr = &frame;
 	NsfObject *self = (NsfObject *)cp;
 	char *methodName = ObjStr(objv[1]);
 
@@ -9905,7 +9905,7 @@ NsfUnsetInstVar2(Nsf_Object *object1, Tcl_Interp *interp,
                    int flgs) {
   NsfObject *object = (NsfObject *) object1;
   int result;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
 
   Nsf_PushFrameObj(interp, object, framePtr);
   if (object->nsPtr)
@@ -9922,7 +9922,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject *o
   Var *varPtr = NULL, *otherPtr = NULL, *arrayPtr;
   int new = 0, flgs = TCL_LEAVE_ERR_MSG;
   Tcl_CallFrame *varFramePtr;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
   char *varNameString;
 
   if (CheckVarName(interp, ObjStr(varName)) != TCL_OK) {
@@ -10110,7 +10110,7 @@ static int
 SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj) {
   Tcl_Obj *result;
   int flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
   Nsf_PushFrameObj(interp, object, framePtr);
 
   if (valueObj == NULL) {
@@ -10374,7 +10374,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
   ClientData clientData;
   int result;
   NsfObject *object = tcd->object;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
 
   if (tcd->verbose) {
     Tcl_Obj *cmd = Tcl_NewListObj(objc, objv);
@@ -10613,7 +10613,7 @@ static int
 NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   AliasCmdClientData *tcd = (AliasCmdClientData *)clientData;
   NsfObject *object = tcd->object;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
   int result;
 
   /*fprintf(stderr, "objscopedMethod obj=%p %s, ptr=%p\n", object, objectName(object), tcd->objProc);*/
@@ -12591,7 +12591,7 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withObjscope,
 
   if (*methodName == ':') {
     Tcl_Command cmd, importedCmd;
-    Tcl_CallFrame frame, *framePtr = &frame;
+    CallFrame frame, *framePtr = &frame;
 
     /*
      * We have an absolute name. We assume, the name is the name of a
@@ -14214,7 +14214,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   NsfParamDefs *paramDefs;
   Tcl_Obj *newValue;
   ParseContext pc;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
 
 #if 0
   fprintf(stderr, "NsfOConfigureMethod %s %d ",objectName(object), objc);
@@ -14292,7 +14292,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     if (paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_METHOD)) {
       CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
       NsfCallStackContent csc, *cscPtr = &csc;
-      Tcl_CallFrame frame2, *framePtr2 = &frame2;
+      CallFrame frame2, *framePtr2 = &frame2;
 
       /* The current callframe of configure uses an objscope, such
          that setvar etc.  are able to access variables like "a" as a
@@ -14732,7 +14732,7 @@ static int
 NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *object, CONST char *varname) {
   int done, foundEvent;
   int flgs = TCL_TRACE_WRITES|TCL_TRACE_UNSETS;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
 
   /*
    * Make sure the var table exists and the varname is in there
@@ -15997,7 +15997,7 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
                        NsfParamDefs *paramDefs,
                        CONST char *methodName, int objc, Tcl_Obj *CONST objv[]) {
   int result;
-  Tcl_CallFrame frame, *framePtr = &frame;
+  CallFrame frame, *framePtr = &frame;
 
   if (object && pushFrame) {
     Nsf_PushFrameObj(interp, object, framePtr);

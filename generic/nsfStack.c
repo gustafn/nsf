@@ -80,14 +80,14 @@ void NsfShowStack(Tcl_Interp *interp) {
  *----------------------------------------------------------------------
  */
 
-static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, Tcl_CallFrame *framePtr) {
+static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *framePtr) {
   /*fprintf(stderr,"PUSH OBJECT_FRAME (Nsf_PushFrameObj) frame %p\n",framePtr);*/
   if (object->nsPtr) {
-    Tcl_PushCallFrame(interp, framePtr, object->nsPtr,
+    Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, object->nsPtr,
                       0|FRAME_IS_NSF_OBJECT);
   } else {
     /* The object has no nsPtr, so we diguise as a proc, using fakeProc */
-    Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)),
+    Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)),
                       1|FRAME_IS_NSF_OBJECT);
 
     Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
@@ -99,17 +99,12 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, Tcl_CallFram
   Tcl_CallFrame_clientData(framePtr) = (ClientData)object;
 }
 
-static void Nsf_PopFrameObj(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+static void Nsf_PopFrameObj(Tcl_Interp *interp, CallFrame *framePtr) {
 
   /*fprintf(stderr,"POP  OBJECT_FRAME (Nsf_PopFrameObj) frame %p, vartable %p set to NULL, already %d\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr), Tcl_CallFrame_varTablePtr(framePtr) == NULL);*/
 
-  /* gcc 4.4.4 strict-aliasing rule does not like
-     Tcl_CallFrame_varTablePtr(framePtr) = NULL; 
-   */
-  CallFrame *callFrame = (CallFrame *)framePtr;
-  callFrame->varTablePtr = NULL; 
-
+  Tcl_CallFrame_varTablePtr(framePtr) = NULL; 
   Tcl_PopCallFrame(interp);
 }
 
@@ -130,19 +125,19 @@ static void Nsf_PopFrameObj(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
  */
 
 static void 
-Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_CallFrame *framePtr) {
+Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, CallFrame *framePtr) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
   /*fprintf(stderr,"PUSH CMETHOD_FRAME (Nsf_PushFrameCsc) frame %p cscPtr %p methodName %s\n",
     framePtr, cscPtr, Tcl_GetCommandName(interp,cscPtr->cmdPtr));*/
 
-  Tcl_PushCallFrame(interp, framePtr, Tcl_CallFrame_nsPtr(varFramePtr),
+  Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, Tcl_CallFrame_nsPtr(varFramePtr),
 		    1|FRAME_IS_NSF_CMETHOD);
   Tcl_CallFrame_clientData(framePtr) = (ClientData)cscPtr;
   Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
 }
 
 static void 
-Nsf_PopFrameCsc(Tcl_Interp *interp, Tcl_CallFrame *framePtr) {
+Nsf_PopFrameCsc(Tcl_Interp *interp, CallFrame *framePtr) {
   /*fprintf(stderr,"POP CMETHOD_FRAME (Nsf_PopFrameCsc) frame %p, varTablePtr = %p\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr));*/
   Tcl_PopCallFrame(interp);
