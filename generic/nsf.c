@@ -12145,6 +12145,8 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
     NsfObject *object = GetObjectFromString(interp, key);
 
     assert(object);
+    assert(object->refCount>0);
+    assert(object->cmdName->refCount>0);
 
     if (object->activationCount > 0) {
       Tcl_CallFrame *framePtr;
@@ -12176,6 +12178,8 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
     }
   }
   /*fprintf(stderr, "all assertions passed\n");*/
+  Tcl_DeleteHashTable(tablePtr);
+
   return TCL_OK;
 }
 
@@ -16098,27 +16102,6 @@ NsfUnsetUnknownArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
 
   return TCL_OK;
 }
-
-#if !defined(NDEBUG)
-static void
-CheckAllInstances(Tcl_Interp *interp, NsfClass *cl, int lvl) {
-  Tcl_HashSearch search;
-  Tcl_HashEntry *hPtr;
-  if (cl && cl->object.refCount>0) {
-    /*fprintf(stderr, "Checkallinstances %d cl=%p '%s'\n", lvl, cl, className(cl));*/
-    for (hPtr = Tcl_FirstHashEntry(&cl->instances, &search);  hPtr;
-         hPtr = Tcl_NextHashEntry(&search)) {
-      NsfObject *inst = (NsfObject*) Tcl_GetHashKey(&cl->instances, hPtr);
-      assert(inst);
-      assert(inst->refCount>0);
-      assert(inst->cmdName->refCount>0);
-      if (NsfObjectIsClass(inst)) {
-        CheckAllInstances(interp, (NsfClass*) inst, lvl+1);
-      }
-    }
-  }
-}
-#endif
 
 #ifdef DO_FULL_CLEANUP
 /* delete global variables and procs */
