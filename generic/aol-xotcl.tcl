@@ -32,8 +32,10 @@ if {[ns_info name] ne "NaviServer"} {
     set nslist ""
     _ns_getnamespaces namespaces
     foreach n $namespaces {
-      if {$n ne "::nsf" && ![string match "::nsf::*" $n]
+      if {$n ne "::nsf" && $n ne "::xotcl" && $n ne "::nx" 
+	  && ![string match "::nsf::*" $n]
 	  && ![::nsf::isobject $n]} {
+	  lappend nslist $n
       }
     }
 
@@ -52,7 +54,6 @@ if {[ns_info name] ne "NaviServer"} {
     }
 
     ns_ictl save [append script \n \
-	"namespace import -force ::xotcl::*" \n \
 	$objects \n $import]
     # just for debugging purposes
     if {1} {

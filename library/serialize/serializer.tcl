@@ -368,7 +368,7 @@ namespace eval ::nx::serializer {
       if {[info exists ignore]} {$s ignore $ignore}
 
       set r [subst {
-        set ::xotcl::__filterstate \[::nsf::configure filter off\]
+        set ::nsf::__filterstate \[::nsf::configure filter off\]
         #::nx::Slot mixin add ::nx::Slot::Nocheck
         ::nsf::configure softrecreate [::nsf::configure softrecreate]
         ::nsf::exithandler set [list [::nsf::exithandler get]]
@@ -395,10 +395,11 @@ namespace eval ::nx::serializer {
 
       append r {
         #::nx::Slot mixin delete ::nx::Slot::Nocheck
-        ::nsf::configure filter $::xotcl::__filterstate
-        unset ::xotcl::__filterstate
+        ::nsf::configure filter $::nsf::__filterstate
+        unset ::nsf::__filterstate
       }
       ::nsf::configure filter $filterstate
+
       return $r
     }
 
@@ -458,6 +459,8 @@ namespace eval ::nx::serializer {
             [:frameWorkCmd ::nsf::assertion $o object-invar] \
             [:frameWorkCmd ::nsf::assertion $o class-invar]
       }
+      puts stderr "*** array unset [nsf::current object] alias_dependency // size [array size :alias_dependency]"
+      array unset :alias_dependency
       return $cmd
     }
     
@@ -777,7 +780,6 @@ namespace eval ::nx::serializer {
     set :rootMetaClass ::xotcl::Class
     #array set :ignorePattern [list "::xotcl::*" 1]
     array set :ignorePattern [list "::nsf::*" 1 "::nx::*" 1 "::xotcl::*" 1]
-
 
     :public method serialize-all-start {s} {
       set intro "package require XOTcl 2.0"

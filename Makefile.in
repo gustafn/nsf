@@ -271,9 +271,13 @@ install: install-binaries install-shells install-libraries install-doc install-x
 install-binaries: binaries install-lib-binaries install-bin-binaries install-pkgIndex
 
 install-aol: install-binaries install-libraries install-xotcl-libraries
-	$(INSTALL) $(src_generic_dir)/aol-xotcl.tcl \
-		$(DESTDIR)/$(aol_prefix)/tcl/xotcl.tcl
-
+	@if test -d $(DESTDIR)/$(aol_prefix)/modules/tcl/; then \
+		$(INSTALL) $(src_generic_dir)/aol-xotcl.tcl \
+			$(DESTDIR)/$(aol_prefix)/modules/tcl/xotcl.tcl ; \
+	else \
+		$(INSTALL) $(src_generic_dir)/aol-xotcl.tcl \
+			$(DESTDIR)/$(aol_prefix)/tcl/xotcl.tcl ; \
+	fi;
 
 #========================================================================
 # This rule installs platform-independent files, such as header files.
@@ -343,7 +347,7 @@ install-xotcl-apps: install-xotcl-libraries
 		    chmod 755 $(DESTDIR)$(xotcl_pkglibdir)/$$j; \
 		    for k in $$j/* ; do \
 			$(INSTALL) $$k $(DESTDIR)$(xotcl_pkglibdir)/$$j ; \
-		done; \
+		    done; \
 		else \
 		$(INSTALL) $$j $(DESTDIR)$(xotcl_pkglibdir)/apps/$$i/; \
 		fi; \

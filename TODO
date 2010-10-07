@@ -1702,18 +1702,10 @@ _ added option noforwarder to RelationSlots
   on shadowCommands, but this does not work, when varible is
   bytecompiled. deactivated for now.
 
+- added support for aolserver (essentially Makefile + aol-xotcl.tcl)
+- removed unneded content from serializer output
+
 TODO: 
-
-- aolserver/nagiserver:
-  - test xotcl-aol + aolserver 4.*
-  - naviserver install
-
-     1) ./configure --with-tcl=/usr/local/src/tcl8.5.8/unix/ --with-xotclsh --enable-symbols
-        installiert nach /usr/local/aolserver/modules/tcl/xotcl.tcl
-
-     2) kein "modules" like aolserver for ns
-          sudo cp /usr/local/aolserver/modules/tcl/xotcl.tcl  /usr/local/ns/tcl/
-        currently, we install into //usr/local/ns/tcl/xotcl.tcl
 
 - "-returns" 
   * leave syntax as is for method?
@@ -1753,6 +1745,12 @@ TODO:
 - in the following, we need just a frame, but not necessarily an "-objscope"
   set x [::xotcl::dispatch $value -objscope ::xotcl::self]
 
+- when compiled on my home machine for tcl 8.5.9 + aolserver, 
+  i see the behavior that "info exists :type" does not appear to work,
+  leading to messages like the following
+*** VERY STRANGE: info exists :type says 1, ::nsf::existsvar ::xowiki::MenuItem::slot::CSSclass type says 0
+  these do not appear under with naviserver.
+  maybe the installation is goofed up, but maybe something serious.
 
 - some error cases can lead to an invalid activation count
   method-modifiers/attribute-method.002:  incorrect result for 'set _ {}'
