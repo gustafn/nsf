@@ -368,6 +368,7 @@ typedef struct NsfStringIncrStruct {
 #define NSF_ARG_METACLASS	     	0x0800
 #define NSF_ARG_HAS_DEFAULT		0x1000
 #define NSF_ARG_IS_CONVERTER		0x2000
+#define NSF_ARG_IS_ENUMERATION		0x4000
 
 /* disallowed options */
 #define NSF_DISALLOWED_ARG_METHOD_PARAMETER	     (NSF_ARG_METHOD|NSF_ARG_INITCMD|NSF_ARG_RELATION)

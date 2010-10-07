@@ -152,6 +152,11 @@ typedef struct {
 
 static NsfTypeConverter ConvertToNothing, ConvertViaCmd, ConvertToClass;
 
+typedef struct {
+  NsfTypeConverter *converter;
+  char *domain;
+} enumeratorConverterEntry;
+static enumeratorConverterEntry enumeratorConverterEntries[];
 
 /*
  * Tcl_Obj Types for Next Scripting Objects
@@ -6038,6 +6043,25 @@ ParamGetType(NsfParam CONST *paramPtr) {
   return result;
 }
 
+static CONST char *
+ParamGetDomain(NsfParam CONST *paramPtr) {
+  CONST char *result = "value";
+
+  assert(paramPtr);
+  if ((paramPtr->flags & NSF_ARG_IS_ENUMERATION)) {
+    enumeratorConverterEntry *ePtr;
+    for (ePtr = &enumeratorConverterEntries[0]; ePtr->converter; ePtr++) {
+      if (ePtr->converter == paramPtr->converter) {
+	result = ePtr->domain;
+	break;
+      }
+    }
+  } else {
+    result = ParamGetType(paramPtr);
+  }
+  return result;
+}
+
 static Tcl_Obj *
 ParamDefsSyntax(Tcl_Interp *interp, NsfParam CONST *paramPtr) {
   Tcl_Obj *argStringObj = Tcl_NewStringObj("", 0);
@@ -6050,13 +6074,17 @@ ParamDefsSyntax(Tcl_Interp *interp, NsfParam CONST *paramPtr) {
     if (pPtr->converter == ConvertToNothing && strcmp(pPtr->name, "args") == 0) {
       Tcl_AppendLimitedToObj(argStringObj, "?arg ...?", 9, INT_MAX, NULL);
     } else if (pPtr->flags & NSF_ARG_REQUIRED) {
-      Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
+      if ((pPtr->flags & NSF_ARG_IS_ENUMERATION)) {
+	Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), -1, INT_MAX, NULL);
+      } else {
+	Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
+      }
     } else {
       Tcl_AppendLimitedToObj(argStringObj, "?", 1, INT_MAX, NULL);
       Tcl_AppendLimitedToObj(argStringObj, pPtr->name, -1, INT_MAX, NULL);
       if (pPtr->nrArgs >0) {
 	Tcl_AppendLimitedToObj(argStringObj, " ", 1, INT_MAX, NULL);
-	Tcl_AppendLimitedToObj(argStringObj, ParamGetType(pPtr), -1, INT_MAX, NULL);
+	Tcl_AppendLimitedToObj(argStringObj, ParamGetDomain(pPtr), -1, INT_MAX, NULL);
 	if (pPtr->flags & NSF_ARG_MULTIVALUED) {
 	  Tcl_AppendLimitedToObj(argStringObj, " ...", 4, INT_MAX, NULL);	
 	}

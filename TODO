@@ -1692,6 +1692,11 @@ _ added option noforwarder to RelationSlots
 - removed NSF_CMD_NOT_FOUND
 
 - fixed aliasing warning for gcc 4.4.4
+- removed CheckAllInstances()
+
+- added functionality to show enumerated values in 
+  "info parametersyntax"
+
 
 TODO: 
 
@@ -1705,8 +1710,6 @@ TODO:
      2) kein "modules" like aolserver for ns
           sudo cp /usr/local/aolserver/modules/tcl/xotcl.tcl  /usr/local/ns/tcl/
         currently, we install into //usr/local/ns/tcl/xotcl.tcl
-
-- show enumerated values in info parametersyntax
 
 - "-returns" 
   * leave syntax as is for method?

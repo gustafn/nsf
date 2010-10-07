@@ -16,15 +16,17 @@ proc convertername {type argname} {
 
 proc createconverter {type argname} {
   set name [convertername $type $argname]
-  if {[info exists ::created($name)]} {
+  if {[info exists ::createdConverter($name)]} {
     return ""
   }
-  set ::created($name) 1
   set domain [split $type |]
   set opts "static CONST char *opts\[\] = {\"[join $domain {", "}]\", NULL};"
+  set ::createdConverter($name) "ConvertTo${name}, \"$type\""
   set enums [list ${name}NULL]
   foreach d $domain {lappend enums $name[string totitle [string map [list - _] $d]]Idx}
   subst {
+enum ${name}Idx {[join $enums {, }]};
+
 static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -34,7 +36,6 @@ static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST 
   *outObjPtr = objPtr;
   return result;
 }
-enum ${name}Idx {[join $enums {, }]};
   }
 }
 
@@ -46,6 +47,7 @@ proc genifd {parameterDefinitions} {
       "" {set type NULL}
       default {set type $(-type)}
     }
+    set flags [expr {$(-required) ? "NSF_ARG_REQUIRED" : "0"}]
     set argName $(-argName)
     switch -glob $type {
       "NULL"       {set converter String}
@@ -61,6 +63,7 @@ proc genifd {parameterDefinitions} {
         set converter [convertername $type $(-argName)]
         append ::converter [createconverter $type $(-argName)]
         set (-argName) $type
+	append flags |NSF_ARG_IS_ENUMERATION
       }
     }
     # this does not work, since initializer element is not constant.
@@ -70,7 +73,7 @@ proc genifd {parameterDefinitions} {
 #     } else {
 #       set default ""
 #     }
-    lappend l "{\"$argName\", $(-required), $(-nrargs), ConvertTo$converter}"
+    lappend l "{\"$argName\", $flags, $(-nrargs), ConvertTo$converter}"
   }
   join $l ",\n  "
 }
@@ -274,7 +277,6 @@ proc genstubs {} {
     append stubDecls $stubDecl
   }
   
-  puts $::converter
   puts {
 typedef struct {
   CONST char *methodName;
@@ -282,7 +284,19 @@ typedef struct {
   int nrParameters;
   NsfParam paramDefs[12];
 } methodDefinition;
+   }
+   puts $::converter
 
+   set entries [list]
+   foreach c [array names ::createdConverter] {lappend entries "\{$::createdConverter($c)\}"}
+   puts [subst {
+static enumeratorConverterEntry enumeratorConverterEntries\[\] = {
+  [join $entries ",\n  "],
+  {NULL, NULL}
+};
+   }]
+
+   puts {
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
                          NsfObject *obj, Tcl_Obj *procName,
                          NsfParam CONST *paramPtr, int nrParameters, int doCheck,

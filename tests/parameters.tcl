@@ -1309,5 +1309,8 @@ Test case check-arguments {
   ? {Foo info method parametersyntax classarg} "?-x class?"
   ? {Foo info method parametersyntax upperarg} "?-x upper?"
   ? {Foo info method parametersyntax metaclassarg} "?-x metaclass?"
-  
+
+  # return enumeration type
+  ? {nx::Class info method parametersyntax "info mixinof"} \
+      "?-closure? ?-scope all|class|object? ?pattern?"
 }

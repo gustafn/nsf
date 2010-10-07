@@ -1,4 +1,14 @@
 
+typedef struct {
+  CONST char *methodName;
+  Tcl_ObjCmdProc *proc;
+  int nrParameters;
+  NsfParam paramDefs[12];
+} methodDefinition;
+   
+
+enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdHandleIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx, InfomethodsubcmdSubmethodsIdx};
+
 static int ConvertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -8,8 +18,9 @@ static int ConvertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfPar
   *outObjPtr = objPtr;
   return result;
 }
-enum InfomethodsubcmdIdx {InfomethodsubcmdNULL, InfomethodsubcmdArgsIdx, InfomethodsubcmdBodyIdx, InfomethodsubcmdDefinitionIdx, InfomethodsubcmdHandleIdx, InfomethodsubcmdParameterIdx, InfomethodsubcmdParametersyntaxIdx, InfomethodsubcmdTypeIdx, InfomethodsubcmdPreconditionIdx, InfomethodsubcmdPostconditionIdx, InfomethodsubcmdSubmethodsIdx};
   
+enum CallprotectionIdx {CallprotectionNULL, CallprotectionAllIdx, CallprotectionProtectedIdx, CallprotectionPublicIdx};
+
 static int ConvertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -19,8 +30,9 @@ static int ConvertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam
   *outObjPtr = objPtr;
   return result;
 }
-enum CallprotectionIdx {CallprotectionNULL, CallprotectionAllIdx, CallprotectionProtectedIdx, CallprotectionPublicIdx};
   
+enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeBuiltinIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx};
+
 static int ConvertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -30,8 +42,9 @@ static int ConvertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CON
   *outObjPtr = objPtr;
   return result;
 }
-enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeBuiltinIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx};
   
+enum ScopeIdx {ScopeNULL, ScopeAllIdx, ScopeClassIdx, ScopeObjectIdx};
+
 static int ConvertToScope(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -41,8 +54,9 @@ static int ConvertToScope(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *p
   *outObjPtr = objPtr;
   return result;
 }
-enum ScopeIdx {ScopeNULL, ScopeAllIdx, ScopeClassIdx, ScopeObjectIdx};
   
+enum AssertionsubcmdIdx {AssertionsubcmdNULL, AssertionsubcmdCheckIdx, AssertionsubcmdObject_invarIdx, AssertionsubcmdClass_invarIdx};
+
 static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -52,8 +66,9 @@ static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfPara
   *outObjPtr = objPtr;
   return result;
 }
-enum AssertionsubcmdIdx {AssertionsubcmdNULL, AssertionsubcmdCheckIdx, AssertionsubcmdObject_invarIdx, AssertionsubcmdClass_invarIdx};
   
+enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepinitcmdIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx};
+
 static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -63,8 +78,9 @@ static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfPara
   *outObjPtr = objPtr;
   return result;
 }
-enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepinitcmdIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx};
   
+enum CurrentoptionIdx {CurrentoptionNULL, CurrentoptionProcIdx, CurrentoptionMethodIdx, CurrentoptionMethodpathIdx, CurrentoptionObjectIdx, CurrentoptionClassIdx, CurrentoptionActivelevelIdx, CurrentoptionArgsIdx, CurrentoptionActivemixinIdx, CurrentoptionCalledprocIdx, CurrentoptionCalledmethodIdx, CurrentoptionCalledclassIdx, CurrentoptionCallingprocIdx, CurrentoptionCallingmethodIdx, CurrentoptionCallingclassIdx, CurrentoptionCallinglevelIdx, CurrentoptionCallingobjectIdx, CurrentoptionFilterregIdx, CurrentoptionIsnextcallIdx, CurrentoptionNextIdx};
+
 static int ConvertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -74,8 +90,9 @@ static int ConvertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam 
   *outObjPtr = objPtr;
   return result;
 }
-enum CurrentoptionIdx {CurrentoptionNULL, CurrentoptionProcIdx, CurrentoptionMethodIdx, CurrentoptionMethodpathIdx, CurrentoptionObjectIdx, CurrentoptionClassIdx, CurrentoptionActivelevelIdx, CurrentoptionArgsIdx, CurrentoptionActivemixinIdx, CurrentoptionCalledprocIdx, CurrentoptionCalledmethodIdx, CurrentoptionCalledclassIdx, CurrentoptionCallingprocIdx, CurrentoptionCallingmethodIdx, CurrentoptionCallingclassIdx, CurrentoptionCallinglevelIdx, CurrentoptionCallingobjectIdx, CurrentoptionFilterregIdx, CurrentoptionIsnextcallIdx, CurrentoptionNextIdx};
   
+enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCall_protectedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx, MethodpropertySlotcontainerIdx, MethodpropertySlotobjIdx};
+
 static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -85,8 +102,9 @@ static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam
   *outObjPtr = objPtr;
   return result;
 }
-enum MethodpropertyIdx {MethodpropertyNULL, MethodpropertyClass_onlyIdx, MethodpropertyCall_protectedIdx, MethodpropertyRedefine_protectedIdx, MethodpropertyReturnsIdx, MethodpropertySlotcontainerIdx, MethodpropertySlotobjIdx};
   
+enum RelationtypeIdx {RelationtypeNULL, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx};
+
 static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -96,8 +114,9 @@ static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam C
   *outObjPtr = objPtr;
   return result;
 }
-enum RelationtypeIdx {RelationtypeNULL, RelationtypeObject_mixinIdx, RelationtypeClass_mixinIdx, RelationtypeObject_filterIdx, RelationtypeClass_filterIdx, RelationtypeClassIdx, RelationtypeSuperclassIdx, RelationtypeRootclassIdx};
   
+enum ObjectkindIdx {ObjectkindNULL, ObjectkindClassIdx, ObjectkindBaseclassIdx, ObjectkindMetaclassIdx};
+
 static int ConvertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -107,8 +126,9 @@ static int ConvertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CON
   *outObjPtr = objPtr;
   return result;
 }
-enum ObjectkindIdx {ObjectkindNULL, ObjectkindClassIdx, ObjectkindBaseclassIdx, ObjectkindMetaclassIdx};
   
+enum SourceIdx {SourceNULL, SourceAllIdx, SourceApplicationIdx, SourceBaseclassesIdx};
+
 static int ConvertToSource(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
@@ -118,15 +138,23 @@ static int ConvertToSource(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *
   *outObjPtr = objPtr;
   return result;
 }
-enum SourceIdx {SourceNULL, SourceAllIdx, SourceApplicationIdx, SourceBaseclassesIdx};
   
 
-typedef struct {
-  CONST char *methodName;
-  Tcl_ObjCmdProc *proc;
-  int nrParameters;
-  NsfParam paramDefs[12];
-} methodDefinition;
+static enumeratorConverterEntry enumeratorConverterEntries[] = {
+  {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
+  {ConvertToCurrentoption, "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"},
+  {ConvertToSource, "all|application|baseclasses"},
+  {ConvertToObjectkind, "class|baseclass|metaclass"},
+  {ConvertToMethodproperty, "class-only|call-protected|redefine-protected|returns|slotcontainer|slotobj"},
+  {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
+  {ConvertToScope, "all|class|object"},
+  {ConvertToConfigureoption, "filter|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},
+  {ConvertToMethodtype, "all|scripted|builtin|alias|forwarder|object|setter"},
+  {ConvertToCallprotection, "all|protected|public"},
+  {ConvertToInfomethodsubcmd, "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"},
+  {NULL, NULL}
+};
+   
 
 static int ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], 
                          NsfObject *obj, Tcl_Obj *procName,
@@ -2033,33 +2061,33 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
 static methodDefinition method_definitions[] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
-  {"name", 1, 0, ConvertToTclobj}}
+  {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::class::create", NsfCCreateMethodStub, 2, {
-  {"name", 1, 0, ConvertToString},
+  {"name", NSF_ARG_REQUIRED, 0, ConvertToString},
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::methods::class::dealloc", NsfCDeallocMethodStub, 1, {
-  {"object", 1, 0, ConvertToTclobj}}
+  {"object", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::class::filterguard", NsfCFilterGuardMethodStub, 2, {
-  {"filter", 1, 0, ConvertToString},
-  {"guard", 1, 0, ConvertToTclobj}}
+  {"filter", NSF_ARG_REQUIRED, 0, ConvertToString},
+  {"guard", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::class::mixinguard", NsfCMixinGuardMethodStub, 2, {
-  {"mixin", 1, 0, ConvertToString},
-  {"guard", 1, 0, ConvertToTclobj}}
+  {"mixin", NSF_ARG_REQUIRED, 0, ConvertToString},
+  {"guard", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::class::new", NsfCNewMethodStub, 2, {
   {"-childof", 0, 1, ConvertToObject},
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::methods::class::recreate", NsfCRecreateMethodStub, 2, {
-  {"name", 1, 0, ConvertToTclobj},
+  {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::methods::class::info::filterguard", NsfClassInfoFilterguardMethodStub, 1, {
-  {"filter", 1, 0, ConvertToString}}
+  {"filter", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::methods::class::info::filtermethods", NsfClassInfoFiltermethodsMethodStub, 2, {
   {"-guards", 0, 0, ConvertToString},
@@ -2077,20 +2105,20 @@ static methodDefinition method_definitions[] = {
   {"pattern", 0, 0, ConvertToObjpattern}}
 },
 {"::nsf::methods::class::info::method", NsfClassInfoMethodMethodStub, 2, {
-  {"infomethodsubcmd", 0, 0, ConvertToInfomethodsubcmd},
+  {"infomethodsubcmd", 0|NSF_ARG_IS_ENUMERATION, 0, ConvertToInfomethodsubcmd},
   {"name", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::class::info::methods", NsfClassInfoMethodsMethodStub, 6, {
-  {"-callprotection", 0, 1, ConvertToCallprotection},
+  {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection},
   {"-incontext", 0, 0, ConvertToString},
-  {"-methodtype", 0, 1, ConvertToMethodtype},
+  {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype},
   {"-nomixins", 0, 0, ConvertToString},
   {"-path", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToString}}
 },
 {"::nsf::methods::class::info::mixinof", NsfClassInfoMixinOfMethodStub, 3, {
   {"-closure", 0, 0, ConvertToString},
-  {"-scope", 0, 1, ConvertToScope},
+  {"-scope", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToScope},
   {"pattern", 0, 0, ConvertToObjpattern}}
 },
 {"::nsf::methods::class::info::mixinclasses", NsfClassInfoMixinclassesMethodStub, 3, {
@@ -2099,7 +2127,7 @@ static methodDefinition method_definitions[] = {
   {"pattern", 0, 0, ConvertToObjpattern}}
 },
 {"::nsf::methods::class::info::mixinguard", NsfClassInfoMixinguardMethodStub, 1, {
-  {"mixin", 1, 0, ConvertToString}}
+  {"mixin", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::methods::class::info::subclass", NsfClassInfoSubclassMethodStub, 2, {
   {"-closure", 0, 0, ConvertToString},
@@ -2115,53 +2143,53 @@ static methodDefinition method_definitions[] = {
   {"methodName", 0, 0, ConvertToString},
   {"-nonleaf", 0, 0, ConvertToString},
   {"-objscope", 0, 0, ConvertToString},
-  {"cmdName", 1, 0, ConvertToTclobj}}
+  {"cmdName", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::assertion", NsfAssertionCmdStub, 3, {
   {"object", 0, 0, ConvertToObject},
-  {"assertionsubcmd", 1, 0, ConvertToAssertionsubcmd},
+  {"assertionsubcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 0, ConvertToAssertionsubcmd},
   {"arg", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::colon", NsfColonCmdStub, 1, {
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::configure", NsfConfigureCmdStub, 2, {
-  {"configureoption", 1, 0, ConvertToConfigureoption},
+  {"configureoption", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 0, ConvertToConfigureoption},
   {"value", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::createobjectsystem", NsfCreateObjectSystemCmdStub, 3, {
-  {"rootClass", 1, 0, ConvertToTclobj},
-  {"rootMetaClass", 1, 0, ConvertToTclobj},
+  {"rootClass", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"rootMetaClass", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"systemMethods", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::current", NsfCurrentCmdStub, 1, {
-  {"currentoption", 0, 0, ConvertToCurrentoption}}
+  {"currentoption", 0|NSF_ARG_IS_ENUMERATION, 0, ConvertToCurrentoption}}
 },
 {"::nsf::__db_run_assertions", NsfDebugRunAssertionsCmdStub, 0, {
   }
 },
 {"::nsf::deprecated", NsfDeprecatedCmdStub, 3, {
-  {"what", 1, 0, ConvertToString},
-  {"oldCmd", 1, 0, ConvertToString},
+  {"what", NSF_ARG_REQUIRED, 0, ConvertToString},
+  {"oldCmd", NSF_ARG_REQUIRED, 0, ConvertToString},
   {"newCmd", 0, 0, ConvertToString}}
 },
 {"::nsf::dispatch", NsfDispatchCmdStub, 4, {
-  {"object", 1, 0, ConvertToObject},
+  {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
   {"-objscope", 0, 0, ConvertToString},
-  {"command", 1, 0, ConvertToTclobj},
+  {"command", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::existsvar", NsfExistsVarCmdStub, 2, {
-  {"object", 1, 0, ConvertToObject},
-  {"var", 1, 0, ConvertToString}}
+  {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
+  {"var", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::finalize", NsfFinalizeObjCmdStub, 0, {
   }
 },
 {"::nsf::forward", NsfForwardCmdStub, 11, {
-  {"object", 1, 0, ConvertToObject},
+  {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
   {"-per-object", 0, 0, ConvertToString},
-  {"method", 1, 0, ConvertToTclobj},
+  {"method", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"-default", 0, 1, ConvertToTclobj},
   {"-earlybinding", 0, 0, ConvertToString},
   {"-methodprefix", 0, 1, ConvertToTclobj},
@@ -2184,61 +2212,61 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::is", NsfIsCmdStub, 3, {
   {"-complain", 0, 0, ConvertToString},
-  {"constraint", 1, 0, ConvertToTclobj},
-  {"value", 1, 0, ConvertToTclobj}}
+  {"constraint", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"value", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::isobject", NsfIsObjectCmdStub, 1, {
-  {"object", 1, 0, ConvertToTclobj}}
+  {"object", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::method", NsfMethodCmdStub, 9, {
-  {"object", 1, 0, ConvertToObject},
+  {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
   {"-inner-namespace", 0, 0, ConvertToString},
   {"-per-object", 0, 0, ConvertToString},
   {"-public", 0, 0, ConvertToString},
-  {"name", 1, 0, ConvertToTclobj},
-  {"args", 1, 0, ConvertToTclobj},
-  {"body", 1, 0, ConvertToTclobj},
+  {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"args", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"body", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"-precondition", 0, 1, ConvertToTclobj},
   {"-postcondition", 0, 1, ConvertToTclobj}}
 },
 {"::nsf::methodproperty", NsfMethodPropertyCmdStub, 5, {
-  {"object", 1, 0, ConvertToObject},
+  {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
   {"-per-object", 0, 0, ConvertToString},
-  {"methodName", 1, 0, ConvertToTclobj},
-  {"methodproperty", 1, 0, ConvertToMethodproperty},
+  {"methodName", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"methodproperty", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 0, ConvertToMethodproperty},
   {"value", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::my", NsfMyCmdStub, 3, {
   {"-local", 0, 0, ConvertToString},
-  {"method", 1, 0, ConvertToTclobj},
+  {"method", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::nscopycmds", NsfNSCopyCmdsCmdStub, 2, {
-  {"fromNs", 1, 0, ConvertToTclobj},
-  {"toNs", 1, 0, ConvertToTclobj}}
+  {"fromNs", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"toNs", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::nscopyvars", NsfNSCopyVarsCmdStub, 2, {
-  {"fromNs", 1, 0, ConvertToTclobj},
-  {"toNs", 1, 0, ConvertToTclobj}}
+  {"fromNs", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"toNs", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::next", NsfNextCmdStub, 1, {
   {"arguments", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::qualify", NsfQualifyObjCmdStub, 1, {
-  {"name", 1, 0, ConvertToTclobj}}
+  {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::relation", NsfRelationCmdStub, 3, {
   {"object", 0, 0, ConvertToObject},
-  {"relationtype", 1, 0, ConvertToRelationtype},
+  {"relationtype", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 0, ConvertToRelationtype},
   {"value", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::setvar", NsfSetVarCmdStub, 3, {
-  {"object", 1, 0, ConvertToObject},
-  {"variable", 1, 0, ConvertToTclobj},
+  {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
+  {"variable", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"value", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::setter", NsfSetterCmdStub, 3, {
-  {"object", 1, 0, ConvertToObject},
+  {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
   {"-per-object", 0, 0, ConvertToString},
   {"parameter", 0, 0, ConvertToTclobj}}
 },
@@ -2248,7 +2276,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::methods::object::autoname", NsfOAutonameMethodStub, 3, {
   {"-instance", 0, 0, ConvertToString},
   {"-reset", 0, 0, ConvertToString},
-  {"name", 1, 0, ConvertToTclobj}}
+  {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::object::cleanup", NsfOCleanupMethodStub, 0, {
   }
@@ -2260,18 +2288,18 @@ static methodDefinition method_definitions[] = {
   }
 },
 {"::nsf::methods::object::exists", NsfOExistsMethodStub, 1, {
-  {"var", 1, 0, ConvertToString}}
+  {"var", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::methods::object::filterguard", NsfOFilterGuardMethodStub, 2, {
-  {"filter", 1, 0, ConvertToString},
-  {"guard", 1, 0, ConvertToTclobj}}
+  {"filter", NSF_ARG_REQUIRED, 0, ConvertToString},
+  {"guard", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::object::instvar", NsfOInstVarMethodStub, 1, {
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::methods::object::mixinguard", NsfOMixinGuardMethodStub, 2, {
-  {"mixin", 1, 0, ConvertToString},
-  {"guard", 1, 0, ConvertToTclobj}}
+  {"mixin", NSF_ARG_REQUIRED, 0, ConvertToString},
+  {"guard", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::object::noinit", NsfONoinitMethodStub, 0, {
   }
@@ -2292,7 +2320,7 @@ static methodDefinition method_definitions[] = {
   }
 },
 {"::nsf::methods::object::vwait", NsfOVwaitMethodStub, 1, {
-  {"varname", 1, 0, ConvertToString}}
+  {"varname", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::children", NsfObjInfoChildrenMethodStub, 2, {
   {"-type", 0, 1, ConvertToClass},
@@ -2302,7 +2330,7 @@ static methodDefinition method_definitions[] = {
   }
 },
 {"::nsf::methods::object::info::filterguard", NsfObjInfoFilterguardMethodStub, 1, {
-  {"name", 1, 0, ConvertToString}}
+  {"name", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::filtermethods", NsfObjInfoFiltermethodsMethodStub, 3, {
   {"-guards", 0, 0, ConvertToString},
@@ -2323,7 +2351,7 @@ static methodDefinition method_definitions[] = {
   }
 },
 {"::nsf::methods::object::info::is", NsfObjInfoIsMethodStub, 1, {
-  {"objectkind", 0, 0, ConvertToObjectkind}}
+  {"objectkind", 0|NSF_ARG_IS_ENUMERATION, 0, ConvertToObjectkind}}
 },
 {"::nsf::methods::object::info::lookupfilter", NsfObjInfoLookupFilterMethodStub, 1, {
   {"filter", 0, 0, ConvertToString}}
@@ -2332,25 +2360,25 @@ static methodDefinition method_definitions[] = {
   {"name", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::object::info::lookupmethods", NsfObjInfoLookupMethodsMethodStub, 7, {
-  {"-callprotection", 0, 1, ConvertToCallprotection},
+  {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection},
   {"-incontext", 0, 0, ConvertToString},
-  {"-methodtype", 0, 1, ConvertToMethodtype},
+  {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype},
   {"-nomixins", 0, 0, ConvertToString},
   {"-path", 0, 0, ConvertToString},
-  {"-source", 0, 1, ConvertToSource},
+  {"-source", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToSource},
   {"pattern", 0, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::lookupslots", NsfObjInfoLookupSlotsMethodStub, 1, {
   {"-type", 0, 1, ConvertToClass}}
 },
 {"::nsf::methods::object::info::method", NsfObjInfoMethodMethodStub, 2, {
-  {"infomethodsubcmd", 0, 0, ConvertToInfomethodsubcmd},
+  {"infomethodsubcmd", 0|NSF_ARG_IS_ENUMERATION, 0, ConvertToInfomethodsubcmd},
   {"name", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::object::info::methods", NsfObjInfoMethodsMethodStub, 6, {
-  {"-callprotection", 0, 1, ConvertToCallprotection},
+  {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection},
   {"-incontext", 0, 0, ConvertToString},
-  {"-methodtype", 0, 1, ConvertToMethodtype},
+  {"-methodtype", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToMethodtype},
   {"-nomixins", 0, 0, ConvertToString},
   {"-path", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToString}}
@@ -2361,7 +2389,7 @@ static methodDefinition method_definitions[] = {
   {"pattern", 0, 0, ConvertToObjpattern}}
 },
 {"::nsf::methods::object::info::mixinguard", NsfObjInfoMixinguardMethodStub, 1, {
-  {"mixin", 1, 0, ConvertToString}}
+  {"mixin", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::parent", NsfObjInfoParentMethodStub, 0, {
   }
