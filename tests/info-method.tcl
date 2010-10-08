@@ -50,7 +50,7 @@ Test case base {
   ? {nx::Class info method parameter method} \
       {name arguments body -precondition -postcondition}
   ? {nx::Object info method parameter alias} \
-      {-nonleaf:switch -objscope:switch methodName cmd}
+      {methodName {-frame default} cmd}
   # raises currently an error
   ? {catch {C info method parameter a}} 1
   

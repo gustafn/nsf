@@ -1705,36 +1705,31 @@ _ added option noforwarder to RelationSlots
 - added support for aolserver (essentially Makefile + aol-xotcl.tcl)
 - removed unneded content from serializer output
 
-TODO: 
-
-- "-returns" 
-  * leave syntax as is for method?
-  * add flag to alias and forward?
-  * handle "returns" in serializer
-
 - the two flags "-objscope" and "-nonleaf" are for adding frames,
   and they are mutual exclusive. Make them a single flag?
   check if both options are in every case sensible.
 
   possible realizations:
-     -varscope instance|proc
      -scope object|method
-     -varscope instance|resolver
+     -varscope instance|proc
+     -varscope instance|resolver|none
+     -frame object|method|default
 
-   * instance: within this method, all non-prefixed var names 
+   * instance|object: within this method, all non-prefixed var names 
      refer to instance variables; the method can use most 
      probably not "next"
      (actually, only needed for XOTcl)
 
-   * proc: within this method, we can use colon-prefixed 
+   * method|proc|resolver: within this method, we can use colon-prefixed 
      variables; the method can use "next"
 
    "object" könnte mit dem -per-object (dem registierungpunkt)
    leicht verwechselt werden. es ginge auch
        -varscope instance|method
    allerdings, meint method eigentlich "scripted method".
-   Eine weitere option wäre:
-       -varscope instance|resolver
+
+   "none" would be dangerous for "-frame", since it could imply
+   to avoid frame stacking at all.
 
    effected are: 
      alias, forward, dispatch
@@ -1742,8 +1737,25 @@ TODO:
    für "alias" betrifft das in gleicher form auch die cmds,
    bei "dispatch" und "forward" gibt es dzt. kein "-nonleaf"
 
-- in the following, we need just a frame, but not necessarily an "-objscope"
-  set x [::xotcl::dispatch $value -objscope ::xotcl::self]
+- replaced "-objscope" and "-nonleaf" by 
+  "-frame object|method|default"
+  for nsf::alias and nsf::default
+- added functionality for "-frame method" to nsf::dispatch
+- made the order of argument in ::nsf::alias and method "alias"
+  the same (always first the method, then "-frame ...")
+- extened regression test
+
+TODO: 
+
+- "-returns" 
+  * leave syntax as is for method?
+  * add flag to alias and forward?
+  * handle "returns" in serializer
+
+- forward has just "-objscope", no general "-frame method|object".
+  Since forwarder have client data, they always push a method frame.
+  So, the situation is different to nsd::alias and ::nsf::dispatch.
+  not sure, if we should rename "-objscope" to something different.
 
 - when compiled on my home machine for tcl 8.5.9 + aolserver, 
   i see the behavior that "info exists :type" does not appear to work,
@@ -1764,6 +1776,7 @@ TODO:
 - extend coro regression test
 
 - handle bug with ::variable with colon-prefixed name
+  (shadowCommands does not help, see above)
 
 - work on replacing SKIP_LEVELS by SKIP_LAMBDE for openacs (works with 
   regression test, has problems with OrderedComposite::ChildManager.init)

@@ -19,8 +19,8 @@ Test case int-returns {
 	# scripted method with paramdefs
 	:method bar-nok {a b:integer} {return a}
 	# alias to tcl-cmd (no param defs)
-	:alias -objscope incr ::incr
-	:alias -objscope lappend ::lappend
+	:alias incr -frame object ::incr
+	:alias lappend -frame object ::lappend
 	:create c1
     }
 
@@ -75,8 +75,8 @@ Test case app-specific-returns {
 	:method bar-ok1 {a b} {return 1}
 	:method bar-ok2 {a b} {return $a}
 	:method bar-nok {a b:integer} {return a}
-	:alias -objscope incr ::incr
-	:alias -objscope lappend ::lappend
+	:alias incr -frame object ::incr
+	:alias lappend -frame object ::lappend
 	:create c1
     }
 
@@ -112,7 +112,7 @@ Test case converting-returns {
 	:method bar-ok1 {a b} {return male}
 	:method bar-ok2 {a b} {return $a}
 	:method bar-nok {a b:integer} {return $b}
-	:alias -objscope set ::set
+	:alias set -frame object ::set
 	:create c1
     }
 
@@ -161,8 +161,8 @@ Test case int-returns-nocheck {
 	# scripted method with paramdefs
 	:method bar-nok {a b:integer} {return a}
 	# alias to tcl-cmd (no param defs)
-	:alias -objscope incr ::incr
-	:alias -objscope lappend ::lappend
+	:alias incr -frame object ::incr
+	:alias lappend -frame object ::lappend
 	:create c1
     }
 
@@ -212,8 +212,8 @@ Test case app-specific-returns-nocheck {
 	:method bar-ok1 {a b} {return 1}
 	:method bar-ok2 {a b} {return $a}
 	:method bar-nok {a b:integer} {return a}
-	:alias -objscope incr ::incr
-	:alias -objscope lappend ::lappend
+	:alias incr -frame object ::incr
+	:alias lappend -frame object ::lappend
 	:create c1
     }
 
@@ -249,7 +249,7 @@ Test case converting-returns-nocheck {
 	:method bar-ok1 {a b} {return male}
 	:method bar-ok2 {a b} {return $a}
 	:method bar-nok {a b:integer} {return $b}
-	:alias -objscope set ::set
+	:alias set -frame object ::set
 	:create c1
     }
 

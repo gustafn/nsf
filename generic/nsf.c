@@ -6465,10 +6465,12 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
      */
     return result;
 
-  } else if (cp || Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) {
+  } else if (cp 
+	     || (Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) 
+	     || (cscPtr->flags & NSF_CSC_FORCE_FRAME)) {
     /*
-     * The cmd has client data or is an aliased method with the
-     * nonleaf property
+     * The cmd has client data or we force the frame either via
+     * cmd-flag or csc-flag
      */
     if (proc == NsfObjDispatch) {
       /*
@@ -11461,13 +11463,16 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("class-object", 12));
   }
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName, -1));
+  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName, -1));
+
   if (withObjscope) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objscope", 9));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-frame", 6));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
   }
   if (Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-nonleaf", 8));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-frame", 6));
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("method", 6));
   }
-  Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName, -1));
 }
 
 static int
@@ -11683,7 +11688,9 @@ ListMethod(Tcl_Interp *interp,
             Tcl_ListObjGetElements(interp, entryObj, &nrElements, &listElements);
             /* todo: don't hard-code registering command name "alias" / NSF_ALIAS */
             AppendMethodRegistration(interp, resultObj, NsfGlobalStrings[NSF_ALIAS],
-                                     regObject, methodName, cmd, nrElements!=1, outputPerObject, 1);
+                                     regObject, methodName, cmd, 
+				     procPtr == NsfObjscopedMethod,
+				     outputPerObject, 1);
             Tcl_ListObjAppendElement(interp, resultObj, listElements[nrElements-1]);
             Tcl_SetObjResult(interp, resultObj);
             break;
@@ -12216,14 +12223,14 @@ nsfCmd alias NsfAliasCmd {
   {-argName "object" -type object}
   {-argName "-per-object"}
   {-argName "methodName"}
-  {-argName "-nonleaf"}
+  {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "-objscope"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
 */
 static int
 NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
-                         CONST char *methodName, int withNonleaf, int withObjscope,
+                         CONST char *methodName, int withFrame,
                          Tcl_Obj *cmdName) {
   Tcl_ObjCmdProc *objProc, *newObjProc = NULL;
   Tcl_CmdDeleteProc *deleteProc = NULL;
@@ -12261,7 +12268,7 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
      when the original command is deleted.
   */
 
-  if (withObjscope) {
+  if (withFrame == FrameObjectIdx) {
     newObjProc = NsfObjscopedMethod;
   }
 
@@ -12285,10 +12292,10 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
      * proc/method is deleted.
      */
     newObjProc = NsfProcAliasMethod;
-
-    if (withObjscope) {
-      return NsfVarErrMsg(interp, "cannot use -objscope for tcl implemented command '",
-                            ObjStr(cmdName), "'", (char *) NULL);
+    if (withFrame && withFrame != FrameDefaultIdx) {
+      return NsfVarErrMsg(interp, 
+			  "cannot use -frame object|method in alias for scripted command '",
+			  ObjStr(cmdName), "'", (char *) NULL);
     }
   }
 
@@ -12342,14 +12349,13 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
 
   if (newCmd) {
     Tcl_DString ds, *dsPtr = &ds;
+
     Tcl_DStringInit(dsPtr);
-    /*if (withPer_object) {Tcl_DStringAppend(dsPtr, "-per-object ", -1);}*/
-    if (withObjscope) {Tcl_DStringAppend(dsPtr, "-objscope ", -1);}
     Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
     AliasAdd(interp, object->cmdName, methodName, cl == NULL, Tcl_DStringValue(dsPtr));
     Tcl_DStringFree(dsPtr);
 
-    if (!withObjscope && withNonleaf) {
+    if (withFrame == FrameMethodIdx) {
       Tcl_Command_flags(newCmd) |= NSF_CMD_NONLEAF_METHOD;
       /*fprintf(stderr, "setting aliased for cmd %p %s flags %.6x, tcd = %p\n",
         newCmd,methodName,Tcl_Command_flags(newCmd), tcd);*/
@@ -12601,13 +12607,13 @@ NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST
 /*
 nsfCmd dispatch NsfDispatchCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-objscope"}
+  {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
 }
 */
 static int
-NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withObjscope,
+NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
                  Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]) {
   int result;
   CONST char *methodName = ObjStr(command);
@@ -12624,10 +12630,11 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withObjscope,
   if (*methodName == ':') {
     Tcl_Command cmd, importedCmd;
     CallFrame frame, *framePtr = &frame;
+    int flags = 0;
 
     /*
      * We have an absolute name. We assume, the name is the name of a
-     * Tcl command, that will be dispatched. If "withObjscope" is
+     * Tcl command, that will be dispatched. If "withFrame == instance" is
      * specified, a callstack frame is pushed to make instvars
      * accessible for the command.
      */
@@ -12644,21 +12651,35 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withObjscope,
 			    methodName, "'", (char *) NULL);
     }
 
-    if (withObjscope) {
-      Nsf_PushFrameObj(interp, object, framePtr);
+    if (withFrame && withFrame != FrameDefaultIdx) {
+      Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
+      if (proc == TclObjInterpProc || 
+	  proc == NsfForwardMethod ||
+	  proc == NsfObjscopedMethod ||
+	  proc == NsfSetterMethod ||
+	  proc == NsfObjDispatch) {
+	return NsfVarErrMsg(interp, 
+			    "cannot use -frame object|method in dispatch for command '",
+			    methodName, "'", (char *) NULL);
+      }
+      if (withFrame == FrameObjectIdx) {
+	Nsf_PushFrameObj(interp, object, framePtr);
+	flags = NSF_CSC_IMMEDIATE;
+      } else if (withFrame == FrameMethodIdx) {
+	flags = NSF_CSC_FORCE_FRAME|NSF_CSC_IMMEDIATE;
+      }
     }
     /*
      * Since we know, that we are always called with a full argument
      * vector, we can include the cmd name in the objv by using
      * nobjv-1; this way, we avoid a memcpy()
      */
-
     result = MethodDispatch((ClientData)object, interp,
 			    nobjc+1, nobjv-1, cmd, object,
 			    NULL /*NsfClass *cl*/,
 			    Tcl_GetCommandName(interp,cmd),
-			    NSF_CSC_TYPE_PLAIN, 0, 5);
-    if (withObjscope) {
+			    NSF_CSC_TYPE_PLAIN, flags, 5);
+    if (withFrame == FrameObjectIdx) {
       Nsf_PopFrameObj(interp, framePtr);
     }
   } else {
@@ -12667,10 +12688,17 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withObjscope,
      * order, with filters etc. -- strictly speaking unneccessary,
      * since we could dispatch the method also without
      * NsfDispatchCmd(), but it can be used to invoke protected
-     * methods. 'withObjscope' is here a no-op.
+     * methods. 'withFrame == FrameObjectIdx' is here a no-op.
      */
+
     Tcl_Obj *arg;
     Tcl_Obj *CONST *objv;
+    
+    if (withFrame && withFrame != FrameDefaultIdx) {
+      return NsfVarErrMsg(interp, 
+			  "cannot use -frame object|method in dispatch for plain method name '",
+			  methodName, "'", (char *) NULL);
+    }
 
     if (nobjc >= 1) {
       arg = nobjv[0];

@@ -25,13 +25,12 @@ nsfCmd alias NsfAliasCmd {
   {-argName "object" -type object}
   {-argName "-per-object"}
   {-argName "methodName"}
-  {-argName "-nonleaf"}
-  {-argName "-objscope"}
+  {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
 nsfCmd assertion NsfAssertionCmd {
   {-argName "object" -type object}
-  {-argName "assertionsubcmd" -required 1 -type "check|object-invar|class-invar"}
+  {-argName "assertionsubcmd" -required 1 -nrargs 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
 }
 nsfCmd configure NsfConfigureCmd {
@@ -50,7 +49,7 @@ nsfCmd deprecated NsfDeprecatedCmd {
 }
 nsfCmd dispatch NsfDispatchCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-objscope"}
+  {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "command" -required 1 -type tclobj}
   {-argName "args"  -type args}
 }

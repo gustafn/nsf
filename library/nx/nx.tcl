@@ -44,7 +44,7 @@ namespace eval ::nx {
   }
   
   # provide ::eval as method for ::nx::Object
-  ::nsf::alias Object eval -nonleaf ::eval
+  ::nsf::alias Object eval -frame method ::eval
 
   #
   # class methods
@@ -312,28 +312,22 @@ namespace eval ::nx {
   # Add alias methods. cmdName for a method can be added via
   #   [... info method handle <methodName>]
   #
-  # -nonleaf and -objscope make only sense for c-defined cmds,
-  # -objscope implies -nonleaf
+  # -frame object|method make only sense for c-defined cmds,
   #
-  Object public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
+  Object public method alias {methodName {-frame default} cmd} {
     array set "" [:__resolve_method_path -per-object $methodName]
     #puts "object alias $(object).$(methodName) $cmd"
     set r [::nsf::alias $(object) -per-object $(methodName) \
-	       {*}[expr {${objscope} ? "-objscope" : ""}] \
-	       {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
-	       $cmd]
+	       -frame $frame $cmd]
     ::nsf::methodproperty $(object) -per-object $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
     return $r
   }
 
-  Class public method alias {-nonleaf:switch -objscope:switch methodName cmd} {
+  Class public method alias {methodName {-frame default} cmd} {
     array set "" [:__resolve_method_path $methodName]
     #puts "class alias $(object).$(methodName) $cmd"
-    set r [::nsf::alias $(object) $(methodName) \
-	       {*}[expr {${objscope} ? "-objscope" : ""}] \
-	       {*}[expr {${nonleaf} ? "-nonleaf" : ""}] \
-	       $cmd]
+    set r [::nsf::alias $(object) $(methodName) -frame $frame $cmd]
     ::nsf::methodproperty $(object) $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
     return $r
@@ -671,7 +665,7 @@ namespace eval ::nx {
         foreach i [::nsf::dispatch $class ::nsf::methods::class::info::instances] {
           if {![::nsf::existsvar $i $att]} {
             if {[string match {*\[*\]*} $default]} {
-              set value [::nsf::dispatch $i -objscope ::eval subst $default]
+              set value [::nsf::dispatch $i -frame object ::eval subst $default]
             } else {
 	      set value $default
 	    }
@@ -942,7 +936,7 @@ namespace eval ::nx {
         if {![::nsf::isobject $value]} {
           error "$value does not appear to be an object"
         }
-        set value [::nsf::dispatch $value -objscope ::nsf::current object]
+        set value [::nsf::dispatch $value -frame method ::nsf::current object]
       }
       if {![::nsf::is class ${:elementtype}]} {
         error "$value does not appear to be of type ${:elementtype}"
@@ -1071,7 +1065,7 @@ namespace eval ::nx {
 
   Attribute method __default_from_cmd {obj cmd var sub op} {
     #puts "GETVAR [::nsf::current method] obj=$obj cmd=$cmd, var=$var, op=$op"
-    ::nsf::dispatch $obj -objscope \
+    ::nsf::dispatch $obj -frame object \
 	::trace remove variable $var $op [list [::nsf::current object] [::nsf::current method] $obj $cmd]
     ::nsf::setvar $obj $var [$obj eval $cmd]
   }
@@ -1088,7 +1082,7 @@ namespace eval ::nx {
     # Do first ordinary slot initialization
     ::nsf::next 
     set __initcmd ""
-    set trace {::nsf::dispatch [::nsf::current object] -objscope ::trace}
+    set trace {::nsf::dispatch [::nsf::current object] -frame object ::trace}
     # There might be already default values registered on the
     # class. If so, defaultcmd is ignored.
     if {[info exists :default]} {
@@ -1391,7 +1385,7 @@ namespace eval ::nx {
 	}
 	set traces [list]
 	foreach var [$origin info vars] {
-	  set cmds [::nsf::dispatch $origin -objscope ::trace info variable $var]
+	  set cmds [::nsf::dispatch $origin -frame object ::trace info variable $var]
 	  if {$cmds ne ""} {
 	    foreach cmd $cmds {
 	      foreach {op def} $cmd break

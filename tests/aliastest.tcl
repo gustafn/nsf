@@ -11,10 +11,27 @@ Test case alias-preliminaries {
       "::nx::ObjectParameterSlot public alias get ::nsf::setvar"
 
   # define an alias and retrieve its definition
-  set cmd "::nx::Object public alias -objscope set ::set"
+  set cmd "::nx::Object public alias set ::set"
+  eval $cmd
+  ? {Object info method definition set} $cmd
+
+  # define an alias and retrieve its definition
+  set cmd "::nx::Object public alias set -frame method ::set"
+  eval $cmd
+  ? {Object info method definition set} $cmd
+
+  # define an alias and retrieve its definition
+  set cmd "::nx::Object public alias set -frame object ::set"
   eval $cmd
   ? {Object info method definition set} $cmd
   
+  proc ::foo {} {return foo}
+  ? {Object alias foo -frame object ::foo} \
+      "cannot use -frame object|method in alias for scripted command '::foo'"
+  ? {Object alias foo -frame method ::foo} \
+      "cannot use -frame object|method in alias for scripted command '::foo'"
+  ? {Object alias foo -frame default ::foo} "::nsf::classes::nx::Object::foo"
+
 }
 
 Test case alias-simple { 
@@ -24,7 +41,7 @@ Test case alias-simple {
   }
 
   Class create Foo
-  ::nsf::alias ::Foo foo ::nsf::classes::Base::foo
+  ? {::nsf::alias ::Foo foo ::nsf::classes::Base::foo} "::nsf::classes::Foo::foo"
   
   ? {Foo info method definition foo} "::Foo public alias foo ::nsf::classes::Base::foo"
   

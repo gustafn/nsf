@@ -135,10 +135,24 @@ o destroy
 # dispatch with colon names
 Object create o {set :x 1}
 ::nsf::dispatch ::o ::incr x
-? {o eval {set :x}} 1 "cmd dispatch without -objscope did not modify the instance variable"
-::nsf::dispatch ::o -objscope ::incr x
-? {o eval {set :x}} 2 "cmd dispatch -objscope modifies the instance variable"
-? {catch {::nsf::dispatch ::o -objscope ::xxx x}} 1 "cmd dispatch with unknown command"
+? {o eval {set :x}} 1 "cmd dispatch without -frame object did not modify the instance variable"
+::nsf::dispatch ::o -frame object ::incr x
+? {o eval {set :x}} 2 "cmd dispatch -frame object modifies the instance variable"
+? {catch {::nsf::dispatch ::o -frame object ::xxx x}} 1 "cmd dispatch with unknown command"
+o destroy
+
+Object create o {
+  :public method foo {} {
+    foreach var [list x1 y1 x2 y2 x3 y3] {
+      lappend results $var [info exists :$var]
+    }
+    return $results
+  }
+}
+::nsf::dispatch o ::eval {set x1 1; set :y1 1}
+::nsf::dispatch o -frame method ::eval {set x2 1; set :y2 1}
+::nsf::dispatch o -frame object ::eval {set x3 1; set :y3 1}
+? {o foo} "x1 0 y1 0 x2 0 y2 1 x3 1 y3 1"
 o destroy
 
 puts stderr ===MINI-OBJECTSYSTEM

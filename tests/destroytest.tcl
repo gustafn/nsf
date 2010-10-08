@@ -4,7 +4,7 @@ package require nx::test
 
 Test parameter count 10
 
-::nsf::alias ::nx::Object set -objscope ::set
+::nsf::alias ::nx::Object set -frame object ::set
 
 Class create O -superclass Object {
   :method init {} {

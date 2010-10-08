@@ -204,7 +204,7 @@ namespace eval ::xotcl {
 
   # provide some Tcl-commands as methods for ::xotcl::Object
   foreach cmd {array append eval incr lappend set subst unset trace} {
-    ::nsf::alias Object $cmd -objscope ::$cmd
+    ::nsf::alias Object $cmd -frame object ::$cmd
   }
 
   # provide the standard command set for ::xotcl::Class
@@ -612,7 +612,7 @@ namespace eval ::xotcl {
 
   ::nsf::alias Object contains ::nsf::classes::nx::Object::contains
   ::xotcl::Class instforward slots %self contains \
-      -object {%::nsf::dispatch [::xotcl::self] -objscope ::subst [::xotcl::self]::slot}
+      -object {%::nsf::dispatch [::xotcl::self] -frame method ::subst [::xotcl::self]::slot}
 
   # assertion handling
   proc checkoption_xotcl1_to_internal checkoptions {
@@ -667,7 +667,7 @@ namespace eval ::xotcl {
         set kind parametercmd
       } elseif {$kind eq "alias"} {
 	set kind "cmd"
-	set name [lindex $definition end-1]
+	set name [lindex $definition 3]
       }
       set definition [list [lindex $definition 0] ${prefix}$kind $name]
     }

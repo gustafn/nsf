@@ -55,6 +55,18 @@ static int ConvertToScope(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *p
   return result;
 }
   
+enum FrameIdx {FrameNULL, FrameMethodIdx, FrameObjectIdx, FrameDefaultIdx};
+
+static int ConvertToFrame(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
+			    ClientData *clientData, Tcl_Obj **outObjPtr) {
+  int index, result;
+  static CONST char *opts[] = {"method", "object", "default", NULL};
+  result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-frame", 0, &index);
+  *clientData = (ClientData) INT2PTR(index + 1);
+  *outObjPtr = objPtr;
+  return result;
+}
+  
 enum AssertionsubcmdIdx {AssertionsubcmdNULL, AssertionsubcmdCheckIdx, AssertionsubcmdObject_invarIdx, AssertionsubcmdClass_invarIdx};
 
 static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
@@ -141,17 +153,18 @@ static int ConvertToSource(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *
   
 
 static enumeratorConverterEntry enumeratorConverterEntries[] = {
-  {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
+  {ConvertToScope, "all|class|object"},
+  {ConvertToInfomethodsubcmd, "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"},
+  {ConvertToCallprotection, "all|protected|public"},
+  {ConvertToMethodtype, "all|scripted|builtin|alias|forwarder|object|setter"},
+  {ConvertToFrame, "method|object|default"},
   {ConvertToCurrentoption, "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"},
-  {ConvertToSource, "all|application|baseclasses"},
   {ConvertToObjectkind, "class|baseclass|metaclass"},
   {ConvertToMethodproperty, "class-only|call-protected|redefine-protected|returns|slotcontainer|slotobj"},
-  {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
-  {ConvertToScope, "all|class|object"},
+  {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
+  {ConvertToSource, "all|application|baseclasses"},
   {ConvertToConfigureoption, "filter|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},
-  {ConvertToMethodtype, "all|scripted|builtin|alias|forwarder|object|setter"},
-  {ConvertToCallprotection, "all|protected|public"},
-  {ConvertToInfomethodsubcmd, "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"},
+  {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
   {NULL, NULL}
 };
    
@@ -276,7 +289,7 @@ static int NsfClassInfoMixinclassesMethod(Tcl_Interp *interp, NsfClass *cl, int 
 static int NsfClassInfoMixinguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin);
 static int NsfClassInfoSubclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, CONST char *patternString, NsfObject *patternObj);
 static int NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *cl, int withClosure, Tcl_Obj *pattern);
-static int NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, CONST char *methodName, int withNonleaf, int withObjscope, Tcl_Obj *cmdName);
+static int NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, CONST char *methodName, int withFrame, Tcl_Obj *cmdName);
 static int NsfAssertionCmd(Tcl_Interp *interp, NsfObject *object, int assertionsubcmd, Tcl_Obj *arg);
 static int NsfColonCmd(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
 static int NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *value);
@@ -284,7 +297,7 @@ static int NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_
 static int NsfCurrentCmd(Tcl_Interp *interp, int currentoption);
 static int NsfDebugRunAssertionsCmd(Tcl_Interp *interp);
 static int NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
-static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withObjscope, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfExistsVarCmd(Tcl_Interp *interp, NsfObject *object, CONST char *var);
 static int NsfFinalizeObjCmd(Tcl_Interp *interp);
 static int NsfForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
@@ -873,12 +886,11 @@ NsfAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
     NsfObject *object = (NsfObject *)pc.clientData[0];
     int withPer_object = (int )PTR2INT(pc.clientData[1]);
     CONST char *methodName = (CONST char *)pc.clientData[2];
-    int withNonleaf = (int )PTR2INT(pc.clientData[3]);
-    int withObjscope = (int )PTR2INT(pc.clientData[4]);
-    Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[5];
+    int withFrame = (int )PTR2INT(pc.clientData[3]);
+    Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[4];
 
     ParseContextRelease(&pc);
-    return NsfAliasCmd(interp, object, withPer_object, methodName, withNonleaf, withObjscope, cmdName);
+    return NsfAliasCmd(interp, object, withPer_object, methodName, withFrame, cmdName);
 
   }
 }
@@ -1018,11 +1030,11 @@ NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     return TCL_ERROR;
   } else {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    int withObjscope = (int )PTR2INT(pc.clientData[1]);
+    int withFrame = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
 
     ParseContextRelease(&pc);
-    return NsfDispatchCmd(interp, object, withObjscope, command, objc-pc.lastobjc, objv+pc.lastobjc);
+    return NsfDispatchCmd(interp, object, withFrame, command, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
 }
@@ -2137,17 +2149,16 @@ static methodDefinition method_definitions[] = {
   {"-closure", 0, 0, ConvertToString},
   {"pattern", 0, 0, ConvertToTclobj}}
 },
-{"::nsf::alias", NsfAliasCmdStub, 6, {
+{"::nsf::alias", NsfAliasCmdStub, 5, {
   {"object", 0, 0, ConvertToObject},
   {"-per-object", 0, 0, ConvertToString},
   {"methodName", 0, 0, ConvertToString},
-  {"-nonleaf", 0, 0, ConvertToString},
-  {"-objscope", 0, 0, ConvertToString},
+  {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame},
   {"cmdName", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::assertion", NsfAssertionCmdStub, 3, {
   {"object", 0, 0, ConvertToObject},
-  {"assertionsubcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 0, ConvertToAssertionsubcmd},
+  {"assertionsubcmd", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 1, ConvertToAssertionsubcmd},
   {"arg", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::colon", NsfColonCmdStub, 1, {
@@ -2175,7 +2186,7 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::dispatch", NsfDispatchCmdStub, 4, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
-  {"-objscope", 0, 0, ConvertToString},
+  {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame},
   {"command", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"args", 0, 0, ConvertToNothing}}
 },

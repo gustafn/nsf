@@ -7,12 +7,12 @@ package require nx::test
 
 Test parameter count 1
 
-::nsf::alias ::nx::Object objeval -objscope ::eval 
-::nsf::alias ::nx::Object array -objscope ::array
-::nsf::alias ::nx::Object lappend -objscope ::lappend
-::nsf::alias ::nx::Object incr -objscope ::incr
-::nsf::alias ::nx::Object set -objscope ::set
-::nsf::alias ::nx::Object unset -objscope ::unset
+::nsf::alias ::nx::Object objeval -frame object ::eval 
+::nsf::alias ::nx::Object array -frame object ::array
+::nsf::alias ::nx::Object lappend -frame object ::lappend
+::nsf::alias ::nx::Object incr -frame object ::incr
+::nsf::alias ::nx::Object set -frame object ::set
+::nsf::alias ::nx::Object unset -frame object ::unset
 
 ###########################################
 # Basic tests for var resolution under 
@@ -402,8 +402,8 @@ set ::w 1
 array set ::tmpArray {key value}
 
 Class create ::C
-::nsf::alias ::C Set -objscope ::set
-::nsf::alias ::C Unset -objscope ::unset
+::nsf::alias ::C Set -frame object ::set
+::nsf::alias ::C Unset -frame object ::unset
 
 ::C create ::c
 namespace eval ::c {}
@@ -422,16 +422,13 @@ unset ::w
 unset ::tmpArray
 
 ##################################################
-# Testing aliases for eval with and without flags 
-#
-#    -objscope, 
-#    -nonleaf
-#
-# with a required namespace and without
+# Testing aliases for eval with and without 
+# -varscope flags and with a
+# required namespace and without
 ##################################################
 Test case eval-variants
-::nsf::alias ::nx::Object objeval -objscope ::eval 
-::nsf::alias ::nx::Object softeval -nonleaf ::eval 
+::nsf::alias ::nx::Object objeval -frame object ::eval 
+::nsf::alias ::nx::Object softeval -frame method ::eval 
 ::nsf::alias ::nx::Object softeval2 ::eval 
 
 set G 1
@@ -594,8 +591,8 @@ o destroy
 # Test with proc scopes
 ##################################################
 Test case proc-scopes
-::nsf::alias ::nx::Object objscoped-eval -objscope ::eval 
-::nsf::alias ::nx::Object nonleaf-eval -nonleaf ::eval 
+::nsf::alias ::nx::Object objscoped-eval -frame object ::eval 
+::nsf::alias ::nx::Object nonleaf-eval -frame method ::eval 
 ::nsf::alias ::nx::Object plain-eval ::eval 
 
 proc foo-via-initcmd {} {

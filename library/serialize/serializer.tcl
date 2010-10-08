@@ -303,7 +303,7 @@ namespace eval ::nx::serializer {
 
     :public class-object method allChildren o {
       # return o and all its children fully qualified
-      set set [::nsf::dispatch $o -objscope ::nsf::current]
+      set set [::nsf::dispatch $o -frame method ::nsf::current]
       foreach c [$o info children] {
         lappend set {*}[:allChildren $c]
       }
@@ -466,7 +466,7 @@ namespace eval ::nx::serializer {
     
     :public method registerTrace {on} {
       if {$on} {
-        ::nsf::alias ${:rootClass}  __trace__ -objscope ::trace
+        ::nsf::alias ${:rootClass}  __trace__ -frame object ::trace
       } else {
         ::nsf::method ${:rootClass} __trace__ {} {}
       }
@@ -714,7 +714,7 @@ namespace eval ::nx::serializer {
       }
 
       :collect-var-traces $o $s
-      set objectName [::nsf::dispatch $o -objscope ::nsf::current object]
+      set objectName [::nsf::dispatch $o -frame method ::nsf::current object]
       set isSlotContainer [::nx::isSlotContainer $objectName]
       if {$isSlotContainer} {
 	append cmd [list ::nx::slotObj [$o ::nsf::methods::object::info::parent]]\n
@@ -790,7 +790,7 @@ namespace eval ::nx::serializer {
     }
 
     :public method serialize-all-end {s} {
-      return "[next]\n::nsf::alias ::xotcl::Object trace -objscope ::trace\n"
+      return "[next]\n::nsf::alias ::xotcl::Object trace -frame object ::trace\n"
     }
 
 
@@ -849,7 +849,7 @@ namespace eval ::nx::serializer {
 
     :method Object-serialize {o s} {
       :collect-var-traces $o $s
-      append cmd [list [$o info class] create [::nsf::dispatch $o -objscope ::nsf::current object]]
+      append cmd [list [$o info class] create [::nsf::dispatch $o -frame method ::nsf::current object]]
       append cmd " -noinit\n"
       foreach i [$o ::nsf::methods::object::info::methods -methodtype scripted -callprotection all] {
         append cmd [:method-serialize $o $i ""] "\n"
@@ -886,12 +886,8 @@ namespace eval ::nx::serializer {
       }
       # provide limited support for exporting aliases for XOTcl objects
       foreach i [$o ::nsf::methods::class::info::methods -methodtype alias -callprotection all] {
-        set xotcl2Def [$o ::nsf::methods::class::info::method definition $i]
-        set objscope   [lindex $xotcl2Def end-2]
-        set methodName [lindex $xotcl2Def end-1]
-        set cmdName    [lindex $xotcl2Def end]
-        if {$objscope ne "-objscope"} {set objscope ""}
-        append cmd [list ::nsf::alias $o $methodName {*}$objscope $cmdName]\n
+        set nxDef [$o ::nsf::methods::class::info::method definition $i]
+        append cmd [list ::nsf::alias $o {*}[lrange $nxDef 2 end]\n
       }
       append cmd \
           [:frameWorkCmd ::nsf::relation $o superclass -unless ${:rootClass}] \
