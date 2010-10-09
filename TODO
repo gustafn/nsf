@@ -1745,6 +1745,13 @@ _ added option noforwarder to RelationSlots
   the same (always first the method, then "-frame ...")
 - extened regression test
 
+- renamed some arguments of tcl interface to increase consistency
+- make requiredness explicit for nsf::cmds
+- introduce ::nsf::parametersyntax to provide syntax for potentially
+  missing definitions
+- provided ::nsf::parametersyntax for 3 ::nsf commands 
+  and 7 nx methods (from relationslots)
+
 TODO: 
 
 - "-returns" 

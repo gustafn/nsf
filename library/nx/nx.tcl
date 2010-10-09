@@ -869,13 +869,13 @@ namespace eval ::nx {
     return [list oparam $objparamdefinition mparam $methodparamdefinition]
   }
 
-  proc ::nsf::parametersfromslots {obj} {
+  proc ::nsf::parametersfromslots {object} {
     set parameterdefinitions [list]
-    foreach slot [::nsf::dispatch $obj ::nsf::methods::object::info::lookupslots -type ::nx::Slot] {
+    foreach slot [::nsf::dispatch $object ::nsf::methods::object::info::lookupslots -type ::nx::Slot] {
       # Skip some slots for xotcl; 
       # TODO: maybe different parametersfromslots for xotcl?
       if {[::nsf::is class ::xotcl::Object] 
-	  && [::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::xotcl::Object] && 
+	  && [::nsf::dispatch $object ::nsf::methods::object::info::hastype ::xotcl::Object] && 
           ([$slot name] eq "mixin" || [$slot name] eq "filter")
 	} continue
       array set "" [$slot toParameterSyntax]
@@ -1515,6 +1515,16 @@ namespace eval ::nx {
   }
 
   interp alias {} ::nx::self {} ::nsf::current object
+
+  set value "?add class?|?assign classes?|?get?|?delete class?"
+  set ::nsf::parametersyntax(::nsf::classes::nx::Object::mixin) $value
+  set ::nsf::parametersyntax(::nsf::classes::nx::Class::mixin) $value
+  set ::nsf::parametersyntax(::nsf::classes::nx::Class::superclass) $value
+  set ::nsf::parametersyntax(::nsf::classes::nx::Object::class) "?class?"
+  set value "?add filter?|?assign filters?|?get?|?delete filter?"
+  set ::nsf::parametersyntax(::nsf::classes::nx::Object::filter) $value
+  set ::nsf::parametersyntax(::nsf::classes::nx::Class::filter) $value
+  set ::nsf::parametersyntax(::nsf::classes::nx::Object::eval) "arg ?arg ...?"
 }
 
 #######################################################################

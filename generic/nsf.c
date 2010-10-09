@@ -10047,10 +10047,10 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject *o
         }
 
       } else if (!TclIsVarUndefined(varPtr)) {
-        return NsfVarErrMsg(interp, "variable '", varNameString,
+        return NsfVarErrMsg(interp, "varname '", varNameString,
                               "' exists already", (char *) NULL);
       } else if (TclIsVarTraced(varPtr)) {
-        return NsfVarErrMsg(interp, "variable '", varNameString,
+        return NsfVarErrMsg(interp, "varname '", varNameString,
                               "' has traces: can't use for instvar", (char *) NULL);
       }
     }
@@ -12734,7 +12734,7 @@ NsfColonCmd(Tcl_Interp *interp, int nobjc, Tcl_Obj *CONST nobjv[]) {
 /*
 nsfCmd existsvar NsfExistsVarCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "var" -required 1}
+  {-argName "varname" -required 1}
 }
 */
 static int
@@ -13917,18 +13917,18 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
 /*
 nsfCmd setvar NsfSetVarCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "variable" -required 1 -type tclobj}
+  {-argName "varname" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
 */
 static int
-NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *variable, Tcl_Obj *valueObj) {
+NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varname, Tcl_Obj *valueObj) {
 
-  if (CheckVarName(interp, ObjStr(variable)) != TCL_OK) {
+  if (CheckVarName(interp, ObjStr(varname)) != TCL_OK) {
     return TCL_ERROR;
   }
 
-  return SetInstVar(interp, object, variable, valueObj);
+  return SetInstVar(interp, object, varname, valueObj);
 }
 
 /*

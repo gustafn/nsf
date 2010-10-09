@@ -22,14 +22,14 @@ nsfCmd __db_show_stack NsfShowStackCmd {
 nsfCmd __db_run_assertions NsfDebugRunAssertionsCmd {
 }
 nsfCmd alias NsfAliasCmd {
-  {-argName "object" -type object}
+  {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "methodName"}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
 nsfCmd assertion NsfAssertionCmd {
-  {-argName "object" -type object}
+  {-argName "object" -required 1 -type object}
   {-argName "assertionsubcmd" -required 1 -nrargs 1 -type "check|object-invar|class-invar"}
   {-argName "arg" -required 0 -type tclobj}
 }
@@ -58,7 +58,7 @@ nsfCmd colon NsfColonCmd {
 }
 nsfCmd existsvar NsfExistsVarCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "var" -required 1}
+  {-argName "varname" -required 1}
 }
 nsfCmd finalize NsfFinalizeObjCmd {
 }
@@ -77,15 +77,15 @@ nsfCmd forward NsfForwardCmd {
   {-argName "args" -type args}
 }
 nsfCmd importvar NsfImportvarCmd {
-  {-argName "object" -type object}
+  {-argName "object" -required 1 -type object}
   {-argName "args" -type args}
 }
 nsfCmd interp NsfInterpObjCmd {
-  {-argName "name"}
+  {-argName "name" -required 1}
   {-argName "args" -type allargs}
 }
 nsfCmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
-  {-argName "class" -type class}
+  {-argName "class" -required 1 -type class}
 }
 nsfCmd is NsfIsCmd {
   {-argName "-complain"}
@@ -130,10 +130,10 @@ nsfCmd nscopyvars NsfNSCopyVarsCmd {
   {-argName "toNs" -required 1 -type tclobj}
 }
 nsfCmd qualify NsfQualifyObjCmd {
-  {-argName "name" -required 1 -type tclobj}
+  {-argName "objectname" -required 1 -type tclobj}
 }
 nsfCmd relation NsfRelationCmd {
-  {-argName "object" -type object}
+  {-argName "object"  -required 1 -type object}
   {-argName "relationtype" -required 1 -type "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"}
   {-argName "value" -required 0 -type tclobj}
 }
@@ -143,7 +143,7 @@ nsfCmd current NsfCurrentCmd {
 
 nsfCmd setvar NsfSetVarCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "variable" -required 1 -type tclobj}
+  {-argName "varname" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
 nsfCmd setter NsfSetterCmd {
@@ -169,7 +169,7 @@ objectMethod destroy NsfODestroyMethod {
 }
 
 objectMethod exists NsfOExistsMethod {
-  {-argName "var" -required 1}
+  {-argName "varname" -required 1}
 }
 
 objectMethod filterguard NsfOFilterGuardMethod {

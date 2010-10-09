@@ -15,6 +15,7 @@ static char cmd[] =
 "eval [linsert $cmd 1 $object]} else {\n"
 "eval [linsert $(definition) 1 $object]}} else {\n"
 "error \"cannot require method $name for $object, method unknown\"}}\n"
+"set ::nsf::parametersyntax(::nsf::mixin) \"object ?-per-object? classes\"\n"
 "proc ::nsf::mixin {object args} {\n"
 "if {[lindex $args 0] eq \"-per-object\"} {\n"
 "set rel \"object-mixin\"\n"
@@ -30,7 +31,7 @@ static char cmd[] =
 "set {::proc ::nsf::__exithandler {} $value}\n"
 "get {::info body ::nsf::__exithandler}\n"
 "unset {proc ::nsf::__exithandler args {;}}\n"
-"default {error \"syntax: ::nsf::exithandler set|get|unset ?arg?\"}}}\n"
+"default {error \"syntax: ::nsf::exithandler $::nsf::parametersyntax(::nsf::exithandler)\"}}}\n"
 "::nsf::exithandler unset\n"
 "proc tmpdir {} {\n"
 "foreach e [list TMPDIR TEMP TMP] {\n"
@@ -44,6 +45,9 @@ static char cmd[] =
 "return $d}}}\n"
 "return /tmp}\n"
 "namespace export tmpdir\n"
-"if {![info exists ::env(HOME)]} {set ::env(HOME) /root}}\n"
+"if {![info exists ::env(HOME)]} {set ::env(HOME) /root}\n"
+"set ::nsf::parametersyntax(::nsf::xotclnext) \"?--noArgs? ?arg ...?\"\n"
+"set ::nsf::parametersyntax(::nsf::__unset_unknown_args) \"\"\n"
+"set ::nsf::parametersyntax(::nsf::exithandler) \"?get?|?set cmds?|?unset?\"}\n"
 "";
 

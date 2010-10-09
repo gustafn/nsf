@@ -38,10 +38,12 @@ namespace eval ::nsf {
   }
 
   #
-  # ::nsf::mixin
+  # ::nsf::mixin 
   #
   # provide a similar interface as for ::nsf::method, ::nsf::alias, ...
   #
+
+  set ::nsf::parametersyntax(::nsf::mixin) "object ?-per-object? classes"
 
   proc ::nsf::mixin {object args} {
     if {[lindex $args 0] eq "-per-object"} {
@@ -70,7 +72,7 @@ namespace eval ::nsf {
       set {::proc ::nsf::__exithandler {} $value}
       get {::info body ::nsf::__exithandler}
       unset {proc ::nsf::__exithandler args {;}}
-      default {error "syntax: ::nsf::exithandler set|get|unset ?arg?"}
+      default {error "syntax: ::nsf::exithandler $::nsf::parametersyntax(::nsf::exithandler)"}
     }
   }
   # initialize exit handler
@@ -102,5 +104,9 @@ namespace eval ::nsf {
 
   # if HOME is not set, and ~ is resolved, Tcl chokes on that
   if {![info exists ::env(HOME)]} {set ::env(HOME) /root}
+
+  set ::nsf::parametersyntax(::nsf::xotclnext) "?--noArgs? ?arg ...?"
+  set ::nsf::parametersyntax(::nsf::__unset_unknown_args) ""
+  set ::nsf::parametersyntax(::nsf::exithandler) "?get?|?set cmds?|?unset?"
 
 }
