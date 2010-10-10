@@ -685,11 +685,12 @@ typedef struct NsfRuntimeState {
   int errorCount;
   /* these flags could move into a bitarray, but are used only once per interp*/
   int unknown;
-  int doFilters;
   int doSoftrecreate;
   int doKeepinitcmd;
   int doCheckResults;
   int doCheckArguments;
+  int doFilters;
+  int debugLevel;
   int exitHandlerDestroyRound;
   int returnCode;
   int overloadedMethods;

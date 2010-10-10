@@ -79,12 +79,12 @@ static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfPara
   return result;
 }
   
-enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepinitcmdIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx};
+enum ConfigureoptionIdx {ConfigureoptionNULL, ConfigureoptionDebugIdx, ConfigureoptionFilterIdx, ConfigureoptionSoftrecreateIdx, ConfigureoptionObjectsystemsIdx, ConfigureoptionKeepinitcmdIdx, ConfigureoptionCheckresultsIdx, ConfigureoptionCheckargumentsIdx};
 
 static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"filter", "softrecreate", "objectsystems", "keepinitcmd", "checkresults", "checkarguments", NULL};
+  static CONST char *opts[] = {"debug", "filter", "softrecreate", "objectsystems", "keepinitcmd", "checkresults", "checkarguments", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "configureoption", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -163,7 +163,7 @@ static enumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToMethodproperty, "class-only|call-protected|redefine-protected|returns|slotcontainer|slotobj"},
   {ConvertToRelationtype, "object-mixin|class-mixin|object-filter|class-filter|class|superclass|rootclass"},
   {ConvertToSource, "all|application|baseclasses"},
-  {ConvertToConfigureoption, "filter|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},
+  {ConvertToConfigureoption, "debug|filter|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"},
   {ConvertToAssertionsubcmd, "check|object-invar|class-invar"},
   {NULL, NULL}
 };
@@ -2118,7 +2118,7 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::methods::class::info::method", NsfClassInfoMethodMethodStub, 2, {
   {"infomethodsubcmd", 0|NSF_ARG_IS_ENUMERATION, 0, ConvertToInfomethodsubcmd},
-  {"name", 0, 0, ConvertToTclobj}}
+  {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::class::info::methods", NsfClassInfoMethodsMethodStub, 6, {
   {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection},
@@ -2353,22 +2353,22 @@ static methodDefinition method_definitions[] = {
   {"name", 0, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::hasmixin", NsfObjInfoHasMixinMethodStub, 1, {
-  {"class", 0, 0, ConvertToClass}}
+  {"class", NSF_ARG_REQUIRED, 0, ConvertToClass}}
 },
 {"::nsf::methods::object::info::hastype", NsfObjInfoHasTypeMethodStub, 1, {
-  {"class", 0, 0, ConvertToClass}}
+  {"class", NSF_ARG_REQUIRED, 0, ConvertToClass}}
 },
 {"::nsf::methods::object::info::hasnamespace", NsfObjInfoHasnamespaceMethodStub, 0, {
   }
 },
 {"::nsf::methods::object::info::is", NsfObjInfoIsMethodStub, 1, {
-  {"objectkind", 0|NSF_ARG_IS_ENUMERATION, 0, ConvertToObjectkind}}
+  {"objectkind", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 0, ConvertToObjectkind}}
 },
 {"::nsf::methods::object::info::lookupfilter", NsfObjInfoLookupFilterMethodStub, 1, {
-  {"filter", 0, 0, ConvertToString}}
+  {"filter", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::lookupmethod", NsfObjInfoLookupMethodMethodStub, 1, {
-  {"name", 0, 0, ConvertToTclobj}}
+  {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::object::info::lookupmethods", NsfObjInfoLookupMethodsMethodStub, 7, {
   {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection},
@@ -2384,7 +2384,7 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::methods::object::info::method", NsfObjInfoMethodMethodStub, 2, {
   {"infomethodsubcmd", 0|NSF_ARG_IS_ENUMERATION, 0, ConvertToInfomethodsubcmd},
-  {"name", 0, 0, ConvertToTclobj}}
+  {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::object::info::methods", NsfObjInfoMethodsMethodStub, 6, {
   {"-callprotection", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToCallprotection},

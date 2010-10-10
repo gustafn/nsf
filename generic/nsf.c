@@ -12420,7 +12420,7 @@ NsfAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj *arg)
 
 /*
 nsfCmd configure NsfConfigureCmd {
-  {-argName "configureoption" -required 1 -type "filter|softrecreate|objectsystems|keepinitcmd|checkresult"}
+  {-argName "configureoption" -required 1 -type "debug|filter|softrecreate|objectsystems|keepinitcmd|checkresult"}
   {-argName "value" -required 0 -type tclobj}
 }
 */
@@ -12439,6 +12439,22 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
       Tcl_ListObjAppendElement(interp, list, osObj);
     }
     Tcl_SetObjResult(interp, list);
+    return TCL_OK;
+  }
+
+  if (configureoption == ConfigureoptionDebugIdx) {
+    int level;
+
+    if (valueObj) {
+      int result = Tcl_GetIntFromObj(interp, valueObj, &level);
+      if (result != TCL_OK) {
+	return result;
+      }
+      RUNTIME_STATE(interp)->debugLevel = level;
+    }
+    Tcl_SetIntObj(Tcl_GetObjResult(interp),
+                      RUNTIME_STATE(interp)->debugLevel);
+
     return TCL_OK;
   }
 
@@ -15380,7 +15396,7 @@ NsfObjInfoForwardMethod(Tcl_Interp *interp, NsfObject *object, int withDefinitio
 
 /*
 objectInfoMethod hasmixin NsfObjInfoHasMixinMethod {
-  {-argName "class" -type class}
+  {-argName "class" -required 1 -type class}
 }
 */
 static int
@@ -15401,7 +15417,7 @@ NsfObjInfoHasnamespaceMethod(Tcl_Interp *interp, NsfObject *object) {
 
 /*
 objectInfoMethod hastype NsfObjInfoHasTypeMethod {
-  {-argName "class" -type class}
+  {-argName "class" -required 1 -type class}
 }
 */
 static int
@@ -15412,7 +15428,7 @@ NsfObjInfoHasTypeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *typeCla
 
 /*
 objectInfoMethod is NsfObjInfoIsMethod {
-  {-argName "objectkind" -type "class|baseclass|metaclass"}
+  {-argName "objectkind" -required 1 -type "class|baseclass|metaclass"}
 }
 */
 static int
@@ -15440,7 +15456,7 @@ NsfObjInfoIsMethod(Tcl_Interp *interp, NsfObject *object, int objectkind) {
 
 /*
 objectInfoMethod lookupfilter NsfObjInfoLookupFilterMethod {
-  {-argName "filter"}
+  {-argName "filter" -required 1}
 }
 */
 static int
@@ -15475,7 +15491,7 @@ NsfObjInfoLookupFilterMethod(Tcl_Interp *interp, NsfObject *object, CONST char *
 
 /*
 objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
-  {-argName "pattern" -required 0}
+  {-argName "name" -required 1 -type tclobj}
 }
 */
 static int
@@ -15602,7 +15618,7 @@ NsfObjInfoLookupSlotsMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *typ
 /*
 objectInfoMethod method NsfObjInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
-  {-argName "name"}
+  {-argName "name" -required 1 -type tclobj}
 }
 */
 
@@ -15856,7 +15872,7 @@ NsfClassInfoInstancesMethod(Tcl_Interp *interp, NsfClass *startCl,
 /*
 classInfoMethod method NsfClassInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|subcommands"}
-  {-argName "name"}
+  {-argName "name" -required 1 -type tclobj}
 }
 */
 

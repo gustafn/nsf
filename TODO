@@ -1752,6 +1752,9 @@ _ added option noforwarder to RelationSlots
 - provided ::nsf::parametersyntax for 3 ::nsf commands 
   and 7 nx methods (from relationslots)
 
+- fix requiredness of several info methods
+- added "nsf::configure debug ?level?"
+
 TODO: 
 
 - "-returns" 

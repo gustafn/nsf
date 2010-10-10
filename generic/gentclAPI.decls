@@ -34,7 +34,7 @@ nsfCmd assertion NsfAssertionCmd {
   {-argName "arg" -required 0 -type tclobj}
 }
 nsfCmd configure NsfConfigureCmd {
-  {-argName "configureoption" -required 1 -type "filter|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
+  {-argName "configureoption" -required 1 -type "debug|filter|softrecreate|objectsystems|keepinitcmd|checkresults|checkarguments"}
   {-argName "value" -required 0 -type tclobj}
 }
 nsfCmd createobjectsystem NsfCreateObjectSystemCmd {
@@ -237,21 +237,21 @@ objectInfoMethod forward NsfObjInfoForwardMethod {
   {-argName "name"}
 }
 objectInfoMethod hasmixin NsfObjInfoHasMixinMethod {
-  {-argName "class" -type class}
+  {-argName "class" -required 1 -type class}
 }
 objectInfoMethod hasnamespace NsfObjInfoHasnamespaceMethod {
 }
 objectInfoMethod hastype NsfObjInfoHasTypeMethod {
-  {-argName "class" -type class}
+  {-argName "class" -required 1 -type class}
 }
 objectInfoMethod is NsfObjInfoIsMethod {
-  {-argName "objectkind" -type "class|baseclass|metaclass"}
+  {-argName "objectkind" -required 1 -type "class|baseclass|metaclass"}
 }
 objectInfoMethod lookupfilter NsfObjInfoLookupFilterMethod {
-  {-argName "filter"}
+  {-argName "filter" -required 1}
 }
 objectInfoMethod lookupmethod NsfObjInfoLookupMethodMethod {
-  {-argName "name" -type tclobj}
+  {-argName "name" -required 1 -type tclobj}
 }
 objectInfoMethod lookupmethods NsfObjInfoLookupMethodsMethod {
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default all}
@@ -267,7 +267,7 @@ objectInfoMethod lookupslots NsfObjInfoLookupSlotsMethod {
 }
 objectInfoMethod method NsfObjInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"}
-  {-argName "name" -type tclobj}
+  {-argName "name" -required 1 -type tclobj}
 }
 objectInfoMethod methods NsfObjInfoMethodsMethod {
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
@@ -320,7 +320,7 @@ classInfoMethod instances NsfClassInfoInstancesMethod {
 
 classInfoMethod method NsfClassInfoMethodMethod {
   {-argName "infomethodsubcmd" -type "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"}
-  {-argName "name" -type tclobj}
+  {-argName "name" -required 1 -type tclobj}
 }
 classInfoMethod methods NsfClassInfoMethodsMethod {
   {-argName "-callprotection" -nrargs 1 -type "all|protected|public" -default public}
