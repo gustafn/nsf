@@ -6948,16 +6948,14 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
   if (cmd && (Tcl_Command_flags(cmd) & NSF_CMD_PROTECTED_METHOD) &&
       (flags & (NSF_CM_NO_UNKNOWN|NSF_CM_NO_PROTECT)) == 0) {
-    NsfObject *o, *lastSelf = GetSelfObj(interp);
+    NsfObject *lastSelf = GetSelfObj(interp);
 
-    /* we do not want to rely on clientData, so get obj from cmdObj */
-    GetObjectFromObj(interp, cmdObj, &o);
-    if (o != lastSelf) {
-      /*fprintf(stderr, "+++ protected method %s is not invoked\n", methodName);*/
-      /* allow unknown-handler to handle this case */
-      fprintf(stderr, "+++ %s is protected, therefore unknown %p %s lastself=%p o=%p flags = %.6x\n",
-	      methodName, cmdObj, ObjStr(cmdObj), lastSelf, o, flags);
-      /*NsfShowStack(interp);*/
+    if (object != lastSelf) {
+      if (RUNTIME_STATE(interp)->debugLevel > 0) {
+	fprintf(stderr, "Warning: method %s is protected; %s.%s is treated as unknown.\n", 
+		methodName, objectName(object), methodName);
+      }
+      /* reset cmd, since it is still unknown */
       cmd = NULL;
     }
   }

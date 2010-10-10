@@ -55,6 +55,7 @@ namespace eval ::nx {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "filterguard" "mixinguard"]} continue
     ::nsf::alias Class $cmdName $cmd 
+    unset cmdName
   }
 
   # set a few aliases as protected
@@ -66,6 +67,7 @@ namespace eval ::nx {
   foreach cmd [list recreate] {
     ::nsf::methodproperty Class $cmd call-protected 1
   }
+  unset cmd
 
   # protect some methods against redefinition
   ::nsf::methodproperty Object destroy redefine-protected true
@@ -502,6 +504,7 @@ namespace eval ::nx {
     if {[::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method type $m] eq "object"} continue
     set definition [::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method definition $m]
     ::nx::Class::slot::__info {*}[lrange $definition 1 end]
+    unset definition
   }
 
   Class eval {
@@ -1461,6 +1464,7 @@ namespace eval ::nx {
   foreach m [Class info methods] {
     ::nsf::methodproperty Class $m class-only true
   }
+  unset m
 
   #######################################################
   # some utilities
@@ -1525,6 +1529,9 @@ namespace eval ::nx {
   set ::nsf::parametersyntax(::nsf::classes::nx::Object::filter) $value
   set ::nsf::parametersyntax(::nsf::classes::nx::Class::filter) $value
   set ::nsf::parametersyntax(::nsf::classes::nx::Object::eval) "arg ?arg ...?"
+  unset value
+
+  ::nsf::configure debug 1
 }
 
 #######################################################################
@@ -1539,5 +1546,10 @@ namespace eval ::nx {
   
   unset bootstrap
 }
-puts stderr =======NX-done
-
+if {[::nsf::configure debug] > 1} {
+  foreach ns {::nsf ::nx} {
+    puts "vars of $ns: [info vars ${ns}::*]"
+    puts stderr "$ns exports: [namespace eval $ns {lsort [namespace export]}]"
+  }
+  puts stderr "======= nx loaded"
+}

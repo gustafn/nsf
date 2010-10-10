@@ -1755,6 +1755,11 @@ _ added option noforwarder to RelationSlots
 - fix requiredness of several info methods
 - added "nsf::configure debug ?level?"
 
+- use "nsf::configure debug" for 
+  value 1: compain about protected
+  value >1: provide load messages for nx and xotcl
+- unset unneeded variables in ::nx namespace
+
 TODO: 
 
 - "-returns" 
@@ -1765,7 +1770,8 @@ TODO:
 - forward has just "-objscope", no general "-frame method|object".
   Since forwarder have client data, they always push a method frame.
   So, the situation is different to nsd::alias and ::nsf::dispatch.
-  not sure, if we should rename "-objscope" to something different.
+  not sure, if we should rename "-objscope" to something different,
+  such as e.g. "-objectframe".
 
 - when compiled on my home machine for tcl 8.5.9 + aolserver, 
   i see the behavior that "info exists :type" does not appear to work,
@@ -1793,8 +1799,6 @@ TODO:
   Note concerning treating CMETHOD_FRAME like METHOD_FRAMES: we did
   this change for NsfCallStackFindLastInvocation(), but nsfStack.c has
   still several occurences, where they are treated differently.
-
-- add "::nsf::configure verbose on|off" ... or "warning"? or "debug level"?
 
 - C-interface
     * rework C-interface

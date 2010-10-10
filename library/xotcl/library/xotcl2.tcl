@@ -956,7 +956,7 @@ namespace eval ::xotcl {
     set :packagecmd ::package
   }
   
-  if {[info exists cmd]} {unset cmd}
+  unset -nocomplain cmd
 
   # Documentation stub object -> just ignore per default.
   # if xoDoc is loaded, documentation will be activated
@@ -971,6 +971,10 @@ namespace eval ::xotcl {
   namespace export Object Class Attribute myproc myvar my self next @
 }
 
-foreach ns {::nsf ::nx ::xotcl} {
-  puts stderr "$ns exports [namespace eval $ns {lsort [namespace export]}]"
+if {[::nsf::configure debug] > 1} {
+  foreach ns {::xotcl} {
+    puts "vars of $ns: [info vars ${ns}::*]"
+    puts stderr "$ns exports: [namespace eval $ns {lsort [namespace export]}]"
+  }
+  puts stderr "======= XOTcl $::xotcl::version$::xotcl::patchlevel loaded"
 }
