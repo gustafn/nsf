@@ -152,6 +152,9 @@ nsfCmd setter NsfSetterCmd {
   {-argName "parameter" -type tclobj}
 }
 
+#
+# object methods
+#
 objectMethod autoname NsfOAutonameMethod {
   {-argName "-instance"}
   {-argName "-reset"}
@@ -177,7 +180,7 @@ objectMethod filterguard NsfOFilterGuardMethod {
   {-argName "guard" -required 1 -type tclobj}
 }
 
-objectMethod instvar NsfOInstVarMethod {
+objectMethod instvar NsfOInstvarMethod {
   {-argName "args" -type allargs}
 }
 
@@ -185,10 +188,6 @@ objectMethod mixinguard NsfOMixinGuardMethod {
   {-argName "mixin" -required 1}
   {-argName "guard" -required 1 -type tclobj}
 }
-
-# objectMethod __next NsfONextMethod {
-#  {-argName "args" -type allargs}
-#}
 
 objectMethod noinit NsfONoinitMethod {
 }
@@ -213,6 +212,43 @@ objectMethod volatile NsfOVolatileMethod {
 
 objectMethod vwait NsfOVwaitMethod {
   {-argName "varname" -required 1}
+}
+
+#
+# class methods
+#
+
+classMethod alloc NsfCAllocMethod {
+  {-argName "name" -required 1 -type tclobj}
+}
+
+classMethod create NsfCCreateMethod {
+  {-argName "name" -required 1}
+  {-argName "args" -type allargs}
+}
+
+classMethod dealloc NsfCDeallocMethod {
+  {-argName "object" -required 1 -type tclobj}
+}
+
+classMethod filterguard NsfCFilterGuardMethod {
+  {-argName "filter" -required 1}
+  {-argName "guard" -required 1 -type tclobj}
+}
+
+classMethod mixinguard NsfCMixinGuardMethod {
+  {-argName "mixin" -required 1}
+  {-argName "guard" -required 1 -type tclobj}
+}
+
+classMethod new NsfCNewMethod {
+  {-argName "-childof" -type object -nrargs 1}
+  {-argName "args" -required 0 -type args}
+}
+
+classMethod recreate NsfCRecreateMethod {
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "args" -type allargs}
 }
 
 #
@@ -352,40 +388,7 @@ classInfoMethod superclass NsfClassInfoSuperclassMethod {
   {-argName "pattern" -type tclobj}
 }
 
-#
-# class methods
-#
 
-classMethod alloc NsfCAllocMethod {
-  {-argName "name" -required 1 -type tclobj}
-}
-
-classMethod create NsfCCreateMethod {
-  {-argName "name" -required 1}
-  {-argName "args" -type allargs}
-}
-
-classMethod dealloc NsfCDeallocMethod {
-  {-argName "object" -required 1 -type tclobj}
-}
-
-classMethod new NsfCNewMethod {
-  {-argName "-childof" -type object -nrargs 1}
-  {-argName "args" -required 0 -type args}
-}
-classMethod filterguard NsfCFilterGuardMethod {
-  {-argName "filter" -required 1}
-  {-argName "guard" -required 1 -type tclobj}
-}
-classMethod mixinguard NsfCMixinGuardMethod {
-  {-argName "mixin" -required 1}
-  {-argName "guard" -required 1 -type tclobj}
-}
-
-classMethod recreate NsfCRecreateMethod {
-  {-argName "name" -required 1 -type tclobj}
-  {-argName "args" -type allargs}
-}
 #
 # check methods
 #

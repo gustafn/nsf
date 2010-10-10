@@ -240,7 +240,7 @@ static int NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, in
 static int NsfODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfOInstvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -323,7 +323,7 @@ static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl
 static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfOExistsMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *varname);
 static int NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter, Tcl_Obj *guard);
-static int NsfOInstVarMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
+static int NsfOInstvarMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int NsfOMixinGuardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin, Tcl_Obj *guard);
 static int NsfONoinitMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfORequireNamespaceMethod(Tcl_Interp *interp, NsfObject *obj);
@@ -407,7 +407,7 @@ enum {
  NsfODestroyMethodIdx,
  NsfOExistsMethodIdx,
  NsfOFilterGuardMethodIdx,
- NsfOInstVarMethodIdx,
+ NsfOInstvarMethodIdx,
  NsfOMixinGuardMethodIdx,
  NsfONoinitMethodIdx,
  NsfORequireNamespaceMethodIdx,
@@ -1523,12 +1523,12 @@ NsfOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
 }
 
 static int
-NsfOInstVarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfOInstvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-    return NsfOInstVarMethod(interp, obj, objc, objv);
+    return NsfOInstvarMethod(interp, obj, objc, objv);
 
 }
 
@@ -2305,7 +2305,7 @@ static methodDefinition method_definitions[] = {
   {"filter", NSF_ARG_REQUIRED, 0, ConvertToString},
   {"guard", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
-{"::nsf::methods::object::instvar", NsfOInstVarMethodStub, 1, {
+{"::nsf::methods::object::instvar", NsfOInstvarMethodStub, 1, {
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::methods::object::mixinguard", NsfOMixinGuardMethodStub, 2, {

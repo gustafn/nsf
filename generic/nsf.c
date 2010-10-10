@@ -203,7 +203,6 @@ NSF_INLINE static int ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackCon
 					     int result, char *string, CONST char *methodName);
 
 /* prototypes for object life-cycle management */
-static int DoDealloc(Tcl_Interp *interp, NsfObject *object);
 static int RecreateObject(Tcl_Interp *interp, NsfClass *cl, NsfObject *object, int objc, Tcl_Obj *CONST objv[]);
 static void FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object);
 static void FreeAllNsfObjectsAndClasses(Tcl_Interp *interp, Tcl_HashTable *commandNameTablePtr);
@@ -9192,6 +9191,47 @@ PrimitiveODestroy(ClientData clientData) {
 }
 
 /*
+ *----------------------------------------------------------------------
+ * DoDealloc --
+ *
+ *    Perform deallocation of an object/class. This function is called
+ *    from the dealloc method and interanally to get rid of an
+ *    abject. It cares about volatile and frees/triggers free
+ *    operation depending on the stack references.
+ *
+ * Results:
+ *    Tcl return code
+ *
+ * Side effects:
+ *    freed object or object is marked to be freed.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+DoDealloc(Tcl_Interp *interp, NsfObject *object) {
+  int result;
+
+  /*fprintf(stderr, "DoDealloc obj= %s %p flags %.6x activation %d cmd %p opt=%p\n",
+          objectName(object), object, object->flags, object->activationCount,
+          object->id, object->opt);*/
+
+  result = FreeUnsetTraceVariable(interp, object);
+  if (result != TCL_OK) {
+    return result;
+  }
+
+  /*
+   * latch, and call delete command if not already in progress
+   */
+  if (RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
+      NSF_EXITHANDLER_ON_SOFT_DESTROY) {
+    CallStackDestroyObject(interp, object);
+  }
+
+  return TCL_OK;
+}
+
+/*
  * reset the object to a fresh, undestroyed state
  */
 static void
@@ -14107,6 +14147,94 @@ ParamSetFromAny(
   return ParamSetFromAny2(interp, "value:", objPtr);
 }
 
+/*
+ *----------------------------------------------------------------------
+ * GetObjectParameterDefinition --
+ *
+ *    Obtain the parameter definitions for an object by calling the
+ *    scripted method "objectparameter" if the value is not cached
+ *    already.
+ *
+ * Results:
+ *    Tcl return code, parsed structure in last argument
+ *
+ * Side effects:
+ *    Updates potentially cl->parsedParamPtr
+ *
+ *----------------------------------------------------------------------
+ */
+
+static int
+GetObjectParameterDefinition(Tcl_Interp *interp, CONST char *methodName, NsfObject *object,
+                             NsfParsedParam *parsedParamPtr) {
+  int result;
+  Tcl_Obj *rawConfArgs;
+
+  /*
+   * Parameter definitions are cached in the class, for which
+   * instances are created. The parameter definitions are flushed in
+   * the following situations:
+   *
+   * a) on class cleanup: ParsedParamFree(cl->parsedParamPtr)
+   * b) on class structure changes,
+   * c) when classmixins are added,
+   * d) when new slots are defined,
+   * e) when slots are removed
+   *
+   * When slot defaults or types are changed, the slots have to
+   * perform a manual "::nsf::invalidateobjectparameter $domain"
+   */
+
+  /*
+   * Check, if there is already a parameter definition available for
+   * creating objects of this class.
+   */
+  if (object->cl->parsedParamPtr) {
+    parsedParamPtr->paramDefs = object->cl->parsedParamPtr->paramDefs;
+    parsedParamPtr->possibleUnknowns = object->cl->parsedParamPtr->possibleUnknowns;
+    result = TCL_OK;
+  } else {
+    /*
+     * There is no parameter definition available, get a new one in
+     * the the string representation.
+     */
+    Tcl_Obj *methodObj = NsfMethodObj(interp, object, NSF_o_objectparameter_idx);
+
+    if (methodObj) {
+      /* fprintf(stderr, "=== calling %s objectparameter\n", objectName(object));*/
+      result = CallMethod((ClientData) object, interp, methodObj,
+			  2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
+
+      if (result == TCL_OK) {
+	rawConfArgs = Tcl_GetObjResult(interp);
+	/*fprintf(stderr, ".... rawConfArgs for %s => '%s'\n",
+	  objectName(object), ObjStr(rawConfArgs));*/
+	INCR_REF_COUNT(rawConfArgs);
+	
+	/* 
+	 * Parse the string representation to obtain the internal
+	 * representation.
+	 */
+	result = ParamDefsParse(interp, methodName, rawConfArgs,
+				NSF_DISALLOWED_ARG_OBJECT_PARAMETER, parsedParamPtr);
+	if (result == TCL_OK) {
+	  NsfParsedParam *ppDefPtr = NEW(NsfParsedParam);
+	  ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
+	  ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
+	  object->cl->parsedParamPtr = ppDefPtr;
+	}
+	DECR_REF_COUNT(rawConfArgs);
+      }
+    } else {
+      parsedParamPtr->paramDefs = NULL;
+      parsedParamPtr->possibleUnknowns = 0;
+      result = TCL_OK;
+    }
+  }
+
+  return result;
+}
+
 static int
 ParameterCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj,
 			  const char *varNamePrefix, int doCheck, NsfParam **paramPtrPtr) {
@@ -14167,6 +14295,13 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj,
 /***************************
  * Begin Object Methods
  ***************************/
+/*
+objectMethod autoname NsfOAutonameMethod {
+  {-argName "-instance"}
+  {-argName "-reset"}
+  {-argName "name" -required 1 -type tclobj}
+}
+*/
 static int
 NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *object, int withInstance, int withReset,
                                 Tcl_Obj *nameObj) {
@@ -14183,6 +14318,10 @@ NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *object, int withInstance, int 
   return TCL_OK;
 }
 
+/*
+objectMethod cleanup NsfOCleanupMethod {
+}
+*/
 static int
 NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object) {
   NsfClass  *cl  = NsfObjectToClass(object);
@@ -14212,73 +14351,11 @@ NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *object) {
   return TCL_OK;
 }
 
-static int
-GetObjectParameterDefinition(Tcl_Interp *interp, CONST char *methodName, NsfObject *object,
-                             NsfParsedParam *parsedParamPtr) {
-  int result;
-  Tcl_Obj *rawConfArgs;
-
-  /*
-   * Parameter definitions are cached in the class, for which
-   * instances are created. The parameter definitions are flushed in
-   * the following situations:
-   *
-   * a) on class cleanup: ParsedParamFree(cl->parsedParamPtr)
-   * b) on class structure changes,
-   * c) when classmixins are added,
-   * d) when new slots are defined,
-   * e) when slots are removed
-   *
-   * When slot defaults or types are changed, the slots have to
-   * perform a manual "::nsf::invalidateobjectparameter $domain"
-   */
-
-  /*
-   * Check, if there is already a parameter definition available for
-   * creating objects of this class.
-   */
-  if (object->cl->parsedParamPtr) {
-    parsedParamPtr->paramDefs = object->cl->parsedParamPtr->paramDefs;
-    parsedParamPtr->possibleUnknowns = object->cl->parsedParamPtr->possibleUnknowns;
-    result = TCL_OK;
-  } else {
-    /*
-     * There is no parameter definition available, get a new one in
-     * the the string representation.
-     */
-    Tcl_Obj *methodObj = NsfMethodObj(interp, object, NSF_o_objectparameter_idx);
-
-    if (methodObj) {
-      /* fprintf(stderr, "=== calling %s objectparameter\n", objectName(object));*/
-      result = CallMethod((ClientData) object, interp, methodObj,
-			  2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
-
-      if (result == TCL_OK) {
-	rawConfArgs = Tcl_GetObjResult(interp);
-	/*fprintf(stderr, ".... rawConfArgs for %s => '%s'\n",
-	  objectName(object), ObjStr(rawConfArgs));*/
-	INCR_REF_COUNT(rawConfArgs);
-	
-	/* Parse the string representation to obtain the internal representation */
-	result = ParamDefsParse(interp, methodName, rawConfArgs,
-				NSF_DISALLOWED_ARG_OBJECT_PARAMETER, parsedParamPtr);
-	if (result == TCL_OK) {
-	  NsfParsedParam *ppDefPtr = NEW(NsfParsedParam);
-	  ppDefPtr->paramDefs = parsedParamPtr->paramDefs;
-	  ppDefPtr->possibleUnknowns = parsedParamPtr->possibleUnknowns;
-	  object->cl->parsedParamPtr = ppDefPtr;
-	}
-	DECR_REF_COUNT(rawConfArgs);
-      }
-    } else {
-      parsedParamPtr->paramDefs = NULL;
-      parsedParamPtr->possibleUnknowns = 0;
-      result = TCL_OK;
-    }
-  }
-
-  return result;
+/*
+objectMethod configure NsfOConfigureMethod {
+  {-argName "args" -type allargs}
 }
+*/
 
 static int
 NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
@@ -14470,6 +14547,10 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   return result;
 }
 
+/*
+objectMethod destroy NsfODestroyMethod {
+}
+*/
 static int
 NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
   PRINTOBJ("NsfODestroyMethod", object);
@@ -14523,11 +14604,23 @@ NsfODestroyMethod(Tcl_Interp *interp, NsfObject *object) {
   return TCL_OK;
 }
 
+/*
+objectMethod exists NsfOExistsMethod {
+  {-argName "varname" -required 1}
+}
+*/
 static int
 NsfOExistsMethod(Tcl_Interp *interp, NsfObject *object, CONST char *var) {
   Tcl_SetIntObj(Tcl_GetObjResult(interp), VarExists(interp, object, var, NULL, 1, 1));
   return TCL_OK;
 }
+
+/*
+objectMethod filterguard NsfOFilterGuardMethod {
+  {-argName "filter" -required 1}
+  {-argName "guard" -required 1 -type tclobj}
+}
+*/
 
 static int
 NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *filter, Tcl_Obj *guardObj) {
@@ -14548,9 +14641,14 @@ NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *filter,
                         filter, " on ", objectName(object), (char *) NULL);
 }
 
+/*
+objectMethod instvar NsfOInstvarMethod {
+  {-argName "args" -type allargs}
+}
+*/
 
 static int
-NsfOInstVarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
+NsfOInstvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
   callFrameContext ctx = {0};
   int result;
 
@@ -14568,6 +14666,13 @@ NsfOInstVarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONS
   CallStackRestoreSavedFrames(interp, &ctx);
   return result;
 }
+
+/*
+objectMethod mixinguard NsfOMixinGuardMethod {
+  {-argName "mixin" -required 1}
+  {-argName "guard" -required 1 -type tclobj}
+}
+*/
 
 static int
 NsfOMixinGuardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *mixin, Tcl_Obj *guardObj) {
@@ -14595,19 +14700,31 @@ NsfOMixinGuardMethod(Tcl_Interp *interp, NsfObject *object, CONST char *mixin, T
                         mixin, " on ", objectName(object), (char *) NULL);
 }
 
+/*
+objectMethod noinit NsfONoinitMethod {
+}
+*/
 static int
 NsfONoinitMethod(Tcl_Interp *interp, NsfObject *object) {
   object->flags |= NSF_INIT_CALLED;
   return TCL_OK;
 }
 
-
+/*
+objectMethod requirenamespace NsfORequireNamespaceMethod {
+}
+*/
 static int
 NsfORequireNamespaceMethod(Tcl_Interp *interp, NsfObject *object) {
   RequireObjNamespace(interp, object);
   return TCL_OK;
 }
 
+/*
+objectMethod residualargs NsfOResidualargsMethod {
+  {-argName "args" -type allargs}
+}
+*/
 static int
 NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Obj **argv, **nextArgv, *resultObj;
@@ -14665,6 +14782,11 @@ NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj 
   return result;
 }
 
+/*
+objectMethod uplevel NsfOUplevelMethod {
+  {-argName "args" -type allargs}
+}
+*/
 static int
 NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
   int i, result = TCL_ERROR;
@@ -14732,6 +14854,11 @@ NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONS
   return result;
 }
 
+/*
+objectMethod upvar NsfOUpvarMethod {
+  {-argName "args" -type allargs}
+}
+*/
 static int
 NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
   Tcl_Obj *frameInfoObj = NULL;
@@ -14767,6 +14894,10 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST 
   return result;
 }
 
+/*
+objectMethod volatile NsfOVolatileMethod {
+}
+*/
 static int
 NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
   Tcl_Obj *objPtr = object->cmdName;
@@ -14802,6 +14933,11 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
   return result;
 }
 
+/*
+objectMethod vwait NsfOVwaitMethod {
+  {-argName "varname" -required 1}
+}
+*/
 static int
 NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *object, CONST char *varname) {
   int done, foundEvent;
@@ -14855,6 +14991,11 @@ NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *object, CONST char *varname) {
  * Begin Class Methods
  ***************************/
 
+/*
+classMethod alloc NsfCAllocMethod {
+  {-argName "name" -required 1 -type tclobj}
+}
+*/
 static int
 NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj) {
   Tcl_Obj *tmpName = NULL;
@@ -14917,6 +15058,12 @@ NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj) {
   return result;
 }
 
+/*
+classMethod create NsfCCreateMethod {
+  {-argName "name" -required 1}
+  {-argName "args" -type allargs}
+}
+*/
 static int
 NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, int objc, Tcl_Obj *CONST objv[]) {
   NsfObject *newObject = NULL;
@@ -15038,30 +15185,11 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
   return result;
 }
 
-static int
-DoDealloc(Tcl_Interp *interp, NsfObject *object) {
-  int result;
-
-  /*fprintf(stderr, "DoDealloc obj= %s %p flags %.6x activation %d cmd %p opt=%p\n",
-          objectName(object), object, object->flags, object->activationCount,
-          object->id, object->opt);*/
-
-  result = FreeUnsetTraceVariable(interp, object);
-  if (result != TCL_OK) {
-    return result;
-  }
-
-  /*
-   * latch, and call delete command if not already in progress
-   */
-  if (RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
-      NSF_EXITHANDLER_ON_SOFT_DESTROY) {
-    CallStackDestroyObject(interp, object);
-  }
-
-  return TCL_OK;
+/*
+classMethod dealloc NsfCDeallocMethod {
+  {-argName "object" -required 1 -type tclobj}
 }
-
+*/
 
 static int
 NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *obj) {
@@ -15078,6 +15206,72 @@ NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *obj) {
 
   return DoDealloc(interp, object);
 }
+
+/*
+classMethod filterguard NsfCFilterGuardMethod {
+  {-argName "filter" -required 1}
+  {-argName "guard" -required 1 -type tclobj}
+}
+*/
+
+static int
+NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl,
+		      CONST char *filter, Tcl_Obj *guardObj) {
+  NsfClassOpt *opt = cl->opt;
+
+  if (opt && opt->classfilters) {
+    NsfCmdList *h = CmdListFindNameInList(interp, filter, opt->classfilters);
+    if (h) {
+      if (h->clientData)
+	GuardDel(h);
+      GuardAdd(interp, h, guardObj);
+      FilterInvalidateObjOrders(interp, cl);
+      return TCL_OK;
+    }
+  }
+
+  return NsfVarErrMsg(interp, "filterguard: can't find filter ",
+			filter, " on ", className(cl),	(char *) NULL);
+}
+
+/*
+classMethod mixinguard NsfCMixinGuardMethod {
+  {-argName "mixin" -required 1}
+  {-argName "guard" -required 1 -type tclobj}
+}
+*/
+static int
+NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin, Tcl_Obj *guardObj) {
+  NsfClassOpt *opt = cl->opt;
+
+  if (opt && opt->classmixins) {
+    NsfClass *mixinCl = GetClassFromString(interp, mixin);
+    Tcl_Command mixinCmd = NULL;
+    if (mixinCl) {
+      mixinCmd = Tcl_GetCommandFromObj(interp, mixinCl->object.cmdName);
+    }
+    if (mixinCmd) {
+      NsfCmdList *h = CmdListFindCmdInList(mixinCmd, opt->classmixins);
+      if (h) {
+        if (h->clientData)
+          GuardDel((NsfCmdList *) h);
+        GuardAdd(interp, h, guardObj);
+        MixinInvalidateObjOrders(interp, cl);
+        return TCL_OK;
+      }
+    }
+  }
+
+  return NsfVarErrMsg(interp, "mixinguard: can't find mixin ",
+                        mixin, " on ", className(cl), (char *) NULL);
+}
+
+/*
+classMethod new NsfCNewMethod {
+  {-argName "-childof" -type object -nrargs 1}
+  {-argName "args" -required 0 -type args}
+}
+*/
 
 static int
 NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, NsfObject *withChildof,
@@ -15139,52 +15333,12 @@ NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, NsfObject *withChildof,
   return result;
 }
 
-static int
-NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl,
-		      CONST char *filter, Tcl_Obj *guardObj) {
-  NsfClassOpt *opt = cl->opt;
-
-  if (opt && opt->classfilters) {
-    NsfCmdList *h = CmdListFindNameInList(interp, filter, opt->classfilters);
-    if (h) {
-      if (h->clientData)
-	GuardDel(h);
-      GuardAdd(interp, h, guardObj);
-      FilterInvalidateObjOrders(interp, cl);
-      return TCL_OK;
-    }
-  }
-
-  return NsfVarErrMsg(interp, "filterguard: can't find filter ",
-			filter, " on ", className(cl),	(char *) NULL);
+/*
+classMethod recreate NsfCRecreateMethod {
+  {-argName "name" -required 1 -type tclobj}
+  {-argName "args" -type allargs}
 }
-
-static int
-NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin, Tcl_Obj *guardObj) {
-  NsfClassOpt *opt = cl->opt;
-
-  if (opt && opt->classmixins) {
-    NsfClass *mixinCl = GetClassFromString(interp, mixin);
-    Tcl_Command mixinCmd = NULL;
-    if (mixinCl) {
-      mixinCmd = Tcl_GetCommandFromObj(interp, mixinCl->object.cmdName);
-    }
-    if (mixinCmd) {
-      NsfCmdList *h = CmdListFindCmdInList(mixinCmd, opt->classmixins);
-      if (h) {
-        if (h->clientData)
-          GuardDel((NsfCmdList *) h);
-        GuardAdd(interp, h, guardObj);
-        MixinInvalidateObjOrders(interp, cl);
-        return TCL_OK;
-      }
-    }
-  }
-
-  return NsfVarErrMsg(interp, "mixinguard: can't find mixin ",
-                        mixin, " on ", className(cl), (char *) NULL);
-}
-
+*/
 static int
 RecreateObject(Tcl_Interp *interp, NsfClass *class, NsfObject *object,
 	       int objc, Tcl_Obj *CONST objv[]) {

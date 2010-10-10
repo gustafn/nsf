@@ -1760,6 +1760,11 @@ _ added option noforwarder to RelationSlots
   value >1: provide load messages for nx and xotcl
 - unset unneeded variables in ::nx namespace
 
+- copied decls for objectMethod and classMethod as comments
+  to nsf.c, fixed order
+- documented a few functions
+
+
 TODO: 
 
 - "-returns" 
@@ -1794,7 +1799,7 @@ TODO:
 - handle bug with ::variable with colon-prefixed name
   (shadowCommands does not help, see above)
 
-- work on replacing SKIP_LEVELS by SKIP_LAMBDE for openacs (works with 
+- work on replacing SKIP_LEVELS by SKIP_LAMBDA for openacs (works with 
   regression test, has problems with OrderedComposite::ChildManager.init)
   Note concerning treating CMETHOD_FRAME like METHOD_FRAMES: we did
   this change for NsfCallStackFindLastInvocation(), but nsfStack.c has
@@ -1808,9 +1813,6 @@ TODO:
       loose most likely static property and the newly
       achieved ease of changing is effectively frozen 
       by the stubs interface, which has to be stable.
-
-- copy decls for objectMethod and classMethod as comments
-  to xotcl.c, fix and check order
 
 - nameing
 
