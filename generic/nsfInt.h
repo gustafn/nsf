@@ -682,6 +682,7 @@ typedef struct NsfRuntimeState {
   Tcl_ObjCmdProc *objInterpProc;
   Tcl_Obj **methodObjNames;
   struct NsfShadowTclCommandInfo *tclCommands;
+  NsfClasses *cscList;
   int errorCount;
   /* these flags could move into a bitarray, but are used only once per interp*/
   int unknown;

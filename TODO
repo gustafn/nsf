@@ -1764,8 +1764,20 @@ _ added option noforwarder to RelationSlots
   to nsf.c, fixed order
 - documented a few functions
 
+- enabled nsf::__db_run_assertions in nx::test
+  (lead before to false posigives in destroy-test)
+- eliminated deleted objects and objects from deleted
+  namespaces in GetAllInstances()
+
+- added handling of unstacked csc entries (removed all DEBUG warnings).
 
 TODO: 
+
+- handling of unstacked entries should be made optional
+- NsfClassListAdd() and friends should be made generic
+- check, whether all CscListRemove() are needed for handling unstacked csc entries
+- finsh up CscListAdd() and CscListRemove()
+- cleanup method-modifiers.tcl
 
 - "-returns" 
   * leave syntax as is for method?

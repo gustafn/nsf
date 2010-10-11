@@ -148,7 +148,7 @@ proc ? {cmd expected {msg ""}} {
   }
   $t expected $expected 
   $t run
-  #nsf::__db_run_assertions
+  nsf::__db_run_assertions
 }
 
 

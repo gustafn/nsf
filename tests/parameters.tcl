@@ -590,7 +590,7 @@ Test case user-types {
 
 
   D public method foo {a:mytype} {
-    puts stderr a=$a
+    return a=$a
   }
   d1 foo 1
 

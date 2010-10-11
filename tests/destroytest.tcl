@@ -210,6 +210,7 @@ namespace eval ::test {
   C method foo {} {
     puts stderr "==== $::case [current]"
     namespace delete ::test
+    
     puts stderr "AAAA [current] exists [::nsf::isobject [current]]"
     :set x 1
     #

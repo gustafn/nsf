@@ -3944,20 +3944,49 @@ AppendMatchingElementsFromClasses(Tcl_Interp *interp, NsfClasses *cls,
  */
 static void
 GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *startCl) {
-  Tcl_HashTable *tablePtr = &startCl->instances;
   NsfClasses *sc;
   Tcl_HashSearch search;
   Tcl_HashEntry *hPtr;
+  Tcl_HashTable *tablePtr = &startCl->instances;
 
   for (hPtr = Tcl_FirstHashEntry(tablePtr, &search);  hPtr;
        hPtr = Tcl_NextHashEntry(&search)) {
     NsfObject *inst = (NsfObject *)Tcl_GetHashKey(tablePtr, hPtr);
+    Command *cmdPtr;
     int new;
 
+    if (inst->flags & NSF_TCL_DELETE) {
+      if (RUNTIME_STATE(interp)->debugLevel > 1) {
+	fprintf(stderr, "Warning: Object %s is apparently deleted\n", objectName(inst));
+      }
+      continue;
+    }
+
+    cmdPtr = (Command *)inst->id;
+    assert(cmdPtr);
+
+    if (cmdPtr && (cmdPtr->nsPtr->flags & NS_DYING)) {
+      if (RUNTIME_STATE(interp)->debugLevel > 0) {
+	fprintf(stderr, "Warning: Namespace of %s is apparently deleted\n", objectName(inst));
+      }
+      continue;
+    }
+
+#if !defined(NDEBUG)
+    {
+      NsfObject *object = GetObjectFromString(interp, objectName(inst));
+      assert(object);
+    }
+#endif
+
+    /*fprintf (stderr, " -- %p flags %.6x activation %d %s id %p id->flags %.6x "
+	     "nsPtr->flags %.6x (instance of %s)\n", 
+	     inst, inst->flags, inst->activationCount, 
+	     objectName(inst), inst->id, cmdPtr->flags, cmdPtr->nsPtr ? cmdPtr->nsPtr->flags : 0,
+	     ObjStr(startCl->object.cmdName));*/
+
     Tcl_CreateHashEntry(destTablePtr, objectName(inst), &new);
-    /*
-      fprintf (stderr, " -- %s (%s)\n", objectName(inst), ObjStr(startCl->object.cmdName));
-    */
+    
   }
   for (sc = startCl->sub; sc; sc = sc->nextPtr) {
     GetAllInstances(interp, destTablePtr, sc->cl);
@@ -4548,7 +4577,7 @@ MixinSearchProc(Tcl_Interp *interp, NsfObject *object, CONST char *methodName,
 
     if (cmdList->clientData) {
       if (!RUNTIME_STATE(interp)->guardCount) {
-	fprintf(stderr, "guardcall\n");
+	/*fprintf(stderr, "guardcall\n");*/
 	result = GuardCall(object, cl, (Tcl_Command) cmd, interp,
 			   (Tcl_Obj*)cmdList->clientData, NULL);
       }
@@ -6246,6 +6275,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 	 * NRE-case, we need a CscFinish for all return codes.
 	 */
 #if defined(NRE)
+	CscListRemove(interp, cscPtr);
 	CscFinish(interp, cscPtr, "guard failed");
 #endif
 	return result;
@@ -6605,6 +6635,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
      * CmdMethodDispatch () does not stack a frame.
      */
 
+    CscListAdd(interp, cscPtr);
+
     /*fprintf(stderr, "cmdMethodDispatch %s.%s, nothing stacked, objflags %.6x\n",
       objectName(object), methodName, object->flags); */
 
@@ -6655,6 +6687,7 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   result = MethodDispatchCsc(clientData, interp, objc, objv,
 			     cscPtr, methodName);
 
+  CscListRemove(interp, cscPtr);
 #if defined(NRE)
   if ((cscPtr->flags & NSF_CSC_CALL_IS_NRE) == 0) {
     CscFinish(interp, cscPtr, "csc cleanup");
@@ -6951,8 +6984,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
     if (object != lastSelf) {
       if (RUNTIME_STATE(interp)->debugLevel > 0) {
-	fprintf(stderr, "Warning: method %s is protected; %s.%s is treated as unknown.\n", 
-		methodName, objectName(object), methodName);
+	fprintf(stderr, "Warning: '%s %s' fails since method %s.%s is protected.\n", 
+		objectName(object), methodName, 
+		cl ? className(cl) : objectName(object), methodName);
       }
       /* reset cmd, since it is still unknown */
       cmd = NULL;
@@ -7007,6 +7041,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 
   if (!(cscPtr->flags & NSF_CSC_CALL_IS_NRE)) {
     result = ObjectDispatchFinalize(interp, cscPtr, result, "immediate", methodName);
+    CscListRemove(interp, cscPtr);
     CscFinish(interp, cscPtr, "non-scripted finalize");
   }
 
@@ -7810,8 +7845,11 @@ ParamParse(Tcl_Interp *interp, CONST char *procName, Tcl_Obj *arg, int disallowe
     cmd = ObjectFindMethod(interp, paramObj, converterNameObj, &pcl);
     if (cmd == NULL) {
       if (paramPtr->converter == ConvertViaCmd) {
-        fprintf(stderr, "**** could not find checker method %s defined on %s\n",
-                converterNameString, objectName(paramObj));
+
+	if (RUNTIME_STATE(interp)->debugLevel > 0) {
+	  fprintf(stderr, "Warning: could not find value checker %s defined on %s\n",
+		  converterNameString, objectName(paramObj));
+	}
         paramPtr->flags |= NSF_ARG_CURRENTLY_UNKNOWN;
         /* TODO: for the time being, we do not return an error here */
       }
@@ -11766,10 +11804,12 @@ ListMethod(Tcl_Interp *interp,
 	  }
 	} else {
 	  /* should never happen */
-	  fprintf(stderr, "should never happen, maybe someone deleted the alias %s for object %s\n",
-		  methodName, objectName(regObject));
-	  fprintf(stderr, "procPtr %p NsfObjDispatch %p name %s \n",
-		  procPtr, NsfObjDispatch, Tcl_GetCommandName(interp, cmd));
+	  if (RUNTIME_STATE(interp)->debugLevel > 0) {
+	    fprintf(stderr, "Warning: Could not obtain alias definition for %s. "
+		    "Maybe someone deleted the alias %s for object %s?\n",
+		    methodName,
+		    methodName, objectName(regObject));
+	  }
 	  Tcl_ResetResult(interp);
 	}
       }
@@ -12217,6 +12257,10 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
     char *key = Tcl_GetHashKey(tablePtr, hPtr);
     NsfObject *object = GetObjectFromString(interp, key);
 
+    if (!object) {
+      fprintf(stderr,"key %s\n", key);
+    }
+
     assert(object);
     assert(object->refCount>0);
     assert(object->cmdName->refCount>0);
@@ -12224,6 +12268,8 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
     if (object->activationCount > 0) {
       Tcl_CallFrame *framePtr;
       int count = 0;
+      NsfClasses *unstackedEntries = RUNTIME_STATE(interp)->cscList;
+
       /*fprintf(stderr, "DEBUG obj %p %s activationcount %d\n",
 	object, objectName(object), object->activationCount);*/
 
@@ -12236,9 +12282,23 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
 	if (cscPtr && cscPtr->self == object) count ++;
 	if (cscPtr && (NsfObject*)cscPtr->cl == object) count ++;
       }
+      for (; unstackedEntries; unstackedEntries = unstackedEntries->nextPtr) {
+	NsfCallStackContent *cscPtr = (NsfCallStackContent *)unstackedEntries->cl;
+	//fprintf(stderr, "unstackedEntry cscPtr %p\n", cscPtr);
+	//fprintf(stderr, "unstackedEntry object %s class %s\n",
+	//objectName(cscPtr->self), 
+	//	className(cscPtr->cl));
+	if (cscPtr && cscPtr->self == object) count ++;
+	if (cscPtr && (NsfObject*)cscPtr->cl == object) count ++;	  
+      }
+
       if (count != object->activationCount) {
-	fprintf(stderr, "DEBUG obj %p %s activationcount %d on stack %d \n",
+	fprintf(stderr, "DEBUG obj %p %s activationcount %d on stack %d; "
+		"might be from non-stacked but active callstack content\n",
 		object, objectName(object), object->activationCount, count);
+
+	fprintf(stderr, "fixed count %d\n", count);
+	/*NsfShowStack(interp);*/
 	/* return NsfVarErrMsg(interp, "wrong activation count for object ",
 	   objectName(object), (char *) NULL);*/
       }
@@ -14485,6 +14545,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
          varFramePtr to the previous value.
       */
       Nsf_PopFrameCsc(interp, framePtr2);
+      CscListRemove(interp, cscPtr);
       CscFinish(interp, cscPtr, "converter object frame");
       Tcl_Interp_varFramePtr(interp) = varFramePtr;
 
@@ -15381,8 +15442,7 @@ RecreateObject(Tcl_Interp *interp, NsfClass *class, NsfObject *object,
     if (result == TCL_OK) {
       Tcl_SetObjResult(interp, object->cmdName);
     } else {
-      // TODO remove me
-      fprintf(stderr, "recreate DoObjInitialization returned %d\n", result);
+      /* fprintf(stderr, "recreate DoObjInitialization returned %d\n", result);*/
     }
   }
   return result;
