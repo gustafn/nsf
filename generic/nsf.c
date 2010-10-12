@@ -218,7 +218,7 @@ static NsfClass *GetClassFromString(Tcl_Interp *interp, CONST char *name);
 static void GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *startClass);
 NSF_INLINE static Tcl_Command FindMethod(Tcl_Namespace *nsPtr, CONST char *methodName);
 
-/* prototypes for namespace specific calls*/
+/* prototypes for namespace specific calls */
 static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
 static Tcl_Namespace *CallingNameSpace(Tcl_Interp *interp);
 NSF_INLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *ns);
@@ -261,6 +261,10 @@ static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
 static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
 static int AliasDeleteObjectReference(Tcl_Interp *interp, Tcl_Command cmd);
+
+/* prototypes for (class) list handling */
+extern NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData);
+extern void NsfClassListFree(NsfClasses *firstPtr);
 
 /* misc prototypes */
 static int NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
@@ -754,16 +758,20 @@ NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr) {
   return objPtr;
 }
 
-extern void
-NsfClassListFree(NsfClasses *sl) {
-  NsfClasses *n;
-  for (; sl; sl = n) {
-    n = sl->nextPtr;
-    FREE(NsfClasses, sl);
-  }
-}
-
-/* reverse class list, caller is responsible for freeing data */
+/*
+ *----------------------------------------------------------------------
+ * NsfReverseClasses --
+ *
+ *    Reverse class list. Caller is responsible for freeing data.
+ *
+ * Results:
+ *    Pointer to start of the reversed list
+ *
+ * Side effects:
+ *    Allocates fresh copies of list elements
+ *
+ *----------------------------------------------------------------------
+ */
 static NsfClasses *
 NsfReverseClasses(NsfClasses *sl) {
   NsfClasses *firstPtr = NULL;
@@ -777,9 +785,48 @@ NsfReverseClasses(NsfClasses *sl) {
   return firstPtr;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NsfClassListFree --
+ *
+ *    Frees all elements of the provided
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Frees memory.
+ *
+ *----------------------------------------------------------------------
+ */
+extern void
+NsfClassListFree(NsfClasses *sl) {
+  NsfClasses *n;
+  for (; sl; sl = n) {
+    n = sl->nextPtr;
+    FREE(NsfClasses, sl);
+  }
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NsfClassListAdd --
+ *
+ *    Add class list entry to the specified list. In case the initial
+ *    list is empty, *firstPtrPtr is updated as well.
+ *
+ * Results:
+ *    Returns address of next pointer.
+ *
+ * Side effects:
+ *    New list element is allocated.
+ *
+ *----------------------------------------------------------------------
+ */
+
 extern NsfClasses **
-NsfClassListAdd(NsfClasses **cList, NsfClass *cl, ClientData clientData) {
-  NsfClasses *l = *cList, *element = NEW(NsfClasses);
+NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, ClientData clientData) {
+  NsfClasses *l = *firstPtrPtr, *element = NEW(NsfClasses);
   element->cl = cl;
   element->clientData = clientData;
   element->nextPtr = NULL;
@@ -788,9 +835,53 @@ NsfClassListAdd(NsfClasses **cList, NsfClass *cl, ClientData clientData) {
     while (l->nextPtr) l = l->nextPtr;
     l->nextPtr = element;
   } else
-    *cList = element;
+    *firstPtrPtr = element;
   return &(element->nextPtr);
 }
+
+#if defined(CHECK_ACTIVATION_COUNTS)
+/*
+ *----------------------------------------------------------------------
+ * NsfClassListUnlink --
+ *
+ *    Return removed item with matching key form nsfClasses.
+ *    Key is void to allow not only class pointers as keys.
+ *
+ * Results:
+ *    unlinked element or NULL.
+ *    In case the first element is unlinked, *firstPtrPtr 
+ *    is updated.
+ *
+ * Side effects:
+ *    none.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static NsfClasses *
+NsfClassListUnlink(NsfClasses **firstPtrPtr, void *key) {
+  NsfClasses *entryPtr = NULL, *prevPtr = NULL;
+
+  if (*firstPtrPtr != NULL) {
+    /* list is non-empty */
+    for (entryPtr = *firstPtrPtr; entryPtr; prevPtr = entryPtr, entryPtr = entryPtr->nextPtr) {
+      if ((void *)entryPtr->cl == key) {
+	/* found entry */
+	if (prevPtr) {
+	  /* later item */
+	  prevPtr->nextPtr = entryPtr->nextPtr;
+	} else {
+	  /* first item */
+	  *firstPtrPtr = entryPtr->nextPtr;
+	}
+	break;
+      }
+    }
+  }
+
+  return entryPtr;
+}
+#endif
 
 void
 NsfObjectListFree(NsfObjects *sl) {
@@ -3160,8 +3251,9 @@ CmdListDeleteCmdListEntry(NsfCmdList *del, NsfFreeCmdListClientData *freeFct) {
 static NsfCmdList *
 CmdListRemoveFromList(NsfCmdList **cmdList, NsfCmdList *delCL) {
   register NsfCmdList *c = *cmdList, *del = NULL;
-  if (c == NULL)
+  if (c == NULL) {
     return NULL;
+  }
   if (c == delCL) {
     *cmdList = c->nextPtr;
     del = c;
@@ -6275,7 +6367,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 	 * NRE-case, we need a CscFinish for all return codes.
 	 */
 #if defined(NRE)
-	CscListRemove(interp, cscPtr);
+	//CscListRemove(interp, cscPtr);
 	CscFinish(interp, cscPtr, "guard failed");
 #endif
 	return result;
@@ -6687,12 +6779,13 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
   result = MethodDispatchCsc(clientData, interp, objc, objv,
 			     cscPtr, methodName);
 
-  CscListRemove(interp, cscPtr);
 #if defined(NRE)
   if ((cscPtr->flags & NSF_CSC_CALL_IS_NRE) == 0) {
+    CscListRemove(interp, cscPtr);
     CscFinish(interp, cscPtr, "csc cleanup");
   }
 #else
+  CscListRemove(interp, cscPtr);
   CscFinish(interp, cscPtr, "csc cleanup");
 #endif
 
@@ -12264,7 +12357,10 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
     assert(object);
     assert(object->refCount>0);
     assert(object->cmdName->refCount>0);
+    assert(object->activationCount >= 0);
 
+
+#if defined(CHECK_ACTIVATION_COUNTS)
     if (object->activationCount > 0) {
       Tcl_CallFrame *framePtr;
       int count = 0;
@@ -12302,13 +12398,9 @@ NsfDebugRunAssertionsCmd(Tcl_Interp *interp) {
 	/* return NsfVarErrMsg(interp, "wrong activation count for object ",
 	   objectName(object), (char *) NULL);*/
       }
-    } else {
-      if (object->activationCount != 0) {
-	fprintf(stderr, "DEBUG obj %p %s activationcount %d\n",
-		object, objectName(object), object->activationCount);
-      }
-      assert(object->activationCount == 0);
     }
+#endif
+
   }
   /*fprintf(stderr, "all assertions passed\n");*/
   Tcl_DeleteHashTable(tablePtr);
@@ -12893,6 +12985,9 @@ NsfFinalizeObjCmd(Tcl_Interp *interp) {
   ObjectSystemsCleanup(interp);
 
 #ifdef DO_CLEANUP
+# if defined(CHECK_ACTIVATION_COUNTS)
+  assert(RUNTIME_STATE(interp)->cscList == NULL);
+# endif
   /*fprintf(stderr, "CLEANUP TOP NS\n");*/
   Tcl_Export(interp, RUNTIME_STATE(interp)->NsfNS, "", 1);
   Tcl_DeleteNamespace(RUNTIME_STATE(interp)->NsfClassesNS);

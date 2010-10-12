@@ -1,4 +1,51 @@
-static int CscListRemove(Tcl_Interp *interp, NsfCallStackContent *cscPtr);
+
+#ifdef CHECK_ACTIVATION_COUNTS
+static NsfClasses * NsfClassListUnlink(NsfClasses **firstPtrPtr, void *key);
+
+/*
+ *----------------------------------------------------------------------
+ * CscListAdd --
+ *
+ *    Add csc entry to the list of unstack entries
+ *
+ * Results:
+ *    none
+ *
+ * Side effects:
+ *    list element added
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+CscListAdd(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
+  NsfClassListAdd(&RUNTIME_STATE(interp)->cscList, (NsfClass *)cscPtr, NULL);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * CscListRemove --
+ *
+ *    Remove csc entry from the list of unstack entries
+ *
+ * Results:
+ *    true on success or 0
+ *
+ * Side effects:
+ *    list element potentially removed and freed
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+CscListRemove(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
+  NsfClasses *entryPtr;
+
+  entryPtr = NsfClassListUnlink(&RUNTIME_STATE(interp)->cscList, cscPtr);
+  if (entryPtr) {
+    FREE(NsfClasses, entryPtr);
+  }
+  return (entryPtr != NULL);
+}
+#endif
 
 /*
  *----------------------------------------------------------------------
@@ -678,7 +725,6 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
  */
 
 static void CallStackPopAll(Tcl_Interp *interp) {
-  NsfClasses *unstackedEntries = RUNTIME_STATE(interp)->cscList;
 
   NsfShowStack(interp);
 
@@ -705,15 +751,26 @@ static void CallStackPopAll(Tcl_Interp *interp) {
       Tcl_CallFrame_varTablePtr(framePtr) = NULL;
     }
 
-    for (; unstackedEntries; unstackedEntries = unstackedEntries->nextPtr) {
-      NsfCallStackContent *cscPtr = (NsfCallStackContent *)unstackedEntries->cl;
-      CscFinish(interp, cscPtr, "unwind");
-      CscListRemove(interp, cscPtr);
-    }
-
     /* pop the Tcl frame */
     Tcl_PopCallFrame(interp);
   }
+
+#if defined(CHECK_ACTIVATION_COUNTS)
+  { int count = 0;
+    NsfClasses *unstackedEntries;
+
+    for (unstackedEntries = RUNTIME_STATE(interp)->cscList; 
+	 unstackedEntries; 
+	 unstackedEntries = unstackedEntries->nextPtr, count ++) {
+      NsfCallStackContent *cscPtr = (NsfCallStackContent *)unstackedEntries->cl;
+      CscListRemove(interp, cscPtr);
+      CscFinish(interp, cscPtr, "unwind");
+    }
+    
+    fprintf(stderr, "+++ unwind removed %d unstacked csc entries\n", count);
+  }
+#endif
+
 }
 
 /*
@@ -956,41 +1013,3 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr, char *msg) {
   /*fprintf(stderr, "CscFinish done\n");*/
 }
 
-
-extern NsfClasses **
-NsfClassListAdd(NsfClasses **cList, NsfClass *cl, ClientData clientData);
-
-static void
-CscListAdd(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
-  NsfClassListAdd(&RUNTIME_STATE(interp)->cscList, (NsfClass *)cscPtr, NULL);
-  //fprintf(stderr, "added %p, cscList %p\n", cscPtr, RUNTIME_STATE(interp)->cscList);
-}
-
-static int
-CscListRemove(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
-  NsfClasses *entries = RUNTIME_STATE(interp)->cscList, *nextPtr, *prevPtr;
-  int success = 0;
-
-  //fprintf(stderr, "remove %p, cscList %p\n", cscPtr, RUNTIME_STATE(interp)->cscList);
-  prevPtr = entries;
-  for (; entries; entries = entries->nextPtr) {
-    nextPtr = entries->nextPtr;
-    //fprintf(stderr, "remove checks %p\n", entries->cl);
-    if ((NsfCallStackContent *)entries->cl == cscPtr) {
-      //fprintf(stderr, "+++ found entry %p\n", cscPtr);
-      prevPtr->nextPtr = entries->nextPtr;
-      FREE(NsfClasses, entries);
-      success = 1;
-
-      if (RUNTIME_STATE(interp)->cscList == entries) {
-	//fprintf(stderr, "apparently first entry %p\n", entries);
-	RUNTIME_STATE(interp)->cscList = nextPtr;
-      }
-
-      break;
-    }
-    prevPtr = entries;
-  }
-
-  return success;
-}

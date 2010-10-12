@@ -1771,13 +1771,17 @@ _ added option noforwarder to RelationSlots
 
 - added handling of unstacked csc entries (removed all DEBUG warnings).
 
+- made handling of unstacked entries optional by defining
+  macro CHECK_ACTIVATION_COUNTS)
+- added macro NSF_DEVELOPMENT for toplevel handling
+  if NDEBUG and CHECK_ACTIVATION_COUNTS
+- cleanup of method-modifiers.tcl
+- updated next migration guide
+
 TODO: 
 
-- handling of unstacked entries should be made optional
-- NsfClassListAdd() and friends should be made generic
-- check, whether all CscListRemove() are needed for handling unstacked csc entries
-- finsh up CscListAdd() and CscListRemove()
-- cleanup method-modifiers.tcl
+- provide parametersyntax definitions for XOTcl 2.0 similar
+  to nx
 
 - "-returns" 
   * leave syntax as is for method?
@@ -1977,3 +1981,6 @@ For future releases:
 
   * serializer: handing of xo::at_cleanup in serializer 
      (either generailization or move to OpenACS/aolserver init/naviserver init)
+
+  * NsfClassListAdd() and friends could be made generic
+

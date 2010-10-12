@@ -74,6 +74,11 @@
 #define NSF_PROFILE
 */
 
+/* are we developing?
+#define NSF_DEVELOPMENT 1
+*/
+#define NSF_DEVELOPMENT 1
+
 /* activate/deacticate assert 
 #define NDEBUG 1
 */
@@ -123,6 +128,19 @@
 #ifdef DO_FULL_CLEANUP
 # define DO_CLEANUP
 #endif
+
+#ifdef NSF_DEVELOPMENT
+# define CHECK_ACTIVATION_COUNTS 1
+#else
+# define NDEBUG 1
+#endif
+
+
+#if !defined(CHECK_ACTIVATION_COUNTS)
+# define CscListAdd(interp, cscPtr)
+# define CscListRemove(interp, cscPtr)
+#endif
+
 
 /* 
  * A special definition used to allow this header file to be included 

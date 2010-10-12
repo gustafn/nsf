@@ -69,8 +69,6 @@ the "needed" commands into ::nx namespace.
 respects:
 
 <ul>
-  <li> The Next Scripting Language has a much smaller
-  interface (less predefined methods) than XOTcl.<p>
   
   <li> The Next Scripting Language favors a stronger form of
   encapsulation than XOTcl. Calling the own methods or accessing the
@@ -95,12 +93,35 @@ respects:
   variables and invoke methods upon object creation).<p>
 
   <li> The Next Scripting Language provides much more orthogonal means
-  to define and name scripted and c-implemented methods.<p>
+  to define and reuse scripted and C-implemented methods.<p>
 
   <li> The Next Scripting Language provides an orthogonal framework for
   parametrization of methods and objects.<p>
 
+    <li> The Next Scripting Language has a much smaller
+  interface (less predefined methods) than XOTcl:
+  <p>
+  nx:
+  <ul><li># obj_methods: 20
+    <li># class_methods: 7
+    <li># obj_info_methods: 14
+    <li># class_info_methods: 6
+  </ul>
+  <p>
+  XOTcl 2.0:
+  <ul>
+    <li># obj_methods: 52
+    <li># class_methods: 24
+    <li># obj_info_methods: 25
+    <li># class_info_methods: 24
+  </ul>
+  <p>
+  </li>
+
 </ul>  
+
+<p>Below is a small, introductory example showing an implementation of
+a stack in nx and XOTcl.
 
 <pre CLASS="code">
 <strong>Class create</strong> Stack {
@@ -386,15 +407,15 @@ Separate Calls</h3>
       &nbsp;&nbsp;:attribute <i>{y 1}</i><br>
       &nbsp;&nbsp;:class-object attribute <i>oa1</i><br>
       }<br><br>
-      <code>Object create <i>o</i> {<br>
+      Object create <i>o</i> {<br>
       &nbsp;&nbsp;:attribute <i>oa2</i><br>
-      }<br>
+      }<br></code>
       <hr>
-      Class create <i>C</i> \<br>&nbsp;&nbsp; -attributes {<i><br>
+      <code>Class create <i>C</i> \<br>&nbsp;&nbsp; -attributes {<i><br>
       &nbsp;&nbsp;&nbsp;&nbsp;x<br>
       &nbsp;&nbsp;&nbsp;&nbsp;{y 1}<br>
       </i>}<br>
-     </code></td>
+      </code></td>
   </tr>
 </table>
 
@@ -423,8 +444,8 @@ Separate Calls</h3>
       &nbsp;&nbsp;:public <i>method-definiton-method ...</i><br>
       &nbsp;&nbsp;:protected <i>method-definiton-method ...</i><br>
       &nbsp;&nbsp;:class-object <i>method-definiton-method ...</i><br>
-      &nbsp;&nbsp;:protected object <i>method-definiton-method ...</i><br>
-      &nbsp;&nbsp;:public object <i>method-definiton-method ...</i><br>
+      &nbsp;&nbsp;:protected class-object <i>method-definiton-method ...</i><br>
+      &nbsp;&nbsp;:public class-object <i>method-definiton-method ...</i><br>
       }<br>
      </code></td>
   </tr>
@@ -657,9 +678,9 @@ Scripting Language via the primitives of the Next Scripting Framework.
     <td><code>Class <i>Foo </i> -parameter <i>{a {b 1}}</i><br><br>
       <i class='comment'># Create instance of the class Foo</i><br>
       <i>Foo f1 -a 0</i><br><br>
-      <i class='comment'># Object f1 has a == 0 and b == 1</i><br>
+      <i class='comment'># Object f1 has a == 0 and b == 1</i><br></code>
       <hr>
-      Class <i>Foo </i> -slots <i>{</i><br>
+      <code>Class <i>Foo </i> -slots <i>{</i><br>
       &nbsp;&nbsp;&nbsp;Attribute <i>a</i><br>
       &nbsp;&nbsp;&nbsp;Attribute <i>b</i> -default 1<br>
       }<br>
@@ -667,16 +688,15 @@ Scripting Language via the primitives of the Next Scripting Framework.
       <i class='comment'># Create instance of the class Foo</i><br>
       <i>Foo f1 -a 0</i><br><br>
       <i class='comment'># Object f1 has a == 0 and b == 1</i><br>
-      
       </code>
    </td>
    <td><code>
      Class create <i>Foo </i> -attributes <i>{a {b 1}}</i><br><br>
       <i class='comment'># Create instance of the class Foo</i><br>
       <i>Foo</i> create <i> f1 -a 0</i><br><br>
-      <i class='comment'># Object f1 has a == 0 and b == 1</i><br>
+      <i class='comment'># Object f1 has a == 0 and b == 1</i><br></code>
      <hr>
-     Class create <i>Foo</i> {<br>
+     <code>Class create <i>Foo</i> {<br>
       &nbsp;&nbsp;&nbsp;:attribute <i>a</i><br>
       &nbsp;&nbsp;&nbsp;:attribute <i>{b 1}</i><br>
       }</br><br>
@@ -732,9 +752,9 @@ Scripting Language via the primitives of the Next Scripting Framework.
    Class create <i>Foo </i> -attributes {<br>
      &nbsp;&nbsp; <i>a</i>:boolean<br>
      &nbsp;&nbsp; {<i>b</i>:integer<i> 1</i>}<br>
-     }</i><br>
+     }</i><br></code>
      <hr>
-     Class create <i>Foo</i> {<br>
+     <code>Class create <i>Foo</i> {<br>
       &nbsp;&nbsp; :attribute <i>a</i>:boolean<br>
       &nbsp;&nbsp; :attribute {<i>b</i>:integer<i> 1</i>}<br>
       }</br>
@@ -750,9 +770,9 @@ Scripting Language via the primitives of the Next Scripting Framework.
    Class create <i>Foo </i> -attributes {<br>
      &nbsp;&nbsp; <i>a</i>:boolean,required<br>
      &nbsp;&nbsp; {<i>b</i>:integer<i> 1</i>}<br>
-     }</i><br>
+     }</i><br></code>
     <hr>
-     Class create <i>Foo</i> {<br>
+     <code>Class create <i>Foo</i> {<br>
       &nbsp;&nbsp; :attribute <i>a</i>:boolean,required</i><br>
       &nbsp;&nbsp; :attribute {<i>b</i>:integer 1}</i><br>
       }</br>
@@ -769,9 +789,9 @@ Scripting Language via the primitives of the Next Scripting Framework.
      &nbsp;&nbsp; ...<br>
      &nbsp;&nbsp; <i>ints</i>:integer,multivalued<br>
      &nbsp;&nbsp; {<i>objs</i>:object,multivalued ""}<br>
-     }</i><br>
+     }</i><br></code>
     <hr>
-     Class create <i>Foo</i> {<br>
+     <code>Class create <i>Foo</i> {<br>
       &nbsp;&nbsp; ...<br>
       &nbsp;&nbsp; :attribute <i>ints</i>:integer,multivalued</i><br>
       &nbsp;&nbsp; :attribute {<i>objs</i>:object,multivalued ""}</i><br>
@@ -1401,7 +1421,7 @@ Scripting Language via the primitives of the Next Scripting Framework.
 <h2>Method Protection</h2>
 
 
-<h2>Incompatibilities between XOTcl 2.0 and XOTcl 1.*</h2>
+<h2>Incompatibilities between XOTcl 1.* and XOTcl 2.0</h2>
 
 <h3>Resolvers</h3>
 
@@ -1410,20 +1430,22 @@ Scripting Framework are used as well within XOTcl 2.0. When names
 starting with single colons are used in XOTcl 1.* scripts, conflicts
 will arise.  </p>
 
-<h3>Calling objects like methods</h3>
+<h3>Calling objects via method interface</h3>
 
-<p>Since the next framework uses a different handling of objects
-registered as methods (so called ensemble objects), sub-objects can't
-be called in the same way as before. In XOTcl 1.*, it was possible to
-call e.g. a method <code>foo</code> of the slot object
-<code>Foo::slot::ints</code> via
-<ul><li><code>Foo::slot::ints foo ...</code> or via
+<p>Since the next framework supports the so-called ensemble objects,
+which eas the definition of submethods substantially, objects
+registered as methods have different semantics.  In XOTcl 1.*, it was
+possible to call e.g. a method <code>foo</code> of the slot object 
+<code>Foo::slot::ints</code> via the following two interfaces the same way:
+<ul>
+  <li><code>Foo::slot::ints foo ...</code>
   <li><code>Foo slot ints foo ...</code>
 </ul>
-Now, only the first form
-has the same semantic as before. In the second form (call of objects
-via method) has now the ensemble object semantics, <code>self</code>
-of <code>foo</code> is now the calling object <code>Foo</code>.
+Now, only the first form has the same semantic as before. In the second
+form (invocation of objects via method interface) has now the ensemble object
+semantics. This means that in the second case the <code>current
+obect</code> of method <code>foo</code> is now <code>Foo</code>
+instead of <code>ints</code>.
 
 
 <h3>Slots</h3>
@@ -1457,6 +1479,6 @@ The exit hander interface changed from a method of
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Tue Oct  5 20:03:10 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Tue Oct 12 11:41:40 CEST 2010 <!-- hhmts end -->
 </body>
 </html>

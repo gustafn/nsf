@@ -230,21 +230,13 @@ Test case next-from-nonpos-args {
   ? {o bar -y 14 -x 13} "x 13 y 14 {-y 14 -x 13} -- x 13 y 14 {-y 14 -x 13}"
 }
 
-
-
+# 
+# test method attribute with protected/public
 # 
 Test case attribute-method {
 
-  ::nsf::__db_show_stack
-
-puts stderr ======0
   Class create C {
-puts stderr ======A
-    nsf::__db_run_assertions
-puts stderr ======A-done
     set x [:attribute a]
-puts stderr ======B
-    nsf::__db_run_assertions
 
     ? [list set _ $x] "::nsf::classes::C::a"
 
@@ -252,12 +244,10 @@ puts stderr ======B
     :attribute {b b1}
     :public attribute {c c1}
     :protected attribute {d d1}
+
     set X [:class-object attribute A]
-    puts stderr ======
-    nsf::__db_run_assertions
-puts stderr ======
     ? [list set _ $X] "::C::A"
-#exit
+    
     # class-object attribute with default
     :class-object attribute {B B2}
     :public class-object attribute {C C2}
