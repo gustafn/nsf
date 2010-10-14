@@ -1,3 +1,5 @@
+# -*- Tcl -*-
+
 # @command assertion
 #
 # @parameter object:object
@@ -14,8 +16,8 @@
 # @parameter object:object
 # @parameter -per-object:switch
 # @parameter methodName
-# @parameter methodproperty Accepts one of: {{{protected}}},
-# {{{redefine-protected}}}, {{{returns}}}, {{{slotobj}}}
+# @parameter methodproperty Accepts one of: '''protected''',
+# '''redefine-protected''', '''returns''', '''slotobj'''
 # @parameter value
 
 # @command setter
@@ -46,8 +48,8 @@
 # @command objectproperty
 #
 # @parameter object:object
-# @parameter objectkind Accepts one of: {{{type}}}, {{{object}}},
-# {{{class}}}, {{{baseclass}}}, {{{metaclass}}}, {{{hasmixin}}}
+# @parameter objectkind Accepts one of: '''type''', '''object''',
+# '''class''', '''baseclass''', '''metaclass''', '''hasmixin'''
 # @parameter value:optional
 
 # @command importvar
@@ -97,11 +99,11 @@
 #
 # Invokes the shadowed (i.e, same-named) method which is next along
 # the precedence path and returns the results of this invocation. If
-# {{{next}}} is called without arguments, the arguments of the current
+# '''next''' is called without arguments, the arguments of the current
 # method (i.e., the arguments as present at the current callframe) are
 # passed through to the shadowed method. If next is invoked with the
 # flag --noArgs, the shadowed method is called without the active
-# callframe arguments. If other arguments are specified for {{{next}}}
+# callframe arguments. If other arguments are specified for '''next'''
 # explicitly, these will be passed instead.
 # 
 # @parameter --noArgs:optional Deactivates the forward-passing of the current callframe's arguments
@@ -112,15 +114,15 @@
 #
 # An introspective command which allows you to explore the callstack
 # from within the scope of a method (or a proc bound to an object via
-# {{{alias}}}). If executed without specifying a subcommand,
-# i.e. {{{[current]}}}, it defaults to {{@command.command "current
-# object"}}. While {{{current}}} operates on the Tcl callstack, it is
+# '''alias'''). If executed without specifying a subcommand,
+# i.e. '''[current]''', it defaults to <<@command.command "current
+# object">>. While '''current''' operates on the Tcl callstack, it is
 # aware of object-specific callstack and frame information. To some
 # extent, this object introspection protocol can be approximated at
-# the script level by instrumenting {{{[info frame]}}}.
+# the script level by instrumenting '''[info frame]'''.
 #
 # If invoked outside of an object's scope (e.g., an ordinary proc, the
-# global namespace), it fails and reports {{{No current object}}}.
+# global namespace), it fails and reports '''No current object'''.
 # 
 # It comes with a variety of sub-commands to query the object-specific
 # callstack information available. See below.
@@ -147,7 +149,7 @@
 # (applicable in a filter only).
 #
 # @sub-command isnextcall Returns 1 if the executing method was
-# invoked via {{@command next}}, 0 otherwise.
+# invoked via <<@command next>>, 0 otherwise.
 #
 # @sub-command next Returns the name of the method next on the
 # precedence path as a string.
@@ -159,18 +161,18 @@
 # @command callinglevel Resolves the callstack level which represents
 # the originating invocation into the currently executing method. Levels
 # of indirection (e.g., filters) and method combination along the
-# class linearisation path ({{{next}}}) are ignored. The callstack is
+# class linearisation path ('''next''') are ignored. The callstack is
 # returned as an absolute level number (# followed by a digit). The
 # level number returned can be directly used as the first argument to
-# {{{uplevel}}} or {{{upvar}}} calls. See also {{@command.command
-# "current activelevel"}}
+# '''uplevel''' or '''upvar''' calls. See also <<@command.command
+# "current activelevel">>
 #
 # @sub-command activelevel Returns the actual callstack level calling
 # into the executing method. The active might correspond the
-# {{{callinglevel}}}, but this is not necessarily the case. The
-# {{{activelevel}}} counts {{@command next}} call. The level
+# '''callinglevel''', but this is not necessarily the case. The
+# '''activelevel''' counts <<@command next>> call. The level
 # is returned in a form so that it can be used as first argument in
-# {{{uplevel}}} or {{{upvar}}}.
+# '''uplevel''' or '''upvar'''.
 
 # @command.command {current object} 
 # 
@@ -182,13 +184,13 @@
 # 
 # A top-level configuration facility which allows you modify
 # properties of the "Next" object system for the scope of an entire
-# {{{interp}}}.
+# '''interp'''.
 
 # @command.sub-command {configure filter}
 #
 # Allows turning on or off filters globally for the current
 # interpreter. By default, the filter state is turned off. This
-# function returns the old filter state. This filterless {{{interp}}}
+# function returns the old filter state. This filterless '''interp'''
 # state is needed for the serializer which should introspect and stream the
 # objects and classes without being affected by active filter.
 #
@@ -198,10 +200,10 @@
 # @command.sub-command {configure softrecreate}
 # 
 # Allows controlling the scheme applied when recreating an object or a
-# class. By default, it is set to {{{off}}}. This means that the
+# class. By default, it is set to '''off'''. This means that the
 # object/class is destroyed and all relations
 # (e.g. subclass/superclass) to other objects/classes are revoked as
-# well. If softrecreate is set to {{{on}}}, the object is re-set, but not
+# well. If softrecreate is set to '''on''', the object is re-set, but not
 # destroyed, the relations are
 # kept. 
 # 
@@ -209,10 +211,10 @@
 # class definitions (e.g. when used in OpenACS with file watching and
 # reloading). With softrecreate set, it is not necessary to recreate
 # dependent subclasses etc. Consider the example of a class hierarchy
-# {{{A <- B <- C}}}. Without {{{softrecreate}}} set, a reload of
-# {{{B}}} means first a destroy of B, leading to {{{A <- C}}}, and
-# instances of {{{B}}} are re-classed to {{@class
-# ::nx::Object}}. When softrecreate is set, the class hierarchy
+# '''A <- B <- C'''. Without '''softrecreate''' set, a reload of
+# '''B''' means first a destroy of B, leading to '''A <- C''', and
+# instances of '''B''' are re-classed to <<@class
+# ::nx::Object>>. When softrecreate is set, the class hierarchy
 # remains untouched.
 #
 # @parameter toggle Accepts either "on" or "off"
@@ -225,23 +227,23 @@
 # current object system, i.e., the ruling root class and root
 # meta-class. For "Next":
 #
-# {{{
+# '''
 #	configure objectsystems; # returns "::nx::Object ::nx::Class"
-# }}}
+# '''
 #
 # @return The active pair of root class and root meta-class
 
 # @command.sub-command {configure keepinitcmd}
 #
-# Usually, initcmd scripts are discarded by the {{{interp}}} once
-# having been evaluated (in contrast to {{{proc}}} and {{{method}}}
+# Usually, initcmd scripts are discarded by the '''interp''' once
+# having been evaluated (in contrast to '''proc''' and '''method'''
 # bodies). If you need them preserved for later introspection and
 # processing (as in the "Next" documentation system), set this option
-# to {{{true}}}. Then, the initcmd scripts are retained as a
-# particular object variable ({{{__initcmd}}}) of classes and
-# objects. It defaults to {{{false}}}.
+# to '''true'''. Then, the initcmd scripts are retained as a
+# particular object variable ('''__initcmd''') of classes and
+# objects. It defaults to '''false'''.
 #
-# @parameter value:boolean Either {{{true}}} or {{{false}}}
+# @parameter value:boolean Either '''true''' or '''false'''
 # @return The current setting
 
 # @command alias

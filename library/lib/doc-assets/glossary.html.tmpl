@@ -1,11 +1,16 @@
-[:!let entries [sorted [::nx::doc::@glossary info instances] name]]
-[:? {$entries ne ""} {
+[:?var :@glossary {
+[:!let entries [sorted ${:@glossary} name]]
 <dl id="glossary" title="Project glossary">
   [:for entry $entries {
   [:!let ddesc [$entry as_text]]
   [:?objvar $entry @acronym {
   [:!let dtext [$entry @acronym]]
-   [:!let ddesc "[$entry @pretty_name]&nbsp;&mdash;&nbsp;$ddesc"]
+  [:? {$ddesc ne ""} {
+    [:!let ddesc "[$entry @pretty_name]&nbsp;&mdash;&nbsp;$ddesc"]
+  } - {
+     [:!let ddesc "[$entry @pretty_name]"]
+  }]
+ 
   } - {
   [:!let dtext [$entry @pretty_name]]
   }]
@@ -14,17 +19,18 @@
       <span class="caps">$dtext</span></dt>
   <dd>$ddesc
     [:?objvar $entry refs {
-  [:!let refs [$entry eval {set :refs}]]
+  [:!let refs [sort_by_value [$entry eval {set :refs}]]]
   <div class="section field member"
        rel="yui:member"  resource="#">
     <div class="content" rel="yui:properties">
       <code>
         [:for src  [dict keys $refs] {
         <span rel="yui:property"
-              resource="[$src href]">                                        
-          <a class=""
+              resource="[$src href]"> 
+          [$src make_link [current]]
+          <!--<a class=""
              href="[$src href]" property="yui:name"
-             title="[$src name]">[$src name]</a>&nbsp;([dict get $refs $src])
+             title="[$src name]">[$src name]</a>-->&nbsp;([dict get $refs $src])
         </span>
 	}]
       </code>

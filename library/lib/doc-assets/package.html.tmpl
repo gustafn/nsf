@@ -24,7 +24,7 @@
     </script>
     <div id="splash_classList">
       <ul>
-	[:let idx 0]
+	[:!let idx 0]
 	[:for class ${:@class} {
 	 <li><a href="[${class} filename].html" title="[${class} name]" id="class_$idx">[${class} name]</a></li>
 	[incr idx; return]
@@ -40,7 +40,7 @@
     </script>
     <div id="splash_classList">
       <ul>
-	[:let idx 0]
+	[:!let idx 0]
 	[:for obj ${:@object} {
 	 <li><a href="[${obj} filename].html" title="[${obj} name]" id="class_$idx">[${obj} name]</a></li>
 	[incr idx; return]
@@ -57,7 +57,7 @@
     </script>
     <div id="splash_classList">
       <ul>
-	[:let idx 0]
+	[:!let idx 0]
 	[:for cmd ${:@command} {
 	 <li><a href="[${cmd} filename].html" title="[$cmd name]" id="cmd_$idx">[$cmd name]</a></li>
 	[incr idx; return]

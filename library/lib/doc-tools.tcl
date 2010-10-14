@@ -36,7 +36,8 @@ namespace eval ::nx::doc {
   #
   # @param class Request an instance of a particular entity class (e.g., ...)
   # @param name What is the entity name (e.g., nx::doc for a package)
-  # @param args A vector of arbitrary arguments, provided to the entity when being constructed
+  # @param args A vector of arbitrary arguments, provided to the
+  # entity when being constructed
   # @return The identifier of the newly created entity object
   
   # @subcommand ::nx::doc::@#foo
@@ -94,6 +95,15 @@ namespace eval ::nx::doc {
     return $result
   }
 
+  proc sort_by_value {d} {
+    set haystack [list]
+    dict for {key value} $d {
+      lappend haystack [list $key $value]
+    }
+    return [dict create {*}[concat {*}[lsort -integer -index 1 -decreasing $haystack]]]
+  }
+
+
   proc find_asset_path {{subdir library/lib/doc-assets}} {
       # This helper tries to identify the file system path of the
       # asset ressources.
@@ -113,10 +123,8 @@ namespace eval ::nx::doc {
     :public method apply {} {
       foreach mixin [:info children -type [current class]::Mixin] {
 	set base "${:prefix}::[namespace tail $mixin]"
-	puts "TRYING mixin $mixin base $base"
 	if {[::nsf::isobject $base]} {
 	  set scope [expr {[$mixin scope] eq "object" && [$base info is class]?"class-object":""}]
-	  puts stderr "APPLYING $base {*}$scope mixin add $mixin"
 	  $base {*}$scope mixin add $mixin
 	}
     }
@@ -124,12 +132,6 @@ namespace eval ::nx::doc {
     
     Class create [current]::Mixin -superclass Class {
       :attribute {scope class}
-      :method init args {
-	:public method foo {} {
-	  puts stderr "[current class]->[current method]";
-	  next
-	}
-      }
     }
   }
 
@@ -140,8 +142,10 @@ namespace eval ::nx::doc {
     # basic name-generating mechanisms for documentation entities
     # based on properties such as entity name, root namespace, etc.
     #
-    # @param tag Defaults to the tag label to be used in comment tags. It may vary from the auto-generated default!
-    # @param root_namespace You may choose your own root-level namespace hosting the namespace hierarchy of entity objects
+    # @param tag Defaults to the tag label to be used in comment
+    # tags. It may vary from the auto-generated default!
+    # @param root_namespace You may choose your own root-level
+    # namespace hosting the namespace hierarchy of entity objects
 
     :attribute {tag {[string trimleft [string tolower [namespace tail [current]]] @]}}
     :attribute {root_namespace "::nx::doc::entities"}
@@ -149,6 +153,7 @@ namespace eval ::nx::doc {
     namespace eval ::nx::doc::entities {}
 
     :public class-object method normalise {tagpath names} {
+      # puts stderr "tagpath $tagpath names $names"
       # 1) verify balancedness of 
       if {[llength $tagpath] != [llength $names]} {
 	return [list 1 "Imbalanced tag line spec: '$tagpath' vs. '$names'"]
@@ -188,7 +193,21 @@ namespace eval ::nx::doc {
       set entity_path [list]
       foreach axis $tagpath value $names {
 	if {$entity eq ""} {
-	  if {[QualifierTag info instances @$axis] eq "" && [Tag info instances @$axis] eq ""} {
+	  set cmd [info command @$axis]
+	  #
+	  # TODO interp-aliasing objects under different command names
+	  # is currently not transparent to some ::nsf::* helpers,
+	  # such as ::nsf::isobject. Should this be changed?
+	  #
+	  if {$cmd ne ""} {
+	    set cmd [namespace origin $cmd]
+	    set target [interp alias {} $cmd]
+	    if {$target ne ""} {
+	      set cmd $target
+	    }
+	  }
+
+	  if {$cmd eq "" || ![::nsf::isobject $cmd] || ![$cmd info has type Tag]} {
 	    return [list 1 "The entity type '@$axis' is not available."]
 	  }
 	  set entity [@$axis id $value]
@@ -238,7 +257,8 @@ namespace eval ::nx::doc {
 	set partof_name [string trimleft $partof_name :]
 	return [join [list [:root_namespace] $subns $partof_name {*}$scope $name] ::]
       } else {
-	return "[:root_namespace]::${subns}$name"
+	set name [string trimleft $name :]
+	return "[:root_namespace]::${subns}::$name"
       }
     }
 
@@ -495,8 +515,14 @@ namespace eval ::nx::doc {
 	# @command nx
 	#
 	# @use ::nsf::command
-	# @use {Object foo}
-	# @use command {Object foo}
+	
+	# or
+
+	# class.method {X foo}
+	#
+	# @use {Class foo}
+	# @use object.method {Object foo}
+
 	lassign $value pathspec pathnames
 	if {$pathnames eq ""} {
 	  set pathnames $pathspec
@@ -602,12 +628,25 @@ namespace eval ::nx::doc {
 
 
   Class create StructuredEntity -superclass Entity {
-    :public method owned_parts {} {
+    :public method part_attributes {} {
       set slots [:info lookup slots]
-      set r [dict create]
-#      puts stderr SLOTS=$slots
+      set attrs [list]
       foreach s $slots {
 	if {![$s info has type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}]} continue;
+	lappend attrs $s [$s part_class]
+      }
+      return $attrs
+    }
+    :public method owned_parts {} {
+      set r [dict create]
+      foreach {s cls} [:part_attributes] {
+	#
+	# TODO: there is no equivalent to mixinof/has mixin for the
+	# superclass-subclass axis: info superclassof | /cls/ has
+	# superclass | info subclassof | /cls/ has subclass; are info
+	# subclass and superclass sufficient?
+	#
+	# if {![$s info has type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}] || [current class] ni [[$s eval {set :part_class}] info superclass -closure]} continue;
 	set accessor [$s name]
 #	puts stderr "PROCESSING ACCESSOR $accessor, [info exists :$accessor]"
 	if {[info exists :$accessor]} {
@@ -637,7 +676,7 @@ namespace eval ::nx::doc {
     Class create [current]::Containable {
       # TODO: check the interaction of required, per-object attribute and ::nsf::assertion
       #:object attribute container:object,type=[:info parent],required
-      :class-object attribute container:object,type=[:info parent]
+      :attribute container:object,type=[:info parent]
       :method create args {
 	#
 	# Note: preserve the container currently set at this callstack
@@ -655,6 +694,24 @@ namespace eval ::nx::doc {
 	  next
 	}
       }
+      :method create args {
+	#
+	# Note: preserve the container currently set at this callstack
+	# level.  [next] will cause the container to change if another
+	# container entity is initialised in the following!
+	#
+	if {[info exists :container]} {
+	  set cont ${:container}
+	  set obj [next]
+	  if {![$obj eval {info exists :partof}]} {
+	    $cont register $obj
+	  }
+	  return $obj
+	} else {
+	  next
+	}
+      }
+
     }
     # Note: The default "" corresponds to the top-level namespace "::"!
     :attribute {@namespace ""}
@@ -690,11 +747,14 @@ namespace eval ::nx::doc {
 
     :method init {} {
       next
+
       QualifierTag mixin add [current class]::Resolvable
       [current class]::Resolvable container [current]
-      QualifierTag mixin add [current class]::Containable
-      @package class-object mixin add [current class]::Containable
-      [current class]::Containable container [current]
+
+      foreach {attr part_class} [:part_attributes] {
+	$part_class class-object mixin add [current class]::Containable
+	$part_class container [current]
+      }
     }
 
     :public method register {containable:object,type=::nx::doc::Entity} {
@@ -710,6 +770,10 @@ namespace eval ::nx::doc {
     :attribute license
     :attribute creationdate
     :attribute {version ""}
+    
+    :attribute @glossary -slotclass ::nx::doc::PartAttribute {
+      set :part_class ::nx::doc::@glossary
+    }
 
     :attribute @package -slotclass ::nx::doc::PartAttribute {
       set :part_class ::nx::doc::@package
@@ -747,12 +811,11 @@ namespace eval ::nx::doc {
       :method require_part {domain prop value} {
 	set value [expr {![string match ":*" $value] ? "__out__: $value": "__out__$value"}]
 	next [list $domain $prop $value]
-	#next $domain $prop "__out__ $value"
       }
       set :part_class ::nx::doc::@param
     }
 
-    :forward @sub-command %self @command
+    :public forward @sub-command %self @command
     :attribute @command -slotclass ::nx::doc::PartAttribute {
       :pretty_name "Subcommand"
       :pretty_plural "Subcommands"
@@ -784,7 +847,7 @@ namespace eval ::nx::doc {
       -mixin ContainerEntity::Containable {
 	:attribute @author -slotclass ::nx::doc::PartAttribute 
 
-	:forward @object %self @child-object
+	:public forward @object %self @child-object
 	:attribute @child-object -slotclass ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@object
 	  :public method id {domain prop value} {
@@ -798,7 +861,7 @@ namespace eval ::nx::doc {
 
 	}
 
-	:forward @class %self @child-class
+	:public forward @class %self @child-class
 	:attribute @child-class -slotclass ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@class
 	  :public method id {domain prop value} {
@@ -811,12 +874,12 @@ namespace eval ::nx::doc {
 	  }
 	}
 
-	:forward @method %self @object-method
+	:public forward @method %self @object-method
 	:attribute @class-object-method -slotclass ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@method
 	}
 
-	:forward @attribute %self @class-object-attribute
+	:public forward @attribute %self @class-object-attribute
 	#:forward @param %self @object-param
 	:attribute @class-object-attribute -slotclass ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@param
@@ -840,14 +903,14 @@ namespace eval ::nx::doc {
       -superclass @object {
 	:attribute @superclass -slotclass ::nx::doc::PartAttribute
 	
-	:forward @attribute %self @class-attribute
+	:public forward @attribute %self @class-attribute
 	:attribute @class-attribute -slotclass ::nx::doc::PartAttribute {
 	  :pretty_name "Per-class attribute"
 	  :pretty_plural "Per-class attributes"
 	  set :part_class ::nx::doc::@param
 	}
 	
-	:forward @method %self @class-method
+	:public forward @method %self @class-method
 	:attribute @class-method -slotclass ::nx::doc::PartAttribute {
 	  :pretty_name "Per-class method"
 	  :pretty_plural "Per-class methods"
@@ -933,9 +996,9 @@ namespace eval ::nx::doc {
 	
 
 
-	:forward @class-method %self @method
-	:forward @class-object-method %self @method
-	:forward @sub-method %self @method
+	:public forward @class-method %self @method
+	:public forward @class-object-method %self @method
+	:public forward @sub-method %self @method
 	:attribute @method -slotclass ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@method
 	  :public method id {domain prop name} {
@@ -1123,6 +1186,19 @@ namespace eval ::nx::doc {
   interp alias {} ::nx::doc::@attribute {} ::nx::doc::@param
   interp alias {} ::nx::doc::@parameter {} ::nx::doc::@param
 
+  #
+  # Providing interp-wide aliases for @glossary. For most processing
+  # steps, this is syntactic sugar, however, the aliases cause
+  # different rendering behaviour for glossary references and entries.
+  #
+
+  interp alias {} ::nx::doc::@gls {} ::nx::doc::@glossary
+  interp alias {} ::nx::doc::@Gls {} ::nx::doc::@glossary
+  interp alias {} ::nx::doc::@glspl {} ::nx::doc::@glossary
+  interp alias {} ::nx::doc::@Glspl {} ::nx::doc::@glossary
+  interp alias {} ::nx::doc::@acr {} ::nx::doc::@glossary
+  interp alias {} ::nx::doc::@acrfirst {} ::nx::doc::@glossary  
+
   namespace export CommentBlockParser @command @object @class @package \
       @project @method @attribute @parameter @
 }
@@ -1176,11 +1252,16 @@ namespace eval ::nx::doc {
     } {
       # Here, we assume the -nonleaf mode being active for {{{[eval]}}}.
       set tmplscript [list subst [:read_tmpl $template]]
+      #
+      # TODO: This looks awkward, however, till all requirements are
+      # figured out (as for the origin mechanism) we so keep track
+      # of the actual rendered entity ... review later ...
+      #
+      $entity rendered_entity $entity
       $entity eval [subst -nocommands {
 	$initscript
 	$tmplscript
       }]
-      # $entity eval [list subst $template]
     }
     
     
@@ -1263,28 +1344,38 @@ namespace eval ::nx::doc {
     }
 
     set :markup_map(sub) { 
-      "{{{" "\[:code \{" 
-      "}}}" "\}\]"
-      "{{" "\[:link " 
-      "}}" "\]" 
+      "'''" "\[:listing \{" 
+      "'''" "\}\]"
+      "<<" "\[:link " 
+      ">>" "\]" 
     }
     
     set :markup_map(unescape) {
       "\\{" "{"
       "\\}" "}"
       "\\#" "#"
+      "\\<" "<"
+      "\\>" ">"
+      "\\'" "'"
     }
     
-    :method map {line set} {
-      set line [string map [[::nsf::current class] eval [list set :markup_map($set)]] $line]
+    :method unescape {line} {
+      set line [string map [[::nsf::current class] eval [list set :markup_map(unescape)]] $line]
     }
+
+    :method map {line} {
+      regsub -all -- {('''([^']+?)''')} $line {[:listing {\2}]} line
+      regsub -all -- {(<<([^<]+?)>>)} $line {[:link \2]} line
+      return $line
+    }
+
 
     :method as_list {} {
 	set preprocessed [list]
 	set is_code_block 0
 	foreach line [next] {
-	  if {[regsub -- {^\s*(\{\{\{)\s*$} $line "\[:code -inline false \{" line] || \
-		  (${is_code_block} && [regsub -- {^\s*(\}\}\})\s*$} $line "\}\]" line])} {
+	  if {(!${is_code_block} && [regsub -- {^\s*(''')\s*$} $line "\[:listing -inline false \{" line]) || \
+		  (${is_code_block} && [regsub -- {^\s*(''')\s*$} $line "\}\]" line])} {
 	    set is_code_block [expr {!$is_code_block}]
 	    append line \n
 	  } elseif {${is_code_block}} {
@@ -1305,8 +1396,8 @@ namespace eval ::nx::doc {
 
     :public method as_text {} {
       set preprocessed [join [:as_list] " "]
-      set preprocessed [:map $preprocessed sub]
-      set preprocessed [:map $preprocessed unescape]
+      set preprocessed [:map $preprocessed]
+      set preprocessed [:unescape $preprocessed]
       return [subst $preprocessed]
     }
 
@@ -1334,38 +1425,42 @@ namespace eval ::nx::doc {
       set top_level_entities [:owned_parts]
       dict for {feature instances} $top_level_entities {
 	if {[$feature name] eq "@package"} {
-	  foreach {entity_type pkg_entities} [$feature owned_parts] {
-	    dict lappend top_level_entities $entity_type {*}$pkg_entities
+	  foreach pkg $instances {
+	    dict for {pkg_feature pkg_feature_instances} [$pkg owned_parts] {
+	      dict lappend top_level_entities $pkg_feature {*}$pkg_feature_instances
+	    }
 	  }
 	}
       }
 
       set init [subst {
-	set project [current object]
+	set project \[:current_project\]
 	set project_entities \[list $top_level_entities\]
       }]
       set project_path [file join $outdir [string trimleft ${:name} :]]
       if {![catch {file mkdir $project_path} msg]} {
-	#	  puts stderr [list file copy -force -- [$renderer find_asset_path] $project_path/assets]
 	set assets [lsearch -all -inline -glob -not [glob -directory [find_asset_path] *] *.tmpl]
 	set target $project_path/assets
 	file mkdir $target
 	file copy -force -- {*}$assets $target
 	
 	set values [join [dict values $top_level_entities]]
-	#	puts stderr "VALUES=$values"
+
+	#
+	# Make sure that the @project entity is processed last.
+	#
+	lappend values [current object]
 	foreach e $values {
-	  #puts stderr "PROCESSING=$e render -initscript $init $tmpl"
+	  #
+	  # TODO: For now, in templates we (silently) assume that we act
+	  # upon structured entities only ...
+	  #
+	  if {![$e info has type ::nx::doc::StructuredEntity]} continue;
+	  $e current_project [current object]
 	  set content [$e render -initscript $init $tmpl]
 	  :write_data $content [file join $project_path "[$e filename].$ext"]
 	  puts stderr "$e written to [file join $project_path [$e filename].$ext]"
 	}
-
-	set index [:render -initscript $init $tmpl]
-	# puts stderr "we have [llength $entities] documentation entities ($entities)"
-	:write_data $index [file join $project_path "index.$ext"]
-
-
       }
             
       # 3) TODO: revoke the application of the mixin layer (for the sake of
@@ -1377,6 +1472,30 @@ namespace eval ::nx::doc {
     #
 
     MixinLayer::Mixin create [current]::Entity -superclass TemplateData {
+      #
+      # TODO: Would it be useful to allow attribute slots to describe
+      # a per-class-object state, while the accessor/mutator methods
+      # are defined on the per-class level. It feels like the class
+      # instance variables in Smalltalk ...
+      #
+      # TODO: Why is call protection barfing when the protected target
+      # is called from within a public forward. This should qualify as
+      # a valid call site (from "within" the same object!), shouldn't it?
+      # :protected class-object attribute current_project:object,type=::nx::doc::@project
+      :class-object attribute current_project:object,type=::nx::doc::@project
+      :public forward current_project [current] %method
+
+      #
+      # TODO: For now, this acts as the counterweight to "origin",
+      # when @use aliasing is used, processed_entity can be used to
+      # refer to the actual entity at the upper end of the aliasing
+      # chain. Verify, whether this is an acceptable approach ...
+      #
+      :class-object attribute rendered_entity:object,type=::nx::doc::Entity
+      :public forward rendered_entity [current] %method
+
+      :public forward print_name %current name
+
       :method fit {str max {placeholder "..."}} {
 	if {[llength [split $str ""]] < $max} {
 	  return $str;
@@ -1400,7 +1519,7 @@ namespace eval ::nx::doc {
 	    # @object instances. Untangle!
 	    set access [expr {[$inst eval {info exists :@modifier}]?[$inst @modifier]:""}]
 	    set host ${:name}
-	    set name [$inst name]
+	    set name [$inst print_name]
 	    set url  "[:filename].html#[string trimleft [$feature name] @]_[$inst name]"
 	    set type [$feature name]
 	    lappend entries [subst $entry]
@@ -1409,28 +1528,33 @@ namespace eval ::nx::doc {
 	return "\[[join $entries ,\n]\]"
       }
        
-      :method code {{-inline true} script} {
+      :method listing {{-inline true} script} {
 	return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
       }
       
       :method link {tag names} {
-	#puts stderr "RESOLVING tag $tag names $names"
 	set tagpath [split [string trimleft $tag @] .]
 	lassign [::nx::doc::Tag normalise $tagpath $names] err res
 	if {$err} {
-	  #puts stderr RES=$res
+	  puts stderr RES=$res
 	  return "<a href=\"#\">?</a>";
 	}
 	lassign [::nx::doc::Tag find -all -strict {*}$res] err path
 	if {$err || $path eq ""} {
-	  #puts stderr "FAILED res $path (err-$err-id-[expr {$path eq ""}])"
+	  # puts stderr "FAILED res $path (err-$err-id-[expr {$path eq ""}])"
 	  return "<a href=\"#\">?</a>";
 	}
 
 	set path [dict create {*}$path]
 	set entities [dict keys $path]
 	set id [lindex $entities end]
-	return [$id render_link $tag [current] $path]
+	return [$id render_link $tag [:rendered_entity] $path]
+      }
+
+      :public method make_link {source} {
+	set path [dict create {*}[:get_upward_path -attribute {set :name}]]
+	set tag [[:info class] tag]
+	return [:render_link $tag $source $path]
       }
 
       :public method render_link {tag source path} {
@@ -1485,31 +1609,90 @@ namespace eval ::nx::doc {
       }
     }; # NxDocTemplating::Entity
 
+    MixinLayer::Mixin create [current]::@project -superclass [current]::Entity {
+      :public method filename {} {
+	return "index"
+      }
+    }
+
     MixinLayer::Mixin create [current]::@glossary -superclass [current]::Entity {
-     
+
+      :public method print_name {} {
+	return [expr {[info exists :@acronym]?${:@acronym}:${:@pretty_name}}]
+      }
+
+      array set :tags {
+	@gls		{
+	  set print_name [string tolower ${:@pretty_name} 0 0]
+	  set title ${:@pretty_name}
+	}
+	@Gls		{
+	  set print_name [string toupper ${:@pretty_name} 0 0]
+	  set title ${:@pretty_name}
+	}
+	@glspl		{
+	  set print_name [string tolower ${:@pretty_plural} 0 0]
+	  set title ${:@pretty_plural}
+	}
+	@Glspl 		{
+	  set print_name [string toupper ${:@pretty_plural} 0 0]
+	  set title ${:@pretty_plural}
+	}
+	@acr		{
+	  set acronym(short) 1
+	}
+	@acrfirst	{
+	  set acronym(long) 1
+	}
+
+      }
+
+      :public method href {-local:switch top_entity:optional} {
+	set fragments "#${:name}"
+	if {$local} { 
+	  return $fragments
+	} else {
+	  return "[[:current_project] filename].html$fragments"
+	}
+
+      }
 
       :public method render_link {tag source path} {
+	# tag-specific rendering
+	set acronym(long) 0
+	set acronym(short) 0
+	set print_name ${:@pretty_name}
+	set title ${:@pretty_name}
+	if {[[current class] eval [list info exists :tags($tag)]]} {
+	  eval [[current class] eval [list set :tags($tag)]]
+	}
+	if {[info exists :@acronym]} {
+	  #
+	  # First occurrance of an acronym entry!
+	  #
+	  if {!$acronym(short) && ($acronym(long) || ![info exists :refs] || \
+		  ![dict exists ${:refs} $source])} {
+	    set print_name "$print_name (${:@acronym})"
+	    set res "<a href=\"[:href]\" title=\"$title\" class=\"gloss\">$print_name</a>"
+	  } else {
+	    set title $print_name
+	    set print_name ${:@acronym}
+	    set anchor "<a href=\"[:href]\" title=\"$title\" class=\"gloss\">$print_name</a>"
+	    set res "<abbr title=\"$title\">$anchor</abbr>" 
+	  }
+	} else {
+	  set res "<a href=\"[:href]\" title=\"$title\" class=\"gloss\">$print_name</a>"
+	}
+
+	# record for reverse references
 	if {![info exists :refs]} {
 	  set :refs [dict create]
 	}
 	dict incr :refs $source
-	# TODO: provide the project context here and render the
-	# glossary location accordingly, rather than hard-code "index.html".
-	return "<a href=\"index.html#${:name}\" title=\"${:@pretty_name}\" class=\"gloss\">[string tolower ${:@pretty_name}]</a>"
-      }
 
-      #
-      # TODO: this should go into the appropriate template
-      #
-      :public method render_refs {} {
-	if {[info exists :refs]} {
-	  dict for {entity count} ${:refs} {
-	  }
-	}
-      }
-      
+	return $res
+      }      
     }
-    
   }; # NxDocTemplating
   
   #
@@ -2047,14 +2230,14 @@ namespace eval ::nx::doc {
 	return $parser_obj
       }
     
-    :forward has_next expr {${:idx} < [llength ${:comment_block}]}
-    :method dequeue {} {
+    :public forward has_next expr {${:idx} < [llength ${:comment_block}]}
+    :public method dequeue {} {
       set r [lindex ${:comment_block} ${:idx}]
       incr :idx
       return $r
     }
-    :forward rewind incr :idx -1
-    :forward fastforward set :idx {% llength ${:comment_block}}
+    :public forward rewind incr :idx -1
+    :public forward fastforward set :idx {% llength ${:comment_block}}
 
     :public method cancel {statuscode {msg ""}} {
       :fastforward
@@ -2201,7 +2384,7 @@ namespace eval ::nx::doc {
       }
     }
 
-    :forward event=parse %self {% subst {parse@${:current_comment_line_type}}} 
+    :public forward event=parse %self {% subst {parse@${:current_comment_line_type}}} 
     :method event=next {line} {
       set next_section [[${:block_parser} processed_section] next_comment_section]
       :on_exit $line
@@ -2216,15 +2399,16 @@ namespace eval ::nx::doc {
    
     # realise the sub-state (a variant of METHOD-FOR-STATES) and their
     # specific event handling
+    # set :lineproc {{tag args} {return [concat {*}$args]}}
+    set :lineproc {{tag args} {return [list $tag $args]}}
     :method parse@tag {line} {
-      set line [split [string trimleft $line]]
-      set tag [lindex $line 0]
+      lassign [apply [[current class] eval {set :lineproc}] {*}$line] tag line
       if {[:info lookup methods -source application $tag] eq ""} {
 	set msg "The tag '$tag' is not supported for the entity type '[namespace tail [:info class]]"
 	${:block_parser} cancel INVALIDTAG $msg
       }
-#      puts stderr ":$tag [lrange $line 1 end]"
-      :$tag [lrange $line 1 end]
+      #:$tag [lrange $line 1 end]
+      :$tag $line
     }
 
     :method parse@text {line} {
@@ -2279,61 +2463,9 @@ namespace eval ::nx::doc {
 	  }
 	}
 
-	# realise the parse events specific to the substates of description
+	set :lineproc {{tag name args} {return [list $tag $name $args]}}
 	:method parse@tag {line} {
-	  #
-	  # When hitting this parsing step, we have an unresolved
-	  # entity. The context section specifies the entity to create
-	  # or to resolve for further processing.
-	  #
-	  set line [split [string trimleft $line]]
-	  set args [lassign $line tag name]
-	  lassign [:resolve_partof_entity $tag $name] nq_name partof_entity
-	  if {$partof_entity ne ""} {
-	    if {[$partof_entity info lookup methods -source application $tag] eq ""} {
-	      ${:block_parser} cancel INVALIDTAG "The tag '$tag' is not supported for the entity type
-		'[namespace tail [$partof_entity info class]]'"
-	      # [InvalidTag new -message [subst {
-	      # 	The tag '$tag' is not supported for the entity type
-	      # 	'[namespace tail [$partof_entity info class]]'
-	      # }]] throw	      
-	    }
-	    # puts stderr "$partof_entity $tag $nq_name {*}$args"
-	    set current_entity [$partof_entity $tag $nq_name {*}$args]
-	    
-	  } else {
-	    #
-	    # TODO: @object-method raises some issues (at least when
-	    # processed without a resolved context = its partof entity).
-	    # It is not an entity type, because it merely is a "scoped"
-	    # @method. It won't resolve then as a proper instance of
-	    # Tag, hence we observe an InvalidTag exception. For
-	    # now, we just ignore and bypass this issue by allowing
-	    # InvalidTag exceptions in analyze()
-	    #
-	    set qualified_tag [namespace qualifiers [current]]::$tag
-	    ${:block_parser} cancel INVALIDTAG "The entity type '$tag' is not available"
-	    # if {[Tag info instances -closure $qualified_tag] eq ""} {
-	    #   [InvalidTag new -message [subst {
-	    # 	The entity type '$tag' is not available
-	    #   }]] throw 
-	    # }
-	    # puts stderr "$tag new -name $nq_name {*}$args"
-	    set current_entity [$tag new -name $nq_name {*}$args]
-	  }
-	  #
-	  # make sure that the current_entity has parser capabilities
-	  # and the relevant state of the previous entity before the
-	  # context switch
-	  # TODO: refactor later
-	  ${:block_parser} current_entity $current_entity
-	  ${:block_parser} processed_section [current class]
-	  $current_entity current_comment_line_type ${:current_comment_line_type}
-	  $current_entity block_parser ${:block_parser}
-	}
-
-	:method parse@tag {line} {
-	  set args [lassign $line axes names]
+	  lassign [apply [[current class] eval {set :lineproc}] {*}$line] axes names args
 	  set entity ${:partof_entity}
 	  set axes [split [string trimleft $axes @] .]
 
@@ -2368,13 +2500,38 @@ namespace eval ::nx::doc {
 	  set entity $res
 	  
 	  if {$entity eq ""} {
-	    if {[QualifierTag info instances @$leaf(axis)] eq "" && [Tag info instances @$leaf(axis)] eq ""} {
+	    set cmd [info commands @$leaf(axis)]
+	   
+	    # TODO interp-aliasing objects under different command names
+	    # is currently not transparent to some ::nsf::* helpers,
+	    # such as ::nsf::isobject. Should this be changed?
+	    #
+	    if {$cmd ne ""} {
+	      set cmd [namespace origin $cmd]
+	      set target [interp alias {} $cmd]
+	      if {$target ne ""} {
+		set cmd $target
+	      }
+	    }
+	    
+	    if {$cmd eq "" || ![::nsf::isobject $cmd] || \
+		    ![$cmd info has type Tag]} {
+	      
 	      ${:block_parser} cancel INVALIDTAG "The entity type '@$leaf(axis)' is not available."
 	    }
+
+	    # VERIFY! Still an issue? TODO: @object-method raises some
+	    # issues (at least when processed without a resolved
+	    # context = its partof entity).  It is not an entity type,
+	    # because it merely is a "scoped" @method. It won't
+	    # resolve then as a proper instance of Tag, hence we
+	    # observe an InvalidTag exception. For now, we just ignore
+	    # and bypass this issue by allowing InvalidTag exceptions
+	    # in analyze()
+
 	    set entity [@$leaf(axis) new -name $leaf(name) {*}$args]
 	  } else {
 	    if {[$entity info lookup methods -source application @$leaf(axis)] eq ""} {
-okup())
 	      ${:block_parser} cancel INVALIDTAG "The tag '$leaf(axis)' is not supported for the entity type '[namespace tail [$entity info class]]'"
 	    }
 	    set entity [$entity @$leaf(axis) [list $leaf(name) {*}$args]]
