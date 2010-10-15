@@ -1788,10 +1788,11 @@ _ added option noforwarder to RelationSlots
 - removed traces of Nsf_VariableObjCmd()
 - extended regression test
 
-TODO: 
+- provided parametersyntax definitions for XOTcl 2.0 
+  similar to nx for all methods without a spec 
+ (e.g. fur builtin Tcl cmds, forwarders)
 
-- provide parametersyntax definitions for XOTcl 2.0 similar
-  to nx
+TODO: 
 
 - "-returns" 
   * leave syntax as is for method?
