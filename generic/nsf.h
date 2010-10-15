@@ -88,8 +88,7 @@
 #define NSF_MEM_COUNT 1
 */
 
-//#define TCL_STACK_ALLOC_TRACE 1
-//#define NRE_CALLBACK_TRACE 1
+//#define VAR_RESOLVER_TRACE 1
 
 /* turn  tracing output on/off
 #define NSFOBJ_TRACE 1

@@ -107,26 +107,6 @@ Nsf_RenameObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
   return NsfCallCommand(interp, NSF_RENAME, objc, objv);
 }
 
-#if 0
-static int
-Nsf_VariableObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  int i;
-  Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
-  int frameFlags = varFramePtr ? Tcl_CallFrame_isProcCallFrame(varFramePtr) : 0;
-
-  if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
-    for (i=1 ; i<objc ; i+=2) {
-      CONST char *varName = ObjStr(objv[i]);
-      if (*varName == ':' && *(varName + 1) != ':') {
-	return NsfVarErrMsg(interp, "variable name \"", varName, 
-			    "\" must not refer to instance variable", NULL);
-      }
-    }
-  }
-  return NsfCallCommand(interp, NSF_VARIABLE, objc, objv);
-}
-#endif
-
 static int
 Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   int result;
@@ -216,7 +196,7 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
     int initialized = (RUNTIME_STATE(interp)->tclCommands != NULL);
     assert(initialized == 0);
     RUNTIME_STATE(interp)->tclCommands = 
-      NEW_ARRAY(NsfShadowTclCommandInfo, NSF_VARIABLE - NSF_EXPR + 1);
+      NEW_ARRAY(NsfShadowTclCommandInfo, NSF_SUBST - NSF_EXPR + 1);
 
     /*fprintf(stderr, "+++ load tcl commands %d %d\n", load, initialized);*/
 
@@ -234,15 +214,12 @@ NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load) {
     /* for the following commands, we have to add our own semantics */
     rc |= NsfReplaceCommand(interp, NSF_INFO_FRAME, Nsf_InfoFrameObjCmd, initialized);
     rc |= NsfReplaceCommand(interp, NSF_RENAME,     Nsf_RenameObjCmd, initialized);
-    /*rc |= NsfReplaceCommand(interp, NSF_VARIABLE,   Nsf_VariableObjCmd, initialized);*/
   } else if (load == SHADOW_REFETCH) {
     NsfReplaceCommandCheck(interp, NSF_INFO_FRAME, Nsf_InfoFrameObjCmd);
     NsfReplaceCommandCheck(interp, NSF_RENAME,     Nsf_RenameObjCmd);
-    /*NsfReplaceCommandCheck(interp, NSF_VARIABLE,   Nsf_VariableObjCmd);*/
   } else {
     NsfReplaceCommandCleanup(interp, NSF_INFO_FRAME);
     NsfReplaceCommandCleanup(interp, NSF_RENAME);
-    /*NsfReplaceCommandCleanup(interp, NSF_VARIABLE);*/
 
     FREE(NsfShadowTclCommandInfo*, RUNTIME_STATE(interp)->tclCommands);
     RUNTIME_STATE(interp)->tclCommands = NULL;

@@ -2319,7 +2319,8 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  */
 static int
-InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
+InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, 
+		       int flags, Tcl_Var *varPtr) {
   int new, frameFlags;
   CallFrame *varFramePtr;
   TclVarHashTable *varTablePtr;
@@ -2343,6 +2344,7 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
   fprintf(stderr, "InterpColonVarResolver called var '%s' flags %.4x frame flags %.6x\n",
           varName, flags, frameFlags);
 #endif
+
   varName ++;
 
   if (frameFlags & FRAME_IS_NSF_METHOD) {
@@ -2350,7 +2352,9 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
 #if defined(VAR_RESOLVER_TRACE)
       fprintf(stderr, ".... found local %s\n", varName);
 #endif
-      return TCL_OK;
+      fprintf(stderr, ".... found local %s varPtr %p\n", varName, *varPtr);
+      return TCL_CONTINUE;
+      //return TCL_OK;
     }
 
     object = ((NsfCallStackContent *)varFramePtr->clientData)->self;
@@ -16943,7 +16947,7 @@ Nsf_Init(Tcl_Interp *interp) {
 #endif
 
   Tcl_SetVar(interp, "::nsf::version", NSF_VERSION, TCL_GLOBAL_ONLY);
-  Tcl_SetVar(interp, "::nsf::patchlevel", NSF_PATCHLEVEL, TCL_GLOBAL_ONLY);
+  Tcl_SetVar(interp, "::nsf::patchLevel", NSF_PATCHLEVEL, TCL_GLOBAL_ONLY);
 
   Tcl_AddInterpResolvers(interp,"nxt",
                          (Tcl_ResolveCmdProc*)InterpColonCmdResolver,

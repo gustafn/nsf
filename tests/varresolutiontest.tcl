@@ -748,5 +748,31 @@ Test case info-vars-in-eval {
   }} 1 
 }
 
+#
+# test for former crash when variable is used in connection with
+# prefixed variables
+#
+Test case tcl-variable-cmd {
+  Object create o {
+    :public method ? {varname} {info exists :$varname}
+    :public method bar args {
+      variable :a
+      set a 3
+      variable b
+      set b 3
+      variable c 1
+      variable :d 1
+      :info vars
+    }
+  }
 
-
+  ? {o bar} d
+  ? {o ? a} 0
+  ? {o ? b} 0
+  ? {o ? c} 0
+  ? {o ? d} 1
+  ? {lsort [o info vars]} d
+  o eval {set :a 1}
+  ? {o ? a} 1
+  ? {lsort [o info vars]} "a d"
+}

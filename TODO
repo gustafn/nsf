@@ -1778,6 +1778,16 @@ _ added option noforwarder to RelationSlots
 - cleanup of method-modifiers.tcl
 - updated next migration guide
 
+- follow current Tcl vonvention for patchlevel var:
+  - changed name of ::nsf::patchlevel to ::nsf::patchLevel
+  - changed content ::nsf::patchLevel from eg .0 to full 
+    number including release details
+
+- fixed bug in ::variable with colon-prefixed name
+  (shadowCommands does not help, see above)
+- removed traces of Nsf_VariableObjCmd()
+- extended regression test
+
 TODO: 
 
 - provide parametersyntax definitions for XOTcl 2.0 similar
@@ -1811,9 +1821,6 @@ TODO:
   	    file ./generic/nsf.c, line 15788.
 
 - extend coro regression test
-
-- handle bug with ::variable with colon-prefixed name
-  (shadowCommands does not help, see above)
 
 - work on replacing SKIP_LEVELS by SKIP_LAMBDA for openacs (works with 
   regression test, has problems with OrderedComposite::ChildManager.init)
