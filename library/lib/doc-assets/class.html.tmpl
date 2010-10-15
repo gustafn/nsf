@@ -81,40 +81,38 @@
   [:!let iattrs [:inherited @class-attribute]]
   [:? {$iattrs ne ""} { 
   <div rel="yui:inheritance">                    
-                        [:for superclass [dict keys $iattrs]  {
-			[:!let attrs [dict get $iattrs $superclass]]
-                            <div class="section field inheritance"
-                        rel="yui:superclass"  resource="[$superclass filename].html">
-                                <h4>Per-class parameters inherited
-                                from <a href="[$superclass filename].html" property="yui:name"
-                                title="[$superclass name]">[$superclass name]</a>:</h4>
-                                <div class="content" rel="yui:properties">
-                                    <code>
-                                        [:for a $attrs {
-                                            <span rel="yui:property"
-                                            resource="[$superclass filename].html#attribute_[$a name]">                                        
-                                            <a class=""
-                                            href="[$a href]" property="yui:name"
-                                            title="[$a name]">[$a name]</a>
-                                            </span>
-					    }]
-                                    </code>
-                                </div>
-                            </div>
-                        }]
-                        </div>
-
-}]
-</div>
+    [:for superclass [dict keys $iattrs]  {
+    [:!let attrs [dict get $iattrs $superclass]]
+    <div class="section field inheritance"
+         rel="yui:superclass"  resource="[$superclass filename].html">
+      <h4>Per-class parameters inherited
+        from <a href="[$superclass filename].html" property="yui:name"
+                title="[$superclass name]">[$superclass name]</a>:</h4>
+      <div class="content" rel="yui:properties">
+        <code>
+          [:for a $attrs {
+          <span rel="yui:property"
+                resource="[$superclass filename].html#attribute_[$a name]">                                        
+            <a class=""
+               href="[$a href]" property="yui:name"
+               title="[$a name]">[$a name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    </div>
+    }]
+  </div>
+  }]
 
 [:?var :@object-attribute {
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
     <h3 id="properties">Per-object parameters</h3>
     <div class="content">
-
+      
       [:for attr ${:@object-attribute} {
-       <div rel="yui:property">
+      <div rel="yui:property">
         <h4><a name="property_[$attr name]" property="yui:name">[$attr name]</a>
         </h4>
         <div class="detail">
@@ -177,29 +175,28 @@
   [:!let imethods [:inherited @class-method]]
   [:? {$imethods ne ""} { 
   <div rel="yui:inheritance">
-                        [:for superclass [dict keys $imethods]  {
-			[:!let ms [dict get $imethods $superclass]]
-                            <div class="section field inheritance"
-                        rel="yui:superclass"  resource="[$superclass filename].html">
-                                <h4>Per-class methods inherited
-                                from <a href="[$superclass filename].html" property="yui:name"
-                                title="[$superclass name]">[$superclass name]</a>:</h4>
-                                <div class="content" rel="yui:methods">
-                                    <code>
-                                        [:for m $ms {
-                                            <span rel="yui:method"
-                                            resource="[$superclass filename].html#method_[$m name]">                                        
-                                            <a class=""
-                                            href="[$m href]" property="yui:name"
-                                            title="[$m name]">[$m name]</a>
-                                            </span>
-					    }]
-                                    </code>
-                                </div>
-                            </div>
-                        }]
-                        </div>
-
+    [:for superclass [dict keys $imethods]  {
+    [:!let ms [dict get $imethods $superclass]]
+    <div class="section field inheritance"
+         rel="yui:superclass"  resource="[$superclass filename].html">
+      <h4>Per-class methods inherited
+        from <a href="[$superclass filename].html" property="yui:name"
+                title="[$superclass name]">[$superclass name]</a>:</h4>
+      <div class="content" rel="yui:methods">
+        <code>
+          [:for m $ms {
+          <span rel="yui:method"
+                resource="[$superclass filename].html#method_[$m name]">                                        
+            <a class=""
+               href="[$m href]" property="yui:name"
+               title="[$m name]">[$m name]</a>
+          </span>
+	  }]
+        </code>
+      </div>
+    </div>
+    }]
+  </div>
 }]
 
 [:?var :@method {

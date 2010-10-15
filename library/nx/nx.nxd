@@ -1,15 +1,15 @@
 # -*- Tcl -*-
 
-# @package ::nx
+# @package nx
 #
 # The <<@glossary nx>> is a compact and expressive object-oriented
-# language extension for <<@Gls tcl>>. The object system model is highly
-# influenced by <<@glossary clos>> and its off-springs (e.g.,
-# <<@glossary flavors>>). This package provides the basic object system for
-# <<@glossary nx>>. It defines the basic language entities <<@class
-# ::nx::Object>> and <<@class ::nx::Class>>, as well as essential
-# language primitives (in particular, <<@command ::nx::next>> and <<@command
-# ::nx::current>>).
+# language extension for <<@Gls tcl>>. The object system model is
+# highly influenced by <<@glossary clos>> and its off-springs (e.g.,
+# <<@glossary flavors>>). This package provides the basic object
+# system for <<@glossary nx>>. It defines the basic language entities
+# <<@class ::nx::Object>> and <<@class ::nx::Class>>, as well as
+# essential language primitives (in particular, <<@command
+# ::nx::next>> and <<@command ::nx::current>>).
 #
 # @require Tcl
 # @version 1.0.0a
@@ -518,7 +518,9 @@
 # @superclass ::nx::doc::entities::class::nx::Object
 
 # @class ObjectParameterSlot
-#
+# 
+# ...
+# 
 # @superclass ::nx::doc::entities::class::nx::Slot
 
 # @class.attribute {Slot name}

@@ -1422,17 +1422,7 @@ namespace eval ::nx::doc {
       # 2) proceed by rendering the project's parts (package, class,
       # object, and command entities)
       set ext [lindex [split [file tail $tmpl] .] end-1]
-      set top_level_entities [:owned_parts]
-      dict for {feature instances} $top_level_entities {
-	if {[$feature name] eq "@package"} {
-	  foreach pkg $instances {
-	    dict for {pkg_feature pkg_feature_instances} [$pkg owned_parts] {
-	      dict lappend top_level_entities $pkg_feature {*}$pkg_feature_instances
-	    }
-	  }
-	}
-      }
-
+      set top_level_entities [:navigatable_parts]
       set init [subst {
 	set project \[:current_project\]
 	set project_entities \[list $top_level_entities\]
@@ -1505,27 +1495,38 @@ namespace eval ::nx::doc {
 	return "[string range $str 0 [expr {$margin-1}]]$placeholder[string range $str end-[expr {$margin+1}] end]"
       }
       
-      :method list_structural_features {} {
-	set entry {{"access": "$access", "host": "$host", "name": "$name", "url": "$url", "type": "$type"}}
-	set entries [list]
+      :public method as_dict {partof feature} {
+	set hash [dict create]
+	dict set hash access ""
+	dict set hash host [$partof name]
+	dict set hash name [:print_name]
+#	dict set hash url "[$partof filename].html#[string trimleft [$feature name] @]_${:name}"
+	dict set hash url "[:href $partof]"
+	dict set hash type [$feature pretty_name]
+	return $hash
+      }
+
+      :method as_array_of_hashes {} {
+	set features [:navigatable_parts]
+	set js_array [list]
+	dict for {feature instances} $features {
+	  foreach inst $instances {
+	    set d [$inst as_dict [current] $feature]
+	    set js_hash {{"access": "$access", "host": "$host", "name": "$name", "url": "$url", "type": "$type"}}
+	    dict with d {
+	      lappend js_array [subst $js_hash]
+	    }
+	  }
+	}
+	return "\[[join $js_array ,\n]\]"
+      }
+      
+      :method navigatable_parts {} {
 	#
 	# TODO: Should I wrap up delegating calls to the originator
 	# entity behind a unified interface (a gatekeeper?)
 	#
-	set features [[:origin] owned_parts]
-	dict for {feature instances} $features {
-	  foreach inst $instances {
-	    # TODO: @modifier support is specific to the parts of
-	    # @object instances. Untangle!
-	    set access [expr {[$inst eval {info exists :@modifier}]?[$inst @modifier]:""}]
-	    set host ${:name}
-	    set name [$inst print_name]
-	    set url  "[:filename].html#[string trimleft [$feature name] @]_[$inst name]"
-	    set type [$feature name]
-	    lappend entries [subst $entry]
-	  }
-	}
-	return "\[[join $entries ,\n]\]"
+	return [[:origin] owned_parts]
       }
        
       :method listing {{-inline true} script} {
@@ -1613,8 +1614,27 @@ namespace eval ::nx::doc {
       :public method filename {} {
 	return "index"
       }
+      :method navigatable_parts {} {
+	#
+	# TODO: Should I wrap up delegating calls to the originator
+	# entity behind a unified interface (a gatekeeper?)
+	#
+	set top_level_entities [next]
+	dict for {feature instances} $top_level_entities {
+	  if {[$feature name] eq "@package"} {
+	    foreach pkg $instances {
+	      dict for {pkg_feature pkg_feature_instances} [$pkg owned_parts] {
+		dict lappend top_level_entities $pkg_feature \
+		    {*}$pkg_feature_instances
+	      }
+	    }
+	  }
+	}
+	return $top_level_entities
+      }
+      
     }
-
+    
     MixinLayer::Mixin create [current]::@glossary -superclass [current]::Entity {
 
       :public method print_name {} {
@@ -1646,7 +1666,7 @@ namespace eval ::nx::doc {
 	}
 
       }
-
+      
       :public method href {-local:switch top_entity:optional} {
 	set fragments "#${:name}"
 	if {$local} { 
@@ -1692,7 +1712,16 @@ namespace eval ::nx::doc {
 
 	return $res
       }      
-    }
+    }; # NxDocRenderer::@glossary
+
+    MixinLayer::Mixin create [current]::@method -superclass [current]::Entity {
+      :public method as_dict {partof feature} {
+	set hash [next]
+	dict set hash access ${:@modifier}
+	return $hash
+      }
+    }; # NxDocRenderer::@method
+
   }; # NxDocTemplating
   
   #

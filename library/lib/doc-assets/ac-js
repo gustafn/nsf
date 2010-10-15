@@ -132,7 +132,7 @@ Event.onAvailable('yui-classopts-form', function() {
         oAutoComp.maxResultsDisplayed = 200;
         oAutoComp.minQueryLength = 0;
         oAutoComp.formatResult = function(oResultItem, query) {
-            var sMarkup = "<em>" + oResultItem[1].host + '</em> <span>' + oResultItem[1].name + '</span>';
+            var sMarkup = "<em>" + oResultItem[1].host + '</em> <span>' + oResultItem[1].name + '</span> <em>(' + oResultItem[1].type.toLowerCase() +')</em>';
             return sMarkup;
         };
 
