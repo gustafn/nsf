@@ -975,7 +975,7 @@ Test case parsing {
     
     # 1) NSF documentation project
     set project [::nx::doc::@project new \
-		     -name ::NextScriptingFramework \
+		     -name NextScriptingFramework \
 		     -url http://www.next-scripting.org/ \
 		     -version 1.0.0a \
 		     -@namespace "::nsf"]
@@ -991,7 +991,7 @@ Test case parsing {
 
     puts stderr TIMING=[time {
     set project [::nx::doc::@project new \
-    		     -name ::NextScriptingLanguage \
+    		     -name NextScriptingLanguage \
     		     -url http://www.next-scripting.org/ \
     		     -version 1.0.0a \
     		     -@namespace "::nx"]
