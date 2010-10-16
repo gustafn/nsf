@@ -2247,11 +2247,12 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
  *----------------------------------------------------------------------
  */
 static void
-CompiledColonVarFree(Tcl_ResolvedVarInfo *vinfoPtr) {
-  nsfResolvedVarInfo *resVarInfo = (nsfResolvedVarInfo *)vinfoPtr;
+CompiledColonVarFree(Tcl_ResolvedVarInfo *vInfoPtr) {
+  nsfResolvedVarInfo *resVarInfo = (nsfResolvedVarInfo *)vInfoPtr;
+
   DECR_REF_COUNT(resVarInfo->nameObj);
   if (resVarInfo->var) {HashVarFree(resVarInfo->var);}
-  ckfree((char *) vinfoPtr);
+  ckfree((char *) vInfoPtr);
 }
 
 /*
@@ -2328,7 +2329,7 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
   Tcl_Obj *keyObj;
   Tcl_Var var;
 
-  if (!FOR_COLON_RESOLVER(varName) || (flags & TCL_GLOBAL_ONLY)) {
+  if (!FOR_COLON_RESOLVER(varName) || (flags & (TCL_GLOBAL_ONLY|TCL_NAMESPACE_ONLY))) {
     /* ordinary names and global lookups are not for us */
 #if defined(VAR_RESOLVER_TRACE)
     fprintf(stderr, "InterpColonVarResolver '%s' flags %.6x not for us nsPtr %p\n",
@@ -2350,11 +2351,10 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
   if (frameFlags & FRAME_IS_NSF_METHOD) {
     if ((*varPtr = CompiledLocalsLookup(varFramePtr, varName))) {
 #if defined(VAR_RESOLVER_TRACE)
-      fprintf(stderr, ".... found local %s\n", varName);
+      fprintf(stderr, ".... found local %s varPtr %p flags %.6x only %d\n", 
+	      varName, *varPtr, flags, flags&TCL_NAMESPACE_ONLY);
 #endif
-      fprintf(stderr, ".... found local %s varPtr %p\n", varName, *varPtr);
-      return TCL_CONTINUE;
-      //return TCL_OK;
+      return TCL_OK;
     }
 
     object = ((NsfCallStackContent *)varFramePtr->clientData)->self;
@@ -2378,7 +2378,7 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
 #if 0
   if (varTablePtr == NULL) {
     /* this seems to be the first access to object->varTablePtr for this object */
-    varTablePtr = object->varTablePtr = VarHashTableCreate();
+    object->varTablePtr = varTablePtr = VarHashTableCreate();
   }
 #endif
   assert(varTablePtr);
@@ -2392,7 +2392,8 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
   var = (Tcl_Var)VarHashCreateVar(varTablePtr, keyObj, NULL);
   if (var) {
 #if defined(VAR_RESOLVER_TRACE)
-    fprintf(stderr, ".... found in hashtable %s %p\n", varName, var);
+    fprintf(stderr, ".... found in hashtable %s %p flags %.6x ns %p\n", 
+	    varName, var, ((Var *)var)->flags,  object->nsPtr);
 #endif
   } else {
     /*
@@ -2403,11 +2404,13 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
     fprintf(stderr, ".... var %p %s created in hashtable %p\n", var, varName, varTablePtr);
 #endif
   }
+
   *varPtr = var;
   DECR_REF_COUNT(keyObj);
 
   return TCL_OK;
 }
+
 /*********************************************************
  *
  * End of var resolvers

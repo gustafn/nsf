@@ -1792,6 +1792,10 @@ _ added option noforwarder to RelationSlots
   similar to nx for all methods without a spec 
  (e.g. fur builtin Tcl cmds, forwarders)
 
+- make sure not to return CompiledLocal vars
+  from InterpColonVarResolver() when TCL_NAMESPACE_ONLY
+  is requested.
+
 TODO: 
 
 - "-returns" 

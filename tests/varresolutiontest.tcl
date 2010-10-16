@@ -766,13 +766,13 @@ Test case tcl-variable-cmd {
     }
   }
 
-  ? {o bar} d
+  ? {o bar} ""
   ? {o ? a} 0
   ? {o ? b} 0
   ? {o ? c} 0
-  ? {o ? d} 1
-  ? {lsort [o info vars]} d
+  ? {o ? d} 0
+  ? {lsort [o info vars]} ""
   o eval {set :a 1}
   ? {o ? a} 1
-  ? {lsort [o info vars]} "a d"
+  ? {lsort [o info vars]} a
 }
