@@ -887,7 +887,7 @@ namespace eval ::nx::serializer {
       # provide limited support for exporting aliases for XOTcl objects
       foreach i [$o ::nsf::methods::class::info::methods -methodtype alias -callprotection all] {
         set nxDef [$o ::nsf::methods::class::info::method definition $i]
-        append cmd [list ::nsf::alias $o {*}[lrange $nxDef 2 end]\n
+        append cmd [list ::nsf::alias $o {*}[lrange $nxDef 3 end]]\n
       }
       append cmd \
           [:frameWorkCmd ::nsf::relation $o superclass -unless ${:rootClass}] \
