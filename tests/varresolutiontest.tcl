@@ -776,3 +776,36 @@ Test case tcl-variable-cmd {
   ? {o ? a} 1
   ? {lsort [o info vars]} a
 }
+
+Test case interactions {
+  
+  # SS: Adding an exemplary test destilled from the behaviour observed
+  # for AOLserver vs. NaviServer when introspecting object variables
+  # by means of the colon-resolver interface. It exemplifies the (by now
+  # resolved for good) interactions between: (a) the compiled and
+  # non-compiled var resolvers and (b) compiled and non-compiled
+  # script execution
+  
+  Object create ::o {
+    :public method bar {} {
+      # 1. creates a proc-local, compiled var "type"
+      set type 1
+      # 2. at compile time: create a proc-local, compiled link-var ":type"
+      info exists :type
+      # 3. at (unoptimised) interpretation time: bypasses compiled link-var
+      # ":type" (invokeStr instruction; a simple eval), does a var
+      # lookup with ":type", handled by InterpColonVarResolver();
+      # CompiledLocalsLookup() receives the var name (i.e., ":type")
+      # and finds the proc-local compiled var ":type" (actually a link
+      # variable to the actual/real object variable).
+      eval {info exists :type}; 
+      # Note! A [info exists :type] would have been optimised on the
+      # bytecode fastpath (i.e., existsScalar instruction) and would
+      # use the compiled-local link-var ":type" directly (without
+      # visiting InterpColonVarResolver()!)
+    }
+  }
+  
+  ? {o bar} 0
+
+}

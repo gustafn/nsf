@@ -600,7 +600,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   Tcl_Command cmd;
 
   /*fprintf(stderr, "GetObjectFromObj obj %p %s is of type %s\n",
-    objPtr, ObjStr(objPtr), objPtr->typePtr ? objPtr->typePtr->name : "(null)");*/
+    objPtr, ObjStr(objPtr), objPtr->objPtrtypePtr ? objPtr->typePtr->name : "(null)");*/
 
   /* in case, objPtr was not of type cmdName, try to convert */
   cmd = Tcl_GetCommandFromObj(interp, objPtr);
@@ -2213,6 +2213,9 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   assert(varTablePtr);
 
   resVarInfo->lastObject = object;
+  #if defined(VAR_RESOLVER_TRACE)
+  fprintf(stderr,"Fetch var %s in object %s\n",TclGetString(resVarInfo->nameObj),objectName(object));
+  #endif
   resVarInfo->var = var = (Tcl_Var) VarHashCreateVar(varTablePtr, resVarInfo->nameObj, &new);
   /*
    * Increment the reference counter to avoid ckfree() of the variable
@@ -2220,14 +2223,15 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
    * HashVarFree();
    */
   VarHashRefCount(var)++;
-
 #if defined(VAR_RESOLVER_TRACE)
-  {
-    Var *v = (Var*)(resVarInfo->var);
-    fprintf(stderr, ".... looked up var %s var %p flags = %.6x\n",
-            ObjStr(resVarInfo->nameObj),
-            v, v->flags);
-  }
+
+	  Var *v = (Var*)(resVarInfo->var);
+	  fprintf(stderr, ".... looked up existing var %s var %p flags = %.6x undefined %d\n",
+		  ObjStr(resVarInfo->nameObj),
+		  v, 
+		  v->flags,
+		  TclIsVarUndefined(v));
+      
 #endif
   return var;
 }
@@ -2346,14 +2350,45 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
           varName, flags, frameFlags);
 #endif
 
-  varName ++;
-
   if (frameFlags & FRAME_IS_NSF_METHOD) {
     if ((*varPtr = CompiledLocalsLookup(varFramePtr, varName))) {
+	/*
+	 * This section is reached under notable circumstances and
+	 * represents a point of interaction between our resolvers for
+	 * non-compiled (i.e., InterpColonVarResolver()) and compiled script
+	 * execution (i.e., InterpCompiledColonVarResolver()).
+	 *
+	 * Expect this branch to be hit iff...
+	 *
+	 * 1. ... InterpCompiledColonVarResolver() is called from within
+	 * the Tcl bytecode interpreter when executing a
+	 * bytecode-compiled script on a *slow path* (i.e., involving
+	 * a TclObjLookupVarEx() call)
+	 *
+	 * 2. ... the act of variable resolution (i.e.,
+	 * TclObjLookupVarEx()) has not been restricted to the global
+	 * (TCL_GLOBAL_ONLY) or an effective namespace
+	 * (TCL_NAMESPACE_ONLY)
+	 *
+	 * 3. ..., resulting from the fact of participating in an
+	 * bytecode interpretation, CompiledColonVarFetch() stored a
+	 * link variable (pointing to the actual/real object variable,
+	 * whether defined or not) under the given varName value into
+	 * the current call frame's array of compiled locals (when
+	 * initialising the call frame; see
+	 * tclProc.c:InitResolvedLocals()).
+	 */
 #if defined(VAR_RESOLVER_TRACE)
-      fprintf(stderr, ".... found local %s varPtr %p flags %.6x only %d\n", 
-	      varName, *varPtr, flags, flags&TCL_NAMESPACE_ONLY);
+      fprintf(stderr, ".... found local %s varPtr %p flags %.6x\n", 
+	      varName, *varPtr, flags);
 #endif
+      /*
+       * By looking up the compiled-local directly and signalling
+       * TCL_OK, we optimise a little by avoiding further lookups down
+       * the Tcl var resolution infrastructure. Note that signalling
+       * TCL_CONTINUE would work too, however, it would involve extra
+       * resolution overhead.
+       */
       return TCL_OK;
     }
 
@@ -2371,7 +2406,12 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
 #endif
     return TCL_CONTINUE;
   }
-
+  
+  /*
+   * Trim the varName for the colon prefix (":").
+   */
+    varName ++;
+    
   /* We have an object and create the variable if not found */
   assert(object);
   varTablePtr = object->nsPtr ? Tcl_Namespace_varTablePtr(object->nsPtr) : object->varTablePtr;
