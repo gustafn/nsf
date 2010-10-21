@@ -2213,9 +2213,9 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   assert(varTablePtr);
 
   resVarInfo->lastObject = object;
-  #if defined(VAR_RESOLVER_TRACE)
+#if defined(VAR_RESOLVER_TRACE)
   fprintf(stderr,"Fetch var %s in object %s\n",TclGetString(resVarInfo->nameObj),objectName(object));
-  #endif
+#endif
   resVarInfo->var = var = (Tcl_Var) VarHashCreateVar(varTablePtr, resVarInfo->nameObj, &new);
   /*
    * Increment the reference counter to avoid ckfree() of the variable
