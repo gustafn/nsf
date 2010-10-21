@@ -726,7 +726,9 @@ CallStackClearCmdReferences(Tcl_Interp *interp, Tcl_Command cmd) {
 
 static void CallStackPopAll(Tcl_Interp *interp) {
 
-  NsfShowStack(interp);
+  if (RUNTIME_STATE(interp)->debugLevel > 1) {
+    NsfShowStack(interp);
+  }
 
   while (1) {
     Tcl_CallFrame *framePtr = Tcl_Interp_framePtr(interp);
