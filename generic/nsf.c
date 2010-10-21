@@ -2224,14 +2224,13 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
    */
   VarHashRefCount(var)++;
 #if defined(VAR_RESOLVER_TRACE)
-
-	  Var *v = (Var*)(resVarInfo->var);
-	  fprintf(stderr, ".... looked up existing var %s var %p flags = %.6x undefined %d\n",
-		  ObjStr(resVarInfo->nameObj),
-		  v, 
-		  v->flags,
-		  TclIsVarUndefined(v));
-      
+  {
+    Var *v = (Var*)(resVarInfo->var);
+    fprintf(stderr, ".... looked up existing var %s var %p flags = %.6x undefined %d\n",
+	    ObjStr(resVarInfo->nameObj),
+	    v, v->flags,
+	    TclIsVarUndefined(v));
+  }
 #endif
   return var;
 }
@@ -2410,7 +2409,7 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
   /*
    * Trim the varName for the colon prefix (":").
    */
-    varName ++;
+  varName ++;
     
   /* We have an object and create the variable if not found */
   assert(object);
