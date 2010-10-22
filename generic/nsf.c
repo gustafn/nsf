@@ -14170,6 +14170,22 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
 }
 
 /*
+nsfCmd self NsfSelfCmd {
+}
+*/
+static int
+NsfSelfCmd(Tcl_Interp *interp) {
+  NsfObject *object = GetSelfObj(interp);
+
+  if (object) {
+    Tcl_SetObjResult(interp, object->cmdName);
+    return TCL_OK;
+  } else {
+    return NsfVarErrMsg(interp,  "No current object", (char *) NULL);
+  }
+}
+
+/*
 nsfCmd setvar NsfSetVarCmd {
   {-argName "object" -required 1 -type object}
   {-argName "varname" -required 1 -type tclobj}

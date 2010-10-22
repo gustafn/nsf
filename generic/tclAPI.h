@@ -231,6 +231,7 @@ static int NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int o
 static int NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfShowStackCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -314,6 +315,7 @@ static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
 static int NsfQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *objectname);
 static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int relationtype, Tcl_Obj *value);
+static int NsfSelfCmd(Tcl_Interp *interp);
 static int NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varname, Tcl_Obj *value);
 static int NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *parameter);
 static int NsfShowStackCmd(Tcl_Interp *interp);
@@ -398,6 +400,7 @@ enum {
  NsfNextCmdIdx,
  NsfQualifyObjCmdIdx,
  NsfRelationCmdIdx,
+ NsfSelfCmdIdx,
  NsfSetVarCmdIdx,
  NsfSetterCmdIdx,
  NsfShowStackCmdIdx,
@@ -1357,6 +1360,24 @@ NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 }
 
 static int
+NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfSelfCmdIdx].paramDefs, 
+                     method_definitions[NsfSelfCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    
+
+    ParseContextRelease(&pc);
+    return NsfSelfCmd(interp);
+
+  }
+}
+
+static int
 NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
 
@@ -2270,6 +2291,9 @@ static methodDefinition method_definitions[] = {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
   {"relationtype", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 0, ConvertToRelationtype},
   {"value", 0, 0, ConvertToTclobj}}
+},
+{"::nsf::self", NsfSelfCmdStub, 0, {
+  }
 },
 {"::nsf::setvar", NsfSetVarCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},

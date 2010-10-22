@@ -52,13 +52,14 @@ namespace eval ::xotcl {
   #interp alias {} ::xotcl::Attribute {} ::nx::Attribute
   ::nx::Class create ::xotcl::Attribute -superclass ::nx::Attribute
 
-  proc ::xotcl::self {{arg "object"}} {
+  proc ::xotcl::self {{arg ""}} {
       switch $arg {
-	  next {
-	      set handle [uplevel ::nsf::current $arg]
-	      method_handle_to_xotcl $handle
-	  }
-	  default {uplevel ::nsf::current $arg}
+	"" {uplevel ::nsf::self}
+	next {
+	  set handle [uplevel ::nsf::current $arg]
+	  method_handle_to_xotcl $handle
+	}
+	default {uplevel ::nsf::current $arg}
       }
   }
 

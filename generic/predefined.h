@@ -1,6 +1,6 @@
 static char cmd[] = 
 "namespace eval ::nsf {\n"
-"namespace export next current\n"
+"namespace export next current self\n"
 "namespace export alias configure finalize interp is my relation\n"
 "proc ::nsf::provide_method {require_name definition {script \"\"}} {\n"
 "set ::nsf::methodIndex($require_name) [list definition $definition script $script]}\n"

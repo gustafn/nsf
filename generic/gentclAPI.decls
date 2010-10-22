@@ -140,17 +140,19 @@ nsfCmd relation NsfRelationCmd {
 nsfCmd current NsfCurrentCmd {
   {-argName "currentoption" -required 0 -type "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"}
 }
-
-nsfCmd setvar NsfSetVarCmd {
-  {-argName "object" -required 1 -type object}
-  {-argName "varname" -required 1 -type tclobj}
-  {-argName "value" -required 0 -type tclobj}
+nsfCmd self NsfSelfCmd {
 }
 nsfCmd setter NsfSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
   {-argName "parameter" -type tclobj}
 }
+nsfCmd setvar NsfSetVarCmd {
+  {-argName "object" -required 1 -type object}
+  {-argName "varname" -required 1 -type tclobj}
+  {-argName "value" -required 0 -type tclobj}
+}
+
 
 #
 # object methods

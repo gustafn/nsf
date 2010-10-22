@@ -5,7 +5,7 @@ namespace eval ::nsf {
   # Symbols reused in the next scripting language
   
   
-  namespace export next current 
+  namespace export next current self
   
   # Symbols reused in XOTcl
   
