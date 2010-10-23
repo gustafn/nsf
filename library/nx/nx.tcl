@@ -800,11 +800,7 @@ namespace eval ::nx {
       lappend methodopts required
     }
 
-    if {[::nsf::existsvar [::nsf::self] type] ne [info exists :type]} {
-      puts stderr "*** VERY STRANGE: info exists :type says [info exists :type], ::nsf::existsvar [::nsf::self] type says [::nsf::existsvar [::nsf::self] type]"
-    }
-
-    if {[::nsf::existsvar [::nsf::self] type]} {
+    if {[info exists :type]} {
       if {[string match ::* ${:type}]} {
 	set type [expr {[::nsf::is metaclass ${:type}] ? "class" : "object"}]
         lappend objopts type=${:type}
