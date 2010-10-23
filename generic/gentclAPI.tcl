@@ -193,6 +193,17 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
 }
 
 proc genStub {stub intro obj idx cDefs pre call post} {
+  # Tiny optimization for calls without parameters;
+  # ParseContextExtendObjv() is just called for procs, so no need to
+  # free non-static objvs. Actually, the api for c-methods does
+  # not allow to generate structures which have to be freed.
+  # we assert this in the code.
+  if {$cDefs ne ""} {
+    set releasePC "ParseContextRelease(&pc);"
+    set releasePC "assert(pc.status == 0);"
+  } else {
+    set releasePC ""
+  }
   return [subst -nocommands {
 static int
 ${stub}(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
@@ -206,7 +217,7 @@ $intro
   } else {
     $cDefs
 $pre
-    ParseContextRelease(&pc);
+    $releasePC
     $call
 $post
   }

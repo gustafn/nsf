@@ -1801,6 +1801,12 @@ _ added option noforwarder to RelationSlots
 - implemented exported command ::nsf::self as fast conveniance
   replacement for "::nsf::current object".
 
+- removed bug-alert from nx.tcl (wrong false-positives for 
+  compiled locals in slots)
+- added a few small optimization. nsf appears to run on 
+  the shootout benchmark the same speed like a year ago
+  (which much less functionality)
+
 TODO: 
 
 - "-returns" 

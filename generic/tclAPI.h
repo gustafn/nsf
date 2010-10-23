@@ -455,7 +455,7 @@ NsfCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
   } else {
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfCAllocMethod(interp, cl, name);
 
   }
@@ -474,7 +474,7 @@ NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   } else {
     CONST char *name = (CONST char *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfCCreateMethod(interp, cl, name, objc, objv);
 
   }
@@ -493,7 +493,7 @@ NsfCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   } else {
     Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfCDeallocMethod(interp, cl, object);
 
   }
@@ -513,7 +513,7 @@ NsfCFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     CONST char *filter = (CONST char *)pc.clientData[0];
     Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfCFilterGuardMethod(interp, cl, filter, guard);
 
   }
@@ -533,7 +533,7 @@ NsfCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     CONST char *mixin = (CONST char *)pc.clientData[0];
     Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfCMixinGuardMethod(interp, cl, mixin, guard);
 
   }
@@ -552,7 +552,7 @@ NsfCNewMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
   } else {
     NsfObject *withChildof = (NsfObject *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfCNewMethod(interp, cl, withChildof, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
@@ -571,7 +571,7 @@ NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   } else {
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfCRecreateMethod(interp, cl, name, objc, objv);
 
   }
@@ -590,7 +590,7 @@ NsfClassInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int
   } else {
     CONST char *filter = (CONST char *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfClassInfoFilterguardMethod(interp, cl, filter);
 
   }
@@ -610,7 +610,7 @@ NsfClassInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, i
     int withGuards = (int )PTR2INT(pc.clientData[0]);
     CONST char *pattern = (CONST char *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfClassInfoFiltermethodsMethod(interp, cl, withGuards, pattern);
 
   }
@@ -630,7 +630,7 @@ NsfClassInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     int withDefinition = (int )PTR2INT(pc.clientData[0]);
     CONST char *name = (CONST char *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfClassInfoForwardMethod(interp, cl, withDefinition, name);
 
   }
@@ -649,7 +649,7 @@ NsfClassInfoHeritageMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   } else {
     CONST char *pattern = (CONST char *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfClassInfoHeritageMethod(interp, cl, pattern);
 
   }
@@ -679,7 +679,7 @@ NsfClassInfoInstancesMethodStub(ClientData clientData, Tcl_Interp *interp, int o
       return TCL_OK;
     }
           
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     returnCode = NsfClassInfoInstancesMethod(interp, cl, withClosure, patternString, patternObj);
 
     if (pattern) {
@@ -703,7 +703,7 @@ NsfClassInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
     int infomethodsubcmd = (int )PTR2INT(pc.clientData[0]);
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfClassInfoMethodMethod(interp, cl, infomethodsubcmd, name);
 
   }
@@ -727,7 +727,7 @@ NsfClassInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
     int withPath = (int )PTR2INT(pc.clientData[4]);
     CONST char *pattern = (CONST char *)pc.clientData[5];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfClassInfoMethodsMethod(interp, cl, withCallprotection, withIncontext, withMethodtype, withNomixins, withPath, pattern);
 
   }
@@ -758,7 +758,7 @@ NsfClassInfoMixinOfMethodStub(ClientData clientData, Tcl_Interp *interp, int obj
       return TCL_OK;
     }
           
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     returnCode = NsfClassInfoMixinOfMethod(interp, cl, withClosure, withScope, patternString, patternObj);
 
     if (pattern) {
@@ -793,7 +793,7 @@ NsfClassInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, in
       return TCL_OK;
     }
           
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     returnCode = NsfClassInfoMixinclassesMethod(interp, cl, withClosure, withGuards, patternString, patternObj);
 
     if (pattern) {
@@ -816,7 +816,7 @@ NsfClassInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   } else {
     CONST char *mixin = (CONST char *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfClassInfoMixinguardMethod(interp, cl, mixin);
 
   }
@@ -846,7 +846,7 @@ NsfClassInfoSubclassMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
       return TCL_OK;
     }
           
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     returnCode = NsfClassInfoSubclassMethod(interp, cl, withClosure, patternString, patternObj);
 
     if (pattern) {
@@ -870,7 +870,7 @@ NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
     int withClosure = (int )PTR2INT(pc.clientData[0]);
     Tcl_Obj *pattern = (Tcl_Obj *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfClassInfoSuperclassMethod(interp, cl, withClosure, pattern);
 
   }
@@ -892,7 +892,7 @@ NsfAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
     int withFrame = (int )PTR2INT(pc.clientData[3]);
     Tcl_Obj *cmdName = (Tcl_Obj *)pc.clientData[4];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfAliasCmd(interp, object, withPer_object, methodName, withFrame, cmdName);
 
   }
@@ -912,7 +912,7 @@ NsfAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     int assertionsubcmd = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *arg = (Tcl_Obj *)pc.clientData[2];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfAssertionCmd(interp, object, assertionsubcmd, arg);
 
   }
@@ -940,7 +940,7 @@ NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     int configureoption = (int )PTR2INT(pc.clientData[0]);
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfConfigureCmd(interp, configureoption, value);
 
   }
@@ -960,7 +960,7 @@ NsfCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
     Tcl_Obj *rootMetaClass = (Tcl_Obj *)pc.clientData[1];
     Tcl_Obj *systemMethods = (Tcl_Obj *)pc.clientData[2];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfCreateObjectSystemCmd(interp, rootClass, rootMetaClass, systemMethods);
 
   }
@@ -978,7 +978,7 @@ NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
   } else {
     int currentoption = (int )PTR2INT(pc.clientData[0]);
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfCurrentCmd(interp, currentoption);
 
   }
@@ -996,7 +996,7 @@ NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfDebugRunAssertionsCmd(interp);
 
   }
@@ -1016,7 +1016,7 @@ NsfDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     CONST char *oldCmd = (CONST char *)pc.clientData[1];
     CONST char *newCmd = (CONST char *)pc.clientData[2];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfDeprecatedCmd(interp, what, oldCmd, newCmd);
 
   }
@@ -1036,7 +1036,7 @@ NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     int withFrame = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *command = (Tcl_Obj *)pc.clientData[2];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfDispatchCmd(interp, object, withFrame, command, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
@@ -1055,7 +1055,7 @@ NsfExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     NsfObject *object = (NsfObject *)pc.clientData[0];
     CONST char *varname = (CONST char *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfExistsVarCmd(interp, object, varname);
 
   }
@@ -1073,7 +1073,7 @@ NsfFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfFinalizeObjCmd(interp);
 
   }
@@ -1100,7 +1100,7 @@ NsfForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     int withVerbose = (int )PTR2INT(pc.clientData[8]);
     Tcl_Obj *target = (Tcl_Obj *)pc.clientData[9];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withMethodprefix, withObjscope, withOnerror, withVerbose, target, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
@@ -1118,7 +1118,7 @@ NsfImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
   } else {
     NsfObject *object = (NsfObject *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfImportvarCmd(interp, object, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
@@ -1136,7 +1136,7 @@ NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
   } else {
     CONST char *name = (CONST char *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfInterpObjCmd(interp, name, objc, objv);
 
   }
@@ -1154,7 +1154,7 @@ NsfInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, i
   } else {
     NsfClass *class = (NsfClass *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfInvalidateObjectParameterCmd(interp, class);
 
   }
@@ -1174,7 +1174,7 @@ NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     Tcl_Obj *constraint = (Tcl_Obj *)pc.clientData[1];
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfIsCmd(interp, withComplain, constraint, value);
 
   }
@@ -1192,7 +1192,7 @@ NsfIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
   } else {
     Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfIsObjectCmd(interp, object);
 
   }
@@ -1218,7 +1218,7 @@ NsfMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     Tcl_Obj *withPrecondition = (Tcl_Obj *)pc.clientData[7];
     Tcl_Obj *withPostcondition = (Tcl_Obj *)pc.clientData[8];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfMethodCmd(interp, object, withInner_namespace, withPer_object, withPublic, name, args, body, withPrecondition, withPostcondition);
 
   }
@@ -1240,7 +1240,7 @@ NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     int methodproperty = (int )PTR2INT(pc.clientData[3]);
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[4];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfMethodPropertyCmd(interp, object, withPer_object, methodName, methodproperty, value);
 
   }
@@ -1259,7 +1259,7 @@ NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     int withLocal = (int )PTR2INT(pc.clientData[0]);
     Tcl_Obj *method = (Tcl_Obj *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfMyCmd(interp, withLocal, method, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
@@ -1278,7 +1278,7 @@ NsfNSCopyCmdsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     Tcl_Obj *fromNs = (Tcl_Obj *)pc.clientData[0];
     Tcl_Obj *toNs = (Tcl_Obj *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfNSCopyCmdsCmd(interp, fromNs, toNs);
 
   }
@@ -1297,7 +1297,7 @@ NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     Tcl_Obj *fromNs = (Tcl_Obj *)pc.clientData[0];
     Tcl_Obj *toNs = (Tcl_Obj *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfNSCopyVarsCmd(interp, fromNs, toNs);
 
   }
@@ -1315,7 +1315,7 @@ NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
   } else {
     Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfNextCmd(interp, arguments);
 
   }
@@ -1333,7 +1333,7 @@ NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   } else {
     Tcl_Obj *objectname = (Tcl_Obj *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfQualifyObjCmd(interp, objectname);
 
   }
@@ -1353,7 +1353,7 @@ NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
     int relationtype = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfRelationCmd(interp, object, relationtype, value);
 
   }
@@ -1371,7 +1371,7 @@ NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfSelfCmd(interp);
 
   }
@@ -1391,7 +1391,7 @@ NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     Tcl_Obj *varname = (Tcl_Obj *)pc.clientData[1];
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfSetVarCmd(interp, object, varname, value);
 
   }
@@ -1411,7 +1411,7 @@ NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     int withPer_object = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *parameter = (Tcl_Obj *)pc.clientData[2];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfSetterCmd(interp, object, withPer_object, parameter);
 
   }
@@ -1429,7 +1429,7 @@ NsfShowStackCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfShowStackCmd(interp);
 
   }
@@ -1450,7 +1450,7 @@ NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
     int withReset = (int )PTR2INT(pc.clientData[1]);
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[2];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfOAutonameMethod(interp, obj, withInstance, withReset, name);
 
   }
@@ -1469,7 +1469,7 @@ NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfOCleanupMethod(interp, obj);
 
   }
@@ -1498,7 +1498,7 @@ NsfODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfODestroyMethod(interp, obj);
 
   }
@@ -1517,7 +1517,7 @@ NsfOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   } else {
     CONST char *varname = (CONST char *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfOExistsMethod(interp, obj, varname);
 
   }
@@ -1537,7 +1537,7 @@ NsfOFilterGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
     CONST char *filter = (CONST char *)pc.clientData[0];
     Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfOFilterGuardMethod(interp, obj, filter, guard);
 
   }
@@ -1567,7 +1567,7 @@ NsfOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
     CONST char *mixin = (CONST char *)pc.clientData[0];
     Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfOMixinGuardMethod(interp, obj, mixin, guard);
 
   }
@@ -1586,7 +1586,7 @@ NsfONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfONoinitMethod(interp, obj);
 
   }
@@ -1605,7 +1605,7 @@ NsfORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfORequireNamespaceMethod(interp, obj);
 
   }
@@ -1654,7 +1654,7 @@ NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfOVolatileMethod(interp, obj);
 
   }
@@ -1673,7 +1673,7 @@ NsfOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
   } else {
     CONST char *varname = (CONST char *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfOVwaitMethod(interp, obj, varname);
 
   }
@@ -1693,7 +1693,7 @@ NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
     NsfClass *withType = (NsfClass *)pc.clientData[0];
     CONST char *pattern = (CONST char *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoChildrenMethod(interp, obj, withType, pattern);
 
   }
@@ -1712,7 +1712,7 @@ NsfObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfObjInfoClassMethod(interp, obj);
 
   }
@@ -1731,7 +1731,7 @@ NsfObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   } else {
     CONST char *name = (CONST char *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoFilterguardMethod(interp, obj, name);
 
   }
@@ -1752,7 +1752,7 @@ NsfObjInfoFiltermethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
     int withOrder = (int )PTR2INT(pc.clientData[1]);
     CONST char *pattern = (CONST char *)pc.clientData[2];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoFiltermethodsMethod(interp, obj, withGuards, withOrder, pattern);
 
   }
@@ -1772,7 +1772,7 @@ NsfObjInfoForwardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     int withDefinition = (int )PTR2INT(pc.clientData[0]);
     CONST char *name = (CONST char *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoForwardMethod(interp, obj, withDefinition, name);
 
   }
@@ -1791,7 +1791,7 @@ NsfObjInfoHasMixinMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
   } else {
     NsfClass *class = (NsfClass *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoHasMixinMethod(interp, obj, class);
 
   }
@@ -1810,7 +1810,7 @@ NsfObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
   } else {
     NsfClass *class = (NsfClass *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoHasTypeMethod(interp, obj, class);
 
   }
@@ -1829,7 +1829,7 @@ NsfObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfObjInfoHasnamespaceMethod(interp, obj);
 
   }
@@ -1848,7 +1848,7 @@ NsfObjInfoIsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   } else {
     int objectkind = (int )PTR2INT(pc.clientData[0]);
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoIsMethod(interp, obj, objectkind);
 
   }
@@ -1867,7 +1867,7 @@ NsfObjInfoLookupFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   } else {
     CONST char *filter = (CONST char *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoLookupFilterMethod(interp, obj, filter);
 
   }
@@ -1886,7 +1886,7 @@ NsfObjInfoLookupMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   } else {
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoLookupMethodMethod(interp, obj, name);
 
   }
@@ -1911,7 +1911,7 @@ NsfObjInfoLookupMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int
     int withSource = (int )PTR2INT(pc.clientData[5]);
     CONST char *pattern = (CONST char *)pc.clientData[6];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoLookupMethodsMethod(interp, obj, withCallprotection, withIncontext, withMethodtype, withNomixins, withPath, withSource, pattern);
 
   }
@@ -1930,7 +1930,7 @@ NsfObjInfoLookupSlotsMethodStub(ClientData clientData, Tcl_Interp *interp, int o
   } else {
     NsfClass *withType = (NsfClass *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoLookupSlotsMethod(interp, obj, withType);
 
   }
@@ -1950,7 +1950,7 @@ NsfObjInfoMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
     int infomethodsubcmd = (int )PTR2INT(pc.clientData[0]);
     Tcl_Obj *name = (Tcl_Obj *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoMethodMethod(interp, obj, infomethodsubcmd, name);
 
   }
@@ -1974,7 +1974,7 @@ NsfObjInfoMethodsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
     int withPath = (int )PTR2INT(pc.clientData[4]);
     CONST char *pattern = (CONST char *)pc.clientData[5];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoMethodsMethod(interp, obj, withCallprotection, withIncontext, withMethodtype, withNomixins, withPath, pattern);
 
   }
@@ -2005,7 +2005,7 @@ NsfObjInfoMixinclassesMethodStub(ClientData clientData, Tcl_Interp *interp, int 
       return TCL_OK;
     }
           
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     returnCode = NsfObjInfoMixinclassesMethod(interp, obj, withGuards, withOrder, patternString, patternObj);
 
     if (pattern) {
@@ -2028,7 +2028,7 @@ NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   } else {
     CONST char *mixin = (CONST char *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoMixinguardMethod(interp, obj, mixin);
 
   }
@@ -2047,7 +2047,7 @@ NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
   } else {
     
 
-    ParseContextRelease(&pc);
+    
     return NsfObjInfoParentMethod(interp, obj);
 
   }
@@ -2067,7 +2067,7 @@ NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
     int withIntrinsic = (int )PTR2INT(pc.clientData[0]);
     CONST char *pattern = (CONST char *)pc.clientData[1];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoPrecedenceMethod(interp, obj, withIntrinsic, pattern);
 
   }
@@ -2086,7 +2086,7 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
   } else {
     CONST char *pattern = (CONST char *)pc.clientData[0];
 
-    ParseContextRelease(&pc);
+    assert(pc.status == 0);
     return NsfObjInfoVarsMethod(interp, obj, pattern);
 
   }

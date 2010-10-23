@@ -827,7 +827,7 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
  */
 NSF_INLINE static void
 CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *cl,
-	Tcl_Command cmd, int frameType, int flags, char *msg) {
+	Tcl_Command cmd, unsigned short frameType, unsigned short flags) {
 
   assert(cscPtr);
 
@@ -884,9 +884,10 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
   cscPtr->self          = object;
   cscPtr->cl            = cl;
   cscPtr->cmdPtr        = cmd;
-  cscPtr->frameType     = frameType;
-  cscPtr->filterStackEntry = (frameType == NSF_CSC_TYPE_ACTIVE_FILTER) ? object->filterStack : NULL;
   cscPtr->objv          = NULL;
+  cscPtr->filterStackEntry = object->filterStack;
+  cscPtr->frameType     = frameType;
+
 
   /*fprintf(stderr, "CscInit %p (%s) object %p %s flags %.6x cmdPtr %p\n",cscPtr, msg,
     object, objectName(object), cscPtr->flags, cscPtr->cmdPtr);*/
@@ -974,11 +975,13 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr, char *msg) {
 	      object->flags & NSF_DESTROY_CALLED,
 	      object->flags & NSF_DESTROY_CALLED_SUCCESS);*/
 
+#if 0
       // TODO remove block
       if (((object->flags & NSF_DESTROY_CALLED_SUCCESS)>0) !=
 	  ((object->flags & NSF_DESTROY_CALLED)>0)) {
 	fprintf(stderr, "*** flags differ for class %p\n", object);
       }
+#endif
       if (object->activationCount < 1 && object->flags & NSF_DESTROY_CALLED_SUCCESS && allowDestroy) {
 	CallStackDoDestroy(interp, object);
       }

@@ -390,6 +390,10 @@ typedef struct NsfStringIncrStruct {
 /* flags for ParseContext */
 #define NSF_PC_MUST_DECR		     0x0001
 
+#define NSF_PC_STATUS_MUST_DECR		     0x0001
+#define NSF_PC_STATUS_FREE_OBJV		     0x0002
+#define NSF_PC_STATUS_FREE_CD		     0x0004
+
 #define NsfObjectSetClass(obj) \
 	(obj)->flags |= NSF_IS_CLASS
 #define NsfObjectClearClass(obj) \
@@ -397,7 +401,7 @@ typedef struct NsfStringIncrStruct {
 #define NsfObjectIsClass(obj) \
 	((obj)->flags & NSF_IS_CLASS)
 #define NsfObjectToClass(obj) \
-	(NsfClass*)((((NsfObject*)obj)->flags & NSF_IS_CLASS)?obj:0)
+	(NsfClass*)((((NsfObject*)obj)->flags & NSF_IS_CLASS)?obj:NULL)
 
 
 /*
@@ -637,11 +641,11 @@ typedef struct NsfCallStackContent {
 #define NSF_CSC_IMMEDIATE           0x0020
 #define NSF_CSC_FORCE_FRAME         0x0040
 #define NSF_CSC_CALL_IS_NRE         0x0100
-#define NSF_CSC_MIXIN_STACK_PUSHED  0x0200
-#define NSF_CSC_FILTER_STACK_PUSHED 0x0400
-#define NSF_CSC_UNKNOWN             0x0800
-#define NSF_CSC_CALL_IS_TRANSPARENT 0x1000
-#define NSF_CSC_OBJECT_ACTIVATED    0x2000
+#define NSF_CSC_MIXIN_STACK_PUSHED  0x0400
+#define NSF_CSC_FILTER_STACK_PUSHED 0x0800
+#define NSF_CSC_UNKNOWN             0x1000
+#define NSF_CSC_CALL_IS_TRANSPARENT 0x2000
+#define NSF_CSC_OBJECT_ACTIVATED    0x4000
 #define NSF_CSC_COPY_FLAGS          (NSF_CSC_MIXIN_STACK_PUSHED|NSF_CSC_FILTER_STACK_PUSHED|NSF_CSC_IMMEDIATE|NSF_CSC_CALL_IS_TRANSPARENT|NSF_CSC_FORCE_FRAME)
 
 /* flags for call method */
