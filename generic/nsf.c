@@ -2166,13 +2166,25 @@ HashVarFree(Tcl_Var var) {
  *----------------------------------------------------------------------
  * CompiledColonVarFetch --
  *
- *    Fetch value of a a compiled Next Scripting instance variable at runtime.
+ *    This function is the actual variable resolution handler for a
+ *    colon-prefixed (":/varName/") found in a compiled script
+ *    registered by the compiling var resolver (see
+ *    InterpCompiledColonResolver()). When initialising a call frame,
+ *    this handler is called, crawls the object's var table (creating
+ *    a variable, if needed), and returns a Var structure. Based on
+ *    this, a link variable ":/varName/" pointing to this object
+ *    variable (i.e., "varName") is created and is stored in the
+ *    compiled locals array of the call frame. Beware that these link
+ *    variables interact with the family of link-creating commands
+ *    ([variable], [global], [upvar]) by being subject to
+ *    "retargeting" upon name conflicts (see
+ *    tests/varresolutiontest.tcl for some examples).
  *
  * Results:
  *    Tcl_Var containing value or NULL.
  *
  * Side effects:
- *   Updates of Variable structure cache in necessary.
+ *    Updates of Variable structure cache in necessary.
  *
  *----------------------------------------------------------------------
  */
@@ -2268,13 +2280,28 @@ CompiledColonVarFree(Tcl_ResolvedVarInfo *vInfoPtr) {
  *----------------------------------------------------------------------
  * InterpCompiledColonVarResolver --
  *
- *    Register for prefixed variables our own compiled var handler.
+ *    For colon-prefixed (":/varName/") variables, we provide our own
+ *    var resolver for compiling scripts and evaluating compiled
+ *    scripts (e.g., proc bodies). At the time of first compilation
+ *    (or re-compilation), this resolver is processed (see
+ *    tclProc.c:InitResolvedLocals()). It registers two handlers for a
+ *    given, colon-prefixed variable found in the script: the actual
+ *    variable fetcher and a variable cleanup handler. The variable
+ *    fetcher is executed whenever a Tcl call frame is intialised and
+ *    the array of compiled locals is constructed (see also
+ *    InitResolvedLocals()).
+ *
+ *    The Tcl var resolver protocol dictates that per-namespace
+ *    compiling var resolvers take precedence over this per-interp
+ *    compiling var resolver. That is, per-namespace resolvers are
+ *    processed first and can effectively outrule per-interp
+ *    resolvers by signalling TCL_OK or TCL_BREAK.
  *
  * Results:
- *    TCL_OK or TCL_CONTINUE (based on Tcl's var resolver protocol)
+ *    TCL_OK or TCL_CONTINUE (according to Tcl's var resolver protocol)
  *
  * Side effects:
- *   Registered var handler or none.
+ *    Registers per-variable resolution and cleanup handlers.
  *
  *----------------------------------------------------------------------
  */
@@ -2314,17 +2341,27 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  * InterpColonVarResolver --
  *
- *    Resolve varnames as instance variables. These might be compiled
- *    locals or variables to be created (e.g. during an eval) in the
- *    objects vartables.  If the command starts with the Next Scripting
- *    specific prefix and we are on an Next Scripting stack frame, treat
- *    command as instance varname.
+ *    For accessing object (instance) variables using the colon-prefix
+ *    notation (":/varName/"), we provide our own var resolvers. This
+ *    function is the non-compiling var resolver; its services are
+ *    requested in two situations: a) when evaluating non-compiled
+ *    statements, b) when executing slow-path bytecode instructions,
+ *    with "slow path" referring to bytecode instructions not making
+ *    use of the compiled locals array (and, e.g., reverting to
+ *    TclObjLookupVar*() calls).
+ *
+ *    The Tcl var resolver protocol dictates that per-namespace,
+ *    non-compiling var resolvers take precedence over this per-interp
+ *    non-compiling var resolver. That is, per-namespace resolvers are
+ *    processed first and can effectively outrule per-interp resolvers
+ *    by signalling TCL_OK or TCL_BREAK. See
+ *    e.g. TclLookupSimpleVar().
  *
  * Results:
- *    TCL_OK or TCL_CONTINUE (based on Tcl's var resolver protocol)
+ *    TCL_OK or TCL_CONTINUE (according to on Tcl's var resolver protocol)
  *
  * Side effects:
- *   If successful, return varPtr, pointing to instance variable.
+ *    If successful, return varPtr, pointing to instance variable.
  *
  *----------------------------------------------------------------------
  */

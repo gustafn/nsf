@@ -782,8 +782,8 @@ Test case interactions {
   # SS: Adding an exemplary test destilled from the behaviour observed
   # for AOLserver vs. NaviServer when introspecting object variables
   # by means of the colon-resolver interface. It exemplifies the (by now
-  # resolved for good) interactions between: (a) the compiled and
-  # non-compiled var resolvers and (b) compiled and non-compiled
+  # resolved for good) interactions between: (a) the compiling and
+  # non-compiling var resolvers and (b) compiled and non-compiled
   # script execution
   
   Object create ::o {
@@ -807,5 +807,273 @@ Test case interactions {
   }
   
   ? {o bar} 0
+
+  #
+  # document compile-time var resolver side effects: link variables
+  #
+  # At compile time, the compile-time var resolver looks up (and
+  # creates) object variables for the colon-prefixed vars processed:
+  # ":u" -> "u", ":v" -> "v"; hence, the resolver always returns a
+  # Var structure! As a consequence, the compiler emits
+  # colon-prefixed *link* variables (either in state "undefined" or
+  # "defined", depending on providing a value or not) into the
+  # compiled local array (e.g., ":u"), as proxies pointing to the
+  # actual object variables (e.g., "u").
+  #
+  # Consequences: These link vars are visible through introspection
+  # sensible to created vars (rather than defined/undefined var
+  # states) in compiled scripts ([info vars] vs. [info locals]). This
+  # resembles [upvar]-created local link vars, yet it does not
+  # intuitively compare with the [set]/[unset] behaviour on
+  # non-prefixed, ordinary variables from the angle of
+  # introspection. Also, this constitutes an observable behavioural
+  # difference between compiled and non-compiled scripts ...
+  
+  set script {
+    # early probing: reflects the compiled-only, unexecuted state
+    set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
+		     [info exists :u] [::nsf::existsvar [::nsf::current] u] \
+		     [info exists :v] [::nsf::existsvar [::nsf::current] v] \
+		     [info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+    catch {set :u}
+    set :v 1
+    unset :x
+    # late probing: reflects the (ideally) compiled, *executed* state
+    append _ | [join [list {*}[lsort [info vars :*]] [info locals :*] \
+			[info exists :u] [::nsf::existsvar [::nsf::current] u] \
+			[info exists :v] [::nsf::existsvar [::nsf::current] v] \
+			[info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+    return $_
+  }
+
+  # compiled execution
+  o public method baz {} $script
+  o eval {set :x 1; unset -nocomplain :v}
+  ? {o baz} :u-:v-:x--0-0-0-0-1-1|:u-:v-:x--0-0-1-1-0-0 ; #:u-:v-:x--1-1-0-0-0-1-0-:u-:v-:x
+
+  # non-compiled execution
+  o eval {set :x 1; unset -nocomplain :v}
+  ? [list o eval $script] -0-0-0-0-1-1|-0-0-1-1-0-0
+
+  #
+  # testing interactions between the compile-time var resolver and ...
+  #
+  
+  # ... [variable]
+  #
+  # background: the [variable] statement is compiled. During
+  # compilation, our compile-time resolver is contacted, finds (and
+  # eventually creates) an object variable "x". The compiler machinery
+  # then creates a link-variable ":x" which is stored as a compiled
+  # local, as usual. at the time of writing/testing, there are two
+  # issues with this:
+  #
+  # ISSUE 1: In its non-compiled execution, [variable] sets the
+  # AVOID_RESOLVERS flags, so our resolvers are not touched ... in its
+  # compiled execution, AVOID_RESOLVERS is missing though (although
+  # [variable] is compiled into a slow path execution, i.e., involves
+  # a Tcl var lookup). Therefore, we get a link variable in the
+  # compiled locals (and an undefined obj var).
+
+  # this has some implications ...
+  
+  namespace eval ::ns1 {
+    Object create o {
+      :public method foo {} {
+	set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
+			 [info exists w] [::nsf::existsvar [::nsf::current] w] \
+			 [info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+	variable w; # -> intention: a variable "w" in the effective namespace (e.g., "::ns1::w")
+	variable :x; # -> intention: a variable ":x" in the effective namespace (e.g., "::ns1:::x"!).
+	append _ | [join [list {*}[lsort [info vars :*]] [info locals :*] \
+			      [info exists w] [::nsf::existsvar [::nsf::current] w] \
+			      [info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+	return $_
+      }    
+    }
+
+    ? {::ns1::o foo} ":x--0-0-0-0|:x--0-0-0-0"
+    
+    o eval {
+      :public method faz {} {
+	set _ [join [list {*}[lsort [info vars :*]] [info locals :*] \
+			 [namespace which -variable [namespace current]::w] \
+			 [info exists [namespace current]::w] \
+			 [info exists w] [::nsf::existsvar [::nsf::current] w] \
+			 [namespace which -variable [namespace current]:::x] \
+			 [info exists [namespace current]:::x] \
+			 [info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+	variable w 1; # -> intention: a variable "w" in the effective namespace (e.g., "::ns1::w")
+	variable :x 2; # -> intention: a variable ":x" in the effective namespace (e.g., "::ns1:::x"!).
+	append _ | [join [list {*}[lsort [info vars :*]] [info locals :*] \
+			 [namespace which -variable [namespace current]::w] \
+			 [info exists [namespace current]::w] \
+			 [info exists w] [::nsf::existsvar [::nsf::current] w] \
+			 [namespace which -variable [namespace current]:::x] \
+			      [info exists [namespace current]:::x] [namespace eval  [namespace current] {info exists :x}] \
+			      [namespace eval  [namespace current] {variable :x; info exists :x}] \
+			      [info exists :x] [::nsf::existsvar [::nsf::current] x]] "-"]
+
+	append _ | [join [list [expr {$w eq [namespace eval [namespace current] {variable w; set w}]}] \
+			      [expr {${:x} eq [namespace eval [namespace current] {variable w; set :x}]}]] -]
+	return $_
+      }   
+    }
+
+    ? {::ns1::o faz} ":x--::ns1::w-0-0-0--0-0-0|:x--::ns1::w-1-1-0--0-1-1-1-0|1-1"
+    
+    #
+    # ISSUE 2: Colon-prefixed variables become represented by linked
+    # variables in the compiled local arrays during
+    # compilation. However, linked variables are mutable (in contrast
+    # to proc-local variables), that is, they can be changed to point
+    # to another target variable. This target switch currently happens
+    # between object variables and [variable] links which (due to
+    # executing the compile-time var resolver because of lacking
+    # AVOID_RESOLVERS) emits a "replacing" link var
+    # 
+    # In the example below, there won't be an error exception
+    # 'variable ":aaa" already exists', because ":aaa" is resolved on
+    # the fly to "::ns1::o1.aaa" in a non-compiled execution and in a
+    # compiled situation, the compiled-local link variable ":aaa" is
+    # simply cleared and recreated to proxy a namespace variable.
+    
+    o eval {
+      set :aaa 1
+      :public method caz {} {
+	set _ "[info exists :aaa]-${:aaa}-[set :aaa]"
+	variable :aaa
+	append _ "-[info exists :aaa]"
+	set :aaa 2
+	append _ "-${:aaa}-[set :aaa]-[namespace eval [namespace current] {variable :aaa; set :aaa}]"
+	unset :aaa
+	append _ "-[info exists :aaa]-[namespace which -variable [namespace current]:::aaa]-[::nsf::existsvar [current] aaa]-[[current] eval {set :aaa}]"
+	return $_
+      }
+    }
+
+    ? {::ns1::o caz} "1-1-1-0-2-2-2-0--1-1"
+
+    #
+    # In non-compiled executions, there is another form of interaction
+    # between our var resolvers and [variable] in the sense of
+    # switching references. A [variable] statement is then handled by
+    # Tcl_VariableObjCmd() directly, our compile-time resolver is
+    # never called, hence, no link variables are created. The
+    # non-compiling resolver InterpColonVarResolver() is called to
+    # duty from within Tcl_VariableObjCmd(), however, it fast-forwards
+    # by signalling TCL_CONTINUE as [variable] requests
+    # TCL_NAMESPACE_ONLY explicitly.
+    #
+    # While [variable] creates a local link var ":aaa", any later
+    # referencing of :aaa is intercepted by InterpColonVarResolver()
+    # and resolved to the obj var "aaa".  The effects of this
+    # interaction are probably counter-intuitive to standard
+    # [variable] behaviour.
+    #
+    # 1. There will not be a 'variable ":aaa" already exists' to
+    # signal a naming conflict in the local naming scope, because the
+    # symbolic name ":aaa" in a [set :aaa 1] and in a [variable :aaa
+    # 1] is resolved differently (see above).
+    #
+    # 2. There is no way to refer to the local link var ":aaa" created
+    # by [variable] in subsequent calls because the name will resolve
+    # to an obj var "aaa". By calling [variable] in its setting mode,
+    # you can still set namespace var values.
+    ? {::ns1::o eval {
+      set _ "[info exists :aaa]-${:aaa}-[set :aaa]"
+      variable :aaa
+      append _ "-[info exists :aaa]"
+      set :aaa 2
+      append _ "-${:aaa}-[set :aaa]-[[current] eval {set :aaa}]-[namespace eval [namespace current] {variable :aaa; info exists :aaa}]"
+      variable :aaa 5
+      unset :aaa
+      append _ "-[info exists :aaa]-[namespace which -variable [namespace current]:::aaa]-[::nsf::existsvar [current] aaa]-[namespace eval [namespace current] {variable :aaa; info exists :aaa}]-[namespace eval [namespace current] {variable :aaa; set :aaa}]"
+      return $_
+    }} "1-1-1-1-2-2-2-0-0--0-1-5"
+
+
+    # ... [upvar] 
+    #
+    # Exhibits the same interactions as [variable] due to creating
+    # link variables by the compiling var resolver, namely the context
+    # switching and effective disabling of the colon-prefixed
+    # accessing of object state ...
+    #
+
+    Object create p {
+      :public method foo {var} {
+	set :x XXX
+	set _ ${:x}
+	upvar $var :x
+	append _ -[join [list ${:x} [set :x] {*}[info vars :*] {*}[:info vars] \
+			     [info exists :x] \
+			     [[current] eval {info exists :x}]] "-"]
+	unset :x 
+	append _ -[join [list {*}[info vars :*] {*}[:info vars] \
+			    [info exists :x] [[current] eval {info exists :x}] \
+			    [[current] eval {set :x}]] "-"]
+      }
+
+      :method bar {var1 var2 var3 var4 var5 var6} {
+	upvar $var1 xx $var2 :yy $var3 :zz $var4 q $var5 :el1 $var6 :el2
+	set _ [join [list {*}[lsort [:info vars]] {*}[lsort [info vars :*]] \
+			  [info exists xx] $xx \
+			  [info exists :yy] ${:yy} \
+			  [info exists :zz] ${:zz} \
+			  [info exists q] [[current] eval {info exists :q}]] -] 
+	incr :yy
+	incr xx
+	incr :zz
+	incr q
+	incr :el1
+	incr :el2
+	return $_
+      }
+
+      :public method baz {} {
+	set :x 10
+	set y 20
+	set :z 30
+	unset -nocomplain :q
+	set :arr(a) 40
+	set _ [:bar :x y :z :q :arr(a) :arr(b)]
+	append _ -[join [list ${:x} $y ${:z} ${:q} [set :arr(a)] [set :arr(b)] [:info vars q]] -]
+      }
+    }
+
+    ? {set y 1; p foo y} "XXX-1-1-:x-x-1-1-:x-x-0-1-XXX" 
+    ? {p baz} "arr-x-z-:el1-:el2-:yy-:zz-1-10-1-20-1-30-0-0-11-21-31-1-41-1-q" 
+
+    #
+    # ... [namespace which] 
+    #
+    # Similar to the compiled, slow-path [variable] instructions,
+    # [namespace which] as implemented by NamespaceWhichCmd() in
+    # tclNamesp.c lacks AVOID_RESOLVERS. Therefore, we end up in our
+    # var resolver which resolves colon-prefixed vars to object
+    # variables. Also, NamespaceWhichCmd() does not set any other
+    # var-resolution flags (TCL_GLOBAL_ONLY, TCL_NAMESPACE_ONLY) as
+    # this would defeat its purpose. Anywyays, our resolver is
+    # therefore completely blind when handling calls from [namespace
+    # which].
+    # 
+    # This leads to the unexpected behaviour in the test below:
+    # [namespace which -variable :XXX] != [namespace which -variable
+    # [namespace current]:::XXX]
+    
+    o eval {
+      :public method bar {} {
+	set :XXX 1
+	return [join [list ${:XXX} [set :XXX] [namespace which -variable :XXX] \
+			  [namespace which -variable [namespace current]:::XXX]] -]
+      }
+    }
+    
+    ? {::ns1::o bar} "1-1-:XXX-"
+  }
+
+
+
 
 }
