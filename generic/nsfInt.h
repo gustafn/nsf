@@ -374,7 +374,7 @@ typedef struct NsfStringIncrStruct {
 #define NSF_DISALLOWED_ARG_METHOD_PARAMETER	     (NSF_ARG_METHOD|NSF_ARG_INITCMD|NSF_ARG_RELATION)
 #define NSF_DISALLOWED_ARG_SETTER	     	     (NSF_ARG_SUBST_DEFAULT|NSF_DISALLOWED_ARG_METHOD_PARAMETER)
 #define NSF_DISALLOWED_ARG_OBJECT_PARAMETER	     0
-#define NSF_DISALLOWED_ARG_VALUEECHECK	     (NSF_ARG_SUBST_DEFAULT|NSF_ARG_METHOD|NSF_ARG_INITCMD|NSF_ARG_RELATION|NSF_ARG_SWITCH|NSF_ARG_CURRENTLY_UNKNOWN)
+#define NSF_DISALLOWED_ARG_VALUECHECK	     (NSF_ARG_SUBST_DEFAULT|NSF_ARG_METHOD|NSF_ARG_INITCMD|NSF_ARG_RELATION|NSF_ARG_SWITCH|NSF_ARG_CURRENTLY_UNKNOWN)
 
 
 /* method types */
@@ -569,7 +569,7 @@ typedef enum {
   NSF_METHOD_PARAMETER_SLOT_OBJ, 
   /* constants */
   NSF_ALIAS, NSF_ARGS, NSF_CMD, NSF_FILTER, NSF_FORWARD, 
-  NSF_METHOD, NSF_OBJECT, NSF_SETTER, 
+  NSF_METHOD, NSF_OBJECT, NSF_SETTER, NSF_VALUECHECK,
   NSF_GUARD_OPTION, NSF___UNKNOWN__, 
   /* Partly redefined Tcl commands; leave them together at the end */
   NSF_EXPR, NSF_FORMAT, NSF_INFO, NSF_INFO_FRAME, NSF_INTERP, NSF_IS, 
@@ -589,7 +589,7 @@ char *NsfGlobalStrings[] = {
   "::nx::methodParameterSlot", 
   /* constants */
   "alias", "args", "cmd", "filter",  "forward", 
-  "method", "object", "setter", 
+  "method", "object", "setter", "valuecheck",
   "-guard", "__unknown__",
   /* tcl commands */
   "expr", "format", "info", "::tcl::info::frame", "interp", "::tcl::string::is", 

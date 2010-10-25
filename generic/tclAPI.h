@@ -275,7 +275,7 @@ static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *name);
 static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
 static int NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *object);
 static int NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *filter, Tcl_Obj *guard);
-static int NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *mixin, Tcl_Obj *guard);
+static int NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *guard);
 static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, NsfObject *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *name, int objc, Tcl_Obj *CONST objv[]);
 static int NsfClassInfoFilterguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *filter);
@@ -326,7 +326,7 @@ static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfOExistsMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *varname);
 static int NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter, Tcl_Obj *guard);
 static int NsfOInstvarMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
-static int NsfOMixinGuardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *mixin, Tcl_Obj *guard);
+static int NsfOMixinGuardMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *mixin, Tcl_Obj *guard);
 static int NsfONoinitMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfORequireNamespaceMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
@@ -530,7 +530,7 @@ NsfCMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    CONST char *mixin = (CONST char *)pc.clientData[0];
+    Tcl_Obj *mixin = (Tcl_Obj *)pc.clientData[0];
     Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
@@ -986,20 +986,17 @@ NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 static int
 NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfDebugRunAssertionsCmdIdx].paramDefs, 
-                     method_definitions[NsfDebugRunAssertionsCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    
 
     
+
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfDebugRunAssertionsCmdIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfDebugRunAssertionsCmd(interp);
 
-  }
 }
 
 static int
@@ -1063,20 +1060,17 @@ NsfExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
 static int
 NsfFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfFinalizeObjCmdIdx].paramDefs, 
-                     method_definitions[NsfFinalizeObjCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    
 
     
+
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfFinalizeObjCmdIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfFinalizeObjCmd(interp);
 
-  }
 }
 
 static int
@@ -1361,20 +1355,17 @@ NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
 static int
 NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfSelfCmdIdx].paramDefs, 
-                     method_definitions[NsfSelfCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    
 
     
+
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfSelfCmdIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfSelfCmd(interp);
 
-  }
 }
 
 static int
@@ -1419,20 +1410,17 @@ NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 static int
 NsfShowStackCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfShowStackCmdIdx].paramDefs, 
-                     method_definitions[NsfShowStackCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    
 
     
+
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfShowStackCmdIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfShowStackCmd(interp);
 
-  }
 }
 
 static int
@@ -1458,21 +1446,18 @@ NsfOAutonameMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 
 static int
 NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfOCleanupMethodIdx].paramDefs, 
-                     method_definitions[NsfOCleanupMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
     
 
-    
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfOCleanupMethodIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfOCleanupMethod(interp, obj);
 
-  }
 }
 
 static int
@@ -1487,21 +1472,18 @@ NsfOConfigureMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 
 static int
 NsfODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfODestroyMethodIdx].paramDefs, 
-                     method_definitions[NsfODestroyMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
     
 
-    
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfODestroyMethodIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfODestroyMethod(interp, obj);
 
-  }
 }
 
 static int
@@ -1564,7 +1546,7 @@ NsfOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    CONST char *mixin = (CONST char *)pc.clientData[0];
+    Tcl_Obj *mixin = (Tcl_Obj *)pc.clientData[0];
     Tcl_Obj *guard = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
@@ -1575,40 +1557,34 @@ NsfOMixinGuardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
 static int
 NsfONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfONoinitMethodIdx].paramDefs, 
-                     method_definitions[NsfONoinitMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
     
 
-    
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfONoinitMethodIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfONoinitMethod(interp, obj);
 
-  }
 }
 
 static int
 NsfORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfORequireNamespaceMethodIdx].paramDefs, 
-                     method_definitions[NsfORequireNamespaceMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
     
 
-    
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfORequireNamespaceMethodIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfORequireNamespaceMethod(interp, obj);
 
-  }
 }
 
 static int
@@ -1643,21 +1619,18 @@ NsfOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
 static int
 NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfOVolatileMethodIdx].paramDefs, 
-                     method_definitions[NsfOVolatileMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
     
 
-    
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfOVolatileMethodIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfOVolatileMethod(interp, obj);
 
-  }
 }
 
 static int
@@ -1701,21 +1674,18 @@ NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc
 
 static int
 NsfObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfObjInfoClassMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoClassMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
     
 
-    
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfObjInfoClassMethodIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfObjInfoClassMethod(interp, obj);
 
-  }
 }
 
 static int
@@ -1818,21 +1788,18 @@ NsfObjInfoHasTypeMethodStub(ClientData clientData, Tcl_Interp *interp, int objc,
 
 static int
 NsfObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfObjInfoHasnamespaceMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoHasnamespaceMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
     
 
-    
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfObjInfoHasnamespaceMethodIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfObjInfoHasnamespaceMethod(interp, obj);
 
-  }
 }
 
 static int
@@ -2036,21 +2003,18 @@ NsfObjInfoMixinguardMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
 
 static int
 NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfObjInfoParentMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoParentMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
     
 
-    
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[NsfObjInfoParentMethodIdx].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      
     return NsfObjInfoParentMethod(interp, obj);
 
-  }
 }
 
 static int
@@ -2108,7 +2072,7 @@ static methodDefinition method_definitions[] = {
   {"guard", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::class::mixinguard", NsfCMixinGuardMethodStub, 2, {
-  {"mixin", NSF_ARG_REQUIRED, 0, ConvertToString},
+  {"mixin", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"guard", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::class::new", NsfCNewMethodStub, 2, {
@@ -2333,7 +2297,7 @@ static methodDefinition method_definitions[] = {
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::methods::object::mixinguard", NsfOMixinGuardMethodStub, 2, {
-  {"mixin", NSF_ARG_REQUIRED, 0, ConvertToString},
+  {"mixin", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"guard", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::object::noinit", NsfONoinitMethodStub, 0, {

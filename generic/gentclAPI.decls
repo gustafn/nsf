@@ -187,7 +187,7 @@ objectMethod instvar NsfOInstvarMethod {
 }
 
 objectMethod mixinguard NsfOMixinGuardMethod {
-  {-argName "mixin" -required 1}
+  {-argName "mixin" -required 1 -type tclobj}
   {-argName "guard" -required 1 -type tclobj}
 }
 
@@ -239,7 +239,7 @@ classMethod filterguard NsfCFilterGuardMethod {
 }
 
 classMethod mixinguard NsfCMixinGuardMethod {
-  {-argName "mixin" -required 1}
+  {-argName "mixin" -required 1 -type tclobj}
   {-argName "guard" -required 1 -type tclobj}
 }
 

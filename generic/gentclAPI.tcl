@@ -276,6 +276,15 @@ proc genstubs {} {
       # no need to call objv parser
       #puts stderr "$d(stub) => '$arglist'"
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
+  } elseif {$nrArgs == 0} {
+      append pre [subst -nocommands {
+	  if (objc != 1) {
+	      return ArgumentError(interp, "too many arguments:", 
+				   method_definitions[$d(idx)].paramDefs,
+				   NULL, objv[0]); 
+	  } 
+      }]
+      append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
     } else {
       switch $d(methodType) {
         objectMethod {set obj "obj"}
