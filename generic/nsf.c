@@ -2218,6 +2218,10 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
     return var;
   }
 
+  if (!object) {
+    return NULL;
+  }
+
   if (var) {
     /*
      * The variable is not valid anymore. Clean it up.
@@ -6648,8 +6652,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
   int result;
 
-  assert (object->teardown);
   /*fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d\n", methodName, cmd, cp, objc);*/
+  assert(object->teardown);
 
   if (proc == TclObjInterpProc) {
 #if defined(NRE)
@@ -10009,9 +10013,14 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
    * clear INIT_CALLED flag
    */
   object->flags &= ~NSF_INIT_CALLED;
+  /*
+   * Make sure, the object survives initialization; the initcmd might
+   * destroy it.
+   */
+  object->refCount ++;
 
   /*
-   * call configure methods (starting with '-')
+   * call configure method
    */
   if (CallDirectly(interp, object, NSF_o_configure_idx, &methodObj)) {
     ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
@@ -10031,7 +10040,7 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   /*
    * check, whether init was called already
    */
-  if (!(object->flags & NSF_INIT_CALLED)) {
+  if (!(object->flags & (NSF_INIT_CALLED|NSF_DESTROY_CALLED))) {
     int nobjc = 0;
     Tcl_Obj **nobjv, *resultObj = Tcl_GetObjResult(interp);
 
@@ -10055,7 +10064,9 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   if (result == TCL_OK) {
     Tcl_SetObjResult(interp, savedObjResult);
   }
+
  objinitexit:
+  NsfCleanupObject(object, "obj init");
   DECR_REF_COUNT(savedObjResult);
   return result;
 }

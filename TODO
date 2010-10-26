@@ -1807,7 +1807,19 @@ _ added option noforwarder to RelationSlots
   the shootout benchmark the same speed like a year ago
   (which much less functionality)
 
+- added a few more small optimization. 
+- code-generator: don't call argument parser, 
+  when no arguments are specified
+
+- fixed bug when calling aliased proc not via method interface
+- fixed bug when calling destroy in initcmd
+
 TODO: 
+
+- add tests for proc-alias
+- add test for destroy-during-init
+- handling of msg in NsfCleanupObject
+- handling of msg in CscFinish
 
 - "-returns" 
   * leave syntax as is for method?
