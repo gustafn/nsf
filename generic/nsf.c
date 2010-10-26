@@ -209,7 +209,7 @@ static void CallStackDestroyObject(Tcl_Interp *interp, NsfObject *object);
 static void PrimitiveCDestroy(ClientData clientData);
 static void PrimitiveODestroy(ClientData clientData);
 static void PrimitiveDestroy(ClientData clientData);
-static void NsfCleanupObject(NsfObject *object, char *string);
+static void NsfCleanupObject_(NsfObject *object);
 
 /* prototypes for object and command lookup */
 static NsfObject *GetObjectFromString(Tcl_Interp *interp, CONST char *name);
@@ -548,11 +548,10 @@ NSCmdFullName(Tcl_Command cmd) {
   return nsPtr ? nsPtr->fullName : "";
 }
 
-// TODO: remove string
 static void
-NsfCleanupObject(NsfObject *object, char *string) {
+NsfCleanupObject_(NsfObject *object) {
   NsfObjectRefCountDecr(object);
-  /* fprintf(stderr, "obj refCount of %p after decr %d (%s)\n",object,object->refCount, string);*/
+  /* fprintf(stderr, "obj refCount of %p after decr %d\n",object,object->refCount);*/
 
   if (object->refCount <= 0) {
     /*fprintf(stderr, "NsfCleanupObject %p refcount %d\n", object, object->refCount);*/

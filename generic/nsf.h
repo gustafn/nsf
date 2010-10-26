@@ -130,8 +130,13 @@
 
 #ifdef NSF_DEVELOPMENT
 # define CHECK_ACTIVATION_COUNTS 1
+# define NsfCleanupObject(object,string)				\
+  /*fprintf(stderr, "NsfCleanupObject %p %s\n",object,string);*/	\
+  NsfCleanupObject_(object);
 #else
 # define NDEBUG 1
+# define NsfCleanupObject(object,string)	\
+  NsfCleanupObject_(object);
 #endif
 
 
