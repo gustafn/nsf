@@ -483,3 +483,63 @@ Test case proc-alias {
   ? {d1 bar2} 1
 
 }
+
+proc foo {:a :b} {
+  set :c 1
+  return ${:a}  
+}
+foo 1 2
+
+proc bar {:a :b} {
+  set :b 1
+  set :x 47
+  return [info exists :d]-${:a}-${:x}
+}
+
+proc baz {} {
+  set :z 3
+  return ${:z}  
+}
+
+Test parameter count 10
+Test case proc-alias-compile {
+
+  Object create o {
+    set :a 100
+    set :d 1001
+    #:method foo {-:a:integer :b :c:optional} {
+    #  puts stderr ${:a},${:b},${:c}
+    #}
+    :public alias foo ::foo
+    :public alias bar ::bar
+    :public alias baz ::baz
+  }
+
+  #
+  # by calling "foo" outside the obejct/method context, we get a
+  # byte-code without the compiled-local handler, colon-vars are not
+  # recognized, :a refers to the argument
+  ? {foo 1 2} 1
+  ? {lsort [o info vars]} "a d"
+
+  ? {o foo 1 2} 1
+  ? {lsort [o info vars]} "a d"
+
+  #
+  # by calling "bar" the first time as a method, we get a byte-code with
+  # the compiled-local handler, colon-vars are recognized, colon vars
+  # from the argument vector have precedence over instance variables.
+  ? {o bar 2 3} 1-2-47
+  ? {lsort [o info vars]} "a d x"
+
+  ? {o baz} 3
+  ? {lsort [o info vars]} "a d x z"
+  #
+  # by calling "bar" outside the proc context, the compiled-var-fetch
+  # has no object to refer to, the variable is unknown.
+  ? {bar 3 4} 0-3-47
+
+  # the variable in the test scope does not influence result
+  set :d 200
+  ? {bar 3 4} 0-3-47
+}

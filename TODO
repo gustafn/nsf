@@ -1196,7 +1196,7 @@ _ added option noforwarder to RelationSlots
 - extended regression tests (call unknown method 
   with filter with and without unknown handlers)
 - make sure to test next to non-existing shadowed 
-  method in connections with filters and unknwon handlers
+  method in connections with filters and unknown handlers
 
 - documented incompatiblity of object-invocation via method
   interface (due to ensemble objects) in migration guide
@@ -1817,10 +1817,10 @@ _ added option noforwarder to RelationSlots
 - allowed public|protected for method deletion 
   such as "Object public method foo {} {}"
 - removed defaultMethodCallProtection in alias test
+- extended regression tests for aliases to procs
 
 TODO: 
 
-- add tests for proc-alias
 - add test for destroy-during-init
 - handling of msg in NsfCleanupObject
 - handling of msg in CscFinish
