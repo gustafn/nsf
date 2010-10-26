@@ -1814,6 +1814,10 @@ _ added option noforwarder to RelationSlots
 - fixed bug when calling aliased proc not via method interface
 - fixed bug when calling destroy in initcmd
 
+- allowed public|protected for method deletion 
+  such as "Object public method foo {} {}"
+- removed defaultMethodCallProtection in alias test
+
 TODO: 
 
 - add tests for proc-alias

@@ -229,7 +229,7 @@ namespace eval ::nx {
       set p [lsearch -regexp $args {^(method|alias|attribute|forward|setter)$}]
       if {$p == -1} {error "$args is not a method defining method"}
       set r [{*}:$args]
-      ::nsf::methodproperty [::nsf::self] $r call-protected false
+      if {$r ne ""} {::nsf::methodproperty [::nsf::self] $r call-protected false}
       return $r
     }
 
@@ -238,7 +238,7 @@ namespace eval ::nx {
       set p [lsearch -regexp $args {^(method|alias|attribute|forward|setter)$}]
       if {$p == -1} {error "$args is not a method defining command"}
       set r [{*}:$args]
-      ::nsf::methodproperty [::nsf::self] $r call-protected true
+      if {$r ne ""} {::nsf::methodproperty [::nsf::self] $r call-protected true}
       return $r
     }
   }
@@ -1527,7 +1527,7 @@ namespace eval ::nx {
   set ::nsf::parametersyntax(::nsf::classes::nx::Object::eval) "arg ?arg ...?"
   unset value
 
-  ::nsf::configure debug 0
+  ::nsf::configure debug 1
 }
 
 #######################################################################

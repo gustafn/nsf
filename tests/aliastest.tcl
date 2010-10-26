@@ -1,5 +1,5 @@
 package require nx; namespace import -force ::nx::*
-::nx::configure defaultMethodCallProtection false
+#::nx::configure defaultMethodCallProtection false
 package require nx::test
 
 Test parameter count 10
@@ -37,7 +37,7 @@ Test case alias-preliminaries {
 Test case alias-simple { 
   # define an alias and retrieve its definition
   Class create Base {
-    :method foo {{-x 1}} {return $x}
+    :public method foo {{-x 1}} {return $x}
   }
 
   Class create Foo
@@ -53,19 +53,19 @@ Test case alias-simple {
   ? {Base info methods -methodtype scripted} {foo}
   ? {Foo info methods -methodtype scripted} {}
   ? {Foo info methods -methodtype alias} {foo}
-  Base method foo {} {}
+  Base public method foo {} {}
   ? {Foo info methods -methodtype alias} ""
   ? {Base info methods -methodtype scripted} {}
   ? {Foo info methods -methodtype scripted} {}
   ? {Foo info method definition foo} ""
   
 
-  Base method foo {{-x 1}} {return $x}
+  Base public method foo {{-x 1}} {return $x}
   ::nsf::alias ::Foo foo ::nsf::classes::Base::foo
   
   ? {Base info methods -methodtype scripted} {foo} "defined again"
   ? {Foo info methods -methodtype alias} {foo} "aliased again"
-  Foo method foo {} {}
+  Foo public method foo {} {}
   ? {Base info methods -methodtype scripted} {foo} "still defined"
   ? {Foo info methods -methodtype alias} {} "removed"
 }
@@ -81,7 +81,7 @@ Test case alias-chaining {
   S create s
   
   
-  T method foo args { return [current class]->[current method] }
+  T public method foo args { return [current class]->[current method] }
   ::nsf::alias T FOO ::nsf::classes::T::foo 
   
   ? {t foo} ::T->foo
@@ -92,7 +92,7 @@ Test case alias-chaining {
   ? {lsort [T info methods]} {} "alias is deleted"
   
   # puts stderr "double indirection"
-  T method foo args { return [current class]->[current method] }
+  T public method foo args { return [current class]->[current method] }
   ::nsf::alias T FOO ::nsf::classes::T::foo 
   ::nsf::alias S BAR ::nsf::classes::T::FOO
   
@@ -108,22 +108,22 @@ Test case alias-chaining {
   ? {S info method definition BAR} "::S public alias BAR ::nsf::classes::T::FOO"
   
   
-  T method foo {} {}
+  T public method foo {} {}
   ? {T info methods} {}
   ? {S info methods} {}
   
-  T method foo args { return [current class]->[current method] }
+  T public method foo args { return [current class]->[current method] }
   ::nsf::alias T FOO ::nsf::classes::T::foo 
   ::nsf::alias S BAR ::nsf::classes::T::FOO
   
   ? {lsort [T info methods]} {FOO foo}
   ? {S info methods} {BAR}
-  T method foo {} {}
+  T public method foo {} {}
   ? {S info methods} {}
   ? {T info methods} {}
   
-  T method foo args { return [current class]->[current method] }
-  T class-object method bar args { return [current class]->[current method] }
+  T public method foo args { return [current class]->[current method] }
+  T public class-object method bar args { return [current class]->[current method] }
   ::nsf::alias T -per-object FOO ::nsf::classes::T::foo 
   ::nsf::alias T -per-object BAR ::T::FOO 
   ::nsf::alias T -per-object ZAP ::T::BAR 
@@ -151,7 +151,7 @@ Test case alias-chaining {
   ? {T info methods} {foo}
   ? {lsort [T class-object info methods]} {ZAP bar}
   ? {T ZAP} ->foo
-  T method foo {} {}
+  T public method foo {} {}
   ? {T info methods} {}
   ? {lsort [T class-object info methods]} {bar}
 }
@@ -159,7 +159,7 @@ Test case alias-chaining {
 Test case alias-per-object {
 
   Class create T {
-    :class-object method bar args { return [current class]->[current method] }
+    :public class-object method bar args { return [current class]->[current method] }
     :create t
   }
   proc ::foo args { return [current class]->[current method] }
@@ -167,7 +167,7 @@ Test case alias-per-object {
   #
   # per-object methods as per-object aliases
   #
-  T class-object method m1 args { return [current class]->[current method] }
+  T public class-object method m1 args { return [current class]->[current method] }
   ::nsf::alias T -per-object M1 ::T::m1 
   ::nsf::alias T -per-object M11 ::T::M1 
   ? {lsort [T class-object info methods]} {M1 M11 bar m1}
@@ -209,7 +209,7 @@ Test case alias-per-object {
 # namespaced procs + namespace deletion
 Test case alias-namespaced {
   Class create T {
-    :class-object method bar args { return [current class]->[current method] }
+    :public class-object method bar args { return [current class]->[current method] }
     :create t
   }
   
@@ -236,12 +236,12 @@ Test case alias-namespaced {
   Class create U
   U create u
   ? {namespace exists ::U} 0
-  U class-object method zap args { return [current class]->[current method] }
+  U public class-object method zap args { return [current class]->[current method] }
   ::nsf::alias ::U -per-object ZAP ::U::zap 
   U require namespace
   ? {namespace exists ::U} 1
   
-  U class-object method bar args { return [current class]->[current method] }
+  U public class-object method bar args { return [current class]->[current method] }
   ::nsf::alias U -per-object BAR ::U::bar
   ? {lsort [U class-object info methods]} {BAR ZAP bar zap}
   ? {U BAR} ->bar
@@ -261,8 +261,8 @@ Test case alias-dot-resolver {
 
   Class create V {
     set :z 1
-    :method bar {z} { return $z }
-    :class-object method bar {z} { return $z }
+    :public method bar {z} { return $z }
+    :public class-object method bar {z} { return $z }
     :create v {
       set :z 2
     }
@@ -282,7 +282,7 @@ Test case alias-dot-resolver {
 
   ? {V FOO2} 1-1-1
   ? {v FOO1} 2-2-2
-  V method FOO1 {} {}
+  V public method FOO1 {} {}
   ? {lsort [V info methods]} {bar}
   rename ::foo ""
   ? {lsort [V class-object info methods]} {bar}
@@ -304,7 +304,7 @@ Test case alias-dot-resolver {
 Object create o
 Class create C
 
-o method bar args {;}
+o public method bar args {;}
 
 ? {info vars ::nsf::alias} ::nsf::alias
 ? {array exists ::nsf::alias} 1 
@@ -325,13 +325,13 @@ proc ::foo args {;}
 ? {o info method definition FOO} "::o public alias FOO ::o::bar"
 
 # AliasDelete in XOTclRemoveObjectMethod
-o method FOO {} {}
+o public method FOO {} {}
 ? {info exists ::nsf::alias(::o,FOO,1)} 0
 ? {array get ::nsf::alias ::o,FOO,1} ""
 ? {o info method definition FOO} ""
 
 # AliasDelete in XOTclRemoveClassMethod
-C method FOO {} {}
+C public method FOO {} {}
 ? {info exists ::nsf::alias(::C,FOO,0)} 0
 ? {array get ::nsf::alias ::C,FOO,0} ""
 ? {C info method definition FOO} ""
@@ -341,12 +341,12 @@ C method FOO {} {}
 
 # AliasDelete in XOTclAddObjectMethod
 ? {info exists ::nsf::alias(::o,BAR,1)} 1
-::o method BAR {} {;}
+::o public method BAR {} {;}
 ? {info exists ::nsf::alias(::o,BAR,1)} 0
 
 # AliasDelete in XOTclAddInstanceMethod
 ? {info exists ::nsf::alias(::C,BAR,0)} 1
-::C method BAR {} {;}
+::C public method BAR {} {;}
 ? {info exists ::nsf::alias(::C,BAR,0)} 0
 
 # AliasDelete in aliasCmdDeleteProc
@@ -359,7 +359,7 @@ rename ::foo ""
 ::nsf::alias o BAR ::o::FOO
 ? {info exists ::nsf::alias(::o,FOO,1)} 1
 ? {info exists ::nsf::alias(::o,BAR,1)} 1
-o method bar {} {}
+o public method bar {} {}
 ? {info exists ::nsf::alias(::o,FOO,1)} 0
 ? {info exists ::nsf::alias(::o,BAR,1)} 0
 
@@ -406,8 +406,8 @@ rename ::foo ::foo2
 #
 Test case class-resolve {
   namespace eval ::ns1 {
-    nx::Class create A {:method foo {} {::nx::current class}}
-    nx::Class create B {:method foo {} {::nx::current class}}
+    nx::Class create A {:public method foo {} {::nx::current class}}
+    nx::Class create B {:public method foo {} {::nx::current class}}
     namespace export A
   }
   
@@ -433,33 +433,33 @@ Test parameter count 10
 Test case proc-alias {
 
   nx::Class create C {
-    :method foo {} {upvar x y; info exists y}
-    :method bar {} {set x 1; :foo}
+    :public method foo {} {upvar x y; info exists y}
+    :public method bar {} {set x 1; :foo}
 
-    :alias bar_ [:info method handle bar]
-    :alias foo_ [:info method handle foo]
-    :method bar2 {} {set x 1; :foo_}
+    :public alias bar_ [:info method handle bar]
+    :public alias foo_ [:info method handle foo]
+    :public method bar2 {} {set x 1; :foo_}
 
     :create c1
   }
   
   nx::Class create D {
-    :method foo {} {:upvar x y; info exists y}
-    :method bar {} {set x 1; :foo}
+    :public method foo {} {:upvar x y; info exists y}
+    :public method bar {} {set x 1; :foo}
 
-    :alias foo_ [:info method handle foo]
-    :alias bar_ [:info method handle bar]
-    :method bar2 {} {set x 1; :foo_}
+    :public alias foo_ [:info method handle foo]
+    :public alias bar_ [:info method handle bar]
+    :public method bar2 {} {set x 1; :foo_}
 
     :create d1
   }
 
   nx::Class create M {
-    :method foo args next
-    :method bar args next
-    :method foo_ args next
-    :method bar_ args next
-    :method bar_ args next
+    :public method foo args next
+    :public method bar args next
+    :public method foo_ args next
+    :public method bar_ args next
+    :public method bar_ args next
   }
   
   ? {c1 bar} 1
