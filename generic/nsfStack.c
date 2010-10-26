@@ -748,7 +748,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
       /* Mask out IS_NRE, since Tcl_PopCallFrame takes care about TclStackFree */
       cscPtr->flags &= ~NSF_CSC_CALL_IS_NRE;
 #endif
-      CscFinish(interp, cscPtr /*, "popall"*/);
+      CscFinish(interp, cscPtr, "popall");
     } else if (frameFlags & FRAME_IS_NSF_OBJECT) {
       Tcl_CallFrame_varTablePtr(framePtr) = NULL;
     }
@@ -766,7 +766,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
 	 unstackedEntries = unstackedEntries->nextPtr, count ++) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)unstackedEntries->cl;
       CscListRemove(interp, cscPtr);
-      CscFinish(interp, cscPtr /*, "unwind"*/);
+      CscFinish(interp, cscPtr, "unwind");
     }
     
     if (count>0) {
@@ -911,7 +911,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
  *----------------------------------------------------------------------
  */
 NSF_INLINE static void
-CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr /*, char *msg*/) {
+CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   int allowDestroy = RUNTIME_STATE(interp)->exitHandlerDestroyRound !=
     NSF_EXITHANDLER_ON_SOFT_DESTROY;
   NsfObject *object;
@@ -923,7 +923,7 @@ CscFinish(Tcl_Interp *interp, NsfCallStackContent *cscPtr /*, char *msg*/) {
   object = cscPtr->self;
   flags = cscPtr->flags;
 
-  /*fprintf(stderr, "CscFinish %p (%s) object %p %s flags %.6x cmdPtr %p\n",cscPtr, msg,
+  /*fprintf(stderr, "CscFinish %p object %p %s flags %.6x cmdPtr %p\n",cscPtr,
     object, objectName(object), flags, cscPtr->cmdPtr);*/
 
   /*

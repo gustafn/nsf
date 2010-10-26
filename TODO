@@ -1820,10 +1820,10 @@ _ added option noforwarder to RelationSlots
 - extended regression tests for aliases to procs
 - renamed nx regression tests .test to follow tcl conventions
 - added regression tests for destroy-during-init
-- remved debugging from NsfCleanupObject when compiled without DEVELOPMENT
+- removed debugging from NsfCleanupObject when compiled without DEVELOPMENT
+- removed debugging from CscFinish when compiled without DEVELOPMENT
 
 TODO: 
-- handling of msg in CscFinish
 
 - "-returns" 
   * leave syntax as is for method?

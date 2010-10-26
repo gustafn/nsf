@@ -133,10 +133,15 @@
 # define NsfCleanupObject(object,string)				\
   /*fprintf(stderr, "NsfCleanupObject %p %s\n",object,string);*/	\
   NsfCleanupObject_(object);
+# define CscFinish(interp,cscPtr,string)				\
+  /*fprintf(stderr, "CscFinish %p %s\n",cscPtr,string);*/		\
+  CscFinish_(interp, cscPtr);
 #else
 # define NDEBUG 1
 # define NsfCleanupObject(object,string)	\
   NsfCleanupObject_(object);
+# define CscFinish(interp,cscPtr,string)	\
+  CscFinish_(interp, cscPtr);
 #endif
 
 
