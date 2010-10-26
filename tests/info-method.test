@@ -1,3 +1,4 @@
+# -*- Tcl *-*
 package req nx
 ::nx::configure defaultMethodCallProtection false
 package require nx::test

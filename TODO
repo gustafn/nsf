@@ -1818,6 +1818,7 @@ _ added option noforwarder to RelationSlots
   such as "Object public method foo {} {}"
 - removed defaultMethodCallProtection in alias test
 - extended regression tests for aliases to procs
+- renamed nx regression tests .test to follow tcl conventions
 
 TODO: 
 

@@ -1,4 +1,5 @@
-package require nx; # namespace import -force ::nx::*
+# -*- Tcl *-*
+package require nx
 package require nx::test
 
 Test parameter count 10
