@@ -1819,10 +1819,9 @@ _ added option noforwarder to RelationSlots
 - removed defaultMethodCallProtection in alias test
 - extended regression tests for aliases to procs
 - renamed nx regression tests .test to follow tcl conventions
+- added regression tests for destroy-during-init
 
 TODO: 
-
-- add test for destroy-during-init
 - handling of msg in NsfCleanupObject
 - handling of msg in CscFinish
 

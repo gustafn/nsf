@@ -612,23 +612,27 @@ test::c1 foo
 ? {namespace exists ::test} 1  "parent ::test namespace still exists after proc"
 ? {namespace exists ::xotcl::classes::test::C} 0  "namespace ::xotcl::classes::test::C still exists after proc"
 
-puts stderr "==== EXIT ===="
-exit
+Test case destroy-during-init {
+  # create class
+  nx::Class create Foo {
+    :public method bar {} {return 1}
+    :public method baz {} {return 2}
+  }
+  
+  # create object
+  Foo create f1 { :bar; :baz; :destroy } 
 
-TODO:
-fix crashes in regression test: DONE, 
-     -> well we can't call traceprocs on the object being destroyed; maybe call CleanupDestroyObject() ealier
-  move destroy logic to activationCount DONE
-  simplify logic (remove callIsDestroy, callstate XOTCL_CSC_CALL_IS_DESTROY, destroyedCmd on stack content) DONE
-  remove CallStackMarkDestroyed(), CallStackMarkUndestroyed() DONE
-  remove traces of rst->callIsDestroy DONE
-  revive tclStack (without 85) DONE
-  check state changes DONE
-  delete active class; maybe C destroy, c1 destroy (or C::c1 + C destroy) DONE
-  add recreate logic test case DONE
+  ? {info command f1} ""
 
-more generic */
-XOTCLINLINE static Tcl_ObjType *
-GetCmdNameType(Tcl_ObjType *cmdType) {
+  set c [nx::Class new {
+    :public method bar {} {return 1}
+    :public method baz {} {return 2}
+    :create new { :bar; :baz; :destroy }
+    :destroy
+  }]
 
-  MATRIX
+  ? [list info command $c] ""
+
+}
+
+#puts stderr "==== EXIT ===="
