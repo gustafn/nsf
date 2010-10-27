@@ -1823,6 +1823,21 @@ _ added option noforwarder to RelationSlots
 - removed debugging from NsfCleanupObject when compiled without DEVELOPMENT
 - removed debugging from CscFinish when compiled without DEVELOPMENT
 
+- changed CallStackGetActiveProcFrame() to return also CMETHD frames
+  This allows to execute :volatile in a initcmd and to delete the
+  object at its end. As a consequence, code like
+     [CopyHandler new -volatile] copy [::nsf::self] $newName 
+  has to be changed to 
+      CopyHandler new {
+       :copy [:uplevel ::nsf::self] [uplevel set newName]
+       :destroy
+      }
+
+
+- renamed CallStackUseActiveFrames() to CallStackUseActiveFrame()
+  and ctx->framesSaved to ctx->frameSaved to reflect implementation
+
+
 TODO: 
 
 - "-returns" 

@@ -410,7 +410,8 @@ namespace eval ::nx::serializer {
 
     :public class-object method deepSerialize {-ignoreVarsRE -ignore -map args} {
       :resetPattern
-      set s [:new -childof [::nsf::current object] -volatile]
+      set s [:new -childof [::nsf::current object]]
+      $s volatile
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
       

@@ -221,7 +221,8 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
       if (!(((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType
             & NSF_CSC_TYPE_INACTIVE)) break;
     } else {
-      if (flag & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_OBJECT)) continue;
+      //if (flag & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_OBJECT)) continue;
+      if (flag & (FRAME_IS_NSF_OBJECT)) continue;
       if (flag == 0 || flag & FRAME_IS_PROC) break;
     }
   }
@@ -344,7 +345,7 @@ CallStackGetTopFrame(Tcl_Interp *interp, Tcl_CallFrame **framePtrPtr) {
 
 /*
  *----------------------------------------------------------------------
- * NsfCallStackFindActiveFrame --
+ * NsfCallStackFindLastInvocation --
  *
  *    Find last invocation of a (scripted or nonleaf) method with a
  *    specified offset.
@@ -423,7 +424,7 @@ NsfCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fram
 
 /*
  *----------------------------------------------------------------------
- * CallStackUseActiveFrames --
+ * CallStackUseActiveFrame --
  *
  *    Activate the varFrame of the first active non-object frame and
  *    save the previously active frames in the call frame context.
@@ -440,12 +441,10 @@ NsfCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fram
  */
 
 static void
-CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
-  Tcl_CallFrame
-    *inFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp),
-    *framePtr;
+CallStackUseActiveFrame(Tcl_Interp *interp, callFrameContext *ctx) {
+  Tcl_CallFrame *framePtr, *inFramePtr;
 
-  /*NsfCallStackFindActiveFrame(interp, 0, &activeFramePtr);*/
+  inFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp);
 
   /* Get the first active non object frame */
   framePtr = CallStackGetActiveProcFrame(inFramePtr);
@@ -454,12 +453,12 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
 
   if (inFramePtr == framePtr) {
     /* call frame pointers are fine */
-    ctx->framesSaved = 0;
+    ctx->frameSaved = 0;
   } else {
     ctx->varFramePtr = inFramePtr;
-    /*fprintf(stderr, "CallStackUseActiveFrames stores %p\n",framePtr);*/
+    /*fprintf(stderr, "CallStackUseActiveFrame stores %p\n",framePtr);*/
     Tcl_Interp_varFramePtr(interp) = (CallFrame *)framePtr;
-    ctx->framesSaved = 1;
+    ctx->frameSaved = 1;
   }
 }
 
@@ -469,7 +468,7 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
  *
  *    Restore the previously saved frames from the speficied call
  *    frame context. These frames are typically saved by
- *    CallStackUseActiveFrames().
+ *    CallStackUseActiveFrame().
  *
  * Results:
  *    None.
@@ -482,7 +481,7 @@ CallStackUseActiveFrames(Tcl_Interp *interp, callFrameContext *ctx) {
 
 static void
 CallStackRestoreSavedFrames(Tcl_Interp *interp, callFrameContext *ctx) {
-  if (ctx->framesSaved) {
+  if (ctx->frameSaved) {
     /*fprintf(stderr, "CallStackRestoreSavedFrames drops %p restores %p\n",
       Tcl_Interp_varFramePtr(interp), ctx->varFramePtr);*/
     Tcl_Interp_varFramePtr(interp) = (CallFrame *)ctx->varFramePtr;

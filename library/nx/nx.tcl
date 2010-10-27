@@ -1273,8 +1273,9 @@ namespace eval ::nx {
     # reused in XOTcl, no "require" there, so use nsf primitiva
     ::nsf::dispatch $object ::nsf::methods::object::requirenamespace    
     if {$withnew} {
-      set m [ScopedNew new -volatile \
+      set m [ScopedNew new \
 		 -container $object -withclass $class]
+      $m volatile
       Class mixin add $m end
       # TODO: the following is not pretty; however, contains might
       # build xotcl and next objects.
@@ -1427,7 +1428,11 @@ namespace eval ::nx {
 
   Object public method copy newName {
     if {[string compare [string trimleft $newName :] [string trimleft [::nsf::self] :]]} {
-	[CopyHandler new -volatile] copy [::nsf::self] $newName
+      CopyHandler new {
+	:copy [:uplevel ::nsf::self] [uplevel set newName]
+	:destroy
+      }
+      #[CopyHandler new -volatile] copy [::nsf::self] $newName
     }
   }
 

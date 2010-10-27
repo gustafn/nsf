@@ -75,7 +75,7 @@ int nsfMemCountInterpCounter = 0;
 typedef enum { CALLING_LEVEL, ACTIVE_LEVEL } CallStackLevel;
 
 typedef struct callFrameContext {
-  int framesSaved;
+  int frameSaved;
   Tcl_CallFrame *framePtr;
   Tcl_CallFrame *varFramePtr;
 } callFrameContext;
@@ -14754,6 +14754,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       } else /* must be NSF_ARG_METHOD */ {
         Tcl_Obj *ov[3];
         int oc = 0;
+
         if (paramPtr->converterArg) {
           /* if arg= was given, pass it as first argument */
           ov[0] = paramPtr->converterArg;
@@ -14820,6 +14821,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       result = CallMethod((ClientData) object, interp,
                           methodObj, remainingArgsc+2, pc.full_objv + i-1, NSF_CSC_IMMEDIATE);
     }
+
     if (result != TCL_OK) {
       ParseContextRelease(&pc);
       goto configure_exit;
@@ -14940,7 +14942,7 @@ NsfOInstvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONS
   int result;
 
   if (object && (object->filterStack || object->mixinStack) ) {
-    CallStackUseActiveFrames(interp, &ctx);
+    CallStackUseActiveFrame(interp, &ctx);
   }
   if (!Tcl_Interp_varFramePtr(interp)) {
     CallStackRestoreSavedFrames(interp, &ctx);
@@ -15164,7 +15166,7 @@ NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST 
   }
 
   if (object && (object->filterStack || object->mixinStack)) {
-    CallStackUseActiveFrames(interp, &ctx);
+    CallStackUseActiveFrame(interp, &ctx);
   }
 
   for ( ;  i < objc;  i += 2) {
@@ -15197,8 +15199,9 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
     fprintf(stderr, "### Can't make objects volatile during shutdown\n");
     return NsfVarErrMsg(interp, "Can't make objects volatile during shutdown\n", NULL);
   }
+  //NsfShowStack(interp);
+  CallStackUseActiveFrame(interp, &ctx);
 
-  CallStackUseActiveFrames(interp, &ctx);
   vn = NSTail(fullName);
 
   if (Tcl_SetVar2(interp, vn, NULL, fullName, 0)) {
