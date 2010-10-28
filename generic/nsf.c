@@ -1988,12 +1988,13 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
   int i, localCt = varFramePtr->numCompiledLocals;
   Tcl_Obj **objPtrPtr = &varFramePtr->localCachePtr->varName0;
 
-  /*fprintf(stderr, ".. search #local vars %d\n", localCt);*/
+  /* fprintf(stderr, ".. search #local vars %d for %s\n", localCt, varName);*/
   for (i=0 ; i<localCt ; i++, objPtrPtr++) {
     register Tcl_Obj *objPtr = *objPtrPtr;
     if (objPtr) {
       char *localName = TclGetString(objPtr);
       if ((varName[0] == localName[0])
+	  && (varName[1] == localName[1])
           && (strcmp(varName, localName) == 0)) {
         return (Tcl_Var) &varFramePtr->compiledLocals[i];
       }
@@ -14803,7 +14804,16 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
       if (paramPtr->flags & NSF_ARG_INITCMD) {
 	/* cscPtr->cmdPtr = NSFindCommand(interp, "::eval"); */
+
+	//cscPtr->flags = 0;
+	//CscInit(cscPtr, object, NULL /*cl*/, NULL/*cmd*/, NSF_CSC_TYPE_PLAIN, 0);
+	//Nsf_PushFrameCsc(interp, cscPtr, framePtr2);
+
         result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
+
+	//Nsf_PopFrameCsc(interp, framePtr2);
+	//CscListRemove(interp, cscPtr);
+	//CscFinish(interp, cscPtr, "converter object frame");
 
       } else /* must be NSF_ARG_METHOD */ {
         Tcl_Obj *ov[3];

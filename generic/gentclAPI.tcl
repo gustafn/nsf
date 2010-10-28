@@ -266,7 +266,7 @@ proc genstubs {} {
       set call "return [implArgList $d(implementation) {} $arglist];"
     }
     
-    #if {$nrArgs == 1} { puts stderr "$d(stub) => '$arglist'" }
+    #if {$nrArgs == 1} { puts stderr "$d(stub) => '$arglist' cDefs=$cDefs ifd=$ifDef" }
     if {$nrArgs == 1 && $arglist eq "objc, objv"} {
       # TODO we would not need to generate a stub at all.... 
       #set ifd "{\"$d(ns)::$d(methodName)\", $d(implementation), $nrArgs, {\n  [genifd $d(parameterDefinitions)]}\n}"
@@ -277,15 +277,42 @@ proc genstubs {} {
       #puts stderr "$d(stub) => '$arglist'"
       append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
   } elseif {$nrArgs == 0} {
-      append pre [subst -nocommands {
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[$d(idx)].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      }]
-      append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
+    append pre [subst -nocommands {
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[$d(idx)].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    }]
+    append fns [genSimpleStub $d(stub) $intro $d(idx) $cDefs $pre $call $post]
+  } elseif {$nrArgs == 1 && [string match "Tcl_Obj *" $cDefs]} {
+
+    array set defs [list -required 0]
+    array set defs [lindex $d(parameterDefinitions) 0]
+    
+    if {$defs(-required)} {
+      set op "objc != 2"
     } else {
+      set op "objc < 1 || objc > 2"
+    }
+    append pre [subst -nocommands {
+      if ($op) {
+	return ArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[$d(idx)].paramDefs,
+			     NULL, objv[0]); 
+      }
+    }]
+
+    set newArg {objc == 2 ? objv[1] : NULL}
+    if {[regexp {^(.*),(.*)$} $arglist _ arg1]} {
+      set newArglist "$arg1, $newArg"
+    } else {
+      set newArglist $newArg
+    }
+    regsub ", $arglist\\)" $call ", $newArglist\)" call
+    
+    append fns [genSimpleStub $d(stub) $intro $d(idx) "" $pre $call $post]
+  } else {
       switch $d(methodType) {
         objectMethod {set obj "obj"}
         classMethod {set obj "(NsfObject *) cl"}

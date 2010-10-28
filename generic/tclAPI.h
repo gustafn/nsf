@@ -444,21 +444,18 @@ enum {
 
 static int
 NsfCAllocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
   NsfClass *cl =  NsfObjectToClass(clientData);
   if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
-                     method_definitions[NsfCAllocMethodIdx].paramDefs, 
-                     method_definitions[NsfCAllocMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
+    
 
-    assert(pc.status == 0);
-    return NsfCAllocMethod(interp, cl, name);
+      if (objc != 2) {
+	return ArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfCAllocMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfCAllocMethod(interp, cl, objc == 2 ? objv[1] : NULL);
 
-  }
 }
 
 static int
@@ -482,21 +479,18 @@ NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 static int
 NsfCDeallocMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
   NsfClass *cl =  NsfObjectToClass(clientData);
   if (!cl) return NsfObjErrType(interp, objv[0], "Class", "");
-  if (ArgumentParse(interp, objc, objv, (NsfObject *) cl, objv[0], 
-                     method_definitions[NsfCDeallocMethodIdx].paramDefs, 
-                     method_definitions[NsfCDeallocMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
+    
 
-    assert(pc.status == 0);
-    return NsfCDeallocMethod(interp, cl, object);
+      if (objc != 2) {
+	return ArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfCDeallocMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfCDeallocMethod(interp, cl, objc == 2 ? objv[1] : NULL);
 
-  }
 }
 
 static int
@@ -989,12 +983,12 @@ NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
 
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfDebugRunAssertionsCmdIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfDebugRunAssertionsCmdIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfDebugRunAssertionsCmd(interp);
 
 }
@@ -1063,12 +1057,12 @@ NsfFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfFinalizeObjCmdIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfFinalizeObjCmdIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfFinalizeObjCmd(interp);
 
 }
@@ -1176,20 +1170,17 @@ NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 
 static int
 NsfIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
 
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfIsObjectCmdIdx].paramDefs, 
-                     method_definitions[NsfIsObjectCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *object = (Tcl_Obj *)pc.clientData[0];
+    
 
-    assert(pc.status == 0);
-    return NsfIsObjectCmd(interp, object);
+      if (objc != 2) {
+	return ArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfIsObjectCmdIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfIsObjectCmd(interp, objc == 2 ? objv[1] : NULL);
 
-  }
 }
 
 static int
@@ -1299,38 +1290,32 @@ NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 static int
 NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
 
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfNextCmdIdx].paramDefs, 
-                     method_definitions[NsfNextCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[0];
+    
 
-    assert(pc.status == 0);
-    return NsfNextCmd(interp, arguments);
+      if (objc < 1 || objc > 2) {
+	return ArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfNextCmdIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfNextCmd(interp, objc == 2 ? objv[1] : NULL);
 
-  }
 }
 
 static int
 NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
 
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfQualifyObjCmdIdx].paramDefs, 
-                     method_definitions[NsfQualifyObjCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *objectname = (Tcl_Obj *)pc.clientData[0];
+    
 
-    assert(pc.status == 0);
-    return NsfQualifyObjCmd(interp, objectname);
+      if (objc != 2) {
+	return ArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfQualifyObjCmdIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfQualifyObjCmd(interp, objc == 2 ? objv[1] : NULL);
 
-  }
 }
 
 static int
@@ -1358,12 +1343,12 @@ NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfSelfCmdIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfSelfCmdIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfSelfCmd(interp);
 
 }
@@ -1413,12 +1398,12 @@ NsfShowStackCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfShowStackCmdIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfShowStackCmdIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfShowStackCmd(interp);
 
 }
@@ -1450,12 +1435,12 @@ NsfOCleanupMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfOCleanupMethodIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfOCleanupMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfOCleanupMethod(interp, obj);
 
 }
@@ -1476,12 +1461,12 @@ NsfODestroyMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfODestroyMethodIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfODestroyMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfODestroyMethod(interp, obj);
 
 }
@@ -1561,12 +1546,12 @@ NsfONoinitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfONoinitMethodIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfONoinitMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfONoinitMethod(interp, obj);
 
 }
@@ -1577,12 +1562,12 @@ NsfORequireNamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int ob
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfORequireNamespaceMethodIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfORequireNamespaceMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfORequireNamespaceMethod(interp, obj);
 
 }
@@ -1623,12 +1608,12 @@ NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfOVolatileMethodIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfOVolatileMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfOVolatileMethod(interp, obj);
 
 }
@@ -1678,12 +1663,12 @@ NsfObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, T
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfObjInfoClassMethodIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfObjInfoClassMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfObjInfoClassMethod(interp, obj);
 
 }
@@ -1792,12 +1777,12 @@ NsfObjInfoHasnamespaceMethodStub(ClientData clientData, Tcl_Interp *interp, int 
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfObjInfoHasnamespaceMethodIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfObjInfoHasnamespaceMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfObjInfoHasnamespaceMethod(interp, obj);
 
 }
@@ -1842,21 +1827,18 @@ NsfObjInfoLookupFilterMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 
 static int
 NsfObjInfoLookupMethodMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfObjInfoLookupMethodMethodIdx].paramDefs, 
-                     method_definitions[NsfObjInfoLookupMethodMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
+    
 
-    assert(pc.status == 0);
-    return NsfObjInfoLookupMethodMethod(interp, obj, name);
+      if (objc != 2) {
+	return ArgumentError(interp, "wrong # of arguments:", 
+			     method_definitions[NsfObjInfoLookupMethodMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      }
+    
+    return NsfObjInfoLookupMethodMethod(interp, obj, objc == 2 ? objv[1] : NULL);
 
-  }
 }
 
 static int
@@ -2007,12 +1989,12 @@ NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, 
   if (!obj) return NsfObjErrType(interp, objv[0], "Object", "");
     
 
-	  if (objc != 1) {
-	      return ArgumentError(interp, "too many arguments:", 
-				   method_definitions[NsfObjInfoParentMethodIdx].paramDefs,
-				   NULL, objv[0]); 
-	  } 
-      
+      if (objc != 1) {
+	return ArgumentError(interp, "too many arguments:", 
+			     method_definitions[NsfObjInfoParentMethodIdx].paramDefs,
+			     NULL, objv[0]); 
+      } 
+    
     return NsfObjInfoParentMethod(interp, obj);
 
 }

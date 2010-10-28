@@ -1847,6 +1847,9 @@ _ added option noforwarder to RelationSlots
 - undone temporary fixes for volatile in serializer and nx.tcl
 - impoved NsColonVarResolver, made some assumptions explicit
 
+- gentclApi.tcl: added optimizer rule for single argument of type tclobj
+- improved speed of CompiledLocalsLookup slightly
+
 TODO:
 
 - "-returns" 
