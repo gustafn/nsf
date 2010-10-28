@@ -1832,13 +1832,23 @@ _ added option noforwarder to RelationSlots
        :copy [:uplevel ::nsf::self] [uplevel set newName]
        :destroy
       }
-
-
 - renamed CallStackUseActiveFrames() to CallStackUseActiveFrame()
   and ctx->framesSaved to ctx->frameSaved to reflect implementation
 
+- new function MethodNameString() to obtain name without colon prefix
+  from tcl_obj 
+- fix bad interaction between filters and cmd name resolvers
+- output object frame to ease interpretation of [info frame]
 
 TODO: 
+
+- regression test for interaction between filters and function resolver
+  (when volatile issue is solved)
+- reactivate new volatile test in destroy.test
+- NsColonVarResolver can be optimized:
+  // last case first
+  // why OBJECT? is NSF_CMETHOD used without PROC?
+
 
 - "-returns" 
   * leave syntax as is for method?
