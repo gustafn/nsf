@@ -2002,9 +2002,56 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
   return NULL;
 }
 
+/*********************************************************
+ *
+ * Variable resolvers
+ *
+ *********************************************************/
+#define FOR_COLON_RESOLVER(ptr) (*(ptr) == ':' && *(ptr+1) != ':')
 
+/*
+ *----------------------------------------------------------------------
+ * MethodNameString --
+ *
+ *    Return the methodName from a Tcl_Obj, strips potentially the
+ *    colon prefix
+ *
+ * Results:
+ *    method name
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static CONST char *
+MethodNameString(Tcl_Obj *methodObj) {
+  char *methodName = ObjStr(methodObj);
+
+  if (FOR_COLON_RESOLVER(methodName)) {
+    methodName ++;
+  }
+  return methodName;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NsColonVarResolver --
+ *
+ *    Namespace resolver for namespace specific variable lookup.
+ *    colon prefix
+ *
+ * Results:
+ *    method name
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
-NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, int flags, Tcl_Var *varPtr) {
+NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, 
+		   int flags, Tcl_Var *varPtr) {
   Tcl_CallFrame *varFramePtr;
   TclVarHashTable *varTablePtr;
   NsfObject *object;
@@ -2017,8 +2064,9 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
   fprintf(stderr, "NsColonVarResolver '%s' flags %.6x\n", varName, flags);
 #endif
 
-  /* Case 1: The variable is to be resolved in global scope, proceed in
-   * resolver chain (i.e. return TCL_CONTINUE)
+  /* 
+   * Case 1: The variable is to be resolved in global scope, proceed in
+   * resolver chain
    */
   if (flags & TCL_GLOBAL_ONLY) {
     /*fprintf(stderr, "global-scoped lookup for var '%s' in NS '%s'\n", varName,
@@ -2026,7 +2074,8 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
     return TCL_CONTINUE;
   }
 
-  /* Case 2: The lookup happens in a proc frame (lookup in compiled
+  /* 
+   * Case 2: The lookup happens in a proc frame (lookup in compiled
    * locals and hash table vars).  We are not interested to handle
    * these cases here, so proceed in resolver chain.
    */
@@ -2051,10 +2100,13 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
   firstChar = *varName;
   secondChar = *(varName+1);
 
+  // TODO can be optimized:
+  // last case first
+  // why OBJECT? is NSF_CMETHOD used without PROC?
   if (frameFlags & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_OBJECT)) {
     /*
-       Case 3: we are in an Next Scripting frame
-    */
+     *  Case 3: we are in an Next Scripting frame
+     */
     if (firstChar == ':') {
       if (secondChar != ':') {
         /*
@@ -2064,14 +2116,14 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
         varName ++;
       } else {
         /*
-           Case 3b: Names starting  with "::" are not for us
-        */
+	 * Case 3b: Names starting  with "::" are not for us
+	 */
         return TCL_CONTINUE;
       }
     } else if (NSTail(varName) != varName) {
       /*
-         Case 3c: Names containing "::" are not for us
-      */
+       * Case 3c: Names containing "::" are not for us
+       */
       return TCL_CONTINUE;
     }
 
@@ -2081,13 +2133,14 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
 
   } else {
     /*
-     * Case 4: we are not in an Next Scripting frame, so proceed with a
-     * TCL_CONTINUE.
+     * Case 4: we are not in an Next Scripting frame, so proceed as well
      */
     return TCL_CONTINUE;
   }
 
-  /* We have an object and create the variable if not found */
+  /* 
+   * We have an object and create the variable if not found 
+   */
   assert(object);
 
   varTablePtr = object->nsPtr ? Tcl_Namespace_varTablePtr(object->nsPtr) : object->varTablePtr;
@@ -2126,7 +2179,6 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
  * Begin of compiled var resolver
  *
  *********************************************************/
-#define FOR_COLON_RESOLVER(ptr) (*(ptr) == ':' && *(ptr+1) != ':')
 
 typedef struct nsfResolvedVarInfo {
   Tcl_ResolvedVarInfo vInfo;        /* This must be the first element. */
@@ -7026,13 +7078,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     methodObj = objv[1];
   }
 
-  /* non of the higher copy-flags must be passed */
-  assert((flags & (NSF_CSC_COPY_FLAGS & 0x1100)) == 0);
-
-  methodName = ObjStr(methodObj);
-  if (FOR_COLON_RESOLVER(methodName)) {
-    methodName ++;
-  }
+  /* none of the higher copy-flags must be passed */
+  assert((flags & (NSF_CSC_COPY_FLAGS & 0xFF00)) == 0);
+  methodName = MethodNameString(methodObj);
 
   /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s\n",
     objectName(object), objc, ObjStr(cmdObj), methodName);*/
@@ -7077,7 +7125,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       
       if (!cscPtr1 ||
 	  (object != cscPtr1->self || (cscPtr1->frameType != NSF_CSC_TYPE_ACTIVE_FILTER))) {
-
+	// TODO could use methodObj sometimes, new objnot needed always
+	// use MethodNameString() for the few occurances, where ->calledProc is referenced.
+	//FilterStackPush(interp, object, Tcl_NewStringObj(methodName,-1));
 	FilterStackPush(interp, object, methodObj);
 	flags |= NSF_CSC_FILTER_STACK_PUSHED;
 
@@ -8534,7 +8584,7 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
     return cscPtr->cl;
 
   if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER)
-    methodName = ObjStr(cscPtr->filterStackEntry->calledProc);
+    methodName = MethodNameString(cscPtr->filterStackEntry->calledProc);
   else if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_MIXIN && object->mixinStack)
     methodName = (char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr);
   else
@@ -8584,7 +8634,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
 	 * Reset the information to the values of method, clPtr
 	 * to the values they had before calling the filters.
 	 */
-        *methodNamePtr = ObjStr(object->filterStack->calledProc);
+        *methodNamePtr = MethodNameString(object->filterStack->calledProc);
         endOfChain = 1;
         *endOfFilterChain = 1;
         *clPtr = NULL;
@@ -14170,7 +14220,8 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
   case CurrentoptionCalledmethodIdx:
     cscPtr = CallStackFindActiveFilter(interp);
     if (cscPtr) {
-      Tcl_SetObjResult(interp, cscPtr->filterStackEntry->calledProc);
+      Tcl_SetObjResult(interp, 
+		       Tcl_NewStringObj(MethodNameString(cscPtr->filterStackEntry->calledProc), -1));
     } else {
       result = NsfVarErrMsg(interp, "called from outside of a filter",
 			  (char *) NULL);
