@@ -1,4 +1,4 @@
-# -*- Tcl *-*
+# -*- Tcl -*-
 package require nx
 package require nx::test
 

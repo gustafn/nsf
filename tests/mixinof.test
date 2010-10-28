@@ -1,4 +1,4 @@
-# -*- Tcl *-*
+# -*- Tcl -*-
 # testing mixinof
 package require nx; namespace import ::nx::*
 package require nx::test
