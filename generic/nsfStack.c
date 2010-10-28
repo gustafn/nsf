@@ -139,7 +139,7 @@ static void Nsf_PushFrameObj(Tcl_Interp *interp, NsfObject *object, CallFrame *f
   } else {
     /* The object has no nsPtr, so we diguise as a proc, using fakeProc */
     Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, Tcl_CallFrame_nsPtr(Tcl_Interp_varFramePtr(interp)),
-                      1|FRAME_IS_NSF_OBJECT);
+                      FRAME_IS_PROC|FRAME_IS_NSF_OBJECT);
 
     Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
     if (object->varTablePtr == NULL) {
@@ -182,7 +182,7 @@ Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, CallFrame *fra
     framePtr, cscPtr, Tcl_GetCommandName(interp,cscPtr->cmdPtr));*/
 
   Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, Tcl_CallFrame_nsPtr(varFramePtr),
-		    1|FRAME_IS_NSF_CMETHOD);
+		    FRAME_IS_PROC|FRAME_IS_NSF_CMETHOD);
   Tcl_CallFrame_clientData(framePtr) = (ClientData)cscPtr;
   Tcl_CallFrame_procPtr(framePtr) = &RUNTIME_STATE(interp)->fakeProc;
 }

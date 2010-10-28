@@ -1845,12 +1845,9 @@ _ added option noforwarder to RelationSlots
   function resolver (and volatile)
 - reactivated new volatile test in destroy.test
 - undone temporary fixes for volatile in serializer and nx.tcl
+- impoved NsColonVarResolver, made some assumptions explicit
 
-TODO: 
-
-- NsColonVarResolver can be optimized:
-  // last case first
-  // why OBJECT? is NSF_CMETHOD used without PROC?
+TODO:
 
 - "-returns" 
   * leave syntax as is for method?

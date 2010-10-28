@@ -2056,7 +2056,6 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
   TclVarHashTable *varTablePtr;
   NsfObject *object;
   int new, frameFlags;
-  char firstChar, secondChar;
   Tcl_Obj *key;
   Var *newVar;
 
@@ -2097,45 +2096,48 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
     return TCL_CONTINUE;
   }
 
-  firstChar = *varName;
-  secondChar = *(varName+1);
+  /* 
+   * FRAME_IS_NSF_CMETHOD has always FRAME_IS_PROC set, so it is
+   * handeled already above
+   */
+  assert((frameFlags & FRAME_IS_NSF_CMETHOD) == 0);
 
-  // TODO can be optimized:
-  // last case first
-  // why OBJECT? is NSF_CMETHOD used without PROC?
-  if (frameFlags & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_OBJECT)) {
+  if ((frameFlags & FRAME_IS_NSF_OBJECT) == 0) {
     /*
-     *  Case 3: we are in an Next Scripting frame
+     * Case 3: we are not in an Next Scripting frame, so proceed as well
      */
-    if (firstChar == ':') {
-      if (secondChar != ':') {
+    return TCL_CONTINUE;
+
+  } else {
+    /*
+     *  Case 4: we are in an Next Scripting object frame
+     */
+
+    if (*varName == ':') {
+      if (*(varName+1) != ':') {
         /*
-         * Case 3a: The variable name starts with a single ":". Skip
+         * Case 4a: The variable name starts with a single ":". Skip
          * the char, but stay in the resolver.
          */
         varName ++;
       } else {
         /*
-	 * Case 3b: Names starting  with "::" are not for us
+	 * Case 4b: Names starting  with "::" are not for us
 	 */
         return TCL_CONTINUE;
       }
     } else if (NSTail(varName) != varName) {
       /*
-       * Case 3c: Names containing "::" are not for us
+       * Case 4c: Names containing "::" are not for us
        */
       return TCL_CONTINUE;
     }
 
-    object = (frameFlags & FRAME_IS_NSF_CMETHOD)
-      ? ((NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr))->self
-      : (NsfObject *)Tcl_CallFrame_clientData(varFramePtr);
-
-  } else {
-    /*
-     * Case 4: we are not in an Next Scripting frame, so proceed as well
+    /* 
+     * Since we know that we are here always in an object frame, we
+     * can blindly get the object from the client data .
      */
-    return TCL_CONTINUE;
+    object = (NsfObject *)Tcl_CallFrame_clientData(varFramePtr);
   }
 
   /* 
@@ -2149,7 +2151,6 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
   /*
    * Does the variable exist in the object's namespace?
    */
-
   key = Tcl_NewStringObj(varName, -1);
   INCR_REF_COUNT(key);
 
@@ -2258,7 +2259,8 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
    *
    */
 
-  if (var && object == resVarInfo->lastObject && (((((Var*)var)->flags) & VAR_DEAD_HASH)) == 0) {
+  if (var && object == resVarInfo->lastObject && 
+      (((((Var*)var)->flags) & VAR_DEAD_HASH)) == 0) {
     /*
      * The variable is valid.
      */
