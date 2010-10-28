@@ -1849,6 +1849,9 @@ TODO:
   // last case first
   // why OBJECT? is NSF_CMETHOD used without PROC?
 
+- undo volatile fixes in serializer when volatile is revived.
+  #set s [:new -childof [::nsf::current object]]
+  #$s volatile
 
 - "-returns" 
   * leave syntax as is for method?
