@@ -10,7 +10,7 @@ package provide nx::serializer 1.0
 
 namespace eval ::nx::serializer {
   namespace eval ::xotcl {} ;# just to make mk_pkgIndex happy
-  namespace import ::xotcl::* ;# just needed for the time being for @
+  namespace import -force ::xotcl::* ;# just needed for the time being for @
   namespace import -force ::nx::*
 
   @ @File {
