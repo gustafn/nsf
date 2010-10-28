@@ -179,6 +179,15 @@ Nsf_InfoFrameObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
       }
       Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(frameType,-1));
       Tcl_SetObjResult(interp, listObj);
+    } else if (frameFlags & (FRAME_IS_NSF_OBJECT)) {
+      NsfObject *object = (NsfObject *)Tcl_CallFrame_clientData(varFramePtr);
+      //Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
+
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object",6));
+      Tcl_ListObjAppendElement(interp, resultObj, object->cmdName);
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("frameType",9));
+      Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("object",6));
+      Tcl_SetObjResult(interp, resultObj);
     }
   }
 
