@@ -643,6 +643,15 @@ Test case destroy-during-init {
   
   ? [list info command $x] "" "destroy via volatile"
   
+  # set x [nx::Class new -volatile {
+  #   :public method bar {} {return 1}
+  #   :public method baz {} {return 2}
+  #   :new { :volatile; :bar; :baz }
+  # }]
+  
+  # ? [list info command $x] "" "destroy via volatile method"
+
+
 }
 
 #puts stderr "==== EXIT ===="
