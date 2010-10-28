@@ -89,12 +89,14 @@ void NsfShowStack(Tcl_Interp *interp) {
             Tcl_CallFrame_objc(framePtr) && 0 ? ObjStr(Tcl_CallFrame_objv(framePtr)[0]) : "(null)",
             Tcl_CallFrame_objc(framePtr) ? Tcl_CallFrame_objc(framePtr) : -1);
     if (cscPtr) {
-      fprintf(stderr, " csc %p frameType %.4x callType %.4x (%p %s)\n",
+      fprintf(stderr, " csc %p frameType %.4x callType %.4x (%s.%p %s)\n",
 	      cscPtr,
               cscPtr ? cscPtr->frameType : -1,
               cscPtr ? cscPtr->flags : -1,
-              cscPtr ? cscPtr->self : NULL,
-              cscPtr ? objectName(cscPtr->self) : "");
+              cscPtr ? objectName(cscPtr->self) : "",
+              cscPtr ? cscPtr->cmdPtr : NULL,
+              cscPtr ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : ""
+	      );
     } else {
       fprintf(stderr, " no csc");
       if (frameFlags & FRAME_IS_NSF_OBJECT) {
@@ -216,16 +218,16 @@ CallStackGetActiveProcFrame(Tcl_CallFrame *framePtr) {
   for (; framePtr; framePtr = Tcl_CallFrame_callerPtr(framePtr)) {
     register int flag = Tcl_CallFrame_isProcCallFrame(framePtr);
 
-    if (flag & FRAME_IS_NSF_METHOD) {
+    if (flag & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       /* never return an inactive method frame */
       if (!(((NsfCallStackContent *)Tcl_CallFrame_clientData(framePtr))->frameType
             & NSF_CSC_TYPE_INACTIVE)) break;
     } else {
-      //if (flag & (FRAME_IS_NSF_CMETHOD|FRAME_IS_NSF_OBJECT)) continue;
       if (flag & (FRAME_IS_NSF_OBJECT)) continue;
-      if (flag == 0 || flag & FRAME_IS_PROC) break;
+      if (flag == 0 || (flag & FRAME_IS_PROC)) break;
     }
   }
+
   return framePtr;
 }
 
@@ -408,7 +410,7 @@ NsfCallStackFindActiveFrame(Tcl_Interp *interp, int offset, Tcl_CallFrame **fram
 
   /* search for first active frame and set tcl frame pointers */
   for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
-    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & FRAME_IS_NSF_METHOD/*(FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)*/) {
+    if (Tcl_CallFrame_isProcCallFrame(varFramePtr) & /*FRAME_IS_NSF_METHOD*/ (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
       NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
       if (!(cscPtr->frameType & NSF_CSC_TYPE_INACTIVE)) {
         /* we found the highest active frame */
@@ -843,17 +845,6 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
      */
 
     cscPtr->flags |= NSF_CSC_OBJECT_ACTIVATED;
-
-    // TODO
-    /*
-     * Some csc's are never stacked. We flag this case by setting self
-     * to NULL. This cscPtr should never appear on the stack.
-     */
-    if (Tcl_Command_objClientData(cmd) == NULL && !(Tcl_Command_flags(cmd) & NSF_CMD_NONLEAF_METHOD)) {
-      /*fprintf(stderr, "+++ no CscInit needed\n");*/
-      //cscPtr->self = NULL;
-      //return;
-    }
 
     /*
      * track object activations

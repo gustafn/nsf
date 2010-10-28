@@ -14800,12 +14800,19 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       Nsf_PushFrameCsc(interp, cscPtr, framePtr2);
 
       if (paramPtr->flags & NSF_ARG_INITCMD) {
+	/* cscPtr->cmdPtr = NSFindCommand(interp, "::eval"); */
         result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
 
       } else /* must be NSF_ARG_METHOD */ {
         Tcl_Obj *ov[3];
         int oc = 0;
 
+	/*
+	 * Mark the current frame as inactive such that e.g. volatile
+	 * does not use this as a base frame, and methods like
+	 * activelevel ignore it.
+	 */
+	cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
         if (paramPtr->converterArg) {
           /* if arg= was given, pass it as first argument */
           ov[0] = paramPtr->converterArg;
@@ -15250,7 +15257,7 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
     fprintf(stderr, "### Can't make objects volatile during shutdown\n");
     return NsfVarErrMsg(interp, "Can't make objects volatile during shutdown\n", NULL);
   }
-  //NsfShowStack(interp);
+
   CallStackUseActiveFrame(interp, &ctx);
 
   vn = NSTail(fullName);

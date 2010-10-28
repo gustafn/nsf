@@ -363,8 +363,8 @@ namespace eval ::nx::serializer {
 
       # don't filter anything during serialization
       set filterstate [::nsf::configure filter off]
-      set s [:new -childof [::nsf::current object]]
-      $s volatile
+      set s [:new -childof [::nsf::current object] -volatile]
+      #$s volatile
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
 
@@ -405,15 +405,15 @@ namespace eval ::nx::serializer {
     }
 
     :class-object method methodSerialize {object method prefix} {
-      set s [:new -childof [::nsf::current object]]
-      $s volatile
+      set s [:new -childof [::nsf::current object] -volatile]
+      #$s volatile
       concat $object [$s method-serialize $object $method $prefix]
     }
 
     :public class-object method deepSerialize {-ignoreVarsRE -ignore -map args} {
       :resetPattern
-      set s [:new -childof [::nsf::current object]]
-      $s volatile
+      set s [:new -childof [::nsf::current object] -volatile]
+      #$s volatile
       if {[info exists ignoreVarsRE]} {$s ignoreVarsRE $ignoreVarsRE}
       if {[info exists ignore]} {$s ignore $ignore}
       

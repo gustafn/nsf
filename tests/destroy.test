@@ -643,15 +643,38 @@ Test case destroy-during-init {
   
   ? [list info command $x] "" "destroy via volatile"
   
-  # set x [nx::Class new -volatile {
-  #   :public method bar {} {return 1}
-  #   :public method baz {} {return 2}
-  #   :new { :volatile; :bar; :baz }
-  # }]
+  set x [nx::Class new -volatile {
+    :public method bar {} {return 1}
+    :public method baz {} {return 2}
+    :new { :volatile; :bar; :baz }
+  }]
   
-  # ? [list info command $x] "" "destroy via volatile method"
+  ? [list info command $x] $x "destroy via volatile method"
 
+  # create new class and object and cleanup everything + 2 filters
 
+  ::nx::Object public method f1 args {next}
+  ::nx::Object public method f2 args {next}
+  ::nx::Object filter {f1 f2}
+
+  set x [nx::Class new {
+    :volatile
+    :public method bar {} {return 1}
+    :public method baz {} {return 2}
+    :new { :volatile; :bar; :baz }
+  }]
+  
+  ? [list info command $x] "" "destroy via volatile + 2 filters"
+  
+  set x [nx::Class new -volatile {
+    :public method bar {} {return 1}
+    :public method baz {} {return 2}
+    :new { :volatile; :bar; :baz }
+  }]
+  
+  ? [list info command $x] $x "destroy via volatile method + 2 filters"
+
+  ::nx::Object filter ""
 }
 
 #puts stderr "==== EXIT ===="

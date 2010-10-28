@@ -1840,18 +1840,17 @@ _ added option noforwarder to RelationSlots
 - fix bad interaction between filters and cmd name resolvers
 - output object frame to ease interpretation of [info frame]
 
+- fixed scoping issue, when "-volatile" was used for object creation
+- added regression test for interaction between filters and 
+  function resolver (and volatile)
+- reactivated new volatile test in destroy.test
+- undone temporary fixes for volatile in serializer and nx.tcl
+
 TODO: 
 
-- regression test for interaction between filters and function resolver
-  (when volatile issue is solved)
-- reactivate new volatile test in destroy.test
 - NsColonVarResolver can be optimized:
   // last case first
   // why OBJECT? is NSF_CMETHOD used without PROC?
-
-- undo volatile fixes in serializer when volatile is revived.
-  #set s [:new -childof [::nsf::current object]]
-  #$s volatile
 
 - "-returns" 
   * leave syntax as is for method?

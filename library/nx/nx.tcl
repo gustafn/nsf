@@ -1428,11 +1428,7 @@ namespace eval ::nx {
 
   Object public method copy newName {
     if {[string compare [string trimleft $newName :] [string trimleft [::nsf::self] :]]} {
-      CopyHandler new {
-	:copy [:uplevel ::nsf::self] [uplevel set newName]
-	:destroy
-      }
-      #[CopyHandler new -volatile] copy [::nsf::self] $newName
+      [CopyHandler new -volatile] copy [::nsf::self] $newName
     }
   }
 
