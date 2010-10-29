@@ -596,7 +596,8 @@ namespace eval ::nx {
       set properties [string range $value [expr {$colonPos+1}] end]
       set name [string range $value 0 [expr {$colonPos -1}]]
       foreach property [split $properties ,] {
-        if {$property in [list "required" "multivalued" "allowempty" "convert" "nosetter"]} {
+        if {$property in [list "required" "multivalued" "allowempty" \
+			  "convert" "nosetter"]} {
           lappend opts -$property 1
         } elseif {[string match type=* $property]} {
           set type [string range $property 5 end]
@@ -604,6 +605,10 @@ namespace eval ::nx {
         } elseif {[string match arg=* $property]} {
           set argument [string range $property 4 end]
           lappend opts -arg $argument
+        } elseif {$property eq "optional"} {
+	  lappend opts -required 0
+        } elseif {$property eq "method"} {
+	  lappend opts -ismethod 1
         } else {
           set type $property
         }
@@ -703,6 +708,7 @@ namespace eval ::nx {
     {manager "[::nsf::self]"}
     {per-object false}
     {nosetter}
+    {ismethod}
   }
 
   # maybe add the following slots at some later time here
@@ -853,7 +859,11 @@ namespace eval ::nx {
       # provided values, not for defaults.
       if {$type ne "substdefault"} {set methodopts [linsert $methodopts 0 $type]}
     }
-    lappend objopts slot=[::nsf::self]
+    if {[info exists :ismethod]} {
+      set objopts [linsert $objopts 0 method]
+    } else {
+      lappend objopts slot=[::nsf::self]
+    }
 
     if {[llength $objopts] > 0} {
       append objparamdefinition :[join $objopts ,]
@@ -1189,17 +1199,21 @@ namespace eval ::nx {
   ############################################
   Class method attribute {spec {-slotclass ::nx::Attribute} {initblock ""}} {
     set r [$slotclass createFromParameterSyntax [::nsf::self] -initblock $initblock {*}$spec]
-    set o [::nsf::self]
-    ::nsf::methodproperty $o $r call-protected \
-	[::nsf::dispatch $o __default_attribute_call_protection]
-    return $r
+    if {$r ne ""} {
+      set o [::nsf::self]
+      ::nsf::methodproperty $o $r call-protected \
+	  [::nsf::dispatch $o __default_attribute_call_protection]
+      return $r
+    }
   }
 
   Object method attribute {spec {-slotclass ::nx::Attribute} {initblock ""}} {
     set r [$slotclass createFromParameterSyntax [::nsf::self] -per-object -initblock $initblock {*}$spec]
-    set o [::nsf::self]
-    ::nsf::methodproperty $o -per-object $r call-protected \
-	[::nsf::dispatch $o __default_attribute_call_protection]
+    if {$r ne ""} {
+      set o [::nsf::self]
+      ::nsf::methodproperty $o -per-object $r call-protected \
+	  [::nsf::dispatch $o __default_attribute_call_protection]
+    }
     return $r    
   }
 
@@ -1273,18 +1287,19 @@ namespace eval ::nx {
     # reused in XOTcl, no "require" there, so use nsf primitiva
     ::nsf::dispatch $object ::nsf::methods::object::requirenamespace    
     if {$withnew} {
-      set m [ScopedNew new \
-		 -container $object -withclass $class]
+      set m [ScopedNew new -container $object -withclass $class]
       $m volatile
       Class mixin add $m end
       # TODO: the following is not pretty; however, contains might
       # build xotcl and next objects.
       if {[::nsf::is class ::xotcl::Class]} {::xotcl::Class instmixin add $m end}
-      namespace eval $object $cmds
+      ::nsf::dispatch $object -frame method ::apply [list {} $cmds $object]
+      #namespace eval $object $cmds
       Class mixin delete $m
       if {[::nsf::is class ::xotcl::Class]} {::xotcl::Class instmixin delete $m}
     } else {
-      namespace eval $object $cmds
+      ::nsf::dispatch $object -frame method ::apply [list {} $cmds $object]
+      #namespace eval $object $cmds
     }
   }
 

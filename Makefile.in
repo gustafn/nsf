@@ -404,6 +404,7 @@ test-core: $(TCLSH_PROG)
 	$(TCLSH) $(src_test_dir_native)/forward.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/mixinof.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 	$(TCLSH) $(src_test_dir_native)/tcl86.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
+	$(TCLSH) $(src_test_dir_native)/contains.test -libdir $(PLATFORM_DIR) $(TESTFLAGS)
 
 test-xotcl: $(TCLSH_PROG)
 	$(TCLSH) $(xotcl_src_test_dir)/testo.xotcl -libdir $(PLATFORM_DIR) $(TESTFLAGS)

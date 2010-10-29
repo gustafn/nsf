@@ -436,7 +436,7 @@ CallMethod(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj,
 
 int
 NsfCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *methodObj, Tcl_Obj *arg,
-                        int givenobjc, Tcl_Obj *CONST objv[], int flags) {
+		      int givenobjc, Tcl_Obj *CONST objv[], int flags) {
   NsfObject *object = (NsfObject*) clientData;
   int objc = givenobjc + 2;
   int result;
@@ -448,11 +448,14 @@ NsfCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *method
   if (objc>2) {
     tov[2] = arg;
   }
-  if (objc>3)
+  if (objc>3) {
     memcpy(tov+3, objv, sizeof(Tcl_Obj *)*(objc-3));
+  }
 
-  /*fprintf(stderr, "%%%% CallMethodWithArgs cmdname=%s, method=%s, objc=%d\n",
-    ObjStr(tov[0]), ObjStr(tov[1]), objc);*/
+  /*fprintf(stderr, "%%%% CallMethodWithArgs cmdname=%s, method=%s, arg1 %s objc=%d\n",
+	  ObjStr(tov[0]), ObjStr(tov[1]), 
+	  objc>2 ? ObjStr(tov[2]) : "",
+	  objc);*/
   result = ObjectDispatch(clientData, interp, objc, tov, flags);
 
   FREE_ON_STACK(Tcl_Obj*, tov);
@@ -6732,7 +6735,8 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
   Tcl_ObjCmdProc *proc = Tcl_Command_objProc(cmd);
   int result;
 
-  /*fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d\n", methodName, cmd, cp, objc);*/
+  /*fprintf(stderr, "MethodDispatch method '%s' cmd %p cp=%p objc=%d\n", 
+    methodName, cmd, cp, objc);*/
   assert(object->teardown);
 
   if (proc == TclObjInterpProc) {
@@ -14775,7 +14779,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   for (i=1, paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++, i++) {
 
     newValue = pc.full_objv[i];
-    /*fprintf(stderr, "new Value of %s = %p '%s', type %s",
+    /*fprintf(stderr, "new Value of %s = %p '%s', type %s\n",
             ObjStr(paramPtr->nameObj),
             newValue, newValue ? ObjStr(newValue) : "(null)", paramPtr->type); */
 
@@ -14830,16 +14834,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
       if (paramPtr->flags & NSF_ARG_INITCMD) {
 	/* cscPtr->cmdPtr = NSFindCommand(interp, "::eval"); */
-
-	//cscPtr->flags = 0;
-	//CscInit(cscPtr, object, NULL /*cl*/, NULL/*cmd*/, NSF_CSC_TYPE_PLAIN, 0);
-	//Nsf_PushFrameCsc(interp, cscPtr, framePtr2);
-
         result = Tcl_EvalObjEx(interp, newValue, TCL_EVAL_DIRECT);
-
-	//Nsf_PopFrameCsc(interp, framePtr2);
-	//CscListRemove(interp, cscPtr);
-	//CscFinish(interp, cscPtr, "converter object frame");
 
       } else /* must be NSF_ARG_METHOD */ {
         Tcl_Obj *ov[3];
@@ -14864,9 +14859,9 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
                                          ov[0], oc, &ov[1], NSF_CSC_IMMEDIATE);
       }
       /*
-         Pop previously stacked frame for eval context and set the
-         varFramePtr to the previous value.
-      */
+       * Pop previously stacked frame for eval context and set the
+       * varFramePtr to the previous value.
+       */
       Nsf_PopFrameCsc(interp, framePtr2);
       CscListRemove(interp, cscPtr);
       CscFinish(interp, cscPtr, "converter object frame");

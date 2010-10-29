@@ -1855,7 +1855,15 @@ _ added option noforwarder to RelationSlots
   created, the namespace path of the parent object is copied to the
   child as default value.
 
+- added new contains definition based on "apply" instead of 
+  "namespace eval". Main intention is to replace SKIP_LEVELS 
+  by SKIP_LAMBDA 
+- added functionality to use ":attribute contains:method,nosetter"
+- added regression test for contains and attributes of type method
+
 TODO:
+
+- add "nosetter" automatically, when attribute ...:method is used
 
 - "-returns" 
   * leave syntax as is for method?
