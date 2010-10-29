@@ -1850,6 +1850,11 @@ _ added option noforwarder to RelationSlots
 - gentclApi.tcl: added optimizer rule for single argument of type tclobj
 - improved speed of CompiledLocalsLookup slightly
 
+- added an experimental code for setting parent namespace path as
+  default for child-objects. At the time when an object namespace is
+  created, the namespace path of the parent object is copied to the
+  child as default value.
+
 TODO:
 
 - "-returns" 

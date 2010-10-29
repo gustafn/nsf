@@ -24,6 +24,10 @@
 #define Tcl_Namespace_childTablePtr(nsPtr) &((Namespace *)nsPtr)->childTable
 #define Tcl_Namespace_activationCount(nsPtr) ((Namespace *)nsPtr)->activationCount
 #define Tcl_Namespace_deleteProc(nsPtr)  ((Namespace *)nsPtr)->deleteProc
+#define Tcl_Namespace_parentPtr(nsPtr)   ((Namespace *)nsPtr)->parentPtr
+#define Tcl_Namespace_commandPathLength(nsPtr) ((Namespace *)nsPtr)->commandPathLength
+#define Tcl_Namespace_commandPathArray(nsPtr)  ((Namespace *)nsPtr)->commandPathArray
+
 
 #define Tcl_Command_refCount(cmd)      ((Command *)cmd)->refCount
 #define Tcl_Command_cmdEpoch(cmd)      ((Command *)cmd)->cmdEpoch

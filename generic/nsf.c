@@ -2250,8 +2250,9 @@ CompiledColonVarFetch(Tcl_Interp *interp, Tcl_ResolvedVarInfo *vinfoPtr) {
   int new;
 
 #if defined(VAR_RESOLVER_TRACE)
+  int flags = var ? ((Var*)var)->flags : 0;
   fprintf(stderr,"CompiledColonVarFetch var '%s' var %p flags = %.4x dead? %.4x\n",
-          ObjStr(resVarInfo->nameObj), var, flags, flags&VAR_DEAD_HASH);
+	  ObjStr(resVarInfo->nameObj), var, flags, flags&VAR_DEAD_HASH);
 #endif
 
   /*
@@ -2582,6 +2583,8 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *n
   CallFrame *varFramePtr;
   int frameFlags;
 
+  /*fprintf(stderr, "InterpColonCmdResolver %s flags %.6x\n", cmdName, flags);*/
+
   if (!FOR_COLON_RESOLVER(cmdName) || flags & TCL_GLOBAL_ONLY) {
     /* ordinary names and global lookups are not for us */
     return TCL_CONTINUE;
@@ -2633,13 +2636,36 @@ RequireObjNamespace(Tcl_Interp *interp, NsfObject *object) {
   if (!object->nsPtr) {
     MakeObjNamespace(interp, object);
   }
-  /* This puts a per-object namespace resolver into position upon
+  /* 
+   * This puts a per-object namespace resolver into position upon
    * acquiring the namespace. Works for object-scoped commands/procs
    * and object-only ones (set, unset, ...)
    */
   Tcl_SetNamespaceResolvers(object->nsPtr, /*(Tcl_ResolveCmdProc*)NsColonCmdResolver*/ NULL,
                             NsColonVarResolver,
                             /*(Tcl_ResolveCompiledVarProc*)NsCompiledColonVarResolver*/NULL);
+#if 1
+  /* 
+   * In case there is a namespace path set for the parent namespace,
+   * apply this as well to the object namespace to avoid surprises
+   * with "namespace path nx".
+   */
+  { Namespace *parentNsPtr = Tcl_Namespace_parentPtr(object->nsPtr);
+    int i, pathLength = Tcl_Namespace_commandPathLength(parentNsPtr);
+
+    if (pathLength>0) {
+      Namespace **pathArray = (Namespace **)ckalloc(sizeof(Namespace *) * pathLength);
+      NamespacePathEntry *tmpPathArray = Tcl_Namespace_commandPathArray(parentNsPtr);
+      
+      for (i=0; i<pathLength; i++) {
+	pathArray[i] = tmpPathArray[i].nsPtr;
+      }
+      TclSetNsPath((Namespace *)object->nsPtr, pathLength, (Tcl_Namespace **)pathArray);
+      ckfree((char*)pathArray);
+    }
+  }
+#endif
+
   return object->nsPtr;
 }
 
