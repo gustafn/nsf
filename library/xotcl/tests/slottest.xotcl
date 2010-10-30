@@ -46,9 +46,23 @@ C create c1
 ? {c1 set x} 1
 ? {set ::hu} 1
 
+proc ?? {cmd expected {msg ""}} {
+   #puts "??? $cmd"                 
+   set r [uplevel $cmd]
+   if {$msg eq ""} {set msg $cmd}
+   if {$r ne $expected} {
+     puts stderr "ERROR $msg returned '$r' ne '$expected'"
+     error "FAILED $msg returned '$r' ne '$expected'"
+   } else {
+     puts stderr "OK $msg"
+   }
+}
+
 Class D -slots {
   Attribute create x -defaultcmd {set x 2} 
   Attribute create z -defaultcmd {my trace add variable z read T2}
+  ?? self ::D
+  ?? {namespace current} ::D::slot
 } -superclass C
 D create c1
 ? {c1 set x} 2

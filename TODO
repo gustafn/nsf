@@ -1861,6 +1861,13 @@ _ added option noforwarder to RelationSlots
 - added functionality to use ":attribute contains:method,nosetter"
 - added regression test for contains and attributes of type method
 
+- activated SKIP_LAMBDA in nsfCallstack. As a consequence, we
+  disallow resolving self/my ... from tcl-proc frames 
+  (use uplevel if necessary, avoid "namespace eval")
+
+- improving error messages from argument parser
+- test "namespace current" and "self" in "contains" and "slots" regression test
+
 TODO:
 
 - add "nosetter" automatically, when attribute ...:method is used

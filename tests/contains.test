@@ -36,9 +36,11 @@ set y [Tree new -foo hu]
 #
 set x [Tree create 1 -label 1 -contains {
   ? {self} ::1
+  ? {namespace current} ::1
   Tree create 1.1 -label 1.1
   Tree create 1.2 -label 1.2 -contains {
     ? {self} ::1::1.2
+    ? {namespace current} ::1::1.2
     Tree create 1.2.1 -label 1.2.1
     Tree create 1.2.2 -label 1.2.2 -contains {
       Tree create 1.2.2.1 -label 1.2.2.1

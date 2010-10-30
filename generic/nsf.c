@@ -11606,10 +11606,22 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
    * Handle missing or unexpected arguments for methods and cmds 
    */
   if (pcPtr->lastobjc < nrReq) {
-    return ArgumentError(interp, "not enough arguments:", paramPtr, NULL, procNameObj); 
+    return ArgumentError(interp, "not enough arguments:", paramPtr, 
+			 object ? object->cmdName : NULL, 
+			 procNameObj); 
   }
   if (!pcPtr->varArgs && objc-nrDashdash-1 > nrReq + nrOpt) {
-    return ArgumentError(interp, "too many arguments:", paramPtr, NULL, procNameObj); 
+    Tcl_DString ds, *dsPtr = &ds;
+    DSTRING_INIT(dsPtr);
+    Tcl_DStringAppend(dsPtr, "Invalid argument '", -1);
+    Tcl_DStringAppend(dsPtr, ObjStr(objv[pcPtr->lastobjc]), -1);
+    Tcl_DStringAppend(dsPtr, "', maybe too many arguments;", -1);
+    fprintf(stderr, "processing %s\n",ObjStr(objv[pcPtr->lastobjc]));
+    return ArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr, 
+			 object ? object->cmdName : NULL, 
+			 procNameObj); 
+    DSTRING_FREE(dsPtr);
+    return TCL_ERROR;
   }
 
   return ArgumentDefaults(pcPtr, interp, paramPtr, nrParams);
