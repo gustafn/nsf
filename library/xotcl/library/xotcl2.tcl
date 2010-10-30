@@ -609,7 +609,7 @@ namespace eval ::xotcl {
 		  [::nsf::dispatch [self] ::nsf::methods::object::info::hastype $class]}]
   }
 
-  # definitin of "contains", based on nx
+  # definition of "contains", based on nx
 
   ::nsf::alias Object contains ::nsf::classes::nx::Object::contains
   ::xotcl::Class instforward slots %self contains \
@@ -876,7 +876,10 @@ namespace eval ::xotcl {
         package provide [::xotcl::self] [set :version]
       }
       namespace eval [::xotcl::self] {namespace import ::xotcl::*}
-      namespace eval [::xotcl::self] $script
+      #namespace eval [::xotcl::self] $script
+      ::nsf::dispatch [::xotcl::self] -frame method ::apply [list {} $script [::xotcl::self]]
+      ::apply [list {} $script [::xotcl::self]]
+
       foreach e [set :export] {
         set nq [namespace qualifiers $e]
         if {$nq ne ""} {

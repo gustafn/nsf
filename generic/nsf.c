@@ -13065,6 +13065,7 @@ NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame,
 			    "cannot use -frame object|method in dispatch for command '",
 			    methodName, "'", (char *) NULL);
       }
+
       if (withFrame == FrameObjectIdx) {
 	Nsf_PushFrameObj(interp, object, framePtr);
 	flags = NSF_CSC_IMMEDIATE;

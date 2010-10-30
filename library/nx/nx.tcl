@@ -1293,13 +1293,15 @@ namespace eval ::nx {
       # TODO: the following is not pretty; however, contains might
       # build xotcl and next objects.
       if {[::nsf::is class ::xotcl::Class]} {::xotcl::Class instmixin add $m end}
-      ::nsf::dispatch [self] -frame method ::apply [list {} $cmds $object]
       #namespace eval $object $cmds
+      #::nsf::dispatch [self] -frame method ::apply [list {} $cmds $object]
+      ::apply [list {} $cmds $object]
       Class mixin delete $m
       if {[::nsf::is class ::xotcl::Class]} {::xotcl::Class instmixin delete $m}
     } else {
-      ::nsf::dispatch [self] -frame method ::apply [list {} $cmds $object]
       #namespace eval $object $cmds
+      #::nsf::dispatch [self] -frame method ::apply [list {} $cmds $object]
+      ::apply [list {} $cmds $object]
     }
   }
 

@@ -272,7 +272,7 @@ CallStackNextFrameOfType(Tcl_CallFrame *framePtr, int flags) {
  */
 
 #define SKIP_LEVELS 1
-//#define SKIP_LAMBDA 1
+#define SKIP_LAMBDA 1
 
 #if defined(SKIP_LAMBDA)
 # if !defined(SKIP_LEVELS)
