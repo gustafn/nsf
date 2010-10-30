@@ -877,7 +877,7 @@ namespace eval ::xotcl {
       }
       namespace eval [::xotcl::self] {namespace import ::xotcl::*}
       #namespace eval [::xotcl::self] $script
-      ::nsf::dispatch [::xotcl::self] -frame method ::apply [list {} $script [::xotcl::self]]
+      #::nsf::dispatch [::xotcl::self] -frame method ::apply [list {} $script [::xotcl::self]]
       ::apply [list {} $script [::xotcl::self]]
 
       foreach e [set :export] {
