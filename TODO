@@ -1868,9 +1868,10 @@ _ added option noforwarder to RelationSlots
 - improving error messages from argument parser
 - test "namespace current" and "self" in "contains" and "slots" regression test
 
+- added "nosetter" automatically, when attribute "<name>:method" is used
+
 TODO:
 
-- add "nosetter" automatically, when attribute ...:method is used
 
 - "-returns" 
   * leave syntax as is for method?

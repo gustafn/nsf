@@ -608,7 +608,7 @@ namespace eval ::nx {
         } elseif {$property eq "optional"} {
 	  lappend opts -required 0
         } elseif {$property eq "method"} {
-	  lappend opts -ismethod 1
+	  lappend opts -ismethod 1 -nosetter 1
         } else {
           set type $property
         }
