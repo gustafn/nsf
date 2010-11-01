@@ -11373,6 +11373,11 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
         Tcl_Obj *newValue = pPtr->defaultValue;
         ClientData checkedData;
 	
+	/*
+	 * Mark that this argument gets the default value
+	 */
+	pcPtr->flags[i] |= NSF_PC_IS_DEFAULT;
+
         /* we have a default, do we have to subst it? */
         if (pPtr->flags & NSF_ARG_SUBST_DEFAULT) {
           int result = SubstValue(interp, pcPtr->object, &newValue);
@@ -14791,6 +14796,17 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
   for (i=1, paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++, i++) {
 
+    /* 
+     * Set the new value always when the object is not yet initialized
+     * and the new value was specified (was not taken from the default
+     * value definition).  The second part of the test is needed to
+     * avoid overwriting with default values when e.g. "o configure"
+     * is called lated without arguments.
+     */
+    if ((object->flags & NSF_INIT_CALLED) && (pc.flags[i-1] & NSF_PC_IS_DEFAULT)) {
+      continue;
+    }
+
     newValue = pc.full_objv[i];
     /*fprintf(stderr, "new Value of %s = %p '%s', type %s\n",
             ObjStr(paramPtr->nameObj),
@@ -14897,12 +14913,15 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       continue;
     }
 
-    /* set the variables unless the last argument of the definition is varArgs */
+    /* 
+     * Set the instance variable unless the last argument of the
+     * definition is varArgs.
+     */
     if (i < paramDefs->nrParams || !pc.varArgs) {
-      /* standard setter */
 #if defined(CONFIGURE_ARGS_TRACE)
       fprintf(stderr, "*** %s SET %s '%s'\n", objectName(object), ObjStr(paramPtr->nameObj), ObjStr(newValue));
 #endif
+      /* Actually set instance variable */
       Tcl_ObjSetVar2(interp, paramPtr->nameObj, NULL, newValue, TCL_LEAVE_ERR_MSG|TCL_PARSE_PART1);
     }
   }

@@ -1315,3 +1315,24 @@ Test case check-arguments {
   ? {nx::Class info method parametersyntax "info mixinof"} \
       "?-closure? ?-scope all|class|object? ?pattern?"
 }
+
+#
+# Check whether resetting via method "configure" changes values in the
+# initialzed object state.
+#
+Test case dont-reset-to-defaults {
+  Class create C {
+    :attribute {a 1}
+    :create c1
+  }
+  ? {c1 a} 1
+
+  # change the value from the default to a different value
+  ? {c1 a 2} 2
+  ? {c1 a} 2
+  # call configure ...
+  c1 configure
+  # ... and check, it did not reset the value to the default
+  ? {c1 a} 2
+}
+? {::nsf::isobject ::o} 0 

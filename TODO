@@ -1867,8 +1867,10 @@ _ added option noforwarder to RelationSlots
 
 - improving error messages from argument parser
 - test "namespace current" and "self" in "contains" and "slots" regression test
-
 - added "nosetter" automatically, when attribute "<name>:method" is used
+
+- fix a bug, where "o configure" (without arguments) resetted
+  initialied values to the defaults.
 
 TODO:
 
