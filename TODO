@@ -1871,9 +1871,10 @@ _ added option noforwarder to RelationSlots
 
 - fix a bug, where "o configure" (without arguments) resetted
   initialied values to the defaults.
+- show "unwind unstacked entry" message appear only when debug level>0
+- removed fixed TODO entries
 
 TODO:
-
 
 - "-returns" 
   * leave syntax as is for method?
@@ -1885,22 +1886,6 @@ TODO:
   So, the situation is different to nsd::alias and ::nsf::dispatch.
   not sure, if we should rename "-objscope" to something different,
   such as e.g. "-objectframe".
-
-- when compiled on my home machine for tcl 8.5.9 + aolserver, 
-  i see the behavior that "info exists :type" does not appear to work,
-  leading to messages like the following
-*** VERY STRANGE: info exists :type says 1, ::nsf::existsvar ::xowiki::MenuItem::slot::CSSclass type says 0
-  these do not appear under with naviserver.
-  maybe the installation is goofed up, but maybe something serious.
-
-- some error cases can lead to an invalid activation count
-  method-modifiers/attribute-method.002:  incorrect result for 'set _ {}'
-        expected: '::C::A', got ''
-        in test file ./tests/method-modifiers.tcl
-  ... => 
-  FinalObjectDeletion obj 0x100915610 activationcount 2
-  Assertion failed: (object->activationCount == 0), function FinalObjectDeletion, 
-  	    file ./generic/nsf.c, line 15788.
 
 - extend coro regression test
 

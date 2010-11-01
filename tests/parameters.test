@@ -1335,4 +1335,3 @@ Test case dont-reset-to-defaults {
   # ... and check, it did not reset the value to the default
   ? {c1 a} 2
 }
-? {::nsf::isobject ::o} 0 

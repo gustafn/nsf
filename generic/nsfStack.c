@@ -770,7 +770,7 @@ static void CallStackPopAll(Tcl_Interp *interp) {
       CscFinish(interp, cscPtr, "unwind");
     }
     
-    if (count>0) {
+    if (count>0 && RUNTIME_STATE(interp)->debugLevel > 0) {
       fprintf(stderr, "+++ unwind removed %d unstacked csc entries\n", count);
     }
   }
