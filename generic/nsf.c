@@ -98,6 +98,7 @@ typedef struct TclCmdClientData {
 
 typedef struct SetterCmdClientData {
   NsfObject *object;
+  Tcl_Obj *varNameObj;
   NsfParam *paramsPtr;
 } SetterCmdClientData;
 
@@ -10544,7 +10545,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 			   &flags, &checkedData, &outObjPtr);
 
     if (result == TCL_OK) {
-      result = SetInstVar(interp, object, objv[0], outObjPtr);
+      result = SetInstVar(interp, object, cd->varNameObj, outObjPtr);
 
       if (flags & NSF_PC_MUST_DECR) {
         DECR_REF_COUNT(outObjPtr);
@@ -10553,7 +10554,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
     return result;
 
   } else {
-    return SetInstVar(interp, object, objv[0], objc == 2 ? objv[1] : NULL);
+    return SetInstVar(interp, object, cd->varNameObj, objc == 2 ? objv[1] : NULL);
   }
 }
 
@@ -11026,6 +11027,10 @@ NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 static void
 SetterCmdDeleteProc(ClientData clientData) {
   SetterCmdClientData *setterClientData = (SetterCmdClientData *)clientData;
+
+  if (setterClientData->varNameObj) {  
+      DECR_REF_COUNT(setterClientData->varNameObj);
+  }
 
   if (setterClientData->paramsPtr) {
     ParamsFree(setterClientData->paramsPtr);
@@ -14396,6 +14401,8 @@ NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj 
 
   setterClientData = NEW(SetterCmdClientData);
   setterClientData->paramsPtr = NULL;
+  setterClientData->varNameObj = NULL;
+
   length = strlen(methodName);
 
   for (j=0; j<length; j++) {
@@ -14416,9 +14423,13 @@ NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj 
       return result;
     }
     methodName = setterClientData->paramsPtr->name;
+    setterClientData->varNameObj = Tcl_NewStringObj(methodName,-1);
   } else {
     setterClientData->paramsPtr = NULL;
+    setterClientData->varNameObj = parameter;
   }
+
+  INCR_REF_COUNT(setterClientData->varNameObj);
 
   if (cl) {
     result = NsfAddClassMethod(interp, (Nsf_Class *)cl, methodName,

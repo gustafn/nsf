@@ -1335,3 +1335,45 @@ Test case dont-reset-to-defaults {
   # ... and check, it did not reset the value to the default
   ? {c1 a} 2
 }
+
+Test case setter-under-coloncmd-and-interpvarresolver {
+  # There are (at least) three forms of object-namespace alignment in
+  # NSF:
+  # 1. Same-named namespace (::omon) predates a same-named object
+  # (::omon), the namespace is registered as per-object namespace with
+  # the object upon object construction -> no NsColonVarResolver(),
+  # InterpColonVarResolver() is responsible!
+  # 2. an explicit per-object namespace creation using [:require
+  # namespace] -> NsColonVarResolver() is put in place!
+  # 3. Object get per-object members (fields, methods) ->
+  # NsColonVarResolver() is put in place!
+  #
+  # The following test covers scenario 1: Called from within
+  # NsfSetterMethod(), SetInstVar() verifies, whether there is a
+  # per-object namespace (objPtr->nsPtr); if so, TCL_NAMESPACE_ONLY is
+  # set ... in this object/ns alignment scenario,
+  # InterpColonVarResolver() (!) serves the var resolution request. It
+  # effectively forward-passes the resolution request when sensing
+  # TCL_NAMESPACE_ONLY by signalling TCL_CONTINUE. This is a consequence
+  # of handling the "compiled [variable] vs. AVOID_RESOLVERS" case
+  # InterpColonVarResolver(). As in colon-prefixed calls to the setter
+  # method (via ColonCmd()), the colon prefix is present in the
+  # name-carrying Tcl_Obj used to in SetInstVar(). As we set an object
+  # frame context, we effectively end up with a colon-prefixed object
+  # variable :(
+  
+  Class create Omon
+  ::nsf::setter Omon a1
+  
+  namespace eval omon {}
+  Omon create omon
+  omon a1 ""
+  ? {omon info vars a1} "a1"
+  ? {omon info vars :a1} ""
+  omon eval {
+    :a1 ""
+    ? [list [current] info vars a1] "a1"
+    # Prior to the fix, [:info vars] would have returned ":a1"
+    ? [list [current] info vars :a1] "" 
+  }
+}
