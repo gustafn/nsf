@@ -1041,6 +1041,7 @@ Test case setters {
   Object create o
   Class create C
   
+  ? {::nsf::setter ::o :a} {invalid setter name ":a" (must not start with a dash or colon)}
   ? {::nsf::setter o a} "::o::a"
   ? {::nsf::setter C c} "::nsf::classes::C::c"
   ? {o info method definition a} "::o public setter a"
@@ -1070,7 +1071,7 @@ Test case setters {
   ? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter ints}
   ? {o o o} o
   ? {::nsf::setter o {d default}} {parameter "d" is not allowed to have default "default"}
-  ? {::nsf::setter o -x} {method name "-x" must not start with a dash}
+  ? {::nsf::setter o -x} {invalid setter name "-x" (must not start with a dash or colon)}
 }
 
 

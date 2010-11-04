@@ -14432,9 +14432,9 @@ NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj 
   size_t j, length;
   int result;
 
-  if (*methodName == '-') {
+  if (*methodName == '-' || *methodName == ':') {
     return NsfVarErrMsg(interp,
-                          "method name \"", methodName, "\" must not start with a dash",
+                          "invalid setter name \"", methodName, "\" (must not start with a dash or colon)",
                           (char *) NULL);
 
   }

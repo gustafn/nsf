@@ -1874,8 +1874,9 @@ _ added option noforwarder to RelationSlots
 - show "unwind unstacked entry" message appear only when debug level>0
 - removed fixed TODO entries
 
-- New function NsfNamespaceInit() to 
-  initialize pre-existing namespaces in PrimitiveOInit() 
+- New function NsfNamespaceInit() to initialize pre-existing
+  namespaces in PrimitiveOInit() and in RequireObjNamespace()
+- provide error message, when provided setter name starts with a colon
 
 TODO:
 
