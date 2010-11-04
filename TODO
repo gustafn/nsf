@@ -1874,7 +1874,17 @@ _ added option noforwarder to RelationSlots
 - show "unwind unstacked entry" message appear only when debug level>0
 - removed fixed TODO entries
 
+- New function NsfNamespaceInit() to 
+  initialize pre-existing namespaces in PrimitiveOInit() 
+
 TODO:
+
+- Since we have to do a TclGetNamespaceForQualName in PrimitiveOInit()
+  and since the resulting nsPtr has a parentPtr, we should be able to
+  omit/simplify NSCheckForParent();
+- For preexisting namespaces, we do not set the deleteProc. 
+  Is this desired? Should nsPtr->deleteProc be moved to 
+  NsfNamespaceInit()?
 
 - "-returns" 
   * leave syntax as is for method?

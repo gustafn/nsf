@@ -98,7 +98,6 @@ typedef struct TclCmdClientData {
 
 typedef struct SetterCmdClientData {
   NsfObject *object;
-  Tcl_Obj *varNameObj;
   NsfParam *paramsPtr;
 } SetterCmdClientData;
 
@@ -2634,18 +2633,32 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *n
  *
  *********************************************************/
 
-static Tcl_Namespace *
-RequireObjNamespace(Tcl_Interp *interp, NsfObject *object) {
+/*
+ *----------------------------------------------------------------------
+ * NsfNamespaceInit --
+ *
+ *    Initialize a provided namespace by setting its resolvers and
+ *    namespace path
+ *
+ * Results:
+ *    none
+ *
+ * Side effects:
+ *    change ns behavior
+ *
+ *----------------------------------------------------------------------
+ */
 
-  if (!object->nsPtr) {
-    MakeObjNamespace(interp, object);
-  }
+static void
+NsfNamespaceInit(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
+
+  assert(nsPtr);
   /* 
    * This puts a per-object namespace resolver into position upon
    * acquiring the namespace. Works for object-scoped commands/procs
    * and object-only ones (set, unset, ...)
    */
-  Tcl_SetNamespaceResolvers(object->nsPtr, /*(Tcl_ResolveCmdProc*)NsColonCmdResolver*/ NULL,
+  Tcl_SetNamespaceResolvers(nsPtr, /*(Tcl_ResolveCmdProc*)NsColonCmdResolver*/ NULL,
                             NsColonVarResolver,
                             /*(Tcl_ResolveCompiledVarProc*)NsCompiledColonVarResolver*/NULL);
 #if 1
@@ -2654,7 +2667,7 @@ RequireObjNamespace(Tcl_Interp *interp, NsfObject *object) {
    * apply this as well to the object namespace to avoid surprises
    * with "namespace path nx".
    */
-  { Namespace *parentNsPtr = Tcl_Namespace_parentPtr(object->nsPtr);
+  { Namespace *parentNsPtr = Tcl_Namespace_parentPtr(nsPtr);
     int i, pathLength = Tcl_Namespace_commandPathLength(parentNsPtr);
 
     if (pathLength>0) {
@@ -2664,11 +2677,38 @@ RequireObjNamespace(Tcl_Interp *interp, NsfObject *object) {
       for (i=0; i<pathLength; i++) {
 	pathArray[i] = tmpPathArray[i].nsPtr;
       }
-      TclSetNsPath((Namespace *)object->nsPtr, pathLength, (Tcl_Namespace **)pathArray);
+      TclSetNsPath((Namespace *)nsPtr, pathLength, (Tcl_Namespace **)pathArray);
       ckfree((char*)pathArray);
     }
   }
 #endif
+}
+
+/*
+ *----------------------------------------------------------------------
+ * RequireObjNamespace --
+ *
+ *    Obtain for an object a namespace if necessary and initialize it.
+ *    In this function, variables existing outside of the namespace
+ *    get copied over to thew fresh namespace.
+ *
+ * Results:
+ *    Tcl_Namespace
+ *
+ * Side effects:
+ *    Allocate pot. a namespace
+ *
+ *----------------------------------------------------------------------
+ */
+
+static Tcl_Namespace *
+RequireObjNamespace(Tcl_Interp *interp, NsfObject *object) {
+
+  if (!object->nsPtr) {
+    MakeObjNamespace(interp, object);
+    NsfNamespaceInit(interp, object->nsPtr);
+  }
+  assert(object->nsPtr);
 
   return object->nsPtr;
 }
@@ -9578,14 +9618,18 @@ PrimitiveOInit(void *mem, Tcl_Interp *interp, CONST char *name, NsfClass *cl) {
   TclGetNamespaceForQualName(interp, name, NULL, TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS, 
 			     (Namespace **)&nsPtr,
 			     &dummy1Ptr, &dummy2Ptr, &dummy);
+
   }
 
-  //nsPtr = Tcl_FindNamespace(interp, name, (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY);
-  /*fprintf(stderr, "PrimitiveOInit %p %s, ns %p\n", object, name, nsPtr); */
-
+  if (nsPtr) {
+    NsfNamespaceInit(interp, nsPtr);
+  }
+  
+  /* fprintf(stderr, "PrimitiveOInit %p %s, ns %p\n", object, name, nsPtr); */
   CleanupInitObject(interp, object, cl, nsPtr, 0);
 
-  /*obj->flags = NSF_MIXIN_ORDER_VALID | NSF_FILTER_ORDER_VALID;*/
+  // TODO: would be nice, if we could init object flags */
+  /* object->flags = NSF_MIXIN_ORDER_VALID | NSF_FILTER_ORDER_VALID;*/
   object->mixinStack = NULL;
   object->filterStack = NULL;
 }
@@ -10545,7 +10589,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 			   &flags, &checkedData, &outObjPtr);
 
     if (result == TCL_OK) {
-      result = SetInstVar(interp, object, cd->varNameObj, outObjPtr);
+      result = SetInstVar(interp, object, objv[0], outObjPtr);
 
       if (flags & NSF_PC_MUST_DECR) {
         DECR_REF_COUNT(outObjPtr);
@@ -10554,7 +10598,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
     return result;
 
   } else {
-    return SetInstVar(interp, object, cd->varNameObj, objc == 2 ? objv[1] : NULL);
+    return SetInstVar(interp, object, objv[0], objc == 2 ? objv[1] : NULL);
   }
 }
 
@@ -11027,10 +11071,6 @@ NsfObjscopedMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 static void
 SetterCmdDeleteProc(ClientData clientData) {
   SetterCmdClientData *setterClientData = (SetterCmdClientData *)clientData;
-
-  if (setterClientData->varNameObj) {  
-      DECR_REF_COUNT(setterClientData->varNameObj);
-  }
 
   if (setterClientData->paramsPtr) {
     ParamsFree(setterClientData->paramsPtr);
@@ -14401,8 +14441,6 @@ NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj 
 
   setterClientData = NEW(SetterCmdClientData);
   setterClientData->paramsPtr = NULL;
-  setterClientData->varNameObj = NULL;
-
   length = strlen(methodName);
 
   for (j=0; j<length; j++) {
@@ -14423,13 +14461,9 @@ NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj 
       return result;
     }
     methodName = setterClientData->paramsPtr->name;
-    setterClientData->varNameObj = Tcl_NewStringObj(methodName,-1);
   } else {
     setterClientData->paramsPtr = NULL;
-    setterClientData->varNameObj = parameter;
   }
-
-  INCR_REF_COUNT(setterClientData->varNameObj);
 
   if (cl) {
     result = NsfAddClassMethod(interp, (Nsf_Class *)cl, methodName,
