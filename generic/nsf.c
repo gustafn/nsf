@@ -3042,7 +3042,16 @@ NSRequireParentObject(Tcl_Interp *interp, CONST char *parentName, NsfClass *cl) 
  *    Check if a namespace with the given name exists. If not, make
  *    sure that a potential parent object has already required a
  *    namespace. If there is no parent namespace yet, try to create a
- *    parent object via __unknown.
+ *    parent object via __unknown. 
+
+ *    If the provided parentNsPtr is not NULL, we know, that (a) the
+ *    provided name was relative and simple (contains no ":"
+ *    characters) and that (b) this namepace was used to build a fully
+ *    qualified name. In theses cases, the parentNsPtr points already
+ *    to the parentName, containing potentially a parent Object. In
+ *    all other cases, the parent name is either obtained from the
+ *    full namespace, or from string operations working on the
+ *    provided name.
  *
  * Results:
  *    Tcl_Namespace for the provided name
@@ -3064,8 +3073,8 @@ NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *pare
   /* 
    * Check, if there is a already a namespace for the full name. The
    * namespace will be seldomly here, but we have to make this check
-   * in every case. If there is a full namespace, we could save the
-   * string operations below to determine the parent name.
+   * in every case. If there is a full namespace, we can use it to
+   * determine the parent name.
    */
   TclGetNamespaceForQualName(interp, nameString, NULL, 
 			     TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS, 
@@ -3079,9 +3088,9 @@ NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *pare
 	  dummy, dummy ? dummy : "");*/
 
   /*
-   * If there is a parentNs provided, or we have a ns, we assume we
-   * can determine from the parentNs the parentName without the need
-   * to do string operations.
+   * If there is a parentNs provided (or obtained from the full
+   * namespace), we can determine the parent name from it. Otherwise,
+   * whe have to to perform the string operations.
    */
 
   if (parentNsPtr == NULL && nsPtr) {
@@ -3111,7 +3120,6 @@ NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *pare
     }
   }
 
-  //fprintf(stderr, "parentNameLength = %d\n", parentNameLength);
   if (parentName) {
     NsfObject *parentObj;
     parentObj = (NsfObject*) GetObjectFromString(interp, parentName);
@@ -3122,17 +3130,19 @@ NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *pare
     } else if (nsPtr == NULL && parentNsPtr == NULL) {
       TclGetNamespaceForQualName(interp, parentName, NULL,
 				 TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS, 
-				 (Namespace **)&parentNsPtr,
-				 (Namespace **)&dummy1Ptr, (Namespace **)&dummy2Ptr, &dummy);
+				 (Namespace **)&parentNsPtr, (Namespace **)&dummy1Ptr, 
+				 (Namespace **)&dummy2Ptr, &dummy);
       if (parentNsPtr == NULL) {
 	/*fprintf(stderr, "===== calling NSRequireParentObject %s %p\n", parentName, cl);*/
 	NSRequireParentObject(interp, parentName, cl);
       }
     }
+
     if (parentNameLength) {
       DSTRING_FREE(dsPtr);
     }
   }
+
   return nsPtr;
 }
 
@@ -7338,7 +7348,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       
       if (!cscPtr1 ||
 	  (object != cscPtr1->self || (cscPtr1->frameType != NSF_CSC_TYPE_ACTIVE_FILTER))) {
-	// TODO could use methodObj sometimes, new objnot needed always
+	// TODO could use methodObj sometimes, therefore the new obj is not needed always
 	// use MethodNameString() for the few occurances, where ->calledProc is referenced.
 	//FilterStackPush(interp, object, Tcl_NewStringObj(methodName,-1));
 	FilterStackPush(interp, object, methodObj);
@@ -15595,49 +15605,43 @@ NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *object, CONST char *varname) {
 static int
 NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr) {
   CONST char *nameString = ObjStr(nameObj);
-  int result;
+  NsfObject *newObj;
 
   /*
    * create a new object from scratch
    */
   assert(isAbsolutePath(nameString));
 
-  //TODO the following should be as well in create
+  /* TODO the following should be pushed to the outer methods (method create and alloc) 
+     instead of being checked here in the internal function
+  */
+
   /*fprintf(stderr, " **** class '%s' wants to alloc '%s'\n", className(cl), nameString);*/
   if (!NSCheckColons(nameString, 0)) {
     return NsfVarErrMsg(interp, "Cannot allocate object -- illegal name '",
                           nameString, "'", (char *) NULL);
   }
 
-  if (IsMetaClass(interp, cl, 1)) {
+  if (IsMetaClass(interp, cl, 1) == 0) {
     /*
-     * if the base class is a meta-class, we create a class
+     * If the base class is an ordinary class, we create an object.
      */
-    NsfClass *newcl = PrimitiveCCreate(interp, nameObj, parentNsPtr, cl);
-    if (newcl == NULL) {
-      result = NsfVarErrMsg(interp, "Class alloc failed for '", nameString,
-                              "' (possibly parent namespace does not exist)",
-                              (char *) NULL);
-    } else {
-      Tcl_SetObjResult(interp, nameObj);
-      result = TCL_OK;
-    }
+    newObj = PrimitiveOCreate(interp, nameObj, parentNsPtr, cl);
   } else {
     /*
-     * if the base class is an ordinary class, we create an object
+     * If the base class is a meta-class, we create a class.
      */
-    NsfObject *newObj = PrimitiveOCreate(interp, nameObj, parentNsPtr, cl);
-    if (newObj == 0)
-      result = NsfVarErrMsg(interp, "Object alloc failed for '", nameString,
-                              "' (possibly parent namespace does not exist)",
-                              (char *) NULL);
-    else {
-      Tcl_SetObjResult(interp, nameObj);
-      result = TCL_OK;
-    }
+    newObj = (NsfObject *)PrimitiveCCreate(interp, nameObj, parentNsPtr, cl);
   }
 
-  return result;
+  if (newObj == NULL) {
+    return NsfVarErrMsg(interp, "alloc failed to create '", nameString,
+			"' (possibly parent namespace does not exist)",
+			(char *) NULL);
+  }
+  
+  Tcl_SetObjResult(interp, nameObj);
+  return TCL_OK;
 }
 
 /*
