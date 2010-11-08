@@ -222,7 +222,7 @@ static Tcl_Obj *NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Nam
 static Tcl_Namespace *CallingNameSpace(Tcl_Interp *interp);
 NSF_INLINE static Tcl_Command NSFindCommand(Tcl_Interp *interp, CONST char *name);
 static Tcl_Namespace *NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData,
-					  CONST char *name, int create);
+					  CONST char *name);
 
 /* prototypes for filters and mixins */
 static void FilterComputeDefined(Tcl_Interp *interp, NsfObject *object);
@@ -741,26 +741,42 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * NameInNamespaceObj --
+ *
+ *    Create a fully qualified name in the provided namespace or in
+ *    the current namespace in form of an Tcl_Obj (with 0 refcount);
+ *
+ * Results:
+ *    Tcl_Obj containing fully qualified name
+ *
+ * Side effects:
+ *    Allocates fresh copies of list elements
+ *
+ *----------------------------------------------------------------------
+ */
 static Tcl_Obj *
 NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr) {
   Tcl_Obj *objPtr;
-  int len;
-  CONST char *objString;
+  Tcl_DString ds, *dsPtr = &ds;
 
   /*fprintf(stderr, "NameInNamespaceObj %s (%p, %s) ", name, nsPtr, nsPtr ? nsPtr->fullName:NULL);*/
-  if (!nsPtr)
+  if (!nsPtr) {
     nsPtr = Tcl_GetCurrentNamespace(interp);
-  /* fprintf(stderr, " (resolved %p, %s) ", nsPtr, nsPtr ? nsPtr->fullName:NULL);*/
-  objPtr = Tcl_NewStringObj(nsPtr->fullName, -1);
-  len = Tcl_GetCharLength(objPtr);
-  objString = ObjStr(objPtr);
-  if (len == 2 && objString[0] == ':' && objString[1] == ':') {
-  } else {
-    Tcl_AppendLimitedToObj(objPtr, "::", 2, INT_MAX, NULL);
   }
-  Tcl_AppendLimitedToObj(objPtr, name, -1, INT_MAX, NULL);
+  /* fprintf(stderr, " (resolved %p, %s) ", nsPtr, nsPtr ? nsPtr->fullName:NULL);*/
+  DSTRING_INIT(dsPtr);
+  Tcl_DStringAppend(dsPtr, nsPtr->fullName, -1);
+  
+  if (Tcl_DStringLength(dsPtr) > 2) {
+    Tcl_DStringAppend(dsPtr, "::", 2);
+  }
+  Tcl_DStringAppend(dsPtr, name, -1);
+  objPtr = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
 
   /*fprintf(stderr, "returns %s\n", ObjStr(objPtr));*/
+  DSTRING_FREE(dsPtr);
   return objPtr;
 }
 
@@ -1953,7 +1969,7 @@ MakeObjNamespace(Tcl_Interp *interp, NsfObject *object) {
   if (!object->nsPtr) {
     Tcl_Namespace *nsPtr;
     object->nsPtr = NSGetFreshNamespace(interp, (ClientData)object,
-                                        objectName(object), 1);
+                                        objectName(object));
     if (!object->nsPtr)
       Tcl_Panic("MakeObjNamespace: Unable to make namespace", NULL);
     nsPtr = object->nsPtr;
@@ -2880,11 +2896,13 @@ Nsf_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
     f = Tcl_CallFrame_callerPtr(f);
   }
 
-  /* todo remove debug line */
+#if !defined(NDEBUG)
   if (Tcl_Namespace_activationCount(nsPtr) != activationCount) {
     fprintf(stderr, "WE HAVE TO FIX ACTIVATIONCOUNT\n");
     Tcl_Namespace_activationCount(nsPtr) = activationCount;
   }
+#endif
+  assert(Tcl_Namespace_activationCount(nsPtr) == activationCount);
 
   /*fprintf(stderr, "to %d. \n", ((Namespace *)nsPtr)->activationCount);*/
 
@@ -2895,33 +2913,20 @@ Nsf_DeleteNamespace(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   }
 }
 
-static Tcl_Namespace*
-NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name, int create) {
-  Tcl_Namespace *nsPtr;
-  Namespace *dummy1Ptr, *dummy2Ptr;
-  const char *dummy;
-
-  TclGetNamespaceForQualName(interp, name, NULL, TCL_FIND_ONLY_NS, 
-			     (Namespace **)&nsPtr,
-			     &dummy1Ptr, &dummy2Ptr, &dummy);
-  if (nsPtr) {
-    if (nsPtr->deleteProc || nsPtr->clientData) {
-      Tcl_Panic("Namespace '%s' exists already with delProc %p and clientData %p; Can only convert a plain Tcl namespace into an nsf namespace, my delete Proc %p",
-		name, nsPtr->deleteProc, nsPtr->clientData, NSNamespaceDeleteProc);
-    }
-    nsPtr->clientData = clientData;
-    nsPtr->deleteProc = (Tcl_NamespaceDeleteProc *)NSNamespaceDeleteProc;
-  } else if (create) {
-    nsPtr = Tcl_CreateNamespace(interp, name, clientData,
-                             (Tcl_NamespaceDeleteProc *)NSNamespaceDeleteProc);
-  }
-  MEM_COUNT_ALLOC("TclNamespace", nsPtr);
-  return nsPtr;
-}
-
-
 /*
- * check colons for illegal object/class names
+ *----------------------------------------------------------------------
+ * NSCheckColons --
+ *
+ *    Check the provided colons in an object name. If the name is
+ *    valid, the function returns 1, otherwise 0.
+ *
+ * Results:
+ *    returns 1 on success
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
  */
 NSF_INLINE static int
 NSCheckColons(CONST char *name, size_t l) {
@@ -2938,68 +2943,199 @@ NSCheckColons(CONST char *name, size_t l) {
 }
 
 /*
- * check for parent namespace existance (used before commands are created)
+ *----------------------------------------------------------------------
+ * NSGetFreshNamespace --
+ *
+ *    Create an object namespace, provide a deleteProc (avoid
+ *    interference between object and namespace deletion order) and
+ *    keep the object as client data.
+ *
+ * Results:
+ *    Tcl_Namespace
+ *
+ * Side effects:
+ *    might allocate a namespace
+ *
+ *----------------------------------------------------------------------
  */
-NSF_INLINE static int
-NSCheckForParent(Tcl_Interp *interp, CONST char *name, size_t l, NsfClass *cl) {
-  register CONST char *n = name+l;
-  int rc = 1;
+static Tcl_Namespace*
+NSGetFreshNamespace(Tcl_Interp *interp, ClientData clientData, CONST char *name) {
+  Tcl_Namespace *nsPtr;
+  Namespace *dummy1Ptr, *dummy2Ptr;
+  const char *dummy;
 
-  /*search for last '::'*/
-  while ((*n != ':' || *(n-1) != ':') && n-1 > name) {n--; }
-  if (*n == ':' && n > name && *(n-1) == ':') {n--;}
+  TclGetNamespaceForQualName(interp, name, NULL, TCL_FIND_ONLY_NS|TCL_CREATE_NS_IF_UNKNOWN, 
+			     (Namespace **)&nsPtr,
+			     &dummy1Ptr, &dummy2Ptr, &dummy);
 
-  if ((n-name)>0) {
-    Tcl_DString parentNSName, *dsp = &parentNSName;
-    char *parentName;
-    DSTRING_INIT(dsp);
-
-    Tcl_DStringAppend(dsp, name, (n-name));
-    parentName = Tcl_DStringValue(dsp);
-
-    if (Tcl_FindNamespace(interp, parentName, (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY) == NULL) {
-      NsfObject *parentObj = (NsfObject*) GetObjectFromString(interp, parentName);
-      if (parentObj) {
-        /* this is for classes */
-        RequireObjNamespace(interp, parentObj);
-      } else {
-        NsfClass *defaultSuperClass = DefaultSuperClass(interp, cl, cl->object.cl, 0);
-        Tcl_Obj *methodObj = NsfMethodObj(interp, &defaultSuperClass->object, NSF_c_requireobject_idx);
-
-        if (methodObj) {
-          /* call requireObject and try again */
-          Tcl_Obj *ov[3];
-          int result;
-
-          ov[0] = defaultSuperClass->object.cmdName;
-          ov[1] = methodObj;
-          ov[2] = Tcl_NewStringObj(parentName, -1);
-          INCR_REF_COUNT(ov[2]);
-          /*fprintf(stderr, "+++ parent... calling __unknown for %s\n", ObjStr(ov[2]));*/
-          result = Tcl_EvalObjv(interp, 3, ov, 0);
-          if (result == TCL_OK) {
-            NsfObject *parentObj = (NsfObject*) GetObjectFromString(interp, parentName);
-            if (parentObj) {
-              RequireObjNamespace(interp, parentObj);
-            }
-            rc = (Tcl_FindNamespace(interp, parentName,
-                                  (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY) != NULL);
-          } else {
-            rc = 0;
-          }
-          DECR_REF_COUNT(ov[2]);
-        }
-      }
-    } else {
-      NsfObject *parentObj = (NsfObject*) GetObjectFromString(interp, parentName);
-      if (parentObj) {
-        RequireObjNamespace(interp, parentObj);
-      }
+  if (nsPtr->deleteProc != NSNamespaceDeleteProc) {
+    /* reuse the namespace */
+    if (nsPtr->deleteProc || nsPtr->clientData) {
+      Tcl_Panic("Namespace '%s' exists already with delProc %p and clientData %p; "
+		"Can only convert a plain Tcl namespace into an nsf namespace, my delete Proc %p",
+		name, nsPtr->deleteProc, nsPtr->clientData, NSNamespaceDeleteProc);
     }
-    DSTRING_FREE(dsp);
+    nsPtr->clientData = clientData;
+    nsPtr->deleteProc = (Tcl_NamespaceDeleteProc *)NSNamespaceDeleteProc;
   }
+
+  MEM_COUNT_ALLOC("TclNamespace", nsPtr);
+  return nsPtr;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NSRequireParentObject --
+ *
+ *    Try to require a parent object (e.g. during ttrace).  This function tries
+ *    to load a parent object via __unknown, in case such a method is defined.
+ *
+ * Results:
+ *    returns 1 on success
+ *
+ * Side effects:
+ *    might create an object
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+NSRequireParentObject(Tcl_Interp *interp, CONST char *parentName, NsfClass *cl) {
+  NsfClass *defaultSuperClass = DefaultSuperClass(interp, cl, cl->object.cl, 1);
+  Tcl_Obj *methodObj = NsfMethodObj(interp, &defaultSuperClass->object, NSF_c_requireobject_idx);
+  int rc = 0;
+  
+  /*fprintf(stderr, "NSRequireParentObject %s cl %p (%s) methodObj %p defaultSc %p %s\n",
+    parentName, cl, className(cl), methodObj, defaultSuperClass, className(defaultSuperClass));*/
+
+  if (methodObj) {
+    /* call requireObject and try again */
+    Tcl_Obj *ov[3];
+    int result;
+
+    ov[0] = defaultSuperClass->object.cmdName;
+    ov[1] = methodObj;
+    ov[2] = Tcl_NewStringObj(parentName, -1);
+    INCR_REF_COUNT(ov[2]);
+
+    /*fprintf(stderr, "+++ parent... calling %s __unknown for %s\n", 
+      className(defaultSuperClass), ObjStr(ov[2]));*/
+
+    result = Tcl_EvalObjv(interp, 3, ov, 0);
+    if (result == TCL_OK) {
+      NsfObject *parentObj = (NsfObject*) GetObjectFromString(interp, parentName);
+      if (parentObj) {
+	RequireObjNamespace(interp, parentObj);
+      }
+      rc = (Tcl_FindNamespace(interp, parentName,
+			      (Tcl_Namespace *) NULL, TCL_GLOBAL_ONLY) != NULL);
+    }
+    DECR_REF_COUNT(ov[2]);
+  }
+  
   return rc;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * NSCheckNamespace --
+ *
+ *    Check if a namespace with the given name exists. If not, make
+ *    sure that a potential parent object has already required a
+ *    namespace. If there is no parent namespace yet, try to create a
+ *    parent object via __unknown.
+ *
+ * Results:
+ *    Tcl_Namespace for the provided name
+ *
+ * Side effects:
+ *    might create parent objects
+ *
+ *----------------------------------------------------------------------
+ */
+NSF_INLINE static Tcl_Namespace *
+NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *parentNsPtr, NsfClass *cl) {
+  Tcl_Namespace *nsPtr, *dummy1Ptr, dummy2Ptr;
+  CONST char *parentName, *dummy, *n;
+  Tcl_DString ds, *dsPtr = &ds;
+  int parentNameLength;
+
+  /*fprintf(stderr, "NSCheckNamespace %s parentNsPtr %p\n", nameString, parentNsPtr);*/
+
+  /* 
+   * Check, if there is a already a namespace for the full name. The
+   * namespace will be seldomly here, but we have to make this check
+   * in every case. If there is a full namespace, we could save the
+   * string operations below to determine the parent name.
+   */
+  TclGetNamespaceForQualName(interp, nameString, NULL, 
+			     TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS, 
+			     (Namespace **)&nsPtr,
+			     (Namespace **)&dummy1Ptr, (Namespace **)&dummy1Ptr, &dummy);
+  /*fprintf(stderr, 
+	  "beforecreate calls TclGetNamespaceForQualName with %s => %p (%s) %p %s %p %s %p %s\n", 
+	  nameString, nsPtr, nsPtr ? nsPtr->fullName : "",
+	  dummy1Ptr,  dummy1Ptr ? dummy1Ptr->fullName : "",
+	  parentNsPtr,  parentNsPtr ? parentNsPtr->fullName : "",
+	  dummy, dummy ? dummy : "");*/
+
+  /*
+   * If there is a parentNs provided, or we have a ns, we assume we
+   * can determine from the parentNs the parentName without the need
+   * to do string operations.
+   */
+
+  if (parentNsPtr == NULL && nsPtr) {
+    parentNsPtr = (Tcl_Namespace *)Tcl_Namespace_parentPtr(nsPtr);
+  }
+
+  if (parentNsPtr) {
+    parentNameLength = 0;
+    parentName = parentNsPtr->fullName;
+    if (*(parentName + 2) == '\0') {
+      parentName = NULL;
+    }
+    /*fprintf(stderr, "NSCheckNamespace parentNs %s parentName of '%s' => '%s'\n", 
+      parentNsPtr->fullName, nameString, parentName);*/
+  } else {
+    n = nameString + strlen(nameString);
+    /*search for last '::'*/
+    while ((*n != ':' || *(n-1) != ':') && n-1 > nameString) {n--; }
+    if (*n == ':' && n > nameString && *(n-1) == ':') {n--;}
+    parentNameLength = n-nameString;
+    if (parentNameLength > 0) {
+      DSTRING_INIT(dsPtr);
+      Tcl_DStringAppend(dsPtr, nameString, parentNameLength);
+      parentName = Tcl_DStringValue(dsPtr);
+    } else {
+      parentName = NULL;
+    }
+  }
+
+  //fprintf(stderr, "parentNameLength = %d\n", parentNameLength);
+  if (parentName) {
+    NsfObject *parentObj;
+    parentObj = (NsfObject*) GetObjectFromString(interp, parentName);
+    /*fprintf(stderr, "parentName %s parentObj %p\n", parentName, parentObj);*/
+
+    if (parentObj) {
+      RequireObjNamespace(interp, parentObj);
+    } else if (nsPtr == NULL && parentNsPtr == NULL) {
+      TclGetNamespaceForQualName(interp, parentName, NULL,
+				 TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS, 
+				 (Namespace **)&parentNsPtr,
+				 (Namespace **)&dummy1Ptr, (Namespace **)&dummy2Ptr, &dummy);
+      if (parentNsPtr == NULL) {
+	/*fprintf(stderr, "===== calling NSRequireParentObject %s %p\n", parentName, cl);*/
+	NSRequireParentObject(interp, parentName, cl);
+      }
+    }
+    if (parentNameLength) {
+      DSTRING_FREE(dsPtr);
+    }
+  }
+  return nsPtr;
+}
+
 
 /*
  * Find the "real" command belonging eg. to an Next Scripting class or object.
@@ -3021,8 +3157,6 @@ NSFindCommand(Tcl_Interp *interp, CONST char *name) {
   }
   return cmd;
 }
-
-
 
 /*
  * C interface routines for manipulating objects and classes
@@ -4503,16 +4637,22 @@ GetAllClassMixinsOf(Tcl_Interp *interp, Tcl_HashTable *destTablePtr,
      * check all subclasses of startCl for mixins
      */
     for (sc = startCl->sub; sc; sc = sc->nextPtr) {
-      if (sc->cl != startCl) {
-        rc = GetAllClassMixinsOf(interp, destTablePtr, sc->cl, isMixin, appendResult,
-				 pattern, matchObject);
-        if (rc) {return rc;}
-      } else {
-        /* TODO: sanity check; it seems that we can create via
-           __default_superclass a class which has itself als
-           subclass */
+#if !defined(NDEBUG)
+      if (sc->cl == startCl) {
+        /* 
+	 * Sanity check: it seems that we can create via
+         *  __default_superclass a class which has itself as subclass!
+	 */
         fprintf(stderr, "... STRANGE %p is subclass of %p %s, sub %p\n", sc->cl,
                 startCl, className(startCl), startCl->sub);
+	continue;
+      }
+#endif
+      assert(sc->cl != startCl);
+      rc = GetAllClassMixinsOf(interp, destTablePtr, sc->cl, isMixin, appendResult,
+			       pattern, matchObject);
+      if (rc) {
+	return rc;
       }
     }
   }
@@ -7034,7 +7174,6 @@ MethodDispatch(ClientData clientData, Tcl_Interp *interp,
  *
  *----------------------------------------------------------------------
  */
-// TODO: not all args needed
 NSF_INLINE static int
 ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
 		       int result /*, char *msg, CONST char *methodName*/) {
@@ -7448,7 +7587,7 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
   if (CallDirectly(interp, object, NSF_o_destroy_idx, &methodObj)) {
     result = NsfODestroyMethod(interp, object);
   } else {
-    result = CallMethod(object, interp, methodObj, 2, 0, NSF_CSC_IMMEDIATE|flags);
+    result = CallMethod(object, interp, methodObj, 2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE|flags);
   }
   if (result != TCL_OK) {
     /*
@@ -8167,9 +8306,12 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
     } else if (paramPtr->converter != ConvertViaCmd &&
                strcmp(ObjStr(paramPtr->slotObj),
 		      NsfGlobalStrings[NSF_METHOD_PARAMETER_SLOT_OBJ]) != 0) {
-      /* todo remove me */
-      fprintf(stderr, "**** checker method %s defined on %s shadows built-in converter\n",
-              converterNameString, objectName(paramObj));
+
+      if (RUNTIME_STATE(interp)->debugLevel > 0) {
+	fprintf(stderr, "**** checker method %s defined on %s shadows built-in converter\n",
+		converterNameString, objectName(paramObj));
+      }
+
       if (paramPtr->converterName == NULL) {
         paramPtr->converterName = converterNameObj;
         paramPtr->converter = NULL;
@@ -9590,10 +9732,9 @@ MarkUndestroyed(NsfObject *object) {
 }
 
 static void
-PrimitiveOInit(void *mem, Tcl_Interp *interp, CONST char *name, NsfClass *cl) {
-  NsfObject *object = (NsfObject*)mem;
-  Tcl_Namespace *nsPtr;
-
+PrimitiveOInit(NsfObject *object, Tcl_Interp *interp, CONST char *name, 
+	       Tcl_Namespace *nsPtr, NsfClass *cl) {
+  
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "+++ PrimitiveOInit\n");
 #endif
@@ -9610,15 +9751,22 @@ PrimitiveOInit(void *mem, Tcl_Interp *interp, CONST char *name, NsfClass *cl) {
    * namespace might contain Next Scripting objects. If we would not use the
    * namespace as child namespace, we would not recognize the objects
    * as child objects, deletions of the object might lead to a crash.
+   * 
+   * We can use here the provided nsPtr, except in cases, where this
+   * namepaces is being destroyed (e.g. recreate a new object from a
+   * different object system).
    */
-  
-  {
-  Namespace *dummy1Ptr, *dummy2Ptr;
-  const char *dummy;
-  TclGetNamespaceForQualName(interp, name, NULL, TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS, 
-			     (Namespace **)&nsPtr,
-			     &dummy1Ptr, &dummy2Ptr, &dummy);
 
+  if (nsPtr && (((Namespace *)nsPtr)->flags & NS_DYING)) {
+    Tcl_Namespace *dummy1Ptr, *dummy2Ptr;
+    const char *dummy;
+    TclGetNamespaceForQualName(interp, name, 
+			       NULL, TCL_GLOBAL_ONLY|TCL_FIND_ONLY_NS, 
+			       (Namespace **)&nsPtr,
+			       (Namespace **)&dummy1Ptr, (Namespace **)&dummy2Ptr, &dummy);
+    /*fprintf(stderr, "PrimitiveOInit %p calls TclGetNamespaceForQualName with %s => %p given %p object->nsPtr %p\n", 
+	    object, name, 
+	    nsPtr, nsPtr, object->nsPtr);*/
   }
 
   if (nsPtr) {
@@ -9638,10 +9786,12 @@ PrimitiveOInit(void *mem, Tcl_Interp *interp, CONST char *name, NsfClass *cl) {
  * Object creation: create object name (full name) and Tcl command
  */
 static NsfObject *
-PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfClass *cl) {
+PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr, NsfClass *cl) {
   NsfObject *object = (NsfObject*)ckalloc(sizeof(NsfObject));
   CONST char *nameString = ObjStr(nameObj);
-  size_t length;
+  Tcl_Namespace *nsPtr;
+
+  /*fprintf(stderr, "PrimitiveOCreate %s parentNs %p\n",nameString, parentNsPtr);*/
 
 #if defined(NSFOBJ_TRACE)
   fprintf(stderr, "CKALLOC Object %p %s\n", object, nameString);
@@ -9654,17 +9804,15 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfClass *cl) {
   MEM_COUNT_ALLOC("NsfObject/NsfClass", object);
   assert(object); /* ckalloc panics, if malloc fails */
   assert(isAbsolutePath(nameString));
-  length = strlen(nameString);
-  if (!NSCheckForParent(interp, nameString, length, cl)) {
-    ckfree((char *) object);
-    return NULL;
-  }
 
+  nsPtr = NSCheckNamespace(interp, nameString, parentNsPtr, cl);
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
-                                 (ClientData)object, TclDeletesObject);
-  /*fprintf(stderr, "cmd alloc %p %d (%s)\n", object->id, Tcl_Command_refCount(object->id), nameString);*/
+				    (ClientData)object, TclDeletesObject);
 
-  PrimitiveOInit(object, interp, nameString, cl);
+  /*fprintf(stderr, "cmd alloc %p %d (%s)\n", object->id, 
+    Tcl_Command_refCount(object->id), nameString);*/
+
+  PrimitiveOInit(object, interp, nameString, nsPtr, cl);
   object->cmdName = nameObj;
   /* convert cmdName to Tcl Obj of type cmdName */
   /*Tcl_GetCommandFromObj(interp, obj->cmdName);*/
@@ -9680,7 +9828,7 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta) {
   NsfClass *defaultClass = NULL;
 
   /*fprintf(stderr, "DefaultSuperClass cl %s, mcl %s, isMeta %d\n",
-          className(cl), className(mcl), isMeta );*/
+    className(cl), className(mcl), isMeta );*/
 
   if (mcl) {
     int result;
@@ -9700,19 +9848,19 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta) {
       NsfClasses *sc;
 
       /*fprintf(stderr, "DefaultSuperClass for %s: search in superclasses starting with %p meta %d\n",
-        className(cl), cl->super, isMeta);*/
-
+	className(cl), cl->super, isMeta);*/
+      
       /*
        * check superclasses of metaclass
        */
       if (isMeta) {
 	/*fprintf(stderr, "  ... is %s already root meta %d\n",
-                className(mcl->object.cl),
-                mcl->object.cl->object.flags & NSF_IS_ROOT_META_CLASS);*/
+	  className(mcl->object.cl),
+	  mcl->object.cl->object.flags & NSF_IS_ROOT_META_CLASS);*/
         if (mcl->object.cl->object.flags & NSF_IS_ROOT_META_CLASS) {
           return mcl->object.cl;
         }
-      }
+      } 
       for (sc = mcl->super; sc && sc->cl != cl; sc = sc->nextPtr) {
 	/*fprintf(stderr, "  ... check ismeta %d %s root mcl %d root cl %d\n",
                 isMeta, className(sc->cl),
@@ -9724,7 +9872,7 @@ DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta) {
 	  }
 	} else {
 	  if (sc->cl->object.flags & NSF_IS_ROOT_CLASS) {
-            /*fprintf(stderr, "found root class %p\n", sc->cl);*/
+            /*fprintf(stderr, "found root class %p %s\n", sc->cl, className(sc->cl));*/
 	    return sc->cl;
 	  }
 	}
@@ -10009,7 +10157,7 @@ PrimitiveCInit(NsfClass *cl, Tcl_Interp *interp, CONST char *name) {
                         RUNTIME_STATE(interp)->NsfClassesNS, 0) != TCL_OK) {
     return;
   }
-  nsPtr = NSGetFreshNamespace(interp, (ClientData)cl, name, 1);
+  nsPtr = NSGetFreshNamespace(interp, (ClientData)cl, name);
   Tcl_PopCallFrame(interp);
 
   CleanupInitClass(interp, cl, nsPtr, 0, 0);
@@ -10021,14 +10169,16 @@ PrimitiveCInit(NsfClass *cl, Tcl_Interp *interp, CONST char *name) {
  * calls class object creation
  */
 static NsfClass *
-PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfClass *class) {
+PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr, NsfClass *class) {
   NsfClass *cl = (NsfClass*)ckalloc(sizeof(NsfClass));
+  Tcl_Namespace *nsPtr;
   CONST char *nameString = ObjStr(nameObj);
   size_t length;
   NsfObject *object = (NsfObject*)cl;
 
-  /*fprintf(stderr, "CKALLOC Class %p %s\n", cl, nameString);*/
+  /* fprintf(stderr, "PrimitiveCCreate %s parentNs %p\n",nameString, parentNsPtr); */
 
+  /*fprintf(stderr, "CKALLOC Class %p %s\n", cl, nameString);*/
   memset(cl, 0, sizeof(NsfClass));
   MEM_COUNT_ALLOC("NsfObject/NsfClass", cl);
 
@@ -10042,17 +10192,10 @@ PrimitiveCCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfClass *class) {
   /*
     fprintf(stderr, "Class alloc %p '%s'\n", cl, nameString);
   */
-  /* check whether Object parent NS already exists,
-     otherwise: error */
-  if (!NSCheckForParent(interp, nameString, length, class)) {
-    ckfree((char *) cl);
-    return 0;
-  }
+  nsPtr = NSCheckNamespace(interp, nameString, parentNsPtr, cl);
   object->id = Tcl_CreateObjCommand(interp, nameString, NsfObjDispatch,
                                  (ClientData)cl, TclDeletesObject);
-  /*fprintf(stderr, "cmd alloc %p %d (%s) cl\n", object->id, Tcl_Command_refCount(object->id), nameString);*/
-
-  PrimitiveOInit(object, interp, nameString, class);
+  PrimitiveOInit(object, interp, nameString, nsPtr, class);
   object->cmdName = nameObj;
 
   /* convert cmdName to Tcl Obj of type cmdName */
@@ -13007,8 +13150,8 @@ NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
     class = isAbsolutePath(className) ? Class :
       NameInNamespaceObj(interp, className, CallingNameSpace(interp));
 
-    theobj = PrimitiveCCreate(interp, object, NULL);
-    thecls = PrimitiveCCreate(interp, class, NULL);
+    theobj = PrimitiveCCreate(interp, object, NULL, NULL);
+    thecls = PrimitiveCCreate(interp, class, NULL, NULL);
   /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
   }
 #if defined(NSF_PROFILE)
@@ -15449,46 +15592,29 @@ NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *object, CONST char *varname) {
  * Begin Class Methods
  ***************************/
 
-/*
-classMethod alloc NsfCAllocMethod {
-  {-argName "name" -required 1 -type tclobj}
-}
-*/
 static int
-NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj) {
-  Tcl_Obj *tmpName;
+NsfCAllocMethod_(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPtr) {
   CONST char *nameString = ObjStr(nameObj);
   int result;
 
   /*
    * create a new object from scratch
    */
+  assert(isAbsolutePath(nameString));
 
-  /*fprintf(stderr, " **** 0 class '%s' wants to alloc '%s'\n", className(cl), nameString);*/
+  //TODO the following should be as well in create
+  /*fprintf(stderr, " **** class '%s' wants to alloc '%s'\n", className(cl), nameString);*/
   if (!NSCheckColons(nameString, 0)) {
     return NsfVarErrMsg(interp, "Cannot allocate object -- illegal name '",
                           nameString, "'", (char *) NULL);
-  }
-
-  /*
-   * If the path is not absolute, we add the appropriate namespace
-   */
-  if (isAbsolutePath(nameString)) {
-    tmpName = NULL;
-  } else {
-    nameObj = tmpName = NameInNamespaceObj(interp, nameString, CallingNameSpace(interp));
-    INCR_REF_COUNT(tmpName);
-    /*fprintf(stderr, " **** NoAbsoluteName for '%s' -> determined = '%s'\n",
-      name, ObjStr(tmpName));*/
-    nameString = ObjStr(tmpName);
   }
 
   if (IsMetaClass(interp, cl, 1)) {
     /*
      * if the base class is a meta-class, we create a class
      */
-    NsfClass *newcl = PrimitiveCCreate(interp, nameObj, cl);
-    if (newcl == 0) {
+    NsfClass *newcl = PrimitiveCCreate(interp, nameObj, parentNsPtr, cl);
+    if (newcl == NULL) {
       result = NsfVarErrMsg(interp, "Class alloc failed for '", nameString,
                               "' (possibly parent namespace does not exist)",
                               (char *) NULL);
@@ -15500,7 +15626,7 @@ NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj) {
     /*
      * if the base class is an ordinary class, we create an object
      */
-    NsfObject *newObj = PrimitiveOCreate(interp, nameObj, cl);
+    NsfObject *newObj = PrimitiveOCreate(interp, nameObj, parentNsPtr, cl);
     if (newObj == 0)
       result = NsfVarErrMsg(interp, "Object alloc failed for '", nameString,
                               "' (possibly parent namespace does not exist)",
@@ -15510,6 +15636,51 @@ NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj) {
       result = TCL_OK;
     }
   }
+
+  return result;
+}
+
+/*
+classMethod alloc NsfCAllocMethod {
+  {-argName "name" -required 1 -type tclobj}
+}
+*/
+static int
+NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj) {
+  CONST char *nameString = ObjStr(nameObj);
+  Tcl_Namespace *parentNsPtr;
+  Tcl_Obj *tmpName;
+  int result;
+
+  /*
+   * create a new object from scratch
+   */
+
+  /*fprintf(stderr, " **** class '%s' wants to alloc '%s'\n", className(cl), nameString);*/
+  if (!NSCheckColons(nameString, 0)) {
+    return NsfVarErrMsg(interp, "Cannot allocate object -- illegal name '",
+                          nameString, "'", (char *) NULL);
+  }
+
+  /*
+   * If the path is not absolute, we add the appropriate namespace
+   */
+  if (isAbsolutePath(nameString)) {
+    tmpName = NULL;
+    parentNsPtr = NULL;
+  } else {
+    parentNsPtr = CallingNameSpace(interp);
+    nameObj = tmpName = NameInNamespaceObj(interp, nameString, parentNsPtr);
+    if (strchr(nameString, ':')>0) {
+      parentNsPtr = NULL;
+    }
+    INCR_REF_COUNT(tmpName);
+    /*fprintf(stderr, " **** NoAbsoluteName for '%s' -> determined = '%s' parentNs %s\n",
+      nameString, ObjStr(tmpName), parentNsPtr->fullName);*/
+    nameString = ObjStr(tmpName);
+  }
+
+  result = NsfCAllocMethod_(interp, cl, nameObj, parentNsPtr);
 
   if (tmpName) {
     DECR_REF_COUNT(tmpName);
@@ -15531,6 +15702,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
   Tcl_Obj **nobjv;
   int result;
   CONST char *nameString = specifiedName;
+  Tcl_Namespace *parentNsPtr;
   ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
 
   if (RUNTIME_STATE(interp)->exitHandlerDestroyRound != NSF_EXITHANDLER_OFF) {
@@ -15538,19 +15710,29 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
     return TCL_OK; /* don't fail, if this happens during destroy, it might be canceled */
   }
 
+  /*fprintf(stderr, "NsfCCreateMethod specifiedName %s\n", specifiedName);*/
   /*
    * complete the name if it is not absolute
    */
   if (!isAbsolutePath(nameString)) {
-    tmpObj = NameInNamespaceObj(interp, nameString, CallingNameSpace(interp));
+    parentNsPtr = CallingNameSpace(interp);
+    tmpObj = NameInNamespaceObj(interp, nameString, parentNsPtr);
+    /* 
+     * If the name contains colons, the parentNsPtr is not appropriate
+     * for determining the parent 
+     */
+    if (strchr(nameString, ':')>0) {
+      parentNsPtr = NULL;
+    }
     nameString = ObjStr(tmpObj);
-    /*fprintf(stderr, " **** fixed name is '%s'\n", nameString);*/
+    /* fprintf(stderr, " **** fixed name is '%s'\n", nameString);*/
     INCR_REF_COUNT(tmpObj);
     memcpy(tov, objv, sizeof(Tcl_Obj *)*(objc));
     tov[1] = tmpObj;
     nameObj = tmpObj;
     nobjv = tov;
   } else {
+    parentNsPtr = NULL;
     nameObj = objv[1];
     nobjv = (Tcl_Obj **)objv;
   }
@@ -15608,13 +15790,15 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
      * alloc
      */
 
-    /*fprintf(stderr, "alloc ... %s\n", ObjStr(nameObj));*/
+    /*fprintf(stderr, "alloc ... %s newObject %p \n", ObjStr(nameObj), newObject);*/
+
     if (CallDirectly(interp, &cl->object, NSF_c_alloc_idx, &methodObj)) {
-      result = NsfCAllocMethod(interp, cl, nameObj);
+      result = NsfCAllocMethod_(interp, cl, nameObj, parentNsPtr);
     } else {
       result = CallMethod((ClientData) cl, interp, methodObj,
                           3, &nameObj, NSF_CSC_IMMEDIATE);
     }
+
     if (result != TCL_OK) {
       goto create_method_exit;
     }
@@ -15625,7 +15809,6 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
       goto create_method_exit;
     }
 
-    /*(void)RemoveInstance(newObject, newObject->cl);*/ /* TODO needed? remove? */
     AddInstance(newObject, cl);
 
     ObjTrace("CREATE", newObject);
@@ -15654,8 +15837,6 @@ classMethod dealloc NsfCDeallocMethod {
 static int
 NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *obj) {
   NsfObject *object;
-
-  /* fprintf(stderr, "NsfCDeallocMethod obj %p %s\n",obj, ObjStr(obj));*/
 
   if (GetObjectFromObj(interp, obj, &object) != TCL_OK) {
     /* TODO: remove me */
@@ -16864,28 +17045,32 @@ ObjectHasChildren(Tcl_Interp *interp, NsfObject *object) {
 
 static void
 FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
-  /* If a call to exit happens from a higher stack frame, the
-     object refcount might not be decremented correctly. If we are
-     in the physical destroy round, we can set the counter to an
-     appropriate value to ensure deletion.
-
-     todo: remove debug line
-  */
+  /* 
+   * If a call to exit happens from a higher stack frame, the object
+   * refcount might not be decremented correctly. If we are in the
+   * physical destroy round, we can set the counter to an appropriate
+   * value to ensure deletion.
+   */
   if (object->refCount != 1) {
-    fprintf(stderr, "*** have to fix refcount for obj %p refcount %d",object, object->refCount);
-    if (object->refCount > 1) {
-      fprintf(stderr, " (name %s)", objectName(object));
+    if (RUNTIME_STATE(interp)->debugLevel > 0) {
+      fprintf(stderr, "*** have to fix refcount for obj %p refcount %d",object, object->refCount);
+      if (object->refCount > 1) {
+	fprintf(stderr, " (name %s)", objectName(object));
+      }
+      fprintf(stderr, "\n");
     }
-    fprintf(stderr, "\n");
     object->refCount = 1;
   }
 
+#if !defined(NDEBUG)
   if (object->activationCount != 0)
     fprintf(stderr, "FinalObjectDeletion obj %p activationcount %d\n", object, object->activationCount);
+#endif
   assert(object->activationCount == 0);
 
   if (object->id) {
-    /*fprintf(stderr, "cmd dealloc %p final delete refCount %d\n", object->id, Tcl_Command_refCount(object->id));*/
+    /*fprintf(stderr, "cmd dealloc %p final delete refCount %d\n", 
+      object->id, Tcl_Command_refCount(object->id));*/
     Tcl_DeleteCommandFromToken(interp, object->id);
   }
 }

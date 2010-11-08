@@ -56,4 +56,25 @@ Test case method-require {
   ? {C x} x
 }
 
+Test case parent-require { 
+  ::nx::Class public class-object method __unknown {name} {
+    #puts stderr "***** __unknown called with <$name>"
+    ::nx::Object create $name
+  }
+  nx::Class create C
+
+  ? {C create ::o::o} "::o::o"
+  ? {::o info class} "::nx::Object"
+  ? {::o::o info class} "::C"
+
+  ? {::nx::Object create ::a::b} "::a::b"
+  ? {::a info class} "::nx::Object"
+  ? {::a::b info class} "::nx::Object"
+
+  ? {C create ::1::2::3::4} "::1::2::3::4"
+  ? {::1 info class} "::nx::Object"
+  ? {::1::2 info class} "::nx::Object"
+  ? {::1::2::3 info class} "::nx::Object"
+  ? {::1::2::3::4 info class} "::C"
+}
 

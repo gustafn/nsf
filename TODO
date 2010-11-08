@@ -1878,11 +1878,20 @@ _ added option noforwarder to RelationSlots
   namespaces in PrimitiveOInit() and in RequireObjNamespace()
 - provide error message, when provided setter name starts with a colon
 
+- Make sure that DispatchDestroyMethod() calls as well protected destructors
+- New function NSCheckNamespace() as replacement for NSCheckForParent()
+- pass parentNsPtr around instead of recomputing it in NSCheckForParent()
+- removed unneeded argument from NSGetFreshNamespace()
+- switched to dstring operations in NameInNamespaceObj() (seems slightly faster)
+- factored out NSRequireParentObject()
+- by the measures above, we obtained some speed improvements
+- moved some more debug output to be controlled by the debuglevel
+- extended regression test with testcases for creation of parent 
+  objects via method "__unknown"
+
+
 TODO:
 
-- Since we have to do a TclGetNamespaceForQualName in PrimitiveOInit()
-  and since the resulting nsPtr has a parentPtr, we should be able to
-  omit/simplify NSCheckForParent();
 - For preexisting namespaces, we do not set the deleteProc. 
   Is this desired? Should nsPtr->deleteProc be moved to 
   NsfNamespaceInit()?
