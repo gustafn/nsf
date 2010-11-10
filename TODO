@@ -1889,6 +1889,14 @@ _ added option noforwarder to RelationSlots
 - extended regression test with testcases for creation of parent 
   objects via method "__unknown"
 
+- disallow object parameter of type "switch" to avoid possible
+  confusion between (a) providing a value for the o.p., (b) calling
+  it as a setter, and (c) calling it as a getter. For providing a
+  value, no arg is used for switch. For calling a setter, it is 
+  necessary to provide a value even for a switch.
+- disallow type "switch" in setter definiton (use boolean instead)
+- disallow type "switch" for positional arguments (use boolean instead)
+- extended regression test
 
 TODO:
 

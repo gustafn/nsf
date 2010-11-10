@@ -474,7 +474,7 @@ NsfGetSelfObj(Tcl_Interp *interp) {
  *  NsfObject Reference Accounting
  */
 #if defined(NSFOBJ_TRACE)
-# define NsfObjectRefCountIncr(obj)                                   \
+# define NsfObjectRefCountIncr(obj)					\
   (obj)->refCount++;                                                    \
   fprintf(stderr, "RefCountIncr %p count=%d %s\n", obj, obj->refCount, obj->cmdName?ObjStr(obj->cmdName):"no name"); \
   MEM_COUNT_ALLOC("NsfObject RefCount", obj)
@@ -8098,6 +8098,13 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, size_t length, int disa
     paramPtr->converterArg =  Tcl_NewStringObj(option+4, length-4);
     INCR_REF_COUNT(paramPtr->converterArg);
   } else if (strncmp(option, "switch", 6) == 0) {
+    fprintf(stderr, "switch name %s\n", paramPtr->name);
+    if (*paramPtr->name != '-') {
+      return NsfVarErrMsg(interp,
+			  "invalid parameter type \"switch\" for argument ", paramPtr->name,
+                            "; type \"switch\" only allowed for non-positional arguments",
+                            (char *) NULL);
+    }
     result = ParamOptionSetConverter(interp, paramPtr, "switch", ConvertToSwitch);
     paramPtr->flags |= NSF_ARG_SWITCH;
     paramPtr->nrArgs = 0;

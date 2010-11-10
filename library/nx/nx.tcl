@@ -614,7 +614,9 @@ namespace eval ::nx {
         }
       }
     }
+
     if {[info exists type]} {
+      if {$type eq "switch"} {error "switch is not allowed as type for object parameter $name"}
       lappend opts -type $type
     }
 
@@ -801,6 +803,7 @@ namespace eval ::nx {
     set objopts [list]
     set methodopts [list]
     set type ""
+
     if {[info exists :required] && ${:required}} {
       lappend objopts required
       lappend methodopts required

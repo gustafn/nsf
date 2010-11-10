@@ -195,7 +195,7 @@ Test case parametercheck {
 #  relation           NO         YES        NO    NO      YES     NO          NO          YES
 #  stringtype         YES        YES        NO    NO      NO      YES         YES         YES
 #
-#  switch             NO         NO         NO    NO      NO      NO          YES         YES
+#  switch             NO         NO         NO    NO      NO      NO          YES         NO
 #  integer            YES        YES        NO    NO      NO      YES         YES         YES    
 #  boolean            YES        YES        NO    NO      NO      YES         YES         YES
 #  object             YES        YES        NO    YES     NO      YES         YES         YES
@@ -477,19 +477,21 @@ Test case subst-default {
     {literal "\\[current\\]"} 
     {c "[:info class]"} 
     {d "literal $d"}
-    {switch:switch}
   }
+
+  ? {Bar attribute ss:switch} "switch is not allowed as type for object parameter ss"
+
   Bar create bar1
   #puts stderr [bar1 objectparameter]
   
-  ? {subst {[bar1 s]-[bar1 literal]-[bar1 c]-[bar1 d]-[bar1 switch]}} \
-      {::bar1-[current]-::Bar-literal $d-0} \
-      "substdefault and switch in object parameter 1"
+  ? {subst {[bar1 s]-[bar1 literal]-[bar1 c]-[bar1 d]}} \
+      {::bar1-[current]-::Bar-literal $d} \
+      "substdefault in object parameter 1"
   
-  Bar create bar2 -switch
-  ? {subst {[bar2 s]-[bar2 literal]-[bar2 c]-[bar2 d]-[bar2 switch]}} \
-      {::bar2-[current]-::Bar-literal $d-1} \
-      "substdefault and switch in object parameter 2"
+  Bar create bar2
+  ? {subst {[bar2 s]-[bar2 literal]-[bar2 c]-[bar2 d]}} \
+      {::bar2-[current]-::Bar-literal $d} \
+      "substdefault in object parameter 2"
   
   # Observations:
   #  1) syntax for "-attributes" and method parameter is quite different.
@@ -506,7 +508,7 @@ Test case subst-default {
   #  2) substdefault for '$' in -attributes defaults does not make much sense.
   #     deactivated for now; otherwise we would need "\\"
   
-  D method bar {
+  D public method bar {
 		{-s:substdefault "[current]"} 
 		{-literal "[current]"} 
 		{-c:substdefault "[my c]"} 
@@ -525,6 +527,10 @@ Test case subst-default {
       {{-s:substdefault "[current]"} {-literal "[current]"} {-c:substdefault "[my c]"} {-d:integer,substdefault "$d"} -switch:switch -optflag x y:integer {z 1}} \
       "query method parameter" 
   
+
+  ? {D public method foo {s:switch} {return 1}} \
+      {invalid parameter type "switch" for argument s; type "switch" only allowed for non-positional arguments}
+
   D public method foo {a b {-c 1} {-d} x {-end 100}} {
     set result [list]
     foreach v [[current class] info method args [current method]] {
