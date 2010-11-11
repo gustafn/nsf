@@ -1898,6 +1898,10 @@ _ added option noforwarder to RelationSlots
 - disallow type "switch" for positional arguments (use boolean instead)
 - extended regression test
 
+- configure.in: removed --with-tclinclude option, since it
+  appears to be included in tcl.m4 (since a while). Many thanks
+  to Victor Guerra for noticing it.
+
 TODO:
 
 - For preexisting namespaces, we do not set the deleteProc. 

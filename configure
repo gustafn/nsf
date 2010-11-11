@@ -1347,7 +1347,6 @@ Optional Packages:
            --without-actiweb disables actiweb components
   --with-all=yes|no,
 	   --without-all disables built of all
-  --with-tclinclude       directory containing the public Tcl  header files.
   --with-expat=sys assumes a system-wide expat installation,
            --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
            --without-expat falls back to the bundled expat installation
@@ -1977,12 +1976,6 @@ if test "${with_all+set}" = set; then
   withval=$with_all; with_all=$withval
 else
   with_all=no
-fi
-
-
-# Check whether --with-tclinclude was given.
-if test "${with_tclinclude+set}" = set; then
-  withval=$with_tclinclude; with_tclinclude=${withval}
 fi
 
 
@@ -7058,16 +7051,6 @@ echo "$as_me: error: Cannot find private header tclInt.h in ${TCL_SRC_DIR}" >&2;
     { echo "$as_me:$LINENO: result: ${result}" >&5
 echo "${ECHO_T}${result}" >&6; }
 
-
-if test x"${with_tclinclude}" != x ; then
-   if test -f "${with_tclinclude}/tcl.h" ; then
-      TCL_INCLUDES="-I${with_tclinclude} ${TCL_INCLUDES}"
-   else
-      { { echo "$as_me:$LINENO: error: ${with_tclinclude} directory does not contain Tcl header file tcl.h" >&5
-echo "$as_me: error: ${with_tclinclude} directory does not contain Tcl header file tcl.h" >&2;}
-   { (exit 1); exit 1; }; }
-   fi
-fi
 
 #--------------------------------------------------------------------
 # __CHANGE__
