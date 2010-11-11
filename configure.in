@@ -51,9 +51,6 @@ AC_ARG_WITH(all,
         [  --with-all=yes|no,
 	   --without-all disables built of all],
         [with_all=$withval], [with_all=no])
-AC_ARG_WITH(tclinclude, 
-        [  --with-tclinclude       directory containing the public Tcl  header files.], 
-         with_tclinclude=${withval})
 AC_ARG_WITH(expat,
         [  --with-expat=sys assumes a system-wide expat installation, 
            --with-expat=<INC_DIR,LIB_DIR> point to a custom expat installation,
@@ -214,14 +211,6 @@ TEA_ADD_TCL_SOURCES([])
 
 #TEA_PUBLIC_TCL_HEADERS
 TEA_PRIVATE_TCL_HEADERS
-
-if test x"${with_tclinclude}" != x ; then
-   if test -f "${with_tclinclude}/tcl.h" ; then
-      TCL_INCLUDES="-I${with_tclinclude} ${TCL_INCLUDES}"
-   else
-      AC_MSG_ERROR([${with_tclinclude} directory does not contain Tcl header file tcl.h])
-   fi
-fi
 
 #--------------------------------------------------------------------
 # __CHANGE__
