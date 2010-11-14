@@ -288,7 +288,7 @@ GetSelfObj(Tcl_Interp *interp) {
     Tcl_Interp_framePtr(interp),Tcl_Interp_varFramePtr(interp));*/
 
   for (; varFramePtr; varFramePtr =
-
+	 
 #if defined(SKIP_LEVELS)
 	 Tcl_CallFrame_callerPtr(varFramePtr)
 #else
@@ -1010,3 +1010,29 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   /*fprintf(stderr, "CscFinish done\n");*/
 }
 
+
+static Tcl_CallFrame *
+BeginOfCallChain(Tcl_Interp *interp, NsfObject *object) {
+  Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp), 
+    *prevFramePtr = varFramePtr;
+
+  fprintf(stderr, "BeginOfCallChain obj %s\n", objectName(object));
+  if (object) {
+    for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
+      register int flags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+      
+      if (flags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+	NsfCallStackContent *cscPtr = (NsfCallStackContent *)Tcl_CallFrame_clientData(varFramePtr);
+	if (cscPtr->self == object) {
+	  prevFramePtr = varFramePtr;
+	  continue;
+	}
+      } else if (flags & (FRAME_IS_NSF_OBJECT|FRAME_IS_LAMBDA)) {
+	continue;
+      }
+      break;
+    }
+  }
+  fprintf(stderr, "BeginOfCallChain returns %p\n", prevFramePtr);
+  return prevFramePtr;
+}

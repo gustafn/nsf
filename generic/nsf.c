@@ -606,7 +606,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
   Tcl_Command cmd;
 
   /*fprintf(stderr, "GetObjectFromObj obj %p %s is of type %s\n",
-    objPtr, ObjStr(objPtr), objPtr->objPtrtypePtr ? objPtr->typePtr->name : "(null)");*/
+    objPtr, ObjStr(objPtr), objPtr->typePtr ? objPtr->typePtr->name : "(null)");*/
 
   /* in case, objPtr was not of type cmdName, try to convert */
   cmd = Tcl_GetCommandFromObj(interp, objPtr);
@@ -638,7 +638,7 @@ GetObjectFromObj(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfObject **objectPtr) {
 
     INCR_REF_COUNT(tmpName);
     nobject = GetObjectFromString(interp, nsString);
-    /*fprintf(stderr, " RETRY, string '%s' returned %p\n", nsString, nobj);*/
+    /* fprintf(stderr, " RETRY, string '%s' returned %p\n", nsString, nobject);*/
     DECR_REF_COUNT(tmpName);
   }
 
@@ -660,9 +660,8 @@ GetClassFromObj(Tcl_Interp *interp, register Tcl_Obj *objPtr,
   CONST char *objName = ObjStr(objPtr);
   Tcl_Command cmd;
 
-  /*fprintf(stderr, "GetClassFromObj %s base %p\n", objName, baseClass);*/
-
   cmd = Tcl_GetCommandFromObj(interp, objPtr);
+  /*fprintf(stderr, "GetClassFromObj %p %s base %p cmd %p\n", objPtr, objName, baseClass, cmd);*/
 
   if (cmd) {
     cls = NsfGetClassFromCmdPtr(cmd);
@@ -8662,7 +8661,7 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
     tcd->cmdName = nameObj;
   }
 
-  /*fprintf(stderr, "cmdName = %s, args = %s, # = %d\n",
+  /*fprintf(stderr, "+++ cmdName = %s, args = %s, # = %d\n",
     ObjStr(tcd->cmdName), tcd->args?ObjStr(tcd->args):"NULL", tcd->nr_args);*/
 
   if (tcd->objscope) {
@@ -8676,8 +8675,8 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
     if (isAbsolutePath(nameString)) {
     } else {
       tcd->cmdName = NameInNamespaceObj(interp, nameString, CallingNameSpace(interp));
-      /*fprintf(stderr, "name %s not absolute, therefore qualifying %s\n", nameObj,
-        ObjStr(tcd->cmdName));*/
+      /*fprintf(stderr, "+++ name %s not absolute, therefore qualifying %s\n", nameString,
+	ObjStr(tcd->cmdName));*/
     }
   }
   INCR_REF_COUNT(tcd->cmdName);
@@ -11388,10 +11387,12 @@ CallingNameSpace(Tcl_Interp *interp) {
   * would use this namespace, we would resolve non-fully-qualified
   * names against the root namespace).
   */
-  for (framePtr = CallStackGetActiveProcFrame((Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp));
-       framePtr;
-       framePtr = Tcl_CallFrame_callerVarPtr(framePtr)) {
+  framePtr = CallStackGetActiveProcFrame((Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp));
+  //framePtr = BeginOfCallChain(interp, GetSelfObj(interp));
+
+  for (; framePtr; framePtr = Tcl_CallFrame_callerVarPtr(framePtr)) {
     nsPtr = Tcl_CallFrame_nsPtr(framePtr);
+	
     if (IsRootNamespace(interp, nsPtr)) {
       /*fprintf(stderr, "... %p skip %s\n", framePtr, nsPtr->fullName);*/
       continue;
@@ -15021,7 +15022,8 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       continue;
     }
 
-    /* special setter due to relation handling */
+#if 0
+    /* previous code to handle relations */
     if (paramPtr->converter == ConvertToRelation) {
       ClientData relIdx;
       Tcl_Obj *relationObj = paramPtr->converterArg ? paramPtr->converterArg : paramPtr->nameObj,
@@ -15041,6 +15043,11 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       /* done with relation handling */
       continue;
     }
+#else
+    if (paramPtr->converter == ConvertToRelation) {
+      continue;
+    }
+#endif
 
     /* special setter for init commands */
     if (paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_METHOD)) {
@@ -15131,8 +15138,38 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   }
 
   Nsf_PopFrameObj(interp, framePtr);
-
   remainingArgsc = pc.objc - paramDefs->nrParams;
+
+  /*
+   * Perform relation handling outsite of the Object-Frame
+   */
+  for (i=1, paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++, i++) {
+    ClientData relIdx;
+    Tcl_Obj *relationObj, *outObjPtr;
+
+    if (paramPtr->converter != ConvertToRelation) {
+      /* just handle relations here */
+      continue;
+    }
+
+    newValue = pc.full_objv[i];
+    if (newValue == NsfGlobalObjs[NSF___UNKNOWN__]) {
+      /* nothing to do here */
+      continue;
+    }
+    
+    relationObj = paramPtr->converterArg ? paramPtr->converterArg : paramPtr->nameObj;
+    result = ConvertToRelationtype(interp, relationObj, paramPtr, &relIdx, &outObjPtr);
+    if (result == TCL_OK) {
+      result = NsfRelationCmd(interp, object, PTR2INT(relIdx), newValue);
+    }
+
+    if (result != TCL_OK) {
+      ParseContextRelease(&pc);
+      goto configure_exit;
+    }
+  }
+
 
   /*
      Call residualargs when we have varargs and left over arguments
