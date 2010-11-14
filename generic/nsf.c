@@ -8098,7 +8098,6 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, size_t length, int disa
     paramPtr->converterArg =  Tcl_NewStringObj(option+4, length-4);
     INCR_REF_COUNT(paramPtr->converterArg);
   } else if (strncmp(option, "switch", 6) == 0) {
-    fprintf(stderr, "switch name %s\n", paramPtr->name);
     if (*paramPtr->name != '-') {
       return NsfVarErrMsg(interp,
 			  "invalid parameter type \"switch\" for argument ", paramPtr->name,
