@@ -566,7 +566,7 @@ Test case subst-default {
       "query instparams for scripted method 'method'"
   
   ? {Object info method parameter ::nsf::forward} \
-      "object -per-object method -default -earlybinding -methodprefix -objscope -onerror -verbose target:optional args" \
+      "object -per-object method -default -earlybinding -methodprefix -objframe -onerror -verbose target:optional args" \
       "query parameter for C-defined cmd 'nsf::forward'"
   
   Object require method autoname

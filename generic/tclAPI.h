@@ -301,7 +301,7 @@ static int NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *ol
 static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfExistsVarCmd(Tcl_Interp *interp, NsfObject *object, CONST char *varname);
 static int NsfFinalizeObjCmd(Tcl_Interp *interp);
-static int NsfForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjscope, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjframe, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfImportvarCmd(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
 static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *class);
@@ -1083,13 +1083,13 @@ NsfForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
     Tcl_Obj *withDefault = (Tcl_Obj *)pc.clientData[3];
     int withEarlybinding = (int )PTR2INT(pc.clientData[4]);
     Tcl_Obj *withMethodprefix = (Tcl_Obj *)pc.clientData[5];
-    int withObjscope = (int )PTR2INT(pc.clientData[6]);
+    int withObjframe = (int )PTR2INT(pc.clientData[6]);
     Tcl_Obj *withOnerror = (Tcl_Obj *)pc.clientData[7];
     int withVerbose = (int )PTR2INT(pc.clientData[8]);
     Tcl_Obj *target = (Tcl_Obj *)pc.clientData[9];
 
     assert(pc.status == 0);
-    return NsfForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withMethodprefix, withObjscope, withOnerror, withVerbose, target, objc-pc.lastobjc, objv+pc.lastobjc);
+    return NsfForwardCmd(interp, object, withPer_object, method, withDefault, withEarlybinding, withMethodprefix, withObjframe, withOnerror, withVerbose, target, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
 }
@@ -2171,7 +2171,7 @@ static methodDefinition method_definitions[] = {
   {"-default", 0, 1, ConvertToTclobj},
   {"-earlybinding", 0, 0, ConvertToString},
   {"-methodprefix", 0, 1, ConvertToTclobj},
-  {"-objscope", 0, 0, ConvertToString},
+  {"-objframe", 0, 0, ConvertToString},
   {"-onerror", 0, 1, ConvertToTclobj},
   {"-verbose", 0, 0, ConvertToString},
   {"target", 0, 0, ConvertToTclobj},

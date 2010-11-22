@@ -11,6 +11,8 @@ namespace eval ::xotcl {
   set ::xotcl::version 2.0
   set ::xotcl::patchlevel .0
 
+  set ::nsf::bootstrap ::xotcl
+
   #
   # Perform the basic setup of XOTcl. First, let us allocate the
   # basic classes of XOTcl. This call creates the classes
@@ -269,9 +271,51 @@ namespace eval ::xotcl {
   }
 
   # define forward methods
-  ::nsf::forward Object forward ::nsf::forward %self -per-object
-  ::nsf::forward Class instforward ::nsf::forward %self
+  #
+  # We could nearly define forward via forwarder
+  #
+  #    ::nsf::forward Object forward ::nsf::forward %self -per-object
+  #    ::nsf::forward Class instforward ::nsf::forward %self
+  #
+  # but since we changed the name of -objscope in nsf to -objframe, we
+  # have to provide the definition the hard way via methods.
+  
+  Object instproc forward {
+    method 
+    -default -earlybinding:switch -methodprefix -objscope:switch -onerror -verbose:switch
+    target:optional args
+  } {
+    set arglist [list]
+    if {[info exists default]} {lappend arglist -default $default}
+    if {$earlybinding} {lappend arglist "-earlybinding"}
+    if {[info exists methodprefix]} {lappend arglist -methodprefix $methodprefix}
+    if {$objscope} {lappend arglist "-objframe"}
+    if {[info exists onerror]} {lappend arglist -onerror $onerror}
+    if {$verbose} {lappend arglist -verbose}
+    if {[info exists target]} {lappend arglist $target}
+    if {[llength $args] > 0} {lappend arglist {*}$args}
+    set r [::nsf::forward [self] -per-object $method {*}$arglist]
+    return $r
+  }
 
+  Class instproc instforward {    
+    method 
+    -default -earlybinding:switch -methodprefix -objscope:switch -onerror -verbose:switch
+    target:optional args
+  } {
+    set arglist [list]
+    if {[info exists default]} {lappend arglist -default $default}
+    if {$earlybinding} {lappend arglist "-earlybinding"}
+    if {[info exists methodprefix]} {lappend arglist -methodprefix $methodprefix}
+    if {$objscope} {lappend arglist "-objframe"}
+    if {[info exists onerror]} {lappend arglist -onerror $onerror}
+    if {$verbose} {lappend arglist -verbose}
+    if {[info exists target]} {lappend arglist $target}
+    if {[llength $args] > 0} {lappend arglist {*}$args}
+    set r [::nsf::forward [self] $method {*}$arglist]
+    return $r
+  }
+  
   Class instproc unknown {args} {
     #puts stderr "use '[self] create $args', not '[self] $args'"
     uplevel [list [self] create {*}$args]
@@ -451,6 +495,20 @@ namespace eval ::xotcl {
     error "procedure \"$method\" doesn't have an argument \"$varName\""
   }
 
+  proc ::xotcl::info_forward_options {list} {
+    set result [list]
+    set i 0
+    foreach w $list {
+      switch -glob -- $w {
+	-objframe {lappend result -objscope}
+	-* {lappend result $w}
+	default {lappend result {*}[lrange $list $i end]}
+      }
+      incr i
+    }
+    return $result
+  }
+
   # define temporary method "alias"
   Object instproc alias {name cmd} {::nsf::alias [self] $name $cmd}
 
@@ -547,8 +605,15 @@ namespace eval ::xotcl {
     }
     :alias instfilter         ::nsf::methods::class::info::filtermethods
     :alias instfilterguard    ::nsf::methods::class::info::filterguard
-    :alias instforward        ::nsf::methods::class::info::forward
-
+    #:alias instforward        ::nsf::methods::class::info::forward
+    :proc instforward {-definition:switch name:optional} {
+      if {$definition} {
+	set def [my ::nsf::methods::class::info::forward -definition $name]
+	return [::xotcl::info_forward_options $def]
+      } else {
+	return [my ::nsf::methods::class::info::forward [self args]]
+      }
+    }
     :proc instinvar {}        {::nsf::assertion [self] class-invar}
     :alias instmixin          ::nsf::methods::class::info::mixinclasses
     :alias instmixinguard     ::nsf::methods::class::info::mixinguard
@@ -961,6 +1026,7 @@ namespace eval ::xotcl {
   }
   
   unset -nocomplain cmd
+  unset ::nsf::bootstrap
 
   # Documentation stub object -> just ignore per default.
   # if xoDoc is loaded, documentation will be activated

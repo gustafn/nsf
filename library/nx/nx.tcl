@@ -6,8 +6,9 @@ namespace eval ::nx {
   # By setting the variable bootstrap, we can check later, whether we
   # are in bootstrapping mode
   #
-  set bootstrap 1
+  set ::nsf::bootstrap ::nx
 
+  puts stderr ====[::nsf::configure objectsystem]
   #
   # First create the ::nx object system. 
   #
@@ -503,6 +504,8 @@ namespace eval ::nx {
   foreach m [::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::methods] {
     if {[::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method type $m] eq "object"} continue
     set definition [::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method definition $m]
+    # The following line is just for the redefinition case, after a "package forget"
+    if {[lindex $definition 2] eq "method"} continue
     ::nx::Class::slot::__info {*}[lrange $definition 1 end]
     unset definition
   }
@@ -1561,7 +1564,7 @@ namespace eval ::nx {
   set ::nx::confdir ~/.nx
   set ::nx::logdir $::nx::confdir/log
   
-  unset bootstrap
+  unset ::nsf::bootstrap
 }
 if {[::nsf::configure debug] > 1} {
   foreach ns {::nsf ::nx} {

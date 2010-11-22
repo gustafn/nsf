@@ -112,7 +112,7 @@ typedef struct ForwardCmdClientData {
   int hasNonposArgs;
   int nr_args;
   Tcl_Obj *args;
-  int objscope;
+  int objframe;
   Tcl_Obj *onerror;
   Tcl_Obj *prefix;
   int nr_subcommands;
@@ -3223,9 +3223,18 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
   if (ok) {
     result = TCL_OK;
   } else {
-    result = NsfVarErrMsg(interp, "Method '", methodName, "' of ", objectName(object),
-                            " can not be overwritten. Derive e.g. a sub-class!",
+    /* 
+     * We could test, whether we are bootstrapping the "right" object
+     * system, and allow only overwrites for the current bootstrap
+     * object system, but this seems neccessary by now.
+     */
+    Tcl_Obj *bootstrapObj = Tcl_GetVar2Ex(interp, "::nsf::bootstrap", NULL, TCL_GLOBAL_ONLY);
+    fprintf(stderr, "bootStrapObv = %p\n", bootstrapObj);
+    if (bootstrapObj == NULL) {
+      result = NsfVarErrMsg(interp, "Method '", methodName, "' of ", objectName(object),
+                            " cannot be overwritten. Derive e.g. a sub-class!",
                             (char *) NULL);
+    }
   }
   ObjectSystemsCheckSystemMethod(interp, methodName, GetObjectSystem(object));
 
@@ -3894,7 +3903,7 @@ AssertionCheckList(Tcl_Interp *interp, NsfObject *object,
     return TCL_OK;
 
   /* we do not check assertion modifying methods, otherwise
-     we can not react in catch on a runtime assertion check failure */
+     we cannot react in catch on a runtime assertion check failure */
 
 #if 1
   /* TODO: the following check operations is XOTcl1 legacy and is not
@@ -8323,7 +8332,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
 		      NsfGlobalStrings[NSF_METHOD_PARAMETER_SLOT_OBJ]) != 0) {
 
       if (RUNTIME_STATE(interp)->debugLevel > 0) {
-	fprintf(stderr, "**** checker method %s defined on %s shadows built-in converter\n",
+	fprintf(stderr, "Warning: checker method %s defined on %s shadows built-in converter\n",
 		converterNameString, objectName(paramObj));
       }
 
@@ -8606,7 +8615,7 @@ ForwardCmdDeleteProc(ClientData clientData) {
 static int
 ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
                        Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-                       int withObjscope, Tcl_Obj *withOnerror, int withVerbose,
+                       int withObjframe, Tcl_Obj *withOnerror, int withVerbose,
                        Tcl_Obj *target, int objc, Tcl_Obj * CONST objv[],
                        ForwardCmdClientData **tcdp) {
   ForwardCmdClientData *tcd;
@@ -8636,11 +8645,11 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
     tcd->onerror = withOnerror;
     INCR_REF_COUNT(tcd->onerror);
   }
-  tcd->objscope = withObjscope;
+  tcd->objframe = withObjframe;
   tcd->verbose = withVerbose;
   tcd->needobjmap = 0;
   tcd->cmdName = target;
-  /*fprintf(stderr, "...forwardprocess objc %d\n", objc);*/
+  /*fprintf(stderr, "...forwardprocess objc %d, cmdName %p %s\n", objc, target, ObjStr(target));*/
 
   for (i=0; i<objc; i++) {
     CONST char *element = ObjStr(objv[i]);
@@ -8664,9 +8673,9 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
   /*fprintf(stderr, "+++ cmdName = %s, args = %s, # = %d\n",
     ObjStr(tcd->cmdName), tcd->args?ObjStr(tcd->args):"NULL", tcd->nr_args);*/
 
-  if (tcd->objscope) {
+  if (tcd->objframe) {
     /* when we evaluating objscope, and define ...
-          o forward append -objscope append
+          o forward append -objframe append
        a call to
           o append ...
        would lead to a recursive call; so we add the appropriate namespace
@@ -8683,9 +8692,10 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
 
   if (withEarlybinding) {
     Tcl_Command cmd = Tcl_GetCommandFromObj(interp, tcd->cmdName);
-    if (cmd == NULL)
-      return NsfVarErrMsg(interp, "cannot lookup command '", ObjStr(tcd->cmdName), "'", (char *) NULL);
-
+    if (cmd == NULL) {
+      result = NsfVarErrMsg(interp, "cannot lookup command '", ObjStr(tcd->cmdName), "'", (char *) NULL);
+      goto forward_process_options_exit;
+    }
     tcd->objProc = Tcl_Command_objProc(cmd);
     if (tcd->objProc == NsfObjDispatch     /* don't do direct invoke on nsf objects */
         || tcd->objProc == TclObjInterpProc  /* don't do direct invoke on tcl procs */
@@ -8698,7 +8708,8 @@ ForwardProcessOptions(Tcl_Interp *interp, Tcl_Obj *nameObj,
   }
 
   tcd->passthrough = !tcd->args && *(ObjStr(tcd->cmdName)) != '%' && tcd->objProc;
-
+  
+ forward_process_options_exit:
   /*fprintf(stderr, "forward args = %p, name = '%s'\n", tcd->args, ObjStr(tcd->cmdName));*/
   if (result == TCL_OK) {
     *tcdp = tcd;
@@ -10982,7 +10993,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     fprintf(stderr, "forwarder calls '%s'\n", ObjStr(cmd));
     DECR_REF_COUNT(cmd);
   }
-  if (tcd->objscope) {
+  if (tcd->objframe) {
     Nsf_PushFrameObj(interp, object, framePtr);
   }
   if (tcd->objProc) {
@@ -11001,7 +11012,7 @@ CallForwarder(ForwardCmdClientData *tcd, Tcl_Interp *interp, int objc, Tcl_Obj *
     result = Tcl_EvalObjv(interp, objc, objv, 0);
   }
 
-  if (tcd->objscope) {
+  if (tcd->objframe) {
     Nsf_PopFrameObj(interp, framePtr);
   }
   if (result == TCL_ERROR && tcd && tcd->onerror) {
@@ -12026,8 +12037,11 @@ AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientDa
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-default", -1));
     Tcl_ListObjAppendElement(interp, listObj, tcd->subcommands);
   }
-  if (tcd->objscope) {
-    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objscope", -1));
+  if (tcd->objProc) {
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-earlybinding", -1));
+  }
+  if (tcd->objframe) {
+    Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-objframe", -1));
   }
   Tcl_ListObjAppendElement(interp, listObj, tcd->cmdName);
   if (tcd->args) {
@@ -12043,7 +12057,7 @@ AppendForwardDefinition(Tcl_Interp *interp, Tcl_Obj *listObj, ForwardCmdClientDa
 static void
 AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *registerCmdName,
                          NsfObject *object, CONST char *methodName, Tcl_Command cmd,
-                         int withObjscope, int withPer_object, int withProtection) {
+                         int withObjframe, int withPer_object, int withProtection) {
   Tcl_ListObjAppendElement(interp, listObj, object->cmdName);
   if (withProtection) {
     Tcl_ListObjAppendElement(interp, listObj,
@@ -12057,7 +12071,7 @@ AppendMethodRegistration(Tcl_Interp *interp, Tcl_Obj *listObj, CONST char *regis
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(registerCmdName, -1));
   Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj(methodName, -1));
 
-  if (withObjscope) {
+  if (withObjframe) {
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("-frame", 6));
     Tcl_ListObjAppendElement(interp, listObj, Tcl_NewStringObj("object", 6));
   }
@@ -12833,7 +12847,6 @@ nsfCmd alias NsfAliasCmd {
   {-argName "-per-object"}
   {-argName "methodName"}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
-  {-argName "-objscope"}
   {-argName "cmdName" -required 1 -type tclobj}
 }
 */
@@ -13043,8 +13056,22 @@ NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *valueObj) {
 
     for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
       Tcl_Obj *osObj = Tcl_NewListObj(0, NULL);
+      Tcl_Obj *systemMethods = Tcl_NewListObj(0, NULL);
+      int idx;
+
       Tcl_ListObjAppendElement(interp, osObj, osPtr->rootClass->object.cmdName);
       Tcl_ListObjAppendElement(interp, osObj, osPtr->rootMetaClass->object.cmdName);
+
+      for (idx = 0; Nsf_SytemMethodOpts[idx]; idx++) {
+	/*fprintf(stderr, "opt %s %s\n", Nsf_SytemMethodOpts[idx], 
+	  osPtr->methods[idx] ? ObjStr(osPtr->methods[idx]) : "NULL");*/
+	if (osPtr->methods[idx] == NULL) {
+	  continue;
+	}
+	Tcl_ListObjAppendElement(interp, systemMethods, Tcl_NewStringObj(Nsf_SytemMethodOpts[idx], -1));
+	Tcl_ListObjAppendElement(interp, systemMethods, osPtr->methods[idx]);
+      }
+      Tcl_ListObjAppendElement(interp, osObj, systemMethods);
       Tcl_ListObjAppendElement(interp, list, osObj);
     }
     Tcl_SetObjResult(interp, list);
@@ -13122,11 +13149,30 @@ nsfCmd createobjectsystem NsfCreateObjectSystemCmd {
 */
 static int
 NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tcl_Obj *systemMethodsObj) {
-  NsfClass *theobj;
-  NsfClass *thecls;
+  NsfClass *theobj = NULL, *thecls = NULL;
+  Tcl_Obj *object, *class;
+  char *objectName = ObjStr(Object);
+  char *className = ObjStr(Class);
   NsfObjectSystem *osPtr = NEW(NsfObjectSystem);
 
   memset(osPtr, 0, sizeof(NsfObjectSystem));
+
+  object = isAbsolutePath(objectName) ? Object :
+    NameInNamespaceObj(interp, objectName, CallingNameSpace(interp));
+  class = isAbsolutePath(className) ? Class :
+    NameInNamespaceObj(interp, className, CallingNameSpace(interp));
+
+  GetClassFromObj(interp, object, &theobj, NULL);
+  GetClassFromObj(interp, class, &thecls, NULL);
+  if (theobj || thecls) {
+    
+    ObjectSystemFree(interp, osPtr);
+    if (RUNTIME_STATE(interp)->debugLevel > 0) {
+      fprintf(stderr, "Warning: Base class exists already; ignoring definition.\n");
+    }
+    return TCL_OK;
+    /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
+  }
 
   if (systemMethodsObj) {
     int oc, i, idx, result;
@@ -13159,18 +13205,10 @@ NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
      the basic metaclass Class, and store them in the RUNTIME STATE if
      successful
   */
-  {Tcl_Obj *object, *class;
-    char *objectName = ObjStr(Object);
-    char *className = ObjStr(Class);
-    object = isAbsolutePath(objectName) ? Object :
-      NameInNamespaceObj(interp, objectName, CallingNameSpace(interp));
-    class = isAbsolutePath(className) ? Class :
-      NameInNamespaceObj(interp, className, CallingNameSpace(interp));
-
-    theobj = PrimitiveCCreate(interp, object, NULL, NULL);
-    thecls = PrimitiveCCreate(interp, class, NULL, NULL);
+  theobj = PrimitiveCCreate(interp, object, NULL, NULL);
+  thecls = PrimitiveCCreate(interp, class, NULL, NULL);
   /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
-  }
+
 #if defined(NSF_PROFILE)
   NsfProfileInit(interp);
 #endif
@@ -13425,7 +13463,7 @@ nsfCmd forward NsfForwardCmd {
   {-argName "-default" -nrargs 1 -type tclobj}
   {-argName "-earlybinding"}
   {-argName "-methodprefix" -nrargs 1 -type tclobj}
-  {-argName "-objscope"}
+  {-argName "-objframe"}
   {-argName "-onerror" -nrargs 1 -type tclobj}
   {-argName "-verbose"}
   {-argName "target" -type tclobj}
@@ -13437,14 +13475,14 @@ NsfForwardCmd(Tcl_Interp *interp,
 	      NsfObject *object, int withPer_object,
 	      Tcl_Obj *methodObj,
 	      Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix,
-	      int withObjscope, Tcl_Obj *withOnerror, int withVerbose,
+	      int withObjframe, Tcl_Obj *withOnerror, int withVerbose,
 	      Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]) {
   ForwardCmdClientData *tcd = NULL;
   int result;
 
   result = ForwardProcessOptions(interp, methodObj,
                                  withDefault, withEarlybinding, withMethodprefix,
-                                 withObjscope, withOnerror, withVerbose,
+                                 withObjframe, withOnerror, withVerbose,
                                  target, nobjc, nobjv, &tcd);
   if (result == TCL_OK) {
     CONST char *methodName = NSTail(ObjStr(methodObj));
@@ -13467,7 +13505,7 @@ NsfForwardCmd(Tcl_Interp *interp,
     }
   }
 
-  if (result != TCL_OK) {
+  if (result != TCL_OK && tcd) {
     ForwardCmdDeleteProc((ClientData)tcd);
   }
   return result;
@@ -15022,18 +15060,26 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       continue;
     }
 
-#if 0
     /* previous code to handle relations */
     if (paramPtr->converter == ConvertToRelation) {
       ClientData relIdx;
       Tcl_Obj *relationObj = paramPtr->converterArg ? paramPtr->converterArg : paramPtr->nameObj,
 	*outObjPtr;
-
+      CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
+      
+      /*
+       * Execute relation cmd in the context above the object frame,
+       * since the object frame changes the current namespace as
+       * well. References to classes with implicit namespaces might
+       * fail otherwise.
+       */
+      Tcl_Interp_varFramePtr(interp) = varFramePtr->callerPtr;
       result = ConvertToRelationtype(interp, relationObj, paramPtr, &relIdx, &outObjPtr);
 
       if (result == TCL_OK) {
         result = NsfRelationCmd(interp, object, PTR2INT(relIdx), newValue);
       }
+      Tcl_Interp_varFramePtr(interp) = varFramePtr;
 
       if (result != TCL_OK) {
         Nsf_PopFrameObj(interp, framePtr);
@@ -15043,11 +15089,6 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       /* done with relation handling */
       continue;
     }
-#else
-    if (paramPtr->converter == ConvertToRelation) {
-      continue;
-    }
-#endif
 
     /* special setter for init commands */
     if (paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_METHOD)) {
@@ -15055,7 +15096,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
       NsfCallStackContent csc, *cscPtr = &csc;
       CallFrame frame2, *framePtr2 = &frame2;
 
-      /* The current callframe of configure uses an objscope, such
+      /* The current callframe of configure uses an objframe, such
          that setvar etc.  are able to access variables like "a" as a
          local variable.  However, in the init block, we do not like
          that behavior, since this should look like like a proc body.
@@ -15063,7 +15104,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
          varframe.
 
          The new frame will have the namespace of the caller to avoid
-         the current objscope. Nsf_PushFrameCsc() will establish
+         the current objframe. Nsf_PushFrameCsc() will establish
          a CMETHOD frame.
       */
 
@@ -15141,39 +15182,8 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
   remainingArgsc = pc.objc - paramDefs->nrParams;
 
   /*
-   * Perform relation handling outsite of the Object-Frame
+   * Call residualargs when we have varargs and left over arguments
    */
-  for (i=1, paramPtr = paramDefs->paramsPtr; paramPtr->name; paramPtr++, i++) {
-    ClientData relIdx;
-    Tcl_Obj *relationObj, *outObjPtr;
-
-    if (paramPtr->converter != ConvertToRelation) {
-      /* just handle relations here */
-      continue;
-    }
-
-    newValue = pc.full_objv[i];
-    if (newValue == NsfGlobalObjs[NSF___UNKNOWN__]) {
-      /* nothing to do here */
-      continue;
-    }
-    
-    relationObj = paramPtr->converterArg ? paramPtr->converterArg : paramPtr->nameObj;
-    result = ConvertToRelationtype(interp, relationObj, paramPtr, &relIdx, &outObjPtr);
-    if (result == TCL_OK) {
-      result = NsfRelationCmd(interp, object, PTR2INT(relIdx), newValue);
-    }
-
-    if (result != TCL_OK) {
-      ParseContextRelease(&pc);
-      goto configure_exit;
-    }
-  }
-
-
-  /*
-     Call residualargs when we have varargs and left over arguments
-  */
   if (pc.varArgs && remainingArgsc > 0) {
     Tcl_Obj *methodObj;
 
@@ -15718,7 +15728,7 @@ NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *nameObj) {
   } else {
     parentNsPtr = CallingNameSpace(interp);
     nameObj = tmpName = NameInNamespaceObj(interp, nameString, parentNsPtr);
-    if (strchr(nameString, ':')>0) {
+    if (strchr(nameString, ':') > 0) {
       parentNsPtr = NULL;
     }
     INCR_REF_COUNT(tmpName);
@@ -17100,7 +17110,7 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
    */
   if (object->refCount != 1) {
     if (RUNTIME_STATE(interp)->debugLevel > 0) {
-      fprintf(stderr, "*** have to fix refcount for obj %p refcount %d",object, object->refCount);
+      fprintf(stderr, "Warning: have to fix refcount for obj %p refcount %d",object, object->refCount);
       if (object->refCount > 1) {
 	fprintf(stderr, " (name %s)", objectName(object));
       }

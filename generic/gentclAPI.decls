@@ -70,7 +70,7 @@ nsfCmd forward NsfForwardCmd {
   {-argName "-default" -nrargs 1 -type tclobj}
   {-argName "-earlybinding"}
   {-argName "-methodprefix" -nrargs 1 -type tclobj}
-  {-argName "-objscope"}
+  {-argName "-objframe"}
   {-argName "-onerror" -nrargs 1 -type tclobj}
   {-argName "-verbose"}
   {-argName "target" -type tclobj}

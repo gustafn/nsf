@@ -193,10 +193,12 @@ o1 set i 0
 ::nsf::alias o1 Set -frame object ::set
 ? {o1 Set i 1} 1 "aliased object tcl set"
 ? {o1 Set i} 1 "aliased object tcl set"
+
 ::xotcl::Object instforward SSet -earlybinding -objscope ::set
 ? {o1 SSet i 1} 1 "forward earlybinding tcl set"
 ? {o1 SSet i} 1 "forward earlybinding tcl set"
-#exit
+
+? {::xotcl::Object info instforward -definition SSet} "-earlybinding -objscope ::set"
 
 o1 set z 100
 #o1 forward z o1 [list %argclindex [list set set]] %proc

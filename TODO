@@ -1902,30 +1902,53 @@ _ added option noforwarder to RelationSlots
   appears to be included in tcl.m4 (since a while). Many thanks
   to Victor Guerra for noticing it.
 
-TODO:
+- perform relation handling in objectparameters outside of object-frame
 
-- For preexisting namespaces, we do not set the deleteProc. 
-  Is this desired? Should nsPtr->deleteProc be moved to 
-  NsfNamespaceInit()?
-
-- "-returns" 
-  * leave syntax as is for method?
-  * add flag to alias and forward?
-  * handle "returns" in serializer
-
-- forward has just "-objscope", no general "-frame method|object".
-  Since forwarder have client data, they always push a method frame.
-  So, the situation is different to nsd::alias and ::nsf::dispatch.
-  not sure, if we should rename "-objscope" to something different,
-  such as e.g. "-objectframe".
-
-- extend coro regression test
+- For preexisting namespaces, we do not set the deleteProc.  Is this
+  desired? Should nsPtr->deleteProc be moved to NsfNamespaceInit()?
+  .... It is ok on the current labor distribution between object and
+  namespace: if an object is deleted, it takes care about the deletion
+  of subobjects, not the namespace. However, it might be an option in
+  the future to overthink this strategy and to bush (sub)object
+  deletion into the namespace deletion.
 
 - work on replacing SKIP_LEVELS by SKIP_LAMBDA for openacs (works with 
   regression test, has problems with OrderedComposite::ChildManager.init)
   Note concerning treating CMETHOD_FRAME like METHOD_FRAMES: we did
   this change for NsfCallStackFindLastInvocation(), but nsfStack.c has
   still several occurences, where they are treated differently.
+
+- changed relation handling by evaluating the relationcmd in the parent
+  context to keep evaluation order.
+- extend introspection "nsf::configure objectsystem": the command
+  returns now all system methods in the syntax of nsf::createobjectsystem
+- "nsf::createobjectsystem" creates now a warning when an existing
+  objectsystem is redefined and ignores the new definition attempt.
+  This was done with the purpose to allow 
+  "package forget nx; package require nx"
+- Allow overwriting of redefine protected method during bootstrap
+  to ease "package forget nx; package require nx"
+- forward had just "-objscope", no general "-frame method|object".
+  Since forwarder have client data, they always push a method frame.
+  So, the situation is different to nsd::alias and ::nsf::dispatch.
+  Therefore, the flag "-objscope" was renamed to "-objectframe"
+  to provide better consistency with "-frame object"
+- fixed bug, where error handling of invalid options in 
+  ForwardProcessOptions() could lead to a crash
+- return forwardoption "-earlybinding" via instrospection
+- extended regression test
+
+
+TODO:
+
+- "-returns" 
+  * leave syntax as is for method?
+  * add flag to alias and forward?
+  * handle "-returns" in serializer
+
+
+
+- extend coro regression test
 
 - C-interface
     * rework C-interface
@@ -2076,6 +2099,9 @@ For future releases:
    * canonical reps: 
     "p:integer,multivalued" => "-name p -type integer -multivalued"
     "x:type,arg=::D d1" => "-name x -type type -arg ::D -default d1"
+
+   * rework implict namespace completion (NameInNamespaceObj(), 
+     maybe based on BeginOfCallChain()).
 
    * use parameter syntax in genTclAPI
 
