@@ -499,13 +499,20 @@ namespace eval ::nx {
   Class alias info ::nx::Class::slot::__info
 
   #
-  # copy all methods except the subobjects to ::nx::Class::slot::__info
+  # The following test is just for the redefinition case, after a
+  # "package forget". We clear "info method" for ::nx::Object to avoid
+  # confusions in the copy loop below, which uses method "method".
+  #
+  if {[::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::methods "method"] ne ""} {
+    Object method "info method" {} {}
+  }
+
+  #
+  # Copy all methods except the subobjects to ::nx::Class::slot::__info
   #
   foreach m [::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::methods] {
     if {[::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method type $m] eq "object"} continue
     set definition [::nsf::dispatch ::nx::Object::slot::__info ::nsf::methods::object::info::method definition $m]
-    # The following line is just for the redefinition case, after a "package forget"
-    if {[lindex $definition 2] eq "method"} continue
     ::nx::Class::slot::__info {*}[lrange $definition 1 end]
     unset definition
   }

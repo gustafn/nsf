@@ -1938,6 +1938,8 @@ _ added option noforwarder to RelationSlots
 - return forwardoption "-earlybinding" via instrospection
 - extended regression test
 
+- provide a more explicit way to handle resourcing after a "package
+  forget" in the info methods (similar to Stefan's suggestion).
 
 TODO:
 
