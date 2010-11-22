@@ -470,7 +470,7 @@ VPATH = $(srcdir):$(srcdir)/generic:$(srcdir)/unix:$(srcdir)/win
 #========================================================================
 
 pkgIndex.tcl: $(PKG_LIB_FILE)
-	@echo package ifneeded nsf $(PACKAGE_VERSION) [list load [file join \$$dir . $(PKG_LIB_FILE)] nsf] > pkgIndex.tcl
+	@echo package ifneeded nsf $(PACKAGE_VERSION) \"load [list [file join \$$dir . $(PKG_LIB_FILE)] nsf]\; package provide nsf $(PACKAGE_VERSION)\" > pkgIndex.tcl
 
 install-pkgIndex:
 #	@echo package ifneeded nsf $(PACKAGE_VERSION) [list load [file join \$$dir .. "$(PKG_LIB_FILE)"] nsf] > "$(pkglibdir)/pkgIndex.tcl"
