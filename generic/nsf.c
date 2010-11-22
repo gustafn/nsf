@@ -3229,12 +3229,12 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
      * object system, but this seems neccessary by now.
      */
     Tcl_Obj *bootstrapObj = Tcl_GetVar2Ex(interp, "::nsf::bootstrap", NULL, TCL_GLOBAL_ONLY);
-    fprintf(stderr, "bootStrapObv = %p\n", bootstrapObj);
-    result = TCL_OK;
     if (bootstrapObj == NULL) {
       result = NsfVarErrMsg(interp, "Method '", methodName, "' of ", objectName(object),
                             " cannot be overwritten. Derive e.g. a sub-class!",
                             (char *) NULL);
+    } else {
+      result = TCL_OK;
     }
   }
   ObjectSystemsCheckSystemMethod(interp, methodName, GetObjectSystem(object));
