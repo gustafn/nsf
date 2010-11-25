@@ -11,6 +11,7 @@ namespace eval ::xotcl {
   set ::xotcl::version 2.0
   set ::xotcl::patchlevel .0
 
+  namespace eval ::nsf {}; # make package indexer happy
   set ::nsf::bootstrap ::xotcl
 
   #
