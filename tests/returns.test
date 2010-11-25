@@ -290,3 +290,56 @@ Test case converting-returns-nocheck {
 
     ? {c1 set x hugo} {expected sex but got hugo}
 }
+
+
+::nsf::configure checkresults true
+
+Test case int-returns-sugar { 
+    nx::Class create C {
+	# scripted method without paramdefs
+	:method bar-ok1 {a b} -> integer {return 1}
+	:method bar-ok2 {a b} -> integer {return $a}
+	# scripted method with paramdefs
+	:method bar-nok {a b:integer} -> integer {return a}
+	# alias to tcl-cmd (no param defs)
+	:alias incr -> integer -frame object ::incr
+	:alias lappend -> integer -frame object ::lappend
+	:create c1
+    }
+
+    #::nsf::methodproperty C bar-ok1 returns integer
+    #::nsf::methodproperty C bar-ok2 returns integer
+    #::nsf::methodproperty C bar-nok returns integer
+    #::nsf::methodproperty C incr returns integer
+    #::nsf::methodproperty C lappend returns integer
+
+    ? {c1 bar-ok1 1 2} 1
+    ? {c1 bar-ok2 1 2} 1
+    ? {::nsf::methodproperty ::C ::nsf::classes::C::bar-nok returns} integer
+    ? {c1 bar-nok 1 2} {expected integer but got "a" for parameter return-value}
+
+    ? {c1 incr x} 1
+    ? {c1 incr x} 1002
+
+    ? {c1 lappend l e1} {expected integer but got "e1" for parameter return-value}
+
+    # query the returns value
+    ? {::nsf::methodproperty C lappend returns} integer
+
+    # reset it to emtpy
+    ? {::nsf::methodproperty C lappend returns ""} ""
+    ? {::nsf::methodproperty C bar-ok1 returns ""} ""
+    ? {::nsf::methodproperty C bar-ok2 returns ""} ""
+    ? {::nsf::methodproperty C bar-nok returns ""} ""
+
+    # no checking 
+    ? {c1 bar-ok1 1 2} 1
+    ? {c1 bar-ok2 1 2} 1
+    ? {c1 bar-nok 1 2} a
+    ? {c1 lappend l e2} "e1 e2"
+
+    # query returns "", if there is no returns checking
+    ? {::nsf::methodproperty C lappend returns} ""
+    ? {::nsf::methodproperty ::nx::Object method returns} ""
+
+}

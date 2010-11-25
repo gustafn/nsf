@@ -68,12 +68,13 @@ namespace eval ::nx {
   #puts stderr =====3
 }
 
-
+#puts ====NX
 package forget nx
 package req nx
 
+#puts ====XOTCL-[package versions XOTcl]-[set auto_path]
 package require XOTcl
 package forget XOTcl
 package require XOTcl
 
-puts stderr ===EXIT
+#puts stderr ===EXIT

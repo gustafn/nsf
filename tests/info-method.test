@@ -49,9 +49,9 @@ Test case base {
       {::C public method m-with-assertions {} {return proc-[self proc]} -precondition 1 -postcondition 2}
   ? {C info method parameter m} {x}
   ? {nx::Class info method parameter method} \
-      {name arguments body -precondition -postcondition}
+      {name arguments -> body -precondition -postcondition}
   ? {nx::Object info method parameter alias} \
-      {methodName {-frame default} cmd}
+      {methodName -> {-frame default} cmd}
   # raises currently an error
   ? {catch {C info method parameter a}} 1
   

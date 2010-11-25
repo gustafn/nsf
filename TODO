@@ -1941,13 +1941,22 @@ _ added option noforwarder to RelationSlots
 - provide a more explicit way to handle resourcing after a "package
   forget" in the info methods (similar to Stefan's suggestion).
 
+- xotcl2.tcl: added empty namespace eval to make package indexer happy
+- nx.tcl: removed debugging output
+- nx.tcl: added syntactic sugar to "method" and "alias" for
+  return value checking. One can write now:
+     Class create C {
+       :public method foo {a:int b:int} -> int {
+          return [expr {$a + $b}]
+       }
+     }
+- extended regression test
+
 TODO:
 
 - "-returns" 
   * leave syntax as is for method?
-  * add flag to alias and forward?
   * handle "-returns" in serializer
-
 
 
 - extend coro regression test
