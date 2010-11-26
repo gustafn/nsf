@@ -1952,12 +1952,17 @@ _ added option noforwarder to RelationSlots
      }
 - extended regression test
 
+- changes returns syntax from '->' to '-returns'
+- xotcl2: fixed and completed results of "info instforward" and "info forward"
+- serializer: fixed handling of nsf::configure options
+
 TODO:
 
 - "-returns" 
   * leave syntax as is for method?
   * handle "-returns" in serializer
 
+- change allowempty to "orempty" or "empty"
 
 - extend coro regression test
 

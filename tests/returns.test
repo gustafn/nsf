@@ -297,13 +297,13 @@ Test case converting-returns-nocheck {
 Test case int-returns-sugar { 
     nx::Class create C {
 	# scripted method without paramdefs
-	:method bar-ok1 {a b} -> integer {return 1}
-	:method bar-ok2 {a b} -> integer {return $a}
+	:method bar-ok1 {a b} -returns integer {return 1}
+	:method bar-ok2 {a b} -returns integer {return $a}
 	# scripted method with paramdefs
-	:method bar-nok {a b:integer} -> integer {return a}
+	:method bar-nok {a b:integer} -returns integer {return a}
 	# alias to tcl-cmd (no param defs)
-	:alias incr -> integer -frame object ::incr
-	:alias lappend -> integer -frame object ::lappend
+	:alias incr -returns integer -frame object ::incr
+	:alias lappend -returns integer -frame object ::lappend
 	:create c1
     }
 

@@ -142,7 +142,7 @@ namespace eval ::nx {
   # define method "method" for Class and Object
 
   ::nsf::method Class method {
-    name arguments -> body -precondition -postcondition
+    name arguments -returns body -precondition -postcondition
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
@@ -153,13 +153,13 @@ namespace eval ::nx {
     if {$r ne ""} {
       # the method was not deleted
       ::nsf::methodproperty $(object) $r call-protected [::nsf::dispatch $(object) __default_method_call_protection]
-      if {[info exists >]} {::nsf::methodproperty $(object) $r returns ${>}}
+      if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
     }
     return $r
   }
 
   ::nsf::method Object method {
-    name arguments -> body -precondition -postcondition
+    name arguments -returns body -precondition -postcondition
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
@@ -170,7 +170,7 @@ namespace eval ::nx {
     if {$r ne ""} {
       # the method was not deleted
       ::nsf::methodproperty $(object) $r call-protected [::nsf::dispatch $(object) __default_method_call_protection]
-      if {[info exists >]} {::nsf::methodproperty $(object) $r returns ${>}}
+      if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
     }
     return $r
   }
@@ -316,24 +316,24 @@ namespace eval ::nx {
   #
   # -frame object|method make only sense for c-defined cmds,
   #
-  Object public method alias {methodName -> {-frame default} cmd} {
+  Object public method alias {methodName -returns {-frame default} cmd} {
     array set "" [:__resolve_method_path -per-object $methodName]
     #puts "object alias $(object).$(methodName) $cmd"
     set r [::nsf::alias $(object) -per-object $(methodName) \
 	       -frame $frame $cmd]
     ::nsf::methodproperty $(object) -per-object $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
-    if {[info exists >]} {::nsf::methodproperty $(object) $r returns ${>}}
+    if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
     return $r
   }
 
-  Class public method alias {methodName -> {-frame default} cmd} {
+  Class public method alias {methodName -returns {-frame default} cmd} {
     array set "" [:__resolve_method_path $methodName]
     #puts "class alias $(object).$(methodName) $cmd"
     set r [::nsf::alias $(object) $(methodName) -frame $frame $cmd]
     ::nsf::methodproperty $(object) $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
-    if {[info exists >]} {::nsf::methodproperty $(object) $r returns ${>}}
+    if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
     return $r
   }
 

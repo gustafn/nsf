@@ -562,7 +562,7 @@ Test case subst-default {
       "query instparams with default, no paramdefs needed"
 
   ? {Class info method parameter method} \
-      "name arguments -> body -precondition -postcondition" \
+      "name arguments -returns body -precondition -postcondition" \
       "query instparams for scripted method 'method'"
   
   ? {Object info method parameter ::nsf::forward} \
