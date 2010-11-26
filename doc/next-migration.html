@@ -1421,19 +1421,19 @@ Scripting Language via the primitives of the Next Scripting Framework.
 <h2>Method Protection</h2>
 
 
-<h2>Incompatibilities between XOTcl 1.* and XOTcl 2.0</h2>
+<h2><a name="compatibility">Incompatibilities between XOTcl 1.* and XOTcl 2.0</h2>
 
 <h3>Resolvers</h3>
 
 <p>The resolvers (variable resolvers, function resolvers) of the Next
-Scripting Framework are used as well within XOTcl 2.0. When names
-starting with single colons are used in XOTcl 1.* scripts, conflicts
-will arise.  </p>
+Scripting Framework are used as well within XOTcl 2.0. When variable names
+or method names starting with a single colon are used in XOTcl 1.* scripts, conflicts
+will arise with the resolver. These names must be replaced. </p>
 
 <h3>Calling objects via method interface</h3>
 
 <p>Since the next framework supports the so-called ensemble objects,
-which eas the definition of submethods substantially, objects
+which ease the definition of submethods substantially, objects
 registered as methods have different semantics.  In XOTcl 1.*, it was
 possible to call e.g. a method <code>foo</code> of the slot object 
 <code>Foo::slot::ints</code> via the following two interfaces the same way:
@@ -1450,23 +1450,23 @@ instead of <code>ints</code>.
 
 <h3>Slots</h3>
 
-<p>All slot objects (also those in XOTcl) are now always
-next-scripting objects of baseclass <code>::nx::Slot</code>.
-The name of the experimental default-setter <code>initcmd</code> was
-changed to <code>defaultcmd</code>.
-</p>
+<p>All slot objects (also XOTcl slot objects) are now next-scripting
+objects of baseclass <code>::nx::Slot</code>.  The name of the
+experimental default-setter <code>initcmd</code> was changed to
+<code>defaultcmd</code>.  Code directly working on the slots objects
+has to be adapted.</p>
 
 <h3>Obsolete commands</h3>
 
-<p>Parameterclasses were rarely used and have been replaced by the more
+<p>Parameter-classes were rarely used and have been replaced by the more
 general object parameterization. Therefore, <code>cl info
 parameterclass</code> has been removed. 
 
 <h3>Stronger Checking</h3>
 
 <p>The Next Scripting Framework performs stronger checking than XOTcl
-1.*. For example, the requiredness of slots in XOTcl was just a
-comment, while Next enforces it. </p>
+1.*. For example, the requiredness of slots in XOTcl 1.* was just a
+comment, while XOTcl 2.* enforces it. </p>
 
 <h3>Exit Handlers</h3>
 <p>
@@ -1479,6 +1479,6 @@ The exit hander interface changed from a method of
 
 <hr>
 <address></address>
-<!-- hhmts start --> Last modified: Tue Oct 12 11:41:40 CEST 2010 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Fri Nov 26 18:45:03 CET 2010 <!-- hhmts end -->
 </body>
 </html>
