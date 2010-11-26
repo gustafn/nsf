@@ -371,12 +371,11 @@ namespace eval ::nx::serializer {
       set r [subst {
         set ::nsf::__filterstate \[::nsf::configure filter off\]
         #::nx::Slot mixin add ::nx::Slot::Nocheck
-
-	foreach option {debug softrecreate keepinitcmd checkresults checkarguments} {
-	  ::nsf::configure $option [::nsf::configure $option]
-	}
         ::nsf::exithandler set [list [::nsf::exithandler get]]
-      }]\n
+      }]
+      foreach option {debug softrecreate keepinitcmd checkresults checkarguments} {
+	append r \t [list ::nsf::configure $option [::nsf::configure $option]] \n
+      }
       :resetPattern
       set instances [list]
       foreach oss [ObjectSystemSerializer info instances] {
