@@ -503,7 +503,10 @@ namespace eval ::xotcl {
       switch -glob -- $w {
 	-objframe {lappend result -objscope}
 	-* {lappend result $w}
-	default {lappend result {*}[lrange $list $i end]}
+	default {
+	  lappend result {*}[lrange $list $i end]
+	  break
+	}
       }
       incr i
     }
@@ -548,7 +551,16 @@ namespace eval ::xotcl {
     }
 
     :alias filterguard        ::nsf::methods::object::info::filterguard
-    :alias forward            ::nsf::methods::object::info::forward
+    :proc forward {-definition:switch name:optional} {
+      if {$definition} {
+	if {![info exists name]} {error "option -definition requires name of forwarding method to be specified" }
+	set def [my ::nsf::methods::object::info::forward -definition $name]
+	puts stderr "==== foreward def=$def"
+	return [::xotcl::info_forward_options $def]
+      } else {
+	return [my ::nsf::methods::class::info::forward {*}[self args]]
+      }
+    }
     :alias hasnamespace       ::nsf::methods::object::info::hasnamespace
     :proc invar {}            {::nsf::assertion [self] object-invar}
 
@@ -609,10 +621,12 @@ namespace eval ::xotcl {
     #:alias instforward        ::nsf::methods::class::info::forward
     :proc instforward {-definition:switch name:optional} {
       if {$definition} {
+	if {![info exists name]} {error "option -definition requires name of forwarding method to be specified" }
 	set def [my ::nsf::methods::class::info::forward -definition $name]
+	puts stderr "==== def=$def"
 	return [::xotcl::info_forward_options $def]
       } else {
-	return [my ::nsf::methods::class::info::forward [self args]]
+	return [my ::nsf::methods::class::info::forward {*}[self args]]
       }
     }
     :proc instinvar {}        {::nsf::assertion [self] class-invar}
