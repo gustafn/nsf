@@ -1957,11 +1957,11 @@ _ added option noforwarder to RelationSlots
 - serializer: fixed handling of nsf::configure options
 
 - nx: added "-returns" to forwarder
+- added regression test for forwarder and returns
 
 TODO:
 
 - "-returns" 
-  * add regression test to forwarder with returns
   * handle "-returns" in serializer
 
 - change allowempty to "orempty" or "empty"

@@ -304,6 +304,8 @@ Test case int-returns-sugar {
 	# alias to tcl-cmd (no param defs)
 	:alias incr -returns integer -frame object ::incr
 	:alias lappend -returns integer -frame object ::lappend
+	:forward ++ -returns integer ::expr 1 +
+	:forward | -returns integer ::append _ 
 	:create c1
     }
 
@@ -315,6 +317,8 @@ Test case int-returns-sugar {
 
     ? {c1 bar-ok1 1 2} 1
     ? {c1 bar-ok2 1 2} 1
+    ? {c1 ++ 1000} 1001
+    ? {c1 | a} {expected integer but got "a" for parameter return-value}
     ? {::nsf::methodproperty ::C ::nsf::classes::C::bar-nok returns} integer
     ? {c1 bar-nok 1 2} {expected integer but got "a" for parameter return-value}
 
@@ -331,12 +335,16 @@ Test case int-returns-sugar {
     ? {::nsf::methodproperty C bar-ok1 returns ""} ""
     ? {::nsf::methodproperty C bar-ok2 returns ""} ""
     ? {::nsf::methodproperty C bar-nok returns ""} ""
+    ? {::nsf::methodproperty C ++ returns ""} ""
+    ? {::nsf::methodproperty C | returns ""} ""
 
     # no checking 
     ? {c1 bar-ok1 1 2} 1
     ? {c1 bar-ok2 1 2} 1
     ? {c1 bar-nok 1 2} a
     ? {c1 lappend l e2} "e1 e2"
+    ? {c1 ++ 1000} 1001
+    ? {c1 | a} "a"
 
     # query returns "", if there is no returns checking
     ? {::nsf::methodproperty C lappend returns} ""
