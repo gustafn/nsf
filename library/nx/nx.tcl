@@ -278,26 +278,40 @@ namespace eval ::nx {
 
   Object public method forward {
      method 
-     -default -methodprefix -objscope:switch -onerror -verbose:switch
+     -default -methodprefix -objscope:switch -onerror -returns -verbose:switch
      target:optional args
    } {
     array set "" [:__resolve_method_path -per-object $method]
-    set r [::nsf::forward $(object) -per-object $(methodName) \
-	       {*}[lrange [::nsf::current args] 1 end]]
+    set arguments [lrange [::nsf::current args] 1 end]
+    if {[info exists returns]} {
+      # search for "-returns" in the arguments before $args ...
+      set p [lsearch -exact [lrange $arguments 0 [expr {[llength $arguments]-[llength $args]}]] -returns]
+      # ... and remove it if found
+      if {$p > -1} {set arguments [lreplace $arguments $p $p+1]}
+    }
+    set r [::nsf::forward $(object) -per-object $(methodName) {*}$arguments]
     ::nsf::methodproperty $(object) -per-object $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
+    if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
     return $r
   }
   Class public method forward {    
      method 
-     -default -methodprefix -objscope:switch -onerror -verbose:switch
+     -default -methodprefix -objscope:switch -onerror -returns -verbose:switch
      target:optional args
    } {
     array set "" [:__resolve_method_path $method]
-    set r [::nsf::forward $(object) $(methodName) \
-		{*}[lrange [::nsf::current args] 1 end]]
+    set arguments [lrange [::nsf::current args] 1 end]
+    if {[info exists returns]} {
+      # search for "-returns" in the arguments before $args ...
+      set p [lsearch -exact [lrange $arguments 0 [expr {[llength $arguments]-[llength $args]}]] -returns]
+      # ... and remove it if found
+      if {$p > -1} {set arguments [lreplace $arguments $p $p+1]}
+    }
+    set r [::nsf::forward $(object) $(methodName) {*}$arguments]
     ::nsf::methodproperty $(object) $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
+    if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
     return $r
   }
 

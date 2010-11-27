@@ -1956,10 +1956,12 @@ _ added option noforwarder to RelationSlots
 - xotcl2: fixed and completed results of "info instforward" and "info forward"
 - serializer: fixed handling of nsf::configure options
 
+- nx: added "-returns" to forwarder
+
 TODO:
 
 - "-returns" 
-  * leave syntax as is for method?
+  * add regression test to forwarder with returns
   * handle "-returns" in serializer
 
 - change allowempty to "orempty" or "empty"
