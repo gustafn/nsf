@@ -555,7 +555,6 @@ namespace eval ::xotcl {
       if {$definition} {
 	if {![info exists name]} {error "option -definition requires name of forwarding method to be specified" }
 	set def [my ::nsf::methods::object::info::forward -definition $name]
-	puts stderr "==== foreward def=$def"
 	return [::xotcl::info_forward_options $def]
       } else {
 	return [my ::nsf::methods::class::info::forward {*}[self args]]
@@ -623,7 +622,6 @@ namespace eval ::xotcl {
       if {$definition} {
 	if {![info exists name]} {error "option -definition requires name of forwarding method to be specified" }
 	set def [my ::nsf::methods::class::info::forward -definition $name]
-	puts stderr "==== def=$def"
 	return [::xotcl::info_forward_options $def]
       } else {
 	return [my ::nsf::methods::class::info::forward {*}[self args]]
