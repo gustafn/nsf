@@ -1964,6 +1964,9 @@ _ added option noforwarder to RelationSlots
    * just show warning and errors when rebuilding pkgIndex files 
    * stop make in case of errors in pkg_mkIndex
 
+- don't leave error message when __default_superclass (or
+  __default_metaclass) is not set
+
 TODO:
 
 - "-returns" 

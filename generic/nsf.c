@@ -6050,9 +6050,9 @@ Nsf_ObjSetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *
   CallFrame frame, *framePtr = &frame;
 
   Nsf_PushFrameObj(interp, (NsfObject*)object, framePtr);
-  if (((NsfObject*)object)->nsPtr)
+  if (((NsfObject*)object)->nsPtr) {
     flgs |= TCL_NAMESPACE_ONLY;
-
+  }
   result = Tcl_ObjSetVar2(interp, name1, name2, valueObj, flgs);
   Nsf_PopFrameObj(interp, framePtr);
   return result;
@@ -6087,9 +6087,9 @@ Nsf_ObjGetVar2(Nsf_Object *object, Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *
   CallFrame frame, *framePtr = &frame;
 
   Nsf_PushFrameObj(interp, (NsfObject*)object, framePtr);
-  if (((NsfObject*)object)->nsPtr)
+  if (((NsfObject*)object)->nsPtr) {
     flgs |= TCL_NAMESPACE_ONLY;
-
+  }
   result = Tcl_ObjGetVar2(interp, name1, name2, flgs);
   Nsf_PopFrameObj(interp, framePtr);
 
@@ -9850,75 +9850,90 @@ PrimitiveOCreate(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Namespace *parentNsPt
   return object;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * DefaultSuperClass --
+ *
+ *    Determine the default Superclass of the class (specified as
+ *    second argument) and meta class (third argument). The function
+ *    searches for the variable NSF_DEFAULTMETACLASS or
+ *    NSF_DEFAULTSUPERCLASS and uses it if present.
+ *
+ * Results:
+ *    Default superclass or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static NsfClass *
 DefaultSuperClass(Tcl_Interp *interp, NsfClass *cl, NsfClass *mcl, int isMeta) {
-  NsfClass *defaultClass = NULL;
+  NsfClass *resultClass = NULL;
 
   /*fprintf(stderr, "DefaultSuperClass cl %s, mcl %s, isMeta %d\n",
     className(cl), className(mcl), isMeta );*/
 
   if (mcl) {
-    int result;
-    result = SetInstVar(interp, (NsfObject *)mcl, isMeta ?
-                        NsfGlobalObjs[NSF_DEFAULTMETACLASS] :
-                        NsfGlobalObjs[NSF_DEFAULTSUPERCLASS], NULL);
+    Tcl_Obj *resultObj = Nsf_ObjGetVar2((Nsf_Object *)mcl, interp, isMeta ?
+					NsfGlobalObjs[NSF_DEFAULTMETACLASS] :
+					NsfGlobalObjs[NSF_DEFAULTSUPERCLASS], NULL, 0);
 
-    if (result == TCL_OK) {
-      Tcl_Obj *nameObj = Tcl_GetObjResult(interp);
-      if (GetClassFromObj(interp, nameObj, &defaultClass, NULL) != TCL_OK) {
+    if (resultObj) {
+      if (GetClassFromObj(interp, resultObj, &resultClass, NULL) != TCL_OK) {
 	NsfErrMsg(interp, "default superclass is not a class", TCL_STATIC);
       }
-      /*fprintf(stderr, "DefaultSuperClass for %s got from var %s\n", className(cl), ObjStr(nameObj));*/
-
+      /* fprintf(stderr, "DefaultSuperClass for %s got from var %s\n", className(cl), ObjStr(nameObj)); */
+      
     } else {
-      NsfClass *result;
       NsfClasses *sc;
 
-      /*fprintf(stderr, "DefaultSuperClass for %s: search in superclasses starting with %p meta %d\n",
-	className(cl), cl->super, isMeta);*/
+      /* fprintf(stderr, "DefaultSuperClass for %s: search in superclasses starting with %p meta %d\n",
+	 className(cl), cl->super, isMeta); */
       
-      /*
-       * check superclasses of metaclass
-       */
       if (isMeta) {
-	/*fprintf(stderr, "  ... is %s already root meta %d\n",
-	  className(mcl->object.cl),
-	  mcl->object.cl->object.flags & NSF_IS_ROOT_META_CLASS);*/
+	/* 
+	 * Is this already the root metaclass ?
+	 */
         if (mcl->object.cl->object.flags & NSF_IS_ROOT_META_CLASS) {
           return mcl->object.cl;
         }
-      } 
+      }
+      /*
+       * check superclasses of metaclass
+       */
       for (sc = mcl->super; sc && sc->cl != cl; sc = sc->nextPtr) {
-	/*fprintf(stderr, "  ... check ismeta %d %s root mcl %d root cl %d\n",
+	/* fprintf(stderr, "  ... check ismeta %d %s root mcl %d root cl %d\n",
                 isMeta, className(sc->cl),
                 sc->cl->object.flags & NSF_IS_ROOT_META_CLASS,
-                sc->cl->object.flags & NSF_IS_ROOT_CLASS);*/
+                sc->cl->object.flags & NSF_IS_ROOT_CLASS); */
 	if (isMeta) {
 	  if (sc->cl->object.flags & NSF_IS_ROOT_META_CLASS) {
 	    return sc->cl;
 	  }
 	} else {
 	  if (sc->cl->object.flags & NSF_IS_ROOT_CLASS) {
-            /*fprintf(stderr, "found root class %p %s\n", sc->cl, className(sc->cl));*/
+            /* fprintf(stderr, "found root class %p %s\n", sc->cl, className(sc->cl)); */
 	    return sc->cl;
 	  }
 	}
-	result = DefaultSuperClass(interp, cl, sc->cl, isMeta);
-	if (result) {
-	  return result;
+	resultClass = DefaultSuperClass(interp, cl, sc->cl, isMeta);
+	if (resultClass) {
+	  break;
 	}
       }
     }
   } else {
-    /* during bootstrapping, there might be no meta class defined yet */
-    /*fprintf(stderr, "no meta class ismeta %d %s root mcl %d root cl %d\n",
+    /* 
+     * During bootstrapping, there might be no meta class defined yet 
+     */
+    /* fprintf(stderr, "no meta class ismeta %d %s root mcl %d root cl %d\n",
                   isMeta, className(cl),
                   cl->object.flags & NSF_IS_ROOT_META_CLASS,
-                  cl->object.flags & NSF_IS_ROOT_CLASS
-                  );*/
-    return NULL;
+                  cl->object.flags & NSF_IS_ROOT_CLASS); */
   }
-  return defaultClass;
+
+  return resultClass;
 }
 
 /*
@@ -10721,21 +10736,21 @@ NsfGetClassClientData(Nsf_Class *cli) {
 
 static int
 SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj) {
-  Tcl_Obj *result;
+  Tcl_Obj *resultObj;
   int flags = (object->nsPtr) ? TCL_LEAVE_ERR_MSG|TCL_NAMESPACE_ONLY : TCL_LEAVE_ERR_MSG;
   CallFrame frame, *framePtr = &frame;
   Nsf_PushFrameObj(interp, object, framePtr);
 
   if (valueObj == NULL) {
-    result = Tcl_ObjGetVar2(interp, nameObj, NULL, flags);
+    resultObj = Tcl_ObjGetVar2(interp, nameObj, NULL, flags);
   } else {
     /*fprintf(stderr, "setvar in obj %s: name %s = %s\n", objectName(object), ObjStr(nameObj), ObjStr(value));*/
-    result = Tcl_ObjSetVar2(interp, nameObj, NULL, valueObj, flags);
+    resultObj = Tcl_ObjSetVar2(interp, nameObj, NULL, valueObj, flags);
   }
   Nsf_PopFrameObj(interp, framePtr);
 
-  if (result) {
-    Tcl_SetObjResult(interp, result);
+  if (resultObj) {
+    Tcl_SetObjResult(interp, resultObj);
     return TCL_OK;
   }
   return TCL_ERROR;
@@ -14121,16 +14136,17 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 
     if (!TclIsVarUndefined(varPtr) && !TclIsVarLink(varPtr)) {
       if (TclIsVarScalar(varPtr)) {
-        /* it may seem odd that we do not copy obj vars with the
-         * same SetVar2 as normal vars, but we want to dispatch it in order to
-         * be able to intercept the copying */
+        /* 
+	 * Copy scalar variables from the namespace, which might be
+	 * either object or namespace variables.
+	 */
 
         if (object) {
           /* fprintf(stderr, "copy in obj %s var %s val '%s'\n", objectName(object), ObjStr(varNameObj),
 	     ObjStr(valueOfVar(Tcl_Obj, varPtr, objPtr)));*/
 
-          /* can't rely on "set", if there are multiple object systems */
-          SetInstVar(interp, destObject, varNameObj, valueOfVar(Tcl_Obj, varPtr, objPtr));
+	  Nsf_ObjSetVar2((Nsf_Object*)destObject, interp, varNameObj, NULL, 
+			 valueOfVar(Tcl_Obj, varPtr, objPtr), 0);
         } else {
           Tcl_ObjSetVar2(interp, varNameObj, NULL,
                          valueOfVar(Tcl_Obj, varPtr, objPtr),
@@ -14138,7 +14154,7 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
         }
       } else {
         if (TclIsVarArray(varPtr)) {
-          /* HERE!! PRE85 Why not [array get/set] based? Let the core iterate*/
+          /* HERE!! PRE85 Why not [array get/set] based? Let the core iterate */
           TclVarHashTable *aTable = valueOfVar(TclVarHashTable, varPtr, tablePtr);
           Tcl_HashSearch ahSrch;
           Tcl_HashEntry *ahPtr = aTable ? Tcl_FirstHashEntry(VarHashTablePtr(aTable), &ahSrch) :0;
