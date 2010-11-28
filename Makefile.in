@@ -237,7 +237,7 @@ binaries: $(BINARIES) pkgIndex.tcl
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \
 	done; fi;
 
-libraries: 
+libraries: libraries-pkgindex
 	@if test ! "x$(subdirs)" = "x" ; then dirs="$(subdirs)" ; \
 	for dir in $$dirs ; do \
 	   if (cd $$dir; $(MAKE) $@) ; then true ; else exit 1 ; fi ; \

@@ -1,9 +1,12 @@
-### inEachDir changes now to each directory
-### install clears tgarget directory before installing
-### Object file added (for better -n processing)
+### 
+### Utility for the build process. Main purpose currently:
+###
+###  - Build the pkgIndex in each directory
+###
 lappend auto_path ..
 
 package require nx
+namespace eval ::nx {}; # make pkg_mkIndex happy
 namespace import -force ::nx::*
 
 ###
@@ -41,15 +44,27 @@ Object create make {
       }
       #puts stderr "callinglevel <[current callinglevel]> $fls"
 
-      set loads "-load nsf"
+      #
+      # redefine the logging behavior to show just error or warnings,
+      # preceded by the current directory
+      #
+      #set ::current [pwd]
+      proc ::tclLog msg {
+	if {[regexp {^(error|warning)} $msg]} {
+	  if {[regexp -nocase error $msg]} {
+	    error $msg
+	  }
+	  puts stderr "$msg ([pwd])"
+	}
+      }
+      
+      set flags "-verbose -direct -load nsf"
       if {$fls ne "nx.tcl"} {
-	append loads " -load nx"
+	append flags " -load nx"
       }
-      puts stderr "[pwd]:\n\tcall eval pkg_mkIndex -verbose -direct $loads . $fls"
-      if {[catch {pkg_mkIndex -verbose -direct {*}$loads . {*}$fls} errs]} {
-        puts stderr "*** $errs"
-      }
-      puts stderr "[pwd] done"
+      #puts stderr "[pwd]:\n\tcall pkg_mkIndex $flags . $fls"
+      pkg_mkIndex {*}$flags . {*}$fls
+      #puts stderr "[pwd] done"
     }
     
     foreach addFile [glob -nocomplain *.add] {
@@ -74,7 +89,9 @@ Object create make {
        } {
       set olddir [pwd]
       cd $path
-      make {*}$cmd $path
+      if {[catch {make {*}$cmd $path} errMsg]} {
+	error  "$errMsg (in directory [pwd])"
+      }
       set files [glob -nocomplain *]
       cd $olddir
       foreach p $files { :inEachDir $path/$p $cmd }
@@ -168,10 +185,15 @@ Class create Script {
 
   :public method target {path} {make eval [list set :target $path]}
 
-  :create main
+  if {[catch {:create main} errorMsg]} {
+    puts stderr "*** $errorMsg"
+    # Exit sliently, alltough we are leaving from an active stack
+    # frame.
+    ::nsf::configure debug 0
+    exit -1
+  }
 }
 
 #puts stderr "+++ make.tcl finished."
-#if {[set ::tcl_platform(platform)] eq "windows"} {
-#  exit
-#}
+
+#exit $::result

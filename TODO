@@ -1959,6 +1959,11 @@ _ added option noforwarder to RelationSlots
 - nx: added "-returns" to forwarder
 - added regression test for forwarder and returns
 
+- rebuild pkgIndex.tcl more eagerly
+- added error handler to pkg_mkIndex when called via "make libraries-pkgindex"
+   * just show warning and errors when rebuilding pkgIndex files 
+   * stop make in case of errors in pkg_mkIndex
+
 TODO:
 
 - "-returns" 
