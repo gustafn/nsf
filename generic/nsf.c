@@ -9176,7 +9176,7 @@ NextSearchAndInvoke(Tcl_Interp *interp, CONST char *methodName,
      */
     if (object->mixinStack) {
       if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_MIXIN)
-        cscPtr->frameType = NSF_CSC_TYPE_INACTIVE;
+        cscPtr->frameType = NSF_CSC_TYPE_INACTIVE_MIXIN;
 
       /* otherwise move the command pointer forward */
       if (isMixinEntry) {
@@ -15319,6 +15319,7 @@ NsfOInstvarMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONS
   if (object && (object->filterStack || object->mixinStack) ) {
     CallStackUseActiveFrame(interp, &ctx);
   }
+
   if (!Tcl_Interp_varFramePtr(interp)) {
     CallStackRestoreSavedFrames(interp, &ctx);
     return NsfVarErrMsg(interp, "instvar used on ", objectName(object),

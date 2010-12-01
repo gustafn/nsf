@@ -1073,8 +1073,32 @@ Test case interactions {
     
     ? {::ns1::o bar} "1-1-:XXX-"
   }
-
-
-
-
 }
+
+Test case after-next {
+  #
+  # This test case tests, whether we can use e..g an instvar in an
+  # mixin method after the next. In such cases, the frame flags have
+  # to be altered from inactive mixin to active mixin (otherwise the
+  # actual frame would be skipped in useActiveFrames below in :instvar).
+  #
+  Class create FormPage {
+    :attribute package_id
+    :public method initialize_loaded_object {} {;}
+  }
+
+  Class create WorkflowPage {
+    :alias instvar :::nsf::methods::object::instvar
+    :public method initialize_loaded_object {} {
+      next
+      :instvar package_id
+      return $package_id
+    }
+
+    FormPage mixin WorkflowPage
+    FormPage create p1 -package_id 123
+    
+    ? {p1 initialize_loaded_object} 123
+  }
+}
+

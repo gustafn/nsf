@@ -1964,6 +1964,10 @@ _ added option noforwarder to RelationSlots
    * just show warning and errors when rebuilding pkgIndex files 
    * stop make in case of errors in pkg_mkIndex
 
+- Fixed switching between INACTIVE_MIXIN frames to ACTIVE_MIXIN frames
+- Extended regression test
+
+
 TODO:
 
 - "-returns" 
