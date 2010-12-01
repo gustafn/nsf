@@ -2529,15 +2529,23 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
    */
   varName ++;
     
-  /* We have an object and create the variable if not found */
+  /* 
+   * We have an object and create the variable if not found 
+   */
   assert(object);
-  varTablePtr = object->nsPtr ? Tcl_Namespace_varTablePtr(object->nsPtr) : object->varTablePtr;
-#if 0
-  if (varTablePtr == NULL) {
-    /* this seems to be the first access to object->varTablePtr for this object */
-    object->varTablePtr = varTablePtr = VarHashTableCreate();
+  if (object->nsPtr) {
+    varTablePtr = Tcl_Namespace_varTablePtr(object->nsPtr);
+  } else if (object->varTablePtr) {
+    varTablePtr = object->varTablePtr;
+  } else {
+    /*
+     * In most situations, we have a varTablePtr through the clauses
+     * above. However, if someone redefines e.g. the method
+     * "configure" or "objectparameter", we might find an object with
+     * an still empty varTable, since these are lazy initiated.
+     */
+    varTablePtr = object->varTablePtr = VarHashTableCreate();
   }
-#endif
   assert(varTablePtr);
 
   /*fprintf(stderr, "Object Var Resolver, name=%s, obj %p, nsPtr %p, varTablePtr %p\n",

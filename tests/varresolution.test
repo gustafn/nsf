@@ -1102,3 +1102,14 @@ Test case after-next {
   }
 }
 
+Test case unconfigured-varresolver {
+  #
+  # Test robustness of varresolver for unconfigured objects
+  #
+  Class create O {
+    :public method configure args {;}
+    :create ateh
+  }
+  ? {ateh eval {info exists :x}} 0
+}
+
