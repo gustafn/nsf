@@ -1617,6 +1617,28 @@ ObjectFindMethod(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *methodObj, NsfC
   return cmd;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * GetObjectSystem --
+ *
+ *    Return the object system for which the object was defined
+ *
+ * Results:
+ *    Object system pointer
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static NsfObjectSystem *
+GetObjectSystem(NsfObject *object) {
+  assert(object);
+  if (NsfObjectIsClass(object)) {
+    return ((NsfClass *)object)->osPtr;
+  }
+  return object->cl->osPtr;
+}
 
 /*
  *----------------------------------------------------------------------
@@ -1679,6 +1701,7 @@ ObjectSystemAdd(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
   RUNTIME_STATE(interp)->objectSystems = osPtr;
 }
 
+
 /*
  *----------------------------------------------------------------------
  * ObjectSystemsCheckSystemMethod --
@@ -1696,8 +1719,8 @@ ObjectSystemAdd(Tcl_Interp *interp, NsfObjectSystem *osPtr) {
  *----------------------------------------------------------------------
  */
 static void
-ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfObjectSystem *defOsPtr) {
-  NsfObjectSystem *osPtr;
+ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfObject *object) {
+  NsfObjectSystem *osPtr, *defOsPtr = GetObjectSystem(object);
   int i;
 
   for (osPtr = RUNTIME_STATE(interp)->objectSystems; osPtr; osPtr = osPtr->nextPtr) {
@@ -1706,14 +1729,30 @@ ObjectSystemsCheckSystemMethod(Tcl_Interp *interp, CONST char *methodName, NsfOb
       if (methodObj && !strcmp(methodName, ObjStr(methodObj))) {
         int flag = 1<<i;
         if (osPtr->definedMethods & flag) {
-          osPtr->overloadedMethods |= flag;
-          /*fprintf(stderr, "+++ %s %.6x overloading %s\n", className(defOsPtr->rootClass),
-            osPtr->overloadedMethods, methodName);*/
+	  /* 
+	   *  If for some reason (e.g. reload) we redefine the base
+	   *  methods, these never count as overloads.
+	   */
+	  if ((*(Nsf_SytemMethodOpts[i]+1) == 'o' && object == &defOsPtr->rootClass->object)
+	      || (*(Nsf_SytemMethodOpts[i]+1) == 'c' && object == &defOsPtr->rootMetaClass->object) ) {
+	    /*fprintf(stderr, "+++ %s %.6x NOT overloading %s.%s %s (is root %d, is meta %d)\n", 
+		    className(defOsPtr->rootClass), 
+		    osPtr->overloadedMethods, objectName(object), methodName, Nsf_SytemMethodOpts[i], 
+		    object == &defOsPtr->rootClass->object, 
+		    object == &defOsPtr->rootMetaClass->object);*/
+	  } else {
+	    osPtr->overloadedMethods |= flag;
+	    /*fprintf(stderr, "+++ %s %.6x overloading %s.%s %s (is root %d, is meta %d)\n", 
+		    className(defOsPtr->rootClass),
+		    osPtr->overloadedMethods, objectName(object), methodName, Nsf_SytemMethodOpts[i], 
+		    object == &defOsPtr->rootClass->object, 
+		    object == &defOsPtr->rootMetaClass->object);*/
+	  }
         }
         if (osPtr == defOsPtr && ((osPtr->definedMethods & flag) == 0)) {
           osPtr->definedMethods |= flag;
-          /*fprintf(stderr, "+++ %s %.6x defining %s\n", className(defOsPtr->rootClass),
-            osPtr->definedMethods, methodName);*/
+          /*fprintf(stderr, "+++ %s %.6x defining %s.%s %s\n", className(defOsPtr->rootClass),
+	    osPtr->definedMethods, objectName(object), methodName, Nsf_SytemMethodOpts[i]);*/
         }
       }
     }
@@ -1813,28 +1852,6 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
   return TCL_OK;
 }
 
-/*
- *----------------------------------------------------------------------
- * GetObjectSystem --
- *
- *    Return the object system for which the object was defined
- *
- * Results:
- *    Object system pointer
- *
- * Side effects:
- *    None.
- *
- *----------------------------------------------------------------------
- */
-static NsfObjectSystem *
-GetObjectSystem(NsfObject *object) {
-  assert(object);
-  if (NsfObjectIsClass(object)) {
-    return ((NsfClass *)object)->osPtr;
-  }
-  return object->cl->osPtr;
-}
 
 /*
  *----------------------------------------------------------------------
@@ -3245,8 +3262,10 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
       result = TCL_OK;
     }
   }
-  ObjectSystemsCheckSystemMethod(interp, methodName, GetObjectSystem(object));
 
+  if (result == TCL_OK) {
+    ObjectSystemsCheckSystemMethod(interp, methodName, object);
+  }
   return result;
 }
 

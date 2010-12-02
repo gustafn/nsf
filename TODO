@@ -1970,6 +1970,8 @@ _ added option noforwarder to RelationSlots
 - Fixed switching between INACTIVE_MIXIN frames to ACTIVE_MIXIN frames
 - Extended regression test
 
+- make handling of redefinitions in system methods more robust
+
 TODO:
 
 - "-returns" 
