@@ -93,7 +93,7 @@ void NsfShowStack(Tcl_Interp *interp) {
 	      cscPtr,
               cscPtr ? cscPtr->frameType : -1,
               cscPtr ? cscPtr->flags : -1,
-              cscPtr ? objectName(cscPtr->self) : "",
+              cscPtr ? ObjectName(cscPtr->self) : "",
               cscPtr ? cscPtr->cmdPtr : NULL,
               cscPtr ? Tcl_GetCommandName(interp, cscPtr->cmdPtr) : ""
 	      );
@@ -101,7 +101,7 @@ void NsfShowStack(Tcl_Interp *interp) {
       fprintf(stderr, " no csc");
       if (frameFlags & FRAME_IS_NSF_OBJECT) {
         NsfObject *object = (NsfObject *)Tcl_CallFrame_clientData(framePtr);
-        fprintf(stderr, " obj %p %s", object, objectName(object));
+        fprintf(stderr, " obj %p %s", object, ObjectName(object));
       }
       fprintf(stderr, "\n");
     }
@@ -852,7 +852,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
     object->activationCount ++;
     /*fprintf(stderr, "CscInit %s method %s activationCount ++ (%s) --> %d\n",
 	    msg, cmd ? Tcl_GetCommandName(object->teardown,cmd) : "UNK", 
-	    objectName(object),  object->activationCount);*/
+	    ObjectName(object),  object->activationCount);*/
     /*
      * track class activations
      */
@@ -882,7 +882,7 @@ CscInit(/*@notnull@*/ NsfCallStackContent *cscPtr, NsfObject *object, NsfClass *
 
 
   /*fprintf(stderr, "CscInit %p (%s) object %p %s flags %.6x cmdPtr %p\n",cscPtr, msg,
-    object, objectName(object), cscPtr->flags, cscPtr->cmdPtr);*/
+    object, ObjectName(object), cscPtr->flags, cscPtr->cmdPtr);*/
 }
 
 /*
@@ -914,7 +914,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
   flags = cscPtr->flags;
 
   /*fprintf(stderr, "CscFinish %p object %p %s flags %.6x cmdPtr %p\n",cscPtr,
-    object, objectName(object), flags, cscPtr->cmdPtr);*/
+    object, ObjectName(object), flags, cscPtr->cmdPtr);*/
 
   /*
    *  We cannot rely on the existence of cscPtr->cmdPtr (like in
@@ -927,11 +927,11 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
      */
     object->activationCount --;
 
-    /*fprintf(stderr, "... activationCount -- (%s) --> %d\n",objectName(object),
+    /*fprintf(stderr, "... activationCount -- (%s) --> %d\n",ObjectName(object),
       object->activationCount);*/
 
     /*fprintf(stderr, "decr activationCount for %s to %d object->flags %.6x dc %.6x succ %.6x\n",
-	    objectName(cscPtr->self), cscPtr->self->activationCount, object->flags,
+	    ObjectName(cscPtr->self), cscPtr->self->activationCount, object->flags,
 	    object->flags & NSF_DESTROY_CALLED,
 	    object->flags & NSF_DESTROY_CALLED_SUCCESS
 	    );*/
@@ -949,7 +949,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
     }
 #if defined(OBJDELETION_TRACE)
     else if (!allowDestroy) {
-      fprintf(stderr,"checkFree %p %s\n",object, objectName(object));
+      fprintf(stderr,"checkFree %p %s\n",object, ObjectName(object));
     }
 #endif
 
@@ -979,7 +979,7 @@ CscFinish_(Tcl_Interp *interp, NsfCallStackContent *cscPtr) {
       }
 #if defined(OBJDELETION_TRACE)
       else if (!allowDestroy) {
-	fprintf(stderr,"checkFree %p %s\n",object, objectName(object));
+	fprintf(stderr,"checkFree %p %s\n",object, ObjectName(object));
       }
 #endif
       // TODO do we have a leak now?
@@ -1016,7 +1016,7 @@ BeginOfCallChain(Tcl_Interp *interp, NsfObject *object) {
   Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp), 
     *prevFramePtr = varFramePtr;
 
-  fprintf(stderr, "BeginOfCallChain obj %s\n", objectName(object));
+  fprintf(stderr, "BeginOfCallChain obj %s\n", ObjectName(object));
   if (object) {
     for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
       register int flags = Tcl_CallFrame_isProcCallFrame(varFramePtr);

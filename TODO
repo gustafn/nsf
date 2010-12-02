@@ -1971,6 +1971,7 @@ _ added option noforwarder to RelationSlots
 - Extended regression test
 
 - make handling of redefinitions in system methods more robust
+- follow Tcl nameing convention (uppercase functions)
 
 TODO:
 
