@@ -440,7 +440,7 @@ namespace eval ::nx {
     #    methods".  This is achieved via the object-method-only policy
     #    (we cannot call "subcmd <subcmdName>" when "subcmdName" is a
     #    method on EnsembleObject) and via a skip object-methods flag
-    #    in nsf when calling e.g. "unknwown" (such that a subcmd
+    #    in nsf when calling e.g. "unknown" (such that a subcmd
     #    "unknown" does not interfere with the method "unknown").
     #
     :protected method unknown {obj m args} {
