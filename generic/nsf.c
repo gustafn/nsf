@@ -7441,10 +7441,29 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
   if (*methodName == ':') {
     cmd = Tcl_GetCommandFromObj(interp, methodObj);
     if (cmd) {
-      CONST char *mn = Tcl_GetCommandName(interp, cmd);
-      if (IsClassNsName(methodName)) {
+      Tcl_ObjCmdProc *procPtr = Tcl_Command_objProc(cmd);
+      
+      if (procPtr == NsfObjDispatch) {
+	/*
+	 * Don't allow to call objects as methods (for the time being)
+	 * via absolute names. Otherwise, in line {2} below, ::State
+	 * is interpreted as an ensemble object, and the method
+	 * "unknown" won't be called (in the XOTcl tradition) and
+	 * wierd things will happen.
+	 *
+	 *  {1} Class ::State
+	 *  {2} Class ::State -parameter x
+	 */
+	if (RUNTIME_STATE(interp)->debugLevel > 0) {
+	  fprintf(stderr, "Warning: don't invoke object %s this way. Register object via alias...\n", methodName);
+	}
+	cmd = NULL;
+
+      } else if (IsClassNsName(methodName)) {
 	CONST char *className = NSCutNsfClasses(methodName);
+	CONST char *mn = Tcl_GetCommandName(interp, cmd);
 	Tcl_DString ds, *dsPtr = &ds;
+
 	DSTRING_INIT(dsPtr);
 	Tcl_DStringAppend(dsPtr, className, strlen(className)-strlen(mn)-2);
 	cl = (NsfClass *)GetObjectFromString(interp, Tcl_DStringValue(dsPtr));

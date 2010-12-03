@@ -1973,6 +1973,15 @@ _ added option noforwarder to RelationSlots
 - make handling of redefinitions in system methods more robust
 - follow Tcl nameing convention (uppercase functions)
 
+- Don't allow to call objects as methods (for the time being) via
+  absolute names. Otherwise, in line {2} below, ::State is
+  interpreted as an ensemble object, and the method "unknown"
+  won't be called (in the XOTcl tradition).
+     {1} Class ::State
+     {2} Class ::State -parameter x
+
+
+
 TODO:
 
 - "-returns" 
