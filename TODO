@@ -1980,14 +1980,16 @@ _ added option noforwarder to RelationSlots
      {1} Class ::State
      {2} Class ::State -parameter x
 
-
+- Converted migration guide to asciidoc
+- Overhaul of serveral sections in asciidoc
+- Developed styles for nx for migration guide (.css and source-highlight)
 
 TODO:
 
 - "-returns" 
   * handle "-returns" in serializer
 
-- change allowempty to "orempty" or "empty"
+- change allowempty to "empty"
 
 - extend coro regression test
 
