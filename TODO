@@ -1984,6 +1984,9 @@ _ added option noforwarder to RelationSlots
 - Overhaul of serveral sections in asciidoc
 - Developed styles for nx for migration guide (.css and source-highlight)
 
+- fixed bug in xotcl 2.0 "info forward"
+- extended regression test
+
 TODO:
 
 - "-returns" 

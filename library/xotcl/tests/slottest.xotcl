@@ -204,6 +204,7 @@ o1 set z 100
 #o1 forward z o1 [list %argclindex [list set set]] %proc
 #o1 proc get name {my set $name}
 o1 forward get -earlybinding ::nsf::setvar %self %1
+? {o1 info forward} get
 ? {o1 get z 101} 101
 ? {o1 get z} "101"
 

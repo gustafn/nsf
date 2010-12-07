@@ -557,7 +557,7 @@ namespace eval ::xotcl {
 	set def [my ::nsf::methods::object::info::forward -definition $name]
 	return [::xotcl::info_forward_options $def]
       } else {
-	return [my ::nsf::methods::class::info::forward {*}[self args]]
+	return [my ::nsf::methods::object::info::forward {*}[self args]]
       }
     }
     :alias hasnamespace       ::nsf::methods::object::info::hasnamespace
