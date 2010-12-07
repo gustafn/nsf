@@ -11,7 +11,7 @@
 # essential language primitives (in particular, <<@command
 # ::nx::next>> and <<@command ::nx::current>>).
 #
-# @require Tcl
+# @require nsf
 # @version 1.0.0a
 # @namespace ::nx
 

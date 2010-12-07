@@ -6,7 +6,7 @@
 </form>
 <h2>
   Class
-  <b property="yui:name">${:name}</b>
+  <b property="yui:name">[:print_name -status]</b>
   [:?var :@superclass {
   <span class="extends">
   - subclass of
@@ -71,12 +71,10 @@
 	}]
 	
         <hr />
-      </div>
-   
-      }]
-}]
+       </div>
     </div>
-  </div>
+    }]
+}]
 
   [:!let iattrs [:inherited @class-attribute]]
   [:? {$iattrs ne ""} { 
@@ -170,6 +168,7 @@
       }] <!-- end-of-for -->
     </div>
   </div>
+</div>
   }] <!-- end-of-?var -->
 
   [:!let imethods [:inherited @class-method]]
@@ -202,7 +201,6 @@
 [:?var :@method {
    Undocumented Methods: <span style='color: red'>[:undocumented]</span>
 }]
-</div>
 
   
 [:?var :@object-method {

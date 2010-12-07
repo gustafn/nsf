@@ -8,6 +8,9 @@ namespace eval ::nx {
   #
   set ::nsf::bootstrap ::nx
 
+
+  puts stderr ====[::nsf::configure objectsystem]
+
   #
   # First create the ::nx object system. 
   #
@@ -21,7 +24,7 @@ namespace eval ::nx {
     -object.defaultmethod defaultmethod 
     -object.destroy destroy 
     -object.init init 
-    -object.move move 
+      -object.move move 
     -object.objectparameter objectparameter 
     -object.residualargs residualargs
     -object.unknown unknown
@@ -54,6 +57,10 @@ namespace eval ::nx {
   foreach cmd [info command ::nsf::methods::class::*] {
     set cmdName [namespace tail $cmd]
     if {$cmdName in [list "filterguard" "mixinguard"]} continue
+    # set tgt [Class ::nsf::methods::class::info::methods -methodtype alias -callprotection all $cmdName]
+    #if {$tgt ne "" && [::nsf::methodproperty Class $cmdName redefine-protected]} {
+    #  ::nsf::methodproperty Class $cmdName redefine-protected false
+    #}
     ::nsf::alias Class $cmdName $cmd 
     unset cmdName
   }
@@ -165,7 +172,7 @@ namespace eval ::nx {
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
     if {[info exists postcondition]} {lappend conditions -postcondition $postcondition}
     array set "" [:__resolve_method_path -per-object $name]
-    #puts "object method $(object).$(methodName) [list $arguments] {...}"
+    # puts "object method $(object).$(methodName) [list $arguments] {...}"
     set r [::nsf::method $(object) -per-object $(methodName) $arguments $body {*}$conditions]
     if {$r ne ""} {
       # the method was not deleted
@@ -228,7 +235,7 @@ namespace eval ::nx {
     :method public {args} {
       set p [lsearch -regexp $args {^(method|alias|attribute|forward|setter)$}]
       if {$p == -1} {error "$args is not a method defining method"}
-      set r [{*}:$args]
+      set r [::nsf::dispatch [::nsf::current object] {*}$args]
       if {$r ne ""} {::nsf::methodproperty [::nsf::self] $r call-protected false}
       return $r
     }
@@ -1086,7 +1093,7 @@ namespace eval ::nx {
   ############################################
   ::nsf::invalidateobjectparameter MetaSlot
   
-  MetaSlot create ::nx::Attribute -superclass ObjectParameterSlot
+  MetaSlot create ::nx::Attribute -superclass ::nx::ObjectParameterSlot
 
   createBootstrapAttributeSlots ::nx::Attribute {
     {value_check once}
@@ -1280,7 +1287,7 @@ namespace eval ::nx {
   # (without syntactic overhead).
   ##################################################################
 
-  Class create ::nx::ScopedNew -superclass Class {
+  Class create ::nx::ScopedNew -superclass ::nx::Class {
   
     :attribute {withclass ::nx::Object}
     :attribute container

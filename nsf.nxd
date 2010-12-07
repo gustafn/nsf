@@ -1,5 +1,14 @@
 # -*- Tcl -*-
 
+# @package nsf
+#
+# ...
+#
+# @require Tcl
+# @version 1.0.0a
+# @namespace ::nsf
+
+
 # @command assertion
 #
 # @parameter object:object

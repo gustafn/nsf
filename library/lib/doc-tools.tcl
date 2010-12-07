@@ -95,6 +95,17 @@ namespace eval ::nx::doc {
     return $result
   }
 
+  proc filtered {instances filteredBy} {
+    set filtered [list]
+    foreach v $instances { 
+      if {[$v eval [list expr $filteredBy]]} {
+	lappend filtered $v
+      }
+    }
+    return $filtered
+  }
+
+
   proc sort_by_value {d} {
     set haystack [list]
     dict for {key value} $d {
@@ -120,14 +131,35 @@ namespace eval ::nx::doc {
 
   Class create MixinLayer -superclass Class {
     :attribute {prefix ""}
+    :public method init {} {
+      set :active_mixins [dict create]
+      next
+    }
     :public method apply {} {
+      if {${:active_mixins} ne ""} {
+	puts stderr "Warning: mixin layer has not been revoked!"
+	set :active_mixins [dict create]
+      }
       foreach mixin [:info children -type [current class]::Mixin] {
 	set base "${:prefix}::[namespace tail $mixin]"
 	if {[::nsf::isobject $base]} {
-	  set scope [expr {[$mixin scope] eq "object" && [$base info is class]?"class-object":""}]
+	  set scope [expr {[$mixin scope] eq "object" && \
+			       [$base info is class]?"class-object":""}]
+	  dict lappend :active_mixins $base $mixin
 	  $base {*}$scope mixin add $mixin
 	}
+      }
     }
+
+    :public method revoke {} {
+      dict for {base mixins} ${:active_mixins} {
+	foreach m $mixins {
+	  set scope [expr {[$m scope] eq "object" && \
+			       [$base info is class]?"class-object":""}]
+	  $base {*}$scope mixin delete $m
+	}
+      }
+      set :active_mixins [dict create]
     }
     
     Class create [current]::Mixin -superclass Class {
@@ -285,19 +317,9 @@ namespace eval ::nx::doc {
     }
     
     :method createOrConfigure {id args} {
-      # puts stderr "createOrConfigure id $id"
-      # This method handles verifies whether an entity object based on
-      # the given id exists. If so, it returns the resolved name. If
-      # not, it provides for generating an object with the precomputed
-      # id for the first time!
-      #
-      # @param id The identifier string generated beforehand
-      # @return The identifier of the newly generated or resolved entity object
-      # @see {{@method id}}
       namespace eval $id {}
       if {[::nsf::isobject $id]} {
 	$id configure {*}$args
-	# return $id
       } else {
 	:create $id {*}$args
       }
@@ -432,11 +454,11 @@ namespace eval ::nx::doc {
 		[$value info has type ${:part_class}]} {
 	  return $value
 	}
-	# puts stderr "NEWWWWWW ${:part_class} new \
-	# 	     -name [lindex $value 0] \
-	# 	     -partof $domain \
-	# 	     -part_attribute [current] \
-	# 	     -@doc [lrange $value 1 end]"
+	 # puts stderr "NEWWWWWW ${:part_class} new \
+	 # 	     -name [lindex $value 0] \
+	 # 	     -partof $domain \
+	 # 	     -part_attribute [current] \
+	 # 	     -@doc [lrange $value 1 end]"
 	return  [${:part_class} new \
 		     -name [lindex $value 0] \
 		     -partof $domain \
@@ -467,6 +489,20 @@ namespace eval ::nx::doc {
     }
   }
   
+  ::nx::MetaSlot create SwitchAttribute -superclass ::nx::Attribute {
+    :public method init args {
+      set :defaultmethods [list get get]
+      next
+    }
+    :public method get {obj prop} {
+      set def [expr {[info exists :default]?${:default}:0}]
+      if {[$obj eval [list set :$prop]] == $def} {
+	return [::nsf::setvar $obj $prop [expr {!$def}]]
+      }
+      return [next]
+    }
+  }
+
   Class create Entity {
     #
     # Entity is the base class for the documentation classes
@@ -482,9 +518,14 @@ namespace eval ::nx::doc {
       next [list [list @doc:optional __initcmd:initcmd,optional]]
     }
 
+    :class-object attribute current_project:object,type=::nx::doc::@project,allowempty
+    :public forward current_project [current] %method
+
     :attribute partof:object,type=::nx::doc::StructuredEntity
     :attribute part_attribute:object,type=::nx::doc::PartAttribute
  
+    :attribute pdata
+
     :public method get_upward_path {
       -relative:switch 
       {-attribute {set :name}}
@@ -494,21 +535,32 @@ namespace eval ::nx::doc {
       if {!$relative} {
 	lappend path [list [current] [:eval $attribute]]
       }
-      #puts stderr ARGS=[current args]-[info exists :partof]
-      #puts stderr HELP=$path
       
-      if {[info exists :partof] && [${:partof} info has type $type]} {
-	#puts stderr "CHECK ${:partof} info has type $type -> [${:partof} info has type $type]"
-	
+      if {[info exists :partof] && [${:partof} info has type $type]} {	
 	set path [concat [${:partof} [current method] -attribute $attribute -type $type] $path]
       }
-      #puts stderr PATHRETURN=$path
       return [concat {*}$path]
     }
 
     :attribute @doc:multivalued {set :incremental 1}
     :attribute @see -slotclass ::nx::doc::PartAttribute
-    :attribute @properties -slotclass ::nx::doc::PartAttribute
+
+    :attribute @deprecated:boolean -slotclass ::nx::doc::SwitchAttribute {
+      set :default 0
+    }
+    :attribute @stashed:boolean -slotclass ::nx::doc::SwitchAttribute {
+      set :default 0
+    }
+    :attribute @c-implemented:boolean -slotclass ::nx::doc::SwitchAttribute {
+      set :default 0
+    }
+
+    # :attribute @properties -slotclass ::nx::doc::PartAttribute
+    :public method @property {props} {
+      foreach prop $props {
+	:@$prop
+      }
+    }
 
     :attribute @use {
       :public method assign {domain prop value} {
@@ -565,50 +617,18 @@ namespace eval ::nx::doc {
       return [current]
     }
 
-    :method has_property {prop} {
-       if {![info exists :@properties]} {return 0}
-	expr {$prop in ${:@properties}}
-    }
-
-    # @method _doc
-    #
-    # The method _doc can be use to obtain the value of the documentation
-    # from another doc entity. This should avoid redundant documentation pieces.
-    :method _doc {doc use what value} {
-      if {$@doc ne ""} {return $doc}
-      if {$use ne ""} {
-	foreach thing {@command @object} {
-	  set docobj [$thing id $use]
-	  if {[::nsf::isobject $docobj]} break
-	}
-	if {[::nsf::isobject $docobj]} {
-	  if {![$docobj eval [list info exists :$what]]} {error "no attribute $what in $docobj"}
-	  set names [list]
-	  foreach v [$docobj $what] {
-	    if {[$v name] eq $value} {return [$v @doc]}
-	    lappend names [$v name]
-	  }
-	  error "can't use $use, no $what with name $value in $docobj (available: $names)"
-	} else {
-	  error "can't use $use, no documentation object $docobj"
-	}
-      }
-    }
-
-    # @method text
-    #
-    # text is used to access the content of doc of an Entity, and
-    # performs substitution on it.  The substitution is not essential,
-    # but looks for now convenient.
-    #
-
     :public method as_list {} {
       if {[info exists :@doc] && ${:@doc} ne ""} {
-	#puts stderr DOC=${:@doc}
 	set non_empty_elements [lsearch -all -not -exact ${:@doc} ""]
 	return [lrange ${:@doc} [lindex $non_empty_elements 0] [lindex $non_empty_elements end]]
       }
     }
+
+    # @method as_text
+    #
+    # text is used to access the content of doc of an Entity, and
+    # performs substitution on it.  The substitution is not essential,
+    # but looks for now convenient.
 
     :public method as_text {} {
       set doc [list]
@@ -628,6 +648,7 @@ namespace eval ::nx::doc {
 
 
   Class create StructuredEntity -superclass Entity {
+
     :public method part_attributes {} {
       set slots [:info lookup slots]
       set attrs [list]
@@ -637,18 +658,11 @@ namespace eval ::nx::doc {
       }
       return $attrs
     }
+
     :public method owned_parts {} {
       set r [dict create]
       foreach {s cls} [:part_attributes] {
-	#
-	# TODO: there is no equivalent to mixinof/has mixin for the
-	# superclass-subclass axis: info superclassof | /cls/ has
-	# superclass | info subclassof | /cls/ has subclass; are info
-	# subclass and superclass sufficient?
-	#
-	# if {![$s info has type ::nx::doc::PartAttribute] || ![$s eval {info exists :part_class}] || [current class] ni [[$s eval {set :part_class}] info superclass -closure]} continue;
 	set accessor [$s name]
-#	puts stderr "PROCESSING ACCESSOR $accessor, [info exists :$accessor]"
 	if {[info exists :$accessor]} {
 	  dict set r $s [sorted [:$accessor] name]
 	}
@@ -757,6 +771,17 @@ namespace eval ::nx::doc {
       }
     }
 
+    :method destroy {} {
+      foreach {attr part_class} [:part_attributes] {
+	#$part_class class-object mixin add [current class]::Containable
+	if {[$part_class eval {info exists :container}] && \
+		[$part_class container] eq [current]} {
+	  $part_class eval {unset :container}
+	}
+      }
+      next
+    }
+
     :public method register {containable:object,type=::nx::doc::Entity} {
       set tag [[$containable info class] tag]
       if {[:info lookup methods -source application "@$tag"] ne ""} {
@@ -766,6 +791,10 @@ namespace eval ::nx::doc {
   }
 
   Tag create @project -superclass ContainerEntity {
+
+    :attribute sandbox:object,type=::nx::doc::Sandbox
+    :attribute sources
+
     :attribute url
     :attribute license
     :attribute creationdate
@@ -777,6 +806,29 @@ namespace eval ::nx::doc {
 
     :attribute @package -slotclass ::nx::doc::PartAttribute {
       set :part_class ::nx::doc::@package
+    }
+
+    :public method destroy {} {
+      #
+      # TODO: Using the auto-cleanup feature in [Test case ...] does
+      # not respect explicit destroy along object relations. Turn the
+      # test environment more passive by checking for the existance
+      # before calling destroy!
+      #
+      if {[::nsf::isobject ${:sandbox}]} {
+	${:sandbox} destroy
+      }
+      :current_project ""
+      next
+    }
+
+    :method init {} {
+      #
+      # TODO: the way we provide the project as a context object to
+      # all entities is not easily restricted. Review later ...
+      # 
+      :current_project [current]; # sets a per-class-object variable on Entity!
+      next
     }
   }
 
@@ -920,16 +972,21 @@ namespace eval ::nx::doc {
 	    # and/or generalisable: For instance, is the scope
 	    # requested (from the part_attribute) applicable to the
 	    # partof object, which is the object behind [$domain name]?
-	    if {[info exists :scope] && 
-		![::nsf::is ${:scope} [$domain name]]} {
-	      error "The entity '[$domain name]' does not qualify as '${:scope}'"
-	    }
+	    
+	    # TODO: disable for the moment ... how to rewrite to fit
+	    # the sandboxed environment?
+	    #	    if {[info exists :scope] && 
+	    #		![::nsf::is ${:scope} [$domain name]]} {
+	    #	      error "The entity '[$domain name]' does not qualify as '${:scope}'"
+	    #	    }
 	    next
 	  }
 	}
 	
 	:method inherited {member} {
-	  if {[${:name} info is class]} {
+	  set prj [:current_project]
+	  set box [$prj sandbox]
+	  if {[$box eval [list ::nsf::is class ${:name}]]} {
 	    set inherited [dict create]
 	    foreach c [lreverse [${:name} info heritage]] {
 	      set entity [[::nsf::current class] id $c]
@@ -959,6 +1016,9 @@ namespace eval ::nx::doc {
   #
   PartTag create @method \
       -superclass StructuredEntity {
+	:attribute @syshook:boolean -slotclass ::nx::doc::SwitchAttribute {
+	  set :default 0
+	}
 	:attribute {@modifier public} -slotclass ::nx::doc::PartAttribute
 	:attribute @parameter -slotclass ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@param
@@ -1081,6 +1141,9 @@ namespace eval ::nx::doc {
 		  set comment "<span style='color: green'>Perfect match</span>"
 		} else {
 		  set comment "<span style='color: red'>actual parameter: $actualParams</span>"
+		  if {[info exists :pdata]} {
+		    lappend :pdata status mismatch
+		  }
 		}
 		append comment "<br>Syntax: <i>obj</i> <strong>${:name}</strong> $syntax"
 	      } else {
@@ -1200,7 +1263,7 @@ namespace eval ::nx::doc {
   interp alias {} ::nx::doc::@acrfirst {} ::nx::doc::@glossary  
 
   namespace export CommentBlockParser @command @object @class @package \
-      @project @method @attribute @parameter @
+      @project @method @attribute @parameter @ MixinLayer
 }
 
 
@@ -1398,7 +1461,12 @@ namespace eval ::nx::doc {
       set preprocessed [join [:as_list] " "]
       set preprocessed [:map $preprocessed]
       set preprocessed [:unescape $preprocessed]
-      return [subst $preprocessed]
+      # TODO: For now, we take a passive approach: Some docstrings
+      # might fail because they contain substitution characters
+      # ($,[]); see nx.tcl
+      # ...
+      catch {set preprocessed [subst $preprocessed]} msg      
+      return $preprocessed
     }
 
   }
@@ -1472,8 +1540,8 @@ namespace eval ::nx::doc {
       # is called from within a public forward. This should qualify as
       # a valid call site (from "within" the same object!), shouldn't it?
       # :protected class-object attribute current_project:object,type=::nx::doc::@project
-      :class-object attribute current_project:object,type=::nx::doc::@project
-      :public forward current_project [current] %method
+      # :class-object attribute current_project:object,type=::nx::doc::@project
+      # :public forward current_project [current] %method
 
       #
       # TODO: For now, this acts as the counterweight to "origin",
@@ -1484,7 +1552,22 @@ namespace eval ::nx::doc {
       :class-object attribute rendered_entity:object,type=::nx::doc::Entity
       :public forward rendered_entity [current] %method
 
-      :public forward print_name %current name
+      # :public forward print_name %current name
+      :public method print_name {-status:switch} {
+	set status_mark ""
+	if {$status} {
+	  set cls ""
+	  if {[info exists :pdata]} {
+	    set cls [expr {[dict exists ${:pdata} status]?\
+			       [dict get ${:pdata} status]:""}]
+	  } else {
+	    set cls "extra"
+	  }
+	  set status_mark "<span title=\"$cls\" class=\"status $cls\">&nbsp;</span>"
+	}
+
+	return "${:name}$status_mark"
+      }
 
       :method fit {str max {placeholder "..."}} {
 	if {[llength [split $str ""]] < $max} {
@@ -1537,7 +1620,7 @@ namespace eval ::nx::doc {
 	set tagpath [split [string trimleft $tag @] .]
 	lassign [::nx::doc::Tag normalise $tagpath $names] err res
 	if {$err} {
-	  puts stderr RES=$res
+	 # puts stderr RES=$res
 	  return "<a href=\"#\">?</a>";
 	}
 	lassign [::nx::doc::Tag find -all -strict {*}$res] err path
@@ -1814,177 +1897,818 @@ namespace eval ::nx::doc {
 }
 
 #
+# sandboxing
+#
+
+namespace eval ::nx::doc {
+  namespace import -force ::nx::*
+  Class create Sandbox {
+
+    :public class-object method type=in {name value arg} {
+      if {$value ni [split $arg |]} {
+	error "The value '$value' provided for parameter $name not permissible."
+      }
+      return $value
+    }
+
+    :public class-object method type=fqn {name value} {
+      if {[string first "::" $value] != 0} {
+	error "The value '$value' must be a fully-qualified Tcl name."
+      }
+      return $value
+    }
+
+    :public class-object method type=fpathtype {name value arg} {
+      #
+      # Note: We might receive empty strings in case of [eval]s!
+      #
+      set pt [file pathtype $value]
+      if {$value ne "" && $pt ne $arg} {
+	error "The filepath '$value' must be $arg, rather than $pt."
+      }
+      return $value
+    }
+
+    :public class-object method type=nonempty {name value} {
+      if {$value eq ""} {
+	error "An empty value is not allowed for parameter '$name'."
+      }
+      return $value
+    }
+
+    :protected attribute {current_packages "*"}
+    :attribute {permissive_pkgs:multivalued "*"} {
+      set :incremental 1
+    }
+
+    #
+    # some callbacks invoked from within the sandbox interp
+    #
+
+    :public method at_source {filepath} {
+      set cpackage [lindex ${:current_packages} end]
+      if {$cpackage in ${:permissive_pkgs}} {
+	lappend :source $cpackage $filepath
+      }
+    }
+
+    :public method at_register_package {pkg_name} {
+      lappend :current_packages [string tolower $pkg_name]
+    }
+    :public method at_deregister_package {} {
+      set :current_packages [lrange ${:current_packages} 0 end-1]
+    }
+    # [list ->status:in,arg=complete|missing|prototype|mismatch,slot=[current] missing]
+    :public method at_register_command [list \
+	name:fqn,slot=[current] \
+	->cmdtype:in,arg=object|proc|method,slot=[current] \
+        ->source:fpathtype,arg=absolute,slot=[current] \
+	{->nsexported:boolean 0} \
+	{->nsimported:boolean 0} \
+        ->docstring:optional,nonempty,slot=[current] \
+     ] {
+      # peek the currently processed package (if any)
+      set storable_vars [info vars >*]
+      set cpackage [lindex ${:current_packages} end]
+      if {$cpackage in ${:permissive_pkgs}} {
+	dict set :registered_commands $name package $cpackage
+	foreach svar $storable_vars {
+	  dict set :registered_commands $name [string trimleft $svar >] [set $svar]
+	}
+      }
+    }
+
+    :public method at_deregister_command [list name:fqn,slot=[current]] {
+      set cpackage [lindex ${:current_packages} end]
+      if {$cpackage in ${:permissive_pkgs}} {
+	dict unset :registered_commands $name
+      }
+    }
+
+    :public method init args {
+      :do {
+
+	#
+	# hide selected built-in Tcl commands and put simple
+	# forwarding proxies in place ...
+	#
+	# TODO: refactor the proxy handling ...
+	#
+	interp hide "" proc
+	interp hide "" namespace
+	interp hide "" source
+	interp hide "" load
+	interp hide "" package
+	interp hide "" auto_import
+
+	interp invokehidden "" proc ::proc args {
+	  #set ns [uplevel [list interp invokehidden "" namespace current]]
+	  uplevel [list interp invokehidden "" proc {*}$args]
+	}
+
+	proc ::namespace args {
+	  #set ns [uplevel [list interp invokehidden "" namespace current]]
+	  #interp invokehidden "" -namespace $ns namespace {*}$args
+	  uplevel [list interp invokehidden "" namespace {*}$args]
+	}
+
+	proc ::source args {
+	  uplevel [list interp invokehidden "" source {*}$args]
+	}
+
+	proc ::load args {
+	  # set ns [uplevel [list interp invokehidden "" namespace current]]
+	  # interp invokehidden "" -namespace $ns load {*}$args
+	  uplevel [list interp invokehidden "" load {*}$args]
+
+	}
+
+	proc ::package args {
+	  # set ns [uplevel [list interp invokehidden "" namespace current]]
+	  # interp invokehidden "" -namespace $ns package {*}$args
+	  uplevel [list interp invokehidden "" package {*}$args]
+	}
+
+	proc ::auto_import args {
+	  # set ns [uplevel [list interp invokehidden "" namespace current]]
+	  # interp invokehidden "" -namespace $ns auto_import {*}$args
+	  uplevel [list interp invokehidden "" auto_import {*}$args]
+	}
+	
+	namespace eval ::nx::doc {
+	  
+	  proc is_exported {name} {
+	    #
+	    # ! ISSUE: The built-in [namespace] command is hidden in our
+	    # ! sandbox interp when [is_exported] is used during a
+	    # ! 2pass!!!!
+	    #
+	    set calling_ns [uplevel [list interp invokehidden "" namespace current]]
+	    set ns [interp invokehidden "" namespace current]::_?_
+	    interp invokehidden "" namespace eval $ns \
+		[list interp invokehidden "" namespace import -force $name]
+	    set is [expr {[info commands ${ns}::[interp invokehidden "" namespace tail $name]] ne ""}]
+	    interp invokehidden "" namespace delete $ns
+	    return $is
+	  }
+
+
+	  proc __trace_pkg {} {
+
+	   #puts stderr ">>> INIT [package names]"
+	    #    ::interp hide "" source
+	    ::proc ::source {path} {
+	      set ns [uplevel [list namespace current]]
+	      if {[file tail $path] ne "pkgIndex.tcl"} {
+		::nx::doc::__at_source [file normalize $path]
+	      }
+	      uplevel [list interp invokehidden "" source $path]
+	    }
+	    
+	    proc list_commands {{parent ""}} {
+	      set ns [dict create]
+	      #set cmds [string trim "[join [info commands ${parent}::*] \" 0 \"] 0" 0]
+	      #
+	      # Note: We trigger a [namespace import] for the
+	      # currently processed namespace before requesting the
+	      # command list in order to have the auto_load feature
+	      # initialise commands otherwise found too late,
+	      # i.e. after having computed the [info
+	      # commands] snapshot!
+	      #
+#	      namespace eval ::nx::doc::__x [list namespace import -force ${parent}::*]
+	      set cmds [info commands ${parent}::*]
+
+	      set exported [list]
+	      foreach cmd $cmds {
+		dict set ns ::[string trimleft $parent :] $cmd [is_exported $cmd]
+		    
+#[expr {[info commands ::nx::doc::__x::[namespace tail $cmd]] ne ""}]
+	      }
+
+	      foreach nsp [namespace children ${parent}::] {
+		set ns [dict merge $ns [list_commands ${nsp}]]
+	      }
+	      return $ns
+	    }
+
+
+	    ::proc ::load args {
+
+	      set ns [uplevel [list namespace current]]
+
+	      # 
+	      # pre-state
+	      #
+	      # set pre_loaded [dict values \
+	      # 			  [dict create {*}[concat {*}[info loaded ""]]]]
+	      set pre_loaded [lreverse [concat {*}[info loaded ""]]]
+	      set pre [::nx::doc::list_commands]
+	      set pre_commands [dict create {*}[concat {*}[dict values $pre]]]
+	      set pre_namespaces [dict keys $pre]
+
+	      interp invokehidden "" -namespace $ns load {*}$args
+	      
+	      #
+	      # post-state
+	      #
+	      #set post_loaded [dict create {*}[concat {*}[info loaded ""]]]
+	      set post_loaded [lreverse [concat {*}[info loaded ""]]]
+	      set post [::nx::doc::list_commands]
+	      set post_commands [dict create {*}[concat {*}[dict values $post]]]
+	      set post_namespaces [dict keys $post]
+	      
+	      #
+	      # deltas
+	      #
+	      set delta_commands [dict remove $post_commands {*}[dict keys $pre_commands]]
+
+	      set delta_namespaces [dict keys [dict remove [dict create {*}"[join $post_namespaces " _ "] _"] {*}$pre_namespaces]]
+
+	      set delta_pkg [dict remove \
+				 [dict create {*}$post_loaded] \
+				 [dict keys [dict create {*}$pre_loaded]]]
+
+	      #puts stderr "DELTAS pkg $delta_pkg"
+	      #puts stderr "DELTAS namespace $delta_namespaces"
+	      #puts stderr "DELTAS commands $delta_commands"
+	      
+	      lassign $delta_pkg pkg_name filepath
+	      set filepath [file normalize $filepath]
+	      foreach {cmd isexported} $delta_commands {
+		::nx::doc::__at_register_command $cmd \
+		    ->cmdtype proc \
+		    ->source $filepath \
+		    ->nsexported $isexported
+	      }
+	    }
+
+	    ::proc ::package {subcmd args} {
+	      set ns [uplevel [list namespace current]]
+	      set was_registered 0
+	      switch -glob -- $subcmd {
+		ifneeded {
+		  lassign $args pkg_name version script
+		  append wrapped_script "::nx::doc::__at_register_package $pkg_name;\n" $script "\n::nx::doc::__at_deregister_package;"
+		  set args [list $pkg_name $version $wrapped_script]
+		}
+	      } 
+	      interp invokehidden "" -namespace $ns package $subcmd {*}$args
+	      # uplevel [list interp invokehidden "" package $subcmd {*}$args]
+#	      if {$was_registered} {
+#		::nx::doc::__at_deregister_package
+#	      }
+	    }
+
+	    #
+	    # Note that we have to wrap up Tcl's auto_import due to
+	    # our practise of [namespace import]'ing application
+	    # namespaces to verify whether commands are actually
+	    # exported; see list_commands. Currently, we escape to a
+	    # generic package called TCL_LIBRARY to filter out
+	    # commands lazily acquired through the auto_load
+	    # mechanism, triggered by the [namespace import]
+	    # probing.
+	    #
+	    #::interp hide "" auto_import
+	    ::proc ::auto_import {pattern} {
+	      set ns [uplevel [list namespace current]]
+	      ::nx::doc::__at_register_package TCL_LIBRARY;
+	      interp invokehidden "" -namespace $ns auto_import $pattern
+	      ::nx::doc::__at_deregister_package;
+	    }
+	  }
+	  proc __init {} {
+	    # 1) provide for tracing NSF objects
+	    if {[info commands ::nsf::configure] ne "" && \
+		    [::nsf::configure objectsystem] ne ""} {
+	      ::nsf::configure keepinitcmd true;
+
+	      rename ::nsf::method ::nsf::_%&method 
+	      ::interp invokehidden "" proc ::nsf::method {
+		object
+		args
+	      } {
+		set handle [uplevel [list ::nsf::_%&method $object {*}$args]]
+		if {$handle ne ""} {
+		  ::nx::doc::__at_register_command $handle \
+		      ->cmdtype method \
+		      ->source [file normalize [info script]]
+		} 
+		return $handle
+	      }
+
+	      rename ::nsf::alias ::nsf::_%&alias 
+	      ::interp invokehidden "" proc ::nsf::alias {
+		args
+	      } {
+		set handle [uplevel [list ::nsf::_%&alias {*}$args]]
+		if {$handle ne ""} {
+		  ::nx::doc::__at_register_command $handle \
+		      ->cmdtype method \
+		      ->source [file normalize [info script]]
+		} 
+		return $handle
+	      }
+
+	     
+
+	      	      rename ::nsf::createobjectsystem ::nsf::_%&createobjectsystem 
+	      ::interp invokehidden "" proc ::nsf::createobjectsystem {
+		rootclass 
+		rootmclass 
+		args
+	      } {
+		uplevel [list ::nsf::_%&createobjectsystem $rootclass $rootmclass {*}$args]
+		foreach r [list $rootclass $rootmclass] {
+		  ::nx::doc::__at_register_command $r \
+		      ->cmdtype object \
+		      ->source [file normalize [info script]] \
+		      ->nsexported [::nx::doc::is_exported $r] \
+		      {*}[expr {[::nsf::existsvar $r __initcmd] && [::nsf::setvar $obj __initcmd] ne ""?[list ->docstring [::nsf::setvar $r __initcmd]]:[list]}]
+		}
+	      }
+
+
+	      array set sysmeths [concat {*}[lassign {*}[::nsf::configure objectsystem] rootclass rootmclass]]
+	      set rootns [namespace qualifier $rootmclass]
+	      $rootmclass $sysmeths(-class.create) ${rootns}::__Tracer
+	      ::nsf::method ${rootns}::__Tracer \
+		  -public $sysmeths(-class.create) {name args} {
+		    set obj [::nsf::next];
+		    ::nx::doc::__at_register_command $obj \
+			->cmdtype object \
+			->source [file normalize [info script]] \
+			->nsexported [::nx::doc::is_exported $obj] \
+			{*}[expr {[::nsf::existsvar $obj __initcmd] && [::nsf::setvar $obj __initcmd] ne ""?[list ->docstring [::nsf::setvar $obj __initcmd]]:[list]}]
+		    return $obj
+		  }
+	      # ISSUE: yields -> bad relationtype "mixin": must be
+	      # object-mixin, class-mixin, object-filter,
+	      # class-filter, class, superclass, or rootclass
+	      # -> ::nsf::mixin defaults to "mixin" instead of "class-mixin"
+	      # ::nsf::mixin $rootmclass ::nsf::__Tracer
+	      ::nsf::relation $rootmclass class-mixin ${rootns}::__Tracer
+
+	    }
+	    # 2) provide for tracing Tcl procs declared at "sourcing time" -> [proc]
+	    #::interp hide "" proc
+	    ::interp invokehidden "" proc ::proc {name arguments body} {
+	      set ns [uplevel [list namespace current]]
+	      interp invokehidden "" -namespace $ns proc $name $arguments $body
+	      set fqn $name
+	      if {[string first "::" $name] != 0} {
+		set fqn [string trimright $ns :]::$name
+	      }
+	      if {$arguments eq "" && $body eq ""} {
+		::nx::doc::__at_deregister_command $fqn
+	      } else {
+		::nx::doc::__at_register_command $fqn \
+		    ->cmdtype proc \
+		    ->source [file normalize [info script]] \
+		    ->nsexported [::nx::doc::is_exported $fqn] \
+		    ->docstring $body
+	      }
+
+	    }
+	    # 3) provide for tracing commands namespace-imported at "sourcing time"
+	    #::interp hide "" namespace
+	    ::interp invokehidden "" proc ::namespace {subcmd args} {
+	      set ns [uplevel [list interp invokehidden "" namespace current]]
+	      switch -glob -- $subcmd {
+		imp* {
+		  foreach pattern $args {
+		    if {[string match "-*" $pattern]} continue;
+		    foreach cmd [info commands $pattern] {
+		      if {![::nx::doc::is_exported $cmd]} continue;
+		      set type [expr {[info commands "::nsf::isobject"] ne "" &&\
+					   [::nsf::isobject $cmd]?"object":"proc"}]
+
+		      set imported_name [string trimright $ns :]::[namespace tail $cmd]
+		      ::nx::doc::__at_register_command $imported_name \
+			  ->cmdtype $type \
+			  ->source [file normalize [info script]] \
+			  ->nsexported [::nx::doc::is_exported $imported_name] \
+			  ->nsimported 1
+		    }
+		  }
+		}
+	      } 
+	      interp invokehidden "" -namespace $ns namespace $subcmd {*}$args
+	    }
+	  }
+	}
+      }
+      ::interp alias ${:interp} ::nx::doc::__at_register_command \
+	  "" [current] at_register_command
+      ::interp alias ${:interp} ::nx::doc::__at_deregister_command \
+	  "" [current] at_deregister_command
+      ::interp alias ${:interp} ::nx::doc::__at_register_package \
+	  "" [current] at_register_package
+      ::interp alias ${:interp} ::nx::doc::__at_deregister_package \
+	  "" [current] at_deregister_package
+      ::interp alias ${:interp} ::nx::doc::__at_source \
+	  "" [current] at_source
+      next
+    }
+    :protected attribute {interp ""}; # the default empty string points to the current interp
+
+    :attribute registered_commands
+
+    :public method get_companions {} {
+      set companions [dict create]
+      dict for {cmd props} ${:registered_commands} {
+	dict with props {
+	  # $source, $package
+	  dict set companions $source $package
+	}
+      }
+      set scripts [list]
+      dict for {source pkg} $companions {
+	set rootname [file rootname $source]
+	set dir [file dirname $source]
+	set companion $rootname.nxd
+	set srcs [dict create {*}"[join [list $source $rootname.nxd [file join $dir $pkg].nxd] " _ "] _"]
+	foreach src [dict keys $srcs] {
+	  if {![file isfile $src] || ![file readable $src]} continue;
+	  if {[file extension $src] eq [info sharedlibextension]} continue;
+	  set fh [open $src r]
+	  if {[catch {lappend scripts [read $fh]} msg]} {
+	    catch {close $fh}
+	    :log "error reading the file '$thing', i.e.: '$msg'"
+	  }
+	  catch {close $fh}
+	}
+      }
+      return $scripts
+    }
+
+    :public method get_registered_commands {
+	-exported:switch
+	-types
+	-not:switch
+	nspatterns:optional
+      } {
+      if {[info exists nspatterns]} {
+	set opts [join $nspatterns |]
+	set nspatterns "^($opts)::\[^\:\]+\$"
+      }
+      dict filter ${:registered_commands} script {cmd props} {
+	dict with props {
+	  expr {[expr {[info exists nspatterns]?[expr {[regexp -- $nspatterns $cmd _] != $not}]:1}] && \
+		    [expr {$exported?[expr {$nsexported == $exported}]:1}] && \
+		    [expr {[info exists types]?[expr {$cmdtype in $types}]:1}]}
+	}
+      }
+      #lsearch -inline -all -regexp $additions {^::nsf::[^\:]+$}]
+  }
+
+
+#    :forward do ::interp %1 {% set :interp}
+    :public method do {script} {
+      ::interp eval ${:interp} $script
+    } 
+
+    :public method destroy {} {
+      #
+      # TODO: Why am I called twice in doc.test? Because of the test
+      # enviroment (the auto-cleanup feature?)
+      #
+      # puts stderr "SELF [current object] interp ${:interp}"
+      # ::nsf::__db_show_stack
+      if {${:interp} ne ""} {
+	if {[interp exists ${:interp}]} {
+	  interp delete ${:interp}
+	}
+      } else {
+	:do {
+	  if {[info commands ::nsf::configure] ne ""} {
+	    ::nsf::configure keepinitcmd false;
+	    array set sysmeths [concat {*}[lassign {*}[::nsf::configure objectsystem] rootclass rootmclass]]
+	    # TODO: some cleanup is only needed if __init has been called
+	    # (which is not always the case). refactor the code
+	    # accordingly.
+	    set rootns [namespace qualifier $rootmclass]
+	    if {[::nsf::isobject ${rootns}::__Tracer]} {
+	      ${rootns}::__Tracer $sysmeths(-object.destroy)
+	      ::nsf::relation $rootmclass class-mixin {}
+	    }
+	    if {[info commands ::nsf::_%&createobjectsystem] ne ""} {
+	      rename ::nsf::_%&createobjectsystem ::nsf::createobjectsystem
+	    }
+	    unset rootns
+	  }
+	  rename ::proc ""
+	  interp expose "" proc
+	  rename ::namespace ""
+	  interp expose "" namespace
+	  rename ::source ""
+	  interp expose "" source
+	  rename ::load ""	  
+	  interp expose "" load
+	  rename ::package ""
+	  interp expose "" package
+	  rename ::auto_import ""
+	  interp expose "" auto_import
+
+	  proc ::nx::doc::__at_register_command {} {}
+	  proc ::nx::doc::__at_deregister_command {} {}
+	  proc ::nx::doc::__at_register_package {} {}
+	  proc ::nx::doc::__at_deregister_package {} {}
+	}
+      }
+      next
+    }
+  }
+  namespace export Sandbox
+}
+#
 # post processor for initcmds and method bodies
 #
 namespace eval ::nx {
+
   namespace import -force ::nx::doc::*
-  ::nx::Object create doc  {
 
-    :method log {msg} {
-      puts stderr "[current]->[uplevel 1 [list ::nsf::current method]]: $msg"
+  MixinLayer create processor -prefix ::nx::doc {
+    namespace eval ::nx::doc {
+      namespace eval ::nx::doc::MixinLayer {
+	namespace export Mixin
+      }
+      namespace import -force ::nx::doc::MixinLayer::*
+      namespace export Mixin
     }
-
-    # @method process
-    #
-    # There is a major distinction: Is the entity the comment block is
-    # referring to given *extrinsically* (to the comment block) or
-    # *intrinsically* (as a starting tag).
-    # 
-    # a. extrinsic: 'thing' is a valid class or object name
-    # b. intrinsic: 'thing' is a arbitrary string block describing 
-    # a script.
-    # 
-    :public method process {{-noeval false} thing args} {
-      # 1) in-situ processing: a class object
-      if {[::nsf::isobject $thing]} {
-	if {[$thing eval {info exists :__initcmd}]} {
-	  
-          :analyze_initcmd [expr {[::nsf::is class $thing]?"@class":"@object"}] $thing [$thing eval {set :__initcmd}]
-        }
-      } elseif {![catch {package present $thing} msg]} {
-	# For tcl packages, we assume that the package is sourceable
-	# in the current interpreter.
-	set i [interp create]
-	set cmd [subst -nocommands {
-	  package req nx::doc
-	  namespace import -force ::nx::*; 
-	  ::nx::Class create SourcingTracker {
-	    :method create args {
-	      set obj [next];
-	      #[::nsf::current class] eval {
-	      # if {![info exists :scripts([info script])]} {
-	      #dict create :scripts
-	      #dict set :scripts [info script] objects 
-	      #	}
-	      #}
-	      #puts stderr "dict lappend :scripts([info script]) objects [current]"
-	      [::nsf::current class] eval [list dict set :scripts [info script] objects \$obj _]
-	      return \$obj
-	    }
+    
+    namespace import -force ::nx::doc::*
+    
+    Mixin create [current]::Entity {
+      :public method get_command_name {} {
+	return ${:name}
+      }
+      :public method init args {
+	next
+	set prj [:current_project]
+	if {$prj ne ""} {
+	  set box [$prj sandbox]	  
+	  set cmdname [:get_command_name]
+	  if {[$box eval [concat dict exists \${:registered_commands} $cmdname]]} {
+	    :pdata [$box eval [concat dict get \${:registered_commands} $cmdname]]
 	  }
-	  ::nx::Object mixin add SourcingTracker
-	  package forget $thing
-	  package req $thing
-	  ::nx::Object mixin delete SourcingTracker
-	  #puts stderr sourced_scripts=[SourcingTracker eval {dict keys \${:scripts}}]
-	  dict for {script entities} [SourcingTracker eval {set :scripts}] {
-	    doc process \$script \$entities
-	  }
-	  
-	}]
-	interp eval $i $cmd
-	return $i
-      } elseif {[file isfile $thing]} {
-	# 3) alien script file
-	set script ""
-	if {[file readable $thing]} {
-	  # a) process the target file
-	  set fh [open $thing r]
-	  if {[catch {append script [read $fh]} msg]} {
-	    catch {close $fh}
-	    :log "error reading the file '$thing', i.e.: '$msg'"
-	  }
-	  catch {close $fh}
 	}
-	# b) verify the existence of an *.nxd companion file
-	set rootname [file rootname $thing]
-	set companion $rootname.nxd
-	if {[file isfile $companion] && [file readable $companion]} {
-	  set fh [open $companion r]
-	  if {[catch {append script "\n\n" [read $fh]} msg]} {
-	    catch {close $fh}
-	    :log "error reading the file '$thing', i.e.: '$msg'"
-	  }
-	  catch {close $fh}
-	}
-	
-	if {$script eq ""} {
-	  :log "script empty, probaly file '$thing' is not readable"
-	}
-
-	doc analyze -noeval $noeval $script {*}$args
-	puts stderr FILE=$thing--[file readable $thing]-COMPANION=$companion--[file readable $companion]-ANALYZED-[string length $script]bytes
-      } else {
-	# 4) we assume a string block, e.g., to be fed into eval
-	set i [interp create]
-	set cmd [subst {
-	  package req nx::doc
-	  namespace import -force ::nx::doc::*
-	  doc analyze -noeval $noeval [list $thing]
-	}]
-	interp eval $i $cmd
-	#interp delete $i
-	return $i
+	[[current class] info parent] at_processed [current]
       }
     }
     
-    :public method analyze {{-noeval false} script {additions ""}} {
-      # NOTE: This method is to be executed in a child/ slave
-      # interpreter.
-      if {!$noeval} {
-	uplevel #0 [list namespace import -force ::nx::doc::*]
-	set pre_commands [:list_commands]
-	uplevel #0 [list eval $script]
-	set post_commands [:list_commands]
-	if {$additions eq ""} {
-	  set additions [dict keys [dict remove [dict create {*}"[join $post_commands " _ "] _"] {*}$pre_commands]]
-	} else {
-	  set additions [dict keys [dict get $additions objects]]
-	}
-	# puts stderr ADDITIONS=$additions
+    Mixin create [current]::@method -superclass [current]::Entity {
+      :method get_command_name {} {
+	return ::nsf::classes::[string trimleft [[:partof] name] :]::${:name}
       }
+    }
+    
+    #
+    # mixin layer interface
+    #
+
+    :class-object method apply {} {
+      unset -nocomplain :processed_entities
+      next
+    }
+
+    :class-object method revoke {} {
+      next
+      if {[info exists :processed_entities]} {
+	return [dict keys ${:processed_entities}]
+      }
+    }
+    
+    :public class-object method at_processed {entity} {
+      dict set :processed_entities $entity _
+    }
+
+    #
+    # processor interface
+    #
+
+    :class-object method log {msg} {
+      puts stderr "[current]->[uplevel 1 [list ::nsf::current method]]: $msg"
+    }
+
+    :public class-object method process {-sandboxed:switch {-type project} thing} {
+      if {$type ne "project"} {
+	# TODO: Fix the naming requirements ...
+	set project [@project new -name "_%@"]
+	$project sources [list $type $thing]
+      } else {
+	set project $thing
+      }
+
+      $project sandbox [Sandbox new -interp [expr {$sandboxed?[interp create]:""}]]
+      set sources [dict create]
+      foreach {type name} [$project sources] {
+	dict lappend sources $type $name
+      }
+      #puts stderr "SOURCES $sources"
+      dict for {type instances} $sources {
+	:[current method]=$type $project $instances
+      }
+      return $project
+    }
+    
+    :protected class-object method process=package {project pkgs} {
+      set box [$project sandbox]
+      $box permissive_pkgs $pkgs
+      set 1pass ""
+      foreach pkg $pkgs {
+	if {[catch {package present $pkg} _]} {
+	  error "Tcl package '$pkg' cannot be found."
+	}
+	append 1pass "package req $pkg\n"
+      }
+
+      #
+      # a) 1-pass: requiring the packages first will provide
+      # all dependencies (also those not to be documented).
+      #
+      $box do "::nx::doc::__trace_pkg; $1pass"
+
+      #
+      # b) 2-pass: [source] will re-evaluate the package scripts
+      # (note, [load]-based extension packages are not covered by this!)
+      #"
+      if {[$box eval {info exists :source}]} {
+	foreach {pkg src} [$box eval {set :source}] {
+	  #
+	  # TODO: 2-pass [source]s should not trigger transitive [source]s. we
+	  # have flattened the relevant [source] hierarchy in the
+	  # 1-pass.
+	  #
+	  append 2pass \
+	      "::nx::doc::__at_register_package $pkg;\n" \
+	      "source $src;\n" \
+	      "::nx::doc::__at_deregister_package;\n"
+	}
+	$box do "::nx::doc::__init; $2pass" 
+      }
+
+      set scripts [$box get_companions]
+      set provided_entities [list]
+      foreach script $scripts {
+	lappend provided_entities {*}[:readin $script] 
+      }
+
+      # output
+      # 1. absent entities (doc[yes]->program[no])
+      # => all doc entities without pdata
+#      puts stderr "--- $provided_entities"
+      set present_entities [::nx::doc::filtered $provided_entities {[info exists :pdata]}]
+      # TODO: the nspatterns should be consumed from the source
+      # specification and should not be hardcoded here ... review
+      # later ...
+      set generated_commands [$box get_registered_commands [list ::nsf ::nx]]
+      foreach pe $present_entities {
+	dict unset generated_commands [$pe name]
+      }
+#      puts stderr "PRESENT $present_entities"
+#      puts stderr "ABSENT [::nx::doc::filtered $provided_entities {![info exists :pdata]}]"
+      # 2. generated entities (doc[no]->program[yes])
+      # => all registered_commands without doc entity
+#      puts stderr "== TO GENERATE == [dict keys $generated_commands]"
+      dict for {cmd info} $generated_commands {
+	if {[string match ::nsf::classes::* $cmd]} continue;
+	if {[string match ::nsf::objects::* $cmd]} continue;
+	if {[string match *::slot::* $cmd]} continue;
+	dict with info {
+	  #
+	  # TODO: for now, we assume objects beyond this point
+	  # ... relax later!
+	  #
+	  if {$cmdtype ni [list object proc]} continue;
+	  set kind @command
+	  if {$cmdtype eq "object"} {
+	    set kind [expr {[$box do [list ::nsf::is class $cmd]]?\
+				"@class":"@object"}]
+	  }
+	  set entity [@ $kind $cmd]
+	  :process=$kind $project $entity
+	  $entity pdata [lappend info status missing]
+	}
+      }
+    }
+
+    :protected class-object method process=source {project filepath} {;}
+
+    :protected class-object method process=eval {project scripts} {
+      set box [$project sandbox]
+      #
+      # 1a) 1pass ... TODO: should tracing be enabled in this scenario? ...
+      #
+      foreach script $scripts {
+	$box do $script
+      }
+
+      #
+      # 2) 2pass ... 
+      # 
+      $box do [list ::nx::doc::__init]
+
+      foreach script $scripts {
+	$box do $script
+      }
+      #
+      # 3) documentation processing
+      #
+      #puts stderr ">>> CMDS [$box get_registered_commands]"
+
+      # 3a) top-level processing
+      foreach script $scripts {
+	:readin $script
+      }
+
+      # 3b) initcmds, proc bodies ...
+
+      dict for {cmd info} [$box get_registered_commands] {
+	dict with info {
+	  #
+	  # TODO: for now, we assume objects beyond this point
+	  # ... relax later!
+	  #
+	  if {$cmdtype ne "object"} continue;
+	  set kind [expr {[$box do [list ::nsf::is class $cmd]]?"@class":"@object"}]
+	  if {[info exists docstring]} {
+	    lassign [:readin \
+			    -docstring \
+			    -tag $kind \
+			    -name $cmd \
+			    -parsing_level 1 \
+			    $docstring] entity processed_entities
+	    unset docstring
+	  } else {
+	    set entity [@ $kind $cmd]
+	  }
+	  :process=$kind $project $entity
+	}
+      }
+    }
+        
+    :public class-object method readin {
+	-docstring:switch 
+	-tag
+	-name
+	-partof_entity:object,type=::nx::doc::StructuredEntity
+	{-parsing_level:integer 0}
+	script
+      } {
+
       set blocks [:comment_blocks $script]
-      # :log "blocks: '$blocks'"
-      # 1) eval the script in a dedicated interp; provide for
-      # recording script-specific object additions.
-      # set failed_blocks [list]
+
+      set first_block 1
+      set processed_entities [list]
       foreach {line_offset block} $blocks {
-	# 2) process the comment blocks, however, fail gracefully here
-	# (most blocks, especially in initcmd and method blocks, are
-	# not qualified, so they are set to fail. however, record the
-	# failing ones for the time being
-	set cbp [::nx::doc::CommentBlockParser process $block]
-	# TODO: How to handle contingent (recoverable) conditions here?
-	# if {[catch {::nx::doc::CommentBlockParser process $block} msg]} {
-	#   if {![InvalidTag behind? $msg] && ![StyleViolation behind? $msg] && ![MissingPartofEntity behind? $msg]} {
-	#     if {[Exception behind? $msg]} {
-	#       ::return -code error -errorinfo $::errorInfo "[$msg info class]->[$msg message]"
-	#       # error [$msg info class]->[$msg message]
-	#     }
-	#     ::return -code error -errorinfo $::errorInfo $msg
-	#   }
-	# }
-      }
-      # 3) process the recorded object additions, i.e., the stored
-      # initcmds and method bodies.
-      foreach addition $additions {
-	# TODO: for now, we skip over pure Tcl commands and procs
-	if {![::nsf::is object $addition]} continue;
-	set kind [expr {[::nsf::is class $addition]?"@class":"@object"}]
-	#puts stderr "ADDITION :process [namespace origin $addition]"
-	if {[$addition eval {info exists :__initcmd}]} {
-	  :analyze_initcmd $kind $addition [$addition eval {set :__initcmd}]
+	array set arguments [list -initial_section context \
+				 -parsing_level $parsing_level]
+
+	if {$docstring} {
+	  if {[info exists partof_entity]} {
+	    set arguments(-partof_entity) $partof_entity
+	  }
+	  if {![info exists tag] || ![info exists name]} {
+	    error "In docstring mode, provide the tag and the name of
+	      a docstring-owning documentation entity object."
+	  }
+	  if {$first_block} {
+	    #
+	    # TODO: Note that the two "creation procedures" are not
+	    # idempotent; the relative one overwrites description
+	    # blocks of pre-exisiting entities, the freestanding @
+	    # does not ... fix later when reviewing these parts of the
+	    # program ...
+	    # 
+	    set docentity [expr {[info exists partof_entity]?\
+				     [$partof_entity $tag $name]:[@ $tag $name]}]
+	    set arguments(-partof_entity) $docentity
+	    if {$line_offset <= 1} {
+	      set arguments(-initial_section) description
+	      set arguments(-entity) $docentity
+	    }
+	  }
 	}
-
-	# TODO: Note, the CommentBlockParser should operate on the
-	# level of a single block, not entire initcmd and method body
-	# scripts. The process=@object ressembles some ::nx::doc
-	# methods, so relocated and call the parser from within.
-	set entity [@ $kind $addition]
-	#puts stderr ":process=$kind $entity"
-	:process=$kind $entity
+	
+	set args [array get arguments]
+	lappend args $block
+	# puts stderr "::nx::doc::CommentBlockParser process {*}$args"
+	#::nx::doc::Entity mixin add [current]::Entity
+	:apply
+	::nx::doc::CommentBlockParser process {*}$args
+	lappend processed_entities {*}[:revoke]
+	set first_block 0
+      }
+      if {$docstring && [info exists arguments(-partof_entity)]} {
+	return [list $arguments(-partof_entity) $processed_entities]
+      } else {
+	return $processed_entities
       }
     }
 
-    :method list_commands {{parent ""}} {
-      set cmds [info commands ${parent}::*]
-      foreach nsp [namespace children $parent] {
-	lappend cmds {*}[:list_commands ${nsp}]
-      }
-      return $cmds
-    }
-
-    :public method analyze_line {line} {
+    :public class-object method analyze_line {line} {
       set regex {^[\s#]*#+(.*)$}
       if {[regexp -- $regex $line --> comment]} {
 	return [list 1 [string trimright $comment]]
@@ -1993,7 +2717,7 @@ namespace eval ::nx {
       }
     }
     
-    :public method comment_blocks {script} {
+    :public class-object method comment_blocks {script} {
       set lines [split $script \n]
       set comment_blocks [list]
       set was_comment 0
@@ -2002,12 +2726,6 @@ namespace eval ::nx {
 	0,1	{
 	  set line_offset $line_counter; 
 	  set comment_block [list]; 
-	  # Note, we use [split] here to avoid stumbling over
-	  # uncommented script blocks which contain pairs of curly
-	  # braces which appear scattered over several physical lines
-	  # of code. This avoids "unmatched open brace" failures when
-	  # feeding each physical line to a list command (later, in
-	  # the parsing machinery)
 	  lappend comment_block $text}
 	1,0	{lappend comment_blocks $line_offset $comment_block}
 	1,1	{lappend comment_block $text}
@@ -2024,126 +2742,83 @@ namespace eval ::nx {
       }
       return $comment_blocks
     }
-	   
-    :public method analyze_initcmd {{-parsing_level 1} docKind name initcmd} {
-      set first_block 1
-      set failed_blocks [list]
-      foreach {line_offset block} [:comment_blocks $initcmd] {
-	set arguments [list]
-	if {$first_block} {
-	  set id [@ $docKind $name]
-	  #
-	  # Note: To distinguish between intial comments blocks
-	  # in initcmds and method bodies which refer to the
-	  # surrounding entity (e.g., the object or the method)
-	  # we use the line_offset recorded by the
-	  # comment_blocks() scanner. Later, we plan to use the
-	  # line_offset to compute line pointers for error
-	  # messages. Also, we can use the line offsets of each
-	  # comment block to identify faulty comment blocks.
-	  #
-	  # A acceptance level of <= 1 means that a script
-	  # block must contain the first line of this
-	  # special-purpose comment block either in the very
-	  # first or second script line.
-	  #
-	  if {$line_offset <= 1} {
-	    lappend arguments -initial_section description
-	    lappend arguments -entity $id
-	  }
-	  set first_block 0
-	} else {
-	  set initial_section context
-	}
-	lappend arguments $block
-	# TODO: Filter for StyleViolations as >the only< valid case
-	# for a continuation. Report other issues immediately. What
-	# about InvalidTag?!
-	# TODO: Passing $id as partof_entity appears unnecessary,
-	# clean up the logic in CommentBlockParser->process()!!!
-	#puts stderr "==== CommentBlockParser process -partof_entity $id {*}$arguments"
-	set cbp [CommentBlockParser process -parsing_level $parsing_level -partof_entity $id {*}$arguments]
-	
-#	if {[catch {CommentBlockParser process -partof_entity $id {*}$arguments} msg]} {
-#	  lappend failed_blocks $line_offset
-#	}
-      }
-      
-    }; # analyze_initcmd method
     
     # TODO: how can I obtain some reuse here when later @class is
     # distinguished from @object (dispatch along the inheritance
     # hierarchy?)
-    :public method process=@class {entity} {
-      set name [$entity name]
 
+    :public class-object method process=@command {project entity} {;}
+
+    :public class-object method process=@class {project entity} {
+      set name [$entity name]
+      set box [$project sandbox]
       # attributes
-      foreach slot [$name info slots] {
-	if {[$slot eval {info exists :__initcmd}]} {
-	  set blocks [:comment_blocks [$slot eval {set :__initcmd}]]
-	  foreach {line_offset block} $blocks {
-	    if {$line_offset > 1} break;	      
-	    set scope [expr {[$slot per-object]?"class-object":"class"}]
-	    set id [$entity @${scope}-attribute [$slot name]]
-	    CommentBlockParser process \
-		-parsing_level 2 \
-		-partof_entity $entity \
-		-initial_section description \
-		-entity $id \
-		$block
-	  }
-
-          # :analyze_initcmd -parsing_level 2 @class $name [$name eval {set :__initcmd}]
-	}
-      }
-
-      foreach methodName [$name info methods \
-			      -methodtype scripted \
-			      -callprotection all] {
-	# TODO: should the comment_blocks parser be relocated?
-	set blocks [:comment_blocks [${name} info method \
-					    body $methodName]]
-	foreach {line_offset block} $blocks {
-	  if {$line_offset > 1} break;	      
-	  set id [$entity @class-method $methodName]
-	  CommentBlockParser process \
-	      -parsing_level 2 \
+      foreach slot [$box do [list $name info slots]] {
+	if {[$box do [list $slot eval {info exists :__initcmd}]]} {
+	  #
+	  # TODO: Here, we eagerly create doc entities, is this an issue?
+	  # Should we mark them for removal if not further processed?
+	  # This might be contradicting to the requirement of
+	  # identifying documented/undocumented program structures.
+	  #
+	  # There are two alternatives:
+	  # -> use a freestanding identity generator (preferred!)
+	  # -> mark the entity for deletion
+	  #
+	  # set id [$entity @${scope}-attribute [$box do [list $slot name]]]
+	 
+	  set scope [expr {[$box do [list $slot per-object]]?"class-object":"class"}]
+	  :readin \
 	      -partof_entity $entity \
-	      -initial_section description \
-	      -entity $id \
-	      $block
-	}
-      }
-      
-      :process=@object $entity class-object
-      
-    }
-    
-    :public method process=@object {entity {scope ""}} {
-      set name [$entity name]
-      
-      # methods
-      foreach methodName [${name} {*}$scope info methods\
-			      -methodtype scripted \
-			      -callprotection all] {
-	
-	set blocks [:comment_blocks [${name} {*}$scope info method \
-					    body $methodName]]
-	foreach {line_offset block} $blocks {
-	  if {$line_offset > 1} break;
-	  set id [$entity @class-object-method $methodName]
-	  CommentBlockParser :process \
+	      -docstring \
+	      -tag @${scope}-attribute \
+	      -name [$box do [list $slot name]] \
 	      -parsing_level 2 \
-	      -partof_entity $name \
-	      -initial_section description \
-	      -entity $id \
-	      $block
+	      [$box do [list $slot eval {set :__initcmd}]]
+
 	}
       }
+
+      foreach methodName [$box do [list $name info methods \
+				       -methodtype scripted \
+				       -callprotection all]] {
+	:readin \
+	    -partof_entity $entity \
+	    -docstring \
+	    -tag @class-method \
+	    -name $methodName \
+	    -parsing_level 2  \
+	    [$box do [list ${name} info method body $methodName]]
+      }
+      
+      :process=@object $project $entity class-object
+      
     }
     
-    # activate the recoding of initcmds
-    ::nsf::configure keepinitcmd true
+    #
+    # TODO: how to resolve to the current project's context. For now,
+    # we pass a parameter value, revisit this decision once we decide
+    # on a location for this behaviour.
+    #
+    :public class-object method process=@object {project entity {scope ""}} {
+      set name [$entity name]
+      set box [$project sandbox]
+      # methods
+
+      foreach methodName [$box do [list ${name} {*}$scope info methods\
+				       -methodtype scripted \
+				       -callprotection all]] {
+	set tag [join [list {*}$scope method] -]
+	# set id [$entity @$tag $methodName]
+	:readin \
+	    -partof_entity $entity \
+	    -docstring \
+	    -tag @$tag \
+	    -name $methodName \
+	    -parsing_level 2  \
+	    [$box do [list ${name} {*}$scope info method body $methodName]]
+      }
+    }
     
   }
 }
@@ -2429,19 +3104,23 @@ namespace eval ::nx::doc {
     # realise the sub-state (a variant of METHOD-FOR-STATES) and their
     # specific event handling
     # set :lineproc {{tag args} {return [concat {*}$args]}}
-    set :lineproc {{tag args} {return [list $tag $args]}}
+    # set :lineproc {{tag args} {puts stderr LINE=[list $tag {*}$args]; return [list $tag {*}$args]}}
+    set :lineproc {{tag args} {return [list $tag [expr {$args eq ""?$args:[list $args]}]]}}
     :method parse@tag {line} {
       lassign [apply [[current class] eval {set :lineproc}] {*}$line] tag line
+      #set line [lassign [apply [[current class] eval {set :lineproc}] {*}$line] tag]
       if {[:info lookup methods -source application $tag] eq ""} {
 	set msg "The tag '$tag' is not supported for the entity type '[namespace tail [:info class]]"
 	${:block_parser} cancel INVALIDTAG $msg
       }
       #:$tag [lrange $line 1 end]
-      :$tag $line
+      #:$tag {*}[expr {$line eq ""?$line:[list $line]}]
+      #:$tag $line
+      :$tag {*}$line
     }
 
     :method parse@text {line} {
-#      puts stderr "ADDLINE([current]) :@doc add $line end"
+      #puts stderr "ADDLINE([current]) :@doc add $line end"
       :@doc add $line end
     }
     :method parse@space {line} {;}
@@ -2623,7 +3302,6 @@ namespace eval ::nx::doc {
 	  next
 	}
 	:method parse@tag {line} {
-#	  puts stderr "PART parse@tag [current]"
 	  set r [next]
 #	  puts stderr GOT=$r
 	  if {[::nsf::isobject $r] && [$r info has type ::nx::doc::Entity]} {
@@ -2632,9 +3310,7 @@ namespace eval ::nx::doc {
 	  return $r
 	}
 	:method parse@text {line} {
-#	  puts stderr "PART parse@text [current]"
 	  if {[info exists :current_part]} {
-#	    puts stderr "${:current_part} @doc add $line end"
 	    ${:current_part} @doc add $line end
 	  } else {
 	    :event=next $line

@@ -50,7 +50,7 @@ Test case scanning {
   }
   
   foreach {::line ::result} $lines {
-    ? {foreach {is_comment text} [doc analyze_line $::line] break; set is_comment} $::result "doc analyze_line '$::line'"
+    ? {foreach {is_comment text} [processor analyze_line $::line] break; set is_comment} $::result "processor analyze_line '$::line'"
   }
 
   set script {
@@ -81,7 +81,7 @@ Test case scanning {
 
   set blocks {1 {{ @package o} { 1 2 3}} 5 {{ @object o} { 1 2 3} {} {  345} { @tag1 part1} { @tag2 part2}} 17 {{ @object o # ####} {    1 2 3} {} { 345} { @tag1 part1} { @tag2 part2}}}
 
-  ? [list ::lcompare [doc comment_blocks $script] $blocks] 1
+  ? [list ::lcompare [processor comment_blocks $script] $blocks] 1
 }
 
 Test case parsing {
@@ -344,12 +344,17 @@ Test case parsing {
   ? [list [$entity @attribute] info has type ::nx::doc::@param] 1
   ? [list [$entity @attribute] as_text] "Here! we check whether we can get a valid description block for text spanning multiple lines"
 
+}
+
+Test case in-situ-basics {
   #
   # basic test for in-situ documentation (initcmd block)
   # 
   #
   set script {
-    Class create Foo {
+    package req nx
+    namespace import -force ::nx::Class
+    Class create ::Foo {
       # The class Foo defines the behaviour for all Foo objects
       #
       # @author gustaf.neumann@wu-wien.ac.at
@@ -364,7 +369,7 @@ Test case parsing {
       :attribute attr1
       :attribute attr2
       :attribute attr3
-
+      
       # @.method foo
       #
       # This describes the foo method
@@ -374,9 +379,9 @@ Test case parsing {
       :method foo {a b} {;}
     }
   }
-
-  eval $script
-  doc process ::Foo
+  
+  set prj [processor process -sandboxed -type eval $script]
+  
   set entity [@class id ::Foo]
   ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
@@ -388,7 +393,7 @@ Test case parsing {
   ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
-
+  
   set entity [@method id ::Foo class foo]
   ? [list [@class id ::Foo] @method] $entity
   ? [list ::nsf::is object $entity] 1
@@ -401,13 +406,19 @@ Test case parsing {
   } {
     ? [list expr [list [$p as_text] eq $expected]] 1;
   }
+  
+  $prj destroy
+}
 
-  # TODO: how to realise scanning and parsing for mixed ex- and
-  # in-situ documentation? That is, how to differentiate between
-  # absolutely and relatively qualified comment blocks in line-based
-  # scanning phase (or later)?
+# TODO: how to realise scanning and parsing for mixed ex- and
+# in-situ documentation? That is, how to differentiate between
+# absolutely and relatively qualified comment blocks in line-based
+# scanning phase (or later)?
 
+Test case mixed-mode-parsing {
+  
   set script {
+    package req nx
     namespace import -force ::nx::*
     # @class ::Bar
     # 
@@ -415,14 +426,14 @@ Test case parsing {
     #
     # @author gustaf.neumann@wu-wien.ac.at
     # @author ssoberni@wu.ac.at
-
+    
     # @class.attribute {::Bar attr1}
     #
     # This attribute 1 is wonderful
     #
     # @see ::nx::Attribute
     # @see ::nx::MetaSlot
-
+    
     # @class.class-method {::Bar foo}
     #
     #
@@ -430,99 +441,99 @@ Test case parsing {
     #
     # @parameter a Provides a first value
     # @parameter b Provides a second value
-
+    
     # @class.class-object-method {::Bar foo}
     #
     # This describes the per-object foo method
     #
     # @parameter a Provides a first value
     # @parameter b Provides a second value
-
+    
     namespace eval ::ns1 {
       ::nx::Object create ooo
     }
     Class create Bar {
-
+      
       :attribute attr1
       :attribute attr2
       :attribute attr3
-
+	
       # @.method foo
       #
       # This describes the foo method in the initcmd
       #
       # @parameter a Provides a first value
       # @parameter b Provides a second value
-
+      
       :method foo {a b} {
 	# This describes the foo method in the method body
 	#
 	# @parameter a Provides a first value (refined)
-
+	
       }
       
       :class-object method foo {a b c} {
 	# This describes the per-object foo method in the method body
 	#
 	# @parameter b Provides a second value (refined)
-      	# @parameter c Provides a third value (first time)
-
+	# @parameter c Provides a third value (first time)
+	
       }
-
+      
     }
   }
-
-  set i [doc process $script]
-
+  
+  set prj [processor process -sandboxed -type eval $script]
   set entity [@class id ::Bar]
-  ? [list $i eval [list ::nsf::is object $entity]] 1
-  ? [list $i eval [list $entity info has type ::nx::doc::@class]] 1
-  ? [list $i eval [list $entity as_text]] "The class Bar defines the behaviour for all Bar objects";
-  ? [list $i eval [list $entity @author]] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
-
+  ? [list ::nsf::is object $entity] 1
+  ? [list $entity info has type ::nx::doc::@class] 1
+  ? [list $entity as_text] "The class Bar defines the behaviour for all Bar objects";
+  ? [list $entity @author] "gustaf.neumann@wu-wien.ac.at ssoberni@wu.ac.at"
+  
   # TODO: Fix the [@param id] programming scheme to allow (a) for
   # entities to be passed and the (b) documented structures
   set entity [@attribute id [@class id ::Bar] class attr1]
-  ? [list $i eval [list ::nsf::is object $entity]] 1
-  ? [list $i eval [list $entity info has type ::nx::doc::@attribute]] 1
-  ? [list $i eval [list $entity @see]] "::nx::Attribute ::nx::MetaSlot";
-
+  ? [list ::nsf::is object $entity] 1
+  ? [list $entity info has type ::nx::doc::@attribute] 1
+  ? [list $entity @see] "::nx::Attribute ::nx::MetaSlot";
+  
   set entity [@method id ::Bar class foo]
-  ? [list $i eval [list [@class id ::Bar] @method]] $entity
-  ? [list $i eval [list ::nsf::is object $entity]] 1
-  ? [list $i eval [list $entity info has type ::nx::doc::@method]] 1
-  ? [list $i eval [list $entity as_text]] "This describes the foo method in the method body";
-
-  foreach p [$i eval [list $entity @parameter]] expected {
+  ? [list [@class id ::Bar] @method] $entity
+  ? [list ::nsf::is object $entity] 1
+  ? [list $entity info has type ::nx::doc::@method] 1
+  ? [list $entity as_text] "This describes the foo method in the method body";
+  
+  foreach p [$entity @parameter] expected {
     "Provides a first value (refined)"
     "Provides a second value"
   } {
-    ? [list expr [list [$i eval [list $p as_text]] eq $expected]] 1;
+    ? [list expr [list [$p as_text] eq $expected]] 1;
   }
-
-
+  
+  
   set entity [@method id ::Bar class-object foo]
-  ? [list $i eval [list [@class id ::Bar] @class-object-method]] $entity
-  ? [list $i eval [list ::nsf::is object $entity]] 1
-  ? [list $i eval [list $entity info has type ::nx::doc::@method]] 1
-  ? [list $i eval [list $entity as_text]] "This describes the per-object foo method in the method body";
-
-  foreach p [$i eval [list $entity @parameter]] expected {
+  ? [list [@class id ::Bar] @class-object-method] $entity
+  ? [list ::nsf::is object $entity] 1
+  ? [list $entity info has type ::nx::doc::@method] 1
+  ? [list $entity as_text] "This describes the per-object foo method in the method body";
+  
+  foreach p [$entity @parameter] expected {
     "Provides a first value"
     "Provides a second value (refined)"
     "Provides a third value (first time)"
   } {
-    ? [list expr [list [$i eval [list $p as_text]] eq $expected]] 1;
+    ? [list expr [list [$p as_text] eq $expected]] 1;
   }
+  
+  $prj destroy
+}
 
- 
-  interp delete $i
-
-
+Test case tag-notations-basics {
+  
   #
   # Some tests on structured/navigatable tag notations
   #
-
+  
   # adding support for parsing levels
   
   # -- @class.object.object {::D o1 o2}
@@ -539,15 +550,15 @@ Test case parsing {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
   ? [list $entity as_text] "We have a tag notation sensitive to the parsing level"
-
+  
   set block {
     {@..object {o2 o3} We still look for balanced specs}
   }
-
+  
   set entity [[@ @class ::D] @object o1]
   set cbp [CommentBlockParser process -parsing_level 2 -partof_entity $entity $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
-
+  
   # This fails because we do not allow uninitialised/non-existing
   # entity objects (@object o) along the resolution path ...
   set block {
@@ -556,15 +567,15 @@ Test case parsing {
   
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? INVALIDTAG] 1
-#  ? [list $cbp message] "The tag 'object' is not supported for the entity type '@class'"
-
+  #  ? [list $cbp message] "The tag 'object' is not supported for the entity type '@class'"
+  
   set block {
     {@class.method.attribute attr1 We have an imbalanced specification (the names are underspecified!)}
   }
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
   ? [list $cbp message] "Imbalanced tag line spec: 'class method attribute' vs. 'attr1'"
-
+  
   # For now, we do not verify and use a fixed scope of permissive tag
   # names. So, punctuation errors or typos are most probably reported
   # as imbalanced specs. In the mid-term run, this should rather
@@ -575,14 +586,16 @@ Test case parsing {
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? STYLEVIOLATION] 1
   ? [list $cbp message] "Imbalanced tag line spec: 'cla ss method parameter' vs. '::C foo p1'"
-
+  
   set block {
     {@cla,ss.method.parameter {::C foo p1} We mistyped a tag fragment}
   }
   set cbp [CommentBlockParser process $block]
   ? [list $cbp status ? INVALIDTAG] 1
   ? [list $cbp message] "The entity type '@cla,ss' is not available."
+}
 
+Test case tag-notations-extended {
   set script {
     # @class ::C
     #
@@ -591,11 +604,11 @@ Test case parsing {
     # @attribute attr1 Here we can only provide a description block for object parameters
     
     # @class.attribute {::C attr1} Here, we could also write '@class.class-attribute \{::C attr1\}', @attribute is a mere forwarder! In the context section, only one-liners are allowed!
-
+    
     # @class.object.attribute {::C foo p1} A short description is ...
     #
     # .. is overruled by a long one ...
-
+    
     # If addressing to a nested object, one strategy would be to use
     # @object and provide the object identifier (which reflects the
     # nesting, e.g. ::C::foo). However, we cannot distinguish between
@@ -643,7 +656,7 @@ Test case parsing {
 	# @parameter p1 The most specific level!
 	return [current method]-$p1-[current]
       }]
-           
+      
       # @.class-object-method.parameter {bar p1}
       #
       # This extended form allows to describe a method parameter with all
@@ -651,9 +664,9 @@ Test case parsing {
       set barHandle [:class-object method bar {p1} {
 	return [current method]-$p1-[current]
       }]
-
+      
       # @.object foo 'foo' needs to be defined before referencing any of its parts!
-
+      
       # @.object.attribute {foo p1}
       #
       # The first element in the name list is resolved into a fully
@@ -680,7 +693,7 @@ Test case parsing {
       
       # @.class.class-object-attribute {Foo p2} Y
       Class create [current]::Foo {
-
+	
 	# @..attribute p1
 	# 
 	#
@@ -710,7 +723,7 @@ Test case parsing {
       # The desc of the ensemble object 'sub'
       #
       # @sub-method bar Only description available here ...
-
+      
       # ISSUE: Should the helper object "sub" be documentable in its own
       # right?  This would be feasible with the dotted notation from
       # within and outside the initcmd script block, e.g. "@object sub" or
@@ -721,9 +734,9 @@ Test case parsing {
       # way? Having an "@class-object-submethod" would not make much sense to
       # me?!
       :alias "sub bar" $barHandle 
-
+      
       # @.class-object-method sub A brief desc
-
+      
       # @.class-object-method {"sub foo2"}
       #
       # could allow both (@sub-method is the attribute name, @method is a
@@ -735,13 +748,14 @@ Test case parsing {
       :class-object alias "sub foo2" $fooHandle
     }
   }
-
+  
   #
   # 1) process the top-level comments (PARSING LEVEL 0)
   #
-
-  doc analyze -noeval true $script
-
+  
+  processor readin $script
+  
+  
   # --testing-- "@class ::C"
   set entity [@class id ::C]
   ? [list ::nsf::isobject $entity] 1
@@ -795,23 +809,30 @@ Test case parsing {
   # 2) process the initcmd comments (PARSING LEVEL 1)
   #
   
+  ::nsf::configure keepinitcmd true
   eval $script
-
-  doc analyze_initcmd @class ::C [::C eval {set :__initcmd}]
-
+  ::nsf::configure keepinitcmd false
+  lassign [processor readin \
+	     -parsing_level 1 \
+	     -docstring \
+	     -tag @class \
+	     -name ::C \
+	     [::C eval {set :__initcmd}]] _ processed_entities
+  
   # a) existing, but modified ...
-
+  
   set entity [@class id ::C]
+  ? $_ $entity
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] "This is the initcmd-level description of ::C which overwrites the global description (see above)"
-    
+  
   set entity [@attribute id $entity class attr1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] {This is equivalent to writing "@class-attribute attr1"}
-
-
+  
+  
   set entity [@object id ::C::foo]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
@@ -820,25 +841,25 @@ Test case parsing {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "The first element in the name list is resolved into a fully qualified (absolute) entity, based on the object owning the initcmd!"
-
+  
   # b) newly added ...
-
+  
   # --testing-- @class-object-attribute attr2
   set entity [@attribute id [@class id ::C] class-object attr2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] "Carries a short desc only";
-
+  
   # --testing-- @child-class Foo
   # TODO: provide a check against fully-qualified names in part specifications
   set entity [@class id ::C::Foo]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@class] 1
   ? [list $entity as_text] {By providing a fully-qualified identifier ("::Foo") you leave the context of the initcmd-owning object, i.e. you would NOT refer to a nested class object named "Foo" anymore!}
-
+  
   set entity [@attribute id [@class id ::C] class p1]
   ? [list ::nsf::isobject $entity] 0; # should be 0 at this stage!
-
+  
   # --testing -- @method foo
   set entity [@method id ::C class foo]
   ? [list ::nsf::isobject $entity] 1
@@ -858,19 +879,19 @@ Test case parsing {
   set entity [@attribute id $cl class-object p2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "Y"
-
+  
   set entity [@method id ::C class sub]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "The desc of the ensemble object 'sub'"
-
+  
   set entity [@method id ::C class sub::bar]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "Only description available here ..."
-
+  
   set entity [@method id ::C class-object sub]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "A brief desc"
-
+  
   set entity [@method id ::C class-object sub::foo2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@method] 1
@@ -881,37 +902,44 @@ Test case parsing {
   set entity [@parameter id $entity "" p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "Some words on p1"
-
+  
   #
   # 3a) process the attribute initcmds and method bodies (PARSING LEVEL 2)!
   #  
-
-  doc process=@class [@class id ::C]
+  
+  set project [@project new -name "_%@"]
+  $project sandbox [Sandbox new]
+  processor process=@class $project [@class id ::C]
   
   # methods ...
-
+  
   set entity [@method id ::C class foo]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "Here goes some method-body-level description"
   set entity [@parameter id [@method id ::C class foo] "" p1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "The most specific level!"
-
+  
   # attributes ...
-
+  
   # attr1 
   set entity [@attribute id [@class id ::C] class attr1]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] {This description does not apply to the object parameter "attr1" owned by the ::C class, rather it is a description of the attribute slot object! How should we deal with this situation? Should this level overwrite the top-level and initcmd-level descriptions?}
-
+  
   #
   # 3b) nested objects/ classes (PARSING LEVEL 2)!
-  #  
-
-  doc analyze_initcmd -parsing_level 2 @object ::C::foo [::C::foo eval {set :__initcmd}]
-  doc process=@object [@object id ::C::foo]
-
+  # 
+  processor readin \
+      -docstring \
+      -parsing_level 2 \
+      -tag @object \
+      -name ::C::foo \
+      [::C::foo eval {set :__initcmd}]
+  
+  processor process=@object $project [@object id ::C::foo]
+  
   set entity [@object id ::C::foo]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@object] 1
@@ -920,10 +948,15 @@ Test case parsing {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@attribute] 1
   ? [list $entity as_text] {This is equivalent to stating "@class-object-attribute p1"}
-
-  doc analyze_initcmd -parsing_level 2 @class ::C::Foo [::C::Foo eval {set :__initcmd}]
-  doc process=@class [@class id ::C::Foo]
-
+  
+  processor readin \
+      -docstring \
+      -parsing_level 2 \
+      -tag @class \
+      -name ::C::Foo \
+      [::C::Foo eval {set :__initcmd}]
+  processor process=@class $project [@class id ::C::Foo]
+  
   set cl [@class id ::C::Foo]
   ? [list ::nsf::isobject $cl] 1
   set entity [@attribute id $cl class p1]
@@ -932,106 +965,223 @@ Test case parsing {
   set entity [@attribute id $cl class-object p2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] ""
-
-  puts stderr =================================================
-  #
-  # self documentation
-  #
-  # if {[catch {set i [doc process nx::doc]} msg]} {
-  #   puts stderr ERRORINFO=$::errorInfo
-  #   if {[Exception behind? $msg]} {
-  #     puts stderr [$msg info class]->[$msg message]
-  #   } else {
-  #     error $msg
-  #   }
-  # }
-  # ? [list $i eval [list ::nsf::is object [@package id nx::doc]]] 1
-  # puts stderr [$i eval [list [@package id nx::doc] text]]
-  # puts stderr [$i eval [list [@package id nx::doc] @require]]
-  # set path [file join /tmp nextdoc]
-  # if {[file exists $path]} {
-  #   file delete -force $path
-  # }
-  # $i eval [list ::nx::doc::make doc \
-  # 	       -renderer ::nx::doc::TemplateData \
-  # 	       -outdir /tmp \
-  # 	       -project {name nextdoc url http://www.next-scripting.org/ version 0.1d}]
-  # interp delete $i
-
-  #
-  # core documentation
-  #
-  foreach path [list [file join [::nsf::tmpdir] NextScriptingFramework] \
-		    [file join [::nsf::tmpdir] NextScriptingLanguage]] {
-    if {[file exists $path]} {
-      file delete -force $path
-    }
-  }
-
-  set i [interp create]
-  $i eval {
-    package req nx::doc
-    namespace import ::nx::*
-    namespace import ::nx::doc::*
-    
-    # 1) NSF documentation project
-    set project [::nx::doc::@project new \
-		     -name NextScriptingFramework \
-		     -url http://www.next-scripting.org/ \
-		     -version 1.0.0a \
-		     -@namespace "::nsf"]
-
-    doc process -noeval true generic/nsf.tcl
-
-    ::nx::doc::make doc \
-    	-renderer ::nx::doc::NxDocRenderer \
-    	-project $project \
-    	-outdir [::nsf::tmpdir]
-
-    #puts stderr NSF=[info commands ::nx::doc::entities::command::nsf::*]
-
-    puts stderr TIMING=[time {
-    set project [::nx::doc::@project new \
-    		     -name NextScriptingLanguage \
-    		     -url http://www.next-scripting.org/ \
-    		     -version 1.0.0a \
-    		     -@namespace "::nx"]
-      # ISSUE: If calling '-namespace "::nx"' instead of '-@namespace
-      # "::nx"', we get an irritating failure. VERIFY!
-    doc process -noeval true library/nx/nx.tcl
-    ::nx::doc::make doc \
-    	-renderer ::nx::doc::NxDocRenderer \
-    	-project $project \
-    	-outdir [::nsf::tmpdir]
-    } 1]
-  }
-
-  interp delete $i
   
-  set _ {
-    # 2) XOTcl2 documentation project
-    doc process -noeval true library/xotcl/xotcl.tcl
-    ::nx::doc::make doc \
-	-renderer ::nx::doc::NxDocTemplateData \
-	-outdir [::nsf::tmpdir] \
-	-project {name XOTcl2 url http://www.xotcl.org/ version 2.0.0a}
-    
-    # 3) NSL documentation project
-    doc process -noeval true library/nx/nx.tcl
-    ::nx::doc::make doc \
-	-renderer ::nx::doc::NxDocTemplateData \
-	-outdir [::nsf::tmpdir] \
-	-project {name NextScriptingLanguage url http://www.next-scripting.org/ version 1.0.0a}
-    
-    # 4) Next Scripting Libraries
-    # doc process -noeval true ...
-    # ::nx::doc::make doc \
-    # 	-renderer ::nx::doc::NxDocTemplateData \
-    # 	-outdir [::nsf::tmpdir] \
-    # 	-project {name NextScriptingLibraries url http://www.next-scripting.org/ version 1.0.0a}
-  }
+  #
+  # basic testing of "properties" (switch attributes)
+  #
+
+  ? [list $cl eval {set :@deprecated}] 0
+  ? [list $cl eval {set :@stashed}] 0
+  ? [list $cl eval {set :@c-implemented}] 0
+
+  ? [list $cl @deprecated] 1
+  ? [list $cl @stashed] 1
+  ? [list $cl @c-implemented] 1
+
+  ? [list $cl eval {set :@deprecated}] 1
+  ? [list $cl eval {set :@stashed}] 1
+  ? [list $cl eval {set :@c-implemented}] 1
+
+  set entity [@method id ::C class foo]
+  ? [list $entity eval {set :@syshook}] 0
+  ? [list $entity @syshook] 1
+  ? [list $entity eval {set :@syshook}] 1
+  ? [list $entity @syshook 0] {wrong # args: should be "get obj prop"}
+  ? [list $entity eval {set :@syshook 0}] 0
+  ? [list $entity @syshook] 1
+
 
 }
+
+Test case switch-parts {
+  
+  set script {
+    package req nx
+    namespace import ::nx::*
+    Class create Enil {
+      # The class Enil defines the behaviour for all Enil objects,
+      # however, it is deprecated and will be removed from the
+      # provided doc entities in the next iteration ...
+      #
+      # @author ssoberni@wu.ac.at
+      # @deprecated
+      
+      # @.attribute attr1 
+      #
+      # This attribute 1 will be invisibile in the generated doc
+      #
+      # @stashed
+      :attribute attr1
+      
+      # @.method foo
+      #
+      # This describes the foo method which is called from within the
+      # nx-enabled Tcl engine
+      #
+      # @syshook
+      :method foo {a b} {;}
+      
+      :method baz {} {
+	# This method entity sets a couple of properties in series ...
+	#
+	# @property c-implemented syshook
+      }
+    }
+  }
+  
+  set prj [processor process -sandboxed -type eval $script]
+  set cl [@class id ::Enil]
+  
+  ? [list $cl eval {set :@deprecated}] 1
+  ? [list $cl @deprecated] 1
+  ? [list $cl eval {set :@c-implemented}] 0
+  ? [list $cl eval {set :@stashed}] 0
+  ? [list $cl @author] ssoberni@wu.ac.at
+  
+  set entity [@attribute id $cl class attr1]
+  ? [list $entity eval {set :@deprecated}] 0
+  ? [list $entity eval {set :@stashed}] 1
+  ? [list $entity @stashed] 1
+  ? [list $entity eval {set :@c-implemented}] 0
+  
+  set entity [@method id ::Enil class foo]
+  ? [list $entity eval {set :@deprecated}] 0
+  ? [list $entity eval {set :@stashed}] 0
+  ? [list $entity eval {set :@c-implemented}] 0
+  ? [list $entity eval {set :@syshook}] 1
+  ? [list $entity @syshook] 1
+  
+  set entity [@method id ::Enil class baz]
+  ? [list $entity eval {set :@deprecated}] 0
+  ? [list $entity eval {set :@stashed}] 0
+  ? [list $entity eval {set :@c-implemented}] 1
+  ? [list $entity @c-implemented] 1
+  ? [list $entity eval {set :@syshook}] 1
+  ? [list $entity @syshook] 1
+  
+  
+}
+
+puts stderr =================================================
+foreach path [list [file join [::nsf::tmpdir] NextScriptingFramework] \
+		  [file join [::nsf::tmpdir] NextScriptingLanguage]] {
+  if {[file exists $path]} {
+    file delete -force $path
+  }
+}
+
+# TODO: Figure out where to place nsf.nxd for convenient location ...
+
+puts stderr >>>>>>>NextScriptingFramework<<<<<<<<
+set project [::nx::doc::@project new \
+		 -name NextScriptingFramework \
+		 -url http://www.next-scripting.org/ \
+		 -version 1.0.0a \
+		 -@namespace "::nsf" \
+		 -sources {
+		   package nsf
+		 }]
+
+set project [processor process -sandboxed $project]
+
+::nx::doc::make doc \
+    -renderer ::nx::doc::NxDocRenderer \
+    -project $project \
+    -outdir [::nsf::tmpdir]
+
+
+puts stderr >>>>>>>NextScriptingLanguage<<<<<<<<
+
+set _ [time {
+  set project [::nx::doc::@project new \
+		   -name NextScriptingLanguage \
+		   -url http://www.next-scripting.org/ \
+		   -version 1.0.0a \
+		   -@namespace "::nx" \
+		   -sources {
+		     package nx
+		   }]
+
+  # ISSUE: If calling '-namespace "::nx"' instead of '-@namespace
+  # "::nx"', we get an irritating failure. VERIFY!
+  processor process -sandboxed $project
+  ::nx::doc::make doc \
+      -renderer ::nx::doc::NxDocRenderer \
+      -project $project \
+      -outdir [::nsf::tmpdir]
+} 1]
+
+puts stderr ">>>>> gross timing for $project $_"
+# exit
+
+#   set i [interp create]
+#   $i eval {
+#     package req nx::doc
+#     namespace import ::nx::*
+#     namespace import ::nx::doc::*
+    
+#     # 1) NSF documentation project
+#     set project [::nx::doc::@project new \
+# 		     -name NextScriptingFramework \
+# 		     -url http://www.next-scripting.org/ \
+# 		     -version 1.0.0a \
+# 		     -@namespace "::nsf" \
+# 		     -sources {
+# 		       {package nx}
+# 		       {scriptfile generic/nsf.tcl}
+# 		       {script {}}
+# 		     }]
+
+#     # doc process -noeval true generic/nsf.tcl
+#     set project [doc process -sandboxed -type project $project]
+
+#     ::nx::doc::make doc \
+#     	-renderer ::nx::doc::NxDocRenderer \
+#     	-project $project \
+#     	-outdir [::nsf::tmpdir]
+
+#     #puts stderr NSF=[info commands ::nx::doc::entities::command::nsf::*]
+
+#     puts stderr TIMING=[time {
+#     set project [::nx::doc::@project new \
+#     		     -name NextScriptingLanguage \
+#     		     -url http://www.next-scripting.org/ \
+#     		     -version 1.0.0a \
+#     		     -@namespace "::nx"]
+#       # ISSUE: If calling '-namespace "::nx"' instead of '-@namespace
+#       # "::nx"', we get an irritating failure. VERIFY!
+#     doc process -noeval true library/nx/nx.tcl
+#     ::nx::doc::make doc \
+#     	-renderer ::nx::doc::NxDocRenderer \
+#     	-project $project \
+#     	-outdir [::nsf::tmpdir]
+#     } 1]
+#   }
+
+#   interp delete $i
+  
+#   set _ {
+#     # 2) XOTcl2 documentation project
+#     doc process -noeval true library/xotcl/xotcl.tcl
+#     ::nx::doc::make doc \
+# 	-renderer ::nx::doc::NxDocTemplateData \
+# 	-outdir [::nsf::tmpdir] \
+# 	-project {name XOTcl2 url http://www.xotcl.org/ version 2.0.0a}
+    
+#     # 3) NSL documentation project
+#     doc process -noeval true library/nx/nx.tcl
+#     ::nx::doc::make doc \
+# 	-renderer ::nx::doc::NxDocTemplateData \
+# 	-outdir [::nsf::tmpdir] \
+# 	-project {name NextScriptingLanguage url http://www.next-scripting.org/ version 1.0.0a}
+    
+#     # 4) Next Scripting Libraries
+#     # doc process -noeval true ...
+#     # ::nx::doc::make doc \
+#     # 	-renderer ::nx::doc::NxDocTemplateData \
+#     # 	-outdir [::nsf::tmpdir] \
+#     # 	-project {name NextScriptingLibraries url http://www.next-scripting.org/ version 1.0.0a}
+#   }
 
 
 # # # # # # # # # # # # # # # # # # # #
@@ -1136,9 +1286,3 @@ Test case issues? {
   # need namespace delimiters!)
 
 }
-
-# if {$log} {
-#   ::nx::doc::CommentState mixin delete ::nx::doc::CommentState::Log
-#   ::nx::doc::CommentLine mixin delete ::nx::doc::CommentLine::Log
-#   ::nx::doc::CommentSection mixin delete ::nx::doc::CommentSection::Log
-# }

@@ -265,3 +265,23 @@ a:active.gloss {
   font-style: normal; /* for use with dfn */
 }
 
+span.status {
+    display:none;
+    padding: 0 5px 0 5px;
+    background:url(status.png) no-repeat scroll 0 0;
+}
+
+span.missing {
+    display:inline;
+    background-position: -12px 0;
+}
+
+span.extra {
+    display:inline;
+    background-position: 2px 0;
+}
+
+span.mismatch {
+    display:inline;
+    background-position: -24px 0;
+}

@@ -1,12 +1,13 @@
+[:!let paramblock [:parameters]]
 <div class="${:@modifier}" rel="yui:method" resource="#method_${:name}">
   <h4>
-          <a name="[:href -local]">${:name}</a></h4>
+          <a name="[:href -local]">[:print_name -status]</a></h4>
         <div class="detail" >
           <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[[${:@return} spec] spec]</span>&gt;} ]
 	    <strong property="yui:name">${:name}</strong>
-	    [:parameters]
+	    $paramblock
 	  </code>
-	  [:? {[:has_property interally-called]} {
+	  [:? {[:@syshook]} {
 	     <br>Internally called method, can be redefined.
 	  }]
           [:? {[[[:partof] name] info methods ${:name}] ne "" &&
