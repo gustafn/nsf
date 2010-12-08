@@ -562,6 +562,7 @@ NsfCleanupObject_(NsfObject *object) {
     assert(object->flags & NSF_DELETED);
 
     MEM_COUNT_FREE("NsfObject/NsfClass", object);
+
 #if defined(NSFOBJ_TRACE)
     fprintf(stderr, "CKFREE Object %p refcount=%d\n", object, object->refCount);
 #endif
@@ -2776,53 +2777,129 @@ NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *name) {
   return -1;
 }
 
+
+/*
+ *----------------------------------------------------------------------
+ * NSDeleteChild --
+ *
+ *    Delete a child of an object in cases, when the parent object is
+ *    deleted. It is designed to delete either objects or classes to
+ *    be a little bit more graceful on destuctors. Not perfect yet.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Might destroy an object.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
+
+  /*fprintf(stderr, "NSDeleteChildren child %p (%s) epoch %d\n", 
+    cmd, Tcl_GetCommandName(interp, cmd), Tcl_Command_cmdEpoch(cmd));*/
+
+  assert(Tcl_Command_cmdEpoch(cmd) == 0);
+
+  if (!Tcl_Command_cmdEpoch(cmd)) {
+    NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
+
+    if (object == NULL) {
+      /* 
+       * This is just a plain Tcl command; let Tcl handle the
+       * deletion.
+       */
+      return;
+    }
+
+    /*fprintf(stderr, "NSDeleteChild check %p %s true child %d\n",  
+      object, ObjectName(object), object->id == cmd);*/
+    
+    /* delete here just true children */
+    if (object->id == cmd) {
+
+      if (deleteObjectsOnly && NsfObjectIsClass(object)) {
+	return;
+      }
+
+      /*fprintf(stderr, "NSDeleteChild destroy %p %s\n", object, ObjectName(object));*/
+
+      /* in the exit handler physical destroy --> directly call destroy */
+      if (RUNTIME_STATE(interp)->exitHandlerDestroyRound
+	  == NSF_EXITHANDLER_ON_PHYSICAL_DESTROY) {
+	PrimitiveDestroy((ClientData) object);
+      } else {
+	if (object->teardown && !(object->flags & NSF_DESTROY_CALLED)) {
+	  int result = DispatchDestroyMethod(interp, object, 0);
+	  if (result != TCL_OK) {
+	    if (RUNTIME_STATE(interp)->debugLevel > 1) {
+	      fprintf(stderr, "Warning: destroy failed for object %s, perform low level deletion\n",
+		      ObjectName(object));
+	    }
+	    /*
+	     * The destroy method failed. However, we have to remove
+	     * the command anyway, since its parent is currently being
+	     * deleted.
+	     */
+	    if (object->teardown) {
+	      CallStackDestroyObject(interp, object);
+	    }
+	  }
+	}
+      }
+    } else {
+      /*fprintf(stderr, "NSDeleteChild remove alias %p %s\n", object, Tcl_GetCommandName(interp, cmd));*/
+      AliasDeleteObjectReference(interp, cmd);
+    }
+  } 
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NSDeleteChildren --
+ *
+ *    Delete the child objects of a namespace.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Might destroy child objects.
+ *
+ *----------------------------------------------------------------------
+ */
+
 static void
 NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(nsPtr);
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
 
+
 #ifdef OBJDELETION_TRACE
   fprintf(stderr, "NSDeleteChildren %p %s\n", nsPtr, nsPtr->fullName);
 #endif
 
+  /* 
+   * First, get rid of namespace imported objects; don't delete the
+   * object, but the reference.
+   */
   Tcl_ForgetImport(interp, nsPtr, "*"); /* don't destroy namespace imported objects */
-
+  
+  /*
+   * Second, delete the objects.
+   */
   for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
        hPtr = Tcl_NextHashEntry(&hSrch)) {
-    Tcl_Command cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
-
-    if (!Tcl_Command_cmdEpoch(cmd)) {
-      NsfObject *object = NsfGetObjectFromCmdPtr(cmd);
-
-      /*fprintf(stderr, "... check %p %s\n",  object, object ? ObjectName(object) : "(null)");*/
-
-      /* delete here just true children */
-      if (object && object->id == cmd) {
-	
-        /* in the exit handler physical destroy --> directly call destroy */
-        if (RUNTIME_STATE(interp)->exitHandlerDestroyRound
-            == NSF_EXITHANDLER_ON_PHYSICAL_DESTROY) {
-          PrimitiveDestroy((ClientData) object);
-        } else {
-          if (object->teardown && !(object->flags & NSF_DESTROY_CALLED)) {
-	    int result = DispatchDestroyMethod(interp, object, 0);
-            if (result != TCL_OK) {
-	      /*fprintf(stderr, "DispatchDestroy %p in NSDeleteChildren failed id %p teardown %p\n",
-		object, object->id, object->teardown);*/
-              /*
-	       * The destroy method failed. However, we have to remove
-	       * the command anyway, since its parent is currend being
-	       * deleted.
-	       */
-              if (object->teardown) {
-                CallStackDestroyObject(interp, object);
-              }
-            }
-          }
-        }
-      }
-    }
+    NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 1);
+  }
+ /*
+  * Finally, delete the classes.
+   */
+  for (hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch); hPtr;
+       hPtr = Tcl_NextHashEntry(&hSrch)) {
+    NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 0);
   }
 }
 
@@ -7454,7 +7531,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 	 *  {1} Class ::State
 	 *  {2} Class ::State -parameter x
 	 */
-	if (RUNTIME_STATE(interp)->debugLevel > 0) {
+	if (RUNTIME_STATE(interp)->debugLevel > 1) {
 	  fprintf(stderr, "Warning: don't invoke object %s this way. Register object via alias...\n", methodName);
 	}
 	cmd = NULL;
@@ -9033,11 +9110,13 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   /* always make sure, we only decrement when necessary */
   *freeArgumentVector = 0;
 
-  if (!cscPtr)
+  if (!cscPtr) {
     return NsfVarErrMsg(interp, "next: can't find self", (char *) NULL);
+  }
 
-  if (!cscPtr->cmdPtr)
+  if (!cscPtr->cmdPtr) {
     return NsfErrMsg(interp, "next: no executing proc", TCL_STATIC);
+  }
 
   oc = Tcl_CallFrame_objc(framePtr);
 
@@ -9058,7 +9137,7 @@ NextGetArguments(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   }
 
   /*fprintf(stderr, "NextGetArguments oc %d objc %d inEnsemble %d objv %p\n",
-    oc, objc, inEnsemble, cscPtr->objv);*/
+    oc, objc, inEnsemble, cscPtr->objv); */
 
   if (objc > -1) {
     int methodNameLength;
@@ -9336,7 +9415,7 @@ nsfCmd next NsfNextCmd {
 */
 static int
 NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
-  int freeArgumentVector, oc, nobjc;
+  int freeArgumentVector, oc, nobjc, result;
   NsfCallStackContent *cscPtr;
   CONST char *methodName;
   Tcl_Obj **nobjv, **ov;
@@ -9350,9 +9429,12 @@ NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
     oc = -1;
   }
 
-  NextGetArguments(interp, oc, ov, &cscPtr, &methodName,
-		   &nobjc, &nobjv, &freeArgumentVector);
-  return NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
+  result = NextGetArguments(interp, oc, ov, &cscPtr, &methodName,
+			    &nobjc, &nobjv, &freeArgumentVector);
+  if (result == TCL_OK) {
+    result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
+  }
+  return result;
 }
 
 /*
@@ -9379,7 +9461,7 @@ NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
  */
 int
 NsfNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  int freeArgumentVector, nobjc;
+  int freeArgumentVector, nobjc, result;
   NsfCallStackContent *cscPtr;
   CONST char *methodName;
   Tcl_Obj **nobjv;
@@ -9395,9 +9477,12 @@ NsfNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
     }
   }
 
-  NextGetArguments(interp, objc-1, &objv[1], &cscPtr, &methodName,
-		   &nobjc, &nobjv, &freeArgumentVector);
-  return NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
+  result = NextGetArguments(interp, objc-1, &objv[1], &cscPtr, &methodName,
+			    &nobjc, &nobjv, &freeArgumentVector);
+  if (result == TCL_OK) {
+    result = NextSearchAndInvoke(interp, methodName, nobjc, nobjv, cscPtr, freeArgumentVector);
+  }
+  return result;
 }
 
 

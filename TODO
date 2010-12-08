@@ -1987,6 +1987,10 @@ _ added option noforwarder to RelationSlots
 - fixed bug in xotcl 2.0 "info forward"
 - extended regression test
 
+- NSDeleteChildren: delete objects before classes
+- NSDeleteChildren: delete here aliases as well
+- fix potential crash when "next" is called from a non-proc frame.
+
 TODO:
 
 - "-returns" 
