@@ -736,7 +736,7 @@ namespace eval ::xotcl {
     if {$definition ne ""} {
       set obj [lindex $definition 0]
       set modifier [lindex $definition 2]
-	if {$modifier eq "object"} {
+	if {$modifier eq "class-object"} {
         set prefix ""
         set kind [lindex $definition 3]
         set name [lindex $definition 4]
