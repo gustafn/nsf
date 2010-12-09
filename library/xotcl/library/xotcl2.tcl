@@ -329,7 +329,11 @@ namespace eval ::xotcl {
   }
 
   # "init" must exist on Object. per default it is empty.
-  Object instproc init args {}
+  Object instproc init args {
+    if {[::nsf::current isnextcall] && [llength $args] > 0 && [::nsf::configure debug] > 0} {
+      puts stderr "Warning: arguments '$args' to constructor of object [self] are most likely not processed"
+    }
+  }
 
   Object instproc self {} {::xotcl::self}
 
@@ -564,12 +568,13 @@ namespace eval ::xotcl {
     :proc invar {}            {::nsf::assertion [self] object-invar}
 
     :proc methods {
-      -nocmds:switch -noprocs:switch -incontext:switch pattern:optional
+      -nocmds:switch -noprocs:switch -nomixins:switch -incontext:switch pattern:optional
     } {
       set methodtype all
       if {$nocmds} {set methodtype scripted}
       if {$noprocs} {if {$nocmds} {return ""}; set methodtype builtin}
       set cmd [list ::nsf::methods::object::info::lookupmethods -methodtype $methodtype]
+      if {$nomixins} {lappend cmd -nomixins}
       if {$incontext} {lappend cmd -incontext}
       if {[info exists pattern]} {lappend cmd $pattern}
       my {*}$cmd
