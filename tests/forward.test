@@ -276,7 +276,8 @@ Test case num-args {
 ###############################################
 Test case earlybinding {
     Object create obj {
-	:public forward s -earlybinding ::set ::X
+      #:public forward s -earlybinding ::set ::X
+      :public forward s ::set ::X
     }
     ? {obj s 100} 100
     ? {obj s} 100

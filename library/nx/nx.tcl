@@ -285,7 +285,7 @@ namespace eval ::nx {
 
   Object public method forward {
      method 
-     -default -methodprefix -objscope:switch -onerror -returns -verbose:switch
+     -default -methodprefix -objframe:switch -onerror -returns -verbose:switch
      target:optional args
    } {
     array set "" [:__resolve_method_path -per-object $method]
@@ -304,7 +304,7 @@ namespace eval ::nx {
   }
   Class public method forward {    
      method 
-     -default -methodprefix -objscope:switch -onerror -returns -verbose:switch
+     -default -methodprefix -objframe:switch -onerror -returns -verbose:switch
      target:optional args
    } {
     array set "" [:__resolve_method_path $method]
@@ -1343,7 +1343,7 @@ namespace eval ::nx {
   # TODO: This is the slots method.... remove it for now.
   #
   #Class forward slots %self contains \
-  #    -object {%::nsf::dispatch [::nsf::self] -objscope ::subst [::nsf::self]::slot}
+  #    -object {%::nsf::dispatch [::nsf::self] -objframe ::subst [::nsf::self]::slot}
 
   ##################################################################
   # copy/move implementation
