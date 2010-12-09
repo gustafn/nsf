@@ -13925,17 +13925,30 @@ NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
       /*fprintf(stderr, "MethodProperty, ParamDefsGet cmd %p paramDefs %p returns %p\n",
 	cmd, paramDefs, paramDefs?paramDefs->returns:NULL);*/
 
-      if (paramDefs == NULL) {
-	paramDefs = ParamDefsNew();
-	ParamDefsStore(interp, cmd, paramDefs);
-	/*fprintf(stderr, "new param defs %p for cmd %p %s\n", paramDefs, cmd, methodName);*/
-      }
-      objPtr = methodproperty == MethodpropertySlotobjIdx ? &paramDefs->slotObj : &paramDefs->returns;
       if (valueObj == NULL) {
-	/* must be a returns query */
-	Tcl_SetObjResult(interp, *objPtr ? *objPtr : NsfGlobalObjs[NSF_EMPTY]);
+	/* a query for "returns" or "slotobj" */
+	Tcl_Obj *resultObj;
+
+	if (paramDefs == NULL) {
+	  resultObj = NsfGlobalObjs[NSF_EMPTY];
+	} else {
+	  objPtr = methodproperty == MethodpropertySlotobjIdx ? &paramDefs->slotObj : &paramDefs->returns;
+	  resultObj = *objPtr ? *objPtr : NsfGlobalObjs[NSF_EMPTY];
+	}
+	Tcl_SetObjResult(interp, resultObj);
+
       } else {
+	/* setting "returns" or "slotobj" */
 	const char *valueString = ObjStr(valueObj);
+
+	if (paramDefs == NULL) {
+	  /* acquire new paramDefs */
+	  paramDefs = ParamDefsNew();
+	  ParamDefsStore(interp, cmd, paramDefs);
+	  /*fprintf(stderr, "new param defs %p for cmd %p %s\n", paramDefs, cmd, methodName);*/
+	}
+	objPtr = methodproperty == MethodpropertySlotobjIdx ? &paramDefs->slotObj : &paramDefs->returns;
+
 	/* Set a new value; if there is already a value, free it */
 	if (*objPtr) {
 	  DECR_REF_COUNT(*objPtr);

@@ -354,14 +354,21 @@ Test case int-returns-sugar {
 
 Test case empty-paramdefs-robustedness {
   ::nx::Object create ku {
-    # Condition 1: An empty or checker-free parameter spec!
+    # 1: Create an empty or checker-free parameter spec
     :method foo {} {;}
-    # Condition 2: A call to ::nsf::methodproperty which acquires a
-    # NsfParamDefs
-    ::nsf::methodproperty [::nx::current] foo returns; # a returns query
-    # At this point, we find a NsfParamDefs structure with an empty set
-    # of params! Subsequent references to paramDefs->paramsPtr in
-    # e.g. ListCmdParams() would crash ... if not trapped appropriately.
-    ? [list [::nx::current] info method parameter foo] ""; # boom!
+    ? [:info method parameter foo] ""
+    # 2: A call to ::nsf::methodproperty which might require NsfParamDefs
+    ? [list ::nsf::methodproperty [::nx::current] foo returns] ""
+    # 3: Check, if "info method parameter" still works
+    ? [:info method parameter foo] ""
+    ? [list ::nsf::methodproperty [::nx::current] foo returns] ""
+    # 4: Set methodproperty to some value and check again
+    ::nsf::methodproperty [::nx::current] foo returns int
+    ? [list ::nsf::methodproperty [::nx::current] foo returns] "int"
+    ? [:info method parameter foo] ""
+    # 5: Reset methodproperty and query again
+    ::nsf::methodproperty [::nx::current] foo returns ""
+    ? [list ::nsf::methodproperty [::nx::current] foo returns] ""
+    ? [:info method parameter foo] ""
   }
 }
