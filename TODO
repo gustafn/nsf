@@ -1991,12 +1991,25 @@ _ added option noforwarder to RelationSlots
 - NSDeleteChildren: delete here aliases as well
 - fix potential crash when "next" is called from a non-proc frame.
 
+- nx.tcl: cleanup of forward implementation
+- xotcl2.tcl: cleanup of forward implementation
+- xotcl2.tcl: provide debug version of default init method
+
+- nsf.c: aquire parameter structure for returns more lazyly
+  (otherwise, a serializer handling returns would aquire the
+  structure for every argument)
+- extend regression test
+
+- xotcl2.tcl: fix the default init handler
+- nsf.c: provide warnings when unchecked parameter values might conflict with nonpos args
+
 TODO:
 
 - "-returns" 
   * handle "-returns" in serializer
 
 - change allowempty to "empty"
+- check performance implications of value conflict checker
 
 - extend coro regression test
 

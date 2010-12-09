@@ -7922,7 +7922,7 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
   int result;
 
   if (pPtr->converterArg) {
-    /*fprintf(stderr, "ConvertToStringType %s (must be %s)\n", ObjStr(objPtr), ObjStr(pPtr->converterArg));*/
+    /*fprintf(stderr, "ConvertToTclobj %s (must be %s)\n", ObjStr(objPtr), ObjStr(pPtr->converterArg));*/
 
     objv[1] = pPtr->converterArg;
     objv[2] = objPtr;
@@ -7940,6 +7940,18 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
       }
     }
   } else {
+    
+    if (RUNTIME_STATE(interp)->debugLevel > 0) {
+      char *value = ObjStr(objPtr);
+      if (*value == '-' 
+	  && (pPtr->flags & NSF_ARG_CHECK_NONPOS) 
+	  && isalpha(*(value+1)) 
+	  && strchr(value+1, ' ') == 0) {
+	fprintf(stderr, "Warning: value '%s' of parameter %s could be a non-positional argument\n",
+		value, pPtr->name);
+      }
+    } 
+
     *clientData = (ClientData)objPtr;
     result = TCL_OK;
   }
@@ -8302,7 +8314,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, size_t length, int disa
 
 static int
 ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowedFlags,
-           NsfParam *paramPtr, int *possibleUnknowns, int *plainParams) {
+           NsfParam *paramPtr, int *possibleUnknowns, int *plainParams, int *nrNonposArgs) {
   int result, npac, isNonposArgument;
   size_t nameLength, length, j;
   CONST char *argString, *argName;
@@ -8327,6 +8339,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
     argName = argString+1;
     nameLength = length-1;
     paramPtr->nrArgs = 1; /* per default 1 argument, switches set their arg numbers */
+    (*nrNonposArgs) ++;
   } else {
     argName = argString;
     nameLength = length;
@@ -8511,19 +8524,25 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *args,
 
   if (argsc > 0) {
     NsfParam *paramsPtr, *paramPtr, *lastParamPtr;
-    int i, possibleUnknowns = 0, plainParams = 0;
+    int i, possibleUnknowns = 0, plainParams = 0, nrNonposArgs = 0;
     NsfParamDefs *paramDefs;
 
     paramPtr = paramsPtr = ParamsNew(argsc);
 
     for (i=0; i < argsc; i++, paramPtr++) {
       result = ParamParse(interp, procNameObj, argsv[i], allowedOptinons,
-                      paramPtr, &possibleUnknowns, &plainParams);
+			  paramPtr, &possibleUnknowns, &plainParams, &nrNonposArgs);
       if (result != TCL_OK) {
         ParamsFree(paramsPtr);
         return result;
       }
     }
+    if (nrNonposArgs > 0) {
+      for (i=0; i < argsc; i++) {
+	(paramsPtr + i)->flags |= NSF_ARG_CHECK_NONPOS;
+      }
+    }
+
 
     /*
      * If all arguments are good old Tcl arguments, there is no need
@@ -11984,7 +12003,6 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     Tcl_DStringAppend(dsPtr, "Invalid argument '", -1);
     Tcl_DStringAppend(dsPtr, ObjStr(objv[pcPtr->lastobjc]), -1);
     Tcl_DStringAppend(dsPtr, "', maybe too many arguments;", -1);
-    fprintf(stderr, "processing %s\n",ObjStr(objv[pcPtr->lastobjc]));
     return ArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr, 
 			 object ? object->cmdName : NULL, 
 			 procNameObj); 
@@ -14808,12 +14826,13 @@ NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj 
 
   if (j < length) {
     /* looks as if we have a parameter specification */
-    int result, possibleUnknowns = 0, plainParams = 0;
+    int result, possibleUnknowns = 0, plainParams = 0, nrNonposArgs = 0;
 
     setterClientData->paramsPtr = ParamsNew(1);
     result = ParamParse(interp, NsfGlobalObjs[NSF_SETTER], parameter,
                         NSF_DISALLOWED_ARG_SETTER|NSF_ARG_HAS_DEFAULT,
-                        setterClientData->paramsPtr, &possibleUnknowns, &plainParams);
+                        setterClientData->paramsPtr, &possibleUnknowns, 
+			&plainParams, &nrNonposArgs);
 
     if (result != TCL_OK) {
       SetterCmdDeleteProc((ClientData)setterClientData);
@@ -14900,7 +14919,7 @@ ParamSetFromAny2(
 {
   NsfParamWrapper *paramWrapperPtr = NEW(NsfParamWrapper);
   Tcl_Obj *fullParamObj = Tcl_NewStringObj(varNamePrefix, -1);
-  int result, possibleUnknowns = 0, plainParams = 0;
+  int result, possibleUnknowns = 0, plainParams = 0, nrNonposArgs = 0;
 
   paramWrapperPtr->paramPtr = ParamsNew(1);
   paramWrapperPtr->refCount = 1;
@@ -14911,7 +14930,8 @@ ParamSetFromAny2(
   INCR_REF_COUNT(fullParamObj);
   result = ParamParse(interp, NsfGlobalObjs[NSF_VALUECHECK], fullParamObj,
                       NSF_DISALLOWED_ARG_VALUECHECK /* disallowed options */,
-                      paramWrapperPtr->paramPtr, &possibleUnknowns, &plainParams);
+                      paramWrapperPtr->paramPtr, &possibleUnknowns, 
+		      &plainParams, &nrNonposArgs);
   /* Here, we want to treat currently unknown user level converters as
      error.
   */
