@@ -12085,7 +12085,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
     NsfParamDefs *paramDefs = procPtr ? ParamDefsGet((Tcl_Command)procPtr->cmdPtr) : NULL;
     Tcl_Obj *list;
 
-    if (paramDefs) {
+    if (paramDefs && paramDefs->paramsPtr) {
       /*
        * Obtain parameter info from paramDefs
        */
