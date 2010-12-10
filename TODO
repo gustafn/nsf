@@ -2019,12 +2019,12 @@ _ added option noforwarder to RelationSlots
   (eg. Object create o; Object create o:x; o info children x" will return ::o::x)
 - extended regression test
 
-- introduced a few forms of multiplicty
+- introduced a few forms of multiplicity
    * 0..1 allow empty value
    * 0..* list, can be empty (equivalent to 0..n)
    * 1..* list, cannot be empty (equivalent to 1..n)
-- deprecate multivalued in parameter specs in favor of multiplicty
-- deprecate allowempty in parameter specs in favor of multiplicty
+- deprecate multivalued in parameter specs in favor of multiplicity
+- deprecate allowempty in parameter specs in favor of multiplicity
 - adjust regression test
 
 
