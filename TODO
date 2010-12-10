@@ -2012,7 +2012,13 @@ _ added option noforwarder to RelationSlots
 - new parameter checker "parameter", performing an approximate checking 
   for valid parameter specs
 - set NSF_ARG_CHECK_NONPOS only when there are multiple arguments
-- remove space checking for NSF_ARG_CHECK_NONPOS in favor of parameter checker
+- remove space checking in values for NSF_ARG_CHECK_NONPOS in favor of parameter checker
+
+- make "... info children ?pattern?" compliant with XOTcl 1; 
+  if pattern contains no wildcard and is no absolute path, nsf completes it.
+  (eg. Object create o; Object create o:x; o info children x" will return ::o::x)
+- extended regression test
+
 
 TODO:
 

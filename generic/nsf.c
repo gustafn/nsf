@@ -12750,12 +12750,20 @@ static int
 ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern, 
 	     int classesOnly, NsfClass *type) {
   NsfObject *childObject;
-  Tcl_HashTable *cmdTablePtr;
 
   if (!object->nsPtr) return TCL_OK;
 
-  cmdTablePtr = Tcl_Namespace_cmdTablePtr(object->nsPtr);
   if (pattern && NoMetaChars(pattern)) {
+    Tcl_DString ds, *dsPtr = &ds;
+    Tcl_DStringInit(dsPtr);
+   
+    if (*pattern != ':') {
+      /* build a fully qualified name */
+      Tcl_DStringAppend(dsPtr, object->nsPtr->fullName, -1);
+      Tcl_DStringAppend(dsPtr, "::", 2);    
+      Tcl_DStringAppend(dsPtr, pattern, -1);
+      pattern = Tcl_DStringValue(dsPtr);
+    }
 
     if ((childObject = GetObjectFromString(interp, pattern)) &&
         (!classesOnly || NsfObjectIsClass(childObject)) &&
@@ -12766,10 +12774,12 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
     } else {
       Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
     }
+    Tcl_DStringFree(dsPtr);
 
   } else {
     Tcl_Obj *list = Tcl_NewListObj(0, NULL);
     Tcl_HashSearch hSrch;
+    Tcl_HashTable *cmdTablePtr = Tcl_Namespace_cmdTablePtr(object->nsPtr);
     Tcl_HashEntry *hPtr = Tcl_FirstHashEntry(cmdTablePtr, &hSrch);
     char *key;
 
