@@ -13,6 +13,39 @@
 
 #include "nsfInt.h"
 
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfDStringPrintf --
+ *
+ *      Set a Tcl_DString to a formatted value. This function
+ *      currently copies at most TCL_DSTRING_STATIC_SIZE characters
+ *      into the DString (this limit might be lifted in the future)
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void
+NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
+{
+    int      result;
+    va_list  ap;
+
+    va_copy(ap, apSrc);
+    result = vsnprintf(Tcl_DStringValue(dsPtr), TCL_DSTRING_STATIC_SIZE, fmt, ap);
+    va_end(ap);
+
+    Tcl_DStringSetLength(dsPtr, result < TCL_DSTRING_STATIC_SIZE ? result : TCL_DSTRING_STATIC_SIZE);
+}
+
+
 int
 NsfErrMsg(Tcl_Interp *interp, char *msg, Tcl_FreeProc* type) {
     Tcl_SetResult(interp, msg, type);

@@ -274,6 +274,54 @@ static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char 
 static int NextSearchAndInvoke(Tcl_Interp *interp,
 			       CONST char *methodName, int objc, Tcl_Obj *CONST objv[],
 			       NsfCallStackContent *cscPtr, int freeArgumentVector);
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfLog --
+ *
+ *      Produce a formatted warning by calling an external function
+ *      ::nsf::log. It is defined static to allow for inlining.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+
+static void
+NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...) {
+  va_list ap;
+
+  if (RUNTIME_STATE(interp)->debugLevel >= requiredLevel) {
+    CONST char *level = requiredLevel == NSF_LOG_WARN ? "Warning" : "Inform";
+    Tcl_DString cmdString, ds;
+
+    Tcl_DStringInit(&ds);
+    va_start(ap, fmt);
+    NsfDStringPrintf(&ds, fmt, ap);
+    va_end(ap);
+
+    Tcl_DStringInit(&cmdString);
+    Tcl_DStringAppendElement(&cmdString, "nsf::log");
+    Tcl_DStringAppendElement(&cmdString, level);
+    Tcl_DStringAppendElement(&cmdString, Tcl_DStringValue(&ds));
+
+    int result = Tcl_EvalEx(interp, Tcl_DStringValue(&cmdString), Tcl_DStringLength(&cmdString), 0);
+    if (result == TCL_ERROR) {
+      static char cmdString[] =
+	"puts stderr \"Error in logger\n\
+      $::errorCode $::errorInfo\"";
+      Tcl_EvalEx(interp, cmdString, -1, 0);
+    }
+    Tcl_DStringFree(&cmdString);
+    Tcl_DStringFree(&ds);
+  }
+}
+
 /*
  * argv parsing
  */
@@ -2832,16 +2880,16 @@ NSDeleteChild(Tcl_Interp *interp, Tcl_Command cmd, int deleteObjectsOnly) {
       } else {
 	if (object->teardown && !(object->flags & NSF_DESTROY_CALLED)) {
 	  int result = DispatchDestroyMethod(interp, object, 0);
+
 	  if (result != TCL_OK) {
-	    if (RUNTIME_STATE(interp)->debugLevel > 1) {
-	      fprintf(stderr, "Warning: destroy failed for object %s, perform low level deletion\n",
-		      ObjectName(object));
-	    }
 	    /*
 	     * The destroy method failed. However, we have to remove
 	     * the command anyway, since its parent is currently being
 	     * deleted.
 	     */
+	    NsfLog(interp, NSF_LOG_INFORM, "Destroy failed for object %s, perform low level deletion",
+		   ObjectName(object));
+
 	    if (object->teardown) {
 	      CallStackDestroyObject(interp, object);
 	    }
@@ -4529,9 +4577,7 @@ GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *start
     int new;
 
     if (inst->flags & NSF_TCL_DELETE) {
-      if (RUNTIME_STATE(interp)->debugLevel > 1) {
-	fprintf(stderr, "Warning: Object %s is apparently deleted\n", ObjectName(inst));
-      }
+      NsfLog(interp, NSF_LOG_INFORM, "Object %s is apparently deleted", ObjectName(inst));
       continue;
     }
 
@@ -4539,9 +4585,7 @@ GetAllInstances(Tcl_Interp *interp, Tcl_HashTable *destTablePtr, NsfClass *start
     assert(cmdPtr);
 
     if (cmdPtr && (cmdPtr->nsPtr->flags & NS_DYING)) {
-      if (RUNTIME_STATE(interp)->debugLevel > 0) {
-	fprintf(stderr, "Warning: Namespace of %s is apparently deleted\n", ObjectName(inst));
-      }
+      NsfLog(interp, NSF_LOG_WARN, "Namespace of %s is apparently deleted", ObjectName(inst));
       continue;
     }
 
@@ -7531,9 +7575,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 	 *  {1} Class ::State
 	 *  {2} Class ::State -parameter x
 	 */
-	if (RUNTIME_STATE(interp)->debugLevel > 1) {
-	  fprintf(stderr, "Warning: don't invoke object %s this way. Register object via alias...\n", methodName);
-	}
+	NsfLog(interp, NSF_LOG_INFORM, "Don't invoke object %s this way. Register object via alias...", methodName);
 	cmd = NULL;
 
       } else if (IsClassNsName(methodName)) {
@@ -7579,11 +7621,9 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     NsfObject *lastSelf = GetSelfObj(interp);
 
     if (object != lastSelf) {
-      if (RUNTIME_STATE(interp)->debugLevel > 0) {
-	fprintf(stderr, "Warning: '%s %s' fails since method %s.%s is protected.\n", 
-		ObjectName(object), methodName, 
-		cl ? ClassName(cl) : ObjectName(object), methodName);
-      }
+      NsfLog(interp, NSF_LOG_WARN, "'%s %s' fails since method %s.%s is protected", 
+	     ObjectName(object), methodName, 
+	     cl ? ClassName(cl) : ObjectName(object), methodName);
       /* reset cmd, since it is still unknown */
       cmd = NULL;
     }
@@ -7947,8 +7987,8 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
 	  && (pPtr->flags & NSF_ARG_CHECK_NONPOS) 
 	  && isalpha(*(value+1)) 
 	  && strchr(value+1, ' ') == 0) {
-	fprintf(stderr, "Warning: value '%s' of parameter %s could be a non-positional argument\n",
-		value, pPtr->name);
+	NsfLog(interp, NSF_LOG_WARN, "Value '%s' of parameter %s could be a non-positional argument",
+	       value, pPtr->name);
       }
     } 
 
@@ -8457,10 +8497,9 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
     if (cmd == NULL) {
       if (paramPtr->converter == ConvertViaCmd) {
 
-	if (RUNTIME_STATE(interp)->debugLevel > 0) {
-	  fprintf(stderr, "Warning: could not find value checker %s defined on %s\n",
-		  converterNameString, ObjectName(paramObj));
-	}
+	NsfLog(interp, NSF_LOG_WARN, "Could not find value checker %s defined on %s",
+	       converterNameString, ObjectName(paramObj));
+
         paramPtr->flags |= NSF_ARG_CURRENTLY_UNKNOWN;
         /* TODO: for the time being, we do not return an error here */
       }
@@ -8468,10 +8507,8 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
                strcmp(ObjStr(paramPtr->slotObj),
 		      NsfGlobalStrings[NSF_METHOD_PARAMETER_SLOT_OBJ]) != 0) {
 
-      if (RUNTIME_STATE(interp)->debugLevel > 0) {
-	fprintf(stderr, "Warning: checker method %s defined on %s shadows built-in converter\n",
-		converterNameString, ObjectName(paramObj));
-      }
+      NsfLog(interp, NSF_LOG_WARN, "Checker method %s defined on %s shadows built-in converter",
+	     converterNameString, ObjectName(paramObj));
 
       if (paramPtr->converterName == NULL) {
         paramPtr->converterName = converterNameObj;
@@ -12499,12 +12536,9 @@ ListMethod(Tcl_Interp *interp,
 	  }
 	} else {
 	  /* should never happen */
-	  if (RUNTIME_STATE(interp)->debugLevel > 0) {
-	    fprintf(stderr, "Warning: Could not obtain alias definition for %s. "
-		    "Maybe someone deleted the alias %s for object %s?\n",
-		    methodName,
-		    methodName, ObjectName(regObject));
-	  }
+	  NsfLog(interp, NSF_LOG_WARN, "Could not obtain alias definition for %s. "
+		 "Maybe someone deleted the alias %s for object %s?",
+		 methodName, methodName, ObjectName(regObject));
 	  Tcl_ResetResult(interp);
 	}
       }
@@ -13329,14 +13363,12 @@ NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
 
   GetClassFromObj(interp, object, &theobj, NULL);
   GetClassFromObj(interp, class, &thecls, NULL);
+
   if (theobj || thecls) {
-    
     ObjectSystemFree(interp, osPtr);
-    if (RUNTIME_STATE(interp)->debugLevel > 0) {
-      fprintf(stderr, "Warning: Base class exists already; ignoring definition.\n");
-    }
+    NsfLog(interp, NSF_LOG_WARN, "Base %s class exists already; ignoring definition", 
+	   theobj ? object : class);
     return TCL_OK;
-    /* fprintf(stderr, "CreateObjectSystem created base classes \n"); */
   }
 
   if (systemMethodsObj) {
@@ -17291,12 +17323,12 @@ FinalObjectDeletion(Tcl_Interp *interp, NsfObject *object) {
    * value to ensure deletion.
    */
   if (object->refCount != 1) {
-    if (RUNTIME_STATE(interp)->debugLevel > 0) {
-      fprintf(stderr, "Warning: have to fix refcount for obj %p refcount %d",object, object->refCount);
-      if (object->refCount > 1) {
-	fprintf(stderr, " (name %s)", ObjectName(object));
-      }
-      fprintf(stderr, "\n");
+    if (object->refCount > 1) {
+      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refcount for obj %p refcount %d  (name %s)",
+	     object, object->refCount, ObjectName(object));
+    } else {
+      NsfLog(interp, NSF_LOG_WARN,  "Have to fix refcount for obj %p refcount %d",
+	     object, object->refCount);
     }
     object->refCount = 1;
   }

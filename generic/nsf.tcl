@@ -77,6 +77,19 @@ namespace eval ::nsf {
   }
   # initialize exit handler
   ::nsf::exithandler unset
+  
+  #
+  # logger
+  #
+  if {[info command ::ns_log] ne ""} {
+    proc ::nsf::log {level msg} {
+      ns_log $level "nsf: $msg"
+    }
+  } else {
+    proc ::nsf::log {level msg} {
+      puts stderr "$level: $msg"
+    }
+  }
 
   #
   # determine platform aware temp directory

@@ -2003,6 +2003,11 @@ _ added option noforwarder to RelationSlots
 - xotcl2.tcl: fix the default init handler
 - nsf.c: provide warnings when unchecked parameter values might conflict with nonpos args
 
+- provide a generic logging interface
+  * predefined for plain Tcl and aolserver/naviserver
+  * C-level: NsfLog()
+  * Tcl-level: ::nsf::log
+
 TODO:
 
 - "-returns" 

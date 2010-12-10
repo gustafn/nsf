@@ -43,7 +43,7 @@ declare 6 generic {
     int NsfDeleteObject(Tcl_Interp *interp, struct Nsf_Object *obj)
 }
 declare 7 generic {
-    int NsfRemoveObjectMethod(Tcl_Interp *interp,struct Nsf_Object *obj, CONST char *nm)
+    int NsfRemoveObjectMethod(Tcl_Interp *interp, struct Nsf_Object *obj, CONST char *nm)
 }
 declare 8 generic {
     int NsfRemoveClassMethod(Tcl_Interp *interp, struct Nsf_Class *cl, CONST char *nm)
@@ -58,12 +58,12 @@ declare 10 generic {
 }
 declare 11 generic {
     Tcl_Obj *Nsf_ObjSetVar2(struct Nsf_Object *obj,
-                 Tcl_Interp *interp,Tcl_Obj *name1,Tcl_Obj *name2,
-		 Tcl_Obj *value,int flgs)
+                 Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
+		 Tcl_Obj *value, int flgs)
 }
 declare 12 generic {
     Tcl_Obj *Nsf_ObjGetVar2(struct Nsf_Object *obj, 
-                 Tcl_Interp *interp,Tcl_Obj *name1,Tcl_Obj *name2,
+                 Tcl_Interp *interp, Tcl_Obj *name1, Tcl_Obj *name2,
 		 int flgs)
 }
 declare 13 generic {
@@ -78,59 +78,62 @@ declare 15 generic {
     int NsfVarErrMsg(Tcl_Interp  *interp, ...)
 }
 declare 16 generic {
+    void NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
+}
+declare 17 generic {
     int NsfErrInProc (Tcl_Interp *interp, Tcl_Obj *objName,
 		Tcl_Obj *clName, CONST char *procName)
 }
-declare 17 generic {
+declare 18 generic {
    int NsfErrBadVal_(Tcl_Interp *interp, char *expected, char *value)
 }
-declare 18 generic {
+declare 19 generic {
     int NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *nm, char *wt, char *parameterName)
 }
-declare 19 generic {
+declare 20 generic {
     void NsfStackDump (Tcl_Interp *interp)
 }
-declare 20 generic {
+declare 21 generic {
     void NsfSetObjClientData(Nsf_Object *obj, ClientData data)
 }
-declare 21 generic {
+declare 22 generic {
     ClientData NsfGetObjClientData(Nsf_Object *obj)
 }
-declare 22 generic {
+declare 23 generic {
     void NsfSetClassClientData(Nsf_Class *cl, ClientData data)
 }
-declare 23 generic {
+declare 24 generic {
     ClientData NsfGetClassClientData(Nsf_Class *cl)
 }
-declare 24 generic {
+declare 25 generic {
     void NsfRequireObjNamespace(Tcl_Interp *interp, Nsf_Object *obj)
 }
-declare 25 generic {
+declare 26 generic {
     int NsfErrBadVal(Tcl_Interp *interp, char *context, char *expected, CONST char *value)
 }
-declare 26 generic {
+declare 27 generic {
         int NsfNextObjCmd(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 }
-declare 27 generic {
+declare 28 generic {
         int  NsfCallMethodWithArgs(ClientData cd, Tcl_Interp *interp, 
                 Tcl_Obj *method, Tcl_Obj *arg,
        	         int objc, Tcl_Obj *CONST objv[], int flags)
 }
-declare 28 generic {
+declare 29 generic {
     int NsfObjErrArgCnt(Tcl_Interp *interp, Tcl_Obj *cmdName, Tcl_Obj *methodName, 
                                      char *arglist)
 }
-declare 29 generic {
+declare 30 generic {
     int NsfAddObjectMethod(Tcl_Interp *interp, struct Nsf_Object *obj, 
                          CONST char *nm, Tcl_ObjCmdProc *proc,
 	                 ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
 }
-declare 30 generic {
+declare 31 generic {
    int NsfAddClassMethod(Tcl_Interp *interp, struct Nsf_Class *cl, 
                          CONST char *nm, Tcl_ObjCmdProc *proc,
 	                 ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
 }
-declare 31 generic {
+declare 32 generic {
     int NsfCreate(Tcl_Interp *in, Nsf_Class *class, Tcl_Obj *name, ClientData data,
             int objc, Tcl_Obj *CONST objv[])
 }
