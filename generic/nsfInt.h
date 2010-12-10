@@ -840,7 +840,7 @@ void NsfStringIncrFree(NsfStringIncrStruct *iss);
 #define FRAME_IS_NSF_METHOD  0x20000
 #define FRAME_IS_NSF_CMETHOD 0x40000
 
-#define NSF_LOG_INFORM 2
+#define NSF_LOG_NOTICE 2
 #define NSF_LOG_WARN 1
 
 #if !defined(NDEBUG)

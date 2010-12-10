@@ -529,7 +529,7 @@ Test case subst-default {
   
 
   ? {D public method foo {s:switch} {return 1}} \
-      {invalid parameter type "switch" for argument s; type "switch" only allowed for non-positional arguments}
+      {invalid parameter type "switch" for argument "s"; type "switch" only allowed for non-positional arguments}
 
   D public method foo {a b {-c 1} {-d} x {-end 100}} {
     set result [list]

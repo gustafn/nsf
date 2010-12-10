@@ -50,25 +50,23 @@ NsfStubs nsfStubs = {
     Nsf_ObjSetVar2, /* 11 */
     Nsf_ObjGetVar2, /* 12 */
     NsfUnsetInstVar2, /* 13 */
-    NsfErrMsg, /* 14 */
-    NsfVarErrMsg, /* 15 */
-    NsfDStringPrintf, /* 16 */
-    NsfErrInProc, /* 17 */
-    NsfErrBadVal_, /* 18 */
-    NsfObjErrType, /* 19 */
-    NsfStackDump, /* 20 */
-    NsfSetObjClientData, /* 21 */
-    NsfGetObjClientData, /* 22 */
-    NsfSetClassClientData, /* 23 */
-    NsfGetClassClientData, /* 24 */
-    NsfRequireObjNamespace, /* 25 */
-    NsfErrBadVal, /* 26 */
-    NsfNextObjCmd, /* 27 */
-    NsfCallMethodWithArgs, /* 28 */
-    NsfObjErrArgCnt, /* 29 */
-    NsfAddObjectMethod, /* 30 */
-    NsfAddClassMethod, /* 31 */
-    NsfCreate, /* 32 */
+    NsfDStringPrintf, /* 14 */
+    NsfPrintError, /* 15 */
+    NsfErrInProc, /* 16 */
+    NsfObjErrType, /* 17 */
+    NsfStackDump, /* 18 */
+    NsfSetObjClientData, /* 19 */
+    NsfGetObjClientData, /* 20 */
+    NsfSetClassClientData, /* 21 */
+    NsfGetClassClientData, /* 22 */
+    NsfRequireObjNamespace, /* 23 */
+    NsfErrBadVal, /* 24 */
+    NsfNextObjCmd, /* 25 */
+    NsfCallMethodWithArgs, /* 26 */
+    NsfObjErrArgCnt, /* 27 */
+    NsfAddObjectMethod, /* 28 */
+    NsfAddClassMethod, /* 29 */
+    NsfCreate, /* 30 */
 };
 
 /* !END!: Do not edit above this line. */

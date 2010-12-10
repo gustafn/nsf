@@ -19,9 +19,8 @@
  *
  * NsfDStringPrintf --
  *
- *      Set a Tcl_DString to a formatted value. This function
- *      currently copies at most TCL_DSTRING_STATIC_SIZE characters
- *      into the DString (this limit might be lifted in the future)
+ *      Appends to a Tcl_DString a formatted value. This function
+ *      iterates until it has sufficiently memory allocated.
  *
  * Results:
  *      None.
@@ -35,42 +34,58 @@
 void
 NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
 {
-    int      result;
-    va_list  ap;
+  int      result, avail = dsPtr->spaceAvl, offset = dsPtr->length;
+  va_list  ap;
+  
+  va_copy(ap, apSrc);
+  result = vsnprintf(Tcl_DStringValue(dsPtr) + offset, avail, fmt, ap);
+  va_end(ap);
+
+  while (result >= avail) {
+    
+    Tcl_DStringSetLength(dsPtr, avail + 4096);
+    avail = dsPtr->spaceAvl;
+    /* fprintf(stderr, "NsfDStringPrintf must iterate, new avail %d\n", avail);*/
 
     va_copy(ap, apSrc);
-    result = vsnprintf(Tcl_DStringValue(dsPtr), TCL_DSTRING_STATIC_SIZE, fmt, ap);
+    result = vsnprintf(Tcl_DStringValue(dsPtr) + offset, avail, fmt, ap);
     va_end(ap);
-
-    Tcl_DStringSetLength(dsPtr, result < TCL_DSTRING_STATIC_SIZE ? result : TCL_DSTRING_STATIC_SIZE);
+  }
+  Tcl_DStringSetLength(dsPtr, result);
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfPrintError --
+ *
+ *      Produce a formatted error message with a printf like semantics
+ *
+ * Results:
+ *      TCL_ERROR
+ *
+ * Side effects:
+ *      Sets the result message.
+ *
+ *----------------------------------------------------------------------
+ */
 
 int
-NsfErrMsg(Tcl_Interp *interp, char *msg, Tcl_FreeProc* type) {
-    Tcl_SetResult(interp, msg, type);
-    return TCL_ERROR;
+NsfPrintError(Tcl_Interp *interp, CONST char *fmt, ...) {
+  va_list ap;
+  Tcl_DString ds;
+
+  Tcl_DStringInit(&ds);
+
+  va_start(ap, fmt);
+  NsfDStringPrintf(&ds, fmt, ap);
+  va_end(ap);
+
+  Tcl_SetResult(interp, Tcl_DStringValue(&ds), TCL_VOLATILE);
+  Tcl_DStringFree(&ds);
+
+  return TCL_ERROR;
 }
-
-int
-NsfVarErrMsg TCL_VARARGS_DEF (Tcl_Interp *, arg1) {
-    va_list argList;
-    char *string;
-    Tcl_Interp *interp;
-
-    interp = TCL_VARARGS_START(Tcl_Interp *, arg1, argList);
-    Tcl_ResetResult(interp);
-    while (1) {
-      string = va_arg(argList, char *);
-      if (string == NULL) {
-        break;
-      }
-      Tcl_AppendResult(interp, string, (char *) NULL);
-    }
-    va_end(argList);
-    return TCL_ERROR;
-}
-
 
 int
 NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
@@ -127,15 +142,6 @@ int
 NsfErrBadVal(Tcl_Interp *interp, char *context, char *expected, CONST char *value) {
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp, context, ": expected ", expected, " but got '", 
-		   value, "'", (char *) NULL);
-  return TCL_ERROR;
-}
-
-int
-NsfErrBadVal_(Tcl_Interp *interp, char *expected, char *value) {
-  fprintf(stderr, "Deprecated call, recompile your program with nsf 1.5 or newer\n");
-  Tcl_ResetResult(interp);
-  Tcl_AppendResult(interp, ": expected ", expected, " but got '", 
 		   value, "'", (char *) NULL);
   return TCL_ERROR;
 }

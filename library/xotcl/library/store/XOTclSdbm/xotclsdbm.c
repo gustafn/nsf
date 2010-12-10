@@ -70,8 +70,8 @@ NsfSdbmOpenMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]
 
   /* name not in hashtab - create new db */
   if (NsfGetObjClientData(obj))
-    return NsfVarErrMsg(in, "Called open on '", TclObjStr(obj->cmdName),
-			  "', but open database was not closed before.", 0);
+    return NsfPrintError(in, "Called open on '%s', but open database was not closed before", 
+			 TclObjStr(obj->cmdName);
 
   db = (db_t*) ckalloc (sizeof(db_t));
 
@@ -98,8 +98,8 @@ NsfSdbmOpenMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]
     ckfree ((char*) db);
     db = (db_t*) NULL ;
 
-    return NsfVarErrMsg(in, "Open on '", TclObjStr(obj->cmdName),
-			  "' failed with '", TclObjStr(objv[1]),"'.", 0);
+    return NsfPrintError(in, "Open on '%s' failed with '%s'", 
+			 TclObjStr(obj->cmdName), TclObjStr(objv[1]));
   } else {
     /*
      * success
@@ -119,9 +119,10 @@ NsfSdbmCloseMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
     return NsfObjErrArgCnt(in, obj->cmdName, "close");
 
   db = (db_t*) NsfGetObjClientData(obj);
-  if (!db)
-    return NsfVarErrMsg(in, "Called close on '", TclObjStr(obj->cmdName),
-			  "', but database was not opened yet.", 0);
+  if (!db) {
+    return NsfPrintError(in, "Called close on '%s', but database was not opened yet", 
+			 TclObjStr(obj->cmdName));
+  }
   sdbm_close (db->db);
 
   /*ckfree((char*)db->name);*/
@@ -145,8 +146,8 @@ NsfSdbmNamesMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
 
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-    return NsfVarErrMsg(in, "Called names on '", TclObjStr(obj->cmdName),
-			  "', but database was not opened yet.", 0);
+    return NsfPrintError(in, "Called names on '%s', but database was not opened yet", 
+			 TclObjStr(obj->cmdName));
   Tcl_DStringInit(&result);
 
   key = sdbm_firstkey(db->db);
@@ -180,8 +181,8 @@ NsfSdbmSetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[])
 
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-    return NsfVarErrMsg(in, "Called set on '", TclObjStr(obj->cmdName),
-			  "', but database was not opened yet.", 0);
+    return NsfPrintError(in, "Called set on '%s', but database was not opened yet", 
+			 TclObjStr(obj->cmdName));
 
   key.dptr = TclObjStr(objv[1]);
   key.dsize = objv[1]->length + 1;
@@ -195,14 +196,13 @@ NsfSdbmSetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[])
 	  Tcl_SetObjResult(in, r);
       } else {
 	  /* key not found */
-	  return NsfVarErrMsg(in, "no such variable '", key.dptr,
-				"'", 0);
+	  return NsfPrintError(in, "no such variable '%s'", key.dptr);
       }
   } else {
       /* set value */
       if (db->mode == O_RDONLY) {
-	  return NsfVarErrMsg(in, "Trying to set '", TclObjStr(obj->cmdName),
-				"', but database is in read mode.", 0);
+	  return NsfPrintError(in, "Trying to set '%s', but database is in read mode", 
+			       TclObjStr(obj->cmdName));
       }
       content.dptr = TclObjStr(objv[2]);
       content.dsize = objv[2]->length + 1;
@@ -210,8 +210,7 @@ NsfSdbmSetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[])
 	  /*fprintf(stderr,"setting %s to '%s'\n",key.dptr,content.dptr);*/
 	  Tcl_SetObjResult(in, objv[2]);
       } else {
-	  return NsfVarErrMsg(in, "set of variable '", TclObjStr(obj->cmdName),
-				"' failed.", 0);
+	return NsfPrintError(in, "set of variable '%s' failed", TclObjStr(obj->cmdName));
       }
   }
   return TCL_OK;
@@ -229,8 +228,8 @@ NsfSdbmExistsMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv
 
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-      return NsfVarErrMsg(in, "Called exists on '", TclObjStr(obj->cmdName),
-			    "', but database was not opened yet.", 0);
+      return NsfPrintError(in, "Called exists on '%s', but database was not opened yet", 
+			   TclObjStr(obj->cmdName));
 
   key.dptr = TclObjStr(objv[1]);
   key.dsize = objv[1]->length + 1;
@@ -256,12 +255,12 @@ NsfSdbmUnsetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
 
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-    return NsfVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
-			  "', but database was not opened yet.", 0);
+    return NsfPrintError(in, "Called unset on '%s', but database was not opened yet",
+			 TclObjStr(obj->cmdName));
   /* check for read mode */
   if (db->mode == O_RDONLY) {
-    return NsfVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
-			  "', but database is in read mode.", 0);
+    return NsfPrintError(in, "Called unset on '%s', but database is in read mode", 
+			 TclObjStr(obj->cmdName));
   }
 
   key.dptr = TclObjStr(objv[1]);
@@ -272,8 +271,7 @@ NsfSdbmUnsetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
   if (ret == 0) {
     return TCL_OK;
   } else {
-    return NsfVarErrMsg(in, "Tried to unset '", TclObjStr(objv[1]),
-			  "' but key does not exist.", 0);
+    return NsfPrintError(in, "Tried to unset '%s', but key does not exist", TclObjStr(objv[1]));
   }
 }
 
@@ -293,8 +291,8 @@ NsfSdbmFirstKeyMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST ob
 
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-    return NsfVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
-			  "', but database was not opened yet.", 0);
+    return NsfPrintError(in, "Called unset on '%s', but database was not opened yet",  
+			 TclObjStr(obj->cmdName));
 
 
   key = sdbm_firstkey(db->db);
@@ -321,8 +319,8 @@ NsfSdbmNextKeyMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST obj
 
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
-    return NsfVarErrMsg(in, "Called unset on '", TclObjStr(obj->cmdName),
-			  "', but database was not opened yet.", 0);
+    return NsfPrintError(in, "Called unset on '%s', but database was not opened yet", 
+			 TclObjStr(obj->cmdName));
 
   newkey = sdbm_nextkey(db->db);
 

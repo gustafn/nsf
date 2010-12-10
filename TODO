@@ -2030,6 +2030,10 @@ _ added option noforwarder to RelationSlots
 - fixed bug with required last object parameter without provided value
 - extended regression test
 
+- new printf-style error message generator: NsfPrintError()
+- simplified error handling: removed NsfVarErrMsg() and NsfErrMsg() 
+  and replaced it by NsfPrintError()
+
 TODO:
 
 - "-returns" 
