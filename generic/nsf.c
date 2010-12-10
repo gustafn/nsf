@@ -11787,7 +11787,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct NsfParam CONST *pPtr, 
       Tcl_Obj *elementObjPtr;
       const char *valueString = ObjStr(ov[i]);
 
-      if (pPtr->flags & NSF_ARG_ALLOW_EMPTY && *valueString == '\0') {
+      if (0 && /* TODO: REMOVE ME */ pPtr->flags & NSF_ARG_ALLOW_EMPTY && *valueString == '\0') {
 	result = ConvertToString(interp, ov[i], pPtr, clientData, &elementObjPtr);
       } else {
 	result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
