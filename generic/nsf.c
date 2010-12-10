@@ -7976,7 +7976,7 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
       } else {
 	result = NsfVarErrMsg(interp, "expected ", ObjStr(pPtr->converterArg),
 				" but got \"", ObjStr(objPtr),
-                                "\" for parameter ", pPtr->name, NULL);
+                                "\" for parameter \"", pPtr->name, "\"", NULL);
       }
     }
   } else {
@@ -7986,8 +7986,9 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
       if (*value == '-' 
 	  && (pPtr->flags & NSF_ARG_CHECK_NONPOS) 
 	  && isalpha(*(value+1)) 
-	  && strchr(value+1, ' ') == 0) {
-	NsfLog(interp, NSF_LOG_WARN, "Value '%s' of parameter %s could be a non-positional argument",
+	  /* && strchr(value+1, ' ') == 0 */
+	  ) {
+	NsfLog(interp, NSF_LOG_WARN, "Value '%s' of parameter '%s' could be a non-positional argument",
 	       value, pPtr->name);
       }
     } 
@@ -8016,7 +8017,7 @@ ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
     *clientData = (ClientData)INT2PTR(bool);
   } else {
     NsfVarErrMsg(interp, "expected boolean value but got \"", ObjStr(objPtr),
-                   "\" for parameter ", pPtr->name, NULL);
+                   "\" for parameter \"", pPtr->name, "\"", NULL);
   }
   *outObjPtr = objPtr;
   return result;
@@ -8034,7 +8035,7 @@ ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
     *outObjPtr = objPtr;
   } else {
     NsfVarErrMsg(interp, "expected integer but got \"", ObjStr(objPtr),
-                   "\" for parameter ", pPtr->name, NULL);
+                   "\" for parameter \"", pPtr->name, "\"", NULL);
   }
   return result;
 }
@@ -8108,6 +8109,22 @@ ConvertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
      according to the relation type (Class, List of Class, list of
      filters; we treat it here just like a tclobj */
   *clientData = (ClientData)objPtr;
+  *outObjPtr = objPtr;
+  return TCL_OK;
+}
+
+static int
+ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr,
+		   ClientData *clientData, Tcl_Obj **outObjPtr) {
+  CONST char *value = ObjStr(objPtr);
+
+  *outObjPtr = objPtr;
+  /*fprintf(stderr, "convert to parameter '%s' t '%s'\n", value, pPtr->type);*/
+  if (*value == ':' || (*value == '-' && *(value + 1) == ':')) {
+    return NsfObjErrType(interp, objPtr, pPtr->type, pPtr->name);
+  }
+
+  *clientData = (char *)ObjStr(objPtr);
   *outObjPtr = objPtr;
   return TCL_OK;
 }
@@ -8312,6 +8329,8 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, size_t length, int disa
     result = ParamOptionSetConverter(interp, paramPtr, "relation", ConvertToRelation);
     paramPtr->flags |= NSF_ARG_RELATION;
     /*paramPtr->type = "tclobj";*/
+  } else if (strncmp(option, "parameter", 9) == 0) {
+    result = ParamOptionSetConverter(interp, paramPtr, "parameter", ConvertToParameter);
   } else if (length >= 6 && strncmp(option, "type=", 5) == 0) {
     if (paramPtr->converter != ConvertToObject &&
         paramPtr->converter != ConvertToClass)
@@ -8574,7 +8593,7 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *args,
         return result;
       }
     }
-    if (nrNonposArgs > 0) {
+    if (nrNonposArgs > 0 && argsc > 1) {
       for (i=0; i < argsc; i++) {
 	(paramsPtr + i)->flags |= NSF_ARG_CHECK_NONPOS;
       }
@@ -13366,8 +13385,8 @@ NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
 
   if (theobj || thecls) {
     ObjectSystemFree(interp, osPtr);
-    NsfLog(interp, NSF_LOG_WARN, "Base %s class exists already; ignoring definition", 
-	   theobj ? object : class);
+    NsfLog(interp, NSF_LOG_WARN, "Base class '%s' exists already; ignoring definition", 
+	   theobj ? objectName : className);
     return TCL_OK;
   }
 

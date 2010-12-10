@@ -141,11 +141,12 @@ NsfErrBadVal_(Tcl_Interp *interp, char *expected, char *value) {
 }
 
 extern int
-NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *value, char *type, char *parameterName) {
+NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *value, CONST char *type, char *parameterName) {
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp,"expected ", type, " but got \"",  ObjStr(value), "\"", 
-                   parameterName ? " for parameter " : "",
+                   parameterName ? " for parameter \"" : "",
                    parameterName ? parameterName : "",
+                   parameterName ? "\"" : "",
                    (char *) NULL);
   return TCL_ERROR;
 }

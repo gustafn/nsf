@@ -242,7 +242,7 @@ namespace eval ::xotcl {
 
   # define instproc and proc
   ::nsf::method Class instproc {
-    name arguments body precondition:optional postcondition:optional
+    name arguments:parameter,multivalued body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
@@ -260,10 +260,10 @@ namespace eval ::xotcl {
   }
 
   # define a minimal implementation of "method"
-  Object instproc method {name arguments body} {
+  Object instproc method {name arguments:parameter,multivalued body} {
     :proc $name $arguments $body                                  
   }
-  Class instproc method {-per-object:switch name arguments body} {
+  Class instproc method {-per-object:switch name arguments:parameter,multivalued body} {
     if {${per-object}} {
       :proc $name $arguments $body       
     } else {
@@ -331,7 +331,7 @@ namespace eval ::xotcl {
   # "init" must exist on Object. per default it is empty.
   Object instproc init args {
     if {![::nsf::current isnextcall] && [llength $args] > 0 && [::nsf::configure debug] > 0} {
-      puts stderr "Warning: arguments '$args' to constructor of object [self] are most likely not processed"
+      ::nsf::log Warning "Arguments '$args' to constructor of object [self] are most likely not processed"
     }
   }
 

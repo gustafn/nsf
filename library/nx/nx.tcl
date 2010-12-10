@@ -30,7 +30,7 @@ namespace eval ::nx {
   #
   # get frequenly used primitiva from the next scripting framework 
   #
-  namespace eval ::nsf {}; # makein pkg indexer happy
+  namespace eval ::nsf {}; # make pkg indexer happy
   namespace import ::nsf::next ::nsf::current ::nsf::self
 
   #
@@ -145,7 +145,7 @@ namespace eval ::nx {
   # define method "method" for Class and Object
 
   ::nsf::method Class method {
-    name arguments -returns body -precondition -postcondition
+    name arguments:parameter,multivalued -returns body -precondition -postcondition
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
@@ -162,7 +162,7 @@ namespace eval ::nx {
   }
 
   ::nsf::method Object method {
-    name arguments -returns body -precondition -postcondition
+    name arguments:parameter,multivalued -returns body -precondition -postcondition
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}

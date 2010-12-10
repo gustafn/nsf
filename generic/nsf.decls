@@ -88,7 +88,7 @@ declare 18 generic {
    int NsfErrBadVal_(Tcl_Interp *interp, char *expected, char *value)
 }
 declare 19 generic {
-    int NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *nm, char *wt, char *parameterName)
+    int NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *nm, CONST char *type, char *parameterName)
 }
 declare 20 generic {
     void NsfStackDump (Tcl_Interp *interp)

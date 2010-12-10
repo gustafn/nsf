@@ -137,7 +137,7 @@ EXTERN int		NsfErrBadVal_(Tcl_Interp *interp, char *expected,
 #define NsfObjErrType_TCL_DECLARED
 /* 19 */
 EXTERN int		NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *nm,
-				char *wt, char *parameterName);
+				CONST char *type, char *parameterName);
 #endif
 #ifndef NsfStackDump_TCL_DECLARED
 #define NsfStackDump_TCL_DECLARED
@@ -247,7 +247,7 @@ typedef struct NsfStubs {
     void (*nsfDStringPrintf) (Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc); /* 16 */
     int (*nsfErrInProc) (Tcl_Interp *interp, Tcl_Obj *objName, Tcl_Obj *clName, CONST char *procName); /* 17 */
     int (*nsfErrBadVal_) (Tcl_Interp *interp, char *expected, char *value); /* 18 */
-    int (*nsfObjErrType) (Tcl_Interp *interp, Tcl_Obj *nm, char *wt, char *parameterName); /* 19 */
+    int (*nsfObjErrType) (Tcl_Interp *interp, Tcl_Obj *nm, CONST char *type, char *parameterName); /* 19 */
     void (*nsfStackDump) (Tcl_Interp *interp); /* 20 */
     void (*nsfSetObjClientData) (Nsf_Object *obj, ClientData data); /* 21 */
     ClientData (*nsfGetObjClientData) (Nsf_Object *obj); /* 22 */

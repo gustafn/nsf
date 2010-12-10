@@ -2008,6 +2008,12 @@ _ added option noforwarder to RelationSlots
   * C-level: NsfLog()
   * Tcl-level: ::nsf::log
 
+- quote name of referenced parameter in error message to ease reading
+- new parameter checker "parameter", performing an approximate checking 
+  for valid parameter specs
+- set NSF_ARG_CHECK_NONPOS only when there are multiple arguments
+- remove space checking for NSF_ARG_CHECK_NONPOS in favor of parameter checker
+
 TODO:
 
 - "-returns" 

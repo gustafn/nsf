@@ -33,12 +33,12 @@ Test case int-returns {
 
     ? {c1 bar-ok1 1 2} 1
     ? {c1 bar-ok2 1 2} 1
-    ? {c1 bar-nok 1 2} {expected integer but got "a" for parameter return-value}
+    ? {c1 bar-nok 1 2} {expected integer but got "a" for parameter "return-value"}
 
     ? {c1 incr x} 1
     ? {c1 incr x} 10002
 
-    ? {c1 lappend l e1} {expected integer but got "e1" for parameter return-value}
+    ? {c1 lappend l e1} {expected integer but got "e1" for parameter "return-value"}
 
     # query the returns value
     ? {::nsf::methodproperty C lappend returns} integer
@@ -318,14 +318,14 @@ Test case int-returns-sugar {
     ? {c1 bar-ok1 1 2} 1
     ? {c1 bar-ok2 1 2} 1
     ? {c1 ++ 1000} 1001
-    ? {c1 | a} {expected integer but got "a" for parameter return-value}
+    ? {c1 | a} {expected integer but got "a" for parameter "return-value"}
     ? {::nsf::methodproperty ::C ::nsf::classes::C::bar-nok returns} integer
-    ? {c1 bar-nok 1 2} {expected integer but got "a" for parameter return-value}
+    ? {c1 bar-nok 1 2} {expected integer but got "a" for parameter "return-value"}
 
     ? {c1 incr x} 1
     ? {c1 incr x} 1002
 
-    ? {c1 lappend l e1} {expected integer but got "e1" for parameter return-value}
+    ? {c1 lappend l e1} {expected integer but got "e1" for parameter "return-value"}
 
     # query the returns value
     ? {::nsf::methodproperty C lappend returns} integer

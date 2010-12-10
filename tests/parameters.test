@@ -41,17 +41,17 @@ Test case parametercheck {
   ? {::nsf::is object o1} 1
   ? {::nsf::is object o1} 1
   ? {::nsf::is object o1000} 0
-  ? {::nsf::is -complain object o1000} {expected object but got "o1000" for parameter value}
+  ? {::nsf::is -complain object o1000} {expected object but got "o1000" for parameter "value"}
   ? {::nsf::is integer 1} 1
   ? {::nsf::is object,type=::C c1} 1
-  ? {::nsf::is -complain object,type=::C o} {expected object but got "o" for parameter value}
+  ? {::nsf::is -complain object,type=::C o} {expected object but got "o" for parameter "value"}
   ? {::nsf::is object,type=::C o} 0
 
   ? {c1 info has mixin ::M} 1  
-  ? {c1 info has mixin ::M1} {expected class but got "::M1" for parameter class}
+  ? {c1 info has mixin ::M1} {expected class but got "::M1" for parameter "class"}
   
   ? {c1 info has type C} 1
-  ? {c1 info has type C1} {expected class but got "C1" for parameter class}
+  ? {c1 info has type C1} {expected class but got "C1" for parameter "class"}
 
   ? {c1 ::nsf::methods::object::info::hastype C} 1
   ? {::nsf::dispatch c1 ::nsf::methods::object::info::hastype C} 1
@@ -96,20 +96,20 @@ Test case parametercheck {
   ? {::nsf::is metaclass ::nx::Class} 1
   ? {::nsf::is metaclass ::nx::Object} 0
 
-  ? {::nsf::is -complain class o1} {expected class but got "o1" for parameter value}
+  ? {::nsf::is -complain class o1} {expected class but got "o1" for parameter "value"}
   ? {::nsf::is class o1} 0
   ? {::nsf::is -complain class Test} 1
   ? {::nsf::is -complain object,multivalued [list o1 Test]} 1
 
   ? {::nsf::is -complain integer,multivalued [list 1 2 3]} 1
   ? {::nsf::is -complain integer,multivalued [list 1 2 3 a]} \
-      {invalid value in "1 2 3 a": expected integer but got "a" for parameter value}
+      {invalid value in "1 2 3 a": expected integer but got "a" for parameter "value"}
   ? {::nsf::is -complain object,type=::C c1} 1
   ? {::nsf::is -complain object,type=::C o} \
-      {expected object but got "o" for parameter value} \
+      {expected object but got "o" for parameter "value"} \
       "object, but different type"
   ? {::nsf::is -complain object,type=::C c} \
-      {expected object but got "c" for parameter value} \
+      {expected object but got "c" for parameter "value"} \
       "no object"
   ? {::nsf::is -complain object,type=::nx::Object c1} 1 "general type"
   
@@ -118,7 +118,7 @@ Test case parametercheck {
   
   ? {::nsf::is -complain lower c} 1 "lower case char"
   ? {::nsf::is -complain lower abc} 1 "lower case chars"
-  ? {::nsf::is -complain lower Abc} {expected lower but got "Abc" for parameter value} 
+  ? {::nsf::is -complain lower Abc} {expected lower but got "Abc" for parameter "value"} 
   ? {string is lower abc} 1 "tcl command 'string is lower'"
   
   ? {::nsf::is -complain {i:integer 1} 2} {invalid value constraints "i:integer 1"}
@@ -329,7 +329,7 @@ Test case passed-arguments {
   ? {D create d1} "::d1 configure: required argument 'd' is missing" "check error msg"
   
   ? {D create d2 -d x -b a} \
-      {expected boolean value but got "a" for parameter -b} \
+      {expected boolean value but got "a" for parameter "-b"} \
       "create d2 without required argument given"
 
   D create d1 -d 1
@@ -342,11 +342,11 @@ Test case passed-arguments {
       "call method without a required argument"
   
   ? {d1 foo -r a} \
-      {expected integer but got "a" for parameter -r} \
+      {expected integer but got "a" for parameter "-r"} \
       "required argument is not integer"
   
   ? {d1 foo -r 1} \
-      {expected integer but got "aaa" for parameter -x} \
+      {expected integer but got "aaa" for parameter "-x"} \
       "default value is not of type integer"
   
   ? {d1 foo -r 1 -x 1 -object d1} \
@@ -354,7 +354,7 @@ Test case passed-arguments {
       "pass object"
   
   ? {d1 foo -r 1 -x 1 -object d11} \
-      {expected object but got "d11" for parameter -object} \
+      {expected object but got "d11" for parameter "-object"} \
       "pass non-existing object"
   
   ? {d1 foo -r 1 -x 1 -class D} \
@@ -362,11 +362,11 @@ Test case passed-arguments {
       "pass class"
   
   ? {d1 foo -r 1 -x 1 -class d1} \
-      {expected class but got "d1" for parameter -class} \
+      {expected class but got "d1" for parameter "-class"} \
       "pass object instead of class"
   
   ? {d1 foo -r 1 -x 1 -class D11} \
-      {expected class but got "D11" for parameter -class} \
+      {expected class but got "D11" for parameter "-class"} \
       "pass non-existing class"
   
   ? {D public method foo {a:relation} {}} \
@@ -378,7 +378,7 @@ Test case passed-arguments {
       "allow 'string is XXXX' for argument checking"
   ? {d1 foo 1} 1 "check int as double"
   ? {d1 foo 1.1} 1.1 "check double as double"
-  ? {d1 foo 1.1a} {expected double but got "1.1a" for parameter a} "check non-double as double"
+  ? {d1 foo 1.1a} {expected double but got "1.1a" for parameter "a"} "check non-double as double"
   ? {D info method parameter foo} a:double
 }
 
@@ -420,7 +420,7 @@ Test case multivalued {
   ? {d1 foo 1} "1" "single value"
   ? {d1 foo {1 2}} "1 2" "multiple values"
   ? {d1 foo {1 a 2}} \
-      {invalid value in "1 a 2": expected integer but got "a" for parameter m} \
+      {invalid value in "1 a 2": expected integer but got "a" for parameter "m"} \
       "multiple values with wrong value"
   
   D public method foo {m:object,multivalued} {
@@ -429,14 +429,14 @@ Test case multivalued {
   ? {d1 foo ""} "" "emtpy list"
   ? {d1 foo o} "o" "single value"
   ? {d1 foo {o d1 x}} \
-      {invalid value in "o d1 x": expected object but got "x" for parameter m} \
+      {invalid value in "o d1 x": expected object but got "x" for parameter "m"} \
       "multiple values"
   
   Class create Foo -attributes {
     {ints:integer,multivalued}
   }
   ? {Foo create foo -ints {1 2}} "::foo"
-  ? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a" for parameter -ints}
+  ? {Foo create foo -ints {1 a 2}} {invalid value in "1 a 2": expected integer but got "a" for parameter "-ints"}
 
   # make slot incremental
   Foo::slot::ints eval {
@@ -446,7 +446,7 @@ Test case multivalued {
 
   Foo create foo -ints {1 2}
   ? {foo ints add 0} "0 1 2"
-  ? {foo ints add a} {expected integer but got "a" for parameter value}
+  ? {foo ints add a} {expected integer but got "a" for parameter "value"}
 }
 
 #######################################################
@@ -562,7 +562,7 @@ Test case subst-default {
       "query instparams with default, no paramdefs needed"
 
   ? {Class info method parameter method} \
-      "name arguments -returns body -precondition -postcondition" \
+      "name arguments:parameter,multivalued -returns body -precondition -postcondition" \
       "query instparams for scripted method 'method'"
   
   ? {Object info method parameter ::nsf::forward} \
@@ -702,31 +702,31 @@ Test case mp-object-types {
   
   ? {d1 foo-base ::nx::Object} "::nx::Object"
   ? {d1 foo-base C} \
-      {expected baseclass but got "C" for parameter x} \
+      {expected baseclass but got "C" for parameter "x"} \
       "not a base class"
   
   ? {d1 foo-class D} "D"
   ? {d1 foo-class xxx} \
-      {expected class but got "xxx" for parameter x} \
+      {expected class but got "xxx" for parameter "x"} \
       "not a class"
   ? {d1 foo-class o} \
-      {expected class but got "o" for parameter x} \
+      {expected class but got "o" for parameter "x"} \
       "not a class"
   
   ? {d1 foo-meta ::nx::Class} "::nx::Class"
   ? {d1 foo-meta ::nx::Object} \
-      {expected metaclass but got "::nx::Object" for parameter x} \
+      {expected metaclass but got "::nx::Object" for parameter "x"} \
       "not a base class"
 
   ? {d1 foo-object o} "o"
   ? {d1 foo-object xxx} \
-      {expected object but got "xxx" for parameter x} \
+      {expected object but got "xxx" for parameter "x"} \
       "not an object"
   
   ? {d1 foo-type d1} "d1"
   ? {d1 foo-type c1} "c1"
   ? {d1 foo-type o} \
-      {expected object of type ::C but got "o" for parameter x} \
+      {expected object of type ::C but got "o" for parameter "x"} \
       "o not of type ::C"
 }
 
@@ -758,9 +758,9 @@ Test case substdefault {
   
   ? {s1 bar} 1
   ? {s1 bar 3} 3
-  ? {s1 bar a} {expected integer but got "a" for parameter y}
+  ? {s1 bar a} {expected integer but got "a" for parameter "y"}
   
-  ? {s1 baz} {expected integer but got "b" for parameter x}
+  ? {s1 baz} {expected integer but got "b" for parameter "x"}
   ? {s1 baz 20} 20
   s1 y 100
   ? {s1 baz} 100
@@ -768,7 +768,7 @@ Test case substdefault {
   
   ? {s1 boz} {1 2 3}
   s1 z {1 x 100}
-  ? {s1 boz} {invalid value in "1 x 100": expected integer but got "x" for parameter x}
+  ? {s1 boz} {invalid value in "1 x 100": expected integer but got "x" for parameter "x"}
   ? {s1 boz {100 200}} {100 200}
   
   set ::aaa 100
@@ -861,35 +861,35 @@ Test case op-object-types {
   
   ? {ParamTest create p -o o} ::p
   ? {ParamTest create p -o xxx} \
-      {expected object but got "xxx" for parameter -o} \
+      {expected object but got "xxx" for parameter "-o"} \
       "not an object"
   
   ? {ParamTest create p -c C} ::p "class"
   ? {ParamTest create p -c o} \
-      {expected class but got "o" for parameter -c} \
+      {expected class but got "o" for parameter "-c"} \
       "not a class"
   
   ? {ParamTest create p -c1 MC1} ::p "instance of meta-class MC"
   ? {ParamTest create p -c1 C} \
-      {expected class of type ::MC but got "C" for parameter -c1} \
+      {expected class of type ::MC but got "C" for parameter "-c1"} \
       "not an instance of meta-class MC"
   
   ? {ParamTest create p -d d1} ::p
   ? {ParamTest create p -d1 d1} ::p
   ? {ParamTest create p -d c1} ::p
   ? {ParamTest create p -d o} \
-      {expected object of type ::C but got "o" for parameter -d} \
+      {expected object of type ::C but got "o" for parameter "-d"} \
       "o not of type ::C"
   
   #? {ParamTest create p -mix c1} ::p
   #? {ParamTest create p -mix o} \
-      {expected object with mixin M but got "o" for parameter mix} \
+      {expected object with mixin M but got "o" for parameter "mix"} \
       "does not have mixin M"
   
   ? {ParamTest create p -u A} ::p
-  ? {ParamTest create p -u c1} {expected upper but got "c1" for parameter -u}
+  ? {ParamTest create p -u c1} {expected upper but got "c1" for parameter "-u"}
   ? {ParamTest create p -us {A B c}} \
-      {invalid value in "A B c": expected upper but got "c" for parameter -us}
+      {invalid value in "A B c": expected upper but got "c" for parameter "-us"}
   ParamTest::slot::us eval {
     set :incremental 1
     :optimize
@@ -902,7 +902,7 @@ Test case op-object-types {
       "value is an object"
 
   ? {p o xxx} \
-      {expected object but got "xxx" for parameter o} \
+      {expected object but got "xxx" for parameter "o"} \
       "value is not an object"
 
   #ParamTest slots {
@@ -923,7 +923,7 @@ Test case op-object-types {
       "value is a list of objects (multiple elements)"
   
   ? {p os {o xxx d1}} \
-      {invalid value in "o xxx d1": expected object but got "xxx" for parameter os} \
+      {invalid value in "o xxx d1": expected object but got "xxx" for parameter "os"} \
       "list with invalid object"
 }
 
@@ -1002,14 +1002,14 @@ Test case allow-empty {
   
   ? {o foo 1 2 {o1 o2}} 1 "all values specified"
   ? {o foo "" 2 {o1 o2}} "" "first is empty"
-  ? {o foo 1 "" {o1 o2}} {expected integer but got "" for parameter y} "second is empty"
+  ? {o foo 1 "" {o1 o2}} {expected integer but got "" for parameter "y"} "second is empty"
   ? {o foo 1 2 {}} 1 "empty list, does not require allowempty"
   ? {o foo 1 2 {o1 "" o2}} 1 "list contains empty value"
 
   ? {o info method parameter foo} "x:integer,allowempty y:integer os:object,multivalued,allowempty"
 
   o public method foo {x:integer,allowempty y:integer os:object,multivalued} {return $x}
-  ? {o foo 1 2 {o1 "" o2}} {invalid value in "o1 "" o2": expected object but got "" for parameter os} \
+  ? {o foo 1 2 {o1 "" o2}} {invalid value in "o1 "" o2": expected object but got "" for parameter "os"} \
       "list contains empty value"
 
 }
@@ -1071,10 +1071,10 @@ Test case setters {
   ? {o info method args o} "o"
 
   ? {o a 2} 2
-  ? {o a hugo} {expected integer but got "hugo" for parameter a}
+  ? {o a hugo} {expected integer but got "hugo" for parameter "a"}
 
   ? {o ints {10 100 1000}} {10 100 1000}
-  ? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter ints}
+  ? {o ints hugo} {invalid value in "hugo": expected integer but got "hugo" for parameter "ints"}
   ? {o o o} o
   ? {::nsf::setter o {d default}} {parameter "d" is not allowed to have default "default"}
   ? {::nsf::setter o -x} {invalid setter name "-x" (must not start with a dash or colon)}
@@ -1136,19 +1136,19 @@ Test case check-arguments {
   ? {f1 onearg 1} 1
   # built-in checker
   ? {f1 intarg 1} 1
-  ? {f1 intarg a} {expected integer but got "a" for parameter x}
+  ? {f1 intarg a} {expected integer but got "a" for parameter "x"}
   ? {f1 intsarg {10 11 12}} {10 11 12}
-  ? {f1 intsarg {10 11 1a2}} {invalid value in "10 11 1a2": expected integer but got "1a2" for parameter x}
+  ? {f1 intsarg {10 11 1a2}} {invalid value in "10 11 1a2": expected integer but got "1a2" for parameter "x"}
   ? {f1 boolarg 1} 1
-  ? {f1 boolarg a} {expected boolean value but got "a" for parameter x}
+  ? {f1 boolarg a} {expected boolean value but got "a" for parameter "x"}
   ? {f1 classarg ::Foo} ::Foo
-  ? {f1 classarg f1} {expected class but got "f1" for parameter x}
+  ? {f1 classarg f1} {expected class but got "f1" for parameter "x"}
   # tcl checker
   ? {f1 upperarg ABC} ABC
-  ? {f1 upperarg abc} {expected upper but got "abc" for parameter x}
+  ? {f1 upperarg abc} {expected upper but got "abc" for parameter "x"}
   # scripted  checker
   ? {f1 metaclassarg ::nx::Class} ::nx::Class
-  ? {f1 metaclassarg ::Foo} {expected metaclass but got "::Foo" for parameter x}
+  ? {f1 metaclassarg ::Foo} {expected metaclass but got "::Foo" for parameter "x"}
 }
 
 Test case slot-traces {
