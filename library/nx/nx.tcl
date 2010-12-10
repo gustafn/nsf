@@ -8,9 +8,6 @@ namespace eval ::nx {
   #
   set ::nsf::bootstrap ::nx
 
-
-  puts stderr ====[::nsf::configure objectsystem]
-
   #
   # First create the ::nx object system. 
   #
@@ -33,8 +30,7 @@ namespace eval ::nx {
   #
   # get frequenly used primitiva from the next scripting framework 
   #
-  namespace eval ::nsf {}
-  
+  namespace eval ::nsf {}; # makein pkg indexer happy
   namespace import ::nsf::next ::nsf::current ::nsf::self
 
   #
