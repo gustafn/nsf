@@ -242,7 +242,7 @@ namespace eval ::xotcl {
 
   # define instproc and proc
   ::nsf::method Class instproc {
-    name arguments:parameter,multivalued body precondition:optional postcondition:optional
+    name arguments:parameter,0..* body precondition:optional postcondition:optional
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
@@ -260,10 +260,10 @@ namespace eval ::xotcl {
   }
 
   # define a minimal implementation of "method"
-  Object instproc method {name arguments:parameter,multivalued body} {
+  Object instproc method {name arguments:parameter,0..* body} {
     :proc $name $arguments $body                                  
   }
-  Class instproc method {-per-object:switch name arguments:parameter,multivalued body} {
+  Class instproc method {-per-object:switch name arguments:parameter,0..* body} {
     if {${per-object}} {
       :proc $name $arguments $body       
     } else {

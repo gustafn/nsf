@@ -517,7 +517,7 @@ namespace eval ::nx::doc {
       next [list [list @doc:optional __initcmd:initcmd,optional]]
     }
 
-    :class-object attribute current_project:object,type=::nx::doc::@project,allowempty
+    :class-object attribute current_project:object,type=::nx::doc::@project,0..1
     :public forward current_project [current] %method
 
     :attribute partof:object,type=::nx::doc::StructuredEntity

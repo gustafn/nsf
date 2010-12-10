@@ -145,7 +145,7 @@ namespace eval ::nx {
   # define method "method" for Class and Object
 
   ::nsf::method Class method {
-    name arguments:parameter,multivalued -returns body -precondition -postcondition
+    name arguments:parameter,0..* -returns body -precondition -postcondition
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
@@ -162,7 +162,7 @@ namespace eval ::nx {
   }
 
   ::nsf::method Object method {
-    name arguments:parameter,multivalued -returns body -precondition -postcondition
+    name arguments:parameter,0..* -returns body -precondition -postcondition
   } {
     set conditions [list]
     if {[info exists precondition]}  {lappend conditions -precondition  $precondition}
@@ -637,6 +637,9 @@ namespace eval ::nx {
 	  lappend opts -required 0
         } elseif {$property eq "method"} {
 	  lappend opts -ismethod 1 -nosetter 1
+        } elseif {[regexp {([01])[.][.]([1n*])} $property _ lower upper]} {
+	  if {$lower eq "0"} {lappend opts -allowempty 1}
+	  if {$upper ne "1"} {lappend opts -multivalued 1}
         } else {
           set type $property
         }
@@ -848,19 +851,35 @@ namespace eval ::nx {
     }
     # TODO: remove multivalued check on relations by handling multivalued
     # not in relation, but in the converters
+    set objUpper 1
+    set methodUpper 1
+    set objLower 1
+    set methodLower 1
     if {[info exists :multivalued] && ${:multivalued}} {
       if {!([info exists :type] && ${:type} eq "relation")} {
-        lappend objopts multivalued
+        #lappend objopts multivalued
+	set objUpper *
       } else {
         #puts stderr "ignore multivalued for $name in relation"
       }
     }
+    if {[info exists :allowempty]} {
+      set objLower 0
+      set methodLower 0
+    }
+    if {$objLower != 1 || $objUpper != 1} {
+      lappend objopts "$objLower..$objUpper"
+    }
+    if {$methodLower != 1 || $methodUpper != 1} {
+      lappend methodopts "$methodLower..$methodUpper"
+    }
+
     if {[info exists :arg]} {
       set prefix [expr {$type eq "object" || $type eq "class" ? "type" : "arg"}]
       lappend objopts $prefix=${:arg}
       lappend methodopts $prefix=${:arg}
     }
-    foreach att {convert allowempty} {
+    foreach att {convert} {
       if {[info exists :$att]} {
 	lappend objopts $att
 	lappend methodopts $att
@@ -1148,7 +1167,7 @@ namespace eval ::nx {
 	# set variable "body" to minimize problems with spacing, since
 	# the body is literally compared by the slot optimizer.
 	set body {::nsf::setvar $obj $var $value}
-        :public method assign [list obj var value:$(mparam),multivalued,slot=[::nsf::self]] \
+        :public method assign [list obj var value:$(mparam),1..*,slot=[::nsf::self]] \
 	    $body
 
         #puts stderr "adding add method for [::nsf::self] with value:$(mparam)"

@@ -301,6 +301,7 @@ Test new -cmd {c exists n(5)}
 Test new -cmd {llength [c info children]} -expected $ccount
 Test new -cmd {c info children ::c::5}  -expected ::c::5
 Test new -cmd {c info children 5}  -expected ::c::5
+Test new -cmd {c info children 5*}  -expected ::c::5
 
 Test new -count 1 -cmd {llength [Object info instances]} -expected $ocount
 

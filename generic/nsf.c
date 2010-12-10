@@ -6626,8 +6626,11 @@ ParamDefsFormat(Tcl_Interp *interp, NsfParam CONST *paramsPtr) {
       if ((pPtr->flags & NSF_ARG_SUBST_DEFAULT)) {
         ParamDefsFormatOption(interp, nameStringObj, "substdefault", &colonWritten, &first);
       }
-      if ((pPtr->flags & NSF_ARG_ALLOW_EMPTY)) {
-        ParamDefsFormatOption(interp, nameStringObj, "allowempty", &colonWritten, &first);
+      if ((pPtr->flags & NSF_ARG_ALLOW_EMPTY) || (pPtr->flags & NSF_ARG_MULTIVALUED)) {
+	char option[10] = "....";
+	option[0] = (pPtr->flags & NSF_ARG_ALLOW_EMPTY) ? '0' : '1';
+	option[3] = (pPtr->flags & NSF_ARG_MULTIVALUED) ? '*' : '1';
+        ParamDefsFormatOption(interp, nameStringObj, option, &colonWritten, &first);
       }
       if ((pPtr->flags & NSF_ARG_IS_CONVERTER)) {
         ParamDefsFormatOption(interp, nameStringObj, "convert", &colonWritten, &first);
@@ -6638,8 +6641,6 @@ ParamDefsFormat(Tcl_Interp *interp, NsfParam CONST *paramsPtr) {
         ParamDefsFormatOption(interp, nameStringObj, "method", &colonWritten, &first);
       } else if ((pPtr->flags & NSF_ARG_NOARG)) {
         ParamDefsFormatOption(interp, nameStringObj, "noarg", &colonWritten, &first);
-      } else if ((pPtr->flags & NSF_ARG_MULTIVALUED)) {
-        ParamDefsFormatOption(interp, nameStringObj, "multivalued", &colonWritten, &first);
       }
 
       innerListObj = Tcl_NewListObj(0, NULL);
@@ -8259,8 +8260,19 @@ ParamOptionSetConverter(Tcl_Interp *interp, NsfParam *paramPtr,
 }
 
 static int
-ParamOptionParse(Tcl_Interp *interp, CONST char *option, size_t length, int disallowedOptions, NsfParam *paramPtr) {
-  int result = TCL_OK;
+ParamOptionParse(Tcl_Interp *interp, CONST char *argString, 
+		 size_t start, size_t length, 
+		 int disallowedOptions, NsfParam *paramPtr) {
+  int searchUntil, result = TCL_OK;
+  CONST char *dotdot, *option = argString + start;
+  char *firstComma = strchr(option, ',');
+
+  if (firstComma == NULL) {
+    searchUntil = length;
+  } else {
+    searchUntil = firstComma - option;
+  }
+
   /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%d) disallowed %.6x\n",
     paramPtr->name, option, length, disallowedOptions);*/
   if (strncmp(option, "required", MAX(3,length)) == 0) {
@@ -8270,6 +8282,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, size_t length, int disa
   } else if (strncmp(option, "substdefault", 12) == 0) {
     paramPtr->flags |= NSF_ARG_SUBST_DEFAULT;
   } else if (strncmp(option, "allowempty", 10) == 0) {
+    fprintf(stderr, "******* allowempty is deprecated, use instead multiplicity 0..1\n");
     paramPtr->flags |= NSF_ARG_ALLOW_EMPTY;
   } else if (strncmp(option, "convert", 7) == 0) {
     paramPtr->flags |= NSF_ARG_IS_CONVERTER;
@@ -8277,7 +8290,32 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *option, size_t length, int disa
     paramPtr->flags |= NSF_ARG_INITCMD;
   } else if (strncmp(option, "method", 6) == 0) {
     paramPtr->flags |= NSF_ARG_METHOD;
+  } else if ((dotdot = strnstr(option, "..", searchUntil))) {
+    /* check lower bound */
+    if (*option == '0') {
+      paramPtr->flags |= NSF_ARG_ALLOW_EMPTY;
+    } else if (*option != '1') {
+      return NsfVarErrMsg(interp,
+			  "lower bound of multiplicty in ", argString, " not supported",
+			  (char *) NULL);
+    }
+    /* check upper bound */
+    option = dotdot + 2;
+    if (*option == '*' || *option == 'n') {
+      if ((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_RELATION|NSF_ARG_METHOD|NSF_ARG_SWITCH)) != 0) {
+	return NsfVarErrMsg(interp,
+                            "option multivalued not allowed for \"initcmd\", \"method\", \"relation\" or \"switch\"\n",
+                            (char *) NULL);
+      }
+      paramPtr->flags |= NSF_ARG_MULTIVALUED;
+    } else if (*option != '1') {
+      return NsfVarErrMsg(interp,
+			  "upper bound of multiplicty in ", argString, " not supported",
+			  (char *) NULL);
+    }
+    //fprintf(stderr, "%s set multivalued option %s\n", paramPtr->name, option);
   } else if (strncmp(option, "multivalued", 11) == 0) {
+    fprintf(stderr, "******* multivalued is deprecated, use instead multiplicity 1..*\n");
     if ((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_RELATION|NSF_ARG_METHOD|NSF_ARG_SWITCH)) != 0)
       return NsfVarErrMsg(interp,
                             "option multivalued not allowed for \"initcmd\", \"method\", \"relation\" or \"switch\"\n",
@@ -8429,7 +8467,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
       if (argString[l] == ',') {
 	/* skip space from end */
         for (end = l; end>0 && isspace((int)argString[end-1]); end--);
-        result = ParamOptionParse(interp, argString+start, end-start, disallowedFlags, paramPtr);
+        result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr);
         if (result != TCL_OK) {
           goto param_error;
         }
@@ -8441,7 +8479,7 @@ ParamParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *arg, int disallowe
     /* skip space from end */
     for (end = l; end>0 && isspace((int)argString[end-1]); end--);
     /* process last option */
-    result = ParamOptionParse(interp, argString+start, end-start, disallowedFlags, paramPtr);
+    result = ParamOptionParse(interp, argString, start, end-start, disallowedFlags, paramPtr);
     if (result != TCL_OK) {
       goto param_error;
     }
@@ -11732,6 +11770,11 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct NsfParam CONST *pPtr, 
     result = Tcl_ListObjGetElements(interp, objPtr, &objc, &ov);
     if (result != TCL_OK) {
       return result;
+    }
+
+    if (objc == 0 && ((pPtr->flags & NSF_ARG_ALLOW_EMPTY) == 0)) {
+      return NsfVarErrMsg(interp, "invalid parameter value: list is not allowed to be empty",
+			  (char *) NULL);
     }
 
     /*
