@@ -2027,6 +2027,8 @@ _ added option noforwarder to RelationSlots
 - deprecate allowempty in parameter specs in favor of multiplicity
 - adjust regression test
 
+- fixed bug with required last object parameter without provided value
+- extended regression test
 
 TODO:
 

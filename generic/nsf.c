@@ -11988,11 +11988,11 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                 o++; p++;
                 if (nppPtr->flags & NSF_ARG_REQUIRED) nrReq++; else nrOpt++;
 
-                if (o < objc) {
+                if (p < objc) {
 #if defined(PARSE_TRACE_FULL)
 		  fprintf(stderr, "...     setting cd[%d] '%s' = %s (%d) %s converter %p\n",
                           i, nppPtr->name, ObjStr(objv[p]), nppPtr->nrArgs,
-                          nppPtr->flags & NSF_ARG_REQUIRED ? "req":"not req", nppPtr->converter);
+                          nppPtr->flags & NSF_ARG_REQUIRED ? "req" : "not req", nppPtr->converter);
 #endif
                   if (ArgumentCheck(interp, objv[p], nppPtr, doCheck,
 				    &pcPtr->flags[j], &pcPtr->clientData[j], &pcPtr->objv[j]) != TCL_OK) {
@@ -15336,8 +15336,8 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
     }
 
     newValue = pc.full_objv[i];
-    /*fprintf(stderr, "new Value of %s = %p '%s', type %s\n",
-            ObjStr(paramPtr->nameObj),
+    /*fprintf(stderr, "new Value of %s = [%d] %p '%s', type %s\n",
+            ObjStr(paramPtr->nameObj), i,
             newValue, newValue ? ObjStr(newValue) : "(null)", paramPtr->type); */
 
     if (newValue == NsfGlobalObjs[NSF___UNKNOWN__]) {

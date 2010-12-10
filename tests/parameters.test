@@ -1386,3 +1386,19 @@ Test case setter-under-coloncmd-and-interpvarresolver {
     ? [list [current] info vars :a1] "" 
   }
 }
+
+Test case req-param {
+  ::nx::Class create C {
+    :attribute y:required
+    :attribute x:required
+    :method init args {set ::_ $args}
+  }
+
+  set ::_ ""
+  ? {C create c2 -y 1 -x} {Argument for parameter '-x' expected}
+  ? {set ::_} ""
+  ? {c2 x} {can't read "x": no such variable}
+  ? {C create c3 -y 1 -x 0} "::c3"
+  ? {set ::_} ""
+  ? {c3 x} "0"
+}

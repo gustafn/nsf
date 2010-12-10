@@ -349,8 +349,21 @@ a1 foo ;# calls default foo getter
 a1 foo 123 ;# calls overridden foosetter
 ? {a1 foo} 123
 
-
 #puts [A serialize]
+
+###################
+Test case req-param {
+  ::xotcl::Class create C -parameter {y:required x:required}
+  C instproc init args {set ::_ $args}
+
+  set ::_ ""
+  ? {C create c2 -y 1 -x} {Argument for parameter '-x' expected}
+  ? {set ::_} ""
+  ? {c2 x} {can't read "x": no such variable}
+  ? {C create c3 -y 1 -x 0} "::c3"
+  ? {set ::_} ""
+  ? {c3 x} "0"
+}
 
 ###################
 # Application Slots
