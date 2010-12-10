@@ -43,9 +43,9 @@
 # the overall '''create''' mechanism by just allocating uninitialized
 # objects using '''alloc'''.
 #
-# @properties interally-called
-# @parameter name The object identifier assigned to the object storage
-# to be allocated.
+# @property syshook
+# @parameter name The designated object identifier assigned to the
+# object storage to be allocated.
 # @return The name of the allocated, uninitialized object
 
 # @class.method {Class create}

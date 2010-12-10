@@ -24,7 +24,7 @@ namespace eval ::nx {
     -object.defaultmethod defaultmethod 
     -object.destroy destroy 
     -object.init init 
-      -object.move move 
+    -object.move move 
     -object.objectparameter objectparameter 
     -object.residualargs residualargs
     -object.unknown unknown
@@ -574,7 +574,7 @@ namespace eval ::nx {
 
   Object method "info info" {} {::nx::infoOptions ::nx::Object::slot::__info}
   Class  method "info info" {} {::nx::infoOptions ::nx::Class::slot::__info}
-
+  
   # finally register method "method" (otherwise, we cannot use "method" above)
   Object alias "info method" ::nsf::methods::object::info::method
   Class  alias "info method" ::nsf::methods::class::info::method

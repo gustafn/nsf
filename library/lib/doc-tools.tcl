@@ -113,8 +113,7 @@ namespace eval ::nx::doc {
     }
     return [dict create {*}[concat {*}[lsort -integer -index 1 -decreasing $haystack]]]
   }
-
-
+    
   proc find_asset_path {{subdir library/lib/doc-assets}} {
       # This helper tries to identify the file system path of the
       # asset ressources.
@@ -524,8 +523,43 @@ namespace eval ::nx::doc {
     :attribute partof:object,type=::nx::doc::StructuredEntity
     :attribute part_attribute:object,type=::nx::doc::PartAttribute
  
-    :attribute pdata
+    #
+    # TODO: the pdata/pinfo/validate combo only makes sense for
+    # entities which reflect Tcl program structures -> refactor into a
+    # dedicated PEntity class or the like
+    #
 
+     :public method get_fqn_command_name {} {
+	return ${:name}
+      }
+
+    :attribute pdata
+    :public method validate {} {;}
+    :public method "pinfo get" {{-default ?} args} {
+      if {![info exists :pdata] || ![dict exists ${:pdata} {*}$args]} {
+	return $default;
+      }
+      dict get ${:pdata} {*}$args
+    } 
+    
+    :public method "pinfo exists" args {
+      if {![info exists :pdata]} {return 0}
+      dict exists ${:pdata} {*}$args
+    }
+    
+    :public method "pinfo set" args {
+      if {![info exists :pdata]} return;
+      dict set :pdata {*}$args
+    }
+    
+    :public method "pinfo propagate" args {
+      :pinfo set {*}$args
+      set path [dict create {*}[:get_upward_path -attribute {set :name}]]
+      foreach p [dict keys $path] {
+	$p pinfo set {*}$args
+      }
+    }
+    
     :public method get_upward_path {
       -relative:switch 
       {-attribute {set :name}}
@@ -668,6 +702,15 @@ namespace eval ::nx::doc {
 	}
       }
       return $r
+    }
+
+    :public method validate {} {
+      
+      dict for {s entities} [:owned_parts] {
+	foreach e $entities {
+	  $e [current method]
+	}
+      } 
     }
   }
 
@@ -927,7 +970,7 @@ namespace eval ::nx::doc {
 	}
 
 	:public forward @method %self @object-method
-	:attribute @class-object-method -slotclass ::nx::doc::PartAttribute {
+	:attribute @object-method -slotclass ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@method
 	}
 
@@ -963,6 +1006,7 @@ namespace eval ::nx::doc {
 	}
 	
 	:public forward @method %self @class-method
+	:public forward @class-object-method %self @object-method
 	:attribute @class-method -slotclass ::nx::doc::PartAttribute {
 	  :pretty_name "Per-class method"
 	  :pretty_plural "Per-class methods"
@@ -1024,7 +1068,6 @@ namespace eval ::nx::doc {
 	  set :part_class ::nx::doc::@param
 	}
 	:attribute @return -slotclass ::nx::doc::PartAttribute {
-	  
 	  #
 	  # TODO: @return spec fragments should be nameless,
 	  # conceptually. They represent "out" parameters with each
@@ -1071,11 +1114,11 @@ namespace eval ::nx::doc {
 	      return [::nx::doc::@method id [$domain name] ${:scope} $name]
 	    }
 	  }
-	  
-	  # :method require_part {domain prop value} {
-	  #   set partof [$domain partof]
-	  #   next $partof $prop [join [list [[$domain part_attribute] scope] [$domain name] $value] ::]
-	  # }
+	}
+
+	:public method get_fqn_command_name {} {
+	  set scope [expr {[${:part_attribute} scope] eq "class"?"classes":"objects"}]
+	  return ::nsf::${scope}::[string trimleft [[:partof] name] :]::${:name}
 	}
 
 	:public method parameters {} {
@@ -1156,6 +1199,64 @@ namespace eval ::nx::doc {
 	    } 
 	    return $params
 	}
+
+	:public method validate {} {
+	  set partof [:get_owning_partof]
+	  if {[:pinfo get -default complete status] ne "missing"} {
+	    next
+	    #
+	    # Note: Some information on methods cannot be retrieved from
+	    # within the tracers as they might not be set local to the
+	    # method definition. Hence, we gather them at this point. I
+	    # will review whether there is a more appropriate way of
+	    # dealing with this issue ...
+	    #
+	    set prj [:current_project]
+	    set box [$prj sandbox]
+	    set obj [$partof name]
+
+	    #set mname [:get_combined name]
+	    if {[:pinfo exists bundle handle]} {
+	      set handle [:pinfo get bundle handle]
+	      :pinfo set bundle redefine-protected [$box eval [list ::nsf::methodproperty $obj $handle redefine-protected]]
+	      :pinfo set bundle call-protected [$box eval [list ::nsf::methodproperty $obj $handle call-protected]]
+	    }
+	    
+	    set params [list]
+	    set param_names [list]
+	    if {[info exists :@parameter]} {
+	      foreach p [:@parameter] {
+		set value [$p name]
+		lappend param_names $value
+		if {[$p eval {info exists :default}] || $value eq "args" } {
+		  set value "?$value?"
+		}
+		lappend params $value
+	      }
+	    }
+	    
+	    dict for {actualparam paraminfo} [:pinfo get -default "" bundle parameter] {
+	      if {$actualparam ni $param_names} {
+		set p [:@parameter $actualparam]
+		$p pdata [lappend paraminfo status missing]
+	      }
+	    }
+	    #    if {[:pinfo exists bundle parameter]} {	    
+	    #      set actual_params [:pinfo get bundle parameter]
+	    #      if {$actual_params ne $params} {
+	    #	:pinfo propagate status mismatch
+	    #	:pinfo set validation "Parameter definition mismatch: $actual_params"
+	    #     }
+	    #  }
+	    
+	    if {![:pinfo exists bundle parametersyntax]} {
+	      :pinfo set bundle parametersyntax $params
+	    }
+	  } else {
+	    # the method is missing -> this makes the owning object a mismatch
+	    $partof pinfo set status mismatch
+	  }
+	}
 	
 	:public method get_sub_methods {} {
 	  if {[info exists :@method]} {
@@ -1167,8 +1268,6 @@ namespace eval ::nx::doc {
 		lappend leaves {*}[$m get_sub_methods]
 	      }
 	    }
-#	    puts stderr LEAVES=$leaves
-	    #puts stderr [::nx::doc::entities::method::nx::Object::class::info::has @method]
 	    return $leaves
 	  }
 	}
@@ -1176,10 +1275,24 @@ namespace eval ::nx::doc {
 	:public method get_combined {what} {
 	  set result [list]
 	  if {[info exists :partof] && [${:partof} info has type [current class]]} {
-	    lappend result {*}[${:partof} get_combined $what] [:$what]
+	    set result [${:partof} get_combined $what]
 	  }
-	  return $result
+	  return [lappend result [:$what]]
 	}
+
+	:public method get_owning_object {} {
+	  return [[:get_owning_partof] name]
+	}
+
+	:public method get_owning_partof {} {
+	  if {[${:partof} info has type [current class]]} {
+	    return [${:partof} [current method]]
+	  } else {
+	    return ${:partof}
+	  }
+	}
+
+
 
       }; # @method
   
@@ -1239,6 +1352,17 @@ namespace eval ::nx::doc {
 	      {*}[expr {$def ne "" ? "-default $def" : ""}] \
 	      -part_attribute $part_attribute {*}$args
 	  
+	}
+
+	:public method validate {} {
+	  if {[:pinfo get -default complete status] ne "missing"} {
+	    if {[info exists :spec] && ${:spec} ne [:pinfo get bundle spec]} {
+	      :pinfo propagate status mismatch 
+	      :pinfo set validation "Specification mismatch: [:pinfo get bundle spec]"
+	    }
+	  } else {
+	    ${:partof} pinfo propagate status mismatch 
+	  }
 	}
       }
 
@@ -1305,6 +1429,10 @@ namespace eval ::nx::doc {
       return [[current class] eval [list set :templates($tmpl)]]
     }
 
+
+    :public method render_start {} {;}
+    :public method render_end {} {;}
+
     # This mixin class realises a rudimentary templating language to
     # be used in nx::doc templates. It realises language expressions
     # to verify the existence of variables and simple loop constructs
@@ -1321,10 +1449,13 @@ namespace eval ::nx::doc {
       # of the actual rendered entity ... review later ...
       #
       $entity rendered_entity $entity
-      $entity eval [subst -nocommands {
+      $entity render_start
+      set content [$entity eval [subst -nocommands {
 	$initscript
 	$tmplscript
-      }]
+      }]]
+      $entity render_end
+      return $content
     }
     
     
@@ -1356,8 +1487,6 @@ namespace eval ::nx::doc {
     }
 
     :method ?objvar {obj varname args} {
-     # set args [lassign $args then_script]
-    #  append script "\[::set $varname \[$obj eval {set :$varname; puts stderr >>>>\[set :$varname\]}\]\]\n" $then_script
       uplevel 1 [list :? -ops [list [::nsf::current method] -] \
 		     "\[$obj eval {info exists :$varname}\]" {*}$args]
     }
@@ -1515,6 +1644,7 @@ namespace eval ::nx::doc {
 	  #
 	  if {![$e info has type ::nx::doc::StructuredEntity]} continue;
 	  $e current_project [current object]
+	  $e validate
 	  set content [$e render -initscript $init $tmpl]
 	  :write_data $content [file join $project_path "[$e filename].$ext"]
 	  puts stderr "$e written to [file join $project_path [$e filename].$ext]"
@@ -1553,19 +1683,18 @@ namespace eval ::nx::doc {
       :public forward rendered_entity [current] %method
 
       # :public forward print_name %current name
-      :public method print_name {-status:switch} {
-	set status_mark ""
-	if {$status} {
-	  set cls ""
-	  if {[info exists :pdata]} {
-	    set cls [expr {[dict exists ${:pdata} status]?\
-			       [dict get ${:pdata} status]:""}]
-	  } else {
-	    set cls "extra"
-	  }
-	  set status_mark "<span title=\"$cls\" class=\"status $cls\">&nbsp;</span>"
+      :public method statusmark {} {
+	set cls ""
+	if {[info exists :pdata]} {
+	  set cls [expr {[dict exists ${:pdata} status]?\
+			     [dict get ${:pdata} status]:""}]
+	} else {
+	  set cls "extra"
 	}
-
+	set status_mark "<span title=\"$cls\" class=\"status $cls\">&nbsp;</span>"
+      }
+      :public method print_name {-status:switch} {
+	set status_mark [expr {$status?[:statusmark]:""}]
 	return "${:name}$status_mark"
       }
 
@@ -1803,6 +1932,9 @@ namespace eval ::nx::doc {
 	dict set hash access ${:@modifier}
 	return $hash
       }
+      :public method render_start {} {
+	#:validate
+      }
     }; # NxDocRenderer::@method
 
   }; # NxDocTemplating
@@ -1961,11 +2093,12 @@ namespace eval ::nx::doc {
     # [list ->status:in,arg=complete|missing|prototype|mismatch,slot=[current] missing]
     :public method at_register_command [list \
 	name:fqn,slot=[current] \
-	->cmdtype:in,arg=object|proc|method,slot=[current] \
+	->cmdtype:in,arg=@object|@class|@command|@method,slot=[current] \
         ->source:fpathtype,arg=absolute,slot=[current] \
 	{->nsexported:boolean 0} \
 	{->nsimported:boolean 0} \
         ->docstring:optional,nonempty,slot=[current] \
+	->bundle
      ] {
       # peek the currently processed package (if any)
       set storable_vars [info vars >*]
@@ -2137,7 +2270,7 @@ namespace eval ::nx::doc {
 	      set filepath [file normalize $filepath]
 	      foreach {cmd isexported} $delta_commands {
 		::nx::doc::__at_register_command $cmd \
-		    ->cmdtype proc \
+		    ->cmdtype @command \
 		    ->source $filepath \
 		    ->nsexported $isexported
 	      }
@@ -2184,6 +2317,61 @@ namespace eval ::nx::doc {
 		    [::nsf::configure objectsystem] ne ""} {
 	      ::nsf::configure keepinitcmd true;
 
+	      
+	      array set sysmeths [concat {*}[lassign {*}[::nsf::configure objectsystem] rootclass rootmclass]]
+	      set ::nx::doc::rootns [namespace qualifier $rootmclass]
+	      $rootmclass $sysmeths(-class.create) ${::nx::doc::rootns}::__Tracer
+	      ::nsf::method ${::nx::doc::rootns}::__Tracer \
+	      	  -public $sysmeths(-class.create) {name args} {
+	      	    set obj [::nsf::next];
+	      	    set cmdtype [expr {[::nsf::is class $obj]?"@class":"@object"}]
+	      	    ::nx::doc::__at_register_command $obj \
+	      		->cmdtype $cmdtype \
+	      		->source [file normalize [info script]] \
+	      		->nsexported [::nx::doc::is_exported $obj] \
+	      		{*}[expr {[::nsf::existsvar $obj __initcmd] && [::nsf::setvar $obj __initcmd] ne ""?[list ->docstring [::nsf::setvar $obj __initcmd]]:[list]}]
+	      	    return $obj
+	      	  }
+
+	      # ISSUE: yields -> bad relationtype "mixin": must be
+	      # object-mixin, class-mixin, object-filter,
+	      # class-filter, class, superclass, or rootclass
+	      # -> ::nsf::mixin defaults to "mixin" instead of "class-mixin"
+	      # ::nsf::mixin $rootmclass ::nsf::__Tracer
+	      ::nsf::relation $rootmclass class-mixin ${::nx::doc::rootns}::__Tracer
+
+	      ::interp invokehidden "" proc ::nx::doc::handleinfo {handle} {
+		set definition [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method definition $handle]
+		if {$definition ne ""} {
+		  set obj [lindex $definition 0]
+		  set modifier [lindex $definition 2]
+		  if {$modifier eq "class-object"} {
+		    set scope $modifier
+		    set name [lindex $definition 4]
+		  } else {
+		    set scope ""
+		    set name [lindex $definition 3]
+		  }
+		}
+		return [list $obj $scope $name]
+	      }
+	      
+	      
+	      ::interp invokehidden "" proc ::nx::doc::paraminfo {
+		value {default ""}
+	      } {
+		set colon [string first : $value]
+		set spec ""
+		if {$colon == -1} {
+		  set name $value
+		} else {
+		  set spec [string range $value [expr {$colon+1}] end]
+		  set name [string range $value 0 [expr {$colon -1}]]
+		}
+		return [list $name [list $spec $default]]
+	      }
+
+
 	      rename ::nsf::method ::nsf::_%&method 
 	      ::interp invokehidden "" proc ::nsf::method {
 		object
@@ -2191,9 +2379,20 @@ namespace eval ::nx::doc {
 	      } {
 		set handle [uplevel [list ::nsf::_%&method $object {*}$args]]
 		if {$handle ne ""} {
+		  set bundle [dict create]
+		  dict set bundle handle $handle
+		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
+#		  dict set bundle parameter [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parameter $handle] 
+		  foreach pspec [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parameter $handle] {
+		    dict set bundle parameter {*}[::nx::doc::paraminfo {*}$pspec]
+		  }
+		  dict set bundle parametersyntax [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parametersyntax $handle]
+		  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
+		  dict set bundle returns [::nsf::methodproperty ${::nx::doc::rootns}::__Tracer $handle returns]
 		  ::nx::doc::__at_register_command $handle \
-		      ->cmdtype method \
-		      ->source [file normalize [info script]]
+		      ->cmdtype @method \
+		      ->source [file normalize [info script]] \
+		      ->bundle $bundle
 		} 
 		return $handle
 	      }
@@ -2204,16 +2403,36 @@ namespace eval ::nx::doc {
 	      } {
 		set handle [uplevel [list ::nsf::_%&alias {*}$args]]
 		if {$handle ne ""} {
+		  dict set bundle handle $handle
+		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
+		  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
+
 		  ::nx::doc::__at_register_command $handle \
-		      ->cmdtype method \
-		      ->source [file normalize [info script]]
+		      ->cmdtype @method \
+		      ->source [file normalize [info script]] \
+		      ->bundle $bundle
 		} 
 		return $handle
 	      }
 
-	     
+	      rename ::nsf::forward ::nsf::_%&forward 
+	      ::interp invokehidden "" proc ::nsf::forward {
+	      	args
+	      } {
+	      	set handle [uplevel [list ::nsf::_%&forward {*}$args]]
+	      	if {$handle ne ""} {
+	      	  dict set bundle handle $handle
+		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
+	      	  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
+		  
+	      	  ::nx::doc::__at_register_command $handle \
+	      	      ->cmdtype @method \
+	      	      ->source [file normalize [info script]] \
+	      	      ->bundle $bundle
+	      	} 
+	      }
 
-	      	      rename ::nsf::createobjectsystem ::nsf::_%&createobjectsystem 
+	    rename ::nsf::createobjectsystem ::nsf::_%&createobjectsystem 
 	      ::interp invokehidden "" proc ::nsf::createobjectsystem {
 		rootclass 
 		rootmclass 
@@ -2222,33 +2441,12 @@ namespace eval ::nx::doc {
 		uplevel [list ::nsf::_%&createobjectsystem $rootclass $rootmclass {*}$args]
 		foreach r [list $rootclass $rootmclass] {
 		  ::nx::doc::__at_register_command $r \
-		      ->cmdtype object \
+		      ->cmdtype @class \
 		      ->source [file normalize [info script]] \
 		      ->nsexported [::nx::doc::is_exported $r] \
 		      {*}[expr {[::nsf::existsvar $r __initcmd] && [::nsf::setvar $obj __initcmd] ne ""?[list ->docstring [::nsf::setvar $r __initcmd]]:[list]}]
 		}
 	      }
-
-
-	      array set sysmeths [concat {*}[lassign {*}[::nsf::configure objectsystem] rootclass rootmclass]]
-	      set rootns [namespace qualifier $rootmclass]
-	      $rootmclass $sysmeths(-class.create) ${rootns}::__Tracer
-	      ::nsf::method ${rootns}::__Tracer \
-		  -public $sysmeths(-class.create) {name args} {
-		    set obj [::nsf::next];
-		    ::nx::doc::__at_register_command $obj \
-			->cmdtype object \
-			->source [file normalize [info script]] \
-			->nsexported [::nx::doc::is_exported $obj] \
-			{*}[expr {[::nsf::existsvar $obj __initcmd] && [::nsf::setvar $obj __initcmd] ne ""?[list ->docstring [::nsf::setvar $obj __initcmd]]:[list]}]
-		    return $obj
-		  }
-	      # ISSUE: yields -> bad relationtype "mixin": must be
-	      # object-mixin, class-mixin, object-filter,
-	      # class-filter, class, superclass, or rootclass
-	      # -> ::nsf::mixin defaults to "mixin" instead of "class-mixin"
-	      # ::nsf::mixin $rootmclass ::nsf::__Tracer
-	      ::nsf::relation $rootmclass class-mixin ${rootns}::__Tracer
 
 	    }
 	    # 2) provide for tracing Tcl procs declared at "sourcing time" -> [proc]
@@ -2264,7 +2462,7 @@ namespace eval ::nx::doc {
 		::nx::doc::__at_deregister_command $fqn
 	      } else {
 		::nx::doc::__at_register_command $fqn \
-		    ->cmdtype proc \
+		    ->cmdtype @command \
 		    ->source [file normalize [info script]] \
 		    ->nsexported [::nx::doc::is_exported $fqn] \
 		    ->docstring $body
@@ -2281,9 +2479,11 @@ namespace eval ::nx::doc {
 		    if {[string match "-*" $pattern]} continue;
 		    foreach cmd [info commands $pattern] {
 		      if {![::nx::doc::is_exported $cmd]} continue;
-		      set type [expr {[info commands "::nsf::isobject"] ne "" &&\
-					   [::nsf::isobject $cmd]?"object":"proc"}]
-
+		      set type @command
+		      if {[info commands "::nsf::isobject"] ne "" &&\
+			      [::nsf::isobject $cmd]} {
+			set type [expr {[::nsf::is class $cmd]?"@class":"@object"}]
+		      }
 		      set imported_name [string trimright $ns :]::[namespace tail $cmd]
 		      ::nx::doc::__at_register_command $imported_name \
 			  ->cmdtype $type \
@@ -2388,15 +2588,15 @@ namespace eval ::nx::doc {
 	    # TODO: some cleanup is only needed if __init has been called
 	    # (which is not always the case). refactor the code
 	    # accordingly.
-	    set rootns [namespace qualifier $rootmclass]
-	    if {[::nsf::isobject ${rootns}::__Tracer]} {
-	      ${rootns}::__Tracer $sysmeths(-object.destroy)
+	    set ::nx::doc::rootns [namespace qualifier $rootmclass]
+	    if {[::nsf::isobject ${::nx::doc::rootns}::__Tracer]} {
+	      ${::nx::doc::rootns}::__Tracer $sysmeths(-object.destroy)
 	      ::nsf::relation $rootmclass class-mixin {}
 	    }
 	    if {[info commands ::nsf::_%&createobjectsystem] ne ""} {
 	      rename ::nsf::_%&createobjectsystem ::nsf::createobjectsystem
 	    }
-	    unset rootns
+	    unset ::nx::doc::rootns
 	  }
 	  rename ::proc ""
 	  interp expose "" proc
@@ -2441,15 +2641,12 @@ namespace eval ::nx {
     namespace import -force ::nx::doc::*
     
     Mixin create [current]::Entity {
-      :public method get_command_name {} {
-	return ${:name}
-      }
       :public method init args {
 	next
 	set prj [:current_project]
 	if {$prj ne ""} {
 	  set box [$prj sandbox]	  
-	  set cmdname [:get_command_name]
+	  set cmdname [:get_fqn_command_name]
 	  if {[$box eval [concat dict exists \${:registered_commands} $cmdname]]} {
 	    :pdata [$box eval [concat dict get \${:registered_commands} $cmdname]]
 	  }
@@ -2457,13 +2654,18 @@ namespace eval ::nx {
 	[[current class] info parent] at_processed [current]
       }
     }
-    
-    Mixin create [current]::@method -superclass [current]::Entity {
-      :method get_command_name {} {
-	return ::nsf::classes::[string trimleft [[:partof] name] :]::${:name}
+
+    Mixin create [current]::@param -superclass [current]::Entity {
+      :public method init args {
+	next
+	if {[${:partof} pinfo exists bundle parameter ${:name}]} {
+	  lassign [${:partof} pinfo get bundle parameter ${:name}] spec default
+	  :pdata [list bundle [list spec $spec default $default]]
+	}
       }
     }
-    
+
+        
     #
     # mixin layer interface
     #
@@ -2554,42 +2756,76 @@ namespace eval ::nx {
       foreach script $scripts {
 	lappend provided_entities {*}[:readin $script] 
       }
-
+      
       # output
       # 1. absent entities (doc[yes]->program[no])
       # => all doc entities without pdata
-#      puts stderr "--- $provided_entities"
+      # puts stderr "--- $provided_entities"
       set present_entities [::nx::doc::filtered $provided_entities {[info exists :pdata]}]
       # TODO: the nspatterns should be consumed from the source
       # specification and should not be hardcoded here ... review
       # later ...
-      set generated_commands [$box get_registered_commands [list ::nsf ::nx]]
+      #set generated_commands [$box get_registered_commands [list ::nsf ::nx]]
+      set generated_commands [dict merge [$box get_registered_commands -exported -types {@object @class @command}] [$box get_registered_commands -types @method]]
+      set map [dict create]
       foreach pe $present_entities {
-	dict unset generated_commands [$pe name]
+	set fqn [$pe get_fqn_command_name]
+	dict unset generated_commands $fqn
+	dict set map $fqn $pe
       }
 #      puts stderr "PRESENT $present_entities"
 #      puts stderr "ABSENT [::nx::doc::filtered $provided_entities {![info exists :pdata]}]"
       # 2. generated entities (doc[no]->program[yes])
       # => all registered_commands without doc entity
-#      puts stderr "== TO GENERATE == [dict keys $generated_commands]"
+      #puts stderr "== TO GENERATE == [join [dict keys $generated_commands] \n]"
       dict for {cmd info} $generated_commands {
-	if {[string match ::nsf::classes::* $cmd]} continue;
-	if {[string match ::nsf::objects::* $cmd]} continue;
+	#if {[string match ::nsf::classes::* $cmd]} continue;
+	#if {[string match ::nsf::objects::* $cmd]} continue;
 	if {[string match *::slot::* $cmd]} continue;
 	dict with info {
 	  #
 	  # TODO: for now, we assume objects beyond this point
 	  # ... relax later!
 	  #
-	  if {$cmdtype ni [list object proc]} continue;
-	  set kind @command
-	  if {$cmdtype eq "object"} {
-	    set kind [expr {[$box do [list ::nsf::is class $cmd]]?\
-				"@class":"@object"}]
+	  if {$cmdtype ni [list @command @object @class @method]} continue;
+	  if {$cmdtype eq "@method"} {
+	    lassign [dict get $bundle handleinfo] obj scope name
+	    # ! we assume the partof entity is present or has been generated
+	    if {![dict exists $map $obj]} continue;
+	    set partof_entity [dict get $map $obj]
+	    set entity [$partof_entity @[join [list {*}${scope} method] -] $name]
+	    if {[dict exists $info bundle parameter]} {
+	      dict for {pname paraminfo} [dict get $info bundle parameter] {
+		lassign $paraminfo spec default
+
+		set paramid [@parameter id $entity "" $pname]
+		set ppdata [list bundle [list spec $spec default $default]]
+		if {$paramid ni $provided_entities} {
+		  set paramid [$entity @parameter $pname]
+		  lappend ppdata status missing
+		}
+		$paramid pdata $ppdata
+	      }
+	    }
+	  } else {
+	    set entity [@ $cmdtype $cmd]
 	  }
-	  set entity [@ $kind $cmd]
-	  :process=$kind $project $entity
+	  #-> ::nsf::classes::nx::CopyHandler::targetList
+	  # @class.method {::nx::CopyHandler targetList}
+
+	  #:process=$cmdtype $project $entity
 	  $entity pdata [lappend info status missing]
+	  dict set map [$entity get_fqn_command_name] $entity
+	}
+
+	:method generate_parameter {value} {
+	  set colon_pos [string first : $value]
+	  if {$colon_pos == -1} {
+	    set name $value
+	  } else {
+	    set properties [string range $value [expr {$colonPos+1}] end]
+	    set name [string range $value 0 [expr {$colonPos -1}]]
+	  }
 	}
       }
     }
@@ -2631,20 +2867,19 @@ namespace eval ::nx {
 	  # TODO: for now, we assume objects beyond this point
 	  # ... relax later!
 	  #
-	  if {$cmdtype ne "object"} continue;
-	  set kind [expr {[$box do [list ::nsf::is class $cmd]]?"@class":"@object"}]
+	  if {$cmdtype ni [list @object @class]} continue;
 	  if {[info exists docstring]} {
 	    lassign [:readin \
 			    -docstring \
-			    -tag $kind \
+			    -tag $cmdtype \
 			    -name $cmd \
 			    -parsing_level 1 \
 			    $docstring] entity processed_entities
 	    unset docstring
 	  } else {
-	    set entity [@ $kind $cmd]
+	    set entity [@ $cmdtype $cmd]
 	  }
-	  :process=$kind $project $entity
+	  :process=$cmdtype $project $entity
 	}
       }
     }

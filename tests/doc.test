@@ -442,7 +442,7 @@ Test case mixed-mode-parsing {
     # @parameter a Provides a first value
     # @parameter b Provides a second value
     
-    # @class.class-object-method {::Bar foo}
+    # @class.object-method {::Bar foo}
     #
     # This describes the per-object foo method
     #
@@ -511,7 +511,7 @@ Test case mixed-mode-parsing {
   }
   
   
-  set entity [@method id ::Bar class-object foo]
+  set entity [@method id ::Bar object foo]
   ? [list [@class id ::Bar] @class-object-method] $entity
   ? [list ::nsf::is object $entity] 1
   ? [list $entity info has type ::nx::doc::@method] 1
@@ -888,11 +888,11 @@ Test case tag-notations-extended {
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "Only description available here ..."
   
-  set entity [@method id ::C class-object sub]
+  set entity [@method id ::C object sub]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity as_text] "A brief desc"
   
-  set entity [@method id ::C class-object sub::foo2]
+  set entity [@method id ::C object sub::foo2]
   ? [list ::nsf::isobject $entity] 1
   ? [list $entity info has type ::nx::doc::@method] 1
   ? [list $entity as_text] "could allow both (@sub-method is the attribute name, @method is a forwarder in the context of an owning @method object!)"

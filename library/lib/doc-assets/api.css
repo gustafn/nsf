@@ -163,7 +163,8 @@ a:visited { color: #003399;}
 }
 
 .deprecated, .private, .protected {
-    display: none;
+    display: inherit;
+    /*    display: none;*/
 }
 
 body.show_deprecated .deprecated,
