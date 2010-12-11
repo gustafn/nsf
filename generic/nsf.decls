@@ -114,20 +114,16 @@ declare 26 generic {
        	         int objc, Tcl_Obj *CONST objv[], int flags)
 }
 declare 27 generic {
-    int NsfObjErrArgCnt(Tcl_Interp *interp, Tcl_Obj *cmdName, Tcl_Obj *methodName, 
-                                     char *arglist)
-}
-declare 28 generic {
     int NsfAddObjectMethod(Tcl_Interp *interp, struct Nsf_Object *obj, 
                          CONST char *nm, Tcl_ObjCmdProc *proc,
 	                 ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
 }
-declare 29 generic {
+declare 28 generic {
    int NsfAddClassMethod(Tcl_Interp *interp, struct Nsf_Class *cl, 
                          CONST char *nm, Tcl_ObjCmdProc *proc,
 	                 ClientData cd, Tcl_CmdDeleteProc *dp, int flags)
 }
-declare 30 generic {
+declare 29 generic {
     int NsfCreate(Tcl_Interp *in, Nsf_Class *class, Tcl_Obj *name, ClientData data,
             int objc, Tcl_Obj *CONST objv[])
 }

@@ -2034,6 +2034,10 @@ _ added option noforwarder to RelationSlots
 - simplified error handling: removed NsfVarErrMsg() and NsfErrMsg() 
   and replaced it by NsfPrintError()
 
+- testx.xotcl: fix messages when test fails
+- further cleanup of error procs: eliminated NsfObjErrArgCnt()
+- improve error message, when too many arguments are passed
+
 TODO:
 
 - "-returns" 

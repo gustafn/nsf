@@ -256,6 +256,7 @@ static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj
 static void ParamDefsFree(NsfParamDefs *paramDefs);
 static int ParamSetFromAny(Tcl_Interp *interp,	register Tcl_Obj *objPtr);
 
+
 /* prototypes for alias management */
 static int AliasDelete(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
 static Tcl_Obj *AliasGet(Tcl_Interp *interp, Tcl_Obj *cmdName, CONST char *methodName, int withPer_object);
@@ -1226,9 +1227,10 @@ GetRegObject(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName,
   if (cmd && *methodName == ':') {
     CONST char *procName = Tcl_GetCommandName(interp, cmd);
     size_t objNameLength = strlen(methodName) - strlen(procName) - 2;
-    Tcl_DString ds, *dsPtr = &ds;
 
     if (objNameLength > 0) {
+      Tcl_DString ds, *dsPtr = &ds;
+      /* obtain parent name */
       Tcl_DStringInit(dsPtr);
       Tcl_DStringAppend(dsPtr, methodName, objNameLength);
       regObject = GetObjectFromNsName(interp, Tcl_DStringValue(dsPtr), fromClassNS);
@@ -7575,7 +7577,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
 	Tcl_DString ds, *dsPtr = &ds;
 
 	DSTRING_INIT(dsPtr);
-	Tcl_DStringAppend(dsPtr, className, strlen(className)-strlen(mn)-2);
+	Tcl_DStringAppend(dsPtr, className, strlen(className) - strlen(mn) - 2);
 	cl = (NsfClass *)GetObjectFromString(interp, Tcl_DStringValue(dsPtr));
 	DSTRING_FREE(dsPtr);
       }
@@ -10974,7 +10976,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
   NsfObject *object = cd->object;
 
   if (!object) return NsfObjErrType(interp, objv[0], "object", ObjStr(objv[0]));
-  if (objc > 2) return NsfObjErrArgCnt(interp, object->cmdName, objv[0], "?value?");
+  if (objc > 2) return NsfObjWrongArgs(interp, "wrong # args", object->cmdName, objv[0], "?value?");
 
   if (cd->paramsPtr && objc == 2) {
     Tcl_Obj *outObjPtr;
@@ -11089,8 +11091,8 @@ ForwardArg(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
         /*fprintf(stderr, "inserting listElements[%d] '%s'\n", nrPosArgs,
           ObjStr(listElements[nrPosArgs]));*/
         *out = listElements[nrPosArgs];
-      } else if (objc<=1) {
-	return NsfObjErrArgCnt(interp, objv[0], NULL, "option");
+      } else if (objc <= 1) {
+	return NsfObjWrongArgs(interp, "wrong # args", objv[0], NULL, "option");
       } else {
         /*fprintf(stderr, "copying %%1: '%s'\n", ObjStr(objv[firstPosArg]));*/
         *out = objv[firstPosArg];
@@ -12054,7 +12056,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     Tcl_DString ds, *dsPtr = &ds;
     DSTRING_INIT(dsPtr);
     Tcl_DStringAppend(dsPtr, "Invalid argument '", -1);
-    Tcl_DStringAppend(dsPtr, ObjStr(objv[pcPtr->lastobjc]), -1);
+    Tcl_DStringAppend(dsPtr, ObjStr(objv[pcPtr->lastobjc+1]), -1);
     Tcl_DStringAppend(dsPtr, "', maybe too many arguments;", -1);
     return ArgumentError(interp, Tcl_DStringValue(dsPtr), paramPtr, 
 			 object ? object->cmdName : NULL, 
@@ -13193,12 +13195,7 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
   }
 
   if (newCmd) {
-    Tcl_DString ds, *dsPtr = &ds;
-
-    Tcl_DStringInit(dsPtr);
-    Tcl_DStringAppend(dsPtr, ObjStr(cmdName), -1);
-    AliasAdd(interp, object->cmdName, methodName, cl == NULL, Tcl_DStringValue(dsPtr));
-    Tcl_DStringFree(dsPtr);
+    AliasAdd(interp, object->cmdName, methodName, cl == NULL, ObjStr(cmdName));
 
     if (withFrame == FrameMethodIdx) {
       Tcl_Command_flags(newCmd) |= NSF_CMD_NONLEAF_METHOD;

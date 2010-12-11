@@ -134,11 +134,6 @@ NsfObjWrongArgs(Tcl_Interp *interp, CONST char *msg, Tcl_Obj *cmdName,
 }
 
 int
-NsfObjErrArgCnt(Tcl_Interp *interp, Tcl_Obj *cmdName,  Tcl_Obj *methodName, char *arglist) {
-  return NsfObjWrongArgs(interp, "wrong # args:", cmdName, methodName, arglist);
-}
-
-int
 NsfErrBadVal(Tcl_Interp *interp, char *context, char *expected, CONST char *value) {
   Tcl_ResetResult(interp);
   Tcl_AppendResult(interp, context, ": expected ", expected, " but got '", 

@@ -3997,7 +3997,7 @@ TestX create nonposargs -proc run {{n 20}} {
     o y 4 56 5
   } m
   errorCheck $m \
-      {Invalid argument '56', maybe too many arguments; should be "::o y ?-x value? ?-a value? a b"} \
+      {Invalid argument '5', maybe too many arguments; should be "::o y ?-x value? ?-a value? a b"} \
       "wrong \# check 1"
 
   catch {

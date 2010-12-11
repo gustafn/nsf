@@ -63,10 +63,9 @@ NsfStubs nsfStubs = {
     NsfErrBadVal, /* 24 */
     NsfNextObjCmd, /* 25 */
     NsfCallMethodWithArgs, /* 26 */
-    NsfObjErrArgCnt, /* 27 */
-    NsfAddObjectMethod, /* 28 */
-    NsfAddClassMethod, /* 29 */
-    NsfCreate, /* 30 */
+    NsfAddObjectMethod, /* 27 */
+    NsfAddClassMethod, /* 28 */
+    NsfCreate, /* 29 */
 };
 
 /* !END!: Do not edit above this line. */

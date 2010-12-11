@@ -36,7 +36,7 @@ NsfGdbmOpenMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[]
 
   if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 2)
-    return NsfObjErrArgCnt(in, obj->cmdName, "open filename");
+    return NsfObjWrongArgs(in, "wrong # args:", obj->cmdName, "open filename");
 
   /* name not in hashtab - create new db */
   if (NsfGetObjClientData(obj))
@@ -72,7 +72,7 @@ NsfGdbmCloseMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
 
   if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
-    return NsfObjErrArgCnt(in, obj->cmdName, "close");
+    return NsfObjWrongArgs(in, "wrong # args:", obj->cmdName, "close");
     
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
@@ -95,7 +95,7 @@ NsfGdbmNamesMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
 
   if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
-    return NsfObjErrArgCnt(in, obj->cmdName, "names");
+    return NsfObjWrongArgs(in, "wrong # args:", obj->cmdName, "names");
   
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
@@ -132,7 +132,7 @@ NsfGdbmSetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[])
 
   if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc <2 || objc > 3)
-    return NsfObjErrArgCnt(in, obj->cmdName, "set key ?value?");
+    return NsfObjWrongArgs(in, "wrong # args:", obj->cmdName, "set key ?value?");
 
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
@@ -176,7 +176,7 @@ NsfGdbmExistsMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv
 
   if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 2)
-    return NsfObjErrArgCnt(in, obj->cmdName, "exists variable");
+    return NsfObjWrongArgs(in, "wrong # args:", obj->cmdName, "exists variable");
 
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
@@ -203,7 +203,7 @@ NsfGdbmUnsetMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST objv[
 
   if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 2)
-    return NsfObjErrArgCnt(in, obj->cmdName, "unset key");
+    return NsfObjWrongArgs(in, "wrong # args:", obj->cmdName, "unset key");
   
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
@@ -231,7 +231,7 @@ NsfGdbmFirstKeyMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST ob
 
   if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
-    return NsfObjErrArgCnt(in, obj->cmdName, "firstkey");
+    return NsfObjWrongArgs(in, "wrong # args:", obj->cmdName, "firstkey");
   
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db) {
@@ -269,7 +269,7 @@ NsfGdbmNextKeyMethod(ClientData cd, Tcl_Interp* in, int objc, Tcl_Obj* CONST obj
 
   if (!obj) return NsfObjErrType(in, obj->cmdName, "Object", "");
   if (objc != 1)
-    return NsfObjErrArgCnt(in, obj->cmdName, "nextkey");
+    return NsfObjWrongArgs(in, "wrong # args:", obj->cmdName, "nextkey");
   
   db = (db_t*) NsfGetObjClientData(obj);
   if (!db)
