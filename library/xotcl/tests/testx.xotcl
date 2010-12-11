@@ -4,7 +4,7 @@ package require XOTcl; namespace import -force ::xotcl::*
 proc ::errorCheck {got expected msg} {
   nsf::__db_run_assertions
   if {$got != $expected} {
-    if {[catch self self]} {
+    if {[catch {uplevel self} self]} {
       set self "NO CURRENT OBJECT"
     }
     puts stderr "$self FAILED: $msg\nGot:      $got\nExpected: $expected"
