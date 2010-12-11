@@ -2,6 +2,8 @@
 #
 # XOTcl style documentation tools
 #
+set auto_path [concat [file dirname [info script]] $auto_path]
+
 package require XOTcl
 namespace import ::xotcl::*
 
@@ -12,8 +14,6 @@ namespace import ::xotcl::*
     Called by Makefile.
   }
 }
-lappend auto_path [file dirname [info script]]
-
 package require xotcl::package
 package verbose 1
 package require xotcl::xodoc
