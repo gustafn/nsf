@@ -8249,23 +8249,23 @@ ParamOptionSetConverter(Tcl_Interp *interp, NsfParam *paramPtr,
 
 static int
 ParamOptionParse(Tcl_Interp *interp, CONST char *argString, 
-		 size_t start, size_t length, 
+		 size_t start, size_t remainder, 
 		 int disallowedOptions, NsfParam *paramPtr) {
-  int searchUntil, result = TCL_OK;
+  int optionLength, result = TCL_OK;
   CONST char *dotdot, *option = argString + start;
-  char *firstComma = strchr(option, ',');
+  char *firstComma = memchr(option, ',', remainder);
 
   if (firstComma == NULL) {
-    searchUntil = length;
+    optionLength = remainder;
   } else {
-    searchUntil = firstComma - option;
+    optionLength = firstComma - option;
   }
 
   /*fprintf(stderr, "ParamOptionParse name %s, option '%s' (%d) disallowed %.6x\n",
-    paramPtr->name, option, length, disallowedOptions);*/
-  if (strncmp(option, "required", MAX(3,length)) == 0) {
+    paramPtr->name, option, remainder, disallowedOptions);*/
+  if (strncmp(option, "required", MAX(3,optionLength)) == 0) {
     paramPtr->flags |= NSF_ARG_REQUIRED;
-  } else if (strncmp(option, "optional",  MAX(3,length)) == 0) {
+  } else if (strncmp(option, "optional",  MAX(3,optionLength)) == 0) {
     paramPtr->flags &= ~NSF_ARG_REQUIRED;
   } else if (strncmp(option, "substdefault", 12) == 0) {
     paramPtr->flags |= NSF_ARG_SUBST_DEFAULT;
@@ -8278,7 +8278,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     paramPtr->flags |= NSF_ARG_INITCMD;
   } else if (strncmp(option, "method", 6) == 0) {
     paramPtr->flags |= NSF_ARG_METHOD;
-  } else if ((dotdot = strnstr(option, "..", searchUntil))) {
+  } else if ((dotdot = strnstr(option, "..", optionLength))) {
     /* check lower bound */
     if (*option == '0') {
       paramPtr->flags |= NSF_ARG_ALLOW_EMPTY;
@@ -8309,12 +8309,12 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     }
     paramPtr->flags |= NSF_ARG_NOARG;
     paramPtr->nrArgs = 0;
-  } else if (length >= 4 && strncmp(option, "arg=", 4) == 0) {
+  } else if (optionLength >= 4 && strncmp(option, "arg=", 4) == 0) {
     if ((paramPtr->flags & (NSF_ARG_METHOD|NSF_ARG_RELATION)) == 0
         && paramPtr->converter != ConvertViaCmd)
       return NsfPrintError(interp, 
 			   "option arg= only allowed for \"method\", \"relation\" or user-defined converter");
-    paramPtr->converterArg =  Tcl_NewStringObj(option+4, length-4);
+    paramPtr->converterArg =  Tcl_NewStringObj(option + 4, optionLength - 4);
     INCR_REF_COUNT(paramPtr->converterArg);
   } else if (strncmp(option, "switch", 6) == 0) {
     if (*paramPtr->name != '-') {
@@ -8329,7 +8329,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     assert(paramPtr->defaultValue == NULL);
     paramPtr->defaultValue = Tcl_NewBooleanObj(0);
     INCR_REF_COUNT(paramPtr->defaultValue);
-  } else if (strncmp(option, "integer", MAX(3,length)) == 0) {
+  } else if (strncmp(option, "integer", MAX(3,optionLength)) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "integer", ConvertToInteger);
   } else if (strncmp(option, "boolean", 7) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "boolean", ConvertToBoolean);
@@ -8349,14 +8349,14 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     /*paramPtr->type = "tclobj";*/
   } else if (strncmp(option, "parameter", 9) == 0) {
     result = ParamOptionSetConverter(interp, paramPtr, "parameter", ConvertToParameter);
-  } else if (length >= 6 && strncmp(option, "type=", 5) == 0) {
+  } else if (optionLength >= 6 && strncmp(option, "type=", 5) == 0) {
     if (paramPtr->converter != ConvertToObject &&
         paramPtr->converter != ConvertToClass)
       return NsfPrintError(interp, "option type= only allowed for object or class");
-    paramPtr->converterArg = Tcl_NewStringObj(option+5, length-5);
+    paramPtr->converterArg = Tcl_NewStringObj(option + 5, optionLength - 5);
     INCR_REF_COUNT(paramPtr->converterArg);
-  } else if (length >= 6 && strncmp(option, "slot=", 5) == 0) {
-    paramPtr->slotObj = Tcl_NewStringObj(option+5, length-5);
+  } else if (optionLength >= 6 && strncmp(option, "slot=", 5) == 0) {
+    paramPtr->slotObj = Tcl_NewStringObj(option + 5, optionLength - 5);
     INCR_REF_COUNT(paramPtr->slotObj);
   } else {
     int i, found = -1;
@@ -8364,7 +8364,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     for (i=0; stringTypeOpts[i]; i++) {
       /* Do not allow abbreviations, so the additional strlen checks
 	 for a full match */
-      if (strncmp(option, stringTypeOpts[i], length) == 0 && strlen(stringTypeOpts[i]) == length) {
+      if (strncmp(option, stringTypeOpts[i], optionLength) == 0 && strlen(stringTypeOpts[i]) == optionLength) {
 	found = i;
 	break;
       }
@@ -8376,7 +8376,7 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
       INCR_REF_COUNT(paramPtr->converterArg);
     } else {
       /* must be a converter defined via method */
-      paramPtr->converterName = ParamCheckObj(interp, option, length);
+      paramPtr->converterName = ParamCheckObj(interp, option, optionLength);
       INCR_REF_COUNT(paramPtr->converterName);
       result = ParamOptionSetConverter(interp, paramPtr, ObjStr(paramPtr->converterName), ConvertViaCmd);
     }
@@ -15988,7 +15988,7 @@ NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *specifiedName, in
      * If the name contains colons, the parentNsPtr is not appropriate
      * for determining the parent 
      */
-    if (strchr(nameString, ':')>0) {
+    if (strchr(nameString, ':') > 0) {
       parentNsPtr = NULL;
     }
     nameString = ObjStr(tmpObj);
