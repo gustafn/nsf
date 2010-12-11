@@ -306,6 +306,7 @@ Test case int-returns-sugar {
 	:alias lappend -returns integer -frame object ::lappend
 	:forward ++ -returns integer ::expr 1 +
 	:forward | -returns integer ::append _ 
+	:public class-object method instances {} -returns object,1..n {:info instances}
 	:create c1
     }
 
@@ -321,6 +322,8 @@ Test case int-returns-sugar {
     ? {c1 | a} {expected integer but got "a" for parameter "return-value"}
     ? {::nsf::methodproperty ::C ::nsf::classes::C::bar-nok returns} integer
     ? {c1 bar-nok 1 2} {expected integer but got "a" for parameter "return-value"}
+
+    ? {C instances} ::c1
 
     ? {c1 incr x} 1
     ? {c1 incr x} 1002
