@@ -712,7 +712,17 @@ set /varName/ [/obj/ eval {set /:otherVar/}]
 ----------------
 |======================
 
-==== Object Parameters/Attributes
+=== Parameters
+
+While XOTcl 1 had very limited forms of parameters, XOTcl 2 and nx
+provide a generalized and highly orthogonal parameter handling with
+various kinds of value constraints. We devide the parameters into
+_Object Parameters_ (parameters used for initializing objects and
+classes) and _Method Parameters_ (parameters passed to
+methods). Furthermore, XOTcl 2 and NX support return value checker
+based on the same mechanisms.
+
+==== Object Parameters
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -720,6 +730,9 @@ set /varName/ [/obj/ eval {set /:otherVar/}]
 
 |[source,tcl]
 ----------------
+# Object parameter specified as a list (short form)
+# "a" has no default, "b" has default "1"
+
 Class Foo -parameter {a {b 1}}
 
 # Create instance of the class Foo
@@ -727,8 +740,23 @@ Foo f1 -a 0
 
 # Object f1 has a == 0 and b == 1
 ----------------
-[source,tcl]
+|[source,tcl]
 ----------------
+# Object parameter specified as a list (short form)
+# "a" has no default, "b" has default "1"
+
+Class create Foo -attributes {a {b 1}}
+
+# Create instance of the class Foo
+Foo create f1 -a 0
+
+# Object f1 has a == 0 and b == 1
+----------------
+
+|[source,tcl]
+----------------
+# Object parameter specified via slots
+
 Class Foo -slots {
    Attribute a
    Attribute b -default 1
@@ -740,17 +768,12 @@ Foo f1 -a 0
 # Object f1 has a == 0 and b == 1
 
 ----------------
+
 |[source,tcl]
 ----------------
-Class create Foo -attributes {a {b 1}}
+# Object parameter specified via attribute methods
+# (allow method modifieres and scripted configuration)
 
-# Create instance of the class Foo
-Foo create f1 -a 0
-
-# Object f1 has a == 0 and b == 1
-----------------
-[source,tcl]
-----------------
 Class create Foo {
    :attribute a
    :attribute {b 1}
@@ -763,6 +786,9 @@ Foo create f1 -a 0
 ----------------
 |[source,tcl]
 ----------------
+# Object parameter with configured slot, defining an attribute
+# specific type checker
+
 Class Person -slots {
    Attribute create sex -type "sex" {
      my proc type=sex {name value} {
@@ -777,6 +803,9 @@ Class Person -slots {
 ----------------
 |[source,tcl]
 ----------------
+# Object parameter with scripted definition, defining an attribute
+# specific type checker
+
 Class create Person {
    :attribute sex {
      :type "sex"
@@ -796,10 +825,16 @@ Class create Person {
 ----------------
 |[source,tcl]
 ----------------
-# Predefined value constraints: object, class, alnum, alpha,
-# ascii, boolean, control, digit, double, false, graph,
-# integer, lower, print, punct, space, true, upper,
-# wordchar, xdigit
+# Predefined value constraints: 
+#    object, class, alnum, alpha, ascii, boolean, control, 
+#    digit, double, false, graph, integer, lower, print, 
+#    punct,  space, true, upper, wordchar, xdigit
+#
+# User defined value constraints are possible.
+# All parameter value checkers can be turned on and off.
+#
+# Define a boolean attribute and an integer attribute with a 
+# default
 
 Class create Foo -attributes {
    a:boolean
@@ -819,47 +854,156 @@ Class create Foo {
 ----------------
 |[source,tcl]
 ----------------
-# Required parameter
+# Required parameter:
+# Define a required attribute a and a required boolean 
+# attribute b
+
 Class create Foo -attributes {
-   a:boolean,required
-   {b:integer 1}
+   a:required
+   b:boolean,required
 }
 ----------------
 [source,tcl]
 ----------------
 
 Class create Foo {
-   :attribute a:boolean,required
-   :attribute {b:integer 1}
+   :attribute a:required
+   :attribute b:boolean,required
 }
 ----------------
 |[source,tcl]
 ---------------
-# Multivalued parameter not available 
+# Multiplicity for parameter not available 
 -----------------
 |[source,tcl]
 ----------------
-# Required parameter
+# Parameter with multiplicity
+
 Class create Foo -attributes {
-   ...
-   ints:integer,multivalued
-   {objs:object,multivalued ""}
+  {ints:integer,0..n ""} ;# list of integers, with default
+   objs:object,1..n       ;# non-empty list of objects
+   obj:object,0..1        ;# single object, maybe empty
 }
 ----------------
 [source,tcl]
 ----------------
 Class create Foo {
-   ...
-   :attribute ints:integer,multivalued
-   :attribute {objs:object,multivalued ""}
+  :attribute {ints:integer,0..n ""}
+   :attribute objs:object,1..n 
+   :attribute obj:object,0..1
 }
 ----------------
 |======================
-## allowempty 
 
-=== Method Parameters
+==== Method Parameters
 
-todo
+The method parameters specifications in XOTcl 1 were limited and
+allowed only value constraints for non positional arguments. NX and
+XOTcl 2 provide value constraints for all kind of method parameters.
+While XOTcl 1 required non-positional arguments to be listed in front of
+positional arguments, this limitation is lifted in XOTcl 2.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# Define method foo with non-positional parameters 
+# (x, y and y) and positional parameter (a and b)
+
+Class C
+C instproc foo {-x:integer -y:required -z a b} {....}
+C create c1
+
+# invoke method foo
+c1 foo -x 1 -y a 2 3
+----------------
+|[source,tcl]
+----------------
+# Define method foo with non-positional parameters 
+# (x, y and y) and positional parameter (a and b)
+
+Class create C {
+   :public method foo {-x:integer -y:required -z a b} {....}
+   :create c1
+}
+# invoke method foo
+c1 foo -x 1 -y a 2 3
+----------------
+
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+# Define various forms of parameters not available in XOTcl 1
+
+Class create C {
+   # trailing (or interleaved) non-positional parameters
+   :public method m1 {a b -x:integer -y} {....} 
+
+   # postional parameters with value constraints
+   :public method m2 {a:integer b:boolean} {....} 
+
+   # optional postional parameter (trailing)
+   :public method set {varName value:optional} {....} 
+
+   # parameter with multiplicty
+   :public method m3 {-objs:object,1..n c:class,0..1} {....} 
+
+   # In general, the same list of value constraints as for
+   # object parameter is available (see above).
+   #
+   # User defined value constraints are possible.
+   # All parameter value checkers can be turned on and off.
+}
+----------------
+|======================
+
+==== Return Value Checkers
+
+Return value checker are a functionality that was not yet available in
+XOTcl 1. A return value checker assures that a method returns always a
+parameter of a certain value. Return value checkers can be defined on
+all forms of methods. Like for other value checkers, return
+value checkers can be turned on and off.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+# Define method foo with non-positional parameters 
+# (x, y and y) and positional parameter (a and b)
+
+Class create C {
+   # Define method foo which returns an integer value
+   :method foo -returns integer {-x:integer} {....}
+
+   # Define an alias for the Tcl command ::incr
+   # and assure, it always returns in integer
+   :alias incr -returns integer ::incr
+
+   # Define a forwarder that has to return integer
+   :forward ++ -returns integer ::expr 1 +
+
+  # Define a method that has to return a non-empty
+  # list of objects
+  :public class-object method instances {} -returns object,1..n {
+    return [:info instances]
+   }
+}
+----------------
+|======================
+
+
 
 === Interceptors
 

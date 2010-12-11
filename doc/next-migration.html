@@ -784,7 +784,7 @@ http://www.gnu.org/software/src-highlite -->
 <span style="color: #000000">Stack </span><span style="color: #7f0055">instproc</span><span style="color: #000000"> pop </span><span style="color: #000000">{}</span><span style="color: #000000"> </span><span style="color: #000000">{</span>
 <span style="color: #000000">   </span><span style="color: #7f0055">my</span><span style="color: #000000"> </span><span style="color: #7f0055">instvar</span><span style="color: #000000"> things</span>
 <span style="color: #000000">   </span><span style="color: #7f0055">set</span><span style="color: #000000"> top </span><span style="color: #000000">[</span><span style="color: #7f0055">lindex</span><span style="color: #000000"> </span><span style="color: #AF663F">$things</span><span style="color: #000000"> </span><span style="color: #000000">0</span><span style="color: #000000">]</span>
-<span style="color: #000000">   </span><span style="color: #7f0055">set</span><span style="color: #000000"> things </span><span style="color: #000000">[</span><span style="color: #7f0055">lrange</span><span style="color: #000000"> </span><span style="color: #AF663F">$things</span><span style="color: #000000"> </span><span style="color: #000000">1</span><span style="color: #000000"> end</span><span style="color: #000000">]</span><span style="color: #000000"> </span>
+<span style="color: #000000">   </span><span style="color: #7f0055">set</span><span style="color: #000000"> things </span><span style="color: #000000">[</span><span style="color: #7f0055">lrange</span><span style="color: #000000"> </span><span style="color: #AF663F">$things</span><span style="color: #000000"> </span><span style="color: #000000">1</span><span style="color: #000000"> end</span><span style="color: #000000">]</span>
 <span style="color: #000000">}</span></tt></pre></div></div></div></td>
 </tr>
 </tbody>
@@ -1579,8 +1579,18 @@ http://www.gnu.org/software/src-highlite -->
 </table>
 </div>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_parameters">3.4. Parameters</h3>
+<div class="paragraph"><p>While XOTcl 1 had very limited forms of parameters, XOTcl 2 and nx
+provide a generalized and highly orthogonal parameter handling with
+various kinds of value constraints. We devide the parameters into
+<em>Object Parameters</em> (parameters used for initializing objects and
+classes) and <em>Method Parameters</em> (parameters passed to
+methods). Furthermore, XOTcl 2 and NX support return value checker
+based on the same mechanisms.</p></div>
 <div class="sect3">
-<h4 id="_object_parameters_attributes">3.3.4. Object Parameters/Attributes</h4>
+<h4 id="_object_parameters">3.4.1. Object Parameters</h4>
 <div class="tableblock">
 <table rules="all"
 width="100%"
@@ -1601,18 +1611,39 @@ cellspacing="0" cellpadding="4">
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> Foo </span><span style="color: #000000">-</span><span style="color: #000000">parameter </span><span style="color: #000000">{</span><span style="color: #000000">a </span><span style="color: #000000">{</span><span style="color: #000000">b </span><span style="color: #000000">1</span><span style="color: #000000">}}</span>
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Object parameter specified as a list (short form)</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># "a" has no default, "b" has default "1"</span></span>
+
+<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> Foo </span><span style="color: #000000">-</span><span style="color: #000000">parameter </span><span style="color: #000000">{</span><span style="color: #000000">a </span><span style="color: #000000">{</span><span style="color: #000000">b </span><span style="color: #000000">1</span><span style="color: #000000">}}</span>
 
 <span style="font-style: italic"><span style="color: #717ab3"># Create instance of the class Foo</span></span>
 <span style="color: #000000">Foo f1 </span><span style="color: #000000">-</span><span style="color: #000000">a </span><span style="color: #000000">0</span>
 
-<span style="font-style: italic"><span style="color: #717ab3"># Object f1 has a == 0 and b == 1</span></span></tt></pre></div></div>
-<div class="listingblock">
+<span style="font-style: italic"><span style="color: #717ab3"># Object f1 has a == 0 and b == 1</span></span></tt></pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.4
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> Foo </span><span style="color: #000000">-</span><span style="color: #000000">slots </span><span style="color: #000000">{</span>
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Object parameter specified as a list (short form)</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># "a" has no default, "b" has default "1"</span></span>
+
+<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> Foo </span><span style="color: #000000">-</span><span style="color: #000000">attributes </span><span style="color: #000000">{</span><span style="color: #000000">a </span><span style="color: #000000">{</span><span style="color: #000000">b </span><span style="color: #000000">1</span><span style="color: #000000">}}</span>
+
+<span style="font-style: italic"><span style="color: #717ab3"># Create instance of the class Foo</span></span>
+<span style="color: #000000">Foo </span><span style="color: #7f0055">create</span><span style="color: #000000"> f1 </span><span style="color: #000000">-</span><span style="color: #000000">a </span><span style="color: #000000">0</span>
+
+<span style="font-style: italic"><span style="color: #717ab3"># Object f1 has a == 0 and b == 1</span></span></tt></pre></div></div></div></td>
+</tr>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Object parameter specified via slots</span></span>
+
+<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> Foo </span><span style="color: #000000">-</span><span style="color: #000000">slots </span><span style="color: #000000">{</span>
 <span style="color: #000000">   Attribute a</span>
 <span style="color: #000000">   Attribute b </span><span style="color: #000000">-</span><span style="color: #7f0055">default</span><span style="color: #000000"> </span><span style="color: #000000">1</span>
 <span style="color: #000000">}</span>
@@ -1627,18 +1658,10 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> Foo </span><span style="color: #000000">-</span><span style="color: #000000">attributes </span><span style="color: #000000">{</span><span style="color: #000000">a </span><span style="color: #000000">{</span><span style="color: #000000">b </span><span style="color: #000000">1</span><span style="color: #000000">}}</span>
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Object parameter specified via attribute methods</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># (allow method modifieres and scripted configuration)</span></span>
 
-<span style="font-style: italic"><span style="color: #717ab3"># Create instance of the class Foo</span></span>
-<span style="color: #000000">Foo </span><span style="color: #7f0055">create</span><span style="color: #000000"> f1 </span><span style="color: #000000">-</span><span style="color: #000000">a </span><span style="color: #000000">0</span>
-
-<span style="font-style: italic"><span style="color: #717ab3"># Object f1 has a == 0 and b == 1</span></span></tt></pre></div></div>
-<div class="listingblock">
-<div class="content"><!-- Generator: GNU source-highlight 3.1.4
-by Lorenzo Bettini
-http://www.lorenzobettini.it
-http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> Foo </span><span style="color: #000000">{</span>
+<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> Foo </span><span style="color: #000000">{</span>
 <span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> a</span>
 <span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">b </span><span style="color: #000000">1</span><span style="color: #000000">}</span>
 <span style="color: #000000">}</span>
@@ -1654,7 +1677,10 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> Person </span><span style="color: #000000">-</span><span style="color: #000000">slots </span><span style="color: #000000">{</span>
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Object parameter with configured slot, defining an attribute</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># specific type checker</span></span>
+
+<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> Person </span><span style="color: #000000">-</span><span style="color: #000000">slots </span><span style="color: #000000">{</span>
 <span style="color: #000000">   Attribute </span><span style="color: #7f0055">create</span><span style="color: #000000"> sex </span><span style="color: #000000">-</span><span style="color: #000000">type </span><span style="color: #0000ff">"sex"</span><span style="color: #000000"> </span><span style="color: #000000">{</span>
 <span style="color: #000000">     </span><span style="color: #7f0055">my</span><span style="color: #000000"> </span><span style="color: #7f0055">proc</span><span style="color: #000000"> type</span><span style="color: #000000">=</span><span style="color: #000000">sex </span><span style="color: #000000">{</span><span style="color: #000000">name value</span><span style="color: #000000">}</span><span style="color: #000000"> </span><span style="color: #000000">{</span>
 <span style="color: #000000">       </span><span style="color: #7f0055">switch</span><span style="color: #000000"> </span><span style="color: #000000">-</span><span style="color: #7f0055">glob</span><span style="color: #000000"> </span><span style="color: #AF663F">$value</span><span style="color: #000000"> </span><span style="color: #000000">{</span>
@@ -1670,7 +1696,10 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> Person </span><span style="color: #000000">{</span>
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Object parameter with scripted definition, defining an attribute</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># specific type checker</span></span>
+
+<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> Person </span><span style="color: #000000">{</span>
 <span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> sex </span><span style="color: #000000">{</span>
 <span style="color: #000000">     </span><span style="color: #000000">:</span><span style="color: #000000">type </span><span style="color: #0000ff">"sex"</span>
 <span style="color: #000000">     </span><span style="color: #000000">:</span><span style="color: #7f0055">method</span><span style="color: #000000"> type</span><span style="color: #000000">=</span><span style="color: #000000">sex </span><span style="color: #000000">{</span><span style="color: #000000">name value</span><span style="color: #000000">}</span><span style="color: #000000"> </span><span style="color: #000000">{</span>
@@ -1695,10 +1724,16 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Predefined value constraints: object, class, alnum, alpha,</span></span>
-<span style="font-style: italic"><span style="color: #717ab3"># ascii, boolean, control, digit, double, false, graph,</span></span>
-<span style="font-style: italic"><span style="color: #717ab3"># integer, lower, print, punct, space, true, upper,</span></span>
-<span style="font-style: italic"><span style="color: #717ab3"># wordchar, xdigit</span></span>
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Predefined value constraints:</span></span>
+<span style="font-style: italic"><span style="color: #717ab3">#    object, class, alnum, alpha, ascii, boolean, control,</span></span>
+<span style="font-style: italic"><span style="color: #717ab3">#    digit, double, false, graph, integer, lower, print,</span></span>
+<span style="font-style: italic"><span style="color: #717ab3">#    punct,  space, true, upper, wordchar, xdigit</span></span>
+<span style="font-style: italic"><span style="color: #717ab3">#</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># User defined value constraints are possible.</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># All parameter value checkers can be turned on and off.</span></span>
+<span style="font-style: italic"><span style="color: #717ab3">#</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># Define a boolean attribute and an integer attribute with a</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># default</span></span>
 
 <span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> Foo </span><span style="color: #000000">-</span><span style="color: #000000">attributes </span><span style="color: #000000">{</span>
 <span style="color: #000000">   a</span><span style="color: #000000">:</span><span style="color: #000000">boolean</span>
@@ -1726,10 +1761,13 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Required parameter</span></span>
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Required parameter:</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># Define a required attribute a and a required boolean</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># attribute b</span></span>
+
 <span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> Foo </span><span style="color: #000000">-</span><span style="color: #000000">attributes </span><span style="color: #000000">{</span>
-<span style="color: #000000">   a</span><span style="color: #000000">:</span><span style="color: #000000">boolean</span><span style="color: #000000">,</span><span style="color: #000000">required</span>
-<span style="color: #000000">   </span><span style="color: #000000">{</span><span style="color: #000000">b</span><span style="color: #000000">:</span><span style="color: #000000">integer </span><span style="color: #000000">1</span><span style="color: #000000">}</span>
+<span style="color: #000000">   a</span><span style="color: #000000">:</span><span style="color: #000000">required</span>
+<span style="color: #000000">   b</span><span style="color: #000000">:</span><span style="color: #000000">boolean</span><span style="color: #000000">,</span><span style="color: #000000">required</span>
 <span style="color: #000000">}</span></tt></pre></div></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.4
@@ -1738,8 +1776,8 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt>
 <span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> Foo </span><span style="color: #000000">{</span>
-<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> a</span><span style="color: #000000">:</span><span style="color: #000000">boolean</span><span style="color: #000000">,</span><span style="color: #000000">required</span>
-<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">b</span><span style="color: #000000">:</span><span style="color: #000000">integer </span><span style="color: #000000">1</span><span style="color: #000000">}</span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> a</span><span style="color: #000000">:</span><span style="color: #000000">required</span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> b</span><span style="color: #000000">:</span><span style="color: #000000">boolean</span><span style="color: #000000">,</span><span style="color: #000000">required</span>
 <span style="color: #000000">}</span></tt></pre></div></div></div></td>
 </tr>
 <tr>
@@ -1748,17 +1786,18 @@ http://www.gnu.org/software/src-highlite -->
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Multivalued parameter not available</span></span></tt></pre></div></div></div></td>
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Multiplicity for parameter not available</span></span></tt></pre></div></div></div></td>
 <td align="left" valign="middle"><div><div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.4
 by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
-<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Required parameter</span></span>
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Parameter with multiplicity</span></span>
+
 <span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> Foo </span><span style="color: #000000">-</span><span style="color: #000000">attributes </span><span style="color: #000000">{</span>
-<span style="color: #000000">   </span><span style="color: #000000">...</span>
-<span style="color: #000000">   ints</span><span style="color: #000000">:</span><span style="color: #000000">integer</span><span style="color: #000000">,</span><span style="color: #000000">multivalued</span>
-<span style="color: #000000">   </span><span style="color: #000000">{</span><span style="color: #000000">objs</span><span style="color: #000000">:</span><span style="color: #000000">object</span><span style="color: #000000">,</span><span style="color: #000000">multivalued </span><span style="color: #0000ff">""</span><span style="color: #000000">}</span>
+<span style="color: #000000">  </span><span style="color: #000000">{</span><span style="color: #000000">ints</span><span style="color: #000000">:</span><span style="color: #000000">integer</span><span style="color: #000000">,</span><span style="color: #000000">0</span><span style="color: #000000">..</span><span style="color: #000000">n </span><span style="color: #0000ff">""</span><span style="color: #000000">}</span><span style="color: #000000"> </span><span style="color: #000000">;</span><span style="font-style: italic"><span style="color: #717ab3"># list of integers, with default</span></span>
+<span style="color: #000000">   objs</span><span style="color: #000000">:</span><span style="color: #000000">object</span><span style="color: #000000">,</span><span style="color: #000000">1</span><span style="color: #000000">..</span><span style="color: #000000">n       </span><span style="color: #000000">;</span><span style="font-style: italic"><span style="color: #717ab3"># non-empty list of objects</span></span>
+<span style="color: #000000">   obj</span><span style="color: #000000">:</span><span style="color: #000000">object</span><span style="color: #000000">,</span><span style="color: #000000">0</span><span style="color: #000000">..</span><span style="color: #000000">1</span><span style="color: #000000">        </span><span style="color: #000000">;</span><span style="font-style: italic"><span style="color: #717ab3"># single object, maybe empty</span></span>
 <span style="color: #000000">}</span></tt></pre></div></div>
 <div class="listingblock">
 <div class="content"><!-- Generator: GNU source-highlight 3.1.4
@@ -1766,20 +1805,162 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> Foo </span><span style="color: #000000">{</span>
-<span style="color: #000000">   </span><span style="color: #000000">...</span>
-<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> ints</span><span style="color: #000000">:</span><span style="color: #000000">integer</span><span style="color: #000000">,</span><span style="color: #000000">multivalued</span>
-<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">objs</span><span style="color: #000000">:</span><span style="color: #000000">object</span><span style="color: #000000">,</span><span style="color: #000000">multivalued </span><span style="color: #0000ff">""</span><span style="color: #000000">}</span>
+<span style="color: #000000">  </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">ints</span><span style="color: #000000">:</span><span style="color: #000000">integer</span><span style="color: #000000">,</span><span style="color: #000000">0</span><span style="color: #000000">..</span><span style="color: #000000">n </span><span style="color: #0000ff">""</span><span style="color: #000000">}</span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> objs</span><span style="color: #000000">:</span><span style="color: #000000">object</span><span style="color: #000000">,</span><span style="color: #000000">1</span><span style="color: #000000">..</span><span style="color: #000000">n</span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">attribute</span><span style="color: #000000"> obj</span><span style="color: #000000">:</span><span style="color: #000000">object</span><span style="color: #000000">,</span><span style="color: #000000">0</span><span style="color: #000000">..</span><span style="color: #000000">1</span>
 <span style="color: #000000">}</span></tt></pre></div></div></div></td>
 </tr>
 </tbody>
 </table>
 </div>
-<div class="paragraph"><p>## allowempty</p></div>
+</div>
+<div class="sect3">
+<h4 id="_method_parameters">3.4.2. Method Parameters</h4>
+<div class="paragraph"><p>The method parameters specifications in XOTcl 1 were limited and
+allowed only value constraints for non positional arguments. NX and
+XOTcl 2 provide value constraints for all kind of method parameters.
+While XOTcl 1 required non-positional arguments to be listed in front of
+positional arguments, this limitation is lifted in XOTcl 2.</p></div>
+<div class="tableblock">
+<table rules="all"
+width="100%"
+frame="void"
+cellspacing="0" cellpadding="4">
+<col width="50%" />
+<col width="50%" />
+<thead>
+<tr>
+<th align="left" valign="middle">XOTcl </th>
+<th align="left" valign="middle">Next Scripting Language</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Define method foo with non-positional parameters</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># (x, y and y) and positional parameter (a and b)</span></span>
+
+<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> C</span>
+<span style="color: #000000">C </span><span style="color: #7f0055">instproc</span><span style="color: #000000"> foo </span><span style="color: #000000">{</span><span style="color: #000000">-</span><span style="color: #000000">x</span><span style="color: #000000">:</span><span style="color: #000000">integer </span><span style="color: #000000">-</span><span style="color: #000000">y</span><span style="color: #000000">:</span><span style="color: #000000">required </span><span style="color: #000000">-</span><span style="color: #000000">z a b</span><span style="color: #000000">}</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">....</span><span style="color: #000000">}</span>
+<span style="color: #000000">C </span><span style="color: #7f0055">create</span><span style="color: #000000"> c1</span>
+
+<span style="font-style: italic"><span style="color: #717ab3"># invoke method foo</span></span>
+<span style="color: #000000">c1 foo </span><span style="color: #000000">-</span><span style="color: #000000">x </span><span style="color: #000000">1</span><span style="color: #000000"> </span><span style="color: #000000">-</span><span style="color: #000000">y a </span><span style="color: #000000">2</span><span style="color: #000000"> </span><span style="color: #000000">3</span></tt></pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Define method foo with non-positional parameters</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># (x, y and y) and positional parameter (a and b)</span></span>
+
+<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> C </span><span style="color: #000000">{</span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">public</span><span style="color: #000000"> </span><span style="color: #7f0055">method</span><span style="color: #000000"> foo </span><span style="color: #000000">{</span><span style="color: #000000">-</span><span style="color: #000000">x</span><span style="color: #000000">:</span><span style="color: #000000">integer </span><span style="color: #000000">-</span><span style="color: #000000">y</span><span style="color: #000000">:</span><span style="color: #000000">required </span><span style="color: #000000">-</span><span style="color: #000000">z a b</span><span style="color: #000000">}</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">....</span><span style="color: #000000">}</span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">create</span><span style="color: #000000"> c1</span>
+<span style="color: #000000">}</span>
+<span style="font-style: italic"><span style="color: #717ab3"># invoke method foo</span></span>
+<span style="color: #000000">c1 foo </span><span style="color: #000000">-</span><span style="color: #000000">x </span><span style="color: #000000">1</span><span style="color: #000000"> </span><span style="color: #000000">-</span><span style="color: #000000">y a </span><span style="color: #000000">2</span><span style="color: #000000"> </span><span style="color: #000000">3</span></tt></pre></div></div></div></td>
+</tr>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># n.a.</span></span></tt></pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Define various forms of parameters not available in XOTcl 1</span></span>
+
+<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> C </span><span style="color: #000000">{</span>
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># trailing (or interleaved) non-positional parameters</span></span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">public</span><span style="color: #000000"> </span><span style="color: #7f0055">method</span><span style="color: #000000"> m1 </span><span style="color: #000000">{</span><span style="color: #000000">a b </span><span style="color: #000000">-</span><span style="color: #000000">x</span><span style="color: #000000">:</span><span style="color: #000000">integer </span><span style="color: #000000">-</span><span style="color: #000000">y</span><span style="color: #000000">}</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">....</span><span style="color: #000000">}</span>
+
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># postional parameters with value constraints</span></span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">public</span><span style="color: #000000"> </span><span style="color: #7f0055">method</span><span style="color: #000000"> m2 </span><span style="color: #000000">{</span><span style="color: #000000">a</span><span style="color: #000000">:</span><span style="color: #000000">integer b</span><span style="color: #000000">:</span><span style="color: #000000">boolean</span><span style="color: #000000">}</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">....</span><span style="color: #000000">}</span>
+
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># optional postional parameter (trailing)</span></span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">public</span><span style="color: #000000"> </span><span style="color: #7f0055">method</span><span style="color: #000000"> </span><span style="color: #7f0055">set</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">varName value</span><span style="color: #000000">:</span><span style="color: #000000">optional</span><span style="color: #000000">}</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">....</span><span style="color: #000000">}</span>
+
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># parameter with multiplicty</span></span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">public</span><span style="color: #000000"> </span><span style="color: #7f0055">method</span><span style="color: #000000"> m3 </span><span style="color: #000000">{</span><span style="color: #000000">-</span><span style="color: #000000">objs</span><span style="color: #000000">:</span><span style="color: #000000">object</span><span style="color: #000000">,</span><span style="color: #000000">1</span><span style="color: #000000">..</span><span style="color: #000000">n c</span><span style="color: #000000">:</span><span style="color: #000000">class</span><span style="color: #000000">,</span><span style="color: #000000">0</span><span style="color: #000000">..</span><span style="color: #000000">1</span><span style="color: #000000">}</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">....</span><span style="color: #000000">}</span>
+
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># In general, the same list of value constraints as for</span></span>
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># object parameter is available (see above).</span></span>
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3">#</span></span>
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># User defined value constraints are possible.</span></span>
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># All parameter value checkers can be turned on and off.</span></span>
+<span style="color: #000000">}</span></tt></pre></div></div></div></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_method_parameters">3.4. Method Parameters</h3>
-<div class="paragraph"><p>todo</p></div>
+<div class="sect3">
+<h4 id="_return_value_checkers">3.4.3. Return Value Checkers</h4>
+<div class="paragraph"><p>Return value checker are a functionality that was not yet available in
+XOTcl 1. A return value checker assures that a method returns always a
+parameter of a certain value. Return value checkers can be defined on
+all forms of methods. Like for other value checkers, return
+value checkers can be turned on and off.</p></div>
+<div class="tableblock">
+<table rules="all"
+width="100%"
+frame="void"
+cellspacing="0" cellpadding="4">
+<col width="50%" />
+<col width="50%" />
+<thead>
+<tr>
+<th align="left" valign="middle">XOTcl </th>
+<th align="left" valign="middle">Next Scripting Language</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># n.a.</span></span></tt></pre></div></div></div></td>
+<td align="left" valign="middle"><div><div class="listingblock">
+<div class="content"><!-- Generator: GNU source-highlight 3.1.4
+by Lorenzo Bettini
+http://www.lorenzobettini.it
+http://www.gnu.org/software/src-highlite -->
+<pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Define method foo with non-positional parameters</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># (x, y and y) and positional parameter (a and b)</span></span>
+
+<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> C </span><span style="color: #000000">{</span>
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># Define method foo which returns an integer value</span></span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">method</span><span style="color: #000000"> foo </span><span style="color: #000000">-</span><span style="color: #000000">returns integer </span><span style="color: #000000">{</span><span style="color: #000000">-</span><span style="color: #000000">x</span><span style="color: #000000">:</span><span style="color: #000000">integer</span><span style="color: #000000">}</span><span style="color: #000000"> </span><span style="color: #000000">{</span><span style="color: #000000">....</span><span style="color: #000000">}</span>
+
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># Define an alias for the Tcl command ::incr</span></span>
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># and assure, it always returns in integer</span></span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">alias</span><span style="color: #000000"> </span><span style="color: #7f0055">incr</span><span style="color: #000000"> </span><span style="color: #000000">-</span><span style="color: #000000">returns integer </span><span style="color: #000000">::</span><span style="color: #7f0055">incr</span>
+
+<span style="color: #000000">   </span><span style="font-style: italic"><span style="color: #717ab3"># Define a forwarder that has to return integer</span></span>
+<span style="color: #000000">   </span><span style="color: #000000">:</span><span style="color: #7f0055">forward</span><span style="color: #000000"> </span><span style="color: #000000">++</span><span style="color: #000000"> </span><span style="color: #000000">-</span><span style="color: #000000">returns integer </span><span style="color: #000000">::</span><span style="color: #7f0055">expr</span><span style="color: #000000"> </span><span style="color: #000000">1</span><span style="color: #000000"> </span><span style="color: #000000">+</span>
+
+<span style="color: #000000">  </span><span style="font-style: italic"><span style="color: #717ab3"># Define a method that has to return a non-empty</span></span>
+<span style="color: #000000">  </span><span style="font-style: italic"><span style="color: #717ab3"># list of objects</span></span>
+<span style="color: #000000">  </span><span style="color: #000000">:</span><span style="color: #7f0055">public</span><span style="color: #000000"> </span><span style="color: #7f0055">class-object</span><span style="color: #000000"> </span><span style="color: #7f0055">method</span><span style="color: #000000"> instances </span><span style="color: #000000">{}</span><span style="color: #000000"> </span><span style="color: #000000">-</span><span style="color: #000000">returns object</span><span style="color: #000000">,</span><span style="color: #000000">1</span><span style="color: #000000">..</span><span style="color: #000000">n </span><span style="color: #000000">{</span>
+<span style="color: #000000">    </span><span style="color: #7f0055">return</span><span style="color: #000000"> </span><span style="color: #000000">[:</span><span style="color: #7f0055">info</span><span style="color: #000000"> instances</span><span style="color: #000000">]</span>
+<span style="color: #000000">   </span><span style="color: #000000">}</span>
+<span style="color: #000000">}</span></tt></pre></div></div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_interceptors">3.5. Interceptors</h3>
@@ -3599,7 +3780,7 @@ scripts, conflicts will arise with the resolver. These names must be
 replaced.</p></div>
 </div>
 <div class="sect2">
-<h3 id="_parameters">4.2. Parameters</h3>
+<h3 id="_parameters_2">4.2. Parameters</h3>
 <div class="paragraph"><p>The following changes for parameters could be regarded as bug-fixes.</p></div>
 <div class="sect3">
 <h4 id="_parameter_usage_without_a_value">4.2.1. Parameter usage without a value</h4>
@@ -3688,7 +3869,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer">
 <div id="footer-text">
 Version 2.0<br />
-Last updated 2010-12-06 01:47:51 CET
+Last updated 2010-12-11 18:39:23 CET
 </div>
 </div>
 </body>

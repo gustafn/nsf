@@ -2038,12 +2038,14 @@ _ added option noforwarder to RelationSlots
 - further cleanup of error procs: eliminated NsfObjErrArgCnt()
 - improve error message, when too many arguments are passed
 
+- extended und overworked mirgration guide (added e.g. multiplicity)
+- extended regression test
+
 TODO:
 
 - "-returns" 
   * handle "-returns" in serializer
 
-- change allowempty to "empty"
 - check performance implications of value conflict checker
 
 - extend coro regression test
