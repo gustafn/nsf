@@ -464,7 +464,7 @@ namespace eval ::nx::serializer {
             [:frameWorkCmd ::nsf::assertion $o object-invar] \
             [:frameWorkCmd ::nsf::assertion $o class-invar]
       }
-      puts stderr "*** array unset [nsf::current object] alias_dependency // size [array size :alias_dependency]"
+      #puts stderr "*** array unset [nsf::current object] alias_dependency // size [array size :alias_dependency]"
       array unset :alias_dependency
       return $cmd
     }
@@ -706,7 +706,11 @@ namespace eval ::nx::serializer {
 	# object serialization is fully handled by the serializer
 	return "# [$o {*}$modifier info method definition $m]"
       }
-      return [$o {*}$modifier info method definition $m]
+      set def [$o {*}$modifier info method definition $m]
+      set handle [$o {*}$modifier info method handle $m]
+      set returns [::nsf::methodproperty $o $handle returns]
+      if {$returns ne ""} {append def \n [list ::nsf::methodproperty $o $handle returns $returns]}
+      return $def
     }
 
     ###############################

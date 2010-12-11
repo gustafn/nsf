@@ -195,7 +195,6 @@ Test case int-returns-nocheck {
     # query returns "", if there is no returns checking
     ? {::nsf::methodproperty C lappend returns} ""
     ? {::nsf::methodproperty ::nx::Object method returns} ""
-
 }
 
 Test parameter count 10
@@ -310,11 +309,9 @@ Test case int-returns-sugar {
 	:create c1
     }
 
-    #::nsf::methodproperty C bar-ok1 returns integer
-    #::nsf::methodproperty C bar-ok2 returns integer
-    #::nsf::methodproperty C bar-nok returns integer
-    #::nsf::methodproperty C incr returns integer
-    #::nsf::methodproperty C lappend returns integer
+    package req nx::serializer
+    set s [C serialize]
+    ? [list set _ [regsub -all returns $s returns s]] 8 "occurances of returns"
 
     ? {c1 bar-ok1 1 2} 1
     ? {c1 bar-ok2 1 2} 1

@@ -2041,10 +2041,10 @@ _ added option noforwarder to RelationSlots
 - extended und overworked mirgration guide (added e.g. multiplicity)
 - extended regression test
 
-TODO:
+- added returns handling for nx in serializer
+- extended regression test
 
-- "-returns" 
-  * handle "-returns" in serializer
+TODO:
 
 - check performance implications of value conflict checker
 
