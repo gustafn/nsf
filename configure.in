@@ -112,6 +112,8 @@ echo "Configuring next Version $PACKAGE_VERSION"
 TEA_PATH_TCLCONFIG
 TEA_LOAD_TCLCONFIG
 
+AC_CHECK_FUNCS([strnstr])
+
 #--------------------------------------------------------------------
 # check for TK
 #--------------------------------------------------------------------

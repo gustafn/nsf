@@ -217,6 +217,10 @@ typedef struct NsfMemCounter {
 # define NsfMutexUnlock(a) (*(a))--
 #endif
 
+#ifndef HAVE_STRNSTR
+char *strnstr(const char *buffer, const char *needle, size_t buffer_len);
+#endif
+
 #define ObjStr(obj) (obj)->bytes ? (obj)->bytes : Tcl_GetString(obj)
 
 #define INCR_REF_COUNT(A) MEM_COUNT_ALLOC("INCR_REF_COUNT",A); Tcl_IncrRefCount(A)
