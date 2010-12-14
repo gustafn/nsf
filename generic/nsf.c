@@ -11957,6 +11957,12 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                     return TCL_ERROR;
                   }
 
+		  if (pcPtr->flags[j] & NSF_ARG_SET) {
+		    NsfLog(interp, NSF_LOG_WARN, "Non-positional parameter %s was passed more than once",
+			   nppPtr->name);
+		  }
+		  pcPtr->flags[j] |= NSF_ARG_SET;
+
                   if (pcPtr->flags[j] & NSF_PC_MUST_DECR) {
 		    pcPtr->status |= NSF_PC_STATUS_MUST_DECR;
 		  }

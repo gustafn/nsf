@@ -2044,6 +2044,8 @@ _ added option noforwarder to RelationSlots
 - added returns handling for nx in serializer
 - extended regression test
 
+- provide warning if nonpositional argument is passed more than once
+
 TODO:
 
 - check performance implications of value conflict checker
