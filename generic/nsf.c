@@ -6136,8 +6136,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   }
 
   if (reversed) {
-    return NsfErrBadVal(interp, "superclass", "classes in dependence order",
-                          ObjStr(arg));
+    return NsfErrBadVal(interp, "superclass", "classes in dependence order", ObjStr(arg));
   }
 
   while (cl->super) {
@@ -7363,10 +7362,8 @@ ObjectDispatchFinalize(Tcl_Interp *interp, NsfCallStackContent *cscPtr,
 
     if (paramDefs && paramDefs->returns) {
       Tcl_Obj *valueObj = Tcl_GetObjResult(interp);
-
       result = ParameterCheck(interp, paramDefs->returns, valueObj, "return-value:",
-			      rst->doCheckResults,
-			      NULL);
+			      rst->doCheckResults, NULL);
     }
   } else {
     /*fprintf(stderr, "We have no cmdPtr in cscPtr %p %s.%s",  cscPtr, ObjectName(object), methodName);
@@ -7966,8 +7963,7 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
       if (success == 1) {
 	*clientData = (ClientData)objPtr;
       } else {
-	result = NsfPrintError(interp, "expected %s but got \"%s\" for parameter \"%s\"", 
-			       ObjStr(pPtr->converterArg), ObjStr(objPtr), pPtr->name);
+	result = NsfObjErrType(interp, objPtr, ObjStr(pPtr->converterArg), (Nsf_Param *)pPtr);
       }
     }
   } else {
@@ -8007,8 +8003,7 @@ ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
   if (result == TCL_OK) {
     *clientData = (ClientData)INT2PTR(bool);
   } else {
-    NsfPrintError(interp, "expected boolean value but got \"%s\" for parameter \"%s\"", 
-		  ObjStr(objPtr), pPtr->name);
+    NsfObjErrType(interp, objPtr, "boolean", (Nsf_Param *)pPtr);
   }
   *outObjPtr = objPtr;
   return result;
@@ -8025,8 +8020,7 @@ ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
     *clientData = (ClientData)INT2PTR(i);
     *outObjPtr = objPtr;
   } else {
-    NsfPrintError(interp, "expected integer but got \"%s\" for parameter \"%s\"", 
-		  ObjStr(objPtr), pPtr->name);
+    NsfObjErrType(interp, objPtr, "integer", (Nsf_Param *)pPtr);
   }
   return result;
 }
@@ -8067,7 +8061,7 @@ IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj 
     Tcl_DStringAppend(dsPtr, " of type ", -1);
     Tcl_DStringAppend(dsPtr, ObjStr(pPtr->converterArg), -1);
   }
-  NsfObjErrType(interp, objPtr, Tcl_DStringValue(dsPtr), pPtr->name);
+  NsfObjErrType(interp, objPtr, Tcl_DStringValue(dsPtr), (Nsf_Param *)pPtr);
   DSTRING_FREE(dsPtr);
 
   return TCL_ERROR;
@@ -8080,7 +8074,7 @@ ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr,
   if (GetObjectFromObj(interp, objPtr, (NsfObject **)clientData) == TCL_OK) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "object", objPtr, pPtr);
   }
-  return NsfObjErrType(interp, objPtr, "object", pPtr->name);
+  return NsfObjErrType(interp, objPtr, "object", (Nsf_Param *)pPtr);
 }
 
 static int
@@ -8090,7 +8084,7 @@ ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
   if (GetClassFromObj(interp, objPtr, (NsfClass **)clientData, NULL) == TCL_OK) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "class", objPtr, pPtr);
   }
-  return NsfObjErrType(interp, objPtr, "class", pPtr->name);
+  return NsfObjErrType(interp, objPtr, "class", (Nsf_Param *)pPtr);
 }
 
 static int
@@ -8112,7 +8106,7 @@ ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr,
   *outObjPtr = objPtr;
   /*fprintf(stderr, "convert to parameter '%s' t '%s'\n", value, pPtr->type);*/
   if (*value == ':' || (*value == '-' && *(value + 1) == ':')) {
-    return NsfObjErrType(interp, objPtr, pPtr->type, pPtr->name);
+    return NsfObjErrType(interp, objPtr, pPtr->type, (Nsf_Param *)pPtr);
   }
 
   *clientData = (char *)ObjStr(objPtr);
@@ -10975,7 +10969,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
   SetterCmdClientData *cd = (SetterCmdClientData*)clientData;
   NsfObject *object = cd->object;
 
-  if (!object) return NsfObjErrType(interp, objv[0], "object", ObjStr(objv[0]));
+  if (!object) return NsfObjErrType(interp, objv[0], "object", NULL);
   if (objc > 2) return NsfObjWrongArgs(interp, "wrong # args", object->cmdName, objv[0], "?value?");
 
   if (cd->paramsPtr && objc == 2) {
@@ -11257,7 +11251,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
   ForwardCmdClientData *tcd = (ForwardCmdClientData *)clientData;
   int result, j, inputArg = 1, outputArg = 0;
 
-  if (!tcd || !tcd->object) return NsfObjErrType(interp, objv[0], "object", "");
+  if (!tcd || !tcd->object) return NsfObjErrType(interp, objv[0], "object", NULL);
 
   if (tcd->passthrough) { /* two short cuts for simple cases */
     /* early binding, cmd *resolved, we have to care only for objscope */
@@ -11757,8 +11751,8 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct NsfParam CONST *pPtr, 
         if (ov[i] != elementObjPtr) {
           /*
 	   * The elementObjPtr differs from the input Tcl_Obj, we
-           *  switch to the version of this handler building an output
-           *  list.
+           * switch to the version of this handler building an output
+           * list.
 	   */
           /*fprintf(stderr, "switch to output list construction for value %s\n",
 	    ObjStr(elementObjPtr));*/
@@ -14485,7 +14479,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
   case RelationtypeSuperclassIdx:
     if (!NsfObjectIsClass(object))
-      return NsfObjErrType(interp, object->cmdName, "class", "relationtype");
+      return NsfObjErrType(interp, object->cmdName, "class", NULL);
     cl = (NsfClass *)object;
     if (valueObj == NULL) {
       return ListSuperclasses(interp, cl, NULL, 0);
@@ -14508,14 +14502,14 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
     NsfClass *metaClass;
 
     if (!NsfObjectIsClass(object))
-      return NsfObjErrType(interp, object->cmdName, "class", "relationtype");
+      return NsfObjErrType(interp, object->cmdName, "class", NULL);
     cl = (NsfClass *)object;
 
     if (valueObj == NULL) {
       return NsfPrintError(interp, "metaclass must be specified as third argument");
     }
     GetClassFromObj(interp, valueObj, &metaClass, NULL);
-    if (!metaClass) return NsfObjErrType(interp, valueObj, "class", "");
+    if (!metaClass) return NsfObjErrType(interp, valueObj, "class", NULL);
 
     cl->object.flags |= NSF_IS_ROOT_CLASS;
     metaClass->object.flags |= NSF_IS_ROOT_META_CLASS;
@@ -14952,6 +14946,24 @@ ParamFreeInternalRep(
   }
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParamSetFromAny2 --
+ *
+ *    Convert the second argment argument (e.g. "x:integer") into the
+ *    internal representation of a Tcl_Obj of the type parameter. The
+ *    conversion is performed by the usual ParamParse() function, used
+ *    e.g. for the parameter passing for arguments.
+ *
+ * Results:
+ *    Result code.
+ *
+ * Side effects:
+ *    Converted internal rep of Tcl_Obj
+ *
+ *----------------------------------------------------------------------
+ */
+
 static int
 ParamSetFromAny2(
     Tcl_Interp *interp,		/* Used for error reporting if not NULL. */
@@ -14981,6 +14993,13 @@ ParamSetFromAny2(
     FREE(NsfParamWrapper, paramWrapperPtr);
     result = TCL_ERROR;
   } else if (result == TCL_OK) {
+    /*fprintf(stderr, "ParamSetFromAny2 sets unnamed %p\n",paramWrapperPtr->paramPtr);*/
+
+    paramWrapperPtr->paramPtr->flags |= NSF_ARG_UNNAMED;
+    if (*(paramWrapperPtr->paramPtr->name) == 'r') {
+      paramWrapperPtr->paramPtr->flags |= NSF_ARG_IS_RETURNVALUE;
+      /*fprintf(stderr, "ParamSetFromAny2 sets returnvalue %p\n",paramWrapperPtr->paramPtr);*/
+    }
     TclFreeIntRep(objPtr);
     objPtr->internalRep.twoPtrValue.ptr1 = (void *)paramWrapperPtr;
     objPtr->internalRep.twoPtrValue.ptr2 = NULL;
@@ -15090,7 +15109,7 @@ GetObjectParameterDefinition(Tcl_Interp *interp, Tcl_Obj *procNameObj, NsfObject
 
 static int
 ParameterCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj,
-			  const char *varNamePrefix, int doCheck, NsfParam **paramPtrPtr) {
+	       const char *varNamePrefix, int doCheck, NsfParam **paramPtrPtr) {
   NsfParamWrapper *paramWrapperPtr;
   Tcl_Obj *outObjPtr = NULL;
   NsfParam *paramPtr;
@@ -15113,14 +15132,7 @@ ParameterCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj,
   paramPtr = paramWrapperPtr->paramPtr;
   if (paramPtrPtr) *paramPtrPtr = paramPtr;
 
-  /*  if (!doCheck) {
-    outObjPtr = valueObj;
-    checkedData = ObjStr(valueObj);
-    return TCL_OK;
-    }*/
-
   result = ArgumentCheck(interp, valueObj, paramPtr, doCheck, &flags, &checkedData, &outObjPtr);
-
   /*fprintf(stderr, "ParamSetFromAny paramPtr %p final refcount of wrapper %d can free %d\n",
     paramPtr, paramWrapperPtr->refCount,  paramWrapperPtr->canFree);*/
 

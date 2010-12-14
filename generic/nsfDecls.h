@@ -124,8 +124,8 @@ EXTERN int		NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
 #ifndef NsfObjErrType_TCL_DECLARED
 #define NsfObjErrType_TCL_DECLARED
 /* 17 */
-EXTERN int		NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *nm,
-				CONST char *type, char *parameterName);
+EXTERN int		NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *value,
+				CONST char *type, Nsf_Param CONST *pPtr);
 #endif
 #ifndef NsfStackDump_TCL_DECLARED
 #define NsfStackDump_TCL_DECLARED
@@ -227,7 +227,7 @@ typedef struct NsfStubs {
     void (*nsfDStringPrintf) (Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc); /* 14 */
     int (*nsfPrintError) (Tcl_Interp *interp, CONST char *fmt, ...); /* 15 */
     int (*nsfErrInProc) (Tcl_Interp *interp, Tcl_Obj *objName, Tcl_Obj *clName, CONST char *procName); /* 16 */
-    int (*nsfObjErrType) (Tcl_Interp *interp, Tcl_Obj *nm, CONST char *type, char *parameterName); /* 17 */
+    int (*nsfObjErrType) (Tcl_Interp *interp, Tcl_Obj *value, CONST char *type, Nsf_Param CONST *pPtr); /* 17 */
     void (*nsfStackDump) (Tcl_Interp *interp); /* 18 */
     void (*nsfSetObjClientData) (Nsf_Object *obj, ClientData data); /* 19 */
     ClientData (*nsfGetObjClientData) (Nsf_Object *obj); /* 20 */

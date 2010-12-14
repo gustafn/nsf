@@ -2046,6 +2046,9 @@ _ added option noforwarder to RelationSlots
 
 - provide warning if nonpositional argument is passed more than once
 
+- made error messages more consistent
+- improved error messages for "returns" and "nsf::is" (omit parameter name)
+
 TODO:
 
 - check performance implications of value conflict checker

@@ -82,7 +82,7 @@ declare 16 generic {
 		Tcl_Obj *clName, CONST char *procName)
 }
 declare 17 generic {
-    int NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *nm, CONST char *type, char *parameterName)
+    int NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *value, CONST char *type, Nsf_Param CONST *pPtr)
 }
 declare 18 generic {
     void NsfStackDump (Tcl_Interp *interp)

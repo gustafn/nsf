@@ -142,12 +142,19 @@ NsfErrBadVal(Tcl_Interp *interp, char *context, char *expected, CONST char *valu
 }
 
 extern int
-NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *value, CONST char *type, char *parameterName) {
+NsfObjErrType(Tcl_Interp *interp, Tcl_Obj *value, CONST char *type, Nsf_Param CONST *pPtr) {
+  NsfParam *paramPtr = (NsfParam *)pPtr;
+  int named = (paramPtr && (paramPtr->flags & NSF_ARG_UNNAMED) == 0);
+  int returnValue = !named && (paramPtr->flags & NSF_ARG_IS_RETURNVALUE);
+
+  /*fprintf(stderr, "NsfObjErrType param %p named %d\n", paramPtr, named);*/
+
   Tcl_ResetResult(interp);
-  Tcl_AppendResult(interp,"expected ", type, " but got \"",  ObjStr(value), "\"", 
-                   parameterName ? " for parameter \"" : "",
-                   parameterName ? parameterName : "",
-                   parameterName ? "\"" : "",
-                   (char *) NULL);
+  Tcl_AppendResult(interp,"expected ", type, " but got \"",  ObjStr(value), "\"", (char *) NULL);
+  if (named) {
+    Tcl_AppendResult(interp," for parameter \"", paramPtr->name, "\"", (char *) NULL);
+  } else if (returnValue) {
+    Tcl_AppendResult(interp," as return value", (char *) NULL);
+  }
   return TCL_ERROR;
 }

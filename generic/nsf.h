@@ -172,6 +172,8 @@ typedef struct Nsf_Class {
   struct Nsf_Object object;
 } Nsf_Class;
 
+typedef struct Nsf_Param {
+} Nsf_Param;
 
 /*
  * Include the public function declarations that are accessible via

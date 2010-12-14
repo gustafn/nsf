@@ -41,10 +41,10 @@ Test case parametercheck {
   ? {::nsf::is object o1} 1
   ? {::nsf::is object o1} 1
   ? {::nsf::is object o1000} 0
-  ? {::nsf::is -complain object o1000} {expected object but got "o1000" for parameter "value"}
+  ? {::nsf::is -complain object o1000} {expected object but got "o1000"}
   ? {::nsf::is integer 1} 1
   ? {::nsf::is object,type=::C c1} 1
-  ? {::nsf::is -complain object,type=::C o} {expected object but got "o" for parameter "value"}
+  ? {::nsf::is -complain object,type=::C o} {expected object but got "o"}
   ? {::nsf::is object,type=::C o} 0
 
   ? {c1 info has mixin ::M} 1  
@@ -96,20 +96,20 @@ Test case parametercheck {
   ? {::nsf::is metaclass ::nx::Class} 1
   ? {::nsf::is metaclass ::nx::Object} 0
 
-  ? {::nsf::is -complain class o1} {expected class but got "o1" for parameter "value"}
+  ? {::nsf::is -complain class o1} {expected class but got "o1"}
   ? {::nsf::is class o1} 0
   ? {::nsf::is -complain class Test} 1
   ? {::nsf::is -complain object,1..* [list o1 Test]} 1
 
   ? {::nsf::is -complain integer,1..* [list 1 2 3]} 1
   ? {::nsf::is -complain integer,1..* [list 1 2 3 a]} \
-      {invalid value in "1 2 3 a": expected integer but got "a" for parameter "value"}
+      {invalid value in "1 2 3 a": expected integer but got "a"}
   ? {::nsf::is -complain object,type=::C c1} 1
   ? {::nsf::is -complain object,type=::C o} \
-      {expected object but got "o" for parameter "value"} \
+      {expected object but got "o"} \
       "object, but different type"
   ? {::nsf::is -complain object,type=::C c} \
-      {expected object but got "c" for parameter "value"} \
+      {expected object but got "c"} \
       "no object"
   ? {::nsf::is -complain object,type=::nx::Object c1} 1 "general type"
   
@@ -118,7 +118,7 @@ Test case parametercheck {
   
   ? {::nsf::is -complain lower c} 1 "lower case char"
   ? {::nsf::is -complain lower abc} 1 "lower case chars"
-  ? {::nsf::is -complain lower Abc} {expected lower but got "Abc" for parameter "value"} 
+  ? {::nsf::is -complain lower Abc} {expected lower but got "Abc"} 
   ? {string is lower abc} 1 "tcl command 'string is lower'"
   
   ? {::nsf::is -complain {i:integer 1} 2} {invalid value constraints "i:integer 1"}
@@ -329,7 +329,7 @@ Test case passed-arguments {
   ? {D create d1} "::d1 configure: required argument 'd' is missing" "check error msg"
   
   ? {D create d2 -d x -b a} \
-      {expected boolean value but got "a" for parameter "-b"} \
+      {expected boolean but got "a" for parameter "-b"} \
       "create d2 without required argument given"
 
   D create d1 -d 1
@@ -1142,7 +1142,7 @@ Test case check-arguments {
   ? {f1 intsarg {10 11 12}} {10 11 12}
   ? {f1 intsarg {10 11 1a2}} {invalid value in "10 11 1a2": expected integer but got "1a2" for parameter "x"}
   ? {f1 boolarg 1} 1
-  ? {f1 boolarg a} {expected boolean value but got "a" for parameter "x"}
+  ? {f1 boolarg a} {expected boolean but got "a" for parameter "x"}
   ? {f1 classarg ::Foo} ::Foo
   ? {f1 classarg f1} {expected class but got "f1" for parameter "x"}
   # tcl checker

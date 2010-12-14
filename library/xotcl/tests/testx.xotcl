@@ -4032,7 +4032,7 @@ TestX create nonposargs -proc run {{n 20}} {
     catch {
 	o z3 -b abc -- -b
     } m
-  errorCheck $m {expected boolean value but got "abc" for parameter "-b"} "not boolean"
+  errorCheck $m {expected boolean but got "abc" for parameter "-b"} "not boolean"
 
     set ::r ""    
     #o z4 -c 1 1
