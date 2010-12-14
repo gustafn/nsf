@@ -80,7 +80,8 @@ namespace eval ::nx {
 
   #
   # The method __resolve_method_path resolves a space separated path
-  # and creates from it the necessary ensemble bobject when needed.
+  # of a method name and creates from the path the necessary ensemble
+  # objects when needed.
   #
   ::nsf::method Object __resolve_method_path {
     -per-object:switch 
