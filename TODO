@@ -2049,6 +2049,9 @@ _ added option noforwarder to RelationSlots
 - made error messages more consistent
 - improved error messages for "returns" and "nsf::is" (omit parameter name)
 
+- streamlined error messages
+- removed NsfErrBadVal() and replaced it with a generalized version of NsfObjErrType()
+
 TODO:
 
 - check performance implications of value conflict checker

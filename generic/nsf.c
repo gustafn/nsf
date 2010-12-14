@@ -4440,8 +4440,7 @@ MixinAdd(Tcl_Interp *interp, NsfCmdList **mixinList, Tcl_Obj *nameObj, NsfClass 
   }
 
   if (GetClassFromObj(interp, nameObj, &mixin, baseClass) != TCL_OK)
-    return NsfErrBadVal(interp, "mixin", "a class as mixin", ObjStr(nameObj));
-
+    return NsfObjErrType(interp, "mixin", nameObj, "a class as mixin", NULL);
 
   new = CmdListAdd(mixinList, mixin->object.id, NULL, /*noDuplicates*/ 1);
 
@@ -6113,8 +6112,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   for (i = 0; i < oc; i++) {
     if (GetClassFromObj(interp, ov[i], &scl[i], baseClass) != TCL_OK) {
       FREE(NsfClass**, scl);
-      return NsfErrBadVal(interp, "superclass", "a list of classes",
-                            ObjStr(arg));
+      return NsfObjErrType(interp, "superclass", arg, "a list of classes", NULL);
     }
   }
 
@@ -6136,7 +6134,7 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   }
 
   if (reversed) {
-    return NsfErrBadVal(interp, "superclass", "classes in dependence order", ObjStr(arg));
+    return NsfObjErrType(interp, "superclass", arg, "classes in dependence order", NULL);
   }
 
   while (cl->super) {
@@ -6167,16 +6165,19 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
     while (cl->super) (void)RemoveSuper(cl, cl->super->cl);
     for (l = osl; l; l = l->nextPtr) AddSuper(cl, l->cl);
     NsfClassListFree(osl);
-    return NsfErrBadVal(interp, "superclass", "a cycle-free graph", ObjStr(arg));
+    return NsfObjErrType(interp, "superclass", arg, "a cycle-free graph", NULL);
   }
   NsfClassListFree(osl);
 
   /* if there are no more super classes add the Object
      class as superclasses */
+  assert(cl->super);
+#if 0
   if (cl->super == NULL) {
     fprintf(stderr, "SuperClassAdd super of '%s' is NULL\n", ClassName(cl));
     /*AddSuper(cl, RUNTIME_STATE(interp)->theObject);*/
   }
+#endif
 
   Tcl_ResetResult(interp);
   return TCL_OK;
@@ -7963,7 +7964,7 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
       if (success == 1) {
 	*clientData = (ClientData)objPtr;
       } else {
-	result = NsfObjErrType(interp, objPtr, ObjStr(pPtr->converterArg), (Nsf_Param *)pPtr);
+	result = NsfObjErrType(interp, NULL, objPtr, ObjStr(pPtr->converterArg), (Nsf_Param *)pPtr);
       }
     }
   } else {
@@ -8003,7 +8004,7 @@ ConvertToBoolean(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
   if (result == TCL_OK) {
     *clientData = (ClientData)INT2PTR(bool);
   } else {
-    NsfObjErrType(interp, objPtr, "boolean", (Nsf_Param *)pPtr);
+    NsfObjErrType(interp, NULL, objPtr, "boolean", (Nsf_Param *)pPtr);
   }
   *outObjPtr = objPtr;
   return result;
@@ -8020,7 +8021,7 @@ ConvertToInteger(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
     *clientData = (ClientData)INT2PTR(i);
     *outObjPtr = objPtr;
   } else {
-    NsfObjErrType(interp, objPtr, "integer", (Nsf_Param *)pPtr);
+    NsfObjErrType(interp, NULL, objPtr, "integer", (Nsf_Param *)pPtr);
   }
   return result;
 }
@@ -8061,7 +8062,7 @@ IsObjectOfType(Tcl_Interp *interp, NsfObject *object, CONST char *what, Tcl_Obj 
     Tcl_DStringAppend(dsPtr, " of type ", -1);
     Tcl_DStringAppend(dsPtr, ObjStr(pPtr->converterArg), -1);
   }
-  NsfObjErrType(interp, objPtr, Tcl_DStringValue(dsPtr), (Nsf_Param *)pPtr);
+  NsfObjErrType(interp, NULL, objPtr, Tcl_DStringValue(dsPtr), (Nsf_Param *)pPtr);
   DSTRING_FREE(dsPtr);
 
   return TCL_ERROR;
@@ -8074,7 +8075,7 @@ ConvertToObject(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr,
   if (GetObjectFromObj(interp, objPtr, (NsfObject **)clientData) == TCL_OK) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "object", objPtr, pPtr);
   }
-  return NsfObjErrType(interp, objPtr, "object", (Nsf_Param *)pPtr);
+  return NsfObjErrType(interp, NULL, objPtr, "object", (Nsf_Param *)pPtr);
 }
 
 static int
@@ -8084,7 +8085,7 @@ ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
   if (GetClassFromObj(interp, objPtr, (NsfClass **)clientData, NULL) == TCL_OK) {
     return IsObjectOfType(interp, (NsfObject *)*clientData, "class", objPtr, pPtr);
   }
-  return NsfObjErrType(interp, objPtr, "class", (Nsf_Param *)pPtr);
+  return NsfObjErrType(interp, NULL, objPtr, "class", (Nsf_Param *)pPtr);
 }
 
 static int
@@ -8106,7 +8107,7 @@ ConvertToParameter(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr,
   *outObjPtr = objPtr;
   /*fprintf(stderr, "convert to parameter '%s' t '%s'\n", value, pPtr->type);*/
   if (*value == ':' || (*value == '-' && *(value + 1) == ':')) {
-    return NsfObjErrType(interp, objPtr, pPtr->type, (Nsf_Param *)pPtr);
+    return NsfObjErrType(interp, NULL, objPtr, pPtr->type, (Nsf_Param *)pPtr);
   }
 
   *clientData = (char *)ObjStr(objPtr);
@@ -10969,7 +10970,7 @@ NsfSetterMethod(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
   SetterCmdClientData *cd = (SetterCmdClientData*)clientData;
   NsfObject *object = cd->object;
 
-  if (!object) return NsfObjErrType(interp, objv[0], "object", NULL);
+  if (!object) return NsfObjErrType(interp, "setter", objv[0], "object", NULL);
   if (objc > 2) return NsfObjWrongArgs(interp, "wrong # args", object->cmdName, objv[0], "?value?");
 
   if (cd->paramsPtr && objc == 2) {
@@ -11251,7 +11252,7 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
   ForwardCmdClientData *tcd = (ForwardCmdClientData *)clientData;
   int result, j, inputArg = 1, outputArg = 0;
 
-  if (!tcd || !tcd->object) return NsfObjErrType(interp, objv[0], "object", NULL);
+  if (!tcd || !tcd->object) return NsfObjErrType(interp, "forwarder", objv[0], "object", NULL);
 
   if (tcd->passthrough) { /* two short cuts for simple cases */
     /* early binding, cmd *resolved, we have to care only for objscope */
@@ -12129,12 +12130,17 @@ GetOriginalCommand(Tcl_Command cmd) /* The imported command for which the origin
 
 static int
 ListProcBody(Tcl_Interp *interp, Proc *procPtr, CONST char *methodName) {
+  Tcl_Obj *methodObj;
   if (procPtr) {
     CONST char *body = ObjStr(procPtr->bodyPtr);
     Tcl_SetObjResult(interp, Tcl_NewStringObj(StripBodyPrefix(body), -1));
     return TCL_OK;
   }
-  return NsfErrBadVal(interp, "info body", "a tcl method name", methodName);
+  methodObj = Tcl_NewStringObj(methodName, -1);
+  INCR_REF_COUNT(methodObj);
+  NsfObjErrType(interp, "info body", methodObj, "a name of a scriped method", NULL);
+  DECR_REF_COUNT(methodObj);
+  return TCL_ERROR;
 }
 
 static Tcl_Obj *
@@ -12244,7 +12250,14 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
       return TCL_OK;
     }
   }
-  return NsfErrBadVal(interp, "info params", "a method name", methodName);
+  
+  {
+    Tcl_Obj *methodObj = Tcl_NewStringObj(methodName, -1);
+    INCR_REF_COUNT(methodObj);
+    NsfObjErrType(interp, "info params", methodObj, "a method name", NULL);
+    DECR_REF_COUNT(methodObj);
+  }
+  return TCL_ERROR;
 }
 
 static void
@@ -14479,7 +14492,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
 
   case RelationtypeSuperclassIdx:
     if (!NsfObjectIsClass(object))
-      return NsfObjErrType(interp, object->cmdName, "class", NULL);
+      return NsfObjErrType(interp, "superclass", object->cmdName, "class", NULL);
     cl = (NsfClass *)object;
     if (valueObj == NULL) {
       return ListSuperclasses(interp, cl, NULL, 0);
@@ -14494,7 +14507,7 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
       return TCL_OK;
     }
     GetClassFromObj(interp, valueObj, &cl, object->cl);
-    if (!cl) return NsfErrBadVal(interp, "class", "a class", ObjectName(object));
+    if (!cl) return NsfObjErrType(interp, "class", object->cmdName, "a class", NULL);
     return ChangeClass(interp, object, cl);
 
   case RelationtypeRootclassIdx:
@@ -14502,14 +14515,14 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
     NsfClass *metaClass;
 
     if (!NsfObjectIsClass(object))
-      return NsfObjErrType(interp, object->cmdName, "class", NULL);
+      return NsfObjErrType(interp, "rootclass", object->cmdName, "class", NULL);
     cl = (NsfClass *)object;
 
     if (valueObj == NULL) {
       return NsfPrintError(interp, "metaclass must be specified as third argument");
     }
     GetClassFromObj(interp, valueObj, &metaClass, NULL);
-    if (!metaClass) return NsfObjErrType(interp, valueObj, "class", NULL);
+    if (!metaClass) return NsfObjErrType(interp, "rootclass", valueObj, "class", NULL);
 
     cl->object.flags |= NSF_IS_ROOT_CLASS;
     metaClass->object.flags |= NSF_IS_ROOT_META_CLASS;

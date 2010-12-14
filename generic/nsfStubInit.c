@@ -60,12 +60,11 @@ NsfStubs nsfStubs = {
     NsfSetClassClientData, /* 21 */
     NsfGetClassClientData, /* 22 */
     NsfRequireObjNamespace, /* 23 */
-    NsfErrBadVal, /* 24 */
-    NsfNextObjCmd, /* 25 */
-    NsfCallMethodWithArgs, /* 26 */
-    NsfAddObjectMethod, /* 27 */
-    NsfAddClassMethod, /* 28 */
-    NsfCreate, /* 29 */
+    NsfNextObjCmd, /* 24 */
+    NsfCallMethodWithArgs, /* 25 */
+    NsfAddObjectMethod, /* 26 */
+    NsfAddClassMethod, /* 27 */
+    NsfCreate, /* 28 */
 };
 
 /* !END!: Do not edit above this line. */
