@@ -38,7 +38,7 @@
 	   <code>[:? {[$sub eval {info exists :@return}] && [[$sub @return] spec] ne ""} {&lt;<span property="yui:type">[[$sub @return] spec]</span>&gt;} ]
 	    ${:name}
 	     <strong property="yui:name">[$sub name]</strong>
-	    [$sub parameters]
+	     [$sub pinfo get -default "" bundle parametersyntax]
 	    </code>
           <div class="description" property="yui:description">
 	    [$sub as_text]

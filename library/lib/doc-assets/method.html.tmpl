@@ -1,77 +1,78 @@
 <div class="${:@modifier}" rel="yui:method" resource="#method_${:name}">
   <h4>
     <a name="[:href -local]">[:print_name -status]</a></h4>
-        <div class="detail" >
-          <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
-	    <strong property="yui:name">${:name}</strong>
-	    [:pinfo get -default "" bundle parametersyntax]
-	  </code>
-           <div class="description" property="yui:description">
-            [:as_text]
-          </div>
+  <div class="detail" >
+    <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
+      /obj/
+       <strong property="yui:name">${:name}</strong>
+      [:pinfo get -default "" bundle parametersyntax]
+    </code>
+    <div class="description" property="yui:description">
+      [:as_text]
+    </div>
+    
+    <div class="description">
+      [:?var :@method {
+      <hr/>
+      [:for sm [:get_sub_methods] {
+      [$sm render -initscript [list set supermethod [current]] submethod.html.tmpl]
+      }]
+      } - {
+      [:?var :@parameter {
+      <dl rel="yui:parameters">
+        <dt>Parameters:</dt>
+	[:for param [:!get @parameter] {
+	<dd rel="yui:parameter">
+          <code><span property="yui:name">[$param print_name]</span>
+            [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+          </code>
+	  [$param statusmark]
+          <span property="yui:description">[$param as_text]</span>
+	  <span style='display:block; color: red'>[$param pinfo get -default "" validation]</span>
+	  [:? {[$param eval {info exists :default}]} {
+          <div class="default" property="yui:defaultValue">
+            Default Value: [$param default]
+          </div>        
+          }]
+        </dd>
+	}]
+      </dl>
+      }]
+      
+      [:?var :@return {
+      <dl>
+        <dt>Returns:
+	  [:!let ret [:!get @return]]
+          <code property="yui:return"> [:? {[$ret eval {info exists :spec}] && [$ret spec] ne ""} {[$ret spec]}]
+        </code></dt>
+        <dd property="yui:returnInfo">[${:@return} as_text]</dd>
+      </dl>
+      }]
+      }]
+      
+      [:? {[:!get @deprecated]} {
+      <div class="deprecated">
+        <strong>Deprecated</strong>
+      </div>        
+      }]
+      
+      <dl>
+        <dt>Type:</dt>
+	<dd property="yui:typeInfo">[:pinfo get bundle type]</dd>[:? {[:!get @syshook]} {
+	<dd>
+	  internally called, redefinable hook</dd>
+	}]
+	</dl>
 	  
-          <div class="description">
-	    [:?var :@method {
-	    <hr/>
-	    [:for sm [:get_sub_methods] {
-	    [$sm render -initscript [list set supermethod [current]] submethod.html.tmpl]
-	    }]
-	    } - {
-	    [:? {[info exists :@parameter]} {
-	    <dl rel="yui:parameters">
-              <dt>Parameters:</dt>
-	      [:for param ${:@parameter} {
-	      <dd rel="yui:parameter">
-                <code><span property="yui:name">[$param print_name]</span>
-                [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
-                </code>
-		[$param statusmark]
-                <span property="yui:description">[$param as_text]</span>
-		<span style='display:block; color: red'>[$param pinfo get -default "" validation]</span>
-		[:? {[$param eval {info exists :default}]} {
-                <div class="default" property="yui:defaultValue">
-                  Default Value: [$param default]
-                </div>        
-                }]
-              </dd>
-	      }]
-            </dl>
-	    }]
-	    
-	    [:? {[info exists :@return]} {
-	    <dl>
-              <dt>Returns:
-   
-                <code property="yui:return"> [:? {[${:@return} eval {info exists :spec}] && [${:@return} spec] ne ""} {[${:@return} spec]}]
-              </code></dt>
-              <dd property="yui:returnInfo">[${:@return} as_text]</dd>
-            </dl>
-	    }]
-	    }]
-            
-	    [:? ${:@deprecated} {
-            <div class="deprecated">
-              <strong>Deprecated</strong>
-            </div>        
-	    }]
-
-	   <dl>
-              <dt>Type:</dt>
-	      <dd property="yui:typeInfo">[:pinfo get bundle type]</dd>[:? {${:@syshook}} {<dd>
-internally called, redefinable hook</dd>
-	  }]
-	      <dl>
-		
-		<dl>
-		  <dt>Protection:</dt>
-		  [:? {[:pinfo get -default 0 bundle redefine-protected]} {
-		  <dd>redefine-protected</dd>
-		  }]
-		</dl>
-
-
-          </div>
- 
-        </div>
-        <hr />
-      </div>
+      <dl>
+	<dt>Protection:</dt>
+	[:? {[:pinfo get -default 0 bundle redefine-protected]} {
+	<dd>redefine-protected</dd>
+	}]
+      </dl>
+      
+      
+    </div> <!-- description -->
+  </div> <!-- detail -->
+  <hr />
+</div> <!-- top-level div -->

@@ -26,7 +26,7 @@
 </div>
 
 [:?var :@class-attribute {
-[:!let class_attrs [:!get -sortedby name @class-attribute]]
+[:!let class_attrs [:!get -sortedby name -with name @class-attribute]]
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
     <h3 id="properties">Per-class parameters</h3>
@@ -34,7 +34,7 @@
          rel="yui:member"  resource="#">
       <div class="content" rel="yui:properties">
         <code>
-          [:for attr $class_attrs {
+          [:for attr [dict values $class_attrs] {
           <span rel="yui:property"
                 resource="#[$attr href -local]">                                        
             <a class=""
@@ -47,12 +47,15 @@
     </div>
     <hr>
     <div class="content">
-      [:for attr $class_attrs {
+      [:for attr [dict values $class_attrs] {
        <div rel="yui:property">
-        <h4><a name="[$attr href -local]" property="yui:name">[$attr name]</a>
+        <h4><a name="[$attr href -local]" property="yui:name">[$attr print_name -status]</a>
         </h4>
         <div class="detail">
           <div class="description" property="yui:description">
+	    [:? {[$attr pinfo exists validation]} {
+	      <span style='display:block; color: red'>[$attr pinfo get validation]</span>
+	    }]
 	    [$attr as_text]
           </div>
         </div>
@@ -71,9 +74,11 @@
 	}]
 	
         <hr />
-       </div>
     </div>
     }]
+    </div>
+  </div>
+</div>
 }]
 
   [:!let iattrs [:inherited @class-attribute]]
@@ -164,12 +169,16 @@
     <hr>
     <div class="content">
       [:for method $class_methods {
+      [:? {[info exists class_attrs] && [dict exists $class_attrs [$method name]]} {
+      [$method render -initscript [list set owning_attribute [dict get $class_attrs [$method name]]] attributemethod.html.tmpl]
+      } - {
       [$method render method.html.tmpl]
+      }] <!-- end-of-if -->
       }] <!-- end-of-for -->
     </div>
   </div>
 </div>
-  }] <!-- end-of-?var -->
+}] <!-- end-of-?var -->
 
   [:!let imethods [:inherited @class-method]]
   [:? {$imethods ne ""} { 
@@ -198,11 +207,15 @@
   </div>
 }]
 
+  
+
+
+
 [:?var :@method {
    Undocumented Methods: <span style='color: red'>[:undocumented]</span>
 }]
 
-  
+
 [:?var :@object-method {
 <div rel="yui:object-methods" resource="#object-methods">
   <div class="section method details">
@@ -215,7 +228,6 @@
         <div class="detail" >            
 	  <code>[:? {[$omethod eval {info exists :@return}]} {&lt;<span property="yui:type">[[$omethod @return] spec]</span>&gt;} ]
 	    <strong property="yui:name">[$omethod name]</strong>
-	    [$omethod parameters]
 	    </code>
           <div class="description" property="yui:description">
             [$omethod as_text]

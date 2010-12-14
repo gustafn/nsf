@@ -1,0 +1,78 @@
+<div class="${:@modifier}" rel="yui:method" resource="#method_${:name}">
+  <h4>
+    <a name="[:href -local]">[$owning_attribute print_name -status]</a></h4>
+        <div class="detail" >
+          <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
+	      [:? {[$owning_attribute pinfo get -default 0 bundle incremental]} {
+	      /obj/ <strong property="yui:name">${:name}</strong> ?value?<br/>
+	      /obj/ <strong property="yui:name">${:name}</strong> add|assign|delete value<br/>
+	      /obj/ <strong property="yui:name">${:name}</strong> get<br/>
+             } - {
+	      /obj/ <strong property="yui:name">${:name}</strong> ?value?
+	     }]
+	  </code>
+           <div class="description" property="yui:description">
+	     [:? {[$owning_attribute pinfo exists validation]} {
+	      <span style='display:block; color: red'>[$owning_attribute pinfo get validation]</span>
+	    }]
+            [$owning_attribute as_text]
+          </div>
+	  
+          <div class="description">
+	    [:? {[info exists :@parameter]} {
+	    <dl rel="yui:parameters">
+              <dt>Parameters:</dt>
+	      [:for param ${:@parameter} {
+	      <dd rel="yui:parameter">
+                <code><span property="yui:name">[$param print_name]</span>
+                [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+                </code>
+		[$param statusmark]
+                <span property="yui:description">[$param as_text]</span>
+		<span style='display:block; color: red'>[$param pinfo get -default "" validation]</span>
+		[:? {[$param eval {info exists :default}]} {
+                <div class="default" property="yui:defaultValue">
+                  Default Value: [$param default]
+                </div>        
+                }]
+              </dd>
+	      }]
+            </dl>
+	    }]
+	    
+	    [:? {[info exists :@return]} {
+	    <dl>
+              <dt>Returns:
+   
+                <code property="yui:return"> [:? {[${:@return} eval {info exists :spec}] && [${:@return} spec] ne ""} {[${:@return} spec]}]
+              </code></dt>
+              <dd property="yui:returnInfo">[${:@return} as_text]</dd>
+            </dl>
+	    }]
+            
+	    [:? ${:@deprecated} {
+            <div class="deprecated">
+              <strong>Deprecated</strong>
+            </div>        
+	    }]
+
+	   <dl>
+              <dt>Type:</dt>
+	      <dd property="yui:typeInfo">[:pinfo get bundle type]</dd><dd property="yui:typeInfo">attribute accessor/mutator</dd>[:? {${:@syshook}} {<dd property="yui:typeInfo">
+internally called, redefinable hook</dd>
+	  }]
+	      <dl>
+		
+		<dl>
+		  <dt>Protection:</dt>
+		  [:? {[:pinfo get -default 0 bundle redefine-protected]} {
+		  <dd>redefine-protected</dd>
+		  }]
+		</dl>
+
+
+          </div>
+ 
+        </div>
+        <hr />
+      </div>

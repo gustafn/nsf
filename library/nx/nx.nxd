@@ -465,6 +465,9 @@
 # Tests whether the class passed as the argument is a type of the
 # object, i.e., whether the object is an instance of the given class
 # or of one of the class's superclasses.
+#
+# @parameter class hallo
+# @parameter class2 helo
 
 # @class.method {Object "info methods"}
 #
@@ -523,7 +526,7 @@
 # 
 # @superclass ::nx::doc::entities::class::nx::Slot
 
-# @class.attribute {Slot name}
+# @class.attribute {Slot name:string}
 #
 # Name of the <<@gls slot>> which can be used to access the <<@gls
 # slot>> data from an object
@@ -592,9 +595,6 @@
 # **** '''superclass''' changes the list
 # of superclasses. When used as a getter, the method returns the
 # current superclasses.
-#
-# @return :list If called as a getter (without arguments),
-# '''superclass''' returns the current superclasses of the object
 
 # @class.attribute {Object class}
 #
@@ -606,7 +606,7 @@
 # @return If called as a getter (without arguments), '''class'''
 # returns the current <<@gls class>> of the object
 
-# @class.attribute {Object mixin}
+# class.attribute {Object mixin}
 #
 # As a setter, '''mixin''' specifies a list of <<@glspl mixincls>> to
 # set. Every mixin must be an existing class. In getter mode, you can
