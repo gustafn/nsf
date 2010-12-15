@@ -1585,12 +1585,12 @@ namespace eval ::nx {
 
   #interp alias {} ::nx::self {} ::nsf::self
 
-  set value "?add class?|?classes?|?delete class?"
+  set value "?classes?|?add class?|?delete class?"
   set ::nsf::parametersyntax(::nsf::classes::nx::Object::mixin) $value
   set ::nsf::parametersyntax(::nsf::classes::nx::Class::mixin) $value
   set ::nsf::parametersyntax(::nsf::classes::nx::Class::superclass) $value
   set ::nsf::parametersyntax(::nsf::classes::nx::Object::class) "?class?"
-  set value "?add filter?|?filters?|?delete filter?"
+  set value "?filters?|?add filter?|?delete filter?"
   set ::nsf::parametersyntax(::nsf::classes::nx::Object::filter) $value
   set ::nsf::parametersyntax(::nsf::classes::nx::Class::filter) $value
   set ::nsf::parametersyntax(::nsf::classes::nx::Object::eval) "arg ?arg ...?"

@@ -400,3 +400,10 @@ Test case info-methods-path {
   ? {lsort [d1 info lookup method "string reverse"]} "::nsf::classes::C::string reverse"
 
 }
+
+Test case parametersyntax {
+  # a true method
+  ? {::nx::Object info method parametersyntax method} "name arguments ?-returns value? body ?-precondition value? ?-postcondition value?"
+  # a forwarder to ::nsf::relation; definition comes via ::nsf::parametersyntax
+  ? {::nx::Object info method parametersyntax mixin} "?classes?|?add class?|?delete class?"
+}

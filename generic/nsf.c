@@ -12157,6 +12157,25 @@ ListParamDefs(Tcl_Interp *interp, NsfParam CONST *paramsPtr, int style) {
   return listObj;
 }
 
+
+/*
+ *----------------------------------------------------------------------
+ * ListCmdParams --
+ *
+ *    Obtains a cmd and a method name and sets as side effect the Tcl
+ *    result to either the list of the parameters (withVarnames == 0),
+ *    to the args (withVarnames == 1) or to the parametersyntax
+ *    (withVarnames == 2).
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Sets interp result
+ *
+ *----------------------------------------------------------------------
+ */
+
 static int
 ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int withVarnames) {
   Proc *procPtr = GetTclProcFromCommand(cmd);
@@ -12239,7 +12258,39 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
         Tcl_SetObjResult(interp, Tcl_NewStringObj(methodName, -1));
         return TCL_OK;
       }
-    } else if (((Command *)cmd)->objProc == NsfForwardMethod) {
+    }
+
+    /*
+     * In case, we failed so far to obtain a result, try to use the
+     * object-system implementors definitions in the gobal array
+     * ::nsf::parametersyntax. Note that we can only obtain the
+     * parametersyntax this way.
+     */
+    if (withVarnames == 2) {
+      Command *cmdPtr = (Command *)cmd;
+      Tcl_DString ds, *dsPtr = &ds;
+      Tcl_Obj *parameterSyntaxObj;
+
+      Tcl_DStringInit(dsPtr);
+      if (strcmp("::", cmdPtr->nsPtr->fullName) != 0) {
+	Tcl_DStringAppend(dsPtr, cmdPtr->nsPtr->fullName, -1);
+      }
+      Tcl_DStringAppend(dsPtr, "::", 2);
+      Tcl_DStringAppend(dsPtr, methodName, -1);
+      parameterSyntaxObj = Tcl_GetVar2Ex(interp, "::nsf::parametersyntax", 
+					 Tcl_DStringValue(dsPtr), TCL_GLOBAL_ONLY);
+      
+      /*fprintf(stderr, "No parametersyntax so far methodname %s cmd name %s ns %s\n", 
+	methodName, Tcl_GetCommandName(interp,cmd), Tcl_DStringValue(dsPtr));*/
+
+      Tcl_DStringFree(dsPtr);
+      if (parameterSyntaxObj) {
+        Tcl_SetObjResult(interp, parameterSyntaxObj);
+	return TCL_OK;
+      }
+    }
+
+    if (((Command *)cmd)->objProc == NsfForwardMethod) {
       return NsfPrintError(interp, "info params: could not obtain parameter definition for forwarder '%s'",
                             methodName);
     } else if (((Command *)cmd)->objProc != NsfObjDispatch) {

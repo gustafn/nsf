@@ -2052,6 +2052,11 @@ _ added option noforwarder to RelationSlots
 - streamlined error messages
 - removed NsfErrBadVal() and replaced it with a generalized version of NsfObjErrType()
 
+- "/obj/ info method parametersyntax /method/": return results of
+  ::nsf::parametersyntax in case, the parametersyntax cannot obtained
+  from a parameter definition (e.g. the method is a forwarder to a tcl
+  cmd).
+
 TODO:
 
 - check performance implications of value conflict checker
