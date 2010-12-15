@@ -1020,25 +1020,8 @@ namespace eval ::nx::doc {
 	    next
 	  }
 	}
-	
-	:method inherited {member} {
-	  set prj [:current_project]
-	  set box [$prj sandbox]
-	  if {[$box eval [list ::nsf::is class ${:name}]]} {
-	    set inherited [dict create]
-	    foreach c [lreverse [${:name} info heritage]] {
-	      set entity [[::nsf::current class] id $c]
-	      if {![::nsf::is object $entity]} continue
-	      if {[$entity eval [list info exists :${member}]]} {
-		dict set inherited $entity [$entity $member]
-	      }
-	    }
-	    return $inherited
-	  }
-	}
       }
-
-
+  
   Class create PartEntity -superclass Entity {
     :attribute partof:object,type=::nx::doc::StructuredEntity,required
     :attribute part_attribute:object,type=::nx::doc::PartAttribute,required
@@ -1295,7 +1278,6 @@ namespace eval ::nx::doc {
 	      :pinfo set validation "Specification mismatch. Expected: '${:spec}' Got: '$pspec'."
 	    }
 	  } else {
-	    puts stderr ">>> PARAM MISMATCH ${:name} [current]"
 	    ${:partof} pinfo propagate status mismatch 
 	  }
 	}
@@ -1406,7 +1388,7 @@ namespace eval ::nx::doc {
     :public method !get {-sortedby -with varname} {
       if {![[:origin] eval [list info exists :$varname]]} return;
       if {[info exists sortedby]} { 
-	set r [uplevel 1 [list sorted [[:origin] eval [list ::set :$varname]] $sortedby]]
+	set r [uplevel 1 [list ::nx::doc::sorted [[:origin] eval [list ::set :$varname]] $sortedby]]
       } else {
 	set r [uplevel 1 [list [:origin] eval [list ::set :$varname] ]]
       }
@@ -1876,6 +1858,35 @@ namespace eval ::nx::doc {
       }      
     }; # NxDocRenderer::@glossary
 
+    MixinLayer::Mixin create [current]::@class -superclass [current]::Entity {
+      :method inherited {member} {
+	set inherited [dict create]
+	set prj [:current_project]
+	set box [$prj sandbox]
+	set exp "expr {\[::nsf::is class ${:name}\]?\[lreverse \[${:name} info heritage\]\]:\"\"}"
+	set ipath [$box do $exp]
+	foreach c [concat $ipath ${:name}] {
+	  set entity [[:info class] id $c]
+	  if {![::nsf::is object $entity]} continue
+	  set origin [$entity origin]
+	  if {[$origin eval [list info exists :${member}]]} {
+	    dict set inherited $entity [$entity !get \
+					    -sortedby name \
+					    -with name $member]
+	    if {[info exists previous_entity]} {
+	      dict set inherited $previous_entity \
+		  [dict remove [dict get $inherited $previous_entity] \
+		       {*}[dict keys [dict get $inherited $entity]]]
+	    }
+	  }
+	  set previous_entity $entity
+	}
+	dict unset inherited [current]
+	return $inherited
+      }
+    }
+
+
     MixinLayer::Mixin create [current]::@method -superclass [current]::Entity {
       :public method as_dict {partof feature} {
 	set hash [next]
@@ -2278,7 +2289,7 @@ namespace eval ::nx::doc {
 		    if {[info commands "::nx::Class"] ne ""} {
 		      if {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::Slot]} {
 			dict set bundle objtype slot
-			dict set bundle incremental [expr {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::ObjectParameterSlot] || ([::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::Attribute] && [::nsf::existsvar $obj incremental] && [::nsf::setvar $obj incremental])}]
+			dict set bundle incremental [expr {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::RelationSlot] || ([::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::Attribute] && [::nsf::existsvar $obj incremental] && [::nsf::setvar $obj incremental])}]
 		      }
 		      if {[::nsf::dispatch $obj ::nsf::methods::object::info::hastype ::nx::EnsembleObject]} {
 			dict set bundle objtype ensemble

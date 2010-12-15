@@ -700,7 +700,7 @@
 # @return If called as a getter (without arguments), '''class'''
 # returns the current <<@gls class>> of the object
 
-# class.attribute {Object mixin}
+# @class.attribute {Object mixin}
 #
 # As a setter, '''mixin''' specifies a list of <<@glspl mixincls>> to
 # set. Every mixin must be an existing class. In getter mode, you can

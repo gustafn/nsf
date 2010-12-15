@@ -286,3 +286,7 @@ span.mismatch {
     display:inline;
     background-position: -24px 0;
 }
+
+code span.var {
+    font-style: italic;
+}

@@ -81,11 +81,11 @@
 </div>
 }]
 
-  [:!let iattrs [:inherited @class-attribute]]
+[:!let iattrs [:inherited @class-attribute]]
   [:? {$iattrs ne ""} { 
   <div rel="yui:inheritance">                    
     [:for superclass [dict keys $iattrs]  {
-    [:!let attrs [dict get $iattrs $superclass]]
+    [:!let attrs [dict values [dict get $iattrs $superclass]]]
     <div class="section field inheritance"
          rel="yui:superclass"  resource="[$superclass filename].html">
       <h4>Per-class parameters inherited
@@ -184,7 +184,7 @@
   [:? {$imethods ne ""} { 
   <div rel="yui:inheritance">
     [:for superclass [dict keys $imethods]  {
-    [:!let ms [dict get $imethods $superclass]]
+    [:!let ms [dict values [dict get $imethods $superclass]]]
     <div class="section field inheritance"
          rel="yui:superclass"  resource="[$superclass filename].html">
       <h4>Per-class methods inherited
