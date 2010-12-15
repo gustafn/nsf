@@ -1295,6 +1295,7 @@ namespace eval ::nx::doc {
 	      :pinfo set validation "Specification mismatch. Expected: '${:spec}' Got: '$pspec'."
 	    }
 	  } else {
+	    puts stderr ">>> PARAM MISMATCH ${:name} [current]"
 	    ${:partof} pinfo propagate status mismatch 
 	  }
 	}
@@ -2436,6 +2437,7 @@ namespace eval ::nx::doc {
 		if {$handle ne ""} {
 		  dict set bundle handle $handle
 		  dict set bundle handleinfo [::nx::doc::handleinfo $handle]
+		  dict set bundle returns [::nsf::methodproperty ${::nx::doc::rootns}::__Tracer $handle returns]
 		  dict set bundle type [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method type $handle]
 		  if {![catch {set pa [::nsf::dispatch ${::nx::doc::rootns}::__Tracer ::nsf::methods::object::info::method parameter $handle]} _]} {
 		    foreach pspec $pa {
@@ -2765,7 +2767,11 @@ namespace eval ::nx {
     Mixin create [current]::@param -superclass [current]::Entity {
       :public method init args {
 	next
-	if {[${:partof} pinfo exists bundle parameter ${:name}]} {
+	if {${:name} eq "__out__"} {
+	  if {[${:partof} pinfo exists bundle returns]} {
+	    :pdata [list bundle [list spec [${:partof} pinfo get bundle returns]]]
+	  }
+	} elseif {[${:partof} pinfo exists bundle parameter ${:name}]} {
 	  lassign [${:partof} pinfo get bundle parameter ${:name}] spec default
 	  :pdata [list bundle [list spec $spec default $default]]
 	}

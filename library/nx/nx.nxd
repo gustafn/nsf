@@ -89,15 +89,19 @@
 # For creating an object or a class, you must name '''create'''
 # explicitly, i.e.:
 # '''
-#		::nx::Object create anObject
-#		::nx::Class create AClass
-#		::nx::Class AnotherClass; # This fails: "Method 'AnotherClass' unknown for ::nx::Class."
+# ::nx::Object create anObject
+# ::nx::Class create AClass
+# ::nx::Class AnotherClass; # This fails: "Method 'AnotherClass' unknown for ::nx::Class."
 # '''
 # 
+# Note that this method is also invoked internally when executing
+# <<@class.method {Class new}>>.
+#
 # @parameter name The designated identifier on the class or the object to be created.
 # @parameter args arguments to be passed down to the object creation
 # procedure used to initialize the object.
 # @return The name of the created, fully initialized object.
+# @syshook
 
 # @class.method {Class dealloc}
 #
@@ -111,7 +115,7 @@
 # '''::nx::Class''', you may consider refining it in a subclass or
 # <<@gls mixincls>> for customizing the destruction process.
 #
-# @properties interally-called
+# @syshook
 # @parameter object The name of the object to be scheduled for deletion.
 
 # @class.method {Class recreate}
@@ -124,9 +128,9 @@
 # initialization, per default, after re-setting the state and
 # relationships of the object under recreation.
 # '''
-#	Object create Bar
-#	\# ...
-#	Object create Bar; # calls Object->recreate(::Bar, ...)
+# Object create Bar
+# \# ...
+# Object create Bar; # calls Object->recreate(::Bar, ...)
 # '''
 # By refining '''recreate''' in an application-level subclass or mixin
 # class, you can intercept the recreation process. In the pre-part the
@@ -138,20 +142,50 @@
 # performed. Rather, a sequence of <<@class.method "::nx::Object
 # destroy">> and <<@class.method "::nx::Class create">> is triggered:
 # '''
-#	Object create Bar
-#	\# ...
-#	Class create Bar; # calls Bar->destroy() + Class->create(::Bar, ...)
+# Object create Bar
+# \# ...
+# Class create Bar; # calls Bar->destroy() + Class->create(::Bar, ...)
 # '''
 #
-# @properties interally-called
+# @syshook
 # @parameter name The name (identifier) of the object under recreation
 # @parameter args Arbitrary vector of arguments
 # @return The name of the recreated object
 
 # @class.method {Object residualargs}
 #
-# @properties interally-called
+# The implementation of the abstracted '''residualargs''' hook called
+# from within the '''interp''' when executing <<@class.method {Object
+# configure}>>. It allows for selectively processing the remainder of
+# the object argument vector, to be forwarded to the constructor
+# <<@class.method {Object init}>>.
+#
+# @syshook
 # @parameter args
+
+# @class.method {Object cleanup}
+#
+# The <<@acr nx>>-specific implementation of the abstracted
+# '''cleanup''' hook. The hook implementation is called from within
+# the '''interp''' upon recreating an Object using <<@class.method
+# {Class recreate}>>. It effectively resets the object state (e.g., by
+# clearing the object variables, by deleting the per-object namespace,
+# etc.)
+#
+# @syshook
+
+# @class.method {Class unknown}
+#
+# A hook implementation of the abstracted '''unknown''' hook, called
+# from within the '''interp''' when the method argument could not
+# be resolved to a callable method receiver on the given object.
+# 
+# @parameter m 		Indicates the unresolvable method name
+# @parameter args	Contains the remainder of the original
+# 			argument vector of the indirected method
+# 			invocation
+#
+# @syshook
 
 # @command next
 #
@@ -175,13 +209,42 @@
 # "::nx::Object objectparameter">>).  The method '''configure'''
 # can be called at arbitrary times to "re-set" an object.
 #
-# @properties interally-called
+# @syshook
 # @parameter args The variable argument vector stores the object
 # parameters and their values
 
+# @class.method {Object defaultmethod}
 #
-# 
-# 
+# An abstracted hook method which is invoked upon calls to an object
+# without providing a method name to identify the receiver. In <<@gls
+# nx>>, the defaultmethod hook implementation returns the object name,
+# i.e., the result of <<@command self>>.
+# '''
+# Object create ::foo
+# ::foo defaultmethod; # returns '::foo' 
+# ::foo; # returns '::foo'
+# '''
+# This hook is a versatile extension mechanism to alter the standalone
+# use of Tcl commands representing objects.
+#
+# @syshook
+
+# @class.method {Object init}
+#
+# An abstracted hook method which participates in the object creation
+# process controlled by <<@class.method {Class create}>>. It is
+# invoked as the last step during object creation upon the newly
+# created object to provide an intial state. It resembles the notion
+# of an application-level constructor. The hook is meant to be
+# provided by application developers for initialising their
+# application classes and objects.
+#
+# @parameter args 	Contains the remainder arguments from the
+# 			argument vector passed to <<@class.method
+# 			{Class new}>> or <<@class.method {Class
+# 			create}>>. See also <<@class.method {Object
+# 			residualargs}>>
+# @syshook
 
 # @class.method {Object destroy}
 #
@@ -193,27 +256,29 @@
 # call <<@command ::nx::next>> to ascertain the the physical
 # destruction is requested.
 # '''
-#     nx::Class create Foo {
-#        :method destroy {} {
-#            puts "destroying [self]"
-#            next
-#        }
-#     }
-#     Foo create f1
-#     f1 destroy
+# nx::Class create Foo {
+#   :method destroy {} {
+#     puts "destroying [self]"
+#     next
+#   }
+# }
+# Foo create f1
+# f1 destroy
 # '''
 # Technical details: The method <<@class.method "::nx::Object destroy">>
 # delegates the actual destruction to <<@class.method "::nx::Class
 # dealloc">> which clears the memory object storage. Essentially, the
 # behaviour could be scripted as:
 # '''
-#       Object method destroy {} {
-#               [:info class] dealloc [self]
-#       }
+# Object method destroy {} {
+#   [:info class] dealloc [self]
+# }
 # '''
 # Note, however, that '''destroy''' is protected against
 # application-level redefinition. You must refine it in a subclass
-# or a <<@gls mixincls>>. 
+# or a <<@gls mixincls>>.
+#
+# @syshook
 
 
 # @class.method {Object uplevel}
@@ -250,11 +315,11 @@
 # the one of the active call site (e.g., the given <<@acr tcl>> proc or method
 # scope):
 # '''
-# 	proc foo {} {
-#   		info vars; # shows ""
-#   		set x [Object create Bar -volatile]
-#   		info vars; # shows "x Bar"
-# 	}
+# proc foo {} {
+#   info vars; # shows ""
+#   set x [Object create Bar -volatile]
+#   info vars; # shows "x Bar"
+# }
 # '''
 # Behind the scenes, '''volatile''' registers a C-level variable trace
 # ('''Tcl_TraceVar()''') on the hiddenly created local variable (e.g.,
@@ -269,8 +334,8 @@
 # class>>. It is a front-end to <<@class.method "::nx::Class
 # create">>. For instance:
 # '''
-#	set obj [Object new]
-#	set cls [Class new]
+# set obj [Object new]
+# set cls [Class new]
 # '''
 #
 # This will provide object identifiers of the form
@@ -292,14 +357,14 @@
 # with an empty argument list and an empty body, the specified method,
 # if existing, is deleted.
 # '''
-#	Class create AClass {
-#		:method foo args {;}
-#	}
+# Class create AClass {
+#   :method foo args {;}
+# }
 #
-#	AClass create anInstance
-#	anInstance foo; # invokes "foo"
+# AClass create anInstance
+# anInstance foo; # invokes "foo"
 #
-#	AClass method foo {} {}; # deletes "foo"
+# AClass method foo {} {}; # deletes "foo"
 # '''
 #
 # @parameter name The method name
@@ -321,12 +386,12 @@
 # called with an empty argument list and an empty body, the
 # specified method is deleted.
 # '''
-# 	Object create anObject {
-#   		:method foo args {;}
-# 	}
-# 	anObject foo; # invokes "foo"
+# Object create anObject {
+#   :method foo args {;}
+# }
+# anObject foo; # invokes "foo"
 #
-#	anObject method foo {} {}; # deletes "foo"
+# anObject method foo {} {}; # deletes "foo"
 # '''
 #
 # @parameter	name		The method name
@@ -391,9 +456,34 @@
 # @parameter callee
 # @parameter args
 
+# @class.method {Object move} 
+#
+# Effectively renames an object. First, the source object is copied
+# using <<@class.method {Object copy}>>. Second, the source object is
+# destroyed by invoking <<@class.method {Object destroy}>> on it. This
+# method is also called when '''rename''' is used on a Tcl command
+# representing an object.
+#
+# @parameter newName The name of the target object
+# @syshook
+
+
 # @class.method {Class forward}
 #
 # @use class.method        {Object forward}
+
+# @class.class-object-method {Class __unknown}
+#
+# This method is an abstracted hook method which is invoked from
+# within the language runtime upon resolving unknown classes. A class
+# is considered "unknown" when no so-named Tcl command is registered
+# with the current '''interp'''. The method can be replaced by
+# application-level implementations to realise application-specific
+# class name resolution and class acquisition schemes.
+#
+# @parameter name
+# @syshook
+
 
 # @class.method {Object info}
 #
@@ -579,22 +669,26 @@
 # domain object scope only. It defaults to '''false'''.
 
 # @class.method {Object objectparameter}
+#
+# An abstracted hook method which is primarily used from within the
+# object creation process, that is, the object configuration step
+# performed by <<@class.method {Object configure}>>. The actual
+# implementation of this hook is called to generate the object
+# parameter definition and so specifies the object parameter
+# processing for a given object under construction. For instance, the
+# <<@gls initcmd>> feature in <<@Gls nx>> is implemented this
+# way. By providing custom hook implementations (by overloading),
+# developers can define their own object parametrisation scheme.
+#
+# @syshook
+# @parameter lastparameter 	Denotes the object parameter to be appended
+# 				to the overall object parameter
+# 				specification (i.e., at the last
+# 				position).
 
 # @class.attribute {Class superclass}
 #
-# Specifies superclasses for a given class. As a setter ***
-# generell: setter kann hier mit der methode namens "setter"
-# verwechselt werden; wir sollten hier die parameter syntax
-# anfuehren, die allerdings in zwei varianten kommt:
-#'''
-#  obj superclass ?value?
-#  obj superclass add|assign|delete|get value
-#'''
-# Das gilt allgemein, nicht nur für die relation-slots, sondern
-# für alle incremental slots.
-# **** '''superclass''' changes the list
-# of superclasses. When used as a getter, the method returns the
-# current superclasses.
+# Set the superclasses for a given class
 
 # @class.attribute {Object class}
 #
@@ -661,13 +755,13 @@
 # of '''0''', the attribute '''projects''' has the empty list as
 # default and is defined as multivalued.
 # '''
-#   Class create Person {
-#      :attribute name
-#      :attribute {salary:integer 0}
-#      :attribute {projects:multivalued ""} {
-#         set :incremental true
-#      }
+# Class create Person {
+#   :attribute name
+#   :attribute {salary:integer 0}
+#   :attribute {projects:multivalued ""} {
+#     set :incremental true
 #   }
+# }
 # '''
 #
 # @parameter incremental A boolean value, only useful for multivalued
@@ -842,3 +936,12 @@
 # @acronym CIM
 # @pretty_name C-implemented method
 # @pretty_plural C-implemented methods
+
+# @glossary initcmd
+#
+# ...
+#
+# @acronym initcmd
+# @pretty_name object initialisation script
+# @pretty_plural object initialisation scripts
+

@@ -2057,6 +2057,30 @@ _ added option noforwarder to RelationSlots
   from a parameter definition (e.g. the method is a forwarder to a tcl
   cmd).
 
+doctools
+- interfaces in documentation for slots (see for more details 
+  ::nx::Class#superclass in nx.tcl)
+- handle object methods as well in quality checks
+- why does one have to specify @superclass rather than determining the
+  superclass via introspection?
+- use tcl parametersyntax for short description of commands/methods
+
+- deal with interally-called methods (can be overloaded by the application)
+      * user-called and interanlly called (e.g. from "create" or "new")
+        XO_c_create_idx, XO_o_destroy_idx, XO_o_move_idx, 
+     * not documented yet:
+        XO_c_requireobject_idx, XO_o_defaultmethod_idx, XO_o_init_idx, 
+        XO_o_objectparameter_idx, XO_o_unknown_idx
+     * only XOTCL2:
+        XO_o_cleanup_idx, XO_o_residualargs_idx,
+text
+   - use term "callprotection" in documentation for public|protected
+     (to be consistent with "... info methods ...")
+   - reduce indenting for code examples in documentation 
+    (high indentation makes readability worse).
+    i use usually just 2, 4 are ok as well; we should decide.
+
+
 TODO:
 
 - check performance implications of value conflict checker
@@ -2100,33 +2124,11 @@ TODO:
    - tutorial (split)
    - migration guide
 
-   text
-   - use term "callprotection" in documentation for public|protected
-     (to be consistent with "... info methods ...")
-   - reduce indenting for code examples in documentation 
-    (high indentation makes readability worse).
-    i use usually just 2, 4 are ok as well; we should decide.
-   - use tcl parametersyntax for short description of commands/methods
-
-   - deal with interally-called methods (can be overloaded by the application)
-      * user-called and interanlly called (e.g. from "create" or "new")
-        XO_c_create_idx, XO_o_destroy_idx, XO_o_move_idx, 
-     * not documented yet:
-        XO_c_requireobject_idx, XO_o_defaultmethod_idx, XO_o_init_idx, 
-        XO_o_objectparameter_idx, XO_o_unknown_idx
-     * only XOTCL2:
-        XO_o_cleanup_idx, XO_o_residualargs_idx,
-
    doctools
-   - interfaces in documentation for slots (see for more details 
-     ::nx::Class#superclass in nx.tcl)
    - integrate ::nx::doc::make with Makefile.in
      (provide shell calls and, targets and dependencies)
    - make quality checks (missing documentation, ...) optional?
      how to deal with non-resolvable quality checks?
-   - handle object methods as well in quality checks
-   - why does one have to specify @superclass rather than determining the
-     superclass via introspection?
    - provide a renderer for XOTcl @-notation to produce object structure
      for the new doctool (makes the old documentation usabel, eg. for XOTcl2)
 

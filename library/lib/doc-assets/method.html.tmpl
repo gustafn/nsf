@@ -45,7 +45,10 @@
 	  [:!let ret [:!get @return]]
           <code property="yui:return"> [:? {[$ret eval {info exists :spec}] && [$ret spec] ne ""} {[$ret spec]}]
         </code></dt>
-        <dd property="yui:returnInfo">[${:@return} as_text]</dd>
+        <dd property="yui:returnInfo">
+	  <span style='display:block; color: red'>[$ret pinfo get -default "" validation]</span>
+	  [$ret as_text]
+	</dd>
       </dl>
       }]
       }]

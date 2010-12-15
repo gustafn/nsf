@@ -217,63 +217,27 @@
 
 
 [:?var :@object-method {
+[:!let omethods [:!get -sortedby name @object-method]]
 <div rel="yui:object-methods" resource="#object-methods">
   <div class="section method details">
     <h3 id="object-methods">Per-object methods</h3>
-    <div class="content">
-      [:for omethod ${:@object-method} {
-      <div class="[$omethod @modifier]" rel="yui:object-method" resource="#object-method_[$omethod name]">
-        <h4>
-          <a name="object-method_[$omethod name]">[$omethod name]</a></h4>
-        <div class="detail" >            
-	  <code>[:? {[$omethod eval {info exists :@return}]} {&lt;<span property="yui:type">[[$omethod @return] spec]</span>&gt;} ]
-	    <strong property="yui:name">[$omethod name]</strong>
-	    </code>
-          <div class="description" property="yui:description">
-            [$omethod as_text]
-          </div>
-	  
-          <div class="description">
-	    
-	    [:? {[$omethod eval {info exists :@parameter}]} {
-	    <dl rel="yui:parameters">
-              <dt>Method parameters:</dt>
-	      [:for param [$omethod @parameter] {
-	      <dd rel="yui:parameter">
-                <code><span property="yui:name">[$param name]</span>
-                  [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
-                </code>
-                <span property="yui:description">[$param as_text]</span>
-              </dd>
-	      }]
-            </dl>
-	    }]
-	    
-	    [:? {[$omethod eval {info exists :@return}]} {
-	    [:!let rparam [$omethod @return]]
-	    <dl>
-              <dt>Returns:
-                <code property="yui:return">
-              </code></dt>
-              <dd property="yui:returnInfo">[$rparam as_text]</dd>
-            </dl>
-	    }]
-	    
-            
-	    [:? {[$omethod eval {info exists :@deprecated}]} {
-            <div class="deprecated">
-              <strong>Deprecated</strong> [$method @deprecated]
-            </div>        
-	    }]
-	    
-          </div>
-	  
-        </div>
-        <hr />
+          <div class="content" rel="yui:properties">
+        <code>
+          [:for m $omethods {
+          <span rel="yui:property"
+                resource="#[$m href -local]">                                        
+            <a class=""
+               href="#[$m href -local]" property="yui:name"
+               title="[$m name]">[$m name]</a>
+          </span>
+	  }]
+        </code>
       </div>
-      
+    <hr>
+    <div class="content">
+      [:for omethod $omethods {
+      [$omethod render method.html.tmpl]    
       }] <!-- end-of-for -->
     </div>
   </div>
-</div>
-}]
+</div>}]
