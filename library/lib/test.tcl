@@ -125,7 +125,7 @@ namespace eval ::nx::test {
 	}
       } else {
 	puts stderr "[set :name]:\tincorrect result for '${:msg}'"
-	puts stderr "\texpected: '${:expected}', got '$r'"
+	puts stderr "expected:\n'${:expected}', got\n'$r'"
 	puts stderr "\tin test file [info script]"
 	if {[info exists :errorReport]} {eval [set :errorReport]}
 	exit -1
