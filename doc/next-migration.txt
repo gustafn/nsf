@@ -309,7 +309,6 @@ o method foo args {...}
 #
 #     method
 #     forward
-#     setter
 #     alias
 #     attribute
 #
@@ -378,14 +377,12 @@ o parametercmd p3
 ----------------
 # Define setter and getter methods
 
-Class create C {
-  :setter p1 ?value_constraint?
-  :class-object setter p2 ?value_constraint?
-}
+Class create C
+::nsf::setter C p1
+::nsf::setter C -per-object p2
 
-Object create o {
-  :setter p3 ?value_constraint?
-}
+Object create o 
+::nsf::setter o p3
 ----------------
 
 
@@ -468,7 +465,7 @@ Class create C \
 # Method modifiers orthogonal over all kinds of methods
 #
 # Method-definition-methods:
-#    method, forward, setter, alias, attribute
+#    method, forward, alias, attribute
 
 Class create C {
   :/method-definiton-method/ ...
@@ -486,7 +483,7 @@ protection in various ways. The command
 `::nx::configure defaultMethodCallProtection true|false` can be used to set the default
 call protection for scripted methods, forwarder and aliases, while
 `::nx::configure defaultAttributeCallProtection true|false` can set the
-default for attributes and setters.
+default for attributes.
 
 
 === Resolvers
@@ -666,7 +663,7 @@ Class create C {
 |[source,tcl]
 ----------------
 # Set instance variable of object obj to a value via
-# resolver (preferred way: define setter method on obj)
+# resolver (preferred way: define attribute on obj)
 
 /obj/ eval [list set /:varName/ ?value?]
 ----------------
@@ -2001,7 +1998,7 @@ protection via the method modifiers `protected` and `public`. A
 protected method can be only called from an object of that class,
 while public methods can be called from every object. The method
 protection can be used to every kind of method, such as e.g. scripted
-methods, aliases, forwarders, setters or attributes. For invocations,
+methods, aliases, forwarders, or attributes. For invocations,
 the most specific definition (might be a mixin) is used for
 determining the protection.
 

@@ -1181,7 +1181,7 @@ namespace eval ::nx {
     :protected method init args {set r [::nsf::next]; :optimize; return $r}
 
     :public method optimize {} {
-      #puts stderr OPTIMIZER-[info exists :incremental]
+      #puts stderr "OPTIMIZER ${:name} incremental -[info exists :incremental]"
       if {![info exists :methodname]} {return}
       if {${:per-object}} {
         set perObject -per-object

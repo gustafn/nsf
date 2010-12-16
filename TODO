@@ -2081,7 +2081,22 @@ text
     i use usually just 2, 4 are ok as well; we should decide.
 
 
+- removed method "setter" from nx
+- removed method "setter" from migration guide
+- nx method "attribute": changed name of nonposarg from "slotclass" to "class"
+- fix bug for "C class-object attribute foo" (incorrect forwarder)
+- extended regression test
+
+- doctools: changed "-slotclass" to "-class"
+- nx::test: made differences in regression test easier to read
+
+- serializer: updated serializer to avoid calls to "setter"
+- extended regression test
+
+
 TODO:
+- info method definition for attributes?
+- remove "setter" from documentation
 
 - check performance implications of value conflict checker
 

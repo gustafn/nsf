@@ -1041,7 +1041,6 @@ http://www.gnu.org/software/src-highlite -->
 <span style="font-style: italic"><span style="color: #717ab3">#</span></span>
 <span style="font-style: italic"><span style="color: #717ab3">#     method</span></span>
 <span style="font-style: italic"><span style="color: #717ab3">#     forward</span></span>
-<span style="font-style: italic"><span style="color: #717ab3">#     setter</span></span>
 <span style="font-style: italic"><span style="color: #717ab3">#     alias</span></span>
 <span style="font-style: italic"><span style="color: #717ab3">#     attribute</span></span>
 <span style="font-style: italic"><span style="color: #717ab3">#</span></span>
@@ -1122,14 +1121,12 @@ http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Define setter and getter methods</span></span>
 
-<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> C </span><span style="color: #000000">{</span>
-<span style="color: #000000">  </span><span style="color: #000000">:</span><span style="color: #000000">setter p1 </span><span style="font-style: italic"><span style="color: #3f5fbf">?value_constraint?</span></span>
-<span style="color: #000000">  </span><span style="color: #000000">:</span><span style="color: #7f0055">class-object</span><span style="color: #000000"> setter p2 </span><span style="font-style: italic"><span style="color: #3f5fbf">?value_constraint?</span></span>
-<span style="color: #000000">}</span>
+<span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> C</span>
+<span style="color: #000000">::</span><span style="color: #000000">nsf</span><span style="color: #000000">::</span><span style="color: #000000">setter C p1</span>
+<span style="color: #000000">::</span><span style="color: #000000">nsf</span><span style="color: #000000">::</span><span style="color: #000000">setter C </span><span style="color: #000000">-</span><span style="color: #000000">per</span><span style="color: #000000">-</span><span style="color: #000000">object p2</span>
 
-<span style="font-weight: bold"><span style="color: #7f0055">Object</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> o </span><span style="color: #000000">{</span>
-<span style="color: #000000">  </span><span style="color: #000000">:</span><span style="color: #000000">setter p3 </span><span style="font-style: italic"><span style="color: #3f5fbf">?value_constraint?</span></span>
-<span style="color: #000000">}</span></tt></pre></div></div></div></td>
+<span style="font-weight: bold"><span style="color: #7f0055">Object</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> o</span>
+<span style="color: #000000">::</span><span style="color: #000000">nsf</span><span style="color: #000000">::</span><span style="color: #000000">setter o p3</span></tt></pre></div></div></div></td>
 </tr>
 <tr>
 <td align="left" valign="middle"><div><div class="listingblock">
@@ -1237,7 +1234,7 @@ http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Method modifiers orthogonal over all kinds of methods</span></span>
 <span style="font-style: italic"><span style="color: #717ab3">#</span></span>
 <span style="font-style: italic"><span style="color: #717ab3"># Method-definition-methods:</span></span>
-<span style="font-style: italic"><span style="color: #717ab3">#    method, forward, setter, alias, attribute</span></span>
+<span style="font-style: italic"><span style="color: #717ab3">#    method, forward, alias, attribute</span></span>
 
 <span style="font-weight: bold"><span style="color: #7f0055">Class</span></span><span style="color: #000000"> </span><span style="color: #7f0055">create</span><span style="color: #000000"> C </span><span style="color: #000000">{</span>
 <span style="color: #000000">  </span><span style="color: #000000">:</span><span style="font-style: italic"><span style="color: #3f5fbf">/method-definiton-method/</span></span><span style="color: #000000"> </span><span style="color: #000000">...</span>
@@ -1256,7 +1253,7 @@ protection in various ways. The command
 <tt>::nx::configure defaultMethodCallProtection true|false</tt> can be used to set the default
 call protection for scripted methods, forwarder and aliases, while
 <tt>::nx::configure defaultAttributeCallProtection true|false</tt> can set the
-default for attributes and setters.</p></div>
+default for attributes.</p></div>
 </div>
 </div>
 <div class="sect2">
@@ -1511,7 +1508,7 @@ by Lorenzo Bettini
 http://www.lorenzobettini.it
 http://www.gnu.org/software/src-highlite -->
 <pre><tt><span style="font-style: italic"><span style="color: #717ab3"># Set instance variable of object obj to a value via</span></span>
-<span style="font-style: italic"><span style="color: #717ab3"># resolver (preferred way: define setter method on obj)</span></span>
+<span style="font-style: italic"><span style="color: #717ab3"># resolver (preferred way: define attribute on obj)</span></span>
 
 <span style="font-style: italic"><span style="color: #3f5fbf">/obj/</span></span><span style="color: #000000"> </span><span style="color: #7f0055">eval</span><span style="color: #000000"> </span><span style="color: #000000">[</span><span style="color: #7f0055">list</span><span style="color: #000000"> </span><span style="color: #7f0055">set</span><span style="color: #000000"> </span><span style="font-style: italic"><span style="color: #3f5fbf">/:varName/</span></span><span style="color: #000000"> </span><span style="font-style: italic"><span style="color: #3f5fbf">?value?</span></span><span style="color: #000000">]</span></tt></pre></div></div></div></td>
 </tr>
@@ -3762,7 +3759,7 @@ protection via the method modifiers <tt>protected</tt> and <tt>public</tt>. A
 protected method can be only called from an object of that class,
 while public methods can be called from every object. The method
 protection can be used to every kind of method, such as e.g. scripted
-methods, aliases, forwarders, setters or attributes. For invocations,
+methods, aliases, forwarders, or attributes. For invocations,
 the most specific definition (might be a mixin) is used for
 determining the protection.</p></div>
 </div>
@@ -3869,7 +3866,7 @@ http://www.gnu.org/software/src-highlite -->
 <div id="footer">
 <div id="footer-text">
 Version 2.0<br />
-Last updated 2010-12-11 18:39:23 CET
+Last updated 2010-12-16 14:45:07 CET
 </div>
 </div>
 </body>
