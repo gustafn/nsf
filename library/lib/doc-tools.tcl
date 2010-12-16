@@ -578,19 +578,19 @@ namespace eval ::nx::doc {
     }
 
     :attribute @doc:0..* {set :incremental 1}
-    :attribute @see -slotclass ::nx::doc::PartAttribute
+    :attribute @see -class ::nx::doc::PartAttribute
 
-    :attribute @deprecated:boolean -slotclass ::nx::doc::SwitchAttribute {
+    :attribute @deprecated:boolean -class ::nx::doc::SwitchAttribute {
       set :default 0
     }
-    :attribute @stashed:boolean -slotclass ::nx::doc::SwitchAttribute {
+    :attribute @stashed:boolean -class ::nx::doc::SwitchAttribute {
       set :default 0
     }
-    :attribute @c-implemented:boolean -slotclass ::nx::doc::SwitchAttribute {
+    :attribute @c-implemented:boolean -class ::nx::doc::SwitchAttribute {
       set :default 0
     }
 
-    # :attribute @properties -slotclass ::nx::doc::PartAttribute
+    # :attribute @properties -class ::nx::doc::PartAttribute
     :public method @property {props} {
       foreach prop $props {
 	:@$prop
@@ -780,18 +780,18 @@ namespace eval ::nx::doc {
     # Note: The default "" corresponds to the top-level namespace "::"!
     :attribute {@namespace ""}
 
-    :attribute @class -slotclass ::nx::doc::PartAttribute {
+    :attribute @class -class ::nx::doc::PartAttribute {
       :pretty_name "Class"
       :pretty_plural "Classes"
       set :part_class ::nx::doc::@class
     }
-    :attribute @object -slotclass ::nx::doc::PartAttribute {
+    :attribute @object -class ::nx::doc::PartAttribute {
       :pretty_name "Object"
       :pretty_plural "Objects"
       set :part_class ::nx::doc::@object
     }
    
-    :attribute @command -slotclass ::nx::doc::PartAttribute {
+    :attribute @command -class ::nx::doc::PartAttribute {
       :pretty_name "Command"
       :pretty_plural "Commands"
       set :part_class ::nx::doc::@command
@@ -850,11 +850,11 @@ namespace eval ::nx::doc {
     :attribute creationdate
     :attribute {version ""}
     
-    :attribute @glossary -slotclass ::nx::doc::PartAttribute {
+    :attribute @glossary -class ::nx::doc::PartAttribute {
       set :part_class ::nx::doc::@glossary
     }
 
-    :attribute @package -slotclass ::nx::doc::PartAttribute {
+    :attribute @package -class ::nx::doc::PartAttribute {
       set :part_class ::nx::doc::@package
     }
 
@@ -901,15 +901,15 @@ namespace eval ::nx::doc {
   #
 
   Tag create @package -superclass ContainerEntity {
-    :attribute @require -slotclass ::nx::doc::PartAttribute
-    :attribute @version -slotclass ::nx::doc::PartAttribute
+    :attribute @require -class ::nx::doc::PartAttribute
+    :attribute @version -class ::nx::doc::PartAttribute
   }
 
   QualifierTag create @command -superclass StructuredEntity {
-    :attribute @parameter -slotclass ::nx::doc::PartAttribute {
+    :attribute @parameter -class ::nx::doc::PartAttribute {
       set :part_class ::nx::doc::@param
     }
-    :attribute @return -slotclass ::nx::doc::PartAttribute {
+    :attribute @return -class ::nx::doc::PartAttribute {
       :method require_part {domain prop value} {
 	set value [expr {![string match ":*" $value] ? "__out__: $value": "__out__$value"}]
 	next [list $domain $prop $value]
@@ -918,7 +918,7 @@ namespace eval ::nx::doc {
     }
 
     :public forward @sub-command %self @command
-    :attribute @command -slotclass ::nx::doc::PartAttribute {
+    :attribute @command -class ::nx::doc::PartAttribute {
       :pretty_name "Subcommand"
       :pretty_plural "Subcommands"
       :public method id {domain prop value} { 
@@ -934,10 +934,10 @@ namespace eval ::nx::doc {
   QualifierTag create @object \
       -superclass StructuredEntity \
       -mixin ContainerEntity::Containable {
-	:attribute @author -slotclass ::nx::doc::PartAttribute 
+	:attribute @author -class ::nx::doc::PartAttribute 
 
 	:public forward @object %self @child-object
-	:attribute @child-object -slotclass ::nx::doc::PartAttribute {
+	:attribute @child-object -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@object
 	  :public method id {domain prop value} {
 #	    puts stderr "CHILD-OBJECT: [current args]"
@@ -951,7 +951,7 @@ namespace eval ::nx::doc {
 	}
 
 	:public forward @class %self @child-class
-	:attribute @child-class -slotclass ::nx::doc::PartAttribute {
+	:attribute @child-class -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@class
 	  :public method id {domain prop value} {
 	    #puts stderr "CHILD-CLASS: [current args]"
@@ -964,13 +964,13 @@ namespace eval ::nx::doc {
 	}
 
 	:public forward @method %self @object-method
-	:attribute @object-method -slotclass ::nx::doc::PartAttribute {
+	:attribute @object-method -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@method
 	}
 
 	:public forward @attribute %self @class-object-attribute
 	#:forward @param %self @object-param
-	:attribute @class-object-attribute -slotclass ::nx::doc::PartAttribute {
+	:attribute @class-object-attribute -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@param
 	}
 
@@ -990,10 +990,10 @@ namespace eval ::nx::doc {
 
   QualifierTag create @class \
       -superclass @object {
-	:attribute @superclass -slotclass ::nx::doc::PartAttribute
+	:attribute @superclass -class ::nx::doc::PartAttribute
 	
 	:public forward @attribute %self @class-attribute
-	:attribute @class-attribute -slotclass ::nx::doc::PartAttribute {
+	:attribute @class-attribute -class ::nx::doc::PartAttribute {
 	  :pretty_name "Per-class attribute"
 	  :pretty_plural "Per-class attributes"
 	  set :part_class ::nx::doc::@param
@@ -1001,7 +1001,7 @@ namespace eval ::nx::doc {
 	
 	:public forward @method %self @class-method
 	:public forward @class-object-method %self @object-method
-	:attribute @class-method -slotclass ::nx::doc::PartAttribute {
+	:attribute @class-method -class ::nx::doc::PartAttribute {
 	  :pretty_name "Per-class method"
 	  :pretty_plural "Per-class methods"
 	  set :part_class ::nx::doc::@method
@@ -1037,14 +1037,14 @@ namespace eval ::nx::doc {
   #
   PartTag create @method \
       -superclass StructuredEntity {
-	:attribute @syshook:boolean -slotclass ::nx::doc::SwitchAttribute {
+	:attribute @syshook:boolean -class ::nx::doc::SwitchAttribute {
 	  set :default 0
 	}
-	:attribute {@modifier public} -slotclass ::nx::doc::PartAttribute
-	:attribute @parameter -slotclass ::nx::doc::PartAttribute {
+	:attribute {@modifier public} -class ::nx::doc::PartAttribute
+	:attribute @parameter -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@param
 	}
-	:attribute @return -slotclass ::nx::doc::PartAttribute {
+	:attribute @return -class ::nx::doc::PartAttribute {
 	  #
 	  # TODO: @return spec fragments should be nameless,
 	  # conceptually. They represent "out" parameters with each
@@ -1079,7 +1079,7 @@ namespace eval ::nx::doc {
 	:public forward @class-method %self @method
 	:public forward @class-object-method %self @method
 	:public forward @sub-method %self @method
-	:attribute @method -slotclass ::nx::doc::PartAttribute {
+	:attribute @method -class ::nx::doc::PartAttribute {
 	  set :part_class ::nx::doc::@method
 	  :public method id {domain prop name} {
 	    # TODO: ${:part_class} resolves to the local slot
