@@ -315,11 +315,37 @@ Test case subcmd {
   ? {f1 list reverse} "::f1-reverse"
 }
 
+package req nx::serializer
 Test case class-object-attribute {
-  Class create C {:class-object attribute x}
+  Class create C {
+    :class-object attribute x
+    :attribute a:int
+    :create c1
+  }
   ? {C x 1} 1
   ? {C x} 1
-  ? {C info methods} ""
+  ? {C info methods} "a"
   ? {C class-object info methods} x
+  ? {c1 a b} {expected integer but got "b" for parameter "a"}
+ 
+  set s(C) [C serialize]
+  set s(c1) [c1 serialize]
+
+  # Destroy object and class
+  c1 destroy
+  C destroy
+
+  ? {nsf::isobject c1} 0
+  ? {nsf::isobject C} 0
+
+  # create it from the serialized code
+  eval $s(C)
+  eval $s(c1)
+
+  # tests should work as again
+  ? {C x} 1
+  ? {C info methods} "a"
+  ? {C class-object info methods} x
+  ? {c1 a b} {expected integer but got "b" for parameter "a"}  
 }
 
