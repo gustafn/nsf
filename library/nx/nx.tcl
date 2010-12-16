@@ -186,7 +186,7 @@ namespace eval ::nx {
 
     # method-modifier for object specific methos
     :method class-object {what args} {
-      if {$what in [list "alias" "attribute" "forward" "method" "setter"]} {
+      if {$what in [list "alias" "attribute" "forward" "method"]} {
         return [::nsf::dispatch [::nsf::self] ::nsf::classes::nx::Object::$what {*}$args]
       }
       if {$what in [list "info"]} {
@@ -230,7 +230,7 @@ namespace eval ::nx {
 
     # method modifier "public"
     :method public {args} {
-      set p [lsearch -regexp $args {^(method|alias|attribute|forward|setter)$}]
+      set p [lsearch -regexp $args {^(method|alias|attribute|forward)$}]
       if {$p == -1} {error "$args is not a method defining method"}
       set r [::nsf::dispatch [::nsf::current object] {*}$args]
       if {$r ne ""} {::nsf::methodproperty [::nsf::self] $r call-protected false}
@@ -239,7 +239,7 @@ namespace eval ::nx {
 
     # method modifier "protected"
     :method protected {args} {
-      set p [lsearch -regexp $args {^(method|alias|attribute|forward|setter)$}]
+      set p [lsearch -regexp $args {^(method|alias|attribute|forward)$}]
       if {$p == -1} {error "$args is not a method defining command"}
       set r [{*}:$args]
       if {$r ne ""} {::nsf::methodproperty [::nsf::self] $r call-protected true}
@@ -352,23 +352,6 @@ namespace eval ::nx {
     ::nsf::methodproperty $(object) $r call-protected \
 	[::nsf::dispatch $(object) __default_method_call_protection]
     if {[info exists returns]} {::nsf::methodproperty $(object) $r returns $returns}
-    return $r
-  }
-
-  # Add setter methods. 
-  #  
-  Object public method setter {parameter} {
-    set o [::nsf::self]
-    set r [::nsf::setter $o -per-object $parameter]
-    ::nsf::methodproperty $o -per-object $r call-protected \
-	[::nsf::dispatch $o __default_attribute_call_protection]
-    return $r
-  }
-  Class public method setter {parameter} {
-    set o [::nsf::self]
-    set r [::nsf::setter $o $parameter]
-    ::nsf::methodproperty $o $r call-protected \
-	[::nsf::dispatch $o __default_attribute_call_protection]
     return $r
   }
 
@@ -808,8 +791,10 @@ namespace eval ::nx {
 	#puts stderr "Do not register forwarder ${:domain} ${:name}" 
         return
       }
-      #puts stderr "Slot [::nsf::self] init, forwarder on ${:domain}"
-      ::nsf::forward ${:domain} ${:name} \
+      #puts stderr "ObjectParameterSlot [::nsf::self] init, forwarder on ${:domain} <$args> ${:per-object}"
+      ::nsf::forward ${:domain} \
+	  {*}[expr {${:per-object} ? "-per-object" : ""}] \
+	  ${:name} \
           ${:manager} \
           [list %1 [${:manager} defaultmethods]] %self \
           ${:methodname}
@@ -1248,8 +1233,8 @@ namespace eval ::nx {
   ############################################
   # Define method "attribute" for convenience
   ############################################
-  Class method attribute {spec {-slotclass ::nx::Attribute} {initblock ""}} {
-    set r [$slotclass createFromParameterSyntax [::nsf::self] -initblock $initblock {*}$spec]
+  Class method attribute {spec {-class ::nx::Attribute} {initblock ""}} {
+    set r [$class createFromParameterSyntax [::nsf::self] -initblock $initblock {*}$spec]
     if {$r ne ""} {
       set o [::nsf::self]
       ::nsf::methodproperty $o $r call-protected \
@@ -1258,8 +1243,8 @@ namespace eval ::nx {
     }
   }
 
-  Object method attribute {spec {-slotclass ::nx::Attribute} {initblock ""}} {
-    set r [$slotclass createFromParameterSyntax [::nsf::self] -per-object -initblock $initblock {*}$spec]
+  Object method attribute {spec {-class ::nx::Attribute} {initblock ""}} {
+    set r [$class createFromParameterSyntax [::nsf::self] -per-object -initblock $initblock {*}$spec]
     if {$r ne ""} {
       set o [::nsf::self]
       ::nsf::methodproperty $o -per-object $r call-protected \

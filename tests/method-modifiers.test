@@ -17,25 +17,25 @@ Class create C {
   :protected forward protected_forward %self protected_method
 
   # setter
-  :setter plain_setter 
-  :public setter public_setter 
-  :protected setter protected_setter 
+  :attribute plain_setter 
+  :public attribute public_setter 
+  :protected attribute protected_setter 
 
   # alias
   :alias plain_alias [C info method handle plain_method]
   :public alias public_alias [C info method handle public_method]
   :protected alias protected_alias [C info method handle protected_method]
   
-  # object
+  # class-object
   :class-object method plain_object_method {} {return [current method]}
   :public class-object method public_object_method {} {return [current method]}
   :protected class-object method protected_object_method {}  {return [current method]}
   :class-object forward plain_object_forward %self plain_object_method
   :public class-object forward public_object_forward %self public_object_method
   :protected class-object forward protected_object_forward %self protected_object_method
-  :class-object setter plain_object_setter 
-  :public class-object setter public_object_setter 
-  :protected class-object setter protected_object_setter 
+  :class-object attribute plain_object_setter 
+  :public class-object attribute public_object_setter 
+  :protected class-object attribute protected_object_setter 
   :class-object alias plain_object_alias [:class-object info method handle plain_object_method]
   :public class-object alias public_object_alias [:class-object info method handle public_object_method]
   :protected class-object alias protected_object_alias [:class-object info method handle protected_object_method]
@@ -52,20 +52,20 @@ C create c1 {
   :protected forward protected_object_forward %self protected_object_method
 
   # setter
-  :setter plain_object_setter 
-  :public setter public_object_setter 
-  :protected setter protected_object_setter 
+  :attribute plain_object_setter 
+  :public attribute public_object_setter 
+  :protected attribute protected_object_setter 
 
   # alias
   :alias plain_object_alias [:info method handle plain_object_method]
   :public alias public_object_alias [:info method handle public_object_method]
   :protected alias protected_object_alias [:info method handle protected_object_method]
 }
-C public setter s0
-C protected setter s1
+C public attribute s0
+C protected attribute s1
 ? {c1 s0 0} 0
 ? {::nsf::dispatch c1 s1 1} 1
-C class-object setter s3
+C class-object attribute s3
 ? {C s3 3} 3
 
 # create a fresh object (different from c1)
@@ -155,11 +155,12 @@ Test case object-level-forwards {
 }
 
 # object level setter
-Test case object-level-setter
-? {c1 plain_object_setter 1} "1"
-? {c1 public_object_setter 2} "2"
-? {catch {c1 protected_object_setter 3}} 1
-? {::nsf::dispatch c1 protected_object_setter 4} "4"
+Test case object-level-setter {
+  ? {c1 plain_object_setter 1} "1"
+  ? {c1 public_object_setter 2} "2"
+  ? {catch {c1 protected_object_setter 3}} 1
+  ? {::nsf::dispatch c1 protected_object_setter 4} "4"
+}
 
 # object level alias ....TODO: wanted behavior of [current method]? not "plain_alias"?
 Test case object-level-alias {
@@ -313,3 +314,12 @@ Test case subcmd {
   ? {f1 list length} "::f1-length"
   ? {f1 list reverse} "::f1-reverse"
 }
+
+Test case class-object-attribute {
+  Class create C {:class-object attribute x}
+  ? {C x 1} 1
+  ? {C x} 1
+  ? {C info methods} ""
+  ? {C class-object info methods} x
+}
+

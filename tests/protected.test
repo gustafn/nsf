@@ -90,7 +90,7 @@ C protected method foo {} {return [current method]}
 ? {catch {C forward SET ::set}  errorMsg; set errorMsg} \
     {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!}
 # try to redefine via setter
-? {catch {C setter SET}  errorMsg; set errorMsg} \
+? {catch {C attribute SET}  errorMsg; set errorMsg} \
     {Method 'SET' of ::C cannot be overwritten. Derive e.g. a sub-class!}
 
 # overwrite-protect object specific method

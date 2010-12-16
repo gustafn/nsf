@@ -17,8 +17,8 @@ Test case base {
     :class-object forward add1 expr 1 +
     :class-object forward fpo ::o
     
-    :setter s 
-    :class-object setter spo
+    :attribute s 
+    :class-object attribute spo
     
     :alias a ::set
     :class-object alias apo ::puts
@@ -68,8 +68,8 @@ Test case base {
   ? {::nx::Object info lookup methods -source application} ""
   ? {::nx::Class info lookup methods -source application} ""
 
-  set object_methods "alias attribute class configure contains copy destroy eval filter forward info method mixin move protected public require setter volatile vwait"
-  set class_methods "alias alloc attribute attributes class class-object configure contains copy create dealloc destroy eval filter forward info method mixin move new protected public require setter superclass volatile vwait"
+  set object_methods "alias attribute class configure contains copy destroy eval filter forward info method mixin move protected public require volatile vwait"
+  set class_methods "alias alloc attribute attributes class class-object configure contains copy create dealloc destroy eval filter forward info method mixin move new protected public require superclass volatile vwait"
 
   ? {lsort [::nx::Object info lookup methods -source baseclasses]} $class_methods
   ? {lsort [::nx::Class info lookup methods -source baseclasses]} $class_methods
@@ -141,7 +141,7 @@ Test case callable {
 
     ? {o method foo {} {return o.foo}} "::o::foo"
     ? {o alias is ::nsf::is} "::o::is"
-    ? {o setter x} "::o::x"
+    ? {o attribute x} "::o::x"
     ? {lsort [o info methods]} "foo is x"
 
     ? {o attribute A} ::o::A
