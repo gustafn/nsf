@@ -2096,7 +2096,6 @@ text
 
 TODO:
 - info method definition for attributes?
-- remove "setter" from documentation
 
 - check performance implications of value conflict checker
 
