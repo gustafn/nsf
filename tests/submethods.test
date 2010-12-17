@@ -293,3 +293,47 @@ Test case ensemble-next-with-args {
   # ensemble depth 2, multiple args, same tcl-objs
   ? {o e1 e1 e1} {e1 e1 e1}
 }
+
+Test parameter count 1
+Test case ensemble-next-with-colon-prefix
+namespace eval ::ns1 {
+  Object create obj {
+    :public method foo {} { return [:info class] } 
+    :public method ifoo {} { [current] ::nsf::methods::object::info::lookupmethod info} 
+  }
+  
+  ? {obj info class} ::nx::Object
+  ? {obj info lookup method info} ::nsf::classes::nx::Object::info
+  ? {obj ifoo} ::nsf::classes::nx::Object::info
+  
+  ? {obj foo} ::nx::Object
+  
+  set infolookup ::nsf::methods::object::info::lookupmethod
+  set infomethod  ::nsf::methods::object::info::method
+  
+  ? [list obj $infolookup info] ::nsf::classes::nx::Object::info
+  ? [list obj $infomethod type ::nsf::classes::nx::Object::info] alias
+  
+  obj method info {} {;}
+  ? [list obj $infolookup info] ::ns1::obj::info
+  ? [list obj $infomethod type ::ns1::obj::info] scripted
+  ? {obj ifoo} ::ns1::obj::info
+  ? {obj foo} {wrong # args: should be ":info"}
+
+  # now we overwrite the object specific method with an object
+  Object create obj::info
+  ? [list obj $infolookup info] ::ns1::obj::info
+  ? [list obj $infomethod type ::ns1::obj::info] object
+  
+  ? {obj ifoo} ::ns1::obj::info
+  # To some surprise, we can can still call info class!
+  # This works, since we do here an "ensemble-next" 
+  ? {obj info class} ::nx::Object
+  # The ensemble-next has in case of foo the leading colon on the
+  # callstack (e.g. ":info"). Make sure that we can still call the
+  # method via ensemle-next.
+  ? {obj foo} ::nx::Object
+}
+
+
+

@@ -7013,7 +7013,7 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
     Nsf_PushFrameCsc(interp, cscPtr, framePtr);
   }
 
-  /*fprintf(stderr, "CmdDispatch obj %p %p %s\n", obj, methodName, methodName);*/
+  /*fprintf(stderr, "CmdMethodDispatch obj %p %p %s\n", obj, methodName, methodName);*/
   result = Tcl_NRCallObjProc(interp, Tcl_Command_objProc(cmdPtr), cp, objc, objv);
 
   if (cscPtr) {
@@ -7138,6 +7138,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
       /*
        * The client data cp is still the obj of the called method
        */
+      /*fprintf(stderr, "ensemble dispatch %s objc %d\n", methodName, objc);*/
       if (objc < 2) {
 	CallFrame frame, *framePtr = &frame;
 	Nsf_PushFrameCsc(interp, cscPtr, framePtr);
@@ -7153,11 +7154,9 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	cscPtr->flags |= NSF_CSC_CALL_IS_ENSEMBLE;
 	Nsf_PushFrameCsc(interp, cscPtr, framePtr);
 
-	/*fprintf(stderr, "save self %p %s (ns %p) object %p %s\n",
-	  self, ObjectName(self), self->nsPtr, object, ObjectName(object));*/
 	if (self->nsPtr) {
 	  cmd = FindMethod(self->nsPtr, methodName);
-	  /* fprintf(stderr, "... method %p %s csc %p\n", cmd, methodName, cscPtr); */
+	  /*fprintf(stderr, "... method %p %s csc %p\n", cmd, methodName, cscPtr); */
 	  if (cmd) {
 	    /*
 	     * In order to allow next to be called on the
@@ -7191,6 +7190,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	{
 	  Tcl_CallFrame *framePtr1;
 	  NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
+	  CONST char *nextMethodName;
 
 	  if ((cscPtr1->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
 	    /*
@@ -7203,12 +7203,21 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	    assert(cscPtr1);
 	  }
 
-	  result = NextSearchAndInvoke(interp, ObjStr(cscPtr1->objv[0]),
+	  /*
+	   * The method name for next might be colon-prefixed. In
+	   * these cases, we have to skip the single colon.
+	   */
+	  nextMethodName = ObjStr(cscPtr1->objv[0]);
+	  if (FOR_COLON_RESOLVER(nextMethodName)) {
+	    nextMethodName ++;
+	  }
+	  
+	  result = NextSearchAndInvoke(interp, nextMethodName,
 				       cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
 	}
 	
 	/*fprintf(stderr, "==> next %s.%s (obj %s) csc %p returned %d unknown %d\n",
-	  ObjectName(self),methodName, ObjectName(object), cscPtr, result, rst->unknown); */
+	  ObjectName(self),methodName, ObjectName(object), cscPtr, result, rst->unknown);*/
 	if (rst->unknown) {
 	  /*
 	   * The appropriate unknown class is registered on the
@@ -7589,8 +7598,8 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     /* do we have a object-specific proc? */
     if (object->nsPtr && (flags & NSF_CM_NO_OBJECT_METHOD) == 0) {
       cmd = FindMethod(object->nsPtr, methodName);
-      /* fprintf(stderr, "lookup for proc in obj %p method %s nsPtr %p => %p\n",
-         object, methodName, object->nsPtr, cmd);*/
+      /*fprintf(stderr, "lookup for proc in obj %p method %s nsPtr %p => %p\n",
+	object, methodName, object->nsPtr, cmd);*/
     }
 
     if (cmd == NULL) {

@@ -2093,6 +2093,9 @@ text
 - serializer: updated serializer to avoid calls to "setter"
 - extended regression test
 
+- fixed in bug in ensemble-next (removed colon-prefix from methodname
+  in next)
+- extended regression test
 
 TODO:
 - info method definition for attributes?
