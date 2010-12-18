@@ -650,6 +650,7 @@ typedef struct NsfCallStackContent {
 #define NSF_CSC_CALL_IS_NEXT             1
 #define NSF_CSC_CALL_IS_GUARD            2
 #define NSF_CSC_CALL_IS_ENSEMBLE         4
+#define NSF_CSC_CALL_IS_COMPILE          8
 #define NSF_CSC_IMMEDIATE           0x0020
 #define NSF_CSC_FORCE_FRAME         0x0040
 #define NSF_CSC_CALL_IS_NRE         0x0100

@@ -53,7 +53,7 @@ namespace eval ::xotcl {
   #namespace import ::nx::Attribute
   # if we do this, "::xotcl::Class create Role -superclass Attribute"  will fail.
   #interp alias {} ::xotcl::Attribute {} ::nx::Attribute
-  ::nx::Class create ::xotcl::Attribute -superclass ::nx::Attribute
+  ::nx::MetaSlot create ::xotcl::Attribute -superclass ::nx::Attribute
 
   proc ::xotcl::self {{arg ""}} {
       switch $arg {
@@ -68,7 +68,7 @@ namespace eval ::xotcl {
 
   # @object ::xotcl::Object
   #
-  # Xotcl programs are constructed out of objects. This class
+  # XOTcl programs are constructed out of objects. This class
   # describes common structural and behavioural features for all XOTcl
   # objects. It is the root object-class in the XOTcl 2 object system.
 

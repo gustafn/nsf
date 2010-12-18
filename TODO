@@ -2097,6 +2097,13 @@ text
   in next)
 - extended regression test
 
+- Experimental Object-System specific resolver in method bodies
+  (allows resolving to the "right" next, self, etc. without 
+  namespace imports/paths)
+- deactivated automatic namespace path copying for child-objects
+- extended regression test
+
+
 TODO:
 - info method definition for attributes?
 

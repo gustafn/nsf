@@ -2679,40 +2679,107 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *n
 
   /*fprintf(stderr, "InterpColonCmdResolver %s flags %.6x\n", cmdName, flags);*/
 
-  if (!FOR_COLON_RESOLVER(cmdName) || flags & TCL_GLOBAL_ONLY) {
-    /* ordinary names and global lookups are not for us */
+  if ((*cmdName == ':' && *(cmdName + 1) == ':') || flags & TCL_GLOBAL_ONLY) {
+    /* fully qualified names and global lookups are not for us */
     return TCL_CONTINUE;
   }
 
   varFramePtr = Tcl_Interp_varFramePtr(interp);
   frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
 
-#if 0
-  /* skip over a nonproc frame, in case Tcl stacks it */
- if (frameFlags == 0 && Tcl_CallFrame_callerPtr(varFramePtr)) {
+  /*fprintf(stderr, "InterpColonCmdResolver frame cmdName %s flags %.6x, frame flags %.6x lambda %d\n", 
+    cmdName, flags, frameFlags, frameFlags & FRAME_IS_LAMBDA);*/
+
+  /*
+   * If the resolver is called from a lambda frame, use always the parent frame
+   */
+  if ((frameFlags & FRAME_IS_LAMBDA)) {
     varFramePtr = (CallFrame *)Tcl_CallFrame_callerPtr(varFramePtr);
     frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
-#if defined(CMD_RESOLVER_TRACE)
-    fprintf(stderr, "InterpColonCmdResolver uses parent frame\n");
-#endif
   }
+
+  /* 
+   * The resolver is called as well, when a body of a method is
+   * compiled.  In these situations, Tcl stacks a nonproc frame, that
+   * we have to skip. In order to safely identify such situations, we
+   * stuff into the call flags of the proc frame during the
+   * compilation step NSF_CSC_CALL_IS_COMPILE.
+   */
+  if (frameFlags == 0 && Tcl_CallFrame_callerPtr(varFramePtr)) {
+    varFramePtr = (CallFrame *)Tcl_CallFrame_callerPtr(varFramePtr);
+    frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
+
+    if ((frameFlags & (FRAME_IS_NSF_METHOD)) == 0
+	|| (((NsfCallStackContent *)varFramePtr->clientData)->flags & NSF_CSC_CALL_IS_COMPILE) == 0
+	) {
+      frameFlags = 0;
+    } else {
+#if defined(CMD_RESOLVER_TRACE)
+      fprintf(stderr, "InterpColonCmdResolver got parent frame cmdName %s flags %.6x, frame flags %.6x\n", 
+	      cmdName, flags, Tcl_CallFrame_isProcCallFrame(varFramePtr));
 #endif
+    }
+ }
 
 #if defined(CMD_RESOLVER_TRACE)
-  fprintf(stderr, "InterpColonCmdResolver cmdName %s flags %.6x, frame flags %.6x\n",cmdName,
-          flags, Tcl_CallFrame_isProcCallFrame(varFramePtr));
+  fprintf(stderr, "InterpColonCmdResolver cmdName %s flags %.6x, frame flags %.6x\n", 
+	  cmdName, flags, Tcl_CallFrame_isProcCallFrame(varFramePtr));
 #endif
 
   if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_OBJECT|FRAME_IS_NSF_CMETHOD )) {
+    if (*cmdName == ':') {
 #if defined(CMD_RESOLVER_TRACE)
-    fprintf(stderr, "    ... call colonCmd for %s\n", cmdName);
+      fprintf(stderr, "    ... call colonCmd for %s\n", cmdName);
 #endif
-    /*
-     * We have a cmd starting with ':', we are in an nsf frame, so
-     * forward to the colonCmd.
-     */
-    *cmdPtr = RUNTIME_STATE(interp)->colonCmd;
-    return TCL_OK;
+      /*
+       * We have a cmd starting with ':', we are in an nsf frame, so
+       * forward to the colonCmd.
+       */
+      *cmdPtr = RUNTIME_STATE(interp)->colonCmd;
+      return TCL_OK;
+    } else {
+      //xxxxx
+#if 1
+      /*
+       * Experimental Object-System specific resolver: If an
+       * unprefixed method name is found in a body of a method, we try
+       * to perform a lookup for this method in the namespace of the
+       * object system for the current object. If this lookup is not
+       * successful the standard lookups are performed. The
+       * object-system specific resolver allows to use the "right"
+       * (unprefixed) "self" or "next" calls without namespace
+       * imports.
+       */ 
+      NsfObject *object;
+      NsfObjectSystem *osPtr;
+      Tcl_Command cmd;
+      Tcl_HashTable *cmdTablePtr;
+      Tcl_HashEntry *entryPtr;
+
+      if (frameFlags & (FRAME_IS_NSF_METHOD|FRAME_IS_NSF_CMETHOD)) {
+	object = ((NsfCallStackContent *)varFramePtr->clientData)->self;
+      } else if (frameFlags & (FRAME_IS_NSF_OBJECT)) {
+	object = (NsfObject *)(varFramePtr->clientData);
+      } else {
+	object = NULL;
+      }
+      if (object) {
+	//xxx
+	osPtr = GetObjectSystem(object);
+	cmd = osPtr->rootClass->object.id;
+	cmdTablePtr = Tcl_Namespace_cmdTablePtr(((Command *)cmd)->nsPtr);
+	entryPtr = Tcl_CreateHashEntry(cmdTablePtr, cmdName, NULL);
+	/* fprintf(stderr, "InterpColonCmdResolver OS specific resolver tried to lookup %s for os %s in ns %s\n", 
+	   cmdName, ClassName(osPtr->rootClass), ((Command *)cmd)->nsPtr->fullName);*/
+	if (entryPtr) {
+	  /*fprintf(stderr, "InterpColonCmdResolver OS specific resolver found %s::%s\n",
+	    ((Command *)cmd)->nsPtr->fullName, cmdName);*/
+	  *cmdPtr = Tcl_GetHashValue(entryPtr);
+	  return TCL_OK;
+	}
+      }
+#endif
+    }
   }
 
 #if defined(CMD_RESOLVER_TRACE)
@@ -2755,7 +2822,8 @@ NsfNamespaceInit(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   Tcl_SetNamespaceResolvers(nsPtr, /*(Tcl_ResolveCmdProc*)NsColonCmdResolver*/ NULL,
                             NsColonVarResolver,
                             /*(Tcl_ResolveCompiledVarProc*)NsCompiledColonVarResolver*/NULL);
-#if 1
+#if 0
+  //xxxxx namespace path management
   /* 
    * In case there is a namespace path set for the parent namespace,
    * apply this as well to the object namespace to avoid surprises
@@ -6375,9 +6443,10 @@ MakeProcError(
 }
 
 static int
-ByteCompiled(register Tcl_Interp *interp, Proc *procPtr, CONST char *body) {
+ByteCompiled(Tcl_Interp *interp, unsigned short *cscFlagsPtr, Proc *procPtr, CONST char *body) {
   Tcl_Obj *bodyPtr = procPtr->bodyPtr;
   Namespace *nsPtr = procPtr->cmdPtr->nsPtr;
+  int result;
 
   if (bodyPtr->typePtr == Nsf_OT_byteCodeType) {
 # if defined(HAVE_TCL_COMPILE_H)
@@ -6398,7 +6467,7 @@ ByteCompiled(register Tcl_Interp *interp, Proc *procPtr, CONST char *body) {
 	|| (codePtr->compileEpoch != iPtr->compileEpoch)
 	|| (codePtr->nsPtr != nsPtr)
 	|| (codePtr->nsEpoch != nsPtr->resolverEpoch)) {
-
+      
       goto doCompilation;
     }
     return TCL_OK;
@@ -6408,9 +6477,12 @@ ByteCompiled(register Tcl_Interp *interp, Proc *procPtr, CONST char *body) {
 # if defined(HAVE_TCL_COMPILE_H)
   doCompilation:
 # endif
-    return TclProcCompileProc(interp, procPtr, bodyPtr,
+    *cscFlagsPtr |= NSF_CSC_CALL_IS_COMPILE;
+    result = TclProcCompileProc(interp, procPtr, bodyPtr,
                               (Namespace *) nsPtr, "body of proc",
                               body);
+    *cscFlagsPtr &= ~NSF_CSC_CALL_IS_COMPILE;
+    return result;
   }
 }
 
@@ -6458,7 +6530,7 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp,
   framePtr->objv = objv;
   framePtr->procPtr = procPtr;
   framePtr->clientData = cscPtr;
-  return ByteCompiled(interp, procPtr, TclGetString(objv[0]));
+  return ByteCompiled(interp, &cscPtr->flags, procPtr, TclGetString(objv[0]));
 }
 
 static void
