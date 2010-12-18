@@ -2687,6 +2687,7 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *n
   varFramePtr = Tcl_Interp_varFramePtr(interp);
   frameFlags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
 
+#if 0
   /* skip over a nonproc frame, in case Tcl stacks it */
  if (frameFlags == 0 && Tcl_CallFrame_callerPtr(varFramePtr)) {
     varFramePtr = (CallFrame *)Tcl_CallFrame_callerPtr(varFramePtr);
@@ -2695,6 +2696,8 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *n
     fprintf(stderr, "InterpColonCmdResolver uses parent frame\n");
 #endif
   }
+#endif
+
 #if defined(CMD_RESOLVER_TRACE)
   fprintf(stderr, "InterpColonCmdResolver cmdName %s flags %.6x, frame flags %.6x\n",cmdName,
           flags, Tcl_CallFrame_isProcCallFrame(varFramePtr));
