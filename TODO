@@ -2103,6 +2103,9 @@ text
 - deactivated automatic namespace path copying for child-objects
 - extended regression test
 
+- added deletion functionality to nsf::mixin
+- moved handling of methodNames of c-cmds to ResolveMethodName()
+- extended regression test
 
 TODO:
 - info method definition for attributes?

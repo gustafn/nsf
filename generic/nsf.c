@@ -1365,10 +1365,11 @@ ResolveMethodName(Tcl_Interp *interp, Tcl_Namespace *nsPtr, Tcl_Obj *methodObj,
     referencedObject = GetRegObject(interp, cmd, methodName, methodName1, fromClassNS);
     *regObject = referencedObject;
     *defObject = referencedObject;
+    *methodName1 = Tcl_GetCommandName(interp, cmd);
     if (referencedObject == NULL) {
       /* 
        * The cmd was not registered on an object or class, but we
-       * still report back the cmd (might be e.g. a primitive cmd.
+       * still report back the cmd (might be e.g. a primitive cmd).
        */
     }
   } else {
@@ -12263,6 +12264,9 @@ ListParamDefs(Tcl_Interp *interp, NsfParam CONST *paramsPtr, int style) {
 static int
 ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int withVarnames) {
   Proc *procPtr = GetTclProcFromCommand(cmd);
+
+  assert(methodName);
+
   if (procPtr) {
     NsfParamDefs *paramDefs = procPtr ? ParamDefsGet((Tcl_Command)procPtr->cmdPtr) : NULL;
     Tcl_Obj *list;
@@ -12360,16 +12364,7 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
 	Tcl_DStringAppend(dsPtr, cmdPtr->nsPtr->fullName, -1);
       }
       Tcl_DStringAppend(dsPtr, "::", 2);
-           
-      if (methodName != NULL) {
-	  Tcl_DStringAppend(dsPtr, methodName, -1);
-      } else {
-	  /* 
-	     This branch is enter for C-implemented commands,
-	     such as ::nsf::xotclnext
-          */
-	  Tcl_DStringAppend(dsPtr, Tcl_GetCommandName(interp,cmd), -1);
-      }
+      Tcl_DStringAppend(dsPtr, methodName, -1);
       
       /*fprintf(stderr,"Looking up ::nsf::parametersyntax(%s) ...\n",Tcl_DStringValue(dsPtr));*/
       parameterSyntaxObj = Tcl_GetVar2Ex(interp, "::nsf::parametersyntax", 
@@ -12466,6 +12461,8 @@ ListMethod(Tcl_Interp *interp,
 	   NsfObject *defObject,
 	   CONST char *methodName, Tcl_Command cmd,
            int subcmd, int withPer_object) {
+
+  assert(methodName);
 
   /*fprintf(stderr, "ListMethod %s %s cmd %p subcmd %d per-object %d\n",
     ObjectName(regObject), methodName, cmd, subcmd, withPer_object);*/
@@ -14586,8 +14583,8 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
   NsfClassOpt *clopt = NULL, *nclopt = NULL;
   int i;
 
-  /* fprintf(stderr, "NsfRelationCmd %s rel=%d val='%s'\n",
-     ObjectName(object), relationtype, valueObj ? ObjStr(valueObj) : "NULL");*/
+  /*fprintf(stderr, "NsfRelationCmd %s rel=%d val='%s'\n",
+    ObjectName(object), relationtype, valueObj ? ObjStr(valueObj) : "NULL");*/
 
   if (relationtype == RelationtypeClass_mixinIdx ||
       relationtype == RelationtypeClass_filterIdx) {
@@ -16867,8 +16864,8 @@ NsfObjInfoMethodMethod(Tcl_Interp *interp, NsfObject *object,
   cmd = ResolveMethodName(interp, object->nsPtr, methodNameObj,
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
   /*fprintf(stderr,
-	  "NsfObjInfoMethodMethod method %s object %p regObject %p defObject %p fromClass %d\n",
-	  ObjStr(methodNameObj), object,regObject,defObject,fromClassNS);*/
+	  "NsfObjInfoMethodMethod method %s / %s object %p regObject %p defObject %p fromClass %d\n",
+	  ObjStr(methodNameObj), methodName1, object,regObject,defObject,fromClassNS);*/
   result = ListMethod(interp,
 		      regObject ? regObject : object,
 		      defObject ? defObject : object,
@@ -17121,8 +17118,8 @@ NsfClassInfoMethodMethod(Tcl_Interp *interp, NsfClass *class,
   cmd = ResolveMethodName(interp, class->nsPtr, methodNameObj,
 			  dsPtr, &regObject, &defObject, &methodName1, &fromClassNS);
   /*fprintf(stderr,
-	  "NsfClassInfoMethodMethod object %p regObject %p defObject %p fromClass %d cmd %p\n",
-	  &class->object,regObject,defObject,fromClassNS, cmd);*/
+	  "NsfClassInfoMethodMethod object %p regObject %p defObject %p fromClass %d cmd %p method %s\n",
+	  &class->object,regObject,defObject,fromClassNS, cmd, methodName1);*/
   result = ListMethod(interp,
 		      regObject ? regObject : &class->object,
 		      defObject ? defObject : &class->object,

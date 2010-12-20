@@ -40,7 +40,10 @@ namespace eval ::nsf {
   #
   # ::nsf::mixin 
   #
-  # provide a similar interface as for ::nsf::method, ::nsf::alias, ...
+  # Provide a similar interface as for ::nsf::method, ::nsf::alias,
+  # etc..  Semantically, ::nsf::mxiin behaves like a "mixin add", but
+  # can be used as well for deleting the mixin list (empty last
+  # argument).
   #
 
   set ::nsf::parametersyntax(::nsf::mixin) "object ?-per-object? classes"
@@ -52,9 +55,14 @@ namespace eval ::nsf {
     } else {
       set rel "class-mixin"
     }
-    set oldSetting [::nsf::relation $object $rel]
-    # use uplevel to avoid namespace surprises
-    uplevel [list ::nsf::relation $object $rel [linsert $oldSetting end $args]]
+    puts stderr LL=[llength $args]-$args
+    if {[lindex $args 0] ne ""} {
+      set oldSetting [::nsf::relation $object $rel]
+      # use uplevel to avoid namespace surprises
+      uplevel [list ::nsf::relation $object $rel [linsert $oldSetting 0 $args]]
+    } else {
+      uplevel [list ::nsf::relation $object $rel ""]
+    }
   }
 
   #

@@ -406,4 +406,7 @@ Test case parametersyntax {
   ? {::nx::Object info method parametersyntax method} "name arguments ?-returns value? body ?-precondition value? ?-postcondition value?"
   # a forwarder to ::nsf::relation; definition comes via ::nsf::parametersyntax
   ? {::nx::Object info method parametersyntax mixin} "?classes?|?add class?|?delete class?"
+
+  ? {::nx::Object info method parametersyntax ::nx::next} "?arguments?"
+  ? {::nx::Object info method parametersyntax ::nsf::xotclnext} "?--noArgs? ?arg ...?"
 }

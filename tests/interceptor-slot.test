@@ -22,6 +22,20 @@ C mixin add M2
 C mixin delete M2
 ? {c1 info precedence} "::M ::C ::nx::Object"
 C mixin delete M
+? {C info mixin classes} ""
+C mixin ::M
+C mixin {}
+? {C info mixin classes} ""
+
+#
+# test nsf::mixin interface
+#
+::nsf::mixin C ::M
+? {C info mixin classes} "::M"
+::nsf::mixin C ::M2
+? {C info mixin classes} "::M2 ::M"
+::nsf::mixin C ""
+? {C info mixin classes} ""
 
 # per-object mixins
 ? {c1 info precedence} "::C ::nx::Object"
