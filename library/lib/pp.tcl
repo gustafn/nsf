@@ -204,7 +204,7 @@ nx::Object create nx::pp {
     $state flush
   }
 
-  :public method render {block} {
+  :public method render {-noCSSClasses:switch block} {
     set :output ""
     :puts "<style>"
     :puts ".nx             {color: #000000; font-weight: normal; font-style: normal;}"
