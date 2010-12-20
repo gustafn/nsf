@@ -12360,7 +12360,18 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
 	Tcl_DStringAppend(dsPtr, cmdPtr->nsPtr->fullName, -1);
       }
       Tcl_DStringAppend(dsPtr, "::", 2);
-      Tcl_DStringAppend(dsPtr, methodName, -1);
+           
+      if (methodName != NULL) {
+	  Tcl_DStringAppend(dsPtr, methodName, -1);
+      } else {
+	  /* 
+	     This branch is enter for C-implemented commands,
+	     such as ::nsf::xotclnext
+          */
+	  Tcl_DStringAppend(dsPtr, Tcl_GetCommandName(interp,cmd), -1);
+      }
+      
+      /*fprintf(stderr,"Looking up ::nsf::parametersyntax(%s) ...\n",Tcl_DStringValue(dsPtr));*/
       parameterSyntaxObj = Tcl_GetVar2Ex(interp, "::nsf::parametersyntax", 
 					 Tcl_DStringValue(dsPtr), TCL_GLOBAL_ONLY);
       
