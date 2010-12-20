@@ -1,3 +1,4 @@
+package require nx
 package require XOTcl 2.0
 package provide nx::serializer 1.0
 
