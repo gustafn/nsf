@@ -50,7 +50,7 @@ namespace eval ::nsf {
       set rel "object-mixin"
       set args [lrange $args 1 end]
     } else {
-      set rel "mixin"
+      set rel "class-mixin"
     }
     set oldSetting [::nsf::relation $object $rel]
     # use uplevel to avoid namespace surprises

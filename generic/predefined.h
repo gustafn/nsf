@@ -20,7 +20,7 @@ static char cmd[] =
 "if {[lindex $args 0] eq \"-per-object\"} {\n"
 "set rel \"object-mixin\"\n"
 "set args [lrange $args 1 end]} else {\n"
-"set rel \"mixin\"}\n"
+"set rel \"class-mixin\"}\n"
 "set oldSetting [::nsf::relation $object $rel]\n"
 "uplevel [list ::nsf::relation $object $rel [linsert $oldSetting end $args]]}\n"
 "::nsf::provide_method autoname {::nsf::alias autoname ::nsf::methods::object::autoname}\n"
