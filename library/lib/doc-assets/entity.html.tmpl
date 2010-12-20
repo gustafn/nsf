@@ -38,7 +38,7 @@
             </div>
         </form>
 	</div><!-- hd -->
-	[:!let self_owned_parts [[:origin] owned_parts]]
+	[:!let self_owned_parts [[:origin] owned_parts -class ::nx::doc::StructuredEntity]]
 	[:!let owned_parts [dict merge $project_entities $self_owned_parts]]
 	<div id="bd">
 	<div id="yui-main">

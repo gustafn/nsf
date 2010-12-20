@@ -8,17 +8,103 @@
 # @version 1.0.0a
 # @namespace ::nsf
 
+# @glossary alias
+#
+# An alias is a placeholder for a command, its target, which is made
+# available as a proper method of the alias-owning object.
+#
+# @pretty_name Alias
+# @pretty_plural Aliases
+
+# @glossary class
+#
+# A class represents a family of object sharing a minimal common
+# structure and behaviour.
+#
+# @pretty_name Class
+# @pretty_plural Classes
+
+# @glossary method_handle
+#
+# A method handle is a fully qualified, directly executable reference
+# to scripted procs and methods, as well as C-implemented commands and
+# methods. An handle is a unique identifier for a given '''interp'''.
+# 
+# @pretty_name Method handle
+# @pretty_plural Method handles
+
+# @glossary cframe
+#
+# NSF provides adds a set of callframe types, e.g., to carry
+# object-specific callstack information, to realise variable- and
+# command-resolution schemes etc. The callframe types are realised by
+# piggybacking standard Tcl callframe structures. The following
+# callframe types can be found: ...
+# 
+# @pretty_name Callframe
+# @pretty_plural Callframes
+
+
+
+# @command alias
+#
+# A factory command which creates an <<@gls alias>> method for an
+# object or a class. The aliased (or target) command so appears as a
+# member of the method record of the object or the instances of the
+# alias-defining class. Beware, method <<@glspl alias>> and this factory
+# command are not related to Tcl's interpreter aliases and their
+# '''interp alias''' helper.
+#
+# @parameter object 		The target object to own the alias method
+# @parameter -per-object 	If the target object is a <<@gls
+# 				class>>, one can specify the owner
+# 				scope (i.e., per-object or per-class)
+# 				of the alias method
+# @parameter methodName:optional The name of the alias method. Under
+# 				this name, the alias method is listed
+# 				in the method signature interface. The
+# 				alias method name and the target name
+# 				so can differ from each other.
+# @parameter -frame 		Denotes the type of <<@gls cframe>> to
+# 				be stacked upon invoking the alias
+# 				method. Permissible options are:
+# 				'''method''', '''object''',
+# 				'''default'''
+# @parameter cmdName 		The alias source as a <<@gls method_handle>>
+# @return 			The <<@gls method_handle>> representing the
+# 				alias method just created
+
 
 # @command assertion
 #
-# @parameter object:object
-# @parameter assertionsubcmd:required
-# @parameter arg
-
-# @command existsvar
+# A helper command to (a) define assertion expressions and (b) to
+# selectively activate checking of certain assertion types on a given
+# object.
 #
-# @parameter object:object
-# @parameter var
+# @parameter object 		Denotes an object or class as the
+# 				subject of assertion checking. It also
+# 				stores the assertion expressions to be
+# 				evaluated.
+# @parameter assertionsubcmd 	The subcommand '''check''' allows you to
+# 				specify the category of assertions to
+# 				be checked, while '''object-invar''' and
+# 				'''class-invar''' actually set
+# 				assertion expressions in terms of
+# 				object or class invariants. 
+# @parameter arg:optional Either: (a) subcommand '''check''': A list
+# 				of assertion checks to activate
+# 				(permissible options: '''all''',
+# 				'''pre''', '''post''',
+# 				'''object-invar''',
+# 				'''class-invar'''); if omitted, the
+# 				currently active assertion type is
+# 				returned.  
+#				(b) subcommands '''object-invar''' and
+# 				'''class-invar''': A list of assertion
+# 				expressions (in the sense of Tcl
+# 				expression statements). A list of
+# 				assertion expressions is evaluated
+# 				under a logical AND.
 
 # @command methodproperty
 # 
@@ -37,34 +123,134 @@
 
 # @command createobjectsystem
 #
-# @parameter rootClass
-# @parameter rootMetaClass
-# @parameter systemMethods:optional
-
-# @command dispatch
+# A factory command for specifying an NSF object system. By providing
+# the object names of a root class and a root-meta class, you obtain
+# two barebone objects as a starting point to define the basic class
+# and object interfaces for your object system. In addition, you may
+# map system hooks required by the NSF runtime to methods specific to
+# your object system. For instance, the Nx object system is defined as follows:
+# '''
+# ::nsf::createobjectsystem ::nx::Object ::nx::Class {
+#   -class.alloc alloc 
+#   -class.create create
+#   -class.dealloc dealloc
+#   -class.recreate recreate 
+#   -class.requireobject __unknown
+#   -object.configure configure
+#   -object.defaultmethod defaultmethod 
+#   -object.destroy destroy 
+#   -object.init init 
+#   -object.move move 
+#   -object.objectparameter objectparameter 
+#   -object.residualargs residualargs
+#   -object.unknown unknown
+# }
+# '''
 #
-# @parameter object:object
-# @parameter -objscope
-# @parameter command
-# @parameter args
+# @parameter rootClass 		The name of the class at the root of
+# 				your class hierarchy.
+# @parameter rootMetaClass 	The name of the meta-class at the root
+# 				of your meta-class hierarchy.
+# @parameter systemMethods:optional 	A map which provides bindings
+# 					between system hooks (e.g.,
+# 					'''-class.create''') and
+# 					methods defined on the root
+# 					class and the root meta-class.
 
 # @command deprecated
 #
-# @parameter what
-# @parameter oldCmd
-# @parameter newCmd:optional
-
-# @command objectproperty
+# A helper command which prints a notice that a given command is
+# deprecated, optionally pointing to its successor, if any. 
 #
-# @parameter object:object
-# @parameter objectkind Accepts one of: '''type''', '''object''',
-# '''class''', '''baseclass''', '''metaclass''', '''hasmixin'''
-# @parameter value:optional
+# @parameter what 	Identifies the command type (proc, method, ...)
+# @parameter oldCmd 	Gives the name of the deprecated command
+# @parameter newCmd:optional 	Points to the successor command
+
+
+# @command dispatch
+#
+# The command gives script-level access to the NSF infrastructure for
+# method dispatch. It can be used to bypass standard method
+# dispatching (as defined by a given object system) and to devise your
+# own method dispatch scheme. Likewise, it provides means to create
+# programs which operate over several object systems and their method
+# dispatching schemes (e.g., a serializer, a program structure
+# analyzer). 
+#
+# @parameter object 		Indicates the name of the receiving object
+# @parameter -frame		Denotes the type of <<@gls cframe>> to
+# 				be stacked upon invoking the alias
+# 				method. Permissible options are:
+# 				'''method''', '''object''',
+# 				'''default'''
+# @parameter command 		Specifies the receiving command, to be invoked in
+# 				the callframe scope of the receiver
+# 				object. The receiving command can be
+# 				specified as a <<@gls method_handle>>
+# @parameter args		The actual invocation arguments, to be
+# 				funneled to the receiving command.
+# @return 			The result value as returned by the receiving 
+# 				command
+
+# @command existsvar
+#
+# A low-level introspection command to query the existance of an
+# object variable, given the variable's name and the holder object. By
+# existance, we mean whether a variable has been 'created' (and not
+# necessarily 'defined', in terms of Tcl variable semantics). It,
+# therefore, pairs with Tcl's '''[info exists]'''.
+#
+# @parameter object 	The variable-holding object
+# @parameter varname	The variable name
+# @return		If the variable exists, the test returns
+# 			'''1'''; '''0''' otherwise
+
+# @command exithandler
+#
+# This command is used to register and manage an application-level
+# handler which is to be executed upon shutting down a NSF-enabled
+# '''interp'''. The handler takes the form of a script which is
+# evaluated early upon calling <<@command finalize>>.
+#
+# @parameter args 	A variable argument vector, identifying a
+# 			subcommand ('''set''', '''get''', '''unset''')
+# 			and an optional value which carries the
+# 			handler script to be set.
+
+# @command finalize
+#
+# The command manually triggers the disciplined shutdown and
+# destruction of an entire object system in a given
+# '''interp'''. First, the application-level exit handler script is
+# evaluated. You may provide your own exit handler using <<@command
+# exithandler>>. Second, the object system itself is cleared and
+# removed from the '''interp'''. This discrete destruction trigger is
+# convenient to control an object system's lifespan in environments
+# with more complex '''interp''' lifecycles (e.g., in threaded Tcl
+# programs, '''interp''' reuse, etc.).
 
 # @command importvar
 #
-# @parameter object:object
-# @parameter args
+# A command used to create a link to an object variable in the current
+# callframe context (i.e., a proc or eval frame). It arranges for a
+# one or several local variables in the current callframe to refer to
+# variables held by an object. The command resembles the variable
+# binding semantics of '''upvar''', '''uplevel''', and
+# '''global'''. While the local link variable does not have to exist
+# at the time of calling this command, as it will be lazily created
+# upon first use, there must not exist a local variable by the name of
+# the specified link variable.
+#
+# @parameter object		The variable-holding object
+# @parameter args 		A variable argument vector, defining
+# 				the intended mappings between object
+# 				and local variables. Each mapping is a
+# 				single- or double-valued list. A
+# 				single-valued mapping will create a
+# 				local link variable with the same name
+# 				as the object variable. A
+# 				double-valued mapping will give the
+# 				link variable a different name.
 
 # @command parametercheck
 #
@@ -192,8 +378,22 @@
 # @command configure
 # 
 # A top-level configuration facility which allows you modify
-# properties of the "Next" object system for the scope of an entire
+# properties of the a given object system for the scope of an entire
 # '''interp'''.
+
+# @command.sub-command {configure debug}
+#
+# The NSF runtime provides you with the <<@command log>> command to
+# drop logging statements, filtered by custom debug levels. To
+# activate a certain debug level, use this configuration facility. The
+# runtime defaults to debug level '''0'''. A debug level greater than
+# '''0''' increases the runtime's native verbosity (i.e., selected
+# warnings and debugging-critical information will be displayed).
+#
+# @parameter level:optional 	If provided, sets the runtime's debug
+# 				level. If omitted, you obtain the
+# 				debug level currently active.
+
 
 # @command.sub-command {configure filter}
 #
@@ -203,7 +403,7 @@
 # state is needed for the serializer which should introspect and stream the
 # objects and classes without being affected by active filter.
 #
-# @parameter toggle Accepts either "on" or "off"
+# @parameter toggle Accepts either '''on''' or '''off'''
 # @return The current filter activation state
 
 # @command.sub-command {configure softrecreate}
@@ -222,25 +422,25 @@
 # dependent subclasses etc. Consider the example of a class hierarchy
 # '''A <- B <- C'''. Without '''softrecreate''' set, a reload of
 # '''B''' means first a destroy of B, leading to '''A <- C''', and
-# instances of '''B''' are re-classed to <<@class
-# ::nx::Object>>. When softrecreate is set, the class hierarchy
-# remains untouched.
+# instances of '''B''' are re-classed to the object system's root
+# class. When softrecreate is set, the class hierarchy remains
+# untouched.
 #
-# @parameter toggle Accepts either "on" or "off"
+# @parameter toggle Accepts either '''on''' or '''off'''
 # @return The current toggle value
 
 
 # @command.sub-command {configure objectsystems}
 # 
 # A mere introspection subcommand. It gives you the top level of the
-# current object system, i.e., the ruling root class and root
-# meta-class. For "Next":
+# current object system, i.e., the ruling root class and the root
+# meta-class. It is the introspective counterpart of <<@command
+# createobjectsystem>>.
 #
-# '''
-#	configure objectsystems; # returns "::nx::Object ::nx::Class"
-# '''
-#
-# @return The active pair of root class and root meta-class
+# @return 	A list of currently specified object systems. Each
+# 		sublist gives the pair of root class and
+# 		root meta-class and (if available) the mappings of
+# 		system hooks to system methods.
 
 # @command.sub-command {configure keepinitcmd}
 #
@@ -255,34 +455,120 @@
 # @parameter value:boolean Either '''true''' or '''false'''
 # @return The current setting
 
-# @command alias
+# @command.sub-command {configure checkarguments}
 #
-# @parameter object:object The target object which becomes the owner of
-# the aliased command (method, object or command).
+# NSF provides optional type checkers for arguments to method
+# invocations, based on method parameter specifications. This
+# configuration options lets you activate or deactive type checking on
+# method arguments for the scope of a given '''interp'''.
 #
-# @parameter -per-object:switch If the target object is a class, one can
-# specify the binding scope (i.e., per-object or per-class) of the
-# aliased command
-#
-# @parameter methodName The name of the alias. 
-# @parameter -nonleaf:switch ...
-# @parameter -objscope:switch ...
-# @parameter cmdName The alias source as a command handle (as returned by ...)
+# @parameter value:boolean Either '''true''' or '''false'''
+# @return The current setting, either '''1''' or '''0'''
 
-# @command finalize
+
+# @command.sub-command {configure checkresults}
+#
+# NSF provides optional type checkers for result values of method
+# executions. For details, see <<@command methodproperty>>. This
+# configuration options lets you activate or deactive this type
+# checking for the scope of a given '''interp'''.
+#
+# @parameter value:boolean Either '''true''' or '''false'''
+# @return The current setting, either '''1''' or '''0'''
 
 # @command interp 
 #
-# @parameter name
-# @parameter args
+# A convenience wrapper command around '''[interp]'''. When '''[interp
+# create]''' is intercepted, the resulting slave '''interp''' is
+# equipped with the NSF extension by calling the extension's
+# '''*_Init()''' function on the new '''interp'''. Roughly, it
+# corresponds to the following scripted version:
+#
+# '''
+# ::proc ::nsf::interp {subcmd args} {
+#   set r [uplevel [list ::interp $subcmd {*}$args]]
+#   switch -- $subcmd {
+#     create {
+#       $r eval [list package req nsf]
+#     }
+#   }
+#   return $r
+# }
+# '''
+#
+# @parameter name 	The name of the slave '''interp'''
+# @parameter args	A variable argument vector,
+# 			carrying subcommand-specific arguments.
+
+# @command log
+#
+# Provides script-level access to NSF's logging facilities. You may
+# specify logging statements to be filtered by custom-defined debug
+# levels. By convention, level '''0''' represents the lowest verbosity
+# level. To set the actual debug level, use <<@command.command
+# {configure debug}>>.
+#
+# @parameter level 	A numeric debugging level, e.g.: '''0''', '''1''',
+# 			...
+# @parameter msg 	The logging statement to display
 
 # @command is 
 #
-# @parameter value
-# @parameter constraint
-# @parameter -hasmixin
-# @parameter -type
-# @parameter arg
+# The command tests whether a given string is a valid according to a
+# value constraint. Depending on the nature of the tested string value
+# (i.e., a Tcl value structure, an NSF object, or an NSF class), you
+# can express various constraint types.
+#
+# 1. Constraint types on Tcl value representations ('''Tcl_Obj'''),
+# i.e. arbitrary strings:
+#
+# You may use any character class provided by '''[string is]''', e.g.:
+# '''
+# ::nsf::is boolean|double|false|integer|list|lower|true|upper|wideinteger /value/
+# '''
+# A Tcl value may be tested whether it represents an NSF object (see
+# also <<@command isobject>>):
+# '''
+# ::nsf::is object /value/
+# '''
+# 2. Constraint types on NSF objects:
+#
+# Objects may be tested whether they qualify as a class and whether
+# they have a particular object-type:
+# '''
+# ::nsf::is object,type=/class/ /object/
+# ::nsf::is class /object/
+# '''
+# 3. Constraint types on NSF classes:
+#
+# Classes can be tested for their relationship status, e.g., whether
+# they serve as meta-class for other classes:
+# '''
+# ::nsf::is metaclass /class/
+# ''' 
+#
+# @parameter -complain:switch 	If set, a constraint violation will
+# 				result in a Tcl error being fired.
+# @parameter constraint 	The actual value constraint expression
+# @parameter value 		The value to test
+# @return			In the non-complaining mode
+# 				('''-complain''' has been omitted), a
+# 				pass is signalled by '''1''', a
+# 				violation by '''0'''. In complaining
+# 				mode, a Tcl error is raised in case of
+# 				a constraint violation along with a
+# 				'''0''' return value.
+
+# @command isobject
+#
+# Tests whether a given Tcl command represents an NSF object. The
+# command incurs the least dispatch overhead to identify an object and
+# is preferred over its derivates, such as <<@command is>>.
+#
+# @parameter value 	The value to test
+# @return 		If the value represents an object, '''1''' is
+# 			signalled, '''0''' otherwise.
+
 
 # @command my
 #

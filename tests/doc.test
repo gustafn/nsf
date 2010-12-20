@@ -1082,7 +1082,39 @@ set project [::nx::doc::@project new \
 		   package nsf
 		 }]
 
-set project [processor process -sandboxed $project]
+set ::nsf::includes {
+  ::nsf::alias
+  ::nsf::configure 
+  ::nsf::current
+  ::nsf::finalize
+  ::nsf::interp
+  ::nsf::is
+  ::nsf::log
+  ::nsf::my
+  ::nsf::next 
+  ::nsf::relation
+  ::nsf::tmpdir
+  ::nsf::assertion
+  ::nsf::createobjectsystem
+  ::nsf::dispatch
+  ::nsf::existsvar
+  ::nsf::exithandler
+  ::nsf::forward
+  ::nsf::importvar
+  ::nsf::isobject
+  ::nsf::method
+  ::nsf::methodproperty
+  ::nsf::provide_method
+  ::nsf::qualify
+  ::nsf::require_method
+  ::nsf::setter
+  ::nsf::setvar
+}
+
+set project [processor process \
+		 -sandboxed \
+		 -validate \
+		 -include $::nsf::includes $project]
 
 ::nx::doc::make doc \
     -renderer ::nx::doc::NxDocRenderer \
@@ -1091,7 +1123,6 @@ set project [processor process -sandboxed $project]
 
 
 puts stderr >>>>>>>NextScriptingLanguage<<<<<<<<
-
 set _ [time {
   set project [::nx::doc::@project new \
 		   -name NextScriptingLanguage \
@@ -1100,11 +1131,15 @@ set _ [time {
 		   -@namespace "::nx" \
 		   -sources {
 		     package nx
-		   }]
+		   } -depends $project]
 
   # ISSUE: If calling '-namespace "::nx"' instead of '-@namespace
   # "::nx"', we get an irritating failure. VERIFY!
-  processor process -sandboxed $project
+  processor process \
+      -validate \
+      -sandboxed \
+      $project
+
   ::nx::doc::make doc \
       -renderer ::nx::doc::NxDocRenderer \
       -project $project \
@@ -1112,77 +1147,6 @@ set _ [time {
 } 1]
 
 puts stderr ">>>>> gross timing for $project $_"
-# exit
-
-#   set i [interp create]
-#   $i eval {
-#     package req nx::doc
-#     namespace import ::nx::*
-#     namespace import ::nx::doc::*
-    
-#     # 1) NSF documentation project
-#     set project [::nx::doc::@project new \
-# 		     -name NextScriptingFramework \
-# 		     -url http://www.next-scripting.org/ \
-# 		     -version 1.0.0a \
-# 		     -@namespace "::nsf" \
-# 		     -sources {
-# 		       {package nx}
-# 		       {scriptfile generic/nsf.tcl}
-# 		       {script {}}
-# 		     }]
-
-#     # doc process -noeval true generic/nsf.tcl
-#     set project [doc process -sandboxed -type project $project]
-
-#     ::nx::doc::make doc \
-#     	-renderer ::nx::doc::NxDocRenderer \
-#     	-project $project \
-#     	-outdir [::nsf::tmpdir]
-
-#     #puts stderr NSF=[info commands ::nx::doc::entities::command::nsf::*]
-
-#     puts stderr TIMING=[time {
-#     set project [::nx::doc::@project new \
-#     		     -name NextScriptingLanguage \
-#     		     -url http://www.next-scripting.org/ \
-#     		     -version 1.0.0a \
-#     		     -@namespace "::nx"]
-#       # ISSUE: If calling '-namespace "::nx"' instead of '-@namespace
-#       # "::nx"', we get an irritating failure. VERIFY!
-#     doc process -noeval true library/nx/nx.tcl
-#     ::nx::doc::make doc \
-#     	-renderer ::nx::doc::NxDocRenderer \
-#     	-project $project \
-#     	-outdir [::nsf::tmpdir]
-#     } 1]
-#   }
-
-#   interp delete $i
-  
-#   set _ {
-#     # 2) XOTcl2 documentation project
-#     doc process -noeval true library/xotcl/xotcl.tcl
-#     ::nx::doc::make doc \
-# 	-renderer ::nx::doc::NxDocTemplateData \
-# 	-outdir [::nsf::tmpdir] \
-# 	-project {name XOTcl2 url http://www.xotcl.org/ version 2.0.0a}
-    
-#     # 3) NSL documentation project
-#     doc process -noeval true library/nx/nx.tcl
-#     ::nx::doc::make doc \
-# 	-renderer ::nx::doc::NxDocTemplateData \
-# 	-outdir [::nsf::tmpdir] \
-# 	-project {name NextScriptingLanguage url http://www.next-scripting.org/ version 1.0.0a}
-    
-#     # 4) Next Scripting Libraries
-#     # doc process -noeval true ...
-#     # ::nx::doc::make doc \
-#     # 	-renderer ::nx::doc::NxDocTemplateData \
-#     # 	-outdir [::nsf::tmpdir] \
-#     # 	-project {name NextScriptingLibraries url http://www.next-scripting.org/ version 1.0.0a}
-#   }
-
 
 # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # #

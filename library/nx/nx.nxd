@@ -913,14 +913,6 @@
 # @pretty_name Slot
 # @pretty_plural Slots
 
-# @glossary class
-#
-# A class represents a family of object sharing a minimal common
-# structure and behaviour.
-#
-# @pretty_name Class
-# @pretty_plural Classes
-
 # @glossary method_handle
 #
 # A method handle represents

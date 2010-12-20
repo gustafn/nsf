@@ -25,7 +25,7 @@
     <div id="splash_classList">
       <ul>
 	[:!let idx 0]
-	[:for class ${:@class} {
+	[:for class [:!get -sortedby name @class] {
 	 <li><a href="[${class} filename].html" title="[${class} name]" id="class_$idx">[${class} print_name -status]</a></li>
 	[incr idx; return]
 	} ]
@@ -41,7 +41,7 @@
     <div id="splash_classList">
       <ul>
 	[:!let idx 0]
-	[:for obj ${:@object} {
+	[:for obj [:!get -sortedby name @object] {
 	 <li><a href="[${obj} filename].html" title="[${obj} name]"
 	id="class_$idx">[${obj} print_name -status]</a></li>
 	[incr idx; return]
@@ -59,7 +59,7 @@
     <div id="splash_classList">
       <ul>
 	[:!let idx 0]
-	[:for cmd ${:@command} {
+	[:for cmd [:!get -sortedby name @command] {
 	 <li><a href="[${cmd} filename].html" title="[$cmd name]"
 	id="cmd_$idx">[$cmd print_name -status]</a></li>
 	[incr idx; return]

@@ -1,5 +1,6 @@
-[:?var :@glossary {
-[:!let entries [sorted ${:@glossary} name]]
+[:!let gls [:@glossary]]
+[:? {$gls ne ""} {
+[:!let entries [sorted $gls name]]
 <dl id="glossary" title="Project glossary">
   [:for entry $entries {
   [:!let ddesc [$entry as_text]]
@@ -19,7 +20,8 @@
       <span class="caps">$dtext</span></dt>
   <dd>$ddesc
     [:?objvar $entry refs {
-  [:!let refs [sort_by_value [$entry eval {set :refs}]]]
+    [:? {[$entry eval [concat dict exists \${:refs} [current]]]} { 
+      [:!let refs [sort_by_value [$entry eval [concat dict get \${:refs} [current]]]]]
   <div class="section field member"
        rel="yui:member"  resource="#">
     <div class="content" rel="yui:properties">
@@ -36,6 +38,7 @@
       </code>
     </div>
   </div>
+  }]
   }]
   </dd>
   }]
