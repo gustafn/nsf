@@ -9,4 +9,5 @@
 # full path name of this file's directory.
 
 package ifneeded nx::doc 0.1 [list source [file join $dir doc-tools.tcl]]
+package ifneeded nx::pp 1.0 [list source [file join $dir pp.tcl]]
 package ifneeded nx::test 1.0 [list source [file join $dir test.tcl]]
