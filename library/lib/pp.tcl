@@ -195,6 +195,15 @@ namespace eval ::nx::pp {
 #
 nx::Object create nx::pp {
   
+  :public method toHTML {block} {
+    set state [self]::default
+    set l [string length $block]
+    for {set i 0} {$i < $l} {incr i} {
+      set state [$state process [string index $block $i]]
+    }
+    $state flush
+  }
+
   :public method render {block} {
     set :output ""
     :puts "<style>"
@@ -206,13 +215,7 @@ nx::Object create nx::pp {
     :puts ".nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}"
     :puts "</style>"
     :puts "<pre class='nx'>"
-    set state [self]::default
-    
-    set l [string length $block]
-    for {set i 0} {$i < $l} {incr i} {
-      set state [$state process [string index $block $i]]
-    }
-    $state flush
+    :toHTML $block
     :puts "</pre>\n"
     return ${:output}
   }
