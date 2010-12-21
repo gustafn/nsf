@@ -145,7 +145,7 @@ nsfCmd self NsfSelfCmd {
 nsfCmd setter NsfSetterCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}
-  {-argName "parameter" -type tclobj}
+  {-argName "parameter" -required 1 -type tclobj}
 }
 nsfCmd setvar NsfSetVarCmd {
   {-argName "object" -required 1 -type object}

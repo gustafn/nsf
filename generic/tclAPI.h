@@ -2249,7 +2249,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::setter", NsfSetterCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
   {"-per-object", 0, 0, ConvertToString},
-  {"parameter", 0, 0, ConvertToTclobj}}
+  {"parameter", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::__db_show_stack", NsfShowStackCmdStub, 0, {
   }

@@ -3167,7 +3167,6 @@ namespace eval ::nx {
       set first_block 1
       set processed_entities [list]
       foreach {line_offset block} $blocks {
-	puts stderr BLOCK=$block
 	array set arguments [list -initial_section context \
 				 -parsing_level $parsing_level]
 
