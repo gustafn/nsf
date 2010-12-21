@@ -513,11 +513,22 @@ NsfCallMethodWithArgs(ClientData clientData, Tcl_Interp *interp, Tcl_Obj *method
 
 #include "nsfStack.c"
 
-/* extern callable GetSelfObj */
-Nsf_Object*
+/*
+ * 3 extern callable routines for the preliminary C interface
+ */
+extern Nsf_Object *
 NsfGetSelfObj(Tcl_Interp *interp) {
-  return (Nsf_Object*)GetSelfObj(interp);
+  return (Nsf_Object*) GetSelfObj(interp);
 }
+extern Nsf_Object *
+NsfGetObject(Tcl_Interp *interp, CONST char *name) {
+  return (Nsf_Object*) GetObjectFromString(interp, name);
+}
+extern Nsf_Class *
+NsfGetClass(Tcl_Interp *interp, CONST char *name) {
+  return (Nsf_Class *)GetClassFromString(interp, name);
+}
+
 
 /*
  *  NsfObject Reference Accounting
@@ -3370,10 +3381,22 @@ NSCheckNamespace(Tcl_Interp *interp, CONST char *nameString, Tcl_Namespace *pare
 
 
 /*
- * Find the "real" command belonging eg. to an Next Scripting class or object.
- * Do not return cmds produced by Tcl_Import, but the "real" cmd
- * to which they point.
+ *----------------------------------------------------------------------
+ * NSFindCommand --
+ *
+ *    Find the "real" command belonging eg. to an Next Scripting class or object.
+ *    Do not return cmds produced by Tcl_Import, but the "real" cmd
+ *    to which they point.
+ *
+ * Results:
+ *    Tcl_Command or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
  */
+
 NSF_INLINE static Tcl_Command
 NSFindCommand(Tcl_Interp *interp, CONST char *name) {
   Tcl_Command cmd;
@@ -3391,52 +3414,72 @@ NSFindCommand(Tcl_Interp *interp, CONST char *name) {
 }
 
 /*
- * C interface routines for manipulating objects and classes
- */
-
-extern Nsf_Object*
-NsfGetObject(Tcl_Interp *interp, CONST char *name) {
-  return (Nsf_Object*) GetObjectFromString(interp, name);
-}
-
-/*
- * Find an object using a char *name
+ *----------------------------------------------------------------------
+ * GetObjectFromString --
+ *
+ *    Lookup an object from a given string. The function performs a
+ *    command lookup (every object is a command) and checks, if the
+ *    command is bound to an nsf object.
+ *
+ * Results:
+ *    NsfObject* or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
  */
 static NsfObject *
 GetObjectFromString(Tcl_Interp *interp, CONST char *name) {
   register Tcl_Command cmd;
+
   assert(name);
   /*fprintf(stderr, "GetObjectFromString name = '%s'\n", name);*/
-
   cmd = NSFindCommand(interp, name);
-
-  /*if (cmd) {
-    fprintf(stderr, "+++ NsfGetObject from %s -> objProc=%p, dispatch=%p OK %d\n",
-            name, Tcl_Command_objProc(cmd), NsfObjDispatch, Tcl_Command_objProc(cmd) == NsfObjDispatch);
-            }*/
 
   if (cmd && Tcl_Command_objProc(cmd) == NsfObjDispatch) {
     /*fprintf(stderr, "GetObjectFromString cd %p\n", Tcl_Command_objClientData(cmd));*/
     return (NsfObject*)Tcl_Command_objClientData(cmd);
   }
-  return 0;
+  return NULL;
 }
 
 /*
- * Find a class using a char *name
+ *----------------------------------------------------------------------
+ * GetClassFromString --
+ *
+ *    Lookup a class from a given string. The function performs an
+ *    object lookup and checks, if the object is a class
+ *
+ * Results:
+ *    NsfClass* or NULL
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
  */
-
-extern Nsf_Class *
-NsfGetClass(Tcl_Interp *interp, CONST char *name) {
-  return (Nsf_Class *)GetClassFromString(interp, name);
-}
-
 static NsfClass *
 GetClassFromString(Tcl_Interp *interp, CONST char *name) {
   NsfObject *object = GetObjectFromString(interp, name);
   return (object && NsfObjectIsClass(object)) ? (NsfClass*)object : NULL;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CanRedefineCmd --
+ *
+ *    This function tests, whether a method (provided as a string) is
+ *    allowed to be redefined in a provided namespace.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONST char *methodName) {
   int result, ok;
@@ -3466,7 +3509,22 @@ CanRedefineCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, NsfObject *object, CONS
   return result;
 }
 
-int
+/*
+ *----------------------------------------------------------------------
+ * NsfAddObjectMethod --
+ *
+ *    Externally callable function to register an object level method 
+ *    for the provided object.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Newly created Tcl command.
+ *
+ *----------------------------------------------------------------------
+ */
+extern int
 NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodName,
                      Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
                      int flags) {
@@ -3496,7 +3554,22 @@ NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodNa
   return TCL_OK;
 }
 
-int
+/*
+ *----------------------------------------------------------------------
+ * NsfAddClassMethod --
+ *
+ *    Externally callable function to register an class level method 
+ *    for the provided class.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    Newly created Tcl command.
+ *
+ *----------------------------------------------------------------------
+ */
+extern int
 NsfAddClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName,
                        Tcl_ObjCmdProc *proc, ClientData clientData, Tcl_CmdDeleteProc *dp,
                        int flags) {
@@ -3522,31 +3595,6 @@ NsfAddClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName,
   }
   DSTRING_FREE(dsPtr);
   return TCL_OK;
-}
-
-/*
- * Generic Tcl_Obj List
- */
-
-static void
-TclObjListFreeList(NsfTclObjList *list) {
-  NsfTclObjList *del;
-  while (list) {
-    del = list;
-    list = list->nextPtr;
-    DECR_REF_COUNT(del->content);
-    FREE(NsfTclObjList, del);
-  }
-}
-
-static Tcl_Obj *
-TclObjListNewElement(NsfTclObjList **list, Tcl_Obj *ov) {
-  NsfTclObjList *elt = NEW(NsfTclObjList);
-  INCR_REF_COUNT(ov);
-  elt->content = ov;
-  elt->nextPtr = *list;
-  *list = elt;
-  return ov;
 }
 
 /*
@@ -3658,7 +3706,7 @@ AutonameIncr(Tcl_Interp *interp, Tcl_Obj *nameObj, NsfObject *object,
 }
 
 /*
- * Next Scripting CallStack
+ * Next Scripting CallStack functions
  */
 
 NSF_INLINE static void
@@ -3944,7 +3992,7 @@ CmdListFindCmdInList(Tcl_Command cmd, NsfCmdList *l) {
     if (h->cmdPtr == cmd)
       return h;
   }
-  return 0;
+  return NULL;
 }
 
 /*
@@ -3959,12 +4007,37 @@ CmdListFindNameInList(Tcl_Interp *interp, CONST char *name, NsfCmdList *l) {
     if (cmdName[0] == name[0] && !strcmp(cmdName, name))
       return h;
   }
-  return 0;
+  return NULL;
 }
 
-/*
+/*********************************************************************
  * Assertions
+ **********************************************************************/
+/*
+ * Generic List handling functions, just used in assertion handling
  */
+
+static void
+TclObjListFreeList(NsfTclObjList *list) {
+  NsfTclObjList *del;
+  while (list) {
+    del = list;
+    list = list->nextPtr;
+    DECR_REF_COUNT(del->content);
+    FREE(NsfTclObjList, del);
+  }
+}
+
+static Tcl_Obj *
+TclObjListNewElement(NsfTclObjList **list, Tcl_Obj *ov) {
+  NsfTclObjList *elt = NEW(NsfTclObjList);
+  INCR_REF_COUNT(ov);
+  elt->content = ov;
+  elt->nextPtr = *list;
+  *list = elt;
+  return ov;
+}
+
 static NsfTclObjList *
 AssertionNewList(Tcl_Interp *interp, Tcl_Obj *aObj) {
   Tcl_Obj **ov; int oc;
