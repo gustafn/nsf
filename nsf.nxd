@@ -2,7 +2,10 @@
 
 # @package nsf
 #
-# ...
+# The package provides a basic set of commands to perform
+# language-oriented programming based on the Next Scripting Framework
+# and to develop applications which are meant to operate across
+# different NSF object systems.
 #
 # @require Tcl
 # @version 1.0.0a
@@ -44,6 +47,48 @@
 # @pretty_name Callframe
 # @pretty_plural Callframes
 
+# @glossary assert
+#
+# Following a Design-by-Contract approach, you may define different
+# kinds of assertions on object, classes, and methods. For objects and
+# classes, you can express object and class invariants. For methods,
+# pre- and postconditions allow to express obligations on and benefits
+# at a method's call site.
+#
+# @pretty_name Assertion
+# @pretty_plural Assertions
+
+# @glossary forwarder
+#
+# A forwarder is a method-level delegation mechanism to realise a
+# variety of programming techniques (e.g., signature adapters, method
+# decorators). The forward-owning object (or class) exposes the
+# forwarder as a method (e.g., in its signature interface and through
+# method-level introspection). Delegation targets are not limited to
+# other methods, arbitrary <<@acr tcl>> command statements can be
+# used. Forwarders come with a filtering protocol which allows to
+# manipulate the argument vector processed by the forwarder.
+#
+# @pretty_name Forwarder
+# @pretty_plural Forwarders
+
+# @glossary mixincls
+#
+# A mixin is realised by an otherwise ordinary class which is put in a
+# dedicated mixin relation to another object or class. Hence, we refer
+# to such classes as mixin-classes. If the mixing target is another
+# mixin-class, we refer to the source mixin-class as a transitive
+# mixin-class.
+#
+# @pretty_name Mixin-class
+# @pretty_plural Mixin-classes
+
+# @glossary filter
+#
+# An object filter implementes the idea of a composition filters in NSF.
+#
+# @pretty_name Filter
+# @pretty_plural Filters
 
 
 # @command alias
@@ -108,18 +153,89 @@
 
 # @command methodproperty
 # 
-# @parameter object:object
-# @parameter -per-object:switch
-# @parameter methodName
-# @parameter methodproperty Accepts one of: '''protected''',
-# '''redefine-protected''', '''returns''', '''slotobj'''
-# @parameter value
+# The command to configure certain semantic properties of methods,
+# previously defined by either <<@command method>>, <<@command
+# forward>>, or <<@command alias>>. 
+#
+# The following property classes can be set on methods:
+#
+# 1. '''class-only''': Marks a method as a class-only behavioural
+# 		       feature, that is, the method will only be
+# 		       executed if called on a class.
+#
+# 2. '''call-protected''': A call-protected method is only visible and
+# 			   accessible for self-calls and calls from
+# 			   within a generalisation/specialisation
+# 			   hierarchy. See <<@gls cprotection>>.
+#
+# 3. '''redefine-protected''': 	A redefine-protected method cannot be
+# 				replaced on the the owning object or
+# 				class. In order to alter or refine
+# 				behaviour, the method must be
+# 				overwritten or overloaded.
+#
+# 4. '''returns''':	Specify a value constraint on the return value
+# 			of the method. For activating and deactivating return value
+# 			validation, see <<@command configure>>.
+#
+# 5. '''slotcontainer''': ...
+#
+# 6. '''slotobj''': ...
+#
+# @parameter object			The method-owning object or class
+# @parameter -per-object:switch		When called for a class, a
+# 					property of a class object's
+# 					method is set (if existant).
+# @parameter methodName			The name of the method to configure			
+# @parameter methodproperty 		The property class to set or
+# 					unset. Accepts one of:
+# 					'''class-only''',
+# 					'''call-protected'''
+# 					'''redefine-protected''',
+# 					'''returns''',
+# 					'''slotcontainer''',
+# 					'''slotobj'''.
+# @parameter value:optional		If provided, '''1''' sets the
+# 					propery, '''0''' unsets it. If
+# 					omitted, the current property
+# 					state is returned.
 
 # @command setter
 #
-# @parameter object:object
-# @parameter -per-object:switch
-# @parameter parameter
+# A factory method which creates a setter method on the object or
+# class specified. A setter method provides a pair of accessor and
+# mutator operations for object variables. The following '''setter'''
+# example ...
+# '''
+# ::nsf::setter /obj/ x 
+# '''
+# ... can be rewritten as a scripted method using the NSF primitives
+# <<@command current>> and <<@command setvar>>:
+# '''
+# ::nsf::method /obj/ -public x {value:optional} {
+#   if {[info exists value]} {
+#     return [::nsf::setvar [::nsf::current object] [::nsf::current method] $value]
+#   } else {
+#     return [::nsf::setvar [::nsf::current] [::nsf::current method]]
+#   }
+# }
+# '''
+# While adding a method dispatch overhead, accessing and mutating
+# object variables through dedicated setter methods provides several
+# benefits: They facilitate accessing object states from client
+# objects and render operations on object variables interceptable
+# by <<@glspl filter>> and <<@glspl mixincls>>.
+#
+# @parameter object			The owner object or class of
+# 					the setter method
+# @parameter -per-object:switch		If requested and if defined on
+# 					a class, the setter method is
+# 					owned by the class object
+# 					itself.
+# @parameter parameter			The name of the setter method
+# 					and, as a consequence, the
+# 					object variable managed by the
+# 					setter method.
 
 # @command createobjectsystem
 #
@@ -252,57 +368,159 @@
 # 				double-valued mapping will give the
 # 				link variable a different name.
 
-# @command parametercheck
-#
-# @parameter -nocomplain
-# @parameter param
-# @parameter value:optional
-
 # @command forward
 #
-# @parameter object:object
-# @parameter -per-object:switch
-# @parameter method
-# @parameter -default
-# @parameter -earlybinding:switch
-# @parameter -methodprefix
-# @parameter -objscope:switch
-# @parameter -onerror
-# @parameter -verbose:switch
-# @parameter target
-# @parameter args
+# A factory command for defining <<@glspl forwarder>> methods on objects
+# and classes. The command creates (and replaces any existing)
+# forwarder method by a given name, delegating the call to a target
+# command. The argument vector funneled to the forward target can be
+# manipulated by providing a filtering expresion in '''args''', using
+# the following protocol:
+#
+# # '''%proc''' substituted by name of the forwarder method
+#
+# '''%self''' substitute by name of the object
+#
+# '''%1''' substitute by first argument of the invocation
+#
+# ''' {%@POS value} ''' substitute the specified value in the
+# argument list on position POS, where POS can be a positive or
+# negative integer or end. Positive integers specify the position
+# from the begin of the list, while negative integer specify the
+# position from the end.
+#
+# ''' {%argclindex LIST} ''' take the nth argument of the specified
+# list as substitution value, where n is the number of arguments
+# from the invocation.
+#
+# '''%%''' a single percent.
+#
+# '''%Tcl-command''' The command to be executed; the result of the
+# command evaluation is substituted for the placeholding statement.
+#
+# Additionally, each argument can be prefixed by the positional prefix
+# %@POS (note the delimiting space at the end) that can be used to
+# specify an explicit position. POS can be a positive or negative
+# integer or the word end. The positional arguments are evaluated from
+# left to right and should be used in ascending order. 
+#
+# @parameter object			The name of the forward-owning
+# 					object or class. The forwarder
+# 					appears as member of the
+# 					object's or class' method
+# 					record.
+# @parameter -per-object:switch		When defined on a class, the
+# 					method is owned by and invoked
+# 					upon the class object itself
+# 					(rather than its instance
+# 					objects).
+# @parameter method			The name of the forwarder method
+# @parameter -default			A two-valued list, specifying
+# 					the a conditional selection of
+# 					default forward targets (i.e.,
+# 					methods). Beware that this
+# 					option works only in
+# 					connection with '''%1'''.  If
+# 					more than one argument is
+# 					provided at the forwarder's
+# 					call site, the method at
+# 					position 2 becomes the call
+# 					target.
+# @parameter -earlybinding:switch	Provided that the forward
+# 					specification resolves to a
+# 					Tcl command, the forward
+# 					method can be bound to its
+# 					target at definition time.
+# @parameter -methodprefix		Indicates a string prefix
+# 					prepended to the second
+# 					argument issued at the
+# 					forwarder's call site.
+# @parameter -objframe:switch		If provided, the forward
+# 					specification will be
+# 					evaluated in the context of
+# 					the forward-owning object.
+# @parameter -onerror			Declare a error handler proc
+# 					(its fully-qualified name) to
+# 					be executed upon sensing a Tcl
+# 					error during delegation.
+# @parameter -verbose:switch		If requested, 
+# @parameter target:optional		The Tcl command or method name
+# 					representing the forward target.
+# @parameter args			The remainder of the forward
+# 					specification
 
 # @command setvar
 #
-# @parameter object:object
-# @parameter variable
-# @parameter value
+# A primitive command to create an variable held by an object and
+# assign a value to it (i.e., to define an object variable) or
+# retrieve a variable's value. For related and supporting commands,
+# see also <<@command existsvar>> and <<@command importvar>>.
+#
+# @parameter object		The object to hold the newly defined variable.
+# @parameter varname		The name of the object variable
+# @parameter value:optional	If provided, assigns the value to the
+# 				object variable. If omitted and if the
+# 				variable exists, it will return its
+# 				current value.
 
 # @command method
 #
-# @parameter object:object
-# @parameter -inner-namespace
-# @parameter -per-object
-# @parameter -public
-# @parameter name
-# @parameter args
-# @parameter body
-# @parameter -percondition
-# @parameter -postcondition
+# A factory command for defining methods on objects and classes. The
+# command creates (and replaces any existing) method by a given name.
+#
+# @parameter object			The name of the method-owning
+# 					object or class
+# @parameter -inner-namespace:switch	If requested, the owner object
+# 				       	is attached a per-object
+# 				       	namespace which becomes the
+# 				       	current namespace for
+# 				       	evaluating the method body (in
+# 				       	the sense of '''[namespace
+# 				       	current]''').
+# @parameter -per-object:switch		When defined on a class, the
+# 					method is owned by and invoked
+# 					upon the class object itself
+# 					(rather than its instance
+# 					objects).
+# @parameter -public:switch		Sets the call protection 
+# @parameter name			Name of the method
+# @parameter args			The formal definition of method parameters
+# @parameter body			The body script to be
+# 					evaluated upon invoking on the method
+# @parameter -precondition		A list of <<@glspl assert>> (Tcl
+# 					expressions) which must hold
+# 					before executing the method
+# 					body. See also <<@command
+# 					assertion>>.
+# @parameter -postcondition		A list of <<@glspl assert>>
+# 					(Tcl expressions) which must
+# 					hold after having evaluated
+# 					the method, provided that all
+# 					preconditions evaluated to
+# 					true. Beware that, if
+# 					specified, preconditions must
+# 					also be provided. See also
+# 					<<@command assertion>>.
+# @return			The <<@gls method_handle>> representing the
+# 				newly created method
 
 # @command next
 #
 # Invokes the shadowed (i.e, same-named) method which is next along
-# the precedence path and returns the results of this invocation. If
-# '''next''' is called without arguments, the arguments of the current
-# method (i.e., the arguments as present at the current callframe) are
-# passed through to the shadowed method. If next is invoked with the
-# flag --noArgs, the shadowed method is called without the active
-# callframe arguments. If other arguments are specified for '''next'''
-# explicitly, these will be passed instead.
+# the precedence path and returns the results of this invocation. The
+# command realises method combination in NSF-derived object
+# systems. If '''next''' is called without arguments, the arguments of
+# the current method (i.e., the arguments as present at the current
+# callframe) are passed through to the shadowed method. If '''next'''
+# is invoked with an empty list, the shadowed method is called without
+# the active callframe arguments. If explicit arguments are specified
+# for '''next''' explicitly, these will be passed instead of the ones
+# active on the callframe. Note that explicit arguments must be passed
+# boxed into a list.
 # 
-# @parameter --noArgs:optional Deactivates the forward-passing of the current callframe's arguments
-# @parameter args Explicitly declared arguments to pass to shadowed methods
+# @parameter arguments:optional 	A list boxing explicit
+# 					arguments to be funneled to
+# 					the next shadowed method.
 
 
 # @command current
@@ -572,33 +790,155 @@
 
 # @command my
 #
-# @parameter -local
-# @parameter method
-# @parameter args
+# This special command is a dispatcher for self-calls, i.e. method
+# calls on the self-object (in the sense of '''[::nsf::current
+# object]''', see <<@command current>>). Using '''my''' incurs less
+# dispatch overhead than an explicit self-dispatch. For example,
+# '''[::nsf::current object] /methodname/''' is equivalent to and,
+# therefore, should be replaced by '''my /methodname/'''.
+#
+# In terms of the general dispatcher command <<@command dispatch>>,
+# '''my''' could be implemented as follows:
+# '''
+# ::nsf::dispatch [::nsf::current object] /methodname/
+# '''
+# By default, this dispatcher realises a subclassing method resolution
+# scheme, that is, method resolution along the self reference takes
+# into account the entire precedence of inheriting classes of the
+# current object. To ressemble more closely a subtyping scheme, i.e.,
+# method resolution starts at the current class as a fixpoint, use the
+# '''-local''' option to '''my'''. This will limit the method lookup
+# range to the class of the calling method, i.e. the
+# '''[::nsf::current class]''' resolved at the call site of '''my'''.
+#
+# 
+#
+# @parameter -local	Dispatch on the interface of the class
+# 			enclosing the '''my''' instruction call.
+# @parameter method	The name of the receiver method
+# @parameter args	
 
 # @command relation
 #
-# @parameter object
-# @parameter relationtype
-# @parameter value
+# The core command to establish, maintain and introspect entity
+# relations, i.e. relations between objects, classes, and methods. The
+# following relation types can be defined.
+#
+# 1. Object - Class, Object - Method
+#
+# '''class''': Describes an '''instance-of''' relationship between an
+# object (instance) and another object (its class).
+#
+# '''object-mixin''': Declares a list of <<@glspl mixincls>> as the
+# mixins of a given object.
+#
+# '''object-filter''': Declares a method as a <<@gls filter>> method
+# on a given object.
+#
+# '''rootclass''': Sets the rootclass of a given object. The rootclass
+# identifies an object's membership with a certain object system and
+# acts as the 'default' class to comfort the object system dynamics:
+# recreation, automatic downcasting upon class removals, etc.
+#
+# 2. Class - Class, Class - Method
+#
+# '''superclass''': Establishes a generalisation/specialisation
+# relation between two classes.
+#
+# '''class-mixin''': Declares a list of <<@glspl mixincls>> as the
+# mixins of a given class, with the method interceptors becoming
+# active on all instances of this class.
+#
+# '''class-filter''': Declares a method as a <<@gls filter>> method on
+# a given class, with the filter becoming active on all
+# instances of this class.
+#
+# Some convenience wrappers on top of '''relation''' are available:
+# <<@command mixin>>.
+#
+# @parameter object			The object or class acting as
+# 					the receiving end of a relation
+# @parameter relationtype 		The type of relation to be
+# 					established between two
+# 					entities. Accepts one of:
+# 					'''class''',
+# 					'''object-mixin''',
+# 					'''object-filter''',
+# 					'''rootclass''',
+# 					'''superclass''',
+# 					'''class-mixin''',
+# 					'''class-filter'''.
+# @parameter value:optional		If omitted, the current
+# 					entities (classes or methods)
+# 					participating in the given
+# 					relation are return. If
+# 					provided, and depending on the
+# 					relation type specified, it
+# 					takes either a list of classes
+# 					or a method name (for
+# 					'''object-filter''' and
+# 					'''class-filter''').
 
 # @command provide_method
 #
-# @parameter require_name
-# @parameter definition
-# @parameter script:optional
+# The command contributes an entry to a '''interp'''-wide method
+# repository (the method index) to be queried and harvested by
+# <<@command require_method>>. An entry consists of a unique
+# identifier, a definition script, and a setup script. Arbitrary
+# objects can request method definitions from this repository in a
+# disciplined manner. The idea of this method repository ressembles
+# Tcl's '''auto_import''' feature, applied to method ownership of
+# objects.
+#
+# @parameter require_name 	The unique identifier, used to request a
+# 				method from the method index.
+# @parameter definition		The definition script, usually stating
+# 				a call to <<@command ::nsf::alias>>.
+# @parameter script:optional    A setup script which is evaluated
+# 				before defining the method on the
+# 				requiring object.
 
 # @command require_method
 # 
-# @parameter object
-# @parameter name
-# @parameter per_object
+# As the counterpart of <<@command provide_method>>, the command allows
+# you to require an method definition for the given object from the
+# '''interp'''-wide method repository.
+#
+# @parameter object		The object to own the requested method
+# @parameter name		The unique identifier of the requested
+# 				method in the repository.
+# @parameter per_object		If the target object is a class, the
+# 				method will be owned by the class
+# 				object itself.
+
+# @command qualify
+#
+# The name resolver command resolves unqualified command names (i.e.,
+# no leading '::') according to NSF's internal namespace resolution
+# rules. This resolution order slightly deviates from Tcl standards:
+# While in Tcl namespace resolution '''[namespace current]''' of the
+# currently executing proc takes precedence, followed by the global
+# namespace, the method interception and delegation techniques require
+# a namespace resolution which is aware of the call
+# graph. '''qualify''' gives script-level access to this
+# callstack-driven namespace resolution infrastructure (for testing
+# purposes, etc.).
+# 
+# @parameter objectname 	The name to be expanded into its
+# 				absolutely qualified form.
 
 # @command mixin
+#
+# A helper command to set and maintain mixin relations between an
+# object and a set of of <<@gls mixincls>>. It is a convenience
+# wrapper around <<@command relation>>.
 # 
-# @parameter object
+# @parameter object The target object to refine
 # @parameter args
 
 # @command tmpdir
 #
-# @return The platform-specific path name to the system-wide temporary directory
+# Depending on your platform, identifies the file system path to a
+# system-wide temporary directory.
+#
+# @return The absolute file path to the temporary directory identified

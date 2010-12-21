@@ -3164,10 +3164,10 @@ namespace eval ::nx {
       } {
 
       set blocks [:comment_blocks $script]
-
       set first_block 1
       set processed_entities [list]
       foreach {line_offset block} $blocks {
+	puts stderr BLOCK=$block
 	array set arguments [list -initial_section context \
 				 -parsing_level $parsing_level]
 
@@ -3232,7 +3232,10 @@ namespace eval ::nx {
 	  set line_offset $line_counter; 
 	  set comment_block [list]; 
 	  lappend comment_block $text}
-	1,0	{lappend comment_blocks $line_offset $comment_block}
+	1,0	{
+	  lappend comment_blocks $line_offset $comment_block; 
+	  unset comment_block
+	}
 	1,1	{lappend comment_block $text}
 	0,0	{}
       }
@@ -3244,6 +3247,9 @@ namespace eval ::nx {
 	lassign [:analyze_line $line] is_comment text;
 	eval $do($was_comment,$is_comment)
 	set was_comment $is_comment
+      }
+      if {[info exists comment_block]} {
+	lappend comment_blocks $line_offset $comment_block
       }
       return $comment_blocks
     }

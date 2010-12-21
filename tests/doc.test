@@ -81,7 +81,7 @@ Test case scanning {
 
   set blocks {1 {{ @package o} { 1 2 3}} 5 {{ @object o} { 1 2 3} {} {  345} { @tag1 part1} { @tag2 part2}} 17 {{ @object o # ####} {    1 2 3} {} { 345} { @tag1 part1} { @tag2 part2}}}
 
-  ? [list ::lcompare [processor comment_blocks $script] $blocks] 1
+    ? [list ::lcompare [processor comment_blocks $script] $blocks] 1
 }
 
 Test case parsing {
@@ -1120,7 +1120,6 @@ set project [processor process \
     -renderer ::nx::doc::NxDocRenderer \
     -project $project \
     -outdir [::nsf::tmpdir]
-
 
 puts stderr >>>>>>>NextScriptingLanguage<<<<<<<<
 set _ [time {

@@ -826,43 +826,10 @@
 # @pretty_name Attribute
 # @pretty_plural Attributes
 
-# @glossary mixincls
-#
-# A mixin is realised by an otherwise ordinary class which is put in a
-# dedicated mixin relation to another object or class. Hence, we refer
-# to such classes as mixin-classes. If the mixing target is another
-# mixin-class, we refer to the source mixin-class as a transitive
-# mixin-class.
-#
-# @pretty_name Mixin-class
-# @pretty_plural Mixin-classes
-
 # @glossary objparam
 #
 # @pretty_name Object parameter
 # @pretty_plural Object parameters
-
-# @glossary assert
-#
-# Following a Design-by-Contract approach, you may define pre- and
-# post-conditions on per-object and per-class methods.
-#
-# @pretty_name Assertion
-# @pretty_plural Assertions
-
-# @glossary forwarder
-#
-# A forwarder is a method-level delegation mechanism to realise a
-# variety of programming techniques (e.g., signature adapters, method
-# decorators). The forward-owning object (or class) exposes the
-# forwarder as a method (e.g., in its signature interface and through
-# method-level introspection). Delegation targets are not limited to
-# other methods, arbitrary <<@acr tcl>> command statements can be
-# used. Forwarders come with a filtering protocol which allows to
-# manipulate the argument vector processed by the forwarder.
-#
-# @pretty_name Forwarder
-# @pretty_plural Forwarders
 
 # @glossary ensemble
 #
@@ -879,13 +846,6 @@
 #
 # @pretty_name Ensemble
 # @pretty_plural Ensembles
-
-# @glossary filter
-#
-# An object filter implementes the idea of a composition filters in NSF.
-#
-# @pretty_name Filter
-# @pretty_plural Filters
 
 # @glossary namepattern
 #
