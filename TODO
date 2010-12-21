@@ -2107,6 +2107,13 @@ text
 - moved handling of methodNames of c-cmds to ResolveMethodName()
 - extended regression test
 
+- nsf.c: renamed MethodNameString() to MethodName() (for consistency
+  with ObjectName() and ClassName())
+- raise error, when "obj :method ..." is invoked (colon misleading und not necessary)
+- remove colon from method name in error message "unable to dispatch method ...."
+- extended regression test
+
+
 TODO:
 - info method definition for attributes?
 

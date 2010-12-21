@@ -2099,7 +2099,7 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
 
 /*
  *----------------------------------------------------------------------
- * MethodNameString --
+ * MethodName --
  *
  *    Return the methodName from a Tcl_Obj, strips potentially the
  *    colon prefix
@@ -2113,7 +2113,7 @@ CompiledLocalsLookup(CallFrame *varFramePtr, CONST char *varName) {
  *----------------------------------------------------------------------
  */
 static CONST char *
-MethodNameString(Tcl_Obj *methodObj) {
+MethodName(Tcl_Obj *methodObj) {
   char *methodName = ObjStr(methodObj);
 
   if (FOR_COLON_RESOLVER(methodName)) {
@@ -7281,7 +7281,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	   * The method name for next might be colon-prefixed. In
 	   * these cases, we have to skip the single colon.
 	   */
-	  result = NextSearchAndInvoke(interp, MethodNameString(cscPtr1->objv[0]),
+	  result = NextSearchAndInvoke(interp, MethodName(cscPtr1->objv[0]),
 				       cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
 	}
 	
@@ -7520,16 +7520,21 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
     shift = 0;
     cmdObj = cmdName;
     methodObj = objv[0];
+    methodName = MethodName(methodObj);
   } else {
     assert(objc>1);
     shift = 1;
     cmdObj = objv[0];
     methodObj = objv[1];
+    methodName =  ObjStr(methodObj);
+    if (FOR_COLON_RESOLVER(methodName)) {
+      return NsfPrintError(interp, "%s: methodname '%s' must not start with a colon", 
+			   ObjectName(object), methodName); 
+    }
   }
 
   /* none of the higher copy-flags must be passed */
   assert((flags & (NSF_CSC_COPY_FLAGS & 0xFF00)) == 0);
-  methodName = MethodNameString(methodObj);
 
   /*fprintf(stderr, "ObjectDispatch obj = %s objc = %d 0=%s methodName=%s\n",
     ObjectName(object), objc, ObjStr(cmdObj), methodName);*/
@@ -7575,7 +7580,7 @@ ObjectDispatch(ClientData clientData, Tcl_Interp *interp, int objc,
       if (!cscPtr1 ||
 	  (object != cscPtr1->self || (cscPtr1->frameType != NSF_CSC_TYPE_ACTIVE_FILTER))) {
 	// TODO could use methodObj sometimes, therefore the new obj is not needed always
-	// use MethodNameString() for the few occurances, where ->calledProc is referenced.
+	// use MethodName() for the few occurances, where ->calledProc is referenced.
 	//FilterStackPush(interp, object, Tcl_NewStringObj(methodName,-1));
 	FilterStackPush(interp, object, methodObj);
 	flags |= NSF_CSC_FILTER_STACK_PUSHED;
@@ -7923,7 +7928,7 @@ DispatchUnknownMethod(ClientData clientData,
     /*fprintf(stderr, "--- No unknown method Name %s objv[%d] %s\n",
       ObjStr(methodObj), 1, ObjStr(objv[1]));*/
     result = NsfPrintError(interp, "%s: unable to dispatch method '%s'",
-			   ObjectName(object), ObjStr(objv[1]));
+			   ObjectName(object), MethodName(objv[1]));
   }
 
   return result;
@@ -9113,7 +9118,7 @@ FindCalledClass(Tcl_Interp *interp, NsfObject *object) {
     return cscPtr->cl;
 
   if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_FILTER)
-    methodName = MethodNameString(cscPtr->filterStackEntry->calledProc);
+    methodName = MethodName(cscPtr->filterStackEntry->calledProc);
   else if (cscPtr->frameType == NSF_CSC_TYPE_ACTIVE_MIXIN && object->mixinStack)
     methodName = (char *)Tcl_GetCommandName(interp, cscPtr->cmdPtr);
   else
@@ -9163,7 +9168,7 @@ NextSearchMethod(NsfObject *object, Tcl_Interp *interp, NsfCallStackContent *csc
 	 * Reset the information to the values of method, clPtr
 	 * to the values they had before calling the filters.
 	 */
-        *methodNamePtr = MethodNameString(object->filterStack->calledProc);
+        *methodNamePtr = MethodName(object->filterStack->calledProc);
         endOfChain = 1;
         *endOfFilterChain = 1;
         *clPtr = NULL;
@@ -14883,7 +14888,7 @@ NsfCurrentCmd(Tcl_Interp *interp, int selfoption) {
     cscPtr = CallStackFindActiveFilter(interp);
     if (cscPtr) {
       Tcl_SetObjResult(interp, 
-		       Tcl_NewStringObj(MethodNameString(cscPtr->filterStackEntry->calledProc), -1));
+		       Tcl_NewStringObj(MethodName(cscPtr->filterStackEntry->calledProc), -1));
     } else {
       result = NsfPrintError(interp, "called from outside of a filter");
     }

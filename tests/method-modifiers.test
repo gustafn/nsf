@@ -177,6 +177,17 @@ Test case object-level-alias {
 
 C destroy
 
+Test case colondispatch {
+  Object create ::o {
+    #:public method foo args {;}
+    :public method bar args {;}
+  }
+  ? {o :bar} "::o: methodname ':bar' must not start with a colon" 
+  ? {o eval :bar} "" 
+  ? {o :foo} "::o: methodname ':foo' must not start with a colon" 
+  ? {o eval :foo} "::o: unable to dispatch method 'foo'" 
+}
+
 Test case mixinguards {
   # define a Class C and mixin class M
   Class create C
