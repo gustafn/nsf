@@ -7266,7 +7266,6 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	{
 	  Tcl_CallFrame *framePtr1;
 	  NsfCallStackContent *cscPtr1 = CallStackGetTopFrame(interp, &framePtr1);
-	  CONST char *nextMethodName;
 
 	  if ((cscPtr1->frameType & NSF_CSC_TYPE_ENSEMBLE)) {
 	    /*
@@ -7283,12 +7282,7 @@ MethodDispatchCsc(ClientData clientData, Tcl_Interp *interp,
 	   * The method name for next might be colon-prefixed. In
 	   * these cases, we have to skip the single colon.
 	   */
-	  nextMethodName = ObjStr(cscPtr1->objv[0]);
-	  if (FOR_COLON_RESOLVER(nextMethodName)) {
-	    nextMethodName ++;
-	  }
-	  
-	  result = NextSearchAndInvoke(interp, nextMethodName,
+	  result = NextSearchAndInvoke(interp, MethodNameString(cscPtr1->objv[0]),
 				       cscPtr1->objc, cscPtr1->objv, cscPtr1, 0);
 	}
 	
