@@ -83,6 +83,10 @@
 #define NDEBUG 1
 */
 
+/* additional features
+#define INHERIT_NAMESPACES_TO_CHILD_OBJECTS 1
+*/
+
 /* activate/deacticate memory tracing 
 #define NSF_MEM_TRACE 1
 #define NSF_MEM_COUNT 1

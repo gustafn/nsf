@@ -2823,8 +2823,7 @@ NsfNamespaceInit(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   Tcl_SetNamespaceResolvers(nsPtr, /*(Tcl_ResolveCmdProc*)NsColonCmdResolver*/ NULL,
                             NsColonVarResolver,
                             /*(Tcl_ResolveCompiledVarProc*)NsCompiledColonVarResolver*/NULL);
-#if 0
-  //xxxxx namespace path management
+#if defined(INHERIT_NAMESPACES_TO_CHILD_OBJECTS)
   /* 
    * In case there is a namespace path set for the parent namespace,
    * apply this as well to the object namespace to avoid surprises
