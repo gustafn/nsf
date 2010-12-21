@@ -8823,12 +8823,6 @@ ParamDefsParse(Tcl_Interp *interp, Tcl_Obj *procNameObj, Tcl_Obj *args,
 }
 
 static int
-ListMethodHandle(Tcl_Interp *interp, NsfObject *object, int withPer_object, CONST char *methodName) {
-  Tcl_SetObjResult(interp, MethodHandleObj(object, withPer_object, methodName));
-  return TCL_OK;
-}
-
-static int
 MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
          Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *precondition,
          Tcl_Obj *postcondition, NsfObject *object,
@@ -8904,7 +8898,8 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
         Tcl_Command_flags((Tcl_Command)procPtr->cmdPtr) |= NSF_CMD_PROTECTED_METHOD;
       }
 #endif
-      result = ListMethodHandle(interp, object, withPer_object, methodName);
+      Tcl_SetObjResult(interp, MethodHandleObj(object, withPer_object, methodName));
+      result = TCL_OK;
     }
   }
   Tcl_PopCallFrame(interp);
@@ -12600,7 +12595,8 @@ ListMethod(Tcl_Interp *interp,
     switch (subcmd) {
     case InfomethodsubcmdHandleIdx:
       {
-        return ListMethodHandle(interp, regObject, withPer_object, methodName);
+	Tcl_SetObjResult(interp, MethodHandleObj(regObject, withPer_object, methodName));
+	return TCL_OK;
       }
     case InfomethodsubcmdArgsIdx:
       {
@@ -13480,7 +13476,8 @@ NsfAliasCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object,
         newCmd,methodName,Tcl_Command_flags(newCmd), tcd);*/
     }
 
-    result = ListMethodHandle(interp, object, cl == NULL, methodName);
+    Tcl_SetObjResult(interp, MethodHandleObj(object, cl == NULL, methodName));
+    result = TCL_OK;
   }
 
   return result;
@@ -13994,7 +13991,7 @@ NsfForwardCmd(Tcl_Interp *interp,
                                       (ClientData)tcd, ForwardCmdDeleteProc, 0);
     }
     if (result == TCL_OK) {
-      result = ListMethodHandle(interp, object, cl == NULL, methodName);
+      Tcl_SetObjResult(interp, MethodHandleObj(object, withPer_object, methodName));
     }
   }
 
@@ -15177,7 +15174,7 @@ NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj 
                                   (ClientData)setterClientData, SetterCmdDeleteProc, 0);
   }
   if (result == TCL_OK) {
-    result = ListMethodHandle(interp, object, cl == NULL, methodName);
+    Tcl_SetObjResult(interp, MethodHandleObj(object, cl == NULL, methodName));
   } else {
     SetterCmdDeleteProc((ClientData)setterClientData);
   }
@@ -16848,7 +16845,8 @@ NsfObjInfoLookupFilterMethod(Tcl_Interp *interp, NsfObject *object, CONST char *
     return TCL_OK;
 
   fcl = cmdList->clorobj;
-  return ListMethodHandle(interp, (NsfObject*)fcl, !NsfObjectIsClass(&fcl->object), filterName);
+  Tcl_SetObjResult(interp, MethodHandleObj((NsfObject*)fcl, !NsfObjectIsClass(&fcl->object), filterName));
+  return TCL_OK;
 }
 
 /*
