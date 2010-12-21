@@ -2750,8 +2750,8 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *n
       *cmdPtr = RUNTIME_STATE(interp)->colonCmd;
       return TCL_OK;
     } else {
-      //xxxxx
-#if 1
+
+#if defined(NSF_WITH_OS_RESOLVER)
       /*
        * Experimental Object-System specific resolver: If an
        * unprefixed method name is found in a body of a method, we try
@@ -2776,7 +2776,6 @@ InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *n
 	object = NULL;
       }
       if (object) {
-	//xxx
 	osPtr = GetObjectSystem(object);
 	cmd = osPtr->rootClass->object.id;
 	cmdTablePtr = Tcl_Namespace_cmdTablePtr(((Command *)cmd)->nsPtr);
@@ -2834,7 +2833,7 @@ NsfNamespaceInit(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
   Tcl_SetNamespaceResolvers(nsPtr, /*(Tcl_ResolveCmdProc*)NsColonCmdResolver*/ NULL,
                             NsColonVarResolver,
                             /*(Tcl_ResolveCompiledVarProc*)NsCompiledColonVarResolver*/NULL);
-#if defined(INHERIT_NAMESPACES_TO_CHILD_OBJECTS)
+#if defined(NSF_WITH_INHERIT_NAMESPACES)
   /* 
    * In case there is a namespace path set for the parent namespace,
    * apply this as well to the object namespace to avoid surprises
@@ -4010,6 +4009,40 @@ CmdListFindNameInList(Tcl_Interp *interp, CONST char *name, NsfCmdList *l) {
   return NULL;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * CheckConditionInScope --
+ *
+ *    Check a given condition in the current callframe's scope. It is
+ *    the responsiblity of the caller to push the intended callframe.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    None
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+CheckConditionInScope(Tcl_Interp *interp, Tcl_Obj *condition) {
+  int result, success;
+  Tcl_Obj *ov[2] = {NULL, condition};
+
+  INCR_REF_COUNT(condition);
+  result = Nsf_ExprObjCmd(NULL, interp, 2, ov);
+  DECR_REF_COUNT(condition);
+
+  if (result == TCL_OK) {
+    result = Tcl_GetBooleanFromObj(interp, Tcl_GetObjResult(interp), &success);
+
+    if (result == TCL_OK && success == 0)
+      result = NSF_CHECK_FAILED;
+  }
+  return result;
+}
+
+#if defined(NSF_WITH_ASSERTIONS)
 /*********************************************************************
  * Assertions
  **********************************************************************/
@@ -4062,8 +4095,6 @@ AssertionList(Tcl_Interp *interp, NsfTclObjList *alist) {
   }
   return listObj;
 }
-
-
 
 /* append a string of pre and post assertions to a method body */
 static void
@@ -4163,28 +4194,6 @@ AssertionRemoveStore(NsfAssertionStore *aStore) {
     TclObjListFreeList(aStore->invariants);
     FREE(NsfAssertionStore, aStore);
   }
-}
-
-/*
- * check a given condition in the current callframe's scope
- * it's the responsiblity of the caller to push the intended callframe
- */
-static int
-CheckConditionInScope(Tcl_Interp *interp, Tcl_Obj *condition) {
-  int result, success;
-  Tcl_Obj *ov[2] = {NULL, condition};
-
-  INCR_REF_COUNT(condition);
-  result = Nsf_ExprObjCmd(NULL, interp, 2, ov);
-  DECR_REF_COUNT(condition);
-
-  if (result == TCL_OK) {
-    result = Tcl_GetBooleanFromObj(interp, Tcl_GetObjResult(interp), &success);
-
-    if (result == TCL_OK && success == 0)
-      result = NSF_CHECK_FAILED;
-  }
-  return result;
 }
 
 static int
@@ -4390,7 +4399,7 @@ AssertionSetInvariants(Tcl_Interp *interp, NsfAssertionStore **assertions, Tcl_O
 
   (*assertions)->invariants = AssertionNewList(interp, arg);
 }
-
+#endif /* NSF_WITH_ASSERTIONS */
 
 
 
@@ -6924,15 +6933,17 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
   ParseContext *pcPtr = data[0];
   NsfCallStackContent *cscPtr = data[1];
   /*CONST char *methodName = data[2];*/
+#if defined(NSF_WITH_ASSERTIONS)
   NsfObject *object = cscPtr->self;
   NsfObjectOpt *opt = object->opt;
-  int rc;
-
+#endif
   /*fprintf(stderr, "ProcMethodDispatchFinalize %s.%s flags %.6x isNRE %d\n",
     ObjectName(object), methodName
     cscPtr->flags, (cscPtr->flags & NSF_CSC_CALL_IS_NRE));*/
 
+#if defined(NSF_WITH_ASSERTIONS)
   if (opt && object->teardown && (opt->checkoptions & CHECK_POST)) {
+    int rc;
     /*
      * Even, when the returned result != TCL_OK, run assertion to report
      * the highest possible method from the callstack (e.g. "set" would not
@@ -6943,6 +6954,7 @@ ProcMethodDispatchFinalize(ClientData data[], Tcl_Interp *interp, int result) {
       result = rc;
     }
   }
+#endif
 
   if ((cscPtr->flags & NSF_CSC_CALL_IS_NRE)) {
     if (pcPtr) {
@@ -6978,7 +6990,9 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
          CONST char *methodName, NsfObject *object, NsfClass *cl, Tcl_Command cmdPtr,
          NsfCallStackContent *cscPtr) {
   int result, releasePc = 0;
+#if defined(NSF_WITH_ASSERTIONS)
   NsfObjectOpt *opt = object->opt;
+#endif
   NsfParamDefs *paramDefs;
 #if defined(NRE)
   ParseContext *pcPtr = NULL;
@@ -7046,10 +7060,12 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
     }
   }
 
+#if defined(NSF_WITH_ASSERTIONS)
   if (opt && (opt->checkoptions & CHECK_PRE) &&
       (result = AssertionCheck(interp, object, cl, methodName, CHECK_PRE)) == TCL_ERROR) {
     goto prep_done;
   }
+#endif
 
   /*
    *  If the method to be invoked has paramDefs, we have to call the
@@ -7093,7 +7109,9 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
   }
   */
 
+#if defined(NSF_WITH_ASSERTIONS)
  prep_done:
+#endif
 
   if (result == TCL_OK) {
 #if defined(NRE)
@@ -7142,7 +7160,9 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
         CONST char *methodName, NsfObject *object, Tcl_Command cmdPtr,
         NsfCallStackContent *cscPtr) {
   CallFrame frame, *framePtr = &frame;
+#if defined(NSF_WITH_ASSERTIONS)
   CheckOptions co;
+#endif
   int result;
 
   assert(object);
@@ -7168,17 +7188,19 @@ CmdMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST ob
     Nsf_PopFrameCsc(interp, framePtr);
   }
 
-  /*
-   * Reference counting in the calling ObjectDispatch() makes sure
-   * that obj->opt is still accessible even after "dealloc"
-   */
+#if defined(NSF_WITH_ASSERTIONS)
   if (object->opt) {
     co = object->opt->checkoptions;
     if ((co & CHECK_INVAR)) {
       result = AssertionCheckInvars(interp, object, methodName, co);
     }
   }
+#endif
 
+  /*
+   * Reference counting in the calling ObjectDispatch() makes sure
+   * that obj->opt is still accessible even after "dealloc"
+   */
   return result;
 }
 
@@ -8887,9 +8909,11 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
   }
   Tcl_PopCallFrame(interp);
 
+#if defined(NSF_WITH_ASSERTIONS)
   if (result == TCL_OK && (precondition || postcondition)) {
     AssertionAddProc(interp, methodName, aStore, precondition, postcondition);
   }
+#endif
 
   if (parsedParam.paramDefs) {
     DECR_REF_COUNT(ov[2]);
@@ -8919,6 +8943,7 @@ MakeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, Tcl_Obj *nameObj
       NsfRemoveClassMethod(interp, (Nsf_Class *)cl, nameStr) :
       NsfRemoveObjectMethod(interp, (Nsf_Object *)object, nameStr);
   } else {
+#if defined(NSF_WITH_ASSERTIONS)
     NsfAssertionStore *aStore = NULL;
     if (precondition || postcondition) {
       if (cl) {
@@ -8936,6 +8961,11 @@ MakeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, Tcl_Obj *nameObj
     result = MakeProc(cl ? cl->nsPtr : object->nsPtr, aStore,
 		      interp, nameObj, args, body, precondition, postcondition,
 		      object, withPublic, cl == NULL, clsns);
+#else
+    result = MakeProc(cl ? cl->nsPtr : object->nsPtr, NULL,
+		      interp, nameObj, args, body, NULL, NULL,
+		      object, withPublic, cl == NULL, clsns);
+#endif
   }
 
   if (cl) {
@@ -9943,8 +9973,10 @@ CleanupDestroyObject(Tcl_Interp *interp, NsfObject *object, int softrecreate) {
 
   if (object->opt) {
     NsfObjectOpt *opt = object->opt;
+#if defined(NSF_WITH_ASSERTIONS)
     AssertionRemoveStore(opt->assertions);
     opt->assertions = NULL;
+#endif
 
     if (!softrecreate) {
       /*
@@ -10365,8 +10397,12 @@ CleanupDestroyClass(Tcl_Interp *interp, NsfClass *cl, int softrecreate, int recr
      * Remove dependent filters of this class from all subclasses
      */
     FilterRemoveDependentFilterCmds(cl, cl);
+
+#if defined(NSF_WITH_ASSERTIONS)
     AssertionRemoveStore(clopt->assertions);
     clopt->assertions = NULL;
+#endif
+
 #ifdef NSF_OBJECTDATA
     NsfFreeObjectData(cl);
 #endif
@@ -11043,8 +11079,11 @@ NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *metho
 
   AliasDelete(interp, object->cmdName, methodName, 1);
 
-  if (object->opt)
+#if defined(NSF_WITH_ASSERTIONS)
+  if (object->opt) {
     AssertionRemoveProc(object->opt->assertions, methodName);
+  }
+#endif
 
   if (object->nsPtr) {
     int rc = NSDeleteCmd(interp, object->nsPtr, methodName);
@@ -11058,13 +11097,18 @@ NsfRemoveObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *metho
 extern int
 NsfRemoveClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName) {
   NsfClass *cl = (NsfClass*) class;
-  NsfClassOpt *opt = cl->opt;
   int rc;
+#if defined(NSF_WITH_ASSERTIONS)
+  NsfClassOpt *opt = cl->opt;
+#endif
 
   AliasDelete(interp, class->object.cmdName, methodName, 0);
 
-  if (opt && opt->assertions)
+#if defined(NSF_WITH_ASSERTIONS)
+  if (opt && opt->assertions) {
     AssertionRemoveProc(opt->assertions, methodName);
+  }
+#endif
 
   rc = NSDeleteCmd(interp, cl->nsPtr, methodName);
   if (rc < 0) {
@@ -12575,6 +12619,7 @@ ListMethod(Tcl_Interp *interp,
       }
     case InfomethodsubcmdPreconditionIdx:
       {
+#if defined(NSF_WITH_ASSERTIONS)
         NsfProcAssertion *procs;
         if (withPer_object) {
           procs = regObject->opt ? AssertionFindProcs(regObject->opt->assertions, methodName) : NULL;
@@ -12583,10 +12628,12 @@ ListMethod(Tcl_Interp *interp,
           procs = class->opt ? AssertionFindProcs(class->opt->assertions, methodName) : NULL;
         }
         if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->pre));
+#endif
         return TCL_OK;
       }
     case InfomethodsubcmdPostconditionIdx:
       {
+#if defined(NSF_WITH_ASSERTIONS)
         NsfProcAssertion *procs;
         if (withPer_object) {
           procs = regObject->opt ? AssertionFindProcs(regObject->opt->assertions, methodName) : NULL;
@@ -12595,6 +12642,7 @@ ListMethod(Tcl_Interp *interp,
           procs = class->opt ? AssertionFindProcs(class->opt->assertions, methodName) : NULL;
         }
         if (procs) Tcl_SetObjResult(interp, AssertionList(interp, procs->post));
+#endif
         return TCL_OK;
       }
     case InfomethodsubcmdSubmethodsIdx:
@@ -12649,6 +12697,7 @@ ListMethod(Tcl_Interp *interp,
             NsfClass *class = (NsfClass *)regObject;
             assertions = class->opt ? class->opt->assertions : NULL;
           }
+#if defined(NSF_WITH_ASSERTIONS)
           if (assertions) {
             NsfProcAssertion *procs = AssertionFindProcs(assertions, methodName);
             if (procs) {
@@ -12658,6 +12707,7 @@ ListMethod(Tcl_Interp *interp,
               Tcl_ListObjAppendElement(interp, resultObj, AssertionList(interp, procs->post));
             }
           }
+#endif
           Tcl_SetObjResult(interp, resultObj);
           break;
         }
@@ -13451,6 +13501,7 @@ nsfCmd assertion NsfAssertionCmd {
 
 static int
 NsfAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj *arg) {
+#if defined(NSF_WITH_ASSERTIONS)
   NsfClass *class;
 
   switch (subcmd) {
@@ -13484,6 +13535,7 @@ NsfAssertionCmd(Tcl_Interp *interp, NsfObject *object, int subcmd, Tcl_Obj *arg)
       }
     }
   }
+#endif
   return TCL_OK;
 }
 
@@ -14425,8 +14477,10 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 
           if (cl) {
             /* Next Scripting class-methods */
+#if defined(NSF_WITH_ASSERTIONS)
             NsfProcAssertion *procs;
             procs = cl->opt ? AssertionFindProcs(cl->opt->assertions, name) : NULL;
+#endif
 
             DSTRING_INIT(dsPtr);
             Tcl_DStringAppendElement(dsPtr, "::nsf::method");
@@ -14434,20 +14488,26 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
             Tcl_DStringAppendElement(dsPtr, name);
             Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
             Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
+#if defined(NSF_WITH_ASSERTIONS)
             if (procs) {
               NsfRequireClassOpt(cl);
               AssertionAppendPrePost(interp, dsPtr, procs);
             }
+#endif
             Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
             DSTRING_FREE(dsPtr);
 
           } else {
             /* Next Scripting object-methods */
             NsfObject *object = GetObjectFromString(interp, fromNsPtr->fullName);
+#if defined(NSF_WITH_ASSERTIONS)
             NsfProcAssertion *procs;
+#endif
 
             if (object) {
+#if defined(NSF_WITH_ASSERTIONS)
               procs = object->opt ? AssertionFindProcs(object->opt->assertions, name) : NULL;
+#endif
             } else {
               DECR_REF_COUNT(newFullCmdName);
               DECR_REF_COUNT(oldFullCmdName);
@@ -14462,10 +14522,12 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
             Tcl_DStringAppendElement(dsPtr, name);
             Tcl_DStringAppendElement(dsPtr, ObjStr(arglistObj));
             Tcl_DStringAppendElement(dsPtr, StripBodyPrefix(ObjStr(procPtr->bodyPtr)));
+#if defined(NSF_WITH_ASSERTIONS)
             if (procs) {
               NsfRequireObjectOpt(object);
               AssertionAppendPrePost(interp, dsPtr, procs);
             }
+#endif
             Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
             DSTRING_FREE(dsPtr);
           }

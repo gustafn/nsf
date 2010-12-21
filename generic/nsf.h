@@ -77,15 +77,18 @@
 /* are we developing?
 #define NSF_DEVELOPMENT 1
 */
-#define NSF_DEVELOPMENT 1
 
 /* activate/deacticate assert 
 #define NDEBUG 1
 */
 
-/* additional features
-#define INHERIT_NAMESPACES_TO_CHILD_OBJECTS 1
+/* additional language features
+#define NSF_WITH_INHERIT_NAMESPACES 1
 */
+
+#define NSF_WITH_OS_RESOLVER 1
+#define NSF_WITH_ASSERTIONS 1
+
 
 /* activate/deacticate memory tracing 
 #define NSF_MEM_TRACE 1

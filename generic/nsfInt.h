@@ -260,14 +260,15 @@ typedef struct NsfFilterStack {
   struct NsfFilterStack *nextPtr;
 } NsfFilterStack;
 
-typedef struct NsfTclObjList {
-  Tcl_Obj *content;
-  struct NsfTclObjList *nextPtr;
-} NsfTclObjList;
 
 /*
  * Assertion structures
  */
+
+typedef struct NsfTclObjList {
+  Tcl_Obj *content;
+  struct NsfTclObjList *nextPtr;
+} NsfTclObjList;
 
 typedef struct NsfProcAssertion {
   NsfTclObjList *pre;

@@ -2113,9 +2113,16 @@ text
 - remove colon from method name in error message "unable to dispatch method ...."
 - extended regression test
 
+- nsf.c: code cleanup and documentation improvements
+- made assertion code optional
+- added and renamed additions compile flags
+   NSF_WITH_INHERIT_NAMESPACES
+   NSF_WITH_OS_RESOLVER
+   NSF_WITH_ASSERTIONS
+
 
 TODO:
-- info method definition for attributes?
+- "info method definition" for attributes?
 
 - check performance implications of value conflict checker
 
