@@ -8146,7 +8146,7 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
       }
     }
   } else {
-    
+#if defined(NSF_WITH_VALUE_WARNINGS)
     if (RUNTIME_STATE(interp)->debugLevel > 0) {
       char *value = ObjStr(objPtr);
       if (*value == '-' 
@@ -8158,7 +8158,7 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
 	       value, pPtr->name);
       }
     } 
-
+#endif
     *clientData = (ClientData)objPtr;
     result = TCL_OK;
   }

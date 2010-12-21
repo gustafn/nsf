@@ -88,7 +88,7 @@
 
 #define NSF_WITH_OS_RESOLVER 1
 #define NSF_WITH_ASSERTIONS 1
-
+#define NSF_WITH_VALUE_WARNINGS 1
 
 /* activate/deacticate memory tracing 
 #define NSF_MEM_TRACE 1
