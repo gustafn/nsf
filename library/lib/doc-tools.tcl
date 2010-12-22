@@ -24,7 +24,9 @@
 # @version 0.1
  
 package provide nx::doc 0.1
+
 package require nx
+package require nx::pp
 
 namespace eval ::nx::doc {
   namespace import -force ::nx::*
@@ -1753,7 +1755,8 @@ namespace eval ::nx::doc {
       }
        
       :method listing {{-inline true} script} {
-	return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
+	#return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
+	return [expr {$inline?"<code>$script</code>":[nx::pp render $script]}]
       }
       
       :method link {tag names} {
@@ -2329,7 +2332,7 @@ namespace eval ::nx::doc {
 		      [::nsf::configure objectsystem] eq ""} {
 		set rootclass ::nx::doc::_%&obj
 		set rootmclass ::nx::doc::_%&cls
-		::nsf::createobjectsystem ::nx::doc::_%&obj ::nx::doc::_%&cls
+		::nsf::createobjectsystem $rootclass $rootmclass
 	      } else {
 		lassign {*}[::nsf::configure objectsystem] rootclass rootmclass
 	      }
