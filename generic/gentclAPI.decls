@@ -23,8 +23,8 @@ nsfCmd __db_run_assertions NsfDebugRunAssertionsCmd {
 }
 nsfCmd alias NsfAliasCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "-per-object"}
-  {-argName "methodName"}
+  {-argName "-per-object" -required 0}
+  {-argName "methodName" -required 1}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}
   {-argName "cmdName" -required 1 -type tclobj}
 }

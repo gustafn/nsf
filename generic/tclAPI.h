@@ -2119,7 +2119,7 @@ static methodDefinition method_definitions[] = {
 {"::nsf::alias", NsfAliasCmdStub, 5, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
   {"-per-object", 0, 0, ConvertToString},
-  {"methodName", 0, 0, ConvertToString},
+  {"methodName", NSF_ARG_REQUIRED, 0, ConvertToString},
   {"-frame", 0|NSF_ARG_IS_ENUMERATION, 1, ConvertToFrame},
   {"cmdName", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
