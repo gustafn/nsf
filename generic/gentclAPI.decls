@@ -53,7 +53,7 @@ nsfCmd colon NsfColonCmd {
 }
 nsfCmd existsvar NsfExistsVarCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "varname" -required 1}
+  {-argName "varName" -required 1}
 }
 nsfCmd finalize NsfFinalizeObjCmd {
 }
@@ -88,14 +88,14 @@ nsfCmd is NsfIsCmd {
   {-argName "value" -required 1 -type tclobj}
 }
 nsfCmd isobject NsfIsObjectCmd {
-  {-argName "object" -required 1 -type tclobj}
+  {-argName "value" -required 1 -type tclobj}
 }
 nsfCmd method NsfMethodCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}
   {-argName "-public"}
-  {-argName "name" -required 1 -type tclobj}
+  {-argName "methodName" -required 1 -type tclobj}
   {-argName "args" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
   {-argName "-precondition"  -nrargs 1 -type tclobj}
@@ -110,7 +110,7 @@ nsfCmd methodproperty NsfMethodPropertyCmd {
 }
 nsfCmd my NsfMyCmd {
   {-argName "-local"}
-  {-argName "method" -required 1 -type tclobj}
+  {-argName "methodName" -required 1 -type tclobj}
   {-argName "args" -type args}
 }
 nsfCmd next NsfNextCmd {
@@ -125,7 +125,7 @@ nsfCmd nscopyvars NsfNSCopyVarsCmd {
   {-argName "toNs" -required 1 -type tclobj}
 }
 nsfCmd qualify NsfQualifyObjCmd {
-  {-argName "objectname" -required 1 -type tclobj}
+  {-argName "objectName" -required 1 -type tclobj}
 }
 nsfCmd relation NsfRelationCmd {
   {-argName "object"  -required 1 -type object}
@@ -144,7 +144,7 @@ nsfCmd setter NsfSetterCmd {
 }
 nsfCmd setvar NsfSetVarCmd {
   {-argName "object" -required 1 -type object}
-  {-argName "varname" -required 1 -type tclobj}
+  {-argName "varName" -required 1 -type tclobj}
   {-argName "value" -required 0 -type tclobj}
 }
 
@@ -169,7 +169,7 @@ objectMethod destroy NsfODestroyMethod {
 }
 
 objectMethod exists NsfOExistsMethod {
-  {-argName "varname" -required 1}
+  {-argName "varName" -required 1}
 }
 
 objectMethod filterguard NsfOFilterGuardMethod {
@@ -208,7 +208,7 @@ objectMethod volatile NsfOVolatileMethod {
 }
 
 objectMethod vwait NsfOVwaitMethod {
-  {-argName "varname" -required 1}
+  {-argName "varName" -required 1}
 }
 
 #
@@ -216,11 +216,11 @@ objectMethod vwait NsfOVwaitMethod {
 #
 
 classMethod alloc NsfCAllocMethod {
-  {-argName "name" -required 1 -type tclobj}
+  {-argName "objectName" -required 1 -type tclobj}
 }
 
 classMethod create NsfCCreateMethod {
-  {-argName "name" -required 1}
+  {-argName "objectName" -required 1}
   {-argName "args" -type allargs}
 }
 
@@ -244,7 +244,7 @@ classMethod new NsfCNewMethod {
 }
 
 classMethod recreate NsfCRecreateMethod {
-  {-argName "name" -required 1 -type tclobj}
+  {-argName "objectName" -required 1 -type tclobj}
   {-argName "args" -type allargs}
 }
 
@@ -258,7 +258,7 @@ objectInfoMethod children NsfObjInfoChildrenMethod {
 objectInfoMethod class NsfObjInfoClassMethod {
 }
 objectInfoMethod filterguard NsfObjInfoFilterguardMethod {
-  {-argName "name" -required 1}
+  {-argName "fileName" -required 1}
 }
 objectInfoMethod filtermethods NsfObjInfoFiltermethodsMethod {
   {-argName "-guards"}

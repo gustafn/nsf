@@ -270,13 +270,13 @@ static int NsfObjInfoParentMethodStub(ClientData clientData, Tcl_Interp *interp,
 static int NsfObjInfoPrecedenceMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 
-static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *name);
-static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
+static int NsfCAllocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName);
+static int NsfCCreateMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *objectName, int objc, Tcl_Obj *CONST objv[]);
 static int NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *object);
 static int NsfCFilterGuardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *filter, Tcl_Obj *guard);
 static int NsfCMixinGuardMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *mixin, Tcl_Obj *guard);
 static int NsfCNewMethod(Tcl_Interp *interp, NsfClass *cl, NsfObject *withChildof, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *name, int objc, Tcl_Obj *CONST objv[]);
+static int NsfCRecreateMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *objectName, int objc, Tcl_Obj *CONST objv[]);
 static int NsfClassInfoFilterguardMethod(Tcl_Interp *interp, NsfClass *cl, CONST char *filter);
 static int NsfClassInfoFiltermethodsMethod(Tcl_Interp *interp, NsfClass *cl, int withGuards, CONST char *pattern);
 static int NsfClassInfoForwardMethod(Tcl_Interp *interp, NsfClass *cl, int withDefinition, CONST char *name);
@@ -297,31 +297,31 @@ static int NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_
 static int NsfCurrentCmd(Tcl_Interp *interp, int currentoption);
 static int NsfDebugRunAssertionsCmd(Tcl_Interp *interp);
 static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
-static int NsfExistsVarCmd(Tcl_Interp *interp, NsfObject *object, CONST char *varname);
+static int NsfExistsVarCmd(Tcl_Interp *interp, NsfObject *object, CONST char *varName);
 static int NsfFinalizeObjCmd(Tcl_Interp *interp);
 static int NsfForwardCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *method, Tcl_Obj *withDefault, int withEarlybinding, Tcl_Obj *withMethodprefix, int withObjframe, Tcl_Obj *withOnerror, int withVerbose, Tcl_Obj *target, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfImportvarCmd(Tcl_Interp *interp, NsfObject *object, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_Obj *CONST objv[]);
 static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *class);
 static int NsfIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraint, Tcl_Obj *value);
-static int NsfIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *object);
-static int NsfMethodCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *name, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
+static int NsfIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *value);
+static int NsfMethodCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *methodName, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
-static int NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *method, int nobjc, Tcl_Obj *CONST nobjv[]);
+static int NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodName, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
-static int NsfQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *objectname);
+static int NsfQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
 static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int relationtype, Tcl_Obj *value);
 static int NsfSelfCmd(Tcl_Interp *interp);
-static int NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varname, Tcl_Obj *value);
+static int NsfSetVarCmd(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *varName, Tcl_Obj *value);
 static int NsfSetterCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *parameter);
 static int NsfShowStackCmd(Tcl_Interp *interp);
 static int NsfOAutonameMethod(Tcl_Interp *interp, NsfObject *obj, int withInstance, int withReset, Tcl_Obj *name);
 static int NsfOCleanupMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int NsfODestroyMethod(Tcl_Interp *interp, NsfObject *obj);
-static int NsfOExistsMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *varname);
+static int NsfOExistsMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *varName);
 static int NsfOFilterGuardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *filter, Tcl_Obj *guard);
 static int NsfOInstvarMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int NsfOMixinGuardMethod(Tcl_Interp *interp, NsfObject *obj, Tcl_Obj *mixin, Tcl_Obj *guard);
@@ -331,10 +331,10 @@ static int NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *obj, int objc, 
 static int NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *obj);
-static int NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *varname);
+static int NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *varName);
 static int NsfObjInfoChildrenMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType, CONST char *pattern);
 static int NsfObjInfoClassMethod(Tcl_Interp *interp, NsfObject *obj);
-static int NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *name);
+static int NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *fileName);
 static int NsfObjInfoFiltermethodsMethod(Tcl_Interp *interp, NsfObject *obj, int withGuards, int withOrder, CONST char *pattern);
 static int NsfObjInfoForwardMethod(Tcl_Interp *interp, NsfObject *obj, int withDefinition, CONST char *name);
 static int NsfObjInfoHasMixinMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *class);
@@ -466,10 +466,10 @@ NsfCCreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    CONST char *name = (CONST char *)pc.clientData[0];
+    CONST char *objectName = (CONST char *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfCCreateMethod(interp, cl, name, objc, objv);
+    return NsfCCreateMethod(interp, cl, objectName, objc, objv);
 
   }
 }
@@ -560,10 +560,10 @@ NsfCRecreateMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[0];
+    Tcl_Obj *objectName = (Tcl_Obj *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfCRecreateMethod(interp, cl, name, objc, objv);
+    return NsfCRecreateMethod(interp, cl, objectName, objc, objv);
 
   }
 }
@@ -1021,10 +1021,10 @@ NsfExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
     return TCL_ERROR;
   } else {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    CONST char *varname = (CONST char *)pc.clientData[1];
+    CONST char *varName = (CONST char *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfExistsVarCmd(interp, object, varname);
+    return NsfExistsVarCmd(interp, object, varName);
 
   }
 }
@@ -1174,14 +1174,14 @@ NsfMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     int withInner_namespace = (int )PTR2INT(pc.clientData[1]);
     int withPer_object = (int )PTR2INT(pc.clientData[2]);
     int withPublic = (int )PTR2INT(pc.clientData[3]);
-    Tcl_Obj *name = (Tcl_Obj *)pc.clientData[4];
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[4];
     Tcl_Obj *args = (Tcl_Obj *)pc.clientData[5];
     Tcl_Obj *body = (Tcl_Obj *)pc.clientData[6];
     Tcl_Obj *withPrecondition = (Tcl_Obj *)pc.clientData[7];
     Tcl_Obj *withPostcondition = (Tcl_Obj *)pc.clientData[8];
 
     assert(pc.status == 0);
-    return NsfMethodCmd(interp, object, withInner_namespace, withPer_object, withPublic, name, args, body, withPrecondition, withPostcondition);
+    return NsfMethodCmd(interp, object, withInner_namespace, withPer_object, withPublic, methodName, args, body, withPrecondition, withPostcondition);
 
   }
 }
@@ -1219,10 +1219,10 @@ NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     return TCL_ERROR;
   } else {
     int withLocal = (int )PTR2INT(pc.clientData[0]);
-    Tcl_Obj *method = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[1];
 
     assert(pc.status == 0);
-    return NsfMyCmd(interp, withLocal, method, objc-pc.lastobjc, objv+pc.lastobjc);
+    return NsfMyCmd(interp, withLocal, methodName, objc-pc.lastobjc, objv+pc.lastobjc);
 
   }
 }
@@ -1341,11 +1341,11 @@ NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     return TCL_ERROR;
   } else {
     NsfObject *object = (NsfObject *)pc.clientData[0];
-    Tcl_Obj *varname = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *varName = (Tcl_Obj *)pc.clientData[1];
     Tcl_Obj *value = (Tcl_Obj *)pc.clientData[2];
 
     assert(pc.status == 0);
-    return NsfSetVarCmd(interp, object, varname, value);
+    return NsfSetVarCmd(interp, object, varName, value);
 
   }
 }
@@ -1459,10 +1459,10 @@ NsfOExistsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    CONST char *varname = (CONST char *)pc.clientData[0];
+    CONST char *varName = (CONST char *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfOExistsMethod(interp, obj, varname);
+    return NsfOExistsMethod(interp, obj, varName);
 
   }
 }
@@ -1606,10 +1606,10 @@ NsfOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    CONST char *varname = (CONST char *)pc.clientData[0];
+    CONST char *varName = (CONST char *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfOVwaitMethod(interp, obj, varname);
+    return NsfOVwaitMethod(interp, obj, varName);
 
   }
 }
@@ -1661,10 +1661,10 @@ NsfObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int o
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    CONST char *name = (CONST char *)pc.clientData[0];
+    CONST char *fileName = (CONST char *)pc.clientData[0];
 
     assert(pc.status == 0);
-    return NsfObjInfoFilterguardMethod(interp, obj, name);
+    return NsfObjInfoFilterguardMethod(interp, obj, fileName);
 
   }
 }
@@ -2017,10 +2017,10 @@ NsfObjInfoVarsMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 
 static methodDefinition method_definitions[] = {
 {"::nsf::methods::class::alloc", NsfCAllocMethodStub, 1, {
-  {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
+  {"objectName", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::class::create", NsfCCreateMethodStub, 2, {
-  {"name", NSF_ARG_REQUIRED, 0, ConvertToString},
+  {"objectName", NSF_ARG_REQUIRED, 0, ConvertToString},
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::methods::class::dealloc", NsfCDeallocMethodStub, 1, {
@@ -2039,7 +2039,7 @@ static methodDefinition method_definitions[] = {
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::methods::class::recreate", NsfCRecreateMethodStub, 2, {
-  {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"objectName", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::methods::class::info::filterguard", NsfClassInfoFilterguardMethodStub, 1, {
@@ -2131,7 +2131,7 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::existsvar", NsfExistsVarCmdStub, 2, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
-  {"varname", NSF_ARG_REQUIRED, 0, ConvertToString}}
+  {"varName", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::finalize", NsfFinalizeObjCmdStub, 0, {
   }
@@ -2166,14 +2166,14 @@ static methodDefinition method_definitions[] = {
   {"value", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::isobject", NsfIsObjectCmdStub, 1, {
-  {"object", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
+  {"value", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::method", NsfMethodCmdStub, 9, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
   {"-inner-namespace", 0, 0, ConvertToString},
   {"-per-object", 0, 0, ConvertToString},
   {"-public", 0, 0, ConvertToString},
-  {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"methodName", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"args", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"body", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"-precondition", 0, 1, ConvertToTclobj},
@@ -2188,7 +2188,7 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::my", NsfMyCmdStub, 3, {
   {"-local", 0, 0, ConvertToString},
-  {"method", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"methodName", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::nscopycmds", NsfNSCopyCmdsCmdStub, 2, {
@@ -2203,7 +2203,7 @@ static methodDefinition method_definitions[] = {
   {"arguments", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::qualify", NsfQualifyObjCmdStub, 1, {
-  {"objectname", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
+  {"objectName", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::relation", NsfRelationCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
@@ -2215,7 +2215,7 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::setvar", NsfSetVarCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
-  {"varname", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"varName", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"value", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::setter", NsfSetterCmdStub, 3, {
@@ -2241,7 +2241,7 @@ static methodDefinition method_definitions[] = {
   }
 },
 {"::nsf::methods::object::exists", NsfOExistsMethodStub, 1, {
-  {"varname", NSF_ARG_REQUIRED, 0, ConvertToString}}
+  {"varName", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::methods::object::filterguard", NsfOFilterGuardMethodStub, 2, {
   {"filter", NSF_ARG_REQUIRED, 0, ConvertToString},
@@ -2273,7 +2273,7 @@ static methodDefinition method_definitions[] = {
   }
 },
 {"::nsf::methods::object::vwait", NsfOVwaitMethodStub, 1, {
-  {"varname", NSF_ARG_REQUIRED, 0, ConvertToString}}
+  {"varName", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::children", NsfObjInfoChildrenMethodStub, 2, {
   {"-type", 0, 1, ConvertToClass},
@@ -2283,7 +2283,7 @@ static methodDefinition method_definitions[] = {
   }
 },
 {"::nsf::methods::object::info::filterguard", NsfObjInfoFilterguardMethodStub, 1, {
-  {"name", NSF_ARG_REQUIRED, 0, ConvertToString}}
+  {"fileName", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::filtermethods", NsfObjInfoFiltermethodsMethodStub, 3, {
   {"-guards", 0, 0, ConvertToString},
