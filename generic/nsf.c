@@ -6800,9 +6800,20 @@ ParamDefsFree(NsfParamDefs *paramDefs) {
 }
 
 /*
- * Non Positional Parameter
+ *----------------------------------------------------------------------
+ * ParamDefsFormatOption --
+ *
+ *    Append a parameter option to the nameStringObj representing the
+ *    syntax of the parameter definition.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    none
+ *
+ *----------------------------------------------------------------------
  */
-
 static void
 ParamDefsFormatOption(Tcl_Interp *interp, Tcl_Obj *nameStringObj, CONST char *option,
                       int *colonWritten, int *firstOption) {
@@ -6818,6 +6829,21 @@ ParamDefsFormatOption(Tcl_Interp *interp, Tcl_Obj *nameStringObj, CONST char *op
   Tcl_AppendLimitedToObj(nameStringObj, option, -1, INT_MAX, NULL);
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParamDefsFormat --
+ *
+ *    Produce a Tcl_Obj representing a single parameter in the syntax
+ *    of the parameter definition.
+ *
+ * Results:
+ *    Tcl_Obj
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static Tcl_Obj *
 ParamDefsFormat(Tcl_Interp *interp, NsfParam CONST *paramsPtr) {
   int first, colonWritten;
@@ -6887,6 +6913,21 @@ ParamDefsFormat(Tcl_Interp *interp, NsfParam CONST *paramsPtr) {
   return listObj;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParamDefsList --
+ *
+ *    Produce a Tcl_ListObj containing the names ot the parameters
+ *    based on a parameter structure.
+ *
+ * Results:
+ *    Tcl_Obj
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static Tcl_Obj *
 ParamDefsList(Tcl_Interp *interp, NsfParam CONST *paramsPtr) {
   Tcl_Obj *listObj = Tcl_NewListObj(0, NULL);
@@ -6898,6 +6939,20 @@ ParamDefsList(Tcl_Interp *interp, NsfParam CONST *paramsPtr) {
   return listObj;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParamGetType --
+ *
+ *    Obtain the type of a single parameter and return it as a string.
+ *
+ * Results:
+ *    Type of the parameter in form of a string
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static CONST char *
 ParamGetType(NsfParam CONST *paramPtr) {
   CONST char *result = "value";
@@ -6925,6 +6980,22 @@ ParamGetType(NsfParam CONST *paramPtr) {
   return result;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParamGetDomain --
+ *
+ *    Obtain the domain of a single parameter and return it as a
+ *    string. The domain is an approximate type used in the parameter
+ *    syntax.
+ *
+ * Results:
+ *    Domain of the parameter in form of a string
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static CONST char *
 ParamGetDomain(NsfParam CONST *paramPtr) {
   CONST char *result = "value";
@@ -6943,6 +7014,23 @@ ParamGetDomain(NsfParam CONST *paramPtr) {
   }
   return result;
 }
+
+/*
+ *----------------------------------------------------------------------
+ * ParamDefsSyntax --
+ *
+ *    Return the parameter definitions of a sequence of parameters in
+ *    the form of the "parametersyntax", inspired by the Tcl manual
+ *    pages.
+ *
+ * Results:
+ *    Tcl_Obj containing the parameter syntax
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 
 static Tcl_Obj *
 ParamDefsSyntax(Tcl_Interp *interp, NsfParam CONST *paramPtr) {
@@ -6978,9 +7066,24 @@ ParamDefsSyntax(Tcl_Interp *interp, NsfParam CONST *paramPtr) {
   return argStringObj;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ParsedParamFree --
+ *
+ *    Free the provided information of the parsed parameters.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Freed Memory.
+ *
+ *----------------------------------------------------------------------
+ */
 static void
 ParsedParamFree(NsfParsedParam *parsedParamPtr) {
-  /*fprintf(stderr, "ParsedParamFree %p, npargs %p\n", parsedParamPtr, parsedParamPtr->paramDefs);*/
+  /*fprintf(stderr, "ParsedParamFree %p, npargs %p\n", 
+   parsedParamPtr, parsedParamPtr->paramDefs);*/
   if (parsedParamPtr->paramDefs) {
     ParamDefsFree(parsedParamPtr->paramDefs);
   }
