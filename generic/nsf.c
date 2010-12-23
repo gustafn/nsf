@@ -6846,6 +6846,8 @@ ParamDefsFormat(Tcl_Interp *interp, NsfParam CONST *paramsPtr) {
       nameStringObj = Tcl_NewStringObj(pPtr->name, -1);
       if (pPtr->type) {
         ParamDefsFormatOption(interp, nameStringObj, pPtr->type, &colonWritten, &first);
+      } else if (isNonpos && pPtr->nrArgs == 0) {
+        ParamDefsFormatOption(interp, nameStringObj, "switch", &colonWritten, &first);
       }
       if (outputRequired) {
         ParamDefsFormatOption(interp, nameStringObj, "required", &colonWritten, &first);

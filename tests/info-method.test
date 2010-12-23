@@ -325,11 +325,11 @@ Test case info-submethod {
       {::C public method {bar baz y} {x:int y:upper} {return y}}
 
   ? {nx::Object info method parameter "info lookup methods"} \
-      "-callprotection -incontext -methodtype -nomixins -path -source pattern:optional"
+      "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
   ? {o info method parameter "foo b"} "x:int y:upper"
 
   ? {nx::Object info method parameter ::nx::Object::slot::__info::lookup::methods} \
-      "-callprotection -incontext -methodtype -nomixins -path -source pattern:optional"
+      "-callprotection -incontext:switch -methodtype -nomixins:switch -path:switch -source pattern:optional"
   ? {o info method parameter "::o::foo::b"} "x:int y:upper"
 
   ? {nx::Object info method handle "info"} "::nsf::classes::nx::Object::info"

@@ -566,12 +566,12 @@ Test case subst-default {
       "query instparams for scripted method 'method'"
   
   ? {Object info method parameter ::nsf::forward} \
-      "object -per-object method -default -earlybinding -methodprefix -objframe -onerror -verbose target:optional args" \
+      "object -per-object:switch method -default -earlybinding:switch -methodprefix -objframe:switch -onerror -verbose:switch target:optional args" \
       "query parameter for C-defined cmd 'nsf::forward'"
-  
+
   Object require method autoname
   ? {Object info method parameter autoname} \
-      "-instance -reset name" \
+      "-instance:switch -reset:switch name" \
       "query parameter for C-defined method 'autoname'"
   
   # TODO: how to query the params/instparams of info subcommands?

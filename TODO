@@ -2124,11 +2124,16 @@ text
 - defined nsf::deprecated as tcl proc, using ::nsf::log
 - some minor refactoring
 
+- "info parameter": return :switch as parameteroption for 
+   C-defined cmds, when a nonpos-arg gets no arguments
+- updated regression test
+
 TODO:
 - "info method definition" for attributes?
 
 - check performance implications of value conflict checker
 
+- explizites [::nsf::method delete] (sinngemäss), als ergänzung zum "{} {}"-idiom 
 - extend coro regression test
 
 - C-interface
