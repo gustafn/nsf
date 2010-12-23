@@ -267,7 +267,6 @@ extern NsfClasses ** NsfClassListAdd(NsfClasses **firstPtrPtr, NsfClass *cl, Cli
 extern void NsfClassListFree(NsfClasses *firstPtr);
 
 /* misc prototypes */
-static int NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
 static int SetInstVar(Tcl_Interp *interp, NsfObject *object, Tcl_Obj *nameObj, Tcl_Obj *valueObj);
 static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
 			      int withPer_object, int methodType, int withCallproctection,
@@ -275,6 +274,60 @@ static int ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char 
 static int NextSearchAndInvoke(Tcl_Interp *interp,
 			       CONST char *methodName, int objc, Tcl_Obj *CONST objv[],
 			       NsfCallStackContent *cscPtr, int freeArgumentVector);
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfErrorContext --
+ *
+ *      Print the current errorCode and errorInfo to stderr.
+ *      This should be used as the last ressor, when e.g. logging fails
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Output to stderr
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+NsfErrorContext(Tcl_Interp *interp, CONST char *context) {
+  Tcl_DString ds, *dsPtr = &ds;
+
+  Tcl_DStringInit(dsPtr);
+  Tcl_DStringAppend(dsPtr, "puts stderr \"Error in ", -1);
+  Tcl_DStringAppend(dsPtr, context, -1);
+  Tcl_DStringAppend(dsPtr, ":\n$::errorCode $::errorInfo\"", -1);
+  Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
+  Tcl_DStringFree(dsPtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfDStringEval --
+ *
+ *      Evaluate the provided Tcl_DString as a Tcl command and output
+ *      the error stack in case of a failure.
+ *
+ * Results:
+ *      Tcl result code.
+ *
+ * Side effects:
+ *      Output to stderr possible.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+NsfDStringEval(Tcl_Interp *interp, Tcl_DString *dsPtr, CONST char *context) {
+  int result = Tcl_EvalEx(interp, Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr), 0);
+  if (result == TCL_ERROR) {
+    NsfErrorContext(interp, context);
+  }
+  return result;
+}
 
 /*
  *----------------------------------------------------------------------
@@ -288,7 +341,7 @@ static int NextSearchAndInvoke(Tcl_Interp *interp,
  *      None.
  *
  * Side effects:
- *      None.
+ *      Output of the warning.
  *
  *----------------------------------------------------------------------
  */
@@ -307,20 +360,47 @@ NsfLog(Tcl_Interp *interp, int requiredLevel, CONST char *fmt, ...) {
     va_end(ap);
 
     Tcl_DStringInit(&cmdString);
-    Tcl_DStringAppendElement(&cmdString, "nsf::log");
+    Tcl_DStringAppendElement(&cmdString, "::nsf::log");
     Tcl_DStringAppendElement(&cmdString, level);
     Tcl_DStringAppendElement(&cmdString, Tcl_DStringValue(&ds));
-
-    int result = Tcl_EvalEx(interp, Tcl_DStringValue(&cmdString), Tcl_DStringLength(&cmdString), 0);
-    if (result == TCL_ERROR) {
-      static char cmdString[] =
-	"puts stderr \"Error in logger\n\
-      $::errorCode $::errorInfo\"";
-      Tcl_EvalEx(interp, cmdString, -1, 0);
-    }
+    NsfDStringEval(interp, &cmdString, "log command");
     Tcl_DStringFree(&cmdString);
     Tcl_DStringFree(&ds);
   }
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * NsfDeprecatedCmd --
+ *
+ *      Provide a warning about a depracted command or method. The
+ *      message is produced via calling the external Tcl function
+ *      ::nsf::deprecated.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      Output of the warning.
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd) {
+  Tcl_DString ds, *dsPtr = &ds;
+
+  assert(what);
+  assert(oldCmd);
+
+  Tcl_DStringInit(dsPtr);
+  Tcl_DStringAppendElement(dsPtr, "::nsf::deprecated");
+  Tcl_DStringAppendElement(dsPtr, what);
+  Tcl_DStringAppendElement(dsPtr, oldCmd);
+  Tcl_DStringAppendElement(dsPtr, newCmd ? newCmd : "");
+  NsfDStringEval(interp, dsPtr, "log command");
+  Tcl_DStringFree(dsPtr);
 }
 
 /*
@@ -7945,10 +8025,7 @@ DispatchDestroyMethod(Tcl_Interp *interp, NsfObject *object, int flags) {
      * The object might be already gone here, since we have no stack frame.
      * Therefore, we can't even use nsf::current object safely.
      */
-    static char cmdString[] =
-      "puts stderr \"Error in method destroy\n\
-      $::errorCode $::errorInfo\"";
-    Tcl_EvalEx(interp, cmdString, -1, 0);
+    NsfErrorContext(interp, "method destroy");
 
     if (++RUNTIME_STATE(interp)->errorCount > 20)
       Tcl_Panic("too many destroy errors occured. Endless loop?", NULL);
@@ -8444,10 +8521,10 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
     paramPtr->flags &= ~NSF_ARG_REQUIRED;
   } else if (strncmp(option, "substdefault", 12) == 0) {
     paramPtr->flags |= NSF_ARG_SUBST_DEFAULT;
-  } else if (strncmp(option, "allowempty", 10) == 0) {
+  } /* TODO REMOVE ME else if (strncmp(option, "allowempty", 10) == 0) {
     fprintf(stderr, "******* allowempty is deprecated, use instead multiplicity 0..1\n");
     paramPtr->flags |= NSF_ARG_ALLOW_EMPTY;
-  } else if (strncmp(option, "convert", 7) == 0) {
+    } */ else if (strncmp(option, "convert", 7) == 0) {
     paramPtr->flags |= NSF_ARG_IS_CONVERTER;
   } else if (strncmp(option, "initcmd", 7) == 0) {
     paramPtr->flags |= NSF_ARG_INITCMD;
@@ -8472,13 +8549,13 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
       return NsfPrintError(interp, "upper bound of multiplicty in %s not supported", argString);
     }
     //fprintf(stderr, "%s set multivalued option %s\n", paramPtr->name, option);
-  } else if (strncmp(option, "multivalued", 11) == 0) {
+  } /* TODO REMOVE ME else if (strncmp(option, "multivalued", 11) == 0) {
     fprintf(stderr, "******* multivalued is deprecated, use instead multiplicity 1..*\n");
     if ((paramPtr->flags & (NSF_ARG_INITCMD|NSF_ARG_RELATION|NSF_ARG_METHOD|NSF_ARG_SWITCH)) != 0)
 	return NsfPrintError(interp, 
 			     "option multivalued not allowed for \"initcmd\", \"method\", \"relation\" or \"switch\"\n");
     paramPtr->flags |= NSF_ARG_MULTIVALUED;
-  } else if (strncmp(option, "noarg", 5) == 0) {
+    } */ else if (strncmp(option, "noarg", 5) == 0) {
     if ((paramPtr->flags & NSF_ARG_METHOD) == 0) {
       return NsfPrintError(interp, "option noarg only allowed for parameter type \"method\"");
     }
@@ -13737,26 +13814,6 @@ NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *Object, Tcl_Obj *Class, Tc
   AddInstance((NsfObject*)thecls, thecls);
   AddSuper(thecls, theobj);
 
-  return TCL_OK;
-}
-
-/*
-nsfCmd deprecated NsfDeprecatedCmd {
-  {-argName "what" -required 1}
-  {-argName "oldCmd" -required 1}
-  {-argName "newCmd" -required 0}
-}
-*/
-/*
- * Prints a msg to the screen that oldCmd is deprecated
- * optinal: give a new cmd
- */
-static int
-NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd) {
-  fprintf(stderr, "**\n**\n** The %s <%s> is deprecated.\n", what, oldCmd);
-  if (newCmd)
-    fprintf(stderr, "** Use <%s> instead.\n", newCmd);
-  fprintf(stderr, "**\n");
   return TCL_OK;
 }
 

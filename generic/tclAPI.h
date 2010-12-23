@@ -213,7 +213,6 @@ static int NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int ob
 static int NsfCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -297,7 +296,6 @@ static int NsfConfigureCmd(Tcl_Interp *interp, int configureoption, Tcl_Obj *val
 static int NsfCreateObjectSystemCmd(Tcl_Interp *interp, Tcl_Obj *rootClass, Tcl_Obj *rootMetaClass, Tcl_Obj *systemMethods);
 static int NsfCurrentCmd(Tcl_Interp *interp, int currentoption);
 static int NsfDebugRunAssertionsCmd(Tcl_Interp *interp);
-static int NsfDeprecatedCmd(Tcl_Interp *interp, CONST char *what, CONST char *oldCmd, CONST char *newCmd);
 static int NsfDispatchCmd(Tcl_Interp *interp, NsfObject *object, int withFrame, Tcl_Obj *command, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfExistsVarCmd(Tcl_Interp *interp, NsfObject *object, CONST char *varname);
 static int NsfFinalizeObjCmd(Tcl_Interp *interp);
@@ -382,7 +380,6 @@ enum {
  NsfCreateObjectSystemCmdIdx,
  NsfCurrentCmdIdx,
  NsfDebugRunAssertionsCmdIdx,
- NsfDeprecatedCmdIdx,
  NsfDispatchCmdIdx,
  NsfExistsVarCmdIdx,
  NsfFinalizeObjCmdIdx,
@@ -991,26 +988,6 @@ NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
     
     return NsfDebugRunAssertionsCmd(interp);
 
-}
-
-static int
-NsfDeprecatedCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-
-  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
-                     method_definitions[NsfDeprecatedCmdIdx].paramDefs, 
-                     method_definitions[NsfDeprecatedCmdIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    CONST char *what = (CONST char *)pc.clientData[0];
-    CONST char *oldCmd = (CONST char *)pc.clientData[1];
-    CONST char *newCmd = (CONST char *)pc.clientData[2];
-
-    assert(pc.status == 0);
-    return NsfDeprecatedCmd(interp, what, oldCmd, newCmd);
-
-  }
 }
 
 static int
@@ -2145,11 +2122,6 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::__db_run_assertions", NsfDebugRunAssertionsCmdStub, 0, {
   }
-},
-{"::nsf::deprecated", NsfDeprecatedCmdStub, 3, {
-  {"what", NSF_ARG_REQUIRED, 0, ConvertToString},
-  {"oldCmd", NSF_ARG_REQUIRED, 0, ConvertToString},
-  {"newCmd", 0, 0, ConvertToString}}
 },
 {"::nsf::dispatch", NsfDispatchCmdStub, 4, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},

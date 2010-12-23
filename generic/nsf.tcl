@@ -55,7 +55,6 @@ namespace eval ::nsf {
     } else {
       set rel "class-mixin"
     }
-    puts stderr LL=[llength $args]-$args
     if {[lindex $args 0] ne ""} {
       set oldSetting [::nsf::relation $object $rel]
       # use uplevel to avoid namespace surprises
@@ -100,9 +99,18 @@ namespace eval ::nsf {
   }
 
   #
-  # determine platform aware temp directory
+  # deprecated command
   #
-  
+  proc ::nsf::deprecated {what oldCmd newCmd} {
+    set msg "**\n** The $what $oldcmd is deprecated."
+    if {$newCmd ne ""} {append msg " use $newCmd instead."}
+    append msg "\n**\n"
+    nsf::log Warning $msg
+  }
+
+  #
+  # determine platform aware temp directory
+  #  
   proc tmpdir {} {
     foreach e [list TMPDIR TEMP TMP] {
       if {[info exists ::env($e)] \

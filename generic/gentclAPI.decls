@@ -42,11 +42,6 @@ nsfCmd createobjectsystem NsfCreateObjectSystemCmd {
   {-argName "rootMetaClass" -required 1 -type tclobj}
   {-argName "systemMethods" -required 0 -type tclobj}
 }
-nsfCmd deprecated NsfDeprecatedCmd {
-  {-argName "what" -required 1}
-  {-argName "oldCmd" -required 1}
-  {-argName "newCmd" -required 0}
-}
 nsfCmd dispatch NsfDispatchCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-frame" -required 0 -nrargs 1 -type "method|object|default" -default "default"}

@@ -2121,6 +2121,8 @@ text
    NSF_WITH_ASSERTIONS
 - added flag NSF_WITH_VALUE_WARNINGS
 
+- defined nsf::deprecated as tcl proc, using ::nsf::log
+- some minor refactoring
 
 TODO:
 - "info method definition" for attributes?
