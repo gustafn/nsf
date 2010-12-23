@@ -214,7 +214,7 @@ nx::Object create nx::pp {
     :puts ".nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}"
     :puts ".nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}"
     :puts "</style>"
-    :puts "<pre class='nx'>"
+    :puts -nonewline "<pre class='nx'>"
     :toHTML $block
     :puts "</pre>\n"
     return ${:output}
