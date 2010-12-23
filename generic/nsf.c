@@ -489,31 +489,6 @@ ParseContextRelease(ParseContext *pcPtr) {
   }
 }
 
-/*
- * Var Reform Compatibility support.
- *
- *   Definitions for accessing Tcl variable structures after varreform
- *   in Tcl 8.5.
- */
-
-#define TclIsCompiledLocalArgument(compiledLocalPtr)  ((compiledLocalPtr)->flags & VAR_ARGUMENT)
-#define TclIsCompiledLocalTemporary(compiledLocalPtr) ((compiledLocalPtr)->flags & VAR_TEMPORARY)
-
-#define VarHashGetValue(hPtr)	((Var *) ((char *)hPtr - TclOffset(VarInHash, entry)))
-#define VarHashGetKey(varPtr)   (((VarInHash *)(varPtr))->entry.key.objPtr)
-#define VarHashTablePtr(varTablePtr)  &(varTablePtr)->table
-#define valueOfVar(type, varPtr, field) (type *)(varPtr)->value.field
-
-NSF_INLINE static Tcl_Namespace *
-ObjFindNamespace(Tcl_Interp *interp, Tcl_Obj *objPtr) {
-  Tcl_Namespace *nsPtr;
-
-  if (TclGetNamespaceFromObj(interp, objPtr, &nsPtr) == TCL_OK) {
-    return nsPtr;
-  } else {
-    return NULL;
-  }
-}
 
 static NSF_INLINE Var *
 VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
@@ -523,7 +498,7 @@ VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
   hPtr = Tcl_CreateHashEntry((Tcl_HashTable *) tablePtr,
                              (char *) key, newPtr);
   if (hPtr) {
-    varPtr = VarHashGetValue(hPtr);
+    varPtr = TclVarHashGetValue(hPtr);
   }
   return varPtr;
 }
@@ -2140,8 +2115,8 @@ MakeObjNamespace(Tcl_Interp *interp, NsfObject *object) {
       Tcl_HashSearch  search;
       Tcl_HashEntry   *hPtr;
       TclVarHashTable *varTablePtr = Tcl_Namespace_varTablePtr(nsPtr);
-      Tcl_HashTable   *varHashTablePtr = VarHashTablePtr(varTablePtr);
-      Tcl_HashTable   *objHashTablePtr = VarHashTablePtr(object->varTablePtr);
+      Tcl_HashTable   *varHashTablePtr = TclVarHashTablePtr(varTablePtr);
+      Tcl_HashTable   *objHashTablePtr = TclVarHashTablePtr(object->varTablePtr);
 	
       *varHashTablePtr = *objHashTablePtr; /* copy the table */
 	
@@ -2975,14 +2950,27 @@ NsfRequireObjNamespace(Tcl_Interp *interp, Nsf_Object *object) {
  * Namespace related commands
  */
 
+/*
+ *----------------------------------------------------------------------
+ * NSDeleteCmd --
+ *
+ *    Delete the Tcl command for the provided methodName located in
+ *    the provided namespace.
+ *
+ * Results:
+ *    Tcl result or -1, if no such method exists int.
+ *
+ * Side effects:
+ *    Command is deleted.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
-NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *name) {
-  /* a simple deletion would delete a global command with
-     the same name, if the command is not existing, so
-     we use the CmdToken */
+NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName) {
   Tcl_Command token;
+
   assert(nsPtr);
-  if ((token = FindMethod(nsPtr, name))) {
+  if ((token = FindMethod(nsPtr, methodName))) {
     return Tcl_DeleteCommandFromToken(interp, token);
   }
   return -1;
@@ -6697,8 +6685,8 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp,
 
 static void
 GetVarAndNameFromHash(Tcl_HashEntry *hPtr, Var **val, Tcl_Obj **varNameObj) {
-  *val = VarHashGetValue(hPtr);
-  *varNameObj = VarHashGetKey(*val);
+  *val = TclVarHashGetValue(hPtr);
+  *varNameObj = TclVarHashGetKey(*val);
 }
 
 void
@@ -11209,7 +11197,7 @@ GetInstVarIntoCurrentScope(Tcl_Interp *interp, const char *cmdName, NsfObject *o
       }
       if (TclIsVarLink(varPtr)) {
         /* we try to make the same instvar again ... this is ok */
-        Var *linkPtr = valueOfVar(Var, varPtr, linkPtr);
+        Var *linkPtr = TclVarValue(Var, varPtr, linkPtr);
         if (linkPtr == otherPtr) {
           return TCL_OK;
         }
@@ -12461,8 +12449,8 @@ ListVarKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr, CONST char *pattern) {
 
     hPtr = tablePtr ? Tcl_CreateHashEntry(tablePtr, (char *)patternObj, NULL) : NULL;
     if (hPtr) {
-      Var  *val = VarHashGetValue(hPtr);
-      Tcl_SetObjResult(interp, VarHashGetKey(val));
+      Var  *val = TclVarHashGetValue(hPtr);
+      Tcl_SetObjResult(interp, TclVarHashGetKey(val));
     } else {
       Tcl_SetObjResult(interp, NsfGlobalObjs[NSF_EMPTY]);
     }
@@ -12472,8 +12460,8 @@ ListVarKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr, CONST char *pattern) {
     Tcl_HashSearch hSrch;
     hPtr = tablePtr ? Tcl_FirstHashEntry(tablePtr, &hSrch) : NULL;
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
-      Var  *val = VarHashGetValue(hPtr);
-      Tcl_Obj *key  = VarHashGetKey(val);
+      Var  *val = TclVarHashGetValue(hPtr);
+      Tcl_Obj *key  = TclVarHashGetKey(val);
       if (!pattern || Tcl_StringMatch(ObjStr(key), pattern)) {
         Tcl_ListObjAppendElement(interp, list, key);
       }
@@ -14537,9 +14525,9 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   NsfClass *cl;
   int fromClassNS;
 
-  fromNsPtr = ObjFindNamespace(interp, fromNs);
-  if (!fromNsPtr)
+  if (TclGetNamespaceFromObj(interp, fromNs, &fromNsPtr) != TCL_OK) {
     return TCL_OK;
+  }
 
   name = ObjStr(fromNs);
 
@@ -14552,12 +14540,10 @@ NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 
   cl = fromClassNS ? (NsfClass *)object : NULL;
 
-  /*  object = GetObjectFromString(interp, ObjStr(fromNs));*/
-
-  toNsPtr = ObjFindNamespace(interp, toNs);
-  if (!toNsPtr)
+  if (TclGetNamespaceFromObj(interp, toNs, &toNsPtr) != TCL_OK) {
     return NsfPrintError(interp, "CopyCmds: Destination namespace %s does not exist", 
 			 ObjStr(toNs));
+  }
   /*
    * copy all procs & commands in the ns
    */
@@ -14735,7 +14721,7 @@ nsfCmd namespace_copyvars NsfNSCopyVars {
 */
 static int
 NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
-  Tcl_Namespace *fromNsPtr, *toNsPtr;
+  Tcl_Namespace *fromNsPtr = NULL, *toNsPtr;
   Var *varPtr = NULL;
   Tcl_HashSearch hSrch;
   Tcl_HashEntry *hPtr;
@@ -14746,14 +14732,13 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   Tcl_CallFrame frame, *framePtr = &frame;
   Tcl_Obj *varNameObj = NULL;
 
-  fromNsPtr = ObjFindNamespace(interp, fromNs);
-  /*fprintf(stderr, "copyvars from %s to %s, ns=%p\n", ObjStr(objv[1]), ObjStr(objv[2]), ns);*/
+  TclGetNamespaceFromObj(interp, fromNs, &fromNsPtr);
 
   if (fromNsPtr) {
-    toNsPtr = ObjFindNamespace(interp, toNs);
-    if (!toNsPtr)
+    if (TclGetNamespaceFromObj(interp, toNs, &toNsPtr) != TCL_OK) {
       return NsfPrintError(interp, "CopyVars: Destination namespace %s does not exist", 
 			   ObjStr(toNs));
+    }
 
     object = GetObjectFromString(interp, ObjStr(fromNs));
     destFullName = toNsPtr->fullName;
@@ -14779,7 +14764,7 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
   destObject = GetObjectFromString(interp, destFullName);
 
   /* copy all vars in the ns */
-  hPtr = varTablePtr ? Tcl_FirstHashEntry(VarHashTablePtr(varTablePtr), &hSrch) : NULL;
+  hPtr = varTablePtr ? Tcl_FirstHashEntry(TclVarHashTablePtr(varTablePtr), &hSrch) : NULL;
   while (hPtr) {
 
     GetVarAndNameFromHash(hPtr, &varPtr, &varNameObj);
@@ -14794,21 +14779,21 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 
         if (object) {
           /* fprintf(stderr, "copy in obj %s var %s val '%s'\n", ObjectName(object), ObjStr(varNameObj),
-	     ObjStr(valueOfVar(Tcl_Obj, varPtr, objPtr)));*/
+	     ObjStr(TclVarValue(Tcl_Obj, varPtr, objPtr)));*/
 
 	  Nsf_ObjSetVar2((Nsf_Object*)destObject, interp, varNameObj, NULL, 
-			 valueOfVar(Tcl_Obj, varPtr, objPtr), 0);
+			 TclVarValue(Tcl_Obj, varPtr, objPtr), 0);
         } else {
           Tcl_ObjSetVar2(interp, varNameObj, NULL,
-                         valueOfVar(Tcl_Obj, varPtr, objPtr),
+                         TclVarValue(Tcl_Obj, varPtr, objPtr),
                          TCL_NAMESPACE_ONLY);
         }
       } else {
         if (TclIsVarArray(varPtr)) {
           /* HERE!! PRE85 Why not [array get/set] based? Let the core iterate */
-          TclVarHashTable *aTable = valueOfVar(TclVarHashTable, varPtr, tablePtr);
+          TclVarHashTable *aTable = TclVarValue(TclVarHashTable, varPtr, tablePtr);
           Tcl_HashSearch ahSrch;
-          Tcl_HashEntry *ahPtr = aTable ? Tcl_FirstHashEntry(VarHashTablePtr(aTable), &ahSrch) :0;
+          Tcl_HashEntry *ahPtr = aTable ? Tcl_FirstHashEntry(TclVarHashTablePtr(aTable), &ahSrch) :0;
           for (; ahPtr; ahPtr = Tcl_NextHashEntry(&ahSrch)) {
             Tcl_Obj *eltNameObj;
             Var *eltVar;
@@ -14819,10 +14804,10 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
             if (TclIsVarScalar(eltVar)) {
               if (object) {
                 Nsf_ObjSetVar2((Nsf_Object*)destObject, interp, varNameObj, eltNameObj,
-				 valueOfVar(Tcl_Obj, eltVar, objPtr), 0);
+				 TclVarValue(Tcl_Obj, eltVar, objPtr), 0);
               } else {
                 Tcl_ObjSetVar2(interp, varNameObj, eltNameObj,
-                               valueOfVar(Tcl_Obj, eltVar, objPtr),
+                               TclVarValue(Tcl_Obj, eltVar, objPtr),
                                TCL_NAMESPACE_ONLY);
               }
             }
@@ -17266,7 +17251,7 @@ NsfObjInfoVarsMethod(Tcl_Interp *interp, NsfObject *object, CONST char *pattern)
     Tcl_Namespace_varTablePtr(object->nsPtr) :
     object->varTablePtr;
 
-  ListVarKeys(interp, VarHashTablePtr(varTablePtr), pattern);
+  ListVarKeys(interp, TclVarHashTablePtr(varTablePtr), pattern);
   varlist = Tcl_GetObjResult(interp);
 
   Tcl_ListObjLength(interp, varlist, &length);

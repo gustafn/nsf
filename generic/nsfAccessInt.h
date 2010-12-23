@@ -43,6 +43,21 @@
 #define Tcl_Command_deleteData(cmd)    ((Command *)cmd)->deleteData
 
 /*
+ * Var Reform Compatibility support.
+ *
+ *   Definitions for accessing Tcl variable structures after varreform
+ *   in Tcl 8.5.
+ */
+
+#define TclIsCompiledLocalArgument(compiledLocalPtr)  ((compiledLocalPtr)->flags & VAR_ARGUMENT)
+#define TclIsCompiledLocalTemporary(compiledLocalPtr) ((compiledLocalPtr)->flags & VAR_TEMPORARY)
+
+#define TclVarHashGetValue(hPtr)	((Var *) ((char *)hPtr - TclOffset(VarInHash, entry)))
+#define TclVarHashGetKey(varPtr)	(((VarInHash *)(varPtr))->entry.key.objPtr)
+#define TclVarHashTablePtr(varTablePtr)		&(varTablePtr)->table
+#define TclVarValue(type, varPtr, field)	(type *)(varPtr)->value.field
+
+/*
  * Conversion from CmdPtr to Class / Object
  */
 
