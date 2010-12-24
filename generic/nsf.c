@@ -8249,8 +8249,9 @@ AddPrefixToBody(Tcl_Obj *body, int paramDefs, NsfParsedParam *paramPtr) {
 
   INCR_REF_COUNT(resultBody);
 
-  if (paramDefs && paramPtr->possibleUnknowns > 0)
+  if (paramDefs && paramPtr->possibleUnknowns > 0) {
     Tcl_AppendStringsToObj(resultBody, "::nsf::__unset_unknown_args\n", (char *) NULL);
+  }
 
   Tcl_AppendStringsToObj(resultBody, ObjStr(body), (char *) NULL);
   return resultBody;
@@ -9031,14 +9032,14 @@ MakeProc(Tcl_Namespace *nsPtr, NsfAssertionStore *aStore, Tcl_Interp *interp,
     INCR_REF_COUNT(ov[2]);
     /*fprintf(stderr, "final arglist = <%s>\n", ObjStr(argList)); */
     ov[3] = AddPrefixToBody(body, 1, &parsedParam);
-  } else { /* no nonpos arguments */
+  } else { /* no parameter handling needed */
     ov[2] = args;
     ov[3] = AddPrefixToBody(body, 0, &parsedParam);
   }
 
   Tcl_PushCallFrame(interp, (Tcl_CallFrame *)framePtr, nsPtr, 0);
   /* create the method in the provided namespace */
-  result = Tcl_ProcObjCmd(0, interp, 4, ov) != TCL_OK;
+  result = Tcl_ProcObjCmd(0, interp, 4, ov);
   if (result == TCL_OK) {
     /* retrieve the defined proc */
     Proc *procPtr = FindProcMethod(nsPtr, methodName);
@@ -9143,6 +9144,199 @@ MakeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, Tcl_Obj *nameObj
 
   return result;
 }
+
+/**************************************************************************
+ * Begin Definition of Parameter procs (Tcl Procs with Parameter handling)
+ **************************************************************************/
+/// xxxx
+typedef struct NsfProcClientData {
+  Tcl_Obj *procName;
+  NsfParamDefs *paramDefs;
+} NsfProcClientData;
+
+/*
+ *----------------------------------------------------------------------
+ * NsfProcStubDeleteProc --
+ *
+ *    Tcl_CmdDeleteProc for NsfProcStubs. Is called, whenever a
+ *    NsfProcStub is deleted and frees the associated client data.
+ *
+ * Results:
+ *    None.
+ *
+ * Side effects:
+ *    Frees clientdata
+ *
+ *----------------------------------------------------------------------
+ */
+static void
+NsfProcStubDeleteProc(ClientData clientData) {
+  NsfProcClientData *tcd = clientData;
+
+  /*fprintf(stderr, "NsfProcStubDeleteProc received %p\n", clientData);
+    fprintf(stderr, "... procName %s paramDefs %p\n", ObjStr(tcd->procName), tcd->paramDefs);*/
+
+  DECR_REF_COUNT(tcd->procName);
+  /* ParamDefsFree(tcd->paramDefs); */ /* seems not neccessary */
+  FREE(NsfProcClientData, tcd);
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NsfProcStub --
+ *
+ *    Tcl_ObjCmdProc implementing Proc Stubs. This function processes
+ *    the argument list in accordance with the parameter definitions
+ *    and calls in case of success the shadowed proc.
+ *
+ * Results:
+ *    Tcl return code.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  NsfProcClientData *tcd = clientData;
+  int result;
+
+  assert(tcd);
+  fprintf(stderr, "NsfProcStub %s is called, tcd %p\n", ObjStr(objv[0]), tcd);
+
+  if (tcd->paramDefs && tcd->paramDefs->paramsPtr) {
+    ParseContext *pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
+    ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
+
+    /* 
+     * We have to substitute the the first element of objv with the
+     * name of the function to be called. Since objv is immutable, we
+     * have to copy the full argument vector and replace the element
+     * on position [0]
+     */
+    memcpy(tov+1, objv+1, sizeof(Tcl_Obj *)*(objc-1));
+    tov[0] = tcd->procName;
+
+    /* If the argument passing is ok, the shadowed proc is called */
+    result = ProcessMethodArguments(pcPtr, interp, NULL, 1, 
+				    tcd->paramDefs, ObjStr(objv[0]), 
+				    objc, tov);
+
+    if (result == TCL_OK) {
+      /*
+       * For the time being, we call the shadowed proc defined with a
+       * mutated name. It should be possible to compile and call the
+       * proc body directly, similar as for scripted methods. 
+       * 
+       * TODO: check implications with NRE and Tcl 8.6, maybe a
+       * finalize function is needed as well.
+       */
+      fprintf(stderr, "NsfProcStub: call proc arguments oc %d [0] '%s' \n",
+	      pcPtr->objc, ObjStr(pcPtr->full_objv[0]));
+      result = Tcl_EvalObjv(interp, pcPtr->objc, pcPtr->full_objv, 0);
+
+
+    } else {
+      fprintf(stderr, "NsfProcStub: incorrect arguments\n");
+    }
+
+    ParseContextRelease(pcPtr);
+    NsfTclStackFree(interp, pcPtr, "release parse context");
+    FREE_ON_STACK(Tcl_Obj *, ov);
+  } else {
+    fprintf(stderr, "no parameters\n");
+    assert(0); /* should never happen */
+    result = TCL_ERROR;
+  }
+  return result;
+}
+
+/*
+ *----------------------------------------------------------------------
+ * NsfAddParameterProc --
+ *
+ *    Add a command for implementing a Tcl proc with next scripting
+ *    parameter handling. 
+ *
+ *    For the time being, this function adds two things, (a) a Tcl cmd
+ *    functioning as a stub for the argument processing (in accordance
+ *    with the parameter definitions) and (b) the shadowed Tcl proc
+ *    with a mutated name. The latter might not be necessary, when we
+ *    handle this in a style like for scriped methods.
+ *
+ *    TODO: the current 1 cmd + 1 proc implemtnation is not robust
+ *    against renaming and partial deletions (deletion of the
+ *    stub). The sketched variant should be better and should be
+ *    exampined first in detail.
+ *
+ * Results:
+ *    Tcl return code.
+ *
+ * Side effects:
+ *    Adding 1 Tcl and and 1 Tcl proc
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr, 
+		    CONST char *methodName, Tcl_Obj *body) {
+  Tcl_Obj *procNameObj = Tcl_NewStringObj(methodName, -1);
+  NsfParamDefs *paramDefs = parsedParamPtr->paramDefs;
+  NsfProcClientData *tcd = NEW(NsfProcClientData);
+  Tcl_Obj *argList = Tcl_NewListObj(0, NULL);
+  NsfParam *pPtr;
+  Tcl_Obj *ov[4];
+  int result;
+
+  /* The name of the shadowed Tcl proc is the original name, with a special suffix */
+  Tcl_AppendToObj(procNameObj, "__#", 3);
+  tcd->procName = procNameObj; /* well be freed, when NsfProcStub is deleted */
+  tcd->paramDefs = paramDefs;
+  
+  fprintf(stderr, "NsfAddParameterProc %s tcd %p paramdefs %p\n", methodName, tcd, tcd->paramDefs);
+
+  for (pPtr = paramDefs->paramsPtr; pPtr->name; pPtr++) {
+    if (*pPtr->name == '-') {
+      Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name+1, -1));
+    } else {
+      Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name, -1));
+    }
+  }
+  ov[0] = NULL;
+  ov[1] = procNameObj;
+  ov[2] = argList;
+  ov[3] = AddPrefixToBody(body, 1, parsedParamPtr);
+  
+  INCR_REF_COUNT(ov[1]);
+  INCR_REF_COUNT(ov[2]);
+  
+  fprintf(stderr, "NsfAddParameterProc define proc %s arglist '%s'\n", ObjStr(ov[1]), ObjStr(ov[2])); 
+  result = Tcl_ProcObjCmd(0, interp, 4, ov);
+  
+  if (result == TCL_OK) {
+    Tcl_Command cmd = Tcl_CreateObjCommand(interp, methodName, NsfProcStub,
+					   tcd, NsfProcStubDeleteProc);
+    if (cmd) {
+      fprintf(stderr, "NsfAddParameterProc define cmd  %s::%s %p\n", 
+	      ((Command *)cmd)->nsPtr->fullName,
+	      Tcl_GetCommandName(interp, cmd), cmd);
+      ParamDefsStore(interp, cmd, paramDefs);
+    } else {
+      /* free tcd and its content */
+      NsfProcStubDeleteProc(tcd);
+    }
+  }
+  
+  DECR_REF_COUNT(ov[2]);
+  DECR_REF_COUNT(ov[3]);
+  
+  return result;
+}
+/**************************************************************************
+ * End Definition of Parameter procs (Tcl Procs with Parameter handling)
+ **************************************************************************/
+
 
 static int
 GetMatchObject(Tcl_Interp *interp, Tcl_Obj *patternObj, Tcl_Obj *origObj,
@@ -12522,6 +12716,7 @@ ListParamDefs(Tcl_Interp *interp, NsfParam CONST *paramsPtr, int style) {
   return listObj;
 }
 
+// TODO enum style
 
 /*
  *----------------------------------------------------------------------
@@ -12543,133 +12738,138 @@ ListParamDefs(Tcl_Interp *interp, NsfParam CONST *paramsPtr, int style) {
 
 static int
 ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int withVarnames) {
-  Proc *procPtr = GetTclProcFromCommand(cmd);
+  NsfParamDefs *paramDefs;
+  Tcl_Obj *list;
+  Proc *procPtr;
 
   assert(methodName);
+  assert(cmd);
 
+  paramDefs = ParamDefsGet(cmd);
+
+  if (paramDefs && paramDefs->paramsPtr) {
+    /*
+     * Obtain parameter info from paramDefs
+     */
+    list = ListParamDefs(interp, paramDefs->paramsPtr, withVarnames);
+    Tcl_SetObjResult(interp, list);
+    return TCL_OK;
+  }
+
+  procPtr = GetTclProcFromCommand(cmd);
   if (procPtr) {
-    NsfParamDefs *paramDefs = procPtr ? ParamDefsGet((Tcl_Command)procPtr->cmdPtr) : NULL;
-    Tcl_Obj *list;
-
-    if (paramDefs && paramDefs->paramsPtr) {
-      /*
-       * Obtain parameter info from paramDefs
-       */
-      list = ListParamDefs(interp, paramDefs->paramsPtr, withVarnames);
-
-    } else {
-      /*
-       * Obtain parameter info from compiled locals
-       */
-      CompiledLocal *args = procPtr->firstLocalPtr;
-
-      list = Tcl_NewListObj(0, NULL);
-      for ( ; args; args = args->nextPtr) {
-        Tcl_Obj *innerlist;
-
-        if (!TclIsCompiledLocalArgument(args)) {
-          continue;
-        }
-
-	if (withVarnames == 2 && strcmp(args->name, "args") == 0) {
-	  if (args != procPtr->firstLocalPtr) {
-	    Tcl_AppendToObj(list, " ", 1);
-	  }
-	  Tcl_AppendToObj(list, "?arg ...?", 9);
-	} else {
-	  innerlist = Tcl_NewListObj(0, NULL);
-	  Tcl_ListObjAppendElement(interp, innerlist, Tcl_NewStringObj(args->name, -1));
-	  if (!withVarnames && args->defValuePtr) {
-	    Tcl_ListObjAppendElement(interp, innerlist, args->defValuePtr);
-	  }
-	  Tcl_ListObjAppendElement(interp, list, innerlist);
-	}
+    /*
+     * Obtain parameter info from compiled locals
+     */
+    CompiledLocal *args = procPtr->firstLocalPtr;
+    
+    list = Tcl_NewListObj(0, NULL);
+    for ( ; args; args = args->nextPtr) {
+      Tcl_Obj *innerlist;
+      
+      if (!TclIsCompiledLocalArgument(args)) {
+	continue;
       }
+      
+      if (withVarnames == 2 && strcmp(args->name, "args") == 0) {
+	if (args != procPtr->firstLocalPtr) {
+	  Tcl_AppendToObj(list, " ", 1);
+	}
+	Tcl_AppendToObj(list, "?arg ...?", 9);
+      } else {
+	innerlist = Tcl_NewListObj(0, NULL);
+	Tcl_ListObjAppendElement(interp, innerlist, Tcl_NewStringObj(args->name, -1));
+	if (!withVarnames && args->defValuePtr) {
+	  Tcl_ListObjAppendElement(interp, innerlist, args->defValuePtr);
+	}
+	Tcl_ListObjAppendElement(interp, list, innerlist);
+	}
     }
 
     Tcl_SetObjResult(interp, list);
     return TCL_OK;
+  }
 
-  } else if (cmd) {
+  {
     /*
      * If a command is found for the object|class, check whether we
      * find the parameter definitions for the C-defined method.
      */
     methodDefinition *mdPtr = &method_definitions[0];
-
+    
     for (; mdPtr->methodName; mdPtr ++) {
-
+      
       /*fprintf(stderr, "... comparing %p with %p => %s\n", ((Command *)cmd)->objProc, mdPtr->proc,
 	mdPtr->methodName);*/
-
+      
       if (((Command *)cmd)->objProc == mdPtr->proc) {
-        NsfParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters};
+	NsfParamDefs paramDefs = {mdPtr->paramDefs, mdPtr->nrParameters};
 	Tcl_Obj *list = ListParamDefs(interp, paramDefs.paramsPtr, withVarnames);
-
-        Tcl_SetObjResult(interp, list);
-        return TCL_OK;
-      }
-    }
-
-    if (((Command *)cmd)->objProc == NsfSetterMethod) {
-      SetterCmdClientData *cd = (SetterCmdClientData *)Tcl_Command_objClientData(cmd);
-      if (cd->paramsPtr) {
-        Tcl_Obj *list;
-        NsfParamDefs paramDefs;
-        paramDefs.paramsPtr = cd->paramsPtr;
-        paramDefs.nrParams = 1;
-        paramDefs.slotObj = NULL;
-	list = ListParamDefs(interp, paramDefs.paramsPtr, withVarnames);
-        Tcl_SetObjResult(interp, list);
-        return TCL_OK;
-      } else {
-        Tcl_SetObjResult(interp, Tcl_NewStringObj(methodName, -1));
-        return TCL_OK;
-      }
-    }
-
-    /*
-     * In case, we failed so far to obtain a result, try to use the
-     * object-system implementors definitions in the gobal array
-     * ::nsf::parametersyntax. Note that we can only obtain the
-     * parametersyntax this way.
-     */
-    if (withVarnames == 2) {
-      Command *cmdPtr = (Command *)cmd;
-      Tcl_DString ds, *dsPtr = &ds;
-      Tcl_Obj *parameterSyntaxObj;
-
-      Tcl_DStringInit(dsPtr);
-      if (strcmp("::", cmdPtr->nsPtr->fullName) != 0) {
-	Tcl_DStringAppend(dsPtr, cmdPtr->nsPtr->fullName, -1);
-      }
-      Tcl_DStringAppend(dsPtr, "::", 2);
-      Tcl_DStringAppend(dsPtr, methodName, -1);
-      
-      /*fprintf(stderr,"Looking up ::nsf::parametersyntax(%s) ...\n",Tcl_DStringValue(dsPtr));*/
-      parameterSyntaxObj = Tcl_GetVar2Ex(interp, "::nsf::parametersyntax", 
-					 Tcl_DStringValue(dsPtr), TCL_GLOBAL_ONLY);
-      
-      /*fprintf(stderr, "No parametersyntax so far methodname %s cmd name %s ns %s\n", 
-	methodName, Tcl_GetCommandName(interp,cmd), Tcl_DStringValue(dsPtr));*/
-
-      Tcl_DStringFree(dsPtr);
-      if (parameterSyntaxObj) {
-        Tcl_SetObjResult(interp, parameterSyntaxObj);
+	
+	Tcl_SetObjResult(interp, list);
 	return TCL_OK;
       }
     }
-
-    if (((Command *)cmd)->objProc == NsfForwardMethod) {
-      return NsfPrintError(interp, "info params: could not obtain parameter definition for forwarder '%s'",
-                            methodName);
-    } else if (((Command *)cmd)->objProc != NsfObjDispatch) {
-      return NsfPrintError(interp, "info params: could not obtain parameter definition for method '%s'",
-			   methodName);
+  }
+  
+  if (((Command *)cmd)->objProc == NsfSetterMethod) {
+    SetterCmdClientData *cd = (SetterCmdClientData *)Tcl_Command_objClientData(cmd);
+    if (cd->paramsPtr) {
+      Tcl_Obj *list;
+      NsfParamDefs paramDefs;
+      paramDefs.paramsPtr = cd->paramsPtr;
+      paramDefs.nrParams = 1;
+      paramDefs.slotObj = NULL;
+      list = ListParamDefs(interp, paramDefs.paramsPtr, withVarnames);
+      Tcl_SetObjResult(interp, list);
+      return TCL_OK;
     } else {
-      /* procPtr == NsfObjDispatch, be quiet */
+      Tcl_SetObjResult(interp, Tcl_NewStringObj(methodName, -1));
       return TCL_OK;
     }
+  }
+  
+  /*
+   * In case, we failed so far to obtain a result, try to use the
+   * object-system implementors definitions in the gobal array
+   * ::nsf::parametersyntax. Note that we can only obtain the
+   * parametersyntax this way.
+   */
+  if (withVarnames == 2) {
+    Command *cmdPtr = (Command *)cmd;
+    Tcl_DString ds, *dsPtr = &ds;
+    Tcl_Obj *parameterSyntaxObj;
+    
+    Tcl_DStringInit(dsPtr);
+    if (strcmp("::", cmdPtr->nsPtr->fullName) != 0) {
+      Tcl_DStringAppend(dsPtr, cmdPtr->nsPtr->fullName, -1);
+    }
+    Tcl_DStringAppend(dsPtr, "::", 2);
+    Tcl_DStringAppend(dsPtr, methodName, -1);
+    
+    /*fprintf(stderr,"Looking up ::nsf::parametersyntax(%s) ...\n",Tcl_DStringValue(dsPtr));*/
+    parameterSyntaxObj = Tcl_GetVar2Ex(interp, "::nsf::parametersyntax", 
+				       Tcl_DStringValue(dsPtr), TCL_GLOBAL_ONLY);
+    
+    /*fprintf(stderr, "No parametersyntax so far methodname %s cmd name %s ns %s\n", 
+      methodName, Tcl_GetCommandName(interp,cmd), Tcl_DStringValue(dsPtr));*/
+    
+    Tcl_DStringFree(dsPtr);
+    if (parameterSyntaxObj) {
+      Tcl_SetObjResult(interp, parameterSyntaxObj);
+      return TCL_OK;
+    }
+  }
+  
+  if (((Command *)cmd)->objProc == NsfForwardMethod) {
+    return NsfPrintError(interp, "info params: could not obtain parameter definition for forwarder '%s'",
+			 methodName);
+  } else if (((Command *)cmd)->objProc != NsfObjDispatch) {
+    return NsfPrintError(interp, "info params: could not obtain parameter definition for method '%s'",
+			 methodName);
+  } else {
+    /* procPtr == NsfObjDispatch, be quiet */
+    return TCL_OK;
   }
   
   {
@@ -14296,7 +14496,7 @@ nsfCmd method NsfMethodCmd {
   {-argName "-per-object"}
   {-argName "-public"}
   {-argName "name" -required 1 -type tclobj}
-  {-argName "args" -required 1 -type tclobj}
+  {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
   {-argName "-precondition"  -nrargs 1 -type tclobj}
   {-argName "-postcondition" -nrargs 1 -type tclobj}
@@ -14305,7 +14505,7 @@ nsfCmd method NsfMethodCmd {
 static int
 NsfMethodCmd(Tcl_Interp *interp, NsfObject *object,
 	     int withInner_namespace, int withPer_object, int withPublic,
-	     Tcl_Obj *nameObj, Tcl_Obj *args, Tcl_Obj *body,
+	     Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body,
 	     Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition) {
   NsfClass *cl =
     (withPer_object || ! NsfObjectIsClass(object)) ?
@@ -14314,7 +14514,7 @@ NsfMethodCmd(Tcl_Interp *interp, NsfObject *object,
   if (cl == 0) {
     RequireObjNamespace(interp, object);
   }
-  return MakeMethod(interp, object, cl, nameObj, args, body,
+  return MakeMethod(interp, object, cl, nameObj, arguments, body,
                     withPrecondition, withPostcondition,
                     withPublic, withInner_namespace);
 }
@@ -14824,6 +15024,51 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
     Tcl_PopCallFrame(interp);
   }
   return TCL_OK;
+}
+
+/*
+nsfCmd proc NsfProcCmd {
+  {-argName "methodName" -required 1 -type tclobj}
+  {-argName "arguments" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+}
+*/
+static int
+NsfProcCmd(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
+  NsfParsedParam parsedParam;
+  int result;
+
+  /*
+   * Parse argument list "arguments" to determine if we should provide
+   * nsf parameter handling.
+   */
+  result = ParamDefsParse(interp, nameObj, arguments, NSF_DISALLOWED_ARG_METHOD_PARAMETER, &parsedParam);
+  if (result != TCL_OK) {
+    return result;
+  }
+
+  if (parsedParam.paramDefs) {
+    /* 
+     * We need parameter handling. In such cases, a thin C-based layer
+     * is added which handles the parameter passing and calls the proc
+     * later.
+     */
+    result = NsfAddParameterProc(interp, &parsedParam, ObjStr(nameObj), body);
+    
+  } else {
+    /* 
+     * No parameter handling needed. A plain Tcl proc is added.
+     */
+    Tcl_Obj *ov[4];
+
+    ov[0] = NULL;
+    ov[1] = nameObj;
+    ov[2] = arguments;
+    ov[3] = body;
+    result = Tcl_ProcObjCmd(0, interp, 4, ov);
+  }
+
+  return result;
 }
 
 /*

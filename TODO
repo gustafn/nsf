@@ -2128,7 +2128,23 @@ text
    C-defined cmds, when a nonpos-arg gets no arguments
 - updated regression test
 
+- added experimental ::nsf::proc for realization of procs with next
+  scripting argument passing. These nsf::procs improve the
+  orthogonality of the code (using e.g. nonpos args and value checker
+  for procs) and allows the same introspection interface (info method
+  parameter|parametersyntax, ...)
+
 TODO:
+
+- nsf::proc 
+   * scripted method like implementation
+   * toplevel introspection 
+   * support for serialization in aolserver
+   * regression tests
+   * uplevel etc. semantics
+   * reduce verbosity
+   * memleak testing
+
 - "info method definition" for attributes?
 
 - check performance implications of value conflict checker

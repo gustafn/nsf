@@ -96,11 +96,18 @@ nsfCmd method NsfMethodCmd {
   {-argName "-per-object"}
   {-argName "-public"}
   {-argName "methodName" -required 1 -type tclobj}
-  {-argName "args" -required 1 -type tclobj}
+  {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
   {-argName "-precondition"  -nrargs 1 -type tclobj}
   {-argName "-postcondition" -nrargs 1 -type tclobj}
 }
+
+nsfCmd proc NsfProcCmd {
+  {-argName "methodName" -required 1 -type tclobj}
+  {-argName "arguments" -required 1 -type tclobj}
+  {-argName "body" -required 1 -type tclobj}
+}
+
 nsfCmd methodproperty NsfMethodPropertyCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-per-object"}

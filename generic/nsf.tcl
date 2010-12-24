@@ -46,19 +46,12 @@ namespace eval ::nsf {
   # argument).
   #
 
-  set ::nsf::parametersyntax(::nsf::mixin) "object ?-per-object? classes"
-
-  proc ::nsf::mixin {object args} {
-    if {[lindex $args 0] eq "-per-object"} {
-      set rel "object-mixin"
-      set args [lrange $args 1 end]
-    } else {
-      set rel "class-mixin"
-    }
-    if {[lindex $args 0] ne ""} {
+  ::nsf::proc ::nsf::mixin {object -per-object:switch classes} {
+    set rel [expr {${per-object} ? "object-mixin" : "class-mixin"}]
+    if {[lindex $classes 0] ne ""} {
       set oldSetting [::nsf::relation $object $rel]
       # use uplevel to avoid namespace surprises
-      uplevel [list ::nsf::relation $object $rel [linsert $oldSetting 0 $args]]
+      uplevel [list ::nsf::relation $object $rel [linsert $oldSetting 0 $classes]]
     } else {
       uplevel [list ::nsf::relation $object $rel ""]
     }

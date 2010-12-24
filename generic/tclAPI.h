@@ -228,6 +228,7 @@ static int NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl
 static int NsfNSCopyCmdsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
+static int NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -305,12 +306,13 @@ static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_O
 static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *class);
 static int NsfIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraint, Tcl_Obj *value);
 static int NsfIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *value);
-static int NsfMethodCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *methodName, Tcl_Obj *args, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
+static int NsfMethodCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
 static int NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodName, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
+static int NsfProcCmd(Tcl_Interp *interp, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body);
 static int NsfQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
 static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int relationtype, Tcl_Obj *value);
 static int NsfSelfCmd(Tcl_Interp *interp);
@@ -395,6 +397,7 @@ enum {
  NsfNSCopyCmdsCmdIdx,
  NsfNSCopyVarsCmdIdx,
  NsfNextCmdIdx,
+ NsfProcCmdIdx,
  NsfQualifyObjCmdIdx,
  NsfRelationCmdIdx,
  NsfSelfCmdIdx,
@@ -1175,13 +1178,13 @@ NsfMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     int withPer_object = (int )PTR2INT(pc.clientData[2]);
     int withPublic = (int )PTR2INT(pc.clientData[3]);
     Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[4];
-    Tcl_Obj *args = (Tcl_Obj *)pc.clientData[5];
+    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[5];
     Tcl_Obj *body = (Tcl_Obj *)pc.clientData[6];
     Tcl_Obj *withPrecondition = (Tcl_Obj *)pc.clientData[7];
     Tcl_Obj *withPostcondition = (Tcl_Obj *)pc.clientData[8];
 
     assert(pc.status == 0);
-    return NsfMethodCmd(interp, object, withInner_namespace, withPer_object, withPublic, methodName, args, body, withPrecondition, withPostcondition);
+    return NsfMethodCmd(interp, object, withInner_namespace, withPer_object, withPublic, methodName, arguments, body, withPrecondition, withPostcondition);
 
   }
 }
@@ -1278,6 +1281,26 @@ NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
     
     return NsfNextCmd(interp, objc == 2 ? objv[1] : NULL);
 
+}
+
+static int
+NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  ParseContext pc;
+
+  if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
+                     method_definitions[NsfProcCmdIdx].paramDefs, 
+                     method_definitions[NsfProcCmdIdx].nrParameters, 1,
+                     &pc) != TCL_OK) {
+    return TCL_ERROR;
+  } else {
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[0];
+    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[2];
+
+    assert(pc.status == 0);
+    return NsfProcCmd(interp, methodName, arguments, body);
+
+  }
 }
 
 static int
@@ -2174,7 +2197,7 @@ static methodDefinition method_definitions[] = {
   {"-per-object", 0, 0, ConvertToString},
   {"-public", 0, 0, ConvertToString},
   {"methodName", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
-  {"args", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"arguments", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"body", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"-precondition", 0, 1, ConvertToTclobj},
   {"-postcondition", 0, 1, ConvertToTclobj}}
@@ -2201,6 +2224,11 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::next", NsfNextCmdStub, 1, {
   {"arguments", 0, 0, ConvertToTclobj}}
+},
+{"::nsf::proc", NsfProcCmdStub, 3, {
+  {"methodName", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"arguments", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+  {"body", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::qualify", NsfQualifyObjCmdStub, 1, {
   {"objectName", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
