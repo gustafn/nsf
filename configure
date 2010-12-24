@@ -5487,8 +5487,19 @@ else
 	FORCE_NO_STUBS=0
 fi
 
+# set the default aol_prefix
 aol_prefix="/usr/local/aolserver"
-if test -d "${prefix}/modules/tcl" ; then aol_prefix="${prefix}" ; fi
+# if we have under ${prefix} either modules/tcl/init.tcl (aolserver
+# style) or modules/tcl/init.tcl (naviserver style), then use
+# ${prefix} as aol_prefix (path for the installation of
+# aolserver/naviserver specific tcl files).
+if test -f "${prefix}/modules/tcl/init.tcl" ; then
+   aol_prefix="${prefix}"
+else
+   if test -f "${prefix}/tcl/init.tcl" ; then
+      aol_prefix="${prefix}"
+   fi
+fi
 
 
 #--------------------------------------------------------------------
