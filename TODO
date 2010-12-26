@@ -2144,6 +2144,7 @@ text
 - moved variable declarations to inner scopes
 - removed warning from cppcheck()
 
+- added block for none-one-liner if statements
 TODO:
 
 - nsf::proc 
