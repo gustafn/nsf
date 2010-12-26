@@ -799,7 +799,7 @@ doContent(XML_Parser parser,
 	  const char **nextPtr)
 {
   const ENCODING *internalEnc = XmlGetInternalEncoding();
-  const char *dummy;
+  const char *dummy = NULL; /* make cppcheck happy */
   const char **eventPP;
   const char **eventEndPP;
   if (enc == encoding) {
@@ -1081,6 +1081,7 @@ doContent(XML_Parser parser,
 	  return XML_ERROR_BAD_CHAR_REF;
 	if (characterDataHandler) {
 	  XML_Char buf[XML_ENCODE_MAX];
+	  buf[0] = '\0';
 	  characterDataHandler(handlerArg, buf, XmlEncode(n, (ICHAR *)buf));
 	}
 	else if (defaultHandler)
@@ -1295,7 +1296,7 @@ enum XML_Error doCdataSection(XML_Parser parser,
 			      const char **nextPtr)
 {
   const char *s = *startPtr;
-  const char *dummy;
+  const char *dummy = NULL;  /* make cppcheck happy */
   const char **eventPP;
   const char **eventEndPP;
   if (enc == encoding) {

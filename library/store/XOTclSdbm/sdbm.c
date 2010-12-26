@@ -114,7 +114,8 @@ register int mode;
 /*
  * build the file names
  */
-	dirname = strcat(strcpy(dirname, file), DIRFEXT);
+	strcpy(dirname, file);
+	dirname = strcat(dirname, DIRFEXT);
 	pagname = strcpy(dirname + strlen(dirname) + 1, file);
 	pagname = strcat(pagname, PAGFEXT);
 

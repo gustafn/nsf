@@ -8528,7 +8528,7 @@ checkForModifier(Tcl_Obj * CONST objv[], int numberModifiers, char *modifier) {
 static int
 XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   XOTclObject *obj = (XOTclObject*)cd;
-  Tcl_Namespace *nsp = obj->nsPtr;
+  Tcl_Namespace *nsp;
   char *cmd, *pattern;
   int modifiers = 0;
   XOTclObjectOpt *opt;
@@ -8537,6 +8537,7 @@ XOTclOInfoMethod(ClientData cd, Tcl_Interp *interp, int objc, Tcl_Obj *CONST obj
   if (objc < 2)
     return XOTclObjErrArgCnt(interp, obj->cmdName, "info <opt> ?args?");
 
+  nsp = obj->nsPtr;
   opt = obj->opt;
   cmd = ObjStr(objv[1]);
   pattern = (objc > 2) ? ObjStr(objv[2]) : 0;
