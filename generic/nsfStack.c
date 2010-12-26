@@ -1016,8 +1016,8 @@ BeginOfCallChain(Tcl_Interp *interp, NsfObject *object) {
   Tcl_CallFrame *varFramePtr = (Tcl_CallFrame *)Tcl_Interp_varFramePtr(interp), 
     *prevFramePtr = varFramePtr;
 
-  fprintf(stderr, "BeginOfCallChain obj %s\n", ObjectName(object));
   if (object) {
+    fprintf(stderr, "BeginOfCallChain obj %s\n", ObjectName(object));
     for (; varFramePtr; varFramePtr = Tcl_CallFrame_callerPtr(varFramePtr)) {
       register int flags = Tcl_CallFrame_isProcCallFrame(varFramePtr);
       

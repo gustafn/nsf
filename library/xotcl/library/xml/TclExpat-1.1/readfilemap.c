@@ -59,27 +59,32 @@ int filemap(const char *name,
   }
   if (fstat(fd, &sb) < 0) {
     perror(name);
+    close(fd);
     return 0;
   }
   if (!S_ISREG(sb.st_mode)) {
     fprintf(stderr, "%s: not a regular file\n", name);
+    close(fd);
     return 0;
   }
   nbytes = sb.st_size;
   p = malloc(nbytes);
   if (!p) {
     fprintf(stderr, "%s: out of memory\n", name);
+    close(fd);
     return 0;
   }
   n = read(fd, p, nbytes);
   if (n < 0) {
     perror(name);
     close(fd);
+    free(p);
     return 0;
   }
   if (n != nbytes) {
     fprintf(stderr, "%s: read unexpected number of bytes\n", name);
     close(fd);
+    free(p);
     return 0;
   }
   processor(p, nbytes, name, arg);

@@ -2134,6 +2134,16 @@ text
   for procs) and allows the same introspection interface (info method
   parameter|parametersyntax, ...)
 
+- removed unneded functions: NsfComputePrecedence(), NsfComputeDependents(),
+  Nsf_SetVar2Ex(), NsfOSetInstVar(), Nsf_ObjGetVar2(), NsfOGetInstVar(), 
+  qNsfCreateObject()
+- removed unneeded external declarations: NsfClassListAdd() NsfClassListFree()
+- make extern declarations explicit
+- grouped most extern definitions together
+- improved documentation
+- moved variable declarations to inner scopes
+- removed warning from cppcheck()
+
 TODO:
 
 - nsf::proc 

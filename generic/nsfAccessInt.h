@@ -57,6 +57,26 @@
 #define TclVarHashTablePtr(varTablePtr)		&(varTablePtr)->table
 #define TclVarValue(type, varPtr, field)	(type *)(varPtr)->value.field
 
+static NSF_INLINE Var *
+VarHashCreateVar(TclVarHashTable *tablePtr, Tcl_Obj *key, int *newPtr) {
+  Var *varPtr = NULL;
+  Tcl_HashEntry *hPtr;
+
+  hPtr = Tcl_CreateHashEntry((Tcl_HashTable *) tablePtr,
+                             (char *) key, newPtr);
+  if (hPtr) {
+    varPtr = TclVarHashGetValue(hPtr);
+  }
+  return varPtr;
+}
+
+static TclVarHashTable *
+VarHashTableCreate() {
+  TclVarHashTable *varTablePtr = (TclVarHashTable *) ckalloc(sizeof(TclVarHashTable));
+  TclInitVarHashTable(varTablePtr, NULL);
+  return varTablePtr;
+}
+
 /*
  * Conversion from CmdPtr to Class / Object
  */
