@@ -148,7 +148,7 @@ NsfObjErrType(Tcl_Interp *interp,
 
   Tcl_ResetResult(interp);
   if (context) {
-    Tcl_AppendResult(interp, context, ":",  (char *) NULL);
+    Tcl_AppendResult(interp, context, ": ",  (char *) NULL);
   }
   Tcl_AppendResult(interp,"expected ", type, " but got \"",  ObjStr(value), "\"", (char *) NULL);
   if (named) {
