@@ -312,7 +312,7 @@ static int NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodName, int 
 static int NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
 static int NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments);
-static int NsfProcCmd(Tcl_Interp *interp, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body);
+static int NsfProcCmd(Tcl_Interp *interp, int withAd, Tcl_Obj *procName, Tcl_Obj *arguments, Tcl_Obj *body);
 static int NsfQualifyObjCmd(Tcl_Interp *interp, Tcl_Obj *objectName);
 static int NsfRelationCmd(Tcl_Interp *interp, NsfObject *object, int relationtype, Tcl_Obj *value);
 static int NsfSelfCmd(Tcl_Interp *interp);
@@ -1293,12 +1293,13 @@ NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
                      &pc) != TCL_OK) {
     return TCL_ERROR;
   } else {
-    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[0];
-    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[1];
-    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[2];
+    int withAd = (int )PTR2INT(pc.clientData[0]);
+    Tcl_Obj *procName = (Tcl_Obj *)pc.clientData[1];
+    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[2];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[3];
 
     assert(pc.status == 0);
-    return NsfProcCmd(interp, methodName, arguments, body);
+    return NsfProcCmd(interp, withAd, procName, arguments, body);
 
   }
 }
@@ -2225,8 +2226,9 @@ static methodDefinition method_definitions[] = {
 {"::nsf::next", NsfNextCmdStub, 1, {
   {"arguments", 0, 0, ConvertToTclobj}}
 },
-{"::nsf::proc", NsfProcCmdStub, 3, {
-  {"methodName", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
+{"::nsf::proc", NsfProcCmdStub, 4, {
+  {"-ad", 0, 0, ConvertToString},
+  {"procName", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"arguments", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"body", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },

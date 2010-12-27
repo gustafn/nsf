@@ -779,6 +779,20 @@ ObjTrace(char *string, NsfObject *object) {
 #endif
 
 
+/*
+ *----------------------------------------------------------------------
+ * NSTail --
+ *
+ *    Return the namespace tail of a name.
+ *
+ * Results:
+ *    String.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 /* search for tail of name */
 static CONST char *
 NSTail(CONST char *string) {
@@ -790,23 +804,65 @@ NSTail(CONST char *string) {
   return string;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * IsClassNsName --
+ *
+ *    Check, if the provided string starts with the prefix of the
+ *    classes namespace.
+ *
+ * Results:
+ *    Boolean.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 NSF_INLINE static int
 IsClassNsName(CONST char *string) {
   return (strncmp((string), "::nsf::classes", 14) == 0);
 }
 
-/* removes preceding ::nsf::classes from a string */
+/*
+ *----------------------------------------------------------------------
+ * NSCutNsfClasses --
+ *
+ *    Removes preceding ::nsf::classes from a string
+ *
+ * Results:
+ *    NsfObject and *fromClasses
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 NSF_INLINE static CONST char *
 NSCutNsfClasses(CONST char *string) {
   assert(strncmp((string), "::nsf::classes", 14) == 0);
   return string+14;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * GetObjectFromNsName --
+ *
+ *    Get object or class from a fully qualified cmd name, such as
+ *    e.g. ::nsf::classes::X
+ *
+ * Results:
+ *    NsfObject and *fromClasses
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 NSF_INLINE static NsfObject *
 GetObjectFromNsName(Tcl_Interp *interp, CONST char *string, int *fromClassNS) {
   /*
-   * Get object or class from a fully qualified cmd name, such as
-   * e.g. ::nsf::classes::X
+
    */
   if (IsClassNsName(string)) {
     *fromClassNS = 1;
@@ -817,10 +873,31 @@ GetObjectFromNsName(Tcl_Interp *interp, CONST char *string, int *fromClassNS) {
   }
 }
 
-NSF_INLINE static char *
-NSCmdFullName(Tcl_Command cmd) {
-  Tcl_Namespace *nsPtr = Tcl_Command_nsPtr(cmd);
-  return nsPtr ? nsPtr->fullName : "";
+/*
+ *----------------------------------------------------------------------
+ * DStringAppendQualName --
+ *
+ *    Append to initialized DString the name of the namespace followed
+ *    by a simple name (methodName, cmdName).
+ *
+ * Results:
+ *    String pointing to DString value.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static char *
+DStringAppendQualName(Tcl_DString *dsPtr, Tcl_Namespace *nsPtr, CONST char* name) {
+  int oldLength = Tcl_DStringLength(dsPtr);
+
+  Tcl_DStringAppend(dsPtr, nsPtr->fullName, -1);
+  if (Tcl_DStringLength(dsPtr) > (oldLength + 2)) {
+    Tcl_DStringAppend(dsPtr, "::", 2);
+  }
+  Tcl_DStringAppend(dsPtr, name, -1);
+  return Tcl_DStringValue(dsPtr);
 }
 
 static void
@@ -1039,12 +1116,7 @@ NameInNamespaceObj(Tcl_Interp *interp, CONST char *name, Tcl_Namespace *nsPtr) {
   }
   /* fprintf(stderr, " (resolved %p, %s) ", nsPtr, nsPtr ? nsPtr->fullName:NULL);*/
   DSTRING_INIT(dsPtr);
-  Tcl_DStringAppend(dsPtr, nsPtr->fullName, -1);
-  
-  if (Tcl_DStringLength(dsPtr) > 2) {
-    Tcl_DStringAppend(dsPtr, "::", 2);
-  }
-  Tcl_DStringAppend(dsPtr, name, -1);
+  DStringAppendQualName(dsPtr, nsPtr, name);
   objPtr = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
 
   /*fprintf(stderr, "returns %s\n", ObjStr(objPtr));*/
@@ -9220,6 +9292,7 @@ MakeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, Tcl_Obj *nameObj
 typedef struct NsfProcClientData {
   Tcl_Obj *procName;
   NsfParamDefs *paramDefs;
+  int with_ad;
 } NsfProcClientData;
 
 /*
@@ -9399,13 +9472,13 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
  *    Tcl return code.
  *
  * Side effects:
- *    Adding 1 Tcl and and 1 Tcl proc
+ *    Adding 1 Tcl and 1 Tcl proc
  *
  *----------------------------------------------------------------------
  */
 static int
 NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr, 
-		    CONST char *methodName, Tcl_Obj *body) {
+		    CONST char *methodName, Tcl_Obj *body, int with_ad) {
   Tcl_Obj *procNameObj = Tcl_NewStringObj(methodName, -1);
   NsfParamDefs *paramDefs = parsedParamPtr->paramDefs;
   NsfProcClientData *tcd = NEW(NsfProcClientData);
@@ -9418,12 +9491,23 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   Tcl_AppendToObj(procNameObj, "__#", 3);
   tcd->procName = procNameObj; /* well be freed, when NsfProcStub is deleted */
   tcd->paramDefs = paramDefs;
+  tcd->with_ad = with_ad;
   
   fprintf(stderr, "NsfAddParameterProc %s tcd %p paramdefs %p\n", methodName, tcd, tcd->paramDefs);
-
+  //aaaa
+  
   for (pPtr = paramDefs->paramsPtr; pPtr->name; pPtr++) {
     if (*pPtr->name == '-') {
-      Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name+1, -1));
+      Tcl_Obj *varNameObj = Tcl_NewStringObj(pPtr->name+1, -1);
+      if (with_ad && pPtr->converter == ConvertToBoolean && pPtr->nrArgs == 1) {
+	fprintf(stderr, "... param %s type %s nrargs %d %d\n", 
+		pPtr->name, pPtr->type, pPtr->nrArgs,
+		pPtr->converter == ConvertToBoolean
+	      );
+	pPtr->nrArgs = 0;
+	Tcl_AppendToObj(varNameObj, "_p", 2);
+      }
+      Tcl_ListObjAppendElement(interp, argList, varNameObj);
     } else {
       Tcl_ListObjAppendElement(interp, argList, Tcl_NewStringObj(pPtr->name, -1));
     }
@@ -9458,6 +9542,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   
   return result;
 }
+
 /**************************************************************************
  * End Definition of Parameter procs (Tcl Procs with Parameter handling)
  **************************************************************************/
@@ -10317,7 +10402,7 @@ ComputeLevelObj(Tcl_Interp *interp, CallStackLevel level) {
  */
 
 static int
-UnsetInAllNamespaces(Tcl_Interp *interp, Namespace *nsPtr, CONST char *name) {
+UnsetInAllNamespaces(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *name) {
   int rc = 0;
   fprintf(stderr, "### UnsetInAllNamespaces variable '%s', current namespace '%s'\n",
           name, nsPtr ? nsPtr->fullName : "NULL");
@@ -10328,15 +10413,13 @@ UnsetInAllNamespaces(Tcl_Interp *interp, Namespace *nsPtr, CONST char *name) {
     Tcl_Var *varPtr;
     int result;
 
-    varPtr = (Tcl_Var *) Tcl_FindNamespaceVar(interp, name, (Tcl_Namespace *) nsPtr, 0);
+    varPtr = (Tcl_Var *) Tcl_FindNamespaceVar(interp, name, nsPtr, 0);
     /*fprintf(stderr, "found %s in %s -> %p\n", name, nsPtr->fullName, varPtr);*/
     if (varPtr) {
       Tcl_DString dFullname, *dsPtr = &dFullname;
       Tcl_DStringInit(dsPtr);
       Tcl_DStringAppend(dsPtr, "unset ", -1);
-      Tcl_DStringAppend(dsPtr, nsPtr->fullName, -1);
-      Tcl_DStringAppend(dsPtr, "::", 2);
-      Tcl_DStringAppend(dsPtr, name, -1);
+      DStringAppendQualName(dsPtr, nsPtr, name);
       /*rc = Tcl_UnsetVar2(interp, Tcl_DStringValue(dsPtr), NULL, TCL_LEAVE_ERR_MSG);*/
       result = Tcl_Eval(interp, Tcl_DStringValue(dsPtr));
       /* fprintf(stderr, "fqName = '%s' unset => %d %d\n", Tcl_DStringValue(dsPtr), rc, TCL_OK);*/
@@ -10350,7 +10433,7 @@ UnsetInAllNamespaces(Tcl_Interp *interp, Namespace *nsPtr, CONST char *name) {
     }
 
     while (rc == 0 && entryPtr) {
-      Namespace *childNsPtr = (Namespace *) Tcl_GetHashValue(entryPtr);
+      Tcl_Namespace *childNsPtr = (Tcl_Namespace *) Tcl_GetHashValue(entryPtr);
       /*fprintf(stderr, "child = %s\n", childNsPtr->fullName);*/
       entryPtr = Tcl_NextHashEntry(&search);
       rc |= UnsetInAllNamespaces(interp, childNsPtr, name);
@@ -10377,7 +10460,7 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, NsfObject *object) {
     if (result != TCL_OK) {
       int result = Tcl_UnsetVar2(interp, object->opt->volatileVarName, NULL, TCL_GLOBAL_ONLY);
       if (result != TCL_OK) {
-        Namespace *nsPtr = (Namespace *) Tcl_GetCurrentNamespace(interp);
+        Tcl_Namespace *nsPtr = Tcl_GetCurrentNamespace(interp);
         if (UnsetInAllNamespaces(interp, nsPtr, object->opt->volatileVarName) == 0) {
           fprintf(stderr, "### don't know how to delete variable '%s' of volatile object\n",
                   object->opt->volatileVarName);
@@ -12887,17 +12970,11 @@ ListCmdParams(Tcl_Interp *interp, Tcl_Command cmd, CONST char *methodName, int w
    * parametersyntax this way.
    */
   if (withVarnames == 2) {
-    Command *cmdPtr = (Command *)cmd;
     Tcl_DString ds, *dsPtr = &ds;
     Tcl_Obj *parameterSyntaxObj;
     
     Tcl_DStringInit(dsPtr);
-    if (strcmp("::", cmdPtr->nsPtr->fullName) != 0) {
-      Tcl_DStringAppend(dsPtr, cmdPtr->nsPtr->fullName, -1);
-    }
-    Tcl_DStringAppend(dsPtr, "::", 2);
-    Tcl_DStringAppend(dsPtr, methodName, -1);
-    
+    DStringAppendQualName(dsPtr, Tcl_Command_nsPtr(cmd), methodName);
     /*fprintf(stderr,"Looking up ::nsf::parametersyntax(%s) ...\n",Tcl_DStringValue(dsPtr));*/
     parameterSyntaxObj = Tcl_GetVar2Ex(interp, "::nsf::parametersyntax", 
 				       Tcl_DStringValue(dsPtr), TCL_GLOBAL_ONLY);
@@ -13175,20 +13252,40 @@ ListMethod(Tcl_Interp *interp,
       /*
        * special nsfproc handling
        */
+      NsfProcClientData *tcd = Tcl_Command_objClientData(cmd);
+      if (tcd && tcd->procName) {
+	Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, tcd->procName);
+	Tcl_DString ds, *dsPtr = &ds;
+	Tcl_Obj *resultObj;
 
-      switch (subcmd) {
+	switch (subcmd) {
 
-      case InfomethodsubcmdTypeIdx: 
-        Tcl_SetObjResult(interp, Tcl_NewStringObj("nsfproc", -1));
-        break;
+	case InfomethodsubcmdTypeIdx: 
+	  Tcl_SetObjResult(interp, Tcl_NewStringObj("nsfproc", -1));
+	  break;
      
-      case InfomethodsubcmdBodyIdx: 
-	{
-	  NsfProcClientData *tcd = Tcl_Command_objClientData(cmd);
-	  if (tcd && tcd->procName) {
-	    Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, tcd->procName);
-	    ListProcBody(interp, GetTclProcFromCommand(procCmd), methodName);
+	case InfomethodsubcmdBodyIdx: 
+	  ListProcBody(interp, GetTclProcFromCommand(procCmd), methodName);
+	  break;
+
+	case InfomethodsubcmdDefinitionIdx:
+          resultObj = Tcl_NewListObj(0, NULL);
+	  Tcl_DStringInit(dsPtr);
+	  DStringAppendQualName(dsPtr, Tcl_Command_nsPtr(cmd), methodName);
+	  /* don't hardcode names */
+	  Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("::nsf::proc", -1));
+	  if (tcd->with_ad) {
+	    Tcl_ListObjAppendElement(interp, resultObj, Tcl_NewStringObj("-ad", 3));
 	  }
+	  Tcl_ListObjAppendElement(interp, resultObj, 
+				   Tcl_NewStringObj(Tcl_DStringValue(dsPtr), 
+						    Tcl_DStringLength(dsPtr)));
+          ListCmdParams(interp, cmd, Tcl_DStringValue(dsPtr), 0);
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
+          ListProcBody(interp, GetTclProcFromCommand(procCmd), methodName);
+          Tcl_ListObjAppendElement(interp, resultObj, Tcl_GetObjResult(interp));
+	  Tcl_SetObjResult(interp, resultObj);
+	  Tcl_DStringFree(dsPtr);
 	  break;
 	}
       }
@@ -13508,9 +13605,7 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
    
     if (*pattern != ':') {
       /* build a fully qualified name */
-      Tcl_DStringAppend(dsPtr, object->nsPtr->fullName, -1);
-      Tcl_DStringAppend(dsPtr, "::", 2);    
-      Tcl_DStringAppend(dsPtr, pattern, -1);
+      DStringAppendQualName(dsPtr, object->nsPtr, pattern);
       pattern = Tcl_DStringValue(dsPtr);
     }
 
@@ -13632,7 +13727,9 @@ ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
       dsPtr = &ds;
       Tcl_DStringInit(dsPtr);
       Tcl_DStringAppend(dsPtr, nsPtr->fullName, -1);
-      Tcl_DStringAppend(dsPtr, "::", 2);
+      if (Tcl_DStringLength(dsPtr) > 2) {
+	Tcl_DStringAppend(dsPtr, "::", 2);
+      }
       pattern = remainder;
     } else {
       cmdTablePtr = NULL;
@@ -15200,16 +15297,16 @@ NsfNSCopyVarsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs) {
 
 /*
 nsfCmd proc NsfProcCmd {
-  {-argName "methodName" -required 1 -type tclobj}
+  {-argName "-ad" -required 0}
+  {-argName "procName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
 }
 */
 static int
-NsfProcCmd(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
+NsfProcCmd(Tcl_Interp *interp, int with_ad, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *body) {
   NsfParsedParam parsedParam;
   int result;
-
   /*
    * Parse argument list "arguments" to determine if we should provide
    * nsf parameter handling.
@@ -15225,7 +15322,7 @@ NsfProcCmd(Tcl_Interp *interp, Tcl_Obj *nameObj, Tcl_Obj *arguments, Tcl_Obj *bo
      * is added which handles the parameter passing and calls the proc
      * later.
      */
-    result = NsfAddParameterProc(interp, &parsedParam, ObjStr(nameObj), body);
+    result = NsfAddParameterProc(interp, &parsedParam, ObjStr(nameObj), body, with_ad);
     
   } else {
     /* 
@@ -17650,7 +17747,8 @@ objectInfoMethod parent NsfObjInfoParentMethod {
 static int
 NsfObjInfoParentMethod(Tcl_Interp *interp, NsfObject *object) {
   if (object->id) {
-    Tcl_SetResult(interp, NSCmdFullName(object->id), TCL_VOLATILE);
+    Tcl_Namespace *nsPtr = Tcl_Command_nsPtr(object->id);
+    Tcl_SetResult(interp, nsPtr ? nsPtr->fullName : "", TCL_VOLATILE);
   }
   return TCL_OK;
 }

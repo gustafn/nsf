@@ -103,7 +103,8 @@ nsfCmd method NsfMethodCmd {
 }
 
 nsfCmd proc NsfProcCmd {
-  {-argName "methodName" -required 1 -type tclobj}
+  {-argName "-ad" -required 0}
+  {-argName "procName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}
 }

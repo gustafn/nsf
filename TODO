@@ -2152,6 +2152,14 @@ text
 - refactored InvokeShadowedProc()
 - some minor code cleanup and improved documentation
 
+- added flag "-ad" to ::nsf::proc for obtaining the semantics of
+  ad_proc in OpenACS (boolean with no arguments, append "_p" to
+  variable names)
+- added "... info method definition ..." for nsfprocs
+- new function DStringAppendQualName() to append qualified name 
+  to a DString
+- removed obsolete function NSCmdFullName()
+
 TODO:
 
 - nsf::proc 
