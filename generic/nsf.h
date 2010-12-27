@@ -77,6 +77,7 @@
 /* are we developing?
 #define NSF_DEVELOPMENT 1
 */
+#define NSF_DEVELOPMENT 1
 
 /* activate/deacticate assert 
 #define NDEBUG 1

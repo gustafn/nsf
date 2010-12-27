@@ -1609,7 +1609,7 @@ CmdIsProc(Tcl_Command cmd) {
  *----------------------------------------------------------------------
  * GetTclProcFromCommand --
  *
- *    Check if cmd is interpreted, and if so, return the proc
+ *    Check if cmd refers to a Tcl proc, and if so, return the proc
  *    definition.
  *
  * Results:
@@ -6653,11 +6653,12 @@ MakeProcError(
 }
 
 static int
-ByteCompiled(Tcl_Interp *interp, unsigned short *cscFlagsPtr, Proc *procPtr, CONST char *body) {
-  Tcl_Obj *bodyPtr = procPtr->bodyPtr;
+ByteCompiled(Tcl_Interp *interp, unsigned short *flagsPtr, 
+	     Proc *procPtr, CONST char *procName) {
   Namespace *nsPtr = procPtr->cmdPtr->nsPtr;
+  Tcl_Obj *bodyObj = procPtr->bodyPtr;
 
-  if (bodyPtr->typePtr == Nsf_OT_byteCodeType) {
+  if (bodyObj->typePtr == Nsf_OT_byteCodeType) {
 # if defined(HAVE_TCL_COMPILE_H)
     ByteCode *codePtr;
     Interp *iPtr = (Interp *) interp;
@@ -6671,7 +6672,7 @@ ByteCompiled(Tcl_Interp *interp, unsigned short *cscFlagsPtr, Proc *procPtr, CON
      * commands and/or resolver changes are considered).
      */
 
-    codePtr = bodyPtr->internalRep.otherValuePtr;
+    codePtr = bodyObj->internalRep.otherValuePtr;
     if (((Interp *) *codePtr->interpHandle != iPtr)
 	|| (codePtr->compileEpoch != iPtr->compileEpoch)
 	|| (codePtr->nsPtr != nsPtr)
@@ -6686,11 +6687,11 @@ ByteCompiled(Tcl_Interp *interp, unsigned short *cscFlagsPtr, Proc *procPtr, CON
 # if defined(HAVE_TCL_COMPILE_H)
   doCompilation:
 # endif
-    *cscFlagsPtr |= NSF_CSC_CALL_IS_COMPILE;
-    result = TclProcCompileProc(interp, procPtr, bodyPtr,
+    *flagsPtr |= NSF_CSC_CALL_IS_COMPILE;
+    result = TclProcCompileProc(interp, procPtr, bodyObj,
                               (Namespace *) nsPtr, "body of proc",
-                              body);
-    *cscFlagsPtr &= ~NSF_CSC_CALL_IS_COMPILE;
+                              procName);
+    *flagsPtr &= ~NSF_CSC_CALL_IS_COMPILE;
     return result;
   }
 }
@@ -6711,7 +6712,7 @@ ByteCompiled(Tcl_Interp *interp, unsigned short *cscFlagsPtr, Proc *procPtr, CON
  *----------------------------------------------------------------------
  */
 static int
-PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp,
+PushProcCallFrame(ClientData clientData, Tcl_Interp *interp,
 		  int objc, Tcl_Obj *CONST objv[],
                   NsfCallStackContent *cscPtr) {
   Proc *procPtr = (Proc *) clientData;
@@ -6728,7 +6729,7 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp,
 
   /* TODO: we could use Tcl_PushCallFrame(), if we would allocate the tcl stack frame earlier */
   result = TclPushStackFrame(interp, (Tcl_CallFrame **)&framePtr,
-			     (Tcl_Namespace *)  procPtr->cmdPtr->nsPtr,
+			     (Tcl_Namespace *) procPtr->cmdPtr->nsPtr,
 			     (FRAME_IS_PROC|FRAME_IS_NSF_METHOD));
 
   if (result != TCL_OK) {
@@ -6739,7 +6740,8 @@ PushProcCallFrame(ClientData clientData, register Tcl_Interp *interp,
   framePtr->objv = objv;
   framePtr->procPtr = procPtr;
   framePtr->clientData = cscPtr;
-  return ByteCompiled(interp, &cscPtr->flags, procPtr, TclGetString(objv[0]));
+
+  return ByteCompiled(interp, &cscPtr->flags, procPtr, ObjStr(objv[0]));
 }
 
 static void
@@ -7239,7 +7241,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 #endif
 
   /*
-   * if this is a filter, check whether its guard applies,
+   * If this is a filter, check whether its guard applies,
    * if not: just step forward to the next filter
    */
 
@@ -9249,6 +9251,76 @@ NsfProcStubDeleteProc(ClientData clientData) {
 
 /*
  *----------------------------------------------------------------------
+ * InvokeShadowedProc --
+ *
+ *    Call the proc specified in objc/objv; procNameObj should be used
+ *    for error messages.
+ *
+ * Results:
+ *    Tcl result code.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
+static int
+InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, int objc, Tcl_Obj *CONST objv[]) {
+  int result;
+#if 1
+  /*
+   * For the time being, we call the shadowed proc defined with a
+   * mutated name. It should be possible to compile and call the
+   * proc body directly, similar as for scripted methods. 
+   * 
+   * TODO: check implications with NRE and Tcl 8.6, maybe a
+   * finalize function is needed as well.
+   */
+  fprintf(stderr, "NsfProcStub: call proc arguments oc %d [0] '%s' \n",
+	  objc, ObjStr(objv[0]));
+  result = Tcl_EvalObjv(interp, objc, objv, 0);
+#else
+  //xxx - TODO: unfinished
+  /* The code below is just copied from proc method dispatch and
+   * needs some refactoring to be used on procs. We need here as
+   * well a Proc structure for ByteCompile (called from
+   * PushProcCallFrame()). So, the benefit is not sure, when we go
+   * low-level here.
+   */
+  Proc *procPtr;
+  Tcl_Command cmd = Tcl_GetCommandFromObj(interp, objv[0]);
+  
+  if (!cmd) {
+    return NsfPrintError(interp, "cannot lookup command '%s'", ObjStr(procNameObj));
+  }
+  if (!CmdIsProc(cmd)) {
+    return NsfPrintError(interp, "command '%s' is not a proc", ObjStr(procNameObj));
+  }
+  procPtr = (Proc*) Tcl_Command_objClientData(cmd);
+  /* todo: refactor PushProcCallFrame or duplicate to avoid cscPtr */
+  result = PushProcCallFrame(procPtr, interp, objc, objv, cscPtr);
+# if defined(NRE)
+  /*fprintf(stderr, "CALL TclNRInterpProcCore %s method '%s'\n",
+    ObjectName(object), ObjStr(objv[0]));*/
+  Tcl_NRAddCallback(interp, ProcMethodDispatchFinalize,
+		    releasePc ? pcPtr : NULL, cscPtr, (ClientData)methodName, NULL);
+  cscPtr->flags |= NSF_CSC_CALL_IS_NRE;
+  result = TclNRInterpProcCore(interp, objv[0], 1, &MakeProcError);
+# else
+  ClientData data[3] = {
+    releasePc ? pcPtr : NULL,
+    cscPtr,
+    (ClientData)methodName
+  };
+  result = TclObjInterpProcCore(interp, objv[0], 1, &MakeProcError);
+  result = ProcMethodDispatchFinalize(data, interp, result);
+# endif
+#endif
+  return result;
+}
+
+/*
+ *----------------------------------------------------------------------
  * NsfProcStub --
  *
  *    Tcl_ObjCmdProc implementing Proc Stubs. This function processes
@@ -9290,26 +9362,14 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
 				    objc, tov);
 
     if (result == TCL_OK) {
-      /*
-       * For the time being, we call the shadowed proc defined with a
-       * mutated name. It should be possible to compile and call the
-       * proc body directly, similar as for scripted methods. 
-       * 
-       * TODO: check implications with NRE and Tcl 8.6, maybe a
-       * finalize function is needed as well.
-       */
-      fprintf(stderr, "NsfProcStub: call proc arguments oc %d [0] '%s' \n",
-	      pcPtr->objc, ObjStr(pcPtr->full_objv[0]));
-      result = Tcl_EvalObjv(interp, pcPtr->objc, pcPtr->full_objv, 0);
-
-
+      result = InvokeShadowedProc(interp, tcd->procName, pcPtr->objc, pcPtr->full_objv);
     } else {
       fprintf(stderr, "NsfProcStub: incorrect arguments\n");
     }
 
     ParseContextRelease(pcPtr);
     NsfTclStackFree(interp, pcPtr, "release parse context");
-    FREE_ON_STACK(Tcl_Obj *, ov);
+    FREE_ON_STACK(Tcl_Obj *, tov);
   } else {
     fprintf(stderr, "no parameters\n");
     assert(0); /* should never happen */
@@ -9328,13 +9388,12 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
  *    For the time being, this function adds two things, (a) a Tcl cmd
  *    functioning as a stub for the argument processing (in accordance
  *    with the parameter definitions) and (b) the shadowed Tcl proc
- *    with a mutated name. The latter might not be necessary, when we
- *    handle this in a style like for scriped methods.
+ *    with a mutated name. 
  *
- *    TODO: the current 1 cmd + 1 proc implemtnation is not robust
+ *    TODO: the current 1 cmd + 1 proc implementation is not robust
  *    against renaming and partial deletions (deletion of the
  *    stub). The sketched variant should be better and should be
- *    exampined first in detail.
+ *    examined first in detail.
  *
  * Results:
  *    Tcl return code.
@@ -13112,6 +13171,28 @@ ListMethod(Tcl_Interp *interp,
         break;
       }
       }
+    } else if (procPtr == NsfProcStub) {
+      /*
+       * special nsfproc handling
+       */
+
+      switch (subcmd) {
+
+      case InfomethodsubcmdTypeIdx: 
+        Tcl_SetObjResult(interp, Tcl_NewStringObj("nsfproc", -1));
+        break;
+     
+      case InfomethodsubcmdBodyIdx: 
+	{
+	  NsfProcClientData *tcd = Tcl_Command_objClientData(cmd);
+	  if (tcd && tcd->procName) {
+	    Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, tcd->procName);
+	    ListProcBody(interp, GetTclProcFromCommand(procCmd), methodName);
+	  }
+	  break;
+	}
+      }
+
     } else {
       /*
        * The cmd must be an alias or object.
@@ -13217,15 +13298,18 @@ ProtectionMatches(Tcl_Interp *interp, int withCallprotection, Tcl_Command cmd) {
 
 static int MethodSourceMatches(Tcl_Interp *interp, int withSource, NsfClass *cl, NsfObject *object) {
   int isBaseClass;
+
   if (withSource == SourceAllIdx) {
     return 1;
   }
+
   if (cl == NULL) {
     /* If the method is object specific, it can't be from a baseclass
      * and must be application specfic.
      */
     return (withSource == SourceApplicationIdx && !IsBaseClass((NsfClass *)object));
   }
+
   isBaseClass = IsBaseClass(cl);
   if (withSource == SourceBaseclassesIdx && isBaseClass) {
     return 1;
@@ -13237,7 +13321,7 @@ static int MethodSourceMatches(Tcl_Interp *interp, int withSource, NsfClass *cl,
 
 static int
 MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
-                  NsfObject *object, CONST char *key, int withPer_object, int *isObject) {
+                  NsfObject *object, CONST char *methodName, int withPer_object, int *isObject) {
   Tcl_Command importedCmd;
   Tcl_ObjCmdProc *proc, *resolvedProc;
 
@@ -13252,7 +13336,7 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
   *isObject = (resolvedProc == NsfObjDispatch);
 
   if (methodType == NSF_METHODTYPE_ALIAS) {
-    if (!(proc == NsfProcAliasMethod || AliasGet(interp, object->cmdName, key, withPer_object))) {
+    if (!(proc == NsfProcAliasMethod || AliasGet(interp, object->cmdName, methodName, withPer_object))) {
       return 0;
     }
   } else {
@@ -13261,7 +13345,7 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
     }
     /* the following cases are disjoint */
     if (CmdIsProc(importedCmd)) {
-      /*fprintf(stderr,"%s scripted %d\n", key, methodType & NSF_METHODTYPE_SCRIPTED);*/
+      /*fprintf(stderr,"%s scripted %d\n", methodName, methodType & NSF_METHODTYPE_SCRIPTED);*/
       if ((methodType & NSF_METHODTYPE_SCRIPTED) == 0) return 0;
     } else if (resolvedProc == NsfForwardMethod) {
       if ((methodType & NSF_METHODTYPE_FORWARDER) == 0) return 0;
@@ -13269,8 +13353,10 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
       if ((methodType & NSF_METHODTYPE_SETTER) == 0) return 0;
     } else if (resolvedProc == NsfObjDispatch) {
       if ((methodType & NSF_METHODTYPE_OBJECT) == 0) return 0;
+    } else if (resolvedProc == NsfProcStub) {
+      if ((methodType & NSF_METHODTYPE_NSFPROC) == 0) return 0;
     } else if ((methodType & NSF_METHODTYPE_OTHER) == 0) {
-      /* fprintf(stderr,"OTHER %s not wanted %.4x\n", key, methodType);*/
+      /* fprintf(stderr,"OTHER %s not wanted %.4x\n", methodName, methodType);*/
       return 0;
     }
     /* NsfObjscopedMethod ??? */
@@ -13278,6 +13364,25 @@ MethodTypeMatches(Tcl_Interp *interp, int methodType, Tcl_Command cmd,
   return 1;
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * ListMethodKeys --
+ *
+ *      List the method names contained in the specified hash table
+ *      according to the filtering options (types, pattern,
+ *      protection, etc.). Optionally, a name prefix can be provided
+ *      in form of a Tcl_DString. The result is placed into the interp
+ *      result.
+ *
+ * Results:
+ *      Tcl result code.
+ *
+ * Side effects:
+ *      Setting interp result.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 	       Tcl_DString *prefix, CONST char *pattern,
@@ -13290,12 +13395,14 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
   int new, isObject, methodTypeMatch;
   int prefixLength = prefix ? Tcl_DStringLength(prefix) : 0;
 
+  assert(tablePtr);
+  
   if (pattern && NoMetaChars(pattern) && strchr(pattern, ' ') == 0) {
     /*
      * We have a pattern that can be used for direct lookup; no need
      * to iterate
      */
-    hPtr = tablePtr ? Tcl_CreateHashEntry(tablePtr, pattern, NULL) : NULL;
+    hPtr = Tcl_CreateHashEntry(tablePtr, pattern, NULL);
     if (hPtr) {
       key = Tcl_GetHashKey(tablePtr, hPtr);
       cmd = (Tcl_Command)Tcl_GetHashValue(hPtr);
@@ -13310,6 +13417,10 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
       }
 
       if (ProtectionMatches(interp, withCallprotection, cmd) && methodTypeMatch) {
+	if (prefixLength) {
+	  Tcl_DStringAppend(prefix, key, -1);
+	  key = Tcl_DStringValue(prefix);
+	}
         if (dups) {
           Tcl_CreateHashEntry(dups, key, &new);
           if (new) {
@@ -13323,7 +13434,7 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
     return TCL_OK;
 
   } else {
-    hPtr = tablePtr ? Tcl_FirstHashEntry(tablePtr, &hSrch) : NULL;
+    hPtr = Tcl_FirstHashEntry(tablePtr, &hSrch);
 
     for (; hPtr; hPtr = Tcl_NextHashEntry(&hSrch)) {
       key = Tcl_GetHashKey(tablePtr, hPtr);
@@ -13337,9 +13448,13 @@ ListMethodKeys(Tcl_Interp *interp, Tcl_HashTable *tablePtr,
 	NsfObject *ensembleObject = NsfGetObjectFromCmdPtr(cmd);
 	Tcl_HashTable *cmdTablePtr = ensembleObject && ensembleObject->nsPtr ?
 	  Tcl_Namespace_cmdTablePtr(ensembleObject->nsPtr) : NULL;
-
+	
 	if (ensembleObject->flags & NSF_IS_SLOT_CONTAINER) {
 	  /* Don't report slot container */
+	  continue;
+	}
+	if (cmdTablePtr == NULL) {
+	  /* nothing to do */
 	  continue;
 	}
 
@@ -13443,8 +13558,13 @@ ListChildren(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
 
 static int
 ListForward(Tcl_Interp *interp, Tcl_HashTable *tablePtr, CONST char *pattern, int withDefinition) {
+
+  if (tablePtr == NULL) {
+    return TCL_OK;
+  }
+
   if (withDefinition) {
-    Tcl_HashEntry *hPtr = tablePtr && pattern ? Tcl_CreateHashEntry(tablePtr, pattern, NULL) : NULL;
+    Tcl_HashEntry *hPtr = pattern ? Tcl_CreateHashEntry(tablePtr, pattern, NULL) : NULL;
     /* notice: we don't use pattern for wildcard matching here;
        pattern can only contain wildcards when used without
        "-definition" */
@@ -13465,19 +13585,71 @@ ListForward(Tcl_Interp *interp, Tcl_HashTable *tablePtr, CONST char *pattern, in
 			CallprotectionAllIdx, 0, NULL, NULL, 0);
 }
 
+/*
+ *----------------------------------------------------------------------
+ *
+ * ListDefinedMethods --
+ *
+ *      List the methods defined by the specified object/class
+ *      according to the filtering options (types, pattern,
+ *      pretection, etc.). The result is placed into the interp
+ *      result.
+ *
+ * Results:
+ *      Tcl result code.
+ *
+ * Side effects:
+ *      Setting interp result.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 ListDefinedMethods(Tcl_Interp *interp, NsfObject *object, CONST char *pattern,
                    int withPer_object, int methodType, int withCallproctection,
                    int withExpand, int noMixins, int inContext) {
   Tcl_HashTable *cmdTablePtr;
+  Tcl_DString ds, *dsPtr = NULL;
 
-  if (NsfObjectIsClass(object) && !withPer_object) {
+  if (pattern && *pattern == ':' && *(pattern + 1) == ':') {
+
+    Tcl_Namespace *nsPtr, *dummy1Ptr, *dummy2Ptr;
+    CONST char *remainder;
+
+    /*fprintf(stderr, "we have a colon pattern '%s' methodtype %.6x\n", pattern, methodType);*/
+
+    TclGetNamespaceForQualName(interp, pattern, NULL, 0, 
+			       (Namespace **)&nsPtr,
+			       (Namespace **)&dummy1Ptr, (Namespace **)&dummy2Ptr, &remainder);
+    /*fprintf(stderr, 
+	    "TclGetNamespaceForQualName with %s => (%p %s) (%p %s) (%p %s) (%p %s)\n", 
+	    pattern, 
+	    nsPtr, nsPtr ? nsPtr->fullName : "",
+	    dummy1Ptr,  dummy1Ptr ? dummy1Ptr->fullName : "",
+	    dummy2Ptr,  dummy2Ptr ? dummy2Ptr->fullName : "",
+	    remainder, remainder ? remainder : "");*/
+    if (nsPtr) {
+      cmdTablePtr = Tcl_Namespace_cmdTablePtr(nsPtr);
+      dsPtr = &ds;
+      Tcl_DStringInit(dsPtr);
+      Tcl_DStringAppend(dsPtr, nsPtr->fullName, -1);
+      Tcl_DStringAppend(dsPtr, "::", 2);
+      pattern = remainder;
+    } else {
+      cmdTablePtr = NULL;
+    }
+  } else if (NsfObjectIsClass(object) && !withPer_object) {
     cmdTablePtr = Tcl_Namespace_cmdTablePtr(((NsfClass *)object)->nsPtr);
   } else {
     cmdTablePtr = object->nsPtr ? Tcl_Namespace_cmdTablePtr(object->nsPtr) : NULL;
   }
-  ListMethodKeys(interp, cmdTablePtr, NULL, pattern, methodType, withCallproctection, withExpand,
-                 NULL, object, withPer_object);
+
+  if (cmdTablePtr) {
+    ListMethodKeys(interp, cmdTablePtr, dsPtr, pattern, methodType, withCallproctection, withExpand,
+		   NULL, object, withPer_object);
+    if (dsPtr) {
+      Tcl_DStringFree(dsPtr);
+    }
+  }
   return TCL_OK;
 }
 
@@ -17081,6 +17253,9 @@ AggregatedMethodType(int methodType) {
   case MethodtypeObjectIdx:
     methodType = NSF_METHODTYPE_OBJECT;
     break;
+  case MethodtypeNsfprocIdx:
+    methodType = NSF_METHODTYPE_NSFPROC;
+    break;
   default:
     methodType = 0;
   }
@@ -17898,10 +18073,6 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
   return TCL_OK;
 }
 
-/* NsfUnsetUnknownArgsCmd was developed and tested for Tcl 8.5 and
- * needs probably modifications for earlier versions of Tcl. However,
- * since CANONICAL_ARGS requires Tcl 8.5 this is not an issue.
- */
 /*
  *----------------------------------------------------------------------
  * NsfUnsetUnknownArgsCmd --

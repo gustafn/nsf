@@ -31,12 +31,12 @@ static int ConvertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam
   return result;
 }
   
-enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeBuiltinIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx};
+enum MethodtypeIdx {MethodtypeNULL, MethodtypeAllIdx, MethodtypeScriptedIdx, MethodtypeBuiltinIdx, MethodtypeAliasIdx, MethodtypeForwarderIdx, MethodtypeObjectIdx, MethodtypeSetterIdx, MethodtypeNsfprocIdx};
 
 static int ConvertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr, 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
-  static CONST char *opts[] = {"all", "scripted", "builtin", "alias", "forwarder", "object", "setter", NULL};
+  static CONST char *opts[] = {"all", "scripted", "builtin", "alias", "forwarder", "object", "setter", "nsfproc", NULL};
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-methodtype", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -156,7 +156,7 @@ static enumeratorConverterEntry enumeratorConverterEntries[] = {
   {ConvertToScope, "all|class|object"},
   {ConvertToInfomethodsubcmd, "args|body|definition|handle|parameter|parametersyntax|type|precondition|postcondition|submethods"},
   {ConvertToCallprotection, "all|protected|public"},
-  {ConvertToMethodtype, "all|scripted|builtin|alias|forwarder|object|setter"},
+  {ConvertToMethodtype, "all|scripted|builtin|alias|forwarder|object|setter|nsfproc"},
   {ConvertToFrame, "method|object|default"},
   {ConvertToCurrentoption, "proc|method|methodpath|object|class|activelevel|args|activemixin|calledproc|calledmethod|calledclass|callingproc|callingmethod|callingclass|callinglevel|callingobject|filterreg|isnextcall|next"},
   {ConvertToObjectkind, "class|baseclass|metaclass"},

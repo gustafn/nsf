@@ -2145,11 +2145,18 @@ text
 - removed warning from cppcheck()
 
 - added block for none-one-liner if statements
+
+- added methodtype "nsfproc" to "... info methods ...", 
+  to be used with namespace qualified names
+- return "nsfproc" as methodtype for nsfprocs
+- refactored InvokeShadowedProc()
+- some minor code cleanup and improved documentation
+
 TODO:
 
 - nsf::proc 
    * scripted method like implementation
-   * toplevel introspection 
+   * toplevel (object less) introspection 
    * support for serialization in aolserver
    * regression tests
    * uplevel etc. semantics
