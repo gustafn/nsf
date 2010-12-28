@@ -378,6 +378,15 @@ namespace eval ::nx::serializer {
 	append r \t [list ::nsf::configure $option [::nsf::configure $option]] \n
       }
       :resetPattern
+
+      #
+      # export all nsf_procs 
+      #
+      append r [:export_nsfprocs ::]
+
+      #
+      # export objects and classes
+      #
       set instances [list]
       foreach oss [ObjectSystemSerializer info instances] {
         append r [$oss serialize-all-start $s]
@@ -405,6 +414,28 @@ namespace eval ::nx::serializer {
       ::nsf::configure filter $filterstate
 
       return $r
+    }
+
+    :class-object method add_child_namespaces {ns} {
+      if {$ns eq "::nsf"} return
+      lappend :namespaces $ns
+      foreach n [namespace children $ns] {
+	:add_child_namespaces $n
+      }
+    }
+    :public class-object method application_namespaces {ns} {
+      set :namespaces ""
+      :add_child_namespaces $ns
+      return ${:namespaces}
+    }
+    :public class-object method export_nsfprocs {ns} {
+      set result ""
+      foreach n [:application_namespaces $ns] {
+	foreach p [:info methods -methodtype nsfproc ${n}::*] {
+	  append result [:info method definition $p] \n
+	}
+      }
+      return $result
     }
 
     :class-object method methodSerialize {object method prefix} {
