@@ -3813,14 +3813,15 @@ NsfAddObjectMethod(Tcl_Interp *interp, Nsf_Object *object1, CONST char *methodNa
   /* delete an alias definition, if it exists */
   AliasDelete(interp, object->cmdName, methodName, 1);
 
-  ALLOC_NAME_NS(dsPtr, ns->fullName, methodName);
+  Tcl_DStringInit(dsPtr);
+  DStringAppendQualName(dsPtr, ns, methodName);
 
   newCmd = Tcl_CreateObjCommand(interp, Tcl_DStringValue(dsPtr), proc, clientData, dp);
 
   if (flags) {
     ((Command *) newCmd)->flags |= flags;
   }
-  DSTRING_FREE(dsPtr);
+  Tcl_DStringFree(dsPtr);
   return TCL_OK;
 }
 
@@ -3857,13 +3858,15 @@ NsfAddClassMethod(Tcl_Interp *interp, Nsf_Class *class, CONST char *methodName,
  /* delete an alias definition, if it exists */
   AliasDelete(interp, class->object.cmdName, methodName, 0);
 
-  ALLOC_NAME_NS(dsPtr, cl->nsPtr->fullName, methodName);
+  Tcl_DStringInit(dsPtr);
+  DStringAppendQualName(dsPtr, cl->nsPtr, methodName);
+
   newCmd = Tcl_CreateObjCommand(interp, Tcl_DStringValue(dsPtr), proc, clientData, dp);
 
   if (flags) {
     ((Command *) newCmd)->flags |= flags;
   }
-  DSTRING_FREE(dsPtr);
+  Tcl_DStringFree(dsPtr);
   return TCL_OK;
 }
 
@@ -8453,7 +8456,7 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
       if (*value == '-' 
 	  && (pPtr->flags & NSF_ARG_CHECK_NONPOS) 
 	  && isalpha(*(value+1)) 
-	  /* && strchr(value+1, ' ') == 0 */
+	  && strchr(value+1, ' ') == 0
 	  ) {
 	NsfLog(interp, NSF_LOG_WARN, "Value '%s' of parameter '%s' could be a non-positional argument",
 	       value, pPtr->name);
@@ -9349,8 +9352,8 @@ InvokeShadowedProc(Tcl_Interp *interp, Tcl_Obj *procNameObj, int objc, Tcl_Obj *
    * TODO: check implications with NRE and Tcl 8.6, maybe a
    * finalize function is needed as well.
    */
-  fprintf(stderr, "NsfProcStub: call proc arguments oc %d [0] '%s' \n",
-	  objc, ObjStr(objv[0]));
+  /*fprintf(stderr, "NsfProcStub: call proc arguments oc %d [0] '%s' \n",
+    objc, ObjStr(objv[0]));*/
   result = Tcl_EvalObjv(interp, objc, objv, 0);
 #else
   //xxx - TODO: unfinished
@@ -9414,22 +9417,22 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
   int result;
 
   assert(tcd);
-  fprintf(stderr, "NsfProcStub %s is called, tcd %p\n", ObjStr(objv[0]), tcd);
-
+  /*fprintf(stderr, "NsfProcStub %s is called, tcd %p\n", ObjStr(objv[0]), tcd);*/
+  
   if (tcd->paramDefs && tcd->paramDefs->paramsPtr) {
     ParseContext *pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
     ALLOC_ON_STACK(Tcl_Obj*, objc, tov);
 
     /* 
-     * We have to substitute the the first element of objv with the
-     * name of the function to be called. Since objv is immutable, we
-     * have to copy the full argument vector and replace the element
-     * on position [0]
+     * We have to substitute the first element of objv with the name
+     * of the function to be called. Since objv is immutable, we have
+     * to copy the full argument vector and replace the element on
+     * position [0]
      */
     memcpy(tov+1, objv+1, sizeof(Tcl_Obj *)*(objc-1));
     tov[0] = tcd->procName;
 
-    /* If the argument passing is ok, the shadowed proc is called */
+    /* If the argument parsing is ok, the shadowed proc will be called */
     result = ProcessMethodArguments(pcPtr, interp, NULL, 1, 
 				    tcd->paramDefs, ObjStr(objv[0]), 
 				    objc, tov);
@@ -9437,7 +9440,8 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     if (result == TCL_OK) {
       result = InvokeShadowedProc(interp, tcd->procName, pcPtr->objc, pcPtr->full_objv);
     } else {
-      fprintf(stderr, "NsfProcStub: incorrect arguments\n");
+      Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
+      fprintf(stderr, "NsfProcStub: incorrect arguments (%s)\n", ObjStr(resultObj));
     }
 
     ParseContextRelease(pcPtr);
@@ -9478,34 +9482,110 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
  */
 static int
 NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr, 
-		    CONST char *methodName, Tcl_Obj *body, int with_ad) {
-  Tcl_Obj *procNameObj = Tcl_NewStringObj(methodName, -1);
+		    CONST char *procName, Tcl_Obj *body, int with_ad) {
   NsfParamDefs *paramDefs = parsedParamPtr->paramDefs;
-  NsfProcClientData *tcd = NEW(NsfProcClientData);
+  Tcl_Namespace *cmdNsPtr;
+  NsfProcClientData *tcd;
   Tcl_Obj *argList = Tcl_NewListObj(0, NULL);
+  Tcl_Obj *procNameObj;
+  Tcl_DString ds, *dsPtr = &ds;
   NsfParam *pPtr;
   Tcl_Obj *ov[4];
   int result;
+  Tcl_Command cmd;
 
-  /* The name of the shadowed Tcl proc is the original name, with a special suffix */
-  Tcl_AppendToObj(procNameObj, "__#", 3);
-  tcd->procName = procNameObj; /* well be freed, when NsfProcStub is deleted */
+  Tcl_DStringInit(dsPtr);
+
+  /*
+   * Create a fully qualified procName
+   */
+  if (*procName != ':') {
+    DStringAppendQualName(dsPtr, Tcl_GetCurrentNamespace(interp), procName);  
+    procName = Tcl_DStringValue(dsPtr);
+  }
+  /*
+   * Create first the ProcStub to obtain later its namespace, which is
+   * needed as the inner namespace of the shadowed proc.
+   */
+  tcd = NEW(NsfProcClientData);
+  cmd = Tcl_CreateObjCommand(interp, procName, NsfProcStub,
+			     tcd, NsfProcStubDeleteProc);
+  if (cmd == NULL) {
+    /* 
+     * For some reason, the command could not be created. Let us hope,
+     * we have a useful error message.
+     */
+    Tcl_DStringFree(dsPtr);
+    FREE(NsfProcClientData,tcd);
+    return TCL_ERROR;
+  }
+
+  cmdNsPtr = Tcl_Command_nsPtr(cmd);
+  ParamDefsStore(interp, cmd, paramDefs);
+  
+  /*fprintf(stderr, "NsfAddParameterProc procName '%s' define cmd '%s' %p in namespace %s\n", 
+    procName, Tcl_GetCommandName(interp, cmd), cmd, cmdNsPtr->fullName);*/
+
+  /* 
+   * Let us create the shadowed Tcl proc, which is stored under
+   * ::nsf::procs::*. First build the fully qualified name
+   * procNameObj.
+   */
+  Tcl_DStringSetLength(dsPtr, 0);
+  Tcl_DStringAppend(dsPtr, "::nsf::procs", -1);
+  DStringAppendQualName(dsPtr, cmdNsPtr, Tcl_GetCommandName(interp, cmd));  
+  procNameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
+
+  Tcl_DStringFree(dsPtr);
+  INCR_REF_COUNT(procNameObj); /* will be freed, when NsfProcStub is deleted */
+
+  /*
+   * Make sure to create the target namespace under "::nsf::procs::", if
+   * it does not exist.
+   */
+  {
+    Tcl_Namespace *nsPtr, *dummy1Ptr, *dummy2Ptr;
+    const char *dummy;
+    /* create the target namespace, if it does not exist */
+    TclGetNamespaceForQualName(interp, ObjStr(procNameObj), NULL, TCL_CREATE_NS_IF_UNKNOWN, 
+			       (Namespace **)&nsPtr, (Namespace **)&dummy1Ptr, 
+			       (Namespace **)&dummy2Ptr, &dummy);
+  }
+
+  /*
+   * Create the client data, which links the stub cmd with the proc.
+   */
+  tcd->procName = procNameObj; 
   tcd->paramDefs = paramDefs;
   tcd->with_ad = with_ad;
   
-  fprintf(stderr, "NsfAddParameterProc %s tcd %p paramdefs %p\n", methodName, tcd, tcd->paramDefs);
-  //aaaa
+  /*fprintf(stderr, "NsfAddParameterProc %s tcd %p paramdefs %p\n", 
+    ObjStr(procNameObj), tcd, tcd->paramDefs);*/
   
+  /*
+   * Build an argument list for the shadowed proc.
+   */
+  argList = Tcl_NewListObj(0, NULL);
+  INCR_REF_COUNT(argList);
+
   for (pPtr = paramDefs->paramsPtr; pPtr->name; pPtr++) {
     if (*pPtr->name == '-') {
       Tcl_Obj *varNameObj = Tcl_NewStringObj(pPtr->name+1, -1);
+      /*
+       * If we have the -ad (for ars digita) flag set, we provide the
+       * OpenACS semantics. This is (a) to use the name "boolean" for
+       * a switch and (b) to name the automatic variable with the
+       * prefix "_p".
+       */
       if (with_ad && pPtr->converter == ConvertToBoolean && pPtr->nrArgs == 1) {
-	fprintf(stderr, "... param %s type %s nrargs %d %d\n", 
-		pPtr->name, pPtr->type, pPtr->nrArgs,
-		pPtr->converter == ConvertToBoolean
-	      );
+	/*fprintf(stderr, "... param %s type %s nrargs %d default %p\n", 
+	  pPtr->name, pPtr->type, pPtr->nrArgs, pPtr->defaultValue);*/
 	pPtr->nrArgs = 0;
 	Tcl_AppendToObj(varNameObj, "_p", 2);
+	if (pPtr->defaultValue == NULL) {
+	  pPtr->defaultValue = Tcl_NewBooleanObj(0);
+	  INCR_REF_COUNT(pPtr->defaultValue);
+	}
       }
       Tcl_ListObjAppendElement(interp, argList, varNameObj);
     } else {
@@ -9516,30 +9596,33 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   ov[1] = procNameObj;
   ov[2] = argList;
   ov[3] = AddPrefixToBody(body, 1, parsedParamPtr);
-  
-  INCR_REF_COUNT(ov[1]);
-  INCR_REF_COUNT(ov[2]);
-  
-  fprintf(stderr, "NsfAddParameterProc define proc %s arglist '%s'\n", ObjStr(ov[1]), ObjStr(ov[2])); 
+
+  /*fprintf(stderr, "NsfAddParameterProc define proc %s arglist '%s'\n", 
+    ObjStr(ov[1]), ObjStr(ov[2])); */
+
   result = Tcl_ProcObjCmd(0, interp, 4, ov);
-  
-  if (result == TCL_OK) {
-    Tcl_Command cmd = Tcl_CreateObjCommand(interp, methodName, NsfProcStub,
-					   tcd, NsfProcStubDeleteProc);
-    if (cmd) {
-      fprintf(stderr, "NsfAddParameterProc define cmd  %s::%s %p\n", 
-	      ((Command *)cmd)->nsPtr->fullName,
-	      Tcl_GetCommandName(interp, cmd), cmd);
-      ParamDefsStore(interp, cmd, paramDefs);
-    } else {
-      /* free tcd and its content */
-      NsfProcStubDeleteProc(tcd);
-    }
-  }
-  
-  DECR_REF_COUNT(ov[2]);
+  DECR_REF_COUNT(argList);
   DECR_REF_COUNT(ov[3]);
   
+  if (result == TCL_OK) {
+    /* 
+     * The shadowed proc was created successfully. Retrieve the
+     * defined proc and set its namespace to the namespace of the stub
+     * cmd 
+     */
+    Tcl_Command procCmd = Tcl_GetCommandFromObj(interp, procNameObj);
+    assert(procCmd);
+    ((Command *)procCmd)->nsPtr = (Namespace *)cmdNsPtr;
+    
+  } else {
+    /* 
+     * We could not define the shadowed proc. In this case, cleanup by
+     * removing the stub cmd.
+     */
+    fprintf(stderr, "Delete token\n");
+    Nsf_DeleteCommandFromToken(interp, cmd);
+  }
+
   return result;
 }
 
@@ -12646,8 +12729,8 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
                   }
 
 		  if (pcPtr->flags[j] & NSF_ARG_SET) {
-		    NsfLog(interp, NSF_LOG_WARN, "Non-positional parameter %s was passed more than once",
-			   nppPtr->name);
+		    NsfLog(interp, NSF_LOG_WARN, "Non-positional parameter %s was passed more than once (%s method %s)",
+			   nppPtr->name, ObjectName(object), ObjStr(procNameObj));
 		  }
 		  pcPtr->flags[j] |= NSF_ARG_SET;
 

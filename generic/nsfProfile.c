@@ -61,15 +61,14 @@ NsfProfileEvaluateData(Tcl_Interp* interp, long int startSec, long int startUsec
 
   profile->overallTime += totalMicroSec;
 
-  if (obj->teardown == 0 || !obj->id || obj->destroyCalled)
+  if (obj->teardown == 0 || !obj->id || obj->destroyCalled) {
     return;
+  }
+  Tcl_DStringInit(&objectKey);
+  Tcl_DStringAppend(&objectKey, ObjStr(obj->cmdName), -1);
 
-  ALLOC_DSTRING(&objectKey, ObjStr(obj->cmdName));
-
-  if (cl)
-    ALLOC_DSTRING(&methodKey, ObjStr(cl->object.cmdName));
-  else
-    ALLOC_DSTRING(&methodKey, ObjStr(obj->cmdName));
+  Tcl_DStringInit(&methodKey);
+  Tcl_DStringAppend(&methodKey, cl ? ObjStr(cl->object.cmdName) : ObjStr(obj->cmdName), -1);
   Tcl_DStringAppend(&methodKey, "->", 2);
   Tcl_DStringAppend(&methodKey, methodName, -1);
   if (cl)
@@ -79,8 +78,8 @@ NsfProfileEvaluateData(Tcl_Interp* interp, long int startSec, long int startUsec
 
   NsfProfileFillTable(&profile->objectData, &objectKey, totalMicroSec);
   NsfProfileFillTable(&profile->methodData, &methodKey, totalMicroSec);
-  DSTRING_FREE(&objectKey);
-  DSTRING_FREE(&methodKey);
+  Tcl_DStringFree(&objectKey);
+  Tcl_StringFree(&methodKey);
 }
 
 void

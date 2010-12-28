@@ -92,7 +92,9 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
                Tcl_Obj *clName, CONST char *procName) {
   Tcl_DString errMsg;
   char *cName, *space;
-  ALLOC_DSTRING(&errMsg, "\n    ");
+  
+  Tcl_DStringInit(&errMsg);
+  Tcl_DStringAppend(&errMsg, "\n    ", -1);
   if (clName) {
     cName = ObjStr(clName);
     space = " ";
@@ -106,7 +108,7 @@ NsfErrInProc(Tcl_Interp *interp, Tcl_Obj *objName,
   Tcl_DStringAppend(&errMsg, "->", 2);
   Tcl_DStringAppend(&errMsg, procName, -1);
   Tcl_AddErrorInfo (interp, Tcl_DStringValue(&errMsg));
-  DSTRING_FREE(&errMsg);
+  Tcl_DStringFree(&errMsg);
   return TCL_ERROR;
 }
 

@@ -37,6 +37,16 @@ namespace eval ::nsf {
     }
   }
 
+  ::proc strip_proc_name {name} {
+    if {[string match ::nsf::procs::* $name]} {
+      return [string range $name 12 end]
+    } elseif {[string match nsf::procs::* $name]} {
+      return [string range $name 12 end]
+    } else {
+      return $name
+    }
+  }
+
   #
   # ::nsf::mixin 
   #

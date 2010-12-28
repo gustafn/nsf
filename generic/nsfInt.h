@@ -88,20 +88,6 @@ typedef struct NsfMemCounter {
 # define RUNTIME_STATE(interp) ((NsfRuntimeState*)((Interp*)(interp))->globalNsPtr->clientData)
 #endif
 
-
-#define ALLOC_NAME_NS(DSP, NS, NAME) \
-     DSTRING_INIT(DSP);\
-     Tcl_DStringAppend(DSP, NS, -1),\
-     Tcl_DStringAppend(DSP, "::", 2),\
-     Tcl_DStringAppend(DSP, NAME, -1)
-#define ALLOC_TOP_NS(DSP, NAME) \
-     DSTRING_INIT(DSP);\
-     Tcl_DStringAppend(DSP, "::", 2),\
-     Tcl_DStringAppend(DSP, NAME, -1)
-#define ALLOC_DSTRING(DSP,ENTRY) \
-     DSTRING_INIT(DSP);\
-     Tcl_DStringAppend(DSP, ENTRY, -1)
-
 #define nr_elements(arr)  ((int) (sizeof(arr) / sizeof(arr[0])))
 
 # define NEW(type) \
