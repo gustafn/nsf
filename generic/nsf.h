@@ -111,6 +111,11 @@
 #define NRE_CALLBACK_TRACE 1
 */
 
+//#define PARSE_TRACE_FULL 1
+
+/*
+ * Sanity checks and dependencies for optional compile flags
+ */
 #if defined(PARSE_TRACE_FULL)
 # define PARSE_TRACE 1
 #endif
@@ -148,7 +153,6 @@
 # define CscFinish(interp,cscPtr,string)	\
   CscFinish_(interp, cscPtr);
 #endif
-
 
 #if !defined(CHECK_ACTIVATION_COUNTS)
 # define CscListAdd(interp, cscPtr)
