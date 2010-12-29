@@ -116,7 +116,6 @@ namespace eval ::nx::test {
 	  #set r0 [time ${:cmd} $c]
 	  #puts stderr "time {time ${:cmd} $c}"
 	  set r1 [time {time {::namespace eval ${:namespace} ${:cmd}} $c}]
-	  #regexp {^(-?[0-9]+) +} $r0 _ mS0
 	  regexp {^(-?[0-9]+) +} $r1 _ mS1
 	  set ms [expr {$mS1*1.0/$c}]
 	  puts stderr "[set :name]:\t[format %6.2f $ms] mms, ${:msg}"
