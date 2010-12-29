@@ -9536,7 +9536,6 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
   DStringAppendQualName(dsPtr, cmdNsPtr, Tcl_GetCommandName(interp, cmd));  
   procNameObj = Tcl_NewStringObj(Tcl_DStringValue(dsPtr), Tcl_DStringLength(dsPtr));
 
-  Tcl_DStringFree(dsPtr);
   INCR_REF_COUNT(procNameObj); /* will be freed, when NsfProcStub is deleted */
 
   /*
@@ -9578,9 +9577,10 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
        * prefix "_p".
        */
       if (with_ad && pPtr->converter == ConvertToBoolean && pPtr->nrArgs == 1) {
-	/*fprintf(stderr, "... param %s type %s nrargs %d default %p\n", 
-	  pPtr->name, pPtr->type, pPtr->nrArgs, pPtr->defaultValue);*/
+	/*fprintf(stderr, "... ad handling: proc %s param %s type %s nrargs %d default %p\n", 
+	  procName, pPtr->name, pPtr->type, pPtr->nrArgs, pPtr->defaultValue);*/
 	pPtr->nrArgs = 0;
+	/*pPtr->converter = ConvertToSwitch;*/
 	Tcl_AppendToObj(varNameObj, "_p", 2);
 	if (pPtr->defaultValue == NULL) {
 	  pPtr->defaultValue = Tcl_NewBooleanObj(0);
@@ -9623,6 +9623,7 @@ NsfAddParameterProc(Tcl_Interp *interp, NsfParsedParam *parsedParamPtr,
     Nsf_DeleteCommandFromToken(interp, cmd);
   }
 
+  Tcl_DStringFree(dsPtr);
   return result;
 }
 
@@ -11417,8 +11418,10 @@ DoObjInitialization(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
      */
     INCR_REF_COUNT(resultObj);
     Tcl_ListObjGetElements(interp, resultObj, &nobjc, &nobjv);
-    /* CallDirectly does not make much sense, since init is already
-       defined in predefined */
+    /* 
+     * Trying CallDirectly does not make much sense, since init is
+     * already defined in predefined
+     */
     methodObj = NsfMethodObj(interp, object, NSF_o_init_idx);
     if (methodObj) {
       result = CallMethod((ClientData) object, interp, methodObj,
@@ -12563,7 +12566,7 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
   int i;
 
   for (pPtr = ifd, i=0; i<nrParams; pPtr++, i++) {
-    /*fprintf(stderr, "ArgumentDefaults got for arg %s (%d) %p => %p %p, default %s\n",
+    /*fprintf(stderr, "ArgumentDefaults got for arg %s (req %d) %p => %p %p, default %s\n",
             pPtr->name, pPtr->flags & NSF_ARG_REQUIRED, pPtr,
             pcPtr->clientData[i], pcPtr->objv[i],
             pPtr->defaultValue ? ObjStr(pPtr->defaultValue) : "NONE");*/
@@ -12663,6 +12666,22 @@ ArgumentDefaults(ParseContext *pcPtr, Tcl_Interp *interp,
   return TCL_OK;
 }
 
+/*
+ *----------------------------------------------------------------------
+ * ArgumentParse --
+ *
+ *    Parse the argument vector based on the parameter definitions.
+ *    The parsed argument vector is returned in a normalized order 
+ *    in the parse context.
+ *
+ * Results:
+ *    Tcl return code.
+ *
+ * Side effects:
+ *    None.
+ *
+ *----------------------------------------------------------------------
+ */
 static int
 ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
               NsfObject *object, Tcl_Obj *procNameObj,
@@ -12679,6 +12698,10 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   fprintf(stderr, "\n");
 #endif
 
+  /* 
+   * Process the argument vector according to the parameter
+   * definitions.
+   */
   for (i = 0, o = 1, pPtr = paramPtr; pPtr->name && o < objc;) {
 #if defined(PARSE_TRACE_FULL)
     fprintf(stderr, "... (%d) processing [%d]: '%s' %s\n", i, o,
@@ -12687,71 +12710,139 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
     flagCount = 0;
     if (*pPtr->name == '-') {
       int p, found;
-      CONST char *objStr;
+      CONST char *argument;
       /*
        * We expect now a non-positional (named) parameter, starting
-       * with a "-"; such arguments can be given in an arbitrary order
+       * with a "-"; such arguments can be given in an arbitrary
+       * order.  Therefore we iterate over the actual argument list
+       * unti we find a matching flag.
        */
-      for (p = o; p<objc; p++) {
-        objStr = ObjStr(objv[p]);
+      for (p = o; p < objc; p++) {
+        argument = ObjStr(objv[p]);
 	found = 0;
 
-        /*fprintf(stderr, "....checking objv[%d]=%s\n", p, objStr);*/
-        if (objStr[0] != '-') {
+        /*fprintf(stderr, "....checking objv[%d]=%s\n", p, argument);*/
+
+        if (argument[0] != '-') {
 	  /* there is no positional arg in the given argument vector */
 	  break;
 	} else {
+	  /* 
+	   * We have an argument starting with a "-"; is it really one
+	   * of the specified flags?
+	   */
           NsfParam CONST *nppPtr;
-	  /* We have an argument starting with a "-"; is it really one of the specified flags? */
+	  CONST char *valueInArgument = strchr(argument, '=');
+	  char ch1 = *(argument+1);
 
-          for (nppPtr = pPtr; nppPtr->name && *nppPtr->name == '-'; nppPtr ++) {
-            if (strcmp(objStr, nppPtr->name) == 0) {
-	      int j = nppPtr-paramPtr;
-              /*fprintf(stderr, "...     flag '%s' o=%d p=%d, objc=%d nrArgs %d\n", objStr, o, p, objc, nppPtr->nrArgs);*/
-              if (nppPtr->flags & NSF_ARG_REQUIRED) nrReq++; else nrOpt++;
-              if (nppPtr->nrArgs == 0) {
-                pcPtr->clientData[j] = (ClientData)1;  /* the flag was given */
-                pcPtr->objv[j] = NsfGlobalObjs[NSF_ONE];
-              } else {
-                /* we assume for now, nrArgs is at most 1 */
-                o++; p++;
-                if (nppPtr->flags & NSF_ARG_REQUIRED) nrReq++; else nrOpt++;
-
-                if (p < objc) {
+	  /* Is there a "--" ? */
+	  if (ch1 == '-' && *(argument+2) == '\0' && dashdash == 0) {
 #if defined(PARSE_TRACE_FULL)
-		  fprintf(stderr, "...     setting cd[%d] '%s' = %s (%d) %s converter %p\n",
-                          i, nppPtr->name, ObjStr(objv[p]), nppPtr->nrArgs,
-                          nppPtr->flags & NSF_ARG_REQUIRED ? "req" : "not req", nppPtr->converter);
+	    fprintf(stderr, "... skip double dash once\n");
 #endif
-                  if (ArgumentCheck(interp, objv[p], nppPtr, doCheck,
-				    &pcPtr->flags[j], &pcPtr->clientData[j], &pcPtr->objv[j]) != TCL_OK) {
-                    return TCL_ERROR;
-                  }
+	    dashdash++;
+	    nrDashdash++;
+	    o++;
+	    break;
+	  }
 
-		  if (pcPtr->flags[j] & NSF_ARG_SET) {
-		    NsfLog(interp, NSF_LOG_WARN, "Non-positional parameter %s was passed more than once (%s method %s)",
-			   nppPtr->name, ObjectName(object), ObjStr(procNameObj));
-		  }
-		  pcPtr->flags[j] |= NSF_ARG_SET;
+	  if (valueInArgument) {
+	    int equalOffset = valueInArgument - argument;
+	    /*
+	     * parameter like -flag=1
+	     */
+	    for (nppPtr = pPtr; nppPtr->name && *nppPtr->name == '-'; nppPtr ++) {
+	      /* just process flags without arguments here */
+	      if (nppPtr->nrArgs > 0) continue;
+	      if (ch1 == nppPtr->name[1] 
+		  && strncmp(argument, nppPtr->name, equalOffset) == 0 
+		  && *(nppPtr->name+equalOffset) == '\0') {
+		found = 1;
+		break;
+	      }
+	    }
+	  } else {
+	    /*
+	     * Must be a classical nonpos arg; check for the string in
+	     * the parameter definitions.
+	     */
+	    for (nppPtr = pPtr; nppPtr->name && *nppPtr->name == '-'; nppPtr ++) {
+	      if (ch1 == nppPtr->name[1] 
+		  && strcmp(argument, nppPtr->name) == 0) {
+		found = 1;
+		break;
+	      }
+	    }
+	  }
+	  /*fprintf(stderr, "... nonpos arg '%s' found %d\n", argument, found);*/
+	  
+	  if (found) {
+	    Tcl_Obj *valueObj;
+	    int j = nppPtr-paramPtr;
 
-                  if (pcPtr->flags[j] & NSF_PC_MUST_DECR) {
-		    pcPtr->status |= NSF_PC_STATUS_MUST_DECR;
-		  }
+	    /*fprintf(stderr, "...     flag '%s' o=%d p=%d, objc=%d nrArgs %d\n",
+	      argument, o, p, objc, nppPtr->nrArgs);*/
+	    if (nppPtr->flags & NSF_ARG_REQUIRED) nrReq++; else nrOpt++;
+
+	    /* 
+	     * We assume, that nrArgs is 0 or 1 
+	     */
+	    if (nppPtr->nrArgs == 0) {
+	      /*
+	       * No argument exprected. Take value either from flag or
+	       * use constant ONE.
+	       */ 
+	      valueObj = valueInArgument ? Tcl_NewStringObj(valueInArgument+1,-1) : NsfGlobalObjs[NSF_ONE];
+	    } else {
+	      /*
+	       * We expect one argument (currently, it has to be
+	       * exactly one argument). Increment the counters and get
+	       * the argument from the provided argument vector.
+	       */
+	      assert(nppPtr->nrArgs == 1);
+	      o++; p++;
+
+	      if (nppPtr->flags & NSF_ARG_REQUIRED) nrReq++; else nrOpt++;
+
+	      if (p < objc) {
+#if defined(PARSE_TRACE_FULL)
+		fprintf(stderr, "...     setting cd[%d] '%s' = %s (%d) %s converter %p\n",
+			i, nppPtr->name, ObjStr(objv[p]), nppPtr->nrArgs,
+			nppPtr->flags & NSF_ARG_REQUIRED ? "req" : "not req", nppPtr->converter);
+#endif
+		valueObj = objv[p];
+	      } else {
+		return NsfPrintError(interp, "Argument for parameter '%s' expected", nppPtr->name);
+	      }
+	    }
+	    /*
+	     * The value for the flag is now in the valueObj. We
+	     * check, whether it is value is permissible.
+	     */
+	    if (ArgumentCheck(interp, valueObj, nppPtr, doCheck,
+			      &pcPtr->flags[j], &pcPtr->clientData[j], &pcPtr->objv[j]) != TCL_OK) {
+	      return TCL_ERROR;
+	    }
+	    /*
+	     * Provide warnings for double-settings.
+	     */
+	    if (pcPtr->flags[j] & NSF_ARG_SET) {
+	      NsfLog(interp, NSF_LOG_WARN, "Non-positional parameter %s was passed more than once (%s method %s)",
+		     nppPtr->name, ObjectName(object), ObjStr(procNameObj));
+	    }
+	    pcPtr->flags[j] |= NSF_ARG_SET;
 		
-                } else {
-                  return NsfPrintError(interp, "Argument for parameter '%s' expected", objStr);
-                }
-              }
-              flagCount++;
-              found = 1;
-              break;
-            }
-          }
-          if (!found) {
+	    if (pcPtr->flags[j] & NSF_PC_MUST_DECR) {
+	      pcPtr->status |= NSF_PC_STATUS_MUST_DECR;
+	    }
+		
+	    flagCount++; 
+	  } else {
             /*
 	     * We did not find the specified flag, the thing starting
 	     * with a '-' must be an argument
 	     */
+	    assert(found == 0);
             break;
           }
         }
@@ -12761,20 +12852,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
       while (pPtr->name && *pPtr->name == '-') {pPtr++, i++;};
       /* under the assumption, flags have no arguments */
       o += flagCount;
-      /*
-       * check double dash --
-       */
-      if (o<objc) {
-        objStr = ObjStr(objv[o]);
-        if (*objStr == '-' && *(objStr+1) == '-' && *(objStr+2) == '\0' && dashdash == 0) {
-#if defined(PARSE_TRACE_FULL)
-          fprintf(stderr, "... skip double dash once\n");
-#endif
-          dashdash++;
-          nrDashdash++;
-          o++;
-        }
-      }
+
     } else {
 
       /* Handle positional (unnamed) parameters, starting without a
