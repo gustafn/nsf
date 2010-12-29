@@ -2160,6 +2160,20 @@ text
   to a DString
 - removed obsolete function NSCmdFullName()
 
+- serializer.tcl: export nsf::procs via "Serializer all"
+- nsf::proc: alloc shadowed methods in ::nsf::procs
+- new helper function ::proc strip_proc_name to strip nsf::procs prefix
+- improve error messages
+- reduce verbosity
+- removed the following obsolete macros: 
+  ALLOC_NAME_NS, ALLOC_TOP_NS, ALLOC_DSTRING
+
+- some refactoring of the argument parser
+- argument parser handles now as well OpenACS like single-word 
+  parameter values (such as ... -flag=1 ....)
+- improve error messages and warnings for nsfprocs
+- extended regression test
+
 TODO:
 
 - nsf::proc 

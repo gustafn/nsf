@@ -1402,3 +1402,86 @@ Test case req-param {
   ? {set ::_} ""
   ? {c3 x} "0"
 }
+
+::nsf::configure checkarguments on
+
+#
+# Test argument processing and namespace handling in nsf::procs
+#
+
+Test case nsf-proc {
+  #
+  # test inner namespace and handling of switches
+  #
+  nsf::proc ::nsf::mix {-per-object:switch -x:boolean} {
+    return [namespace current]-${per-object}-[info exists x]
+  }
+
+  #
+  # test handling of "-ad" flag
+  #
+  nsf::proc -ad ad_returnredirect {
+    {-message {}}
+    {-html:boolean}
+    {-allow_complete_url:boolean}
+    {-x:switch}
+    target_url
+  } {
+    return [namespace current]-[lsort [info vars]]-$html_p-$allow_complete_url_p
+  }
+  
+  #
+  # test inner namespace and flag passing via -flag=$value notation
+  #
+  namespace eval ::ns1 {
+    nsf::proc -ad foo {-s:boolean} {return [namespace current]-$s_p}
+    nsf::proc bar {-s:switch} {return [namespace current]-[info exists s]}
+    nsf::proc baz {-b:boolean arg} {return [namespace current]-[info exists b]-$arg}
+    nsf::proc -ad pass0 {-s:boolean} {foo {*}[expr {$s_p ? "-s" : ""}]}
+    nsf::proc -ad pass1 {-s:boolean} {foo -s=$s_p}
+  }
+  
+  Test parameter count 1
+  ? {::nsf::mix} "::nsf-0-0"
+  ? {::nsf::mix -per-object} "::nsf-1-0"
+  ? {ad_returnredirect /url} "::-allow_complete_url_p html_p message target_url x-0-0"
+  ? {ad_returnredirect -html /url} "::-allow_complete_url_p html_p message target_url x-1-0"
+  ? {ad_returnredirect -html=0 /url} "::-allow_complete_url_p html_p message target_url x-0-0"
+  ? {ad_returnredirect -html=a /url} {expected boolean but got "a" for parameter "-html"}
+  ? {::ns1::foo} "::ns1-0"
+  ? {::ns1::foo -s} "::ns1-1"
+  ? {::ns1::foo -s=1} "::ns1-1"
+  ? {::ns1::foo -s=0} "::ns1-0"
+  ? {::ns1::foo -s -s=0} "::ns1-0"
+  ? {::ns1::baz -b true -- -b} "::ns1-1--b"
+  
+  Test parameter count 1000
+  ? {::ns1::pass1} "::ns1-0"
+  ? {::ns1::pass1 -s} "::ns1-1"
+  ? {::ns1::pass0} "::ns1-0"
+  ? {::ns1::pass0 -s} "::ns1-1"
+}
+
+#
+# Test argument processing and namespace handling in nsf::procs
+#
+
+Test case xotcl-list-notation {
+  Test parameter count 1
+
+  package req XOTcl
+  xotcl::Class create CC -parameter {package_id parameter_declaration user_id}
+
+  # first, without list notation
+  ? {CC create cc -package_id 123 -parameter_declaration o -user_id 4} "::cc"
+  ? {cc package_id} 123
+  ? {cc parameter_declaration} o
+  ? {cc user_id} 4
+  
+  # new without list notation
+  ? {CC create cc -package_id 234 [list -parameter_declaration oo] -user_id 456} ::cc
+  ? {cc package_id} 234
+  ? {cc parameter_declaration} oo
+  ? {cc user_id} 456
+}
+
