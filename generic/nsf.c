@@ -249,7 +249,7 @@ NSF_INLINE static void CallStackDoDestroy(Tcl_Interp *interp, NsfObject *object)
 static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *cl);
 static int ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
                                   NsfObject *object, int pushFrame, NsfParamDefs *paramDefs,
-                                  CONST char *methodName, int objc, Tcl_Obj *CONST objv[]);
+                                  Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[]);
 static int ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct NsfParam CONST *pPtr, int doCheck,
 			 int *flags, ClientData *clientData, Tcl_Obj **outObjPtr);
 static int ParameterCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, Tcl_Obj *valueObj,
@@ -7390,7 +7390,7 @@ ProcMethodDispatch(ClientData cp, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 #if defined(NRE)
     pcPtr = (ParseContext *) NsfTclStackAlloc(interp, sizeof(ParseContext), "parse context");
 #endif
-    result = ProcessMethodArguments(pcPtr, interp, object, 1, paramDefs, methodName, objc, objv);
+    result = ProcessMethodArguments(pcPtr, interp, object, 1, paramDefs, objv[0], objc, objv);
     cscPtr->objc = objc;
     cscPtr->objv = (Tcl_Obj **)objv;
 
@@ -9433,8 +9433,8 @@ NsfProcStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST 
     tov[0] = tcd->procName;
 
     /* If the argument parsing is ok, the shadowed proc will be called */
-    result = ProcessMethodArguments(pcPtr, interp, NULL, 1, 
-				    tcd->paramDefs, ObjStr(objv[0]), 
+    result = ProcessMethodArguments(pcPtr, interp, NULL, 0, 
+				    tcd->paramDefs, objv[0], 
 				    objc, tov);
 
     if (result == TCL_OK) {
@@ -12690,7 +12690,7 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
   int i, o, flagCount, nrReq = 0, nrOpt = 0, dashdash = 0, nrDashdash = 0;
   NsfParam CONST *pPtr;
 
-  ParseContextInit(pcPtr, nrParams, object, procNameObj);
+  ParseContextInit(pcPtr, nrParams, object, objv[0]);
 
 #if defined(PARSE_TRACE)
   fprintf(stderr, "BEGIN (%d) [0]%s ", objc, ObjStr(procNameObj));
@@ -12827,8 +12827,10 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 	     * Provide warnings for double-settings.
 	     */
 	    if (pcPtr->flags[j] & NSF_ARG_SET) {
-	      NsfLog(interp, NSF_LOG_WARN, "Non-positional parameter %s was passed more than once (%s method %s)",
-		     nppPtr->name, ObjectName(object), ObjStr(procNameObj));
+	      NsfLog(interp, NSF_LOG_WARN, "Non-positional parameter %s was passed more than once (%s%s%s)",
+		     nppPtr->name, 
+		     object ? ObjectName(object) : "", object ? " method " : "", 
+		     ObjStr(procNameObj));
 	    }
 	    pcPtr->flags[j] |= NSF_ARG_SET;
 		
@@ -16366,7 +16368,7 @@ NsfOConfigureMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CO
 
   /* Process the actual arguments based on the parameter definitions */
   paramDefs = parsedParam.paramDefs;
-  result = ProcessMethodArguments(&pc, interp, object, 0, paramDefs, "configure", objc, objv);
+  result = ProcessMethodArguments(&pc, interp, object, 0, paramDefs, NsfGlobalObjs[NSF_CONFIGURE], objc, objv);
 
   if (result != TCL_OK) {
     Nsf_PopFrameObj(interp, framePtr);
@@ -18271,9 +18273,8 @@ NsfClassInfoSuperclassMethod(Tcl_Interp *interp, NsfClass *class, int withClosur
 
 static int
 ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
-                       NsfObject *object, int pushFrame,
-                       NsfParamDefs *paramDefs,
-                       CONST char *methodName, int objc, Tcl_Obj *CONST objv[]) {
+                       NsfObject *object, int pushFrame, NsfParamDefs *paramDefs,
+                       Tcl_Obj *methodNameObj, int objc, Tcl_Obj *CONST objv[]) {
   int result;
   CallFrame frame, *framePtr = &frame;
 
@@ -18281,7 +18282,7 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
     Nsf_PushFrameObj(interp, object, framePtr);
   }
 
-  result = ArgumentParse(interp, objc, objv, object, objv[0],
+  result = ArgumentParse(interp, objc, objv, object, methodNameObj,
                          paramDefs->paramsPtr, paramDefs->nrParams,
 			 RUNTIME_STATE(interp)->doCheckArguments,
 			 pcPtr);
