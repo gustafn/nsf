@@ -80,7 +80,19 @@ Methods for Classes: :: 24
 Info methods for Objects: :: 25
 Info method for Classes: :: 24 
 
-Below is a small, introductory example showing an implementation of a stack in NX and XOTcl.
+Below is a small, introductory example showing an implementation of a
+class +Stack+ in NX and XOTcl. NX supports a block syntax, where the
+methods are defined during the creation of the class. The XOTcl syntax
+is slightly more redundant, since every definition of a method is a
+single toplevel command starting with the class name (also NX supports
+the style used in XOTcl).  In NX, all methods are per default
+protected (XOTcl does not support protection). In NX methods are
+defined in the definition of the class via +:method+ or +:public
+method+. In XOTcl methods are defined via the +instproc+ method.
+
+Another difference is the notation to refere to instance variables. In
+NX, instance variable are named with a single colon in the front. In
+XOTcl, instance variables are imported using +instvar+.
 
 [options="header",cols="asciidoc,asciidoc",frame="none"]
 |======================
@@ -197,8 +209,22 @@ Class) of XOTcl or NX into the current namespace.
 XOTcl Idioms in the Next Scripting Language
 ---------------------------------------------
 
+The following sections are intended for reader familiar with XOTcl and
+show, how certain language Idioms of XOTcl can be expressed in NX. In
+some cases, multiple possible realizations are listed
+
 Defining Objects and Classes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When creating objects or classes, one should use the method +create+
+explicitly. In XOTcl, a default +unknown+ handler was provided for
+classes, which create for every unknown method invocation an
+object/class with the name of the invoked method. This technique was
+convenient, but as well dangerous, since typos in method names lead
+easily to unexpected behavior. This default unknown handler is not
+provided in NX (but can certainly be provided as a one-liner in NX by
+the application).
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
@@ -226,13 +252,46 @@ Object create ObjectName
 Defining Methods
 ~~~~~~~~~~~~~~~~
 
+In general, both XOTcl and NX support methods on the object level
+(per-object methods, i.e. methods only applicable to a single object)
+and on the class level (methods inherited to instances of the
+classes). While the naming in XOTcl tried to follow closely the Tcl
+tradition (using the term +proc+ for functions/methods), NX uses the
+term +method+ for defining scripted methods.
+
+XOTcl uses the prefix +inst+ to denote that methods are provided for
+instances, calling therefore scripted methods for instances
++instproc+. This is certainly an unusual term. The approach with the
+name prefix has the disadvantage, that for every different kind of
+method, two names have to be provided (eg. +proc+ and +instproc+,
++forward+ and +instforward+).
+
+NX on the contrary uses the same term for defining inherited or
+object-specific methods. When the term (e.g. +method+) is used on a
+class, the method will be inherited (applicable to the instances of
+the class). When the term is used on an object, an object-specific
+method is defined. NX uses the method modifier +class-object+ to
+defined a class-method (method for the class-object).
+
+Furthermore, both XOTcl and NX distinguish between scripted methods
+(section 3.2.1) and C-defined methods (section 3.2.2). Section 3.2.3
+introduces method protection, which is only supported by NX.
+
 ==== Scripted Methods Defined in the Init-block of a Class/Object or with Separate Calls
+
+The following examples show the definition of a class and its methods
+in the init-block of a class (NX only), and the definition of methods
+via separate top level calls (XOTcl and NX). 
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
 
 |[source,tcl]
 ----------------
+# Define method 'foo' and class-object method 'bar'
+# for a Class 'C' with separate toplevel commands
+
 Class C
 C instproc foo args {...}
 C proc bar args {...}
@@ -249,7 +308,8 @@ Class create C {
 ----------------
 [source,tcl]
 ----------------
-# Define method and class-object method with separate calls
+# Define method and class-object method with separate 
+# commands
 
 Class create C
 C method foo args {...}
@@ -258,6 +318,9 @@ C class-object method bar args {...}
 
 |[source,tcl]
 ----------------
+# Define object-specific method foo
+# for an object 'o' with separate commands
+
 Object o
 o set x 1
 o proc foo args {...}
@@ -285,6 +348,11 @@ o method foo args {...}
 |===========================
 
 ==== Different Kinds of Methods
+
+This section describes various kinds of methods. The different kinds
+of methods are defined via different method-defining methods, which
+are summarized in the following table for XOTcl and NX.
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
@@ -314,30 +382,21 @@ o method foo args {...}
 #
 # All these methods return method-handles.
 ----------------
+|===========================
 
-|[source,tcl]
-----------------
-Class C
-C instproc foo args {...}
-C proc bar args {...}
+In addition to scripted methods (previous section) XOTcl supports
+forwarder (called +forward+ and +instforward+) and accessor functions
+to variables (called +parametercmd+ and +instparametercmd+).  The
+accessor functions are used normally internally when object-specific
+parameters are defined (see Section 3.4).
 
-Object o
-o proc baz args {...}
-----------------
+In NX forwarders are called +forward+. NX does not provide an own
+method to define variable accessors, but uses the Next Scripting
+Framework primitive +nsf::setter+ for it.
 
-|[source,tcl]
-----------------
-# Define scripted methods
-
-Class create C {
-  :method foo args {...}
-  :class-object method bar args {...}
-}
-
-Object create o {
-  :method baz args {...}
-}
-----------------
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
 
 |[source,tcl]
 ----------------
@@ -384,7 +443,18 @@ Class create C
 Object create o 
 ::nsf::setter o p3
 ----------------
+|======================
 
+NX supports in contrary to XOTcl the method +alias+ which can be used
+to register arbitrary Tcl commands or methods for an object or class 
+under a provided method name. Aliases can be used to reuse a certain implementation in
+e.g. different object systems under potentially different names. In
+some respects aliases are similar to forwarders, but they do not
+involve forwarding overhead.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
 
 |[source,tcl]
 ----------------
@@ -405,46 +475,18 @@ Object create o {
   :alias a3 ...
 }
 ----------------
-
-|[source,tcl]
-----------------
-# Parameters only available at class level
-
-Class C \
-   -parameter {
-    x
-    {y 1}
-}
-----------------
-
-|[source,tcl]
-----------------
-# Define object attributes
-# (parameters for initializing objects)
-
-Class create C {
-  :attribute x
-  :attribute {y 1}
-  :class-object attribute oa1
-}
-
-Object create o {
-  :attribute oa2
-}
-----------------
-[source,tcl]
-----------------
-Class create C \
-   -attributes {
-    x
-    {y 1}
-}
-----------------
 |===========================
 
 
 [[method-protect-example]]
 ==== Method Modifiers and Method Protection
+
+NX supports the three method modifiers +class-object+, +public+ and
++protected+. All method modifiers can be written in front of every method
+defining command. The method modifier +class-object+ is used to denote
+class-object specific methods (see above). The concept of method
+protection is new in NX.
+
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -478,27 +520,39 @@ Class create C {
 ----------------
 |======================
 
-The next scripting language allows to configure the default call
-protection in various ways. The command 
-`::nx::configure defaultMethodCallProtection true|false` can be used to set the default
-call protection for scripted methods, forwarder and aliases, while
-`::nx::configure defaultAttributeCallProtection true|false` can set the
-default for attributes.
+While XOTcl does not provide method protection, in NX, all methods are
+defined per default as protected.
+
+NX allows to configure the default call protection in various
+ways. The command `::nx::configure defaultMethodCallProtection
+true|false` can be used to set the default call protection for
+scripted methods, forwarder and aliases, while `::nx::configure
+defaultAttributeCallProtection true|false` can set the default
+protection for attributes.
 
 
 === Resolvers
 
 The Next Scripting Framework defines Tcl resolvers for method and
-variable names to refer to object specific behavior. Within method
-bodies these resolver treat variable and function names starting with
-a colon `:` specially. In short, a colon-prefixed variable name refers
-to an instance variable, and a colon-prefixed function name refers to
-a method. The sub-sections below provide detailed examples.
+variable names to implement object specific behavior. Within the
+bodies of scripted methods these resolver treat variable and function
+names starting with a colon `:` specially. In short, a colon-prefixed
+variable name refers to an instance variable, and a colon-prefixed
+function name refers to a method. The sub-sections below provide
+detailed examples.
 
-Note that the Next resolvers can be used in the XOTcl 2.* environment as well. 
-
+Note that the resolvers of the Next Scripting Framework can be used in
+the XOTcl 2.* environment as well.
 
 ==== Invoking Methods
+
+In XOTcl, a method of the same object can be invoked via +my+, or in
+general via using the name of the object in front of the method name.
+
+In NX, the own methods are called via the method name prefixed with a
+single colon. The invocation of the methods of other objects is the
+same in NX and XOTcl.
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
@@ -534,18 +588,27 @@ Object create o {
 
 In general, the Next Scripting Language favors the access to an
 objects's own instance variables over variable accesses of other
-objects. On the contrary, in XOTcl, the variable access to own and
-other variables are completely symmetric.
+objects. This means that in NX it is syntactically easier to access
+the own instance variables. On the contrary, in XOTcl, the variable
+access to own and other variables are fully symmetric.
 
-In Next Scripting, access to local variables are performed via
-primarily via name resolvers, but using the standard tcl commands
-(like e.g. `set`, `incr`, `append`, `info exists`, etc.). In XOTcl, it
-is common to provide same-named methods registered on
-`::xotcl::Object` for such purposes. This is one of the reasons, why
-the Next Scripting Language has a much smaller interface (less
-predefined methods). It is possible for an application program to
-register XOTcl-like methods in the Next Scripting Language via the
-primitives of the Next Scripting Framework.
+In XOTcl, the following approaches are used to access instance
+variables:
+
+- Import instance variables via +instvar+ and access variables via +$varName+
+- Set or get instance  variables via +my set varName ?value?+ or other 
+   variable accessing methods registered on +xotcl::Object+ such as
+   +append+, +lappend+, +incr+, etc.
+- Register same-named accessor functions and set/get values 
+   of instance variables via  +my varName ?value?+
+
+In NX, the favored approach to access instance variables is to use
+the name resolvers, although it is as well possible to import
+variables via +nx::var import+ or to check for the existence of
+instance variables via +nx::var exists+.
+
+The following examples summary the use cases for accessing the own and
+other instance variables.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -748,6 +811,41 @@ Class create Foo -attributes {a {b 1}}
 Foo create f1 -a 0
 
 # Object f1 has a == 0 and b == 1
+----------------
+
+|[source,tcl]
+----------------
+# Parameters only available at class level
+
+Class C \
+   -parameter {
+    x
+    {y 1}
+}
+----------------
+
+|[source,tcl]
+----------------
+# Define object attributes
+# (parameters for initializing objects)
+
+Class create C {
+  :attribute x
+  :attribute {y 1}
+  :class-object attribute oa1
+}
+
+Object create o {
+  :attribute oa2
+}
+----------------
+[source,tcl]
+----------------
+Class create C \
+   -attributes {
+    x
+    {y 1}
+}
 ----------------
 
 |[source,tcl]

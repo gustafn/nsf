@@ -2177,15 +2177,11 @@ text
 TODO:
 
 - nsf::proc 
-   * scripted method like implementation
+   * scripted-method like implementation (like ProcMethodDispatch, not urgent)
    * toplevel (object less) introspection 
-   * support for serialization in aolserver
-   * regression tests
-   * uplevel etc. semantics
-   * reduce verbosity
    * memleak testing
 
-- "info method definition" for attributes?
+- "info method definition" for :attributes?
 
 - check performance implications of value conflict checker
 
