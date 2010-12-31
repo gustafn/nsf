@@ -17,13 +17,36 @@ migration guide from XOTcl 1 to NX, and presents potential
 incompatibilities beween XOTcl 1.and XOTcl 2
 *****************************************************************************
 
+The Next Scripting Language (NX) is a successor of XOTcl 1 and is
+based on 10 years of experience with XOTcl in projects containing
+several hundert thousand lines of code.  The overall goal is to
+improve the maintainability and stability of large projects, where
+many developers are involved.  
 
-.Todo
-*****************************************************************************
-Here comes  general text, maybe partly from slides/paper .... TODO: Maybe we
-should not refer to ::nsf here, just to ::nx ...
-*****************************************************************************
+The Next Scripting Language is based on the Next Scripting Framework
+which was developed based on the notion of language oriented
+programming. The Next Scripting Frameworks provides C-level support
+for defining and hosting multiple object systems in a single Tcl
+interpreter. The whole definition of NX is fully scripted
+(e.g. defined in +nx.tcl+).  The Next Scripting Framework is shipped
+with three language definitions, containing NX and XOTcl 2.  Most of
+the existing XOTcl 1 programs can be used without modification in the
+Next Scripting Framework. The Next Scripting Framework requires Tcl
+8.5 or newer.
 
+Although NX is fully scripted (as well as XOTcl 2), our benchmarks
+show that scripts based on NX are often 2 or 4 times faster than the
+counterparts in XOTcl 1. But speed was not the primary focus on the
+Next Scripting Environment: The goal was primarily to find ways to
+repackage the power of XOTcl in an easy to learn environment, highly
+orthogonal environment, which is better suited for large projects,
+trying to reduce maintenance costs.
+
+We expect that many user will find it attractive to upgrade
+from XOTcl 1 to XOTcl 2, and some other users will upgrade to NX.
+This document focuses mainly on the differences between XOTcl 1 and
+NX, but addresses as well potential incompatibilitied between XOTcl 1
+and XOTcl 2. For an introduction to NX, please consult the NX tutorial.
 
 Differences Between XOTcl and NX
 -------------------------------
@@ -31,26 +54,28 @@ Differences Between XOTcl and NX
 In general, the Next Scripting Language (NX) differs from XOTcl in 
 the following respects:
 
-- The Next Scripting Language favors a _stronger form of encapsulation_
-  than XOTcl. Calling the own methods or accessing the
-   own instance variables is typographically easier and
-   computationally faster than these operations on other objects. This
-   behavior is achieved via resolvers an makes the definition of
-   methods necessary in XOTcl obsolete. On the other hand, XOTcl is
-   complete symmetrical in this respect.
+- The Next Scripting Language favors a _stronger form of
+  encapsulation_ than XOTcl. Calling the own methods or accessing the
+  own instance variables is typographically easier and computationally
+  faster than these operations on other objects. This behavior is
+  achieved via resolversm which make some methods necessary in XOTcl
+  obsolete in NX (especially for importing instance variables). On the
+  other hand, XOTcl is complete symmetrical in this respect.
 
-- The encapsulation of Next Scripting is still weak compared to
-   languages like C++; a developer can still access e.g. other
-   variables via some idioms, but this _makes accesses to other
-   objects variables explicit_ and requires more typing
-   effort. Through the weak encapsulation a programmer should be
-   encouraged to implement methods to provide access to instance
+- The encapsulation of Next Scripting is stronger than in XOTcl but
+   still weak compared to languages like C++; a developer can still
+   access e.g. other variables via some idioms, but this _makes
+   accesses to other objects variables explicit_ and requires more
+   typing effort. Through the weak encapsulation a programmer should
+   be encouraged to implement methods to provide access to instance
    variables.
 
-- The Next Scripting Language provides means of _method protection_.
+- The Next Scripting Language provides means of _method
+  protection_. Therefore developers have to define interfaces in order
+  to use methods from other objects.
 
 - The Next Scripting Language provides _scripted init blocks_ for
-   objects and classes (replacement for the somewhat dangerous dash "-"
+   objects and classes (replacement for the dangerous dash "-"
    mechanism in XOTcl that allows to set variables and invoke methods
    upon object creation).
 
@@ -79,6 +104,9 @@ Methods for Objects: :: 52
 Methods for Classes: :: 24
 Info methods for Objects: :: 25
 Info method for Classes: :: 24 
+
+- The naming of the methods in the The Next Scripting Language is much more
+  in line with the mainstream naming conventions in OO languages.
 
 Below is a small, introductory example showing an implementation of a
 class +Stack+ in NX and XOTcl. NX supports a block syntax, where the
@@ -487,7 +515,6 @@ defining command. The method modifier +class-object+ is used to denote
 class-object specific methods (see above). The concept of method
 protection is new in NX.
 
-
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
@@ -774,15 +801,29 @@ set /varName/ [/obj/ eval {set /:otherVar/}]
 
 === Parameters
 
-While XOTcl 1 had very limited forms of parameters, XOTcl 2 and nx
+While XOTcl 1 had very limited forms of parameters, XOTcl 2 and NX
 provide a generalized and highly orthogonal parameter handling with
-various kinds of value constraints. We devide the parameters into
-_Object Parameters_ (parameters used for initializing objects and
-classes) and _Method Parameters_ (parameters passed to
-methods). Furthermore, XOTcl 2 and NX support return value checker
+various kinds of value constraints (also called value checker). We
+divide the parameters into _Object Parameters_ (parameters used for
+initializing objects and classes, specified in XOTcl via the method
++parameter+) and _Method Parameters_ (parameters passed to
+methods). The Next Scripting Framework provide a unified,
+C-implemented infrastructure to handle both, object and method
+parameters.
+
+Furthermore, the Next Scripting Framework provides
+
+- unified parameter checking (for object and method parameters) and 
+- return value checking
+
 based on the same mechanisms.
 
 ==== Object Parameters
+
+Object parameters are supported in XOTcl via the method
++parameter+. Since the term "parameter" is underspecified, NX uses the
+term "attribute". To define multiple attributes in a short form, NX
+provides the method +attributes+.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -812,41 +853,29 @@ Foo create f1 -a 0
 
 # Object f1 has a == 0 and b == 1
 ----------------
+|======================
 
-|[source,tcl]
-----------------
-# Parameters only available at class level
+In XOTcl the method +parameter+ is a shortcut for creating multiple
+slot objects. Slot objects can be as well created in XOTcl directly
+via the method +slots+ to provide a much richer set of
+meta-data for every attribute. 
 
-Class C \
-   -parameter {
-    x
-    {y 1}
-}
-----------------
+To make the definition of attributes more orthogonal, NX uses the
+method +attribute+ which can be used as well on the class and on the
+object level. When an attribute is created, NX does actually three
+things:
 
-|[source,tcl]
-----------------
-# Define object attributes
-# (parameters for initializing objects)
+. Create a slot object, which can be specified in more detail
+  using the init-block of the slot object
+. Create an object parameter definition for the initialization of the
+  object (usable via a non-positional parameter during object
+  creation), and
+. register an accessor function (setter), for wich the usual
+  protection levels (+public+ or +protected+) can be used.
 
-Class create C {
-  :attribute x
-  :attribute {y 1}
-  :class-object attribute oa1
-}
-
-Object create o {
-  :attribute oa2
-}
-----------------
-[source,tcl]
-----------------
-Class create C \
-   -attributes {
-    x
-    {y 1}
-}
-----------------
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
 
 |[source,tcl]
 ----------------
@@ -867,7 +896,7 @@ Foo f1 -a 0
 |[source,tcl]
 ----------------
 # Object parameter specified via attribute methods
-# (allow method modifieres and scripted configuration)
+# (allow method modifiers and scripted configuration)
 
 Class create Foo {
    :attribute a
@@ -879,6 +908,29 @@ Foo create f1 -a 0
 
 # Object f1 has a == 0 and b == 1
 ----------------
+
+
+|[source,tcl]
+----------------
+# Parameters only available at class level
+----------------
+
+|[source,tcl]
+----------------
+# Define object parameter at the class 
+# and object level
+
+Class create C {
+  :attribute x
+  :attribute {y 1}
+  :class-object attribute oa1
+}
+
+Object create o {
+  :attribute oa2
+}
+----------------
+
 |[source,tcl]
 ----------------
 # Object parameter with configured slot, defining an attribute
@@ -898,8 +950,8 @@ Class Person -slots {
 ----------------
 |[source,tcl]
 ----------------
-# Object parameter with scripted definition, defining an attribute
-# specific type checker
+# Object parameter with scripted definition (init-block), 
+# defining an attribute specific type checker
 
 Class create Person {
    :attribute sex {
@@ -914,22 +966,41 @@ Class create Person {
    }
 }
 ----------------
+|======================
+
+XOTcl 1 did not support value constraints for object parameters (just
+for non-positional arguments). 
+
+NX supports _value constraints_ (value-checkers) for object and method
+parameters in an orthogonal manner. NX provides a predefined set of
+value checkers, which can be extended by the application developer.
+
+In NX, the _value checking is optional_. This means that it is possible to
+develop e.g. which a large amount of value-checking and deploy the
+script with value checking turned off, if the script is highly
+performance sensitive.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
 |[source,tcl]
 ----------------
-# Predefined value constraints for parameter not available 
+# Value constraints for parameter not available 
 ----------------
 |[source,tcl]
 ----------------
 # Predefined value constraints: 
 #    object, class, alnum, alpha, ascii, boolean, control, 
-#    digit, double, false, graph, integer, lower, print, 
-#    punct,  space, true, upper, wordchar, xdigit
+#    digit, double, false, graph, integer, lower, parameter, 
+#    print, punct,  space, true, upper, wordchar, xdigit
 #
 # User defined value constraints are possible.
 # All parameter value checkers can be turned on and off.
 #
 # Define a boolean attribute and an integer attribute with a 
-# default
+# default firstly via "attributes", then with multiple 
+# "attribute"  statements.
 
 Class create Foo -attributes {
    a:boolean
@@ -943,6 +1014,20 @@ Class create Foo {
    :attribute {b:integer 1}
 }
 ----------------
+|======================
+
+In XOTcl all object parameters were _optional_. Required parameters have
+to be passed to the constructor of the object.
+
+NX allows to define _optional_ and _required_ object
+attributes. Therefore, object parameters can be used as the single
+mechanism to parameterize objects. The constructors do not require any
+parameters.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
 |[source,tcl]
 ----------------
 # Required parameter not available 
@@ -966,6 +1051,18 @@ Class create Foo {
    :attribute b:boolean,required
 }
 ----------------
+|======================
+
+NX supports in contrary to XOTcl to define the _multiplicity_ of values
+per parameter. In NX, one can specify that a parameter can accept the
+value "" (empty) in addition to e.g. an integer, or one can specify that the
+value is an empty or non-empty ist of values via the multiplicity. For
+every specified value, the value checkers are applied.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
 |[source,tcl]
 ---------------
 # Multiplicity for parameter not available 
@@ -984,8 +1081,8 @@ Class create Foo -attributes {
 ----------------
 Class create Foo {
   :attribute {ints:integer,0..n ""}
-   :attribute objs:object,1..n 
-   :attribute obj:object,0..1
+  :attribute objs:object,1..n 
+  :attribute obj:object,0..1
 }
 ----------------
 |======================
@@ -993,8 +1090,9 @@ Class create Foo {
 ==== Method Parameters
 
 The method parameters specifications in XOTcl 1 were limited and
-allowed only value constraints for non positional arguments. NX and
-XOTcl 2 provide value constraints for all kind of method parameters.
+allowed only value constraints for non positional arguments. 
+
+NX and XOTcl 2 provide value constraints for all kind of method parameters.
 While XOTcl 1 required non-positional arguments to be listed in front of
 positional arguments, this limitation is lifted in XOTcl 2.
 
@@ -1039,13 +1137,13 @@ Class create C {
    # trailing (or interleaved) non-positional parameters
    :public method m1 {a b -x:integer -y} {....} 
 
-   # postional parameters with value constraints
+   # positional parameters with value constraints
    :public method m2 {a:integer b:boolean} {....} 
 
-   # optional postional parameter (trailing)
+   # optional positional parameter (trailing)
    :public method set {varName value:optional} {....} 
 
-   # parameter with multiplicty
+   # parameter with multiplicity
    :public method m3 {-objs:object,1..n c:class,0..1} {....} 
 
    # In general, the same list of value constraints as for
@@ -1057,13 +1155,13 @@ Class create C {
 ----------------
 |======================
 
-==== Return Value Checkers
+==== Return Value Checking
 
-Return value checker are a functionality that was not yet available in
+_Return value checking_ is a functionality that was not yet available in
 XOTcl 1. A return value checker assures that a method returns always a
-parameter of a certain value. Return value checkers can be defined on
-all forms of methods. Like for other value checkers, return
-value checkers can be turned on and off.
+value satisfying some value constraints. Return value checkers can be defined on
+all forms of methods (scripted or C-implemented). Like for other value
+checkers, return value checkers can be turned on and off.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1101,6 +1199,17 @@ Class create C {
 
 
 === Interceptors
+
+XOTcl and NX allow the definition of the same set of interceptors,
+namely class- and object-level mixins and class- and object-level
+filters. The primary difference in NX is the naming, since NX
+abandons the prefix "inst" from the method names. 
+
+Therefore, in NX, if a +mixin+ is registered on the class-level, it is
+a per-class mixin, if the +mixin+ is registered on the object level,
+it is a object-level mixin. In both cases, the method +mixin+ is used.
+If a mixin is registered on the class object, one has to use the
+modifier +class-object+ (in the same way as e.g. for defining methods).
 
 ==== Register Mixin Classes and Mixin Guards
 
@@ -1190,70 +1299,24 @@ Class create C {
 |======================
 
 === Introspection
-==== List methods defined by objects
-[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
-|======================
-|XOTcl |Next Scripting Language
 
-|[source,tcl]
-----------------
-/obj/ info commands ?pattern?
-----------------
-|[source,tcl]
-----------------
-/obj/ info methods ?pattern?
-----------------
-|[source,tcl]
-----------------
-/obj/ info parametercmd ?pattern?
-----------------
-|[source,tcl]
-----------------
-/obj/ info methods -methodtype setter ?pattern?
-----------------
-|[source,tcl]
-----------------
-/obj/ info procs ?pattern?
-----------------
-|[source,tcl]
-----------------
-/obj/ info methods -methodtype scripted ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-/obj/ info methods -methodtype alias ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-/obj/ info methods -methodtype forwarder ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-/obj/ info methods -methodtype object ?pattern?
-----------------
-|[source,tcl]
-----------------
-# n.a.
-----------------
-|[source,tcl]
-----------------
-/obj/ info methods -callprotection public\|protected ...
-----------------
-|======================
+In general, introspection in NX became more orthogonal and less
+dependent on the type of the method. In XOTcl it was e.g. necessary
+that a developer had to know, whether a method is e.g. scripted or not
+and has to use accordingly different sub-methods of +info+.
+
+In NX, one can use e.g. always +info method+ with a subcommand and the
+framework tries to hide the differences as far as possible. So, one
+can for example obtain with +info method parameter+ the parameters of
+scripted and C-implemented methods the same way. In addition, NX
+provides means to query the type of a method.
 
 ==== List methods defined by classes
+
+While XOTcl uses different names for obtaining different kinds of
+methods defined by a class, NX uses +info methods+ in an orthogonal
+manner. NX allows as well to use the call protection to filter the
+returned methods.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1317,7 +1380,80 @@ Class create C {
 ----------------
 |======================
 
+==== List methods defined by objects
+
+While XOTcl uses different names for obtaining different kinds of
+methods defined by an object, NX uses +info methods+ in an orthogonal
+manner. NX allows as well to use the call protection to filter the
+returned methods.
+
+[options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
+|======================
+|XOTcl |Next Scripting Language
+
+|[source,tcl]
+----------------
+/obj/ info commands ?pattern?
+----------------
+|[source,tcl]
+----------------
+/obj/ info methods ?pattern?
+----------------
+|[source,tcl]
+----------------
+/obj/ info parametercmd ?pattern?
+----------------
+|[source,tcl]
+----------------
+/obj/ info methods -methodtype setter ?pattern?
+----------------
+|[source,tcl]
+----------------
+/obj/ info procs ?pattern?
+----------------
+|[source,tcl]
+----------------
+/obj/ info methods -methodtype scripted ?pattern?
+----------------
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+/obj/ info methods -methodtype alias ?pattern?
+----------------
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+/obj/ info methods -methodtype forwarder ?pattern?
+----------------
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+/obj/ info methods -methodtype object ?pattern?
+----------------
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+/obj/ info methods -callprotection public\|protected ...
+----------------
+|======================
+
 ==== List class object specific methods
+
+When class-object specific properties are queried, NX required to use
+the modifier +class-object+ (like for the definition of the methods).
+In all other respects, this section is identical to the previous one.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1383,6 +1519,11 @@ Class create C {
 
 ==== List callable methods
 
+In order to obtain for an object the set of artefacts defined in the
+ class hierarchy, NX uses +info lookup+. One can either lookup methods
+ (via +info lookup methods+) or slots (via +info lookup slots+). The
+ plural term refers to a potential set of return values.
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
@@ -1437,6 +1578,14 @@ Class create C {
 
 ==== List object/class where some method is defined
 
++info lookup+ can be used as well to determine, where exactly an
+ artefact is located. One can obtain this way a method handle, where 
+a method or filter is defined. 
+
+The concept of a _method-handle_ is new in NX. The method-handle 
+can be used to obtain more information about the method, such as
+e.g. the definition of the method.
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
@@ -1463,10 +1612,33 @@ Class create C {
 
 ==== List definition of scripted methods defined by classes
 
+XOTcl contains a long list of +info+ subcommands for different kinds of
+methods and for obtaining more detailed information about these
+methods.
+
+In NX, this list of +info+ subcommands is much shorter and more
+orthogonal. For example +info method definition+ can be used to obtain
+with a single command the full definition of a _scripted method_, and
+furthermore, it works as well the same way to obtain e.g. the
+definition of a _forwarder_ or an _alias_. 
+
+Another powerful introspection option in NX is +info method
+parametersyntax+ which obtains a representation of the parameters of a
+method in the style of Tcl man pages (regardless of the kind of
+method).
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
 
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+/cls/ info method definition /methodName/
+----------------
 |[source,tcl]
 ----------------
 /cls/ info instbody /methodName/
@@ -1497,7 +1669,7 @@ Class create C {
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info instdefault /methodName/
+# not needed, part of "info method parameter"
 ----------------
 |[source,tcl]
 ----------------
@@ -1521,16 +1693,27 @@ Class create C {
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info method definition /methodName/
+/cls/ info method parametersyntax /methodName/
 ----------------
 |======================
 
 ==== List definition of scripted object specific methods
 
+While XOTcl uses different names for info options for objects and
+classes (using the prefix "inst"), the names in NX are the same.
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
 
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+/obj/ info method definition /methodName/
+----------------
 |[source,tcl]
 ----------------
 /obj/ info body /methodName/
@@ -1561,15 +1744,7 @@ Class create C {
 -----------------
 |[source,tcl]
 ----------------
-/obj/ info method parameter /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj/ info pre /methodName/
-----------------
-|[source,tcl]
-----------------
-/obj/ info method precondition /methodName/
+# not needed, part of "info method parameter"
 ----------------
 |[source,tcl]
 ----------------
@@ -1585,7 +1760,7 @@ Class create C {
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info post /methodName/
+/obj/ info method postcondition /methodName/
 ----------------
 |[source,tcl]
 ----------------
@@ -1593,13 +1768,19 @@ Class create C {
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info method definition /methodName/
+/obj/ info method parametersyntax /methodName/
 ----------------
 |======================
 
-For definition of class object specific methods, use modifier `class-object` as shown in examples above. 
+For definition of class object specific methods, use the modifier
++class-object+ as shown in examples above.
 
 ==== List Filter or Mixins
+
+In NX all introspection options for filters are grouped under +info
+filter+ and all introspection options for mixins are under +info
+mixin+. Therefore, NX follows here the approach of using hierarchical
+subcommands rather than using a flat namespace.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1708,6 +1889,9 @@ For definition of class object specific methods, use modifier `class-object` as 
 
 ==== List definition of methods defined by aliases, setters or forwarders
 
+As mentioned earlier, +info method definition" can be used on every
+kind of method.
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
@@ -1731,7 +1915,12 @@ For definition of class object specific methods, use modifier `class-object` as 
 |======================
 
 
-==== List fully qualified name of method
+==== List Method-Handles
+
+NX supports  _method-handles_ to provide means to obtain further
+information about a method or to change maybe some properties of a
+method. When a method is created, the method creating method returns
+the method handle to the created method.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1757,6 +1946,9 @@ For definition of class object specific methods, use modifier `class-object` as 
 
 ==== List type of a method
 
+The method +info method type+ is new in NX to obtain the type of the
+specified method.
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
@@ -1780,6 +1972,9 @@ For definition of class object specific methods, use modifier `class-object` as 
 |======================
 
 ==== List the scope of mixin classes
+
+NX provides a richer set of introspection options to obtain
+information, where mixins classes are mixed into.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1823,6 +2018,9 @@ For definition of class object specific methods, use modifier `class-object` as 
 |======================
 
 ==== Check properties of object and classes
+
+Similar as noted before, NX uses rather a hierarchical approach of
+naming using multiple layers of subcommands). 
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
@@ -1880,6 +2078,11 @@ For definition of class object specific methods, use modifier `class-object` as 
 
 ==== Call-stack Introspection
 
+Call-stack introspection is very similar in NX and XOTcl. NX uses for
+subcommand the term +current+ instead of +self+, since +self+ has a
+strong connotation to the current object. The term +proc+ is renamed
+by +method+.
+
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================
 |XOTcl |Next Scripting Language
@@ -1890,7 +2093,7 @@ self
 ----------------
 |[source,tcl]
 ----------------
-current
+self
 ----------------
 [source,tcl]
 ----------------
@@ -2011,6 +2214,14 @@ current activelevel
 ----------------
 /obj/ require namespace
 ----------------
+|[source,tcl]
+----------------
+# n.a.
+----------------
+|[source,tcl]
+----------------
+/obj/ require method
+----------------
 |======================
 
 
@@ -2018,6 +2229,10 @@ current activelevel
 todo: to be done or omitted
 
 === Assertions
+
+In contrary to XOTcl, NX provides no pre-registered methods for
+assertion handling. All assertion handling can e performed via the
+Next Scripting primitive +nsf::assertion+.
 
 [options="header",cols="asciidoc,asciidoc",frame="none",valign="middle"]
 |======================

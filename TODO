@@ -2183,6 +2183,14 @@ TODO:
 
 - "info method definition" for :attributes?
 
+- ".... info methods -methodtype scripted ....." and "info lookup
+  method -methodtype ..."  vs. "info method type ...."; spricht was
+  dagegen, anstelle von "methodtype" nur "type" zu verwenden?
+
+- documentation
+   * migration guide
+      3.8. Dispatch, Aliases, etc.: to be done or omitted
+
 - check performance implications of value conflict checker
 
 - explizites [::nsf::method delete] (sinngemäss), als ergänzung zum "{} {}"-idiom 
@@ -2303,6 +2311,7 @@ sudo make install
 ====================
 
 For future releases:
+
    * consider alternate method name/place for subcmds (and/or slots) on classes
      - currently, there are potentail conflicts between slots and ensemble objects
      - provide a different place in the namesspaces could simplify this

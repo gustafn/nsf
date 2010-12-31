@@ -97,7 +97,7 @@ namespace eval ::nx::pp {
       package
       public protected class-object
       method attribute forward 
-      my next new self
+      my next new self current
       create init new destroy alloc dealloc
       class superclass mixin
       ::nx::Class nx::Class ::xotcl::Class xotcl::Class Class 

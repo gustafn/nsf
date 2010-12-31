@@ -1,6 +1,6 @@
 # @package nx::doc
 # 
-# Study for documentation classes for Next Scriptint
+# Study for documentation classes for the Next Scripting Langauge
 # 
 # Compared to the "old" @ docmentation effort, this is a rather
 # light-weight structure based on xotcl 2 (next) language
