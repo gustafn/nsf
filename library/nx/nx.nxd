@@ -39,7 +39,6 @@
 # @namespace ::nx
 
 
-#
 # @glossary metaclass
 #
 # A meta-class is a certain kind of <<@gls class>> that manages
@@ -48,8 +47,6 @@
 # @pretty_name Meta Class
 # @pretty_plural Meta Classes
 
-
-#
 # @glossary class
 #
 # A class is a certain kind of <<@gls object>> that is responsible for
@@ -65,7 +62,6 @@
 # @pretty_plural Classes
 
 
-#
 # @glossary baseclass
 #
 # A base class is the most general class (common root class) of an
@@ -75,7 +71,6 @@
 # @pretty_name Base Class
 # @pretty_plural Base Classes
 
-#
 # @glossary basemetaclass
 #
 # A base meta class is the most general meta class of an object
@@ -85,9 +80,6 @@
 # @pretty_name Base Meta Class
 # @pretty_plural Base Meta Classes
 
-
-
-#
 # @glossary object
 #
 # An object is the basic entity of an object system. Every object is
