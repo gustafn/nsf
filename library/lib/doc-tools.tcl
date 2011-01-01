@@ -1756,7 +1756,7 @@ namespace eval ::nx::doc {
        
       :method listing {{-inline true} script} {
 	#return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
-	return [expr {$inline?"<code>$script</code>":[nx::pp render $script]}]
+	return [expr {$inline?"<code>$script</code>":[nx::pp render [string trimright $script " \r\n"]]}]
       }
       
       :method link {tag names} {

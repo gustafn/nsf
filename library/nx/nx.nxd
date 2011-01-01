@@ -2,18 +2,103 @@
 
 # @package nx
 #
-# The <<@glossary nx>> is a compact and expressive object-oriented
-# language extension for <<@Gls tcl>>. The object system model is
-# highly influenced by <<@glossary clos>> and its off-springs (e.g.,
-# <<@glossary flavors>>). This package provides the basic object
-# system for <<@glossary nx>>. It defines the basic language entities
-# <<@class ::nx::Object>> and <<@class ::nx::Class>>, as well as
-# essential language primitives (in particular, <<@command
-# ::nx::next>> and <<@command ::nx::current>>).
+# The <<@glossary nx>> is an object oriented scripting language based
+# on the Next Scripting Framework (TODO: passende Referenz <<@package
+# nsf>>). 
+# The Next Scripting Language (NX) is a successor of XOTcl 1 and is
+# based on 10 years of experience with XOTcl in projects containing
+# several hundert thousand lines of code.  While XOTcl was the first
+# language designed to provide language support for design patterns, the
+# focus of the Next Scripting Framework and NX are on combining this
+# with Language Oriented Programming. In many respects, NX was designed
+# to ease the learning of the language by novices (by using a more
+# mainstream terminology, higher orthogonality of the methods, less
+# predefined methods), to improve maintainability (remove sources of
+# common errors) and to encourage developer to write better structured
+# programs (to provide interfaces) especially for large projects, where
+# many developers are involved.
+#
+# NX is implemented as an object-oriented language extension for
+# <<@Gls tcl>>. The object system model is highly influenced by
+# <<@glossary clos>>, where classes are certain kind of objects and
+# objects might have their own properties (variables and methods) not
+# induced by the classes. The object system of NX is fully dynamic,
+# all object-class (e.g. instance-of relationship) and class-class
+# relationships (e.g. superclass relationship) can change at any time
+# at runtime. This way, object can change classes at runtime, or
+# objects might obtain different properties, etc.
+#
+# The language and object system of NX is implemeted by the package
+# nx. It defines the basic language entities <<@class ::nx::Object>>
+# and <<@class ::nx::Class>>, as well as essential language primitives
+# (in particular, <<@command ::nx::next>> and <<@command
+# ::nx::current>>).
 #
 # @require nsf
 # @version 1.0.0a
 # @namespace ::nx
+
+
+#
+# @glossary metaclass
+#
+# A meta-class is a certain kind of <<@gls class>> that manages
+# classes. The instances of meta classes are classes. 
+#
+# @pretty_name Meta Class
+# @pretty_plural Meta Classes
+
+
+#
+# @glossary class
+#
+# A class is a certain kind of <<@gls object>> that is responsible for
+# the life-cycle management of other objects (creation,
+# initialization, destruction) and which serves as a method
+# respository for abjects (typically along a class hierarchy). In the
+# object systems of XOTcl and NX, where objects might have their own
+# methods, the class objects might have as well methods applicable
+# only to the class object. We refer to these methods as class-object
+# specific methods, sometimes these methods are called "static methods".
+#
+# @pretty_name Class
+# @pretty_plural Classes
+
+
+#
+# @glossary baseclass
+#
+# A base class is the most general class (common root class) of an
+# object system.  All objects of an object system are direct or
+# indirect instances of the base class.
+#
+# @pretty_name Base Class
+# @pretty_plural Base Classes
+
+#
+# @glossary basemetaclass
+#
+# A base meta class is the most general meta class of an object
+# system. All classes are direct or indirect instances of the base
+# meta class.
+#
+# @pretty_name Base Meta Class
+# @pretty_plural Base Meta Classes
+
+
+
+#
+# @glossary object
+#
+# An object is the basic entity of an object system. Every object is
+# the instance of a <<@gls class>> and might contain variables (called
+# instance variables). In the object systems of XOTcl and NX, objects
+# might have as well their own methods (called object specific
+# methods).
+#
+# @pretty_name Object
+# @pretty_plural Objects
+
 
 # @class Object
 #
@@ -24,12 +109,16 @@
 
 # @class Class
 #
-# A <<@gls class>> defines a family of object implementations and
-# <<@glspl objtype>>, sharing a common set of <<@glspl attribute>>
-# attributes (see <<@class ::nx::Attribute>>) and methods. Classes are
-# organised according to their similarities and differences in
-# classification hierarchies. This object represents the root <<@gls
-# metaclass>> in the <<@glossary nx>> object system.
+# ::nx::Class is the <<@gls basemetaclass>> of the <<@glossary nx>>
+# object system. All application classes are created as (direct or
+# indirect) instances of this class using e.g. the '''create''' method
+# of this class:
+#
+# '''
+# ::nx::Class create Person {
+#    \# ....
+# }
+# '''
 #
 # @superclass ::nx::doc::entities::class::nx::Object
 
@@ -790,11 +879,11 @@
 
 # @glossary nx
 # 
-# The Next Scripting Language (Nx) is one of the languages hosted by
+# The Next Scripting Language (NX) is one of the languages hosted by
 # and implemented on top of the Next Scripting Framework (NSF).
 #
 # @pretty_name Next Scripting Language
-# @acronym Nx
+# @acronym NX
 
 # @glossary objtype
 # 
@@ -806,14 +895,6 @@
 # @pretty_name Object-type
 # @pretty_plural Object-types
 
-
-# @glossary metaclass
-# 
-# A meta-class defines a minimal set of shared state structure and
-# behaviour for a family of classes.
-#
-# @pretty_name Meta-class
-# @pretty_plural Meta-classes
 
 # @glossary attribute
 # 
@@ -896,4 +977,5 @@
 # @acronym initcmd
 # @pretty_name object initialisation script
 # @pretty_plural object initialisation scripts
+
 

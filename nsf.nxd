@@ -2,94 +2,143 @@
 
 # @package nsf
 #
-# The package provides a basic set of commands to perform
-# language-oriented programming based on the Next Scripting Framework
-# and to develop applications which are meant to operate across
-# different NSF object systems.
+# The package provides a basic set of primitives (Tcl commands) to
+# support language-oriented programming based on the Next Scripting
+# Framework. These primitives are used to define one or multiple
+# object systems within a single system. The NSF primitives are
+# primarily meant for the designer of an object system. Application
+# developers should use the functionality provided by the object
+# systems they are using (eg. XOTcl or NX).
 #
 # @require Tcl
 # @version 1.0.0a
 # @namespace ::nsf
 
-# @glossary alias
-#
-# An alias is a placeholder for a command, its target, which is made
-# available as a proper method of the alias-owning object.
-#
-# @pretty_name Alias
-# @pretty_plural Aliases
 
+#
+# @glossary metaclass
+#
+# A meta-class is a certain kind of <<@gls class>> that manages
+# classes. The instances of meta classes are classes. 
+#
+# @pretty_name Meta Class
+# @pretty_plural Meta Classes
+
+
+#
 # @glossary class
 #
-# A class represents a family of object sharing a minimal common
-# structure and behaviour.
+# A class is a certain kind of <<@gls object>> that is responsible for
+# the life-cycle management of other objects (creation,
+# initialization, destruction) and which serves as a method
+# respository for abjects (typically along a class hierarchy). In the
+# object systems of XOTcl and NX, where objects might have their own
+# methods, the class objects might have as well methods applicable
+# only to the class object. We refer to these methods as class-object
+# specific methods, sometimes these methods are called "static methods".
 #
 # @pretty_name Class
 # @pretty_plural Classes
 
+#
+# @glossary object
+#
+# An object is the basic entity of an object system. Every object is
+# the instance of a <<@gls class>> and might contain variables (called
+# instance variables). In the object systems of XOTcl and NX, objects
+# might have as well their own methods (called object specific
+# methods).
+#
+# @pretty_name Object
+# @pretty_plural Objects
+
+
+# @glossary alias
+#
+# An alias is an alternate name for some artefact. In NSF, the term
+# "alias" is an abbreviation for a "method alias", which allows to
+# reuse some command or method unter a certain name. This way, one can
+# e.g. reuse Tcl commands like "set" or "unset" without invocation
+# overhead as methods for object and classes.
+#
+# @pretty_name Alias
+# @pretty_plural Aliases
+
 # @glossary method_handle
 #
-# A method handle is a fully qualified, directly executable reference
-# to scripted procs and methods, as well as C-implemented commands and
-# methods. An handle is a unique identifier for a given '''interp'''.
+# A method handle is a fully qualified reference to a method. Since
+# methods with identical names can be defined on object and classes,
+# method names are subject to resolving. In contrary to method names,
+# method handles provide unique identifier to methods.
 # 
 # @pretty_name Method handle
 # @pretty_plural Method handles
 
-# @glossary cframe
+# @glossary callframe
 #
-# NSF provides adds a set of callframe types, e.g., to carry
-# object-specific callstack information, to realise variable- and
-# command-resolution schemes etc. The callframe types are realised by
-# piggybacking standard Tcl callframe structures. The following
-# callframe types can be found: ...
+# A call frame (sometimes called activation record) is an entry on the
+# execution stack, keeping information about the invoked functions and
+# methods.  NSF uses the extension mechansims of Tcl to provide its
+# own types of callframes, which are different for scripted and C
+# implemented methods.
 # 
 # @pretty_name Callframe
 # @pretty_plural Callframes
 
-# @glossary assert
+# @glossary assertion
 #
-# Following a Design-by-Contract approach, you may define different
-# kinds of assertions on object, classes, and methods. For objects and
-# classes, you can express object and class invariants. For methods,
-# pre- and postconditions allow to express obligations on and benefits
-# at a method's call site.
+# An assertion is an assumption that the developer assumes to hold (to
+# be true).  Following a Design-by-Contract approach, a developer may
+# define different kinds of assertions on object, classes, and
+# methods. NSF assertions support object and class invariants and
+# method asstions (pre- and post-conditions).
 #
 # @pretty_name Assertion
 # @pretty_plural Assertions
 
 # @glossary forwarder
 #
-# A forwarder is a method-level delegation mechanism to realise a
-# variety of programming techniques (e.g., signature adapters, method
-# decorators). The forward-owning object (or class) exposes the
-# forwarder as a method (e.g., in its signature interface and through
-# method-level introspection). Delegation targets are not limited to
-# other methods, arbitrary <<@acr tcl>> command statements can be
-# used. Forwarders come with a filtering protocol which allows to
-# manipulate the argument vector processed by the forwarder.
+# A forwarder (shorthand for a "forwarder method") is a delegation
+# mechanism to realize a variety of programming techniques. A
+# forwarder is a C implemented method that redirects an invocation
+# with a potentially different argument list to some implementation
+# (delegation target). Delegation targets might be methods of the same
+# or different objects, but these might be as well arbitrary Tcl
+# commands. Like <<@glspl alias>>, method forwarders are a
+# means of reuse. On contrary to aliases method forwarders allow the
+# modification of the argument vector, but involve more calling
+# overhead. Method forwarder do not extend the expressability of the
+# language, since everything performed by a forwarder could be
+# implemented as well in a scripted method. However, a forwarder is
+# more efficient and expresses the intention of the developer more
+# clearly.
 #
 # @pretty_name Forwarder
 # @pretty_plural Forwarders
 
-# @glossary mixincls
+# @glossary mixin_class
 #
-# A mixin is realised by an otherwise ordinary class which is put in a
-# dedicated mixin relation to another object or class. Hence, we refer
-# to such classes as mixin-classes. If the mixing target is another
-# mixin-class, we refer to the source mixin-class as a transitive
-# mixin-class.
+# A mixin class is a class that provides its method set to objects and
+# classes outside of the intrinsic class hierarchy (the class
+# hierarchy defined by the is-instance-of and superclass
+# relationship). A mixin class registered on an object is called a
+# per-object mixin, a mixin class registed on a class is called an
+# per-class mixin. Technically, a mixin class is realized by an
+# ordinary class which is registered via a dedicated mixin relation.
 #
-# @pretty_name Mixin-class
-# @pretty_plural Mixin-classes
+# @pretty_name Mixin class
+# @pretty_plural Mixin classes
 
 # @glossary filter
 #
-# An object filter implementes the idea of a composition filters in NSF.
+# A filter is a method called before and after every method
+# invocation. Filters can be registered on the object level
+# (per-object filters) and on the class level (per-class filters).
 #
 # @pretty_name Filter
 # @pretty_plural Filters
 
+# xxxx-bis-hierher
 
 # @command alias
 #
@@ -110,7 +159,7 @@
 # 				in the method signature interface. The
 # 				alias method name and the target name
 # 				so can differ from each other.
-# @parameter -frame 		Denotes the type of <<@gls cframe>> to
+# @parameter -frame 		Denotes the type of <<@gls callframe>> to
 # 				be stacked upon invoking the alias
 # 				method. Permissible options are:
 # 				'''method''', '''object''',
@@ -224,7 +273,7 @@
 # object variables through dedicated setter methods provides several
 # benefits: They facilitate accessing object states from client
 # objects and render operations on object variables interceptable
-# by <<@glspl filter>> and <<@glspl mixincls>>.
+# by <<@glspl filter>> and <<@glspl mixin_class>>.
 #
 # @parameter object			The owner object or class of
 # 					the setter method
@@ -244,7 +293,7 @@
 # two barebone objects as a starting point to define the basic class
 # and object interfaces for your object system. In addition, you may
 # map system hooks required by the NSF runtime to methods specific to
-# your object system. For instance, the Nx object system is defined as follows:
+# your object system. For instance, the NX object system is defined as follows:
 # '''
 # ::nsf::createobjectsystem ::nx::Object ::nx::Class {
 #   -class.alloc alloc 
@@ -294,7 +343,7 @@
 # analyzer). 
 #
 # @parameter object 		Indicates the name of the receiving object
-# @parameter -frame		Denotes the type of <<@gls cframe>> to
+# @parameter -frame		Denotes the type of <<@gls callframe>> to
 # 				be stacked upon invoking the alias
 # 				method. Permissible options are:
 # 				'''method''', '''object''',
@@ -829,7 +878,7 @@
 # '''class''': Describes an '''instance-of''' relationship between an
 # object (instance) and another object (its class).
 #
-# '''object-mixin''': Declares a list of <<@glspl mixincls>> as the
+# '''object-mixin''': Declares a list of <<@glspl mixin_class>> as the
 # mixins of a given object.
 #
 # '''object-filter''': Declares a method as a <<@gls filter>> method
@@ -845,7 +894,7 @@
 # '''superclass''': Establishes a generalisation/specialisation
 # relation between two classes.
 #
-# '''class-mixin''': Declares a list of <<@glspl mixincls>> as the
+# '''class-mixin''': Declares a list of <<@glspl mixin_class>> as the
 # mixins of a given class, with the method interceptors becoming
 # active on all instances of this class.
 #
@@ -930,7 +979,7 @@
 # @command mixin
 #
 # A helper command to set and maintain mixin relations between an
-# object and a set of of <<@gls mixincls>>. It is a convenience
+# object and a set of of <<@gls mixin_class>>. It is a convenience
 # wrapper around <<@command relation>>.
 # 
 # @parameter object The target object to refine

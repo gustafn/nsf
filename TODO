@@ -2175,8 +2175,41 @@ text
 - extended regression test
 
 TODO:
+- doc:
+   NextScriptingLanguage/index.html: 
+
+    * heading "Glossary" missing. 
+      It ist not clear, what the list of items is, when one sees index.html
+
+    * A short introductory text, what the "package"
+      is whould be more well suited for the index page,
+      moving glossary (index) to the left column.
+      ..... Better to use "package_nx.html" as index.html
+
+    * glossary entries in nsf.nxd should be sorted (in the source)
+     ...... Maybe, a single glossary.nxd file?
+
+    * the non-documented entitied should not show up in the menu
+ 
+       (::nsf::parametersfromslots)
+       ::nx::current
+       (::nx::infoOptions)
+       (::nx::isSlotContainer(
+       ::nx::next
+       ::nx::self
+       (::nx::slotObj)
+
+     => provide a different flag for the generation of the documentation
+       (-develop, .... or -final) to show/hide it.
+
+   * This package contains 12 classes.... 3 objects .... 
+     Why are all these marked with "mismatch"?
+
+
 
 - nsf::proc 
+   * check, if there are parameter types that should not be applicable 
+     for nsf::proc
    * scripted-method like implementation (like ProcMethodDispatch, not urgent)
    * toplevel (object less) introspection 
    * memleak testing

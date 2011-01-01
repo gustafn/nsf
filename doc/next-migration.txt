@@ -19,9 +19,16 @@ incompatibilities beween XOTcl 1.and XOTcl 2
 
 The Next Scripting Language (NX) is a successor of XOTcl 1 and is
 based on 10 years of experience with XOTcl in projects containing
-several hundert thousand lines of code.  The overall goal is to
-improve the maintainability and stability of large projects, where
-many developers are involved.  
+several hundert thousand lines of code.  While XOTcl was the first
+language designed to provide language support for design patterns, the
+focus of the Next Scripting Framework and NX are on combining this
+with Language Oriented Programming. In many respects, NX was designed
+to ease the learning of the language by novices (by using a more
+mainstream terminology, higher orthogonality of the methods, less
+predefined methods), to improve maintainability (remove sources of
+common errors) and to encourage developer to write better structured
+programs (to provide interfaces) especially for large projects, where
+many developers are involved.
 
 The Next Scripting Language is based on the Next Scripting Framework
 which was developed based on the notion of language oriented
