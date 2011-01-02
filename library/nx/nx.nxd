@@ -118,7 +118,6 @@
 # ::nx::Class create AClass
 # ::nx::Class AnotherClass; # This fails: "Method 'AnotherClass' unknown for ::nx::Class."
 # '''
-# 
 # Note that this method is also invoked internally when executing
 # <<@class.method {Class new}>>.
 #

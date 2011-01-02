@@ -1605,7 +1605,7 @@ namespace eval ::nx::doc {
       # might fail because they contain substitution characters
       # ($,[]); see nx.tcl
       # ...
-      catch {set preprocessed [subst $preprocessed]} msg      
+      catch {set preprocessed [subst $preprocessed]} msg
       return $preprocessed
     }
 
@@ -1761,7 +1761,8 @@ namespace eval ::nx::doc {
        
       :method listing {{-inline true} script} {
 	#return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
-	return [expr {$inline?"<code>$script</code>":[nx::pp render [string trimright $script " \r\n"]]}]
+	set listing [expr {$inline?"<code>$script</code>":[string trimright [nx::pp render [string trimright $script " \r\n"]] "\n"]}]
+	return $listing
       }
       
       :method link=tclcmd {cmd} {
