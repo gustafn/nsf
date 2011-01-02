@@ -38,60 +38,6 @@
 # @version 1.0.0a
 # @namespace ::nx
 
-
-# @glossary metaclass
-#
-# A meta-class is a certain kind of <<@gls class>> that manages
-# classes. The instances of meta classes are classes. 
-#
-# @pretty_name Meta Class
-# @pretty_plural Meta Classes
-
-# @glossary class
-#
-# A class is a certain kind of <<@gls object>> that is responsible for
-# the life-cycle management of other objects (creation,
-# initialization, destruction) and which serves as a method
-# respository for abjects (typically along a class hierarchy). In the
-# object systems of XOTcl and NX, where objects might have their own
-# methods, the class objects might have as well methods applicable
-# only to the class object. We refer to these methods as class-object
-# specific methods, sometimes these methods are called "static methods".
-#
-# @pretty_name Class
-# @pretty_plural Classes
-
-
-# @glossary baseclass
-#
-# A base class is the most general class (common root class) of an
-# object system.  All objects of an object system are direct or
-# indirect instances of the base class.
-#
-# @pretty_name Base Class
-# @pretty_plural Base Classes
-
-# @glossary basemetaclass
-#
-# A base meta class is the most general meta class of an object
-# system. All classes are direct or indirect instances of the base
-# meta class.
-#
-# @pretty_name Base Meta Class
-# @pretty_plural Base Meta Classes
-
-# @glossary object
-#
-# An object is the basic entity of an object system. Every object is
-# the instance of a <<@gls class>> and might contain variables (called
-# instance variables). In the object systems of XOTcl and NX, objects
-# might have as well their own methods (called object specific
-# methods).
-#
-# @pretty_name Object
-# @pretty_plural Objects
-
-
 # @class Object
 #
 # Programs written in the <<@glossary nx>> are constructed out of
