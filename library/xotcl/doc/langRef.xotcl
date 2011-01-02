@@ -968,7 +968,7 @@ package require XOTcl
     the method <a
     href="langRef-xotcl.html#Class-create"><@tt>create<@/tt></a> to
     allocate the object. Note that <@tt>create<@/tt> also calls as
-    well <tt>configure</tt> and <tt>init</a> to initialized the
+    well <tt>configure</tt> and <tt>init</tt> to initialized the
     object. Only in seldom cases the programmer may want to suppress
     the <@tt>create<@/tt> mechanism and just allocate uninitiaized
     objects via <@tt>alloc<@/tt>.

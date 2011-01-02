@@ -303,7 +303,7 @@
 # '''
 # Note, however, that '''destroy''' is protected against
 # application-level redefinition. You must refine it in a subclass
-# or a <<@gls mixincls>>.
+# or a <<@gls mixin_class>>.
 #
 # @syshook
 
@@ -364,7 +364,6 @@
 # set obj [Object new]
 # set cls [Class new]
 # '''
-#
 # This will provide object identifiers of the form
 # e.g. '''::nsf::__#0'''. The uniqueness of auto-generated identifiers
 # is guaranteed for the scope of the current '''interp'''.
@@ -569,7 +568,7 @@
 # @class.method {Object "info has mixin"}
 #
 # Verifies in a boolean test whether the object has the given <<@gls class>>
-# registered as a <<@gls mixincls>>.
+# registered as a <<@gls mixin_class>>.
 
 # @class.method {Object "info has namespace"}
 #
@@ -598,7 +597,7 @@
 
 # @class.method {Object "info mixin classes"}
 #
-# The list of per-object <<@glspl mixincls>> currently registered for the
+# The list of per-object <<@glspl mixin_class>> currently registered for the
 # object is returned.
 
 # @class.method {Object "info parent"}
@@ -729,14 +728,14 @@
 
 # @class.attribute {Object mixin}
 #
-# As a setter, '''mixin''' specifies a list of <<@glspl mixincls>> to
+# As a setter, '''mixin''' specifies a list of <<@glspl mixin_class>> to
 # set. Every mixin must be an existing class. In getter mode, you can
-# retrieve the list of <<@glspl mixincls>> active for the given object. As for
-# introspecting <<@glspl mixincls>>, consider <<@class.method {Object "info
+# retrieve the list of <<@glspl mixin_class>> active for the given object. As for
+# introspecting <<@glspl mixin_class>>, consider <<@class.method {Object "info
 # mixin classes"}>>
 #
 # @return :list If called as a getter (without arguments),
-# '''mixin''' returns the list of current <<@glspl mixincls>> registered
+# '''mixin''' returns the list of current <<@glspl mixin_class>> registered
 # with the object
 
 # @class.attribute {Object filter}
@@ -753,13 +752,13 @@
 
 # @class.attribute {Class mixin}
 #
-# As a setter, '''mixin''' specifies a list of <<@glspl mixincls>> to
-# set for the class. Every <<@gls mixincls>> must be an existing
+# As a setter, '''mixin''' specifies a list of <<@glspl mixin_class>> to
+# set for the class. Every <<@gls mixin_class>> must be an existing
 # class. In getter mode, you can retrieve the list of <<@glspl
-# mixincls>> active for the given class.
+# mixin_class>> active for the given class.
 #
 # @return :list If called as a getter (without arguments), '''mixin'''
-# returns the list of current <<@glspl mixincls>> registered with the class
+# returns the list of current <<@glspl mixin_class>> registered with the class
 
 # @class.attribute {Class filter}
 #

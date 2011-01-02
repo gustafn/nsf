@@ -59,6 +59,7 @@
       </div>        
       }]
       
+      [:? {[:!get @syshook] || [:pinfo exists bundle type]} {
       <dl>
         <dt>Type:</dt>
 	<dd property="yui:typeInfo">[:pinfo get bundle type]</dd>[:? {[:!get @syshook]} {
@@ -66,13 +67,14 @@
 	  internally called, redefinable hook</dd>
 	}]
 	</dl>
-	  
+      }]
+
+      [:? {[:pinfo get -default 0 bundle redefine-protected]} {
       <dl>
 	<dt>Protection:</dt>
-	[:? {[:pinfo get -default 0 bundle redefine-protected]} {
 	<dd>redefine-protected</dd>
-	}]
       </dl>
+      }]
       
       
     </div> <!-- description -->

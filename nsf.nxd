@@ -65,13 +65,14 @@
 #
 # @pretty_name Object
 # @pretty_plural Objects
+
 # @glossary alias
 #
 # An alias is an alternate name for some artefact. In NSF, the term
 # "alias" is an abbreviation for a "method alias", which allows to
 # reuse some command or method unter a certain name. This way, one can
-# e.g. reuse Tcl commands like "set" or "unset" without invocation
-# overhead as methods for object and classes.
+# e.g. reuse Tcl commands like <<tclcmd set>> or <<tclcmd unset>>
+# without invocation overhead as methods for object and classes.
 #
 # @pretty_name Alias
 # @pretty_plural Aliases

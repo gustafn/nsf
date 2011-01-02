@@ -871,6 +871,7 @@ namespace eval ::nx::doc {
     :attribute creationdate
     :attribute {version ""}
     
+    :attribute {is_validated 0} 
     :attribute depends:0..*,object,type=[current]
     
     :attribute @glossary -class ::nx::doc::PartAttribute {
@@ -897,7 +898,8 @@ namespace eval ::nx::doc {
       # test environment more passive by checking for the existance
       # before calling destroy!
       #
-      if {[::nsf::isobject ${:sandbox}]} {
+      if {[info exists :sandbox] && \
+	      [::nsf::isobject ${:sandbox}]} {
 	${:sandbox} destroy
       }
       :current_project ""
@@ -1698,11 +1700,14 @@ namespace eval ::nx::doc {
       # :public forward print_name %current name
       :public method statusmark {} {
 	set cls ""
-	if {[info exists :pdata]} {
-	  set cls [expr {[dict exists ${:pdata} status]?\
-			     [dict get ${:pdata} status]:""}]
-	} else {
-	  set cls "extra"
+	set prj [:current_project]
+	if {[$prj is_validated]} {
+	  if {[info exists :pdata]} {
+	    set cls [expr {[dict exists ${:pdata} status]?\
+			       [dict get ${:pdata} status]:""}]
+	  } else {
+	    set cls "extra"
+	  }
 	}
 	set status_mark "<span title=\"$cls\" class=\"status $cls\">&nbsp;</span>"
       }
@@ -1759,28 +1764,48 @@ namespace eval ::nx::doc {
 	return [expr {$inline?"<code>$script</code>":[nx::pp render [string trimright $script " \r\n"]]}]
       }
       
-      :method link {tag names} {
-	set tagpath [split [string trimleft $tag @] .]
-	lassign [::nx::doc::Tag normalise $tagpath $names] err res
-	if {$err} {
-	 # puts stderr RES=$res
-	  return "<a href=\"#\">?</a>";
-	}
-	lassign [::nx::doc::Tag find -all -strict {*}$res] err path
-	if {$err || $path eq ""} {
-	  # puts stderr "FAILED res $path (err-$err-id-[expr {$path eq ""}])"
-	  return "<a href=\"#\">?</a>";
-	}
-
-	set path [dict create {*}$path]
-	set entities [dict keys $path]
-	set id [lindex $entities end]
-	return [$id render_link $tag [:rendered_entity] $path]
+      :method link=tclcmd {cmd} {
+	#
+	# TODO: allow the parametrization of the reference URL at the
+	# project level ...
+	#
+	return "<a href=\"http://www.tcl.tk/man/tcl8.5/TclCmd/${cmd}.htm\"><code>$cmd</code></a>"
       }
 
+      :method link {tag value} {
+	set unresolvable "<a href=\"#\">?</a>"
+	if {[string first @ $tag] != 0} {
+	  set m [current method]=$tag
+	  if {[:info lookup methods \
+		   -source application \
+		   -callprotection all $m] eq ""} {
+	    return $unresolvable
+	  }
+	  return [:$m $value]
+	} else {
+	  set names $value
+	  set tagpath [split [string trimleft $tag @] .]
+	  lassign [::nx::doc::Tag normalise $tagpath $names] err res
+	  if {$err} {
+	    # puts stderr RES=$res
+	    return $unresolvable;
+	  }
+	  lassign [::nx::doc::Tag find -all -strict {*}$res] err path
+	  if {$err || $path eq ""} {
+	    # puts stderr "FAILED res $path (err-$err-id-[expr {$path eq ""}])"
+	    return $unresolvable;
+	  }
+	  
+	  set path [dict create {*}$path]
+	  set entities [dict keys $path]
+	  set id [lindex $entities end]
+	  return [$id render_link $tag [:rendered_entity] $path]
+	}
+      }
+	
       :public method make_link {source} {
-	set path [dict create {*}[:get_upward_path -attribute {set :name}]]
-	set tag [[:info class] tag]
+	  set path [dict create {*}[:get_upward_path -attribute {set :name}]]
+	  set tag [[:info class] tag]
 	return [:render_link $tag $source $path]
       }
 
@@ -1945,6 +1970,7 @@ namespace eval ::nx::doc {
       :method inherited {member} {
 	set inherited [dict create]
 	set prj [:current_project]
+	if {![$prj eval {info exists :sandbox}]} return;
 	set box [$prj sandbox]
 	set exp "expr {\[::nsf::is class ${:name}\]?\[lreverse \[${:name} info heritage\]\]:\"\"}"
 	set ipath [$box do $exp]
@@ -2959,6 +2985,13 @@ namespace eval ::nx {
       }
 
       if {$validate} {
+	#
+	# TODO: is_validated to later to become a derived/computed
+	# property ... for now, we just need to escape from setting
+	# validation-related info in non-validated projects!
+	#
+	$project is_validated $validate; # is_validated = 1
+
 	set present_entities [::nx::doc::filtered $provided_entities {[[:origin] eval {info exists :pdata}]}]
 	# TODO: the nspatterns should be consumed from the source
 	# specification and should not be hardcoded here ... review
