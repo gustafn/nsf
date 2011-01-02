@@ -14,7 +14,7 @@ Written for the Initial Release of the Next Scripting Framework.
 This document describes the differences between the Next Scripting
 Language Framework and XOTcl 1. In particular, it presents a
 migration guide from XOTcl 1 to NX, and presents potential
-incompatibilities beween XOTcl 1.and XOTcl 2
+incompatibilities beween XOTcl 1 and XOTcl 2.
 *****************************************************************************
 
 The Next Scripting Language (NX) is a successor of XOTcl 1 and is
@@ -324,8 +324,9 @@ via separate top level calls (XOTcl and NX).
 
 |[source,tcl]
 ----------------
-# Define method 'foo' and class-object method 'bar'
-# for a Class 'C' with separate toplevel commands
+# Define method 'foo' and class-object 
+# method 'bar' for a Class 'C' with separate 
+# toplevel commands
 
 Class C
 C instproc foo args {...}
@@ -343,8 +344,8 @@ Class create C {
 ----------------
 [source,tcl]
 ----------------
-# Define method and class-object method with separate 
-# commands
+# Define method and class-object method 
+# with separate commands
 
 Class create C
 C method foo args {...}
@@ -363,8 +364,9 @@ o proc foo args {...}
 
 |[source,tcl]
 ----------------
-# Define class-object method and set instance variable
-# in the init-block of an object
+# Define class-object method and set 
+# instance variable in the init-block of 
+# an object
 
 Object create o {
   set :x 1
@@ -373,8 +375,9 @@ Object create o {
 ----------------
 [source,tcl]
 ----------------
-# Define class-object method and set instance variable
-# with separate commands
+# Define class-object method and set 
+# instance variable with separate 
+# commands
 
 Object create o
 o eval {set :x 1}
@@ -682,8 +685,8 @@ Class create C {
 ----------------
 |[source,tcl]
 ----------------
-# Set own instance variable to a value via resolver
-# (preferred and fastest way)
+# Set own instance variable to a value via 
+# resolver (preferred and fastest way)
 
 ... method ... {
    set /:newVar/ ?value?
@@ -698,7 +701,8 @@ Class create C {
 ----------------
 |[source,tcl]
 ----------------
-# Set own instance variable via variable import
+# Set own instance variable via 
+# variable import
 
 ... method ... {
    ::nx::var import [self] /varName/
@@ -759,8 +763,9 @@ Class create C {
 ----------------
 |[source,tcl]
 ----------------
-# Set instance variable of object obj to a value via
-# resolver (preferred way: define attribute on obj)
+# Set instance variable of object obj to a 
+# value via resolver 
+# (preferred way: define attribute on obj)
 
 /obj/ eval [list set /:varName/ ?value?]
 ----------------
@@ -770,7 +775,8 @@ set /varName/ [/obj/ set /otherVar/]
 ----------------
 |[source,tcl]
 ----------------
-# Read instance variable of object obj via resolver
+# Read instance variable of object obj 
+# via resolver
 
 set /varName/ [/obj/ eval {set /:otherVar/}]
 ----------------
@@ -783,7 +789,8 @@ set /varName/ [/obj/ eval {set /:otherVar/}]
 ----------------
 |[source,tcl]
 ----------------
-# Read instance variable of object /obj/ via import
+# Read instance variable of object /obj/ 
+# via import
 
 ... method ... {
    ::nx::var import /obj/ /varName/
@@ -796,7 +803,8 @@ set /varName/ [/obj/ eval {set /:otherVar/}]
 ----------------
 |[source,tcl]
 ----------------
-# Test existence of instance variable of object obj
+# Test existence of instance variable of 
+# object obj
 
 /obj/ eval {info exists /:varName/} 
 ----------------
@@ -850,8 +858,9 @@ Foo f1 -a 0
 ----------------
 |[source,tcl]
 ----------------
-# Object parameter specified as a list (short form)
-# "a" has no default, "b" has default "1"
+# Object parameter specified as a list 
+# (short form); "a" has no default, 
+# "b" has default "1"
 
 Class create Foo -attributes {a {b 1}}
 
@@ -902,8 +911,9 @@ Foo f1 -a 0
 
 |[source,tcl]
 ----------------
-# Object parameter specified via attribute methods
-# (allow method modifiers and scripted configuration)
+# Object parameter specified via attribute 
+# methods (supports method modifiers and 
+# scripted configuration)
 
 Class create Foo {
    :attribute a
@@ -940,37 +950,43 @@ Object create o {
 
 |[source,tcl]
 ----------------
-# Object parameter with configured slot, defining an attribute
-# specific type checker
+# Object parameter with configured slot, 
+# defining an attribute specific type 
+# checker
 
 Class Person -slots {
-   Attribute create sex -type "sex" {
-     my proc type=sex {name value} {
-       switch -glob $value {
-         m* {return m}
-         f* {return f}
-         default {error "expected sex but got $value"}
-       }
-     }
-   }
+  Attribute create sex -type "sex" {
+    my proc type=sex {name value} {
+      switch -glob $value {
+        m* {return m}
+        f* {return f}
+        default {
+          error "expected sex but got $value"
+        }
+      }
+    }
+  }
 }
 ----------------
 |[source,tcl]
 ----------------
-# Object parameter with scripted definition (init-block), 
-# defining an attribute specific type checker
+# Object parameter with scripted 
+# definition (init-block), defining an 
+# attribute specific type checker
 
 Class create Person {
-   :attribute sex {
-     :type "sex"
-     :method type=sex {name value} {
-       switch -glob $value {
-         m* {return m}
-         f* {return f}
-         default {error "expected sex but got $value"}
-       }
-     }
-   }
+  :attribute sex {
+    :type "sex"
+    :method type=sex {name value} {
+      switch -glob $value {
+        m* {return m}
+        f* {return f}
+        default {
+          error "expected sex but got $value"
+        }
+      }
+    }
+  }
 }
 ----------------
 |======================
@@ -993,21 +1009,24 @@ performance sensitive.
 
 |[source,tcl]
 ----------------
-# Value constraints for parameter not available 
+# Value constraints for parameter 
+# not available 
 ----------------
 |[source,tcl]
 ----------------
 # Predefined value constraints: 
-#    object, class, alnum, alpha, ascii, boolean, control, 
-#    digit, double, false, graph, integer, lower, parameter, 
-#    print, punct,  space, true, upper, wordchar, xdigit
+#    object, class, alnum, alpha, ascii, boolean, 
+#    control,  digit, double, false, graph, integer, 
+#    lower, parameter, print, punct,  space, true, 
+#    upper, wordchar, xdigit
 #
 # User defined value constraints are possible.
-# All parameter value checkers can be turned on and off.
+# All parameter value checkers can be turned on 
+# and off.
 #
-# Define a boolean attribute and an integer attribute with a 
-# default firstly via "attributes", then with multiple 
-# "attribute"  statements.
+# Define a boolean attribute and an integer 
+# attribute with a default firstly via "attributes", 
+# then with multiple "attribute"  statements.
 
 Class create Foo -attributes {
    a:boolean
@@ -1042,8 +1061,8 @@ parameters.
 |[source,tcl]
 ----------------
 # Required parameter:
-# Define a required attribute a and a required boolean 
-# attribute b
+# Define a required attribute "a" and a 
+# required boolean attribute "b"
 
 Class create Foo -attributes {
    a:required
@@ -1109,11 +1128,14 @@ positional arguments, this limitation is lifted in XOTcl 2.
 
 |[source,tcl]
 ----------------
-# Define method foo with non-positional parameters 
-# (x, y and y) and positional parameter (a and b)
+# Define method foo with non-positional 
+# parameters (x, y and y) and positional 
+# parameter (a and b)
 
 Class C
-C instproc foo {-x:integer -y:required -z a b} {....}
+C instproc foo {-x:integer -y:required -z a b} {
+   # ...
+}
 C create c1
 
 # invoke method foo
@@ -1121,11 +1143,14 @@ c1 foo -x 1 -y a 2 3
 ----------------
 |[source,tcl]
 ----------------
-# Define method foo with non-positional parameters 
-# (x, y and y) and positional parameter (a and b)
+# Define method foo with non-positional 
+# parameters (x, y and y) and positional 
+# parameter (a and b)
 
 Class create C {
-   :public method foo {-x:integer -y:required -z a b} {....}
+   :public method foo {-x:integer -y:required -z a b} {
+      # ...
+   }
    :create c1
 }
 # invoke method foo
@@ -1138,26 +1163,38 @@ c1 foo -x 1 -y a 2 3
 ----------------
 |[source,tcl]
 ----------------
-# Define various forms of parameters not available in XOTcl 1
+# Define various forms of parameters 
+# not available in XOTcl 1
 
 Class create C {
-   # trailing (or interleaved) non-positional parameters
-   :public method m1 {a b -x:integer -y} {....} 
+  # trailing (or interleaved) non-positional 
+  # parameters
+  :public method m1 {a b -x:integer -y} {
+    # ...
+  } 
 
-   # positional parameters with value constraints
-   :public method m2 {a:integer b:boolean} {....} 
+  # positional parameters with value constraints
+  :public method m2 {a:integer b:boolean} {
+    #...
+  } 
 
-   # optional positional parameter (trailing)
-   :public method set {varName value:optional} {....} 
+  # optional positional parameter (trailing)
+  :public method set {varName value:optional} {
+    # ....
+   } 
 
-   # parameter with multiplicity
-   :public method m3 {-objs:object,1..n c:class,0..1} {....} 
+  # parameter with multiplicity
+  :public method m3 {-objs:object,1..n c:class,0..1} {
+    # ...
+   } 
 
-   # In general, the same list of value constraints as for
-   # object parameter is available (see above).
-   #
-   # User defined value constraints are possible.
-   # All parameter value checkers can be turned on and off.
+  # In general, the same list of value 
+  # constraints as for object parameter is 
+  # available (see above).
+  #
+  # User defined value constraints are 
+  # possible. All parameter value checkers 
+  # can be turned on and off.
 }
 ----------------
 |======================
@@ -1180,25 +1217,33 @@ checkers, return value checkers can be turned on and off.
 ----------------
 |[source,tcl]
 ----------------
-# Define method foo with non-positional parameters 
-# (x, y and y) and positional parameter (a and b)
+# Define method foo with non-positional 
+# parameters (x, y and y) and positional 
+# parameter (a and b)
 
 Class create C {
-   # Define method foo which returns an integer value
-   :method foo -returns integer {-x:integer} {....}
 
-   # Define an alias for the Tcl command ::incr
-   # and assure, it always returns in integer
-   :alias incr -returns integer ::incr
-
-   # Define a forwarder that has to return integer
-   :forward ++ -returns integer ::expr 1 +
-
-  # Define a method that has to return a non-empty
-  # list of objects
-  :public class-object method instances {} -returns object,1..n {
-    return [:info instances]
+  # Define method foo which returns an 
+  # integer value
+  :method foo -returns integer {-x:integer} {
+    # ...
    }
+
+  # Define an alias for the Tcl command ::incr
+  # and assure, it always returns an integer
+  # value
+  :alias incr -returns integer ::incr
+
+  # Define a forwarder that has to return an
+  # integer value
+  :forward ++ -returns integer ::expr 1 +
+
+ # Define a method that has to return a 
+ # non-empty list of objects
+ :public class-object method instances {} \
+    -returns object,1..n {
+   return [:info instances]
+  }
 }
 ----------------
 |======================
@@ -1231,7 +1276,8 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 ----------------
 |[source,tcl]
 ----------------
-# Register per-class mixin and guard for a class
+# Register per-class mixin and guard for 
+# a class
 
 /cls/ mixin ...
 /cls/ mixin guard mixin /condition/
@@ -1243,7 +1289,8 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 ----------------
 |[source,tcl]
 ----------------
-# Register per-object mixin and guard for a class
+# Register per-object mixin and guard for 
+# a class
 
 /cls/ class-object mixin ...
 /cls/ class-object mixin guard mixin /condition/
@@ -1255,7 +1302,8 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 ----------------
 |[source,tcl]
 ----------------
-# Register per-object mixin and guard for an object
+# Register per-object mixin and guard for 
+# an object
 
 /obj/ mixin ...
 /obj/ mixin guard mixin /condition/
@@ -1274,7 +1322,8 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 ----------------
 |[source,tcl]
 ----------------
-# Register per-class filter and guard for a class
+# Register per-class filter and guard for 
+# a class
 
 /cls/ filter ...
 /cls/ filter guard filter /condition/
@@ -1286,7 +1335,8 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 ----------------
 |[source,tcl]
 ----------------
-# Register per-object filter and guard for a class
+# Register per-object filter and guard for 
+# a class
 
 /cls/ class-object filter ...
 /cls/ class-object filter guard filter /condition/
@@ -1298,7 +1348,8 @@ modifier +class-object+ (in the same way as e.g. for defining methods).
 ----------------
 |[source,tcl]
 ----------------
-# Register per-object filter and guard for an object
+# Register per-object filter and guard for 
+# an object
 
 /obj/ filter ...
 /obj/ filter guard filter /condition/
@@ -1520,7 +1571,8 @@ In all other respects, this section is identical to the previous one.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info methods -callprotection public\|protected ...
+/cls/ class-object info methods \
+   -callprotection public\|protected ...
 ----------------
 |======================
 
@@ -1799,10 +1851,12 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-# ... info filter methods -order ... returns method-handles
-# instead of triples (applies to all three variants)
+# ... info filter methods -order ... returns 
+# method-handles instead of triples 
+# (applies to all three variants)
 
-/obj/ info filter methods ?-guards? ?-order? ?pattern?
+/obj/ info filter methods \
+   ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1818,7 +1872,8 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info filter methods ?-guards? ?-order? ?pattern?
+/cls/ class-object info filter methods \
+   ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1830,11 +1885,13 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info instfilter ?-guards? ?-order? ?pattern?
+/cls/ info instfilter \
+   ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info filter methods ?-guards? ?-order? ?pattern?
+/cls/ info filter methods \
+   ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1850,7 +1907,8 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/obj/ info mixin classes ?-guards? ?-order? ?pattern?
+/obj/ info mixin classes \
+   ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1866,7 +1924,8 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ class-object info mixin classes ?-guards? ?-order? ?pattern?
+/cls/ class-object info mixin classes \
+   ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1878,11 +1937,13 @@ subcommands rather than using a flat namespace.
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info instmixin ?-guards? ?-order? ?pattern?
+/cls/ info instmixin \
+   ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
-/cls/ info mixin classes ?-guards? ?-order? ?pattern?
+/cls/ info mixin classes \
+   ?-guards? ?-order? ?pattern?
 ----------------
 |[source,tcl]
 ----------------
@@ -1993,7 +2054,8 @@ information, where mixins classes are mixed into.
 ----------------
 |[source,tcl]
 ----------------
-# List objects, where /cls/ is a per-object mixin
+# List objects, where /cls/ is a 
+# per-object mixin
 
 /cls/ info mixinof -scope object ?-closure? ?pattern?
 ----------------
