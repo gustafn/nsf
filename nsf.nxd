@@ -16,18 +16,18 @@
 
 # @glossary metaclass
 #
-# A meta-class is a certain kind of <<@gls class>> that manages
-# classes. The instances of meta classes are classes. 
+# A metaclass is a certain kind of <<@gls class>> that manages
+# classes. The instances of metaclasses are classes. 
 #
-# @pretty_name Meta Class
-# @pretty_plural Meta Classes
+# @pretty_name Metaclass
+# @pretty_plural Metaclasses
 
 # @glossary class
 #
 # A class is a certain kind of <<@gls object>> that is responsible for
 # the life-cycle management of other objects (creation,
 # initialization, destruction) and which serves as a method
-# respository for abjects (typically along a class hierarchy). In the
+# respository for objects (typically along a class hierarchy). In the
 # object systems of XOTcl and NX, where objects might have their own
 # methods, the class objects might have as well methods applicable
 # only to the class object. We refer to these methods as class-object
@@ -39,21 +39,21 @@
 
 # @glossary baseclass
 #
-# A base class is the most general class (common root class) of an
-# object system.  All objects of an object system are direct or
-# indirect instances of the base class.
+# A base class is the most general <<@gls class>> (synonym: common
+# root class) of an object system.  All objects of an object system
+# are direct or indirect instances of the base class.
 #
 # @pretty_name Base Class
 # @pretty_plural Base Classes
 
 # @glossary basemetaclass
 #
-# A base meta class is the most general meta class of an object
+# A base metaclass is the most general<<@gls metaclass>> of an object
 # system. All classes are direct or indirect instances of the base
-# meta class.
+# metaclass.
 #
-# @pretty_name Base Meta Class
-# @pretty_plural Base Meta Classes
+# @pretty_name Base metaclass
+# @pretty_plural Base metaclasses
 
 # @glossary object
 #
@@ -89,7 +89,7 @@
 
 # @glossary callframe
 #
-# A call frame (sometimes called activation record) is an entry on the
+# A call frame (sometimes called: activation record) is an entry on the
 # execution stack, keeping information about the invoked functions and
 # methods.  NSF uses the extension mechansims of Tcl to provide its
 # own types of callframes, which are different for scripted and C
@@ -302,7 +302,7 @@
 # @command createobjectsystem
 #
 # A factory command for specifying an NSF object system. By providing
-# the object names of a root class and a root-meta class, you obtain
+# the object names of a root class and a root metaclass, you obtain
 # two barebone objects as a starting point to define the basic class
 # and object interfaces for your object system. In addition, you may
 # map system hooks required by the NSF runtime to methods specific to
@@ -327,13 +327,13 @@
 #
 # @parameter rootClass 		The name of the class at the root of
 # 				your class hierarchy.
-# @parameter rootMetaClass 	The name of the meta-class at the root
-# 				of your meta-class hierarchy.
+# @parameter rootMetaClass 	The name of the metaclass at the root
+# 				of your metaclass hierarchy.
 # @parameter systemMethods:optional 	A map which provides bindings
 # 					between system hooks (e.g.,
 # 					'''-class.create''') and
 # 					methods defined on the root
-# 					class and the root meta-class.
+# 					class and the root metaclass.
 
 # @command deprecated
 #
@@ -714,12 +714,12 @@
 # 
 # A mere introspection subcommand. It gives you the top level of the
 # current object system, i.e., the ruling root class and the root
-# meta-class. It is the introspective counterpart of <<@command
+# metaclass. It is the introspective counterpart of <<@command
 # createobjectsystem>>.
 #
 # @return 	A list of currently specified object systems. Each
 # 		sublist gives the pair of root class and
-# 		root meta-class and (if available) the mappings of
+# 		root metaclass and (if available) the mappings of
 # 		system hooks to system methods.
 
 # @command.sub-command {configure keepinitcmd}
@@ -822,7 +822,7 @@
 # 3. Constraint types on NSF classes:
 #
 # Classes can be tested for their relationship status, e.g., whether
-# they serve as meta-class for other classes:
+# they serve as metaclass for other classes:
 # '''
 # ::nsf::is metaclass /class/
 # ''' 

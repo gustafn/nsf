@@ -49,8 +49,7 @@
 #
 # ::nx::Class is the <<@gls basemetaclass>> of the <<@glossary nx>>
 # object system. All application classes are created as (direct or
-# indirect) instances of this class using e.g. the '''create''' method
-# of this class:
+# indirect) instances of this class using e.g. its '''create''' method:
 #
 # '''
 # ::nx::Class create Person {
