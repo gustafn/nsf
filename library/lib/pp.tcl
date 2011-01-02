@@ -206,7 +206,7 @@ nx::Object create nx::pp {
 
   :public method render {-noCSSClasses:switch block} {
     set :output ""
-    :puts "<style>"
+    :puts "<style type='text/css'>"
     :puts ".nx             {color: #000000; font-weight: normal; font-style: normal;}"
     :puts ".nx-string      {color: #779977; font-weight: normal; font-style: italic;}"
     :puts ".nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}"
