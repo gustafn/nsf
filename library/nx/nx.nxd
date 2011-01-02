@@ -56,7 +56,6 @@
 #    \# ....
 # }
 # '''
-#
 # @superclass ::nx::doc::entities::class::nx::Object
 
 # @class.method {Class alloc}
