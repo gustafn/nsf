@@ -1122,6 +1122,14 @@ set project [processor process \
     -outdir [::nsf::tmpdir]
 
 puts stderr >>>>>>>NextScriptingLanguage<<<<<<<<
+
+set ::nx::excludes {
+  ::nsf::parametersfromslots
+  ::nx::infoOptions
+  ::nx::isSlotContainer
+  ::nx::slotObj
+}
+
 set _ [time {
   set project [::nx::doc::@project new \
 		   -name NextScriptingLanguage \
@@ -1137,6 +1145,7 @@ set _ [time {
   processor process \
       -validate \
       -sandboxed \
+      -exclude $::nx::excludes \
       $project
 
   ::nx::doc::make doc \

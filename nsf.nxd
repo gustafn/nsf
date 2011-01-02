@@ -48,7 +48,7 @@
 
 # @glossary basemetaclass
 #
-# A base metaclass is the most general<<@gls metaclass>> of an object
+# A base metaclass is the most general <<@gls metaclass>> of an object
 # system. All classes are direct or indirect instances of the base
 # metaclass.
 #
