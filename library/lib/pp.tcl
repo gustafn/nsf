@@ -216,7 +216,7 @@ nx::Object create nx::pp {
     :puts "</style>"
     :puts -nonewline "<pre class='nx'>"
     :toHTML $block
-    :puts "</pre>\n"
+    :puts "</pre>"
     return ${:output}
   }
 
