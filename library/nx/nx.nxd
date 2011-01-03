@@ -92,6 +92,18 @@
 #
 # @modifier protected
 
+# @class.attribute {Object filter}
+#
+# Register the specified method(s) as per-object <<@glspl
+# filter>>. Every filter must be an existing method in the
+# scope of the object.
+
+# @class.attribute {Object mixin}
+#
+# Register the specified classes as per-object <<@glspl mixin_class>>.
+# Every mixin must be an existing class. 
+#
+
 # @class.attribute {Object noinit}
 #
 # If this flag is provided, the object initialization will not call
@@ -788,7 +800,7 @@
 #
 # Set the superclasses for a given class
 
-# @class.attribute {Object mixin}
+# @class.method {Object mixin}
 #
 # As a setter, '''mixin''' specifies a list of <<@glspl mixin_class>> to
 # set. Every mixin must be an existing class. In getter mode, you can
@@ -800,7 +812,7 @@
 # '''mixin''' returns the list of current <<@glspl mixin_class>> registered
 # with the object
 
-# @class.attribute {Object filter}
+# @class.method {Object filter}
 #
 # In its setter mode, '''filter''' allows you to register methods as
 # per-object <<@glspl filter>>. Every <<@gls filter>> must be an
