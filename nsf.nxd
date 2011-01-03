@@ -41,10 +41,10 @@
 #
 # A base class is the most general <<@gls class>> (synonym: common
 # root class) of an object system.  All objects of an object system
-# are direct or indirect instances of the base class.
+# are direct or indirect instances of the base class. 
 #
-# @pretty_name Base Class
-# @pretty_plural Base Classes
+# @pretty_name Base class
+# @pretty_plural Base classes
 
 # @glossary basemetaclass
 #

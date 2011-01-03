@@ -1051,7 +1051,7 @@ namespace eval ::nx::doc {
 	:method undocumented {} {
 	  # TODO: for object methods and class methods
 	  if {![::nsf::isobject ${:name}]} {return ""}
-	  foreach m [${:name} info methods -callprotection all] {set available_method($m) 1}
+	  foreach m [${:name} info methods -callprotection public] {set available_method($m) 1}
 	  set methods ${:@method}
 	  if {[info exists :@param]} {set methods [concat ${:@method} ${:@param}]}
 	  foreach m $methods {
@@ -1076,8 +1076,8 @@ namespace eval ::nx::doc {
 	:public forward @method %self @class-method
 	:public forward @class-object-method %self @object-method
 	:attribute @class-method -class ::nx::doc::PartAttribute {
-	  :pretty_name "Per-class method"
-	  :pretty_plural "Per-class methods"
+	  :pretty_name "Provided method"
+	  :pretty_plural "Provided methods"
 	  set :part_class ::nx::doc::@method
 	  :method require_part {domain prop value} {
 	    # TODO: verify whether these scoping checks are sufficient
@@ -1468,14 +1468,26 @@ namespace eval ::nx::doc {
       return
     }
 
-    :public method !get {-sortedby -with varname} {
-      if {![[:origin] eval [list info exists :$varname]]} return;
+    :public method !get {-sortedby -with -where varname} {
+      set origin [:origin]
+      if {![$origin eval [list info exists :$varname]]} return
       if {[info exists sortedby]} { 
-	set r [uplevel 1 [list ::nx::doc::sorted [[:origin] eval [list ::set :$varname]] $sortedby]]
+	set r [uplevel 1 [list ::nx::doc::sorted [$origin eval [list ::set :$varname]] $sortedby]]
       } else {
-	set r [uplevel 1 [list [:origin] eval [list ::set :$varname] ]]
+	set r [uplevel 1 [list $origin eval [list ::set :$varname] ]]
       }
-      
+
+      if {[info exists where]} {
+	set l [list]
+	foreach item $r {
+	  #puts stderr ".... $item has modifier [$item eval {set :@modifier}]"
+	  if {[$item eval [list expr $where]]} {
+	    lappend l $item
+	  }
+	}
+	set r $l
+      }  
+
       if {[info exists with]} {
 	set l [list]
 	foreach item $r {
@@ -1483,7 +1495,7 @@ namespace eval ::nx::doc {
 	}
 	set r $l
       }
-      
+
       return $r
     }
 
@@ -1779,7 +1791,7 @@ namespace eval ::nx::doc {
 	  set m [current method]=$tag
 	  if {[:info lookup methods \
 		   -source application \
-		   -callprotection all $m] eq ""} {
+		   -callprotection public $m] eq ""} {
 	    return $unresolvable
 	  }
 	  return [:$m $value]
@@ -1823,7 +1835,10 @@ namespace eval ::nx::doc {
 	  set pathnames [lrange $pathnames 1 end]
 	  set entities [lrange $entities 1 end]
 	}
-	return "<a href=\"[$id href $top_entity]\">$pof[join $pathnames .]</a>"
+	#return "<a href=\"[$id href $top_entity]\">$pof[join $pathnames .]</a>"
+	# GN TODO: Maybe a nicer "title" attribute via method title?
+	return "<a class='nsfdoc-link' title='$pof[join $pathnames .]' \
+		href='[$id href $top_entity]'>[join $pathnames { }]</a>"
       }
       
       :public method as_text {} {
@@ -1945,15 +1960,15 @@ namespace eval ::nx::doc {
 	  if {!$acronym(short) && ($acronym(long) || ![info exists :refs] || \
 				       ![dict exists ${:refs} [:current_project] $source])} {
 	    set print_name "$print_name (${:@acronym})"
-	    set res "<a href=\"[:href]\" title=\"$title\" class=\"gloss\">$print_name</a>"
+	    set res "<a href=\"[:href]\" title=\"$title\" class='nsfdoc-gloss'>$print_name</a>"
 	  } else {
 	    set title $print_name
 	    set print_name ${:@acronym}
-	    set anchor "<a href=\"[:href]\" title=\"$title\" class=\"gloss\">$print_name</a>"
+	    set anchor "<a href=\"[:href]\" title=\"$title\" class='nsfdoc-gloss'>$print_name</a>"
 	    set res "<abbr title=\"$title\">$anchor</abbr>" 
 	  }
 	} else {
-	  set res "<a href=\"[:href]\" title=\"$title\" class=\"gloss\">$print_name</a>"
+	  set res "<a href=\"[:href]\" title=\"$title\" class='nsfdoc-gloss'>$print_name</a>"
 	}
 
 	# record for reverse references
@@ -3328,7 +3343,7 @@ namespace eval ::nx {
 
       foreach methodName [$box do [list $name info methods \
 				       -methodtype scripted \
-				       -callprotection all]] {
+				       -callprotection public]] {
 	:readin \
 	    -partof_entity $entity \
 	    -docstring \
@@ -3354,7 +3369,7 @@ namespace eval ::nx {
 
       foreach methodName [$box do [list ${name} {*}$scope info methods\
 				       -methodtype scripted \
-				       -callprotection all]] {
+				       -callprotection public]] {
 	set tag [join [list {*}$scope method] -]
 	# set id [$entity @$tag $methodName]
 	:readin \

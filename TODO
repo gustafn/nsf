@@ -2179,6 +2179,7 @@ text
 - let "obj class NEWCLASS" return NEWCLASS
 - doc-tools: added "-where" to !get
 - doc-tools: title to internal links, provided css class, added nicer label
+- updated reference doc
 
 TODO:
 - doc:

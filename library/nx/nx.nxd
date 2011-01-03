@@ -38,18 +38,93 @@
 # @version 1.0.0a
 # @namespace ::nx
 
+########################################################################
+
 # @class Object
 #
-# Programs written in the <<@glossary nx>> are constructed out of
-# objects. This class describes common structural and behavioural
-# features for all <<@glossary nx>> objects. It is the root class in the
-# <<@glossary nx>> object system.
+# ::nx::Object is the <<@gls baseclass>> of the object system of
+# <<@glossary nx>>.  All objects defined in NX are (direct or
+# indirect) instances of this class. All methods provided by
+# ::nx::Object are available to all objects (and classes) defined in
+# NX.
+
+# @class.method {Object __default_attribute_call_protection}
+#
+# @modifier protected
+
+# @class.method {Object __default_method_call_protection}
+#
+# @modifier protected
+
+# @class.method {Object __resolve_method_path}
+#
+# @modifier protected
+
+# @class.method {Object cleanup}
+#
+# @modifier protected
+
+# @class.method {Object defaultmethod}
+#
+# @modifier protected
+
+# @class.method {Object init}
+#
+# @modifier protected
+
+# @class.method {Object noinit}
+#
+# @modifier protected
+
+# @class.method {Object objectparameter}
+#
+# @modifier protected
+
+# @class.method {Object residualargs}
+#
+# @modifier protected
+
+# @class.method {Object uplevel}
+#
+# @modifier protected
+
+# @class.method {Object upvar}
+#
+# @modifier protected
+
+# @class.attribute {Object noinit}
+#
+# If this flag is provided, the object initialization will not call
+# the method '''init'''. This is for example useful when a serialized
+# object is recreated in a previous state, which would be altered by
+# resetting it with '''init'''.
+
+# @class.attribute {Object volatile}
+#
+# If this flag is provided, the object is created as volatile.  A
+# volatile object is destroyed automatically, when the current
+# variable scope is left.
+
+# @class.method {Object class}
+#
+# Sets or retrieves the <<@gls class>> of an object. When '''class'''
+# is called without its optional argument, it returns the current
+# class of the object, otherwise it sets it. An introspective
+# alternative for obtaining the class of an object is <<@class.method
+# {Object "info class"}>>.
+#
+# @parameter className:optional
+# @return <<@gls class>> of the object
+
+########################################################################
+
 
 # @class Class
 #
-# ::nx::Class is the <<@gls basemetaclass>> of the <<@glossary nx>>
-# object system. All application classes are created as (direct or
-# indirect) instances of this class using e.g. its '''create''' method:
+# ::nx::Class is the <<@gls basemetaclass>> of the object system of
+# <<@glossary nx>>.  All application classes are created as (direct or
+# indirect) instances of this class using e.g. its '''create'''
+# method:
 #
 # '''
 # ::nx::Class create Person {
@@ -58,18 +133,18 @@
 # '''
 # @superclass ::nx::doc::entities::class::nx::Object
 
+
 # @class.method {Class alloc}
 #
-# Creates a bare object or class which is not fully
-# initialized. '''alloc''' is used by <<@class.method "::nx::Class
-# create">> to request a memory object storage. In subsequent steps,
-# '''create''' invokes '''configure''' and '''init''' to further set
-# up the object. Only in rare situations, you may consider bypassing
-# the overall '''create''' mechanism by just allocating uninitialized
-# objects using '''alloc'''.
+# Creates an uninitialized object. The method '''alloc''' is used by
+# <<@class.method "::nx::Class create">> to allocate an object and to
+# invoke <<@class.method "::nx::Object configure">> and '''init''' in
+# subsequent steps to fully initialize the object. Only in rare
+# situations, an application developer may consider bypassing the
+# overall '''create''' mechanism to create uninitialized objects.
 #
 # @property syshook
-# @parameter name The designated object identifier assigned to the
+# @parameter objectName The designated object identifier assigned to the
 # object storage to be allocated.
 # @return The name of the allocated, uninitialized object
 
@@ -712,16 +787,6 @@
 # @class.attribute {Class superclass}
 #
 # Set the superclasses for a given class
-
-# @class.attribute {Object class}
-#
-# Sets or retrieves the <<@gls class>> of an object. When '''class''' is
-# called without arguments, it returns the current class of the
-# object. An introspective alternative is <<@class.method {Object
-# "info class"}>>
-#
-# @return If called as a getter (without arguments), '''class'''
-# returns the current <<@gls class>> of the object
 
 # @class.attribute {Object mixin}
 #

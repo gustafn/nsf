@@ -465,14 +465,14 @@ Test case mixed-mode-parsing {
       # @parameter a Provides a first value
       # @parameter b Provides a second value
       
-      :method foo {a b} {
+      :public method foo {a b} {
 	# This describes the foo method in the method body
 	#
 	# @parameter a Provides a first value (refined)
 	
       }
       
-      :class-object method foo {a b c} {
+      :public class-object method foo {a b c} {
 	# This describes the per-object foo method in the method body
 	#
 	# @parameter b Provides a second value (refined)
@@ -650,7 +650,7 @@ Test case tag-notations-extended {
       # @.method foo
       #
       # @parameter p1
-      set fooHandle [:method foo {p1} {
+      set fooHandle [:public method foo {p1} {
 	# Here goes some method-body-level description
 	#
 	# @parameter p1 The most specific level!
@@ -661,7 +661,7 @@ Test case tag-notations-extended {
       #
       # This extended form allows to describe a method parameter with all
       # its structural features!
-      set barHandle [:class-object method bar {p1} {
+      set barHandle [:public class-object method bar {p1} {
 	return [current method]-$p1-[current]
       }]
       
@@ -1019,9 +1019,9 @@ Test case switch-parts {
       # nx-enabled Tcl engine
       #
       # @syshook
-      :method foo {a b} {;}
+      :public method foo {a b} {;}
       
-      :method baz {} {
+      :public method baz {} {
 	# This method entity sets a couple of properties in series ...
 	#
 	# @property c-implemented syshook

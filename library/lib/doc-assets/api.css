@@ -254,15 +254,26 @@ body.show_protected .protected {
     line-height:1.8em;
 }
 
-a:link.gloss,
-a:visited.gloss,
-a:hover.gloss,
-a:active.gloss {
+a:link.nsfdoc-gloss,
+a:visited.nsfdoc-gloss,
+a:hover.nsfdoc-gloss,
+a:active.nsfdoc-gloss {
   color: #000000; /* should be the same color as text */
   text-decoration: none;
   border-bottom-width: 1px;
   border-bottom-style: dotted;
   border-bottom-color: #000000; /* for IE 5, same color as above */
+  font-style: normal; /* for use with dfn */
+}
+
+a:link.nsfdoc-link,
+a:visited.nsfdoc-link,
+a:hover.nsfdoc-link,
+a:active.nsfdoc-link {
+  text-decoration: none;
+  border-bottom-style: none;
+  border-bottom-color: #000000; /* for IE 5, same color as above */
+  font-family:"Courier New",Courier,mono;
   font-style: normal; /* for use with dfn */
 }
 

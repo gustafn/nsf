@@ -29,10 +29,11 @@
 [:!let class_attrs [:!get -sortedby name -with name @class-attribute]]
 <div rel="yui:properties" resource="#properties">
   <div class="section field details">
-    <h3 id="properties">Per-class parameters</h3>
+    <h3 id="properties">Provided Parameters</h3>
     <div class="section field member"
          rel="yui:member"  resource="#">
       <div class="content" rel="yui:properties">
+        These parameter can be used to configure instances of this class:
         <code>
           [:for attr [dict values $class_attrs] {
           <span rel="yui:property"
@@ -88,7 +89,7 @@
     [:!let attrs [dict values [dict get $iattrs $superclass]]]
     <div class="section field inheritance"
          rel="yui:superclass"  resource="[$superclass filename].html">
-      <h4>Per-class parameters inherited
+      <h4>Inherited Parameters
         from <a href="[$superclass filename].html" property="yui:name"
                 title="[$superclass name]">[$superclass name]</a>:</h4>
       <div class="content" rel="yui:properties">
@@ -147,16 +148,16 @@
 }]
 
 [:?var :@class-method {
-[:!let class_methods [:!get -sortedby name @class-method]]
+[:!let class_methods [:!get -sortedby name -where {${:@modifier} eq "public"} @class-method]]
 <div rel="yui:methods" resource="#methods">
   <div class="section method details">
-    <h3 id="methods">Per-class methods</h3>
+    <h3 id="methods">Provided Methods</h3>
     <div class="section field member"
          rel="yui:member"  resource="#">
       <div class="content" rel="yui:properties">
         <code>
           [:for m $class_methods {
-          <span rel="yui:property"
+         <span rel="yui:property"
                 resource="#[$m href -local]">                                        
             <a class=""
                href="#[$m href -local]" property="yui:name"
@@ -187,7 +188,7 @@
     [:!let ms [dict values [dict get $imethods $superclass]]]
     <div class="section field inheritance"
          rel="yui:superclass"  resource="[$superclass filename].html">
-      <h4>Per-class methods inherited
+      <h4>Inherited Methods
         from <a href="[$superclass filename].html" property="yui:name"
                 title="[$superclass name]">[$superclass name]</a>:</h4>
       <div class="content" rel="yui:methods">
