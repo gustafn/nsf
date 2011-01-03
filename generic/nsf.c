@@ -15609,7 +15609,11 @@ NsfRelationCmd(Tcl_Interp *interp, NsfObject *object,
     }
     GetClassFromObj(interp, valueObj, &cl, object->cl);
     if (!cl) return NsfObjErrType(interp, "class", object->cmdName, "a class", NULL);
-    return ChangeClass(interp, object, cl);
+    i = ChangeClass(interp, object, cl);
+    if (i == TCL_OK) {
+      Tcl_SetObjResult(interp, object->cl->object.cmdName);
+    }
+    return i;
 
   case RelationtypeRootclassIdx:
     {
