@@ -20,7 +20,7 @@ namespace eval ::nx {
     -object.configure configure
     -object.defaultmethod defaultmethod 
     -object.destroy destroy 
-    -object.init init 
+    -object.init init
     -object.move move 
     -object.objectparameter objectparameter 
     -object.residualargs residualargs
@@ -38,7 +38,9 @@ namespace eval ::nx {
   #
   foreach cmd [info command ::nsf::methods::object::*] {
     set cmdName [namespace tail $cmd]
-    if {$cmdName in [list "autoname" "exists" "filterguard" "instvar" "mixinguard" "requirenamespace"]} continue
+    if {$cmdName in [list "autoname" "cleanup" "exists" \
+			 "filterguard" "instvar" "mixinguard" \
+			 "requirenamespace"]} continue
     ::nsf::alias Object $cmdName $cmd 
   }
   
@@ -63,7 +65,7 @@ namespace eval ::nx {
 
   # set a few aliases as protected
   # "__next", if defined, should be added as well
-  foreach cmd [list cleanup noinit residualargs uplevel upvar] {
+  foreach cmd [list noinit residualargs uplevel upvar] {
     ::nsf::methodproperty Object $cmd call-protected 1
   }
 
@@ -1031,15 +1033,15 @@ namespace eval ::nx {
     ::nx::RelationSlot create ${os}::Class::slot::superclass
     ::nsf::alias              ${os}::Class::slot::superclass assign ::nsf::relation
 
-    ::nx::RelationSlot create ${os}::Object::slot::class -multivalued false
-    ::nsf::alias              ${os}::Object::slot::class assign ::nsf::relation
+    #::nx::RelationSlot create ${os}::Object::slot::class -multivalued false
+    #::nsf::alias              ${os}::Object::slot::class assign ::nsf::relation
+    ::nsf::forward ${os}::Object class ::nsf::relation %self class
 
     ::nx::RelationSlot create ${os}::Object::slot::mixin \
 	-methodname object-mixin    
 
     ::nx::RelationSlot create ${os}::Object::slot::filter -elementtype "" \
 	-methodname object-filter
-
 
     ::nx::RelationSlot create ${os}::Class::slot::mixin -methodname class-mixin
     
@@ -1574,7 +1576,7 @@ namespace eval ::nx {
   set ::nsf::parametersyntax(::nsf::classes::nx::Object::mixin) $value
   set ::nsf::parametersyntax(::nsf::classes::nx::Class::mixin) $value
   set ::nsf::parametersyntax(::nsf::classes::nx::Class::superclass) $value
-  set ::nsf::parametersyntax(::nsf::classes::nx::Object::class) "?class?"
+  set ::nsf::parametersyntax(::nsf::classes::nx::Object::class) "?className?"
   set value "?filters?|?add filter?|?delete filter?"
   set ::nsf::parametersyntax(::nsf::classes::nx::Object::filter) $value
   set ::nsf::parametersyntax(::nsf::classes::nx::Class::filter) $value
