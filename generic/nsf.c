@@ -617,8 +617,7 @@ NsfGetClass(Tcl_Interp *interp, CONST char *name) {
   return (Nsf_Class *)GetClassFromString(interp, name);
 }
 extern Nsf_Class *
-NsfIsClass(Tcl_Interp *interp, ClientData clientData) {
-  (void)interp; /* TODO; maybe remove */
+NsfIsClass(Tcl_Interp *UNUSED(interp), ClientData clientData) {
   if (clientData && NsfObjectIsClass((NsfObject *)clientData)) {
     return (Nsf_Class *) clientData;
   }
@@ -1831,9 +1830,8 @@ SearchCMethod(/*@notnull@*/ NsfClass *cl, CONST char *methodName, Tcl_Command *c
  *----------------------------------------------------------------------
  */
 static NsfClass *
-SearchSimpleCMethod(Tcl_Interp *interp, /*@notnull@*/ NsfClass *cl,
+SearchSimpleCMethod(Tcl_Interp *UNUSED(interp), /*@notnull@*/ NsfClass *cl,
 		    Tcl_Obj *methodObj, Tcl_Command *cmdPtr) {
-  (void)interp; /* same interface as SearchComplexCMethod() */
   assert(cl);
   return SearchPLMethod(ComputeOrder(cl, cl->order, Super), ObjStr(methodObj), cmdPtr);
 }
@@ -2412,7 +2410,7 @@ MethodName(Tcl_Obj *methodObj) {
  *----------------------------------------------------------------------
  */
 static int
-NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, 
+NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *UNUSED(nsPtr), 
 		   int flags, Tcl_Var *varPtr) {
   Tcl_CallFrame *varFramePtr;
   TclVarHashTable *varTablePtr;
@@ -2420,8 +2418,6 @@ NsColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr
   int new, frameFlags;
   Tcl_Obj *key;
   Var *newVar;
-
-  (void)nsPtr;
 
 #if defined (VAR_RESOLVER_TRACE)
   fprintf(stderr, "NsColonVarResolver '%s' flags %.6x\n", varName, flags);
@@ -2727,8 +2723,8 @@ CompiledColonVarFree(Tcl_ResolvedVarInfo *vInfoPtr) {
  */
 static int
 InterpCompiledColonVarResolver(Tcl_Interp *interp,
-			CONST84 char *name, int length, Tcl_Namespace *context,
-			Tcl_ResolvedVarInfo **rPtr) {
+			       CONST84 char *name, int length, Tcl_Namespace *UNUSED(context),
+			       Tcl_ResolvedVarInfo **rPtr) {
   /*
    *  The variable handler is registered, when we have an active Next Scripting
    *  object and the variable starts with the appropriate prefix. Note
@@ -2736,7 +2732,6 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
    *  handling of wrong vars
    */
   NsfObject *object = GetSelfObj(interp);
-  (void)context;
 
 #if defined(VAR_RESOLVER_TRACE)
   fprintf(stderr, "compiled var resolver for %s, obj %p\n", name, object);
@@ -2787,7 +2782,7 @@ InterpCompiledColonVarResolver(Tcl_Interp *interp,
  *----------------------------------------------------------------------
  */
 static int
-InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *nsPtr, 
+InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *UNUSED(nsPtr), 
 		       int flags, Tcl_Var *varPtr) {
   int new, frameFlags;
   CallFrame *varFramePtr;
@@ -2795,8 +2790,6 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
   NsfObject *object;
   Tcl_Obj *keyObj;
   Tcl_Var var;
-
-  (void)nsPtr;
 
   if (!FOR_COLON_RESOLVER(varName) || (flags & (TCL_GLOBAL_ONLY|TCL_NAMESPACE_ONLY))) {
     /* ordinary names and global lookups are not for us */
@@ -2952,11 +2945,10 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *n
  *----------------------------------------------------------------------
  */
 static int
-InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *nsPtr,
+InterpColonCmdResolver(Tcl_Interp *interp, CONST char *cmdName, Tcl_Namespace *UNUSED(nsPtr),
 		       int flags, Tcl_Command *cmdPtr) {
   CallFrame *varFramePtr;
   int frameFlags;
-  (void)nsPtr;
 
   /*fprintf(stderr, "InterpColonCmdResolver %s flags %.6x\n", cmdName, flags);*/
 
@@ -6591,14 +6583,16 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   FlushPrecedencesOnSubclasses(cl);
 
   if (!ComputeOrder(cl, cl->order, Super)) {
-
+    NsfClasses *l;
     /*
      * cycle in the superclass graph, backtrack
      */
-
-    NsfClasses *l;
-    while (cl->super) (void)RemoveSuper(cl, cl->super->cl);
-    for (l = osl; l; l = l->nextPtr) AddSuper(cl, l->cl);
+    while (cl->super) {
+      (void)RemoveSuper(cl, cl->super->cl);
+    }
+    for (l = osl; l; l = l->nextPtr) {
+      AddSuper(cl, l->cl);
+    }
     NsfClassListFree(osl);
     return NsfObjErrType(interp, "superclass", arg, "a cycle-free graph", NULL);
   }
@@ -8432,9 +8426,8 @@ NoMetaChars(CONST char *pattern) {
  */
 /* we could define parameterTypes with a converter, setter, canCheck, name */
 static int
-ConvertToString(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *pPtr,
+ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, NsfParam CONST *UNUSED(pPtr),
 			   ClientData *clientData, Tcl_Obj **outObjPtr) {
-  (void)interp; (void)pPtr;
   *clientData = (char *)ObjStr(objPtr);
   *outObjPtr = objPtr;
   return TCL_OK;
@@ -8493,9 +8486,8 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
 }
 
 static int
-ConvertToNothing(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
-			    ClientData *clientData, Tcl_Obj **outObjPtr) {
-  (void)interp; (void)pPtr; (void)clientData;
+ConvertToNothing(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  NsfParam CONST *UNUSED(pPtr),
+		 ClientData *UNUSED(clientData), Tcl_Obj **outObjPtr) {
   *outObjPtr = objPtr;
   return TCL_OK;
 }
@@ -8594,9 +8586,8 @@ ConvertToClass(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
 }
 
 static int
-ConvertToRelation(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
+ConvertToRelation(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr,  NsfParam CONST *UNUSED(pPtr),
 		  ClientData *clientData, Tcl_Obj **outObjPtr) {
-  (void)interp; (void)pPtr;
   /* NsfRelationCmd is the real setter, which checks the values
      according to the relation type (Class, List of Class, list of
      filters; we treat it here just like a tclobj */
@@ -8698,11 +8689,10 @@ ConvertViaCmd(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
 }
 
 static int
-ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
+ConvertToObjpattern(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *UNUSED(pPtr),
 			       ClientData *clientData, Tcl_Obj **outObjPtr) {
   Tcl_Obj *patternObj = objPtr;
   CONST char *pattern = ObjStr(objPtr);
-  (void)pPtr;
 
   if (NoMetaChars(pattern)) {
     /* we have no meta characters, we try to check for an existing object */
@@ -10409,12 +10399,11 @@ NsfNextCmd(Tcl_Interp *interp, Tcl_Obj *arguments) {
  *----------------------------------------------------------------------
  */
 static int
-NsfNextObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+NsfNextObjCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   int freeArgumentVector, nobjc, result;
   NsfCallStackContent *cscPtr;
   CONST char *methodName;
   Tcl_Obj **nobjv;
-  (void)clientData;
 
   if (objc < 2) {
     /* No arguments were provided */
@@ -10583,13 +10572,12 @@ FreeUnsetTraceVariable(Tcl_Interp *interp, NsfObject *object) {
 }
 
 static char *
-NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp, CONST char *name, CONST char *name2, int flags)
+NsfUnsetTrace(ClientData clientData, Tcl_Interp *interp, 
+	      CONST char *UNUSED(name), CONST char *UNUSED(name2), int flags)
 {
   Tcl_Obj *obj = (Tcl_Obj *)clientData;
   NsfObject *object;
   char *resultMsg = NULL;
-  (void)name;
-  (void)name2;
 
   /*fprintf(stderr, "NsfUnsetTrace %s flags %.4x %.4x\n", name, flags,
     flags & TCL_INTERP_DESTROYED); **/
@@ -12187,17 +12175,13 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
  */
 static char *
 VwaitVarProc(
-             ClientData clientData,	/* Pointer to integer to set to 1. */
-             Tcl_Interp *interp,	/* Interpreter containing variable. */
-             char *name1,		/* Name of variable. */
-             char *name2,		/* Second part of variable name. */
-             int flags)			/* Information about what happened. */
+             ClientData clientData,		/* Pointer to integer to set to 1. */
+             Tcl_Interp *UNUSED(interp),	/* Interpreter containing variable. */
+             char *UNUSED(name1),		/* Name of variable. */
+             char *UNUSED(name2),		/* Second part of variable name. */
+             int UNUSED(flags))			/* Information about what happened. */
 {
   int *donePtr = (int *) clientData;
-  (void)interp;
-  (void)name1;
-  (void)name2;
-  (void)flags;
 
   *donePtr = 1;
   return (char *) NULL;
@@ -14892,8 +14876,8 @@ nsfCmd invalidateobjectparameter NsfInvalidateObjectParameterCmd {
 }
 */
 static int
-NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *cl) {
-  (void)interp;
+NsfInvalidateObjectParameterCmd(Tcl_Interp *UNUSED(interp), NsfClass *cl) {
+
   if (cl->parsedParamPtr) {
     /*fprintf(stderr, "   %s invalidate %p\n", ClassName(cl), cl->parsedParamPtr);*/
     ParsedParamFree(cl->parsedParamPtr);
@@ -16065,8 +16049,8 @@ ParamUpdateString(Tcl_Obj *objPtr) {
 }
 
 static void
-ParamDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *dupPtr) {
-  (void)dupPtr;
+ParamDupInteralRep(Tcl_Obj *srcPtr, Tcl_Obj *UNUSED(dupPtr)) {
+
   Tcl_Panic("%s of type %s should not be called", "dupStringProc",
 	    srcPtr->typePtr->name);
 }
@@ -16752,8 +16736,7 @@ objectMethod noinit NsfONoinitMethod {
 }
 */
 static int
-NsfONoinitMethod(Tcl_Interp *interp, NsfObject *object) {
-  (void)interp;
+NsfONoinitMethod(Tcl_Interp *UNUSED(interp), NsfObject *object) {
   object->flags |= NSF_INIT_CALLED;
   return TCL_OK;
 }
@@ -16834,11 +16817,11 @@ objectMethod uplevel NsfOUplevelMethod {
 }
 */
 static int
-NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *object, int objc, Tcl_Obj *CONST objv[]) {
+NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *UNUSED(object), int objc, Tcl_Obj *CONST objv[]) {
   int i, result = TCL_ERROR;
   CONST char *frameInfo = NULL;
   Tcl_CallFrame *framePtr = NULL, *savedVarFramePtr;
-  (void)object;
+
   /*
    * Find the level to use for executing the command.
    */
@@ -17274,9 +17257,8 @@ classMethod dealloc NsfCDeallocMethod {
 */
 
 static int
-NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *cl, Tcl_Obj *obj) {
+NsfCDeallocMethod(Tcl_Interp *interp, NsfClass *UNUSED(cl), Tcl_Obj *obj) {
   NsfObject *object;
-  (void)cl;
 
   if (GetObjectFromObj(interp, obj, &object) != TCL_OK) {
     return NsfPrintError(interp, "Can't destroy object %s that does not exist", 
@@ -18387,12 +18369,10 @@ ProcessMethodArguments(ParseContext *pcPtr, Tcl_Interp *interp,
  *----------------------------------------------------------------------
  */
 static int
-NsfUnsetUnknownArgsCmd(ClientData clientData, Tcl_Interp *interp, int objc,
-                                   Tcl_Obj *CONST objv[]) {
+NsfUnsetUnknownArgsCmd(ClientData UNUSED(clientData), Tcl_Interp *interp, 
+		       int UNUSED(objc), Tcl_Obj *CONST objv[]) {
   CallFrame *varFramePtr = Tcl_Interp_varFramePtr(interp);
   Proc *proc = Tcl_CallFrame_procPtr(varFramePtr);
-  (void)clientData;
-  (void)objc;
   (void)objv;
 
   if (proc) {

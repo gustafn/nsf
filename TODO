@@ -2183,6 +2183,7 @@ text
 
 - removed leftover -public flag in nsf::method
 - general cleanup: removed unused arguments
+- defined UNUSED macro to get more checking on unused arguments
 
 TODO:
 - doc:

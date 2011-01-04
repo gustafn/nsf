@@ -188,7 +188,7 @@ Nsf_PushFrameCsc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, CallFrame *fra
 }
 
 static void 
-Nsf_PopFrameCsc(Tcl_Interp *interp, CallFrame *framePtr) {
+Nsf_PopFrameCsc(Tcl_Interp *interp, CallFrame *UNUSED(framePtr)) {
   /*fprintf(stderr,"POP CMETHOD_FRAME (Nsf_PopFrameCsc) frame %p, varTablePtr = %p\n",
     framePtr, Tcl_CallFrame_varTablePtr(framePtr));*/
   Tcl_PopCallFrame(interp);

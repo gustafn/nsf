@@ -78,6 +78,19 @@ typedef struct NsfMemCounter {
 #  define MEM_COUNT_CLOSE_FRAME()
 #endif
 
+/*
+ * Tries to use gcc __attribute__ unused and mangles the name, so the
+ * attribute could not be used, if declared as unused.
+ */
+#ifdef UNUSED
+#elif defined(__GNUC__)
+# define UNUSED(x) UNUSED_ ## x __attribute__((unused))
+#elif defined(__LCLINT__)
+# define UNUSED(x) /*@unused@*/ x
+#else
+# define UNUSED(x) x
+#endif
+
 #define DSTRING_INIT(dsPtr) Tcl_DStringInit(dsPtr); MEM_COUNT_ALLOC("DString",dsPtr)
 #define DSTRING_FREE(dsPtr) \
   if ((dsPtr)->string != (dsPtr)->staticSpace) {Tcl_DStringFree(dsPtr);} MEM_COUNT_FREE("DString",dsPtr)
