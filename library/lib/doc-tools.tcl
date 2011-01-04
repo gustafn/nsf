@@ -2461,7 +2461,7 @@ namespace eval ::nx::doc {
 	      set ::nx::doc::rootns [namespace qualifier $rootmclass]
 	      $rootmclass $sysmeths(-class.create) ${::nx::doc::rootns}::__Tracer
 	      ::nsf::method ${::nx::doc::rootns}::__Tracer \
-		  -public $sysmeths(-class.create) {name args} {
+		  $sysmeths(-class.create) {name args} {
 		    set obj [::nsf::next];
 		    set bundle [dict create]
 		    if {[info commands "::nx::Class"] ne ""} {
@@ -2488,7 +2488,7 @@ namespace eval ::nx::doc {
 	      if {[info commands "::nx::Object"] ne ""} {
 		$rootmclass $sysmeths(-class.create) ${::nx::doc::rootns}::__ObjTracer
 		::nsf::method ${::nx::doc::rootns}::__ObjTracer \
-		    -public __resolve_method_path {
+		    __resolve_method_path {
 		      -per-object:switch 
 		      -verbose:switch 
 		      path
