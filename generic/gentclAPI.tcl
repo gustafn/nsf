@@ -76,7 +76,11 @@ proc genifd {parameterDefinitions} {
 #     }
     lappend l "{\"$argName\", $flags, $(-nrargs), ConvertTo$converter}"
   }
-  join $l ",\n  "
+  if {[llength $l] == 0} {
+    return "{NULL, 0, 0, NULL}"
+  } else {
+    return [join $l ",\n  "]
+  }
 }
 
 proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar preVar postVar introVar} {

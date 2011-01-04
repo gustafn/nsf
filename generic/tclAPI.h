@@ -2185,7 +2185,7 @@ static methodDefinition method_definitions[] = {
   {"currentoption", 0|NSF_ARG_IS_ENUMERATION, 0, ConvertToCurrentoption}}
 },
 {"::nsf::__db_run_assertions", NsfDebugRunAssertionsCmdStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::dispatch", NsfDispatchCmdStub, 4, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
@@ -2198,7 +2198,7 @@ static methodDefinition method_definitions[] = {
   {"varName", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::finalize", NsfFinalizeObjCmdStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::forward", NsfForwardCmdStub, 11, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
@@ -2280,7 +2280,7 @@ static methodDefinition method_definitions[] = {
   {"value", 0, 0, ConvertToTclobj}}
 },
 {"::nsf::self", NsfSelfCmdStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::setvar", NsfSetVarCmdStub, 3, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
@@ -2293,7 +2293,7 @@ static methodDefinition method_definitions[] = {
   {"parameter", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::__db_show_stack", NsfShowStackCmdStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::methods::object::autoname", NsfOAutonameMethodStub, 3, {
   {"-instance", 0, 0, ConvertToString},
@@ -2301,13 +2301,13 @@ static methodDefinition method_definitions[] = {
   {"name", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::object::cleanup", NsfOCleanupMethodStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::methods::object::configure", NsfOConfigureMethodStub, 1, {
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::methods::object::destroy", NsfODestroyMethodStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::methods::object::exists", NsfOExistsMethodStub, 1, {
   {"varName", NSF_ARG_REQUIRED, 0, ConvertToString}}
@@ -2324,10 +2324,10 @@ static methodDefinition method_definitions[] = {
   {"guard", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
 {"::nsf::methods::object::noinit", NsfONoinitMethodStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::methods::object::requirenamespace", NsfORequireNamespaceMethodStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::methods::object::residualargs", NsfOResidualargsMethodStub, 1, {
   {"args", 0, 0, ConvertToNothing}}
@@ -2339,7 +2339,7 @@ static methodDefinition method_definitions[] = {
   {"args", 0, 0, ConvertToNothing}}
 },
 {"::nsf::methods::object::volatile", NsfOVolatileMethodStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::methods::object::vwait", NsfOVwaitMethodStub, 1, {
   {"varName", NSF_ARG_REQUIRED, 0, ConvertToString}}
@@ -2349,7 +2349,7 @@ static methodDefinition method_definitions[] = {
   {"pattern", 0, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::class", NsfObjInfoClassMethodStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::methods::object::info::filterguard", NsfObjInfoFilterguardMethodStub, 1, {
   {"fileName", NSF_ARG_REQUIRED, 0, ConvertToString}}
@@ -2370,7 +2370,7 @@ static methodDefinition method_definitions[] = {
   {"class", NSF_ARG_REQUIRED, 0, ConvertToClass}}
 },
 {"::nsf::methods::object::info::hasnamespace", NsfObjInfoHasnamespaceMethodStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::methods::object::info::is", NsfObjInfoIsMethodStub, 1, {
   {"objectkind", NSF_ARG_REQUIRED|NSF_ARG_IS_ENUMERATION, 0, ConvertToObjectkind}}
@@ -2414,7 +2414,7 @@ static methodDefinition method_definitions[] = {
   {"mixin", NSF_ARG_REQUIRED, 0, ConvertToString}}
 },
 {"::nsf::methods::object::info::parent", NsfObjInfoParentMethodStub, 0, {
-  }
+  {NULL, 0, 0, NULL}}
 },
 {"::nsf::methods::object::info::precedence", NsfObjInfoPrecedenceMethodStub, 2, {
   {"-intrinsic", 0, 0, ConvertToString},

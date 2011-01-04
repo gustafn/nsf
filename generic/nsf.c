@@ -16124,9 +16124,9 @@ ParamSetFromAny2(
     const char *varNamePrefix,	/* shows up as varname in error message */
     register Tcl_Obj *objPtr)	/* The object to convert. */
 {
-  NsfParamWrapper *paramWrapperPtr = NEW(NsfParamWrapper);
   Tcl_Obj *fullParamObj = Tcl_NewStringObj(varNamePrefix, -1);
   int result, possibleUnknowns = 0, plainParams = 0, nrNonposArgs = 0;
+  NsfParamWrapper *paramWrapperPtr = NEW(NsfParamWrapper);
 
   paramWrapperPtr->paramPtr = ParamsNew(1);
   paramWrapperPtr->refCount = 1;
