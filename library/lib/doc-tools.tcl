@@ -1615,9 +1615,16 @@ namespace eval ::nx::doc {
       set preprocessed [:unescape $preprocessed]
       # TODO: For now, we take a passive approach: Some docstrings
       # might fail because they contain substitution characters
-      # ($,[]); see nx.tcl
+      # ($,[]); see nx.tcl. The same goes for legacy xodoc docstrings,
+      # and their code listing (see langRef.xotcl). Catching
+      # evaluations errors here makes it unnecessary to
+      # escape/unescape evaluation chars; at the same time, we can't
+      # distinguish errors on unintended and intended evaluations.
       # ...
-      catch {set preprocessed [subst $preprocessed]} msg
+      if {[catch {set preprocessed [subst $preprocessed]} msg]} {
+	puts stderr MSG=$msg
+	puts stderr IN->$preprocessed
+      }
       return $preprocessed
     }
 
@@ -1680,6 +1687,7 @@ namespace eval ::nx::doc {
             
       # 3) TODO: revoke the application of the mixin layer (for the sake of
       # some sort of bounded quantification) 
+      [current class] revoke
     }
 
     #
@@ -1881,7 +1889,7 @@ namespace eval ::nx::doc {
       :public method filename {} {
 	return "index"
       }
-      :method navigatable_parts {} {
+      :public method navigatable_parts {} {
 	#
 	# TODO: Should I wrap up delegating calls to the originator
 	# entity behind a unified interface (a gatekeeper?)
@@ -1992,8 +2000,10 @@ namespace eval ::nx::doc {
 	set ipath [$box do $exp]
 	foreach c [concat $ipath ${:name}] {
 	  set entity [[:info class] id $c]
-	  if {![::nsf::is object $entity]} continue
+	  if {![::nsf::is object $entity]} continue; 
 	  set origin [$entity origin]
+	  if {$origin ni [concat {*}[dict values [$prj navigatable_parts]]]} continue;
+	  
 	  if {[$origin eval [list info exists :${member}]]} {
 	    dict set inherited $entity [$entity !get \
 					    -sortedby name \
@@ -2106,9 +2116,7 @@ namespace eval ::nx::doc {
       }
       puts "\n"
     }
-
   }
-
 }
 
 #
@@ -2874,13 +2882,179 @@ namespace eval ::nx::doc {
   }
   namespace export Sandbox
 }
+
+
+namespace eval ::nx::doc::xodoc {
+
+  namespace import -force ::nx::*
+  namespace import -force ::nx::doc::*
+
+  # xodoc		->	nxdoc
+  # - - - - - - - - - - - - - - - -
+  # MetadataToken	Entity
+  # FileToken		@package 
+  # PackageToken	@package
+  # ConstraintToken	n/a
+  # MethodToken		n/a
+  # ProcToken		@method (scope = object)
+  # InstprocToken	@method (scope = class)
+  # ObjToken		@object
+  # ClassToken		@class
+  # MetaClassToken	n/a
+
+  Class create MetadataToken {
+    :class-object attribute analyzer
+    :public forward analyzer [current] %method
+    :method as {partof:object,type=::nx::doc::StructuredEntity} \
+        -returns object,type=::nx::doc::Entity {
+          error "Subclass responsibility"
+        } 
+    :public method emit {partof:object,type=::nx::doc::StructuredEntity} \
+        -returns object,type=::nx::doc::Entity {
+          set entity [:as $partof]
+          set props [:get_properties]
+          if {[dict exists $props description]} {
+            $entity @doc [dict get $props description]
+          }
+          return $entity
+        }
+    :method get_properties {} {
+      if {[info exists :properties]} {
+	set props [dict create]
+	foreach p ${:properties} {
+	  if {[info exists :$p]} {
+	    dict set props [string tolower $p] \
+		[:format [set :$p]]
+	  }
+	}
+	return $props
+      }
+    }
+    :method format {value} {
+      #
+      # 1. replace @-prefixed tags etc.
+      #
+      set value [[:analyzer] replaceFormatTags $value]
+      
+      #
+      # 2. escape Tcl evaluation chars in code listings
+      #     
+      set value [string map {
+	"\\" "\\\\" 
+	"{" "\\{" 
+	"}" "\\}" 
+	"\"" "\\\"" 
+	"[" "\\[" 
+	"]" "\\]" 
+	"$" "\\$"
+      } $value]
+ 
+      #
+      # 3. box the prop value in a list (this avoids unwanted
+      # interactions with the line-by-line as_text post-processor)
+      #
+      return [list $value]
+    }
+  }
+  
+  Class create PackageToken -superclass MetadataToken
+  Class create FileToken -superclass MetadataToken {
+    :method as {partof:object,type=::nx::doc::StructuredEntity} \
+        -returns object,type=::nx::doc::Entity {
+          #
+          # TODO: Where to retrieve the package name from?
+          #
+          return [@package new -name XOTcl]
+        } 
+    :public method emit {partof:object,type=::nx::doc::StructuredEntity} \
+        -returns object,type=::nx::doc::Entity {
+          set entity [next]
+          set props [dict remove [:get_properties] description]
+          dict for {prop value} $props {
+            $entity @doc add "<h1>$prop</h1>[join $value]" end
+          }
+          $entity @namespace [[$entity current_project] @namespace]
+          return $entity
+        }
+  }
+  
+  #
+  # Note: For whatever reason, InstprocToken is provided but never
+  # used, at least in XOTcl-langRef. while most probably due to a lack
+  # of attention or a silent revocation of a design decision in xodoc,
+  # it forces us into code replication for differentiating the
+  # per-class and per-object scopes ... in xodoc, these scopes are
+  # double-encoded, both in proper token subclassifications as well as
+  # aggregation properties: procList, instprocList ... well, I will
+  # have to live with it.
+  #
+
+  Class create MethodToken -superclass MetadataToken
+  
+  Class create ProcToken -superclass MethodToken {
+    :method as {scope partof:object,type=::nx::doc::StructuredEntity} \
+        -returns object,type=::nx::doc::Entity {
+      return [$partof @${scope}-method [:name]]
+    } 
+    :public method emit {scope partof:object,type=::nx::doc::StructuredEntity} {
+      set entity [:as $scope $partof]      
+      set props [:get_properties]
+      if {[dict exists $props description]} {
+        $entity @doc [dict get $props description]
+      }
+      if {[dict exists $props return]} {
+	$entity @return [dict get $props return]
+      }
+      return $entity
+    }
+  }
+  
+  Class create InstprocToken -superclass MethodToken
+  
+  Class create ObjToken -superclass MetadataToken {
+    :method as {partof:object,type=::nx::doc::ContainerEntity} \
+        -returns object,type=::nx::doc::Entity {
+      return [@object new -name [:name]]
+    } 
+    :public method emit {entity:object,type=::nx::doc::Entity} \
+        -returns object,type=::nx::doc::Entity {
+          set entity [next]
+          foreach p [:procList] {
+            $p emit object $entity
+          }
+          return $entity
+        }
+  }
+  
+  Class create ClassToken -superclass ObjToken {
+    :method as {partof:object,type=::nx::doc::ContainerEntity} \
+        -returns object,type=::nx::doc::Entity {
+      return [@class new -name [:name]]
+    }
+    :public method emit {entity:object,type=::nx::doc::Entity} \
+        -returns object,type=::nx::doc::Entity {
+          set entity [next]
+          foreach iproc [:instprocList] {
+            $iproc emit class $entity
+          }
+          return $entity
+        }
+  }
+  
+  Class create MetaClassToken -superclass ClassToken
+  
+  namespace export MetadataToken FileToken MethodToken ProcToken \
+      InstprocToken ObjToken ClassToken MetaClassToken
+}
+
+
 #
 # post processor for initcmds and method bodies
 #
 namespace eval ::nx {
-
+  
   namespace import -force ::nx::doc::*
-
+  
   MixinLayer create processor -prefix ::nx::doc {
     namespace eval ::nx::doc {
       namespace eval ::nx::doc::MixinLayer {
@@ -3101,13 +3275,78 @@ namespace eval ::nx {
       }
       return $project
     }
-    
+
+    :protected class-object method process=@package {project pkgs} {
+      set box [$project sandbox]
+      $box permissive_pkgs [string tolower $pkgs]
+      set 1pass ""
+      foreach pkg $pkgs {
+	if {[catch {package req $pkg} _]} {
+	  error "Tcl package '$pkg' cannot be found."
+	}
+	append 1pass "package req $pkg\n"
+      }
+
+      #
+      # a) 1-pass: requiring the packages first will provide
+      # all dependencies (also those not to be documented).
+      #
+      $box do "::nx::doc::__trace_pkg; $1pass"
+
+      #
+      # b) 2-pass: [source] will re-evaluate the package scripts
+      # (note, [load]-based extension packages are not covered by this!)
+      #"
+      if {[$box eval {info exists :source}]} {
+	#
+	# Note: Expects the XOTcl2 utilities to be in place and
+	# accessible by the [package req] mechanism, use e.g.:
+	# export TCLLIBPATH=". ./library/xotcl/library/lib"
+	#
+	package req xotcl::xodoc
+	
+	set docdb [XODoc new]
+	::xotcl::@ set analyzerObj $docdb
+	foreach {pkg src} [$box eval {set :source}] {
+	  $docdb analyzeFile $src
+	}
+	
+	foreach m [namespace eval ::nx::doc::xodoc {namespace export}] {
+	  if {[::xotcl::Class info instances -closure ::xotcl::metadataAnalyzer::$m] ne ""} {
+	    ::xotcl::metadataAnalyzer::$m instmixin add ::nx::doc::xodoc::$m
+	  }
+	}
+	
+	::nx::doc::xodoc::MetadataToken eval [list set :analyzer $docdb]
+	set provided_entites [list]
+        #
+        # as we analyze file by file, there is only one FileToken to
+        # be molded into an @package
+        # 
+        set ft [::xotcl::metadataAnalyzer::FileToken allinstances]
+        if {[llength $ft] > 1} {
+          error "Too many xodoc file tokes processed. Expecting just one!"
+        }
+        
+        set partof $project
+        if {$ft ne ""} {
+          set pkg [$ft emit $project]
+          lappend provided_entities $pkg
+          set partof $pkg
+        }
+	foreach token [::xotcl::metadataAnalyzer::ObjToken allinstances] {
+	  lappend provided_entities [$token emit $partof]
+	}
+        return $provided_entities
+      }
+    }
+      
     :protected class-object method process=package {project pkgs} {
       set box [$project sandbox]
       $box permissive_pkgs $pkgs
       set 1pass ""
       foreach pkg $pkgs {
-	if {[catch {package present $pkg} _]} {
+	if {[catch {package req $pkg} _]} {
 	  error "Tcl package '$pkg' cannot be found."
 	}
 	append 1pass "package req $pkg\n"
@@ -3144,12 +3383,6 @@ namespace eval ::nx {
 	lappend provided_entities {*}[:readin $script] 
       }
       return $provided_entities
-      # output
-      # 1. absent entities (doc[yes]->program[no])
-      # => all doc entities without pdata
-      # ::nx::doc::entities::method::nx::Class::class::info
-      # ::nsf::classes::nx::Class::info
-      #puts stderr "--- $provided_entities"
     }
 
     :protected class-object method process=source {project filepath} {;}

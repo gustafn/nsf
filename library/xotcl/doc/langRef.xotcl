@@ -2,6 +2,9 @@
 package provide XOTcl-langRef 1.6.4
 package require XOTcl
 
+namespace eval ::xotcl {}
+namespace import -force ::xotcl::@
+
 @ @File {
   description {
     XOTcl language reference. Describes predefined objects and classes.

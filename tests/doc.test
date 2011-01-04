@@ -1064,7 +1064,8 @@ Test case switch-parts {
 
 puts stderr =================================================
 foreach path [list [file join [::nsf::tmpdir] NextScriptingFramework] \
-		  [file join [::nsf::tmpdir] NextScriptingLanguage]] {
+		  [file join [::nsf::tmpdir] NextScriptingLanguage] \
+		  [file join [::nsf::tmpdir] XOTcl2]] {
   if {[file exists $path]} {
     file delete -force $path
   }
@@ -1155,6 +1156,24 @@ set _ [time {
 } 1]
 
 puts stderr ">>>>> gross timing for $project $_"
+
+set project [::nx::doc::@project new \
+		 -name XOTcl2 \
+		 -url http://www.xotcl.org/ \
+		 -version 2.0.0 \
+		 -@namespace "::xotcl" \
+		 -sources {
+		   @package XOTcl-langRef
+		 }]
+
+processor process \
+    -sandboxed \
+    $project
+
+::nx::doc::make doc \
+    -renderer ::nx::doc::NxDocRenderer \
+    -project $project \
+    -outdir [::nsf::tmpdir]
 
 # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # #
