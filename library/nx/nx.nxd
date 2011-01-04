@@ -39,14 +39,98 @@
 # @namespace ::nx
 
 ########################################################################
+# ::nx::Object
+########################################################################
 
 # @class Object
 #
-# ::nx::Object is the <<@gls baseclass>> of the object system of
+# ::nx::Object is the <<@gls baseclass>> of the object system of the
 # <<@glossary nx>>.  All objects defined in NX are (direct or
 # indirect) instances of this class. All methods provided by
 # ::nx::Object are available to all objects (and classes) defined in
 # NX.
+
+########################################################################
+# Attributes of ::nx::Object
+########################################################################
+
+# @class.attribute {Object filter}
+#
+# Register the specified method(s) as per-object <<@glspl
+# filter>>. Every filter must be an existing method in the
+# scope of the object.
+
+# @class.attribute {Object mixin}
+#
+# Register the specified class(es) as per-object <<@glspl
+# mixin_class>>.  Every mixin must be an existing class.
+#
+
+# @class.attribute {Object noinit}
+#
+# Omit object initialization. When this flag is provided, the object
+# initialization will not call the constructor '''init'''. This is for
+# example useful when a serialized object is recreated in a previous
+# state, which would be altered by resetting its variables via
+# '''init'''.
+
+# @class.attribute {Object volatile}
+#
+# Create object as volatile.  A volatile object is destroyed
+# automatically, when the current variable scope is left.
+
+########################################################################
+# Methods of ::nx::Object
+########################################################################
+
+# @class.method {Object alias}
+#
+# Define an <<@gls alias>> as per-object method. This method us used
+# to define a method with the specified name using a pre-existing
+# implementation, which is provided as the last argument.
+#
+# @parameter methodName Name of the new method
+# @parameter -returns Parameter specification to check the result of 
+#             the alias method (e.g. '''integer''').
+# @parameter -frame Optional scoping information. If the provided 
+#            value is '''object''' then variable references of the 
+#            command are created as instance variables. If the value 
+#            is '''method''', then a method frame is pushed (the 
+#            method can resolve '''self'' or can call '''next''').
+# @parameter cmd A reference to an implementation. If the 
+#            implementation is a method, the value should be a
+#            <<@gls methodhandle>>, if it is a Tcl command, it should
+#            be a fully qualified name.
+
+
+# @class.method {Object attribute}
+#
+# Define a per-object <<@gls attribute>>. For every attribute, a <<@gls
+# slotobject>> is defined which is per default of the class <<@class
+# ::nx::Attribute>>.
+#
+# @parameter spec Attribute spec. 
+#            It can be a list of one or two elements, where the first 
+#            element contains the name and optionally parameter options.
+#            If the second element is given, it is the default 
+#            for this attribute.
+# @parameter -class:class,optional The optional class of the attribute,
+#            when the managing slot object should not be of type 
+#            '''nx::Attribute'''.
+# @parameter initblock A Tcl script for the initialization of the 
+#            <<@gls slotobject>> of the attribute.
+
+
+# @class.method {Object class}
+#
+# Sets or retrieves the <<@gls class>> of an object. When '''class'''
+# is called without its optional argument, it returns the current
+# class of the object, otherwise it sets it. An introspective
+# alternative for obtaining the class of an object is <<@class.method
+# {Object "info class"}>>.
+#
+# @parameter className:optional
+# @return <<@gls class>> of the object
 
 # @class.method {Object __default_attribute_call_protection}
 #
@@ -92,44 +176,10 @@
 #
 # @modifier protected
 
-# @class.attribute {Object filter}
-#
-# Register the specified method(s) as per-object <<@glspl
-# filter>>. Every filter must be an existing method in the
-# scope of the object.
-
-# @class.attribute {Object mixin}
-#
-# Register the specified classes as per-object <<@glspl mixin_class>>.
-# Every mixin must be an existing class. 
-#
-
-# @class.attribute {Object noinit}
-#
-# If this flag is provided, the object initialization will not call
-# the method '''init'''. This is for example useful when a serialized
-# object is recreated in a previous state, which would be altered by
-# resetting it with '''init'''.
-
-# @class.attribute {Object volatile}
-#
-# If this flag is provided, the object is created as volatile.  A
-# volatile object is destroyed automatically, when the current
-# variable scope is left.
-
-# @class.method {Object class}
-#
-# Sets or retrieves the <<@gls class>> of an object. When '''class'''
-# is called without its optional argument, it returns the current
-# class of the object, otherwise it sets it. An introspective
-# alternative for obtaining the class of an object is <<@class.method
-# {Object "info class"}>>.
-#
-# @parameter className:optional
-# @return <<@gls class>> of the object
 
 ########################################################################
-
+# ::nx::Class
+########################################################################
 
 # @class Class
 #
@@ -145,6 +195,41 @@
 # '''
 # @superclass ::nx::doc::entities::class::nx::Object
 
+########################################################################
+# Attributes of ::nx::Class
+########################################################################
+
+# @class.attribute {Class filter}
+#
+# Register the specified method(s) as per-class <<@glspl
+# filter>>. Every filter must be an existing method in the
+# scope of the object.
+
+# @class.attribute {Class mixin}
+#
+# Register the specified class(es) as per-class <<@glspl
+# mixin_class>>.  Every mixin must be an existing class.
+
+# @class.attribute {Class object-filter}
+#
+# Register the specified method(s) as per-object <<@glspl
+# filter>> for the class.
+
+# @class.attribute {Class object-mixin}
+#
+# Register the specified class(es) as per-object <<@glspl
+# mixin_class>> for the class.
+
+
+# @class.attribute {Class superclass}
+#
+# Set the superclass(es) for this class. The argument might contain a
+# list of classes to specify multiple inheritance. The order of the
+# superclasses is significant.
+
+########################################################################
+# Methods of ::nx::Class
+########################################################################
 
 # @class.method {Class alloc}
 #
@@ -414,12 +499,6 @@
 # @parameter targetVar ... which is a local variable in a method scope
 # @see ...
 
-# @class.method {Object attribute}
-#
-# This is a helper method which provides a convenient facade to define
-# <<@glspl attribute>> (with standard settings) on the given object
-# or the given class.
-
 # @class.method {Object volatile}
 #
 # By calling on this method, the object is bound in its lifetime to
@@ -616,14 +695,14 @@
 #
 # Verifies whether there is a method under a given name available for
 # invocation upon the object. In case, the introspective call returns
-# the corresponding <<@gls method_handle>>. If there is no so-named
+# the corresponding <<@gls methodhandle>>. If there is no so-named
 # method available, an empty string is returned.
 
 # @class.method {Object "info callable filter"}
 #
 # Search for a method which is currently registered as a filter (in
 # the invocation scope of the given object). If found, the
-# corresponding <<@gls method_handle>> is returned.
+# corresponding <<@gls methodhandle>> is returned.
 
 # @class.method {Object "info children"}
 #
@@ -796,9 +875,6 @@
 # 				specification (i.e., at the last
 # 				position).
 
-# @class.attribute {Class superclass}
-#
-# Set the superclasses for a given class
 
 # @class.method {Object mixin}
 #
@@ -824,7 +900,7 @@
 # '''filter''' returns the list of current filters
 # registered with the object
 
-# @class.attribute {Class mixin}
+# @class.method {Class mixin}
 #
 # As a setter, '''mixin''' specifies a list of <<@glspl mixin_class>> to
 # set for the class. Every <<@gls mixin_class>> must be an existing
@@ -834,7 +910,7 @@
 # @return :list If called as a getter (without arguments), '''mixin'''
 # returns the list of current <<@glspl mixin_class>> registered with the class
 
-# @class.attribute {Class filter}
+# @class.method {Class filter}
 #
 # In its setter mode, '''filter''' allows you to register methods
 # as per-class <<@glspl filter>>. Every filter must be an existing method
@@ -907,17 +983,6 @@
 # @pretty_plural Object-types
 
 
-# @glossary attribute
-# 
-# An attribute describes a structural feature of a class or an
-# object. An attribute has different runtime representations: An
-# attribute slot acts as a managing object, there are same-named
-# accessor and mutator methods and, finally, object variables carrying
-# the actual attribute data.
-#
-# @pretty_name Attribute
-# @pretty_plural Attributes
-
 # @glossary objparam
 #
 # @pretty_name Object parameter
@@ -964,13 +1029,6 @@
 #
 # @pretty_name Slot
 # @pretty_plural Slots
-
-# @glossary method_handle
-#
-# A method handle represents
-# 
-# @pretty_name Method handle
-# @pretty_plural Method handles
 
 # @glossary cim
 #

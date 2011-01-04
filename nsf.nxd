@@ -71,13 +71,13 @@
 # An alias is an alternate name for some artefact. In NSF, the term
 # "alias" is an abbreviation for a "method alias", which allows to
 # reuse some command or method unter a certain name. This way, one can
-# e.g. reuse Tcl commands like <<tclcmd set>> or <<tclcmd unset>>
-# without invocation overhead as methods for object and classes.
+# e.g. reuse Tcl commands like <<tclcmd set>> or <<tclcmd unset>> as
+# methods for object and classes.
 #
 # @pretty_name Alias
 # @pretty_plural Aliases
 
-# @glossary method_handle
+# @glossary methodhandle
 #
 # A method handle is a fully qualified reference to a method. Since
 # methods with identical names can be defined on object and classes,
@@ -131,7 +131,7 @@
 
 # @glossary mixin_class
 #
-# A mixin class is a class that provides its method set to objects and
+# A mixin class is a class that provides its method-set to objects and
 # classes outside of the intrinsic class hierarchy (the class
 # hierarchy defined by the is-instance-of and superclass
 # relationship). A mixin class registered on an object is called a
@@ -150,6 +150,31 @@
 #
 # @pretty_name Filter
 # @pretty_plural Filters
+
+# @glossary slotobject
+#
+# A slot object is an <<@gls object>> of the class <<@class
+# ::nx::Slot>> that manages certain properties of objects. The most
+# prominent properties are instance variables (see <<@glspl
+# attribute>>). Typical examples for such meta-data are
+# default-values, value checker, linkage to database table/attributes,
+# labels for pretty-printing, widget specifications for data entry,
+# etc.
+#
+# @pretty_name Slot object
+# @pretty_plural Slot objects
+
+# @glossary attribute
+# 
+# An attribute describes properties of instance variables and might be
+# defined for a class or an object. Attributes are realized via
+# <<@glspl slotobject>>. When an instance of the class, on which the
+# attribute is defined, is created, the default value of the slot
+# object is used as initial value, and same-named accessor functions
+# are created automatically (unless this is suppressed).
+#
+# @pretty_name Attribute
+# @pretty_plural Attributes
 
 # xxxx-bis-hierher
 
@@ -177,8 +202,8 @@
 # 				method. Permissible options are:
 # 				'''method''', '''object''',
 # 				'''default'''
-# @parameter cmdName 		The alias source as a <<@gls method_handle>>
-# @return 			The <<@gls method_handle>> representing the
+# @parameter cmdName 		The alias source as a <<@gls methodhandle>>
+# @return 			The <<@gls methodhandle>> representing the
 # 				alias method just created
 
 
@@ -364,7 +389,7 @@
 # @parameter command 		Specifies the receiving command, to be invoked in
 # 				the callframe scope of the receiver
 # 				object. The receiving command can be
-# 				specified as a <<@gls method_handle>>
+# 				specified as a <<@gls methodhandle>>
 # @parameter args		The actual invocation arguments, to be
 # 				funneled to the receiving command.
 # @return 			The result value as returned by the receiving 
@@ -563,7 +588,7 @@
 # 					specified, preconditions must
 # 					also be provided. See also
 # 					<<@command assertion>>.
-# @return			The <<@gls method_handle>> representing the
+# @return			The <<@gls methodhandle>> representing the
 # 				newly created method
 
 # @command next
