@@ -609,7 +609,7 @@ typedef enum {SHADOW_LOAD=1, SHADOW_UNLOAD=0, SHADOW_REFETCH=2} NsfShadowOperati
 int NsfCallCommand(Tcl_Interp *interp, NsfGlobalNames name,
 		     int objc, Tcl_Obj *CONST objv[]);
 int NsfShadowTclCommands(Tcl_Interp *interp, NsfShadowOperations load);
-Tcl_Obj * NsfMethodObj(Tcl_Interp *interp, NsfObject *object, int methodIdx);
+Tcl_Obj * NsfMethodObj(NsfObject *object, int methodIdx);
 
 
 /*

@@ -94,7 +94,6 @@ nsfCmd method NsfMethodCmd {
   {-argName "object" -required 1 -type object}
   {-argName "-inner-namespace"}
   {-argName "-per-object"}
-  {-argName "-public"}
   {-argName "methodName" -required 1 -type tclobj}
   {-argName "arguments" -required 1 -type tclobj}
   {-argName "body" -required 1 -type tclobj}

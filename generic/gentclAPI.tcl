@@ -31,6 +31,7 @@ static int ConvertTo${name}(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   $opts
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "$argname", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -102,6 +103,7 @@ proc gencall {fn parameterDefinitions clientData cDefsVar ifDefVar arglistVar pr
           {  if (!obj) return NsfObjErrType(interp, NULL, objv[0], "Object", NULL);}
     }
     ""    {
+      append intro "  (void)clientData;\n"
       set a [list]
       set if [list]
       array set cd {arglist "" ifDefs ""}

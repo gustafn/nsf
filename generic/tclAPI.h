@@ -13,6 +13,7 @@ static int ConvertToInfomethodsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfPar
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"args", "body", "definition", "handle", "parameter", "parametersyntax", "type", "precondition", "postcondition", "submethods", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "infomethodsubcmd", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -25,6 +26,7 @@ static int ConvertToCallprotection(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"all", "protected", "public", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-callprotection", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -37,6 +39,7 @@ static int ConvertToMethodtype(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CON
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"all", "scripted", "builtin", "alias", "forwarder", "object", "setter", "nsfproc", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-methodtype", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -49,6 +52,7 @@ static int ConvertToScope(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *p
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"all", "class", "object", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-scope", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -61,6 +65,7 @@ static int ConvertToFrame(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *p
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"method", "object", "default", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-frame", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -73,6 +78,7 @@ static int ConvertToAssertionsubcmd(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfPara
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"check", "object-invar", "class-invar", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "assertionsubcmd", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -85,6 +91,7 @@ static int ConvertToConfigureoption(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfPara
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"debug", "filter", "softrecreate", "objectsystems", "keepinitcmd", "checkresults", "checkarguments", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "configureoption", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -97,6 +104,7 @@ static int ConvertToCurrentoption(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam 
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"proc", "method", "methodpath", "object", "class", "activelevel", "args", "activemixin", "calledproc", "calledmethod", "calledclass", "callingproc", "callingmethod", "callingclass", "callinglevel", "callingobject", "filterreg", "isnextcall", "next", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "currentoption", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -109,6 +117,7 @@ static int ConvertToMethodproperty(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"class-only", "call-protected", "redefine-protected", "returns", "slotcontainer", "slotobj", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "methodproperty", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -121,6 +130,7 @@ static int ConvertToRelationtype(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam C
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"object-mixin", "class-mixin", "object-filter", "class-filter", "class", "superclass", "rootclass", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "relationtype", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -133,6 +143,7 @@ static int ConvertToObjectkind(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CON
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"class", "baseclass", "metaclass", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "objectkind", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -145,6 +156,7 @@ static int ConvertToSource(Tcl_Interp *interp, Tcl_Obj *objPtr, NsfParam CONST *
 			    ClientData *clientData, Tcl_Obj **outObjPtr) {
   int index, result;
   static CONST char *opts[] = {"all", "application", "baseclasses", NULL};
+  (void)pPtr;
   result = Tcl_GetIndexFromObj(interp, objPtr, opts, "-source", 0, &index);
   *clientData = (ClientData) INT2PTR(index + 1);
   *outObjPtr = objPtr;
@@ -306,7 +318,7 @@ static int NsfInterpObjCmd(Tcl_Interp *interp, CONST char *name, int objc, Tcl_O
 static int NsfInvalidateObjectParameterCmd(Tcl_Interp *interp, NsfClass *class);
 static int NsfIsCmd(Tcl_Interp *interp, int withComplain, Tcl_Obj *constraint, Tcl_Obj *value);
 static int NsfIsObjectCmd(Tcl_Interp *interp, Tcl_Obj *value);
-static int NsfMethodCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, int withPublic, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
+static int NsfMethodCmd(Tcl_Interp *interp, NsfObject *object, int withInner_namespace, int withPer_object, Tcl_Obj *methodName, Tcl_Obj *arguments, Tcl_Obj *body, Tcl_Obj *withPrecondition, Tcl_Obj *withPostcondition);
 static int NsfMethodPropertyCmd(Tcl_Interp *interp, NsfObject *object, int withPer_object, Tcl_Obj *methodName, int methodproperty, Tcl_Obj *value);
 static int NsfMyCmd(Tcl_Interp *interp, int withLocal, Tcl_Obj *methodName, int nobjc, Tcl_Obj *CONST nobjv[]);
 static int NsfNSCopyCmdsCmd(Tcl_Interp *interp, Tcl_Obj *fromNs, Tcl_Obj *toNs);
@@ -873,6 +885,7 @@ NsfClassInfoSuperclassMethodStub(ClientData clientData, Tcl_Interp *interp, int 
 static int
 NsfAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfAliasCmdIdx].paramDefs, 
@@ -895,6 +908,7 @@ NsfAliasCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 static int
 NsfAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfAssertionCmdIdx].paramDefs, 
@@ -914,6 +928,7 @@ NsfAssertionCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
 static int
 NsfColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
 
     
 
@@ -924,6 +939,7 @@ NsfColonCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CO
 static int
 NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfConfigureCmdIdx].paramDefs, 
@@ -943,6 +959,7 @@ NsfConfigureCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 static int
 NsfCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfCreateObjectSystemCmdIdx].paramDefs, 
@@ -963,6 +980,7 @@ NsfCreateObjectSystemCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
 static int
 NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfCurrentCmdIdx].paramDefs, 
@@ -980,6 +998,7 @@ NsfCurrentCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 static int
 NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
 
     
 
@@ -996,6 +1015,7 @@ NsfDebugRunAssertionsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc
 static int
 NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfDispatchCmdIdx].paramDefs, 
@@ -1016,6 +1036,7 @@ NsfDispatchCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 static int
 NsfExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfExistsVarCmdIdx].paramDefs, 
@@ -1034,6 +1055,7 @@ NsfExistsVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 
 static int
 NsfFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
 
     
 
@@ -1050,6 +1072,7 @@ NsfFinalizeObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_O
 static int
 NsfForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfForwardCmdIdx].paramDefs, 
@@ -1077,6 +1100,7 @@ NsfForwardCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 static int
 NsfImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfImportvarCmdIdx].paramDefs, 
@@ -1095,6 +1119,7 @@ NsfImportvarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 static int
 NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfInterpObjCmdIdx].paramDefs, 
@@ -1113,6 +1138,7 @@ NsfInterpObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj
 static int
 NsfInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfInvalidateObjectParameterCmdIdx].paramDefs, 
@@ -1131,6 +1157,7 @@ NsfInvalidateObjectParameterCmdStub(ClientData clientData, Tcl_Interp *interp, i
 static int
 NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfIsCmdIdx].paramDefs, 
@@ -1150,6 +1177,7 @@ NsfIsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 
 static int
 NsfIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
 
     
 
@@ -1166,6 +1194,7 @@ NsfIsObjectCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 static int
 NsfMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMethodCmdIdx].paramDefs, 
@@ -1176,15 +1205,14 @@ NsfMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
     NsfObject *object = (NsfObject *)pc.clientData[0];
     int withInner_namespace = (int )PTR2INT(pc.clientData[1]);
     int withPer_object = (int )PTR2INT(pc.clientData[2]);
-    int withPublic = (int )PTR2INT(pc.clientData[3]);
-    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[4];
-    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[5];
-    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[6];
-    Tcl_Obj *withPrecondition = (Tcl_Obj *)pc.clientData[7];
-    Tcl_Obj *withPostcondition = (Tcl_Obj *)pc.clientData[8];
+    Tcl_Obj *methodName = (Tcl_Obj *)pc.clientData[3];
+    Tcl_Obj *arguments = (Tcl_Obj *)pc.clientData[4];
+    Tcl_Obj *body = (Tcl_Obj *)pc.clientData[5];
+    Tcl_Obj *withPrecondition = (Tcl_Obj *)pc.clientData[6];
+    Tcl_Obj *withPostcondition = (Tcl_Obj *)pc.clientData[7];
 
     assert(pc.status == 0);
-    return NsfMethodCmd(interp, object, withInner_namespace, withPer_object, withPublic, methodName, arguments, body, withPrecondition, withPostcondition);
+    return NsfMethodCmd(interp, object, withInner_namespace, withPer_object, methodName, arguments, body, withPrecondition, withPostcondition);
 
   }
 }
@@ -1192,6 +1220,7 @@ NsfMethodCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 static int
 NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMethodPropertyCmdIdx].paramDefs, 
@@ -1214,6 +1243,7 @@ NsfMethodPropertyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 static int
 NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfMyCmdIdx].paramDefs, 
@@ -1233,6 +1263,7 @@ NsfMyCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 static int
 NsfNSCopyCmdsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfNSCopyCmdsCmdIdx].paramDefs, 
@@ -1252,6 +1283,7 @@ NsfNSCopyCmdsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 static int
 NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfNSCopyVarsCmdIdx].paramDefs, 
@@ -1270,6 +1302,7 @@ NsfNSCopyVarsCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 static int
 NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
 
     
 
@@ -1286,6 +1319,7 @@ NsfNextCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 static int
 NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfProcCmdIdx].paramDefs, 
@@ -1306,6 +1340,7 @@ NsfProcCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 static int
 NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
 
     
 
@@ -1322,6 +1357,7 @@ NsfQualifyObjCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 static int
 NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfRelationCmdIdx].paramDefs, 
@@ -1341,6 +1377,7 @@ NsfRelationCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
 static int
 NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
 
     
 
@@ -1357,6 +1394,7 @@ NsfSelfCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 static int
 NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfSetVarCmdIdx].paramDefs, 
@@ -1377,6 +1415,7 @@ NsfSetVarCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 static int
 NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
+  (void)clientData;
 
   if (ArgumentParse(interp, objc, objv, NULL, objv[0], 
                      method_definitions[NsfSetterCmdIdx].paramDefs, 
@@ -1396,6 +1435,7 @@ NsfSetterCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
 static int
 NsfShowStackCmdStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+  (void)clientData;
 
     
 
@@ -2192,11 +2232,10 @@ static methodDefinition method_definitions[] = {
 {"::nsf::isobject", NsfIsObjectCmdStub, 1, {
   {"value", NSF_ARG_REQUIRED, 0, ConvertToTclobj}}
 },
-{"::nsf::method", NsfMethodCmdStub, 9, {
+{"::nsf::method", NsfMethodCmdStub, 8, {
   {"object", NSF_ARG_REQUIRED, 0, ConvertToObject},
   {"-inner-namespace", 0, 0, ConvertToString},
   {"-per-object", 0, 0, ConvertToString},
-  {"-public", 0, 0, ConvertToString},
   {"methodName", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"arguments", NSF_ARG_REQUIRED, 0, ConvertToTclobj},
   {"body", NSF_ARG_REQUIRED, 0, ConvertToTclobj},

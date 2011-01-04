@@ -2181,6 +2181,9 @@ text
 - doc-tools: title to internal links, provided css class, added nicer label
 - updated reference doc
 
+- removed leftover -public flag in nsf::method
+- general cleanup: removed unused arguments
+
 TODO:
 - doc:
    NextScriptingLanguage/index.html: 
@@ -2215,7 +2218,7 @@ TODO:
     Class protected class-object method __unknown {name} {}
   needed?
 - would be nice to remove noinit as a method and leave it as a objectparameter
-
+- ListDefinedMethods noMixins and inContext not defined yet.
 
 - nsf::proc 
    * check, if there are parameter types that should not be applicable 

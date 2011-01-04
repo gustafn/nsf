@@ -806,6 +806,8 @@ CscAlloc(Tcl_Interp *interp, NsfCallStackContent *cscPtr, Tcl_Command cmd) {
     cscPtr->flags = 0;
   }
 #else
+  (void)interp;
+  (void)cmd;
   cscPtr->flags = 0;
 #endif
 
