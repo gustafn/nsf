@@ -1,4 +1,5 @@
-body            {font-size: 10pt;}
+body            {font-size: 10pt; text-align: justify;}
+#header         {text-align: left;}
 .nx             {font-size: 90%; color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
 table.nx        {border-collapse: collapse; border-spacing: 3px;}
 .nx-linenr      {font-size: 90%; border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D; font-style: italic;}
