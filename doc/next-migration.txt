@@ -38,8 +38,8 @@ interpreter. The whole definition of NX is fully scripted
 (e.g. defined in +nx.tcl+).  The Next Scripting Framework is shipped
 with three language definitions, containing NX and XOTcl 2.  Most of
 the existing XOTcl 1 programs can be used without modification in the
-Next Scripting Framework. The Next Scripting Framework requires Tcl
-8.5 or newer.
+Next Scripting Framework by using XOTcl 2. The Next Scripting
+Framework requires Tcl 8.5 or newer.
 
 Although NX is fully scripted (as well as XOTcl 2), our benchmarks
 show that scripts based on NX are often 2 or 4 times faster than the
