@@ -204,19 +204,37 @@ nx::Object create nx::pp {
     $state flush
   }
 
-  :public method render {-noCSSClasses:switch block} {
+  :public method numbers {block} {
+    set nrlines [regsub -all \n $block \n block]
+    incr nrlines
+    set HTML ""
+    for {set i 1} {$i<=$nrlines} {incr i} {
+      append HTML [format %3d $i]\n
+    }
+    return $HTML
+  }
+
+  :public method render {{-linenumbers false} -noCSSClasses:switch block} {
+    set :output ""
+    :toHTML $block
+    set HTML ${:output}
     set :output ""
     :puts "<style type='text/css'>"
-    :puts ".nx             {color: #000000; font-weight: normal; font-style: normal;}"
+    :puts ".nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}"
+    :puts "table.nx        {border-collapse: collapse; border-spacing: 3px;}"
+    :puts ".nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}"
     :puts ".nx-string      {color: #779977; font-weight: normal; font-style: italic;}"
     :puts ".nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}"
     :puts ".nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}"
     :puts ".nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}"
     :puts ".nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}"
     :puts "</style>"
-    :puts -nonewline "<pre class='nx'>"
-    :toHTML $block
-    :puts "</pre>"
+    if {$linenumbers} {
+      :puts -nonewline "<table class='nx'><tr><td class='nx-linenr'><pre>[:numbers $block]</pre></td>"
+      :puts -nonewline "<td class='nx-body'><pre class='nx'>$HTML</pre></td></tr></table>"
+    } else {
+      :puts -nonewline "<pre class='nx'>$HTML</pre>"
+    }
     return ${:output}
   }
 
