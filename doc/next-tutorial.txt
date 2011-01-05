@@ -12,7 +12,7 @@ Written for the Initial Release of the Next Scripting Framework.
 .Abstract
 *****************************************************************************
 This document provides a tutorial for the Next Scripting 
-Langauge NX.
+Language NX.
 *****************************************************************************
 The Next Scripting Language (NX) is a successor of XOTcl 1 and is
 based on 10 years of experience with XOTcl in projects containing
