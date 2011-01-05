@@ -1,0 +1,610 @@
+Tutorial for the Next Scripting Language
+==========================================
+Gustaf Neumann <neumann@wu-wien.ac.at>, Stefan Sobernig <stefan.sobernig@wu.ac.at>
+v2.0, December 2010:
+Written for the Initial Release of the Next Scripting Framework.
+:Author Initials: GN
+:toc:
+:icons:
+:numbered:
+:website: http://www.xotcl.org/
+
+.Abstract
+*****************************************************************************
+This document provides a tutorial for the Next Scripting 
+Langauge NX.
+*****************************************************************************
+The Next Scripting Language (NX) is a successor of XOTcl 1 and is
+based on 10 years of experience with XOTcl in projects containing
+several hundert thousand lines of code. While XOTcl was the first
+language designed to provide language support for design patterns, the
+focus of the Next Scripting Framework and NX are on combining this
+with Language Oriented Programming. In many respects, NX was designed
+to ease the learning of the language by novices (by using a more
+mainstream terminology, higher orthogonality of the methods, less
+predefined methods), to improve maintainability (remove sources of
+common errors) and to encourage developer to write better structured
+programs (to provide interfaces) especially for large projects, where
+many developers are involved.
+
+The Next Scripting Language is based on the Next Scripting Framework
+which was developed based on the notion of language oriented
+programming. The Next Scripting Frameworks provides C-level support
+for defining and hosting multiple object systems in a single Tcl
+interpreter. The whole definition of NX is fully scripted (e.g.
+defined in +nx.tcl+). The Next Scripting Framework is shipped with
+three language definitions, containing NX and XOTcl 2. Most of the
+existing XOTcl 1 programs can be used without modification in the Next
+Scripting Framework by using XOTcl 2. The Next Scripting Framework
+requires Tcl 8.5 or newer.
+
+History
+-------
+
+Object oriented extensions of Tcl <<Ousterhout 1990>> have quite a
+long history. Two of the most prominent early Tcl based OO languages
+were _incr Tcl_ (abbreviated as itcl) and Object Tcl (_OTcl_
+<<Wetherall and Lindblad 1995>>). While itcl provides a traditional
+C++/Java-like object system, OTcl was following the CLOS approach and
+supports a dynamic object system, allowing incremental class and
+object extensions and re-classing of objects.
+
+Extended Object Tcl (abbreviated as XOTcl <<Neumann and Zdun 2000a>>)
+is a successor of OTcl and was the first language providing language
+support for design patterns. XOTcl extends OTcl by providing namespace
+support, adding assertions, dynamic object aggregations, slots and by
+introducing per-object and per-class filters and per-object and
+per-class mixins.
+
+XOTcl was so far released in more than 30 versions. It is described in
+its detail in more than 20 papers and serves as a basis for other
+object systems like TclOO [Donal ???]. The scripting language _NX_ and
+the _Next Scripting Framework_ NSF 2009] extend the basic ideas of
+XOTcl by providing support for _language-oriented programming_. The
+the Next Scripting Framework supports multiple object systems
+concurrently. Effectively, every object system has different base
+classes for creating objects and classes. Therefore, these object
+systems can have different different interfaces and can follow
+different naming conventions for built-in methods. Currently, the Next
+Scripting Framework is packaged with three object systems: NX, XOTcl
+2.0, and TclCool (the language introduced by TIP#279).
+
+.Figure 1: Language History of the Next Scripting Language
+image:languages.png[width=400,height=600,scaledwidth="75%",
+	title="Language History of the Next Scripting Language",
+	alt="Languages"]
+
+The primary purpose of this document is to introduce NX to beginners.
+We expect some prior knowledge of programming languages, and some
+knowledge about Tcl. In the following sections we introduce NX by
+examples. In later sections we introduce the more advanced concepts of
+the language. Conceptually, most of the addressed concepts are very
+similar in XOTcl. Concerning the differences between NX and XOTcl,
+please refer to the "Migration Guide for the Next Scripting Language".
+
+== Introductory Overview Example: Stack
+
+A classical programming example is an implementation of a stack, which
+is most likely familiar to many readers from many introductory
+programming courses. A stack is a last-in first-out data structure
+which is manipulated via operations like +push+ (add something to the
+stack) and +pop+ remove an entry from the stack. These operations are
+called _methods_ in the context of object oriented programming
+systems. Primary goals of object orientation are encapsulation and
+abstraction. Therefore, we define a common unit (a class) that defines
+and encapsulates the behavior of a stack and provides methods to a user
+of the data structure that abstract from the actual implementation.
+
+=== Define a Class Stack
+
+In our first example, we define a class named +Stack+ with the methods
++push+ and +pop+. When an instance of the stack is created (e.g. a
+concrete stack +s1+) the stack will be initialized via the constructor
++init+.
+
+.Class Stack
+[caption="Figure 1: "]
+[[fig1]]
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create Stack {
+
+   #
+   # Stack of Things
+   #
+
+   :method init {} {
+     set :things ""
+   } 
+
+   :public method push {thing} {
+      set :things [linsert ${:things} 0 $thing] 
+      return $thing
+   }
+  
+   :public method pop {} {
+      set top [lindex ${:things} 0]
+      set :things [lrange ${:things} 1 end]
+      return $top
+   }
+}
+--------------------------------------------------
+
+Typically, classes are defined in NX via +nx::Class create+ followed
+by the name of the new class (here: +Stack+). The definition of the
+stack placed between curly braces and contains here just the method
+definitions. Methods of the class are defined via +:method+ followed
+by the name of the method, an argument list and the body of the
+method, consisting of Tcl and NX statements.
+
+The first method is the constructor +init+, where the Tcl command +set+
+is used to set the instance variable +things+ to empty. The leading
+colon of the variable denotes that the variable is an instance variable
+and belongs to instances of this class. If multiple stack instances
+are created, every one of these will have a different variable. The
+instance variable +things+ is used in our example as a list for the
+internal representation of the stack. We define in a next step the
+methods to access and modify this list structure. A user of the stack
+using the the provided methods does not have to have any knowledge
+about the name or the structure of the internal representation.
+
+The method +push+ receives an argument +thing+ which should be placed
+on the stack. Note that we do not have to specify the type of the
+element on the stack, so we can push strings as well as numbers or
+other kind of things. When an element is pushed, we add this element
+as the first element to the list +things+. We insert the element using
+the Tcl command +linsert+ which receives the list as first element,
+the position where the element should be added as second and the new
+element as third argument. To access the value of the instance
+variable we use the dollar operator followed by the name. Since the
+name contains a colon (to denote that the variable is an instance
+variable), Tcl requires us to put braces around the name. Since
++linsert+ and its arguments are placed between square brackets, the
+function is called and returns the new list. The result is assigned
+again to the instance variable +things+ which is updated this way.
+Finally the method +push+ returns the pushed thing using the +return+
+statement.
+
+The method +pop+ returns the most recently stacked element and removes
+it from the stack. Therefore, it takes the first element from the list
+(using the Tcl command +lindex+), assigns it to the method-scoped
+variable +top+, removes the element from the instance variable
++things+ (by using the Tcl command +lrange+) and returns the value
+popped element +top+.
+
+This finishes our first implementation of the the stack, more enhanced
+versions will follow. Note that the methods +push+ and +pop+ are
+defined as +public+; this means that these methods of the stack can be
+used from all other objects in the system. Therefore, these methods
+provide an interface to the stack implementation.
+
+.Using the Stack
+[caption="Figure 2: "]
+[[fig2]]
+[source,tcl,numbers]
+--------------------------------------------------
+!#/bin/env tclsh
+package require nx
+ 
+nx::Class create Stack {
+
+   #
+   # Stack of Things
+   #
+   ....
+}
+ 
+Stack create s1
+s1 push a
+s1 push b
+s1 push c
+puts [s1 pop]
+puts [s1 pop]
+s1 destroy
+--------------------------------------------------
+
+
+Now we want to use the stack. The code snipped in <<fig2, Figure 2>>
+shows how to use the class Stack in a script. Since NX is based on
+Tcl, the script will be called with the Tcl shell +tclsh+. In the Tcl
+shell we have to +require package nx+ to use the Next Scripting
+Framework and NX. The next lines contain the definition of the stack
+as presented before. Of course, it is as well possible to make the
+definition of the stack an own package, such we could simple say
++package require stack+, or to save the definition of a stack simply
+in a file and load it via +source+.
+
+In line 12 we create an instance of the stack, namely the stack object
++s1+. The object +s1+ has as an instance of the stack access to the
+methods, which can be invoked by the name of the object followed by
+the method name. In lines 13-15 we push on the stack the values +a+,
+then +b+, and +c+. In line 16 we output the result of the +pop+ method
+using the Tcl command +puts+. We will see on standard output the
+value+c+ (the last stacked item). The output of the line 17 is the
+value +b+ (the previously stacked item). Finally, in line 18 we
+destroy the object. This is not necessary here, but shows the life
+cycle of an object. In some respects, +destroy+ is the counterpart of
++create+ from line 12.
+
+=== Define an Object named stack
+
+The definition of the stack in <<fig1, Figure 1>> is following the
+traditional object oriented approach, found in practically every object
+oriented programming language: Define a class with some methods,
+create instances from this class, and use the methods defined in the
+class in the instances of the class. 
+
+In our next example, we introduce _generic objects_ and _object
+specific methods_. With NX, we can define generic objects, which are
+instances of the most generic class +nx::Object+ (sometimes called
+"common root class"). +nx::Object+ is predefined and contains a
+minimal set of methods applicable to all NX objects. 
+
+In our second example, we will define a generic object named +stack+
+and provide methods for this object. The methods defined in our first
+example were methods provided by a class for objects. Now we defined
+object specific methods, which are methods applicable only to the 
+object for which they are defined.
+
+.Object stack
+[caption="Figure 3: "]
+[[fig3]]
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Object create stack {
+
+   set :things ""
+
+   :public method push {thing} {
+      set :things [linsert ${:things} 0 $thing] 
+      return $thing
+   }
+  
+   :public method pop {} {
+      set top [lindex ${:things} 0]
+      set :things [lrange ${:things} 1 end]
+      return $top
+   }
+}
+--------------------------------------------------
+
+The example in <<fig3, Figure 3>> defines the object +stack+ in a very
+similar way as the class +Stack+. But the following points are
+different. 
+
+- First, we use +nx::Object+ instead of +nx::Class+ to denote
+  that we want to create a generic object, not a class.
+
+- Secondly, we do not need a constructor (which is called at the time
+   an instance of a class is created), since we do not create a class
+   here. Instead, we can set the instance variable +things+ directly
+   for this object (the object +stack+).
+
+The definition for the methods +push+ and +pop+ are the same as
+before, but this times they are object specify. All methods defined on
+an object are object-specific. In order to use the stack, we can use
+directly the object +stack+ in the same way as we have used the object
++s1+ in <<fig2, Figure 2>>. 
+
+A reader might wonder when to use a class +Stack+ or rather an object
++stack+. A big difference is certainly that one can define easily
+multiple instances of a class, while the object is actually a
+singleton. The concept of the object +stack+ is similar to a module
+providing a certain functionality via a common interface without
+providing the functionality to create multiple instances. The reuse of
+methods provided by the class to objects is as well a difference. If
+the methods of the class are updated, all instances of the class well
+immediately get the modified behavior. But this does not mean that
+there is no reuse for the methods of stack possible. NX allows for
+example to copy objects (similar to prototype based languages) or to
+reuse methods via e.g. aliases (more about this later).
+
+Note that we use capitalized names for classes and lowercase names for
+instances. This is not required and a pure convention making it easier
+to understand scripts without much analysis.
+
+=== Implementing Features using Mixin Classes
+
+So far, the definition of the stack methods was pretty minimal.
+Suppose, we want to define "safe stacks" that protect e.g. against
+stack under-runs (a stack under-run happens, when more +pop+ than
++push+ operations are issued on a stack). Safety checking can be
+implemented mostly independent from the implementation details of the
+stack (usage of internal data structures). There are as well different
+ways of checking the safety. Therefore we say that safety checking is
+orthogonal to the stack core implementation.
+
+With NX we can define stack-safety as a separate class using methods
+with the same names as the implementations before, and "mix" this
+behavior into classes or objects. The implementation of +Safety+ in
+<<fig4, Figure 4>> uses a counter to check for stack under-runs and to
+issue error messages, when this happens.
+
+.Class Safety
+[caption="Figure 4: "]
+[[fig4]]
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create Safety {
+
+  #
+  # Implement stack safety by defining an additional
+  # instance variable named "count" that keeps track of
+  # the number of stacked elements. The methods of 
+  # this class have the same names and argument lists
+  # and will shadow the methods of class Stack.
+  #
+        
+  :method init {} { # Constructor
+    set :count 0
+    next
+  } 
+
+  :public method push {thing} {
+    incr :count
+    next
+  }
+  
+  :public method pop {} {
+    if {${:count} == 0} then { error "Stack empty!" }
+    incr :count -1
+    next
+  }
+}
+--------------------------------------------------
+
+Note that the methods of the class +Safety+ all end with +next+.
+This command is a primitive command of NX, that will call the
+same-named method with the same argument list as the current
+invocation.
+
+Assume we safe the definition of the class +Stack+ in a file named
++Stack.tcl+ and the definition of the class +Safety+ in a file named
++Safety.tcl+ in the current directory. When we load the classes
++Stack+ and +Safety+ into the same script (see the terminal dialog in
+<<fig5, Figure 5>>), we can define e.g. a certain stack +s2+ as a safe
+stack, while all other stacks (such as +s1+) might be still "unsafe".
+This can be achieved via the option +-mixin+ at the object creation
+time (see line 9 in <<fig5, Figure 5>>) of s2. The option +-mixin+
+mixes the class +Safety+ into the new instance +s2+.
+
+.Using the Class Safety
+[caption="Figure 5: "]
+[[fig5]]
+[source,tcl,numbers]
+--------------------------------------------------
+% package require nx
+2.0
+% source Stack.tcl
+::Stack
+% source Safety.tcl
+::Safety
+% Stack create s1
+::s1
+% Stack create s2 -mixin Safety
+::s2
+% s2 push a
+a
+% s2 pop
+a
+% s2 pop
+Stack empty!
+
+% s1 info precedence
+::Stack ::nx::Object
+
+% s2 info precedence
+::Safety ::Stack ::nx::Object
+--------------------------------------------------
+
+When the method +push+ of +s2+ is called, first the method of the
+mixin class +Safety+ will be invoked that increments the counter and
+continues with +next+ to call the shadowed method, here the method
++push+ of the +Stack+ implementation that actually pushes the item.
+The same happens, when +s2 pop+ is invoked, first the method of
++Safety+ is called, then the method of the +Stack+. When the stack is
+empty (the value of +count+ reaches 0), and +pop+ is invoked, the
+mixin class +Safety+ generates an error message (raises an exception),
+and does not invoke the method of the +Stack+.
+
+The last two commands in <<fig5, Figure 5>> use introspection to query
+for the objects +s1+ and +s2+ the order in which the classes are
+processed. This order is called the +precedence order+ and is obtained
+via +info precedence+. We see that the mixin class +Safety+ is only in
+use for +s2+, and takes there precedence over +Stack+. The common root
+class +nx::Object+ is for both +s1+ and +s2+ the base class.
+
+Note that the class +Safety+ is only mixed into a single object (here
++s2+), therefore we refer to this case as a _per-object mixin_. The
+class +Safety+ can be used as well in other ways, such as e.g. for
+defining classes for safe stacks <<fig6, Figure 6>>.
+
+.Class SafeStack
+[caption="Figure 6: "]
+[[fig6]]
+[source,tcl,numbers]
+--------------------------------------------------
+#
+# Create a safe stack class by using Stack and mixin 
+# Safety 
+#
+Class create SafeStack -superclass Stack -mixin Safety
+
+SafeStack create s3
+--------------------------------------------------
+
+The difference to the case with the per-object mixin is that now,
++Safety+ is mixed into the definition of +SafeStack+. Therefore, all
+instances of the class +SafeStack+ (here +s3+) will be using the
+safety definitions.
+
+=== Define Different Kinds of Stacks
+
+The definition of +Stack+ is generic and allows all kind of elements
+to be stacked. Suppose, we want to use the generic stack definition,
+but a certain stack (say, stack +s4+) should be a stack for integers
+only. This behavior can be achieved by the same means as introduced
+already in <<fig3, Figure 3>>, namely object specific methods.
+
+.Object Integer Stack
+[caption="Figure 7: "]
+[[fig7]]
+[source,tcl,numbers]
+--------------------------------------------------
+Stack create s4 {
+
+  # 
+  # Create a stack with a object-specific method 
+  # to check the type of entries 
+  #
+
+  :public method push {thing:integer} {
+    next
+  }
+}
+--------------------------------------------------
+
+The program snippet in <<fig7, Figure 7>> defines an instance +s4+ of
+the class +Stack+ and provides an object specific method for +push+ to
+implement an integer stack. The method +pull+ is the same for the
+integer stack as for all other stacks, so it will be reused as usual
+from the class +Stack+. The object-specific method +push+ of +s4+ has
+a value constraint in its argument list (+thing:integer+) that makes
+sure, that only integers can be stacked. In case the argument is not
+an integer, an exception will be raised. Of course, one could perform
+the value constraint checking as well in the body of the method +proc+
+by accepting an generic argument and by performing the test for the
+value in the body of the method. In the case, the passed value is an
+integer, the +push+ method of <<fig7, Figure 7>> calls +next+, and
+therefore calls the shadowed generic definition of +push+ as provided
+by +Stack+.
+
+.Class IntegerStack
+[caption="Figure 8: "]
+[[fig8]]
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create IntegerStack -superclass Stack {
+
+  # 
+  # Create a Stack accepting only integers
+  #
+
+  :public method push {thing:integer} {
+    next
+  }
+}
+--------------------------------------------------
+
+An alternative approach is shown in <<fig8, Figure 8>>, where the
+class +IntegerStack+ is defined, using again the same method
+definition on the class level as previously in <<fig7, Figure 7>>.
+
+=== Define Class Specific Methods
+
+In our previous examples we defined methods provided by classes
+(applicable for its instances) and object-specific methods (methods
+defined on objects, only applicable for these objects). In this
+section, we introduce methods defined on classes, which are only
+applicable for the class objects. Such methods are sometimes called
+class methods or "static methods".
+
+In NX classes are objects with certain properties (providing methods
+for instances, managing object life-cycles; we will come to this later
+in more detail). Since classes are objects, we can define as well
+object-specific methods for the class objects. However, since
++:method+ applied on classes defines methods for instances, we have to
+use the method-modifier +class-object+ to denote methods to be
+applied on the class itself. Note that class-object methods are not
+inherited to instances. These methods defined on the class object are
+actually exactly same as the object-specific methods in the examples
+above.
+
+.Class Stack2
+[caption="Figure 9: "]
+[[fig9]]
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Class create Stack2 {
+
+    :class-object method available_stacks {} {
+      return [llength [:info instances]]
+   }
+
+   :method init {} {
+     set :things ""
+   } 
+
+   :public method push {thing} {
+      set :things [linsert ${:things} 0 $thing] 
+      return $thing
+   }
+  
+   :public method pop {} {
+      set top [lindex ${:things} 0]
+      set :things [lrange ${:things} 1 end]
+      return $top
+   }
+}
+
+Stack create s1
+Stack create s2
+
+puts [Stack available_stacks]
+--------------------------------------------------
+
+The class +Stack2+ in <<fig9, Figure 9>> consists of the the earlier
+definition of the class +Stack+ extended by the class-object-specific
+method +available_stacks+, that returns the current number of
+instances of the stack. The final command +puts+ (line 26) prints 2 to
+the console.
+ 
+
+
+[bibliography]
+.References
+
+- [[[Zdun, Strembeck, Neumann 2007]]] U. Zdun, M. Strembeck, G. Neumann:
+  Object-Based and Class-Based Composition of Transitive Mixins,
+  Information and Software Technology, 49(8) 2007 .
+
+- [[[Neumann and Zdun 1999a]]] G. Neumann and U. Zdun. Filters as a
+   language support for design patterns in object-oriented scripting
+   languages. In Proceedings of COOTS'99, 5th Conference on
+   Object-Oriented Technologies and Systems, San Diego, May 1999.
+
+- [[[Neumann and Zdun 1999b]]] G. Neumann and U. Zdun. Implementing
+   object-specific design patterns using per-object mixins. In Proc. of
+   NOSA`99, Second Nordic Workshop on Software Architecture, Ronneby,
+   Sweden, August 1999.
+
+- [[[Neumann and Zdun 1999c]]] G. Neumann and U. Zdun. Enhancing
+   object-based system composition through per-object mixins. In
+   Proceedings of Asia-Pacific Software Engineering Conference (APSEC),
+   Takamatsu, Japan, December 1999.
+
+- [[[Neumann and Zdun 2000a]]] G. Neumann and U. Zdun. XOTCL, an
+   object-oriented scripting language. In Proceedings of Tcl2k: The
+   7th USENIX Tcl/Tk Conference, Austin, Texas, February 2000.
+
+- [[[Neumann and Zdun 2000b]]] G. Neumann and U. Zdun. Towards the Usage
+   of Dynamic Object Aggregations as a Form of Composition In:
+   Proceedings of Symposium of Applied Computing (SAC'00), Como,
+   Italy, Mar 19-21, 2000.
+
+- [[[Neumann and Sobernig 2009]]] G. Neumann, S. Sobernig: XOTcl 2.0 - A
+   Ten-Year Retrospective and Outlook, in: Proceedings of the Sixteenth
+   Annual Tcl/Tk Conference, Portland, Oregon, October, 2009.
+
+- [[[Ousterhout 1990]]] J. K. Ousterhout. Tcl: An embeddable command
+   language. In Proc. of the 1990 Winter USENIX Conference, January 1990.
+
+- [[[Ousterhout 1998]]] J. K. Ousterhout. Scripting: Higher Level
+   Programming for the 21st Century, IEEE Computer 31(3), March 1998.
+
+- [[[Wetherall and Lindblad 1995]]] D. Wetherall and C. J. Lindblad. Extending Tcl for
+   Dynamic Object-Oriented Programming. Proc. of the Tcl/Tk Workshop '95,
+   July 1995.
+
+
+

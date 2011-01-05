@@ -2185,6 +2185,9 @@ text
 - general cleanup: removed unused arguments
 - defined UNUSED macro to get more checking on unused arguments
 
+- nx::pp: added flag "-linenumbers on|off" to render method
+- added first version of next-tutorial.[txt|html]
+
 TODO:
 - doc:
    NextScriptingLanguage/index.html: 

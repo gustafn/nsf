@@ -1,0 +1,1372 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 8.6.3" />
+<title>Tutorial for the Next Scripting Language</title>
+<style type="text/css">
+/* Sans-serif font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+div#toctitle,
+span#author, span#revnumber, span#revdate, span#revremark,
+div#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+/* Serif font. */
+div.sectionbody {
+  font-family: Georgia,"Times New Roman",Times,serif;
+}
+
+/* Monospace font. */
+tt {
+  font-size: inherit;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+tt {
+  font-size: inherit;
+  color: navy;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li > p {
+  margin-top: 0;
+}
+ul > li     { color: #aaa; }
+ul > li > * { color: black; }
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+span#author {
+  color: #527bbd;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+span#email {
+}
+span#revnumber, span#revdate, span#revremark {
+}
+
+div#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+div#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+div#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+div#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #527bbd;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #777777;
+}
+
+div.quoteblock > div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock > pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock > div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock > div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd > *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #527bbd;
+}
+tfoot {
+  font-weight: bold;
+}
+td > div.verse {
+  white-space: pre;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock > table[frame="void"] {
+  border-style: none;
+}
+div.tableblock > table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock > table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  div#footer-badges { display: none; }
+}
+
+div#toc {
+  margin-bottom: 2.5em;
+}
+
+div#toctitle {
+  color: #527bbd;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+window.onload = function(){asciidoc.footnotes(); asciidoc.toc(2);}
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  var cont = document.getElementById("content");
+  var noteholder = document.getElementById("footnotes");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      // Use [\s\S] in place of . so multi-line matches work.
+      // Because JavaScript has no s (dotall) regex flag.
+      note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      spans[i].innerHTML =
+        "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+        "' title='View footnote' class='footnote'>" + n + "</a>]";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+}
+
+}
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Tutorial for the Next Scripting Language</h1>
+<span id="author">Gustaf Neumann &lt;neumann@wu-wien.ac.at&gt;, Stefan Sobernig &lt;stefan.sobernig@wu.ac.at&gt;</span><br />
+<span id="revnumber">version 2.0,</span>
+<span id="revdate">December 2010</span>
+<br /><span id="revremark">Written for the Initial Release of the Next Scripting Framework.</span>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="sidebarblock">
+<div class="content">
+<div class="title">Abstract</div>
+<div class="paragraph"><p>This document provides a tutorial for the Next Scripting
+Langauge NX.</p></div>
+</div></div>
+<div class="paragraph"><p>The Next Scripting Language (NX) is a successor of XOTcl 1 and is
+based on 10 years of experience with XOTcl in projects containing
+several hundert thousand lines of code. While XOTcl was the first
+language designed to provide language support for design patterns, the
+focus of the Next Scripting Framework and NX are on combining this
+with Language Oriented Programming. In many respects, NX was designed
+to ease the learning of the language by novices (by using a more
+mainstream terminology, higher orthogonality of the methods, less
+predefined methods), to improve maintainability (remove sources of
+common errors) and to encourage developer to write better structured
+programs (to provide interfaces) especially for large projects, where
+many developers are involved.</p></div>
+<div class="paragraph"><p>The Next Scripting Language is based on the Next Scripting Framework
+which was developed based on the notion of language oriented
+programming. The Next Scripting Frameworks provides C-level support
+for defining and hosting multiple object systems in a single Tcl
+interpreter. The whole definition of NX is fully scripted (e.g.
+defined in <tt>nx.tcl</tt>). The Next Scripting Framework is shipped with
+three language definitions, containing NX and XOTcl 2. Most of the
+existing XOTcl 1 programs can be used without modification in the Next
+Scripting Framework by using XOTcl 2. The Next Scripting Framework
+requires Tcl 8.5 or newer.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_history">1. History</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Object oriented extensions of Tcl <a href="#Ousterhout 1990">[Ousterhout 1990]</a> have quite a
+long history. Two of the most prominent early Tcl based OO languages
+were <em>incr Tcl</em> (abbreviated as itcl) and Object Tcl (<em>OTcl</em>
+<a href="#Wetherall and Lindblad 1995">[Wetherall and Lindblad 1995]</a>). While itcl provides a traditional
+C++/Java-like object system, OTcl was following the CLOS approach and
+supports a dynamic object system, allowing incremental class and
+object extensions and re-classing of objects.</p></div>
+<div class="paragraph"><p>Extended Object Tcl (abbreviated as XOTcl <a href="#Neumann and Zdun 2000a">[Neumann and Zdun 2000a]</a>)
+is a successor of OTcl and was the first language providing language
+support for design patterns. XOTcl extends OTcl by providing namespace
+support, adding assertions, dynamic object aggregations, slots and by
+introducing per-object and per-class filters and per-object and
+per-class mixins.</p></div>
+<div class="paragraph"><p>XOTcl was so far released in more than 30 versions. It is described in
+its detail in more than 20 papers and serves as a basis for other
+object systems like TclOO [Donal ???]. The scripting language <em>NX</em> and
+the <em>Next Scripting Framework</em> NSF 2009] extend the basic ideas of
+XOTcl by providing support for <em>language-oriented programming</em>. The
+the Next Scripting Framework supports multiple object systems
+concurrently. Effectively, every object system has different base
+classes for creating objects and classes. Therefore, these object
+systems can have different different interfaces and can follow
+different naming conventions for built-in methods. Currently, the Next
+Scripting Framework is packaged with three object systems: NX, XOTcl
+2.0, and TclCool (the language introduced by TIP#279).</p></div>
+<div class="paragraph"><div class="title">Figure 1: Language History of the Next Scripting Language</div><p><span class="image">
+<img src="languages.png" alt="Languages" width="400" height="600" title="Language History of the Next Scripting Language" />
+</span></p></div>
+<div class="paragraph"><p>The primary purpose of this document is to introduce NX to beginners.
+We expect some prior knowledge of programming languages, and some
+knowledge about Tcl. In the following sections we introduce NX by
+examples. In later sections we introduce the more advanced concepts of
+the language. Conceptually, most of the addressed concepts are very
+similar in XOTcl. Concerning the differences between NX and XOTcl,
+please refer to the "Migration Guide for the Next Scripting Language".</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_introductory_overview_example_stack">2. Introductory Overview Example: Stack</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>A classical programming example is an implementation of a stack, which
+is most likely familiar to many readers from many introductory
+programming courses. A stack is a last-in first-out data structure
+which is manipulated via operations like <tt>push</tt> (add something to the
+stack) and <tt>pop</tt> remove an entry from the stack. These operations are
+called <em>methods</em> in the context of object oriented programming
+systems. Primary goals of object orientation are encapsulation and
+abstraction. Therefore, we define a common unit (a class) that defines
+and encapsulates the behavior of a stack and provides methods to a user
+of the data structure that abstract from the actual implementation.</p></div>
+<div class="sect2">
+<h3 id="_define_a_class_stack">2.1. Define a Class Stack</h3>
+<div class="paragraph"><p>In our first example, we define a class named <tt>Stack</tt> with the methods
+<tt>push</tt> and <tt>pop</tt>. When an instance of the stack is created (e.g. a
+concrete stack <tt>s1</tt>) the stack will be initialized via the constructor
+<tt>init</tt>.</p></div>
+<div class="listingblock">
+<a id="fig1"></a>
+<div class="title">Figure 1: Class Stack</div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack {
+
+   <span class='nx-comment'>#
+</span>   <span class='nx-comment'># Stack of Things
+</span>   <span class='nx-comment'>#
+</span>
+   :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
+     <span class='nx-keyword'>set</span> :things <span class='nx-string'>""</span>
+   }
+
+   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> push {thing} {
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-variable'>$thing</span>]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$thing</span>
+   }
+
+   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> pop {} {
+      <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0]
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 1 end]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$top</span>
+   }
+}</pre></td></tr></table></div></div>
+<div class="paragraph"><p>Typically, classes are defined in NX via <tt>nx::Class create</tt> followed
+by the name of the new class (here: <tt>Stack</tt>). The definition of the
+stack placed between curly braces and contains here just the method
+definitions. Methods of the class are defined via <tt>:method</tt> followed
+by the name of the method, an argument list and the body of the
+method, consisting of Tcl and NX statements.</p></div>
+<div class="paragraph"><p>The first method is the constructor <tt>init</tt>, where the Tcl command <tt>set</tt>
+is used to set the instance variable <tt>things</tt> to empty. The leading
+colon of the variable denotes that the variable is an instance variable
+and belongs to instances of this class. If multiple stack instances
+are created, every one of these will have a different variable. The
+instance variable <tt>things</tt> is used in our example as a list for the
+internal representation of the stack. We define in a next step the
+methods to access and modify this list structure. A user of the stack
+using the the provided methods does not have to have any knowledge
+about the name or the structure of the internal representation.</p></div>
+<div class="paragraph"><p>The method <tt>push</tt> receives an argument <tt>thing</tt> which should be placed
+on the stack. Note that we do not have to specify the type of the
+element on the stack, so we can push strings as well as numbers or
+other kind of things. When an element is pushed, we add this element
+as the first element to the list <tt>things</tt>. We insert the element using
+the Tcl command <tt>linsert</tt> which receives the list as first element,
+the position where the element should be added as second and the new
+element as third argument. To access the value of the instance
+variable we use the dollar operator followed by the name. Since the
+name contains a colon (to denote that the variable is an instance
+variable), Tcl requires us to put braces around the name. Since
+<tt>linsert</tt> and its arguments are placed between square brackets, the
+function is called and returns the new list. The result is assigned
+again to the instance variable <tt>things</tt> which is updated this way.
+Finally the method <tt>push</tt> returns the pushed thing using the <tt>return</tt>
+statement.</p></div>
+<div class="paragraph"><p>The method <tt>pop</tt> returns the most recently stacked element and removes
+it from the stack. Therefore, it takes the first element from the list
+(using the Tcl command <tt>lindex</tt>), assigns it to the method-scoped
+variable <tt>top</tt>, removes the element from the instance variable
+<tt>things</tt> (by using the Tcl command <tt>lrange</tt>) and returns the value
+popped element <tt>top</tt>.</p></div>
+<div class="paragraph"><p>This finishes our first implementation of the the stack, more enhanced
+versions will follow. Note that the methods <tt>push</tt> and <tt>pop</tt> are
+defined as <tt>public</tt>; this means that these methods of the stack can be
+used from all other objects in the system. Therefore, these methods
+provide an interface to the stack implementation.</p></div>
+<div class="listingblock">
+<a id="fig2"></a>
+<div class="title">Figure 2: Using the Stack</div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+</pre></td><td class='nx-body'><pre class='nx'>!<span class='nx-comment'>#/bin/env tclsh
+</span><span class='nx-keyword'>package</span> require nx
+
+<span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack {
+
+   <span class='nx-comment'>#
+</span>   <span class='nx-comment'># Stack of Things
+</span>   <span class='nx-comment'>#
+</span>   ....
+}
+
+Stack <span class='nx-keyword'>create</span> s1
+s1 push a
+s1 push b
+s1 push c
+<span class='nx-keyword'>puts</span> [s1 pop]
+<span class='nx-keyword'>puts</span> [s1 pop]
+s1 <span class='nx-keyword'>destroy</span></pre></td></tr></table></div></div>
+<div class="paragraph"><p>Now we want to use the stack. The code snipped in <a href="#fig2">Figure 2</a>
+shows how to use the class Stack in a script. Since NX is based on
+Tcl, the script will be called with the Tcl shell <tt>tclsh</tt>. In the Tcl
+shell we have to <tt>require package nx</tt> to use the Next Scripting
+Framework and NX. The next lines contain the definition of the stack
+as presented before. Of course, it is as well possible to make the
+definition of the stack an own package, such we could simple say
+<tt>package require stack</tt>, or to save the definition of a stack simply
+in a file and load it via <tt>source</tt>.</p></div>
+<div class="paragraph"><p>In line 12 we create an instance of the stack, namely the stack object
+<tt>s1</tt>. The object <tt>s1</tt> has as an instance of the stack access to the
+methods, which can be invoked by the name of the object followed by
+the method name. In lines 13-15 we push on the stack the values <tt>a</tt>,
+then <tt>b</tt>, and <tt>c</tt>. In line 16 we output the result of the <tt>pop</tt> method
+using the Tcl command <tt>puts</tt>. We will see on standard output the
+value+c+ (the last stacked item). The output of the line 17 is the
+value <tt>b</tt> (the previously stacked item). Finally, in line 18 we
+destroy the object. This is not necessary here, but shows the life
+cycle of an object. In some respects, <tt>destroy</tt> is the counterpart of
+<tt>create</tt> from line 12.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_define_an_object_named_stack">2.2. Define an Object named stack</h3>
+<div class="paragraph"><p>The definition of the stack in <a href="#fig1">Figure 1</a> is following the
+traditional object oriented approach, found in practically every object
+oriented programming language: Define a class with some methods,
+create instances from this class, and use the methods defined in the
+class in the instances of the class.</p></div>
+<div class="paragraph"><p>In our next example, we introduce <em>generic objects</em> and <em>object
+specific methods</em>. With NX, we can define generic objects, which are
+instances of the most generic class <tt>nx::Object</tt> (sometimes called
+"common root class"). <tt>nx::Object</tt> is predefined and contains a
+minimal set of methods applicable to all NX objects.</p></div>
+<div class="paragraph"><p>In our second example, we will define a generic object named <tt>stack</tt>
+and provide methods for this object. The methods defined in our first
+example were methods provided by a class for objects. Now we defined
+object specific methods, which are methods applicable only to the
+object for which they are defined.</p></div>
+<div class="listingblock">
+<a id="fig3"></a>
+<div class="title">Figure 3: Object stack</div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Object</span> <span class='nx-keyword'>create</span> stack {
+
+   <span class='nx-keyword'>set</span> :things <span class='nx-string'>""</span>
+
+   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> push {thing} {
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-variable'>$thing</span>]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$thing</span>
+   }
+
+   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> pop {} {
+      <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0]
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 1 end]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$top</span>
+   }
+}</pre></td></tr></table></div></div>
+<div class="paragraph"><p>The example in <a href="#fig3">Figure 3</a> defines the object <tt>stack</tt> in a very
+similar way as the class <tt>Stack</tt>. But the following points are
+different.</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+First, we use <tt>nx::Object</tt> instead of <tt>nx::Class</tt> to denote
+  that we want to create a generic object, not a class.
+</p>
+</li>
+<li>
+<p>
+Secondly, we do not need a constructor (which is called at the time
+   an instance of a class is created), since we do not create a class
+   here. Instead, we can set the instance variable <tt>things</tt> directly
+   for this object (the object <tt>stack</tt>).
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The definition for the methods <tt>push</tt> and <tt>pop</tt> are the same as
+before, but this times they are object specify. All methods defined on
+an object are object-specific. In order to use the stack, we can use
+directly the object <tt>stack</tt> in the same way as we have used the object
+<tt>s1</tt> in <a href="#fig2">Figure 2</a>.</p></div>
+<div class="paragraph"><p>A reader might wonder when to use a class <tt>Stack</tt> or rather an object
+<tt>stack</tt>. A big difference is certainly that one can define easily
+multiple instances of a class, while the object is actually a
+singleton. The concept of the object <tt>stack</tt> is similar to a module
+providing a certain functionality via a common interface without
+providing the functionality to create multiple instances. The reuse of
+methods provided by the class to objects is as well a difference. If
+the methods of the class are updated, all instances of the class well
+immediately get the modified behavior. But this does not mean that
+there is no reuse for the methods of stack possible. NX allows for
+example to copy objects (similar to prototype based languages) or to
+reuse methods via e.g. aliases (more about this later).</p></div>
+<div class="paragraph"><p>Note that we use capitalized names for classes and lowercase names for
+instances. This is not required and a pure convention making it easier
+to understand scripts without much analysis.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_implementing_features_using_mixin_classes">2.3. Implementing Features using Mixin Classes</h3>
+<div class="paragraph"><p>So far, the definition of the stack methods was pretty minimal.
+Suppose, we want to define "safe stacks" that protect e.g. against
+stack under-runs (a stack under-run happens, when more <tt>pop</tt> than
+<tt>push</tt> operations are issued on a stack). Safety checking can be
+implemented mostly independent from the implementation details of the
+stack (usage of internal data structures). There are as well different
+ways of checking the safety. Therefore we say that safety checking is
+orthogonal to the stack core implementation.</p></div>
+<div class="paragraph"><p>With NX we can define stack-safety as a separate class using methods
+with the same names as the implementations before, and "mix" this
+behavior into classes or objects. The implementation of <tt>Safety</tt> in
+<a href="#fig4">Figure 4</a> uses a counter to check for stack under-runs and to
+issue error messages, when this happens.</p></div>
+<div class="listingblock">
+<a id="fig4"></a>
+<div class="title">Figure 4: Class Safety</div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Safety {
+
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Implement stack safety by defining an additional
+</span>  <span class='nx-comment'># instance variable named "count" that keeps track of
+</span>  <span class='nx-comment'># the number of stacked elements. The methods of
+</span>  <span class='nx-comment'># this class have the same names and argument lists
+</span>  <span class='nx-comment'># and will shadow the methods of class Stack.
+</span>  <span class='nx-comment'>#
+</span>
+  :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} { <span class='nx-comment'># Constructor
+</span>    <span class='nx-keyword'>set</span> :count 0
+    <span class='nx-keyword'>next</span>
+  }
+
+  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> push {thing} {
+    <span class='nx-keyword'>incr</span> :count
+    <span class='nx-keyword'>next</span>
+  }
+
+  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> pop {} {
+    <span class='nx-keyword'>if</span> {<span class='nx-variable'>${</span><span class='nx-variable'>:count}</span> == 0} then { <span class='nx-keyword'>error</span> <span class='nx-string'>"Stack empty!"</span> }
+    <span class='nx-keyword'>incr</span> :count -1
+    <span class='nx-keyword'>next</span>
+  }
+}</pre></td></tr></table></div></div>
+<div class="paragraph"><p>Note that the methods of the class <tt>Safety</tt> all end with <tt>next</tt>.
+This command is a primitive command of NX, that will call the
+same-named method with the same argument list as the current
+invocation.</p></div>
+<div class="paragraph"><p>Assume we safe the definition of the class <tt>Stack</tt> in a file named
+<tt>Stack.tcl</tt> and the definition of the class <tt>Safety</tt> in a file named
+<tt>Safety.tcl</tt> in the current directory. When we load the classes
+<tt>Stack</tt> and <tt>Safety</tt> into the same script (see the terminal dialog in
+<a href="#fig5">Figure 5</a>), we can define e.g. a certain stack <tt>s2</tt> as a safe
+stack, while all other stacks (such as <tt>s1</tt>) might be still "unsafe".
+This can be achieved via the option <tt>-mixin</tt> at the object creation
+time (see line 9 in <a href="#fig5">Figure 5</a>) of s2. The option <tt>-mixin</tt>
+mixes the class <tt>Safety</tt> into the new instance <tt>s2</tt>.</p></div>
+<div class="listingblock">
+<a id="fig5"></a>
+<div class="title">Figure 5: Using the Class Safety</div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+</pre></td><td class='nx-body'><pre class='nx'>% <span class='nx-keyword'>package</span> require nx
+2.0
+% <span class='nx-keyword'>source</span> Stack.tcl
+::Stack
+% <span class='nx-keyword'>source</span> Safety.tcl
+::Safety
+% Stack <span class='nx-keyword'>create</span> s1
+::s1
+% Stack <span class='nx-keyword'>create</span> s2 -<span class='nx-keyword'>mixin</span> Safety
+::s2
+% s2 push a
+a
+% s2 pop
+a
+% s2 pop
+Stack empty!
+
+% s1 <span class='nx-keyword'>info</span> precedence
+::Stack ::<span class='nx-keyword'>nx::Object</span>
+
+% s2 <span class='nx-keyword'>info</span> precedence
+::Safety ::Stack ::<span class='nx-keyword'>nx::Object</span></pre></td></tr></table></div></div>
+<div class="paragraph"><p>When the method <tt>push</tt> of <tt>s2</tt> is called, first the method of the
+mixin class <tt>Safety</tt> will be invoked that increments the counter and
+continues with <tt>next</tt> to call the shadowed method, here the method
+<tt>push</tt> of the <tt>Stack</tt> implementation that actually pushes the item.
+The same happens, when <tt>s2 pop</tt> is invoked, first the method of
+<tt>Safety</tt> is called, then the method of the <tt>Stack</tt>. When the stack is
+empty (the value of <tt>count</tt> reaches 0), and <tt>pop</tt> is invoked, the
+mixin class <tt>Safety</tt> generates an error message (raises an exception),
+and does not invoke the method of the <tt>Stack</tt>.</p></div>
+<div class="paragraph"><p>The last two commands in <a href="#fig5">Figure 5</a> use introspection to query
+for the objects <tt>s1</tt> and <tt>s2</tt> the order in which the classes are
+processed. This order is called the <tt>precedence order</tt> and is obtained
+via <tt>info precedence</tt>. We see that the mixin class <tt>Safety</tt> is only in
+use for <tt>s2</tt>, and takes there precedence over <tt>Stack</tt>. The common root
+class <tt>nx::Object</tt> is for both <tt>s1</tt> and <tt>s2</tt> the base class.</p></div>
+<div class="paragraph"><p>Note that the class <tt>Safety</tt> is only mixed into a single object (here
+<tt>s2</tt>), therefore we refer to this case as a <em>per-object mixin</em>. The
+class <tt>Safety</tt> can be used as well in other ways, such as e.g. for
+defining classes for safe stacks <a href="#fig6">Figure 6</a>.</p></div>
+<div class="listingblock">
+<a id="fig6"></a>
+<div class="title">Figure 6: Class SafeStack</div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-comment'>#
+</span><span class='nx-comment'># Create a safe stack class by using Stack and mixin
+</span><span class='nx-comment'># Safety
+</span><span class='nx-comment'>#
+</span><span class='nx-keyword'>Class</span> <span class='nx-keyword'>create</span> SafeStack -<span class='nx-keyword'>superclass</span> Stack -<span class='nx-keyword'>mixin</span> Safety
+
+SafeStack <span class='nx-keyword'>create</span> s3</pre></td></tr></table></div></div>
+<div class="paragraph"><p>The difference to the case with the per-object mixin is that now,
+<tt>Safety</tt> is mixed into the definition of <tt>SafeStack</tt>. Therefore, all
+instances of the class <tt>SafeStack</tt> (here <tt>s3</tt>) will be using the
+safety definitions.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_define_different_kinds_of_stacks">2.4. Define Different Kinds of Stacks</h3>
+<div class="paragraph"><p>The definition of <tt>Stack</tt> is generic and allows all kind of elements
+to be stacked. Suppose, we want to use the generic stack definition,
+but a certain stack (say, stack <tt>s4</tt>) should be a stack for integers
+only. This behavior can be achieved by the same means as introduced
+already in <a href="#fig3">Figure 3</a>, namely object specific methods.</p></div>
+<div class="listingblock">
+<a id="fig7"></a>
+<div class="title">Figure 7: Object Integer Stack</div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+</pre></td><td class='nx-body'><pre class='nx'>Stack <span class='nx-keyword'>create</span> s4 {
+
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Create a stack with a object-specific method
+</span>  <span class='nx-comment'># to check the type of entries
+</span>  <span class='nx-comment'>#
+</span>
+  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> push {thing:integer} {
+    <span class='nx-keyword'>next</span>
+  }
+}</pre></td></tr></table></div></div>
+<div class="paragraph"><p>The program snippet in <a href="#fig7">Figure 7</a> defines an instance <tt>s4</tt> of
+the class <tt>Stack</tt> and provides an object specific method for <tt>push</tt> to
+implement an integer stack. The method <tt>pull</tt> is the same for the
+integer stack as for all other stacks, so it will be reused as usual
+from the class <tt>Stack</tt>. The object-specific method <tt>push</tt> of <tt>s4</tt> has
+a value constraint in its argument list (<tt>thing:integer</tt>) that makes
+sure, that only integers can be stacked. In case the argument is not
+an integer, an exception will be raised. Of course, one could perform
+the value constraint checking as well in the body of the method <tt>proc</tt>
+by accepting an generic argument and by performing the test for the
+value in the body of the method. In the case, the passed value is an
+integer, the <tt>push</tt> method of <a href="#fig7">Figure 7</a> calls <tt>next</tt>, and
+therefore calls the shadowed generic definition of <tt>push</tt> as provided
+by <tt>Stack</tt>.</p></div>
+<div class="listingblock">
+<a id="fig8"></a>
+<div class="title">Figure 8: Class IntegerStack</div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> IntegerStack -<span class='nx-keyword'>superclass</span> Stack {
+
+  <span class='nx-comment'>#
+</span>  <span class='nx-comment'># Create a Stack accepting only integers
+</span>  <span class='nx-comment'>#
+</span>
+  :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> push {thing:integer} {
+    <span class='nx-keyword'>next</span>
+  }
+}</pre></td></tr></table></div></div>
+<div class="paragraph"><p>An alternative approach is shown in <a href="#fig8">Figure 8</a>, where the
+class <tt>IntegerStack</tt> is defined, using again the same method
+definition on the class level as previously in <a href="#fig7">Figure 7</a>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_define_class_specific_methods">2.5. Define Class Specific Methods</h3>
+<div class="paragraph"><p>In our previous examples we defined methods provided by classes
+(applicable for its instances) and object-specific methods (methods
+defined on objects, only applicable for these objects). In this
+section, we introduce methods defined on classes, which are only
+applicable for the class objects. Such methods are sometimes called
+class methods or "static methods".</p></div>
+<div class="paragraph"><p>In NX classes are objects with certain properties (providing methods
+for instances, managing object life-cycles; we will come to this later
+in more detail). Since classes are objects, we can define as well
+object-specific methods for the class objects. However, since
+<tt>:method</tt> applied on classes defines methods for instances, we have to
+use the method-modifier <tt>class-object</tt> to denote methods to be
+applied on the class itself. Note that class-object methods are not
+inherited to instances. These methods defined on the class object are
+actually exactly same as the object-specific methods in the examples
+above.</p></div>
+<div class="listingblock">
+<a id="fig9"></a>
+<div class="title">Figure 9: Class Stack2</div>
+<div class="content"><style type='text/css'>
+.nx             {color: #000000; font-weight: normal; font-style: normal; padding-left: 10px}
+table.nx        {border-collapse: collapse; border-spacing: 3px;}
+.nx-linenr      {border-right: 1px solid #DDDDDD;padding-right: 5px; color: #2B547D;font-style: italic;}
+.nx-string      {color: #779977; font-weight: normal; font-style: italic;}
+.nx-comment     {color: #717ab3; font-weight: normal; font-style: italic;}
+.nx-keyword     {color: #7f0055; font-weight: normal; font-style: normal;}
+.nx-placeholder {color: #AF663F; font-weight: normal; font-style: italic;}
+.nx-variable    {color: #AF663F; font-weight: normal; font-style: normal;}
+</style>
+<table class='nx'><tr><td class='nx-linenr'><pre>  1
+  2
+  3
+  4
+  5
+  6
+  7
+  8
+  9
+ 10
+ 11
+ 12
+ 13
+ 14
+ 15
+ 16
+ 17
+ 18
+ 19
+ 20
+ 21
+ 22
+ 23
+ 24
+ 25
+ 26
+</pre></td><td class='nx-body'><pre class='nx'><span class='nx-keyword'>nx::Class</span> <span class='nx-keyword'>create</span> Stack2 {
+
+    :<span class='nx-keyword'>class-object</span> <span class='nx-keyword'>method</span> available_stacks {} {
+      <span class='nx-keyword'>return</span> [<span class='nx-keyword'>llength</span> [:<span class='nx-keyword'>info</span> instances]]
+   }
+
+   :<span class='nx-keyword'>method</span> <span class='nx-keyword'>init</span> {} {
+     <span class='nx-keyword'>set</span> :things <span class='nx-string'>""</span>
+   }
+
+   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> push {thing} {
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>linsert</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0 <span class='nx-variable'>$thing</span>]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$thing</span>
+   }
+
+   :<span class='nx-keyword'>public</span> <span class='nx-keyword'>method</span> pop {} {
+      <span class='nx-keyword'>set</span> top [<span class='nx-keyword'>lindex</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 0]
+      <span class='nx-keyword'>set</span> :things [<span class='nx-keyword'>lrange</span> <span class='nx-variable'>${</span><span class='nx-variable'>:things}</span> 1 end]
+      <span class='nx-keyword'>return</span> <span class='nx-variable'>$top</span>
+   }
+}
+
+Stack <span class='nx-keyword'>create</span> s1
+Stack <span class='nx-keyword'>create</span> s2
+
+<span class='nx-keyword'>puts</span> [Stack available_stacks]</pre></td></tr></table></div></div>
+<div class="paragraph"><p>The class <tt>Stack2</tt> in <a href="#fig9">Figure 9</a> consists of the the earlier
+definition of the class <tt>Stack</tt> extended by the class-object-specific
+method <tt>available_stacks</tt>, that returns the current number of
+instances of the stack. The final command <tt>puts</tt> (line 26) prints 2 to
+the console.</p></div>
+<div class="ulist bibliography"><div class="title">References</div><ul>
+<li>
+<p>
+[<a id="Zdun"></a>] U. Zdun, M. Strembeck, G. Neumann:
+  Object-Based and Class-Based Composition of Transitive Mixins,
+  Information and Software Technology, 49(8) 2007 .
+</p>
+</li>
+<li>
+<p>
+[<a id="Neumann and Zdun 1999a"></a>] G. Neumann and U. Zdun. Filters as a
+   language support for design patterns in object-oriented scripting
+   languages. In Proceedings of COOTS&#8217;99, 5th Conference on
+   Object-Oriented Technologies and Systems, San Diego, May 1999.
+</p>
+</li>
+<li>
+<p>
+[<a id="Neumann and Zdun 1999b"></a>] G. Neumann and U. Zdun. Implementing
+   object-specific design patterns using per-object mixins. In Proc. of
+   NOSA`99, Second Nordic Workshop on Software Architecture, Ronneby,
+   Sweden, August 1999.
+</p>
+</li>
+<li>
+<p>
+[<a id="Neumann and Zdun 1999c"></a>] G. Neumann and U. Zdun. Enhancing
+   object-based system composition through per-object mixins. In
+   Proceedings of Asia-Pacific Software Engineering Conference (APSEC),
+   Takamatsu, Japan, December 1999.
+</p>
+</li>
+<li>
+<p>
+[<a id="Neumann and Zdun 2000a"></a>] G. Neumann and U. Zdun. XOTCL, an
+   object-oriented scripting language. In Proceedings of Tcl2k: The
+   7th USENIX Tcl/Tk Conference, Austin, Texas, February 2000.
+</p>
+</li>
+<li>
+<p>
+[<a id="Neumann and Zdun 2000b"></a>] G. Neumann and U. Zdun. Towards the Usage
+   of Dynamic Object Aggregations as a Form of Composition In:
+   Proceedings of Symposium of Applied Computing (SAC&#8217;00), Como,
+   Italy, Mar 19-21, 2000.
+</p>
+</li>
+<li>
+<p>
+[<a id="Neumann and Sobernig 2009"></a>] G. Neumann, S. Sobernig: XOTcl 2.0 - A
+   Ten-Year Retrospective and Outlook, in: Proceedings of the Sixteenth
+   Annual Tcl/Tk Conference, Portland, Oregon, October, 2009.
+</p>
+</li>
+<li>
+<p>
+[<a id="Ousterhout 1990"></a>] J. K. Ousterhout. Tcl: An embeddable command
+   language. In Proc. of the 1990 Winter USENIX Conference, January 1990.
+</p>
+</li>
+<li>
+<p>
+[<a id="Ousterhout 1998"></a>] J. K. Ousterhout. Scripting: Higher Level
+   Programming for the 21st Century, IEEE Computer 31(3), March 1998.
+</p>
+</li>
+<li>
+<p>
+[<a id="Wetherall and Lindblad 1995"></a>] D. Wetherall and C. J. Lindblad. Extending Tcl for
+   Dynamic Object-Oriented Programming. Proc. of the Tcl/Tk Workshop '95,
+   July 1995.
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr /></div>
+<div id="footer">
+<div id="footer-text">
+Version 2.0<br />
+Last updated 2011-01-05 21:02:51 CET
+</div>
+</div>
+</body>
+</html>
