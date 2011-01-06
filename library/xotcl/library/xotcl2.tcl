@@ -50,10 +50,24 @@ namespace eval ::xotcl {
   namespace import ::nsf::alias ::nsf::is ::nsf::relation
   interp alias {} ::xotcl::next {} ::nsf::xotclnext
 
-  #namespace import ::nx::Attribute
-  # if we do this, "::xotcl::Class create Role -superclass Attribute"  will fail.
-  #interp alias {} ::xotcl::Attribute {} ::nx::Attribute
-  ::nx::MetaSlot create ::xotcl::Attribute -superclass ::nx::Attribute
+  #
+  # create ::xotcl::MetaSlot for better compatibility with XOTcl 1
+  #
+  ::nx::Class create ::xotcl::MetaSlot -superclass ::nx::MetaSlot {
+    :attribute parameter
+    :method init {} {
+      if {[info exists :parameter]} {:attributes ${:parameter}}
+      next
+    }
+    # provide minimal compatibility
+    :public forward instproc %self public method
+    :public forward proc %self public class-object method
+  }
+
+  #
+  # Create ::xotcl::Attribute for compatibility
+  #
+  ::xotcl::MetaSlot create ::xotcl::Attribute -superclass ::nx::Attribute
 
   proc ::xotcl::self {{arg ""}} {
       switch $arg {
