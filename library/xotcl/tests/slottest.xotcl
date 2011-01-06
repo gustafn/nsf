@@ -137,11 +137,11 @@ O2 superclass add M
 O2 superclass delete ::O
 ? {O2 superclass} "::M"
 
-
-# the main difference between an Attribute and a Role is that 
-# it references some other objects
-#Class Attribute -superclass ::xotcl::ObjectParameterSlot
-Class Role -superclass Attribute -parameter {references}
+#
+# The main difference between an Attribute and a Role is that it
+# references some other objects
+#
+::xotcl::MetaSlot create Role -superclass Attribute -parameter {references}
 
 ######################
 # application classes
