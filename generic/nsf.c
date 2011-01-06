@@ -2199,19 +2199,24 @@ ObjectSystemsCleanup(Tcl_Interp *interp) {
 static int
 CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **methodObjPtr) {
   /*
-     We can/must call a C-implemented method directly, when
-     a) the object system has no such appropriate method defined
-
-     b) the script does not contain a method with the appropriate
-        name, and
-
-     c) filters are not active on the object
-  */
+   * We can/must call a C-implemented method directly, when
+   *
+   *   a) the object system has no such appropriate method defined
+   *
+   *   b) the script does not contain a method with the appropriate
+   *     name, and
+   *
+   *   c) filters are not active on the object
+   */
   NsfObjectSystem *osPtr = GetObjectSystem(object);
   int callDirectly = 1;
   Tcl_Obj *methodObj;
 
   methodObj = osPtr->methods[methodIdx];
+  /*fprintf(stderr, "OS of %s is %s, method %s methodObj %p\n", 
+	  ObjectName(object), ObjectName((&osPtr->rootClass->object)), 
+	  Nsf_SytemMethodOpts[methodIdx]+1, methodObj);*/
+
   if (methodObj) {
     int flag = 1 << methodIdx;
     if ((osPtr->overloadedMethods & flag) != 0) {
@@ -2233,7 +2238,7 @@ CallDirectly(Tcl_Interp *interp, NsfObject *object, int methodIdx, Tcl_Obj **met
         );*/
       if ((object->flags & NSF_FILTER_ORDER_DEFINED_AND_VALID) == NSF_FILTER_ORDER_DEFINED_AND_VALID) {
         /*fprintf(stderr, "CallDirectly object %s idx %s has filter \n",
-          ObjectName(object), sytemMethodOpts[methodIdx]+1);*/
+	  ObjectName(object), Nsf_SytemMethodOpts[methodIdx]+1);*/
         callDirectly = 0;
       }
     }
@@ -6511,6 +6516,7 @@ FilterSearchProc(Tcl_Interp *interp, NsfObject *object,
 static int
 SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *arg, NsfClass *baseClass) {
   NsfClasses *filterCheck, *osl = NULL;
+  NsfObjectSystem *osPtr;
   NsfClass **scl;
   int reversed = 0;
   int i, j;
@@ -6563,6 +6569,19 @@ SuperclassAdd(Tcl_Interp *interp, NsfClass *cl, int oc, Tcl_Obj **ov, Tcl_Obj *a
   if (reversed) {
     return NsfObjErrType(interp, "superclass", arg, "classes in dependence order", NULL);
   }
+
+  /*
+   * Ensure that the current class and new superclasses are from the
+   * same object system.
+   */
+  osPtr = GetObjectSystem(&cl->object);
+  for (i = 0; i < oc; i++) {
+    if (osPtr != GetObjectSystem(&scl[i]->object)) {
+      return NsfPrintError(interp, "class \"%s\" has different object system as class  \"%s\"",
+			   ClassName(cl), ClassName(scl[i]));
+    }
+  }
+
 
   while (cl->super) {
     /*
@@ -17430,8 +17449,12 @@ RecreateObject(Tcl_Interp *interp, NsfClass *class, NsfObject *object,
      * dispatch "cleanup" method
      */
     if (CallDirectly(interp, object, NSF_o_cleanup_idx, &methodObj)) {
+      /*fprintf(stderr, "RECREATE calls cleanup directly for object %s\n", ObjectName(object));*/
       result = NsfOCleanupMethod(interp, object);
     } else {
+      /*NsfObjectSystem *osPtr = GetObjectSystem(object);
+      fprintf(stderr, "RECREATE calls method cleanup for object %p %s OS %s\n", 
+              object, ObjectName(object), ObjectName((&osPtr->rootClass->object)));*/
       result = CallMethod((ClientData) object, interp, methodObj,
                           2, 0, NSF_CM_NO_PROTECT|NSF_CSC_IMMEDIATE);
     }

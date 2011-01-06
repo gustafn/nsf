@@ -2188,6 +2188,10 @@ text
 - nx::pp: added flag "-linenumbers on|off" to render method
 - added first version of next-tutorial.[txt|html]
 
+- xotcl2.tcl: defined ::xotcl::MetaSlot
+- make sure, that classes of the intrinsic class hierarchy are 
+  of the same object system
+
 TODO:
 - doc:
    NextScriptingLanguage/index.html: 
@@ -2215,6 +2219,7 @@ TODO:
       * recreate should only be called internally, similarly "init" etc.
       * __unknown
     unknown is a hook for Object but a method for Class
+
 
 - do we need contains in nx?
 - do we need vwait in nx? Plain Tcl "vwait :varName" should do it.
