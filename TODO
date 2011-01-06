@@ -2191,6 +2191,7 @@ text
 - xotcl2.tcl: defined ::xotcl::MetaSlot
 - make sure, that classes of the intrinsic class hierarchy are 
   of the same object system
+- add regression test
 
 TODO:
 - doc:
