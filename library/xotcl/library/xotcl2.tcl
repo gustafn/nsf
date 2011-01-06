@@ -948,7 +948,7 @@ namespace eval ::xotcl {
     }
   }
 
-  ::nx::Class create ::xotcl::package -superclass ::xotcl::Class -attributes {
+  ::nx::Class create ::xotcl::package -superclass ::nx::Class -attributes {
     provide
     {version 1.0}
     {autoexport {}}
