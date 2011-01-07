@@ -214,10 +214,6 @@ objectMethod upvar NsfOUpvarMethod {
 objectMethod volatile NsfOVolatileMethod {
 }
 
-#objectMethod vwait NsfOVwaitMethod {
-#  {-argName "varName" -required 1}
-#}
-
 #
 # class methods
 #

@@ -2198,6 +2198,7 @@ text
   in InterpColonVarResolver(), since Tcl vwait implementation
   calls it with that flag.
 - added a scripted implementation for vwait in xotcl2
+- removed TCL_VWAIT from the code, since we have it in git
 
 TODO:
 - doc:

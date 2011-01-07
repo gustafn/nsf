@@ -12177,40 +12177,6 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
   return result;
 }
 
-#if NSF_VWAIT
-/*
- * ensure that a variable exists on object varTablePtr or nsPtr->varTablePtr,
- * if necessary create it. Return Var* if successful, otherwise 0
- */
-static Var *
-NSRequireVariableOnObj(Tcl_Interp *interp, NsfObject *object, CONST char *name, int flgs) {
-  CallFrame frame, *framePtr = &frame;
-  Var *varPtr, *arrayPtr;
-
-  Nsf_PushFrameObj(interp, object, framePtr);
-  varPtr = TclLookupVar(interp, name, 0, flgs, "obj vwait",
-                        /*createPart1*/ 1, /*createPart2*/ 0, &arrayPtr);
-  Nsf_PopFrameObj(interp, framePtr);
-  return varPtr;
-}
-/*
- * copied from Tcl, since not exported
- */
-static char *
-VwaitVarProc(
-             ClientData clientData,		/* Pointer to integer to set to 1. */
-             Tcl_Interp *UNUSED(interp),	/* Interpreter containing variable. */
-             char *UNUSED(name1),		/* Name of variable. */
-             char *UNUSED(name2),		/* Second part of variable name. */
-             int UNUSED(flags))			/* Information about what happened. */
-{
-  int *donePtr = (int *) clientData;
-
-  *donePtr = 1;
-  return (char *) NULL;
-}
-#endif
-
 static int
 NsfProcAliasMethod(ClientData clientData,
                      Tcl_Interp *interp, int objc,
@@ -16988,56 +16954,6 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
   return result;
 }
 
-#if NSF_VWAIT
-/*
-objectMethod vwait NsfOVwaitMethod {
-  {-argName "varname" -required 1}
-}
-*/
-static int
-NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *object, CONST char *varname) {
-  int done, foundEvent;
-  int flgs = TCL_TRACE_WRITES|TCL_TRACE_UNSETS;
-  CallFrame frame, *framePtr = &frame;
-
-  /*
-   * Make sure the var table exists and the varname is in there
-   */
-  if (NSRequireVariableOnObj(interp, object, varname, flgs) == 0) {
-    return NsfPrintError(interp, "Can't lookup (and create) variable %s on %s",
-			 varname, ObjectName(object));
-  }
-  Nsf_PushFrameObj(interp, object, framePtr);
-  /*
-   * much of this is copied from Tcl, since we must avoid
-   * access with flag TCL_GLOBAL_ONLY ... doesn't work on
-   * obj->varTablePtr vars
-   */
-  if (Tcl_TraceVar(interp, varname, flgs, (Tcl_VarTraceProc *)VwaitVarProc,
-                   (ClientData) &done) != TCL_OK) {
-    return TCL_ERROR;
-  }
-  done = 0;
-  foundEvent = 1;
-  while (!done && foundEvent) {
-    foundEvent = Tcl_DoOneEvent(TCL_ALL_EVENTS);
-  }
-  Tcl_UntraceVar(interp, varname, flgs, (Tcl_VarTraceProc *)VwaitVarProc,
-                 (ClientData) &done);
-  Nsf_PopFrameObj(interp, framePtr);
-  /*
-   * Clear out the interpreter's result, since it may have been set
-   * by event handlers.
-   */
-  Tcl_ResetResult(interp);
-
-  if (!foundEvent) {
-    return NsfPrintError(interp, "can't wait for variable '%s'; would wait forever", 
-			 varname);
-  }
-  return TCL_OK;
-}
-#endif
 /***************************
  * End Object Methods
  ***************************/
