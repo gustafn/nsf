@@ -74,10 +74,10 @@ proc genifd {parameterDefinitions} {
 #     } else {
 #       set default ""
 #     }
-    lappend l "{\"$argName\", $flags, $(-nrargs), ConvertTo$converter}"
+    lappend l "{\"$argName\", $flags, $(-nrargs), ConvertTo$converter, NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
   }
   if {[llength $l] == 0} {
-    return "{NULL, 0, 0, NULL}"
+    return "{NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}"
   } else {
     return [join $l ",\n  "]
   }
