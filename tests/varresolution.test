@@ -668,6 +668,40 @@ after 1 {f1 callDot2}
 after 10 {set ::X 1}
 vwait X
 
+#
+# Test vwait with colon variable and vwait method
+#
+Object create o {
+  set :x 0
+  :public method foo {} {incr :x}
+  :public method vwait {varName} {
+    if {[regexp {:[^:]*} $varName]} {
+      error "invalid varName '$varName'; only plain or fully qualified variable names allowed"
+    }
+    if {[string match ::* $varName]} {
+      ::vwait $varName
+    } else {
+      ::vwait :$varName
+    }
+  }
+  #
+  # Tcl vwait command with instance variable
+  #
+  after 10 {o foo}
+  #puts stderr ===waiting
+  vwait :x
+  #puts stderr ===waiting-DONE
+  # 
+  # vwait method
+  #
+  after 10 {o foo}
+  #puts stderr ===waiting
+  :vwait x
+  #puts stderr ===waiting-DONE
+  ? {o vwait :x} {invalid varName ':x'; only plain or fully qualified variable names allowed}
+}
+o destroy
+
 ? {set ::C} 0
 ? {f1 eval {set :c}} 2
 

@@ -111,8 +111,6 @@
 #define NRE_CALLBACK_TRACE 1
 */
 
-//#define PARSE_TRACE_FULL 1
-
 /*
  * Sanity checks and dependencies for optional compile flags
  */

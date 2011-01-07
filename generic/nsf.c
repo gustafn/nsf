@@ -2796,11 +2796,15 @@ InterpColonVarResolver(Tcl_Interp *interp, CONST char *varName, Tcl_Namespace *U
   Tcl_Obj *keyObj;
   Tcl_Var var;
 
-  if (!FOR_COLON_RESOLVER(varName) || (flags & (TCL_GLOBAL_ONLY|TCL_NAMESPACE_ONLY))) {
+  /*
+   * TCL_GLOBAL_ONLY is removed, since "vwait :varName" is called with
+   * with this flag.
+   */
+  if (!FOR_COLON_RESOLVER(varName) || (flags & (/*TCL_GLOBAL_ONLY|*/TCL_NAMESPACE_ONLY))) {
     /* ordinary names and global lookups are not for us */
 #if defined(VAR_RESOLVER_TRACE)
-    fprintf(stderr, "InterpColonVarResolver '%s' flags %.6x not for us nsPtr %p\n",
-            varName, flags, nsPtr);
+    fprintf(stderr, "InterpColonVarResolver '%s' flags %.6x not for us\n",
+            varName, flags);
 #endif
     return TCL_CONTINUE;
   }
@@ -3306,22 +3310,6 @@ NSDeleteChildren(Tcl_Interp *interp, Tcl_Namespace *nsPtr) {
        hPtr = Tcl_NextHashEntry(&hSrch)) {
     NSDeleteChild(interp, (Tcl_Command)Tcl_GetHashValue(hPtr), 0);
   }
-}
-
-/*
- * ensure that a variable exists on object varTablePtr or nsPtr->varTablePtr,
- * if necessary create it. Return Var* if successful, otherwise 0
- */
-static Var *
-NSRequireVariableOnObj(Tcl_Interp *interp, NsfObject *object, CONST char *name, int flgs) {
-  CallFrame frame, *framePtr = &frame;
-  Var *varPtr, *arrayPtr;
-
-  Nsf_PushFrameObj(interp, object, framePtr);
-  varPtr = TclLookupVar(interp, name, 0, flgs, "obj vwait",
-                        /*createPart1*/ 1, /*createPart2*/ 0, &arrayPtr);
-  Nsf_PopFrameObj(interp, framePtr);
-  return varPtr;
 }
 
 static int
@@ -12189,6 +12177,22 @@ NsfForwardMethod(ClientData clientData, Tcl_Interp *interp,
   return result;
 }
 
+#if NSF_VWAIT
+/*
+ * ensure that a variable exists on object varTablePtr or nsPtr->varTablePtr,
+ * if necessary create it. Return Var* if successful, otherwise 0
+ */
+static Var *
+NSRequireVariableOnObj(Tcl_Interp *interp, NsfObject *object, CONST char *name, int flgs) {
+  CallFrame frame, *framePtr = &frame;
+  Var *varPtr, *arrayPtr;
+
+  Nsf_PushFrameObj(interp, object, framePtr);
+  varPtr = TclLookupVar(interp, name, 0, flgs, "obj vwait",
+                        /*createPart1*/ 1, /*createPart2*/ 0, &arrayPtr);
+  Nsf_PopFrameObj(interp, framePtr);
+  return varPtr;
+}
 /*
  * copied from Tcl, since not exported
  */
@@ -12205,6 +12209,7 @@ VwaitVarProc(
   *donePtr = 1;
   return (char *) NULL;
 }
+#endif
 
 static int
 NsfProcAliasMethod(ClientData clientData,
@@ -16983,6 +16988,7 @@ NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *object) {
   return result;
 }
 
+#if NSF_VWAIT
 /*
 objectMethod vwait NsfOVwaitMethod {
   {-argName "varname" -required 1}
@@ -17031,7 +17037,7 @@ NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *object, CONST char *varname) {
   }
   return TCL_OK;
 }
-
+#endif
 /***************************
  * End Object Methods
  ***************************/

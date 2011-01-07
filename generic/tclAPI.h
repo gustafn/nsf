@@ -261,7 +261,6 @@ static int NsfOResidualargsMethodStub(ClientData clientData, Tcl_Interp *interp,
 static int NsfOUplevelMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOUpvarMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
-static int NsfOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoClassMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
 static int NsfObjInfoFilterguardMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv []);
@@ -345,7 +344,6 @@ static int NsfOResidualargsMethod(Tcl_Interp *interp, NsfObject *obj, int objc, 
 static int NsfOUplevelMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int NsfOUpvarMethod(Tcl_Interp *interp, NsfObject *obj, int objc, Tcl_Obj *CONST objv[]);
 static int NsfOVolatileMethod(Tcl_Interp *interp, NsfObject *obj);
-static int NsfOVwaitMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *varName);
 static int NsfObjInfoChildrenMethod(Tcl_Interp *interp, NsfObject *obj, NsfClass *withType, CONST char *pattern);
 static int NsfObjInfoClassMethod(Tcl_Interp *interp, NsfObject *obj);
 static int NsfObjInfoFilterguardMethod(Tcl_Interp *interp, NsfObject *obj, CONST char *fileName);
@@ -430,7 +428,6 @@ enum {
  NsfOUplevelMethodIdx,
  NsfOUpvarMethodIdx,
  NsfOVolatileMethodIdx,
- NsfOVwaitMethodIdx,
  NsfObjInfoChildrenMethodIdx,
  NsfObjInfoClassMethodIdx,
  NsfObjInfoFilterguardMethodIdx,
@@ -1660,25 +1657,6 @@ NsfOVolatileMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_
 }
 
 static int
-NsfOVwaitMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
-  ParseContext pc;
-  NsfObject *obj =  (NsfObject *)clientData;
-  if (!obj) return NsfObjErrType(interp, NULL, objv[0], "Object", NULL);
-  if (ArgumentParse(interp, objc, objv, obj, objv[0], 
-                     method_definitions[NsfOVwaitMethodIdx].paramDefs, 
-                     method_definitions[NsfOVwaitMethodIdx].nrParameters, 1,
-                     &pc) != TCL_OK) {
-    return TCL_ERROR;
-  } else {
-    CONST char *varName = (CONST char *)pc.clientData[0];
-
-    assert(pc.status == 0);
-    return NsfOVwaitMethod(interp, obj, varName);
-
-  }
-}
-
-static int
 NsfObjInfoChildrenMethodStub(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
   ParseContext pc;
   NsfObject *obj =  (NsfObject *)clientData;
@@ -2340,9 +2318,6 @@ static methodDefinition method_definitions[] = {
 },
 {"::nsf::methods::object::volatile", NsfOVolatileMethodStub, 0, {
   {NULL, 0, 0, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
-},
-{"::nsf::methods::object::vwait", NsfOVwaitMethodStub, 1, {
-  {"varName", NSF_ARG_REQUIRED, 0, ConvertToString, NULL,NULL,NULL,NULL,NULL,NULL,NULL}}
 },
 {"::nsf::methods::object::info::children", NsfObjInfoChildrenMethodStub, 2, {
   {"-type", 0, 1, ConvertToClass, NULL,NULL,NULL,NULL,NULL,NULL,NULL},

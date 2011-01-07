@@ -2193,6 +2193,12 @@ text
   of the same object system
 - add regression test
 
+- removed c-implementation of method vwait, it was replaced
+  by "vwait :varName". We had to allow flag TCL_GLOBAL_ONLY
+  in InterpColonVarResolver(), since Tcl vwait implementation
+  calls it with that flag.
+- added a scripted implementation for vwait in xotcl2
+
 TODO:
 - doc:
    NextScriptingLanguage/index.html: 
@@ -2223,7 +2229,6 @@ TODO:
 
 
 - do we need contains in nx?
-- do we need vwait in nx? Plain Tcl "vwait :varName" should do it.
 - are the oneline hook definitions like
     Class protected class-object method __unknown {name} {}
   needed?

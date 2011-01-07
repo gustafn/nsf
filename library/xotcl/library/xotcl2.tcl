@@ -212,17 +212,28 @@ namespace eval ::xotcl {
   #    Bar info hasnamespace; # returns 0
   # }}}
 
+  # provide some Tcl-commands as methods for ::xotcl::Object
+  foreach cmd {array append eval incr lappend set subst unset trace} {
+    ::nsf::alias Object $cmd -frame object ::$cmd
+  }
+
   # @method ::xotcl::Object#vwait
   #
   # A method variant of the Tcl {{{vwait}}} command. You can use it to
   # have the {{{interp}}} enter an event loop until the specified
   # variable {{{varname}}} is set on the object.
   #
-  # @param varname The name of the signalling object variable.
+  # @param varName The name of the signalling object variable.
 
-  # provide some Tcl-commands as methods for ::xotcl::Object
-  foreach cmd {array append eval incr lappend set subst unset trace} {
-    ::nsf::alias Object $cmd -frame object ::$cmd
+  ::nsf::method Object vwait {varName} {
+    if {[regexp {:[^:]*} $varName]} {
+      error "invalid varName '$varName'; only plain or fully qualified variable names allowed"
+    }
+    if {[string match ::* $varName]} {
+      ::vwait $varName
+    } else {
+      ::vwait :$varName
+    }
   }
 
   # provide the standard command set for ::xotcl::Class
