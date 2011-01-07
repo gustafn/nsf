@@ -100,7 +100,7 @@ the following respects:
 
    * NX:
 [horizontal]
-Methods for Objects: :: 19
+Methods for Objects: :: 18
 Methods for Classes: :: 7
 Info methods for Objects: :: 14
 Info method for Classes: :: 6 
