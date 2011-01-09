@@ -486,7 +486,7 @@ namespace eval ::nx::doc {
       return $p
     }
     :public method delete {domain prop value} {
-      next [list $domain $prop [:require_part $prop $value]]
+      next [list $domain $prop [:require_part $domain $prop $value]]
     }
   }
   
