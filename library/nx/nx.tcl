@@ -757,7 +757,7 @@ namespace eval ::nx {
     }
   }
   
-  ObjectParameterSlot method unknown {method args} {
+  ObjectParameterSlot protected method unknown {method args} {
     set methods [list]
     foreach m [::nsf::dispatch [::nsf::self] ::nsf::methods::object::info::lookupmethods] {
       if {[::nsf::dispatch Object ::nsf::methods::object::info::lookupmethods $m] ne ""} continue
@@ -912,7 +912,7 @@ namespace eval ::nx {
     if {[info exists arg]} {
       lappend objparamdefinition $arg
     }
-    #puts stderr "[::nsf::current method] ${name} returns [list oparam $objparamdefinition mparam $methodparamdefinition]"
+    #puts stderr "*** [::nsf::current method] ${name} returns [list oparam $objparamdefinition mparam $methodparamdefinition]"
     return [list oparam $objparamdefinition mparam $methodparamdefinition]
   }
 
@@ -952,9 +952,9 @@ namespace eval ::nx {
   ############################################
   MetaSlot create ::nx::RelationSlot
   createBootstrapAttributeSlots ::nx::RelationSlot {
+    {elementtype ::nx::Class}
     {multivalued true}
     {type relation}
-    {elementtype ::nx::Class}
   }
 
   ::nsf::relation RelationSlot superclass ObjectParameterSlot
@@ -1099,15 +1099,14 @@ namespace eval ::nx {
   MetaSlot create ::nx::Attribute -superclass ::nx::ObjectParameterSlot
 
   createBootstrapAttributeSlots ::nx::Attribute {
-    {value_check once}
+    allowempty
+    arg
+    convert
     incremental
     initcmd
     valuecmd
     defaultcmd
     valuechangedcmd
-    arg
-    allowempty
-    convert
   }
 
   Attribute method __default_from_cmd {obj cmd var sub op} {
@@ -1175,7 +1174,9 @@ namespace eval ::nx {
     }
   }
 
-  # mixin class for optimizing slots
+  ##################################################################
+  # Define a mixin class for optimizing slots
+  ##################################################################
   Class create ::nx::Attribute::Optimizer {
 
     :public method method args  {set r [::nsf::next]; :optimize; return $r}
@@ -1221,6 +1222,8 @@ namespace eval ::nx {
       array set "" [:toParameterSyntax ${:name}]
       if {$(mparam) ne ""} {
         set setterParam [lindex $(oparam) 0]
+	# never pass substdefault to setter
+	regsub -all ,substdefault $setterParam "" setterParam
         #puts stderr "setterParam=$setterParam, op=$(oparam)"
       } else {
         set setterParam ${:name}
@@ -1232,9 +1235,9 @@ namespace eval ::nx {
   # register the optimizer per default
   Attribute mixin add Attribute::Optimizer
 
-  ############################################
+  ##################################################################
   # Define method "attribute" for convenience
-  ############################################
+  ##################################################################
   Class method attribute {spec {-class ::nx::Attribute} {initblock ""}} {
     set r [$class createFromParameterSyntax [::nsf::self] -initblock $initblock {*}$spec]
     if {$r ne ""} {
@@ -1255,10 +1258,10 @@ namespace eval ::nx {
     return $r    
   }
 
-  ############################################
-  # Define method "parameter" for backward 
-  # compatibility and convenience
-  ############################################
+  ##################################################################
+  # Define method "attributes" for convenience to define multiple
+  # attributes based on a list of parameter specifications.
+  ##################################################################
   Class public method attributes arglist {
   
     foreach arg $arglist {
@@ -1275,9 +1278,19 @@ namespace eval ::nx {
     }
     return ""
   }
+  
+  ##################################################################
+  # Minimal definition of a value checker that permits every value
+  # without warnings. The primary purpose of this value checker is to
+  # provide a means to specify that the value can have every possible
+  # content and not to produce a warning when it might look like a
+  # non-positional parameter.
+  ##################################################################
+  ::nx::Slot method type=any {name value} {
+  }
 
   ##################################################################
-  # now the slots are defined; now we can defines the Objects or 
+  # Now the slots are defined; now we can defines the Objects or 
   # classes with parameters more easily than above.
   ##################################################################
 
