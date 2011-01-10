@@ -376,8 +376,9 @@ typedef struct NsfStringIncrStruct {
 #define NSF_ARG_IS_ENUMERATION		0x4000
 #define NSF_ARG_CHECK_NONPOS		0x8000
 #define NSF_ARG_SET		       0x10000
-#define NSF_ARG_UNNAMED		       0x20000
-#define NSF_ARG_IS_RETURNVALUE	       0x40000
+#define NSF_ARG_WARN		       0x20000
+#define NSF_ARG_UNNAMED		       0x40000
+#define NSF_ARG_IS_RETURNVALUE	       0x80000
 
 /* Disallowed parameter options */
 #define NSF_DISALLOWED_ARG_METHOD_PARAMETER	     (NSF_ARG_METHOD|NSF_ARG_INITCMD|NSF_ARG_RELATION)

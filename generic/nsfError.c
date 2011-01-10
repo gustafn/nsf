@@ -57,6 +57,31 @@ NsfDStringPrintf(Tcl_DString *dsPtr, CONST char *fmt, va_list apSrc)
 /*
  *----------------------------------------------------------------------
  *
+ * NsfDStringArgv --
+ *
+ *      Appends argument vector to an initialized Tcl_DString.
+ *
+ * Results:
+ *      None.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+void
+NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[])
+{
+  int i;
+  for (i=0; i<objc; i++) {
+    Tcl_DStringAppendElement(dsPtr, ObjStr(objv[i]));
+  }
+}
+
+
+/*
+ *----------------------------------------------------------------------
+ *
  * NsfPrintError --
  *
  *      Produce a formatted error message with a printf like semantics

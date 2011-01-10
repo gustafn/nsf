@@ -277,6 +277,7 @@ static int NextSearchAndInvoke(Tcl_Interp *interp,
 			       NsfCallStackContent *cscPtr, int freeArgumentVector);
 static void AssertionRemoveProc(NsfAssertionStore *aStore, CONST char *name);
 static int NSDeleteCmd(Tcl_Interp *interp, Tcl_Namespace *nsPtr, CONST char *methodName);
+void NsfDStringArgv(Tcl_DString *dsPtr, int objc, Tcl_Obj *CONST objv[]);
 
 
 /*
@@ -8442,12 +8443,13 @@ ConvertToString(Tcl_Interp *UNUSED(interp), Tcl_Obj *objPtr, NsfParam CONST *UNU
 
 enum stringTypeIdx {StringTypeAlnum, StringTypeAlpha, StringTypeAscii, StringTypeBoolean, StringTypeControl,
 		    StringTypeDigit, StringTypeDouble, StringTypeFalse,StringTypeGraph, StringTypeInteger,
-		    StringTypeLower, StringTypePrint, StringTypePunct, StringTypeSpace, StringTypeTrue,
-		    StringTypeUpper, StringTypeWordchar, StringTypeXdigit };
+		    StringTypeLower, StringTypePrint, StringTypePunct, StringTypeSpace, StringTypeTrue, 
+		    StringTypeUpper, StringTypeWideinteger, StringTypeWordchar, StringTypeXdigit };
 static CONST char *stringTypeOpts[] = {"alnum", "alpha", "ascii", "boolean", "control",
-			       "digit", "double", "false", "graph", "integer",
-			       "lower", "print", "punct", "space", "true",
-			       "upper", "wordchar", "xdigit", NULL};
+				       "digit", "double", "false", "graph", "integer", 
+				       "lower", "print", "punct", "space",  "true",  
+				       "upper", "wideinteger", "wordchar", "xdigit", 
+				       NULL};
 
 static int
 ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
@@ -8472,6 +8474,7 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
       }
     }
   } else {
+    result = TCL_OK;
 #if defined(NSF_WITH_VALUE_WARNINGS)
     if (RUNTIME_STATE(interp)->debugLevel > 0) {
       char *value = ObjStr(objPtr);
@@ -8480,13 +8483,17 @@ ConvertToTclobj(Tcl_Interp *interp, Tcl_Obj *objPtr,  NsfParam CONST *pPtr,
 	  && isalpha(*(value+1)) 
 	  && strchr(value+1, ' ') == NULL
 	  ) {
-	NsfLog(interp, NSF_LOG_WARN, "Value '%s' of parameter '%s' could be a non-positional argument",
-	       value, pPtr->name);
+	/* 
+	 * In order to flag a warning, we set the error message and
+	 * return TCL_CONTINUE
+	 */
+	(void)NsfPrintError(interp, "Value '%s' of parameter '%s' could be a non-positional argument",
+		      value, pPtr->name);
+	result = TCL_CONTINUE;
       }
-    } 
+    }
 #endif
     *clientData = (ClientData)objPtr;
-    result = TCL_OK;
   }
   *outObjPtr = objPtr;
   return result;
@@ -8811,9 +8818,11 @@ ParamOptionParse(Tcl_Interp *interp, CONST char *argString,
 
   } else if (optionLength >= 4 && strncmp(option, "arg=", 4) == 0) {
     if ((paramPtr->flags & (NSF_ARG_METHOD|NSF_ARG_RELATION)) == 0
-        && paramPtr->converter != ConvertViaCmd)
+        && paramPtr->converter != ConvertViaCmd) {
+      fprintf(stderr, "type %s flags %.6x\n", paramPtr->type, paramPtr->flags);
       return NsfPrintError(interp, 
 			   "option arg= only allowed for \"method\", \"relation\" or user-defined converter");
+    }
     paramPtr->converterArg =  Tcl_NewStringObj(option + 4, optionLength - 4);
     INCR_REF_COUNT(paramPtr->converterArg);
 
@@ -9310,7 +9319,6 @@ MakeMethod(Tcl_Interp *interp, NsfObject *object, NsfClass *cl, Tcl_Obj *nameObj
 /**************************************************************************
  * Begin Definition of Parameter procs (Tcl Procs with Parameter handling)
  **************************************************************************/
-/// xxxx
 typedef struct NsfProcClientData {
   Tcl_Obj *procName;
   NsfParamDefs *paramDefs;
@@ -12468,16 +12476,16 @@ ArgumentCheckHelper(Tcl_Interp *interp, Tcl_Obj *objPtr, struct NsfParam CONST *
     /*fprintf(stderr, "ArgumentCheckHelper convert %s result %d (%s)\n",
       valueString, result, ObjStr(elementObjPtr));*/
 
-    if (result == TCL_OK) {
+    if (result == TCL_OK || result == TCL_CONTINUE) {
       Tcl_ListObjAppendElement(interp, *outObjPtr, elementObjPtr);
     } else {
       Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
       INCR_REF_COUNT(resultObj);
       NsfPrintError(interp, "invalid value in \"%s\": %s", ObjStr(objPtr), ObjStr(resultObj));
-      DECR_REF_COUNT(resultObj);
-      DECR_REF_COUNT(*outObjPtr);
       *flags &= ~NSF_PC_MUST_DECR;
       *outObjPtr = objPtr;
+      DECR_REF_COUNT(*outObjPtr);
+      DECR_REF_COUNT(resultObj);
       break;
     }
   }
@@ -12531,7 +12539,7 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct NsfParam CONST *pPtr, 
 	result = (*pPtr->converter)(interp, ov[i], pPtr, clientData, &elementObjPtr);
       }
 
-      if (result == TCL_OK) {
+      if (result == TCL_OK || result == TCL_CONTINUE) {
         if (ov[i] != elementObjPtr) {
           /*
 	   * The elementObjPtr differs from the input Tcl_Obj, we
@@ -12559,6 +12567,11 @@ ArgumentCheck(Tcl_Interp *interp, Tcl_Obj *objPtr, struct NsfParam CONST *pPtr, 
     } else {
       result = (*pPtr->converter)(interp, objPtr, pPtr, clientData, outObjPtr);
     }
+  }
+
+  if (result == TCL_CONTINUE) {
+    *flags |= NSF_ARG_WARN;
+    result = TCL_OK;
   }
   return result;
 }
@@ -12837,6 +12850,22 @@ ArgumentParse(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[],
 		     ObjStr(procNameObj));
 	    }
 	    pcPtr->flags[j] |= NSF_ARG_SET;
+
+	    /*
+	     * Provide context for warning messages
+	     */
+	    if (pcPtr->flags[j] & NSF_ARG_WARN) {
+	      Tcl_Obj *resultObj = Tcl_GetObjResult(interp);
+	      Tcl_DString ds, *dsPtr = &ds;
+
+	      Tcl_DStringInit(dsPtr);
+	      INCR_REF_COUNT(resultObj);
+	      NsfDStringArgv(dsPtr, objc, objv);
+	      NsfLog(interp, NSF_LOG_WARN, "%s during:\n%s %s", 
+		     ObjStr(resultObj), ObjectName(object), Tcl_DStringValue(dsPtr));
+	      DECR_REF_COUNT(resultObj);
+	      Tcl_DStringFree(dsPtr);
+	    }
 		
 	    if (pcPtr->flags[j] & NSF_PC_MUST_DECR) {
 	      pcPtr->status |= NSF_PC_STATUS_MUST_DECR;
