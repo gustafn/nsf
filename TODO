@@ -2198,7 +2198,23 @@ text
   in InterpColonVarResolver(), since Tcl vwait implementation
   calls it with that flag.
 - added a scripted implementation for vwait in xotcl2
+- added regression test for vwait
 - removed TCL_VWAIT from the code, since we have it in git
+
+- nx.tcl: defined method unknown as protected
+- nx.tcl: never pass "substdefault" to a setter
+- nx.tcl: define a minimal valuechecker any to suppress warnings
+   for potential conflicts with non-positional parameters, when the
+   values start with a dash
+
+- doc-tools.tcl: make -name parameter of method new always required and "any"
+- doc-tools.tcl: make object parameter of Entity of type "any"
+
+- nsf.c: added wideinteger to list of valuecheckers
+- nsf.c: provide context for warning messages
+- extended regression test
+
+- next-tutorial: documentation updates
 
 TODO:
 - doc:

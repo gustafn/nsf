@@ -5,6 +5,7 @@ v2.0, December 2010:
 Written for the Initial Release of the Next Scripting Framework.
 :Author Initials: GN
 :toc:
+:toclevels: 3
 :icons:
 :numbered:
 :website: http://www.xotcl.org/
@@ -17,11 +18,11 @@ Language NX.
 The Next Scripting Language (NX) is a successor of XOTcl 1 and is
 based on 10 years of experience with XOTcl in projects containing
 several hundert thousand lines of code. While XOTcl was the first
-language designed to provide language support for design patterns, the
-focus of the Next Scripting Framework and NX are on combining this
-with Language Oriented Programming. In many respects, NX was designed
-to ease the learning of the language by novices (by using a more
-mainstream terminology, higher orthogonality of the methods, less
+language designed to provide _language support for design patterns_,
+the focus of the Next Scripting Framework and NX are on combining this
+with _Language Oriented Programming_. In many respects, NX was
+designed to ease the learning of the language by novices (by using a
+more mainstream terminology, higher orthogonality of the methods, less
 predefined methods), to improve maintainability (remove sources of
 common errors) and to encourage developer to write better structured
 programs (to provide interfaces) especially for large projects, where
@@ -38,8 +39,7 @@ existing XOTcl 1 programs can be used without modification in the Next
 Scripting Framework by using XOTcl 2. The Next Scripting Framework
 requires Tcl 8.5 or newer.
 
-History
--------
+== NX and its Roots
 
 Object oriented extensions of Tcl <<Ousterhout 1990>> have quite a
 long history. Two of the most prominent early Tcl based OO languages
@@ -69,10 +69,8 @@ different naming conventions for built-in methods. Currently, the Next
 Scripting Framework is packaged with three object systems: NX, XOTcl
 2.0, and TclCool (the language introduced by TIP#279).
 
-.Figure 1: Language History of the Next Scripting Language
-image:languages.png[width=400,height=600,scaledwidth="75%",
-	title="Language History of the Next Scripting Language",
-	alt="Languages"]
+image::languages.png[align="center",width=500,title="Language History of the Next Scripting Language",alt="Languages"]
+{set:img-languages:Figure {figure-number}}
 
 The primary purpose of this document is to introduce NX to beginners.
 We expect some prior knowledge of programming languages, and some
@@ -102,9 +100,9 @@ In our first example, we define a class named +Stack+ with the methods
 concrete stack +s1+) the stack will be initialized via the constructor
 +init+.
 
-.Class Stack
-[caption="Figure 1: "]
-[[fig1]]
+[[xmp-class-stack]]
+.Listing {counter:figure-number}: Class Stack
+{set:xmp-class-stack:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 nx::Class create Stack {
@@ -174,13 +172,13 @@ popped element +top+.
 
 This finishes our first implementation of the the stack, more enhanced
 versions will follow. Note that the methods +push+ and +pop+ are
-defined as +public+; this means that these methods of the stack can be
+defined as +public+; this means that these methods can be
 used from all other objects in the system. Therefore, these methods
 provide an interface to the stack implementation.
 
-.Using the Stack
-[caption="Figure 2: "]
-[[fig2]]
+[[xmp-using-stack]]
+.Listing {counter:figure-number}: Using the Stack
+{set:xmp-using-stack:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 !#/bin/env tclsh
@@ -203,16 +201,15 @@ puts [s1 pop]
 s1 destroy
 --------------------------------------------------
 
-
-Now we want to use the stack. The code snipped in <<fig2, Figure 2>>
-shows how to use the class Stack in a script. Since NX is based on
-Tcl, the script will be called with the Tcl shell +tclsh+. In the Tcl
-shell we have to +require package nx+ to use the Next Scripting
-Framework and NX. The next lines contain the definition of the stack
-as presented before. Of course, it is as well possible to make the
-definition of the stack an own package, such we could simple say
-+package require stack+, or to save the definition of a stack simply
-in a file and load it via +source+.
+Now we want to use the stack. The code snipped in <<xmp-using-stack,
+{xmp-using-stack}>> shows how to use the class Stack in a script.
+Since NX is based on Tcl, the script will be called with the Tcl shell
++tclsh+. In the Tcl shell we have to +require package nx+ to use the
+Next Scripting Framework and NX. The next lines contain the definition
+of the stack as presented before. Of course, it is as well possible to
+make the definition of the stack an own package, such we could simple
+say +package require stack+, or to save the definition of a stack
+simply in a file and load it via +source+.
 
 In line 12 we create an instance of the stack, namely the stack object
 +s1+. The object +s1+ has as an instance of the stack access to the
@@ -226,13 +223,25 @@ destroy the object. This is not necessary here, but shows the life
 cycle of an object. In some respects, +destroy+ is the counterpart of
 +create+ from line 12.
 
+[[fig-class-object]]
+image::object-class-appclass.png[title="Class and Object Diagram",align="center"]
+{set:fig-class-object:Figure {figure-number}}
+
+<<fig-class-object, {fig-class-object}>> shows the actual class and
+object structure of the first +Stack+ example. Note that the common
+root class is +nx::Object+ that contains methods for all objects.
+Since classes are as well objects in NX, +nx::Class+ is a
+specialization of +nx::Object+. +nx::Class+ provides methods for
+creating objects, such as the method +create+ which is used to create
+objects (and classes as well).
+
 === Define an Object named stack
 
-The definition of the stack in <<fig1, Figure 1>> is following the
-traditional object oriented approach, found in practically every object
-oriented programming language: Define a class with some methods,
-create instances from this class, and use the methods defined in the
-class in the instances of the class. 
+The definition of the stack in <<xmp-using-stack, {xmp-using-stack}>>
+is following the traditional object oriented approach, found in
+practically every object oriented programming language: Define a class
+with some methods, create instances from this class, and use the
+methods defined in the class in the instances of the class.
 
 In our next example, we introduce _generic objects_ and _object
 specific methods_. With NX, we can define generic objects, which are
@@ -246,9 +255,9 @@ example were methods provided by a class for objects. Now we defined
 object specific methods, which are methods applicable only to the 
 object for which they are defined.
 
-.Object stack
-[caption="Figure 3: "]
-[[fig3]]
+[[xmp-object-stack]]
+.Listing {counter:figure-number}: Object stack
+{set:xmp-object-stack:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 nx::Object create stack {
@@ -268,9 +277,9 @@ nx::Object create stack {
 }
 --------------------------------------------------
 
-The example in <<fig3, Figure 3>> defines the object +stack+ in a very
-similar way as the class +Stack+. But the following points are
-different. 
+The example in <<xmp-object-stack, {xmp-object-stack}>> defines the
+object +stack+ in a very similar way as the class +Stack+. But the
+following points are different.
 
 - First, we use +nx::Object+ instead of +nx::Class+ to denote
   that we want to create a generic object, not a class.
@@ -284,7 +293,13 @@ The definition for the methods +push+ and +pop+ are the same as
 before, but this times they are object specify. All methods defined on
 an object are object-specific. In order to use the stack, we can use
 directly the object +stack+ in the same way as we have used the object
-+s1+ in <<fig2, Figure 2>>. 
++s1+ in <<xmp-using-stack, {xmp-using-stack}>> (e.g. +stack push a+).
+<<img-object-stack, {img-object-stack}>> shows the class diagram for
+this the object +stack+.
+
+[[img-object-stack]]
+image::object-stack.png[title="Object stack",align="center"]
+{set:img-object-stack:Figure {figure-number}}
 
 A reader might wonder when to use a class +Stack+ or rather an object
 +stack+. A big difference is certainly that one can define easily
@@ -317,12 +332,12 @@ orthogonal to the stack core implementation.
 With NX we can define stack-safety as a separate class using methods
 with the same names as the implementations before, and "mix" this
 behavior into classes or objects. The implementation of +Safety+ in
-<<fig4, Figure 4>> uses a counter to check for stack under-runs and to
-issue error messages, when this happens.
+<<xmp-class-safety, {xmp-class-safety}>> uses a counter to check for
+stack under-runs and to issue error messages, when this happens.
 
-.Class Safety
-[caption="Figure 4: "]
-[[fig4]]
+[[xmp-class-safety]]
+.Listing {counter:figure-number}: Class Safety
+{set:xmp-class-safety:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 nx::Class create Safety {
@@ -362,15 +377,16 @@ Assume we safe the definition of the class +Stack+ in a file named
 +Stack.tcl+ and the definition of the class +Safety+ in a file named
 +Safety.tcl+ in the current directory. When we load the classes
 +Stack+ and +Safety+ into the same script (see the terminal dialog in
-<<fig5, Figure 5>>), we can define e.g. a certain stack +s2+ as a safe
-stack, while all other stacks (such as +s1+) might be still "unsafe".
-This can be achieved via the option +-mixin+ at the object creation
-time (see line 9 in <<fig5, Figure 5>>) of s2. The option +-mixin+
-mixes the class +Safety+ into the new instance +s2+.
+<<xmp-using-class-safety, {xmp-using-class-safety}>>), we can define
+e.g. a certain stack +s2+ as a safe stack, while all other stacks
+(such as +s1+) might be still "unsafe". This can be achieved via the
+option +-mixin+ at the object creation time (see line 9 in
+<<xmp-using-class-safety, {xmp-using-class-safety}>>) of s2. The
+option +-mixin+ mixes the class +Safety+ into the new instance +s2+.
 
-.Using the Class Safety
-[caption="Figure 5: "]
-[[fig5]]
+[[xmp-using-class-safety]]
+.Listing {counter:figure-number}: Using the Class Safety
+{set:xmp-using-class-safety:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 % package require nx
@@ -407,21 +423,31 @@ empty (the value of +count+ reaches 0), and +pop+ is invoked, the
 mixin class +Safety+ generates an error message (raises an exception),
 and does not invoke the method of the +Stack+.
 
-The last two commands in <<fig5, Figure 5>> use introspection to query
-for the objects +s1+ and +s2+ the order in which the classes are
-processed. This order is called the +precedence order+ and is obtained
-via +info precedence+. We see that the mixin class +Safety+ is only in
-use for +s2+, and takes there precedence over +Stack+. The common root
-class +nx::Object+ is for both +s1+ and +s2+ the base class.
+The last two commands in <<xmp-using-class-safety,
+{xmp-using-class-safety}>> use introspection to query for the objects
++s1+ and +s2+ the order in which the classes are processed. This order
+is called the +precedence order+ and is obtained via +info
+precedence+. We see that the mixin class +Safety+ is only in use for
++s2+, and takes there precedence over +Stack+. The common root class
++nx::Object+ is for both +s1+ and +s2+ the base class.
+
+[[img-per-object-mixin]]
+image::per-object-mixin.png[title="Per-object Mixin",align="center"]
+{set:img-per-object-mixin:Figure {figure-number}}
 
 Note that the class +Safety+ is only mixed into a single object (here
-+s2+), therefore we refer to this case as a _per-object mixin_. The
-class +Safety+ can be used as well in other ways, such as e.g. for
-defining classes for safe stacks <<fig6, Figure 6>>.
++s2+), therefore we refer to this case as a _per-object mixin_.
+<<img-per-object-mixin,{img-per-object-mixin}>> shows the class
+diagram, where the class +Safety+ is used as a per-object mixin for
++s2+.
 
-.Class SafeStack
-[caption="Figure 6: "]
-[[fig6]]
+The class +Safety+ can be used as well in other ways, such as e.g. for
+defining classes for safe stacks <<xmp-class-safestack,
+{xmp-class-safestack}>>.
+
+[[xmp-class-safestack]]
+.Listing {counter:figure-number}: Class SafeStack
+{set:xmp-class-safestack:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 #
@@ -435,8 +461,19 @@ SafeStack create s3
 
 The difference to the case with the per-object mixin is that now,
 +Safety+ is mixed into the definition of +SafeStack+. Therefore, all
-instances of the class +SafeStack+ (here +s3+) will be using the
-safety definitions.
+instances of the class +SafeStack+ (here the instance +s3+) will be
+using the safety definitions.
+<<img-per-class-mixin,{img-per-class-mixin}>> shows the class diagram
+for this definition.
+
+[[img-per-class-mixin]]
+image::per-class-mixin.png[title="Per-class Mixin",align="center"]
+{set:img-per-class-mixin:Figure {figure-number}}
+
+Note that we could use +Safety+ as well as a per-class mixin on
++Stack+. In this case, all stacks would be safe stacks and we could
+not provide a selective feature selection (which might be perfectly
+fine). 
 
 === Define Different Kinds of Stacks
 
@@ -444,11 +481,12 @@ The definition of +Stack+ is generic and allows all kind of elements
 to be stacked. Suppose, we want to use the generic stack definition,
 but a certain stack (say, stack +s4+) should be a stack for integers
 only. This behavior can be achieved by the same means as introduced
-already in <<fig3, Figure 3>>, namely object specific methods.
+already in <<xmp-object-stack, {xmp-object-stack}>>, namely
+object-specific methods.
 
-.Object Integer Stack
-[caption="Figure 7: "]
-[[fig7]]
+[[xmp-object-integer-stack]]
+.Listing {counter:figure-number}: Object Integer Stack
+{set:xmp-object-integer-stack:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 Stack create s4 {
@@ -464,24 +502,25 @@ Stack create s4 {
 }
 --------------------------------------------------
 
-The program snippet in <<fig7, Figure 7>> defines an instance +s4+ of
-the class +Stack+ and provides an object specific method for +push+ to
-implement an integer stack. The method +pull+ is the same for the
-integer stack as for all other stacks, so it will be reused as usual
-from the class +Stack+. The object-specific method +push+ of +s4+ has
-a value constraint in its argument list (+thing:integer+) that makes
-sure, that only integers can be stacked. In case the argument is not
-an integer, an exception will be raised. Of course, one could perform
-the value constraint checking as well in the body of the method +proc+
-by accepting an generic argument and by performing the test for the
-value in the body of the method. In the case, the passed value is an
-integer, the +push+ method of <<fig7, Figure 7>> calls +next+, and
-therefore calls the shadowed generic definition of +push+ as provided
-by +Stack+.
+The program snippet in <<xmp-object-integer-stack,
+{xmp-object-integer-stack}>> defines an instance +s4+ of the class
++Stack+ and provides an object specific method for +push+ to implement
+an integer stack. The method +pull+ is the same for the integer stack
+as for all other stacks, so it will be reused as usual from the class
++Stack+. The object-specific method +push+ of +s4+ has a value
+constraint in its argument list (+thing:integer+) that makes sure,
+that only integers can be stacked. In case the argument is not an
+integer, an exception will be raised. Of course, one could perform the
+value constraint checking as well in the body of the method +proc+ by
+accepting an generic argument and by performing the test for the value
+in the body of the method. In the case, the passed value is an
+integer, the +push+ method of <<xmp-object-integer-stack,
+{xmp-object-integer-stack}>> calls +next+, and therefore calls the
+shadowed generic definition of +push+ as provided by +Stack+.
 
-.Class IntegerStack
-[caption="Figure 8: "]
-[[fig8]]
+[[xmp-class-integer-stack]]
+.Listing {counter:figure-number}: Class IntegerStack
+{set:xmp-class-integer-stack:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 nx::Class create IntegerStack -superclass Stack {
@@ -496,9 +535,10 @@ nx::Class create IntegerStack -superclass Stack {
 }
 --------------------------------------------------
 
-An alternative approach is shown in <<fig8, Figure 8>>, where the
-class +IntegerStack+ is defined, using again the same method
-definition on the class level as previously in <<fig7, Figure 7>>.
+An alternative approach is shown in
+<<xmp-class-integer-stack,{xmp-class-integer-stack}>>, where the class
++IntegerStack+ is defined, using again the method definition use for
++s4+, this time on the class level.
 
 === Define Class Specific Methods
 
@@ -520,9 +560,9 @@ inherited to instances. These methods defined on the class object are
 actually exactly same as the object-specific methods in the examples
 above.
 
-.Class Stack2
-[caption="Figure 9: "]
-[[fig9]]
+[[xmp-stack2]]
+.Listing {counter:figure-number}: Class Stack2
+{set:xmp-stack2:Listing {figure-number}}
 [source,tcl,numbers]
 --------------------------------------------------
 nx::Class create Stack2 {
@@ -553,12 +593,600 @@ Stack create s2
 puts [Stack available_stacks]
 --------------------------------------------------
 
-The class +Stack2+ in <<fig9, Figure 9>> consists of the the earlier
-definition of the class +Stack+ extended by the class-object-specific
-method +available_stacks+, that returns the current number of
-instances of the stack. The final command +puts+ (line 26) prints 2 to
-the console.
- 
+The class +Stack2+ in <<xmp-stack2, {xmp-stack2}>> consists of the the
+earlier definition of the class +Stack+ extended by the
+class-object-specific method +available_stacks+, that returns the
+current number of instances of the stack. The final command +puts+
+(line 26) prints 2 to the console.
+
+[[img-stack2]]
+image::stack2.png[align="center",title="Stack2"]
+{set:img-stack2:Figure {figure-number}}
+
+The class diagram in <<img-stack2,{img-stack2}>> shows the
+diagrammatical representation of the class object-specific method
++available_stacks+. We omit here the common root class. Since every
+class is a specialization of the common root class +nx::Object+, the
+common root class is often omitted from the class diagrams.
+
+== Basic Language Features of NX
+
+=== Parameters
+
+NX provides a generalized mechanism for passing values to either
+methods or to objects as initializers. 
+
+- Positional and non-positional parameters
+- Required and non-required parameters
+- Default values for parameters
+- Value-checking for parameters
+- Multiplicity of parameters
+
+TODO: complete list above and provide a short summary of the section
+
+==== Positional and Non-Positional Parameters
+
+In general, we distinguish between _positional_ and _non-positional_
+parameters. When we call a method with positional parameters, the
+meaning of the parameters (the association with the argument in the
+argument list of the method) is determined by its position. When we
+call a method with non-positional parameters, their meaning is
+determined via a name passed with the argument during invocation.
+
+[[xmp-posnonpos]]
+.Listing {counter:figure-number}: Positional and Non-Positional Method Parameters
+{set:xmp-posnonpos:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Object create o1 {
+
+  #
+  # Method foo has positional parameters:
+  #
+  :public method foo {x y} {
+    puts "x=$x y=$y"
+  }
+
+  #
+  # Method bar has non-positional parameters:
+  #
+  :public method bar {-x -y} {
+    puts "x=$x y=$y"
+  }
+
+  #
+  # Method baz has non-positional and 
+  # positional parameters:
+  #
+  :public method baz {-x -y a} {
+    puts "x? [info exists x] y? [info exists y] a=$a"
+  }
+}
+
+# invoke foo (positional parameters)
+o1 foo 1 2
+
+# invoke bar (non-positional parameters)
+o1 bar -y 3 -x 1
+o1 bar -x 1 -y 3
+
+# invoke baz (positional and non-positional parameters)
+o1 baz -x 1 100
+o1 baz 200
+o1 baz -- -y
+--------------------------------------------------
+
+Consider the example in <<xmp-posnonpos, {xmp-posnonpos}>>. The method
++foo+ has the argument list +x y+. This means that the first argument
+is passed in an invocation like +o1 foo 1 2+ to +x+ (here, the value
++1+), and the second argument is passed to +y+ (here the value +2+).
+Method +bar+ has in contrary just with non-positional arguments. Here
+we pass the names of the parameter together with the values. In the
+invocation +o1 bar -y 3 -x 1+ the names of the parameters are prefixed
+with a dash ("-"). No matter whether in which order we write the
+non-positional parameters in the invocation (see line 30 and 31 in
+<<xmp-posnonpos, {xmp-posnonpos}>>) in both cases the variables +x+
+and +y+ in the body of the method +bar+ get the same values assigned
+(+x+ becomes +1+, +y+ becomes +3+).
+
+It is certainly possible to combine positional and non-positional
+arguments. Method +baz+ provides two non-positional parameter (+-y+
+and +-y+) and one positional parameter (namely +a+). The invocation in
+line 34 passes the value of +1+ to +x+ and the value of +100+ to +a+.
+There is no value passed to +y+, therefore value of +y+ will be
+undefined in the body of +baz+, +info exists y+ checks for the
+existence of the variable +y+ and returns +0+.
+
+The invocation in line 35 passes only a value to the positional
+parameter. A more tricky case is in line 36, where we want to pass
++-y+ as a value to the positional parameter +a+. The case is more
+tricky since syntactically the argument parser might consider +-y+ as
+the name of one of the non-positional parameter. Therefore we use +--+
+(double dash) to indicate the end of the block of the non-positional
+parameters and therefore the value of +-y+ is passed to +a+.
+
+==== Optional and Required Parameters
+
+Per default positional parameters are required, and non-positional
+parameters are optional (they can be left out). By using parameter
+options, we can as well define positional parameters, which are
+optional, and non-positional parameters, which are required.
+
+[[xmp-optional-req]]
+.Listing {counter:figure-number}: Optional and Required Parameters
+{set:xmp-optional-req:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Object create o2 {
+
+  #
+  # Method foo has one required and one optional
+  # positional parameter:
+  #
+  :public method foo {x:required y:optional} {
+    puts "x=$x y? [info exists y]"
+  }
+
+  #
+  # Method bar has one required and one optional
+  # non-positional parameter:
+  #
+  :public method bar {-x:required -y:optional} {
+    puts "x=$x y? [info exists y]"
+  }
+}
+
+# invoke foo (one optional positional parameter is missing)
+o2 foo 1
+--------------------------------------------------
+
+The example in <<xmp-optional-req, {xmp-optional-req}>> defined method +foo+
+with one required and one optional positional parameter. For this
+purpose we use the parameter options +required+ and +optional+. The
+parameter options are separated from the parameter name by a colon. If
+there are multiple parameter options, these are separated by commas
+(we show this in later examples).
+
+The parameter definition +x:required+ for method +foo+ is equivalent
+to +x+ without any parameter options (see e.g. previous example),
+since positional parameters are per default required. The invocation
+in line 21 of <<xmp-optional-req, {xmp-optional-req}>> will lead to an
+undefined variable +y+ in method +foo+, because no value us passed to
+the optional parameter. Note that only trailing positional parameters might be
+optional. If we would call method +foo+ of <<xmp-posnonpos,
+{xmp-posnonpos}>> with only one argument, the system would raise an
+exception.
+
+Similarly, we define method +bar+ in <<xmp-optional-req,
+{xmp-optional-req}>> with one required and one optional non-positional
+parameter. The parameter definition +-y:optional+ is equivalent to
++-y+, since non-positional parameter are per default optional.
+However, the non-positional parameter +-x:required+ is required. If we 
+invoke +bar+ without it, the system will raise an exception.
+
+==== Default Values for Parameters
+
+Optional parameters might have a default value, which will be used,
+when not value is provided for this parameter.  Default values can be
+specified for positional and non-positional parameters.
+
+[[xmp-default-value]]
+.Listing {counter:figure-number}: Parameters with Default Values
+{set:xmp-default-value:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Object create o3 {
+
+  #
+  # Positional parameter with default value:
+  #
+  :public method foo {x:required {y 101}} {
+    puts "x=$x y? [info exists y]"
+  }
+
+  #
+  # Non-positional parameter with default value:
+  #
+  :public method bar {{-x 10} {-y 20}} {
+    puts "x=$x y? [info exists y]"
+  }
+}
+
+# use default values
+o3 foo
+o3 bar
+--------------------------------------------------
+
+In order to define a default value, the parameter specification must
+be of the form of a 2 element list, where the second argument is the
+default value. See for an example in
+<<xmp-default-value,{xmp-default-value}>>.
+
+==== Value Constraints
+
+NX provides value constraints for all kind of parameters. By
+specifying value constraints a developer can restrict the permissible
+values for a parameter and document the expected values in the source
+code. Value checking in NX is conditional, it can be turned on or off
+in general or on a per-usage level (more about this later). The same
+mechanisms can be used not only for input value checking, but as well
+for return value checking (we will address this point as well later).
+
+===== Built-in Value Constraints
+
+NX comes with a set of built-in value constraints, which can be
+extended on the scripting level. The built-in checkers are either the
+native checkers provided directly by the Next Scripting Framework (the
+most efficient checkers) or the value checkers provided by Tcl through
++string is ...+. The built-in checkers have as well the advantage that
+they can be used also at any time during bootstrap of an object
+system, at a time, when e.g. no objects or methods are defined. The
+same checkers are used as well for all C-implemented primitives of NX
+and the Next Scripting Framework. 
+
+[[img-value-checkers]]
+image::value-checkers.png[align="center",title="General Applicable Value Checkers in NX"]
+{set:img-value-checkers:Figure {figure-number}}
+
+<<img-value-checkers, {img-value-checkers}>> shows the built-in
+general applicable value checkers available in NX, which can be used
+for all method and object parameters. In the next step, we show how to
+use these value-checkers for checking permissible values for method
+parameters. Then we will show, how to provide more detailed value
+constraints.
+
+[[xmp-value-check]]
+.Listing {counter:figure-number}: Parameters with Value Constraints
+{set:xmp-value-check:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Object create o4 {
+
+  #
+  # Positional parameter with value constraints:
+  #
+  :public method foo {x:integer o:object,optional} {
+    puts "x=$x o? [info exists o]"
+  }
+
+  #
+  # Non-positional parameter with value constraints:
+  #
+  :public method bar {{-x:integer 10} {-verbose:boolean false}} {
+    puts "x=$x y=$y"
+  }
+}
+
+# The following invocation raises an exception
+o4 foo a
+--------------------------------------------------
+
+Value contraints are specified as parameter options in the parameter
+specifications. The parameter specification +x:integer+ defines +x+ as
+a required positional parmeter which value is constraint to an
+integer. The parameter specification +o:object,optional+ shows how to
+combine multiple parameter options. The parameter +o+ is an optional
+positional parameter, its value must be an object (see
+<<xmp-value-check,{xmp-value-check}>>). Value constraints are
+specified exactly the same way for non-positional parameters (see
+method +bar+ in <<xmp-value-check,{xmp-value-check}>>).
+
+[[xmp-check-parameterized]]
+.Listing {counter:figure-number}: Parameterized Value Constraints
+{set:xmp-check-parameterized:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+#
+# Create classes for Person and Project
+#
+Class create Person
+Class create Project
+
+nx::Object create o5 {
+  #
+  # Parameterized value constraints
+  #
+  :public method work {
+     -person:object,type=Person
+     -project:object,type=Project
+   } {
+    # ...
+  }
+}
+
+#
+# Create a Person and a Project instance
+#
+Person create gustaf
+Project create nx
+
+#
+# Use method with value constraints
+#
+o5 work -person gustaf -project nx
+--------------------------------------------------
+
+The native checkers +object+, +class+, +metaclass+ and +baseclass+ can
+be further specialized with the parameter option +type+ to restrict
+the permissible values to instances of certain classes. We can use for
+example the native value constraint +object+ either for testing
+whether an argument is some object (without further constraints, as in
+<<xmp-default-value, {xmp-default-value}>>, method +foo+), or we can
+constrain the value further to some type (direct or indirect instance
+of a class). This is shown by method +work+ in
+<<xmp-check-parameterized, {xmp-check-parameterized}>> which requires
+the parameter +-person+ to be an instance of class +Person+ and the
+parameter +-project+ to be an instance of class +Project+.
+
+===== Scripted Value Constraints
+
+The set of predefined value checkers can be extended by application
+programs via defining methods following certain conventions. The user
+defined value checkers are defined as methods of the class +nx::Slot+
+or of one of its subclasses or instances. We will address such cases
+in the next sections. In the following example we define two new
+value checkers on class +nx::Slot+. The first value checker is called
++groupsize+, the second one is called +choice+.
+
+[[xmp-user-types]]
+.Listing {counter:figure-number}: Scripted Value Checker
+{set:xmp-user-types:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+#
+# Value checker named "groupsize"
+#
+::nx::Slot method type=groupsize {name value} {
+  if {$value < 1 || $value > 6} {
+    error "Value '$value' of parameter $name is not between 1 and 6"
+  }
+}
+
+#
+# Value checker named "choice" with extra argument
+#
+::nx::Slot method type=choice {name value arg} {
+  if {$value ni [split $arg |]} {
+    error "Value '$value' of parameter $name not in permissible values $arg"
+  }
+}
+
+#
+# Create an application class D 
+# using the new value checkers
+#
+Class create D {
+  :public method foo {a:groupsize} {
+    # ...
+  }
+  :public method bar {a:choice,arg=red|yellow|green b:choice,arg=good|bad} {
+    # ...
+  }
+}
+
+D create d1
+
+# testing "groupsize"
+d1 foo 2 
+d1 foo 10
+
+# testing "choice"
+d1 bar green good
+d1 bar pink bad
+--------------------------------------------------
+
+In order to define a checker +groupsize+ a method of the name
++type=groupsize+ is defined. This method receives two arguments,
++name+ and +value+. The first argument is the name of the parameter
+(mostly used for the error message) and the second parameter is
+provided value. The value checker simply tests whether the provided
+value is between 1 and 3 and raises an exception if this is not the
+case (invocation in line 36 in <<xmp-user-types, {xmp-user-types}>>).
+
+The checker +groupsize+ has the permissible values defined in its
+method's body. It is as well possible to define more generic checkers
+that can be parameterized. For this parameterization, one can pass an
+argument to the checker method (last argument). The checker +choice+
+can be used for restricting the values to a set of predefined
+constants. This set is defined in the parameter specification. The
+parameter +a+ of method +bar+ in <<xmp-user-types, {xmp-user-types}>>
+is restricted to the values +red+, +yellow+ or +green+, and the
+parameter +b+ is restricted to +good+ or +bad+. Note that the syntax
+of the permissible values is solely defined by the definition of the
+value checker in lines 13 to 17. The invocation in line 39 will be ok,
+the invocation in line 40 will raise an exception, since +pink+ is not
+allowed.
+
+If the same checks are used in many places in the program,
+defining names for the value checker will be the better choice since
+it improves maintainability. For seldomly used kind of checks, the
+parameterized value checkers might be more convenient.
+
+==== Multiplicity
+
+*****************************************************************************
+*Multiplicity* is used to define whether a parameter should receive
+single or multiple values. 
+*****************************************************************************
+
+A multiplicity specification has a lower and an upper bound. A lower
+bound of +0+ means that the value might be empty. A lower bound of +1+
+means that the the parameter needs at least one value. The upper bound
+might be +1+ or +n+ (or synonymously +*+). While the upper bound of
++1+ states that at most one value has to be passed, the upper bound of
++n+ says that multiple values are permitted. Other kinds of
+multiplicity are currently not allowed.
+
+The multiplicity is written as parameter option in the parameter
+specification in the form _lower-bound_.._upper-bound_. If no
+multiplicity is defined the default multiplicity is +1..1+, which
+means: provide exactly one (atomic) value (this was the case in the
+previous examples).
+
+[[xmp-multiplicity]]
+.Listing {counter:figure-number}: Parameters with Explicit Multiplicity
+{set:xmp-multiplicity:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+nx::Object create o6 {
+
+  #
+  # Positional parameter with an possibly empty 
+  # single value
+  #
+  :public method foo {x:integer,0..1} {
+    puts "x=$x"
+  }
+
+  #
+  # Positional parameter with an possibly empty 
+  # list of values value
+  #
+  :public method bar {x:integer,0..n} {
+    puts "x=$x"
+  }
+
+  #
+  # Positional parameter with a non-empty 
+  # list of values
+  #
+  :public method baz {x:integer,1..n} {
+    puts "x=$x"
+  }
+}
+--------------------------------------------------
+
+<<xmp-multiplicity, {xmp-multiplicity}>> contains three examples for
+positional parameters with different multiplicities. Multiplicity is
+often combined with value constraints. A parameter specification of
+the form +x:integer,0..n+ means that the parameter +x+ receives a list
+of integers, which might be empty. Note that the value constraints are
+applied to every single element of the list.
+
+The parameter specification +x:integer,0..1+ means that +x+ might be
+an integer or it might be empty. This is one style of specifying that
+no explicit value is passed for a certain parameter. Another style is
+to use required or optional parameters. NX does not enforce any
+particular style for handling unspecified values.
+
+All the examples in <<xmp-multiplicity, {xmp-multiplicity}>> are for
+single positional parameters. Certainly, multiplicity is fully
+orthogonal with the other parameter features and can be used as well
+for multiple parameters, non-positional parameter, default values,
+etc.
+
+=== Method and Object Parameters
+
+The parameter specifications are used in NX for the following
+purposes. They are used for
+
+- the specification of input arguments of methods and commands, for
+- the specification of return values of methods and commands, and for
+- the specification for the initialization of objects.
+
+We refer to the first two as method parameters and the last one as
+object parameters. The examples in the previous sections all parameter
+specification were specifications of method parameters.
+
+*****************************************************************************
+*Method parameters* specify properties about permissible values passed
+to methods.
+*****************************************************************************
+
+The method parameter specify how methods are invoked, how the
+actual arguments are passed to local variables of the invoked method
+and what kind of checks should be performed on these.
+
+*****************************************************************************
+*Object parameters* are parameters that specify, with what values
+instance variables of objects are initialized and how these objects
+could be parameterized.
+*****************************************************************************
+
+Syntactically, object and method parameters are the same, although
+there are certain differences (e.g. some parameter options are only
+applicable for objects parameters, the list of object parameters is
+computed dynamically, object parameters are often used in combination
+with special setter methods, etc.).  Consider the following example,
+where we define two application classes with a few attributes.
+
+[[xmp-object-parameters]]
+.Listing {counter:figure-number}: Object Parameters
+{set:xmp-object-parameters:Listing {figure-number}}
+[source,tcl,numbers]
+--------------------------------------------------
+#
+# Define a class Person with attributes "name" 
+# and "birthday"
+#
+nx::Class create Person {  
+  :attribute name:required
+  :attribute birthday
+}
+
+#
+# Define a class Student as specialization of Person 
+# with and additional attribute
+#
+nx::Class create Student -superclass Person {  
+  :attribute matnr:required
+}
+
+#
+# Create instances using object parameters
+# for the initialization
+#
+Person create p1 -name Bob
+Student create s1 -name Susan -matnr 4711
+
+# Access attributes via setter methods
+puts "The name of s1 is [s1 name]"
+--------------------------------------------------
+
+The class +Person+ has two attributes +name+ and +birthday+, where the
+attribute +name+ is required, the attribute +birthday+ is not. The
+class +Student+ is a subclass of +Person+ with the additional required
+attribute +matnr+. (see <<xmp-object-parameters,
+{xmp-object-parameters}>>). These definitions imply in NX, that
+instances of the class of +Person+ have +name+ and +birthday+ as
+non-positional object parameters. Furthermore it implies, that
+instances of +Student+ will have now at least three non-positional
+object parameters, namely +name+ and +birthday+ (inherited from
++Person+) and +matnr+ (defined on +Student+).
+
+[[img-slots]]
+image::object-parameter.png[align="center",title="System and Application Classes"]
+{set:img-object-parameters:Figure {figure-number}}
+
+describe inherited object parameter from nx::Object, 
+describe object parameters for configuring the classes Student and
+Person,  ...
+
+==== Slot Classes and Slot Objects
+
+In the previous section, we defined the scripted checker methods on a
+class named +nx::Slot+. 
+In general NX offers the possibility to define
+value checkers not only for all usages of parameters but as well
+differently for method parameters or object parameters
+
+[[img-slots]]
+image::slots.png[align="center",title="Slot Classes and Objects"]
+{set:img-slots:Figure {figure-number}}
+
+==== Special Object Parameters
+
+==== Attribute Slots
+
+
+Still Missing
+
+- return value checking
+- switch
+- initcmd ...
+- subst rules
+- converter
+- incremental slots
 
 
 [bibliography]
