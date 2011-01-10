@@ -83,7 +83,7 @@
 }]
 
 [:!let iattrs [:inherited @class-attribute]]
-  [:? {$iattrs ne ""} { 
+[:? {$iattrs ne ""} { 
   <div rel="yui:inheritance">                    
     [:for superclass [dict keys $iattrs]  {
     [:!let attrs [dict values [dict get $iattrs $superclass]]]
@@ -206,14 +206,6 @@
     </div>
     }]
   </div>
-}]
-
-  
-
-
-
-[:?var :@method {
-   Undocumented Methods: <span style='color: red'>[:undocumented]</span>
 }]
 
 
