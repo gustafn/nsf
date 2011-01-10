@@ -297,7 +297,7 @@ namespace eval ::nx::doc {
     :public method new {
       -part_attribute
       -partof:object,type=::nx::doc::Entity
-      -name:required 
+      -name:any,required 
       args
     } {
       # A refined frontend for object construction/resolution which
@@ -366,7 +366,7 @@ namespace eval ::nx::doc {
     :public method new {
       -part_attribute
       -partof:object,type=::nx::doc::Entity
-      -name:required 
+      -name:any,required
       args
     } {
       set id_name $name
@@ -391,7 +391,7 @@ namespace eval ::nx::doc {
     :public method new {	       
       -part_attribute:required
       -partof:object,type=::nx::doc::Entity
-      -name 
+      -name:any,required
       args
     } {
       :createOrConfigure [:id [$partof name] [$part_attribute scope] $name] {*}[current args]
@@ -412,7 +412,7 @@ namespace eval ::nx::doc {
   # refer to a part_class (a subclass of Part) or they do not. If a
   # part_class is given, the values will be transformed accordingly
   # before being pushed into the internal storage.
-  
+
   ::nx::MetaSlot create PartAttribute -superclass ::nx::Attribute {
 
     # @param part_class
@@ -512,7 +512,8 @@ namespace eval ::nx::doc {
     # @param name
     #
     # gives you the name (i.e., the Nx object identifier) of the documented entity
-    :attribute name:required
+    :attribute name:any,required
+
     # every Entity must be created with a "@doc" value and can have
     # an optional initcmd 
     :method objectparameter args {
@@ -1137,7 +1138,7 @@ namespace eval ::nx::doc {
 	:public class-object method new {	       
 	  -part_attribute:required
 	  -partof:object,type=::nx::doc::Entity
-	  -name 
+	  -name:any,required
 	  args
 	} {
 	  # 1) Are we in a sub-method?
@@ -1285,7 +1286,6 @@ namespace eval ::nx::doc {
       -superclass PartEntity {
 	:attribute spec
 	:attribute default
-	  
 
 	:public class-object method id {partof_name scope name} {
 	  next [list [:get_unqualified_name ${partof_name}] $scope $name]
@@ -1315,10 +1315,9 @@ namespace eval ::nx::doc {
 	:public class-object method new {
 		-part_attribute 
 		-partof:required
-		-name 
+		-name:any,required
 		args
 	      } {
-	  
 	  lassign $name name def
 	  set spec ""
 	  regexp {^(.*):(.*)$} $name _ name spec
