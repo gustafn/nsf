@@ -589,7 +589,7 @@ Test case user-types {
   D create d1
 
   # create a userdefined type
-  ::nx::methodParameterSlot method type=mytype {name value args} {
+  ::nx::methodParameterSlot method type=mytype {name value} {
     if {$value < 1 || $value > 3} {
       error "Value '$value' of parameter $name is not between 1 and 3"
     }
@@ -662,7 +662,6 @@ Test case user-types {
   ? {D public method foo {a:int,range,arg=1-3} {return a=$a}} \
       "Refuse to redefine parameter converter to use type=range" \
       "invalid value"
-  
   #
   # handling of arg with spaces/arg as list
   #
@@ -675,6 +674,7 @@ Test case user-types {
   D public method foo {{"-a:list,arg=2 6" 3} {"b:list,arg=5 10"}} {
     return a=$a,b=$b
   }
+
   ? {d1 foo -a 2 10} "a=2,b=10"
   
 }
@@ -1404,6 +1404,20 @@ Test case req-param {
 }
 
 ::nsf::configure checkarguments on
+
+#
+# Test type any (or other typechecker) in combination with
+# substdefault via object parameter
+#
+Test case nsf-subdefault {
+  nx::Class create C {
+    :attribute {n1 "[namespace tail [::nsf::self]]"}
+    :attribute {n2:any "[namespace tail [::nsf::self]]"}
+    :create c1
+  }
+  ? {c1 n1} c1
+  ? {c1 n2} c1
+}
 
 #
 # Test argument processing and namespace handling in nsf::procs
