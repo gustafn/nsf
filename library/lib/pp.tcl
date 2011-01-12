@@ -99,7 +99,7 @@ namespace eval ::nx::pp {
       method attribute forward 
       my next new self current
       create init new destroy alloc dealloc
-      class superclass mixin
+      class superclass mixin filter
       ::nx::Class nx::Class ::xotcl::Class xotcl::Class Class 
       ::nx::Object nx::Object ::xotcl::Object xotcl::Object Object 
       ::nx::Attribute nx::Attribute Attribute 
