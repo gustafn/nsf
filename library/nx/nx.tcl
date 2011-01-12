@@ -935,11 +935,11 @@ namespace eval ::nx {
     #puts stderr "... objectparameter [::nsf::self]"
     set parameterdefinitions [::nsf::parametersfromslots [::nsf::self]]
     if {[::nsf::is class [::nsf::self]]} {
-      lappend parameterdefinitions -attributes:method,optional
+      lappend parameterdefinitions -attributes:method
     }
     lappend parameterdefinitions \
-        -noinit:method,optional,noarg \
-        -volatile:method,optional,noarg \
+        -noinit:method,noarg \
+        -volatile:method,noarg \
         {*}$lastparameter
     #puts stderr "*** parameter definition for [::nsf::self]: $parameterdefinitions"
     return $parameterdefinitions
