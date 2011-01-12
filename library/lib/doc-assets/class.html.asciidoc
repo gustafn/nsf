@@ -1,0 +1,106 @@
+<div class="paragraph">
+[:as_text]  
+</div>
+[:?var :@class-attribute {
+[:!let class_attrs [:!get -sortedby name -with name @class-attribute]]
+}]
+
+<div class="sect2">
+  <h3>Provided Parameters</h3>
+  [:? {[info exists class_attrs]} {
+  <p>
+    <tt>
+      [:for attr [dict values $class_attrs] {
+      <a href="#[$attr as_tag_id]" title="[$attr name]">[$attr name]</a>
+      }]
+    </tt>
+  </p>
+  }]
+  [:!let iattrs [:inherited @class-attribute]]
+  [:? {$iattrs ne ""} { 
+  [:for superclass [dict keys $iattrs]  {
+  [:!let attrs [dict values [dict get $iattrs $superclass]]]
+  <div class="title">Parameters inherited from <tt>[$superclass name]</tt></div>
+  <p>
+    <tt>
+      [:for a $attrs {
+      <a href="#[$a as_tag_id]" title="[$a name]">[$a name]</a>
+      }]
+    </tt>
+  </p>
+  }]
+  }]
+
+  [:? {[info exists class_attrs]} {
+  <div class="dlist">
+    [:for attr [dict values $class_attrs] {
+    <hr/>
+    <dt class="hdlist1">
+      <span id="[$attr as_tag_id]">[$attr name]</span>
+    </dt>
+    <dd><p>[$attr as_text]</p></dd>
+    }]
+  </div>
+  }]
+</div>
+
+
+[:?var :@class-method {
+[:!let class_methods [:!get -sortedby name -where {${:@modifier} eq "public"} @class-method]]
+}]
+
+<div class="sect2">
+  <h3>Provided Methods</h3>
+  [:? {[info exists class_methods]} {
+  <p>
+    <tt>
+      [:for m $class_methods {
+      <a href="#[$m as_tag_id]" title="[$m name]">[$m name]</a>
+      }]
+    </tt>
+  </p>
+  }]
+  [:!let imethods [:inherited @class-method]]
+  [:? {$imethods ne ""} { 
+  [:for superclass [dict keys $imethods]  {
+  [:!let ms [dict values [dict get $imethods $superclass]]]
+  <div class="title">Methods inherited from <tt>[$superclass name]</tt></div>
+  <p>
+    <tt>
+      [:for m $ms {
+      <a href="#[$m as_tag_id]" title="[$m name]">[$m name]</a>
+      }]
+    </tt>
+  </p>
+  }] 
+  }]
+
+  [:? {[info exists class_methods]} {
+  [:for m $class_methods {
+  [:? {[info exists class_attrs] && [dict exists $class_attrs [$m name]]} {
+  [$m render -initscript [list set owning_attribute [dict get $class_attrs [$m name]]] attributemethod.html.asciidoc]
+  } - {
+  [$m render method.html.asciidoc]
+  }]
+  }]
+  }]
+</div>
+
+
+[:?var :@object-method {
+[:!let omethods [:!get -sortedby name @object-method]]
+<div class="sect2">
+  <h3>Per-Object Methods</h3>
+  <p>
+    <tt>
+      [:for om $omethods {
+      <a href="#[$om as_tag_id]" title="[$om name]">[$om name]</a>
+      }] 
+    </tt>
+  </p>
+  [:for om $omethods {
+  [$om render method.html.asciidoc]
+  }]
+</div>
+}]
+  

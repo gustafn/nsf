@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <title>
+    API: ${:name} [:?var classname {$classname}] [:?var filename {$filename}] (A Next Library)
+  </title>  
+  <link rel="stylesheet" 
+	type="text/css" 
+	href="http://asciidoc.googlecode.com/hg/stylesheets/xhtml11.css" />
+</head>
+<style type="text/css">
+span.var {
+font-style: italic;
+}
+</style>
+<body>
+<div id="header">
+  <h1>[$project name] API documentation</h1>
+  <span id="author">Stefan Sobernig, Gustaf Neumann</span><br/>
+  <span id="email"><tt>&lt;<a href="mailto:stefan.sobernig@wu.ac.at">stefan.sobernig@wu.ac.at</a>&gt;</tt><br/><tt>&lt;<a href="mailto:gustaf.neumann@wu.ac.at">gustaf.neumann@wu.ac.at</a>&gt;</tt></span><br/>
+  <span id="revnumber">[$project version]</span>
+  <div id="toc">
+    <div id="toctitle">Table of Contents</div>
+    [:for feature [dict keys $project_entities]  {
+    <div class="toclevel1">
+      [$feature pretty_plural]
+    </div>
+    [:for inst [dict get $project_entities $feature] {
+    <div class="toclevel2">
+      <a href="#[$inst as_tag_id]" title="[$inst name]">[$inst name]</a>
+    </div>
+    }]
+    }]
+    [:?var :@glossary {
+    <div class="toclevel1">
+      <a href="#glossary" title="Glossary">Glossary</a>
+    </div>
+    }]
+  </div>
+</div>
+[:!let tmpls [dict create ::nx::doc::@class class.html.asciidoc ::nx::doc::@package package.html.asciidoc ::nx::doc::@object object.html.asciidoc ::nx::doc::@command command.html.asciidoc]]
+<div id="content">
+  [:for feature [dict keys $project_entities] {
+  [:for inst [dict get $project_entities $feature] {
+  <div class="sect1">
+    <h2 id="[$inst as_tag_id]">[$feature pretty_name] <tt>[$inst name]</tt></h2>
+    <div class="sectionbody">
+      [:? {[dict exists $tmpls [$inst info class]]} {
+      [$inst render [dict get $tmpls [$inst info class]]]
+      }]
+    </div>
+  </div>
+  }]
+  }]
+  [:?var :@glossary {
+  <div class="sect1">
+    <h2 id="glossary">Glossary</h2>
+    <div class="sectionbody">
+      [:!let entries [sorted [:@glossary] name]]
+      [:for entry $entries {
+      [:!let ddesc [$entry as_text]]
+      [:?objvar $entry @acronym {
+      [:!let dtext [$entry @acronym]]
+      [:? {$ddesc ne ""} {
+      [:!let ddesc "[$entry @pretty_name]&nbsp;&mdash;&nbsp;$ddesc"]
+      } - {
+      [:!let ddesc "[$entry @pretty_name]"]
+      }]
+      } - {
+      [:!let dtext [$entry @pretty_name]]
+      }]
+      <dt>
+	<span id="[$entry as_tag_id]" class="caps">$dtext</span>
+      </dt>
+      <dd>
+	<p>$ddesc</p>
+      [:?objvar $entry refs {
+      [:? {[$entry eval [concat dict exists \${:refs} [current]]]} { 
+      <p><tt>
+	[:!let refs [sort_by_value [$entry eval [concat dict get \${:refs} [current]]]]]
+        [:for src  [dict keys $refs] {
+        <span> 
+          [$src make_link [current]]
+          <!--<a class=""
+	      href="[$src href]" property="yui:name"
+	      title="[$src name]">[$src name]</a>-->&nbsp;([dict get $refs $src])
+        </span>
+	}]
+      </tt></p>
+	}]
+      }]
+      </dd>
+      }]
+    </div>
+  </div>
+  }]
+</div>
+<div id="footer">
+</div>  
+</body>
+</html>

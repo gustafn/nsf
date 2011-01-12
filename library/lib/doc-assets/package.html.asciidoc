@@ -1,0 +1,45 @@
+<!-- Below, we assume that the template is evaluated in the context of --
+  -- a @package instance -->
+<p class="paragraph">
+  [:as_text]
+</p>
+
+[:?var :@require {
+<div class="title">Required packages</div>
+<p>${:@require}</p>
+}]
+
+[:?var :@class {
+<div class="title">Contained classes</div>
+<div class="ulist">
+  <ul>
+    [:for class [:!get -sortedby name @class] {
+    <li><a href="#[$class as_tag_id]" title="[$class name]">[$class print_name]</a></li>
+    }]
+  </ul>
+</div >
+}]
+
+[:?var :@object {
+<div class="title">Contained objects</div>
+<div class="ulist">
+  <ul>
+    [:for obj [:!get -sortedby name @object] {
+    <li><a href="#[$obj as_tag_id]" title="[$obj name]">[$obj print_name]</a></li>
+    }]
+  </ul>
+</div >
+}]
+
+[:?var :@command {
+<div class="title">Contained commands</div>
+<div class="ulist">
+  <ul>
+    [:for cmd [:!get -sortedby name @command] {
+    <li><a href="#[$cmd as_tag_id]" title="[$cmd name]">[$cmd print_name]</a></li>
+    }]
+  </ul>
+</div >
+}]
+
+

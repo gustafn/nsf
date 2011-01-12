@@ -130,7 +130,7 @@ namespace eval ::nx::doc {
     }
 
 
-  Class create MixinLayer -superclass Class {
+  Class create MixinLayer {
     :attribute {prefix ""}
     :public method init {} {
       set :active_mixins [dict create]
@@ -335,7 +335,8 @@ namespace eval ::nx::doc {
       return [string trimleft [string map [list [:root_namespace] ""] $qualified_name] ":"]
     }
     :public method get_tail_name {qualified_name} {
-      return [string trimleft [string map [list ${:tag} ""] [:get_unqualified_name $qualified_name]]  ":"]
+      #return [string trimleft [string map [list ${:tag} ""] [:get_unqualified_name $qualified_name]]  ":"]
+      return [join [lrange [concat {*}[split [:get_unqualified_name $qualified_name] "::"]] 1 end] "::"]
     }
   }
 
@@ -889,6 +890,8 @@ namespace eval ::nx::doc {
     }
 
     :attribute @package -class ::nx::doc::PartAttribute {
+      :pretty_name "Package"
+      :pretty_plural "Packages"
       set :part_class ::nx::doc::@package
     }
 
@@ -1393,20 +1396,28 @@ namespace eval ::nx::doc {
 
 namespace eval ::nx::doc {
 
-  Class create Renderer {
-    :public method run {} {
-      :render=[namespace tail [:info class]]
+  Class create TemplateData {
+    
+    :class-object attribute current_format
+    :class-object attribute current_theme
+    :public forward current_format [current] %method
+    :public forward current_theme [current] %method
+
+    #
+    # TODO: For now, this acts as the counterweight to "origin",
+    # when @use aliasing is used, processed_entity can be used to
+    # refer to the actual entity at the upper end of the aliasing
+    # chain. Verify, whether this is an acceptable approach ...
+    #
+    :class-object attribute rendered_entity:object,type=::nx::doc::Entity
+    :public forward rendered_entity [current] %method
+
+    :method initialise {with_template_path} {
+      :rendered_entity [current]
+      foreach {f t} [lrange [split $with_template_path .] end-1 end] break;
+      :current_format $f
+      :current_theme $t
     }
-  }
-
-  Class create TemplateData {  
-
-    :public method write_data {content path} {
-      set fh [open $path w]
-      puts $fh $content
-      catch {close $fh}
-    }
-
 
     :public method read_tmpl {path} {
       if {[file pathtype $path] ne "absolute"} {
@@ -1447,14 +1458,14 @@ namespace eval ::nx::doc {
       # figured out (as for the origin mechanism) we so keep track
       # of the actual rendered entity ... review later ...
       #
-      $entity rendered_entity $entity
+      $entity initialise $template
       $entity render_start
       set content [$entity eval [subst -nocommands {
 	$initscript
 	$tmplscript
       }]]
       $entity render_end
-      return $content
+      return [string trim $content \n]
     }
     
     
@@ -1549,8 +1560,10 @@ namespace eval ::nx::doc {
       uplevel 1 [list subst [:read_tmpl $template]]
     }
 
-    :method code args {
-      error "Subclass responsibility: You must provide a method definition of '[current method]' in a proper subclass"
+    :method listing {{-inline true} script} {
+      set iscript [join [list [list set inline $inline] [list set script $script]] \n]
+      :render -initscript $iscript [current method].[:current_format].[:current_theme]
+
     }
 
     :method link args {
@@ -1621,8 +1634,10 @@ namespace eval ::nx::doc {
       # distinguish errors on unintended and intended evaluations.
       # ...
       if {[catch {set preprocessed [subst $preprocessed]} msg]} {
+	puts stderr SELF=[current]
 	puts stderr MSG=$msg
 	puts stderr IN->$preprocessed
+	puts stderr errorInfo->$::errorInfo
       }
       return $preprocessed
     }
@@ -1634,59 +1649,118 @@ namespace eval ::nx::doc {
     # Doc templates.
     # 
 
-  MixinLayer create NxDocRenderer -superclass Renderer -prefix ::nx::doc {
-    :public method run {{-tmpl entity.html.tmpl} {-outdir /tmp}} {
+  Class create Renderer -superclass MixinLayer {
+    
+    :method init args {
+      set :prefix "::nx::doc"
+      next
+    }
 
-      #
-      # Note: For now, this method is called upon a @project
-      # instance. This may change during continued refactoring.
-      #
-
-      # 1) apply the mixin layer
-      [current class] apply
-
-      # 2) proceed by rendering the project's parts (package, class,
-      # object, and command entities)
-      set ext [lindex [split [file tail $tmpl] .] end-1]
-      set top_level_entities [:navigatable_parts]
-      set init [subst {
-	set project \[:current_project\]
-	set project_entities \[list $top_level_entities\]
-      }]
-      set project_path [file join $outdir [string trimleft ${:name} :]]
+    :method write {content path} {
+      set fh [open $path w]
+      puts $fh $content
+      catch {close $fh}
+    }
+    :method remove {{-nocomplain:switch} path} {
+      if {![file exists $path] && !$nocomplain} {
+	error "Path does not exists: '$path'."
+      }
+      file delete -force $path
+    }
+    
+    :method "pick multifile" {
+      project 
+      tmpl 
+      {-outdir [::nsf::tmpdir]}
+    } {
+      set ext [namespace tail [current]]
+      set project_path [file join $outdir [string trimleft [$project name] :]]
+      
+      :remove -nocomplain $project_path
+      
       if {![catch {file mkdir $project_path} msg]} {
-	set assets [lsearch -all -inline -glob -not [glob -directory [find_asset_path] *] *.tmpl]
+	set assets [glob -directory [::nx::doc::find_asset_path] *]
+	set assets [lsearch -all -inline -glob -not $assets *.$ext]
 	set target $project_path/assets
 	file mkdir $target
 	file copy -force -- {*}$assets $target
 	
-	set values [join [dict values $top_level_entities]]
-
+	set values [concat {*}[dict values [$project navigatable_parts]]]
 	#
 	# Make sure that the @project entity is processed last.
 	#
-	lappend values [current object]
+	lappend values $project
 
 	# Note: We trigger the validation of entities according to
 	# their pdata once for the entire entity hierarchy, starting
 	# from the root, i.e. the project entity.
-	:validate
 	foreach e $values {
 	  #
 	  # TODO: For now, in templates we (silently) assume that we act
 	  # upon structured entities only ...
 	  #
 	  if {![$e info has type ::nx::doc::StructuredEntity]} continue;
-	  $e current_project [current object]
-	  set content [$e render -initscript $init $tmpl]
-	  :write_data $content [file join $project_path "[$e filename].$ext"]
+	  set content [:render $project $e $tmpl]
+	  :write $content [file join $project_path "[$e filename].$ext"]
 	  puts stderr "$e written to [file join $project_path [$e filename].$ext]"
 	}
       }
-            
-      # 3) TODO: revoke the application of the mixin layer (for the sake of
-      # some sort of bounded quantification) 
-      [current class] revoke
+    }
+
+    :method "pick singlefile" {
+      project 
+      tmpl 
+      {-outdir "[::nsf::tmpdir]"}
+    } {      
+      set ext [namespace tail [current]]
+      set fn [file join $outdir "[$project name].$ext"]
+      :remove -nocomplain $fn
+      set content [:render $project $project $tmpl]
+      :write $content $fn
+      puts stderr "$project written to $fn"
+    }
+
+    :public method run {
+	-project 
+	{-layout multifile} 
+	{-theme tmpl} 
+	args
+      } {
+      # 1. trigger validation
+      $project validate
+      
+      # 2. verify whether there is ...
+      # i) a layout handler and
+      # ii) a template matching both the layout/theme specified      
+      set ext [namespace tail [current]]
+      set tmpl $layout.$ext.$theme      
+      set path_to_tmpl [file join [::nx::doc::find_asset_path] $tmpl]
+      if {![file exists $path_to_tmpl] || \
+	      [:info lookup method "pick $layout"] eq ""
+	    } {
+	error "Beware, $ext $layout output for theme '$theme' not supported."
+      }
+
+      # 3) proceed
+      :apply
+      :pick $layout $project $tmpl {*}$args
+      :revoke
+    }
+    
+    :method render {project entity tmpl} {
+      error "Not implemented. Instance responsibility!"
+    }
+  }
+  
+  Renderer create html {
+    :method render {project entity tmpl} {
+      set top_level_entities [$project navigatable_parts]
+      set init [subst {
+	set project $project
+	set project_entities \[list $top_level_entities\]
+      }]
+      $entity current_project $project
+      $entity render -initscript $init $tmpl
     }
 
     #
@@ -1706,15 +1780,6 @@ namespace eval ::nx::doc {
       # :protected class-object attribute current_project:object,type=::nx::doc::@project
       # :class-object attribute current_project:object,type=::nx::doc::@project
       # :public forward current_project [current] %method
-
-      #
-      # TODO: For now, this acts as the counterweight to "origin",
-      # when @use aliasing is used, processed_entity can be used to
-      # refer to the actual entity at the upper end of the aliasing
-      # chain. Verify, whether this is an acceptable approach ...
-      #
-      :class-object attribute rendered_entity:object,type=::nx::doc::Entity
-      :public forward rendered_entity [current] %method
 
       # :public forward print_name %current name
       :public method statusmark {} {
@@ -1779,9 +1844,11 @@ namespace eval ::nx::doc {
       }
        
       :method listing {{-inline true} script} {
-	#return [expr {$inline?"<code>$script</code>":"<pre>$script</pre>"}]
-	set listing [expr {$inline?"<code>$script</code>":[string trimright [nx::pp render [string trimright $script " \r\n"]] "\n"]}]
-	return $listing
+	set listing $script
+	if {!$inline} {
+	  set listing [string trimright [nx::pp render [string trimright $script " \r\n"]] "\n"]
+	}
+	next [list -inline $inline $listing]
       }
       
       :method link=tclcmd {cmd} {
@@ -1830,12 +1897,10 @@ namespace eval ::nx::doc {
       }
 
       :public method render_link {tag source path} {
-	#puts stderr PATH=$path
 	set id [current]
 	set pathnames [dict values $path]
 	set entities [dict keys $path]
 	set top_entity [lindex $entities 0]
-	# puts stderr RESOLPATH([$id info class])=$path
 	set pof ""
 	if {$top_entity ne $id} {
 	  set pof "[$top_entity name]#"
@@ -1844,8 +1909,12 @@ namespace eval ::nx::doc {
 	}
 	#return "<a href=\"[$id href $top_entity]\">$pof[join $pathnames .]</a>"
 	# GN TODO: Maybe a nicer "title" attribute via method title?
-	return "<a class='nsfdoc-link' title='$pof[join $pathnames .]' \
-		href='[$id href $top_entity]'>[join $pathnames { }]</a>"
+	#return "<a class='nsfdoc-link' title='$pof[join $pathnames .]' \
+	#	href='[$id href $top_entity]'>[join $pathnames { }]</a>"
+	set iscript [join [list [list set title $pof[join $pathnames .]] \
+			       [list set source_anchor [join $pathnames { }]] \
+			       [list set top_entity $top_entity]] \n]
+	:render -initscript $iscript link.[:current_format].[:current_theme]
       }
       
       :public method as_text {} {
@@ -1882,6 +1951,15 @@ namespace eval ::nx::doc {
 	  return [[:info class] tag]_[string trimleft [string map {:: __} ${:name}] "_"]
 	}
       }
+
+      :public method as_tag_id {} {
+	set tagclass [:info class]
+	set tail [$tagclass get_tail_name [current]]
+	set tname [string trimleft [string map {:: _} $tail] "_"]
+	return [$tagclass tag]__$tname
+      }
+
+
     }; # NxDocTemplating::Entity
 
     MixinLayer::Mixin create [current]::@project -superclass [current]::Entity {
@@ -1967,15 +2045,13 @@ namespace eval ::nx::doc {
 	  if {!$acronym(short) && ($acronym(long) || ![info exists :refs] || \
 				       ![dict exists ${:refs} [:current_project] $source])} {
 	    set print_name "$print_name (${:@acronym})"
-	    set res "<a href=\"[:href]\" title=\"$title\" class='nsfdoc-gloss'>$print_name</a>"
 	  } else {
 	    set title $print_name
 	    set print_name ${:@acronym}
 	    set anchor "<a href=\"[:href]\" title=\"$title\" class='nsfdoc-gloss'>$print_name</a>"
-	    set res "<abbr title=\"$title\">$anchor</abbr>" 
+	    # TODO: Re-provide the <abbrv> environment
+	    #set res "<abbr title=\"$title\">$anchor</abbr>" 
 	  }
-	} else {
-	  set res "<a href=\"[:href]\" title=\"$title\" class='nsfdoc-gloss'>$print_name</a>"
 	}
 
 	# record for reverse references
@@ -1985,8 +2061,16 @@ namespace eval ::nx::doc {
 	dict update :refs [:current_project] prj {
 	  dict incr prj $source
 	}
+
+	set iscript [join [list [list set title $title] \
+			       [list set source_anchor $print_name] \
+			       [list set top_entity [current]] \
+			       [list set cssclass nsfdoc-gloss]] \n]
+	set res [:render \
+		     -initscript $iscript \
+		     link.[:current_format].[:current_theme]]
 	return $res
-      }      
+      }
     }; # NxDocRenderer::@glossary
 
     MixinLayer::Mixin create [current]::@class -superclass [current]::Entity {
@@ -3121,19 +3205,19 @@ namespace eval ::nx {
     # mixin layer interface
     #
 
-    :class-object method apply {} {
+    :method apply {} {
       unset -nocomplain :processed_entities
       next
     }
 
-    :class-object method revoke {} {
+    :method revoke {} {
       next
       if {[info exists :processed_entities]} {
 	return [dict keys ${:processed_entities}]
       }
     }
     
-    :public class-object method at_processed {entity} {
+    :public method at_processed {entity} {
       dict set :processed_entities $entity _
     }
 
@@ -3141,11 +3225,11 @@ namespace eval ::nx {
     # processor interface
     #
 
-    :class-object method log {msg} {
+    :method log {msg} {
       puts stderr "[current]->[uplevel 1 [list ::nsf::current method]]: $msg"
     }
 
-    :public class-object method process {
+    :public method process {
 	-sandboxed:switch 
 	-validate:switch
 	{-type project}
@@ -3275,7 +3359,7 @@ namespace eval ::nx {
       return $project
     }
 
-    :protected class-object method process=@package {project pkgs} {
+    :protected method process=@package {project pkgs} {
       set box [$project sandbox]
       $box permissive_pkgs [string tolower $pkgs]
       set 1pass ""
@@ -3324,7 +3408,7 @@ namespace eval ::nx {
         # 
         set ft [::xotcl::metadataAnalyzer::FileToken allinstances]
         if {[llength $ft] > 1} {
-          error "Too many xodoc file tokes processed. Expecting just one!"
+          error "Too many xodoc file tokens processed. Expecting just one!"
         }
         
         set partof $project
@@ -3340,7 +3424,7 @@ namespace eval ::nx {
       }
     }
       
-    :protected class-object method process=package {project pkgs} {
+    :protected method process=package {project pkgs} {
       set box [$project sandbox]
       $box permissive_pkgs $pkgs
       set 1pass ""
@@ -3384,9 +3468,9 @@ namespace eval ::nx {
       return $provided_entities
     }
 
-    :protected class-object method process=source {project filepath} {;}
+    :protected method process=source {project filepath} {;}
 
-    :protected class-object method process=eval {project scripts} {
+    :protected method process=eval {project scripts} {
       set box [$project sandbox]
       #
       # 1a) 1pass ... TODO: should tracing be enabled in this scenario? ...
@@ -3438,7 +3522,7 @@ namespace eval ::nx {
       }
     }
         
-    :public class-object method readin {
+    :public method readin {
 	-docstring:switch 
 	-tag
 	-name
@@ -3496,7 +3580,7 @@ namespace eval ::nx {
       }
     }
 
-    :public class-object method analyze_line {line} {
+    :public method analyze_line {line} {
       set regex {^[\s#]*#+(.*)$}
       if {[regexp -- $regex $line --> comment]} {
 	return [list 1 [string trimright $comment]]
@@ -3505,7 +3589,7 @@ namespace eval ::nx {
       }
     }
     
-    :public class-object method comment_blocks {script} {
+    :public method comment_blocks {script} {
       set lines [split $script \n]
       set comment_blocks [list]
       set was_comment 0
@@ -3541,9 +3625,9 @@ namespace eval ::nx {
     # distinguished from @object (dispatch along the inheritance
     # hierarchy?)
 
-    :public class-object method process=@command {project entity} {;}
+    :public method process=@command {project entity} {;}
 
-    :public class-object method process=@class {project entity} {
+    :public method process=@class {project entity} {
       set name [$entity name]
       set box [$project sandbox]
       # attributes
@@ -3594,7 +3678,7 @@ namespace eval ::nx {
     # we pass a parameter value, revisit this decision once we decide
     # on a location for this behaviour.
     #
-    :public class-object method process=@object {project entity {scope ""}} {
+    :public method process=@object {project entity {scope ""}} {
       set name [$entity name]
       set box [$project sandbox]
       # methods
@@ -3641,13 +3725,11 @@ namespace eval ::nx::doc {
     }
 
     :public method doc {
-      {-renderer ::nx::doc::HtmlRenderer}
-      -project:object,type=::nx::doc::@project
+      {-format html}
+      project:object,type=::nx::doc::@project
       args
     } {
-      $project mixin add $renderer
-      $project run {*}$args
-      $project mixin delete $renderer
+      $format run -project $project {*}$args
     }
   }
   

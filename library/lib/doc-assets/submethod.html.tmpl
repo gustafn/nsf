@@ -1,39 +1,39 @@
 [:!let name [:get_combined name]]
-      <div rel="yui:property">
-        <h4><a name="[:href -local]" property="yui:name">$name[:statusmark]</a>
-        </h4>
-        <div class="detail">
-	   <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
-	      <span class="var">obj</span>
-	     <strong property="yui:name">$name</strong>
-	      <span class="var">[:pinfo get -default "" bundle parametersyntax]</span>
-	    </code>
-          <div class="description" property="yui:description">
-	    [:as_text]
-	    [:? {[info exists :@parameter]} {
-	    <dl rel="yui:parameters">
-	    <dt>Parameters:</dt>
-	    [:for param ${:@parameter} {
-	    <dd rel="yui:parameter">
-	      <code><span property="yui:name">[$param name]</span>
-		[:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
-	      </code>
-	      [$param statusmark]
-	      <span property="yui:description">[$param as_text]</span>
+<div rel="yui:property">
+  <h4><a name="[:href -local]" property="yui:name">$name[:statusmark]</a>
+  </h4>
+  <div class="detail">
+    <code>[:? {[info exists :@return] && [${:@return} spec] ne ""} {&lt;<span property="yui:type">[${:@return} spec]</span>&gt;} ]
+      <span class="var">obj</span>
+      <strong property="yui:name">$name</strong>
+      <span class="var">[:pinfo get -default "" bundle parametersyntax]</span>
+    </code>
+    <div class="description" property="yui:description">
+      [:as_text]
+      [:? {[info exists :@parameter]} {
+      <dl rel="yui:parameters">
+	<dt>Parameters:</dt>
+	[:for param ${:@parameter} {
+	<dd rel="yui:parameter">
+	  <code><span property="yui:name">[$param name]</span>
+	    [:? {[$param eval {info exists :spec}] && [$param spec] ne ""} {&lt;<span property="yui:type">[$param spec]</span>&gt;}]
+	  </code>
+	  [$param statusmark]
+	  <span property="yui:description">[$param as_text]</span>
 	  <span style='display:block; color: red'>[$param pinfo get -default "" validation]</span>
-	    </dd>
-	    }]
-	  </dl>
-	  }]
-	    [:? {[info exists :@return]} {
-	  <dl>
-	    <dt>Returns:
-	      <code property="yui:return">
-	    </code></dt>
-	    <dd property="yui:returnInfo">[${:@return} as_text]</dd>
-	  </dl>
-	  }]
-          </div>
-        </div>	
-        <hr />
-      </div>
+	</dd>
+	}]
+      </dl>
+      }]
+      [:? {[info exists :@return]} {
+      <dl>
+	<dt>Returns:
+	  <code property="yui:return">
+	</code></dt>
+	<dd property="yui:returnInfo">[${:@return} as_text]</dd>
+      </dl>
+      }]
+    </div>
+  </div>	
+  <hr />
+</div>

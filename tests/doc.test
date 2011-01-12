@@ -1063,13 +1063,6 @@ Test case switch-parts {
 }
 
 puts stderr =================================================
-foreach path [list [file join [::nsf::tmpdir] NextScriptingFramework] \
-		  [file join [::nsf::tmpdir] NextScriptingLanguage] \
-		  [file join [::nsf::tmpdir] XOTcl2]] {
-  if {[file exists $path]} {
-    file delete -force $path
-  }
-}
 
 # TODO: Figure out where to place nsf.nxd for convenient location ...
 
@@ -1118,8 +1111,10 @@ set project [processor process \
 		 -include $::nsf::includes $project]
 
 ::nx::doc::make doc \
-    -renderer ::nx::doc::NxDocRenderer \
-    -project $project \
+    -format html \
+    $project \
+    -theme tmpl \
+    -layout multifile \
     -outdir [::nsf::tmpdir]
 
 puts stderr >>>>>>>NextScriptingLanguage<<<<<<<<
@@ -1131,15 +1126,17 @@ set ::nx::excludes {
   ::nx::slotObj
 }
 
-set _ [time {
-  set project [::nx::doc::@project new \
-		   -name NextScriptingLanguage \
-		   -url http://www.next-scripting.org/ \
-		   -version 1.0.0a \
-		   -@namespace "::nx" \
-		   -sources {
-		     package nx
-		   } -depends $project]
+
+set project [::nx::doc::@project new \
+		 -name NextScriptingLanguage \
+		 -url http://www.next-scripting.org/ \
+		 -version 1.0.0a \
+		 -@namespace "::nx" \
+		 -sources {
+		   package nx
+		 } -depends $project]
+
+dict set timings process [time {
 
   # ISSUE: If calling '-namespace "::nx"' instead of '-@namespace
   # "::nx"', we get an irritating failure. VERIFY!
@@ -1148,15 +1145,27 @@ set _ [time {
       -sandboxed \
       -exclude $::nx::excludes \
       $project
+} 1]
 
-  ::nx::doc::make doc \
-      -renderer ::nx::doc::NxDocRenderer \
-      -project $project \
+dict set timings make.html.yuidoc [time {
+  ::nx::doc::make doc $project \
       -outdir [::nsf::tmpdir]
 } 1]
 
-puts stderr ">>>>> gross timing for $project $_"
+dict set timings make.html.asciidoc [time {
+::nx::doc::make doc \
+    -format html \
+    $project \
+    -theme asciidoc \
+    -layout singlefile \
+    -outdir [::nsf::tmpdir]
+} 1]
 
+dict for {probe t} $timings {
+  puts stderr "\t$probe -> $t"
+}
+
+exit
 set project [::nx::doc::@project new \
 		 -name XOTcl2 \
 		 -url http://www.xotcl.org/ \
@@ -1171,7 +1180,8 @@ processor process \
     $project
 
 ::nx::doc::make doc \
-    -renderer ::nx::doc::NxDocRenderer \
+    -format html \
+    -theme tmpl \
     -project $project \
     -outdir [::nsf::tmpdir]
 
